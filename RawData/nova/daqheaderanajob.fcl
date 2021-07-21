@@ -1,0 +1,52 @@
+#include "DAQHeaderAna.fcl"
+
+process_name: DAQHeaderAna
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  scheduler:    { wantSummary: false }
+  TFileService: { fileName: "daqheader_hist.root" closeFileFast: false }
+  message:
+  {
+    debugModules: ["*"]
+    destinations:
+    {
+      debugmsg:
+      {
+        #type: "file"
+        #filename: "debug.log"
+        append: false
+        type: "cout"
+        threshold: "DEBUG"
+      }
+    }
+  }
+  #TimeTracker: {}
+}
+
+#source is a root file
+source:
+{
+  module_type:               RootInput
+  maxEvents:                 -1                             # Number of events to process
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+  producers: {}
+    
+  filters: {}
+
+  analyzers:
+  {
+    daqHeaderAna: @local::standard_daqheaderana
+  }
+    
+  out:  [ daqHeaderAna ]
+    
+  end_paths:      [ out ]
+}

@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_tutproducer:
+{
+  module_type: TutProducer
+
+  GeantLabel: "geantgen"
+  CellHitLabel: "calhit"
+}
+
+END_PROLOG
+

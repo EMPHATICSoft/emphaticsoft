@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_FCLNAME:
+{
+  module_type: MODULENAME
+}
+
+END_PROLOG
+

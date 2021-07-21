@@ -1,0 +1,8 @@
+#include "canvas/Persistency/Common/Wrapper.h"
+//#include "RawData/DAQHeader.h"
+//#include "RawData/FlatDAQData.h"
+#include "RecoBase/SSDHit.h"
+//#include "RawData/RawTrigger.h"
+//#include "RawData/RawSumDropMB.h"
+//#include "RawData/RawSumDCM.h"
+//#include "RawData/RawBeamline.h"

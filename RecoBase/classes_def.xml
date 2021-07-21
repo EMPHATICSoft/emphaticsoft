@@ -1,0 +1,12 @@
+<!--  Include art::Wrapper lines for objects that we would like to put  -->
+<!--  into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
+<!--  lines and for all objects that are data members of those objects.-->
+ 
+<lcgdict>
+  <class name="rb::SSDHit"    ClassVersion="10">
+    <version ClassVersion="10" checksum=""/>
+  </class>
+  <class name="std::vector<rb::SSDHit>"        />
+  <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
+ </lcgdict>

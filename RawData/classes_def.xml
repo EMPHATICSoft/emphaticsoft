@@ -1,0 +1,14 @@
+<!--  Include art::Wrapper lines for objects that we would like to put  -->
+<!--  into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
+<!--  lines and for all objects that are data members of those objects.-->
+ 
+<lcgdict>
+  <class name="std::vector<int16_t>"                  />
+  <class name="std::vector<int32_t>"                  />
+  <class name="rawdata::RawDigit"    ClassVersion="15">
+   <version ClassVersion="15" checksum="3468169904"/>
+  </class>
+  <class name="std::vector<rawdata::RawDigit>"        />
+  <class name="art::Wrapper< std::vector<rawdata::RawDigit>    >"/>
+ </lcgdict>

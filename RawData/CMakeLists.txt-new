@@ -1,0 +1,21 @@
+art_make_library(
+  SOURCE
+    DAQHeader.cxx
+    DAQUnpack.cxx
+    RawBeamline.cxx
+    RawSumDCM.cxx
+    RawSumDropMB.cxx
+    RawTrigger.cxx
+  LIBRARIES PRIVATE
+    art::Framework_Core
+    art::Persistency_Common
+    canvas::canvas
+    fhiclcpp::fhiclcpp
+  )
+
+build_plugin(DAQHeaderAna "module"
+             LIBRARIES PRIVATE art_root_io::TFileService_service ROOT::Hist)
+
+install_headers()
+install_source()
+install_fhicl()
