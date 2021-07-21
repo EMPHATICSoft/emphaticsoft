@@ -9,7 +9,9 @@ Instructions for developing/building code on emphaticgpvm01.fnal.gov:
 
 2.  You should develop code in the /emph/app/users/[username] directory.
 
-3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft.
+3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft:
+
+> git clone https://github.com/EmphaticSoft/emphaticsoft
 
 4.  If you haven't already done so, create a build area outside of emphaticsoft, then "cd" to that directory, eg, "cd [build_area]".
 
