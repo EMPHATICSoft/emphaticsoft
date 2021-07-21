@@ -13,6 +13,8 @@ Base repository for art-based code
 
 3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username])
 
+> git clone https://github.com/EmphaticSoft/emphaticsoft
+
 4. execute:
 
 > cd /emph/app/users/[username]/build
