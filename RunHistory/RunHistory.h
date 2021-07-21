@@ -27,6 +27,7 @@ namespace runhist {
     double _beamMom;
     std::vector<std::string> _det;
     int _nTrig;
+    std::string _QEURL;
 
     bool LoadFromDB();
 
@@ -38,10 +39,10 @@ namespace runhist {
     double     BeamMom();
     std::vector<std::string> DetectorList();
     int        NTriggers();
-
+    
     // Setters
     bool       SetRun(int run);
-
+    void       SetQEURL(std::string uri) { _QEURL = uri; }
   };
   
 }

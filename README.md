@@ -1,23 +1,24 @@
 # emphaticsoft
 Base repository for art-based code
 
-Instructions for developing/building code on emphaticgpvm01.fnal.gov:
+**** Instructions for setting up the code for the first time on emphaticgpvm01.fnal.gov:
 
-1.  After logging in, execute:
+1.  Log into emphaticgpvm01.fnal.gov via kerberized ssh.  If you have never used kerberos before, it is easy to install on most platforms (and usually most Linux- and unix-based OSs have this pre-installed).  Replace the standard /etc/krb5.conf file with an appropriate file obtained from  https://authentication.fnal.gov/krb5conf/.
+
+2.  After logging in, execute:
 
 > source /emph/app/setup/setup_emphatic.sh
+> cd /emph/app/users/[username]
+> mkdir build
 
-2.  You should develop code in the /emph/app/users/[username] directory.
+3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username])
 
-3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft.
+4. execute:
 
-4.  If you haven't already done so, create a build area outside of emphaticsoft, then "cd" to that directory, eg, "cd [build_area]".
-
-5. execute:
-
+> cd /emph/app/users/[username]/build
 > source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
 
-6. To compile the code:
+6. To compile the code (must be in the "build" directory!):
 
 > buildtool --generator=ninja
 
