@@ -18,6 +18,7 @@ cet_find_package(canvas_root_io REQUIRED)
 cet_find_package(art_root_io REQUIRED)
 
 # source
+add_subdirectory(Geometry)
 add_subdirectory(RawData)
 add_subdirectory(RecoBase)
 add_subdirectory(Demo)
