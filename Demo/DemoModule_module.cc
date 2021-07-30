@@ -130,18 +130,17 @@ namespace demo
 			      << "New Reco Event "; 
 
     //  get rawdata::RawDigit from the event
-    art::Handle< std::vector<rawdata::RawDigit> > digit;
-    evt.getByLabel(fInputModuleLabel, digit);
+    auto const& digit = evt.getProduct<std::vector<rawdata::RawDigit>>(fInputModuleLabel);
 
     // make the collection of ints we want to store
-    std::unique_ptr< std::vector<rb::SSDHit> > ssdhits(new std::vector<rb::SSDHit>);
+    auto ssdhits = std::make_unique<std::vector<rb::SSDHit>>();
 
     // fill a histogram with the size of each MCTruth
-    for(unsigned int i = 0; i < digit->size(); ++i){
+    for(unsigned int i = 0; i < digit.size(); ++i){
       rb::SSDHit hit;
       hit.SetPitch(60.);
       hit.SetAngle(0.);
-      hit.SetStrip(double((*digit)[i].Channel())/4096.);
+      hit.SetStrip(double(digit[i].Channel())/4096.);
       ssdhits->push_back( hit );
       fHisto->Fill( hit.Strip() );
     }

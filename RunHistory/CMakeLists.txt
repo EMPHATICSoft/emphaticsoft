@@ -1,6 +1,8 @@
 include(ArtDictionary)
 include(ArtMake)
 
+cet_find_library(LIBWDA NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH)
+
 include_directories( $ENV{LIBWDA_FQ_DIR}/include) 
 include_directories( $ENV{ART_CPP_DB_INTERFACES_INC}) 
 
@@ -12,7 +14,7 @@ art_make_library(
     art::Persistency_Common
     canvas::canvas
     fhiclcpp::fhiclcpp
-    wda
+    ${LIBWDA}
   )
 
 #build_plugin(DAQHeaderAna "module"

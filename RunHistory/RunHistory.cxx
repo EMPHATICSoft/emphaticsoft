@@ -85,16 +85,19 @@ namespace runhist{
   bool RunHistory::LoadFromDB()
   {
     if (_QEURL.empty()) return false;
-    /*
-    query_engine<int,int,double> runquery(_QEURL,"emph_prod","runs","nsubrun","ntrig","beammom");
+
+    QueryEngine<int,int,double> runquery(_QEURL,"emph_prod","runs","nsubrun","ntrig","beammom");
     runquery.where("run","eq",_runNumber);
-    runquery.limit(1);
+    /*
     auto result = runquery.get();
 
-    auto& row = result[0];
-    _nSubrun = column<0>(row);
-    _nTrig  = column<1>(row);
-    _beamMom = column<2>(row);
+    for (auto& row : result) {
+      //      std::cout << "(" << column<0>(row) << "," << column<1>(row) << "," << column<2>(row) << ")" << std::endl;
+      _nSubrun = column<0>(row);
+      _nTrig  = column<1>(row);
+      _beamMom = column<2>(row);
+
+    }
     */
 
     _isLoaded = true;

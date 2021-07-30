@@ -6,8 +6,8 @@
 <lcgdict>
   <class name="std::vector<int16_t>"                  />
   <class name="std::vector<int32_t>"                  />
-  <class name="rawdata::RawDigit"    ClassVersion="15">
-   <version ClassVersion="15" checksum="3468169904"/>
+  <class name="rawdata::RawDigit"    ClassVersion="10">
+   <!-- version ClassVersion="15" checksum="3468169904" / -->
   </class>
   <class name="std::vector<rawdata::RawDigit>"        />
   <class name="art::Wrapper< std::vector<rawdata::RawDigit>    >"/>
