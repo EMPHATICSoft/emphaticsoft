@@ -11,7 +11,7 @@ Base repository for art-based code
 mkdir /emph/app/users/[username]
 ```
 
-3.      Then execute:
+3. Then execute:
 
 ```
 source /emph/app/setup/setup_emphatic.sh
