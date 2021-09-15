@@ -7,9 +7,9 @@ Base repository for art-based code
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
-...
+```
 mkdir /emph/app/users/[username]
-...
+```
 
 3.      Then execute:
 
