@@ -5,7 +5,13 @@ Base repository for art-based code
 
 1.  Log into emphaticgpvm01.fnal.gov via kerberized ssh.  If you have never used kerberos before, it is easy to install on most platforms (and usually most Linux- and unix-based OSs have this pre-installed).  Replace the standard /etc/krb5.conf file with an appropriate file obtained from  https://authentication.fnal.gov/krb5conf/.
 
-2.  After logging in, execute:
+2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
+
+...
+mkdir /emph/app/users/[username]
+...
+
+3.      Then execute:
 
 ```
 source /emph/app/setup/setup_emphatic.sh
