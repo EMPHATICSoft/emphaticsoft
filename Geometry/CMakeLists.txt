@@ -1,6 +1,9 @@
 include(ArtDictionary)
 include(ArtMake)
 
+cet_find_package(messagefacility REQUIRED)
+cet_find_package(ROOT REQUIRED)
+
 art_make_library(
   SOURCE
     Geometry.cxx
@@ -10,18 +13,13 @@ art_make_library(
     canvas::canvas
     fhiclcpp::fhiclcpp
     ROOT::Geom
-#    ROOT::GDML
-#    root::XMLIO
-#    root::EG
-  )
-
-#build_plugin(DAQHeaderAna "module"
-#             LIBRARIES PRIVATE art_root_io::TFileService_service ROOT::Hist)
+    ROOT::Physics
+    messagefacility::MF_MessageLogger
+    cetlib::container_algorithms
+    cetlib::cetlib
+    )
 
 install_headers()
 install_source()
 install_fhicl()
 
-#add_subdirectory(nova)
-
-#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RawData)

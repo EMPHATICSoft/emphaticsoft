@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
+
+ <materials>
+   
+   <!-- Element -->
+   <element Z="1" formula="H" name="Hydrogen">
+     <atom value="1.00794"/>
+   </element>
+   
+   <element Z="4" formula="Be" name="Beryllium">
+     <atom value="9.012"/>
+   </element>
+   
+   <element Z="5" formula="B" name="Boron">
+     <atom value="10.811"/>
+   </element>
+   
+   <element Z="6" formula="C" name="Carbon">
+     <atom value="12.011"/>
+   </element>
+   
+   <element Z="7" formula="N" name="Nitrogen">
+     <atom value="14.0067"/>
+   </element>
+   
+   <element Z="8" formula="O" name="Oxygen">
+     <atom value="15.9994"/>
+   </element>
+   
+   <element Z="9" formula="F" name="Fluorine">
+     <atom value="18.9984"/>
+   </element>
+   
+   <element Z="13" formula="Al" name="Aluminum">
+     <atom value="26.981"/>
+   </element>
+   
+   <element Z="14" formula="S" name="Silicon">
+     <atom value="28.086"/>
+   </element>
+   
+   <element Z="16" formula="S" name="Sulfur">
+     <atom value="32.066"/>
+   </element>
+   
+   <element Z="20" formula="Ca" name="Calcium">
+     <atom value="40.078"/>
+   </element>
+   
+   <element Z="26" formula="Fe" name="Iron">
+     <atom value="55.847"/>
+   </element>
+   
+   <element Z="60" formula="Nd" name="Neodymium">
+     <atom value="144.242"/>
+   </element>
+   
+   <!-- Material -->
+   
+   <material formula="air" name="Air" state="gas">
+     <D value="0.00119" unit="g/cm3" />
+     <fraction n="0.76" ref="Nitrogen"/>
+     <fraction n="0.24" ref="Oxygen"/>
+   </material>
+   
+   <material formula="NdFeB" name="NeodymiumAlloy" state="solid" >
+     <D value="7.5" unit="g/cm3" />
+     <fraction n="0.311" ref="Neodymium"/>
+     <fraction n="0.675" ref="Iron" />
+     <fraction n="0.011" ref="Boron" />
+     <fraction n="0.003" ref="Aluminum" />
+   </material>
+   
+   <material formula="Fe" name="IronShell">
+     <D value="7.9"/>
+     <composite n="1" ref="Iron"/>
+   </material>
+   
+   <material formula="graphite" name="Graphite">
+     <D value="1.83"/>
+     <fraction n="1" ref="Carbon"/>
+   </material>
+   
+   <material formula="CFRP" name="CarbonFiber">
+     <D value="1.55"/>
+     <fraction n="0.8" ref="Carbon"/>
+     <fraction n="0.07" ref="Hydrogen"/>
+     <fraction n="0.13" ref="Oxygen"/>
+   </material>
+   
+   <material formula="Si" name="SiliconWafer">
+     <D value="2.3"/>
+     <composite n="1" ref="Silicon"/>
+   </material>
+   
+   <material formula="mylar" name="Mylar">
+     <D unit="g/cm3" value="1.397"/>
+     <fraction n="0.042" ref="Hydrogen"/>
+     <fraction n="0.625" ref="Carbon"/>
+     <fraction n="0.333" ref="Oxygen"/>
+   </material>
+   
+ </materials>
+ 
+ <define>      
+  <quantity name="world_size" value="3000." unit="mm"/>
+
+  <quantity name="rich_size" value="300.0" unit="mm"/>
+
+  <quantity name="ssdD0_thick" value=".300" unit="mm"/>
+  <quantity name="ssdD0_width" value="98.33" unit="mm"/>
+  <quantity name="ssdD0_height" value="38.34" unit="mm"/>
+
+  <quantity name="ssdCMS_thick" value=".500" unit="mm"/>
+  <quantity name="ssdCMS_width" value="100." unit="mm"/>
+  <quantity name="ssdCMS_height" value="100" unit="mm"/>
+
+  <quantity name="carbon_fiber_thick" value="0.300"
+	    unit="mm" />
+
+  <quantity name="Mylar_Window_thick" value="0.500"
+	    unit="mm" />
+
+  <quantity name="magnetSideYOffset" value="29" unit="mm" />
+  <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
+  <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
+  <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
+  <quantity name="magnetSideZLength" value="150" unit="mm"/>
+  <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
+  <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+
+  <quantity name="ssdStation0Length" value="50" unit="mm" />
+  <quantity name="ssdStation0Width" value="150" unit="mm" />
+  <quantity name="ssdStation0Height" value="150" unit="mm" />  
+  <position name="ssdStation0_pos" x="0" y="0" z="-100" unit="mm" />
+
+  <position name="ssd0a_pos" x="0" y="0" z="0" unit="mm"/>
+  <position name="ssdbkpln0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
+  <position name="ssd0b_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+  <position name="ssd0_USMylarWindow_pos" x="0" y="0"
+	    z="-10." unit="mm" />
+  <position name="ssd0_DSMylarWindow_pos" x="0" y="0"
+	    z="10." unit="mm" />
+
+  <position name="ssdStation1_pos" x="0" y="0" z="-20" unit="mm" />
+
+  <quantity name="target_thick" value="20.0" unit="mm"/>
+  <quantity name="target_width" value="100.0" unit="mm"/>
+  <quantity name="target_height" value="50.0" unit="mm"/>
+
+  <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
+
+  <quantity name="ssdStation2Length" value="50" unit="mm" />
+  <quantity name="ssdStation2Width" value="200" unit="mm" />
+  <quantity name="ssdStation2Height" value="200" unit="mm" />  
+  <position name="ssdStation2_pos" x="0" y="0" z="30" unit="mm" />
+  <position name="ssdStation3_pos" x="0" y="0" z="80" unit="mm" />
+  <position name="ssdStation4_pos" x="0" y="0" z="130" unit="mm" />
+
+  <position name="ssd2a_pos" x="0" y="0" z="0" unit="mm"/>
+  <position name="ssdbkpln2a_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
+  <position name="ssd2b_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+  <position name="ssd2c_pos" x="0" y="0" z="3" unit="mm"/>
+  <position name="ssdbkpln2c_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
+  <position name="ssd2_USMylarWindow_pos" x="0" y="0"
+	    z="-10." unit="mm" />
+  <position name="ssd2_DSMylarWindow_pos" x="0" y="0"
+	    z="10." unit="mm" />
+
+  <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
+  <position name="magnet_pos" x="0" y="0" z="160" unit="mm"/>
+
+  <quantity name="ssdStation5Length" value="50" unit="mm" />
+  <quantity name="ssdStation5Width" value="500" unit="mm" />
+  <quantity name="ssdStation5Height" value="500" unit="mm" />  
+  <position name="ssdStation5_pos" x="0" y="0" z="190" unit="mm" />
+  <position name="ssdStation6_pos" x="0" y="0" z="290" unit="mm" />
+
+  <position name="ssd5a_pos" x="0" y="0" z="0" unit="mm"/>
+  <position name="ssdbkpln5a_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
+  <position name="ssd5b_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+  <position name="ssd5c_pos" x="0" y="0" z="3" unit="mm"/>
+  <position name="ssdbkpln5c_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
+  <position name="ssd5_USMylarWindow_pos" x="0" y="0"
+	    z="-10." unit="mm" />
+  <position name="ssd5_DSMylarWindow_pos" x="0" y="0"
+	    z="10." unit="mm" />
+
+  <quantity name="ssdStation7Length" value="50" unit="mm" />
+  <quantity name="ssdStation7Width" value="500" unit="mm" />
+  <quantity name="ssdStation7Height" value="500" unit="mm" />  
+  <position name="ssdStation7_pos" x="0" y="0" z="430" unit="mm" />
+
+  <position name="ssd7a_pos" x="0" y="0" z="0" unit="mm"/>
+  <position name="ssdbkpln7a_pos" x="0" y="0" z="ssdCMS_thick" unit="mm"/>
+  <position name="ssd7b_pos" x="0" y="0" z="ssdCMS_thick+carbon_fiber_thick" unit="mm"/>
+  <position name="ssd7c_pos" x="0" y="0" z="3" unit="mm"/>
+  <position name="ssdbkpln7c_pos" x="0" y="0" z="3+ssdCMS_thick" unit="mm"/>
+  <position name="ssd7_USMylarWindow_pos" x="0" y="0"
+	    z="-10." unit="mm" />
+  <position name="ssd7_DSMylarWindow_pos" x="0" y="0"
+	    z="10." unit="mm" />
+
+  <position name="rich_pos" x="0" y="0" z="460" unit="mm"/>
+  <position name="center" />
+  
+  <rotation name="RotateZP45" z="45" unit="deg"/>
+  <rotation name="RotateZM45" z="-45" unit="deg"/>
+  <rotation name="RotateZP60" z="60" unit="deg"/>
+  <rotation name="RotateZM60" z="-60" unit="deg"/>
+  <rotation name="RotateZP90" z="90" unit="deg"/>
+  <rotation name="RotateZMagSeg1" z="22.5" unit="deg"/>
+  <rotation name="RotateZMagSeg2" z="45" unit="deg"/>
+  <rotation name="RotateZMagSeg3" z="67.5" unit="deg"/>
+  <rotation name="RotateZMagSeg4" z="90" unit="deg"/>
+  <rotation name="RotateZMagSeg5" z="112.5" unit="deg"/>
+  <rotation name="RotateZMagSeg6" z="135" unit="deg"/>
+  <rotation name="RotateZMagSeg7" z="157.5" unit="deg"/>
+  <rotation name="RotateZMagSeg8" z="180" unit="deg"/>
+  <rotation name="RotateZMagSeg9" z="-22.5" unit="deg"/>
+  <rotation name="RotateZMagSeg10" z="-45" unit="deg"/>
+  <rotation name="RotateZMagSeg11" z="-67.5" unit="deg"/>
+  <rotation name="RotateZMagSeg12" z="-90" unit="deg"/>
+  <rotation name="RotateZMagSeg13" z="-112.5" unit="deg"/>
+  <rotation name="RotateZMagSeg14" z="-135" unit="deg"/>
+  <rotation name="RotateZMagSeg15" z="-157.5" unit="deg"/>
+  
+</define>
+
+<solids>
+  
+  <box name="world_box" x="world_size" y="world_size" z="world_size" />
+
+  <box name="rich_box" x="rich_size" y="rich_size" z="rich_size" />
+
+  <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
+       y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
+
+  <box name="ssdStation0_box" x="ssdStation0Width" y="ssdStation0Height" z="ssdStation0Length" />
+
+  <box name="ssd0_MylarWindow_box" x="ssdStation0Width*0.8" y="ssdStation0Width*0.8" z="Mylar_Window_thick" />
+  
+  <box name="ssd_single_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+  <box name="ssd_single_bkpln_box" x="ssdD0_width" y="ssdD0_width"
+       z="carbon_fiber_thick" />
+  <box name="ssdStation0_box" x="ssdStation0Width" y="ssdStation0Height" z="ssdStation0Length" />
+  <box name="ssd0_MylarWindow_box" x="ssdStation0Width*0.8" y="ssdStation0Width*0.8" z="Mylar_Window_thick" />
+  
+  <box name="target_box" x="target_width" y="target_height" z="target_thick" />
+
+  <box name="ssd_2x1_box" x="ssdD0_width" y="2*ssdD0_height" z="ssdD0_thick" />
+  <box name="ssd_2x1_bkpln_box" x="1.3*ssd_width" y="1.3*ssd_width" z="carbon_fiber_thick" />
+  <box name="ssdStation2_box" x="ssdStation2Width" y="ssdStation2Height" z="ssdStation2Length" />
+  <box name="ssdStation2_MylarWindow_box" x="ssdStation2Width*0.8" y="ssdStation2Width*0.8" z="Mylar_Window_thick" />
+
+  <arb8 name="magnetSide_arb8"
+	v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
+	v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
+	v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
+	v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
+	v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"	
+	v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
+	v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
+	v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
+	dz="magnetSideZLength" unit="mm"/>
+  
+  <box name="ssd_5x2_box" x="2*ssdD0_width" y="5*ssdD0_height" z="ssdD0_thick" />
+  <box name="ssd_5x2_bkpln_box" x="2.6*ssdD0_width" y="2.6*ssdD0_width" z="carbon_fiber_thick" />
+  <box name="ssdStation5_box" x="ssdStation5Width" y="ssdStation5Height" z="ssdStation5Length" />
+  <box name="ssdStation5_MylarWindow_box" x="ssdStation5Width*0.8" y="ssdStation5Width*0.8" z="Mylar_Window_thick" />
+
+  <box name="ssd_3x3_box" x="3*ssdCMS_width" y="3*ssdCMS_height" z="ssdCMS_thick" />
+  <box name="ssd_3x3_bkpln_box" x="4*ssdCMS_width" y="4*ssdCMS_width" z="carbon_fiber_thick" />
+  <box name="ssdStation7_box" x="ssdStation7Width" y="ssdStation7Height" z="ssdStation7Length" />
+  <box name="ssdStation7_MylarWindow_box" x="ssdStation7Width*0.8" y="ssdStation7Width*0.8" z="Mylar_Window_thick" />
+
+</solids>
+
+<structure>
+
+  <volume name="ssd_single_vol">
+    <materialref ref="SiliconWafer"/>
+    <solidref ref="ssd_single_box"/>
+  </volume>
+
+  <volume name="ssd_single_bkpln_vol">
+    <materialref ref="CarbonFiber"/>
+    <solidref ref="ssd_single_bkpln_box"/>
+  </volume>
+
+  <volume name="ssd0_MylarWindow_vol">
+    <materialref ref="Mylar"/>
+    <solidref ref="ssd0_MylarWindow_box"/>
+  </volume>
+
+  <volume name="ssdStation0_vol">
+    <materialref ref="Air"/>
+    <solidref ref="ssdStation0_box"/>
+    <physvol name="ssd0_USMylarWindow_phys">
+      <volumeref ref="ssd0_MylarWindow_vol"/>
+      <positionref ref="ssd0_USMylarWindow_pos"/>
+    </physvol>
+    <physvol name="ssd0a_phys">
+      <volumeref ref="ssd_single_vol"/>
+      <positionref ref="ssd0a_pos"/>
+    </physvol>
+    <physvol name="ssdbkpln0_phys">
+      <volumeref ref="ssd_single_bkpln_vol"/>
+      <positionref ref="ssdbkpln0_pos"/>
+    </physvol>
+    <physvol name="ssd0b_phys">
+      <volumeref ref="ssd_single_vol"/>
+      <positionref ref="ssd0b_pos"/>
+      <rotationref ref="RotateZP90"/>      
+    </physvol>
+    <physvol name="ssd0_DSMylarWindow_phys">
+      <volumeref ref="ssd0_MylarWindow_vol"/>
+      <positionref ref="ssd0_DSMylarWindow_pos"/>
+    </physvol>
+  </volume>
+
+  <volume name="target_vol">
+    <materialref ref="Graphite"/>
+    <solidref ref="target_box"/>
+  </volume>
+
+  <volume name="ssd_2x1_vol">
+    <materialref ref="SiliconWafer"/>
+    <solidref ref="ssd_2x1_box"/>
+  </volume>
+
+  <volume name="ssd_2x1_bkpln_vol">
+    <materialref ref="CarbonFiber"/>
+    <solidref ref="ssd_2x1_bkpln_box"/>
+  </volume>
+
+  <volume name="ssdStation2_MylarWindow_vol">
+    <materialref ref="Mylar"/>
+    <solidref ref="ssdStation2_MylarWindow_box"/>
+  </volume>
+
+  <volume name="ssdStation2_vol">
+    <materialref ref="Air"/>
+    <solidref ref="ssdStation2_box"/>
+    <physvol name="ssd2_USMylarWindow_phys">
+      <volumeref ref="ssdStation2_MylarWindow_vol"/>
+      <positionref ref="ssd2_USMylarWindow_pos"/>
+    </physvol>
+    <physvol name="ssd2a_phys">
+      <volumeref ref="ssd_2x1_vol"/>
+      <positionref ref="ssd2a_pos"/>
+      <rotationref ref="RotateZP60"/>      
+    </physvol>
+    <physvol name="ssdbkpln2a_phys">
+      <volumeref ref="ssd_2x1_bkpln_vol"/>
+      <positionref ref="ssdbkpln2a_pos"/>
+    </physvol>
+    <physvol name="ssd2b_phys">
+      <volumeref ref="ssd_2x1_vol"/>
+      <positionref ref="ssd2b_pos"/>
+      <rotationref ref="RotateZM60"/>      
+    </physvol>
+    <physvol name="ssd2c_phys">
+      <volumeref ref="ssd_2x1_vol"/>
+      <positionref ref="ssd2c_pos"/>
+    </physvol>
+    <physvol name="ssdbkpln2c_phys">
+      <volumeref ref="ssd_2x1_bkpln_vol"/>
+      <positionref ref="ssdbkpln2c_pos"/>
+    </physvol>
+    <physvol name="ssd2_DSMylarWindow_phys">
+      <volumeref ref="ssdStation2_MylarWindow_vol"/>
+      <positionref ref="ssd2_DSMylarWindow_pos"/>
+    </physvol>
+  </volume>
+  
+  <volume name="ssd_5x2_vol">
+    <materialref ref="SiliconWafer"/>
+    <solidref ref="ssd_5x2_box"/>
+  </volume>
+
+  <volume name="ssd_5x2_bkpln_vol">
+    <materialref ref="CarbonFiber"/>
+    <solidref ref="ssd_5x2_bkpln_box"/>
+  </volume>
+
+  <volume name="ssdStation5_MylarWindow_vol">
+    <materialref ref="Mylar"/>
+    <solidref ref="ssdStation5_MylarWindow_box"/>
+  </volume>
+
+  <volume name="ssdStation5_vol">
+    <materialref ref="Air"/>
+    <solidref ref="ssdStation5_box"/>
+    <physvol name="ssd5_USMylarWindow_phys">
+      <volumeref ref="ssdStation5_MylarWindow_vol"/>
+      <positionref ref="ssd5_USMylarWindow_pos"/>
+    </physvol>
+    <physvol name="ssd5a_phys">
+      <volumeref ref="ssd_5x2_vol"/>
+      <positionref ref="ssd5a_pos"/>
+      <rotationref ref="RotateZP60"/>      
+    </physvol>
+    <physvol name="ssdbkpln5a_phys">
+      <volumeref ref="ssd_5x2_bkpln_vol"/>
+      <positionref ref="ssdbkpln5a_pos"/>
+    </physvol>
+    <physvol name="ssd5b_phys">
+      <volumeref ref="ssd_5x2_vol"/>
+      <positionref ref="ssd5b_pos"/>
+      <rotationref ref="RotateZM60"/>      
+    </physvol>
+    <physvol name="ssd5c_phys">
+      <volumeref ref="ssd_5x2_vol"/>
+      <positionref ref="ssd5c_pos"/>
+    </physvol>
+    <physvol name="ssdbkpln5c_phys">
+      <volumeref ref="ssd_5x2_bkpln_vol"/>
+      <positionref ref="ssdbkpln5c_pos"/>
+    </physvol>
+    <physvol name="ssd5_DSMylarWindow_phys">
+      <volumeref ref="ssdStation5_MylarWindow_vol"/>
+      <positionref ref="ssd5_DSMylarWindow_pos"/>
+    </physvol>
+  </volume>
+
+   <volume name="ssd_3x3_vol">
+    <materialref ref="SiliconWafer"/>
+    <solidref ref="ssd_3x3_box"/>
+  </volume>
+
+  <volume name="ssd_3x3_bkpln_vol">
+    <materialref ref="CarbonFiber"/>
+    <solidref ref="ssd_3x3_bkpln_box"/>
+  </volume>
+
+  <volume name="ssdStation7_MylarWindow_vol">
+    <materialref ref="Mylar"/>
+    <solidref ref="ssdStation7_MylarWindow_box"/>
+  </volume>
+ 
+    <volume name="ssdStation7_vol">
+    <materialref ref="Air"/>
+    <solidref ref="ssdStation7_box"/>
+    <physvol name="ssd7_USMylarWindow_phys">
+      <volumeref ref="ssdStation7_MylarWindow_vol"/>
+      <positionref ref="ssd7_USMylarWindow_pos"/>
+    </physvol>
+    <physvol name="ssd7a_phys">
+      <volumeref ref="ssd_3x3_vol"/>
+      <positionref ref="ssd7a_pos"/>
+      <rotationref ref="RotateZP60"/>      
+    </physvol>
+    <physvol name="ssdbkpln7a_phys">
+      <volumeref ref="ssd_3x3_bkpln_vol"/>
+      <positionref ref="ssdbkpln7a_pos"/>
+    </physvol>
+    <physvol name="ssd7b_phys">
+      <volumeref ref="ssd_3x3_vol"/>
+      <positionref ref="ssd7b_pos"/>
+      <rotationref ref="RotateZM60"/>      
+    </physvol>
+    <physvol name="ssd7c_phys">
+      <volumeref ref="ssd_3x3_vol"/>
+      <positionref ref="ssd7c_pos"/>
+    </physvol>
+    <physvol name="ssdbkpln7c_phys">
+      <volumeref ref="ssd_3x3_bkpln_vol"/>
+      <positionref ref="ssdbkpln7c_pos"/>
+    </physvol>
+    <physvol name="ssd7_DSMylarWindow_phys">
+      <volumeref ref="ssdStation7_MylarWindow_vol"/>
+      <positionref ref="ssd7_DSMylarWindow_pos"/>
+    </physvol>
+  </volume>
+
+  <volume name="rich_vol">
+    <materialref ref="Air"/>
+    <solidref ref="rich_box"/>
+  </volume>
+
+  <volume name="magnetSide_vol">
+    <materialref ref="NeodymiumAlloy"/>
+    <solidref ref="magnetSide_arb8"/>
+  </volume>
+  
+  <volume name="magnet_vol">
+    <materialref ref="Air"/>
+    <solidref ref="magnet_box"/>
+    <physvol name="magnetSide0_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+    </physvol>
+    <physvol name="magnetSide1_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg1"/>      
+    </physvol>
+    <physvol name="magnetSide2_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg2"/>      
+    </physvol>
+    <physvol name="magnetSide3_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg3"/>      
+    </physvol>
+    <physvol name="magnetSide4_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg4"/>      
+    </physvol>
+    <physvol name="magnetSide5_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg5"/>      
+    </physvol>
+    <physvol name="magnetSide6_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg6"/>      
+    </physvol>
+    <physvol name="magnetSide7_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg7"/>      
+    </physvol>
+    <physvol name="magnetSide8_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg8"/>      
+    </physvol>
+    <physvol name="magnetSide9_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg9"/>      
+    </physvol>
+    <physvol name="magnetSide10_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg10"/>      
+    </physvol>
+    <physvol name="magnetSide11_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg11"/>      
+    </physvol>
+    <physvol name="magnetSide12_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg12"/>      
+    </physvol>
+    <physvol name="magnetSide13_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg13"/>      
+    </physvol>
+    <physvol name="magnetSide14_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg14"/>      
+    </physvol>
+    <physvol name="magnetSide15_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg15"/>      
+    </physvol>
+  </volume>
+  
+  <volume name="world">
+    <materialref ref="Air"/>
+    <solidref ref="world_box"/>
+
+    <physvol name="ssdStation0_phys">
+      <volumeref ref="ssdStation0_vol"/>
+      <positionref ref="ssdStation0_pos"/>
+    </physvol>
+    
+    <physvol name="ssdStation1_phys">
+      <volumeref ref="ssdStation0_vol"/>
+      <positionref ref="ssdStation1_pos"/>
+    </physvol>
+    
+    <physvol name="target_phys">
+      <volumeref ref="target_vol"/>
+      <positionref ref="target_pos"/>
+    </physvol>
+    
+    <physvol name="ssdStation2_phys">
+      <volumeref ref="ssdStation2_vol"/>
+      <positionref ref="ssdStation2_pos"/>
+    </physvol>
+    
+    <physvol name="ssdStation3_phys">
+      <volumeref ref="ssdStation2_vol"/>
+      <positionref ref="ssdStation3_pos"/>
+    </physvol>
+
+    <physvol name="ssdStation4_phys">
+      <volumeref ref="ssdStation2_vol"/>
+      <positionref ref="ssdStation4_pos"/>
+    </physvol>
+
+    <physvol name="magnet_phys">
+      <volumeref ref="magnet_vol"/>
+      <positionref ref="magnet_pos"/>
+    </physvol>
+    
+    <physvol name="ssdStation5_phys">
+      <volumeref ref="ssdStation5_vol"/>
+      <positionref ref="ssdStation5_pos"/>
+    </physvol>
+
+    <physvol name="ssdStation6_phys">
+      <volumeref ref="ssdStation5_vol"/>
+      <positionref ref="ssdStation6_pos"/>
+    </physvol>
+
+    <physvol name="ssdStation7_phys">
+      <volumeref ref="ssdStation7_vol"/>
+      <positionref ref="ssdStation7_pos"/>
+    </physvol>
+
+    <physvol name="rich_phys">
+      <volumeref ref="rich_vol"/>
+      <positionref ref="rich_pos"/>
+    </physvol>
+  </volume>
+  
+</structure>
+
+<setup name="Default" version="1.0">
+  <world ref="world"/>
+</setup>
+
+</gdml>
