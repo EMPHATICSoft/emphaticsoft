@@ -50,9 +50,10 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
       CVMFS_REPOSITORIES=emphatic.opensciencegrid.org
       CVMFS_HTTP_PROXY=DIRECT
       ```
-   * You also need to create the area where you will be mounting cvmfs:
+   * You also need to create the areas where you will be mounting cvmfs:
       ```
       sudo mkdir -p /cvmfs/emphatic.opensciencegrid.org
+      sudo mkdir -p /cvmfs/fermilab.opensciencegrid.org
       ```
 2. Install [Docker](https://docs.docker.com/engine/install/).
    * Once Docker is installed, open it and go to preferences (the gear icon on the top right). Go to `Resources->File Sharing` and add `/cvmfs` to the list, then click `Apply & Restart`. (**Note:** Adding `/cvmfs` to File Sharing is only needed if we put the image on cvmfs rather than just pulling it from DockerHub.)
@@ -65,6 +66,7 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
 1. Anytime your computer reboots, you will need to remount cvmfs:
    ```
    sudo mount -t cvmfs emphatic.opensciencegrid.org /cvmfs/emphatic.opensciencegrid.org/
+   sudo mount -t cvmfs fermilab.opensciencegrid.org /cvmfs/fermilab.opensciencegrid.org/
    ```
 2. Start the container with:
    ```
