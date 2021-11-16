@@ -15,7 +15,7 @@
 
 // Following function is not thread safe
 
-const char * sbndaq::CAENDecoder::zeit(char delimiter)
+const char * emphaticdaq::CAENDecoder::zeit(char delimiter)
 {
   time_t t;
   struct tm * hora;
@@ -30,7 +30,7 @@ const char * sbndaq::CAENDecoder::zeit(char delimiter)
 }
 
 
-void sbndaq::CAENDecoder::commError(CAENComm_ErrorCode retcod,
+void emphaticdaq::CAENDecoder::commError(CAENComm_ErrorCode retcod,
 			    const std::string label)
 {
   if ( retcod != CAENComm_Success)
@@ -42,7 +42,7 @@ void sbndaq::CAENDecoder::commError(CAENComm_ErrorCode retcod,
   }
 }
 
-void sbndaq::CAENDecoder::vmeError(CVErrorCodes      retcod,
+void emphaticdaq::CAENDecoder::vmeError(CVErrorCodes      retcod,
 			   const std::string label)
 {
   if ( retcod != cvSuccess )
@@ -54,14 +54,14 @@ void sbndaq::CAENDecoder::vmeError(CVErrorCodes      retcod,
   }
 }
 
-void sbndaq::CAENDecoder::checkError(CAEN_DGTZ_ErrorCode err, 
+void emphaticdaq::CAENDecoder::checkError(CAEN_DGTZ_ErrorCode err, 
 			     const std::string label,
 			     int boardId)
 {
   if ( err != CAEN_DGTZ_Success )
   {
     std::stringstream text;
-    sbndaq::CAENException e(err, label,boardId);
+    emphaticdaq::CAENException e(err, label,boardId);
     TLOG_ERROR("CAENDecoder") << zeit() << " " << e.what() << " ["<< err << "]" << TLOG_ENDL;
     throw(e);
   }

@@ -15,7 +15,7 @@
 
 #include "canvas/Utilities/Exception.h"
 
-#include "sbndaq-artdaq-core/Overlays/Common/CAENV1730Fragment.hh"
+#include "emphatic-artdaq-core/Overlays/Common/CAENV1730Fragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
 //#include "art/Framework/Services/Optional/TFileService.h" //before art_root_io transition
@@ -32,13 +32,13 @@
 #include <iostream>
 #include <bitset>
 
-namespace sbndaq {
+namespace emphaticdaq {
   class CAENV1730Dump;
 }
 
 /**************************************************************************************************/
 
-class sbndaq::CAENV1730Dump : public art::EDAnalyzer {
+class emphaticdaq::CAENV1730Dump : public art::EDAnalyzer {
 
 public:
   struct Config {
@@ -48,7 +48,7 @@ public:
       fhicl::Comment("Tag for the input data product")
     };
     fhicl::Atom<int> Shift {
-      fhicl::Name("shift_fragment_id"), 
+      fhicl::Name("shift_fragment_id"),
       fhicl::Comment("Number to subtract to the fragment_id")
     };
   }; //--configuration
@@ -65,13 +65,13 @@ private:
 
   //--default values
   uint32_t nChannels;//    = 16;
-  uint32_t Ttt_DownSamp;// =  4; 
+  uint32_t Ttt_DownSamp;// =  4;
  /* the trigger time resolution is 16ns when waveforms are sampled at
                                * 500MHz sampling. The trigger timestamp is thus
                                * sampled 4 times slower than input channels*/
 
   TNtuple* nt_header;
-  
+
   TH1F*    hEventCounter;
   TH1F*    hTriggerTimeTag;
   TH1F*    h_wvfm_ev0_ch0;
@@ -81,29 +81,29 @@ private:
   art::EventNumber_t fEvent;
   std::vector<uint64_t>  fTicksVec;
   std::vector< std::vector<uint16_t> >  fWvfmsVec;
-  
+
   bool firstEvt = true;
   art::InputTag fDataLabel;
-	
-  int fShift; 
+
+  int fShift;
 
 }; //--class CAENV1730Dump
 
 
-sbndaq::CAENV1730Dump::CAENV1730Dump(CAENV1730Dump::Parameters const& pset): art::EDAnalyzer(pset)
+emphaticdaq::CAENV1730Dump::CAENV1730Dump(CAENV1730Dump::Parameters const& pset): art::EDAnalyzer(pset)
 {
   fDataLabel = pset().DataLabel();
   fShift = pset().Shift();
 }
 
-void sbndaq::CAENV1730Dump::beginJob()
+void emphaticdaq::CAENV1730Dump::beginJob()
 {
-  art::ServiceHandle<art::TFileService> tfs; 
-  nt_header       = tfs->make<TNtuple>("nt_header","CAENV1730 Header Ntuple","art_ev:caen_ev:caenv_ev_tts"); 
+  art::ServiceHandle<art::TFileService> tfs;
+  nt_header       = tfs->make<TNtuple>("nt_header","CAENV1730 Header Ntuple","art_ev:caen_ev:caenv_ev_tts");
   /************************************************************************************************/
   hEventCounter   = tfs->make<TH1F>("hEventCounter","Event Counter Histogram",10000,0,10000);
   hTriggerTimeTag = tfs->make<TH1F>("hTriggerTimeTag","Trigger Time Tag Histogram",10,2000000000,4500000000);
-  h_wvfm_ev0_ch0  = tfs->make<TH1F>("h_wvfm_ev0_ch0","Waveform",2000,0,2000);  
+  h_wvfm_ev0_ch0  = tfs->make<TH1F>("h_wvfm_ev0_ch0","Waveform",2000,0,2000);
   /************************************************************************************************/
   //--make tree to store the channel waveform info:
   fEventTree = tfs->make<TTree>("events","waveform tree");
@@ -113,18 +113,18 @@ void sbndaq::CAENV1730Dump::beginJob()
   fEventTree->Branch("fWvfmsVec",&fWvfmsVec);
 }
 
-void sbndaq::CAENV1730Dump::endJob()
+void emphaticdaq::CAENV1730Dump::endJob()
 {
   std::cout << "Ending CAENV1730Dump...\n";
 }
 
 
-sbndaq::CAENV1730Dump::~CAENV1730Dump()
+emphaticdaq::CAENV1730Dump::~CAENV1730Dump()
 {
 }
 
 
-void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
+void emphaticdaq::CAENV1730Dump::analyze(const art::Event& evt)
 {
 
   //std::cout<< " Aiwu's test output. "
@@ -132,11 +132,11 @@ void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
 
   fRun = evt.run();
   fEvent = evt.event();
-    
+
   /************************************************************************************************/
   art::Handle< std::vector<artdaq::Fragment> > rawFragHandle;
-  //evt.getByLabel("daq","CAENV1730", rawFragHandle); 
-  //evt.getByLabel(fDataLabel,"CAENV1730", rawFragHandle); 
+  //evt.getByLabel("daq","CAENV1730", rawFragHandle);
+  //evt.getByLabel(fDataLabel,"CAENV1730", rawFragHandle);
   //<--std::vector<art::Ptr<artdaq::Fragment>> Frags;
   if ( !evt.getByLabel(fDataLabel, rawFragHandle) ) {
 //    art::fill_ptr_vector(Frags,rawFragHandle);
@@ -153,9 +153,9 @@ void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
               << ", event " << fEvent << " has " << rawFragHandle->size()
               << " fragment(s).\n";
 
-    
 
-    //std::fstream dumpouttext("/home/nfs/aw325/aiwudaq_vst02/srcs/sbndaq/dab/Analysis/DumpIntoText.txt",std::ios::out | std::ios::app);
+
+    //std::fstream dumpouttext("/home/nfs/aw325/aiwudaq_vst02/srcs/emphaticdaq/dab/Analysis/DumpIntoText.txt",std::ios::out | std::ios::app);
 
     fWvfmsVec.resize(16*rawFragHandle->size());
 
@@ -163,15 +163,15 @@ void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
     // aiwu: hardcoded number of fragments
     for (size_t idx = 0; idx < rawFragHandle->size(); ++idx) { /*loop over the fragments*/
       //--use this fragment as a reference to the same data
-      const auto& frag((*rawFragHandle)[idx]); 
+      const auto& frag((*rawFragHandle)[idx]);
       CAENV1730Fragment bb(frag);
       auto const* md = bb.Metadata();
       CAENV1730Event const* event_ptr = bb.Event();
 
       CAENV1730EventHeader header = event_ptr->Header;
 
-      int fragId = static_cast<int>(frag.fragmentID()); 
-      fragId-=fShift; 
+      int fragId = static_cast<int>(frag.fragmentID());
+      fragId-=fShift;
 
       std::cout << "\tFrom header, event counter is "  << header.eventCounter   << "\n";
       std::cout << "\tFrom header, triggerTimeTag is " << header.triggerTimeTag << "\n";
@@ -198,10 +198,10 @@ void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
       //--note, needs to take into account channel mask
       std::cout << "Channel waveform length = " << wfm_length << "\n";
 
-      //--store the tick value for each acquisition 
+      //--store the tick value for each acquisition
       fTicksVec.resize(wfm_length);
 
-      const uint16_t* data_begin = reinterpret_cast<const uint16_t*>(frag.dataBeginBytes() 
+      const uint16_t* data_begin = reinterpret_cast<const uint16_t*>(frag.dataBeginBytes()
                                  + sizeof(CAENV1730EventHeader));
 
       const uint16_t* value_ptr =  data_begin;
@@ -215,14 +215,14 @@ void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
 
         //--loop over waveform samples
         //dumpouttext<<fEvent<<"\t"<<idx<<"\t"<<i_ch<<std::endl;
-        for(size_t i_t=0; i_t<wfm_length; ++i_t){ 
+        for(size_t i_t=0; i_t<wfm_length; ++i_t){
           fTicksVec[i_t] = t0*Ttt_DownSamp + i_t;   /*timestamps, event level*/
           value_ptr = data_begin + ch_offset + i_t; /*pointer arithmetic*/
           value = *(value_ptr);
 
-          if (i_ch == 0 && firstEvt) { 
+          if (i_ch == 0 && firstEvt) {
             h_wvfm_ev0_ch0->SetBinContent(i_t,value);
-            //std::cout << "ch" << std::to_string(i_ch) << "[" << i_t << "] = " << value <<  "= 0b" << std::bitset<16>(value) 
+            //std::cout << "ch" << std::to_string(i_ch) << "[" << i_t << "] = " << value <<  "= 0b" << std::bitset<16>(value)
             //          << std::endl;
           }
 
@@ -235,14 +235,13 @@ void sbndaq::CAENV1730Dump::analyze(const art::Event& evt)
         //dumpouttext<<std::endl;
         firstEvt = false;
       } //--end loop channels
-    } //--end loop fragments 
+    } //--end loop fragments
 
   //dumpouttext.close();
-     
+
   fEventTree->Fill();
 
   } //--valid fragments
 }
 
-DEFINE_ART_MODULE(sbndaq::CAENV1730Dump)
-
+DEFINE_ART_MODULE(emphaticdaq::CAENV1730Dump)

@@ -1,8 +1,8 @@
-#ifndef sbndaq_artdaq_core_Overlays_FragmentType_hh
-#define sbndaq_artdaq_core_Overlays_FragmentType_hh
+#ifndef emphatic_artdaq_Overlays_FragmentType_hh
+#define emphatic_artdaq_Overlays_FragmentType_hh
 #include "artdaq-core/Data/Fragment.hh"
 
-namespace sbndaq {
+namespace emphaticdaq {
 
 /*
    Note, if you add new frament types, the use a new enum number for them, so that the old numbering scheme is not changed
@@ -30,7 +30,7 @@ namespace sbndaq {
 	NevisTPC = artdaq::Fragment::FirstUserFragmentType + 6,
 	PTB = artdaq::Fragment::FirstUserFragmentType + 7,
 	DAPHNE = artdaq::Fragment::FirstUserFragmentType + 14,
-	
+
 	//Simulators
 	DummyGenerator = artdaq::Fragment::FirstUserFragmentType + 8,
 
@@ -46,8 +46,8 @@ namespace sbndaq {
 
   FragmentType toFragmentType(std::string t_string);
   std::string fragmentTypeToString(FragmentType val);
-  
+
   std::map<artdaq::Fragment::type_t, std::string> makeFragmentTypeMap();
 
 }
-#endif /* sbndaq_artdaq_core_Overlays_FragmentType_hh */
+#endif /* emphatic_artdaq_Overlays_FragmentType_hh */

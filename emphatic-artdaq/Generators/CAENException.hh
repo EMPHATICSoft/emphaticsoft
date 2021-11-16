@@ -8,7 +8,7 @@
 #include "CAENDecoder.hh"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-namespace sbndaq
+namespace emphaticdaq
 {
 class CAENException: public std::exception
 {
@@ -28,6 +28,6 @@ class CAENException: public std::exception
 };
 }
 
-std::ostream& operator<<(std::ostream& s, const sbndaq::CAENException& e);
+std::ostream& operator<<(std::ostream& s, const emphaticdaq::CAENException& e);
  
 #endif

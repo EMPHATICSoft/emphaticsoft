@@ -1,8 +1,8 @@
-#include "sbndaq-artdaq/BuildInfo/GetPackageBuildInfo.hh"
+#include "emphatic-artdaq/BuildInfo/GetPackageBuildInfo.hh"
 
 #include <string>
 
-namespace sbndaq
+namespace emphaticdaq
 {
 
   artdaq::PackageBuildInfo GetPackageBuildInfo::getPackageBuildInfo()
@@ -10,7 +10,7 @@ namespace sbndaq
 
     artdaq::PackageBuildInfo pkg;
 
-    pkg.setPackageName ( "sbndaq-artdaq" );
+    pkg.setPackageName ( "emphatic-artdaq" );
     pkg.setPackageVersion( "@version_with_git@" );
     pkg.setBuildTimestamp ( "@utcDateTime@" );
 

@@ -1,11 +1,11 @@
-#ifndef sbndaq_artdaq_BuildInfo_GetPackageBuildInfo_hh
-#define sbndaq_artdaq_BuildInfo_GetPackageBuildInfo_hh
+#ifndef emphatic_artdaq_BuildInfo_GetPackageBuildInfo_hh
+#define emphatic_artdaq_BuildInfo_GetPackageBuildInfo_hh
 
 #include "artdaq-core/Data/PackageBuildInfo.hh"
 
 #include <string>
 
-namespace sbndaq {
+namespace emphaticdaq {
 
   struct GetPackageBuildInfo {
 
@@ -14,4 +14,4 @@ namespace sbndaq {
 
 }
 
-#endif /* sbndaq_artdaq_BuildInfo_GetPackageBuildInfo_hh */
+#endif /* emphatic_artdaq_BuildInfo_GetPackageBuildInfo_hh */

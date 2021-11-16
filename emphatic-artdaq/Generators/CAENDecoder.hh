@@ -16,7 +16,7 @@ extern "C"
 #include "CAENVMElib.h"
 }
 
-namespace sbndaq
+namespace emphaticdaq
 {    
 class CAENDecoder
 {

@@ -1,7 +1,4 @@
-#include "sbndaq-artdaq-core/Overlays/FragmentType.hh"
-#include "sbndaq-artdaq-core/Trace/trace_defines.h"
-
-#define TRACE_NAME "SBNDAQ_FRAGMENTTYPE"
+#include "emphatic-artdaq/Overlays/FragmentType.hh"
 
 #include <algorithm>
 #include <cassert>
@@ -10,38 +7,38 @@
 #include <map>
 
 namespace {
-  static std::map<sbndaq::detail::FragmentType,std::string> const
+  static std::map<emphaticdaq::detail::FragmentType,std::string> const
   names{
-    {sbndaq::detail::FragmentType::MISSED, "MISSED"}, 
+    {emphaticdaq::detail::FragmentType::MISSED, "MISSED"},
 
      //Common
-    {sbndaq::detail::FragmentType::CAENV1730, "CAENV1730"},
-    {sbndaq::detail::FragmentType::SpectratimeEvent, "SPECTRATIMEVENT"},
-    {sbndaq::detail::FragmentType::BERNCRT, "BERNCRT"},
-    {sbndaq::detail::FragmentType::BERNCRTV2, "BERNCRTV2"},
-    {sbndaq::detail::FragmentType::BERNCRTZMQ,  "BERNCRTZMQ"},
-    {sbndaq::detail::FragmentType::WhiteRabbit, "WhiteRabbit"},
+    {emphaticdaq::detail::FragmentType::CAENV1730, "CAENV1730"},
+    {emphaticdaq::detail::FragmentType::SpectratimeEvent, "SPECTRATIMEVENT"},
+    {emphaticdaq::detail::FragmentType::BERNCRT, "BERNCRT"},
+    {emphaticdaq::detail::FragmentType::BERNCRTV2, "BERNCRTV2"},
+    {emphaticdaq::detail::FragmentType::BERNCRTZMQ,  "BERNCRTZMQ"},
+    {emphaticdaq::detail::FragmentType::WhiteRabbit, "WhiteRabbit"},
 
     //ICARUS
-    {sbndaq::detail::FragmentType::PHYSCRATEDATA,  "PHYSCRATEDATA"},
-    {sbndaq::detail::FragmentType::PHYSCRATESTAT, "PHYSCRATESTAT"},
-    {sbndaq::detail::FragmentType::ICARUSTriggerUDP,  "ICARUSTriggerUDP"},
-    {sbndaq::detail::FragmentType::ICARUSPMTGate, "ICARUSPMTGate"},
+    {emphaticdaq::detail::FragmentType::PHYSCRATEDATA,  "PHYSCRATEDATA"},
+    {emphaticdaq::detail::FragmentType::PHYSCRATESTAT, "PHYSCRATESTAT"},
+    {emphaticdaq::detail::FragmentType::ICARUSTriggerUDP,  "ICARUSTriggerUDP"},
+    {emphaticdaq::detail::FragmentType::ICARUSPMTGate, "ICARUSPMTGate"},
 
     //SBND
-    {sbndaq::detail::FragmentType::NevisTPC, "NEVISTPC"},
-    {sbndaq::detail::FragmentType::PTB,      "PTB"},
-    {sbndaq::detail::FragmentType::DAPHNE,   "DAPHNE"},
-    
+    {emphaticdaq::detail::FragmentType::NevisTPC, "NEVISTPC"},
+    {emphaticdaq::detail::FragmentType::PTB,      "PTB"},
+    {emphaticdaq::detail::FragmentType::DAPHNE,   "DAPHNE"},
+
       //Simulators
-    {sbndaq::detail::FragmentType::DummyGenerator, "DUMMYGENERATOR"},  
-    
-    {sbndaq::detail::FragmentType::INVALID,  "UNKNOWN"}
+    {emphaticdaq::detail::FragmentType::DummyGenerator, "DUMMYGENERATOR"},
+
+    {emphaticdaq::detail::FragmentType::INVALID,  "UNKNOWN"}
   };
 }
 
-sbndaq::FragmentType
-sbndaq::toFragmentType(std::string t_string)
+emphaticdaq::FragmentType
+emphaticdaq::toFragmentType(std::string t_string)
 {
   std::transform(t_string.begin(),
                  t_string.end(),
@@ -54,7 +51,7 @@ sbndaq::toFragmentType(std::string t_string)
 }
 
 std::string
-sbndaq::fragmentTypeToString(FragmentType val)
+emphaticdaq::fragmentTypeToString(FragmentType val)
 {
   if (val < FragmentType::INVALID) {
     return names.at(val);
@@ -64,7 +61,7 @@ sbndaq::fragmentTypeToString(FragmentType val)
   }
 }
 
-std::map< artdaq::Fragment::type_t, std::string > sbndaq::makeFragmentTypeMap()
+std::map< artdaq::Fragment::type_t, std::string > emphaticdaq::makeFragmentTypeMap()
 {
       auto output = artdaq::Fragment::MakeSystemTypeMap();
       for (auto name : names)

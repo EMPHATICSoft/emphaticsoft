@@ -1,9 +1,9 @@
 //
-//  sbndaq-artdaq/Generators/Common/CAENV1730Readout.hh
+//  emphatic-artdaq/Generators/CAENV1730Readout.hh
 //
 
-#ifndef sbndaq_artdaq_Generators_CAENV1730Readout_hh
-#define sbndaq_artdaq_Generators_CAENV1730Readout_hh
+#ifndef emphatic_artdaq_Generators_CAENV1730Readout_hh
+#define emphatic_artdaq_Generators_CAENV1730Readout_hh
 
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/fwd.h"
@@ -12,7 +12,7 @@
 
 #include "CAENDigitizer.h"
 #include "CAENDigitizerType.h"
-#include "sbndaq-artdaq-core/Overlays/Common/CAENV1730Fragment.hh"
+#include "emphatic-artdaq/Overlays/CAENV1730Fragment.hh"
 
 #include "CAENConfiguration.hh"
 
@@ -24,7 +24,7 @@
 #include <unordered_map>
 #include <mutex>
 
-namespace sbndaq
+namespace emphaticdaq
 {
 
   class CAENV1730Readout : public artdaq::CommandableFragmentGenerator{
@@ -45,14 +45,14 @@ namespace sbndaq
     bool readSingleWindowFragments(artdaq::FragmentPtrs &);
     bool readSingleWindowDataBlock();
     bool readWindowDataBlocks();
-	
+
     bool readCombinedWindowFragments(artdaq::FragmentPtrs &);
-		
+
     void loadConfiguration(fhicl::ParameterSet const& ps);
     void configureInterrupts();
 
-    typedef enum 
-    { 
+    typedef enum
+    {
       CONFIG_READ_ADDR     = 0x8000,
       CONFIG_SET_ADDR      = 0x8004,
       CONFIG_CLEAR_ADDR    = 0x8008,
@@ -72,7 +72,7 @@ namespace sbndaq
     typedef enum {
       TEST_PATTERN_S=3
     } TEST_PATTERN_t;
-    
+
     typedef enum {
       BOARD_READY  = 0x0100,
       PLL_STATUS   = 0x0080,
@@ -143,7 +143,7 @@ namespace sbndaq
       // Animesh & Aiwu add end
     } ADDRESS_t;
 
-    typedef enum 
+    typedef enum
     {
       ENABLE_LVDS_TRIGGER  = 0x20000000,
       ENABLE_EXT_TRIGGER   = 0x40000000,
@@ -260,15 +260,15 @@ namespace sbndaq
     uint32_t last_sent_rwcounter;
     uint32_t last_sent_ts;
     uint32_t total_data_size;
-    //uint32_t event_size;	
+    //uint32_t event_size;
     uint32_t n_readout_windows;
     uint32_t ch_temps[CAENConfiguration::MAX_CHANNELS];
     uint32_t ch_status[CAENConfiguration::MAX_CHANNELS];
-    
+
     //functions
     void Configure();
 
-    void ConfigureRecordFormat();    
+    void ConfigureRecordFormat();
     void ConfigureDataBuffer();
     void ConfigureTrigger();
     void ConfigureReadout();
@@ -288,7 +288,7 @@ namespace sbndaq
     bool WaitForTrigger();
     bool GetData();
     share::WorkerThreadUPtr GetData_thread_;
-    sbndaq::PoolBuffer fPoolBuffer; 		
+    emphaticdaq::PoolBuffer fPoolBuffer;
     size_t fCircularBufferSize;
     std::unique_ptr<uint16_t[]> fBuffer;
 
@@ -299,7 +299,7 @@ namespace sbndaq
     boost::posix_time::ptime fTimePollEnd,fTimePollBegin;
     boost::posix_time::ptime fTimeEpoch;
     boost::posix_time::time_duration fTimeDiffPollBegin,fTimeDiffPollEnd;
-    
+
     artdaq::Fragment::timestamp_t fTS;
     uint64_t fMeanPollTime;
     uint64_t fMeanPollTimeNS;
@@ -309,8 +309,8 @@ namespace sbndaq
     void CheckReadback(std::string,int,uint32_t,uint32_t,int channelID=-1);
 
     CAEN_DGTZ_ErrorCode	WriteRegisterBitmask(int32_t handle, uint32_t address,
-					     uint32_t data, uint32_t bitmask); 
-    
+					     uint32_t data, uint32_t bitmask);
+
   };
 
 }

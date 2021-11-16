@@ -9,7 +9,7 @@
 #include "CAENDecoder.hh"
 #include "fhiclcpp/ParameterSet.h"
 
-namespace sbndaq
+namespace emphaticdaq
 {
 class CAENConfiguration
 {
@@ -65,7 +65,7 @@ class CAENConfiguration
 };
 }
 
-std::ostream& operator<<(std::ostream& os, const sbndaq::CAENConfiguration& e);
+std::ostream& operator<<(std::ostream& os, const emphaticdaq::CAENConfiguration& e);
 
 #endif
 

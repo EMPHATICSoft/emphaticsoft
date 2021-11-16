@@ -11,7 +11,7 @@
 #include "CAENConfiguration.hh"
 
 // Constructor
-sbndaq::CAENConfiguration::CAENConfiguration(fhicl::ParameterSet const & ps):
+emphaticdaq::CAENConfiguration::CAENConfiguration(fhicl::ParameterSet const & ps):
   link(0),
   firstBoardId(0),
   nBoards(0),
@@ -98,12 +98,12 @@ sbndaq::CAENConfiguration::CAENConfiguration(fhicl::ParameterSet const & ps):
 }
 
 
-void sbndaq::CAENConfiguration::print(std::ostream& os) 
+void emphaticdaq::CAENConfiguration::print(std::ostream& os) 
 {
   os << *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const sbndaq::CAENConfiguration& e)
+std::ostream& operator<<(std::ostream& os, const emphaticdaq::CAENConfiguration& e)
 {
   os << "CAEN Configuration" << std::endl;
   os << "  Link                  " << e.link << std::endl;
@@ -118,22 +118,22 @@ std::ostream& operator<<(std::ostream& os, const sbndaq::CAENConfiguration& e)
   os << "  PostPercent           " << e.postPercent << "%" << std::endl;
   os << "  IrqWaitTime           " << e.irqWaitTime << std::endl;
   os << "  IOLevel (NIM or TTL)  " << e.ioLevel << " " 
-     << sbndaq::CAENDecoder::IOLevel((CAEN_DGTZ_IOLevel_t)e.ioLevel) << std::endl;
+     << emphaticdaq::CAENDecoder::IOLevel((CAEN_DGTZ_IOLevel_t)e.ioLevel) << std::endl;
   os << "  TriggerPolarity       " << e.triggerPolarity << " " 
-     << sbndaq::CAENDecoder::TriggerPolarity((CAEN_DGTZ_TriggerPolarity_t)e.triggerPolarity) << std::endl;
+     << emphaticdaq::CAENDecoder::TriggerPolarity((CAEN_DGTZ_TriggerPolarity_t)e.triggerPolarity) << std::endl;
   os << "  ExtTrgMode            " << e.extTrgMode << " " 
-     << sbndaq::CAENDecoder::TriggerMode((CAEN_DGTZ_TriggerMode_t)e.extTrgMode) << std::endl;
+     << emphaticdaq::CAENDecoder::TriggerMode((CAEN_DGTZ_TriggerMode_t)e.extTrgMode) << std::endl;
   os << "  SWTrgMode             " << e.swTrgMode << " " 
-     << sbndaq::CAENDecoder::TriggerMode((CAEN_DGTZ_TriggerMode_t)e.swTrgMode) << std::endl;
-  for ( int j=0; j<sbndaq::CAENConfiguration::MAX_CHANNELS; j++)
+     << emphaticdaq::CAENDecoder::TriggerMode((CAEN_DGTZ_TriggerMode_t)e.swTrgMode) << std::endl;
+  for ( int j=0; j<emphaticdaq::CAENConfiguration::MAX_CHANNELS; j++)
       os << "    Channel " << j << " Threshold " << e.triggerThresholds[j] << std::endl;
   os << "  AcqMode               " << e.acqMode << " " 
-     << sbndaq::CAENDecoder::AcquisitionMode((CAEN_DGTZ_AcqMode_t)e.acqMode) << std::endl;
+     << emphaticdaq::CAENDecoder::AcquisitionMode((CAEN_DGTZ_AcqMode_t)e.acqMode) << std::endl;
   os << "  DebugLevel            " << e.debugLevel << std::endl;
   os << "  EventCounterWarning   " << e.eventCounterWarning << std::endl;
   os << "  MemoryAlmostFull      " << e.memoryAlmostFull << std::endl;
   os << "  ReadoutMode           " << e.readoutMode << " " 
-     << sbndaq::CAENDecoder::EnaDisMode((CAEN_DGTZ_EnaDis_t)e.readoutMode) << std::endl;
+     << emphaticdaq::CAENDecoder::EnaDisMode((CAEN_DGTZ_EnaDis_t)e.readoutMode) << std::endl;
   os << "  AnalogMode            " << e.analogMode << std::endl;
   os << "  TestPattern           " << e.testPattern << std::endl;
   os << "  BoardId               " << e.boardId << 
@@ -141,7 +141,7 @@ std::ostream& operator<<(std::ostream& os, const sbndaq::CAENConfiguration& e)
   if ( e.enableReadout )
   {
     os << "    ChannelEnableMask   0x" << std::hex << e.channelEnableMask << std::dec << std::endl;
-    for ( int j=0; j<sbndaq::CAENConfiguration::MAX_CHANNELS; j++)
+    for ( int j=0; j<emphaticdaq::CAENConfiguration::MAX_CHANNELS; j++)
     {
       if ( e.channelEnable[j] )
       {
