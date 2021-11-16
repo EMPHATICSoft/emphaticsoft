@@ -1,0 +1,20 @@
+#include "sbndaq-artdaq/BuildInfo/GetPackageBuildInfo.hh"
+
+#include <string>
+
+namespace sbndaq
+{
+
+  artdaq::PackageBuildInfo GetPackageBuildInfo::getPackageBuildInfo()
+  {
+
+    artdaq::PackageBuildInfo pkg;
+
+    pkg.setPackageName ( "sbndaq-artdaq" );
+    pkg.setPackageVersion( "@version_with_git@" );
+    pkg.setBuildTimestamp ( "@utcDateTime@" );
+
+    return pkg;
+  }
+
+}
