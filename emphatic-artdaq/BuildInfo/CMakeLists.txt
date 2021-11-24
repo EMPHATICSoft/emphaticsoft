@@ -19,6 +19,8 @@ else(${GIT_DESCRIBE_RESULT})
   set(version_with_git $ENV{CETPKG_VERSION})
 endif()
 
+include_directories($ENV{ARTDAQ_CORE_INC})
+
 configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/GetPackageBuildInfo.cc.in
                  ${CMAKE_CURRENT_BINARY_DIR}/GetPackageBuildInfo.cc @ONLY )
 

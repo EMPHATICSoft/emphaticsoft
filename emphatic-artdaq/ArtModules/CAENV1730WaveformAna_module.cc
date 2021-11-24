@@ -12,10 +12,9 @@
 
 #include "canvas/Utilities/Exception.h"
 
-#include "emphatic-artdaq-core/Overlays/Common/CAENV1730Fragment.hh"
+#include "emphatic-artdaq/Overlays/CAENV1730Fragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
-//#include "art/Framework/Services/Optional/TFileService.h" //before art_root_io transition
 #include "art_root_io/TFileService.h"
 #include "TH1F.h"
 #include "TNtuple.h"

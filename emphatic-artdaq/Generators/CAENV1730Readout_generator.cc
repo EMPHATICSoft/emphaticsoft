@@ -438,7 +438,8 @@ void emphaticdaq::CAENV1730Readout::RunADCCalibration()
 //Animesh & Aiwu added function
 void emphaticdaq::CAENV1730Readout::ConfigureOthers(){
   CAEN_DGTZ_ErrorCode retcod = CAEN_DGTZ_Success;
-  uint32_t data,readBack,ioMode;
+  //uint32_t data,readBack,ioMode;
+  uint32_t readBack;
 
   // Always set output to "New features"
 
@@ -736,7 +737,7 @@ void emphaticdaq::CAENV1730Readout::Write_ADC_CalParams_V1730(int handle, int ch
 void emphaticdaq::CAENV1730Readout::ConfigureSelfTriggerMode()
 {
   CAEN_DGTZ_ErrorCode retcod = CAEN_DGTZ_Success;
-  uint32_t data,readBack;
+  //uint32_t data,readBack;
 
   retcod = CAEN_DGTZ_SetChannelSelfTrigger(fHandle,
 					   (CAEN_DGTZ_TriggerMode_t)fSelfTriggerMode,
@@ -2006,7 +2007,7 @@ bool emphaticdaq::CAENV1730Readout::readSingleWindowFragments(artdaq::FragmentPt
 	ptime t_now(second_clock::universal_time());
 	ptime time_t_epoch(date(1970,1,1));
 	time_duration diff = t_now - time_t_epoch;
-	uint32_t t_offset_s = diff.total_seconds();
+	//uint32_t t_offset_s = diff.total_seconds();
 	uint64_t t_offset_ticks = diff.total_seconds()*125000000; //in 8ns ticks
 	uint64_t t_truetriggertime = t_offset_ticks + TTT;
 	TLOG_ARB(TMAKEFRAG,TRACE_NAME) << "time offset = " << t_offset_ticks << " ns since the epoch"<< TLOG_ENDL;
