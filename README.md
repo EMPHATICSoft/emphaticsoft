@@ -55,30 +55,31 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
       sudo mkdir -p /cvmfs/emphatic.opensciencegrid.org
       sudo mkdir -p /cvmfs/fermilab.opensciencegrid.org
       ```
-2. Install [Docker](https://docs.docker.com/engine/install/).
+1. Install [Docker](https://docs.docker.com/engine/install/).
    * Once Docker is installed, open it and go to preferences (the gear icon on the top right). Go to `Resources->File Sharing` and add `/cvmfs` to the list, then click `Apply & Restart`. (**Note:** Adding `/cvmfs` to File Sharing is only needed if we put the image on cvmfs rather than just pulling it from DockerHub.)
-3. Clone the EMPHATICSoft/emphaticsoft repository onto your computer:
+1. Clone the EMPHATICSoft/emphaticsoft repository onto your computer:
     ```
     git clone https://github.com/EmphaticSoft/emphaticsoft
     ```
-4. Make a build directory on your computer (eg. `mkdir build`). Mounting this in the container will speed up the build process (after the first build).
+1. Make a build directory on your computer (eg. `mkdir build`). Mounting this in the container will speed up the build process (after the first build).
 ### To run the container:
 1. Anytime your computer reboots, you will need to remount cvmfs:
    ```
    sudo mount -t cvmfs emphatic.opensciencegrid.org /cvmfs/emphatic.opensciencegrid.org/
    sudo mount -t cvmfs fermilab.opensciencegrid.org /cvmfs/fermilab.opensciencegrid.org/
    ```
-2. Start the container with:
+1. Start Docker. (Double-click on the application or however you usually open applications in your OS.)   
+1. Start the container with:
    ```
    docker run --rm -it -v <path-to-your-local-repo>:/emphaticsoft -v /cvmfs:/cvmfs:cached -v <path-to-your-build-directory>:/build lackey32/emphaticsoft-sl7
    ```
-3. To set up the environment and ups products, do:
+1. To set up the environment and ups products, do:
    ```
    source emphaticsoft/setup/setup_emphatic.sh
    cd build
    source ../emphaticsoft/ups/setup_for_development -p
    ```
-4. To compile the code:
+1. To compile the code:
    * for the first time (must be in the build directory):
    ```
    buildtool --generator=ninja
