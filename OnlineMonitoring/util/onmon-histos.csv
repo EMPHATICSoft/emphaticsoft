@@ -1,0 +1,3 @@
+Name,Title,Category,Type,nx,x1,x2,ny,y1,y2,Option,Detector,Reset,Look back,Caption
+AAVsHour,Alert Status per minute as a function of UTC hour;UTC hour;Alert type,Alerts:Shift,TH2F,1500,-1,24,9,-0.25,4.25,colz:logz:zoomhour:autozoomz:special:gridy,all,utc,1,Shows number of Alert Statuses reported per minute as a function of UTC hour for each alert type.  Now is always the far right edge of the plot.
+ADCEbyPixelDCM,ADC Error reported by pixel and plotted by DCM,Errors,TH2F,14,0,896,12,0,384,colz:logz:hwlbl_det:autozoomz,emph,run,3,Shows ADC Errors reported by pixel for each DCM.  Single click in a bin to display the hardware address and bin contents. Before July 2018: Shows Data Drop Errors.
