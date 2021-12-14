@@ -1,6 +1,7 @@
 set( PACKAGE OnlineMonitoringUtil )
 FILE( GLOB src_files *.cxx )
-
+include(CetRootCint)
+cet_rootcint( ${PACKAGE} )
 
 cet_make_library( SOURCE ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
 	  	  					LIBRARY_NAME OnlineMonitoringViewer
