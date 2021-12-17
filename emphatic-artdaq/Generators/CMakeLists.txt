@@ -44,7 +44,6 @@ cet_make_library(
     emphatic-artdaq_Utilities
   SOURCE
     workerThread.cpp
-    #CircularBuffer.cc
     PoolBuffer.cc
   LIBRARIES
     pthread
