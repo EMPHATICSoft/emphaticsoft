@@ -1,0 +1,101 @@
+ <materials>
+   
+   <!-- Element -->
+   <element Z="1" formula="H" name="Hydrogen">
+     <atom value="1.00794"/>
+   </element>
+   
+   <element Z="4" formula="Be" name="Beryllium">
+     <atom value="9.012"/>
+   </element>
+   
+   <element Z="5" formula="B" name="Boron">
+     <atom value="10.811"/>
+   </element>
+   
+   <element Z="6" formula="C" name="Carbon">
+     <atom value="12.011"/>
+   </element>
+   
+   <element Z="7" formula="N" name="Nitrogen">
+     <atom value="14.0067"/>
+   </element>
+   
+   <element Z="8" formula="O" name="Oxygen">
+     <atom value="15.9994"/>
+   </element>
+   
+   <element Z="9" formula="F" name="Fluorine">
+     <atom value="18.9984"/>
+   </element>
+   
+   <element Z="13" formula="Al" name="Aluminum">
+     <atom value="26.981"/>
+   </element>
+   
+   <element Z="14" formula="S" name="Silicon">
+     <atom value="28.086"/>
+   </element>
+   
+   <element Z="16" formula="S" name="Sulfur">
+     <atom value="32.066"/>
+   </element>
+   
+   <element Z="20" formula="Ca" name="Calcium">
+     <atom value="40.078"/>
+   </element>
+   
+   <element Z="26" formula="Fe" name="Iron">
+     <atom value="55.847"/>
+   </element>
+   
+   <element Z="60" formula="Nd" name="Neodymium">
+     <atom value="144.242"/>
+   </element>
+   
+   <!-- Material -->
+   
+   <material formula="air" name="Air" state="gas">
+     <D value="0.00119" unit="g/cm3" />
+     <fraction n="0.76" ref="Nitrogen"/>
+     <fraction n="0.24" ref="Oxygen"/>
+   </material>
+   
+   <material formula="NdFeB" name="NeodymiumAlloy" state="solid" >
+     <D value="7.5" unit="g/cm3" />
+     <fraction n="0.311" ref="Neodymium"/>
+     <fraction n="0.675" ref="Iron" />
+     <fraction n="0.011" ref="Boron" />
+     <fraction n="0.003" ref="Aluminum" />
+   </material>
+   
+   <material formula="Fe" name="IronShell">
+     <D value="7.9"/>
+     <composite n="1" ref="Iron"/>
+   </material>
+   
+   <material formula="graphite" name="Graphite">
+     <D value="1.83"/>
+     <fraction n="1" ref="Carbon"/>
+   </material>
+   
+   <material formula="CFRP" name="CarbonFiber">
+     <D value="1.55"/>
+     <fraction n="0.8" ref="Carbon"/>
+     <fraction n="0.07" ref="Hydrogen"/>
+     <fraction n="0.13" ref="Oxygen"/>
+   </material>
+   
+   <material formula="Si" name="SiliconWafer">
+     <D value="2.3"/>
+     <composite n="1" ref="Silicon"/>
+   </material>
+   
+   <material formula="mylar" name="Mylar">
+     <D unit="g/cm3" value="1.397"/>
+     <fraction n="0.042" ref="Hydrogen"/>
+     <fraction n="0.625" ref="Carbon"/>
+     <fraction n="0.333" ref="Oxygen"/>
+   </material>
+   
+ </materials>
