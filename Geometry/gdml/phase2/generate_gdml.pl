@@ -58,6 +58,8 @@ $n_layer = 2;
 $n_aerogel = 3;
 $m_aerogel = 3;
 @aerogel_mod = ("1035", "1045");
+$n_chan = 4;
+$n_SiPM = 18;
 
 # run the sub routines that generate the fragments
 
@@ -216,11 +218,15 @@ print DEF <<EOF;
 
 	 <quantity name="flight_length" value="210.0" unit="mm"/>
 
-	 <quantity name="SiPM_thickness" value="0.15" unit="mm"/>
-	 <quantity name="panel_thickness" value="1.35" unit="mm"/>
+	 <quantity name="channel_size" value="6.0" unit="mm"/>
+	 <quantity name="channel_gap" value="0.2" unit="mm"/>
+	 <quantity name="SiPM_size" value="25.0" unit="mm"/>
+	 <quantity name="SiPM_gap" value="0.5" unit="mm"/>
+	 <quantity name="SiPM_thick" value="0.15" unit="mm"/>
+	 <quantity name="panel_thick" value="1.35" unit="mm"/>
 
-	 <quantity name="box_size" value="469.5" unit="mm"/>
-	 <quantity name="box_length" value="flight_length+aerogel_thick*$n_layer+SiPM_thickness+panel_thickness" unit="mm"/>
+	 <quantity name="box_size" value="(SiPM_size+SiPM_gap)*$n_SiPM+SiPM_gap" unit="mm"/>
+	 <quantity name="box_length" value="flight_length+aerogel_thick*$n_layer+SiPM_thick+panel_thick" unit="mm"/>
 
 	 <position name="arich_pos" z="box_length*0.5+arich_shift" unit="mm"/>
 	 
@@ -230,9 +236,21 @@ EOF
     for($j = 0; $j < $n_aerogel; ++$j){
       for($k = 0; $k < $m_aerogel; ++$k){
   print DEF <<EOF;
-    <position name="aero@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos" x="-102.0+101*$j" y="-102.0+101*$k" z="aerogel_thick*0.5+aerogel_thick*$k-box_length*0.5" unit="mm"/>
+    <position name="aero@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos" x="-102.0+101*$j" y="-102.0+101*$k" z="aerogel_thick*0.5+aerogel_thick*$i-box_length*0.5" unit="mm"/>
 EOF
   		}
+	 }
+  }
+
+  for($i = 0; $i < $n_SiPM; ++$i){
+    for($j = 0; $j < $n_SiPM; ++$j){
+      for($ci = 0; $ci < $n_chan; ++$ci){
+        for($cj = 0; $cj < $n_chan; ++$cj){
+  print DEF <<EOF;
+    <position name="channel@{[ $i ]}@{[ $j ]}_@{[ $ci ]}@{[ $cj ]}_pos" x="(channel_size+channel_gap)*($ci-($n_chan-1)/2.)+(SiPM_size+SiPM_gap)*($i-($n_SiPM-1)/2.)" y="(channel_size+channel_gap)*($cj-($n_chan-1)/2.)+(SiPM_size+SiPM_gap)*($j-($n_SiPM-1)/2.)" z="-SiPM_thick*0.5-panel_thick+box_length*0.5" unit="mm"/>
+EOF
+        }
+      }
 	 }
   }
 
@@ -322,6 +340,7 @@ EOF
 	 <!-- BELOW IS FOR ARICH -->
 	   <box name="aerogel_box" x="aerogel_size" y="aerogel_size" z="aerogel_thick"/>
 	   <box name="arich_box" x="box_size" y="box_size" z="box_length"/>
+	   <box name="channel_box" x="channel_size" y="channel_size" z="SiPM_thick"/>
 	 <!-- ABOVE IS FOR ARICH -->
 
 	</solids>	
@@ -399,6 +418,11 @@ EOF
 EOF
   }
   print MOD <<EOF;
+
+      <volume name="channel_vol">
+         <materialref ref="SiliconWafer"/>
+         <solidref ref="channel_box"/>
+      </volume>
   
   <!-- ABOVE IS FOR ARICH -->
 
@@ -493,6 +517,22 @@ EOF
 		}
 	 }
   }
+
+  for($i = 0; $i < $n_SiPM; ++$i){
+    for($j = 0; $j < $n_SiPM; ++$j){
+      for($ci = 0; $ci < $n_chan; ++$ci){
+        for($cj = 0; $cj < $n_chan; ++$cj){
+  print DET <<EOF;
+       <physvol name="channel@{[ $i ]}@{[ $j ]}_@{[ $ci ]}@{[ $cj ]}_phys">
+		   <volumeref ref="channel_vol"/>
+			<positionref ref="channel@{[ $i ]}@{[ $j ]}_@{[ $ci ]}@{[ $cj ]}_pos"/>
+       </physvol>
+EOF
+        }
+      }
+	 }
+  }
+
   print DET <<EOF;
   </volume>
   <!-- ABOVE IS FOR ARICH -->
