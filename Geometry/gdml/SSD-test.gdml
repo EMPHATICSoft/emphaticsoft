@@ -8,7 +8,20 @@
 --> 
 
 <define>
+
     <quantity name="world_size" value="3000." unit="mm"/>
+
+	 <!-- BELOW IS FOR TARGET -->
+
+	 <quantity name="target_thick" value="20.0" unit="mm"/>
+    <quantity name="target_width" value="100.0" unit="mm"/>
+    <quantity name="target_height" value="50.0" unit="mm"/>
+  
+    <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
+
+	 <!-- ABOVE IS FOR TARGET -->
+
+	 <!-- BELOW IS FOR SSD -->
 
     <quantity name="ssdD0_thick" value=".300" unit="mm"/>
     <quantity name="ssdD0_width" value="98.33" unit="mm"/>
@@ -75,7 +88,6 @@
     <position name="ssd5_DSMylarWindow_pos" x="0" y="0"
        z="10." unit="mm" />
 
-
     <quantity name="ssdStation7Length" value="50" unit="mm" />
     <quantity name="ssdStation7Width" value="500" unit="mm" />
     <quantity name="ssdStation7Height" value="500" unit="mm" />
@@ -92,12 +104,9 @@
          z="-10." unit="mm" />
     <position name="ssd7_DSMylarWindow_pos" x="0" y="0"
        z="10." unit="mm" />
+	 
+	 <!-- ABOVE IS FOR SSD -->
 
-	 <rotation name="RotateZP45" z="45" unit="deg"/>
-	 <rotation name="RotateZM45" z="-45" unit="deg"/>
-	 <rotation name="RotateZP60" z="60" unit="deg"/>
-	 <rotation name="RotateZM60" z="-60" unit="deg"/>
-	 <rotation name="RotateZP90" z="90" unit="deg"/>
   </define>
 <materials>
    
@@ -201,7 +210,16 @@
    
  </materials>
 <solids>
-     <box name="world_box" x="world_size" y="world_size" z="world_size" />
+
+    <box name="world_box" x="world_size" y="world_size" z="world_size" />
+
+	 <!-- BELOW IS FOR TARGET -->
+
+	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
+
+	 <!-- ABOVE IS FOR TARGET -->
+	 
+	 <!-- BELOW IS FOR SSD -->
 
 	  <box name="ssdStation0_box" x="ssdStation0Width" y="ssdStation0Height" z="ssdStation0Length" />
 	  <box name="ssd0_MylarWindow_box" x="ssdStation0Width*0.8" y="ssdStation0Width*0.8" z="Mylar_Window_thick" />
@@ -223,8 +241,21 @@
 	  <box name="ssd7_box" x="ssdCMS_width" y="ssdCMS_height" z="ssdD0_thick" />
 	  <box name="ssd7_bkpln_box" x="1.3*ssdCMS_width" y="1.3*ssdCMS_width" z="carbon_fiber_thick" />
 
+	 <!-- ABOVE IS FOR SSD -->
+
 	</solids>
 <structure>    
+
+  <!-- BELOW IS FOR TARGET -->
+
+  <volume name="target_vol">
+    <materialref ref="Graphite"/>
+    <solidref ref="target_box"/>
+  </volume>
+
+  <!-- ABOVE IS FOR TARGET -->
+
+  <!-- BELOW IS FOR SSD -->
 
 	    <volume name="ssd0_vol">
          <materialref ref="SiliconWafer"/>
@@ -286,8 +317,12 @@
 	    <solidref ref="ssd7_MylarWindow_box"/>
 	  </volume>
 
+  
+  <!-- ABOVE IS FOR SSD -->
 
   
+  
+  <!-- BELOW IS FOR SSD -->
 
      <volume name="ssdStation0_vol">
        <materialref ref="Air"/>
@@ -428,12 +463,26 @@
        </physvol>
      </volume>
 
+  
+  <!-- ABOVE IS FOR SSD -->
 
   
 
   <volume name="world">
     <materialref ref="Air"/>
     <solidref ref="world_box"/>
+ 
+  <!-- BELOW IS FOR TARGET -->
+
+  <physvol name="target_phys">
+    <volumeref ref="target_vol"/>
+    <positionref ref="target_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR TARGET -->
+
+ 
+  <!-- BELOW IS FOR SSD -->
 
 
         <physvol name="ssdStation0_phys">
@@ -475,6 +524,7 @@
           <volumeref ref="ssdStation7_vol"/>
           <positionref ref="ssdStation7_pos"/>
         </physvol>
+  <!-- ABOVE IS FOR SSD -->
   </volume>
 
   </structure>

@@ -1,7 +1,9 @@
 #!/usr/bin/perl
 
-# Much of this program is taken straight from generate_gdml.pl that 
-# generates MicroBooNE fragment files (Thank you.)
+# Linyan 2022.01.12
+
+# Structure of this program is taken straight from generate_gdml.pl that 
+# generates MicroBooNE / Nova fragment files (Thank you.)
 
 # Each subroutine generates a fragment GDML file, and the last subroutine
 # creates an XML file that make_gdml.pl will use to appropriately arrange
@@ -43,23 +45,21 @@ else
     $suffix = "-" . $suffix;
 }
 
-$nstation_type = 4;
-$bkpln_size = (1.0, 1.3, 1.3, 1.3); #size scale to ssd
-@SSD_lay = (2, 3, 3, 3);
-@SSD_bkpln= (1, 2, 2, 2);
-@SSD_mod = ("D0", "D0", "D0", "CMS");
-@SSD_station = (2, 3, 2, 1);
+# constants for SSD
+$nstation_type = 4; # types of station
+$bkpln_size = (1.0, 1.3, 1.3, 1.3); # bkpln size scale to ssd
+@SSD_lay = (2, 3, 3, 3); # num. of SSD in a station
+@SSD_bkpln= (1, 2, 2, 2); # num. of bkpln in a station
+@SSD_mod = ("D0", "D0", "D0", "CMS"); # SSD type in a station
+@SSD_station = (2, 3, 2, 1); # num. of stations
 
 # run the sub routines that generate the fragments
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
 gen_Solids();    # generates solids
-
 gen_Modules();   # generate modules
-
 gen_DetEnclosure();   # generate DetEnclosure
-
 gen_World();	 # places the enclosure among DUSEL Rock
 
 
@@ -102,7 +102,20 @@ print DEF <<EOF;
     <gdml>
     
   <define>
+
     <quantity name="world_size" value="3000." unit="mm"/>
+
+	 <!-- BELOW IS FOR TARGET -->
+
+	 <quantity name="target_thick" value="20.0" unit="mm"/>
+    <quantity name="target_width" value="100.0" unit="mm"/>
+    <quantity name="target_height" value="50.0" unit="mm"/>
+  
+    <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
+
+	 <!-- ABOVE IS FOR TARGET -->
+
+	 <!-- BELOW IS FOR SSD -->
 
     <quantity name="ssdD0_thick" value=".300" unit="mm"/>
     <quantity name="ssdD0_width" value="98.33" unit="mm"/>
@@ -169,7 +182,6 @@ print DEF <<EOF;
     <position name="ssd5_DSMylarWindow_pos" x="0" y="0"
        z="10." unit="mm" />
 
-
     <quantity name="ssdStation7Length" value="50" unit="mm" />
     <quantity name="ssdStation7Width" value="500" unit="mm" />
     <quantity name="ssdStation7Height" value="500" unit="mm" />
@@ -186,6 +198,8 @@ print DEF <<EOF;
          z="-10." unit="mm" />
     <position name="ssd7_DSMylarWindow_pos" x="0" y="0"
        z="10." unit="mm" />
+	 
+	 <!-- ABOVE IS FOR SSD -->
 
   </define>
 
@@ -241,7 +255,16 @@ sub gen_Solids()
   print SOL <<EOF;
 
 	<solids>
-     <box name="world_box" x="world_size" y="world_size" z="world_size" />
+
+    <box name="world_box" x="world_size" y="world_size" z="world_size" />
+
+	 <!-- BELOW IS FOR TARGET -->
+
+	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
+
+	 <!-- ABOVE IS FOR TARGET -->
+	 
+	 <!-- BELOW IS FOR SSD -->
 
 EOF
   $modi = 0;
@@ -256,6 +279,8 @@ EOF
 	  $modi+=$SSD_station[$i];
   }
   print SOL <<EOF;
+	 <!-- ABOVE IS FOR SSD -->
+
 	</solids>	
 
 EOF
@@ -282,6 +307,17 @@ sub gen_Modules()
   print MOD <<EOF;
   <structure>    
 
+  <!-- BELOW IS FOR TARGET -->
+
+  <volume name="target_vol">
+    <materialref ref="Graphite"/>
+    <solidref ref="target_box"/>
+  </volume>
+
+  <!-- ABOVE IS FOR TARGET -->
+
+  <!-- BELOW IS FOR SSD -->
+
 EOF
   $modi = 0;
   for($i = 0; $i < $nstation_type; ++$i){
@@ -305,6 +341,8 @@ EOF
 	  $modi += $SSD_station[$i];
   }
   print MOD <<EOF;
+  
+  <!-- ABOVE IS FOR SSD -->
 
   </structure>    
   
@@ -330,6 +368,8 @@ sub gen_DetEnclosure()
 
   print DET <<EOF;
   <structure>
+  
+  <!-- BELOW IS FOR SSD -->
 
 EOF
   $modi = 0;
@@ -373,6 +413,8 @@ EOF
 	  $modi += $SSD_station[$i];
   }
   print DET <<EOF;
+  
+  <!-- ABOVE IS FOR SSD -->
 
   </structure> 
 
@@ -413,6 +455,18 @@ print WORLD <<EOF;
   <volume name="world">
     <materialref ref="Air"/>
     <solidref ref="world_box"/>
+ 
+  <!-- BELOW IS FOR TARGET -->
+
+  <physvol name="target_phys">
+    <volumeref ref="target_vol"/>
+    <positionref ref="target_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR TARGET -->
+
+ 
+  <!-- BELOW IS FOR SSD -->
 
 EOF
 
@@ -435,6 +489,7 @@ EOF
   }  
 
   print WORLD <<EOF;
+  <!-- ABOVE IS FOR SSD -->
   </volume>
 
   </structure>
