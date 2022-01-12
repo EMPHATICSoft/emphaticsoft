@@ -2,7 +2,7 @@
 
 # Linyan 2022.01.12
 
-# Structure of this program is taken straight from generate_gdml.pl that 
+# Structure of this program is taken from generate_gdml.pl that 
 # generates MicroBooNE / Nova fragment files (Thank you.)
 
 # Each subroutine generates a fragment GDML file, and the last subroutine

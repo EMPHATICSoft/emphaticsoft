@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 # Prototype by Linyan 2022.01
+# Code heavily copied from Nova geometry package
 
 #
 # Build a description of the detectors from gdml fragments
