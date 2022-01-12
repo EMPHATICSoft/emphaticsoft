@@ -100,7 +100,7 @@ sub gen_Define()
 # Create the <define> fragment file name, 
 # add file to list of fragments,
 # and open it
-    $DEF = "SSD_Def" . $suffix . ".gdml";
+    $DEF = "phase2_Def" . $suffix . ".gdml";
     push (@gdmlFiles, $DEF);
     $DEF = ">" . $DEF;
     open(DEF) or die("Could not open file $DEF for writing");
@@ -236,7 +236,7 @@ EOF
     for($j = 0; $j < $n_aerogel; ++$j){
       for($k = 0; $k < $m_aerogel; ++$k){
   print DEF <<EOF;
-    <position name="aero@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos" x="-102.0+101*$j" y="-102.0+101*$k" z="aerogel_thick*0.5+aerogel_thick*$i-box_length*0.5" unit="mm"/>
+    <position name="aerogel@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos" x="-102.0+101*$j" y="-102.0+101*$k" z="aerogel_thick*0.5+aerogel_thick*$i-box_length*0.5" unit="mm"/>
 EOF
   		}
 	 }
@@ -245,9 +245,11 @@ EOF
   for($i = 0; $i < $n_SiPM; ++$i){
     for($j = 0; $j < $n_SiPM; ++$j){
       for($ci = 0; $ci < $n_chan; ++$ci){
+        $fi = sprintf("%02d", $i);
         for($cj = 0; $cj < $n_chan; ++$cj){
+          $fj = sprintf("%02d", $j);
   print DEF <<EOF;
-    <position name="channel@{[ $i ]}@{[ $j ]}_@{[ $ci ]}@{[ $cj ]}_pos" x="(channel_size+channel_gap)*($ci-($n_chan-1)/2.)+(SiPM_size+SiPM_gap)*($i-($n_SiPM-1)/2.)" y="(channel_size+channel_gap)*($cj-($n_chan-1)/2.)+(SiPM_size+SiPM_gap)*($j-($n_SiPM-1)/2.)" z="-SiPM_thick*0.5-panel_thick+box_length*0.5" unit="mm"/>
+    <position name="channel@{[ $fi ]}@{[ $fj ]}_@{[ $ci ]}@{[ $cj ]}_pos" x="(channel_size+channel_gap)*($ci-($n_chan-1)/2.)+(SiPM_size+SiPM_gap)*($i-($n_SiPM-1)/2.)" y="(channel_size+channel_gap)*($cj-($n_chan-1)/2.)+(SiPM_size+SiPM_gap)*($j-($n_SiPM-1)/2.)" z="-SiPM_thick*0.5-panel_thick+box_length*0.5" unit="mm"/>
 EOF
         }
       }
@@ -275,7 +277,7 @@ sub gen_Materials()
 # Create the <materials> fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $MAT = "SSD_Materials" . $suffix . ".gdml";
+    $MAT = "phase2_Materials" . $suffix . ".gdml";
     push (@gdmlFiles, $MAT);
     $MAT = ">" . $MAT;
     open(MAT) or die("Could not open file $MAT for writing");
@@ -302,7 +304,7 @@ sub gen_Solids()
 # Create the <solids> fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $SOL = "SSD_Solids" . $suffix . ".gdml";
+    $SOL = "phase2_Solids" . $suffix . ".gdml";
     push (@gdmlFiles, $SOL);
     $SOL = ">" . $SOL;
     open(SOL) or die("Could not open file $SOL for writing");
@@ -360,7 +362,7 @@ sub gen_Modules()
 # Create the Modules
 # add file to list of output GDML fragments,
 # and open it
-    $MOD = "SSD_Modules" . $suffix . ".gdml";
+    $MOD = "phase2_Modules" . $suffix . ".gdml";
     push (@gdmlFiles, $MOD);
     $MOD = ">" . $MOD;
     open(MOD) or die("Could not open file $MOD for writing");
@@ -409,7 +411,7 @@ EOF
   <!-- BELOW IS FOR ARICH -->
 EOF
 
-  for($i = 0; $i < n_layer; ++$i){
+  for($i = 0; $i < $n_layer; ++$i){
   print MOD <<EOF;
       <volume name="aerogel_@{[ $aerogel_mod[$i] ]}_vol">
          <materialref ref="AERO_@{[ $aerogel_mod[$i] ]}"/>
@@ -443,7 +445,7 @@ sub gen_DetEnclosure()
 # Create the DetEnclosure
 # add file to list of output GDML fragments,
 # and open it
-    $DET = "SSD_DetEnclosure" . $suffix . ".gdml";
+    $DET = "phase2_DetEnclosure" . $suffix . ".gdml";
     push (@gdmlFiles, $DET);
     $DET = ">" . $DET;
     open(DET) or die("Could not open file $DET for writing");
@@ -505,12 +507,12 @@ EOF
 	 <solidref ref="arich_box"/>
 EOF
 
-  for($i = 0; $i < n_layer; ++$i){
-    for($j = 0; $j < n_aerogel; ++$j){
-      for($k = 0; $k < m_aerogel; ++$k){
+  for($i = 0; $i < $n_layer; ++$i){
+    for($j = 0; $j < $n_aerogel; ++$j){
+      for($k = 0; $k < $m_aerogel; ++$k){
   print DET <<EOF;
        <physvol name="aerogel@{[ $i ]}_@{[ $j ]}@{[ $k ]}_phys">
-		   <volumeref ref="aerogel_@{[ $i ]}_mod"/>
+		   <volumeref ref="aerogel_@{[ $aerogel_mod[$i] ]}_vol"/>
 			<positionref ref="aerogel@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos"/>
        </physvol>
 EOF
@@ -521,11 +523,13 @@ EOF
   for($i = 0; $i < $n_SiPM; ++$i){
     for($j = 0; $j < $n_SiPM; ++$j){
       for($ci = 0; $ci < $n_chan; ++$ci){
+        $fi = sprintf("%02d", $i);
         for($cj = 0; $cj < $n_chan; ++$cj){
+          $fj = sprintf("%02d", $j);
   print DET <<EOF;
-       <physvol name="channel@{[ $i ]}@{[ $j ]}_@{[ $ci ]}@{[ $cj ]}_phys">
+       <physvol name="channel@{[ $fi ]}@{[ $fj ]}_@{[ $ci ]}@{[ $cj ]}_phys">
 		   <volumeref ref="channel_vol"/>
-			<positionref ref="channel@{[ $i ]}@{[ $j ]}_@{[ $ci ]}@{[ $cj ]}_pos"/>
+			<positionref ref="channel@{[ $fi ]}@{[ $fj ]}_@{[ $ci ]}@{[ $cj ]}_pos"/>
        </physvol>
 EOF
         }
@@ -555,7 +559,7 @@ sub gen_World()
 # Create the WORLD fragment file name,
 # add file to list of output GDML fragments,
 # and open it
-    $WORLD = "SSD_World" . $suffix . ".gdml";
+    $WORLD = "phase2_World" . $suffix . ".gdml";
     push (@gdmlFiles, $WORLD);
     $WORLD = ">" . $WORLD;
     open(WORLD) or die("Could not open file $WORLD for writing");
