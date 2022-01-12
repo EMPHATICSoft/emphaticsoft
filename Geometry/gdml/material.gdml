@@ -1,3 +1,225 @@
+ <define>
+
+	<!-- ********** Refractive index ********** -->
+
+   <!-- The rindex of air -->
+	<matrix 
+		name="Air_RINDEX" 
+		coldim="2" 
+		values="1.65*eV 1.00 
+				4.14*eV 1.00"
+	/>
+
+
+	<!-- The rindex of aerogel 1 -->
+	<matrix
+		name="AERO_1035_RINDEX"
+		coldim="2"
+		values="1.6*eV  1.035
+				  5.0*eV  1.035"
+	/>
+
+	<!-- The rindex of aerogel 2 -->
+	<matrix
+		name="AERO_1045_RINDEX"
+		coldim="2"
+		values="1.6*eV  1.045
+				  5.0*eV  1.045"
+	/>
+	<!-- ********** Refractive index end ********** -->
+
+
+   <!-- ********** Absorption length ********** -->
+	<matrix
+      name="AERO_1035_ABS"
+      coldim="2"
+		values="1.6*eV  200.*cm
+				  5.0*eV  200.*cm"
+	/>
+
+	<matrix
+      name="AERO_1045_ABS"
+      coldim="2"
+		values="1.6*eV  200.*cm
+				  5.0*eV  200.*cm"
+	/>
+   <!-- ********** Absorption length end ********** -->
+
+   <!-- ********** Rayleigh scattering length ********** -->
+	<matrix
+      name="AERO_1035_RAY"
+      coldim="2"
+      values="1.60*eV  52.640*cm
+					1.65*eV  48.520*cm
+					1.70*eV  44.980*cm
+					1.75*eV  41.920*cm
+					1.80*eV  38.410*cm
+					1.85*eV  35.440*cm
+					1.90*eV  32.890*cm
+					1.95*eV  30.150*cm
+					2.00*eV  27.830*cm
+					2.05*eV  25.830*cm
+					2.10*eV  24.050*cm
+					2.15*eV  22.110*cm
+					2.20*eV  20.280*cm
+					2.25*eV  18.920*cm
+					2.30*eV  17.580*cm
+					2.35*eV  16.250*cm
+					2.40*eV  15.100*cm
+					2.45*eV  14.000*cm
+					2.50*eV  12.990*cm
+					2.55*eV  12.090*cm
+					2.60*eV  11.280*cm
+					2.65*eV  10.480*cm
+					2.70*eV   9.730*cm
+					2.75*eV   9.090*cm
+					2.80*eV   8.490*cm
+					2.85*eV   7.890*cm
+					2.90*eV   7.390*cm
+					2.95*eV   6.920*cm
+					3.00*eV   6.490*cm
+					3.05*eV   6.080*cm
+					3.10*eV   5.680*cm
+					3.15*eV   5.320*cm
+					3.20*eV   5.000*cm
+					3.25*eV   4.700*cm
+					3.30*eV   4.400*cm
+					3.35*eV   4.140*cm
+					3.40*eV   3.900*cm
+					3.45*eV   3.680*cm
+					3.50*eV   3.460*cm
+					3.55*eV   3.260*cm
+					3.60*eV   3.070*cm
+					3.65*eV   2.900*cm
+					3.70*eV   2.730*cm
+					3.75*eV   2.580*cm
+					3.80*eV   2.440*cm
+					3.85*eV   2.310*cm
+					3.90*eV   2.180*cm
+					3.95*eV   2.060*cm
+					4.00*eV   1.950*cm
+					4.05*eV   1.850*cm
+					4.10*eV   1.750*cm
+					4.15*eV   1.660*cm
+					4.20*eV   1.570*cm
+					4.25*eV   1.490*cm
+					4.30*eV   1.410*cm
+					4.35*eV   1.340*cm
+					4.40*eV   1.270*cm
+					4.45*eV   1.200*cm
+					4.50*eV   1.140*cm
+					4.55*eV   1.080*cm
+					4.60*eV   1.020*cm
+					4.65*eV   0.970*cm
+					4.70*eV   0.920*cm
+					4.75*eV   0.870*cm
+					4.80*eV   0.820*cm
+					4.85*eV   0.780*cm
+					4.90*eV   0.750*cm
+					4.95*eV   0.710*cm
+					5.00*eV   0.670*cm"
+	/>
+
+	<matrix
+      name="AERO_1045_RAY"
+      coldim="2"
+      values="1.60*eV  38.020*cm
+					1.65*eV  35.180*cm
+					1.70*eV  32.720*cm
+					1.75*eV  30.580*cm
+					1.80*eV  29.000*cm
+					1.85*eV  26.630*cm
+					1.90*eV  24.840*cm
+					1.95*eV  22.970*cm
+					2.00*eV  21.350*cm
+					2.05*eV  19.940*cm
+					2.10*eV  18.500*cm
+					2.15*eV  17.080*cm
+					2.20*eV  15.880*cm
+					2.25*eV  14.780*cm
+					2.30*eV  13.720*cm
+					2.35*eV  12.730*cm
+					2.40*eV  11.900*cm
+					2.45*eV  10.980*cm
+					2.50*eV  10.220*cm
+					2.55*eV   9.560*cm
+					2.60*eV   8.910*cm
+					2.65*eV   8.300*cm
+					2.70*eV   7.750*cm
+					2.75*eV   7.210*cm
+					2.80*eV   6.750*cm
+					2.85*eV   6.300*cm
+					2.90*eV   5.910*cm
+					2.95*eV   5.530*cm
+					3.00*eV   5.170*cm
+					3.05*eV   4.860*cm
+					3.10*eV   4.550*cm
+					3.15*eV   4.270*cm
+					3.20*eV   4.010*cm
+					3.25*eV   3.770*cm
+					3.30*eV   3.550*cm
+					3.35*eV   3.330*cm
+					3.40*eV   3.140*cm
+					3.45*eV   2.960*cm
+					3.50*eV   2.790*cm
+					3.55*eV   2.630*cm
+					3.60*eV   2.480*cm
+					3.65*eV   2.330*cm
+					3.70*eV   2.200*cm
+					3.75*eV   2.070*cm
+					3.80*eV   1.960*cm
+					3.85*eV   1.850*cm
+					3.90*eV   1.750*cm
+					3.95*eV   1.660*cm
+					4.00*eV   1.570*cm
+					4.05*eV   1.490*cm
+					4.10*eV   1.410*cm
+					4.15*eV   1.340*cm
+					4.20*eV   1.270*cm
+					4.25*eV   1.210*cm
+					4.30*eV   1.150*cm
+					4.35*eV   1.090*cm
+					4.40*eV   1.040*cm
+					4.45*eV   0.990*cm
+					4.50*eV   0.940*cm
+					4.55*eV   0.890*cm
+					4.60*eV   0.850*cm
+					4.65*eV   0.810*cm
+					4.70*eV   0.780*cm
+					4.75*eV   0.740*cm
+					4.80*eV   0.710*cm
+					4.85*eV   0.670*cm
+					4.90*eV   0.640*cm
+					4.95*eV   0.610*cm
+					5.00*eV   0.590*cm"
+	/>
+
+   <matrix
+      name="GAS_RINDEX"
+      coldim="2"
+      values="1.6*eV  1.0014
+              5.0*eV  1.0014"
+   />
+
+   <!-- ********** Absorption length ********** -->
+   <matrix
+      name="GAS_ABS"
+      coldim="2"
+      values="1.6*eV  200.*m
+              5.0*eV  200.*m"
+   />
+
+   <!-- ********** Rayleigh scattering length ********** -->
+
+   <matrix
+      name="GAS_RAY"
+      coldim="2"
+      values="1.6*eV  200.*m
+              5.0*eV  200.*m"
+   />
+
+</define>
+
  <materials>
    
    <!-- Element -->
@@ -56,11 +278,43 @@
    <!-- Material -->
    
    <material formula="air" name="Air" state="gas">
+     <property name="RINDEX" ref="Air_RINDEX"/>
      <D value="0.00119" unit="g/cm3" />
      <fraction n="0.76" ref="Nitrogen"/>
      <fraction n="0.24" ref="Oxygen"/>
    </material>
-   
+
+	<material name="AERO_1035">
+      <property name="RINDEX" ref="AERO_1035_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1035_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1035_RAY"/>
+
+      <D value="0.124"/>
+      <fraction n="0.467" ref="Silicon"/>
+      <fraction n="1.0-0.467" ref="Oxygen"/>
+   </material>
+
+   <material name="AERO_1045">
+      <property name="RINDEX" ref="AERO_1045_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1045_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1045_RAY"/>
+
+      <D value="0.159"/>
+      <fraction n="0.467" ref="Silicon"/>
+      <fraction n="1.0-0.467" ref="Oxygen"/>
+   </material>
+
+   <material name="GAS">
+
+      <property name="RINDEX" ref="GAS_RINDEX"/>
+      <property name="ABSLENGTH" ref="GAS_ABS"/>
+      <property name="RAYLEIGH" ref="GAS_RAY"/>
+
+      <D value="0.0112"/>
+      <fraction n="0.211" ref="Carbon"/>
+      <fraction n="1.0-0.211" ref="Fluorine"/>
+   </material>
+	
    <material formula="NdFeB" name="NeodymiumAlloy" state="solid" >
      <D value="7.5" unit="g/cm3" />
      <fraction n="0.311" ref="Neodymium"/>

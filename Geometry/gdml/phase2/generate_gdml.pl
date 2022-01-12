@@ -53,6 +53,12 @@ $bkpln_size = (1.0, 1.3, 1.3, 1.3); # bkpln size scale to ssd
 @SSD_mod = ("D0", "D0", "D0", "CMS"); # SSD type in a station
 @SSD_station = (2, 3, 2, 1); # num. of stations
 
+# constants for ARICH
+$n_layer = 2;
+$n_aerogel = 3;
+$m_aerogel = 3;
+@aerogel_mod = ("1035", "1045");
+
 # run the sub routines that generate the fragments
 
 gen_Define(); 	 # generates definitions at beginning of GDML
@@ -200,6 +206,38 @@ print DEF <<EOF;
        z="10." unit="mm" />
 	 
 	 <!-- ABOVE IS FOR SSD -->
+	 
+	 <!-- BELOW IS FOR ARICH -->
+
+    <quantity name="arich_shift" value="460" unit="mm" />
+
+	 <quantity name="aerogel_size" value="100.0" unit="mm"/>
+    <quantity name="aerogel_thick" value="20" unit="mm" />
+
+	 <quantity name="flight_length" value="210.0" unit="mm"/>
+
+	 <quantity name="SiPM_thickness" value="0.15" unit="mm"/>
+	 <quantity name="panel_thickness" value="1.35" unit="mm"/>
+
+	 <quantity name="box_size" value="469.5" unit="mm"/>
+	 <quantity name="box_length" value="flight_length+aerogel_thick*$n_layer+SiPM_thickness+panel_thickness" unit="mm"/>
+
+	 <position name="arich_pos" z="box_length*0.5+arich_shift" unit="mm"/>
+	 
+EOF
+
+  for($i = 0; $i < $n_layer; ++$i){
+    for($j = 0; $j < $n_aerogel; ++$j){
+      for($k = 0; $k < $m_aerogel; ++$k){
+  print DEF <<EOF;
+    <position name="aero@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos" x="-102.0+101*$j" y="-102.0+101*$k" z="aerogel_thick*0.5+aerogel_thick*$k-box_length*0.5" unit="mm"/>
+EOF
+  		}
+	 }
+  }
+
+  print DEF <<EOF;
+	 <!-- ABOVE IS FOR ARICH -->
 
   </define>
 
@@ -281,6 +319,11 @@ EOF
   print SOL <<EOF;
 	 <!-- ABOVE IS FOR SSD -->
 
+	 <!-- BELOW IS FOR ARICH -->
+	   <box name="aerogel_box" x="aerogel_size" y="aerogel_size" z="aerogel_thick"/>
+	   <box name="arich_box" x="box_size" y="box_size" z="box_length"/>
+	 <!-- ABOVE IS FOR ARICH -->
+
 	</solids>	
 
 EOF
@@ -343,6 +386,21 @@ EOF
   print MOD <<EOF;
   
   <!-- ABOVE IS FOR SSD -->
+
+  <!-- BELOW IS FOR ARICH -->
+EOF
+
+  for($i = 0; $i < n_layer; ++$i){
+  print MOD <<EOF;
+      <volume name="aerogel_@{[ $aerogel_mod[$i] ]}_vol">
+         <materialref ref="AERO_@{[ $aerogel_mod[$i] ]}"/>
+         <solidref ref="aerogel_box"/>
+      </volume>
+EOF
+  }
+  print MOD <<EOF;
+  
+  <!-- ABOVE IS FOR ARICH -->
 
   </structure>    
   
@@ -415,6 +473,29 @@ EOF
   print DET <<EOF;
   
   <!-- ABOVE IS FOR SSD -->
+
+  <!-- BELOW IS FOR ARICH -->
+
+  <volume name="arich_vol">
+    <materialref ref="Air"/>
+	 <solidref ref="arich_box"/>
+EOF
+
+  for($i = 0; $i < n_layer; ++$i){
+    for($j = 0; $j < n_aerogel; ++$j){
+      for($k = 0; $k < m_aerogel; ++$k){
+  print DET <<EOF;
+       <physvol name="aerogel@{[ $i ]}_@{[ $j ]}@{[ $k ]}_phys">
+		   <volumeref ref="aerogel_@{[ $i ]}_mod"/>
+			<positionref ref="aerogel@{[ $i ]}_@{[ $j ]}@{[ $k ]}_pos"/>
+       </physvol>
+EOF
+		}
+	 }
+  }
+  print DET <<EOF;
+  </volume>
+  <!-- ABOVE IS FOR ARICH -->
 
   </structure> 
 
@@ -490,6 +571,16 @@ EOF
 
   print WORLD <<EOF;
   <!-- ABOVE IS FOR SSD -->
+
+  <!-- BELOW IS FOR ARICH -->
+
+  <physvol name="arich_phys">
+    <volumeref ref="arich_vol"/>
+    <positionref ref="arich_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR ARICH -->
+
   </volume>
 
   </structure>
