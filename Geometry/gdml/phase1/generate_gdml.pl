@@ -46,12 +46,12 @@ else
 }
 
 # constants for SSD
-$nstation_type = 4; # types of station
-$bkpln_size = (1.0, 1.3, 1.3, 1.3); # bkpln size scale to ssd
-@SSD_lay = (2, 3, 3, 3); # num. of SSD in a station
-@SSD_bkpln= (1, 2, 2, 2); # num. of bkpln in a station
-@SSD_mod = ("D0", "D0", "D0", "CMS"); # SSD type in a station
-@SSD_station = (2, 3, 2, 1); # num. of stations
+$nstation_type = 2; # types of station
+$bkpln_size = (1.0, 1.3); # bkpln size scale to ssd
+@SSD_lay = (1, 2); # num. of SSD in a station
+@SSD_bkpln= (1, 2); # num. of bkpln in a station
+@SSD_mod = ("D0", "D0"); # SSD type in a station
+@SSD_station = (2, 4); # num. of stations
 
 # constants for LG
 $n_LG = 3; # horizontal
@@ -129,10 +129,6 @@ print DEF <<EOF;
     <quantity name="ssdD0_width" value="98.33" unit="mm"/>
     <quantity name="ssdD0_height" value="38.34" unit="mm"/>
 
-	 <quantity name="ssdCMS_thick" value=".500" unit="mm"/>
-    <quantity name="ssdCMS_width" value="100." unit="mm"/>
-    <quantity name="ssdCMS_height" value="100" unit="mm"/>
-
     <quantity name="carbon_fiber_thick" value="0.300"
        unit="mm" />
     <quantity name="Mylar_Window_thick" value="0.500"
@@ -158,53 +154,17 @@ print DEF <<EOF;
     <quantity name="ssdStation2Height" value="200" unit="mm" />
     <position name="ssdStation2_pos" x="0" y="0" z="30" unit="mm" />
 	 <position name="ssdStation3_pos" x="0" y="0" z="80" unit="mm" />
-    <position name="ssdStation4_pos" x="0" y="0" z="130" unit="mm" />
+    <position name="ssdStation4_pos" x="0" y="0" z="430" unit="mm" />
+    <position name="ssdStation5_pos" x="0" y="0" z="490" unit="mm" />
     <position name="ssd20_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssd20_rot" z="60*DEG2RAD" aunit="rad"/>
+    <rotation name="ssd20_rot" z="45*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln20_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
     <position name="ssd21_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssd21_rot" z="-60*DEG2RAD" aunit="rad"/>
-    <position name="ssd22_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssd22_rot" z="0" aunit="rad"/>
+    <rotation name="ssd21_rot" z="0" aunit="rad"/>
     <position name="ssdbkpln21_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
     <position name="ssd2_USMylarWindow_pos" x="0" y="0"
          z="-10." unit="mm" />
     <position name="ssd2_DSMylarWindow_pos" x="0" y="0"
-       z="10." unit="mm" />
-
-    <quantity name="ssdStation5Length" value="50" unit="mm" />
-    <quantity name="ssdStation5Width" value="500" unit="mm" />
-    <quantity name="ssdStation5Height" value="500" unit="mm" />
-    <position name="ssdStation5_pos" x="0" y="0" z="190" unit="mm" />
-    <position name="ssdStation6_pos" x="0" y="0" z="290" unit="mm" />
-	 <position name="ssd50_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssd50_rot" z="60*DEG2RAD" aunit="rad"/>
-    <position name="ssdbkpln50_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-    <position name="ssd51_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssd51_rot" z="-60*DEG2RAD" aunit="rad"/>
-    <position name="ssd52_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssd52_rot" z="0" aunit="rad"/>
-    <position name="ssdbkpln51_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
-    <position name="ssd5_USMylarWindow_pos" x="0" y="0"
-         z="-10." unit="mm" />
-    <position name="ssd5_DSMylarWindow_pos" x="0" y="0"
-       z="10." unit="mm" />
-
-    <quantity name="ssdStation7Length" value="50" unit="mm" />
-    <quantity name="ssdStation7Width" value="500" unit="mm" />
-    <quantity name="ssdStation7Height" value="500" unit="mm" />
-    <position name="ssdStation7_pos" x="0" y="0" z="430" unit="mm" />
-    <position name="ssd70_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssd70_rot" z="60*DEG2RAD" aunit="rad"/>
-    <position name="ssdbkpln70_pos" x="0" y="0" z="ssdCMS_thick" unit="mm"/>
-    <position name="ssd71_pos" x="0" y="0" z="ssdCMS_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssd71_rot" z="-60*DEG2RAD" aunit="rad"/>
-    <position name="ssd72_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssd72_rot" z="0" aunit="rad"/>
-    <position name="ssdbkpln71_pos" x="0" y="0" z="3+ssdCMS_thick" unit="mm"/>
-    <position name="ssd7_USMylarWindow_pos" x="0" y="0"
-         z="-10." unit="mm" />
-    <position name="ssd7_DSMylarWindow_pos" x="0" y="0"
        z="10." unit="mm" />
 	 
 	 <!-- ABOVE IS FOR SSD -->
