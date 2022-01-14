@@ -247,15 +247,16 @@ perllib	product_dir
 #   entry to match for a given product.
 #
 ####################################
-product		version		qual	flags		<table_format=2>
+product		version		qual  flags		<table_format=2>
 art		v3_09_02	-
 art_root_io	v1_08_02	-
-artdaq  v3_10_03 -
-artdaq_core v3_07_05  -
-caencomm v1_2a - only_for_build
-caendigitizer v2_12_0 - only_for_build
-caenvme v2_50 - only_for_build
-cetmodules	v2_20_00	-	only_for_build
+artdaq          v3_10_03        -
+artdaq_core     v3_07_05        -
+caencomm        v1_2a           -     only_for_build
+caendigitizer   v2_12_0         -     only_for_build
+caenvme         v2_50           -     only_for_build
+cetmodules	v2_20_00	-     only_for_build
+geant4          v4_10_7_p01c    -
 end_product_list
 ####################################
 
@@ -310,13 +311,13 @@ end_product_list
 #   case it is optional.
 #
 ####################################
-qualifier	art		art_root_io   artdaq artdaq_core  notes
-c7:debug	c7:debug	c7:debug  -               -
-c7:prof		c7:prof		c7:prof   -               -
-e19:debug	e19:debug	e19:debug e19:debug:s111  e19:debug:s111
-e19:prof	e19:prof	e19:prof  e19:prof:s111   e19:prof:s111
-e20:debug	e20:debug	e20:debug -               -
-e20:prof	e20:prof	e20:prof  -               -
+qualifier  art	      art_root_io  artdaq          artdaq_core     geant4 notes
+c7:debug   c7:debug   c7:debug     -               -               c7:debug
+c7:prof	   c7:prof    c7:prof      -               -               c7:prof
+e19:debug  e19:debug  e19:debug    e19:debug:s111  e19:debug:s111  e19:debug
+e19:prof   e19:prof   e19:prof     e19:prof:s111   e19:prof:s111   e19:prof
+e20:debug  e20:debug  e20:debug    -               -               e20:debug
+e20:prof   e20:prof   e20:prof     -               -               e20:prof 
 end_qualifier_list
 ####################################
 
