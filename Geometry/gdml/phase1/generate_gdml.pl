@@ -48,6 +48,9 @@ else
 # constants for T0
 $n_acrylic = 10;
 
+# constants for magnet
+$n_magseg = 16;
+
 # constants for SSD
 $nstation_type = 3; # types of station
 $bkpln_size = (1.0, 1.3, 1.3); # bkpln size scale to ssd
@@ -121,7 +124,7 @@ print DEF <<EOF;
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-300" unit="mm"/>
+	 <position name="T0_pos" z="-350" unit="mm"/>
 	 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -152,6 +155,29 @@ print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR TARGET -->
 
+    <!-- BELOW IS FOR MAGNET -->
+
+    <quantity name="magnetSideYOffset" value="29" unit="mm" />
+    <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
+    <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
+    <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
+    <quantity name="magnetSideZLength" value="150" unit="mm"/>
+    <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
+    <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+
+    <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
+    <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
+
+EOF
+for($i = 0; $i < $n_magseg; ++$i){
+print DEF <<EOF;
+    <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)*DEG2RAD" aunit="rad"/>
+EOF
+}
+print DEF <<EOF;
+
+    <!-- ABOVE IS FOR MAGNET -->
+	 
 	 <!-- BELOW IS FOR SSD -->
 
     <quantity name="ssdD0_thick" value=".300" unit="mm"/>
@@ -169,8 +195,8 @@ print DEF <<EOF;
     <quantity name="ssdStation0Length" value="50" unit="mm" />
     <quantity name="ssdStation0Width" value="150" unit="mm" />
     <quantity name="ssdStation0Height" value="150" unit="mm" />
-    <position name="ssdStation0_pos" x="0" y="0" z="-110" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-60" unit="mm" />
+    <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
     <position name="ssd00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssd00_rot" z="90*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln00_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -184,8 +210,8 @@ print DEF <<EOF;
     <quantity name="ssdStation2Length" value="50" unit="mm" />
     <quantity name="ssdStation2Width" value="200" unit="mm" />
     <quantity name="ssdStation2Height" value="200" unit="mm" />
-    <position name="ssdStation2_pos" x="0" y="0" z="60" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="110" unit="mm" />
+    <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
     <position name="ssd20_pos" x="0" y="0" z="0" unit="mm"/>
     <rotation name="ssd20_rot" z="45*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln20_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -202,8 +228,8 @@ print DEF <<EOF;
 	 <quantity name="ssdStation4Length" value="50" unit="mm" />
     <quantity name="ssdStation4Width" value="300" unit="mm" />
     <quantity name="ssdStation4Height" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="430" unit="mm" />
-    <position name="ssdStation5_pos" x="0" y="0" z="490" unit="mm" />
+	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
+    <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
 	 <position name="ssd40_pos" x="0" y="0" z="0" unit="mm"/>
     <rotation name="ssd40_rot" z="0" aunit="rad"/>
     <position name="ssdbkpln40_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -340,6 +366,24 @@ sub gen_Solids()
 	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
 
 	 <!-- ABOVE IS FOR TARGET -->
+
+    <!-- BELOW IS FOR MAGNET -->
+
+    <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
+       y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
+
+    <arb8 name="magnetSide_arb8"
+     v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
+     v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
+     v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
+     v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
+     v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
+     v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
+     v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
+     v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
+     dz="magnetSideZLength" unit="mm"/>
+
+    <!-- ABOVE IS FOR MAGNET -->
 	 
 	 <!-- BELOW IS FOR SSD -->
 
@@ -425,6 +469,15 @@ sub gen_Modules()
 
   <!-- ABOVE IS FOR TARGET -->
 
+  <!-- BELOW IS FOR MAGNET -->
+
+  <volume name="magnetSide_vol">
+    <materialref ref="NeodymiumAlloy"/>
+    <solidref ref="magnetSide_arb8"/>
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
+  
   <!-- BELOW IS FOR SSD -->
 
 EOF
@@ -530,7 +583,29 @@ EOF
   </volume>
 
   <!-- BELOW IS FOR T0 -->
- 
+
+  <!-- BELOW IS FOR MAGNET -->
+
+  <volume name="magnet_vol">
+    <materialref ref="Air"/>
+    <solidref ref="magnet_box"/>  
+EOF
+
+  for($i = 0; $i < $n_magseg; ++$i){
+  print DET <<EOF;
+    <physvol name="magnetSide@{[ $i ]}_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg@{[ $i ]}"/>
+    </physvol>
+EOF
+  }
+
+  print DET <<EOF;
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
+   
   <!-- BELOW IS FOR SSD -->
 
 EOF
@@ -649,7 +724,6 @@ print WORLD <<EOF;
 
   <!-- ABOVE IS FOR T0 -->
 
-
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">
@@ -659,6 +733,14 @@ print WORLD <<EOF;
 
   <!-- ABOVE IS FOR TARGET -->
 
+  <!-- BELOW IS FOR MAGNET -->
+
+  <physvol name="magnet_phys">
+    <volumeref ref="magnet_vol"/>
+    <positionref ref="magnet_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR MAGNET -->
  
   <!-- BELOW IS FOR SSD -->
 

@@ -45,6 +45,9 @@ else
     $suffix = "-" . $suffix;
 }
 
+# constants for magnet
+$n_magseg = 16; 
+
 # constants for SSD
 $nstation_type = 4; # types of station
 $bkpln_size = (1.0, 1.3, 1.3, 1.3); # bkpln size scale to ssd
@@ -111,7 +114,11 @@ print DEF <<EOF;
     
   <define>
 
+    <quantity name="PI" value="3.1415927" />
+    <quantity name="DEG2RAD" value="0.017453293" />
+
     <quantity name="world_size" value="3000." unit="mm"/>
+	 <position name="center" x="0" y="0" z="0"/>
 
 	 <!-- BELOW IS FOR TARGET -->
 
@@ -122,6 +129,29 @@ print DEF <<EOF;
     <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
 
 	 <!-- ABOVE IS FOR TARGET -->
+
+	 <!-- BELOW IS FOR MAGNET -->
+
+    <quantity name="magnetSideYOffset" value="29" unit="mm" />
+    <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
+    <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
+    <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
+    <quantity name="magnetSideZLength" value="150" unit="mm"/>
+    <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
+    <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+
+    <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
+    <position name="magnet_pos" x="0" y="0" z="160" unit="mm"/>
+
+EOF
+for($i = 0; $i < $n_magseg; ++$i){
+print DEF <<EOF;
+    <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)*DEG2RAD" aunit="rad"/>
+EOF
+}
+print DEF <<EOF;
+
+	 <!-- ABOVE IS FOR MAGNET -->
 
 	 <!-- BELOW IS FOR SSD -->
 
@@ -144,10 +174,10 @@ print DEF <<EOF;
     <position name="ssdStation0_pos" x="0" y="0" z="-100" unit="mm" />
 	 <position name="ssdStation1_pos" x="0" y="0" z="-20" unit="mm" />
     <position name="ssd00_pos" x="0" y="0" z="0" unit="mm"/>
-	 <rotation name="ssd00_rot" z="0" unit="deg"/>
+	 <rotation name="ssd00_rot" z="0*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln00_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
     <position name="ssd01_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssd01_rot" z="90" unit="deg"/>
+	 <rotation name="ssd01_rot" z="90*DEG2RAD" aunit="rad"/>
     <position name="ssd0_USMylarWindow_pos" x="0" y="0"
          z="-10." unit="mm" />
     <position name="ssd0_DSMylarWindow_pos" x="0" y="0"
@@ -160,12 +190,12 @@ print DEF <<EOF;
 	 <position name="ssdStation3_pos" x="0" y="0" z="80" unit="mm" />
     <position name="ssdStation4_pos" x="0" y="0" z="130" unit="mm" />
     <position name="ssd20_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssd20_rot" z="60" unit="deg"/>
+    <rotation name="ssd20_rot" z="60*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln20_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
     <position name="ssd21_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssd21_rot" z="-60" unit="deg"/>
+    <rotation name="ssd21_rot" z="-60*DEG2RAD" aunit="rad"/>
     <position name="ssd22_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssd22_rot" z="0" unit="deg"/>
+    <rotation name="ssd22_rot" z="0*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln21_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
     <position name="ssd2_USMylarWindow_pos" x="0" y="0"
          z="-10." unit="mm" />
@@ -175,15 +205,15 @@ print DEF <<EOF;
     <quantity name="ssdStation5Length" value="50" unit="mm" />
     <quantity name="ssdStation5Width" value="500" unit="mm" />
     <quantity name="ssdStation5Height" value="500" unit="mm" />
-    <position name="ssdStation5_pos" x="0" y="0" z="190" unit="mm" />
-    <position name="ssdStation6_pos" x="0" y="0" z="290" unit="mm" />
+    <position name="ssdStation5_pos" x="0" y="0" z="330" unit="mm" />
+    <position name="ssdStation6_pos" x="0" y="0" z="380" unit="mm" />
 	 <position name="ssd50_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssd50_rot" z="60" unit="deg"/>
+    <rotation name="ssd50_rot" z="60*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln50_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
     <position name="ssd51_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssd51_rot" z="-60" unit="deg"/>
+    <rotation name="ssd51_rot" z="-60*DEG2RAD" aunit="rad"/>
     <position name="ssd52_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssd52_rot" z="0" unit="deg"/>
+    <rotation name="ssd52_rot" z="0*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln51_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
     <position name="ssd5_USMylarWindow_pos" x="0" y="0"
          z="-10." unit="mm" />
@@ -195,12 +225,12 @@ print DEF <<EOF;
     <quantity name="ssdStation7Height" value="500" unit="mm" />
     <position name="ssdStation7_pos" x="0" y="0" z="430" unit="mm" />
     <position name="ssd70_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssd70_rot" z="60" unit="deg"/>
+    <rotation name="ssd70_rot" z="60*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln70_pos" x="0" y="0" z="ssdCMS_thick" unit="mm"/>
     <position name="ssd71_pos" x="0" y="0" z="ssdCMS_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssd71_rot" z="-60" unit="deg"/>
+    <rotation name="ssd71_rot" z="-60*DEG2RAD" aunit="rad"/>
     <position name="ssd72_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssd72_rot" z="0" unit="deg"/>
+    <rotation name="ssd72_rot" z="0*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln71_pos" x="0" y="0" z="3+ssdCMS_thick" unit="mm"/>
     <position name="ssd7_USMylarWindow_pos" x="0" y="0"
          z="-10." unit="mm" />
@@ -321,6 +351,24 @@ sub gen_Solids()
 	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
 
 	 <!-- ABOVE IS FOR TARGET -->
+
+	 <!-- BELOW IS FOR MAGNET -->
+
+	 <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
+       y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
+
+    <arb8 name="magnetSide_arb8"
+     v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
+     v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
+     v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
+     v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
+     v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
+     v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
+     v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
+     v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
+     dz="magnetSideZLength" unit="mm"/>
+
+	 <!-- ABOVE IS FOR MAGNET -->
 	 
 	 <!-- BELOW IS FOR SSD -->
 
@@ -379,6 +427,15 @@ sub gen_Modules()
   </volume>
 
   <!-- ABOVE IS FOR TARGET -->
+
+  <!-- BELOW IS FOR MAGNET -->
+
+  <volume name="magnetSide_vol">
+    <materialref ref="NeodymiumAlloy"/>
+    <solidref ref="magnetSide_arb8"/>
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
 
   <!-- BELOW IS FOR SSD -->
 
@@ -452,7 +509,29 @@ sub gen_DetEnclosure()
 
   print DET <<EOF;
   <structure>
-  
+
+  <!-- BELOW IS FOR MAGNET -->
+
+  <volume name="magnet_vol">
+    <materialref ref="Air"/>
+    <solidref ref="magnet_box"/>  
+EOF
+
+  for($i = 0; $i < $n_magseg; ++$i){
+  print DET <<EOF;
+    <physvol name="magnetSide@{[ $i ]}_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg@{[ $i ]}"/>
+    </physvol>
+EOF
+  }
+
+  print DET <<EOF;
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
+ 
   <!-- BELOW IS FOR SSD -->
 
 EOF
@@ -590,7 +669,15 @@ print WORLD <<EOF;
 
   <!-- ABOVE IS FOR TARGET -->
 
- 
+  <!-- BELOW IS FOR MAGNET -->
+
+  <physvol name="magnet_phys">
+    <volumeref ref="magnet_vol"/>
+    <positionref ref="magnet_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR MAGNET -->
+
   <!-- BELOW IS FOR SSD -->
 
 EOF

@@ -20,7 +20,7 @@
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-300" unit="mm"/>
+	 <position name="T0_pos" z="-350" unit="mm"/>
 	 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -52,6 +52,38 @@
 
 	 <!-- ABOVE IS FOR TARGET -->
 
+    <!-- BELOW IS FOR MAGNET -->
+
+    <quantity name="magnetSideYOffset" value="29" unit="mm" />
+    <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
+    <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
+    <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
+    <quantity name="magnetSideZLength" value="150" unit="mm"/>
+    <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
+    <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+
+    <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
+    <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
+
+    <rotation name="RotateZMagSeg0" z="(-157.5+22.5*0)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg1" z="(-157.5+22.5*1)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg2" z="(-157.5+22.5*2)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg3" z="(-157.5+22.5*3)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg4" z="(-157.5+22.5*4)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg5" z="(-157.5+22.5*5)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg6" z="(-157.5+22.5*6)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg7" z="(-157.5+22.5*7)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg8" z="(-157.5+22.5*8)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg9" z="(-157.5+22.5*9)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg10" z="(-157.5+22.5*10)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg11" z="(-157.5+22.5*11)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg12" z="(-157.5+22.5*12)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg13" z="(-157.5+22.5*13)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg14" z="(-157.5+22.5*14)*DEG2RAD" aunit="rad"/>
+    <rotation name="RotateZMagSeg15" z="(-157.5+22.5*15)*DEG2RAD" aunit="rad"/>
+
+    <!-- ABOVE IS FOR MAGNET -->
+	 
 	 <!-- BELOW IS FOR SSD -->
 
     <quantity name="ssdD0_thick" value=".300" unit="mm"/>
@@ -69,8 +101,8 @@
     <quantity name="ssdStation0Length" value="50" unit="mm" />
     <quantity name="ssdStation0Width" value="150" unit="mm" />
     <quantity name="ssdStation0Height" value="150" unit="mm" />
-    <position name="ssdStation0_pos" x="0" y="0" z="-110" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-60" unit="mm" />
+    <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
     <position name="ssd00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssd00_rot" z="90*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln00_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -84,8 +116,8 @@
     <quantity name="ssdStation2Length" value="50" unit="mm" />
     <quantity name="ssdStation2Width" value="200" unit="mm" />
     <quantity name="ssdStation2Height" value="200" unit="mm" />
-    <position name="ssdStation2_pos" x="0" y="0" z="60" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="110" unit="mm" />
+    <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
     <position name="ssd20_pos" x="0" y="0" z="0" unit="mm"/>
     <rotation name="ssd20_rot" z="45*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln20_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -102,8 +134,8 @@
 	 <quantity name="ssdStation4Length" value="50" unit="mm" />
     <quantity name="ssdStation4Width" value="300" unit="mm" />
     <quantity name="ssdStation4Height" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="430" unit="mm" />
-    <position name="ssdStation5_pos" x="0" y="0" z="490" unit="mm" />
+	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
+    <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
 	 <position name="ssd40_pos" x="0" y="0" z="0" unit="mm"/>
     <rotation name="ssd40_rot" z="0" aunit="rad"/>
     <position name="ssdbkpln40_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -563,6 +595,24 @@
 	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
 
 	 <!-- ABOVE IS FOR TARGET -->
+
+    <!-- BELOW IS FOR MAGNET -->
+
+    <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
+       y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
+
+    <arb8 name="magnetSide_arb8"
+     v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
+     v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
+     v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
+     v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
+     v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
+     v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
+     v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
+     v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
+     dz="magnetSideZLength" unit="mm"/>
+
+    <!-- ABOVE IS FOR MAGNET -->
 	 
 	 <!-- BELOW IS FOR SSD -->
 
@@ -627,6 +677,15 @@
 
   <!-- ABOVE IS FOR TARGET -->
 
+  <!-- BELOW IS FOR MAGNET -->
+
+  <volume name="magnetSide_vol">
+    <materialref ref="NeodymiumAlloy"/>
+    <solidref ref="magnetSide_arb8"/>
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
+  
   <!-- BELOW IS FOR SSD -->
 
 	    <volume name="ssd0_vol">
@@ -761,7 +820,96 @@
   </volume>
 
   <!-- BELOW IS FOR T0 -->
- 
+
+  <!-- BELOW IS FOR MAGNET -->
+
+  <volume name="magnet_vol">
+    <materialref ref="Air"/>
+    <solidref ref="magnet_box"/>  
+    <physvol name="magnetSide0_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg0"/>
+    </physvol>
+    <physvol name="magnetSide1_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg1"/>
+    </physvol>
+    <physvol name="magnetSide2_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg2"/>
+    </physvol>
+    <physvol name="magnetSide3_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg3"/>
+    </physvol>
+    <physvol name="magnetSide4_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg4"/>
+    </physvol>
+    <physvol name="magnetSide5_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg5"/>
+    </physvol>
+    <physvol name="magnetSide6_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg6"/>
+    </physvol>
+    <physvol name="magnetSide7_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg7"/>
+    </physvol>
+    <physvol name="magnetSide8_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg8"/>
+    </physvol>
+    <physvol name="magnetSide9_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg9"/>
+    </physvol>
+    <physvol name="magnetSide10_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg10"/>
+    </physvol>
+    <physvol name="magnetSide11_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg11"/>
+    </physvol>
+    <physvol name="magnetSide12_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg12"/>
+    </physvol>
+    <physvol name="magnetSide13_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg13"/>
+    </physvol>
+    <physvol name="magnetSide14_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg14"/>
+    </physvol>
+    <physvol name="magnetSide15_phys">
+      <volumeref ref="magnetSide_vol"/>
+      <positionref ref="magnetSide_pos"/>
+      <rotationref ref="RotateZMagSeg15"/>
+    </physvol>
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
+   
   <!-- BELOW IS FOR SSD -->
 
      <volume name="ssdStation0_vol">
@@ -938,7 +1086,6 @@
 
   <!-- ABOVE IS FOR T0 -->
 
-
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">
@@ -948,6 +1095,14 @@
 
   <!-- ABOVE IS FOR TARGET -->
 
+  <!-- BELOW IS FOR MAGNET -->
+
+  <physvol name="magnet_phys">
+    <volumeref ref="magnet_vol"/>
+    <positionref ref="magnet_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR MAGNET -->
  
   <!-- BELOW IS FOR SSD -->
 
