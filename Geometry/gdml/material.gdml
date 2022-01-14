@@ -327,6 +327,13 @@
      <fraction n="0.003" ref="Aluminum" />
    </material>
    
+	<material formula="C5O2H8" name="Acrylic">
+     <D value="1.18"/>
+     <fraction n="0.556" ref="Carbon"/>
+     <fraction n="0.296" ref="Oxygen"/>
+     <fraction n="0.148" ref="Hydrogen"/>
+   </material>
+
    <material formula="Fe" name="IronShell">
      <D value="7.9"/>
      <composite n="1" ref="Iron"/>

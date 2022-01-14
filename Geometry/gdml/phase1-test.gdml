@@ -16,6 +16,30 @@
 	 <position name="center" x="0" y="0" z="0"/>
 	 
 	 <!-- BELOW IS FOR T0 -->
+	 
+	 <quantity name="T0_length" value="280.0" unit="mm"/>
+	 <quantity name="T0_width" value="210.0" unit="mm"/>
+	 <quantity name="T0_height" value="300.0" unit="mm"/>
+	 <position name="T0_pos" z="-300" unit="mm"/>
+	 
+	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
+	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
+	 <quantity name="T0_acrylic_height" value="3.0" unit="mm"/>
+
+	 <position name="T0_acrylic0_pos" x="T0_acrylic_width*(0-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic1_pos" x="T0_acrylic_width*(1-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic2_pos" x="T0_acrylic_width*(2-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic3_pos" x="T0_acrylic_width*(3-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic4_pos" x="T0_acrylic_width*(4-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic5_pos" x="T0_acrylic_width*(5-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic6_pos" x="T0_acrylic_width*(6-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic7_pos" x="T0_acrylic_width*(7-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic8_pos" x="T0_acrylic_width*(8-(10-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic9_pos" x="T0_acrylic_width*(9-(10-1)*0.5)" unit="mm"/>
+
+	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
+	 
 	 <!-- ABOVE IS FOR T0 -->
 
 	 <!-- BELOW IS FOR TARGET -->
@@ -45,8 +69,8 @@
     <quantity name="ssdStation0Length" value="50" unit="mm" />
     <quantity name="ssdStation0Width" value="150" unit="mm" />
     <quantity name="ssdStation0Height" value="150" unit="mm" />
-    <position name="ssdStation0_pos" x="0" y="0" z="-100" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-20" unit="mm" />
+    <position name="ssdStation0_pos" x="0" y="0" z="-110" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="-60" unit="mm" />
     <position name="ssd00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssd00_rot" z="90*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln00_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -60,8 +84,8 @@
     <quantity name="ssdStation2Length" value="50" unit="mm" />
     <quantity name="ssdStation2Width" value="200" unit="mm" />
     <quantity name="ssdStation2Height" value="200" unit="mm" />
-    <position name="ssdStation2_pos" x="0" y="0" z="30" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="80" unit="mm" />
+    <position name="ssdStation2_pos" x="0" y="0" z="60" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="110" unit="mm" />
     <position name="ssd20_pos" x="0" y="0" z="0" unit="mm"/>
     <rotation name="ssd20_rot" z="45*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln20_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -473,6 +497,13 @@
      <fraction n="0.003" ref="Aluminum" />
    </material>
    
+	<material formula="C5O2H8" name="Acrylic">
+     <D value="1.18"/>
+     <fraction n="0.556" ref="Carbon"/>
+     <fraction n="0.296" ref="Oxygen"/>
+     <fraction n="0.148" ref="Hydrogen"/>
+   </material>
+
    <material formula="Fe" name="IronShell">
      <D value="7.9"/>
      <composite n="1" ref="Iron"/>
@@ -512,6 +543,20 @@
 <solids>
 
     <box name="world_box" x="world_size" y="world_size" z="world_size" />
+
+    <!-- BELOW IS FOR T0 -->
+
+	 <box name="T0_box" x="T0_width" y="T0_height" z="T0_length" />
+	 <box name="T0_acrylic_box" x="T0_acrylic_width" y="T0_acrylic_height" z="T0_acrylic_length" />
+    <union name="T0_acrylic_union">
+      <first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
+      <positionref ref= "center" />
+      <rotationref ref= "T0_union1_rot" />
+      <firstpositionref ref= "center"/>
+      <firstrotationref ref= "T0_union2_rot"/>
+    </union>	 
+
+	 <!-- ABOVE IS FOR T0 -->
 
 	 <!-- BELOW IS FOR TARGET -->
 
@@ -563,6 +608,15 @@
 
 	</solids>
 <structure>    
+
+  <!-- BELOW IS FOR T0 -->
+
+  <volume name="T0_acrylic_vol">
+    <materialref ref="Acrylic"/>
+    <solidref ref="T0_acrylic_union"/>
+  </volume>
+
+  <!-- ABOVE IS FOR T0 -->
 
   <!-- BELOW IS FOR TARGET -->
 
@@ -658,7 +712,56 @@
   <!-- ABOVE IS FOR LG -->
 
   
-  
+ 
+  <!-- BELOW IS FOR T0 -->
+
+  <volume name="T0_vol">
+    <materialref ref="Air"/>
+    <solidref ref="T0_box"/>
+	 <physvol name="T0_acrylic0_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic0_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic1_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic1_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic2_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic2_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic3_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic3_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic4_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic4_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic5_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic5_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic6_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic6_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic7_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic7_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic8_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic8_pos"/>
+    </physvol>
+	 <physvol name="T0_acrylic9_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic9_pos"/>
+    </physvol>
+  </volume>
+
+  <!-- BELOW IS FOR T0 -->
+ 
   <!-- BELOW IS FOR SSD -->
 
      <volume name="ssdStation0_vol">
@@ -826,6 +929,16 @@
     <materialref ref="Air"/>
     <solidref ref="world_box"/>
  
+  <!-- BELOW IS FOR T0 -->
+
+  <physvol name="T0_phys">
+    <volumeref ref="T0_vol"/>
+    <positionref ref="T0_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR T0 -->
+
+
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">

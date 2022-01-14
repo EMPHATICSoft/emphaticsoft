@@ -45,6 +45,9 @@ else
     $suffix = "-" . $suffix;
 }
 
+# constants for T0
+$n_acrylic = 10;
+
 # constants for SSD
 $nstation_type = 3; # types of station
 $bkpln_size = (1.0, 1.3, 1.3); # bkpln size scale to ssd
@@ -114,6 +117,29 @@ print DEF <<EOF;
 	 <position name="center" x="0" y="0" z="0"/>
 	 
 	 <!-- BELOW IS FOR T0 -->
+	 
+	 <quantity name="T0_length" value="280.0" unit="mm"/>
+	 <quantity name="T0_width" value="210.0" unit="mm"/>
+	 <quantity name="T0_height" value="300.0" unit="mm"/>
+	 <position name="T0_pos" z="-300" unit="mm"/>
+	 
+	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
+	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
+	 <quantity name="T0_acrylic_height" value="3.0" unit="mm"/>
+
+EOF
+
+for($i = 0; $i < $n_acrylic; ++$i){
+	print DEF <<EOF;
+	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" unit="mm"/>
+EOF
+}
+
+print DEF <<EOF;
+
+	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
+	 
 	 <!-- ABOVE IS FOR T0 -->
 
 	 <!-- BELOW IS FOR TARGET -->
@@ -143,8 +169,8 @@ print DEF <<EOF;
     <quantity name="ssdStation0Length" value="50" unit="mm" />
     <quantity name="ssdStation0Width" value="150" unit="mm" />
     <quantity name="ssdStation0Height" value="150" unit="mm" />
-    <position name="ssdStation0_pos" x="0" y="0" z="-100" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-20" unit="mm" />
+    <position name="ssdStation0_pos" x="0" y="0" z="-110" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="-60" unit="mm" />
     <position name="ssd00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssd00_rot" z="90*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln00_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -158,8 +184,8 @@ print DEF <<EOF;
     <quantity name="ssdStation2Length" value="50" unit="mm" />
     <quantity name="ssdStation2Width" value="200" unit="mm" />
     <quantity name="ssdStation2Height" value="200" unit="mm" />
-    <position name="ssdStation2_pos" x="0" y="0" z="30" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="80" unit="mm" />
+    <position name="ssdStation2_pos" x="0" y="0" z="60" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="110" unit="mm" />
     <position name="ssd20_pos" x="0" y="0" z="0" unit="mm"/>
     <rotation name="ssd20_rot" z="45*DEG2RAD" aunit="rad"/>
     <position name="ssdbkpln20_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -295,6 +321,20 @@ sub gen_Solids()
 
     <box name="world_box" x="world_size" y="world_size" z="world_size" />
 
+    <!-- BELOW IS FOR T0 -->
+
+	 <box name="T0_box" x="T0_width" y="T0_height" z="T0_length" />
+	 <box name="T0_acrylic_box" x="T0_acrylic_width" y="T0_acrylic_height" z="T0_acrylic_length" />
+    <union name="T0_acrylic_union">
+      <first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
+      <positionref ref= "center" />
+      <rotationref ref= "T0_union1_rot" />
+      <firstpositionref ref= "center"/>
+      <firstrotationref ref= "T0_union2_rot"/>
+    </union>	 
+
+	 <!-- ABOVE IS FOR T0 -->
+
 	 <!-- BELOW IS FOR TARGET -->
 
 	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
@@ -366,6 +406,15 @@ sub gen_Modules()
 
   print MOD <<EOF;
   <structure>    
+
+  <!-- BELOW IS FOR T0 -->
+
+  <volume name="T0_acrylic_vol">
+    <materialref ref="Acrylic"/>
+    <solidref ref="T0_acrylic_union"/>
+  </volume>
+
+  <!-- ABOVE IS FOR T0 -->
 
   <!-- BELOW IS FOR TARGET -->
 
@@ -462,7 +511,26 @@ sub gen_DetEnclosure()
 
   print DET <<EOF;
   <structure>
-  
+ 
+  <!-- BELOW IS FOR T0 -->
+
+  <volume name="T0_vol">
+    <materialref ref="Air"/>
+    <solidref ref="T0_box"/>
+EOF
+  for($i = 0; $i < $n_acrylic; ++$i){
+  print DET <<EOF;
+	 <physvol name="T0_acrylic@{[ $i ]}_phys">
+	   <volumeref ref="T0_acrylic_vol"/>
+	   <positionref ref="T0_acrylic@{[ $i ]}_pos"/>
+    </physvol>
+EOF
+  }
+  print DET <<EOF;
+  </volume>
+
+  <!-- BELOW IS FOR T0 -->
+ 
   <!-- BELOW IS FOR SSD -->
 
 EOF
@@ -572,6 +640,16 @@ print WORLD <<EOF;
     <materialref ref="Air"/>
     <solidref ref="world_box"/>
  
+  <!-- BELOW IS FOR T0 -->
+
+  <physvol name="T0_phys">
+    <volumeref ref="T0_vol"/>
+    <positionref ref="T0_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR T0 -->
+
+
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">
