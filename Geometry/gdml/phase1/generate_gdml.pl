@@ -217,27 +217,27 @@ print DEF <<EOF;
     <quantity name="LG_width1" value="135" unit="mm" />
     <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
-    <quantity name="LG_flange_thick" value="20" unit="mm" />
-	 <position name="LG_flange_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
+    <quantity name="LG_protrusion_thick" value="20" unit="mm" />
+	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
 
     <quantity name="LG_PMTr" value="38" unit="mm" />
     <quantity name="LG_PMTl" value="120" unit="mm" />
-	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_flange_thick" unit="mm"/>
+	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_protrusion_thick" unit="mm"/>
  
 	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_flange_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
-	 <position name="LG_glass_pos" x="0" y="0" z="-0.5*(LG_flange_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_flange_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(LG_flange_thick+LG_length)" unit="mm"/>
+	 <position name="LG_glass_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length+LG_protrusion_thick)" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(2*LG_protrusion_thick+LG_length+LG_PMTl)" unit="mm"/>
 
   
 EOF
 		for($i = 0; $i < $n_LG; ++$i){
 print DEF <<EOF;
-	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0" unit="mm"/>
-	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0" unit="mm"/>
-	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*($i-1)" z="0" unit="mm"/>
+	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="PI" aunit="rad"/>
 	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" />
 	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
@@ -338,7 +338,7 @@ EOF
 
 	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" aunit="rad"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
-	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_flange_thick+LG_PMTl"/>
+	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
     <union name="LG_union">
       <first ref="LG_box1"/>  <second ref="LG_para1"/>
       <positionref ref="LG_para_pos" />
@@ -350,7 +350,7 @@ EOF
       <firstpositionref ref= "LG_para2_pos"/>
     </union>	 
 
-	 <box name="LG_flange_box" x="LG_width1" y="LG_height" z="LG_flange_thick"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" aunit="rad"/>
 	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="2*PI" aunit="rad"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
@@ -426,9 +426,9 @@ EOF
     <materialref ref="LeadGlass"/>
     <solidref ref="LG_union"/>
   </volume>
-  <volume name="LG_flange_vol">
-    <materialref ref="IronShell"/>
-    <solidref ref="LG_flange_box"/>
+  <volume name="LG_protrusion_vol">
+    <materialref ref="LeadGlass"/>
+    <solidref ref="LG_protrusion_tube"/>
   </volume>
   <volume name="LG_PMT_vol">
     <materialref ref="LeadGlass"/>
@@ -442,9 +442,9 @@ EOF
 	 	<volumeref ref="LG_glass_vol"/>
 	 	<positionref ref="LG_glass_pos"/>
 	 </physvol>
-	 <physvol name="LG_flange_phys">
-	 	<volumeref ref="LG_flange_vol"/>
-	 	<positionref ref="LG_flange_pos"/>
+	 <physvol name="LG_protrusion_phys">
+	 	<volumeref ref="LG_protrusion_vol"/>
+	 	<positionref ref="LG_protrusion_pos"/>
 	 </physvol>
 	 <physvol name="LG_PMT_phys">
 	 	<volumeref ref="LG_PMT_vol"/>
