@@ -330,7 +330,7 @@ EOF
 	  print SOL <<EOF;
 	  <box name="ssdStation@{[ $modi ]}_box" x="ssdStation@{[ $modi ]}Width" y="ssdStation@{[ $modi ]}Height" z="ssdStation@{[ $modi ]}Length" />
 	  <box name="ssd@{[ $modi ]}_MylarWindow_box" x="ssdStation@{[ $modi ]}Width*0.8" y="ssdStation@{[ $modi ]}Width*0.8" z="Mylar_Window_thick" />
-	  <box name="ssd@{[ $modi ]}_box" x="ssd@{[ $SSD_mod[$i] ]}_width" y="ssd@{[ $SSD_mod[$i] ]}_height" z="ssdD0_thick" />
+	  <box name="ssd@{[ $modi ]}_box" x="ssd@{[ $SSD_mod[$i] ]}_width" y="ssd@{[ $SSD_mod[$i] ]}_height" z="ssd@{[ $SSD_mod[$i] ]}_thick" />
 	  <box name="ssd@{[ $modi ]}_bkpln_box" x="@{[ $bkpln_size ]}*ssd@{[ $SSD_mod[$i] ]}_width" y="@{[ $bkpln_size ]}*ssd@{[ $SSD_mod[$i] ]}_width" z="carbon_fiber_thick" />
 
 EOF
