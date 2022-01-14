@@ -1,5 +1,13 @@
 Need to install GDMLUtil.pm in perl path (/etc/perl)
 Run by
 ./phase2/make_gdml.sh
-phase1 geometry to be added
-other detectors to be added
+
+Phase-1
+- LG implemented
+- SSD placeholder
+
+Phase-2
+- SSD implemented
+- ARICH implemented
+
+* Validated by G4 visualization

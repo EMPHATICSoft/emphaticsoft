@@ -275,6 +275,10 @@
      <atom value="144.242"/>
    </element>
    
+   <element Z="82" formula="Pb" name="Lead">
+     <atom value="207.2"/>
+   </element>
+
    <!-- Material -->
    
    <material formula="air" name="Air" state="gas">
@@ -351,5 +355,11 @@
      <fraction n="0.625" ref="Carbon"/>
      <fraction n="0.333" ref="Oxygen"/>
    </material>
-   
+  
+   <material formula="leadglass" name="LeadGlass">
+     <D value="4.0"/>
+     <fraction n="0.5" ref="Lead"/>
+     <fraction n="0.5" ref="Oxygen"/>
+   </material>
+ 
  </materials>

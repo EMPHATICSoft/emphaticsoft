@@ -115,16 +115,25 @@
 
     <quantity name="LG_length" value="340" unit="mm" />
     <quantity name="LG_height" value="122" unit="mm" />
-    <quantity name="LG_width1" value="135" unit="mm" />
     <quantity name="LG_width0" value="113" unit="mm" />
+    <quantity name="LG_width1" value="135" unit="mm" />
     <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
+    <quantity name="LG_flange_thick" value="20" unit="mm" />
+	 <position name="LG_flange_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
 
-    <quantity name="LG_Flange" value="20" unit="mm" />
     <quantity name="LG_PMTr" value="38" unit="mm" />
     <quantity name="LG_PMTl" value="120" unit="mm" />
-   
+	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_flange_thick" unit="mm"/>
+ 
+	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
+	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_flange_thick+LG_PMTl)" unit="mm"/>
+
+	 <position name="LG_glass_pos" x="0" y="0" z="-0.5*(LG_flange_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_flange_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(LG_flange_thick+LG_length)" unit="mm"/>
+
+  
 	 <position name="LG_block00_pos" x="-LG_width0" y="LG_height*(0-1)" z="0" unit="mm"/>
 	 <position name="LG_block01_pos" x="0" y="LG_height*(0-1)" z="0" unit="mm"/>
 	 <position name="LG_block02_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(0-1)" z="0" unit="mm"/>
@@ -148,7 +157,7 @@
 	 <quantity name="calor_width" value="450" unit="mm" />
 
 	 <quantity name="calor_shift" value="1000" unit="mm" />
-	 <position name="calor_pos" x="0" y="0" z="calor_shift" unit="mm"/>
+	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR LG -->
 
@@ -553,12 +562,21 @@
 	 <!-- BELOW IS FOR LG -->
 
 	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" aunit="rad"/>
-	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length"/>
+	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
+	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_flange_thick+LG_PMTl"/>
     <union name="LG_union">
-      <first ref="LG_box2"/>  <second ref="LG_para1"/>
+      <first ref="LG_box1"/>  <second ref="LG_para1"/>
       <positionref ref="LG_para_pos" />
       <firstpositionref ref= "center"/>
     </union>	 
+    <union name="LG_block_union">
+      <first ref="LG_box2"/>  <second ref="LG_para1"/>
+      <positionref ref="LG_para_pos" />
+      <firstpositionref ref= "LG_para2_pos"/>
+    </union>	 
+
+	 <box name="LG_flange_box" x="LG_width1" y="LG_height" z="LG_flange_thick"/>
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="2*PI" aunit="rad"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 
@@ -643,9 +661,34 @@
 
   <!-- BELOW IS FOR LG -->
   
-  <volume name="LG_block_vol">
+  <volume name="LG_glass_vol">
     <materialref ref="LeadGlass"/>
     <solidref ref="LG_union"/>
+  </volume>
+  <volume name="LG_flange_vol">
+    <materialref ref="IronShell"/>
+    <solidref ref="LG_flange_box"/>
+  </volume>
+  <volume name="LG_PMT_vol">
+    <materialref ref="LeadGlass"/>
+    <solidref ref="LG_PMT_tube"/>
+  </volume>
+
+  <volume name="LG_block_vol">
+    <materialref ref="Air"/>
+    <solidref ref="LG_block_union"/>
+	 <physvol name="LG_glass_phys">
+	 	<volumeref ref="LG_glass_vol"/>
+	 	<positionref ref="LG_glass_pos"/>
+	 </physvol>
+	 <physvol name="LG_flange_phys">
+	 	<volumeref ref="LG_flange_vol"/>
+	 	<positionref ref="LG_flange_pos"/>
+	 </physvol>
+	 <physvol name="LG_PMT_phys">
+	 	<volumeref ref="LG_PMT_vol"/>
+	 	<positionref ref="LG_PMT_pos"/>
+	 </physvol>
   </volume>
 
   <!-- ABOVE IS FOR LG -->
