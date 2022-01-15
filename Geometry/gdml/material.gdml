@@ -334,6 +334,11 @@
      <fraction n="0.148" ref="Hydrogen"/>
    </material>
 
+   <material formula="Al" name="AlShell">
+     <D value="2.7"/>
+     <composite n="1" ref="Aluminum"/>
+   </material>
+
    <material formula="Fe" name="IronShell">
      <D value="7.9"/>
      <composite n="1" ref="Iron"/>
@@ -363,10 +368,20 @@
      <fraction n="0.333" ref="Oxygen"/>
    </material>
   
+  <!-- To be further defined as in Shigeru Kuroda et al 1987 Jpn. J. Appl. Phys. 26 460 -->
    <material formula="leadglass" name="LeadGlass">
      <D value="4.0"/>
-     <fraction n="0.5" ref="Lead"/>
-     <fraction n="0.5" ref="Oxygen"/>
+     <fraction n="0.646" ref="Lead"/>
+     <fraction n="0.127" ref="Silicon"/>
+     <fraction n="0.227" ref="Oxygen"/>
    </material>
  
+   <!-- To be further defined as R134a : SF6 : n-Butane - 90:5:5, or 94.5:0.5:5 -->
+   <material name="RPC_Gas">
+      <D value="0.00425"/>
+      <fraction n="0.72" ref="Fluorine"/>
+      <fraction n="0.24" ref="Carbon"/>
+      <fraction n="0.04" ref="Hydrogen"/>
+   </material>
+	
  </materials>

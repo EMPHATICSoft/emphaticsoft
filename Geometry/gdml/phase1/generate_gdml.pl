@@ -60,6 +60,11 @@ $nstation_type = 3; # types of station
 @SSD_mod = ("D0", "D0", "D0twin"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
 
+# constants for RPC
+$n_glass = 6;
+$n_gas = 2;
+$n_cover=2;
+
 # constants for LG
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
@@ -135,7 +140,7 @@ EOF
 
 for($i = 0; $i < $n_acrylic; ++$i){
 	print DEF <<EOF;
-	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" unit="mm"/>
+	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-40" unit="mm"/>
 EOF
 }
 
@@ -246,6 +251,49 @@ print DEF <<EOF;
  
 	 <!-- ABOVE IS FOR SSD -->
 	 
+	 <!-- BELOW IS FOR RPC -->
+    
+	 <quantity name="RPC_thick" value="54" unit="mm" />
+	 <quantity name="RPC_width" value="1066" unit="mm" />
+	 <quantity name="RPC_height" value="252" unit="mm" />
+    <position name="RPC_pos" x="0" y="0" z="730" unit="mm" />
+	 
+	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
+	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
+
+	 <quantity name="RPC_PCB_thick" value="1" unit="mm" />
+	 <quantity name="RPC_acrylic_thick" value="1" unit="mm" />
+	 <quantity name="RPC_gas_width" value="960" unit="mm" />
+	 <quantity name="RPC_gas_height" value="250" unit="mm" />
+	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
+
+EOF
+for($i = 0; $i < $n_cover; ++$i){
+print DEF <<EOF;
+    <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)" unit="mm"/>
+    <position name="RPC_comb@{[ $i ]}_pos" z="(RPC_PCB_thick*($n_gas+1)+RPC_gas_thick*$n_gas+RPC_acrylic_thick*$n_gas*$n_cover+RPC_comb_thick)*($i-($n_cover-1)*0.5)" unit="mm"/>
+EOF
+}
+for($i = 0; $i < $n_gas+1; ++$i){
+print DEF <<EOF;
+    <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
+EOF
+}
+for($i = 0; $i < $n_gas; ++$i){
+	print DEF <<EOF;
+	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
+EOF
+	for($j = 0; $j < $n_cover; ++$j){
+		print DEF <<EOF;
+	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
+EOF
+	}
+}
+
+print DEF <<EOF;
+	 
+	 <!-- ABOVE IS FOR RPC -->
+
 	 <!-- BELOW IS FOR LG -->
 
     <quantity name="LG_length" value="340" unit="mm" />
@@ -254,7 +302,7 @@ print DEF <<EOF;
     <quantity name="LG_width1" value="135" unit="mm" />
     <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
-    <quantity name="LG_protrusion_thick" value="20" unit="mm" />
+    <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
 
     <quantity name="LG_PMTr" value="38" unit="mm" />
@@ -282,11 +330,11 @@ EOF
 		}
 
 print DEF <<EOF;
-	 <quantity name="calor_length" value="500" unit="mm" />
+	 <quantity name="calor_length" value="520" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
 
-	 <quantity name="calor_shift" value="1000" unit="mm" />
+	 <quantity name="calor_shift" value="800" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR LG -->
@@ -401,6 +449,19 @@ EOF
   print SOL <<EOF;
 	 <!-- ABOVE IS FOR SSD -->
 
+	 <!-- BELOW IS FOR RPC -->
+
+	 <box name="RPC_box" x="RPC_width" y="RPC_height" z="RPC_thick"/>
+
+	 <box name="RPC_Al_box" x="RPC_width" y="RPC_height" z="RPC_Al_thick"/>
+	 <box name="RPC_comb_box" x="RPC_width" y="RPC_height" z="RPC_comb_thick"/>
+
+	 <box name="RPC_PCB_box" x="RPC_width" y="RPC_height" z="RPC_PCB_thick"/>
+	 <box name="RPC_acrylic_box" x="RPC_gas_width" y="RPC_gas_height" z="RPC_acrylic_thick"/>
+	 <box name="RPC_gas_box" x="RPC_gas_width" y="RPC_gas_height" z="RPC_gas_thick"/>
+
+	 <!-- ABOVE IS FOR RPC -->
+
 	 <!-- BELOW IS FOR LG -->
 
 	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" aunit="rad"/>
@@ -502,6 +563,35 @@ EOF
   print MOD <<EOF;
   
   <!-- ABOVE IS FOR SSD -->
+	 
+  <!-- BELOW IS FOR RPC -->
+
+  <volume name="RPC_Al_vol">
+    <materialref ref="AlShell"/>
+    <solidref ref="RPC_Al_box"/>
+  </volume>
+
+  <volume name="RPC_PCB_vol">
+    <materialref ref="CarbonFiber"/>
+    <solidref ref="RPC_PCB_box"/>
+  </volume>
+
+  <volume name="RPC_comb_vol">
+    <materialref ref="Air"/>
+    <solidref ref="RPC_comb_box"/>
+  </volume>
+
+  <volume name="RPC_acrylic_vol">
+    <materialref ref="Acrylic"/>
+    <solidref ref="RPC_acrylic_box"/>
+  </volume>
+
+  <volume name="RPC_gas_vol">
+    <materialref ref="RPC_Gas"/>
+    <solidref ref="RPC_gas_box"/>
+  </volume>
+
+  <!-- ABOVE IS FOR RPC -->
 
   <!-- BELOW IS FOR LG -->
   
@@ -648,6 +738,53 @@ EOF
   
   <!-- ABOVE IS FOR SSD -->
 
+  <!-- BELOW IS FOR RPC -->
+
+  <volume name="RPC_vol">
+    <materialref ref="Air"/>
+    <solidref ref="RPC_box"/>
+EOF
+  for($i = 0; $i < $n_cover; ++$i){
+    print DET <<EOF;
+    <physvol name="RPC_Al@{[ $i ]}_phys">
+      <volumeref ref="RPC_Al_vol"/>
+      <positionref ref="RPC_Al@{[ $i ]}_pos"/>
+    </physvol>
+    <physvol name="RPC_comb@{[ $i ]}_phys">
+      <volumeref ref="RPC_comb_vol"/>
+      <positionref ref="RPC_comb@{[ $i ]}_pos"/>
+    </physvol>
+EOF
+  }
+  for($i = 0; $i < $n_gas+1; ++$i){
+    print DET <<EOF;
+    <physvol name="RPC_PCB@{[ $i ]}_phys">
+      <volumeref ref="RPC_PCB_vol"/>
+      <positionref ref="RPC_PCB@{[ $i ]}_pos"/>
+    </physvol>
+EOF
+  }
+  for($i = 0; $i < $n_gas; ++$i){
+    print DET <<EOF;
+    <physvol name="RPC_gas@{[ $i ]}_phys">
+	   <volumeref ref="RPC_gas_vol"/>
+	   <positionref ref="RPC_gas@{[ $i ]}_pos"/>
+	 </physvol>
+EOF
+    for($j = 0; $j < $n_cover; ++$j){
+      print DET <<EOF;
+    <physvol name="RPC_acrylic@{[ $i ]}@{[ $j ]}_phys">
+	   <volumeref ref="RPC_acrylic_vol"/>
+	   <positionref ref="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos"/>
+	 </physvol>
+EOF
+    }
+  }
+  print DET <<EOF;
+  </volume>
+  
+  <!-- ABOVE IS FOR RPC -->
+
   <!-- BELOW IS FOR LG -->
 
   <volume name = "calor_vol">
@@ -759,6 +896,15 @@ EOF
 
   print WORLD <<EOF;
   <!-- ABOVE IS FOR SSD -->
+
+  <!-- BELOW IS FOR RPC -->
+
+  <physvol name="RPC_phys">
+    <volumeref ref="RPC_vol"/>
+    <positionref ref="RPC_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR RPC -->
 
   <!-- BELOW IS FOR LG -->
 
