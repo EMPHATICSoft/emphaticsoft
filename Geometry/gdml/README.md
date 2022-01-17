@@ -1,4 +1,5 @@
 Need to install GDMLUtil.pm in perl path (/etc/perl)
+
 Run by
 ./phase2/make_gdml.sh
 
@@ -16,4 +17,4 @@ Phase-2
 - ARICH implemented 
 - Target implemented
 
-* Validated by G4 visualization
+Validated by G4 visualization
