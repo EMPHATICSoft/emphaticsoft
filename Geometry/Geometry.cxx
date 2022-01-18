@@ -25,6 +25,7 @@
 
 #include "Geometry.h"
 
+namespace emph {
 namespace geo {
 
   Detector::Detector() :
@@ -36,9 +37,9 @@ namespace geo {
   //--------------------------------------------------------------------------------
 
   Detector::Detector(std::string name, TVector3 pos, double dz, double w, double h) :
-    fName(name), fPos(pos), fDz(dz), fWidth(w), fHeight(h)
+    fName(name), fDz(dz), fWidth(w), fHeight(h)
   {
-
+    fPos = pos;
   }
   
   //--------------------------------------------------------------------------------
@@ -190,3 +191,4 @@ namespace geo {
   }
 
 } // end namespace geo
+} // end namespace emph

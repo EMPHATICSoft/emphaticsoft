@@ -3,7 +3,7 @@
 /// \author  jpaley@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#include "RawData/RawDigit.h"
+#include "ChannelMap/ChannelMap.h"
 
 #include <iomanip>
 #include <iostream>
@@ -17,14 +17,14 @@ namespace emph {
     //----------------------------------------------------------------------
 
     EChannel::EChannel() :
-      fBoard(FEBoard::NBoards), fChannel(-1)
+      fBoard(emph::cmap::FEBoard::NBoards), fChannel(-1)
     {
     }
     
     //----------------------------------------------------------------------
 
     DChannel::DChannel() :
-      fId(FEBoard::NDetectors), fChannel(-1)
+      fId(emph::geo::DetectorType::NDetectors), fChannel(-1)
     {
     }
     
@@ -43,7 +43,7 @@ namespace emph {
     {
       if (fIsLoaded) return false;
       else {
-	ifstream mapFile;
+	std::ifstream mapFile;
 	mapFile.open(fname.c_str());
 
 	std::string line;
@@ -58,8 +58,8 @@ namespace emph {
 	      std::stringstream lineStr(line);
 	      lineStr >> board >> eChannel >> det >> dChannel;
 	      
-	      int iBoard = emph::cmap::BoardId[board];
-	      int iDet = emph::geo::DetectorId[det];
+	      const emph::cmap::FEBoard iBoard = emph::cmap::BoardId[board];
+	      const emph::geo::DetectorType iDet = emph::geo::DetectorId[det];
 	      DChannel dchan(iDet,dChannel);
 	      EChannel echan(iBoard,eChannel);
 
@@ -75,7 +75,7 @@ namespace emph {
       return fIsLoaded;
 
     }
-
+  } // end namespace cmap
   
-} // end namespace rawdata
+} // end namespace emph
 //////////////////////////////////////////////////////////////////////////////
