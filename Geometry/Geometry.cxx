@@ -27,8 +27,16 @@
 
 namespace geo {
 
-  SSD::SSD() :
+  Detector::Detector() :
     fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.)
+  {
+
+  }
+  
+  //--------------------------------------------------------------------------------
+
+  Detector::Detector(std::string name, TVector3 pos, double dz, double w, double h) :
+    fName(name), fPos(pos), fDz(dz), fWidth(w), fHeight(h)
   {
 
   }

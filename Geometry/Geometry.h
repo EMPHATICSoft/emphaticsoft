@@ -19,12 +19,14 @@ class TGeoMaterial;
 class TGeoManager;
 class TVector3;
 
+namespace emph {
 namespace geo {
 
-  class SSD {
+  class Detector {
   public:
-    SSD();
-    ~SSD() {};
+    Detector();
+    Detector(std::string name, TVector3 pos, double dz, double w, double h);
+    ~Detector() {};
 
     std::string Name() { return fName;}
     TVector3 Pos() { return fPos;}
@@ -61,8 +63,8 @@ namespace geo {
     TVector3 Pos() {return fPos;}
 
     int NSSDs() const {return (int)fSSD.size(); };
-    SSD GetSSD(int i) {return fSSD[i]; }
-    void AddSSD(SSD ssd) {fSSD.push_back(ssd); }
+    Detector GetSSD(int i) {return fSSD[i]; }
+    void AddSSD(Detector ssd) {fSSD.push_back(ssd); }
     double Dz() { return fDz;}
     double Width() { return fWidth; }
     double Height() {return fHeight; }
@@ -73,7 +75,7 @@ namespace geo {
     double fDz;
     double fWidth;
     double fHeight;
-    std::vector<geo::SSD> fSSD;
+    std::vector<geo::Detector> fSSD;
   };
   
   class Geometry {
@@ -119,6 +121,8 @@ namespace geo {
     
   };
   
-}
+}  // end namespace geo
+} // end namespace emph
+
 
 #endif
