@@ -85,7 +85,7 @@ namespace geo {
     
     bool SetGDMLFile(std::string fname);
  
-	 double T0ZPos() const {return fT0USZPos; }
+//	 double T0ZPos() const {return fT0USZPos; }
   
     double MagnetUSZPos() const {return fMagnetUSZPos; }
     double MagnetDSZPos() const {return fMagnetDSZPos; }
@@ -95,8 +95,8 @@ namespace geo {
     
     SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
 	 
-	 double RPCZPos() const {return fRPCZPos; }
-	 double LGZPos() const {return fLGZPos; }
+//	 double RPCZPos() const {return fRPCZPos; }
+//	 double LGZPos() const {return fLGZPos; }
     
     //    TGeoMaterial* Material(double x, double y, double z) const;
     
