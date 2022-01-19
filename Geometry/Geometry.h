@@ -12,6 +12,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "TVector3.h"
 
 class TGeoNode;
 class TGeoVolume;
@@ -85,7 +86,7 @@ namespace geo {
     
     bool SetGDMLFile(std::string fname);
  
-	 double T0ZPos() const {return fT0USZPos; }
+	 double T0ZPos() const {return fT0ZPos; }
   
     double MagnetUSZPos() const {return fMagnetUSZPos; }
     double MagnetDSZPos() const {return fMagnetDSZPos; }
@@ -116,10 +117,13 @@ namespace geo {
 
     int    fNSSDStations;
     int    fNSSDs;
+	 double fT0ZPos;
     double fMagnetUSZPos;
     double fMagnetDSZPos;
     double fRICHUSZPos;
     double fRICHDSZPos;
+	 double fRPCZPos;
+	 double fLGZPos;
     std::vector<geo::SSDStation> fSSDStation;
     
   };
