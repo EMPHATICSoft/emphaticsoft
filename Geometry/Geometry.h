@@ -84,16 +84,19 @@ namespace geo {
     ~Geometry() {};
     
     bool SetGDMLFile(std::string fname);
-    
+ 
+//	 double T0ZPos() const {return fT0USZPos; }
+  
     double MagnetUSZPos() const {return fMagnetUSZPos; }
     double MagnetDSZPos() const {return fMagnetDSZPos; }
-    double RICHUSZPos() const {return fMagnetUSZPos; }
-    double RICHDSZPos() const {return fMagnetDSZPos; }
     
     int NSSDStations() const { return fNSSDStations; }
     int NSSDs() const { return fNSSDs; }
     
     SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
+	 
+//	 double RPCZPos() const {return fRPCZPos; }
+//	 double LGZPos() const {return fLGZPos; }
     
     //    TGeoMaterial* Material(double x, double y, double z) const;
     

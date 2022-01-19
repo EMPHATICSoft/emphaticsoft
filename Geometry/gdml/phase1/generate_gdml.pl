@@ -21,28 +21,28 @@ use GDMLUtil;
 Math::BigFloat->precision(-10);
 
 GetOptions( "help|h" => \$help,
-	    "suffix|s:s" => \$suffix,
-	    "output|o:s" => \$output,
-            "helpcube|c" => \$helpcube);
+	"suffix|s:s" => \$suffix,
+	"output|o:s" => \$output,
+	"helpcube|c" => \$helpcube);
 
 if ( defined $help )
 {
-    # If the user requested help, print the usage notes and exit.
-    usage();
-    exit;
+	# If the user requested help, print the usage notes and exit.
+	usage();
+	exit;
 }
 
 if ( ! defined $suffix )
 {
-    # The user didn't supply a suffix, so append nothing to the file
-    # names.
-    $suffix = "";
+	# The user didn't supply a suffix, so append nothing to the file
+	# names.
+	$suffix = "";
 }
 else
 {
-    # Otherwise, stick a "-" before the suffix, so that a suffix of
-    # "test" applied to filename.gdml becomes "filename-test.gdml".
-    $suffix = "-" . $suffix;
+	# Otherwise, stick a "-" before the suffix, so that a suffix of
+	# "test" applied to filename.gdml becomes "filename-test.gdml".
+	$suffix = "-" . $suffix;
 }
 
 # constants for T0
@@ -53,7 +53,7 @@ $n_magseg = 16;
 
 # constants for SSD
 $nstation_type = 3; # types of station
-@station_type = ("single", "rotate", "double"); 
+@station_type = ("single", "rotate", "double"); # xy, uxy, yyxxuu 
 @bkpln_size = (1.0, 1.3, 1.3); # bkpln size scale to ssd
 @SSD_lay = (2, 3, 3); # num. of SSD in a station
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
@@ -80,7 +80,7 @@ gen_World();	 # places the enclosure among DUSEL Rock
 
 
 write_fragments(); # writes the XML input for make_gdml.pl
-			# which zips together the final GDML
+# which zips together the final GDML
 exit;
 
 
@@ -90,10 +90,10 @@ exit;
 
 sub usage()
 {
-    print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-s|--suffix <string>]\n";
-    print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
-    print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
-    print "       -h prints this message, then quits\n";
+	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-s|--suffix <string>]\n";
+	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
+	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
+	print "       -h prints this message, then quits\n";
 }
 
 
@@ -105,159 +105,159 @@ sub usage()
 sub gen_Define()
 {
 
-# Create the <define> fragment file name, 
-# add file to list of fragments,
-# and open it
-    $DEF = "phase1_Def" . $suffix . ".gdml";
-    push (@gdmlFiles, $DEF);
-    $DEF = ">" . $DEF;
-    open(DEF) or die("Could not open file $DEF for writing");
+	# Create the <define> fragment file name, 
+	# add file to list of fragments,
+	# and open it
+	$DEF = "phase1_Def" . $suffix . ".gdml";
+	push (@gdmlFiles, $DEF);
+	$DEF = ">" . $DEF;
+	open(DEF) or die("Could not open file $DEF for writing");
 
-print DEF <<EOF;
+	print DEF <<EOF;
 <?xml version='1.0'?>
-    <gdml>
-    
+	 <gdml>
+
   <define>
 
-    <quantity name="PI" value="3.1415927" />
-    <quantity name="DEG2RAD" value="0.017453293" />
+	 <quantity name="PI" value="3.1415927" />
+	 <quantity name="DEG2RAD" value="0.017453293" />
 
-    <quantity name="world_size" value="3000." unit="mm"/>
+	 <quantity name="world_size" value="3000." unit="mm"/>
 	 <position name="center" x="0" y="0" z="0"/>
-	 
+
 	 <!-- BELOW IS FOR T0 -->
-	 
+
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
 	 <position name="T0_pos" z="-350" unit="mm"/>
-	 
+
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
 	 <quantity name="T0_acrylic_height" value="3.0" unit="mm"/>
 
 EOF
 
-for($i = 0; $i < $n_acrylic; ++$i){
-	print DEF <<EOF;
+	for($i = 0; $i < $n_acrylic; ++$i){
+		print DEF <<EOF;
 	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-40" unit="mm"/>
 EOF
-}
+	}
 
-print DEF <<EOF;
+	print DEF <<EOF;
 
 	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
 	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
-	 
+
 	 <!-- ABOVE IS FOR T0 -->
 
 	 <!-- BELOW IS FOR TARGET -->
 
 	 <quantity name="target_thick" value="20.0" unit="mm"/>
-    <quantity name="target_width" value="100.0" unit="mm"/>
-    <quantity name="target_height" value="50.0" unit="mm"/>
-  
-    <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
+	 <quantity name="target_width" value="100.0" unit="mm"/>
+	 <quantity name="target_height" value="50.0" unit="mm"/>
+
+	 <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
 
 	 <!-- ABOVE IS FOR TARGET -->
 
-    <!-- BELOW IS FOR MAGNET -->
+	 <!-- BELOW IS FOR MAGNET -->
 
-    <quantity name="magnetSideYOffset" value="29" unit="mm" />
-    <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
-    <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
-    <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
-    <quantity name="magnetSideZLength" value="150" unit="mm"/>
-    <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
-    <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+	 <quantity name="magnetSideYOffset" value="29" unit="mm" />
+	 <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
+	 <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
+	 <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
+	 <quantity name="magnetSideZLength" value="150" unit="mm"/>
+	 <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
+	 <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
 
-    <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
-    <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
+	 <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
 
 EOF
-for($i = 0; $i < $n_magseg; ++$i){
-print DEF <<EOF;
-    <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)*DEG2RAD" aunit="rad"/>
+	for($i = 0; $i < $n_magseg; ++$i){
+		print DEF <<EOF;
+	 <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)*DEG2RAD" aunit="rad"/>
 EOF
-}
-print DEF <<EOF;
+	}
+	print DEF <<EOF;
 
-    <!-- ABOVE IS FOR MAGNET -->
-	 
+	 <!-- ABOVE IS FOR MAGNET -->
+
 	 <!-- BELOW IS FOR SSD -->
 
-    <quantity name="ssdD0_thick" value=".300" unit="mm"/>
-    <quantity name="ssdD0_height" value="98.33" unit="mm"/>
-    <quantity name="ssdD0_width" value="38.34" unit="mm"/>
-    <quantity name="ssdD0twin_thick" value=".300" unit="mm"/>
-    <quantity name="ssdD0twin_height" value="98.33" unit="mm"/>
-    <quantity name="ssdD0twin_width" value="76.68" unit="mm"/>
+	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
+	 <quantity name="ssdD0_height" value="98.33" unit="mm"/>
+	 <quantity name="ssdD0_width" value="38.34" unit="mm"/>
+	 <quantity name="ssdD0twin_thick" value=".300" unit="mm"/>
+	 <quantity name="ssdD0twin_height" value="98.33" unit="mm"/>
+	 <quantity name="ssdD0twin_width" value="76.68" unit="mm"/>
 
-    <quantity name="carbon_fiber_thick" value="0.300"
-       unit="mm" />
-    <quantity name="Mylar_Window_thick" value="0.500"
-       unit="mm" />
+	 <quantity name="carbon_fiber_thick" value="0.300"
+		 unit="mm" />
+	 <quantity name="Mylar_Window_thick" value="0.500"
+		 unit="mm" />
 
-    <quantity name="ssdStationsingleLength" value="50" unit="mm" />
-    <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
-    <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
-    <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
+	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
+	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
+	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
+	 <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
 	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
-    <position name="ssdsingle0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssdsingle0_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdsingle0_rot" z="90*DEG2RAD" aunit="rad"/>
-    <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-    <position name="ssdsingle1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
+	 <position name="ssdsingle1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssdsingle1_rot" z="0" aunit="rad"/>
-    <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
-         z="-10." unit="mm" />
-    <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0"
-         z="10." unit="mm" />
+	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
+			z="-10." unit="mm" />
+	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0"
+			z="10." unit="mm" />
 
-    <quantity name="ssdStationrotateLength" value="50" unit="mm" />
-    <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
-    <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-    <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
+	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
+	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
+	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
+	 <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
 	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
-    <position name="ssdrotate0_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssdrotate0_rot" z="45*DEG2RAD" aunit="rad"/>
-    <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-    <position name="ssdrotate1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssdrotate1_rot" z="90*DEG2RAD" aunit="rad"/>
-    <position name="ssdrotate2_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssdrotate2_rot" z="0" aunit="rad"/>	 
-    <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
-    <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
-         z="-10." unit="mm" />
-    <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0"
-       z="10." unit="mm" />
-	
+	 <position name="ssdrotate0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <rotation name="ssdrotate0_rot" z="45*DEG2RAD" aunit="rad"/>
+	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
+	 <position name="ssdrotate1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <rotation name="ssdrotate1_rot" z="90*DEG2RAD" aunit="rad"/>
+	 <position name="ssdrotate2_pos" x="0" y="0" z="3" unit="mm"/>
+	 <rotation name="ssdrotate2_rot" z="0" aunit="rad"/>	 
+	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
+	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
+			z="-10." unit="mm" />
+	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0"
+		 z="10." unit="mm" />
+
 	 <quantity name="ssdStationdoubleLength" value="50" unit="mm" />
-    <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
-    <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
+	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
+	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
 	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
-    <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
+	 <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
 	 <position name="ssddouble0_pos" x="0" y="0" z="0" unit="mm"/>
-    <rotation name="ssddouble0_rot" z="0" aunit="rad"/>
-    <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-    <position name="ssddouble1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-    <rotation name="ssddouble1_rot" z="90*DEG2RAD" aunit="rad"/>
-    <position name="ssddouble2_pos" x="0" y="0" z="3" unit="mm"/>
-    <rotation name="ssddouble2_rot" z="-45*DEG2RAD" aunit="rad"/>
-    <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
-    <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
-         z="-10." unit="mm" />
-    <position name="ssddouble_DSMylarWindow_pos" x="0" y="0"
-       z="10." unit="mm" />
- 
+	 <rotation name="ssddouble0_rot" z="0" aunit="rad"/>
+	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
+	 <position name="ssddouble1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <rotation name="ssddouble1_rot" z="90*DEG2RAD" aunit="rad"/>
+	 <position name="ssddouble2_pos" x="0" y="0" z="3" unit="mm"/>
+	 <rotation name="ssddouble2_rot" z="-45*DEG2RAD" aunit="rad"/>
+	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
+	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
+			z="-10." unit="mm" />
+	 <position name="ssddouble_DSMylarWindow_pos" x="0" y="0"
+		 z="10." unit="mm" />
+
 	 <!-- ABOVE IS FOR SSD -->
-	 
+
 	 <!-- BELOW IS FOR RPC -->
-    
+
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-    <position name="RPC_pos" x="0" y="0" z="730" unit="mm" />
-	 
+	 <position name="RPC_pos" x="0" y="0" z="730" unit="mm" />
+
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
 
@@ -268,47 +268,47 @@ print DEF <<EOF;
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
 EOF
-for($i = 0; $i < $n_cover; ++$i){
-print DEF <<EOF;
-    <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)" unit="mm"/>
-    <position name="RPC_comb@{[ $i ]}_pos" z="(RPC_PCB_thick*($n_gas+1)+RPC_gas_thick*$n_gas+RPC_acrylic_thick*$n_gas*$n_cover+RPC_comb_thick)*($i-($n_cover-1)*0.5)" unit="mm"/>
-EOF
-}
-for($i = 0; $i < $n_gas+1; ++$i){
-print DEF <<EOF;
-    <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
-EOF
-}
-for($i = 0; $i < $n_gas; ++$i){
-	print DEF <<EOF;
-	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
-EOF
-	for($j = 0; $j < $n_cover; ++$j){
+	for($i = 0; $i < $n_cover; ++$i){
 		print DEF <<EOF;
-	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
+	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)" unit="mm"/>
+	 <position name="RPC_comb@{[ $i ]}_pos" z="(RPC_PCB_thick*($n_gas+1)+RPC_gas_thick*$n_gas+RPC_acrylic_thick*$n_gas*$n_cover+RPC_comb_thick)*($i-($n_cover-1)*0.5)" unit="mm"/>
 EOF
 	}
-}
+	for($i = 0; $i < $n_gas+1; ++$i){
+		print DEF <<EOF;
+	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
+EOF
+	}
+	for($i = 0; $i < $n_gas; ++$i){
+		print DEF <<EOF;
+	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
+EOF
+		for($j = 0; $j < $n_cover; ++$j){
+			print DEF <<EOF;
+	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
+EOF
+		}
+	}
 
-print DEF <<EOF;
-	 
+	print DEF <<EOF;
+
 	 <!-- ABOVE IS FOR RPC -->
 
 	 <!-- BELOW IS FOR LG -->
 
-    <quantity name="LG_length" value="340" unit="mm" />
-    <quantity name="LG_height" value="122" unit="mm" />
-    <quantity name="LG_width0" value="113" unit="mm" />
-    <quantity name="LG_width1" value="135" unit="mm" />
-    <quantity name="LG_angle" value="0.064615804" aunit="rad" />
+	 <quantity name="LG_length" value="340" unit="mm" />
+	 <quantity name="LG_height" value="122" unit="mm" />
+	 <quantity name="LG_width0" value="113" unit="mm" />
+	 <quantity name="LG_width1" value="135" unit="mm" />
+	 <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
-    <quantity name="LG_protrusion_thick" value="40" unit="mm" />
+	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
 
-    <quantity name="LG_PMTr" value="38" unit="mm" />
-    <quantity name="LG_PMTl" value="120" unit="mm" />
+	 <quantity name="LG_PMTr" value="38" unit="mm" />
+	 <quantity name="LG_PMTl" value="120" unit="mm" />
 	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_protrusion_thick" unit="mm"/>
- 
+
 	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
 	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
@@ -316,10 +316,10 @@ print DEF <<EOF;
 	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length+LG_protrusion_thick)" unit="mm"/>
 	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(2*LG_protrusion_thick+LG_length+LG_PMTl)" unit="mm"/>
 
-  
+
 EOF
-		for($i = 0; $i < $n_LG; ++$i){
-print DEF <<EOF;
+	for($i = 0; $i < $n_LG; ++$i){
+		print DEF <<EOF;
 	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
@@ -327,9 +327,9 @@ print DEF <<EOF;
 	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" />
 	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
 EOF
-		}
+	}
 
-print DEF <<EOF;
+	print DEF <<EOF;
 	 <quantity name="calor_length" value="520" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
@@ -343,7 +343,7 @@ print DEF <<EOF;
 
 </gdml>
 EOF
-    close (DEF);
+	close (DEF);
 }
 
 
@@ -354,22 +354,22 @@ EOF
 sub gen_Materials() 
 {
 
-# Create the <materials> fragment file name,
-# add file to list of output GDML fragments,
-# and open it
-    $MAT = "phase1_Materials" . $suffix . ".gdml";
-    push (@gdmlFiles, $MAT);
-    $MAT = ">" . $MAT;
-    open(MAT) or die("Could not open file $MAT for writing");
+	# Create the <materials> fragment file name,
+	# add file to list of output GDML fragments,
+	# and open it
+	$MAT = "phase1_Materials" . $suffix . ".gdml";
+	push (@gdmlFiles, $MAT);
+	$MAT = ">" . $MAT;
+	open(MAT) or die("Could not open file $MAT for writing");
 
 
-  print MAT <<EOF;
+	print MAT <<EOF;
 
   @{[ dumpfile('material.gdml')]}
 
 EOF
 
-close(MAT);
+	close(MAT);
 }
 
 
@@ -381,32 +381,32 @@ close(MAT);
 sub gen_Solids() 
 {
 
-# Create the <solids> fragment file name,
-# add file to list of output GDML fragments,
-# and open it
-    $SOL = "phase1_Solids" . $suffix . ".gdml";
-    push (@gdmlFiles, $SOL);
-    $SOL = ">" . $SOL;
-    open(SOL) or die("Could not open file $SOL for writing");
+	# Create the <solids> fragment file name,
+	# add file to list of output GDML fragments,
+	# and open it
+	$SOL = "phase1_Solids" . $suffix . ".gdml";
+	push (@gdmlFiles, $SOL);
+	$SOL = ">" . $SOL;
+	open(SOL) or die("Could not open file $SOL for writing");
 
 
-  print SOL <<EOF;
+	print SOL <<EOF;
 
 	<solids>
 
-    <box name="world_box" x="world_size" y="world_size" z="world_size" />
+	 <box name="world_box" x="world_size" y="world_size" z="world_size" />
 
-    <!-- BELOW IS FOR T0 -->
+	 <!-- BELOW IS FOR T0 -->
 
 	 <box name="T0_box" x="T0_width" y="T0_height" z="T0_length" />
 	 <box name="T0_acrylic_box" x="T0_acrylic_width" y="T0_acrylic_height" z="T0_acrylic_length" />
-    <union name="T0_acrylic_union">
-      <first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
-      <positionref ref= "center" />
-      <rotationref ref= "T0_union1_rot" />
-      <firstpositionref ref= "center"/>
-      <firstrotationref ref= "T0_union2_rot"/>
-    </union>	 
+	 <union name="T0_acrylic_union">
+		<first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
+		<positionref ref= "center" />
+		<rotationref ref= "T0_union1_rot" />
+		<firstpositionref ref= "center"/>
+		<firstrotationref ref= "T0_union2_rot"/>
+	 </union>	 
 
 	 <!-- ABOVE IS FOR T0 -->
 
@@ -416,37 +416,37 @@ sub gen_Solids()
 
 	 <!-- ABOVE IS FOR TARGET -->
 
-    <!-- BELOW IS FOR MAGNET -->
+	 <!-- BELOW IS FOR MAGNET -->
 
-    <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
-       y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
+	 <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
+		 y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
 
-    <arb8 name="magnetSide_arb8"
-     v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
-     v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
-     v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
-     v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
-     v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
-     v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
-     v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
-     v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
-     dz="magnetSideZLength" unit="mm"/>
+	 <arb8 name="magnetSide_arb8"
+	  v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
+	  v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
+	  v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
+	  v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
+	  v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
+	  v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
+	  v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
+	  v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
+	  dz="magnetSideZLength" unit="mm"/>
 
-    <!-- ABOVE IS FOR MAGNET -->
-	 
+	 <!-- ABOVE IS FOR MAGNET -->
+
 	 <!-- BELOW IS FOR SSD -->
 
 EOF
-  for($i = 0; $i < $nstation_type; ++$i){
-	  print SOL <<EOF;
+	for($i = 0; $i < $nstation_type; ++$i){
+		print SOL <<EOF;
 	  <box name="ssdStation@{[ $station_type[$i] ]}_box" x="ssdStation@{[ $station_type[$i] ]}Width" y="ssdStation@{[ $station_type[$i] ]}Height" z="ssdStation@{[ $station_type[$i] ]}Length" />
 	  <box name="ssd@{[ $station_type[$i] ]}_MylarWindow_box" x="ssdStation@{[ $station_type[$i] ]}Width*0.8" y="ssdStation@{[ $station_type[$i] ]}Width*0.8" z="Mylar_Window_thick" />
 	  <box name="ssd@{[ $station_type[$i] ]}_box" x="ssd@{[ $SSD_mod[$i] ]}_width" y="ssd@{[ $SSD_mod[$i] ]}_height" z="ssd@{[ $SSD_mod[$i] ]}_thick" />
 	  <box name="ssd@{[ $station_type[$i] ]}_bkpln_box" x="@{[ $bkpln_size[$i] ]}*ssd@{[ $SSD_mod[$i] ]}_width" y="@{[ $bkpln_size[$i] ]}*ssd@{[ $SSD_mod[$i] ]}_width" z="carbon_fiber_thick" />
 
 EOF
-  }
-  print SOL <<EOF;
+	}
+	print SOL <<EOF;
 	 <!-- ABOVE IS FOR SSD -->
 
 	 <!-- BELOW IS FOR RPC -->
@@ -467,16 +467,16 @@ EOF
 	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" aunit="rad"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
-    <union name="LG_union">
-      <first ref="LG_box1"/>  <second ref="LG_para1"/>
-      <positionref ref="LG_para_pos" />
-      <firstpositionref ref= "center"/>
-    </union>	 
-    <union name="LG_block_union">
-      <first ref="LG_box2"/>  <second ref="LG_para1"/>
-      <positionref ref="LG_para_pos" />
-      <firstpositionref ref= "LG_para2_pos"/>
-    </union>	 
+	 <union name="LG_union">
+		<first ref="LG_box1"/>  <second ref="LG_para1"/>
+		<positionref ref="LG_para_pos" />
+		<firstpositionref ref= "center"/>
+	 </union>	 
+	 <union name="LG_block_union">
+		<first ref="LG_box2"/>  <second ref="LG_para1"/>
+		<positionref ref="LG_para_pos" />
+		<firstpositionref ref= "LG_para2_pos"/>
+	 </union>	 
 
 	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" aunit="rad"/>
 	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="2*PI" aunit="rad"/>
@@ -488,7 +488,7 @@ EOF
 	</solids>	
 
 EOF
-close(SOL);
+	close(SOL);
 }
 
 
@@ -499,23 +499,23 @@ close(SOL);
 sub gen_Modules() 
 {
 
-# Create the Modules
-# add file to list of output GDML fragments,
-# and open it
-    $MOD = "phase1_Modules" . $suffix . ".gdml";
-    push (@gdmlFiles, $MOD);
-    $MOD = ">" . $MOD;
-    open(MOD) or die("Could not open file $MOD for writing");
+	# Create the Modules
+	# add file to list of output GDML fragments,
+	# and open it
+	$MOD = "phase1_Modules" . $suffix . ".gdml";
+	push (@gdmlFiles, $MOD);
+	$MOD = ">" . $MOD;
+	open(MOD) or die("Could not open file $MOD for writing");
 
 
-  print MOD <<EOF;
+	print MOD <<EOF;
   <structure>    
 
   <!-- BELOW IS FOR T0 -->
 
   <volume name="T0_acrylic_vol">
-    <materialref ref="Acrylic"/>
-    <solidref ref="T0_acrylic_union"/>
+	 <materialref ref="Acrylic"/>
+	 <solidref ref="T0_acrylic_union"/>
   </volume>
 
   <!-- ABOVE IS FOR T0 -->
@@ -523,8 +523,8 @@ sub gen_Modules()
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-    <materialref ref="Graphite"/>
-    <solidref ref="target_box"/>
+	 <materialref ref="Graphite"/>
+	 <solidref ref="target_box"/>
   </volume>
 
   <!-- ABOVE IS FOR TARGET -->
@@ -532,106 +532,106 @@ sub gen_Modules()
   <!-- BELOW IS FOR MAGNET -->
 
   <volume name="magnetSide_vol">
-    <materialref ref="NeodymiumAlloy"/>
-    <solidref ref="magnetSide_arb8"/>
+	 <materialref ref="NeodymiumAlloy"/>
+	 <solidref ref="magnetSide_arb8"/>
   </volume>
 
   <!-- ABOVE IS FOR MAGNET -->
-  
+
   <!-- BELOW IS FOR SSD -->
 
 EOF
-  for($i = 0; $i < $nstation_type; ++$i){
-	  print MOD <<EOF;
-	    <volume name="ssd@{[ $station_type[$i] ]}_vol">
-         <materialref ref="SiliconWafer"/>
-         <solidref ref="ssd@{[ $station_type[$i] ]}_box"/>
-       </volume>
-     
-       <volume name="ssd@{[ $station_type[$i] ]}_bkpln_vol">
-         <materialref ref="CarbonFiber"/>
-         <solidref ref="ssd@{[ $station_type[$i] ]}_bkpln_box"/>
-       </volume>
+	for($i = 0; $i < $nstation_type; ++$i){
+		print MOD <<EOF;
+		 <volume name="ssd@{[ $station_type[$i] ]}_vol">
+			<materialref ref="SiliconWafer"/>
+			<solidref ref="ssd@{[ $station_type[$i] ]}_box"/>
+		 </volume>
 
-  	  <volume name="ssd@{[ $station_type[$i] ]}_MylarWindow_vol">
-	    <materialref ref="Mylar"/>
-	    <solidref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_box"/>
+		 <volume name="ssd@{[ $station_type[$i] ]}_bkpln_vol">
+			<materialref ref="CarbonFiber"/>
+			<solidref ref="ssd@{[ $station_type[$i] ]}_bkpln_box"/>
+		 </volume>
+
+	  <volume name="ssd@{[ $station_type[$i] ]}_MylarWindow_vol">
+		 <materialref ref="Mylar"/>
+		 <solidref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_box"/>
 	  </volume>
 
 EOF
-  }
-  print MOD <<EOF;
-  
+	}
+	print MOD <<EOF;
+
   <!-- ABOVE IS FOR SSD -->
-	 
+
   <!-- BELOW IS FOR RPC -->
 
   <volume name="RPC_Al_vol">
-    <materialref ref="AlShell"/>
-    <solidref ref="RPC_Al_box"/>
+	 <materialref ref="AlShell"/>
+	 <solidref ref="RPC_Al_box"/>
   </volume>
 
   <volume name="RPC_PCB_vol">
-    <materialref ref="CarbonFiber"/>
-    <solidref ref="RPC_PCB_box"/>
+	 <materialref ref="CarbonFiber"/>
+	 <solidref ref="RPC_PCB_box"/>
   </volume>
 
   <volume name="RPC_comb_vol">
-    <materialref ref="Air"/>
-    <solidref ref="RPC_comb_box"/>
+	 <materialref ref="Air"/>
+	 <solidref ref="RPC_comb_box"/>
   </volume>
 
   <volume name="RPC_acrylic_vol">
-    <materialref ref="Acrylic"/>
-    <solidref ref="RPC_acrylic_box"/>
+	 <materialref ref="Acrylic"/>
+	 <solidref ref="RPC_acrylic_box"/>
   </volume>
 
   <volume name="RPC_gas_vol">
-    <materialref ref="RPC_Gas"/>
-    <solidref ref="RPC_gas_box"/>
+	 <materialref ref="RPC_Gas"/>
+	 <solidref ref="RPC_gas_box"/>
   </volume>
 
   <!-- ABOVE IS FOR RPC -->
 
   <!-- BELOW IS FOR LG -->
-  
+
   <volume name="LG_glass_vol">
-    <materialref ref="LeadGlass"/>
-    <solidref ref="LG_union"/>
+	 <materialref ref="LeadGlass"/>
+	 <solidref ref="LG_union"/>
   </volume>
   <volume name="LG_protrusion_vol">
-    <materialref ref="LeadGlass"/>
-    <solidref ref="LG_protrusion_tube"/>
+	 <materialref ref="LeadGlass"/>
+	 <solidref ref="LG_protrusion_tube"/>
   </volume>
   <volume name="LG_PMT_vol">
-    <materialref ref="LeadGlass"/>
-    <solidref ref="LG_PMT_tube"/>
+	 <materialref ref="LeadGlass"/>
+	 <solidref ref="LG_PMT_tube"/>
   </volume>
 
   <volume name="LG_block_vol">
-    <materialref ref="Air"/>
-    <solidref ref="LG_block_union"/>
+	 <materialref ref="Air"/>
+	 <solidref ref="LG_block_union"/>
 	 <physvol name="LG_glass_phys">
-	 	<volumeref ref="LG_glass_vol"/>
-	 	<positionref ref="LG_glass_pos"/>
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_glass_pos"/>
 	 </physvol>
 	 <physvol name="LG_protrusion_phys">
-	 	<volumeref ref="LG_protrusion_vol"/>
-	 	<positionref ref="LG_protrusion_pos"/>
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
 	 </physvol>
 	 <physvol name="LG_PMT_phys">
-	 	<volumeref ref="LG_PMT_vol"/>
-	 	<positionref ref="LG_PMT_pos"/>
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
 	 </physvol>
   </volume>
 
   <!-- ABOVE IS FOR LG -->
 
   </structure>    
-  
+
 EOF
 
-close(MOD);
+	close(MOD);
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -641,32 +641,32 @@ close(MOD);
 sub gen_DetEnclosure() 
 {
 
-# Create the DetEnclosure
-# add file to list of output GDML fragments,
-# and open it
-    $DET = "phase1_DetEnclosure" . $suffix . ".gdml";
-    push (@gdmlFiles, $DET);
-    $DET = ">" . $DET;
-    open(DET) or die("Could not open file $DET for writing");
+	# Create the DetEnclosure
+	# add file to list of output GDML fragments,
+	# and open it
+	$DET = "phase1_DetEnclosure" . $suffix . ".gdml";
+	push (@gdmlFiles, $DET);
+	$DET = ">" . $DET;
+	open(DET) or die("Could not open file $DET for writing");
 
-  print DET <<EOF;
+	print DET <<EOF;
   <structure>
- 
+
   <!-- BELOW IS FOR T0 -->
 
   <volume name="T0_vol">
-    <materialref ref="Air"/>
-    <solidref ref="T0_box"/>
+	 <materialref ref="Air"/>
+	 <solidref ref="T0_box"/>
 EOF
-  for($i = 0; $i < $n_acrylic; ++$i){
-  print DET <<EOF;
+	for($i = 0; $i < $n_acrylic; ++$i){
+		print DET <<EOF;
 	 <physvol name="T0_acrylic@{[ $i ]}_phys">
-	   <volumeref ref="T0_acrylic_vol"/>
-	   <positionref ref="T0_acrylic@{[ $i ]}_pos"/>
-    </physvol>
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic@{[ $i ]}_pos"/>
+	 </physvol>
 EOF
-  }
-  print DET <<EOF;
+	}
+	print DET <<EOF;
   </volume>
 
   <!-- BELOW IS FOR T0 -->
@@ -674,135 +674,135 @@ EOF
   <!-- BELOW IS FOR MAGNET -->
 
   <volume name="magnet_vol">
-    <materialref ref="Air"/>
-    <solidref ref="magnet_box"/>  
+	 <materialref ref="Air"/>
+	 <solidref ref="magnet_box"/>  
 EOF
 
-  for($i = 0; $i < $n_magseg; ++$i){
-  print DET <<EOF;
-    <physvol name="magnetSide@{[ $i ]}_phys">
-      <volumeref ref="magnetSide_vol"/>
-      <positionref ref="magnetSide_pos"/>
-      <rotationref ref="RotateZMagSeg@{[ $i ]}"/>
-    </physvol>
+	for($i = 0; $i < $n_magseg; ++$i){
+		print DET <<EOF;
+	 <physvol name="magnetSide@{[ $i ]}_phys">
+		<volumeref ref="magnetSide_vol"/>
+		<positionref ref="magnetSide_pos"/>
+		<rotationref ref="RotateZMagSeg@{[ $i ]}"/>
+	 </physvol>
 EOF
-  }
+	}
 
-  print DET <<EOF;
+	print DET <<EOF;
   </volume>
 
   <!-- ABOVE IS FOR MAGNET -->
-   
+
   <!-- BELOW IS FOR SSD -->
 
 EOF
-  for($i = 0; $i < $nstation_type; ++$i){
-	  print DET <<EOF;
-     <volume name="ssdStation@{[ $station_type[$i] ]}_vol">
-       <materialref ref="Air"/>
-       <solidref ref="ssdStation@{[ $station_type[$i] ]}_box"/>
-       <physvol name="ssd@{[ $station_type[$i] ]}_USMylarWindow_phys">
-         <volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
-         <positionref ref="ssd@{[ $station_type[$i] ]}_USMylarWindow_pos"/>
-       </physvol>
-       <physvol name="ssd@{[ $station_type[$i] ]}_DSMylarWindow_phys">
-         <volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
-         <positionref ref="ssd@{[ $station_type[$i] ]}_DSMylarWindow_pos"/>
-       </physvol>
+	for($i = 0; $i < $nstation_type; ++$i){
+		print DET <<EOF;
+	  <volume name="ssdStation@{[ $station_type[$i] ]}_vol">
+		 <materialref ref="Air"/>
+		 <solidref ref="ssdStation@{[ $station_type[$i] ]}_box"/>
+		 <physvol name="ssd@{[ $station_type[$i] ]}_USMylarWindow_phys">
+			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
+			<positionref ref="ssd@{[ $station_type[$i] ]}_USMylarWindow_pos"/>
+		 </physvol>
+		 <physvol name="ssd@{[ $station_type[$i] ]}_DSMylarWindow_phys">
+			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
+			<positionref ref="ssd@{[ $station_type[$i] ]}_DSMylarWindow_pos"/>
+		 </physvol>
 
 EOF
-		 for($j = 0; $j < $SSD_lay[$i]; ++$j){
-	  		print DET <<EOF;
-       <physvol name="ssd@{[ $station_type[$i] ]}@{[ $j ]}_phys">
-         <volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
-         <positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
-         <rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_rot"/>
-       </physvol>
+		for($j = 0; $j < $SSD_lay[$i]; ++$j){
+			print DET <<EOF;
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $j ]}_phys">
+			<volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
+			<positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
+			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_rot"/>
+		 </physvol>
 EOF
 		}
-		 for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
-	  		print DET <<EOF;
-       <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_phys">
-         <volumeref ref="ssd@{[ $station_type[$i] ]}_bkpln_vol"/>
-         <positionref ref="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
-       </physvol>
+		for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
+			print DET <<EOF;
+		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_phys">
+			<volumeref ref="ssd@{[ $station_type[$i] ]}_bkpln_vol"/>
+			<positionref ref="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
+		 </physvol>
 EOF
 
 		}
+		print DET <<EOF;
+	  </volume>
+
+EOF
+	}
 	print DET <<EOF;
-     </volume>
 
-EOF
-  }
-  print DET <<EOF;
-  
   <!-- ABOVE IS FOR SSD -->
 
   <!-- BELOW IS FOR RPC -->
 
   <volume name="RPC_vol">
-    <materialref ref="Air"/>
-    <solidref ref="RPC_box"/>
+	 <materialref ref="Air"/>
+	 <solidref ref="RPC_box"/>
 EOF
-  for($i = 0; $i < $n_cover; ++$i){
-    print DET <<EOF;
-    <physvol name="RPC_Al@{[ $i ]}_phys">
-      <volumeref ref="RPC_Al_vol"/>
-      <positionref ref="RPC_Al@{[ $i ]}_pos"/>
-    </physvol>
-    <physvol name="RPC_comb@{[ $i ]}_phys">
-      <volumeref ref="RPC_comb_vol"/>
-      <positionref ref="RPC_comb@{[ $i ]}_pos"/>
-    </physvol>
-EOF
-  }
-  for($i = 0; $i < $n_gas+1; ++$i){
-    print DET <<EOF;
-    <physvol name="RPC_PCB@{[ $i ]}_phys">
-      <volumeref ref="RPC_PCB_vol"/>
-      <positionref ref="RPC_PCB@{[ $i ]}_pos"/>
-    </physvol>
-EOF
-  }
-  for($i = 0; $i < $n_gas; ++$i){
-    print DET <<EOF;
-    <physvol name="RPC_gas@{[ $i ]}_phys">
-	   <volumeref ref="RPC_gas_vol"/>
-	   <positionref ref="RPC_gas@{[ $i ]}_pos"/>
+	for($i = 0; $i < $n_cover; ++$i){
+		print DET <<EOF;
+	 <physvol name="RPC_Al@{[ $i ]}_phys">
+		<volumeref ref="RPC_Al_vol"/>
+		<positionref ref="RPC_Al@{[ $i ]}_pos"/>
+	 </physvol>
+	 <physvol name="RPC_comb@{[ $i ]}_phys">
+		<volumeref ref="RPC_comb_vol"/>
+		<positionref ref="RPC_comb@{[ $i ]}_pos"/>
 	 </physvol>
 EOF
-    for($j = 0; $j < $n_cover; ++$j){
-      print DET <<EOF;
-    <physvol name="RPC_acrylic@{[ $i ]}@{[ $j ]}_phys">
-	   <volumeref ref="RPC_acrylic_vol"/>
-	   <positionref ref="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos"/>
+	}
+	for($i = 0; $i < $n_gas+1; ++$i){
+		print DET <<EOF;
+	 <physvol name="RPC_PCB@{[ $i ]}_phys">
+		<volumeref ref="RPC_PCB_vol"/>
+		<positionref ref="RPC_PCB@{[ $i ]}_pos"/>
 	 </physvol>
 EOF
-    }
-  }
-  print DET <<EOF;
+	}
+	for($i = 0; $i < $n_gas; ++$i){
+		print DET <<EOF;
+	 <physvol name="RPC_gas@{[ $i ]}_phys">
+		<volumeref ref="RPC_gas_vol"/>
+		<positionref ref="RPC_gas@{[ $i ]}_pos"/>
+	 </physvol>
+EOF
+		for($j = 0; $j < $n_cover; ++$j){
+			print DET <<EOF;
+	 <physvol name="RPC_acrylic@{[ $i ]}@{[ $j ]}_phys">
+		<volumeref ref="RPC_acrylic_vol"/>
+		<positionref ref="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos"/>
+	 </physvol>
+EOF
+		}
+	}
+	print DET <<EOF;
   </volume>
-  
+
   <!-- ABOVE IS FOR RPC -->
 
   <!-- BELOW IS FOR LG -->
 
   <volume name = "calor_vol">
-    <materialref ref="Air"/>
-    <solidref ref="calor_box"/>
+	 <materialref ref="Air"/>
+	 <solidref ref="calor_box"/>
 EOF
-  for($i = 0; $i< $n_LG; ++$i){
-	  for($j = 0; $j< $m_LG; ++$j){
-		  print DET <<EOF;
+	for($i = 0; $i< $n_LG; ++$i){
+		for($j = 0; $j< $m_LG; ++$j){
+			print DET <<EOF;
 	 <physvol name="LG_block@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_block_vol"/>
 		<positionref ref="LG_block@{[ $i ]}@{[ $j ]}_pos"/>
 		<rotationref ref="LG_block@{[ $i ]}@{[ $j ]}_rot"/>
 	 </physvol>
 EOF
-	  }
-  }
-  print DET <<EOF;
+		}
+	}
+	print DET <<EOF;
   </volume>
 
   <!-- ABOVE IS FOR LG -->
@@ -811,7 +811,7 @@ EOF
 
 EOF
 
-close(DET);
+	close(DET);
 }
 
 
@@ -822,36 +822,36 @@ close(DET);
 sub gen_World()
 {
 
-# Create the WORLD fragment file name,
-# add file to list of output GDML fragments,
-# and open it
-    $WORLD = "phase1_World" . $suffix . ".gdml";
-    push (@gdmlFiles, $WORLD);
-    $WORLD = ">" . $WORLD;
-    open(WORLD) or die("Could not open file $WORLD for writing");
+	# Create the WORLD fragment file name,
+	# add file to list of output GDML fragments,
+	# and open it
+	$WORLD = "phase1_World" . $suffix . ".gdml";
+	push (@gdmlFiles, $WORLD);
+	$WORLD = ">" . $WORLD;
+	open(WORLD) or die("Could not open file $WORLD for writing");
 
 
-# The standard XML prefix and starting the gdml
-    print WORLD <<EOF;
+	# The standard XML prefix and starting the gdml
+	print WORLD <<EOF;
 <?xml version='1.0'?>
 <gdml>
 EOF
 
 
-# All the World solids.
-print WORLD <<EOF;
+	# All the World solids.
+	print WORLD <<EOF;
 
   <structure>
 
   <volume name="world">
-    <materialref ref="Air"/>
-    <solidref ref="world_box"/>
- 
+	 <materialref ref="Air"/>
+	 <solidref ref="world_box"/>
+
   <!-- BELOW IS FOR T0 -->
 
   <physvol name="T0_phys">
-    <volumeref ref="T0_vol"/>
-    <positionref ref="T0_pos"/>
+	 <volumeref ref="T0_vol"/>
+	 <positionref ref="T0_pos"/>
   </physvol>
 
   <!-- ABOVE IS FOR T0 -->
@@ -859,8 +859,8 @@ print WORLD <<EOF;
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">
-    <volumeref ref="target_vol"/>
-    <positionref ref="target_pos"/>
+	 <volumeref ref="target_vol"/>
+	 <positionref ref="target_pos"/>
   </physvol>
 
   <!-- ABOVE IS FOR TARGET -->
@@ -868,40 +868,40 @@ print WORLD <<EOF;
   <!-- BELOW IS FOR MAGNET -->
 
   <physvol name="magnet_phys">
-    <volumeref ref="magnet_vol"/>
-    <positionref ref="magnet_pos"/>
+	 <volumeref ref="magnet_vol"/>
+	 <positionref ref="magnet_pos"/>
   </physvol>
 
   <!-- ABOVE IS FOR MAGNET -->
- 
+
   <!-- BELOW IS FOR SSD -->
 
 EOF
 
-  $station = 0;
-  for($i = 0; $i < $nstation_type; ++$i){
-	  for($j = 0; $j < $SSD_station[$i]; ++$j){
+	$station = 0;
+	for($i = 0; $i < $nstation_type; ++$i){
+		for($j = 0; $j < $SSD_station[$i]; ++$j){
 
-		  print WORLD <<EOF;
+			print WORLD <<EOF;
 
-        <physvol name="ssdStation@{[ $station ]}_phys">
-          <volumeref ref="ssdStation@{[ $station_type[$i] ]}_vol"/>
-          <positionref ref="ssdStation@{[ $station ]}_pos"/>
-        </physvol>
+		  <physvol name="ssdStation@{[ $station ]}_phys">
+			 <volumeref ref="ssdStation@{[ $station_type[$i] ]}_vol"/>
+			 <positionref ref="ssdStation@{[ $station ]}_pos"/>
+		  </physvol>
 EOF
 
-	 $station++;
-	 }
-  }  
+			$station++;
+		}
+	}  
 
-  print WORLD <<EOF;
+	print WORLD <<EOF;
   <!-- ABOVE IS FOR SSD -->
 
   <!-- BELOW IS FOR RPC -->
 
   <physvol name="RPC_phys">
-    <volumeref ref="RPC_vol"/>
-    <positionref ref="RPC_pos"/>
+	 <volumeref ref="RPC_vol"/>
+	 <positionref ref="RPC_pos"/>
   </physvol>
 
   <!-- ABOVE IS FOR RPC -->
@@ -909,8 +909,8 @@ EOF
   <!-- BELOW IS FOR LG -->
 
   <physvol name="calor_phys">
-    <volumeref ref="calor_vol"/>
-    <positionref ref="calor_pos"/>
+	 <volumeref ref="calor_vol"/>
+	 <positionref ref="calor_pos"/>
   </physvol>
 
   <!-- ABOVE IS FOR LG -->
@@ -922,9 +922,9 @@ EOF
 </gdml>
 EOF
 
-# make_gdml.pl will take care of <setup/>
+	# make_gdml.pl will take care of <setup/>
 
-close(WORLD);
+	close(WORLD);
 }
 
 
@@ -935,71 +935,71 @@ close(WORLD);
 
 sub write_fragments()
 {
-   # This subroutine creates an XML file that summarizes the the subfiles output
-   # by the other sub routines - it is the input file for make_gdml.pl which will
-   # give the final desired GDML file. Specify its name with the output option.
-   # (you can change the name when running make_gdml)
+	# This subroutine creates an XML file that summarizes the the subfiles output
+	# by the other sub routines - it is the input file for make_gdml.pl which will
+	# give the final desired GDML file. Specify its name with the output option.
+	# (you can change the name when running make_gdml)
 
-   # This code is taken straigh from the similar MicroBooNE generate script, Thank you.
+	# This code is taken straigh from the similar MicroBooNE generate script, Thank you.
 
-    if ( ! defined $output )
-    {
-	$output = "-"; # write to STDOUT 
-    }
+	if ( ! defined $output )
+	{
+		$output = "-"; # write to STDOUT 
+	}
 
-    # Set up the output file.
-    $OUTPUT = ">" . $output;
-    open(OUTPUT) or die("Could not open file $OUTPUT");
+	# Set up the output file.
+	$OUTPUT = ">" . $output;
+	open(OUTPUT) or die("Could not open file $OUTPUT");
 
-    print OUTPUT <<EOF;
+	print OUTPUT <<EOF;
 <?xml version='1.0'?>
 
 <!-- Input to Geometry/gdml/make_gdml.pl; define the GDML fragments
-     that will be zipped together to create a detector description. 
-     -->
+	  that will be zipped together to create a detector description. 
+	  -->
 
 <config>
 
-   <constantfiles>
+	<constantfiles>
 
-      <!-- These files contain GDML <constant></constant>
-           blocks. They are read in separately, so they can be
-           interpreted into the remaining GDML. See make_gdml.pl for
-           more information. 
-	   -->
-	   
+		<!-- These files contain GDML <constant></constant>
+			  blocks. They are read in separately, so they can be
+			  interpreted into the remaining GDML. See make_gdml.pl for
+			  more information. 
+		-->
+
 EOF
 
-    foreach $filename (@defFiles)
-    {
+	foreach $filename (@defFiles)
+	{
+		print OUTPUT <<EOF;
+		<filename> $filename </filename>
+EOF
+	}
+
 	print OUTPUT <<EOF;
-      <filename> $filename </filename>
-EOF
-    }
 
-    print OUTPUT <<EOF;
+	</constantfiles>
 
-   </constantfiles>
+	<gdmlfiles>
 
-   <gdmlfiles>
-
-      <!-- The GDML file fragments to be zipped together. -->
+		<!-- The GDML file fragments to be zipped together. -->
 
 EOF
 
-    foreach $filename (@gdmlFiles)
-    {
+	foreach $filename (@gdmlFiles)
+	{
+		print OUTPUT <<EOF;
+		<filename> $filename </filename>
+EOF
+	}
+
 	print OUTPUT <<EOF;
-      <filename> $filename </filename>
-EOF
-    }
 
-    print OUTPUT <<EOF;
-
-   </gdmlfiles>
+	</gdmlfiles>
 
 </config>
 EOF
 
-    close(OUTPUT);
+	close(OUTPUT);
 }
