@@ -76,8 +76,6 @@ namespace geo {
 	<< __FILE__ << ":" << __LINE__ << "\n";
     }
     
-    if (fname == fGDMLFile) return true;
-    
     fGDMLFile = fname;
     return this->LoadGDMLFile();
   }
