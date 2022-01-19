@@ -146,8 +146,8 @@ EOF
 
 	print DEF <<EOF;
 
-	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
-	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_union1_rot" x="90*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_acrylic_rot" x="-45*DEG2RAD" aunit="rad"/>
 
 	 <!-- ABOVE IS FOR T0 -->
 
@@ -303,26 +303,22 @@ EOF
 	 <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
-	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
-
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
-	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_protrusion_thick" unit="mm"/>
 
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
 	 <position name="LG_glass_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length+LG_protrusion_thick)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(2*LG_protrusion_thick+LG_length+LG_PMTl)" unit="mm"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
 
 
 EOF
 	for($i = 0; $i < $n_LG; ++$i){
 		print DEF <<EOF;
-	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0." unit="mm"/>
+	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0." unit="mm"/>
+	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*($i-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="PI" aunit="rad"/>
 	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" />
 	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
@@ -404,8 +400,6 @@ sub gen_Solids()
 		<first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
 		<positionref ref= "center" />
 		<rotationref ref= "T0_union1_rot" />
-		<firstpositionref ref= "center"/>
-		<firstrotationref ref= "T0_union2_rot"/>
 	 </union>	 
 
 	 <!-- ABOVE IS FOR T0 -->
@@ -470,12 +464,10 @@ EOF
 	 <union name="LG_union">
 		<first ref="LG_box1"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "center"/>
 	 </union>	 
 	 <union name="LG_block_union">
 		<first ref="LG_box2"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "LG_para2_pos"/>
 	 </union>	 
 
 	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" aunit="rad"/>
@@ -663,6 +655,7 @@ EOF
 	 <physvol name="T0_acrylic@{[ $i ]}_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic@{[ $i ]}_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 EOF
 	}
