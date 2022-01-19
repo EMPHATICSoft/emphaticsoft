@@ -1,7 +1,8 @@
 # emphaticsoft
 Base repository for art-based code
 
-**** Instructions for setting up the code for the first time on emphaticgpvm01.fnal.gov:
+---
+## Instructions for setting up the code for the first time on emphaticgpvm01.fnal.gov:
 
 0.  Get a ticket for access EMPHATIC computer:
     * Go to Fermilab Service Desk (fermi.servicenowservices.com)    

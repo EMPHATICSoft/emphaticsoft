@@ -19,6 +19,7 @@ cet_find_package(art_root_io REQUIRED)
 
 # source
 add_subdirectory(Geometry)
+add_subdirectory(ChannelMap)
 add_subdirectory(RawData)
 add_subdirectory(RecoBase)
 add_subdirectory(Demo)
@@ -26,3 +27,4 @@ add_subdirectory(RunHistory)
 add_subdirectory(SimulationBase)
 add_subdirectory(emphatic-artdaq)
 add_subdirectory(OnlineMonitoring)
+add_subdirectory(RawDataMerger)
