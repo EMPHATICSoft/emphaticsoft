@@ -21,10 +21,38 @@ class TVector3;
 
 namespace geo {
 
+	class T0 {
+  public:
+   
+	 T0();
+	 ~T0() {};
+
+    std::string Name() { return fName;}
+    TVector3 Pos() { return fPos;}
+    double Dz() { return fDz;}
+    double Width() { return fWidth;}
+    double Height() { return fHeight;}
+    
+    void SetName(std::string n) {fName = n; }
+    void SetPos(TVector3 pos) {fPos = pos;}
+    void SetDz(double dz) {fDz = dz;}
+    void SetWidth(double w) {fWidth = w;}
+    void SetHeight(double h) {fHeight = h;}
+    
+  private:    
+    std::string fName;
+    TVector3 fPos;
+    double fDz;
+    double fWidth;
+    double fHeight;
+  };
+
+
   class SSD {
   public:
-    SSD();
-    ~SSD() {};
+   
+	 SSD();
+	 ~SSD() {};
 
     std::string Name() { return fName;}
     TVector3 Pos() { return fPos;}
@@ -82,16 +110,19 @@ namespace geo {
     ~Geometry() {};
     
     bool SetGDMLFile(std::string fname);
-    
+ 
+	 double T0ZPos() const {return fT0USZPos; }
+  
     double MagnetUSZPos() const {return fMagnetUSZPos; }
     double MagnetDSZPos() const {return fMagnetDSZPos; }
-    double RICHUSZPos() const {return fMagnetUSZPos; }
-    double RICHDSZPos() const {return fMagnetDSZPos; }
     
     int NSSDStations() const { return fNSSDStations; }
     int NSSDs() const { return fNSSDs; }
     
     SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
+	 
+	 double RPCZPos() const {return fRPCZPos; }
+	 double LGZPos() const {return fLGZPos; }
     
     //    TGeoMaterial* Material(double x, double y, double z) const;
     
