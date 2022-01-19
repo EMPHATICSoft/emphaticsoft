@@ -38,7 +38,7 @@
 	 <position name="T0_acrylic9_pos" x="T0_acrylic_width*(9-(10-1)*0.5)" z="-40" unit="mm"/>
 
 	 <rotation name="T0_union1_rot" x="90*DEG2RAD" aunit="rad"/>
-	 <rotation name="T0_union_rot" x="-45*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_acrylic_rot" x="-45*DEG2RAD" aunit="rad"/>
 
 	 <!-- ABOVE IS FOR T0 -->
 
@@ -192,35 +192,31 @@
 	 <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
-	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
-
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
-	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_protrusion_thick" unit="mm"/>
 
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
 	 <position name="LG_glass_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length+LG_protrusion_thick)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(2*LG_protrusion_thick+LG_length+LG_PMTl)" unit="mm"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
 
 
-	 <position name="LG_block00_pos" x="-LG_width0" y="LG_height*(0-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block01_pos" x="0" y="LG_height*(0-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block02_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(0-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block00_pos" x="-LG_width0" y="LG_height*(0-1)" z="0." unit="mm"/>
+	 <position name="LG_block01_pos" x="0" y="LG_height*(0-1)" z="0." unit="mm"/>
+	 <position name="LG_block02_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*(0-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block00_rot" x="0" y="0" z="PI" aunit="rad"/>
 	 <rotation name="LG_block01_rot" x="0" y="0" z="0" />
 	 <rotation name="LG_block02_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
-	 <position name="LG_block10_pos" x="-LG_width0" y="LG_height*(1-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block11_pos" x="0" y="LG_height*(1-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block12_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(1-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block10_pos" x="-LG_width0" y="LG_height*(1-1)" z="0." unit="mm"/>
+	 <position name="LG_block11_pos" x="0" y="LG_height*(1-1)" z="0." unit="mm"/>
+	 <position name="LG_block12_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*(1-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block10_rot" x="0" y="0" z="PI" aunit="rad"/>
 	 <rotation name="LG_block11_rot" x="0" y="0" z="0" />
 	 <rotation name="LG_block12_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
-	 <position name="LG_block20_pos" x="-LG_width0" y="LG_height*(2-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block21_pos" x="0" y="LG_height*(2-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block22_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(2-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block20_pos" x="-LG_width0" y="LG_height*(2-1)" z="0." unit="mm"/>
+	 <position name="LG_block21_pos" x="0" y="LG_height*(2-1)" z="0." unit="mm"/>
+	 <position name="LG_block22_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*(2-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block20_rot" x="0" y="0" z="PI" aunit="rad"/>
 	 <rotation name="LG_block21_rot" x="0" y="0" z="0" />
 	 <rotation name="LG_block22_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
@@ -699,12 +695,10 @@
 	 <union name="LG_union">
 		<first ref="LG_box1"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "center"/>
 	 </union>	 
 	 <union name="LG_block_union">
 		<first ref="LG_box2"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "LG_para2_pos"/>
 	 </union>	 
 
 	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" aunit="rad"/>
@@ -867,43 +861,52 @@
 	 <physvol name="T0_acrylic0_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic0_pos"/>
-		<rotationref ref="T0_union_rot"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic1_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic1_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic2_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic2_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic3_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic3_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic4_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic4_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic5_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic5_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic6_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic6_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic7_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic7_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic8_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic8_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic9_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic9_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
   </volume>
 
