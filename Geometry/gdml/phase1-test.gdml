@@ -13,7 +13,7 @@
 	 <quantity name="DEG2RAD" value="0.017453293" />
 
 	 <quantity name="world_size" value="3000." unit="mm"/>
-	 <position name="center" x="0" y="0" z="0"/>
+	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 	 <!-- BELOW IS FOR T0 -->
 
@@ -37,8 +37,8 @@
 	 <position name="T0_acrylic8_pos" x="T0_acrylic_width*(8-(10-1)*0.5)" z="-40" unit="mm"/>
 	 <position name="T0_acrylic9_pos" x="T0_acrylic_width*(9-(10-1)*0.5)" z="-40" unit="mm"/>
 
-	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
-	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_union1_rot" x="90*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_union_rot" x="-45*DEG2RAD" aunit="rad"/>
 
 	 <!-- ABOVE IS FOR T0 -->
 
@@ -631,8 +631,6 @@
 		<first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
 		<positionref ref= "center" />
 		<rotationref ref= "T0_union1_rot" />
-		<firstpositionref ref= "center"/>
-		<firstrotationref ref= "T0_union2_rot"/>
 	 </union>	 
 
 	 <!-- ABOVE IS FOR T0 -->
@@ -869,6 +867,7 @@
 	 <physvol name="T0_acrylic0_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic0_pos"/>
+		<rotationref ref="T0_union_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic1_phys">
 		<volumeref ref="T0_acrylic_vol"/>
