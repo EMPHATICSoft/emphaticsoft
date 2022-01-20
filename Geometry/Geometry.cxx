@@ -112,10 +112,12 @@ namespace geo {
 
     const TGeoNode* world_n = (TGeoNode*)gGeoManager->GetTopNode();
     const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+	 mf::LogWarning("LoadNewGeometry") << "obtained world\n";
     
     ExtractMagnetInfo(world_v);
-    ExtractRICHInfo(world_v);
+	 mf::LogWarning("LoadNewGeometry") << "extracted magnet geometry \n";
     ExtractSSDInfo(world_n);
+	 mf::LogWarning("LoadNewGeometry") << "extracted SSD geometry \n";
 
     return true;
   }
@@ -132,7 +134,7 @@ namespace geo {
     double dz = magnet_box->GetDZ();
     
     fMagnetUSZPos = zcenter-dz;
-    fMagnetDSZPos = zcenter-dz;
+    fMagnetDSZPos = zcenter+dz;
     
   }
   
