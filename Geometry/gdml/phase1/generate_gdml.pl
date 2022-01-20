@@ -134,7 +134,7 @@ sub gen_Define()
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 EOF
-	if(T0_swtich){
+	if($T0_switch){
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR T0 -->
 
@@ -164,7 +164,7 @@ EOF
 EOF
 	}
 
-	if(target_swtich){
+	if($target_switch){
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR TARGET -->
 
@@ -179,7 +179,7 @@ EOF
 EOF
 	}
 
-	if(magnet_swtich){
+	if($magnet_switch){
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR MAGNET -->
 
@@ -207,7 +207,7 @@ EOF
 EOF
 	}
 
-	if(SSD_swtich){
+	if($SSD_switch){
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR SSD -->
 
@@ -278,7 +278,7 @@ EOF
 EOF
 	}
 
-	if(RPC_swtich){
+	if($RPC_switch){
 		print DEF <<EOF;
 
 	 <!-- BELOW IS FOR RPC -->
@@ -326,7 +326,7 @@ EOF
 EOF
 	}
 
-	if(LG_swtich){
+	if($LG_switch){
 		print DEF <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
@@ -432,7 +432,7 @@ sub gen_Solids()
 	 <box name="world_box" x="world_size" y="world_size" z="world_size" />
 
 EOF
-	if(T0_swtich){
+	if($T0_switch){
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR T0 -->
@@ -450,7 +450,7 @@ EOF
 EOF
 	}
 
-	if(target_swtich){
+	if($target_switch){
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR TARGET -->
@@ -461,7 +461,7 @@ EOF
 EOF
 	}
 
-	if(magnet_swtich){
+	if($magnet_switch){
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR MAGNET -->
@@ -485,7 +485,7 @@ EOF
 EOF
 	}
 
-	if(SSD_swtich){
+	if($SSD_switch){
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR SSD -->
@@ -505,7 +505,7 @@ EOF
 
 EOF
 	}
-	if(RPC_swtich){
+	if($RPC_switch){
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR RPC -->
@@ -522,7 +522,7 @@ EOF
 	 <!-- ABOVE IS FOR RPC -->
 EOF
 	}
-	if(LG_swtich){
+	if($LG_switch){
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
@@ -576,7 +576,7 @@ sub gen_Modules()
 	print MOD <<EOF;
   <structure>    
 EOF
-	if(T0_swtich){
+	if($T0_switch){
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR T0 -->
@@ -591,7 +591,7 @@ EOF
 EOF
 	}
 
-	if(target_swtich){
+	if($target_switch){
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR TARGET -->
@@ -606,7 +606,7 @@ EOF
 EOF
 	}
 
-	if(magnet_swtich){
+	if($magnet_switch){
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
@@ -621,7 +621,7 @@ EOF
 EOF
 	}
 
-	if(SSD_swtich){
+	if($SSD_switch){
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR SSD -->
@@ -652,7 +652,7 @@ EOF
 
 EOF
 	}
-	if(RPC_swtich){
+	if($RPC_switch){
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR RPC -->
@@ -687,7 +687,7 @@ EOF
 EOF
 	}
 
-	if(LG_swtich){
+	if($LG_switch){
 		print MOD <<EOF;
 
 
@@ -754,7 +754,7 @@ sub gen_DetEnclosure()
 	print DET <<EOF;
   <structure>
 EOF
-	if(T0_swtich){
+	if($T0_switch){
 		print DET <<EOF;
 
   <!-- BELOW IS FOR T0 -->
@@ -779,7 +779,7 @@ EOF
 
 EOF
 	}
-	if(magnet_swtich){
+	if($magnet_switch){
 		print DET <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
@@ -806,7 +806,7 @@ EOF
 
 EOF
 	}
-	if(SSD_swtich){
+	if($SSD_switch){
 		print DET <<EOF;
 
   <!-- BELOW IS FOR SSD -->
@@ -856,7 +856,7 @@ EOF
 
 EOF
 	}
-	if(RPC_swtich){
+	if($RPC_switch){
 		print DET <<EOF;
 
   <!-- BELOW IS FOR RPC -->
@@ -909,7 +909,7 @@ EOF
 EOF
 	}
 
-	if(LG_swtich){
+	if($LG_switch){
 		print DET <<EOF;
 
 
@@ -979,7 +979,7 @@ EOF
 	 <materialref ref="Air"/>
 	 <solidref ref="world_box"/>
 EOF
-	if(T0_swtich){
+	if($T0_switch){
 		print WORLD <<EOF;
 
   <!-- BELOW IS FOR T0 -->
@@ -994,7 +994,7 @@ EOF
 EOF
 	}
 
-	if(target_swtich){
+	if($target_switch){
 		print WORLD <<EOF;
 
   <!-- BELOW IS FOR TARGET -->
@@ -1009,7 +1009,7 @@ EOF
 EOF
 	}
 
-	if(magnet_swtich){
+	if($magnet_switch){
 		print WORLD <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
@@ -1022,7 +1022,7 @@ EOF
   <!-- ABOVE IS FOR MAGNET -->
 EOF
 	}
-	if(SSD_swtich){
+	if($SSD_switch){
 		print WORLD <<EOF;
 
   <!-- BELOW IS FOR SSD -->
@@ -1051,7 +1051,7 @@ EOF
 EOF
 	}
 
-	if(RPC_swtich){
+	if($RPC_switch){
 		print WORLD <<EOF;
 
   <!-- BELOW IS FOR RPC -->
@@ -1065,7 +1065,7 @@ EOF
 
 EOF
 	}
-	if(LG_swtich){
+	if($LG_switch){
 		print WORLD <<EOF;
 
 
