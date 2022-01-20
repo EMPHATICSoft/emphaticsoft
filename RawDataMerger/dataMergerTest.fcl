@@ -3,7 +3,7 @@ process_name: TestRawDataMerger
 source : {
     module_type : RootInput
     fileNames : [ "/emph/app/users/twester/art_test/emdaq_otsdaq_rootOutput_r69_20220118T190629.art" ]
-    maxEvents : 10
+    maxEvents : 20
 }
 
 physics: {

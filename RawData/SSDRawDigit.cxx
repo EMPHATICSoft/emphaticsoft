@@ -73,13 +73,14 @@ namespace rawdata{
       return getSensorRow(fChip, fSet, fStrip);
   }
 
-  std::vector<SSDRawDigit> readSSDHitsFromFileStream(std::ifstream& file_handle) {
+  std::pair<uint64_t, std::vector<SSDRawDigit>> readSSDHitsFromFileStream(std::ifstream& file_handle) {
     // TODO sanity checks for input file
 
     const uint64_t kOnes = -1;
     const uint32_t kMaxHits = 500;
     const size_t kDataSize = sizeof(unsigned long long);
     uint64_t rawdata_buffer;
+    uint64_t bco;
 
     std::vector<rawdata::SSDRawDigit> ssd_hits;
     ssd_hits.reserve(kMaxHits);
@@ -87,7 +88,7 @@ namespace rawdata{
 
     while (!file_handle.eof()) {
         file_handle.read((char*)(&rawdata_buffer), kDataSize);
-        if (rawdata_buffer == kOnes && start_flag) {
+        if (rawdata_buffer == kOnes) {
             if (start_flag) {
                 // event reading was previously started, now got end marker
                 // return as soon as this event is fully read
@@ -107,8 +108,7 @@ namespace rawdata{
                 start_flag = true;
                 // read the bco clock time at the start of each event
                 // we call an extra read here since the first data block of the event is unused
-                file_handle.read((char*)(&rawdata_buffer), kDataSize);
-                std::cout << "BCO: " << rawdata_buffer << "\n";
+                file_handle.read((char*)(&bco), kDataSize);
                 continue;
             }
             uint64_t rawdata_tmp = 0;
@@ -131,7 +131,7 @@ namespace rawdata{
             ssd_hits.push_back(hit);
         }
     }
-    return ssd_hits;
+    return std::make_pair(bco, ssd_hits);
   }
   
 } // end namespace rawdata

@@ -7,6 +7,7 @@
 #define SSDRAWDIGIT_H
 
 #include <vector>
+#include <utility>
 #include <stdint.h>
 #include <iostream>
 
@@ -48,7 +49,7 @@ namespace rawdata {
     uint32_t getSensorRow() const;
   };
 
-  std::vector<SSDRawDigit> readSSDHitsFromFileStream(std::ifstream&);
+  std::pair<uint64_t, std::vector<SSDRawDigit>> readSSDHitsFromFileStream(std::ifstream&);
 }
 
 #endif // SSDRAWDIGIT_H

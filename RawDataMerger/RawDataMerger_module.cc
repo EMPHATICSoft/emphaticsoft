@@ -82,7 +82,11 @@ void emphatic::RawDataMerger::produce(art::Event& e) {
     // TODO check run number, here or in begin job. If event header is needed,
     // probably have to do it here
 
+    // unpack the event into timestamp and hit data
     auto tmp_ssd_hits = rawdata::readSSDHitsFromFileStream(ssd_file);
+    uint64_t bco = tmp_ssd_hits.first;
+    std::vector<rawdata::SSDRawDigit> hits = tmp_ssd_hits.second;
+    std::cout << bco << "\t" << hits.size() << "\n";
 }
 
 
