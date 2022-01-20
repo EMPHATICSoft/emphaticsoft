@@ -2,7 +2,7 @@
 /// \file    Geometry.cxx
 /// \brief
 /// \version 
-/// \author  jpaley@fnal.gov
+/// \author  jpaley@fnal.gov wanly@bu.edu
 ////////////////////////////////////////////////////////////////////////
 
 #include <cassert>
@@ -63,6 +63,7 @@ namespace geo {
   Geometry::Geometry(std::string fname) :
     fGDMLFile(fname), fSSDStation(0)
   {
+	 for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
     this->SetGDMLFile(fname);
   }
   
@@ -75,8 +76,6 @@ namespace geo {
 	<< "cannot use empty string for GDML file, please fix this\n"
 	<< __FILE__ << ":" << __LINE__ << "\n";
     }
-    
-    if (fname == fGDMLFile) return true;
     
     fGDMLFile = fname;
     return this->LoadGDMLFile();
@@ -108,17 +107,79 @@ namespace geo {
     
     TGeoManager::Import(fGDMLFile.c_str());
     
+	 mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
+    
     gGeoManager->SetVerboseLevel(old_verbosity);
 
     const TGeoNode* world_n = (TGeoNode*)gGeoManager->GetTopNode();
     const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
     
     ExtractMagnetInfo(world_v);
-    ExtractRICHInfo(world_v);
-    ExtractSSDInfo(world_n);
+	 mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
+
+	 for ( int i = Trigger ; i < NDetectors ; i ++ ){
+		 ExtractDetectorInfo(i, world_n);
+		 if ( fDetectorLoad[i] == true ){
+	 	 mf::LogWarning("ExtractGeometry") << "extracted "
+			 << DetectorName[DetectorType(i)] << " geometry \n";
+		 }
+	 }
 
     return true;
   }
+ 
+  //--------------------------------------------------------------------------------
+  
+  void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
+  {
+	  if ( i < 3 || i == ARICH ){
+		  mf::LogWarning("LoadNewGeometry") << DetectorName[DetectorType(i)] 
+			  << "detector not in gdml yet. \n"
+			  << "experts should confirm whether they should be implemented. \n";
+		  return;
+	  }
+
+	  if ( i == SSD ){
+
+		  ExtractSSDInfo(world_n);
+
+	 		if ( fNSSDStations > 0 ){
+
+				std::cout<<"n SSD: "<<fNSSDStations <<std::endl;
+				
+				fDetectorLoad[i] = true;
+				fDetectorUSZPos[i] = fSSDStation.front().Pos()[2]-fSSDStation.front().Dz();
+				fDetectorDSZPos[i] = fSSDStation.back().Pos()[2]-fSSDStation.back().Dz();
+			
+			}
+
+		  return;
+
+	  }
+
+  const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+	  TString detector_name=DetectorName[DetectorType(i)]+"_phys";
+    TGeoNode* detector_n = (TGeoNode*)world_v->GetNode(detector_name);
+
+	 if ( detector_n == nullptr ){
+		 mf::LogWarning("LoadNewGeometry") << DetectorName[DetectorType(i)]
+			 << "detector not found in gdml. \n"
+			 << "check your spelling. \n";
+		 return;
+	 }
+
+    TGeoVolume* detector_v = (TGeoVolume*)detector_n->GetVolume();
+    TGeoBBox* detector_box = (TGeoBBox*)detector_v->GetShape();
+    
+    double zcenter = detector_n->GetMatrix()->GetTranslation()[2];
+    double dz = detector_box->GetDZ();
+    
+    fDetectorUSZPos[i] = zcenter-dz;
+    fDetectorDSZPos[i] = zcenter+dz;
+    fDetectorLoad[i] = true;
+    
+  }
+  
   
   //--------------------------------------------------------------------------------
   
@@ -132,23 +193,7 @@ namespace geo {
     double dz = magnet_box->GetDZ();
     
     fMagnetUSZPos = zcenter-dz;
-    fMagnetDSZPos = zcenter-dz;
-    
-  }
-  
-  //--------------------------------------------------------------------------------
-  
-  void Geometry::ExtractRICHInfo(const TGeoVolume* world_v)
-  {
-    TGeoNode* rich_n = (TGeoNode*)world_v->GetNode("rich_phys");
-    TGeoVolume* rich_v = (TGeoVolume*)rich_n->GetVolume();
-    TGeoBBox* rich_box = (TGeoBBox*)rich_v->GetShape();
-    
-    double zcenter = rich_n->GetMatrix()->GetTranslation()[2];
-    double dz = rich_box->GetDZ();
-    
-    fRICHUSZPos = zcenter-dz;
-    fRICHDSZPos = zcenter-dz;
+    fMagnetDSZPos = zcenter+dz;
     
   }
 
@@ -157,9 +202,8 @@ namespace geo {
   void Geometry::ExtractSSDInfo(const TGeoNode* world_n)
   {
     int nnodes = world_n->GetNodes()->GetEntries();
-
     const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-    
+
     std::vector<std::string> nodeName;
     
     std::string sString = "ssdStation";
@@ -186,6 +230,8 @@ namespace geo {
       st.SetHeight(2*st_box->GetDY());
 
       // now add individual SSDs to the station
+
+		fSSDStation.push_back(st);
     }
     
   }
