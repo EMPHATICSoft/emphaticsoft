@@ -106,6 +106,8 @@ namespace geo {
     
     TGeoManager::Import(fGDMLFile.c_str());
     
+	 mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
+    
     gGeoManager->SetVerboseLevel(old_verbosity);
 
     const TGeoNode* world_n = (TGeoNode*)gGeoManager->GetTopNode();

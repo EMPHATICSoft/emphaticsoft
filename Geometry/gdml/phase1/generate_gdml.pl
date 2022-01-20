@@ -46,12 +46,18 @@ else
 }
 
 # constants for T0
+$T0_switch = 1;
 $n_acrylic = 10;
 
+# constants for target
+$target_switch = 1;
+
 # constants for magnet
+$magnet_switch = 1;
 $n_magseg = 16;
 
 # constants for SSD
+$SSD_switch = 1;
 $nstation_type = 3; # types of station
 @station_type = ("single", "rotate", "double"); # xy, uxy, yyxxuu 
 @bkpln_size = (1.0, 1.3, 1.3); # bkpln size scale to ssd
@@ -61,11 +67,13 @@ $nstation_type = 3; # types of station
 @SSD_station = (2, 2, 2); # num. of stations
 
 # constants for RPC
+$RPC_switch = 1;
 $n_glass = 6;
 $n_gas = 2;
 $n_cover=2;
 
 # constants for LG
+$LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
 
@@ -120,11 +128,14 @@ sub gen_Define()
   <define>
 
 	 <quantity name="PI" value="3.1415927" />
-	 <quantity name="DEG2RAD" value="0.017453293" />
+	 <quantity name="DEG2RAD" value="0.017453293" aunit="rad"/>
 
 	 <quantity name="world_size" value="3000." unit="mm"/>
-	 <position name="center" x="0" y="0" z="0"/>
+	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
+EOF
+	if(T0_swtich){
+		print DEF <<EOF;
 	 <!-- BELOW IS FOR T0 -->
 
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
@@ -138,19 +149,23 @@ sub gen_Define()
 
 EOF
 
-	for($i = 0; $i < $n_acrylic; ++$i){
-		print DEF <<EOF;
+		for($i = 0; $i < $n_acrylic; ++$i){
+			print DEF <<EOF;
 	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-40" unit="mm"/>
+EOF
+		}
+
+		print DEF <<EOF;
+
+	 <rotation name="T0_union1_rot" x="90*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_acrylic_rot" x="-45*DEG2RAD" aunit="rad"/>
+
+	 <!-- ABOVE IS FOR T0 -->
 EOF
 	}
 
-	print DEF <<EOF;
-
-	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
-	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
-
-	 <!-- ABOVE IS FOR T0 -->
-
+	if(target_swtich){
+		print DEF <<EOF;
 	 <!-- BELOW IS FOR TARGET -->
 
 	 <quantity name="target_thick" value="20.0" unit="mm"/>
@@ -161,6 +176,11 @@ EOF
 
 	 <!-- ABOVE IS FOR TARGET -->
 
+EOF
+	}
+
+	if(magnet_swtich){
+		print DEF <<EOF;
 	 <!-- BELOW IS FOR MAGNET -->
 
 	 <quantity name="magnetSideYOffset" value="29" unit="mm" />
@@ -175,15 +195,20 @@ EOF
 	 <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
 
 EOF
-	for($i = 0; $i < $n_magseg; ++$i){
-		print DEF <<EOF;
+		for($i = 0; $i < $n_magseg; ++$i){
+			print DEF <<EOF;
 	 <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)*DEG2RAD" aunit="rad"/>
 EOF
-	}
-	print DEF <<EOF;
+		}
+		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
+EOF
+	}
+
+	if(SSD_swtich){
+		print DEF <<EOF;
 	 <!-- BELOW IS FOR SSD -->
 
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
@@ -250,6 +275,11 @@ EOF
 		 z="10." unit="mm" />
 
 	 <!-- ABOVE IS FOR SSD -->
+EOF
+	}
+
+	if(RPC_swtich){
+		print DEF <<EOF;
 
 	 <!-- BELOW IS FOR RPC -->
 
@@ -268,31 +298,36 @@ EOF
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
 EOF
-	for($i = 0; $i < $n_cover; ++$i){
-		print DEF <<EOF;
+		for($i = 0; $i < $n_cover; ++$i){
+			print DEF <<EOF;
 	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)" unit="mm"/>
 	 <position name="RPC_comb@{[ $i ]}_pos" z="(RPC_PCB_thick*($n_gas+1)+RPC_gas_thick*$n_gas+RPC_acrylic_thick*$n_gas*$n_cover+RPC_comb_thick)*($i-($n_cover-1)*0.5)" unit="mm"/>
 EOF
-	}
-	for($i = 0; $i < $n_gas+1; ++$i){
-		print DEF <<EOF;
+		}
+		for($i = 0; $i < $n_gas+1; ++$i){
+			print DEF <<EOF;
 	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
 EOF
-	}
-	for($i = 0; $i < $n_gas; ++$i){
-		print DEF <<EOF;
+		}
+		for($i = 0; $i < $n_gas; ++$i){
+			print DEF <<EOF;
 	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
 EOF
-		for($j = 0; $j < $n_cover; ++$j){
-			print DEF <<EOF;
+			for($j = 0; $j < $n_cover; ++$j){
+				print DEF <<EOF;
 	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
 EOF
+			}
 		}
-	}
 
-	print DEF <<EOF;
+		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR RPC -->
+EOF
+	}
+
+	if(LG_swtich){
+		print DEF <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
 
@@ -303,33 +338,29 @@ EOF
 	 <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
-	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
-
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
-	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_protrusion_thick" unit="mm"/>
 
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
 	 <position name="LG_glass_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length+LG_protrusion_thick)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(2*LG_protrusion_thick+LG_length+LG_PMTl)" unit="mm"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
 
 
 EOF
-	for($i = 0; $i < $n_LG; ++$i){
-		print DEF <<EOF;
-	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*($i-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+		for($i = 0; $i < $n_LG; ++$i){
+			print DEF <<EOF;
+	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0." unit="mm"/>
+	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0." unit="mm"/>
+	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*($i-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="PI" aunit="rad"/>
-	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" />
+	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" aunit="rad"/>
 	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
 EOF
-	}
+		}
 
-	print DEF <<EOF;
+		print DEF <<EOF;
 	 <quantity name="calor_length" value="520" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
@@ -339,6 +370,10 @@ EOF
 
 	 <!-- ABOVE IS FOR LG -->
 
+EOF
+	}
+
+	print DEF <<EOF;
   </define>
 
 </gdml>
@@ -396,25 +431,38 @@ sub gen_Solids()
 
 	 <box name="world_box" x="world_size" y="world_size" z="world_size" />
 
+EOF
+	if(T0_swtich){
+		print SOL <<EOF;
+
 	 <!-- BELOW IS FOR T0 -->
 
 	 <box name="T0_box" x="T0_width" y="T0_height" z="T0_length" />
 	 <box name="T0_acrylic_box" x="T0_acrylic_width" y="T0_acrylic_height" z="T0_acrylic_length" />
 	 <union name="T0_acrylic_union">
 		<first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
-		<positionref ref= "center" />
-		<rotationref ref= "T0_union1_rot" />
-		<firstpositionref ref= "center"/>
-		<firstrotationref ref= "T0_union2_rot"/>
+		<positionref ref="center" />
+		<rotationref ref="T0_union1_rot" />
 	 </union>	 
 
 	 <!-- ABOVE IS FOR T0 -->
+
+EOF
+	}
+
+	if(target_swtich){
+		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR TARGET -->
 
 	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
 
 	 <!-- ABOVE IS FOR TARGET -->
+EOF
+	}
+
+	if(magnet_swtich){
+		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR MAGNET -->
 
@@ -434,20 +482,31 @@ sub gen_Solids()
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
+EOF
+	}
+
+	if(SSD_swtich){
+		print SOL <<EOF;
+
 	 <!-- BELOW IS FOR SSD -->
 
 EOF
-	for($i = 0; $i < $nstation_type; ++$i){
-		print SOL <<EOF;
+		for($i = 0; $i < $nstation_type; ++$i){
+			print SOL <<EOF;
 	  <box name="ssdStation@{[ $station_type[$i] ]}_box" x="ssdStation@{[ $station_type[$i] ]}Width" y="ssdStation@{[ $station_type[$i] ]}Height" z="ssdStation@{[ $station_type[$i] ]}Length" />
 	  <box name="ssd@{[ $station_type[$i] ]}_MylarWindow_box" x="ssdStation@{[ $station_type[$i] ]}Width*0.8" y="ssdStation@{[ $station_type[$i] ]}Width*0.8" z="Mylar_Window_thick" />
 	  <box name="ssd@{[ $station_type[$i] ]}_box" x="ssd@{[ $SSD_mod[$i] ]}_width" y="ssd@{[ $SSD_mod[$i] ]}_height" z="ssd@{[ $SSD_mod[$i] ]}_thick" />
 	  <box name="ssd@{[ $station_type[$i] ]}_bkpln_box" x="@{[ $bkpln_size[$i] ]}*ssd@{[ $SSD_mod[$i] ]}_width" y="@{[ $bkpln_size[$i] ]}*ssd@{[ $SSD_mod[$i] ]}_width" z="carbon_fiber_thick" />
 
 EOF
-	}
-	print SOL <<EOF;
+		}
+		print SOL <<EOF;
 	 <!-- ABOVE IS FOR SSD -->
+
+EOF
+	}
+	if(RPC_swtich){
+		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR RPC -->
 
@@ -461,6 +520,10 @@ EOF
 	 <box name="RPC_gas_box" x="RPC_gas_width" y="RPC_gas_height" z="RPC_gas_thick"/>
 
 	 <!-- ABOVE IS FOR RPC -->
+EOF
+	}
+	if(LG_swtich){
+		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
 
@@ -470,12 +533,10 @@ EOF
 	 <union name="LG_union">
 		<first ref="LG_box1"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "center"/>
 	 </union>	 
 	 <union name="LG_block_union">
 		<first ref="LG_box2"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "LG_para2_pos"/>
 	 </union>	 
 
 	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" aunit="rad"/>
@@ -485,6 +546,10 @@ EOF
 
 	 <!-- ABOVE IS FOR LG -->
 
+EOF
+	}
+
+	print SOL <<EOF;
 	</solids>	
 
 EOF
@@ -510,6 +575,9 @@ sub gen_Modules()
 
 	print MOD <<EOF;
   <structure>    
+EOF
+	if(T0_swtich){
+		print MOD <<EOF;
 
   <!-- BELOW IS FOR T0 -->
 
@@ -520,6 +588,12 @@ sub gen_Modules()
 
   <!-- ABOVE IS FOR T0 -->
 
+EOF
+	}
+
+	if(target_swtich){
+		print MOD <<EOF;
+
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
@@ -528,6 +602,12 @@ sub gen_Modules()
   </volume>
 
   <!-- ABOVE IS FOR TARGET -->
+
+EOF
+	}
+
+	if(magnet_swtich){
+		print MOD <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
 
@@ -538,11 +618,17 @@ sub gen_Modules()
 
   <!-- ABOVE IS FOR MAGNET -->
 
+EOF
+	}
+
+	if(SSD_swtich){
+		print MOD <<EOF;
+
   <!-- BELOW IS FOR SSD -->
 
 EOF
-	for($i = 0; $i < $nstation_type; ++$i){
-		print MOD <<EOF;
+		for($i = 0; $i < $nstation_type; ++$i){
+			print MOD <<EOF;
 		 <volume name="ssd@{[ $station_type[$i] ]}_vol">
 			<materialref ref="SiliconWafer"/>
 			<solidref ref="ssd@{[ $station_type[$i] ]}_box"/>
@@ -559,10 +645,15 @@ EOF
 	  </volume>
 
 EOF
-	}
-	print MOD <<EOF;
+		}
+		print MOD <<EOF;
 
   <!-- ABOVE IS FOR SSD -->
+
+EOF
+	}
+	if(RPC_swtich){
+		print MOD <<EOF;
 
   <!-- BELOW IS FOR RPC -->
 
@@ -592,6 +683,13 @@ EOF
   </volume>
 
   <!-- ABOVE IS FOR RPC -->
+
+EOF
+	}
+
+	if(LG_swtich){
+		print MOD <<EOF;
+
 
   <!-- BELOW IS FOR LG -->
 
@@ -627,6 +725,10 @@ EOF
 
   <!-- ABOVE IS FOR LG -->
 
+EOF
+	}
+	print MOD <<EOF;
+
   </structure>    
 
 EOF
@@ -651,6 +753,9 @@ sub gen_DetEnclosure()
 
 	print DET <<EOF;
   <structure>
+EOF
+	if(T0_swtich){
+		print DET <<EOF;
 
   <!-- BELOW IS FOR T0 -->
 
@@ -658,18 +763,24 @@ sub gen_DetEnclosure()
 	 <materialref ref="Air"/>
 	 <solidref ref="T0_box"/>
 EOF
-	for($i = 0; $i < $n_acrylic; ++$i){
-		print DET <<EOF;
+		for($i = 0; $i < $n_acrylic; ++$i){
+			print DET <<EOF;
 	 <physvol name="T0_acrylic@{[ $i ]}_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic@{[ $i ]}_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 EOF
-	}
-	print DET <<EOF;
+		}
+		print DET <<EOF;
   </volume>
 
   <!-- BELOW IS FOR T0 -->
+
+EOF
+	}
+	if(magnet_swtich){
+		print DET <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
 
@@ -678,26 +789,31 @@ EOF
 	 <solidref ref="magnet_box"/>  
 EOF
 
-	for($i = 0; $i < $n_magseg; ++$i){
-		print DET <<EOF;
+		for($i = 0; $i < $n_magseg; ++$i){
+			print DET <<EOF;
 	 <physvol name="magnetSide@{[ $i ]}_phys">
 		<volumeref ref="magnetSide_vol"/>
 		<positionref ref="magnetSide_pos"/>
 		<rotationref ref="RotateZMagSeg@{[ $i ]}"/>
 	 </physvol>
 EOF
-	}
+		}
 
-	print DET <<EOF;
+		print DET <<EOF;
   </volume>
 
   <!-- ABOVE IS FOR MAGNET -->
 
+EOF
+	}
+	if(SSD_swtich){
+		print DET <<EOF;
+
   <!-- BELOW IS FOR SSD -->
 
 EOF
-	for($i = 0; $i < $nstation_type; ++$i){
-		print DET <<EOF;
+		for($i = 0; $i < $nstation_type; ++$i){
+			print DET <<EOF;
 	  <volume name="ssdStation@{[ $station_type[$i] ]}_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStation@{[ $station_type[$i] ]}_box"/>
@@ -711,32 +827,37 @@ EOF
 		 </physvol>
 
 EOF
-		for($j = 0; $j < $SSD_lay[$i]; ++$j){
-			print DET <<EOF;
+			for($j = 0; $j < $SSD_lay[$i]; ++$j){
+				print DET <<EOF;
 		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $j ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
 			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_rot"/>
 		 </physvol>
 EOF
-		}
-		for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
-			print DET <<EOF;
+			}
+			for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
+				print DET <<EOF;
 		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_bkpln_vol"/>
 			<positionref ref="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
 		 </physvol>
 EOF
 
-		}
-		print DET <<EOF;
+			}
+			print DET <<EOF;
 	  </volume>
 
 EOF
-	}
-	print DET <<EOF;
+		}
+		print DET <<EOF;
 
   <!-- ABOVE IS FOR SSD -->
+
+EOF
+	}
+	if(RPC_swtich){
+		print DET <<EOF;
 
   <!-- BELOW IS FOR RPC -->
 
@@ -744,8 +865,8 @@ EOF
 	 <materialref ref="Air"/>
 	 <solidref ref="RPC_box"/>
 EOF
-	for($i = 0; $i < $n_cover; ++$i){
-		print DET <<EOF;
+		for($i = 0; $i < $n_cover; ++$i){
+			print DET <<EOF;
 	 <physvol name="RPC_Al@{[ $i ]}_phys">
 		<volumeref ref="RPC_Al_vol"/>
 		<positionref ref="RPC_Al@{[ $i ]}_pos"/>
@@ -755,57 +876,68 @@ EOF
 		<positionref ref="RPC_comb@{[ $i ]}_pos"/>
 	 </physvol>
 EOF
-	}
-	for($i = 0; $i < $n_gas+1; ++$i){
-		print DET <<EOF;
+		}
+		for($i = 0; $i < $n_gas+1; ++$i){
+			print DET <<EOF;
 	 <physvol name="RPC_PCB@{[ $i ]}_phys">
 		<volumeref ref="RPC_PCB_vol"/>
 		<positionref ref="RPC_PCB@{[ $i ]}_pos"/>
 	 </physvol>
 EOF
-	}
-	for($i = 0; $i < $n_gas; ++$i){
-		print DET <<EOF;
+		}
+		for($i = 0; $i < $n_gas; ++$i){
+			print DET <<EOF;
 	 <physvol name="RPC_gas@{[ $i ]}_phys">
 		<volumeref ref="RPC_gas_vol"/>
 		<positionref ref="RPC_gas@{[ $i ]}_pos"/>
 	 </physvol>
 EOF
-		for($j = 0; $j < $n_cover; ++$j){
-			print DET <<EOF;
+			for($j = 0; $j < $n_cover; ++$j){
+				print DET <<EOF;
 	 <physvol name="RPC_acrylic@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="RPC_acrylic_vol"/>
 		<positionref ref="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos"/>
 	 </physvol>
 EOF
+			}
 		}
-	}
-	print DET <<EOF;
+		print DET <<EOF;
   </volume>
 
   <!-- ABOVE IS FOR RPC -->
 
+EOF
+	}
+
+	if(LG_swtich){
+		print DET <<EOF;
+
+
   <!-- BELOW IS FOR LG -->
 
-  <volume name = "calor_vol">
+  <volume name="calor_vol">
 	 <materialref ref="Air"/>
 	 <solidref ref="calor_box"/>
 EOF
-	for($i = 0; $i< $n_LG; ++$i){
-		for($j = 0; $j< $m_LG; ++$j){
-			print DET <<EOF;
+		for($i = 0; $i< $n_LG; ++$i){
+			for($j = 0; $j< $m_LG; ++$j){
+				print DET <<EOF;
 	 <physvol name="LG_block@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_block_vol"/>
 		<positionref ref="LG_block@{[ $i ]}@{[ $j ]}_pos"/>
 		<rotationref ref="LG_block@{[ $i ]}@{[ $j ]}_rot"/>
 	 </physvol>
 EOF
+			}
 		}
-	}
-	print DET <<EOF;
+		print DET <<EOF;
   </volume>
 
   <!-- ABOVE IS FOR LG -->
+
+EOF
+	}
+	print DET <<EOF;
 
   </structure> 
 
@@ -846,6 +978,9 @@ EOF
   <volume name="world">
 	 <materialref ref="Air"/>
 	 <solidref ref="world_box"/>
+EOF
+	if(T0_swtich){
+		print WORLD <<EOF;
 
   <!-- BELOW IS FOR T0 -->
 
@@ -856,6 +991,12 @@ EOF
 
   <!-- ABOVE IS FOR T0 -->
 
+EOF
+	}
+
+	if(target_swtich){
+		print WORLD <<EOF;
+
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">
@@ -865,6 +1006,12 @@ EOF
 
   <!-- ABOVE IS FOR TARGET -->
 
+EOF
+	}
+
+	if(magnet_swtich){
+		print WORLD <<EOF;
+
   <!-- BELOW IS FOR MAGNET -->
 
   <physvol name="magnet_phys">
@@ -873,16 +1020,20 @@ EOF
   </physvol>
 
   <!-- ABOVE IS FOR MAGNET -->
+EOF
+	}
+	if(SSD_swtich){
+		print WORLD <<EOF;
 
   <!-- BELOW IS FOR SSD -->
 
 EOF
 
-	$station = 0;
-	for($i = 0; $i < $nstation_type; ++$i){
-		for($j = 0; $j < $SSD_station[$i]; ++$j){
+		$station = 0;
+		for($i = 0; $i < $nstation_type; ++$i){
+			for($j = 0; $j < $SSD_station[$i]; ++$j){
 
-			print WORLD <<EOF;
+				print WORLD <<EOF;
 
 		  <physvol name="ssdStation@{[ $station ]}_phys">
 			 <volumeref ref="ssdStation@{[ $station_type[$i] ]}_vol"/>
@@ -890,12 +1041,18 @@ EOF
 		  </physvol>
 EOF
 
-			$station++;
-		}
-	}  
+				$station++;
+			}
+		}  
 
-	print WORLD <<EOF;
+		print WORLD <<EOF;
   <!-- ABOVE IS FOR SSD -->
+
+EOF
+	}
+
+	if(RPC_swtich){
+		print WORLD <<EOF;
 
   <!-- BELOW IS FOR RPC -->
 
@@ -906,6 +1063,12 @@ EOF
 
   <!-- ABOVE IS FOR RPC -->
 
+EOF
+	}
+	if(LG_swtich){
+		print WORLD <<EOF;
+
+
   <!-- BELOW IS FOR LG -->
 
   <physvol name="calor_phys">
@@ -914,6 +1077,10 @@ EOF
   </physvol>
 
   <!-- ABOVE IS FOR LG -->
+
+EOF
+	}
+	print WORLD <<EOF;
 
   </volume>
 

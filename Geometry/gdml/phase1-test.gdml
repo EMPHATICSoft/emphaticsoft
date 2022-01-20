@@ -10,10 +10,10 @@
 <define>
 
 	 <quantity name="PI" value="3.1415927" />
-	 <quantity name="DEG2RAD" value="0.017453293" />
+	 <quantity name="DEG2RAD" value="0.017453293" aunit="rad"/>
 
 	 <quantity name="world_size" value="3000." unit="mm"/>
-	 <position name="center" x="0" y="0" z="0"/>
+	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 	 <!-- BELOW IS FOR T0 -->
 
@@ -37,11 +37,10 @@
 	 <position name="T0_acrylic8_pos" x="T0_acrylic_width*(8-(10-1)*0.5)" z="-40" unit="mm"/>
 	 <position name="T0_acrylic9_pos" x="T0_acrylic_width*(9-(10-1)*0.5)" z="-40" unit="mm"/>
 
-	 <rotation name="T0_union1_rot" x="45*DEG2RAD" aunit="rad"/>
-	 <rotation name="T0_union2_rot" x="-45*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_union1_rot" x="90*DEG2RAD" aunit="rad"/>
+	 <rotation name="T0_acrylic_rot" x="-45*DEG2RAD" aunit="rad"/>
 
 	 <!-- ABOVE IS FOR T0 -->
-
 	 <!-- BELOW IS FOR TARGET -->
 
 	 <quantity name="target_thick" value="20.0" unit="mm"/>
@@ -192,37 +191,33 @@
 	 <quantity name="LG_angle" value="0.064615804" aunit="rad" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
-	 <position name="LG_protrusion_shift" x="0" y="0" z="LG_length*0.5" unit="mm"/>
-
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
-	 <position name="LG_PMT_shift" x="0" y="0" z="LG_length*0.5+LG_protrusion_thick" unit="mm"/>
 
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para2_pos" x="0" y="0" z="0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
 	 <position name="LG_glass_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length+LG_protrusion_thick)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(2*LG_protrusion_thick+LG_length+LG_PMTl)" unit="mm"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
 
 
-	 <position name="LG_block00_pos" x="-LG_width0" y="LG_height*(0-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block01_pos" x="0" y="LG_height*(0-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block02_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(0-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block00_pos" x="-LG_width0" y="LG_height*(0-1)" z="0." unit="mm"/>
+	 <position name="LG_block01_pos" x="0" y="LG_height*(0-1)" z="0." unit="mm"/>
+	 <position name="LG_block02_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*(0-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block00_rot" x="0" y="0" z="PI" aunit="rad"/>
-	 <rotation name="LG_block01_rot" x="0" y="0" z="0" />
+	 <rotation name="LG_block01_rot" x="0" y="0" z="0" aunit="rad"/>
 	 <rotation name="LG_block02_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
-	 <position name="LG_block10_pos" x="-LG_width0" y="LG_height*(1-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block11_pos" x="0" y="LG_height*(1-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block12_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(1-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block10_pos" x="-LG_width0" y="LG_height*(1-1)" z="0." unit="mm"/>
+	 <position name="LG_block11_pos" x="0" y="LG_height*(1-1)" z="0." unit="mm"/>
+	 <position name="LG_block12_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*(1-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block10_rot" x="0" y="0" z="PI" aunit="rad"/>
-	 <rotation name="LG_block11_rot" x="0" y="0" z="0" />
+	 <rotation name="LG_block11_rot" x="0" y="0" z="0" aunit="rad"/>
 	 <rotation name="LG_block12_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
-	 <position name="LG_block20_pos" x="-LG_width0" y="LG_height*(2-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block21_pos" x="0" y="LG_height*(2-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_block22_pos" x="LG_width0+(LG_width1-LG_width0)*0.5" y="LG_height*(2-1)" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
+	 <position name="LG_block20_pos" x="-LG_width0" y="LG_height*(2-1)" z="0." unit="mm"/>
+	 <position name="LG_block21_pos" x="0" y="LG_height*(2-1)" z="0." unit="mm"/>
+	 <position name="LG_block22_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*(2-1)" z="0." unit="mm"/>
 	 <rotation name="LG_block20_rot" x="0" y="0" z="PI" aunit="rad"/>
-	 <rotation name="LG_block21_rot" x="0" y="0" z="0" />
+	 <rotation name="LG_block21_rot" x="0" y="0" z="0" aunit="rad"/>
 	 <rotation name="LG_block22_rot" x="0" y="-LG_angle" z="0" aunit="rad"/>
 	 <quantity name="calor_length" value="520" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
@@ -623,19 +618,19 @@
 
 	 <box name="world_box" x="world_size" y="world_size" z="world_size" />
 
+
 	 <!-- BELOW IS FOR T0 -->
 
 	 <box name="T0_box" x="T0_width" y="T0_height" z="T0_length" />
 	 <box name="T0_acrylic_box" x="T0_acrylic_width" y="T0_acrylic_height" z="T0_acrylic_length" />
 	 <union name="T0_acrylic_union">
 		<first ref="T0_acrylic_box"/>  <second ref="T0_acrylic_box"/>
-		<positionref ref= "center" />
-		<rotationref ref= "T0_union1_rot" />
-		<firstpositionref ref= "center"/>
-		<firstrotationref ref= "T0_union2_rot"/>
+		<positionref ref="center" />
+		<rotationref ref="T0_union1_rot" />
 	 </union>	 
 
 	 <!-- ABOVE IS FOR T0 -->
+
 
 	 <!-- BELOW IS FOR TARGET -->
 
@@ -661,6 +656,7 @@
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
+
 	 <!-- BELOW IS FOR SSD -->
 
 	  <box name="ssdStationsingle_box" x="ssdStationsingleWidth" y="ssdStationsingleHeight" z="ssdStationsingleLength" />
@@ -679,6 +675,7 @@
 	  <box name="ssddouble_bkpln_box" x="1.3*ssdD0twin_width" y="1.3*ssdD0twin_width" z="carbon_fiber_thick" />
 
 	 <!-- ABOVE IS FOR SSD -->
+
 
 	 <!-- BELOW IS FOR RPC -->
 
@@ -701,12 +698,10 @@
 	 <union name="LG_union">
 		<first ref="LG_box1"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "center"/>
 	 </union>	 
 	 <union name="LG_block_union">
 		<first ref="LG_box2"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
-		<firstpositionref ref= "LG_para2_pos"/>
 	 </union>	 
 
 	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" aunit="rad"/>
@@ -728,6 +723,7 @@
 
   <!-- ABOVE IS FOR T0 -->
 
+
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
@@ -737,6 +733,7 @@
 
   <!-- ABOVE IS FOR TARGET -->
 
+
   <!-- BELOW IS FOR MAGNET -->
 
   <volume name="magnetSide_vol">
@@ -745,6 +742,7 @@
   </volume>
 
   <!-- ABOVE IS FOR MAGNET -->
+
 
   <!-- BELOW IS FOR SSD -->
 
@@ -796,6 +794,7 @@
 
   <!-- ABOVE IS FOR SSD -->
 
+
   <!-- BELOW IS FOR RPC -->
 
   <volume name="RPC_Al_vol">
@@ -824,6 +823,8 @@
   </volume>
 
   <!-- ABOVE IS FOR RPC -->
+
+
 
   <!-- BELOW IS FOR LG -->
 
@@ -859,6 +860,7 @@
 
   <!-- ABOVE IS FOR LG -->
 
+
   
 
   <!-- BELOW IS FOR T0 -->
@@ -869,46 +871,57 @@
 	 <physvol name="T0_acrylic0_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic0_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic1_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic1_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic2_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic2_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic3_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic3_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic4_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic4_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic5_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic5_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic6_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic6_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic7_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic7_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic8_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic8_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
 	 <physvol name="T0_acrylic9_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic9_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
   </volume>
 
   <!-- BELOW IS FOR T0 -->
+
 
   <!-- BELOW IS FOR MAGNET -->
 
@@ -998,6 +1011,7 @@
   </volume>
 
   <!-- ABOVE IS FOR MAGNET -->
+
 
   <!-- BELOW IS FOR SSD -->
 
@@ -1106,6 +1120,7 @@
 
   <!-- ABOVE IS FOR SSD -->
 
+
   <!-- BELOW IS FOR RPC -->
 
   <volume name="RPC_vol">
@@ -1167,9 +1182,11 @@
 
   <!-- ABOVE IS FOR RPC -->
 
+
+
   <!-- BELOW IS FOR LG -->
 
-  <volume name = "calor_vol">
+  <volume name="calor_vol">
 	 <materialref ref="Air"/>
 	 <solidref ref="calor_box"/>
 	 <physvol name="LG_block00_phys">
@@ -1221,6 +1238,7 @@
 
   <!-- ABOVE IS FOR LG -->
 
+
   
 
   <volume name="world">
@@ -1236,6 +1254,7 @@
 
   <!-- ABOVE IS FOR T0 -->
 
+
   <!-- BELOW IS FOR TARGET -->
 
   <physvol name="target_phys">
@@ -1244,6 +1263,7 @@
   </physvol>
 
   <!-- ABOVE IS FOR TARGET -->
+
 
   <!-- BELOW IS FOR MAGNET -->
 
@@ -1288,6 +1308,7 @@
 		  </physvol>
   <!-- ABOVE IS FOR SSD -->
 
+
   <!-- BELOW IS FOR RPC -->
 
   <physvol name="RPC_phys">
@@ -1297,6 +1318,8 @@
 
   <!-- ABOVE IS FOR RPC -->
 
+
+
   <!-- BELOW IS FOR LG -->
 
   <physvol name="calor_phys">
@@ -1305,6 +1328,7 @@
   </physvol>
 
   <!-- ABOVE IS FOR LG -->
+
 
   </volume>
 
