@@ -46,7 +46,7 @@ else
 }
 
 # constants for T0
-$T0_switch = 0;
+$T0_switch = 1;
 $n_acrylic = 10;
 
 # constants for target
@@ -67,13 +67,13 @@ $nstation_type = 3; # types of station
 @SSD_station = (2, 2, 2); # num. of stations
 
 # constants for RPC
-$RPC_switch = 0;
+$RPC_switch = 1;
 $n_glass = 6;
 $n_gas = 2;
 $n_cover=2;
 
 # constants for LG
-$LG_switch = 0;
+$LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
 
@@ -984,7 +984,7 @@ EOF
 
   <!-- BELOW IS FOR T0 -->
 
-  <physvol name="T0_phys">
+  <physvol name="ToFT0_phys">
 	 <volumeref ref="T0_vol"/>
 	 <positionref ref="T0_pos"/>
   </physvol>
@@ -1056,7 +1056,7 @@ EOF
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="RPC_phys">
+  <physvol name="ToFRPC_phys">
 	 <volumeref ref="RPC_vol"/>
 	 <positionref ref="RPC_pos"/>
   </physvol>
@@ -1071,7 +1071,7 @@ EOF
 
   <!-- BELOW IS FOR LG -->
 
-  <physvol name="calor_phys">
+  <physvol name="LGCalo_phys">
 	 <volumeref ref="calor_vol"/>
 	 <positionref ref="calor_pos"/>
   </physvol>

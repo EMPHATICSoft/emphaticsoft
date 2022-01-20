@@ -2,7 +2,7 @@
 /// \file    Geometry.h
 /// \brief
 /// \version 
-/// \author  jpaley@fnal.gov
+/// \author  jpaley@fnal.gov wanly@bu.edu
 ////////////////////////////////////////////////////////////////////////
 
 #ifndef GEO_GEOMETRY_H
@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include "TVector3.h"
+#include "DetectorDefs.h"
 
 class TGeoNode;
 class TGeoVolume;
@@ -76,7 +77,7 @@ namespace geo {
     double fDz;
     double fWidth;
     double fHeight;
-    std::vector<geo::Detector> fSSD;
+    std::vector<Detector> fSSD;
   };
   
   class Geometry {
@@ -86,18 +87,18 @@ namespace geo {
     
     bool SetGDMLFile(std::string fname);
  
-	 double T0ZPos() const {return fT0ZPos; }
-  
     double MagnetUSZPos() const {return fMagnetUSZPos; }
     double MagnetDSZPos() const {return fMagnetDSZPos; }
+    
+	 double DetectorUSZPos(int i) const {return fDetectorUSZPos[i]; }
+	 double DetectorDSZPos(int i) const {return fDetectorDSZPos[i]; }
+	 bool DetectorLoad(int i) const {return fDetectorLoad[i]; }
     
     int NSSDStations() const { return fNSSDStations; }
     int NSSDs() const { return fNSSDs; }
     
     SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
 	 
-	 double RPCZPos() const {return fRPCZPos; }
-	 double LGZPos() const {return fLGZPos; }
     
     //    TGeoMaterial* Material(double x, double y, double z) const;
     
@@ -109,22 +110,20 @@ namespace geo {
     Geometry();
     
     bool LoadGDMLFile();
+    void ExtractDetectorInfo(int i, const TGeoNode* n);
     void ExtractMagnetInfo(const TGeoVolume* v);
-    void ExtractRICHInfo(const TGeoVolume* v);
     void ExtractSSDInfo(const TGeoNode* n);
     
     std::string fGDMLFile;
 
     int    fNSSDStations;
     int    fNSSDs;
-	 double fT0ZPos;
     double fMagnetUSZPos;
     double fMagnetDSZPos;
-    double fRICHUSZPos;
-    double fRICHDSZPos;
-	 double fRPCZPos;
-	 double fLGZPos;
-    std::vector<geo::SSDStation> fSSDStation;
+    std::vector<SSDStation> fSSDStation;
+    double fDetectorUSZPos[NDetectors];
+    double fDetectorDSZPos[NDetectors];
+    bool fDetectorLoad[NDetectors];
     
   };
   
