@@ -58,8 +58,8 @@ namespace emph {
 	      std::stringstream lineStr(line);
 	      lineStr >> board >> eChannel >> det >> dChannel;
 	      
-	      const emph::cmap::FEBoard iBoard = emph::cmap::BoardId[board];
-	      const emph::geo::DetectorType iDet = emph::geo::DetectorId[det];
+	      emph::cmap::FEBoard iBoard = emph::cmap::BoardId[board];
+	      emph::geo::DetectorType iDet = emph::geo::DetectorId[det];
 	      DChannel dchan(iDet,dChannel);
 	      EChannel echan(iBoard,eChannel);
 
