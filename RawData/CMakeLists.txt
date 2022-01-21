@@ -1,14 +1,14 @@
 include(ArtDictionary)
 include(ArtMake)
+FILE( GLOB src_files *.cxx )
 
-art_make_library(
-  SOURCE
-    RawDigit.cxx
-  LIBRARIES PRIVATE
-    art::Framework_Core
-    art::Persistency_Common
-    canvas::canvas
-    fhiclcpp::fhiclcpp
+art_make_library(LIBRARY_NAME RawData
+                 SOURCE ${src_files}
+                 LIBRARIES PRIVATE
+                           art::Framework_Core
+                           art::Persistency_Common
+                           canvas::canvas
+                           fhiclcpp::fhiclcpp
   )
 
 #build_plugin(DAQHeaderAna "module"
