@@ -134,7 +134,7 @@ namespace emph {
 		{
 			if ( i < 3 || i == ARICH ){
 				mf::LogWarning("LoadNewGeometry") << DetectorName[DetectorType(i)] 
-					<< "detector not in gdml yet. \n"
+					<< " detector not in gdml yet. \n"
 					<< "experts should confirm whether they should be implemented. \n";
 				return;
 			}

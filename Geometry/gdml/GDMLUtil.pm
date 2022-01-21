@@ -5,7 +5,7 @@ use Exporter;
 
 our @ISA= qw( Exporter );
 
-our @EXPORT = qw( dumpfile material $steeldensity );
+our @EXPORT = qw( dumpfile );
 
 
 sub dumpfile
@@ -15,13 +15,5 @@ sub dumpfile
   my $file_content = do { local $/; <$fh> };
   return $file_content 
 }
-
-sub material
-{
-  my $name = 'compositions/' . $_[0] . '.gdml';
-  dumpfile($name);
-}
-
-$GDMLUtil::steeldensity  = 7.85;
 
 1;
