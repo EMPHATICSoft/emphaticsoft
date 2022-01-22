@@ -8,10 +8,13 @@
   <class name="std::vector<int32_t>"                  />
   <class name="rawdata::RawDigit"    ClassVersion="10">
   <class name="rawdata::SSDRawDigit"    ClassVersion="10">
+  <class name="rawdata::WaveForm"    ClassVersion="10">
    <!-- version ClassVersion="15" checksum="3468169904" / -->
   </class>
   <class name="std::vector<rawdata::RawDigit>"        />
   <class name="art::Wrapper< std::vector<rawdata::RawDigit>    >"/>
   <class name="std::vector<rawdata::SSDRawDigit>"        />
   <class name="art::Wrapper< std::vector<rawdata::SSDRawDigit>    >"/>
+  <class name="std::vector<rawdata::WaveForm>"        />
+  <class name="art::Wrapper< std::vector<rawdata::WaveForm>    >"/>
  </lcgdict>

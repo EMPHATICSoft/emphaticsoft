@@ -3,6 +3,7 @@
 //#include "RawData/FlatDAQData.h"
 #include "RawData/RawDigit.h"
 #include "RawData/SSDRawDigit.h"
+#include "RawData/WaveForm.h"
 //#include "RawData/RawTrigger.h"
 //#include "RawData/RawSumDropMB.h"
 //#include "RawData/RawSumDCM.h"
