@@ -31,7 +31,7 @@ physics:
 
    trb3dump: {
      module_type: TRB3Dump
-     data_label: "daq:TRB3"
+     data_label: "daq:ContainerTRB3"
    }
 
  }
