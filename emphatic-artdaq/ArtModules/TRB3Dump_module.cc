@@ -151,7 +151,7 @@ void emphaticdaq::TRB3Dump::analyze(const art::Event& evt)
     std::cout << "Size of header: " << std::dec << sizeof(TRB3Fragment::TRB3EventHeader)/sizeof(uint32_t) << std::endl;
     std::cout << "Words in sub event: " << header->event_size/4 <<std::endl;
 
-    const uint32_t* data_word = reinterpret_cast<uint32_t const*>(frag.dataBeginBytes() + sizeof(TRB3Fragment::TRB3EventHeader));
+    const uint32_t* data_word = reinterpret_cast<uint32_t const*>(header+1);
 
     // loop over sub sub events (0500, 0501, 0502, 0503)
     for (unsigned int isse=0; isse<4; isse++) {
