@@ -17,4 +17,8 @@
   <class name="art::Wrapper< std::vector<rawdata::SSDRawDigit>    >"/>
   <class name="std::vector<rawdata::WaveForm>"        />
   <class name="art::Wrapper< std::vector<rawdata::WaveForm>    >"/>
+  <class name="std::vector<rawdata::CAENV1720Fragment>"        />
+  <class name="art::Wrapper< std::vector<rawdata::CAENV1720Fragment>    >"/>
+  <class name="std::vector<rawdata::TRB3Fragment>"        />
+  <class name="art::Wrapper< std::vector<rawdata::TRB3Fragment>    >"/>
  </lcgdict>
