@@ -31,8 +31,8 @@ namespace rawdata{
   //----------------------------------------------------------------------
   
   WaveForm::WaveForm(int channel, int board,
-		     std::vector<int16_t> adclist,
-		     uint64_t tdc) :
+		     std::vector<uint16_t> adclist,
+		     uint32_t tdc) :
     fADC(adclist), fTstart(tdc), fChannel(channel), fBoard(board),
     fIsNeg(true), fIsMC(false)
   {
@@ -42,7 +42,7 @@ namespace rawdata{
   }
   
   //--------------------------------------------------
-  int16_t WaveForm::ADC(size_t i) const
+  uint16_t WaveForm::ADC(size_t i) const
   {
     if(i > fADC.size()){
       std::cerr << "WaveForm::ADC(" << i << ") out of range!" << std::endl;

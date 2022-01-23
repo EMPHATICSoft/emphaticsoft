@@ -20,8 +20,8 @@ namespace emph {
     
   private:
     
-    std::vector<int16_t> fADC;        ///< list of ADC(-like) charge values
-    uint64_t fTstart;
+    std::vector<uint16_t> fADC;        ///< list of ADC(-like) charge values
+    uint32_t fTstart;
     
     int fChannel;    ///< channel ID
     int fBoard;      ///< board ID
@@ -34,13 +34,13 @@ namespace emph {
     bool fIsMC;       ///< flag to mark data is simulation
 
   public:
-    WaveForm(int channel, int board, std::vector<int16_t> adclist,
-	     uint64_t tstart);
+    WaveForm(int channel, int board, std::vector<uint16_t> adclist,
+	     uint32_t tstart);
     
     // Getters (although data members are public)    
     size_t   NADC()          const { return fADC.size();       }
-    int16_t  ADC(size_t i=0) const; 
-    uint64_t TStart()        const { return fTstart; }
+    uint16_t ADC(size_t i=0) const; 
+    uint32_t TStart()        const { return fTstart; }
     int      Channel()       const { return fChannel;          }
     int      Board()         const { return fBoard; }
     
