@@ -1,5 +1,5 @@
-#ifndef artdaq_ots_Overlays_TRB3Fragment_hh
-#define artdaq_ots_Overlays_TRB3Fragment_hh
+#ifndef artdaq_ots_Overlays_TRB3Fragment_h
+#define artdaq_ots_Overlays_TRB3Fragment_h
 
 #include "artdaq-core/Data/Fragment.hh"
 #include "cetlib_except/exception.h"
@@ -9,31 +9,38 @@
 
 // Implementation of "TRB3Fragment", an artdaq::Fragment overlay class
 
-namespace ots
+namespace emphaticdaq
 {
 class TRB3Fragment;
 
 // Let the "<<" operator dump the TRB3Fragment's data to stdout
 std::ostream& operator<<(std::ostream&, TRB3Fragment const&);
-}  // namespace ots
+}  // namespace emphaticdaq
 
-class ots::TRB3Fragment
+class emphaticdaq::TRB3Fragment
 {
   public:
-  
+
   struct TRB3EventHeader {
     uint32_t unknown_word_1;
     uint32_t unknown_word_2;
     uint32_t event_size;
-    uint32_t endian_marker_1 : 1;
-    uint32_t unknown_word_3 : 30;
-    uint32_t endian_marker_2 : 1;
-    uint32_t central_fpga_id : 16;
+    uint32_t endian_marker_1 : 4;
+    uint32_t trigger_type : 4;
+    uint32_t unknown_word_3 : 8;
+    uint32_t word_size : 8;
+    uint32_t unknown_word_3b : 8;
+    // uint32_t unknown_word_3 : 30;
+    uint32_t sub_event_id : 16;
     uint32_t unknown_word_4 : 16;
     uint32_t trigger_code : 8;
     uint32_t trigger_number : 24;
+    // uint32_t endian_marker_2 : 1;
+    // uint32_t central_fpga_id;
+    // uint32_t unknown_word_4 : 8;
+    // uint32_t trigger_number : 24;
   };
-   
+
   struct TRB3SubEventHeader {
     uint32_t subevent_id : 16;
     uint32_t subevent_size :16;
@@ -57,7 +64,7 @@ class ots::TRB3Fragment
 	TRB3Fragment(artdaq::Fragment const& f) : artdaq_Fragment_(f) {}
 
 
-  TRB3EventHeader const* dataBegin() const { return reinterpret_cast<TRB3EventHeader const*>(artdaq_Fragment_.dataBeginBytes()); }
+  TRB3EventHeader const* dataBegin() const { return reinterpret_cast<TRB3EventHeader const*>(artdaq_Fragment_.dataBeginBytes()+8*sizeof(uint32_t)); }
 
   size_t subEventCount() const;
   TRB3SubEventHeader const* subEventIndex(size_t idx) const;
@@ -68,4 +75,4 @@ class ots::TRB3Fragment
 	artdaq::Fragment const& artdaq_Fragment_;
 };
 
-#endif /* artdaq_ots_Overlays_TRB3Fragment_hh */
+#endif 
