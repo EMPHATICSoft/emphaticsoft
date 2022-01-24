@@ -15,8 +15,11 @@
 
 #include "canvas/Utilities/Exception.h"
 
+#include "emphatic-artdaq/Overlays/FragmentType.hh"
 #include "emphatic-artdaq/Overlays/TRB3Fragment.hh"
+#include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
+#include "RawData/TRB3RawDigit.h"
 
 #include "art_root_io/TFileService.h"
 #include "TH1F.h"
@@ -115,30 +118,60 @@ void emphaticdaq::TRB3Dump::analyze(const art::Event& evt)
   fEvent = evt.event();
 
   /************************************************************************************************/
-  art::Handle< std::vector<artdaq::Fragment> > trb3_handle;
-  if ( !evt.getByLabel(fDataLabel, trb3_handle) ) {
+  artdaq::Fragments fragments;
+  artdaq::FragmentPtrs containerFragments;
+
+  std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
+  fragmentHandles = evt.getMany<std::vector<artdaq::Fragment>>();
+  //art::Handle< std::vector<artdaq::Fragment> > trb3_handle;
+
+  for (const auto& handle : fragmentHandles){
+    if (!handle.isValid() || handle->empty()) {
+      continue;
+    }
+
+    if (handle->front().type() == artdaq::Fragment::ContainerFragmentType) {
+      for (const auto& cont : *handle) {
+        artdaq::ContainerFragment contf(cont);
+        if (contf.fragment_type() != ots::detail::FragmentType::TRB3) {
+          break;
+        }
+
+        for (size_t idx = 0; idx < contf.block_count(); idx ++){
+          containerFragments.push_back(contf[idx]);
+          fragments.push_back(*containerFragments.back());
+        }
+      }
+    }
+
+  }
+
+
+  // if ( !evt.getByLabel(fDataLabel, trb3_handle) ) {
 //    art::fill_ptr_vector(Frags,trb3_handle);
 //  }
 //  else {
-    std::cout << "Requested fragments with label : " << fDataLabel << "but none exist\n";
-    return;
-  }
+    // std::cout << "Requested fragments with label : " << fDataLabel << "but none exist\n";
+    // return;
+  // }
 
-  if (trb3_handle.isValid()) {
+  // if (trb3_handle.isValid()) {
 
     std::cout << "######################################################################\n";
     std::cout << "Run " << evt.run() << ", subrun " << evt.subRun()
-              << ", event " << fEvent << " has " << trb3_handle->size()
+              << ", event " << fEvent << " has " << fragments.size()
               << " fragment(s).\n";
 
-    if (trb3_handle->size() != 1) {
-      std::cout << "Error! " << evt.run() << ", subrun " << evt.subRun()
-                << ", event " << fEvent << " has " << trb3_handle->size()
-                << " fragments. We only expect 1.\n";
-      return;
-    }
+    // if (trb3_handle->size() != 1) {
+    //   std::cout << "Error! " << evt.run() << ", subrun " << evt.subRun()
+    //             << ", event " << fEvent << " has " << trb3_handle->size()
+    //             << " fragments. We only expect 1.\n";
+    //   return;
+    // }
 
-    const auto& frag((*trb3_handle)[0]);
+    for (const auto& frag : fragments) {
+
+    //const auto& frag((*trb3_handle)[0]);
     TRB3Fragment trbFrag(frag);
     TRB3Fragment::TRB3EventHeader const* header = trbFrag.dataBegin();
     std::cout << "word 1: " << std::hex << header->unknown_word_1 << std::endl;
@@ -153,17 +186,38 @@ void emphaticdaq::TRB3Dump::analyze(const art::Event& evt)
 
     const uint32_t* data_word = reinterpret_cast<uint32_t const*>(header+1);
 
+    std::vector<emph::rawdata::TRB3RawDigit> trb3vec;
+
     // loop over sub sub events (0500, 0501, 0502, 0503)
     for (unsigned int isse=0; isse<4; isse++) {
       TRB3Fragment::TRB3SubEventHeader const* sseheader = reinterpret_cast<TRB3Fragment::TRB3SubEventHeader const*>(data_word);
       std::cout << "sse_id: " << std::hex << sseheader->subevent_id << " sse length: " << sseheader->subevent_size << std::endl;
       data_word++;
+
+      uint32_t tdc_header = *(data_word);
+      uint32_t epoch_word = 0;
+      std::cout << "tdc header: " << tdc_header << std::endl;
       // loop over words in sub sub event
       for (unsigned int iword=0; iword<sseheader->subevent_size; iword++){
-        std::cout << "word: " << std::hex << *(data_word+iword) << std::endl;
-      }
+        uint32_t word = *(data_word+iword);
+        if ((word & 0xe0000000) == 0x60000000)
+          epoch_word = word;
+        if((word & 0xe0000000) == 0x80000000){
+  	       uint32_t tdc_word = word;
+           emph::rawdata::TRB3RawDigit trb3dig;
+           trb3dig.fgpa_header_word = sseheader->subevent_id;
+           trb3dig.tdc_header_word  = tdc_header;
+           trb3dig.tdc_epoch_word   = epoch_word;
+           trb3dig.tdc_measurement_word = tdc_word;
+           std::cout << "Making raw digit: " << sseheader->subevent_id << ", " << tdc_header << ", " << epoch_word << ", " << tdc_word << std::endl;
+           trb3vec.push_back(trb3dig);
+          }
+
+        //std::cout << "word: " << std::hex << word << std::endl;
+      } // end sub sub event
       data_word+=sseheader->subevent_size;
     }
+    std::cout << "word after last sse: " << *(data_word) << std::endl;
 
     // this ends the tdc data - do we want to check anything with the trailer?
 
@@ -204,9 +258,11 @@ void emphaticdaq::TRB3Dump::analyze(const art::Event& evt)
     // std::cout << "Timestamp: " << epoch_time+coarse_time << " ns" << std::endl;
     // std::cout << "Timestamp: " << (epoch_time + coarse_time)/1e9 << " s" << std::endl;
 
+  } //end loop over fragments
+
     fEventTree->Fill();
 
-  } //--valid fragments
+  // } //--valid fragments
 }
 
 DEFINE_ART_MODULE(emphaticdaq::TRB3Dump)

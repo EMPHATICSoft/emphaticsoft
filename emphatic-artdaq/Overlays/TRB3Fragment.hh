@@ -64,7 +64,7 @@ class emphaticdaq::TRB3Fragment
 	TRB3Fragment(artdaq::Fragment const& f) : artdaq_Fragment_(f) {}
 
 
-  TRB3EventHeader const* dataBegin() const { return reinterpret_cast<TRB3EventHeader const*>(artdaq_Fragment_.dataBeginBytes()+8*sizeof(uint32_t)); }
+  TRB3EventHeader const* dataBegin() const { return reinterpret_cast<TRB3EventHeader const*>(artdaq_Fragment_.dataBeginBytes()); }
 
   size_t subEventCount() const;
   TRB3SubEventHeader const* subEventIndex(size_t idx) const;
