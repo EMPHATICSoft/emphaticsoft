@@ -22,37 +22,42 @@ namespace emph {
     class EChannel {
     public:
       EChannel();
-      EChannel(emph::cmap::FEBoard b, int channel) { fBoard = b; fChannel = channel; };
+      EChannel(emph::cmap::FEBoardType b, int board, int channel) { fBoardType = b; fBoard = board; fChannel = channel; };
       virtual ~EChannel() {};
       
-      emph::cmap::FEBoard Board() { return fBoard; }
+      emph::cmap::FEBoardType BoardType() { return fBoardType; }
+      int Board()   { return fBoard; }
       int Channel() { return fChannel; }
       
-      void SetBoard(emph::cmap::FEBoard b) { fBoard = b; }
+      void SetBoardType(emph::cmap::FEBoardType b) { fBoardType = b; }
+      void SetBoard(int board) { fBoard = board; }
       void SetChannel(int chan) { fChannel = chan; }
 
       inline bool operator==(const EChannel& echan) const {
-	return ((echan.fBoard == fBoard)&&(echan.fChannel == fChannel));
+	return ((echan.fBoardType == fBoardType)&&(echan.fBoard == fBoard)&&(echan.fChannel == fChannel));
       }
       inline bool operator<(const EChannel& echan) const {
+	if (echan.fBoardType >= fBoard) return false;
 	if (echan.fBoard >= fBoard) return false;
 	if (echan.fBoard == fBoard)
 	  if (echan.fChannel >= fChannel) return false;
 	return true;
       }
       inline bool operator>(const EChannel& echan) const {
+	if (echan.fBoardType <= fBoard) return false;
 	if (echan.fBoard <= fBoard) return false;
 	if (echan.fBoard == fBoard)
 	  if (echan.fChannel <= fChannel) return false;
 	return true;
       }
       inline friend std::ostream& operator<<(std::ostream& os, const EChannel& echan) {
-	os << "ElectronicsChannel: (" << emph::cmap::BoardName[echan.fBoard] << "," <<echan.fChannel << ")" << std::endl;
+	os << "ElectronicsChannel: (" << emph::cmap::BoardName[echan.fBoardType] << "," << echan.fBoard << "," <<echan.fChannel << ")" << std::endl;
       	return os;
       }
       
     private:
-      emph::cmap::FEBoard fBoard;
+      emph::cmap::FEBoardType fBoardType;
+      int fBoard;
       int fChannel;
     };
     

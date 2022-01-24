@@ -19,20 +19,20 @@ namespace emph {
       AliVATA  = 2,
       SSD      = 3,
       NBoards  = 4
-    } FEBoard;
+    } FEBoardType;
     
-    std::map<FEBoard, std::string> BoardName = {
-      {FEBoard::V1720, "V1720"},
-      {FEBoard::TRB3, "TRB3"},
-      {FEBoard::AliVATA, "AliVATA"},
-      {FEBoard::SSD, "SSD"}
+    std::map<FEBoardType, std::string> BoardName = {
+      {FEBoardType::V1720, "V1720"},
+      {FEBoardType::TRB3, "TRB3"},
+      {FEBoardType::AliVATA, "AliVATA"},
+      {FEBoardType::SSD, "SSD"}
     };
 
-    std::map<std::string, FEBoard> BoardId = {
-      {"V1720", FEBoard::V1720},
-      {"TRB3", FEBoard::TRB3},
-      {"AliVATA", FEBoard::AliVATA},
-      {"SSD", FEBoard::SSD}
+    std::map<std::string, FEBoardType> BoardId = {
+      {"V1720", FEBoardType::V1720},
+      {"TRB3", FEBoardType::TRB3},
+      {"AliVATA", FEBoardType::AliVATA},
+      {"SSD", FEBoardType::SSD}
     };
 
   }

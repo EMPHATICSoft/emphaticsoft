@@ -17,7 +17,7 @@ namespace emph {
     //----------------------------------------------------------------------
 
     EChannel::EChannel() :
-      fBoard(emph::cmap::FEBoard::NBoards), fChannel(-1)
+      fBoard(emph::cmap::FEBoardType::NBoards), fChannel(-1)
     {
     }
     
@@ -44,24 +44,29 @@ namespace emph {
       if (fIsLoaded) return false;
       else {
 	std::ifstream mapFile;
+	std::string file_path;
+        file_path = getenv ("CETPKG_SOURCE");
+        fname = file_path + "/ChannelMap/" + fname;
 	mapFile.open(fname.c_str());
-
+	
 	std::string line;
-	std::string board;
+	std::string boardType;
+	int board;
 	int eChannel;
 	std::string det;
 	int dChannel;
+	std::string comment;
 	
 	if (mapFile.is_open())
 	  {
 	    while (getline(mapFile,line)) {
 	      std::stringstream lineStr(line);
-	      lineStr >> board >> eChannel >> det >> dChannel;
+	      lineStr >> boardType >> board >> eChannel >> det >> dChannel >> comment;
 	      
-	      emph::cmap::FEBoard iBoard = emph::cmap::BoardId[board];
+	      emph::cmap::FEBoardType iBoardType = emph::cmap::BoardId[boardType];
 	      emph::geo::DetectorType iDet = emph::geo::DetectorId[det];
 	      DChannel dchan(iDet,dChannel);
-	      EChannel echan(iBoard,eChannel);
+	      EChannel echan(iBoardType,board,eChannel);
 
 	      fEChanMap[echan] = dchan;
 	      fDChanMap[dchan] = echan;
