@@ -4,6 +4,8 @@
 #include <vector>
 #include "RawData/WaveForm.h"
 #include "RawData/CAENV1720Fragment.h"
+#include "RawData/TRB3Fragment.h"
+#include "RawData/TRB3RawDigit.h"
 
 namespace emph {
 
@@ -16,6 +18,8 @@ namespace emph {
 	GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& f,
 				     size_t dataBeginBytes);
 
+      static std::vector<emph::rawdata::TRB3RawDigit>
+        GetTRB3RawDigitsFromFragment(emphaticdaq::TRB3Fragment& frag);
       //      static std::vector<emph::rawdata::
     };
   } // end namespace rawdata
