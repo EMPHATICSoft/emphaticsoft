@@ -14,6 +14,7 @@ cet_set_compiler_flags(DIAGS VIGILANT
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
 cet_find_package(art REQUIRED)
+cet_find_package(artdaq REQUIRED)
 cet_find_package(canvas_root_io REQUIRED)
 cet_find_package(art_root_io REQUIRED)
 
