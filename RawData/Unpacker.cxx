@@ -1,4 +1,10 @@
+////////////////////////////////////////////////////////////////////////
+/// \brief   Unpack class with static functions to convert fragments to
+///          slightly more useful raw data products
+/// \author  jpaley@fnal.gov
+////////////////////////////////////////////////////////////////////////
 #include "RawData/Unpacker.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include <bitset>
 #include <time.h>
 
@@ -15,22 +21,7 @@ namespace emph {
 
       emphaticdaq::CAENV1720EventHeader header = event_ptr->Header;
 
-      //      uint16_t fFragmentID = frag.fragmentID();
-
-      //convert fragment access time to human-readable format
-      //      struct timespec ts = frag.atime();
-      //      char buff[100];
-      //      strftime(buff, sizeof buff, "%D %T", gmtime(&ts.tv_sec));
-
-      //      uint64_t fTimestamp = frag.timestamp();
-
       std::cout
-	//	<< "\n\tFrom fragment header, typeString "  << frag.typeString()
-	//	<< "\n\tFrom fragment header, timestamp  "  << (frag.timestamp()/1'000'000'000) <<" s, "<< std::setfill('0')<<std::setw(9)<<(frag.timestamp()%1'000'000'000)<<std::setw(0)<<" ns"
-	//	<< "\n\tFrom fragment header, sequenceID "  << frag.sequenceID()
-	//	<< "\n\tFrom fragment header, fragmentID "  << fFragmentID
-	//	//	<< "\n\tFrom fragment header, size       "  << frag.size()
-	//	<< "\n\tFrom fragment header, atime      "  << buff<<" "<<ts.tv_sec<<" ns"
 	<< "\n\tFrom header, eventSize           "  << header.eventSize
 	<< "\n\tFrom header, marker              "  << header.marker
 	<< "\n\tFrom header, channelMask         "  << header.channelMask
@@ -57,9 +48,6 @@ namespace emph {
 	<< md->chTemps[5]<<", "
 	<< md->chTemps[6]<<", "
 	<< md->chTemps[7];
-      //      fFragmentID -= fShift;
-      //      TLOG(TLVL_INFO)
-      //	<< "\n\tShifted fragment id is "  << fFragmentID;
 
       uint32_t t0(header.triggerTimeTag);
       int nChannels = md->nChannels;
@@ -76,8 +64,6 @@ namespace emph {
       uint32_t wfm_length = data_size_double_bytes/nChannels;
       std::cout << "Channel waveform length = " << wfm_length << "\n";
 
-      //--store the tick value for each acquisition
-      //      fTicksVec.resize(wfm_length);
       std::vector<uint16_t> adc;
       adc.resize(wfm_length);
 
@@ -90,15 +76,15 @@ namespace emph {
       std::cout<<"Looping over "<<nChannels<<" channels\n";
       for (int i_ch=0; i_ch<nChannels; ++i_ch){
 	if (i_ch >= CAEN_V1720_MAX_CHANNELS) {
-	  TLOG(TLVL_ERROR)<<"found channel "<<i_ch<<" larger than " << CAEN_V1720_MAX_CHANNELS << "! How could it happen? Debug, debug!";
+	  mf::LogInfo("Unpack::GetTRB3RawDigitsFromFragment")
+	    << "found channel "<<i_ch<<" larger than "
+	    << CAEN_V1720_MAX_CHANNELS << "! How could it happen? Debug, debug!";
 	  break;
 	}
-	//	fWvfmsVec[i_ch+nChannels*fFragmentID].resize(wfm_length);
 	ch_offset = (size_t)(i_ch * wfm_length);
 
 	//--loop over waveform samples
 	for(size_t i_t=0; i_t<(size_t)wfm_length; ++i_t){
-	  //	  fTicksVec[i_t] = t0*Ttt_DownSamp + i_t;   //timestamps, event level
 	  value_ptr = data_begin + ch_offset + i_t; //pointer arithmetic
 	  value = *(value_ptr);
 	  adc[i_t] = value;
