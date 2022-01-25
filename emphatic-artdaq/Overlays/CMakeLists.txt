@@ -12,7 +12,8 @@ art_make_library(
   LIBRARY_NAME
     emphatic-artdaq_Overlays
   SOURCE
-    CAENV1730Fragment.cc
+    CAENV1720Fragment.cc
+    TRB3Fragment.cc
   LIBRARIES
     ${LIBRARY_CORE_LIB_LIST}
     artdaq-core_Data

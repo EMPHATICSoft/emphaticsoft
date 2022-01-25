@@ -14,7 +14,9 @@ cet_find_package(ROOT REQUIRED)
 build_plugin(RawDataMerger "module"
   LIBRARIES PRIVATE
     ${LIBRARY_CORE_LIB_LIST}
+    emphatic-artdaq_Overlays
     RawData
+    RawDataUnpacker
     # RecoBase
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger

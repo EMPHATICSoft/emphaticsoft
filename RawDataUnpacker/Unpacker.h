@@ -7,10 +7,14 @@
 #define RAWDATA_UNPACK
 
 #include <vector>
-#include "RawData/WaveForm.h"
-#include "RawData/CAENV1720Fragment.h"
-#include "RawData/TRB3Fragment.h"
+#include <iostream>
+#include <utility>
+#include <fstream>
+#include "emphatic-artdaq/Overlays/CAENV1720Fragment.hh"
+#include "emphatic-artdaq/Overlays/TRB3Fragment.hh"
 #include "RawData/TRB3RawDigit.h"
+#include "RawData/WaveForm.h"
+#include "RawData/SSDRawDigit.h"
 
 namespace emph {
 
@@ -25,8 +29,11 @@ namespace emph {
 
       static std::vector<emph::rawdata::TRB3RawDigit>
         GetTRB3RawDigitsFromFragment(emphaticdaq::TRB3Fragment& frag);
-      //      static std::vector<emph::rawdata::
+      
+      static std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit>> readSSDHitsFromFileStream(std::ifstream&);
+      
     };
+    
   } // end namespace rawdata
 } // end namespace emph
 

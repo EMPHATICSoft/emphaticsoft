@@ -1,0 +1,36 @@
+include(ArtDictionary)
+include(ArtMake)
+FILE( GLOB src_files *.cxx )
+
+cet_find_package(artdaq REQUIRED)
+cet_find_package(messagefacility REQUIRED)
+
+include_directories($ENV{ARTDAQ_CORE_INC})
+include_directories($ENV{CETLIB_EXCEPT_INC})
+
+link_directories($ENV{ARTDAQ_CORE_LIB})
+link_directories($ENV{CETLIB_EXCEPT_LIB})
+
+art_make_library(LIBRARY_NAME RawDataUnpacker
+                 SOURCE ${src_files}
+                 LIBRARIES PRIVATE
+                           art::Framework_Core
+                           art::Persistency_Common
+			   messagefacility::MF_MessageLogger
+                           canvas::canvas
+                           fhiclcpp::fhiclcpp
+			   artdaq_core::artdaq-core_Data
+			   emphatic-artdaq_Overlays
+			   RawData
+)
+
+#build_plugin(DAQHeaderAna "module"
+#             LIBRARIES PRIVATE art_root_io::TFileService_service ROOT::Hist)
+
+install_headers()
+install_source()
+install_fhicl()
+
+#add_subdirectory(nova)
+
+#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RawData)

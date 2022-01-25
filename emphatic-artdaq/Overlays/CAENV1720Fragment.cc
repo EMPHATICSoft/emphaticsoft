@@ -1,4 +1,4 @@
-#include "RawData/CAENV1720Fragment.h"
+#include "emphatic-artdaq/Overlays/CAENV1720Fragment.hh"
 #include "cetlib_except/exception.h"
 
 bool emphaticdaq::CAENV1720Fragment::Verify() const {

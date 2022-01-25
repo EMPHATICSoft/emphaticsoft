@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <iostream>
 
+namespace emph {
 namespace rawdata {
   
   class SSDRawDigit {
@@ -49,7 +50,6 @@ namespace rawdata {
     uint32_t getSensorRow() const;
   };
 
-  std::pair<uint64_t, std::vector<SSDRawDigit>> readSSDHitsFromFileStream(std::ifstream&);
 }
-
+}
 #endif // SSDRAWDIGIT_H

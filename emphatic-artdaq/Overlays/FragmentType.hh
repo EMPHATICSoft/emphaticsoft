@@ -1,53 +1,50 @@
-#ifndef emphatic_artdaq_Overlays_FragmentType_hh
-#define emphatic_artdaq_Overlays_FragmentType_hh
+#ifndef artdaq_ots_Overlays_FragmentType_hh
+#define artdaq_ots_Overlays_FragmentType_hh
 #include "artdaq-core/Data/Fragment.hh"
 
-namespace emphaticdaq {
+namespace ots
+{
+  std::vector<std::string> const names{"MISSED", "UDP", "STIB", "DataGen", "CAENV1720", "CAENV1730", "TRB3", "UNKNOWN"};
 
-/*
-   Note, if you add new frament types, the use a new enum number for them, so that the old numbering scheme is not changed
+namespace detail
+{
+enum FragmentType : artdaq::Fragment::type_t
+{
+	MISSED = artdaq::Fragment::FirstUserFragmentType,
+	UDP,
+	STIB,
+	DataGen,
+	CAENV1720,
+	CAENV1730,
+        TRB3,
+	INVALID  // Should always be last.
+};
 
-   */
-
-  namespace detail {
-    enum FragmentType : artdaq::Fragment::type_t
-    { MISSED = artdaq::Fragment::FirstUserFragmentType,
-	//COMMON
-	CAENV1730 = artdaq::Fragment::FirstUserFragmentType + 1,
-	SpectratimeEvent = artdaq::Fragment::FirstUserFragmentType + 2,
-	BERNCRT = artdaq::Fragment::FirstUserFragmentType + 9,
-	BERNCRTV2 = artdaq::Fragment::FirstUserFragmentType + 13,
-	BERNCRTZMQ = artdaq::Fragment::FirstUserFragmentType + 3,
-	WhiteRabbit = artdaq::Fragment::FirstUserFragmentType + 12,
-
-	//ICARUS
-	PHYSCRATEDATA = artdaq::Fragment::FirstUserFragmentType + 4,
-	PHYSCRATESTAT = artdaq::Fragment::FirstUserFragmentType + 5,
-	ICARUSTriggerUDP = artdaq::Fragment::FirstUserFragmentType + 10,
-	ICARUSPMTGate = artdaq::Fragment::FirstUserFragmentType + 11,
-
-	//SBND
-	NevisTPC = artdaq::Fragment::FirstUserFragmentType + 6,
-	PTB = artdaq::Fragment::FirstUserFragmentType + 7,
-	DAPHNE = artdaq::Fragment::FirstUserFragmentType + 14,
-
-	//Simulators
-	DummyGenerator = artdaq::Fragment::FirstUserFragmentType + 8,
-
-        INVALID = artdaq::Fragment::FirstUserFragmentType + 15 // Should always be last.
-        };
-
-    // Safety check.
-    static_assert(artdaq::Fragment::isUserFragmentType(FragmentType::INVALID - 1),
-                  "Too many user-defined fragments!");
-  }
-
-  using detail::FragmentType;
-
-  FragmentType toFragmentType(std::string t_string);
-  std::string fragmentTypeToString(FragmentType val);
-
-  std::map<artdaq::Fragment::type_t, std::string> makeFragmentTypeMap();
-
+// Safety check.
+static_assert(artdaq::Fragment::isUserFragmentType(FragmentType::INVALID - 1),
+              "Too many user-defined fragments!");
 }
-#endif /* emphatic_artdaq_Overlays_FragmentType_hh */
+
+using detail::FragmentType;
+
+/**
+ * \brief Lookup the type code for a fragment by its string name
+ * \param t_string Name of the Fragment type to lookup
+ * \return artdaq::Fragment::type_t corresponding to string, or INVALID if not found
+ */
+FragmentType toFragmentType(std::string t_string);
+
+/**
+ * \brief Look up the name of the given FragmentType
+ * \param val FragmentType to look up
+ * \return Name of the given type (from the names vector)
+ */
+std::string fragmentTypeToString(FragmentType val);
+
+/**
+ * \brief Create a list of all Fragment types defined by this package, in the format that RawInput expects
+ * \return A list of all Fragment types defined by this package, in the format that RawInput expects
+ */
+std::map<artdaq::Fragment::type_t, std::string> makeFragmentTypeMap();
+}
+#endif /* artdaq_ots_core_Overlays_FragmentType_hh */

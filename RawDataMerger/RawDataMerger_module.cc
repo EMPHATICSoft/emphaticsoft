@@ -17,22 +17,26 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "RawData/CAENV1720Fragment.h"
-#include "RawData/FragmentType.h"
+#include "emphatic-artdaq/Overlays/CAENV1720Fragment.hh"
+#include "emphatic-artdaq/Overlays/FragmentType.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
 #include "RawData/SSDRawDigit.h"
+#include "RawDataUnpacker/Unpacker.h"
 
 #include <string>
 #include <fstream>
 #include <memory>
+#include <iostream>
 
-namespace emphatic {
+using namespace emph::rawdata;
+
+namespace emph {
     class RawDataMerger;
 }
 
 
-class emphatic::RawDataMerger : public art::EDProducer {
+class emph::RawDataMerger : public art::EDProducer {
     public:
         explicit RawDataMerger(fhicl::ParameterSet const& p);
 
@@ -52,7 +56,7 @@ class emphatic::RawDataMerger : public art::EDProducer {
 };
 
 
-emphatic::RawDataMerger::RawDataMerger(fhicl::ParameterSet const& p)
+emph::RawDataMerger::RawDataMerger(fhicl::ParameterSet const& p)
     : EDProducer{p}
 {
     // TODO not final names for fcl configuration
@@ -68,16 +72,16 @@ emphatic::RawDataMerger::RawDataMerger(fhicl::ParameterSet const& p)
 }
 
 
-void emphatic::RawDataMerger::beginJob() {
+void emph::RawDataMerger::beginJob() {
 }
 
 
-void emphatic::RawDataMerger::endJob() {
+void emph::RawDataMerger::endJob() {
     ssd_file.close();
 }
 
 
-void emphatic::RawDataMerger::produce(art::Event& evt) {
+void emph::RawDataMerger::produce(art::Event& evt) {
     // TODO process events from artdaq
     // auto const& digit = evt.getProduct<std::vector<rawdata::RawDigit>>(fInputModuleLabel);
 
@@ -90,10 +94,10 @@ void emphatic::RawDataMerger::produce(art::Event& evt) {
     // unpack the event into timestamp and hit data
     // there are usually empty triggers before the first SSD event so we 
     // need to read in to find the first actual hits
-    std::vector<rawdata::SSDRawDigit> hits;
+    std::vector<SSDRawDigit> hits;
     uint64_t bco = 0;
     do {
-        auto tmp_ssd_hits = rawdata::readSSDHitsFromFileStream(ssd_file);
+      auto tmp_ssd_hits = Unpack::readSSDHitsFromFileStream(ssd_file);
         bco = tmp_ssd_hits.first;
         hits = tmp_ssd_hits.second;
         // std::cout << bco << "\t" << hits.size() << "\n";
@@ -146,4 +150,4 @@ void emphatic::RawDataMerger::produce(art::Event& evt) {
 }
 
 
-DEFINE_ART_MODULE(emphatic::RawDataMerger)
+DEFINE_ART_MODULE(emph::RawDataMerger)
