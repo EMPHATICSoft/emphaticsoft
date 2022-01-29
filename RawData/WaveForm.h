@@ -33,9 +33,11 @@ namespace emph {
     bool fIsNeg;      ///< flag to mark polarity of the pulse
     bool fIsMC;       ///< flag to mark data is simulation
 
+    uint64_t fFragmentTimestamp;
+    
   public:
     WaveForm(int channel, int board, std::vector<uint16_t> adclist,
-	     uint32_t tstart);
+	     uint32_t tstart, uint64_t fragTS);
     
     // Getters (although data members are public)    
     size_t   NADC()          const { return fADC.size();       }
@@ -43,6 +45,8 @@ namespace emph {
     uint32_t TStart()        const { return fTstart; }
     int      Channel()       const { return fChannel;          }
     int      Board()         const { return fBoard; }
+    uint64_t FragmentTime()  const { return fFragmentTimestamp; }
+    std::vector<uint16_t> AllADC() const { return fADC; }
     
     /// \brief Best estimator of the hit charge
     ///

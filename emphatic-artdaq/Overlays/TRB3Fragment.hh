@@ -69,6 +69,8 @@ class emphaticdaq::TRB3Fragment
   size_t subEventCount() const;
   TRB3SubEventHeader const* subEventIndex(size_t idx) const;
 
+  uint64_t  timestamp() const { return artdaq_Fragment_.timestamp(); }
+  
   bool validateTRB3Data() const;
 
   private:

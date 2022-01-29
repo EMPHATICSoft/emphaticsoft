@@ -2,3 +2,4 @@
 #include "RawData/RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
+#include "RawData/TRB3RawDigit.h"

@@ -11,96 +11,115 @@
 namespace emph {
   namespace rawdata {
 
-    std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag, size_t dataBeginBytes)
+    std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag)
     {
+      std::string verboseEnv=std::string(getenv("EMPH_UNPACK_VERBOSE"));      
+      bool isVerbose = false;
+      if (verboseEnv == "1" || verboseEnv == "Y" || verboseEnv == "y")
+	isVerbose = true;
+      
       std::vector<emph::rawdata::WaveForm> wv(0);
 
+      uint64_t fragTS = frag.Timestamp();
       emphaticdaq::CAENV1720Fragment bb(frag);
       auto const* md = bb.Metadata();
       emphaticdaq::CAENV1720Event const* event_ptr = bb.Event();
 
       emphaticdaq::CAENV1720EventHeader header = event_ptr->Header;
 
-      std::cout
-	<< "\n\tFrom header, eventSize           "  << header.eventSize
-	<< "\n\tFrom header, marker              "  << header.marker
-	<< "\n\tFrom header, channelMask         "  << header.channelMask
-	<< "\n\tFrom header, pattern             "  << header.pattern
-	<< "\n\tFrom header, eventFormat         "  << header.eventFormat
-	<< "\n\tFrom header, reserved            "  << header.reserved
-	<< "\n\tFrom header, boardFail           "  << header.boardFail
-	<< "\n\tFrom header, boardID             "  << header.boardID
-	<< "\n\tFrom header, event counter       "  << header.eventCounter
-	<< "\n\tFrom header, triggerTimeTag      "  << header.triggerTimeTag
-	<< "\n\tFrom header, triggerTimeRollover "  << header.triggerTimeRollOver()
-	<< "\n\tFrom header, extendedTriggerTime "  << header.extendedTriggerTime()
-	<< "\n\tFrom metadata, boardID           "  << md->boardID
-	<< "\n\tFrom metadata, nChannels         "  << md->nChannels
-	<< "\n\tFrom metadata, nSamples          "  << md->nSamples
-	<< "\n\tFrom metadata, timeStampSec      "  << md->timeStampSec
-	<< "\n\tFrom metadata, timeStampNSec     "  << md->timeStampNSec
-	<< "\n\tFrom metadata, chTemps           "
-	<< md->chTemps[0]<<", "
-	<< md->chTemps[1]<<", "
-	<< md->chTemps[2]<<", "
-	<< md->chTemps[3]<<", "
-	<< md->chTemps[4]<<", "
-	<< md->chTemps[5]<<", "
-	<< md->chTemps[6]<<", "
-	<< md->chTemps[7];
+      if (isVerbose) {
+	std::cout
+	  << "\n\tFrom header, eventSize           "  << header.eventSize
+	  << "\n\tFrom header, marker              "  << header.marker
+	  << "\n\tFrom header, channelMask         "  << header.channelMask
+	  << "\n\tFrom header, pattern             "  << header.pattern
+	  << "\n\tFrom header, eventFormat         "  << header.eventFormat
+	  << "\n\tFrom header, reserved            "  << header.reserved
+	  << "\n\tFrom header, boardFail           "  << header.boardFail
+	  << "\n\tFrom header, boardID             "  << header.boardID
+	  << "\n\tFrom header, event counter       "  << header.eventCounter
+	  << "\n\tFrom header, triggerTimeTag      "  << header.triggerTimeTag
+	  << "\n\tFrom header, triggerTimeRollover "  << header.triggerTimeRollOver()
+	  << "\n\tFrom header, extendedTriggerTime "  << header.extendedTriggerTime()
+	  << "\n\tFrom metadata, boardID           "  << md->boardID
+	  << "\n\tFrom metadata, nChannels         "  << md->nChannels
+	  << "\n\tFrom metadata, nSamples          "  << md->nSamples
+	  << "\n\tFrom metadata, timeStampSec      "  << md->timeStampSec
+	  << "\n\tFrom metadata, timeStampNSec     "  << md->timeStampNSec
+	  << "\n\tFrom metadata, chTemps           "
+	  << md->chTemps[0]<<", "
+	  << md->chTemps[1]<<", "
+	  << md->chTemps[2]<<", "
+	  << md->chTemps[3]<<", "
+	  << md->chTemps[4]<<", "
+	  << md->chTemps[5]<<", "
+	  << md->chTemps[6]<<", "
+	  << md->chTemps[7];
+      }
 
       uint32_t t0(header.triggerTimeTag);
       int nChannels = md->nChannels;
-      std::cout << "\tNumber of channels: " << nChannels << "\n";
-
+      if (isVerbose)
+	std::cout << "\tNumber of channels: " << nChannels << "\n";
+      
       const int board = header.boardID;
       int boardNum = board;
 
-      //--get the number of 32-bit words (quad_bytes) from the header
-      uint32_t ev_size_quad_bytes = header.eventSize;
-      uint32_t evt_header_size_quad_bytes = sizeof(emphaticdaq::CAENV1720EventHeader)/sizeof(uint32_t);
-      uint32_t data_size_double_bytes = 2*(ev_size_quad_bytes - evt_header_size_quad_bytes);
-      std::cout << "Data size = " << data_size_double_bytes << "\n";
-      uint32_t wfm_length = data_size_double_bytes/nChannels;
-      std::cout << "Channel waveform length = " << wfm_length << "\n";
-
+      if (isVerbose) {
+	//--get the number of 32-bit words (quad_bytes) from the header
+	uint32_t ev_size_quad_bytes = header.eventSize;
+	uint32_t evt_header_size_quad_bytes = sizeof(emphaticdaq::CAENV1720EventHeader)/sizeof(uint32_t);
+	uint32_t data_size_double_bytes = 2*(ev_size_quad_bytes - evt_header_size_quad_bytes);
+	std::cout << "Data size = " << data_size_double_bytes << "\n";
+      }
+      
       std::vector<uint16_t> adc;
-      adc.resize(wfm_length);
-
-      const uint16_t* data_begin = reinterpret_cast<const uint16_t*>(dataBeginBytes + sizeof(emphaticdaq::CAENV1720EventHeader));
-
+      adc.resize(md->nSamples);
+      
+      const uint16_t* data_begin = frag.Data();
+      
       const uint16_t* value_ptr =  data_begin;
       uint16_t value = 0;
       size_t ch_offset = 0;
       //--loop over channels
-      std::cout<<"Looping over "<<nChannels<<" channels\n";
+      if (isVerbose)
+	std::cout<<"Looping over "<<nChannels<<" channels\n";
       for (int i_ch=0; i_ch<nChannels; ++i_ch){
 	if (i_ch >= CAEN_V1720_MAX_CHANNELS) {
-	  mf::LogInfo("Unpack::GetTRB3RawDigitsFromFragment")
+	  mf::LogWarning("Unpack::GetWaveFormsFrom1720Fragment")
 	    << "found channel "<<i_ch<<" larger than "
 	    << CAEN_V1720_MAX_CHANNELS << "! How could it happen? Debug, debug!";
 	  break;
 	}
-	ch_offset = (size_t)(i_ch * wfm_length);
+	ch_offset = (size_t)(i_ch * md->nSamples);
 
 	//--loop over waveform samples
-	for(size_t i_t=0; i_t<(size_t)wfm_length; ++i_t){
+	if (isVerbose) std::cout << "Channel " << i_ch << std::endl;
+	for(size_t i_t=0; i_t<(size_t)md->nSamples; ++i_t){
 	  value_ptr = data_begin + ch_offset + i_t; //pointer arithmetic
 	  value = *(value_ptr);
+	  if (isVerbose) std::cout << value << " ";
 	  adc[i_t] = value;
-
 	}  //--end loop samples
-	emph::rawdata::WaveForm wvfrm(i_ch,boardNum,adc,t0);
+	if (isVerbose) std::cout << std::endl;
+	emph::rawdata::WaveForm wvfrm(i_ch,boardNum,adc,t0,fragTS);
 	wv.push_back(wvfrm);
       } //--end loop channels
-
+      
       return wv;
     }
 
-    //------------------------------------------------------------------------------
+    //---------------------------------------------------------------------
     // Unpack TRB3 data
     std::vector<emph::rawdata::TRB3RawDigit> Unpack::GetTRB3RawDigitsFromFragment(emphaticdaq::TRB3Fragment& frag)
     {
+      std::string verboseEnv=std::string(getenv("EMPH_UNPACK_VERBOSE"));      
+      bool isVerbose = false;
+      if (verboseEnv == "1" || verboseEnv == "Y" || verboseEnv == "y")
+	isVerbose = true;
+
+      uint64_t fragTS = frag.timestamp();
+
       std::vector<rawdata::TRB3RawDigit> trb3vec;
       emphaticdaq::TRB3Fragment::TRB3EventHeader const* header = frag.dataBegin();
       // skip past header
@@ -125,16 +144,18 @@ namespace emph {
              trb3dig.tdc_header_word  = tdc_header;
              trb3dig.tdc_epoch_word   = epoch_word;
              trb3dig.tdc_measurement_word = tdc_word;
-             //std::cout << "Making raw digit: " << sseheader->subevent_id << ", " << tdc_header << ", " << epoch_word << ", " << tdc_word << std::endl;
+	     trb3dig.fragmentTimestamp = fragTS;
+	     if (isVerbose)
+	       std::cout << "Making raw digit: " << sseheader->subevent_id << ", " << tdc_header << ", " << epoch_word << ", " << tdc_word << std::endl;
              trb3vec.push_back(trb3dig);
-            }
-          } // end sub sub event
-          data_word+=sseheader->subevent_size;
+	  }
+	} // end sub sub event
+	data_word+=sseheader->subevent_size;
       } // end loop over sub sub events
-
+      
       return trb3vec;
     }
-
+    
     //------------------------------------------------------------------------------
     
     std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit>> Unpack::readSSDHitsFromFileStream(std::ifstream& file_handle) {

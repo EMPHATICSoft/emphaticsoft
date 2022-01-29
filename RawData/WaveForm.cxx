@@ -24,7 +24,8 @@ namespace rawdata{
     fBLWidth(-1),
     fPeakPos(1),
     fIsNeg(true),
-    fIsMC(false)
+    fIsMC(false),
+    fFragmentTimestamp(0)
   {
   }
   
@@ -32,9 +33,9 @@ namespace rawdata{
   
   WaveForm::WaveForm(int channel, int board,
 		     std::vector<uint16_t> adclist,
-		     uint32_t tdc) :
+		     uint32_t tdc, uint64_t fragTS) :
     fADC(adclist), fTstart(tdc), fChannel(channel), fBoard(board),
-    fIsNeg(true), fIsMC(false)
+    fIsNeg(true), fIsMC(false), fFragmentTimestamp(fragTS)
   {
     fBaseline = -99999;
     fBLWidth = -1;

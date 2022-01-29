@@ -93,6 +93,11 @@ public:
   CAENV1720Event const* Event() const
   { return reinterpret_cast<CAENV1720Event const*>(fFragment.dataBeginBytes()); }
 
+  uint16_t const* Data() const
+  {
+    return reinterpret_cast<const uint16_t*>(fFragment.dataBeginBytes()+sizeof(CAENV1720EventHeader));
+  }
+  
   size_t DataPayloadSize() const
   { return fFragment.dataSizeBytes(); }
 
@@ -101,6 +106,8 @@ public:
 
   bool Verify() const;
 
+  uint64_t Timestamp() const { return fFragment.timestamp(); }
+  
 private:
   artdaq::Fragment fFragment;
 
