@@ -194,7 +194,7 @@ namespace rawdata {
 	  fTRB3_Channel.push_back(dig.GetChannel());
 	  fTRB3_FineTime.push_back(dig.GetFineTime());
 	  fTRB3_EpochTime.push_back(dig.GetEpochCounter());
-	  fTRB3_CoarseTime.push_back(dig.GetChannel());
+	  fTRB3_CoarseTime.push_back(dig.GetCoarseTime());
 	}
 	fTRB3Tree->Fill();
       }
