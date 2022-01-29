@@ -69,16 +69,5 @@ cet_make_library(
     CAENDigitizer
 )
 
-
-basic_plugin(CAENV1730Readout "generator"
-  LIBRARIES REG
-    ${BUILD_PLUGIN_CORE_LIB_LIST}
-    emphatic-artdaq_CAENV1730_GeneratorBase
-    CAENComm
-    CAENVME
-    CAENDigitizer
-  )
-
-
 install_source()
 install_headers()
