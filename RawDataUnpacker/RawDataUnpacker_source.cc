@@ -10,7 +10,6 @@
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/IO/Sources/Source.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
-#include "art_root_io/TFileService.h"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
 #include "canvas/Utilities/Exception.h"
@@ -26,8 +25,6 @@
 
 #include "RawDataUnpacker/Unpacker.h"
 #include "RawDataUnpacker/RawDataUnpacker_source.h"
-
-//#include "art/test/TestObjects/ToyProducts.h"
 
 #include "TFile.h"
 #include "TBranch.h"
@@ -220,24 +217,29 @@ namespace rawdata {
     // now fill C1720 TTree
     char hname[256];
     char htitle[256];    
+    art::ServiceHandle<art::TFileService> tfs;
     for (const auto & wvfmMap : fWaveForms) { // loop over map
       for (auto & wvfmVec : wvfmMap.second) { // loop over vector of vectors=	
 	for (auto & wvfm : wvfmVec) { // loop over vector
 	  int ichan = wvfm.Board()*100 + wvfm.Channel();
-	  if ( ! fC1720_WaveForm.count(ichan)) {
-	    sprintf(hname,"C1720_%d_%d",wvfm.Board(),wvfm.Channel());
-	    sprintf(htitle,"Integrated Waveforms for CAEN 1720 Board %d, Channel %d",wvfm.Board(),wvfm.Channel());
-	    art::ServiceHandle<art::TFileService> tfs;
-	    fC1720_WaveForm[ichan] = tfs->make<TH1I>(hname,htitle,200,0.,200.);
+	  sprintf(hname,"C1720_%d_%d",wvfm.Board(),wvfm.Channel());
+	  art::TFileDirectory tdir = tfs->mkdir(hname,"");	  
+	  if ( ! fC1720_HistCount.count(ichan))
+	    fC1720_HistCount[ichan] = 0;	  
+	  int ih = fC1720_HistCount[ichan];
+	  if (ih < 100) {
+	    sprintf(hname,"C1720_%d_%d_h%03d",wvfm.Board(),wvfm.Channel(),ih);
+	    sprintf(htitle,"Integrated Waveforms for CAEN 1720 Board %d, Channel %d, Fragment %d",wvfm.Board(),wvfm.Channel(), ih);
+	    int nsamp = 400;
+	    TH1I* h1 = tdir.make<TH1I>(hname,htitle,nsamp,0.,float(nsamp));
+	    std::vector<uint16_t> adc = wvfm.AllADC();
+	    for (size_t i=0; i<adc.size() && int(i)<nsamp; ++i)
+	      h1->SetBinContent(i+1,adc[i]);	 
+	    fC1720_HistCount[ichan] += 1;
 	  }
-	  std::vector<uint16_t> adc = wvfm.AllADC();
-	  for (size_t i=0; i<adc.size(); ++i)
-	    fC1720_WaveForm[ichan]->SetBinContent(i+1,
-			 fC1720_WaveForm[ichan]->GetBinContent(i+1)+adc[i]);	 
 	}
       }
     }
-
 
     return true;
   }
@@ -256,11 +258,31 @@ namespace rawdata {
     outR = nullptr;
     outSR = nullptr;
 
-    if (!inR) std::cout << "inR is empty" << std::endl;
-    if (!inSR) std::cout << "inSR is empty" << std::endl;
-						    
     if (fIsFirst) {
 
+      std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
+      if (!input_file) {
+	std::cerr << "Could not open file.\n" << std::endl;
+	return false;
+      }
+      std::cout << "opened file" << std::endl;
+      std::unique_ptr<TTree> runs{input_file->Get<TTree>("Runs")};
+      if (!runs) {
+	std::cerr << "Could not find Runs tree.\n";
+	return false;
+      }
+      std::cout << "runs tree size = " << runs->GetEntries() << std::endl;
+
+      std::unique_ptr<TTree> subruns{input_file->Get<TTree>("SubRuns")};
+      if (!subruns) {
+	std::cerr << "Could not find SubRuns tree.\n";
+	return false;
+      }
+      std::cout << "subruns tree size = " << subruns->GetEntries() << std::endl;
+      
+      if (!inR) std::cout << "inR is empty" << std::endl;
+      if (!inSR) std::cout << "inSR is empty" << std::endl;
+						    
       // deal with creating Run and Subrun objects
       art::Timestamp currentTime = time(0);
       outR = fSourceHelper.makeRunPrincipal(1,currentTime); // 0 --> Timestamp

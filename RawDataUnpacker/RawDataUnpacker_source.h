@@ -8,6 +8,8 @@
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
 #include "artdaq-core/Data/RawEvent.hh"
 #include "artdaq-core/Utilities/TimeUtils.hh"
 #include "artdaq-core/Data/Fragment.hh"
@@ -15,6 +17,7 @@
 
 #include "TTree.h"
 #include "TH1I.h"
+#include "TDirectory.h"
 #include <string>
 #include <vector>
 
@@ -68,7 +71,9 @@ namespace emph {
       std::vector<uint32_t> fTRB3_EpochTime;
       std::vector<uint32_t> fTRB3_CoarseTime;
       
-      std::unordered_map<int, TH1I*> fC1720_WaveForm;
+      //      std::unordered_map<int, TH1I*> fC1720_WaveForm;
+      //      std::unordered_map<int, art::TFileDirectory*> fC1720_Directory;
+      std::unordered_map<int, int> fC1720_HistCount;
       
     };
   }
