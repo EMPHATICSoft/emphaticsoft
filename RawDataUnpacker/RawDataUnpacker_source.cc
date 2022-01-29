@@ -162,11 +162,11 @@ namespace rawdata {
     
     while (cfragIter != TRB3ContainerFragments.end()) {
       fFragCounter[(*cfragIter).first] = 0;
-
+      
       // now make digits
       while (! ((*cfragIter).second.empty())) {
 	emphaticdaq::TRB3Fragment trb3frag(*((*cfragIter).second.front()));
-	fTRB3RawDigits[(*cfragIter).first].push_back(Unpack::GetTRB3RawDigitsFromFragment(trb3frag));	  
+	fTRB3RawDigits[(*cfragIter).first].push_back(Unpack::GetTRB3RawDigitsFromFragment(trb3frag));
 	(*cfragIter).second.pop_front();
       }
 
@@ -230,9 +230,9 @@ namespace rawdata {
 	  if (ih < 100) {
 	    sprintf(hname,"C1720_%d_%d_h%03d",wvfm.Board(),wvfm.Channel(),ih);
 	    sprintf(htitle,"Integrated Waveforms for CAEN 1720 Board %d, Channel %d, Fragment %d",wvfm.Board(),wvfm.Channel(), ih);
-	    int nsamp = 400;
-	    TH1I* h1 = tdir.make<TH1I>(hname,htitle,nsamp,0.,float(nsamp));
 	    std::vector<uint16_t> adc = wvfm.AllADC();
+	    int nsamp = adc.size();
+	    TH1I* h1 = tdir.make<TH1I>(hname,htitle,nsamp,0.,float(nsamp));
 	    for (size_t i=0; i<adc.size() && int(i)<nsamp; ++i)
 	      h1->SetBinContent(i+1,adc[i]);	 
 	    fC1720_HistCount[ichan] += 1;
@@ -259,7 +259,7 @@ namespace rawdata {
     outSR = nullptr;
 
     if (fIsFirst) {
-
+      /*
       std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
       if (!input_file) {
 	std::cerr << "Could not open file.\n" << std::endl;
@@ -279,6 +279,7 @@ namespace rawdata {
 	return false;
       }
       std::cout << "subruns tree size = " << subruns->GetEntries() << std::endl;
+      */
       
       if (!inR) std::cout << "inR is empty" << std::endl;
       if (!inSR) std::cout << "inSR is empty" << std::endl;

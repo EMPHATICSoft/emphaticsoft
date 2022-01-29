@@ -13,10 +13,13 @@ namespace emph {
 
     std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag)
     {
-      std::string verboseEnv=std::string(getenv("EMPH_UNPACK_VERBOSE"));      
       bool isVerbose = false;
-      if (verboseEnv == "1" || verboseEnv == "Y" || verboseEnv == "y")
-	isVerbose = true;
+      char* verboseStr = getenv("EMPH_UNPACK_VERBOSE");
+      if (verboseStr) {
+	std::string verboseEnv(verboseStr);
+	if (verboseEnv == "1" || verboseEnv == "Y" || verboseEnv == "y")
+	  isVerbose = true;
+      }
       
       std::vector<emph::rawdata::WaveForm> wv(0);
 
@@ -113,11 +116,14 @@ namespace emph {
     // Unpack TRB3 data
     std::vector<emph::rawdata::TRB3RawDigit> Unpack::GetTRB3RawDigitsFromFragment(emphaticdaq::TRB3Fragment& frag)
     {
-      std::string verboseEnv=std::string(getenv("EMPH_UNPACK_VERBOSE"));      
       bool isVerbose = false;
-      if (verboseEnv == "1" || verboseEnv == "Y" || verboseEnv == "y")
-	isVerbose = true;
-
+      char* verboseStr = getenv("EMPH_UNPACK_VERBOSE");
+      if (verboseStr) {
+	std::string verboseEnv(verboseStr);
+	if (verboseEnv == "1" || verboseEnv == "Y" || verboseEnv == "y")
+	  isVerbose = true;
+      }
+      
       uint64_t fragTS = frag.timestamp();
 
       std::vector<rawdata::TRB3RawDigit> trb3vec;
