@@ -3,7 +3,7 @@ process_name: RawConvert
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "daq_hist.root" closeFileFast: false }
+  TFileService: { fileName: "daq2root.root" closeFileFast: false }
 #  scheduler:    { wantSummary: true }
 #  TimeTracker:  {}
 #  RandomNumberGenerator: {} #ART native random number generator
@@ -19,6 +19,12 @@ source:
 {
   module_type:               RawDataUnpacker
   fileNames:                 ["emdaq_otsdaq_rootOutput_r121_s1_20220124T230509_1.art"]
+  daqLabel:        "daq"
+  createArtEvents:   true
+  makeTDiffHistos:   true
+  numWaveFormPlots:  100
+  timeWindow: 20000
+  nEvents: 100  
 }
 
 outputs:

@@ -47,17 +47,30 @@ namespace emph {
 		    art::EventPrincipal*& outE);
       
     private:
-      bool   createDigitsFromArtdaqEvent();
-      
-      bool   fIsFirst;
-      bool   fMoreData;
-      int64_t fTimeOffset;
+      bool    createDigitsFromArtdaqEvent();
+      void    makeTDiffHistos();
+      bool    fIsFirst;
+      bool    fCreateArtEvents;
+      bool    fMakeTDiffHistos;
+      int     fNumWaveFormPlots;
+      int     fRun;
+      int     fSubrun;
+      uint64_t fNEvents;
+      uint64_t fEvtCount;
+      uint64_t fTimeOffset;
+      uint64_t fTimeWindow;
+
+      std::unordered_map<artdaq::Fragment::fragment_id_t,uint64_t> fT0;
       
       art::SourceHelper const& fSourceHelper;
       std::string   fDAQDataLabel;
       std::string   fCurrentFilename;
 
+      std::vector<artdaq::Fragment::fragment_id_t> fFragId;
+
       std::unordered_map<artdaq::Fragment::fragment_id_t,size_t> fFragCounter;
+
+      std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fFragTimestamps;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<std::vector<emph::rawdata::WaveForm> > > fWaveForms;
       

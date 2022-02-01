@@ -12,6 +12,8 @@
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "canvas/Persistency/Provenance/FileFormatVersion.h"
+#include "canvas/Persistency/Provenance/RunAuxiliary.h"
+#include "canvas/Persistency/Provenance/SubRunAuxiliary.h"
 #include "canvas/Utilities/Exception.h"
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -62,19 +64,25 @@ namespace rawdata {
   /***************************************************************************/
 
   Unpacker::Unpacker(fhicl::ParameterSet const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
-    fSourceHelper(pm),
-    fDAQDataLabel(ps.get<std::string>("daqLabel","daq"))  
+    fSourceHelper(pm)
   {
-    help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>(fDAQDataLabel,"raw");
-    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>(fDAQDataLabel,"raw");
+    fDAQDataLabel = ps.get<std::string>("daqLabel","daq");
+    fCreateArtEvents = ps.get<bool>("createArtEvents",true);
+    fNumWaveFormPlots = ps.get<int>("numWaveFormPlots",100);
+    fTimeWindow = ps.get<uint64_t>("timeWindow",20000);
+    fNEvents    = ps.get<uint64_t>("nEvents",-1);
+
+    help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw","waveforms");
+    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw","trb3digits");
     //    help.reconstitutes<std::vector<emph::rawdata::SSDRawDigit>, art::InEvent>("ssddaq","raw"); // note, "ssddaq" is nonsense
 
     fCurrentFilename = "";
 
     fIsFirst = true;
-
+    
     fTimeOffset = 0;
 
+    fEvtCount = 0;
     art::ServiceHandle<art::TFileService> tfs;
 
     fTRB3Tree = tfs->make<TTree>("TRB3Tree","");
@@ -126,7 +134,12 @@ namespace rawdata {
     
     auto V1720CFrag = readProduct<std::vector<artdaq::Fragment> >(*events, "artdaq::Fragments_daq_ContainerCAENV1720_DAQEventBuilder.");
     auto TRB3CFrag = readProduct<std::vector<artdaq::Fragment> >(*events, "artdaq::Fragments_daq_ContainerTRB3_DAQEventBuilder.");
-    
+
+    art::ServiceHandle<art::TFileService> tfs;
+    art::TFileDirectory tdir2 = tfs->mkdir("TimeDiffs","");	  
+    char hname[256];
+    char htitle[256];    
+
     if (V1720CFrag) {
       for (const auto& cont : *V1720CFrag) {
 	artdaq::ContainerFragment contf(cont);
@@ -134,9 +147,11 @@ namespace rawdata {
 	  std::cout << "oh oh" << std::endl;
 	  break;
 	}	  
-	for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) 
+	for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) {
 	  C1720ContainerFragments[cont.fragmentID()].emplace_back(std::move(contf[ifrag]));
-	
+	  if (std::find(fFragId.begin(),fFragId.end(),cont.fragmentID()) == fFragId.end()) 
+	    fFragId.push_back(cont.fragmentID());
+	}	
       }
       std::cout << "V1720 block count: " << V1720CFrag->size()
 		<< std::endl;
@@ -152,6 +167,8 @@ namespace rawdata {
 	
 	for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) {
 	  TRB3ContainerFragments[cont.fragmentID()].emplace_back(std::move(contf[ifrag]));
+	  if (std::find(fFragId.begin(),fFragId.end(),cont.fragmentID()) == fFragId.end()) 
+	    fFragId.push_back(cont.fragmentID());	  
 	}
       }
       std::cout << "TRB3 block count: " << TRB3CFrag->size()
@@ -165,13 +182,17 @@ namespace rawdata {
       
       // now make digits
       while (! ((*cfragIter).second.empty())) {
-	emphaticdaq::TRB3Fragment trb3frag(*((*cfragIter).second.front()));
-	fTRB3RawDigits[(*cfragIter).first].push_back(Unpack::GetTRB3RawDigitsFromFragment(trb3frag));
+	auto& cfrag = *((*cfragIter).second.front());
+	auto cfragId = (*cfragIter).first;
+	emphaticdaq::TRB3Fragment trb3frag(cfrag);
+	fTRB3RawDigits[cfragId].push_back(Unpack::GetTRB3RawDigitsFromFragment(trb3frag));
+	fFragTimestamps[cfragId].push_back(cfrag.timestamp());	
 	(*cfragIter).second.pop_front();
       }
 
       std::cout << "Made " << fTRB3RawDigits[(*cfragIter).first].size()
-		<< " vectors of TRB3 digits" << std::endl;
+		<< " vectors of TRB3 digits for Frag Id "
+		<< (*cfragIter).first << std::endl;
 
       ++cfragIter;
     }
@@ -205,19 +226,20 @@ namespace rawdata {
 
       // now make digits
       while (! ((*cfragIter).second.empty())) {
-	emphaticdaq::CAENV1720Fragment caenfrag(*((*cfragIter).second.front()));
-	fWaveForms[(*cfragIter).first].push_back(Unpack::GetWaveFormsFrom1720Fragment(caenfrag));	  
+	auto& cfrag = *((*cfragIter).second.front());
+	auto cfragId = (*cfragIter).first;
+	emphaticdaq::CAENV1720Fragment caenfrag(cfrag);
+	fWaveForms[cfragId].push_back(Unpack::GetWaveFormsFrom1720Fragment(caenfrag));	  
+	fFragTimestamps[cfragId].push_back(cfrag.timestamp());
 	(*cfragIter).second.pop_front();
       }
       std::cout << "Made " << fWaveForms[(*cfragIter).first].size()
-		<< " vectors of WaveForms" << std::endl;
+		<< " vectors of WaveForms for Frag Id " << (*cfragIter).first
+		<< std::endl;
       ++cfragIter;
-    }  
+   }  
 
     // now fill C1720 TTree
-    char hname[256];
-    char htitle[256];    
-    art::ServiceHandle<art::TFileService> tfs;
     for (const auto & wvfmMap : fWaveForms) { // loop over map
       for (auto & wvfmVec : wvfmMap.second) { // loop over vector of vectors=	
 	for (auto & wvfm : wvfmVec) { // loop over vector
@@ -227,9 +249,9 @@ namespace rawdata {
 	  if ( ! fC1720_HistCount.count(ichan))
 	    fC1720_HistCount[ichan] = 0;	  
 	  int ih = fC1720_HistCount[ichan];
-	  if (ih < 100) {
+	  if (ih < fNumWaveFormPlots) {
 	    sprintf(hname,"C1720_%d_%d_h%03d",wvfm.Board(),wvfm.Channel(),ih);
-	    sprintf(htitle,"Integrated Waveforms for CAEN 1720 Board %d, Channel %d, Fragment %d",wvfm.Board(),wvfm.Channel(), ih);
+	    sprintf(htitle,"Integrated Waveforms for CAEN 1720 Board %d, Channel %d, Fragment %d, Run %d, Subrun %d",wvfm.Board(),wvfm.Channel(), ih, fRun, fSubrun);
 	    std::vector<uint16_t> adc = wvfm.AllADC();
 	    int nsamp = adc.size();
 	    TH1I* h1 = tdir.make<TH1I>(hname,htitle,nsamp,0.,float(nsamp));
@@ -247,19 +269,43 @@ namespace rawdata {
   
   /***************************************************************************/
 
-  bool Unpacker::readNext(art::RunPrincipal* const& inR,
-			  art::SubRunPrincipal* const& inSR,
+  void Unpacker::makeTDiffHistos()
+  {
+    art::ServiceHandle<art::TFileService> tfs;
+    art::TFileDirectory tdir2 = tfs->mkdir("TimeDiffs","");	  
+    std::vector<TH1I*> tdiffHist;
+    char hname[256];
+    char htitle[256];    
+    for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
+      auto fragId = fFragId[ifrag];
+      sprintf(hname,"tDiff_%d",fragId);
+      sprintf(htitle,"Fragment Time Differences, Board %d",fragId);
+      tdiffHist.push_back(tdir2.make<TH1I>(hname,htitle,250,0,500000));
+      for (size_t i=1; i<fFragTimestamps[fragId].size(); ++i) {
+	uint64_t tdiff = fFragTimestamps[fragId][i]-fFragTimestamps[fragId][i-1];
+	tdiffHist[ifrag]->Fill(tdiff);
+      }
+    }
+  }
+
+  /***************************************************************************/
+
+  bool Unpacker::readNext(art::RunPrincipal* const& ,//inR,
+			  art::SubRunPrincipal* const& ,//inSR,
 			  art::RunPrincipal* &outR,
 			  art::SubRunPrincipal* &outSR,
 			  art::EventPrincipal* &outE)
   {
-    // note, at a minimum we must always return an outE
-    outE = nullptr;
-    outR = nullptr;
-    outSR = nullptr;
+    if (fNEvents > 0)
+      if (fEvtCount == fNEvents)
+	return false;
+    
+    //    if (!inR) std::cout << "inR is empty" << std::endl;
+    //    if (!inSR) std::cout << "inSR is empty" << std::endl;
 
+    std::cout << "Event " << fEvtCount << std::endl;
+    
     if (fIsFirst) {
-      /*
       std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
       if (!input_file) {
 	std::cerr << "Could not open file.\n" << std::endl;
@@ -272,199 +318,111 @@ namespace rawdata {
 	return false;
       }
       std::cout << "runs tree size = " << runs->GetEntries() << std::endl;
-
+      
       std::unique_ptr<TTree> subruns{input_file->Get<TTree>("SubRuns")};
       if (!subruns) {
 	std::cerr << "Could not find SubRuns tree.\n";
 	return false;
       }
       std::cout << "subruns tree size = " << subruns->GetEntries() << std::endl;
-      */
       
-      if (!inR) std::cout << "inR is empty" << std::endl;
-      if (!inSR) std::cout << "inSR is empty" << std::endl;
-						    
+      art::RunAuxiliary* runAux;
+      art::SubRunAuxiliary* subrunAux;
+      runs->SetBranchAddress("RunAuxiliary",&runAux);
+      subruns->SetBranchAddress("SubRunAuxiliary",&subrunAux);
+      runs->GetEvent(0);
+      subruns->GetEvent(0);
+      
       // deal with creating Run and Subrun objects
-      art::Timestamp currentTime = time(0);
-      outR = fSourceHelper.makeRunPrincipal(1,currentTime); // 0 --> Timestamp
-      outSR = fSourceHelper.makeSubRunPrincipal(1,0,currentTime);
+      fRun = runAux->run();
+      fSubrun = subrunAux->subRun();
+      outR = fSourceHelper.makeRunPrincipal(fRun,runAux->beginTime());
+      outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
+						subrunAux->beginTime());
       
-      // now get all of the fragments out and create waveforms and digits
+      // get all of the digits if this is the first event
+      // get all of the fragments out and create waveforms and digits
       if (! createDigitsFromArtdaqEvent()) return false;
 
+      if (fMakeTDiffHistos)
+	makeTDiffHistos();
+      
+      // determine t0s for each board
+      for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
+	auto fragId = fFragId[ifrag];
+	fT0[fragId] = fFragTimestamps[fragId][0];
+      }
+      
       fIsFirst = false;
     }
-
-    // find digits for the next event.  First, find earliest hits/wvfms
-    /*
-    auto cfragIter = C1720ContainerFragments.begin();      
-    auto ts1 = (*cfragIter).second.front()->timestamp();
-    auto tfragIter = TRB3ContainerFragments.begin();      
-    auto ts2 = (*tfragIter).second.front()->timestamp();      
-    std::cout << "ts1 = " << ts1 << ", ts2 = " << std::endl;
-    fTimeOffset = ts2 - ts1;    
-    */
     
-    /*
-	fTRB3RawDigits[(*cfragIter).first] = 
-	  Unpack::GetTRB3RawDigitsFromFragment(trb3frag);
-	std::cout << "Made " << fTRB3RawDigits[(*cfragIter).first].size()
-		  << " TRB3 digits" << std::endl;
-	(*cfragIter).second.pop_front();
-	*/
-      /*	
-	if ((*cfragIter).first == earliestFragId) {
-	thisEventFragments.emplace_back(std::move((*cfragIter).second.front()));
-	(*cfragIter).second.pop_front();
-      }
-      if ((*cfragIter).second.empty()) continue;
+    if (fCreateArtEvents) {
+      auto evtWaveForms = std::make_unique<std::vector<emph::rawdata::WaveForm>  >();
+    auto evtTRB3Digits = std::make_unique<std::vector<emph::rawdata::TRB3RawDigit> >();
+    
+      // find digits for the next event.  First, find earliest hits/wvfms
+      uint64_t earliestTimestamp =
+	fFragTimestamps[fFragId[0]][fFragCounter[fFragId[0]]] -
+	fT0[fFragId[0]];
       
-      if ((*cfragIter).second.front()->timestamp() -
-	  earliestTimestamp < 20000) {
-	thisEventFragments.emplace_back(std::move((*cfragIter).second.front()));
-	(*cfragIter).second.pop_front();
-      }
-      ++cfragIter;
-    }
-      
-      while (cfragIter != C1720ContainerFragments.end()) {
-	if ((*cfragIter).second.empty()) continue;
-	
-	auto ts = (*cfragIter).second.front()->timestamp();
-	if (ts < earliestTimestamp) {
-	  earliestTimestamp = ts;
-	  earliestFragId = (*cfragIter).first;
+      artdaq::Fragment::fragment_id_t thisFragId;
+      uint64_t thisFragTimestamp;
+      size_t thisFragCount;
+      for (size_t ifrag=1; ifrag<fFragId.size(); ++ifrag) {
+	thisFragId = fFragId[ifrag];
+	thisFragCount = fFragCounter[thisFragId];
+	thisFragTimestamp = fFragTimestamps[thisFragId][thisFragCount] -
+	  fT0[thisFragId];
+	if (thisFragTimestamp < earliestTimestamp) {
+	  earliestTimestamp = thisFragTimestamp;
+	  //	  earliestFragId = thisFragId;
 	}
-	++cfragIter;
-    }
-    
-
-      auto evtFragIter = thisEventFragments.begin();
-      while (evtFragIter != thisEventFragments.end()) {
-	std::cout << "frag " << (*evtFragIter)->fragmentID() << ", sequence "
-		  << (*evtFragIter)->sequenceID() << " of type "
-		  << (*evtFragIter)->typeString() << " has size "
-		  << (*evtFragIter)->size() << std::endl;	      
+      }
+      
+      // now that we've found the earliest hit/wvfm, find all that are within fTimeWindow to associate with this art Event
+      
+      for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
+	thisFragId = fFragId[ifrag];
+	thisFragCount = fFragCounter[thisFragId];
 	
-	std::vector<emph::rawdata::TRB3RawDigit> trb3digits;
-	std::vector<emph::rawdata::WaveForm> waveforms;
-	
-	if ((*evtFragIter)->type() == ots::detail::FragmentType::TRB3) {
-	  std::cout << "%%%%%%%%%  HERE  %%%%%%%%%" << std::endl;
-	  emphaticdaq::TRB3Fragment trb3frag(*(*evtFragIter));
-	  trb3digits = Unpack::GetTRB3RawDigitsFromFragment(trb3frag);
-	  std::cout << "Made " << trb3digits.size() << " TRB3 digits" << std::endl;
+	if (fWaveForms.count(thisFragId)) {
+	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];
+	  
+	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
+	    for (size_t jfrag=0; jfrag<fWaveForms[thisFragId][thisFragCount].size(); ++jfrag)
+	      evtWaveForms->push_back(fWaveForms[thisFragId][thisFragCount][jfrag]);
+	    fFragCounter[thisFragId] += 1;	  
+	  }
 	}
-	if ((*evtFragIter)->type() == ots::detail::FragmentType::CAENV1720) {
-	  emphaticdaq::CAENV1720Fragment caenfrag(*(*evtFragIter));
-	  waveforms = Unpack::GetWaveFormsFrom1720Fragment(caenfrag);
-	  std::cout << "Made " << waveforms.size() << " CAEN1720 waveforms" << std::endl;
-	}      
-	++evtFragIter;
+	else if (fTRB3RawDigits.count(thisFragId)) {
+	  thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].fragmentTimestamp - fT0[thisFragId];
+	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
+	    for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag)
+	      evtTRB3Digits->push_back(fTRB3RawDigits[thisFragId][thisFragCount][jfrag]);
+	    fFragCounter[thisFragId] += 1;
+	  }
+	}
       }
-      */
-
-    // now determine the time offset between the TRB3s and CAENs
-    // get the timestamp from the first CAEN fragment;
-    /*
-    auto cfragIter = C1720ContainerFragments.begin();      
-    auto ts1 = (*cfragIter).second.front()->timestamp();
-    auto tfragIter = TRB3ContainerFragments.begin();      
-    auto ts2 = (*tfragIter).second.front()->timestamp();      
-    std::cout << "ts1 = " << ts1 << ", ts2 = " << std::endl;
-    fTimeOffset = ts2 - ts1;    
-      }
-      // now extract next event
-    
-    // first find earliest next data fragment
-    artdaq::Fragment::fragment_id_t earliestFragId = artdaq::Fragment::InvalidFragmentID;
-    artdaq::Fragment::timestamp_t earliestTimestamp = artdaq::Fragment::InvalidTimestamp;
-
-    auto cfragIter = C1720ContainerFragments.begin();
-
-    while (cfragIter != C1720ContainerFragments.end()) {
-      if ((*cfragIter).second.empty()) continue;
-      auto ts = (*cfragIter).second.front()->timestamp();
-      if (ts < earliestTimestamp) {
-	earliestTimestamp = ts;
-	earliestFragId = (*cfragIter).first;
-      }
-      ++cfragIter;
-    }
-    
-    cfragIter = TRB3ContainerFragments.begin();
-
-    while (cfragIter != TRB3ContainerFragments.end()) {
-      if ((*cfragIter).second.empty()) continue;
-      auto ts = (*cfragIter).second.front()->timestamp();
-      if (ts < earliestTimestamp) {
-	earliestTimestamp = ts;
-	earliestFragId = (*cfragIter).first;
-      }
-      ++cfragIter;
-    }
-
-    if (earliestTimestamp == artdaq::Fragment::InvalidTimestamp)
-      // no more data, at end of the input file
-      return false;
-    
-    // look for time-matched fragments from the others
-    artdaq::FragmentPtrs thisEventFragments;
-
-    cfragIter = TRB3ContainerFragments.begin();
-
-    while (cfragIter != TRB3ContainerFragments.end()) {
-      if ((*cfragIter).first == earliestFragId) {
-	thisEventFragments.emplace_back(std::move((*cfragIter).second.front()));
-	(*cfragIter).second.pop_front();
-      }
-      if ((*cfragIter).second.empty()) continue;
       
-      if ((*cfragIter).second.front()->timestamp() -
-	  earliestTimestamp < 20000) {
-	thisEventFragments.emplace_back(std::move((*cfragIter).second.front()));
-	(*cfragIter).second.pop_front();
-      }
-      ++cfragIter;
+      if (evtWaveForms->empty() && evtTRB3Digits->empty())
+	return false;
+      
+      std::cout << "Found " << evtWaveForms->size() << " waveforms and "
+		<< evtTRB3Digits->size() << " TRB3 digits for event "
+		<< fEvtCount << std::endl;
+
+      outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount++,
+					      earliestTimestamp);
+      
+      if (!evtWaveForms->empty())
+	put_product_in_principal(std::move(evtWaveForms), *outE,"raw","waveforms");
+      if (!evtTRB3Digits->empty())
+	put_product_in_principal(std::move(evtTRB3Digits), *outE,"raw","trb3digits");
+      
+      return true;
     }
 
-    cfragIter = C1720ContainerFragments.begin();
-
-    while (cfragIter != C1720ContainerFragments.end()) {
-      if ((*cfragIter).first == earliestFragId) {
-	thisEventFragments.emplace_back(std::move((*cfragIter).second.front()));
-	(*cfragIter).second.pop_front();
-      }
-      if ((*cfragIter).second.empty()) continue;
-      
-      if ((*cfragIter).second.front()->timestamp() -
- 	  earliestTimestamp < 20000) {
-	thisEventFragments.emplace_back(std::move((*cfragIter).second.front()));
-	(*cfragIter).second.pop_front();
-      }
-      ++cfragIter;
-    }    
-    
-    for (auto & frag : thisEventFragments) {
-      // do the digit extraction from the waveforms digitizers and TRB3s
-      std::cout << "frag " << frag->fragmentID() << ", sequence " << frag->sequenceID() << " of type " << frag->typeString() << " has size " << frag->size() << std::endl;	
-      std::vector<emph::rawdata::TRB3RawDigit> trb3digits;
-      std::vector<emph::rawdata::WaveForm> waveforms;
-      
-      if (frag->type() == ots::detail::FragmentType::TRB3) {
-	emphaticdaq::TRB3Fragment trb3frag(*frag);
-	trb3digits = Unpack::GetTRB3RawDigitsFromFragment(trb3frag);
-	std::cout << "Made " << trb3digits.size() << " TRB3 digits" << std::endl;
-      }
-      if (frag->type() == ots::detail::FragmentType::CAENV1720) {
-	emphaticdaq::CAENV1720Fragment caenfrag(*frag);
-	waveforms = Unpack::GetWaveFormsFrom1720Fragment(caenfrag);
-	std::cout << "Made " << waveforms.size() << " CAEN1720 waveforms" << std::endl;
-      }
-    }
-      */
-    
-    return true;
+    return false;
   }
   
 }

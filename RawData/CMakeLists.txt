@@ -16,13 +16,8 @@ art_make_library(LIBRARY_NAME RawData
 			   artdaq_core::artdaq-core_Data
   )
 
-#build_plugin(DAQHeaderAna "module"
-#             LIBRARIES PRIVATE art_root_io::TFileService_service ROOT::Hist)
-
 install_headers()
 install_source()
 install_fhicl()
 
-#add_subdirectory(nova)
-
-#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RawData)
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RawData)

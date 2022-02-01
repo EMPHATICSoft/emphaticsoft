@@ -41,7 +41,6 @@ simple_plugin(RawDataUnpacker "source"
   artdaq_core::artdaq-core_Data
   artdaq_core::artdaq-core_Utilities
   art_root_io::TFileService_service
-#  art_root_io::TFileService
   
 )
 
