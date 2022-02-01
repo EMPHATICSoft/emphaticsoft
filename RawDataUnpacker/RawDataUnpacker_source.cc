@@ -302,8 +302,6 @@ namespace rawdata {
     
     //    if (!inR) std::cout << "inR is empty" << std::endl;
     //    if (!inSR) std::cout << "inSR is empty" << std::endl;
-
-    std::cout << "Event " << fEvtCount << std::endl;
     
     if (fIsFirst) {
       std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
@@ -358,24 +356,30 @@ namespace rawdata {
     
     if (fCreateArtEvents) {
       auto evtWaveForms = std::make_unique<std::vector<emph::rawdata::WaveForm>  >();
-    auto evtTRB3Digits = std::make_unique<std::vector<emph::rawdata::TRB3RawDigit> >();
+      auto evtTRB3Digits = std::make_unique<std::vector<emph::rawdata::TRB3RawDigit> >();
     
       // find digits for the next event.  First, find earliest hits/wvfms
-      uint64_t earliestTimestamp =
-	fFragTimestamps[fFragId[0]][fFragCounter[fFragId[0]]] -
-	fT0[fFragId[0]];
+      uint64_t earliestTimestamp = 0;
       
       artdaq::Fragment::fragment_id_t thisFragId;
       uint64_t thisFragTimestamp;
       size_t thisFragCount;
-      for (size_t ifrag=1; ifrag<fFragId.size(); ++ifrag) {
+      bool isFirstFrag = true;
+      for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {	
 	thisFragId = fFragId[ifrag];
 	thisFragCount = fFragCounter[thisFragId];
-	thisFragTimestamp = fFragTimestamps[thisFragId][thisFragCount] -
+	// bounds check:
+	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
+	if (isFirstFrag)
+	  earliestTimestamp = fFragTimestamps[thisFragId][thisFragCount] -
 	  fT0[thisFragId];
-	if (thisFragTimestamp < earliestTimestamp) {
-	  earliestTimestamp = thisFragTimestamp;
-	  //	  earliestFragId = thisFragId;
+	else {
+	  thisFragTimestamp = fFragTimestamps[thisFragId][thisFragCount] -
+	    fT0[thisFragId];
+	  if (thisFragTimestamp < earliestTimestamp) {
+	    earliestTimestamp = thisFragTimestamp;
+	    //	  earliestFragId = thisFragId;
+	  }
 	}
       }
       
@@ -384,6 +388,8 @@ namespace rawdata {
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
 	thisFragId = fFragId[ifrag];
 	thisFragCount = fFragCounter[thisFragId];
+	// bounds check:
+	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
 	
 	if (fWaveForms.count(thisFragId)) {
 	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];

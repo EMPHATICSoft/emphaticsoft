@@ -23,8 +23,8 @@ source:
   createArtEvents:   true
   makeTDiffHistos:   true
   numWaveFormPlots:  100
-  timeWindow: 20000
-  nEvents: 100  
+  timeWindow: 50000
+  nEvents: 0  
 }
 
 outputs:
