@@ -121,7 +121,7 @@ namespace emph {
 				ExtractDetectorInfo(i, world_n);
 				if ( fDetectorLoad[i] == true ){
 					mf::LogWarning("ExtractGeometry") << "extracted "
-						<< DetectorName[DetectorType(i)] << " geometry \n";
+									  << DetInfo::Name(DetectorType(i)) << " geometry \n";
 				}
 			}
 
@@ -133,7 +133,7 @@ namespace emph {
 		void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
 		{
 			if ( i < 3 || i == ARICH ){
-				mf::LogWarning("LoadNewGeometry") << DetectorName[DetectorType(i)] 
+			  mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
 					<< " detector not in gdml yet. \n"
 					<< "experts should confirm whether they should be implemented. \n";
 				return;
@@ -158,11 +158,11 @@ namespace emph {
 			}
 
 			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-			TString detector_name=DetectorName[DetectorType(i)]+"_phys";
+			TString detector_name=DetInfo::Name(DetectorType(i))+"_phys";
 			TGeoNode* detector_n = (TGeoNode*)world_v->GetNode(detector_name);
 
 			if ( detector_n == nullptr ){
-				mf::LogWarning("LoadNewGeometry") << DetectorName[DetectorType(i)]
+			  mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i))
 					<< " detector not found in gdml. \n"
 					<< "check your spelling. \n";
 				return;

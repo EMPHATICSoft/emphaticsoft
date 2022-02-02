@@ -24,7 +24,9 @@ source:
   makeTDiffHistos:   true
   numWaveFormPlots:  100
   timeWindow: 50000
-  nEvents: 0  
+  nEvents: 0
+  verbosity: 0
+  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
 }
 
 outputs:

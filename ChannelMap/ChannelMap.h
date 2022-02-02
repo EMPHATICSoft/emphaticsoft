@@ -36,22 +36,31 @@ namespace emph {
       inline bool operator==(const EChannel& echan) const {
 	return ((echan.fBoardType == fBoardType)&&(echan.fBoard == fBoard)&&(echan.fChannel == fChannel));
       }
+      
       inline bool operator<(const EChannel& echan) const {
-	if (echan.fBoardType >= fBoard) return false;
-	if (echan.fBoard >= fBoard) return false;
-	if (echan.fBoard == fBoard)
-	  if (echan.fChannel >= fChannel) return false;
-	return true;
+	if (fBoardType < echan.fBoardType) return true;
+	if (fBoardType == echan.fBoardType) {
+	  if (fBoard < echan.fBoard) return true;
+	  if (fBoard == echan.fBoard) {
+	    if (fChannel < echan.fChannel) return true;
+	  }
+	}
+	return false;
       }
+
       inline bool operator>(const EChannel& echan) const {
-	if (echan.fBoardType <= fBoard) return false;
-	if (echan.fBoard <= fBoard) return false;
-	if (echan.fBoard == fBoard)
-	  if (echan.fChannel <= fChannel) return false;
-	return true;
+	if (fBoardType > echan.fBoardType) return true;
+	if (fBoardType == echan.fBoardType) {
+	  if (fBoard > echan.fBoard) return true;
+	  if (fBoard == echan.fBoard) {
+	    if (fChannel > echan.fChannel) return true;
+	  }
+	}
+	return false;
       }
+
       inline friend std::ostream& operator<<(std::ostream& os, const EChannel& echan) {
-	os << "ElectronicsChannel: (" << emph::cmap::BoardName[echan.fBoardType] << "," << echan.fBoard << "," <<echan.fChannel << ")" << std::endl;
+	os << "ElectronicsChannel: (" << emph::cmap::Board::Name(echan.fBoardType) << "," << echan.fBoard << "," <<echan.fChannel << ")";
       	return os;
       }
       
@@ -65,38 +74,53 @@ namespace emph {
     class DChannel {
     public:
       DChannel();
-      DChannel(emph::geo::DetectorType detId, int channel) { fId = detId; fChannel = channel; };
+      DChannel(emph::geo::DetectorType detId, int channel, short hilo) { fId = detId; fChannel = channel; fHiLo = hilo; };
       virtual ~DChannel() {};
       
       emph::geo::DetectorType DetId() { return fId; }
       int Channel() { return fChannel; }
+      short HiLo() { return fHiLo; }
       
       void SetDetId(emph::geo::DetectorType id) { fId = id; }
       void SetChannel(int chan) { fChannel = chan; }
+      void SetHiLo(short hilo) { fHiLo = hilo; }
       
       inline bool operator==(const DChannel& dchan) const {
-	return ((dchan.fId == fId)&&(dchan.fChannel == fChannel));
+	return ((dchan.fId == fId)&&(dchan.fChannel == fChannel)
+		&&(dchan.fHiLo == fHiLo));
       }
+
       inline bool operator<(const DChannel& dchan) const {
-	if (dchan.fId >= fId) return false;
-	if (dchan.fId == fId)
-	  if (dchan.fChannel >= fChannel) return false;
-	return true;
+	if (fId < dchan.fId) return true;
+	if (fId == dchan.fId) {
+	  if (fChannel < dchan.fChannel) return true;
+	  if (fChannel == dchan.fChannel) {
+	    if (fHiLo < dchan.fHiLo) return true;
+	  }
+	}
+      	return false;
       }
+
       inline bool operator>(const DChannel& dchan) const {
-	if (dchan.fId <= fId) return false;
-	if (dchan.fId == fId)
-	  if (dchan.fChannel <= fChannel) return false;
-	return true;
+	if (fId > dchan.fId) return true;
+	if (fId == dchan.fId) {
+	  if (fChannel > dchan.fChannel) return true;
+	  if (fChannel == dchan.fChannel) {
+	    if (fHiLo > dchan.fHiLo) return true;
+	  }
+	}
+      	return false;
       }
+      
       inline friend std::ostream& operator<<(std::ostream& os, const DChannel& dchan) {
-	os << "DetectorChannel: (" << emph::geo::DetectorName[dchan.fId] << "," << dchan.fChannel << ")" << std::endl;
+	os << "DetectorChannel: (" << emph::geo::DetInfo::Name(dchan.fId) << "," << dchan.fChannel << ")";
 	return os;
       }
       
     private:
       emph::geo::DetectorType fId;
       int fChannel;
+      short fHiLo;
     };
     
     class ChannelMap {

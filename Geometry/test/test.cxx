@@ -22,7 +22,7 @@ int main(){
 
 	for ( int i = emph::geo::Trigger ; i < emph::geo::NDetectors ; i++ ){
 		if ( !emgeo->DetectorLoad(i) )continue;
-		std::cout << "The " << emph::geo::DetectorName[emph::geo::DetectorType(i)] << " position is " << emgeo->DetectorUSZPos(i) << " - " << emgeo->DetectorDSZPos(i) << " cm." << std::endl;
+		std::cout << "The " << emph::geo::DetInfo::Name(emph::geo::DetectorType(i)) << " position is " << emgeo->DetectorUSZPos(i) << " - " << emgeo->DetectorDSZPos(i) << " cm." << std::endl;
 	}
 
 	std::cout << std::endl << "This unit test is finished." << std::endl << std::endl;

@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "ChannelMap/ChannelMap.h"
+
 namespace emph {
   namespace rawdata {
 
@@ -52,6 +54,7 @@ namespace emph {
       bool    fIsFirst;
       bool    fCreateArtEvents;
       bool    fMakeTDiffHistos;
+      int     fVerbosity;
       int     fNumWaveFormPlots;
       int     fRun;
       int     fSubrun;
@@ -59,7 +62,10 @@ namespace emph {
       uint64_t fEvtCount;
       uint64_t fTimeOffset;
       uint64_t fTimeWindow;
+      std::string fChanMapFileName;
 
+      emph::cmap::ChannelMap* fChannelMap;
+      
       std::unordered_map<artdaq::Fragment::fragment_id_t,uint64_t> fT0;
       
       art::SourceHelper const& fSourceHelper;

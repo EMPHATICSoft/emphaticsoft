@@ -55,19 +55,21 @@ namespace emph {
 	int eChannel;
 	std::string det;
 	int dChannel;
+	short dHiLo;
 	std::string comment;
 	
 	if (mapFile.is_open())
 	  {
 	    while (getline(mapFile,line)) {
 	      std::stringstream lineStr(line);
-	      lineStr >> boardType >> board >> eChannel >> det >> dChannel >> comment;
+	      lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> comment;
+	      if (boardType[0] == '#') continue;
 	      
-	      emph::cmap::FEBoardType iBoardType = emph::cmap::BoardId[boardType];
-	      emph::geo::DetectorType iDet = emph::geo::DetectorId[det];
-	      DChannel dchan(iDet,dChannel);
+	      emph::cmap::FEBoardType iBoardType = emph::cmap::Board::Id(boardType);
+	      emph::geo::DetectorType iDet = emph::geo::DetInfo::Id(det);
+	      DChannel dchan(iDet,dChannel,dHiLo);
 	      EChannel echan(iBoardType,board,eChannel);
-
+	      std::cout << dchan << " <--> " << echan << std::endl;
 	      fEChanMap[echan] = dchan;
 	      fDChanMap[dchan] = echan;
 	      

@@ -71,10 +71,21 @@ namespace rawdata {
     fNumWaveFormPlots = ps.get<int>("numWaveFormPlots",100);
     fTimeWindow = ps.get<uint64_t>("timeWindow",20000);
     fNEvents    = ps.get<uint64_t>("nEvents",-1);
+    fChanMapFileName = ps.get<std::string>("channelMapFileName","");
+    fVerbosity  = ps.get<int>("verbosity",0);
+    
+    std::string detStr;
+    for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
+      if (idet == int(emph::geo::SSD)) continue;
+      if (idet == int(emph::geo::RPC)) continue;      
+      detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));      
+      help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw",detStr);
+    }
 
-    help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw","waveforms");
-    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw","trb3digits");
-    //    help.reconstitutes<std::vector<emph::rawdata::SSDRawDigit>, art::InEvent>("ssddaq","raw"); // note, "ssddaq" is nonsense
+    detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::T0));
+    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
+    detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::RPC));
+    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
 
     fCurrentFilename = "";
 
@@ -83,6 +94,20 @@ namespace rawdata {
     fTimeOffset = 0;
 
     fEvtCount = 0;
+
+    // initialize channel map
+    fChannelMap = 0;
+    if (!fChanMapFileName.empty()) {
+      fChannelMap = new emph::cmap::ChannelMap();
+      if (!fChannelMap->LoadMap(fChanMapFileName)) {
+	std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
+	delete fChannelMap;
+	fChannelMap = 0;
+      }
+      std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
+    }
+    
+    // create TTree for TRB3RawDigits
     art::ServiceHandle<art::TFileService> tfs;
 
     fTRB3Tree = tfs->make<TTree>("TRB3Tree","");
@@ -299,6 +324,9 @@ namespace rawdata {
     if (fNEvents > 0)
       if (fEvtCount == fNEvents)
 	return false;
+
+    if ((fEvtCount%1000) == 0)
+      std::cout << "Event " << fEvtCount << std::endl;
     
     //    if (!inR) std::cout << "inR is empty" << std::endl;
     //    if (!inSR) std::cout << "inSR is empty" << std::endl;
@@ -355,8 +383,13 @@ namespace rawdata {
     }
     
     if (fCreateArtEvents) {
-      auto evtWaveForms = std::make_unique<std::vector<emph::rawdata::WaveForm>  >();
-      auto evtTRB3Digits = std::make_unique<std::vector<emph::rawdata::TRB3RawDigit> >();
+      std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
+      for (int idet=0; idet<emph::geo::NDetectors; ++idet)
+	evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
+
+      std::vector<std::unique_ptr<std::vector<emph::rawdata::TRB3RawDigit> > > evtTRB3Digits;
+      for (int idet=0; idet<emph::geo::NDetectors; ++idet)
+	evtTRB3Digits.push_back(std::make_unique<std::vector<emph::rawdata::TRB3RawDigit>  >());
     
       // find digits for the next event.  First, find earliest hits/wvfms
       uint64_t earliestTimestamp = 0;
@@ -378,12 +411,12 @@ namespace rawdata {
 	    fT0[thisFragId];
 	  if (thisFragTimestamp < earliestTimestamp) {
 	    earliestTimestamp = thisFragTimestamp;
-	    //	  earliestFragId = thisFragId;
 	  }
 	}
       }
       
       // now that we've found the earliest hit/wvfm, find all that are within fTimeWindow to associate with this art Event
+      int nObjects = 0;
       
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
 	thisFragId = fFragId[ifrag];
@@ -395,35 +428,71 @@ namespace rawdata {
 	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];
 	  
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
-	    for (size_t jfrag=0; jfrag<fWaveForms[thisFragId][thisFragCount].size(); ++jfrag)
-	      evtWaveForms->push_back(fWaveForms[thisFragId][thisFragCount][jfrag]);
+	    emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+	    int boardNum = thisFragId;
+	    emph::cmap::EChannel echan;
+	    echan.SetBoardType(boardType);
+	    echan.SetBoard(boardNum);
+	    for (size_t jfrag=0; jfrag<fWaveForms[thisFragId][thisFragCount].size(); ++jfrag) {	      
+	      auto & tdig = fWaveForms[thisFragId][thisFragCount][jfrag];
+	      echan.SetChannel(tdig.Channel());
+	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	      //  std::cout << echan << " maps to " << dchan << std::endl;
+	      evtWaveForms[dchan.DetId()]->push_back(tdig);
+	      ++nObjects;
+	    }
 	    fFragCounter[thisFragId] += 1;	  
 	  }
 	}
 	else if (fTRB3RawDigits.count(thisFragId)) {
 	  thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].fragmentTimestamp - fT0[thisFragId];
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
-	    for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag)
-	      evtTRB3Digits->push_back(fTRB3RawDigits[thisFragId][thisFragCount][jfrag]);
+	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+	    int boardNum = thisFragId;
+	    emph::cmap::EChannel echan;
+	    echan.SetBoardType(boardType);
+	    echan.SetBoard(boardNum);
+	    //	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+	    for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag) {
+	      auto & tdig = fTRB3RawDigits[thisFragId][thisFragCount][jfrag];
+	      int channel = tdig.GetChannel() + 64*(tdig.fgpa_header_word-1280);
+	      echan.SetChannel(channel);
+	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	      if (dchan.DetId() != emph::geo::NDetectors)
+		evtTRB3Digits[dchan.DetId()]->push_back(tdig);
+	      ++nObjects;
+	    }
 	    fFragCounter[thisFragId] += 1;
 	  }
 	}
       }
+
+      // check that we're at the end, if we found nothing else to write out
+      if (nObjects == 0) return false;
       
-      if (evtWaveForms->empty() && evtTRB3Digits->empty())
-	return false;
-      
-      std::cout << "Found " << evtWaveForms->size() << " waveforms and "
-		<< evtTRB3Digits->size() << " TRB3 digits for event "
-		<< fEvtCount << std::endl;
+      // write out waveforms and TDCs to appropriate folders
 
       outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount++,
-					      earliestTimestamp);
+						  earliestTimestamp);
       
-      if (!evtWaveForms->empty())
-	put_product_in_principal(std::move(evtWaveForms), *outE,"raw","waveforms");
-      if (!evtTRB3Digits->empty())
-	put_product_in_principal(std::move(evtTRB3Digits), *outE,"raw","trb3digits");
+      if (fVerbosity) std::cout << "Event " << fEvtCount << ": " << std::endl;
+      for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
+	std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
+      	if (!evtWaveForms[idet]->empty()) {
+	  if (fVerbosity)
+	    std::cout << "\t" << "Det " << detStr << " "
+		      << evtWaveForms[idet]->size() << " waveforms"
+		      << std::endl; 
+	  put_product_in_principal(std::move(evtWaveForms[idet]), *outE,"raw",detStr);
+	}
+	if (!evtTRB3Digits[idet]->empty()) {
+	  if (fVerbosity)
+	    std::cout << "\t" << "Det " << detStr << " "
+		      << evtTRB3Digits[idet]->size() << " TRB3RawDigits"
+		      << std::endl; 
+	  put_product_in_principal(std::move(evtTRB3Digits[idet]), *outE,"raw",detStr);
+	}	
+      }
       
       return true;
     }

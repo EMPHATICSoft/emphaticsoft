@@ -24,29 +24,47 @@ namespace emph {
       LGCalo = 7,
       NDetectors = 8	
     } DetectorType;
-    
-    std::map<DetectorType, std::string> DetectorName = {
-      {DetectorType::Trigger, "Trigger"},
-      {DetectorType::GasCkov, "GasCkov"},
-      {DetectorType::BACkov, "BACkov"},
-      {DetectorType::T0, "T0"},
-      {DetectorType::RPC, "RPC"},
-      {DetectorType::SSD, "SSD"},
-      {DetectorType::ARICH, "ARICH"},
-      {DetectorType::LGCalo, "LGCalo"}
-    };
 
-    std::map<std::string, DetectorType> DetectorId = {
-      {"Trigger", DetectorType::Trigger},
-      {"GasCkov", DetectorType::GasCkov},
-      {"BACkov", DetectorType::BACkov},
-      {"T0", DetectorType::T0},
-      {"RPC", DetectorType::RPC},
-      {"SSD", DetectorType::SSD},
-      {"ARICH", DetectorType::ARICH},
-      {"LGCalo", DetectorType::LGCalo}
+    class DetInfo {
+    public:
+      static std::string Name(DetectorType t) {
+	switch (t) {
+	case DetectorType::SSD:
+	  return std::string("SSD");
+	case DetectorType::Trigger:
+	  return std::string("Trigger");
+	case DetectorType::GasCkov:
+	  return std::string("GasCkov");
+	case DetectorType::BACkov:
+	  return std::string("BACkov");
+	case DetectorType::T0:
+	  return std::string("T0");
+	case DetectorType::RPC:
+	  return std::string("RPC");
+	case DetectorType::ARICH:
+	  return std::string("ARICH");
+	case DetectorType::LGCalo:
+	  return std::string("LGCalo");
+	case DetectorType::NDetectors:
+	default:
+	  return std::string("Unknown");
+	}
+      }
+      
+      static DetectorType Id(std::string d) {
+	if (d == "SSD") return DetectorType::SSD;
+	if (d == "Trigger") return DetectorType::Trigger;
+	if (d == "GasCkov") return DetectorType::GasCkov;
+	if (d == "BACkov") return DetectorType::BACkov;
+	if (d == "T0") return DetectorType::T0;
+	if (d == "RPC") return DetectorType::RPC;
+	if (d == "SSD") return DetectorType::SSD;
+	if (d == "ARICH") return DetectorType::ARICH;
+	if (d == "LGCalo") return DetectorType::LGCalo;
+	return DetectorType::NDetectors;
+      }
+      
     };
-
   }
 }
 

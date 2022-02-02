@@ -35,6 +35,7 @@ art_make_library(LIBRARY_NAME RawDataUnpacker
 simple_plugin(RawDataUnpacker "source"	
   RawData
   RawDataUnpacker
+  ChannelMap
   ROOT::Core
   ROOT::Tree
   ROOT::Hist
