@@ -31,8 +31,10 @@
 #include "TFile.h"
 #include "TBranch.h"
 #include "TTree.h"
+#include "TString.h"
 
 #include <iostream>
+#include <fstream>
 #include <iterator>
 #include <algorithm>
 
@@ -73,6 +75,7 @@ namespace rawdata {
     fNEvents    = ps.get<uint64_t>("nEvents",-1);
     fChanMapFileName = ps.get<std::string>("channelMapFileName","");
     fVerbosity  = ps.get<int>("verbosity",0);
+    fSSDPath  = ps.get<std::string>("ssd_data_path", ".");
     
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
@@ -365,6 +368,25 @@ namespace rawdata {
       outR = fSourceHelper.makeRunPrincipal(fRun,runAux->beginTime());
       outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
 						subrunAux->beginTime());
+
+      // construct the SSD file name based on sub run number
+      // RawDataSaver0FER0_Run135_0_Raw.dat
+      // TODO avoid hard coding the number of modules
+      // TODO read file path from fhicl file
+      // note use of pointer since ifstream cannot be copied
+      for (unsigned int i = 0; i < 4; i++) {
+          TString spattern = Form("%s/RawDataSaver0FER%d_Run%d_%d_Raw.dat", fSSDPath.c_str(), i, fRun, fSubrun);
+          std::cout << spattern.Data() << "\n";
+          std::unique_ptr<std::ifstream> ssd_stream = std::make_unique<std::ifstream>(spattern.Data());
+          if (!ssd_stream->is_open()) {
+              // TODO Better logging
+              std::cerr << "WARNING: Missing SSD for module " << i << ". Run=" << fRun << " Subrun=" << fSubrun << "\n";
+              continue;
+          }
+
+          ssd_file_handles.push_back(std::move(ssd_stream));
+      }
+
       
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
@@ -382,6 +404,7 @@ namespace rawdata {
       fIsFirst = false;
     }
     
+
     if (fCreateArtEvents) {
       std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
