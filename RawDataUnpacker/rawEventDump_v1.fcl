@@ -1,0 +1,40 @@
+physics:
+{
+  analyzers:
+  {
+    evtDump:
+    {
+      module_type: EventDump
+      raw_data_label: daq
+      verbosity: 1
+    }
+
+    printBuildInfo: {
+      module_type: PrintBuildInfo
+      buildinfo_module_label: BuildInfo
+      buildinfo_instance_label: ArtdaqDemo
+    }
+  }
+
+  a1: [ evtDump, printBuildInfo ]
+  e1: [ out1 ]
+  end_paths: [ a1, e1 ]
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: FileDumperOutput
+    wantProductFriendlyClassName: true
+    onlyIfPresent: true
+  }
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/tmp/artdaqdemo.root" ]
+}
+
+process_name: EVTDUMP
