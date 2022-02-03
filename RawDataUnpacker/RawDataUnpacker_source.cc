@@ -24,6 +24,7 @@
 
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RawData/SSDRawDigit.h"
 
 #include "RawDataUnpacker/Unpacker.h"
 #include "RawDataUnpacker/RawDataUnpacker_source.h"
@@ -35,6 +36,8 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 namespace {
   // Read product for given type T
@@ -73,6 +76,9 @@ namespace rawdata {
     fNEvents    = ps.get<uint64_t>("nEvents",-1);
     fChanMapFileName = ps.get<std::string>("channelMapFileName","");
     fVerbosity  = ps.get<int>("verbosity",0);
+    fSSDFilePrefix = ps.get<std::string>("SSDFilePrefix",
+					 "RawDataSaver0FER1_Run");
+    fReadSSDData = ps.get<bool>("readSSDData",false);
     
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
@@ -117,7 +123,7 @@ namespace rawdata {
     fTRB3Tree->Branch("finetime",&fTRB3_FineTime);
     fTRB3Tree->Branch("epochtime",&fTRB3_EpochTime);
     fTRB3Tree->Branch("coarsetime",&fTRB3_CoarseTime);
-          
+
   }
   
   /***************************************************************************/
@@ -135,6 +141,49 @@ namespace rawdata {
     fCurrentFilename = name;
     fb = new art::FileBlock(art::FileFormatVersion{1, "RawEvent2022"},
 			    fCurrentFilename);
+  }
+  
+  /***************************************************************************/
+
+  bool Unpacker::createSSDDigits()
+  {
+    // make sure we can open SSD raw data files      
+    char fileName[256];
+    bool fSSDFilesOk = true;
+    for (int i=0; i<4; ++i) {
+      std::ifstream ssdFile;
+      sprintf(fileName,"%s%d_Run%d_%d_Raw.dat",fSSDFilePrefix.c_str(),i,fRun,fSubrun-1);
+      ssdFile.open(fileName);
+      if (ssdFile.is_open())
+	ssdFile.close();
+      else {
+	fSSDFilesOk = false;
+	std::cerr << "Error: cannot open " << fileName << std::endl;	  
+      }
+    }
+    if (! fSSDFilesOk) return false; // bail if we can't open all files
+    
+    // loop over stations and create vectors to store ssd hits for each event
+    for (int i=0; i<4; ++i) {
+      std::ifstream ssdFile;
+      sprintf(fileName,"%s%d_%d_Raw.dat",fSSDFilePrefix.c_str(),fRun,fSubrun);
+      ssdFile.open(fileName);
+      std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > ssdDigvec;
+      fSSDRawDigits.push_back(ssdDigvec);
+      auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
+      fSSDRawDigits[i].push_back(ssdDigs);
+      fSSDT0.push_back(ssdDigs.first); // get time of first event
+      while (!ssdDigs.second.empty()) {
+	ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
+	fSSDRawDigits[i].push_back(ssdDigs);
+      }
+      std::cout <<  "Found " << fSSDRawDigits[i].size() << " events for SSD station " << i
+		<< std::endl;
+      
+      ssdFile.close();
+    }
+    
+    return false;
   }
   
   /***************************************************************************/
@@ -369,7 +418,10 @@ namespace rawdata {
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
       if (! createDigitsFromArtdaqEvent()) return false;
-
+      
+      if (fReadSSDData)
+	if (! createSSDDigits()) return false;
+      
       if (fMakeTDiffHistos)
 	makeTDiffHistos();
       
@@ -466,7 +518,7 @@ namespace rawdata {
 	  }
 	}
       }
-
+      
       // check that we're at the end, if we found nothing else to write out
       if (nObjects == 0) return false;
       

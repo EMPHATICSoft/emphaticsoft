@@ -50,10 +50,12 @@ namespace emph {
       
     private:
       bool    createDigitsFromArtdaqEvent();
+      bool    createSSDDigits();
       void    makeTDiffHistos();
       bool    fIsFirst;
       bool    fCreateArtEvents;
       bool    fMakeTDiffHistos;
+      bool    fReadSSDData;
       int     fVerbosity;
       int     fNumWaveFormPlots;
       int     fRun;
@@ -65,7 +67,13 @@ namespace emph {
       std::string fChanMapFileName;
 
       emph::cmap::ChannelMap* fChannelMap;
-      
+
+      std::string fSSDFilePrefix;
+      std::vector<size_t> fSSDCount;
+      std::vector<uint64_t> fSSDT0;      
+      std::vector<std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > >
+	fSSDRawDigits;
+
       std::unordered_map<artdaq::Fragment::fragment_id_t,uint64_t> fT0;
       
       art::SourceHelper const& fSourceHelper;
@@ -90,8 +98,6 @@ namespace emph {
       std::vector<uint32_t> fTRB3_EpochTime;
       std::vector<uint32_t> fTRB3_CoarseTime;
       
-      //      std::unordered_map<int, TH1I*> fC1720_WaveForm;
-      //      std::unordered_map<int, art::TFileDirectory*> fC1720_Directory;
       std::unordered_map<int, int> fC1720_HistCount;
       
     };

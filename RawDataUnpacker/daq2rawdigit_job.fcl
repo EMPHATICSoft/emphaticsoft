@@ -24,9 +24,11 @@ source:
   makeTDiffHistos:   true
   numWaveFormPlots:  100
   timeWindow: 50000
-  nEvents: 0
+  nEvents: 5000
   verbosity: 0
   channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+  SSDFilePrefix: "/Users/jpaley/EMPHATIC/data/RawDataSaver0FER"
+  readSSDData: false
 }
 
 outputs:
