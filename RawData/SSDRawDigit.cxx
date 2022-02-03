@@ -24,7 +24,8 @@ namespace emph {
     fTime(-999),
     fADC(-999),
     fTrigType(-999),
-    fRow(-999)
+    fRow(-999),
+    fBco2s(-999)
   {
   }
   
@@ -35,6 +36,7 @@ namespace emph {
     fADC(adc), fTrigType(trigtype)
   {
       fRow = getSensorRow();
+		fBco2s = 144;
   }
   
   //------------------------------------------------------------

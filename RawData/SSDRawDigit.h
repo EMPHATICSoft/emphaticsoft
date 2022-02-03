@@ -46,6 +46,7 @@ namespace rawdata {
     int32_t  fADC;
     int32_t  fTrigType;
     int32_t  fRow;
+	 int32_t  fBco2s;
 
     uint32_t getSensorRow() const;
   };
