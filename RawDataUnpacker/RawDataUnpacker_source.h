@@ -20,6 +20,8 @@
 #include "TDirectory.h"
 #include <string>
 #include <vector>
+#include <memory>
+#include <fstream>
 
 #include "ChannelMap/ChannelMap.h"
 
@@ -99,6 +101,9 @@ namespace emph {
       std::vector<uint32_t> fTRB3_CoarseTime;
       
       std::unordered_map<int, int> fC1720_HistCount;
+
+      std::vector<std::unique_ptr<std::ifstream>> ssd_file_handles;
+      std::string fSSDPath;
       
     };
   }

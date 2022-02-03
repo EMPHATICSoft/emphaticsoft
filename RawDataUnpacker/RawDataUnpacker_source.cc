@@ -32,8 +32,10 @@
 #include "TFile.h"
 #include "TBranch.h"
 #include "TTree.h"
+#include "TString.h"
 
 #include <iostream>
+#include <fstream>
 #include <iterator>
 #include <algorithm>
 #include <iostream>
@@ -414,6 +416,25 @@ namespace rawdata {
       outR = fSourceHelper.makeRunPrincipal(fRun,runAux->beginTime());
       outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
 						subrunAux->beginTime());
+
+      // construct the SSD file name based on sub run number
+      // RawDataSaver0FER0_Run135_0_Raw.dat
+      // TODO avoid hard coding the number of modules
+      // TODO read file path from fhicl file
+      // note use of pointer since ifstream cannot be copied
+      for (unsigned int i = 0; i < 4; i++) {
+          TString spattern = Form("%s/RawDataSaver0FER%d_Run%d_%d_Raw.dat", fSSDPath.c_str(), i, fRun, fSubrun - 1);
+          std::cout << spattern.Data() << "\n";
+          std::unique_ptr<std::ifstream> ssd_stream = std::make_unique<std::ifstream>(spattern.Data());
+          if (!ssd_stream->is_open()) {
+              // TODO Better logging
+              std::cerr << "WARNING: Missing SSD for module " << i << ". Run=" << fRun << " Subrun=" << fSubrun << "\n";
+              continue;
+          }
+
+          ssd_file_handles.push_back(std::move(ssd_stream));
+      }
+
       
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
@@ -434,7 +455,16 @@ namespace rawdata {
       fIsFirst = false;
     }
     
+
     if (fCreateArtEvents) {
+        // read next event from all available SSD files
+        // TODO might need to skip events at the beginning
+        for (auto& handle : ssd_file_handles) {
+            auto time_and_hits = Unpack::readSSDHitsFromFileStream(*handle);
+            // std::cout << "DEMO SSD BCO TIME " << time_and_hits.first << "\n";
+            // std::cout << "DEMO SSD NHITS " << time_and_hits.second.size << "\n";
+        }
+
       std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
 	evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
