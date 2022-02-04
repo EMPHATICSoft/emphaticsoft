@@ -1,0 +1,18 @@
+BEGIN_PROLOG
+
+standard_onmon:
+{
+  makeWaveFormPlots: true
+  makeTRB3Plots:     true
+  makeSSDPlots:      true
+}
+
+nossd_onmon:
+{
+  makeWaveFormPlots: true
+  makeTRB3Plots:     true
+  makeSSDPlots:      false
+}
+
+
+END_PROLOG

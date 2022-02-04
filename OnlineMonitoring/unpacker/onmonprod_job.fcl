@@ -1,0 +1,47 @@
+#include "OnMon_producer.fcl"
+
+process_name: OnMon
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "onmon_r%r_%s.root" closeFileFast: false }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "onmon.root"
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:{}
+
+ filters:{}
+
+ analyzers:{
+	onmon: {
+		module_type: OnMonModule
+	}
+  }
+
+# stream1:  [ out1 ] #could have multiple paths
+ ana: [ onmon ] 
+
+ end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+}
