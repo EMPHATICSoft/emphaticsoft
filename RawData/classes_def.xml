@@ -6,13 +6,16 @@
 <lcgdict>
   <class name="std::vector<int16_t>"                  />
   <class name="std::vector<int32_t>"                  />
-  <class name="emph::rawdata::SSDRawDigit"    ClassVersion="11" >
+  <class name="emph::rawdata::SSDRawDigit"    ClassVersion="12" >
+   <version ClassVersion="12" checksum="543454205"/>
    <version ClassVersion="11" checksum="995705853"/>
   </class>
-  <class name="emph::rawdata::WaveForm"    ClassVersion="11" >
+  <class name="emph::rawdata::WaveForm"    ClassVersion="12" >
+   <version ClassVersion="12" checksum="1710862163"/>
    <version ClassVersion="11" checksum="4069590048"/>
   </class>
-  <class name="emph::rawdata::TRB3RawDigit"    ClassVersion="11" >
+  <class name="emph::rawdata::TRB3RawDigit"    ClassVersion="12" >
+   <version ClassVersion="12" checksum="441560763"/>
    <version ClassVersion="11" checksum="441560763"/>
   </class>
    <!-- version ClassVersion="15" checksum="3468169904" / -->

@@ -25,12 +25,7 @@ namespace emph {
     
     int fChannel;    ///< channel ID
     int fBoard;      ///< board ID
-    
-    int fBaseline;
-    int fBLWidth;
-    size_t fPeakPos;
-    
-    bool fIsNeg;      ///< flag to mark polarity of the pulse
+        
     bool fIsMC;       ///< flag to mark data is simulation
 
     uint64_t fFragmentTimestamp;
@@ -51,16 +46,14 @@ namespace emph {
     /// \brief Best estimator of the hit charge
     ///
     /// The DCS value appropriate for this readout version
-    int        Baseline(int adcOffset=0, int nhits=10)  ;
-    int        BLWidth(int adcOffset=0, int nhist=10) ;
-    int        PeakADC() ;
-    int        PeakTDC() ;
-    int        PeakWidth() ;
-    int        IntegratedADC() ;
+    float        Baseline(int adcOffset=0, int nhits=10) const;
+    float        BLWidth(int adcOffset=0, int nhist=10)  const;
+    int          PeakADC(bool isNegative=true)           const;
+    int          PeakTDC(bool isNegative=true)           const;
+    int          PeakWidth(bool isNegative=true)         const;
+    float        IntegratedADC(int x1=0, int nsamp=40)   const;
     
     // Setters
-    void       SetNegative() { fIsNeg = true;}
-    void       SetPositive() { fIsNeg = false; }
     void       SetChannel(uint32_t    iChan) { fChannel    = iChan;      }
 
     // Below here is stuff related to MC hits.

@@ -7,6 +7,7 @@ cet_find_package(ROOT REQUIRED)
 build_plugin(OnMonModule "module"
   LIBRARIES PRIVATE
     RawData
+    ChannelMap
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist

@@ -20,10 +20,6 @@ namespace rawdata{
     fTstart(-1),
     fChannel(-1),
     fBoard(-1),
-    fBaseline(-99999),
-    fBLWidth(-1),
-    fPeakPos(1),
-    fIsNeg(true),
     fIsMC(false),
     fFragmentTimestamp(0)
   {
@@ -35,11 +31,8 @@ namespace rawdata{
 		     std::vector<uint16_t> adclist,
 		     uint32_t tdc, uint64_t fragTS) :
     fADC(adclist), fTstart(tdc), fChannel(channel), fBoard(board),
-    fIsNeg(true), fIsMC(false), fFragmentTimestamp(fragTS)
+    fIsMC(false), fFragmentTimestamp(fragTS)
   {
-    fBaseline = -99999;
-    fBLWidth = -1;
-    fPeakPos = adclist.size();    
   }
   
   //--------------------------------------------------
@@ -54,64 +47,87 @@ namespace rawdata{
 
   //--------------------------------------------------
 
-  int WaveForm::Baseline(int adcOffset, int nhits)
+  float WaveForm::Baseline(int adcOffset, int nhits) const
   {
-    if (fBaseline == -99999) { // baseline and width haven't been calculated yet
-      float avg = 0;
-      float rms = 0;
-      int ic = 0;
-      for ( size_t i=adcOffset; i<size_t(adcOffset+nhits) && i<fADC.size();
-	    ++i, ++ic) {
-	avg += fADC[i];
-      }
-      avg /= float(ic);
-      for ( size_t i=adcOffset; i<size_t(adcOffset+nhits) && i<fADC.size(); ++i) {
-	rms += (fADC[i]-avg)*(fADC[i]-avg);
-      }
-      rms /= float(ic);
-      rms = sqrt(rms);
-
-      fBaseline = (int)avg;
-      fBLWidth = (int)rms;
+    float avg = 0;
+    int ic = 0;
+    for ( size_t i=adcOffset; i<size_t(adcOffset+nhits) && i<fADC.size();
+	  ++i, ++ic) {
+      avg += fADC[i];
     }
+    avg /= float(ic);
+
+    return avg;
     
-    return fBaseline;
   }
 
   //--------------------------------------------------
 
-  int WaveForm::BLWidth(int adcOffset, int nhits)
+  float WaveForm::BLWidth(int adcOffset, int nhits) const
   {
-    if (fBaseline < 0) {  // baseline and width haven't been calculated yet
-      this->Baseline(adcOffset, nhits);      
+    float bl = this->Baseline(adcOffset,nhits);
+    float rms = 0;
+    int ic = 0;
+
+    for ( size_t i=adcOffset; i<size_t(adcOffset+nhits) && i<fADC.size();
+	  ++i, ++ic) {
+      rms += (fADC[i]-bl)*(fADC[i]-bl);
     }
-    
-    return fBaseline;
+    rms /= float(ic);
+
+    return sqrt(rms);
   }
 
   //--------------------------------------------------
-  int WaveForm::PeakADC() 
+  int WaveForm::PeakADC(bool isNegative) const
+  {
+    int s = 1;
+    int maxVal = 0;
+    if (isNegative) {
+      s = -1;
+      maxVal = -99999;
+    }
+    for ( size_t i=0; i<fADC.size(); ++i) {
+      if (fADC[i]*s > maxVal) {
+	maxVal = fADC[i]*s;
+      }
+    }
+    return maxVal*s;
+  }
+
+  //--------------------------------------------------
+  int WaveForm::PeakTDC(bool isNegative) const
+  {
+    int s = 1;
+    int maxVal = 0;
+    size_t peakPos=0;
+    if (isNegative) {
+      s = -1;
+      maxVal = -99999;
+    }
+    for ( size_t i=0; i<fADC.size(); ++i) {
+      if (fADC[i]*s > maxVal) {
+	maxVal = fADC[i]*s;
+	peakPos = i;
+      }
+    }
+    return (int)peakPos;
+  }
+
+  //--------------------------------------------------
+  int WaveForm::PeakWidth(bool ) const // isNegative)
   {
     return 0;
   }
 
   //--------------------------------------------------
-  int WaveForm::PeakTDC() 
+  float WaveForm::IntegratedADC(int x1, int nsamp) const
   {
-    return 0;
+    float sum=0;
+    for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i) sum += fADC[i];
+    return sum;
   }
-
-  //--------------------------------------------------
-  int WaveForm::PeakWidth() 
-  {
-    return 0;
-  }
-
-  //--------------------------------------------------
-  int WaveForm::IntegratedADC() 
-  {
-    return 0;
-  }
+  
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const WaveForm& r)
   {

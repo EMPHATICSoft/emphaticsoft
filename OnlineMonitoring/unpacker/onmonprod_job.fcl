@@ -20,6 +20,7 @@ outputs:
   {
    module_type: RootOutput
    fileName:    "onmon.root"
+   fastCloning: false
    
   }
 }
@@ -34,13 +35,12 @@ physics:
 
  filters:{}
 
- analyzers:{
-	onmon: {
-		module_type: OnMonModule
-	}
-  }
+ analyzers:
+ {
+	onmon: @local::no_ssd_onmon
+ }
 
-# stream1:  [ out1 ] #could have multiple paths
+ # stream1:  [ out1 ] #could have multiple paths
  ana: [ onmon ] 
 
  end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously

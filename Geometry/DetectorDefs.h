@@ -63,7 +63,30 @@ namespace emph {
 	if (d == "LGCalo") return DetectorType::LGCalo;
 	return DetectorType::NDetectors;
       }
-      
+
+      static int NChannel(DetectorType t) {
+	switch (t) {
+	case DetectorType::SSD:
+	  return 0;
+	case DetectorType::Trigger:
+	  return 4;
+	case DetectorType::GasCkov:
+	  return 3;
+	case DetectorType::BACkov:
+	  return 6;
+	case DetectorType::T0:
+	  return 20;
+	case DetectorType::RPC:
+	  return 16;
+	case DetectorType::ARICH:
+	  return 576;
+	case DetectorType::LGCalo:
+	  return 9;
+	default:
+	  return -1;
+	}
+      }
+
     };
   }
 }

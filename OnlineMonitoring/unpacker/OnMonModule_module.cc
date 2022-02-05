@@ -11,6 +11,8 @@
 // ROOT includes
 #include "TH1I.h"
 #include "TH2I.h"
+#include "TH1F.h"
+#include "TH2F.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -28,6 +30,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/Waveform.h"
 #include "Geometry/DetectorDefs.h"
+#include "ChannelMap/ChannelMap.h"
 
 using namespace emph;
 
@@ -49,8 +52,6 @@ namespace emph {
       void beginJob();
       
     private:
-      TH2I*  fNRawObjectsHisto;  
-      TH1I*  fNTriggerVsDet;
       void   FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > &,
@@ -70,6 +71,20 @@ namespace emph {
       void   MakeRPCPlots();
       void   MakeTrigPlots();
       
+      emph::cmap::ChannelMap* fChannelMap;
+      std::string fChanMapFileName;
+      
+      // define histograms
+      TH2I*  fNRawObjectsHisto;  
+      TH1I*  fNTriggerVsDet;
+
+      std::vector<TH1F*> fT0ADCDist;
+      std::vector<TH1I*> fT0NTDC;
+      //      std::vector<TH1F*> fLGCaloADCDist;
+
+      bool fMakeWaveFormPlots;
+      bool fMakeTRB3Plots;
+      bool fMakeSSDPlots;
     };
     
     //.......................................................................
@@ -90,14 +105,30 @@ namespace emph {
     }
     
     //......................................................................
-    void OnMonModule::reconfigure(const fhicl::ParameterSet& )// pset)
+    void OnMonModule::reconfigure(const fhicl::ParameterSet& pset)
     {
+      fChanMapFileName = pset.get<std::string>("channelMapFileName","");
+      fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
+      fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
+      fMakeSSDPlots = pset.get<bool>("makeSSDPlots",false);
       
     }
     
     //......................................................................
     void OnMonModule::beginJob()
     {
+      // initialize channel map
+      fChannelMap = 0;
+      if (!fChanMapFileName.empty()) {
+	fChannelMap = new emph::cmap::ChannelMap();
+	if (!fChannelMap->LoadMap(fChanMapFileName)) {
+	  std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
+	  delete fChannelMap;
+	  fChannelMap = 0;
+	}
+	std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
+      }
+      
       //
       // Book histograms, ntuples, initialize counts etc., etc., ...
       //
@@ -139,48 +170,82 @@ namespace emph {
 
     void  OnMonModule::MakeGasCkovPlots()
     {
-    }
+      if (fMakeWaveFormPlots)
+	std::cout << "Making GasCkov OnMon plots" << std::endl;
+  }
 
     //......................................................................
 
     void  OnMonModule::MakeBACkovPlots()
     {
+      if (fMakeWaveFormPlots)
+	std::cout << "Making BACkov OnMon plots" << std::endl;
     }
 
     //......................................................................
 
     void  OnMonModule::MakeT0Plots()
     {
-    }
+      art::ServiceHandle<art::TFileService> tfs;
 
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::T0);
+      char hname[256];
+      char htitle[256];
+      for (int i=0; i<nchannel; ++i) {
+	if (fMakeWaveFormPlots) {
+	  std::cout << "Making T0ADC OnMon plots" << std::endl;
+	  sprintf(hname,"T0ADC_%d",i);
+	  sprintf(htitle,"T0 ADC Distribution, Channel %d; ADC",i);
+	  fT0ADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
+	}
+	if (fMakeTRB3Plots) {
+	  std::cout << "Making T0TDC OnMon plots" << std::endl;
+	  sprintf(hname,"T0NTDC_%d",i);
+	  sprintf(htitle,"Number of T0 TDC Hits Per Event, Channel %d",i);	
+	  fT0NTDC.push_back(tfs->make<TH1I>(hname,htitle,50,0,50));
+	}
+      }
+    }
+    
     //......................................................................
 
     void  OnMonModule::MakeSSDPlots()
     {
+      if (fMakeSSDPlots)
+	std::cout << "Making SSD OnMon plots" << std::endl;
+
     }
 
     //......................................................................
 
     void  OnMonModule::MakeARICHPlots()
     {
+      if (fMakeTRB3Plots)
+	std::cout << "Making ARICH OnMon plots" << std::endl;
     }
 
     //......................................................................
 
     void  OnMonModule::MakeLGCaloPlots()
     {
+      if (fMakeWaveFormPlots)
+	std::cout << "Making LGCalo OnMon plots" << std::endl;
     }
 
     //......................................................................
 
     void  OnMonModule::MakeRPCPlots()
     {
+      if (fMakeTRB3Plots)
+	std::cout << "Making RPC OnMon plots" << std::endl;
     }
 
     //......................................................................
 
     void  OnMonModule::MakeTrigPlots()
     {
+      if (fMakeWaveFormPlots)
+	std::cout << "Making Trigger OnMon plots" << std::endl;
     }
 
     //......................................................................
@@ -197,10 +262,57 @@ namespace emph {
 
     //......................................................................
 
-    void OnMonModule::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & , art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void OnMonModule::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
-    }
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel echan;
+      echan.SetBoardType(boardType);
+      if (fMakeWaveFormPlots) {
+	if (!wvfmH->empty()) {
+	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
+	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    int chan = wvfm.Channel();
+	    int board = wvfm.Board();
+	    echan.SetBoard(board);
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    int detchan = dchan.Channel();
+	    if (detchan < nchan) {
+	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float blw = wvfm.BLWidth();
+	      if (adc > 5*blw)
+		fT0ADCDist[detchan]->Fill(adc);
+	    }
+	  }
+	}
+      }
 
+      if (fMakeTRB3Plots) {
+	if (! trb3H->empty()) {
+	  std::vector<int> hitCount;
+	  hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::T0));
+	  boardType = emph::cmap::TRB3;
+	  echan.SetBoardType(boardType);	
+	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
+	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
+	    int chan = trb3.GetChannel() + 64*(trb3.fgpa_header_word-1280);
+	    int board = 100;
+	    echan.SetBoard(board);	
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    int detchan = dchan.Channel();
+	    if (detchan < nchan) { // watch out for channel 500!
+	      hitCount[detchan] += 1;
+	    }
+	  }
+	  for (size_t i=0; i<hitCount.size(); ++i)
+	    fT0NTDC[i]->Fill(hitCount[i]);
+	  
+	}
+      }
+    }
+        
     //......................................................................
 
     void OnMonModule::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & )
@@ -233,7 +345,7 @@ namespace emph {
     
     //......................................................................
     void OnMonModule::analyze(const art::Event& evt)
-    {
+    {      
       std::string labelStr;
 
       for (int i=0; i<emph::geo::NDetectors; ++i) {
@@ -261,6 +373,9 @@ namespace emph {
 		  fNTriggerVsDet->Fill(j);
 		  FillT0Plots(wfHandle, trbHandle);
 		}
+		else
+		  std::cout << "**No TRB3 digits found for the T0!" << std::endl;
+		
 	      }
 	      catch(...) {
 		std::cout << "No TRB3 digits found for the T0!" << std::endl;
@@ -273,13 +388,12 @@ namespace emph {
 	  //	  std::cout << "Nothing found in " << labelStr << std::endl;
 	}	
       }
-      // get TRB3digits
+      // get RPC TRB3digits
       int i = emph::geo::RPC;
       labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));	
       art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbHandle;
       try {
 	evt.getByLabel(labelStr, trbHandle);
-      
 	if (!trbHandle->empty()) {
 	  fNRawObjectsHisto->Fill(i,trbHandle->size());
 	  fNTriggerVsDet->Fill(i);
