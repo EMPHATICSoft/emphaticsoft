@@ -81,6 +81,9 @@ namespace emph {
       std::vector<TH1F*> fT0ADCDist;
       std::vector<TH1I*> fT0NTDC;
       std::vector<TH1F*> fLGCaloADCDist;
+      std::vector<TH1F*> fBACkovADCDist;
+      std::vector<TH1F*> fGasCkovADCDist;
+      std::vector<TH1F*> fTriggerADCDist;
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -169,16 +172,38 @@ namespace emph {
 
     void  OnMonModule::MakeGasCkovPlots()
     {
-      if (fMakeWaveFormPlots)
-	std::cout << "Making GasCkov OnMon plots" << std::endl;
-  }
+      art::ServiceHandle<art::TFileService> tfs;
+      
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::GasCkov);
+      char hname[256];
+      char htitle[256];
+      if (fMakeWaveFormPlots) {
+	std::cout << "Making Gas Ckov ADC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"GasCkovADC_%d",i);
+	  sprintf(htitle,"Gas Ckov ADC Distribution, Channel %d; ADC",i);
+	  fGasCkovADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
+	}
+      }
+    }
 
     //......................................................................
 
     void  OnMonModule::MakeBACkovPlots()
     {
-      if (fMakeWaveFormPlots)
-	std::cout << "Making BACkov OnMon plots" << std::endl;
+      art::ServiceHandle<art::TFileService> tfs;
+      
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
+      char hname[256];
+      char htitle[256];
+      if (fMakeWaveFormPlots) {
+	std::cout << "Making BACkov ADC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"BACkovADC_%d",i);
+	  sprintf(htitle,"BACkov ADC Distribution, Channel %d; ADC",i);
+	  fBACkovADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
+	}
+      }
     }
 
     //......................................................................
@@ -190,15 +215,17 @@ namespace emph {
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::T0);
       char hname[256];
       char htitle[256];
-      for (int i=0; i<nchannel; ++i) {
-	if (fMakeWaveFormPlots) {
-	  std::cout << "Making T0ADC OnMon plots" << std::endl;
+      if (fMakeWaveFormPlots) {
+	std::cout << "Making T0ADC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
 	  sprintf(hname,"T0ADC_%d",i);
 	  sprintf(htitle,"T0 ADC Distribution, Channel %d; ADC",i);
 	  fT0ADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
 	}
-	if (fMakeTRB3Plots) {
-	  std::cout << "Making T0TDC OnMon plots" << std::endl;
+      }
+      if (fMakeTRB3Plots) {
+	std::cout << "Making T0TDC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
 	  sprintf(hname,"T0NTDC_%d",i);
 	  sprintf(htitle,"Number of T0 TDC Hits Per Event, Channel %d",i);	
 	  fT0NTDC.push_back(tfs->make<TH1I>(hname,htitle,50,0,50));
@@ -232,9 +259,9 @@ namespace emph {
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
       char hname[256];
       char htitle[256];
-      for (int i=0; i<nchannel; ++i) {
-	if (fMakeWaveFormPlots) {
-	  std::cout << "Making LGCalo ADC OnMon plots" << std::endl;
+      if (fMakeWaveFormPlots) {
+	std::cout << "Making LGCalo ADC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {	  
 	  sprintf(hname,"LGCaloADC_%d",i);
 	  sprintf(htitle,"LGCalo ADC Distribution, Channel %d; ADC",i);
 	  fLGCaloADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
@@ -243,7 +270,7 @@ namespace emph {
     }
 
     //......................................................................
-
+    
     void  OnMonModule::MakeRPCPlots()
     {
       if (fMakeTRB3Plots)
@@ -254,20 +281,77 @@ namespace emph {
 
     void  OnMonModule::MakeTrigPlots()
     {
-      if (fMakeWaveFormPlots)
-	std::cout << "Making Trigger OnMon plots" << std::endl;
+      art::ServiceHandle<art::TFileService> tfs;
+      
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
+      char hname[256];
+      char htitle[256];
+      if (fMakeWaveFormPlots) {
+	std::cout << "Making Trigger ADC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {	  
+	  sprintf(hname,"TriggerADC_%d",i);
+	  sprintf(htitle,"Trigger ADC Distribution, Channel %d; ADC",i);
+	  fTriggerADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
+	}
+      }
     }
 
     //......................................................................
 
-    void OnMonModule::FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & )
+    void OnMonModule::FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::GasCkov);
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel echan;
+      echan.SetBoardType(boardType);
+      if (fMakeWaveFormPlots) {
+	if (!wvfmH->empty()) {
+	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
+	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    int chan = wvfm.Channel();
+	    int board = wvfm.Board();
+	    echan.SetBoard(board);
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    int detchan = dchan.Channel();
+	    if (detchan >= 0 && detchan < nchan) {
+	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float blw = wvfm.BLWidth();
+	      if (adc > 5*blw)
+		fGasCkovADCDist[detchan]->Fill(adc);
+	    }
+	  }
+	}
+      }      
     }
 
     //......................................................................
 
-    void OnMonModule::FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & )
+    void OnMonModule::FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel echan;
+      echan.SetBoardType(boardType);
+      if (fMakeWaveFormPlots) {
+	if (!wvfmH->empty()) {
+	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
+	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    int chan = wvfm.Channel();
+	    int board = wvfm.Board();
+	    echan.SetBoard(board);
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    int detchan = dchan.Channel();
+	    if (detchan >= 0 && detchan < nchan) {
+	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float blw = wvfm.BLWidth();
+	      if (adc > 5*blw)
+		fBACkovADCDist[detchan]->Fill(adc);
+	    }
+	  }
+	}
+      }
     }
 
     //......................................................................
@@ -372,8 +456,31 @@ namespace emph {
     }
     //......................................................................
 
-    void   OnMonModule::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & )
+    void   OnMonModule::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel echan;
+      echan.SetBoardType(boardType);
+      if (fMakeWaveFormPlots) {
+	if (!wvfmH->empty()) {
+	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
+	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    int chan = wvfm.Channel();
+	    int board = wvfm.Board();
+	    echan.SetBoard(board);
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    int detchan = dchan.Channel();
+	    if (detchan >= 0 && detchan < nchan) {
+	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float blw = wvfm.BLWidth();
+	      if (adc > 5*blw)
+		fTriggerADCDist[detchan]->Fill(adc);
+	    }
+	  }
+	}
+      }
     }
 
     //......................................................................
