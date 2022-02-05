@@ -52,8 +52,6 @@ namespace emph {
       void beginJob();
 
     private:
-      TH2I*  fNRawObjectsHisto;
-      TH1I*  fNTriggerVsDet;
       void   FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > &,
@@ -82,7 +80,7 @@ namespace emph {
 
       std::vector<TH1F*> fT0ADCDist;
       std::vector<TH1I*> fT0NTDC;
-      //      std::vector<TH1F*> fLGCaloADCDist;
+      std::vector<TH1F*> fLGCaloADCDist;
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -229,8 +227,19 @@ namespace emph {
 
     void  OnMonModule::MakeLGCaloPlots()
     {
-      if (fMakeWaveFormPlots)
-	std::cout << "Making LGCalo OnMon plots" << std::endl;
+      art::ServiceHandle<art::TFileService> tfs;
+      
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
+      char hname[256];
+      char htitle[256];
+      for (int i=0; i<nchannel; ++i) {
+	if (fMakeWaveFormPlots) {
+	  std::cout << "Making LGCalo ADC OnMon plots" << std::endl;
+	  sprintf(hname,"LGCaloADC_%d",i);
+	  sprintf(htitle,"LGCalo ADC Distribution, Channel %d; ADC",i);
+	  fLGCaloADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
+	}
+      }
     }
 
     //......................................................................
@@ -328,9 +337,32 @@ namespace emph {
 
     //......................................................................
 
-    void    OnMonModule::FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > & )
+    void    OnMonModule::FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
-
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel echan;
+      echan.SetBoardType(boardType);
+      if (fMakeWaveFormPlots) {
+	if (!wvfmH->empty()) {
+	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
+	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    int chan = wvfm.Channel();
+	    int board = wvfm.Board();
+	    echan.SetBoard(board);
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    int detchan = dchan.Channel();
+	    if (detchan >= 0 && detchan < nchan) {
+	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float blw = wvfm.BLWidth();
+	      if (adc > 5*blw)
+		fLGCaloADCDist[detchan]->Fill(adc);
+	    }
+	  }
+	}
+      }
+      
     }
 
     //......................................................................
