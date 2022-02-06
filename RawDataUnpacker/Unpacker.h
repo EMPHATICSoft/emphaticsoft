@@ -29,7 +29,7 @@ namespace emph {
       static std::vector<emph::rawdata::TRB3RawDigit>
         GetTRB3RawDigitsFromFragment(emphaticdaq::TRB3Fragment& frag);
       
-      static std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit>> readSSDHitsFromFileStream(std::ifstream&);
+      static std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit>> readSSDHitsFromFileStream(std::ifstream&, bool isFirst);
       
     };
     

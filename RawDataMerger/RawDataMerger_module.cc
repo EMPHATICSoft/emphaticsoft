@@ -96,12 +96,14 @@ void emph::RawDataMerger::produce(art::Event& evt) {
     // need to read in to find the first actual hits
     std::vector<SSDRawDigit> hits;
     uint64_t bco = 0;
+    bool isFirst = true;
     do {
-      auto tmp_ssd_hits = Unpack::readSSDHitsFromFileStream(ssd_file);
-        bco = tmp_ssd_hits.first;
-        hits = tmp_ssd_hits.second;
-        // std::cout << bco << "\t" << hits.size() << "\n";
-        ssd_events++;
+      auto tmp_ssd_hits = Unpack::readSSDHitsFromFileStream(ssd_file,isFirst);
+      if (isFirst) isFirst = false;
+      bco = tmp_ssd_hits.first;
+      hits = tmp_ssd_hits.second;
+      // std::cout << bco << "\t" << hits.size() << "\n";
+      ssd_events++;
     } while (hits.size() == 0);
     std::cout << ssd_events << "\n";
 

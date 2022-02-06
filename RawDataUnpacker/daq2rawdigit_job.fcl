@@ -19,7 +19,6 @@ source:
 {
   module_type:               RawDataUnpacker
   fileNames:                 ["/emph/data/data/Jan2022/emdaq_otsdaq_rootOutput_r430_s1_20220131T232556_1.art"]
-  ssd_data_path: "/emph/data/data/Jan2022/SSD-2"
   daqLabel:        "daq"
   createArtEvents:   true
   makeTDiffHistos:   true
@@ -28,8 +27,8 @@ source:
   nEvents: 0
   verbosity: 0
   channelMapFileName: "ChannelMap_Jan22_Run436.txt"
-  SSDFilePrefix: "/Users/jpaley/EMPHATIC/data/RawDataSaver0FER"
-  readSSDData: false
+  SSDFilePrefix: "/data/"
+  readSSDData: true
 }
 
 outputs:

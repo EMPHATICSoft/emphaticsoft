@@ -164,7 +164,7 @@ namespace emph {
     
     //------------------------------------------------------------------------------
     
-    std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit>> Unpack::readSSDHitsFromFileStream(std::ifstream& file_handle) {
+    std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit>> Unpack::readSSDHitsFromFileStream(std::ifstream& file_handle, bool first) {
       // TODO sanity checks for input file
       
       const uint64_t kOnes = -1;
@@ -175,33 +175,30 @@ namespace emph {
       
       std::vector<emph::rawdata::SSDRawDigit> ssd_hits;
       ssd_hits.reserve(kMaxHits);
-      bool start_flag = false;
+      bool start_flag = true;
+      bool isFirst = first;
       
       while (!file_handle.eof()) {
-        file_handle.read((char*)(&rawdata_buffer), kDataSize);
-        if (rawdata_buffer == kOnes) {
-	  if (start_flag) {
-	    // event reading was previously started, now got end marker
-	    // return as soon as this event is fully read
-	    start_flag = false;
-	    break;
-	  }
-	  else  {
-	    // maybe got an extra event separator?
-	    // TODO better logging
-	    std::cout << "Warning: Got extra event marker. Check file?\n";
+        file_handle.read((char*)(&rawdata_buffer), kDataSize);	
+        if (rawdata_buffer == kOnes) { // mark the start of a new event
+	  if (isFirst) {
+	    // at start of file, skip this first marker
+	    isFirst = false;
 	    continue;
 	  }
-        }
-        else {
-	  // event data
-	  if (!start_flag) {
-	    start_flag = true;
-	    // read the bco clock time at the start of each event
-	    // we call an extra read here since the first data block of the event is unused
-	    file_handle.read((char*)(&bco), kDataSize);
-	    continue;
-	  }
+	  // got to end of the event, so we're done
+	  break;
+	}
+	if (start_flag) {
+	  // at the start of an event, so this is the event number
+	  // read the bco clock time at the start of each event
+	  // we call an extra read here since the first data block of the event is unused
+	  start_flag = false;
+	  file_handle.read((char*)(&bco), kDataSize);
+	  continue;
+	}
+	else {
+	  // extra next SSD raw hit info
 	  uint64_t rawdata_tmp = 0;
 	  uint64_t rawdata_ordered = 0;
 	  for (size_t byte = 0; byte < kDataSize; byte++) {
@@ -220,10 +217,9 @@ namespace emph {
 	  
 	  rawdata::SSDRawDigit hit(station, module, chip, set, strip, t, adc, trig_type);
 	  ssd_hits.push_back(hit);
-        }
+	}
       }
       return std::make_pair(bco, ssd_hits);
-    }
-    
+    }    
   } // end namespace rawdata
 } // end namespace emph

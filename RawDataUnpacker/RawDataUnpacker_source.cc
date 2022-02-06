@@ -163,13 +163,12 @@ namespace rawdata {
     }
     //    std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > ssdDigvec;    
     //      fSSDRawDigits.push_back(ssdDigvec);
-    auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
+    auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile,true);
     fSSDRawDigits.push_back(ssdDigs);
     fSSDT0.push_back(ssdDigs.first); // get time of first event
-    while (!ssdDigs.second.empty()) {
-      ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
+    while (!ssdFile.eof()) {
+      ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile,false);
       fSSDRawDigits.push_back(ssdDigs);
-      std::cout << ssdDigs.second.size() << " SSD hits" << std::endl;
     }
     std::cout <<  "Found " << fSSDRawDigits.size() << " SSD events"
 	      << std::endl;
