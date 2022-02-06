@@ -151,41 +151,31 @@ namespace rawdata {
   {
     // make sure we can open SSD raw data files      
     char fileName[256];
-    bool fSSDFilesOk = true;
-    for (int i=0; i<4; ++i) {
-      std::ifstream ssdFile;
-      sprintf(fileName,"%s%d_Run%d_%d_Raw.dat",fSSDFilePrefix.c_str(),i,fRun,fSubrun-1);
-      ssdFile.open(fileName);
-      if (ssdFile.is_open())
-	ssdFile.close();
-      else {
-	fSSDFilesOk = false;
-	std::cerr << "Error: cannot open " << fileName << std::endl;	  
-      }
+    //    bool fSSDFilesOk = true;
+    //    for (int i=0; i<4; ++i) {
+    std::ifstream ssdFile;
+    sprintf(fileName,"%sRun%d_%d.dat",fSSDFilePrefix.c_str(),fRun,fSubrun);
+    ssdFile.open(fileName);
+    if (!ssdFile.is_open()) {
+      //      fSSDFilesOk = false;
+      std::cerr << "Error: cannot open " << fileName << std::endl;
+      return false;
     }
-    if (! fSSDFilesOk) return false; // bail if we can't open all files
-    
-    // loop over stations and create vectors to store ssd hits for each event
-    for (int i=0; i<4; ++i) {
-      std::ifstream ssdFile;
-      sprintf(fileName,"%s%d_%d_Raw.dat",fSSDFilePrefix.c_str(),fRun,fSubrun);
-      ssdFile.open(fileName);
-      std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > ssdDigvec;
-      fSSDRawDigits.push_back(ssdDigvec);
-      auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
-      fSSDRawDigits[i].push_back(ssdDigs);
-      fSSDT0.push_back(ssdDigs.first); // get time of first event
-      while (!ssdDigs.second.empty()) {
-	ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
-	fSSDRawDigits[i].push_back(ssdDigs);
-      }
-      std::cout <<  "Found " << fSSDRawDigits[i].size() << " events for SSD station " << i
-		<< std::endl;
-      
-      ssdFile.close();
+    //    std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > ssdDigvec;    
+    //      fSSDRawDigits.push_back(ssdDigvec);
+    auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
+    fSSDRawDigits.push_back(ssdDigs);
+    fSSDT0.push_back(ssdDigs.first); // get time of first event
+    while (!ssdDigs.second.empty()) {
+      ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile);
+      fSSDRawDigits.push_back(ssdDigs);
+      std::cout << ssdDigs.second.size() << " SSD hits" << std::endl;
     }
+    std::cout <<  "Found " << fSSDRawDigits.size() << " SSD events"
+	      << std::endl;
     
-    return false;
+    ssdFile.close();
+    return true;
   }
   
   /***************************************************************************/
@@ -422,6 +412,7 @@ namespace rawdata {
       // TODO avoid hard coding the number of modules
       // TODO read file path from fhicl file
       // note use of pointer since ifstream cannot be copied
+      /*
       for (unsigned int i = 0; i < 4; i++) {
           TString spattern = Form("%s/RawDataSaver0FER%d_Run%d_%d_Raw.dat", fSSDPath.c_str(), i, fRun, fSubrun - 1);
           std::cout << spattern.Data() << "\n";
@@ -434,7 +425,7 @@ namespace rawdata {
 
           ssd_file_handles.push_back(std::move(ssd_stream));
       }
-
+      */
       
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
@@ -459,11 +450,11 @@ namespace rawdata {
     if (fCreateArtEvents) {
         // read next event from all available SSD files
         // TODO might need to skip events at the beginning
-        for (auto& handle : ssd_file_handles) {
-            auto time_and_hits = Unpack::readSSDHitsFromFileStream(*handle);
+      //        for (auto& handle : ssd_file_handles) {
+      //            auto time_and_hits = Unpack::readSSDHitsFromFileStream(*handle);
             // std::cout << "DEMO SSD BCO TIME " << time_and_hits.first << "\n";
             // std::cout << "DEMO SSD NHITS " << time_and_hits.second.size << "\n";
-        }
+      //        }
 
       std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
