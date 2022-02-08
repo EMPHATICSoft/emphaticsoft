@@ -66,13 +66,14 @@ namespace emph {
       uint64_t fEvtCount;
       uint64_t fTimeOffset;
       uint64_t fTimeWindow;
+      uint64_t fPrevTS;
       std::string fChanMapFileName;
 
       emph::cmap::ChannelMap* fChannelMap;
 
       std::string fSSDFilePrefix;
-      std::vector<size_t> fSSDCount;
-      std::vector<uint64_t> fSSDT0;      
+      uint64_t fSSDT0;      
+      size_t  fSSDEvtIdx;
       //      std::vector<std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > >
       std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > fSSDRawDigits;
       

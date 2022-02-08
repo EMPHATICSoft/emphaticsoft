@@ -94,6 +94,8 @@ namespace rawdata {
     help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
     detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::RPC));
     help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
+    detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::SSD));
+    help.reconstitutes<std::vector<emph::rawdata::SSDRawDigit>, art::InEvent>("raw",detStr);
 
     fCurrentFilename = "";
 
@@ -103,6 +105,8 @@ namespace rawdata {
 
     fEvtCount = 0;
 
+    fSSDEvtIdx = 0;
+    
     // initialize channel map
     fChannelMap = 0;
     if (!fChanMapFileName.empty()) {
@@ -165,11 +169,16 @@ namespace rawdata {
     //      fSSDRawDigits.push_back(ssdDigvec);
     auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile,true);
     fSSDRawDigits.push_back(ssdDigs);
-    fSSDT0.push_back(ssdDigs.first); // get time of first event
+    fSSDT0 = ssdDigs.first; // get time of first event
     while (!ssdFile.eof()) {
       ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile,false);
       fSSDRawDigits.push_back(ssdDigs);
     }
+    if (fSSDRawDigits.size() > 1) {
+      fSSDT0 = fSSDRawDigits[0].first; 
+      fSSDEvtIdx = 0;
+    }
+    
     std::cout <<  "Found " << fSSDRawDigits.size() << " SSD events"
 	      << std::endl;
     
@@ -406,30 +415,11 @@ namespace rawdata {
       outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
 						subrunAux->beginTime());
 
-      // construct the SSD file name based on sub run number
-      // RawDataSaver0FER0_Run135_0_Raw.dat
-      // TODO avoid hard coding the number of modules
-      // TODO read file path from fhicl file
-      // note use of pointer since ifstream cannot be copied
-      /*
-      for (unsigned int i = 0; i < 4; i++) {
-          TString spattern = Form("%s/RawDataSaver0FER%d_Run%d_%d_Raw.dat", fSSDPath.c_str(), i, fRun, fSubrun - 1);
-          std::cout << spattern.Data() << "\n";
-          std::unique_ptr<std::ifstream> ssd_stream = std::make_unique<std::ifstream>(spattern.Data());
-          if (!ssd_stream->is_open()) {
-              // TODO Better logging
-              std::cerr << "WARNING: Missing SSD for module " << i << ". Run=" << fRun << " Subrun=" << fSubrun << "\n";
-              continue;
-          }
-
-          ssd_file_handles.push_back(std::move(ssd_stream));
-      }
-      */
-      
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
       if (! createDigitsFromArtdaqEvent()) return false;
-      
+
+      // create all of the SSD digits for this spill
       if (fReadSSDData)
 	if (! createSSDDigits()) return false;
       
@@ -441,20 +431,13 @@ namespace rawdata {
 	auto fragId = fFragId[ifrag];
 	fT0[fragId] = fFragTimestamps[fragId][0];
       }
+      fPrevTS = 0;
       
       fIsFirst = false;
     }
     
 
     if (fCreateArtEvents) {
-        // read next event from all available SSD files
-        // TODO might need to skip events at the beginning
-      //        for (auto& handle : ssd_file_handles) {
-      //            auto time_and_hits = Unpack::readSSDHitsFromFileStream(*handle);
-            // std::cout << "DEMO SSD BCO TIME " << time_and_hits.first << "\n";
-            // std::cout << "DEMO SSD NHITS " << time_and_hits.second.size << "\n";
-      //        }
-
       std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
 	evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
@@ -462,7 +445,9 @@ namespace rawdata {
       std::vector<std::unique_ptr<std::vector<emph::rawdata::TRB3RawDigit> > > evtTRB3Digits;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
 	evtTRB3Digits.push_back(std::make_unique<std::vector<emph::rawdata::TRB3RawDigit>  >());
-    
+
+      std::vector<emph::rawdata::SSDRawDigit> evtSSDVec;
+      
       // find digits for the next event.  First, find earliest hits/wvfms
       uint64_t earliestTimestamp = 0;
       
@@ -486,6 +471,32 @@ namespace rawdata {
 	  }
 	}
       }
+      
+      //      std::cout << fEvtCount << ", " << fSSDEvtIdx << ", " << std::endl;
+	
+      if ((fEvtCount > 0) && (fSSDEvtIdx > 0)  &&
+	  (fSSDEvtIdx < fSSDRawDigits.size()-1)) {
+	
+	int64_t ssdArtDt = earliestTimestamp - fPrevTS - (fSSDRawDigits[fSSDEvtIdx].first - fSSDRawDigits[fSSDEvtIdx-1].first)*150;
+	
+	//	std::cout << "dT (artdaq-ssdots) = " << ssdArtDt << std::endl;
+	if (abs(ssdArtDt) < (int64_t)fTimeWindow) {
+	  auto & ssdDigs = fSSDRawDigits[fSSDEvtIdx].second;	  
+	  if (!ssdDigs.empty()) {
+	    //	    std::cout << "writing out " << ssdDigs.size() << " SSD digits"
+	    //		      << std::endl;
+	    for (auto ssdDig : ssdDigs) {
+	      auto tssdDig(ssdDig);
+	      //	      std::cout << tssdDig << std::endl;
+	      evtSSDVec.push_back(tssdDig);
+	    }
+	  }
+	}
+      }
+
+      fPrevTS = earliestTimestamp;
+      ++fSSDEvtIdx;
+      auto evtSSDRawDigits = std::make_unique<std::vector<emph::rawdata::SSDRawDigit>  >(evtSSDVec);
       
       // now that we've found the earliest hit/wvfm, find all that are within fTimeWindow to associate with this art Event
       int nObjects = 0;
@@ -548,6 +559,14 @@ namespace rawdata {
 						  earliestTimestamp);
       
       if (fVerbosity) std::cout << "Event " << fEvtCount << ": " << std::endl;
+      
+      if (!evtSSDRawDigits->empty()) {
+	if (fVerbosity)
+	  std::cout << "\t" << evtSSDRawDigits->size() << " SSDRawDigits"
+		    << std::endl; 
+	put_product_in_principal(std::move(evtSSDRawDigits), *outE,"raw","SSD");	  
+      }
+      
       for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
 	std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
       	if (!evtWaveForms[idet]->empty()) {
@@ -563,7 +582,7 @@ namespace rawdata {
 		      << evtTRB3Digits[idet]->size() << " TRB3RawDigits"
 		      << std::endl; 
 	  put_product_in_principal(std::move(evtTRB3Digits[idet]), *outE,"raw",detStr);
-	}	
+	}
       }
       
       return true;
