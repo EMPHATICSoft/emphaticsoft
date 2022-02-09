@@ -3,34 +3,35 @@
 #include <string>
 #include <deque>
 
-namespace om {
-  ///
-  /// Hold the current and past state of the current histogram setting.
-  ///
-  class CurrentHistogram 
-  {
-  public:
-    CurrentHistogram();
-    
-    int         Set(const char* nm);
-    int         Forward();
-    int         Reload();
-    int         Backward();
+namespace emph { 
+  namespace onmon {
+    ///
+    /// Hold the current and past state of the current histogram setting.
+    ///
+    class CurrentHistogram 
+    {
+    public:
+      CurrentHistogram();
+      
+      int         Set(const char* nm);
+      int         Forward();
+      int         Reload();
+      int         Backward();
 
-    const char* Current()    const;
-    bool        ForwardOK()  const;
-    bool        BackwardOK() const;
-    bool        ReloadOK()   const;
-    
-  private:
-    ///< How deep do we allow the history to go?
-    static const unsigned int kMaxHistory=16;
-    
-  private:
-    std::deque<std::string>           fHistory;
-    std::deque<std::string>::iterator fPlace;
-  };
-}
-
+      const char* Current()    const;
+      bool        ForwardOK()  const;
+      bool        BackwardOK() const;
+      bool        ReloadOK()   const;
+      
+    private:
+      ///< How deep do we allow the history to go?
+      static const unsigned int kMaxHistory=16;
+      
+    private:
+      std::deque<std::string>           fHistory;
+      std::deque<std::string>::iterator fPlace;
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

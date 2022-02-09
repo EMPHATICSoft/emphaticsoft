@@ -4,7 +4,7 @@
 #include <iostream>
 #include "TText.h"
 #include "TLine.h"
-using namespace om;
+using namespace emph::onmon;
 
 UTCLabel::UTCLabel()
 { }

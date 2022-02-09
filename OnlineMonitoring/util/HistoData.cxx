@@ -1,5 +1,5 @@
 #include "OnlineMonitoring/util/HistoData.h"
-using namespace om;
+using namespace emph::onmon;
 
 bool HistoData::IsValid() const
 {

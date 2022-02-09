@@ -14,10 +14,10 @@ static const std::string h2s("histo1db");
 static const std::string h3s("histo2ds");
 static const std::string h4s("histo2db");
 
-class MyIPC : public om::IPC 
+class MyIPC : public emph::onmon::IPC 
 {
 public:
-  MyIPC(int m) : om::IPC(m,"IPCT") { }
+  MyIPC(int m) : emph::onmon::IPC(m,"IPCT") { }
 private:
   TH1F* FindTH1F(const char* nm) {
     if (h1s==nm) return h1;
@@ -35,7 +35,7 @@ private:
 
 int main(void)
 {
-  MyIPC ipc(om::kIPC_SERVER);
+  MyIPC ipc(emph::onmon::kIPC_SERVER);
 
   std::string name;
   for (unsigned int i=0;;++i) {

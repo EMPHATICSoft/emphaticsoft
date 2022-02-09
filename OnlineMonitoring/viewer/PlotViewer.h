@@ -14,39 +14,39 @@ class TVirtualPad;
 class TH1F;
 class TH2F;
 class TGWindow;
-namespace om { class ComparisonOptions; }
+namespace emph { namespace onmon { class ComparisonOptions; } }
 
-namespace om
-{
-  //
-  // The canvas that shows the selected plot of detector status
-  //
-  class PlotViewer : public TRootEmbeddedCanvas, public GUIModelSubscriber
-  {
-  public:
-    PlotViewer(TGWindow* m);
-    ~PlotViewer();
+namespace emph { 
+  namespace onmon {
+    //
+    // The canvas that shows the selected plot of detector status
+    //
+    class PlotViewer : public TRootEmbeddedCanvas, public GUIModelSubscriber
+    {
+    public:
+      PlotViewer(TGWindow* m);
+      ~PlotViewer();
 
-    static void Exec();
+      static void Exec();
 
-    void Update();
-    void UpdateCompare(const ComparisonOptions& COpt);
+      void Update();
+      void UpdateCompare(const ComparisonOptions& COpt);
 
-    // Complete the GUIModelSubscriber interface
-    void GUIModelDataIssue(const GUIModelData& m, unsigned int which);
+      // Complete the GUIModelSubscriber interface
+      void GUIModelDataIssue(const GUIModelData& m, unsigned int which);
 
-  private:
-    void ContentProjectionTH1F(const HistoData* hd, TH1F* h);
-    void ContentProjectionTH2F(const HistoData* hd, TH2F* h);
+    private:
+      void ContentProjectionTH1F(const HistoData* hd, TH1F* h);
+      void ContentProjectionTH2F(const HistoData* hd, TH2F* h);
 
-  private:
-    PlotOptions fPlotOpt;          ///< Options for plotting
-    std::string fHistogramSource;  ///< Source to pull histograms from
-    std::string fCurrentHistogram; ///< What histogram is being shown?
+    private:
+      PlotOptions fPlotOpt;          ///< Options for plotting
+      std::string fHistogramSource;  ///< Source to pull histograms from
+      std::string fCurrentHistogram; ///< What histogram is being shown?
 
-  ClassDef(PlotViewer,0)
-  };
-}
-
+    ClassDef(PlotViewer,0)
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

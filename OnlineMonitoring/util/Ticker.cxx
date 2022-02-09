@@ -7,7 +7,7 @@
 #include "OnlineMonitoring/util/Ticker.h"
 #include "OnlineMonitoring/util/TickerSubscriber.h"
 #include <iostream>
-using namespace om;
+using namespace emph::onmon;
 
 Ticker::Ticker() :
   fLastRun   (kUninitRun),

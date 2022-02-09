@@ -5,21 +5,23 @@
 class TGLabel;
 class TTimer;
 
-namespace om {
-  class HeaderBar : public TGGroupFrame {
-  public:
-    HeaderBar(TGWindow* w);
-    ~HeaderBar();
+namespace emph { 
+  namespace onmon {
+    class HeaderBar : public TGGroupFrame {
+    public:
+      HeaderBar(TGWindow* w);
+      ~HeaderBar();
 
-    Bool_t HandleTimer(TTimer *timer __attribute__((unused)));
+      Bool_t HandleTimer(TTimer *timer __attribute__((unused)));
 
-  public:
-    TGLabel* fProdLabel;
-    TGLabel* fDateLabel;
+    public:
+      TGLabel* fProdLabel;
+      TGLabel* fDateLabel;
 
-  private:
-    TTimer* fTimer;
-  };
-}
+    private:
+      TTimer* fTimer;
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

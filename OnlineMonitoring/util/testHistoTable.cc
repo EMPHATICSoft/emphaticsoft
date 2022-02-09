@@ -5,9 +5,9 @@
 
 int main(void)
 {
-  om::HistoTable& t = om::HistoTable::Instance();
+  emph::onmon::HistoTable& t = emph::onmon::HistoTable::Instance();
 
-  t.ReadFile("test-histos.csv", om::kEMPH);
+  t.ReadFile("test-histos.csv", emph::onmon::kEMPH);
 
   assert(t["Test1D"].      fName=="Test1D");
   assert(t["Test2D"].      fName=="Test2D");

@@ -3,22 +3,24 @@
 #include "TGTextView.h"
 #include "OnlineMonitoring/viewer/GUIModelSubscriber.h"
 
-namespace om { class GUIModelData; }
+namespace emph { namespace onmon { class GUIModelData; } }
 
-namespace om {
-  class CaptionBox : public TGTextView, public GUIModelSubscriber {
-  public:
-    CaptionBox(TGWindow* w);
-    ~CaptionBox();
+namespace emph { 
+  namespace onmon {
+    class CaptionBox : public TGTextView, public GUIModelSubscriber {
+    public:
+      CaptionBox(TGWindow* w);
+      ~CaptionBox();
 
-    ///
-    /// Complete the GUIModelSubscriber interface
-    ///
-    void GUIModelDataIssue(const GUIModelData& d, unsigned int which);
-    
-  private:
-    TGText* fText;   ///< The text inside the box
-  };
-}
+      ///
+      /// Complete the GUIModelSubscriber interface
+      ///
+      void GUIModelDataIssue(const GUIModelData& d, unsigned int which);
+      
+    private:
+      TGText* fText;   ///< The text inside the box
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,7 @@
 #include "OnlineMonitoring/viewer/Layout.h"
 #include "OnlineMonitoring/viewer/GUIModel.h"
 #include "OnlineMonitoring/util/IPC.h"
-using namespace om;
+using namespace emph::onmon;
 
 enum _menu {
   // File menu entries
@@ -94,7 +94,7 @@ int MenuBar::ResetLocks()
 
   std::string hndl = src.substr(0,4);
 
-  IPC ipc(om::kIPC_CLIENT,hndl.c_str());
+  IPC ipc(emph::onmon::kIPC_CLIENT,hndl.c_str());
   ipc.ResetAllLocks();
 
   return 0;

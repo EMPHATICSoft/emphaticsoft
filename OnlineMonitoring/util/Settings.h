@@ -8,20 +8,21 @@
 #define OM_SETTINGS_H
 #include "OnlineMonitoring/util/HistoData.h"
 
-namespace om {
-  class Settings {
-  public:
-    static Settings& Instance();
-  
-  public:
-    std::string  fCSVFile;
-    Detector_t   fDet;
+namespace emph { 
+  namespace onmon {
+    class Settings {
+    public:
+      static Settings& Instance();
     
-  private:
-    Settings();
+    public:
+      std::string  fCSVFile;
+      Detector_t   fDet;
+      
+    private:
+      Settings();
 
-  };
-}
-
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,7 @@
 #include "OnlineMonitoring/viewer/Layout.h"
 #include "OnlineMonitoring/viewer/OStream.h"
 
-using namespace om;
+using namespace emph::onmon;
 
 GUIMain::GUIMain() :
   TGMainFrame(gClient->GetRoot(), 
@@ -55,9 +55,9 @@ GUIMain::GUIMain() :
 
   fLogViewer = new LogViewer(this);
   this->AddFrame(fLogViewer, fLogViewerHints);
-  om::cout.SetLogViewer(fLogViewer);
-  om::cerr.SetLogViewer(fLogViewer);
-  om::cout << "Starting online monitoring viewer" << "";
+  emph::onmon::cout.SetLogViewer(fLogViewer);
+  emph::onmon::cerr.SetLogViewer(fLogViewer);
+  emph::onmon::cout << "Starting online monitoring viewer" << "";
   
   fTabsBox = new TabsBox(this);
   this->AddFrame(fTabsBox, fTabsBoxHints);

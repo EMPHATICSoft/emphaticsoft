@@ -1,7 +1,7 @@
 #include "OnlineMonitoring/viewer/GUIModelSubscriber.h"
 #include <unistd.h>
 #include "OnlineMonitoring/viewer/GUIModel.h"
-using namespace om;
+using namespace emph::onmon;
 
 static bool gsLock = false;
 

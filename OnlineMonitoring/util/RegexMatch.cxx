@@ -4,7 +4,7 @@
 #include <regex.h>
 //}
 
-int om::regex_match(const std::string& s, const std::string& w) 
+int emph::onmon::regex_match(const std::string& s, const std::string& w) 
 {
   // Change the wild card pattern into a regex
   std::string p = "^";

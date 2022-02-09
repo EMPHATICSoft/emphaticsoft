@@ -12,7 +12,7 @@
 #include "OnlineMonitoring/util/HistoTable.h"
 #include "OnlineMonitoring/util/HistoData.h"
 #include "OnlineMonitoring/util/TickerSubscriber.h"
-using namespace om;
+using namespace emph::onmon;
 
 HistoTable::HistoTable() { }
 

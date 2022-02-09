@@ -1,6 +1,6 @@
 #include "OnlineMonitoring/viewer/CurrentHistogram.h"
 #include <iostream>
-using namespace om;
+using namespace emph::onmon;
 
 CurrentHistogram::CurrentHistogram() :
   fHistory(0),

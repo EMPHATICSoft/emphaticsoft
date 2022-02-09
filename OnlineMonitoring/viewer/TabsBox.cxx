@@ -2,7 +2,7 @@
 #include "OnlineMonitoring/viewer/Layout.h"
 #include "OnlineMonitoring/viewer/HistogramBrowser.h"
 #include "OnlineMonitoring/viewer/ComparisonBox.h"
-using namespace om;
+using namespace emph::onmon;
 
 TabsBox::TabsBox(TGWindow* w) :
   TGTab(w, Layout::fBrowserTabSizeX, Layout::fBrowserTabSizeY)

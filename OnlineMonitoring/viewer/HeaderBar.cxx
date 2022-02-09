@@ -7,7 +7,7 @@
 #include "TGWidget.h"
 #include "TTimer.h"
 
-using namespace om;
+using namespace emph::onmon;
 
 static unsigned int kTick = 2000; // ms/tick
 

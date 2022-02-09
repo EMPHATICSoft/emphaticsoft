@@ -2,7 +2,7 @@
 #include <iostream>
 #include "OnlineMonitoring/viewer/GUIModelSubscriber.h"
 #include "OnlineMonitoring/viewer/GUIModelData.h"
-using namespace om;
+using namespace emph::onmon;
 
 static bool         gsLocked = false;
 

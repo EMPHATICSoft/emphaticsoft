@@ -13,7 +13,7 @@
 #include "TH2F.h"
 #include "TPaveText.h"
 
-using namespace om;
+using namespace emph::onmon;
 
 PlotOptions::PlotOptions()
 {

@@ -5,7 +5,7 @@
 #include "OnlineMonitoring/util/IPCBlock.h"
 #include "OnlineMonitoring/util/RegexMatch.h"
 #include "OnlineMonitoring/viewer/OStream.h"
-using namespace om;
+using namespace emph::onmon;
 
 void HistoSourceBase::FindAllMatches(const char* include_pattern,
 				     const char* exclude_pattern,
@@ -48,7 +48,7 @@ void HistoFile::SetName(const char* nm)
   if (fFile) { delete fFile; fFile = 0; }
   fFile = new TFile(nm, "READ");
   if (fFile==0) {
-    om::cout << "Unable to open root file " << nm << " for read." << "";
+    emph::onmon::cout << "Unable to open root file " << nm << " for read." << "";
   }
 }
 

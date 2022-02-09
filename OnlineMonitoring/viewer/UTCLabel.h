@@ -5,25 +5,26 @@
 class TText;
 class TLine;
 
-namespace om {
-  ///
-  /// Draw a nicely formatted overlay on UTC plots
-  ///
-  class UTCLabel
-  {
-  public:
-    UTCLabel();
-    ~UTCLabel();
+namespace emph { 
+  namespace onmon {
+    ///
+    /// Draw a nicely formatted overlay on UTC plots
+    ///
+    class UTCLabel
+    {
+    public:
+      UTCLabel();
+      ~UTCLabel();
 
-    void Draw();
-    void Clear();
+      void Draw();
+      void Clear();
 
-  private:
-    std::list<TText*> fText;
-    std::list<TLine*> fLine;
+    private:
+      std::list<TText*> fText;
+      std::list<TLine*> fLine;
 
-  };
-}
-
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////
