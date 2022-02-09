@@ -4,8 +4,6 @@ process_name: OnMon
 
 services:
 {
-  # Load the service that manages root files for histograms.
-  TFileService: { fileName: "onmon_r%r_%s.root" closeFileFast: false }
 }
 
 source:
