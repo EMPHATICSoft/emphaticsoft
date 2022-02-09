@@ -475,7 +475,7 @@ namespace rawdata {
       //      std::cout << fEvtCount << ", " << fSSDEvtIdx << ", " << std::endl;
 	
       if ((fEvtCount > 0) && (fSSDEvtIdx > 0)  &&
-	  (fSSDEvtIdx < fSSDRawDigits.size()-1)) {
+	  (fSSDEvtIdx < fSSDRawDigits.size()-1) && fReadSSDData) {
 	
 	int64_t ssdArtDt = earliestTimestamp - fPrevTS - (fSSDRawDigits[fSSDEvtIdx].first - fSSDRawDigits[fSSDEvtIdx-1].first)*150;
 	
@@ -495,7 +495,8 @@ namespace rawdata {
       }
 
       fPrevTS = earliestTimestamp;
-      ++fSSDEvtIdx;
+      if (fReadSSDData)
+	++fSSDEvtIdx;
       auto evtSSDRawDigits = std::make_unique<std::vector<emph::rawdata::SSDRawDigit>  >(evtSSDVec);
       
       // now that we've found the earliest hit/wvfm, find all that are within fTimeWindow to associate with this art Event
