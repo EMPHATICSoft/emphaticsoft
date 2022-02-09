@@ -111,15 +111,6 @@ void PlotViewer::Update()
     return;
   }
 
-  // If "alert" mode = true, set the color pad for this mode.
-  if(fPlotOpt.fAlert) {
-    Int_t palette[2];
-    palette[0] = 3;
-    palette[1] = 2;
-    gStyle->SetPalette(2,palette);
-  }
-  else gStyle->SetPalette(1);
-
   this->GetCanvas()->cd();
   this->GetCanvas()->Clear();
   fPlotOpt.SetPad(this->GetCanvas());
@@ -200,7 +191,6 @@ void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
   // palette in case the previous histogram was an alert histogram.
   //
   fPlotOpt.Set(hd->fOption);
-  gStyle->SetPalette(1);
 
   this->GetCanvas()->cd();
   this->GetCanvas()->Clear();

@@ -4,6 +4,8 @@
 /// \version $Id: HistoTable.cxx,v 1.14 2012-11-13 22:06:22 messier Exp $
 /// \author  messier@indiana.edu, mbaird42@fnal.gov
 ///
+#include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -138,6 +140,9 @@ void HistoTable::ReadFile(const char* f, Detector_t det)
     this->Unquote(reset);
     this->Unquote(lookback);
     this->Unquote(caption);
+
+    // New on EMPHATIC, seeing issues with name containing the newline character. Remove it
+    name.erase(std::remove_if(name.begin(),name.end(), ::isspace),name.end());
 
     // line for debugging .csv file
     //std::cout << "\n" << lineno << "\t" << name << "\t" << title  << "\t" << category << std::endl;

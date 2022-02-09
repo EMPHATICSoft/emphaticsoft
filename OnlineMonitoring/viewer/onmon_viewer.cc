@@ -55,7 +55,8 @@ int main(int argc, char** argv)
 
   TApplication app("onmon_viewer", &argc, argv);
   gROOT->SetStyle("Plain");
-  gStyle->SetPalette(1);
+  // uncomment if you want to set a custom palette
+  //gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
 
   emph::onmon::GUIMain m;
