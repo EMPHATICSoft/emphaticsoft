@@ -4,7 +4,7 @@
 #include "TGTextView.h"
 #include "OnlineMonitoring/viewer/Layout.h"
 #include "OnlineMonitoring/viewer/GUIModelData.h"
-using namespace om;
+using namespace emph::onmon;
 
 HistogramInfo::HistogramInfo(TGWindow* w) :
   TGTextView(w, 

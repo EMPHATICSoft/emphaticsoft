@@ -6,7 +6,7 @@
 ///
 #include "OnlineMonitoring/util/TickerSubscriber.h"
 #include "OnlineMonitoring/util/Ticker.h"
-using namespace om;
+using namespace emph::onmon;
 
 TickerSubscriber::TickerSubscriber(unsigned int which) 
 {

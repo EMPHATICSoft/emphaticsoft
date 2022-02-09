@@ -12,55 +12,57 @@ class TGTextButton;
 class TGListBox;
 class TGTextEntry;
 
-namespace om {
-  /// A box showing options used to make comparisons between current
-  /// and past histograms
-  class ComparisonBox : public TGCompositeFrame, public GUIModelSubscriber {
-    RQ_OBJECT("ComparisonBox")
-  public:
-    ComparisonBox(const TGWindow* win,
-		  unsigned int w,
-		  unsigned int h,
-		  unsigned int opt);
-    ~ComparisonBox();
-    void HandleCompareWhichButtons(int i=-1);
-    void HandleCompareHowButtons(int i=-1);
-    void HandleCompareNormButtons(int i=-1);
-    void HandleApplyOptions();
-    void HandleFileBrowse();
+namespace emph { 
+  namespace onmon {
+    /// A box showing options used to make comparisons between current
+    /// and past histograms
+    class ComparisonBox : public TGCompositeFrame, public GUIModelSubscriber {
+      RQ_OBJECT("ComparisonBox")
+    public:
+      ComparisonBox(const TGWindow* win,
+  		  unsigned int w,
+  		  unsigned int h,
+  		  unsigned int opt);
+      ~ComparisonBox();
+      void HandleCompareWhichButtons(int i=-1);
+      void HandleCompareHowButtons(int i=-1);
+      void HandleCompareNormButtons(int i=-1);
+      void HandleApplyOptions();
+      void HandleFileBrowse();
 
-    void GUIModelDataIssue(const GUIModelData& m,
-			   unsigned int which);
+      void GUIModelDataIssue(const GUIModelData& m,
+  			   unsigned int which);
 
-  private:
-    void UpdateButtonStates();
+    private:
+      void UpdateButtonStates();
 
-    void LayoutWhichFrame();
-    void LayoutHowFrame();
-    void LayoutNormFrame();
-    void LayoutReferenceFile();
-    void LayoutRecent();
+      void LayoutWhichFrame();
+      void LayoutHowFrame();
+      void LayoutNormFrame();
+      void LayoutReferenceFile();
+      void LayoutRecent();
 
-  private:
-    TGGroupFrame*    fCompareWhichFrame;
-    TGRadioButton*   fCompareWhichButtons[ComparisonOptions::kMaxCompWhich];
+    private:
+      TGGroupFrame*    fCompareWhichFrame;
+      TGRadioButton*   fCompareWhichButtons[ComparisonOptions::kMaxCompWhich];
 
-    TGHorizontalFrame* fReferenceFile;
-    TGTextEntry*       fReferenceFileText;
-    TGPictureButton*   fReferenceFileBrowse;
+      TGHorizontalFrame* fReferenceFile;
+      TGTextEntry*       fReferenceFileText;
+      TGPictureButton*   fReferenceFileBrowse;
 
-    TGListBox*         fLookBack;
+      TGListBox*         fLookBack;
 
-    TGGroupFrame*  fCompareHowFrame;
-    TGRadioButton* fCompareHowButtons[ComparisonOptions::kMaxCompHow];
+      TGGroupFrame*  fCompareHowFrame;
+      TGRadioButton* fCompareHowButtons[ComparisonOptions::kMaxCompHow];
 
-    TGGroupFrame*  fCompareNormFrame;
-    TGRadioButton* fCompareNormButtons[ComparisonOptions::kMaxCompNorm];
+      TGGroupFrame*  fCompareNormFrame;
+      TGRadioButton* fCompareNormButtons[ComparisonOptions::kMaxCompNorm];
 
-    TGTextButton*  fApplyOptions;
+      TGTextButton*  fApplyOptions;
 
-  ClassDef(ComparisonBox,0)
-  };
-}
+    ClassDef(ComparisonBox,0)
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

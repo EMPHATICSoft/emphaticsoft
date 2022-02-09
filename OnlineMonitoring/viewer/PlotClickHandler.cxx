@@ -9,7 +9,7 @@
 #include "OnlineMonitoring/viewer/GUIModel.h"
 #include "OnlineMonitoring/viewer/PlotOptions.h"
 
-using namespace om;
+using namespace emph::onmon;
 
 PlotClickHandler::PlotClickHandler()
 {

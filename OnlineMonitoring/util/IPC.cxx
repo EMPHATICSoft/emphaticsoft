@@ -13,7 +13,7 @@
 #include "TH2.h"
 #include "TH1F.h"
 #include "TH2F.h"
-using namespace om;
+using namespace emph::onmon;
 
 //
 // Number of microseconds to wait between request attempts and the
@@ -39,7 +39,7 @@ IPC::IPC(int mode, const char* shm_key) : fMode(mode)
   //
   unsigned int i, imax = 30*(kSecond/kSleep);
   for (i=0; i<imax; ++i) {
-    fShmId = shmget(*fKey, sizeof(om::IPCBlock), shmflg);
+    fShmId = shmget(*fKey, sizeof(emph::onmon::IPCBlock), shmflg);
     if (fShmId>0) break;
     if (i%100==0) {
       std::cerr << __FILE__ << ":" << __LINE__
@@ -58,14 +58,14 @@ IPC::IPC(int mode, const char* shm_key) : fMode(mode)
     exit(1);
   }
 
-  fIPC = (om::IPCBlock*)fShm;
+  fIPC = (emph::onmon::IPCBlock*)fShm;
 
   if (fMode == kIPC_SERVER) {
     //
     // Zero the data blocks and set the headers and footers to their
     // standard values
     //
-    memset(fIPC, 0, sizeof(om::IPCBlock));
+    memset(fIPC, 0, sizeof(emph::onmon::IPCBlock));
 
     fIPC->fHeader = BLOCK_HEADER;
     fIPC->fFooter = BLOCK_FOOTER;

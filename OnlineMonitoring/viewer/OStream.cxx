@@ -1,10 +1,10 @@
 #include "OnlineMonitoring/viewer/OStream.h"
 #include "OnlineMonitoring/viewer/LogViewer.h"
 #include <iostream>
-using namespace om;
+using namespace emph::onmon;
 
-OStream om::cout;
-OStream om::cerr;
+OStream emph::onmon::cout;
+OStream emph::onmon::cerr;
 
 //......................................................................
 
@@ -25,7 +25,7 @@ void OStream::Flush()
 
 //......................................................................
 
-void OStream::SetLogViewer(om::LogViewer* lv)
+void OStream::SetLogViewer(emph::onmon::LogViewer* lv)
 {
   fLogViewer = lv;
 }

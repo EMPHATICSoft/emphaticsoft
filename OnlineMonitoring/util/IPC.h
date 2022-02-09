@@ -17,102 +17,103 @@ extern "C" {
 class TObject;
 class TH1F;
 class TH2F;
-namespace om { struct IPCBlock; }
+namespace emph { namespace onmon { struct IPCBlock; } }
 
-namespace om {
-  static const int kIPC_SERVER = 0x01;
-  static const int kIPC_CLIENT = 0x02;
-
-  ///
-  /// Class to manage the shared memory segment
-  ///
-  class IPC {
-  public:
-    IPC(int mode, const char* shm_handle);
-    virtual ~IPC();
+namespace emph { 
+  namespace onmon {
+    static const int kIPC_SERVER = 0x01;
+    static const int kIPC_CLIENT = 0x02;
 
     ///
-    /// Method for server application check to see if there are any
-    /// requests pending
+    /// Class to manage the shared memory segment
     ///
-    int HandleRequests();
+    class IPC {
+    public:
+      IPC(int mode, const char* shm_handle);
+      virtual ~IPC();
 
-    ///
-    /// Post information about unpacker resource usage
-    ///
-    void PostResources(unsigned int run,
-		       unsigned int subrun,
-		       unsigned int event);
+      ///
+      /// Method for server application check to see if there are any
+      /// requests pending
+      ///
+      int HandleRequests();
 
-    ///
-    /// Client calls to request a histogram from the server.
-    /// \param   n - name of histogram to retrieve
-    /// \returns A new histogram. Called takes ownership
-    ///
-    TH1F* RequestTH1F(const char* n);
-    TH2F* RequestTH2F(const char* n);
+      ///
+      /// Post information about unpacker resource usage
+      ///
+      void PostResources(unsigned int run,
+  		       unsigned int subrun,
+  		       unsigned int event);
 
-    ///
-    /// Client call to request the histogram list
-    ///
-    int RequestHistoList(std::list<std::string>& hlist);
+      ///
+      /// Client calls to request a histogram from the server.
+      /// \param   n - name of histogram to retrieve
+      /// \returns A new histogram. Called takes ownership
+      ///
+      TH1F* RequestTH1F(const char* n);
+      TH2F* RequestTH2F(const char* n);
 
-    ///
-    /// For "emergency use" only. Clear all locks in the event they
-    /// get stuck.
-    ///
-    void ResetAllLocks();
+      ///
+      /// Client call to request the histogram list
+      ///
+      int RequestHistoList(std::list<std::string>& hlist);
 
-  private:
-    //
-    // Find a ROOT histogram given a name. Derived class must
-    // implement this based on its storage strategy for histograms.
-    //
-    virtual TH1F* FindTH1F(const char* nm __attribute__((unused))) { return 0; }
-    virtual TH2F* FindTH2F(const char* nm __attribute__((unused))) { return 0; }
+      ///
+      /// For "emergency use" only. Clear all locks in the event they
+      /// get stuck.
+      ///
+      void ResetAllLocks();
 
-    //
-    // Fill a list with the names of all the histograms held by the
-    // server. Derived class must implement this based on its storage
-    // strategy for histograms
-    //
-    virtual void HistoList(std::list<std::string>& hlist __attribute__((unused))) { abort(); }
+    private:
+      //
+      // Find a ROOT histogram given a name. Derived class must
+      // implement this based on its storage strategy for histograms.
+      //
+      virtual TH1F* FindTH1F(const char* nm __attribute__((unused))) { return 0; }
+      virtual TH2F* FindTH2F(const char* nm __attribute__((unused))) { return 0; }
 
-    //
-    // Log a request for a histogram named n of type t
-    //
-    int Request(const char* n, const char* t);
+      //
+      // Fill a list with the names of all the histograms held by the
+      // server. Derived class must implement this based on its storage
+      // strategy for histograms
+      //
+      virtual void HistoList(std::list<std::string>& hlist __attribute__((unused))) { abort(); }
 
-    //
-    // Create a new histogram based on the data in the shared memory
-    // bank and return it.
-    //
-    TH1F* UnpackTH1F();
-    TH2F* UnpackTH2F();
+      //
+      // Log a request for a histogram named n of type t
+      //
+      int Request(const char* n, const char* t);
 
-    //
-    // Push data from a ROOT histogram into the shared memory segment
-    //
-    int Publish1DHistogram(const TH1F* obj);
-    int Publish2DHistogram(const TH2F* obj);
+      //
+      // Create a new histogram based on the data in the shared memory
+      // bank and return it.
+      //
+      TH1F* UnpackTH1F();
+      TH2F* UnpackTH2F();
 
-    //
-    // Process requests
-    //
-    int HandleHistogramRequests();
-    int HandleHistoListRequests();
+      //
+      // Push data from a ROOT histogram into the shared memory segment
+      //
+      int Publish1DHistogram(const TH1F* obj);
+      int Publish2DHistogram(const TH2F* obj);
+
+      //
+      // Process requests
+      //
+      int HandleHistogramRequests();
+      int HandleHistoListRequests();
 
 
-  public:
-    static const int kHdlSz = sizeof(key_t)+1;
-    int              fMode;           ///< Client or server?
-    int              fShmId;          ///< ID of shared memory segment
-    key_t*           fKey;            ///< Shared memory key
-    char             fShmHdl[kHdlSz]; ///< Shared memory handle
-    void*            fShm;            ///< Pointer to shared segment
-    struct IPCBlock* fIPC;            ///< Pointer to struct
-  };
-}
-
+    public:
+      static const int kHdlSz = sizeof(key_t)+1;
+      int              fMode;           ///< Client or server?
+      int              fShmId;          ///< ID of shared memory segment
+      key_t*           fKey;            ///< Shared memory key
+      char             fShmHdl[kHdlSz]; ///< Shared memory handle
+      void*            fShm;            ///< Pointer to shared segment
+      struct IPCBlock* fIPC;            ///< Pointer to struct
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

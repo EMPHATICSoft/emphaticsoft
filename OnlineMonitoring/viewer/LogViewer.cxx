@@ -1,6 +1,6 @@
 #include "OnlineMonitoring/viewer/LogViewer.h"
 #include "OnlineMonitoring/viewer/Layout.h"
-using namespace om;
+using namespace emph::onmon;
 
 LogViewer::LogViewer(TGWindow *w) : 
   TGTextView(w,Layout::fWindowSizeX,Layout::fLogViewerSizeY)

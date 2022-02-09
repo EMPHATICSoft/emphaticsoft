@@ -55,20 +55,21 @@ int main(int argc, char** argv)
 
   TApplication app("onmon_viewer", &argc, argv);
   gROOT->SetStyle("Plain");
-  gStyle->SetPalette(1);
+  // uncomment if you want to set a custom palette
+  //gStyle->SetPalette(1);
   gStyle->SetOptStat(0);
 
-  om::GUIMain m;
+  emph::onmon::GUIMain m;
 
-  om::GUIModel::Instance().SetDetector(det.c_str());
-  om::GUIModel::Instance().SetCSVFile(histocsv);
-  om::GUIModel::Instance().SetHistogramSource(histosrc.c_str());
+  emph::onmon::GUIModel::Instance().SetDetector(det.c_str());
+  emph::onmon::GUIModel::Instance().SetCSVFile(histocsv);
+  emph::onmon::GUIModel::Instance().SetHistogramSource(histosrc.c_str());
 
   if(reffile != "NONE") {
-    om::GUIModel::Instance().SetReferenceFile(reffile.c_str());
-    om::GUIModel::Instance().Publish(om::kRefFileInitID);
+    emph::onmon::GUIModel::Instance().SetReferenceFile(reffile.c_str());
+    emph::onmon::GUIModel::Instance().Publish(emph::onmon::kRefFileInitID);
   }
-  om::GUIModel::Instance().Init();
+  emph::onmon::GUIModel::Instance().Init();
 
   bool is_shm  = histosrc.find(".shm")< histosrc.length();
   if(is_shm) {

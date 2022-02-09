@@ -1,5 +1,5 @@
 #include "OnlineMonitoring/viewer/ComparisonOptions.h"
-using namespace om;
+using namespace emph::onmon;
 
 //......................................................................
 

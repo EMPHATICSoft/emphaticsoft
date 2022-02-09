@@ -8,7 +8,7 @@
 #include "OnlineMonitoring/util/TickerSubscriber.h"
 #include "OnlineMonitoring/viewer/Layout.h"
 #include "OnlineMonitoring/viewer/GUIModelData.h"
-using namespace om;
+using namespace emph::onmon;
 
 CaptionBox::CaptionBox(TGWindow* w) :
   TGTextView(w, 

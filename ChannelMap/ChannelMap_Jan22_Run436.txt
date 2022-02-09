@@ -18,11 +18,11 @@ V1720	1			7		T0		16		0		x
 V1720	2			0		T0		17		0		x
 V1720	2			1		T0		18		0		x	
 V1720	2			2		T0		19		0		x
-V1720	2			3		Trigger	3		0		x
+V1720	2			3		Trigger	2		0		x
 V1720	2			4		GasCkov	0		0		US
 V1720	2			5		GasCkov	1		0		DSInner
 V1720	2			6		GasCkov	2		0		DSOuter
-V1720	2			7		Trigger	4		0		x
+V1720	2			7		Trigger	3		0		x
 V1720	3			0		BACkov	0		0		USRight		
 V1720	3			1		BACkov	1		0		USLeft
 V1720	3			2		BACkov	2		0		USTop

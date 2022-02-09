@@ -7,7 +7,7 @@
 #include "OnlineMonitoring/viewer/GUIModel.h"
 #include "OnlineMonitoring/viewer/Layout.h"
 #include "OnlineMonitoring/viewer/Icons.h"
-using namespace om;
+using namespace emph::onmon;
 
 //......................................................................
 
@@ -21,44 +21,44 @@ ButtonBank::ButtonBank(TGWindow* mf) :
   fLhint = new TGLayoutHints(kLHintsLeft, 2, 4);
 
   fBack = new TGPictureButton(this, Icons::Rewind());
-  fBack->Connect("Clicked()", "om::ButtonBank", this, "Back()");
+  fBack->Connect("Clicked()", "emph::onmon::ButtonBank", this, "Back()");
   fBack->SetToolTipText("Move backward in history");
   fBack->SetState(kButtonDisabled);
   this->AddFrame(fBack, fLhint);
 
   fForward = new TGPictureButton(this, Icons::FastForward());
   fForward->SetToolTipText("Move forward in history");
-  fForward->Connect("Clicked()", "om::ButtonBank", this, "Forward()");
+  fForward->Connect("Clicked()", "emph::onmon::ButtonBank", this, "Forward()");
   fForward->SetState(kButtonDisabled);
   this->AddFrame(fForward, fLhint);
 
   fResume = new TGPictureButton(this, Icons::Play());
   fResume->SetToolTipText("Resume automatic plot updates");
-  fResume->Connect("Clicked()", "om::ButtonBank", this, "Resume()");
+  fResume->Connect("Clicked()", "emph::onmon::ButtonBank", this, "Resume()");
   fResume->SetState(kButtonDisabled);
   this->AddFrame(fResume, fLhint);
 
   fPause = new TGPictureButton(this, Icons::Pause());
   fPause->SetToolTipText("Pause automatic plot updates");
-  fPause->Connect("Clicked()", "om::ButtonBank", this, "Pause()");
+  fPause->Connect("Clicked()", "emph::onmon::ButtonBank", this, "Pause()");
   fPause->SetState(kButtonDisabled);
   this->AddFrame(fPause, fLhint);
 
   fUpdate = new TGPictureButton(this, Icons::Repeat());
   fUpdate->SetToolTipText("Force plot update now");
-  fUpdate->Connect("Clicked()", "om::ButtonBank", this, "Update()");
+  fUpdate->Connect("Clicked()", "emph::onmon::ButtonBank", this, "Update()");
   fUpdate->SetState(kButtonDisabled);
   this->AddFrame(fUpdate, fLhint);
 
   fHisto = new TGPictureButton(this, Icons::Histo());
   fHisto->SetToolTipText("Show 1D histogram of bin contents");
-  fHisto->Connect("Clicked()", "om::ButtonBank", this, "Histo()");
+  fHisto->Connect("Clicked()", "emph::onmon::ButtonBank", this, "Histo()");
   fHisto->SetState(kButtonUp);
   this->AddFrame(fHisto, fLhint);
 
   fPrint = new TGPictureButton(this, Icons::Print());
   fPrint->SetToolTipText("Print to a file");
-  fPrint->Connect("Clicked()", "om::ButtonBank", this, "PrintPlot()");
+  fPrint->Connect("Clicked()", "emph::onmon::ButtonBank", this, "PrintPlot()");
   fPrint->SetState(kButtonUp);
   this->AddFrame(fPrint, fLhint);
 

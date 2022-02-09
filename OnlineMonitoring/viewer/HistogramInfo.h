@@ -3,23 +3,25 @@
 #include "TGTextView.h"
 #include "OnlineMonitoring/viewer/GUIModelSubscriber.h"
 
-namespace om { class GUIModelData; }
+namespace emph { namespace onmon { class GUIModelData; } }
 
-namespace om {
-  class HistogramInfo : public TGTextView, public GUIModelSubscriber {
-  public:
-    HistogramInfo(TGWindow* w);
-    ~HistogramInfo();
+namespace emph { 
+  namespace onmon {
+    class HistogramInfo : public TGTextView, public GUIModelSubscriber {
+    public:
+      HistogramInfo(TGWindow* w);
+      ~HistogramInfo();
 
-    ///
-    /// Complete the GUIModelSubscriber interface
-    ///
-    void GUIModelDataIssue(const GUIModelData& d, unsigned int which);
-    
-  private:
-    std::string fBuffer; ///< The text insider the buffer
-    TGText*     fText;   ///< The text inside the box
-  };
-}
+      ///
+      /// Complete the GUIModelSubscriber interface
+      ///
+      void GUIModelDataIssue(const GUIModelData& d, unsigned int which);
+      
+    private:
+      std::string fBuffer; ///< The text insider the buffer
+      TGText*     fText;   ///< The text inside the box
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

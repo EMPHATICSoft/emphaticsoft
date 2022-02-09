@@ -9,7 +9,7 @@
 #include "OnlineMonitoring/util/HistoData.h"
 #include "OnlineMonitoring/viewer/HistoSource.h"
 #include "OnlineMonitoring/viewer/GUIModel.h"
-using namespace om;
+using namespace emph::onmon;
 
 HistogramBrowser::HistogramBrowser(const TGWindow* p,
 				   unsigned int w,
@@ -27,7 +27,7 @@ HistogramBrowser::HistogramBrowser(const TGWindow* p,
   this->AddFrame(fCanvas, hints);
 
   fListTree->Connect("DoubleClicked(TGListTreeItem*,Int_t)",
-		     "om::HistogramBrowser",
+		     "emph::onmon::HistogramBrowser",
 		     this,
 		     "DoubleClicked(TGListTreeItem*,Int_t)");
 
@@ -35,7 +35,7 @@ HistogramBrowser::HistogramBrowser(const TGWindow* p,
   fRefresh = new TGTextButton(this, "Refresh Histogram List");
   fRefresh->SetToolTipText("Request the current histogram list from the histogram source and refresh the browser.");
   fRefresh->Connect("Clicked()",
-		    "om::HistogramBrowser",
+		    "emph::onmon::HistogramBrowser",
 		    this,
 		    "HandleRefresh()");
   this->AddFrame(fRefresh, xx);

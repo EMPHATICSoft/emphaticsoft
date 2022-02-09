@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     exit(0);
   }
 
-  om::IPC client(om::kIPC_CLIENT,argv[1]);
+  emph::onmon::IPC client(emph::onmon::kIPC_CLIENT,argv[1]);
 
   //
   // While we are resetting the locks, check the integrity of the

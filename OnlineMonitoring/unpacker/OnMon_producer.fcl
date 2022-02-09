@@ -4,6 +4,7 @@ standard_onmon:
 {
   module_type: OnMonModule
 
+  CSVFile:           "onmon-histos.csv"
   makeWaveFormPlots: true
   makeTRB3Plots:     true
   makeSSDPlots:      true

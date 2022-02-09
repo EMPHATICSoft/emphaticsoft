@@ -3,7 +3,7 @@
 extern "C" {
 #include <unistd.h>
 }
-using namespace om;
+using namespace emph::onmon;
 
 GUIModelData::GUIModelData() :
   fHistogramInfoText("Click on plot to see histogram data"),

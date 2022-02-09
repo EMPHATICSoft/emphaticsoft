@@ -9,8 +9,7 @@
 #include <vector>
 
 // ROOT includes
-#include "TH1I.h"
-#include "TH2I.h"
+#include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
 
@@ -26,11 +25,15 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
+#include "ChannelMap/ChannelMap.h"
+#include "Geometry/DetectorDefs.h"
+#include "OnlineMonitoring/unpacker/HistoSet.h"
+#include "OnlineMonitoring/util/HistoTable.h"
+#include "OnlineMonitoring/util/Settings.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
-#include "Geometry/DetectorDefs.h"
-#include "ChannelMap/ChannelMap.h"
+
 
 using namespace emph;
 
@@ -50,6 +53,7 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
+      void endJob();
 
     private:
       void   FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
@@ -73,17 +77,27 @@ namespace emph {
 
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
+      unsigned int fRun;
+      unsigned int fSubrun;
+      
+      // hard codes consts for now,
+      // need to figure out better solution with Geo NChannel function
+      static const unsigned int nChanT0  = 20;
+      static const unsigned int nChanCal = 9;
+      static const unsigned int nChanBACkov = 6;
+      static const unsigned int nChanGasCkov = 3;
+      static const unsigned int nChanTrig = 4;
       
       // define histograms
-      TH2I*  fNRawObjectsHisto;  
-      TH1I*  fNTriggerVsDet;
-
-      std::vector<TH1F*> fT0ADCDist;
-      std::vector<TH1I*> fT0NTDC;
-      std::vector<TH1F*> fLGCaloADCDist;
-      std::vector<TH1F*> fBACkovADCDist;
-      std::vector<TH1F*> fGasCkovADCDist;
-      std::vector<TH1F*> fTriggerADCDist;
+      TH2F*  fNRawObjectsHisto;  
+      TH1F*  fNTriggerVsDet;
+      
+      TH1F* fT0ADCDist[nChanT0];
+      TH1F* fT0NTDC[nChanT0];
+      TH1F* fLGCaloADCDist[nChanCal];
+      TH1F* fBACkovADCDist[nChanBACkov];
+      TH1F* fGasCkovADCDist[nChanGasCkov];
+      TH1F* fTriggerADCDist[nChanTrig];
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -96,6 +110,8 @@ namespace emph {
     {
 
       this->reconfigure(pset);
+      HistoTable::Instance(Settings::Instance().fCSVFile.c_str(),
+		       Settings::Instance().fDet);
 
     }
 
@@ -114,6 +130,27 @@ namespace emph {
       fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
       fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
       fMakeSSDPlots = pset.get<bool>("makeSSDPlots",false);
+      
+      // try to find the correct path to the .csv file.
+      std::string filename = pset.get< std::string > ("CSVFile");
+      std::string csvpath;
+      for (int itry=0; itry<3; ++itry) {
+         switch (itry) {
+         case 0: csvpath = "./";      break;
+         case 1: csvpath = "./util/"; break;
+         case 2:
+          csvpath = getenv("CETPKG_SOURCE");
+          csvpath += "/OnlineMonitoring/util/";
+          break;
+         }
+         csvpath += filename;
+         if (access(csvpath.c_str(), F_OK)!=-1) {
+          Settings::Instance().fCSVFile = csvpath;
+          break;
+         }
+      } // loop on directory attempts
+
+      Settings::Instance().fDet = kEMPH;
     }
 
     //......................................................................
@@ -132,17 +169,12 @@ namespace emph {
       }
       
       //
-      // Book histograms, ntuples, initialize counts etc., etc., ...
+      // Make all-detector plots
       //
-      art::ServiceHandle<art::TFileService> tfs;
-
-      fNRawObjectsHisto = tfs->make<TH2I>("NRawObjectsHisto",
-					  "Number of Raw Objects Per Detector",
-					  emph::geo::NDetectors+1,0,emph::geo::NDetectors+1,
-					  100,0,100);
-
-      fNTriggerVsDet = tfs->make<TH1I>("NTriggerVsDet","Number of Triggers Seen by Each Detector",emph::geo::NDetectors+1,0,emph::geo::NDetectors+1);
-
+      HistoSet& h = HistoSet::Instance();
+      fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
+      fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
+      
       // label x-axis
       std::string labelStr;
       int i=0;
@@ -167,23 +199,33 @@ namespace emph {
       MakeTrigPlots();
 
     }
+    
+    //......................................................................
 
+    void OnMonModule::endJob()
+    {
+      char filename[32];
+      sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
+      TFile* f = new TFile(filename,"RECREATE");
+      HistoSet::Instance().WriteToRootFile(f);
+      f->Close();
+      delete f; f=0;
+    }
+    
     //......................................................................
 
     void  OnMonModule::MakeGasCkovPlots()
     {
-      art::ServiceHandle<art::TFileService> tfs;
+      HistoSet& h = HistoSet::Instance();
       
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::GasCkov);
       char hname[256];
-      char htitle[256];
       if (fMakeWaveFormPlots) {
-	std::cout << "Making Gas Ckov ADC OnMon plots" << std::endl;
-	for (int i=0; i<nchannel; ++i) {
-	  sprintf(hname,"GasCkovADC_%d",i);
-	  sprintf(htitle,"Gas Ckov ADC Distribution, Channel %d; ADC",i);
-	  fGasCkovADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
-	}
+        std::cout << "Making Gas Ckov ADC OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"GasCkovADC_%d",i);
+          fGasCkovADCDist[i] = h.GetTH1F(hname);
+	       }
       }
     }
 
@@ -191,18 +233,16 @@ namespace emph {
 
     void  OnMonModule::MakeBACkovPlots()
     {
-      art::ServiceHandle<art::TFileService> tfs;
+      HistoSet& h = HistoSet::Instance();
       
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
       char hname[256];
-      char htitle[256];
       if (fMakeWaveFormPlots) {
-	std::cout << "Making BACkov ADC OnMon plots" << std::endl;
-	for (int i=0; i<nchannel; ++i) {
-	  sprintf(hname,"BACkovADC_%d",i);
-	  sprintf(htitle,"BACkov ADC Distribution, Channel %d; ADC",i);
-	  fBACkovADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
-	}
+        std::cout << "Making BACkov ADC OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"BACkovADC_%d",i);
+          fBACkovADCDist[i] = h.GetTH1F(hname);
+        }
       }
     }
 
@@ -210,26 +250,23 @@ namespace emph {
 
     void  OnMonModule::MakeT0Plots()
     {
-      art::ServiceHandle<art::TFileService> tfs;
+      HistoSet& h = HistoSet::Instance();
 
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::T0);
       char hname[256];
-      char htitle[256];
       if (fMakeWaveFormPlots) {
-	std::cout << "Making T0ADC OnMon plots" << std::endl;
-	for (int i=0; i<nchannel; ++i) {
-	  sprintf(hname,"T0ADC_%d",i);
-	  sprintf(htitle,"T0 ADC Distribution, Channel %d; ADC",i);
-	  fT0ADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
-	}
+        std::cout << "Making T0ADC OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"T0ADC_%d",i);
+          fT0ADCDist[i] = h.GetTH1F(hname);
+        }
       }
       if (fMakeTRB3Plots) {
-	std::cout << "Making T0TDC OnMon plots" << std::endl;
-	for (int i=0; i<nchannel; ++i) {
-	  sprintf(hname,"T0NTDC_%d",i);
-	  sprintf(htitle,"Number of T0 TDC Hits Per Event, Channel %d",i);	
-	  fT0NTDC.push_back(tfs->make<TH1I>(hname,htitle,50,0,50));
-	}
+        std::cout << "Making T0TDC OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"T0NTDC_%d",i);
+          fT0NTDC[i] = h.GetTH1F(hname);
+        }
       }
     }
     
@@ -238,7 +275,7 @@ namespace emph {
     void  OnMonModule::MakeSSDPlots()
     {
       if (fMakeSSDPlots)
-	std::cout << "Making SSD OnMon plots" << std::endl;
+        std::cout << "Making SSD OnMon plots" << std::endl;
 
     }
 
@@ -254,18 +291,16 @@ namespace emph {
 
     void  OnMonModule::MakeLGCaloPlots()
     {
-      art::ServiceHandle<art::TFileService> tfs;
+      HistoSet& h = HistoSet::Instance();
       
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
       char hname[256];
-      char htitle[256];
       if (fMakeWaveFormPlots) {
-	std::cout << "Making LGCalo ADC OnMon plots" << std::endl;
-	for (int i=0; i<nchannel; ++i) {	  
-	  sprintf(hname,"LGCaloADC_%d",i);
-	  sprintf(htitle,"LGCalo ADC Distribution, Channel %d; ADC",i);
-	  fLGCaloADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
-	}
+        std::cout << "Making LGCalo ADC OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {	  
+          sprintf(hname,"LGCaloADC_%d",i);
+          fLGCaloADCDist[i] = h.GetTH1F(hname);
+        }
       }
     }
 
@@ -281,18 +316,16 @@ namespace emph {
 
     void  OnMonModule::MakeTrigPlots()
     {
-      art::ServiceHandle<art::TFileService> tfs;
+      HistoSet& h = HistoSet::Instance();
       
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       char hname[256];
-      char htitle[256];
       if (fMakeWaveFormPlots) {
-	std::cout << "Making Trigger ADC OnMon plots" << std::endl;
-	for (int i=0; i<nchannel; ++i) {	  
-	  sprintf(hname,"TriggerADC_%d",i);
-	  sprintf(htitle,"Trigger ADC Distribution, Channel %d; ADC",i);
-	  fTriggerADCDist.push_back(tfs->make<TH1F>(hname,htitle,512,0.,4095.));
-	}
+        std::cout << "Making Trigger ADC OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {	  
+          sprintf(hname,"TriggerADC_%d",i);
+          fTriggerADCDist[i] = h.GetTH1F(hname);
+        }
       }
     }
 
@@ -485,7 +518,9 @@ namespace emph {
 
     //......................................................................
     void OnMonModule::analyze(const art::Event& evt)
-    {      
+    { 
+      fRun = evt.run();
+      fSubrun = evt.subRun();     
       std::string labelStr;
 
       for (int i=0; i<emph::geo::NDetectors; ++i) {

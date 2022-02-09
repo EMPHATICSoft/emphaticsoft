@@ -1,8 +1,19 @@
 include(ArtDictionary)
 include(ArtMake)
+FILE( GLOB src_files *.cxx )
 
 cet_find_package(messagefacility REQUIRED)
 cet_find_package(ROOT REQUIRED)
+
+include_directories( $ENV{ROOT_INC} )
+include_directories($ENV{ART_ROOT_IO_INC})
+
+art_make_library ( SOURCE ${src_files}
+                   LIBRARY_NAME  OnlineMonitoringUnpacker
+                   LIBRARIES     OnlineMonitoringUtil
+                                 art_root_io::TFileService_service
+                                 ROOT::Hist
+)
 
 build_plugin(OnMonModule "module"
   LIBRARIES PRIVATE
@@ -11,41 +22,9 @@ build_plugin(OnMonModule "module"
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
+    OnlineMonitoringUtil
+    OnlineMonitoringUnpacker
 )
-
-#art_make( BASENAME_ONLY
-#	        LIBRARY_NAME     OnlineMonitoringUnpacker
-#	        LIB_LIBRARIES    OnlineMonitoringUtil
-#		art::Framework_Core
-#		art::Framework_Principal
-#		art::Framework_Services_Resgistry
-#		art_root_io::tfile_support
-#		art_root_io::TFileService_service
-#		art::Persistency_Common
-#              art::Utilities
-#		canvas::canvas
-#                messagefacility::MF_MessageLogger
-#                fhiclcpp::fhiclcpp
-#                cetlib::cetlib
-#		cetlib_except
-#		ROOT:Core
-#		ROOT::Gui
-#		MODULE_LIBRARIES    OnlineMonitoringUtil
-#	  	OnlineMonitoringUnpacker
-#	  	art::Framework_Core
-#              art::Framework_Principal
-#		art::Framework_Services_Resgistry
-#		art_root_io::tfile_support
-#                art_root_io::TFileService_service
-#                art::Persistency_Common
-#                art::Utilities
-#		canvas::canvas
-#		messagefacility::MF_MessageLogger
-#		fhiclcpp::fhiclcpp
-#                cetlib::cetlib
-#		cetlib_except
-#		ROOT::Gui
-#         )
 
 install_source()
 install_fhicl()

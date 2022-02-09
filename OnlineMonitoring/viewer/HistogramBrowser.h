@@ -12,44 +12,46 @@ class TGListTreeItem;
 class TGPicture;
 class TGTextButton;
 
-namespace om { class HistoData; }
+namespace emph { namespace onmon { class HistoData; } }
 
-namespace om {
-  class HistogramBrowser : public TGCompositeFrame, public GUIModelSubscriber {
-    RQ_OBJECT("HistogramBrowser")
-  public:
-    HistogramBrowser(const TGWindow* p,
-		     unsigned int w,
-		     unsigned int h,
-		     unsigned int opt);
-    ~HistogramBrowser();
+namespace emph { 
+  namespace onmon {
+    class HistogramBrowser : public TGCompositeFrame, public GUIModelSubscriber {
+      RQ_OBJECT("HistogramBrowser")
+    public:
+      HistogramBrowser(const TGWindow* p,
+  		     unsigned int w,
+  		     unsigned int h,
+  		     unsigned int opt);
+      ~HistogramBrowser();
 
-    TGListTreeItem* FindCategory(const char* nm);
-    TGListTreeItem* MakeCategory(const char* nm);
+      TGListTreeItem* FindCategory(const char* nm);
+      TGListTreeItem* MakeCategory(const char* nm);
 
-    void DoubleClicked(TGListTreeItem*, Int_t i);
+      void DoubleClicked(TGListTreeItem*, Int_t i);
 
-    void HandleRefresh();
+      void HandleRefresh();
 
-    // Complete the GUIModelSubscriber interface
-    void GUIModelDataIssue(const GUIModelData& d, unsigned int which);
+      // Complete the GUIModelSubscriber interface
+      void GUIModelDataIssue(const GUIModelData& d, unsigned int which);
 
-  private:
-    void BuildTree();
-    void ClearBrowser();
-    void MakeCategories();
-    void Populate();
+    private:
+      void BuildTree();
+      void ClearBrowser();
+      void MakeCategories();
+      void Populate();
 
-  private:
-    TGCanvas*                             fCanvas;
-    TGListTree*                           fListTree;
-    std::map<std::string,TGListTreeItem*> fCategories;
-    std::map<std::string,TGListTreeItem*> fHistograms;
+    private:
+      TGCanvas*                             fCanvas;
+      TGListTree*                           fListTree;
+      std::map<std::string,TGListTreeItem*> fCategories;
+      std::map<std::string,TGListTreeItem*> fHistograms;
 
-    TGTextButton*                         fRefresh;
+      TGTextButton*                         fRefresh;
 
-  ClassDef(HistogramBrowser,0)
-  };
-}
+    ClassDef(HistogramBrowser,0)
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

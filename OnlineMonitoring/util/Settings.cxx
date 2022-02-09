@@ -7,7 +7,7 @@
 
 #include "OnlineMonitoring/util/Settings.h"
 
-using namespace om;
+using namespace emph::onmon;
 
 Settings& Settings::Instance() 
 {

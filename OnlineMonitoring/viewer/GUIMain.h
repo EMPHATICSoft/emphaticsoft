@@ -5,47 +5,48 @@
 
 class TGTableLayout;
 class TGTableLayoutHints;
-namespace om { class MenuBar;       }
-namespace om { class HeaderBar;     }
-namespace om { class TabsBox;       }
-namespace om { class CaptionBox;    }
-namespace om { class PlotViewer;    }
-namespace om { class LogViewer;     }
-namespace om { class HistogramInfo; }
-namespace om { class ButtonBank;    }
+namespace emph { namespace onmon { class MenuBar;       } }
+namespace emph { namespace onmon { class HeaderBar;     } }
+namespace emph { namespace onmon { class TabsBox;       } }
+namespace emph { namespace onmon { class CaptionBox;    } }
+namespace emph { namespace onmon { class PlotViewer;    } }
+namespace emph { namespace onmon { class LogViewer;     } }
+namespace emph { namespace onmon { class HistogramInfo; } }
+namespace emph { namespace onmon { class ButtonBank;    } }
 
-namespace om {
-  class GUIMain : public TGMainFrame {
-    RQ_OBJECT("om::GUIMain")
-  public:
-    GUIMain();
-    ~GUIMain();
+namespace emph { 
+  namespace onmon {
+    class GUIMain : public TGMainFrame {
+      RQ_OBJECT("emph::onmon::GUIMain")
+    public:
+      GUIMain();
+      ~GUIMain();
 
-    void CloseWindow();
+      void CloseWindow();
 
-  private:
-    TGTableLayout*      fLayoutManager;
-    TGTableLayoutHints* fMenuBarHints;
-    TGTableLayoutHints* fHeaderBarHints;
-    TGTableLayoutHints* fTabsBoxHints;
-    TGTableLayoutHints* fCaptionBoxHints;
-    TGTableLayoutHints* fHistogramInfoHints;
-    TGTableLayoutHints* fButtonBankHints;
-    TGTableLayoutHints* fPlotViewerHints;
-    TGTableLayoutHints* fLogViewerHints;
+    private:
+      TGTableLayout*      fLayoutManager;
+      TGTableLayoutHints* fMenuBarHints;
+      TGTableLayoutHints* fHeaderBarHints;
+      TGTableLayoutHints* fTabsBoxHints;
+      TGTableLayoutHints* fCaptionBoxHints;
+      TGTableLayoutHints* fHistogramInfoHints;
+      TGTableLayoutHints* fButtonBankHints;
+      TGTableLayoutHints* fPlotViewerHints;
+      TGTableLayoutHints* fLogViewerHints;
 
-    MenuBar*       fMenuBar;
-    HeaderBar*     fHeaderBar;
-    TabsBox*       fTabsBox;
-    CaptionBox*    fCaptionBox;
-    HistogramInfo* fHistogramInfo;
-    ButtonBank*    fButtonBank;
-    PlotViewer*    fPlotViewer;
-    LogViewer*     fLogViewer;
+      MenuBar*       fMenuBar;
+      HeaderBar*     fHeaderBar;
+      TabsBox*       fTabsBox;
+      CaptionBox*    fCaptionBox;
+      HistogramInfo* fHistogramInfo;
+      ButtonBank*    fButtonBank;
+      PlotViewer*    fPlotViewer;
+      LogViewer*     fLogViewer;
 
-    ClassDef(GUIMain,0)
-  };
-}
-
+      ClassDef(GUIMain,0)
+    };
+  } //end namespace onmon
+} //end namespace emph
 #endif
 ////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@
 #include "OnlineMonitoring/viewer/ComparisonOptions.h"
 #include "OnlineMonitoring/viewer/GUIModel.h"
 #include "OnlineMonitoring/viewer/GUIModelData.h"
-using namespace om;
+using namespace emph::onmon;
 
 ComparisonBox::ComparisonBox(const TGWindow* win,
 			     unsigned int w,
@@ -34,7 +34,7 @@ ComparisonBox::ComparisonBox(const TGWindow* win,
 
   fApplyOptions      = new TGTextButton(this, "Apply Options");
   fApplyOptions->SetToolTipText("Apply chosen comparison options now");
-  fApplyOptions->Connect("Clicked()", "om::ComparisonBox",
+  fApplyOptions->Connect("Clicked()", "emph::onmon::ComparisonBox",
 			 this, "HandleApplyOptions()");
   this->AddFrame(fApplyOptions,      xx);
 }
@@ -52,7 +52,7 @@ void ComparisonBox::LayoutWhichFrame()
 			ComparisonOptions::CompareTo(i),
 			i);
     fCompareWhichButtons[i]->Connect("Clicked()",
-				     "om::ComparisonBox",
+				     "emph::onmon::ComparisonBox",
 				     this,
 				     "HandleCompareWhichButtons()");
     fCompareWhichFrame->AddFrame(fCompareWhichButtons[i],fCompWhichLayout);
@@ -90,7 +90,7 @@ void ComparisonBox::LayoutReferenceFile()
   fReferenceFileBrowse = new TGPictureButton(fReferenceFile,
 					     Icons::FolderExplore());
   fReferenceFileBrowse->SetToolTipText("Browse to open a file");
-  fReferenceFileBrowse->Connect("Clicked()", "om::ComparisonBox",
+  fReferenceFileBrowse->Connect("Clicked()", "emph::onmon::ComparisonBox",
 				this, "HandleFileBrowse()");
   fReferenceFile->AddFrame(fReferenceFileBrowse, yy);
   
@@ -121,7 +121,7 @@ void ComparisonBox::LayoutHowFrame()
 			ComparisonOptions::CompareMethod(i),
 			i);
     fCompareHowButtons[i]->Connect("Clicked()",
-				   "om::ComparisonBox",
+				   "emph::onmon::ComparisonBox",
 				   this,
 				   "HandleCompareHowButtons()");
     fCompareHowFrame->AddFrame(fCompareHowButtons[i],fCompHowLayout);
@@ -141,7 +141,7 @@ void ComparisonBox::LayoutNormFrame()
 			ComparisonOptions::CompareNormalize(i),
 			i);
     fCompareNormButtons[i]->Connect("Clicked()",
-				    "om::ComparisonBox",
+				    "emph::onmon::ComparisonBox",
 				    this,
 				    "HandleCompareNormButtons()");
     fCompareNormFrame->AddFrame(fCompareNormButtons[i],fCompNormLayout);
@@ -223,7 +223,7 @@ void ComparisonBox::GUIModelDataIssue(const GUIModelData& m,
 				      unsigned int which) 
 {
   if ( (which&kRefFileInitID) !=0 ) {
-    fReferenceFileText->SetText(om::GUIModel::Instance().Data().fComparisonOpt.fReferenceFile.c_str());
+    fReferenceFileText->SetText(emph::onmon::GUIModel::Instance().Data().fComparisonOpt.fReferenceFile.c_str());
   }
 
   if ( (which&kComparisonOptionsID) != 0 || (which&kRefFileInitID)!= 0 ) {

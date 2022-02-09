@@ -47,7 +47,7 @@ void dumph2(TH2F* h)
 
 int main(void)
 {
-  om::IPC ipc(om::kIPC_CLIENT,"IPCT");
+  emph::onmon::IPC ipc(emph::onmon::kIPC_CLIENT,"IPCT");
 
   TH1F* h1;
   TH2F* h2;

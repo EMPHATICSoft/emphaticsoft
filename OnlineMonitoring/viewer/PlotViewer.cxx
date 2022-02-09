@@ -22,7 +22,7 @@
 #include "OnlineMonitoring/viewer/PlotClickHandler.h"
 #include "OnlineMonitoring/viewer/ComparisonOptions.h"
 #include "OnlineMonitoring/viewer/OStream.h"
-using namespace om;
+using namespace emph::onmon;
 
 // ROOT events must be handled globally so I need to provide some
 // global access to the plot viewer
@@ -44,7 +44,7 @@ PlotViewer::PlotViewer(TGWindow* m) :
 
   this->GetCanvas()->SetRightMargin(0.12);
   this->GetCanvas()->Draw();
-  this->GetCanvas()->AddExec("ex1","om::PlotViewer::Exec()");
+  this->GetCanvas()->AddExec("ex1","emph::onmon::PlotViewer::Exec()");
 
   this->Resize();
 }
@@ -79,7 +79,7 @@ void PlotViewer::Update()
   const HistoData* hd =
     HistoTable::Instance().LookUp(fCurrentHistogram.c_str());
   if (hd==0) {
-    om::cout << "ERROR:  Could not get histogram data "
+    emph::onmon::cout << "ERROR:  Could not get histogram data "
 	     << fCurrentHistogram
 	     << "";
     return;
@@ -111,15 +111,6 @@ void PlotViewer::Update()
     return;
   }
 
-  // If "alert" mode = true, set the color pad for this mode.
-  if(fPlotOpt.fAlert) {
-    Int_t palette[2];
-    palette[0] = 3;
-    palette[1] = 2;
-    gStyle->SetPalette(2,palette);
-  }
-  else gStyle->SetPalette(1);
-
   this->GetCanvas()->cd();
   this->GetCanvas()->Clear();
   fPlotOpt.SetPad(this->GetCanvas());
@@ -130,7 +121,7 @@ void PlotViewer::Update()
   if (hd->fType==kTH1F) {
     TH1F* h = f.GetTH1FCopy(fCurrentHistogram.c_str());
     if (h==0) {
-      om::cout << "ERROR:  Could not get copy of histogram "
+      emph::onmon::cout << "ERROR:  Could not get copy of histogram "
 	       << fCurrentHistogram
 	       << "";
       return;
@@ -152,7 +143,7 @@ void PlotViewer::Update()
   if (hd->fType==kTH2F) {
     TH2F* h = f.GetTH2FCopy(fCurrentHistogram.c_str());
     if (h==0) {
-      om::cout << "ERROR:  Could not get copy of histogram "
+      emph::onmon::cout << "ERROR:  Could not get copy of histogram "
 	       << fCurrentHistogram
 	       << "";
       return;
@@ -172,12 +163,12 @@ void PlotViewer::Update()
 void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
 {
   if (fHistogramSource =="") {
-    om::cout << "ERROR:  Histogram Source not defined"
+    emph::onmon::cout << "ERROR:  Histogram Source not defined"
 	     << "";
     return;
   }
   if (fCurrentHistogram=="") {
-    om::cout << "ERROR:  Current Histogram not defined"
+    emph::onmon::cout << "ERROR:  Current Histogram not defined"
 	     << "";
     return;
   }
@@ -200,7 +191,6 @@ void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
   // palette in case the previous histogram was an alert histogram.
   //
   fPlotOpt.Set(hd->fOption);
-  gStyle->SetPalette(1);
 
   this->GetCanvas()->cd();
   this->GetCanvas()->Clear();
@@ -240,7 +230,7 @@ void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
     // problems with two histos that have the same name.
     TH1F* h1 = f1.GetTH1FCopy(fCurrentHistogram.c_str());
     if(h1 == 0) {
-      om::cout << "ERROR:  Could not get copy of current histogram "
+      emph::onmon::cout << "ERROR:  Could not get copy of current histogram "
 	       << fCurrentHistogram
 	       << "";
       return;
@@ -253,7 +243,7 @@ void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
     if(COpt.fWhich == ComparisonOptions::kReference)
       h2 = f2.GetTH1FCopy(CompareHistoName.c_str());
     if(h2 == 0) {
-      om::cout << "ERROR:  Could not get copy of reference histogram "
+      emph::onmon::cout << "ERROR:  Could not get copy of reference histogram "
 	       << CompareHistoName
 	       << "";
       delete h1;
@@ -497,7 +487,7 @@ void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
     // problems with two histos that have the same name.
     TH2F* h1 = f1.GetTH2FCopy(fCurrentHistogram.c_str());
     if(h1 == 0) {
-      om::cout << "ERROR:  Could not get copy of current histogram "
+      emph::onmon::cout << "ERROR:  Could not get copy of current histogram "
 	       << fCurrentHistogram
 	       << "";
       return;
@@ -510,7 +500,7 @@ void PlotViewer::UpdateCompare(const ComparisonOptions& COpt)
     if(COpt.fWhich == ComparisonOptions::kReference)
       h2 = f2.GetTH2FCopy(CompareHistoName.c_str());
     if(h2 == 0) {
-      om::cout << "ERROR:  Could not get copy of reference histogram "
+      emph::onmon::cout << "ERROR:  Could not get copy of reference histogram "
 	       << CompareHistoName
 	       << "";
       delete h1;
@@ -762,7 +752,7 @@ void PlotViewer::ContentProjectionTH1F(const HistoData* hd, TH1F* h)
   this->GetCanvas()->Clear();
 
   if (h==0) {
-    om::cout << "ERROR:  Could not get copy of histogram "
+    emph::onmon::cout << "ERROR:  Could not get copy of histogram "
 	     << fCurrentHistogram
 	     << "";
     return;
@@ -835,7 +825,7 @@ void PlotViewer::ContentProjectionTH2F(const HistoData* hd, TH2F* h)
   this->GetCanvas()->Clear();
 
   if (h==0) {
-    om::cout << "ERROR:  Could not get copy of histogram "
+    emph::onmon::cout << "ERROR:  Could not get copy of histogram "
 	     << fCurrentHistogram
 	     << "";
     return;
@@ -925,7 +915,7 @@ void PlotViewer::GUIModelDataIssue(const GUIModelData& m,
     std::string n = fCurrentHistogram;
     n += ".png";
     this->GetCanvas()->Print(n.c_str());
-    om::cout << "Printed to file " << n << "";
+    emph::onmon::cout << "Printed to file " << n << "";
   }
 
   this->ReleaseLock();
