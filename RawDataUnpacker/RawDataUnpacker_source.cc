@@ -29,6 +29,8 @@
 #include "RawDataUnpacker/Unpacker.h"
 #include "RawDataUnpacker/RawDataUnpacker_source.h"
 
+//#include "ChannelMap/ChannelMapService.h"
+
 #include "TFile.h"
 #include "TBranch.h"
 #include "TTree.h"
@@ -366,8 +368,8 @@ namespace rawdata {
 
   bool Unpacker::readNext(art::RunPrincipal* const& ,//inR,
 			  art::SubRunPrincipal* const& ,//inSR,
-			  art::RunPrincipal* &outR,
-			  art::SubRunPrincipal* &outSR,
+			  art::RunPrincipal* & outR,
+			  art::SubRunPrincipal* & outSR,
 			  art::EventPrincipal* &outE)
   {
     if (fNEvents > 0)
@@ -435,7 +437,8 @@ namespace rawdata {
       
       fIsFirst = false;
     }
-    
+
+    //    art::ServiceHandle<emph::cmap::ChannelMapService> fChannelMap;
 
     if (fCreateArtEvents) {
       std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
