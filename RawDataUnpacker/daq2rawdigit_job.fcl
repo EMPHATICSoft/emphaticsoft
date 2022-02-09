@@ -1,9 +1,14 @@
+#include "ChannelMap.fcl"
+
 process_name: RawConvert
 
 services:
 {
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
+#  Load the channel map service
+#  ChannelMapService: @local::standard_channelmap
+  
 #  scheduler:    { wantSummary: true }
 #  TimeTracker:  {}
 #  RandomNumberGenerator: {} #ART native random number generator

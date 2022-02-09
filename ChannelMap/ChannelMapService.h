@@ -9,7 +9,11 @@
 #include "ChannelMap/ChannelMap.h"
 
 //Framework includes
+#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Framework/Services/Registry/ActivityRegistry.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 
@@ -28,16 +32,12 @@ namespace emph
       
       void reconfigure(const fhicl::ParameterSet& pset);
     
-      void preBeginRun(const art::Run& run);
-      
-    protected:
-      std::string fMapFileName;
-      
+      //      void preBeginRun(const art::Run& run);
     };
     
   }
 }
 
-DECLARE_ART_SERVICE(emph::cmap::ChannelMapService, LEGACY)
+DECLARE_ART_SERVICE(emph::cmap::ChannelMapService, SHARED)
 
 #endif

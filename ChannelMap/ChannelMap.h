@@ -128,15 +128,20 @@ namespace emph {
       ChannelMap(); // Default constructor
       virtual ~ChannelMap() {}; //Destructor
       
-      bool LoadMap(std::string fname);
+      bool LoadMap(std::string fname="");
+      void SetAbortIfFileNotFound(bool f) { fAbortIfFileNotFound = f;}
+      void SetMapFileName(std::string fname) { if (fname != fMapFileName) {
+	  fMapFileName = fname; fIsLoaded=false;} }
       
-      emph::cmap::DChannel DetChan(emph::cmap::EChannel echan) { return fEChanMap[echan]; }
+      emph::cmap::DChannel DetChan(emph::cmap::EChannel echan) { if (!fIsLoaded) LoadMap(); return fEChanMap[echan]; }
       
-      emph::cmap::EChannel ElectChan(emph::cmap::DChannel dchan) { return fDChanMap[dchan];}
+      emph::cmap::EChannel ElectChan(emph::cmap::DChannel dchan) { if (!fIsLoaded) LoadMap(); return fDChanMap[dchan];}
       
     private:
       
       bool fIsLoaded;
+      bool fAbortIfFileNotFound;
+      std::string fMapFileName;
       std::map<emph::cmap::EChannel,emph::cmap::DChannel> fEChanMap;
       std::map<emph::cmap::DChannel,emph::cmap::EChannel> fDChanMap;
       

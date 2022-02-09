@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_channelmap:
+{
+  MapFileName: "ChannelMap_Jan22_Run436.txt"
+  AbortIfFileNotFound: true
+}
+
+END_PROLOG
