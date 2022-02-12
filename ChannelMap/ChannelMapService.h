@@ -22,7 +22,7 @@ namespace emph
   namespace cmap
   {
     
-    class ChannelMapService : public ChannelMap
+    class ChannelMapService 
     {
     public:
       // Get a ChannelMapService instance here
@@ -32,7 +32,17 @@ namespace emph
       
       void reconfigure(const fhicl::ParameterSet& pset);
     
-      //      void preBeginRun(const art::Run& run);
+      void preBeginRun(const art::Run& run);
+
+      DChannel DetChan(EChannel echan) { return fChannelMap->DetChan(echan); }
+      
+      EChannel ElectChan(DChannel dchan) { return fChannelMap->ElectChan(dchan); }
+
+    private:
+      bool fAbortIfFileNotFound;
+      ChannelMap* fChannelMap;
+      std::string fMapFileName;
+
     };
     
   }

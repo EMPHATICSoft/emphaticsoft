@@ -8,16 +8,14 @@ cet_find_package(messagefacility REQUIRED)
 cet_find_package(ROOT COMPONENTS Tree Gui REQUIRED PUBLIC)
 cet_find_package(ROOT COMPONENTS Core Graf Graf3d Rint REQUIRED)
 
+include(CetRootCint)
+ 
 include_directories($ENV{ARTDAQ_CORE_INC})
 include_directories($ENV{ARTDAQ_INC})
 include_directories($ENV{ART_INC})
 include_directories($ENV{ART_ROOT_IO_INC})
 include_directories($ENV{CETLIB_EXCEPT_INC})
 include_directories($ENV{ROOT_INC})
-
-#find_package(ROOT COMPONENTS Tree Gui REQUIRED PUBLIC)
-##find_package(ROOT COMPONENTS Eve EG GX11 TreePlayer Geom Ged RGL Core RIO Net Hist Graf Graf3d Gpad Rint Postscript Matrix Physics MathCore Thread REQUIRED)
-#find_package(ROOT COMPONENTS Core Graf Graf3d Rint REQUIRED)
 
 cet_rootcint( EventDisplayBase )
 
