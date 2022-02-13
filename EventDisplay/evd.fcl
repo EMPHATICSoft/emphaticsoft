@@ -17,7 +17,7 @@ services:
 #  ScanOptions:              @local::standard_scanopt
 #  SliceNavigator:           @local::standard_slicenavigator
   Colors:                   @local::standard_colors
-#  EventDisplay:             @local::standard_evd
+  EventDisplay:             @local::standard_evd
 }
 
 #Look at the input files

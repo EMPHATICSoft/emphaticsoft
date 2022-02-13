@@ -5,7 +5,7 @@
 /// \version $Id: EventDisplay.cxx,v 1.25 2012-03-05 20:37:14 brebel Exp $
 /// \author  messier@indiana.edu
 ///
-#include "nuevdb/EventDisplayBase/EventDisplay.h"
+#include "EventDisplayBase/EventDisplay.h"
 // ROOT includes
 #include "TROOT.h"
 #include "TApplication.h"
@@ -17,12 +17,12 @@
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 #include "cetlib_except/exception.h"
 // Local includes
-#include "nuevdb/EventDisplayBase/ServiceTable.h"
-#include "nuevdb/EventDisplayBase/DisplayWindow.h"
-#include "nuevdb/EventDisplayBase/Canvas.h"
-#include "nuevdb/EventDisplayBase/RootEnv.h"
-#include "nuevdb/EventDisplayBase/EventHolder.h"
-#include "nuevdb/EventDisplayBase/NavState.h"
+#include "EventDisplayBase/ServiceTable.h"
+#include "EventDisplayBase/DisplayWindow.h"
+#include "EventDisplayBase/Canvas.h"
+#include "EventDisplayBase/RootEnv.h"
+#include "EventDisplayBase/EventHolder.h"
+#include "EventDisplayBase/NavState.h"
 
 #include <wordexp.h>
 

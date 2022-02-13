@@ -61,10 +61,10 @@ namespace evd
     const art::Event *evt = evdb::EventHolder::Instance()->GetEvent();
     if (evt==0) return;
 
+    this->GeometryDraw()->  DetOutline3D         (*evt, fView);
     //    art::ServiceHandle<geo::Geometry> geo;
     /*
     this->HeaderDraw()->    Header               (fView);
-    this->GeometryDraw()->  DetOutline3D         (*evt, fView);
     this->RawDataDraw()->   RawDigit3D           (*evt, fView);
     this->SimulationDraw()->MCTruthVertices3D    (*evt, fView);
     this->SimulationDraw()->MCTruthVectors3D     (*evt, fView);

@@ -60,12 +60,12 @@ art_make_library( SOURCE ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/EventDisplayBa
               ROOT::Core
               )
 
-#simple_plugin(EventDisplay service
-#  LIBRARIES PRIVATE nuevdb::EventDisplayBase
-#            PUBLIC
-#              art_root_io::RootInput_source
-#              ROOT::Tree
-#  )
+simple_plugin(EventDisplay service
+  LIBRARIES PRIVATE EventDisplayBase
+            PUBLIC
+              art_root_io::RootInput_source
+              ROOT::Tree
+  )
 
 #simple_plugin(ScanOptions service
 #  LIBRARIES PRIVATE nuevdb::EventDisplayBase

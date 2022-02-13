@@ -104,7 +104,8 @@ namespace evdb{
     gsHeight.push_back(h);
     gsWidth.push_back(w);
     gsCanvasCreator.push_back(creator);
-  
+    std::cout << "name = " << name << std::endl;
+
     if (gsName.size()>gsWindows.size()) gsWindows.resize(gsName.size());
   }
 
@@ -120,17 +121,23 @@ namespace evdb{
     if (id>=gsName.size()) return 0;
 
     DisplayWindow* w = gsWindows[id];
+    std::cout << "here 1" << std::endl;
     if (w==0) {
+      std::cout << "w = " << w << std::endl;
       w = gsWindows[id] = new DisplayWindow(id);
+      std::cout << "w = " << w << std::endl;
     }
     if (w==0) return 0;
+    std::cout << "here 2" << std::endl;
 
     // Update run and event number in newly opened window.
     const art::Event* evt = evdb::EventHolder::Instance()->GetEvent();
     if(evt)
       w->SetRunEvent(evt->id().run(), evt->id().event());
 
+    std::cout << "here 3" << std::endl;
     w->Raise();
+    std::cout << "here 4" << std::endl;
     w->Draw();
   
     return 1;

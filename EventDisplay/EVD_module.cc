@@ -98,6 +98,7 @@ namespace evd{
   //----------------------------------------------------
   void EVD::beginJob()
   {
+
     // Register the list of windows used by the event display
     /*    evdb::DisplayWindow::Register("XZ/YZ Projections",
 				  "XZ/YZ Projections",
@@ -134,6 +135,7 @@ namespace evd{
 
     // Open up the main display window and run
     evdb::DisplayWindow::OpenWindow(0);
+    std::cout << "******************** HERE ********************" << std::endl;
 
   }
 
