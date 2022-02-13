@@ -73,11 +73,11 @@ art_make_library( SOURCE ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/EventDisplayBa
 #              ROOT::Gui
 #  )
 
-#simple_plugin(Colors service
-#  LIBRARIES PRIVATE nuevdb::EventDisplayBase
-#              PUBLIC
-#              ROOT::Tree
-#  )
+simple_plugin(Colors service
+  LIBRARIES PRIVATE EventDisplayBase
+              PUBLIC
+              ROOT::Tree
+  )
 
 install_headers()
 install_fhicl()

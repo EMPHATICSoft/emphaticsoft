@@ -1,4 +1,4 @@
-#include "nuevdb/EventDisplayBase/Colors.h"
+#include "EventDisplayBase/Colors.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
 
 

@@ -1,4 +1,4 @@
-#include "nuevdb/EventDisplayBase/Colors.h"
+#include "EventDisplayBase/Colors.h"
 #include <vector>
 #include <string>
 #include "TROOT.h"
@@ -7,7 +7,7 @@
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Registry/ServiceDefinitionMacros.h"
-#include "nuevdb/EventDisplayBase/ColorScale.h"
+#include "EventDisplayBase/ColorScale.h"
 
 namespace evdb {
 
