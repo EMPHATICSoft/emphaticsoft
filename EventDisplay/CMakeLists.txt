@@ -23,9 +23,35 @@ set( PACKAGE EventDisplay )
 
 cet_rootcint( ${PACKAGE} )
 
+art_make_library( LIBRARY_NAME ${PACKAGE}
+  SOURCE ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
+  LIBRARIES GeometryDrawingOptions_service
+  RecoDrawingOptions_service
+  PlotDrawingOptions_service
+  RawDrawingOptions_service
+  SimulationDrawingOptions_service
+  EventDisplayBase_Colors_service
+  SimulationBase
+  EventDisplayBase
+  Geometry
+  Geometry_service
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common  
+  art::Utilities 
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  ROOT::X3d
+  ROOT::Geom
+  )
+
 simple_plugin(EVD module
               EventDisplay
-#	      Geometry_service
+	      Geometry
+	      Geometry_service
               EventDisplayBase
               art::Framework_Core
 	      art::Framework_Principal
@@ -33,41 +59,13 @@ simple_plugin(EVD module
               art::Utilities 
 	      canvas::canvas
               messagefacility::MF_MessageLogger
-#              messagefacility::Utilities
 	      fhiclcpp::fhiclcpp
               cetlib::cetlib
 	      cetlib_except::cetlib_except
+	      ROOT::Geom
+	      ROOT::X3d
 	      BASENAME_ONLY
 )
-
-art_make_library( LIBRARY_NAME ${PACKAGE}
-                  SOURCE ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
-                  LIBRARIES GeometryDrawingOptions_service
-                            RecoDrawingOptions_service
-                            PlotDrawingOptions_service
-                            RawDrawingOptions_service
-                            SimulationDrawingOptions_service
-			    EventDisplayBase_Colors_service
-#                            Simulation
-#                            RawData
-#                            RecoBase
-#Geometry_service
-                            SimulationBase
-                            EventDisplayBase
-
-              art::Framework_Core
-	      art::Framework_Principal
-              art::Persistency_Common  
-              art::Utilities 
-	      canvas::canvas
-              messagefacility::MF_MessageLogger
- #             messagefacility::Utilities
-	      fhiclcpp::fhiclcpp
-              cetlib::cetlib
-	      cetlib_except::cetlib_except
-	      ROOT::X3d
-              ROOT::Eve
-                )
 
 install_headers()
 install_fhicl()

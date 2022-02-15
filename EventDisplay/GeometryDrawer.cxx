@@ -20,7 +20,8 @@
 #include "EventDisplayBase/View2D.h"
 #include "EventDisplayBase/View3D.h"
 #include "EventDisplayBase/Colors.h"
-#include "Geometry/Geometry.h"
+//#include "Geometry/Geometry.h"
+#include "Geometry/GeometryService.h"
 
 using namespace evd;
 
@@ -91,11 +92,15 @@ void GeometryDrawer::DetOutline2D(const art::Event& , // evt,
     return;
   }
   
+  art::ServiceHandle<emph::geo::GeometryService> geo;
+
   double xlo, ylo, zlo, xhi, yhi, zhi;
-  xlo = ylo = -0.5;
-  xhi = yhi = 0.5;
-  zlo = -0.1;
-  zhi = 3.0;
+  xlo = -1.*geo->Geo()->WorldWidth();
+  ylo = -1.*geo->Geo()->WorldHeight();
+  xhi = -1.*xlo;
+  yhi = -1.*ylo;
+  zlo = -1.*geo->Geo()->WorldLength();
+  zhi = -1.*zlo;
 
   //  this->GetBox(&xlo, &ylo, &zlo, &xhi, &yhi, &zhi);
   GeoTransform::XYZ(&xlo, &ylo, &zlo);
@@ -129,13 +134,15 @@ void GeometryDrawer::DetOutline2D(const art::Event& , // evt,
 void GeometryDrawer::DetOutline3D(const art::Event& , // *evt,
 				  evdb::View3D*        view)
 {
-  //  art::ServiceHandle<geo::Geometry> geo;
+  art::ServiceHandle<emph::geo::GeometryService> geo;
   
   double xlo, ylo, zlo, xhi, yhi, zhi;
-  xlo = ylo = -0.5;
-  xhi = yhi = 0.5;
-  zlo = -0.1;
-  zhi = 3.0;
+  xlo = -1.*geo->Geo()->WorldWidth();
+  ylo = -1.*geo->Geo()->WorldHeight();
+  xhi = -1.*xlo;
+  yhi = -1.*ylo;
+  zlo = -1.*geo->Geo()->WorldLength();
+  zhi = -1.*zlo;
 
   //  this->GetBox(&xlo, &ylo, &zlo, &xhi, &yhi, &zhi);
 
@@ -152,16 +159,7 @@ void GeometryDrawer::DetOutline3D(const art::Event& , // *evt,
   top.SetPoint(2, xhi, yhi, zhi);
   top.SetPoint(3, xlo, yhi, zhi);
   top.SetPoint(4, xlo, yhi, zlo);
-  
-  /*
-  TPolyLine3D& bottom = view->AddPolyLine3D(5, 10, w, s);
-  bottom.SetPoint(0, xlo, ylo, zlo);
-  bottom.SetPoint(1, xhi, ylo, zlo);
-  bottom.SetPoint(2, xhi, ylo, zhi);
-  bottom.SetPoint(3, xlo, ylo, zhi);
-  bottom.SetPoint(4, xlo, ylo, zlo);
-  */
-  
+    
   TPolyLine3D& front = view->AddPolyLine3D(3, c, w, s);
   front.SetPoint(0, xlo, yhi, zlo);
   front.SetPoint(1, xlo, ylo, zlo);
@@ -174,121 +172,8 @@ void GeometryDrawer::DetOutline3D(const art::Event& , // *evt,
   wside.SetPoint(1, xhi, ylo, zlo);
   wside.SetPoint(2, xhi, ylo, zhi);
   wside.SetPoint(3, xhi, yhi, zhi);
-  wside.SetPoint(4, xhi, yhi, zlo);
-  
-  /*
-  TPolyLine3D& eside = view->AddPolyLine3D(5, 10, w, s);
-  eside.SetPoint(0, xlo, yhi, zlo);
-  eside.SetPoint(1, xlo, ylo, zlo);
-  eside.SetPoint(2, xlo, ylo, zhi);
-  eside.SetPoint(3, xlo, yhi, zhi);
-  eside.SetPoint(4, xlo, yhi, zlo);
-  */
-  
-  /*
-  c = 15;
-  s = 1;
-  w = 1;
-  double z = zlo;
-  // Grid running along x and y at constant z
-  for (;;) {
-    TPolyLine3D& gridt = view->AddPolyLine3D(2, c, s, w);
-    gridt.SetPoint(0, xlo, ylo, z);
-    gridt.SetPoint(1, xhi, ylo, z);
-    
-    TPolyLine3D& grids = view->AddPolyLine3D(2, c, s, w);
-    grids.SetPoint(0, xhi, ylo, z);
-    grids.SetPoint(1, xhi, yhi, z);
-    
-    z += 100.0;
-    if (z>zhi) break;
-  }
-  
-  // Grid running along z at constant x
-  double x = 0.0;
-  for (;;) {
-    TPolyLine3D& gridt = view->AddPolyLine3D(2, c, s, w);
-    gridt.SetPoint(0, x, ylo, zlo);
-    gridt.SetPoint(1, x, ylo, zhi);
-    x += 100.0;
-    if (x>xhi) break;
-  }
-  x = -100.0;
-  for (;;) {
-    TPolyLine3D& gridt = view->AddPolyLine3D(2, c, s, w);
-    gridt.SetPoint(0, x, ylo, zlo);
-    gridt.SetPoint(1, x, ylo, zhi);
-    x -= 100.0;
-    if (x<xlo) break;
-  }
-  
-  // Grid running along z at constant y
-  double y = 0.0;
-  for (;;) {
-    TPolyLine3D& grids = view->AddPolyLine3D(2, c, s, w);
-    grids.SetPoint(0, xhi, y, zlo);
-    grids.SetPoint(1, xhi, y, zhi);
-    y += 100.0;
-    if (y>yhi) break;
-  }
-  y = -100.0;
-  for (;;) {
-    TPolyLine3D& grids = view->AddPolyLine3D(2, c, s, w);
-    grids.SetPoint(0, xhi, y, zlo);
-    grids.SetPoint(1, xhi, y, zhi);
-    y -= 100.0;
-    if (y<ylo) break;
-  }
-  */
+  wside.SetPoint(4, xhi, yhi, zlo);  
 
-  /*
-  // Indicate north and an arrow
-  double x0 =  1.5*xhi;          // Center location of the key
-  double z0 = (4.0*zlo+zhi)/5.0; // Center location of the key  
-  double sz =  0.02*zhi;         // Scale size of the key in z direction
-  double sx =  0.75*sz;          // Scale size of the key in z direction
-  
-  TPolyLine3D& arrow1 = view->AddPolyLine3D(2, c, s, w);
-  TPolyLine3D& arrow2 = view->AddPolyLine3D(3, c, s, w);
-  arrow1.SetPoint(0, x0, ylo, z0-0.5*sz);
-  arrow1.SetPoint(1, x0, ylo, z0+0.5*sz);
-  
-  arrow2.SetPoint(0, x0-0.5*sx, ylo, z0+0.5*sz-0.5*sx);
-  arrow2.SetPoint(1, x0,        ylo, z0+0.5*sz);
-  arrow2.SetPoint(2, x0+0.5*sx, ylo, z0+0.5*sz-0.5*sx);
-  
-  TPolyLine3D& north = view->AddPolyLine3D(4, c, s, w);  
-  north.SetPoint(0, x0+0.5*sx, ylo, z0+0.5*sz);
-  north.SetPoint(1, x0+0.5*sx, ylo, z0+1.5*sz);
-  north.SetPoint(2, x0-0.5*sx, ylo, z0+0.5*sz);
-  north.SetPoint(3, x0-0.5*sx, ylo, z0+1.5*sz);
-  
-  TPolyLine3D& south = view->AddPolyLine3D(6, c, s, w);  
-  south.SetPoint(0, x0-0.5*sx, ylo, z0-0.75*sz);
-  south.SetPoint(1, x0,        ylo, z0-0.50*sz);
-  south.SetPoint(2, x0+0.5*sx, ylo, z0-0.75*sz);
-  south.SetPoint(3, x0-0.5*sx, ylo, z0-1.25*sz);
-  south.SetPoint(4, x0,        ylo, z0-1.50*sz);
-  south.SetPoint(5, x0+0.5*sx, ylo, z0-1.25*sz);
-  
-  TPolyLine3D& west = view->AddPolyLine3D(5, c, s, w);  
-  x0 += sz;
-  west.SetPoint(0, x0+0.5*sx, ylo, z0+0.5*sz); 
-  west.SetPoint(1, x0+0.5*sx, ylo, z0-0.5*sz);
-  west.SetPoint(2, x0,        ylo, z0);
-  west.SetPoint(3, x0-0.5*sx, ylo, z0-0.5*sz);
-  west.SetPoint(4, x0-0.5*sx, ylo, z0+0.5*sz);
-  
-  TPolyLine3D& east = view->AddPolyLine3D(7, c, s, w);  
-  x0 -= 2.0*sz;
-  east.SetPoint(0, x0-0.5*sx, ylo, z0+0.5*sz);
-  east.SetPoint(1, x0+0.5*sx, ylo, z0+0.5*sz);	
-  east.SetPoint(2, x0+0.5*sx, ylo, z0);
-  east.SetPoint(3, x0,        ylo, z0);
-  east.SetPoint(4, x0+0.5*sx, ylo, z0);
-  east.SetPoint(5, x0+0.5*sx, ylo, z0-0.5*sz);
-  east.SetPoint(6, x0-0.5*sx, ylo, z0-0.5*sz);
-  */
 }
 
 

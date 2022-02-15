@@ -6,11 +6,14 @@
 /////////////////////////////////////////////////////////////////////////////
 #include "TCanvas.h"
 #include "TGLViewer.h"
+#include "TGeoManager.h"
 
 #include "art/Framework/Principal/Event.h"
 
 #include "EventDisplay/Display3DView.h"
 #include "EventDisplay/Display3DPad.h"
+
+#include "Geometry/GeometryService.h"
 
 namespace evd
 {
@@ -48,6 +51,13 @@ namespace evd
     else {
       fDisplay3DPad->Pad()->GetViewer3D()->PadPaint(fDisplay3DPad->Pad());
     }
+
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto geoM  = geo->Geo()->ROOTGeoManager();
+
+    auto world_n = (TGeoNode*)geoM->GetTopNode();
+    auto world_v = (TGeoVolume*)world_n->GetVolume();
+    world_v->Draw();
 
   }
 
