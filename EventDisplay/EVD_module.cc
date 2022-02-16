@@ -135,7 +135,6 @@ namespace evd{
 
     // Open up the main display window and run
     evdb::DisplayWindow::OpenWindow(0);
-    std::cout << "******************** HERE ********************" << std::endl;
 
   }
 

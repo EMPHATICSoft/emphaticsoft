@@ -57,7 +57,8 @@ namespace evd
 
     auto world_n = (TGeoNode*)geoM->GetTopNode();
     auto world_v = (TGeoVolume*)world_n->GetVolume();
-    world_v->Draw();
+    geoM->SetVisLevel(3);
+    world_v->Draw("ogl");
 
   }
 
