@@ -1,0 +1,220 @@
+BEGIN_PROLOG
+
+# Configure the plot view plots
+#
+# One string per pad. Format described in PlotDrawingOptions.h
+#
+standard_plotdrawingopt:
+{
+  PadDescription: [
+    "Module/plot_name_1/lcolor=2,mstyle=24,mcolor=2",
+    "Module/plot_name_2/logy"
+  ]
+}
+
+# Configure the geometry drawing options
+standard_geomdrawingopt:
+{
+Zoom:         {val:0    gui:"rb:full,hits,truth,slice,sliceBox,partial"     doc:"Auto zoom the display to interesting regions" }
+ZRange:       {val:-1   gui:"te"                                   doc:"For zoom partial option, specify the Z range" }
+Outline:      {val:0x1  gui:"cb:detector,fiducial-user,grid,DCMs,cells,badboxes" doc:"Which outlines to draw?"}
+FiducialBounds:{val:[ -180,-180,100,180,180,1500 ]   gui:"te"    doc:"For fiducial-user, specify the low x,y,z and high x,y,z of the fiducial box, just like you would for a TLegend." }
+SliceBoxSize:{val:[ 150,150,1000 ]   gui:"te"    doc:"For slice box, specify the x,y,z dimensions of the box drawn around the slice." }
+Flip:         {val:0x00 gui:"cb:x,y,z"                             doc:"Display with axes reversed"}
+Label:        {val:0x00 gui:"cb:plane-cell numbers, compass"       doc:"Additional labels for display"}
+DimDisabled:  {val:1    gui:"rb:off,on"                            doc:"Make disabled channels dimmer?"}
+EnabledColor: {val:18   gui:"te"                                   doc:"Color for enabled channels"}
+DisabledColor:{val:19   gui:"te"                                   doc:"Color for disabled channels"}
+HighlightPlane: {val:-1 gui:"te"                                   doc:"Plane number of cell to highlight"}
+HighlightCell:  {val:-1 gui:"te"                                   doc:"Cell number of cell to highlight"}
+ViewingAngles3D: {val:[35,120,-75] gui:"te" doc:"3D viewing angles theta,phi,psi"}
+}
+
+# Configure the simulation drawing options
+standard_simdrawingopt:
+{
+ Draw:              {val:0             gui:"cb:vertex,vectors,trajectories,hits,neutrals,gammas" doc:"Which MC Truth object to draw?"}
+ FLSHitThresh:      {val:1             gui:"sl:0,10"                                             doc:"Threshold to apply to FLS hits [MeV]"}
+ FLSHitStyle:       {val:0             gui:"rb:dots,lines"                                       doc:"How to render FLS hits"}
+ Text:              {val:0             gui:"cb:short,long"                                       doc:"Which version of MC truth text to print?"}
+ TextDepthLimit:    {val:-1            gui:"sli:-1,10"                                           doc:"Print MC truth to this depth, -1=no limit"}
+ TextIncludeVertex: {val:0             gui:"rb:off,on"                                           doc:"Print particle birth points"}
+ TextIncludeDirections: {val:0         gui:"rb:off,on"                                           doc:"Print particle birth directions"}
+ MCTruthModules:    {val:["generator"] gui:"lbm:generator,another"                               doc:"Name of module producing MCTruth objects"}
+ FLSHitListModules: {val:["geantgen"]  gui:"lbm:geantgen,another"                                doc:"Name of module producint FLSHitList objects"}
+}
+
+# Configure the raw drawing options
+standard_rawdrawingopt:
+{
+ Color:             {val:0		   gui:"rb:by charge,by time"      doc:"Use color to show time or charge of hits?"}
+ WhichHits:         {val:0     	           gui:"rb:RAW,CAL"                doc:"Draw raw hits or calibrated hits?"}
+ WhichQ:            {val:0     	           gui:"rb:PE,PECOR"               doc:"Which calibrated charge to show?"}
+ RawDrawingOpt:     {val:2                 gui:"cb:mask bad channels,scale hits by charge,suppress ghosted hits, ghost dimmed hits" doc:"How to draw hits"}
+ ScaleFactor:       {val:1.3   	           gui:"sl:0,5"                    doc:"Scale factor to apply to hits"}
+ TimeRange:         {val:[-50,550]         gui:"sl:-50,550"                doc:"Time range in units of usec"}
+ TimeBinSize:       {val:1                 gui:"sl:0.05,10"                doc:"Time bin size in units of ns"}
+ TimeAutoZoomTruth: {val:0                 gui:"rb:off,on"                 doc:"Auto-zoom to truth times of interest"}
+ RawDigitsModules:  {val:["daq"] gui:"te"  gui:"lbm:daq,mrcc,mre,another"  doc:"Modules producing raw hits"}
+ CellHitsModules:   {val:["calhit"] gui:"te" gui:"lbm:calhit,another"      doc:"Backup CellHit source"}
+ ADCRange:          {val:[8,4096]          gui:"sl:1,4096"                 doc:"ADC histogram range"}
+ ADCBinSize:        {val:4                 gui:"sl:1,128"                  doc:"ADC bin size"}
+ Hit3DStyle:        {val:0x03              gui:"cb:boxes,towers,crossings" doc:"How to render hits on 3D display"}
+ THistogram:        {val:1                 gui:"rb:off,on"                 doc:"Draw time histogram or not?"}
+
+ RawDigitsModulesAdd:     {val:[] gui:"te" doc:"Additional raw digits modules"}
+ CellHitsModulesAdd:      {val:[] gui:"te" doc:"Additional CellHit modules"}
+}
+
+# Configure the reco drawing options
+standard_recodrawingopt:
+{
+ OfflineChanOpt: {val:0 gui:"rb:off,on"                        doc:"Draw offline channels?"}
+ ClusterStyle:   {val:1 gui:"cb:tight box,markers,convex hull" doc:"How to render clusters"}
+ ProngOpt:       {val:2 gui:"cb:as cluster,as prong"           doc:"Prong drawing options"}
+ VertexOpt:      {val:0 gui:"rb:off,on"                        doc:"Draw vertices?"}
+  ShowerOpt:     {val:0 gui:"rb:off,on"                        doc:"Draw showers?"}
+ HoughOpt:       {val:0 gui:"rb:off,on,color by index"         doc: "Drawing options for HoughResult"}
+
+ CellHits:     { val:[] gui:"lbm:calhit"
+                 doc:"Modules producing rb::CellHit"}
+ Hough:        { val:[] gui:"lbm:multihough"
+                 doc:"Modules producing rb::HoughResult"}
+ Clusters:     { val:[] gui:"lbm:slicer,mefinder"
+                 doc:"Modules producing rb::Cluster"}
+ Prongs:       { 
+                 val:[]
+                 gui:"lbm:cana,elasticarmshs,fuzzykvertex_Prongs3D,fuzzykvertex_Prongs2D,fuzzykvertex"
+                 doc:"Modules producing rb::Prong"
+               }
+ Vertices:     { val:[] gui:"lbm:elasticarmshs,houghvertex,vertexdt"
+                 doc:"Modules producing rb::Vertex"} 
+ Showers:      { val:[] gui:"lbm:none"
+                 doc:"Modules producing rb::Shower"}
+ OfflineChans: { val:[] gui:"lbm:none"
+                 doc:"Modules producing rb::OfflineChan"}
+
+ Tracks:       {
+                 val:[]
+                 gui:"lbm:breakpoint,cosmictrack,kalmantrack,kalmantrackmerge,windowtrack"
+                 doc:"Modules producing rb::Track"
+               }
+ TrackOpt:     { val:4 gui:"cb:as cluster,as prong,as track,ortho hits"
+                 doc:"Track drawing options" }
+
+ CellHitsAdd:     {val:[] gui:"te" doc:"Additional cell hits modules"}
+ HoughAdd:        {val:[] gui:"te" doc:"Additional hough-results modules"}
+ ClustersAdd:     {val:[] gui:"te" doc:"Additional cluster modules"}
+ ProngsAdd:       {val:[] gui:"te" doc:"Additional prong modules"}
+ VerticesAdd:     {val:[] gui:"te" doc:"Additional vertex modules"}
+ TracksAdd:       {val:[] gui:"te" doc:"Additional track modules"}
+ ShowersAdd:      {val:[] gui:"te" doc:"Additional shower modules"}
+ OfflineChansAdd: {val:[] gui:"te" doc:"Additional offline channel modules"}
+
+ ClusterIndex: {val:[[-1]] gui:"te" doc:"module/cluster index pairs"}
+ TrackIndex:   {val:[[-1]] gui:"te" doc:"module/cluster index pairs"}
+ VertexIndex:  {val:[[-1]] gui:"te" doc:"module/cluster index pairs"}
+ ProngIndex:   {val:[[-1]] gui:"te" doc:"module/cluster index pairs"}
+}
+    
+# Configure the scan dialog window
+standard_scanopt:
+{
+ IncludeMCInfo:     false                # include MC information in scan file if true
+ FileNameBase:      "ScanFile"           # base name for scan file
+ Categories:        ["Neutrino",         # categories for collecting information
+ 		     "X-View", 
+		     "Y-View"]
+ FieldLabels:       ["No_nu", "Possible_nu", "nu",  # fields for each category
+                     "Tracks", "Showers", "Vertex_z", "Vertex_w",  
+                     "Tracks", "Showers", "Vertex_z", "Vertex_w"]
+ FieldTypes:        ["RadioButton", "RadioButton", "RadioButton",  # type of each field
+		     "Number", "Number", "Number", "Number",  
+		     "Number", "Number", "Number", "Number"]
+ FieldsPerCategory: [3, 4, 4]          # number of fields for each category
+}
+
+numi_2db_scanopt:
+{
+ IncludeMCInfo:     false                # include MC information in scan file if true
+ FileNameBase:      "numi_scan_"         # base name for scan file
+ Categories:        ["Category",         # categories for collecting information
+ 		     "Failure Modes"]
+ FieldLabels:       ["Neutrino: Golden", "Neutrino: Possible", "Not neutrino candidate",
+                     "Neutron","DCM Synch","FEB flash","Missing Hits:On Spill Trigger Boundary","Containment Failure","Slicer Failure","Other: Please Comment"]
+ FieldTypes:        ["RadioButton","RadioButton","RadioButton",
+                     "CheckButton","CheckButton","CheckButton","CheckButton","CheckButton","CheckButton","CheckButton"]
+ FieldsPerCategory: [3,7]         # number of fields for each category
+}
+
+standard_slicenavigator:
+{
+  SliceLabel:    "slicer"
+  CellHitLabel:  "calhit"
+  SliceOpt: {val:6 gui:"cb:apply filter,dim noise hits,dim other slices" doc:"Slice navigation options.\nApply Filter: Only navigate between slices that haven't been filtered out.\nDimHits: Dims out hits that can't be navigated to.\nDimOtherSlices: Dims hits from slices other than the current slice."}
+  # These only really make sense to set from the fcl
+  InitiallyEnabled: false
+  InitialSlice: -1
+  AutoAdvanceInterval: 1000               # wait time in milliseconds
+  AutoPrintMax:     0                           # When nonzero the event display will auto-advance and print this many slices to file
+  AutoPrintPattern: "evdtest"
+#  AutoPrintPattern: "evd-slice_r%r_e%e_s%s.gif" # Pattern for printed event filenames. %r is run, %e is event, %s is slice.
+}
+
+standard_colors:
+{
+ BlackOnWhite: {val:0               gui:"rb:white on black,black on white" doc:"basic palette"}
+ ColorScales:  {val:["RawQ","RawT"] gui:"te"                                doc:"List of color scales"}
+ #
+ # Color scale for raw charges
+ #
+ RawQ_Palette:            {val:"BlueToRedII"  gui:"lbs:Rainbow,InvRainbow,LinGray,ColdToHot,BlueToRed,BlueToRedII,HeatedObject,Reds,Greens,Blues,Geographic,BlueToGreen,BlueToOrange,GreenToMagenta,Sequential,Focus,Custom" doc:"Which color scale to use"}
+ RawQ_N:                  {val:64        gui:"te"                   doc:"How many colors in scale?"}
+ RawQ_Range:              {val:[32,4096] gui:"te"                   doc:"Lower and upper limits of scale"}
+ RawQ_Scale:              {val:"log"     gui:"lbs:linear,log,sqrt"  doc:"How to distribute colors throughout scale"}
+ RawQ_Reverse:            {val:0         gui:"rb:unflipped,flipped" doc:"Should we reverse the order of the colors?"}
+ RawQ_UnderOverflowColors:{val:[-1,-1]   gui:"te"                   doc:"Colors to use for underflows and overflows"}
+ RawQ_HVPairs:            {val:[60,-120,0.25,0.75] gui:"te"         doc:"(h1,h2),(v1,v2) pairs that define custom color scales"}
+ #
+ # Color scale for calibrated charges
+ #
+ CalQ_Palette:            {val:"Custom"  gui:"lbs:Rainbow,InvRainbow,LinGray,ColdToHot,BlueToRed,BlueToRedII,HeatedObject,Reds,Greens,Blues,Geographic,BlueToGreen,BlueToOrange,GreenToMagenta,Sequential,Focus,Custom" doc:"Which color scale to use"}
+ CalQ_N:                  {val:64        gui:"te"                   doc:"How many colors in scale?"}
+ CalQ_Range:              {val:[4,4096]  gui:"te"                   doc:"Lower and upper limits of scale"}
+ CalQ_Scale:              {val:"log"     gui:"lbs:linear,log,sqrt"  doc:"How to distribute colors throughout scale"}
+ CalQ_Reverse:            {val:0         gui:"rb:unflipped,flipped" doc:"Should we reverse the order of the colors?"}
+ CalQ_UnderOverflowColors:{val:[-1,-1]   gui:"te"                   doc:"Colors to use for underflows and overflows"}
+ CalQ_HVPairs:            {val:[60,-120,0.25,0.75] gui:"te"         doc:"(h1,h2),(v1,v2) pairs that define custom color scales"}
+ #
+ # Color scale for raw times
+ #
+ RawT_Palette:            {val:"BlueToRedII" gui:"lbs:Rainbow,InvRainbow,LinGray,ColdToHot,BlueToRed,BlueToRedII,HeatedObject,Reds,Greens,Blues,Geographic,BlueToGreen,BlueToOrange,GreenToMagenta,Sequential,Focus,Custom" doc:"Which color scale to use"}
+ RawT_N:                  {val:60        gui:"te"                   doc:"How many colors in scale?"}
+ RawT_Range:              {val:[-50,550] gui:"te"                   doc:"Lower and upper limits of scale"}
+ RawT_Scale:              {val:"linear"  gui:"lbs:linear,log,sqrt"  doc:"How to distribute colors throughout scale"}
+ RawT_Reverse:            {val:0         gui:"rb:unflipped,flipped" doc:"Should we reverse the order of the colors?"}
+ RawT_UnderOverflowColors:{val:[-1,-1]   gui:"te"                   doc:"Colors to use for underflows and overflows"}
+ RawT_HVPairs:            {val:[0,0,0,0] gui:"te"                   doc:"h,v pairs that define custom color scales"}
+ #
+ # Color scale for calibrated times
+ #
+ CalT_Palette:            {val:"BlueToRedII" gui:"lbs:Rainbow,InvRainbow,LinGray,ColdToHot,BlueToRed,BlueToRedII,HeatedObject,Reds,Greens,Blues,Geographic,BlueToGreen,BlueToOrange,GreenToMagenta,Sequential,Focus,Custom" doc:"Which color scale to use"}
+ CalT_N:                  {val:60        gui:"te"                   doc:"How many colors in scale?"}
+ CalT_Range:              {val:[-50,550] gui:"te"                   doc:"Lower and upper limits of scale"}
+ CalT_Scale:              {val:"linear"  gui:"lbs:linear,log,sqrt"  doc:"How to distribute colors throughout scale"}
+ CalT_Reverse:            {val:0         gui:"rb:unflipped,flipped" doc:"Should we reverse the order of the colors?"}
+ CalT_UnderOverflowColors:{val:[-1,-1]   gui:"te"                   doc:"Colors to use for underflows and overflows"}
+ CalT_HVPairs:            {val:[0,0,0,0] gui:"te"                   doc:"h,v pairs that define custom color scales"}
+}
+
+# Configure the event display service
+standard_evd:
+{
+ AutoAdvanceInterval: 1000                  # Number of milli seconds between "Next event" when auto advancing
+ AutoPrintMax:        0                     # When nonzero the event display will auto-advance and print this many events to file
+ AutoPrintPattern:    "$HOME/evt_%s_%d.gif" # Pattern for printed event filenames. Must contain "%s" and "%d", in this order.
+ EchoPrint:           false            # dump what you see in X into a .gif
+ EchoPrintFile:       "$HOME/evt_echo.gif" # keep one name: use AutoPrint if you want a different file for each thing you see
+}
+
+END_PROLOG

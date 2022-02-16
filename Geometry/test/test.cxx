@@ -14,9 +14,9 @@ int main(){
 
 	std::cout << "This is a unit test." << std::endl << std::endl;
 
-	std::string package_path;
-	package_path = getenv ("CETPKG_SOURCE");
-	emph::geo::Geometry *emgeo = new emph::geo::Geometry(package_path+"/Geometry/gdml/phase1-test.gdml");
+	//	std::string package_path;
+	//	package_path = getenv ("CETPKG_SOURCE");
+	emph::geo::Geometry *emgeo = new emph::geo::Geometry("gdml/phase1-test.gdml"); //package_path+"/Geometry/gdml/phase1-test.gdml");
 
 	std::cout << "The magnet position is " << emgeo->MagnetUSZPos() << " - " << emgeo->MagnetDSZPos() << " cm." << std::endl;
 
