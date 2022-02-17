@@ -3,3 +3,6 @@ auto
 .*
 *.png
 *.pdf
+EventDisplay/nova
+EventDisplay/fcl
+
