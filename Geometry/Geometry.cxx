@@ -24,7 +24,7 @@
 #include "cetlib_except/exception.h"
 #include "cetlib/search_path.h"
 
-#include "Geometry.h"
+#include "Geometry/Geometry.h"
 
 namespace emph {
   namespace geo {
