@@ -55,7 +55,10 @@ fi
 # Source this file to set the basic configuration needed by EMPHATICSoft 
 
 # current location of emphaticsoft in CVMFS
-FERMIOSG_EMPHATICSOFT_DIR="/cvmfs/emphatic.opensciencegrid.org/products/"
+FERMIOSG_EMPHATICSOFT_DIR="/cvmfs/emphatic.opensciencegrid.org/products"
+
+# fermilab common products
+FERMIOSG_DIR="/cvmfs/fermilab.opensciencegrid.org/products/common/db"
 
 # Set up ups for EMPHATIC
 for dir in $FERMIOSG_EMPHATICSOFT_DIR;
@@ -68,17 +71,7 @@ do
 done
 
 # need also the common db in $PRODUCTS
-
-#for dir in $FERMIOSG_LARSOFT_DIR 
-#do
-#  if [[ -f $dir/setup ]]; then
-#    common=`dirname $dir`/common/db
-#    if [[ -d $common ]]; then
-#      export PRODUCTS=`dropit -p $PRODUCTS common/db`:`dirname $dir`/common/db
-#    fi
-#    break
-#  fi
-#done
+export PRODUCTS=${PRODUCTS}:${FERMIOSG_DIR}
 
 # Add current working directory (".") to FW_SEARCH_PATH
 if [[ -n "${FW_SEARCH_PATH}" ]]; then
@@ -92,7 +85,6 @@ fi
 if [ `uname` != Darwin ]; then
 
   # Work around git table file bugs.
-
   export PATH=`dropit git`
   export LD_LIBRARY_PATH=`dropit -p $LD_LIBRARY_PATH git`
   setup git
