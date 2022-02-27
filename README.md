@@ -16,7 +16,7 @@ Base repository for art-based code
 ```
 kinit username@FNAL.GOV
 klist
-ssh username@emphaticgpvm01.fnal.gov
+ssh -X username@emphaticgpvm01.fnal.gov
 ```
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
