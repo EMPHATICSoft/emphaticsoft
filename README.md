@@ -56,6 +56,10 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
 
 ---
 ## Instructions for running a Docker container on your own machine to build the code:
+
+Docker is a commercial software (free for now) that allows EMPHATIC to release the software we use, including all the dependencies and for users to run it on a variety of operating systems.  Docker images of EMPHATIC software are made available via a networked file system provided by CERN, namely CVMFS.  
+
+
 ### Initial setup (only need to do these steps once):
 0. (Mac only) Install [macFuse](https://osxfuse.github.io/).
 1. Install [CVMFS](https://cernvm.cern.ch/fs/). The link has instructions for various operating systems.
