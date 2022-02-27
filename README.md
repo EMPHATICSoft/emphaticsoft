@@ -16,8 +16,9 @@ Base repository for art-based code
 ```
 kinit username@FNAL.GOV
 klist
-ssh -X username@emphaticgpvm01.fnal.gov
+ssh -X username@emphaticgpvm0X.fnal.gov
 ```
+Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.  
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
@@ -38,6 +39,8 @@ mkdir build
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
 ```
+You will prompted to enter your github username and a password.  The password should be your personal access token, which you should obtain by following the instructions here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token.
+
 
 4. execute:
 
