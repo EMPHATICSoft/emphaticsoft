@@ -16,7 +16,7 @@ Base repository for art-based code
 ```
 kinit username@FNAL.GOV
 klist
-ssh -X username@emphaticgpvm0X.fnal.gov
+ssh -Y username@emphaticgpvm0X.fnal.gov
 ```
 Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.  
 
