@@ -24,7 +24,7 @@ extern "C" {
 // emphaticsoft includes
 #include "EventDisplayBase/DisplayWindow.h"
 #include "EventDisplayServices/RawDrawingOptions.h"
-//#include "EventDisplay/XZYZProjectionsView.h"
+#include "EventDisplay/XZYZProjectionsView.h"
 //#include "EventDisplay/HardwareView.h"
 #include "EventDisplay/Display3DView.h"
 //#include "EventDisplay/MCTrueView.h"
@@ -48,7 +48,8 @@ namespace evd{
 ////////////////////////////////////////////////////////////////////////
 
 // Builder for the XZYXProjections view
-/*static evdb::Canvas* mk_xzyzproj_canvas(TGMainFrame* mf)
+/*
+static evdb::Canvas* mk_xzyzproj_canvas(TGMainFrame* mf)
 {
   return new evd::XZYZProjectionsView(mf);
 }
@@ -100,12 +101,14 @@ namespace evd{
   {
 
     // Register the list of windows used by the event display
-    /*    evdb::DisplayWindow::Register("XZ/YZ Projections",
+    /*
+    evdb::DisplayWindow::Register("XZ/YZ Projections",
 				  "XZ/YZ Projections",
 				  840,
 				  1260,
 				  mk_xzyzproj_canvas);
     */
+    
 
     /*    evdb::DisplayWindow::Register("Hardware View",
 				  "Hardware View",

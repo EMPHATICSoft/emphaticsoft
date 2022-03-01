@@ -27,7 +27,7 @@ EnabledColor: {val:18   gui:"te"                                   doc:"Color fo
 DisabledColor:{val:19   gui:"te"                                   doc:"Color for disabled channels"}
 HighlightPlane: {val:-1 gui:"te"                                   doc:"Plane number of cell to highlight"}
 HighlightCell:  {val:-1 gui:"te"                                   doc:"Cell number of cell to highlight"}
-ViewingAngles3D: {val:[35,120,-75] gui:"te" doc:"3D viewing angles theta,phi,psi"}
+ViewingAngles3D: {val:[145,45,240] gui:"te" doc:"3D viewing angles theta,phi,psi"}
 }
 
 # Configure the simulation drawing options
@@ -117,23 +117,6 @@ standard_recodrawingopt:
  ProngIndex:   {val:[[-1]] gui:"te" doc:"module/cluster index pairs"}
 }
     
-# Configure the scan dialog window
-standard_scanopt:
-{
- IncludeMCInfo:     false                # include MC information in scan file if true
- FileNameBase:      "ScanFile"           # base name for scan file
- Categories:        ["Neutrino",         # categories for collecting information
- 		     "X-View", 
-		     "Y-View"]
- FieldLabels:       ["No_nu", "Possible_nu", "nu",  # fields for each category
-                     "Tracks", "Showers", "Vertex_z", "Vertex_w",  
-                     "Tracks", "Showers", "Vertex_z", "Vertex_w"]
- FieldTypes:        ["RadioButton", "RadioButton", "RadioButton",  # type of each field
-		     "Number", "Number", "Number", "Number",  
-		     "Number", "Number", "Number", "Number"]
- FieldsPerCategory: [3, 4, 4]          # number of fields for each category
-}
-
 numi_2db_scanopt:
 {
  IncludeMCInfo:     false                # include MC information in scan file if true
