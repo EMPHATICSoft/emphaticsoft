@@ -127,9 +127,7 @@ sub gen_Define()
 
   <define>
 
-	 <quantity name="PI" value="3.1415927" unit="deg"/>
-	 <quantity name="DEG2RAD" value="0.017453293" unit="deg"/>
-
+    <constant name="DEG2RAD" value="pi/180." />
 	 <quantity name="world_size" value="3000." unit="mm"/>
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
@@ -156,8 +154,6 @@ EOF
 		}
 		print DEF <<EOF;
 
-	 <!--rotation name="T0_union1_rot" x="90" unit="deg"/-->
-	 <!--rotation name="T0_acrylic_rot" x="-45" unit="deg"/-->
 	 <rotation name="T0_union1_rot" x="90" unit="deg"/>
 	 <rotation name="T0_acrylic_rot" x="-45" unit="deg"/>
 
@@ -336,8 +332,8 @@ EOF
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
 	 <quantity name="LG_width1" value="135" unit="mm" />
-	 <!--quantity name="LG_angle" value="0.064615804" unit="rad" /-->
-	 <quantity name="LG_angle" value="3.7022129" unit="deg" />
+	 <constant name="LG_angle_v" value="3.7022129"/>
+	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
@@ -356,9 +352,7 @@ EOF
 			print DEF <<EOF;
 	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0." unit="mm"/>
 	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <!--position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*($i-1)" z="0." unit="mm"/-->
 	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <!--position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*($i-1)" z="0." unit="mm"/-->
 	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="180" unit="deg"/>
 	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="deg"/>
 	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" unit="deg"/>
@@ -528,11 +522,12 @@ EOF
 EOF
 	}
 	if($LG_switch){
+		#DEBUG
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" unit="deg"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
