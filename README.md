@@ -16,9 +16,8 @@ Base repository for art-based code
 ```
 kinit username@FNAL.GOV
 klist
-ssh -Y username@emphaticgpvm0X.fnal.gov
+ssh username@emphaticgpvm01.fnal.gov
 ```
-Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.  
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
@@ -39,8 +38,6 @@ mkdir build
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
 ```
-You will prompted to enter your github username and a password.  The password should be your personal access token, which you should obtain by following the instructions here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token.
-
 
 4. execute:
 
@@ -59,10 +56,6 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
 
 ---
 ## Instructions for running a Docker container on your own machine to build the code:
-
-Docker is a commercial software (free for now) that allows EMPHATIC to release the software we use, including all the dependencies and for users to run it on a variety of operating systems.  Docker images of EMPHATIC software are made available via a networked file system provided by CERN, namely CVMFS.  
-
-
 ### Initial setup (only need to do these steps once):
 0. (Mac only) Install [macFuse](https://osxfuse.github.io/).
 1. Install [CVMFS](https://cernvm.cern.ch/fs/). The link has instructions for various operating systems.

@@ -7,7 +7,6 @@
 
 #include <cassert>
 #include <iostream>
-#include <fstream>
 #include <stdio.h>
 
 //ROOT includes
@@ -24,237 +23,218 @@
 #include "cetlib_except/exception.h"
 #include "cetlib/search_path.h"
 
-#include "Geometry/Geometry.h"
+#include "Geometry.h"
 
 namespace emph {
-  namespace geo {
-    
-    Detector::Detector() :
-      fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.)
-    {
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    Detector::Detector(std::string name, TVector3 pos, double dz, double w, double h) :
-      fName(name), fDz(dz), fWidth(w), fHeight(h)
-    {
-      fPos = pos;
-      
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    SSDStation::SSDStation() :
-      fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.), fSSD(0)
-    {
-      
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    Geometry::Geometry() :
-      fGDMLFile("")
-    {
-      fGeoManager = 0;
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    Geometry::Geometry(std::string fname) :
-      fGDMLFile(fname), fSSDStation(0)
-    {
-      fGeoManager = 0;
-      for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
-      this->SetGDMLFile(fname);
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    bool Geometry::SetGDMLFile(std::string fname)
-    {
-      if (fname.empty()) {
-	throw cet::exception("GeometrySetGDMLFile")
-	  << "cannot use empty string for GDML file, please fix this\n"
-	  << __FILE__ << ":" << __LINE__ << "\n";
-      }
-      
-      fGDMLFile = fname;
-      return this->LoadGDMLFile();
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    bool Geometry::LoadGDMLFile()
-    {
-      std::ifstream geoFile;
-      std::string file_path;
-      std::string fname;
-      
-      file_path = getenv ("CETPKG_SOURCE");
-      fname = file_path + "/Geometry/" + fGDMLFile;
-      geoFile.open(fname.c_str());
-      if (!geoFile.is_open()) {
-	throw cet::exception("GeometryFileLoad")
-	  << "cannot find GDML file " << fname << " bail ungracefully\n"
-	  << __FILE__ << ":" << __LINE__ << "\n";
-	return false;
-      }
-      geoFile.close();
-      
-      mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
-					<< fname << "\n";
-      
-      //      if (fGeoManager) delete fGeoManager;
-      int old_verbosity = gGeoManager->GetVerboseLevel();
-      
-      // TGeoManager is too verbose when loading geometry.
-      // Make it quiet.
-      gGeoManager->SetVerboseLevel(0);
+	namespace geo {
 
-      //fGeoManager->Import(fname.c_str());
-      TGeoManager::Import(fname.c_str());
+		Detector::Detector() :
+			fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.)
+		{
 
-      fGeoManager = gGeoManager;
-      
-      mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
-      
-      fGeoManager->SetVerboseLevel(old_verbosity);
-      
-      const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
-      std::cout << "world_n = " << world_n << std::endl;
+		}
 
-      const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-      std::cout << "world_v = " << world_n << std::endl;
+		//--------------------------------------------------------------------------------
 
-      TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
-      std::cout << "world_box = " << world_box << std::endl;
-      
-      fWorldHeight = world_box->GetDY();
-      fWorldWidth  = world_box->GetDX();
-      fWorldLength = world_box->GetDZ();
+		Detector::Detector(std::string name, TVector3 pos, double dz, double w, double h) :
+			fName(name), fDz(dz), fWidth(w), fHeight(h)
+		{
+			fPos = pos;
+		}
 
-      ExtractMagnetInfo(world_v);
-      mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
-      
-      for ( int i = Trigger ; i < NDetectors ; i ++ ){
-	ExtractDetectorInfo(i, world_n);
-	if ( fDetectorLoad[i] == true ){
-	  mf::LogWarning("ExtractGeometry") << "extracted "
-					    << DetInfo::Name(DetectorType(i)) << " geometry \n";
-	}
-      }
-      
-      return true;
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
-    {
-      if ( i < 3 || i == ARICH ){
-	mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
-					  << " detector not in gdml yet. \n"
-					  << "experts should confirm whether they should be implemented. \n";
-	return;
-      }
-      
-      if ( i == SSD ){
-	
-	ExtractSSDInfo(world_n);
-	
-	if ( fNSSDStations > 0 ){
-	  
-	  std::cout<<"n SSD: "<<fNSSDStations <<std::endl;
-	  
-	  fDetectorLoad[i] = true;
-	  fDetectorUSZPos[i] = fSSDStation.front().Pos()[2]-fSSDStation.front().Dz();
-	  fDetectorDSZPos[i] = fSSDStation.back().Pos()[2]-fSSDStation.back().Dz();
-	  
-	}
-	
-	return;
-	
-      }
-      
-      const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-      TString detector_name=DetInfo::Name(DetectorType(i))+"_phys";
-      TGeoNode* detector_n = (TGeoNode*)world_v->GetNode(detector_name);
-      
-      if ( detector_n == nullptr ){
-	mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i))
-					  << " detector not found in gdml. \n"
-					  << "check your spelling. \n";
-	return;
-      }
-      
-      TGeoVolume* detector_v = (TGeoVolume*)detector_n->GetVolume();
-      TGeoBBox* detector_box = (TGeoBBox*)detector_v->GetShape();
-      
-      double zcenter = detector_n->GetMatrix()->GetTranslation()[2];
-      double dz = detector_box->GetDZ();
-      
-      fDetectorUSZPos[i] = zcenter-dz;
-      fDetectorDSZPos[i] = zcenter+dz;
-      fDetectorLoad[i] = true;
-      
-    }
-    
-    
-    //--------------------------------------------------------------------------------
-    
-    void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
-    {
-      TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
-      TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
-      TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
-      
-      double zcenter = magnet_n->GetMatrix()->GetTranslation()[2];
-      double dz = magnet_box->GetDZ();
-      
-      fMagnetUSZPos = zcenter-dz;
-      fMagnetDSZPos = zcenter+dz;
-      
-    }
-    
-    //--------------------------------------------------------------------------------
-    
-    void Geometry::ExtractSSDInfo(const TGeoNode* world_n)
-    {
-      int nnodes = world_n->GetNodes()->GetEntries();
-      const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-      
-      std::vector<std::string> nodeName;
-      
-      std::string sString = "ssdStation";
-      
-      for (int i=0; i<nnodes; ++i) {
-	std::string name = world_v->GetNode(i)->GetName();
-	if (name.find(sString) != std::string::npos)
-	  nodeName.push_back(name);
-      }
-      
-      fNSSDStations = (int)nodeName.size();
-      
-      for (auto name : nodeName) {
-	SSDStation st;
-	TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
-	TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
-	TGeoBBox* st_box = (TGeoBBox*)st_v->GetShape();
-	
-	// first add basic info about the SSD station
-	st.SetName(name);
-	st.SetDz(st_box->GetDZ());
-	st.SetPos(st_n->GetMatrix()->GetTranslation());
-	st.SetWidth(2*st_box->GetDX());
-	st.SetHeight(2*st_box->GetDY());
-	
-	// now add individual SSDs to the station
-	
-	fSSDStation.push_back(st);
-      }
-      
-    }
-    
-  } // end namespace geo
+		//--------------------------------------------------------------------------------
+
+		SSDStation::SSDStation() :
+			fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.), fSSD(0)
+		{
+
+		}
+
+		//--------------------------------------------------------------------------------
+
+		Geometry::Geometry() :
+			fGDMLFile("")
+		{
+
+		}
+
+		//--------------------------------------------------------------------------------
+
+		Geometry::Geometry(std::string fname) :
+			fGDMLFile(fname), fSSDStation(0)
+		{
+			for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
+			this->SetGDMLFile(fname);
+		}
+
+		//--------------------------------------------------------------------------------
+
+		bool Geometry::SetGDMLFile(std::string fname)
+		{
+			if (fname.empty()) {
+				throw cet::exception("GeometrySetGDMLFile")
+					<< "cannot use empty string for GDML file, please fix this\n"
+					<< __FILE__ << ":" << __LINE__ << "\n";
+			}
+
+			fGDMLFile = fname;
+			return this->LoadGDMLFile();
+		}
+
+		//--------------------------------------------------------------------------------
+
+		bool Geometry::LoadGDMLFile()
+		{
+			//    cet::search_path sp("FW_SEARCH_PATH");
+
+			//    std::string fullPathGDMLFile;
+
+			/*
+				if (!sp.find_file(fGDMLFile,fullPathGDMLFile) ) {
+				throw cet::exception("GeometryFileLoad")
+				<< "cannot find GDML file " << fGDMLFile << " bail ungracefully\n"
+				<< __FILE__ << ":" << __LINE__ << "\n";
+				}
+				*/
+			mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
+				<< fGDMLFile << "\n";
+
+			int old_verbosity = gGeoManager->GetVerboseLevel();
+
+			// TGeoManager is too verbose when loading geometry.
+			// Make it quiet.
+			gGeoManager->SetVerboseLevel(0);
+
+			TGeoManager::Import(fGDMLFile.c_str());
+
+			mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
+
+			gGeoManager->SetVerboseLevel(old_verbosity);
+
+			const TGeoNode* world_n = (TGeoNode*)gGeoManager->GetTopNode();
+			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+
+			ExtractMagnetInfo(world_v);
+			mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
+
+			for ( int i = Trigger ; i < NDetectors ; i ++ ){
+				ExtractDetectorInfo(i, world_n);
+				if ( fDetectorLoad[i] == true ){
+					mf::LogWarning("ExtractGeometry") << "extracted "
+									  << DetInfo::Name(DetectorType(i)) << " geometry \n";
+				}
+			}
+
+			return true;
+		}
+
+		//--------------------------------------------------------------------------------
+
+		void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
+		{
+			if ( i < 3 || i == ARICH ){
+			  mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
+					<< " detector not in gdml yet. \n"
+					<< "experts should confirm whether they should be implemented. \n";
+				return;
+			}
+
+			if ( i == SSD ){
+
+				ExtractSSDInfo(world_n);
+
+				if ( fNSSDStations > 0 ){
+
+					std::cout<<"n SSD: "<<fNSSDStations <<std::endl;
+
+					fDetectorLoad[i] = true;
+					fDetectorUSZPos[i] = fSSDStation.front().Pos()[2]-fSSDStation.front().Dz();
+					fDetectorDSZPos[i] = fSSDStation.back().Pos()[2]-fSSDStation.back().Dz();
+
+				}
+
+				return;
+
+			}
+
+			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+			TString detector_name=DetInfo::Name(DetectorType(i))+"_phys";
+			TGeoNode* detector_n = (TGeoNode*)world_v->GetNode(detector_name);
+
+			if ( detector_n == nullptr ){
+			  mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i))
+					<< " detector not found in gdml. \n"
+					<< "check your spelling. \n";
+				return;
+			}
+
+			TGeoVolume* detector_v = (TGeoVolume*)detector_n->GetVolume();
+			TGeoBBox* detector_box = (TGeoBBox*)detector_v->GetShape();
+
+			double zcenter = detector_n->GetMatrix()->GetTranslation()[2];
+			double dz = detector_box->GetDZ();
+
+			fDetectorUSZPos[i] = zcenter-dz;
+			fDetectorDSZPos[i] = zcenter+dz;
+			fDetectorLoad[i] = true;
+
+		}
+
+
+		//--------------------------------------------------------------------------------
+
+		void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
+		{
+			TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
+			TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
+			TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
+
+			double zcenter = magnet_n->GetMatrix()->GetTranslation()[2];
+			double dz = magnet_box->GetDZ();
+
+			fMagnetUSZPos = zcenter-dz;
+			fMagnetDSZPos = zcenter+dz;
+
+		}
+
+		//--------------------------------------------------------------------------------
+
+		void Geometry::ExtractSSDInfo(const TGeoNode* world_n)
+		{
+			int nnodes = world_n->GetNodes()->GetEntries();
+			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+
+			std::vector<std::string> nodeName;
+
+			std::string sString = "ssdStation";
+
+			for (int i=0; i<nnodes; ++i) {
+				std::string name = world_v->GetNode(i)->GetName();
+				if (name.find(sString) != std::string::npos)
+					nodeName.push_back(name);
+			}
+
+			fNSSDStations = (int)nodeName.size();
+
+			for (auto name : nodeName) {
+				SSDStation st;
+				TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
+				TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
+				TGeoBBox* st_box = (TGeoBBox*)st_v->GetShape();
+
+				// first add basic info about the SSD station
+				st.SetName(name);
+				st.SetDz(st_box->GetDZ());
+				st.SetPos(st_n->GetMatrix()->GetTranslation());
+				st.SetWidth(2*st_box->GetDX());
+				st.SetHeight(2*st_box->GetDY());
+
+				// now add individual SSDs to the station
+
+				fSSDStation.push_back(st);
+			}
+
+		}
+
+	} // end namespace geo
 } // end namespace emph

@@ -9,13 +9,10 @@
 #include <iostream>
 #include <cassert>
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include "art_cpp_db_interfaces/query_engine_api.h"
-#pragma GCC diagnostic pop
 
 namespace runhist{
-   
+  
   //----------------------------------------------------------------------
   
   RunHistory::RunHistory() :   
@@ -91,7 +88,7 @@ namespace runhist{
 
     QueryEngine<int,int,double> runquery(_QEURL,"emph_prod","runs","nsubrun","ntrig","beammom");
     runquery.where("run","eq",_runNumber);
-
+    /*
     auto result = runquery.get();
 
     for (auto& row : result) {
@@ -101,6 +98,7 @@ namespace runhist{
       _beamMom = column<2>(row);
 
     }
+    */
 
     _isLoaded = true;
     return true;

@@ -388,17 +388,20 @@ namespace rawdata {
 	std::cerr << "Could not open file.\n" << std::endl;
 	return false;
       }
+      std::cout << "opened file" << std::endl;
       std::unique_ptr<TTree> runs{input_file->Get<TTree>("Runs")};
       if (!runs) {
 	std::cerr << "Could not find Runs tree.\n";
 	return false;
       }
+      std::cout << "runs tree size = " << runs->GetEntries() << std::endl;
       
       std::unique_ptr<TTree> subruns{input_file->Get<TTree>("SubRuns")};
       if (!subruns) {
 	std::cerr << "Could not find SubRuns tree.\n";
 	return false;
       }
+      std::cout << "subruns tree size = " << subruns->GetEntries() << std::endl;
       
       art::RunAuxiliary* runAux;
       art::SubRunAuxiliary* subrunAux;
