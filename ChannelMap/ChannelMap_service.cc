@@ -16,11 +16,14 @@ namespace emph
     
     //------------------------------------------------------------
     ChannelMapService::ChannelMapService(const fhicl::ParameterSet& pset,
-					 art::ActivityRegistry &) //reg)
+					 art::ActivityRegistry & reg)
     {
       reconfigure(pset);
-      //reg.sPreBeginRun.watch(this, &ChannelMapService::preBeginRun);
-      std::cout << "ChannelMapService()" << std::endl;
+      
+      fChannelMap = new ChannelMap();
+
+      reg.sPreBeginRun.watch(this, &ChannelMapService::preBeginRun);
+
     }
     
     //----------------------------------------------------------
@@ -33,14 +36,16 @@ namespace emph
     void ChannelMapService::reconfigure(const fhicl::ParameterSet& pset)
     {
       
-      this->SetMapFileName(pset.get< std::string >("MapFileName"));
-      this->SetAbortIfFileNotFound(pset.get<bool>("AbortIfFileNotFound"));
+      fMapFileName = pset.get< std::string >("MapFileName");
+      fAbortIfFileNotFound = pset.get<bool>("AbortIfFileNotFound");
     }
     
     //----------------------------------------------------------
-    //    void ChannelMapService::preBeginRun(const art::Run& )
-    //    {
-    //    }
+    void ChannelMapService::preBeginRun(const art::Run& )
+    {
+      fChannelMap->SetMapFileName(fMapFileName);
+      fChannelMap->SetAbortIfFileNotFound(fAbortIfFileNotFound);      
+    }
     
   }
 }
