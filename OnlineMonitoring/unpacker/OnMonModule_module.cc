@@ -79,7 +79,8 @@ namespace emph {
       std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubrun;
-      
+      unsigned int fNEvents;
+
       // hard codes consts for now,
       // need to figure out better solution with Geo NChannel function
       static const unsigned int nChanT0  = 20;
@@ -97,6 +98,7 @@ namespace emph {
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
+      std::vector<unsigned int> fNEventsBACkov;
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
       std::vector<TH1F*> fSSDProf;
@@ -159,6 +161,7 @@ namespace emph {
     //......................................................................
     void OnMonModule::beginJob()
     {
+      fNEvents=0;
       // initialize channel map
       fChannelMap = 0;
       if (!fChanMapFileName.empty()) {
@@ -207,6 +210,14 @@ namespace emph {
 
     void OnMonModule::endJob()
     {
+      if (fNEvents > 0) {
+	float scale;
+	for (size_t i=0; i<fBACkovWaveForm.size(); ++i) {
+	  scale = 1./float(fNEventsBACkov[i]);
+	  fBACkovWaveForm[i]->Scale(scale);
+	}
+      }
+
       char filename[32];
       sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
       TFile* f = new TFile(filename,"RECREATE");
@@ -251,6 +262,7 @@ namespace emph {
           sprintf(hname,"BACkovWaveForm_%d",i);
           fBACkovWaveForm.push_back(h.GetTH1F(hname));
 	  fBACkovWaveForm[i]->SetBit(TH1::kIsAverage);
+	  fNEventsBACkov.push_back(0);
         }
       }
     }
@@ -405,6 +417,7 @@ namespace emph {
 		fBACkovADCDist[detchan]->Fill(adc);
 		// now fill waveform plot
 		auto adcvals = wvfm.AllADC();
+		fNEventsBACkov[detchan]++;
 		for (size_t i=0; i<adcvals.size(); ++i) {
 		  fBACkovWaveForm[detchan]->Fill(i+1,adcvals[i]);
 		}
@@ -582,6 +595,7 @@ namespace emph {
     //......................................................................
     void OnMonModule::analyze(const art::Event& evt)
     { 
+      ++fNEvents;
       fRun = evt.run();
       fSubrun = evt.subRun();     
       std::string labelStr;
