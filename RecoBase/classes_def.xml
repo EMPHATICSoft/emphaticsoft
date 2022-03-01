@@ -9,4 +9,9 @@
   </class>
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
+  <class name="rb::TrackSegment"    ClassVersion="10">
+    <version ClassVersion="10" checksum=""/>
+  </class>
+  <class name="std::vector<rb::TrackSegment>"        />
+  <class name="art::Wrapper< std::vector<rb::TrackSegment>    >"/>
  </lcgdict>
