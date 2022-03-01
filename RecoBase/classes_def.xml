@@ -14,4 +14,9 @@
   </class>
   <class name="std::vector<rb::TrackSegment>"        />
   <class name="art::Wrapper< std::vector<rb::TrackSegment>    >"/>
+  <class name="rb::SpacePoint"    ClassVersion="10">
+    <version ClassVersion="10" checksum=""/>
+  </class>
+  <class name="std::vector<rb::SpacePoint>"        />
+  <class name="art::Wrapper< std::vector<rb::SpacePoint>    >"/>
  </lcgdict>

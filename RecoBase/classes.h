@@ -1,4 +1,5 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "RecoBase/SSDHit.h"
 #include "RecoBase/TrackSegment.h"
+#include "RecoBase/SpacePoint.h"
 

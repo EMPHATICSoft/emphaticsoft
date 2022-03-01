@@ -1,9 +1,9 @@
 include(ArtDictionary)
 include(ArtMake)
+FILE( GLOB src_files *.cxx )
 
 art_make_library(
-  SOURCE
-    SSDHit.cxx
+  SOURCE ${src_files}
   LIBRARIES PRIVATE
     RawData
     art::Framework_Core

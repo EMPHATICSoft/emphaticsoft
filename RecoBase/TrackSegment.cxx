@@ -21,22 +21,34 @@ namespace rb {
     }
   }
   
+  //----------------------------------------------------------------------
+  
+  TrackSegment::TrackSegment(const art::PtrVector<rb::SSDHit>& hits) 
+  {
+    for (int i=0; i<3; ++i) {
+      _x0[i] = -999999.;
+      _p[i] = 0.;
+    }
+    for(size_t j=0; j<hits.size(); ++j)
+      _hit.push_back(hits[j]);
+  }
+  
   //------------------------------------------------------------
 
-  rb::SSDHit* TrackSegment:Hit(int i)
+  art::Ptr<rb::SSDHit> TrackSegment::Hit(int i) const
   {
-    if ((i>0) && (i < int(_hit.size()))) 
-      return _hit[i];
-    else
-      return 0;
+    assert(((i>0) && (i < int(_hit.size()))));
+
+    return _hit[i];
   }
 
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const TrackSegment& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    o << " Track Segment --> x0(" << _x0[0] << "," << _x0[1] << "," << _x0[2]
-      << "), p(" << _p[0] << "," << _p[1] << "," << _p[2] << ")"; 
+    o << " Track Segment --> x0(" << h._x0[0] << "," << h._x0[1] << "," 
+      << h._x0[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
+      << h._p[2] << ")"; 
     return o;
   }
   

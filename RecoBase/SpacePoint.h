@@ -10,34 +10,26 @@
 #include <stdint.h>
 #include <iostream>
 
-#include "RecoBase/SSDHit.h"
-
 namespace rb {
   
-  class TrackSegment {
+  class SpacePoint {
   public:
-    TrackSegment(); // Default constructor
-    TrackSegment(std::vector<rb::SSDHit> hits); // Default constructor
-    virtual ~TrackSegment() {}; //Destructor
+    SpacePoint(); // Default constructor
+    //    SpacePoint(std::vector<rb::SSDHit> hits); // Default constructor
+    virtual ~SpacePoint() {}; //Destructor
     
   private:
 
-    double _x0[3]; // rotation angle about the vertical y-axis
-    double _p[3];  // avg. strip position
-    std::vector<rb::SSDHit> _hit; // vector of SSD hits
+    double _x[3]; // rotation angle about the vertical y-axis
 
   public:
     // Getters
-    double* X0() const { return _x0; }
-    double* P() const { return _p; }
-    rb::SSDHit* Hit(int i) const;
+    const double* Pos() const { return _x; }
 
     // Setters
-    void AddHit(rb::SSDHit hit) { _hit.push_back(hit); }
-    void SetX0(double* x0) { for (int i=0; i<3; ++i) _x0[i] = x0[i]; }
-    void SetP(double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
+    void SetX(double* x0) { for (int i=0; i<3; ++i) _x[i] = x0[i]; }
     
-    friend std::ostream& operator << (std::ostream& o, const TrackSegment& h);
+    friend std::ostream& operator << (std::ostream& o, const SpacePoint& h);
   };
   
 }

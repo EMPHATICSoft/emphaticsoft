@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Track segment class
+/// \brief   Definition of 3D space point class
 /// \author  jpaley@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#include "RecoBase/TrackSegment.h"
+#include "RecoBase/SpacePoint.h"
 
 #include <iomanip>
 #include <iostream>
@@ -13,30 +13,19 @@ namespace rb {
   
   //----------------------------------------------------------------------
   
-  TrackSegment::TrackSegment() 
+  SpacePoint::SpacePoint() 
   {
     for (int i=0; i<3; ++i) {
-      _x0[i] = -999999.;
-      _p[i] = 0.;
+      _x[i] = -999999.;
     }
   }
   
   //------------------------------------------------------------
-
-  rb::SSDHit* TrackSegment:Hit(int i)
-  {
-    if ((i>0) && (i < int(_hit.size()))) 
-      return _hit[i];
-    else
-      return 0;
-  }
-
-  //------------------------------------------------------------
-  std::ostream& operator<< (std::ostream& o, const TrackSegment& h)
+  std::ostream& operator<< (std::ostream& o, const SpacePoint& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    o << " Track Segment --> x0(" << _x0[0] << "," << _x0[1] << "," << _x0[2]
-      << "), p(" << _p[0] << "," << _p[1] << "," << _p[2] << ")"; 
+    o << " Spacepoint --> (" << h._x[0] << "," << h._x[1] << "," << h._x[2]
+      << ")"; 
     return o;
   }
   
