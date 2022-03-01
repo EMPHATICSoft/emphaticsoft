@@ -134,8 +134,10 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
     See "buildtool --usage" (short usage help) or "buildtool -h|--help"
     (full help) for more details.
    ```
-
-    * The FHICL_FILE_PATH is an environmental variable which holds multipath, the first one being the one /emph/app/users/lebrun/build/fcl, where our fcl files do reside. Then, art will find the top level (the one in the Unix command you invoke), and all the subsequent ones. Such that the command: 
+    * The FHICL_FILE_PATH is an environmental variable which holds multipath, the first one being the one 
+      /emph/app/users/lebrun/build/fcl, where our fcl files do reside.
+       Then, art will find the top level (the one in the Unix command you invoke), and all the subsequent ones. 
+       Such that the command: 
    ```
      -bash-4.2$ art -c onmonprod_job.fcl /emph/app/users/lebrun/data/emphdata_r466_s1.root
    ```
