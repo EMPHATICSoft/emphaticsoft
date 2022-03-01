@@ -35,7 +35,7 @@ physics:
 
  analyzers:
  {
-	onmon: @local::no_ssd_onmon
+	onmon: @local::standard_onmon
  }
 
  # stream1:  [ out1 ] #could have multiple paths

@@ -67,7 +67,7 @@ namespace emph {
       static int NChannel(DetectorType t) {
 	switch (t) {
 	case DetectorType::SSD:
-	  return 0;
+	  return 22;
 	case DetectorType::Trigger:
 	  return 4;
 	case DetectorType::GasCkov:
