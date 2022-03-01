@@ -106,6 +106,46 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
    buildtool --generator=ninja
    ```
    * any subsequent builds (still have to be in the build directory):
-   ```
    ninja
    ```
+## Running run on emphaticsoft art modules. 
+
+   Now that you have build shared objects that could run under art, the real work can start, i.e., running art and your EMPHATIC shared objects to get some histograms that can be seen using root, or simple ASCII .csv files, that can be studied with any analysis tools you like.  These intructions are valid if  you are on emphaticgpvm0X.fnal.gov or your own machine.  First, go to the build directory, and if you have not done so, execute the two setups mentioned above. 
+ 
+   For instance, for the username lebrun, one has:    
+   ```
+   -bash-4.2$ cd /emph/app/users/lebrun/build
+   -bash-4.2$ source ../emphaticsoft/setup/setup_emphatic.sh 
+       Setting up emphatic UPS area... /cvmfs/emphatic.opensciencegrid.org/products/
+     -bash-4.2$ source ../emphaticsoft/ups/setup_for_development -p
+
+     The working build directory is /emph/app/users/lebrun/build
+     The source code directory is /emph/app/users/lebrun/emphaticsoft
+
+     ---------------------- check this block for errors ---------------------
+     ------------------------------------------------------------------------
+
+     To inspect build variable settings, execute /emph/app/users/lebrun/build/cetpkg_info.sh
+
+    Please use "buildtool" to configure and build emphaticsoft, e.g.:
+
+      buildtool -I <ups-topdir> -vTl [-jN]
+
+    See "buildtool --usage" (short usage help) or "buildtool -h|--help"
+    (full help) for more details.
+   ```
+
+    The FHICL_FILE_PATH is an environmental variable which holds multipath, the first one being the one /emph/app/users/lebrun/build/fcl, where our fcl files do reside. Then, art will find the top level (the one in the Unix command you invoke), and all the subsequent ones. Such that the command 
+    ```
+     -bash-4.2$ art -c onmonprod_job.fcl /emph/app/users/lebrun/data/emphdata_r466_s1.root
+     ```
+     
+     will work.. 
+     
+
+    
+    
+   -bash-4.2$ pwd
+/emph/app/users/lebrun/build
+-bash-4.2$ echo $FHICL_FILE_PATH 
+/emph/app/users/lebrun/build/fcl:/cvmfs/emphatic.opensciencegrid.org/products/artdaq/v3_10_03/fcl:/cvmfs/emphatic.opensciencegrid.org/products/artdaq_utilities/v1_06_03/fcl:/cvmfs/emphatic.opensciencegrid.org/products/artdaq_mfextensions/v1_06_03/fcl
