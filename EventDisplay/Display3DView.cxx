@@ -36,12 +36,17 @@ namespace evd
   //......................................................................
   void Display3DView::Draw(const char* /*opt*/) 
   {
+    /*
+    static double r13d[3] = {-55.0,-30.0, -600.0};
+    static double r23d[3] = { 55.0, 80.0,  400.0};
+    */
+
     fDisplay3DPad->Draw();
     evdb::Canvas::fCanvas->Update();
 
     // Eventually it would be nice to embed this into one of the normal
     // canvases, but for now just open ROOT's OpenGL viewer
-
+    /*
     static TGLViewer* fGLViewer = 0;
     if (fGLViewer==0) {
       fGLViewer = (TGLViewer*)fDisplay3DPad->Pad()->GetViewer3D("ogl");
@@ -51,6 +56,7 @@ namespace evd
     else {
       fDisplay3DPad->Pad()->GetViewer3D()->PadPaint(fDisplay3DPad->Pad());
     }
+    */
 
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto geoM  = geo->Geo()->ROOTGeoManager();
@@ -58,7 +64,7 @@ namespace evd
     auto world_n = (TGeoNode*)geoM->GetTopNode();
     auto world_v = (TGeoVolume*)world_n->GetVolume();
     geoM->SetVisLevel(3);
-    world_v->Draw("ogl");
+    world_v->Draw();
 
   }
 

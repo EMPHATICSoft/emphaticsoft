@@ -21,7 +21,7 @@
 //#include "EventDisplay/SimulationDrawer.h"
 #include "EventDisplayBase/View3D.h"
 #include "EventDisplayBase/EventHolder.h"
-#include "Geometry/Geometry.h"
+#include "Geometry/GeometryService.h"
 
 namespace evd
 {
@@ -62,7 +62,7 @@ namespace evd
     if (evt==0) return;
 
     this->GeometryDraw()->  DetOutline3D         (*evt, fView);
-    //    art::ServiceHandle<geo::Geometry> geo;
+    art::ServiceHandle<emph::geo::GeometryService> geo;
     /*
     this->HeaderDraw()->    Header               (fView);
     this->RawDataDraw()->   RawDigit3D           (*evt, fView);
@@ -78,17 +78,20 @@ namespace evd
     this->Pad()->Clear();
     this->Pad()->cd();
     if (fPad->GetView()==0) {
-      double rmin[]={ -0.5, // -geo->DetHalfWidth(),
-		      -0.5, // -geo->DetHalfHeight(),
-		      -0.1 //(0.5-0.45)*geo->DetLength()
+      double rmin[]={ -geo->Geo()->WorldWidth(),
+		      -geo->Geo()->WorldHeight(),
+		      -geo->Geo()->WorldLength()
       };
-      double rmax[]={ 0.5, // geo->DetHalfWidth(),
-		      0.5, // geo->DetHalfHeight(),
-		      3. // (0.5+0.25)*geo->DetLength()
+      double rmax[]={ geo->Geo()->WorldWidth(),
+		      geo->Geo()->WorldHeight(),
+		      geo->Geo()->WorldLength()
       };
       TView3D* v = new TView3D(1,rmin,rmax);
       v->SetPerspective();
-      v->SetView(-125.0,-115.0,135.0,irep);
+      //      v->SetView(-35.0,235.0,240.0,irep);
+      //      v->SetView(0,0,0,irep);
+      //      v->SetDview(300.);
+      //      v->SetDproj(300.);
       fPad->SetView(v); // ROOT takes ownership of object *v
     }
     art::ServiceHandle<evd::GeometryDrawingOptions> opt;
