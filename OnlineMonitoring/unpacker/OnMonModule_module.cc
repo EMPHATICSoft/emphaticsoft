@@ -79,7 +79,8 @@ namespace emph {
       std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubrun;
-      
+      unsigned int fNEvents;
+
       // hard codes consts for now,
       // need to figure out better solution with Geo NChannel function
       static const unsigned int nChanT0  = 20;
@@ -96,8 +97,12 @@ namespace emph {
       TH1F* fT0NTDC[nChanT0];
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
+      std::vector<TH1F*> fBACkovWaveForm;
+      std::vector<unsigned int> fNEventsBACkov;
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
+      std::vector<TH1F*> fSSDProf;
+      std::vector<TH1F*> fSSDNHit;
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -156,6 +161,7 @@ namespace emph {
     //......................................................................
     void OnMonModule::beginJob()
     {
+      fNEvents=0;
       // initialize channel map
       fChannelMap = 0;
       if (!fChanMapFileName.empty()) {
@@ -204,6 +210,14 @@ namespace emph {
 
     void OnMonModule::endJob()
     {
+      if (fNEvents > 0) {
+	float scale;
+	for (size_t i=0; i<fBACkovWaveForm.size(); ++i) {
+	  scale = 1./float(fNEventsBACkov[i]);
+	  fBACkovWaveForm[i]->Scale(scale);
+	}
+      }
+
       char filename[32];
       sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
       TFile* f = new TFile(filename,"RECREATE");
@@ -243,6 +257,13 @@ namespace emph {
           sprintf(hname,"BACkovADC_%d",i);
           fBACkovADCDist[i] = h.GetTH1F(hname);
         }
+        std::cout << "Making BACkov WaveForm OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"BACkovWaveForm_%d",i);
+          fBACkovWaveForm.push_back(h.GetTH1F(hname));
+	  fBACkovWaveForm[i]->SetBit(TH1::kIsAverage);
+	  fNEventsBACkov.push_back(0);
+        }
       }
     }
 
@@ -274,8 +295,20 @@ namespace emph {
 
     void  OnMonModule::MakeSSDPlots()
     {
-      if (fMakeSSDPlots)
-        std::cout << "Making SSD OnMon plots" << std::endl;
+      if (fMakeSSDPlots) {
+	HistoSet& h = HistoSet::Instance();
+	
+	int nchannel = emph::geo::DetInfo::NChannel(emph::geo::SSD);
+	char hname[256];
+	
+	std::cout << "Making SSD OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"SSDProfile_%d",i);
+	  fSSDProf.push_back(h.GetTH1F(hname));
+	  sprintf(hname,"SSDNHits_%d",i);
+	  fSSDNHit.push_back(h.GetTH1F(hname));
+	}
+      }
 
     }
 
@@ -377,10 +410,18 @@ namespace emph {
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan >= 0 && detchan < nchan) {
+	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fBACkovADCDist[detchan]->Fill(adc);
+		// now fill waveform plot
+		auto adcvals = wvfm.AllADC();
+		fNEventsBACkov[detchan]++;
+		for (size_t i=0; i<adcvals.size(); ++i) {
+		  fBACkovWaveForm[detchan]->Fill(i+1,adcvals[i]);
+		}
+	      }
 	    }
 	  }
 	}
@@ -442,10 +483,45 @@ namespace emph {
         
     //......................................................................
 
-    void OnMonModule::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & )
+    void OnMonModule::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & ssdH)
     {
-    }
+      if (fMakeSSDPlots) {
+	if (!ssdH->empty()) {
+	  std::vector<int> nhits;
+	  int nchannel = emph::geo::DetInfo::NChannel(emph::geo::SSD);
+	  for (int i=0; i<nchannel; ++i)
+	    nhits.push_back(0);
+	  
+	  for (size_t idx=0; idx < ssdH->size(); ++idx) {
+	    const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
+	    int station = ssd.Station();
+	    int module = ssd.Module();
+	    int row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
+	    int sensor=-1;
+	    if (station == 0)
+	      sensor = module;
+	    else {
+	      if (station == 1) 
+		sensor = module+4;
+	      else {
+		if (station == 2)
+		  sensor = module+10;
+		else 
+		  sensor = module+16;
+	      }
+	    }
 
+	    if (station >= 0) {
+	      fSSDProf[sensor]->Fill(row);
+	      nhits[sensor]++;
+	    }
+	  }
+	  for (int i=0; i<nchannel; ++i)
+	    fSSDNHit[i]->Fill(nhits[i]);
+	}
+      }
+    }
+    
     //......................................................................
 
     void OnMonModule::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
@@ -519,6 +595,7 @@ namespace emph {
     //......................................................................
     void OnMonModule::analyze(const art::Event& evt)
     { 
+      ++fNEvents;
       fRun = evt.run();
       fSubrun = evt.subRun();     
       std::string labelStr;
