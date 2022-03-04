@@ -256,7 +256,8 @@ caencomm        v1_2a           -     only_for_build
 caendigitizer   v2_12_0         -     only_for_build
 caenvme         v2_50           -     only_for_build
 cetmodules	v2_20_00	-     only_for_build
-geant4          v4_10_7_p01c    -
+#geant4          v4_10_7_p01c    -
+geant4          v4_10_6_p01d    -
 end_product_list
 ####################################
 

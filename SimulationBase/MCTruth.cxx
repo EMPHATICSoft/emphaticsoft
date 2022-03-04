@@ -1,28 +1,34 @@
-/// \brief MC truth class, holds the information about the event generator information and a vector of GenParticle 
-/// \author  laliaga@fnal.gov
-/// \date
+////////////////////////////////////////////////////////////////////////
+/// \file  MCTruth.cxx
+/// \brief Simple MC truth class, holds a vector of MCParticles
+///
+/// \version $Id: MCTruth.cxx,v 1.8 2012-10-15 20:36:27 brebel Exp $
+/// \author  jpaley@indiana.edu
 ////////////////////////////////////////////////////////////////////////
 #include "SimulationBase/MCTruth.h"
 
-#include <iomanip>
 #include "canvas/Utilities/Exception.h"
-#include <cassert>
+
+#include "TDatabasePDG.h"
+
 #include <iostream>
 
-namespace sb{
+namespace simb{
 
   //......................................................................
   MCTruth::MCTruth() 
     : fPartList()
     , fMCBeamInfo()
+    , fOrigin(simb::kUnknown)
   { 
   }
 
-  std::ostream& operator<< (std::ostream& o, sb::MCTruth const& t)
+  //......................................................................
+  std::ostream& operator<< (std::ostream& o, simb::MCTruth const& a)
   {
-    o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-    o << " Number of particles = "     << std::setw(5) << std::right << t.NParticles();
-    //needs to be implemented
+    for (int i = 0; i < a.NParticles(); ++i)
+      o << i << " " << a.GetParticle(i) << std::endl;
+
     return o;
   }
 }

@@ -1,57 +1,76 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief MC truth class, holds the information about the event generator information and a vector of GenParticle 
-/// \author  laliaga@fnal.gov
-/// \date
+/// \file  MCTruth.cxx
+/// \brief Simple MC truth class, holds a vector of TParticles
+///
+/// \version $Id: MCTruth.h,v 1.5 2012-10-15 20:36:27 brebel Exp $
+/// \author  jpaley@indiana.edu
 ////////////////////////////////////////////////////////////////////////
-#ifndef MCTRUTH_H
-#define MCTRUTH_H
+#ifndef SIMB_MCTRUTH_H
+#define SIMB_MCTRUTH_H
 
 #include <string>
 #include <vector>
-#include "SimulationBase/GenParticle.h"
+#include "SimulationBase/MCGeneratorInfo.h"
+#include "SimulationBase/MCParticle.h"
 #include "SimulationBase/MCBeamInfo.h"
 
-namespace sb {
+namespace simb {
 
-  class GenParticle;
-  class MCBeamInfo;
+  /// event origin types
+  typedef enum _ev_origin{
+    kUnknown,           ///< ???
+    kCosmicRay,         ///< Cosmic rays
+    kSingleParticle     ///< single particles thrown at the detector
+  } Origin_t;
 
+  //......................................................................
+
+  /// Event generator information
   class MCTruth {
   public:
-    MCTruth(); // Default constructor
-    virtual ~MCTruth() {}; // Destructor
+    MCTruth();
 
   private:
 
-    std::vector<sb::GenParticle> fPartList;   
-    sb::MCBeamInfo               fMCBeamInfo;     
+    std::vector<simb::MCParticle> fPartList;    ///< list of particles in this event
+    simb::MCBeamInfo              fMCBeamInfo;  ///< reference to beam particle
+    simb::Origin_t                fOrigin;      ///< origin for this event
+    simb::MCGeneratorInfo         fGenInfo;     ///< information about the generator that produced this event
 
   public:
-    const sb::MCBeamInfo&   MCBeamInfo()         const;
-    int                     NParticles()       const;
-    const sb::GenParticle&  GetParticle(int i) const;
-    void                    Add(sb::GenParticle const& part);
-    void                    Add(sb::GenParticle&& part);
-    void                    SetBeamInfo(int pdgId,
-					CLHEP::Hep3Vector const&       startPosition,
-					CLHEP::HepLorentzVector const& startMomentum);
-    
-    friend std::ostream&  operator<< (std::ostream& o, sb::MCTruth const& a);
+    const simb::MCGeneratorInfo&  GeneratorInfo()     const;
+    simb::Origin_t                Origin()            const;
+    int                           NParticles()        const;
+    const simb::MCParticle&       GetParticle(int i)  const;
+    const simb::MCBeamInfo&       GetBeam()           const;
+
+    void             Add(simb::MCParticle const& part);
+    void             Add(simb::MCParticle&& part);
+    void             SetGeneratorInfo(simb::Generator_t generator,
+                                      const std::string & genVersion,
+                                      const std::unordered_map<std::string, std::string>& genConfig);
+    void             SetOrigin(simb::Origin_t origin);
+    void             SetBeam(simb::MCBeamInfo& beam) {fMCBeamInfo = beam;}
+ 
+    friend std::ostream&  operator<< (std::ostream& o, simb::MCTruth const& a);
   };
 }
 
-inline const sb::MCBeamInfo&  sb::MCTruth::MCBeamInfo()                     const { return fMCBeamInfo;           }
-inline       int              sb::MCTruth::NParticles()                     const { return (int)fPartList.size(); }
-inline const sb::GenParticle& sb::MCTruth::GetParticle(int i)               const { return fPartList[i];          }
-inline       void             sb::MCTruth::Add(sb::GenParticle const& part)       { fPartList.push_back(part);    }
-inline       void             sb::MCTruth::Add(sb::GenParticle&& part)            { fPartList.push_back(std::move(part)); }
+inline const simb::MCGeneratorInfo& simb::MCTruth::GeneratorInfo()     const { return fGenInfo;              }
+inline simb::Origin_t               simb::MCTruth::Origin()            const { return fOrigin;               }
+inline int                          simb::MCTruth::NParticles()        const { return (int)fPartList.size(); }
+inline const simb::MCParticle&      simb::MCTruth::GetParticle(int i)  const { return fPartList[i];          }
 
-inline       void             sb::MCTruth::SetBeamInfo(int pdgId,
-						       CLHEP::Hep3Vector const&       startPosition,
-						       CLHEP::HepLorentzVector const& startMomentum)
+inline void                         simb::MCTruth::Add(simb::MCParticle const& part) { fPartList.push_back(part); }
+inline void                         simb::MCTruth::Add(simb::MCParticle&& part)      { fPartList.push_back(std::move(part)); }
+inline void                         simb::MCTruth::SetOrigin(simb::Origin_t origin)  { fOrigin = origin;             }
+
+inline void simb::MCTruth::SetGeneratorInfo(simb::Generator_t generator,
+                                            const std::string &genVersion,
+                                            const std::unordered_map<std::string, std::string>& genConfig)
 {
-  fMCBeamInfo = sb::MCBeamInfo(pdgId, startPosition, startMomentum);
+  fGenInfo = simb::MCGeneratorInfo(generator, genVersion, genConfig);
 }
 
-#endif //MCTRUTH_H
+#endif //SIMB_MCTRUTH_H
 ////////////////////////////////////////////////////////////////////////

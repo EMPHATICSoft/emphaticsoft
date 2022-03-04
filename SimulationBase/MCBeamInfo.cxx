@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <cassert>
 
-namespace sb {
+namespace simb {
   
   //----------------------------------------------------------------------
   

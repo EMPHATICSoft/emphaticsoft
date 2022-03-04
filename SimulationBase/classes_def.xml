@@ -1,25 +1,68 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--  Include art::Wrapper lines for objects that we would like to put  -->
-<!--  into the event -->
-<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
-<!--  lines and for all objects that are data members of those objects.-->
- 
-<lcgdict>
-  <class name="sb::GenParticle"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
-  </class>
-  <class name="std::vector<sb::GenParticle>"        />
-  <class name="art::Wrapper< std::vector<sb::GenParticle>    >"/>
-</lcgdict>
+<!--                                                                                  -->
+<!--  $Id: classes_def.xml,v 1.13 2012-10-29 16:42:11 brebel Exp $                     -->
+<!--  $Author: brebel $                                                               -->
+<!--  $Date: 2012-10-29 16:42:11 $                                                    -->
+<!--                                                                                  -->
+<!--  Include art::Wrapper lines for objects that we would like to put into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper lines and     -->
+<!--  for all objects that are data members of those objects.                         -->
+
 
 <lcgdict>
-  <class name="sb::MCBeamInfo"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
-  </class>
-</lcgdict>
 
-<lcgdict>
-  <class name="sb::MCTruth"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
-  </class>
+ <class name="std::set<int>"                                                      />
+ <class name="std::pair<size_t, unsigned char>"                                   />
+ <class name="std::vector< std::pair<size_t, unsigned char> >"                    />
+
+ <class name="simb::MCParticle"    ClassVersion="18"                               >
+  <version ClassVersion="18" checksum="275984218"/>
+ </class>
+ <class name="simb::MCTrajectory"  ClassVersion="12"                               >
+  <version ClassVersion="12" checksum="749513453"/>
+  <version ClassVersion="11" checksum="1656038010"/>
+ </class>
+ <class name="simb::MCNeutrino"    ClassVersion="10"                               >
+  <version ClassVersion="10" checksum="762249296"/>
+ </class>
+ <struct name="simb::MCGeneratorInfo" ClassVersion="10">
+  <version ClassVersion="10" checksum="180171425"/>
+ </struct>
+ <class name="simb::MCTruth"       ClassVersion="12"                               >
+  <version ClassVersion="12" checksum="59140479"/>
+  <version ClassVersion="11" checksum="2888350881"/>
+  <version ClassVersion="10" checksum="3274174269"/>
+ </class>
+
+ <enum  name="simb::_ev_origin"                                                    />
+ <enum  name="simb::_ev_generator"                                                 />
+ <enum  name="simb::flux_code_"                                                    />
+ <enum  name="simb::curr_type_"                                                    />
+ <enum  name="simb::int_type_"                                                     />
+
+ <class name="art::Ptr<simb::MCTruth>"                                             />
+ <class name="art::Ptr<simb::MCParticle>"                                          />
+
+ <class name="std::unordered_map<std::string, std::string>"                        />
+
+ <class name="std::pair< art::Ptr<simb::MCParticle>, art::Ptr<simb::MCTruth>    >" />
+ <class name="std::pair< art::Ptr<simb::MCTruth>,    art::Ptr<simb::MCParticle> >" />
+ <class name="std::pair<TLorentzVector, TLorentzVector>"                           />
+ <class name="std::vector< std::pair<TLorentzVector, TLorentzVector> >"            />
+
+ <class name="std::vector<simb::MCParticle>"                                       />
+ <class name="std::vector<simb::MCTrajectory>"                                     />
+ <class name="std::vector<simb::MCNeutrino>"                                       />
+ <class name="std::vector<simb::MCTruth>"                                          />
+
+ <class name="art::Assns<simb::MCParticle, simb::MCTruth,    void>"                />
+ <class name="art::Assns<simb::MCTruth,    simb::MCParticle, void>"                />
+
+ <class name="art::Wrapper< std::vector<simb::MCParticle>   >"                     />
+ <class name="art::Wrapper< std::vector<simb::MCTrajectory> >"                     />
+ <class name="art::Wrapper< std::vector<simb::MCNeutrino>   >"                     />
+ <class name="art::Wrapper< std::vector<simb::MCTruth>      >"                     />
+
+ <class name="art::Wrapper< art::Assns<simb::MCParticle, simb::MCTruth,    void> >"/>
+ <class name="art::Wrapper< art::Assns<simb::MCTruth,    simb::MCParticle, void> >"/>
+
 </lcgdict>

@@ -15,7 +15,7 @@
 #include "CLHEP/Vector/LorentzVector.h"
 #include "CLHEP/Vector/ThreeVector.h"
 
-namespace sb {
+namespace simb {
   
   class MCBeamInfo {
   public:
