@@ -13,10 +13,8 @@
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
 
-use Math::Trig;
 use Getopt::Long;
 use Math::BigFloat;
-use File::Basename;
 use GDMLUtil;
 Math::BigFloat->precision(-10);
 

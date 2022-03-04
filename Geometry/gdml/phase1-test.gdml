@@ -188,7 +188,6 @@
 	 <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
-	 <quantity name="LG_angle_rad" value="0.064615805" unit="rad" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
@@ -693,7 +692,6 @@
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <!--para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" unit="deg"/-->
 	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
