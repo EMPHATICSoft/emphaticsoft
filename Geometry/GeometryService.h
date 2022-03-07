@@ -36,6 +36,8 @@ namespace emph
 
       emph::geo::Geometry* Geo() const { return fGeometry; }
 
+      std::string GDMLFile() const { return fGeoFileName; }
+
     private:
       emph::geo::Geometry* fGeometry;
       std::string fGeoFileName;
