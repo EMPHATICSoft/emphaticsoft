@@ -9,4 +9,10 @@
   </class>
   <class name="std::vector<sim::SSDHit>"        />
   <class name="art::Wrapper< std::vector<sim::SSDHit>    >"/>
- </lcgdict>
+  <class name="sim::Particle"    ClassVersion="10" >
+    <version ClassVersion="10" checksum="995705853"/>
+  </class>
+  <class name="std::vector<sim::Particle>"        />
+  <class name="art::Wrapper< std::vector<sim::Particle>    >"/>
+ 
+</lcgdict>
