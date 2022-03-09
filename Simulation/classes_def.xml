@@ -8,7 +8,9 @@
     <version ClassVersion="10" checksum="995705853"/>
   </class>
   <class name="std::vector<sim::SSDHit>"        />
+  <class name="std::vector<std::vector<sim::SSDHit> >"        />
   <class name="art::Wrapper< std::vector<sim::SSDHit>    >"/>
+  <class name="art::Wrapper< std::vector<std::vector<sim::SSDHit> >   >"/>
   <class name="sim::Particle"    ClassVersion="10" >
     <version ClassVersion="10" checksum="995705853"/>
   </class>

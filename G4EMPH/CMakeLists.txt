@@ -60,6 +60,19 @@ art_make_library(
     Geant4::G4zlib 
     )
 
+build_plugin(G4Gen "module"
+  LIBRARIES PRIVATE
+    G4EMPH
+    SimulationBase
+    Simulation
+    G4Base
+    Geometry
+    Geometry_service
+    MagneticField
+    MagneticField_service
+)
+
+
 install_headers()
 install_source()
 install_fhicl()
