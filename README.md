@@ -16,8 +16,9 @@ Base repository for art-based code
 ```
 kinit username@FNAL.GOV
 klist
-ssh username@emphaticgpvm01.fnal.gov
+ssh -Y username@emphaticgpvm0X.fnal.gov
 ```
+Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.  
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
@@ -38,6 +39,8 @@ mkdir build
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
 ```
+You will prompted to enter your github username and a password.  The password should be your personal access token, which you should obtain by following the instructions here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token.
+
 
 4. execute:
 
@@ -56,6 +59,10 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
 
 ---
 ## Instructions for running a Docker container on your own machine to build the code:
+
+Docker is a commercial software (free for now) that allows EMPHATIC to release the software we use, including all the dependencies and for users to run it on a variety of operating systems.  Docker images of EMPHATIC software are made available via a networked file system provided by CERN, namely CVMFS.  
+
+
 ### Initial setup (only need to do these steps once):
 0. (Mac only) Install [macFuse](https://osxfuse.github.io/).
 1. Install [CVMFS](https://cernvm.cern.ch/fs/). The link has instructions for various operating systems.
@@ -99,6 +106,41 @@ Note, once you've done this step, you can simply call "ninja" to compile changes
    buildtool --generator=ninja
    ```
    * any subsequent builds (still have to be in the build directory):
-   ```
    ninja
    ```
+## Running run on emphaticsoft art modules. 
+
+   * Now that you have build shared objects that could run under art, the real work can start, i.e., running art and your EMPHATIC shared objects to get some histograms that can be seen using root, or simple ASCII .csv files, that can be studied with any analysis tools you like.  These intructions are valid if  you are on emphaticgpvm0X.fnal.gov or your own machine.  First, go to the build directory, and if you have not done so, execute the two setups mentioned above. 
+ 
+   For instance, for the username lebrun, one has:    
+   ```
+   -bash-4.2$ cd /emph/app/users/lebrun/build
+   -bash-4.2$ source ../emphaticsoft/setup/setup_emphatic.sh 
+       Setting up emphatic UPS area... /cvmfs/emphatic.opensciencegrid.org/products/
+     -bash-4.2$ source ../emphaticsoft/ups/setup_for_development -p
+
+     The working build directory is /emph/app/users/lebrun/build
+     The source code directory is /emph/app/users/lebrun/emphaticsoft
+
+     ---------------------- check this block for errors ---------------------
+     ------------------------------------------------------------------------
+
+     To inspect build variable settings, execute /emph/app/users/lebrun/build/cetpkg_info.sh
+
+    Please use "buildtool" to configure and build emphaticsoft, e.g.:
+
+      buildtool -I <ups-topdir> -vTl [-jN]
+
+    See "buildtool --usage" (short usage help) or "buildtool -h|--help"
+    (full help) for more details.
+   ```
+    * The FHICL_FILE_PATH is an environmental variable which holds multipath, the first one being the one 
+      /emph/app/users/lebrun/build/fcl, where our fcl files do reside.
+       Then, art will find the top level (the one in the Unix command you invoke), and all the subsequent ones. 
+       Such that the command: 
+   ```
+     -bash-4.2$ art -c onmonprod_job.fcl /emph/app/users/lebrun/data/emphdata_r466_s1.root
+   ```
+     
+     will work.. 
+

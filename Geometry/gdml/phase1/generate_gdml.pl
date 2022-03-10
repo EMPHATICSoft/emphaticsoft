@@ -13,10 +13,8 @@
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
 
-use Math::Trig;
 use Getopt::Long;
 use Math::BigFloat;
-use File::Basename;
 use GDMLUtil;
 Math::BigFloat->precision(-10);
 
@@ -127,9 +125,7 @@ sub gen_Define()
 
   <define>
 
-	 <quantity name="PI" value="3.1415927" unit="rad"/>
-	 <quantity name="DEG2RAD" value="0.017453293" unit="rad"/>
-
+    <constant name="DEG2RAD" value="pi/180." />
 	 <quantity name="world_size" value="3000." unit="mm"/>
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
@@ -154,11 +150,10 @@ EOF
 	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-40" unit="mm"/>
 EOF
 		}
-
 		print DEF <<EOF;
 
-	 <rotation name="T0_union1_rot" x="90*DEG2RAD" unit="rad"/>
-	 <rotation name="T0_acrylic_rot" x="-45*DEG2RAD" unit="rad"/>
+	 <rotation name="T0_union1_rot" x="90" unit="deg"/>
+	 <rotation name="T0_acrylic_rot" x="-45" unit="deg"/>
 
 	 <!-- ABOVE IS FOR T0 -->
 EOF
@@ -197,7 +192,7 @@ EOF
 EOF
 		for($i = 0; $i < $n_magseg; ++$i){
 			print DEF <<EOF;
-	 <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)*DEG2RAD" unit="rad"/>
+	 <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)" unit="deg"/>
 EOF
 		}
 		print DEF <<EOF;
@@ -229,10 +224,10 @@ EOF
 	 <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
 	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
 	 <position name="ssdsingle0_pos" x="0" y="0" z="0" unit="mm"/>
-	 <rotation name="ssdsingle0_rot" z="90*DEG2RAD" unit="rad"/>
+	 <rotation name="ssdsingle0_rot" z="90" unit="deg"/>
 	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssdsingle1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssdsingle1_rot" z="0" unit="rad"/>
+	 <rotation name="ssdsingle1_rot" z="0" unit="deg"/>
 	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
 	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0"
@@ -244,12 +239,12 @@ EOF
 	 <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
 	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
 	 <position name="ssdrotate0_pos" x="0" y="0" z="0" unit="mm"/>
-	 <rotation name="ssdrotate0_rot" z="45*DEG2RAD" unit="rad"/>
+	 <rotation name="ssdrotate0_rot" z="45" unit="deg"/>
 	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssdrotate1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssdrotate1_rot" z="90*DEG2RAD" unit="rad"/>
+	 <rotation name="ssdrotate1_rot" z="90" unit="deg"/>
 	 <position name="ssdrotate2_pos" x="0" y="0" z="3" unit="mm"/>
-	 <rotation name="ssdrotate2_rot" z="0" unit="rad"/>	 
+	 <rotation name="ssdrotate2_rot" z="0" unit="deg"/>	 
 	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
@@ -262,12 +257,12 @@ EOF
 	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
 	 <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
 	 <position name="ssddouble0_pos" x="0" y="0" z="0" unit="mm"/>
-	 <rotation name="ssddouble0_rot" z="0" unit="rad"/>
+	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
 	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssddouble1_rot" z="90*DEG2RAD" unit="rad"/>
+	 <rotation name="ssddouble1_rot" z="90" unit="deg"/>
 	 <position name="ssddouble2_pos" x="0" y="0" z="3" unit="mm"/>
-	 <rotation name="ssddouble2_rot" z="-45*DEG2RAD" unit="rad"/>
+	 <rotation name="ssddouble2_rot" z="-45" unit="deg"/>
 	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
@@ -335,15 +330,17 @@ EOF
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
 	 <quantity name="LG_width1" value="135" unit="mm" />
-	 <quantity name="LG_angle" value="0.064615804" unit="rad" />
+	 <constant name="LG_angle_v" value="3.7022129"/>
+	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
 
+	 <position name="LG_para_pos1" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
 	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 
-	 <position name="LG_glass_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="LG_glass_pos" x="0" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
 	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
 	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
 
@@ -353,10 +350,10 @@ EOF
 			print DEF <<EOF;
 	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0." unit="mm"/>
 	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)*0.5/LG_length*(LG_length+LG_protrusion_thick+LG_PMTl)" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="PI" unit="rad"/>
-	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="rad"/>
-	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" unit="rad"/>
+	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)" y="LG_height*($i-1)" z="0." unit="mm"/>
+	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="180" unit="deg"/>
+	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="deg"/>
+	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" unit="deg"/>
 EOF
 		}
 
@@ -523,24 +520,25 @@ EOF
 EOF
 	}
 	if($LG_switch){
+		#DEBUG
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle" unit="rad"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
 		<first ref="LG_box1"/>  <second ref="LG_para1"/>
-		<positionref ref="LG_para_pos" />
+		<positionref ref="LG_para_pos1" />
 	 </union>	 
 	 <union name="LG_block_union">
 		<first ref="LG_box2"/>  <second ref="LG_para1"/>
 		<positionref ref="LG_para_pos" />
 	 </union>	 
 
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="2*PI" unit="rad"/>
-	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="2*PI" unit="rad"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" unit="deg"/>
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" unit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 

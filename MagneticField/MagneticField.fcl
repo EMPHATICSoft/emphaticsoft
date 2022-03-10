@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_geometry:
+{
+  FieldFileName: "MagneticField/magField.root"
+}
+
+END_PROLOG
