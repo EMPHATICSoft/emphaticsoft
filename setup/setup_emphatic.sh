@@ -105,3 +105,4 @@ setup ninja
 setup libwda v2_29_1
 setup art_cpp_db_interfaces v1_4_0
 setup jobsub_client
+setup ifdhc
