@@ -3,12 +3,20 @@ include(ArtMake)
 
 cet_find_package(ROOT REQUIRED)
 cet_find_package(Geant4 REQUIRED PUBLIC)
+cet_find_package(art REQUIRED)
+cet_find_package(messagefacility REQUIRED)
 
 include_directories( $ENV{GEANT4_FQ_DIR}/include )
 include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 )
 include_directories( $ENV{ROOT_INC} )
 include_directories( $ENV{XERCES_C_INC} )
 include_directories( $ENV{CLHEP_INC} )
+include_directories($ENV{ART_INC})
+include_directories($ENV{ART_ROOT_IO_INC})
+include_directories($ENV{CETLIB_EXCEPT_INC})
+
+link_directories($ENV{ART_ROOT_IO_LIB})
+link_directories($ENV{CETLIB_EXCEPT_LIB})
 
 FILE( GLOB src_files *.cxx )
 
@@ -70,6 +78,22 @@ build_plugin(G4Gen "module"
     Geometry_service
     MagneticField
     MagneticField_service
+)
+
+build_plugin(BeamGen "source"
+  LIBRARIES PRIVATE
+    SimulationBase
+    Simulation
+    ROOT::Core
+    ROOT::Tree
+    ROOT::Hist
+    ROOT::EG
+    art_root_io::TFileService_service
+    art::Framework_Core
+    art::Persistency_Common
+    messagefacility::MF_MessageLogger
+    canvas::canvas
+    fhiclcpp::fhiclcpp
 )
 
 
