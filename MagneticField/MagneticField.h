@@ -47,7 +47,9 @@ namespace emph {
     // Access functions
     void MagneticField(const double Point[3], double Bfield[3]) const;
     CLHEP::Hep3Vector MagneticField(const CLHEP::Hep3Vector Point) const;
-    virtual void GetFieldValue(const double Point[3], double* Bfield) const;
+    virtual void GetFieldValue(const double Point[3], double* Bfield) const; // units are mm, return values in kilogauss
+    void test1(); // Check that divB ~ 0.;  
+    void test2(); // test integration, study expected deflections.  
 
   protected:
     // Find the global Field Manager
@@ -57,7 +59,19 @@ namespace emph {
     std::map<int, std::map<int, std::map<int, std::vector<double> > > > field;
     double step;
     double start[3];
+    int fInterpolateOption;
     G4int fVerbosity;
+    
+  public: 
+   inline void setInterpolatingOption(int iOpt) { fInterpolateOption = iOpt; } // iOpt = 0 => 3D radial average , 1 linearized along axes of the 3D grid. 
+   void Integrate(int iOpt, int charge, double stepAlongZ,  
+                    std::vector<double> &start, std::vector<double> &end) const; 
+    // iOpt = 0 => simple Euler formula, iOpt = 1 => 4rth order Runge Kutta
+    // Start and end must be dimension to 6, usual phase space,  x,y,z, px, py, pz 
+   // The integration ends at a fixed Z, i.e. end[2] .  The stepAlongZ is the initial step size, anlong the z axis. 
+   // Algorithm: simple Runge-Kutta, 4rth order.  Suggest step size: ~ 20 mm for the February 2022 version of the field map. 
+   // distance units are mm (as in Geant4, by default.) and momentum are in GeV/c  (as in Geant4, by default.) 
+   // Curling around is not supported, 
   };
 } // end namespace emph
 
