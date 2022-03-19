@@ -399,6 +399,7 @@ namespace emph {
     fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
     
     double xN[3], xF[3], B0N[3], B0F[3], B1N[3], B1F[3];
+    
     for (int iX = -10; iX != 10; iX++) { 
        const double x = 7.5 + iX*0.956; 
        xN[0] = x; // in mm, apparently... 
@@ -437,7 +438,47 @@ namespace emph {
     }
     fOutForR.close();
    
+    fOutForR.open("./EmphMagField_v2b.txt");
+    fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
     
+    for (int iX = -150; iX != 150; iX++) { 
+       const double x = 7.5 + iX*0.956; 
+       xN[0] = x; // in mm, apparently... 
+       xF[0] = x + 10.;
+       for (int iY = -10; iY != 20; iY++) { 
+        const double y = 15.34 + iY*0.892; 
+         xN[1] = y ;
+         xF[1] = y + 10.;
+         for (int iZ = -2; iZ != 8; iZ++) { 
+           const double z = 128. + iZ*4.578; 
+           xN[2] = z;
+           xF[2] = z + 10.;
+           this->setInterpolatingOption(0);
+           this->MagneticField(xN, B0N); // xN is in mm.. 
+           this->MagneticField(xF, B0F);
+	   double divB0 = 0.; double b0Norm = 0.;
+	   for (size_t kk=0; kk != 2; kk++) { 
+	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
+	     b0Norm += B0N[kk]*B0N[kk];
+	   }
+	   fOutForR << " " << x << " " << y << " " << z << " " 
+	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
+		    << std::sqrt(b0Norm) << " " << divB0;
+           this->setInterpolatingOption(1);
+           this->MagneticField(xN, B1N); // xN is in mm.. 
+           this->MagneticField(xF, B1F);
+	   double divB1 = 0.; double b1Norm = 0.;
+	   for (size_t kk=0; kk != 2; kk++) { 
+	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
+	     b1Norm += B1N[kk]*B1N[kk];
+	   }
+	   fOutForR << " " << B1N[0] << " " << B1N[1] << " " << B1N[2] << " " 
+		    << std::sqrt(b1Norm) << " " << divB1 << std::endl;
+       }
+      }
+    }
+    fOutForR.close();
+   
   }
   
   void EMPHATICMagneticField::test2() {
@@ -492,7 +533,7 @@ namespace emph {
 	if (kp == 2) p = 10.;
         for (int kStep=1; kStep != 15; kStep++) {
           const double stepZ = 2.0 + 0.1*kStep*kStep;
-          for (int kY= -10; kY != 10.; kY++) { 
+          for (int kY= -100; kY != 100.; kY++) { 
             start[0] = -4.0; start[1] = 0.5*kY; start[2] = - 15.0; stop[2] = 450.; 
             DeltaZ = stop[2] - start[2];
             slx =0.1e-5; sly = -0.2e-5; slz = std::sqrt( 1.0 - slx*slx - sly*sly); 
