@@ -53,9 +53,10 @@ dev.off();
 mDYm2 <- subset(mD, (abs(mD$y + 2.) < 0.01) & (abs(mD$p - 10.) < 0.05));
 plotFName <- sprintf("%s%s", dirTex, "XDeviationvsY_10GeV_StepSize_1.png");
 png(filename=plotFName, width=420, height = 420);
-plot(mDYm2$stepZ, mDYm2$dSlx3DR_E, type='b', pch=15, ylim=c(0.0107, 0.0115), xlab="Step size [mm]", ylab="Deviation along X [radian]")
-lines(mDYm2$stepZ, mDSYm2$dslxLin_E, type='b', pch=16, col="blue");
+plot(mDYm2$stepZ, mDYm2$dSlx3DR_E, type='b', pch=15, ylim=c(0.0107, 0.0112), xlab="Step size [mm]", ylab="Deviation along X [radian]")
+lines(mDYm2$stepZ, mDYm2$dslxLin_E, type='b', pch=16, col="blue");
 legend(x="topright", c("By, Int. 3D Radial", "By, Linear Cartesian"), pch=c(15, 16), col=c("black", "blue"));
 text(x=7.5, y=0.010775, " Y = -2 mm ", cex=1.25, pos=4);
 text(x=7.5, y=0.010725, " p = 10 GeV  ", cex=1.25, pos=4);
+dev.off();
 
