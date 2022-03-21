@@ -11,6 +11,7 @@ art_make_library(
   SimulationBase
   art::Framework_Core
   ROOT::Core
+  PUBLIC
   ROOT::Physics
   )
 
@@ -18,3 +19,4 @@ install_headers()
 install_source()
 install_fhicl()
 
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::Simulation)

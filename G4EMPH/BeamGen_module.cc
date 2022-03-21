@@ -1,71 +1,135 @@
 ///////////////////////////////////////////////////////////////////////
-//  \brief   A source module for creating incident beam particles.  
+//  \brief   A producer module for creating incident beam particles.  
 //           The particle type, momentum, momentum and spacial distributions
 //           are controlled through the fhicl configuration.
 //  \author  jpaley@fnal.gov
 //
 //////////////////////////////////////////////////////////////////////
 
-#include "art/Framework/Core/InputSourceMacros.h"
-#include "art/Framework/IO/Sources/Source.h"
-#include "art/Framework/IO/Sources/put_product_in_principal.h"
-#include "canvas/Persistency/Provenance/FileFormatVersion.h"
-#include "canvas/Persistency/Provenance/RunAuxiliary.h"
-#include "canvas/Persistency/Provenance/SubRunAuxiliary.h"
-#include "canvas/Utilities/Exception.h"
-#include "canvas/Persistency/Common/Wrapper.h"
+#include "art/Framework/Core/FileBlock.h"
+#include "art/Framework/Core/ProductRegistryHelper.h"
+//#include "art/Framework/IO/Sources/SourceHelper.h"
+//#include "art/Framework/IO/Sources/SourceTraits.h"
+#include "art/Framework/Principal/EventPrincipal.h"
+#include "art/Framework/Principal/RunPrincipal.h"
+#include "art/Framework/Principal/SubRunPrincipal.h"
+#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileDirectory.h"
+#include "fhiclcpp/types/Atom.h"
+#include "art/Framework/Core/EDProducer.h"
+#include "art/Framework/Principal/Event.h"
+#include "fhiclcpp/ParameterSet.h"
+#include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "cetlib/search_path.h"
+#include "art/Framework/Core/ModuleMacros.h"
 
 #include "Simulation/Particle.h"
-#include "SimulationBase/MCBeamInfo.h"
+#include "SimulationBase/MCParticle.h"
 
 #include "TFile.h"
 #include "TRandom3.h"
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "TPDGCode.h"
+#include "TH2D.h"
+#include "TLorentzVector.h"
 
-#include <iostream>
-#include <fstream>
-#include <iterator>
-#include <algorithm>
-#include <iostream>
-#include <fstream>
-
-#include "G4EMPH/BeamGen_source.h"
+#include <string>
+#include <vector>
 
 namespace emph {
 
+  class BeamGen : public art::EDProducer {
+  public:
+
+      explicit BeamGen(fhicl::ParameterSet const& ps);
+      virtual ~BeamGen();
+
+      void produce (art::Event& evt);
+
+      void  configure(fhicl::ParameterSet const& ps);
+
+    private:
+
+      void        GetXYHist();
+      void        GetPXYHist();
+      void        GetPID();
+
+      int         fPID;
+      uint64_t    fEvtCount;
+      double      fMass;
+      double      fXmax;
+      double      fXmin;
+      double      fYmax;
+      double      fYmin;
+      double      fXmean;
+      double      fXsigma;
+      double      fYmean;
+      double      fYsigma;
+      double      fPmean;
+      double      fPsigma;
+      double      fPXmax;
+      double      fPXmin;
+      double      fPYmax;
+      double      fPYmin;
+      double      fPXmean;
+      double      fPXsigma;
+      double      fPYmean;
+      double      fPYsigma;
+      
+      std::string fXYDistSource;
+      std::string fXYHistFile;
+      std::string fXYHistName;
+      std::string fPXYDistSource;
+      std::string fPXYHistFile;
+      std::string fPXYHistName;
+      std::string fParticleType;
+
+      TH2D*       fXYHist;  
+      TH2D*       fPXYHist;
+    
+  };
+  
   /***************************************************************************/
-
-  BeamGen::BeamGen(fhicl::ParameterSet const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
-    fSourceHelper(pm)
+  
+  BeamGen::BeamGen(fhicl::ParameterSet const& ps)
+    : art::EDProducer(ps)
+      //, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
+      //    fSourceHelper(pm)
   {
-    fIsFirst      = true;
+    //    fIsFirst      = true;
     fEvtCount     = 0;
-
-    help.reconstitutes<std::vector<simb::MCBeamInfo>, art::InEvent>("generator","beam");
-
+    
+    produces<std::vector<simb::MCParticle> >();
+    
     configure(ps);
     GetXYHist();
     GetPXYHist();
     GetPID();
-
+    
   }
   
   /***************************************************************************/
+  BeamGen::~BeamGen()
+  {
+
+  }
+
+  /***************************************************************************/
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
-    fNEvents       = ps.get<uint64_t>("NEvents",100);
-
-    fRun           = ps.get<int>("runNum",1000000);
-    fSubrun        = ps.get<int>("subrunNum",0);
+    //    fNEvents       = ps.get<uint64_t>("NEvents",100);
+    
+    //    fRun           = ps.get<int>("runNum",1000000);
+    //    fSubrun        = ps.get<int>("subrunNum",0);
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
-    fPXYDistSource = ps.get<std::string>("xyDistSource","Gauss");
-    fPXYHistFile   = ps.get<std::string>("xyHistFile","");
-    fPXYHistName   = ps.get<std::string>("xyHistName","BeamXYDist");
+    fPXYDistSource = ps.get<std::string>("pxyDistSource","Gauss");
+    fPXYHistFile   = ps.get<std::string>("pxyHistFile","");
+    fPXYHistName   = ps.get<std::string>("pxyHistName","BeamXYDist");
     fPmean         = ps.get<double>("PMean",0.);
     fPsigma        = ps.get<double>("PSigma",0.);
     
@@ -122,7 +186,7 @@ namespace emph {
       }
       
     }
-
+    
   }
 
   /***************************************************************************/
@@ -185,61 +249,22 @@ namespace emph {
       fPID *= -1.;
 
     fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
-  }
-
-  /***************************************************************************/
-  
-  void BeamGen::closeCurrentFile()
-  {
-
+    std::cout << "PID = " << fPID << ", mass = " << fMass << std::endl;
   }
 
   /***************************************************************************/
 
-  void BeamGen::readFile(std::string const & ,//name,
-			 art::FileBlock* & ) //fb)
+  void BeamGen::produce(art::Event& evt)
   {
-    //    fCurrentFilename = name;
-    //    fb = new art::FileBlock(art::FileFormatVersion{1, "RawEvent2022"},
-    //			    fCurrentFilename);
-  }
-
-  /***************************************************************************/
-
-  bool BeamGen::readNext(art::RunPrincipal* const& ,//inR,
-			  art::SubRunPrincipal* const& ,//inSR,
-			  art::RunPrincipal* & outR,
-			  art::SubRunPrincipal* & outSR,
-			  art::EventPrincipal* &outE)
-  {
-    if (fNEvents > 0)
-      if (fEvtCount == fNEvents)
-	return false;
-
-    if ((fEvtCount%1000) == 0)
+    if ((++fEvtCount)%1000 == 0)
       std::cout << "Event " << fEvtCount << std::endl;
-    
-    //    if (!inR) std::cout << "inR is empty" << std::endl;
-    //    if (!inSR) std::cout << "inSR is empty" << std::endl;
-    
-    if (fIsFirst) {
-      // deal with creating Run and Subrun objects
-      outR = fSourceHelper.makeRunPrincipal(fRun,0);
-      outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun, 0);
-      
-      fIsFirst = false;
-    }
-
-    // create the event to be written out.  Set the time to 0
-    outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount++, 
-						  0);
-
+        
     TRandom3 *rand = new TRandom3(0);
     gRandom = rand;
-
+    
     // now get beam particle position
-    CLHEP::Hep3Vector pos;
-
+    TLorentzVector pos;
+    
     pos[2] = 0.;
     if (fXYHist) { // get random position from histogram
       fXYHist->GetRandom2(pos[0],pos[1]);
@@ -255,12 +280,13 @@ namespace emph {
         pos[1] = rand->Gaus(fYmean,fYsigma);
       }
     }
+    pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
     double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
     double pb[3];
     double pxpz,pypz;
-
+    
     if (fPXYHist) {
       fPXYHist->GetRandom2(pxpz,pypz);
     }
@@ -274,29 +300,27 @@ namespace emph {
 	pxpz = rand->Gaus(fPXmean,fPXsigma);
 	pypz = rand->Gaus(fPYmean,fPYsigma);
       }
-      pb[2] = pmag/TMath::Sqrt(1. + pxpz*pxpz + pypz*pypz);
-      pb[0] = pxpz*pb[2];
-      pb[1] = pypz*pb[2];
     }
+
+    pb[2] = pmag/TMath::Sqrt(1. + pxpz*pxpz + pypz*pypz);
+    pb[0] = pxpz*pb[2];
+    pb[1] = pypz*pb[2];
+
     double energy = TMath::Sqrt(pmag*pmag + fMass*fMass);
-    CLHEP::HepLorentzVector mom(pb[0],pb[1],pb[2],energy);
-      
-    std::unique_ptr<std::vector<simb::MCBeamInfo> > beam;
-
+    TLorentzVector mom(pb[0],pb[1],pb[2],energy);
+    
+    std::unique_ptr<std::vector<simb::MCParticle> > beam(new std::vector<simb::MCParticle>);
+    
     // get beam information
-    simb::MCBeamInfo mcp(fPID, pos, mom);
+    simb::MCParticle mcp(-1,fPID, "");
+    mcp.AddTrajectoryPoint(pos, mom);
     beam->push_back(mcp);
-    // now add beam to the event
     
-    put_product_in_principal(std::move(beam), *outE,"generator","beam");
+    // now add beam to the event    
+    evt.put(std::move(beam));
     
-    if (++fEvtCount < fNEvents)
-      return true;
-    
-    return false;
-
   }
 
-}
+  DEFINE_ART_MODULE(BeamGen) 
 
-DEFINE_ART_INPUT_SOURCE(art::Source<emph::BeamGen>)
+} // end namespace emph  

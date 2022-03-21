@@ -11,8 +11,6 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "Simulation/Simulation.h"
-//#include "Simulation/TrueEnergy.h"
-//#include "Simulation/G4Status.h"
 #include "SimulationBase/MCTruth.h"
 #include "ArtUtils/AssociationUtil.h"
 
@@ -40,11 +38,6 @@
 #include "cetlib/search_path.h"
 
 #include "art/Framework/Core/ModuleMacros.h"
-
-namespace art { 
-  class Event; 
-  class ParameterSet;
-}
 
 namespace emph {
 

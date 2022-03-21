@@ -80,7 +80,7 @@ build_plugin(G4Gen "module"
     MagneticField_service
 )
 
-build_plugin(BeamGen "source"
+build_plugin(BeamGen "module"
   LIBRARIES PRIVATE
     SimulationBase
     Simulation

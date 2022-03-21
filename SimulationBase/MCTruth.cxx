@@ -18,7 +18,7 @@ namespace simb{
   //......................................................................
   MCTruth::MCTruth() 
     : fPartList()
-    , fMCBeamInfo()
+    , fBeam()
     , fOrigin(simb::kUnknown)
   { 
   }

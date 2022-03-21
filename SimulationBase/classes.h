@@ -10,10 +10,10 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "canvas/Persistency/Common/Assns.h"
 
-// nusimdata includes
+// SimulationBase includes
 #include "SimulationBase/MCGeneratorInfo.h"
 #include "SimulationBase/MCTruth.h"
 #include "SimulationBase/MCTrajectory.h"
 #include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCBeamInfo.h"
+//#include "SimulationBase/MCBeamInfo.h"
 #include <TLorentzVector.h>

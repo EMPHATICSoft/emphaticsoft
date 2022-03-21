@@ -12,7 +12,7 @@
 #include <vector>
 #include "SimulationBase/MCGeneratorInfo.h"
 #include "SimulationBase/MCParticle.h"
-#include "SimulationBase/MCBeamInfo.h"
+//#include "SimulationBase/MCBeamInfo.h"
 
 namespace simb {
 
@@ -33,7 +33,8 @@ namespace simb {
   private:
 
     std::vector<simb::MCParticle> fPartList;    ///< list of particles in this event
-    simb::MCBeamInfo              fMCBeamInfo;  ///< reference to beam particle
+    simb::MCParticle              fBeam;
+    //    simb::MCBeamInfo              fMCBeamInfo;  ///< reference to beam particle
     simb::Origin_t                fOrigin;      ///< origin for this event
     simb::MCGeneratorInfo         fGenInfo;     ///< information about the generator that produced this event
 
@@ -42,7 +43,7 @@ namespace simb {
     simb::Origin_t                Origin()            const;
     int                           NParticles()        const;
     const simb::MCParticle&       GetParticle(int i)  const;
-    const simb::MCBeamInfo&       GetBeam()           const;
+    const simb::MCParticle&       GetBeam()           const;
 
     void             Add(simb::MCParticle const& part);
     void             Add(simb::MCParticle&& part);
@@ -50,7 +51,7 @@ namespace simb {
                                       const std::string & genVersion,
                                       const std::unordered_map<std::string, std::string>& genConfig);
     void             SetOrigin(simb::Origin_t origin);
-    void             SetBeam(simb::MCBeamInfo& beam) {fMCBeamInfo = beam;}
+    void             SetBeam(simb::MCParticle& beam) {fBeam = beam;}
  
     friend std::ostream&  operator<< (std::ostream& o, simb::MCTruth const& a);
   };

@@ -14,30 +14,20 @@
  <class name="std::pair<size_t, unsigned char>"                                   />
  <class name="std::vector< std::pair<size_t, unsigned char> >"                    />
 
- <class name="simb::MCParticle"    ClassVersion="18"                               >
-  <version ClassVersion="18" checksum="275984218"/>
+ <class name="simb::MCParticle"    ClassVersion="10"                               >
+  <version ClassVersion="10" checksum="275984218"/>
  </class>
- <class name="simb::MCTrajectory"  ClassVersion="12"                               >
-  <version ClassVersion="12" checksum="749513453"/>
-  <version ClassVersion="11" checksum="1656038010"/>
- </class>
- <class name="simb::MCNeutrino"    ClassVersion="10"                               >
-  <version ClassVersion="10" checksum="762249296"/>
+ <class name="simb::MCTrajectory"  ClassVersion="11"                               >
+  <version ClassVersion="11" checksum="749513453"/>
+  <version ClassVersion="10" checksum="1656038010"/>
  </class>
  <struct name="simb::MCGeneratorInfo" ClassVersion="10">
   <version ClassVersion="10" checksum="180171425"/>
  </struct>
- <class name="simb::MCTruth"       ClassVersion="12"                               >
-  <version ClassVersion="12" checksum="59140479"/>
-  <version ClassVersion="11" checksum="2888350881"/>
+ <class name="simb::MCTruth"       ClassVersion="11"                               >
+  <version ClassVersion="11" checksum="3463731360"/>
   <version ClassVersion="10" checksum="3274174269"/>
  </class>
-
- <enum  name="simb::_ev_origin"                                                    />
- <enum  name="simb::_ev_generator"                                                 />
- <enum  name="simb::flux_code_"                                                    />
- <enum  name="simb::curr_type_"                                                    />
- <enum  name="simb::int_type_"                                                     />
 
  <class name="art::Ptr<simb::MCTruth>"                                             />
  <class name="art::Ptr<simb::MCParticle>"                                          />
@@ -51,7 +41,6 @@
 
  <class name="std::vector<simb::MCParticle>"                                       />
  <class name="std::vector<simb::MCTrajectory>"                                     />
- <class name="std::vector<simb::MCNeutrino>"                                       />
  <class name="std::vector<simb::MCTruth>"                                          />
 
  <class name="art::Assns<simb::MCParticle, simb::MCTruth,    void>"                />
@@ -59,7 +48,6 @@
 
  <class name="art::Wrapper< std::vector<simb::MCParticle>   >"                     />
  <class name="art::Wrapper< std::vector<simb::MCTrajectory> >"                     />
- <class name="art::Wrapper< std::vector<simb::MCNeutrino>   >"                     />
  <class name="art::Wrapper< std::vector<simb::MCTruth>      >"                     />
 
  <class name="art::Wrapper< art::Assns<simb::MCParticle, simb::MCTruth,    void> >"/>

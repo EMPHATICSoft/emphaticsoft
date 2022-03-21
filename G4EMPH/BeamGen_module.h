@@ -6,8 +6,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef BEAMGEN_SOURCE
-#define BEAMGEN_SOURCE
+#ifndef BEAMGEN_MODULE
+#define BEAMGEN_MODULE
 
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
@@ -29,27 +29,32 @@
 
 namespace emph {
 
-    class BeamGen
-    {
-    public:
-      BeamGen(BeamGen const&) = delete;
-      BeamGen& operator=(BeamGen const&) = delete;
+  class BeamGen : public art::EDProducer {
+  public:
+      //      BeamGen(BeamGen const&) = delete;
+      //      BeamGen& operator=(BeamGen const&) = delete;
 
-      explicit BeamGen(fhicl::ParameterSet const& ps,
-			art::ProductRegistryHelper& help,
-			art::SourceHelper const& pm);
+      explicit BeamGen(fhicl::ParameterSet const& ps);
+		       //			art::ProductRegistryHelper& help,
+		       //			art::SourceHelper const& pm);
       
-      virtual ~BeamGen() {};
-      void closeCurrentFile();
-      void readFile(std::string const& name, art::FileBlock*& fb);
+      virtual ~BeamGen();
+      //      void closeCurrentFile();
+      //      void readFile(std::string const& name, art::FileBlock*& fb);
       
       //      bool hasMoreData() const { return !shutdownMsgReceived_; }
+
+      void produce (art::Event& evt);
+      //      void beginRun(art::Run& run);
+      //      void endRun(art::Run& run);
       
+      /*
       bool readNext(art::RunPrincipal* const& inR,
 		    art::SubRunPrincipal* const& inSR,
 		    art::RunPrincipal*& outR,
 		    art::SubRunPrincipal*& outSR,
 		    art::EventPrincipal*& outE);
+      */
 
       void  configure(fhicl::ParameterSet const& ps);
 
@@ -59,11 +64,11 @@ namespace emph {
       void        GetPXYHist();
       void        GetPID();
 
-      bool        fIsFirst;
-      int         fRun;
-      int         fSubrun;
+      //      bool        fIsFirst;
+      //      int         fRun;
+      //      int         fSubrun;
       int         fPID;
-      uint64_t    fNEvents;
+      //      uint64_t    fNEvents;
       uint64_t    fEvtCount;
       double      fMass;
       double      fXmax;
@@ -95,7 +100,7 @@ namespace emph {
 
       TH2D*       fXYHist;  
       TH2D*       fPXYHist;
-      art::SourceHelper const& fSourceHelper;
+      //      art::SourceHelper const& fSourceHelper;
       
     };
 }
