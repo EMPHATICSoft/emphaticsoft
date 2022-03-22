@@ -18,6 +18,10 @@
    <version ClassVersion="12" checksum="441560763"/>
    <version ClassVersion="11" checksum="441560763"/>
   </class>
+  <class name="emph::rawdata::SpillData"    ClassVersion="11" >
+   <version ClassVersion="11" checksum="2427833335"/>
+   <version ClassVersion="10" checksum="441560763"/>
+  </class>
    <!-- version ClassVersion="15" checksum="3468169904" / -->
   <!-- /class -->
   <class name="std::vector<emph::rawdata::SSDRawDigit>"        />
@@ -26,4 +30,6 @@
   <class name="art::Wrapper< std::vector<emph::rawdata::WaveForm>    >"/>
   <class name="std::vector<emph::rawdata::TRB3RawDigit>"        />
   <class name="art::Wrapper< std::vector<emph::rawdata::TRB3RawDigit>    >"/>
+  <class name="std::vector<emph::rawdata::SpillData>"        />
+  <class name="art::Wrapper< std::vector<emph::rawdata::SpillData>    >"/>
  </lcgdict>
