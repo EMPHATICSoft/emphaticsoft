@@ -12,15 +12,23 @@
 #include "TDatabasePDG.h"
 
 #include <iostream>
+#include <cassert>
 
 namespace simb{
 
   //......................................................................
   MCTruth::MCTruth() 
     : fPartList()
-    , fBeam()
+      //    , fBeam()
     , fOrigin(simb::kUnknown)
   { 
+  }
+
+  //......................................................................
+  void MCTruth::SetBeam(simb::MCParticle& beam)
+  {
+    assert(fPartList.empty());
+    fPartList.push_back(beam);
   }
 
   //......................................................................

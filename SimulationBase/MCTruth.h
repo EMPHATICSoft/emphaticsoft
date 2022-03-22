@@ -33,7 +33,7 @@ namespace simb {
   private:
 
     std::vector<simb::MCParticle> fPartList;    ///< list of particles in this event
-    simb::MCParticle              fBeam;
+    //    simb::MCParticle              fBeam;
     //    simb::MCBeamInfo              fMCBeamInfo;  ///< reference to beam particle
     simb::Origin_t                fOrigin;      ///< origin for this event
     simb::MCGeneratorInfo         fGenInfo;     ///< information about the generator that produced this event
@@ -51,7 +51,7 @@ namespace simb {
                                       const std::string & genVersion,
                                       const std::unordered_map<std::string, std::string>& genConfig);
     void             SetOrigin(simb::Origin_t origin);
-    void             SetBeam(simb::MCParticle& beam) {fBeam = beam;}
+    void             SetBeam(simb::MCParticle& beam);
  
     friend std::ostream&  operator<< (std::ostream& o, simb::MCTruth const& a);
   };
@@ -61,6 +61,7 @@ inline const simb::MCGeneratorInfo& simb::MCTruth::GeneratorInfo()     const { r
 inline simb::Origin_t               simb::MCTruth::Origin()            const { return fOrigin;               }
 inline int                          simb::MCTruth::NParticles()        const { return (int)fPartList.size(); }
 inline const simb::MCParticle&      simb::MCTruth::GetParticle(int i)  const { return fPartList[i];          }
+inline const simb::MCParticle&      simb::MCTruth::GetBeam()  const { return fPartList[0];          }
 
 inline void                         simb::MCTruth::Add(simb::MCParticle const& part) { fPartList.push_back(part); }
 inline void                         simb::MCTruth::Add(simb::MCParticle&& part)      { fPartList.push_back(std::move(part)); }

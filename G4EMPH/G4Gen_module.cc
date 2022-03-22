@@ -85,7 +85,7 @@ namespace emph {
 
     produces< std::vector<std::vector<sim::SSDHit> > >();
     produces< std::vector<sim::Particle>     	         >();
-    produces< art::Assns<sim::Particle, simb::MCTruth>   >();
+    //    produces< art::Assns<sim::Particle, simb::MCTruth>   >();
 
   }// end of constructor
 
@@ -125,32 +125,53 @@ namespace emph {
     // Define the SSDHit and Particle vectors.
     std::unique_ptr<std::vector<std::vector<sim::SSDHit> > > ssdhlcol(new std::vector<std::vector<sim::SSDHit> >  );
     std::unique_ptr<std::vector<sim::Particle>     >            pcol    (new std::vector<sim::Particle>    );
-    std::unique_ptr< art::Assns<sim::Particle, simb::MCTruth> > tpassn  (new art::Assns<sim::Particle, simb::MCTruth>);
+    //    std::unique_ptr< art::Assns<sim::Particle, simb::MCTruth> > tpassn  (new art::Assns<sim::Particle, simb::MCTruth>);
+    
+    std::cout << "******************** HERE 0 ********************" 
+	      << std::endl;
+    
+    // get beam particle
+    art::Handle<std::vector<simb::MCParticle>> beam;
+    evt.getByLabel(fGeneratorLabel, beam);
+    
+    // make sure there is only one beam particle
+    std::cout << "******************** HERE A ********************" 
+	      << std::endl;
+    assert(beam.size() == 1);
+    simb::MCParticle b = beam->at(0);
+    std::cout << "******************** HERE B ********************" 
+	      << std::endl;
 
-    //look to see if there is any MCTruth information for this event
-    art::Handle<std::vector<simb::MCTruth>> mclist;
-    evt.getByLabel(fGeneratorLabel, mclist);
+    // now create MCTruth
+    simb::MCTruth mctru;
+    mctru.SetBeam(b);
 
     // the next steps are a little clunky.  Make a vector of art::Ptr<MCTruth> 
     // objects to use when making the associations and another of just
     // const* MCTruth objects to pass to G4Alg
-    std::vector< art::Ptr< simb::MCTruth > > mctp;
+    //    std::vector< art::Ptr< simb::MCTruth > > mctp;
     std::vector< const simb::MCTruth* > mct;
 
-    for(size_t i = 0; i < mclist->size(); ++i){
-      art::Ptr<simb::MCTruth> ptr(mclist, i);
-      mctp.push_back(ptr);
-      mct .push_back(ptr.get());
-    }
+    //    art::Ptr<simb::MCTruth> ptr(&mctru);
+
+    //    for(size_t i = 0; i < mclist->size(); ++i){
+    //      art::Ptr<simb::MCTruth> ptr(mclist, i);
+    //    mctp.push_back(ptr);
+    mct.push_back(&mctru); // ptr.get());
+      //    }
 
     // make a map to keep track of which G4 track ID goes with which MCTruth object
     std::map<int, size_t> trackIDToMCTruthIndex;
+    std::cout << "******************** HERE 1 ********************" 
+	      << std::endl;
     fG4Alg->RunGeant(mct, *ssdhlcol, *pcol, trackIDToMCTruthIndex);
+    std::cout << "******************** HERE 2 ********************" 
+	      << std::endl;
 
     // make associations for the particles and MCTruth objects
-    int    trackID = INT_MAX;
-    size_t mctidx  = 0;
-
+    //    int    trackID = INT_MAX;
+    //    size_t mctidx  = 0;
+    /*
     for(size_t p = 0; p < pcol->size(); ++p){
 
       sim::Particle &part = (*pcol)[p];
@@ -158,7 +179,7 @@ namespace emph {
       
       if( trackIDToMCTruthIndex.count(trackID) > 0){
         mctidx = trackIDToMCTruthIndex.find(trackID)->second;
-        util::CreateAssn(evt, *pcol, mctp[mctidx], *tpassn, p);
+	//        util::CreateAssn(evt, *pcol, mctp[mctidx], *tpassn, p);
       }
       else
 	throw cet::exception("G4Gen") << "Cannot find MCTruth for Track Id: "
@@ -166,11 +187,12 @@ namespace emph {
 				      << " to create association between Particle and MCTruth";
       
     }// end loop over handles
+    */
     
     // Put the data products into the event
     evt.put(std::move(ssdhlcol));
     evt.put(std::move(pcol));
-    evt.put(std::move(tpassn));
+    //    evt.put(std::move(tpassn));
     
     return;
   }// end of produce
