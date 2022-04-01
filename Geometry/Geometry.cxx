@@ -88,32 +88,27 @@ namespace emph {
     bool Geometry::LoadGDMLFile()
     {
       std::ifstream geoFile;
-      std::string file_path;
-      std::string fname;
-      
-      file_path = getenv ("CETPKG_SOURCE");
-      fname = file_path + "/Geometry/" + fGDMLFile;
-      geoFile.open(fname.c_str());
+
+      geoFile.open(fGDMLFile.c_str());
       if (!geoFile.is_open()) {
 	throw cet::exception("GeometryFileLoad")
-	  << "cannot find GDML file " << fname << " bail ungracefully\n"
+	  << "cannot find GDML file " << fGDMLFile << " bail ungracefully\n"
 	  << __FILE__ << ":" << __LINE__ << "\n";
 	return false;
       }
       geoFile.close();
       
       mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
-					<< fname << "\n";
+					<< fGDMLFile << "\n";
       
-      //      if (fGeoManager) delete fGeoManager;
       int old_verbosity = gGeoManager->GetVerboseLevel();
       
       // TGeoManager is too verbose when loading geometry.
       // Make it quiet.
       gGeoManager->SetVerboseLevel(0);
-
+      
       //fGeoManager->Import(fname.c_str());
-      TGeoManager::Import(fname.c_str());
+      TGeoManager::Import(fGDMLFile.c_str());
 
       fGeoManager = gGeoManager;
       

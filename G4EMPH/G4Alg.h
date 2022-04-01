@@ -74,7 +74,6 @@ namespace emph {
 
     std::vector<std::string> fUserActions;///< UserAction classes 
 
-    bool            fPrintTables;         ///< Print dE/dx tables and other info once per job for debugging etc.?
   };
 }
 

@@ -50,7 +50,6 @@ namespace emph {
     , fGenModuleLabel     (pset.get< std::string     >("GenModuleLabel")     )
     , fPlaIndex(0)
     , fShaIndex(0)
-    , fPrintTables        (pset.get< bool            >("PrintTables")        )
   {
 
     /// dummy vector in case user didn't set "AddedUserActions" in fcl file
@@ -64,7 +63,7 @@ namespace emph {
 
     // Constructor decides if initialized value is a path or 
     // an environment variable
-    cet::search_path sp("FW_SEARCH_PATH");
+    cet::search_path sp("CETPKG_SOURCE");
 
     sp.find_file(pset.get< std::string >("G4MacroPath"), fG4MacroPath);
     struct stat sb;

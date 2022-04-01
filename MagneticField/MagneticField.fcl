@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-standard_geometry:
+standard_magfield:
 {
   FieldFileName: "MagneticField/magField.root"
 }

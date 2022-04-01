@@ -1,0 +1,21 @@
+/control/echo "(G4UImanager) start of g4emph.mac"
+
+/run/initialize
+/run/particle/applyCuts
+
+#/run/verbose 2
+#/tracking/verbose 1
+
+# Set time after which to kill neutrons; pick a long time (needs units).
+# One can also set a minimum energy for the neutron (kill the neutron
+# if its KineticEnergy falls below the set value).
+# This command is valid for most (but *not* all) physics lists,
+# in particular LHEP doesn't support it and it will cause a 
+#      **** COMMAND NOT FOUND </...> *****
+#      **** Batch is interrupted!! *****
+# message when run on such a list.
+/physics_engine/neutron/timeLimit 515000.0 ns
+/physics_engine/neutron/energyLimit 0.0 GeV
+
+/control/echo "(G4UImanager) end of g4emph.mac"
+# end-of-macro

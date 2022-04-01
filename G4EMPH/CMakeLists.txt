@@ -74,6 +74,7 @@ build_plugin(G4Gen "module"
     SimulationBase
     Simulation
     G4Base
+   LIBRARIES PUBLIC
     Geometry
     Geometry_service
     MagneticField

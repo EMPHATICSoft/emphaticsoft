@@ -3,11 +3,14 @@
 /// \author jpaley@fnal.gov
 //////////////////////////////////////////////////////////////////////////
 
+#include <sys/stat.h>
+
 // EMPHATIC includes
 #include "Geometry/GeometryService.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "cetlib/search_path.h"
 
 namespace emph
 {
@@ -19,6 +22,18 @@ namespace emph
 					 art::ActivityRegistry & reg)
     {
       reconfigure(pset);
+      
+      cet::search_path sp("CETPKG_SOURCE");
+      
+      std::string fFileName = fGeoFileName;
+      sp.find_file(fFileName,fGeoFileName);
+      struct stat sb;
+      if ( fGeoFileName.empty() || stat(fGeoFileName.c_str(), &sb)!=0 ) {
+	// failed to resolve the file name
+	throw cet::exception("NoGDMLFile")
+	  << "Geometry GDML file " << fGeoFileName << " not found!\n"
+	  << __FILE__ << ":" << __LINE__ << "\n";
+      }
       
       fGeometry = new emph::geo::Geometry(fGeoFileName);
 
