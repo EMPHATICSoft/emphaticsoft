@@ -2,15 +2,27 @@
 # Rscript to document the tracking & field precision 
 #
 dirTex <- "/home/lebrun/tex/EMPHATIC/MagFieldMarch2022/";
-mD <- read.table("./EmphMagField_v2.txt", h=T);
-mDxm2y6 <- subset(mD, (abs(mD$x + 2.06) < 0.01) & (abs(mD$y - 6.42) < 0.01)); 
+mDV <- read.table("./EmphMagField_StlVector_v2.txt", h=T);
+mDM <- read.table("./EmphMagField_StlMap_v2.txt", h=T);
+mDxm2y6 <- subset(mDV, (abs(mDV$x + 2.06) < 0.01) & (abs(mDV$y - 6.42) < 0.01)); 
+mDMxm2y6 <- subset(mDM, (abs(mDM$x + 2.06) < 0.01) & (abs(mDM$y - 6.42) < 0.01)); 
 plotFName <- sprintf("%s%s", dirTex, "ZipAtXm2p06y6p42_1.png");
 png(filename=plotFName, width=780, height = 420);
-plot(mDxm2y6$z, mDxm2y6$B0y, type ='b', pch=15, cex=0.75, xlim=c(-10., 350.), xlab="Z [mm]", ylab="By [kGauss]");
+plot(mDxm2y6$z, mDxm2y6$B0y, type ='b', pch=15, cex=0.75, xlim=c(-200., 200.), xlab="Z [mm]", ylab="By [Tesla]");
 lines(mDxm2y6$z, mDxm2y6$B1y, type ='b', pch=16, col="blue");
-legend(x="topright", c("Int. 3D Radial", "Linear Cartesian"), pch=c(15, 16), col=c("black", "blue"));
-text(x=120., y=5., " x= -2.06 mm, y = 6.42 mm", cex=1.5);
+lines(mDMxm2y6$z, mDMxm2y6$B1y, type ='b', pch=17, col="magenta");
+legend(x="topright", c("Int. 3D Radial", "Linear Cartesian", "Linear, from stl Map"), pch=c(15, 16, 17), col=c("black", "blue", "magenta"));
+text(x=40., y=1.25, " x= -2.06 mm, y = 6.42 mm", cex=1.2, pos=4);
 dev.off();
+plotFName <- sprintf("%s%s", dirTex, "ZipAtXm2p06y6p42_2.png");
+png(filename=plotFName, width=780, height = 420);
+plot(mDxm2y6$z, mDxm2y6$B0y, type ='b', pch=15, cex=0.75, xlim=c(-90., 90.), ylim=c(1.0, 1.75),  xlab="Z [mm]", ylab="By [Tesla]");
+lines(mDxm2y6$z, mDxm2y6$B1y, type ='b', pch=16, col="blue");
+lines(mDMxm2y6$z, mDMxm2y6$B1y, type ='b', pch=17, col="magenta");
+legend(x="topright", c("Int. 3D Radial", "Linear Cartesian", "Linear, from stl Map"), pch=c(15, 16, 17), col=c("black", "blue", "magenta"));
+text(x=40., y=1.6, " x= -2.06 mm, y = 6.42 mm", cex=1.0);
+dev.off();
+stop("For checks.. ");
 #
 plotFName <- sprintf("%s%s", dirTex, "ZipAtXm2p06y6p42_2.png");
 png(filename=plotFName, width=780, height = 420);

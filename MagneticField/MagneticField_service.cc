@@ -15,6 +15,7 @@ namespace emph
   MagneticFieldService::MagneticFieldService(const fhicl::ParameterSet& pset,
 				   art::ActivityRegistry & reg)
   {
+
     reconfigure(pset);
     
     fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);

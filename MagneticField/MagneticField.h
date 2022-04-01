@@ -33,11 +33,16 @@
 #include "Geant4/G4UniformMagField.hh"
 #include "Geant4/G4ThreeVector.hh"
 #include <map>
+#include <cmath>
 #include <vector>
 
 class G4FieldManager;
 
 namespace emph {
+
+  struct bFieldPoint {
+    float fbx, fby, fbz;
+  };
 
   class EMPHATICMagneticField: public G4MagneticField {
   public:
@@ -56,9 +61,14 @@ namespace emph {
     G4FieldManager* GetGlobalFieldManager(); 
     
   private:
+    bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
+    std::vector<bFieldPoint> ffield;
     std::map<int, std::map<int, std::map<int, std::vector<double> > > > field;
     double step;
-    double start[3];
+    double start[3]; // old boundaries.. 
+    int fNStepX, fNStepY, fNStepZ;
+    double fXMin, fYMin, fZMin, fXMax, fYMax, fZMax; // New ones, used 
+    double fStepX, fStepY, fStepZ; 
     int fInterpolateOption;
     G4int fVerbosity;
     
@@ -72,6 +82,20 @@ namespace emph {
    // Algorithm: simple Runge-Kutta, 4rth order.  Suggest step size: ~ 20 mm for the February 2022 version of the field map. 
    // distance units are mm (as in Geant4, by default.) and momentum are in GeV/c  (as in Geant4, by default.) 
    // Curling around is not supported, 
+   private:
+    void uploadFromRootFile(const G4String &fName);
+    void uploadFromTextFile(const G4String &fName);
+    inline size_t indexForVector(double *xyz) const {
+      double *ptr = xyz; 
+      size_t iX = static_cast<size_t>(((*ptr) - fXMin)/fStepX); ptr++;
+      size_t iY = static_cast<size_t>(((*ptr) - fYMin)/fStepY); ptr++;
+      size_t iZ = static_cast<size_t>(((*ptr) - fZMin)/fStepZ);
+      return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
+    } 
+    inline size_t indexForVector(size_t iX, size_t iY, size_t iZ) const {
+      return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
+    } 
+   
   };
 } // end namespace emph
 

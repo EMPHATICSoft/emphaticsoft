@@ -28,6 +28,7 @@
 // Description: User Field class implementation.
 ///////////////////////////////////////////////////////////////////////////////
 #include <fstream>
+#include <cstdlib>
 
 #include "MagneticField/MagneticField.h"
 
@@ -45,13 +46,28 @@
 namespace emph {
 
   EMPHATICMagneticField::EMPHATICMagneticField(const G4String &filename) :
-    step(0), start{-34, -34, -50}, fInterpolateOption(0)
+    fStorageIsStlVector(false), step(0), start{-34, -34, -50}, 
+    fNStepX(1), fNStepY(1), fNStepZ(1),
+    fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
+    fStepX(0.), fStepY(0.), fStepZ(0.),
+    fInterpolateOption(0)
   {
 #ifdef debug
     fVerbosity = 1;
 #else
     fVerbosity = 0;
 #endif
+ 
+    if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
+    else this->uploadFromTextFile(filename);
+    this->test1();
+//    this->test2();
+    
+}
+
+  void EMPHATICMagneticField::uploadFromRootFile(const G4String &fName) {
+  
+    fStorageIsStlVector = false; // Could up grade later.. 
   
     /*for(int i = 0; i < 250; i++){
       for(int j = 0; j < 250; j++){
@@ -62,8 +78,8 @@ namespace emph {
       }	
       }*/
     
-    TFile mfFile(filename.c_str(), "READ");
-    std::cout << " ==> Opening file " << filename << " to read magnetic field..."
+    TFile mfFile(fName.c_str(), "READ");
+    std::cout << " ==> Opening file " << fName << " to read magnetic field..."
 	   << G4endl;
     
     if (mfFile.IsZombie()) {
@@ -133,14 +149,180 @@ namespace emph {
     
     ///////////////////////////////////////////////////////////////
     // Close the file
-    std::cout << " ==> Closing file " << filename << G4endl;
+    std::cout << " ==> Closing file " << fName << G4endl;
     mfFile.Close();
     if (fVerbosity) fOutForR.close();
     //
-//    this->test1();
-    this->test2();
-}
-
+  }
+  void EMPHATICMagneticField::uploadFromTextFile(const G4String &fName) {
+  
+	double numbers[6];
+	std::ifstream fileIn(fName.c_str());
+	if (!fileIn.is_open()) {
+	  std::cerr << " EMPHATICMagneticField::uploadFromTextFile, file " << fName << " can not be open, fatal .." << std::endl; 
+	  exit(2);
+	}
+        std::string line;
+        char aLinecStr[1024];
+        int numLines = 0;
+	// first pass, check the grid is uniform. 
+	double xC, yC, zC; double xP=0.; double yP=0.; double zP=0.; 
+	double sumStepX = 0.;  double sumStepY = 0.; double sumStepZ = 0.;
+	double sumStepSqX = 0.;  double  sumStepSqY = 0.; double  sumStepSqZ = 0.;
+	bool backToFirstX = false;  bool backToFirstY = false; 
+	std::vector<double> xVals;  std::vector<double> yVals;
+	// Units are assumed to be in mm 
+        while (fileIn.good()) {
+          fileIn.getline(aLinecStr, 1024);
+          std::string aLine(aLinecStr);
+	  if (aLine.length() < 2) continue; // end of file suspected, or blank in the file 
+	  if (aLine.find("%") != std::string::npos) continue; // Comment line from COMSOL. 
+//	  if (numLines > 8254) std::cerr << " aLine " << aLine << std::endl;
+          numLines++;
+          std::istringstream aLStr(aLine);
+	  aLStr >> xC; aLStr >> yC; aLStr >> zC;  // We skip the reading of the BField .. 
+	  if (isnan(xC) || isnan(yC) || isnan(yC)) {
+	      std::cerr << " EMPHATICMagneticField::uploadFromTextFile, line  " << numLines << " has NaN(s), fatal.. " << std::endl;
+	      exit(2);
+          }	  
+	  fXMin = std::min(fXMin, xC); fYMin = std::min(fYMin, yC); fZMin = std::min(fZMin, zC);
+	  fXMax = std::max(fXMax, xC); fYMax = std::max(fYMax, yC); fZMax = std::max(fZMax, zC);
+	  if (numLines == 1) { xVals.push_back(xC); yVals.push_back(yC); }
+	  // Assume stepping along the X axis is the fatest (line after line), then Y axis, last is Z axis. 
+	  //  .. and that the first point is at fXMin, fYMin, fZMin 
+	  if ((!backToFirstX) && (numLines > 2) && (std::abs(xC - fXMin) < 1.0e-3))  {
+	     backToFirstX = true;
+	     fStepX = sumStepX/(fNStepX-1); 
+	     if (fNStepX < 2) {
+	        std::cerr << " EMPHATICMagneticField::uploadFromTextFile, no information about the step size along the X axis, fatal  " << std::endl;
+                exit(2);	
+	     }
+	     const double varStepX = (sumStepSqX - fNStepX*fStepX*fStepX)/((fNStepX-2)*(fNStepX-1)) ;
+	     if (varStepX > 1. ) {
+	        std::cerr << " EMPHATICMagneticField::uploadFromTextFile, variance of steps along X greate than 1 mm square, " << varStepX 
+		             << " fNStepX " << fNStepX << ", fStepX " << fStepX << " fatal  " << std::endl;
+                exit(2);	
+	     }
+	     std::cerr << " back to fXMin.. fNStepX " << fNStepX << " step size along X " << fStepX << std::endl;
+	     
+	  }
+	  if ((!backToFirstX) && (numLines > 1))  {
+	      fNStepX++; sumStepX += std::abs(xP - xC); sumStepSqX += (xP - xC)*(xP - xC); xVals.push_back(xC);
+	  }
+	  if (backToFirstX && (numLines > 1)) { // check subsequent x Scans.. 
+	     bool foundXCoord = false;
+	     for (size_t k=0; k != xVals.size(); k++) {
+	       if (std::abs(xC - xVals[k]) < 1.0e-3) { foundXCoord=true; break; }
+	     }
+	     if (!foundXCoord) { 
+	        std::cerr << " EMPHATICMagneticField::uploadFromTextFile, the scans along the X axis don't match.. " << std::endl; 
+		std::cerr << "  ... numLines " << numLines << " size of xVals " << xVals.size() << std::endl;
+		std::cerr << " first few xVals " << xVals[0] << ", " << xVals[1] << ", " << xVals[2] << std::endl;
+		std::cerr << " Grid is irregular .... fatal  " << std::endl;
+                exit(2);	
+	     }
+	     // we now deal with the grid info along the Y axis.
+	     if ((!backToFirstY) && (numLines > 2) && (std::abs(xC - fXMin) < 1.0e-3) && (std::abs(yC - fYMin) > 1.0e-3))  { // skip the last one..
+	      fNStepY++; sumStepY += std::abs(yP - yC); sumStepSqY += (yP - yC)*(yP - yC); yVals.push_back(yC);
+	     }
+	     if ((!backToFirstY) && (numLines > (fNStepX-3)) && (std::abs(yC - fYMin) < 1.0e-3))  {
+	       backToFirstY = true; 
+	       std::cerr << " Found the back to start along Y at line " << numLines << " step along Y = " << fNStepY << std::endl;
+	       fStepY = sumStepY/(fNStepY-1); 
+	       if (fNStepY < 2) {
+	        std::cerr << " EMPHATICMagneticField::uploadFromTextFile, no information about the step size along the Y axis, fatal  " << std::endl;
+                exit(2);	
+	       }
+	       const double varStepY = (sumStepSqY - fNStepY*fStepY*fStepY)/((fNStepY-2)*(fNStepY-1)) ;
+	       if (varStepY > 1. ) {
+	          std::cerr << " EMPHATICMagneticField::uploadFromTextFile, variance of steps along Y greate than 1 mm square, " << varStepY 
+		             << " fNStepY " << fNStepY << ", fStepY " << fStepY << " fatal  " << std::endl;
+                  exit(2);	
+	       }
+	       std::cerr << " back to fYMin.. fNStepY " << fNStepY << " step size along Y " << fStepY << std::endl;
+	   } // back to the starting point along Y axis. 
+	    //Now along the Z axis. 
+	   if ((std::abs(xC - fXMin) < 1.0e-3) &&  (std::abs(yC - fYMin) < 1.0e-3)) {
+	       fNStepZ++; sumStepZ += std::abs(zP - zC); sumStepSqZ += (zP - zC)*(zP - zC);
+	       if (yVals.size() > 2) { // Check, only if we have filled vector (not the first increment in Z  
+	          bool foundYCoord = false;
+	          for (size_t k=0; k != yVals.size(); k++) {
+	            if (std::abs(yC - yVals[k]) < 1.0e-3) { foundYCoord=true; break; }
+	         }
+	         if (!foundYCoord) { 
+	           std::cerr << " EMPHATICMagneticField::uploadFromTextFile, the scans along the Y axis don't match.. " << std::endl; 
+		   std::cerr << "  ... numLines " << numLines << " size of YVals " << yVals.size() << std::endl;
+		   std::cerr << " first few yVals " << yVals[0] << ", " << yVals[1] << ", " << yVals[2] << std::endl;
+		   std::cerr << " Grid is irregular .... fatal  " << std::endl;
+                   exit(2);	
+	         }
+	       } // Check 
+	    } // back to the starting point along Y axis. 
+	  } // back to the starting point along X axis. 	  
+	  xP = xC; yP = yC; zP = zC; 
+	} // reading the file.. 
+	fileIn.close();
+	fStepZ = sumStepZ/(fNStepZ-1); 
+	if (fNStepZ < 2) {
+	   std::cerr << " EMPHATICMagneticField::uploadFromTextFile, no information about the step size along the Z axis, fatal  " << std::endl;
+           exit(2);	
+	}
+	const double varStepZ = (sumStepSqZ - fNStepZ*fStepZ*fStepZ)/(fNStepZ*(fNStepZ-1)) ;
+	if (varStepZ > 1. ) {
+	          std::cerr << " EMPHATICMagneticField::uploadFromTextFile, variance of steps along Z greate than 1 mm square, " << varStepZ 
+		             << " fNStepZ " << fNStepZ << ", fStepZ " << fStepZ << " fatal  " << std::endl;
+                  exit(2);	
+	}
+	if (fVerbosity == 1) { 
+	  std::cerr << " EMPHATICMagneticField::uploadFromTextFile, The grid is considered as regular, numPtx along X = " 
+	            << fNStepX << ", Y = " << fNStepY << ", Z = " <<  fNStepZ << std::endl;
+	  std::cerr << " .... grid step size along X = " 
+	            << fStepX << ", Y = " << fStepY << ", Z = " <<  fStepZ << std::endl;
+	  std::cerr << " .... Start locations  = " 
+	            << fXMin << ", Y = " << fYMin << ", Z = " <<  fZMin << std::endl;
+	}
+	// allocate memory, if stl vector..
+	if (fStorageIsStlVector) {  
+	  bFieldPoint aBV; aBV.fbx = 0.; aBV.fby = 0.; aBV.fbz = 0.;
+	  size_t nTot = static_cast<size_t>(fNStepX) * static_cast<size_t>(fNStepY) * static_cast<size_t>(fNStepZ); 
+	  for (size_t i=0; i != nTot; i++) ffield.push_back(aBV);
+	} else {
+	  start[0] = fXMin; start[1] = fYMin; start[2] = fZMin; step = fStepZ; // old notation.. keep for consistency. 
+	}
+	fileIn.open(fName.c_str());
+        while (fileIn.good()) {
+          fileIn.getline(aLinecStr, 1024);
+          std::string aLine(aLinecStr);
+ 	  if (aLine.find("%") != std::string::npos) continue; // Comment line from COMSOL. 
+	  if (aLine.size() < 2) continue; // end of file suspected, or blank in the file 
+          numLines++;
+          std::istringstream aLStr(aLine);
+  	  int count = 0; std::string num;
+  	  while((count < 6) && (aLStr >> num)){
+  	     if(num == "NaN") numbers[count] = 0;
+  	     else  numbers[count] = std::stod(num); // probably a bad idea to treat NaN as field is really physically vanishing.. 
+  				count++;
+  	     }
+	   if (fStorageIsStlVector) {  
+	     size_t ii = this->indexForVector(numbers);
+	     if (ii < ffield.size()) { 
+	       ffield[ii].fbx = numbers[3]; ffield[ii].fby = numbers[4]; ffield[ii].fbz = numbers[5]; // Possibly Unit problem.. 
+	     }
+	   } else {
+             int indX = (int) (numbers[0]-start[0])/step;
+             int indY = (int) (numbers[1]-start[1])/step;
+             int indZ = (int) (numbers[2]-start[2])/step;
+	   
+             std::vector<double> temp;
+             temp.push_back(numbers[3]);
+             temp.push_back(numbers[4]);
+             temp.push_back(numbers[5]);
+             field[indX][indY][indZ] = temp;
+	   }
+	}
+	fileIn.close();    
+//	std::cerr << " And quit after filling from COMSOL text  file " << std::endl; exit(2);
+  }
   
   EMPHATICMagneticField::~EMPHATICMagneticField() {
     
@@ -153,103 +335,181 @@ namespace emph {
   {
 //    bool debugIsOn = ((std::abs(x[0] - 15.) < 15.) && (std::abs(x[1] - 15.) < 15.0) && (std::abs(x[2] - 180.) < 15.0));
     bool debugIsOn = false;
+    B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
+    B[1] = 0.;
+    B[2] = 0.; 
     if (debugIsOn) std::cerr << " EMPHATICMagneticField::MagneticField, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
-    double indX = (x[0]/10-start[0])/step; // factor 10 is to convert mm to cm.
-    double indY = (x[1]/10-start[1])/step;
-    double indZ = (x[2]/10-start[2])/step;
+    if (fStorageIsStlVector) {
+      if ((x[0] < fXMin) || (x[0] > fXMax) || (x[1] < fYMin) || (x[1] > fYMax)|| (x[2] < fZMin) || (x[2] > fZMax)) return;
+        double indX = (x[0] - fXMin)/fStepX; // Check units.. 
+        double indY = (x[1] - fYMin)/fStepY;
+        double indZ = (x[2] - fZMin)/fStepZ;
     
-    int ix[2] = {int(floor(indX)), int(ceil(indX))};
-    int iy[2] = {int(floor(indY)), int(ceil(indY))};
-    int iz[2] = {int(floor(indZ)), int(ceil(indZ))};
-    
-    bool skip = false;
-    
-    if(field.find(ix[0]) == field.end()) skip = true;
-    else if(field.find(ix[1]) == field.end()) skip = true;
-    else{
-      if(field.at(ix[0]).find(iy[0]) == field.at(ix[0]).end()) skip = true;
-      else if(field.at(ix[0]).find(iy[1]) == field.at(ix[0]).end()) skip = true;
-      else if(field.at(ix[1]).find(iy[0]) == field.at(ix[1]).end()) skip = true;
-      else if(field.at(ix[1]).find(iy[1]) == field.at(ix[1]).end()) skip = true;
-      else{
-	if(field.at(ix[0]).at(iy[0]).find(iz[0]) ==field.at(ix[0]).at(iy[0]).end()) skip = true;
-	else if(field.at(ix[0]).at(iy[0]).find(iz[1]) ==field.at(ix[0]).at(iy[0]).end()) skip = true;
-	else if(field.at(ix[0]).at(iy[1]).find(iz[0]) ==field.at(ix[0]).at(iy[1]).end()) skip = true;
-	else if(field.at(ix[0]).at(iy[1]).find(iz[1]) ==field.at(ix[0]).at(iy[1]).end()) skip = true;
-	else if(field.at(ix[1]).at(iy[0]).find(iz[0]) ==field.at(ix[1]).at(iy[0]).end()) skip = true;
-	else if(field.at(ix[1]).at(iy[0]).find(iz[1]) ==field.at(ix[1]).at(iy[0]).end()) skip = true;
-	else if(field.at(ix[1]).at(iy[1]).find(iz[0]) ==field.at(ix[1]).at(iy[1]).end()) skip = true;
-	else if(field.at(ix[1]).at(iy[1]).find(iz[1]) ==field.at(ix[1]).at(iy[1]).end()) skip = true;
-      }
-    }
-    
-    
-    if(skip){
-      
-      B[0] = 0;
-      B[1] = 0;
-      B[2] = 0;
-      return;
-    }
-    if (debugIsOn) {
-       std::cerr << " Indices along X " << ix[0] << ", " << ix[1] 
-                    << " .. along Y " << iy[0] << ", " << iy[1] << " .. along Z " << iz[0] << ", " << iz[1] << std::endl;
-       std::cerr << " ....  by at ix, iy iz low " << field.at(ix[0]).at(iy[0]).at(iz[0]).at(1) << " high " 
-                                                  << field.at(ix[1]).at(iy[1]).at(iz[1]).at(1) << std::endl;
-    }	    
-    double sumx = 0;
-    double sumy = 0;
-    double sumz = 0;
-    double norm = 0;
-    
-    if(fInterpolateOption == 0) { 
-      for(int i = 0; i < 2; i++){
-        for(int j = 0; j < 2; j++){
-	  for(int k = 0; k < 2; k++){
-	    double dist = sqrt((indX-ix[i])*(indX-ix[i]) + (indY-iy[j])*(indY-iy[j]) + (indZ-iz[k])*(indZ-iz[k]));
-	    sumx += field.at(ix[i]).at(iy[j]).at(iz[k]).at(0)*dist;
-	    sumy += field.at(ix[i]).at(iy[j]).at(iz[k]).at(1)*dist;
-	    sumz += field.at(ix[i]).at(iy[j]).at(iz[k]).at(2)*dist;
-	    norm += dist;
+        size_t ix[2] = {static_cast<size_t>(floor(indX)), static_cast<size_t>(ceil(indX))};
+        size_t iy[2] = {static_cast<size_t>(floor(indY)), static_cast<size_t>(ceil(indY))};
+        size_t iz[2] = {static_cast<size_t>(floor(indZ)), static_cast<size_t>(ceil(indZ))};
+	double sumx = 0.; double sumy = 0.; double sumz = 0.; double norm = 0.;
+        if(fInterpolateOption == 0) { 
+           for(int i = 0; i < 2; i++){
+             for(int j = 0; j < 2; j++){
+	       for(int k = 0; k < 2; k++){
+	         size_t iV = indexForVector(ix[i], iy[j], iz[k]);
+	         double dist = sqrt((indX-ix[i])*(indX-ix[i]) + (indY-iy[j])*(indY-iy[j]) + (indZ-iz[k])*(indZ-iz[k]));
+	         sumx += ffield[iV].fbx * dist;
+	         sumy += ffield[iV].fby * dist;
+	         sumz += ffield[iV].fbz * dist;
+	         norm += dist;
 //	  if (debugIsOn && (ix[0] == 35) && (iy[0] == 35) && ( iz[0] == 68)) {
 //	    std::cerr << " ........ i j k " << i << " " << j << " " << k << " dist " << dist << " sumy " << sumy 
 //	              << " norm " << norm << std::endl;
+	       }
+	     }		
+          }	
+	  B[0] = (sumx/norm);
+          B[1] = (sumy/norm);
+          B[2] = (sumz/norm);
+          return;
+       } else {  // linear interpolation on the grid. 
+         const double t = indX-ix[0];
+         const double u = indY-iy[0];
+         const double v = indZ-iz[0];
+	 std::vector<size_t> iVXs(8, 0);
+	 iVXs[0] = indexForVector(ix[0], iy[0], iz[0]);
+	 iVXs[1] = indexForVector(ix[1], iy[0], iz[0]);
+	 iVXs[2] = indexForVector(ix[0], iy[1], iz[0]);
+	 iVXs[3] = indexForVector(ix[1], iy[1], iz[0]);
+	 iVXs[4] = indexForVector(ix[0], iy[0], iz[1]);
+	 iVXs[5] = indexForVector(ix[1], iy[0], iz[1]);
+	 iVXs[6] = indexForVector(ix[0], iy[1], iz[1]);
+	 iVXs[7] = indexForVector(ix[1], iy[1], iz[1]);
+         for (size_t kc=0; kc != 3; kc++) {
+	   switch(kc) {
+	     case 0:
+               B[kc] =   (1.0-t)*(1.0-u)*(1.0-v)*ffield[iVXs[0]].fbx;
+	       B[kc] +=  t*(1.0-u)*(1.0-v)*ffield[iVXs[1]].fbx;
+	       B[kc] +=  (1.0-t)*u*(1.0-v)*ffield[iVXs[2]].fbx;
+	       B[kc] +=  t*u*(1.0-v)*ffield[iVXs[3]].fbx;
+               B[kc] +=  (1.0-t)*(1.0-u)*v*ffield[iVXs[4]].fbx;
+	       B[kc] +=  t*(1.0-u)*v*ffield[iVXs[5]].fbx;
+	       B[kc] +=  (1.0-t)*u*v*ffield[iVXs[6]].fbx;
+	       B[kc] +=  t*u*v*ffield[iVXs[7]].fbx;
+	       break;
+	    case 1:
+               B[kc] =   (1.0-t)*(1.0-u)*(1.0-v)*ffield[iVXs[0]].fby;
+	       B[kc] +=  t*(1.0-u)*(1.0-v)*ffield[iVXs[1]].fby;
+	       B[kc] +=  (1.0-t)*u*(1.0-v)*ffield[iVXs[2]].fby;
+	       B[kc] +=  t*u*(1.0-v)*ffield[iVXs[3]].fby;
+               B[kc] +=  (1.0-t)*(1.0-u)*v*ffield[iVXs[4]].fby;
+	       B[kc] +=  t*(1.0-u)*v*ffield[iVXs[5]].fby;
+	       B[kc] +=  (1.0-t)*u*v*ffield[iVXs[6]].fby;
+	       B[kc] +=  t*u*v*ffield[iVXs[7]].fby;
+	       break;
+	    case 2:
+               B[kc] =   (1.0-t)*(1.0-u)*(1.0-v)*ffield[iVXs[0]].fbz;
+	       B[kc] +=  t*(1.0-u)*(1.0-v)*ffield[iVXs[1]].fbz;
+	       B[kc] +=  (1.0-t)*u*(1.0-v)*ffield[iVXs[2]].fbz;
+	       B[kc] +=  t*u*(1.0-v)*ffield[iVXs[3]].fbz;
+               B[kc] +=  (1.0-t)*(1.0-u)*v*ffield[iVXs[4]].fbz;
+	       B[kc] +=  t*(1.0-u)*v*ffield[iVXs[5]].fbz;
+	       B[kc] +=  (1.0-t)*u*v*ffield[iVXs[6]].fbz;
+	       B[kc] +=  t*u*v*ffield[iVXs[7]].fbz;
+	       break;
 	    }
-	  }		
-        }	
+        } // three components of the field. 
+        
+       
+       } // inpterpolation method. 
+       
+     } else { // map storage
+        double indX = (x[0] - start[0])/step; 
+        double indY = (x[1] - start[1])/step;
+        double indZ = (x[2] - start[2])/step;
+    
+        int ix[2] = {int(floor(indX)), int(ceil(indX))};
+        int iy[2] = {int(floor(indY)), int(ceil(indY))};
+        int iz[2] = {int(floor(indZ)), int(ceil(indZ))};
+    
+        bool skip = false;
+        if(field.find(ix[0]) == field.end()) skip = true;
+        else if(field.find(ix[1]) == field.end()) skip = true;
+        else{
+        if(field.at(ix[0]).find(iy[0]) == field.at(ix[0]).end()) skip = true;
+        else if(field.at(ix[0]).find(iy[1]) == field.at(ix[0]).end()) skip = true;
+        else if(field.at(ix[1]).find(iy[0]) == field.at(ix[1]).end()) skip = true;
+        else if(field.at(ix[1]).find(iy[1]) == field.at(ix[1]).end()) skip = true;
+        else{
+	  if(field.at(ix[0]).at(iy[0]).find(iz[0]) ==field.at(ix[0]).at(iy[0]).end()) skip = true;
+	  else if(field.at(ix[0]).at(iy[0]).find(iz[1]) ==field.at(ix[0]).at(iy[0]).end()) skip = true;
+	  else if(field.at(ix[0]).at(iy[1]).find(iz[0]) ==field.at(ix[0]).at(iy[1]).end()) skip = true;
+	  else if(field.at(ix[0]).at(iy[1]).find(iz[1]) ==field.at(ix[0]).at(iy[1]).end()) skip = true;
+	  else if(field.at(ix[1]).at(iy[0]).find(iz[0]) ==field.at(ix[1]).at(iy[0]).end()) skip = true;
+	  else if(field.at(ix[1]).at(iy[0]).find(iz[1]) ==field.at(ix[1]).at(iy[0]).end()) skip = true;
+	  else if(field.at(ix[1]).at(iy[1]).find(iz[0]) ==field.at(ix[1]).at(iy[1]).end()) skip = true;
+	  else if(field.at(ix[1]).at(iy[1]).find(iz[1]) ==field.at(ix[1]).at(iy[1]).end()) skip = true;
+        }
+      }
+    
+    
+      if(skip) return;
+      if (debugIsOn) {
+         std::cerr << " Indices along X " << ix[0] << ", " << ix[1] 
+                      << " .. along Y " << iy[0] << ", " << iy[1] << " .. along Z " << iz[0] << ", " << iz[1] << std::endl;
+         std::cerr << " ....  by at ix, iy iz low " << field.at(ix[0]).at(iy[0]).at(iz[0]).at(1) << " high " 
+                                                  << field.at(ix[1]).at(iy[1]).at(iz[1]).at(1) << std::endl;
+      }	    
+   
+      if(fInterpolateOption == 0) { 
+        double sumx = 0;
+        double sumy = 0;
+        double sumz = 0;
+        double norm = 0;
+        for(int i = 0; i < 2; i++){
+          for(int j = 0; j < 2; j++){
+	    for(int k = 0; k < 2; k++){
+	      double dist = sqrt((indX-ix[i])*(indX-ix[i]) + (indY-iy[j])*(indY-iy[j]) + (indZ-iz[k])*(indZ-iz[k]));
+	      sumx += field.at(ix[i]).at(iy[j]).at(iz[k]).at(0)*dist;
+	      sumy += field.at(ix[i]).at(iy[j]).at(iz[k]).at(1)*dist;
+	      sumz += field.at(ix[i]).at(iy[j]).at(iz[k]).at(2)*dist;
+	      norm += dist;
+//	  if (debugIsOn && (ix[0] == 35) && (iy[0] == 35) && ( iz[0] == 68)) {
+//	    std::cerr << " ........ i j k " << i << " " << j << " " << k << " dist " << dist << " sumy " << sumy 
+//	              << " norm " << norm << std::endl;
+	     }
+	   }		
+          }	
 /*
 * Results are already in kilogauss, P.L. March 2022. 
 * The (global) variable kiloguass is a member of the Geant4 System of Units class. 
 *    
-      B[0] = (sumx/norm)*kilogauss;
-      B[1] = (sumy/norm)*kilogauss;
-      B[2] = (sumz/norm)*kilogauss;
+        B[0] = (sumx/norm)*kilogauss;
+        B[1] = (sumy/norm)*kilogauss;
+        B[2] = (sumz/norm)*kilogauss;
 */    
-      B[0] = (sumx/norm);
-      B[1] = (sumy/norm);
-      B[2] = (sumz/norm);
-    } else { // Linear interpolation on the 3D grid P.L. March 2022 
-      const double t = indX-ix[0];
-      const double u = indY-iy[0];
-      const double v = indZ-iz[0];
-      for (size_t kc=0; kc != 3; kc++) {
-        B[kc] =   (1.0-t)*(1.0-u)*(1.0-v)*field.at(ix[0]).at(iy[0]).at(iz[0]).at(kc);
-	B[kc] +=  t*(1.0-u)*(1.0-v)*field.at(ix[1]).at(iy[0]).at(iz[0]).at(kc);
-	B[kc] +=  (1.0-t)*u*(1.0-v)*field.at(ix[0]).at(iy[1]).at(iz[0]).at(kc);
-	B[kc] +=  t*u*(1.0-v)*field.at(ix[1]).at(iy[1]).at(iz[0]).at(kc);
-        B[kc] +=  (1.0-t)*(1.0-u)*v*field.at(ix[0]).at(iy[0]).at(iz[1]).at(kc);
-	B[kc] +=  t*(1.0-u)*v*field.at(ix[1]).at(iy[0]).at(iz[1]).at(kc);
-	B[kc] +=  (1.0-t)*u*v*field.at(ix[0]).at(iy[1]).at(iz[1]).at(kc);
-	B[kc] +=  t*u*v*field.at(ix[1]).at(iy[1]).at(iz[1]).at(kc);
+        B[0] = (sumx/norm);
+        B[1] = (sumy/norm);
+        B[2] = (sumz/norm);
+      } else { // Linear interpolation on the 3D grid P.L. March 2022 
+        const double t = indX-ix[0];
+        const double u = indY-iy[0];
+        const double v = indZ-iz[0];
+        for (size_t kc=0; kc != 3; kc++) {
+          B[kc] =   (1.0-t)*(1.0-u)*(1.0-v)*field.at(ix[0]).at(iy[0]).at(iz[0]).at(kc);
+	  B[kc] +=  t*(1.0-u)*(1.0-v)*field.at(ix[1]).at(iy[0]).at(iz[0]).at(kc);
+	  B[kc] +=  (1.0-t)*u*(1.0-v)*field.at(ix[0]).at(iy[1]).at(iz[0]).at(kc);
+	  B[kc] +=  t*u*(1.0-v)*field.at(ix[1]).at(iy[1]).at(iz[0]).at(kc);
+          B[kc] +=  (1.0-t)*(1.0-u)*v*field.at(ix[0]).at(iy[0]).at(iz[1]).at(kc);
+	  B[kc] +=  t*(1.0-u)*v*field.at(ix[1]).at(iy[0]).at(iz[1]).at(kc);
+	  B[kc] +=  (1.0-t)*u*v*field.at(ix[0]).at(iy[1]).at(iz[1]).at(kc);
+	  B[kc] +=  t*u*v*field.at(ix[1]).at(iy[1]).at(iz[1]).at(kc);
+        }
       }
-    }
-    
-    if (debugIsOn)
-      {
+    } // map storage. 
+    if (debugIsOn) {
 	
 	std::cout << "(x, y, z) = (" << x[0] << ", " << x[1] << ", " << x[2] 
 	          << ") mm,    (Bx, By, Bz) = (" << B[0] << ", " << B[1] << ", " << B[2] << ") kG" << G4endl;
-      }
+     }
+    
   }
   
   
@@ -394,8 +654,9 @@ namespace emph {
     
     // Look at the divergence of the field.. 
     //
-    
-    std ::ofstream fOutForR("./EmphMagField_v2.txt");
+    std::cerr << " EMPHATICMagneticField::test1, generating simple CSV test files.. " << std::endl;
+    std::string fName1 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2.txt") : std::string("./EmphMagField_StlMap_v2.txt"); 
+    std ::ofstream fOutForR(fName1.c_str());
     fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
     
     double xN[3], xF[3], B0N[3], B0F[3], B1N[3], B1F[3];
@@ -408,7 +669,7 @@ namespace emph {
         const double y = 15.34 + iY*0.892; 
          xN[1] = y ;
          xF[1] = y + 10.;
-         for (int iZ = -20; iZ != 80; iZ++) { 
+         for (int iZ = -40; iZ != 60; iZ++) { 
            const double z = iZ*4.578; 
            xN[2] = z;
            xF[2] = z + 10.;
@@ -438,7 +699,8 @@ namespace emph {
     }
     fOutForR.close();
    
-    fOutForR.open("./EmphMagField_v2b.txt");
+    std::string fName2 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2b.txt") : std::string("./EmphMagField_StlMap_v2b.txt"); 
+    fOutForR.open(fName2.c_str());
     fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
     
     for (int iX = -150; iX != 150; iX++) { 
@@ -449,8 +711,8 @@ namespace emph {
         const double y = 15.34 + iY*0.892; 
          xN[1] = y ;
          xF[1] = y + 10.;
-         for (int iZ = -2; iZ != 8; iZ++) { 
-           const double z = 128. + iZ*4.578; 
+         for (int iZ = -5; iZ != 5; iZ++) { 
+           const double z = 0. + iZ*4.578; 
            xN[2] = z;
            xF[2] = z + 10.;
            this->setInterpolatingOption(0);
@@ -477,7 +739,27 @@ namespace emph {
        }
       }
     }
+    
     fOutForR.close();
+   //
+    // final test, random points, lots of them, to measure performance.. 
+    // Since this is a local stress test, no need to keep track of seeds, random correctness, just use rand
+    //
+    std::cerr << " ....  Start random poking, stress test, and performance " << std::endl;
+    this->setInterpolatingOption(1);
+    for (int izzz =0; izzz < 10; izzz++) {
+      std::cerr << " izzzzz.. " << izzz << std::endl; 
+      for (int k=0; k != 100000000; k++) {
+//                       123456789
+         xN[0] = -180. + 360.0*static_cast<double>(rand())/RAND_MAX; 
+         xN[1] = -180. + 360.0*static_cast<double>(rand())/RAND_MAX; 
+         xN[2] = -400. + 400.0*static_cast<double>(rand())/RAND_MAX; 
+         this->MagneticField(xN, B1N); // xN is in mm.. 
+         if (( k < 5) || ((k % 5000000) == 1) ) 
+            std::cerr << " k " << k << " x = " << xN[0] << " y " << xN[1] << " z " << xN[2] << " By " << B1N[1] << std::endl;
+      }
+    }
+    
    
   }
   
