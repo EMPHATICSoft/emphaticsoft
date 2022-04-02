@@ -126,7 +126,7 @@ namespace emph {
       int indX = static_cast<int>((x-start[0])/step);
       int indY = static_cast<int>((y-start[1])/step);
       int indZ = static_cast<int>((z-start[2])/step);
-      if (i < 10) {
+      if (fVerbosity || (i < 10)) {
 	std::cout << "(x, y, z) = (" << x << ", " << y << ", " << z << ") cm,    (ix, iy, iz) = (" << indX 
 	          << ", " << indY << ", " << indZ << "),    (Bx, By, Bz) = (" << Bx << ", " << By << ", " << Bz << ") kG" << G4endl;
        }
