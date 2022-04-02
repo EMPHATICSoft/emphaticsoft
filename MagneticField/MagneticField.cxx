@@ -46,7 +46,7 @@
 namespace emph {
 
   EMPHATICMagneticField::EMPHATICMagneticField(const G4String &filename) :
-    fStorageIsStlVector(false), step(0), start{-34, -34, -50}, 
+    fStorageIsStlVector(true), step(0), start{-16., -16., -20.},  // for the root test file, units are cm Not sure about start values.
     fNStepX(1), fNStepY(1), fNStepZ(1),
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
@@ -110,43 +110,43 @@ namespace emph {
     int nEntries = tree->GetEntries();
     
     tree->GetEntry(0);
-    double xVal = x;
-    double yVal = y;
-    double zVal = z;
     double xPrev = x; 
     double yPrev = y; 
     double zPrev = z; 
 
-    //step = 0;
+    step = 0.25; // Only valid for emphatic magnet phase 1, January run. 
     tree->GetEntry(1);
-    if(abs(xVal - x) > step) step = abs(xVal - x);
-    else if(abs(yVal - y) > step) step = abs(yVal - y);
-    else step = abs(zVal - z);
+//    if(abs(xVal - x) > step) step = abs(xVal - x);
+//    else if(abs(yVal - y) > step) step = abs(yVal - y);
+//    else step = abs(zVal - z);
     
-    //start = {-60, -60, -60};
     for(int i = 0; i < nEntries; i++){
       tree->GetEntry(i);
       
-      int indX = (int) (x-start[0])/step;
-      int indY = (int) (y-start[1])/step;
-      int indZ = (int) (z-start[2])/step;
-      if (fVerbosity){
-	std::cout << "(x, y, z) = (" << x << ", " << y << ", " << z << ") cm,    (ix, iy, iz) = (" << indX << ", " << indY << ", " << indZ << "),    (Bx, By, Bz) = (" << Bx << ", " << By << ", " << Bz << ") kG" << G4endl;
+      int indX = static_cast<int>((x-start[0])/step);
+      int indY = static_cast<int>((y-start[1])/step);
+      int indZ = static_cast<int>((z-start[2])/step);
+      if (i < 10) {
+	std::cout << "(x, y, z) = (" << x << ", " << y << ", " << z << ") cm,    (ix, iy, iz) = (" << indX 
+	          << ", " << indY << ", " << indZ << "),    (Bx, By, Bz) = (" << Bx << ", " << By << ", " << Bz << ") kG" << G4endl;
+       }
+       if (fVerbosity)
         fOutForR << " " << x << " " << y << " " << z << " " << x- xPrev << " " << y - yPrev << " " << z - zPrev 
                << " " << Bx << " " << By << " " << Bz << std::endl; 
-      }
+      
       std::vector<double> temp;
-      temp.push_back(Bx);
-      temp.push_back(By);
-      temp.push_back(Bz);
+      temp.push_back(0.1*Bx); // from kG to tesla. 
+      temp.push_back(0.1*By);
+      temp.push_back(0.1*Bz);
       
       field[indX][indY][indZ] = temp;
       xPrev = x; 
       yPrev = y; 
       zPrev = z; 
      
-    }
-    
+    } // loop on entries 
+    // We convert step and start to mm. 
+    step *=10.; for (int k=0; k !=3; k++) start[k] *= 10.;
     ///////////////////////////////////////////////////////////////
     // Close the file
     std::cout << " ==> Closing file " << fName << G4endl;
@@ -290,6 +290,7 @@ namespace emph {
 	  start[0] = fXMin; start[1] = fYMin; start[2] = fZMin; step = fStepZ; // old notation.. keep for consistency. 
 	}
 	fileIn.open(fName.c_str());
+	numLines = 0;
         while (fileIn.good()) {
           fileIn.getline(aLinecStr, 1024);
           std::string aLine(aLinecStr);
@@ -299,21 +300,48 @@ namespace emph {
           std::istringstream aLStr(aLine);
   	  int count = 0; std::string num;
   	  while((count < 6) && (aLStr >> num)){
-  	     if(num == "NaN") numbers[count] = 0;
+  	     if(num == "NaN") {
+	         numbers[count] = 0;
+		 std::cerr << " NaN found at line " << numLines << " line " << aLine << std::endl;
+             }
   	     else  numbers[count] = std::stod(num); // probably a bad idea to treat NaN as field is really physically vanishing.. 
   				count++;
   	     }
 	   if (fStorageIsStlVector) {  
 	     size_t ii = this->indexForVector(numbers);
+	     /*
+	     if ((ii == 2302316) || (ii == 2302317)) {
+	       double *ptr = &numbers[0];
+               const size_t iX = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fXMin)/fStepX)); ptr++;
+               const size_t iY = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fYMin)/fStepY)); ptr++;
+               const size_t iZ = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fZMin)/fStepZ));
+	       const size_t iCheck = static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ;
+	       std::cerr << " .. Bad point, Stl vector, numLines " << numLines << "  x y z   " 
+	                                                       << numbers[0] << ", " << numbers[1] 
+							       << ", " << numbers[2] << " by = " 
+							       <<  numbers[4] << " iX " << iX << " iY " << iY 
+							       << " iZ " << iZ <<  " iCheck " << iCheck << std::endl;
+		std::cerr << " ..... fNStepX " << fNStepX << "  fNStepY " << fNStepY << " fNStepZ " << fNStepZ << std::endl;
+		std::cerr << " ..... fStepX " << fStepX << "  fStepY " << fStepY 
+		         << " fStepZ " << fStepZ << " fZMin " <<  fZMin << " Z coord " << numbers[2] << std::endl;
+		std::cerr << " line " << aLine << std::endl;
+		// This to many looks like a vicious behavior of casting or floor behaviour. !!! but patched.. 					       
+	     }
+	     */					       
 	     if (ii < ffield.size()) { 
 	       ffield[ii].fbx = numbers[3]; ffield[ii].fby = numbers[4]; ffield[ii].fbz = numbers[5]; // Possibly Unit problem.. 
 	     }
 	   } else {
-             int indX = (int) (numbers[0]-start[0])/step;
-             int indY = (int) (numbers[1]-start[1])/step;
-             int indZ = (int) (numbers[2]-start[2])/step;
-	   
-             std::vector<double> temp;
+             int indX = static_cast<int>(floor(numbers[0]-start[0])/step);
+             int indY = static_cast<int>(floor(numbers[1]-start[1])/step);
+             int indZ = static_cast<int>(floor(numbers[2]-start[2])/step);
+	    /*
+ 	     if ((indX == 63) && (indY == 66) && ((indZ == 83) || (indZ == 84)))
+	        std::cerr << " .. Bad point, Stl map numLines " << numLines << " x,y,z " 
+	                                                       << numbers[0] << ", " << numbers[1] 
+							       << ", " << numbers[2] << " by = " <<  numbers[4] << std::endl;
+	    */
+            std::vector<double> temp;
              temp.push_back(numbers[3]);
              temp.push_back(numbers[4]);
              temp.push_back(numbers[5]);
@@ -333,8 +361,8 @@ namespace emph {
   
   void EMPHATICMagneticField::MagneticField(const double x[3], double B[3]) const 
   {
-//    bool debugIsOn = ((std::abs(x[0] - 15.) < 15.) && (std::abs(x[1] - 15.) < 15.0) && (std::abs(x[2] - 180.) < 15.0));
-    bool debugIsOn = false;
+    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 0.01));
+//    bool debugIsOn = false;
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
     B[2] = 0.; 
@@ -348,6 +376,8 @@ namespace emph {
         size_t ix[2] = {static_cast<size_t>(floor(indX)), static_cast<size_t>(ceil(indX))};
         size_t iy[2] = {static_cast<size_t>(floor(indY)), static_cast<size_t>(ceil(indY))};
         size_t iz[2] = {static_cast<size_t>(floor(indZ)), static_cast<size_t>(ceil(indZ))};
+	if (debugIsOn) std::cerr << " Indices .. x " << ix[0] << " " << ix[1] << " y " <<  iy[0] << " " << iy[1] <<
+	                          " z " <<  iz[0] << " " << iz[1] << std::endl;       
 	double sumx = 0.; double sumy = 0.; double sumz = 0.; double norm = 0.;
         if(fInterpolateOption == 0) { 
            for(int i = 0; i < 2; i++){
@@ -359,15 +389,15 @@ namespace emph {
 	         sumy += ffield[iV].fby * dist;
 	         sumz += ffield[iV].fbz * dist;
 	         norm += dist;
-//	  if (debugIsOn && (ix[0] == 35) && (iy[0] == 35) && ( iz[0] == 68)) {
-//	    std::cerr << " ........ i j k " << i << " " << j << " " << k << " dist " << dist << " sumy " << sumy 
-//	              << " norm " << norm << std::endl;
+	        if (debugIsOn) std::cerr << " ........ i j k " << i << " " << j << " " << k << " iV " << iV << " dist " 
+		                         << dist << " by " << ffield[iV].fby << " sumy " << sumy << " norm " << norm << std::endl;
 	       }
 	     }		
           }	
 	  B[0] = (sumx/norm);
           B[1] = (sumy/norm);
           B[2] = (sumz/norm);
+	  if (debugIsOn) std::cerr << " ... By .. " << B[1] << std::endl;
           return;
        } else {  // linear interpolation on the grid. 
          const double t = indX-ix[0];
@@ -417,6 +447,7 @@ namespace emph {
 	    }
         } // three components of the field. 
         
+	  if (debugIsOn) std::cerr << " ... By .. " << B[1] << std::endl;
        
        } // inpterpolation method. 
        
@@ -425,9 +456,11 @@ namespace emph {
         double indY = (x[1] - start[1])/step;
         double indZ = (x[2] - start[2])/step;
     
-        int ix[2] = {int(floor(indX)), int(ceil(indX))};
-        int iy[2] = {int(floor(indY)), int(ceil(indY))};
-        int iz[2] = {int(floor(indZ)), int(ceil(indZ))};
+        int ix[2] = {int (floor(indX)), int (ceil(indX))};
+        int iy[2] = {int (floor(indY)), int (ceil(indY))};
+        int iz[2] = {int (floor(indZ)), int (ceil(indZ))};
+	if (debugIsOn) std::cerr << " Indices .. x " << ix[0] << " " << ix[1] << " y " <<  iy[0] << " " << iy[1] <<
+	                          " z " <<  iz[0] << " " << iz[1] << std::endl;       
     
         bool skip = false;
         if(field.find(ix[0]) == field.end()) skip = true;
@@ -471,9 +504,9 @@ namespace emph {
 	      sumy += field.at(ix[i]).at(iy[j]).at(iz[k]).at(1)*dist;
 	      sumz += field.at(ix[i]).at(iy[j]).at(iz[k]).at(2)*dist;
 	      norm += dist;
-//	  if (debugIsOn && (ix[0] == 35) && (iy[0] == 35) && ( iz[0] == 68)) {
-//	    std::cerr << " ........ i j k " << i << " " << j << " " << k << " dist " << dist << " sumy " << sumy 
-//	              << " norm " << norm << std::endl;
+	        if (debugIsOn) std::cerr << " ........ i j k " << i << " " << j << " " << k << " dist " 
+		                         << dist << " by " << field.at(ix[i]).at(iy[j]).at(iz[k]).at(1) 
+					 << " sumy " << sumy << " norm " << norm << std::endl;
 	     }
 	   }		
           }	
@@ -488,6 +521,7 @@ namespace emph {
         B[0] = (sumx/norm);
         B[1] = (sumy/norm);
         B[2] = (sumz/norm);
+	  if (debugIsOn) std::cerr << " ... By .. " << B[1] << std::endl;
       } else { // Linear interpolation on the 3D grid P.L. March 2022 
         const double t = indX-ix[0];
         const double u = indY-iy[0];
@@ -506,7 +540,7 @@ namespace emph {
     } // map storage. 
     if (debugIsOn) {
 	
-	std::cout << "(x, y, z) = (" << x[0] << ", " << x[1] << ", " << x[2] 
+	std::cerr << "(x, y, z) = (" << x[0] << ", " << x[1] << ", " << x[2] 
 	          << ") mm,    (Bx, By, Bz) = (" << B[0] << ", " << B[1] << ", " << B[2] << ") kG" << G4endl;
      }
     
@@ -698,7 +732,7 @@ namespace emph {
       }
     }
     fOutForR.close();
-   
+//    std::cerr << " Quuit, debugging anomalous difference between stl vector and map " << std::endl; exit(2);
     std::string fName2 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2b.txt") : std::string("./EmphMagField_StlMap_v2b.txt"); 
     fOutForR.open(fName2.c_str());
     fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
