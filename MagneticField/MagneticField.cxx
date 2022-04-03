@@ -57,7 +57,8 @@ namespace emph {
 #else
     fVerbosity = 0;
 #endif
- 
+    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
+//    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
     if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
     else this->uploadFromTextFile(filename);
     this->test1();
@@ -283,7 +284,7 @@ namespace emph {
 	}
 	// allocate memory, if stl vector..
 	if (fStorageIsStlVector) {  
-	  bFieldPoint aBV; aBV.fbx = 0.; aBV.fby = 0.; aBV.fbz = 0.;
+	  bFieldPoint aBV; aBV.fbx = nan("FCOMSOL"); aBV.fby = nan("FCOMSOL"); aBV.fbz = nan("FCOMSOL");
 	  size_t nTot = static_cast<size_t>(fNStepX) * static_cast<size_t>(fNStepY) * static_cast<size_t>(fNStepZ); 
 	  for (size_t i=0; i != nTot; i++) ffield.push_back(aBV);
 	} else {
@@ -312,9 +313,9 @@ namespace emph {
 	     /*
 	     if ((ii == 2302316) || (ii == 2302317)) {
 	       double *ptr = &numbers[0];
-               const size_t iX = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fXMin)/fStepX)); ptr++;
-               const size_t iY = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fYMin)/fStepY)); ptr++;
-               const size_t iZ = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fZMin)/fStepZ));
+               const size_t iX = static_cast<size_t>(floor(((*ptr) - fXMin)/fStepX)); ptr++;
+               const size_t iY = static_cast<size_t>(floor(((*ptr) - fYMin)/fStepY)); ptr++;
+               const size_t iZ = static_cast<size_t>(floor(((*ptr) - fZMin)/fStepZ));
 	       const size_t iCheck = static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ;
 	       std::cerr << " .. Bad point, Stl vector, numLines " << numLines << "  x y z   " 
 	                                                       << numbers[0] << ", " << numbers[1] 
@@ -327,7 +328,7 @@ namespace emph {
 		std::cerr << " line " << aLine << std::endl;
 		// This to many looks like a vicious behavior of casting or floor behaviour. !!! but patched.. 					       
 	     }
-	     */					       
+	     */
 	     if (ii < ffield.size()) { 
 	       ffield[ii].fbx = numbers[3]; ffield[ii].fby = numbers[4]; ffield[ii].fbz = numbers[5]; // Possibly Unit problem.. 
 	     }
@@ -348,7 +349,22 @@ namespace emph {
              field[indX][indY][indZ] = temp;
 	   }
 	}
-	fileIn.close();    
+	fileIn.close(); 
+	int  numNanInTable = 0;
+	for (size_t k=0; k != ffield.size(); k++) {
+	  if (isnan(ffield[k].fbx) || isnan(ffield[k].fby) || isnan(ffield[k].fbz)) {
+	    numNanInTable++;
+	    if (numNanInTable < 50) {
+	      std::cerr << " A field value was not filled at index " << k ;
+	      size_t iX = k/ (fNStepZ * fNStepY); 
+	      size_t kiY = k - iX*(fNStepZ * fNStepY);
+	      size_t iY = kiY/fNStepZ;
+	      size_t iZ = k - iX*(fNStepZ * fNStepY) - iY*fNStepZ; 
+	      std::cerr << " index i " << iX << " Y " << iY << " Z " << iZ << " bad.. keep going " << std::endl;
+	    }
+	  }
+	}
+	if (numNanInTable > 0) { std::cerr << " .. Requiring Swiss precision, Fatal, quit now " << std::endl; exit(2); }   
 //	std::cerr << " And quit after filling from COMSOL text  file " << std::endl; exit(2);
   }
   
@@ -361,8 +377,8 @@ namespace emph {
   
   void EMPHATICMagneticField::MagneticField(const double x[3], double B[3]) const 
   {
-    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 0.01));
-//    bool debugIsOn = false;
+//    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 0.01));
+    bool debugIsOn = false;
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
     B[2] = 0.; 
@@ -682,7 +698,37 @@ namespace emph {
       if (debugIsOn) std::cerr << " .. Final slopes, x, y, " << slx << ", " << sly <<  " and position " << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
      for (size_t k=0; k != 6; k++) end[k] = pos[k]; 
   } 
- 
+  void EMPHATICMagneticField::NoteOnDoubleFromASCIIFromCOMSOL() const {
+  
+    std::cerr << " EMPHATICMagneticField::NoteOnDoubleFromASCIIFromCOMSOL, Consider the following line " << std::endl;
+    std::string aL("-2.5                      5                        -142.50000000000003      9.418797023542423E-5     0.0737959778472815       0.012478406096875226");
+    std::cerr << aL << std::endl;
+    std::cerr << " ... and the the following conversion to double (see code) " << std::endl;
+     double numbers[6];
+     int count = 0; 
+     std::string num;
+     std::stringstream aLStr(aL);
+     while((count < 6) && (aLStr >> num)){
+   	     numbers[count] = std::stod(num); // probably a bad idea to treat NaN as field is really physically vanishing.. 
+  				count++;
+     }
+     // we know convert to an index in the 3D array. 
+     const double zMin = -350.; const double stepTmp = 2.5;
+     size_t iZ = static_cast<size_t>(floor((numbers[2] - zMin)/stepTmp)); 
+     std::cerr << " ...  iZ = " << iZ << " while expecting 83 = ((-142.5 +  350)/2.5 " << std::endl;
+     // Indeed 
+     const double zIncorrect = -142.50000000000003;
+     const double zCorrect = -142.5;
+     if (zIncorrect != zCorrect) { 
+        std::cerr << " .. The trailing 0000000000003 does matter, in double precision.. see code...  " << std::endl;
+	size_t iZZ = static_cast<size_t>(floor((zIncorrect - zMin)/stepTmp));
+	std::cerr << " The floor function, part of stdlib is correct: applying to -142.50000000000003 gives an index of " << iZZ << std::endl;
+     } else std::cerr << " .. The trailing 0000000000003 does not matter, the floor seems to be the problem. " << std::endl;
+     //
+     std::cerr << " The (ugly) fix is to add a negligible  quantity, postive,  to the double prior to the conversion to an index " << std::endl << std::endl;;
+    
+  } 
+
   void EMPHATICMagneticField::test1() {
     
     
@@ -796,7 +842,6 @@ namespace emph {
     
    
   }
-  
   void EMPHATICMagneticField::test2() {
     
 //      std::cerr << " EMPHATICMagneticField::test2, and quit now !... " << std::endl; exit(2);

@@ -87,15 +87,19 @@ namespace emph {
     void uploadFromTextFile(const G4String &fName);
     inline size_t indexForVector(double *xyz) const {
       double *ptr = xyz; 
+//      size_t iX = static_cast<size_t>(floor(((*ptr) - fXMin)/fStepX)); ptr++; // floor seems to fail if close to real boundary.. 
+//      size_t iY = static_cast<size_t>(floor(((*ptr) - fYMin)/fStepY)); ptr++;
+//      size_t iZ = static_cast<size_t>(floor(((*ptr) - fZMin)/fStepZ));
+      // A better version... 
       size_t iX = static_cast<size_t>(floor(((*ptr) + 1.0e-10  - fXMin)/fStepX)); ptr++; // floor seems to fail if close to real boundary.. 
       size_t iY = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fYMin)/fStepY)); ptr++;
-      size_t iZ = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fZMin)/fStepZ));
-      return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
+      size_t iZ = static_cast<size_t>(floor(((*ptr) + 1.0e-10 - fZMin)/fStepZ));  // see NoteOnDoubleFromASCII
+     return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
     } 
     inline size_t indexForVector(size_t iX, size_t iY, size_t iZ) const {
       return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
     } 
-   
+    void NoteOnDoubleFromASCIIFromCOMSOL() const ; // documenting why we add a small quantity to get the correct output from (size_t) floor
   };
 } // end namespace emph
 
