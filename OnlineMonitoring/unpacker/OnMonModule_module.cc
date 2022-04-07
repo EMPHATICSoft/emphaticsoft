@@ -84,6 +84,7 @@ namespace emph {
       // hard codes consts for now,
       // need to figure out better solution with Geo NChannel function
       static const unsigned int nChanT0  = 20;
+      static const unsigned int nChanRPC = 16;
       static const unsigned int nChanCal = 9;
       static const unsigned int nChanBACkov = 6;
       static const unsigned int nChanGasCkov = 3;
@@ -95,6 +96,8 @@ namespace emph {
       
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
+      TH1F* fRPCTDC[nChanRPC];
+      TH1F* fRPCNTDC[nChanRPC];
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
@@ -341,8 +344,19 @@ namespace emph {
     
     void  OnMonModule::MakeRPCPlots()
     {
-      if (fMakeTRB3Plots)
+      HistoSet& h = HistoSet::Instance();
+
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      char hname[256];
+      if (fMakeTRB3Plots) {
 	std::cout << "Making RPC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"RPCNTDC_%d",i);
+          fRPCNTDC[i] = h.GetTH1F(hname);
+	  sprintf(hname,"RPCTDC_%d",i);
+	  fRPCTDC[i] = h.GetTH1F(hname);
+	}
+      }
     }
 
     //......................................................................
@@ -559,11 +573,39 @@ namespace emph {
     }
 
     //......................................................................
-
-    void    OnMonModule::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+   
+    void    OnMonModule::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      emph::cmap::EChannel echan;
+      emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+      if (fMakeTRB3Plots) {
+        if (! trb3H->empty()) {
+	  std::vector<int> hitCount;
+          hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::RPC));
+          echan.SetBoardType(boardType);
+          for (size_t idx=0; idx < trb3H->size(); ++idx) {
+            const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+            int chan = trb3.GetChannel() + 64*(trb3.fgpa_header_word-1280);
+            int board = 100;
+            echan.SetBoard(board);
+            echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+            int detchan = dchan.Channel();
+	    std::cout<<"Found TRB3 hit: IsLeading "<<trb3.IsLeading()<<" IsTrailing "<<trb3.IsTrailing()<<" FineTIme" <<trb3.GetFineTime()<<" Course Time "<<trb3.GetCoarseTime()<<" Epoch Counter "<<trb3.GetEpochCounter()<<std::endl;
+
+            if (detchan < nchan) { // watch out for channel 500!                                                                  
+              hitCount[detchan] += 1;
+	      fRPCTDC[detchan]->Fill(trb3.GetCoarseTime());
+            }
+          }
+          for (size_t i=0; i<hitCount.size(); ++i){
+            fRPCNTDC[i]->Fill(hitCount[i]);	
+	  }
+	}    
+      }
     }
-    //......................................................................
+    //.....................................}.................................
 
     void   OnMonModule::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
