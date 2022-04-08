@@ -96,6 +96,7 @@ namespace emph {
       
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
+      TH1F* fT0TDC[nChanT0];
       TH1F* fRPCTDC[nChanRPC];
       TH1F* fRPCNTDC[nChanRPC];
       TH1F* fLGCaloADCDist[nChanCal];
@@ -283,6 +284,11 @@ namespace emph {
         for (int i=0; i<nchannel; ++i) {
           sprintf(hname,"T0ADC_%d",i);
           fT0ADCDist[i] = h.GetTH1F(hname);
+	}
+	std::cout << "Making T0TDC OnMon plots (new)" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"T0TDC_%d",i);
+	  fT0TDC[i] = h.GetTH1F(hname);
         }
       }
       if (fMakeTRB3Plots) {
@@ -486,6 +492,7 @@ namespace emph {
 	    int detchan = dchan.Channel();
 	    if (detchan < nchan) { // watch out for channel 500!
 	      hitCount[detchan] += 1;
+	      fT0TDC[detchan]->Fill(trb3.GetCoarseTime());
 	    }
 	  }
 	  for (size_t i=0; i<hitCount.size(); ++i)
@@ -592,7 +599,7 @@ namespace emph {
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-	    std::cout<<"Found TRB3 hit: IsLeading "<<trb3.IsLeading()<<" IsTrailing "<<trb3.IsTrailing()<<" FineTIme" <<trb3.GetFineTime()<<" Course Time "<<trb3.GetCoarseTime()<<" Epoch Counter "<<trb3.GetEpochCounter()<<std::endl;
+	    //std::cout<<"Found TRB3 hit: IsLeading "<<trb3.IsLeading()<<" IsTrailing "<<trb3.IsTrailing()<<" FineTIme" <<trb3.GetFineTime()<<" Course Time "<<trb3.GetCoarseTime()<<" Epoch Counter "<<trb3.GetEpochCounter()<<std::endl;
 
             if (detchan < nchan) { // watch out for channel 500!                                                                  
               hitCount[detchan] += 1;
