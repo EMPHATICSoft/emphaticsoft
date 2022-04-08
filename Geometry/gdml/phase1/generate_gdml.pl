@@ -62,8 +62,7 @@ $nstation_type = 3; # types of station
 @SSD_lay = (2, 3, 3); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
-@SSD_mod = ("D0", "D0", "D0twin"); # SSD type in a station
-@SSD_rot = ([0, 90], [45, 0, 90], [90, 90, 0, 0, 45, 45]);
+@SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
 
 # constants for RPC
@@ -831,7 +830,7 @@ EOF
 				for($k = 0; $k < $SSD_par[$i]; ++$k){
 
 					print DET <<EOF;
-		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_phys">
+		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_pos"/>
 			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_rot"/>
@@ -987,7 +986,7 @@ EOF
 
   <!-- BELOW IS FOR T0 -->
 
-  <physvol name="ToFT0_phys">
+  <physvol name="T0_phys">
 	 <volumeref ref="T0_vol"/>
 	 <positionref ref="T0_pos"/>
   </physvol>
@@ -1059,7 +1058,7 @@ EOF
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="ToFRPC_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
 	 <positionref ref="RPC_pos"/>
   </physvol>

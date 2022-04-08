@@ -1027,12 +1027,12 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 			<positionref ref="ssdsingle_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsingle00_phys">
+		 <physvol name="ssdsensorsingle00_phys">
 			<volumeref ref="ssdsingle_vol"/>
 			<positionref ref="ssdsingle00_pos"/>
 			<rotationref ref="ssdsingle0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsingle10_phys">
+		 <physvol name="ssdsensorsingle10_phys">
 			<volumeref ref="ssdsingle_vol"/>
 			<positionref ref="ssdsingle10_pos"/>
 			<rotationref ref="ssdsingle1_rot"/>
@@ -1055,17 +1055,17 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 			<positionref ref="ssdrotate_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdrotate00_phys">
+		 <physvol name="ssdsensorrotate00_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate00_pos"/>
 			<rotationref ref="ssdrotate0_rot"/>
 		 </physvol>
-		 <physvol name="ssdrotate10_phys">
+		 <physvol name="ssdsensorrotate10_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate10_pos"/>
 			<rotationref ref="ssdrotate1_rot"/>
 		 </physvol>
-		 <physvol name="ssdrotate20_phys">
+		 <physvol name="ssdsensorrotate20_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate20_pos"/>
 			<rotationref ref="ssdrotate2_rot"/>
@@ -1092,32 +1092,32 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 			<positionref ref="ssddouble_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssddouble00_phys">
+		 <physvol name="ssdsensordouble00_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble00_pos"/>
 			<rotationref ref="ssddouble0_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble01_phys">
+		 <physvol name="ssdsensordouble01_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble01_pos"/>
 			<rotationref ref="ssddouble0_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble10_phys">
+		 <physvol name="ssdsensordouble10_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble10_pos"/>
 			<rotationref ref="ssddouble1_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble11_phys">
+		 <physvol name="ssdsensordouble11_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble11_pos"/>
 			<rotationref ref="ssddouble1_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble20_phys">
+		 <physvol name="ssdsensordouble20_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble20_pos"/>
 			<rotationref ref="ssddouble2_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble21_phys">
+		 <physvol name="ssdsensordouble21_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble21_pos"/>
 			<rotationref ref="ssddouble2_rot"/>
@@ -1262,7 +1262,7 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 
   <!-- BELOW IS FOR T0 -->
 
-  <physvol name="ToFT0_phys">
+  <physvol name="T0_phys">
 	 <volumeref ref="T0_vol"/>
 	 <positionref ref="T0_pos"/>
   </physvol>
@@ -1326,7 +1326,7 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="ToFRPC_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
 	 <positionref ref="RPC_pos"/>
   </physvol>
