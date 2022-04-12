@@ -586,6 +586,10 @@ namespace emph {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
       emph::cmap::EChannel echan;
       emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+      double trb3LinearLowEnd = 15.0;
+      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0
+      //double trb3LinearHighEnd_RPC = 476.0; // For FPGA3? -- RPC
+
       if (fMakeTRB3Plots) {
         if (! trb3H->empty()) {
 	  std::vector<int> hitCount;
@@ -599,11 +603,12 @@ namespace emph {
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-	    //std::cout<<"Found TRB3 hit: IsLeading "<<trb3.IsLeading()<<" IsTrailing "<<trb3.IsTrailing()<<" FineTIme" <<trb3.GetFineTime()<<" Course Time "<<trb3.GetCoarseTime()<<" Epoch Counter "<<trb3.GetEpochCounter()<<std::endl;
-
+	    //std::cout<<"Found TRB3 hit: IsLeading: "<<trb3.IsLeading()<<"; IsTrailing: "<<trb3.IsTrailing()<<"; Fine Time: " <<trb3.GetFineTime()<<"; Course Time: "<<trb3.GetCoarseTime()<<"; Epoch Counter: "<<trb3.GetEpochCounter()<<std::endl;
             if (detchan < nchan) { // watch out for channel 500!                                                                  
               hitCount[detchan] += 1;
-	      fRPCTDC[detchan]->Fill(trb3.GetCoarseTime());
+	      double time_RPC = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0; 
+	      //std::cout << "RPC calculated time is" << time_RPC << std::endl;
+	      fRPCTDC[detchan]->Fill(time_RPC);
             }
           }
           for (size_t i=0; i<hitCount.size(); ++i){
