@@ -17,7 +17,7 @@ namespace emph {
   //----------------------------------------------------------------------
   
   SSDRawDigit::SSDRawDigit() :   
-    fFEB(-999),
+    fFER(-999),
     fModule(-999),
     fChip(-999),
     fSet(-999),
@@ -32,7 +32,7 @@ namespace emph {
   //----------------------------------------------------------------------
   
   rawdata::SSDRawDigit::SSDRawDigit(int32_t station, int32_t module, int32_t chip, int32_t set, int32_t strip, int32_t t, int32_t adc, int32_t trigtype) :
-    fFEB(station), fModule(module), fChip(chip), fSet(set), fStrip(strip), fTime(t),
+    fFER(station), fModule(module), fChip(chip), fSet(set), fStrip(strip), fTime(t),
     fADC(adc), fTrigType(trigtype)
   {
       fRow = getSensorRow();
@@ -43,7 +43,7 @@ namespace emph {
   std::ostream& operator<< (std::ostream& o, const SSDRawDigit& r)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-    o << " FEB = "     << std::setw(5) << std::right << r.FEB()
+    o << " FER = "     << std::setw(5) << std::right << r.FER()
       << " Module  = "     << std::setw(5) << std::right << r.Module()
       << " Row     = "        << std::setw(5) << std::right << r.Row();
     return o;
