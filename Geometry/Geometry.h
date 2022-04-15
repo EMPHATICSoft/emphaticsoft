@@ -3,6 +3,7 @@
 /// \brief
 /// \version 
 /// \author  jpaley@fnal.gov wanly@bu.edu
+/// Check DocDB 1260-v2 for details.
 ////////////////////////////////////////////////////////////////////////
 
 #ifndef GEO_GEOMETRY_H

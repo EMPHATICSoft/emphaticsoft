@@ -22,7 +22,7 @@ namespace rawdata {
     SSDRawDigit(int32_t station, int32_t module, int32_t chip, int32_t set, int32_t strip,
             int32_t t, int32_t adc, int32_t trigtype);
 
-    int32_t Station() const { return fStation; }
+    int32_t FEB() const { return fFEB; }
     int32_t Module() const { return fModule; }
     int32_t Chip() const { return fChip; }
     int32_t Set() const { return fSet; }
@@ -37,7 +37,7 @@ namespace rawdata {
     static uint32_t getSensorRow(int, int, int);
 
   private:
-    int32_t  fStation;
+    int32_t  fFEB;
     int32_t  fModule;
     int32_t  fChip;
     int32_t  fSet;

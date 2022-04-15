@@ -55,6 +55,7 @@ $magnet_switch = 1;
 $n_magseg = 16;
 
 # constants for SSD
+# Check DocDB 1260-v2 for details.
 $SSD_switch = 1;
 $nstation_type = 3; # types of station
 @station_type = ("single", "rotate", "double"); # xy, uxy, yyxxuu 
