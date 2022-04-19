@@ -539,7 +539,7 @@ namespace rawdata {
 	    //	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
 	    for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag) {
 	      auto & tdig = fTRB3RawDigits[thisFragId][thisFragCount][jfrag];
-	      int channel = tdig.GetChannel() + 64*(tdig.fpga_header_word-1280);
+	      int channel = tdig.GetChannel() + 65*(tdig.fpga_header_word-1280);
 	      echan.SetChannel(channel);
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	      if (dchan.DetId() != emph::geo::NDetectors)
