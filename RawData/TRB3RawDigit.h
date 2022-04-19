@@ -15,7 +15,7 @@ namespace emph {
 
     //private:
       /// Found fields to hold the header, measurement error words.
-      uint32_t fgpa_header_word;
+      uint32_t fpga_header_word;
       uint32_t tdc_header_word;
       uint32_t tdc_epoch_word;
       uint32_t tdc_measurement_word;
@@ -30,7 +30,7 @@ namespace emph {
       /// Is this the trailing edge measurement?
       bool IsTrailing() const {return 0;}
 
-      uint32_t GetBoardId() const {return fgpa_header_word & 0xf;}
+      uint32_t GetBoardId() const {return fpga_header_word & 0xf;}
 
       /// Get the TDC measurement
       uint32_t GetMeasurement() const {
