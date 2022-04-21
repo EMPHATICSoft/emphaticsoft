@@ -205,7 +205,7 @@ void emphaticdaq::TRB3Dump::analyze(const art::Event& evt)
         if((word & 0xe0000000) == 0x80000000){
   	       uint32_t tdc_word = word;
            emph::rawdata::TRB3RawDigit trb3dig;
-           trb3dig.fgpa_header_word = sseheader->subevent_id;
+           trb3dig.fpga_header_word = sseheader->subevent_id;
            trb3dig.tdc_header_word  = tdc_header;
            trb3dig.tdc_epoch_word   = epoch_word;
            trb3dig.tdc_measurement_word = tdc_word;

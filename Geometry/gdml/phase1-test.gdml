@@ -86,9 +86,6 @@
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
 	 <quantity name="ssdD0_height" value="98.33" unit="mm"/>
 	 <quantity name="ssdD0_width" value="38.34" unit="mm"/>
-	 <quantity name="ssdD0twin_thick" value=".300" unit="mm"/>
-	 <quantity name="ssdD0twin_height" value="98.33" unit="mm"/>
-	 <quantity name="ssdD0twin_width" value="76.68" unit="mm"/>
 
 	 <quantity name="carbon_fiber_thick" value="0.300"
 		 unit="mm" />
@@ -100,10 +97,10 @@
 	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
 	 <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
 	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
-	 <position name="ssdsingle0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssdsingle00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdsingle0_rot" z="90" unit="deg"/>
 	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssdsingle1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssdsingle1_rot" z="0" unit="deg"/>
 	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
@@ -115,12 +112,12 @@
 	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
 	 <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
 	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
-	 <position name="ssdrotate0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssdrotate00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdrotate0_rot" z="45" unit="deg"/>
 	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssdrotate1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssdrotate1_rot" z="90" unit="deg"/>
-	 <position name="ssdrotate2_pos" x="0" y="0" z="3" unit="mm"/>
+	 <position name="ssdrotate20_pos" x="0" y="0" z="3" unit="mm"/>
 	 <rotation name="ssdrotate2_rot" z="0" unit="deg"/>	 
 	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
@@ -133,12 +130,15 @@
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
 	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
 	 <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
-	 <position name="ssddouble0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble00_pos" x="-0.5*ssdD0_width" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble01_pos" x="0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
 	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssddouble1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssddouble10_pos" y="-0.5*ssdD0_width" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssddouble11_pos" y="0.5*ssdD0_width" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssddouble1_rot" z="90" unit="deg"/>
-	 <position name="ssddouble2_pos" x="0" y="0" z="3" unit="mm"/>
+	 <position name="ssddouble20_pos" x="-0.354*ssdD0_width" y="-0.354*ssdD0_width" z="3" unit="mm"/>
+	 <position name="ssddouble21_pos" x="0.354*ssdD0_width" y="0.354*ssdD0_width" z="3" unit="mm"/>
 	 <rotation name="ssddouble2_rot" z="-45" unit="deg"/>
 	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
@@ -185,7 +185,7 @@
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-	 <quantity name="LG_width1" value="135" unit="mm" />
+tation_type <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
@@ -671,8 +671,8 @@
 
 	  <box name="ssdStationdouble_box" x="ssdStationdoubleWidth" y="ssdStationdoubleHeight" z="ssdStationdoubleLength" />
 	  <box name="ssddouble_MylarWindow_box" x="ssdStationdoubleWidth*0.8" y="ssdStationdoubleWidth*0.8" z="Mylar_Window_thick" />
-	  <box name="ssddouble_box" x="ssdD0twin_width" y="ssdD0twin_height" z="ssdD0twin_thick" />
-	  <box name="ssddouble_bkpln_box" x="1.3*ssdD0twin_width" y="1.3*ssdD0twin_width" z="carbon_fiber_thick" />
+	  <box name="ssddouble_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+	  <box name="ssddouble_bkpln_box" x="2.6*ssdD0_width" y="2.6*ssdD0_width" z="carbon_fiber_thick" />
 
 	 <!-- ABOVE IS FOR SSD -->
 
@@ -1027,14 +1027,14 @@
 			<positionref ref="ssdsingle_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsingle0_phys">
+		 <physvol name="ssdsensorsingle00_phys">
 			<volumeref ref="ssdsingle_vol"/>
-			<positionref ref="ssdsingle0_pos"/>
+			<positionref ref="ssdsingle00_pos"/>
 			<rotationref ref="ssdsingle0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsingle1_phys">
+		 <physvol name="ssdsensorsingle10_phys">
 			<volumeref ref="ssdsingle_vol"/>
-			<positionref ref="ssdsingle1_pos"/>
+			<positionref ref="ssdsingle10_pos"/>
 			<rotationref ref="ssdsingle1_rot"/>
 		 </physvol>
 		 <physvol name="ssdbkplnsingle0_phys">
@@ -1055,19 +1055,19 @@
 			<positionref ref="ssdrotate_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdrotate0_phys">
+		 <physvol name="ssdsensorrotate00_phys">
 			<volumeref ref="ssdrotate_vol"/>
-			<positionref ref="ssdrotate0_pos"/>
+			<positionref ref="ssdrotate00_pos"/>
 			<rotationref ref="ssdrotate0_rot"/>
 		 </physvol>
-		 <physvol name="ssdrotate1_phys">
+		 <physvol name="ssdsensorrotate10_phys">
 			<volumeref ref="ssdrotate_vol"/>
-			<positionref ref="ssdrotate1_pos"/>
+			<positionref ref="ssdrotate10_pos"/>
 			<rotationref ref="ssdrotate1_rot"/>
 		 </physvol>
-		 <physvol name="ssdrotate2_phys">
+		 <physvol name="ssdsensorrotate20_phys">
 			<volumeref ref="ssdrotate_vol"/>
-			<positionref ref="ssdrotate2_pos"/>
+			<positionref ref="ssdrotate20_pos"/>
 			<rotationref ref="ssdrotate2_rot"/>
 		 </physvol>
 		 <physvol name="ssdbkplnrotate0_phys">
@@ -1092,19 +1092,34 @@
 			<positionref ref="ssddouble_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssddouble0_phys">
+		 <physvol name="ssdsensordouble00_phys">
 			<volumeref ref="ssddouble_vol"/>
-			<positionref ref="ssddouble0_pos"/>
+			<positionref ref="ssddouble00_pos"/>
 			<rotationref ref="ssddouble0_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble1_phys">
+		 <physvol name="ssdsensordouble01_phys">
 			<volumeref ref="ssddouble_vol"/>
-			<positionref ref="ssddouble1_pos"/>
+			<positionref ref="ssddouble01_pos"/>
+			<rotationref ref="ssddouble0_rot"/>
+		 </physvol>
+		 <physvol name="ssdsensordouble10_phys">
+			<volumeref ref="ssddouble_vol"/>
+			<positionref ref="ssddouble10_pos"/>
 			<rotationref ref="ssddouble1_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble2_phys">
+		 <physvol name="ssdsensordouble11_phys">
 			<volumeref ref="ssddouble_vol"/>
-			<positionref ref="ssddouble2_pos"/>
+			<positionref ref="ssddouble11_pos"/>
+			<rotationref ref="ssddouble1_rot"/>
+		 </physvol>
+		 <physvol name="ssdsensordouble20_phys">
+			<volumeref ref="ssddouble_vol"/>
+			<positionref ref="ssddouble20_pos"/>
+			<rotationref ref="ssddouble2_rot"/>
+		 </physvol>
+		 <physvol name="ssdsensordouble21_phys">
+			<volumeref ref="ssddouble_vol"/>
+			<positionref ref="ssddouble21_pos"/>
 			<rotationref ref="ssddouble2_rot"/>
 		 </physvol>
 		 <physvol name="ssdbkplndouble0_phys">
@@ -1247,7 +1262,7 @@
 
   <!-- BELOW IS FOR T0 -->
 
-  <physvol name="ToFT0_phys">
+  <physvol name="T0_phys">
 	 <volumeref ref="T0_vol"/>
 	 <positionref ref="T0_pos"/>
   </physvol>
@@ -1311,7 +1326,7 @@
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="ToFRPC_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
 	 <positionref ref="RPC_pos"/>
   </physvol>

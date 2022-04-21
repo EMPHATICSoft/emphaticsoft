@@ -464,7 +464,7 @@ namespace emph {
 	  echan.SetBoardType(boardType);	
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
-	    int chan = trb3.GetChannel() + 64*(trb3.fgpa_header_word-1280);
+	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
 	    int board = 100;
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
