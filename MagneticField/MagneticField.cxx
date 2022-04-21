@@ -64,9 +64,10 @@ namespace emph {
 //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
     if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
     else this->uploadFromTextFile(filename);
+    // These tests do something, comment out for sake of saving time for production use. 
 //    this->test1();
 //    this->test2();
-    this->test3();
+//    this->test3();
     
 }
 
