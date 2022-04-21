@@ -41,7 +41,7 @@ class G4FieldManager;
 namespace emph {
 
   struct bFieldPoint {
-    float fbx, fby, fbz;
+    float fbx, fby, fbz; // in kG, internally. 
   };
 
   class EMPHATICMagneticField: public G4MagneticField {
@@ -55,6 +55,7 @@ namespace emph {
     virtual void GetFieldValue(const double Point[3], double* Bfield) const; // units are mm, return values in kilogauss
     void test1(); // Check that divB ~ 0.;  
     void test2(); // test integration, study expected deflections.  
+    void test3(); // test calculation of preliminary acceptance sensitivity of beam axis and/or SSD Yaw uncertainty.  
 
   protected:
     // Find the global Field Manager

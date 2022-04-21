@@ -40,6 +40,9 @@
 #include "math.h"
 //#define ddebug
 //#define debug
+//
+// For testing purposes. 
+#include "Geant4/Randomize.hh"
 
 //Constructor and destructor:
 
@@ -57,12 +60,13 @@ namespace emph {
 #else
     fVerbosity = 0;
 #endif
-    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
+//    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
 //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
     if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
     else this->uploadFromTextFile(filename);
-    this->test1();
+//    this->test1();
 //    this->test2();
+    this->test3();
     
 }
 
@@ -330,7 +334,7 @@ namespace emph {
 	     }
 	     */
 	     if (ii < ffield.size()) { 
-	       ffield[ii].fbx = numbers[3]; ffield[ii].fby = numbers[4]; ffield[ii].fbz = numbers[5]; // Possibly Unit problem.. 
+	       ffield[ii].fbx = 10.0*numbers[3]; ffield[ii].fby =10.0* numbers[4]; ffield[ii].fbz = 10.0*numbers[5]; // Tesla to KG
 	     }
 	   } else {
              int indX = static_cast<int>(floor(numbers[0]-start[0])/step);
@@ -342,10 +346,10 @@ namespace emph {
 	                                                       << numbers[0] << ", " << numbers[1] 
 							       << ", " << numbers[2] << " by = " <<  numbers[4] << std::endl;
 	    */
-            std::vector<double> temp;
-             temp.push_back(numbers[3]);
-             temp.push_back(numbers[4]);
-             temp.push_back(numbers[5]);
+             std::vector<double> temp;
+             temp.push_back(numbers[3]*10.); // Tesla to kG. 
+             temp.push_back(numbers[4]*10.);
+             temp.push_back(numbers[5]*10.);
              field[indX][indY][indZ] = temp;
 	   }
 	}
@@ -825,6 +829,7 @@ namespace emph {
     // final test, random points, lots of them, to measure performance.. 
     // Since this is a local stress test, no need to keep track of seeds, random correctness, just use rand
     //
+    /*
     std::cerr << " ....  Start random poking, stress test, and performance " << std::endl;
     this->setInterpolatingOption(1);
     for (int izzz =0; izzz < 10; izzz++) {
@@ -839,9 +844,10 @@ namespace emph {
             std::cerr << " k " << k << " x = " << xN[0] << " y " << xN[1] << " z " << xN[2] << " By " << B1N[1] << std::endl;
       }
     }
-    
+  */  
    
   }
+  
   void EMPHATICMagneticField::test2() {
     
 //      std::cerr << " EMPHATICMagneticField::test2, and quit now !... " << std::endl; exit(2);
@@ -895,7 +901,7 @@ namespace emph {
         for (int kStep=1; kStep != 15; kStep++) {
           const double stepZ = 2.0 + 0.1*kStep*kStep;
           for (int kY= -100; kY != 100.; kY++) { 
-            start[0] = -4.0; start[1] = 0.5*kY; start[2] = - 15.0; stop[2] = 450.; 
+            start[0] = -4.0; start[1] = 0.5*kY; start[2] = - 200.0; stop[2] = 200.; 
             DeltaZ = stop[2] - start[2];
             slx =0.1e-5; sly = -0.2e-5; slz = std::sqrt( 1.0 - slx*slx - sly*sly); 
             start[3] = p*slx; start[4] = p*sly;  start[5] = slz*p;
@@ -920,4 +926,49 @@ namespace emph {
       }
       fOutForR.close();
     }  
+  void EMPHATICMagneticField::test3() {
+    //
+    // Assuming a beam spot size of 1 cm, Gaussian, 
+    //
+    std::vector<double> start(6); 
+    std::vector<double> stop(6);
+    this->setInterpolatingOption(0); 
+    const double p = 5.0; // arbitrarily 
+    int numEvts = 1000000;
+    // Test access to a Geant4 random number.. 
+    //
+    std ::ofstream fOutForR("./EmphMagField_test3_p5_Acceptance_v1.txt");
+    fOutForR << " iEvt xS yS slxI slxI2 xF yF xFS2 yFS2 slxF slxFS2 " << std::endl;
+    start[2] = -200.;
+    stop[2] = 450.;
+    double pt = 0.1;
+    for (int kEvt=0; kEvt != numEvts; kEvt++) {
+      start[0] = 10.0*G4RandGauss::shoot();
+      start[1] = 10.0*G4RandGauss::shoot();
+      start[2] = -200.;
+      stop[2] = 450.;
+      double slxNoOff =( pt/p)*2.0*M_PI*G4RandGauss::shoot();
+      double slx2Off = 2.0e-3 + slxNoOff;
+      double sly =( pt/p)*2.0*M_PI*G4UniformRand();
+      start[3] = p*slxNoOff; start[4] = p*sly; 
+      double slz = std::sqrt( 1.0 - slxNoOff*slxNoOff - sly*sly);  
+      start[5] = slz*p;
+      stop[0] = -1.e10; stop[1] = -1.e10;
+      this->Integrate(0, 1, 2., start, stop);
+      const double xF = stop[0];
+      const double slxFinal = stop[3]/p;
+      const double yF = stop[1];
+      stop[0] = -1.e10; stop[1] = -1.e10;      
+      start[3] = p*slx2Off; start[4] = p*sly;
+      start[2] = -200.;
+      stop[2] = 450.;
+      this->Integrate(0, 1, 2., start, stop);
+      const double xFS2 = stop[0];
+      const double yFS2 = stop[1];
+      const double slxFinalS2 = stop[3]/p;
+      fOutForR << " " << kEvt << " " << start[0] << " " << start[1] << " " <<  1000.0*slxNoOff << " " << 1000.0*slx2Off 
+               << " " << xF << " " << yF << " " << xFS2 << " " << yFS2 << " " << 1000.0*slxFinal << " " << 1000.0*slxFinalS2 << std::endl;
+    }
+    fOutForR.close();
+  }  
 } // end namespace emph
