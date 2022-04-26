@@ -44,7 +44,7 @@ HistogramBrowser::HistogramBrowser(const TGWindow* p,
 //......................................................................
 
 //
-// Populate the browser tree with histograms from the unpacker source
+// Populate the browser tree with histograms from the plotter source
 //
 void HistogramBrowser::Populate()
 {
@@ -52,7 +52,7 @@ void HistogramBrowser::Populate()
   const HistoTable& ht = HistoTable::Instance();
 
   //
-  // Pull out all the histograms from the unpacker
+  // Pull out all the histograms from the plotter
   //
   std::list<std::string> obj;
   hs.FindAllMatches("*","*_prev_*",obj);

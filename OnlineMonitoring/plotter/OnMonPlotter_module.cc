@@ -27,7 +27,7 @@
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
 #include "Geometry/DetectorDefs.h"
-#include "OnlineMonitoring/unpacker/HistoSet.h"
+#include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"
 #include "OnlineMonitoring/util/Settings.h"
 #include "RawData/TRB3RawDigit.h"
@@ -40,10 +40,10 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
   namespace onmon {
-    class OnMonModule : public art::EDAnalyzer {
+    class OnMonPlotter : public art::EDAnalyzer {
     public:
-      explicit OnMonModule(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-      ~OnMonModule();
+      explicit OnMonPlotter(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      ~OnMonPlotter();
 
       // Optional, read/write access to event
       void analyze(const art::Event& evt);
@@ -110,7 +110,7 @@ namespace emph {
     };
 
     //.......................................................................
-    OnMonModule::OnMonModule(fhicl::ParameterSet const& pset)
+    OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset)
     {
 
@@ -121,7 +121,7 @@ namespace emph {
     }
 
     //......................................................................
-    OnMonModule::~OnMonModule()
+    OnMonPlotter::~OnMonPlotter()
     {
       //======================================================================
       // Clean up any memory allocated by your module
@@ -129,7 +129,7 @@ namespace emph {
     }
 
     //......................................................................
-    void OnMonModule::reconfigure(const fhicl::ParameterSet& pset)
+    void OnMonPlotter::reconfigure(const fhicl::ParameterSet& pset)
     {
       fChanMapFileName = pset.get<std::string>("channelMapFileName","");
       fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
@@ -159,7 +159,7 @@ namespace emph {
     }
 
     //......................................................................
-    void OnMonModule::beginJob()
+    void OnMonPlotter::beginJob()
     {
       fNEvents=0;
       // initialize channel map
@@ -208,7 +208,7 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonModule::endJob()
+    void OnMonPlotter::endJob()
     {
       if (fNEvents > 0) {
 	float scale;
@@ -228,7 +228,7 @@ namespace emph {
     
     //......................................................................
 
-    void  OnMonModule::MakeGasCkovPlots()
+    void  OnMonPlotter::MakeGasCkovPlots()
     {
       HistoSet& h = HistoSet::Instance();
       
@@ -245,7 +245,7 @@ namespace emph {
 
     //......................................................................
 
-    void  OnMonModule::MakeBACkovPlots()
+    void  OnMonPlotter::MakeBACkovPlots()
     {
       HistoSet& h = HistoSet::Instance();
       
@@ -269,7 +269,7 @@ namespace emph {
 
     //......................................................................
 
-    void  OnMonModule::MakeT0Plots()
+    void  OnMonPlotter::MakeT0Plots()
     {
       HistoSet& h = HistoSet::Instance();
 
@@ -293,7 +293,7 @@ namespace emph {
     
     //......................................................................
 
-    void  OnMonModule::MakeSSDPlots()
+    void  OnMonPlotter::MakeSSDPlots()
     {
       if (fMakeSSDPlots) {
 	HistoSet& h = HistoSet::Instance();
@@ -314,7 +314,7 @@ namespace emph {
 
     //......................................................................
 
-    void  OnMonModule::MakeARICHPlots()
+    void  OnMonPlotter::MakeARICHPlots()
     {
       if (fMakeTRB3Plots)
 	std::cout << "Making ARICH OnMon plots" << std::endl;
@@ -322,7 +322,7 @@ namespace emph {
 
     //......................................................................
 
-    void  OnMonModule::MakeLGCaloPlots()
+    void  OnMonPlotter::MakeLGCaloPlots()
     {
       HistoSet& h = HistoSet::Instance();
       
@@ -339,7 +339,7 @@ namespace emph {
 
     //......................................................................
     
-    void  OnMonModule::MakeRPCPlots()
+    void  OnMonPlotter::MakeRPCPlots()
     {
       if (fMakeTRB3Plots)
 	std::cout << "Making RPC OnMon plots" << std::endl;
@@ -347,7 +347,7 @@ namespace emph {
 
     //......................................................................
 
-    void  OnMonModule::MakeTrigPlots()
+    void  OnMonPlotter::MakeTrigPlots()
     {
       HistoSet& h = HistoSet::Instance();
       
@@ -364,7 +364,7 @@ namespace emph {
 
     //......................................................................
 
-    void OnMonModule::FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
+    void OnMonPlotter::FillGasCkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::GasCkov);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -393,7 +393,7 @@ namespace emph {
 
     //......................................................................
 
-    void OnMonModule::FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
+    void OnMonPlotter::FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -430,7 +430,7 @@ namespace emph {
 
     //......................................................................
 
-    void OnMonModule::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
+    void OnMonPlotter::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -483,7 +483,7 @@ namespace emph {
         
     //......................................................................
 
-    void OnMonModule::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & ssdH)
+    void OnMonPlotter::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & ssdH)
     {
       if (fMakeSSDPlots) {
 	if (!ssdH->empty()) {
@@ -524,13 +524,13 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonModule::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
     {
     }
 
     //......................................................................
 
-    void    OnMonModule::FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
+    void    OnMonPlotter::FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -560,12 +560,12 @@ namespace emph {
 
     //......................................................................
 
-    void    OnMonModule::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void    OnMonPlotter::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
     {
     }
     //......................................................................
 
-    void   OnMonModule::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
+    void   OnMonPlotter::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -593,7 +593,7 @@ namespace emph {
     }
 
     //......................................................................
-    void OnMonModule::analyze(const art::Event& evt)
+    void OnMonPlotter::analyze(const art::Event& evt)
     { 
       ++fNEvents;
       fRun = evt.run();
@@ -677,4 +677,4 @@ namespace emph {
   }
 } // end namespace demo
 
-DEFINE_ART_MODULE(emph::onmon::OnMonModule)
+DEFINE_ART_MODULE(emph::onmon::OnMonPlotter)

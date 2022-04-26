@@ -15,7 +15,7 @@ HeaderBar::HeaderBar(TGWindow* w) :
   TGGroupFrame(w, "Monitoring Status", kHorizontalFrame)
 {
   fProdLabel = new TGLabel(this,
-			   "Unpacker: ------ pid:------ s/utime=------/------ rsize=------k"
+			   "Plotter: ------ pid:------ s/utime=------/------ rsize=------k"
 			   " Run/Subrun/Event=------/----/---------");
   fProdLabel->SetTextJustify(kTextLeft);
   this->AddFrame(fProdLabel, new TGLayoutHints(kLHintsLeft|kLHintsTop, 16, 16, 2, 2));
@@ -68,7 +68,7 @@ Bool_t HeaderBar::HandleTimer(TTimer *timer __attribute__((unused)))
 
   char evtext[1024];
   sprintf(evtext,
-	  "Unpacker: %6s pid:%6d s/utime=%lu/%lu rsize=%6.2fk"
+	  "Plotter: %6s pid:%6d s/utime=%lu/%lu rsize=%6.2fk"
 	  " Run/Subrun/Event=%d/%d/%d",
 	  snm.c_str(), pid, stime, utime, rsize/1024.0,
 	  r, s, e);

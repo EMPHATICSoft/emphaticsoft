@@ -9,13 +9,13 @@ include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
 art_make_library ( SOURCE ${src_files}
-                   LIBRARY_NAME  OnlineMonitoringUnpacker
+                   LIBRARY_NAME  OnlineMonitoringPlotter
                    LIBRARIES     OnlineMonitoringUtil
                                  art_root_io::TFileService_service
                                  ROOT::Hist
 )
 
-build_plugin(OnMonModule "module"
+build_plugin(OnMonPlotter "module"
   LIBRARIES PRIVATE
     RawData
     ChannelMap
@@ -23,7 +23,7 @@ build_plugin(OnMonModule "module"
     messagefacility::MF_MessageLogger
     ROOT::Hist
     OnlineMonitoringUtil
-    OnlineMonitoringUnpacker
+    OnlineMonitoringPlotter
 )
 
 install_source()
