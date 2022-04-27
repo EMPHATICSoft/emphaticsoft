@@ -248,7 +248,7 @@ namespace sim
       // the end of the list.
       fParticleList.insert( insertion, value_type( trackID, particle ) );
     }
-    else if ( ( (*insertion).first == trackID )) //  && trackID != 1) {
+    else if ( ( (*insertion).first == trackID )) { //  && trackID != 1) 
       throw cet::exception("ParticleNavigator") << "sim::ParticleNavigator::insert - ERROR - "
 						<< "track ID=" << trackID 
 						<< " is already in the list";
