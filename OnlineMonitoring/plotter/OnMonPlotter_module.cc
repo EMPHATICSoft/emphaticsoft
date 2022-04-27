@@ -494,7 +494,7 @@ namespace emph {
 	  
 	  for (size_t idx=0; idx < ssdH->size(); ++idx) {
 	    const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
-	    int station = ssd.Station();
+	    int station = ssd.FEB();
 	    int module = ssd.Module();
 	    int row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
 	    int sensor=-1;
