@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 standard_onmon:
 {
-  module_type: OnMonModule
+  module_type: OnMonPlotter
 
   CSVFile:           "onmon-histos.csv"
   makeWaveFormPlots: true

@@ -39,7 +39,7 @@ namespace emph {
       int HandleRequests();
 
       ///
-      /// Post information about unpacker resource usage
+      /// Post information about plotter resource usage
       ///
       void PostResources(unsigned int run,
   		       unsigned int subrun,
