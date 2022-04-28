@@ -94,8 +94,11 @@ namespace emph {
       TH2F*  fNRawObjectsHisto;  
       TH1F*  fNTriggerVsDet;
       
+      TH2F* fT0TDCChanVsADCChan;
+
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
+      TH2F* fT0TDCVsADC[nChanT0];
       TH1F* fT0TDC[nChanT0];
       TH1F* fRPCTDC[nChanRPC];
       TH1F* fRPCNTDC[nChanRPC];
@@ -293,9 +296,11 @@ namespace emph {
       }
       if (fMakeTRB3Plots) {
         std::cout << "Making T0TDC OnMon plots" << std::endl;
+	fT0TDCChanVsADCChan = h.GetTH2F("T0TDCChanVsADCChan");
         for (int i=0; i<nchannel; ++i) {
           sprintf(hname,"T0NTDC_%d",i);
           fT0NTDC[i] = h.GetTH1F(hname);
+	  //fT0TDCVsADC[i] = h.GetTH2F(hname);
         }
       }
     }
@@ -456,6 +461,8 @@ namespace emph {
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
       echan.SetBoardType(boardType);
+      std::vector<int> vT0ADChits(nchan,0);	    
+      std::vector<int> vT0TDChits(nchan,0);	  
       if (fMakeWaveFormPlots) {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
@@ -469,8 +476,10 @@ namespace emph {
 	    if (detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fT0ADCDist[detchan]->Fill(adc);
+		vT0ADChits[detchan]=1; 
+	      }
 	    }
 	  }
 	}
@@ -495,10 +504,17 @@ namespace emph {
 	      fT0TDC[detchan]->Fill(trb3.GetCoarseTime());
 	    }
 	  }
-	  for (size_t i=0; i<hitCount.size(); ++i)
+	  for (size_t i=0; i<hitCount.size(); ++i) {
 	    fT0NTDC[i]->Fill(hitCount[i]);
-	  
+	    vT0TDChits[i] = hitCount[i];	  
+	  }
 	}
+      }
+      for(int i=0; i<(int)vT0ADChits.size(); i++) {
+      	if(vT0ADChits[i]==1)
+      	  for(int j = 0; j<(int)vT0TDChits.size(); j++) {
+      	    fT0TDCChanVsADCChan->Fill(i,j,vT0TDChits[j]);
+      	  }
       }
     }
         
