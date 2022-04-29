@@ -55,9 +55,10 @@ $magnet_switch = 1;
 $n_magseg = 16;
 
 # constants for SSD
+# Check DocDB 1260 for details.
 $SSD_switch = 1;
 $nstation_type = 3; # types of station
-@station_type = ("single", "rotate", "double"); # xy, uxy, yyxxuu 
+@station_type = ("single", "rotate", "double"); # yx, wyx, xxyyww 
 @bkpln_size = (1.0, 1.3, 2.6); # bkpln size scale to SSD sensor
 @SSD_lay = (2, 3, 3); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
