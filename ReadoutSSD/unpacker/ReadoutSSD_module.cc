@@ -145,8 +145,7 @@ namespace emph {
 	  
 	  for (size_t idx=0; idx < ssdH->size(); ++idx) {
 	    const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
-		 std::cout<<ssd<<std::endl;
-	    //fer = ssd.Station();
+		 //std::cout<<ssd<<std::endl;
 	    fer = ssd.FER();
 	    module = ssd.Module();
 	    row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
