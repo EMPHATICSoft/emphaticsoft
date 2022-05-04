@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+standard_onmon:
+{
+  module_type: ReadoutSSD
+
+  makeSSDPlots:      true
+  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+}
+
+no_ssd_onmon: @local::standard_onmon
+no_ssd_onmon.makeSSDPlots: false
+
+
+END_PROLOG
