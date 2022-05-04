@@ -939,12 +939,13 @@ namespace emph {
     // Test access to a Geant4 random number.. 
     //
     std ::ofstream fOutForR("./EmphMagField_test3_p5_Acceptance_v1.txt");
-    fOutForR << " iEvt xS yS slxI slxI2 xF yF xFS2 yFS2 slxF slxFS2 " << std::endl;
+    fOutForR << " iEvt xS yS slxI slxI2 xF yF xFS2 yFS2 slxF slxFS2  xFMagP5 yFMagP5 slxFMagP5" << std::endl;
     start[2] = -200.;
     stop[2] = 450.;
     double pt = 0.1;
     for (int kEvt=0; kEvt != numEvts; kEvt++) {
-      start[0] = 10.0*G4RandGauss::shoot();
+      const double xNoOffset = 10.0*G4RandGauss::shoot();
+      start[0] = xNoOffset;
       start[1] = 10.0*G4RandGauss::shoot();
       start[2] = -200.;
       stop[2] = 450.;
@@ -967,8 +968,18 @@ namespace emph {
       const double xFS2 = stop[0];
       const double yFS2 = stop[1];
       const double slxFinalS2 = stop[3]/p;
+      stop[0] = -1.e10; stop[1] = -1.e10; 
+      start[0] =  xNoOffset - 5.0;  
+      start[3] = p*slxNoOff; start[4] = p*sly;
+      start[2] = -200.;
+      stop[2] = 450.;
+      this->Integrate(0, 1, 2., start, stop);
+      const double xFMagP5 = stop[0];
+      const double yFMagP5 = stop[1];
+      const double slxFinalMagP5 = stop[3]/p;
       fOutForR << " " << kEvt << " " << start[0] << " " << start[1] << " " <<  1000.0*slxNoOff << " " << 1000.0*slx2Off 
-               << " " << xF << " " << yF << " " << xFS2 << " " << yFS2 << " " << 1000.0*slxFinal << " " << 1000.0*slxFinalS2 << std::endl;
+               << " " << xF << " " << yF << " " << xFS2 << " " << yFS2 << " " << 1000.0*slxFinal << " " << 1000.0*slxFinalS2
+	       << " " << xFMagP5 << " " << yFMagP5 << " " << 1000.0*slxFinalMagP5 << std::endl;
     }
     fOutForR.close();
   }  
