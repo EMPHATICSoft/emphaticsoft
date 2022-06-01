@@ -47,6 +47,8 @@ void PlotOptions::Reset()
   fLogz           = false;
   fGridx          = false;
   fGridy          = false;
+  fDetlbl         = false;
+  fSpecial        = false;
   fHaveXscale     = false;
   fXlo            = 0;
   fXhi            = 0;
@@ -141,6 +143,8 @@ void PlotOptions::Set(const std::vector<std::string>& opt)
     else if (opt[i]=="logz")      { fLogz      = true; }
     else if (opt[i]=="gridx")     { fGridx     = true; }
     else if (opt[i]=="gridy")     { fGridy     = true; }
+    else if (opt[i]=="detlbl")    { fDetlbl    = true; }
+    else if (opt[i]=="special")   { fSpecial   = true; }
     else if (xscale)              { this->ParseXscale(opt[i].c_str()); }
     else if (yscale)              { this->ParseYscale(opt[i].c_str()); }
     else if (zscale)              { this->ParseZscale(opt[i].c_str()); }
@@ -167,15 +171,32 @@ void PlotOptions::SetPad(TPad* p)
 
 //......................................................................
 
-void PlotOptions::MakeLabels(const TH1* h, const HistoData* hd __attribute__((unused)))
+void PlotOptions::MakeLabels(TH1* h, const HistoData* hd __attribute__((unused)))
 {
+
+  if (fDetlbl) {
+    std::string labelStr;
+    unsigned int i;
+    for (i=0; i<emph::geo::NDetectors; ++i) {
+      labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      if (i == emph::geo::T0) labelStr += "ADC";
+      h->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
+    }
+    // Add T0TDC at end
+    labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
+    h->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
+    h->Draw(fDrawOpt.c_str());
+  }
+
+  fSLText->Clear();
+  if (fSpecial) {
+    this->MakeSpecialLabel(h);
+    fSLText->Draw();
+  }
 
   fLabelText->Clear();
   this->MakeLabelText(h);
   fLabelText->Draw();
-
-  fSLText->Clear();
-
 
 }
 
@@ -398,6 +419,31 @@ void PlotOptions::MakeLabelText(const TH1* h)
   sprintf(buff, "%s (UTC)",asctime(timestr));
 
   fLabelText->AddText(buff);
+}
+
+//......................................................................
+
+void PlotOptions::MakeSpecialLabel(TH1* h)
+{
+  const std::string TriggerVsSubrun ("TriggerVsSubrun");
+  const std::string TriggerVsHour ("TriggerVsHour");
+
+  if ( TriggerVsSubrun == h->GetName() || TriggerVsHour == h->GetName() ) {
+    h->GetYaxis()->SetLabelSize(0);
+
+    std::string labelStr;
+    labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
+    fSLText->AddText(labelStr.c_str());
+    int i;
+    for (i=emph::geo::NDetectors-1; i>-1; --i) {
+      labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      if (i == emph::geo::T0) labelStr += "ADC";
+      fSLText->AddText("");
+      fSLText->AddText(labelStr.c_str());
+    }
+  }
+  h->Draw(fDrawOpt.c_str());
+  fSLText->Draw();
 }
 
 //......................................................................

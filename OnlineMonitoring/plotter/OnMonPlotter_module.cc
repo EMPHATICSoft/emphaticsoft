@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 // ROOT includes
@@ -29,7 +30,9 @@
 #include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"
+#include "OnlineMonitoring/util/IPC.h"
 #include "OnlineMonitoring/util/Settings.h"
+#include "OnlineMonitoring/util/Ticker.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
@@ -40,6 +43,20 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
   namespace onmon {
+
+    ///
+    /// A class for communication with the viewer via shared memory segment
+    ///
+    class OnMonProdIPC : public onmon::IPC
+    {
+    public:
+      OnMonProdIPC(int m, const char* hdl);
+    private:
+      TH1F* FindTH1F(const char* nm);
+      TH2F* FindTH2F(const char* nm);
+      void  HistoList(std::list<std::string>& hlist);
+    };
+
     class OnMonPlotter : public art::EDAnalyzer {
     public:
       explicit OnMonPlotter(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
@@ -53,6 +70,7 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
+      void endSubRun(art::SubRun const&);
       void endJob();
 
     private:
@@ -75,6 +93,11 @@ namespace emph {
       void   MakeRPCPlots();
       void   MakeTrigPlots();
 
+      OnMonProdIPC* fIPC;         ///< Communicates with viewer
+      std::string   fSHMname;     ///< Shared memory for communication
+      bool          fuseSHM;      ///< Use SHM to communicate with a viewer?
+      bool          fTickerOn;    ///< Turned on in the control room
+
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
       unsigned int fRun;
@@ -90,8 +113,10 @@ namespace emph {
       static const unsigned int nChanTrig = 4;
       
       // define histograms
-      TH2F*  fNRawObjectsHisto;  
-      TH1F*  fNTriggerVsDet;
+      TH2F* fNRawObjectsHisto;  
+      TH1F* fNTriggerVsDet;
+      TH2F* fTriggerVsSubrun;
+      TH2F* fTriggerVsHour;
       
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
@@ -108,6 +133,17 @@ namespace emph {
       bool fMakeTRB3Plots;
       bool fMakeSSDPlots;
     };
+
+    OnMonProdIPC::OnMonProdIPC(int m, const char* hdl) : onmon::IPC(m, hdl) { }
+    TH1F* OnMonProdIPC::FindTH1F(const char* nm) {
+      return HistoSet::Instance().FindTH1F(nm);
+    }
+    TH2F* OnMonProdIPC::FindTH2F(const char* nm) {
+      return HistoSet::Instance().FindTH2F(nm);
+    }
+    void OnMonProdIPC::HistoList(std::list<std::string>& hlist) {
+      HistoSet::Instance().GetNames(hlist);
+    }
 
     //.......................................................................
     OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
@@ -131,6 +167,13 @@ namespace emph {
     //......................................................................
     void OnMonPlotter::reconfigure(const fhicl::ParameterSet& pset)
     {
+      fSHMname = pset.get<std::string>("SHMHandle");
+      fuseSHM = pset.get<bool>("useSHM");
+      fTickerOn = pset.get<bool>("TickerOn");
+
+      //if (fIPC) delete fIPC;
+      if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
+
       fChanMapFileName = pset.get<std::string>("channelMapFileName","");
       fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
       fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
@@ -180,6 +223,8 @@ namespace emph {
       HistoSet& h = HistoSet::Instance();
       fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
+      fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
+      fTriggerVsHour    = h.GetTH2F("TriggerVsHour");
       
       // label x-axis
       std::string labelStr;
@@ -208,6 +253,21 @@ namespace emph {
     
     //......................................................................
 
+    void OnMonPlotter::endSubRun(const art::SubRun&)
+    {
+      std::cout<<"Writing file for run/subrun: " << fRun << "/" << fSubrun << std::endl;
+      char filename[32];
+      sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
+      TFile* f = new TFile(filename,"RECREATE");
+      HistoSet::Instance().WriteToRootFile(f);
+      f->Close();
+      delete f; f=0;
+
+    }
+      
+
+    //......................................................................
+
     void OnMonPlotter::endJob()
     {
       if (fNEvents > 0) {
@@ -218,12 +278,8 @@ namespace emph {
 	}
       }
 
-      char filename[32];
-      sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
-      TFile* f = new TFile(filename,"RECREATE");
-      HistoSet::Instance().WriteToRootFile(f);
-      f->Close();
-      delete f; f=0;
+      //if(fIPC)    { delete fIPC; fIPC = 0; }
+
     }
     
     //......................................................................
@@ -600,6 +656,23 @@ namespace emph {
       fSubrun = evt.subRun();     
       std::string labelStr;
 
+      if (fuseSHM) fIPC->HandleRequests();
+
+      static unsigned int count = 0;
+      if (++count%10==0) {
+	if (fuseSHM) fIPC->PostResources(fRun, fSubrun, evt.event());
+	// std::cout << "onmon_plot: run/sub/evt="
+	// 	  << fRun << "/" << fSubrun << "/" << evt.event()
+	// 	  << std::endl;
+      }
+
+      //
+      // Update the ticker so it can notify its subscribers.
+      // Do this BEFORE unpacking so that there are no overlaps in plots
+      // reset every 24 hours.
+      //
+      if (fTickerOn) Ticker::Instance().Update(fRun, fSubrun);
+
       for (int i=0; i<emph::geo::NDetectors; ++i) {
 
 	labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
@@ -610,6 +683,8 @@ namespace emph {
 	  if (!wfHandle->empty()) {
 	    fNRawObjectsHisto->Fill(i,wfHandle->size());
 	    fNTriggerVsDet->Fill(i);
+	    fTriggerVsSubrun->Fill(fSubrun,i);
+	    // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 	    if (i == emph::geo::Trigger) FillTrigPlots(wfHandle);
 	    if (i == emph::geo::GasCkov) FillGasCkovPlots(wfHandle);
 	    if (i == emph::geo::BACkov)  FillBACkovPlots(wfHandle);
@@ -623,6 +698,8 @@ namespace emph {
 		if (!trbHandle->empty()) {
 		  fNRawObjectsHisto->Fill(j,trbHandle->size());
 		  fNTriggerVsDet->Fill(j);
+		  fTriggerVsSubrun->Fill(fSubrun,j);
+		  // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 		  FillT0Plots(wfHandle, trbHandle);
 		}
 		else
@@ -649,6 +726,8 @@ namespace emph {
 	if (!trbHandle->empty()) {
 	  fNRawObjectsHisto->Fill(i,trbHandle->size());
 	  fNTriggerVsDet->Fill(i);
+	  fTriggerVsSubrun->Fill(fSubrun,i);
+	  // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 	  FillRPCPlots(trbHandle);
 	}
       }
@@ -665,6 +744,8 @@ namespace emph {
 	if (!ssdHandle->empty()) {
 	  fNRawObjectsHisto->Fill(i,ssdHandle->size());
 	  fNTriggerVsDet->Fill(i);
+	  fTriggerVsSubrun->Fill(fSubrun,i);
+	  // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 	  FillSSDPlots(ssdHandle);
 	}
       }

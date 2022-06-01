@@ -5,6 +5,9 @@ standard_onmon:
   module_type: OnMonPlotter
 
   CSVFile:           "onmon-histos.csv"
+  SHMHandle:         "EMPH"    # 4-character handle for shared memory segment
+  useSHM:            false     # Create a SHM segment for communication with the viewer?
+  TickerOn:          false     # Turn the ticker on in the control room
   makeWaveFormPlots: true
   makeTRB3Plots:     true
   makeSSDPlots:      true
@@ -13,6 +16,10 @@ standard_onmon:
 
 no_ssd_onmon: @local::standard_onmon
 no_ssd_onmon.makeSSDPlots: false
+
+cr_onmon: @local::standard_onmon
+cr_onmon.useSHM:   true
+cr_onmon.TickerOn: true
 
 
 END_PROLOG
