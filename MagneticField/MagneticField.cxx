@@ -68,7 +68,7 @@ namespace emph {
 //    this->test1();
 //    this->test2();
 //    this->test3();
-    
+      this->studyZipTrackData1();
 }
 
   void EMPHATICMagneticField::uploadFromRootFile(const G4String &fName) {
@@ -377,7 +377,47 @@ namespace emph {
     
   }
   
+void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
   
+    double numbers[8];
+    ffieldZipTrack.clear(); // may be we want add all of them, to rethink.. for now, one at a time. 
+    std::ifstream fileIn(fName.c_str());
+    if (!fileIn.is_open()) {
+      std::cerr << " EMPHATICMagneticField::uploadFromOneCSVZipFile, file " << fName << " can not be open, fatal .." << std::endl; 
+      exit(2);
+    }
+    std::string line;
+    char aLinecStr[1024];
+    int numLines = 0;
+    // first pass, check the grid is uniform. 
+    // Units are assumed to be in mm 
+    while (fileIn.good()) {
+      fileIn.getline(aLinecStr, 1024);
+      std::string aLine(aLinecStr);
+      if (aLine.length() < 2) continue; // end of file suspected, or blank in the file 
+      if (numLines == 0) {
+	  if (aLine.find("T X Y Z Bx By Bz Theta") == std::string::npos) { // Comment line from Mike T. dAQ.
+	     std::cerr << " Unexpected header line " << aLine <<  " unknow file , quit here and now " << std::endl; exit(2); }   
+      } else {
+        bFieldZipTrackPoint aPt;
+	std::istringstream  aLStr(aLine);
+  	int count = 0; std::string num;
+  	while((count < 8) && (aLStr >> num)){
+  	     if(num == "NaN") {
+	         numbers[count] = 0;
+		 std::cerr << " NaN found at line " << numLines << " line " << aLine << std::endl;
+             }
+  	     else  numbers[count] = std::stod(num); // probably a bad idea to treat NaN as field is really physically vanishing.. 
+  				count++;
+  	}
+	aPt.t = numbers[0];  aPt.x = numbers[1]; aPt.y = numbers[2]; aPt.z = numbers[3];
+	aPt.fbx = numbers[4]; aPt.fby = numbers[5]; aPt.fbz = numbers[6]; aPt.theta = numbers[7];
+        ffieldZipTrack.push_back(aPt);
+      } 
+      numLines++;
+    }
+    fileIn.close();
+}    
   // Member functions
   
   void EMPHATICMagneticField::MagneticField(const double x[3], double B[3]) const 
@@ -983,4 +1023,61 @@ namespace emph {
     }
     fOutForR.close();
   }  
+      
+  std::pair<double, double> EMPHATICMagneticField::getMaxByAtCenter()  {
+  
+      double xN[3], B0N[3];
+      xN[0] = 0.; xN[1] = 0.;
+      double byMax=-1000.;
+      double zAtMax=-1000.;
+      this->setInterpolatingOption(1);
+      for (int iZ = -300; iZ != 500; iZ++) {
+        xN[2] = 1.0*iZ;
+        this->MagneticField(xN, B0N); // xN is in mm.. 
+	if (std::abs(B0N[1]) < byMax) continue;
+	 byMax = std::abs(B0N[1]);
+	 zAtMax = xN[2];
+      }
+      return std::pair<double, double>(zAtMax, byMax);
+  }
+
+
+  void EMPHATICMagneticField::studyZipTrackData1() {
+    
+//    std::string fNameZipIn("/home/lebrun/EMPHATIC/Documents/MagnetJune2022/DataMay22/Ycentered_X348_ByUp_220602-0953.csv");
+    std::string fNameZipIn("/home/lebrun/EMPHATIC/Documents/MagnetJune2022/DataMay22/Ycentered_X358_ByUp_220601-1506_LevelShift.csv");
+    this->uploadFromOneCSVZipFile(fNameZipIn);
+    double zFieldMax = 0.;
+    double byMax = -1000.;
+    for (std::vector<bFieldZipTrackPoint>::const_iterator itZ = ffieldZipTrack.cbegin();  itZ != ffieldZipTrack.cend(); itZ++) { 
+      if (std::abs(static_cast<double>(itZ->fby)) > byMax) { byMax = static_cast<double>(std::abs(itZ->fby)); zFieldMax = static_cast<double>(itZ->z); }
+    }
+    std::cerr << " EMPHATICMagneticField::studyZipTrackData1, number of ZipTrack Pts " << ffieldZipTrack.size() 
+              << " By max " << byMax << " at Z = " << zFieldMax << std::endl;
+    std::pair<double, double> byMaxCOMSOL = this->getMaxByAtCenter();	      
+    std::cerr << " ... and from COMSOL, max at z = " << byMaxCOMSOL.first << " |by| " << byMaxCOMSOL.second << std::endl;
+    // 
+    // Assume we are the real probe is centered, bith X and Y Look at the Z profile.. 
+    //
+    const double zOffset = byMaxCOMSOL.first - zFieldMax;
+    std::ofstream fOut("./studyZipTrackData1_CentralScan_Ycentered_X358_ByUp.txt");
+    fOut << " z BxP ByP BzP Bp BxC ByC BzC BC " << std::endl;
+    double xN[3], B0N[3];
+    xN[0] = 0.; xN[1] = 0.;
+    for (std::vector<bFieldZipTrackPoint>::const_iterator itZ = ffieldZipTrack.cbegin();  itZ != ffieldZipTrack.cend(); itZ++) { 
+      xN[2] = itZ->z + zOffset; 
+      this->MagneticField(xN, B0N);
+      for (int k=0; k != 3; k++) B0N[k] /=10.; // to Tesla.  
+      double bNormC = 0.; for (int k=0; k != 3; k++) bNormC += B0N[k]*B0N[k];
+      bNormC = std::sqrt(bNormC);
+      const double bNormP = std::sqrt(itZ->fbx*itZ->fbx + itZ->fby*itZ->fby + itZ->fbz*itZ->fbz);
+      fOut << " " << itZ->z << " " << -1.0*itZ->fbx << " " <<  -1.0*itZ->fby << " " << -1.0*itZ->fbz << " "  
+                  << bNormP << " " << B0N[0] << " " << B0N[1] << " " << B0N[2] << " "  << bNormC << std::endl;
+    }
+    fOut.close();
+    // Test access to a Geant4 random number.. 
+    //
+   //    std ::ofstream fOutForR("./EmphMagField_test3_p5_Acceptance_v1.txt");
+  }
 } // end namespace emph
+
