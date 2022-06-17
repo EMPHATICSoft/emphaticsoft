@@ -116,7 +116,6 @@ namespace emph {
       TH2F* fNRawObjectsHisto;  
       TH1F* fNTriggerVsDet;
       TH2F* fTriggerVsSubrun;
-      TH2F* fTriggerVsHour;
       
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
@@ -224,7 +223,6 @@ namespace emph {
       fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
-      fTriggerVsHour    = h.GetTH2F("TriggerVsHour");
       
       // label x-axis
       std::string labelStr;
@@ -684,7 +682,6 @@ namespace emph {
 	    fNRawObjectsHisto->Fill(i,wfHandle->size());
 	    fNTriggerVsDet->Fill(i);
 	    fTriggerVsSubrun->Fill(fSubrun,i);
-	    // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 	    if (i == emph::geo::Trigger) FillTrigPlots(wfHandle);
 	    if (i == emph::geo::GasCkov) FillGasCkovPlots(wfHandle);
 	    if (i == emph::geo::BACkov)  FillBACkovPlots(wfHandle);
@@ -699,7 +696,6 @@ namespace emph {
 		  fNRawObjectsHisto->Fill(j,trbHandle->size());
 		  fNTriggerVsDet->Fill(j);
 		  fTriggerVsSubrun->Fill(fSubrun,j);
-		  // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 		  FillT0Plots(wfHandle, trbHandle);
 		}
 		else
@@ -727,7 +723,6 @@ namespace emph {
 	  fNRawObjectsHisto->Fill(i,trbHandle->size());
 	  fNTriggerVsDet->Fill(i);
 	  fTriggerVsSubrun->Fill(fSubrun,i);
-	  // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 	  FillRPCPlots(trbHandle);
 	}
       }
@@ -745,7 +740,6 @@ namespace emph {
 	  fNRawObjectsHisto->Fill(i,ssdHandle->size());
 	  fNTriggerVsDet->Fill(i);
 	  fTriggerVsSubrun->Fill(fSubrun,i);
-	  // TML: Add logic in here to get timestamp and fill fTriggerVsHour plot
 	  FillSSDPlots(ssdHandle);
 	}
       }

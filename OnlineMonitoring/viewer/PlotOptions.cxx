@@ -446,9 +446,8 @@ void PlotOptions::MakeLabelText(const TH1* h)
 void PlotOptions::MakeSpecialLabel(TH1* h)
 {
   const std::string TriggerVsSubrun ("TriggerVsSubrun");
-  const std::string TriggerVsHour ("TriggerVsHour");
 
-  if ( TriggerVsSubrun == h->GetName() || TriggerVsHour == h->GetName() ) {
+  if ( TriggerVsSubrun == h->GetName() ) {
     h->GetYaxis()->SetLabelSize(0);
 
     std::string labelStr;
