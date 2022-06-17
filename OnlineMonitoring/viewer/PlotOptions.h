@@ -46,6 +46,7 @@ namespace emph {
       /// The list of custom plotting options
       ///
       bool fZoomHour;      ///< A special zoom option for plots vs. UTC hour
+      bool fZoomSR;        ///< A special zoom option for plots vs. subrun
       bool fAutoZoomX;     ///< Auto zoom the horizontal scale
       bool fAutoZoomY;     ///< Auto zoom the vertical scale
       bool fAutoZoomZ;     ///< Auto zoom the z scale

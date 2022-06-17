@@ -39,6 +39,7 @@ void PlotOptions::Reset()
 {
   fDrawOpt        = "";
   fZoomHour       = false;
+  fZoomSR         = false;
   fAutoZoomX      = false;
   fAutoZoomY      = false;
   fAutoZoomZ      = false;
@@ -135,6 +136,7 @@ void PlotOptions::Set(const std::vector<std::string>& opt)
     bool zscale = (strncmp(opt[i].c_str(),"zscale",6)==0);
 
     if      (opt[i]=="zoomhour")  { fZoomHour  = true; }
+    else if (opt[i]=="zoomsr")    { fZoomSR    = true; }
     else if (opt[i]=="autozoomx") { fAutoZoomX = true; }
     else if (opt[i]=="autozoomy") { fAutoZoomY = true; }
     else if (opt[i]=="autozoomz") { fAutoZoomZ = true; }
@@ -231,6 +233,13 @@ void PlotOptions::AutoScale(TH1F* h)
     h->GetXaxis()->SetRangeUser(now - 1.0, now);
 
   }
+  if (fZoomSR) {
+    double xlo = 1*h->GetXaxis()->GetBinLowEdge(ilox);
+    double xhi = 1*h->GetXaxis()->GetBinUpEdge(ihix);
+    if (xhi>60)
+      xlo = xhi-60;
+    h->GetXaxis()->SetRangeUser(xlo, xhi);
+  }
   if (fAutoZoomX) {
     double xlo = 0.9*h->GetXaxis()->GetBinLowEdge(ilox);
     double xhi = 1.1*h->GetXaxis()->GetBinUpEdge(ihix);
@@ -319,6 +328,17 @@ void PlotOptions::AutoScale(TH2F* h)
 
     h->GetXaxis()->SetRangeUser(now - 1.0, now);
 
+  }
+  if (fZoomSR) {
+    double xlo = h->GetXaxis()->GetBinLowEdge(ilox);
+    double xhi = h->GetXaxis()->GetBinUpEdge(ihix);
+    if (xhi<60) {
+      xlo=0;
+      xhi=60;
+    }
+    else
+      xlo = xhi-60;
+    h->GetXaxis()->SetRangeUser(xlo, xhi);
   }
   if (fAutoZoomX) {
     double xlo = 0.95*h->GetXaxis()->GetBinLowEdge(ilox);
