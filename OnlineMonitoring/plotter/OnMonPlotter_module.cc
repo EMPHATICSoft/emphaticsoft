@@ -180,7 +180,7 @@ namespace emph {
 	}
 	std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
       }
-      
+    
       //
       // Make all-detector plots
       //
@@ -201,7 +201,7 @@ namespace emph {
       labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
       fNTriggerVsDet->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
       fNRawObjectsHisto->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
-
+    
       MakeGasCkovPlots();
       MakeBACkovPlots();
       MakeT0Plots();
@@ -210,6 +210,18 @@ namespace emph {
       MakeLGCaloPlots();
       MakeRPCPlots();
       MakeTrigPlots();
+
+      // T0nTDC
+      if (fMakeTRB3Plots) {
+      	int nchannel = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      	for (int i=0; i<nchannel; ++i) {
+      	  labelStr = "RPC Channel "+std::to_string(i)+" Number of TDCs";
+      	  fRPCNTDC[i]->GetXaxis()->SetTitle(labelStr.c_str());
+      	}
+      }
+    
+
+
 
     }
     
@@ -487,6 +499,8 @@ namespace emph {
 
       if (fMakeTRB3Plots) {
 	if (! trb3H->empty()) {
+	  int i = 0;
+	  i++;
 	  std::vector<int> hitCount;
 	  hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::T0));
 	  boardType = emph::cmap::TRB3;
@@ -502,12 +516,12 @@ namespace emph {
 	    if (detchan < nchan) { // watch out for channel 500!
 	      hitCount[detchan] += 1;
 	      fT0TDC[detchan]->Fill(trb3.GetCoarseTime());
-	    }
-	  }
-	  for (size_t i=0; i<hitCount.size(); ++i) {
-	    fT0NTDC[i]->Fill(hitCount[i]);
-	    vT0TDChits[i] = hitCount[i];	  
-	  }
+	      }
+	   }
+      for (size_t i=0; i<hitCount.size(); ++i) {
+      	    fT0NTDC[i]->Fill(hitCount[i]);
+      	    vT0TDChits[i] = hitCount[i];	  
+      	  }
 	}
       }
       for(int i=0; i<(int)vT0ADChits.size(); i++) {
