@@ -460,9 +460,11 @@ namespace rawdata {
 	thisFragCount = fFragCounter[thisFragId];
 	// bounds check:
 	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
-	if (isFirstFrag)
+	if (isFirstFrag) {
 	  earliestTimestamp = fFragTimestamps[thisFragId][thisFragCount] -
 	  fT0[thisFragId];
+	  isFirstFrag = false;
+	}
 	else {
 	  thisFragTimestamp = fFragTimestamps[thisFragId][thisFragCount] -
 	    fT0[thisFragId];

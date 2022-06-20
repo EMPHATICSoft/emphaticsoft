@@ -49,7 +49,7 @@ cd /emph/app/users/[username]/build
 source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
 ```
 
-6. To compile the code (must be in the "build" directory!):
+5. To compile the code (must be in the "build" directory!):
 
 ```
 buildtool --generator=ninja
