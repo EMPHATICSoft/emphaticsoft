@@ -50,7 +50,7 @@ namespace emph {
       void endJob();
 
     private:
-      void   FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &,art::Handle< std::vector<rawdata::WaveForm> > &);
+      void   FillBACkovPlots(art::Handle< std::vector<rawdata::WaveForm> > &,art::Handle< std::vector<rawdata::WaveForm> > &,art::Handle< std::vector<rawdata::WaveForm> > &);
       
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
@@ -71,10 +71,12 @@ namespace emph {
       bool fMakeBACkovPlots;
 		TFile* f; 
 		TTree *tree;
-		int event, chan, Tchan;
+		int event, chan, Tchan, Gchan;
 		float Bmax0, Bmax1, Bmax2, Bmax3, Bmax4, Bmax5;
 		float Bblw0, Bblw1, Bblw2, Bblw3, Bblw4, Bblw5;
-		float Tmax10, Tmax11, Tblw10, Tblw11;
+		float Tmax9, Tmax10, Tmax11, Tmax12;
+		float Tblw9, Tblw10, Tblw11, Tblw12;
+		float Gmax, Gblw;
     };
 
     //.......................................................................
@@ -139,10 +141,17 @@ namespace emph {
 		tree->Branch("BAC_blw4",&Bblw4);
 		tree->Branch("BAC_blw5",&Bblw5);
 
+		tree->Branch("T0_max9",&Tmax9);
+		tree->Branch("T0_blw9",&Tblw9);
 		tree->Branch("T0_max10",&Tmax10);
 		tree->Branch("T0_blw10",&Tblw10);
 		tree->Branch("T0_max11",&Tmax11);
 		tree->Branch("T0_blw11",&Tblw11);
+		tree->Branch("T0_max12",&Tmax12);
+		tree->Branch("T0_blw12",&Tblw12);
+		
+		tree->Branch("GC_max",&Gmax);
+		tree->Branch("GC_blw",&Gblw);
     }
     
     //......................................................................
@@ -157,14 +166,16 @@ namespace emph {
     
     //......................................................................
 
-    void BACkovReadout::FillBACkovPlots(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<emph::rawdata::WaveForm> > & TwvfmH)
+    void BACkovReadout::FillBACkovPlots(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<emph::rawdata::WaveForm> > & TwvfmH, art::Handle< std::vector<emph::rawdata::WaveForm> > & GwvfmH)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
       emph::cmap::EChannel Techan;
+      emph::cmap::EChannel Gechan;
       echan.SetBoardType(boardType);
       Techan.SetBoardType(boardType);
+      Gechan.SetBoardType(boardType);
       if (fMakeBACkovPlots) {
         //std::cout << "Making BACkov ADC OnMon plots" << std::endl;
         for (int i=0; i<nchan; ++i) {
@@ -225,6 +236,11 @@ namespace emph {
             Techan.SetChannel(Tchan);
             emph::cmap::DChannel Tdchan = fChannelMap->DetChan(Techan);
             int Tdetchan = Tdchan.Channel();
+            if (Tdetchan==9){
+	      Tmax9 = Twvfm.Baseline()-Twvfm.PeakADC();
+	      Tblw9 = Twvfm.BLWidth();
+	      std::cout<<"Tboard is: "<<Tboard<<"     and Tchan is: "<<Tchan<<std::endl;	
+	    }
 	    if (Tdetchan==10){
 	      Tmax10 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw10 = Twvfm.BLWidth();	
@@ -233,8 +249,24 @@ namespace emph {
 	      Tmax11 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw11 = Twvfm.BLWidth();	
 	    }
-
-   } 
+	    if (Tdetchan==12){
+	      Tmax12 = Twvfm.Baseline()-Twvfm.PeakADC();
+	      Tblw12 = Twvfm.BLWidth();	
+	    }
+	  } 
+	  for (size_t idx=0; idx<GwvfmH->size(); ++idx){
+	    const rawdata::WaveForm& Gwvfm = (*GwvfmH)[idx];
+	    Gchan = Gwvfm.Channel();
+	    int Gboard = Gwvfm.Board();
+            Gechan.SetBoard(Gboard);
+            Gechan.SetChannel(Gchan);
+            emph::cmap::DChannel Gdchan = fChannelMap->DetChan(Gechan);
+            int Gdetchan = Gdchan.Channel();
+            if (Gdetchan==0){
+	      Gmax = Gwvfm.Baseline()-Gwvfm.PeakADC();
+	      Gblw = Gwvfm.BLWidth();
+	    }
+	  } 
 	  tree->Fill();
       }
     }
@@ -247,7 +279,7 @@ namespace emph {
       ++fNEvents;
       fRun = evt.run();
       fSubrun = evt.subRun();     
-      std::string labelStrBAC,labelStrT0;
+      std::string labelStrBAC, labelStrT0, labelStrGC;
 
       // get WaveForm
       int i = emph::geo::BACkov;
@@ -257,12 +289,18 @@ namespace emph {
       int j = emph::geo::T0;
       labelStrT0 = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(j));
       art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandleT0;
+
+      int k = emph::geo::GasCkov;
+      labelStrGC = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(k));
+      art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandleGC;
+
       try {
 	evt.getByLabel(labelStrBAC, wfHandleBAC);
 	evt.getByLabel(labelStrT0, wfHandleT0);
+	evt.getByLabel(labelStrGC, wfHandleGC);
 
 	if (!wfHandleBAC->empty()) {
-	  FillBACkovPlots(wfHandleBAC, wfHandleT0);
+	  FillBACkovPlots(wfHandleBAC, wfHandleT0, wfHandleGC);
 	}
       }
       catch(...) {
