@@ -76,7 +76,8 @@ namespace emph {
 		float Bblw0, Bblw1, Bblw2, Bblw3, Bblw4, Bblw5;
 		float Tmax9, Tmax10, Tmax11, Tmax12;
 		float Tblw9, Tblw10, Tblw11, Tblw12;
-		float Gmax, Gblw;
+		float Gmax0, Gmax1, Gmax2;
+		float Gblw0, Gblw1, Gblw2;
     };
 
     //.......................................................................
@@ -150,8 +151,12 @@ namespace emph {
 		tree->Branch("T0_max12",&Tmax12);
 		tree->Branch("T0_blw12",&Tblw12);
 		
-		tree->Branch("GC_max",&Gmax);
-		tree->Branch("GC_blw",&Gblw);
+		tree->Branch("GC_max0",&Gmax0);
+		tree->Branch("GC_blw0",&Gblw0);
+		tree->Branch("GC_max1",&Gmax1);
+		tree->Branch("GC_blw1",&Gblw1);
+		tree->Branch("GC_max2",&Gmax2);
+		tree->Branch("GC_blw2",&Gblw2);
     }
     
     //......................................................................
@@ -263,8 +268,16 @@ namespace emph {
             emph::cmap::DChannel Gdchan = fChannelMap->DetChan(Gechan);
             int Gdetchan = Gdchan.Channel();
             if (Gdetchan==0){
-	      Gmax = Gwvfm.Baseline()-Gwvfm.PeakADC();
-	      Gblw = Gwvfm.BLWidth();
+	      Gmax0 = Gwvfm.Baseline()-Gwvfm.PeakADC();
+	      Gblw0 = Gwvfm.BLWidth();
+	    }
+	    if (Gdetchan==1){
+	      Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC();
+	      Gblw1 = Gwvfm.BLWidth();
+	    }
+	    if (Gdetchan==2){
+	      Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC();
+	      Gblw2 = Gwvfm.BLWidth();
 	    }
 	  } 
 	  tree->Fill();
