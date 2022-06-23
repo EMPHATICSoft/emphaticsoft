@@ -64,6 +64,8 @@ namespace emph {
       void   FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
       void   FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
+      void   FillToFPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > &,
+			  art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
       void   FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
 
       void   MakeGasCkovPlots();
@@ -102,6 +104,7 @@ namespace emph {
       TH1F* fT0TDC[nChanT0];
       TH1F* fRPCTDC[nChanRPC];
       TH1F* fRPCNTDC[nChanRPC];
+      TH1F* fToFHisto;
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
@@ -187,7 +190,8 @@ namespace emph {
       HistoSet& h = HistoSet::Instance();
       fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
-      
+      fToFHisto         = h.GetTH1F("ToFHisto");
+
       // label x-axis
       std::string labelStr;
       int i=0;
@@ -381,9 +385,8 @@ namespace emph {
 	}
       }
     }
-
     //......................................................................
-
+    
     void  OnMonPlotter::MakeTrigPlots()
     {
       HistoSet& h = HistoSet::Instance();
@@ -656,7 +659,44 @@ namespace emph {
       }
     }
     //.....................................}.................................
-
+    void OnMonPlotter::FillToFPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & T0trb3H, art::Handle< std::vector<rawdata::TRB3RawDigit> > & RPCtrb3H)
+    {
+      int T0nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
+      int RPCnchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      emph::cmap::EChannel T0echan;
+      emph::cmap::EChannel RPCechan;
+      emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+      double trb3LinearLowEnd = 15.0;
+      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0 
+      //double trb3LinearHighEnd_RPC = 476.0; // For FPGA3? -- RPC 
+      if (fMakeTRB3Plots) {
+	if (! T0trb3H->empty() && ! RPCtrb3H->empty()) {
+	  T0echan.SetBoardType(boardType);
+	  RPCechan.SetBoardType(boardType);
+	  for (size_t idx=0; idx < T0trb3H->size(); ++idx) {
+	    const rawdata::TRB3RawDigit& T0trb3 = (*T0trb3H)[idx];
+	    const rawdata::TRB3RawDigit& RPCtrb3 = (*RPCtrb3H)[idx];
+	    int T0chan = T0trb3.GetChannel() + 65*(T0trb3.fpga_header_word-1280);
+            int RPCchan = RPCtrb3.GetChannel() + 65*(RPCtrb3.fpga_header_word-1280);
+	    int board = 100;
+            T0echan.SetBoard(board);
+	    RPCechan.SetBoard(board);
+            T0echan.SetChannel(T0chan);
+	    RPCechan.SetChannel(RPCchan);
+	    emph::cmap::DChannel T0dchan = fChannelMap->DetChan(T0echan);
+	    emph::cmap::DChannel RPCdchan = fChannelMap->DetChan(RPCechan);
+            int T0detchan = T0dchan.Channel();
+	    int RPCdetchan = RPCdchan.Channel();
+	    long double time_T0 = T0trb3.GetEpochCounter()*10240026.0 + T0trb3.GetCoarseTime() * 5000.0 - ((T0trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+	    long double time_RPC = RPCtrb3.GetEpochCounter()*10240026.0 + RPCtrb3.GetCoarseTime() * 5000.0 - ((RPCtrb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+	    if ((T0detchan < T0nchan) && (RPCdetchan < RPCnchan)) {
+	      fToFHisto->Fill((time_RPC - time_T0)/100000);
+	    }
+	  }
+	}
+      }
+    }
+    //.......................................................................
     void   OnMonPlotter::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
@@ -691,6 +731,7 @@ namespace emph {
       fRun = evt.run();
       fSubrun = evt.subRun();     
       std::string labelStr;
+      std::string labelStr2;
 
       for (int i=0; i<emph::geo::NDetectors; ++i) {
 
@@ -763,6 +804,23 @@ namespace emph {
       catch(...) {
 
       }
+      //Time of Flight (T0+RPC TRB3Digits)
+      i = emph::geo::T0;
+      int j = emph::geo::RPC;
+      labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      labelStr2 = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(j));
+      art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbHandle1;
+      art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbHandle2;
+      try {
+	evt.getByLabel(labelStr, trbHandle1);
+	evt.getByLabel(labelStr2, trbHandle2);
+	if (!trbHandle1->empty() && !trbHandle2->empty()) {
+	  FillToFPlots(trbHandle1, trbHandle2);
+	}
+      }
+      catch(...) {
+	
+      }	 
 
       return;
     }

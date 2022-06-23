@@ -15,3 +15,4 @@ BACkovWaveForm*,BACkov Average Waveform;Tick;ADC,BACkov,TH1F,200,0,200,0,0,0,,em
 RPCNTDC*,Number of RPC Hits Per Event;TDC,RPC,TH1F,50,0,50,0,0,0,,emph,run,1,Shows number of RPC hits seen in each event on a given channel.
 RPCTDC*,RPC TDC Distribution;TDC,RPC,TH1F,512,-100,100,0,0,0,,emph,run,1,Shows TDC distribution for RPC channels.
 T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,512,-100,100,0,0,0,,emph,run,1,Shows TDC distribution for T0 channels.
+ToFHisto,Time of Flight Distribution;Time of Flight(ps?);Number of Hits,TDCs,TH1F,512,-100,100,0,0,0,,emph,run,1,Shows number of particles with a time of flight value. 
