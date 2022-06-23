@@ -534,15 +534,15 @@ namespace rawdata {
 	  thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].fragmentTimestamp - fT0[thisFragId];
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
 	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
-	    int boardNum = thisFragId;
 	    emph::cmap::EChannel echan;
 	    echan.SetBoardType(boardType);
-	    echan.SetBoard(boardNum);
 	    //	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
 	    for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag) {
 	      auto & tdig = fTRB3RawDigits[thisFragId][thisFragCount][jfrag];
-	      int channel = tdig.GetChannel() + 65*(tdig.fpga_header_word-1280);
+	      int channel = tdig.GetChannel();
+	      int boardNum = tdig.GetBoardId();
 	      echan.SetChannel(channel);
+	      echan.SetBoard(boardNum);
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	      if (dchan.DetId() != emph::geo::NDetectors)
 		evtTRB3Digits[dchan.DetId()]->push_back(tdig);

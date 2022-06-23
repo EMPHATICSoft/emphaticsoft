@@ -30,7 +30,30 @@ namespace emph {
       /// Is this the trailing edge measurement?
       bool IsTrailing() const {return 0;}
 
-      uint32_t GetBoardId() const {return fpga_header_word & 0xf;}
+      uint32_t GetBoardId() const {
+	uint32_t id = 0;
+	if      ((fpga_header_word & 0xffff)==0x100) id=100;
+	else if ((fpga_header_word & 0xffff)==0x101) id=101;
+	else if ((fpga_header_word & 0xffff)==0x102) id=102;
+	else if ((fpga_header_word & 0xffff)==0x103) id=103;
+	else if ((fpga_header_word & 0xffff)==0x200) id=200;
+	else if ((fpga_header_word & 0xffff)==0x201) id=201;
+	else if ((fpga_header_word & 0xffff)==0x202) id=202;
+	else if ((fpga_header_word & 0xffff)==0x203) id=203;
+	else if ((fpga_header_word & 0xffff)==0x300) id=300;
+	else if ((fpga_header_word & 0xffff)==0x301) id=301;
+	else if ((fpga_header_word & 0xffff)==0x302) id=302;
+	else if ((fpga_header_word & 0xffff)==0x303) id=303;
+	else if ((fpga_header_word & 0xffff)==0x400) id=400;
+	else if ((fpga_header_word & 0xffff)==0x401) id=401;
+	else if ((fpga_header_word & 0xffff)==0x402) id=402;
+	else if ((fpga_header_word & 0xffff)==0x403) id=403;
+	else if ((fpga_header_word & 0xffff)==0x500) id=500;
+	else if ((fpga_header_word & 0xffff)==0x501) id=501;
+	else if ((fpga_header_word & 0xffff)==0x502) id=502;
+	else if ((fpga_header_word & 0xffff)==0x503) id=503;
+	return id;
+      }
 
       /// Get the TDC measurement
       uint32_t GetMeasurement() const {

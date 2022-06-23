@@ -92,6 +92,10 @@ namespace emph {
       // define histograms
       TH2F*  fNRawObjectsHisto;  
       TH1F*  fNTriggerVsDet;
+      TH1F*  fT0BoardID;
+      TH1F*  fT0ChanID;
+      TH1F*  fRPCBoardID;
+      TH1F*  fRPCChanID;
       
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
@@ -288,6 +292,8 @@ namespace emph {
           sprintf(hname,"T0NTDC_%d",i);
           fT0NTDC[i] = h.GetTH1F(hname);
         }
+        fT0BoardID = h.GetTH1F("T0BoardID");
+        fT0ChanID = h.GetTH1F("T0ChanID");
       }
     }
     
@@ -316,8 +322,11 @@ namespace emph {
 
     void  OnMonPlotter::MakeARICHPlots()
     {
-      if (fMakeTRB3Plots)
+      if (fMakeTRB3Plots) {
+        int nchannel = emph::geo::DetInfo::NChannel(emph::geo::ARICH);
 	std::cout << "Making ARICH OnMon plots" << std::endl;
+        std::cout << "Channels " << nchannel << std::endl;
+      }
     }
 
     //......................................................................
@@ -341,8 +350,14 @@ namespace emph {
     
     void  OnMonPlotter::MakeRPCPlots()
     {
-      if (fMakeTRB3Plots)
+      if (fMakeTRB3Plots) {
+        HistoSet& h = HistoSet::Instance();
+        int nchannel = emph::geo::DetInfo::NChannel(emph::geo::RPC);
 	std::cout << "Making RPC OnMon plots" << std::endl;
+        std::cout << "Channels " << nchannel << std::endl;
+        fRPCBoardID = h.GetTH1F("RPCBoardID");
+        fRPCChanID = h.GetTH1F("RPCChanID");
+      }
     }
 
     //......................................................................
@@ -464,8 +479,10 @@ namespace emph {
 	  echan.SetBoardType(boardType);	
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
-	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-	    int board = 100;
+	    int board = trb3.GetBoardId();
+	    int chan = trb3.GetChannel();
+	    fT0BoardID->Fill(board);
+	    fT0ChanID->Fill(chan);
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -524,8 +541,11 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+      if (fMakeTRB3Plots) {
+	std::cout << "Filling ARICH OnMon plots" << std::endl;
+      }
     }
 
     //......................................................................
@@ -560,8 +580,22 @@ namespace emph {
 
     //......................................................................
 
-    void    OnMonPlotter::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void    OnMonPlotter::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+      if (fMakeTRB3Plots) {
+	if (! trb3H->empty()) {
+	  std::vector<int> hitCount;
+	  hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::T0));
+          emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+          emph::cmap::EChannel echan;
+	  echan.SetBoardType(boardType);	
+	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
+	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
+	    fRPCBoardID->Fill(trb3.GetBoardId());
+	    fRPCChanID->Fill(trb3.GetChannel());
+	  }
+	}
+      }
     }
     //......................................................................
 
@@ -650,6 +684,20 @@ namespace emph {
 	  fNRawObjectsHisto->Fill(i,trbHandle->size());
 	  fNTriggerVsDet->Fill(i);
 	  FillRPCPlots(trbHandle);
+	}
+      }
+      catch(...) {
+
+      }
+      // get ARICH TRB3digits
+      i = emph::geo::ARICH;
+      labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      try {
+	evt.getByLabel(labelStr, trbHandle);
+	if (!trbHandle->empty()) {
+	  fNRawObjectsHisto->Fill(i,trbHandle->size());
+	  fNTriggerVsDet->Fill(i);
+	  FillARICHPlots(trbHandle);
 	}
       }
       catch(...) {
