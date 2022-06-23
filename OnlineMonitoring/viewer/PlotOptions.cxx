@@ -17,14 +17,20 @@ using namespace emph::onmon;
 
 PlotOptions::PlotOptions()
 {
-  fLabelText = new TPaveText(0.1, 0.0, 0.5,  0.055, "NDC");
-  fSLText    = new TPaveText(0.0, 0.1, 0.09, 0.9,   "NDC");
+  fLabelText = new TPaveText(0.1, 0.0, 0.5,  0.055,  "NDC");
+  fDetText   = new TPaveText(0.07, 0.057, 0.9, 0.09, "NDC");
+  fSLText    = new TPaveText(0.0, 0.07, 0.099, 0.93, "NDC");
 
   fLabelText->SetLineColor(0);
   fLabelText->SetFillColor(0);
   fLabelText->SetBorderSize(1);
   fLabelText->SetMargin(0.0);
   fLabelText->SetTextAlign(11);
+
+  fDetText->SetLineColor(0);
+  fDetText->SetFillColor(0);
+  fDetText->SetBorderSize(1);
+  fDetText->SetMargin(0.0);
 
   fSLText->SetLineColor(0);
   fSLText->SetFillColor(0);
@@ -175,19 +181,12 @@ void PlotOptions::SetPad(TPad* p)
 
 void PlotOptions::MakeLabels(TH1* h, const HistoData* hd __attribute__((unused)))
 {
-
+  fDetText->Clear();
   if (fDetlbl) {
-    std::string labelStr;
-    unsigned int i;
-    for (i=0; i<emph::geo::NDetectors; ++i) {
-      labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
-      if (i == emph::geo::T0) labelStr += "ADC";
-      h->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
-    }
-    // Add T0TDC at end
-    labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
-    h->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
-    h->Draw(fDrawOpt.c_str());
+    // Super hacky. Would be nice to do this with bin labelling, but then you can't interact with the plot properly.
+    // Trying to pull detector names logically doesn't get correct spacing.
+    fDetText->AddText(" Trigger   GasCkov   BACkov   T0ADC       RPC         SSD       ARICH     LGCalo    T0TDC");
+    fDetText->Draw();
   }
 
   fSLText->Clear();
@@ -235,8 +234,12 @@ void PlotOptions::AutoScale(TH1F* h)
   }
   if (fZoomSR) {
     double xlo = 1*h->GetXaxis()->GetBinLowEdge(ilox);
-    double xhi = 1*h->GetXaxis()->GetBinUpEdge(ihix);
-    if (xhi>60)
+    double xhi = 1*h->GetXaxis()->GetBinUpEdge(ihix)+1;
+    if (xhi<60) {
+      xlo=0;
+      xhi=60;
+    }
+    else
       xlo = xhi-60;
     h->GetXaxis()->SetRangeUser(xlo, xhi);
   }
@@ -331,7 +334,7 @@ void PlotOptions::AutoScale(TH2F* h)
   }
   if (fZoomSR) {
     double xlo = h->GetXaxis()->GetBinLowEdge(ilox);
-    double xhi = h->GetXaxis()->GetBinUpEdge(ihix);
+    double xhi = h->GetXaxis()->GetBinUpEdge(ihix)+1;
     if (xhi<60) {
       xlo=0;
       xhi=60;
@@ -451,6 +454,7 @@ void PlotOptions::MakeSpecialLabel(TH1* h)
     h->GetYaxis()->SetLabelSize(0);
 
     std::string labelStr;
+    fSLText->AddText("");
     labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
     fSLText->AddText(labelStr.c_str());
     int i;
@@ -460,8 +464,8 @@ void PlotOptions::MakeSpecialLabel(TH1* h)
       fSLText->AddText("");
       fSLText->AddText(labelStr.c_str());
     }
+    fSLText->AddText("");
   }
-  h->Draw(fDrawOpt.c_str());
   fSLText->Draw();
 }
 

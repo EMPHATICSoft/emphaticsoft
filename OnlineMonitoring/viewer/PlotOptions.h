@@ -80,6 +80,7 @@ namespace emph {
       /// Some label objects
       ///
       TPaveText* fLabelText;
+      TPaveText* fDetText;
       TPaveText* fSLText;
       TLine* fLineTmin;
       TLine* fLineTmax;
