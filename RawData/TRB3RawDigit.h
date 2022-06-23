@@ -26,9 +26,9 @@ namespace emph {
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?
-      bool IsLeading() const {return 0;}
+      bool IsLeading() const {return ((tdc_measurement_word & 0x800) >> 11) == 1;}
       /// Is this the trailing edge measurement?
-      bool IsTrailing() const {return 0;}
+      bool IsTrailing() const {return ((tdc_measurement_word & 0x800) >> 11) == 0;}
 
       uint32_t GetBoardId() const {
 	uint32_t id = 0;
@@ -72,6 +72,16 @@ namespace emph {
       /// Get the channel number
       uint32_t GetChannel() const {
         return ((tdc_measurement_word & 0xfc00000 ) >> 22 );
+      }
+
+      // semi calibrated time in picoseconds
+      // linear calibration
+      // low  value of fine TDC hits = 17
+      // high value of fine TDC hits = 473
+      double GetFinalTime() const {
+        return ((double)GetEpochCounter())*10240026.0
+             + ((double) GetCoarseTime()) * 5000.0
+             - ((((double)GetFineTime())-17.0)/(473.0 - 17.0)) * 5000.0;
       }
 
     };
