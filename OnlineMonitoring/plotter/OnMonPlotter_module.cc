@@ -541,7 +541,7 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
+    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > &)
     {
       if (fMakeTRB3Plots) {
 	std::cout << "Filling ARICH OnMon plots" << std::endl;
