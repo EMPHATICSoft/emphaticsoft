@@ -124,7 +124,7 @@ void HistoSHM::GetStatus(std::string& nm,
 
 void  HistoSHM::SetName(const char* nm) 
 {
-  if (fIPC) { delete fIPC; fIPC=0; }
+  //if (fIPC) { delete fIPC; fIPC=0; }
   fIPC = new IPC(kIPC_CLIENT, nm);
 }
 
