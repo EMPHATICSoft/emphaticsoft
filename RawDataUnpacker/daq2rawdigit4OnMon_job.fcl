@@ -22,7 +22,7 @@ source:
   verbosity: 0
   channelMapFileName: "ChannelMap_Jan22_Run436.txt"
   SSDFilePrefix: "/data/"
-  readSSDData: true
+  readSSDData: false
 }
 
 outputs:
@@ -50,7 +50,7 @@ outputs:
 physics:
 {
 
-  stream1:  [ out1 out2 ]
+  stream1:  [ out1, out2 ]
 
   end_paths:     [stream1]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
 }
