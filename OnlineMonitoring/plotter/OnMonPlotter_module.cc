@@ -70,16 +70,8 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
-      void beginRun(art::Run const&) {
-	if(bSHMThreadPtr && bSHMThreadPtr->joinable()) {bSHMThreadRunning = false;
-	  bSHMThreadPtr->join();}
-	bSHMThreadRunning = true;
-	bSHMThreadPtr.reset(new std::thread(&HandleRequestsThread, this));
-}
-      void endRun(art::Run const&) {
-	if(bSHMThreadPtr && bSHMThreadPtr->joinable()) {bSHMThreadRunning = false;
-	  bSHMThreadPtr->join();}  }
-}
+      void beginRun(art::Run const&);
+      void endRun(art::Run const&);
       void endSubRun(art::SubRun const&);
       void endJob();
 
@@ -103,18 +95,12 @@ namespace emph {
       void   MakeRPCPlots();
       void   MakeTrigPlots();
 
-      void HandleRequestsThread() {
-	if(!fuseSHM) return;
-	while(bSHMThreadRunning) {
-	  fIPC->HandleRequests();
-	  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-      }
+      void HandleRequestsThread();
 
       OnMonProdIPC* fIPC;         ///< Communicates with viewer
       std::string   fSHMname;     ///< Shared memory for communication
       bool          fuseSHM;      ///< Use SHM to communicate with a viewer?
-      std::atomic<bool> bSHMThreadRunning;
+      std::atomic<bool> fSHMThreadRunning;
       std::unique_ptr<std::thread> fSHMThreadPtr;
       bool          fTickerOn;    ///< Turned on in the control room
 
@@ -158,6 +144,7 @@ namespace emph {
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
       bool fMakeSSDPlots;
+
     };
 
     OnMonProdIPC::OnMonProdIPC(int m, const char* hdl) : onmon::IPC(m, hdl) { }
@@ -228,6 +215,36 @@ namespace emph {
     }
 
     //......................................................................
+
+    void OnMonPlotter::beginRun(art::Run const&) {
+      if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
+	fSHMThreadRunning = false;
+	fSHMThreadPtr->join();}
+      fSHMThreadRunning = true;
+      fSHMThreadPtr.reset(new std::thread(&emph::onmon::OnMonPlotter::HandleRequestsThread, this)); 
+    }
+    
+    //......................................................................
+    
+    void OnMonPlotter::endRun(art::Run const&) {     
+      if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
+	fSHMThreadRunning = false;
+	fSHMThreadPtr->join();
+      } 
+    }
+
+    //......................................................................
+
+    void OnMonPlotter::HandleRequestsThread() {
+      if(!fuseSHM) return;
+      while(fSHMThreadRunning) {
+	fIPC->HandleRequests();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+    }
+    
+    //......................................................................
+
     void OnMonPlotter::beginJob()
     {
       fNEvents=0;
