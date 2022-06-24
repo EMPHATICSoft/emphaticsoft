@@ -1,0 +1,56 @@
+#include "ChannelMap.fcl"
+
+process_name: RawConvert
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type:               RawDataUnpacker
+  fileNames:                 ["/emph/data/data/Jan2022/emdaq_otsdaq_rootOutput_r430_s1_20220131T232556_1.art"]
+  daqLabel:        "daq"
+  createArtEvents:   true
+  makeTDiffHistos:   true
+  numWaveFormPlots:  100
+  timeWindow: 50000
+  nEvents: 0
+  verbosity: 0
+  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+  SSDFilePrefix: "/data/"
+  readSSDData: true
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "emphdata_r%r_s%s.root" #default file name, can override from command line with -o or --output
+  }
+  out2:
+  {
+    module_type: TransferOutput
+    transfer_plugin: {
+        transferPluginType : TCPSocket
+	source_rank : 1
+	destination_rank : 2
+	host_map: [{rank: 1 host: "localhost"}, {rank: 2 host: "localhost"}]
+    }    
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+  stream1:  [ out1 out2 ]
+
+  end_paths:     [stream1]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+}
