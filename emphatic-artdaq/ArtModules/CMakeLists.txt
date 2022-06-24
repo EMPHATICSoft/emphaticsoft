@@ -48,6 +48,7 @@ cet_make_library(LIBRARY_NAME emphatic-artdaq_ArtModules
   SOURCE detail/TransferWrapper.cc
   LIBRARIES PUBLIC
   artdaq_DAQdata
+  artdaq_TransferPlugins
   artdaq-utilities_Plugins
   ${ARTDAQ_build_LIB_LIST}
   art_root_io::art_root_io

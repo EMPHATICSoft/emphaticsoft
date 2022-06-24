@@ -70,6 +70,16 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
+      void beginRun(art::Run const&) {
+	if(bSHMThreadPtr && bSHMThreadPtr->joinable()) {bSHMThreadRunning = false;
+	  bSHMThreadPtr->join();}
+	bSHMThreadRunning = true;
+	bSHMThreadPtr.reset(new std::thread(&HandleRequestsThread, this));
+}
+      void endRun(art::Run const&) {
+	if(bSHMThreadPtr && bSHMThreadPtr->joinable()) {bSHMThreadRunning = false;
+	  bSHMThreadPtr->join();}  }
+}
       void endSubRun(art::SubRun const&);
       void endJob();
 
@@ -93,9 +103,19 @@ namespace emph {
       void   MakeRPCPlots();
       void   MakeTrigPlots();
 
+      void HandleRequestsThread() {
+	if(!fuseSHM) return;
+	while(bSHMThreadRunning) {
+	  fIPC->HandleRequests();
+	  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	}
+      }
+
       OnMonProdIPC* fIPC;         ///< Communicates with viewer
       std::string   fSHMname;     ///< Shared memory for communication
       bool          fuseSHM;      ///< Use SHM to communicate with a viewer?
+      std::atomic<bool> bSHMThreadRunning;
+      std::unique_ptr<std::thread> fSHMThreadPtr;
       bool          fTickerOn;    ///< Turned on in the control room
 
       emph::cmap::ChannelMap* fChannelMap;

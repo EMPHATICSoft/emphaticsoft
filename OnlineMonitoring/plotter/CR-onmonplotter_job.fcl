@@ -4,11 +4,19 @@ process_name: OnMon
 
 services:
 {
+  ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService }
 }
 
 source:
 {
-  module_type: RootInput
+  module_type: EmphaticOMInput
+  transfer_plugin: {
+    transferPluginType: TCPSocket
+    destination_rank: 2
+    source_rank: 1
+    host_map: [{rank: 1 host: "localhost"}, {rank: 2 host: "localhost"}]
+  }
   maxEvents:  -1        # Number of events to create
 }
 

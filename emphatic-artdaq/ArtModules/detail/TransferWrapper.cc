@@ -62,6 +62,13 @@ emphaticdaq::TransferWrapper::TransferWrapper(const fhicl::ParameterSet& pset)
               "TransferWrapper: could not configure metrics");
 	}
 
+	try {
+	  transfer_ = artdaq::MakeTransferPlugin(pset_, "transfer_plugin", artdaq::TransferInterface::Role::kReceive);
+	} catch(...) {
+	  artdaq::ExceptionHandler(artdaq::ExceptionHandlerRethrow::no, "TransferWrapper: failure in call to MakeTransferPlugin");
+	}
+
+
 	// Clamp possible values
 	if (runningStateInterval_us_ < 1000)
 	{
@@ -159,6 +166,11 @@ artdaq::FragmentPtrs emphaticdaq::TransferWrapper::receiveMessage() {
 			}
 		}
 
+		if (fragmentPtr->type() == artdaq::Fragment::EndOfSubrunFragmentType || fragmentPtr->type() == artdaq::Fragment::EndOfRunFragmentType) {
+		  // Ignore these for now
+		  continue;
+		}
+
 		if (fragmentPtr->type() == artdaq::Fragment::EndOfDataFragmentType)
 		{
 			//if (monitorRegistered_)
@@ -167,7 +179,7 @@ artdaq::FragmentPtrs emphaticdaq::TransferWrapper::receiveMessage() {
 			//}
 			if (multi_run_mode_)
 			{
-				initialized = false;
+			  //	initialized = false;
 				continue;
 			}
 
@@ -178,6 +190,10 @@ artdaq::FragmentPtrs emphaticdaq::TransferWrapper::receiveMessage() {
 
 		if (initialized || fragmentPtr->type() == artdaq::Fragment::InitFragmentType)
 		{
+		  if(initialized && fragmentPtr->type() == artdaq::Fragment::InitFragmentType) {
+		    // Ignore reinit for now, maybe handle in ArtdaqInputHelper later
+		    continue;
+		  }
 			initialized = true;
 			fragmentPtrs.push_back(std::move(fragmentPtr));
 			break;
