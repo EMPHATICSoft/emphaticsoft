@@ -283,7 +283,7 @@ namespace rawdata {
 	fTRB3_EpochTime.clear();
 	fTRB3_CoarseTime.clear();
 	for (auto & dig : digVec) { // loop over vector
-	  fTRB3_HeaderWord.push_back(dig.fpga_header_word);
+	  fTRB3_HeaderWord.push_back(dig.GetFPGAHeaderWord());
 	  fTRB3_Measurement.push_back(dig.GetMeasurement());
 	  fTRB3_Channel.push_back(dig.GetChannel());
 	  fTRB3_FineTime.push_back(dig.GetFineTime());
@@ -531,7 +531,7 @@ namespace rawdata {
 	  }
 	}
 	else if (fTRB3RawDigits.count(thisFragId)) {
-	  thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].fragmentTimestamp - fT0[thisFragId];
+	  thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].GetFragmentTimestamp() - fT0[thisFragId];
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
 	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
 	    emph::cmap::EChannel echan;
