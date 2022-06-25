@@ -79,15 +79,26 @@ namespace emph {
       uint32_t GetEpochCounter() const {return tdc_epoch_word & 0xfffffff;};
 
       // semi calibrated time in picoseconds
-      // linear calibration
-      // calibration constants depend on board and temperature
-      // values below are for reference only
-      // low  value of fine TDC hits = 17
-      // high value of fine TDC hits = 473
       double GetFinalTime() const {
+
+        // default linear calibration constants
+        double trb3LinearLowEnd = 17.0;
+        double trb3LinearHighEnd = 473.0;
+
+        // T0
+        if (GetBoardId()==18) {
+          trb3LinearLowEnd = 15.0;
+          trb3LinearHighEnd = 494.0;
+        }
+        // RPC
+        else if (GetBoardId()==19) {
+          trb3LinearLowEnd = 15.0;
+          trb3LinearHighEnd = 476.0;
+        }
+
         return ((double)GetEpochCounter())*10240026.0
-             + ((double) GetCoarseTime()) * 5000.0
-             - ((((double)GetFineTime())-17.0)/(473.0 - 17.0)) * 5000.0;
+             + ((double) GetCoarseTime())*5000.0
+             - ((((double)GetFineTime())-trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
       }
 
     };
