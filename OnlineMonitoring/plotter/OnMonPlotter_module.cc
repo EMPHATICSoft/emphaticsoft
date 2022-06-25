@@ -108,6 +108,10 @@ namespace emph {
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
+      TH1F*  fARICHNHitsEvt;
+      TH2F*  fARICHNHitsECh;
+      TH2F*  fARICHNHitsDCh;
+
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
       bool fMakeSSDPlots;
@@ -322,10 +326,12 @@ namespace emph {
 
     void  OnMonPlotter::MakeARICHPlots()
     {
+      HistoSet& h = HistoSet::Instance();
       if (fMakeTRB3Plots) {
-        int nchannel = emph::geo::DetInfo::NChannel(emph::geo::ARICH);
 	std::cout << "Making ARICH OnMon plots" << std::endl;
-        std::cout << "Channels " << nchannel << std::endl;
+        fARICHNHitsEvt = h.GetTH1F("ARICHNHitsEvt");
+        fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
+        fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
       }
     }
 
@@ -541,10 +547,46 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > &)
+    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
       if (fMakeTRB3Plots) {
-	std::cout << "Filling ARICH OnMon plots" << std::endl;
+
+        int nhits = 0;
+
+	for (size_t idx=0; idx < trb3H->size(); ++idx) {
+
+          const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+
+          // skip timing channel
+          if (trb3.GetChannel()==0) continue;
+
+          // leading edges count as new hits
+          if (trb3.IsLeading()) {
+
+            nhits++;
+
+            // fill histos with electronic channel
+            int fpga = trb3.GetBoardId();
+            int ch = trb3.GetChannel();
+            fARICHNHitsECh->Fill(ch,fpga);
+
+            // fill histos with detector channel
+            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ch);
+            emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+            if (dchan.DetId()==emph::geo::ARICH) {
+              fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
+            }
+            else {
+              std::cout << echan;
+              std::cout << " doesn't belong to the ARICH" << std::endl;
+            }
+
+          }//is leading
+
+        }//trb3 digits
+
+        fARICHNHitsEvt->Fill(nhits);
+
       }
     }
 
