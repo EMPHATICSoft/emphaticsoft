@@ -141,9 +141,10 @@ namespace emph {
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
-      TH1F*  fARICHNHitsEvt;
+      TH1F*  fARICHNHits;
       TH2F*  fARICHNHitsECh;
       TH2F*  fARICHNHitsDCh;
+      TH1F*  fARICHHitTimes;
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -440,9 +441,10 @@ namespace emph {
       HistoSet& h = HistoSet::Instance();
       if (fMakeTRB3Plots) {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
-        fARICHNHitsEvt = h.GetTH1F("ARICHNHitsEvt");
+        fARICHNHits = h.GetTH1F("ARICHNHits");
         fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
         fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
+        fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
       }
     }
 
@@ -687,6 +689,27 @@ namespace emph {
     {
       if (fMakeTRB3Plots) {
 
+        // find reference time for each fpga
+        std::map<int,double> refTime;
+        for (size_t idx=0; idx < trb3H->size(); ++idx) {
+
+          const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+
+          if (trb3.GetChannel()==0) {
+            int fpga = trb3.GetBoardId();
+            if (refTime.find(fpga)==refTime.end()) {
+              refTime[fpga] = trb3.GetFinalTime();
+            }
+            else {
+              std::cout << "Reference time for fpga " << fpga
+                        << " already exists."
+                        << " Time difference "
+                        << (trb3.GetFinalTime()-refTime[fpga])/1e3 << " (ns)" << std::endl;
+            }
+          }
+        }
+
+        // number of hits in this event
         int nhits = 0;
 
 	for (size_t idx=0; idx < trb3H->size(); ++idx) {
@@ -696,14 +719,18 @@ namespace emph {
           // skip timing channel
           if (trb3.GetChannel()==0) continue;
 
+          int fpga = trb3.GetBoardId();
+          int ch = trb3.GetChannel();
+          double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
+
+          fARICHHitTimes->Fill(time);
+
           // leading edges count as new hits
           if (trb3.IsLeading()) {
 
             nhits++;
 
             // fill histos with electronic channel
-            int fpga = trb3.GetBoardId();
-            int ch = trb3.GetChannel();
             fARICHNHitsECh->Fill(ch,fpga);
 
             // fill histos with detector channel
@@ -721,7 +748,7 @@ namespace emph {
 
         }//trb3 digits
 
-        fARICHNHitsEvt->Fill(nhits);
+        fARICHNHits->Fill(nhits);
 
       }
     }
