@@ -35,7 +35,7 @@ namespace emph {
       uint64_t GetFragmentTimestamp() const {return fragmentTimestamp;};
 
       uint32_t GetBoardId() const {
-	uint32_t id = 0;
+	uint32_t id = 99;
 	if      ((fpga_header_word & 0xffff)==0x100) id=0;
 	else if ((fpga_header_word & 0xffff)==0x101) id=1;
 	else if ((fpga_header_word & 0xffff)==0x102) id=2;
@@ -56,6 +56,9 @@ namespace emph {
 	else if ((fpga_header_word & 0xffff)==0x501) id=17;
 	else if ((fpga_header_word & 0xffff)==0x502) id=18;
 	else if ((fpga_header_word & 0xffff)==0x503) id=19;
+	else std::cout << "fpga " << std::hex << fpga_header_word << " (hex) "
+                       << std::dec << fpga_header_word << " (dec) "
+                       << "is not supported" << std::endl;
 	return id;
       }
 
