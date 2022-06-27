@@ -72,10 +72,13 @@ namespace emph {
 		TFile* f; 
 		TTree *tree;
 		int event, chan, Tchan, Gchan;
+		float Bq0, Bq1, Bq2, Bq3, Bq4, Bq5;
 		float Bmax0, Bmax1, Bmax2, Bmax3, Bmax4, Bmax5;
 		float Bblw0, Bblw1, Bblw2, Bblw3, Bblw4, Bblw5;
+		float Tq9, Tq10, Tq11, Tq12;
 		float Tmax9, Tmax10, Tmax11, Tmax12;
 		float Tblw9, Tblw10, Tblw11, Tblw12;
+		float Gq0, Gq1, Gq2;
 		float Gmax0, Gmax1, Gmax2;
 		float Gblw0, Gblw1, Gblw2;
     };
@@ -129,6 +132,12 @@ namespace emph {
 
 		tree->Branch("event",&event);
 
+		tree->Branch("BAC_q0",&Bq0);
+		tree->Branch("BAC_q1",&Bq1);
+		tree->Branch("BAC_q2",&Bq2);
+		tree->Branch("BAC_q3",&Bq3);
+		tree->Branch("BAC_q4",&Bq4);
+		tree->Branch("BAC_q5",&Bq5);
 		tree->Branch("BAC_max0",&Bmax0);
 		tree->Branch("BAC_max1",&Bmax1);
 		tree->Branch("BAC_max2",&Bmax2);
@@ -142,19 +151,26 @@ namespace emph {
 		tree->Branch("BAC_blw4",&Bblw4);
 		tree->Branch("BAC_blw5",&Bblw5);
 
+		tree->Branch("T0_q9",&Tq9);
 		tree->Branch("T0_max9",&Tmax9);
 		tree->Branch("T0_blw9",&Tblw9);
+		tree->Branch("T0_q10",&Tq10);
 		tree->Branch("T0_max10",&Tmax10);
 		tree->Branch("T0_blw10",&Tblw10);
+		tree->Branch("T0_q11",&Tq11);
 		tree->Branch("T0_max11",&Tmax11);
 		tree->Branch("T0_blw11",&Tblw11);
+		tree->Branch("T0_q12",&Tq12);
 		tree->Branch("T0_max12",&Tmax12);
 		tree->Branch("T0_blw12",&Tblw12);
 		
+		tree->Branch("GC_q0",&Gq0);
 		tree->Branch("GC_max0",&Gmax0);
 		tree->Branch("GC_blw0",&Gblw0);
+		tree->Branch("GC_q1",&Gq1);
 		tree->Branch("GC_max1",&Gmax1);
 		tree->Branch("GC_blw1",&Gblw1);
+		tree->Branch("GC_q2",&Gq2);
 		tree->Branch("GC_max2",&Gmax2);
 		tree->Branch("GC_blw2",&Gblw2);
     }
@@ -207,26 +223,32 @@ namespace emph {
             int detchan = dchan.Channel();
             if (detchan >= 0 && detchan < nchan) {
 	      if (detchan==0){
+		Bq0 = wvfm.IntegratedADC()-40*wvfm.Baseline();
 	        Bmax0 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw0 = wvfm.BLWidth();
 	      }
 	      if (detchan==1){
+		Bq1 = wvfm.IntegratedADC()-40*wvfm.Baseline();
 	        Bmax1 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw1 = wvfm.BLWidth();
 	      }
 	      if (detchan==2){
+		Bq2 = wvfm.IntegratedADC()-40*wvfm.Baseline();
 	        Bmax2 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw2 = wvfm.BLWidth();
 	      }
 	      if (detchan==3){
+		Bq3 = wvfm.IntegratedADC()-40*wvfm.Baseline();
 	        Bmax3 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw3 = wvfm.BLWidth();
 	      }
 	      if (detchan==4){
+		Bq4 = wvfm.IntegratedADC()-40*wvfm.Baseline();
 	        Bmax4 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw4 = wvfm.BLWidth();
 	      }
 	      if (detchan==5){
+		Bq5 = wvfm.IntegratedADC()-40*wvfm.Baseline();
 	        Bmax5 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw5 = wvfm.BLWidth();
 	      } 
@@ -242,19 +264,23 @@ namespace emph {
             emph::cmap::DChannel Tdchan = fChannelMap->DetChan(Techan);
             int Tdetchan = Tdchan.Channel();
             if (Tdetchan==9){
+	      Tq9 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
 	      Tmax9 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw9 = Twvfm.BLWidth();
 	      std::cout<<"Tboard is: "<<Tboard<<"     and Tchan is: "<<Tchan<<std::endl;	
 	    }
 	    if (Tdetchan==10){
+	      Tq10 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
 	      Tmax10 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw10 = Twvfm.BLWidth();	
 	    }
 	    if (Tdetchan==11){
+	      Tq11 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
 	      Tmax11 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw11 = Twvfm.BLWidth();	
 	    }
 	    if (Tdetchan==12){
+	      Tq12 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
 	      Tmax12 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw12 = Twvfm.BLWidth();	
 	    }
@@ -268,14 +294,17 @@ namespace emph {
             emph::cmap::DChannel Gdchan = fChannelMap->DetChan(Gechan);
             int Gdetchan = Gdchan.Channel();
             if (Gdetchan==0){
+	      Gq0 = Gwvfm.IntegratedADC()-40*Gwvfm.Baseline();
 	      Gmax0 = Gwvfm.Baseline()-Gwvfm.PeakADC();
 	      Gblw0 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==1){
+	      Gq1 = Gwvfm.IntegratedADC()-40*Gwvfm.Baseline();
 	      Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC();
 	      Gblw1 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==2){
+	      Gq2 = Gwvfm.IntegratedADC()-40*Gwvfm.Baseline();
 	      Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC();
 	      Gblw2 = Gwvfm.BLWidth();
 	    }
