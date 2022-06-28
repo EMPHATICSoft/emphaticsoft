@@ -144,6 +144,7 @@ namespace emph {
       TH1F*  fARICHNHits;
       TH2F*  fARICHNHitsECh;
       TH2F*  fARICHNHitsDCh;
+      TH2F*  fARICHNHitsPxl;
       TH1F*  fARICHHitTimes;
 
       bool fMakeWaveFormPlots;
@@ -444,6 +445,7 @@ namespace emph {
         fARICHNHits = h.GetTH1F("ARICHNHits");
         fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
         fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
+        fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
         fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
       }
     }
@@ -720,7 +722,7 @@ namespace emph {
           if (trb3.GetChannel()==0) continue;
 
           int fpga = trb3.GetBoardId();
-          int ch = trb3.GetChannel();
+          int chan = trb3.GetChannel();
           double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
 
           fARICHHitTimes->Fill(time);
@@ -730,19 +732,28 @@ namespace emph {
 
             nhits++;
 
-            // fill histos with electronic channel
-            fARICHNHitsECh->Fill(ch,fpga);
+            // electronic channel
+            fARICHNHitsECh->Fill(chan,fpga);
 
-            // fill histos with detector channel
-            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ch);
+            // detector channel
+            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,chan);
             emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-            if (dchan.DetId()==emph::geo::ARICH) {
+            if (dchan.DetId()==emph::geo::RPC) {//ARICH) {
               fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
             }
             else {
               std::cout << echan;
               std::cout << " doesn't belong to the ARICH" << std::endl;
             }
+
+            // pixel position
+            int pmt = dchan.HiLo();
+            int ch = chan-1;
+            int pmtxbin = (pmt*8)-(pmt/3)*24;
+            int pmtybin = (pmt/3)*8;
+            int pxlxbin = pmtxbin+ch-(ch/8)*8;
+            int pxlybin = pmtybin+(ch/8);
+            fARICHNHitsPxl->Fill(pxlxbin,pxlybin);
 
           }//is leading
 
@@ -936,7 +947,7 @@ namespace emph {
 
       }
       // get ARICH TRB3digits
-      i = emph::geo::ARICH;
+      i = emph::geo::RPC;//ARICH;
       labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
       try {
 	evt.getByLabel(labelStr, trbHandle);
