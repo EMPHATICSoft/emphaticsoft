@@ -738,7 +738,7 @@ namespace emph {
             // detector channel
             emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,chan);
             emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-            if (dchan.DetId()==emph::geo::RPC) {//ARICH) {
+            if (dchan.DetId()==emph::geo::ARICH) {
               fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
             }
             else {
@@ -947,7 +947,7 @@ namespace emph {
 
       }
       // get ARICH TRB3digits
-      i = emph::geo::RPC;//ARICH;
+      i = emph::geo::ARICH;
       labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
       try {
 	evt.getByLabel(labelStr, trbHandle);
