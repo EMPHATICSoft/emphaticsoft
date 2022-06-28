@@ -10,4 +10,10 @@ TriggerADC*,Trigger ADC Distribution;ADC,Trigger,TH1F,512,0,4095,0,0,0,,emph,run
 SSDProfile*,SSD Profile;Channel;Number of Hits,SSD,TH1F,640,0,640,0,0,0,,emph,run,1,Beam profile plots from SSDs.
 SSDNHits*,SSD Hit Multiplicity;Number of Hits,SSD,TH1F,50,0,50,0,0,0,,emph,run,1,Hit multiplicity distributions from SSDs.
 BACkovWaveForm*,BACkov Average Waveform;Tick;ADC,BACkov,TH1F,200,0,200,0,0,0,,emph,run,1,Shows average waveform from the BACkov detector PMTs.
-
+LGCaloWaveForm*,LG Calorimeter Average Waveform;Tick;ADC,LGCalo,TH1F,200,0,200,0,0,0,,emph,run,1,Shows average waveform from the LG Calorimeter PMTs.
+LGCaloIntCharge*,LG Calorimeter Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the integrated charge distribution from the LG Calorimeter PMTs.
+LGCaloTotalCharge*,LG Calorimeter Total Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the total integrated charge distribution from the LG Calorimeter PMTs.
+LGCaloCenterRatio*,LG Calorimeter Integrated Charge Ratio;Center Block Ch. / Total Ch.;Counts,LGCalo,TH1F,200,0,1,0,0,0,,emph,run,1,Shows the integrated charge ratio from the LG Calorimeter PMTs.
+LGCaloEdgeRatio*,LG Calorimeter Integrated Charge Ratio;Edge Blocks Ch. / Total Ch.;Counts,LGCalo,TH1F,200,0,1,0,0,0,,emph,run,1,Shows the integrated charge ratio from the LG Calorimeter PMTs.
+LGCaloIntChgVsRatio,Total Integrated Charge Vs Center Ratio;Center Ratio;Integrated Charge,LGCalo,TH2F,200,0,1,200,0,26000,colz:logz,emph,run,1,Total Integrated Charge Vs Center Ratio.
+NTriggerLGArray,Number of Triggers per LG Block;Block;Block,All Detectors,TH2F,3,0,3,3,0,3,colz:logz,emph,run,1,Distribution of the triggers among the LG calorimeter blocks.
