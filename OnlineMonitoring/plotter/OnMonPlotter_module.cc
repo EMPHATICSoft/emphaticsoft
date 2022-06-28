@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 // ROOT includes
@@ -29,7 +30,9 @@
 #include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"
+#include "OnlineMonitoring/util/IPC.h"
 #include "OnlineMonitoring/util/Settings.h"
+#include "OnlineMonitoring/util/Ticker.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
@@ -40,6 +43,20 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
   namespace onmon {
+
+    ///
+    /// A class for communication with the viewer via shared memory segment
+    ///
+    class OnMonProdIPC : public onmon::IPC
+    {
+    public:
+      OnMonProdIPC(int m, const char* hdl);
+    private:
+      TH1F* FindTH1F(const char* nm);
+      TH2F* FindTH2F(const char* nm);
+      void  HistoList(std::list<std::string>& hlist);
+    };
+
     class OnMonPlotter : public art::EDAnalyzer {
     public:
       explicit OnMonPlotter(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
@@ -53,6 +70,9 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
+      void beginRun(art::Run const&);
+      void endRun(art::Run const&);
+      void endSubRun(art::SubRun const&);
       void endJob();
 
     private:
@@ -75,6 +95,15 @@ namespace emph {
       void   MakeRPCPlots();
       void   MakeTrigPlots();
 
+      void HandleRequestsThread();
+
+      OnMonProdIPC* fIPC;         ///< Communicates with viewer
+      std::string   fSHMname;     ///< Shared memory for communication
+      bool          fuseSHM;      ///< Use SHM to communicate with a viewer?
+      std::atomic<bool> fSHMThreadRunning;
+      std::unique_ptr<std::thread> fSHMThreadPtr;
+      bool          fTickerOn;    ///< Turned on in the control room
+
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
       unsigned int fRun;
@@ -84,18 +113,24 @@ namespace emph {
       // hard codes consts for now,
       // need to figure out better solution with Geo NChannel function
       static const unsigned int nChanT0  = 20;
+      static const unsigned int nChanRPC = 16;
       static const unsigned int nChanCal = 9;
       static const unsigned int nChanBACkov = 6;
       static const unsigned int nChanGasCkov = 3;
       static const unsigned int nChanTrig = 4;
       
       // define histograms
-      TH2F*  fNRawObjectsHisto;  
-      TH1F*  fNTriggerVsDet;
-      TH2F*  fNTriggerLGArray;     
- 
+      TH2F* fNRawObjectsHisto;  
+      TH1F* fNTriggerVsDet;
+      TH2F* fTriggerVsSubrun;
+      TH2F*  fNTriggerLGArray;      
+      TH2F* fT0TDCChanVsADCChan;
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
+      TH2F* fT0TDCVsADC[nChanT0];
+      TH1F* fT0TDC[nChanT0];
+      TH1F* fRPCTDC[nChanRPC];
+      TH1F* fRPCNTDC[nChanRPC];
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
@@ -115,7 +150,19 @@ namespace emph {
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
       bool fMakeSSDPlots;
+
     };
+
+    OnMonProdIPC::OnMonProdIPC(int m, const char* hdl) : onmon::IPC(m, hdl) { }
+    TH1F* OnMonProdIPC::FindTH1F(const char* nm) {
+      return HistoSet::Instance().FindTH1F(nm);
+    }
+    TH2F* OnMonProdIPC::FindTH2F(const char* nm) {
+      return HistoSet::Instance().FindTH2F(nm);
+    }
+    void OnMonProdIPC::HistoList(std::list<std::string>& hlist) {
+      HistoSet::Instance().GetNames(hlist);
+    }
 
     //.......................................................................
     OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
@@ -139,6 +186,13 @@ namespace emph {
     //......................................................................
     void OnMonPlotter::reconfigure(const fhicl::ParameterSet& pset)
     {
+      fSHMname = pset.get<std::string>("SHMHandle");
+      fuseSHM = pset.get<bool>("useSHM");
+      fTickerOn = pset.get<bool>("TickerOn");
+
+      //if (fIPC) delete fIPC;
+      if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
+
       fChanMapFileName = pset.get<std::string>("channelMapFileName","");
       fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
       fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
@@ -167,6 +221,36 @@ namespace emph {
     }
 
     //......................................................................
+
+    void OnMonPlotter::beginRun(art::Run const&) {
+      if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
+	fSHMThreadRunning = false;
+	fSHMThreadPtr->join();}
+      fSHMThreadRunning = true;
+      fSHMThreadPtr.reset(new std::thread(&emph::onmon::OnMonPlotter::HandleRequestsThread, this)); 
+    }
+    
+    //......................................................................
+    
+    void OnMonPlotter::endRun(art::Run const&) {     
+      if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
+	fSHMThreadRunning = false;
+	fSHMThreadPtr->join();
+      } 
+    }
+
+    //......................................................................
+
+    void OnMonPlotter::HandleRequestsThread() {
+      if(!fuseSHM) return;
+      while(fSHMThreadRunning) {
+	fIPC->HandleRequests();
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+    }
+    
+    //......................................................................
+
     void OnMonPlotter::beginJob()
     {
       fNEvents=0;
@@ -181,7 +265,7 @@ namespace emph {
 	}
 	std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
       }
-      
+    
       //
       // Make all-detector plots
       //
@@ -190,7 +274,8 @@ namespace emph {
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
       fLGCaloIntChgVsRatio = h.GetTH2F("LGCaloIntChgVsRatio");
       fNTriggerLGArray     = h.GetTH2F("NTriggerLGArray"); //
- 
+      fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
+      
       // label x-axis
       std::string labelStr;
       int i=0;
@@ -204,7 +289,7 @@ namespace emph {
       labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
       fNTriggerVsDet->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
       fNRawObjectsHisto->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
-
+    
       MakeGasCkovPlots();
       MakeBACkovPlots();
       MakeT0Plots();
@@ -214,8 +299,35 @@ namespace emph {
       MakeRPCPlots();
       MakeTrigPlots();
 
+      // T0nTDC
+      if (fMakeTRB3Plots) {
+      	int nchannel = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      	for (int i=0; i<nchannel; ++i) {
+      	  labelStr = "RPC Channel "+std::to_string(i)+" Number of TDCs";
+      	  fRPCNTDC[i]->GetXaxis()->SetTitle(labelStr.c_str());
+      	}
+      }
+    
+
+
+
     }
     
+    //......................................................................
+
+    void OnMonPlotter::endSubRun(const art::SubRun&)
+    {
+      std::cout<<"Writing file for run/subrun: " << fRun << "/" << fSubrun << std::endl;
+      char filename[32];
+      sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
+      TFile* f = new TFile(filename,"RECREATE");
+      HistoSet::Instance().WriteToRootFile(f);
+      f->Close();
+      delete f; f=0;
+
+    }
+      
+
     //......................................................................
 
     void OnMonPlotter::endJob()
@@ -248,6 +360,8 @@ namespace emph {
       HistoSet::Instance().WriteToRootFile(f);
       f->Close();
       delete f; f=0;
+      //if(fIPC)    { delete fIPC; fIPC = 0; }
+
     }
     
     //......................................................................
@@ -304,13 +418,20 @@ namespace emph {
         for (int i=0; i<nchannel; ++i) {
           sprintf(hname,"T0ADC_%d",i);
           fT0ADCDist[i] = h.GetTH1F(hname);
+	}
+	std::cout << "Making T0TDC OnMon plots (new)" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"T0TDC_%d",i);
+	  fT0TDC[i] = h.GetTH1F(hname);
         }
       }
       if (fMakeTRB3Plots) {
         std::cout << "Making T0TDC OnMon plots" << std::endl;
+	fT0TDCChanVsADCChan = h.GetTH2F("T0TDCChanVsADCChan");
         for (int i=0; i<nchannel; ++i) {
           sprintf(hname,"T0NTDC_%d",i);
           fT0NTDC[i] = h.GetTH1F(hname);
+	  //fT0TDCVsADC[i] = h.GetTH2F(hname);
         }
       }
     }
@@ -378,8 +499,19 @@ namespace emph {
     
     void  OnMonPlotter::MakeRPCPlots()
     {
-      if (fMakeTRB3Plots)
+      HistoSet& h = HistoSet::Instance();
+
+      int nchannel = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      char hname[256];
+      if (fMakeTRB3Plots) {
 	std::cout << "Making RPC OnMon plots" << std::endl;
+	for (int i=0; i<nchannel; ++i) {
+	  sprintf(hname,"RPCNTDC_%d",i);
+          fRPCNTDC[i] = h.GetTH1F(hname);
+	  sprintf(hname,"RPCTDC_%d",i);
+	  fRPCTDC[i] = h.GetTH1F(hname);
+	}
+      }
     }
 
     //......................................................................
@@ -472,7 +604,11 @@ namespace emph {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
+      double trb3LinearLowEnd = 15.0;
+      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0
       echan.SetBoardType(boardType);
+      std::vector<int> vT0ADChits(nchan,0);	    
+      std::vector<int> vT0TDChits(nchan,0);	  
       if (fMakeWaveFormPlots) {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
@@ -486,8 +622,10 @@ namespace emph {
 	    if (detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fT0ADCDist[detchan]->Fill(adc);
+		vT0ADChits[detchan]=1; 
+	      }
 	    }
 	  }
 	}
@@ -495,10 +633,15 @@ namespace emph {
 
       if (fMakeTRB3Plots) {
 	if (! trb3H->empty()) {
+	  //std::cout<<"New Event!"<<std::endl;
+	  int i = 0;
+	  i++;
 	  std::vector<int> hitCount;
 	  hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::T0));
 	  boardType = emph::cmap::TRB3;
-	  echan.SetBoardType(boardType);	
+	  echan.SetBoardType(boardType);
+	  const rawdata::TRB3RawDigit& trb3Trigger = (*trb3H)[0];
+	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
 	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
@@ -507,14 +650,25 @@ namespace emph {
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
+	    long double time_T0 = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+	    //std::cout<<"detchan value: "<<detchan<<std::endl;
 	    if (detchan < nchan) { // watch out for channel 500!
 	      hitCount[detchan] += 1;
+	      fT0TDC[detchan]->Fill((triggerTime-time_T0)/100000);
 	    }
 	  }
-	  for (size_t i=0; i<hitCount.size(); ++i)
-	    fT0NTDC[i]->Fill(hitCount[i]);
-	  
+	  //std::cout<<"\n"<<std::endl;
+	  for (size_t i=0; i<hitCount.size(); ++i) {
+      	    fT0NTDC[i]->Fill(hitCount[i]);
+      	    vT0TDChits[i] = hitCount[i];	  
+      	  }
 	}
+      }
+      for(int i=0; i<(int)vT0ADChits.size(); i++) {
+      	if(vT0ADChits[i]==1)
+      	  for(int j = 0; j<(int)vT0TDChits.size(); j++) {
+      	    fT0TDCChanVsADCChan->Fill(i,j,vT0TDChits[j]);
+      	  }
       }
     }
         
@@ -630,11 +784,44 @@ namespace emph {
     }
 
     //......................................................................
-
-    void    OnMonPlotter::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void    OnMonPlotter::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+      int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      emph::cmap::EChannel echan;
+      emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+      double trb3LinearLowEnd = 15.0;
+      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0
+      //double trb3LinearHighEnd_RPC = 476.0; // For FPGA3? -- RPC
+      if (fMakeTRB3Plots) {
+        if (! trb3H->empty()) {
+	  std::vector<int> hitCount;
+          hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::RPC));
+          echan.SetBoardType(boardType);
+	  //The First hit for every event was in channel 500 (trigger)
+	  const rawdata::TRB3RawDigit& trb3Trigger = (*trb3H)[0];
+	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+          for (size_t idx=0; idx < trb3H->size(); ++idx) {
+            const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+            int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
+            int board = 100;
+            echan.SetBoard(board);
+            echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+            int detchan = dchan.Channel();
+	    //std::cout<<"Found TRB3 hit: IsLeading: "<<trb3.IsLeading()<<"; IsTrailing: "<<trb3.IsTrailing()<<"; Fine Time: " <<trb3.GetFineTime()<<"; Course Time: "<<trb3.GetCoarseTime()<<"; Epoch Counter: "<<trb3.GetEpochCounter()<<std::endl;
+	    long double time_RPC = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0; 
+	    if (detchan < nchan) { // watch out for channel 500!                                                                  
+              hitCount[detchan] += 1;
+	      fRPCTDC[detchan]->Fill((time_RPC - triggerTime)/100000);
+            }
+          }
+          for (size_t i=0; i<hitCount.size(); ++i){
+            fRPCNTDC[i]->Fill(hitCount[i]);	
+	  }
+	}
+      }
     }
-    //......................................................................
+    //.....................................}.................................
 
     void   OnMonPlotter::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
@@ -671,6 +858,23 @@ namespace emph {
       fSubrun = evt.subRun();     
       std::string labelStr;
 
+      if (fuseSHM) fIPC->HandleRequests();
+
+      static unsigned int count = 0;
+      if (++count%10==0) {
+	if (fuseSHM) fIPC->PostResources(fRun, fSubrun, evt.event());
+	// std::cout << "onmon_plot: run/sub/evt="
+	// 	  << fRun << "/" << fSubrun << "/" << evt.event()
+	// 	  << std::endl;
+      }
+
+      //
+      // Update the ticker so it can notify its subscribers.
+      // Do this BEFORE unpacking so that there are no overlaps in plots
+      // reset every 24 hours.
+      //
+      if (fTickerOn) Ticker::Instance().Update(fRun, fSubrun);
+
       for (int i=0; i<emph::geo::NDetectors; ++i) {
 
 	labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
@@ -681,6 +885,7 @@ namespace emph {
 	  if (!wfHandle->empty()) {
 	    fNRawObjectsHisto->Fill(i,wfHandle->size());
 	    fNTriggerVsDet->Fill(i);
+	    fTriggerVsSubrun->Fill(fSubrun,i);
 	    if (i == emph::geo::Trigger) FillTrigPlots(wfHandle);
 	    if (i == emph::geo::GasCkov) FillGasCkovPlots(wfHandle);
 	    if (i == emph::geo::BACkov)  FillBACkovPlots(wfHandle);
@@ -694,6 +899,7 @@ namespace emph {
 		if (!trbHandle->empty()) {
 		  fNRawObjectsHisto->Fill(j,trbHandle->size());
 		  fNTriggerVsDet->Fill(j);
+		  fTriggerVsSubrun->Fill(fSubrun,j);
 		  FillT0Plots(wfHandle, trbHandle);
 		}
 		else
@@ -720,6 +926,7 @@ namespace emph {
 	if (!trbHandle->empty()) {
 	  fNRawObjectsHisto->Fill(i,trbHandle->size());
 	  fNTriggerVsDet->Fill(i);
+	  fTriggerVsSubrun->Fill(fSubrun,i);
 	  FillRPCPlots(trbHandle);
 	}
       }
@@ -736,6 +943,7 @@ namespace emph {
 	if (!ssdHandle->empty()) {
 	  fNRawObjectsHisto->Fill(i,ssdHandle->size());
 	  fNTriggerVsDet->Fill(i);
+	  fTriggerVsSubrun->Fill(fSubrun,i);
 	  FillSSDPlots(ssdHandle);
 	}
       }
