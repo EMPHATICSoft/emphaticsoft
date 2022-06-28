@@ -1,4 +1,5 @@
 Name,Title,Category,Type,nx,x1,x2,ny,y1,y2,Option,Detector,Reset,Look back,Caption
+<<<<<<< HEAD
 NRawObjectsHisto,Number of Raw Objects Per Detector;Detector;Number,All Detectors,TH2F,9,0,9,100,0,100,colz:logz,emph,run,1,Distribution of the number of raw data objects per detector per event.
 NTriggerVsDet,Number of Triggers Seen by Each Detector;Detector;Number,All Detectors,TH1F,9,0,9,0,0,0,,emph,run,1,Shows number of triggers seen by each detector.
 T0ADC*,T0 ADC Distribution;ADC,T0,TH1F,512,0,4095,0,0,0,,emph,run,1,Shows ADC distribution for T0 channels.
@@ -18,3 +19,22 @@ RPCTOT*,RPC Time Over Threshold;Time(ns);Number of hits,TOT,TH1F,400,-200,200,0,
 T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,4000,-10000,10000,0,0,0,,emph,run,1,Shows TDC distribution for T0 channels.
 ToFHisto*,Time of Flight Distribution;Time of Flight(ns);Number of Hits,TDCs,TH1F,1000,-6000,6000,0,0,0,,emph,run,1,Shows number of particles with a time of flight value. 
 AllToFHisto*,Time of Flight Distribution;Time of Flight (ns); Number of Hits,ToF,TH1F,1000,-1000,1000,0,0,0,,emph,run,1,Shows number of particles for a Time of Flight value.
+=======
+NRawObjectsHisto,Number of Raw Objects Per Detector;Detector;Number,All Detectors,TH2F,9,0,9,100,0,100,colz:logz:detlbl:autozoomz,emph,subrun,1,Distribution of the number of raw data objects per detector per event.
+NTriggerVsDet,Number of Triggers Seen by Each Detector;Detector;Number,All Detectors,TH1F,9,0,9,0,0,0,detlbl:hist:autozoomy,emph,subrun,1,Shows number of triggers seen by each detector.
+TriggerVsSubrun,Number of triggers per subrun seen by each detector.;Subrun;Detector,All Detectors,TH2F,600,0,600,9,0,9,colz:autozoomz:special:zoomsr,emph,run,1,Number of triggers per subrun recorded by each detector.
+T0ADC*,T0 ADC Distribution;ADC,T0,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for T0 channels.
+T0NTDC*,Number of T0 Hits Per Event;TDC,T0,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of T0 hits seen in each event on a given channel.
+T0TDCVsADC*,T0 TDC vs ADC Distribution,T0,TH2F,512,0,4095,512,0,4095,,emph,subrun,1,Shows distribution of TDC vs ADC for T0 hits.
+T0TDCChanVsADCChan, T0 TDC vs ADC channel,T0,TH2F,20,0,20,20,0,20,,emph,subrun,1,TDC vs ADC channel.
+LGCaloADC*,LGCalo ADC Distribution;ADC,Lead Glass Calorimeter,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for lead glass calorimeter channels.
+BACkovADC*,BACkov ADC Distribution;ADC,BACkov,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for beam aerogel cherenkov detector.
+GasCkovADC*,Gas Ckov ADC Distribution;ADC,GasCkov,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for gas cherenkov detector.
+TriggerADC*,Trigger ADC Distribution;ADC,Trigger,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for trigger detector PMTs.
+SSDProfile*,SSD Profile;Channel;Number of Hits,SSD,TH1F,640,0,640,0,0,0,,emph,subrun,1,Beam profile plots from SSDs.
+SSDNHits*,SSD Hit Multiplicity;Number of Hits,SSD,TH1F,50,0,50,0,0,0,,emph,subrun,1,Hit multiplicity distributions from SSDs.
+BACkovWaveForm*,BACkov Average Waveform;Tick;ADC,BACkov,TH1F,200,0,200,0,0,0,,emph,subrun,1,Shows average waveform from the BACkov detector PMTs.
+RPCNTDC*,Number of RPC Hits Per Event;TDC,RPC,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of RPC hits seen in each event on a given channel.
+RPCTDC*,RPC TDC Distribution;TDC,RPC,TH1F,512,-100,100,0,0,0,,emph,subrun,1,Shows TDC distribution for RPC channels.
+T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,512,-100,100,0,0,0,,emph,subrun,1,Shows TDC distribution for T0 channels.
+>>>>>>> origin/main
