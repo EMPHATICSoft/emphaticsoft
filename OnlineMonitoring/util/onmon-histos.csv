@@ -14,5 +14,7 @@ SSDNHits*,SSD Hit Multiplicity;Number of Hits,SSD,TH1F,50,0,50,0,0,0,,emph,run,1
 BACkovWaveForm*,BACkov Average Waveform;Tick;ADC,BACkov,TH1F,200,0,200,0,0,0,,emph,run,1,Shows average waveform from the BACkov detector PMTs.
 RPCNTDC*,Number of RPC Hits Per Event;TDC,RPC,TH1F,50,0,50,0,0,0,,emph,run,1,Shows number of RPC hits seen in each event on a given channel.
 RPCTDC*,RPC TDC Distribution;TDC,RPC,TH1F,512,-100,100,0,0,0,,emph,run,1,Shows TDC distribution for RPC channels.
-T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,512,-100,100,0,0,0,,emph,run,1,Shows TDC distribution for T0 channels.
-ToFHisto,Time of Flight Distribution;Time of Flight(ps?);Number of Hits,TDCs,TH1F,512,-100,100,0,0,0,,emph,run,1,Shows number of particles with a time of flight value. 
+RPCTOT*,RPC Time Over Threshold;Time(ns);Number of hits,TOT,TH1F,400,-200,200,0,0,0,,emph,run,1,Shows Time over threshold.
+T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,4000,-10000,10000,0,0,0,,emph,run,1,Shows TDC distribution for T0 channels.
+ToFHisto*,Time of Flight Distribution;Time of Flight(ns);Number of Hits,TDCs,TH1F,1000,-6000,6000,0,0,0,,emph,run,1,Shows number of particles with a time of flight value. 
+AllToFHisto*,Time of Flight Distribution;Time of Flight (ns); Number of Hits,ToF,TH1F,1000,-1000,1000,0,0,0,,emph,run,1,Shows number of particles for a Time of Flight value.
