@@ -642,7 +642,7 @@ namespace emph {
 	      fT0TDC[detchan]->Fill((time_T0-triggerTime)/1000);
 	    }
 	  }
-	  std::cout<<"\n"<<std::endl;
+	  //std::cout<<"\n"<<std::endl;
 	  for (size_t i=0; i<hitCount.size(); ++i) {
       	    fT0NTDC[i]->Fill(hitCount[i]);
       	    vT0TDChits[i] = hitCount[i];	  
@@ -745,7 +745,7 @@ namespace emph {
       double trb3LinearHighEnd = 476.0; // For FPGA3? -- RPC
       if (fMakeTRB3Plots) {
         if (! trb3H->empty()) {
-	  std::cout<<"New Event!"<<std::endl;
+	  //std::cout<<"New Event!"<<std::endl;
 	  std::vector<int> hitCount;
           hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::RPC));
           echan.SetBoardType(boardType);
@@ -754,31 +754,23 @@ namespace emph {
 	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
 	  ///////NOTE: Only looking at the first event that stores rising & falling edges////////
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
-            const rawdata::TRB3RawDigit& trb3_rising = (*trb3H)[idx];
-	    const rawdata::TRB3RawDigit& trb3_falling = (*trb3H)[idx+1];
-            int chan = trb3_rising.GetChannel() + 65*(trb3_rising.fpga_header_word-1280);
-	    int chan_falling = trb3_falling.GetChannel() + 65*(trb3_falling.fpga_header_word-1280);
+            const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+            int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
 	    int board = 100;
             echan.SetBoard(board);
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-	    echan.SetChannel(chan_falling);
-	    emph::cmap::DChannel dchan_falling = fChannelMap->DetChan(echan);
-	    int detchan_falling = dchan_falling.Channel();
 	    //std::cout<<"Found TRB3 hit: IsLeading: "<<trb3.IsLeading()<<"; IsTrailing: "<<trb3.IsTrailing()<<";
-	    long double rising_time_RPC = trb3_rising.GetEpochCounter()*10240026.0 + trb3_rising.GetCoarseTime() * 5000.0 - ((trb3_rising.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
-	    long double falling_time_RPC = trb3_falling.GetEpochCounter()*10240026.0 + trb3_falling.GetCoarseTime() * 5000.0 - ((trb3_falling.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
-	    std::cout<<"detchan value: "<<detchan<<std::endl;
-	    std::cout<<"falling detchan value: "<<detchan_falling<<std::endl;
-	    if ((detchan < nchan) && (detchan == detchan_falling)) { // watch out for channel 500!                                                                  
+	    long double rising_time_RPC = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+	    //long double falling_time_RPC = trb3_falling.GetEpochCounter()*10240026.0 + trb3_falling.GetCoarseTime() * 5000.0 - ((trb3_falling.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+	    if ((detchan < nchan)) { // watch out for channel 500!                                                                  
               hitCount[detchan] += 1;
 	      fRPCTDC[detchan]->Fill((rising_time_RPC - triggerTime)/1000);
-	      fRPCTOT[detchan]->Fill((falling_time_RPC - rising_time_RPC)/1000);
-	      idx=idx+1;
+	      //fRPCTOT[detchan]->Fill((falling_time_RPC - rising_time_RPC)/1000);
 	    }
           }
-	  std::cout<<"\n"<<std::endl;
+	  //std::cout<<"\n"<<std::endl;
           for (size_t i=0; i<hitCount.size(); ++i){
             fRPCNTDC[i]->Fill(hitCount[i]);	
 	  }
@@ -860,23 +852,6 @@ namespace emph {
       fSubrun = evt.subRun();     
       std::string labelStr;
       std::string labelStr2;
-
-      if (fuseSHM) fIPC->HandleRequests();
-
-      static unsigned int count = 0;
-      if (++count%10==0) {
-	if (fuseSHM) fIPC->PostResources(fRun, fSubrun, evt.event());
-	// std::cout << "onmon_plot: run/sub/evt="
-	// 	  << fRun << "/" << fSubrun << "/" << evt.event()
-	// 	  << std::endl;
-      }
-
-      //
-      // Update the ticker so it can notify its subscribers.
-      // Do this BEFORE unpacking so that there are no overlaps in plots
-      // reset every 24 hours.
-      //
-      if (fTickerOn) Ticker::Instance().Update(fRun, fSubrun);
 
       if (fuseSHM) fIPC->HandleRequests();
 

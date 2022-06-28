@@ -544,7 +544,12 @@ namespace rawdata {
 	      int channel = tdig.GetChannel() + 65*(tdig.fpga_header_word-1280);
 	      echan.SetChannel(channel);
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-	      if (dchan.DetId() != emph::geo::NDetectors)
+	      if (dchan.DetId() != emph::geo::NDetectors) {
+		if (dchan.DetId() == emph::geo::T0 ||
+		    dchan.DetId() == emph::geo::RPC) {
+		  tdig.IsHigh = dchan.HiLo();
+		}
+	      }
 		evtTRB3Digits[dchan.DetId()]->push_back(tdig);
 	      ++nObjects;
 	    }
