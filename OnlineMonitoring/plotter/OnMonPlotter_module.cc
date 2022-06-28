@@ -123,15 +123,10 @@ namespace emph {
       static const unsigned int nChanTrig = 4;
       
       // define histograms
-<<<<<<< HEAD
       TH2F*  fNRawObjectsHisto;  
       TH1F*  fNTriggerVsDet;
+      TH2F*  fTriggerVsSubrun;
       TH1F*  fAllToFHisto;
-=======
-      TH2F* fNRawObjectsHisto;  
-      TH1F* fNTriggerVsDet;
-      TH2F* fTriggerVsSubrun;
->>>>>>> origin/main
       
       TH2F* fT0TDCChanVsADCChan;
 
@@ -277,13 +272,9 @@ namespace emph {
       HistoSet& h = HistoSet::Instance();
       fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
-<<<<<<< HEAD
-      fAllToFHisto         = h.GetTH1F("AllToFHisto");
-
-=======
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
+      fAllToFHisto      = h.GetTH1F("AllToFHisto");
       
->>>>>>> origin/main
       // label x-axis
       std::string labelStr;
       int i=0;
@@ -869,6 +860,23 @@ namespace emph {
       fSubrun = evt.subRun();     
       std::string labelStr;
       std::string labelStr2;
+
+      if (fuseSHM) fIPC->HandleRequests();
+
+      static unsigned int count = 0;
+      if (++count%10==0) {
+	if (fuseSHM) fIPC->PostResources(fRun, fSubrun, evt.event());
+	// std::cout << "onmon_plot: run/sub/evt="
+	// 	  << fRun << "/" << fSubrun << "/" << evt.event()
+	// 	  << std::endl;
+      }
+
+      //
+      // Update the ticker so it can notify its subscribers.
+      // Do this BEFORE unpacking so that there are no overlaps in plots
+      // reset every 24 hours.
+      //
+      if (fTickerOn) Ticker::Instance().Update(fRun, fSubrun);
 
       if (fuseSHM) fIPC->HandleRequests();
 
