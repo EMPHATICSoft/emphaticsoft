@@ -123,13 +123,14 @@ namespace emph {
       static const unsigned int nChanTrig = 4;
       
       // define histograms
-      TH2F*  fNRawObjectsHisto;  
-      TH1F*  fNTriggerVsDet;
-      TH2F*  fTriggerVsSubrun;
-      TH1F*  fAllToFHisto;
-      
-      TH2F* fT0TDCChanVsADCChan;
 
+      TH2F* fNRawObjectsHisto;  
+      TH1F* fNTriggerVsDet;
+      TH2F* fTriggerVsSubrun;
+      TH2F*  fNTriggerLGArray;
+      TH1F*  fAllToFHisto;
+
+      TH2F* fT0TDCChanVsADCChan;
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
       TH2F* fT0TDCVsADC[nChanT0];
@@ -142,10 +143,23 @@ namespace emph {
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
       std::vector<unsigned int> fNEventsBACkov;
+      std::vector<unsigned int> fNEventsLGCalo;
+      std::vector<TH1F*> fLGCaloWaveForm;
+      std::vector<TH1F*> fLGCaloIntCharge;
+      TH1F* fLGCaloTotalCharge;
+      TH1F* fLGCaloCenterRatio;
+      TH1F* fLGCaloEdgeRatio;
+      TH2F*  fLGCaloIntChgVsRatio;
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
+
+      TH1F*  fARICHNHits;
+      TH2F*  fARICHNHitsECh;
+      TH2F*  fARICHNHitsDCh;
+      TH2F*  fARICHNHitsPxl;
+      TH1F*  fARICHHitTimes;
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -272,6 +286,8 @@ namespace emph {
       HistoSet& h = HistoSet::Instance();
       fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
+      fLGCaloIntChgVsRatio = h.GetTH2F("LGCaloIntChgVsRatio");
+      fNTriggerLGArray     = h.GetTH2F("NTriggerLGArray"); //
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
       fAllToFHisto      = h.GetTH1F("AllToFHisto");
       
@@ -338,8 +354,28 @@ namespace emph {
 	  scale = 1./float(fNEventsBACkov[i]);
 	  fBACkovWaveForm[i]->Scale(scale);
 	}
+        for (size_t i=0; i<fLGCaloWaveForm.size(); ++i) {
+          scale = 1./float(fNEventsLGCalo[i]);
+          fLGCaloWaveForm[i]->Scale(scale);
+        }
       }
 
+     fNTriggerLGArray->SetBinContent(1.5,1.5,fNEventsLGCalo[6]);
+     fNTriggerLGArray->SetBinContent(2.5,2.5,fNEventsLGCalo[4]);
+     fNTriggerLGArray->SetBinContent(3.5,3.5,fNEventsLGCalo[2]);
+     fNTriggerLGArray->SetBinContent(1.5,3.5,fNEventsLGCalo[0]);
+     fNTriggerLGArray->SetBinContent(2.5,3.5,fNEventsLGCalo[1]);
+     fNTriggerLGArray->SetBinContent(1.5,2.5,fNEventsLGCalo[3]);
+     fNTriggerLGArray->SetBinContent(3.5,2.5,fNEventsLGCalo[5]);
+     fNTriggerLGArray->SetBinContent(2.5,1.5,fNEventsLGCalo[7]);
+     fNTriggerLGArray->SetBinContent(3.5,1.5,fNEventsLGCalo[8]);
+
+      char filename[32];
+      sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
+      TFile* f = new TFile(filename,"RECREATE");
+      HistoSet::Instance().WriteToRootFile(f);
+      f->Close();
+      delete f; f=0;
       //if(fIPC)    { delete fIPC; fIPC = 0; }
 
     }
@@ -441,8 +477,15 @@ namespace emph {
 
     void  OnMonPlotter::MakeARICHPlots()
     {
-      if (fMakeTRB3Plots)
+      HistoSet& h = HistoSet::Instance();
+      if (fMakeTRB3Plots) {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
+        fARICHNHits = h.GetTH1F("ARICHNHits");
+        fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
+        fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
+        fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
+        fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
+      }
     }
 
     //......................................................................
@@ -459,6 +502,19 @@ namespace emph {
           sprintf(hname,"LGCaloADC_%d",i);
           fLGCaloADCDist[i] = h.GetTH1F(hname);
         }
+        std::cout << "Making LGCalo WaveForm OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"LGCaloWaveForm_%d",i);
+          fLGCaloWaveForm.push_back(h.GetTH1F(hname));
+          fLGCaloWaveForm[i]->SetBit(TH1::kIsAverage);
+
+          sprintf(hname,"LGCaloIntCharge_%d",i);
+          fLGCaloIntCharge.push_back(h.GetTH1F(hname));
+          fNEventsLGCalo.push_back(0);
+        }
+	fLGCaloTotalCharge = h.GetTH1F("LGCaloTotalCharge");
+	fLGCaloCenterRatio = h.GetTH1F("LGCaloCenterRatio");
+        fLGCaloEdgeRatio   = h.GetTH1F("LGCaloEdgeRatio");
       }
     }
 
@@ -628,8 +684,8 @@ namespace emph {
 	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
-	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-	    int board = 100;
+	    int board = trb3.GetBoardId();
+	    int chan = trb3.GetChannel();
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel  dchan = fChannelMap->DetChan(echan);
@@ -700,14 +756,88 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+      if (fMakeTRB3Plots) {
+
+        // find reference time for each fpga
+        std::map<int,double> refTime;
+        for (size_t idx=0; idx < trb3H->size(); ++idx) {
+
+          const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+
+          if (trb3.GetChannel()==0) {
+            int fpga = trb3.GetBoardId();
+            if (refTime.find(fpga)==refTime.end()) {
+              refTime[fpga] = trb3.GetFinalTime();
+            }
+            else {
+              std::cout << "Reference time for fpga " << fpga
+                        << " already exists."
+                        << " Time difference "
+                        << (trb3.GetFinalTime()-refTime[fpga])/1e3 << " (ns)" << std::endl;
+            }
+          }
+        }
+
+        // number of hits in this event
+        int nhits = 0;
+
+	for (size_t idx=0; idx < trb3H->size(); ++idx) {
+
+          const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+
+          // skip timing channel
+          if (trb3.GetChannel()==0) continue;
+
+          int fpga = trb3.GetBoardId();
+          int chan = trb3.GetChannel();
+          double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
+
+          fARICHHitTimes->Fill(time);
+
+          // leading edges count as new hits
+          if (trb3.IsLeading()) {
+
+            nhits++;
+
+            // electronic channel
+            fARICHNHitsECh->Fill(chan,fpga);
+
+            // detector channel
+            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,chan);
+            emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+            if (dchan.DetId()==emph::geo::ARICH) {
+              fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
+            }
+            else {
+              std::cout << echan;
+              std::cout << " doesn't belong to the ARICH" << std::endl;
+            }
+
+            // pixel position
+            int pmt = dchan.HiLo();
+            int ch = chan-1;
+            int pmtxbin = (pmt*8)-(pmt/3)*24;
+            int pmtybin = (pmt/3)*8;
+            int pxlxbin = pmtxbin+ch-(ch/8)*8;
+            int pxlybin = pmtybin+(ch/8);
+            fARICHNHitsPxl->Fill(pxlxbin,pxlybin);
+
+          }//is leading
+
+        }//trb3 digits
+
+        fARICHNHits->Fill(nhits);
+
+      }
     }
 
     //......................................................................
 
     void    OnMonPlotter::FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
+      float c1=0; float e1=0; float t1=0;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
@@ -725,13 +855,46 @@ namespace emph {
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fLGCaloADCDist[detchan]->Fill(adc);
-	    }
+		//now fill waveform plot
+	        auto adcvals = wvfm.AllADC();
+                fNEventsLGCalo[detchan]++;
+                for (size_t i=0; i<adcvals.size(); ++i) {
+                  fLGCaloWaveForm[detchan]->Fill(i+1,adcvals[i]);
+		}
+		// now fill integrated charge plot
+		float x1=20; float nsamp=25; //range where the signal is
+		float avg = 0; int ic = 0;
+		float sum=0;
+		for (size_t i=0; i<adcvals.size(); ++i){
+                        if (i<size_t(x1) || i>size_t(x1+nsamp)) avg += float(adcvals[i]), ++ic;
+                }
+		
+		avg /= float(ic); //baseline for each signal
+		
+		for (size_t i=x1; i<size_t(x1+nsamp) && i<adcvals.size(); ++i){
+                         sum += (avg-adcvals[i]); //total integrated charge over the range
+                }
+		fLGCaloIntCharge[detchan]->Fill(sum);
+		fLGCaloTotalCharge->Fill(sum);
+
+		//now fill the energy ratio plots
+		if (detchan==4) c1 += sum;
+                if (detchan!=4) e1 += sum;
+                t1 += sum;
+
+		if (e1!=0 && c1!=0){
+ 	          fLGCaloEdgeRatio->Fill(e1/t1);
+                  fLGCaloCenterRatio->Fill(c1/t1);
+
+                  fLGCaloIntChgVsRatio->Fill(c1/t1,sum);
+		}
+	      }
+            }
 	  }
 	}
-      }
-      
+      } 
     }
 
     //......................................................................
@@ -755,8 +918,11 @@ namespace emph {
 	  ///////NOTE: Only looking at the first event that stores rising & falling edges////////
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
             const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
-            int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-	    int board = 100;
+
+            //int chan = trb3.GetChannel() + 65*(trb3.GetFPGAHeaderWord()-1280);
+            //int board = 100;
+            int chan = trb3.GetChannel();
+            int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -795,9 +961,11 @@ namespace emph {
 	  for (size_t idx=0; idx < T0trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& T0trb3 = (*T0trb3H)[idx];
 	    const rawdata::TRB3RawDigit& RPCtrb3 = (*RPCtrb3H)[idx];
-	    int T0chan = T0trb3.GetChannel() + 65*(T0trb3.fpga_header_word-1280);
-            int RPCchan = RPCtrb3.GetChannel() + 65*(RPCtrb3.fpga_header_word-1280);
-	    int board = 100;
+	    //int T0chan = T0trb3.GetChannel() + 65*(T0trb3.fpga_header_word-1280);
+            //int RPCchan = RPCtrb3.GetChannel() + 65*(RPCtrb3.fpga_header_word-1280);
+	    int T0chan = T0trb3.GetChannel();
+            int RPCchan = RPCtrb3.GetChannel();
+	    int board = T0trb3.GetBoardId();
             T0echan.SetBoard(board);
 	    RPCechan.SetBoard(board);
             T0echan.SetChannel(T0chan);
@@ -923,6 +1091,20 @@ namespace emph {
 	  fNTriggerVsDet->Fill(i);
 	  fTriggerVsSubrun->Fill(fSubrun,i);
 	  FillRPCPlots(trbHandle);
+	}
+      }
+      catch(...) {
+
+      }
+      // get ARICH TRB3digits
+      i = emph::geo::ARICH;
+      labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      try {
+	evt.getByLabel(labelStr, trbHandle);
+	if (!trbHandle->empty()) {
+	  fNRawObjectsHisto->Fill(i,trbHandle->size());
+	  fNTriggerVsDet->Fill(i);
+	  FillARICHPlots(trbHandle);
 	}
       }
       catch(...) {

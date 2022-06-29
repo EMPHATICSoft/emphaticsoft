@@ -204,11 +204,7 @@ void emphaticdaq::TRB3Dump::analyze(const art::Event& evt)
           epoch_word = word;
         if((word & 0xe0000000) == 0x80000000){
   	       uint32_t tdc_word = word;
-           emph::rawdata::TRB3RawDigit trb3dig;
-           trb3dig.fpga_header_word = sseheader->subevent_id;
-           trb3dig.tdc_header_word  = tdc_header;
-           trb3dig.tdc_epoch_word   = epoch_word;
-           trb3dig.tdc_measurement_word = tdc_word;
+           emph::rawdata::TRB3RawDigit trb3dig(sseheader->subevent_id,tdc_header,epoch_word,tdc_word,trbFrag.timestamp());
            std::cout << "Making raw digit: " << sseheader->subevent_id << ", " << tdc_header << ", " << epoch_word << ", " << tdc_word << std::endl;
            trb3vec.push_back(trb3dig);
           }
