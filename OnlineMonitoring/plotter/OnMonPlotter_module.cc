@@ -147,6 +147,12 @@ namespace emph {
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
+      TH1F*  fARICHNHits;
+      TH2F*  fARICHNHitsECh;
+      TH2F*  fARICHNHitsDCh;
+      TH2F*  fARICHNHitsPxl;
+      TH1F*  fARICHHitTimes;
+
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
       bool fMakeSSDPlots;
@@ -461,8 +467,15 @@ namespace emph {
 
     void  OnMonPlotter::MakeARICHPlots()
     {
-      if (fMakeTRB3Plots)
+      HistoSet& h = HistoSet::Instance();
+      if (fMakeTRB3Plots) {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
+        fARICHNHits = h.GetTH1F("ARICHNHits");
+        fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
+        fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
+        fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
+        fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
+      }
     }
 
     //......................................................................
@@ -644,8 +657,8 @@ namespace emph {
 	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
-	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-	    int board = 100;
+	    int board = trb3.GetBoardId();
+	    int chan = trb3.GetChannel();
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -715,8 +728,81 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & )
+    void OnMonPlotter::FillARICHPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+      if (fMakeTRB3Plots) {
+
+        // find reference time for each fpga
+        std::map<int,double> refTime;
+        for (size_t idx=0; idx < trb3H->size(); ++idx) {
+
+          const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+
+          if (trb3.GetChannel()==0) {
+            int fpga = trb3.GetBoardId();
+            if (refTime.find(fpga)==refTime.end()) {
+              refTime[fpga] = trb3.GetFinalTime();
+            }
+            else {
+              std::cout << "Reference time for fpga " << fpga
+                        << " already exists."
+                        << " Time difference "
+                        << (trb3.GetFinalTime()-refTime[fpga])/1e3 << " (ns)" << std::endl;
+            }
+          }
+        }
+
+        // number of hits in this event
+        int nhits = 0;
+
+	for (size_t idx=0; idx < trb3H->size(); ++idx) {
+
+          const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+
+          // skip timing channel
+          if (trb3.GetChannel()==0) continue;
+
+          int fpga = trb3.GetBoardId();
+          int chan = trb3.GetChannel();
+          double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
+
+          fARICHHitTimes->Fill(time);
+
+          // leading edges count as new hits
+          if (trb3.IsLeading()) {
+
+            nhits++;
+
+            // electronic channel
+            fARICHNHitsECh->Fill(chan,fpga);
+
+            // detector channel
+            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,chan);
+            emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+            if (dchan.DetId()==emph::geo::ARICH) {
+              fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
+            }
+            else {
+              std::cout << echan;
+              std::cout << " doesn't belong to the ARICH" << std::endl;
+            }
+
+            // pixel position
+            int pmt = dchan.HiLo();
+            int ch = chan-1;
+            int pmtxbin = (pmt*8)-(pmt/3)*24;
+            int pmtybin = (pmt/3)*8;
+            int pxlxbin = pmtxbin+ch-(ch/8)*8;
+            int pxlybin = pmtybin+(ch/8);
+            fARICHNHitsPxl->Fill(pxlxbin,pxlybin);
+
+          }//is leading
+
+        }//trb3 digits
+
+        fARICHNHits->Fill(nhits);
+
+      }
     }
 
     //......................................................................
@@ -802,8 +888,10 @@ namespace emph {
 	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
             const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
-            int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-            int board = 100;
+            //int chan = trb3.GetChannel() + 65*(trb3.GetFPGAHeaderWord()-1280);
+            //int board = 100;
+            int chan = trb3.GetChannel();
+            int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -928,6 +1016,20 @@ namespace emph {
 	  fNTriggerVsDet->Fill(i);
 	  fTriggerVsSubrun->Fill(fSubrun,i);
 	  FillRPCPlots(trbHandle);
+	}
+      }
+      catch(...) {
+
+      }
+      // get ARICH TRB3digits
+      i = emph::geo::ARICH;
+      labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      try {
+	evt.getByLabel(labelStr, trbHandle);
+	if (!trbHandle->empty()) {
+	  fNRawObjectsHisto->Fill(i,trbHandle->size());
+	  fNTriggerVsDet->Fill(i);
+	  FillARICHPlots(trbHandle);
 	}
       }
       catch(...) {
