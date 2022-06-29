@@ -19,6 +19,7 @@ RPCNTDC*,Number of RPC Hits Per Event;TDC,RPC,TH1F,50,0,50,0,0,0,,emph,subrun,1,
 RPCTDC*,RPC TDC Distribution;TDC,RPC,TH1F,512,-100,100,0,0,0,,emph,subrun,1,Shows TDC distribution for RPC channels.
 RPCTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,100,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
 RPCTime*,(RPC - Trigger) time;Time,RPC,TH1F,100,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+RPCTOT*,RPC time over threshold;Time,RPC,TH1F,100,-1e7,1e7,0,0,0,,emph,run,1,difference between leading and trailing edge of each RPC channel pair.
 T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,512,-100,100,0,0,0,,emph,subrun,1,Shows TDC distribution for T0 channels.
 ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,50,0,50,0,0,0,,emph,run,1,Number of ARICH hits per event.
 ARICHNHitsECh,ARICH hits in electronic space;Channel;FPGA,ARICH,TH2F,65,0,65,20,0,20,,emph,run,1,ARICH hits in electronic space.
