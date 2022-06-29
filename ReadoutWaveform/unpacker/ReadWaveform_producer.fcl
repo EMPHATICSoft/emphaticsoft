@@ -1,0 +1,14 @@
+BEGIN_PROLOG
+
+standard_onmon:
+{
+  module_type: ReadoutWaveform
+
+  makeWaveformPlots:      true
+  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+  boardNum: 3
+  chanNum: 4
+  evtNum: 10
+}
+
+END_PROLOG

@@ -223,32 +223,32 @@ namespace emph {
             int detchan = dchan.Channel();
             if (detchan >= 0 && detchan < nchan) {
 	      if (detchan==0){
-		Bq0 = wvfm.IntegratedADC()-40*wvfm.Baseline();
+		Bq0 = wvfm.Charge();
 	        Bmax0 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw0 = wvfm.BLWidth();
 	      }
 	      if (detchan==1){
-		Bq1 = wvfm.IntegratedADC()-40*wvfm.Baseline();
+		Bq1 = wvfm.Charge();
 	        Bmax1 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw1 = wvfm.BLWidth();
 	      }
 	      if (detchan==2){
-		Bq2 = wvfm.IntegratedADC()-40*wvfm.Baseline();
+		Bq2 = wvfm.Charge();
 	        Bmax2 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw2 = wvfm.BLWidth();
 	      }
 	      if (detchan==3){
-		Bq3 = wvfm.IntegratedADC()-40*wvfm.Baseline();
+		Bq3 = wvfm.Charge();
 	        Bmax3 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw3 = wvfm.BLWidth();
 	      }
 	      if (detchan==4){
-		Bq4 = wvfm.IntegratedADC()-40*wvfm.Baseline();
+		Bq4 = wvfm.Charge();
 	        Bmax4 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw4 = wvfm.BLWidth();
 	      }
 	      if (detchan==5){
-		Bq5 = wvfm.IntegratedADC()-40*wvfm.Baseline();
+		Bq5 = wvfm.Charge();
 	        Bmax5 = wvfm.Baseline()-wvfm.PeakADC();
 	        Bblw5 = wvfm.BLWidth();
 	      } 
@@ -264,23 +264,23 @@ namespace emph {
             emph::cmap::DChannel Tdchan = fChannelMap->DetChan(Techan);
             int Tdetchan = Tdchan.Channel();
             if (Tdetchan==9){
-	      Tq9 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
+	      Tq9 = Twvfm.Charge();
 	      Tmax9 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw9 = Twvfm.BLWidth();
 	      std::cout<<"Tboard is: "<<Tboard<<"     and Tchan is: "<<Tchan<<std::endl;	
 	    }
 	    if (Tdetchan==10){
-	      Tq10 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
+	      Tq10 = Twvfm.Charge();
 	      Tmax10 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw10 = Twvfm.BLWidth();	
 	    }
 	    if (Tdetchan==11){
-	      Tq11 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
+	      Tq11 = Twvfm.Charge();
 	      Tmax11 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw11 = Twvfm.BLWidth();	
 	    }
 	    if (Tdetchan==12){
-	      Tq12 = Twvfm.IntegratedADC()-40*Twvfm.Baseline();
+	      Tq12 = Twvfm.Charge();
 	      Tmax12 = Twvfm.Baseline()-Twvfm.PeakADC();
 	      Tblw12 = Twvfm.BLWidth();	
 	    }
@@ -294,17 +294,17 @@ namespace emph {
             emph::cmap::DChannel Gdchan = fChannelMap->DetChan(Gechan);
             int Gdetchan = Gdchan.Channel();
             if (Gdetchan==0){
-	      Gq0 = Gwvfm.IntegratedADC()-40*Gwvfm.Baseline();
-	      Gmax0 = Gwvfm.Baseline()-Gwvfm.PeakADC();
+	      Gq0 = Gwvfm.Charge();
+;	      Gmax0 = Gwvfm.Baseline()-Gwvfm.PeakADC();
 	      Gblw0 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==1){
-	      Gq1 = Gwvfm.IntegratedADC()-40*Gwvfm.Baseline();
+	      Gq1 =  Gwvfm.Charge();
 	      Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC();
 	      Gblw1 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==2){
-	      Gq2 = Gwvfm.IntegratedADC()-40*Gwvfm.Baseline();
+	      Gq2 = Gwvfm.Charge();
 	      Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC();
 	      Gblw2 = Gwvfm.BLWidth();
 	    }
