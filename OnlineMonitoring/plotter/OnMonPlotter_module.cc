@@ -123,9 +123,8 @@ namespace emph {
       TH2F* fNRawObjectsHisto;  
       TH1F* fNTriggerVsDet;
       TH2F* fTriggerVsSubrun;
-
+      TH2F*  fNTriggerLGArray;      
       TH2F* fT0TDCChanVsADCChan;
-
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
       TH2F* fT0TDCVsADC[nChanT0];
@@ -136,6 +135,13 @@ namespace emph {
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
       std::vector<unsigned int> fNEventsBACkov;
+      std::vector<unsigned int> fNEventsLGCalo;
+      std::vector<TH1F*> fLGCaloWaveForm;
+      std::vector<TH1F*> fLGCaloIntCharge;
+      TH1F* fLGCaloTotalCharge;
+      TH1F* fLGCaloCenterRatio;
+      TH1F* fLGCaloEdgeRatio;
+      TH2F*  fLGCaloIntChgVsRatio;
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
       std::vector<TH1F*> fSSDProf;
@@ -272,6 +278,8 @@ namespace emph {
       HistoSet& h = HistoSet::Instance();
       fNRawObjectsHisto = h.GetTH2F("NRawObjectsHisto");
       fNTriggerVsDet    = h.GetTH1F("NTriggerVsDet");
+      fLGCaloIntChgVsRatio = h.GetTH2F("LGCaloIntChgVsRatio");
+      fNTriggerLGArray     = h.GetTH2F("NTriggerLGArray"); //
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
       
       // label x-axis
@@ -336,8 +344,28 @@ namespace emph {
 	  scale = 1./float(fNEventsBACkov[i]);
 	  fBACkovWaveForm[i]->Scale(scale);
 	}
+        for (size_t i=0; i<fLGCaloWaveForm.size(); ++i) {
+          scale = 1./float(fNEventsLGCalo[i]);
+          fLGCaloWaveForm[i]->Scale(scale);
+        }
       }
 
+     fNTriggerLGArray->SetBinContent(1.5,1.5,fNEventsLGCalo[6]);
+     fNTriggerLGArray->SetBinContent(2.5,2.5,fNEventsLGCalo[4]);
+     fNTriggerLGArray->SetBinContent(3.5,3.5,fNEventsLGCalo[2]);
+     fNTriggerLGArray->SetBinContent(1.5,3.5,fNEventsLGCalo[0]);
+     fNTriggerLGArray->SetBinContent(2.5,3.5,fNEventsLGCalo[1]);
+     fNTriggerLGArray->SetBinContent(1.5,2.5,fNEventsLGCalo[3]);
+     fNTriggerLGArray->SetBinContent(3.5,2.5,fNEventsLGCalo[5]);
+     fNTriggerLGArray->SetBinContent(2.5,1.5,fNEventsLGCalo[7]);
+     fNTriggerLGArray->SetBinContent(3.5,1.5,fNEventsLGCalo[8]);
+
+      char filename[32];
+      sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
+      TFile* f = new TFile(filename,"RECREATE");
+      HistoSet::Instance().WriteToRootFile(f);
+      f->Close();
+      delete f; f=0;
       //if(fIPC)    { delete fIPC; fIPC = 0; }
 
     }
@@ -464,6 +492,19 @@ namespace emph {
           sprintf(hname,"LGCaloADC_%d",i);
           fLGCaloADCDist[i] = h.GetTH1F(hname);
         }
+        std::cout << "Making LGCalo WaveForm OnMon plots" << std::endl;
+        for (int i=0; i<nchannel; ++i) {
+          sprintf(hname,"LGCaloWaveForm_%d",i);
+          fLGCaloWaveForm.push_back(h.GetTH1F(hname));
+          fLGCaloWaveForm[i]->SetBit(TH1::kIsAverage);
+
+          sprintf(hname,"LGCaloIntCharge_%d",i);
+          fLGCaloIntCharge.push_back(h.GetTH1F(hname));
+          fNEventsLGCalo.push_back(0);
+        }
+	fLGCaloTotalCharge = h.GetTH1F("LGCaloTotalCharge");
+	fLGCaloCenterRatio = h.GetTH1F("LGCaloCenterRatio");
+        fLGCaloEdgeRatio   = h.GetTH1F("LGCaloEdgeRatio");
       }
     }
 
@@ -768,6 +809,7 @@ namespace emph {
 
     void    OnMonPlotter::FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
+      float c1=0; float e1=0; float t1=0;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::LGCalo);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
@@ -785,13 +827,46 @@ namespace emph {
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fLGCaloADCDist[detchan]->Fill(adc);
-	    }
+		//now fill waveform plot
+	        auto adcvals = wvfm.AllADC();
+                fNEventsLGCalo[detchan]++;
+                for (size_t i=0; i<adcvals.size(); ++i) {
+                  fLGCaloWaveForm[detchan]->Fill(i+1,adcvals[i]);
+		}
+		// now fill integrated charge plot
+		float x1=20; float nsamp=25; //range where the signal is
+		float avg = 0; int ic = 0;
+		float sum=0;
+		for (size_t i=0; i<adcvals.size(); ++i){
+                        if (i<size_t(x1) || i>size_t(x1+nsamp)) avg += float(adcvals[i]), ++ic;
+                }
+		
+		avg /= float(ic); //baseline for each signal
+		
+		for (size_t i=x1; i<size_t(x1+nsamp) && i<adcvals.size(); ++i){
+                         sum += (avg-adcvals[i]); //total integrated charge over the range
+                }
+		fLGCaloIntCharge[detchan]->Fill(sum);
+		fLGCaloTotalCharge->Fill(sum);
+
+		//now fill the energy ratio plots
+		if (detchan==4) c1 += sum;
+                if (detchan!=4) e1 += sum;
+                t1 += sum;
+
+		if (e1!=0 && c1!=0){
+ 	          fLGCaloEdgeRatio->Fill(e1/t1);
+                  fLGCaloCenterRatio->Fill(c1/t1);
+
+                  fLGCaloIntChgVsRatio->Fill(c1/t1,sum);
+		}
+	      }
+            }
 	  }
 	}
-      }
-      
+      } 
     }
 
     //......................................................................
