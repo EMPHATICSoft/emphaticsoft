@@ -125,12 +125,16 @@ namespace emph {
       TH2F* fTriggerVsSubrun;
       TH2F*  fNTriggerLGArray;      
       TH2F* fT0TDCChanVsADCChan;
+      TH1F* fT0TimeSum;
+      TH1F* fRPCTimeSum;
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
       TH2F* fT0TDCVsADC[nChanT0];
       TH1F* fT0TDC[nChanT0];
+      TH1F* fT0Time[nChanT0 - 1];
       TH1F* fRPCTDC[nChanRPC];
       TH1F* fRPCNTDC[nChanRPC];
+      TH1F* fRPCTime[2*nChanRPC - 1];
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
@@ -439,6 +443,11 @@ namespace emph {
           fT0NTDC[i] = h.GetTH1F(hname);
 	  //fT0TDCVsADC[i] = h.GetTH2F(hname);
         }
+        for (int i=1; i < nchannel; ++i) {
+          sprintf(hname, "T0Time_%02d",i);
+          fT0Time[i-1] = h.GetTH1F(hname);
+        }
+        fT0TimeSum = h.GetTH1F("T0TimeSum");
       }
     }
     
@@ -524,6 +533,12 @@ namespace emph {
 	  sprintf(hname,"RPCTDC_%d",i);
 	  fRPCTDC[i] = h.GetTH1F(hname);
 	}
+        // Skipping ch0 because it is the trigger channel
+        for (int i=1; i < 2*nchannel; ++i) {
+          sprintf(hname, "RPCTime_%02d", i);
+          fRPCTime[i-1] = h.GetTH1F(hname);
+        }
+        fRPCTimeSum = h.GetTH1F("RPCTimeSum");
       }
     }
 
@@ -655,11 +670,31 @@ namespace emph {
 	  echan.SetBoardType(boardType);
 	  const rawdata::TRB3RawDigit& trb3Trigger = (*trb3H)[0];
 	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+          // Loop through trb3 channels and find time at ch 0 (trigger)
+          double startTime = 0;
+          for (size_t idx=0; idx < trb3H->size(); ++idx) {
+            const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+              if (trb3.GetChannel() == 0) {
+                startTime = trb3.GetFinalTime();
+                break;
+              }
+          }
+          if (startTime == 0) {
+            std::cout << "startTime not found" << std::endl;
+          }
+          bool channelFilled[nChanT0] {false};
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
 	    int board = trb3.GetBoardId();
 	    int chan = trb3.GetChannel();
-	    echan.SetBoard(board);	
+            double time = trb3.GetFinalTime();
+            if (chan != 0
+                && !channelFilled[chan]) {
+              // Only fills once per channel
+              fT0TimeSum->Fill(time - startTime);
+              fT0Time[chan-1]->Fill(time - startTime);
+            }
+            echan.SetBoard(board);
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
@@ -669,6 +704,7 @@ namespace emph {
 	      hitCount[detchan] += 1;
 	      fT0TDC[detchan]->Fill((triggerTime-time_T0)/100000);
 	    }
+            channelFilled[chan] = true;
 	  }
 	  //std::cout<<"\n"<<std::endl;
 	  for (size_t i=0; i<hitCount.size(); ++i) {
@@ -886,8 +922,24 @@ namespace emph {
 	  //The First hit for every event was in channel 500 (trigger)
 	  const rawdata::TRB3RawDigit& trb3Trigger = (*trb3H)[0];
 	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+          // Loop through trb3 channels and find time at ch 0 (trigger)
+          double startTime = 0;
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
             const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+            if (trb3.GetChannel() == 0) {
+              startTime = trb3.GetFinalTime();
+              break;
+            }
+          }
+          if (startTime == 0) {
+            std::cout << "startTime not found" << std::endl;
+          }
+          double prevTime = 0;
+          int prevChan = 0;
+          bool channelFilled[2 * nChanRPC] {false};
+          for (size_t idx=0; idx < trb3H->size(); ++idx) {
+            const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
+            double time = trb3.GetFinalTime();
             //int chan = trb3.GetChannel() + 65*(trb3.GetFPGAHeaderWord()-1280);
             //int board = 100;
             int chan = trb3.GetChannel();
@@ -897,11 +949,20 @@ namespace emph {
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
 	    //std::cout<<"Found TRB3 hit: IsLeading: "<<trb3.IsLeading()<<"; IsTrailing: "<<trb3.IsTrailing()<<"; Fine Time: " <<trb3.GetFineTime()<<"; Course Time: "<<trb3.GetCoarseTime()<<"; Epoch Counter: "<<trb3.GetEpochCounter()<<std::endl;
-	    long double time_RPC = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0; 
-	    if (detchan < nchan) { // watch out for channel 500!                                                                  
+	    long double time_RPC = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
+            if (chan != 0
+                && !channelFilled[chan]) {
+              // Only fills once per channel
+              fRPCTimeSum->Fill(time - startTime);
+              fRPCTime[chan-1]->Fill(time - startTime);
+            }
+	    if (detchan < nchan) { // watch out for channel 500!
               hitCount[detchan] += 1;
 	      fRPCTDC[detchan]->Fill((time_RPC - triggerTime)/100000);
             }
+            prevTime = time;
+            prevChan = chan;
+            channelFilled[chan] = true;
           }
           for (size_t i=0; i<hitCount.size(); ++i){
             fRPCNTDC[i]->Fill(hitCount[i]);	
