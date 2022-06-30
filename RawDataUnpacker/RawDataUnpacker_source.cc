@@ -549,10 +549,10 @@ namespace rawdata {
 		    dchan.DetId() == emph::geo::RPC) {
 		  tdig.SetIsHi(dchan.HiLo());
 		}
-	      }
 		evtTRB3Digits[dchan.DetId()]->push_back(tdig);
+	      }
 	      ++nObjects;
-	    }
+	    }	
 	    fFragCounter[thisFragId] += 1;
 	  }
 	}
