@@ -93,6 +93,8 @@ namespace rawdata {
       help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw",detStr);
     }
 
+    detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::ARICH));
+    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
     detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::T0));
     help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
     detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::RPC));

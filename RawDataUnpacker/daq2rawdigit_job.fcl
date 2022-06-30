@@ -34,7 +34,7 @@ source:
   channelMapFileName: "ChannelMap_Jun22.txt"
   SSDFilePrefix: "/data/"
   readSSDData: false
-  readTRB3Data: false
+  readTRB3Data: true
 }
 
 outputs:
