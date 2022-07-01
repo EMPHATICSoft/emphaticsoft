@@ -146,6 +146,10 @@ namespace emph {
     simb::MCTruth mctru;
     mctru.SetBeam(b);
 
+    auto beamPos = b.Position();
+    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
+      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+
     // the next steps are a little clunky.  Make a vector of art::Ptr<MCTruth> 
     // objects to use when making the associations and another of just
     // const* MCTruth objects to pass to G4Alg

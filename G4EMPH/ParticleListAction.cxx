@@ -137,17 +137,25 @@ namespace emph {
     const G4int                 pdg     = partdef->GetPDGEncoding();
     const G4DynamicParticle*    dp      = track->GetDynamicParticle();
     const G4PrimaryParticle*    pp      = dp->GetPrimaryParticle();
-    
-    MF_LOG_DEBUG("ParticleListAction") << "preparing to track " << fCurrentTrackID
+
+    // was MF_LOG_DEBUG
+    MF_LOG_INFO("ParticleListAction") << "preparing to track " << fCurrentTrackID
 				       << " pdg " << pdg
 				       << " with parent " << parentID;
-    
+
+    auto trackPos = track->GetPosition();
+    MF_LOG_INFO("ParticleListAction") << "Track has start position = (" <<
+      trackPos[0] << "," << trackPos[1] << "," << trackPos[2] << ")" << 
+      std::endl;
+
     std::string process_name;
     if ( pp != 0 ){
       const G4VUserPrimaryParticleInformation* gppi = pp->GetUserInformation();
       const g4b::PrimaryParticleInformation* ppi = dynamic_cast<const g4b::PrimaryParticleInformation*>(gppi);
       
       if ( ppi != 0 ){
+	//	std::cout << "%%%%% HERE 1 %%%%%" << std::endl;
+
         // If we've made it this far, a PrimaryParticleInformation
         // object exists and we are using a primary particle, set the
         // process name accordingly.
@@ -166,127 +174,131 @@ namespace emph {
       // figure out what process is making this track - skip it if it is
       // one of pair production, compton scattering, photoelectric effect
       // bremstrahlung, annihilation, any ionization - who wants to save
-      // a buttload of electrons that arent from a CC interaction?
+      // a buttload of electrons?
       process_name = track->GetCreatorProcess()->GetProcessName();
-      /*
+      //      std::cout << "%%%%% Process = " << process_name << " %%%%%" << std::endl;
+      
       if( !fManyParticles && (process_name.find("conv")               != std::string::npos
                               || process_name.find("LowEnConversion") != std::string::npos
-                              ||(process_name.find("Pair")            != std::string::npos && fisFirstPairRecorded)
+                              ||(process_name.find("Pair")            != std::string::npos) // && fisFirstPairRecorded)
                               || process_name.find("compt")           != std::string::npos
                               || process_name.find("Compt")           != std::string::npos
-                              ||(process_name.find("Brem")            != std::string::npos && fisFirstBremRecorded)
+                              ||(process_name.find("Brem")            != std::string::npos) // && fisFirstBremRecorded)
                               || process_name.find("phot")            != std::string::npos
                               || process_name.find("Photo")           != std::string::npos
                               || process_name.find("Ion")             != std::string::npos
                               || process_name.find("annihil")         != std::string::npos)){
-      */        
-        // find the ultimate parent of this particle that was not a secondary
-        // of the EM shower
-        // first add this track id and its parent to the fParentIDMap
-      fParentIDMap[fCurrentTrackID] = parentID;
-      
-      fCurrentTrackID = this->GetParentage(fCurrentTrackID);
-      
-      MF_LOG_DEBUG("ParticleListAction") << "current track ID " << fCurrentTrackID;
-      
-      // check that fCurrentTrackID is in the particle list - it is possible
-      // that this particle's parent is a particle that did not get tracked.
-      // An example is a parent that was made due to muMinusCaptureAtRest
-      // and the daughter was made by the phot process.  The parent likely
-      // isn't saved in the particle list because it is below the energy cut
-      // which will put a bogus track id value into the sim::IDE object for
-      // the sim::SimChannel if we don't check it.
-      if(fParticleNav->find(fCurrentTrackID) == fParticleNav->end() )
+
+	//	std::cout << "%%%%% HERE 2, " << process_name << " // %%%%%" << std::endl;
 	
-        fCurrentTrackID = sim::kNoParticleId;
+	// find the ultimate parent of this particle that was not a secondary
+	// of the EM shower
+	// first add this track id and its parent to the fParentIDMap
+	fParentIDMap[fCurrentTrackID] = parentID;
+	
+	fCurrentTrackID = this->GetParentage(fCurrentTrackID);
+	
+	MF_LOG_DEBUG("ParticleListAction") << "current track ID " << fCurrentTrackID;
+	
+	// check that fCurrentTrackID is in the particle list - it is possible
+	// that this particle's parent is a particle that did not get tracked.
+	// An example is a parent that was made due to muMinusCaptureAtRest
+	// and the daughter was made by the phot process.  The parent likely
+	// isn't saved in the particle list because it is below the energy cut
+	// which will put a bogus track id value into the sim::IDE object for
+	// the sim::SimChannel if we don't check it.
+	if(fParticleNav->find(fCurrentTrackID) == fParticleNav->end() ) {
+	  
+	  fCurrentTrackID = sim::kNoParticleId;
+	  
+	  // set fParticle to 0 as we are not stepping this particle
+	  // and adding trajectory points to it
+	  fParticle = 0;
+	  
+	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << trackID << " bc EM daughter, "
+	 				     << process_name << " " << pdg
+	 				     << ", use track id " << fCurrentTrackID;
+	  
+	  return;
+	}// end if part of EM shower, but not primary particle
       
-      // set fParticle to 0 as we are not stepping this particle
-      // and adding trajectory points to it
-      fParticle = 0;
+	// Check the energy of the particle.  If it falls below the energy
+	// cut, don't add it to our list.
+	const G4double energy = track->GetKineticEnergy();
+	//	std::cout << "%%%%% energy = " << energy << "%%%%%" << std::endl;
+	if ( energy < fEnergyCut ){
+	  fParticle = 0;
+	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
+	  
+	  // do add the particle to the parent id map though
+	  // and set the current track id to be it's ultimate parent
+	  fParentIDMap[fCurrentTrackID] = parentID;
+	  
+	  fCurrentTrackID = this->GetParentage(fCurrentTrackID);
+	  return;
+	}
+	
+	// check to see if the parent particle has been stored in the particle navigator
+	// if not, then see if it is possible to walk up the fParentIDMap to find the
+	// ultimate parent of this particle.  Use that ID as the parent ID for this
+	// particle      
+	if( fParticleNav->find(parentID) == fParticleNav->end() ){
+	  // do add the particle to the parent id map
+	  // just in case it makes a daughter that we have to track as well
+	  fParentIDMap[fCurrentTrackID] = parentID;
+	  const int pid = this->GetParentage(parentID);
+	  
+	  // if we still can't find the parent in the particle navigator,
+	  // we have to give up
+	  if( fParticleNav->find(pid) == fParticleNav->end() ){
+	    mf::LogWarning("ParticleListAction") << "can't find parent id: "
+						 << parentID
+						 << " in the particle navigator, or fParentIDMap."
+						 << " Make " << parentID << " the mother ID for"
+						 << " track ID " << fCurrentTrackID
+						 << " in the hope that it will aid debugging.";
+	  }
+	  else
+	    parentID = pid;
+	}
+	
+	// Attempt to find the MCTruth index corresponding to the
+	// current particle.  If the fCurrentTrackID is not in the
+	// map try the parent ID, if that is not there, throw an
+	// exception
+	if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0 )
+	  mcTruthIndex = fTrackIDToMCTruthIndex.at(fCurrentTrackID);
+	else if(fTrackIDToMCTruthIndex.count(parentID) > 0 )
+	  mcTruthIndex = fTrackIDToMCTruthIndex.at(parentID);
+	else
+	  throw cet::exception("ParticleListAction") << "Cannot find MCTruth index for track id "
+						     << fCurrentTrackID << " or " << parentID;
+      }// end of if/else
       
-      MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << trackID << " bc EM daughter, "
-					 << process_name << " " << pdg
-					 << ", use track id " << fCurrentTrackID;
+      // protect against potentially empty process names.
+      if     ( process_name.empty() )                         { process_name         = "unknown";}
       
-      //      return;
-      //    }// end if part of EM shower, but not primary particle
+      // Create the sim::Particle object
+      fParticle = new sim::Particle(fCurrentTrackID, pdg, process_name,
+				    parentID, dp->GetMass()/CLHEP::GeV);
+      //part.Print();
       
-      // Check the energy of the particle.  If it falls below the energy
-      // cut, don't add it to our list.
-      const G4double energy = track->GetKineticEnergy();
-      if ( energy < fEnergyCut ){
-        fParticle = 0;
-        MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
-        
-        // do add the particle to the parent id map though
-        // and set the current track id to be it's ultimate parent
-        fParentIDMap[fCurrentTrackID] = parentID;
-        
-        fCurrentTrackID = this->GetParentage(fCurrentTrackID);
-        return;
-      }
+      // Polarization.
+      const G4ThreeVector& polarization = track->GetPolarization();
+      fParticle->SetPolarization( TVector3(polarization.x(),
+					   polarization.y(),
+					   polarization.z() ) );
       
-      // check to see if the parent particle has been stored in the particle navigator
-      // if not, then see if it is possible to walk up the fParentIDMap to find the
-      // ultimate parent of this particle.  Use that ID as the parent ID for this
-      // particle
-      if( fParticleNav->find(parentID) == fParticleNav->end() ){
-        // do add the particle to the parent id map
-        // just in case it makes a daughter that we have to track as well
-        fParentIDMap[fCurrentTrackID] = parentID;
-        const int pid = this->GetParentage(parentID);
-        
-        // if we still can't find the parent in the particle navigator,
-        // we have to give up
-        if( fParticleNav->find(pid) == fParticleNav->end() ){
-          mf::LogWarning("ParticleListAction") << "can't find parent id: "
-          << parentID
-          << " in the particle navigator, or fParentIDMap."
-          << " Make " << parentID << " the mother ID for"
-          << " track ID " << fCurrentTrackID
-          << " in the hope that it will aid debugging.";
-}
-        else
-  parentID = pid;
-      }
+      fParticleNav->Add(fParticle);
       
-      // Attempt to find the MCTruth index corresponding to the
-      // current particle.  If the fCurrentTrackID is not in the
-      // map try the parent ID, if that is not there, throw an
-      // exception
-      if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0 )
-        mcTruthIndex = fTrackIDToMCTruthIndex.at(fCurrentTrackID);
-      else if(fTrackIDToMCTruthIndex.count(parentID) > 0 )
-        mcTruthIndex = fTrackIDToMCTruthIndex.at(parentID);
-      else
-	throw cet::exception("ParticleListAction") << "Cannot find MCTruth index for track id "
-						   << fCurrentTrackID << " or " << parentID;
-    }// end of if/else
-    
-    
-    // protect against potentially empty process names.
-    if     ( process_name.empty() )                         { process_name         = "unknown";}
-    
-    // Create the sim::Particle object
-    fParticle = new sim::Particle(fCurrentTrackID, pdg, process_name,
-                                  parentID, dp->GetMass()/CLHEP::GeV);
-    //part.Print();
-    
-    // Polarization.
-    const G4ThreeVector& polarization = track->GetPolarization();
-    fParticle->SetPolarization( TVector3(polarization.x(),
-                                         polarization.y(),
-                                         polarization.z() ) );
-    
-    fParticleNav->Add(fParticle);
-    
-    if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0)
-      MF_LOG_WARNING("ParticleListAction") << "attempting to put " << fCurrentTrackID
-					   << " into fTrackIDToMCTruthIndex map "
-					   << " particle is\n" << *fParticle;
-    
-    fTrackIDToMCTruthIndex[fCurrentTrackID] = mcTruthIndex;
-        
+      if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0)
+	MF_LOG_WARNING("ParticleListAction") << "attempting to put " << fCurrentTrackID
+					     << " into fTrackIDToMCTruthIndex map "
+					     << " particle is\n" << *fParticle;
+      
+      fTrackIDToMCTruthIndex[fCurrentTrackID] = mcTruthIndex;
+    }
+
     return;
   }
 
@@ -307,7 +319,9 @@ namespace emph {
     // information to the particle's trajectory.  There's one
     // exception: In PreTrackingAction, the correct time information
     // is not available.  So add the correct vertex information here.
-    
+
+    std::cout << "Stepping into trajecotry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
+
     if ( fParticle->NumberTrajectoryPoints() == 0 ){
       // Get the pre-step information from the G4Step.
       const G4StepPoint* preStepPoint = step->GetPreStepPoint();

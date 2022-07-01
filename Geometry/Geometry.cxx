@@ -88,11 +88,13 @@ namespace emph {
     bool Geometry::LoadGDMLFile()
     {
       std::ifstream geoFile;
-
+      std::string file_path;
+      std::string fname;
+      
       geoFile.open(fGDMLFile.c_str());
       if (!geoFile.is_open()) {
 	throw cet::exception("GeometryFileLoad")
-	  << "cannot find GDML file " << fGDMLFile << " bail ungracefully\n"
+	  << "cannot find GDML file " << fname << " bail ungracefully\n"
 	  << __FILE__ << ":" << __LINE__ << "\n";
 	return false;
       }
@@ -100,16 +102,16 @@ namespace emph {
       
       mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
 					<< fGDMLFile << "\n";
-      
+
+      //      if (fGeoManager) delete fGeoManager;
       int old_verbosity = gGeoManager->GetVerboseLevel();
       
       // TGeoManager is too verbose when loading geometry.
       // Make it quiet.
       gGeoManager->SetVerboseLevel(0);
       
-      //fGeoManager->Import(fname.c_str());
       TGeoManager::Import(fGDMLFile.c_str());
-
+      
       fGeoManager = gGeoManager;
       
       mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
@@ -118,17 +120,17 @@ namespace emph {
       
       const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
       std::cout << "world_n = " << world_n << std::endl;
-
+      
       const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
       std::cout << "world_v = " << world_n << std::endl;
-
+      
       TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
       std::cout << "world_box = " << world_box << std::endl;
       
       fWorldHeight = world_box->GetDY();
       fWorldWidth  = world_box->GetDX();
       fWorldLength = world_box->GetDZ();
-
+      
       ExtractMagnetInfo(world_v);
       mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
       
@@ -160,7 +162,8 @@ namespace emph {
 	
 	if ( fNSSDStations > 0 ){
 	  
-	  std::cout<<"n SSD: "<<fNSSDStations <<std::endl;
+	  std::cout<<"n SSD Stations: "<<fNSSDStations <<std::endl;
+	  std::cout<<"n SSD sensors: "<<fNSSDs <<std::endl;
 	  
 	  fDetectorLoad[i] = true;
 	  fDetectorUSZPos[i] = fSSDStation.front().Pos()[2]-fSSDStation.front().Dz();
@@ -222,6 +225,7 @@ namespace emph {
       std::vector<std::string> nodeName;
       
       std::string sString = "ssdStation";
+      std::string ssubString = "ssdsensor";
       
       for (int i=0; i<nnodes; ++i) {
 	std::string name = world_v->GetNode(i)->GetName();
@@ -230,6 +234,7 @@ namespace emph {
       }
       
       fNSSDStations = (int)nodeName.size();
+      fNSSDs = 0;
       
       for (auto name : nodeName) {
 	SSDStation st;
@@ -245,6 +250,26 @@ namespace emph {
 	st.SetHeight(2*st_box->GetDY());
 	
 	// now add individual SSDs to the station
+	
+	int nsub = st_n->GetNodes()->GetEntries();
+	for( int j=0; j<nsub; ++j){
+	  std::string name = st_v->GetNode(j)->GetName();
+	  if (name.find(ssubString) != std::string::npos){
+	    Detector sensor;
+	    TGeoNode* sensor_n = (TGeoNode*)st_v->GetNode(name.c_str());
+	    TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
+	    TGeoBBox* sensor_box = (TGeoBBox*)sensor_v->GetShape();
+	    
+	    sensor.SetName(name);
+	    sensor.SetDz(sensor_box->GetDZ());
+	    sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
+	    sensor.SetWidth(2*sensor_box->GetDX());
+	    sensor.SetHeight(2*sensor_box->GetDY());
+	    
+	    st.AddSSD(sensor);
+	    fNSSDs++;
+	  }
+	}
 	
 	fSSDStation.push_back(st);
       }

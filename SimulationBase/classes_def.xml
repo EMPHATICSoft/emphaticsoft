@@ -24,7 +24,8 @@
  <struct name="simb::MCGeneratorInfo" ClassVersion="10">
   <version ClassVersion="10" checksum="180171425"/>
  </struct>
- <class name="simb::MCTruth"       ClassVersion="11"                               >
+ <class name="simb::MCTruth"       ClassVersion="12"                               >
+  <version ClassVersion="12" checksum="502367790"/>
   <version ClassVersion="11" checksum="3463731360"/>
   <version ClassVersion="10" checksum="3274174269"/>
  </class>
