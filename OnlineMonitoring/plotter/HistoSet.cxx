@@ -4,7 +4,7 @@
 /// \version $Id: HistoSet.cxx,v 1.15 2012-11-13 16:19:49 mbaird42 Exp $
 /// \author  messier@indiana.edu, mbaird42@fnal.gov
 ///
-#include "OnlineMonitoring/unpacker/HistoSet.h"
+#include "OnlineMonitoring/plotter/HistoSet.h"
 #include <cstdlib>
 #include <iostream>
 #include <cmath>

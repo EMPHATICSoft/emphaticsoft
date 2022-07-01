@@ -27,6 +27,7 @@
 #include "Geometry/Geometry.h"
 
 namespace emph {
+
   namespace geo {
     
     Detector::Detector() :
@@ -277,4 +278,5 @@ namespace emph {
     }
     
   } // end namespace geo
+
 } // end namespace emph

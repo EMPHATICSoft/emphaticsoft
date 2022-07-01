@@ -185,7 +185,7 @@
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-	 <quantity name="LG_width1" value="135" unit="mm" />
+tation_type <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 

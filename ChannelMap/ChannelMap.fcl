@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 standard_channelmap:
 {
-  MapFileName: "ChannelMap_Jan22_Run436.txt"
+  MapFileName: "ChannelMap_Jun22.txt"
   AbortIfFileNotFound: true
 }
 

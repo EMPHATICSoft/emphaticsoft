@@ -18,6 +18,7 @@ namespace emph
   MagneticFieldService::MagneticFieldService(const fhicl::ParameterSet& pset,
 				   art::ActivityRegistry & reg)
   {
+
     reconfigure(pset);
 
     cet::search_path sp("CETPKG_SOURCE");

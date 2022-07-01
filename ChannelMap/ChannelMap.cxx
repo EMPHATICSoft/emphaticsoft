@@ -38,6 +38,15 @@ namespace emph {
     }
   
     //----------------------------------------------------------------------
+    
+    bool ChannelMap::IsValidEChan(emph::cmap::EChannel& echan)
+    {
+      emph::cmap::DChannel dchan = this->DetChan(echan);
+      if (dchan.DetId() == emph::geo::NDetectors) return false;
+      return true;
+    }
+
+    //----------------------------------------------------------------------
 
     bool ChannelMap::LoadMap(std::string fname)
     {
