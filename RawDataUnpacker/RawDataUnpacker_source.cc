@@ -554,8 +554,9 @@ namespace rawdata {
 		echan.SetChannel(channel);
 		echan.SetBoard(boardNum);
 		emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-		if (dchan.DetId() != emph::geo::NDetectors)
+		if (dchan.DetId() != emph::geo::NDetectors){
 		  evtTRB3Digits[dchan.DetId()]->push_back(tdig);
+		}
 		++nObjects;
 	      }
 	      fFragCounter[thisFragId] += 1;

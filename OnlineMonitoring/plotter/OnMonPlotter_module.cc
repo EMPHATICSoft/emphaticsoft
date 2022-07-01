@@ -123,18 +123,19 @@ namespace emph {
       TH2F* fNRawObjectsHisto;  
       TH1F* fNTriggerVsDet;
       TH2F* fTriggerVsSubrun;
-      TH2F*  fNTriggerLGArray;      
+      TH2F* fNTriggerLGArray;      
       TH2F* fT0TDCChanVsADCChan;
-      TH1F* fT0TimeSum;
+      TH1F* fT0RisingTimeSum;
+      TH1F* fT0FallingTimeSum;
       TH1F* fRPCTimeSum;
       TH1F* fT0ADCDist[nChanT0];
       TH1F* fT0NTDC[nChanT0];
       TH2F* fT0TDCVsADC[nChanT0];
-      TH1F* fT0TDC[nChanT0];
-      TH1F* fT0Time[nChanT0 - 1];
-      TH1F* fRPCTDC[nChanRPC];
+      TH1F* fT0RisingTime[nChanT0];
+      TH1F* fT0FallingTime[nChanT0];
       TH1F* fRPCNTDC[nChanRPC];
-      TH1F* fRPCTime[2*nChanRPC - 1];
+      TH1F* fRPCTDC[nChanRPC];
+      TH1F* fRPCTime[2*nChanRPC];
       TH1F* fRPCTOT[nChanRPC];
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
@@ -205,6 +206,7 @@ namespace emph {
       if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
 
       fChanMapFileName = pset.get<std::string>("channelMapFileName","");
+      std::cout << "CHANNEL MAP USED : " << fChanMapFileName << std::endl;
       fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
       fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
       fMakeSSDPlots = pset.get<bool>("makeSSDPlots",false);
@@ -430,11 +432,6 @@ namespace emph {
           sprintf(hname,"T0ADC_%d",i);
           fT0ADCDist[i] = h.GetTH1F(hname);
 	}
-	std::cout << "Making T0TDC OnMon plots (new)" << std::endl;
-	for (int i=0; i<nchannel; ++i) {
-	  sprintf(hname,"T0TDC_%d",i);
-	  fT0TDC[i] = h.GetTH1F(hname);
-        }
       }
       if (fMakeTRB3Plots) {
         std::cout << "Making T0TDC OnMon plots" << std::endl;
@@ -444,11 +441,16 @@ namespace emph {
           fT0NTDC[i] = h.GetTH1F(hname);
 	  //fT0TDCVsADC[i] = h.GetTH2F(hname);
         }
-        for (int i=1; i < nchannel; ++i) {
-          sprintf(hname, "T0Time_%02d",i);
-          fT0Time[i-1] = h.GetTH1F(hname);
+        for (int i=0; i < nchannel; ++i) {
+          sprintf(hname, "T0RisingTime_%d",i);
+          fT0RisingTime[i] = h.GetTH1F(hname);
         }
-        fT0TimeSum = h.GetTH1F("T0TimeSum");
+	for (int i=0; i < nchannel; ++i) {
+          sprintf(hname, "T0FallingTime_%d",i);
+          fT0FallingTime[i] = h.GetTH1F(hname);
+	}
+        fT0RisingTimeSum = h.GetTH1F("T0RisingTimeSum");
+	fT0FallingTimeSum = h.GetTH1F("T0FallingTimeSum");
       }
     }
     
@@ -537,7 +539,7 @@ namespace emph {
           fRPCTOT[i] = h.GetTH1F(hname);
 	}
         // Skipping ch0 because it is the trigger channel
-        for (int i=1; i < 2*nchannel; ++i) {
+        for (int i=1; i < 2*nchannel+1; ++i) {
           sprintf(hname, "RPCTime_%02d", i);
           fRPCTime[i-1] = h.GetTH1F(hname);
         }
@@ -635,8 +637,6 @@ namespace emph {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
-      double trb3LinearLowEnd = 15.0;
-      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0
       echan.SetBoardType(boardType);
       std::vector<int> vT0ADChits(nchan,0);	    
       std::vector<int> vT0TDChits(nchan,0);	  
@@ -664,43 +664,43 @@ namespace emph {
 
       if (fMakeTRB3Plots) {
 	if (! trb3H->empty()) {
-	  //std::cout<<"New Event!"<<std::endl;
 	  int i = 0;
 	  i++;
 	  std::vector<int> hitCount;
 	  hitCount.resize(emph::geo::DetInfo::NChannel(emph::geo::T0));
 	  boardType = emph::cmap::TRB3;
 	  echan.SetBoardType(boardType);
-	  const rawdata::TRB3RawDigit& trb3Trigger = (*trb3H)[0];
-	  long double triggerTime = trb3Trigger.GetEpochCounter()*10240026.0 + trb3Trigger.GetCoarseTime() * 5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
-          // Almost the same as triggerTime, but I am using this to stay consitent with the rest of my code.
           double startTime = (*trb3H)[0].GetFinalTime();
-
-          bool channelFilled[nChanT0] {false};
+	  
+          bool risingChannelFilled[nChanT0] {false};
+	  bool fallingChannelFilled[nChanT0] {false};
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
 	    int board = trb3.GetBoardId();
 	    int chan = trb3.GetChannel();
             double time = trb3.GetFinalTime();
-            if (chan != 0
-                && !channelFilled[chan]) {
-              // Only fills once per channel
-              fT0TimeSum->Fill(time - startTime);
-              fT0Time[chan-1]->Fill(time - startTime);
-            }
             echan.SetBoard(board);
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
-	    long double time_T0 = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
-	    //std::cout<<"detchan value: "<<detchan<<std::endl;
-	    if (detchan < nchan) { // watch out for channel 500!
+	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////
+	    if (dchan.HiLo() == 0
+		&& detchan < nchan
+		&& !risingChannelFilled[detchan]) { // watch out for channel 500!
 	      hitCount[detchan] += 1;
-	      fT0TDC[detchan]->Fill((triggerTime-time_T0)/100000);
+	      fT0RisingTime[detchan]->Fill(time - startTime);
+	      fT0RisingTimeSum->Fill(time - startTime);
+	      risingChannelFilled[detchan] = true;
 	    }
-            channelFilled[chan] = true;
+	    if (dchan.HiLo() == 1
+		&& detchan < nchan
+		&& !fallingChannelFilled[detchan]) { // watch out for channel 500!                                                                                 
+              hitCount[detchan] += 1;
+              fT0FallingTime[detchan]->Fill(time - startTime);
+              fT0FallingTimeSum->Fill(time - startTime);
+              fallingChannelFilled[detchan] = true;
+	    }
 	  }
-	  //std::cout<<"\n"<<std::endl;
 	  for (size_t i=0; i<hitCount.size(); ++i) {
       	    fT0NTDC[i]->Fill(hitCount[i]);
       	    vT0TDChits[i] = hitCount[i];	  
@@ -714,7 +714,7 @@ namespace emph {
       	  }
       }
     }
-        
+  
     //......................................................................
 
     void OnMonPlotter::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & ssdH)
@@ -1069,7 +1069,7 @@ namespace emph {
 		std::cout << "No TRB3 digits found for the T0!" << std::endl;
 	      }
 	    }
-
+	    
 	  }
 	}
 	catch(...) {
