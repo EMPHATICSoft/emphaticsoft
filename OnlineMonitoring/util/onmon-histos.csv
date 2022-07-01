@@ -18,9 +18,10 @@ SSDProfile*,SSD Profile;Channel;Number of Hits,SSD,TH1F,640,0,640,0,0,0,,emph,su
 SSDNHits*,SSD Hit Multiplicity;Number of Hits,SSD,TH1F,50,0,50,0,0,0,,emph,subrun,1,Hit multiplicity distributions from SSDs.
 BACkovWaveForm*,BACkov Average Waveform;Tick;ADC,BACkov,TH1F,200,0,200,0,0,0,,emph,subrun,1,Shows average waveform from the BACkov detector PMTs.
 RPCNTDC*,Number of RPC Hits Per Event;TDC,RPC,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of RPC hits seen in each event on a given channel.
-RPCTDC*,RPC TDC Distribution;TDC,RPC,TH1F,512,-100,100,0,0,0,,emph,subrun,1,Shows TDC distribution for RPC channels.
-RPCTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
-RPCTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+RPCRisingTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
+RPCFallingTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
+RPCRisingTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+RPCFallingTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
 RPCTOT*,RPC time over threshold;Time,RPC,TH1F,1024,-1e5,1e5,0,0,0,,emph,run,1,difference between leading and trailing edge of each RPC channel pair.
 ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,50,0,50,0,0,0,,emph,run,1,Number of ARICH hits per event.
 ARICHNHitsECh,ARICH hits in electronic space;Channel;FPGA,ARICH,TH2F,65,0,65,20,0,20,,emph,run,1,ARICH hits in electronic space.
