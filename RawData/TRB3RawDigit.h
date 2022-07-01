@@ -21,10 +21,9 @@ namespace emph {
       uint32_t tdc_measurement_word;
       int event_index;
       uint64_t fragmentTimestamp;
-    
-      bool IsHigh;
-      
+
     public:
+
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?
@@ -32,10 +31,6 @@ namespace emph {
 
       /// Is this the trailing edge measurement?
       bool IsTrailing() const {return ((tdc_measurement_word & 0x800) >> 11) == 0;}
-      
-      ///Is this Hi/Lo (for RPC & T0)
-      bool IsHi() const {return IsHigh;};
-      void SetIsHi(bool high) {IsHigh = high;};
 
       uint32_t GetFPGAHeaderWord() const {return fpga_header_word;};
 

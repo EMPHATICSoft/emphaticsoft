@@ -83,6 +83,7 @@ namespace rawdata {
     fSSDFilePrefix = ps.get<std::string>("SSDFilePrefix",
 					 "RawDataSaver0FER1_Run");
     fReadSSDData = ps.get<bool>("readSSDData",false);
+    fReadTRB3Data = ps.get<bool>("readTRB3Data",false);
     
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
@@ -92,6 +93,8 @@ namespace rawdata {
       help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw",detStr);
     }
 
+    detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::ARICH));
+    help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
     detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::T0));
     help.reconstitutes<std::vector<emph::rawdata::TRB3RawDigit>, art::InEvent>("raw",detStr);
     detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::RPC));
@@ -209,7 +212,6 @@ namespace rawdata {
     std::cout << "tree size = " << events->GetEntries() << std::endl;
     
     auto V1720CFrag = readProduct<std::vector<artdaq::Fragment> >(*events, "artdaq::Fragments_daq_ContainerCAENV1720_DAQEventBuilder.");
-    auto TRB3CFrag = readProduct<std::vector<artdaq::Fragment> >(*events, "artdaq::Fragments_daq_ContainerTRB3_DAQEventBuilder.");
 
     art::ServiceHandle<art::TFileService> tfs;
     art::TFileDirectory tdir2 = tfs->mkdir("TimeDiffs","");	  
@@ -232,69 +234,72 @@ namespace rawdata {
       std::cout << "V1720 block count: " << V1720CFrag->size()
 		<< std::endl;
     }
-    
-    if (TRB3CFrag) {
-      for (const auto& cont : *TRB3CFrag) {
-	artdaq::ContainerFragment contf(cont);
-	if (contf.fragment_type() != ots::detail::FragmentType::TRB3) {
-	  std::cout << "oh oh" << std::endl;
-	  break;
+
+    if (fReadTRB3Data) {
+      auto TRB3CFrag = readProduct<std::vector<artdaq::Fragment> >(*events, "artdaq::Fragments_daq_ContainerTRB3_DAQEventBuilder.");
+      if (TRB3CFrag) {
+	for (const auto& cont : *TRB3CFrag) {
+	  artdaq::ContainerFragment contf(cont);
+	  if (contf.fragment_type() != ots::detail::FragmentType::TRB3) {
+	    std::cout << "oh oh" << std::endl;
+	    break;
+	  }
+	  
+	  for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) {
+	    TRB3ContainerFragments[cont.fragmentID()].emplace_back(std::move(contf[ifrag]));
+	    if (std::find(fFragId.begin(),fFragId.end(),cont.fragmentID()) == fFragId.end()) 
+	      fFragId.push_back(cont.fragmentID());	  
+	  }
+	}
+	std::cout << "TRB3 block count: " << TRB3CFrag->size()
+		  << std::endl;
+      }
+      
+      auto cfragIter = TRB3ContainerFragments.begin();
+      
+      while (cfragIter != TRB3ContainerFragments.end()) {
+	fFragCounter[(*cfragIter).first] = 0;
+	
+	// now make digits
+	while (! ((*cfragIter).second.empty())) {
+	  auto& cfrag = *((*cfragIter).second.front());
+	  auto cfragId = (*cfragIter).first;
+	  emphaticdaq::TRB3Fragment trb3frag(cfrag);
+	  fTRB3RawDigits[cfragId].push_back(Unpack::GetTRB3RawDigitsFromFragment(trb3frag));
+	  fFragTimestamps[cfragId].push_back(cfrag.timestamp());	
+	  (*cfragIter).second.pop_front();
 	}
 	
-	for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) {
-	  TRB3ContainerFragments[cont.fragmentID()].emplace_back(std::move(contf[ifrag]));
-	  if (std::find(fFragId.begin(),fFragId.end(),cont.fragmentID()) == fFragId.end()) 
-	    fFragId.push_back(cont.fragmentID());	  
-	}
+	std::cout << "Made " << fTRB3RawDigits[(*cfragIter).first].size()
+		  << " vectors of TRB3 digits for Frag Id "
+		  << (*cfragIter).first << std::endl;
+	
+	++cfragIter;
       }
-      std::cout << "TRB3 block count: " << TRB3CFrag->size()
-		<< std::endl;
-    }
-    
-    auto cfragIter = TRB3ContainerFragments.begin();
-    
-    while (cfragIter != TRB3ContainerFragments.end()) {
-      fFragCounter[(*cfragIter).first] = 0;
       
-      // now make digits
-      while (! ((*cfragIter).second.empty())) {
-	auto& cfrag = *((*cfragIter).second.front());
-	auto cfragId = (*cfragIter).first;
-	emphaticdaq::TRB3Fragment trb3frag(cfrag);
-	fTRB3RawDigits[cfragId].push_back(Unpack::GetTRB3RawDigitsFromFragment(trb3frag));
-	fFragTimestamps[cfragId].push_back(cfrag.timestamp());	
-	(*cfragIter).second.pop_front();
-      }
-
-      std::cout << "Made " << fTRB3RawDigits[(*cfragIter).first].size()
-		<< " vectors of TRB3 digits for Frag Id "
-		<< (*cfragIter).first << std::endl;
-
-      ++cfragIter;
-    }
-
-    // now fill TRB3 TTree
-    for (const auto & trb3digMap : fTRB3RawDigits) { // loop over map
-      for (auto & digVec : trb3digMap.second) { // loop over vector of vectors
-	fTRB3_HeaderWord.clear();
-	fTRB3_Measurement.clear();
-	fTRB3_Channel.clear();
-	fTRB3_FineTime.clear();
-	fTRB3_EpochTime.clear();
-	fTRB3_CoarseTime.clear();
-	for (auto & dig : digVec) { // loop over vector
-	  fTRB3_HeaderWord.push_back(dig.GetFPGAHeaderWord());
-	  fTRB3_Measurement.push_back(dig.GetMeasurement());
-	  fTRB3_Channel.push_back(dig.GetChannel());
-	  fTRB3_FineTime.push_back(dig.GetFineTime());
-	  fTRB3_EpochTime.push_back(dig.GetEpochCounter());
-	  fTRB3_CoarseTime.push_back(dig.GetCoarseTime());
+      // now fill TRB3 TTree
+      for (const auto & trb3digMap : fTRB3RawDigits) { // loop over map
+	for (auto & digVec : trb3digMap.second) { // loop over vector of vectors
+	  fTRB3_HeaderWord.clear();
+	  fTRB3_Measurement.clear();
+	  fTRB3_Channel.clear();
+	  fTRB3_FineTime.clear();
+	  fTRB3_EpochTime.clear();
+	  fTRB3_CoarseTime.clear();
+	  for (auto & dig : digVec) { // loop over vector
+	    fTRB3_HeaderWord.push_back(dig.GetFPGAHeaderWord());
+	    fTRB3_Measurement.push_back(dig.GetMeasurement());
+	    fTRB3_Channel.push_back(dig.GetChannel());
+	    fTRB3_FineTime.push_back(dig.GetFineTime());
+	    fTRB3_EpochTime.push_back(dig.GetEpochCounter());
+	    fTRB3_CoarseTime.push_back(dig.GetCoarseTime());
+	  }
+	  fTRB3Tree->Fill();
 	}
-	fTRB3Tree->Fill();
       }
     }
-    
-    cfragIter = C1720ContainerFragments.begin();
+
+    auto cfragIter = C1720ContainerFragments.begin();
     
     while (cfragIter != C1720ContainerFragments.end()) {
       // initialize counter
@@ -441,7 +446,7 @@ namespace rawdata {
       std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
 	evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
-
+      
       std::vector<std::unique_ptr<std::vector<emph::rawdata::TRB3RawDigit> > > evtTRB3Digits;
       for (int idet=0; idet<emph::geo::NDetectors; ++idet)
 	evtTRB3Digits.push_back(std::make_unique<std::vector<emph::rawdata::TRB3RawDigit>  >());
@@ -505,10 +510,12 @@ namespace rawdata {
       int nObjects = 0;
       
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
+	
 	thisFragId = fFragId[ifrag];
 	thisFragCount = fFragCounter[thisFragId];
 	// bounds check:
 	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
+	
 	
 	if (fWaveForms.count(thisFragId)) {
 	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];
@@ -522,38 +529,38 @@ namespace rawdata {
 	    for (size_t jfrag=0; jfrag<fWaveForms[thisFragId][thisFragCount].size(); ++jfrag) {	      
 	      auto & tdig = fWaveForms[thisFragId][thisFragCount][jfrag];
 	      echan.SetChannel(tdig.Channel());
+	      if (! fChannelMap->IsValidEChan(echan)) continue;
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-	      //  std::cout << echan << " maps to " << dchan << std::endl;
+	      // std::cout << echan << " maps to " << dchan << std::endl;
 	      evtWaveForms[dchan.DetId()]->push_back(tdig);
 	      ++nObjects;
 	    }
 	    fFragCounter[thisFragId] += 1;	  
 	  }
 	}
-	else if (fTRB3RawDigits.count(thisFragId)) {
-	  thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].GetFragmentTimestamp() - fT0[thisFragId];
-	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
-	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
-	    emph::cmap::EChannel echan;
-	    echan.SetBoardType(boardType);
-	    //	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
-	    for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag) {
-	      auto & tdig = fTRB3RawDigits[thisFragId][thisFragCount][jfrag];
-	      int channel = tdig.GetChannel();
-	      int boardNum = tdig.GetBoardId();
-	      echan.SetChannel(channel);
-	      echan.SetBoard(boardNum);
-	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-	      if (dchan.DetId() != emph::geo::NDetectors) {
-		if (dchan.DetId() == emph::geo::T0 ||
-		    dchan.DetId() == emph::geo::RPC) {
-		  tdig.SetIsHi(dchan.HiLo());
+	else if (fReadTRB3Data) {
+	  if (fTRB3RawDigits.count(thisFragId)) {
+	    
+	    thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].GetFragmentTimestamp() - fT0[thisFragId];
+	    if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
+	      emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+	      emph::cmap::EChannel echan;
+	      echan.SetBoardType(boardType);
+	      //	    emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+	      for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag) {
+		auto & tdig = fTRB3RawDigits[thisFragId][thisFragCount][jfrag];
+		int channel = tdig.GetChannel();
+		int boardNum = tdig.GetBoardId();
+		echan.SetChannel(channel);
+		echan.SetBoard(boardNum);
+		emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+		if (dchan.DetId() != emph::geo::NDetectors){
+		  evtTRB3Digits[dchan.DetId()]->push_back(tdig);
 		}
-		evtTRB3Digits[dchan.DetId()]->push_back(tdig);
+		++nObjects;
 	      }
-	      ++nObjects;
-	    }	
-	    fFragCounter[thisFragId] += 1;
+	      fFragCounter[thisFragId] += 1;
+	    }
 	  }
 	}
       }
@@ -562,9 +569,9 @@ namespace rawdata {
       if (nObjects == 0) return false;
       
       // write out waveforms and TDCs to appropriate folders
-
+      
       outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount++,
-						  earliestTimestamp);
+					      earliestTimestamp);
       
       if (fVerbosity) std::cout << "Event " << fEvtCount << ": " << std::endl;
       
@@ -577,7 +584,7 @@ namespace rawdata {
       
       for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
 	std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
-      	if (!evtWaveForms[idet]->empty()) {
+	if (!evtWaveForms[idet]->empty()) {
 	  if (fVerbosity)
 	    std::cout << "\t" << "Det " << detStr << " "
 		      << evtWaveForms[idet]->size() << " waveforms"
@@ -595,7 +602,7 @@ namespace rawdata {
       
       return true;
     }
-
+    
     return false;
   }
   

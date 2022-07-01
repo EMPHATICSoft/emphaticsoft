@@ -136,7 +136,9 @@ namespace emph {
       emph::cmap::DChannel DetChan(emph::cmap::EChannel echan) { if (!fIsLoaded) LoadMap(); return fEChanMap[echan]; }
       
       emph::cmap::EChannel ElectChan(emph::cmap::DChannel dchan) { if (!fIsLoaded) LoadMap(); return fDChanMap[dchan];}
-      
+
+      bool IsValidEChan(emph::cmap::EChannel& echan);
+
     private:
       
       bool fIsLoaded;
