@@ -21,11 +21,10 @@ RPCTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Su
 RPCTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
 RPCTOT*,RPC time over threshold;Time,RPC,TH1F,1024,-1e5,1e5,0,0,0,,emph,run,1,difference between leading and trailing edge of each RPC channel pair.
 T0TDC*,T0 TDC Distribution;TDC,T0,TH1F,512,-100,100,0,0,0,,emph,subrun,1,Shows TDC distribution for T0 channels.
-ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,50,0,50,0,0,0,,emph,run,1,Number of ARICH hits per event.
+ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,150,0,150,0,0,0,,emph,run,1,Number of ARICH hits per event.
 ARICHNHitsECh,ARICH hits in electronic space;Channel;FPGA,ARICH,TH2F,65,0,65,20,0,20,,emph,run,1,ARICH hits in electronic space.
-ARICHNHitsDCh,ARICH hits in detector space;Pixel;PMT,ARICH,TH2F,65,0,65,10,0,10,,emph,run,1,ARICH hits in detector space.
-ARICHNHitsPxl,ARICH hits XY;Pixel X;Pixel Y,ARICH,TH2F,24,0,24,24,0,24,,emph,subrun,1,ARICH hits by pixel X and pixel Y.
-ARICHHitTimes,ARICH leading and trailing times;Time (ns),ARICH,TH1F,100,-1000,1000,0,0,0,,emph,run,1,ARICH leading and trailing times for all channels.
+ARICHNHitsPxl,ARICH hits XY;Pixel X;Pixel Y,ARICH,TH2F,24,0,24,24,0,24,,emph,run,1,ARICH hits by pixel X and pixel Y.
+ARICHHitTimes,ARICH leading and trailing times;Time-trigger (ns),ARICH,TH1F,200,-600,-400,0,0,0,,emph,run,1,ARICH leading and trailing times for all channels.
 LGCaloWaveForm*,LG Calorimeter Average Waveform;Tick;ADC,LGCalo,TH1F,200,0,200,0,0,0,,emph,run,1,Shows average waveform from the LG Calorimeter PMTs.
 LGCaloIntCharge*,LG Calorimeter Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the integrated charge distribution from the LG Calorimeter PMTs.
 LGCaloTotalCharge*,LG Calorimeter Total Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the total integrated charge distribution from the LG Calorimeter PMTs.

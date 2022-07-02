@@ -154,7 +154,6 @@ namespace emph {
 
       TH1F*  fARICHNHits;
       TH2F*  fARICHNHitsECh;
-      TH2F*  fARICHNHitsDCh;
       TH2F*  fARICHNHitsPxl;
       TH1F*  fARICHHitTimes;
 
@@ -482,7 +481,6 @@ namespace emph {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
         fARICHNHits = h.GetTH1F("ARICHNHits");
         fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
-        fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
         fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
         fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
       }
@@ -782,7 +780,7 @@ namespace emph {
           }
         }
 
-        // number of hits in this event
+        // find number of hits in this event
         int nhits = 0;
 
 	for (size_t idx=0; idx < trb3H->size(); ++idx) {
@@ -793,7 +791,16 @@ namespace emph {
           if (trb3.GetChannel()==0) continue;
 
           int fpga = trb3.GetBoardId();
-          int chan = trb3.GetChannel();
+          int ech = trb3.GetChannel();
+          emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);
+          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+          if (dchan.DetId()!=emph::geo::ARICH) {
+            std::cout << echan;
+            std::cout << " doesn't belong to the ARICH" << std::endl;
+            continue;
+          }
+          int pmt = dchan.HiLo();
+          int dch = dchan.Channel();
           double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
 
           fARICHHitTimes->Fill(time);
@@ -803,28 +810,21 @@ namespace emph {
 
             nhits++;
 
-            // electronic channel
-            fARICHNHitsECh->Fill(chan,fpga);
+            // fill electronic channel plot
+            fARICHNHitsECh->Fill(ech,fpga);
 
-            // detector channel
-            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,chan);
-            emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-            if (dchan.DetId()==emph::geo::ARICH) {
-              fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
-            }
-            else {
-              std::cout << echan;
-              std::cout << " doesn't belong to the ARICH" << std::endl;
-            }
-
-            // pixel position
-            int pmt = dchan.HiLo();
-            int ch = chan-1;
-            int pmtxbin = (pmt*8)-(pmt/3)*24;
-            int pmtybin = (pmt/3)*8;
-            int pxlxbin = pmtxbin+ch-(ch/8)*8;
-            int pxlybin = pmtybin+(ch/8);
-            fARICHNHitsPxl->Fill(pxlxbin,pxlybin);
+            // fill pixel position plot
+            // the arich consist of 3x3 pmts
+            // and there are 8x8 pixels in each pmt
+            // pmt 0 and pixel 0  is on the bottom right
+            // pmt 8 and pixel 63 is on the top left
+            int pxlx0 = 23-pmt*8+(pmt/3)*24;
+            int pxly0 = (pmt/3)*8;
+            int pmtrow = dch/8;
+            int pmtcol = dch-pmtrow*8;
+            int pxlx = pxlx0-pmtcol;
+            int pxly = pxly0+pmtrow;
+            fARICHNHitsPxl->Fill(pxlx,pxly);
 
           }//is leading
 
