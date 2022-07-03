@@ -320,9 +320,6 @@ namespace emph {
       	}
       }
     
-
-
-
     }
     
     //......................................................................
@@ -485,6 +482,12 @@ namespace emph {
         fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
         fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
         fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
+        // hardcoded ARICH display bins including gaps between PMTs
+        std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
+        fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
+        fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
+        fARICHNHitsPxl->GetXaxis()->Set(ARICHBins.size()-1,ARICHBins.data());
+        fARICHNHitsPxl->GetYaxis()->Set(ARICHBins.size()-1,ARICHBins.data());
       }
     }
 
@@ -818,12 +821,15 @@ namespace emph {
             // and there are 8x8 pixels in each pmt
             // pmt 0 and pixel 0  is on the bottom right
             // pmt 8 and pixel 63 is on the top left
-            int pxlx0 = 23-pmt*8+(pmt/3)*24;
-            int pxly0 = (pmt/3)*8;
+            // there is a gap of 1 bin size between pmts
+            int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
+            int pxlybin0 = (pmt/3)*9;
             int pmtrow = dch/8;
             int pmtcol = dch-pmtrow*8;
-            int pxlx = pxlx0-pmtcol;
-            int pxly = pxly0+pmtrow;
+            int pxlxbin = pxlxbin0-pmtcol;
+            int pxlybin = pxlybin0+pmtrow;
+            int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
+            int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
             fARICHNHitsPxl->Fill(pxlx,pxly);
 
           }//is leading
