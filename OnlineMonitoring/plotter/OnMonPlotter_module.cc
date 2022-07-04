@@ -486,8 +486,7 @@ namespace emph {
         std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
         fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
         fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
-        fARICHNHitsPxl->GetXaxis()->Set(ARICHBins.size()-1,ARICHBins.data());
-        fARICHNHitsPxl->GetYaxis()->Set(ARICHBins.size()-1,ARICHBins.data());
+        fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
       }
     }
 
