@@ -150,6 +150,7 @@ namespace emph {
       TH2F*  fLGCaloIntChgVsRatio;
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
+      TH1F* fTriggerEff;
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
@@ -342,7 +343,8 @@ namespace emph {
     void OnMonPlotter::endJob()
     {
       if (fNEvents > 0) {
-	float scale;
+	float scale = 1./float(fNEvents);
+	fTriggerEff->Scale(scale);
 	for (size_t i=0; i<fBACkovWaveForm.size(); ++i) {
 	  scale = 1./float(fNEventsBACkov[i]);
 	  fBACkovWaveForm[i]->Scale(scale);
@@ -552,10 +554,12 @@ namespace emph {
     void  OnMonPlotter::MakeTrigPlots()
     {
       HistoSet& h = HistoSet::Instance();
-      
+
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       char hname[256];
       if (fMakeWaveFormPlots) {
+	sprintf(hname,"TriggerEff");
+	fTriggerEff = h.GetTH1F(hname);
         std::cout << "Making Trigger ADC OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {	  
           sprintf(hname,"TriggerADC_%d",i);
@@ -994,6 +998,7 @@ namespace emph {
       emph::cmap::EChannel echan;
       echan.SetBoardType(boardType);
       if (fMakeWaveFormPlots) {
+	bool eff[4] = {false,false,false,false};
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
@@ -1006,11 +1011,21 @@ namespace emph {
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fTriggerADCDist[detchan]->Fill(adc);
+		eff[detchan] = true;
+	      }
 	    }
 	  }
 	}
+	if (!eff[0]&&eff[1]&&eff[2]&&eff[3])
+	  fTriggerEff->Fill(0);
+	if (eff[0]&&!eff[1]&&eff[2]&&eff[3])
+	  fTriggerEff->Fill(1);
+	if (eff[0]&&eff[1]&&!eff[2]&&eff[3])
+	  fTriggerEff->Fill(2);
+	if (eff[0]&&eff[1]&&eff[2]&&!eff[3])
+	  fTriggerEff->Fill(3);
       }
     }
 

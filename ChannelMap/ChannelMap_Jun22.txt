@@ -28,11 +28,11 @@ V1720	3			2		BACkov	2		0		USTop
 V1720	3			3		BACkov	3		0		MidRight
 V1720	3			4		BACkov	4		0		MidLeft
 V1720	3			5		BACkov	5		0		DS
-V1720	4			0		Trigger	0		0		TrigCoinc
-V1720	4			1		Trigger	1		0		TrigPMT1
-V1720	4			2		Trigger	2		0		TrigPMT2
-V1720	4			3		Trigger	3		0		TrigPMT3
-V1720	4			4		Trigger	4		0		TrigPMT4
+V1720	4			0		Trigger	99		0		TrigCoinc
+V1720	4			1		Trigger	0		0		TrigPMT1
+V1720	4			2		Trigger	1		0		TrigPMT2
+V1720	4			3		Trigger	2		0		TrigPMT3
+V1720	4			4		Trigger	3		0		TrigPMT4
 V1720	4			7		LGCalo	0		0		TopLeft 
 V1720	5			0		LGCalo	1		0		TopCenter
 V1720	5			1		LGCalo	2		0		TopRight

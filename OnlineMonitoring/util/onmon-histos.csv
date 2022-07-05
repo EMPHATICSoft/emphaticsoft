@@ -13,6 +13,7 @@ T0FallingTime*,(T0 - Trigger) time;Time,T0,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,D
 LGCaloADC*,LGCalo ADC Distribution;ADC,Lead Glass Calorimeter,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for lead glass calorimeter channels.
 BACkovADC*,BACkov ADC Distribution;ADC,BACkov,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for beam aerogel cherenkov detector.
 GasCkovADC*,Gas Ckov ADC Distribution;ADC,GasCkov,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for gas cherenkov detector.
+TriggerEff,Trigger PMT Inefficiency;PMT;Inefficiency,Trigger,TH1F,4,1,5,0,0,0,,emph,subrun,1,Shows trigger PMT inefficiency.
 TriggerADC*,Trigger ADC Distribution;ADC,Trigger,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for trigger detector PMTs.
 SSDProfile*,SSD Profile;Channel;Number of Hits,SSD,TH1F,640,0,640,0,0,0,,emph,subrun,1,Beam profile plots from SSDs.
 SSDNHits*,SSD Hit Multiplicity;Number of Hits,SSD,TH1F,50,0,50,0,0,0,,emph,subrun,1,Hit multiplicity distributions from SSDs.
