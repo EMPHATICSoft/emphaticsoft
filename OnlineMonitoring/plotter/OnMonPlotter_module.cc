@@ -103,13 +103,14 @@ namespace emph {
       std::atomic<bool> fSHMThreadRunning;
       std::unique_ptr<std::thread> fSHMThreadPtr;
       bool          fTickerOn;    ///< Turned on in the control room
+      art::Timestamp fFirstEventTime;
 
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubrun;
       unsigned int fNEvents;
-
+      
       // hard codes consts for now,
       // need to figure out better solution with Geo NChannel function
       static const unsigned int nChanT0  = 20;
@@ -151,6 +152,7 @@ namespace emph {
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
       TH1F* fTriggerEff;
+      TH1F* fTriggerDeltaT;
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
@@ -560,6 +562,8 @@ namespace emph {
       if (fMakeWaveFormPlots) {
 	sprintf(hname,"TriggerEff");
 	fTriggerEff = h.GetTH1F(hname);
+	sprintf(hname,"TriggerDeltaT");
+	fTriggerDeltaT = h.GetTH1F(hname);
         std::cout << "Making Trigger ADC OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {	  
           sprintf(hname,"TriggerADC_%d",i);
@@ -1036,6 +1040,12 @@ namespace emph {
       fRun = evt.run();
       fSubrun = evt.subRun();     
       std::string labelStr;
+
+      if (fNEvents == 1) {
+	fFirstEventTime = evt.time();
+      }
+
+      fTriggerDeltaT->Fill((evt.time().timeLow() - fFirstEventTime.timeLow())*1.e-9);
 
       if (fuseSHM) fIPC->HandleRequests();
 
