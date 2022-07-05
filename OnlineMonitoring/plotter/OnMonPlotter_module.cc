@@ -123,12 +123,21 @@ namespace emph {
       static const unsigned int nChanBACkov = 6;
       static const unsigned int nChanGasCkov = 3;
       static const unsigned int nChanTrig = 4;
-      
+
+      static const unsigned int kTrigOffset = 0;
+      static const unsigned int kGasCkovOffset = 0;
+      static const unsigned int kBACkovOffset = 0;
+      static const unsigned int kT0Offset = 0;
+      static const unsigned int kRPCOffset = 1;
+      static const unsigned int kSSDOffset = 1;
+      static const unsigned int kARICHOffset = kSSDOffset+22;
+      static const unsigned int kLGCaloOffset = kARICHOffset+9;
       // define histograms
 
       TH2F* fNRawObjectsHisto;  
       TH1F* fNTriggerVsDet;
       TH2F* fTriggerVsSubrun;
+      TH2F* fHitEffPerChannel;
       TH2F* fNTriggerLGArray;      
       TH2F* fT0TDCChanVsADCChan;
       TH1F* fT0RisingTimeSum;
@@ -297,7 +306,8 @@ namespace emph {
       fLGCaloIntChgVsRatio = h.GetTH2F("LGCaloIntChgVsRatio");
       fNTriggerLGArray     = h.GetTH2F("NTriggerLGArray"); //
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
-      
+      fHitEffPerChannel = h.GetTH2F("HitEffPerChannel");
+
       // label x-axis
       std::string labelStr;
       int i=0;
@@ -311,6 +321,49 @@ namespace emph {
       labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
       fNTriggerVsDet->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
       fNRawObjectsHisto->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
+      
+      //label x-axis for HitEff plot.
+      i=0;
+      int j=1;
+      for (; i<emph::geo::NDetectors; ++i) {
+	labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+	if (i <= emph::geo::BACkov) {
+	  labelStr += " ADC";
+	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
+	}
+	else if (i == emph::geo::T0) {
+	  labelStr += " ADC";
+	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
+	  labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+	  labelStr += " TDC";
+	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
+	}
+	else if (i == emph::geo::RPC) {
+	  labelStr += " TDC";
+	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
+	}
+	else if (i == emph::geo::SSD) {
+	  int nchannel = emph::geo::DetInfo::NChannel(emph::geo::SSD);
+	  char label[64];
+	  for (int ic=0; ic<nchannel; ++ic) {
+	    labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+	    sprintf(label,"%s %02d",labelStr.c_str(),ic+1);
+	    fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,label);	    
+	  }
+	}
+	else if (i == emph::geo::ARICH) {
+	  char label[64];
+	  for (int ic=0; ic<9; ++ic) {
+	    labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+	    sprintf(label,"%s %d",labelStr.c_str(),ic+1);
+	    fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,label);
+	  }
+	}
+	else if (i == emph::geo::LGCalo) {
+	  labelStr += " ADC";
+	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
+	}
+      }
     
       MakeGasCkovPlots();
       MakeBACkovPlots();
@@ -599,8 +652,11 @@ namespace emph {
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fGasCkovADCDist[detchan]->Fill(adc);
+		fHitEffPerChannel->Fill((int)dchan.DetId()+kGasCkovOffset,
+					detchan);
+	      }
 	    }
 	  }
 	}
@@ -636,6 +692,8 @@ namespace emph {
 		fNEventsBACkov[detchan]++;
 		for (size_t i=0; i<adcvals.size(); ++i) {
 		  fBACkovWaveForm[detchan]->Fill(i+1,adcvals[i]);
+		  fHitEffPerChannel->Fill((int)dchan.DetId()+kBACkovOffset,
+					  detchan);
 		}
 	      }
 	    }
@@ -670,6 +728,8 @@ namespace emph {
 	      if (adc > 5*blw) {
 		fT0ADCDist[detchan]->Fill(adc);
 		vT0ADChits[detchan]=1; 
+		fHitEffPerChannel->Fill((int)dchan.DetId()+kT0Offset,
+					detchan);
 	      }
 	    }
 	  }
@@ -697,6 +757,9 @@ namespace emph {
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel  dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
+	    fHitEffPerChannel->Fill((int)dchan.DetId()+kT0Offset+1,
+				    detchan);
+	    
 	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////
 	    if (dchan.HiLo() == 0
 		&& detchan < nchan
@@ -760,6 +823,8 @@ namespace emph {
 
 	    if (station >= 0) {
 	      fSSDProf[sensor]->Fill(row);
+	      fHitEffPerChannel->Fill(emph::geo::SSD+kSSDOffset+sensor,
+				      row%10);
 	      nhits[sensor]++;
 	    }
 	  }
@@ -816,6 +881,9 @@ namespace emph {
           }
           int pmt = dchan.HiLo();
           int dch = dchan.Channel();
+	  fHitEffPerChannel->Fill((int)dchan.DetId()+kARICHOffset+pmt,
+				  dch);
+
           double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
 
           fARICHHitTimes->Fill(time);
@@ -876,6 +944,8 @@ namespace emph {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
 	      if (adc > 5*blw) {
+		fHitEffPerChannel->Fill((int)dchan.DetId()+kLGCaloOffset,
+					detchan);
 		fLGCaloADCDist[detchan]->Fill(adc);
 		//now fill waveform plot
 	        auto adcvals = wvfm.AllADC();
@@ -1007,6 +1077,7 @@ namespace emph {
 	      if (adc > 5*blw) {
 		fTriggerADCDist[detchan]->Fill(adc);
 		eff[detchan] = true;
+		fHitEffPerChannel->Fill((int)dchan.DetId(),detchan);
 	      }
 	    }
 	  }
