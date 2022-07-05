@@ -434,7 +434,7 @@ namespace emph {
       if (fMakeWaveFormPlots) {
         std::cout << "Making T0ADC OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {
-          sprintf(hname,"T0ADC_%d",i);
+          sprintf(hname,"T0ADC_%d",i+1);
           fT0ADCDist[i] = h.GetTH1F(hname);
 	}
       }
@@ -442,16 +442,16 @@ namespace emph {
         std::cout << "Making T0TDC OnMon plots" << std::endl;
 	fT0TDCChanVsADCChan = h.GetTH2F("T0TDCChanVsADCChan");
         for (int i=0; i<nchannel; ++i) {
-          sprintf(hname,"T0NTDC_%d",i);
+          sprintf(hname,"T0NTDC_%d",i+1);
           fT0NTDC[i] = h.GetTH1F(hname);
 	  //fT0TDCVsADC[i] = h.GetTH2F(hname);
         }
         for (int i=0; i < nchannel; ++i) {
-          sprintf(hname, "T0RisingTime_%d",i);
+          sprintf(hname, "T0RisingTime_%d",i+1);
           fT0RisingTime[i] = h.GetTH1F(hname);
         }
 	for (int i=0; i < nchannel; ++i) {
-          sprintf(hname, "T0FallingTime_%d",i);
+          sprintf(hname, "T0FallingTime_%d",i+1);
           fT0FallingTime[i] = h.GetTH1F(hname);
 	}
         fT0RisingTimeSum = h.GetTH1F("T0RisingTimeSum");
@@ -540,13 +540,13 @@ namespace emph {
       if (fMakeTRB3Plots) {
 	std::cout << "Making RPC OnMon plots" << std::endl;
 	for (int i=0; i<nchannel; ++i) {
-	  sprintf(hname,"RPCNTDC_%d",i);
+	  sprintf(hname,"RPCNTDC_%d",i+1);
           fRPCNTDC[i] = h.GetTH1F(hname);
-	  sprintf(hname,"RPCRisingTime_%d",i);
+	  sprintf(hname,"RPCRisingTime_%d",i+1);
 	  fRPCRisingTime[i] = h.GetTH1F(hname);
-	  sprintf(hname,"RPCFallingTime_%d",i);
+	  sprintf(hname,"RPCFallingTime_%d",i+1);
           fRPCFallingTime[i] = h.GetTH1F(hname);
-	  sprintf(hname,"RPCTOT_%d",i);
+	  sprintf(hname,"RPCTOT_%d",i+1);
 	  fRPCTOT[i] = h.GetTH1F(hname);
 	}
 	fRPCRisingTimeSum = h.GetTH1F("RPCRisingTimeSum");
@@ -660,12 +660,12 @@ namespace emph {
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
-	    if (detchan < nchan) {
+	    if (detchan != 500) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
 	      if (adc > 5*blw) {
-		fT0ADCDist[detchan]->Fill(adc);
-		vT0ADChits[detchan]=1; 
+		fT0ADCDist[detchan-1]->Fill(adc);
+		vT0ADChits[detchan-1]=1; 
 	      }
 	    }
 	  }
@@ -691,24 +691,24 @@ namespace emph {
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel  dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
-	    if (detchan < nchan 
+	    if (detchan != 500 
 		&& dchan.HiLo() == 0) {
-	      hitCount[detchan] += 1; 
+	      hitCount[detchan-1] += 1; 
 	    }
 	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////
 	    if (dchan.HiLo() == 0
-		&& detchan < nchan
-		&& !risingChannelFilled[detchan]) { // watch out for channel 500!
-	      fT0RisingTime[detchan]->Fill(time - startTime);
+		&& detchan != 500
+		&& !risingChannelFilled[detchan-1]) { // watch out for channel 500!
+	      fT0RisingTime[detchan-1]->Fill(time - startTime);
 	      fT0RisingTimeSum->Fill(time - startTime);
-	      risingChannelFilled[detchan] = true;
+	      risingChannelFilled[detchan-1] = true;
 	    }
 	    if (dchan.HiLo() == 1
-		&& detchan < nchan
-		&& !fallingChannelFilled[detchan]) { // watch out for channel 500!                                                                                 
-              fT0FallingTime[detchan]->Fill(time - startTime);
+		&& detchan != 500
+		&& !fallingChannelFilled[detchan-1]) { // watch out for channel 500!                                                                                 
+              fT0FallingTime[detchan-1]->Fill(time - startTime);
               fT0FallingTimeSum->Fill(time - startTime);
-              fallingChannelFilled[detchan] = true;
+              fallingChannelFilled[detchan-1] = true;
 	    }
 	  }
 	  for (size_t i=0; i<hitCount.size(); ++i) {
@@ -916,7 +916,7 @@ namespace emph {
     //......................................................................
     void    OnMonPlotter::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
-      int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
+      //int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
       emph::cmap::EChannel echan;
       emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
        if (fMakeTRB3Plots) {
@@ -939,11 +939,11 @@ namespace emph {
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-	    if (detchan < nchan 
+	    if (detchan != 500 
 		&& dchan.HiLo() == 0) {
-	      hitCount[detchan] += 1;
+	      hitCount[detchan-1] += 1;
 	    }
-            if (detchan < nchan
+            if (detchan != 500
                 && chan % 2 == 0
                 && chan == prevChan + 1) {
               if (prevTime == 0) {
@@ -953,23 +953,23 @@ namespace emph {
               } else {
                 // find the time over threshold for channels 1-32.
                 // Grabs the first time from each channel pair
-                fRPCTOT[detchan]->Fill(time - prevTime);
+                fRPCTOT[detchan-1]->Fill(time - prevTime);
               }
             }
 	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////             
 	    if (dchan.HiLo() == 0
-                && detchan < nchan
-		&& !risingChannelFilled[detchan]) { // watch out for channel 500!
-	      fRPCRisingTime[detchan]->Fill(time - startTime);
+                && detchan != 500
+		&& !risingChannelFilled[detchan-1]) { // watch out for channel 500!
+	      fRPCRisingTime[detchan-1]->Fill(time - startTime);
 	      fRPCRisingTimeSum->Fill(time - startTime);
-	      risingChannelFilled[detchan] = true;
+	      risingChannelFilled[detchan-1] = true;
 	    }
 	    if (dchan.HiLo() == 1
-                && detchan < nchan
-		&& !fallingChannelFilled[detchan]) { // watch out for channel 500!
-	      fRPCFallingTime[detchan]->Fill(time - startTime);
+                && detchan != 500
+		&& !fallingChannelFilled[detchan-1]) { // watch out for channel 500!
+	      fRPCFallingTime[detchan-1]->Fill(time - startTime);
 	      fRPCFallingTimeSum->Fill(time - startTime);
-	      fallingChannelFilled[detchan] = true;
+	      fallingChannelFilled[detchan-1] = true;
 	    }
 	    prevChan = chan;
 	    prevTime = time;
