@@ -1,0 +1,74 @@
+# Add '-B' to UPS_OVERRIDE for safety.
+tnotnull UPS_OVERRIDE || setenv UPS_OVERRIDE ''
+expr "x $UPS_OVERRIDE" : '.* -[^- 	]*B' >/dev/null || setenv UPS_OVERRIDE "$UPS_OVERRIDE -B"
+
+####################################
+# Build-time dependencies.
+####################################
+# > caencomm <
+setup -B caencomm v1_2a; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ caencomm\ v1_2a\ failed && \
+  return 1 || true
+# > caendigitizer <
+setup -B caendigitizer v2_12_0; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ caendigitizer\ v2_12_0\ failed && \
+  return 1 || true
+# > caenvme <
+setup -B caenvme v2_50; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ caenvme\ v2_50\ failed && \
+  return 1 || true
+
+####################################
+# Use-time dependencies.
+####################################
+# > art <
+setup -B art v3_09_02 -q e19:+prof; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ art\ v3_09_02\ \-q\ e19\:\+prof\ failed && \
+  return 1 || true
+# > geant4 <
+setup -B geant4 v4_10_7_p01c -q e19:+prof; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ geant4\ v4_10_7_p01c\ \-q\ e19\:\+prof\ failed && \
+  return 1 || true
+# > art_root_io <
+setup -B art_root_io v1_08_02 -q e19:+prof; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ art_root_io\ v1_08_02\ \-q\ e19\:\+prof\ failed && \
+  return 1 || true
+# > artdaq <
+setup -B artdaq v3_10_03 -q e19:+s111:+prof; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ artdaq\ v3_10_03\ \-q\ e19\:\+s111\:\+prof\ failed && \
+  return 1 || true
+# > artdaq_core <
+setup -B artdaq_core v3_07_05 -q e19:+s111:+prof; test "$?" != 0 && \
+  echo ERROR\:\ setup\ \-B\ artdaq_core\ v3_07_05\ \-q\ e19\:\+s111\:\+prof\ failed && \
+  return 1 || true
+
+####################################
+# Development environment.
+####################################
+# LD_LIBRARY_PATH
+setenv LD_LIBRARY_PATH "`dropit -p \"${LD_LIBRARY_PATH}\" -sfe \"${CETPKG_BUILD}/slf7.x86_64.e19.prof/lib\"`"; test "$?" != 0 && \
+  echo ERROR\:\ failure\ to\ prepend\ to\ LD_LIBRARY_PATH && \
+  return 1 || true
+# CET_PLUGIN_PATH
+test -z "${CET_PLUGIN_PATH}" || \
+  setenv CET_PLUGIN_PATH "`dropit -p \"${CET_PLUGIN_PATH}\" -sfe \"${CETPKG_BUILD}/slf7.x86_64.e19.prof/lib\"`"; test "$?" != 0 && \
+  echo ERROR\:\ failure\ to\ prepend\ to\ CET_PLUGIN_PATH && \
+  return 1 || true
+# ROOT_INCLUDE_PATH
+setenv ROOT_INCLUDE_PATH "`dropit -p \"${ROOT_INCLUDE_PATH}\" -sfe \"${CETPKG_SOURCE}\" \"${CETPKG_BUILD}\"`"; test "$?" != 0 && \
+  echo ERROR\:\ failure\ to\ prepend\ to\ ROOT_INCLUDE_PATH && \
+  return 1 || true
+# CMAKE_PREFIX_PATH
+setenv CMAKE_PREFIX_PATH "`dropit -p \"${CMAKE_PREFIX_PATH}\" -sfe \"${CETPKG_BUILD}\"`"
+# FHICL_FILE_PATH
+setenv FHICL_FILE_PATH "`dropit -p \"${FHICL_FILE_PATH}\" -sfe \"${CETPKG_BUILD}/fcl\"`"; test "$?" != 0 && \
+  echo ERROR\:\ failure\ to\ prepend\ to\ FHICL_FILE_PATH && \
+  return 1 || true
+# FW_SEARCH_PATH
+setenv FW_SEARCH_PATH "`dropit -p \"${FW_SEARCH_PATH}\" -sfe \"${CETPKG_BUILD}/gdml\"`"; test "$?" != 0 && \
+  echo ERROR\:\ failure\ to\ prepend\ to\ FW_SEARCH_PATH && \
+  return 1 || true
+# PATH
+setenv PATH "`dropit -p \"${PATH}\" -sfe \"${CETPKG_BUILD}/slf7.x86_64.e19.prof/bin\" \"${CETPKG_SOURCE}/slf7.x86_64.e19.prof/bin\"`"; test "$?" != 0 && \
+  echo ERROR\:\ failure\ to\ prepend\ to\ PATH && \
+  return 1 || true
