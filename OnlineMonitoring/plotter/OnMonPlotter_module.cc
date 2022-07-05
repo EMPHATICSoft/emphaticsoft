@@ -1116,6 +1116,7 @@ namespace emph {
 	if (!trbHandle->empty()) {
 	  fNRawObjectsHisto->Fill(i,trbHandle->size());
 	  fNTriggerVsDet->Fill(i);
+	  fTriggerVsSubrun->Fill(fSubrun,i);
 	  FillARICHPlots(trbHandle);
 	}
       }
