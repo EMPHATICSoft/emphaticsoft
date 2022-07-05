@@ -106,13 +106,14 @@ namespace emph {
       std::atomic<bool> fSHMThreadRunning;
       std::unique_ptr<std::thread> fSHMThreadPtr;
       bool          fTickerOn;    ///< Turned on in the control room
+      art::Timestamp fFirstEventTime;
 
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubrun;
       unsigned int fNEvents;
-
+      
       // hard codes consts for now,
       // need to figure out better solution with Geo NChannel function
       static const unsigned int nChanT0  = 20;
@@ -155,12 +156,13 @@ namespace emph {
       TH2F*  fLGCaloIntChgVsRatio;
       TH1F* fGasCkovADCDist[nChanGasCkov];
       TH1F* fTriggerADCDist[nChanTrig];
+      TH1F* fTriggerEff;
+      TH1F* fTriggerDeltaT;
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
       TH1F*  fARICHNHits;
       TH2F*  fARICHNHitsECh;
-      TH2F*  fARICHNHitsDCh;
       TH2F*  fARICHNHitsPxl;
       TH1F*  fARICHHitTimes;
 
@@ -326,9 +328,6 @@ namespace emph {
       	}
       }
     
-
-
-
     }
     
     //......................................................................
@@ -351,7 +350,8 @@ namespace emph {
     void OnMonPlotter::endJob()
     {
       if (fNEvents > 0) {
-	float scale;
+	float scale = 1./float(fNEvents);
+	fTriggerEff->Scale(scale);
 	for (size_t i=0; i<fBACkovWaveForm.size(); ++i) {
 	  scale = 1./float(fNEventsBACkov[i]);
 	  fBACkovWaveForm[i]->Scale(scale);
@@ -489,9 +489,13 @@ namespace emph {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
         fARICHNHits = h.GetTH1F("ARICHNHits");
         fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
-        fARICHNHitsDCh = h.GetTH2F("ARICHNHitsDCh");
         fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
         fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
+        // hardcoded ARICH display bins including gaps between PMTs
+        std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
+        fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
+        fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
+        fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
       }
     }
 
@@ -554,10 +558,14 @@ namespace emph {
     void  OnMonPlotter::MakeTrigPlots()
     {
       HistoSet& h = HistoSet::Instance();
-      
+
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       char hname[256];
       if (fMakeWaveFormPlots) {
+	sprintf(hname,"TriggerEff");
+	fTriggerEff = h.GetTH1F(hname);
+	sprintf(hname,"TriggerDeltaT");
+	fTriggerDeltaT = h.GetTH1F(hname);
         std::cout << "Making Trigger ADC OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {	  
           sprintf(hname,"TriggerADC_%d",i);
@@ -784,7 +792,7 @@ namespace emph {
           }
         }
 
-        // number of hits in this event
+        // find number of hits in this event
         int nhits = 0;
 
 	for (size_t idx=0; idx < trb3H->size(); ++idx) {
@@ -795,7 +803,16 @@ namespace emph {
           if (trb3.GetChannel()==0) continue;
 
           int fpga = trb3.GetBoardId();
-          int chan = trb3.GetChannel();
+          int ech = trb3.GetChannel();
+          emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);
+          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+          if (dchan.DetId()!=emph::geo::ARICH) {
+            std::cout << echan;
+            std::cout << " doesn't belong to the ARICH" << std::endl;
+            continue;
+          }
+          int pmt = dchan.HiLo();
+          int dch = dchan.Channel();
           double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
 
           fARICHHitTimes->Fill(time);
@@ -805,28 +822,24 @@ namespace emph {
 
             nhits++;
 
-            // electronic channel
-            fARICHNHitsECh->Fill(chan,fpga);
+            // fill electronic channel plot
+            fARICHNHitsECh->Fill(ech,fpga);
 
-            // detector channel
-            emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,chan);
-            emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-            if (dchan.DetId()==emph::geo::ARICH) {
-              fARICHNHitsDCh->Fill(dchan.Channel(),dchan.HiLo());
-            }
-            else {
-              std::cout << echan;
-              std::cout << " doesn't belong to the ARICH" << std::endl;
-            }
-
-            // pixel position
-            int pmt = dchan.HiLo();
-            int ch = chan-1;
-            int pmtxbin = (pmt*8)-(pmt/3)*24;
-            int pmtybin = (pmt/3)*8;
-            int pxlxbin = pmtxbin+ch-(ch/8)*8;
-            int pxlybin = pmtybin+(ch/8);
-            fARICHNHitsPxl->Fill(pxlxbin,pxlybin);
+            // fill pixel position plot
+            // the arich consist of 3x3 pmts
+            // and there are 8x8 pixels in each pmt
+            // pmt 0 and pixel 0  is on the bottom right
+            // pmt 8 and pixel 63 is on the top left
+            // there is a gap of 1 bin size between pmts
+            int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
+            int pxlybin0 = (pmt/3)*9;
+            int pmtrow = dch/8;
+            int pmtcol = dch-pmtrow*8;
+            int pxlxbin = pxlxbin0-pmtcol;
+            int pxlybin = pxlybin0+pmtrow;
+            int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
+            int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
+            fARICHNHitsPxl->Fill(pxlx,pxly);
 
           }//is leading
 
@@ -971,6 +984,7 @@ namespace emph {
       emph::cmap::EChannel echan;
       echan.SetBoardType(boardType);
       if (fMakeWaveFormPlots) {
+	bool eff[4] = {false,false,false,false};
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
@@ -983,11 +997,21 @@ namespace emph {
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
+	      if (adc > 5*blw) {
 		fTriggerADCDist[detchan]->Fill(adc);
+		eff[detchan] = true;
+	      }
 	    }
 	  }
 	}
+	if (!eff[0]&&eff[1]&&eff[2]&&eff[3])
+	  fTriggerEff->Fill(0);
+	if (eff[0]&&!eff[1]&&eff[2]&&eff[3])
+	  fTriggerEff->Fill(1);
+	if (eff[0]&&eff[1]&&!eff[2]&&eff[3])
+	  fTriggerEff->Fill(2);
+	if (eff[0]&&eff[1]&&eff[2]&&!eff[3])
+	  fTriggerEff->Fill(3);
       }
     }
 
@@ -999,6 +1023,12 @@ namespace emph {
       fSubrun = evt.subRun();     
       std::string labelStr;
       std::string labelStr2;
+
+      if (fNEvents == 1) {
+	fFirstEventTime = evt.time();
+      }
+
+      fTriggerDeltaT->Fill((evt.time().timeLow() - fFirstEventTime.timeLow())*1.e-9);
 
       if (fuseSHM) fIPC->HandleRequests();
 
