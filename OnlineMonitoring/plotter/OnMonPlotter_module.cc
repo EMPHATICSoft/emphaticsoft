@@ -104,6 +104,7 @@ namespace emph {
       std::unique_ptr<std::thread> fSHMThreadPtr;
       bool          fTickerOn;    ///< Turned on in the control room
       art::Timestamp fFirstEventTime;
+      art::Timestamp fLastEventTime;
 
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
@@ -153,6 +154,7 @@ namespace emph {
       TH1F* fTriggerADCDist[nChanTrig];
       TH1F* fTriggerEff;
       TH1F* fTriggerDeltaT;
+      TH1F* fTriggerTime;
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
@@ -562,6 +564,8 @@ namespace emph {
       if (fMakeWaveFormPlots) {
 	sprintf(hname,"TriggerEff");
 	fTriggerEff = h.GetTH1F(hname);
+	sprintf(hname,"TriggerTime");
+	fTriggerTime = h.GetTH1F(hname);
 	sprintf(hname,"TriggerDeltaT");
 	fTriggerDeltaT = h.GetTH1F(hname);
         std::cout << "Making Trigger ADC OnMon plots" << std::endl;
@@ -1043,10 +1047,15 @@ namespace emph {
 
       if (fNEvents == 1) {
 	fFirstEventTime = evt.time();
+	fLastEventTime = evt.time();
       }
 
-      fTriggerDeltaT->Fill((evt.time().timeLow() - fFirstEventTime.timeLow())*1.e-9);
-
+      fTriggerTime->Fill((evt.time().timeHigh()-fFirstEventTime.timeHigh()) + (evt.time().timeLow() - fFirstEventTime.timeLow())*1.e-9);
+      if (fNEvents > 1) {
+	fTriggerDeltaT->Fill((evt.time().timeHigh()-fFirstEventTime.timeHigh())*1.e-3 + (evt.time().timeLow() - fLastEventTime.timeLow())*1.e-6);
+	fLastEventTime = evt.time();
+      }
+      
       if (fuseSHM) fIPC->HandleRequests();
 
       static unsigned int count = 0;
