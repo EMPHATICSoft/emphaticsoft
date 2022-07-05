@@ -942,14 +942,11 @@ namespace emph {
             if (detchan < nchan
                 && chan % 2 == 0
                 && chan == prevChan + 1) {
-	      std::cout << " Electronic Channel Number : " << chan <<
-		" ; Detector Channel Number : " << detchan << std::endl;
               if (prevTime == 0) {
                 std::cout << "WARNING: prevTime should never be 0" << std::endl;
               } else if (prevChan == 0) {
                 std::cout << "WARNING: prevChan should never be 0" << std::endl;
               } else {
-		std::cout << "Filling TOT for Detector channel " << detchan << " with a value of  " << time-prevTime << ". " << std::endl;
                 // find the time over threshold for channels 1-32.
                 // Grabs the first time from each channel pair
                 fRPCTOT[detchan]->Fill(time - prevTime);
