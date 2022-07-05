@@ -724,7 +724,6 @@ namespace emph {
       	  }
       }
     }
-  
     //......................................................................
 
     void OnMonPlotter::FillSSDPlots(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & ssdH)
@@ -934,30 +933,32 @@ namespace emph {
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
             const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
             double time = trb3.GetFinalTime();
-             int chan = trb3.GetChannel();
+	    int chan = trb3.GetChannel();
             int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-
-            if (detchan != 500
+            if (detchan < nchan
                 && chan % 2 == 0
                 && chan == prevChan + 1) {
+	      std::cout << " Electronic Channel Number : " << chan <<
+		" ; Detector Channel Number : " << detchan << std::endl;
               if (prevTime == 0) {
                 std::cout << "WARNING: prevTime should never be 0" << std::endl;
               } else if (prevChan == 0) {
                 std::cout << "WARNING: prevChan should never be 0" << std::endl;
               } else {
+		std::cout << "Filling TOT for Detector channel " << detchan << " with a value of  " << time-prevTime << ". " << std::endl;
                 // find the time over threshold for channels 1-32.
                 // Grabs the first time from each channel pair
-                fRPCTOT[(chan/2) - 1]->Fill(time - prevTime);
+                fRPCTOT[detchan]->Fill(time - prevTime);
               }
             }
-	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////                                                                                     
+	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////             
 	    if (dchan.HiLo() == 0
                 && detchan < nchan
-		&& !risingChannelFilled[detchan]) { // watch out for channel 500!                                                                      
+		&& !risingChannelFilled[detchan]) { // watch out for channel 500!
 	      hitCount[detchan] += 1;
 	      fRPCRisingTime[detchan]->Fill(time - startTime);
 	      fRPCRisingTimeSum->Fill(time - startTime);
@@ -971,6 +972,11 @@ namespace emph {
 	      fRPCFallingTimeSum->Fill(time - startTime);
 	      fallingChannelFilled[detchan] = true;
 	    }
+	    for (size_t i=0; i<hitCount.size(); ++i) {
+	      fRPCNTDC[i]->Fill(hitCount[i]);
+	    }
+	    prevChan = chan;
+	    prevTime = time;
 	  }
 	}
        }
