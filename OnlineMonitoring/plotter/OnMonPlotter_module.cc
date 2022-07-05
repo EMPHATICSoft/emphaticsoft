@@ -542,6 +542,8 @@ namespace emph {
 	  fRPCRisingTime[i] = h.GetTH1F(hname);
 	  sprintf(hname,"RPCFallingTime_%d",i);
           fRPCFallingTime[i] = h.GetTH1F(hname);
+	  sprintf(hname,"RPCTOT_%d",i);
+	  fRPCTOT[i] = h.GetTH1F(hname);
 	}
 	fRPCRisingTimeSum = h.GetTH1F("RPCRisingTimeSum");
         fRPCFallingTimeSum = h.GetTH1F("RPCFallingTimeSum");
@@ -926,7 +928,7 @@ namespace emph {
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
 
-            if (chan != 0
+            if (detchan != 500
                 && chan % 2 == 0
                 && chan == prevChan + 1) {
               if (prevTime == 0) {
