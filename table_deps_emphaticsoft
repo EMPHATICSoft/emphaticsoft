@@ -1,5 +1,0 @@
-setupRequired(art v3_09_02 -q +e19:+prof)
-setupRequired(art_root_io v1_08_02 -q +e19:+prof)
-setupRequired(artdaq v3_10_03 -q +e19:+s111:+prof)
-setupRequired(artdaq_core v3_07_05 -q +e19:+s111:+prof)
-setupRequired(geant4 v4_10_7_p01c -q +e19:+prof)
