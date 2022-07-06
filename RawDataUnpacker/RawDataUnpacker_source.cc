@@ -405,19 +405,21 @@ namespace rawdata {
 	return false;
       }
       
-      art::RunAuxiliary* runAux;
-      art::SubRunAuxiliary* subrunAux;
-      runs->SetBranchAddress("RunAuxiliary",&runAux);
-      subruns->SetBranchAddress("SubRunAuxiliary",&subrunAux);
+      art::RunAuxiliary runAux;
+      art::RunAuxiliary* runAuxPtr = &runAux;
+      art::SubRunAuxiliary subrunAux;
+      art::SubRunAuxiliary* subrunAuxPtr = &subrunAux;
+      runs->SetBranchAddress("RunAuxiliary",&runAuxPtr);
+      subruns->SetBranchAddress("SubRunAuxiliary",&subrunAuxPtr);
       runs->GetEvent(0);
       subruns->GetEvent(0);
       
       // deal with creating Run and Subrun objects
-      fRun = runAux->run();
-      fSubrun = subrunAux->subRun();
-      outR = fSourceHelper.makeRunPrincipal(fRun,runAux->beginTime());
+      fRun = runAux.run();
+      fSubrun = subrunAux.subRun();
+      outR = fSourceHelper.makeRunPrincipal(fRun,runAux.beginTime());
       outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
-						subrunAux->beginTime());
+						subrunAux.beginTime());
 
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
