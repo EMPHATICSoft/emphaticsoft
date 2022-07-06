@@ -433,7 +433,7 @@ namespace emph {
       HistoSet::Instance().WriteToRootFile(f);
       f->Close();
       delete f; f=0;
-      //if(fIPC)    { delete fIPC; fIPC = 0; }
+      if(fIPC)    { delete fIPC; fIPC = 0; }
 
     }
     
