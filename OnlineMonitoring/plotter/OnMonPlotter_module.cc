@@ -760,10 +760,13 @@ namespace emph {
 	    
 	    if (detchan != 500 
 		&& dchan.HiLo() == 0) {
-	      hitCount[detchan-1] += 1; 
+	      ///Adding a count per hit for each channel (only for rising edges)
+	      hitCount[detchan-1] += 1;
+	      ///Filling Arich plot depicting hits per fpga channel on TRB3
+	      fARICHNHitsECh->Fill(chan,board);
 	    }
 
-	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////
+	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan != 500), and that only 1 hit per trigger is filling the histograms.////
 	    if (dchan.HiLo() == 0
 		&& detchan != 500
 		&& !risingChannelFilled[detchan-1]) { // watch out for channel 500!
@@ -1016,7 +1019,10 @@ namespace emph {
             int detchan = dchan.Channel();
 	    if (detchan != 500 
 		&& dchan.HiLo() == 0) {
+	      //adding a count for each hit in a detector channel
 	      hitCount[detchan-1] += 1;
+	      //Filling Arich plot which shows number of hits per FPGA channel
+	      fARICHNHitsECh->Fill(chan,board);
 	    }
             if (detchan != 500
                 && chan % 2 == 0
@@ -1031,7 +1037,7 @@ namespace emph {
                 fRPCTOT[detchan-1]->Fill(time - prevTime);
               }
             }
-	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan<nchan), and that only 1 hit per trigger is filling the histograms.////             
+	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan != 500), and that only 1 hit per trigger is filling the histograms (by setting the risingChannelFilled boolean to true after filling within an event.////             
 	    if (dchan.HiLo() == 0
                 && detchan != 500
 		&& !risingChannelFilled[detchan-1]) { // watch out for channel 500!
