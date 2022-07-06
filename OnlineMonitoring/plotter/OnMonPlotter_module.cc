@@ -222,6 +222,7 @@ namespace emph {
 
       //if (fIPC) delete fIPC;
       if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
+      else fIPC = nullptr;
 
       fChanMapFileName = pset.get<std::string>("channelMapFileName","");
       std::cout << "CHANNEL MAP USED : " << fChanMapFileName << std::endl;
