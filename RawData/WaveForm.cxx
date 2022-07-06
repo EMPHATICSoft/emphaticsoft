@@ -127,7 +127,7 @@ namespace rawdata{
     for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i) sum += fADC[i];
     return sum;
   }
-
+  
   //--------------------------------------------------
   float WaveForm::Charge(int adcOffset, int nhits,  int nsamp) const
   {
