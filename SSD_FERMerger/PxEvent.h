@@ -4,19 +4,19 @@
 #include <stdint.h>
 #include <vector>
 #include <map>
-#include <Hit.h>
+#include "SSD_FERMerger/Hit.h"
 
 //namespace PxSuite
 //{
 
-
-class PxEvent //: public TObject
-{
-public:
+namespace ssd {
+  class PxEvent //: public TObject
+  {
+  public:
     PxEvent(void);
     PxEvent(int64_t bcoNumber);
     virtual ~PxEvent(void);
-
+    
     //Getters
     int32_t                          getTriggerNumber   (void) const;
     int64_t                          getTriggerEventBCO (void) const;
@@ -28,7 +28,7 @@ public:
     const std::vector<uint32_t>&     getRawHits         (void) const;
     Hit                              getDecodedHit      (unsigned int position) const;
     const std::vector<Hit>&          getDecodedHits     (void) const;
-
+    
     //Setters
     void setTriggerNumber   (int32_t  triggerNumber);
     void setTriggerEventBCO (int64_t  triggerEventBCO);
@@ -49,8 +49,8 @@ public:
     //Operators
     PxEvent operator+=(const PxEvent& event);
 
-
-private:
+    
+  private:
     int32_t triggerNumber_;   //-1 means untriggered event
     int64_t triggerEventBCO_;
     int64_t triggerBCO_;
@@ -62,8 +62,8 @@ private:
     std::map<int, int32_t> triggerNumbers_;
 
     //ClassDef(PxEvent,1);
-};
+  };
 
-//}
+} // end namespace ssd
 
 #endif

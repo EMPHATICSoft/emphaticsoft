@@ -68,7 +68,7 @@ static unsigned char set_number[] = { 255, 255, 255, 255, 255, 255, 255, 255,
                                           255,   7,   3, 255  };
 
   return 128*(chip-1)+set_number[set]*8+strip_number[strip];
-};
+}
 
 Stib::Stib(int s,struct sockaddr *daddr,int dlen) : _socket(s), _daddr(daddr), _dlen(dlen), _pbuf(_txbuf) {
   _id = 0;

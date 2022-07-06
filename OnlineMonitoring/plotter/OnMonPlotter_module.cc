@@ -154,7 +154,7 @@ namespace emph {
       TH1F* fRPCFallingTime[nChanRPC];
       TH1F* fRPCTOT[nChanRPC];
       TH1F* fLGCaloADCDist[nChanCal];
-      TH1F* fBACkovQDist[nChanBACkov];
+      TH1F* fBACkovADCDist[nChanBACkov];
       std::vector<TH1F*> fBACkovWaveForm;
       std::vector<unsigned int> fNEventsBACkov;
       std::vector<unsigned int> fNEventsLGCalo;
@@ -464,10 +464,10 @@ namespace emph {
       int nchannel = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
       char hname[256];
       if (fMakeWaveFormPlots) {
-        std::cout << "Making BACkov Charge OnMon plots" << std::endl;
+        std::cout << "Making BACkov ADC OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {
-          sprintf(hname,"BACkovQ_%d",i);
-          fBACkovQDist[i] = h.GetTH1F(hname);
+          sprintf(hname,"BACkovADC_%d",i);
+          fBACkovADCDist[i] = h.GetTH1F(hname);
         }
         std::cout << "Making BACkov WaveForm OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {
@@ -686,9 +686,8 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvfm.Charge();
-	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
+		fBACkovADCDist[detchan]->Fill(adc);
 		// now fill waveform plot
 		auto adcvals = wvfm.AllADC();
 		fNEventsBACkov[detchan]++;
