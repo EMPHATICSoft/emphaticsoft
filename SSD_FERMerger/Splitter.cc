@@ -1,10 +1,12 @@
-#include "FilesSplitter.h"
+#include "SSD_FERMerger/FilesSplitter.h"
 #include <map>
 #include <iostream>
 #include <string>
 #include <cstdlib>
 
 using namespace std;
+using namespace ssd;
+using namespace ssd::splitter;
 
 const bool writeOutFile = true;
 

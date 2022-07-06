@@ -1,4 +1,4 @@
-#include "Event.h"
+#include "SSD_FERMerger/Event.h"
 #include <iostream>
 #include <math.h>
 
@@ -7,11 +7,11 @@ using namespace std;
 
 
 //-----------------------------------------------------------------------
-EventMonicelli::EventMonicelli(void) : 
+EventMonicelli::EventMonicelli() : 
   beginTimestamp_       (0)
-, currentTimestamp_     (0)
-, triggerNumber_        (0)
+  , currentTimestamp_     (0)
 , currentBCONumber_     (-1)
+, triggerNumber_        (0)
 , reset_                (false)
 {
 //  cout << __PRETTY_FUNCTION__ << hits_.size() << endl;
@@ -29,17 +29,17 @@ EventMonicelli& EventMonicelli::operator=(const EventMonicelli& event)
 {
   reset();
   beginTimestamp_	  = event.beginTimestamp_;
-  currentTimestamp_	= event.currentTimestamp_;
-  currentBCONumber_ = event.currentBCONumber_;
+  currentTimestamp_	  = event.currentTimestamp_;
+  currentBCONumber_       = event.currentBCONumber_;
   triggerNumber_	  = event.triggerNumber_;
-  reset_		        = event.reset_;
+  reset_		  = event.reset_;
   timestamps_ 		  = event.timestamps_;
  
-  Hit* hitP;
-  for(multimap<uint64_t, Hit*>::const_iterator it=event.timestampHits_.begin(); it!=event.timestampHits_.end(); it++){
-    hitP = new Hit(*(it->second));
+  ssd::Hit* hitP;
+  for(multimap<uint64_t, ssd::Hit*>::const_iterator it=event.timestampHits_.begin(); it!=event.timestampHits_.end(); it++){
+    hitP = new ssd::Hit(*(it->second));
     hits_.push_back(hitP);
-    timestampHits_.insert(pair<uint64_t,Hit*>(it->first, hitP));  
+    timestampHits_.insert(pair<uint64_t,ssd::Hit*>(it->first, hitP));  
   }  
 //  cout << __PRETTY_FUNCTION__ << hits_.size() << endl;
   return *this;
@@ -53,14 +53,14 @@ EventMonicelli::~EventMonicelli(void)
 }
 
 //-----------------------------------------------------------------------
-void EventMonicelli::addHit(const Hit& hit){
-  Hit* hitP = new Hit(hit);
+void EventMonicelli::addHit(const ssd::Hit& hit){
+  ssd::Hit* hitP = new ssd::Hit(hit);
   hits_.push_back(hitP);
-  timestampHits_.insert(pair<unsigned long long,Hit*>(currentTimestamp_,hitP));
+  timestampHits_.insert(pair<unsigned long long,ssd::Hit*>(currentTimestamp_,hitP));
 }
 
 //-----------------------------------------------------------------------
-Hit& EventMonicelli::getHit(unsigned int hitN){
+ssd::Hit& EventMonicelli::getHit(unsigned int hitN){
   return *(hits_[hitN]);
 }
 
@@ -72,7 +72,7 @@ void EventMonicelli::reset(void)
   triggerNumber_         = 0;
   reset_                 = false;
   
-  for(vector<Hit*>::iterator it = hits_.begin(); it != hits_.end(); it++)
+  for(vector<ssd::Hit*>::iterator it = hits_.begin(); it != hits_.end(); it++)
     delete *it;
   hits_.clear();
 
@@ -83,12 +83,12 @@ void EventMonicelli::reset(void)
 //-----------------------------------------------------------------------
 EventMonicelli& EventMonicelli::operator+=(const EventMonicelli& event)
 {
-  Hit* hitP = 0;
-  for(multimap<uint64_t,Hit*>::const_iterator it=event.timestampHits_.begin(); it!=event.timestampHits_.end(); it++)
+  ssd::Hit* hitP = 0;
+  for(multimap<uint64_t,ssd::Hit*>::const_iterator it=event.timestampHits_.begin(); it!=event.timestampHits_.end(); it++)
   {
-    hitP = new Hit(*(it->second));
+    hitP = new ssd::Hit(*(it->second));
     hits_.push_back(hitP);
-    timestampHits_.insert(pair<uint64_t,Hit*>(it->first, hitP));
+    timestampHits_.insert(pair<uint64_t,ssd::Hit*>(it->first, hitP));
     if(!(timestampHits_.find(it->first) != timestampHits_.end())){
       timestamps_.push_back(it->first);
     }

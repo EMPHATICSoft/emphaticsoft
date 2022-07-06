@@ -1,10 +1,12 @@
-#include "FilesMerger.h"
+#include "SSD_FERMerger/FilesMerger.h"
 #include <map>
 #include <iostream>
 #include <string>
 #include <cstdlib>
 
 using namespace std;
+using namespace ssd;
+using namespace ssd::merger;
 
 const bool writeOutFile = true;
 
