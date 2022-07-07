@@ -31,6 +31,8 @@ ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,150,0,150,0,0,0,,emph,
 ARICHNHitsECh,ARICH hits in electronic space;Channel;FPGA,ARICH,TH2F,65,0,65,20,0,20,colz,emph,run,1,ARICH hits in electronic space.
 ARICHNHitsPxl,ARICH hits XY;Pixel X;Pixel Y,ARICH,TH2F,24,0,24,24,0,24,colz,emph,run,1,ARICH hits by pixel X and pixel Y.
 ARICHHitTimes,ARICH leading and trailing times;Time-trigger (ns),ARICH,TH1F,200,-600,-400,0,0,0,,emph,run,1,ARICH leading and trailing times for all channels.
+ARICHHitToT,ARICH;Time over threshold (ns),ARICH,TH1F,100,0,100,0,0,0,,emph,run,1,ARICH time over threshold for all channels.
+ARICHNTrails,ARICH;Number of trailing times,ARICH,TH1F,10,0,10,0,0,0,,emph,run,1,ARICH number of trailing times after one leading time.
 LGCaloWaveForm*,LG Calorimeter Average Waveform;Tick;ADC,LGCalo,TH1F,200,0,200,0,0,0,,emph,run,1,Shows average waveform from the LG Calorimeter PMTs.
 LGCaloIntCharge*,LG Calorimeter Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the integrated charge distribution from the LG Calorimeter PMTs.
 LGCaloTotalCharge*,LG Calorimeter Total Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the total integrated charge distribution from the LG Calorimeter PMTs.
