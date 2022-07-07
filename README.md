@@ -18,8 +18,12 @@ kinit username@FNAL.GOV
 klist
 ssh -Y username@emphaticgpvm0X.fnal.gov
 ```
-Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.  
+Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.
 
+If you are using Linux you need to include another flag:
+```
+ssh -K -Y username@emphaticgpvm0X.fnal.gov
+```
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
 ```
@@ -49,7 +53,7 @@ cd /emph/app/users/[username]/build
 source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
 ```
 
-6. To compile the code (must be in the "build" directory!):
+5. To compile the code (must be in the "build" directory!):
 
 ```
 buildtool --generator=ninja

@@ -6,17 +6,6 @@ services:
 {
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
-#  Load the channel map service
-#  ChannelMapService: @local::standard_channelmap
-  
-#  scheduler:    { wantSummary: true }
-#  TimeTracker:  {}
-#  RandomNumberGenerator: {} #ART native random number generator
-#  message:      { debugModules: ["*"] destinations: { debugmsg:{type: "cout" threshold: "WARNING"} } }
-
-#  Geometry:     @local::standard_geo
-#  IFDH:         { IFDH_BASE_URI:  "http://samweb.fnal.gov:8480/sam/nova/api"}
-#  Detector:     @local::standard_detector
 }
 
 #Start each new event with an empty event.
@@ -44,6 +33,16 @@ outputs:
     module_type: RootOutput
     fileName:    "emphdata_r%r_s%s.root" #default file name, can override from command line with -o or --output
   }
+  out2:
+  {
+    module_type: TransferOutput
+    transfer_plugin: {
+        transferPluginType : TCPSocket
+	source_rank : 1
+	destination_rank : 2
+	host_map: [{rank: 1 host: "localhost"}, {rank: 2 host: "localhost"}]
+    }    
+  }
 }
 
 # Define and configure some modules to do work on each event.
@@ -52,7 +51,7 @@ outputs:
 physics:
 {
 
-  stream1:  [ out1 ]
+  stream1:  [ out1, out2 ]
 
   end_paths:     [stream1]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
 }

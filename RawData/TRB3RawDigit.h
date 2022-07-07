@@ -13,7 +13,7 @@ namespace emph {
       TRB3RawDigit(); // Default constructor
       virtual ~TRB3RawDigit() {}; // Destructor
 
-    //private:
+    private:
       /// Found fields to hold the header, measurement error words.
       uint32_t fpga_header_word;
       uint32_t tdc_header_word;
@@ -21,16 +21,28 @@ namespace emph {
       uint32_t tdc_measurement_word;
       int event_index;
       uint64_t fragmentTimestamp;
-      
+
     public:
+
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?
-      bool IsLeading() const {return 0;}
-      /// Is this the trailing edge measurement?
-      bool IsTrailing() const {return 0;}
+      bool IsLeading() const {return ((tdc_measurement_word & 0x800) >> 11) == 1;}
 
-      uint32_t GetBoardId() const {return fpga_header_word & 0xf;}
+      /// Is this the trailing edge measurement?
+      bool IsTrailing() const {return ((tdc_measurement_word & 0x800) >> 11) == 0;}
+
+      uint32_t GetFPGAHeaderWord() const {return fpga_header_word;};
+
+      uint64_t GetFragmentTimestamp() const {return fragmentTimestamp;};
+
+      /// Get board id
+      uint32_t GetBoardId() const;
+
+      /// Get the channel number
+      uint32_t GetChannel() const {
+        return ((tdc_measurement_word & 0xfc00000 ) >> 22 );
+      }
 
       /// Get the TDC measurement
       uint32_t GetMeasurement() const {
@@ -46,10 +58,8 @@ namespace emph {
       // This epoch counter rolls every 10us
       uint32_t GetEpochCounter() const {return tdc_epoch_word & 0xfffffff;};
 
-      /// Get the channel number
-      uint32_t GetChannel() const {
-        return ((tdc_measurement_word & 0xfc00000 ) >> 22 );
-      }
+      // semi calibrated time in picoseconds
+      double GetFinalTime() const;
 
     };
 

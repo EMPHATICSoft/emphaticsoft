@@ -17,14 +17,20 @@ using namespace emph::onmon;
 
 PlotOptions::PlotOptions()
 {
-  fLabelText = new TPaveText(0.1, 0.0, 0.5,  0.055, "NDC");
-  fSLText    = new TPaveText(0.0, 0.1, 0.09, 0.9,   "NDC");
+  fLabelText = new TPaveText(0.1, 0.0, 0.5,  0.055,  "NDC");
+  fDetText   = new TPaveText(0.07, 0.057, 0.9, 0.09, "NDC");
+  fSLText    = new TPaveText(0.0, 0.07, 0.099, 0.93, "NDC");
 
   fLabelText->SetLineColor(0);
   fLabelText->SetFillColor(0);
   fLabelText->SetBorderSize(1);
   fLabelText->SetMargin(0.0);
   fLabelText->SetTextAlign(11);
+
+  fDetText->SetLineColor(0);
+  fDetText->SetFillColor(0);
+  fDetText->SetBorderSize(1);
+  fDetText->SetMargin(0.0);
 
   fSLText->SetLineColor(0);
   fSLText->SetFillColor(0);
@@ -39,6 +45,7 @@ void PlotOptions::Reset()
 {
   fDrawOpt        = "";
   fZoomHour       = false;
+  fZoomSR         = false;
   fAutoZoomX      = false;
   fAutoZoomY      = false;
   fAutoZoomZ      = false;
@@ -47,6 +54,8 @@ void PlotOptions::Reset()
   fLogz           = false;
   fGridx          = false;
   fGridy          = false;
+  fDetlbl         = false;
+  fSpecial        = false;
   fHaveXscale     = false;
   fXlo            = 0;
   fXhi            = 0;
@@ -133,6 +142,7 @@ void PlotOptions::Set(const std::vector<std::string>& opt)
     bool zscale = (strncmp(opt[i].c_str(),"zscale",6)==0);
 
     if      (opt[i]=="zoomhour")  { fZoomHour  = true; }
+    else if (opt[i]=="zoomsr")    { fZoomSR    = true; }
     else if (opt[i]=="autozoomx") { fAutoZoomX = true; }
     else if (opt[i]=="autozoomy") { fAutoZoomY = true; }
     else if (opt[i]=="autozoomz") { fAutoZoomZ = true; }
@@ -141,6 +151,8 @@ void PlotOptions::Set(const std::vector<std::string>& opt)
     else if (opt[i]=="logz")      { fLogz      = true; }
     else if (opt[i]=="gridx")     { fGridx     = true; }
     else if (opt[i]=="gridy")     { fGridy     = true; }
+    else if (opt[i]=="detlbl")    { fDetlbl    = true; }
+    else if (opt[i]=="special")   { fSpecial   = true; }
     else if (xscale)              { this->ParseXscale(opt[i].c_str()); }
     else if (yscale)              { this->ParseYscale(opt[i].c_str()); }
     else if (zscale)              { this->ParseZscale(opt[i].c_str()); }
@@ -167,15 +179,25 @@ void PlotOptions::SetPad(TPad* p)
 
 //......................................................................
 
-void PlotOptions::MakeLabels(const TH1* h, const HistoData* hd __attribute__((unused)))
+void PlotOptions::MakeLabels(TH1* h, const HistoData* hd __attribute__((unused)))
 {
+  fDetText->Clear();
+  if (fDetlbl) {
+    // Super hacky. Would be nice to do this with bin labelling, but then you can't interact with the plot properly.
+    // Trying to pull detector names logically doesn't get correct spacing.
+    fDetText->AddText(" Trigger   GasCkov   BACkov   T0ADC       RPC         SSD       ARICH     LGCalo    T0TDC");
+    fDetText->Draw();
+  }
+
+  fSLText->Clear();
+  if (fSpecial) {
+    this->MakeSpecialLabel(h);
+    fSLText->Draw();
+  }
 
   fLabelText->Clear();
   this->MakeLabelText(h);
   fLabelText->Draw();
-
-  fSLText->Clear();
-
 
 }
 
@@ -209,6 +231,17 @@ void PlotOptions::AutoScale(TH1F* h)
 
     h->GetXaxis()->SetRangeUser(now - 1.0, now);
 
+  }
+  if (fZoomSR) {
+    double xlo = 1*h->GetXaxis()->GetBinLowEdge(ilox);
+    double xhi = 1*h->GetXaxis()->GetBinUpEdge(ihix)+1;
+    if (xhi<60) {
+      xlo=0;
+      xhi=60;
+    }
+    else
+      xlo = xhi-60;
+    h->GetXaxis()->SetRangeUser(xlo, xhi);
   }
   if (fAutoZoomX) {
     double xlo = 0.9*h->GetXaxis()->GetBinLowEdge(ilox);
@@ -298,6 +331,17 @@ void PlotOptions::AutoScale(TH2F* h)
 
     h->GetXaxis()->SetRangeUser(now - 1.0, now);
 
+  }
+  if (fZoomSR) {
+    double xlo = h->GetXaxis()->GetBinLowEdge(ilox);
+    double xhi = h->GetXaxis()->GetBinUpEdge(ihix)+1;
+    if (xhi<60) {
+      xlo=0;
+      xhi=60;
+    }
+    else
+      xlo = xhi-60;
+    h->GetXaxis()->SetRangeUser(xlo, xhi);
   }
   if (fAutoZoomX) {
     double xlo = 0.95*h->GetXaxis()->GetBinLowEdge(ilox);
@@ -398,6 +442,31 @@ void PlotOptions::MakeLabelText(const TH1* h)
   sprintf(buff, "%s (UTC)",asctime(timestr));
 
   fLabelText->AddText(buff);
+}
+
+//......................................................................
+
+void PlotOptions::MakeSpecialLabel(TH1* h)
+{
+  const std::string TriggerVsSubrun ("TriggerVsSubrun");
+
+  if ( TriggerVsSubrun == h->GetName() ) {
+    h->GetYaxis()->SetLabelSize(0);
+
+    std::string labelStr;
+    fSLText->AddText("");
+    labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
+    fSLText->AddText(labelStr.c_str());
+    int i;
+    for (i=emph::geo::NDetectors-1; i>-1; --i) {
+      labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+      if (i == emph::geo::T0) labelStr += "ADC";
+      fSLText->AddText("");
+      fSLText->AddText(labelStr.c_str());
+    }
+    fSLText->AddText("");
+  }
+  fSLText->Draw();
 }
 
 //......................................................................
