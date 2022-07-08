@@ -10,7 +10,7 @@ Generated using [Doxygen](https://doxygen.nl)
 
 <a name="prerequisites"></a>
 ## Prerequisites
-* Clone this repository on to your local computer. (Running this over ssh should work but will be slow. Running over docker may not work.)
+* Clone this repository to your local computer. (Running this over ssh should work but will be slow. Running over docker may not work.)
 * Install Doxygen
 <table>
 <tr>
@@ -51,11 +51,11 @@ Once the browser opens, you will see a link to `files` on the webpage, this is p
 If the `make-docs` script does not open up a webpage, you will need to find a way to open `emphaticsoft/docs/Doxyout/html/index.html` to view the documentation.
 
 ## Contributing
-Use triple slashes before a class or method to have that comment show up in the documentation.
+Use triple slashes `///` before a class or method, and `///<` for inline comments, to have that comment show up in the documentation alongside the thing that you're commenting on.
 
 For example, this code
 ```c++
-/// this is a brief description about a person.
+/// This is a brief description about a person.
 ///
 /// A longer and more detailed description can go here.
 class Person
@@ -63,19 +63,25 @@ class Person
     public:
         Person();
 
-        /// Calculates something
+        /// Calculates something.
         ///
         /// Once again, a longer description can be put here.
         ///
         /// @param a description of the first parameter
         /// @param b and of the second
+        /// @returns Describe what this method returns
         float CalculateSomething(int a, int b);
+
+        int firstName;  ///< The persons first name
+        int lastName;  ///< The persons last name 
 
     private:
         int age;
 };
-
 ```
 Will generate something like this
 
-![doxygen example](https://github.com/EMPHATICSoft/emphaticsoft/files/9075236/doxygen_example.pdf)
+![doxygen_example.pdf](https://github.com/EMPHATICSoft/emphaticsoft/files/9075318/doxygen_example.pdf)
+
+More information can be found [here](https://doxygen.nl/manual/docblocks.html) about using doxygen style comments.
+
