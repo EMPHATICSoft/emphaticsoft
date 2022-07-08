@@ -1,7 +1,13 @@
 # emphaticsoft
 Base repository for art-based code
 
+[Setting up to run on emphaticgpvm01.fnal.gov over ssh](#gpvm) <br>
+[Setting up to run locally in a Docker containter](#docker) <br>
+[Running art](#run) <br>
+[Generating documentation](#docs) <br>
+
 ---
+<a name="gpvm"></a>
 ## Instructions for setting up the code for the first time on emphaticgpvm01.fnal.gov:
 
 0.  Get a ticket for access EMPHATIC computer:
@@ -62,6 +68,7 @@ buildtool --generator=ninja
 Note, once you've done this step, you can simply call "ninja" to compile changes.
 
 ---
+<a name="docker"></a>
 ## Instructions for running a Docker container on your own machine to build the code:
 
 Docker is a commercial software (free for now) that allows EMPHATIC to release the software we use, including all the dependencies and for users to run it on a variety of operating systems.  Docker images of EMPHATIC software are made available via a networked file system provided by CERN, namely CVMFS.  
@@ -112,6 +119,7 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
    * any subsequent builds (still have to be in the build directory):
    ninja
    ```
+<a name="run"></a>
 ## Running run on emphaticsoft art modules. 
 
    * Now that you have build shared objects that could run under art, the real work can start, i.e., running art and your EMPHATIC shared objects to get some histograms that can be seen using root, or simple ASCII .csv files, that can be studied with any analysis tools you like.  These intructions are valid if  you are on emphaticgpvm0X.fnal.gov or your own machine.  First, go to the build directory, and if you have not done so, execute the two setups mentioned above. 
@@ -148,3 +156,6 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
      
      will work.. 
 
+<a name="docs"></a>
+## Generating documentation
+Refer to [docs](https://github.com/EMPHATICSoft/emphaticsoft/tree/main/docs)
