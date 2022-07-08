@@ -5,7 +5,7 @@ standard_onmon:
   module_type: BACkovReadout
 
   makeBACkovPlots:      true
-  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+  channelMapFileName: "ChannelMap_Jun22.txt"
 }
 
 no_ssd_onmon: @local::standard_onmon
