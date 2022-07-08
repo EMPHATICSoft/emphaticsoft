@@ -21,8 +21,9 @@ namespace emph {
       uint32_t tdc_measurement_word;
       int event_index;
       uint64_t fragmentTimestamp;
-      
+
     public:
+
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?

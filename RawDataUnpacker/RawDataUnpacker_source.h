@@ -58,6 +58,7 @@ namespace emph {
       bool    fCreateArtEvents;
       bool    fMakeTDiffHistos;
       bool    fReadSSDData;
+      bool    fReadTRB3Data;
       int     fVerbosity;
       int     fNumWaveFormPlots;
       int     fRun;
