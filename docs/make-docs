@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+cd ..
+
+doxygen docs/Doxyfile
+
+open docs/Doxyout/html/index.html
