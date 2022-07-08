@@ -1,5 +1,5 @@
 # Documentation
-Generated using [Doxygen](https://doxygen.nl)
+Generate documents using [Doxygen](https://doxygen.nl)
 
 [Prerequisites](#prerequisites) <br>
 [Generating and viewing documentation](#generating) <br>
