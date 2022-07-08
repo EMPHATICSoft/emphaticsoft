@@ -3,6 +3,7 @@ NRawObjectsHisto,Number of Raw Objects Per Detector;Detector;Number,All Detector
 NTriggerVsDet,Number of Triggers Seen by Each Detector;Detector;Number,All Detectors,TH1F,9,0,9,0,0,0,detlbl:hist:autozoomy,emph,subrun,1,Shows number of triggers seen by each detector.
 TriggerVsSubrun,Number of triggers per subrun seen by each detector.;Subrun;Detector,All Detectors,TH2F,600,0,600,9,0,9,colz:autozoomz:special:zoomsr,emph,run,1,Number of triggers per subrun recorded by each detector.
 HitEffPerChannel,Hit Efficiency per Channel seen by each detector.;Detector;Channel,All Detectors,TH2F,39,0,39,64,0,64,colz:autozoomz:special:zoomsr,emph,subrun,1,Hit efficiency vs. (Detector,Channel).
+TRB3NHitsPerChannel,TRB3 hits per electronic channels;Channel;FPGA,All Detectors,TH2F,65,0,65,20,0,20,colz,emph,run,1,TRB3 number of hits per electronic channels.
 T0ADC*,T0 ADC Distribution;ADC,T0,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for T0 channels.
 T0NTDC*,Number of T0 Hits Per Event;TDC,T0,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of T0 hits seen in each event on a given channel.
 T0TDCVsADC*,T0 TDC vs ADC Distribution,T0,TH2F,512,0,4095,512,0,4095,colz,emph,subrun,1,Shows distribution of TDC vs ADC for T0 hits.
@@ -28,7 +29,6 @@ RPCRisingTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1
 RPCFallingTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
 RPCTOT*,RPC time over threshold;Time,RPC,TH1F,1024,-1e5,1e5,0,0,0,,emph,run,1,difference between leading and trailing edge of each RPC channel pair.
 ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,150,0,150,0,0,0,,emph,run,1,Number of ARICH hits per event.
-ARICHNHitsECh,ARICH hits in electronic space;Channel;FPGA,ARICH,TH2F,65,0,65,20,0,20,colz,emph,run,1,ARICH hits in electronic space.
 ARICHNHitsPxl,ARICH hits XY;Pixel X;Pixel Y,ARICH,TH2F,24,0,24,24,0,24,colz,emph,run,1,ARICH hits by pixel X and pixel Y.
 ARICHHitTimes,ARICH leading and trailing times;Time-trigger (ns),ARICH,TH1F,200,-600,-400,0,0,0,,emph,run,1,ARICH leading and trailing times for all channels.
 ARICHHitToT,ARICH;Time over threshold (ns),ARICH,TH1F,100,0,100,0,0,0,,emph,run,1,ARICH time over threshold for all channels.

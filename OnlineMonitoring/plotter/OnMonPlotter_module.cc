@@ -173,7 +173,7 @@ namespace emph {
       std::vector<TH1F*> fSSDNHit;
 
       TH1F*  fARICHNHits;
-      TH2F*  fARICHNHitsECh;
+      TH2F*  fTRB3NHitsPerChannel;
       TH2F*  fARICHNHitsPxl;
       TH1F*  fARICHHitTimes;
       TH1F*  fARICHHitToT;
@@ -310,6 +310,7 @@ namespace emph {
       fNTriggerLGArray     = h.GetTH2F("NTriggerLGArray"); //
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
       fHitEffPerChannel = h.GetTH2F("HitEffPerChannel");
+      fTRB3NHitsPerChannel = h.GetTH2F("TRB3NHitsPerChannel");
 
       // label x-axis
       std::string labelStr;
@@ -546,7 +547,6 @@ namespace emph {
       if (fMakeTRB3Plots) {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
         fARICHNHits = h.GetTH1F("ARICHNHits");
-        fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
         fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
         fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
         fARICHHitToT = h.GetTH1F("ARICHHitToT");
@@ -768,8 +768,8 @@ namespace emph {
 		&& dchan.HiLo() == 0) {
 	      ///Adding a count per hit for each channel (only for rising edges)
 	      hitCount[detchan-1] += 1;
-	      ///Filling Arich plot depicting hits per fpga channel on TRB3
-	      fARICHNHitsECh->Fill(chan,board);
+	      ///Filling plot depicting hits per fpga channel on TRB3
+	      fTRB3NHitsPerChannel->Fill(chan,board);
 	    }
 
 	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan != 500), and that only 1 hit per trigger is filling the histograms.////
@@ -945,7 +945,7 @@ namespace emph {
               fARICHHitToT->Fill(trail_found[0]-lead);
 
               // fill electronic channel plot
-              fARICHNHitsECh->Fill(echan.Channel(),echan.Board());
+              fTRB3NHitsPerChannel->Fill(echan.Channel(),echan.Board());
 
               // fill pixel position plot
               // the arich consist of 3x3 pmts
@@ -1070,8 +1070,8 @@ namespace emph {
 		&& dchan.HiLo() == 0) {
 	      //adding a count for each hit in a detector channel
 	      hitCount[detchan-1] += 1;
-	      //Filling Arich plot which shows number of hits per FPGA channel
-	      fARICHNHitsECh->Fill(chan,board);
+	      //Filling plot which shows number of hits per FPGA channel
+	      fTRB3NHitsPerChannel->Fill(chan,board);
 	    }
             if (detchan != 500
                 && chan % 2 == 0
