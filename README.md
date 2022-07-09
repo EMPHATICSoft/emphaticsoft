@@ -1,8 +1,10 @@
 # emphaticsoft
 Base repository for art-based code
 
-[Setting up to run on emphaticgpvm01.fnal.gov over ssh](#gpvm) <br>
-[Setting up to run locally in a Docker containter](#docker) <br>
+#### Setting up
+* [On emphaticgpvm01.fnal.gov over ssh](#gpvm) <br>
+* [Locally in a Docker containter](#docker) <br>
+
 [Running art](#run) <br>
 [Generating documentation](#docs) <br>
 
