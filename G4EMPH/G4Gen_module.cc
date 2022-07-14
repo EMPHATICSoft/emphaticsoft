@@ -127,20 +127,13 @@ namespace emph {
     std::unique_ptr<std::vector<sim::Particle>     >            pcol    (new std::vector<sim::Particle>    );
     //    std::unique_ptr< art::Assns<sim::Particle, simb::MCTruth> > tpassn  (new art::Assns<sim::Particle, simb::MCTruth>);
     
-    std::cout << "******************** HERE 0 ********************" 
-	      << std::endl;
-    
     // get beam particle
     art::Handle<std::vector<simb::MCParticle>> beam;
     evt.getByLabel(fGeneratorLabel, beam);
     
     // make sure there is only one beam particle
-    std::cout << "******************** HERE A ********************" 
-	      << std::endl;
     assert(beam.size() == 1);
     simb::MCParticle b = beam->at(0);
-    std::cout << "******************** HERE B ********************" 
-	      << std::endl;
 
     // now create MCTruth
     simb::MCTruth mctru;

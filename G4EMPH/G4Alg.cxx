@@ -57,7 +57,10 @@ namespace emph {
     const std::vector<std::string>& psetstrvec = 
       pset.get< std::vector<std::string> >("AddedUserActions",nullstrvec);
 
+    std::cout << "%%%%% USER ACTIONS %%%%%" << std::endl;
+
     for (size_t j=0; j < psetstrvec.size(); ++j) {
+      std::cout << j << " " << psetstrvec[j] << std::endl;
       fUserActions.push_back(psetstrvec[j]); // append user entries to list of actions
     }
 
@@ -147,6 +150,7 @@ namespace emph {
 
     ConfigUserActionManager(fUserActions,pset);
 
+    std::cout << "%%%%%%%%%% ACTION LIST %%%%%%%%%%" << std::endl;
     uam->PrintActionList("config");
 
     // Complete the initialize the helper (actions+finalize stage)

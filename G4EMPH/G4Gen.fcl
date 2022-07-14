@@ -13,6 +13,8 @@ standard_g4alg:
 
   SparseTrajectories:  true   #if true, only save necessary points in particle trajectories
   G4PhysListName:      "QGSP_BERT_HP"
+
+#  AddedUserActions: ["emph::SSDHitAction", "emph::ParticleListAction"]
 }
 
 manyparticles_g4alg:               @local::standard_g4alg

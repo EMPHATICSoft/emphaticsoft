@@ -28,6 +28,8 @@
 #include "Simulation/Particle.h"
 #include "SimulationBase/MCParticle.h"
 
+#include "CLHEP/Units/SystemOfUnits.h"
+
 #include "TFile.h"
 #include "TRandom3.h"
 #include "TDatabasePDG.h"
@@ -272,12 +274,13 @@ namespace emph {
     else { // get random position from flat or Gaussian distribution
       if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
 	  fXYDistSource == "flatxy") {
-	pos[0] = rand->Uniform()*(fXmax - fXmin);
-        pos[1]= rand->Uniform()*(fYmax - fYmin);
+	pos[0] = rand->Uniform()*(fXmax - fXmin) / CLHEP::cm;
+        pos[1]= rand->Uniform()*(fYmax - fYmin) / CLHEP::cm;
       }
       else { // default is Gauss
-	pos[0] = rand->Gaus(fXmean,fXsigma);
-        pos[1] = rand->Gaus(fYmean,fYsigma);
+	std::cout << "here 1234" << std::endl;
+	pos[0] = rand->Gaus(fXmean,fXsigma) / CLHEP::cm;
+        pos[1] = rand->Gaus(fYmean,fYsigma) / CLHEP::cm;
       }
     }
     pos[3] = 0.; // set time to zero

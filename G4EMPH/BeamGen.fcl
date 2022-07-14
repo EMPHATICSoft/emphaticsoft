@@ -17,20 +17,20 @@ standard_beamgen:
   Ymin:			     0.
 
   Xmean: 		     0.
-  Xsigma:		     5.
+  Xsigma:		     0.5
   Ymean:		     0.
-  Ysigma:		     5.
+  Ysigma:		     0.5
 
   PMean:		     120.
-  Psigma:		     1.
+  Psigma:		     1.e-3
   PXmax:		     0.1
   PXmin:		     -0.1
   PYmax:		     0.1
   PYmin:		     -0.1
   PXmean:		     0.
-  PXsigma:		     0.5
+  PXsigma:		     10.e-6
   PYmean:		     0.
-  PYsigma:		     0.5
+  PYsigma:		     10.e-6
 }
 
 proton_beamgen: @local::standard_beamgen

@@ -243,16 +243,20 @@ namespace sim
   { 
     int trackID = particle->TrackId();
     iterator insertion = fParticleList.lower_bound( trackID );
+    if ( ((*insertion).first == trackID)) return;
+
     if ( insertion == fParticleList.end() ){
       // The best "hint" we can give is that the particle will go at
       // the end of the list.
       fParticleList.insert( insertion, value_type( trackID, particle ) );
-    }
-    else if ( ( (*insertion).first == trackID )) { //  && trackID != 1) 
-      throw cet::exception("ParticleNavigator") << "sim::ParticleNavigator::insert - ERROR - "
-						<< "track ID=" << trackID 
-						<< " is already in the list";
-    }
+    }    
+    /*    else if ( ( (*insertion).first == trackID )) 
+      { //  && trackID != 1) 
+       throw cet::exception("ParticleNavigator") << "sim::ParticleNavigator::insert - ERROR - "
+       << "track ID=" << trackID 
+       << " is already in the list";
+       }
+    */
     else{
       //      if (trackID > 1)
 	// It turns out that the best hint we can give is one more

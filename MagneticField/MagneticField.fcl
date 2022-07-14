@@ -2,8 +2,7 @@ BEGIN_PROLOG
 
 standard_magfield:
 {
-  FieldFileName: "/run/media/lebrun/My Passport/emphatic/phase1Jan2022/MagFieldMarch29/mfMap.txt"
-#  FieldFileName: "/run/media/lebrun/My Passport/emphatic/phase1Jan2022/MagFieldMarch29/magField_test1.root"
+  FieldFileName: "MagneticField/magField.root"
 }
 
 END_PROLOG
