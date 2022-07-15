@@ -35,6 +35,7 @@ source:
   SSDFilePrefix: "/data/"
   readSSDData: false
   readTRB3Data: true
+  firstSubRunHasExtraTrigger: true
 }
 
 outputs:
