@@ -182,13 +182,20 @@ namespace emph {
 			 try {
 				 evt.getByLabel(labelStr, wvfmHandle);
 
+				 std::cout<<"************wvfm Handle finished****************"<<std::endl;
 				 if (!wvfmHandle->empty()) {
-					 FillWaveformPlots(wvfmHandle);
+				 	 std::cout<<"***************NOT EMPTY**************"<<std::endl;
+					 //FillWaveformPlots(wvfmHandle);
+				 }
+				 else {
+				 	 std::cout<<"***************EMPTY*********"<<std::endl;
 				 }
 			 }
 			 catch(...) {
 
 			 }
+
+			 std::cout<<"************If/esle passed****************"<<std::endl;
 		 }
 
 		 return;

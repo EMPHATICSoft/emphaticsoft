@@ -5,9 +5,9 @@ standard_onmon:
   module_type: ReadoutWaveform
 
   makeWaveformPlots:      true
-  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+  channelMapFileName: "ChannelMap_Jun22.txt"
   boardNum: 3
-  chanNum: 4
+  chanNum: 3
   evtNum: 10
 }
 

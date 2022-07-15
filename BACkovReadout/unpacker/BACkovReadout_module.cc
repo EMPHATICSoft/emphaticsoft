@@ -183,9 +183,9 @@ namespace emph {
 		tree->Branch("LG_q3",&LGq3);
 		tree->Branch("LG_q4",&LGq4);
 		tree->Branch("LG_q5",&LGq5);
-		tree->Branch("LG_q6",&LGq5);
-		tree->Branch("LG_q7",&LGq5);
-		tree->Branch("LG_q8",&LGq5);
+		tree->Branch("LG_q6",&LGq6);
+		tree->Branch("LG_q7",&LGq7);
+		tree->Branch("LG_q8",&LGq8);
 		tree->Branch("LG_blw0",&LGblw0);
 		tree->Branch("LG_blw1",&LGblw1);
 		tree->Branch("LG_blw2",&LGblw2);
@@ -201,7 +201,7 @@ namespace emph {
     void BACkovReadout::endJob()
     {
       char filename[32];
-      sprintf(filename,"BACkov_s%d_r%d.root",fRun,fSubrun);
+      sprintf(filename,"BACkov_r%d_s%d.root",fRun,fSubrun);
 
       std::cout<<"Writing file for run/subrun: " << fRun << "/" <<fSubrun << std::endl;
       std::rename("BACkov.root",filename);      
@@ -309,9 +309,8 @@ namespace emph {
             LGechan.SetChannel(LGchan);
             emph::cmap::DChannel LGdchan = fChannelMap->DetChan(LGechan);
             int LGdetchan = LGdchan.Channel();
-	    //std::cout<<"LGCalo Board, Chan, detchan : "<<LGboard<<", "<<LGchan<<", "<<LGdetchan<<std::endl;
             if (LGdetchan==0){
-	      LGq0 = 100;  LGblw0 = LGwvfm.BLWidth();
+	      LGq0 = LGwvfm.Charge();  LGblw0 = LGwvfm.BLWidth();
 	    }
 	    if (LGdetchan==1){
 	      LGq1 = LGwvfm.Charge(); LGblw1 = LGwvfm.BLWidth();
