@@ -51,17 +51,28 @@ namespace emph {
       void endJob();
 
     private:
+      const int n_seg = 10;
+      const int n_ch = 41; // Number of all channels for T0
+      const int n_ch_det = 20; // Number of leading channels for T0
+      const int RPC_board = 1283;
+      const int T0_board = 1282;
 
-      bool   FindSeg(int ch_daq);
-      bool   FindTrailBot(int ch_daq);
-      bool   FindTrailTop(int ch_daq);
-      bool   FindLeadBot(int ch_daq);
-      bool   FindLeadTop(int ch_daq);
-      int    GetSeg(int ch_daq);
-      double GetTot(const TRB3RawDigit*);
+      const double epoch_const = 10240026.0; // Constant for epochtime
+      const double coarse_const = 5000.0; // Constant for coarsetime
+      double trb3_linear_low = 15.0; // Calibration for low end
+      double trb3LinearHighEnd = 499.0; // Calibration for FPGA2 -- T0
+      double trb3LinearHighEnd_RPC = 491.0; // Calibration for FPGA3 -- RPC
+      // std::array<double, 2> trb3_linear_high = {499.0, 491.0}; // Calibration for FPGA2 -- T0 and FPGA3 -- RPC
 
+      bool   FindSeg(int);
+      bool   FindTrailBot(int);
+      bool   FindTrailTop(int);
+      bool   FindLeadBot(int);
+      bool   FindLeadTop(int);
+      int    GetSeg(int);
       void   FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
 			   art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
+      std::array<double, n_ch_det> GetTot(const std::vector<rawdata::TRB3RawDigit>&, int);
       
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
@@ -70,11 +81,12 @@ namespace emph {
       unsigned int fNEvents;
       
       TTree *tree;
-      int event;
-      float Tq[20];
-      float Tmax[20];
-      float Tblw[20];
-      double Ttot[20];
+      std::array<float, n_ch_det> ADCq;
+      std::array<float, n_ch_det> ADCmax;
+      std::array<float, n_ch_det> ADCblw;
+
+      std::array<double, n_ch_det> TDCt;
+      std::array<double, n_ch_det> TDCtot;
     };
 
   //.......................................................................
@@ -88,11 +100,12 @@ namespace emph {
     art::ServiceHandle<art::TFileService> tfs;
 
     tree = tfs->make<TTree>("T0AnaTree","");
-    tree->Branch("event",&event);
-    tree->Branch("q",Tq);
-    tree->Branch("qmax",Tmax);
-    tree->Branch("qblw",Tblw);
-    tree->Branch("tot",Ttot);
+    tree->Branch("q",&ADCq);
+    tree->Branch("qmax",&ADCmax);
+    tree->Branch("qblw",&ADCblw);
+
+    tree->Branch("t", &TDCq);
+    tree->Branch("ttot", &TDCtot);
   }
 
   //......................................................................
@@ -186,107 +199,43 @@ namespace emph {
   }
 
   //......................................................................
-  double T0Ana::GetTot(const TRB3RawDigit* dig)
+  std::array<double, n_ch_det> T0Ana::GetTot(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
-    int n_seg = 10; // number of segment
-  
-    int RPC_board = 1283;
-    int T0_board = 1282;
-    double trb3LinearLowEnd = 15.0; // Calibration for low end
-    double trb3LinearHighEnd = 499.0; // Calibration for FPGA2 -- T0
-    double trb3LinearHighEnd_RPC = 491.0; // Calibration for FPGA3? -- RPC
-    double max_diff = 0;
-    int n_count = 0;
-    int total_entry = 0;
-    double gate_min = -10000000.0;
+    std::array<double, n_ch> time_ch;
+    std::array<bool, n_ch> found_ch;
+    std::array<double, n_ch_det> T0_tot;
 
-    double time_top_l;
-    double time_bottom_l;
-    double time_top_t;
-    double time_bottom_t;
-    bool found_top_l;
-    bool found_bottom_l;
-    bool found_top_t;
-    bool found_bottom_t;
+    for(int i_ch; i_ch < n_ch; i_ch++){
+      time_ch[i_ch]  = 0;
+      found_ch[i_ch] = false;
+    }
 
-    for(int i_seg; i_seg < n_seg; i_seg++){
-      time_top_l[i_seg]     = 0;
-      time_bottom_l[i_seg]  = 0;
-      time_top_t[i_seg]     = 0;
-      time_bottom_t[i_seg]  = 0;
-      found_top_l[i_seg]    = false;
-      found_bottom_l[i_seg] = false;
-      found_top_t[i_seg]    = false;
-      found_bottom_t[i_seg] = false;
-    }//for(i_seg:n_seg)
+    for(int i_ch_det; i_ch_det < n_ch_det; i_ch_det++){
+      T0_tot[i_ch_det]  = -999.0;
+    }
 
-    int n_vector = headerWord->size();
-    for(int i_vector = 0; i_vector < n_vector; i_vector++){
-      if(headerWord->at(i_vector) == T0_board){
-	int event_channel = channel->at(i_vector);
-	if(event_channel==0){ // there is a trigger at the FPGA
-	  found_trig = true;
-	  time_trig = (double)epochtime->at(i_vector)*10240026.0 + (double)coarsetime->at(i_vector) * 5000.0 - (((double)finetime->at(i_vector) - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;  // this is the calibrated trigger time in ps
-	}
-	if(find_bottom_l(event_channel)){
-	  seg_id = find_seg(event_channel);
-	  if(!found_bottom_l[seg_id]){
-	    found_bottom_l[seg_id] = true;
-	    time_bottom_l[seg_id]  = (double)epochtime->at(i_vector)*10240026.0 + (double)coarsetime->at(i_vector) * 5000.0 - (((double)finetime->at(i_vector) - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;  // this is the calibrated T0 time in ps
-	  }
-	}
-	if(find_top_l(event_channel)){
-	  seg_id = find_seg(event_channel);
-	  if(!found_top_l[seg_id]){
-	    found_top_l[seg_id] = true;
-	    time_top_l[seg_id]  = (double)epochtime->at(i_vector)*10240026.0 + (double)coarsetime->at(i_vector) * 5000.0 - (((double)finetime->at(i_vector) - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;  // this is the calibrated T0 time in ps
-	  }
-	}
-	if(find_bottom_t(event_channel)){
-	  seg_id = find_seg(event_channel);
-	  if(!found_bottom_t[seg_id]){
-	    found_bottom_t[seg_id] = true;
-	    time_bottom_t[seg_id]  = (double)epochtime->at(i_vector)*10240026.0 + (double)coarsetime->at(i_vector) * 5000.0 - (((double)finetime->at(i_vector) - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;  // this is the calibrated T0 time in ps
-	  }
-	}
-	if(find_top_t(event_channel)){
-	  seg_id = find_seg(event_channel);
-	  if(!found_top_t[seg_id]){
-	    found_top_t[seg_id] = true;
-	    time_top_t[seg_id]  = (double)epochtime->at(i_vector)*10240026.0 + (double)coarsetime->at(i_vector) * 5000.0 - (((double)finetime->at(i_vector) - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;  // this is the calibrated T0 time in ps
-	  }
-	}
-      }//if(headerWord==T0)
-    }//for(i_vector:n_vector)
-    if(found_trig){
-      for(int i_seg = 0; i_seg < n_seg; i_seg++){
-	if(found_bottom_l[i_seg] && found_bottom_t[i_seg]){
-	  h_tot_bottom[i_seg]->Fill(time_bottom_t[i_seg] - time_bottom_l[i_seg]);
-	  h_tdc_tot_bottom[i_seg]->Fill(time_bottom_l[i_seg] - time_trig, time_bottom_l[i_seg] - time_bottom_t[i_seg]);
-	}//if(found_bottom)
-	if(found_top_l[i_seg] && found_top_t[i_seg]){
-	  h_tot_top[i_seg]->Fill(time_top_t[i_seg] - time_top_l[i_seg]);
-	  h_tdc_tot_top[i_seg]->Fill(time_top_l[i_seg] - time_trig, time_top_l[i_seg] - time_top_t[i_seg]);
-	}//if(found_top)
-      }//for(i_seg:n_seg)
-    }//if(found_trig)
-    found_trig   = false;
-    time_trig  = 0;
-    for(int i_seg = 0; i_seg < n_seg; i_seg++){
-      found_top_l[i_seg]    = false;
-      found_bottom_l[i_seg] = false;
-      found_top_t[i_seg]    = false;
-      found_bottom_t[i_seg] = false;
-    
-      time_top_l[i_seg]     = 0;
-      time_bottom_l[i_seg]  = 0;
-      time_top_t[i_seg]     = 0;
-      time_bottom_t[i_seg]  = 0;
-    }//for(i_seg:n_seg)
-  }//for(i_entry:n_entry)
-}//for()
+    //loop over TRB3 signals
+    int n_vec = digvec->size();
+    for(int i_vec = 0; i_vec < n_vec; i_vec++){
+      uint32_t evt_ch = digvec.at(i_vec).GetChannel();
 
-    return -1.;
+      if(FindSeg(evt_ch) && (!found_ch[evt_ch])){
+	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch[eve_ch] = true;
+      }
+
+    }//end loop over T0 TRB3 signals
+
+    //Calculation of TOT, loop over T0 leading channels
+    for(int i_ch_det = 0; i_ch_det < n_ch_det; i_ch_det++){
+      if(found_ch[2*i_ch_det + 1] + found_ch[2*i_ch_det + 2]){
+	T0_tot[i_ch_det] = time_ch[2*i_ch_det + 1] - time_ch[2*i_ch_det + 1];
+      }
+    }//end loop over T0 leading channels
+
+    return T0_tot;
   }
 
   //......................................................................
@@ -294,10 +243,13 @@ namespace emph {
   void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3)
     {
       for (int i=0; i<20; ++i) {
-	Tq[i] = -999999.;
-	Tmax[i] = -9999.;
-	Tblw[i] = -1.;	
-	Ttot[i] = -999.;
+	ADCq[i] = -999999.;
+	ADCmax[i] = -9999.;
+	ADCblw[i] = -1.;	
+	ADCtot[i] = -999.;
+
+	TDCt[i] = -100000000.0;
+	TDCtot[i] = -999.;
       }
       
       // get ADC info for T0
@@ -310,7 +262,6 @@ namespace emph {
 	  const rawdata::WaveForm& wvfm = (*T0wvfm)[idx];
 	  int chan = wvfm.Channel();
 	  int board = wvfm.Board();
-	  //	  event = fNEvents;
 	  echan.SetBoard(board);
 	  echan.SetChannel(chan);
 	  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -332,7 +283,6 @@ namespace emph {
 	  const rawdata::TRB3RawDigit& trb3 = (*T0trb3)[idx];
 	  int chan = trb3.GetChannel();
 	  int board = trb3.GetBoardId();
-	  //	  event = fNEvents;
 	  echan.SetBoard(board);
 	  echan.SetChannel(chan);
 	  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
