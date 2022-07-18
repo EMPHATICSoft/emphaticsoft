@@ -8,7 +8,7 @@ cet_find_package(ROOT REQUIRED)
 include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
-build_plugin(BACkovReadout "module"
+build_plugin(T0Ana "module"
   LIBRARIES PRIVATE
     RawData
     ChannelMap
