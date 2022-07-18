@@ -70,9 +70,11 @@ namespace emph {
       bool   FindLeadBot(int);
       bool   FindLeadTop(int);
       int    GetSeg(int);
+      std::array<int, 2> GetSegCh(int);
       void   FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
 			   art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
-      std::array<double, n_ch_det> GetTot(const std::vector<rawdata::TRB3RawDigit>&, int);
+      std::array<double, n_ch_det> GetTot(const std::vector<rawdata::TRB3RawDigit>&);
+      std::array<double, n_ch_det> GetTdc(const std::vector<rawdata::TRB3RawDigit>&);
       
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
@@ -173,6 +175,33 @@ namespace emph {
 
 
   //......................................................................
+  std::array<int, 2> T0Ana::GetSegCh(int seg_id)
+  {
+    if(seg_id == 0){
+      return { 1, 21};
+    }else if(seg_id == 1){
+      return { 3, 23};
+    }else if(seg_id == 2){
+      return { 5, 25};
+    }else if(seg_id == 3){
+      return { 7, 27};
+    }else if(seg_id == 4){
+      return { 9, 29};
+    }else if(seg_id == 5){
+      return {11, 31};
+    }else if(seg_id == 6){
+      return {13, 35};
+    }else if(seg_id == 7){
+      return {15, 33};
+    }else if(seg_id == 8){
+      return {17, 37};
+    }else{
+      return {19, 39};
+    }
+  }
+
+
+  //......................................................................
   bool T0Ana::FindTrailBot(int ch_daq)
   {    
     if ((ch_daq < 21) && ((ch_daq%2)==0)) return true;
@@ -236,6 +265,53 @@ namespace emph {
     }//end loop over T0 leading channels
 
     return T0_tot;
+  }
+
+  //......................................................................
+  std::array<double, n_seg> T0Ana::GetTdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
+  {
+    std::array<double, n_ch> time_ch;
+    std::array<bool, n_ch> found_ch;
+    std::array<double, n_seg> T0_tdc;
+
+    for(int i_ch; i_ch < n_ch; i_ch++){
+      time_ch[i_ch]  = 0;
+      found_ch[i_ch] = false;
+    }
+
+    for(int i_ch_det; i_ch_det < n_ch_det; i_ch_det++){
+      T0_tdc[i_ch_det]  = -100000000.0;
+    }
+
+    //loop over TRB3 signals
+    int n_vec = digvec->size();
+    for(int i_vec = 0; i_vec < n_vec; i_vec++){
+      uint32_t evt_ch = digvec.at(i_vec).GetChannel();
+
+      if(evt_ch == 0 && (!found_ch[0])){
+	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch[eve_ch] = true;
+      }else if(FindSeg(evt_ch) && (!found_ch[evt_ch])){
+	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch[eve_ch] = true;
+      }
+    }//end loop over T0 TRB3 signals
+
+    //Calculation of tdc, loop over T0 segments
+    if(found_ch[0]){
+      for(int i_seg = 0; i_seg < n_seg; i_seg++){
+	std::array<int, 2> ch_seg = GetSegCh(i_seg);
+	if(found_ch[ch_seg[0]] && found_ch[ch_seg[1]]){
+	  T0_tdc[i_ch_det] = (time_ch[ch_seg[0]] + time_ch[ch_seg[1]])/2.0 - time_ch[0];
+	}
+      }//end loop over T0 leading channels
+    }
+
+    return T0_tdc;
   }
 
   //......................................................................
