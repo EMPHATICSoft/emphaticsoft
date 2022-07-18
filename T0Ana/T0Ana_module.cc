@@ -69,12 +69,12 @@ namespace emph {
       bool   FindTrailTop(int);
       bool   FindLeadBot(int);
       bool   FindLeadTop(int);
-      int    GetSeg(int);
-      std::array<int, 2> GetSegCh(int);
+      int    GetSegIdTrb3(int);
+      std::array<int, 2> GetSegChTrb3(int);
       void   FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
 			   art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
       std::array<double, n_ch_det> GetTot(const std::vector<rawdata::TRB3RawDigit>&);
-      std::array<double, n_ch_det> GetTdc(const std::vector<rawdata::TRB3RawDigit>&);
+      std::array<double, n_seg>    GetTdc(const std::vector<rawdata::TRB3RawDigit>&);
       
       emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
@@ -87,7 +87,7 @@ namespace emph {
       std::array<float, n_ch_det> ADCmax;
       std::array<float, n_ch_det> ADCblw;
 
-      std::array<double, n_ch_det> TDCt;
+      std::array<double, n_seg> TDCt;
       std::array<double, n_ch_det> TDCtot;
     };
 
@@ -158,7 +158,7 @@ namespace emph {
 
 
   //......................................................................
-  int T0Ana::GetSeg(int ch_daq)
+  int T0Ana::GetSegIdTrb3(int ch_daq)
   {
     if(ch_daq ==  1 || ch_daq ==  2 || ch_daq == 21 || ch_daq == 22) return 0;
     if(ch_daq ==  3 || ch_daq ==  4 || ch_daq == 23 || ch_daq == 24) return 1;
@@ -175,7 +175,7 @@ namespace emph {
 
 
   //......................................................................
-  std::array<int, 2> T0Ana::GetSegCh(int seg_id)
+  std::array<int, 2> T0Ana::GetSegChTrb3(int seg_id)
   {
     if(seg_id == 0){
       return { 1, 21};
@@ -304,9 +304,9 @@ namespace emph {
     //Calculation of tdc, loop over T0 segments
     if(found_ch[0]){
       for(int i_seg = 0; i_seg < n_seg; i_seg++){
-	std::array<int, 2> ch_seg = GetSegCh(i_seg);
+	std::array<int, 2> ch_seg = GetSegChTrb3(i_seg);
 	if(found_ch[ch_seg[0]] && found_ch[ch_seg[1]]){
-	  T0_tdc[i_ch_det] = (time_ch[ch_seg[0]] + time_ch[ch_seg[1]])/2.0 - time_ch[0];
+	  T0_tdc[i_seg] = (time_ch[ch_seg[0]] + time_ch[ch_seg[1]])/2.0 - time_ch[0];
 	}
       }//end loop over T0 leading channels
     }
@@ -322,7 +322,6 @@ namespace emph {
 	ADCq[i] = -999999.;
 	ADCmax[i] = -9999.;
 	ADCblw[i] = -1.;	
-	ADCtot[i] = -999.;
 
 	TDCt[i] = -100000000.0;
 	TDCtot[i] = -999.;
@@ -343,14 +342,18 @@ namespace emph {
 	  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	  int detchan = dchan.Channel();
 	  if (detchan >0 && detchan <= 20){
-	    Tq[detchan] = wvfm.Charge(); 
-	    Tmax[detchan] = wvfm.Baseline()-wvfm.PeakADC(); 
-	    Tblw[detchan] = wvfm.BLWidth();
+	    ADCq[detchan - 1] = wvfm.Charge(); 
+	    ADCmax[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC(); 
+	    ADCblw[detchan - 1] = wvfm.BLWidth();
 	  }	  
 	} // end loop over T0 ADC channels
+      }
 
       // get TDC info for T0
       if (!T0trb3->empty()) {
+	TDCt = GetTdc(T0trb3);
+	TDCtot = GetTot(T0trb3);
+
 	emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
 	emph::cmap::EChannel T0echan;
 	T0echan.SetBoardType(boardType);
@@ -369,11 +372,9 @@ namespace emph {
 	    Tblw[detchan] = wvfm.BLWidth();
 	  }	  
 	} // end loop over T0 ADC channels
-	
-	tree->Fill();
       }
+      tree->Fill();
     }
-	 }
     
     //......................................................................
 
