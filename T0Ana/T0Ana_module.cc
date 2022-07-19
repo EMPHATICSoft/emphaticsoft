@@ -30,9 +30,13 @@
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
 
-// Define parameters of T0 detector
-#define N_SEG 10
-#define N_CH_DET 20
+// Define parameters of detectors
+#define N_SEG_T0 10
+#define N_CH_T0 41
+#define N_CH_DET_T0 20
+#define N_SEG_RPC 8
+#define N_CH_RPC 33
+#define N_CH_DET_RPC 16
 
 using namespace emph;
 
@@ -54,9 +58,12 @@ namespace emph {
     void endJob();
 
   private:
-    static const int n_seg = N_SEG;
-    static const int n_ch = 41; // Number of all channels for T0
-    static const int n_ch_det = N_CH_DET; // Number of leading channels for T0
+    static const int n_seg_t0 = N_SEG_T0;
+    static const int n_ch_det_t0 = N_CH_DET_T0; // Number of leading channels for T0
+    static const int n_ch_t0 = N_CH_T0; // Number of all channels for T0
+    static const int n_seg_rpc = N_SEG_RPC;
+    static const int n_ch_det_rpc = N_CH_DET_RPC; // Number of leading channels for RPC
+    static const int n_ch_rpc = N_CH_RPC; // Number of all channels for RPC
     static const int RPC_board = 1283;
     static const int T0_board = 1282;
 
@@ -68,6 +75,7 @@ namespace emph {
     // std::array<double, 2> trb3_linear_high = {499.0, 491.0}; // Calibration for FPGA2 -- T0 and FPGA3 -- RPC
 
     bool   FindSeg(int);
+    bool   FindSegLead(int);
     bool   FindTrailBot(int);
     bool   FindTrailTop(int);
     bool   FindLeadBot(int);
@@ -76,8 +84,11 @@ namespace emph {
     std::array<int, 2> GetSegChTrb3(int);
     void   FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
 			 art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
-    std::array<double, N_CH_DET> GetTot(const std::vector<rawdata::TRB3RawDigit>&);
-    std::array<double, N_SEG>    GetTdc(const std::vector<rawdata::TRB3RawDigit>&);
+    std::array<double, N_CH_DET_T0>  GetT0Tot(const std::vector<rawdata::TRB3RawDigit>&);
+    std::array<double, N_SEG_T0>     GetT0Tot(const std::vector<rawdata::TRB3RawDigit>&, bool);
+    std::array<double, N_SEG_T0>     GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
+    std::array<double, N_CH_DET_RPC> GetRPCTot(const std::vector<rawdata::TRB3RawDigit>&);
+    std::array<double, N_SEG_RPC>    GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>&);
 
     emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;
@@ -85,18 +96,23 @@ namespace emph {
     unsigned int fSubrun;
     unsigned int fNEvents;
 
-    std::array<double, n_ch> time_ch;
-    std::array<bool, n_ch> found_ch;
-    std::array<double, n_ch_det> T0_tot;
-    std::array<double, n_seg> T0_tdc;
+    std::array<double, n_ch_t0> time_ch;
+    std::array<bool,   n_ch_t0> found_ch;
+    std::array<double, n_ch_det_t0> T0_tot;
+    std::array<double, n_seg_t0> T0_tot_seg;
+    std::array<double, n_seg_t0> T0_tdc;
 
     TTree *tree;
-    std::array<double, n_ch_det> ADCq;
-    std::array<double, n_ch_det> ADCmax;
-    std::array<double, n_ch_det> ADCblw;
+    std::array<double, n_seg_t0> ADCqt; // Charge of top signals
+    std::array<double, n_seg_t0> ADCqb; // Charge of bottom signals
+    std::array<double, n_seg_t0> ADCmaxt; // Pulse height of top signals
+    std::array<double, n_seg_t0> ADCmaxb; // Pulse height of bottom signals
+    std::array<double, n_seg_t0> ADCblwt; // Baseline of top signals
+    std::array<double, n_seg_t0> ADCblwb; // Baseline of bottom signals
 
-    std::array<double, n_seg> TDCt;
-    std::array<double, n_ch_det> TDCtot;
+    std::array<double, n_seg_t0> TDCt; // Average times of top and bottom signals
+    std::array<double, n_seg_t0> TDCtott; // TOT of top signals
+    std::array<double, n_seg_t0> TDCtotb; // TOT of bottom signals
 
   };
 
@@ -111,12 +127,16 @@ namespace emph {
     art::ServiceHandle<art::TFileService> tfs;
 
     tree = tfs->make<TTree>("T0AnaTree","");
-    tree->Branch("q",&ADCq);
-    tree->Branch("qmax",&ADCmax);
-    tree->Branch("qblw",&ADCblw);
+    tree->Branch("qt",&ADCqt);
+    tree->Branch("qb",&ADCqb);
+    tree->Branch("qmaxt",&ADCmaxt);
+    tree->Branch("qmaxb",&ADCmaxb);
+    tree->Branch("qblwt",&ADCblwt);
+    tree->Branch("qblwb",&ADCblwb);
 
     tree->Branch("t", &TDCt);
-    tree->Branch("ttot", &TDCtot);
+    tree->Branch("ttott", &TDCtott);
+    tree->Branch("ttotb", &TDCtotb);
   }
 
   //......................................................................
@@ -160,6 +180,14 @@ namespace emph {
   bool T0Ana::FindSeg(int ch_daq)
   {
     if (ch_daq >= 1 && ch_daq <= 40) return true;
+
+    return false;
+  }
+
+  //......................................................................
+  bool T0Ana::FindSegLead(int ch_daq)
+  {
+    if (ch_daq >= 1 && ch_daq <= 40 && ch_daq%2 == 1) return true;
 
     return false;
   }
@@ -233,14 +261,14 @@ namespace emph {
   }
 
   //......................................................................
-  std::array<double, N_CH_DET> T0Ana::GetTot(const std::vector<rawdata::TRB3RawDigit>& digvec)
+  std::array<double, N_CH_DET_T0> T0Ana::GetT0Tot(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
-    for(int i_ch = 0; i_ch < n_ch; i_ch++){
+    for(int i_ch = 0; i_ch < n_ch_t0; i_ch++){
       time_ch[i_ch]  = 0;
       found_ch[i_ch] = false;
     }
 
-    for(int i_ch_det = 0; i_ch_det < n_ch_det; i_ch_det++){
+    for(int i_ch_det = 0; i_ch_det < n_ch_det_t0; i_ch_det++){
       T0_tot[i_ch_det]  = -999.0;
     }
 
@@ -258,9 +286,9 @@ namespace emph {
     }//end loop over T0 TRB3 signals
 
     //Calculation of TOT, loop over T0 leading channels
-    for(int i_ch_det = 0; i_ch_det < n_ch_det; i_ch_det++){
-      if(found_ch[2*i_ch_det + 1] + found_ch[2*i_ch_det + 2]){
-	T0_tot[i_ch_det] = time_ch[2*i_ch_det + 1] - time_ch[2*i_ch_det + 1];
+    for(int i_ch_det = 0; i_ch_det < n_ch_det_t0; i_ch_det++){
+      if(found_ch[2*i_ch_det + 1] && found_ch[2*i_ch_det + 2]){
+	T0_tot[i_ch_det] = time_ch[2*i_ch_det + 1] - time_ch[2*i_ch_det + 2];
       }
     }//end loop over T0 leading channels
 
@@ -268,14 +296,57 @@ namespace emph {
   }
 
   //......................................................................
-  std::array<double, N_SEG> T0Ana::GetTdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
+  std::array<double, N_SEG_T0> T0Ana::GetT0Tot(const std::vector<rawdata::TRB3RawDigit>& digvec, bool sel_top = true)
   {
-    for(int i_ch = 0; i_ch < n_ch; i_ch++){
+    for(int i_ch = 0; i_ch < n_ch_t0; i_ch++){
       time_ch[i_ch]  = 0;
       found_ch[i_ch] = false;
     }
 
-    for(int i_ch_det = 0; i_ch_det < n_ch_det; i_ch_det++){
+    for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
+      T0_tot_seg[i_seg]  = -999.0;
+    }
+
+    //loop over TRB3 signals
+    int n_vec = digvec.size();
+    for(int i_vec = 0; i_vec < n_vec; i_vec++){
+      uint32_t evt_ch = digvec.at(i_vec).GetChannel();
+
+      if(FindSeg(evt_ch) && (!found_ch[evt_ch])){
+	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch[evt_ch] = true;
+      }
+    }//end loop over T0 TRB3 signals
+
+    //Calculation of TOT, loop over T0 segments
+    if(sel_top){
+      for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
+	if(found_ch[2*i_seg + 21] && found_ch[2*i_seg + 22]){
+	  T0_tot_seg[i_seg] = time_ch[2*i_seg + 21] - time_ch[2*i_seg + 22];
+	}
+      }//end loop over T0 segments for top
+    }else{
+      for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
+	if(found_ch[2*i_seg + 1] && found_ch[2*i_seg + 2]){
+	  T0_tot_seg[i_seg] = time_ch[2*i_seg + 1] - time_ch[2*i_seg + 2];
+	}
+      }//end loop over T0 segments for bottom
+    }
+
+    return T0_tot_seg;
+  }
+
+  //......................................................................
+  std::array<double, N_SEG_T0> T0Ana::GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
+  {
+    for(int i_ch = 0; i_ch < n_ch_t0; i_ch++){
+      time_ch[i_ch]  = 0;
+      found_ch[i_ch] = false;
+    }
+
+    for(int i_ch_det = 0; i_ch_det < n_ch_det_t0; i_ch_det++){
       T0_tdc[i_ch_det]  = -100000000.0;
     }
 
@@ -289,7 +360,7 @@ namespace emph {
 	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
 	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
 	found_ch[evt_ch] = true;
-      }else if(FindSeg(evt_ch) && (!found_ch[evt_ch])){
+      }else if(FindSegLead(evt_ch) && (!found_ch[evt_ch])){
 	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
 	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
 	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
@@ -299,7 +370,7 @@ namespace emph {
 
     //Calculation of tdc, loop over T0 segments
     if(found_ch[0]){
-      for(int i_seg = 0; i_seg < n_seg; i_seg++){
+      for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
 	std::array<int, 2> ch_seg = GetSegChTrb3(i_seg);
 	if(found_ch[ch_seg[0]] && found_ch[ch_seg[1]]){
 	  T0_tdc[i_seg] = (time_ch[ch_seg[0]] + time_ch[ch_seg[1]])/2.0 - time_ch[0];
@@ -314,13 +385,17 @@ namespace emph {
 
   void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3)
   {
-    for (int i=0; i<20; ++i) {
-      ADCq[i] = -999999.0;
-      ADCmax[i] = -9999.0;
-      ADCblw[i] = -1.0;
+    for(int i = 0; i < n_seg_t0; i++){
+      ADCqt[i] = -999999.0;
+      ADCqb[i] = -999999.0;
+      ADCmaxt[i] = -9999.0;
+      ADCmaxb[i] = -9999.0;
+      ADCblwt[i] = -1.0;
+      ADCblwb[i] = -1.0;
 
-      TDCt[i] = -100000000.0;
-      TDCtot[i] = -999.0;
+      TDCt[i]    = -100000000.0;
+      TDCtott[i] = -999.0;
+      TDCtotb[i] = -999.0;
     }
 
     // get ADC info for T0
@@ -337,10 +412,14 @@ namespace emph {
 	T0echan.SetChannel(chan);
 	emph::cmap::DChannel dchan = fChannelMap->DetChan(T0echan);
 	int detchan = dchan.Channel();
-	if (detchan > 0 && detchan <= 20){
-	  ADCq[detchan - 1] = wvfm.Charge();
-	  ADCmax[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
-	  ADCblw[detchan - 1] = wvfm.BLWidth();
+	if (detchan > 0 && detchan <= n_seg_t0){
+	  ADCqb[detchan - 1] = wvfm.Charge();
+	  ADCmaxb[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADCblwb[detchan - 1] = wvfm.BLWidth();
+	}else if(detchan > n_seg_t0 && detchan <= n_ch_det_t0){
+	  ADCqt[detchan%n_seg_t0 - 1] = wvfm.Charge();
+	  ADCmaxt[detchan%n_seg_t0 - 1] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADCblwt[detchan%n_seg_t0 - 1] = wvfm.BLWidth();
 	}
       } // end loop over T0 ADC channels
     }
@@ -348,7 +427,8 @@ namespace emph {
     // get TDC info for T0
     if (!T0trb3->empty()) {
       // TDCt = GetTdc(T0trb3);
-      // TDCtot = GetTot(T0trb3);
+      // TDCtott = GetTot(T0trb3, true);
+      // TDCtotb = GetTot(T0trb3, false);
 
       // emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
       // emph::cmap::EChannel T0echan;
