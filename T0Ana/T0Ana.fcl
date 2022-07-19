@@ -2,9 +2,8 @@ BEGIN_PROLOG
 
 standard_onmon:
 {
-  module_type: BACkovReadout
+  module_type: T0Ana
 
-  makeBACkovPlots:      true
   channelMapFileName: "ChannelMap_Jun22.txt"
 }
 

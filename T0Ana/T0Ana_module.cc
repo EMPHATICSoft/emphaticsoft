@@ -86,11 +86,12 @@ namespace emph {
     std::array<int, 2> GetSegChT0(int);
     std::array<int, 2> GetSegChRPC(int);
     void   FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
+			 art::Handle< std::vector<rawdata::TRB3RawDigit> > &,
 			 art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
     std::array<double, N_CH_DET_T0> GetT0Tot(const std::vector<rawdata::TRB3RawDigit>&);
     std::array<double, N_SEG_T0>    GetT0Tot(const std::vector<rawdata::TRB3RawDigit>&, bool);
     std::array<double, N_SEG_T0>    GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
-    std::array<double, N_SEG_RPC>   GetRPCTot(const std::vector<rawdata::TRB3RawDigit>&);
+    std::array<double, N_SEG_RPC>   GetRPCTot(const std::vector<rawdata::TRB3RawDigit>&, bool);
     std::array<double, N_SEG_RPC>   GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>&);
 
     emph::cmap::ChannelMap* fChannelMap;
@@ -485,7 +486,7 @@ namespace emph {
     }
 
     for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
-      RPC_tdc[i_ch_det]  = -100000000.0;
+      RPC_tdc[i_seg]  = -100000000.0;
     }
 
     //loop over TRB3 signals
@@ -568,16 +569,18 @@ namespace emph {
 
     // get TDC info for T0
     if (!T0trb3->empty()) {
-      // TDCt = GetT0Tdc(T0trb3);
-      // TDCtott = GetT0Tot(T0trb3, true);
-      // TDCtotb = GetT0Tot(T0trb3, false);
+      std::vector<emph::rawdata::TRB3RawDigit> VecT0trb3 = *T0trb3;
+      TDCt = GetT0Tdc(VecT0trb3);
+      TDCtott = GetT0Tot(VecT0trb3, true);
+      TDCtotb = GetT0Tot(VecT0trb3, false);
     }
 
     // get TDC info for RPC
     if (!RPCtrb3->empty()) {
-      // RPCt = GetRPCTdc(T0trb3);
-      // RPCtotl = GetRPCTot(RPCtrb3, true);
-      // RPCtotr = GetRPCTot(RPCtrb3, false);
+      std::vector<emph::rawdata::TRB3RawDigit> VecRPCtrb3 = *RPCtrb3;
+      RPCt = GetRPCTdc(VecRPCtrb3);
+      RPCtotl = GetRPCTot(VecRPCtrb3, true);
+      RPCtotr = GetRPCTot(VecRPCtrb3, false);
     }
 
     tree->Fill();
