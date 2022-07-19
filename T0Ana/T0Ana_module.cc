@@ -72,23 +72,16 @@ namespace emph {
     double trb3_linear_low = 15.0; // Calibration for low end
     double trb3_linear_high_T0 = 499.0; // Calibration for FPGA2 -- T0
     double trb3_linear_high_RPC = 491.0; // Calibration for FPGA3 -- RPC
-    // std::array<double, 2> trb3_linear_high = {499.0, 491.0}; // Calibration for FPGA2 -- T0 and FPGA3 -- RPC
 
     bool   FindSegT0(int);
     bool   FindSegLeadT0(int);
     bool   FindSegRPC(int);
     bool   FindSegLeadRPC(int);
-    bool   FindTrailBot(int);
-    bool   FindTrailTop(int);
-    bool   FindLeadBot(int);
-    bool   FindLeadTop(int);
-    int    GetSegIdTrb3(int);
     std::array<int, 2> GetSegChT0(int);
     std::array<int, 2> GetSegChRPC(int);
     void   FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
 			 art::Handle< std::vector<rawdata::TRB3RawDigit> > &,
 			 art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
-    std::array<double, N_CH_DET_T0> GetT0Tot(const std::vector<rawdata::TRB3RawDigit>&);
     std::array<double, N_SEG_T0>    GetT0Tot(const std::vector<rawdata::TRB3RawDigit>&, bool);
     std::array<double, N_SEG_T0>    GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
     std::array<double, N_SEG_RPC>   GetRPCTot(const std::vector<rawdata::TRB3RawDigit>&, bool);
@@ -100,8 +93,10 @@ namespace emph {
     unsigned int fSubrun;
     unsigned int fNEvents;
 
-    std::array<double, n_ch_t0> time_ch;
-    std::array<bool,   n_ch_t0> found_ch;
+    std::array<double, n_ch_t0> time_ch_t0;
+    std::array<bool,   n_ch_t0> found_ch_t0;
+    std::array<double, n_ch_rpc> time_ch_rpc;
+    std::array<bool,   n_ch_rpc> found_ch_rpc;
     std::array<double, n_ch_det_t0> T0_tot;
     std::array<double, n_seg_t0> T0_tot_seg;
     std::array<double, n_seg_t0> T0_tdc;
@@ -224,22 +219,6 @@ namespace emph {
   }
 
   //......................................................................
-  int T0Ana::GetSegIdTrb3(int ch_daq)
-  {
-    if(ch_daq ==  1 || ch_daq ==  2 || ch_daq == 21 || ch_daq == 22) return 0;
-    if(ch_daq ==  3 || ch_daq ==  4 || ch_daq == 23 || ch_daq == 24) return 1;
-    if(ch_daq ==  5 || ch_daq ==  6 || ch_daq == 25 || ch_daq == 26) return 2;
-    if(ch_daq ==  7 || ch_daq ==  8 || ch_daq == 27 || ch_daq == 28) return 3;
-    if(ch_daq ==  9 || ch_daq == 10 || ch_daq == 29 || ch_daq == 30) return 4;
-    if(ch_daq == 11 || ch_daq == 12 || ch_daq == 31 || ch_daq == 32) return 5;
-    if(ch_daq == 13 || ch_daq == 14 || ch_daq == 35 || ch_daq == 36) return 6;
-    if(ch_daq == 15 || ch_daq == 16 || ch_daq == 33 || ch_daq == 34) return 7;
-    if(ch_daq == 17 || ch_daq == 18 || ch_daq == 37 || ch_daq == 38) return 8;
-    if(ch_daq == 19 || ch_daq == 20 || ch_daq == 39 || ch_daq == 40) return 9;
-    return -1;
-  }
-
-  //......................................................................
   std::array<int, 2> T0Ana::GetSegChT0(int seg_id)
   {
     if(seg_id == 0){
@@ -288,72 +267,11 @@ namespace emph {
   }
 
   //......................................................................
-  bool T0Ana::FindTrailBot(int ch_daq)
-  {    
-    if ((ch_daq < 21) && ((ch_daq%2)==0)) return true;
-    return false;
-  }
-
-  //......................................................................
-  bool T0Ana::FindTrailTop(int ch_daq) 
-  {
-    if ((ch_daq > 20) && ((ch_daq%2)==0)) return true;
-    return false;
-  }
-  //......................................................................
-  bool T0Ana::FindLeadBot(int ch_daq)
-  {
-    if ((ch_daq < 21) && ((ch_daq%2)==1)) return true;
-    return false;
-  }
-  //......................................................................
-  bool T0Ana::FindLeadTop(int ch_daq)
-  {
-    if ((ch_daq > 20) && ((ch_daq%2)==1)) return true;
-    return false;
-  }
-
-  //......................................................................
-  std::array<double, N_CH_DET_T0> T0Ana::GetT0Tot(const std::vector<rawdata::TRB3RawDigit>& digvec)
-  {
-    for(int i_ch = 0; i_ch < n_ch_t0; i_ch++){
-      time_ch[i_ch]  = 0;
-      found_ch[i_ch] = false;
-    }
-
-    for(int i_ch_det = 0; i_ch_det < n_ch_det_t0; i_ch_det++){
-      T0_tot[i_ch_det]  = -999.0;
-    }
-
-    //loop over TRB3 signals
-    int n_vec = digvec.size();
-    for(int i_vec = 0; i_vec < n_vec; i_vec++){
-      uint32_t evt_ch = digvec.at(i_vec).GetChannel();
-
-      if(FindSegT0(evt_ch) && (!found_ch[evt_ch])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
-	found_ch[evt_ch] = true;
-      }
-    }//end loop over T0 TRB3 signals
-
-    //Calculation of TOT, loop over T0 leading channels
-    for(int i_ch_det = 0; i_ch_det < n_ch_det_t0; i_ch_det++){
-      if(found_ch[2*i_ch_det + 1] && found_ch[2*i_ch_det + 2]){
-	T0_tot[i_ch_det] = time_ch[2*i_ch_det + 1] - time_ch[2*i_ch_det + 2];
-      }
-    }//end loop over T0 leading channels
-
-    return T0_tot;
-  }
-
-  //......................................................................
   std::array<double, N_SEG_T0> T0Ana::GetT0Tot(const std::vector<rawdata::TRB3RawDigit>& digvec, bool sel_top = true)
   {
     for(int i_ch = 0; i_ch < n_ch_t0; i_ch++){
-      time_ch[i_ch]  = 0;
-      found_ch[i_ch] = false;
+      time_ch_t0[i_ch]  = 0;
+      found_ch_t0[i_ch] = false;
     }
 
     for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
@@ -365,25 +283,25 @@ namespace emph {
     for(int i_vec = 0; i_vec < n_vec; i_vec++){
       uint32_t evt_ch = digvec.at(i_vec).GetChannel();
 
-      if(FindSegT0(evt_ch) && (!found_ch[evt_ch])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
-	found_ch[evt_ch] = true;
+      if(FindSegT0(evt_ch) && (!found_ch_t0[evt_ch])){
+	time_ch_t0[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                    + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                    + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch_t0[evt_ch] = true;
       }
     }//end loop over T0 TRB3 signals
 
     //Calculation of TOT, loop over T0 segments
     if(sel_top){
       for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
-	if(found_ch[2*i_seg + 2*n_seg_t0 + 1] && found_ch[2*i_seg + 2*n_seg_t0 + 2]){
-	  T0_tot_seg[i_seg] = time_ch[2*i_seg + 2*n_seg_t0 + 1] - time_ch[2*i_seg + 2*n_seg_t0 + 2];
+	if(found_ch_t0[2*i_seg + 2*n_seg_t0 + 1] && found_ch_t0[2*i_seg + 2*n_seg_t0 + 2]){
+	  T0_tot_seg[i_seg] = time_ch_t0[2*i_seg + 2*n_seg_t0 + 1] - time_ch_t0[2*i_seg + 2*n_seg_t0 + 2];
 	}
       }//end loop over T0 segments for top
     }else{
       for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
-	if(found_ch[2*i_seg + 1] && found_ch[2*i_seg + 2]){
-	  T0_tot_seg[i_seg] = time_ch[2*i_seg + 1] - time_ch[2*i_seg + 2];
+	if(found_ch_t0[2*i_seg + 1] && found_ch_t0[2*i_seg + 2]){
+	  T0_tot_seg[i_seg] = time_ch_t0[2*i_seg + 1] - time_ch_t0[2*i_seg + 2];
 	}
       }//end loop over T0 segments for bottom
     }
@@ -395,8 +313,8 @@ namespace emph {
   std::array<double, N_SEG_T0> T0Ana::GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
     for(int i_ch = 0; i_ch < n_ch_t0; i_ch++){
-      time_ch[i_ch]  = 0;
-      found_ch[i_ch] = false;
+      time_ch_t0[i_ch]  = 0;
+      found_ch_t0[i_ch] = false;
     }
 
     for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
@@ -408,25 +326,25 @@ namespace emph {
     for(int i_vec = 0; i_vec < n_vec; i_vec++){
       uint32_t evt_ch = digvec.at(i_vec).GetChannel();
 
-      if(evt_ch == 0 && (!found_ch[0])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
-	found_ch[evt_ch] = true;
-      }else if(FindSegLeadT0(evt_ch) && (!found_ch[evt_ch])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
-	found_ch[evt_ch] = true;
+      if(evt_ch == 0 && (!found_ch_t0[0])){
+	time_ch_t0[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                    + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                    + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch_t0[evt_ch] = true;
+      }else if(FindSegLeadT0(evt_ch) && (!found_ch_t0[evt_ch])){
+	time_ch_t0[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                    + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                    + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	found_ch_t0[evt_ch] = true;
       }
     }//end loop over T0 TRB3 signals
 
     //Calculation of tdc, loop over T0 segments
-    if(found_ch[0]){
+    if(found_ch_t0[0]){
       for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
 	std::array<int, 2> ch_seg = GetSegChT0(i_seg);
-	if(found_ch[ch_seg[0]] && found_ch[ch_seg[1]]){
-	  T0_tdc[i_seg] = (time_ch[ch_seg[0]] + time_ch[ch_seg[1]])/2.0 - time_ch[0];
+	if(found_ch_t0[ch_seg[0]] && found_ch_t0[ch_seg[1]]){
+	  T0_tdc[i_seg] = (time_ch_t0[ch_seg[0]] + time_ch_t0[ch_seg[1]])/2.0 - time_ch_t0[0];
 	}
       }//end loop over T0 leading channels
     }
@@ -438,8 +356,8 @@ namespace emph {
   std::array<double, N_SEG_RPC> T0Ana::GetRPCTot(const std::vector<rawdata::TRB3RawDigit>& digvec, bool sel_left = true)
   {
     for(int i_ch = 0; i_ch < n_ch_rpc; i_ch++){
-      time_ch[i_ch]  = 0;
-      found_ch[i_ch] = false;
+      time_ch_rpc[i_ch]  = 0;
+      found_ch_rpc[i_ch] = false;
     }
 
     for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
@@ -451,25 +369,25 @@ namespace emph {
     for(int i_vec = 0; i_vec < n_vec; i_vec++){
       uint32_t evt_ch = digvec.at(i_vec).GetChannel();
 
-      if(FindSegRPC(evt_ch) && (!found_ch[evt_ch])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
-	found_ch[evt_ch] = true;
+      if(FindSegRPC(evt_ch) && (!found_ch_rpc[evt_ch])){
+	time_ch_rpc[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                     + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                     + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
+	found_ch_rpc[evt_ch] = true;
       }
     }//end loop over RPC TRB3 signals
 
     //Calculation of TOT, loop over RPC segments
     if(sel_left){
       for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
-	if(found_ch[2*i_seg + 1] && found_ch[2*i_seg + 2]){
-	  RPC_tot_seg[i_seg] = time_ch[2*i_seg + 1] - time_ch[2*i_seg + 2];
+	if(found_ch_rpc[2*i_seg + 1] && found_ch_rpc[2*i_seg + 2]){
+	  RPC_tot_seg[i_seg] = time_ch_rpc[2*i_seg + 1] - time_ch_rpc[2*i_seg + 2];
 	}
       }//end loop over RPC segments for top
     }else{
       for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
-	if(found_ch[2*i_seg + 2*n_seg_rpc + 1] && found_ch[2*i_seg + 2*n_seg_rpc + 1]){
-	  RPC_tot_seg[i_seg] = time_ch[2*i_seg + 2*n_seg_rpc + 1] - time_ch[2*i_seg + 2*n_seg_rpc + 2];
+	if(found_ch_rpc[2*i_seg + 2*n_seg_rpc + 1] && found_ch_rpc[2*i_seg + 2*n_seg_rpc + 1]){
+	  RPC_tot_seg[i_seg] = time_ch_rpc[2*i_seg + 2*n_seg_rpc + 1] - time_ch_rpc[2*i_seg + 2*n_seg_rpc + 2];
 	}
       }//end loop over RPC segments for bottom
     }
@@ -481,8 +399,8 @@ namespace emph {
   std::array<double, N_SEG_RPC> T0Ana::GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
     for(int i_ch = 0; i_ch < n_ch_rpc; i_ch++){
-      time_ch[i_ch]  = 0;
-      found_ch[i_ch] = false;
+      time_ch_rpc[i_ch]  = 0;
+      found_ch_rpc[i_ch] = false;
     }
 
     for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
@@ -494,25 +412,25 @@ namespace emph {
     for(int i_vec = 0; i_vec < n_vec; i_vec++){
       uint32_t evt_ch = digvec.at(i_vec).GetChannel();
 
-      if(evt_ch == 0 && (!found_ch[0])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
-	found_ch[evt_ch] = true;
-      }else if(FindSegLeadRPC(evt_ch) && (!found_ch[evt_ch])){
-	time_ch[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
-	                   + coarse_const*digvec.at(i_vec).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
-	found_ch[evt_ch] = true;
+      if(evt_ch == 0 && (!found_ch_rpc[0])){
+	time_ch_rpc[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                     + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                     + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
+	found_ch_rpc[evt_ch] = true;
+      }else if(FindSegLeadRPC(evt_ch) && (!found_ch_rpc[evt_ch])){
+	time_ch_rpc[evt_ch] = epoch_const*digvec.at(i_vec).GetEpochCounter()
+	                     + coarse_const*digvec.at(i_vec).GetCoarseTime()
+	                     + coarse_const*(digvec.at(i_vec).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
+	found_ch_rpc[evt_ch] = true;
       }
     }//end loop over RPC TRB3 signals
 
     //Calculation of tdc, loop over RPC segments
-    if(found_ch[0]){
-      for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
+    if(found_ch_rpc[0]){
+      for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
 	std::array<int, 2> ch_seg = GetSegChRPC(i_seg);
-	if(found_ch[ch_seg[0]] && found_ch[ch_seg[1]]){
-	  RPC_tdc[i_seg] = (time_ch[ch_seg[0]] + time_ch[ch_seg[1]])/2.0 - time_ch[0];
+	if(found_ch_rpc[ch_seg[0]] && found_ch_rpc[ch_seg[1]]){
+	  RPC_tdc[i_seg] = (time_ch_rpc[ch_seg[0]] + time_ch_rpc[ch_seg[1]])/2.0 - time_ch_rpc[0];
 	}
       }//end loop over RPC leading channels
     }
