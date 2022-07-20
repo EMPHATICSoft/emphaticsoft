@@ -55,6 +55,9 @@ namespace emph {
     //  Returns the current hit being saved in the list of
     //  hits.  
     std::vector<sim::SSDHit> GetSSDHits(size_t i) { return fSSDHits[i]; }
+    // gets specific ssdhit.
+    std::vector<std::vector <sim::SSDHit> > GetAllHits() { return fSSDHits; }
+    // gets all the ssdhits
 
   private:
 

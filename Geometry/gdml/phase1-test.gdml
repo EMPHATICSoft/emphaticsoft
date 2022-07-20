@@ -1198,62 +1198,6 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
   <!-- ABOVE IS FOR RPC -->
 
 
-
-  <!-- BELOW IS FOR LG -->
-
-  <volume name="calor_vol">
-	 <materialref ref="Air"/>
-	 <solidref ref="calor_box"/>
-	 <physvol name="LG_block00_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block00_pos"/>
-		<rotationref ref="LG_block00_rot"/>
-	 </physvol>
-	 <physvol name="LG_block01_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block01_pos"/>
-		<rotationref ref="LG_block01_rot"/>
-	 </physvol>
-	 <physvol name="LG_block02_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block02_pos"/>
-		<rotationref ref="LG_block02_rot"/>
-	 </physvol>
-	 <physvol name="LG_block10_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block10_pos"/>
-		<rotationref ref="LG_block10_rot"/>
-	 </physvol>
-	 <physvol name="LG_block11_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block11_pos"/>
-		<rotationref ref="LG_block11_rot"/>
-	 </physvol>
-	 <physvol name="LG_block12_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block12_pos"/>
-		<rotationref ref="LG_block12_rot"/>
-	 </physvol>
-	 <physvol name="LG_block20_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block20_pos"/>
-		<rotationref ref="LG_block20_rot"/>
-	 </physvol>
-	 <physvol name="LG_block21_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block21_pos"/>
-		<rotationref ref="LG_block21_rot"/>
-	 </physvol>
-	 <physvol name="LG_block22_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block22_pos"/>
-		<rotationref ref="LG_block22_rot"/>
-	 </physvol>
-  </volume>
-
-  <!-- ABOVE IS FOR LG -->
-
-
   
 
   <volume name="world">
@@ -1332,17 +1276,6 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
   </physvol>
 
   <!-- ABOVE IS FOR RPC -->
-
-
-
-  <!-- BELOW IS FOR LG -->
-
-  <physvol name="LGCalo_phys">
-	 <volumeref ref="calor_vol"/>
-	 <positionref ref="calor_pos"/>
-  </physvol>
-
-  <!-- ABOVE IS FOR LG -->
 
 
   </volume>
