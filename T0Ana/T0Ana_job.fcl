@@ -1,9 +1,10 @@
-#include "BACkovRead_producer.fcl"
+#include "T0Ana.fcl"
 
-process_name: OnMon
+process_name: T0Ana
 
 services:
 {
+ TFileService: { fileName: "T0Ana_tree.root" closeFileFast: false}
 }
 
 source:
@@ -17,9 +18,8 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "onmon.root"
+   fileName:    "T0Ana.root"
    fastCloning: false
-   
   }
 }
 
@@ -35,11 +35,11 @@ physics:
 
  analyzers:
  {
-	onmon: @local::standard_onmon
+	readout: @local::standard_t0ana
  }
 
  # stream1:  [ out1 ] #could have multiple paths
- ana: [ onmon ] 
+ ana: [ out1 ]
 
- end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+ end_paths: [ ana ]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
 }

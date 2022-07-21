@@ -1,14 +1,13 @@
 BEGIN_PROLOG
 
-standard_onmon:
+standard_t0ana:
 {
   module_type: T0Ana
 
   channelMapFileName: "ChannelMap_Jun22.txt"
 }
 
-no_ssd_onmon: @local::standard_onmon
-no_ssd_onmon.makeSSDPlots: false
-
+no_ssd_t0ana: @local::standard_t0ana
+no_ssd_t0ana.makeSSDPlots: false
 
 END_PROLOG

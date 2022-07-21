@@ -67,11 +67,14 @@ namespace emph {
     static const int RPC_board = 1283;
     static const int T0_board = 1282;
 
-    const double epoch_const = 10240026.0; // Constant for epochtime
-    const double coarse_const = 5000.0; // Constant for coarsetime
-    double trb3_linear_low = 15.0; // Calibration for low end
-    double trb3_linear_high_T0 = 499.0; // Calibration for FPGA2 -- T0
+    const double epoch_const    = 10240026.0; // Constant for epochtime
+    const double coarse_const   = 5000.0; // Constant for coarsetime
+    double trb3_linear_low      = 15.0; // Calibration for low end
+    double trb3_linear_high_T0  = 499.0; // Calibration for FPGA2 -- T0
     double trb3_linear_high_RPC = 491.0; // Calibration for FPGA3 -- RPC
+
+    const int id_seg_ctr_rpc = 4;
+    const int id_seg_ctr_t0  = 5;
 
     bool   FindSegT0(int);
     bool   FindSegLeadT0(int);
@@ -97,7 +100,6 @@ namespace emph {
     std::array<bool,   n_ch_t0> found_ch_t0;
     std::array<double, n_ch_rpc> time_ch_rpc;
     std::array<bool,   n_ch_rpc> found_ch_rpc;
-    std::array<double, n_ch_det_t0> T0_tot;
     std::array<double, n_seg_t0> T0_tot_seg;
     std::array<double, n_seg_t0> T0_tdc;
     std::array<double, n_seg_rpc> RPC_tot_seg;
@@ -118,6 +120,9 @@ namespace emph {
     std::array<double, n_seg_rpc> RPCt; // Average times of top and bottom signals of RPC
     std::array<double, n_seg_rpc> RPCtotl; // TOT of left signals of RPC
     std::array<double, n_seg_rpc> RPCtotr; // TOT of eignt signals of RPC
+
+    std::array<double, n_seg_t0> T0tof; // TOF between T0 and RPC with fixed RPC segment
+    std::array<double, n_seg_rpc> RPCtof; // TOF between T0 and RPC with fixed T0 segment
 
   };
 
@@ -146,6 +151,9 @@ namespace emph {
     tree->Branch("rpct", &RPCt);
     tree->Branch("rpctotl", &RPCtotl);
     tree->Branch("rpctotr", &RPCtotr);
+
+    tree->Branch("t0tof", &T0tof);
+    tree->Branch("rpctof", &RPCtof);
 
   }
 
@@ -501,7 +509,26 @@ namespace emph {
       RPCtotr = GetRPCTot(VecRPCtrb3, false);
     }
 
+    //TOF calculation between T0 and RPC, loop over T0 segments
+    if(RPCt[id_seg_ctr_rpc] > -100000000.0){ // Center segment of RPC
+      for(int i_seg_t0 = 0; i_seg_t0 < n_seg_t0; i_seg_t0++){
+	if(TDCt[i_seg_t0] > -100000000.0){
+	  T0tof[i_seg_t0] = RPCt[id_seg_ctr_rpc] - TDCt[i_seg_t0];
+	}
+      }
+    }// end loop over T0 segments
+
+    //TOF calculation between T0 and RPC, loop over RPC segments
+    if(TDCt[id_seg_ctr_t0] > -100000000.0){ // Center segment of T0
+      for(int i_seg_rpc = 0; i_seg_rpc < n_seg_rpc; i_seg_rpc++){
+	if(RPCt[i_seg_rpc] > -100000000.0){
+	  RPCtof[i_seg_rpc] = RPCt[i_seg_rpc] - TDCt[id_seg_ctr_t0];
+	}
+      }
+    }// end loop over rpc segments
+
     tree->Fill();
+
   }
 
   //......................................................................
@@ -537,6 +564,6 @@ namespace emph {
 
     return;
   }
-} // end namespace demo
+} // end namespace emph
 
 DEFINE_ART_MODULE(emph::T0Ana)
