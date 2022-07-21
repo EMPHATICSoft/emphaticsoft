@@ -4,7 +4,7 @@ process_name: T0Ana
 
 services:
 {
- TFileService: { fileName: "T0Ana_tree.root" closeFileFast: false}
+ TFileService: { fileName: "T0Ana_r%r_s%s.root" closeFileFast: false}
 }
 
 source:
@@ -13,15 +13,15 @@ source:
   maxEvents:  -1        # Number of events to create
 }
 
-outputs:
-{
- out1:
-  {
-   module_type: RootOutput
-   fileName:    "T0Ana.root"
-   fastCloning: false
-  }
-}
+# outputs:
+# {
+#  out1:
+#   {
+#    module_type: RootOutput
+#    fileName:    "T0Ana.root"
+#    fastCloning: false
+#   }
+# }
 
 # Define and configure some modules to do work on each event.
 # First modules are defined; they are scheduled later.
@@ -39,7 +39,7 @@ physics:
  }
 
  # stream1:  [ out1 ] #could have multiple paths
- ana: [ out1 ]
+ ana: [ readout ]
 
  end_paths: [ ana ]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
 }

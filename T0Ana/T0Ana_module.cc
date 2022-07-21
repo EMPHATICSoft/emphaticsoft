@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <array>
 #include <cstdio>
 
 // ROOT includes
@@ -124,6 +125,8 @@ namespace emph {
     std::array<double, n_seg_t0> T0tof; // TOF between T0 and RPC with fixed RPC segment
     std::array<double, n_seg_rpc> RPCtof; // TOF between T0 and RPC with fixed T0 segment
 
+    int test = 1;
+
   };
 
   //.......................................................................
@@ -137,23 +140,23 @@ namespace emph {
     art::ServiceHandle<art::TFileService> tfs;
 
     tree = tfs->make<TTree>("T0AnaTree","");
-    tree->Branch("qt",&ADCqt);
-    tree->Branch("qb",&ADCqb);
-    tree->Branch("qmaxt",&ADCmaxt);
-    tree->Branch("qmaxb",&ADCmaxb);
-    tree->Branch("qblwt",&ADCblwt);
-    tree->Branch("qblwb",&ADCblwb);
+    tree->Branch("qt", ADCqt.data(), n_seg_t0*sizeof(double));
+    tree->Branch("qb", ADCqb.data(), n_seg_t0*sizeof(double));
+    tree->Branch("qmaxt", ADCmaxt.data(), n_seg_t0*sizeof(double));
+    tree->Branch("qmaxb", ADCmaxb.data(), n_seg_t0*sizeof(double));
+    tree->Branch("qblwt", ADCblwt.data(), n_seg_t0*sizeof(double));
+    tree->Branch("qblwb", ADCblwb.data(), n_seg_t0*sizeof(double));
 
-    tree->Branch("t", &TDCt);
-    tree->Branch("ttott", &TDCtott);
-    tree->Branch("ttotb", &TDCtotb);
+    tree->Branch("t", TDCt.data(), n_seg_t0*sizeof(double));
+    tree->Branch("ttott", TDCtott.data(), n_seg_t0*sizeof(double));
+    tree->Branch("ttotb", TDCtotb.data(), n_seg_t0*sizeof(double));
 
-    tree->Branch("rpct", &RPCt);
-    tree->Branch("rpctotl", &RPCtotl);
-    tree->Branch("rpctotr", &RPCtotr);
+    tree->Branch("rpct", RPCt.data(), n_seg_rpc*sizeof(double));
+    tree->Branch("rpctotl", RPCtotl.data(), n_seg_rpc*sizeof(double));
+    tree->Branch("rpctotr", RPCtotr.data(), n_seg_rpc*sizeof(double));
 
-    tree->Branch("t0tof", &T0tof);
-    tree->Branch("rpctof", &RPCtof);
+    tree->Branch("t0tof", T0tof.data(), n_seg_t0*sizeof(double));
+    tree->Branch("rpctof", RPCtof.data(), n_seg_rpc*sizeof(double));
 
   }
 
@@ -191,7 +194,6 @@ namespace emph {
   //......................................................................
   void T0Ana::endJob()
   {
-
   }
 
   //......................................................................
@@ -462,9 +464,15 @@ namespace emph {
       TDCtott[i] = -999.0;
       TDCtotb[i] = -999.0;
 
+      T0tof[i]   = -100000000.0;
+    }
+
+    for(int i = 0; i < n_seg_rpc; i++){
       RPCt[i]    = -100000000.0;
       RPCtotl[i] = -999.0;
       RPCtotr[i] = -999.0;
+
+      RPCtof[i]  = -100000000.0;
     }
 
     // get ADC info for T0
@@ -527,7 +535,15 @@ namespace emph {
       }
     }// end loop over rpc segments
 
-    tree->Fill();
+    if(fNEvents%10000 == 1){
+      std::cout << "#D: Tree fill: Event" << fNEvents << std::endl;
+    }
+
+    // tree->Fill();
+
+    if(fNEvents%10000 == 1){
+      std::cout << "#D: Tree filled: Event" << fNEvents << std::endl;
+    }
 
   }
 
