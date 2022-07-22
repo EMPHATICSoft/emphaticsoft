@@ -140,23 +140,23 @@ namespace emph {
     art::ServiceHandle<art::TFileService> tfs;
 
     tree = tfs->make<TTree>("T0AnaTree","");
-    tree->Branch("qt", ADCqt.data(), n_seg_t0*sizeof(double));
-    tree->Branch("qb", ADCqb.data(), n_seg_t0*sizeof(double));
-    tree->Branch("qmaxt", ADCmaxt.data(), n_seg_t0*sizeof(double));
-    tree->Branch("qmaxb", ADCmaxb.data(), n_seg_t0*sizeof(double));
-    tree->Branch("qblwt", ADCblwt.data(), n_seg_t0*sizeof(double));
-    tree->Branch("qblwb", ADCblwb.data(), n_seg_t0*sizeof(double));
+    tree->Branch("qt", &ADCqt);
+    tree->Branch("qb", &ADCqb);
+    tree->Branch("qmaxt", &ADCmaxt);
+    tree->Branch("qmaxb", &ADCmaxb);
+    tree->Branch("qblwt", &ADCblwt);
+    tree->Branch("qblwb", &ADCblwb);
 
-    tree->Branch("t", TDCt.data(), n_seg_t0*sizeof(double));
-    tree->Branch("ttott", TDCtott.data(), n_seg_t0*sizeof(double));
-    tree->Branch("ttotb", TDCtotb.data(), n_seg_t0*sizeof(double));
+    tree->Branch("t", &TDCt);
+    tree->Branch("ttott", &TDCtott);
+    tree->Branch("ttotb", &TDCtotb);
 
-    tree->Branch("rpct", RPCt.data(), n_seg_rpc*sizeof(double));
-    tree->Branch("rpctotl", RPCtotl.data(), n_seg_rpc*sizeof(double));
-    tree->Branch("rpctotr", RPCtotr.data(), n_seg_rpc*sizeof(double));
+    tree->Branch("rpct", &RPCt);
+    tree->Branch("rpctotl", &RPCtotl);
+    tree->Branch("rpctotr", &RPCtotr);
 
-    tree->Branch("t0tof", T0tof.data(), n_seg_t0*sizeof(double));
-    tree->Branch("rpctof", RPCtof.data(), n_seg_rpc*sizeof(double));
+    tree->Branch("t0tof", &T0tof);
+    tree->Branch("rpctof", &RPCtof);
 
   }
 
