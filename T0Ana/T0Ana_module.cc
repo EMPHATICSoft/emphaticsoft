@@ -107,6 +107,9 @@ namespace emph {
     std::array<double, n_seg_rpc> RPC_tdc;
 
     TTree *tree;
+    std::array<int,    n_seg_t0> T0seg; // Charge of top signals
+    std::array<int,    n_seg_rpc> RPCseg; // Charge of top signals
+
     std::array<double, n_seg_t0> ADCqt; // Charge of top signals
     std::array<double, n_seg_t0> ADCqb; // Charge of bottom signals
     std::array<double, n_seg_t0> ADCmaxt; // Pulse height of top signals
@@ -173,6 +176,9 @@ namespace emph {
 
     tree = tfs->make<TTree>("T0AnaTree","");
     std::cout << "tree = " << tree << std::endl;
+
+    tree->Branch("t0seg", &T0seg);
+    tree->Branch("rpcseg", &RPCseg);
 
     tree->Branch("qt", &ADCqt);
     tree->Branch("qb", &ADCqb);
@@ -310,13 +316,13 @@ namespace emph {
     if(sel_top){
       for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
 	if(found_ch_t0[2*i_seg + 2*n_seg_t0 + 1] && found_ch_t0[2*i_seg + 2*n_seg_t0 + 2]){
-	  T0_tot_seg[i_seg] = time_ch_t0[2*i_seg + 2*n_seg_t0 + 1] - time_ch_t0[2*i_seg + 2*n_seg_t0 + 2];
+	  T0_tot_seg[i_seg] = time_ch_t0[2*i_seg + 2*n_seg_t0 + 2] - time_ch_t0[2*i_seg + 2*n_seg_t0 + 1];
 	}
       }//end loop over T0 segments for top
     }else{
       for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
 	if(found_ch_t0[2*i_seg + 1] && found_ch_t0[2*i_seg + 2]){
-	  T0_tot_seg[i_seg] = time_ch_t0[2*i_seg + 1] - time_ch_t0[2*i_seg + 2];
+	  T0_tot_seg[i_seg] = time_ch_t0[2*i_seg + 2] - time_ch_t0[2*i_seg + 1];
 	}
       }//end loop over T0 segments for bottom
     }
@@ -396,13 +402,13 @@ namespace emph {
     if(sel_left){
       for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
 	if(found_ch_rpc[2*i_seg + 1] && found_ch_rpc[2*i_seg + 2]){
-	  RPC_tot_seg[i_seg] = time_ch_rpc[2*i_seg + 1] - time_ch_rpc[2*i_seg + 2];
+	  RPC_tot_seg[i_seg] = time_ch_rpc[2*i_seg + 2] - time_ch_rpc[2*i_seg + 1];
 	}
       }//end loop over RPC segments for top
     }else{
       for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
 	if(found_ch_rpc[2*i_seg + 2*n_seg_rpc + 1] && found_ch_rpc[2*i_seg + 2*n_seg_rpc + 1]){
-	  RPC_tot_seg[i_seg] = time_ch_rpc[2*i_seg + 2*n_seg_rpc + 1] - time_ch_rpc[2*i_seg + 2*n_seg_rpc + 2];
+	  RPC_tot_seg[i_seg] = time_ch_rpc[2*i_seg + 2*n_seg_rpc + 2] - time_ch_rpc[2*i_seg + 2*n_seg_rpc + 1];
 	}
       }//end loop over RPC segments for bottom
     }
@@ -458,8 +464,10 @@ namespace emph {
   void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
   {
     for(int i = 0; i < n_seg_t0; i++){
-      ADCqt[i] = -999999.0;
-      ADCqb[i] = -999999.0;
+      T0seg[i]   = i;
+
+      ADCqt[i]   = -999999.0;
+      ADCqb[i]   = -999999.0;
       ADCmaxt[i] = -9999.0;
       ADCmaxb[i] = -9999.0;
       ADCblwt[i] = -1.0;
@@ -473,6 +481,8 @@ namespace emph {
     }
 
     for(int i = 0; i < n_seg_rpc; i++){
+      RPCseg[i]  = i;
+
       RPCt[i]    = -100000000.0;
       RPCtotl[i] = -999.0;
       RPCtotr[i] = -999.0;
@@ -499,9 +509,9 @@ namespace emph {
 	  ADCmaxb[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
 	  ADCblwb[detchan - 1] = wvfm.BLWidth();
 	}else if(detchan > n_seg_t0 && detchan <= n_ch_det_t0){
-	  ADCqt[detchan%n_seg_t0] = wvfm.Charge();
-	  ADCmaxt[detchan%n_seg_t0] = wvfm.Baseline()-wvfm.PeakADC();
-	  ADCblwt[detchan%n_seg_t0] = wvfm.BLWidth();
+	  ADCqt[detchan%(n_seg_t0 + 1)] = wvfm.Charge();
+	  ADCmaxt[detchan%(n_seg_t0 + 1)] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADCblwt[detchan%(n_seg_t0 + 1)] = wvfm.BLWidth();
 	}
       } // end loop over T0 ADC channels
     }
@@ -540,15 +550,7 @@ namespace emph {
       }
     }// end loop over rpc segments
 
-    if(fNEvents%10000 == 1){
-      std::cout << "#D: Tree fill: Event" << fNEvents << std::endl;
-    }
-
     tree->Fill();
-
-    if(fNEvents%10000 == 1){
-      std::cout << "#D: Tree filled: Event" << fNEvents << std::endl;
-    }
 
   }
 
