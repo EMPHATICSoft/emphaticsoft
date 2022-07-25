@@ -136,28 +136,6 @@ namespace emph {
 
     this->reconfigure(pset);
 
-    // create TTree for TRB3RawDigits
-    art::ServiceHandle<art::TFileService> tfs;
-
-    tree = tfs->make<TTree>("T0AnaTree","");
-    tree->Branch("qt", &ADCqt);
-    tree->Branch("qb", &ADCqb);
-    tree->Branch("qmaxt", &ADCmaxt);
-    tree->Branch("qmaxb", &ADCmaxb);
-    tree->Branch("qblwt", &ADCblwt);
-    tree->Branch("qblwb", &ADCblwb);
-
-    tree->Branch("t", &TDCt);
-    tree->Branch("ttott", &TDCtott);
-    tree->Branch("ttotb", &TDCtotb);
-
-    tree->Branch("rpct", &RPCt);
-    tree->Branch("rpctotl", &RPCtotl);
-    tree->Branch("rpctotr", &RPCtotr);
-
-    tree->Branch("t0tof", &T0tof);
-    tree->Branch("rpctof", &RPCtof);
-
   }
 
   //......................................................................
@@ -189,6 +167,33 @@ namespace emph {
       }
       std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
     }
+
+    // create TTree for TRB3RawDigits
+    art::ServiceHandle<art::TFileService> tfs;
+
+    tree = tfs->make<TTree>("T0AnaTree","");
+    std::cout << "tree = " << tree << std::endl;
+
+    tree->Branch("qt", &ADCqt);
+    tree->Branch("qb", &ADCqb);
+    tree->Branch("qmaxt", &ADCmaxt);
+    tree->Branch("qmaxb", &ADCmaxb);
+    tree->Branch("qblwt", &ADCblwt);
+    tree->Branch("qblwb", &ADCblwb);
+
+    tree->Branch("t", &TDCt);
+    tree->Branch("ttott", &TDCtott);
+    tree->Branch("ttotb", &TDCtotb);
+
+    tree->Branch("rpct", &RPCt);
+    tree->Branch("rpctotl", &RPCtotl);
+    tree->Branch("rpctotr", &RPCtotr);
+
+    tree->Branch("t0tof", &T0tof);
+    tree->Branch("rpctof", &RPCtof);
+
+    std::cout << "tree = " << tree << std::endl;
+    
   }
 
   //......................................................................
@@ -494,9 +499,9 @@ namespace emph {
 	  ADCmaxb[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
 	  ADCblwb[detchan - 1] = wvfm.BLWidth();
 	}else if(detchan > n_seg_t0 && detchan <= n_ch_det_t0){
-	  ADCqt[detchan%n_seg_t0 - 1] = wvfm.Charge();
-	  ADCmaxt[detchan%n_seg_t0 - 1] = wvfm.Baseline()-wvfm.PeakADC();
-	  ADCblwt[detchan%n_seg_t0 - 1] = wvfm.BLWidth();
+	  ADCqt[detchan%n_seg_t0] = wvfm.Charge();
+	  ADCmaxt[detchan%n_seg_t0] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADCblwt[detchan%n_seg_t0] = wvfm.BLWidth();
 	}
       } // end loop over T0 ADC channels
     }
@@ -539,7 +544,7 @@ namespace emph {
       std::cout << "#D: Tree fill: Event" << fNEvents << std::endl;
     }
 
-    // tree->Fill();
+    tree->Fill();
 
     if(fNEvents%10000 == 1){
       std::cout << "#D: Tree filled: Event" << fNEvents << std::endl;
