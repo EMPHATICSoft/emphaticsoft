@@ -100,8 +100,7 @@ namespace emph {
       TH1F* fT0NTDC[nChanT0];
       TH2F* fT0TDCVsADC[nChanT0];
       TH1F* fT0TDC[nChanT0];
-      TH1F* fT0TDC2[nChanT0];
-     TH1F* fRPCTDC[nChanRPC];
+      TH1F* fRPCTDC[nChanRPC];
       TH1F* fRPCNTDC[nChanRPC];
       TH1F* fLGCaloADCDist[nChanCal];
       TH1F* fBACkovADCDist[nChanBACkov];
@@ -305,9 +304,7 @@ namespace emph {
 	for (int i=0; i<nchannel; ++i) {
 	  sprintf(hname,"T0TDC_%d",i);
 	  fT0TDC[i] = h.GetTH1F(hname);
- 	  sprintf(hname,"T0V2TDC_%d",i);
-	  fT0TDC2[i] = h.GetTH1F(hname);
-       }
+        }
       }
       if (fMakeTRB3Plots) {
         std::cout << "Making T0TDC OnMon plots" << std::endl;
@@ -526,7 +523,6 @@ namespace emph {
 	    if (detchan < nchan) { // watch out for channel 500!
 	      hitCount[detchan] += 1;
 	      fT0TDC[detchan]->Fill((triggerTime-time_T0)/100000);
-	      fT0TDC2[detchan]->Fill((triggerTime-time_T0)/100000);
 	    }
 	  }
 	  //std::cout<<"\n"<<std::endl;
