@@ -1,0 +1,40 @@
+
+process_name: OnMonT0toRPC
+
+services:
+{
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:{}
+
+ filters:{}
+
+ analyzers: {
+   OnMonT0toRPC :   
+   {
+      module_type: OnMonT0toRPC
+      tokenJob: "V1c"
+      channelMapFileName: "ChannelMap_Jan22_Run436.txt"
+      makeT0FullNtuple: true
+      makeRPCFullNtuple: false
+      makeTrigFullNtuple: false 
+      makeEventSummaryFullNtuple: true
+   }
+ }
+# stream1:  [ out1 ] #could have multiple paths
+ ana: [ OnMonT0toRPC  ] 
+
+ end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+}
