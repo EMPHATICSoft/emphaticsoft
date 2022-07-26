@@ -1,6 +1,6 @@
 include(ArtDictionary)
 include(ArtMake)
-FILE( GLOB src_files *.cxx )
+FILE( GLOB src_files *.cc )
 
 cet_find_package(messagefacility REQUIRED)
 cet_find_package(ROOT REQUIRED)
@@ -16,6 +16,7 @@ art_make_library ( SOURCE ${src_files}
 		Geometry
 		art_root_io::TFileService_service
                 ROOT::Hist
+                ROOT::Tree
 		)
 
 build_plugin(G4EMPHValidate "module"
@@ -25,8 +26,11 @@ build_plugin(G4EMPHValidate "module"
     Simulation
     Geometry
     art_root_io::TFileService_service
+    art::Framework_Core
+    art::Persistency_Common
     messagefacility::MF_MessageLogger
     ROOT::Hist
+    ROOT::Tree
 )
 
 install_source()

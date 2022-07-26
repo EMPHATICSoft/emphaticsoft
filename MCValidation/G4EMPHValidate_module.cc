@@ -13,6 +13,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TTree.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -33,18 +34,18 @@ using namespace emph;
 
 ///package to illustrate how to write modules
 namespace emph {
-
+  
   ///
   /// A class for communication with the viewer via shared memory segment
   ///
-  class G4EMPHValidate : public art::EDAnalyzer {
+  class G4EMPHValidate : public art::EDAnalyzer
   {
   public:
     explicit G4EMPHValidate(fhicl::ParameterSet const& pset);
-    ~G4EMPValidate();
-
+    ~G4EMPHValidate();
+    
     void analyze(const art::Event& evt);
-
+    
     // Optional if you want to be able to configure from event display, for example
     void reconfigure(const fhicl::ParameterSet& pset);
     
@@ -55,119 +56,120 @@ namespace emph {
     //    void endSubRun(art::SubRun const&);
     void endJob();
     
-    private:
-      TTree* fSSDTree;
-      int fRun;
-      int fSubrun;
-      int fEvent;
-      int fPid;
-      std::vector<double> fSSDx;
-      std::vector<double> fSSDy;
-      std::vector<double> fSSDz;
-      std::vector<double> fSSDpx;
-      std::vector<double> fSSDpy;
-      std::vector<double> fSSDpz;
-
-      bool fMakeSSDTree;
-
-    };
-
-    //.......................................................................
-    G4EMPHValidate::G4EMPHValidate(fhicl::ParameterSet const& pset)
-      : EDAnalyzer(pset)
-    {
-      fEvent = 0;
-      this->reconfigure(pset);
-
-    }
-
-    //......................................................................
-
-    G4EMPHValidate::~G4EMPHValidate()
-    {
-      //======================================================================
-      // Clean up any memory allocated by your module
-      //======================================================================
-    }
-
-    //......................................................................
-
-    void G4EMPHValidate::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
-    }
-
-    //......................................................................
-
-    void G4EMPHValidate::beginJob()
-    {
-      art::ServiceHandle<art::TFileService> tfs;
-      if (fMakeSSDTree) {
-	fSSDTree = tfs->make<TTree>("fSSDTree","");
-	fSSDTree->Branch("run",&fRun);
-	fSSDTree->Branch("subrun",&fSubrun);
-	fSSDTree->Branch("event",&fEvent);
-	fSSDTree->Branch("pid",&fPid);
-	fSSDTree->Branch("ssdx",&fSSDx);
-	fSSDTree->Branch("ssdy",&fSSDy);
-	fSSDTree->Branch("ssdz",&fSSDz);
-	fSSDTree->Branch("ssdpx",&fSSDx);
-	fSSDTree->Branch("ssdpy",&fSSDy);
-	fSSDTree->Branch("ssdpz",&fSSDz);
-      }
-
-    }    
-    //......................................................................
+  private:
+    TTree* fSSDTree;
+    int fRun;
+    int fSubrun;
+    int fEvent;
+    int fPid;
+    std::vector<double> fSSDx;
+    std::vector<double> fSSDy;
+    std::vector<double> fSSDz;
+    std::vector<double> fSSDpx;
+    std::vector<double> fSSDpy;
+    std::vector<double> fSSDpz;
     
-    void G4EMPHValidate::endJob() {     
+    bool fMakeSSDTree;
+    
+  };
+  
+  //.......................................................................
+  G4EMPHValidate::G4EMPHValidate(fhicl::ParameterSet const& pset)
+    : EDAnalyzer(pset)
+  {
+    fEvent = 0;
+    this->reconfigure(pset);
 
-    }
-
-    //......................................................................
-
-    void G4EMPHValidate::analyze(const art::Event& evt)
-    { 
-
-      labelStr = "sim:SSDHit"; // NOTE, this is probably the wrong label.
-      art::Handle< std::vector<std::vector<sim::SSDHit> > > ssdHitH;
-      try {
-	evt.getByLabel(labelStr,ssdHitH);
-      }
-      catch(...) {
-	std::cout << "WARNING: No SSDHits found!" << std::endl;
-      }
-
-      if (fMakeSSDTree && !ssdHitH->empty()) {
-	
-	// clear/reset variables at the start of each event
-	fRun = evt.GetRun();
-	fSubrun = evt.GetSubRun();
-	fEvent++;
-	fPid = 0; // deal with this later
-
-	for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
-	  // clear/reset vectors for each particle
-	  fSSDx.clear();
-	  fSSDy.clear();
-	  fSSDz.clear();
-	  fSSDpx.clear();
-	  fSSDpy.clear();
-	  fSSDpz.clear();
-	  const std::vector<ssd::Hit> ssdv = (*ssdHitH)[idx];
-	  for (size_t idx2=0; idx2 < ssdv.size(); ++idx2) {
-	    fSSDx.push_back(ssdv[idx2].GetX());
-	    fSSDy.push_back(ssdv[idx2].GetY());
-	    fSSDz.push_back(ssdv[idx2].GetZ());
-	    fSSDpx.push_back(ssdv[idx2].GetPx());
-	    fSSDpy.push_back(ssdv[idx2].GetPy());
-	    fSSDpz.push_back(ssdv[idx2].GetPz());
-	  }
-	  fSSDTree->Fill();
-	};
-       		
-      return;
-    }
   }
-} // end namespace demo
+
+  //......................................................................
+
+  G4EMPHValidate::~G4EMPHValidate()
+  {
+    //======================================================================
+    // Clean up any memory allocated by your module
+    //======================================================================
+  }
+
+  //......................................................................
+
+  void G4EMPHValidate::reconfigure(const fhicl::ParameterSet& pset)
+  {
+    fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
+  }
+
+  //......................................................................
+
+  void G4EMPHValidate::beginJob()
+  {
+    art::ServiceHandle<art::TFileService> tfs;
+    if (fMakeSSDTree) {
+      fSSDTree = tfs->make<TTree>("fSSDTree","");
+      fSSDTree->Branch("run",&fRun);
+      fSSDTree->Branch("subrun",&fSubrun);
+      fSSDTree->Branch("event",&fEvent);
+      fSSDTree->Branch("pid",&fPid);
+      fSSDTree->Branch("ssdx",&fSSDx);
+      fSSDTree->Branch("ssdy",&fSSDy);
+      fSSDTree->Branch("ssdz",&fSSDz);
+      fSSDTree->Branch("ssdpx",&fSSDx);
+      fSSDTree->Branch("ssdpy",&fSSDy);
+      fSSDTree->Branch("ssdpz",&fSSDz);
+    }
+
+  }    
+  //......................................................................
+    
+  void G4EMPHValidate::endJob() {     
+
+  }
+
+  //......................................................................
+
+  void G4EMPHValidate::analyze(const art::Event& evt)
+  { 
+
+    std::string labelStr = "geantgen"; // NOTE, this is probably the wrong label.
+    art::Handle< std::vector<std::vector<sim::SSDHit> > > ssdHitH;
+    try {
+      evt.getByLabel(labelStr,ssdHitH);
+    }
+    catch(...) {
+      std::cout << "WARNING: No SSDHits found!" << std::endl;
+    }
+
+    if (fMakeSSDTree && !ssdHitH->empty()) {
+	
+      // clear/reset variables at the start of each event
+      fRun = evt.run();
+      fSubrun = evt.subRun();
+      fEvent++;
+      fPid = 0; // deal with this later
+
+      for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
+	// clear/reset vectors for each particle
+	fSSDx.clear();
+	fSSDy.clear();
+	fSSDz.clear();
+	fSSDpx.clear();
+	fSSDpy.clear();
+	fSSDpz.clear();
+	const std::vector<sim::SSDHit> ssdv = (*ssdHitH)[idx];
+	for (size_t idx2=0; idx2 < ssdv.size(); ++idx2) {
+	  fSSDx.push_back(ssdv[idx2].GetX());
+	  fSSDy.push_back(ssdv[idx2].GetY());
+	  fSSDz.push_back(ssdv[idx2].GetZ());
+	  fSSDpx.push_back(ssdv[idx2].GetPx());
+	  fSSDpy.push_back(ssdv[idx2].GetPy());
+	  fSSDpz.push_back(ssdv[idx2].GetPz());
+	}
+	fSSDTree->Fill();
+      } // end loop over SSD hits for the event
+      		
+    }
+
+  } // G4EMPHValidate::analyze()
+
+}  // end namespace emph
 
 DEFINE_ART_MODULE(emph::G4EMPHValidate)

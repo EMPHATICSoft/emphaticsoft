@@ -1,1 +1,13 @@
-MakeSSDTree: true
+BEGIN_PROLOG
+
+g4ssd_analyzer:
+{
+  module_type: G4EMPHValidate
+
+  MakeSSDTree: true
+}
+
+#g4ssd_analyze:    @local::g4ssd_analyzer
+
+END_PROLOG
+
