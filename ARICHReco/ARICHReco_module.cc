@@ -16,7 +16,7 @@
 #include "TH2F.h"
 
 // Framework includes
-#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -30,6 +30,7 @@
 #include "ChannelMap/ChannelMap.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RecoBase/ARing.h"
 
 using namespace emph;
 
@@ -56,11 +57,12 @@ namespace emph {
     void endJob();
     
   private:
-    std::vector<rb::ARing> GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
+    void GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > &, std::unique_ptr<std::vector<rb::ARing>> &);
     
     emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;    
-    
+    TH2F*       fARICH2DHist;
+
   };
 
   //.......................................................................
@@ -68,7 +70,9 @@ namespace emph {
   ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
     : EDProducer(pset)
   {
-    
+
+    this->produces< std::vector<rb::ARing>>();
+
     this->reconfigure(pset);
 
   }
@@ -106,6 +110,11 @@ namespace emph {
       }
       std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
     }
+
+    art::ServiceHandle<art::TFileService> tfs;
+    
+    fARICH2DHist = tfs->make<TH2F>("ARICH2DHist","",
+				   24,0,24,24,0,24);
   }
   
   //......................................................................
@@ -116,8 +125,10 @@ namespace emph {
   
     //......................................................................
   
-  std::vector<rb::ARing> ARICHReco::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
+  void ARICHReco::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H, std::unique_ptr<std::vector<rb::ARing>> & rings )
   {
+    fARICH2DHist->Reset();
+
     // find reference time for each fpga
     std::map<int,double> refTime;
     for (size_t idx=0; idx < trb3H->size(); ++idx) {
@@ -161,7 +172,6 @@ namespace emph {
     }
     
     // loop over channel with leading times
-    int nhits = 0;
     for (auto lCh=leadTimesCh.begin();lCh!=leadTimesCh.end();lCh++) {
       
       // check if channel has trailing times
@@ -188,8 +198,6 @@ namespace emph {
 	  }
 	}
 	
-	fARICHNTrails->Fill(trail_found.size());
-	
 	// make hit with a leading time
 	// and at least a trailing time found
 	if (trail_found.size()>0) {
@@ -203,17 +211,6 @@ namespace emph {
 	  }
 	  int pmt = dchan.HiLo();
 	  int dch = dchan.Channel();
-	  fHitEffPerChannel->Fill((int)dchan.DetId()+kARICHOffset+pmt,dch);
-	  
-	  nhits++;
-	  
-	  // fill time histograms
-	  fARICHHitTimes->Fill(lead);
-	  fARICHHitTimes->Fill(trail_found[0]);
-	  fARICHHitToT->Fill(trail_found[0]-lead);
-	  
-	  // fill electronic channel plot
-	  fTRB3NHitsPerChannel->Fill(echan.Channel(),echan.Board());
 	  
 	  // fill pixel position plot
 	  // the arich consist of 3x3 pmts
@@ -227,9 +224,9 @@ namespace emph {
 	  int pmtcol = dch-pmtrow*8;
 	  int pxlxbin = pxlxbin0-pmtcol;
 	  int pxlybin = pxlybin0+pmtrow;
-	  int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
-	  int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
-	  fARICHNHitsPxl->Fill(pxlx,pxly);
+	  int pxlx = fARICH2DHist->GetXaxis()->GetBinCenter(pxlxbin+1);
+	  int pxly = fARICH2DHist->GetYaxis()->GetBinCenter(pxlybin+1);
+	  fARICH2DHist->Fill(pxlx,pxly);
 	  
 	}//if trailing time found
 	
@@ -237,28 +234,34 @@ namespace emph {
       
     }//leading time channel map loop
     
+    rb::ARing ring;
+    ring.SetNHits(fARICH2DHist->GetEntries());
+    
+    rings->push_back(ring);
+    
   }
   
   //......................................................................
   void ARICHReco::produce(art::Event& evt)
   { 
-    std::string labelStr = "raw:ARICH";
-    // get ARICH TRB3digits
-    art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbHandle;
+    std::string labelstr = "raw:ARICH";
+    // get arich trb3digits
+    std::unique_ptr<std::vector<rb::ARing> > aringv(new std::vector<rb::ARing>);
+    
+    art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbhandle;
     try {
-      evt.getByLabel(labelStr, trbHandle);
-      if (!trbHandle->empty()) {
-	std::vector<rb::ARing> aringv = GetARings(trbHandle);
-	auto arings = std::make_unique<std::vector<rb::ARing>>(aringv);
-	// now write ARings to the art event.
-	evt.put(std::move(arings));
+      evt.getByLabel(labelstr, trbhandle);
+      if (!trbhandle->empty()) {
+	GetARings(trbhandle,aringv);
       }
-      catch(...) {
-	
-      }
-      return;
     }
+    catch(...) {
+      
+    }
+    evt.put(std::move(aringv));
+
   }
+
 } // end namespace demo
 
 DEFINE_ART_MODULE(emph::ARICHReco)

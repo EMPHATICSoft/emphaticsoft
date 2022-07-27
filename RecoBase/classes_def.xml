@@ -4,23 +4,30 @@
 <!--  lines and for all objects that are data members of those objects.-->
  
 <lcgdict>
-  <class name="rb::SSDHit"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+  <class name="rb::SSDHit"    ClassVersion="11">
+   <version ClassVersion="11" checksum="2728825684"/>
+    <version ClassVersion="10" checksum="1"/>
   </class>
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
-  <class name="rb::TrackSegment"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+
+  <class name="rb::TrackSegment"    ClassVersion="11">
+   <version ClassVersion="11" checksum="4133908667"/>
+    <version ClassVersion="10" checksum="2"/>
   </class>
   <class name="std::vector<rb::TrackSegment>"        />
   <class name="art::Wrapper< std::vector<rb::TrackSegment>    >"/>
-  <class name="rb::SpacePoint"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+
+  <class name="rb::SpacePoint"    ClassVersion="11">
+   <version ClassVersion="11" checksum="3081214743"/>
+    <version ClassVersion="10" checksum="3"/>
   </class>
   <class name="std::vector<rb::SpacePoint>"        />
   <class name="art::Wrapper< std::vector<rb::SpacePoint>    >"/>
-  <class name="rb::ARing"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+
+  <class name="rb::ARing"    ClassVersion="11">
+   <version ClassVersion="11" checksum="2715429707"/>
+    <version ClassVersion="10" checksum="4"/>
   </class>
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>

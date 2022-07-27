@@ -13,6 +13,7 @@ art_make_library ( SOURCE ${src_files}
                    LIBRARIES
 		   RawData
 		   RecoBase
+		   ChannelMap
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
                    ROOT::Hist

@@ -1,9 +1,10 @@
-#include "OnMonPlotter.fcl"
+#include "ARICHReco.fcl"
 
-process_name: OnMon
+process_name: ARICHReco
 
 services:
 {
+  TFileService: { fileName: "arichreco_hist_r%r_s%s.root" closeFileFast: false }
 }
 
 source:
@@ -17,7 +18,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "onmon.root"
+   fileName:    "arichreco_r%r_s%s.root"
    fastCloning: false
    
   }
@@ -29,17 +30,19 @@ outputs:
 physics:
 {
 
- producers:{}
+ producers:
+ {
+	arichreco: @local::standard_arichreco
+ }	
 
+ reco: [ arichreco ]
+	
  filters:{}
 
- analyzers:
- {
-	onmon: @local::standard_onmon
- }
+ analyzers:{}
 
- # stream1:  [ out1 ] #could have multiple paths
- ana: [ onmon ] 
+ trigger_paths: [ reco ]
 
- end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+ stream1: [ out1 ]
+
 }
