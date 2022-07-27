@@ -138,6 +138,11 @@ namespace emph
     
     ssdHit.SetPId( track->GetDefinition()->GetPDGEncoding() );
     ssdHit.SetTrackID( ParticleListAction::GetCurrentTrackID() );
+
+    // get the type of particle hitting the ssd
+    ssdHit.SetType( track->GetDefinition()->GetParticleName());
+    // get the mass of the particle hitting the ssd
+    ssdHit.SetMass( track->GetDefinition()->GetPDGMass());
     
     // need to add code to figure out SSD plane, sensor and strip
 
