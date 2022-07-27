@@ -19,4 +19,9 @@
   </class>
   <class name="std::vector<rb::SpacePoint>"        />
   <class name="art::Wrapper< std::vector<rb::SpacePoint>    >"/>
+  <class name="rb::ARing"    ClassVersion="10">
+    <version ClassVersion="10" checksum=""/>
+  </class>
+  <class name="std::vector<rb::ARing>"        />
+  <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
  </lcgdict>
