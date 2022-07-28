@@ -21,4 +21,4 @@ install_fhicl()
 
 #add_subdirectory(nova)
 
-#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RawData)
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RecoBase)

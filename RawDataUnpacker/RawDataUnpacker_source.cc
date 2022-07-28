@@ -84,6 +84,7 @@ namespace rawdata {
 					 "RawDataSaver0FER1_Run");
     fReadSSDData = ps.get<bool>("readSSDData",false);
     fReadTRB3Data = ps.get<bool>("readTRB3Data",false);
+    fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
     
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
@@ -436,6 +437,16 @@ namespace rawdata {
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
 	auto fragId = fFragId[ifrag];
 	fT0[fragId] = fFragTimestamps[fragId][0];
+
+	if (fFirstSubRunHasExtraTrigger) {
+	  if (fSubrun == 1) { // skip these extra fragments
+	    if ((fragId <= 5) || fragId == 104) {
+	      fT0[fragId] = fFragTimestamps[fragId][1];
+	      fFragCounter[fragId] += 1;
+	    }
+	  }
+	}
+	
       }
       fPrevTS = 0;
       
@@ -462,9 +473,11 @@ namespace rawdata {
       uint64_t thisFragTimestamp;
       size_t thisFragCount;
       bool isFirstFrag = true;
+
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {	
 	thisFragId = fFragId[ifrag];
 	thisFragCount = fFragCounter[thisFragId];
+	
 	// bounds check:
 	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
 	if (isFirstFrag) {
@@ -515,13 +528,17 @@ namespace rawdata {
 	
 	thisFragId = fFragId[ifrag];
 	thisFragCount = fFragCounter[thisFragId];
+
 	// bounds check:
 	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
 	
-	
 	if (fWaveForms.count(thisFragId)) {
 	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];
-	  
+	  /*
+	  std::cout << "dT CAEN " << thisFragId << " = " 
+		    << (thisFragTimestamp - earliestTimestamp)
+		    << std::endl;
+	  */
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
 	    emph::cmap::FEBoardType boardType = emph::cmap::V1720;
 	    int boardNum = thisFragId;
@@ -544,6 +561,13 @@ namespace rawdata {
 	  if (fTRB3RawDigits.count(thisFragId)) {
 	    
 	    thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].GetFragmentTimestamp() - fT0[thisFragId];
+
+	    /*
+	    std::cout << "dT TRB3 " << thisFragId << " = " 
+		      << (thisFragTimestamp - earliestTimestamp)
+		      << std::endl;
+	    */
+	    
 	    if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
 	      emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
 	      emph::cmap::EChannel echan;

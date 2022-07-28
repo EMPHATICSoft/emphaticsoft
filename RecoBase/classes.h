@@ -2,4 +2,5 @@
 #include "RecoBase/SSDHit.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/SpacePoint.h"
+#include "RecoBase/ARing.h"
 

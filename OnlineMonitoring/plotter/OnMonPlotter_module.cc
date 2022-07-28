@@ -173,9 +173,11 @@ namespace emph {
       std::vector<TH1F*> fSSDNHit;
 
       TH1F*  fARICHNHits;
-      TH2F*  fARICHNHitsECh;
+      TH2F*  fTRB3NHitsPerChannel;
       TH2F*  fARICHNHitsPxl;
       TH1F*  fARICHHitTimes;
+      TH1F*  fARICHHitToT;
+      TH1F*  fARICHNTrails;
 
       bool fMakeWaveFormPlots;
       bool fMakeTRB3Plots;
@@ -308,6 +310,7 @@ namespace emph {
       fNTriggerLGArray     = h.GetTH2F("NTriggerLGArray"); //
       fTriggerVsSubrun  = h.GetTH2F("TriggerVsSubrun");
       fHitEffPerChannel = h.GetTH2F("HitEffPerChannel");
+      fTRB3NHitsPerChannel = h.GetTH2F("TRB3NHitsPerChannel");
 
       // label x-axis
       std::string labelStr;
@@ -544,9 +547,10 @@ namespace emph {
       if (fMakeTRB3Plots) {
 	std::cout << "Making ARICH OnMon plots" << std::endl;
         fARICHNHits = h.GetTH1F("ARICHNHits");
-        fARICHNHitsECh = h.GetTH2F("ARICHNHitsECh");
         fARICHNHitsPxl = h.GetTH2F("ARICHNHitsPxl");
         fARICHHitTimes = h.GetTH1F("ARICHHitTimes");
+        fARICHHitToT = h.GetTH1F("ARICHHitToT");
+        fARICHNTrails = h.GetTH1F("ARICHNTrails");
         // hardcoded ARICH display bins including gaps between PMTs
         std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
         fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
@@ -764,8 +768,8 @@ namespace emph {
 		&& dchan.HiLo() == 0) {
 	      ///Adding a count per hit for each channel (only for rising edges)
 	      hitCount[detchan-1] += 1;
-	      ///Filling Arich plot depicting hits per fpga channel on TRB3
-	      fARICHNHitsECh->Fill(chan,board);
+	      ///Filling plot depicting hits per fpga channel on TRB3
+	      fTRB3NHitsPerChannel->Fill(chan,board);
 	    }
 
 	    //// The Following Checks if the hit is rising (dchan.HiLo == 0) or falling ( == 1), makes sure the detector is not trigger ( detchan != 500), and that only 1 hit per trigger is filling the histograms.////
@@ -866,8 +870,9 @@ namespace emph {
           }
         }
 
-        // find number of hits in this event
-        int nhits = 0;
+        // separate leading and trailing times per channel
+        std::map<emph::cmap::EChannel,std::vector<double>> leadTimesCh;
+        std::map<emph::cmap::EChannel,std::vector<double>> trailTimesCh;
 
 	for (size_t idx=0; idx < trb3H->size(); ++idx) {
 
@@ -879,48 +884,90 @@ namespace emph {
           int fpga = trb3.GetBoardId();
           int ech = trb3.GetChannel();
           emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);
-          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-          if (dchan.DetId()!=emph::geo::ARICH) {
-            std::cout << echan;
-            std::cout << " doesn't belong to the ARICH" << std::endl;
-            continue;
-          }
-          int pmt = dchan.HiLo();
-          int dch = dchan.Channel();
-	  fHitEffPerChannel->Fill((int)dchan.DetId()+kARICHOffset+pmt,
-				  dch);
 
           double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
 
-          fARICHHitTimes->Fill(time);
+          if (trb3.IsLeading())  leadTimesCh[echan].push_back(time);
+          if (trb3.IsTrailing()) trailTimesCh[echan].push_back(time);
 
-          // leading edges count as new hits
-          if (trb3.IsLeading()) {
+        }
 
-            nhits++;
+        // loop over channel with leading times
+        int nhits = 0;
+        for (auto lCh=leadTimesCh.begin();lCh!=leadTimesCh.end();lCh++) {
 
-            // fill electronic channel plot
-            fARICHNHitsECh->Fill(ech,fpga);
+          // check if channel has trailing times
+          // and skip channel if not
+          auto tCh = trailTimesCh.find(lCh->first);
+          if (tCh==trailTimesCh.end()) continue;
 
-            // fill pixel position plot
-            // the arich consist of 3x3 pmts
-            // and there are 8x8 pixels in each pmt
-            // pmt 0 and pixel 0  is on the bottom right
-            // pmt 8 and pixel 63 is on the top left
-            // there is a gap of 1 bin size between pmts
-            int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
-            int pxlybin0 = (pmt/3)*9;
-            int pmtrow = dch/8;
-            int pmtcol = dch-pmtrow*8;
-            int pxlxbin = pxlxbin0-pmtcol;
-            int pxlybin = pxlybin0+pmtrow;
-            int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
-            int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
-            fARICHNHitsPxl->Fill(pxlx,pxly);
+          // sort leading and trailing times in ascendent order
+          std::vector<double> leadTimes  = lCh->second;;
+          std::vector<double> trailTimes = tCh->second;
 
-          }//is leading
+          std::sort(leadTimes.begin(),leadTimes.end());
+          std::sort(trailTimes.begin(),trailTimes.end());
 
-        }//trb3 digits
+          // get all trailing times between 2 consecutive leading times
+          for (unsigned int l=0;l<leadTimes.size();l++) {
+
+            double lead  = leadTimes[l];
+            double lead_next  = l<leadTimes.size()-1 ? leadTimes[l+1] : 1000;
+            std::vector<double> trail_found;
+            for (unsigned int t=0;t<trailTimes.size();t++) {
+              if (trailTimes[t]>lead && trailTimes[t]<lead_next ) {
+                trail_found.push_back(trailTimes[t]);
+              }
+            }
+
+            fARICHNTrails->Fill(trail_found.size());
+
+            // make hit with a leading time
+            // and at least a trailing time found
+            if (trail_found.size()>0) {
+
+              emph::cmap::EChannel echan = lCh->first;
+              emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+              if (dchan.DetId()!=emph::geo::ARICH) {
+                std::cout << echan;
+                std::cout << " doesn't belong to the ARICH" << std::endl;
+                continue;
+              }
+              int pmt = dchan.HiLo();
+              int dch = dchan.Channel();
+              fHitEffPerChannel->Fill((int)dchan.DetId()+kARICHOffset+pmt,dch);
+
+              nhits++;
+
+              // fill time histograms
+              fARICHHitTimes->Fill(lead);
+              fARICHHitTimes->Fill(trail_found[0]);
+              fARICHHitToT->Fill(trail_found[0]-lead);
+
+              // fill electronic channel plot
+              fTRB3NHitsPerChannel->Fill(echan.Channel(),echan.Board());
+
+              // fill pixel position plot
+              // the arich consist of 3x3 pmts
+              // and there are 8x8 pixels in each pmt
+              // pmt 0 and pixel 0  is on the bottom right
+              // pmt 8 and pixel 63 is on the top left
+              // there is a gap of 1 bin size between pmts
+              int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
+              int pxlybin0 = (pmt/3)*9;
+              int pmtrow = dch/8;
+              int pmtcol = dch-pmtrow*8;
+              int pxlxbin = pxlxbin0-pmtcol;
+              int pxlybin = pxlybin0+pmtrow;
+              int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
+              int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
+              fARICHNHitsPxl->Fill(pxlx,pxly);
+
+            }//if trailing time found
+
+          }//leading time loop
+
+        }//leading time channel map loop
 
         fARICHNHits->Fill(nhits);
 
@@ -1023,8 +1070,8 @@ namespace emph {
 		&& dchan.HiLo() == 0) {
 	      //adding a count for each hit in a detector channel
 	      hitCount[detchan-1] += 1;
-	      //Filling Arich plot which shows number of hits per FPGA channel
-	      fARICHNHitsECh->Fill(chan,board);
+	      //Filling plot which shows number of hits per FPGA channel
+	      fTRB3NHitsPerChannel->Fill(chan,board);
 	    }
             if (detchan != 500
                 && chan % 2 == 0

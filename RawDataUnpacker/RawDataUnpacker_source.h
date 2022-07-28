@@ -59,6 +59,7 @@ namespace emph {
       bool    fMakeTDiffHistos;
       bool    fReadSSDData;
       bool    fReadTRB3Data;
+      bool    fFirstSubRunHasExtraTrigger;
       int     fVerbosity;
       int     fNumWaveFormPlots;
       int     fRun;
