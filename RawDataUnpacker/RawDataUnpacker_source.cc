@@ -1,4 +1,4 @@
-///////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 // Class:       RawDataUnpacker
 // Module Type: input source
 // Author:      jpaley@fnal.gov, eflumerf@fnal.gov
@@ -128,21 +128,12 @@ namespace rawdata {
     art::ServiceHandle<art::TFileService> tfs;
 
     fTRB3Tree = tfs->make<TTree>("TRB3Tree","");
+    fTRB3Tree->Branch("headerWord",&fTRB3_HeaderWord);
+    fTRB3Tree->Branch("measurement",&fTRB3_Measurement);
     fTRB3Tree->Branch("channel",&fTRB3_Channel);
     fTRB3Tree->Branch("finetime",&fTRB3_FineTime);
     fTRB3Tree->Branch("epochtime",&fTRB3_EpochTime);
     fTRB3Tree->Branch("coarsetime",&fTRB3_CoarseTime);
-
-    fRPCTree = tfs->make<TTree>("RPCTree","");
-    fRPCTree->Branch("channel",&fRPC_Channel);
-    fRPCTree->Branch("finetime",&fRPC_FineTime);
-    fRPCTree->Branch("epochtime",&fRPC_EpochTime);
-    fRPCTree->Branch("coarsetime",&fRPC_CoarseTime);
-
-    fC1720Tree = tfs->make<TTree>("C1720Tree","");
-    fC1720Tree->Branch("channel",&fC1720_Channel);
-    fC1720Tree->Branch("peakadc",&fC1720_PeakADC);
-    fC1720Tree->Branch("peaktdc",&fC1720_PeakTDC);
 
   }
   
@@ -224,8 +215,8 @@ namespace rawdata {
 
     art::ServiceHandle<art::TFileService> tfs;
     art::TFileDirectory tdir2 = tfs->mkdir("TimeDiffs","");	  
-    // char hname[256];
-    // char htitle[256];    
+    char hname[256];
+    char htitle[256];    
 
     if (V1720CFrag) {
       for (const auto& cont : *V1720CFrag) {
@@ -289,29 +280,21 @@ namespace rawdata {
       // now fill TRB3 TTree
       for (const auto & trb3digMap : fTRB3RawDigits) { // loop over map
 	for (auto & digVec : trb3digMap.second) { // loop over vector of vectors
+	  fTRB3_HeaderWord.clear();
+	  fTRB3_Measurement.clear();
 	  fTRB3_Channel.clear();
 	  fTRB3_FineTime.clear();
 	  fTRB3_EpochTime.clear();
 	  fTRB3_CoarseTime.clear();
-	  fRPC_Channel.clear();
-	  fRPC_FineTime.clear();
-	  fRPC_EpochTime.clear();
-	  fRPC_CoarseTime.clear();
 	  for (auto & dig : digVec) { // loop over vector
-	    if(dig.GetFPGAHeaderWord() == 1282){
-	      fTRB3_Channel.push_back(dig.GetChannel());
-	      fTRB3_FineTime.push_back(dig.GetFineTime());
-	      fTRB3_EpochTime.push_back(dig.GetEpochCounter());
-	      fTRB3_CoarseTime.push_back(dig.GetCoarseTime());
-	    }else if(dig.GetFPGAHeaderWord() == 1283){
-	      fRPC_Channel.push_back(dig.GetChannel());
-	      fRPC_FineTime.push_back(dig.GetFineTime());
-	      fRPC_EpochTime.push_back(dig.GetEpochCounter());
-	      fRPC_CoarseTime.push_back(dig.GetCoarseTime());
-	    }//if(HeaderWord==T0)
+	    fTRB3_HeaderWord.push_back(dig.GetFPGAHeaderWord());
+	    fTRB3_Measurement.push_back(dig.GetMeasurement());
+	    fTRB3_Channel.push_back(dig.GetChannel());
+	    fTRB3_FineTime.push_back(dig.GetFineTime());
+	    fTRB3_EpochTime.push_back(dig.GetEpochCounter());
+	    fTRB3_CoarseTime.push_back(dig.GetCoarseTime());
 	  }
 	  fTRB3Tree->Fill();
-	  fRPCTree->Fill();
 	}
       }
     }
@@ -340,19 +323,24 @@ namespace rawdata {
     // now fill C1720 TTree
     for (const auto & wvfmMap : fWaveForms) { // loop over map
       for (auto & wvfmVec : wvfmMap.second) { // loop over vector of vectors=	
-        // fC1720_Board.clear();
-        fC1720_Channel.clear();
-        fC1720_PeakADC.clear();
-        fC1720_PeakTDC.clear();
 	for (auto & wvfm : wvfmVec) { // loop over vector
-	  if(wvfm.Board()*8 + wvfm.Channel() < 20){
-	    // fC1720_Board.push_back(wvfm.Board());
-	    fC1720_Channel.push_back(wvfm.Board()*8 + wvfm.Channel());
-	    fC1720_PeakADC.push_back(wvfm.Baseline() - wvfm.PeakADC());
-	    fC1720_PeakTDC.push_back(wvfm.PeakTDC());
+	  int ichan = wvfm.Board()*100 + wvfm.Channel();
+	  sprintf(hname,"C1720_%d_%d",wvfm.Board(),wvfm.Channel());
+	  art::TFileDirectory tdir = tfs->mkdir(hname,"");	  
+	  if ( ! fC1720_HistCount.count(ichan))
+	    fC1720_HistCount[ichan] = 0;	  
+	  int ih = fC1720_HistCount[ichan];
+	  if (ih < fNumWaveFormPlots) {
+	    sprintf(hname,"C1720_%d_%d_h%03d",wvfm.Board(),wvfm.Channel(),ih);
+	    sprintf(htitle,"Integrated Waveforms for CAEN 1720 Board %d, Channel %d, Fragment %d, Run %d, Subrun %d",wvfm.Board(),wvfm.Channel(), ih, fRun, fSubrun);
+	    std::vector<uint16_t> adc = wvfm.AllADC();
+	    int nsamp = adc.size();
+	    TH1I* h1 = tdir.make<TH1I>(hname,htitle,nsamp,0.,float(nsamp));
+	    for (size_t i=0; i<adc.size() && int(i)<nsamp; ++i)
+	      h1->SetBinContent(i+1,adc[i]);	 
+	    fC1720_HistCount[ichan] += 1;
 	  }
 	}
-	fC1720Tree->Fill();
       }
     }
 
@@ -364,21 +352,21 @@ namespace rawdata {
 
   void Unpacker::makeTDiffHistos()
   {
-    // art::ServiceHandle<art::TFileService> tfs;
-    // art::TFileDirectory tdir2 = tfs->mkdir("TimeDiffs","");	  
-    // std::vector<TH1I*> tdiffHist;
-    // char hname[256];
-    // char htitle[256];    
-    // for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-    //   auto fragId = fFragId[ifrag];
-    //   sprintf(hname,"tDiff_%d",fragId);
-    //   sprintf(htitle,"Fragment Time Differences, Board %d",fragId);
-    //   tdiffHist.push_back(tdir2.make<TH1I>(hname,htitle,250,0,500000));
-    //   for (size_t i=1; i<fFragTimestamps[fragId].size(); ++i) {
-    // 	uint64_t tdiff = fFragTimestamps[fragId][i]-fFragTimestamps[fragId][i-1];
-    // 	tdiffHist[ifrag]->Fill(tdiff);
-    //   }
-    // }
+    art::ServiceHandle<art::TFileService> tfs;
+    art::TFileDirectory tdir2 = tfs->mkdir("TimeDiffs","");	  
+    std::vector<TH1I*> tdiffHist;
+    char hname[256];
+    char htitle[256];    
+    for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
+      auto fragId = fFragId[ifrag];
+      sprintf(hname,"tDiff_%d",fragId);
+      sprintf(htitle,"Fragment Time Differences, Board %d",fragId);
+      tdiffHist.push_back(tdir2.make<TH1I>(hname,htitle,250,0,500000));
+      for (size_t i=1; i<fFragTimestamps[fragId].size(); ++i) {
+	uint64_t tdiff = fFragTimestamps[fragId][i]-fFragTimestamps[fragId][i-1];
+	tdiffHist[ifrag]->Fill(tdiff);
+      }
+    }
   }
 
   /***************************************************************************/

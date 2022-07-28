@@ -95,21 +95,14 @@ namespace emph {
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<std::vector<emph::rawdata::TRB3RawDigit> > > fTRB3RawDigits;
 
       TTree* fTRB3Tree;
+      std::vector<uint32_t> fTRB3_HeaderWord;
+      std::vector<uint32_t> fTRB3_Measurement;
       std::vector<uint32_t> fTRB3_Channel;
       std::vector<uint32_t> fTRB3_FineTime;
       std::vector<uint32_t> fTRB3_EpochTime;
       std::vector<uint32_t> fTRB3_CoarseTime;
-
-      TTree* fRPCTree;
-      std::vector<uint32_t> fRPC_Channel;
-      std::vector<uint32_t> fRPC_FineTime;
-      std::vector<uint32_t> fRPC_EpochTime;
-      std::vector<uint32_t> fRPC_CoarseTime;
       
-      TTree* fC1720Tree;
-      std::vector<uint32_t> fC1720_Channel;
-      std::vector<uint32_t> fC1720_PeakADC;
-      std::vector<uint32_t> fC1720_PeakTDC;
+      std::unordered_map<int, int> fC1720_HistCount;
 
       std::vector<std::unique_ptr<std::ifstream>> ssd_file_handles;
       std::string fSSDPath;
