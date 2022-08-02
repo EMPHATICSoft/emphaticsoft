@@ -70,10 +70,87 @@ namespace emph {
 
     const double epoch_const    = 10240026.0; // Constant for epochtime
     const double coarse_const   = 5000.0; // Constant for coarsetime
-    double trb3_linear_low      = 15.0; // Calibration for low end
-    double trb3_linear_high_T0  = 499.0; // Calibration for FPGA2 -- T0
-    double trb3_linear_high_RPC = 491.0; // Calibration for FPGA3 -- RPC
-
+    double trb3_linear_low      = 16.0; // Calibration for low end
+    // double trb3_linear_high_T0  = 499.0; // Calibration for FPGA2 -- T0
+    std::vector<double> trb3_linear_high_T0{ // Calibration for FPGA2 -- T0
+      495.0,
+      490.0,
+      491.0,
+      490.0,
+      485.0,
+      490.0,
+      492.0,
+      490.0,
+      488.0,
+      489.0,
+      489.0,
+      487.0,
+      492.0,
+      496.0,
+      493.0,
+      493.0,
+      493.0,
+      477.0,
+      479.0,
+      482.0,
+      478.0,
+      481.0,
+      478.0,
+      489.0,
+      489.0,
+      489.0,
+      490.0,
+      490.0,
+      487.0,
+      490.0,
+      489.0,
+      485.0,
+      483.0,
+      485.0,
+      483.0,
+      481.0,
+      481.0,
+      479.0,
+      479.0,
+      490.0,
+      489.0
+	};
+    // double trb3_linear_high_RPC = 491.0; // Calibration for FPGA3 -- RPC
+    std::vector<double> trb3_linear_high_RPC{ // Calibration for FPGA3 -- RPC
+      483.0,
+      479.0,
+      479.0,
+      479.0,
+      480.0,
+      479.0,
+      485.0,
+      482.0,
+      479.0,
+      486.0,
+      480.0,
+      479.0,
+      486.0,
+      484.0,
+      485.0,
+      485.0,
+      479.0,
+      477.0,
+      476.0,
+      477.0,
+      476.0,
+      481.0,
+      480.0,
+      486.0,
+      481.0,
+      479.0,
+      484.0,
+      481.0,
+      479.0,
+      479.0,
+      482.0,
+      478.0,
+      477.0
+	};
     double t0_tot_gate = 100000000.0;
     double rpc_tot_gate = 100000000.0;
 
@@ -327,8 +404,8 @@ namespace emph {
     for(int i_evt = 0; i_evt < n_evt; i_evt++){
       uint32_t evt_ch = digvec.at(i_evt).GetChannel();
       double time_evt_t0 = epoch_const*digvec.at(i_evt).GetEpochCounter()
-	                  + coarse_const*digvec.at(i_evt).GetCoarseTime()
-	                  + coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0 - trb3_linear_low);
+	                   + coarse_const*digvec.at(i_evt).GetCoarseTime()
+	                   + coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0.at(evt_ch) - trb3_linear_low);
 
       if(evt_ch == 0){
 	time_trig_t0 = time_evt_t0;
@@ -362,7 +439,7 @@ namespace emph {
       uint32_t evt_ch = digvec.at(i_evt).GetChannel();
       double time_evt_rpc = epoch_const*digvec.at(i_evt).GetEpochCounter()
 	                  + coarse_const*digvec.at(i_evt).GetCoarseTime()
-	                  + coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC - trb3_linear_low);
+	                  + coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC.at(evt_ch) - trb3_linear_low);
 
       if(evt_ch == 0){
 	time_trig_rpc = time_evt_rpc;
