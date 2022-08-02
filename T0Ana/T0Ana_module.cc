@@ -103,13 +103,17 @@ namespace emph {
 
     double time_trig_t0;
     double time_trig_rpc;
-    double tdc_lead;
-    bool   found_lead;
+    std::vector<double> tdc_lead;
+    std::vector<double> tdc_trail;
+    std::vector<double> tot_vec;
     int    n_tdc;
+    int    n_tdc_lead;
+    int    n_tdc_trail;
+    double tot_temp;
 
     TTree *tree;
-    std::array<int,    n_seg_t0>  T0seg;  // Segment of T0
-    std::array<int,    n_seg_rpc> RPCseg; // Segment of RPC
+    std::array<int,    n_seg_t0>  T0_Seg;  // Segment of T0
+    std::array<int,    n_seg_rpc> Rpc_Seg; // Segment of RPC
 
     std::array<double, n_seg_t0> ADC_top_q; // Charge of top signals
     std::array<double, n_seg_t0> ADC_bot_q; // Charge of bottom signals
@@ -193,8 +197,8 @@ namespace emph {
     tree = tfs->make<TTree>("T0AnaTree","");
     std::cout << "tree = " << tree << std::endl;
 
-    tree->Branch("t0seg", &T0seg);
-    tree->Branch("rpcseg", &RPCseg);
+    tree->Branch("T0_seg", &T0_Seg);
+    tree->Branch("RPC_seg", &Rpc_Seg);
 
     tree->Branch("ADC_top_q", &ADC_top_q);
     tree->Branch("ADC_bot_q", &ADC_bot_q);
@@ -378,36 +382,90 @@ namespace emph {
   void T0Ana::GetT0Tot(void)
   {
     for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
-      tdc_lead = 0;
-      found_lead   = false;
       TDC_top_tot.at(i_seg).clear();
       TDC_bot_tot.at(i_seg).clear();
 
       n_tdc = TDC_top_t.at(i_seg).size();
+      tdc_lead.clear();
+      tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
 	if(TDC_top_lead.at(i_seg).at(i_tdc) == 1){
-	  tdc_lead   = TDC_top_t.at(i_seg).at(i_tdc);
-	  found_lead = true;
+	  tdc_lead.push_back(TDC_top_t.at(i_seg).at(i_tdc));
 	}else{
-	  if(found_lead && (TDC_top_t.at(i_seg).at(i_tdc) - tdc_lead < t0_tot_gate) && (TDC_top_t.at(i_seg).at(i_tdc) - tdc_lead > 0)){
-	    TDC_top_tot.at(i_seg).push_back(TDC_top_t.at(i_seg).at(i_tdc) - tdc_lead);
-	  }//if(tot gate)
-	  found_lead = false;
-	}//if(flag lead)
-      }//for(n_tdc_top)
+	  tdc_trail.push_back(TDC_top_t.at(i_seg).at(i_tdc));
+	}
+      }
+
+      n_tdc_lead = tdc_lead.size();
+      n_tdc_trail = tdc_trail.size();
+      if(n_tdc_lead <= n_tdc_trail){
+	for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	  tot_vec.clear();
+	  for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_trail)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    TDC_top_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_lead)
+      }else{
+	for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	  tot_vec.clear();
+	  for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_lead)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    TDC_top_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_trail)
+      }//if(n_tdc)
 
       n_tdc = TDC_bot_t.at(i_seg).size();
+      tdc_lead.clear();
+      tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
 	if(TDC_bot_lead.at(i_seg).at(i_tdc) == 1){
-	  tdc_lead   = TDC_bot_t.at(i_seg).at(i_tdc);
-	  found_lead = true;
+	  tdc_lead.push_back(TDC_bot_t.at(i_seg).at(i_tdc));
 	}else{
-	  if(found_lead && (TDC_bot_t.at(i_seg).at(i_tdc) - tdc_lead < t0_tot_gate) && (TDC_bot_t.at(i_seg).at(i_tdc) - tdc_lead > 0)){
-	    TDC_bot_tot.at(i_seg).push_back(TDC_bot_t.at(i_seg).at(i_tdc) - tdc_lead);
-	  }//if(tot gate)
-	  found_lead = false;
-	}//if(flag lead)
-      }//for(n_tdc_bot)
+	  tdc_trail.push_back(TDC_bot_t.at(i_seg).at(i_tdc));
+	}
+      }
+
+      n_tdc_lead = tdc_lead.size();
+      n_tdc_trail = tdc_trail.size();
+      if(n_tdc_lead <= n_tdc_trail){
+	for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	  tot_vec.clear();
+	  for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_trail)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    TDC_bot_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_lead)
+      }else{
+	for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	  tot_vec.clear();
+	  for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_lead)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    TDC_bot_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_trail)
+      }//if(n_tdc)
     }//for(n_seg)
   }
 
@@ -415,36 +473,90 @@ namespace emph {
   void T0Ana::GetRPCTot(void)
   {
     for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
-      tdc_lead = 0;
-      found_lead   = false;
       RPC_lf_tot.at(i_seg).clear();
       RPC_rt_tot.at(i_seg).clear();
 
       n_tdc = RPC_lf_t.at(i_seg).size();
+      tdc_lead.clear();
+      tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
 	if(RPC_lf_lead.at(i_seg).at(i_tdc) == 1){
-	  tdc_lead   = RPC_lf_t.at(i_seg).at(i_tdc);
-	  found_lead = true;
+	  tdc_lead.push_back(RPC_lf_t.at(i_seg).at(i_tdc));
 	}else{
-	  if(found_lead && (RPC_lf_t.at(i_seg).at(i_tdc) - tdc_lead < rpc_tot_gate) && (RPC_lf_t.at(i_seg).at(i_tdc) - tdc_lead > 0)){
-	    RPC_lf_tot.at(i_seg).push_back(RPC_lf_t.at(i_seg).at(i_tdc) - tdc_lead);
-	  }//if(tot gate)
-	  found_lead = false;
-	}//if(flag lead)
-      }//for(n_tdc_lf)
+	  tdc_trail.push_back(RPC_lf_t.at(i_seg).at(i_tdc));
+	}
+      }
+
+      n_tdc_lead = tdc_lead.size();
+      n_tdc_trail = tdc_trail.size();
+      if(n_tdc_lead <= n_tdc_trail){
+	for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	  tot_vec.clear();
+	  for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_trail)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    RPC_lf_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_lead)
+      }else{
+	for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	  tot_vec.clear();
+	  for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_lead)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    RPC_lf_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_trail)
+      }//if(n_tdc)
 
       n_tdc = RPC_rt_t.at(i_seg).size();
+      tdc_lead.clear();
+      tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
 	if(RPC_rt_lead.at(i_seg).at(i_tdc) == 1){
-	  tdc_lead   = RPC_rt_t.at(i_seg).at(i_tdc);
-	  found_lead = true;
+	  tdc_lead.push_back(RPC_rt_t.at(i_seg).at(i_tdc));
 	}else{
-	  if(found_lead && (RPC_rt_t.at(i_seg).at(i_tdc) - tdc_lead < rpc_tot_gate) && (RPC_rt_t.at(i_seg).at(i_tdc) - tdc_lead > 0)){
-	    RPC_rt_tot.at(i_seg).push_back(RPC_rt_t.at(i_seg).at(i_tdc) - tdc_lead);
-	  }//if(tot gate)
-	  found_lead = false;
-	}//if(flag lead)
-      }//for(n_tdc_rt)
+	  tdc_trail.push_back(RPC_rt_t.at(i_seg).at(i_tdc));
+	}
+      }
+
+      n_tdc_lead = tdc_lead.size();
+      n_tdc_trail = tdc_trail.size();
+      if(n_tdc_lead <= n_tdc_trail){
+	for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	  tot_vec.clear();
+	  for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_trail)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    RPC_rt_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_lead)
+      }else{
+	for(int i_tdc_trail = 0; i_tdc_trail < n_tdc_trail; i_tdc_trail++){
+	  tot_vec.clear();
+	  for(int i_tdc_lead = 0; i_tdc_lead < n_tdc_lead; i_tdc_lead++){
+	    if(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead) > 0){
+	      tot_vec.push_back(tdc_trail.at(i_tdc_trail) - tdc_lead.at(i_tdc_lead));
+	    }//if(tot gate)
+	  }//for(n_tdc_lead)
+	  if(!tot_vec.empty()){
+	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
+	    RPC_rt_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot empty)
+	}//for(n_tdc_trail)
+      }//if(n_tdc)
     }//for(n_seg)
   }
 
@@ -453,7 +565,7 @@ namespace emph {
   void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
   {
     for(int i = 0; i < n_seg_t0; i++){
-      T0seg[i]   = i;
+      T0_Seg[i]   = i;
 
       ADC_top_q[i]   = -999999.0;
       ADC_bot_q[i]   = -999999.0;
@@ -464,7 +576,7 @@ namespace emph {
     }
 
     for(int i = 0; i < n_seg_rpc; i++){
-      RPCseg[i]  = i;
+      Rpc_Seg[i]  = i;
     }
 
     // get ADC info for T0
