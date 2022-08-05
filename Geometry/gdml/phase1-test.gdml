@@ -18,7 +18,7 @@
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-350" unit="mm"/>
+	 <position name="T0_pos" z="-583.2" unit="mm"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -60,7 +60,7 @@
 	 <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
 
 	 <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="588.5" unit="mm"/>
 
 	 <rotation name="RotateZMagSeg0" z="(-157.5+22.5*0)" unit="deg"/>
 	 <rotation name="RotateZMagSeg1" z="(-157.5+22.5*1)" unit="deg"/>
@@ -95,8 +95,8 @@
 	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
 	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
 	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
-	 <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
+	 <position name="ssdStation0_pos" x="0" y="0" z="-225.2" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="-104.8" unit="mm" />
 	 <position name="ssdsingle00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdsingle0_rot" z="90" unit="deg"/>
 	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -110,8 +110,8 @@
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
 	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
 	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-	 <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
+	 <position name="ssdStation2_pos" x="0" y="0" z="118.8" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="266.5" unit="mm" />
 	 <position name="ssdrotate00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdrotate0_rot" z="45" unit="deg"/>
 	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -125,11 +125,11 @@
 	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0"
 		 z="10." unit="mm" />
 
-	 <quantity name="ssdStationdoubleLength" value="50" unit="mm" />
+	 <quantity name="ssdStationdoubleLength" value="100" unit="mm" />
 	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
-	 <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
+	 <position name="ssdStation4_pos" x="0" y="0" z="939.9" unit="mm" />
+	 <position name="ssdStation5_pos" x="0" y="0" z="1140.3" unit="mm" />
 	 <position name="ssddouble00_pos" x="-0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <position name="ssddouble01_pos" x="0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
@@ -153,7 +153,7 @@
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <position name="RPC_pos" x="0" y="0" z="730" unit="mm" />
+	 <position name="RPC_pos" x="0" y="0" z="2110" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
@@ -223,7 +223,7 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
 
-	 <quantity name="calor_shift" value="800" unit="mm" />
+	 <quantity name="calor_shift" value="2150" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR LG -->
