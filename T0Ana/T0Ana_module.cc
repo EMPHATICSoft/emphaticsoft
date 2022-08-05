@@ -405,7 +405,7 @@ namespace emph {
       uint32_t evt_ch = digvec.at(i_evt).GetChannel();
       double time_evt_t0 = epoch_const*digvec.at(i_evt).GetEpochCounter()
 	                   + coarse_const*digvec.at(i_evt).GetCoarseTime()
-	                   + coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0.at(evt_ch) - trb3_linear_low);
+	                   - coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_T0.at(evt_ch) - trb3_linear_low);
 
       if(evt_ch == 0){
 	time_trig_t0 = time_evt_t0;
@@ -439,7 +439,7 @@ namespace emph {
       uint32_t evt_ch = digvec.at(i_evt).GetChannel();
       double time_evt_rpc = epoch_const*digvec.at(i_evt).GetEpochCounter()
 	                  + coarse_const*digvec.at(i_evt).GetCoarseTime()
-	                  + coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC.at(evt_ch) - trb3_linear_low);
+	                  - coarse_const*(digvec.at(i_evt).GetFineTime() - trb3_linear_low)/(trb3_linear_high_RPC.at(evt_ch) - trb3_linear_low);
 
       if(evt_ch == 0){
 	time_trig_rpc = time_evt_rpc;
