@@ -139,7 +139,7 @@ EOF
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-583.2" unit="mm"/>
+	 <position name="T0_pos" z="-852.9" unit="mm"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -169,7 +169,7 @@ EOF
 	 <quantity name="target_width" value="100.0" unit="mm"/>
 	 <quantity name="target_height" value="50.0" unit="mm"/>
 
-	 <position name="target_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="target_pos" x="0" y="0" z="200.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR TARGET -->
 
@@ -189,7 +189,7 @@ EOF
 	 <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
 
 	 <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="magnet_pos" x="0" y="0" z="588.5" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="827.7" unit="mm"/>
 
 EOF
 		for($i = 0; $i < $n_magseg; ++$i){
@@ -211,6 +211,13 @@ EOF
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
 	 <quantity name="ssdD0_height" value="98.33" unit="mm"/>
 	 <quantity name="ssdD0_width" value="38.34" unit="mm"/>
+	 
+	 <quantity name="ssdStation0_shift" value="0" unit="mm"/>
+	 <quantity name="ssdStation1_shift" value="124.5" unit="mm"/>
+	 <quantity name="ssdStation2_shift" value="367.7" unit="mm"/>
+	 <quantity name="ssdStation3_shift" value="491.0" unit="mm"/>
+	 <quantity name="ssdStation4_shift" value="985.6" unit="mm"/>
+	 <quantity name="ssdStation5_shift" value="1211.8" unit="mm"/>
 
 	 <quantity name="carbon_fiber_thick" value="0.300"
 		 unit="mm" />
@@ -220,8 +227,8 @@ EOF
 	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
 	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
 	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
-	 <position name="ssdStation0_pos" x="0" y="0" z="-225.2" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-104.8" unit="mm" />
+	 <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdsingle00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdsingle0_rot" z="90" unit="deg"/>
 	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -235,8 +242,8 @@ EOF
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
 	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
 	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-	 <position name="ssdStation2_pos" x="0" y="0" z="118.8" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="266.5" unit="mm" />
+	 <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdrotate00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdrotate0_rot" z="45" unit="deg"/>
 	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
@@ -253,8 +260,8 @@ EOF
 	 <quantity name="ssdStationdoubleLength" value="100" unit="mm" />
 	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="939.9" unit="mm" />
-	 <position name="ssdStation5_pos" x="0" y="0" z="1140.3" unit="mm" />
+	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
+	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssddouble00_pos" x="-0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <position name="ssddouble01_pos" x="0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
