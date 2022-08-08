@@ -57,6 +57,7 @@ namespace emph {
     private:
     
       void  openOutputCsvFiles(); // At this point, we know the run number..
+      void  resetAllADCsTDCs();
       
       void   FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > &,
 			 art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
@@ -96,6 +97,7 @@ namespace emph {
      std::vector<double> fT0TDCs; // parallel vectors
 //     std::vector<double> fRPCADCs(nChanRPC, 0.);
      std::vector<double> fRPCTDCs;
+     std::vector<double> fTrigPeakADCs;
      std::vector<double> fTrigADCs;
 
       bool fMakeT0FullNtuple; 
@@ -122,6 +124,7 @@ namespace emph {
       fT0ADCs(nChanT0+1, 0.),
       fT0TDCs(nChanT0+1, DBL_MAX),
       fRPCTDCs(nChanRPC, DBL_MAX),
+      fTrigPeakADCs(nChanTrig, 0.),
       fTrigADCs(nChanTrig, 0.),
       fMakeT0FullNtuple(true),
       fMakeRPCFullNtuple(true),
@@ -201,7 +204,7 @@ namespace emph {
         std::string fNameTrigStr(fNameTrigStrStr.str());
         fFOutTrigger.open(fNameTrigStr.c_str());
 	fFOutTrigger << " subRun evt ";
-        for (unsigned int k=0; k != nChanTrig; k++) fFOutTrigger << " adc" << k;
+        for (unsigned int k=0; k != nChanTrig; k++) fFOutTrigger << " Padc" << k << " Sadc" << k;
         fFOutTrigger << " " << std::endl;
       }
       if (fMakeRPCFullNtuple) { 
@@ -219,7 +222,9 @@ namespace emph {
         std::string fNameSumStr(fNameSumStrStr.str());
         fFOutTrigT0RPC.open(fNameSumStr.c_str());
 	std::cerr << " Opening fFOutTrigT0RPC... " << std::endl;
-	fFOutTrigT0RPC << " spill dSpill evt dEvt T0OK RPCOK trigAdc0 trigAdc1  trigAdc2 trigAdc3 numCT0HighTOk numCT0High numCT0Low ";
+	fFOutTrigT0RPC << " spill dSpill evt dEvt T0OK RPCOK ";
+	fFOutTrigT0RPC << " trigPAdc0 trigSAdc0  trigPAdc1 trigSAdc1 trigPAdc2 trigSAdc2  trigPAdc3 trigSAdc3";
+	fFOutTrigT0RPC << " numCT0HighTOk numCT0High numCT0Low ";
 	for (size_t k=1; k != 19; k++) fFOutTrigT0RPC << " T0tdc" << k << " T0adc" << k;
 	for (size_t k=0; k != nchanRPC; k++) fFOutTrigT0RPC << " RPCtdc" << k;
 	fFOutTrigT0RPC << " " << std::endl;
@@ -241,10 +246,19 @@ namespace emph {
     }
 
     //......................................................................
-
+    
+    void OnMonT0toRPC::resetAllADCsTDCs() {
+       for(std::vector<double>::iterator it = fT0ADCs.begin(); it != fT0ADCs.end(); it++) *it = -1.0*DBL_MAX/2.;
+       for(std::vector<double>::iterator it = fT0TDCs.begin(); it != fT0TDCs.end(); it++) *it = DBL_MAX;
+       for(std::vector<double>::iterator it = fRPCTDCs.begin(); it != fRPCTDCs.end(); it++) *it = DBL_MAX;
+       for(std::vector<double>::iterator it = fTrigADCs.begin();it != fTrigADCs.end(); it++) *it = -1.0*DBL_MAX/2.;
+       for(std::vector<double>::iterator it = fTrigPeakADCs.begin();it != fTrigPeakADCs.end(); it++) *it = 0.;
+    }
 
     void OnMonT0toRPC::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
+       bool debugIsOn = (((fEvtNum == 47) && (fSubRun == 11)) || ((fEvtNum == 411) && (fSubRun == 13)));
+       if (debugIsOn) std::cerr << " OnMonT0toRPC::FillT0Plots, spill " << fSubRun << " " << fEvtNum << std::endl;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
@@ -262,13 +276,38 @@ namespace emph {
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
+	    fT0ADCs[detchan] = -1.0e10;
+	    vT0ADChits[detchan]=0; 
 	    if (detchan < nchan) {
-	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float bl = wvfm.Baseline(0, 12);
+	      float adcPeakNeg = bl -  static_cast<float>(wvfm.PeakADC(true)); 
+	      float adcPeakPos = static_cast<float>(wvfm.PeakADC(false)) - bl;
+	      int adcPeakNegBin = wvfm.PeakTDC(true); int adcPeakPosBin = wvfm.PeakTDC(false);
+	      int deltaPeakBin = adcPeakNegBin - adcPeakPosBin;	  // look for differential signals.     
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw) {
-		fT0ADCs[detchan] = adc;
-		vT0ADChits[detchan]=1; 
+	      float effadc = adcPeakNeg + adcPeakPos;
+	      if (debugIsOn) {
+	        std::cerr << ".. detchan  " << detchan << " bl " << bl << " bwl " << blw 
+		          << " PeakNeg, Ampl/Bin " << adcPeakNeg << "/" << adcPeakNegBin << " PeakPos " 
+			  << adcPeakPos << "/" << adcPeakPosBin << " deltaPeakBin " << deltaPeakBin << std::endl;
 	      }
+	      if ((effadc > 3.0*blw) && 
+	          (adcPeakPosBin >= 14) && (deltaPeakBin > 0) && (deltaPeakBin < 5)) effadc += 10000;
+	      if ((fNEvents%1000 == 5) && ((idx == 5) || (idx == 4))) {
+	        std::string polarStr("none");
+		if (effadc > 10000.) polarStr = std::string("Bipolar");
+		if ((adcPeakNeg > 5.0*blw) && (adcPeakPos < 2.0*blw)) polarStr = std::string("UnipolarNeg"); 
+		if ((adcPeakPos > 5.0*blw) && (adcPeakNeg < 2.0*blw)) polarStr = std::string("UnipolarPos"); 
+	        std::ostringstream fWvOutStrStr; 
+		fWvOutStrStr << "./T0WaveForms/T0ADC" << polarStr << "_" << idx << "_Spill" << fSubRun << "_evt" << fEvtNum << ".txt";
+		std::string fWvOutStr( fWvOutStrStr.str());
+		std::ofstream fWvOut(fWvOutStr.c_str()); fWvOut << " k adc " << std::endl;
+		std::vector<uint16_t> tmpwf = wvfm.AllADC();
+		for (size_t k=0; k != tmpwf.size(); k++) fWvOut << " " << k << " " << tmpwf[k] << std::endl;
+		fWvOut.close();
+	      } 
+	      fT0ADCs[detchan] = effadc;
+	      vT0ADChits[detchan]=1; 
 	    } else {
 	      std::cerr << " OnMonT0toRPC::FillT0Plots , Unexpected Channel in ADC array detchan " 
 	                << detchan << " nchan " << nchan << " expected nchan " << fT0ADCs.size()-1 <<  std::endl;
@@ -380,16 +419,30 @@ namespace emph {
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan >= 0 && detchan < nchan) {
-	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      if (fNEvents%1000 == 56783) {
+	        std::ostringstream fWvOutStrStr; 
+		fWvOutStrStr << "./TriggerWaveForms/TrigADC" << idx << "_Spill" << fSubRun << "_evt" << fEvtNum << ".txt";
+		std::string fWvOutStr( fWvOutStrStr.str());
+		std::ofstream fWvOut(fWvOutStr.c_str()); fWvOut << " k adc " << std::endl;
+		std::vector<uint16_t> tmpwf = wvfm.AllADC();
+		for (size_t k=0; k != tmpwf.size(); k++) fWvOut << " " << k << " " << tmpwf[k] << std::endl;
+		fWvOut.close();
+	      } 
+//	      float adc = wvfm.Baseline()-wvfm.PeakADC();
+	      float bl = wvfm.Baseline(0, 10);
+	      float adc = bl - wvfm.PeakADC();
+	      float sumadc = 40.0*bl - wvfm.IntegratedADC(10, 40);
 	      float blw = wvfm.BLWidth();
-	      if (adc > 5*blw)
-		fTrigADCs[detchan] = adc;
+	      if (adc > 5*blw) {
+		fTrigADCs[detchan] = sumadc;
+		fTrigPeakADCs[detchan] = adc;
+	      }
 	    }
 	  }
       }
       if (fMakeTrigFullNtuple) {
         fFOutTrigger << " " << fSubRun << " " << fEvtNum;
-        for (int k=0; k != nchan; k++) fFOutTrigger << " " << fTrigADCs[k];
+        for (int k=0; k != nchan; k++) fFOutTrigger << " " << fTrigPeakADCs[k] << " " << fTrigADCs[k];
         fFOutTrigger << std::endl;
       }
       
@@ -404,7 +457,7 @@ namespace emph {
        fFOutTrigT0RPC << " " << fSubRun << " " << fSubRun - fPrevSubRun << " " << fEvtNum << " " << fEvtNum - fPrevEvtNum;
        if (gotT0) { fFOutTrigT0RPC << " 1" ; } else { fFOutTrigT0RPC << " 0" ; } 
        if (gotRPC) { fFOutTrigT0RPC << " 1" ; } else { fFOutTrigT0RPC << " 0" ; }
-       for (int k=0; k != nchanTrig; k++) fFOutTrigT0RPC << " " << fTrigADCs[k];
+       for (int k=0; k != nchanTrig; k++) fFOutTrigT0RPC << " " << fTrigPeakADCs[k] << " " << fTrigADCs[k] ;
        if ((!gotT0) && (!gotRPC)) { for (int k=0; k != nBlank; k++) fFOutTrigT0RPC << " 0" ; } 
        else if ((!gotT0) && (gotRPC)) { for (int k=0; k != nBlank; k++) fFOutTrigT0RPC << " 0" ; } // we got some RPC, to be analyzed later.. 
        else if (gotT0) {
@@ -432,6 +485,7 @@ namespace emph {
     void OnMonT0toRPC::analyze(const art::Event& evt)
     { 
       ++fNEvents;
+      this->resetAllADCsTDCs();
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();  
       fSubRun = evt.subRun(); 
