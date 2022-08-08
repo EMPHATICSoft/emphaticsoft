@@ -52,7 +52,7 @@ $target_switch = 1;
 
 # constants for magnet
 $magnet_switch = 1;
-$n_magseg = 16;
+$magnet_layer = 3;
 
 # constants for SSD
 # Check DocDB 1260 for details.
@@ -180,21 +180,19 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR MAGNET -->
 
-	 <quantity name="magnetSideYOffset" value="29" unit="mm" />
-	 <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
-	 <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
-	 <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
-	 <quantity name="magnetSideZLength" value="150" unit="mm"/>
-	 <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
-	 <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+	 <quantity name="magnetSideWidth" value="50" unit="mm"/>
+	 <quantity name="magnetSideZLength" value="160" unit="mm"/>
+	 <quantity name="magnetSideOHeight" value="240" unit="mm"/>
+	 <quantity name="magnetSideIHeight0" value="48" unit="mm"/>
+	 <quantity name="magnetSideIHeight1" value="62" unit="mm"/>
+	 <quantity name="magnetSideIHeight2" value="80" unit="mm"/>
 
-	 <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="magnet_pos" x="0" y="0" z="588.5" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="517.7" unit="mm"/>
 
 EOF
-		for($i = 0; $i < $n_magseg; ++$i){
+		for($i = 0; $i < $magnet_layer; ++$i){
 			print DEF <<EOF;
-	 <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)" unit="deg"/>
+	 <position name="magnetSide_pos@{[ $i ]}" x="0" y="0" z="(-1+$i)*magnetSideWidth" unit="mm"/>
 EOF
 		}
 		print DEF <<EOF;
@@ -253,8 +251,8 @@ EOF
 	 <quantity name="ssdStationdoubleLength" value="100" unit="mm" />
 	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="939.9" unit="mm" />
-	 <position name="ssdStation5_pos" x="0" y="0" z="1140.3" unit="mm" />
+	 <position name="ssdStation4_pos" x="0" y="0" z="748.9" unit="mm" />
+	 <position name="ssdStation5_pos" x="0" y="0" z="966.4" unit="mm" />
 	 <position name="ssddouble00_pos" x="-0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <position name="ssddouble01_pos" x="0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
@@ -283,7 +281,7 @@ EOF
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <position name="RPC_pos" x="0" y="0" z="2110" unit="mm" />
+	 <position name="RPC_pos" x="0" y="0" z="1649+0.5*RPC_thick" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
@@ -364,7 +362,7 @@ EOF
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
 
-	 <quantity name="calor_shift" value="2150" unit="mm" />
+	 <quantity name="calor_shift" value="1800" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR LG -->
@@ -465,19 +463,15 @@ EOF
 
 	 <!-- BELOW IS FOR MAGNET -->
 
-	 <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
-		 y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
-
-	 <arb8 name="magnetSide_arb8"
-	  v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
-	  v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
-	  v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
-	  v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
-	  v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
-	  v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
-	  v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
-	  v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
-	  dz="magnetSideZLength" unit="mm"/>
+	 <box name="magnet_box" x="magnetSideOHeight"
+		 y="magnetSideOHeight" z="magnetSideZLength" />
+EOF
+	for($i = 0; $i< $magnet_layer; ++$i){
+		print SOL <<EOF;
+	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+EOF
+	}
+	print SOL <<EOF;
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
@@ -610,12 +604,18 @@ EOF
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
+EOF
 
-  <volume name="magnetSide_vol">
+		for($i = 0; $i< $magnet_layer; ++$i){
+			print MOD <<EOF;
+  <volume name="magnetSide_vol@{[ $i ]}">
 	 <materialref ref="NeodymiumAlloy"/>
-	 <solidref ref="magnetSide_arb8"/>
+	 <solidref ref="magnet_tube@{[ $i ]}"/>
   </volume>
+EOF
+		}
 
+	   print MOD <<EOF
   <!-- ABOVE IS FOR MAGNET -->
 
 EOF
@@ -789,12 +789,11 @@ EOF
 	 <solidref ref="magnet_box"/>  
 EOF
 
-		for($i = 0; $i < $n_magseg; ++$i){
+		for($i = 0; $i < $magnet_layer; ++$i){
 			print DET <<EOF;
 	 <physvol name="magnetSide@{[ $i ]}_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg@{[ $i ]}"/>
+		<volumeref ref="magnetSide_vol@{[ $i ]}"/>
+		<positionref ref="magnetSide_pos@{[ $i ]}"/>
 	 </physvol>
 EOF
 		}
