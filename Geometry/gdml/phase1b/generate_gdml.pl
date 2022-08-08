@@ -52,7 +52,7 @@ $target_switch = 1;
 
 # constants for magnet
 $magnet_switch = 1;
-$n_magseg = 16;
+$magnet_layer = 3;
 
 # constants for SSD
 # Check DocDB 1260 for details.
@@ -65,6 +65,9 @@ $nstation_type = 3; # types of station
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
+
+# constants for ARICH
+$arich_switch = 1;
 
 # constants for RPC
 $RPC_switch = 1;
@@ -180,21 +183,19 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR MAGNET -->
 
-	 <quantity name="magnetSideYOffset" value="29" unit="mm" />
-	 <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
-	 <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
-	 <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
-	 <quantity name="magnetSideZLength" value="150" unit="mm"/>
-	 <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
-	 <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+    <quantity name="magnetSideWidth" value="50" unit="mm"/>
+	 <quantity name="magnetSideZLength" value="160" unit="mm"/>
+	 <quantity name="magnetSideOHeight" value="240" unit="mm"/>
+	 <quantity name="magnetSideIHeight0" value="48" unit="mm"/>
+	 <quantity name="magnetSideIHeight1" value="62" unit="mm"/>
+	 <quantity name="magnetSideIHeight2" value="80" unit="mm"/>
 
-	 <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="magnet_pos" x="0" y="0" z="827.7" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="757.7" unit="mm"/>
 
 EOF
-		for($i = 0; $i < $n_magseg; ++$i){
+		for($i = 0; $i < $magnet_layer; ++$i){
 			print DEF <<EOF;
-	 <rotation name="RotateZMagSeg@{[ $i ]}" z="(-157.5+22.5*$i)" unit="deg"/>
+    <position name="magnetSide_pos@{[ $i ]}" x="0" y="0" z="(-1+$i)*magnetSideWidth" unit="mm"/>
 EOF
 		}
 		print DEF <<EOF;
@@ -282,6 +283,22 @@ EOF
 EOF
 	}
 
+	if($arich_switch){
+		print DEF <<EOF;
+	 <!-- BELOW IS FOR ARICH -->
+
+	 <quantity name="arich_thick" value="300.0" unit="mm"/>
+	 <quantity name="arich_width" value="300.0" unit="mm"/>
+	 <quantity name="arich_height" value="300.0" unit="mm"/>
+
+	 <position name="arich_pos" x="0" y="0" z="1377.9+0.5*arich_thick" unit="mm"/>
+
+	 <!-- ABOVE IS FOR ARICH -->
+
+EOF
+	}
+
+
 	if($RPC_switch){
 		print DEF <<EOF;
 
@@ -290,7 +307,7 @@ EOF
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <position name="RPC_pos" x="0" y="0" z="2110" unit="mm" />
+	 <position name="RPC_pos" x="0" y="0" z="2699.7+0.5*RPC_thick" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
@@ -371,7 +388,7 @@ EOF
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
 
-	 <quantity name="calor_shift" value="2150" unit="mm" />
+	 <quantity name="calor_shift" value="2886.4" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR LG -->
@@ -472,19 +489,15 @@ EOF
 
 	 <!-- BELOW IS FOR MAGNET -->
 
-	 <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
-		 y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
-
-	 <arb8 name="magnetSide_arb8"
-	  v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
-	  v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
-	  v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
-	  v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
-	  v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
-	  v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
-	  v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
-	  v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
-	  dz="magnetSideZLength" unit="mm"/>
+    <box name="magnet_box" x="magnetSideOHeight"
+	    y="magnetSideOHeight" z="magnetSideZLength" />
+EOF
+	for($i = 0; $i< $magnet_layer; ++$i){
+		print SOL <<EOF;
+	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+EOF
+	}
+	print SOL <<EOF;
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
@@ -511,6 +524,18 @@ EOF
 
 EOF
 	}
+
+	if($arich_switch){
+		print SOL <<EOF;
+
+	 <!-- BELOW IS FOR ARICH -->
+
+	 <box name="arich_box" x="arich_width" y="arich_height" z="arich_thick" />
+
+	 <!-- ABOVE IS FOR ARICH -->
+EOF
+	}
+
 	if($RPC_switch){
 		print SOL <<EOF;
 
@@ -617,12 +642,18 @@ EOF
 		print MOD <<EOF;
 
   <!-- BELOW IS FOR MAGNET -->
+EOF
 
-  <volume name="magnetSide_vol">
+		for($i = 0; $i< $magnet_layer; ++$i){
+			print MOD <<EOF;
+  <volume name="magnetSide_vol@{[ $i ]}">
 	 <materialref ref="NeodymiumAlloy"/>
-	 <solidref ref="magnetSide_arb8"/>
+	 <solidref ref="magnet_tube@{[ $i ]}"/>
   </volume>
+EOF
+		}
 
+		print MOD <<EOF
   <!-- ABOVE IS FOR MAGNET -->
 
 EOF
@@ -659,6 +690,23 @@ EOF
 
 EOF
 	}
+
+	if($arich_switch){
+		print MOD <<EOF;
+
+  <!-- BELOW IS FOR AIRCH -->
+
+  <volume name="arich_vol">
+	 <materialref ref="Air"/>
+	 <solidref ref="arich_box"/>
+  </volume>
+
+  <!-- ABOVE IS FOR ARICH -->
+
+EOF
+	}
+
+
 	if($RPC_switch){
 		print MOD <<EOF;
 
@@ -796,12 +844,11 @@ EOF
 	 <solidref ref="magnet_box"/>  
 EOF
 
-		for($i = 0; $i < $n_magseg; ++$i){
-			print DET <<EOF;
+      for($i = 0; $i < $magnet_layer; ++$i){
+         print DET <<EOF;
 	 <physvol name="magnetSide@{[ $i ]}_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg@{[ $i ]}"/>
+		 <volumeref ref="magnetSide_vol@{[ $i ]}"/>
+		 <positionref ref="magnetSide_pos@{[ $i ]}"/>
 	 </physvol>
 EOF
 		}
@@ -1057,6 +1104,21 @@ EOF
 
 		print WORLD <<EOF;
   <!-- ABOVE IS FOR SSD -->
+
+EOF
+	}
+
+	if($arich_switch){
+		print WORLD <<EOF;
+
+  <!-- BELOW IS FOR ARICH -->
+
+  <physvol name="arich_phys">
+	 <volumeref ref="arich_vol"/>
+	 <positionref ref="arich_pos"/>
+  </physvol>
+
+  <!-- ABOVE IS FOR ARICH -->
 
 EOF
 	}
