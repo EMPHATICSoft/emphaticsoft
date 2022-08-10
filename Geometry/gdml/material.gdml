@@ -13,32 +13,32 @@
 
 	<!-- The rindex of aerogel 1 -->
 	<matrix
-		name="AERO_1035_RINDEX"
+		name="AERO_1026_RINDEX"
 		coldim="2"
-		values="1.6*eV  1.035
-				  5.0*eV  1.035"
+		values="1.6*eV  1.026
+				  5.0*eV  1.026"
 	/>
 
 	<!-- The rindex of aerogel 2 -->
 	<matrix
-		name="AERO_1045_RINDEX"
+		name="AERO_1030_RINDEX"
 		coldim="2"
-		values="1.6*eV  1.045
-				  5.0*eV  1.045"
+		values="1.6*eV  1.030
+				  5.0*eV  1.030"
 	/>
 	<!-- ********** Refractive index end ********** -->
 
 
    <!-- ********** Absorption length ********** -->
 	<matrix
-      name="AERO_1035_ABS"
+      name="AERO_1026_ABS"
       coldim="2"
 		values="1.6*eV  200.*cm
 				  5.0*eV  200.*cm"
 	/>
 
 	<matrix
-      name="AERO_1045_ABS"
+      name="AERO_1030_ABS"
       coldim="2"
 		values="1.6*eV  200.*cm
 				  5.0*eV  200.*cm"
@@ -47,7 +47,7 @@
 
    <!-- ********** Rayleigh scattering length ********** -->
 	<matrix
-      name="AERO_1035_RAY"
+      name="AERO_1026_RAY"
       coldim="2"
       values="1.60*eV  52.640*cm
 					1.65*eV  48.520*cm
@@ -121,7 +121,7 @@
 	/>
 
 	<matrix
-      name="AERO_1045_RAY"
+      name="AERO_1030_RAY"
       coldim="2"
       values="1.60*eV  38.020*cm
 					1.65*eV  35.180*cm
@@ -288,22 +288,22 @@
      <fraction n="0.24" ref="Oxygen"/>
    </material>
 
-	<material name="AERO_1035">
-      <property name="RINDEX" ref="AERO_1035_RINDEX"/>
-      <property name="ABSLENGTH" ref="AERO_1035_ABS"/>
-      <property name="RAYLEIGH" ref="AERO_1035_RAY"/>
+	<material name="AERO_1026">
+      <property name="RINDEX" ref="AERO_1026_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1026_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1026_RAY"/>
 
-      <D value="0.124"/>
+      <D value="0.097"/>
       <fraction n="0.467" ref="Silicon"/>
       <fraction n="1.0-0.467" ref="Oxygen"/>
    </material>
 
-   <material name="AERO_1045">
-      <property name="RINDEX" ref="AERO_1045_RINDEX"/>
-      <property name="ABSLENGTH" ref="AERO_1045_ABS"/>
-      <property name="RAYLEIGH" ref="AERO_1045_RAY"/>
+   <material name="AERO_1030">
+      <property name="RINDEX" ref="AERO_1030_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1030_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1030_RAY"/>
 
-      <D value="0.159"/>
+      <D value="0.110"/>
       <fraction n="0.467" ref="Silicon"/>
       <fraction n="1.0-0.467" ref="Oxygen"/>
    </material>
