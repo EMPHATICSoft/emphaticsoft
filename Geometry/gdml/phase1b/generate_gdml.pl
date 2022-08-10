@@ -47,10 +47,10 @@ else
 $T0_switch = 1;
 $n_acrylic = 20;
 
-# constants for target
+# constants for TARGET
 $target_switch = 1;
 
-# constants for magnet
+# constants for MAGNET
 $magnet_switch = 1;
 $magnet_layer = 3;
 
@@ -68,6 +68,10 @@ $nstation_type = 3; # types of station
 
 # constants for ARICH
 $arich_switch = 1;
+$n_aerogel = 2;
+@aerogel_mat = ("AERO_1026", "AERO_1030");
+$n_mPMT = 9;
+$n_anode1d = 8;
 
 # constants for RPC
 $RPC_switch = 1;
@@ -294,6 +298,13 @@ EOF
 	 <quantity name="arich_height" value="365.0" unit="mm"/>
 
 	 <position name="arich_pos" x="0" y="0" z="1377.9+0.5*arich_thick" unit="mm"/>
+
+	 <quantity name="aerogel_thick0" value="18.9" unit="mm"/>
+	 <quantity name="aerogel_thick1" value="20.4" unit="mm"/>
+	 <quantity name="aerogel_size" value="93.0" unit="mm"/>
+	 
+	 <position name="aerogel_pos0" x="0" y="0" z="43-0.5*arich_thick+0.5*aerogel_thick0" unit="mm"/>
+	 <position name="aerogel_pos1" x="0" y="0" z="43-0.5*arich_thick+aerogel_thick0+0.5*aerogel_thick1" unit="mm"/>
 
 	 <!-- ABOVE IS FOR ARICH -->
 
@@ -534,6 +545,14 @@ EOF
 
 	 <box name="arich_box" x="arich_width" y="arich_height" z="arich_thick" />
 
+EOF
+	for($i = 0; $i< $n_aerogel; ++$i){
+		print SOL <<EOF;
+	 <box name="aerogel_box@{[ $i ]}" x="aerogel_size" y="aerogel_size" z="aerogel_thick@{[ $i ]}" />
+EOF
+	}
+	print SOL <<EOF;
+
 	 <!-- ABOVE IS FOR ARICH -->
 EOF
 	}
@@ -696,12 +715,19 @@ EOF
 	if($arich_switch){
 		print MOD <<EOF;
 
-  <!-- BELOW IS FOR AIRCH -->
+  <!-- BELOW IS FOR ARICH -->
 
-  <volume name="arich_vol">
-	 <materialref ref="Air"/>
-	 <solidref ref="arich_box"/>
-  </volume>
+EOF
+	for($i = 0; $i< $n_aerogel; ++$i){
+		print MOD <<EOF;
+		<volume name="aerogel_vol@{[ $i ]}">
+			<materialref ref="@{[ $aerogel_mat[$i] ]}"/>
+			<solidref ref="aerogel_box@{[ $i ]}"/>
+		</volume>
+EOF
+	}
+	print MOD <<EOF;
+
 
   <!-- ABOVE IS FOR ARICH -->
 
@@ -915,6 +941,33 @@ EOF
 
 EOF
 	}
+	if($arich_switch){
+		print DET <<EOF;
+
+  <!-- BELOW IS FOR ARICH -->
+
+  <volume name="arich_vol">
+	 <materialref ref="Air"/>
+	 <solidref ref="arich_box"/>
+EOF
+
+      for($i = 0; $i < $n_aerogel; ++$i){
+         print DET <<EOF;
+	 <physvol name="aerogel@{[ $i ]}_phys">
+		 <volumeref ref="aerogel_vol@{[ $i ]}"/>
+		 <positionref ref="aerogel_pos@{[ $i ]}"/>
+	 </physvol>
+EOF
+		}
+
+		print DET <<EOF;
+  </volume>
+
+  <!-- ABOVE IS FOR MAGNET -->
+
+EOF
+	}
+
 	if($RPC_switch){
 		print DET <<EOF;
 
