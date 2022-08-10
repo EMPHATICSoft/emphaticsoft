@@ -18,22 +18,32 @@
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-852.9" unit="mm"/>
+	 <position name="T0_pos" z="-852.9+T0_length*0.5" unit="mm"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
 	 <quantity name="T0_acrylic_height" value="3.0" unit="mm"/>
 
-	 <position name="T0_acrylic0_pos" x="T0_acrylic_width*(0-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic1_pos" x="T0_acrylic_width*(1-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic2_pos" x="T0_acrylic_width*(2-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic3_pos" x="T0_acrylic_width*(3-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic4_pos" x="T0_acrylic_width*(4-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic5_pos" x="T0_acrylic_width*(5-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic6_pos" x="T0_acrylic_width*(6-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic7_pos" x="T0_acrylic_width*(7-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic8_pos" x="T0_acrylic_width*(8-(10-1)*0.5)" z="-40" unit="mm"/>
-	 <position name="T0_acrylic9_pos" x="T0_acrylic_width*(9-(10-1)*0.5)" z="-40" unit="mm"/>
+	 <position name="T0_acrylic0_pos" x="T0_acrylic_width*(0-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic1_pos" x="T0_acrylic_width*(1-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic2_pos" x="T0_acrylic_width*(2-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic3_pos" x="T0_acrylic_width*(3-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic4_pos" x="T0_acrylic_width*(4-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic5_pos" x="T0_acrylic_width*(5-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic6_pos" x="T0_acrylic_width*(6-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic7_pos" x="T0_acrylic_width*(7-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic8_pos" x="T0_acrylic_width*(8-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic9_pos" x="T0_acrylic_width*(9-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic10_pos" x="T0_acrylic_width*(10-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic11_pos" x="T0_acrylic_width*(11-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic12_pos" x="T0_acrylic_width*(12-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic13_pos" x="T0_acrylic_width*(13-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic14_pos" x="T0_acrylic_width*(14-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic15_pos" x="T0_acrylic_width*(15-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic16_pos" x="T0_acrylic_width*(16-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic17_pos" x="T0_acrylic_width*(17-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
+	 <position name="T0_acrylic18_pos" x="T0_acrylic_width*(18-(20-1)*0.5)" z="-40+T0_acrylic_width*0" unit="mm"/>
+	 <position name="T0_acrylic19_pos" x="T0_acrylic_width*(19-(20-1)*0.5)" z="-40+T0_acrylic_width*1" unit="mm"/>
 
 	 <rotation name="T0_union1_rot" x="90" unit="deg"/>
 	 <rotation name="T0_acrylic_rot" x="-45" unit="deg"/>
@@ -141,9 +151,9 @@
 	 <!-- ABOVE IS FOR SSD -->
 	 <!-- BELOW IS FOR ARICH -->
 
-	 <quantity name="arich_thick" value="300.0" unit="mm"/>
-	 <quantity name="arich_width" value="300.0" unit="mm"/>
-	 <quantity name="arich_height" value="300.0" unit="mm"/>
+	 <quantity name="arich_thick" value="280.0" unit="mm"/>
+	 <quantity name="arich_width" value="365.0" unit="mm"/>
+	 <quantity name="arich_height" value="365.0" unit="mm"/>
 
 	 <position name="arich_pos" x="0" y="0" z="1377.9+0.5*arich_thick" unit="mm"/>
 
@@ -932,6 +942,56 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 	 <physvol name="T0_acrylic9_phys">
 		<volumeref ref="T0_acrylic_vol"/>
 		<positionref ref="T0_acrylic9_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic10_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic10_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic11_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic11_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic12_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic12_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic13_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic13_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic14_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic14_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic15_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic15_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic16_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic16_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic17_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic17_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic18_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic18_pos"/>
+		<rotationref ref="T0_acrylic_rot"/>
+	 </physvol>
+	 <physvol name="T0_acrylic19_phys">
+		<volumeref ref="T0_acrylic_vol"/>
+		<positionref ref="T0_acrylic19_pos"/>
 		<rotationref ref="T0_acrylic_rot"/>
 	 </physvol>
   </volume>

@@ -45,7 +45,7 @@ else
 
 # constants for T0
 $T0_switch = 1;
-$n_acrylic = 10;
+$n_acrylic = 20;
 
 # constants for target
 $target_switch = 1;
@@ -142,7 +142,7 @@ EOF
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-852.9" unit="mm"/>
+	 <position name="T0_pos" z="-852.9+T0_length*0.5" unit="mm"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -150,9 +150,11 @@ EOF
 
 EOF
 
+		$j=0;
 		for($i = 0; $i < $n_acrylic; ++$i){
+			$j=$i%2;
 			print DEF <<EOF;
-	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-40" unit="mm"/>
+	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-40+T0_acrylic_width*$j" unit="mm"/>
 EOF
 		}
 		print DEF <<EOF;
@@ -287,9 +289,9 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR ARICH -->
 
-	 <quantity name="arich_thick" value="300.0" unit="mm"/>
-	 <quantity name="arich_width" value="300.0" unit="mm"/>
-	 <quantity name="arich_height" value="300.0" unit="mm"/>
+	 <quantity name="arich_thick" value="280.0" unit="mm"/>
+	 <quantity name="arich_width" value="365.0" unit="mm"/>
+	 <quantity name="arich_height" value="365.0" unit="mm"/>
 
 	 <position name="arich_pos" x="0" y="0" z="1377.9+0.5*arich_thick" unit="mm"/>
 
