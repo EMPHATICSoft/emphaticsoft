@@ -61,7 +61,8 @@ namespace emph {
     
     emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;    
-    TH2F*       fARICH2DHist;
+    TH2F*       fARICH2DHist[201];
+    int         fEvtNum;
 
   };
 
@@ -74,6 +75,7 @@ namespace emph {
     this->produces< std::vector<rb::ARing>>();
 
     this->reconfigure(pset);
+    fEvtNum = 0;
 
   }
 
@@ -112,11 +114,13 @@ namespace emph {
     }
 
     art::ServiceHandle<art::TFileService> tfs;
-    
-    fARICH2DHist = tfs->make<TH2F>("ARICH2DHist","",
-				   24,0,24,24,0,24);
+    char hname[64];
+    for (int i=0; i<=200; ++i) {
+      sprintf(hname,"ARICH2DHist_%d",i);
+      fARICH2DHist[i] = tfs->make<TH2F>(hname,"",24,0,24,24,0,24);
+    }
   }
-  
+
   //......................................................................
   
   void ARICHReco::endJob()
@@ -125,9 +129,9 @@ namespace emph {
   
     //......................................................................
   
-  void ARICHReco::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H, std::unique_ptr<std::vector<rb::ARing>> & rings )
+  void ARICHReco::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H, std::unique_ptr<std::vector<rb::ARing>> & rings)
   {
-    fARICH2DHist->Reset();
+    fARICH2DHist[0]->Reset();
 
     // find reference time for each fpga
     std::map<int,double> refTime;
@@ -224,10 +228,11 @@ namespace emph {
 	  int pmtcol = dch-pmtrow*8;
 	  int pxlxbin = pxlxbin0-pmtcol;
 	  int pxlybin = pxlybin0+pmtrow;
-	  int pxlx = fARICH2DHist->GetXaxis()->GetBinCenter(pxlxbin+1);
-	  int pxly = fARICH2DHist->GetYaxis()->GetBinCenter(pxlybin+1);
-	  fARICH2DHist->Fill(pxlx,pxly);
-	  
+	  int pxlx = fARICH2DHist[0]->GetXaxis()->GetBinCenter(pxlxbin+1);
+	  int pxly = fARICH2DHist[0]->GetYaxis()->GetBinCenter(pxlybin+1);
+	  fARICH2DHist[0]->Fill(pxlx,pxly);
+	  if (fEvtNum < 200)
+	    fARICH2DHist[fEvtNum+1]->Fill(pxlx,pxly);
 	}//if trailing time found
 	
       }//leading time loop
@@ -235,7 +240,7 @@ namespace emph {
     }//leading time channel map loop
     
     rb::ARing ring;
-    ring.SetNHits(fARICH2DHist->GetEntries());
+    ring.SetNHits(fARICH2DHist[0]->GetEntries());
     
     rings->push_back(ring);
     
@@ -251,8 +256,9 @@ namespace emph {
     art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbhandle;
     try {
       evt.getByLabel(labelstr, trbhandle);
-      if (!trbhandle->empty()) {
+      if (!trbhandle->empty()) {	
 	GetARings(trbhandle,aringv);
+	fEvtNum++;
       }
     }
     catch(...) {
@@ -262,6 +268,6 @@ namespace emph {
 
   }
 
-} // end namespace demo
+  } // end namespace emph
 
 DEFINE_ART_MODULE(emph::ARICHReco)
