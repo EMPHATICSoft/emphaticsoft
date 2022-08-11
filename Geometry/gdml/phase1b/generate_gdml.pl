@@ -70,7 +70,7 @@ $nstation_type = 3; # types of station
 $arich_switch = 1;
 $n_aerogel = 2;
 @aerogel_mat = ("AERO_1026", "AERO_1030");
-$n_mPMT = 9;
+$n_mPMT1d = 3;
 $n_anode1d = 8;
 
 # constants for RPC
@@ -135,7 +135,7 @@ sub gen_Define()
   <define>
 
     <constant name="DEG2RAD" value="pi/180." />
-	 <quantity name="world_size" value="3000." unit="mm"/>
+	 <quantity name="world_size" value="7000." unit="mm"/>
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 EOF
@@ -302,9 +302,34 @@ EOF
 	 <quantity name="aerogel_thick0" value="18.9" unit="mm"/>
 	 <quantity name="aerogel_thick1" value="20.4" unit="mm"/>
 	 <quantity name="aerogel_size" value="93.0" unit="mm"/>
+	 <quantity name="aerogel_shift" value="43-0.5*arich_thick" unit="mm"/>
 	 
-	 <position name="aerogel_pos0" x="0" y="0" z="43-0.5*arich_thick+0.5*aerogel_thick0" unit="mm"/>
-	 <position name="aerogel_pos1" x="0" y="0" z="43-0.5*arich_thick+aerogel_thick0+0.5*aerogel_thick1" unit="mm"/>
+	 <position name="aerogel_pos0" x="0" y="0" z="aerogel_shift+0.5*aerogel_thick0" unit="mm"/>
+	 <position name="aerogel_pos1" x="0" y="0" z="aerogel_shift+aerogel_thick0+0.5*aerogel_thick1" unit="mm"/>
+
+	 <quantity name="mPMT_thick" value="16.4" unit="mm"/>
+	 <quantity name="mPMT_size" value="49.3" unit="mm"/>
+	 <quantity name="mPMT_gap" value="5.4" unit="mm"/>
+	 <quantity name="manode_size" value="6.0" unit="mm"/>
+	 <quantity name="mPMT_shift" value="aerogel_shift+200" unit="mm"/>
+
+EOF
+		for($i = 0; $i < $n_mPMT1d; ++$i){
+			for($j = 0; $j < $n_mPMT1d; ++$j){
+				for($k = 0; $k < $n_anode1d; ++$k){
+					for($l = 0; $l < $n_anode1d; ++$l){
+						print DEF <<EOF;
+	 <position name="mPMT@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}_pos" x="(@{[ -($n_mPMT1d-1)/2 ]}+@{[ $j ]})*(mPMT_size+mPMT_gap)+(@{[ -($n_anode1d-1)/2 ]}+@{[ $l ]})*manode_size" y="(@{[ -($n_mPMT1d-1)/2 ]}+@{[ $i ]})*(mPMT_size+mPMT_gap)+(@{[ -($n_anode1d-1)/2 ]}+@{[ $k ]})*manode_size" z="mPMT_shift+0.5*mPMT_thick" unit="mm"/>
+EOF
+					}
+				}
+			}
+		}
+		print DEF <<EOF;
+	 
+	 <quantity name="PMTplate_thick" value="5.8" unit="mm"/>
+	 <quantity name="PMTplate_size" value="195.7" unit="mm"/>
+	 <position name="PMTplate_pos" x="0" y="0" z="mPMT_shift+mPMT_thick+0.5*PMTplate_thick" unit="mm"/>
 
 	 <!-- ABOVE IS FOR ARICH -->
 
@@ -546,12 +571,28 @@ EOF
 	 <box name="arich_box" x="arich_width" y="arich_height" z="arich_thick" />
 
 EOF
-	for($i = 0; $i< $n_aerogel; ++$i){
-		print SOL <<EOF;
+		for($i = 0; $i< $n_aerogel; ++$i){
+			print SOL <<EOF;
 	 <box name="aerogel_box@{[ $i ]}" x="aerogel_size" y="aerogel_size" z="aerogel_thick@{[ $i ]}" />
 EOF
-	}
-	print SOL <<EOF;
+		}
+		print SOL <<EOF;
+
+EOF
+		for($i = 0; $i < $n_mPMT1d; ++$i){
+			for($j = 0; $j < $n_mPMT1d; ++$j){
+				for($k = 0; $k < $n_anode1d; ++$k){
+					for($l = 0; $l < $n_anode1d; ++$l){
+						print SOL <<EOF;
+	 <box name="mPMT_box@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}" x="manode_size" y="manode_size" z="mPMT_thick"/>
+EOF
+					}
+				}
+			}
+		}
+		print SOL <<EOF;
+
+	 <box name="PMTplate_box" x="PMTplate_size" y="PMTplate_size" z="PMTplate_thick"/>
 
 	 <!-- ABOVE IS FOR ARICH -->
 EOF
@@ -718,16 +759,35 @@ EOF
   <!-- BELOW IS FOR ARICH -->
 
 EOF
-	for($i = 0; $i< $n_aerogel; ++$i){
-		print MOD <<EOF;
+		for($i = 0; $i< $n_aerogel; ++$i){
+			print MOD <<EOF;
 		<volume name="aerogel_vol@{[ $i ]}">
 			<materialref ref="@{[ $aerogel_mat[$i] ]}"/>
 			<solidref ref="aerogel_box@{[ $i ]}"/>
 		</volume>
 EOF
-	}
-	print MOD <<EOF;
+		}
+		for($i = 0; $i < $n_mPMT1d; ++$i){
+			for($j = 0; $j < $n_mPMT1d; ++$j){
+				for($k = 0; $k < $n_anode1d; ++$k){
+					for($l = 0; $l < $n_anode1d; ++$l){
+						print MOD <<EOF;
+	 <volume name="mPMT_vol@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}">
+	 	<materialref ref="SiliconWafer"/>
+	 	<solidref ref="mPMT_box@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}"/>
+	</volume>
+EOF
+					}
+				}
+			}
+		}
 
+		print MOD <<EOF;
+
+		<volume name="PMTplate_vol">
+			<materialref ref="FiberGlass"/>
+			<solidref ref="PMTplate_box"/>
+		</volume>
 
   <!-- ABOVE IS FOR ARICH -->
 
@@ -960,10 +1020,31 @@ EOF
 EOF
 		}
 
+		for($i = 0; $i < $n_mPMT1d; ++$i){
+			for($j = 0; $j < $n_mPMT1d; ++$j){
+				for($k = 0; $k < $n_anode1d; ++$k){
+					for($l = 0; $l < $n_anode1d; ++$l){
+						print DET <<EOF;
+	 <physvol name="mPMT_phys@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}">
+	 	<volumeref ref="mPMT_vol@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}"/>
+	 	<positionref ref="mPMT@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}_pos"/>
+	</physvol>
+EOF
+					}
+				}
+			}
+		}
+
 		print DET <<EOF;
+
+	  <physvol name="PMTplate_phys">
+		 <volumeref ref="PMTplate_vol"/>
+		 <positionref ref="PMTplate_pos"/>
+	 </physvol>
+
   </volume>
 
-  <!-- ABOVE IS FOR MAGNET -->
+  <!-- ABOVE IS FOR ARICH -->
 
 EOF
 	}

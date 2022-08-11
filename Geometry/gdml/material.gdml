@@ -355,6 +355,13 @@
      <fraction n="0.07" ref="Hydrogen"/>
      <fraction n="0.13" ref="Oxygen"/>
    </material>
+ 
+   <material formula="GFRP" name="FiberGlass">
+     <D value="1.55"/>
+     <fraction n="0.8" ref="Carbon"/>
+     <fraction n="0.07" ref="Hydrogen"/>
+     <fraction n="0.13" ref="Oxygen"/>
+   </material>
    
    <material formula="Si" name="SiliconWafer">
      <D value="2.3"/>
