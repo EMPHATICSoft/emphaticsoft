@@ -128,7 +128,7 @@ sub gen_Define()
   <define>
 
     <constant name="DEG2RAD" value="pi/180." />
-	 <quantity name="world_size" value="3000." unit="mm"/>
+	 <quantity name="world_size" value="5000." unit="mm"/>
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 EOF
