@@ -12,6 +12,7 @@ mD <- read.table("/home/lebrun/EMPHATIC/build/SummaryTrigT0RPC_V1_511_V1c.txt", 
 mD10 <- subset(mD, (mD$spill == 10))
 mD11 <- subset(mD, (mD$spill == 11))
 mD12 <- subset(mD, (mD$spill == 12))
+mD13 <- subset(mD, (mD$spill == 13))
 mD2 <- subset(mD, (mD$spill == 2))
 mD14 <- subset(mD, (mD$spill == 14))
 mDOK <- subset(mD, ((mD$T0OK == 1) & (mD$RPCOK == 1)));
