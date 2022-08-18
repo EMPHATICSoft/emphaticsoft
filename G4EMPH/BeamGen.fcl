@@ -21,7 +21,7 @@ standard_beamgen:
   Ymean:		     0.
   Ysigma:		     0.5
 
-  PMean:		     120.
+  PMean:		     8.
   Psigma:		     1.e-3
   PXmax:		     0.1
   PXmin:		     -0.1

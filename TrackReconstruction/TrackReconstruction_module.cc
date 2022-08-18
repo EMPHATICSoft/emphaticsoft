@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   Analyzer module to reconstruct tracks
-/// \author  $Author: ChristopherWoolford $
+/// \author  Author: ChristopherWoolford
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
 #include <cmath>
@@ -51,26 +51,47 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    void beginRun(art::Run const&);
+    //void beginRun(art::Run const&);
     //    void endRun(art::Run const&);
     //    void endSubRun(art::SubRun const&);
     void endJob();
     
   private:
-    TTree* fSSDTree;
+    // ROOT Tree to log all info for Track Reconstruction
+    TTree* EventInfo;
+
+    // Keeps track of events and runs
     int fRun;
     int fSubrun;
     int fEvent;
     int fPid;
-    std::vector<double> fSSDx;
-    std::vector<double> fSSDy;
-    std::vector<double> fSSDz;
-    std::vector<double> fSSDpx;
-    std::vector<double> fSSDpy;
-    std::vector<double> fSSDpz;
-    
-    bool fMakeSSDTree;
-    
+
+    // Vectors for position and momentum of SSD Hits!
+    // Vector of the form: (run, event, ssd hit)
+    std::vector<   std::vector< std::vector<double>  >  >  fSSDHit_Position;
+    std::vector<   std::vector< std::vector<double>  >  >  fSSDHit_Momentum;
+
+    // Position Vector for an individual hit
+    std::vector<double> hitPosition;
+
+    // Vectors for the form: (run, event, hit mass / type)
+    std::vector<  std::vector<  double  >   >  fParticleMass;
+    std::vector<  std::vector<  std::string   >   >  fParticleType;
+
+    // vector of ssd event
+    std::vector<sim::SSDHit> ssd_event;
+
+    // vector of ssd hit positions for each event
+    std::vector<double> ssd_event_position;
+    // vector of particle masses for each event
+    std::vector<double> ssd_event_masses;
+    // vector of particle types for each event
+    std::vector<std::string> ssd_event_particleTypes;
+
+
+    // Use if statements to control what info you're logging!
+    bool GetSSD_HitInfo;
+    bool IsGEANT4;    
   };
   
   //.......................................................................
@@ -95,7 +116,8 @@ namespace emph {
 
   void TrackReconstruction::reconfigure(const fhicl::ParameterSet& pset)
   {
-    fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
+    GetSSD_HitInfo = pset.get<bool>("GetSSD_HitInfo");
+    IsGEANT4 = pset.get<bool>("IsGEANT4");
   }
 
   //......................................................................
@@ -103,41 +125,27 @@ namespace emph {
   void TrackReconstruction::beginJob()
   {
     art::ServiceHandle<art::TFileService> tfs;
-    if (fMakeSSDTree) {
-      fSSDTree = tfs->make<TTree>("fSSDTree","");
-      fSSDTree->Branch("run",&fRun);
-      fSSDTree->Branch("subrun",&fSubrun);
-      fSSDTree->Branch("event",&fEvent);
-      fSSDTree->Branch("pid",&fPid);
-      fSSDTree->Branch("ssdx",&fSSDx);
-      fSSDTree->Branch("ssdy",&fSSDy);
-      fSSDTree->Branch("ssdz",&fSSDz);
-      fSSDTree->Branch("ssdpx",&fSSDx);
-      fSSDTree->Branch("ssdpy",&fSSDy);
-      fSSDTree->Branch("ssdpz",&fSSDz);
+    EventInfo = tfs->make<TTree>("EventInfo","");
+
+    // If specified in fcl file, then log particle position and momentum for ssd hits!
+    if (GetSSD_HitInfo) {
+      EventInfo->Branch("run",&fRun);
+      EventInfo->Branch("subrun",&fSubrun);
+      EventInfo->Branch("event",&fEvent);
+      EventInfo->Branch("pid",&fPid);
+      EventInfo->Branch("ssd_momentum",&fSSDHit_Momentum);
+      EventInfo->Branch("ssd_position",&fSSDHit_Position);
+    }
+
+    if (IsGEANT4) {
+      // Get the real mass and type of each logged particle for
+
+      EventInfo->Branch("ParticleMass", &fParticleMass);
+      EventInfo->Branch("ParticleType", &fParticleType);
     }
 
   }    
   //......................................................................
-
-  void TrackReconstruction::beginRun(art::Run const&)
-  // Write code to retrieve information about HitGeneration.
-  // Retrieve the position and momentum of every particle that hits the ssds.
-  // Get other information about the particles...idk maybe mass?
-  // SSD hits create current in the SSD to detect particles...maybe exact current generated for hit?
-  // Or ssd current over time?
-  {
-
-
-
-
-
-
-
-  }
-  //......................................................................
-
-
     
   void TrackReconstruction::endJob() {     
 
@@ -147,48 +155,60 @@ namespace emph {
 
   void TrackReconstruction::analyze(const art::Event& evt)
   { 
-
     std::string labelStr = "geantgen"; // NOTE, this is probably the wrong label.
+      // pull info on SSD hits from art
     art::Handle< std::vector<std::vector<sim::SSDHit> > > ssdHitH;
     try {
       evt.getByLabel(labelStr,ssdHitH);
-    }
+        }
     catch(...) {
-      std::cout << "WARNING: No SSDHits found!" << std::endl;
-    }
+        std::cout << "WARNING: No SSDHits found!" << std::endl;
+               }
 
-    if (fMakeSSDTree && !ssdHitH->empty()) {
-	
+    if (!ssdHitH->empty()){
+
       // clear/reset variables at the start of each event
       fRun = evt.run();
       fSubrun = evt.subRun();
       fEvent++;
-      fPid = 0; // deal with this later
+      fPid = 0;
 
-      for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
-	// clear/reset vectors for each particle
-	fSSDx.clear();
-	fSSDy.clear();
-	fSSDz.clear();
-	fSSDpx.clear();
-	fSSDpy.clear();
-	fSSDpz.clear();
-	const std::vector<sim::SSDHit> ssdv = (*ssdHitH)[idx];
-	for (size_t idx2=0; idx2 < ssdv.size(); ++idx2) {
-	  fSSDx.push_back(ssdv[idx2].GetX());
-	  fSSDy.push_back(ssdv[idx2].GetY());
-	  fSSDz.push_back(ssdv[idx2].GetZ());
-	  fSSDpx.push_back(ssdv[idx2].GetPx());
-	  fSSDpy.push_back(ssdv[idx2].GetPy());
-	  fSSDpz.push_back(ssdv[idx2].GetPz());
-	}
-	fSSDTree->Fill();
-      } // end loop over SSD hits for the event
-      		
-    }
 
+      // loop over every event!
+      for (size_t event=0; event < ssdHitH->size(); ++event){
+       
+        // vector of a ssd event
+        ssd_event = (*ssdHitH)[event];
+
+        // loop over every ssdhit!
+	      for (size_t hit=0; hit < ssd_event.size(); ++hit) {
+          
+          // vector containing the position of an individual ssd hit.
+          // first clear the old stuff out of the vector
+          hitPosition.clear();
+          hitPosition = { ssd_event[hit].GetX(), ssd_event[hit].GetY(), ssd_event[hit].GetZ() };
+
+          // Add position vector to a vector of events
+          ssd_event_position.push_back(hitPosition);
+
+          // If this is a GEANT4 simulations 
+          if (IsGEANT4) {
+          // Add code to retrieve info about the type of particle hit (electron? or something else?) and the particles mass.
+            ssd_event_masses.push_back( ssd_event[hit].GetMass() );
+            ssd_event_particleTypes.push_back( ssd_event[hit].GetParticleType() );
+          }
+
+        } // end of event loop
+        // Add ssd event positions to vector.
+        fSDDHit_Position[event].push_back(*ssd_event_position);
+        // Add ssd event masses and particle type to vector.
+        fParticleMass[event].push_back(*ssd_event_masses);
+        fParticleType[event].push_back(*ssd_event_particleTypes);
+      } // end of run loop
+      // fill the root tree
+      EventInfo->Fill();
+    } // end of if statement
   } // TrackReconstruction::analyze()
-
 }  // end namespace emph
 
 DEFINE_ART_MODULE(emph::TrackReconstruction)

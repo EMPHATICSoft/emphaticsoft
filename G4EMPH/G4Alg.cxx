@@ -140,8 +140,8 @@ namespace emph {
     // current particle to track is from an EM process that would cause
     // it not to be added to the list and the track ID has to be 
     // reassigned to be the same as its mother.
-    //uam->AddAndAdoptAction(pl);
-    //fPlaIndex = uam->GetSize() - 1;
+    uam->AddAndAdoptAction(pl);
+    fPlaIndex = uam->GetSize() - 1;
     //if (false) std::cerr << "RWH: fPlaIndex " << fPlaIndex
     //          << " vs " << uam->GetIndex("g4n::ParticleListAction")
     //          << std::endl
@@ -274,9 +274,9 @@ namespace emph {
                        std::map<int, size_t>& trackIDToMCTruthIndex)
   {  
     g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-    //dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
-    //ParticleListAction* pla = dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex));
-    //pla->ResetTrackIDOffset();
+    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
+    ParticleListAction* pla = dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex));
+    pla->ResetTrackIDOffset();
     // getting instance of particle list action.
     SSDHitAction* sh = dynamic_cast<SSDHitAction *>(uam->GetAction(fShaIndex));
     // getting instance of ssd hit action.
@@ -290,9 +290,9 @@ namespace emph {
 
     fG4Help->G4Run(mctruths);
     
-    //trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
+    trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
 
-    //particlelist = pla->GetList();
+    particlelist = pla->GetList();
     // getting particle list from particlelistaction.cxx
     ssdhitlist = sh->GetAllHits();
     // getting ssd hit list from ssdhitaction.cxx

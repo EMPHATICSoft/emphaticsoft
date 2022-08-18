@@ -4,7 +4,7 @@ process_name: ReconstructTrack
 
 services:
 {
-  TFileService: { fileName: "reconstructedTrack.root" closeFileFast: false }
+  TFileService: { fileName: "reconstructedTrack_run:%r.root" closeFileFast: false }
 }
 
 source:

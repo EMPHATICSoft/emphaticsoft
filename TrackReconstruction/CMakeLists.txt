@@ -19,7 +19,7 @@ art_make_library ( SOURCE ${src_files}
                 ROOT::Tree
 		)
 
-build_plugin(G4EMPHValidate "module"
+build_plugin(TrackReconstruction "module"
   LIBRARIES PRIVATE
     TrackReconstruction
     SimulationBase

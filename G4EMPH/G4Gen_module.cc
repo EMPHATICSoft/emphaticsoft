@@ -167,6 +167,7 @@ namespace emph {
 
     std::cout << "####################### The Particle List Action Size: " << pcol->size() << std::endl;
     std::cout << "####################### The SSD Hit List Size: " << ssdhlcol->size() << std::endl;
+    std::cout << "####################### TruthToIndexMap Size: " << trackIDToMCTruthIndex.size() << std::endl;
     // print the number of particles and ssd hits!
 
     // make associations for the particles and MCTruth objects

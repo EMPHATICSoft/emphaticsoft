@@ -3,8 +3,9 @@ BEGIN_PROLOG
 reconstruct_tracks:
 {
   module_type: ReconstructTrack
-
-  MakeSSDTree: true
+  
+  GetSSD_HitInfo: true
+  IsGEANT4: true
 }
 
 END_PROLOG

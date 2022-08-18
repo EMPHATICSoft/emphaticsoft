@@ -267,7 +267,8 @@ namespace emph {
     // now get beam particle position
     TLorentzVector pos;
     
-    pos[2] = 0.;
+    pos[2] = -350.;
+    // was at origin, moving back to -350mm.
     if (fXYHist) { // get random position from histogram
       fXYHist->GetRandom2(pos[0],pos[1]);
     }

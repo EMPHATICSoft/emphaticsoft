@@ -101,26 +101,45 @@ namespace emph {
   int ParticleListAction::GetParentage(int trackid) const
   {
     int parentid = sim::kNoParticleId;
+    std::map<int,int>::const_iterator itr;
+    std::map<int,int>::const_iterator nextItr;
+
     std::cout << "Get Parentage!!!!!!!" << std::endl;
     // search the fParentIDMap recursively until we have the parent id 
     // of the first EM particle that led to this one
-    std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
-    while( itr != fParentIDMap.end() ){
-      std::cout << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
-      MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
-					 << " " << (*itr).second;
-      // set the parentid to the current parent ID, when the loop ends
-      // this id will be the first EM particle
-      parentid = (*itr).second;
-      itr = fParentIDMap.find(parentid);
-    //  std::cout << "Parent ID: " << parentid << std::endl;
+//    std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
+    
+//    while( itr != fParentIDMap.end() ){
+//      std::cout << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
+//      MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
+//					 << " " << (*itr).second;
+//      // set the parentid to the current parent ID, when the loop ends
+//      // this id will be the first EM particle
+//      parentid = (*itr).second;
+//      itr = fParentIDMap.find(parentid);
+//    //  std::cout << "Parent ID: " << parentid << std::endl;
 
     //if ( parentid == (*itr).second ) {return parentid;}
     // if the current id matches its parent, then exit the loop and return the current id.
 
+
+    for(
+        itr = fParentIDMap.find(trackid); 
+        itr != fParentIDMap.end();
+        itr = nextItr
+        )
+    {
+        if (  (*itr).first == (*itr).second ) { return (*itr).second; } 
+        // if the parent id of particle is equal to the particles id then it is its own parent.
+        parentid = (*itr).second;
+        std::cout << "Parent ID: " << parentid << std::endl;
+
+        nextItr = fParentIDMap.find(parentid);
+        // start initializing the next iterator
+
+        if ( (*itr).first == (*nextItr).second ) { return (*nextItr).second; }
+        // if the parent id of the "particles parent" is the original particles id then return the particles parent id
     }
-
-
 
     MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
 
@@ -139,6 +158,10 @@ namespace emph {
     
     // get the parent id from Geant for the current track:
     G4int parentID = track->GetParentID() + fTrackIDOffset;
+
+    std::cout << "TrackID: " << trackID << std::endl;
+    std::cout << "ParentID: " << parentID << std::endl;
+
     std::cout << "Got Parent ID" << std::endl;
     // Is there an MCTruth object associated with this G4Track?  We
     // have to go up a "chain" of information to find out:
@@ -217,6 +240,8 @@ namespace emph {
 	
 	fCurrentTrackID = this->GetParentage(fCurrentTrackID);
 	
+  std::cout << "The first parentage method is not causing the problem!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+
   std::cout << "Get Parent" << std::endl;
 
 	MF_LOG_DEBUG("ParticleListAction") << "current track ID " << fCurrentTrackID;
@@ -256,6 +281,9 @@ namespace emph {
 	  
 	  // do add the particle to the parent id map though
 	  // and set the current track id to be it's ultimate parent
+    std::cout << "fCurrentTrackID: " << fCurrentTrackID << std::endl;
+    std::cout << "parentID: " << parentID << std::endl;
+
 	  fParentIDMap[fCurrentTrackID] = parentID;
 
     std::cout << "Before parentage!!!!!!" << std::endl;
@@ -266,7 +294,6 @@ namespace emph {
     std::cout << "ProcessName: " << process_name << std::endl;
 
 	  fCurrentTrackID = this->GetParentage(fCurrentTrackID);
-
     std::cout << "Getting Parent" << std::endl;
 
 	  return;
@@ -326,6 +353,11 @@ namespace emph {
 					   polarization.z() ) );
       
       fParticleNav->Add(fParticle);
+      
+      std::cout << "##############################################################################" << std::endl;
+      std::cout << "Adding particle to the fParticleNav...SIZE: " << fParticleNav->size() << std::endl;
+      std::cout << "##############################################################################" << std::endl;
+
       
       if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0)
 	MF_LOG_WARNING("ParticleListAction") << "attempting to put " << fCurrentTrackID
@@ -412,10 +444,13 @@ namespace emph {
 
     // make sure to set the fTrackIDOffset with the highest G4 track id + 100
     // the 100 gives some cushion between lists
+    std::cout << "Getting PLA list..." << std::endl;
+
     int highestID = 0;
     for(sim::ParticleNavigator::iterator itr = fParticleNav->begin(); itr != fParticleNav->end(); ++itr){
       plist.push_back(*((*itr).second));
       if((*itr).first > highestID) highestID = (*itr).first;
+      std::cout << "Adding to list vector!" << std::endl;
     }
 
     fTrackIDOffset = highestID + 100;
