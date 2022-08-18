@@ -31,4 +31,12 @@
   </class>
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
+
+  <class name="rb::BACkovHit"    ClassVersion="11">
+   <version ClassVersion="11" checksum="2715429707"/>
+    <version ClassVersion="10" checksum="5"/>
+  </class>
+  <class name="std::vector<rb::BACkovHit>"        />
+  <class name="art::Wrapper< std::vector<rb::BACkovHit>    >"/>
+ 
  </lcgdict>

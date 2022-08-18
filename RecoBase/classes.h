@@ -3,4 +3,5 @@
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/ARing.h"
+#include "RecoBase/BACkovHit.h"
 
