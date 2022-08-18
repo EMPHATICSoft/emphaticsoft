@@ -96,6 +96,24 @@ namespace rawdata{
   }
 
   //--------------------------------------------------
+  int WaveForm::PeakADC_t(bool isNegative) const
+  {
+    int s = 1;
+    int maxVal = 0;
+    int maxVal_tick = 0;
+    if (isNegative) {
+      s = -1;
+      maxVal = -99999;
+    }
+    for ( size_t i=0; i<fADC.size(); ++i) {
+      if (fADC[i]*s > maxVal) {
+	maxVal_tick = i;
+	maxVal = fADC[i]*s;
+      }
+    }
+    return maxVal_tick;
+  }
+  //--------------------------------------------------
   int WaveForm::PeakTDC(bool isNegative) const
   {
     int s = 1;
@@ -129,13 +147,49 @@ namespace rawdata{
   }
 
   //--------------------------------------------------
-  float WaveForm::Charge(int adcOffset, int nhits,  int nsamp) const
+  float WaveForm::Charge(int adcOffset, int nhits, int start,  int nsamp) const
   {
-    int x1=adcOffset+nhits;
+    int x1=start;
     float bl = this->Baseline(adcOffset,nhits);
     float sum=0;
     for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i) sum += (fADC[i]-bl);
-    return -sum;
+    //convert to pC 
+    float charge = (-1*sum*2*4e-9*1e12)/(50*4096);
+    return charge;
+  }
+
+  //--------------------------------------------------
+  float WaveForm::BACkovCharge(int adcOffset, int nhits, int start, int nsamp, int win_size, float ADC_thresh) const
+  {
+    //value returned is in pC
+    int x1=start;
+    float bl = this->Baseline(adcOffset,nhits);
+    //float blw = this->BLWidth(adcOffset,nhits);
+    float peak = this->PeakADC(true);
+    float max = bl-peak;
+    float sum=0;
+
+    if (max>10){
+      for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i){ 
+        sum += (fADC[i]-bl);
+      }
+    }
+    else{
+      float win_sum = 0;
+      for (size_t i=x1; i<size_t(x1+20) && i<fADC.size(); ++i){
+        if (-1*(fADC[i]-bl) >= ADC_thresh){
+	  for (size_t j=i-2; j<size_t(i-2+win_size); ++j){
+            win_sum += (fADC[j]-bl);
+          }
+          break;
+	}
+      }
+      sum = win_sum;
+    }
+    //convert to pC 
+    //float charge = -sum*(2/4096)*(4e-9/50)*pow(10.,12);
+    float charge = (-1*sum*2*4e-9*1e12)/(50*4096);
+    return charge;
   }
 
   //------------------------------------------------------------

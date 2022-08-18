@@ -11,7 +11,7 @@
 // ROOT includes
 #include "TFile.h"
 #include "TTree.h"
-#include "TH1I.h"
+#include "TH1F.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -63,7 +63,7 @@ namespace emph {
       
       bool fMakeWaveformPlots;
 		TFile* f; 
-		TH1I *hist;
+		TH1F *hist;
 		int iboard, ichan;
 		unsigned int ievt;
     };
@@ -116,7 +116,7 @@ namespace emph {
 		 sprintf(filename,"Waveform.root");
 		 f = new TFile(filename,"RECREATE");
 
-		 hist=new TH1I("Waveform",Form("Board%i_Chan%i_Evt%i", iboard, ichan, ievt), 200, 0, 200);
+		 hist=new TH1F("Waveform",Form("Board%i_Chan%i_Evt%i", iboard, ichan, ievt), 100, 0, 100);
 
 	 }
     
@@ -150,13 +150,23 @@ namespace emph {
 					 const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
 					 int chan = wvfm.Channel();
 					 int board = wvfm.Board();
+					 float bl = wvfm.Baseline();
+					 float max = wvfm.Baseline()-wvfm.PeakADC();
+					 float adc_to_mV = 2000./4096;
 					 if(chan!=ichan||board!=iboard)continue;
 					 echan.SetBoard(board);
 					 echan.SetChannel(chan);
 					 auto adcvals = wvfm.AllADC();
 					 for (size_t i=0; i<adcvals.size(); ++i) {
-						 hist->SetBinContent(i+1,adcvals[i]);
+						 //hist->SetBinContent(i+1,adcvals[i]);
+						 hist->SetBinContent(i+1,adcvals[i]*adc_to_mV);
 					 }
+		 			 hist->SetAxisRange(adc_to_mV*(bl-2*max), adc_to_mV*(bl+0.5*max),"Y"); 
+		 			 //hist->SetAxisRange(3800, 3850,"Y"); 
+					 hist->GetYaxis()->SetTitle("mV");
+					 std::cout<<"BACkov Charge = "<< wvfm.BACkovCharge()<<" pC"<<std::endl;
+					 std::cout<<"Charge = "<< wvfm.BACkovCharge()<<" pC"<<std::endl;
+					 std::cout<<"GC Charge = "<< wvfm.BACkovCharge(0,10,60,50)<<" pC"<<std::endl;
 					 break;
 				 }
 			 }
@@ -182,20 +192,16 @@ namespace emph {
 			 try {
 				 evt.getByLabel(labelStr, wvfmHandle);
 
-				 std::cout<<"************wvfm Handle finished****************"<<std::endl;
 				 if (!wvfmHandle->empty()) {
-				 	 std::cout<<"***************NOT EMPTY**************"<<std::endl;
-					 //FillWaveformPlots(wvfmHandle);
+					 FillWaveformPlots(wvfmHandle);
 				 }
 				 else {
-				 	 std::cout<<"***************EMPTY*********"<<std::endl;
 				 }
 			 }
 			 catch(...) {
 
 			 }
 
-			 std::cout<<"************If/esle passed****************"<<std::endl;
 		 }
 
 		 return;

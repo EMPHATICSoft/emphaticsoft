@@ -238,22 +238,22 @@ namespace emph {
 	    //std::cout<<"BACkov Board, Chan, detchan : "<<board<<", "<<chan<<", "<<detchan<<std::endl;
 	    if (detchan >=0 && detchan < nchan){
 	      if (detchan==0){
-	        Bq0 = wvfm.Charge(); Bmax0 = wvfm.Baseline()-wvfm.PeakADC(); Bblw0 = wvfm.BLWidth();
+	        Bq0 = wvfm.BACkovCharge(); Bmax0 = wvfm.Baseline()-wvfm.PeakADC(); Bblw0 = wvfm.BLWidth();
 	      }
 	      if (detchan==1){
-	        Bq1 = wvfm.Charge(); Bmax1 = wvfm.Baseline()-wvfm.PeakADC(); Bblw1 = wvfm.BLWidth();
+	        Bq1 = wvfm.BACkovCharge(); Bmax1 = wvfm.Baseline()-wvfm.PeakADC(); Bblw1 = wvfm.BLWidth();
 	      }
 	      if (detchan==2){
-	        Bq2 = wvfm.Charge(); Bmax2 = wvfm.Baseline()-wvfm.PeakADC(); Bblw2 = wvfm.BLWidth();
+	        Bq2 = wvfm.BACkovCharge(); Bmax2 = wvfm.Baseline()-wvfm.PeakADC(); Bblw2 = wvfm.BLWidth();
 	      }
 	      if (detchan==3){
-	        Bq3 = wvfm.Charge(); Bmax3 = wvfm.Baseline()-wvfm.PeakADC(); Bblw3 = wvfm.BLWidth();
+	        Bq3 = wvfm.BACkovCharge(); Bmax3 = wvfm.Baseline()-wvfm.PeakADC(); Bblw3 = wvfm.BLWidth();
 	      }
 	      if (detchan==4){
-	        Bq4 = wvfm.Charge(); Bmax4 = wvfm.Baseline()-wvfm.PeakADC(); Bblw4 = wvfm.BLWidth();
+	        Bq4 = wvfm.BACkovCharge(); Bmax4 = wvfm.Baseline()-wvfm.PeakADC(); Bblw4 = wvfm.BLWidth();
 	      }
 	      if (detchan==5){
-	        Bq5 = wvfm.Charge(); Bmax5 = wvfm.Baseline()-wvfm.PeakADC(); Bblw5 = wvfm.BLWidth();
+	        Bq5 = wvfm.BACkovCharge(); Bmax5 = wvfm.Baseline()-wvfm.PeakADC(); Bblw5 = wvfm.BLWidth();
 	      }
 	    }
 
@@ -294,10 +294,10 @@ namespace emph {
 	      Gq0 = Gwvfm.Charge(); Gmax0 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw0 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==1){
-	      Gq1 =  Gwvfm.Charge(); Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw1 = Gwvfm.BLWidth();
+	      Gq1 = Gwvfm.BACkovCharge(0,10,60,50,8,6); Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw1 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==2){
-	      Gq2 = Gwvfm.Charge(); Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw2 = Gwvfm.BLWidth();
+	      Gq2 = Gwvfm.Charge(0,10,60,50); Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw2 = Gwvfm.BLWidth();
 	    }
 	  } 
 
