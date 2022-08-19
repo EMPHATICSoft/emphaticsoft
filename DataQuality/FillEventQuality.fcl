@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_eventqual:
+{
+  module_type:  FillEventQuality
+  SSDDataLabel: "raw:SSD"
+}
+
+END_PROLOG

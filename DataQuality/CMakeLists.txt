@@ -11,6 +11,12 @@ art_make_library(LIBRARY_NAME DataQuality
 			   fhiclcpp::fhiclcpp
 )
 
+build_plugin(FillEventQuality "module"
+  LIBRARIES PRIVATE
+  	    RawData
+	    DataQuality
+)
+
 install_headers()
 install_source()
 install_fhicl()

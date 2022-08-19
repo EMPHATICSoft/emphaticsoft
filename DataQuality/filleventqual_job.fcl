@@ -1,0 +1,34 @@
+#include "FillEventQuality.fcl"
+
+process_name: FillEventQual
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "emphdata-eventqual_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    eventqual: @local::standard_eventqual
+  }
+
+  qual: [ eventqual ]
+
+  trigger_paths: [ qual ]
+  stream1: [ out1 ]
+  end_paths: [ stream1 ]
+}
