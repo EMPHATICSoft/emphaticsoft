@@ -555,6 +555,7 @@ namespace rawdata {
 	      echan.SetChannel(tdig.Channel());
 	      if (! fChannelMap->IsValidEChan(echan)) continue;
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	      tdig.SetDetChannel(dchan.Channel());
 	      // std::cout << echan << " maps to " << dchan << std::endl;
 	      evtWaveForms[dchan.DetId()]->push_back(tdig);
 	      ++nObjects;
@@ -586,6 +587,7 @@ namespace rawdata {
 		echan.SetBoard(boardNum);
 		emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 		if (dchan.DetId() != emph::geo::NDetectors){
+		  tdig.SetDetChannel(dchan.Channel());
 		  evtTRB3Digits[dchan.DetId()]->push_back(tdig);
 		}
 		++nObjects;
