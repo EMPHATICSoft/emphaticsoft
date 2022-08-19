@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 find_package(cetmodules 2.08.00 REQUIRED)
 project(emphaticsoft VERSION 0.01.00 LANGUAGES CXX C)
 
+find_package(Boost REQUIRED)
+include_directories("${Boost_INCLUDE_DIRS}")
 include(CetCMakeEnv)
 cet_cmake_env()
 
