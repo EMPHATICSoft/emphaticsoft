@@ -90,7 +90,8 @@ namespace rawdata {
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
       if (idet == int(emph::geo::SSD)) continue;
-      if (idet == int(emph::geo::RPC)) continue;      
+      if (idet == int(emph::geo::RPC)) continue;
+      if (idet == int(emph::geo::ARICH)) continue;
       detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));      
       help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw",detStr);
     }
