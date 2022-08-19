@@ -4,8 +4,10 @@
 <!--  lines and for all objects that are data members of those objects.-->
 
 <lcgdict>
-  <class name="emph::dq::EventQuality"  ClassVersion="11">
+  <class name="emph::dq::EventQuality"  ClassVersion="12">
+   <version ClassVersion="12" checksum="3506197218"/>
    <version ClassVersion="11" checksum="2282623189"/>
    <version ClassVersion="10" checksum="1875526012"/>
   </class>
+  <class name="art::Wrapper<emph::dq::EventQuality>" />
 </lcgdict>

@@ -9,8 +9,7 @@ namespace emph {
 
     //----------------------------------------------------------------------
     EventQuality::EventQuality() :
-      fHasSSDHits(false),
-      fIsEventGood(false)
+      hasSSDHits(false)
     {
     }
     //----------------------------------------------------------------------
@@ -18,8 +17,8 @@ namespace emph {
     {
       o << "Event Quality information:\n";
       o << std::boolalpha;
-      o << "Has SSD hits?: " << eq.HasSSDHits() << std::endl;
-      o << "Event passes quality checks: " <<eq.IsEventGood() <<std::endl;
+      o << "Has SSD hits?: " << eq.hasSSDHits << std::endl;
+      o << "Event passes quality checks: " <<eq.isEventGood() <<std::endl;
       return o;
     }
 

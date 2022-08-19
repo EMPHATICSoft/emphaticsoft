@@ -15,13 +15,13 @@ namespace emph {
       EventQuality();
       ~EventQuality() {};
 
-      bool HasSSDHits()   const { return fHasSSDHits; }
-      bool IsEventGood()  const { return (fHasSSDHits); }
+      bool hasSSDHits;    ///< Does the event have SSD hits?
+      
+      //Add all quality metrics to overall event metric here
+      bool isEventGood()  const { return hasSSDHits;}
+
       friend std::ostream& operator << (std::ostream& o, const EventQuality& eq);
 
-    private:
-      bool fHasSSDHits;    ///< Does the event have SSD hits?
-      bool fIsEventGood;   ///< Does the event pass all quality cuts?
     };
 
   }// end namespace dq
