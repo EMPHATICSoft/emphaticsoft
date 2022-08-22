@@ -165,11 +165,19 @@ namespace rawdata{
     int x1=start;
     float bl = this->Baseline(adcOffset,nhits);
     //float blw = this->BLWidth(adcOffset,nhits);
-    float peak = this->PeakADC(true);
-    float max = bl-peak;
+    int  s = -1;
+    int  maxVal = -99999;
+    for ( size_t i=x1; i<size_t(x1+nsamp); ++i) {
+      if (fADC[i]*s > maxVal) {
+	maxVal = fADC[i]*s;
+      }
+    }
+
+    //float peak = this->PeakADC(true);
+    //float max = bl-peak;
     float sum=0;
 
-    if (max>10){
+    if (maxVal>10){
       for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i){ 
         sum += (fADC[i]-bl);
       }

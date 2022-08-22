@@ -294,10 +294,10 @@ namespace emph {
 	      Gq0 = Gwvfm.Charge(); Gmax0 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw0 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==1){
-	      Gq1 = Gwvfm.BACkovCharge(0,10,60,50,8,6); Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw1 = Gwvfm.BLWidth();
+	      Gq1 = Gwvfm.Charge(0,10,60,47); Gmax1 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw1 = Gwvfm.BLWidth();
 	    }
 	    if (Gdetchan==2){
-	      Gq2 = Gwvfm.Charge(0,10,60,50); Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw2 = Gwvfm.BLWidth();
+	      Gq2 = Gwvfm.Charge(0,10,60,47); Gmax2 = Gwvfm.Baseline()-Gwvfm.PeakADC(); Gblw2 = Gwvfm.BLWidth();
 	    }
 	  } 
 

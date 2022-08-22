@@ -165,8 +165,8 @@ namespace emph {
 		 			 //hist->SetAxisRange(3800, 3850,"Y"); 
 					 hist->GetYaxis()->SetTitle("mV");
 					 std::cout<<"BACkov Charge = "<< wvfm.BACkovCharge()<<" pC"<<std::endl;
-					 std::cout<<"Charge = "<< wvfm.BACkovCharge()<<" pC"<<std::endl;
-					 std::cout<<"GC Charge = "<< wvfm.BACkovCharge(0,10,60,50)<<" pC"<<std::endl;
+					 std::cout<<"Charge = "<< wvfm.Charge(0,10,60,47)<<" pC"<<std::endl;
+					 std::cout<<"GC Charge = "<< wvfm.BACkovCharge(0,10,85,20,8,3)<<" pC"<<std::endl;
 					 break;
 				 }
 			 }
