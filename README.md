@@ -164,7 +164,7 @@ Refer to [docs](https://github.com/EMPHATICSoft/emphaticsoft/tree/main/docs)
 
 ## How to Develop EMPHATIC Code
 
-In order to make changes to EMPHATIC software, you will need to create your own git Branch.  After you have pulled the emphaticsoft repository, you can create a new branch and switch to it by doing:
+In order to make changes to EMPHATIC software, you will need to create your own git Branch.  After you have pulled the emphaticsoft repository, you can create a new branch and switch to it by executing:
 
 ```
 git branch <your_branch_name>
@@ -173,7 +173,7 @@ git checkout <your_branch_name>
 
 where you should change <your_branch_name> to a name of your choosing.  You can then edit and commit changes to that branch as much as you want without affecting other EMPHATIC developers.  Dominic wrote some instructions for making changes to a git branch in DocDB (https://emphatic-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=1428).  
 
-When you create a branch, it will be a static copy of emphaticsoft at the time you created a branch.  But in general, it is good practice to merge in changes that others make to the main branch so your branch does not fall far behind the main branch.  You can do that by doing:
+When you create a branch, it will be a static copy of emphaticsoft at the time you created a branch.  But in general, it is good practice to merge in changes that others make to the main branch so your branch does not fall far behind the main branch.  You can do that by e.g.:
 
 ```
 git checkout <your_branch_name>
@@ -181,6 +181,6 @@ git merge main
 git push origin <your_branch_name>
 ```
 
-Once your changes are thoroughly tested and your are ready for them to go into the main branch, you should execute a pull request to have your branch merged into the main branch.  To do this, first make sure your branch is up to date with changes from the main branch (see above), then go to the https://github.com/EMPHATICSoft/emphaticsoft/branches, find your branch, click the "new pull request" button next to your branch, and follow the resulting instructions to create a new pull request.  You should then ask another EMPHATICsoft developer (contact Laura Fields, Jon Paley, and Gavin Davies if you aren't sure who should review it).  Once that person has signed off on your code, you should then merge the pull request and delete your branch.  Instructions here:  https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request. 
+Once your changes are thoroughly tested and your are ready for them to go into the main branch, you should execute a pull request.  To do this, first make sure your branch is up to date with changes from the main branch (see above), then go to the https://github.com/EMPHATICSoft/emphaticsoft/branches, find your branch, click the "new pull request" button next to your branch, and follow the resulting instructions to create a new pull request.  You should then ask another EMPHATICsoft developer to review your changes.  Contact Laura Fields, Jon Paley, and Gavin Davies if you aren't sure who should review it.  Once that person has signed off on your code, you should then merge the pull request and delete your branch.  Instructions here:  https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request. 
 
 
