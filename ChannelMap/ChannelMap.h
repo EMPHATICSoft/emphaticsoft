@@ -128,7 +128,7 @@ namespace emph {
       ChannelMap(); // Default constructor
       virtual ~ChannelMap() {}; //Destructor
       
-      bool LoadMap(std::string fname="");
+      bool LoadMap(int run=0);
       void SetAbortIfFileNotFound(bool f) { fAbortIfFileNotFound = f;}
       void SetMapFileName(std::string fname) { if (fname != fMapFileName) {
 	  fMapFileName = fname; fIsLoaded=false;} }

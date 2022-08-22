@@ -3,8 +3,6 @@ BEGIN_PROLOG
 standard_arichreco:
 {
   module_type: ARICHReco
-
-  channelMapFileName: "ChannelMap_Jun22.txt"
 }
 
 END_PROLOG

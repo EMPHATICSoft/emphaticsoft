@@ -48,8 +48,18 @@ namespace emph {
 
     //----------------------------------------------------------------------
 
-    bool ChannelMap::LoadMap(std::string fname)
+    bool ChannelMap::LoadMap(int run)
     {
+      std::string fname="";
+      if (run >= 436 && run <= 605)
+	fname = "ChannelMap_Jan22_Run436.txt";
+      else if (run > 605 && run <=1385)
+	fname = "ChannelMap_Jun22.txt";
+      else {
+	std::cout << "No channel map found for run " << run << std::endl;
+	std::abort();
+      }
+      
       if (fname.empty() && fIsLoaded) return true;
       if ((fname == fMapFileName) && fIsLoaded) return true;
 
@@ -88,6 +98,9 @@ namespace emph {
       }
       mapFile.close();
       fIsLoaded = true;
+      fMapFileName = fname;
+
+      std::cout<<"Loaded channel map from " << fMapFileName << std::endl;
 
       return true;
       
