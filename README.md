@@ -176,6 +176,8 @@ where you should change <your_branch_name> to a name of your choosing.  You can 
 When you create a branch, it will be a static copy of emphaticsoft at the time you created a branch.  But in general, it is good practice to merge in changes that others make to the main branch so your branch does not fall far behind the main branch.  You can do that by e.g.:
 
 ```
+git checkout main
+git pull
 git checkout <your_branch_name>
 git merge main
 git push origin <your_branch_name>
