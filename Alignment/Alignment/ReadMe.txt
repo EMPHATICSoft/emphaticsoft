@@ -27,5 +27,15 @@ minimization.C
 	can be used for finding the angle by which each ssd-station is rotated about its center
 
 
+printing.C
+	contains some functions that I found usefuls
+
+
+reader.py and data.log
+	direct Minuit output to data.log
+	use reader.py to readout data
+	
+	
 data directory
 	a couple ready to use ssd data files
+
