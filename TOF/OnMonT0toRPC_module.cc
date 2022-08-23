@@ -186,7 +186,6 @@ namespace emph {
       fMakeTrigFullNtuple = pset.get<bool>("makeTrigFullNtuple",true);
       fMakeEventSummaryNTuple = pset.get<bool>("makeEventSummaryFullNtuple",false);
       
-      Settings::Instance().fDet = kEMPH;
     }
 
     //......................................................................

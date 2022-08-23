@@ -26,16 +26,6 @@ build_plugin(OnMonPlotter "module"
     OnlineMonitoringPlotter
 )
 
-build_plugin(OnMonT0toRPC "module"
-  LIBRARIES PRIVATE
-    RawData
-    ChannelMap
-    art_root_io::TFileService_service
-    messagefacility::MF_MessageLogger
-    OnlineMonitoringUtil
-    OnlineMonitoringPlotter
-)
-
 install_source()
 install_fhicl()
 install_headers()
