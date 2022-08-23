@@ -1,5 +1,6 @@
 #ifndef OM_PLOTOPTIONS_H
 #define OM_PLOTOPTIONS_H
+#include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/viewer/UTCLabel.h"
 #include <vector>
 #include <string>
@@ -27,9 +28,10 @@ namespace emph {
       void Set(const std::vector<std::string>& opt);
 
       void SetPad(TPad* p);
-      void MakeLabels(const TH1* h, const HistoData* hd);
+      void MakeLabels(TH1* h, const HistoData* hd);
 
       void MakeLabelText(const TH1* h);
+      void MakeSpecialLabel(TH1* h);
 
       void AutoScale(TH1F* h);
       void AutoScale(TH2F* h);
@@ -44,10 +46,13 @@ namespace emph {
       /// The list of custom plotting options
       ///
       bool fZoomHour;      ///< A special zoom option for plots vs. UTC hour
+      bool fZoomSR;        ///< A special zoom option for plots vs. subrun
       bool fAutoZoomX;     ///< Auto zoom the horizontal scale
       bool fAutoZoomY;     ///< Auto zoom the vertical scale
       bool fAutoZoomZ;     ///< Auto zoom the z scale
       bool fAlert;         ///< Draw histo in "alert" mode
+      bool fDetlbl;        ///< Add detector labels to x-axis
+      bool fSpecial;       ///< Draw a special case histo label
 
       ///
       /// Pad plotting options
@@ -75,6 +80,7 @@ namespace emph {
       /// Some label objects
       ///
       TPaveText* fLabelText;
+      TPaveText* fDetText;
       TPaveText* fSLText;
       TLine* fLineTmin;
       TLine* fLineTmax;

@@ -38,9 +38,28 @@ namespace emph {
     }
   
     //----------------------------------------------------------------------
-
-    bool ChannelMap::LoadMap(std::string fname)
+    
+    bool ChannelMap::IsValidEChan(emph::cmap::EChannel& echan)
     {
+      emph::cmap::DChannel dchan = this->DetChan(echan);
+      if (dchan.DetId() == emph::geo::NDetectors) return false;
+      return true;
+    }
+
+    //----------------------------------------------------------------------
+
+    bool ChannelMap::LoadMap(int run)
+    {
+      std::string fname="";
+      if (run >= 436 && run <= 605)
+	fname = "ChannelMap_Jan22_Run436.txt";
+      else if (run > 605 && run <=1385)
+	fname = "ChannelMap_Jun22.txt";
+      else {
+	std::cout << "No channel map found for run " << run << std::endl;
+	std::abort();
+      }
+      
       if (fname.empty() && fIsLoaded) return true;
       if ((fname == fMapFileName) && fIsLoaded) return true;
 
@@ -72,13 +91,16 @@ namespace emph {
 	emph::geo::DetectorType iDet = emph::geo::DetInfo::Id(det);
 	DChannel dchan(iDet,dChannel,dHiLo);
 	EChannel echan(iBoardType,board,eChannel);
-	std::cout << dchan << " <--> " << echan << std::endl;
+	//	std::cout << dchan << " <--> " << echan << std::endl;
 	fEChanMap[echan] = dchan;
 	fDChanMap[dchan] = echan;
 	
       }
       mapFile.close();
       fIsLoaded = true;
+      fMapFileName = fname;
+
+      std::cout<<"Loaded channel map from " << fMapFileName << std::endl;
 
       return true;
       

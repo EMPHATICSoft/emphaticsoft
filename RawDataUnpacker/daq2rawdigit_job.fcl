@@ -31,9 +31,12 @@ source:
   timeWindow: 50000
   nEvents: 0
   verbosity: 0
-  channelMapFileName: "ChannelMap_Jan22_Run436.txt"
-  SSDFilePrefix: "/data/"
-  readSSDData: true
+  channelMapFileName: "ChannelMap_Jun22.txt"
+  SSDFilePrefix: "/emph/data/data/June2022/SSD/Merged/"
+  readSSDData: false
+  readTRB3Data: true
+  readCAENData: true
+  firstSubRunHasExtraTrigger: true
 }
 
 outputs:

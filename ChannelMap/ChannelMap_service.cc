@@ -43,7 +43,7 @@ namespace emph
     //----------------------------------------------------------
     void ChannelMapService::preBeginRun(const art::Run& )
     {
-      fChannelMap->SetMapFileName(fMapFileName);
+      //fChannelMap->SetMapFileName(fMapFileName);
       fChannelMap->SetAbortIfFileNotFound(fAbortIfFileNotFound);      
     }
     
