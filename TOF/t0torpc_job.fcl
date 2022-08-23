@@ -26,7 +26,6 @@ physics:
    {
       module_type: T0toRPC
       tokenJob: "V1c"
-      channelMapFileName: "ChannelMap_Jan22_Run436.txt"
       makeT0FullNtuple: true
       makeRPCFullNtuple: false
       makeTrigFullNtuple: false 

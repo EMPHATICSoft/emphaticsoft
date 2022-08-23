@@ -62,6 +62,7 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
+      void beginRun(art::Run const& run);
       void endJob();
 
     private:
@@ -190,23 +191,21 @@ namespace emph {
     {
       fNEvents= 0;
       fNoT0Info = 0; fNoTrigInfo = 0; fNoT0RPCInfo = 0; fNoTrigInfo = 0; 
-      // initialize channel map
-      fChannelMap = 0;
-      if (!fChanMapFileName.empty()) {
-	fChannelMap = new emph::cmap::ChannelMap();
-	if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	  std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	  delete fChannelMap;
-	  fChannelMap = 0;
-	}
-	std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-      }
     
       //
       // open a few csv file for output. Delayed until we know the run number.  
       //
             
     }
+    //......................................................................
+    void T0toRPC::beginRun(art::Run const& run)
+    {
+      // initialize channel map
+      fChannelMap = new emph::cmap::ChannelMap();
+      fChannelMap->LoadMap(run.run());
+    }
+
+    //......................................................................
     void T0toRPC::openOutputCsvFiles() {
     
       if (fRun == 0) {
@@ -354,8 +353,8 @@ namespace emph {
 	                              5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
-	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-	    int board = 100;
+	    int chan = trb3.GetChannel();
+	    int board = trb3.GetBoardId();
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -403,8 +402,8 @@ namespace emph {
 	             ((trb3Trigger.GetFineTime() -   trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
             const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
-            int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-            int board = 100;
+            int chan = trb3.GetChannel();
+            int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
