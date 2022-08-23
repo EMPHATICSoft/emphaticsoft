@@ -73,8 +73,6 @@ namespace emph {
       uint64_t fPrevTS;
       art::Timestamp fSpillTime;
 
-      std::string fChanMapFileName;
-
       emph::cmap::ChannelMap* fChannelMap;
 
       std::string fSSDFilePrefix;
