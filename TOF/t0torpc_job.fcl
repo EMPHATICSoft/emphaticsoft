@@ -1,5 +1,5 @@
 
-process_name: OnMonT0toRPC
+process_name: T0toRPC
 
 services:
 {
@@ -22,11 +22,10 @@ physics:
  filters:{}
 
  analyzers: {
-   OnMonT0toRPC :   
+   T0toRPC :   
    {
-      module_type: OnMonT0toRPC
+      module_type: T0toRPC
       tokenJob: "V1c"
-      channelMapFileName: "ChannelMap_Jan22_Run436.txt"
       makeT0FullNtuple: true
       makeRPCFullNtuple: false
       makeTrigFullNtuple: false 
@@ -34,7 +33,7 @@ physics:
    }
  }
 # stream1:  [ out1 ] #could have multiple paths
- ana: [ OnMonT0toRPC  ] 
+ ana: [ T0toRPC  ] 
 
  end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
 }

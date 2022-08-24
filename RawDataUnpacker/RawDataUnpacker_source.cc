@@ -78,7 +78,6 @@ namespace rawdata {
     fNumWaveFormPlots = ps.get<int>("numWaveFormPlots",100);
     fTimeWindow = ps.get<uint64_t>("timeWindow",20000);
     fNEvents    = ps.get<uint64_t>("nEvents",-1);
-    fChanMapFileName = ps.get<std::string>("channelMapFileName","");
     fVerbosity  = ps.get<int>("verbosity",0);
     fSSDFilePrefix = ps.get<std::string>("SSDFilePrefix",
 					 "RawDataSaver0FER1_Run");
@@ -116,18 +115,6 @@ namespace rawdata {
     fSSDEvtIdx = 0;
 
     fSpillTime = 0;
-
-    // initialize channel map
-    fChannelMap = 0;
-    if (!fChanMapFileName.empty()) {
-      fChannelMap = new emph::cmap::ChannelMap();
-      if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	delete fChannelMap;
-	fChannelMap = 0;
-      }
-      std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-    }
     
     // create TTree for TRB3RawDigits
     art::ServiceHandle<art::TFileService> tfs;
@@ -428,6 +415,10 @@ namespace rawdata {
       outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
 						subrunAux.beginTime());
       fSpillTime = subrunAux.beginTime();
+
+      // initialize channel map
+      fChannelMap = new emph::cmap::ChannelMap();
+      fChannelMap->LoadMap(fRun);
 
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits

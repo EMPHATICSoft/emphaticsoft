@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Analyzer module to create online monitoring plots
-/// \author  $Author: jpaley $
+/// \brief   Analyzer module to study trigger, RPC, and T0
+/// \author  $Author: lebrun $
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
 #include <cmath>
@@ -26,9 +26,6 @@
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
 #include "Geometry/DetectorDefs.h"
-#include "OnlineMonitoring/plotter/HistoSet.h"
-#include "OnlineMonitoring/util/HistoTable.h"
-#include "OnlineMonitoring/util/Settings.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
@@ -38,7 +35,7 @@ using namespace emph;
 
 ///package to illustrate how to write modules
 namespace emph {
-  namespace onmon {
+  namespace tof {
   
     class PeakInWaveform {
       public:
@@ -52,10 +49,10 @@ namespace emph {
         double prevSumSig;
     };
   
-    class OnMonT0toRPC : public art::EDAnalyzer {
+    class T0toRPC : public art::EDAnalyzer {
     public:
-      explicit OnMonT0toRPC(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-      ~OnMonT0toRPC();
+      explicit T0toRPC(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      ~T0toRPC();
 
       // Optional, read/write access to event
       void analyze(const art::Event& evt);
@@ -65,6 +62,7 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
+      void beginRun(art::Run const& run);
       void endJob();
 
     private:
@@ -142,7 +140,7 @@ namespace emph {
       { ; }
     
     //.......................................................................
-    OnMonT0toRPC::OnMonT0toRPC(fhicl::ParameterSet const& pset)
+    T0toRPC::T0toRPC(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
       fFilesAreOpen(false),
       fTokenJob("none"),
@@ -163,7 +161,7 @@ namespace emph {
     }
     
     //......................................................................
-    OnMonT0toRPC::~OnMonT0toRPC()
+    T0toRPC::~T0toRPC()
     {
     
       if (fFOutT0.is_open()) fFOutT0.close();
@@ -177,7 +175,7 @@ namespace emph {
     }
 
     //......................................................................
-    void OnMonT0toRPC::reconfigure(const fhicl::ParameterSet& pset)
+    void T0toRPC::reconfigure(const fhicl::ParameterSet& pset)
     {
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
       fChanMapFileName = pset.get<std::string>("channelMapFileName","");
@@ -186,35 +184,32 @@ namespace emph {
       fMakeTrigFullNtuple = pset.get<bool>("makeTrigFullNtuple",true);
       fMakeEventSummaryNTuple = pset.get<bool>("makeEventSummaryFullNtuple",false);
       
-      Settings::Instance().fDet = kEMPH;
     }
 
     //......................................................................
-    void OnMonT0toRPC::beginJob()
+    void T0toRPC::beginJob()
     {
       fNEvents= 0;
       fNoT0Info = 0; fNoTrigInfo = 0; fNoT0RPCInfo = 0; fNoTrigInfo = 0; 
-      // initialize channel map
-      fChannelMap = 0;
-      if (!fChanMapFileName.empty()) {
-	fChannelMap = new emph::cmap::ChannelMap();
-	if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	  std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	  delete fChannelMap;
-	  fChannelMap = 0;
-	}
-	std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-      }
     
       //
       // open a few csv file for output. Delayed until we know the run number.  
       //
             
     }
-    void OnMonT0toRPC::openOutputCsvFiles() {
+    //......................................................................
+    void T0toRPC::beginRun(art::Run const& run)
+    {
+      // initialize channel map
+      fChannelMap = new emph::cmap::ChannelMap();
+      fChannelMap->LoadMap(run.run());
+    }
+
+    //......................................................................
+    void T0toRPC::openOutputCsvFiles() {
     
       if (fRun == 0) {
-        std::cerr << " OnMonT0toRPC::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
+        std::cerr << " T0toRPC::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
 	exit(2);
       }
       if (fMakeT0FullNtuple) { 
@@ -262,9 +257,9 @@ namespace emph {
     
     //......................................................................
 
-    void OnMonT0toRPC::endJob()
+    void T0toRPC::endJob()
     {
-      std::cerr << " OnMonT0toRPC::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
+      std::cerr << " T0toRPC::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Total number of events " << fNEvents << " No Info T0 and No RPC " << fNoT0RPCInfo 
                 << "  No trigger Info " << fNoTrigInfo << " No T0 info " << fNoT0Info << " No RPC info " << fNoRPCInfo << std::endl; 
       if (fFOutT0.is_open()) fFOutT0.close();
@@ -275,7 +270,7 @@ namespace emph {
 
     //......................................................................
     
-    void OnMonT0toRPC::resetAllADCsTDCs() {
+    void T0toRPC::resetAllADCsTDCs() {
        for(std::vector<double>::iterator it = fT0ADCs.begin(); it != fT0ADCs.end(); it++) *it = -1.0*DBL_MAX/2.;
        for(std::vector<double>::iterator it = fT0TDCs.begin(); it != fT0TDCs.end(); it++) *it = DBL_MAX;
        for(std::vector<double>::iterator it = fRPCTDCs.begin(); it != fRPCTDCs.end(); it++) *it = DBL_MAX;
@@ -283,10 +278,10 @@ namespace emph {
        for(std::vector<double>::iterator it = fTrigPeakADCs.begin();it != fTrigPeakADCs.end(); it++) *it = 0.;
     }
 
-    void OnMonT0toRPC::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
+    void T0toRPC::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
        bool debugIsOn = (((fEvtNum == 47) && (fSubRun == 11)) || ((fEvtNum == 411) && (fSubRun == 13)));
-       if (debugIsOn) std::cerr << " OnMonT0toRPC::FillT0Plots, spill " << fSubRun << " " << fEvtNum << std::endl;
+       if (debugIsOn) std::cerr << " T0toRPC::FillT0Plots, spill " << fSubRun << " " << fEvtNum << std::endl;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
@@ -337,7 +332,7 @@ namespace emph {
 	      fT0ADCs[detchan] = effadc;
 	      vT0ADChits[detchan]=1; 
 	    } else {
-	      std::cerr << " OnMonT0toRPC::FillT0Plots , Unexpected Channel in ADC array detchan " 
+	      std::cerr << " T0toRPC::FillT0Plots , Unexpected Channel in ADC array detchan " 
 	                << detchan << " nchan " << nchan << " expected nchan " << fT0ADCs.size()-1 <<  std::endl;
               size_t badDetChan =  fT0ADCs.size()-1;
 	      fT0ADCs[badDetChan] = detchan;
@@ -358,8 +353,8 @@ namespace emph {
 	                              5000.0 - ((trb3Trigger.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
 	  for (size_t idx=0; idx < trb3H->size(); ++idx) {
 	    const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];	  
-	    int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-	    int board = 100;
+	    int chan = trb3.GetChannel();
+	    int board = trb3.GetBoardId();
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -372,7 +367,7 @@ namespace emph {
 	      fT0TDCs[detchan] = ((triggerTime-time_T0)/100000);
 	    }  else {
 	    // This occurs at every events... 
-//                 std::cerr << " OnMonT0toRPC::FillT0Plots , Unexpected Channel in TDC array detchan " 
+//                 std::cerr << " T0toRPC::FillT0Plots , Unexpected Channel in TDC array detchan " 
 //	                << detchan << " nchan " << nchan << " expected nchan " << fT0ADCs.size()-1 <<  std::endl;
                  size_t badDetChan =  fT0TDCs.size()-1;
 	         fT0TDCs[badDetChan] = detchan;
@@ -388,10 +383,10 @@ namespace emph {
     }  
         
     //......................................................................
-    void    OnMonT0toRPC::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
+    void    T0toRPC::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
-//      std::cerr << " OnMonT0toRPC::FillRPCPlots, number of channels " << nchan << std::endl;
+//      std::cerr << " T0toRPC::FillRPCPlots, number of channels " << nchan << std::endl;
       emph::cmap::EChannel echan;
       emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
       double trb3LinearLowEnd = 15.0;
@@ -407,8 +402,8 @@ namespace emph {
 	             ((trb3Trigger.GetFineTime() -   trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
           for (size_t idx=0; idx < trb3H->size(); ++idx) {
             const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
-            int chan = trb3.GetChannel() + 65*(trb3.fpga_header_word-1280);
-            int board = 100;
+            int chan = trb3.GetChannel();
+            int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
@@ -431,7 +426,7 @@ namespace emph {
     }
     //.....................................}.................................
 
-    void   OnMonT0toRPC::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
+    void   T0toRPC::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
       if (wvfmH->empty()) return;
 //      const bool debugIsOn = (((fEvtNum < 5) && (fSubRun < 5)) || (((fRun == 511) && ((fSubRun == 10) ) && ( 
@@ -442,7 +437,7 @@ namespace emph {
       const bool debugIsOn = ((((fRun == 511) && (fSubRun == 10) && ( 
      	(fEvtNum == 69) || (fEvtNum == 387) || (fEvtNum == 569) || 
         (fEvtNum == 954) || (fEvtNum == 1414) || (fEvtNum == 1455)))));
-     if (debugIsOn) std::cerr << " Starting OnMonT0toRPC::FillTrigPlots, spill " << fSubRun << " evt " << fEvtNum << std::endl;
+     if (debugIsOn) std::cerr << " Starting T0toRPC::FillTrigPlots, spill " << fSubRun << " evt " << fEvtNum << std::endl;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
@@ -610,7 +605,7 @@ namespace emph {
       }
 //      if (debugIsOn) { std::cerr << " And quit after first Trigger dump complete analysis " << std::endl; exit(2); }
     }
-    void OnMonT0toRPC::FillTrigT0RPCV1(bool gotT0, bool gotRPC) {  
+    void T0toRPC::FillTrigT0RPCV1(bool gotT0, bool gotRPC) {  
         
       int nchanTrig = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
@@ -645,7 +640,7 @@ namespace emph {
        }
     }
     //......................................................................
-    void OnMonT0toRPC::analyze(const art::Event& evt)
+    void T0toRPC::analyze(const art::Event& evt)
     { 
       ++fNEvents;
       this->resetAllADCsTDCs();
@@ -737,4 +732,4 @@ namespace emph {
   }
 } // end namespace demo
 
-DEFINE_ART_MODULE(emph::onmon::OnMonT0toRPC)
+DEFINE_ART_MODULE(emph::tof::T0toRPC)
