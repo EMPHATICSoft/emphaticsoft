@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+cd ..
+
+doxygen docs/Doxyfile
+
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux
+    xdg-open docs/Doxyout/html/index.html
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    # Mac
+    open docs/Doxyout/html/index.html
+fi

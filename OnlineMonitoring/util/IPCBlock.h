@@ -27,10 +27,10 @@ static const unsigned int NMAX_HISTOS = 16384;
 namespace emph { 
   namespace onmon {
     //
-    // Summary of resources used by the unpacker program. Filled by
-    // unpacker process. Read-only for viewer process.
+    // Summary of resources used by the plotter program. Filled by
+    // plotter process. Read-only for viewer process.
     //
-    struct UnpackerResources
+    struct PlotterResources
     {
       unsigned int fHeader; ///< Start data block marker
       unsigned int fRun;    ///< Run number of last update
@@ -60,10 +60,10 @@ namespace emph {
     };
 
     //
-    // Histogram data held by unpacker. Filled by unpacker
+    // Histogram data held by plotter. Filled by plotter
     // process. Read-only for viewer process.
     //
-    struct UnpackerHistogram
+    struct PlotterHistogram
     {
       unsigned int fHeader;
       char         fClientLock;           ///< Is access locked by the server?
@@ -93,9 +93,9 @@ namespace emph {
     {
       unsigned int       fHeader;
       unsigned int       fNclient;
-      UnpackerResources  fProcessResources;
+      PlotterResources   fProcessResources;
       HistogramList      fHistoList;
-      UnpackerHistogram  fHistogram;
+      PlotterHistogram   fHistogram;
       unsigned int       fFooter;
     };
   } //end namespace onmon

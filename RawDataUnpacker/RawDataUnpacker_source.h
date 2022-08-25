@@ -8,6 +8,7 @@
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
+#include "canvas/Persistency/Provenance/Timestamp.h"
 #include "art_root_io/TFileService.h"
 #include "art_root_io/TFileDirectory.h"
 #include "artdaq-core/Data/RawEvent.hh"
@@ -58,6 +59,9 @@ namespace emph {
       bool    fCreateArtEvents;
       bool    fMakeTDiffHistos;
       bool    fReadSSDData;
+      bool    fReadTRB3Data;
+      bool    fReadCAENData;
+      bool    fFirstSubRunHasExtraTrigger;
       int     fVerbosity;
       int     fNumWaveFormPlots;
       int     fRun;
@@ -67,7 +71,7 @@ namespace emph {
       uint64_t fTimeOffset;
       uint64_t fTimeWindow;
       uint64_t fPrevTS;
-      std::string fChanMapFileName;
+      art::Timestamp fSpillTime;
 
       emph::cmap::ChannelMap* fChannelMap;
 

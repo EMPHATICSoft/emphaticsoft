@@ -10,7 +10,7 @@
 <define>
 
     <constant name="DEG2RAD" value="pi/180." />
-	 <quantity name="world_size" value="3000." unit="mm"/>
+	 <quantity name="world_size" value="5000." unit="mm"/>
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 	 <!-- BELOW IS FOR T0 -->
@@ -18,7 +18,7 @@
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <position name="T0_pos" z="-350" unit="mm"/>
+	 <position name="T0_pos" z="-583.2" unit="mm"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -51,33 +51,18 @@
 
 	 <!-- BELOW IS FOR MAGNET -->
 
-	 <quantity name="magnetSideYOffset" value="29" unit="mm" />
-	 <quantity name="magnetSideUSBottomWidth" value="11.5" unit="mm"/>
-	 <quantity name="magnetSideDSBottomWidth" value="33.3" unit="mm"/>
-	 <quantity name="magnetSideTopWidth" value="71.6" unit="mm"/>
-	 <quantity name="magnetSideZLength" value="150" unit="mm"/>
-	 <quantity name="magnetSideUSHeight" value="151" unit="mm"/>
-	 <quantity name="magnetSideDSHeight" value="96.2" unit="mm"/>
+	 <quantity name="magnetSideWidth" value="50" unit="mm"/>
+	 <quantity name="magnetSideZLength" value="160" unit="mm"/>
+	 <quantity name="magnetSideOHeight" value="240" unit="mm"/>
+	 <quantity name="magnetSideIHeight0" value="48" unit="mm"/>
+	 <quantity name="magnetSideIHeight1" value="62" unit="mm"/>
+	 <quantity name="magnetSideIHeight2" value="80" unit="mm"/>
 
-	 <position name="magnetSide_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="magnet_pos" x="0" y="0" z="370" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="517.7" unit="mm"/>
 
-	 <rotation name="RotateZMagSeg0" z="(-157.5+22.5*0)" unit="deg"/>
-	 <rotation name="RotateZMagSeg1" z="(-157.5+22.5*1)" unit="deg"/>
-	 <rotation name="RotateZMagSeg2" z="(-157.5+22.5*2)" unit="deg"/>
-	 <rotation name="RotateZMagSeg3" z="(-157.5+22.5*3)" unit="deg"/>
-	 <rotation name="RotateZMagSeg4" z="(-157.5+22.5*4)" unit="deg"/>
-	 <rotation name="RotateZMagSeg5" z="(-157.5+22.5*5)" unit="deg"/>
-	 <rotation name="RotateZMagSeg6" z="(-157.5+22.5*6)" unit="deg"/>
-	 <rotation name="RotateZMagSeg7" z="(-157.5+22.5*7)" unit="deg"/>
-	 <rotation name="RotateZMagSeg8" z="(-157.5+22.5*8)" unit="deg"/>
-	 <rotation name="RotateZMagSeg9" z="(-157.5+22.5*9)" unit="deg"/>
-	 <rotation name="RotateZMagSeg10" z="(-157.5+22.5*10)" unit="deg"/>
-	 <rotation name="RotateZMagSeg11" z="(-157.5+22.5*11)" unit="deg"/>
-	 <rotation name="RotateZMagSeg12" z="(-157.5+22.5*12)" unit="deg"/>
-	 <rotation name="RotateZMagSeg13" z="(-157.5+22.5*13)" unit="deg"/>
-	 <rotation name="RotateZMagSeg14" z="(-157.5+22.5*14)" unit="deg"/>
-	 <rotation name="RotateZMagSeg15" z="(-157.5+22.5*15)" unit="deg"/>
+	 <position name="magnetSide_pos0" x="0" y="0" z="(-1+0)*magnetSideWidth" unit="mm"/>
+	 <position name="magnetSide_pos1" x="0" y="0" z="(-1+1)*magnetSideWidth" unit="mm"/>
+	 <position name="magnetSide_pos2" x="0" y="0" z="(-1+2)*magnetSideWidth" unit="mm"/>
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
@@ -86,9 +71,6 @@
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
 	 <quantity name="ssdD0_height" value="98.33" unit="mm"/>
 	 <quantity name="ssdD0_width" value="38.34" unit="mm"/>
-	 <quantity name="ssdD0twin_thick" value=".300" unit="mm"/>
-	 <quantity name="ssdD0twin_height" value="98.33" unit="mm"/>
-	 <quantity name="ssdD0twin_width" value="76.68" unit="mm"/>
 
 	 <quantity name="carbon_fiber_thick" value="0.300"
 		 unit="mm" />
@@ -98,12 +80,12 @@
 	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
 	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
 	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
-	 <position name="ssdStation0_pos" x="0" y="0" z="-170" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="-120" unit="mm" />
-	 <position name="ssdsingle0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssdStation0_pos" x="0" y="0" z="-225.2" unit="mm" />
+	 <position name="ssdStation1_pos" x="0" y="0" z="-104.8" unit="mm" />
+	 <position name="ssdsingle00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdsingle0_rot" z="90" unit="deg"/>
 	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssdsingle1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssdsingle1_rot" z="0" unit="deg"/>
 	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
@@ -113,14 +95,14 @@
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
 	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
 	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-	 <position name="ssdStation2_pos" x="0" y="0" z="120" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="170" unit="mm" />
-	 <position name="ssdrotate0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssdStation2_pos" x="0" y="0" z="118.8" unit="mm" />
+	 <position name="ssdStation3_pos" x="0" y="0" z="266.5" unit="mm" />
+	 <position name="ssdrotate00_pos" x="0" y="0" z="0" unit="mm"/>
 	 <rotation name="ssdrotate0_rot" z="45" unit="deg"/>
 	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssdrotate1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssdrotate1_rot" z="90" unit="deg"/>
-	 <position name="ssdrotate2_pos" x="0" y="0" z="3" unit="mm"/>
+	 <position name="ssdrotate20_pos" x="0" y="0" z="3" unit="mm"/>
 	 <rotation name="ssdrotate2_rot" z="0" unit="deg"/>	 
 	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
@@ -128,17 +110,20 @@
 	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0"
 		 z="10." unit="mm" />
 
-	 <quantity name="ssdStationdoubleLength" value="50" unit="mm" />
+	 <quantity name="ssdStationdoubleLength" value="100" unit="mm" />
 	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="570" unit="mm" />
-	 <position name="ssdStation5_pos" x="0" y="0" z="630" unit="mm" />
-	 <position name="ssddouble0_pos" x="0" y="0" z="0" unit="mm"/>
+	 <position name="ssdStation4_pos" x="0" y="0" z="748.9" unit="mm" />
+	 <position name="ssdStation5_pos" x="0" y="0" z="966.4" unit="mm" />
+	 <position name="ssddouble00_pos" x="-0.5*ssdD0_width" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble01_pos" x="0.5*ssdD0_width" y="0" z="0" unit="mm"/>
 	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
 	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssddouble1_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssddouble10_pos" y="-0.5*ssdD0_width" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssddouble11_pos" y="0.5*ssdD0_width" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <rotation name="ssddouble1_rot" z="90" unit="deg"/>
-	 <position name="ssddouble2_pos" x="0" y="0" z="3" unit="mm"/>
+	 <position name="ssddouble20_pos" x="-0.354*ssdD0_width" y="-0.354*ssdD0_width" z="3" unit="mm"/>
+	 <position name="ssddouble21_pos" x="0.354*ssdD0_width" y="0.354*ssdD0_width" z="3" unit="mm"/>
 	 <rotation name="ssddouble2_rot" z="-45" unit="deg"/>
 	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
@@ -153,7 +138,7 @@
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <position name="RPC_pos" x="0" y="0" z="730" unit="mm" />
+	 <position name="RPC_pos" x="0" y="0" z="1649+0.5*RPC_thick" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
@@ -185,7 +170,7 @@
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-	 <quantity name="LG_width1" value="135" unit="mm" />
+tation_type <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
@@ -223,7 +208,7 @@
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="450" unit="mm" />
 
-	 <quantity name="calor_shift" value="800" unit="mm" />
+	 <quantity name="calor_shift" value="1800" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
 
 	 <!-- ABOVE IS FOR LG -->
@@ -243,32 +228,32 @@
 
 	<!-- The rindex of aerogel 1 -->
 	<matrix
-		name="AERO_1035_RINDEX"
+		name="AERO_1026_RINDEX"
 		coldim="2"
-		values="1.6*eV  1.035
-				  5.0*eV  1.035"
+		values="1.6*eV  1.026
+				  5.0*eV  1.026"
 	/>
 
 	<!-- The rindex of aerogel 2 -->
 	<matrix
-		name="AERO_1045_RINDEX"
+		name="AERO_1030_RINDEX"
 		coldim="2"
-		values="1.6*eV  1.045
-				  5.0*eV  1.045"
+		values="1.6*eV  1.030
+				  5.0*eV  1.030"
 	/>
 	<!-- ********** Refractive index end ********** -->
 
 
    <!-- ********** Absorption length ********** -->
 	<matrix
-      name="AERO_1035_ABS"
+      name="AERO_1026_ABS"
       coldim="2"
 		values="1.6*eV  200.*cm
 				  5.0*eV  200.*cm"
 	/>
 
 	<matrix
-      name="AERO_1045_ABS"
+      name="AERO_1030_ABS"
       coldim="2"
 		values="1.6*eV  200.*cm
 				  5.0*eV  200.*cm"
@@ -277,7 +262,7 @@
 
    <!-- ********** Rayleigh scattering length ********** -->
 	<matrix
-      name="AERO_1035_RAY"
+      name="AERO_1026_RAY"
       coldim="2"
       values="1.60*eV  52.640*cm
 					1.65*eV  48.520*cm
@@ -351,7 +336,7 @@
 	/>
 
 	<matrix
-      name="AERO_1045_RAY"
+      name="AERO_1030_RAY"
       coldim="2"
       values="1.60*eV  38.020*cm
 					1.65*eV  35.180*cm
@@ -517,22 +502,22 @@
      <fraction n="0.24" ref="Oxygen"/>
    </material>
 
-	<material name="AERO_1035">
-      <property name="RINDEX" ref="AERO_1035_RINDEX"/>
-      <property name="ABSLENGTH" ref="AERO_1035_ABS"/>
-      <property name="RAYLEIGH" ref="AERO_1035_RAY"/>
+	<material name="AERO_1026">
+      <property name="RINDEX" ref="AERO_1026_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1026_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1026_RAY"/>
 
-      <D value="0.124"/>
+      <D value="0.097"/>
       <fraction n="0.467" ref="Silicon"/>
       <fraction n="1.0-0.467" ref="Oxygen"/>
    </material>
 
-   <material name="AERO_1045">
-      <property name="RINDEX" ref="AERO_1045_RINDEX"/>
-      <property name="ABSLENGTH" ref="AERO_1045_ABS"/>
-      <property name="RAYLEIGH" ref="AERO_1045_RAY"/>
+   <material name="AERO_1030">
+      <property name="RINDEX" ref="AERO_1030_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1030_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1030_RAY"/>
 
-      <D value="0.159"/>
+      <D value="0.110"/>
       <fraction n="0.467" ref="Silicon"/>
       <fraction n="1.0-0.467" ref="Oxygen"/>
    </material>
@@ -579,6 +564,13 @@
    </material>
    
    <material formula="CFRP" name="CarbonFiber">
+     <D value="1.55"/>
+     <fraction n="0.8" ref="Carbon"/>
+     <fraction n="0.07" ref="Hydrogen"/>
+     <fraction n="0.13" ref="Oxygen"/>
+   </material>
+ 
+   <material formula="GFRP" name="FiberGlass">
      <D value="1.55"/>
      <fraction n="0.8" ref="Carbon"/>
      <fraction n="0.07" ref="Hydrogen"/>
@@ -640,19 +632,11 @@
 
 	 <!-- BELOW IS FOR MAGNET -->
 
-	 <box name="magnet_box" x="magnetSideYOffset+magnetSideUSHeight"
-		 y="magnetSideYOffset+magnetSideUSHeight" z="magnetSideZLength" />
-
-	 <arb8 name="magnetSide_arb8"
-	  v1x="-0.5*magnetSideTopWidth" v1y="magnetSideUSHeight+magnetSideYOffset"
-	  v2x="0.5*magnetSideTopWidth" v2y="magnetSideUSHeight+magnetSideYOffset"
-	  v3x="0.5*magnetSideUSBottomWidth" v3y="magnetSideYOffset"
-	  v4x="-0.5*magnetSideUSBottomWidth" v4y="magnetSideYOffset"
-	  v5x="-0.5*magnetSideDSBottomWidth" v5y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"   
-	  v6x="-0.5*magnetSideTopWidth" v6y="magnetSideUSHeight+magnetSideYOffset"
-	  v7x="0.5*magnetSideTopWidth" v7y="magnetSideUSHeight+magnetSideYOffset"
-	  v8x="0.5*magnetSideDSBottomWidth" v8y="magnetSideUSHeight-magnetSideDSHeight+magnetSideYOffset"
-	  dz="magnetSideZLength" unit="mm"/>
+	 <box name="magnet_box" x="magnetSideOHeight"
+		 y="magnetSideOHeight" z="magnetSideZLength" />
+	 <tube name="magnet_tube0" rmin="0.5*magnetSideIHeight0" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube1" rmin="0.5*magnetSideIHeight1" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube2" rmin="0.5*magnetSideIHeight2" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
@@ -671,8 +655,8 @@
 
 	  <box name="ssdStationdouble_box" x="ssdStationdoubleWidth" y="ssdStationdoubleHeight" z="ssdStationdoubleLength" />
 	  <box name="ssddouble_MylarWindow_box" x="ssdStationdoubleWidth*0.8" y="ssdStationdoubleWidth*0.8" z="Mylar_Window_thick" />
-	  <box name="ssddouble_box" x="ssdD0twin_width" y="ssdD0twin_height" z="ssdD0twin_thick" />
-	  <box name="ssddouble_bkpln_box" x="1.3*ssdD0twin_width" y="1.3*ssdD0twin_width" z="carbon_fiber_thick" />
+	  <box name="ssddouble_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+	  <box name="ssddouble_bkpln_box" x="2.6*ssdD0_width" y="2.6*ssdD0_width" z="carbon_fiber_thick" />
 
 	 <!-- ABOVE IS FOR SSD -->
 
@@ -735,12 +719,18 @@
 
 
   <!-- BELOW IS FOR MAGNET -->
-
-  <volume name="magnetSide_vol">
+  <volume name="magnetSide_vol0">
 	 <materialref ref="NeodymiumAlloy"/>
-	 <solidref ref="magnetSide_arb8"/>
+	 <solidref ref="magnet_tube0"/>
   </volume>
-
+  <volume name="magnetSide_vol1">
+	 <materialref ref="NeodymiumAlloy"/>
+	 <solidref ref="magnet_tube1"/>
+  </volume>
+  <volume name="magnetSide_vol2">
+	 <materialref ref="NeodymiumAlloy"/>
+	 <solidref ref="magnet_tube2"/>
+  </volume>
   <!-- ABOVE IS FOR MAGNET -->
 
 
@@ -929,84 +919,16 @@
 	 <materialref ref="Air"/>
 	 <solidref ref="magnet_box"/>  
 	 <physvol name="magnetSide0_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg0"/>
+		<volumeref ref="magnetSide_vol0"/>
+		<positionref ref="magnetSide_pos0"/>
 	 </physvol>
 	 <physvol name="magnetSide1_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg1"/>
+		<volumeref ref="magnetSide_vol1"/>
+		<positionref ref="magnetSide_pos1"/>
 	 </physvol>
 	 <physvol name="magnetSide2_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg2"/>
-	 </physvol>
-	 <physvol name="magnetSide3_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg3"/>
-	 </physvol>
-	 <physvol name="magnetSide4_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg4"/>
-	 </physvol>
-	 <physvol name="magnetSide5_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg5"/>
-	 </physvol>
-	 <physvol name="magnetSide6_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg6"/>
-	 </physvol>
-	 <physvol name="magnetSide7_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg7"/>
-	 </physvol>
-	 <physvol name="magnetSide8_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg8"/>
-	 </physvol>
-	 <physvol name="magnetSide9_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg9"/>
-	 </physvol>
-	 <physvol name="magnetSide10_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg10"/>
-	 </physvol>
-	 <physvol name="magnetSide11_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg11"/>
-	 </physvol>
-	 <physvol name="magnetSide12_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg12"/>
-	 </physvol>
-	 <physvol name="magnetSide13_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg13"/>
-	 </physvol>
-	 <physvol name="magnetSide14_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg14"/>
-	 </physvol>
-	 <physvol name="magnetSide15_phys">
-		<volumeref ref="magnetSide_vol"/>
-		<positionref ref="magnetSide_pos"/>
-		<rotationref ref="RotateZMagSeg15"/>
+		<volumeref ref="magnetSide_vol2"/>
+		<positionref ref="magnetSide_pos2"/>
 	 </physvol>
   </volume>
 
@@ -1027,14 +949,14 @@
 			<positionref ref="ssdsingle_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsingle0_phys">
+		 <physvol name="ssdsensorsingle00_phys">
 			<volumeref ref="ssdsingle_vol"/>
-			<positionref ref="ssdsingle0_pos"/>
+			<positionref ref="ssdsingle00_pos"/>
 			<rotationref ref="ssdsingle0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsingle1_phys">
+		 <physvol name="ssdsensorsingle10_phys">
 			<volumeref ref="ssdsingle_vol"/>
-			<positionref ref="ssdsingle1_pos"/>
+			<positionref ref="ssdsingle10_pos"/>
 			<rotationref ref="ssdsingle1_rot"/>
 		 </physvol>
 		 <physvol name="ssdbkplnsingle0_phys">
@@ -1055,19 +977,19 @@
 			<positionref ref="ssdrotate_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdrotate0_phys">
+		 <physvol name="ssdsensorrotate00_phys">
 			<volumeref ref="ssdrotate_vol"/>
-			<positionref ref="ssdrotate0_pos"/>
+			<positionref ref="ssdrotate00_pos"/>
 			<rotationref ref="ssdrotate0_rot"/>
 		 </physvol>
-		 <physvol name="ssdrotate1_phys">
+		 <physvol name="ssdsensorrotate10_phys">
 			<volumeref ref="ssdrotate_vol"/>
-			<positionref ref="ssdrotate1_pos"/>
+			<positionref ref="ssdrotate10_pos"/>
 			<rotationref ref="ssdrotate1_rot"/>
 		 </physvol>
-		 <physvol name="ssdrotate2_phys">
+		 <physvol name="ssdsensorrotate20_phys">
 			<volumeref ref="ssdrotate_vol"/>
-			<positionref ref="ssdrotate2_pos"/>
+			<positionref ref="ssdrotate20_pos"/>
 			<rotationref ref="ssdrotate2_rot"/>
 		 </physvol>
 		 <physvol name="ssdbkplnrotate0_phys">
@@ -1092,19 +1014,34 @@
 			<positionref ref="ssddouble_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssddouble0_phys">
+		 <physvol name="ssdsensordouble00_phys">
 			<volumeref ref="ssddouble_vol"/>
-			<positionref ref="ssddouble0_pos"/>
+			<positionref ref="ssddouble00_pos"/>
 			<rotationref ref="ssddouble0_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble1_phys">
+		 <physvol name="ssdsensordouble01_phys">
 			<volumeref ref="ssddouble_vol"/>
-			<positionref ref="ssddouble1_pos"/>
+			<positionref ref="ssddouble01_pos"/>
+			<rotationref ref="ssddouble0_rot"/>
+		 </physvol>
+		 <physvol name="ssdsensordouble10_phys">
+			<volumeref ref="ssddouble_vol"/>
+			<positionref ref="ssddouble10_pos"/>
 			<rotationref ref="ssddouble1_rot"/>
 		 </physvol>
-		 <physvol name="ssddouble2_phys">
+		 <physvol name="ssdsensordouble11_phys">
 			<volumeref ref="ssddouble_vol"/>
-			<positionref ref="ssddouble2_pos"/>
+			<positionref ref="ssddouble11_pos"/>
+			<rotationref ref="ssddouble1_rot"/>
+		 </physvol>
+		 <physvol name="ssdsensordouble20_phys">
+			<volumeref ref="ssddouble_vol"/>
+			<positionref ref="ssddouble20_pos"/>
+			<rotationref ref="ssddouble2_rot"/>
+		 </physvol>
+		 <physvol name="ssdsensordouble21_phys">
+			<volumeref ref="ssddouble_vol"/>
+			<positionref ref="ssddouble21_pos"/>
 			<rotationref ref="ssddouble2_rot"/>
 		 </physvol>
 		 <physvol name="ssdbkplndouble0_phys">
@@ -1247,7 +1184,7 @@
 
   <!-- BELOW IS FOR T0 -->
 
-  <physvol name="ToFT0_phys">
+  <physvol name="T0_phys">
 	 <volumeref ref="T0_vol"/>
 	 <positionref ref="T0_pos"/>
   </physvol>
@@ -1311,7 +1248,7 @@
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="ToFRPC_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
 	 <positionref ref="RPC_pos"/>
   </physvol>
