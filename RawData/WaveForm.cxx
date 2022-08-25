@@ -20,6 +20,7 @@ namespace rawdata{
     fTstart(-1),
     fChannel(-1),
     fBoard(-1),
+    fDetChannel(-1),
     fIsMC(false),
     fFragmentTimestamp(0)
   {
@@ -31,6 +32,7 @@ namespace rawdata{
 		     std::vector<uint16_t> adclist,
 		     uint32_t tdc, uint64_t fragTS) :
     fADC(adclist), fTstart(tdc), fChannel(channel), fBoard(board),
+    fDetChannel(-1),
     fIsMC(false), fFragmentTimestamp(fragTS)
   {
   }
@@ -129,13 +131,53 @@ namespace rawdata{
   }
   
   //--------------------------------------------------
-  float WaveForm::Charge(int adcOffset, int nhits,  int nsamp) const
+  float WaveForm::Charge(int adcOffset, int nhits, int start, int nsamp) const
   {
-    int x1=adcOffset+nhits;
+    int x1=start;
     float bl = this->Baseline(adcOffset,nhits);
     float sum=0;
     for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i) sum += (fADC[i]-bl);
-    return -sum;
+    //convert to pC
+    float charge = (-1*sum*2*4e-9*1e12)/(50*4096);
+    return charge;
+  }
+
+  //--------------------------------------------------
+  float WaveForm::BACkovCharge(int adcOffset, int nhits, int start, int nsamp, int win_size, float ADC_thresh) const
+  {
+    //value returned is in pC
+    int x1=start;
+    float bl = this->Baseline(adcOffset,nhits);  
+    int  s = -1;
+    int  maxVal = -99999;
+    for ( size_t i=x1; i<size_t(x1+nsamp); ++i) {
+      if (fADC[i]*s > maxVal) {
+        maxVal = fADC[i]*s;
+      }
+    }
+    float sum=0;
+
+    if (maxVal>10){
+      for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i){ 
+        sum += (fADC[i]-bl);
+      }
+    }
+    else{
+      float win_sum = 0;
+      for (size_t i=x1; i<size_t(x1+20) && i<fADC.size(); ++i){
+        if (-1*(fADC[i]-bl) >= ADC_thresh){
+	  for (size_t j=i-2; j<size_t(i-2+win_size); ++j){
+            win_sum += (fADC[j]-bl);
+          }
+          break;
+	}
+      }
+      sum = win_sum;
+    }
+    //convert to pC 
+    float charge = (-1*sum*2*4e-9*1e12)/(50*4096);
+    return charge;
+
   }
 
   //------------------------------------------------------------

@@ -32,18 +32,20 @@
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
 
-  <class name="rb::BACkovHit"    ClassVersion="12">
+  <class name="rb::BACkovHit"    ClassVersion="13">
+   <version ClassVersion="13" checksum="2996980846"/>
    <version ClassVersion="12" checksum="2996980846"/>
     <version ClassVersion="10" checksum="5"/>
   </class>
   <class name="std::vector<rb::BACkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::BACkovHit>    >"/>
 
-  <class name="rb::GasCkovHit"    ClassVersion="12">
-   <version ClassVersion="12" checksum="4165743097"/>
+  <class name="rb::GasCkovHit"    ClassVersion="14">
+   <version ClassVersion="14" checksum="4165743097"/>
+   <version ClassVersion="13" checksum="4165743097"/>
     <version ClassVersion="10" checksum="6"/>
   </class>
   <class name="std::vector<rb::GasCkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
- 
+
  </lcgdict>

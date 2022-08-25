@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Definition of BACkov Hit
+/// \brief   Definition of GasCkov Hit
 /// \author  jmirabit@bu.edu
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef BACkovHit_H
-#define BACkovHit_H
+#ifndef GasCkovHit_H
+#define GasCkovHit_H
 
 #include <vector>
 #include <stdint.h>
@@ -14,14 +14,14 @@
 
 namespace rb {
   
-  class BACkovHit {
+  class GasCkovHit {
   public:
-    BACkovHit(); // Default constructor
-    virtual ~BACkovHit() {}; //Destructor
+    GasCkovHit(); // Default constructor
+    virtual ~GasCkovHit() {}; //Destructor
     
   private:
 
-    float _charge[6]; // Charge deposited in BACkov PMTs 
+    float _charge[3]; // Charge deposited in GasCkov PMTs 
     int _PID[5]; //PID numbering scheme from PDG (0 is "unknown")
     
   public:
@@ -32,11 +32,11 @@ namespace rb {
     float PIDindex(int index) const { return _PID[index]; }
 
     // Setters
-    void SetCharge(float x[6]) { for (int i=0; i<6; ++i) _charge[i] = x[i]; }
+    void SetCharge(float x[3]) { for (int i=0; i<3; ++i) _charge[i] = x[i]; }
     void SetPID(int pid[6]) { for (int i=0; i<5; ++i) _PID[i] = pid[i]; }
     
   };
   
 }
 
-#endif // BACkovHit_H
+#endif // GasCkovHit_H

@@ -4,4 +4,5 @@
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/BACkovHit.h"
+#include "RecoBase/GasCkovHit.h"
 
