@@ -24,6 +24,7 @@
 // emphaticsoft includes
 #include "DataQuality/EventQuality.h"
 #include "RawData/SSDRawDigit.h"
+#include "RawData/WaveForm.h"
 
 using namespace emph;
 
@@ -48,6 +49,7 @@ namespace emph {
     private:
 
       // Declare member data here.
+      std::string fTriggerLabel;
       std::string fSSDDataLabel;
     };
 
@@ -57,6 +59,7 @@ namespace emph {
       : EDProducer(pset)  // ,
     // More initializers here.
     {
+      fTriggerLabel = pset.get< std::string >("TriggerLabel");
       fSSDDataLabel = pset.get< std::string >("SSDDataLabel");
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -69,7 +72,19 @@ namespace emph {
     {
       // Implementation of required member function here.
       std::unique_ptr<dq::EventQuality> eventqual(new dq::EventQuality);
+
+      // get trigger waveforms
+      art::Handle< std::vector<emph::rawdata::WaveForm> > trigHandle;
+      try {
+	evt.getByLabel(fTriggerLabel, trigHandle);
+	if (!trigHandle->empty()){
+	}
+      }
+      catch(...){
+      }
       
+      
+      // look for SSD hits
       art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdHandle;
       try {
 	evt.getByLabel(fSSDDataLabel, ssdHandle);
@@ -81,6 +96,8 @@ namespace emph {
 	eventqual->hasSSDHits = false;
       }
       
+
+      // Place EventQuality object into event
       evt.put(std::move(eventqual));
     }
 

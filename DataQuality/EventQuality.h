@@ -15,10 +15,11 @@ namespace emph {
       EventQuality();
       ~EventQuality() {};
 
-      bool hasSSDHits;    ///< Does the event have SSD hits?
+      bool hasSSDHits;     ///< Does the event have SSD hits?
+      int  trigCoincLevel; ///< How many trigger PMTs had a peak above threshold?
       
       //Add all quality metrics to overall event metric here
-      bool isEventGood()  const { return hasSSDHits;}
+      bool isEventGood()  const { return hasSSDHits && trigCoincLevel==4;}
 
       friend std::ostream& operator << (std::ostream& o, const EventQuality& eq);
 

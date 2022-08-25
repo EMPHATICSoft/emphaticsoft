@@ -1,26 +1,24 @@
 //////////////////////////////////////////////////////////////////////////
-/// \brief  Event level data quality flags
+/// \brief  Spill level data quality flags
 /// \author Teresa Lackey <lackey32@fnal.gov>
 //////////////////////////////////////////////////////////////////////////
-#include "DataQuality/EventQuality.h"
+#include "DataQuality/SpillQuality.h"
 
 namespace emph {
   namespace dq {
 
     //----------------------------------------------------------------------
-    EventQuality::EventQuality() :
-      hasSSDHits(false),
-      trigCoincLevel(0)
+    SpillQuality::SpillQuality() :
+      isInGoodRunsList(false)
     {
     }
     //----------------------------------------------------------------------
-    std::ostream& operator << (std::ostream& o, const EventQuality& eq)
+    std::ostream& operator << (std::ostream& o, const SpillQuality& sq)
     {
-      o << "Event Quality information:\n";
+      o << "Spill Quality information:\n";
       o << std::boolalpha;
-      o << "Has SSD hits?: " << eq.hasSSDHits << std::endl;
-      o << "Number of trigger PMTs above threshold: " << eq.trigCoincLevel << std::endl;
-      o << "Event passes quality checks: " <<eq.isEventGood() <<std::endl;
+      o << "Spill is in Good Runs list: " << sq.isInGoodRunsList << std::endl;
+      o << "Spill passes quality checks: " <<sq.isSpillGood() <<std::endl;
       return o;
     }
 
