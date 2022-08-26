@@ -75,6 +75,9 @@ namespace emph {
       void   FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
       void   FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillTrigT0RPCV1(bool gotT0, bool gotRPC); 
+      
+      void IdentifyRawWaveformV1720T0Board1Chan7(const art::Event& evt);
+      
        // an analysis routine, first version, joint analysis of the content of the Trigger, T0 and RPC buffers. 
 
       bool fFilesAreOpen;
@@ -145,8 +148,8 @@ namespace emph {
       fFilesAreOpen(false),
       fTokenJob("none"),
       fChanMapFileName("Unknwon"), fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
-      fT0ADCs(nChanT0+1, 0.),
-      fT0TDCs(nChanT0+1, DBL_MAX),
+      fT0ADCs(nChanT0+2, 0.),
+      fT0TDCs(nChanT0+2, DBL_MAX),
       fRPCTDCs(nChanRPC, DBL_MAX),
       fTrigPeakADCs(nChanTrig, 0.),
       fTrigADCs(nChanTrig, 0.),
@@ -207,13 +210,14 @@ namespace emph {
 
     //......................................................................
     void T0toRPC::openOutputCsvFiles() {
-    
+//
+//     
       if (fRun == 0) {
         std::cerr << " T0toRPC::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
 	exit(2);
       }
       if (fMakeT0FullNtuple) { 
-        std::ostringstream fNameT0StrStr; fNameT0StrStr << "./T0Tuple_V1_" << fRun << "_" << fTokenJob << ".txt";
+        std::ostringstream fNameT0StrStr; fNameT0StrStr << "./T0Tuple_V2_" << fRun << "_" << fTokenJob << ".txt";
         std::string fNameT0Str(fNameT0StrStr.str());
         fFOutT0.open(fNameT0Str.c_str());
 	fFOutT0 << " subRun evt ";
@@ -221,7 +225,7 @@ namespace emph {
         fFOutT0 << " adc500 tdc500 " << std::endl;
       }
       if (fMakeTrigFullNtuple) { 
-        std::ostringstream fNameTrigStrStr; fNameTrigStrStr << "./TrigTuple_V1_" << fRun << "_" << fTokenJob << ".txt";
+        std::ostringstream fNameTrigStrStr; fNameTrigStrStr << "./TrigTuple_V2_" << fRun << "_" << fTokenJob << ".txt";
         std::string fNameTrigStr(fNameTrigStrStr.str());
         fFOutTrigger.open(fNameTrigStr.c_str());
 	fFOutTrigger << " subRun evt ";
@@ -232,7 +236,7 @@ namespace emph {
       }
       if (fMakeRPCFullNtuple) { 
         size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
-        std::ostringstream fNameRPCStrStr; fNameRPCStrStr << "./RPCTuple_V1_" << fRun << "_" << fTokenJob << ".txt";
+        std::ostringstream fNameRPCStrStr; fNameRPCStrStr << "./RPCTuple_V2_" << fRun << "_" << fTokenJob << ".txt";
         std::string fNameRPCStr(fNameRPCStrStr.str());
         fFOutRPC.open(fNameRPCStr.c_str());
 	fFOutRPC << " subRun evt ";
@@ -241,14 +245,14 @@ namespace emph {
       }
       if (fMakeEventSummaryNTuple) {
         size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
-        std::ostringstream fNameSumStrStr; fNameSumStrStr << "./SummaryTrigT0RPC_V1_" << fRun << "_" << fTokenJob << ".txt";
+        std::ostringstream fNameSumStrStr; fNameSumStrStr << "./SummaryTrigT0RPC_V2_" << fRun << "_" << fTokenJob << ".txt";
         std::string fNameSumStr(fNameSumStrStr.str());
         fFOutTrigT0RPC.open(fNameSumStr.c_str());
 	std::cerr << " Opening fFOutTrigT0RPC... " << std::endl;
 	fFOutTrigT0RPC << " spill dSpill evt dEvt T0OK RPCOK ";
 	fFOutTrigT0RPC << " trigPAdc0 trigSAdc0  trigPAdc1 trigSAdc1 trigPAdc2 trigSAdc2  trigPAdc3 trigSAdc3";
 	fFOutTrigT0RPC << " numCT0HighTOk numCT0High numCT0Low ";
-	for (size_t k=1; k != 19; k++) fFOutTrigT0RPC << " T0tdc" << k << " T0adc" << k;
+	for (size_t k=0; k != 20; k++) fFOutTrigT0RPC << " T0tdc" << k << " T0adc" << k;
 	for (size_t k=0; k != nchanRPC; k++) fFOutTrigT0RPC << " RPCtdc" << k;
 	fFOutTrigT0RPC << " " << std::endl;
       }
@@ -280,7 +284,8 @@ namespace emph {
 
     void T0toRPC::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
-       bool debugIsOn = (((fEvtNum == 47) && (fSubRun == 11)) || ((fEvtNum == 411) && (fSubRun == 13)));
+//       bool debugIsOn = (((fEvtNum == 47) && (fSubRun == 11)) || ((fEvtNum == 411) && (fSubRun == 13)));
+       bool debugIsOn = ((fEvtNum > 89) && (fEvtNum < 93) && (fSubRun == 2));
        if (debugIsOn) std::cerr << " T0toRPC::FillT0Plots, spill " << fSubRun << " " << fEvtNum << std::endl;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -289,19 +294,23 @@ namespace emph {
       double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0
       echan.SetBoardType(boardType);
       std::vector<int> vT0ADChits(nchan,0);	// keep... old code from plotMon..     
-      std::vector<int> vT0TDChits(nchan,0);	  
+      std::vector<int> vT0TDChits(nchan,0);
+      if (debugIsOn) std::cerr << " Number of waveforms " << wvfmH->size() << std::endl;	  
       if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
+	    echan.SetBoardType(boardType);
 	    echan.SetChannel(chan);
 	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-	    int detchan = dchan.Channel();
+	    size_t detchan = static_cast<size_t> (dchan.Channel());
+            if (debugIsOn) std::cerr << " For wave form index  " << idx << " board " 
+	                             << board << " dchan " << dchan << " detchannel " << detchan << std::endl;	  
 	    fT0ADCs[detchan] = -1.0e10;
 	    vT0ADChits[detchan]=0; 
-	    if (detchan < nchan) {
+	    if (detchan <= static_cast<size_t>(nchan)) {
 	      float bl = wvfm.Baseline(0, 12);
 	      float adcPeakNeg = bl -  static_cast<float>(wvfm.PeakADC(true)); 
 	      float adcPeakPos = static_cast<float>(wvfm.PeakADC(false)) - bl;
@@ -316,7 +325,8 @@ namespace emph {
 	      }
 	      if ((effadc > 3.0*blw) && 
 	          (adcPeakPosBin >= 14) && (deltaPeakBin > 0) && (deltaPeakBin < 5)) effadc += 10000;
-	      if ((fNEvents%1000 == 5) && ((idx == 5) || (idx == 4))) {
+	      if (((fNEvents%1000 == 5) && ((idx == 5) || (idx == 4))) ||
+	           ( (fEvtNum == 91) && ( fSubRun == 2) && (fRun == 1295))) {
 	        std::string polarStr("none");
 		if (effadc > 10000.) polarStr = std::string("Bipolar");
 		if ((adcPeakNeg > 5.0*blw) && (adcPeakPos < 2.0*blw)) polarStr = std::string("UnipolarNeg"); 
@@ -328,9 +338,11 @@ namespace emph {
 		std::vector<uint16_t> tmpwf = wvfm.AllADC();
 		for (size_t k=0; k != tmpwf.size(); k++) fWvOut << " " << k << " " << tmpwf[k] << std::endl;
 		fWvOut.close();
-	      } 
-	      fT0ADCs[detchan] = effadc;
-	      vT0ADChits[detchan]=1; 
+	      }
+	      if (detchan < fT0ADCs.size()) {
+	        fT0ADCs[detchan] = effadc;
+	        vT0ADChits[detchan]=1;
+              } 
 	    } else {
 	      std::cerr << " T0toRPC::FillT0Plots , Unexpected Channel in ADC array detchan " 
 	                << detchan << " nchan " << nchan << " expected nchan " << fT0ADCs.size()-1 <<  std::endl;
@@ -609,7 +621,7 @@ namespace emph {
         
       int nchanTrig = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
-      int nBlank = 3 + 2*18 + nchanRPC; 
+      int nBlank = 3 + 2*20 + nchanRPC; 
 // 	fFOutTrigT0RPC << " spill dSpill evt dEvt T0OK RPCOK trigAdc0 trigAdc1  trigAdc2 trigAdc3 numcT0HighTok numcT0High numcT0Low "; 
 // For now.. 
        fFOutTrigT0RPC << " " << fSubRun << " " << fSubRun - fPrevSubRun << " " << fEvtNum << " " << fEvtNum - fPrevEvtNum;
@@ -650,6 +662,10 @@ namespace emph {
       fEvtNum = evt.id().event();
       art::Timestamp aTime = evt.time();
       std::string aTimeStr = art::to_iso_string_assuming_unix_epoch(aTime);
+      
+      if  ((fRun == 1295) && (fSubRun == 2) && (fEvtNum == 91)) {
+         IdentifyRawWaveformV1720T0Board1Chan7(evt);
+      } 
       
       if (fEvtNum < 3) std::cerr << " Event " << fEvtNum << " time " << aTimeStr << " ....? " <<  std::endl;
       
@@ -728,7 +744,63 @@ namespace emph {
         } 
         this->FillTrigT0RPCV1(gotT0, gotRPC);
       }
-    }   
+    }
+    
+//
+// 
+//  searching for a waveform given to me by Linyan Trying to lift confusion.. 
+//   
+    void T0toRPC::IdentifyRawWaveformV1720T0Board1Chan7(const art::Event &evt) {
+      std::cerr << " T0toRPC::IdentifyRawWaveformV1720T0Board1Chan7 .. event " << evt.id().event() << " spill " << fSubRun << std::endl;
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel echan;
+      for (int i=0; i<emph::geo::NDetectors; ++i) {
+	std::string labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
+	std::cerr << " ....   At label " << labelStr << std::endl; 
+	art::Handle< std::vector<emph::rawdata::WaveForm> > wvfmH;
+	try {
+	  evt.getByLabel(labelStr, wvfmH);
+	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
+	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    int chan = wvfm.Channel();
+	    int board = wvfm.Board();
+	    echan.SetBoard(board);
+	    echan.SetBoardType(boardType);
+	    echan.SetChannel(chan);
+	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    size_t detchan = static_cast<size_t> (dchan.Channel());
+            std::cerr << " ... For detector " << labelStr << " wave form index  " << idx << " board " 
+	                             << board << " dchan " << dchan << " detchannel " << detchan << std::endl;
+            std::vector<uint16_t> tmpwf = wvfm.AllADC();
+	    double bl = 0;
+	    for (size_t k=0; k != 10; k++) bl += static_cast<double>(tmpwf[k]); 
+	    bl /= 10;
+	    uint16_t minVal = 2400; int minBin=31;
+	    for (size_t k=12; k != 30; k++) {
+	      if (tmpwf[k] < minVal) {  
+		minVal = tmpwf[k]; minBin = k;	     	  
+	      }
+	    }
+	    const double minBinDbl = (double) minBin;
+	    const double minValDbl = (double) minVal; 
+	    if ((std::abs(bl - 1890.) < 60.) && (std::abs(minBinDbl - 18) <= 4) && (std::abs(minValDbl - 1650) <= 80.)) {
+	      std::cerr << " Bingo !! Baseline " << bl << " minBin " << minBinDbl << " minVal " << minValDbl << std::endl;
+              std::ostringstream WvOutStrStr; 
+              WvOutStrStr << "./T0WaveForms/FakeT0_" << emph::geo::DetInfo::Name(emph::geo::DetectorType(i)) << "_";
+              WvOutStrStr << detchan << "_Spill" << fSubRun << "_evt" << fEvtNum << ".txt";
+              std::string WvOutStr( WvOutStrStr.str());
+              std::ofstream WvOut(WvOutStr.c_str()); WvOut << " k adc " << std::endl;
+              for (size_t k=0; k != tmpwf.size(); k++) WvOut << " " << k << " " << tmpwf[k] << std::endl;
+              WvOut.close();
+	    }
+          }
+        }
+	catch(...) {
+	  //	  std::cout << "Nothing found in " << labelStr << std::endl; 
+	}
+      } // on Detectors 
+     
+    }
   }
 } // end namespace demo
 
