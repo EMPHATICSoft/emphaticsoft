@@ -30,6 +30,7 @@
     <version ClassVersion="10" checksum="1"/>
   </class>
   <class name="std::vector<rb::Spill>"        />
+  <class name="art::Wrapper< rb::Spill>"        />
   <class name="art::Wrapper< std::vector<rb::Spill>    >"/>
 
   <class name="rb::ARing"    ClassVersion="11">

@@ -6,9 +6,9 @@ standard_spillinfo:
 {
  module_type:		SpillInfo
  Offset:                4.2 #seconds - shift evtTime to post-spill sample time
- Bundle:		"Emphatic_TB" 
+ Bundle:		"Emphatic_TB_read" 
  URL:			"" #empty string will cause a search for correct server 
- TimeWindow:		30    #seconds	   	 
+ TimeWindow:		60    #seconds	   	 
 }
 
 END_PROLOG
