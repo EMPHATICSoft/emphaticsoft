@@ -25,10 +25,19 @@
   <class name="std::vector<rb::SpacePoint>"        />
   <class name="art::Wrapper< std::vector<rb::SpacePoint>    >"/>
 
+  <class name="rb::Spill"    ClassVersion="11">
+   <version ClassVersion="11" checksum="2114632241"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="std::vector<rb::Spill>"        />
+  <class name="art::Wrapper< rb::Spill>"        />
+  <class name="art::Wrapper< std::vector<rb::Spill>    >"/>
+
   <class name="rb::ARing"    ClassVersion="11">
    <version ClassVersion="11" checksum="2715429707"/>
     <version ClassVersion="10" checksum="4"/>
   </class>
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
+
  </lcgdict>
