@@ -25,10 +25,10 @@ physics:
    T0toRPC :   
    {
       module_type: T0toRPC
-      tokenJob: "V1c"
+      tokenJob: "V2c_12GeV"
       makeT0FullNtuple: true
       makeRPCFullNtuple: false
-      makeTrigFullNtuple: false 
+      makeTrigFullNtuple: true 
       makeEventSummaryFullNtuple: true
    }
  }
