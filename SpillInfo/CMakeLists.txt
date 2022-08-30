@@ -16,6 +16,7 @@ include_directories( $ENV{IFDH_ART_INC} )
 
 link_directories($ENV{CETLIB_EXCEPT_LIB})
 link_directories($ENV{IFDH_ART_LIB})
+link_directories($ENV{IFBEAM_LIB})
 
 art_make_library ( SOURCE ${src_files}
                    LIBRARY_NAME  SpillInfo

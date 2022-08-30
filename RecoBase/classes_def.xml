@@ -11,6 +11,13 @@
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
 
+  <class name="rb::SSDCluster"    ClassVersion="11">
+   <version ClassVersion="11" checksum="1280789249"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="std::vector<rb::SSDCluster>"        />
+  <class name="art::Wrapper< std::vector<rb::SSDCluster>    >"/>
+
   <class name="rb::TrackSegment"    ClassVersion="11">
    <version ClassVersion="11" checksum="4133908667"/>
     <version ClassVersion="10" checksum="2"/>
@@ -25,7 +32,8 @@
   <class name="std::vector<rb::SpacePoint>"        />
   <class name="art::Wrapper< std::vector<rb::SpacePoint>    >"/>
 
-  <class name="rb::Spill"    ClassVersion="11">
+  <class name="rb::Spill"    ClassVersion="12">
+   <version ClassVersion="12" checksum="3502095394"/>
    <version ClassVersion="11" checksum="2114632241"/>
     <version ClassVersion="10" checksum="1"/>
   </class>
