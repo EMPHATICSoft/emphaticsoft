@@ -11,7 +11,7 @@ art_make_library(LIBRARY_NAME DataQuality
 			   fhiclcpp::fhiclcpp
 )
 
-build_plugin(FillEventQuality "module"
+build_plugin(FillDataQuality "module"
   LIBRARIES PRIVATE
   	    RawData
 	    DataQuality

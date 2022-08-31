@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-// Class:       FillEventQuality
+// Class:       FillDataQuality
 // Plugin Type: producer (Unknown Unknown)
-// File:        FillEventQuality_module.cc
+// File:        FillDataQuality_module.cc
 //
 // Generated at Thu Aug 18 15:15:12 2022 by Teresa Lackey using cetskelgen
 // from cetlib version v3_13_03.
@@ -31,17 +31,17 @@ using namespace emph;
 namespace emph {
   namespace dq {
 
-    class FillEventQuality : public art::EDProducer {
+    class FillDataQuality : public art::EDProducer {
     public:
-      explicit FillEventQuality(fhicl::ParameterSet const& pset);
+      explicit FillDataQuality(fhicl::ParameterSet const& pset);
       // The compiler-generated destructor is fine for non-base
       // classes without bare pointers or other resource use.
 
       // Plugins should not be copied or assigned.
-      FillEventQuality(FillEventQuality const&) = delete;
-      FillEventQuality(FillEventQuality&&) = delete;
-      FillEventQuality& operator=(FillEventQuality const&) = delete;
-      FillEventQuality& operator=(FillEventQuality&&) = delete;
+      FillDataQuality(FillDataQuality const&) = delete;
+      FillDataQuality(FillDataQuality&&) = delete;
+      FillDataQuality& operator=(FillDataQuality const&) = delete;
+      FillDataQuality& operator=(FillDataQuality&&) = delete;
 
       // Required functions.
       void produce(art::Event& evt) override;
@@ -55,7 +55,7 @@ namespace emph {
 
     //.......................................................................
 
-    emph::dq::FillEventQuality::FillEventQuality(fhicl::ParameterSet const& pset)
+    emph::dq::FillDataQuality::FillDataQuality(fhicl::ParameterSet const& pset)
       : EDProducer(pset)  // ,
     // More initializers here.
     {
@@ -68,7 +68,7 @@ namespace emph {
 
     //.......................................................................
 
-    void emph::dq::FillEventQuality::produce(art::Event& evt)
+    void emph::dq::FillDataQuality::produce(art::Event& evt)
     {
       // Implementation of required member function here.
       std::unique_ptr<dq::EventQuality> eventqual(new dq::EventQuality);
@@ -78,6 +78,8 @@ namespace emph {
       try {
 	evt.getByLabel(fTriggerLabel, trigHandle);
 	if (!trigHandle->empty()){
+	  // Add in check on ADC of each Trigger PMT to determine coincidence level.
+	  // Need to make some sort of Trigger PMT ADC class first.
 	}
       }
       catch(...){
@@ -104,4 +106,4 @@ namespace emph {
   }//end namespace dq
 }//end namespace emph
 
-DEFINE_ART_MODULE(emph::dq::FillEventQuality)
+DEFINE_ART_MODULE(emph::dq::FillDataQuality)

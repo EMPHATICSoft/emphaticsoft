@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 standard_eventqual:
 {
-  module_type:  FillEventQuality
+  module_type:  FillDataQuality
   TriggerLabel: "raw:Trigger"
   SSDDataLabel: "raw:SSD"
 }

@@ -1,6 +1,6 @@
-#include "FillEventQuality.fcl"
+#include "FillDataQuality.fcl"
 
-process_name: FillEventQual
+process_name: FillDataQual
 
 source:
 {
@@ -13,7 +13,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-eventqual_r%r_s%s.root"
+   fileName:    "emphdata-dataqual_r%r_s%s.root"
    fastCloning: false
    
   }
@@ -23,10 +23,10 @@ physics:
 {
   producers:
   {
-    eventqual: @local::standard_eventqual
+    dataqual: @local::standard_dataqual
   }
 
-  qual: [ eventqual ]
+  qual: [ dataqual ]
 
   trigger_paths: [ qual ]
   stream1: [ out1 ]
