@@ -25,7 +25,8 @@ namespace emph {
     
     int fChannel;    ///< channel ID
     int fBoard;      ///< board ID
-        
+    int fDetChannel;  ///< detector channel
+
     bool fIsMC;       ///< flag to mark data is simulation
 
     uint64_t fFragmentTimestamp;
@@ -40,6 +41,7 @@ namespace emph {
     uint32_t TStart()        const { return fTstart; }
     int      Channel()       const { return fChannel;          }
     int      Board()         const { return fBoard; }
+    int      DetChannel()    const { return fDetChannel; }
     uint64_t FragmentTime()  const { return fFragmentTimestamp; }
     std::vector<uint16_t> AllADC() const { return fADC; }
     
@@ -56,6 +58,7 @@ namespace emph {
     
     // Setters
     void       SetChannel(uint32_t    iChan) { fChannel    = iChan;      }
+    void       SetDetChannel(int iDetChan) { fDetChannel = iDetChan; }
 
     // Below here is stuff related to MC hits.
     // Unpack some of the information from fMCBits

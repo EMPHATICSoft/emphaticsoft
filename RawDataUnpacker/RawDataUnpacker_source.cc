@@ -78,18 +78,19 @@ namespace rawdata {
     fNumWaveFormPlots = ps.get<int>("numWaveFormPlots",100);
     fTimeWindow = ps.get<uint64_t>("timeWindow",20000);
     fNEvents    = ps.get<uint64_t>("nEvents",-1);
-    fChanMapFileName = ps.get<std::string>("channelMapFileName","");
     fVerbosity  = ps.get<int>("verbosity",0);
     fSSDFilePrefix = ps.get<std::string>("SSDFilePrefix",
 					 "RawDataSaver0FER1_Run");
     fReadSSDData = ps.get<bool>("readSSDData",false);
+    fReadCAENData = ps.get<bool>("readCAENData",false);
     fReadTRB3Data = ps.get<bool>("readTRB3Data",false);
     fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
     
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
       if (idet == int(emph::geo::SSD)) continue;
-      if (idet == int(emph::geo::RPC)) continue;      
+      if (idet == int(emph::geo::RPC)) continue;
+      if (idet == int(emph::geo::ARICH)) continue;
       detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));      
       help.reconstitutes<std::vector<emph::rawdata::WaveForm>, art::InEvent>("raw",detStr);
     }
@@ -112,18 +113,8 @@ namespace rawdata {
     fEvtCount = 0;
 
     fSSDEvtIdx = 0;
-    
-    // initialize channel map
-    fChannelMap = 0;
-    if (!fChanMapFileName.empty()) {
-      fChannelMap = new emph::cmap::ChannelMap();
-      if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	delete fChannelMap;
-	fChannelMap = 0;
-      }
-      std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-    }
+
+    fSpillTime = 0;
     
     // create TTree for TRB3RawDigits
     art::ServiceHandle<art::TFileService> tfs;
@@ -219,21 +210,23 @@ namespace rawdata {
     char hname[256];
     char htitle[256];    
 
-    if (V1720CFrag) {
-      for (const auto& cont : *V1720CFrag) {
-	artdaq::ContainerFragment contf(cont);
-	if (contf.fragment_type() != ots::detail::FragmentType::CAENV1720) {
-	  std::cout << "oh oh" << std::endl;
-	  break;
-	}	  
-	for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) {
-	  C1720ContainerFragments[cont.fragmentID()].emplace_back(std::move(contf[ifrag]));
-	  if (std::find(fFragId.begin(),fFragId.end(),cont.fragmentID()) == fFragId.end()) 
-	    fFragId.push_back(cont.fragmentID());
-	}	
+    if (fReadCAENData) {
+      if (V1720CFrag) {
+	for (const auto& cont : *V1720CFrag) {
+	  artdaq::ContainerFragment contf(cont);
+	  if (contf.fragment_type() != ots::detail::FragmentType::CAENV1720) {
+	    std::cout << "oh oh" << std::endl;
+	    break;
+	  }	  
+	  for (size_t ifrag=0; ifrag < contf.block_count(); ++ifrag) {
+	    C1720ContainerFragments[cont.fragmentID()].emplace_back(std::move(contf[ifrag]));
+	    if (std::find(fFragId.begin(),fFragId.end(),cont.fragmentID()) == fFragId.end()) 
+	      fFragId.push_back(cont.fragmentID());
+	  }	
+	}
+	std::cout << "V1720 block count: " << V1720CFrag->size()
+		  << std::endl;
       }
-      std::cout << "V1720 block count: " << V1720CFrag->size()
-		<< std::endl;
     }
 
     if (fReadTRB3Data) {
@@ -421,6 +414,11 @@ namespace rawdata {
       outR = fSourceHelper.makeRunPrincipal(fRun,runAux.beginTime());
       outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
 						subrunAux.beginTime());
+      fSpillTime = subrunAux.beginTime();
+
+      // initialize channel map
+      fChannelMap = new emph::cmap::ChannelMap();
+      fChannelMap->LoadMap(fRun);
 
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
@@ -493,9 +491,8 @@ namespace rawdata {
 	  }
 	}
       }
-      
+
       //      std::cout << fEvtCount << ", " << fSSDEvtIdx << ", " << std::endl;
-	
       if ((fEvtCount > 0) && (fSSDEvtIdx > 0)  &&
 	  (fSSDEvtIdx < fSSDRawDigits.size()-1) && fReadSSDData) {
 	
@@ -515,7 +512,7 @@ namespace rawdata {
 	  }
 	}
       }
-
+      
       fPrevTS = earliestTimestamp;
       if (fReadSSDData)
 	++fSSDEvtIdx;
@@ -528,16 +525,16 @@ namespace rawdata {
 	
 	thisFragId = fFragId[ifrag];
 	thisFragCount = fFragCounter[thisFragId];
-
+	
 	// bounds check:
 	if (thisFragCount == fFragTimestamps[thisFragId].size()) continue;
 	
 	if (fWaveForms.count(thisFragId)) {
 	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];
 	  /*
-	  std::cout << "dT CAEN " << thisFragId << " = " 
-		    << (thisFragTimestamp - earliestTimestamp)
-		    << std::endl;
+	    std::cout << "dT CAEN " << thisFragId << " = " 
+	    << (thisFragTimestamp - earliestTimestamp)
+	    << std::endl;
 	  */
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
 	    emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -550,6 +547,7 @@ namespace rawdata {
 	      echan.SetChannel(tdig.Channel());
 	      if (! fChannelMap->IsValidEChan(echan)) continue;
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	      tdig.SetDetChannel(dchan.Channel());
 	      // std::cout << echan << " maps to " << dchan << std::endl;
 	      evtWaveForms[dchan.DetId()]->push_back(tdig);
 	      ++nObjects;
@@ -561,11 +559,11 @@ namespace rawdata {
 	  if (fTRB3RawDigits.count(thisFragId)) {
 	    
 	    thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].GetFragmentTimestamp() - fT0[thisFragId];
-
+	    
 	    /*
-	    std::cout << "dT TRB3 " << thisFragId << " = " 
-		      << (thisFragTimestamp - earliestTimestamp)
-		      << std::endl;
+	      std::cout << "dT TRB3 " << thisFragId << " = " 
+	      << (thisFragTimestamp - earliestTimestamp)
+	      << std::endl;
 	    */
 	    
 	    if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
@@ -581,6 +579,7 @@ namespace rawdata {
 		echan.SetBoard(boardNum);
 		emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 		if (dchan.DetId() != emph::geo::NDetectors){
+		  tdig.SetDetChannel(dchan.Channel());
 		  evtTRB3Digits[dchan.DetId()]->push_back(tdig);
 		}
 		++nObjects;
@@ -595,10 +594,11 @@ namespace rawdata {
       if (nObjects == 0) return false;
       
       // write out waveforms and TDCs to appropriate folders
-      
+
+      art::Timestamp evtTime(fSpillTime.value() + earliestTimestamp);
       outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount++,
-					      earliestTimestamp);
-      
+					      evtTime);
+
       if (fVerbosity) std::cout << "Event " << fEvtCount << ": " << std::endl;
       
       if (!evtSSDRawDigits->empty()) {

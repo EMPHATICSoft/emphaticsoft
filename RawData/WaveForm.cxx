@@ -20,6 +20,7 @@ namespace rawdata{
     fTstart(-1),
     fChannel(-1),
     fBoard(-1),
+    fDetChannel(-1),
     fIsMC(false),
     fFragmentTimestamp(0)
   {
@@ -31,6 +32,7 @@ namespace rawdata{
 		     std::vector<uint16_t> adclist,
 		     uint32_t tdc, uint64_t fragTS) :
     fADC(adclist), fTstart(tdc), fChannel(channel), fBoard(board),
+    fDetChannel(-1),
     fIsMC(false), fFragmentTimestamp(fragTS)
   {
   }
