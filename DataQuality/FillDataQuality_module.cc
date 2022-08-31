@@ -23,6 +23,7 @@
 
 // emphaticsoft includes
 #include "DataQuality/EventQuality.h"
+#include "DataQuality/SpillQuality.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 
@@ -46,6 +47,8 @@ namespace emph {
       // Required functions.
       void produce(art::Event& evt) override;
 
+      void endSubRun(art::SubRun& sr);
+
     private:
 
       // Declare member data here.
@@ -55,7 +58,7 @@ namespace emph {
 
     //.......................................................................
 
-    emph::dq::FillDataQuality::FillDataQuality(fhicl::ParameterSet const& pset)
+    FillDataQuality::FillDataQuality(fhicl::ParameterSet const& pset)
       : EDProducer(pset)  // ,
     // More initializers here.
     {
@@ -63,12 +66,21 @@ namespace emph {
       fSSDDataLabel = pset.get< std::string >("SSDDataLabel");
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
-      produces< emph::dq::EventQuality >();
+      produces< EventQuality >();
+    }
+
+    //.......................................................................
+    void FillDataQuality::endSubRun(art::SubRun& sr)
+    {
+      std::unique_ptr<dq::SpillQuality> spillqual(new dq::SpillQuality);
+      // call function to check good runs list here.
+
+      sr.put(std::move(spillqual));
     }
 
     //.......................................................................
 
-    void emph::dq::FillDataQuality::produce(art::Event& evt)
+    void FillDataQuality::produce(art::Event& evt)
     {
       // Implementation of required member function here.
       std::unique_ptr<dq::EventQuality> eventqual(new dq::EventQuality);
