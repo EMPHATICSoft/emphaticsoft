@@ -50,6 +50,7 @@ namespace emph {
       void endSubRun(art::SubRun& sr);
 
     private:
+      SpillQuality::spillState CheckGoodRunsList(int run, int subrun);
 
       // Declare member data here.
       std::string fTriggerLabel;
@@ -67,6 +68,7 @@ namespace emph {
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
       produces< EventQuality >();
+      produces< SpillQuality, art::InSubRun >();
     }
 
     //.......................................................................
@@ -74,8 +76,45 @@ namespace emph {
     {
       std::unique_ptr<dq::SpillQuality> spillqual(new dq::SpillQuality);
       // call function to check good runs list here.
+      spillqual->goodRunStatus = CheckGoodRunsList(sr.run(),sr.subRun());
 
       sr.put(std::move(spillqual));
+    }
+
+    //----------------------------------------------------------------------
+    SpillQuality::spillState FillDataQuality::CheckGoodRunsList(int run, int subrun)
+    {
+      // Load RunsList file
+      std::ifstream runList;
+      std::string file_path = getenv("CETPKG_SOURCE");
+      std::string fname = file_path + "/DataQuality/GoodRunsList.txt";
+      runList.open(fname.c_str());
+      if (!runList.is_open()){
+	std::cout<<"Could not open Good Runs List: "<<fname<<std::endl;
+	std::abort();
+      }
+      
+      int runNum;
+      int subRunNum;
+      std::string state;
+
+      std::string line;
+      while (getline(runList,line)){
+	std::stringstream lineStr(line);
+	lineStr >> runNum >> subRunNum >> state;
+	if (runNum==run && subRunNum==subrun){
+	  if (state=="good")
+	    return SpillQuality::kGood;
+	  else if (state=="bad")
+	    return SpillQuality::kBad;
+	  else if (state=="questionable")
+	    return SpillQuality::kQuestionable;
+	  else
+	    std::cout<<"Should not reach here. Something wrong in list."<<std::endl;
+	}
+      } // end reading in file
+
+      return SpillQuality::kNotInList;
     }
 
     //.......................................................................

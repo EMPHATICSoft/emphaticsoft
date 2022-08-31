@@ -9,16 +9,24 @@
 
 namespace emph {
   namespace dq {
+
     class SpillQuality
     {
     public:
+      enum spillState {
+	kGood,
+	kBad,
+	kQuestionable,
+	kNotInList
+      };
+
       SpillQuality();
       ~SpillQuality() {};
 
-      bool isInGoodRunsList;     ///< Does the subrun exist in the Good Runs list?
+      spillState goodRunStatus;     ///< What is the run status in the Good Runs List?
       
       //Add all quality metrics to overall spill metric here
-      bool isSpillGood()  const { return isInGoodRunsList;}
+      bool isSpillGood()  const { return (goodRunStatus==kGood);}
 
       friend std::ostream& operator << (std::ostream& o, const SpillQuality& sq);
 

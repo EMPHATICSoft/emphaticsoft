@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-standard_eventqual:
+standard_dataqual:
 {
   module_type:  FillDataQuality
   TriggerLabel: "raw:Trigger"

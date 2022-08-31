@@ -10,7 +10,9 @@
    <version ClassVersion="11" checksum="2282623189"/>
    <version ClassVersion="10" checksum="1875526012"/>
   </class>
-  <class name="emph::dq::SpillQuality"  ClassVersion="10">
+  <class name="emph::dq::SpillQuality"  ClassVersion="12">
+   <version ClassVersion="12" checksum="2944006748"/>
+   <version ClassVersion="11" checksum="338245205"/>
    <version ClassVersion="10" checksum="4190508460"/>
   </class>
   <class name="art::Wrapper<emph::dq::EventQuality>" />
