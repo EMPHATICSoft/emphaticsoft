@@ -45,5 +45,13 @@
   </class>
   <class name="std::vector<rb::GasCkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
+
+  <class name="rb::ADC"    ClassVersion="12">
+   <version ClassVersion="12" checksum="3706276525"/>
+    <version ClassVersion="10" checksum="7"/>
+  </class>
+  <class name="std::vector<rb::ADC>"        />
+  <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
+
  
  </lcgdict>

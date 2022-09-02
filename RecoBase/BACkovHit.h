@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include <iostream>
 
-//#include "RawData/RawDigit.h"
-
 namespace rb {
   
   class BACkovHit {

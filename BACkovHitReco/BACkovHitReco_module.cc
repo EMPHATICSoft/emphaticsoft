@@ -31,6 +31,7 @@
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/BACkovHit.h"
+#include "RecoBase/ADC.h"
 
 using namespace emph;
 
@@ -57,7 +58,7 @@ namespace emph {
     void endJob();
     
   private:
-    void GetBACkovHit(art::Handle< std::vector<rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
+    void GetBACkovHit(art::Handle< std::vector<rb::ADC> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
     
     emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;    
@@ -168,7 +169,7 @@ namespace emph {
   
     //......................................................................
   
-  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
+  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<rb::ADC> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
   {
     //Create empty vectors to hold charge values
     float Qvec[6];
@@ -180,7 +181,10 @@ namespace emph {
     event = fNEvents;
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
+	    const rb::ADC wvr=wvfm;
+	    //const rb::ADC &recowvfm = wvfm;
+	    //const rb::ADC& &recowvfm = wvfm;
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
             echan.SetBoard(board);
@@ -243,7 +247,8 @@ namespace emph {
     fSubrun = evt.subRun();
 
     std::string labelStr = "raw:BACkov";
-    art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
+    art::Handle< std::vector<rb::ADC> > wfHandle;
+    //art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
 
     std::unique_ptr<std::vector<rb::BACkovHit> > BACkovHitv(new std::vector<rb::BACkovHit>);
 
@@ -251,6 +256,7 @@ namespace emph {
 	evt.getByLabel(labelStr, wfHandle);
 
 	if (!wfHandle->empty()) {
+          std::cout<<"HERE"<<std::endl;
 	  GetBACkovHit(wfHandle,  BACkovHitv);
 	}
       }

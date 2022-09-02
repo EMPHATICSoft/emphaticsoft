@@ -5,4 +5,5 @@
 #include "RecoBase/ARing.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/GasCkovHit.h"
+#include "RecoBase/ADC.h"
 

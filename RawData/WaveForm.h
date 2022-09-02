@@ -17,10 +17,10 @@ namespace emph {
     public:
       WaveForm(); // Default constructor
       ~WaveForm() {}; //Destructor
-    
+    std::vector<uint16_t> fADC;        ///< list of ADC(-like) charge values
+
   private:
     
-    std::vector<uint16_t> fADC;        ///< list of ADC(-like) charge values
     uint32_t fTstart;
     
     int fChannel;    ///< channel ID
@@ -54,9 +54,7 @@ namespace emph {
     int          PeakTDC(bool isNegative=true)           const;
     int          PeakWidth(bool isNegative=true)         const;
     float        IntegratedADC(int x1=0, int nsamp=40)   const;
-    float        Charge(int adcoffset=0, int nhits=10, int start=10, int nsamp=95)   const;
-    float        BACkovCharge(int adcoffset=0, int nhits=10, int start=25,  int nsamp=35, int win_size=8, float ADC_thresh=3)   const;   
- 
+    
     // Setters
     void       SetChannel(uint32_t    iChan) { fChannel    = iChan;      }
     void       SetDetChannel(int iDetChan) { fDetChannel = iDetChan; }
