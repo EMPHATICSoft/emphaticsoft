@@ -109,6 +109,8 @@ namespace emph {
 	    return SpillQuality::kBad;
 	  else if (state=="questionable")
 	    return SpillQuality::kQuestionable;
+	  else if (state=="special")
+	    return SpillQuality::kSpecial;
 	  else
 	    std::cout<<"Should not reach here. Something wrong in list."<<std::endl;
 	}

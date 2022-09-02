@@ -17,7 +17,8 @@ namespace emph {
 	kGood,
 	kBad,
 	kQuestionable,
-	kNotInList
+	kSpecial,
+	kNotInList = -1
       };
 
       SpillQuality();
