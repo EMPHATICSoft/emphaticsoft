@@ -87,25 +87,25 @@ vector<double> yalign(vector<double> residuals,double size){
 	         zpos[0].push_back(station0_zpos);
 	      }else if(fer ==0 && module==2){
 	         ypos[1].push_back((row-320)*ssdPitch-residuals[1]);
-	         zpos[1].push_back(station0_zpos+station_thickness);      
+	         zpos[1].push_back(station1_zpos);      
 	      }else if(fer ==1 && module==0){
 	         ypos[2].push_back((row-320)*ssdPitch-residuals[2]);
-	         zpos[2].push_back(station1_zpos);      
+	         zpos[2].push_back(station2_zpos);      
 	      }else if(fer ==1 && module==2){
 	         ypos[3].push_back((row-320)*ssdPitch-residuals[3]);
-	         zpos[3].push_back(station1_zpos+station_thickness);      
+	         zpos[3].push_back(station3_zpos);      
 	      }else if(fer ==2 && module==2){
 	         ypos[4].push_back((row-640)*ssdPitch-residuals[4]);
-	         zpos[4].push_back(station2_zpos);      
+	         zpos[4].push_back(station4_zpos);      
 	      }else if(fer ==2 && module==3){
 	         ypos[5].push_back(-(row-640)*ssdPitch-residuals[5]);
-	         zpos[5].push_back(station2_zpos);      
+	         zpos[5].push_back(station4_zpos);      
 	      }else if(fer ==3 && module==2){
 	         ypos[6].push_back((row-640)*ssdPitch-residuals[6]);
-	         zpos[6].push_back(station2_zpos+station2_thickness);      
+	         zpos[6].push_back(station5_zpos);      
 	      }else if(fer ==3 && module==3){
 	         ypos[7].push_back(-(row-640)*ssdPitch-residuals[7]);
-	         zpos[7].push_back(station2_zpos+station2_thickness);
+	         zpos[7].push_back(station5_zpos);
 	      }  
 	   }
 
@@ -204,25 +204,25 @@ void yplot(vector<double> residuals, int event){
 				zpos[start].push_back(station0_zpos);
 			}else if(fer ==0 && module==2){
 				ypos[start].push_back((row-320)*ssdPitch-residuals[1]);
-				zpos[start].push_back(station0_zpos+station_thickness);
+				zpos[start].push_back(station1_zpos);
 			}else if(fer ==1 && module==0){
 				ypos[start].push_back((row-320)*ssdPitch-residuals[2]);
-				zpos[start].push_back(station1_zpos);
+				zpos[start].push_back(station2_zpos);
 			}else if(fer ==1 && module==2){
 				ypos[start].push_back((row-320)*ssdPitch-residuals[3]);
-				zpos[start].push_back(station1_zpos+station_thickness);
+				zpos[start].push_back(station3_zpos);
 			}else if(fer ==2 && module==2){
 				ypos[start].push_back((row-640)*ssdPitch-residuals[4]);
-				zpos[start].push_back(station2_zpos);
+				zpos[start].push_back(station4_zpos);
 			}else if(fer ==2 && module==3){
 				ypos[start].push_back(-(row-640)*ssdPitch-residuals[5]);
-				zpos[start].push_back(station2_zpos);
+				zpos[start].push_back(station4_zpos);
 			}else if(fer ==3 && module==2){
 				ypos[start].push_back((row-640)*ssdPitch-residuals[6]);
-				zpos[start].push_back(station2_zpos+station2_thickness);
+				zpos[start].push_back(station5_zpos);
 			}else if(fer ==3 && module==3){
 				ypos[start].push_back(-(row-640)*ssdPitch-residuals[7]);
-				zpos[start].push_back(station2_zpos+station2_thickness);
+				zpos[start].push_back(station5_zpos);
 			}	
 		
 	   }
@@ -349,25 +349,25 @@ void just_tracks(vector<double> residuals, int event){
 			zpos[start].push_back(station0_zpos);
 		}else if(fer ==0 && module==2){
 			ypos[start].push_back((row-320)*ssdPitch-residuals[1]);
-			zpos[start].push_back(station0_zpos+station_thickness);
+			zpos[start].push_back(station1_zpos);
 		}else if(fer ==1 && module==0){
 			ypos[start].push_back((row-320)*ssdPitch-residuals[2]);
-			zpos[start].push_back(station1_zpos);
+			zpos[start].push_back(station2_zpos);
 		}else if(fer ==1 && module==2){
 			ypos[start].push_back((row-320)*ssdPitch-residuals[3]);
-			zpos[start].push_back(station1_zpos+station_thickness);
+			zpos[start].push_back(station3_zpos);
 		}else if(fer ==2 && module==2){
 			ypos[start].push_back((row-640)*ssdPitch-residuals[4]);
-			zpos[start].push_back(station2_zpos);
+			zpos[start].push_back(station4_zpos);
 		}else if(fer ==2 && module==3){
 			ypos[start].push_back(-(row-640)*ssdPitch-residuals[5]);
-			zpos[start].push_back(station2_zpos);
+			zpos[start].push_back(station4_zpos);
 		}else if(fer ==3 && module==2){
 			ypos[start].push_back((row-640)*ssdPitch-residuals[6]);
-			zpos[start].push_back(station2_zpos+station2_thickness);
+			zpos[start].push_back(station5_zpos);
 		}else if(fer ==3 && module==3){
 			ypos[start].push_back(-(row-640)*ssdPitch-residuals[7]);
-			zpos[start].push_back(station2_zpos+station2_thickness);
+			zpos[start].push_back(station5_zpos);
 		}	
 	
 	   }
@@ -485,25 +485,25 @@ void multiple_tracks(vector<double> residuals, int event){
 			zpos[start].push_back(station0_zpos);
 		}else if(fer ==0 && module==2){
 			ypos[start].push_back((row-320)*ssdPitch-residuals[1]);
-			zpos[start].push_back(station0_zpos+station_thickness);
+			zpos[start].push_back(station1_zpos);
 		}else if(fer ==1 && module==0){
 			ypos[start].push_back((row-320)*ssdPitch-residuals[2]);
-			zpos[start].push_back(station1_zpos);
+			zpos[start].push_back(station2_zpos);
 		}else if(fer ==1 && module==2){
 			ypos[start].push_back((row-320)*ssdPitch-residuals[3]);
-			zpos[start].push_back(station1_zpos+station_thickness);
+			zpos[start].push_back(station3_zpos);
 		}else if(fer ==2 && module==2){
 			ypos[start].push_back((row-640)*ssdPitch-residuals[4]);
-			zpos[start].push_back(station2_zpos);
+			zpos[start].push_back(station4_zpos);
 		}else if(fer ==2 && module==3){
 			ypos[start].push_back(-(row-640)*ssdPitch-residuals[5]);
-			zpos[start].push_back(station2_zpos);
+			zpos[start].push_back(station4_zpos);
 		}else if(fer ==3 && module==2){
 			ypos[start].push_back((row-640)*ssdPitch-residuals[6]);
-			zpos[start].push_back(station2_zpos+station2_thickness);
+			zpos[start].push_back(station5_zpos);
 		}else if(fer ==3 && module==3){
 			ypos[start].push_back(-(row-640)*ssdPitch-residuals[7]);
-			zpos[start].push_back(station2_zpos+station2_thickness);
+			zpos[start].push_back(station5_zpos);
 		}	
 	
 	   }
@@ -602,22 +602,22 @@ void yhist(vector<double> residuals){
 		if(fer ==0 && module==0){
 			h1->Fill(station0_zpos,(row-320)*ssdPitch-residuals[0]);
 		}else if(fer ==0 && module==2){
-			h1->Fill(station0_zpos+station_thickness,(row-320)*ssdPitch-residuals[1]);
+			h1->Fill(station1_zpos,(row-320)*ssdPitch-residuals[1]);
 		}else if(fer ==1 && module==0){
-			h1->Fill(station1_zpos,(row-320)*ssdPitch-residuals[2]);
+			h1->Fill(station2_zpos,(row-320)*ssdPitch-residuals[2]);
 		}else if(fer ==1 && module==2){
-			h1->Fill(station1_zpos+station_thickness,(row-320)*ssdPitch-residuals[3]);	
+			h1->Fill(station3_zpos,(row-320)*ssdPitch-residuals[3]);	
 		}else if(fer ==2 && module==2){
-			h1->Fill(station2_zpos,(row-640)*ssdPitch-residuals[4]);
+			h1->Fill(station4_zpos,(row-640)*ssdPitch-residuals[4]);
 	                h2->Fill((row-640)*ssdPitch-residuals[4]);		
 		}else if(fer ==2 && module==3){
-			h1->Fill(station2_zpos,-(row-640)*ssdPitch-residuals[5]);
+			h1->Fill(station4_zpos,-(row-640)*ssdPitch-residuals[5]);
 	                h2->Fill(-(row-640)*ssdPitch-residuals[5]);		
 		}else if(fer ==3 && module==2){
-			h1->Fill(station2_zpos+station2_thickness,(row-640)*ssdPitch-residuals[6]);
+			h1->Fill(station5_zpos,(row-640)*ssdPitch-residuals[6]);
 			h2->Fill((row-640)*ssdPitch-residuals[6]);		
 		}else if(fer ==3 && module==3){
-			h1->Fill(station2_zpos+station2_thickness,-(row-640)*ssdPitch-residuals[7]);
+			h1->Fill(station5_zpos,-(row-640)*ssdPitch-residuals[7]);
 			h2->Fill(-(row-640)*ssdPitch-residuals[7]);
 		}	
 	
@@ -666,25 +666,25 @@ double with_fit(vector<double>residuals, int event){
 			zpos[0].push_back(station0_zpos);
 		}else if(fer ==0 && module==2){
 			ypos[1].push_back((row-320)*ssdPitch-residuals[1]);
-			zpos[1].push_back(station0_zpos+station_thickness);		
+			zpos[1].push_back(station1_zpos);		
 		}else if(fer ==1 && module==0){
 			ypos[2].push_back((row-320)*ssdPitch-residuals[2]);
-			zpos[2].push_back(station1_zpos);		
+			zpos[2].push_back(station2_zpos);		
 		}else if(fer ==1 && module==2){
 			ypos[3].push_back((row-320)*ssdPitch-residuals[3]);
-			zpos[3].push_back(station1_zpos+station_thickness);		
+			zpos[3].push_back(station3_zpos);		
 		}else if(fer ==2 && module==2){
 			ypos[4].push_back((row-640)*ssdPitch-residuals[4]);
-			zpos[4].push_back(station2_zpos);		
+			zpos[4].push_back(station4_zpos);		
 		}else if(fer ==2 && module==3){
 			ypos[5].push_back(-(row-640)*ssdPitch-residuals[5]);
-			zpos[5].push_back(station2_zpos);		
+			zpos[5].push_back(station4_zpos);		
 		}else if(fer ==3 && module==2){
 			ypos[6].push_back((row-640)*ssdPitch-residuals[6]);
-			zpos[6].push_back(station2_zpos+station2_thickness);		
+			zpos[6].push_back(station5_zpos);		
 		}else if(fer ==3 && module==3){
 			ypos[7].push_back(-(row-640)*ssdPitch-residuals[7]);
-			zpos[7].push_back(station2_zpos+station2_thickness);
+			zpos[7].push_back(station5_zpos);
 		}	
 	}
   

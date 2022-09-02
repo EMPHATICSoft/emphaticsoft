@@ -65,25 +65,25 @@ double chi_squared(Double_t shift0, Double_t shift1,Double_t shift2,Double_t shi
          zpos[0].push_back(station0_zpos);
       }else if(fer ==0 && module==2){
          ypos[1].push_back((row-320)*ssdPitch-yresiduals[1]-shift1);
-         zpos[1].push_back(station0_zpos+station_thickness);      
+         zpos[1].push_back(station1_zpos);      
       }else if(fer ==1 && module==0){
          ypos[2].push_back((row-320)*ssdPitch-yresiduals[2]-shift2);
-         zpos[2].push_back(station1_zpos);      
+         zpos[2].push_back(station2_zpos);      
       }else if(fer ==1 && module==2){
          ypos[3].push_back((row-320)*ssdPitch-yresiduals[3]-shift3);
-         zpos[3].push_back(station1_zpos+station_thickness);      
+         zpos[3].push_back(station3_zpos);      
       }else if(fer ==2 && module==2){
          ypos[4].push_back((row-640)*ssdPitch-yresiduals[4]-shift4);
-         zpos[4].push_back(station2_zpos);      
+         zpos[4].push_back(station4_zpos);      
       }else if(fer ==2 && module==3){
          ypos[5].push_back(-(row-640)*ssdPitch-yresiduals[5]-shift5);
-         zpos[5].push_back(station2_zpos);      
+         zpos[5].push_back(station4_zpos);      
       }else if(fer ==3 && module==2){
          ypos[6].push_back((row-640)*ssdPitch-yresiduals[6]-shift6);
-         zpos[6].push_back(station2_zpos+station2_thickness);      
+         zpos[6].push_back(station5_zpos);      
       }else if(fer ==3 && module==3){
          ypos[7].push_back(-(row-640)*ssdPitch-yresiduals[7]-shift7);
-         zpos[7].push_back(station2_zpos+station2_thickness);
+         zpos[7].push_back(station5_zpos);
       }  
    }
    // graph of event

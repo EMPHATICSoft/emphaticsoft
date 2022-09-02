@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h> 
 #include <numeric>
-#include "track.C"
+#include "main_alignment.C"
 
 double chi = 0;
 
