@@ -29,26 +29,14 @@
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
-
+#include "TOF/PeakInWaveForm.h"
 
 using namespace emph;
 
 ///package to illustrate how to write modules
 namespace emph {
   namespace tof {
-  
-    class PeakInWaveform {
-      public:
-        PeakInWaveform(); 
-        int peakNumber;
-        size_t startBin;
-        size_t peakBin;
-        size_t endBin;
-        double peakVal;
-        double sumSig;
-        double prevSumSig;
-    };
-  
+    
     class T0toRPC : public art::EDAnalyzer {
     public:
       explicit T0toRPC(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
@@ -76,7 +64,7 @@ namespace emph {
       void   FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
       void   FillTrigT0RPCV1(bool gotT0, bool gotRPC); 
       
-      void IdentifyRawWaveformV1720T0Board1Chan7(const art::Event& evt);
+      void IdentifyRawWaveformV1720T0Board1Chan7(const art::Event& evt); // obsolete... but a keep for code example. 
       
        // an analysis routine, first version, joint analysis of the content of the Trigger, T0 and RPC buffers. 
 
@@ -107,12 +95,15 @@ namespace emph {
 // Some data structure being filled in specific fill routines;
 //  There content is event specific. To be used in the summary method, where we establish  some coincidences.  
 //
-     std::vector<double> fT0ADCs;
+     std::vector<double> fT0ADCs; // summary 
+     std::vector<emph::tof::PeakInWaveForm> fPeakT0s; // details
      std::vector<double> fT0TDCs; // parallel vectors
+     std::vector<double> fT0TDCsFrAdc; // The bin at which the peak was found 
 //     std::vector<double> fRPCADCs(nChanRPC, 0.);
      std::vector<double> fRPCTDCs;
      std::vector<double> fTrigPeakADCs;
      std::vector<double> fTrigADCs;
+     std::vector<emph::tof::PeakInWaveForm> fPeakTriggers;
 
       bool fMakeT0FullNtuple; 
       bool fMakeRPCFullNtuple;
@@ -122,26 +113,14 @@ namespace emph {
 
      
       // define streamers for csv files. 
-      std::ofstream fFOutT0;
+      std::ofstream fFOutT0, fFOutT0Prof;
       std::ofstream fFOutRPC; 
       std::ofstream fFOutTrigger; 
       std::ofstream fFOutTrigT0RPC; 
+      
+      void dumpWaveForm(emph::geo::tDetectorType aType, int detchan, std::string &polarityStr, std::vector<uint16_t> &wf); 
 
-    };
-    //
-    // Implementation.. 
-    //
-    
-    PeakInWaveform::PeakInWaveform() :
-      peakNumber(-1),
-      startBin(4096),
-      peakBin(4096),
-      endBin(4096),
-      peakVal(0.),
-      sumSig(0.),
-      prevSumSig(0.)
-      { ; }
-    
+    };    
     //.......................................................................
     T0toRPC::T0toRPC(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
@@ -150,6 +129,7 @@ namespace emph {
       fChanMapFileName("Unknwon"), fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
       fT0ADCs(nChanT0+2, 0.),
       fT0TDCs(nChanT0+2, DBL_MAX),
+      fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
       fRPCTDCs(nChanRPC, DBL_MAX),
       fTrigPeakADCs(nChanTrig, 0.),
       fTrigADCs(nChanTrig, 0.),
@@ -168,6 +148,7 @@ namespace emph {
     {
     
       if (fFOutT0.is_open()) fFOutT0.close();
+      if (fFOutT0Prof.is_open()) fFOutT0Prof.close();
       if (fFOutRPC.is_open()) fFOutRPC.close();
       if (fFOutTrigger.is_open()) fFOutTrigger.close();
       if (fFOutTrigT0RPC.is_open()) fFOutTrigT0RPC.close();
@@ -220,9 +201,14 @@ namespace emph {
         std::ostringstream fNameT0StrStr; fNameT0StrStr << "./T0Tuple_V2_" << fRun << "_" << fTokenJob << ".txt";
         std::string fNameT0Str(fNameT0StrStr.str());
         fFOutT0.open(fNameT0Str.c_str());
-	fFOutT0 << " subRun evt ";
-        for (unsigned int k=0; k != nChanT0; k++) fFOutT0 << " adc" << k << " tdc" << k; 
-        fFOutT0 << " adc500 tdc500 " << std::endl;
+	fFOutT0 << " subRun evt nP1Uni nP1Bi nP2Uni nP2Bi ";
+        for (unsigned int k=0; k != nChanT0; k++) fFOutT0 << " adc" << k << " tdc" << k << " tdcA" << k << " type" << k; 
+        fFOutT0 << " " << std::endl;
+	
+        std::ostringstream fNameT0ProfStrStr; fNameT0ProfStrStr << "./T0TupleProf_V2_" << fRun << "_" << fTokenJob << ".txt";
+        std::string fNameT0ProfStr(fNameT0ProfStrStr.str());
+        fFOutT0Prof.open(fNameT0ProfStr.c_str());	
+        fFOutT0Prof << " Spill  evt nH nH1 nH1UpDwn nH2 nH2UpDwn seg1 seq2 sumSigUp1 sumSigDwn1 sumSigUp2 sumSigDwn2 " << std::endl;
       }
       if (fMakeTrigFullNtuple) { 
         std::ostringstream fNameTrigStrStr; fNameTrigStrStr << "./TrigTuple_V2_" << fRun << "_" << fTokenJob << ".txt";
@@ -230,8 +216,8 @@ namespace emph {
         fFOutTrigger.open(fNameTrigStr.c_str());
 	fFOutTrigger << " subRun evt ";
         for (unsigned int k=0; k != nChanTrig; k++) 
-	  fFOutTrigger << " Padc" << k << " Sadc" << k << " Mean" << k << " Width" << k << " Skew" << k 
-	               << " numPeak" << k << " deltaT" << k << " peakSig1" << k  << " peakSig2" << k;
+	  fFOutTrigger << " Padc" << k << " Sadc" << k << " Width" << k << " EndBin" << k 
+	               << " numPeak" << k << " deltaT12_" << k << " S2adc" << k  << " deltaT13_" << k << " S3adc" << k;
         fFOutTrigger << " " << std::endl;
       }
       if (fMakeRPCFullNtuple) { 
@@ -250,9 +236,10 @@ namespace emph {
         fFOutTrigT0RPC.open(fNameSumStr.c_str());
 	std::cerr << " Opening fFOutTrigT0RPC... " << std::endl;
 	fFOutTrigT0RPC << " spill dSpill evt dEvt T0OK RPCOK ";
-	fFOutTrigT0RPC << " trigPAdc0 trigSAdc0  trigPAdc1 trigSAdc1 trigPAdc2 trigSAdc2  trigPAdc3 trigSAdc3";
-	fFOutTrigT0RPC << " numCT0HighTOk numCT0High numCT0Low ";
-	for (size_t k=0; k != 20; k++) fFOutTrigT0RPC << " T0tdc" << k << " T0adc" << k;
+	fFOutTrigT0RPC << " trigNumPeaks sumFirst4PMTs sumSecond4PMTS deltaTrig ";
+	fFOutTrigT0RPC << " numT0Peaks ";
+	for (size_t k=0; k != 5; k++) fFOutTrigT0RPC << " T0Segment" << k <<" T0ADCSumUp" << k << " T0TDCUpd" << k 
+	                                             << " T0ADCSumDwn" << k << " T0TDCUSwn" << k;
 	for (size_t k=0; k != nchanRPC; k++) fFOutTrigT0RPC << " RPCtdc" << k;
 	fFOutTrigT0RPC << " " << std::endl;
       }
@@ -275,8 +262,11 @@ namespace emph {
     //......................................................................
     
     void T0toRPC::resetAllADCsTDCs() {
+       fPeakTriggers.clear();
+       fPeakT0s.clear();
        for(std::vector<double>::iterator it = fT0ADCs.begin(); it != fT0ADCs.end(); it++) *it = -1.0*DBL_MAX/2.;
        for(std::vector<double>::iterator it = fT0TDCs.begin(); it != fT0TDCs.end(); it++) *it = DBL_MAX;
+       for(std::vector<double>::iterator it = fT0TDCsFrAdc.begin(); it != fT0TDCsFrAdc.end(); it++) *it = DBL_MAX;
        for(std::vector<double>::iterator it = fRPCTDCs.begin(); it != fRPCTDCs.end(); it++) *it = DBL_MAX;
        for(std::vector<double>::iterator it = fTrigADCs.begin();it != fTrigADCs.end(); it++) *it = -1.0*DBL_MAX/2.;
        for(std::vector<double>::iterator it = fTrigPeakADCs.begin();it != fTrigPeakADCs.end(); it++) *it = 0.;
@@ -285,17 +275,25 @@ namespace emph {
     void T0toRPC::FillT0Plots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH, art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
 //       bool debugIsOn = (((fEvtNum == 47) && (fSubRun == 11)) || ((fEvtNum == 411) && (fSubRun == 13)));
-       bool debugIsOn = ((fEvtNum > 89) && (fEvtNum < 93) && (fSubRun == 2));
-       if (debugIsOn) std::cerr << " T0toRPC::FillT0Plots, spill " << fSubRun << " " << fEvtNum << std::endl;
+//       bool debugIsOn = ((fEvtNum > 89) && (fEvtNum < 93) && (fSubRun == 2));
+       bool debugIsOn = ((fEvtNum == 91) && (fSubRun == 2) && (fRun == 136500000));
+       debugIsOn = ((debugIsOn) || ((fEvtNum == 6) && (fSubRun == 1) && (fRun == 136500000)));
+       debugIsOn = ((debugIsOn) || ((fEvtNum == 26) && (fSubRun == 1) && (fRun == 13650000)));
+       if (debugIsOn) std::cerr << "----------------------------------------------------------------------" << std::endl 
+                                << " T0toRPC::FillT0Plots, spill " << fSubRun << " evt " << fEvtNum << std::endl;
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::T0);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
       double trb3LinearLowEnd = 15.0;
-      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0
+      double trb3LinearHighEnd = 494.0; // For FPGA2 -- T0 // Phase 1a version.. 
       echan.SetBoardType(boardType);
       std::vector<int> vT0ADChits(nchan,0);	// keep... old code from plotMon..     
       std::vector<int> vT0TDChits(nchan,0);
-      if (debugIsOn) std::cerr << " Number of waveforms " << wvfmH->size() << std::endl;	  
+      if (debugIsOn) std::cerr << " Number of waveforms " << wvfmH->size() << std::endl;
+      int numFirstPeakBipolar = 0;	  
+      int numFirstPeakUnipolar = 0;	  
+      int num2ndPeakBipolar = 0;	  
+      int num2ndPeakUnipolar = 0;	  
       if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
@@ -311,37 +309,39 @@ namespace emph {
 	    fT0ADCs[detchan] = -1.0e10;
 	    vT0ADChits[detchan]=0; 
 	    if (detchan <= static_cast<size_t>(nchan)) {
-	      float bl = wvfm.Baseline(0, 12);
-	      float adcPeakNeg = bl -  static_cast<float>(wvfm.PeakADC(true)); 
-	      float adcPeakPos = static_cast<float>(wvfm.PeakADC(false)) - bl;
-	      int adcPeakNegBin = wvfm.PeakTDC(true); int adcPeakPosBin = wvfm.PeakTDC(false);
-	      int deltaPeakBin = adcPeakNegBin - adcPeakPosBin;	  // look for differential signals.     
-	      float blw = wvfm.BLWidth();
-	      float effadc = adcPeakNeg + adcPeakPos;
+	      std::vector<uint16_t> tmpwf = wvfm.AllADC();
+              PeakInWaveForm firstPeak(emph::geo::T0);
+	      std::string polarityStr("none");
+	      if (!firstPeak.findIt(tmpwf, 5.0, 10)) {
+	        if (debugIsOn) dumpWaveForm(emph::geo::T0, detchan, polarityStr, tmpwf);
+		continue; 
+	      }
+	      firstPeak.setUserID(detchan);
+	      fPeakT0s.push_back(firstPeak);
+	      if (firstPeak.getPeakType() == UNIPOLAR) numFirstPeakUnipolar++; 
+	      if (firstPeak.getPeakType() == BIPOLAR) numFirstPeakBipolar++; 
 	      if (debugIsOn) {
-	        std::cerr << ".. detchan  " << detchan << " bl " << bl << " bwl " << blw 
-		          << " PeakNeg, Ampl/Bin " << adcPeakNeg << "/" << adcPeakNegBin << " PeakPos " 
-			  << adcPeakPos << "/" << adcPeakPosBin << " deltaPeakBin " << deltaPeakBin << std::endl;
+	        if (firstPeak.getPeakType() == emph::tof::BIPOLAR) polarityStr = std::string("Bipolar"); 
+                else if (firstPeak.getPeakType() == emph::tof::UNIPOLAR) polarityStr = std::string("Unipolar"); 
+		std::cerr << firstPeak;
+	        dumpWaveForm(emph::geo::T0, detchan, polarityStr, tmpwf); 
 	      }
-	      if ((effadc > 3.0*blw) && 
-	          (adcPeakPosBin >= 14) && (deltaPeakBin > 0) && (deltaPeakBin < 5)) effadc += 10000;
-	      if (((fNEvents%1000 == 5) && ((idx == 5) || (idx == 4))) ||
-	           ( (fEvtNum == 91) && ( fSubRun == 2) && (fRun == 1295))) {
-	        std::string polarStr("none");
-		if (effadc > 10000.) polarStr = std::string("Bipolar");
-		if ((adcPeakNeg > 5.0*blw) && (adcPeakPos < 2.0*blw)) polarStr = std::string("UnipolarNeg"); 
-		if ((adcPeakPos > 5.0*blw) && (adcPeakNeg < 2.0*blw)) polarStr = std::string("UnipolarPos"); 
-	        std::ostringstream fWvOutStrStr; 
-		fWvOutStrStr << "./T0WaveForms/T0ADC" << polarStr << "_" << idx << "_Run_" << fRun << "_Spill" << fSubRun << "_evt_" << fEvtNum << ".txt";
-		std::string fWvOutStr( fWvOutStrStr.str());
-		std::ofstream fWvOut(fWvOutStr.c_str()); fWvOut << " k adc " << std::endl;
-		std::vector<uint16_t> tmpwf = wvfm.AllADC();
-		for (size_t k=0; k != tmpwf.size(); k++) fWvOut << " " << k << " " << tmpwf[k] << std::endl;
-		fWvOut.close();
-	      }
+	      PeakInWaveForm secondPeak(emph::geo::T0);
+	      secondPeak.setDebugOn(debugIsOn);
+	      if (secondPeak.findItAfter(firstPeak, tmpwf, 5.0)) { 
+	        if (secondPeak.getPeakType() == UNIPOLAR) num2ndPeakUnipolar++; 
+	        if (secondPeak.getPeakType() == BIPOLAR) num2ndPeakBipolar++; 
+	        if (debugIsOn) {
+	          std::cerr << " ... Found a 2nd peak...  " << std::endl;
+		  std::cerr << secondPeak;
+	        }
+	        secondPeak.setUserID( 1000 + detchan);
+	        fPeakT0s.push_back(secondPeak);
+              }
 	      if (detchan < fT0ADCs.size()) {
-	        fT0ADCs[detchan] = effadc;
-	        vT0ADChits[detchan]=1;
+	        fT0ADCs[detchan] = firstPeak.getSumSig();
+	        fT0TDCsFrAdc[detchan] = firstPeak.getPeakBin();
+	        vT0ADChits[detchan]= (firstPeak.getPeakType() == emph::tof::BIPOLAR) ? 2 : 1;
               } 
 	    } else {
 	      std::cerr << " T0toRPC::FillT0Plots , Unexpected Channel in ADC array detchan " 
@@ -351,8 +351,12 @@ namespace emph {
 	    }
 	  }
       }
+      if (debugIsOn) { std::cerr << " Total number of peaks  " << fPeakT0s.size() << std::endl;  }
       
-      if (! trb3H->empty()) {
+      
+      // Note : if the handle is empty or faulty (no data), this method returns.. Not intended.. Fix it only for run 1365 
+      if ((fRun != 1365) && (!trb3H->empty())) {
+           std::cerr << " .... trb3 is NOT empty... " << std::endl;
 	  //std::cout<<"New Event!"<<std::endl;
 	  int i = 0;
 	  i++;
@@ -388,10 +392,82 @@ namespace emph {
          }
       }
       if (fMakeT0FullNtuple) {
-        fFOutT0 << " " << fSubRun << " " << fEvtNum;
-        for (int k=0; k != nchan+1; k++) fFOutT0 << " " << fT0ADCs[k] << " " << fT0TDCs[k];
-        fFOutT0 << std::endl;
+        fFOutT0 << " " << fSubRun << " " << fEvtNum << " " << numFirstPeakUnipolar << " " << numFirstPeakBipolar 
+	        << " " << num2ndPeakUnipolar << " " << num2ndPeakBipolar;
+        for (int k=0; k != nchan; k++) fFOutT0 << " " << fT0ADCs[k] << " " << fT0TDCs[k] << " " << fT0TDCsFrAdc[k] << " " << vT0ADChits[k];
+        fFOutT0 << " " <<std::endl;
+	// 
+	// get a profile along X, asking for large pulse, and correct timing..Count the number of matching up/down pairs.  
+	// 
+	// first elements are guess, not o 120 proton data. 
+	std::vector<double> cutSumVals{ 320., 325., 230., 320., 370., 380., 240., 365., 185., 250., 270., 280., 
+	                                275., 320., 290., 315., 290., 315., 250., 235. };
+	std::vector<double> meanTPeakVals{29., 2.970284e+01,  2.996849e+01,  2.993687e+01,  2.964449e+01,  2.929533e+01,  1.872250e+01,
+	                     30.,  1.746695e+01,  1.588931e+01,  1.837553e+01,
+                             1.744499e+01,  1.710197e+01,  1.691933e+01,  1.679155e+01,  1.590024e+01,  1.528530e+01, 
+			      1.619635e+01,  1.583242e+01,  1.661496e+01 };
+	int numHits = 0;		      
+	int numHitsFirst = 0;		      
+	int numHitsFirstUpDown = 0;		      
+	int numHits2nd = 0;		      
+	int numHits2ndUpDown = 0;		      
+	int segmentHitFirst = -1;
+	int segmentHit2nd = -1;	
+	double sumSigUpFirst = 0.;
+	double sumSigDownFirst = 0.;
+	double sumSigUp2nd = 0.;
+	double sumSigDown2nd = 0.;
+		      
+	for (std::vector<PeakInWaveForm>::const_iterator it1 = fPeakT0s.cbegin(); it1 != fPeakT0s.cend(); it1++) {
+	  if (it1->getPeakType() != emph::tof::UNIPOLAR) continue;
+	  const int uid1 = it1->getUserID();
+	  const int uid1R = (uid1 < 1000) ? uid1 : uid1-1000;	// first of 2nd peak. 
+	  if ((uid1R < 0) || (static_cast<size_t>(uid1R) >=  cutSumVals.size())) continue; // should not happen   
+	  if (it1->getSumSig() <  cutSumVals[static_cast<size_t>(uid1R)]) continue;
+	  numHits++;
+	  if (uid1 < 1000) { // first encountred hits. 
+	      if (std::abs(it1->getPeakBin() - meanTPeakVals[(size_t)uid1R]) > 15.) continue;
+	      numHitsFirst++; segmentHitFirst = uid1;
+	     if (uid1 >= 10) sumSigUpFirst = it1->getSumSig();
+	     else  sumSigDownFirst = it1->getSumSig();
+	     // look for an up Down match. 
+	     for (std::vector<PeakInWaveForm>::const_iterator it2 = fPeakT0s.cbegin(); it2 != fPeakT0s.cend(); it2++) {
+	       if (it1 == it2) continue;
+	       if (it2->getPeakType() != emph::tof::UNIPOLAR) continue;
+	       const int uid2 = it2->getUserID();
+	       if (uid2 >= 1000) continue;
+	       if ((uid2 < 0) || (static_cast<size_t>(uid2) >=  cutSumVals.size())) continue; // should not happen   
+	       if (it2->getSumSig() <  cutSumVals[(size_t) uid2]) continue;
+	       if ((uid1 == uid2+10) || (uid2 == uid1 + 10)) numHitsFirstUpDown++; // Does not take into accout the offset between top/bottom row Might be incomplete.
+	     }
+	  
+	  } else { // 2nd 
+	      numHits2nd++; segmentHit2nd = uid1R;
+	     if (uid1R >= 10) sumSigUp2nd = it1->getSumSig();
+	     else  sumSigDown2nd = it1->getSumSig();
+	     // look for an up Down match. 
+	     for (std::vector<PeakInWaveForm>::const_iterator it2 = fPeakT0s.cbegin(); it2 != fPeakT0s.cend(); it2++) {
+	       if (it1 == it2) continue;
+	       if (it2->getPeakType() != emph::tof::UNIPOLAR) continue;
+	       const int uid2 = it2->getUserID();
+	       if (uid2 < 1000) continue;
+	       const int uid2R = uid2 - 1000;
+	       if ((uid2R < 0) || (static_cast<size_t>(uid2R) >=  cutSumVals.size())) continue; // should not happen   
+	       if (it2->getSumSig() <  cutSumVals[(size_t) uid2R]) continue;
+	       if ((uid1R == uid2R + 10) || (uid2R == uid1R + 10)) numHits2ndUpDown++;
+	     }
+
+	  }
+	 
+	} // on the Peaks, the first ones, chronologically. 
+	
+	fFOutT0Prof << " " << fSubRun << " " << fEvtNum << " " << numHits << " " << numHitsFirst << " " << numHitsFirstUpDown
+	            << " " << numHits2nd << " " << numHits2ndUpDown << " " << segmentHitFirst << " " << segmentHit2nd << " " 
+	            << sumSigUpFirst << " " << sumSigDownFirst << " " << sumSigUp2nd << " " << sumSigDown2nd << std::endl;
+
       }
+      
+      
     }  
         
     //......................................................................
@@ -440,30 +516,31 @@ namespace emph {
 
     void   T0toRPC::FillTrigPlots(art::Handle< std::vector<rawdata::WaveForm> > & wvfmH)
     {
-      if (wvfmH->empty()) return;
+//       std::cerr << " T0toRPC::FillTrigPlots tmp debug fRun " << fRun << " spill " << fSubRun << " evt " << fEvtNum << std::endl;
+       std::string polarityStr("DCNEG"); 
 //      const bool debugIsOn = (((fEvtNum < 5) && (fSubRun < 5)) || (((fRun == 511) && ((fSubRun == 10) ) && ( 
 //     	(fEvtNum == 92) || (fEvtNum == 158) || (fEvtNum == 585) || 
 //        (fEvtNum == 601) || (fEvtNum == 762) || (fEvtNum == 875))) || ((fSubRun == 7) && (fEvtNum > 1874)));
 //      const bool debugIsOn = ((fRun == 511) && (fSubRun == 7) && (fEvtNum > 1874 ) && (fEvtNum < 1880 )); 
 //      const bool debugIsOn = ((fRun == 511) && (fEvtNum > 250000 )); 
-      const bool debugIsOn = ((((fRun == 511) && (fSubRun == 10) && ( 
-     	(fEvtNum == 69) || (fEvtNum == 387) || (fEvtNum == 569) || 
-        (fEvtNum == 954) || (fEvtNum == 1414) || (fEvtNum == 1455)))));
+//      const bool debugIsOn = ((((fRun == 511) && (fSubRun == 10) && ( 
+//     	(fEvtNum == 69) || (fEvtNum == 387) || (fEvtNum == 569) || 
+//        (fEvtNum == 954) || (fEvtNum == 1414) || (fEvtNum == 1455)))));
+     bool debugIsOn = ((fRun == 1365) && (fSubRun == 1) && (fEvtNum == 6));  // Single proton, no problem. 
+     debugIsOn = ((debugIsOn) || ((fRun == 1365) && (fSubRun == 1) && (fEvtNum == 26))); // Large amplitude, two particle in T0 
+     debugIsOn = ((debugIsOn) || ((fRun == 1365) && (fSubRun == 1) && (fEvtNum == 333))); // 2nd particle 7rf. buchet away.. 
+     debugIsOn = ((debugIsOn) || ((fRun == 1365) && (fSubRun == 1) && (fEvtNum == 56))); // 2nd particle Within first pulse. in 4 PMTs..
      if (debugIsOn) std::cerr << " Starting T0toRPC::FillTrigPlots, spill " << fSubRun << " evt " << fEvtNum << std::endl;
+      if (wvfmH->empty()) {
+         std::cerr << " No Trigger Waveform data... " << std::endl;
+         return;
+      }
       int nchan = emph::geo::DetInfo::NChannel(emph::geo::Trigger);
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       emph::cmap::EChannel echan;
       echan.SetBoardType(boardType);
-      std::vector<double> meanT(fTrigADCs);
-      std::vector<double> widthT(fTrigADCs);
-      std::vector<double> skewT(fTrigADCs);
       std::vector<int> numPeaks(fTrigADCs.size(), 0);
-      std::vector<double> deltaT(fTrigADCs);
-      std::vector<double> peakSignalP1(fTrigADCs);
-      std::vector<double> peakSignalP2(fTrigADCs);
-      std::vector<PeakInWaveform> peaks;
       for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-          peaks.clear();
           const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
           int chan = wvfm.Channel();
           int board = wvfm.Board();
@@ -471,147 +548,104 @@ namespace emph {
           echan.SetChannel(chan);
           emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
           int detchan = dchan.Channel();
+          if (debugIsOn) std::cerr << std::endl <<  " Searching for Peak in channel  " << detchan << std::endl;
           if (detchan >= 0 && (detchan < nchan)) {
             std::vector<uint16_t> tmpwf = wvfm.AllADC();
 	    if (tmpwf.size() < 100) {
 	      std::cerr << " Anomalous waveform, size " << tmpwf.size() << "  spill " << fSubRun << " evt " << fEvtNum << " fatal.. " << std::endl; exit(2);
 	    }
             // Dump of some wave forms
-//            if (debugIsOn && (fEvtNum > 500000)) {
-            if (debugIsOn) {
-              std::cerr << " ...  At channel " << detchan << std::endl;
-              std::ostringstream WvOutStrStr; 
-              if (fSubRun == 10) WvOutStrStr << "./TriggerWaveForms/TrigADCMp";
-              else WvOutStrStr << "./TriggerWaveForms/TrigADC";
-              WvOutStrStr << detchan << "_Spill" << fSubRun << "_evt" << fEvtNum << ".txt";
-              std::string WvOutStr( WvOutStrStr.str());
-              std::ofstream WvOut(WvOutStr.c_str()); WvOut << " k adc " << std::endl;
-              for (size_t k=0; k != tmpwf.size(); k++) WvOut << " " << k << " " << tmpwf[k] << std::endl;
-              WvOut.close();
-            } 
-            float bl = wvfm.Baseline(0, 10);
-            float adc = bl - wvfm.PeakADC();
-            float sumadc = 40.0*bl - wvfm.IntegratedADC(10, 40);
-            float blw = wvfm.BLWidth();
-            if (adc > 5*blw) {
-              fTrigADCs[detchan] = sumadc;
-              fTrigPeakADCs[detchan] = adc;
-            }
-            if (fMakeTrigFullNtuple) {
-              std::vector<float> tmpwfSig; for (size_t k=11; k != tmpwf.size(); k++) tmpwfSig.push_back(bl - static_cast<float>(tmpwf[k]));
-              double sumSig = 0.; meanT[detchan] = 0; widthT[detchan] = 0; skewT[detchan] = 0;
-              for (size_t k=0; k != tmpwfSig.size(); k++) { meanT[detchan] += tmpwfSig[k] * k; sumSig += tmpwfSig[k]; } 
-              meanT[detchan] /= sumSig;
-              for (size_t k=0; k != tmpwfSig.size(); k++) {
-        	const double dk = static_cast<double>(k) - meanT[detchan]; 
-        	widthT[detchan] += dk * dk * tmpwfSig[k];
-        	skewT[detchan] += dk * dk * dk * tmpwfSig[k];
-              }
-              widthT[detchan] /= sumSig;
-              skewT[detchan] /= sumSig;
+	    if (debugIsOn) this->dumpWaveForm(emph::geo::Trigger, detchan, polarityStr, tmpwf);
 //
-// Search for multiple peaks. 
-//
-               PeakInWaveform peak1; peak1.peakNumber=1;
-               PeakInWaveform peak2; peak2.peakNumber=2;
-               PeakInWaveform peak3; peak3.peakNumber=3;
-               bool peak1IsOn = false;
-               bool peak2IsOn = false;
-               for (size_t kP1=0; kP1 != tmpwfSig.size()-3; kP1++) {
-        	 size_t kP1N = kP1 + 1;
-        	 if ((!peak1IsOn) && ((tmpwfSig[kP1N] - tmpwfSig[kP1]) > 5.0*blw)) {
-        	   peak1IsOn = true; 
-        	   peak1.startBin = kP1;
-        	    if (debugIsOn) std::cerr << " ... ... Starting first peak at bin " << peak1.startBin << " Next value " << tmpwfSig[kP1N] << std::endl;
-        	 }
-        	 if (peak1IsOn) {
-        	   peak1.sumSig += tmpwfSig[kP1];
-        	   const double deltaV1 = (tmpwfSig[kP1N] - tmpwfSig[kP1]);
-        	   if (deltaV1 > 0.) { peak1.peakBin= kP1N; peak1.peakVal = tmpwfSig[kP1N]; }
-        	   if ((kP1 > peak1.startBin+4) && (deltaV1 > 0.) && 
-        	       (peak2.startBin == 4096) && (kP1 < (tmpwfSig.size()-4))) {  // take ony the first peak. 
-        	     // search for a second peak within the first peak, after the first peak value.  
-        	     peak2IsOn = false;
-        	     for (size_t kP2=kP1N; kP2 != tmpwfSig.size()-3; kP2++) {
-        		size_t kP2N = kP2 + 1;
-        		if((!peak2IsOn) && ((tmpwfSig[kP2N] - tmpwfSig[kP2]) > 5.0*blw) && (tmpwfSig[kP2N] > 0.25*peak1.peakVal)) { 
-        		  peak2IsOn = true;
-        		  peak2.startBin = kP2;
-        		  if (debugIsOn) std::cerr << " ... ... ... Starting 2nd peak at bin " << peak2.startBin <<  " within first  " << std::endl;
-        		}
-        		if (peak2IsOn) {
-        		  peak2.sumSig += tmpwfSig[kP2];
-        		  if ((tmpwfSig[kP2N] - tmpwfSig[kP2]) > 0.) { peak2.peakBin= kP2N; peak2.peakVal = tmpwfSig[kP2N]; }
-        		  if ((kP2 > peak2.startBin+2) && (std::abs(peak2.sumSig - peak2.prevSumSig) < 0.01*peak2.sumSig)) {
-        		    peak2IsOn = false;
-        		    peak2.endBin = kP2N;
-        		    if (debugIsOn) std::cerr << " ... ... ... End 2nd peak at bin " << peak2.endBin <<  " within first  " << std::endl;
-        		    break;
-        		  }
-        		  peak2.prevSumSig = peak2.sumSig;
-        		}
-        	     }// integrating the 2nd peak within the first peak. 
-        	   } // condition for starting 2nd peak within first peak
-        	   if ((kP1 > peak1.startBin+2) && (std::abs(peak1.sumSig - peak1.prevSumSig) < 0.01*peak1.sumSig)) {
-        		    peak1IsOn = false;
-        		    peak1.endBin = kP1N;
-        		    if (debugIsOn) std::cerr << " ... ... End first peak at bin " << peak1.endBin << std::endl;
-        	     }
-        	     peak1.prevSumSig = peak1.sumSig;
-        	     if (!peak1IsOn) break;
-        	    } // integrating the first peak.	 
-        	 } // Loop for the first peak the first peak. 
-        	 // search for the 2nd peak, after the first peak. if we did find the first peak.. 
-        	 bool peak3IsOn = false;
-        	 if ((peak1.startBin < 4096) && (peak1.startBin < tmpwfSig.size()-4) && (peak1.endBin < tmpwfSig.size()-3)) { // must have a complete first peak. 
-        	     for (size_t kP3=peak1.endBin+1; kP3 != tmpwfSig.size()-2; kP3++) {
-        		size_t kP3N = kP3 + 1;
-        		if((!peak3IsOn) && ((tmpwfSig[kP3N] - tmpwfSig[kP3]) > 5.0*blw) && (tmpwfSig[kP3N] > 0.25*peak1.peakVal)) { 
-        		  peak3IsOn = true;
-        		  peak3.startBin = kP3;
-        		  if (debugIsOn) std::cerr << " ... ... Starting 2nd peak at bin " << peak3.startBin <<  " after the  first  " << std::endl;
-        		}
-        		if (peak3IsOn) {
-        		  peak3.sumSig += tmpwfSig[kP3];
-        		  if ((tmpwfSig[kP3N] - tmpwfSig[kP3]) > 0.) { peak3.peakBin= kP3N; peak3.peakVal = tmpwfSig[kP3N]; }
-        		  if ((kP3 > peak3.startBin+2) && (std::abs(peak3.sumSig - peak3.prevSumSig) < 0.01*peak3.sumSig)) {
-        		    peak3IsOn = false;
-        		    peak3.endBin = kP3N;
-        		    if (debugIsOn) std::cerr << " ... ... End 2nd peak at bin " << peak3.endBin <<  " after first peak " << std::endl;
-        		    break;
-        		  }
-        		}
-        		peak3.prevSumSig = peak3.sumSig;
-        	     }// integrating the 2nd peak after the first peak. 
-        	 } // conditional search for a 2nd peak after the first one. 
-        	 if (peak1.startBin < 4096) peaks.push_back(peak1);
-        	 if (peak2.startBin < 4096) peaks.push_back(peak2);  
-        	 if (peak3.startBin < 4096) peaks.push_back(peak3);
-        	 numPeaks[detchan] = static_cast<int>(peaks.size());
-        	 if (peaks.size() > 0)  {
-        	   peakSignalP1[detchan] = peaks[0].peakVal;
-        	   if (peaks.size() > 1)  {
-        	      deltaT[detchan] = 4.0 * static_cast<int>(peaks[1].startBin - peaks[0].startBin);
-        	      peakSignalP2[detchan] = peaks[1].peakVal;
-        	   }
-        	 }
-               if (debugIsOn) {
-        	 std::cerr << " Dump of the peaks found, numPeaks  " << peaks.size() << std::endl;
-        	 for (std::vector<PeakInWaveform>::const_iterator it=peaks.cbegin(); it != peaks.cend(); it++) { 
-        	   std::cerr <<  " number " << it->peakNumber << " start " << 10 + it->startBin << " end " 
-        		     << 10 + it->endBin << " peaking at " << 10 + it->peakBin << " sum " << it->sumSig << std::endl; 
-        	 } 
-               }	     
-           } // do this multi-peak search. 
+// search for peaks 
+	    PeakInWaveForm peak1(emph::geo::Trigger);
+	    if (debugIsOn) peak1.setDebugOn(true);
+	    if (!peak1.findIt(tmpwf, 5.0, 10)) continue; // Should be rare case..
+	    peak1.setUserID(detchan); // to be stored after we look for a 2nd peak within the first one. 
+	    if (debugIsOn) {
+	      std::cerr << " First Peak found for channel " << detchan << std::endl; std::cerr << peak1;
+	    }
+	    numPeaks[detchan]++;
+	    PeakInWaveForm peak2(emph::geo::Trigger);
+	    if (debugIsOn) peak2.setDebugOn(true);
+	    if (peak2.findItWithin(peak1, tmpwf, 7.0)) {
+	      peak2.setUserID(10 + detchan);
+	      fPeakTriggers.push_back(peak1);
+	      fPeakTriggers.push_back(peak2);
+	      numPeaks[detchan]++;
+	      if (debugIsOn) {
+	        emph::tof::PeakType pType = peak2.getPeakType();
+	        std::cerr << " Testing stupid compiler " << pType << std::endl;
+	        std::cerr << " 2nd Peak, within, found for channel " << detchan << std::endl; std::cerr << peak2;
+	      }
+	    } else {
+	     fPeakTriggers.push_back(peak1);
+	    }
+	    PeakInWaveForm peak3(emph::geo::Trigger);
+	    peak3.setDebugOn(debugIsOn);
+	    bool lastPeakis2nd = (peak2.getPeakBin() != 1024);
+	    if ((!lastPeakis2nd) && (!peak3.findItAfter(peak1, tmpwf, 5.0))) continue;  // offset a bit arbitrary, to be tuned. 
+	    if ((lastPeakis2nd) && (!peak3.findItAfter(peak2, tmpwf, 5.0))) continue;  // offset a bit arbitrary, to be tuned. 
+	    if (debugIsOn) {
+	        if (!lastPeakis2nd) std::cerr << " 2nd Peak, after 1rst,  "; 
+		else std::cerr << " 2nd Peak, after 2nd,  ";
+		std::cerr << " for channel " << detchan << std::endl; 
+		std::cerr << peak3;
+	    }
+	    /*
+	     else { // We will comment out this code after checking the algorithm.. 
+                std::cerr << " Autodebug  T0toRPC::FillTrigPlots, spill " << fSubRun << " evt " << fEvtNum << std::endl  
+		          << " First Peak " << std::endl;
+		std::cerr <<  peak1 << std::endl;
+		if (lastPeakis2nd)  std::cerr << " Peak2 " << peak2 << std::endl; 
+	        PeakInWaveForm peak3Dbg(emph::geo::Trigger);
+	        peak3Dbg.setDebugOn(true);
+	        if (lastPeakis2nd) peak3Dbg.findItAfter(peak2, tmpwf, 5.0);
+	        else  peak3Dbg.findItAfter(peak1, tmpwf, 5.0);
+	        std::cerr << " Auto debug of 2nd Peak, After ,   for channel " << detchan << std::endl; 
+		std::cerr << peak3Dbg;
+	    }
+	    */
+	    peak3.setUserID(100 + detchan);
+	    fPeakTriggers.push_back(peak3);
+	    numPeaks[detchan]++;
         } // this detchan is OK  
       } // loop on channels 
+      if (fEvtNum > 1000000) { std::cerr << " And quit after 1000000  evts, still debugging ... " << std::endl; exit(2); }
       if (fMakeTrigFullNtuple) {
 
             fFOutTrigger << " " << fSubRun << " " << fEvtNum;
-            for (size_t k=0; k != fTrigPeakADCs.size(); k++) {
-               fFOutTrigger << " " << fTrigPeakADCs[k] << " " << fTrigADCs[k];
-               fFOutTrigger << " " << meanT[k] << " " << widthT[k] << " " << skewT[k] << " " 
-        		  << numPeaks[k] << " " << deltaT[k] << " " << peakSignalP1[k] << " " <<  peakSignalP2[k];
+            for (int k=0; k != static_cast<int>(numPeaks.size()); k++) {
+	       std::vector<PeakInWaveForm>::const_iterator iPk1 = fPeakTriggers.cend();
+	       std::vector<PeakInWaveForm>::const_iterator iPk2 = fPeakTriggers.cend();
+	       std::vector<PeakInWaveForm>::const_iterator iPk3 = fPeakTriggers.cend();
+	       for (std::vector<PeakInWaveForm>::const_iterator iPk = fPeakTriggers.cbegin(); iPk != fPeakTriggers.cend(); iPk++) {
+	         if (iPk->getUserID() == k) iPk1 = iPk;
+	         if (iPk->getUserID() == (10 + k)) iPk2 = iPk;
+	         if (iPk->getUserID() == (100 + k)) iPk3 = iPk;
+	       }
+	       if (iPk1 == fPeakTriggers.cend()) {
+	          fFOutTrigger << " 0 0 0 0 0 0 0 0 0 "; continue;
+		  //                1 2 3 4 5 6 7 8 9
+	       } 
+               fFOutTrigger << " " << iPk1->getPeakVal() << " " << iPk1->getSumSig()
+                            << " " << iPk1->getPeakBin() << " " << iPk1->getEndBin() << " " << numPeaks[k];
+	       if ((iPk2 == fPeakTriggers.cend()) && (iPk3 == fPeakTriggers.cend())) {
+	         fFOutTrigger << " 0 0 0 0 ";
+		 continue;
+	       } 
+	       if (iPk2 != fPeakTriggers.cend()) {
+	         const double dt12 = iPk2->getPeakBin() - iPk1->getPeakBin();
+	         fFOutTrigger << " " << dt12 << " " << iPk2->getSumSig();
+	       } else {
+	         fFOutTrigger << " 0 0 ";
+	       }
+	       if (iPk3 != fPeakTriggers.cend()) {
+	         const double dt13 = iPk3->getPeakBin() - iPk1->getPeakBin();
+	         fFOutTrigger << " " << dt13 << " " << iPk3->getSumSig();
+	       } else {
+	         fFOutTrigger << " 0 0 ";
+	       }
             }
             fFOutTrigger << std::endl;
       }
@@ -634,7 +668,10 @@ namespace emph {
        // 
        // T0 analysis.
        // Channel 0 is weirs, has NaN... 
-       //                                     0       1      2    3      4    5     6     7      8     9     10    11
+       // 
+       /*  
+       ** Obsolete... Used the PeakInWaveForm
+                                         0       1      2    3      4    5     6     7      8     9     10    11
        std::vector<double> threshT0ADC{DBL_MAX, 200., 200., 200., 200., 200., 250., 250., 200., 100., 200.,  250., 
 	                                    250., 300., 300., 300., 325., 300., 325., DBL_MAX};
         int numC0High = 0; int numC0HighTOk = 0;
@@ -649,6 +686,7 @@ namespace emph {
 	for (size_t k=0; k != nchanRPC; k++) fFOutTrigT0RPC << " " << fRPCTDCs[k]; 
 	fFOutTrigT0RPC << std::endl;
 //        std::cerr << " FillTrigT0RPCV1 ... evtNum " << fEvtNum << " spill " << fSubRun << std::endl;
+       */
        }
     }
     //......................................................................
@@ -660,14 +698,16 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();  
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      art::Timestamp aTime = evt.time();
-      std::string aTimeStr = art::to_iso_string_assuming_unix_epoch(aTime);
+//      art::Timestamp aTime = evt.time();
+//      std::string aTimeStr = art::to_iso_string_assuming_unix_epoch(aTime);
       
-      if  ((fRun == 1295) && (fSubRun == 2) && (fEvtNum == 91)) {
-         IdentifyRawWaveformV1720T0Board1Chan7(evt);
-      } 
       
-      if (fEvtNum < 3) std::cerr << " Event " << fEvtNum << " time " << aTimeStr << " ....? " <<  std::endl;
+//      if  ((fRun == 1365) && (fSubRun == 2) && (fEvtNum == 91)) {
+//         IdentifyRawWaveformV1720T0Board1Chan7(evt);
+//      } 
+      
+//      if (fEvtNum < 3) std::cerr << " Event " << fEvtNum << " time " << aTimeStr << " ....? " <<  std::endl;
+      if (fEvtNum < 3) std::cerr << " Event " << fEvtNum << " No time available "  <<  std::endl;
       
       bool gotT0 = false; bool gotRPC = false;    
       std::string labelStr;
@@ -682,6 +722,8 @@ namespace emph {
 	  evt.getByLabel(labelStr, wfHandle);
 
 	  if (!wfHandle->empty()) {
+//	    if ((fRun == 1365) && (i == emph::geo::T0)) std::cerr << " Got Wave form for event  " 
+//		              << fEvtNum << " spill " << fSubRun << " label " << labelStr << std::endl;
 //	    if (i == emph::geo::Trigger) FillTrigPlots(wfHandle); // We will do this only for the T0 & RPC data.. 
 	    if (i == emph::geo::T0) {
 //	      int j = emph::geo::NDetectors;
@@ -694,12 +736,21 @@ namespace emph {
 		  FillT0Plots(wfHandle, trbHandle);
 		}
 		else {
-//		  std::cerr << "**No TRB3 digits found for the T0!, try " << std::endl;
+		  if (fRun == 1365) { 
+  		    if (fEvtNum < 10) std::cerr << "**No TRB3 digits found for the T0!, still, studying ADC's for event  " 
+		              << fEvtNum << " spill " << fSubRun << std::endl;
+		    FillT0Plots(wfHandle, trbHandle); // We still have the ADC to study.. 
+		 }
 //                  fNoT0Info[0]++;  // There seem to be nocase where the acces to trbHandle succeed, but it is empty.. 
 		}
 	      }
 	      catch(...) {
 //		std::cerr << "No TRB3 digits found for the T0!, catch " << std::endl;
+		  if (fRun == 1365) { 
+  		    if (fEvtNum < 10) std::cerr << "**No TRB3 digits found for the T0!, still, studying ADC's for event  " 
+		              << fEvtNum << " spill " << fSubRun << std::endl;
+		    FillT0Plots(wfHandle, trbHandle); // We still have the ADC to study.. 
+		 }
                   fNoT0Info++;
 	      }
 	    }
@@ -727,22 +778,18 @@ namespace emph {
       if ((!gotRPC) && (!gotT0)) fNoT0RPCInfo++;
       fPrevEvtNum = static_cast<int>(fEvtNum);
       fPrevSubRun = static_cast<int>(fSubRun);
-      if (gotRPC && gotT0) { 
-        for (int i=0; i<emph::geo::NDetectors; ++i) {
+      if (gotRPC || gotT0 || (fRun == 1365)) { 
+        int iTrigger = emph::geo::Trigger;
 
-	  labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
-//	std::cerr << " At label " << labelStr << std::endl; 
-	  art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
-	  try {
+	labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(iTrigger));
+	art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
+	try {
 	    evt.getByLabel(labelStr, wfHandle);
-
-	    if (!wfHandle->empty()) {
-	      if (i == emph::geo::Trigger) FillTrigPlots(wfHandle);
-	      break;
-            } 
-          } catch(...) { return; } 
-        } 
-        this->FillTrigT0RPCV1(gotT0, gotRPC);
+	    if (!wfHandle->empty()) { 
+	      FillTrigPlots(wfHandle); 
+	    }
+         } catch(...) { std::cerr << " Error in uploading Trigger wave forms .. " << std::endl; return; } 
+        if (gotRPC && gotT0) this->FillTrigT0RPCV1(gotT0, gotRPC);
       }
     }
     
@@ -799,8 +846,29 @@ namespace emph {
 	  //	  std::cout << "Nothing found in " << labelStr << std::endl; 
 	}
       } // on Detectors 
-     
+    
     }
+    void T0toRPC::dumpWaveForm(emph::geo::tDetectorType aType, int detchan,  std::string &polarityStr, std::vector<uint16_t> &tmpwf) 
+    {
+      std::string dirDump("?");
+      switch (aType) {
+        case emph::geo::T0 :
+	  dirDump=std::string("./T0WaveForms/");
+	  break;
+	case emph::geo::Trigger :
+	  dirDump=std::string("./TriggerWaveForms/");
+	  break;
+	default:
+	  return;
+      }
+      std::ostringstream fWvOutStrStr;
+      fWvOutStrStr << dirDump << "WaveForm_" << polarityStr << "_" << detchan << "_Run_" << fRun << "_Spill" << fSubRun << "_evt_" << fEvtNum << ".txt";
+      std::string fWvOutStr( fWvOutStrStr.str());
+      std::ofstream fWvOut(fWvOutStr.c_str()); fWvOut << " k adc " << std::endl;
+      for (size_t k=0; k != tmpwf.size(); k++) fWvOut << " " << k << " " << tmpwf[k] << std::endl;
+      fWvOut.close();
+    }
+    
   }
 } // end namespace demo
 

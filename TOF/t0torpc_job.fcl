@@ -25,11 +25,11 @@ physics:
    T0toRPC :   
    {
       module_type: T0toRPC
-      tokenJob: "V2c_12GeV"
+      tokenJob: "V2c_120GeV"
       makeT0FullNtuple: true
       makeRPCFullNtuple: false
       makeTrigFullNtuple: true 
-      makeEventSummaryFullNtuple: true
+      makeEventSummaryFullNtuple: false
    }
  }
 # stream1:  [ out1 ] #could have multiple paths
