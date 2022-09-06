@@ -17,6 +17,8 @@ art_make_library ( SOURCE ${src_files}
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
                    ROOT::Hist
+                   ROOT::Minuit2
+                   ROOT::Gpad
 )
 
 build_plugin(ARICHReco "module"
@@ -27,6 +29,8 @@ build_plugin(ARICHReco "module"
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
+    ROOT::Minuit2
+    ROOT::Gpad
 )
 
 install_source()
