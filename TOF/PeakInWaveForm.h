@@ -14,9 +14,10 @@ namespace emph {
   namespace tof {
  
     typedef enum  tPeakType { NONE=0, // search algorythm failed. 
-                             UNIPOLAR=1, // Trigger and T) are DC coupled, such signals are the real ones.
+                             UNIPOLAR=1, // Trigger and T) are DC coupled, such signals are the real ones. complete pulses. 
 			     BIPOLAR=2, //  SiPM T0 Cross-talk, so far..
-			     SPECIAL=3  // room for futur types.. 
+			     DCINCOMPLETE=3, 
+			     SPECIAL=4  // room for futur types.. 
 			   } PeakType ; 
     class PeakInWaveForm {
     
@@ -64,7 +65,8 @@ namespace emph {
 	inline void fillInMoments(const std::vector<uint16_t> &wfm, size_t startBin, size_t stopBin) {
 	  fSumSig = 0.;
 	  double aW = 0.; double sumW = 0.;
-	  for (size_t k=startBin; k != stopBin; k++) { 
+	  size_t stopBinR = (stopBin >= wfm.size()) ? wfm.size() :  stopBin;
+	  for (size_t k=startBin; k != stopBinR; k++) { 
 	    const double dd = std::abs(wfm[k] - fBaseline); fSumSig += dd;
 	    aW += (k-fPeakBin)*(k-fPeakBin) * dd * dd; sumW += dd*dd;
 	  }

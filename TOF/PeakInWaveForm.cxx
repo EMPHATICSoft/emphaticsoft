@@ -48,6 +48,7 @@ namespace emph {
 	   return false;
 	 }
 	 fillInBaseline(wfm, startBin-1);
+	 if (fDebugIsOn) std::cerr << " emph::tof::PeakInWaveForm::findIt, baseline = " << fBaseline << " width " << fBaselineWidth << std::endl;
         if (fDetType == emph::geo::T0) {
 	   foundOne = findBipolar(wfm, signif, startBin);
 	   if (foundOne) return foundOne;
@@ -59,16 +60,19 @@ namespace emph {
        {
          size_t endBinPrev = aPeak.getEndBin();
          size_t startBin = endBinPrev + 1;
-	 if (startBin > wfm.size() - 4) return false; // no room for a real peak.. 
  	 if (fDebugIsOn) std::cerr << " PeakInWaveForm::findItAfter.. Starting ... signif = " << signif << " startBin " << startBin << std::endl; 
+	 if (startBin > wfm.size() - 8) {
+	   if (fDebugIsOn) std::cerr << " ... Too close to the end of the wave form, give up. " << std::endl;
+	    return false; // no room for a real peak.. 
+	 }
          bool foundOne = false;
 	 if (startBin < 3) {
 	   std::cerr << " emph::tof::PeakInWaveForm::findIt, wrong startBin = " << startBin << " no room to get the baseline " << std::endl;
 	   return false;
 	 }
 	 fBaseline = (wfm[endBinPrev] + wfm[startBin] + 
-	                    wfm[endBinPrev+2])/3.; // we use the trailing end of the first peak as the baseline...
-	 const double ddW = static_cast<double>(wfm[endBinPrev+2]) - static_cast<double>(wfm[endBinPrev]);		    
+	                    wfm[endBinPrev+2] + wfm[endBinPrev+3] + wfm[endBinPrev+4] + wfm[endBinPrev+5])/6.; // we use the trailing end of the first peak as the baseline...
+	 const double ddW = static_cast<double>(wfm[endBinPrev+5]) - static_cast<double>(wfm[endBinPrev]);		    
 	 this->fBaselineWidth = std::sqrt( aPeak.getBaselineWidth() * aPeak.getBaselineWidth() + ddW * ddW);
 	 if (fDebugIsOn) std::cerr << " First peak baseline = " << aPeak.getBaseline() << " with  width " << aPeak.getBaselineWidth()
 	                          << " Using now " << fBaseline << " width " << fBaselineWidth << std::endl;
@@ -83,6 +87,7 @@ namespace emph {
        bool PeakInWaveForm::findBipolar(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
        {
           //search first for a postive glitch  ??????
+	  if (fDebugIsOn) std::cerr << " PeakInWaveForm::findBipolar, startBin " << startBin << std::endl;
 	  bool posGlitchFound  = false;
 	  size_t kPos = startBin;
 	  while (kPos < wfm.size()) { 
@@ -93,7 +98,10 @@ namespace emph {
 	    }
 	    kPos++;
 	  }
-	  if (!posGlitchFound ) return false;
+	  if (!posGlitchFound ) { 
+	    if (fDebugIsOn) std::cerr << " .... No positive glitch found... "  << std::endl;
+	    return false;
+	  }
 	    // assume a fast 
 	  bool negGlitchFound  = false;
 	  size_t kNeg = kPos + fMaxWidthBipolar + 1; // assume fixed width, narrow SiPM signals. 
@@ -106,7 +114,10 @@ namespace emph {
 	    }
 	    kNeg--;
 	  }
-	  if (!negGlitchFound ) return false;
+	  if (!negGlitchFound ) {
+	    if (fDebugIsOn) std::cerr << " .... No Negative glitch found... "  << std::endl;
+	    return false;
+	  }
           fStartBin = kPos; // The first bin where we have a signficant 
           fPeakBin = (kPos + kNeg)/2 ; // The centroid of the peak. 
           fEndBin = kNeg; // the end of the peak. 
@@ -120,16 +131,26 @@ namespace emph {
           fPeakVal = maxValNeg + maxValPos; // The peak value (if differential, the sum of 
 	  fPeakType = BIPOLAR;
 	  fillInMoments(wfm, kPos, kNeg+1);
+	  if (fDebugIsOn) std::cerr << " .... Success... Peak Val "  << fPeakVal << std::endl;
 	  return true;
        }
        size_t PeakInWaveForm::findDCNegStart(const std::vector<uint16_t> &wfm, double signif, size_t startBin) {
+        // 
+	// Ask for two consecutive bins above significance, negative signals. 
+	//
 	  bool negGlitchFound  = false;
 	  size_t kNeg = startBin;
 	  while (kNeg < wfm.size()) { 
 	    const double val =  fBaseline - static_cast<double>(wfm[kNeg]);
-	    if (val/fBaselineWidth > signif) { 
-	      negGlitchFound = true;
-	      break;
+	    if (val/fBaselineWidth > signif) {
+	      size_t kNegNext = kNeg + 1; 
+	      if (kNegNext < wfm.size()) {
+	        const double valNext =  fBaseline - static_cast<double>(wfm[kNegNext]);
+	        if (valNext/fBaselineWidth > signif) {
+	            negGlitchFound = true;
+	            break;
+		}
+	      }
 	    }
 	    kNeg++;
 	  }
@@ -138,8 +159,12 @@ namespace emph {
        }
        bool PeakInWaveForm::findDCInSiPM(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
        {
+	  if (fDebugIsOn) std::cerr << " PeakInWaveForm::findDCInSiPM, startBin " << startBin << std::endl;
 	  size_t kNeg = this->findDCNegStart(wfm, signif, startBin);
-	  if (kNeg == wfm.size()) return false;
+	  if (kNeg == wfm.size()) {
+	    if (fDebugIsOn) std::cerr << " ... No negative pulse found " << std::endl;
+	    return false;
+	  }
           fStartBin = kNeg; // The first bin where we have a signficant 
 	  kNeg++;
 	  bool foundEnd=false;
@@ -152,7 +177,10 @@ namespace emph {
 	    }
 	    kNeg++;
 	  }
-	  if (!foundEnd) return false; //Should not happen too often! 
+	  if (!foundEnd) {
+	    if (fDebugIsOn) std::cerr << " ... No End of pulse found " << std::endl;
+	    return false; //Should not happen too often! 
+	  }
 	  if (fEndBin == wfm.size() -1) return false;
 	  fPeakVal = -1.;
 	  for (size_t k2 = fStartBin; k2 < fEndBin+1; k2++) {
@@ -161,6 +189,7 @@ namespace emph {
 	  }
 	  fillInMoments(wfm, fStartBin, fEndBin+1);
 	  fPeakType = UNIPOLAR;
+	  if (fDebugIsOn) std::cerr << " ... Success Peak Val " << fPeakVal << std::endl;
 	  return true;
        }
        bool PeakInWaveForm::findDCInPMT(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
@@ -173,26 +202,34 @@ namespace emph {
 	  fStartBin = kNeg; 
 	  fPeakBin = wfm.size();
 	  fPeakVal = -1.;
-          for (size_t k1= kNeg; k1 != wfm.size(); k1++) {
+	  size_t kEndSearchPeak = ((kNeg + 10) >= wfm.size()) ? wfm.size() : (kNeg + 10);
+          for (size_t k1= kNeg; k1 != kEndSearchPeak; k1++) {
 	   const double val = fBaseline - wfm[k1];
 	   if (val > fPeakVal) { fPeakVal = val; fPeakBin = k1;}
 	  }
           if (fDebugIsOn) std::cerr << " ... Assing Peak Bin at   " << fPeakBin << " value  " << fPeakVal << std::endl;
 	  double aSum = 0.; fEndBin = wfm.size() - 2;
+	  fEndBin = 1024;
           for (size_t k2= kNeg; k2 != wfm.size() - 2; k2++) {
 	    const double val = fBaseline - wfm[k2];
 	    aSum += val;
 	    if (((std::abs(val)/(std::abs(aSum) + 1.0e-10)) < fCutIntegration) && ((static_cast<int>(k2) - static_cast<int>(fPeakBin)) > 4)) {
-	      if (fDebugIsOn) std::cerr << " ... Assing End  Bin at   " << k2 << " current Value " << val << " current sum   " 
+	      if (fDebugIsOn) std::cerr << " ... Inegration converged, assing End  Bin at   " << k2 << " current Value " << val << " current sum   " 
 	                                << aSum << " diff Bin " << static_cast<int>(k2) - static_cast<int>(fPeakBin) <<  std::endl;
 	      fEndBin = k2;
 	      break; 
 	    }
+	    if ((k2-kNeg) > 15) {
+	      if (fDebugIsOn) std::cerr << " ... Max width reached, assing End  Bin at   " << k2 <<  std::endl;
+	      fEndBin = k2;
+	      break;
+	    }
+	    
 	  }
-	  if (fEndBin == 1024) fEndBin = wfm.size()- 2; 
+	  fPeakType = UNIPOLAR;
+	  if (fEndBin == 1024) { fEndBin = wfm.size()- 1; fPeakType = DCINCOMPLETE; }
           if (fDebugIsOn) std::cerr << " ... about to call  fillInMoments, start, end bins  " << fStartBin << " " << fEndBin << std::endl;
 	  fillInMoments(wfm, fStartBin, fEndBin+1);
-	  fPeakType = UNIPOLAR;
 	  return true;
        }
        bool PeakInWaveForm::findItWithin(PeakInWaveForm &aPeak, const std::vector<uint16_t> &wfm, double signif) {
@@ -215,6 +252,11 @@ namespace emph {
 	   return false;
 	 
 	 }
+	 if(aPeak.getPeakBin()  >= aPeak.getEndBin()) {
+	   std::cerr << " PeakInWaveForm::findItWithin First Peak  First peak peaks past end of peak,  funky peak, do nothing.. " << std::endl;
+	   return false;
+	 
+	 }
 	 if ( (aPeak.getEndBin() + 6) >= wfm.size()) {
            if (fDebugIsOn) std::cerr << " .... First Peak Too broad give up. .. " << std::endl 
 	                             << " ----------------------------------------- " << std::endl << std::endl;;
@@ -227,11 +269,12 @@ namespace emph {
 	 if (kPeakPrev > ( wfm.size() - 5)) return false;
 	 size_t k0 = kPeakPrev + 2; // tightly close by, might need to be tuned off a little... 
 	 fStartBin = 1024;
-	 double v0 = fBaseline - wfm[k0];
+	 double v0 = fBaseline - static_cast<double>(wfm[k0]);
 	 // These implicit cuts might need to be tuned.. 
 	 size_t searchEnd = ((aPeak.getEndBin() + 5) < wfm.size() - 7 ) ? (aPeak.getEndBin() + 4) : (wfm.size() -4) ;
+         if (fDebugIsOn) std::cerr << " .... Search End =  " << searchEnd << std::endl; 
 	 for (size_t k1= k0 + 1; k1 != searchEnd; k1++) {
-	   double v1 = fBaseline - wfm[k1];
+	   double v1 = fBaseline - static_cast<double>(wfm[k1]);
 	   if ((v1-v0)/fBaselineWidth > signif) {
 	     fStartBin = k1;
 	     break; 
@@ -240,7 +283,7 @@ namespace emph {
 	 }
 	 if (fStartBin == 1024) { 
            if (fDebugIsOn) std::cerr << " .... Nothing significant found.. " << std::endl 
-	                             << " ----------------------------------------- " << std::endl << std::endl;;
+	                             << " ----------------------------------------- " << std::endl;
 	   return false;
 	 }
          if (fDebugIsOn) std::cerr << " .... got a re-startBin " << fStartBin << std::endl;
