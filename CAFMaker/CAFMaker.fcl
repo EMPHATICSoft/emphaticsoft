@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+#   This file defines the configuration for the job module "CAFMaker"
+standard_cafmaker:{
+    module_type: CAFMaker
+    CAFFilename: "" # Provide a string to override the automatic filename
+}
+
+END_PROLOG
