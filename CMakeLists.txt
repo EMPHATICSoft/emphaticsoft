@@ -18,6 +18,8 @@ cet_find_package(artdaq REQUIRED)
 cet_find_package(canvas_root_io REQUIRED)
 cet_find_package(art_root_io REQUIRED)
 
+include(BuildDictionary)
+
 # source
 add_subdirectory(Geometry)
 add_subdirectory(ChannelMap)
@@ -40,3 +42,4 @@ add_subdirectory(SpillInfo)
 add_subdirectory(DataQuality)
 add_subdirectory(StandardRecord)
 add_subdirectory(CAFMaker)
+add_subdirectory(ups)

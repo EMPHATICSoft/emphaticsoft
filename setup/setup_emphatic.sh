@@ -102,5 +102,5 @@ export SSL_CERT_FILE=""
 
 # Additional setup
 setup ninja
-setup libwda v2_29_1
+#setup libwda v2_30_0
 setup art_cpp_db_interfaces v1_4_0

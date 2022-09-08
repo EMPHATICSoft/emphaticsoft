@@ -321,8 +321,8 @@ c7:debug   c7:debug   c7:debug     -               -               c7:debug    c
 c7:prof	   c7:prof    c7:prof      -               -               c7:prof     c7:p392:prof    c7:prof      c7:prof    c7:n311:prof
 e19:debug  e19:debug  e19:debug    e19:debug:s111  e19:debug:s111  e19:debug   e19:p392:debug   e19:debug    e19:p392:debug   e19:n308:debug
 e19:prof   e19:prof   e19:prof     e19:prof:s111   e19:prof:s111   e19:prof    e19:p392:prof    e19:prof     e19:p392:prof   e19:n308:prof
-e20:debug  e20:debug  e20:debug    -               -               e20:debug   e20:p392:debug   e20:debug    e20:p392:debug  e20:debug:n311  py3
-e20:prof   e20:prof   e20:prof     -               -               e20:prof    e20:p392:prof    e20:prof     e20:p392:prof   e20:prof:n311  py3
+e20:debug  e20:debug  e20:debug  e20:debug:s112   e20:debug:s112    e20:debug   e20:p392:debug   e20:debug    e20:p392:debug  e20:debug:n311  py3
+e20:prof   e20:prof   e20:prof    e20:prof:s112   e20:prof:s112   e20:prof    e20:p392:prof    e20:prof     e20:p392:prof   e20:prof:n311  py3
 end_qualifier_list
 ####################################
 
