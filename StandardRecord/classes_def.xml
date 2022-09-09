@@ -1,9 +1,11 @@
 <lcgdict>
 
  <class name="caf::StandardRecord" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3065678388"/>
  </class>
 
  <class name="caf::SRHeader" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3811607721"/>
  </class>
 
 </lcgdict>

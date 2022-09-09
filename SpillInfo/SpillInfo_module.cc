@@ -29,9 +29,10 @@
 #include "RecoBase/Spill.h"
 
 //IFDB includes
-#include "ifbeam.h" 
+//#include "ifbeam.h" 
 //#include "Munits.h"
-#include "IFBeam_service.h"
+#include "ifdh_art/IFBeamService/IFBeam_service.h"
+
 
 /// Information about the IFDB
 namespace emph

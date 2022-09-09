@@ -1,3 +1,5 @@
+include(ArtDictionary)
+include(ArtMake)
 
 add_subdirectory(Proxy)
 
@@ -17,13 +19,12 @@ cet_make_library( LIBRARY_NAME StandardRecord
 
 build_dictionary( StandardRecord
                   DICTIONARY_LIBRARIES StandardRecord
-		  		       ${ART_FRAMEWORK_CORE}
-				       ${ART_FRAMEWORK_PRINCIPAL}
-				       art_Persistency_Common
-				       art_Utilities canvas
-				       cetlib cetlib_except
-				       ${MF_MESSAGELOGGER}
-				       ${MF_UTILITIES}
+		  		       art::Framework_Core
+				       art::Framework_Principal
+				       art::Persistency_Common
+				       art::Utilities canvas::canvas
+				       cetlib::cetlib cetlib_except::cetlib_except
+				       messagefacility::MF_MessageLogger
 		)
 
 install_headers()

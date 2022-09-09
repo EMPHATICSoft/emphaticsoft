@@ -13,8 +13,7 @@ namespace caf
   SRHeader::SRHeader():
     run(0),
     subrun(0),
-    evt(0),
-    subevt(0)
+    evt(0)
   {
   }
 
@@ -27,4 +26,3 @@ namespace caf
   }
 
 } // end namespace caf
-

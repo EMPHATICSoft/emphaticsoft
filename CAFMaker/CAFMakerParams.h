@@ -24,6 +24,7 @@ namespace caf
       Comment("Provide a string to override the automatic filename.")
     };
 
+    Atom<string> FileExtension {Name("FileExtension")};
   }; // end struct
 } // end namespace
 

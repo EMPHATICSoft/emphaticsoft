@@ -18,6 +18,10 @@ link_directories($ENV{CETLIB_EXCEPT_LIB})
 link_directories($ENV{IFDH_ART_LIB})
 link_directories($ENV{IFBEAM_LIB})
 
+cet_find_library( IFBEAMSERVICE        NAMES IFBeam_service    PATHS ENV IFDH_ART_LIB NO_DEFAULT_PATH )
+cet_find_library( IFDH_ART_IFBEAM      NAMES IFBeam            PATHS ENV IFDH_ART_LIB NO_DEFAULT_PATH )
+cet_find_library( IFBEAM               NAMES ifbeam            PATHS ENV IFBEAM_LIB   NO_DEFAULT_PATH )
+
 art_make_library ( SOURCE ${src_files}
                    LIBRARY_NAME  SpillInfo
                    LIBRARIES
@@ -26,8 +30,9 @@ art_make_library ( SOURCE ${src_files}
 		   art::Framework_Principal
 		   art::Framework_Services_Registry
 		   RecoBase
-		   ifbeam
-		   IFBeam_service
+		   ${IFDH_ART_IFBEAM}
+		   ${IFBEAMSERVICE}
+		   ${IFBEAM}
 )
 
 build_plugin(SpillInfo "module"
@@ -37,8 +42,9 @@ build_plugin(SpillInfo "module"
   art::Framework_Services_Registry
   art::Persistency_Common
   RecoBase
-  ifbeam
-  IFBeam_service
+  ${IFDH_ART_IFBEAM}	
+  ${IFBEAMSERVICE}
+  ${IFBEAM}
 )
 
 

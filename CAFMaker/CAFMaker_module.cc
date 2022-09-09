@@ -38,12 +38,11 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include <IFDH_service.h>
+#include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
 
 // StandardRecord
-#include "StandardRecord/SRSpillTruthBranch.h"
 #include "StandardRecord/StandardRecord.h"
 
 namespace caf {
@@ -81,7 +80,7 @@ namespace caf {
   }; // end class
 
   CAFMaker::CAFMaker(const Parameters& params)
-    : EDProducer(params), fParams(params()), fIsRealData(false), fFile(0) {
+    : EDProducer(params), fParams(params()), fFile(0) {
     // We update this, so have to pull it out of the config
     fCAFFilename = fParams.CAFFilename();
 
@@ -99,13 +98,13 @@ namespace caf {
     if (!fFile) {
       // Filename wasn't set in the FCL, and this is the
       // first file we've seen
-      char temp[fb.fileName().size() + 1];
+      char *temp = new char[fb.fileName().size() + 1];
       std::strcpy(temp, fb.fileName().c_str());
-      fCafFilename = basename(temp);
-      const size_t dotpos = fCafFilename.find('.');
+      fCAFFilename = basename(temp);
+      const size_t dotpos = fCAFFilename.find('.');
       assert(dotpos != std::string::npos);  // Must have a dot, surely?
-      fCafFilename.resize(dotpos);
-      fCafFilename += fParams.FileExtension();
+      fCAFFilename.resize(dotpos);
+      fCAFFilename += fParams.FileExtension();
 
       InitializeOutfile();
     }
@@ -113,14 +112,18 @@ namespace caf {
 
   //......................................................................
   void CAFMaker::beginJob() {
-    if (!fCafFilename.empty()) InitializeOutfile();
+    if (!fCAFFilename.empty()) InitializeOutfile();
   }
 
   //......................................................................
   void CAFMaker::InitializeOutfile() {
     assert(!fFile);
-    assert(!fCafFilename.empty());
+    assert(!fCAFFilename.empty());
 
+    mf::LogInfo("CAFMaker") << "Output filename is " << fCAFFilename;
+
+    fFile = new TFile(fCAFFilename.c_str(), "RECREATE");
+    
     hEvents = new TH1D("TotalEvents", "TotalEvents;; Events", 1, 0, 1);
 
     fRecTree = new TTree("recTree", "records");
@@ -158,6 +161,8 @@ namespace caf {
     rec.hdr.subrun = subrun;
     rec.hdr.evt    = spillNum;
 
+    mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
+
     fRecTree->Fill();
     srcol->push_back(rec);
 
@@ -173,10 +178,9 @@ namespace caf {
 
   //......................................................................
   void CAFMaker::endJob() {
-    bool EmptyFile = false;
+    
     if (fTotalEvents == 0) {
       mf::LogWarning("CAFMaker") << "Making an empty CAF file." << std::endl;
-      EmptyFile = true;
     }
 
     fFile->Write();
@@ -185,6 +189,7 @@ namespace caf {
     hEvents->Fill(.5, fTotalEvents);
 
     hEvents->Write();
+
     fFile->Write();
 
   } // end endJob

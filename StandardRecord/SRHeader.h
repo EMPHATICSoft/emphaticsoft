@@ -4,8 +4,6 @@
 #ifndef SRHEADER_H
 #define SRHEADER_H
 
-#include "StandardRecord/SREnums.h"
-
 namespace caf
 {
   /// Header representing overview information for the current event/spill
