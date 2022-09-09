@@ -13,19 +13,14 @@
 
 namespace rb {
 
-  class ADC: public emph::rawdata::WaveForm {
-  
-  using emph::rawdata::WaveForm::WaveForm;
-  
-  private:
-    //emph::rawdata::WaveForm* wvfm;
+  class ADC {
 
   public:
 
     ADC(); //Default constructor
     ~ADC() {}; //Destructor
-    float        Charge(int adcoffset=0, int nhits=10, int start=10, int nsamp=95)   const;
-    float        BACkovCharge(int adcoffset=0, int nhits=10, int start=25,  int nsamp=35, int win_size=8, float ADC_thresh=3)   const;   
+    float        Charge(const emph::rawdata::WaveForm*, int adcoffset=0, int nhits=10, int start=10, int nsamp=95)   const;
+    float        BACkovCharge(const emph::rawdata::WaveForm*, int adcoffset=0, int nhits=10, int start=25,  int nsamp=35, int win_size=8, float ADC_thresh=3)   const;   
   };
 
 }

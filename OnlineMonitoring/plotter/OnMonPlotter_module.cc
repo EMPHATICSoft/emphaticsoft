@@ -36,6 +36,7 @@
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
+#include "RecoBase/ADC.h"
 
 
 using namespace emph;
@@ -679,7 +680,9 @@ namespace emph {
       if (fMakeWaveFormPlots) {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm* wvfm_ptr = &wvfm;
+	    const rb::ADC wvr; 
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
@@ -690,7 +693,7 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvfm.Charge();
+	      float q = wvr.Charge(wvfm_ptr);
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot

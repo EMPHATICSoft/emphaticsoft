@@ -17,10 +17,10 @@ namespace emph {
     public:
       WaveForm(); // Default constructor
       ~WaveForm() {}; //Destructor
-    std::vector<uint16_t> fADC;        ///< list of ADC(-like) charge values
-
+    
   private:
     
+    std::vector<uint16_t> fADC;        ///< list of ADC(-like) charge values
     uint32_t fTstart;
     
     int fChannel;    ///< channel ID

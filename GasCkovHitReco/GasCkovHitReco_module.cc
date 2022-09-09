@@ -31,6 +31,7 @@
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/GasCkovHit.h"
+#include "RecoBase/ADC.h"
 
 using namespace emph;
 
@@ -195,14 +196,16 @@ namespace emph {
     event = fNEvents;
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm* wvfm_ptr = &wvfm; 
+	    const rb::ADC wvr;
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
             echan.SetBoard(board);
             echan.SetChannel(chan);
             emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-            float Q = wvfm.Charge();
+            float Q = wvr.Charge(wvfm_ptr);
             fGasCkovChargeHist[detchan]->Fill(Q);
             Qvec[detchan]=Q;
 	  }  
@@ -210,8 +213,8 @@ namespace emph {
    
     //Checking GasCkov Hits
     
-    std::vector<int> GasCkov_Result;
-    int PID_prob[5]={0,0,0,0,0};
+    std::vector<bool> GasCkov_Result;
+    bool PID_prob[5]={0,0,0,0,0};
 
 
     if (Qvec[0]>10) GasCkov_Result.push_back(1);
@@ -230,16 +233,7 @@ namespace emph {
 	for(int j=0; j<5; ++j) PID_prob[j]=PID_table[k][j];
       }
     }
-    if (event>1000 && event<1100){
-      for (int i=0; i<3; ++i){
-        std::cout<<GasCkov_Result[i]<<" " ;
-      }
-      std::cout<<"        ";
-      for (int i=0; i<5; ++i){
-        std::cout<<PID_prob[i]<<" " ;
-      } 
-      std::cout<<std::endl;
-    }
+    
     //Create object and store GasCkov Charge and PID results
     rb::GasCkovHit GasCkovHit;
     GasCkovHit.SetCharge(Qvec);

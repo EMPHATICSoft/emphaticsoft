@@ -58,7 +58,7 @@ namespace emph {
     void endJob();
     
   private:
-    void GetBACkovHit(art::Handle< std::vector<rb::ADC> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
+    void GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
     
     emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;    
@@ -169,7 +169,7 @@ namespace emph {
   
     //......................................................................
   
-  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<rb::ADC> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
+  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
   {
     //Create empty vectors to hold charge values
     float Qvec[6];
@@ -182,16 +182,15 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rb::ADC wvr=wvfm;
-	    //const rb::ADC &recowvfm = wvfm;
-	    //const rb::ADC& &recowvfm = wvfm;
+            const rawdata::WaveForm* wvfm_ptr = &wvfm;
+	    const rb::ADC wvr;
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
             echan.SetBoard(board);
             echan.SetChannel(chan);
             emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
             int detchan = dchan.Channel();
-            float Q = wvfm.BACkovCharge();
+            float Q = wvr.BACkovCharge(wvfm_ptr);
             fBACkovChargeHist[detchan]->Fill(Q);
             Qvec[detchan]=Q;
 	  }  
@@ -202,8 +201,8 @@ namespace emph {
    
     //Checking BACkov Hits
     
-    std::vector<int> BACkov_Result;
-    int PID_prob[5]={0,0,0,0,0};
+    std::vector<bool> BACkov_Result;
+    bool PID_prob[5]={0,0,0,0,0};
 
 
     if (high_q>1) BACkov_Result.push_back(1);
@@ -222,16 +221,7 @@ namespace emph {
 	for(int j=0; j<5; ++j) PID_prob[j]=PID_table[k][j];
       }
     }
-    if (event>1000 && event<1100){
-      for (int i=0; i<3; ++i){
-        std::cout<<BACkov_Result[i]<<" " ;
-      }
-      std::cout<<"        ";
-      for (int i=0; i<5; ++i){
-        std::cout<<PID_prob[i]<<" " ;
-      } 
-      std::cout<<std::endl;
-    }
+    
     //Create object and store BACkov Charge and PID results
     rb::BACkovHit BACkovHit;
     BACkovHit.SetCharge(Qvec);
@@ -247,8 +237,7 @@ namespace emph {
     fSubrun = evt.subRun();
 
     std::string labelStr = "raw:BACkov";
-    art::Handle< std::vector<rb::ADC> > wfHandle;
-    //art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
+    art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
 
     std::unique_ptr<std::vector<rb::BACkovHit> > BACkovHitv(new std::vector<rb::BACkovHit>);
 
@@ -256,7 +245,6 @@ namespace emph {
 	evt.getByLabel(labelStr, wfHandle);
 
 	if (!wfHandle->empty()) {
-          std::cout<<"HERE"<<std::endl;
 	  GetBACkovHit(wfHandle,  BACkovHitv);
 	}
       }
