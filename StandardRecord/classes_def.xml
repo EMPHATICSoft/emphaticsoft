@@ -8,4 +8,14 @@
   <version ClassVersion="10" checksum="3811607721"/>
  </class>
 
+ <class name="caf::SRARing" ClassVersion="10" >
+ </class>
+ <class name="std::vector<caf::SRAring>" />
+
+ <class name="caf::SRARingBranch" ClassVersion="10" >
+ </class>
+
+ <class name="caf::SRVector3D" ClassVersion="10" >
+ </class>
+
 </lcgdict>

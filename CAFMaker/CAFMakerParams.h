@@ -25,6 +25,7 @@ namespace caf
     };
 
     Atom<string> FileExtension {Name("FileExtension")};
+    Atom<string> ARingLabel    {Name("ARingLabel")};
   }; // end struct
 } // end namespace
 

@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "StandardRecord/SRHeader.h"
+#include "StandardRecord/SRARingBranch.h"
 
 /// Common Analysis Files
 namespace caf
@@ -27,7 +28,8 @@ namespace caf
       StandardRecord();
       ~StandardRecord();
 
-      SRHeader hdr;  ///< Header branch: run, subrun, etc.
+      SRHeader       hdr;   ///< Header branch: run, subrun, etc.
+      SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
       
     }; // end class
 

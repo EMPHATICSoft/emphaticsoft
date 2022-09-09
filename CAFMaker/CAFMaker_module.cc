@@ -6,6 +6,7 @@
 // C/C++ includes
 #include <algorithm>
 #include <cmath>
+#include <cxxabi.h>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -41,6 +42,7 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
+#include "RecoBase/ARing.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -77,6 +79,12 @@ namespace caf {
 
     void InitializeOutfile();
 
+    /// Equivalent of evt.getByLabel(label, handle) except failedToGet
+    /// prints a message and aborts if StrictMode is true.
+    template <class T>
+    void GetByLabelStrict(const art::Event& evt, const std::string& label,
+			  art::Handle<T>& handle) const;
+    
   }; // end class
 
   CAFMaker::CAFMaker(const Parameters& params)
@@ -137,6 +145,19 @@ namespace caf {
   }
 
   //......................................................................
+  template <class T>
+  void CAFMaker::GetByLabelStrict(const art::Event& evt, const std::string& label,
+				  art:Handle<T>& handle) const {
+    evt.getByLabel(label, handle);
+    if(!label.empty() && handle.failedToGet()) {
+      std::cout << "CAFMaker: No product of type '"
+		<< abi::__cxa_demangle(typeid(*handle).name(), 0, 0, 0)
+		<< "' found under label '" << label << "'. " << std::endl;
+      abort();
+    }
+  }
+  
+  //......................................................................
   void CAFMaker::produce(art::Event& evt) noexcept {
     // Normally CAFMaker is run without an output ART stream, so these go
     // nowhere, but can be occasionally useful for filtering as part of
@@ -163,6 +184,20 @@ namespace caf {
 
     mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
+
+    // Get ARing info from ARichReco
+    art::Handle< std::vector <rb::ARing> > arv;
+    GetByLabelStrict(evt, fParams.ARingLabel(), arv);
+    std::vector<rb::ARing> arings;
+    if(!arv.failedToGet()) arings = *arv;
+
+    for (unsigned int ringId = 0; ringId < arings.size(); ++ ringId) {
+      rec.ring.arich.push_back(SRARing());
+      SRARing& srARing = rec.ring.arich.back();
+
+      srARing.nhit = arings[ringId]->NHits();
+    } // end for ringId
+    
     fRecTree->Fill();
     srcol->push_back(rec);
 
