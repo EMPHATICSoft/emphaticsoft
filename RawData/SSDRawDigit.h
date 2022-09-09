@@ -29,7 +29,7 @@ namespace rawdata {
     int32_t Strip() const { return fStrip; }
     int32_t Time() const { return fTime; }
     int32_t ADC() const { return fADC; }
-    int32_t TrigNum() const { return fTrigNum; }
+    int32_t TrigType() const { return fTrigType; }
     int32_t Row() const { return fRow; }
     
     friend std::ostream& operator << (std::ostream& o, const SSDRawDigit& r);
@@ -44,7 +44,7 @@ namespace rawdata {
     int32_t  fStrip;
     int32_t  fTime;
     int32_t  fADC;
-    int32_t  fTrigNum;
+    int32_t  fTrigType;
     int32_t  fRow;
     int32_t  fBco2s;
 

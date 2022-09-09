@@ -23,7 +23,7 @@ namespace emph {
     fSet(-999),
     fTime(-999),
     fADC(-999),
-    fTrigNum(-999),
+    fTrigType(-999),
     fRow(-999),
     fBco2s(-999)
   {
@@ -33,7 +33,7 @@ namespace emph {
   
   rawdata::SSDRawDigit::SSDRawDigit(int32_t station, int32_t module, int32_t chip, int32_t set, int32_t strip, int32_t t, int32_t adc, int32_t trigtype) :
     fFER(station), fModule(module), fChip(chip), fSet(set), fStrip(strip), fTime(t),
-    fADC(adc), fTrigNum(trigtype)
+    fADC(adc), fTrigType(trigtype)
   {
       fRow = getSensorRow();
 		fBco2s = 144;

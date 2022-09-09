@@ -32,10 +32,9 @@ source:
   nEvents: 0
   verbosity: 0
   channelMapFileName: "ChannelMap_Jun22.txt"
-  SSDFilePrefix: "/emph/data/data/June2022/SSD/Merged/"
+  SSDFilePrefix: "/data/"
   readSSDData: false
   readTRB3Data: true
-  readCAENData: true
   firstSubRunHasExtraTrigger: true
 }
 
