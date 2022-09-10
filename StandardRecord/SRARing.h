@@ -9,8 +9,9 @@
 namespace caf
 {
   /// An SRAring is a simple descriptor for an ARing.
-  class SRAring
+  class SRARing
   {
+  public:
     SRARing();
     virtual ~SRARing();
 

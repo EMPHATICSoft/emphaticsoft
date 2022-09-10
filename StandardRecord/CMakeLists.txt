@@ -5,6 +5,9 @@ add_subdirectory(Proxy)
 
 # for classes_def.xml!!
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+include_directories( $ENV{ROOT_INC} )
+
+cet_find_package( ROOT COMPONENTS Core REQUIRED )
 
 set( PACKAGE StandardRecord )
 FILE( GLOB src_files *.cxx )
@@ -15,17 +18,23 @@ FILE( GLOB src_files *.cxx )
 cet_make_library( LIBRARY_NAME StandardRecord
                   SOURCE       ${src_files}
 		  LIBRARIES    ${ROOT_BASIC_LIB_LIST}
+		  	       ${ROOT_CORE}
+			       ${ROOT_LIBRARIES}
 		)
 
 build_dictionary( StandardRecord
-                  DICTIONARY_LIBRARIES StandardRecord
-		  		       art::Framework_Core
-				       art::Framework_Principal
-				       art::Persistency_Common
-				       art::Utilities canvas::canvas
-				       cetlib::cetlib cetlib_except::cetlib_except
-				       messagefacility::MF_MessageLogger
+		  DICTIONARY_LIBRARIES StandardRecord
 		)
+
+#build_dictionary( StandardRecord
+#                  DICTIONARY_LIBRARIES StandardRecord
+#		  		       art::Framework_Core
+#				       art::Framework_Principal
+#				       art::Persistency_Common
+#				       art::Utilities canvas::canvas
+#				       cetlib::cetlib cetlib_except::cetlib_except
+#				       messagefacility::MF_MessageLogger
+#		)
 
 install_headers()
 install_source()

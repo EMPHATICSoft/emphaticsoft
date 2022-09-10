@@ -6,7 +6,11 @@
 #ifndef SRVECTOR3D_H
 #define SRVECTOR3D_H
 
+#ifndef __castxml__
+#include <cmath>
+#include <iostream>
 #include "TVector3.h"
+#endif
 
 namespace caf
 {
@@ -15,10 +19,12 @@ namespace caf
     {
     public:
       SRVector3D();
+      virtual ~SRVector3D();
+
+#ifndef __castxml__
       SRVector3D(float x, float y, float z);
       /// Easy conversion from TVector3
       SRVector3D(const TVector3& v);
-      virtual ~SRVector3D();
 
       void SetXYZ(float x, float y, float z);
 
@@ -44,13 +50,18 @@ namespace caf
 	const float m = Mag();
 	return SRVector3D(x/m, y/m, z/m);
       }
-
+#endif
+      
       float x;
       float y;
       float z;
     };
 
 } // end namespace
+
+#ifndef __castxml__
+std::ostream &operator<<(std::ostream &stream, const caf::SRVector3D &vec);
+#endif
 
 #endif // SRVECTOR3D_H
 /////////////////////////////////////////////////////////////////////////////

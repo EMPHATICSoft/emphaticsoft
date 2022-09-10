@@ -5,6 +5,9 @@
 
 #include "StandardRecord/SRVector3D.h"
 
+#include <cmath>
+#include <limits>
+
 namespace caf
 {
   SRVector3D::SRVector3D() :
@@ -46,4 +49,10 @@ namespace caf
   }
 
 } // end namespace caf
+
+std::ostream &operator<<(std::ostream &stream, const caf::SRVector3D &vec)
+{
+  stream << "(" << vec.x << "," << vec.y << "," << vec.z << ")";
+  return stream;
+}
 ////////////////////////////////////////////////////////////////////////
