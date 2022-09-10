@@ -147,7 +147,7 @@ namespace caf {
   //......................................................................
   template <class T>
   void CAFMaker::GetByLabelStrict(const art::Event& evt, const std::string& label,
-				  art:Handle<T>& handle) const {
+				  art::Handle<T>& handle) const {
     evt.getByLabel(label, handle);
     if(!label.empty() && handle.failedToGet()) {
       std::cout << "CAFMaker: No product of type '"
@@ -195,7 +195,7 @@ namespace caf {
       rec.ring.arich.push_back(SRARing());
       SRARing& srARing = rec.ring.arich.back();
 
-      srARing.nhit = arings[ringId]->NHits();
+      srARing.nhit = arings[ringId].NHits();
     } // end for ringId
     
     fRecTree->Fill();
