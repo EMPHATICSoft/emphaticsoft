@@ -17,7 +17,7 @@
 #include <cmath>
 #include <arpa/inet.h>
 #include <vector>
-#include <boost/utility.hpp>
+// #include <boost/utility.hpp>
 #include "stib.h"
 #include <algorithm>
 #include <stdint.h>
