@@ -11,7 +11,8 @@
    <version ClassVersion="12" checksum="543454205"/>
    <version ClassVersion="11" checksum="995705853"/>
   </class>
-  <class name="emph::rawdata::WaveForm"    ClassVersion="12" >
+  <class name="emph::rawdata::WaveForm"    ClassVersion="13" >
+   <version ClassVersion="13" checksum="2317875600"/>
    <version ClassVersion="12" checksum="1710862163"/>
    <version ClassVersion="11" checksum="4069590048"/>
   </class>
