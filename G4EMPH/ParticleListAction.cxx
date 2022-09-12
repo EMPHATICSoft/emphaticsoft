@@ -345,7 +345,7 @@ namespace emph {
       fParticle = new sim::Particle(fCurrentTrackID, pdg, process_name,
 				    parentID, dp->GetMass()/CLHEP::GeV);
       //part.Print();
-      
+      std::cout << fParticle << std::endl;
       // Polarization.
       const G4ThreeVector& polarization = track->GetPolarization();
       fParticle->SetPolarization( TVector3(polarization.x(),

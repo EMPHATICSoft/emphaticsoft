@@ -51,7 +51,7 @@ $n_acrylic = 10;
 $target_switch = 1;
 
 # constants for magnet
-$magnet_switch = 1;
+$magnet_switch = 0;
 $n_magseg = 16;
 
 # constants for SSD

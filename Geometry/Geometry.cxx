@@ -132,7 +132,8 @@ namespace emph {
       fWorldWidth  = world_box->GetDX();
       fWorldLength = world_box->GetDZ();
       
-      ExtractMagnetInfo(world_v);
+      //ExtractMagnetInfo(world_v);
+
       mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
       
       for ( int i = Trigger ; i < NDetectors ; i ++ ){

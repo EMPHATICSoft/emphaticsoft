@@ -71,6 +71,8 @@ namespace emph {
   , fG4Alg(0)
   , fG4AlgPSet(pset.get< fhicl::ParameterSet >("G4AlgPSet") )
   {
+    std::cout << "WORKING" << std::endl;
+
     fGeneratorLabel = fG4AlgPSet.get<std::string>("GenModuleLabel");
 
     // get the random number seed, use a random default if not specified
