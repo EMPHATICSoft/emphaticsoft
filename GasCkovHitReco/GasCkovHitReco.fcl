@@ -4,7 +4,6 @@ standard_backovhitreco:
 {
   module_type: GasCkovHitReco
 
-  channelMapFileName: "ChannelMap_Jun22.txt"
   momentum: 12
 }
 

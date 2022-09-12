@@ -71,7 +71,7 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
-      void beginRun(art::Run const&);
+      void beginRun(art::Run const& run);
       void endRun(art::Run const&);
       void endSubRun(art::SubRun const&);
       void endJob();
@@ -111,7 +111,6 @@ namespace emph {
       art::Timestamp fLastEventTime;
 
       emph::cmap::ChannelMap* fChannelMap;
-      std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubrun;
       unsigned int fNEvents;
@@ -227,8 +226,6 @@ namespace emph {
       if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
       else fIPC = nullptr;
 
-      fChanMapFileName = pset.get<std::string>("channelMapFileName","");
-      std::cout << "CHANNEL MAP USED : " << fChanMapFileName << std::endl;
       fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
       fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
       fMakeSSDPlots = pset.get<bool>("makeSSDPlots",false);
@@ -257,7 +254,11 @@ namespace emph {
 
     //......................................................................
 
-    void OnMonPlotter::beginRun(art::Run const&) {
+    void OnMonPlotter::beginRun(art::Run const& run) {
+      // initialize channel map
+      fChannelMap = new emph::cmap::ChannelMap();
+      fChannelMap->LoadMap(run.run());
+
       if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
 	fSHMThreadRunning = false;
 	fSHMThreadPtr->join();}
@@ -289,17 +290,6 @@ namespace emph {
     void OnMonPlotter::beginJob()
     {
       fNEvents=0;
-      // initialize channel map
-      fChannelMap = 0;
-      if (!fChanMapFileName.empty()) {
-	fChannelMap = new emph::cmap::ChannelMap();
-	if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	  std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	  delete fChannelMap;
-	  fChannelMap = 0;
-	}
-	std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-      }
     
       //
       // Make all-detector plots

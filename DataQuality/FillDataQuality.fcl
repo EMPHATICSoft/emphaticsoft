@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_dataqual:
+{
+  module_type:  FillDataQuality
+  TriggerLabel: "raw:Trigger"
+  SSDDataLabel: "raw:SSD"
+}
+
+END_PROLOG

@@ -52,7 +52,7 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    //void beginRun(art::Run const&);
+    void beginRun(art::Run& run);
     //void endRun(art::Run const&);
     //      void endSubRun(art::SubRun const&);
     void endJob();
@@ -100,9 +100,17 @@ namespace emph {
   void GasCkovHitReco::reconfigure(const fhicl::ParameterSet& pset)
   {
     
-    fChanMapFileName = pset.get<std::string>("channelMapFileName","");
     mom = pset.get<int>("momentum",0);
     
+  }
+
+  //......................................................................
+  //
+  void GasCkovHitReco::beginRun(art::Run& run)
+  {
+    // initialize channel map 
+    fChannelMap = new emph::cmap::ChannelMap();
+    fChannelMap->LoadMap(run.run());
   }
 
   //......................................................................
@@ -110,17 +118,6 @@ namespace emph {
   void GasCkovHitReco::beginJob()
   {
     fNEvents=0;
-    // initialize channel map
-    fChannelMap = 0;
-    if (!fChanMapFileName.empty()) {
-      fChannelMap = new emph::cmap::ChannelMap();
-      if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	delete fChannelMap;
-	fChannelMap = 0;
-      }
-      std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-    }
 
     art::ServiceHandle<art::TFileService> tfs;
     char hname[64];
