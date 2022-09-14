@@ -28,6 +28,7 @@
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/BACkovHit.h"
@@ -61,6 +62,7 @@ namespace emph {
     void GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
     
     emph::cmap::ChannelMap* fChannelMap;
+	 runhist::RunHistory* fRunHistory;
     int mom;
     std::vector<std::vector<int>> BACkov_signal;
     std::vector<std::vector<int>> PID_table; //in the form {e,mu,pi,k,p} w/ {1,1,0,0,0} being e/mu are possible particles
@@ -107,7 +109,8 @@ namespace emph {
   {
     // initialize channel map
     fChannelMap = new emph::cmap::ChannelMap();
-    fChannelMap->LoadMap(run.run()); 
+	 fRunHistory = new runhist::RunHistory(run.run());
+    fChannelMap->LoadMap(fRunHistory->ChanFile());
   }
 
   //......................................................................

@@ -28,6 +28,7 @@
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/GasCkovHit.h"
@@ -61,7 +62,7 @@ namespace emph {
     void GetGasCkovHit(art::Handle< std::vector<rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits);
     
     emph::cmap::ChannelMap* fChannelMap;
-    std::string fChanMapFileName;    
+	 runhist::RunHistory* fRunHistory;
     int mom;
     std::vector<std::vector<int>> GasCkov_signal;
     std::vector<std::vector<int>> PID_table; //in the form {e,mu,pi,k,p} w/ {1,1,0,0,0} being e/mu are possible particles
@@ -110,7 +111,8 @@ namespace emph {
   {
     // initialize channel map 
     fChannelMap = new emph::cmap::ChannelMap();
-    fChannelMap->LoadMap(run.run());
+	 fRunHistory = new runhist::RunHistory(run.run());
+    fChannelMap->LoadMap(fRunHistory->ChanFile());
   }
 
   //......................................................................
