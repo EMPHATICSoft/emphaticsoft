@@ -92,7 +92,7 @@ namespace emph {
 			std::string fname;
 
 			file_path = getenv ("CETPKG_SOURCE");
-			fname = file_path + "/Geometry/" + fGDMLFile;
+			fname = file_path + "/ConstBase/" + fGDMLFile;
 			geoFile.open(fname.c_str());
 			if (!geoFile.is_open()) {
 				throw cet::exception("GeometryFileLoad")
