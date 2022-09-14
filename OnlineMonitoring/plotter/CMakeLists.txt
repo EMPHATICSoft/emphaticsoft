@@ -19,6 +19,7 @@ build_plugin(OnMonPlotter "module"
   LIBRARIES PRIVATE
     RawData
     ChannelMap
+	 RunHistory
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
