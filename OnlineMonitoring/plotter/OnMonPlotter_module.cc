@@ -27,6 +27,7 @@
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"
@@ -111,6 +112,7 @@ namespace emph {
       art::Timestamp fLastEventTime;
 
       emph::cmap::ChannelMap* fChannelMap;
+      runhist::RunHistory* fRunHistory;
       unsigned int fRun;
       unsigned int fSubrun;
       unsigned int fNEvents;
@@ -257,7 +259,8 @@ namespace emph {
     void OnMonPlotter::beginRun(art::Run const& run) {
       // initialize channel map
       fChannelMap = new emph::cmap::ChannelMap();
-      fChannelMap->LoadMap(run.run());
+      fRunHistory = new runhist::RunHistory(run.run());
+      fChannelMap->LoadMap(fRunHistory->ChanFile());
 
       if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
 	fSHMThreadRunning = false;

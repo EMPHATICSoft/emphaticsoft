@@ -48,17 +48,8 @@ namespace emph {
 
     //----------------------------------------------------------------------
 
-    bool ChannelMap::LoadMap(int run)
+    bool ChannelMap::LoadMap(std::string fname)
     {
-      std::string fname="";
-      if (run >= 436 && run <= 605)
-	fname = "ChannelMap_Jan22_Run436.txt";
-      else if (run > 605 && run <=1385)
-	fname = "ChannelMap_Jun22.txt";
-      else {
-	std::cout << "No channel map found for run " << run << std::endl;
-	std::abort();
-      }
       
       if (fname.empty() && fIsLoaded) return true;
       if ((fname == fMapFileName) && fIsLoaded) return true;
@@ -66,7 +57,7 @@ namespace emph {
       std::ifstream mapFile;
       std::string file_path;
       file_path = getenv ("CETPKG_SOURCE");
-      fname = file_path + "/ChannelMap/" + fname;
+      fname = file_path + "/ConstBase/" + fname;
       mapFile.open(fname.c_str());
       if (!mapFile.is_open()) {
 	if (fAbortIfFileNotFound) std::abort();

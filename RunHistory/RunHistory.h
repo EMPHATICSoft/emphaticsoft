@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   Run history data class
-/// \author  jpaley@fnal.gov
+/// \brief   loading run info, calibration, geometry, and channelmap
+/// \author  jpaley@fnal.gov, wanly@bu.edu
 /// \date
 ////////////////////////////////////////////////////////////////////////
 #ifndef RUNHISTORY_H
@@ -22,14 +23,19 @@ namespace runhist {
   private:
     
     bool _isLoaded;
+    bool _isConfig;
     int _runNumber;
     int _nSubrun;
     double _beamMom;
+	 std::string  _geoFile;
+	 std::string  _chanFile;
+    int  _calibVer;
     std::vector<std::string> _det;
     int _nTrig;
     std::string _QEURL;
 
     bool LoadFromDB();
+    bool LoadConfig();
 
   public:
 
@@ -37,11 +43,17 @@ namespace runhist {
     int        Run() const { return _runNumber; }
     int        NSubrun();
     double     BeamMom();
+	 std::string GeoFile();
+	 std::string ChanFile();
+    int        CalibVer();
     std::vector<std::string> DetectorList();
     int        NTriggers();
     
     // Setters
     bool       SetRun(int run);
+    void       SetGeo(std::string geoFile) { _geoFile = geoFile; }
+    void       SetChan(std::string chanFile) { _chanFile = chanFile; }
+    void       SetCalib(int calibVer) { _calibVer = calibVer; }
     void       SetQEURL(std::string uri) { _QEURL = uri; }
   };
   
