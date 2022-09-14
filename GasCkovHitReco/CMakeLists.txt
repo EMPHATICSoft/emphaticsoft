@@ -9,7 +9,7 @@ include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
 art_make_library ( SOURCE ${src_files}
-                   LIBRARY_NAME  ARICHReco
+                   LIBRARY_NAME  GasCkovHitReco
                    LIBRARIES
 		   RawData
 		   RecoBase
@@ -20,7 +20,7 @@ art_make_library ( SOURCE ${src_files}
                    ROOT::Hist
 )
 
-build_plugin(ARICHReco "module"
+build_plugin(GasCkovHitReco "module"
   LIBRARIES PRIVATE
     RawData
     RecoBase

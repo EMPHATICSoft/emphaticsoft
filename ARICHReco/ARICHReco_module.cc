@@ -28,6 +28,7 @@
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RecoBase/ARing.h"
@@ -60,6 +61,7 @@ namespace emph {
     void GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > &, std::unique_ptr<std::vector<rb::ARing>> &);
     
     emph::cmap::ChannelMap* fChannelMap;
+	 runhist::RunHistory* fRunHistory;
     TH2F*       fARICH2DHist[201];
     int         fEvtNum;
 
@@ -111,7 +113,8 @@ namespace emph {
   {
     // initialize channel map
     fChannelMap = new emph::cmap::ChannelMap();
-    fChannelMap->LoadMap(run.run());
+	 fRunHistory = new runhist::RunHistory(run.run());
+    fChannelMap->LoadMap(fRunHistory->ChanFile());
 
   }
     
@@ -125,7 +128,7 @@ namespace emph {
   
   void ARICHReco::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H, std::unique_ptr<std::vector<rb::ARing>> & rings)
   {
-    fARICH2DHist[0]->Reset();
+//    fARICH2DHist[0]->Reset();
 
     // find reference time for each fpga
     std::map<int,double> refTime;

@@ -25,6 +25,7 @@
 #include <fstream>
 
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 
 namespace emph {
   namespace rawdata {
@@ -74,6 +75,7 @@ namespace emph {
       art::Timestamp fSpillTime;
 
       emph::cmap::ChannelMap* fChannelMap;
+		runhist::RunHistory* fRunHistory;
 
       std::string fSSDFilePrefix;
       uint64_t fSSDT0;      
