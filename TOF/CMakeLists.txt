@@ -12,6 +12,7 @@ build_plugin(T0toRPC "module"
 	ToFUtil
 	RawData
 	ChannelMap
+	RunHistory
 	art_root_io::TFileService_service
 	messagefacility::MF_MessageLogger
 )

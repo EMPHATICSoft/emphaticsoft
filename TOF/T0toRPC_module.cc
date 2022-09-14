@@ -25,6 +25,7 @@
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
@@ -71,6 +72,7 @@ namespace emph {
       bool fFilesAreOpen;
       std::string fTokenJob;
       emph::cmap::ChannelMap* fChannelMap;
+      runhist::RunHistory* fRunHistory;
       std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubRun;
@@ -193,7 +195,6 @@ namespace emph {
     void T0toRPC::reconfigure(const fhicl::ParameterSet& pset)
     {
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fChanMapFileName = pset.get<std::string>("channelMapFileName","");
       fMakeT0FullNtuple  = pset.get<bool>("makeT0FullNtuple",true); // keep them for now.. 
       fMakeRPCFullNtuple = pset.get<bool>("makeRPCFullNtuple",true);
       fMakeTrigFullNtuple = pset.get<bool>("makeTrigFullNtuple",true);
@@ -217,7 +218,8 @@ namespace emph {
     {
       // initialize channel map
       fChannelMap = new emph::cmap::ChannelMap();
-      fChannelMap->LoadMap(run.run());
+      fRunHistory = new runhist::RunHistory(run.run());
+      fChannelMap->LoadMap(fRunHistory->ChanFile());
     }
 
     //......................................................................
