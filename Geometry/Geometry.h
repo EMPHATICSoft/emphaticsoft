@@ -33,7 +33,7 @@ namespace emph {
 
 				std::string Name() const { return fName;}
 				TVector3 Pos() const { return fPos;}
-				double Rot() const { return fRot;}
+				double Rot() const { return fRot;} 
 				double Dz() const { return fDz;}
 				double Width() const { return fWidth;}
 				double Height() const { return fHeight;}
@@ -48,7 +48,7 @@ namespace emph {
 			private:    
 				std::string fName;
 				TVector3 fPos;
-				double fRot; // in x-y plane, starting from y-axis, clockwise as seen by the beam
+				double fRot; // cos theta in x-y plane, starting from y-axis (fRot = 1 for y-axis), clockwise as seen by the beam
 				double fDz;
 				double fWidth;
 				double fHeight;

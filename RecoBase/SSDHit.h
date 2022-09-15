@@ -29,6 +29,7 @@ namespace rb {
     double _pitch;
 
 	 double _x, _y, _z;
+	 double _xcal, _ycal, _zcal;
 
   public:
     // Getters

@@ -40,6 +40,7 @@ int main(int argc, char* argv[]){
 		for ( int j = 0; j < nsensor; j++){
 			Detector sensor = st.GetSSD(j);
 			std::cout << "The " << j <<"-th SSD sensor in the " << i <<"-th SSD station is located at " << sensor.Pos()[2]+st.Pos()[2] << " cm." << std::endl;
+			std::cout << "The cosine of rotation angle is " << sensor.Rot() << std::endl;
 		}
 	}
 
