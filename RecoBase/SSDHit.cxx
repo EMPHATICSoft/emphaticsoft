@@ -21,7 +21,7 @@ namespace rb {
   
   //------------------------------------------------------------
 
-  SSDHit::SSDHit(const emph::rawdata::SSDRawDigit &ssd, const emph::geo::SSDStation &st)
+  SSDHit::SSDHit(const emph::rawdata::SSDRawDigit &ssd, const emph::geo::Detector &st)
   {
 	  _angle = st.Rot();
 	  _strip = ssd.Strip();

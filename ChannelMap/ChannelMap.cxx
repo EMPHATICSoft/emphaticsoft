@@ -24,7 +24,7 @@ namespace emph {
     //----------------------------------------------------------------------
 
     DChannel::DChannel() :
-      fId(emph::geo::DetectorType::NDetectors), fChannel(-1)
+      fId(emph::geo::DetectorType::NDetectors), fChannel(-1), fStation(-1)
     {
     }
     
@@ -71,16 +71,17 @@ namespace emph {
       std::string det;
       int dChannel;
       short dHiLo;
+      int dStation;
       std::string comment;
       
       while (getline(mapFile,line)) {
 	std::stringstream lineStr(line);
-	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> comment;
+	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> dStation >> comment;
 	if (boardType[0] == '#') continue;
 	
 	emph::cmap::FEBoardType iBoardType = emph::cmap::Board::Id(boardType);
 	emph::geo::DetectorType iDet = emph::geo::DetInfo::Id(det);
-	DChannel dchan(iDet,dChannel,dHiLo);
+	DChannel dchan(iDet,dChannel,dStation,dHiLo);
 	EChannel echan(iBoardType,board,eChannel);
 	//	std::cout << dchan << " <--> " << echan << std::endl;
 	fEChanMap[echan] = dchan;

@@ -125,27 +125,31 @@ namespace emph {
   void SSDCalibration::produce(art::Event& evt)
   { 
 	  //Obtain SSDRawDigit to SSDHit
-    std::string labelstr = "raw:SSDRawDigit";
-    
-    art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdH;
-    try {
-      evt.getByLabel(labelstr, ssdH);
-      if (!ssdH->empty()) {	
-			for (size_t idx=0; idx < ssdH->size(); ++idx) {
-				const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
-				//There needs to be some method to find SSD station from the FER and Module, see DocDB 1260 for mapping.
-				//This mapping should probably be implemented in the ChannelMap
-				const emph::geo::SSDStation &st = emgeo->GetSSDStation(ssd.FER());
-				//This construction should be using SSDSensor instead of SSDStations. Place holder for now.
-				rb::SSDHit hit(ssd, st);
-				ssdvec.push_back(hit);
-			}
-	fEvtNum++;
-      }
-    }
-    catch(...) {
-      
-    }
+	  std::string labelstr = "raw:SSDRawDigit";
+	  emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+	  emph::cmap::EChannel echan;
+	  echan.SetBoardType(boardType);
+
+	  art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdH;
+	  try {
+		  evt.getByLabel(labelstr, ssdH);
+		  if (!ssdH->empty()) {	
+			  for (size_t idx=0; idx < ssdH->size(); ++idx) {
+				  const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
+				  echan.SetBoard(ssd.FER());
+				  echan.SetChannel(ssd.Module());
+				  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+				  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
+				  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
+				  rb::SSDHit hit(ssd, sd);
+				  ssdvec.push_back(hit);
+			  }
+			  fEvtNum++;
+		  }
+	  }
+	  catch(...) {
+
+	  }
 
   }
 

@@ -19,7 +19,7 @@ namespace rb {
   class SSDHit {
   public:
     SSDHit(); // Default constructor
-    SSDHit(const emph::rawdata::SSDRawDigit &ssdraw, const emph::geo::SSDStation &st); // Default constructor
+    SSDHit(const emph::rawdata::SSDRawDigit &ssdraw, const emph::geo::Detector &st); // Default constructor
     virtual ~SSDHit() {}; //Destructor
     
   private:
