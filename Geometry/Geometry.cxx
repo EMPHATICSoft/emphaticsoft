@@ -249,6 +249,9 @@ namespace emph {
 				st.SetName(name);
 				st.SetDz(st_box->GetDZ());
 				st.SetPos(st_n->GetMatrix()->GetTranslation());
+//				const double *rmat;
+//				rmat=st_n->GetMatrix()->GetRotationMatrix();
+				st.SetRot(st_n->GetMatrix()->GetRotationMatrix()[0]);
 				st.SetWidth(2*st_box->GetDX());
 				st.SetHeight(2*st_box->GetDY());
 
