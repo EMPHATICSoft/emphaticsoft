@@ -30,7 +30,9 @@
 #include "ChannelMap/ChannelMap.h"
 #include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
+#include "Geometry/Geometry.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RecoBase/SSDHit.h"
 
 using namespace emph;
 
@@ -51,7 +53,6 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
-    void endRun(art::Run const&);
     //      void endSubRun(art::SubRun const&);
     void endJob();
     void Fit();
@@ -60,6 +61,7 @@ namespace emph {
     
     emph::cmap::ChannelMap* fChannelMap;
 	 runhist::RunHistory* fRunHistory;
+	 emph::geo::Geometry *emgeo;
     int         fEvtNum;
 	 std::vector<rb::SSDHit> ssdvec;
 
@@ -101,21 +103,15 @@ namespace emph {
     fChannelMap = new emph::cmap::ChannelMap();
 	 fRunHistory = new runhist::RunHistory(run.run());
     fChannelMap->LoadMap(fRunHistory->ChanFile());
-
+	 emgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
   }
     
-  //......................................................................
- 
-  void SSDCalibration::endRun()
-  {
-	  Fit();
-  }
-  
   //......................................................................
   
   void SSDCalibration::endJob()
   {
-	  //Output the alignment constants to ConstBase/SSDCalibration.dat
+	  Fit();
+	  //Then output the alignment constants to ConstBase/SSDCalibration.dat
   }
   
   //......................................................................
@@ -128,23 +124,28 @@ namespace emph {
   //......................................................................
   void SSDCalibration::produce(art::Event& evt)
   { 
-	  //SSDRawDigit to SSDHit
+	  //Obtain SSDRawDigit to SSDHit
     std::string labelstr = "raw:SSDRawDigit";
-    // get arich trb3digits
-    std::unique_ptr<std::vector<rb::ARing> > aringv(new std::vector<rb::ARing>);
     
-    art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbhandle;
+    art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdH;
     try {
-      evt.getByLabel(labelstr, trbhandle);
-      if (!trbhandle->empty()) {	
-	GetARings(trbhandle,aringv);
+      evt.getByLabel(labelstr, ssdH);
+      if (!ssdH->empty()) {	
+			for (size_t idx=0; idx < ssdH->size(); ++idx) {
+				const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
+				//There needs to be some method to find SSD station from the FER and Module, see DocDB 1260 for mapping.
+				//This mapping should probably be implemented in the ChannelMap
+				const emph::geo::SSDStation &st = emgeo->GetSSDStation(ssd.FER());
+				//This construction should be using SSDSensor instead of SSDStations. Place holder for now.
+				rb::SSDHit hit(ssd, st);
+				ssdvec.push_back(hit);
+			}
 	fEvtNum++;
       }
     }
     catch(...) {
       
     }
-    evt.put(std::move(aringv));
 
   }
 

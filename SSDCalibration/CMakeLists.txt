@@ -15,6 +15,7 @@ art_make_library ( SOURCE ${src_files}
 		   RecoBase
 		   ChannelMap
 			RunHistory
+			Geometry
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
                    ROOT::Hist
@@ -26,6 +27,7 @@ build_plugin(SSDCalibration "module"
     RecoBase
     ChannelMap
 	 RunHistory
+    Geometry
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
