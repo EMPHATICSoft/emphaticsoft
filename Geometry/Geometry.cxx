@@ -269,7 +269,7 @@ namespace emph {
 						sensor.SetName(name);
 						sensor.SetDz(sensor_box->GetDZ());
 						sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
-						sensor.SetRot(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
+						sensor.SetRot(sensor_n->GetMatrix()->GetRotationMatrix()[1]);
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
 

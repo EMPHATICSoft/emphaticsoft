@@ -118,7 +118,7 @@ namespace emph {
   
   void SSDCalibration::Fit()
   {
-   //Fit the ssdvectors and obtain x, y, z shifts
+   //Fit the ssdvectors and obtain x, y shifts
   }
   
   //......................................................................
