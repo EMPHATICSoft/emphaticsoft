@@ -41,4 +41,4 @@ add_subdirectory(GasCkovHitReco)
 add_subdirectory(SpillInfo)
 add_subdirectory(DataQuality)
 add_subdirectory(TOF)
-
+add_subdirectory(SSDCalibration)
