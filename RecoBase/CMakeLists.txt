@@ -6,6 +6,7 @@ art_make_library(
   SOURCE ${src_files}
   LIBRARIES PRIVATE
     RawData
+    Geometry
     art::Framework_Core
     art::Persistency_Common
     canvas::canvas

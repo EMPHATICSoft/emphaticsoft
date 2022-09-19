@@ -27,6 +27,7 @@
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
+#include "RunHistory/RunHistory.h"
 #include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"
@@ -36,6 +37,7 @@
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
+#include "RecoBase/ADC.h"
 
 
 using namespace emph;
@@ -110,6 +112,7 @@ namespace emph {
       art::Timestamp fLastEventTime;
 
       emph::cmap::ChannelMap* fChannelMap;
+      runhist::RunHistory* fRunHistory;
       unsigned int fRun;
       unsigned int fSubrun;
       unsigned int fNEvents;
@@ -256,7 +259,8 @@ namespace emph {
     void OnMonPlotter::beginRun(art::Run const& run) {
       // initialize channel map
       fChannelMap = new emph::cmap::ChannelMap();
-      fChannelMap->LoadMap(run.run());
+      fRunHistory = new runhist::RunHistory(run.run());
+      fChannelMap->LoadMap(fRunHistory->ChanFile());
 
       if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
 	fSHMThreadRunning = false;
@@ -669,7 +673,9 @@ namespace emph {
       if (fMakeWaveFormPlots) {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm* wvfm_ptr = &wvfm;
+	    const rb::ADC wvr; 
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
@@ -680,7 +686,7 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvfm.Charge();
+	      float q = wvr.Charge(wvfm_ptr);
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot

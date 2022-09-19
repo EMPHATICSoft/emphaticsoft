@@ -9,16 +9,22 @@
 
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
+#include "RunHistory/RunHistory.h"
 
 using namespace emph::geo;
 
-int main(){
+int main(int argc, char* argv[]){
 
-	std::cout << "This is a unit test." << std::endl << std::endl;
+	if(argc !=2){
+		std::cerr << "Usage: UnitTest [Run-number]" <<std::endl;
+		return -1;
+	}
+	
+	int runNum = std::stoi(argv[1]);
+	std::cout << "This is a unit test for Run" << runNum << "." << std::endl << std::endl;
 
-	//	std::string package_path;
-	//	package_path = getenv ("CETPKG_SOURCE");
-	Geometry *emgeo = new Geometry("gdml/phase1a.gdml"); //package_path+"/Geometry/gdml/"+phase_name+".gdml");
+	runhist::RunHistory *fRunHistory = new runhist::RunHistory(runNum);
+	Geometry *emgeo = new Geometry(fRunHistory->GeoFile());
 
 	std::cout << "The magnet position is " << emgeo->MagnetUSZPos() << " - " << emgeo->MagnetDSZPos() << " cm." << std::endl;
 
@@ -34,6 +40,7 @@ int main(){
 		for ( int j = 0; j < nsensor; j++){
 			Detector sensor = st.GetSSD(j);
 			std::cout << "The " << j <<"-th SSD sensor in the " << i <<"-th SSD station is located at " << sensor.Pos()[2]+st.Pos()[2] << " cm." << std::endl;
+			std::cout << "The cosine of rotation angle is " << sensor.Rot() << std::endl;
 		}
 	}
 

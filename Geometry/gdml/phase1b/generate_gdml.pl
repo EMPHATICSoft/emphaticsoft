@@ -1250,7 +1250,7 @@ EOF
 
   <!-- BELOW IS FOR ARICH -->
 
-  <physvol name="arich_phys">
+  <physvol name="ARICH_phys">
 	 <volumeref ref="arich_vol"/>
 	 <positionref ref="arich_pos"/>
   </physvol>

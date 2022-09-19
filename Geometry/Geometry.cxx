@@ -92,7 +92,7 @@ namespace emph {
 			std::string fname;
 
 			file_path = getenv ("CETPKG_SOURCE");
-			fname = file_path + "/Geometry/" + fGDMLFile;
+			fname = file_path + "/ConstBase/" + fGDMLFile;
 			geoFile.open(fname.c_str());
 			if (!geoFile.is_open()) {
 				throw cet::exception("GeometryFileLoad")
@@ -122,25 +122,22 @@ namespace emph {
 			fGeoManager->SetVerboseLevel(old_verbosity);
 
 			const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
-			std::cout << "world_n = " << world_n << std::endl;
 
 			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-			std::cout << "world_v = " << world_n << std::endl;
 
 			TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
-			std::cout << "world_box = " << world_box << std::endl;
 
 			fWorldHeight = world_box->GetDY();
 			fWorldWidth  = world_box->GetDX();
 			fWorldLength = world_box->GetDZ();
 
 			ExtractMagnetInfo(world_v);
-			mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
+			mf::LogInfo("ExtractGeometry") << "extracted magnet geometry \n";
 
 			for ( int i = Trigger ; i < NDetectors ; i ++ ){
 				ExtractDetectorInfo(i, world_n);
 				if ( fDetectorLoad[i] == true ){
-					mf::LogWarning("ExtractGeometry") << "extracted "
+					mf::LogInfo("ExtractGeometry") << "extracted "
 						<< DetInfo::Name(DetectorType(i)) << " geometry \n";
 				}
 			}
@@ -152,10 +149,9 @@ namespace emph {
 
 		void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
 		{
-			if ( i < 3 || i == ARICH ){
-				mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
-					<< " detector not in gdml yet. \n"
-					<< "experts should confirm whether they should be implemented. \n";
+			if ( i < 3 ){
+				mf::LogInfo("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
+					<< " detector not in gdml yet. \n";
 				return;
 			}
 
@@ -249,6 +245,9 @@ namespace emph {
 				st.SetName(name);
 				st.SetDz(st_box->GetDZ());
 				st.SetPos(st_n->GetMatrix()->GetTranslation());
+//				const double *rmat;
+//				rmat=st_n->GetMatrix()->GetRotationMatrix();
+				st.SetRot(st_n->GetMatrix()->GetRotationMatrix()[0]);
 				st.SetWidth(2*st_box->GetDX());
 				st.SetHeight(2*st_box->GetDY());
 
@@ -266,6 +265,7 @@ namespace emph {
 						sensor.SetName(name);
 						sensor.SetDz(sensor_box->GetDZ());
 						sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
+						sensor.SetRot(sensor_n->GetMatrix()->GetRotationMatrix()[1]);
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
 

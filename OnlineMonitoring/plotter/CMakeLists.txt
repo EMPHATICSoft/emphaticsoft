@@ -18,7 +18,9 @@ art_make_library ( SOURCE ${src_files}
 build_plugin(OnMonPlotter "module"
   LIBRARIES PRIVATE
     RawData
+    RecoBase
     ChannelMap
+	 RunHistory
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
