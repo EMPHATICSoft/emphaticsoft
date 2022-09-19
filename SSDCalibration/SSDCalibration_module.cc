@@ -124,9 +124,8 @@ namespace emph {
   //......................................................................
   void SSDCalibration::produce(art::Event& evt)
   { 
-	  //Obtain SSDRawDigit to SSDHit
-	  std::string labelstr = "raw:SSDRawDigit";
-	  emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+	  std::string labelstr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::SSD));
+	  emph::cmap::FEBoardType boardType = emph::cmap::SSD;
 	  emph::cmap::EChannel echan;
 	  echan.SetBoardType(boardType);
 
