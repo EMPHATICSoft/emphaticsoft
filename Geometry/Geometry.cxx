@@ -122,25 +122,22 @@ namespace emph {
 			fGeoManager->SetVerboseLevel(old_verbosity);
 
 			const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
-			std::cout << "world_n = " << world_n << std::endl;
 
 			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-			std::cout << "world_v = " << world_n << std::endl;
 
 			TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
-			std::cout << "world_box = " << world_box << std::endl;
 
 			fWorldHeight = world_box->GetDY();
 			fWorldWidth  = world_box->GetDX();
 			fWorldLength = world_box->GetDZ();
 
 			ExtractMagnetInfo(world_v);
-			mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
+			mf::LogInfo("ExtractGeometry") << "extracted magnet geometry \n";
 
 			for ( int i = Trigger ; i < NDetectors ; i ++ ){
 				ExtractDetectorInfo(i, world_n);
 				if ( fDetectorLoad[i] == true ){
-					mf::LogWarning("ExtractGeometry") << "extracted "
+					mf::LogInfo("ExtractGeometry") << "extracted "
 						<< DetInfo::Name(DetectorType(i)) << " geometry \n";
 				}
 			}
@@ -152,10 +149,9 @@ namespace emph {
 
 		void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
 		{
-			if ( i < 3 || i == ARICH ){
-				mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
-					<< " detector not in gdml yet. \n"
-					<< "experts should confirm whether they should be implemented. \n";
+			if ( i < 3 ){
+				mf::LogInfo("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
+					<< " detector not in gdml yet. \n";
 				return;
 			}
 
