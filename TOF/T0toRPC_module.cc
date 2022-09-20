@@ -37,6 +37,12 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
   namespace tof {
+  
+    struct RPCStripHit {
+      int fStripNumber;
+      double fToTLeft, fToTRight;
+      double fTLeft, fTRight;
+    };
     
     class T0toRPC : public art::EDAnalyzer {
     public:
@@ -85,6 +91,9 @@ namespace emph {
       unsigned int fNoRPCInfo;
       unsigned int fNoTDCInfo;
       unsigned int fNoT0RPCInfo;
+      unsigned int fNRPCHi_Leading, fNRPCLo_Leading;
+      unsigned int fNRPCHi_Trailing, fNRPCLo_Trailing;
+      
       
 
       // hard codes consts for now,
@@ -104,6 +113,7 @@ namespace emph {
 //     std::vector<double> fRPCADCs(nChanRPC, 0.);
      std::vector<double> fRPCTDCs;
      std::vector<bool> fRPCHiLows;
+     std::vector<int> fRPCEChans;
      std::vector<double> fTrigPeakADCs;
      std::vector<double> fTrigADCs;
      std::vector<emph::tof::PeakInWaveForm> fPeakTriggers;
@@ -149,8 +159,9 @@ namespace emph {
       fT0ADCs(nChanT0+2, 0.),
       fT0TDCs(nChanT0+2, DBL_MAX),
       fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
-      fRPCTDCs(nChanRPC, DBL_MAX),
-      fRPCHiLows(nChanRPC, false),
+      fRPCTDCs(2*nChanRPC+1, DBL_MAX),
+      fRPCHiLows(2*nChanRPC+1, false),
+      fRPCEChans(2*nChanRPC+1, INT_MAX), // used only for algorithm consistency..
       fTrigPeakADCs(nChanTrig, 0.),
       fTrigADCs(nChanTrig, 0.),
       fMakeT0FullNtuple(true),
@@ -206,8 +217,9 @@ namespace emph {
     void T0toRPC::beginJob()
     {
       fNEvents= 0;
-      fNoT0Info = 0; fNoTrigInfo = 0; fNoT0RPCInfo = 0; fNoTrigInfo = 0; 
-    
+      fNoT0Info = 0; fNoTrigInfo = 0; fNoT0RPCInfo = 0; fNoTrigInfo = 0;  
+      fNRPCHi_Leading = 0; fNRPCHi_Trailing = 0; fNRPCLo_Leading = 0; fNRPCLo_Trailing = 0; 
+
       //
       // open a few csv file for output. Delayed until we know the run number.  
       //
@@ -225,7 +237,9 @@ namespace emph {
     //......................................................................
     void T0toRPC::openOutputCsvFiles() {
 //
-//     
+//       std::cerr << " T0toRPC::openOutputCsv..  Files Number of RPC channel, from Channel map " 
+//           << nChanRPC << " and quit for now.. " << std::endl; exit(2);
+//    
       if (fRun == 0) {
         std::cerr << " T0toRPC::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
 	exit(2);
@@ -254,12 +268,11 @@ namespace emph {
         fFOutTrigger << " " << std::endl;
       }
       if (fMakeRPCFullNtuple) { 
-        size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
         std::ostringstream fNameRPCStrStr; fNameRPCStrStr << "./RPCTuple_V2_" << fRun << "_" << fTokenJob << ".txt";
         std::string fNameRPCStr(fNameRPCStrStr.str());
         fFOutRPC.open(fNameRPCStr.c_str());
 	fFOutRPC << " subRun evt ";
-        for (unsigned int k=0; k != nchanRPC; k++) fFOutRPC << " tdc" << k << " HiLowBit" << k;
+        for (unsigned int k=0; k != 2*nChanRPC+1; k++) fFOutRPC << " tdc" << k << " HiLowBit" << k;
         fFOutRPC << " " << std::endl;
       }
       if (fMakeEventSummaryNTuple) {
@@ -272,9 +285,11 @@ namespace emph {
 	fFOutTrigT0RPC << " Sum4PMT";
         fFOutTrigT0RPC << " T0nH T0nH1 T0nH1UpDwn T0nH2 T0nH2UpDwn T0seg1 T0seq2 T0sumSigUp1" <<
 	               " T0sumSigDwn1 T0sumSigUp2 T0sumSigDwn2 T0tdcH1Bot T0tdcH1Top ";
-	fFOutTrigT0RPC << " RPCnHi  RPCnLow";
-        size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
-	for (size_t k=0; k != nchanRPC; k++) fFOutTrigT0RPC << " RPCTdc" << k << " HiLowBit" << k;
+	fFOutTrigT0RPC << " RPCHaSig500 RPCnTot  RPCnOK";
+        const size_t nChanRPCHitMax = 5;
+	for (size_t k=0; k != nChanRPCHitMax; k++) 
+	  fFOutTrigT0RPC << " RPCstripNum" << k << " RPCTotLeft" << k << " RPCTotRight" << k  
+	                 << " RPCTLeft" << k << " RPCTRight" << k  ;
 	fFOutTrigT0RPC << " " << std::endl;
       }
       fFilesAreOpen = true;
@@ -287,6 +302,9 @@ namespace emph {
       std::cerr << " T0toRPC::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Total number of events " << fNEvents << " No Info T0 and No RPC " << fNoT0RPCInfo 
                 << "  No trigger Info " << fNoTrigInfo << " No T0 info " << fNoT0Info << " No RPC info " << fNoRPCInfo << std::endl; 
+      std::cerr << "  Number of RPC Hi and Leading " << fNRPCHi_Leading << "  Hi and Traling " << fNRPCHi_Trailing
+                << "  Lo and Leading " << fNRPCLo_Leading << " Lo and Traling " <<  fNRPCLo_Trailing << std::endl;
+	
       if (fFOutT0.is_open()) fFOutT0.close();
       if (fFOutRPC.is_open()) fFOutRPC.close();
       if (fFOutTrigger.is_open()) fFOutTrigger.close();
@@ -303,6 +321,7 @@ namespace emph {
        for(std::vector<double>::iterator it = fT0TDCsFrAdc.begin(); it != fT0TDCsFrAdc.end(); it++) *it = DBL_MAX;
        for(std::vector<double>::iterator it = fRPCTDCs.begin(); it != fRPCTDCs.end(); it++) *it = DBL_MAX;
        for(std::vector<bool>::iterator it = fRPCHiLows.begin(); it != fRPCHiLows.end(); it++) *it = false;
+       for(std::vector<int>::iterator it = fRPCEChans.begin(); it != fRPCEChans.end(); it++) *it = INT_MAX;
        for(std::vector<double>::iterator it = fTrigADCs.begin();it != fTrigADCs.end(); it++) *it = -1.0*DBL_MAX/2.;
        for(std::vector<double>::iterator it = fTrigPeakADCs.begin();it != fTrigPeakADCs.end(); it++) *it = 0.;
        fNumT0Hits = 0;		      
@@ -525,8 +544,6 @@ namespace emph {
     //......................................................................
     void    T0toRPC::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
-      int nchan = emph::geo::DetInfo::NChannel(emph::geo::RPC);
-//      std::cerr << " T0toRPC::FillRPCPlots, number of channels " << nchan << std::endl;
       emph::cmap::EChannel echan;
       emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
       double trb3LinearLowEnd = 15.0;
@@ -551,18 +568,29 @@ namespace emph {
 //	    std::cerr  <<"Found TRB3 hit: IsLeading: "<<trb3.IsLeading()<<"; IsTrailing: "<<
 //	     trb3.IsTrailing()<<"; Fine Time: " <<trb3.GetFineTime()<<"; Course Time: "<<trb3.GetCoarseTime()<<"; Epoch Counter: //"<<trb3.GetEpochCounter()<<std::endl;
 	    long double time_RPC = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() * 5000.0 - 
-	                         ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0; 
-	    if (detchan < nchan) { // watch out for channel 500!                                                                  
+	                         ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;    
+//	    std::cerr << " T0toRPC::FillRPCPlots chan " << chan << " detchan " << detchan << " Hi Lo " << dchan.HiLo() << std::endl;
+	    if (chan < static_cast<int>(fRPCTDCs.size())) { // watch out for channel 500! We include those, they appear for detChan = 500                                                                  
 //              hitCount[detchan] += 1;
-	      fRPCTDCs[detchan] = ((time_RPC - triggerTime)/100000);
-	      if (trb3.IsLeading()) fRPCHiLows[detchan] = true;
-	      if (trb3.IsTrailing()) fRPCHiLows[detchan] = false;
+	      fRPCTDCs[chan] = ((time_RPC - triggerTime)/100000);
+//	      if (trb3.IsLeading()) fRPCHiLows[detchan] = true;
+//	      if (trb3.IsTrailing()) fRPCHiLows[detchan] = false;
+              fRPCHiLows[chan] = (dchan.HiLo() == 1);
+	      if (dchan.HiLo() == 1) {
+                fRPCEChans[chan] = chan;
+	        if ((detchan == 4) && trb3.IsLeading()) fNRPCHi_Leading++;
+                else if ((detchan == 4) && trb3.IsTrailing())fNRPCHi_Trailing++;
+	      } else {
+                fRPCEChans[chan] = -chan;
+	        if ((detchan == 4) && trb3.IsLeading()) fNRPCLo_Leading++;
+                else if ((detchan == 4) && trb3.IsTrailing())fNRPCLo_Trailing++;
+	      }
             }
          }
       }
       if (fMakeRPCFullNtuple) {
         fFOutRPC << " " << fSubRun << " " << fEvtNum;
-        for (int k=0; k != nchan; k++) {
+        for (size_t k=0; k != fRPCTDCs.size(); k++) {
 	  fFOutRPC << " " << fRPCTDCs[k];
 	  if (fRPCHiLows[k])  fFOutRPC << " 1.";
 	  else fFOutRPC << " 0.";
@@ -713,11 +741,10 @@ namespace emph {
     }
     void T0toRPC::FillTrigT0RPCV1(bool gotT0, bool gotRPC) {  
         
-      size_t nchanRPC = static_cast<size_t> (emph::geo::DetInfo::NChannel(emph::geo::RPC));
       const int nBlankTrigger = 4 + 4 + 1; // the number of peaks for each PMT, the delta ts between first and 2nd (found within), 
                                            // or first and third (found after)   
       const int nBlankT0 = 13;
-      const int nBlankRPC = 1 + 2*5; // maximum hits, we'll extend for high multiplicity events.. 
+      const int nBlankRPC = 1 + 1 + 1+ 5*5; // maximum hits on flile is 5 we'll extend for high multiplicity events.., and 5 words per hits. 
       
       
        fFOutTrigT0RPC << " " << fSubRun  << " " << fEvtNum << " ";
@@ -757,19 +784,39 @@ namespace emph {
        if (!gotRPC) {
           for (int k=0; k != nBlankRPC; k++) fFOutTrigT0RPC << " 0"; 
        } else {
-         int nhHi=0; int nhLow=0;
-	 for (size_t k=0; k != nchanRPC; k++) { 
-	   if (fRPCTDCs[k] < 1000.) {
-	     if (fRPCHiLows[k]) nhHi++;
-	     else nhLow++;
+         int nhOK=0;
+	 int hasNoPtrTrig = (fRPCTDCs[0] != DBL_MAX) ? 1 : 0;
+	 std::vector<RPCStripHit> mHits;
+	 RPCStripHit aHit;
+	 for (int kStrip=1; kStrip != nChanRPC/2 + 1; kStrip++) { 
+	   const size_t iHiLeft = static_cast<size_t>(kStrip); // Valid for Phase 1b
+	   const size_t iLoLeft = iHiLeft + 1 ;
+	   const size_t iHiRight = iHiLeft + nChanRPC;
+	   const size_t iLoRight = iHiRight + 1;
+	   if (iHiLeft >= fRPCTDCs.size()) {
+	     std::cerr << " T0toRPC::FillTrigT0RPCV1 internal error, to many strip indices, iHiLeft " << iHiLeft <<  " fatal " << std::endl; 
+	     exit(2);
 	   }
-	   if ((fRPCTDCs[k] < 1000.) &&  (!fRPCHiLows[k])) nhLow++;
+	   if ((fRPCTDCs[iHiRight] == DBL_MAX) || (fRPCTDCs[iLoRight] == DBL_MAX) || 
+	       (fRPCTDCs[iHiLeft] == DBL_MAX) || (fRPCTDCs[iLoLeft] == DBL_MAX)) continue;
+	   aHit.fStripNumber = kStrip ;
+           aHit.fToTLeft =  fRPCTDCs[iHiLeft] - fRPCTDCs[iLoLeft];
+           aHit.fToTRight =  fRPCTDCs[iHiRight] - fRPCTDCs[iLoRight];
+	   aHit.fTLeft = 0.5*(fRPCTDCs[iHiLeft] + fRPCTDCs[iLoLeft]);
+	   aHit.fTRight = 0.5*(fRPCTDCs[iHiRight] + fRPCTDCs[iLoRight]);
+	   if ((std::abs(aHit.fToTLeft) < 0.150) && (std::abs(aHit.fToTRight) < 0.150)) nhOK++; //This cut needs to be tunable from fcl, probably.
+	   mHits.push_back(aHit);
 	 }
-	 fFOutTrigT0RPC << " " << nhHi << " " << nhLow;
-         for (size_t k=0; k != nchanRPC; k++) {
-	   fFOutTrigT0RPC << " " << fRPCTDCs[k];
-	   if (fRPCHiLows[k]) fFOutTrigT0RPC << " 1.";
-	   else fFOutTrigT0RPC << " 0.";
+	 fFOutTrigT0RPC << " " << hasNoPtrTrig << " " << mHits.size() << " " << nhOK;
+	 size_t nDump=0;
+         for (std::vector<RPCStripHit>::const_iterator it = mHits.cbegin();  it != mHits.cend(); it++) { 
+	   fFOutTrigT0RPC << " " << it->fStripNumber << "  " << it->fToTLeft << " "  << it->fToTRight
+	                  << " " << it->fTLeft << " " << it->fTRight;
+			  nDump++;
+			  if (nDump == 5) break;
+	 }
+         if (mHits.size() < 5) {
+	   for (size_t k=0; k != 5 - mHits.size(); k++) fFOutTrigT0RPC << " 0 0. 0. 0. 0. ";
 	 }
        }  
        fFOutTrigT0RPC << std::endl;
