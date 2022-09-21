@@ -800,8 +800,8 @@ namespace emph {
 	   if ((fRPCTDCs[iHiRight] == DBL_MAX) || (fRPCTDCs[iLoRight] == DBL_MAX) || 
 	       (fRPCTDCs[iHiLeft] == DBL_MAX) || (fRPCTDCs[iLoLeft] == DBL_MAX)) continue;
 	   aHit.fStripNumber = kStrip ;
-           aHit.fToTLeft =  fRPCTDCs[iHiLeft] - fRPCTDCs[iLoLeft];
-           aHit.fToTRight =  fRPCTDCs[iHiRight] - fRPCTDCs[iLoRight];
+           aHit.fToTLeft =  -1.0*(fRPCTDCs[iHiLeft] - fRPCTDCs[iLoLeft]);
+           aHit.fToTRight =  -1.0*(fRPCTDCs[iHiRight] - fRPCTDCs[iLoRight]);
 	   aHit.fTLeft = 0.5*(fRPCTDCs[iHiLeft] + fRPCTDCs[iLoLeft]);
 	   aHit.fTRight = 0.5*(fRPCTDCs[iHiRight] + fRPCTDCs[iLoRight]);
 	   if ((std::abs(aHit.fToTLeft) < 0.150) && (std::abs(aHit.fToTRight) < 0.150)) nhOK++; //This cut needs to be tunable from fcl, probably.
@@ -810,13 +810,14 @@ namespace emph {
 	 fFOutTrigT0RPC << " " << hasNoPtrTrig << " " << mHits.size() << " " << nhOK;
 	 size_t nDump=0;
          for (std::vector<RPCStripHit>::const_iterator it = mHits.cbegin();  it != mHits.cend(); it++) { 
+	   if ((std::abs(it->fToTLeft) > 0.150) || (std::abs(it->fToTRight) > 0.150)) continue;  
 	   fFOutTrigT0RPC << " " << it->fStripNumber << "  " << it->fToTLeft << " "  << it->fToTRight
 	                  << " " << it->fTLeft << " " << it->fTRight;
 			  nDump++;
 			  if (nDump == 5) break;
 	 }
-         if (mHits.size() < 5) {
-	   for (size_t k=0; k != 5 - mHits.size(); k++) fFOutTrigT0RPC << " 0 0. 0. 0. 0. ";
+         if (nDump < 5) {
+	   for (size_t k=0; k != 5 - nDump; k++) fFOutTrigT0RPC << " 0 0. 0. 0. 0. ";
 	 }
        }  
        fFOutTrigT0RPC << std::endl;
