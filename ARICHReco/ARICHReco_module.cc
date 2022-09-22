@@ -265,8 +265,8 @@ namespace emph {
     }
 
     // raw times
-    fLeadTimeHist  = tfs->make<TH1D>("hLeadTime", "",100,-600,-400);
-    fTrailTimeHist = tfs->make<TH1D>("hTrailTime","",100,-600,-400);
+    fLeadTimeHist  = tfs->make<TH1D>("hLeadTime", "",300,-600,0);
+    fTrailTimeHist = tfs->make<TH1D>("hTrailTime","",300,-600,0);
     fNTrailsHist = tfs->make<TH1D>("hNTrails",";# trailing times",10,0,10);
     fNTrailsLeadDiffHist = tfs->make<TH2D>("hNTrailsLeadTime",";Leading times difference (ns);# trailing times",125,0,250,10,0,10);
 
@@ -318,6 +318,7 @@ namespace emph {
     }
     
     // separate leading and trailing times per channel
+    std::vector<emph::cmap::EChannel> eChannels;
     std::map<emph::cmap::EChannel,std::vector<double>> leadTimesCh;
     std::map<emph::cmap::EChannel,std::vector<double>> trailTimesCh;
     
@@ -331,6 +332,7 @@ namespace emph {
       int fpga = trb3.GetBoardId();
       int ech = trb3.GetChannel();
       emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);
+      eChannels.push_back(echan);
       
       double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
       
@@ -345,11 +347,13 @@ namespace emph {
       
     }
     
-    // loop over channels with leading times
-    for (auto leadCh=leadTimesCh.begin();leadCh!=leadTimesCh.end();leadCh++) {
+    // loop over all channels
+    for (auto ech=eChannels.begin();ech!=eChannels.end();ech++) {
       
-      // check if channel has trailing times
-      auto trailCh = trailTimesCh.find(leadCh->first);
+      // check if channel has leading and trailing times
+      auto leadCh  = leadTimesCh.find(*ech);
+      auto trailCh = trailTimesCh.find(*ech);
+      if (leadCh==leadTimesCh.end()) continue;
       if (trailCh==trailTimesCh.end()) continue;
       
       // sort times in ascendent order
@@ -361,13 +365,9 @@ namespace emph {
       // loop over leading times in this channel
       for (unsigned int l=0;l<leadTimes.size();l++) {
 	
-        // leading time window cut
-	double lead  = leadTimes[l];
-        if (lead>-500) continue;
-        if (lead<-600) continue;
-
         // find all trailing times after leading time
         // but before next leading time or end of readout window
+	double lead  = leadTimes[l];
 	double lead_next  = l<leadTimes.size()-1 ? leadTimes[l+1] : 0;
 	std::vector<double> trail_found;
 	for (unsigned int t=0;t<trailTimes.size();t++) {
@@ -476,7 +476,7 @@ namespace emph {
     ring.SetNHits(fARICH2DHist[0]->GetEntries());
     
     rings->push_back(ring);
-    
+
     if (fEvtNum<200) {
 
       TCanvas * c = new TCanvas();
