@@ -16,8 +16,8 @@ namespace runhist {
   
   class RunHistory {
   public:
-    RunHistory(); // Default constructor
-    RunHistory(int run);
+    //    RunHistory(); // Default constructor
+    explicit RunHistory(int run);
     virtual ~RunHistory() {}; //Destructor
     
   private:
@@ -43,8 +43,8 @@ namespace runhist {
     int        Run() const { return _runNumber; }
     int        NSubrun();
     double     BeamMom();
-	 std::string GeoFile();
-	 std::string ChanFile();
+    std::string GeoFile();
+    std::string ChanFile();
     int        CalibVer();
     std::vector<std::string> DetectorList();
     int        NTriggers();

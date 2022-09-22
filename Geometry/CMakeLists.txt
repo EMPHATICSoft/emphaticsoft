@@ -22,6 +22,8 @@ art_make_library(
 simple_plugin( Geometry service
   LIBRARIES 
   Geometry
+  RunHistory
+  RunHistory_service
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry

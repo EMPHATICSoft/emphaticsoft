@@ -17,14 +17,15 @@
 namespace runhist{
    
   //----------------------------------------------------------------------
-  
+  /*  
   RunHistory::RunHistory() :   
     _isLoaded(false), _isConfig(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _geoFile(""), _chanFile(""), _calibVer(0), _nTrig(0), _QEURL("")
   {
     _det.clear();
 
   }
-  
+  */
+
   //----------------------------------------------------------------------
   
   RunHistory::RunHistory(int run) :

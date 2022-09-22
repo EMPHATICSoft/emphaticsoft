@@ -5,6 +5,7 @@
 
 // EMPHATIC includes
 #include "ChannelMap/ChannelMapService.h"
+#include "RunHistory/RunHistoryService.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -20,6 +21,8 @@ namespace emph
     {
       reconfigure(pset);
       
+      art::ServiceHandle<runhist::RunHistoryService> rhs;
+
       fChannelMap = new ChannelMap();
 
       reg.sPreBeginRun.watch(this, &ChannelMapService::preBeginRun);
@@ -35,16 +38,16 @@ namespace emph
     //-----------------------------------------------------------
     void ChannelMapService::reconfigure(const fhicl::ParameterSet& pset)
     {
-      
-      fMapFileName = pset.get< std::string >("MapFileName");
       fAbortIfFileNotFound = pset.get<bool>("AbortIfFileNotFound");
     }
     
     //----------------------------------------------------------
     void ChannelMapService::preBeginRun(const art::Run& )
     {
-      //fChannelMap->SetMapFileName(fMapFileName);
       fChannelMap->SetAbortIfFileNotFound(fAbortIfFileNotFound);      
+      art::ServiceHandle<runhist::RunHistoryService> rhs;
+
+      fChannelMap->LoadMap(rhs->RunHist()->ChanFile());
     }
     
   }

@@ -44,7 +44,7 @@ namespace emph
     
     void produce(art::Event& evt);
     void beginSubRun(art::SubRun &sr);
-    void endSubRun(art::SubRun &sr);
+    //    void endSubRun(art::SubRun &sr);
 
   private:
 
@@ -147,15 +147,18 @@ namespace emph
 				  << we.what();
 	std::abort();
       }
-    }  
+    }
+
+    sr.put(std::move(fSpill));
+
   }
   
   //......................................................................
-  void SpillInfo::endSubRun(art::SubRun& sr)
+  /*
+  void SpillInfo::endSubRun(art::SubRun& ) //sr)
   {
-    sr.put(std::move(fSpill));
   }
-
+  */
   //......................................................................
   void SpillInfo::produce(art::Event& ) //evt)
   {
