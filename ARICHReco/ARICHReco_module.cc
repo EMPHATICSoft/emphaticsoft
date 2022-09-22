@@ -165,7 +165,6 @@ namespace emph {
     TH1D*       fLeadTimeHist;
     TH1D*       fTrailTimeHist;
     TH1D*       fNTrailsHist;
-    TH2D*       fNTrailsLeadDiffHist;
     TH1D*       fNHitsHist;
     TH2D*       fNHits2DHist;
     TH1D*       fHitToTHist;
@@ -268,7 +267,6 @@ namespace emph {
     fLeadTimeHist  = tfs->make<TH1D>("hLeadTime", "",300,-600,0);
     fTrailTimeHist = tfs->make<TH1D>("hTrailTime","",300,-600,0);
     fNTrailsHist = tfs->make<TH1D>("hNTrails",";# trailing times",10,0,10);
-    fNTrailsLeadDiffHist = tfs->make<TH2D>("hNTrailsLeadTime",";Leading times difference (ns);# trailing times",125,0,250,10,0,10);
 
     // hits
     fNHitsHist = tfs->make<TH1D>("hNHits","",200,0,200);
@@ -379,7 +377,6 @@ namespace emph {
         // require at least one trailing time
         // after leading time
         fNTrailsHist->Fill(trail_found.size());
-        fNTrailsLeadDiffHist->Fill(lead_next-lead,trail_found.size());
         if (trail_found.size()==0) continue;
 
         // find pmt and pixel number
