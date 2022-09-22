@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   RunHistory class
-/// \author  jpaley@fnal.gov
+/// \author  jpaley@fnal.gov, wanly@bu.edu
 /// \date
 ////////////////////////////////////////////////////////////////////////
 #include "RunHistory/RunHistory.h"
@@ -17,18 +17,20 @@
 namespace runhist{
    
   //----------------------------------------------------------------------
-  
+  /*  
   RunHistory::RunHistory() :   
-    _isLoaded(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _nTrig(0), _QEURL("")
+    _isLoaded(false), _isConfig(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _geoFile(""), _chanFile(""), _calibVer(0), _nTrig(0), _QEURL("")
   {
     _det.clear();
 
   }
-  
+  */
+
   //----------------------------------------------------------------------
   
   RunHistory::RunHistory(int run) :
     _isLoaded(false),
+    _isConfig(false),
     _runNumber(run)
   {
     _QEURL = "";
@@ -42,6 +44,7 @@ namespace runhist{
     if (run != _runNumber) {
       _runNumber = run;
       _isLoaded = false;
+      _isConfig = false;
     }
 
     return true;
@@ -67,6 +70,33 @@ namespace runhist{
 
   //----------------------------------------------------------------------
   
+  std::string RunHistory::GeoFile()
+  {
+    if (!_isConfig) LoadConfig();
+    return _geoFile;
+
+  }
+
+  //----------------------------------------------------------------------
+  
+  std::string RunHistory::ChanFile()
+  {
+    if (!_isConfig) LoadConfig();
+    return _chanFile;
+
+  }
+
+  //----------------------------------------------------------------------
+  
+  int RunHistory::CalibVer()
+  {
+    if (!_isConfig) LoadConfig();
+    return _calibVer;
+
+  }
+
+  //----------------------------------------------------------------------
+ 
   std::vector<std::string> RunHistory::DetectorList()
   {
     if (!_isLoaded) assert(LoadFromDB());
@@ -85,8 +115,30 @@ namespace runhist{
 
   //----------------------------------------------------------------------
 
+  bool RunHistory::LoadConfig()
+  {
+
+	 if(_runNumber >= 436 && _runNumber <= 605){
+		 _geoFile="phase1a.gdml";
+		 _chanFile="ChannelMap_Jan22_Run436.txt";
+		 _calibVer=1;
+	 }
+	 else if(_runNumber >= 605 && _runNumber <= 1385){
+		 _geoFile="phase1b.gdml";
+		 _chanFile="ChannelMap_Jun22.txt";
+		 _calibVer=2;
+	 }
+	 else{
+		 std::cout << "Run " << _runNumber << " is not in the database." << std::endl;
+	    std::abort();
+	 }
+
+	 return true;
+  }
+
   bool RunHistory::LoadFromDB()
   {
+
     if (_QEURL.empty()) return false;
 
     QueryEngine<int,int,double> runquery(_QEURL,"emph_prod","runs","nsubrun","ntrig","beammom");
@@ -102,8 +154,9 @@ namespace runhist{
 
     }
 
-    _isLoaded = true;
+	 _isLoaded = true;
     return true;
+
   }
   
 } // end namespace runhist

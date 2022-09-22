@@ -41,7 +41,6 @@ namespace emph
     private:
       bool fAbortIfFileNotFound;
       ChannelMap* fChannelMap;
-      std::string fMapFileName;
 
     };
     

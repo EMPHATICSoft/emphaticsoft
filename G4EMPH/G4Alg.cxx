@@ -84,7 +84,7 @@ namespace emph {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     fG4Help = new g4b::G4Helper(fG4MacroPath,
                                 fG4PhysListName,
-                                geo->GDMLFile());
+                                geo->Geo()->GDMLFile());
 
     // more control over GDML processing (before InitPhysics)
     const bool dfltOverlap = false;

@@ -37,6 +37,7 @@ simple_plugin(RawDataUnpacker "source"
                           RawData
                           RawDataUnpacker
                           ChannelMap
+								  RunHistory
                           ChannelMap_service
                           ROOT::Core
                           ROOT::Tree

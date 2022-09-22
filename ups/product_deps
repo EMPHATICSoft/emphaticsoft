@@ -257,7 +257,10 @@ caendigitizer   v2_12_0         -     only_for_build
 caenvme         v2_50           -     only_for_build
 cetmodules	v2_20_00	-     only_for_build
 #geant4          v4_10_7_p01c    -
-geant4          v4_10_6_p01d    -
+geant4          v4_10_6_p01d    - 
+ifbeam          v2_5_1          -
+nucondb         v2_5_1
+ifdh_art        v2_12_03        -
 end_product_list
 ####################################
 
@@ -312,13 +315,13 @@ end_product_list
 #   case it is optional.
 #
 ####################################
-qualifier  art	      art_root_io  artdaq          artdaq_core     geant4 notes
-c7:debug   c7:debug   c7:debug     -               -               c7:debug
-c7:prof	   c7:prof    c7:prof      -               -               c7:prof
-e19:debug  e19:debug  e19:debug    e19:debug:s111  e19:debug:s111  e19:debug
-e19:prof   e19:prof   e19:prof     e19:prof:s111   e19:prof:s111   e19:prof
-e20:debug  e20:debug  e20:debug    -               -               e20:debug
-e20:prof   e20:prof   e20:prof     -               -               e20:prof 
+qualifier  art	      art_root_io  artdaq          artdaq_core     geant4      ifbeam           ifdh_art     nucondb         notes
+c7:debug   c7:debug   c7:debug     -               -               c7:debug    c7:p392:debug    c7:prof      c7:prof
+c7:prof	   c7:prof    c7:prof      -               -               c7:prof     c7:p392:debug    c7:prof      c7:prof
+e19:debug  e19:debug  e19:debug    e19:debug:s111  e19:debug:s111  e19:debug   e19:p392:debug   e19:debug    e19:p392:debug
+e19:prof   e19:prof   e19:prof     e19:prof:s111   e19:prof:s111   e19:prof    e19:p392:prof    e19:prof     e19:p392:prof
+e20:debug  e20:debug  e20:debug    -               -               e20:debug   e20:p392:debug   e20:debug    e20:debug
+e20:prof   e20:prof   e20:prof     -               -               e20:prof    e20:p392:prof    e20:prof     e20:prof
 end_qualifier_list
 ####################################
 

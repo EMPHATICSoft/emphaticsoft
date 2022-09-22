@@ -21,8 +21,10 @@ namespace emph {
       uint32_t tdc_measurement_word;
       int event_index;
       uint64_t fragmentTimestamp;
-      
+      int detChan;
+
     public:
+
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?
@@ -41,6 +43,12 @@ namespace emph {
       /// Get the channel number
       uint32_t GetChannel() const {
         return ((tdc_measurement_word & 0xfc00000 ) >> 22 );
+      }
+
+      void SetDetChannel(int ichan) { detChan = ichan; }
+
+      int GetDetChannel() const {
+	return detChan;
       }
 
       /// Get the TDC measurement

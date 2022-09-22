@@ -34,13 +34,10 @@ namespace emph
     
       void preBeginRun(const art::Run& run);
 
-      emph::geo::Geometry* Geo() const { return fGeometry; }
-
-      std::string GDMLFile() const { return fGeoFileName; }
+      emph::geo::Geometry* Geo() const { return fGeometry.get(); }
 
     private:
-      emph::geo::Geometry* fGeometry;
-      std::string fGeoFileName;
+      std::unique_ptr<emph::geo::Geometry> fGeometry;
 
     };
     

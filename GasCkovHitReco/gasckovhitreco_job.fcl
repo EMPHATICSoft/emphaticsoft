@@ -1,0 +1,48 @@
+#include "GasCkovHitReco.fcl"
+
+process_name: GasCkovHitReco
+
+services:
+{
+  TFileService: { fileName: "gasckovhitreco_hist_r%r_s%s.root" closeFileFast: false }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "gasckovhitreco_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	gasckovhitreco: @local::standard_backovhitreco
+ }	
+
+ reco: [ gasckovhitreco ]
+	
+ filters:{}
+
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+
+}

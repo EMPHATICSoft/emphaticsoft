@@ -20,6 +20,16 @@ namespace rb {
   }
   
   //------------------------------------------------------------
+
+  SSDHit::SSDHit(const emph::rawdata::SSDRawDigit &ssd, const emph::geo::Detector &st)
+  {
+	  _angle = st.Rot();
+	  _strip = ssd.Strip();
+	  _pitch = 0.02;
+  }
+  
+  //------------------------------------------------------------
+
   std::ostream& operator<< (std::ostream& o, const SSDHit& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
@@ -28,6 +38,16 @@ namespace rb {
       << " Pitch = "        << std::setw(5) << std::right << h.Pitch();     
     return o;
   }
+
+  //------------------------------------------------------------
+
+   void SSDHit::CalibrateXYZ(double *cal)
+  {
+	  _x=_x+cal[0];
+  }
   
+  //------------------------------------------------------------
+
+ 
 } // end namespace rawdata
 //////////////////////////////////////////////////////////////////////////////
