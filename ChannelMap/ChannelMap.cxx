@@ -55,9 +55,6 @@ namespace emph {
       if ((fname == fMapFileName) && fIsLoaded) return true;
 
       std::ifstream mapFile;
-      std::string file_path;
-      file_path = getenv ("CETPKG_SOURCE");
-      fname = file_path + "/ConstBase/" + fname;
       mapFile.open(fname.c_str());
       if (!mapFile.is_open()) {
 	if (fAbortIfFileNotFound) std::abort();
