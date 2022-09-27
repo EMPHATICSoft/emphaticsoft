@@ -48,7 +48,7 @@ namespace emph {
 			private:    
 				std::string fName;
 				TVector3 fPos;
-				double fRot; // cos theta in x-y plane, starting from y-axis (fRot = 1 for y-axis), clockwise as seen by the beam
+				double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), clockwise as seen by the beam
 				double fDz;
 				double fWidth;
 				double fHeight;
