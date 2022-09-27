@@ -230,6 +230,8 @@ namespace emph {
 			fNSSDStations = (int)nodeName.size();
 			fNSSDs = 0;
 
+			double angle;
+
 			for (auto name : nodeName) {
 				SSDStation st;
 				TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
@@ -240,12 +242,6 @@ namespace emph {
 				st.SetName(name);
 				st.SetDz(st_box->GetDZ());
 				st.SetPos(st_n->GetMatrix()->GetTranslation());
-//				const double *rmat;
-//				rmat=st_n->GetMatrix()->GetRotationMatrix();
-				double angle;
-				angle = acos(st_n->GetMatrix()->GetRotationMatrix()[0]);
-				if(st_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle += TMath::Pi();
-				st.SetRot(angle);
 				st.SetWidth(2*st_box->GetDX());
 				st.SetHeight(2*st_box->GetDY());
 
