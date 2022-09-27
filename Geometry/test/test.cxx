@@ -26,11 +26,11 @@ int main(int argc, char* argv[]){
 	runhist::RunHistory *fRunHistory = new runhist::RunHistory(runNum);
 	Geometry *emgeo = new Geometry(fRunHistory->GeoFile());
 
-	std::cout << "The magnet position is " << emgeo->MagnetUSZPos() << " - " << emgeo->MagnetDSZPos() << " cm." << std::endl;
+	std::cout << "The magnet position is " << emgeo->MagnetUSZPos() << " - " << emgeo->MagnetDSZPos() << " mm." << std::endl;
 
 	for ( int i = Trigger ; i < NDetectors ; i++ ){
 		if ( !emgeo->DetectorLoad(i) )continue;
-		std::cout << "The " << DetInfo::Name(DetectorType(i)) << " position is " << emgeo->DetectorUSZPos(i) << " - " << emgeo->DetectorDSZPos(i) << " cm." << std::endl;
+		std::cout << "The " << DetInfo::Name(DetectorType(i)) << " position is " << emgeo->DetectorUSZPos(i) << " - " << emgeo->DetectorDSZPos(i) << " mm." << std::endl;
 	}
 
 	int nstation = emgeo->NSSDStations();
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]){
 		int nsensor = st.NSSDs();
 		for ( int j = 0; j < nsensor; j++){
 			Detector sensor = st.GetSSD(j);
-			std::cout << "The " << j <<"-th SSD sensor in the " << i <<"-th SSD station is located at " << sensor.Pos()[2]+st.Pos()[2] << " cm." << std::endl;
+			std::cout << "The " << j <<"-th SSD sensor in the " << i <<"-th SSD station is located at " << sensor.Pos()[0] << " " << sensor.Pos()[1] << " " << sensor.Pos()[2]+st.Pos()[2] << " mm." << std::endl;
 			std::cout << "The rotation angle is " << sensor.Rot() << std::endl;
 		}
 	}

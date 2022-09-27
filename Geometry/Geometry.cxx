@@ -260,7 +260,7 @@ namespace emph {
 						sensor.SetDz(sensor_box->GetDZ());
 						sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
 						angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
-						if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle += TMath::Pi();
+						if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
 						sensor.SetRot(angle);
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
