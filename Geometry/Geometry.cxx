@@ -242,7 +242,10 @@ namespace emph {
 				st.SetPos(st_n->GetMatrix()->GetTranslation());
 //				const double *rmat;
 //				rmat=st_n->GetMatrix()->GetRotationMatrix();
-				st.SetRot(st_n->GetMatrix()->GetRotationMatrix()[0]);
+				double angle;
+				angle = acos(st_n->GetMatrix()->GetRotationMatrix()[0]);
+				if(st_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle += TMath::Pi();
+				st.SetRot(angle);
 				st.SetWidth(2*st_box->GetDX());
 				st.SetHeight(2*st_box->GetDY());
 
@@ -260,7 +263,9 @@ namespace emph {
 						sensor.SetName(name);
 						sensor.SetDz(sensor_box->GetDZ());
 						sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
-						sensor.SetRot(sensor_n->GetMatrix()->GetRotationMatrix()[1]);
+						angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
+						if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle += TMath::Pi();
+						sensor.SetRot(angle);
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
 
