@@ -521,7 +521,7 @@ EOF
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="0" phi="0"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
@@ -533,8 +533,8 @@ EOF
 		<positionref ref="LG_para_pos" />
 	 </union>	 
 
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" unit="deg"/>
-	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" unit="deg"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" />
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" />
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 
@@ -911,34 +911,34 @@ EOF
 EOF
 	}
 
-	if($LG_switch){
-		print DET <<EOF;
+#	if($LG_switch){
+#		print DET <<EOF;
+#
+#
+#  <!-- BELOW IS FOR LG -->
+#
+#  <volume name="calor_vol">
+#	 <materialref ref="Air"/>
+#	 <solidref ref="calor_box"/>
+#EOF
+#		for($i = 0; $i< $n_LG; ++$i){
+#			for($j = 0; $j< $m_LG; ++$j){
+#				print DET <<EOF;
+#	 <physvol name="LG_block@{[ $i ]}@{[ $j ]}_phys">
+#		<volumeref ref="LG_block_vol"/>
+#		<positionref ref="LG_block@{[ $i ]}@{[ $j ]}_pos"/>
+#		<rotationref ref="LG_block@{[ $i ]}@{[ $j ]}_rot"/>
+#	 </physvol>
+#EOF
+#			}
+#		}
+#		print DET <<EOF;
+#  </volume>
+#
+#  <!-- ABOVE IS FOR LG -->
 
-
-  <!-- BELOW IS FOR LG -->
-
-  <volume name="calor_vol">
-	 <materialref ref="Air"/>
-	 <solidref ref="calor_box"/>
-EOF
-		for($i = 0; $i< $n_LG; ++$i){
-			for($j = 0; $j< $m_LG; ++$j){
-				print DET <<EOF;
-	 <physvol name="LG_block@{[ $i ]}@{[ $j ]}_phys">
-		<volumeref ref="LG_block_vol"/>
-		<positionref ref="LG_block@{[ $i ]}@{[ $j ]}_pos"/>
-		<rotationref ref="LG_block@{[ $i ]}@{[ $j ]}_rot"/>
-	 </physvol>
-EOF
-			}
-		}
-		print DET <<EOF;
-  </volume>
-
-  <!-- ABOVE IS FOR LG -->
-
-EOF
-	}
+#EOF
+#	}
 	print DET <<EOF;
 
   </structure> 
@@ -1067,21 +1067,21 @@ EOF
 
 EOF
 	}
-	if($LG_switch){
-		print WORLD <<EOF;
-
-
-  <!-- BELOW IS FOR LG -->
-
-  <physvol name="LGCalo_phys">
-	 <volumeref ref="calor_vol"/>
-	 <positionref ref="calor_pos"/>
-  </physvol>
-
-  <!-- ABOVE IS FOR LG -->
-
-EOF
-	}
+#	if($LG_switch){
+#		print WORLD <<EOF;
+#
+#
+#  <!-- BELOW IS FOR LG -->
+#
+#  <physvol name="LGCalo_phys">
+#	 <volumeref ref="calor_vol"/>
+#	 <positionref ref="calor_pos"/>
+#  </physvol>
+#
+#  <!-- ABOVE IS FOR LG -->
+#
+#EOF
+#	}
 	print WORLD <<EOF;
 
   </volume>
