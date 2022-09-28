@@ -13,7 +13,7 @@
 #include <climits>
 
 // Framework includes
-#include "art/Framework/Core/EDAnalyzer.h"
+#include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -31,6 +31,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "TOF/PeakInWaveForm.h"
+#include "RecoBase/TOFHit.h"
 
 using namespace emph;
 
@@ -38,26 +39,26 @@ using namespace emph;
 namespace emph {
   namespace tof {
   
-    struct RPCStripHit {
+    struct RPCStripHit { // Temporary, need to use rb::RPCStripHit .. 
       int fStripNumber;
       double fToTLeft, fToTRight;
       double fTLeft, fTRight;
     };
     
-    class T0toRPC : public art::EDAnalyzer {
+    class T0toRPC : public art::EDProducer {
     public:
       explicit T0toRPC(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
       ~T0toRPC();
 
       // Optional, read/write access to event
-      void analyze(const art::Event& evt);
+      void produce(art::Event& evt);
 
       // Optional if you want to be able to configure from event display, for example
       void reconfigure(const fhicl::ParameterSet& pset);
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
-      void beginRun(art::Run const& run);
+      void beginRun(art::Run &run);
       void endJob();
 
     private:
@@ -139,6 +140,7 @@ namespace emph {
      double fT0SumSigDown2nd;
      double fTdcUniqueSegmentBottom, fTdcUniqueSegmentTop; // TDC (from TRB3 handle), for the corresponding segments. 
 
+     std::vector<rb::T0SegmentHit> T0SegmentProduct;
 
      
       // define streamers for csv files. 
@@ -152,7 +154,7 @@ namespace emph {
     };    
     //.......................................................................
     T0toRPC::T0toRPC(fhicl::ParameterSet const& pset)
-      : EDAnalyzer(pset),
+      : EDProducer(pset),
       fFilesAreOpen(false),
       fTokenJob("none"),
       fChanMapFileName("Unknwon"), fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
@@ -184,6 +186,7 @@ namespace emph {
     {
 
       this->reconfigure(pset);
+      this->produces<rb::TOFHit>();
 
     }
     
@@ -226,7 +229,7 @@ namespace emph {
             
     }
     //......................................................................
-    void T0toRPC::beginRun(art::Run const& run)
+    void T0toRPC::beginRun(art::Run &run)
     {
       // initialize channel map
       fChannelMap = new emph::cmap::ChannelMap();
@@ -336,7 +339,7 @@ namespace emph {
        fT0SumSigUp2nd = 0.;
        fT0SumSigDown2nd = 0.;
        fTdcUniqueSegmentBottom = DBL_MAX; fTdcUniqueSegmentTop = DBL_MAX;
-		      
+       T0SegmentProduct.clear();	      
 
     }
 
@@ -462,7 +465,6 @@ namespace emph {
 			
 	    }
          }
-      }
 	// 
 	// get a profile along X, asking for large pulse, and correct timing..Count the number of matching up/down pairs.  
 	// 
@@ -481,6 +483,7 @@ namespace emph {
 	  const int uid1R = (uid1 < 1000) ? uid1 : uid1-1000;	// first of 2nd peak. 
 	  if ((uid1R < 0) || (static_cast<size_t>(uid1R) >=  cutSumVals.size())) continue; // should not happen   
 	  if (it1->getSumSig() <  cutSumVals[static_cast<size_t>(uid1R)]) continue;
+	  rb::T0SegmentHit aT0HitProd;
 	  fNumT0Hits++;
 	  if (uid1 < 1000) { // first encountred hits. 
 	      if ((fRun == 1365) && (std::abs(it1->getPeakBin() - meanTPeakVals[(size_t)uid1R]) > 15.)) continue; 
@@ -496,7 +499,20 @@ namespace emph {
 	       if (uid2 >= 1000) continue;
 	       if ((uid2 < 0) || (static_cast<size_t>(uid2) >=  cutSumVals.size())) continue; // should not happen   
 	       if (it2->getSumSig() <  cutSumVals[(size_t) uid2]) continue;
-	       if ((uid1 == uid2+10) || (uid2 == uid1 + 10)) fNumT0HitsFirstUpDown++; // Does not take into accout the offset between top/bottom row Might be incomplete.
+	       if ((uid1 == uid2+10) || (uid2 == uid1 + 10)) {
+	          fNumT0HitsFirstUpDown++; // Does not take into accout the offset between top/bottom row Might be incomplete.
+		  int aSegmentNum = uid1; if (uid1 > 10) aSegmentNum -= 10;
+		  aT0HitProd.SetSegmentNumber(aSegmentNum);
+		  aT0HitProd.SetSingleParticle(true); // benefit of the doubt for now.. 
+		  bool alreadyStore=false;
+		  for (std::vector<rb::T0SegmentHit>::iterator it=T0SegmentProduct.begin(); it != T0SegmentProduct.end(); it++) 
+		    if (it->SegNumber() == aSegmentNum) { alreadyStore = true; it->SetSingleParticle(false); break; }
+		  if (!alreadyStore) {
+		    aT0HitProd.SetTimeUpDown(fT0TDCs[aSegmentNum], fT0TDCs[aSegmentNum+10]);
+		    T0SegmentProduct.push_back(aT0HitProd);
+		  }
+		}  
+	       
 	     }
 	  
 	  } else { // 2nd 
@@ -512,7 +528,13 @@ namespace emph {
 	       const int uid2R = uid2 - 1000;
 	       if ((uid2R < 0) || (static_cast<size_t>(uid2R) >=  cutSumVals.size())) continue; // should not happen   
 	       if (it2->getSumSig() <  cutSumVals[(size_t) uid2R]) continue;
-	       if ((uid1R == uid2R + 10) || (uid2R == uid1R + 10)) fNumT0Hits2ndUpDown++;
+	       if ((uid1R == uid2R + 10) || (uid2R == uid1R + 10)) {
+	           
+	          fNumT0Hits2ndUpDown++;
+		  int aSegmentNum = uid1; if (uid1 > 10) aSegmentNum -= 10;
+		  for (std::vector<rb::T0SegmentHit>::iterator it=T0SegmentProduct.begin(); it != T0SegmentProduct.end(); it++) 
+		    if (it->SegNumber() == aSegmentNum) { it->SetSingleParticle(false); break; }
+		}
 	     }
 
 	  }
@@ -525,22 +547,20 @@ namespace emph {
 	  fTdcUniqueSegmentTop = fT0TDCs[aSegment+10];
 	}
 	
-      if (fMakeT0FullNtuple) {
-        fFOutT0 << " " << fSubRun << " " << fEvtNum << " " << numFirstPeakUnipolar << " " << numFirstPeakBipolar 
-	        << " " << num2ndPeakUnipolar << " " << num2ndPeakBipolar;
-        for (int k=0; k != nchan; k++) fFOutT0 << " " << fT0ADCs[k] << " " << fT0TDCs[k] << " " << fT0TDCsFrAdc[k] << " " << vT0ADChits[k];
-	fFOutT0 << " " <<std::endl;
+        if (fMakeT0FullNtuple) {
+          fFOutT0 << " " << fSubRun << " " << fEvtNum << " " << numFirstPeakUnipolar << " " << numFirstPeakBipolar 
+	          << " " << num2ndPeakUnipolar << " " << num2ndPeakBipolar;
+          for (int k=0; k != nchan; k++) fFOutT0 << " " << fT0ADCs[k] << " " << fT0TDCs[k] << " " << fT0TDCsFrAdc[k] << " " << vT0ADChits[k];
+	  fFOutT0 << " " <<std::endl;
         // 
- 	fFOutT0Prof << " " << fSubRun << " " << fEvtNum << " " << fNumT0Hits << " " << fNumT0HitsFirst << " " << fNumT0HitsFirstUpDown
+ 	  fFOutT0Prof << " " << fSubRun << " " << fEvtNum << " " << fNumT0Hits << " " << fNumT0HitsFirst << " " << fNumT0HitsFirstUpDown
 	            << " " << fNumT0Hits2nd << " " << fNumT0Hits2ndUpDown << " " << fT0SegmentHitFirst << " " << fT0SegmentHit2nd << " " 
 	            << fT0SumSigUpFirst << " " << fT0SumSigDownFirst << " " << fT0SumSigUp2nd << " " << fT0SumSigDown2nd 
 		    << " " << fTdcUniqueSegmentBottom << " " << fTdcUniqueSegmentTop << std::endl;
 
-      }
-      
-      
-    }  
-        
+         }
+       } // got TRB3 data   
+    }    
     //......................................................................
     void    T0toRPC::FillRPCPlots(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
     {
@@ -822,26 +842,19 @@ namespace emph {
        }  
        fFOutTrigT0RPC << std::endl;
     }
-    //......................................................................
-    void T0toRPC::analyze(const art::Event& evt)
-    { 
+    void T0toRPC::produce(art::Event& evt) {
+    //
+    // Intro.. 
+    //
       ++fNEvents;
       this->resetAllADCsTDCs();
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();  
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-//      art::Timestamp aTime = evt.time();
-//      std::string aTimeStr = art::to_iso_string_assuming_unix_epoch(aTime);
-      
-      
-//      if  ((fRun == 1365) && (fSubRun == 2) && (fEvtNum == 91)) {
-//         IdentifyRawWaveformV1720T0Board1Chan7(evt);
-//      } 
-      
-//      if (fEvtNum < 3) std::cerr << " Event " << fEvtNum << " time " << aTimeStr << " ....? " <<  std::endl;
-      if (fEvtNum < 3) std::cerr << " Event " << fEvtNum << " No time available "  <<  std::endl;
-      
+      // 
+      // Reconstruction/analysis
+      //
       bool gotT0 = false; bool gotRPC = false;    
       std::string labelStr;
       
@@ -924,8 +937,48 @@ namespace emph {
          } catch(...) { std::cerr << " Error in uploading Trigger wave forms .. " << std::endl; return; } 
         if (fMakeEventSummaryNTuple)  this->FillTrigT0RPCV1(gotT0, gotRPC);
       }
-    }
-    
+      
+       // Summarize the output for other art modules. 
+       //
+       // Trigger..
+       double sumSigAllFirst = 0.;
+       std::vector<int> trigNumPeaks(4, 0);
+       std::vector<double> trigDeltaT(4, DBL_MAX);
+       if (fPeakTriggers.size() != 0) {
+         for (int iPMT=0; iPMT !=4; iPMT++) {
+	   int peakBinFirst = 0; 
+           for (std::vector<PeakInWaveForm>::const_iterator it = fPeakTriggers.cbegin(); it != fPeakTriggers.cend(); it++) {
+              if ((it->getUserID() == iPMT) || (it->getUserID() == (iPMT + 10)) || (it->getUserID() == (iPMT + 100))) trigNumPeaks[iPMT]++;
+	      if (it->getUserID() == iPMT) { peakBinFirst = it->getPeakBin(); sumSigAllFirst += it->getSumSig(); }
+           }
+	   int deltaT = 0; // in 4ns units (digitization frequency of the V1720 waveforms).. 2nd 
+           for (std::vector<PeakInWaveForm>::const_iterator it = fPeakTriggers.cbegin(); it != fPeakTriggers.cend(); it++) {
+	      if  (it->getUserID() == iPMT) continue;
+              if (it->getUserID() == (iPMT + 10)) deltaT = it->getPeakBin() - peakBinFirst;
+	      if (it->getUserID() == (iPMT + 100)) deltaT = it->getPeakBin() - peakBinFirst;
+           }
+	   if (deltaT != 0) trigDeltaT[iPMT] = 4.0*deltaT;
+	 }
+       }
+       rb::TriggerHit trigH(sumSigAllFirst, trigNumPeaks,  trigDeltaT);
+       
+       std::unique_ptr<rb::TOFHit> TOFHitv(new rb::TOFHit(trigH));
+       //
+       // T0 particles, from PeakInWaveFrom, with TDC info, added
+       //
+       for(std::vector<rb::T0SegmentHit>::const_iterator it = T0SegmentProduct.cbegin(); it != T0SegmentProduct.cend(); it++) 
+         TOFHitv->addT0SegmentHit(*it);
+       //
+       // RPC : to be added,when we have reliable info about this device.. 
+       //
+       // final..
+       
+       evt.put(std::move(TOFHitv));
+
+      
+    }  
+        
+    //......................................................................
 //
 // 
 //  searching for a waveform given to me by Linyan Trying to lift confusion.. 
