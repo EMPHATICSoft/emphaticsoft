@@ -26,6 +26,9 @@ namespace emph {
     public:
 
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
+      
+      inline uint32_t GetFullTDCMeasurementWord() const { return tdc_measurement_word; }
+      inline uint32_t GetFullTDCMHeaderWord() const { return tdc_header_word; }
 
       /// Is this the leading edge measurement?
       bool IsLeading() const {return ((tdc_measurement_word & 0x800) >> 11) == 1;}
