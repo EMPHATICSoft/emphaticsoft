@@ -171,7 +171,7 @@ namespace emph {
       if (trb3.IsTrailing()) trailTimesCh[echan].push_back(time);
       
     }
-    
+    int nHitsInRing = 0;
     // loop over channel with leading times
     for (auto lCh=leadTimesCh.begin();lCh!=leadTimesCh.end();lCh++) {
       
@@ -227,6 +227,7 @@ namespace emph {
 	  int pxlybin = pxlybin0+pmtrow;
 	  int pxlx = fARICH2DHist[0]->GetXaxis()->GetBinCenter(pxlxbin+1);
 	  int pxly = fARICH2DHist[0]->GetYaxis()->GetBinCenter(pxlybin+1);
+	  nHitsInRing++;
 	  fARICH2DHist[0]->Fill(pxlx,pxly);
 	  if (fEvtNum < 200)
 	    fARICH2DHist[fEvtNum+1]->Fill(pxlx,pxly);
@@ -237,7 +238,7 @@ namespace emph {
     }//leading time channel map loop
     
     rb::ARing ring;
-    ring.SetNHits(fARICH2DHist[0]->GetEntries());
+    ring.SetNHits(nHitsInRing);
     
     rings->push_back(ring);
     
