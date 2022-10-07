@@ -1,0 +1,60 @@
+
+process_name: AnalyzeTOFARich
+
+services:
+{
+  TFileService: { fileName: "arichreco_hist_r%r_s%s.root" closeFileFast: false }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+ 
+   T0toRPC: 
+   {
+      module_type: T0toRPC
+      tokenJob: "V3a_31GeV"
+      makeT0FullNtuple: false
+      makeRPCFullNtuple: false
+      makeTrigFullNtuple: false 
+      makeEventSummaryFullNtuple: true
+   }
+   ARichR: 
+   {
+      module_type: ARICHReco
+   }
+   
+ } 
+ reco : [ T0toRPC, ARichR ]
+
+ filters:{}
+ 
+ analyzers:
+ {
+   AnalyzeTOFARICH:
+   {  
+     module_type: AnalyzeTOFARICH
+     TOFInfoLabel: T0toRPC
+     ARingInfoLabel: ARichR
+     tokenJob: "V3a_12GeV"
+   }
+ }
+ 
+ analyze : [AnalyzeTOFARICH]
+
+ trigger_paths: [ reco ]
+
+ end_paths:     [analyze]  #end_path are things that do not modify art::Event, includes analyzers and output modules. 
+                            # all items here can be run simultaneously
+}

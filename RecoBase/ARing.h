@@ -24,6 +24,7 @@ namespace rb {
     float _center[3]; // rotation angle about the vertical y-axis
     float _radius;
     int _nhits;
+    std::vector<unsigned short int> _pmtAnodesIndices;
     
   public:
     // Getters
@@ -33,11 +34,15 @@ namespace rb {
     const float* Center() const { return _center; }
     float  Radius() const { return _radius; }
     int    NHits() const { return _nhits; }
+    size_t NIndicesI() const {return _pmtAnodesIndices.size();}
+    std::vector<unsigned short int>::const_iterator cbeginI() const { return _pmtAnodesIndices.cbegin(); } 
+    std::vector<unsigned short int>::const_iterator cendI() const { return _pmtAnodesIndices.cend(); } 
 
     // Setters
     void SetCenter(float x[3]) { for (int i=0; i<3; ++i) _center[i] = x[i]; }
     void SetRadius(float r) { _radius = r; }
     void SetNHits(int nh) { _nhits = nh; }
+    void SetPmtAnodesIndices(const std::vector<unsigned short int> &vh) { _pmtAnodesIndices = vh; } // deep copy of ~ 20 to 50 hits per events. 
     
     //    friend std::ostream& operator << (std::ostream& o, const ARing& h);
   };

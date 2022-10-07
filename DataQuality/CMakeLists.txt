@@ -17,6 +17,19 @@ build_plugin(FillDataQuality "module"
 	    DataQuality
 )
 
+build_plugin(AnalyzeTOFARICH "module"
+  LIBRARIES PRIVATE
+ 	    RawData
+	    DataQuality
+	    RunHistory
+            ChannelMap
+	    Geometry
+	    ToFUtil
+	    RecoBase
+	    art_root_io::TFileService_service
+	    messagefacility::MF_MessageLogger
+)
+
 install_headers()
 install_source()
 install_fhicl()
