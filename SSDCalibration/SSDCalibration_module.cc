@@ -140,6 +140,7 @@ namespace emph {
 				  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 				  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
 				  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
+				  double x =
 				  rb::SSDHit hit(ssd, sd);
 				  ssdvec.push_back(hit);
 			  }
