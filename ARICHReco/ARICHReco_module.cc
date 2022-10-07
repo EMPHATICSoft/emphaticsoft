@@ -154,6 +154,8 @@ namespace emph {
     std::map<emph::cmap::EChannel,std::vector<double>> leadTimesCh;
     std::map<emph::cmap::EChannel,std::vector<double>> trailTimesCh;
     
+    std::vector<unsigned short int> pmtIndices;
+    
     for (size_t idx=0; idx < trb3H->size(); ++idx) {
       
       const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
@@ -212,6 +214,14 @@ namespace emph {
 	  }
 	  int pmt = dchan.HiLo();
 	  int dch = dchan.Channel();
+	  if ((pmt < 0) || (pmt > 8)) {
+	    std::cerr << " ARICHReco::GetARings , unexpected value for pmt " << pmt << std::endl;
+	    continue;
+	  }
+	  if ((dch < 0) || (dch > 63)) {
+	    std::cerr << " ARICHReco::GetARings , unexpected value for dch " << dch << std::endl;
+	    continue;
+	  }
 	  
 	  // fill pixel position plot
 	  // the arich consist of 3x3 pmts
@@ -223,11 +233,17 @@ namespace emph {
 	  int pxlybin0 = (pmt/3)*9;
 	  int pmtrow = dch/8;
 	  int pmtcol = dch-pmtrow*8;
+	  unsigned short int ii =  64*pmt + dch;
+	  if (ii > 576) { 
+	    std::cerr << " ARICHReco::GetARings Wrong multiAnodePMT index " << ii << " fatal " << std::endl; exit(2); 
+	  }
+	  pmtIndices.push_back(ii);
 	  int pxlxbin = pxlxbin0-pmtcol;
 	  int pxlybin = pxlybin0+pmtrow;
 	  int pxlx = fARICH2DHist[0]->GetXaxis()->GetBinCenter(pxlxbin+1);
 	  int pxly = fARICH2DHist[0]->GetYaxis()->GetBinCenter(pxlybin+1);
 	  nHitsInRing++;
+	  
 	  fARICH2DHist[0]->Fill(pxlx,pxly);
 	  if (fEvtNum < 200)
 	    fARICH2DHist[fEvtNum+1]->Fill(pxlx,pxly);
@@ -239,6 +255,7 @@ namespace emph {
     
     rb::ARing ring;
     ring.SetNHits(nHitsInRing);
+    ring.SetPmtAnodesIndices(pmtIndices);
     
     rings->push_back(ring);
     

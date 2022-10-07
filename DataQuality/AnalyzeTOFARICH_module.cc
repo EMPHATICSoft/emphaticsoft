@@ -60,24 +60,33 @@ namespace emph {
       bool fFilesAreOpen;
       std::string fTokenJob;    
       std::string fTOFInfoLabel, fARingInfoLabel;
-      runhist::RunHistory* fRunHistory;
-      emph::cmap::ChannelMap* fChannelMap;
       std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubRun;
-      int fPrevSubRun;
       unsigned int fEvtNum;
-      int fPrevEvtNum;
       unsigned int fNEvents;
 //
+// looking for hot channels in ARICH  
+//
+      std::vector<unsigned int> cntByPixels;
+      
+      runhist::RunHistory* fRunHistory;
+      emph::cmap::ChannelMap* fChannelMap;
+      
+//
 // CSV tuple output..
-//      
-      std::ofstream fFOutA1;
+// 
+     
+      std::ofstream fFOutA1, fFOutB1;
+      
       void openOutputCsvFiles();
       
     };    
 // .....................................................................................
-    AnalyzeTOFARICH::AnalyzeTOFARICH(fhicl::ParameterSet const& pset) : EDAnalyzer(pset) 
+    AnalyzeTOFARICH::AnalyzeTOFARICH(fhicl::ParameterSet const& pset) : 
+    EDAnalyzer(pset), 
+    fFilesAreOpen(false), fTokenJob("undef"), fTOFInfoLabel("?"), fARingInfoLabel("?"), fChanMapFileName("?"),
+     fRun(0), fSubRun(0),  fEvtNum(0), fNEvents(0), cntByPixels(9*64, 0)
     {
        std::cerr << " Constructing AnalyzeTOFARICH " << std::endl;
        this->reconfigure(pset);
@@ -112,13 +121,30 @@ namespace emph {
       fFOutA1.open(fNameT0AStr.c_str());
       fFOutA1 << " subRun evt trigNumPart trigSum nT0Seg T0SegNum nRPC RPCStripNum nARing xRing yRing radRing nHitRing ";
       fFOutA1 << " " << std::endl;
+      
+      std::ostringstream fNameT0BStrStr; fNameT0BStrStr << "./TOFARICH0Tuple_XY_V1_" << fRun << "_" << fTokenJob << ".txt";
+      std::string fNameT0BStr(fNameT0BStrStr.str());
+      fFOutB1.open(fNameT0BStr.c_str());
+      fFOutB1 << " subRun evt tT0SegNum nARh x y " << std::endl;
       fFilesAreOpen = true;
     }
     void AnalyzeTOFARICH::endJob() {
       
       std::cerr << " AnalyzeTOFARICH::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Number of events " <<  fNEvents << std::endl;
-    
+      
+      std::ostringstream fNameStrStr; fNameStrStr << "./TOFARICH0Tuple_CntbyPixels_" << fRun << "_" << fTokenJob << ".txt";
+      std::string fNameStr(fNameStrStr.str());
+      std::ofstream fOutCnt(fNameStr.c_str()); 
+      fOutCnt << " index pmt pixel row column cnt " << std::endl;
+      for (size_t k = 0; k != cntByPixels.size(); k++) {
+        int pmt = k/64;
+	int dch = k - 64*pmt;
+	int row =  dch/8;
+	int column = dch - row*8;
+        fOutCnt << " " << k << " " << pmt << " " << dch << " " << row << " " << column << " " << cntByPixels[k] << std::endl;
+      }
+      fOutCnt.close();
     }
     void AnalyzeTOFARICH::analyze(const art::Event& evt) {
     //
@@ -126,9 +152,10 @@ namespace emph {
     //
       ++fNEvents;
       fRun = evt.run();
-      if (!fFilesAreOpen) this->openOutputCsvFiles();  
+      if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
+//      std::cerr << " AnalyzeTOFARICH::analyze , event " << fEvtNum << " and do nothin.. " <<   std::endl; return; 
     //
     // Get the TOF data. 
       art::Handle<rb::TOFHit> theTOFInfo;
@@ -147,7 +174,8 @@ namespace emph {
       fFOutA1  << " " << theTOFInfo->TrigHit()->isSingleBeamParticle() << " " << theTOFInfo->TrigHit()-> Sum4PMTs() 
               << " " << theTOFInfo->NumT0SegmentHits() << " " << aT0SegNum 
 	      << " " << theTOFInfo->NumRPCStripHits() << " " << aRPCStripNum;
-	
+      bool goodEvt = theTOFInfo->TrigHit()->isSingleBeamParticle() && 
+                     (theTOFInfo->NumT0SegmentHits() == 1) && (theARingInfo->size() == 1);
       int nRingHits = 0;
       double xRing = DBL_MAX;
       double yRing = DBL_MAX;
@@ -159,6 +187,25 @@ namespace emph {
 	yRing = it->YCenter();
 	radRing = it->Radius();
 	nRingHits = it->NHits();
+	if (nRingHits > 0) {
+	  for (std::vector<unsigned short int>::const_iterator it2 = it->cbeginI(); it2 != it->cendI(); it2++) {
+	    int iI = static_cast<int>(*it2);
+	    if ((iI >= 0) && ( iI < static_cast<int>(cntByPixels.size()))) cntByPixels[static_cast<size_t>(iI)]++; 
+            int pmt = iI/64;
+	    int dch = iI - pmt*64;
+	    int pmtrow =  dch/8;
+	    int pmtcol = dch - pmtrow*8;
+	    int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
+	    int pxlybin0 = (pmt/3)*9;
+	    int pxlxbin = 1 + pxlxbin0-pmtcol;
+	    int pxlybin = 1 + pxlybin0+pmtrow;
+	    bool hotPix = (pmt == 4) && ((pmtcol >= 4) && (pmtcol < 7)) && (pmtrow < 3);  
+	    if (goodEvt && (!hotPix)) {
+               fFOutB1 << " " << fSubRun << " " << fEvtNum << " " << aT0SegNum << " " << theARingInfo->cbegin()->NIndicesI();
+	       fFOutB1 << " " << pxlxbin << " " << pxlybin << std::endl;
+	    }
+	  }
+	}
       }
       fFOutA1 << " " << 	xRing << " " << yRing << " " <<  radRing << " " <<  nRingHits;   
       fFOutA1 << std::endl;

@@ -24,7 +24,7 @@ physics:
    T0toRPC: 
    {
       module_type: T0toRPC
-      tokenJob: "V3a_12GeV"
+      tokenJob: "V3a_31GeV"
       makeT0FullNtuple: false
       makeRPCFullNtuple: false
       makeTrigFullNtuple: false 
