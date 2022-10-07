@@ -54,23 +54,23 @@ namespace emph {
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
     fInterpolateOption(0)
-  {
+    {
 #ifdef debug
-    fVerbosity = 1;
+      fVerbosity = 1;
 #else
-    fVerbosity = 0;
+      fVerbosity = 0;
 #endif
-//    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
-//    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
-    if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
-    else this->uploadFromTextFile(filename);
-    // These tests do something, comment out for sake of saving time for production use. 
-//    this->test1();
-//    this->test2();
-//    this->test3();
-      this->studyZipTrackData1();
-}
-
+      //    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
+      //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
+      if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
+      else this->uploadFromTextFile(filename);
+      // These tests do something, comment out for sake of saving time for production use. 
+      //    this->test1();
+      //    this->test2();
+      //    this->test3();
+      //      this->studyZipTrackData1();
+    }
+  
   void EMPHATICMagneticField::uploadFromRootFile(const G4String &fName) {
   
     fStorageIsStlVector = false; // Could up grade later.. 

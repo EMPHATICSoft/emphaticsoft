@@ -1,0 +1,53 @@
+#include "BeamGen.fcl"
+
+
+process_name: BeamGen
+
+services:
+{
+  # Load the service that manages root files for histograms.
+#  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
+  
+#  scheduler:    { wantSummary: true }
+#  TimeTracker:  {}
+#  RandomNumberGenerator: {} #ART native random number generator
+#  message:      { debugModules: ["*"] destinations: { debugmsg:{type: "cout" threshold: "WARNING"} } }
+
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type: EmptyEvent
+  maxEvents: 1000000
+  firstRun:  1000001
+  firstSubRun: 1
+
+}
+
+physics:
+{
+  producers:
+  {
+	generator: @local::proton_beamgen
+  }
+
+  simulate: [ generator ]
+
+  stream1: [ out1 ]
+
+  trigger_paths: [ simulate ]
+
+  end_paths: [ stream1 ]
+
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "emphmc_r%r_s%s.root" #default file name, can override from command line with -o or --output
+#    SelectEvents: [ simulate ]
+  }
+}

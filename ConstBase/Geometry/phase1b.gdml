@@ -128,13 +128,13 @@
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
 	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssddouble00_pos" x="-0.5*ssdD0_height" y="0" z="0" unit="mm"/>
-	 <position name="ssddouble01_pos" x="0.5*ssdD0_height" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble00_pos" x="0.5*ssdD0_height" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble01_pos" x="-0.5*ssdD0_height" y="0" z="0" unit="mm"/>
 	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="-0.354*ssdD0_height" z="3" unit="mm"/>
-	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="0.354*ssdD0_height" z="3" unit="mm"/>
+	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="3" unit="mm"/>
+	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="3" unit="mm"/>
 	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
@@ -142,27 +142,27 @@
 		 z="10." unit="mm" />
 
 	 <rotation name="ssdsingle0_0_0_rot" z="0" unit="deg"/>
-	 <rotation name="ssdsingle0_1_0_rot" z="90" unit="deg"/>
+	 <rotation name="ssdsingle0_1_0_rot" z="270" unit="deg"/>
 	 <rotation name="ssdsingle1_0_0_rot" z="0" unit="deg"/>
-	 <rotation name="ssdsingle1_1_0_rot" z="90" unit="deg"/>
-	 <rotation name="ssdrotate0_0_0_rot" z="45" unit="deg"/>
+	 <rotation name="ssdsingle1_1_0_rot" z="270" unit="deg"/>
+	 <rotation name="ssdrotate0_0_0_rot" z="315" unit="deg"/>
 	 <rotation name="ssdrotate0_1_0_rot" z="0" unit="deg"/>
-	 <rotation name="ssdrotate0_2_0_rot" z="90" unit="deg"/>
-	 <rotation name="ssdrotate1_0_0_rot" z="45" unit="deg"/>
+	 <rotation name="ssdrotate0_2_0_rot" z="270" unit="deg"/>
+	 <rotation name="ssdrotate1_0_0_rot" z="315" unit="deg"/>
 	 <rotation name="ssdrotate1_1_0_rot" z="0" unit="deg"/>
-	 <rotation name="ssdrotate1_2_0_rot" z="90" unit="deg"/>
+	 <rotation name="ssdrotate1_2_0_rot" z="270" unit="deg"/>
 	 <rotation name="ssddouble0_0_0_rot" z="270" unit="deg"/>
 	 <rotation name="ssddouble0_0_1_rot" z="90" unit="deg"/>
 	 <rotation name="ssddouble0_1_0_rot" z="0" unit="deg"/>
 	 <rotation name="ssddouble0_1_1_rot" z="180" unit="deg"/>
-	 <rotation name="ssddouble0_2_0_rot" z="135" unit="deg"/>
-	 <rotation name="ssddouble0_2_1_rot" z="315" unit="deg"/>
-	 <rotation name="ssddouble1_0_0_rot" z="90" unit="deg"/>
-	 <rotation name="ssddouble1_0_1_rot" z="270" unit="deg"/>
+	 <rotation name="ssddouble0_2_0_rot" z="225" unit="deg"/>
+	 <rotation name="ssddouble0_2_1_rot" z="45" unit="deg"/>
+	 <rotation name="ssddouble1_0_0_rot" z="270" unit="deg"/>
+	 <rotation name="ssddouble1_0_1_rot" z="90" unit="deg"/>
 	 <rotation name="ssddouble1_1_0_rot" z="0" unit="deg"/>
 	 <rotation name="ssddouble1_1_1_rot" z="180" unit="deg"/>
-	 <rotation name="ssddouble1_2_0_rot" z="135" unit="deg"/>
-	 <rotation name="ssddouble1_2_1_rot" z="315" unit="deg"/>
+	 <rotation name="ssddouble1_2_0_rot" z="225" unit="deg"/>
+	 <rotation name="ssddouble1_2_1_rot" z="45" unit="deg"/>
 
 	 <!-- ABOVE IS FOR SSD -->
 	 <!-- BELOW IS FOR ARICH -->
@@ -1147,7 +1147,7 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 
       <D value="0.097"/>
       <fraction n="0.467" ref="Silicon"/>
-      <fraction n="1.0-0.467" ref="Oxygen"/>
+      <fraction n="0.533" ref="Oxygen"/>
    </material>
 
    <material name="AERO_1030">
@@ -1157,7 +1157,7 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 
       <D value="0.110"/>
       <fraction n="0.467" ref="Silicon"/>
-      <fraction n="1.0-0.467" ref="Oxygen"/>
+      <fraction n="0.533" ref="Oxygen"/>
    </material>
 
    <material name="GAS">
@@ -1168,7 +1168,7 @@ tation_type <quantity name="LG_width1" value="135" unit="mm" />
 
       <D value="0.0112"/>
       <fraction n="0.211" ref="Carbon"/>
-      <fraction n="1.0-0.211" ref="Fluorine"/>
+      <fraction n="0.789" ref="Fluorine"/>
    </material>
 	
    <material formula="NdFeB" name="NeodymiumAlloy" state="solid" >

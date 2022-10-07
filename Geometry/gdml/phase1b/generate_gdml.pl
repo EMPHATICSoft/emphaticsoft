@@ -62,7 +62,8 @@ $nstation_type = 3; # types of station
 @bkpln_size = (1.0, 1.3, 2.6); # bkpln size scale to SSD sensor
 @SSD_lay = (2, 3, 3); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
-@SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 135, 315); # angle from measuring Y
+@SSD_angle = (0, 270, 0, 270, 315, 0, 270, 315, 0, 270, 270, 90, 0, 180, 225, 45, 270, 90, 0, 180, 225, 45); # angle from measuring Y
+#Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
@@ -266,13 +267,13 @@ EOF
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
 	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssddouble00_pos" x="-0.5*ssdD0_height" y="0" z="0" unit="mm"/>
-	 <position name="ssddouble01_pos" x="0.5*ssdD0_height" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble00_pos" x="0.5*ssdD0_height" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble01_pos" x="-0.5*ssdD0_height" y="0" z="0" unit="mm"/>
 	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
 	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="-0.354*ssdD0_height" z="3" unit="mm"/>
-	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="0.354*ssdD0_height" z="3" unit="mm"/>
+	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="3" unit="mm"/>
+	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="3" unit="mm"/>
 	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />

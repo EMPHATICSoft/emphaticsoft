@@ -3,11 +3,14 @@
 /// \author jpaley@fnal.gov
 //////////////////////////////////////////////////////////////////////////
 
+#include <sys/stat.h>
+
 // EMPHATIC includes
 #include "MagneticField/MagneticFieldService.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "cetlib/search_path.h"
 
 namespace emph
 {
@@ -17,8 +20,20 @@ namespace emph
   {
 
     reconfigure(pset);
+
+    cet::search_path sp("CETPKG_SOURCE");
+
+    std::string fFileName;
+    sp.find_file(fFieldFileName,fFileName);
+    struct stat sb;
+    if ( fFileName.empty() || stat(fFileName.c_str(), &sb)!=0 ) {
+      // failed to resolve the file name
+      throw cet::exception("NoMagFieldMap")
+        << "Magnetic field map file " << fFileName << " not found!\n"
+        << __FILE__ << ":" << __LINE__ << "\n";
+    }
     
-    fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
+    fMagneticField = new emph::EMPHATICMagneticField(fFileName);
     
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
