@@ -1,5 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Analyzer module to create online monitoring plots
+/// \brief   Analyzer module to check the event integrity between the Trigger counter, the 
+///          T0 counter and the ARICH.  That is looking for apattern in the ARICH ring 
+///          that is consistent with the T0 segment number. 
 /// \author  $Author: lebrun $
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
