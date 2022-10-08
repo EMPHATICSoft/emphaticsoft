@@ -36,9 +36,13 @@ namespace rb {
     double Angle() const { return _angle; }
     double Strip() const { return _strip; }
     double Pitch() const { return _pitch; }
+    double Z() const { return _z; }
+    double X() const { return _x; }
+    double Y() const { return _y; }
 
     // Setters
     void SetAngle(double ang) { _angle = ang; }
+    void SetXYZRaw(double x, double y, double z) { _x = x;  _y = y; _z = z;}
     void SetStrip(double strip) { _strip = strip; }
     void SetPitch(double pitch) { _pitch = pitch; }
 
