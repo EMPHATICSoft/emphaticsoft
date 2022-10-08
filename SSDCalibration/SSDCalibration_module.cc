@@ -76,6 +76,7 @@ namespace emph {
 //    this->produces<std::vector<rb::ARing>>();
 
     //this->reconfigure(pset);
+    this->produces< std::vector<rb::SSDHit>>();
     fEvtNum = 0;
 
   }
@@ -130,18 +131,26 @@ namespace emph {
 	  echan.SetBoardType(boardType);
 
 	  art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdH;
+          std::unique_ptr<std::vector<rb::SSDHit> > assdv(new std::vector<rb::SSDHit>);
+    
 	  try {
 		  evt.getByLabel(labelstr, ssdH);
 		  if (!ssdH->empty()) {	
 			  for (size_t idx=0; idx < ssdH->size(); ++idx) {
 				  const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
+				  // ssdvec.push_back(hit);
 				  echan.SetBoard(ssd.FER());
 				  echan.SetChannel(ssd.Module());
 				  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 				  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
 				  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
 				  rb::SSDHit hit(ssd, sd);
-				  ssdvec.push_back(hit);
+				  assdv->push_back(hit);
+				  double x = (ssd.Row()*hit.Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0];
+				  double y = (ssd.Row()*hit.Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1];
+				  double z = st.Pos()[2] + sd.Pos()[2];
+				  hit.SetXYZRaw(x, y, z);
+				  assdv->push_back(hit);
 			  }
 			  fEvtNum++;
 		  }
@@ -149,7 +158,8 @@ namespace emph {
 	  catch(...) {
 
 	  }
-
+	  
+      evt.put(std::move(assdv));
   }
 
   } // end namespace emph
