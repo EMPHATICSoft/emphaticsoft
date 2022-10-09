@@ -154,30 +154,30 @@ namespace emph {
       std::ostringstream fNameT0CStrStr; fNameT0CStrStr << "./TOFSSD0Tuple_XY_V1_" << fRun << "_" << fTokenJob << ".txt";
       std::string fNameT0CStr(fNameT0CStrStr.str());
       fFOutC1.open(fNameT0CStr.c_str());
-      fFOutC1 << " subRun evt tT0SegNum strip angle x y z " << std::endl;
+      fFOutC1 << " subRun evt tT0SegNum row strip angle x y z " << std::endl;
       
       std::ostringstream fNameT0CPStrStr; fNameT0CPStrStr << "./TOFSSD0TuplePrev_XY_V1_" << fRun << "_" << fTokenJob << ".txt";
       std::string fNameT0CPStr(fNameT0CPStrStr.str());
       fFOutC1Prev.open(fNameT0CPStr.c_str());
-      fFOutC1Prev << " subRun evt evtPrev tT0SegNum strip angle x y z " << std::endl; // SSD data is from the previous event,
+      fFOutC1Prev << " subRun evt evtPrev tT0SegNum row strip angle x y z " << std::endl; // SSD data is from the previous event,
        //  with event number fEvtNumPrev
        
       std::ostringstream fNameT0CPPStrStr; fNameT0CPPStrStr << "./TOFSSD0TuplePrevPrev_XY_V1_" << fRun << "_" << fTokenJob << ".txt";
       std::string fNameT0CPPStr(fNameT0CPPStrStr.str());
       fFOutC1PrevPrev.open(fNameT0CPPStr.c_str());
-      fFOutC1PrevPrev << " subRun evt evtPrevPrev tT0SegNum strip angle x y z " << std::endl;// SSD data is from the previous, previous event,
+      fFOutC1PrevPrev << " subRun evt evtPrevPrev tT0SegNum row strip angle x y z " << std::endl;// SSD data is from the previous, previous event,
        //  with event number fEvtNumPrevPrev 
       
       std::ostringstream fNameT0CNStrStr; fNameT0CNStrStr << "./TOFSSD0TupleNext_XY_V1_" << fRun << "_" << fTokenJob << ".txt";
       std::string fNameT0NCStr(fNameT0CNStrStr.str());
       fFOutC1Next.open(fNameT0NCStr.c_str());      
-      fFOutC1Next << " subRun evt evtT0SegNumPrev tT0SegNum tT0SegNumPrev strip angle x y z " << std::endl; 
+      fFOutC1Next << " subRun evt evtT0SegNumPrev tT0SegNum tT0SegNumPrev row strip angle x y z " << std::endl; 
       // SSD data from the current event, but the T0Segment number from the previous event (usually INT_MAX, T0 acceptance ~< 50 %)
       
       std::ostringstream fNameT0CNNStrStr; fNameT0CNNStrStr << "./TOFSSD0TupleNextNext_XY_V1_" << fRun << "_" << fTokenJob << ".txt";
       std::string fNameT0CNNStr(fNameT0CNNStrStr.str());
       fFOutC1NextNext.open(fNameT0CNNStr.c_str());
-      fFOutC1NextNext << " subRun evt evtT0SegNumPrevPrev tT0SegNum tT0SegNumPrevPrev strip angle x y z " << std::endl;
+      fFOutC1NextNext << " subRun evt evtT0SegNumPrevPrev tT0SegNum tT0SegNumPrevPrev row strip angle x y z " << std::endl;
       fFilesAreOpen = true;
     }
     void AnalyzeTOFARICH::endJob() {
@@ -283,17 +283,20 @@ namespace emph {
       if (goodEvt && (nRinHitsXBand > 2)) {
         for(std::vector<rb::SSDHit>::const_iterator it = theSSDInfo->cbegin(); it != theSSDInfo->cend(); it++) {
                fFOutC1 << " " << fSubRun << " " << fEvtNum << " " << aT0SegNum << " " 
-	               << it->Strip() << " " << it->Angle() << " " << it->X() << " " << it->Y() << " " << it->Z() << std::endl;
+	               << it->Row() << " " <<  it->Strip() << " " << it->Angle() << " " 
+		       << it->X() << " " << it->Y() << " " << it->Z() << std::endl;
 	}
 	if ((fEvtNumPrevPrev != INT_MAX) && (fSSDHitsPrevPrev.size() > 0)) {
           for (std::vector<rb::SSDHit>::const_iterator it=fSSDHitsPrevPrev.cbegin(); it != fSSDHitsPrevPrev.cend(); it++ ) 
                fFOutC1PrevPrev << " " << fSubRun << " " << fEvtNum << " " << fEvtNumPrevPrev << " " << aT0SegNum << " " 
-	               << it->Strip() << " " << it->Angle() << " " << it->X() << " " << it->Y() << " " << it->Z() << std::endl ;
+	               << it->Row() << " " <<  it->Strip() << " " << it->Angle() << " " 
+		       << it->X() << " " << it->Y() << " " << it->Z() << std::endl ;
           }
 	if ((fEvtNumPrev != INT_MAX) && (fSSDHitsPrev.size() > 0)) {
           for (std::vector<rb::SSDHit>::const_iterator it=fSSDHitsPrev.cbegin(); it != fSSDHitsPrev.cend(); it++ ) 
                fFOutC1Prev << " " << fSubRun << " " << fEvtNum << " " << fEvtNumPrev << " " << aT0SegNum << " " 
-	               << it->Strip() << " " << it->Angle() << " " << it->X() << " " << it->Y() << " " << it->Z() << std::endl ;
+	               << it->Row() << " " <<  it->Strip() << " " << it->Angle() << " " 
+		       << it->X() << " " << it->Y() << " " << it->Z() << std::endl ;
           }
       } else { aT0SegNum = INT_MAX; } // flag it as a bad event, for T0SegNum next list. 
       
@@ -303,13 +306,15 @@ namespace emph {
          for(std::vector<rb::SSDHit>::const_iterator it = theSSDInfo->cbegin(); it != theSSDInfo->cend(); it++) {
                fFOutC1NextNext << " " << fSubRun << " " << fEvtNum << " " << fEvtNumPrevPrev 
 	               << " "  << aT0SegNum << " " << fT0SegnumPrevPrev << " " 
-	               << it->Strip() << " " << it->Angle() << " " << it->X() << " " << it->Y() << " " << it->Z()  << std::endl;
+	               << it->Row() << " " <<  it->Strip() << " " << it->Angle() << " " 
+		       << it->X() << " " << it->Y() << " " << it->Z()  << std::endl;
 	}
       }
       if (fT0SegnumPrev != INT_MAX) {
          for(std::vector<rb::SSDHit>::const_iterator it = theSSDInfo->cbegin(); it != theSSDInfo->cend(); it++) {
                fFOutC1Next << " " << fSubRun << " " << fEvtNum << " " << fEvtNumPrev << " " << aT0SegNum << " " << fT0SegnumPrev << " " 
-	               << it->Strip() << " " << it->Angle() << " " << it->X() << " " << it->Y() << " " << it->Z() << std::endl ;
+	               << it->Row() << " " <<  it->Strip() << " " << it->Angle() << " " 
+		       << it->X() << " " << it->Y() << " " << it->Z() << std::endl ;
 	}
       }
       fEvtNumPrevPrev = fEvtNumPrev;

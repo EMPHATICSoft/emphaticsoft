@@ -145,7 +145,7 @@ namespace emph {
 				  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
 				  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
 				  rb::SSDHit hit(ssd, sd);
-				  assdv->push_back(hit);
+				  hit.SetRow(ssd.Row());
 				  double x = (ssd.Row()*hit.Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0];
 				  double y = (ssd.Row()*hit.Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1];
 				  double z = st.Pos()[2] + sd.Pos()[2];
