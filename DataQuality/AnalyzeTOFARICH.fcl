@@ -24,7 +24,7 @@ physics:
    T0toRPC: 
    {
       module_type: T0toRPC
-      tokenJob: "V3a_31GeV"
+      tokenJob: "V3e_12GeV_Spill2"
       makeT0FullNtuple: false
       makeRPCFullNtuple: false
       makeTrigFullNtuple: false 
@@ -34,9 +34,13 @@ physics:
    {
       module_type: ARICHReco
    }
+   SSDCalibration: 
+   {
+      module_type: SSDCalibration
+   }
    
  } 
- reco : [ T0toRPC, ARichR ]
+ reco : [ T0toRPC, ARichR, SSDCalibration ]
 
  filters:{}
  
@@ -47,7 +51,8 @@ physics:
      module_type: AnalyzeTOFARICH
      TOFInfoLabel: T0toRPC
      ARingInfoLabel: ARichR
-     tokenJob: "V3a_12GeV"
+     SSDInfoLabel: SSDCalibration
+     tokenJob: "V3e_12GeV_Spill2"
    }
  }
  

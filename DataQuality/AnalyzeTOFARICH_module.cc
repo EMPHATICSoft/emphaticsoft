@@ -41,6 +41,40 @@ using namespace emph;
 
 namespace emph {
   namespace dq {
+  //
+  // small struct to do the spill by spill analysis. Strictly internal to this module, not to be exported  
+  //
+    class SSDXSpillInfo {
+      public:
+      
+        explicit SSDXSpillInfo(int StationNumber, int T0Seg);
+	
+	int getNumBounded(double  minX, double maxX) const ;
+	double getMeanX(double  minX, double maxX) const ;
+	double getRMSX(double minX, double maxX, double mean) const;
+	
+      private:
+	int fStationNum;
+	int fT0Seg;
+	int fT0SegPrev;
+	std::vector<short int> fRows;
+
+      public:
+	//
+	// clearing, filling it 
+	//
+	inline void clear() {fRows.clear();}
+	inline void addRow(short int r) { fRows.push_back(r); }
+	//
+	// Accessors 
+	//
+	inline int Station() const { return fStationNum; }
+	inline int T0Segment() const { return fT0Seg; } 
+	inline std::vector<short int>::const_iterator cbegin() const {return fRows.cbegin(); }  
+	inline std::vector<short int>::const_iterator cend() const {return fRows.cend(); }  
+	inline size_t size() const { return fRows.size(); } 
+    };
+    
     class AnalyzeTOFARICH : public art::EDAnalyzer {
     public:
       explicit AnalyzeTOFARICH(fhicl::ParameterSet const& pset); // Required!       // Optional, read/write access to event
@@ -55,6 +89,7 @@ namespace emph {
 //      void endRun(art::Run const&); // not needed.. 
 //      void endSubRun(art::SubRun const&);
       void endJob();
+      void analyzePreviousSpill(int spillNumber); 
 
    private:
 //
@@ -78,6 +113,12 @@ namespace emph {
       std::vector<int> fLowXRingLeft, fHighXRingLeft, fLowXRingRight, fHighXRingRight;
       std::vector<rb::SSDHit> fSSDHitsPrev;
       std::vector<rb::SSDHit> fSSDHitsPrevPrev;
+//
+//  To do the spill be spill analysis.   
+//
+      std::vector<SSDXSpillInfo> fStation1SpillInfo; // 
+      std::vector<SSDXSpillInfo> fStation2SpillInfo; // 
+      
       
       runhist::RunHistory* fRunHistory;
       emph::cmap::ChannelMap* fChannelMap; // not needed.. Indeed..Yet... 
@@ -87,10 +128,47 @@ namespace emph {
 // 
      
       std::ofstream fFOutA1, fFOutB1, fFOutC1, fFOutC1Prev, fFOutC1PrevPrev, fFOutC1Next, fFOutC1NextNext;
-      
       void openOutputCsvFiles();
       
-    };    
+    }; 
+    
+    SSDXSpillInfo::SSDXSpillInfo(int Snum, int T0Seg):
+       fStationNum(Snum), fT0Seg(T0Seg) { ; }
+       
+    int SSDXSpillInfo::getNumBounded(double xMin, double xMax) const {
+      int n = 0;
+      for(std::vector<short int>::const_iterator it=fRows.cbegin(); it != fRows.cend();  it++) {
+        const double x= 20. - 0.06*static_cast<double>(*it); // pitch & offset hardcoded, for now... 
+	if ((x <= xMin) || (x > xMax)) continue;
+	n++; 
+      }
+      return n;
+    }
+    double SSDXSpillInfo::getMeanX(double xMin, double xMax) const {
+      double a = 0.;
+      int n = 0;
+      for(std::vector<short int>::const_iterator it=fRows.cbegin();  it != fRows.cend();  it++) {
+        const double x= 20. - 0.06*static_cast<double>(*it); // pitch & offset hardcoded, for now... 
+	if ((x <= xMin) || (x > xMax)) continue;
+	a += x;
+	n++; 
+      }
+      if (n > 0) { a /= n; return a; }
+      return DBL_MAX;
+    }
+    double SSDXSpillInfo::getRMSX(double xMin, double xMax, double mean) const {
+      double a = 0.;
+      int n = 0;
+      for(std::vector<short int>::const_iterator it=fRows.cbegin(); it != fRows.cend();  it++) {
+        const double x= 20. - 0.06*static_cast<double>(*it); // pitch & offset hardcoded, for now... 
+	if ((x <= xMin) || (x > xMax)) continue;
+	a += (x - mean) * (x- mean);
+	n++; 
+      }
+      if (n > 1) { a /= (n - 1); return std::sqrt(a); }
+      return DBL_MAX;
+    }
+   
 // .....................................................................................
     AnalyzeTOFARICH::AnalyzeTOFARICH(fhicl::ParameterSet const& pset) : 
     EDAnalyzer(pset), 
@@ -112,7 +190,13 @@ namespace emph {
          fHighXRingLeft[kT0] = fLowXRingLeft[kT0] + 5; 
          fLowXRingRight[kT0] = 20 - static_cast<int>(0.5*kT0); 
          fHighXRingRight[kT0] = fLowXRingRight[kT0] + 5;
-        } 
+        }
+        for (int k=1; k != 10; k++) { 
+	   SSDXSpillInfo aSSDX1(1, k);
+	   fStation1SpillInfo.push_back(aSSDX1);
+	   SSDXSpillInfo aSSDX2(2, k);
+	   fStation2SpillInfo.push_back(aSSDX2);
+	}   
     }
     
     void AnalyzeTOFARICH::reconfigure(const fhicl::ParameterSet& pset)
@@ -130,6 +214,19 @@ namespace emph {
 //      fChannelMap = new emph::cmap::ChannelMap();
 //      fRunHistory = new runhist::RunHistory(run.run());
 //      fChannelMap->LoadMap(fRunHistory->ChanFile());
+// Analyze the previous spill 
+//
+       size_t nXSSDTot = 0;
+       for (std::vector<SSDXSpillInfo>::const_iterator itS = fStation1SpillInfo.cbegin(); itS != fStation1SpillInfo.cend(); itS++) {
+         nXSSDTot += itS->size();
+       }
+       if (nXSSDTot > 3*fStation1SpillInfo.size()) {  
+          this->analyzePreviousSpill(fSubRun);
+          for (std::vector<SSDXSpillInfo>::iterator itS = fStation1SpillInfo.begin(); itS != fStation1SpillInfo.end(); itS++) 
+	      itS->clear();
+          for (std::vector<SSDXSpillInfo>::iterator itS = fStation2SpillInfo.begin(); itS != fStation2SpillInfo.end(); itS++) 
+	      itS->clear();
+       }
     }
     void AnalyzeTOFARICH::beginJob()
     {
@@ -199,6 +296,12 @@ namespace emph {
       fOutCnt.close();
       fFOutA1.close(); fFOutB1.close(); fFOutC1.close();
       fFOutC1Prev.close(); fFOutC1PrevPrev.close();  fFOutC1Next.close(); fFOutC1NextNext.close();
+      // the last end spill analysis.. 
+      size_t nXSSDTot = 0;
+      for (std::vector<SSDXSpillInfo>::const_iterator itS = fStation1SpillInfo.cbegin(); itS != fStation1SpillInfo.cend(); itS++) {
+         nXSSDTot += itS->size();
+      }
+      if (nXSSDTot > 3*fStation1SpillInfo.size())  this->analyzePreviousSpill(fSubRun);
     }
     void AnalyzeTOFARICH::analyze(const art::Event& evt) {
     //
@@ -285,6 +388,16 @@ namespace emph {
                fFOutC1 << " " << fSubRun << " " << fEvtNum << " " << aT0SegNum << " " 
 	               << it->Row() << " " <<  it->Strip() << " " << it->Angle() << " " 
 		       << it->X() << " " << it->Y() << " " << it->Z() << std::endl;
+		if (std::abs(it->Angle() - 3.0*M_PI/2) < 0.01) {
+		  short int aRow = static_cast<short int>(it->Row());
+		  if (it->Z() < 15) {
+                    for (std::vector<SSDXSpillInfo>::iterator itS = fStation1SpillInfo.begin(); itS != fStation1SpillInfo.end(); itS++) 
+	   	      if (itS->T0Segment() == aT0SegNum) { itS->addRow(aRow); break; }
+		  } else if (std::abs(it->Z() - 360.) < 15.) {
+                    for (std::vector<SSDXSpillInfo>::iterator itS = fStation2SpillInfo.begin(); itS != fStation2SpillInfo.end(); itS++) 
+	   	      if (itS->T0Segment() == aT0SegNum) { itS->addRow(aRow); break; }
+		  } 
+		}
 	}
 	if ((fEvtNumPrevPrev != INT_MAX) && (fSSDHitsPrevPrev.size() > 0)) {
           for (std::vector<rb::SSDHit>::const_iterator it=fSSDHitsPrevPrev.cbegin(); it != fSSDHitsPrevPrev.cend(); it++ ) 
@@ -330,6 +443,84 @@ namespace emph {
          fSSDHitsPrev.push_back(*it);
       
     } // end of Analyze 
+    //
+    // Spill by Spill analysis
+    //
+    void AnalyzeTOFARICH::analyzePreviousSpill (int spillNumber) {
+    
+      std::cerr << " Analysis of Previous spill, " << spillNumber << ", T0 Segment number vs SSD X coordinates " << std::endl;
+      std::vector<double> XWindow = {30., 10., 7.5, 5., 3., 2., 1.8};
+      //
+      // Two the first two station.. 
+      //
+      std::ofstream fOutSSD1CutW;
+      for (int kStation = 1; kStation !=3; kStation++) { 
+        std::vector<double> xT0, meanSSDX, sigmaSSDX; 
+        std::cerr << " .... for Station.. " << kStation << std::endl;
+        std::ostringstream fNameAStrStr; 
+        if (kStation == 1) fNameAStrStr << "./TOFARICH0SSD1vsT0Seg_";
+        else fNameAStrStr << "./TOFARICH0SSD2vsT0Seg_"; 
+        fNameAStrStr  << fRun << "_Spill_" << spillNumber << "_" << fTokenJob << ".txt";
+        std::string fNameAStr(fNameAStrStr.str());
+        fOutSSD1CutW.open(fNameAStr.c_str());
+        double rNSeg5 = DBL_MAX;
+        fOutSSD1CutW << " T0Seg nA meanSSD1A sigmaSSD1A nR meanSSD1R sigmaSSD1R " << std::endl;
+	std::vector<SSDXSpillInfo>::const_iterator itSBegin = (kStation == 1) ? fStation1SpillInfo.cbegin() : fStation2SpillInfo.cbegin();
+	std::vector<SSDXSpillInfo>::const_iterator itSEnd = (kStation == 1) ? fStation1SpillInfo.cend() : fStation2SpillInfo.cend();
+        for (std::vector<SSDXSpillInfo>::const_iterator itS = itSBegin; itS != itSEnd; itS++) {
+          double Xc = 0.;
+	  double meanSSD1A = DBL_MAX; double sigmaSSD1A = DBL_MAX; double meanSSD1R = DBL_MAX; double sigmaSSD1R = DBL_MAX;
+	  int nAll = 0; int nFinal = 0;
+          for(size_t kW = 0; kW != XWindow.size(); kW++) {
+	    int nn = itS->getNumBounded(Xc - XWindow[kW], Xc + XWindow[kW]);
+	    if (nn < 5) continue;
+	    double mX = itS->getMeanX(Xc - XWindow[kW], Xc + XWindow[kW]);
+	    double sX =  itS->getRMSX(mX - XWindow[kW], mX + XWindow[kW], mX); 
+	    if (kW == 0) { nAll = nn;  meanSSD1A = mX; sigmaSSD1A = sX; }
+	    Xc = mX;
+	    if (kW == XWindow.size()-1) {nFinal = nn;  meanSSD1R = mX; sigmaSSD1R = sX; }
+          }
+	  if (nFinal > 5) {
+	    xT0.push_back(3.0 * (itS->T0Segment() -5));
+	    meanSSDX.push_back(meanSSD1R); sigmaSSDX.push_back(sigmaSSD1R);
+	    if ((nAll > 1) && (itS->T0Segment() == 5)) rNSeg5 = static_cast<double>(nFinal)/nAll; 
+	  }
+	  fOutSSD1CutW << " " << itS->T0Segment() << " " << nAll << " " << meanSSD1A << " " << sigmaSSD1A 
+	               <<  " " << nFinal << " " << meanSSD1R << " " << sigmaSSD1R << std::endl;
+        }
+        fOutSSD1CutW.close();
+        std::cerr << " ... Number of good segments with enough data " << xT0.size() 
+	          << " Signal to noise for segment 5 " << rNSeg5 << std::endl; 
+        //
+        // Linear fit Could have (should have ?) use TlinearFit, but no need for such a complicated tool.  User Numerical Recipes.. 
+        //
+        if (xT0.size() > 3) { 
+          double ss, st2, sx, sxoss, sy, a, b, sigb, chi2;
+          sx = 0.; sy = 0.; st2 = 0.; ss = 0.; b = 0.;
+          for (size_t i=0; i != xT0.size(); i++) {
+            const double wt = 1.0/(sigmaSSDX[i] * sigmaSSDX[i]); ss += wt; sx = xT0[i]*wt; sy = meanSSDX[i]*wt;  
+          }
+          sxoss  = sx/ss; 
+          for (size_t i=0; i != xT0.size(); i++) {
+            const double t = (xT0[i] - sxoss)/sigmaSSDX[i];
+	    st2 += t*t; b += t*meanSSDX[i]/sigmaSSDX[i]; 
+         }
+          b /= st2;
+	  a = (sy - sx*b)/ss;
+//	  siga = std::sqrt((1.0 + sx*sx/(ss*st2))/ss);  //That is the alignment business.. skip.. 
+	  sigb = std::sqrt(1.0/st2);
+	  chi2 = 0.;
+          for (size_t i=0; i != xT0.size(); i++)  {
+	    const double dd = (meanSSDX[i] - a - b * xT0[i])/sigmaSSDX[i];
+	    chi2 += dd * dd;
+	  }
+	  std::cerr << " ... Linear fit slope = " << b << " +- " << sigb << " chi2 " << chi2 << std::endl;
+        } // got enough data to do a linear fit 
+         else {
+           std::cerr << " Not enough events with narrow (+- 1.8 mm) to establish SDD station1 vs T0 signal " << std::endl;
+         }
+      }
+   } 
   } // namespace dq 
 } // name space emph       
 DEFINE_ART_MODULE(emph::dq::AnalyzeTOFARICH)
