@@ -8,6 +8,7 @@ process_name: G4Sim
 
 services:
 {
+  RunHistory: {}
   MagneticField: @local::standard_magfield
   Geometry: @local::standard_geometry
   # Load the service that manages root files for histograms.
@@ -22,7 +23,7 @@ source:
 {
   module_type: EmptyEvent
   maxEvents: 1000000
-  firstRun:  1000001
+  firstRun:  1380
   firstSubRun: 1
 
 }
