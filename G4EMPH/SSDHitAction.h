@@ -11,8 +11,16 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <string>
+// G4 
+#include "G4SteppingManager.hh"
+#include "G4RunManager.hh"
 
-// NOvA includes
+// G4EMPH includes
 #include "G4Base/UserAction.h"
 #include "Geometry/GeometryService.h"
 
@@ -68,6 +76,13 @@ namespace emph {
     bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
 
     art::ServiceHandle<emph::geo::GeometryService> fGeo;
+    
+    //
+    // Convenient way to get information for within event debugging.. 
+    //
+    G4RunManager *fRunManager;
+    
+    std::ofstream fFOutStudy1;
 
   };
 

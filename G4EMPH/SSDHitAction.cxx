@@ -45,19 +45,26 @@ namespace emph
   SSDHitAction::SSDHitAction() : 
     fEnergyCut(0)
   {
+    fRunManager = G4RunManager::GetRunManager();
   }
 
   //-------------------------------------------------------------
   // Destructor.
   SSDHitAction::~SSDHitAction()
   {
+   fFOutStudy1.close();
   }
 
   //-------------------------------------------------------------
   void SSDHitAction::Config(fhicl::ParameterSet const& pset )
   {
     fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
-
+    std::cerr << " SSDHitAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
+    std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
+    std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHSSDTuple_V1_" << aTokenJob << ".txt";
+    std::string fNameStr(fNameStrStr.str());
+    fFOutStudy1.open(fNameStr.c_str());
+    fFOutStudy1 << " evt track pId x y z px py pz  " << std::endl;
   }
 
   //-------------------------------------------------------------
@@ -146,6 +153,12 @@ namespace emph
     ssdHit.SetP(mom0);
 
     fSSDHits[fSSDHits.size()-1].push_back(ssdHit);
+    fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
+    fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding();
+    fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2];
+    fFOutStudy1 << " " << mom0[0] << " " << mom0[1] << " " << mom0[2] << std::endl;
+    
+    
     
     //fFLSHit->AddPos(tpos2[0], tpos2[1], tpos2[2], (double)step->GetPreStepPoint()->GetGlobalTime()/CLHEP::ns, step->GetPreStepPoint()->GetKineticEnergy()  / CLHEP::GeV);
     
