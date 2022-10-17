@@ -140,8 +140,8 @@ namespace emph {
     mctru.SetBeam(b);
 
     auto beamPos = b.Position();
-    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
-      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+//    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
+//      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
 
     // the next steps are a little clunky.  Make a vector of art::Ptr<MCTruth> 
     // objects to use when making the associations and another of just
@@ -159,11 +159,11 @@ namespace emph {
 
     // make a map to keep track of which G4 track ID goes with which MCTruth object
     std::map<int, size_t> trackIDToMCTruthIndex;
-    std::cout << "******************** HERE 1 ********************" 
-	      << std::endl;
+//    std::cout << "******************** HERE 1 ********************" 
+//	      << std::endl;
     fG4Alg->RunGeant(mct, *ssdhlcol, *pcol, trackIDToMCTruthIndex);
-    std::cout << "******************** HERE 2 ********************" 
-	      << std::endl;
+//    std::cout << "******************** HERE 2 ********************" 
+//	      << std::endl;
 
     std::cout << "####################### The Particle List Action Size: " << pcol->size() << std::endl;
     std::cout << "####################### The SSD Hit List Size: " << ssdhlcol->size() << std::endl;
