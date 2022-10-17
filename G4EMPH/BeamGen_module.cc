@@ -61,6 +61,7 @@ namespace emph {
 
       int         fPID;
       uint64_t    fEvtCount;
+      double      fZstart;
       double      fMass;
       double      fXmax;
       double      fXmin;
@@ -126,6 +127,7 @@ namespace emph {
     
     //    fRun           = ps.get<int>("runNum",1000000);
     //    fSubrun        = ps.get<int>("subrunNum",0);
+    fZstart        = ps.get<double>("Zstart", -200.); // in cm.  may not reach the Trigger counter, which is not in the geometry, in any case.. 
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
@@ -267,7 +269,7 @@ namespace emph {
     // now get beam particle position
     TLorentzVector pos;
     
-    pos[2] = 0.;
+    pos[2] = fZstart;
     if (fXYHist) { // get random position from histogram
       fXYHist->GetRandom2(pos[0],pos[1]);
     }
