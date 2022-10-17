@@ -5,6 +5,7 @@ standard_g4alg:
   GenModuleLabel:      generator
   G4MacroPath:         "G4EMPH/g4emph.mac" 
   G4EnergyThreshold:   1.0E-3 #GeV, stop tracking below this value
+  G4TokenSSDOut: "pion31"
 
   # If true, keep individual track ids from processes like compt and brem and
   # annihil.  If false, all the same simulation is done, just less truth
