@@ -44,7 +44,7 @@ piplus_beamgen.Ysigma: 2.5
 
 piminus_beamgen: @local::standard_beamgen
 piminus_beamgen.particleType: "pion"
-piplus_beamgen.PMean: -31.
+piminus_beamgen.PMean: -31.
 
 kaonplus_beamgen: @local::standard_beamgen
 kaonplus_beamgen.particleType: "kaon"
