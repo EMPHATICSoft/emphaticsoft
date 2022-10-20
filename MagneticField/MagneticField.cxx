@@ -35,6 +35,8 @@
 #include "Geant4/G4SystemOfUnits.hh"
 #include "Geant4/G4FieldManager.hh"
 
+#include "Geometry/DetectorDefs.h"
+#include "Geometry/Geometry.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "math.h"
@@ -49,7 +51,8 @@
 namespace emph {
 
   EMPHATICMagneticField::EMPHATICMagneticField(const G4String &filename) :
-    fStorageIsStlVector(true), step(0), start{-16., -16., -20.},  // for the root test file, units are cm Not sure about start values.
+    fStorageIsStlVector(true), fHasBeenAligned(false), step(0), start{-16., -16., -20.},// for the root test file, units are cm Not sure about start values.
+    fG4ZipTrackOffset{ 0., 0., 400.},  // Will be overwritten based on the G4/Art based geometry. 
     fNStepX(1), fNStepY(1), fNStepZ(1),
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
@@ -70,10 +73,35 @@ namespace emph {
       //    this->test3();
       //      this->studyZipTrackData1();
     }
+    
+  void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
+  
+    fG4ZipTrackOffset[2] = -theEMPhGeometry->MagnetUSZPos() + 82.5; // rough guess! 
+    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
+    fHasBeenAligned = true; 
+//
+// Testing... at COMSOL coordinate of z = -82.5 mm, By ~ 7.5 Kg, 1/2  field 
+//     
+    double xTest[3], xTest2[3], BTest[3], BTest2[3]; 
+    xTest[0] = 0.; xTest[1] = 0.; xTest[2] = -82.5;  xTest2[0] = 0.01; xTest2[1] = 0.004; xTest2[2] = -52.5; // in mm 
+//    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k]; // The equation in the GetFieldValue. 
+    this->MagneticField(xTest, BTest);
+    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, internal Variables  " 
+              << BTest[1] <<  " kG "  << std::endl;
+    this->MagneticField(xTest2, BTest2);
+    std::cerr << " .......... again, 20mm inward " << BTest2[1] << std::endl;
+    for (size_t k=0; k != 3; k++) xTest[k] -= fG4ZipTrackOffset[k];
+    BTest[1] = 0.;
+    this->GetFieldValue(xTest, BTest);
+    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;
+   
+  }
   
   void EMPHATICMagneticField::uploadFromRootFile(const G4String &fName) {
   
     fStorageIsStlVector = false; // Could up grade later.. 
+    std::cerr << " EMPHATICMagneticField::uploadFromRootFile, currently disable does not provide stable answers with current compilers... " << std::endl;
+    std::cerr << " Fatal error, quit here and now " << std::endl; exit(2);
   
     /*for(int i = 0; i < 250; i++){
       for(int j = 0; j < 250; j++){
@@ -125,14 +153,40 @@ namespace emph {
 //    if(abs(xVal - x) > step) step = abs(xVal - x);
 //    else if(abs(yVal - y) > step) step = abs(yVal - y);
 //    else step = abs(zVal - z);
-    
+    int maxIndX = 0;
+    int maxIndY = 0;
+    int maxIndZ = 0;
     for(int i = 0; i < nEntries; i++){
       tree->GetEntry(i);
       
       int indX = static_cast<int>((x-start[0])/step);
       int indY = static_cast<int>((y-start[1])/step);
       int indZ = static_cast<int>((z-start[2])/step);
-      if (fVerbosity || (i < 10)) {
+      maxIndX = std::max(indX, maxIndX); 
+      maxIndY = std::max(indY, maxIndY); 
+      maxIndZ = std::max(indZ, maxIndZ); 
+    }
+    // Do We pre-allocate..
+    // Note : This is not a regular grid!   Could cause some confusion.. 
+    // 
+    /* 
+    std::vector<double> zero3(3, 0.);
+    std::map<int, std::vector<double> > fieldAlongZ;
+    for (int kz=0; kz !=  maxIndZ; kz++) fieldAlongZ.emplace(kz, zero3);
+    std::cerr << " Size of map along Z " << fieldAlongZ.size() << std::endl;
+    std::map<int, std::map<int, std::vector<double> > > fieldAlongYZ;
+    for (int ky=0; ky !=  maxIndY; ky++) fieldAlongYZ.emplace(ky, fieldAlongZ);
+    std::cerr << " Size of map along YZ " << fieldAlongYZ.size() << std::endl;
+    for (int kx=0; kx !=  maxIndX; kx++) field.emplace(kx, fieldAlongYZ);
+     std::cerr << " Size of map along XYZ " << field.size() << std::endl;
+    */
+    for(int i = 0; i < nEntries; i++){
+      tree->GetEntry(i);
+      int indX = static_cast<int>((x-start[0])/step);
+      int indY = static_cast<int>((y-start[1])/step);
+      int indZ = static_cast<int>((z-start[2])/step);
+     
+      if (fVerbosity || (i < 3)) {
 	std::cout << "(x, y, z) = (" << x << ", " << y << ", " << z << ") cm,    (ix, iy, iz) = (" << indX 
 	          << ", " << indY << ", " << indZ << "),    (Bx, By, Bz) = (" << Bx << ", " << By << ", " << Bz << ") kG" << G4endl;
        }
@@ -144,8 +198,10 @@ namespace emph {
       temp.push_back(0.1*Bx); // from kG to tesla. 
       temp.push_back(0.1*By);
       temp.push_back(0.1*Bz);
+      // 
+      // This sound easy, but with it does not work.. 
+      //  
       
-      field[indX][indY][indZ] = temp;
       xPrev = x; 
       yPrev = y; 
       zPrev = z; 
@@ -153,9 +209,15 @@ namespace emph {
     } // loop on entries 
     // We convert step and start to mm. 
     step *=10.; for (int k=0; k !=3; k++) start[k] *= 10.;
+    // check direct access.. 
+    std::cerr << " 3D map loaded up,  max Indices " << maxIndX << ", " << maxIndY << ", " << maxIndZ << G4endl;
+    std::vector<double> testVal = field.at(maxIndX/2).at(maxIndY/2).at(maxIndZ/2);
+    std::cerr << " Map size along X  " << field.size() << " Along Y, at loc X = 30  " << field[30].size() << std::endl;
+    std::cerr << " Test Value at central point (Bx, By, Bz) " << testVal[0] << ", " << testVal[1] << ", " << testVal[2] << std::endl;
+    
     ///////////////////////////////////////////////////////////////
     // Close the file
-    std::cout << " ==> Closing file " << fName << G4endl;
+    std::cerr << " ==> Closing file " << fName  << G4endl;
     mfFile.Close();
     if (fVerbosity) fOutForR.close();
     //
@@ -166,6 +228,7 @@ namespace emph {
 	std::ifstream fileIn(fName.c_str());
 	if (!fileIn.is_open()) {
 	  std::cerr << " EMPHATICMagneticField::uploadFromTextFile, file " << fName << " can not be open, fatal .." << std::endl; 
+	  std::cerr << " Please copy the file  " << fName << " from emphaticgpvm02.fnal.gov:/emph/data/users/lebrun/" << std::endl; 
 	  exit(2);
 	}
         std::string line;
@@ -422,7 +485,7 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
   
   void EMPHATICMagneticField::MagneticField(const double x[3], double B[3]) const 
   {
-//    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 0.01));
+//    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 100.));
     bool debugIsOn = false;
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
@@ -520,26 +583,27 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
         int ix[2] = {int (floor(indX)), int (ceil(indX))};
         int iy[2] = {int (floor(indY)), int (ceil(indY))};
         int iz[2] = {int (floor(indZ)), int (ceil(indZ))};
-	if (debugIsOn) std::cerr << " Indices .. x " << ix[0] << " " << ix[1] << " y " <<  iy[0] << " " << iy[1] <<
-	                          " z " <<  iz[0] << " " << iz[1] << std::endl;       
-    
+	if (debugIsOn) {
+	    std::cerr << " .... Indices .. x " << ix[0] << " " << ix[1] << " y " <<  iy[0] << " " << iy[1] <<
+	                          " z " <<  iz[0] << " " << iz[1] <<  " .... step " << step << " start[0] " << start[0] << std::endl;		         
+        }
         bool skip = false;
-        if(field.find(ix[0]) == field.end()) skip = true;
-        else if(field.find(ix[1]) == field.end()) skip = true;
+        if(field.find(ix[0]) == field.end()) { if (debugIsOn) std::cerr << " x[0] out " << std::endl; skip = true; }
+        else if(field.find(ix[1]) == field.end()) { if (debugIsOn) std::cerr <<  " x[1] out " << std::endl; skip = true; }
         else{
-        if(field.at(ix[0]).find(iy[0]) == field.at(ix[0]).end()) skip = true;
-        else if(field.at(ix[0]).find(iy[1]) == field.at(ix[0]).end()) skip = true;
-        else if(field.at(ix[1]).find(iy[0]) == field.at(ix[1]).end()) skip = true;
-        else if(field.at(ix[1]).find(iy[1]) == field.at(ix[1]).end()) skip = true;
+        if(field.at(ix[0]).find(iy[0]) == field.at(ix[0]).end()) { if (debugIsOn) std::cerr <<  " x[0] y[0] out " << std::endl; skip = true; }
+        else if(field.at(ix[0]).find(iy[1]) == field.at(ix[0]).end()) { if (debugIsOn) std::cerr <<  " x[0] y[1] out " << std::endl; skip = true; }
+        else if(field.at(ix[1]).find(iy[0]) == field.at(ix[1]).end()) { if (debugIsOn) std::cerr <<  " x[1] y[0] out " << std::endl; skip = true; }
+        else if(field.at(ix[1]).find(iy[1]) == field.at(ix[1]).end()) { if (debugIsOn) std::cerr <<  " x[1] y[1] out " << std::endl; skip = true; }
         else{
-	  if(field.at(ix[0]).at(iy[0]).find(iz[0]) ==field.at(ix[0]).at(iy[0]).end()) skip = true;
-	  else if(field.at(ix[0]).at(iy[0]).find(iz[1]) ==field.at(ix[0]).at(iy[0]).end()) skip = true;
-	  else if(field.at(ix[0]).at(iy[1]).find(iz[0]) ==field.at(ix[0]).at(iy[1]).end()) skip = true;
-	  else if(field.at(ix[0]).at(iy[1]).find(iz[1]) ==field.at(ix[0]).at(iy[1]).end()) skip = true;
-	  else if(field.at(ix[1]).at(iy[0]).find(iz[0]) ==field.at(ix[1]).at(iy[0]).end()) skip = true;
-	  else if(field.at(ix[1]).at(iy[0]).find(iz[1]) ==field.at(ix[1]).at(iy[0]).end()) skip = true;
-	  else if(field.at(ix[1]).at(iy[1]).find(iz[0]) ==field.at(ix[1]).at(iy[1]).end()) skip = true;
-	  else if(field.at(ix[1]).at(iy[1]).find(iz[1]) ==field.at(ix[1]).at(iy[1]).end()) skip = true;
+	  if(field.at(ix[0]).at(iy[0]).find(iz[0]) ==field.at(ix[0]).at(iy[0]).end()) { if (debugIsOn) std::cerr <<  " x[0] y[0] z[0] out " << std::endl; skip = true; }
+	  else if(field.at(ix[0]).at(iy[0]).find(iz[1]) ==field.at(ix[0]).at(iy[0]).end()) { if (debugIsOn) std::cerr <<  " x[0] y[0] z[1] out " << std::endl; skip = true; }
+	  else if(field.at(ix[0]).at(iy[1]).find(iz[0]) ==field.at(ix[0]).at(iy[1]).end()) { if (debugIsOn) std::cerr <<  " x[0] y[1] z[0] out " << std::endl; skip = true; }
+	  else if(field.at(ix[0]).at(iy[1]).find(iz[1]) ==field.at(ix[0]).at(iy[1]).end()) { if (debugIsOn) std::cerr <<  " x[0] y[1] z[1] out " << std::endl; skip = true; }
+	  else if(field.at(ix[1]).at(iy[0]).find(iz[0]) ==field.at(ix[1]).at(iy[0]).end()) { if (debugIsOn) std::cerr <<  " x[1] y[0] z[0] out " << std::endl; skip = true; }
+	  else if(field.at(ix[1]).at(iy[0]).find(iz[1]) ==field.at(ix[1]).at(iy[0]).end()) { if (debugIsOn) std::cerr <<  " x[1] y[0] z[1] out " << std::endl; skip = true; }
+	  else if(field.at(ix[1]).at(iy[1]).find(iz[0]) ==field.at(ix[1]).at(iy[1]).end()) { if (debugIsOn) std::cerr <<  " x[1] y[1] z[0] out " << std::endl; skip = true; }
+	  else if(field.at(ix[1]).at(iy[1]).find(iz[1]) ==field.at(ix[1]).at(iy[1]).end()) { if (debugIsOn) std::cerr <<  " x[1] y[1] z[1] out " << std::endl; skip = true; }
         }
       }
     
@@ -550,6 +614,7 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
                       << " .. along Y " << iy[0] << ", " << iy[1] << " .. along Z " << iz[0] << ", " << iz[1] << std::endl;
          std::cerr << " ....  by at ix, iy iz low " << field.at(ix[0]).at(iy[0]).at(iz[0]).at(1) << " high " 
                                                   << field.at(ix[1]).at(iy[1]).at(iz[1]).at(1) << std::endl;
+						  std::cerr << " And quit after the first succesful pick up " << std::endl; exit(2);
       }	    
    
       if(fInterpolateOption == 0) { 
@@ -627,7 +692,18 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
   
   void EMPHATICMagneticField::GetFieldValue(const double x[3], double* B) const
   {
-    EMPHATICMagneticField::MagneticField(x, B);
+    if (!fHasBeenAligned) {
+      std::cerr << " EMPHATICMagneticField::GetFieldValue, " 
+                <<  " Magnet has not been properly aligned, ZipTrack Coordinate system is not the G4 Coordinate system " << std::endl; 
+    
+      std::cerr << " Fatal error, for now... Quit here and now " << std::endl; exit(2);
+    } 
+    double xAligned[3];
+    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k];
+    double BInKg[3];
+    EMPHATICMagneticField::MagneticField(xAligned, BInKg);
+    for (size_t k=0; k != 3; k++) B[k] = BInKg[k]*CLHEP::kilogauss;
+    
   }
     
   void EMPHATICMagneticField::Integrate(int iOpt, int charge, double stepAlongZ,
@@ -794,7 +870,7 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
         const double y = 15.34 + iY*0.892; 
          xN[1] = y ;
          xF[1] = y + 10.;
-         for (int iZ = -40; iZ != 60; iZ++) { 
+         for (int iZ = -80; iZ != 120; iZ++) { 
            const double z = iZ*4.578; 
            xN[2] = z;
            xF[2] = z + 10.;
@@ -823,7 +899,7 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
       }
     }
     fOutForR.close();
-//    std::cerr << " Quuit, debugging anomalous difference between stl vector and map " << std::endl; exit(2);
+    std::cerr << " Quit, debugging anomalous difference between stl vector and map " << std::endl; exit(2);
     std::string fName2 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2b.txt") : std::string("./EmphMagField_StlMap_v2b.txt"); 
     fOutForR.open(fName2.c_str());
     fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
