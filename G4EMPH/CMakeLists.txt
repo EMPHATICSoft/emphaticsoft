@@ -33,6 +33,8 @@ art_make_library(
     SimulationBase
     Simulation
     G4Base
+    RunHistory
+    RunHistory_service
     Geometry
     Geometry_service
     MagneticField

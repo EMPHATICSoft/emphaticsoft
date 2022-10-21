@@ -23,6 +23,7 @@
 #include "G4Base/G4Helper.h"
 #include "SimulationBase/MCTruth.h"
 #include "G4EMPH/SSDHitAction.h"
+#include "G4EMPH/FastStopAction.h"
 #include "G4EMPH/ParticleListAction.h"
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
@@ -135,6 +136,10 @@ namespace emph {
     sh->SetName("emph::SSDHitAction");
     sh->Config( pset );
 
+    emph::FastStopAction* sh2 = new emph::FastStopAction();
+    sh2->SetName("emph::FastStopAction");
+    sh2->Config( pset );
+    
     // the ParticleListAction must be added to the UserActionManager 
     // first as it has to define the track ID in the case that the 
     // current particle to track is from an EM process that would cause
@@ -146,7 +151,8 @@ namespace emph {
     //          << " vs " << uam->GetIndex("g4n::ParticleListAction")
     //          << std::endl
     uam->AddAndAdoptAction(sh);   
-    fShaIndex = uam->GetSize() - 1;
+    uam->AddAndAdoptAction(sh2);   
+    fShaIndex = uam->GetSize() - 2; // SSD is the first one..   Might change is we add others !  See above.. Very Sneaky.. 
 
     ConfigUserActionManager(fUserActions,pset);
 
