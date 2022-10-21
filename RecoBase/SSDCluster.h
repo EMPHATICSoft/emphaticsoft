@@ -14,7 +14,7 @@
 
 #include "canvas/Persistency/Common/PtrVector.h"
 
-#include "RecoBase/SSDHit.h"
+#include "RawData/SSDRawDigit.h"
 
 namespace rb {
   
@@ -22,41 +22,48 @@ namespace rb {
   public:
     SSDCluster();
 #ifndef __GCCXML__
-    explicit SSDCluster(const art::PtrVector<rb::SSDHit>& hits, 
-			std::vector<double> weights = std::vector<double>(), 
+    explicit SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits, 
 			int id=0);
 #endif // __GCCXML__
     virtual ~SSDCluster() {}; //Destructor
     
   public:
-    void Add(const art::Ptr<rb::SSDHit>& hit, double weight=1);
-    void Add(const art::PtrVector<rb::SSDHit>& hits,
-	     const std::vector<double>& weights = std::vector<double>());
+    void Add(const art::Ptr<emph::rawdata::SSDRawDigit>& hit);
+    void Add(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits);
     
     void SetID(int id) { fID = id; }
     int ID() const {return fID; }
 
-    unsigned int NHits() const { return fHitVec.size(); }
+    unsigned int NDigits() const { return fDigitVec.size(); }
 
-    art::Ptr<rb::SSDHit> Hit(unsigned int idx) const;
-    const art::PtrVector<rb::SSDHit> Hits() const { return fHitVec; }
+    art::Ptr<emph::rawdata::SSDRawDigit> Digit(unsigned int idx) const;
+    const art::PtrVector<emph::rawdata::SSDRawDigit> Digits() const { return fDigitVec; }
 
-    void   SetWeights(std::vector<double>& w8s) { fWeights = w8s; }
-    void   SetWeight(unsigned int idx, double w);
-    double Weight(unsigned int idx);
+    void SetStation(int station) {fFER = station;}
+    void SetModule(int mod) {fModule = mod;}
 
-    double WeightedStrip() const;
-    double WeightedWidth() const;
+    int    Station() const { return fFER; }
+    int    Module()  const { return fModule; } 
+    double AvgStrip() const;
+    int    MinStrip() const;
+    int    MaxStrip() const;
+    int    Width() const { return (MaxStrip()-MinStrip()+1);}
+    double AvgTime() const;
+    int    MinTime() const;
+    int    MaxTime() const;
+    int    TimeRange() const { return (MaxTime()-MinTime()); }
 
     friend std::ostream& operator << (std::ostream& o, const SSDCluster& h);
     
-#ifndef __GCCXML__
+    //#ifndef __GCCXML__
     
-  protected:
-    art::PtrVector<rb::SSDHit> fHitVec;
-    std::vector<double>        fWeights;
-    int                        fID;
-#endif // __GCCXML__
+  private:
+
+    art::PtrVector<emph::rawdata::SSDRawDigit> fDigitVec;
+    int fID;
+    int fFER;
+    int fModule;
+    //#endif // __GCCXML__
     
   };
   

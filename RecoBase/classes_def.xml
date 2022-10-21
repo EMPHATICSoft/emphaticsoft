@@ -12,7 +12,11 @@
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
 
-  <class name="rb::SSDCluster"    ClassVersion="11">
+  <class name="rb::SSDCluster"    ClassVersion="15">
+   <version ClassVersion="15" checksum="2833724937"/>
+   <version ClassVersion="14" checksum="2833724937"/>
+   <version ClassVersion="13" checksum="2833724937"/>
+   <version ClassVersion="12" checksum="2833724937"/>
    <version ClassVersion="11" checksum="1280789249"/>
     <version ClassVersion="10" checksum="1"/>
   </class>
