@@ -280,7 +280,7 @@ namespace emph {
         pos[1]= rand->Uniform()*(fYmax - fYmin) / CLHEP::cm;
       }
       else { // default is Gauss
-	std::cout << "here 1234" << std::endl;
+//	std::cout << "here 1234" << std::endl;
 	pos[0] = rand->Gaus(fXmean,fXsigma) / CLHEP::cm;
         pos[1] = rand->Gaus(fYmean,fYsigma) / CLHEP::cm;
       }
