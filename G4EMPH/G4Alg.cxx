@@ -24,9 +24,11 @@
 #include "SimulationBase/MCTruth.h"
 #include "G4EMPH/SSDHitAction.h"
 #include "G4EMPH/FastStopAction.h"
-#include "G4EMPH/ParticleListAction.h"
+//#include "G4EMPH/ParticleListAction.h"
+#include "G4EMPH/TrackListAction.h"
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
+#include "Simulation/Track.h"
 
 // Framework includes
 #include "fhiclcpp/ParameterSet.h"
@@ -127,10 +129,16 @@ namespace emph {
     // Setup the user actions that we want to use.
     g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
     
+// The ParticleNavigator goes into infinite loop, and we do not need it.. We use something simpler. The particle ancestry is also 
+// availabe in the for of the G4Track ancestry.  Which, in our case, is much simpler than for the typical Neutrino experiment
+// We do tracking, mostly..     
+//    emph::ParticleListAction* pl  = new emph::ParticleListAction(fEnergyThresh,fManyParticles);
+//    pl->SetName("emph::ParticleListAction");
+//    pl->Config( pset );
     
-    emph::ParticleListAction* pl  = new emph::ParticleListAction(fEnergyThresh,fManyParticles);
-    pl->SetName("emph::ParticleListAction");
-    pl->Config( pset );
+    emph::TrackListAction* ptl  = new emph::TrackListAction();
+    ptl->SetName("emph::ParticleListAction");
+    ptl->Config( pset );
 
     emph::SSDHitAction* sh = new emph::SSDHitAction();
     sh->SetName("emph::SSDHitAction");
@@ -145,14 +153,16 @@ namespace emph {
     // current particle to track is from an EM process that would cause
     // it not to be added to the list and the track ID has to be 
     // reassigned to be the same as its mother.
-    //uam->AddAndAdoptAction(pl);
     //fPlaIndex = uam->GetSize() - 1;
     //if (false) std::cerr << "RWH: fPlaIndex " << fPlaIndex
     //          << " vs " << uam->GetIndex("g4n::ParticleListAction")
     //          << std::endl
+    
+    uam->AddAndAdoptAction(ptl);
     uam->AddAndAdoptAction(sh);   
     uam->AddAndAdoptAction(sh2);   
-    fShaIndex = uam->GetSize() - 2; // SSD is the first one..   Might change is we add others !  See above.. Very Sneaky.. 
+    fShaIndex = uam->GetSize() - 2; // SSD is the 2nd one..   Might change is we add others !  See above.. Very Sneaky.. 
+    fPlaIndex = 0; // Again, could change. 
 
     ConfigUserActionManager(fUserActions,pset);
 
@@ -238,15 +248,15 @@ namespace emph {
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
                        std::vector< std::vector<sim::SSDHit> >& ssdhitlist,
-                       std::vector< sim::Particle >& particlelist,
+                       std::vector< sim::Track >& tracklist,
                        std::vector< std::vector< std::pair<size_t, size_t> > >&  pListLimits)
   {  
-    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
-    dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset();
+//    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
+//    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
+//    dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset();
     
-    particlelist.clear();
-    ssdhitlist  .clear();
+    tracklist.clear();
+    ssdhitlist.clear();
 
     // pListLimits keeps track of the index of first particle for a given MCTruth 
     // in the particlelist vector and the index beyond the last particle
@@ -260,12 +270,14 @@ namespace emph {
       
       for(size_t i = 0; i < mclistHandle->size(); ++i){
         const simb::MCTruth* mct(&(*mclistHandle)[i]);
-        
-        size_t start = particlelist.size();
-        this->RunGeant(mct, ssdhitlist, particlelist);
-        size_t end = particlelist.size();
-        
-        pListLimits[mcl].push_back(std::pair<size_t, size_t>(start, end));
+//        
+//        size_t start = particlelist.size();
+        this->RunGeant(mct, ssdhitlist, tracklist);
+//        size_t end = particlelist.size();
+// 
+// We do not needt to keep incrementing the whole list of particle, we run event by event.. 
+//        
+//        pListLimits[mcl].push_back(std::pair<size_t, size_t>(start, end));
         
       }// end of loop over interactions in the current handle
     }// end loop over handles
@@ -276,18 +288,21 @@ namespace emph {
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< const simb::MCTruth* >& mctruths,
                        std::vector< std::vector<sim::SSDHit> >& ssdhitlist,
-                       std::vector< sim::Particle >& particlelist,
+                       std::vector< sim::Track >& tracklist,
                        std::map<int, size_t>& trackIDToMCTruthIndex)
-  {  
+  {
+    
     g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
     //dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
-    //ParticleListAction* pla = dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex));
-    //pla->ResetTrackIDOffset();
+//    ParticleListAction* pla = dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex));
+    TrackListAction* pla = dynamic_cast<TrackListAction *>(uam->GetAction(fPlaIndex));
+//    pla->ResetTrackIDOffset();
     // getting instance of particle list action.
     SSDHitAction* sh = dynamic_cast<SSDHitAction *>(uam->GetAction(fShaIndex));
     // getting instance of ssd hit action.
 
-    particlelist.clear();
+//    particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
+    tracklist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     ssdhitlist  .clear();
 
     // trackIDToMCTruthIndex keeps track of which trackIDs correspond to which MCTruth
@@ -298,8 +313,8 @@ namespace emph {
     
     //trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
 
-    //particlelist = pla->GetList();
-    // getting particle list from particlelistaction.cxx
+    tracklist = pla->GetAllTracks();
+    // getting track list from particlelistaction.cxx
     ssdhitlist = sh->GetAllHits();
     // getting ssd hit list from ssdhitaction.cxx
     return;
@@ -308,25 +323,26 @@ namespace emph {
   //______________________________________________________________________________
   void G4Alg::RunGeant(art::Ptr<simb::MCTruth>         mctruth,
                        std::vector< std::vector<sim::SSDHit> >& ssdhitlist,
-                       std::vector< sim::Particle >&   particlelist,
+                       std::vector< sim::Track >&   tracklist,
                        int                             trackIDOffset)
   {  
-    this->RunGeant(mctruth.get(), ssdhitlist, particlelist, trackIDOffset);
+    this->RunGeant(mctruth.get(), ssdhitlist, tracklist, trackIDOffset);
   }
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(const simb::MCTruth*             mctruth,
                        std::vector< std::vector<sim::SSDHit> > & ,
-                       std::vector< sim::Particle >   & ,
+                       std::vector< sim::Track >   & ,
                        int                              trackIDOffset)
   {
-    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
+//    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
+//    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
 
     MF_LOG_DEBUG("G4Alg") << *mctruth;
 
     if(trackIDOffset > 0){
-      dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset(trackIDOffset);
+//      dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset(trackIDOffset);
+       std::cerr << " G4Alg::RunGeant  trackIDOffset is not use when dealing only with sim::Track list " << std::endl; 
     }
 
     // The following tells Geant4 to track the particles in this interaction.
@@ -337,8 +353,9 @@ namespace emph {
 
   bool G4Alg::IsAborted()
   {
-    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-    return dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->IsAborted();
+    return false;
+//    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
+//    return dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->IsAborted();
   } // Check whether Geant event was aborted
  
 } // end namespace
