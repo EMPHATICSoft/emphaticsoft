@@ -168,7 +168,7 @@ namespace emph {
     fG4Alg->RunGeant(mct, *ssdhlcol, *pcol, trackIDToMCTruthIndex); // trackIDToMCTruthIndex will be left empty... Could be cleaned up.. 
 //    std::cout << "******************** HERE 2 ********************" 
 //	      << std::endl;
-    if (evt.id().event() < 10 { 
+    if (evt.id().event() < 10 ) { 
       std::cerr << "####################### The Particle List Action Size: " << pcol->size() << std::endl;
       std::cerr << "####################### The SSD Hit List Size: " << ssdhlcol->size() << std::endl;
     }
