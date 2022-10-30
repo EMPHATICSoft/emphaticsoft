@@ -247,8 +247,8 @@ namespace emph {
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
-                       std::vector< std::vector<sim::SSDHit> >& ssdhitlist,
-                       std::vector< sim::Track >& tracklist,
+                       std::vector<sim::SSDHit> & ssdhitlist,
+                       std::vector< sim::Track> & tracklist,
                        std::vector< std::vector< std::pair<size_t, size_t> > >&  pListLimits)
   {  
 //    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
@@ -287,7 +287,7 @@ namespace emph {
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< const simb::MCTruth* >& mctruths,
-                       std::vector< std::vector<sim::SSDHit> >& ssdhitlist,
+                       std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector< sim::Track >& tracklist,
                        std::map<int, size_t>& trackIDToMCTruthIndex)
   {
@@ -321,8 +321,9 @@ namespace emph {
   }// end of RunGeant
 
   //______________________________________________________________________________
+
   void G4Alg::RunGeant(art::Ptr<simb::MCTruth>         mctruth,
-                       std::vector< std::vector<sim::SSDHit> >& ssdhitlist,
+                       std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector< sim::Track >&   tracklist,
                        int                             trackIDOffset)
   {  
@@ -331,7 +332,7 @@ namespace emph {
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(const simb::MCTruth*             mctruth,
-                       std::vector< std::vector<sim::SSDHit> > & ,
+                       std::vector<sim::SSDHit>  & ,
                        std::vector< sim::Track >   & ,
                        int                              trackIDOffset)
   {

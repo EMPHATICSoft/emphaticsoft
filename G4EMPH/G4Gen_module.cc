@@ -84,7 +84,7 @@ namespace emph {
     // Start counting the time
     fStopwatch.Start();
 
-    produces< std::vector<std::vector<sim::SSDHit> > >();
+    produces< std::vector<sim::SSDHit> > ();
 //    produces< std::vector<sim::Particle>     	         >();
     produces< std::vector<sim::Track>     	         >();
     //    produces< art::Assns<sim::Particle, simb::MCTruth>   >();
@@ -125,7 +125,7 @@ namespace emph {
     // before passing a physics list to the run manager
   
     // Define the SSDHit and Particle vectors.
-    std::unique_ptr<std::vector<std::vector<sim::SSDHit> > > ssdhlcol(new std::vector<std::vector<sim::SSDHit> >  );
+    std::unique_ptr<std::vector<sim::SSDHit> >  ssdhlcol(new std::vector<sim::SSDHit>  );
 //    std::unique_ptr<std::vector<sim::Particle>     >            pcol    (new std::vector<sim::Particle>    );
     std::unique_ptr<std::vector<sim::Track>     >            pcol    (new std::vector<sim::Track>    );
     //    std::unique_ptr< art::Assns<sim::Particle, simb::MCTruth> > tpassn  (new art::Assns<sim::Particle, simb::MCTruth>);
