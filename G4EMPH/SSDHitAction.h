@@ -29,15 +29,13 @@
 
 #include "Geant4/globals.hh"
 
+#include "Simulation/SSDHit.h"
+
 // Forward declarations.
 class G4Event;
 class G4Track;
 class G4Step;
 class G4EnergyLossForExtrapolator;
-
-namespace sim{
-  class SSDHit;
-}
 
 namespace emph {
 
@@ -62,15 +60,16 @@ namespace emph {
 
     //  Returns the current hit being saved in the list of
     //  hits.  
-    std::vector<sim::SSDHit> GetSSDHits(size_t i) { return fSSDHits[i]; }
+    //  std::vector<sim::SSDHit> GetSSDHits(size_t i) { return fSSDHits[i]; } pbsoloete..
     // gets specific ssdhit.
-    std::vector<std::vector <sim::SSDHit> > GetAllHits() { return fSSDHits; }
+    sim::SSDHit GetSSDHit(size_t i) const { return fSSDHits[i]; }
+    std::vector <sim::SSDHit> GetAllHits() const { return fSSDHits; }
     // gets all the ssdhits
 
   private:
 
   private:
-    std::vector<std::vector<sim::SSDHit> > fSSDHits;                 ///< The information for SSD hits.
+    std::vector<sim::SSDHit>  fSSDHits;                 ///< The information for SSD hits.
     G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
     ///< be included in the list.                          
     bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
