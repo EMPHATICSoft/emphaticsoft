@@ -36,7 +36,8 @@ namespace g4b{
 
   //-----------------------------------------------------
   // Constructor and destructor.
-  ConvertMCTruthToG4::ConvertMCTruthToG4() 
+  ConvertMCTruthToG4::ConvertMCTruthToG4():
+  fTheEventSequentialNumber(0) 
   {
   }
 
@@ -89,6 +90,8 @@ namespace g4b{
   //-----------------------------------------------------
   void ConvertMCTruthToG4::GeneratePrimaries( G4Event* event )
   {
+    fTheEventSequentialNumber++;
+    event->SetEventID(fTheEventSequentialNumber);
     // Take the contents of MCTruth objects and use them to
     // initialize the G4Event.
   

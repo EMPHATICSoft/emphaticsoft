@@ -23,7 +23,7 @@ services:
 source:
 {
   module_type: EmptyEvent
-  maxEvents: 10000
+  maxEvents: 500000
   firstRun:  1293
   firstSubRun: 1
 
@@ -41,9 +41,18 @@ physics:
 
   stream1: [ out1 ]
 
-  trigger_paths: [ simulate ]
-
-  end_paths: [ stream1 ]
+  analyzers: {
+    analyser1:
+    { 
+       module_type: AnalyzeSSDHitsWithTracks
+       TrackLabel: geantgen
+       SSDHitLabel: geantgen
+       tokenJob: "SimV1"  
+    }  
+  }
+  
+  ana: [analyser1 ]
+  end_paths: [ ana  ]
 
 }
 

@@ -142,6 +142,10 @@ namespace emph {
 				  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
 				  rb::SSDHit hit(ssd, sd);
 				  ssdvec.push_back(hit);
+				  double x = (ssd.Row()*hit.Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0];
+				  double y = (ssd.Row()*hit.Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1];
+				  double z = st.Pos()[2] + sd.Pos()[2];
+				  if ( fEvtNum < 100 ) std::cout << x << " " << y << " " << z << std::endl;
 			  }
 			  fEvtNum++;
 		  }

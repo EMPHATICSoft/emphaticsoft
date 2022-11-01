@@ -34,6 +34,8 @@ namespace emph {
 				std::string Name() const { return fName;}
 				TVector3 Pos() const { return fPos;}
 				double Rot() const { return fRot;} 
+//				double X() const { return fX;} 
+//				double Y() const { return fY;} 
 				double Dz() const { return fDz;}
 				double Width() const { return fWidth;}
 				double Height() const { return fHeight;}
@@ -41,6 +43,8 @@ namespace emph {
 				void SetName(std::string n) {fName = n; }
 				void SetPos(TVector3 pos) {fPos = pos;}
 				void SetRot(double rot) {fRot = rot;}
+//				void SetX(double x) {fX = x;}
+//				void SetY(double y) {fY = y;}
 				void SetDz(double dz) {fDz = dz;}
 				void SetWidth(double w) {fWidth = w;}
 				void SetHeight(double h) {fHeight = h;}
@@ -48,7 +52,7 @@ namespace emph {
 			private:    
 				std::string fName;
 				TVector3 fPos;
-				double fRot; // cos theta in x-y plane, starting from y-axis (fRot = 1 for y-axis), clockwise as seen by the beam
+				double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), clockwise as seen by the beam
 				double fDz;
 				double fWidth;
 				double fHeight;
@@ -61,7 +65,6 @@ namespace emph {
 
 				void SetName(std::string n) {fName = n; }
 				void SetPos(TVector3 pos) {fPos = pos;}
-				void SetRot(double rot) {fRot = rot;}
 				void SetDz(double dz) {fDz = dz;}
 				void SetWidth(double w) {fWidth = w;}
 				void SetHeight(double h) {fHeight = h;}
@@ -69,7 +72,6 @@ namespace emph {
 
 				std::string Name() const { return fName; }
 				TVector3 Pos() const {return fPos;}
-				double Rot() const {return fRot;}
 
 				int NSSDs() const {return (int)fSSD.size(); };
 				Detector GetSSD(int i) const {return fSSD[i]; }
@@ -80,7 +82,6 @@ namespace emph {
 			private:
 				std::string fName;
 				TVector3 fPos;
-				double fRot; // in x-y plane, starting from y-axis, clockwise as seen by the beam
 				double fDz;
 				double fWidth;
 				double fHeight;

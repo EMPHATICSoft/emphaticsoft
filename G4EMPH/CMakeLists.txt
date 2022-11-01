@@ -33,6 +33,8 @@ art_make_library(
     SimulationBase
     Simulation
     G4Base
+    RunHistory
+    RunHistory_service
     Geometry
     Geometry_service
     MagneticField
@@ -96,6 +98,24 @@ cet_build_plugin(BeamGen art::module
   messagefacility::MF_MessageLogger
   canvas::canvas
   fhiclcpp::fhiclcpp
+)
+
+build_plugin(AnalyzeSSDHitsWithTracks "module"
+  LIBRARIES PRIVATE
+    SimulationBase
+    Simulation
+    ROOT::Core
+    ROOT::Tree
+    ROOT::Hist
+    ROOT::EG
+    art_root_io::TFileService_service
+    art::Framework_Core
+    art::Persistency_Common
+    RunHistory
+    Geometry
+    messagefacility::MF_MessageLogger
+    canvas::canvas
+    fhiclcpp::fhiclcpp
 )
 
 

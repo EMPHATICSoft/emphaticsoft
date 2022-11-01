@@ -32,6 +32,8 @@
 
 #include "Geant4/G4UniformMagField.hh"
 #include "Geant4/G4ThreeVector.hh"
+#include "Geometry/DetectorDefs.h"
+#include "Geometry/Geometry.h"
 #include <map>
 #include <cmath>
 #include <vector>
@@ -55,6 +57,7 @@ namespace emph {
       
     // Access functions
     void MagneticField(const double Point[3], double Bfield[3]) const;
+    void G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry);
     CLHEP::Hep3Vector MagneticField(const CLHEP::Hep3Vector Point) const;
     virtual void GetFieldValue(const double Point[3], double* Bfield) const; // units are mm, return values in kilogauss
     void test1(); // Check that divB ~ 0.;  
@@ -69,12 +72,14 @@ namespace emph {
     
   private:
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
+    bool fHasBeenAligned; 
     std::vector<bFieldPoint> ffield;
     std::vector<bFieldZipTrackPoint> ffieldZipTrack; // from actual data.. 
     double xZipOne, yZipOne; // if studying one Zip track at a time.. ZipTrack data from Mike T. 
     std::map<int, std::map<int, std::map<int, std::vector<double> > > > field;
     double step;
     double start[3]; // old boundaries.. 
+    double fG4ZipTrackOffset[3];
     int fNStepX, fNStepY, fNStepZ;
     double fXMin, fYMin, fZMin, fXMax, fYMax, fZMax; // New ones, used 
     double fStepX, fStepY, fStepZ; 

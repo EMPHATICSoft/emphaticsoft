@@ -25,6 +25,8 @@ art_make_library(
     SimulationBase
     MagneticField
     MagneticField_service
+    Geometry
+    Geometry_service
     Geant4::G4analysis
  #   Geant4::G4digits_hits
     Geant4::G4error_propagation

@@ -12,6 +12,7 @@
 #include "G4Base/DetectorConstruction.h"
 #include "G4Base/GlobalMagneticField.h"
 #include "MagneticField/MagneticFieldService.h"
+#include "Geometry/GeometryService.h"
 
 #include "Geant4/G4VPhysicalVolume.hh"
 #include "Geant4/G4GDMLParser.hh"
@@ -170,6 +171,12 @@ namespace g4b{
       
       } // end loop over fields
     */
+    //
+    // Align the magnet..
+    
+    art::ServiceHandle<emph::geo::GeometryService> geomService;
+    const emph::geo::Geometry* theGeo = geomService->Geo();
+    magField->G4GeomAlignIt(theGeo);
     
     return fWorld;
   }

@@ -58,9 +58,14 @@ namespace g4b {
     virtual void GeneratePrimaries( G4Event* );
 
   private:
+  
+    int fTheEventSequentialNumber; // There, at least we can count event, and retrieve this number later.. 
+  
     static G4ParticleTable*           fParticleTable; ///< Geant4's table of particle definitions.
     std::vector<const simb::MCTruth*> fConvertList;   ///< List of MCTruth objects to convert for this spill
     std::map<G4int, G4int>            fUnknownPDG;    ///< map of unknown PDG codes to instances
+    
+    
   };
 
 } // namespace g4b

@@ -1,12 +1,13 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  SSDHitAction.h
-/// \brief Use Geant4's user "hooks" to generate our simulated response of the Silicon Strip Detectors. (SSD) 
+/// \file  FastStopAction.h
+/// \brief Use Geant4's user "hooks" to stop and kill a track based on its longitudinal position, 
+///        to avoid wasting time propogating showers downstream of the region of interest. (such as the Lead Glass. )
 ///
-/// \author  jpaley@fnal.gov
+/// \author  lebrun@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
 /// This class implements the nutools/G4Base::UserAction interface in order to
-/// accumulate a list of ssd hits modeled by Geant4.
+/// kill to stop and kill a track. 
 //
 #pragma once
 
@@ -29,23 +30,24 @@
 
 #include "Geant4/globals.hh"
 
-#include "Simulation/SSDHit.h"
-
 // Forward declarations.
 class G4Event;
 class G4Track;
 class G4Step;
-class G4EnergyLossForExtrapolator;
+
+namespace sim{
+  class FastStop;
+}
 
 namespace emph {
 
   ///list of energy deposits from Geant4
-  class SSDHitAction : public g4b::UserAction {
+  class FastStopAction : public g4b::UserAction {
 
   public:
     // Standard constructors and destructors;
-    SSDHitAction();
-    virtual ~SSDHitAction();
+    FastStopAction();
+    virtual ~FastStopAction();
 
     void Config(fhicl::ParameterSet const& pset);
 
@@ -58,31 +60,19 @@ namespace emph {
     void SteppingAction(const G4Step*);
     //    bool ParticleProjection(G4Track*);
 
-    //  Returns the current hit being saved in the list of
-    //  hits.  
-    //  std::vector<sim::SSDHit> GetSSDHits(size_t i) { return fSSDHits[i]; } pbsoloete..
-    // gets specific ssdhit.
-    sim::SSDHit GetSSDHit(size_t i) const { return fSSDHits[i]; }
-    std::vector <sim::SSDHit> GetAllHits() const { return fSSDHits; }
-    // gets all the ssdhits
-
   private:
 
-  private:
-    std::vector<sim::SSDHit>  fSSDHits;                 ///< The information for SSD hits.
-    G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
-    ///< be included in the list.                          
-    bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
+    double fLastZPos;
+    int fLastStationNumber; 
+    std::string fLastDetectorName;     
 
-    art::ServiceHandle<emph::geo::GeometryService> fGeo;
+    art::ServiceHandle<emph::geo::GeometryService> fGeo; // could be useful, but not for now.. 
     
     //
     // Convenient way to get information for within event debugging.. 
     //
     G4RunManager *fRunManager;
     
-    std::ofstream fFOutStudy1;
-
   };
 
-} // namespace g4n
+} // namespace emph
