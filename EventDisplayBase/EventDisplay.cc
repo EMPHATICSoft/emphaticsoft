@@ -233,11 +233,13 @@ namespace evdb
       // access. Come the revolution ...
       //
       // 2011/04/10 CG.
-      if(rootInput) rootInput->seekToEvent(0);
+      art::EventID eid(evt.id().run(),evt.id().subRun(),evt.id().event()+1);
+      if(rootInput) rootInput->seekToEvent(eid);
       break;
     }
     case kPREV_EVENT: {
-      if(rootInput) rootInput->seekToEvent(-2);
+      art::EventID eid(evt.id().run(),evt.id().subRun(),evt.id().event()-1);
+      if(rootInput) rootInput->seekToEvent(eid);
       break;
     }
     case kRELOAD_EVENT: {

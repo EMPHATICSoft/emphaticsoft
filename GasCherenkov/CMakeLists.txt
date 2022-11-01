@@ -2,9 +2,9 @@ include(ArtDictionary)
 include(ArtMake)
 FILE( GLOB src_files *.cc )
 
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
-cet_find_package(art REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
+find_package(art REQUIRED)
 
 include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
@@ -25,7 +25,7 @@ art_make_library ( SOURCE ${src_files}
 		   ROOT::Tree
 )
 
-build_plugin(GasCkovAna "module"
+cet_build_plugin(GasCkovAna art::module
   LIBRARIES PRIVATE
     RawData
     RecoBase

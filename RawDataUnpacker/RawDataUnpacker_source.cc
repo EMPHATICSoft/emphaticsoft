@@ -6,7 +6,7 @@
 //              based on the fragments stored there.
 ////////////////////////////////////////////////////////////////////////
 
-#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
+//#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/IO/Sources/Source.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"

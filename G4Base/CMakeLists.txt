@@ -1,8 +1,8 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(ROOT REQUIRED)
-cet_find_package(Geant4 REQUIRED PUBLIC)
+find_package(ROOT REQUIRED)
+find_package(Geant4 REQUIRED)
 
 include_directories( $ENV{GEANT4_FQ_DIR}/include )
 include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 )
@@ -14,7 +14,7 @@ FILE( GLOB src_files *.cxx )
 
 art_make_library(
   SOURCE ${src_files}
-  LIBRARIES PRIVATE
+  LIBRARIES #PRIVATE
     art::Framework_Core
     art::Persistency_Common
     canvas::canvas
@@ -55,7 +55,7 @@ art_make_library(
     Geant4::G4Tree
     Geant4::G4visHepRep
     Geant4::G4vis_management
-    Geant4::G4visXXX
+#    Geant4::G4visXXX
     Geant4::G4VRML
     Geant4::G4zlib 
     )

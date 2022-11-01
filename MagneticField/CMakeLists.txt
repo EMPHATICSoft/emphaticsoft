@@ -1,8 +1,8 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(ROOT REQUIRED)
-cet_find_package(Geant4 REQUIRED PUBLIC)
+find_package(ROOT REQUIRED)
+find_package(Geant4 REQUIRED PUBLIC)
 
 include_directories( $ENV{GEANT4_FQ_DIR}/include )
 include_directories( $ENV{ROOT_INC} )
@@ -25,7 +25,7 @@ art_make_library(
     Geant4::G4tracking
     )
 
-simple_plugin( MagneticField service
+cet_build_plugin( MagneticField art::service
   LIBRARIES 
   MagneticField
   art::Framework_Core

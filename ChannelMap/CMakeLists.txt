@@ -1,10 +1,10 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
-cet_find_package(art REQUIRED)
-cet_find_package(messagefacility REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
+find_package(art REQUIRED)
+find_package(messagefacility REQUIRED)
 
 include_directories($ENV{ART_INC})
 include_directories($ENV{CETLIB_EXCEPT_INC})
@@ -17,7 +17,7 @@ art_make_library(
 		messagefacility::MF_MessageLogger
 		)
 
-simple_plugin(ChannelMap service
+cet_build_plugin(ChannelMap art::service
   LIBRARIES #PRIVATE
   ChannelMap
   RunHistory

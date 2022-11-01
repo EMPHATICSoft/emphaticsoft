@@ -1,7 +1,7 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(ROOT REQUIRED)
+find_package(ROOT REQUIRED)
 
 FILE( GLOB src_files *.cxx )
 

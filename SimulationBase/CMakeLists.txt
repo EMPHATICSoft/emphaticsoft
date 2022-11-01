@@ -2,7 +2,7 @@ include(ArtDictionary)
 include(CetMake)
 include(BasicPlugin)
 
-cet_find_package(ROOT REQUIRED)
+find_package(ROOT REQUIRED)
 
 FILE( GLOB src_files *.cxx )
 

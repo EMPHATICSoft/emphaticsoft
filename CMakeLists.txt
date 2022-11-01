@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.18.2 FATAL_ERROR)
 
-find_package(cetmodules 2.08.00 REQUIRED)
-project(emphaticsoft VERSION 0.01.00 LANGUAGES CXX C)
+#find_package(cetmodules 2.08.00 REQUIRED)
+find_package(cetmodules 3.20.00 REQUIRED)
+project(emphaticsoft VERSION 1.02.00 LANGUAGES CXX C)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -13,10 +14,10 @@ cet_set_compiler_flags(DIAGS VIGILANT
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
-cet_find_package(art REQUIRED)
-cet_find_package(artdaq REQUIRED)
-cet_find_package(canvas_root_io REQUIRED)
-cet_find_package(art_root_io REQUIRED)
+find_package(art REQUIRED)
+find_package(artdaq REQUIRED)
+find_package(canvas_root_io REQUIRED)
+find_package(art_root_io REQUIRED)
 
 # source
 add_subdirectory(Geometry)

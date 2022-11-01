@@ -1,13 +1,13 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
-cet_find_package(art REQUIRED)
-cet_find_package(messagefacility REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
+find_package(art REQUIRED)
+find_package(messagefacility REQUIRED)
 
-simple_plugin( GeometryDrawingOptions service
-  LIBRARIES PRIVATE
+cet_build_plugin( GeometryDrawingOptions art::service
+  LIBRARIES #PRIVATE
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
@@ -23,8 +23,8 @@ simple_plugin( GeometryDrawingOptions service
   BASENAME_ONLY
 )
 
-simple_plugin(PlotDrawingOptions service
-  LIBRARIES PRIVATE
+cet_build_plugin(PlotDrawingOptions art::service
+  LIBRARIES #PRIVATE
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
@@ -40,8 +40,8 @@ simple_plugin(PlotDrawingOptions service
   BASENAME_ONLY
 )
 
-simple_plugin(RecoDrawingOptions service
-  LIBRARIES PRIVATE
+cet_build_plugin(RecoDrawingOptions art::service
+  LIBRARIES #PRIVATE
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
@@ -57,8 +57,8 @@ simple_plugin(RecoDrawingOptions service
   BASENAME_ONLY
 )
 
-simple_plugin(RawDrawingOptions service
-  LIBRARIES PRIVATE
+cet_build_plugin(RawDrawingOptions art::service
+  LIBRARIES #PRIVATE
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry
@@ -74,8 +74,8 @@ simple_plugin(RawDrawingOptions service
   BASENAME_ONLY
 )
 
-simple_plugin(SimulationDrawingOptions service
-  LIBRARIES PRIVATE
+cet_build_plugin(SimulationDrawingOptions art::service
+  LIBRARIES #PRIVATE
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry

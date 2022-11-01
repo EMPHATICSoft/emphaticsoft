@@ -1,8 +1,8 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
 
 art_make_library(
   SOURCE
@@ -19,7 +19,7 @@ art_make_library(
     cetlib::cetlib
     )
 
-simple_plugin( Geometry service
+cet_build_plugin( Geometry art::service
   LIBRARIES 
   Geometry
   RunHistory
