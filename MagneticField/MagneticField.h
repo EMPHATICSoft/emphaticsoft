@@ -73,6 +73,8 @@ namespace emph {
   private:
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
     bool fHasBeenAligned; 
+    bool fUseOnlyCentralPart;
+    double fInnerBoreRadius;
     std::vector<bFieldPoint> ffield;
     std::vector<bFieldZipTrackPoint> ffieldZipTrack; // from actual data.. 
     double xZipOne, yZipOne; // if studying one Zip track at a time.. ZipTrack data from Mike T. 
@@ -99,6 +101,7 @@ namespace emph {
    //
    // June 2022 : start analysis of ZipTrack data from Mike T. 
    //
+   inline void setUseOnlyTheCentralPart(bool  t=true) {  fUseOnlyCentralPart = t; } 
    inline void setXZipOne(double x) { xZipOne = x; } 
    inline void setYZipOne(double y) { yZipOne = y; } 
    private:
@@ -119,6 +122,10 @@ namespace emph {
     inline size_t indexForVector(size_t iX, size_t iY, size_t iZ) const {
       return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
     } 
+    
+    void MagneticFieldFromCentralBore(const double Point[3], double BApprox[3]) const;
+
+    
     void NoteOnDoubleFromASCIIFromCOMSOL() const ; // documenting why we add a small quantity to get the correct output from (size_t) floor
   };
   
