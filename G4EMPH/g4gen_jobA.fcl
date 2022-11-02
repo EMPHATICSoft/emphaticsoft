@@ -47,7 +47,7 @@ physics:
        module_type: AnalyzeSSDHitsWithTracks
        TrackLabel: geantgen
        SSDHitLabel: geantgen
-       tokenJob: "SimV1"  
+       tokenJob: "SimInnerCore"  
     }  
   }
   
