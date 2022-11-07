@@ -406,7 +406,7 @@ EOF
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-tation_type <quantity name="LG_width1" value="135" unit="mm" />
+	 <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
@@ -545,7 +545,7 @@ EOF
 EOF
 	for($i = 0; $i< $magnet_layer; ++$i){
 		print SOL <<EOF;
-	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" aunit="deg"/>
 EOF
 	}
 	print SOL <<EOF;
@@ -634,7 +634,7 @@ EOF
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="pi/2." phi="pi/2." aunit="rad" lunit="mm"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
@@ -646,8 +646,8 @@ EOF
 		<positionref ref="LG_para_pos" />
 	 </union>	 
 
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" unit="deg"/>
-	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" unit="deg"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" aunit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 
@@ -973,11 +973,11 @@ EOF
 	  <volume name="ssdStation@{[ $station_type[$i] ]}@{[ $l ]}_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStation@{[ $station_type[$i] ]}_box"/>
-		 <physvol name="ssd@{[ $station_type[$i] ]}_USMylarWindow_phys">
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_USMylarWindow_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssd@{[ $station_type[$i] ]}_DSMylarWindow_phys">
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_DSMylarWindow_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}_DSMylarWindow_pos"/>
 		 </physvol>
@@ -987,7 +987,7 @@ EOF
 					for($k = 0; $k < $SSD_par[$i]; ++$k){
 
 						print DET <<EOF;
-		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_phys">
+		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $l ]}@{[ $j ]}@{[ $k ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_pos"/>
 			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $l ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
@@ -997,7 +997,7 @@ EOF
 				}
 				for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
 					print DET <<EOF;
-		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_phys">
+		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $l ]}@{[ $j ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_bkpln_vol"/>
 			<positionref ref="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
 		 </physvol>
