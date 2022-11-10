@@ -17,12 +17,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include <memory>
-
 #include "ChannelMap/ChannelMapService.h"
-#include "Geometry/DetectorDefs.h"
-#include "Geometry/Geometry.h"
-#include "RunHistory/RunHistory.h"
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/SSDCluster.h"
 
@@ -46,13 +41,7 @@ public:
   // Required functions.
   void produce(art::Event& evt) override;
 
-  //void beginRun(art::Run& run);
-
 private:
-
-  // emph::cmap::ChannelMap* fChannelMap;
-  // runhist::RunHistory* fRunHistory;
-  // emph::geo::Geometry *emgeo;
 
   std::string fSSDRawLabel;
   //std::vector<rb::SSDCluster> clusters[emph::geo::DetInfo::NChannel(emph::geo::SSD)];
@@ -68,15 +57,6 @@ emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
 {
   this->produces< std::vector<rb::SSDCluster> >();
 }
-
-//void emph::MakeSSDClusters::beginRun(art::Run& run)
-//{
-  // initialize channel map
-  // fChannelMap = new emph::cmap::ChannelMap();
-  // fRunHistory = new runhist::RunHistory(run.run());
-  // fChannelMap->LoadMap(fRunHistory->ChanFile());
-  // emgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
-//}
 
 void emph::MakeSSDClusters::produce(art::Event& evt)
 {

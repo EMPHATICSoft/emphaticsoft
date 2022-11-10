@@ -2,19 +2,17 @@ include(ArtDictionary)
 include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
-build_plugin(MakeSSDStationClusters "module"
-	LIBRARIES PRIVATE
-	RawData
-	RecoBase
-)
 
 build_plugin(MakeSSDClusters "module"
 	LIBRARIES PRIVATE
 	ChannelMap
-	Geometry
+	ChannelMap_service
 	RunHistory
+	RunHistory_service
 	RawData
 	RecoBase
 )
 
+install_headers()
+install_source()
 install_fhicl()
