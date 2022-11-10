@@ -31,10 +31,7 @@ namespace rb {
     
     for (size_t i=0; i<hits.size(); ++i) {
       Add(hits[i]);
-    }
-    
-    SetStation(hits[0]->FER());
-    SetModule(hits[0]->Module());
+    }    
   }
   
   //------------------------------------------------------------
@@ -145,7 +142,7 @@ namespace rb {
     //   << ", " 
     //   << h.Width()
     //   << " " << h.NDigits() <<" digits."
-    o << "SSD Station Cluster for FER "<< h.Station()<<", Module "<<h.Module()<<std::endl;
+    o << "SSD Station Cluster for Station "<< h.Station()<<", Plane "<<h.Plane()<<std::endl;
     o << h.NDigits()<< " raw digits in cluster"<<std::endl;
     o << "Min Time: "<< h.MinTime()<<std::endl;
     o << "Max Time: "<< h.MaxTime()<<std::endl;

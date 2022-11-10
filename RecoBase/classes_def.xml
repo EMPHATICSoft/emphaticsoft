@@ -12,7 +12,8 @@
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
 
-  <class name="rb::SSDCluster"    ClassVersion="15">
+  <class name="rb::SSDCluster"    ClassVersion="16">
+   <version ClassVersion="16" checksum="2498245746"/>
    <version ClassVersion="15" checksum="2833724937"/>
    <version ClassVersion="14" checksum="2833724937"/>
    <version ClassVersion="13" checksum="2833724937"/>

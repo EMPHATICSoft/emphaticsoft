@@ -14,6 +14,7 @@
 
 #include "canvas/Persistency/Common/PtrVector.h"
 
+#include "Geometry/DetectorDefs.h"
 #include "RawData/SSDRawDigit.h"
 
 namespace rb {
@@ -39,11 +40,11 @@ namespace rb {
     art::Ptr<emph::rawdata::SSDRawDigit> Digit(unsigned int idx) const;
     const art::PtrVector<emph::rawdata::SSDRawDigit> Digits() const { return fDigitVec; }
 
-    void SetStation(int station) {fFER = station;}
-    void SetModule(int mod) {fModule = mod;}
+    void SetStation(int station) {fStation = station;}
+    void SetPlane(int plane)     {fPlane = plane;}
 
-    int    Station() const { return fFER; }
-    int    Module()  const { return fModule; } 
+    int    Station()  const { return fStation; }
+    int    Plane()    const { return fPlane; } 
     double AvgStrip() const;
     int    MinStrip() const;
     int    MaxStrip() const;
@@ -61,8 +62,8 @@ namespace rb {
 
     art::PtrVector<emph::rawdata::SSDRawDigit> fDigitVec;
     int fID;
-    int fFER;
-    int fModule;
+    int fStation;
+    int fPlane;
     //#endif // __GCCXML__
     
   };
