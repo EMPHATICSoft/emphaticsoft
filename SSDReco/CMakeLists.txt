@@ -10,7 +10,9 @@ build_plugin(MakeSSDStationClusters "module"
 
 build_plugin(MakeSSDClusters "module"
 	LIBRARIES PRIVATE
+	ChannelMap
 	Geometry
+	RunHistory
 	RawData
 	RecoBase
 )

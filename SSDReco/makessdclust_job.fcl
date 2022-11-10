@@ -1,7 +1,13 @@
 #include "MakeSSDStationClusters.fcl"
 #include "MakeSSDClusters.fcl"
+#include "ChannelMap.fcl"
 
 process_name: MakeSSDClust
+
+services:
+{
+  ChannelMap: @local::standard_channelmap
+}
 
 source:
 {

@@ -19,7 +19,10 @@
 
 #include <memory>
 
+#include "ChannelMap/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
+#include "Geometry/Geometry.h"
+#include "RunHistory/RunHistory.h"
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/SSDCluster.h"
 
@@ -43,7 +46,13 @@ public:
   // Required functions.
   void produce(art::Event& evt) override;
 
+  //void beginRun(art::Run& run);
+
 private:
+
+  // emph::cmap::ChannelMap* fChannelMap;
+  // runhist::RunHistory* fRunHistory;
+  // emph::geo::Geometry *emgeo;
 
   std::string fSSDRawLabel;
   //std::vector<rb::SSDCluster> clusters[emph::geo::DetInfo::NChannel(emph::geo::SSD)];
@@ -60,10 +69,24 @@ emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
   this->produces< std::vector<rb::SSDCluster> >();
 }
 
+//void emph::MakeSSDClusters::beginRun(art::Run& run)
+//{
+  // initialize channel map
+  // fChannelMap = new emph::cmap::ChannelMap();
+  // fRunHistory = new runhist::RunHistory(run.run());
+  // fChannelMap->LoadMap(fRunHistory->ChanFile());
+  // emgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+//}
+
 void emph::MakeSSDClusters::produce(art::Event& evt)
 {
+  art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+
   std::unique_ptr< std::vector<rb::SSDCluster> > clusterv(new std::vector<rb::SSDCluster>);
-  art::PtrVector<emph::rawdata::SSDRawDigit> digitList[4][6];
+  art::PtrVector<emph::rawdata::SSDRawDigit> digitList[6][6];
+  
+  // emph::cmap::EChannel echan;
+  // echan.SetBoardType(emph::cmap::SSD);
 
   art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdHandle;
   try{
@@ -74,19 +97,24 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       for (size_t idx=0; idx<ssdHandle->size(); ++idx){
 	//const emph::rawdata::SSDRawDigit& ssdDig = (*ssdHandle)[idx];
 	art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
+	emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
+	//emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	//digits.push_back(ssdDig);
-	digitList[ssdDig->FER()][ssdDig->Module()].push_back(ssdDig);
+	digitList[dchan.Station()][dchan.Channel()].push_back(ssdDig);
 	//digits[ssdDig.FER()][ssdDig.Module()].push_back(ssdDig);
       }
-      for (int fer=0; fer<4; ++fer){
-	for (int mod=0; mod<6; ++mod){
-	  // later this should be replaced with MakeClusters() function that creates multiple clusters per mod (as needed)
-	  rb::SSDCluster ssdClust;
-	  ssdClust.Add(digitList[fer][mod]);
-	  ssdClust.SetStation(fer);
-	  ssdClust.SetModule(mod);
-	  //clusters[fer][mod] = rb::SSDCluster(digits[fer][mod]);
-	  //clusterv.push_back(clusters[fer][mod]);
+
+      // Should really pull counts of these from geometry somehow
+      for (int sta=0; sta<6; ++sta){
+	for (int plane=0; plane<6; ++plane){
+	  // later this should be replaced with MakeClusters() function that creates multiple clusters per plane (as needed)
+	  rb::SSDCluster ssdClust(digitList[sta][plane]);
+	  // ssdClust.Add(digitList[sta][plane]);
+	  ssdClust.SetStation(sta);
+	  ssdClust.SetPlane(plane);
+	  //clusters[sta][plane] = rb::SSDCluster(digits[sta][plane]);
+	  //clusterv.push_back(clusters[sta][plane]);
 	  std::cout<<ssdClust<<std::endl;
 	  if (ssdClust.NDigits()>0)
 	    clusterv->push_back(ssdClust);
