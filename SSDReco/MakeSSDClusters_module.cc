@@ -96,7 +96,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	  ssdClust.SetPlane(plane);
 	  //clusters[sta][plane] = rb::SSDCluster(digits[sta][plane]);
 	  //clusterv.push_back(clusters[sta][plane]);
-	  std::cout<<ssdClust<<std::endl;
+	  //std::cout<<ssdClust<<std::endl;
 	  if (ssdClust.NDigits()>0)
 	    clusterv->push_back(ssdClust);
 	}
