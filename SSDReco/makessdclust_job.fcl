@@ -1,4 +1,3 @@
-#include "MakeSSDStationClusters.fcl"
 #include "MakeSSDClusters.fcl"
 
 #include "ChannelMap.fcl"
