@@ -3,7 +3,6 @@
 
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
-#include "RunHistory.fcl"
 
 process_name: MakeSSDClust
 
@@ -11,7 +10,7 @@ services:
 {
   ChannelMap: @local::standard_channelmap
   Geometry:   @local::standard_geometry
-  RunHistory: @local::standard_runhistory
+  RunHistory: {}
 }
 
 source:

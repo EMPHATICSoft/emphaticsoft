@@ -88,7 +88,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       // Should really pull counts of these from geometry somehow
       for (int sta=0; sta<6; ++sta){
 	for (int plane=0; plane<6; ++plane){
-	  // later this should be replaced with MakeClusters() function that creates multiple clusters per plane (as needed)
+	  // This needs to be replaced with MakeClusters() function that creates multiple clusters per plane (as needed)
+	  // If we have multiple clusters for a given station,plane, add ID in
 	  rb::SSDCluster ssdClust(digitList[sta][plane]);
 	  // ssdClust.Add(digitList[sta][plane]);
 	  ssdClust.SetStation(sta);

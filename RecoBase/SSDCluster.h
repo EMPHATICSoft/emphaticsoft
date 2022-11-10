@@ -23,7 +23,7 @@ namespace rb {
   public:
     SSDCluster();
 #ifndef __GCCXML__
-    explicit SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits, 
+    explicit SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits,
 			int id=0);
 #endif // __GCCXML__
     virtual ~SSDCluster() {}; //Destructor
@@ -45,10 +45,13 @@ namespace rb {
 
     int    Station()  const { return fStation; }
     int    Plane()    const { return fPlane; } 
+    double WgtAvgStrip() const;
+    double WgtRmsStrip() const;
     double AvgStrip() const;
     int    MinStrip() const;
     int    MaxStrip() const;
     int    Width() const { return (MaxStrip()-MinStrip()+1);}
+    double AvgADC() const;
     double AvgTime() const;
     int    MinTime() const;
     int    MaxTime() const;

@@ -66,11 +66,43 @@ namespace rb {
   {
     if (fDigitVec.empty()) return -9999.;
 
-    double avg=0.;
+    double sum=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      avg += fDigitVec[i]->Row();
+      sum += fDigitVec[i]->Row();
     }
-    return avg/NDigits();
+    return sum/NDigits();
+
+  }
+
+  //------------------------------------------------------------
+  double SSDCluster::WgtAvgStrip() const
+  {
+    if (fDigitVec.empty()) return -9999.;
+
+    double sum=0.;
+    double totalADC=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      sum += fDigitVec[i]->Row()*fDigitVec[i]->ADC();
+      totalADC+=fDigitVec[i]->ADC();
+    }
+    return sum/totalADC;
+
+  }
+
+  //------------------------------------------------------------
+  double SSDCluster::WgtRmsStrip() const
+  {
+    if (fDigitVec.empty()) return -9999.;
+    // set to 1/sqrt(12) if single strip cluster
+    if (NDigits()==1) return 1/sqrt(12);
+
+    double rmssum=0.;
+    double totalADC=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*fDigitVec[i]->ADC();
+      totalADC+=fDigitVec[i]->ADC();
+    }
+    return sqrt(rmssum/totalADC);
 
   }
 
@@ -97,17 +129,30 @@ namespace rb {
   }
 
   //------------------------------------------------------------
+  double SSDCluster::AvgADC() const
+  {
+    if (fDigitVec.empty()) return -9999.;
+
+    double sum=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      sum += fDigitVec[i]->ADC();
+    }
+    return sum/NDigits();
+
+  }
+
+  //------------------------------------------------------------
   // return the average time position of the cluster
   //------------------------------------------------------------
   double SSDCluster::AvgTime() const
   {
     if (fDigitVec.empty()) return -9999.;
 
-    double avg=0.;
+    double sum=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      avg += fDigitVec[i]->Time();
+      sum += fDigitVec[i]->Time();
     }
-    return avg/NDigits();
+    return sum/NDigits();
 
   }
 
@@ -136,22 +181,18 @@ namespace rb {
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const rb::SSDCluster& h)
   {
-    // o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    // o << " SSD Cluster (position,width) = (" 
-    //   << std::setw(2) << h.AvgStrip()
-    //   << ", " 
-    //   << h.Width()
-    //   << " " << h.NDigits() <<" digits."
     o << "SSD Station Cluster for Station "<< h.Station()<<", Plane "<<h.Plane()<<std::endl;
     o << h.NDigits()<< " raw digits in cluster"<<std::endl;
     o << "Min Time: "<< h.MinTime()<<std::endl;
     o << "Max Time: "<< h.MaxTime()<<std::endl;
     o << "Time range: "<< h.TimeRange()<<std::endl;
+    o << "Weighted Avg. strip: " << h.WgtAvgStrip()<<std::endl;
+    o << "Weighted RMS strip: " << h.WgtRmsStrip()<<std::endl;
     o << "Avg. strip: "<< h.AvgStrip()<<std::endl;
     o << "Min Strip: "<< h.MinStrip()<<std::endl;
     o << "Max Strip: "<< h.MaxStrip()<<std::endl;
     o << "Width: "<< h.Width()<<std::endl;
-
+    o << "Avg. ADC: "<< h.AvgADC()<<std::endl;
 
 
     return o;
