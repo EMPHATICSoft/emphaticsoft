@@ -3,7 +3,7 @@
 ///
 /// \author  seligman@nevis.columbia.edu, brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-// NOvA Includes
+// G4EMPH Includes
 #include "G4EMPH/ParticleListAction.h"
 #include "G4Base/PrimaryParticleInformation.h"
 #include "Simulation/Particle.h"
@@ -101,19 +101,19 @@ namespace emph {
   int ParticleListAction::GetParentage(int trackid) const
   {
     int parentid = sim::kNoParticleId;
-    std::cout << "Get Parentage!!!!!!!" << std::endl;
+    std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
     // search the fParentIDMap recursively until we have the parent id 
     // of the first EM particle that led to this one
     std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
     while( itr != fParentIDMap.end() ){
-      std::cout << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
+      std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
       MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
 					 << " " << (*itr).second;
       // set the parentid to the current parent ID, when the loop ends
       // this id will be the first EM particle
       parentid = (*itr).second;
       itr = fParentIDMap.find(parentid);
-    //  std::cout << "Parent ID: " << parentid << std::endl;
+    //  std::cerr << "Parent ID: " << parentid << std::endl;
 
     //if ( parentid == (*itr).second ) {return parentid;}
     // if the current id matches its parent, then exit the loop and return the current id.
@@ -131,7 +131,6 @@ namespace emph {
   // Create our initial sim::Particle object and add it to the sim::ParticleList.
   void ParticleListAction::PreTrackingAction(const G4Track* track)
   {
-    std::cout << "Pretracking Action" << std::endl;
     // get the track ID for this particle
     const G4int trackID = track->GetTrackID() + fTrackIDOffset;
     fCurrentTrackID = trackID;
@@ -139,7 +138,7 @@ namespace emph {
     
     // get the parent id from Geant for the current track:
     G4int parentID = track->GetParentID() + fTrackIDOffset;
-    std::cout << "Got Parent ID" << std::endl;
+    std::cerr << "Got Parent ID" << parentID << " for track ID " << trackID << std::endl;
     // Is there an MCTruth object associated with this G4Track?  We
     // have to go up a "chain" of information to find out:
     const G4ParticleDefinition* partdef = track->GetDefinition();
@@ -147,7 +146,7 @@ namespace emph {
     const G4DynamicParticle*    dp      = track->GetDynamicParticle();
     const G4PrimaryParticle*    pp      = dp->GetPrimaryParticle();
 
-    std::cout << "Getting Stuff" << std::endl;
+    std::cerr << "Getting Stuff" << std::endl;
 
     // was MF_LOG_DEBUG
     MF_LOG_INFO("ParticleListAction") << "preparing to track " << fCurrentTrackID
@@ -160,7 +159,7 @@ namespace emph {
       std::endl;
     
 
-    std::cout << "Got Position" << std::endl;
+    std::cerr << "Got Position" << std::endl;
 
     std::string process_name;
     if ( pp != 0 ){
@@ -168,8 +167,8 @@ namespace emph {
       const g4b::PrimaryParticleInformation* ppi = dynamic_cast<const g4b::PrimaryParticleInformation*>(gppi);
       
       if ( ppi != 0 ){
-	//	std::cout << "%%%%% HERE 1 %%%%%" << std::endl;
-        std::cout << "Primary Particle Exists" << std::endl;
+	//	std::cerr << "%%%%% HERE 1 %%%%%" << std::endl;
+        std::cerr << "Primary Particle Exists" << std::endl;
         // If we've made it this far, a PrimaryParticleInformation
         // object exists and we are using a primary particle, set the
         // process name accordingly.
@@ -184,16 +183,16 @@ namespace emph {
       
     } // Is there a G4PrimaryParticle?
     else{
-      std::cout << partdef->GetParticleName() << std::endl;
-      std::cout << track->GetVolume()->GetLogicalVolume()->GetName() << std::endl;
+      std::cerr << partdef->GetParticleName() << std::endl;
+      std::cerr << track->GetVolume()->GetLogicalVolume()->GetName() << std::endl;
       // figure out what process is making this track - skip it if it is
       // one of pair production, compton scattering, photoelectric effect
       // bremstrahlung, annihilation, any ionization - who wants to save
       // a buttload of electrons?
-      std::cout << "Not Primary Particle. Finding Process..." << std::endl;
+      std::cerr << "Not Primary Particle. Finding Process..." << std::endl;
 
       process_name = track->GetCreatorProcess()->GetProcessName();
-      //      std::cout << "%%%%% Process = " << process_name << " %%%%%" << std::endl;
+      //      std::cerr << "%%%%% Process = " << process_name << " %%%%%" << std::endl;
       
       if( !fManyParticles && (process_name.find("conv")               != std::string::npos
                               || process_name.find("LowEnConversion") != std::string::npos
@@ -204,20 +203,20 @@ namespace emph {
                               || process_name.find("phot")            != std::string::npos
                               || process_name.find("Photo")           != std::string::npos
                               || process_name.find("Ion")             != std::string::npos
-                              || process_name.find("annihil")         != std::string::npos)){
+                              || process_name.find("annihil")         != std::string::npos)) {
 
-		std::cout << "%%%%% HERE 2, " << process_name << " // %%%%%" << std::endl;
+		std::cerr << "%%%%% HERE 2, " << process_name << " // %%%%%" << std::endl;
 	
 	// find the ultimate parent of this particle that was not a secondary
 	// of the EM shower
 	// first add this track id and its parent to the fParentIDMap
-	fParentIDMap[fCurrentTrackID] = parentID;
+	fParentIDMap.emplace(fCurrentTrackID, parentID);
 
-  std::cout << "Add current track to parent id map" << std::endl;
+       std::cerr << "Added current track to parent id map" << std::endl;
 	
 	fCurrentTrackID = this->GetParentage(fCurrentTrackID);
 	
-  std::cout << "Get Parent" << std::endl;
+        std::cerr << "Got Parent" << fCurrentTrackID << std::endl;
 
 	MF_LOG_DEBUG("ParticleListAction") << "current track ID " << fCurrentTrackID;
 	
@@ -229,7 +228,7 @@ namespace emph {
 	// which will put a bogus track id value into the sim::IDE object for
 	// the sim::SimChannel if we don't check it.
 	if(fParticleNav->find(fCurrentTrackID) == fParticleNav->end() ) {
-	  std::cout << "Check fCurrentTrackID" << std::endl;
+	  std::cerr << "Check fCurrentTrackID, not there yet" << std::endl;
 	  fCurrentTrackID = sim::kNoParticleId;
 	  
 	  // set fParticle to 0 as we are not stepping this particle
@@ -246,28 +245,28 @@ namespace emph {
 	// Check the energy of the particle.  If it falls below the energy
 	// cut, don't add it to our list.
 	const G4double energy = track->GetKineticEnergy();
-  std::cout << "Getting Kinetic Energy" << std::endl;
-	//	std::cout << "%%%%% energy = " << energy << "%%%%%" << std::endl;
-  std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!fEnergyCut: " << fEnergyCut << std::endl << std::endl << std::endl << std::endl;
+       std::cerr << "Getting Kinetic Energy" << std::endl;
+	//	std::cerr << "%%%%% energy = " << energy << "%%%%%" << std::endl;
+       std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!fEnergyCut: " << fEnergyCut << std::endl << std::endl << std::endl << std::endl;
 	if ( energy < fEnergyCut ){
-    std::cout << "Particle is lower than the threshold..." << std::endl;
+          std::cerr << "Particle is lower than the threshold..." << std::endl;
 	  fParticle = 0;
 	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
 	  
 	  // do add the particle to the parent id map though
 	  // and set the current track id to be it's ultimate parent
-	  fParentIDMap[fCurrentTrackID] = parentID;
+	  fParentIDMap.emplace(fCurrentTrackID, parentID);  // this also checks if the key is unique.  If so, does nothing. 
 
-    std::cout << "Before parentage!!!!!!" << std::endl;
-    std::cout << "fCurrentTrackID: " << fCurrentTrackID << " parentID: " << parentID << std::endl;
+          std::cerr << "Before parentage!!!!!!" << std::endl;
+          std::cerr << "fCurrentTrackID: " << fCurrentTrackID << " parentID: " << parentID << std::endl;
 
-    std::cout << "Add particle to the parent id map though" << std::endl;
+          std::cerr << "Add particle to the parent id map though" << std::endl;
 
-    std::cout << "ProcessName: " << process_name << std::endl;
+          std::cerr << "ProcessName: " << process_name << std::endl;
 
-	  fCurrentTrackID = this->GetParentage(fCurrentTrackID);
+	  fCurrentTrackID = this->GetParentage(fCurrentTrackID); // Why this ???? 
 
-    std::cout << "Getting Parent" << std::endl;
+          std::cerr << "Getting Parent" << std::endl;
 
 	  return;
 	}
@@ -277,7 +276,7 @@ namespace emph {
 	// ultimate parent of this particle.  Use that ID as the parent ID for this
 	// particle      
 	if( fParticleNav->find(parentID) == fParticleNav->end() ){
-    std::cout << "Parent Particle is stored in navigator" << std::endl;
+         std::cerr << "Parent Particle will be stored in navigator" << std::endl;
 	  // do add the particle to the parent id map
 	  // just in case it makes a daughter that we have to track as well
 	  fParentIDMap[fCurrentTrackID] = parentID;
@@ -295,7 +294,7 @@ namespace emph {
 	  }
 	  else
 	    parentID = pid;
-      std::cout << "parentID=pid" << std::endl;
+      std::cerr << "parentID=pid" << std::endl;
 	}
 	
 	// Attempt to find the MCTruth index corresponding to the
@@ -332,7 +331,7 @@ namespace emph {
 					     << " into fTrackIDToMCTruthIndex map "
 					     << " particle is\n" << *fParticle;
       
-      fTrackIDToMCTruthIndex[fCurrentTrackID] = mcTruthIndex;
+      fTrackIDToMCTruthIndex.emplace(fCurrentTrackID, mcTruthIndex);
     }
 
     return;
@@ -349,6 +348,10 @@ namespace emph {
   // done for nova - maybe we should?
   void ParticleListAction::SteppingAction(const G4Step* step)
   {
+    // disgusting static pointer.. Set to zero above.. Let us not use it The SSD (or ARICH, or..) do store similar information.. 
+    // I do not see the point of storing such information.. 
+
+    return;
     if ( !fParticle ) return;
     
     // For the most part, we just want to add the post-step
@@ -356,7 +359,7 @@ namespace emph {
     // exception: In PreTrackingAction, the correct time information
     // is not available.  So add the correct vertex information here.
 
-    std::cout << "Stepping into trajecotry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
+    std::cerr << "Stepping into trajecotry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
 
     if ( fParticle->NumberTrajectoryPoints() == 0 ){
       // Get the pre-step information from the G4Step.

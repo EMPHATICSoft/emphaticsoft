@@ -79,8 +79,8 @@ namespace emph
   // Create our initial sim::SSDHit vector and add it to the vector of vectors
   void SSDHitAction::PreTrackingAction(const G4Track* ) //track)
   {
-    std::vector<sim::SSDHit> ssdVec;
-    fSSDHits.push_back(ssdVec);
+//    std::vector<sim::SSDHit> ssdVec;
+//    fSSDHits.push_back(ssdVec);
 
     //    MF_LOG_DEBUG("SSDHitAction") << "pretracking step with track id: "
     //				 << ParticleListAction::GetCurrentTrackID();
@@ -89,9 +89,9 @@ namespace emph
   //-------------------------------------------------------------
   void SSDHitAction::PostTrackingAction( const G4Track* /*track*/) 
   {
-    MF_LOG_DEBUG("SSDHitAction") 
-      << "done tracking for this g4 track, recorded "
-      << fSSDHits[fSSDHits.size()-1].size() << " SSD hits";
+//    MF_LOG_DEBUG("SSDHitAction") 
+//      << "done tracking for this g4 track, recorded "
+//      << fSSDHits[fSSDHits.size()-1].size() << " SSD hits";
   }
   
   //-------------------------------------------------------------
@@ -144,7 +144,7 @@ namespace emph
     sim::SSDHit ssdHit;
     
     ssdHit.SetPId( track->GetDefinition()->GetPDGEncoding() );
-    ssdHit.SetTrackID( ParticleListAction::GetCurrentTrackID() );
+    ssdHit.SetTrackID( track->GetTrackID() );
     
     // need to add code to figure out SSD plane, sensor and strip
 
@@ -152,7 +152,7 @@ namespace emph
     ssdHit.SetX(tpos0);
     ssdHit.SetP(mom0);
 
-    fSSDHits[fSSDHits.size()-1].push_back(ssdHit);
+    fSSDHits.push_back(ssdHit);
     fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
     fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding();
     fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2];

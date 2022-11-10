@@ -18,5 +18,8 @@
   </class>
   <class name="std::vector<sim::Particle>"        />
   <class name="art::Wrapper< std::vector<sim::Particle>    >"/>
+  <class name="sim::Track"        />
+  <class name="std::vector<sim::Track>"        />
+  <class name="art::Wrapper< std::vector<sim::Track>    >"/>
  
 </lcgdict>

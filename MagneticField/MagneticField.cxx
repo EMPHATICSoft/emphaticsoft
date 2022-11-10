@@ -51,7 +51,8 @@
 namespace emph {
 
   EMPHATICMagneticField::EMPHATICMagneticField(const G4String &filename) :
-    fStorageIsStlVector(true), fHasBeenAligned(false), step(0), start{-16., -16., -20.},// for the root test file, units are cm Not sure about start values.
+    fStorageIsStlVector(true), fHasBeenAligned(false), fUseOnlyCentralPart(false), fInnerBoreRadius(23.5), // This is the Phase1b Japanese Magnet. 
+    step(0), start{-16., -16., -20.},// for the root test file, units are cm Not sure about start values.
     fG4ZipTrackOffset{ 0., 0., 400.},  // Will be overwritten based on the G4/Art based geometry. 
     fNStepX(1), fNStepY(1), fNStepZ(1),
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
@@ -701,9 +702,13 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
     double xAligned[3];
     for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k];
     double BInKg[3];
-    EMPHATICMagneticField::MagneticField(xAligned, BInKg);
+    const double rR = std::sqrt(x[0]*x[0] + x[1]*x[1]);
+    if ((!fUseOnlyCentralPart) || (rR < fInnerBoreRadius)) {
+      EMPHATICMagneticField::MagneticField(xAligned, BInKg);
+    } else {
+      EMPHATICMagneticField::MagneticFieldFromCentralBore(xAligned, BInKg);
+    }
     for (size_t k=0; k != 3; k++) B[k] = BInKg[k]*CLHEP::kilogauss;
-    
   }
     
   void EMPHATICMagneticField::Integrate(int iOpt, int charge, double stepAlongZ,
@@ -849,6 +854,26 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
      std::cerr << " The (ugly) fix is to add a negligible  quantity, postive,  to the double prior to the conversion to an index " << std::endl << std::endl;;
     
   } 
+
+  void EMPHATICMagneticField::MagneticFieldFromCentralBore(const double Point[3], double BApprox[3]) const {
+  // Crude extrapolation. 
+    const double phi = std::atan2 (Point[1], Point[0]);
+    double PointB[3];  PointB[0] = fInnerBoreRadius*std::cos(phi); PointB[1] = fInnerBoreRadius*std::sin(phi), PointB[2] = Point[2];
+    double PointIn[3]; PointIn[0] = (Point[0] - PointB[0]); PointIn[1] = (Point[1] - PointB[1]); PointIn[2] = Point[2];
+    double Bb[3]; this->MagneticField(PointB, Bb); double BIn[3];  this->MagneticField(PointIn, BIn);
+    CLHEP::Hep3Vector deltaB;;
+    for (int k=0; k!=3; k++) {
+      deltaB[k] = (Bb[k] - BIn[k]);
+      BApprox[k] = Bb[k] + deltaB[k];
+      if (BApprox[k] > 12.) BApprox[k] = 12.0;
+      if (BApprox[k] < -12.) BApprox[k] = -12.0;
+    }
+//    if (std::abs(Bb[1]) > 7.0) { 
+//      std::cerr << " EMPHATICMagneticField::MagneticFieldFromCentralBore, at R = " << rR << " phi " << phi << std::endl;
+//      std::cerr << " At bore, By " << Bb[1] << " Point In, x=" <<  PointIn[0] << " y=  " << PointIn[1] << ", z " << PointIn[2]
+//                << " so, BIn y " << BIn[1] << " deltas B " << deltaB[1] << " final " << BApprox[1] << std::endl;
+//    }
+  }
 
   void EMPHATICMagneticField::test1() {
     

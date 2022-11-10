@@ -20,11 +20,11 @@ standard_magfield:
 # (i.e., emphaticgpvm02.fnal.gov:/emph/data/users/gsdavies/prod2/...) 
 # So please, if you run have access to our Fermilab servers, please use
 #
-#FieldFileName: "/emph/data/users/lebrun/MagFieldMarch292022/mfMap.txt"
+FieldFileName: "/emph/data/users/lebrun/MagFieldMarch292022/mfMap.txt"
 #
-# or if you run on an other machine,
+# or if you run on an other machine, say the goold old laptop Paul Lebrun got to keep for its retirement,  
 #
-FieldFileName: "/home/lebrun/EMPHATIC/MagFieldMarch29/mfMap.txt"
+#FieldFileName: "/home/lebrun/EMPHATIC/MagFieldMarch29/mfMap.txt"
   
 }
 
