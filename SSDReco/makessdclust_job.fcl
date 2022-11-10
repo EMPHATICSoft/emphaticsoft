@@ -33,7 +33,6 @@ physics:
 {
   producers:
   {
-    stationclust: @local::standard_ssdstationclust
     clust:        @local::standard_ssdclust
   }
 
