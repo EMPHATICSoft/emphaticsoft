@@ -24,7 +24,8 @@ Math::BigFloat->precision(-10);
 GetOptions( "help|h" => \$help,
 	"suffix|s:s" => \$suffix,
 	"output|o:s" => \$output,
-	"helpcube|c" => \$helpcube);
+	"target|t:i" => \$target,
+	"magnet|m:i" => \$magnet);
 
 if ( defined $help )
 {
@@ -46,12 +47,15 @@ else
 	$suffix = "-" . $suffix;
 }
 
+
 # constants for T0
 $T0_switch = 1;
 $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
+@target_matt = ("Graphite", "CH2");
+$target_v = 0;
 
 # constants for MAGNET
 $magnet_switch = 1;
@@ -90,6 +94,34 @@ $LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
 
+if ( defined $magnet )
+{
+	# If the user requested help, print the usage notes and exit.
+	if($magnet == 0){
+		$magnet_switch = 0;
+	}
+	elsif($magnet == 1){
+		$magnet_switch = 1;
+	}
+	else{
+		print "wrong magnet parameter\n";
+	}
+}
+
+if ( defined $target)
+{
+	# If the user requested help, print the usage notes and exit.
+	if($target == 0){
+		$target_switch = 0;
+	}
+	elsif($target < 0 || $target > 2){
+		print "wrong target parameter\n";
+	}
+	else{
+		$target_v = $target - 1;
+	}
+}
+
 # run the sub routines that generate the fragments
 
 gen_Define(); 	 # generates definitions at beginning of GDML
@@ -111,8 +143,10 @@ exit;
 
 sub usage()
 {
-	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-s|--suffix <string>]\n";
+	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-t|--target <target number>] [-m|--magnet <0 or 1>] [-s|--suffix <string>]\n";
 	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
+	print "       -t 0 is no target, 1 is graphite, 2 is CH2; Default is graphite\n";
+	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -h prints this message, then quits\n";
 }
@@ -708,7 +742,7 @@ EOF
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-	 <materialref ref="Graphite"/>
+	 <materialref ref="@{[ $target_matt[$target_v] ]}"/>
 	 <solidref ref="target_box"/>
   </volume>
 
