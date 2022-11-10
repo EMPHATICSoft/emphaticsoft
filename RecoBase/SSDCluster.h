@@ -22,10 +22,8 @@ namespace rb {
   class SSDCluster {
   public:
     SSDCluster();
-#ifndef __GCCXML__
     explicit SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits,
 			int id=0);
-#endif // __GCCXML__
     virtual ~SSDCluster() {}; //Destructor
     
   public:
@@ -59,15 +57,12 @@ namespace rb {
 
     friend std::ostream& operator << (std::ostream& o, const SSDCluster& h);
     
-    //#ifndef __GCCXML__
-    
   private:
 
     art::PtrVector<emph::rawdata::SSDRawDigit> fDigitVec;
     int fID;
     int fStation;
     int fPlane;
-    //#endif // __GCCXML__
     
   };
   
