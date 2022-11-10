@@ -13,6 +13,9 @@
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
 
+# Manuals can be found at DocDB 1242
+# Visualization of SSDs can be found at DocDB 1260
+
 use Getopt::Long;
 use Math::BigFloat;
 use GDMLUtil;
@@ -64,6 +67,7 @@ $nstation_type = 3; # types of station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
 @SSD_angle = (0, 270, 0, 270, 315, 0, 270, 315, 0, 270, 270, 90, 0, 180, 225, 45, 270, 90, 0, 180, 225, 45); # angle from measuring Y
 #Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
+# Visualization of SSDs can be found at DocDB 1260
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
