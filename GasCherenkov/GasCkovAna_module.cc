@@ -114,20 +114,6 @@ namespace emph {
   void GasCkovAna::beginJob()
   {
     fNEvents=0;
-
-    // initialize channel map
-    /*
-    fChannelMap = 0;
-    if (!fChanMapFileName.empty()) {
-      fChannelMap = new emph::cmap::ChannelMap();
-      if (!fChannelMap->LoadMap(fChanMapFileName)) {
-	std::cerr << "Failed to load channel map from file " << fChanMapFileName << std::endl;
-	delete fChannelMap;
-	fChannelMap = 0;
-      }
-      std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
-    }
-    */
     MakeGasCkovPlots();
 
   }

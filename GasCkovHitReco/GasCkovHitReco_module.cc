@@ -27,8 +27,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMap.h"
-#include "RunHistory/RunHistory.h"
+#include "ChannelMap/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/GasCkovHit.h"
@@ -53,16 +52,15 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    void beginRun(art::Run& run);
     //void endRun(art::Run const&);
     //      void endSubRun(art::SubRun const&);
     void endJob();
     
   private:
     void GetGasCkovHit(art::Handle< std::vector<rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits);
+
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     
-    emph::cmap::ChannelMap* fChannelMap;
-	 runhist::RunHistory* fRunHistory;
     int mom;
     std::vector<std::vector<int>> GasCkov_signal;
     std::vector<std::vector<int>> PID_table; //in the form {e,mu,pi,k,p} w/ {1,1,0,0,0} being e/mu are possible particles
@@ -103,16 +101,6 @@ namespace emph {
     
     mom = pset.get<int>("momentum",0);
     
-  }
-
-  //......................................................................
-  //
-  void GasCkovHitReco::beginRun(art::Run& run)
-  {
-    // initialize channel map 
-    fChannelMap = new emph::cmap::ChannelMap();
-	 fRunHistory = new runhist::RunHistory(run.run());
-    fChannelMap->LoadMap(fRunHistory->ChanFile());
   }
 
   //......................................................................
@@ -202,7 +190,7 @@ namespace emph {
 	    int board = wvfm.Board();
             echan.SetBoard(board);
             echan.SetChannel(chan);
-            emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+            emph::cmap::DChannel dchan = cmap->DetChan(echan);
             int detchan = dchan.Channel();
             float Q = wvr.Charge(wvfm_ptr);
             fGasCkovChargeHist[detchan]->Fill(Q);
