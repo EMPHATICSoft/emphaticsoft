@@ -87,15 +87,15 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 
       // Should really pull counts of these from geometry somehow
       for (int sta=0; sta<6; ++sta){
-	for (int plane=0; plane<6; ++plane){
-	  // This needs to be replaced with MakeClusters() function that creates multiple clusters per plane (as needed)
-	  // If we have multiple clusters for a given station,plane, add ID in
-	  rb::SSDCluster ssdClust(digitList[sta][plane]);
-	  // ssdClust.Add(digitList[sta][plane]);
+	for (int sensor=0; sensor<6; ++sensor){
+	  // This needs to be replaced with MakeClusters() function that creates multiple clusters per sensor (as needed)
+	  // If we have multiple clusters for a given station,sensor, add ID in
+	  rb::SSDCluster ssdClust(digitList[sta][sensor]);
+	  // ssdClust.Add(digitList[sta][sensor]);
 	  ssdClust.SetStation(sta);
-	  ssdClust.SetPlane(plane);
-	  //clusters[sta][plane] = rb::SSDCluster(digits[sta][plane]);
-	  //clusterv.push_back(clusters[sta][plane]);
+	  ssdClust.SetSensor(sensor);
+	  //clusters[sta][sensor] = rb::SSDCluster(digits[sta][sensor]);
+	  //clusterv.push_back(clusters[sta][sensor]);
 	  //std::cout<<ssdClust<<std::endl;
 	  if (ssdClust.NDigits()>0)
 	    clusterv->push_back(ssdClust);

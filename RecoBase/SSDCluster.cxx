@@ -181,7 +181,7 @@ namespace rb {
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const rb::SSDCluster& h)
   {
-    o << "SSD Station Cluster for Station "<< h.Station()<<", Plane "<<h.Plane()<<std::endl;
+    o << "SSD Station Cluster for Station "<< h.Station()<<", Sensor "<<h.Sensor()<<std::endl;
     o << h.NDigits()<< " raw digits in cluster"<<std::endl;
     o << "Min Time: "<< h.MinTime()<<std::endl;
     o << "Max Time: "<< h.MaxTime()<<std::endl;
