@@ -1,0 +1,57 @@
+BEGIN_PROLOG
+
+standard_beamgen:
+{
+  module_type:	             BeamGen
+  particleType:		     "proton"
+  xyDistSource:		     "Gauss"
+  xyHistFile:		     ""
+  xyHistName:		     ""
+  pxyDistSource:	     "Gauss"
+  pxyHistFile:		     ""
+  pxyHistName:		     ""
+
+  Xmax:			     0.
+  Xmin:			     0.
+  Ymax:			     0.
+  Ymin:			     0.
+
+  Xmean: 		     0.
+  Xsigma:		     0.5
+  Ymean:		     0.
+  Ysigma:		     0.5
+
+  PMean:		     120.
+  Psigma:		     1.e-3
+  PXmax:		     0.1
+  PXmin:		     -0.1
+  PYmax:		     0.1
+  PYmin:		     -0.1
+  PXmean:		     0.
+  PXsigma:		     10.e-6
+  PYmean:		     0.
+  PYsigma:		     10.e-6
+}
+
+proton_beamgen: @local::standard_beamgen
+proton_beamgen.particleType: "proton"
+
+piplus_beamgen: @local::standard_beamgen
+piplus_beamgen.particleType: "pion"
+piplus_beamgen.PMean: 31.
+piplus_beamgen.Xsigma: 2.5 
+piplus_beamgen.Ysigma: 2.5 
+
+piminus_beamgen: @local::standard_beamgen
+piminus_beamgen.particleType: "pion"
+piminus_beamgen.PMean: -31.
+
+kaonplus_beamgen: @local::standard_beamgen
+kaonplus_beamgen.particleType: "kaon"
+kaonplus_beamgen.PMean: 31.
+
+kaonminus_beamgen: @local::standard_beamgen
+kaonminus_beamgen.particleType: "kaon"
+kaonminus_beamgen.PMean: -31.
+
+END_PROLOG

@@ -88,22 +88,17 @@ namespace emph {
 		bool Geometry::LoadGDMLFile()
 		{
 			std::ifstream geoFile;
-			std::string file_path;
-			std::string fname;
-
-			file_path = getenv ("CETPKG_SOURCE");
-			fname = file_path + "/Geometry/" + fGDMLFile;
-			geoFile.open(fname.c_str());
+			geoFile.open(fGDMLFile.c_str());
 			if (!geoFile.is_open()) {
 				throw cet::exception("GeometryFileLoad")
-					<< "cannot find GDML file " << fname << " bail ungracefully\n"
+					<< "cannot find GDML file " << fGDMLFile << " bail ungracefully\n"
 					<< __FILE__ << ":" << __LINE__ << "\n";
 				return false;
 			}
 			geoFile.close();
 
 			mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
-				<< fname << "\n";
+				<< fGDMLFile << "\n";
 
 			//      if (fGeoManager) delete fGeoManager;
 			int old_verbosity = gGeoManager->GetVerboseLevel();
@@ -113,7 +108,7 @@ namespace emph {
 			gGeoManager->SetVerboseLevel(0);
 
 			//fGeoManager->Import(fname.c_str());
-			TGeoManager::Import(fname.c_str());
+			TGeoManager::Import(fGDMLFile.c_str());
 
 			fGeoManager = gGeoManager;
 
@@ -122,25 +117,22 @@ namespace emph {
 			fGeoManager->SetVerboseLevel(old_verbosity);
 
 			const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
-			std::cout << "world_n = " << world_n << std::endl;
 
 			const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-			std::cout << "world_v = " << world_n << std::endl;
 
 			TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
-			std::cout << "world_box = " << world_box << std::endl;
 
 			fWorldHeight = world_box->GetDY();
 			fWorldWidth  = world_box->GetDX();
 			fWorldLength = world_box->GetDZ();
 
 			ExtractMagnetInfo(world_v);
-			mf::LogWarning("ExtractGeometry") << "extracted magnet geometry \n";
+			mf::LogInfo("ExtractGeometry") << "extracted magnet geometry \n";
 
 			for ( int i = Trigger ; i < NDetectors ; i ++ ){
 				ExtractDetectorInfo(i, world_n);
 				if ( fDetectorLoad[i] == true ){
-					mf::LogWarning("ExtractGeometry") << "extracted "
+					mf::LogInfo("ExtractGeometry") << "extracted "
 						<< DetInfo::Name(DetectorType(i)) << " geometry \n";
 				}
 			}
@@ -152,10 +144,9 @@ namespace emph {
 
 		void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
 		{
-			if ( i < 3 || i == ARICH ){
-				mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
-					<< " detector not in gdml yet. \n"
-					<< "experts should confirm whether they should be implemented. \n";
+			if ( i < 3 ){
+				mf::LogInfo("LoadNewGeometry") << DetInfo::Name(DetectorType(i)) 
+					<< " detector not in gdml yet. \n";
 				return;
 			}
 
@@ -239,6 +230,8 @@ namespace emph {
 			fNSSDStations = (int)nodeName.size();
 			fNSSDs = 0;
 
+			double angle;
+
 			for (auto name : nodeName) {
 				SSDStation st;
 				TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
@@ -266,6 +259,9 @@ namespace emph {
 						sensor.SetName(name);
 						sensor.SetDz(sensor_box->GetDZ());
 						sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
+						angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
+						if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
+						sensor.SetRot(angle);
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
 

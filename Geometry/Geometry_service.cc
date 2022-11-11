@@ -5,6 +5,7 @@
 
 // EMPHATIC includes
 #include "Geometry/GeometryService.h"
+#include "RunHistory/RunHistoryService.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -20,7 +21,7 @@ namespace emph
     {
       reconfigure(pset);
       
-      fGeometry = new emph::geo::Geometry(fGeoFileName);
+      art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       reg.sPreBeginRun.watch(this, &GeometryService::preBeginRun);
 
@@ -33,10 +34,9 @@ namespace emph
     }
     
     //-----------------------------------------------------------
-    void GeometryService::reconfigure(const fhicl::ParameterSet& pset)
+    void GeometryService::reconfigure(const fhicl::ParameterSet& )//pset)
     {
-      
-      fGeoFileName = pset.get< std::string >("GeoFileName");
+
     }
     
     //----------------------------------------------------------
@@ -45,6 +45,10 @@ namespace emph
     //----------------------------------------------------------
     void GeometryService::preBeginRun(const art::Run& )
     {
+
+      art::ServiceHandle<runhist::RunHistoryService> rhs;
+      
+      fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );
       
     }
     

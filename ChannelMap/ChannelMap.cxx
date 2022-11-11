@@ -24,7 +24,7 @@ namespace emph {
     //----------------------------------------------------------------------
 
     DChannel::DChannel() :
-      fId(emph::geo::DetectorType::NDetectors), fChannel(-1)
+      fId(emph::geo::DetectorType::NDetectors), fChannel(-1), fStation(-1)
     {
     }
     
@@ -48,25 +48,13 @@ namespace emph {
 
     //----------------------------------------------------------------------
 
-    bool ChannelMap::LoadMap(int run)
+    bool ChannelMap::LoadMap(std::string fname)
     {
-      std::string fname="";
-      if (run >= 436 && run <= 605)
-	fname = "ChannelMap_Jan22_Run436.txt";
-      else if (run > 605 && run <=1385)
-	fname = "ChannelMap_Jun22.txt";
-      else {
-	std::cout << "No channel map found for run " << run << std::endl;
-	std::abort();
-      }
       
       if (fname.empty() && fIsLoaded) return true;
       if ((fname == fMapFileName) && fIsLoaded) return true;
 
       std::ifstream mapFile;
-      std::string file_path;
-      file_path = getenv ("CETPKG_SOURCE");
-      fname = file_path + "/ChannelMap/" + fname;
       mapFile.open(fname.c_str());
       if (!mapFile.is_open()) {
 	if (fAbortIfFileNotFound) std::abort();
@@ -80,16 +68,17 @@ namespace emph {
       std::string det;
       int dChannel;
       short dHiLo;
+      int dStation;
       std::string comment;
       
       while (getline(mapFile,line)) {
 	std::stringstream lineStr(line);
-	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> comment;
+	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> dStation >> comment;
 	if (boardType[0] == '#') continue;
 	
 	emph::cmap::FEBoardType iBoardType = emph::cmap::Board::Id(boardType);
 	emph::geo::DetectorType iDet = emph::geo::DetInfo::Id(det);
-	DChannel dchan(iDet,dChannel,dHiLo);
+	DChannel dchan(iDet,dChannel,dStation,dHiLo);
 	EChannel echan(iBoardType,board,eChannel);
 	//	std::cout << dchan << " <--> " << echan << std::endl;
 	fEChanMap[echan] = dchan;

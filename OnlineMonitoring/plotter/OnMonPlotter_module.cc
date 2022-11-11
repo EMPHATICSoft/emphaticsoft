@@ -26,7 +26,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMap.h"
+#include "ChannelMap/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"
@@ -36,6 +36,7 @@
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
+#include "RecoBase/ADC.h"
 
 
 using namespace emph;
@@ -70,7 +71,7 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
-      void beginRun(art::Run const& run);
+      void beginRun(art::Run const& /*run*/);
       void endRun(art::Run const&);
       void endSubRun(art::SubRun const&);
       void endJob();
@@ -100,6 +101,8 @@ namespace emph {
 
       void HandleRequestsThread();
 
+      art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+
       OnMonProdIPC* fIPC;         ///< Communicates with viewer
       std::string   fSHMname;     ///< Shared memory for communication
       bool          fuseSHM;      ///< Use SHM to communicate with a viewer?
@@ -109,7 +112,6 @@ namespace emph {
       art::Timestamp fFirstEventTime;
       art::Timestamp fLastEventTime;
 
-      emph::cmap::ChannelMap* fChannelMap;
       unsigned int fRun;
       unsigned int fSubrun;
       unsigned int fNEvents;
@@ -253,10 +255,7 @@ namespace emph {
 
     //......................................................................
 
-    void OnMonPlotter::beginRun(art::Run const& run) {
-      // initialize channel map
-      fChannelMap = new emph::cmap::ChannelMap();
-      fChannelMap->LoadMap(run.run());
+    void OnMonPlotter::beginRun(art::Run const& /*run*/) {
 
       if(fSHMThreadPtr && fSHMThreadPtr->joinable()) {
 	fSHMThreadRunning = false;
@@ -642,7 +641,7 @@ namespace emph {
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
@@ -669,18 +668,20 @@ namespace emph {
       if (fMakeWaveFormPlots) {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
+	    const rawdata::WaveForm* wvfm_ptr = &wvfm;
+	    const rb::ADC wvr; 
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan >= 0 && detchan < nchan) {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvfm.Charge();
+	      float q = wvr.Charge(wvfm_ptr);
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot
@@ -716,7 +717,7 @@ namespace emph {
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan != 500) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
@@ -749,7 +750,7 @@ namespace emph {
             double time = trb3.GetFinalTime();
             echan.SetBoard(board);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel  dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel  dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    fHitEffPerChannel->Fill((int)dchan.DetId()+kT0Offset+1,
 				    detchan);
@@ -917,7 +918,7 @@ namespace emph {
             if (trail_found.size()>0) {
 
               emph::cmap::EChannel echan = lCh->first;
-              emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+              emph::cmap::DChannel dchan = cmap->DetChan(echan);
               if (dchan.DetId()!=emph::geo::ARICH) {
                 std::cout << echan;
                 std::cout << " doesn't belong to the ARICH" << std::endl;
@@ -981,7 +982,7 @@ namespace emph {
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
@@ -1054,7 +1055,7 @@ namespace emph {
             int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
             int detchan = dchan.Channel();
 	    if (detchan != 500 
 		&& dchan.HiLo() == 0) {
@@ -1118,7 +1119,7 @@ namespace emph {
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    if (detchan >= 0 && detchan < nchan) {
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();

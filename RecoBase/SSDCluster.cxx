@@ -23,113 +23,178 @@ namespace rb {
 
   //----------------------------------------------------------------------
   
-  SSDCluster::SSDCluster(const art::PtrVector<rb::SSDHit>& hits, 
-			 std::vector<double> weights, int id) :
+  SSDCluster::SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits, 
+			 int id) :
     fID(id)
   {
     assert(hits.size() > 1);
     
     for (size_t i=0; i<hits.size(); ++i) {
-      if (i < weights.size())
-	Add(hits[i],weights[i]);
-      else
-	Add(hits[i],1.);
-    }
+      Add(hits[i]);
+    }    
   }
   
   //------------------------------------------------------------
-  void SSDCluster::Add(const art::Ptr<rb::SSDHit>& hit, double weight)
+  void SSDCluster::Add(const art::Ptr<emph::rawdata::SSDRawDigit>& hit)
   {
-    fHitVec.push_back(hit);
-    fWeights.push_back(weight);
+    fDigitVec.push_back(hit);
   }
 
   //------------------------------------------------------------
-  void SSDCluster::Add(const art::PtrVector<rb::SSDHit>& hits,
-		       const std::vector<double>& weights)
+  void SSDCluster::Add(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits)
   {
-    assert(hits.size() == weights.size());
 
     for (size_t i=0; i<hits.size(); ++i) {
-      fHitVec.push_back(hits[i]);
-      fWeights.push_back(weights[i]);
+      fDigitVec.push_back(hits[i]);
     }
 
   }
 
   //------------------------------------------------------------
-  art::Ptr<rb::SSDHit> SSDCluster::Hit(unsigned int idx) const
+  art::Ptr<emph::rawdata::SSDRawDigit> SSDCluster::Digit(unsigned int idx) const
   {
-    assert(idx < fHitVec.size());
+    assert(idx < fDigitVec.size());
 
-    return fHitVec[idx];
+    return fDigitVec[idx];
 
   }
 
   //------------------------------------------------------------
-  void SSDCluster::SetWeight(unsigned int idx, double w)
-  {
-    if (idx >= fWeights.size()) return;
-   
-    fWeights[idx] = w;
-  }
-
+  // return the average strip position of the cluster
   //------------------------------------------------------------
-  double SSDCluster::Weight(unsigned int idx)
+  double SSDCluster::AvgStrip() const
   {
-    if (idx >= fWeights.size()) return -9999.;
-   
-    return fWeights[idx];
-  }
+    if (fDigitVec.empty()) return -9999.;
 
-  //------------------------------------------------------------
-  // return the weighted strip position of the cluster
-  //------------------------------------------------------------
-  double SSDCluster::WeightedStrip() const
-  {
-    if (fHitVec.empty()) return -9999.;
-
-    double avg=0.;
     double sum=0.;
-    for (size_t i=0; i<fHitVec.size(); ++i) {
-      avg += fHitVec[i]->Strip()*fWeights[i];
-      sum += fWeights[i];
+    for (size_t i=0; i<NDigits(); ++i) {
+      sum += fDigitVec[i]->Row();
     }
-    return avg/sum;
+    return sum/NDigits();
 
   }
 
   //------------------------------------------------------------
-  // return the weighted width, in units of strips, of the cluster
-  //------------------------------------------------------------
-  double SSDCluster::WeightedWidth() const
+  double SSDCluster::WgtAvgStrip() const
   {
-    if (fHitVec.empty()) return -9999.;
+    if (fDigitVec.empty()) return -9999.;
 
-    if (fHitVec.size() == 1.) return 1.;
-    
-    double avg2=0.;
-    double avg=0.;
     double sum=0.;
-    double sum2=0.;
-    for (size_t i=0; i<fHitVec.size(); ++i) {
-      avg  += fHitVec[i]->Strip();
-      avg2 += fHitVec[i]->Strip()*fHitVec[i]->Strip();
-      sum  += fWeights[i];
-      sum2  += fWeights[i]*fWeights[i];
+    double totalADC=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      sum += fDigitVec[i]->Row()*fDigitVec[i]->ADC();
+      totalADC+=fDigitVec[i]->ADC();
     }
-    double sigma2 = avg2/double(fHitVec.size()) - avg*avg/double(fHitVec.size());
-    return sqrt( sigma2*(1. - sum2/sum));
+    return sum/totalADC;
+
+  }
+
+  //------------------------------------------------------------
+  double SSDCluster::WgtRmsStrip() const
+  {
+    if (fDigitVec.empty()) return -9999.;
+    // set to 1/sqrt(12) if single strip cluster
+    if (NDigits()==1) return 1/sqrt(12);
+
+    double rmssum=0.;
+    double totalADC=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*fDigitVec[i]->ADC();
+      totalADC+=fDigitVec[i]->ADC();
+    }
+    return sqrt(rmssum/totalADC);
+
+  }
+
+  //------------------------------------------------------------
+  int SSDCluster::MinStrip() const
+  {
+    assert(NDigits() > 0);
+    int min = 999;
+    for(unsigned int i=0; i<NDigits(); ++i)
+      if(Digit(i)->Row() < min) min = Digit(i)->Row();
+
+    return min;
+  }
+
+  //------------------------------------------------------------
+  int SSDCluster::MaxStrip() const
+  {
+    assert(NDigits() > 0);
+    int max = -1;
+    for(unsigned int i=0; i<NDigits(); ++i)
+      if(Digit(i)->Row() > max) max = Digit(i)->Row();
+
+    return max;
+  }
+
+  //------------------------------------------------------------
+  double SSDCluster::AvgADC() const
+  {
+    if (fDigitVec.empty()) return -9999.;
+
+    double sum=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      sum += fDigitVec[i]->ADC();
+    }
+    return sum/NDigits();
+
+  }
+
+  //------------------------------------------------------------
+  // return the average time position of the cluster
+  //------------------------------------------------------------
+  double SSDCluster::AvgTime() const
+  {
+    if (fDigitVec.empty()) return -9999.;
+
+    double sum=0.;
+    for (size_t i=0; i<NDigits(); ++i) {
+      sum += fDigitVec[i]->Time();
+    }
+    return sum/NDigits();
+
+  }
+
+  //------------------------------------------------------------
+  int SSDCluster::MinTime() const
+  {
+    assert(NDigits() > 0);
+    int min = 999;
+    for(unsigned int i=0; i<NDigits(); ++i)
+      if(Digit(i)->Time() < min) min = Digit(i)->Time();
+
+    return min;
+  }
+
+  //------------------------------------------------------------
+  int SSDCluster::MaxTime() const
+  {
+    assert(NDigits() > 0);
+    int max = -1;
+    for(unsigned int i=0; i<NDigits(); ++i)
+      if(Digit(i)->Time() > max) max = Digit(i)->Time();
+
+    return max;
   }
   
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const rb::SSDCluster& h)
   {
-    o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    o << " SSD Cluster weighted (position,width) = (" 
-      << std::setw(5) << h.WeightedStrip()
-      << ", " 
-      << std::setw(5) << h.WeightedWidth();
+    o << "SSD Station Cluster for Station "<< h.Station()<<", Plane "<<h.Plane()<<std::endl;
+    o << h.NDigits()<< " raw digits in cluster"<<std::endl;
+    o << "Min Time: "<< h.MinTime()<<std::endl;
+    o << "Max Time: "<< h.MaxTime()<<std::endl;
+    o << "Time range: "<< h.TimeRange()<<std::endl;
+    o << "Weighted Avg. strip: " << h.WgtAvgStrip()<<std::endl;
+    o << "Weighted RMS strip: " << h.WgtRmsStrip()<<std::endl;
+    o << "Avg. strip: "<< h.AvgStrip()<<std::endl;
+    o << "Min Strip: "<< h.MinStrip()<<std::endl;
+    o << "Max Strip: "<< h.MaxStrip()<<std::endl;
+    o << "Width: "<< h.Width()<<std::endl;
+    o << "Avg. ADC: "<< h.AvgADC()<<std::endl;
+
+
     return o;
   }
   

@@ -13,6 +13,9 @@
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
 
+# Manuals can be found at DocDB 1242
+# Visualization of SSDs can be found at DocDB 1260
+
 use Getopt::Long;
 use Math::BigFloat;
 use GDMLUtil;
@@ -21,7 +24,8 @@ Math::BigFloat->precision(-10);
 GetOptions( "help|h" => \$help,
 	"suffix|s:s" => \$suffix,
 	"output|o:s" => \$output,
-	"helpcube|c" => \$helpcube);
+	"target|t:i" => \$target,
+	"magnet|m:i" => \$magnet);
 
 if ( defined $help )
 {
@@ -43,12 +47,15 @@ else
 	$suffix = "-" . $suffix;
 }
 
+
 # constants for T0
 $T0_switch = 1;
 $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
+@target_matt = ("Graphite", "CH2");
+$target_v = 0;
 
 # constants for MAGNET
 $magnet_switch = 1;
@@ -62,6 +69,9 @@ $nstation_type = 3; # types of station
 @bkpln_size = (1.0, 1.3, 2.6); # bkpln size scale to SSD sensor
 @SSD_lay = (2, 3, 3); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
+@SSD_angle = (0, 270, 0, 270, 315, 0, 270, 315, 0, 270, 270, 90, 0, 180, 225, 45, 270, 90, 0, 180, 225, 45); # angle from measuring Y
+#Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
+# Visualization of SSDs can be found at DocDB 1260
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
@@ -84,6 +94,34 @@ $LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
 
+if ( defined $magnet )
+{
+	# If the user requested help, print the usage notes and exit.
+	if($magnet == 0){
+		$magnet_switch = 0;
+	}
+	elsif($magnet == 1){
+		$magnet_switch = 1;
+	}
+	else{
+		print "wrong magnet parameter\n";
+	}
+}
+
+if ( defined $target)
+{
+	# If the user requested help, print the usage notes and exit.
+	if($target == 0){
+		$target_switch = 0;
+	}
+	elsif($target < 0 || $target > 2){
+		print "wrong target parameter\n";
+	}
+	else{
+		$target_v = $target - 1;
+	}
+}
+
 # run the sub routines that generate the fragments
 
 gen_Define(); 	 # generates definitions at beginning of GDML
@@ -105,8 +143,10 @@ exit;
 
 sub usage()
 {
-	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-s|--suffix <string>]\n";
+	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-t|--target <target number>] [-m|--magnet <0 or 1>] [-s|--suffix <string>]\n";
 	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
+	print "       -t 0 is no target, 1 is graphite, 2 is CH2; Default is graphite\n";
+	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -h prints this message, then quits\n";
 }
@@ -217,8 +257,8 @@ EOF
 	 <!-- BELOW IS FOR SSD -->
 
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
-	 <quantity name="ssdD0_height" value="98.33" unit="mm"/>
-	 <quantity name="ssdD0_width" value="38.34" unit="mm"/>
+	 <quantity name="ssdD0_height" value="38.34" unit="mm"/>
+	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
 	 <quantity name="ssdStation0_shift" value="0" unit="mm"/>
 	 <quantity name="ssdStation1_shift" value="120.5" unit="mm"/>
@@ -238,10 +278,8 @@ EOF
 	 <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdsingle00_pos" x="0" y="0" z="0" unit="mm"/>
-	 <rotation name="ssdsingle0_rot" z="90" unit="deg"/>
 	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssdsingle1_rot" z="0" unit="deg"/>
 	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
 	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0"
@@ -253,12 +291,9 @@ EOF
 	 <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdrotate00_pos" x="0" y="0" z="0" unit="mm"/>
-	 <rotation name="ssdrotate0_rot" z="45" unit="deg"/>
 	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
 	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssdrotate1_rot" z="90" unit="deg"/>
 	 <position name="ssdrotate20_pos" x="0" y="0" z="3" unit="mm"/>
-	 <rotation name="ssdrotate2_rot" z="0" unit="deg"/>	 
 	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
@@ -270,25 +305,40 @@ EOF
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
 	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
 	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssddouble00_pos" x="-0.5*ssdD0_width" y="0" z="0" unit="mm"/>
-	 <position name="ssddouble01_pos" x="0.5*ssdD0_width" y="0" z="0" unit="mm"/>
-	 <rotation name="ssddouble0_rot" z="0" unit="deg"/>
+	 <position name="ssddouble00_pos" x="0.5*ssdD0_height" y="0" z="0" unit="mm"/>
+	 <position name="ssddouble01_pos" x="-0.5*ssdD0_height" y="0" z="0" unit="mm"/>
 	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssddouble10_pos" y="-0.5*ssdD0_width" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssddouble11_pos" y="0.5*ssdD0_width" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <rotation name="ssddouble1_rot" z="90" unit="deg"/>
-	 <position name="ssddouble20_pos" x="-0.354*ssdD0_width" y="-0.354*ssdD0_width" z="3" unit="mm"/>
-	 <position name="ssddouble21_pos" x="0.354*ssdD0_width" y="0.354*ssdD0_width" z="3" unit="mm"/>
-	 <rotation name="ssddouble2_rot" z="-45" unit="deg"/>
+	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
+	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="3" unit="mm"/>
+	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="3" unit="mm"/>
 	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
 			z="-10." unit="mm" />
 	 <position name="ssddouble_DSMylarWindow_pos" x="0" y="0"
 		 z="10." unit="mm" />
 
+EOF
+		$isensor = 0;
+		for($i = 0; $i < $nstation_type; ++$i){
+			for($l = 0; $l < $SSD_station[$i]; ++$l){
+				for($j = 0; $j < $SSD_lay[$i]; ++$j){
+					for($k = 0; $k < $SSD_par[$i]; ++$k){
+
+						print DEF <<EOF;
+	 <rotation name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_@{[ $j ]}_@{[ $k ]}_rot" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
+EOF
+						$isensor ++;
+					}
+				}
+			}
+		}
+
+	}
+		print DEF <<EOF;
+
 	 <!-- ABOVE IS FOR SSD -->
 EOF
-	}
 
 	if($arich_switch){
 		print DEF <<EOF;
@@ -394,7 +444,7 @@ EOF
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-tation_type <quantity name="LG_width1" value="135" unit="mm" />
+	 <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
@@ -533,7 +583,7 @@ EOF
 EOF
 	for($i = 0; $i< $magnet_layer; ++$i){
 		print SOL <<EOF;
-	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" aunit="deg"/>
 EOF
 	}
 	print SOL <<EOF;
@@ -622,7 +672,7 @@ EOF
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="pi/2." phi="pi/2." aunit="rad" lunit="mm"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
@@ -634,8 +684,8 @@ EOF
 		<positionref ref="LG_para_pos" />
 	 </union>	 
 
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" unit="deg"/>
-	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" unit="deg"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" aunit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 
@@ -692,7 +742,7 @@ EOF
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-	 <materialref ref="Graphite"/>
+	 <materialref ref="@{[ $target_matt[$target_v] ]}"/>
 	 <solidref ref="target_box"/>
   </volume>
 
@@ -956,45 +1006,47 @@ EOF
 
 EOF
 		for($i = 0; $i < $nstation_type; ++$i){
-			print DET <<EOF;
-	  <volume name="ssdStation@{[ $station_type[$i] ]}_vol">
+			for($l = 0; $l < $SSD_station[$i]; ++$l){
+				print DET <<EOF;
+	  <volume name="ssdStation@{[ $station_type[$i] ]}@{[ $l ]}_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStation@{[ $station_type[$i] ]}_box"/>
-		 <physvol name="ssd@{[ $station_type[$i] ]}_USMylarWindow_phys">
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_USMylarWindow_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssd@{[ $station_type[$i] ]}_DSMylarWindow_phys">
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_DSMylarWindow_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}_DSMylarWindow_pos"/>
 		 </physvol>
 
 EOF
-			for($j = 0; $j < $SSD_lay[$i]; ++$j){
-				for($k = 0; $k < $SSD_par[$i]; ++$k){
+				for($j = 0; $j < $SSD_lay[$i]; ++$j){
+					for($k = 0; $k < $SSD_par[$i]; ++$k){
 
-					print DET <<EOF;
-		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_phys">
+						print DET <<EOF;
+		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $l ]}@{[ $j ]}@{[ $k ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_pos"/>
-			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}_rot"/>
+			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $l ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
 		 </physvol>
 EOF
+					}
 				}
-			}
-			for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
-				print DET <<EOF;
-		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_phys">
+				for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
+					print DET <<EOF;
+		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $l ]}@{[ $j ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_bkpln_vol"/>
 			<positionref ref="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
 		 </physvol>
 EOF
 
-			}
-			print DET <<EOF;
+				}
+				print DET <<EOF;
 	  </volume>
 
 EOF
+			}
 		}
 		print DET <<EOF;
 
@@ -1225,17 +1277,17 @@ EOF
 
 		$station = 0;
 		for($i = 0; $i < $nstation_type; ++$i){
-			for($j = 0; $j < $SSD_station[$i]; ++$j){
+				for($j = 0; $j < $SSD_station[$i]; ++$j){
 
-				print WORLD <<EOF;
+					print WORLD <<EOF;
 
 		  <physvol name="ssdStation@{[ $station ]}_phys">
-			 <volumeref ref="ssdStation@{[ $station_type[$i] ]}_vol"/>
+			 <volumeref ref="ssdStation@{[ $station_type[$i] ]}@{[ $j ]}_vol"/>
 			 <positionref ref="ssdStation@{[ $station ]}_pos"/>
 		  </physvol>
 EOF
 
-				$station++;
+					$station++;
 			}
 		}  
 
@@ -1250,7 +1302,7 @@ EOF
 
   <!-- BELOW IS FOR ARICH -->
 
-  <physvol name="arich_phys">
+  <physvol name="ARICH_phys">
 	 <volumeref ref="arich_vol"/>
 	 <positionref ref="arich_pos"/>
   </physvol>

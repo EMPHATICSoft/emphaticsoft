@@ -13,13 +13,15 @@ link_directories($ENV{CETLIB_EXCEPT_LIB})
 
 art_make_library(
 		SOURCE ChannelMap.cxx
-		LIBRARIES PRIVATE
+		LIBRARIES #PRIVATE
 		messagefacility::MF_MessageLogger
 		)
 
 simple_plugin(ChannelMap service
   LIBRARIES #PRIVATE
   ChannelMap
+  RunHistory
+  RunHistory_service
   art::Framework_Core
   art::Framework_Principal
   art::Framework_Services_Registry

@@ -1,0 +1,43 @@
+#include "ChannelMap.fcl"
+#include "RunHistory.fcl"
+
+process_name: T0toRPC
+
+services:
+{
+  ChannelMap: @local::standard_channelmap
+  RunHistory: {}
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:{}
+
+ filters:{}
+
+ analyzers: {
+   T0toRPC :   
+   {
+      module_type: T0toRPC
+      tokenJob: "V2e_12GeV"
+      makeT0FullNtuple: true
+      makeRPCFullNtuple: true
+      makeTrigFullNtuple: true 
+      makeEventSummaryFullNtuple: true
+   }
+ }
+# stream1:  [ out1 ] #could have multiple paths
+ ana: [ T0toRPC  ] 
+
+ end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+}

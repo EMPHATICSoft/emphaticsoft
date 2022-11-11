@@ -54,7 +54,6 @@ namespace emph {
     int          PeakTDC(bool isNegative=true)           const;
     int          PeakWidth(bool isNegative=true)         const;
     float        IntegratedADC(int x1=0, int nsamp=40)   const;
-    float        Charge(int adcoffset=0, int nhits=10, int nsamp=95)   const;
     
     // Setters
     void       SetChannel(uint32_t    iChan) { fChannel    = iChan;      }

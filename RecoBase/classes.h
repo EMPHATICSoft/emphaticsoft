@@ -5,4 +5,7 @@
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/Spill.h"
 #include "RecoBase/ARing.h"
+#include "RecoBase/BACkovHit.h"
+#include "RecoBase/GasCkovHit.h"
+#include "RecoBase/ADC.h"
 

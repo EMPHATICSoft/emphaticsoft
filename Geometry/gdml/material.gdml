@@ -295,7 +295,7 @@
 
       <D value="0.097"/>
       <fraction n="0.467" ref="Silicon"/>
-      <fraction n="1.0-0.467" ref="Oxygen"/>
+      <fraction n="0.533" ref="Oxygen"/>
    </material>
 
    <material name="AERO_1030">
@@ -305,7 +305,7 @@
 
       <D value="0.110"/>
       <fraction n="0.467" ref="Silicon"/>
-      <fraction n="1.0-0.467" ref="Oxygen"/>
+      <fraction n="0.533" ref="Oxygen"/>
    </material>
 
    <material name="GAS">
@@ -316,7 +316,7 @@
 
       <D value="0.0112"/>
       <fraction n="0.211" ref="Carbon"/>
-      <fraction n="1.0-0.211" ref="Fluorine"/>
+      <fraction n="0.789" ref="Fluorine"/>
    </material>
 	
    <material formula="NdFeB" name="NeodymiumAlloy" state="solid" >
@@ -368,6 +368,12 @@
      <composite n="1" ref="Silicon"/>
    </material>
    
+	<material formula="ch2" name="CH2">
+     <D value="1.0"/>
+     <composite n="0.86" ref="Carbon"/>
+     <composite n="0.14" ref="Hydrogen"/>
+   </material>
+ 
    <material formula="mylar" name="Mylar">
      <D unit="g/cm3" value="1.397"/>
      <fraction n="0.042" ref="Hydrogen"/>

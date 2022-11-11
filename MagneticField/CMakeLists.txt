@@ -11,7 +11,9 @@ art_make_library(
   SOURCE
     MagneticField.cxx
   LIBRARIES PRIVATE
-    art::Framework_Core
+    RunHistory
+    Geometry
+     art::Framework_Core
     art::Persistency_Common
     canvas::canvas
     fhiclcpp::fhiclcpp

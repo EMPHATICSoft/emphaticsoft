@@ -4,14 +4,20 @@
 <!--  lines and for all objects that are data members of those objects.-->
  
 <lcgdict>
-  <class name="rb::SSDHit"    ClassVersion="11">
+  <class name="rb::SSDHit"    ClassVersion="12">
+   <version ClassVersion="12" checksum="4189656060"/>
    <version ClassVersion="11" checksum="2728825684"/>
     <version ClassVersion="10" checksum="1"/>
   </class>
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
 
-  <class name="rb::SSDCluster"    ClassVersion="11">
+  <class name="rb::SSDCluster"    ClassVersion="16">
+   <version ClassVersion="16" checksum="2498245746"/>
+   <version ClassVersion="15" checksum="2833724937"/>
+   <version ClassVersion="14" checksum="2833724937"/>
+   <version ClassVersion="13" checksum="2833724937"/>
+   <version ClassVersion="12" checksum="2833724937"/>
    <version ClassVersion="11" checksum="1280789249"/>
     <version ClassVersion="10" checksum="1"/>
   </class>
@@ -47,5 +53,29 @@
   </class>
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
+
+  <class name="rb::BACkovHit"    ClassVersion="13">
+   <version ClassVersion="13" checksum="401007675"/>
+   <version ClassVersion="12" checksum="2996980846"/>
+    <version ClassVersion="10" checksum="5"/>
+  </class>
+  <class name="std::vector<rb::BACkovHit>"        />
+  <class name="art::Wrapper< std::vector<rb::BACkovHit>    >"/>
+
+  <class name="rb::GasCkovHit"    ClassVersion="13">
+   <version ClassVersion="13" checksum="3907294428"/>
+   <version ClassVersion="12" checksum="4165743097"/>
+    <version ClassVersion="10" checksum="6"/>
+  </class>
+  <class name="std::vector<rb::GasCkovHit>"        />
+  <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
+
+  <class name="rb::ADC"    ClassVersion="13">
+   <version ClassVersion="13" checksum="114040"/>
+   <version ClassVersion="12" checksum="3706276525"/>
+    <version ClassVersion="10" checksum="7"/>
+  </class>
+  <class name="std::vector<rb::ADC>"        />
+  <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
 
  </lcgdict>
