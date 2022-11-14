@@ -20,7 +20,7 @@ build_plugin(OnMonPlotter "module"
     RawData
     RecoBase
     ChannelMap
-	 RunHistory
+    ChannelMap_service
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist

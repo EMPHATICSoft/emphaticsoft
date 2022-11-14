@@ -10,7 +10,9 @@ services:
 {
   RunHistory: {}
   MagneticField: @local::standard_magfield
+  RunHistory: {}
   Geometry: @local::standard_geometry
+  
   # Load the service that manages root files for histograms.
 #  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
   
@@ -22,8 +24,13 @@ services:
 source:
 {
   module_type: EmptyEvent
+<<<<<<< HEAD
   maxEvents: 1000000
   firstRun:  1380
+=======
+  maxEvents: 10000
+  firstRun:  1293
+>>>>>>> main
   firstSubRun: 1
 
 }
@@ -32,7 +39,7 @@ physics:
 {
   producers:
   {
-	generator: @local::proton_beamgen
+	generator: @local::piplus_beamgen
 	geantgen:  @local::standard_geant4
   }
 

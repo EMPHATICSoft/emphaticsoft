@@ -24,8 +24,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMap.h"
-#include "RunHistory/RunHistory.h"
+#include "ChannelMap/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
@@ -57,7 +56,6 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
-      void beginRun(art::Run const& run);
       void endJob();
 
     private:
@@ -75,11 +73,10 @@ namespace emph {
       
        // an analysis routine, first version, joint analysis of the content of the Trigger, T0 and RPC buffers. 
 
+      art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+
       bool fFilesAreOpen;
       std::string fTokenJob;
-      emph::cmap::ChannelMap* fChannelMap;
-      runhist::RunHistory* fRunHistory;
-      std::string fChanMapFileName;
       unsigned int fRun;
       unsigned int fSubRun;
       int fPrevSubRun;
@@ -155,7 +152,7 @@ namespace emph {
       : EDAnalyzer(pset),
       fFilesAreOpen(false),
       fTokenJob("none"),
-      fChanMapFileName("Unknwon"), fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
+      fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
       fT0ADCs(nChanT0+2, 0.),
       fT0TDCs(nChanT0+2, DBL_MAX),
       fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
@@ -224,14 +221,6 @@ namespace emph {
       // open a few csv file for output. Delayed until we know the run number.  
       //
             
-    }
-    //......................................................................
-    void T0toRPC::beginRun(art::Run const& run)
-    {
-      // initialize channel map
-      fChannelMap = new emph::cmap::ChannelMap();
-      fRunHistory = new runhist::RunHistory(run.run());
-      fChannelMap->LoadMap(fRunHistory->ChanFile());
     }
 
     //......................................................................
@@ -374,7 +363,7 @@ namespace emph {
 	    echan.SetBoard(board);
 	    echan.SetBoardType(boardType);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    size_t detchan = static_cast<size_t> (dchan.Channel());
             if (debugIsOn) std::cerr << std::endl << " For wave form index  " << idx << " board " 
 	                             << board << " dchan " << dchan << " detchannel " << detchan << std::endl;	  
@@ -445,7 +434,7 @@ namespace emph {
 	    int board = trb3.GetBoardId();
 	    echan.SetBoard(board);	
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    int detchan = dchan.Channel();
 	    long double time_T0 = trb3.GetEpochCounter()*10240026.0 + trb3.GetCoarseTime() *
 	                               5000.0 - ((trb3.GetFineTime() - trb3LinearLowEnd)/(trb3LinearHighEnd-trb3LinearLowEnd))*5000.0;
@@ -563,7 +552,7 @@ namespace emph {
             int board = trb3.GetBoardId();
             echan.SetBoard(board);
             echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
             int detchan = dchan.Channel();
 //	    std::cerr  <<"Found TRB3 hit: IsLeading: "<<trb3.IsLeading()<<"; IsTrailing: "<<
 //	     trb3.IsTrailing()<<"; Fine Time: " <<trb3.GetFineTime()<<"; Course Time: "<<trb3.GetCoarseTime()<<"; Epoch Counter: //"<<trb3.GetEpochCounter()<<std::endl;
@@ -634,7 +623,7 @@ namespace emph {
           int board = wvfm.Board();
           echan.SetBoard(board);
           echan.SetChannel(chan);
-          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+          emph::cmap::DChannel dchan = cmap->DetChan(echan);
           int detchan = dchan.Channel();
           if (debugIsOn) std::cerr << std::endl <<  " Searching for Peak in channel  " << detchan << std::endl;
           if (detchan >= 0 && (detchan < nchan)) {
@@ -948,7 +937,7 @@ namespace emph {
 	    echan.SetBoard(board);
 	    echan.SetBoardType(boardType);
 	    echan.SetChannel(chan);
-	    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	    size_t detchan = static_cast<size_t> (dchan.Channel());
             std::cerr << " ... For detector " << labelStr << " wave form index  " << idx << " board " 
 	                             << board << " dchan " << dchan << " detchannel " << detchan << std::endl;

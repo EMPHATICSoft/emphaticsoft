@@ -32,6 +32,7 @@
    <!-- version ClassVersion="15" checksum="3468169904" / -->
   <!-- /class -->
   <class name="std::vector<emph::rawdata::SSDRawDigit>"        />
+  <class name="art::PtrVector<emph::rawdata::SSDRawDigit>"/>
   <class name="art::Wrapper< std::vector<emph::rawdata::SSDRawDigit>    >"/>
   <class name="std::vector<emph::rawdata::WaveForm>"        />
   <class name="art::Wrapper< std::vector<emph::rawdata::WaveForm>    >"/>

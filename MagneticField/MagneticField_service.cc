@@ -20,7 +20,9 @@ namespace emph
   {
 
     reconfigure(pset);
-
+/*
+    Jonathan decided to by-pass the fcl .. 
+    Not sure this is the best option.. Paul Lebrun, Oct 20 2022. 
     cet::search_path sp("CETPKG_SOURCE");
 
     std::string fFileName;
@@ -34,6 +36,11 @@ namespace emph
     }
     
     fMagneticField = new emph::EMPHATICMagneticField(fFileName);
+*/
+    fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
+    // Temporary tweak and study: assume we have no ziptrack data for the outer core.. 
+    // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
+//    fMagneticField->setUseOnlyTheCentralPart(true);
     
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
@@ -50,6 +57,7 @@ namespace emph
   {
     
     fFieldFileName = pset.get< std::string >("FieldFileName");
+    
   }
   
   //----------------------------------------------------------
