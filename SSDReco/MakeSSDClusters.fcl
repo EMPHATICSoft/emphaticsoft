@@ -4,6 +4,7 @@ standard_ssdclust:
 {
   module_type: MakeSSDClusters
   SSDRawLabel: "raw:SSD"
+  RowGap:   0                # If gap between RawDigits is larger than this, form a new cluster
 }
 
 END_PROLOG

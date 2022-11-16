@@ -11,6 +11,8 @@ build_plugin(MakeSSDClusters "module"
 	RunHistory_service
 	RawData
 	RecoBase
+	ROOT::Tree
+	art_root_io::TFileService_service
 )
 
 install_headers()
