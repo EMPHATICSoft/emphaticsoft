@@ -15,7 +15,7 @@ services : {
 
   # From toyExperiment
   Geometry   : @local::standard_geometry
-  RunHistory : {}
+
   # From art-workbook
   EvtDisplayService : {}
 

@@ -10,10 +10,10 @@ include_directories( $ENV{ROOT_INC} )
 art_make_library(
   SOURCE
     MagneticField.cxx
-  LIBRARIES PRIVATE
+  LIBRARIES
     RunHistory
     Geometry
-     art::Framework_Core
+    art::Framework_Core
     art::Persistency_Common
     canvas::canvas
     fhiclcpp::fhiclcpp
@@ -27,25 +27,8 @@ art_make_library(
     Geant4::G4tracking
     )
 
-cet_build_plugin( MagneticField art::service
-  LIBRARIES 
-  MagneticField
-  art::Framework_Core
-  art::Framework_Principal
-  art::Framework_Services_Registry
-  messagefacility::MF_MessageLogger
-  fhiclcpp::fhiclcpp
-  ROOT::Geom
-  ROOT::Physics
-  Geant4::G4event
-  Geant4::G4intercoms
-  Geant4::G4interfaces
-  Geant4::G4run
-  Geant4::G4tracking
-  BASENAME_ONLY
-  )
-
 install_headers()
 install_source()
 install_fhicl()
 
+add_subdirectory(service)

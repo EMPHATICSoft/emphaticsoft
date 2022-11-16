@@ -12,15 +12,13 @@ find_package(messagefacility REQUIRED)
 find_package(ROOT REQUIRED)
 
 cet_build_plugin(RawDataMerger art::module
-  LIBRARIES #PRIVATE
+  LIBRARIES REG
     ${LIBRARY_CORE_LIB_LIST}
     emphatic-artdaq_Overlays
     RawData
     RawDataUnpacker
-    # RecoBase
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
-    # ROOT::Hist
     artdaq-core_Data
 )
 

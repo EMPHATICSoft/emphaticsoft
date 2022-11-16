@@ -418,9 +418,9 @@ namespace rawdata {
 
       // initialize channel map
       fChannelMap = new emph::cmap::ChannelMap();
-		fRunHistory = new runhist::RunHistory(fRun);
+      fRunHistory = new runhist::RunHistory(fRun);
       fChannelMap->LoadMap(fRunHistory->ChanFile());
-
+      
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
       if (! createDigitsFromArtdaqEvent()) return false;

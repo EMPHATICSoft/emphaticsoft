@@ -16,7 +16,7 @@ art_make_library ( SOURCE ${src_files}
 )
 
 cet_build_plugin(OnMonPlotter art::module
-  LIBRARIES #PRIVATE
+  LIBRARIES REG #PRIVATE
   RawData
   RecoBase
   ChannelMap

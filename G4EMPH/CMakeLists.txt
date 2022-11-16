@@ -1,28 +1,28 @@
 include(ArtDictionary)
 include(ArtMake)
 
-find_package(ROOT REQUIRED)
-find_package(Geant4 REQUIRED)
-find_package(art REQUIRED)
-find_package(messagefacility REQUIRED)
+find_package( ROOT REQUIRED )
+find_package( Geant4 REQUIRED )
+find_package( art REQUIRED )
+find_package( messagefacility REQUIRED )
 
 include_directories( $ENV{GEANT4_FQ_DIR}/include )
 include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 )
 include_directories( $ENV{ROOT_INC} )
 include_directories( $ENV{XERCES_C_INC} )
 include_directories( $ENV{CLHEP_INC} )
-include_directories($ENV{ART_INC})
-include_directories($ENV{ART_ROOT_IO_INC})
-include_directories($ENV{CETLIB_EXCEPT_INC})
+include_directories( $ENV{ART_INC} )
+include_directories( $ENV{ART_ROOT_IO_INC} )
+include_directories( $ENV{CETLIB_EXCEPT_INC} )
 
-link_directories($ENV{ART_ROOT_IO_LIB})
-link_directories($ENV{CETLIB_EXCEPT_LIB})
+link_directories( $ENV{ART_ROOT_IO_LIB} )
+link_directories( $ENV{CETLIB_EXCEPT_LIB} )
 
 FILE( GLOB src_files *.cxx )
 
 art_make_library(
   SOURCE ${src_files}
-  LIBRARIES #PRIVATE
+  LIBRARIES 
     art::Framework_Core
     art::Persistency_Common
     canvas::canvas
@@ -71,12 +71,11 @@ art_make_library(
     )
 
 cet_build_plugin(G4Gen art::module
-  LIBRARIES #PRIVATE
+  LIBRARIES REG 
     G4EMPH
     SimulationBase
     Simulation
     G4Base
-   LIBRARIES PUBLIC
     Geometry
     Geometry_service
     MagneticField
@@ -84,7 +83,7 @@ cet_build_plugin(G4Gen art::module
 )
 
 cet_build_plugin(BeamGen art::module
-  LIBRARIES #PRIVATE
+  LIBRARIES REG 
   G4EMPH
   SimulationBase
   Simulation
@@ -100,8 +99,8 @@ cet_build_plugin(BeamGen art::module
   fhiclcpp::fhiclcpp
 )
 
-build_plugin(AnalyzeSSDHitsWithTracks "module"
-  LIBRARIES PRIVATE
+cet_build_plugin(AnalyzeSSDHitsWithTracks art::module
+  LIBRARIES REG 
     SimulationBase
     Simulation
     ROOT::Core

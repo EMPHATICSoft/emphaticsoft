@@ -19,23 +19,9 @@ art_make_library(
     cetlib::cetlib
     )
 
-cet_build_plugin( Geometry art::service
-  LIBRARIES 
-  Geometry
-  RunHistory
-  RunHistory_service
-  art::Framework_Core
-  art::Framework_Principal
-  art::Framework_Services_Registry
-  messagefacility::MF_MessageLogger
-  ROOT::Geom
-  ROOT::Physics
-  BASENAME_ONLY
-  )
-
-
 install_headers()
 install_source()
 install_fhicl()
 
 add_subdirectory(test)
+add_subdirectory(service)

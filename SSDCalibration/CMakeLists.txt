@@ -14,8 +14,9 @@ art_make_library ( SOURCE ${src_files}
   RawData
   RecoBase
   ChannelMap
-  RunHistory
+  ChannelMap_service
   Geometry
+  Geometry_service
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger
   ROOT::Hist
@@ -26,8 +27,9 @@ cet_build_plugin(SSDCalibration art::module
   RawData
   RecoBase
   ChannelMap
-  RunHistory
+  ChannelMap_service
   Geometry
+  Geometry_service
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger
   ROOT::Hist

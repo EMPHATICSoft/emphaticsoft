@@ -808,7 +808,7 @@
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-	 <quantity name="LG_width1" value="135" unit="mm" />
+tation_type <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
@@ -856,10 +856,12 @@
 	<!-- ********** Refractive index ********** -->
 
    <!-- The rindex of air -->
-	<matrix name="Air_RINDEX" 
+	<matrix 
+		name="Air_RINDEX" 
 		coldim="2" 
 		values="1.65*eV 1.00 
-			4.14*eV 1.00" />
+				4.14*eV 1.00"
+	/>
 
 
 	<!-- The rindex of aerogel 1 -->
@@ -1176,15 +1178,6 @@
      <fraction n="0.011" ref="Boron" />
      <fraction n="0.003" ref="Aluminum" />
    </material>
-
-  <!-- The following is apparently requested by an unspecified (as of Oct 17 2022) section of the geometry. Composition unknown  -->
-
-   <material formula="NdFeB" name="Steel" state="solid" >
-     <D value="7.85" unit="g/cm3" />
-     <fraction n="0.01" ref="Carbon"/>
-     <fraction n="0.99" ref="Iron" />
-   </material>
-
    
 	<material formula="C5O2H8" name="Acrylic">
      <D value="1.18"/>
@@ -1279,9 +1272,9 @@
 
     <box name="magnet_box" x="magnetSideOHeight"
 	    y="magnetSideOHeight" z="magnetSideZLength" />
-	 <tube name="magnet_tube0" rmin="0.5*magnetSideIHeight0" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" aunit="deg"/>
-	 <tube name="magnet_tube1" rmin="0.5*magnetSideIHeight1" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" aunit="deg"/>
-	 <tube name="magnet_tube2" rmin="0.5*magnetSideIHeight2" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" aunit="deg"/>
+	 <tube name="magnet_tube0" rmin="0.5*magnetSideIHeight0" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube1" rmin="0.5*magnetSideIHeight1" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube2" rmin="0.5*magnetSideIHeight2" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
 
 	 <!-- ABOVE IS FOR MAGNET -->
 
@@ -1909,7 +1902,7 @@
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="pi/2." phi="pi/2." aunit="rad" lunit="mm"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
@@ -1921,8 +1914,8 @@
 		<positionref ref="LG_para_pos" />
 	 </union>	 
 
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
-	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" aunit="deg"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" unit="deg"/>
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" unit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 
@@ -4546,11 +4539,11 @@
 	  <volume name="ssdStationsingle0_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStationsingle_box"/>
-		 <physvol name="ssdsingle0_USMylarWindow_phys">
+		 <physvol name="ssdsingle_USMylarWindow_phys">
 			<volumeref ref="ssdsingle_MylarWindow_vol"/>
 			<positionref ref="ssdsingle_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssdsingle0_DSMylarWindow0_phys">
+		 <physvol name="ssdsingle_DSMylarWindow_phys">
 			<volumeref ref="ssdsingle_MylarWindow_vol"/>
 			<positionref ref="ssdsingle_DSMylarWindow_pos"/>
 		 </physvol>
@@ -4574,26 +4567,26 @@
 	  <volume name="ssdStationsingle1_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStationsingle_box"/>
-		 <physvol name="ssdsingle1_USMylarWindow_phys">
+		 <physvol name="ssdsingle_USMylarWindow_phys">
 			<volumeref ref="ssdsingle_MylarWindow_vol"/>
 			<positionref ref="ssdsingle_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssdsingle1_DSMylarWindow_phys">
+		 <physvol name="ssdsingle_DSMylarWindow_phys">
 			<volumeref ref="ssdsingle_MylarWindow_vol"/>
 			<positionref ref="ssdsingle_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsensorsingle01_phys">
+		 <physvol name="ssdsensorsingle00_phys">
 			<volumeref ref="ssdsingle_vol"/>
 			<positionref ref="ssdsingle00_pos"/>
 			<rotationref ref="ssdsingle1_0_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensorsingle11_phys">
+		 <physvol name="ssdsensorsingle10_phys">
 			<volumeref ref="ssdsingle_vol"/>
 			<positionref ref="ssdsingle10_pos"/>
 			<rotationref ref="ssdsingle1_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdbkplnsingle1_phys">
+		 <physvol name="ssdbkplnsingle0_phys">
 			<volumeref ref="ssdsingle_bkpln_vol"/>
 			<positionref ref="ssdbkplnsingle0_pos"/>
 		 </physvol>
@@ -4602,35 +4595,35 @@
 	  <volume name="ssdStationrotate0_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStationrotate_box"/>
-		 <physvol name="ssdrotate0_USMylarWindow_phys">
+		 <physvol name="ssdrotate_USMylarWindow_phys">
 			<volumeref ref="ssdrotate_MylarWindow_vol"/>
 			<positionref ref="ssdrotate_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssdrotate0_DSMylarWindow_phys">
+		 <physvol name="ssdrotate_DSMylarWindow_phys">
 			<volumeref ref="ssdrotate_MylarWindow_vol"/>
 			<positionref ref="ssdrotate_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsensorrotate0_00_phys">
+		 <physvol name="ssdsensorrotate00_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate00_pos"/>
 			<rotationref ref="ssdrotate0_0_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensorrotate0_10_phys">
+		 <physvol name="ssdsensorrotate10_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate10_pos"/>
 			<rotationref ref="ssdrotate0_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensorrotate0_20_phys">
+		 <physvol name="ssdsensorrotate20_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate20_pos"/>
 			<rotationref ref="ssdrotate0_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdbkplnrotate0_0_phys">
+		 <physvol name="ssdbkplnrotate0_phys">
 			<volumeref ref="ssdrotate_bkpln_vol"/>
 			<positionref ref="ssdbkplnrotate0_pos"/>
 		 </physvol>
-		 <physvol name="ssdbkplnrotate0_1_phys">
+		 <physvol name="ssdbkplnrotate1_phys">
 			<volumeref ref="ssdrotate_bkpln_vol"/>
 			<positionref ref="ssdbkplnrotate1_pos"/>
 		 </physvol>
@@ -4639,35 +4632,35 @@
 	  <volume name="ssdStationrotate1_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStationrotate_box"/>
-		 <physvol name="ssdrotate1_USMylarWindow_phys">
+		 <physvol name="ssdrotate_USMylarWindow_phys">
 			<volumeref ref="ssdrotate_MylarWindow_vol"/>
 			<positionref ref="ssdrotate_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssdrotate1_DSMylarWindow_phys">
+		 <physvol name="ssdrotate_DSMylarWindow_phys">
 			<volumeref ref="ssdrotate_MylarWindow_vol"/>
 			<positionref ref="ssdrotate_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsensorrotate1_00_phys">
+		 <physvol name="ssdsensorrotate00_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate00_pos"/>
 			<rotationref ref="ssdrotate1_0_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensorrotate1_10_phys">
+		 <physvol name="ssdsensorrotate10_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate10_pos"/>
 			<rotationref ref="ssdrotate1_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensorrotate1_20_phys">
+		 <physvol name="ssdsensorrotate20_phys">
 			<volumeref ref="ssdrotate_vol"/>
 			<positionref ref="ssdrotate20_pos"/>
 			<rotationref ref="ssdrotate1_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdbkplnrotate1_0_phys">
+		 <physvol name="ssdbkplnrotate0_phys">
 			<volumeref ref="ssdrotate_bkpln_vol"/>
 			<positionref ref="ssdbkplnrotate0_pos"/>
 		 </physvol>
-		 <physvol name="ssdbkplnrotate1_1_phys">
+		 <physvol name="ssdbkplnrotate1_phys">
 			<volumeref ref="ssdrotate_bkpln_vol"/>
 			<positionref ref="ssdbkplnrotate1_pos"/>
 		 </physvol>
@@ -4676,50 +4669,50 @@
 	  <volume name="ssdStationdouble0_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStationdouble_box"/>
-		 <physvol name="ssddouble0_USMylarWindow_phys">
+		 <physvol name="ssddouble_USMylarWindow_phys">
 			<volumeref ref="ssddouble_MylarWindow_vol"/>
 			<positionref ref="ssddouble_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssddouble0_DSMylarWindow_phys">
+		 <physvol name="ssddouble_DSMylarWindow_phys">
 			<volumeref ref="ssddouble_MylarWindow_vol"/>
 			<positionref ref="ssddouble_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsensordouble0_00_phys">
+		 <physvol name="ssdsensordouble00_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble00_pos"/>
 			<rotationref ref="ssddouble0_0_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble0_01_phys">
+		 <physvol name="ssdsensordouble01_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble01_pos"/>
 			<rotationref ref="ssddouble0_0_1_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble0_10_phys">
+		 <physvol name="ssdsensordouble10_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble10_pos"/>
 			<rotationref ref="ssddouble0_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble0_11_phys">
+		 <physvol name="ssdsensordouble11_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble11_pos"/>
 			<rotationref ref="ssddouble0_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble0_20_phys">
+		 <physvol name="ssdsensordouble20_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble20_pos"/>
 			<rotationref ref="ssddouble0_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble0_21_phys">
+		 <physvol name="ssdsensordouble21_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble21_pos"/>
 			<rotationref ref="ssddouble0_2_1_rot"/>
 		 </physvol>
-		 <physvol name="ssdbkplndouble0_0_phys">
+		 <physvol name="ssdbkplndouble0_phys">
 			<volumeref ref="ssddouble_bkpln_vol"/>
 			<positionref ref="ssdbkplndouble0_pos"/>
 		 </physvol>
-		 <physvol name="ssdbkplndouble0_1_phys">
+		 <physvol name="ssdbkplndouble1_phys">
 			<volumeref ref="ssddouble_bkpln_vol"/>
 			<positionref ref="ssdbkplndouble1_pos"/>
 		 </physvol>
@@ -4728,50 +4721,50 @@
 	  <volume name="ssdStationdouble1_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStationdouble_box"/>
-		 <physvol name="ssddouble1_USMylarWindow_phys">
+		 <physvol name="ssddouble_USMylarWindow_phys">
 			<volumeref ref="ssddouble_MylarWindow_vol"/>
 			<positionref ref="ssddouble_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssddouble1_DSMylarWindow_phys">
+		 <physvol name="ssddouble_DSMylarWindow_phys">
 			<volumeref ref="ssddouble_MylarWindow_vol"/>
 			<positionref ref="ssddouble_DSMylarWindow_pos"/>
 		 </physvol>
 
-		 <physvol name="ssdsensordouble1_00_phys">
+		 <physvol name="ssdsensordouble00_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble00_pos"/>
 			<rotationref ref="ssddouble1_0_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble1_01_phys">
+		 <physvol name="ssdsensordouble01_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble01_pos"/>
 			<rotationref ref="ssddouble1_0_1_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble1_10_phys">
+		 <physvol name="ssdsensordouble10_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble10_pos"/>
 			<rotationref ref="ssddouble1_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble1_11_phys">
+		 <physvol name="ssdsensordouble11_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble11_pos"/>
 			<rotationref ref="ssddouble1_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble1_20_phys">
+		 <physvol name="ssdsensordouble20_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble20_pos"/>
 			<rotationref ref="ssddouble1_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssdsensordouble1_21_phys">
+		 <physvol name="ssdsensordouble21_phys">
 			<volumeref ref="ssddouble_vol"/>
 			<positionref ref="ssddouble21_pos"/>
 			<rotationref ref="ssddouble1_2_1_rot"/>
 		 </physvol>
-		 <physvol name="ssdbkplndouble1_0_phys">
+		 <physvol name="ssdbkplndouble0_phys">
 			<volumeref ref="ssddouble_bkpln_vol"/>
 			<positionref ref="ssdbkplndouble0_pos"/>
 		 </physvol>
-		 <physvol name="ssdbkplndouble1_1_phys">
+		 <physvol name="ssdbkplndouble1_phys">
 			<volumeref ref="ssddouble_bkpln_vol"/>
 			<positionref ref="ssdbkplndouble1_pos"/>
 		 </physvol>
