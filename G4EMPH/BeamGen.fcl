@@ -54,4 +54,16 @@ kaonminus_beamgen: @local::standard_beamgen
 kaonminus_beamgen.particleType: "kaon"
 kaonminus_beamgen.PMean: -31.
 
+geantino_beamgen: @local::standard_beamgen
+geantino_beamgen.particleType: "geantino"
+geantino_beamgen.Xmean: 0.0
+geantino_beamgen.Xsigma: 50.0
+geantino_beamgen.Ymean: 1.0
+geantino_beamgen.Ysigma: 50.0
+geantino_beamgen.PMean: 1.0
+geantino_beamgen.PXmean: 1.8e-9
+geantino_beamgen.PYmean: -3.1e-9
+
+
+
 END_PROLOG
