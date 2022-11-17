@@ -3,7 +3,7 @@ include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
 
-build_plugin(MakeSSDClusters "module"
+cet_build_plugin(MakeSSDClusters "module"
 	LIBRARIES PRIVATE
 	ChannelMap
 	ChannelMap_service
