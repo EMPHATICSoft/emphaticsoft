@@ -104,20 +104,32 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
 		  std::vector<rb::SSDCluster>* sensClusters,
 		  int station, int sensor)
 { 
-  int prevRow=-5;
-  int curRow=0;
+  int prevRow=sensDigits[0]->Row();
+  int curRow;
+  rb::SSDCluster ssdClust;
   // loop over digits on sensor
   for (auto & dig : sensDigits) {
     curRow = dig->Row();
+
+    // if gap too big, push cluster and clear it
+    if ( curRow-prevRow > 1) {
+      ssdClust.SetStation(station);
+      ssdClust.SetSensor(sensor);
+      sensClusters->push_back(ssdClust);
+      ssdClust = rb::SSDCluster();
+    }
+    // add current digit to cluster
+    ssdClust.Add(dig);
+    prevRow=curRow;
   }
 
   // Dumb clustering - just copy all digits into one cluster for sensor
-  rb::SSDCluster ssdClust(sensDigits);
-  ssdClust.SetStation(station);
-  ssdClust.SetSensor(sensor);
-  if (ssdClust.NDigits()>0) {
-    sensClusters->push_back(ssdClust);
-  }
+  // rb::SSDCluster ssdClust(sensDigits);
+  // ssdClust.SetStation(station);
+  // ssdClust.SetSensor(sensor);
+  // if (ssdClust.NDigits()>0) {
+  //   sensClusters->push_back(ssdClust);
+  // }
 
 }
 
@@ -148,6 +160,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	for (int sensor=0; sensor<6; ++sensor){
 	  // This needs to be replaced with FormClusters() function that creates multiple clusters per sensor (as needed)
 	  // If we have multiple clusters for a given station,sensor, add ID in
+	  // Don't bother to cluster if we didn't have any raw digits
+	  if (digitList[sta][sensor].size()==0)
+	    continue;
 	  clusters.clear();
 	  // FormClusters() assumes digits are ordered by row
 	  this->SortByRow(digitList[sta][sensor]);
@@ -159,6 +174,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	    width.push_back(clusters[i].Width());
 	    timerange.push_back(clusters[i].TimeRange());
 	    clusterv->push_back(clusters[i]);
+	    //std::cout<<clusters[i]<<std::endl;	    
 	  }
 	  // Trial form cluster here before splitting off into function
 	  
