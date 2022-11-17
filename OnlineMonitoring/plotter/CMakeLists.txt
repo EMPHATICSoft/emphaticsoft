@@ -20,6 +20,7 @@ cet_build_plugin(OnMonPlotter art::module
   RawData
   RecoBase
   ChannelMap
+  ChannelMap_service
   RunHistory
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger
