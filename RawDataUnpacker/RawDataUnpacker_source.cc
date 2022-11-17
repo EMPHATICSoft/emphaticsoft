@@ -29,7 +29,7 @@
 #include "RawDataUnpacker/Unpacker.h"
 #include "RawDataUnpacker/RawDataUnpacker_source.h"
 
-//#include "ChannelMap/ChannelMapService.h"
+//#include "ChannelMap/service/ChannelMapService.h"
 
 #include "TFile.h"
 #include "TBranch.h"

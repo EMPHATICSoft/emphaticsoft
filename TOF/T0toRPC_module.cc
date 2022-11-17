@@ -24,7 +24,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMapService.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
