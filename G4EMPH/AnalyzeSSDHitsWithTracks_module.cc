@@ -150,7 +150,7 @@ namespace emph {
       std::ostringstream fNamePResol1StrStr; fNamePResol1StrStr << "./PResol1Tuple_V1_" << fRun << "_" << fTokenJob << ".txt";
       std::string fNamePResol1Str(fNamePResol1StrStr.str());
       fFOutA1.open(fNamePResol1Str.c_str());
-      fFOutA1 << " subRun evt nTr nTr1G tr x y z pNorm slx01 slx23 slx45 slx01D slx23D slx45D pMeas pMeasD ";
+      fFOutA1 << " subRun evt nTr nTr1G tr x y z pNorm pTrans slx01 slx23 slx45 slx01D slx23D slx45D pMeas pMeasD ";
       fFOutA1 << " " << std::endl;
       
       fFilesAreOpen = true;
@@ -204,7 +204,12 @@ namespace emph {
       double slx01D=DBL_MAX; double slx23D=DBL_MAX; double slx45D=DBL_MAX;
       for (std::vector<sim::Track>::const_iterator iTrack = theTracks.cbegin(); iTrack != theTracks.cend(); iTrack++ ) {
 	const double pMom = std::sqrt(iTrack->GetPx()*iTrack->GetPx() +  iTrack->GetPy()*iTrack->GetPy() + iTrack->GetPz()*iTrack->GetPz());
-        if (pMom > 250.) nTr1G++;
+        if (pMom > 100.) nTr1G++;
+      }
+      for (std::vector<sim::Track>::const_iterator iTrack = theTracks.cbegin(); iTrack != theTracks.cend(); iTrack++ ) {
+	const double pMom = std::sqrt(iTrack->GetPx()*iTrack->GetPx() +  iTrack->GetPy()*iTrack->GetPy() + iTrack->GetPz()*iTrack->GetPz());
+	const double pTrans = std::sqrt(iTrack->GetPx()*iTrack->GetPx() +  iTrack->GetPy()*iTrack->GetPy());
+        if (pMom < 100.) continue; // skip the low energy tracks.. We have them tally above. 
 	std::vector<double> xi = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX };
 	std::vector<double> xiD(xi);
 	for (size_t kH = 0; kH != theSSDHits.size(); kH++) {
@@ -233,7 +238,7 @@ namespace emph {
 	}
 	fFOutA1 << prologStr << " " << nTr1G;
 	fFOutA1 << " " << iTrack->GetTrackID() << " " << iTrack->GetX() << " " << iTrack->GetY() << " " << iTrack->GetZ();
-	fFOutA1 << " " << pMom << " " << slx01 << " " << slx23 << " " << slx45;
+	fFOutA1 << " " << pMom << " " << pTrans << " " << slx01 << " " << slx23 << " " << slx45;
         const double pMeas = ((slx23 != DBL_MAX) && (slx45 != DBL_MAX)) ? 1.0/(slx45 - slx23) : DBL_MAX;
         const double pMeasD = ((slx23D != DBL_MAX) && (slx45D != DBL_MAX)) ? 1.0/(slx45D - slx23D) : DBL_MAX;
 	fFOutA1 << " " << slx01D << " "<< slx23D << " "<< slx45D << " "<< pMeas << " " << pMeasD << std::endl; 

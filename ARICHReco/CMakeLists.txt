@@ -14,7 +14,8 @@ art_make_library ( SOURCE ${src_files}
 		   RawData
 		   RecoBase
 		   ChannelMap
-			RunHistory
+		   ChannelMap_service
+		   RunHistory
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
                    ROOT::Hist
@@ -25,7 +26,8 @@ cet_build_plugin(ARICHReco art::module
     RawData
     RecoBase
     ChannelMap
-	 RunHistory
+    ChannelMap_service
+    RunHistory
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist

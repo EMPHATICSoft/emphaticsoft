@@ -38,6 +38,9 @@ namespace emph
     fMagneticField = new emph::EMPHATICMagneticField(fFileName);
 */
     fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
+    // Temporary tweak and study: assume we have no ziptrack data for the outer core.. 
+    // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
+//    fMagneticField->setUseOnlyTheCentralPart(true);
     
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     

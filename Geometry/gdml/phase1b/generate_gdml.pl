@@ -13,6 +13,9 @@
 # If you are playing with different geometries, you can use the
 # suffix command to help organize your work.
 
+# Manuals can be found at DocDB 1242
+# Visualization of SSDs can be found at DocDB 1260
+
 use Getopt::Long;
 use Math::BigFloat;
 use GDMLUtil;
@@ -21,7 +24,8 @@ Math::BigFloat->precision(-10);
 GetOptions( "help|h" => \$help,
 	"suffix|s:s" => \$suffix,
 	"output|o:s" => \$output,
-	"helpcube|c" => \$helpcube);
+	"target|t:i" => \$target,
+	"magnet|m:i" => \$magnet);
 
 if ( defined $help )
 {
@@ -43,12 +47,15 @@ else
 	$suffix = "-" . $suffix;
 }
 
+
 # constants for T0
 $T0_switch = 1;
 $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
+@target_matt = ("Graphite", "CH2");
+$target_v = 0;
 
 # constants for MAGNET
 $magnet_switch = 1;
@@ -64,6 +71,7 @@ $nstation_type = 3; # types of station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
 @SSD_angle = (0, 270, 0, 270, 315, 0, 270, 315, 0, 270, 270, 90, 0, 180, 225, 45, 270, 90, 0, 180, 225, 45); # angle from measuring Y
 #Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
+# Visualization of SSDs can be found at DocDB 1260
 @SSD_bkpln= (1, 2, 2); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
 @SSD_station = (2, 2, 2); # num. of stations
@@ -86,6 +94,34 @@ $LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
 
+if ( defined $magnet )
+{
+	# If the user requested help, print the usage notes and exit.
+	if($magnet == 0){
+		$magnet_switch = 0;
+	}
+	elsif($magnet == 1){
+		$magnet_switch = 1;
+	}
+	else{
+		print "wrong magnet parameter\n";
+	}
+}
+
+if ( defined $target)
+{
+	# If the user requested help, print the usage notes and exit.
+	if($target == 0){
+		$target_switch = 0;
+	}
+	elsif($target < 0 || $target > 2){
+		print "wrong target parameter\n";
+	}
+	else{
+		$target_v = $target - 1;
+	}
+}
+
 # run the sub routines that generate the fragments
 
 gen_Define(); 	 # generates definitions at beginning of GDML
@@ -107,8 +143,10 @@ exit;
 
 sub usage()
 {
-	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-s|--suffix <string>]\n";
+	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-t|--target <target number>] [-m|--magnet <0 or 1>] [-s|--suffix <string>]\n";
 	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
+	print "       -t 0 is no target, 1 is graphite, 2 is CH2; Default is graphite\n";
+	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -h prints this message, then quits\n";
 }
@@ -406,7 +444,7 @@ EOF
 	 <quantity name="LG_length" value="340" unit="mm" />
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
-tation_type <quantity name="LG_width1" value="135" unit="mm" />
+	 <quantity name="LG_width1" value="135" unit="mm" />
 	 <constant name="LG_angle_v" value="3.7022129"/>
 	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
 
@@ -545,7 +583,7 @@ EOF
 EOF
 	for($i = 0; $i< $magnet_layer; ++$i){
 		print SOL <<EOF;
-	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" unit="deg"/>
+	 <tube name="magnet_tube@{[ $i ]}" rmin="0.5*magnetSideIHeight@{[ $i ]}" rmax="0.5*magnetSideOHeight" z="magnetSideWidth" deltaphi="360" aunit="deg"/>
 EOF
 	}
 	print SOL <<EOF;
@@ -634,7 +672,7 @@ EOF
 
 	 <!-- BELOW IS FOR LG -->
 
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" unit="rad"/>
+	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="pi/2." phi="pi/2." aunit="rad" lunit="mm"/>
 	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
 	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
 	 <union name="LG_union">
@@ -646,8 +684,8 @@ EOF
 		<positionref ref="LG_para_pos" />
 	 </union>	 
 
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" unit="deg"/>
-	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" unit="deg"/>
+	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
+	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" aunit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
 
@@ -704,7 +742,7 @@ EOF
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-	 <materialref ref="Graphite"/>
+	 <materialref ref="@{[ $target_matt[$target_v] ]}"/>
 	 <solidref ref="target_box"/>
   </volume>
 
@@ -973,11 +1011,11 @@ EOF
 	  <volume name="ssdStation@{[ $station_type[$i] ]}@{[ $l ]}_vol">
 		 <materialref ref="Air"/>
 		 <solidref ref="ssdStation@{[ $station_type[$i] ]}_box"/>
-		 <physvol name="ssd@{[ $station_type[$i] ]}_USMylarWindow_phys">
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_USMylarWindow_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}_USMylarWindow_pos"/>
 		 </physvol>
-		 <physvol name="ssd@{[ $station_type[$i] ]}_DSMylarWindow_phys">
+		 <physvol name="ssd@{[ $station_type[$i] ]}@{[ $l ]}_DSMylarWindow_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}_DSMylarWindow_pos"/>
 		 </physvol>
@@ -987,7 +1025,7 @@ EOF
 					for($k = 0; $k < $SSD_par[$i]; ++$k){
 
 						print DET <<EOF;
-		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_phys">
+		 <physvol name="ssdsensor@{[ $station_type[$i] ]}@{[ $l ]}@{[ $j ]}@{[ $k ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$i] ]}@{[ $j ]}@{[ $k ]}_pos"/>
 			<rotationref ref="ssd@{[ $station_type[$i] ]}@{[ $l ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
@@ -997,7 +1035,7 @@ EOF
 				}
 				for($j = 0; $j < $SSD_bkpln[$i]; ++$j){
 					print DET <<EOF;
-		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_phys">
+		 <physvol name="ssdbkpln@{[ $station_type[$i] ]}@{[ $l ]}@{[ $j ]}_phys">
 			<volumeref ref="ssd@{[ $station_type[$i] ]}_bkpln_vol"/>
 			<positionref ref="ssdbkpln@{[ $station_type[$i] ]}@{[ $j ]}_pos"/>
 		 </physvol>

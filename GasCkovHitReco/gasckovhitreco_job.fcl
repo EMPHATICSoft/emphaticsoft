@@ -1,10 +1,15 @@
 #include "GasCkovHitReco.fcl"
 
+#include "ChannelMap.fcl"
+#include "RunHistory.fcl"
+
 process_name: GasCkovHitReco
 
 services:
 {
   TFileService: { fileName: "gasckovhitreco_hist_r%r_s%s.root" closeFileFast: false }
+  ChannelMap: @local::standard_channelmap
+  RunHistory: {}
 }
 
 source:

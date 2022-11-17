@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_ssdclust:
+{
+  module_type: MakeSSDClusters
+  SSDRawLabel: "raw:SSD"
+}
+
+END_PROLOG
