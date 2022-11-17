@@ -6,6 +6,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <climits>
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
 //#include "art/Framework/IO/Sources/SourceHelper.h"
@@ -230,7 +231,7 @@ namespace emph {
   /***************************************************************************/
   void BeamGen::GetPID() 
   {
-    fPID = 0;
+    fPID = INT_MAX;
     if (fParticleType == "proton") {
       fPID = kProton;
     }
@@ -243,8 +244,11 @@ namespace emph {
     else if (fParticleType == "electron") {
       fPID = kElectron;
     }
-    if (fPID == 0) {
-      std::cerr << "ParticleType must be set to \"proton\", \"kaon\", "
+     else if (fParticleType == "geantino") {
+      fPID = 0;
+    }
+   if (fPID == INT_MAX) {
+      std::cerr << "ParticleType must be set to \"geantino\", \"proton\", \"kaon\", "
 		<< "\"pion\" or \"electron\"!" << std::endl;
       std::abort();
     }
