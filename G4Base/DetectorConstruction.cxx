@@ -11,8 +11,8 @@
 
 #include "G4Base/DetectorConstruction.h"
 #include "G4Base/GlobalMagneticField.h"
-#include "MagneticField/MagneticFieldService.h"
-#include "Geometry/GeometryService.h"
+#include "MagneticField/service/MagneticFieldService.h"
+#include "Geometry/service/GeometryService.h"
 
 #include "Geant4/G4VPhysicalVolume.hh"
 #include "Geant4/G4GDMLParser.hh"

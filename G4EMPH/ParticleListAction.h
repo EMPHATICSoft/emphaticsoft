@@ -11,7 +11,7 @@
 #define G4EMPH_ParticleListAction_h
 
 #include "G4Base/UserAction.h"
-#include "Geometry/GeometryService.h"
+#include "Geometry/service/GeometryService.h"
 
 #include "Geant4/globals.hh"
 

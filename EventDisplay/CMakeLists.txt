@@ -2,11 +2,12 @@ include(ArtDictionary)
 include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
-cet_find_package(art REQUIRED)
-cet_find_package(artdaq REQUIRED)
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT COMPONENTS Tree Gui REQUIRED PUBLIC)
-cet_find_package(ROOT COMPONENTS Core Graf Graf3d Rint REQUIRED)
+find_package(art REQUIRED)
+find_package(art_root_io REQUIRED)
+find_package(artdaq REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT COMPONENTS Tree Gui REQUIRED PUBLIC)
+find_package(ROOT COMPONENTS Core Graf Graf3d Rint REQUIRED)
 
 include(CetRootCint)
 
@@ -21,24 +22,29 @@ include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 set( PACKAGE EventDisplay )
 
-cet_rootcint( ${PACKAGE} )
+set( CET_DICT_FUNCTIONS TRUE)
+
+#cet_rootcint( ${PACKAGE} )
 
 art_make_library( LIBRARY_NAME ${PACKAGE}
-  SOURCE ${src_files} ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
-  LIBRARIES GeometryDrawingOptions_service
-  RecoDrawingOptions_service
-  PlotDrawingOptions_service
-  RawDrawingOptions_service
-  SimulationDrawingOptions_service
-  EventDisplayBase_Colors_service
-  SimulationBase
-  EventDisplayBase
+  SOURCE ${src_files} # ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
+  LIBRARIES 
+  #GeometryDrawingOptions_service
+#  RecoDrawingOptions_service
+#  PlotDrawingOptions_service
+#  RawDrawingOptions_service
+#  SimulationDrawingOptions_service
+#  EventDisplayBase_Colors_service
+#  SimulationBase
+#  EventDisplayBase
   Geometry
   Geometry_service
+  RecoBase
   art::Framework_Core
   art::Framework_Principal
   art::Persistency_Common  
   art::Utilities 
+  art_root_io::RootInput_source
   canvas::canvas
   messagefacility::MF_MessageLogger
   fhiclcpp::fhiclcpp
@@ -46,27 +52,61 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
   cetlib_except::cetlib_except
   ROOT::X3d
   ROOT::Geom
+  ROOT::Eve
+  ROOT::EG
+  ROOT::Gui
+  ROOT::RGL
   )
 
-simple_plugin(EVD module
-              EventDisplay
-	      Geometry
-	      Geometry_service
-              EventDisplayBase
-              art::Framework_Core
-	      art::Framework_Principal
-              art::Persistency_Common  
-              art::Utilities 
-	      canvas::canvas
-              messagefacility::MF_MessageLogger
-	      fhiclcpp::fhiclcpp
-              cetlib::cetlib
-	      cetlib_except::cetlib_except
-	      ROOT::Geom
-	      ROOT::X3d
-	      BASENAME_ONLY
+cet_build_plugin(EvtDisplayService art::service
+  IMPL_SOURCE EvtDisplayService_service.cc
+  LIBRARIES 
+  EventDisplay
+  Geometry
+  RecoBase
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common  
+  art::Framework_Services_Registry
+  art_root_io::RootInput_source
+  ROOT::X3d
+  ROOT::Geom
+  ROOT::Eve
+  ROOT::EG
+  ROOT::Gui
+  ROOT::RGL
+  BASENAME_ONLY
+)
+
+cet_build_plugin(EventDisplay3D art::module
+  LIBRARIES REG
+  EventDisplay
+  EvtDisplayService_service
+  Geometry
+  Geometry_service
+  RecoBase
+#  EventDisplayBase
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common  
+  art::Utilities 
+  art_root_io::RootInput_source
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  ROOT::Geom
+  ROOT::X3d
+  ROOT::Eve
+  ROOT::EG
+  ROOT::RGL
+  ROOT::Gui
+  BASENAME_ONLY
 )
 
 install_headers()
 install_fhicl()
 install_source()
+
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::EventDisplay)

@@ -17,7 +17,7 @@
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-#include "ChannelMap/ChannelMapService.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/SSDCluster.h"
 

@@ -26,7 +26,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMapService.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "OnlineMonitoring/plotter/HistoSet.h"
 #include "OnlineMonitoring/util/HistoTable.h"

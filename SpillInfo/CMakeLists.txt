@@ -3,9 +3,9 @@ include(ArtMake)
 
 FILE( GLOB src_files *.cc )
 
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
-cet_find_package(art REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
+find_package(art REQUIRED)
 
 include_directories($ENV{ART_INC})
 include_directories($ENV{CETLIB_EXCEPT_INC})
@@ -27,10 +27,11 @@ art_make_library ( SOURCE ${src_files}
 		   art::Framework_Services_Registry
 		   RecoBase
 		   ifbeam
+		   IFBeam
 		   IFBeam_service
 )
 
-build_plugin(SpillInfo "module"
+cet_build_plugin(SpillInfo art::module
   LIBRARIES PRIVATE
   art::Framework_Core
   art::Framework_Principal
@@ -38,6 +39,7 @@ build_plugin(SpillInfo "module"
   art::Persistency_Common
   RecoBase
   ifbeam
+  IFBeam
   IFBeam_service
 )
 

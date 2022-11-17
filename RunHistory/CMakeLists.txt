@@ -1,7 +1,7 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_library(LIBWDA NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH)
+find_library(LIBWDA NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH)
 
 include_directories( $ENV{LIBWDA_FQ_DIR}/include) 
 include_directories( $ENV{ART_CPP_DB_INTERFACES_INC}) 
@@ -18,17 +18,8 @@ art_make_library(
     messagefacility::MF_MessageLogger
   )
 
-simple_plugin( RunHistory service
-  LIBRARIES
-  RunHistory
-  art::Framework_Core
-  art::Framework_Principal
-  art::Framework_Services_Registry
-  messagefacility::MF_MessageLogger
-  BASENAME_ONLY
-)
-
 install_headers()
 install_source()
 install_fhicl()
 
+add_subdirectory(service)
