@@ -21,5 +21,8 @@
   <class name="sim::Track"        />
   <class name="std::vector<sim::Track>"        />
   <class name="art::Wrapper< std::vector<sim::Track>    >"/>
+  <class name="sim::TOPAZLGHit"        />
+  <class name="std::vector<sim::TOPAZLGHit>"        />
+  <class name="art::Wrapper< std::vector<sim::TOPAZLGHit>    >"/>
  
 </lcgdict>
