@@ -32,6 +32,7 @@
 #include "Geant4/G4EnergyLossForExtrapolator.hh"
 #include "Geant4/G4SystemOfUnits.hh"
 #include "Geant4/globals.hh"
+#include "Geant4/G4Poisson.hh"
 
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -53,9 +54,10 @@ namespace emph
     fCritAngleTotalInt(std::asin(1.000293/fRefractionIndex)), 
     fNumPhotPerMm(4.8 * 370 * 0.1), // assume a PMT bandwith of 300 nm to 650 nm, approximetl4 4.8 eV. See PDG on Cerenkov radiation
                                    // last factor is from cm to mm.   
-    fKnobAtt(0.9), //to be tuned. 
+    fKnobAttenuation(0.9), //to be tuned. 
+    fKnobCalibration(0.9), //to be tuned. 
     fZGlassUpstreamFace(DBL_MAX),   // set when a track with a momentum above ~100 Mev enters LG_glass Event dependant. 
-    fGlassBlockLength(340.), 
+    fGlassBlockLength(340.), fGeantinoInGlass(false),
     fEvtNum(0), // The event number. 
     fBlockNum(INT_MAX), // the Lead glass block number, if the a Geantino enters the lead glass. 
     fBlockNumExit(INT_MAX), // the Lead glass block number, for the exiting Geantino 
@@ -78,11 +80,14 @@ namespace emph
 //    fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     std::cerr << " TOPAZLGHitAction::Config opening files, if not already done..  " << std::endl;
     if ( fFOutStudy1.is_open()) return;
+    fKnobAttenuation = pset.get<double>("G4AttenuationTOPAZLG", 0.9); 
+                 // pure number, the probability for a photon to hit the photocathode, if the photonm is emitted close to the downstream face    
+    fKnobCalibration = pset.get<double>("G4CalibTOPAZLG", 1.0); // overall conversion of optical photons to GeV. 
     std::string aTokenJob = pset.get< std::string >("G4TokenTOPAZLGOut", "Undef");
     std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHLGHitTuple_V1_" << aTokenJob << ".txt";
     std::string fNameStr(fNameStrStr.str());
     fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " evt blkNum track xm ym zm nSteps nPhot Edep  " << std::endl;
+    fFOutStudy1 << " evt blkNum xm ym zm nSteps nPhot Edep EFrac " << std::endl;
     std::ostringstream fNameStrStr2; fNameStrStr2 << "./G4EMPHGeantinoTuple_V1_" << aTokenJob << ".txt";
     std::string fNameStr2(fNameStrStr2.str());
     fGeantinoStudy1.open(fNameStr2.c_str());
@@ -109,8 +114,7 @@ namespace emph
   void TOPAZLGHitAction::PreTrackingAction(const G4Track* aTrack) //track)
   {
   
-    fEvtNum = fRunManager->GetCurrentEvent()->GetEventID();
-    fBlockNum = INT_MAX; // the Lead glass block number, if the a Geantino enters the lead glass. 
+    fEvtNum = fRunManager->GetCurrentEvent()->GetEventID(); fGeantinoInGlass = false;
     const G4ThreeVector pos = aTrack->GetPosition();
     int aPDG = aTrack->GetDefinition()->GetPDGEncoding();
     if (aPDG == 0) { // geantino  Could use the G4Geantino class.. Too lazy.. 
@@ -147,7 +151,7 @@ namespace emph
     G4Track *track = step->GetTrack(); // to be used later... 
     int aPDG = track->GetDefinition()->GetPDGEncoding();
     if (aPDG == 0) { 
-      if (fEvtNum < 5) this->SteppingActionGeantinoASCIIDump(step); 
+//      if (fEvtNum < 25) this->SteppingActionGeantinoASCIIDump(step); 
       this->SteppingActionGeantinoStat(step); 
     } else {
       const G4ParticleDefinition *def = track->GetParticleDefinition();
@@ -194,12 +198,16 @@ namespace emph
 	  G4ThreeVector trans = postPhysVolume->GetTranslation();
 	  const G4RotationMatrix *aRot = postPhysVolume->GetRotation();
 	  std::cerr << " ... Translation " << trans << std::endl;
-	  CLHEP::Hep3Vector rotColx = aRot->colX();
-	  std::cerr << " Rotation, column X " << rotColx[0] << ", " << rotColx[1] << ", " << rotColx[2] << std::endl;
-	  CLHEP::Hep3Vector rotColy = aRot->colY();
-	  std::cerr << " Rotation, column Y " << rotColy[0] << ", " << rotColy[1] << ", " << rotColy[2] << std::endl;
-	  CLHEP::Hep3Vector rotColz = aRot->colZ();
-	  std::cerr << " Rotation, column Z " << rotColz[0] << ", " << rotColz[1] << ", " << rotColz[2] << std::endl;
+	  if (aRot != nullptr) { 
+	    CLHEP::Hep3Vector rotColx = aRot->colX();
+	    std::cerr << " Rotation, column X " << rotColx[0] << ", " << rotColx[1] << ", " << rotColx[2] << std::endl;
+	    CLHEP::Hep3Vector rotColy = aRot->colY();
+	    std::cerr << " Rotation, column Y " << rotColy[0] << ", " << rotColy[1] << ", " << rotColy[2] << std::endl;
+	    CLHEP::Hep3Vector rotColz = aRot->colZ();
+	    std::cerr << " Rotation, column Z " << rotColz[0] << ", " << rotColz[1] << ", " << rotColz[2] << std::endl;
+	  } else {
+	     std::cerr << " ... no rotation " << trans << std::endl;
+	  }  
 	  const G4LogicalVolume *logicVolTmp = prePhysVolume->GetLogicalVolume();
 	  const G4VSolid *solidVolTmp = logicVolTmp->GetSolid();
 //	const double cubicVolume = solidVolTmp->GetCubicVolume(); // Not available in this old version, my guess..  
@@ -243,68 +251,92 @@ namespace emph
       if (preVolName.find("LG") == 0) { 
 //        std::cerr << "  ...... into  " << postVolName << " from " << preVolName << " Z-Pre " 
 //	                               << prePos[2] << " Z-post " << postPos << std::endl;
-        if ((postVolName.find("LG_glass") == 0) && (preVolName.find("LG_block") == 0)) {
+        if ((!fGeantinoInGlass) && ((postVolName.find("LG_glass") == 0) && (preVolName.find("LG_block") == 0))) {
            fBlockNum = this->findBlockNumberFromName(prePhysVolume);
-           fXLGUpstr = postPos[0]; fYLGUpstr = postPos[1]; fZLGUpstr = postPos[2] - ZLGOffset; 
+           fXLGUpstr = prePos[0]; fYLGUpstr = prePos[1]; fZLGUpstr = prePos[2] - ZLGOffset; 
 //           std::cerr << "  ...... entering " << postVolName << " from " << preVolName <<  " block number " << fBlockNum << std::endl;
+           fGeantinoInGlass = true;
 	   return;
         } 
-        if (((preVolName.find("LG_glass") == 0) && (postVolName.find("LG_block") == 0)) || 
-	    ((preVolName.find("LG_glass") == 0) && (postVolName.find("LG_protru") == 0))) {
+        if (fGeantinoInGlass && (((preVolName.find("LG_glass") == 0) && (postVolName.find("LG_block") == 0)) || 
+	    ((preVolName.find("LG_glass") == 0) && (postVolName.find("LG_protru") == 0)))) {
 //           std::cerr << "  ...... leaving" << preVolName << " to " << postVolName << "  at Z " << postPos[2] - ZLGOffset << std::endl;
- 	   fBlockNumExit = this->findBlockNumberFromName(prePhysVolume);
+	   if (postVolName.find("LG_block") == 0) fBlockNumExit = this->findBlockNumberFromName(prePhysVolume);
 	   if (fBlockNumExit == INT_MAX) fBlockNumExit = fBlockNum; // it meas we exited in thack of the same counter, via the protusion 
            fXLGDownstr = postPos[0]; fYLGDownstr = postPos[1]; fZLGDownstr = postPos[2] - ZLGOffset; return;
+        }
+        if (fGeantinoInGlass && (preVolName.find("LG_block") == 0) && (postVolName.find("LGCalo") == 0)) {
+//           std::cerr << "  ...... leaving" << preVolName << " to " << postVolName << "  at Z " << postPos[2] - ZLGOffset << std::endl;
+	   fBlockNumExit = this->findBlockNumberFromName(prePhysVolume);
+	   return;
         }
       }
    }
     
    void TOPAZLGHitAction::SteppingActionEMShowers(const G4Step* step) 
    {
+//      std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers, start...  " << std::endl;
       const G4Track *theTrack = step->GetTrack();
       const G4VPhysicalVolume *prePhysVolume = step->GetPreStepPoint()->GetPhysicalVolume();
       const G4VPhysicalVolume *postPhysVolume = step->GetPostStepPoint()->GetPhysicalVolume();
+      if (postPhysVolume == nullptr) return;
       std::string postVolName = postPhysVolume->GetName();
       std::string preVolName = prePhysVolume->GetName();      
       const G4ThreeVector posPost = step->GetPostStepPoint()->GetPosition();
-      const G4ThreeVector posPre = step->GetPostStepPoint()->GetPosition();
-      
-      if ((step->IsFirstStepInVolume()) && (postVolName.find("LG_glass")))  
-          fZGlassUpstreamFace = posPost[2];
-      
+// special case: the track enters a given block.       
+      if (step->IsFirstStepInVolume() && (preVolName.find("LG_block") == 0) && (postVolName.find("LG_glass") == 0)) {  
+//         std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers Entering glass via " << preVolName << std::endl;
+            fBlockNum = this->findBlockNumberFromName(prePhysVolume);
+            if (fZGlassUpstreamFace == DBL_MAX)  fZGlassUpstreamFace  = posPost[2]; // Assum that the upstream faces are all aligned 
+	    return;
+      }
       if ((postVolName.find("LG_glass") == std::string::npos) ||  
           (preVolName.find("LG_glass") == std::string::npos)) return;
       
+      const G4ThreeVector posPre = step->GetPostStepPoint()->GetPosition();
+//      std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers, got position.. " << std::endl;
+      
+//      std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers, In Lead glass..  " << std::endl;
       const G4ParticleDefinition *def = theTrack->GetParticleDefinition();
       const double mass = def->GetPDGMass();
       const double gamma = theTrack->GetTotalEnergy()/mass;
       const double beta = std::sqrt(std::abs(1.0 - 1./(gamma*gamma)));
       const double cosThetaCer = 1.0/(fRefractionIndex * beta);
+//      std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers, In Lead glass..beta  " << beta <<  " cosThetaCer " << cosThetaCer << std::endl;
       if (cosThetaCer >= 1.0) return; // too low energy
       const double sinThetaCerSq = 1.0 - cosThetaCer*cosThetaCer;
       const double numPhot = fNumPhotPerMm*sinThetaCerSq*step->GetStepLength();
+      // Now we need to fluctuate, Poisson distrb. 
+      
+      const double numPhotFluct = G4Poisson(numPhot);
+//      std::cerr << " ........... Number of photon emitted  " << numPhot <<  " fluctuated " << numPhotFluct << " over  " << step->GetStepLength() 
+//                << " fNumPhotPerMm " << fNumPhotPerMm << std::endl;
+      
       if (numPhot < 1 ) return;  // too short path length. 
       const double zFromCathode = std::max((posPost[2] - fZGlassUpstreamFace - fGlassBlockLength), fGlassBlockLength);
       const double attFactorTmp = 1.0 - std::abs(zFromCathode/fGlassBlockLength); 
       const double attFactor = std::max(0.25, attFactorTmp); // Crude model... 
-      int numPhotDetected = static_cast<int> (numPhot * attFactor * fKnobAtt);
-      fBlockNum = this->findBlockNumberFromName(prePhysVolume);
+      int numPhotDetected = static_cast<int> (numPhotFluct * attFactor * fKnobAttenuation);
       if (fBlockNum == INT_MAX) return;
       std::vector<sim::TOPAZLGHit>::iterator itSel = fTOPAZLGHits.end();
       for (std::vector<sim::TOPAZLGHit>::iterator it = fTOPAZLGHits.begin(); it != fTOPAZLGHits.end(); it++) {
-        if (fBlockNum == it->GetBlockNumber()) { itSel == it; break; } 
+        if (fBlockNum == it->GetBlockNumber()) { itSel = it; break; } 
       }
       if (itSel == fTOPAZLGHits.end()) {
+//        std::cerr << " Block " << fBlockNum << " is clean, first hit " << std::endl;
         sim::TOPAZLGHit aHit;
+	aHit.Reset();
 	aHit.SetBlockNumber(fBlockNum);
 	fTOPAZLGHits.push_back(aHit);
-        for (std::vector<sim::TOPAZLGHit>::iterator it = fTOPAZLGHits.begin(); it != fTOPAZLGHits.end(); it++) {
-          if (fBlockNum == it->GetBlockNumber()) { itSel == it; break; } 
-        }
+	itSel = fTOPAZLGHits.end();
+	itSel--;
       }
+//      std::cerr << " Block " << itSel->GetBlockNumber() << " finally, add  " 
+//               << numPhotDetected <<  " detected photons " << " steplength " << step->GetStepLength() << std::endl;
+//      std::cerr << " Current number of  Block with photons " <<   fTOPAZLGHits.size() << std::endl;    
       const double xMid = 0.5*(posPost[0] + posPre[0]); const double yMid = 0.5*(posPost[1] + posPre[1]); 
       const double zMid = 0.5*(posPost[2] + posPre[2]) - fZGlassUpstreamFace;
-      const double time = theTrack->GetLocalTime() + 0.5 * step->GetDeltaTime();
+      const double time = theTrack->GetLocalTime() + 0.5 * step->GetDeltaTime() - 4000./33. ; // the last time is some arbitrary trigger offset. 
       itSel->AddSomePhotons( numPhotDetected, xMid, yMid, zMid, time);
            
   }// end of TOPAZLGHitAction::SteppingAction
@@ -316,7 +348,24 @@ namespace emph
   // daughters yet.  That's done in this method.
   void TOPAZLGHitAction::EndOfEventAction(const G4Event*)
   {
-
+//    std::cerr << " TOPAZLGHitAction::EndOfEventAction Number of lead glass blocks with photons " << fTOPAZLGHits.size() << std::endl;
+//    fFOutStudy1 << " evt blkNum xm ym zm nSteps nPhot Edep EdepFrac " << std::endl;
+    int nPhotTotal = 0;
+    double eDepTotal = 0.;
+    int nStepTotal = 0;
+    for (std::vector<sim::TOPAZLGHit>::iterator it = fTOPAZLGHits.begin(); it != fTOPAZLGHits.end(); it++) {
+      if (it->GetNumPhot() < 1) continue;
+      it->FinalizeAndCalibrate(fKnobCalibration);
+      nPhotTotal += it->GetNumPhot(); eDepTotal += it->GetEDeposited(); nStepTotal += it->GetNumStep();
+    }
+    for (std::vector<sim::TOPAZLGHit>::iterator it = fTOPAZLGHits.begin(); it != fTOPAZLGHits.end(); it++) {
+     if (it->GetNumPhot() < 1) continue;
+     fFOutStudy1 << " " << fEvtNum << " " << it->GetBlockNumber() << " " << it->GetMeanX() << " " <<  it->GetMeanY() 
+                  << " " <<  it->GetMeanZ() << " " << it->GetNumStep() << " " 
+		  << it->GetNumPhot() << " " << it->GetEDeposited() << " " << it->GetEDeposited()/eDepTotal << std::endl;
+    }
+    fFOutStudy1 << " " << fEvtNum << " 9 0. 0. 0. " <<  nStepTotal << " " << nPhotTotal << " " << eDepTotal << " 1. " << std::endl;
+     
   }
 
   int TOPAZLGHitAction::findBlockNumberFromName (const G4VPhysicalVolume *pVol) {

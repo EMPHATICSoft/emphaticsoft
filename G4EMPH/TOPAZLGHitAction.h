@@ -22,7 +22,7 @@
 
 // G4EMPH includes
 #include "G4Base/UserAction.h"
-#include "Geometry/GeometryService.h"
+#include "Geometry/service/GeometryService.h"
 #include "Geant4/G4Step.hh"
 #include "Geant4/G4VPhysicalVolume.hh"
 
@@ -72,9 +72,11 @@ namespace emph {
     double fRefractionIndex; // The refraction index of the glass 
     double fCritAngleTotalInt; 
     double fNumPhotPerMm;
-    double fKnobAtt; // a know to tune the effective absorption in the glass.. 
+    double fKnobAttenuation; // a knob to tune the effective absorption in the glass.. 
+    double fKnobCalibration; // a knob to tune the effective conversion of the number of photons to GeV at the end of the event. 
     double fZGlassUpstreamFace;  // To compute the distance into the gass, to estimate the and verify the shower max. Event dependant.. 
     double fGlassBlockLength; // could should get it from geometry. 
+    bool fGeantinoInGlass;
     int fEvtNum; // The event number. 
     int fBlockNum; // the Lead glass block number, if the a Geantino enters the lead glass. 
     int fBlockNumExit; // the Lead glass block number, if the a Geantino enters the lead glass. 
