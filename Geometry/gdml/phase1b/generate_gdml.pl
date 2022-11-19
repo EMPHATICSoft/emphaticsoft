@@ -403,33 +403,33 @@ EOF
 
 	 <quantity name="RPC_PCB_thick" value="1" unit="mm" />
 	 <quantity name="RPC_acrylic_thick" value="1" unit="mm" />
-	 <quantity name="RPC_gas_width" value="960" unit="mm" />
-	 <quantity name="RPC_gas_height" value="250" unit="mm" />
+	 <quantity name="RPC_gas_width" value="960.5" unit="mm" />
+	 <quantity name="RPC_gas_height" value="250.5" unit="mm" />
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
 EOF
 		for($i = 0; $i < $n_cover; ++$i){
 			print DEF <<EOF;
 	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)" unit="mm"/>
-	 <position name="RPC_comb@{[ $i ]}_pos" z="(RPC_PCB_thick*($n_gas+1)+RPC_gas_thick*$n_gas+RPC_acrylic_thick*$n_gas*$n_cover+RPC_comb_thick)*($i-($n_cover-1)*0.5)" unit="mm"/>
 EOF
 		}
-		for($i = 0; $i < $n_gas+1; ++$i){
-			print DEF <<EOF;
-	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
-EOF
-		}
-		for($i = 0; $i < $n_gas; ++$i){
-			print DEF <<EOF;
-	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
-EOF
-			for($j = 0; $j < $n_cover; ++$j){
-				print DEF <<EOF;
-	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
-EOF
-			}
-		}
-
+#		
+#		for($i = 0; $i < $n_gas+1; ++$i){
+#			print DEF <<EOF;
+#	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
+#EOF
+#		}
+#		for($i = 0; $i < $n_gas; ++$i){
+#			print DEF <<EOF;
+#	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
+#EOF
+#			for($j = 0; $j < $n_cover; ++$j){
+#				print DEF <<EOF;
+#	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
+#EOF
+#			}
+#		}
+#
 		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR RPC -->
@@ -445,37 +445,36 @@ EOF
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
 	 <quantity name="LG_width1" value="135" unit="mm" />
-	 <constant name="LG_angle_v" value="3.7022129"/>
-	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
+	 <quantity name="LG_width1T" value="145.4824" unit="mm" />
+	 <quantity name="LG_TransHorOff" value="0.5*(LG_width0+LG_width1T)+2." unit="mm" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
+	 <quantity name="LG_box1Length" value="2.0+LG_length+LG_protrusion_thick+LG_PMTl" unit="mm" />
+	 <quantity name="LG_box1Off1" value="LG_length-0.5*LG_box1Length" unit="mm" />
 
-	 <position name="LG_para_pos1" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-
-	 <position name="LG_glass_pos" x="0" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
+	 <position name="LG_trap_pos1" x="0" y="0" z="-0.5*(LG_box1Length-LG_length)" unit="mm"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="LG_box1Off1+0.5*LG_protrusion_thick" unit="mm"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="LG_box1Off1+LG_protrusion_thick+0.5*LG_PMTl" unit="mm"/>
 
 
 EOF
 		for($i = 0; $i < $n_LG; ++$i){
 			print DEF <<EOF;
-	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="180" unit="deg"/>
-	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="deg"/>
-	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" unit="deg"/>
+	 <position name="LG_block@{[ $i ]}0_pos" x="(LG_TransHorOff+1.)" y="LG_height*($i-1)+2.5*($i-1)" z="0." unit="mm"/>
+	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)+2.5*($i-1)" z="0" unit="mm"/>
+	 <position name="LG_block@{[ $i ]}2_pos" x="-(LG_TransHorOff+1.)" y="LG_height*($i-1)+2.5*($i-1)" z="0." unit="mm"/>
+	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="-1.0*3.7074" z="0" unit="degree"/>
+	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="degree"/>
+	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="3.7074" z="0" unit="degree"/>
 EOF
 		}
 
 		print DEF <<EOF;
 	 <quantity name="calor_length" value="520" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
-	 <quantity name="calor_width" value="450" unit="mm" />
+	 <quantity name="calor_width" value="900" unit="mm" />
 
 	 <quantity name="calor_shift" value="2886.4" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
@@ -654,7 +653,7 @@ EOF
 
 	 <!-- BELOW IS FOR RPC -->
 
-	 <box name="RPC_box" x="RPC_width" y="RPC_height" z="RPC_thick"/>
+	 <box name="RPC_box" x="1.0+RPC_width" y="1.0+RPC_height" z="1.0+RPC_thick"/>
 
 	 <box name="RPC_Al_box" x="RPC_width" y="RPC_height" z="RPC_Al_thick"/>
 	 <box name="RPC_comb_box" x="RPC_width" y="RPC_height" z="RPC_comb_thick"/>
@@ -671,20 +670,10 @@ EOF
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
-
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="pi/2." phi="pi/2." aunit="rad" lunit="mm"/>
-	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
-	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
-	 <union name="LG_union">
-		<first ref="LG_box1"/>  <second ref="LG_para1"/>
-		<positionref ref="LG_para_pos1" />
-	 </union>	 
-	 <union name="LG_block_union">
-		<first ref="LG_box2"/>  <second ref="LG_para1"/>
-		<positionref ref="LG_para_pos" />
-	 </union>	 
-
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
+	 
+	 <trd name="LG_box1" x1="(1.0+LG_width0)" x2="(1.0+LG_width1T)" y1="(2.0+LG_height)" y2="(2.0+LG_height)" z="2.0+LG_box1Length" lunit="mm" />
+	 <trd name="LG_trap" x1="LG_width0" x2="LG_width1" y1="LG_height" y2="LG_height" z="LG_length" lunit="mm"/>
+	 <tube name="LG_protrusion_tube" rmin="0" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
 	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" aunit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
@@ -889,23 +878,23 @@ EOF
 
   <volume name="LG_glass_vol">
 	 <materialref ref="LeadGlass"/>
-	 <solidref ref="LG_union"/>
+	 <solidref ref="LG_trap"/>
   </volume>
   <volume name="LG_protrusion_vol">
 	 <materialref ref="LeadGlass"/>
 	 <solidref ref="LG_protrusion_tube"/>
   </volume>
   <volume name="LG_PMT_vol">
-	 <materialref ref="LeadGlass"/>
+	 <materialref ref="Air"/>
 	 <solidref ref="LG_PMT_tube"/>
   </volume>
 
   <volume name="LG_block_vol">
 	 <materialref ref="Air"/>
-	 <solidref ref="LG_block_union"/>
+	 <solidref ref="LG_box1"/>
 	 <physvol name="LG_glass_phys">
 		<volumeref ref="LG_glass_vol"/>
-		<positionref ref="LG_glass_pos"/>
+		<positionref ref="LG_trap_pos1"/>
 	 </physvol>
 	 <physvol name="LG_protrusion_phys">
 		<volumeref ref="LG_protrusion_vol"/>
@@ -916,7 +905,7 @@ EOF
 		<positionref ref="LG_PMT_pos"/>
 	 </physvol>
   </volume>
-
+  
   <!-- ABOVE IS FOR LG -->
 
 EOF
@@ -1117,35 +1106,7 @@ EOF
 		<volumeref ref="RPC_Al_vol"/>
 		<positionref ref="RPC_Al@{[ $i ]}_pos"/>
 	 </physvol>
-	 <physvol name="RPC_comb@{[ $i ]}_phys">
-		<volumeref ref="RPC_comb_vol"/>
-		<positionref ref="RPC_comb@{[ $i ]}_pos"/>
-	 </physvol>
 EOF
-		}
-		for($i = 0; $i < $n_gas+1; ++$i){
-			print DET <<EOF;
-	 <physvol name="RPC_PCB@{[ $i ]}_phys">
-		<volumeref ref="RPC_PCB_vol"/>
-		<positionref ref="RPC_PCB@{[ $i ]}_pos"/>
-	 </physvol>
-EOF
-		}
-		for($i = 0; $i < $n_gas; ++$i){
-			print DET <<EOF;
-	 <physvol name="RPC_gas@{[ $i ]}_phys">
-		<volumeref ref="RPC_gas_vol"/>
-		<positionref ref="RPC_gas@{[ $i ]}_pos"/>
-	 </physvol>
-EOF
-			for($j = 0; $j < $n_cover; ++$j){
-				print DET <<EOF;
-	 <physvol name="RPC_acrylic@{[ $i ]}@{[ $j ]}_phys">
-		<volumeref ref="RPC_acrylic_vol"/>
-		<positionref ref="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos"/>
-	 </physvol>
-EOF
-			}
 		}
 		print DET <<EOF;
   </volume>
@@ -1160,7 +1121,7 @@ EOF
 
 
   <!-- BELOW IS FOR LG -->
-
+  
   <volume name="calor_vol">
 	 <materialref ref="Air"/>
 	 <solidref ref="calor_box"/>
