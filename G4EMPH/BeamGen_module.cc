@@ -247,12 +247,14 @@ namespace emph {
      else if (fParticleType == "geantino") {
       fPID = 0;
     }
+     else if (fParticleType == "muon") {
+      fPID = kMuonPlus;
+    }
    if (fPID == INT_MAX) {
       std::cerr << "ParticleType must be set to \"geantino\", \"proton\", \"kaon\", "
 		<< "\"pion\" or \"electron\"!" << std::endl;
       std::abort();
     }
-    
     if (fPmean < 0.)
       fPID *= -1.;
 
