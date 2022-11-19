@@ -27,7 +27,7 @@ namespace sim {
     
     int        GetNumStep() const {return fNSteps; } 
 
-    int        GetAncestorPId() const; // pdg value for the track ID, which is a secondary coming our of the target 
+    int        GetAncestorPId() const ; // pdg value for the track ID, which is a secondary coming our of the target 
                                                       // or the primary itself. Pick the one with the highest number visible photons at the PMT cathode.  
 
     int        GetAncestorTrackNum() const; // Corresponding 
@@ -45,18 +45,20 @@ namespace sim {
 // public method to compute averages for positions and renormalize the waveform, if need be.    
 //
   void Reset(); // to be invoked at the beginning of each event 
-  void AddAncestorTrack(int ancestorTrackNum); // for each non-vanishing contribution, above 1 MeV, 
                         // We add the pid and the G4Tack number of the ancestor (actually, the child of the primary track, of the primary track number, 
 			// which is one.
   void AddSomePhotons(int numPhot, double x, double y, double z, double t); // to be called by the user action upon a new G4Step. 
+  void AddToAncestorTrack(int ancestorTrackNum); // for each non-vanishing contribution, above 1 MeV, 
                         // !!! modal: add to the last entered element of fTrackAmpls
     // for each stepif the energy of the chargec particle energy is such that the Cerenkov angle is say, greater than 60 degree, 
-    // we generate number of photons detected at the photocathode  
+    // we generate number of photons detected at the photocathode
+    // not implemented yet.. We first wnat to identify the primary particle.   
   void FinalizeAndCalibrate(double calFact);         
 
   private:
   
-    int fBlock; // from 0 to 9
+    int fBlock; // See the gdml nmerology for Lead glass. Either 0,1,2,10,11,12,20,21,22.  If 9, sum of signals. 
+    int fAncestorTrackID;
     double fEDeposited; 
     int fNSteps;
     std::vector<double> fX; // dimensioned to 3. Compute averages in FinalizeAndCalibrate,  Irrespectively of the trackNum/PiD that created it.   

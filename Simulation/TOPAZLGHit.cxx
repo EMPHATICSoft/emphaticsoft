@@ -14,7 +14,8 @@
 namespace sim {
 
   TOPAZLGHit::TOPAZLGHit() :
-  fBlock(INT_MAX), // from 0 to 9
+  fBlock(INT_MAX), // See LeadGlass block numerology in the GDML file. 
+  fAncestorTrackID(0), // A track id, set when a high track is entering the block  Not yet implemented. 
   fEDeposited(0.), // in GeV, or some pre-calibrated random units. 
   fX(3, DBL_MAX), // dimensioned to 3. Compute averages in FinalizeAndCalibrate  
   fNPhots(0),
@@ -27,7 +28,6 @@ namespace sim {
 
   }
   void TOPAZLGHit::Reset() {
-    fBlock = INT_MAX;
     fEDeposited = 0.;
     for (size_t k=0; k != fX.size(); k++) fX[k] = 0.;
     fNPhots = 0; fNunSteps=0;
@@ -59,14 +59,17 @@ namespace sim {
   }
   */
   void TOPAZLGHit::AddSomePhotons(int numPhot, double x, double y, double z, double t) { // To the current track ! 
-    size_t itTime = 4.0*t; // should add here noise due to the V1720 time digitizer. Assume 250 MHz. 
-    if (itTime >= fWaveForm.size()) return; // Out of time condition.. 
     fNPhots += numPhot;
     fNunSteps++;
     fX[0] += x*numPhot;
     fX[1] += y*numPhot;
     fX[2] += z*numPhot;
-    fWaveForm[itTime] += numPhot;
+    size_t itTime = static_cast<size_t>(4.0*t); // should add here noise due to the V1720 time digitizer. Assume 250 MHz. 
+    if (itTime >= fWaveForm.size()) {
+//       std::cerr << " Out of time in ADC " << t << " itTime " << itTime << std::endl;
+       return; // Out of time condition.. 
+    }
+   fWaveForm[itTime] += numPhot;
 //    if ((fTrackAmpls.size() == 0) || (fItTrackLastUsed == fTrackAmpls.rbegin())) {
 //      std::cerr << " TOPAZLGHit::AddSomePhotons error, can not add photon to an unknow track.  Use Add AddTrackAncestorTrack first.. Fatal " << std::endl;
 //      exit(2);
