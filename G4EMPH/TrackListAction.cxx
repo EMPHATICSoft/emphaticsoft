@@ -79,7 +79,7 @@ namespace emph
   {
     sim::Track myTrack;
     if (aTrack->GetTotalEnergy() < fEnergyCut) return;
-    if (aTrack->GetTotalEnergy() < fEnergyCutStore) return;
+    if (aTrack->GetKineticEnergy() < fEnergyCutStore) return;
     myTrack.SetTrackID(aTrack->GetTrackID());
     myTrack.SetPId(aTrack->GetParticleDefinition()->GetPDGEncoding());
     myTrack.SetParentTrackID(aTrack->GetParentID());
