@@ -31,8 +31,8 @@
 //IFDB includes
 //#include "ifbeam.h" 
 //#include "Munits.h"
+//#include "IFBeam_service.h"
 #include "ifdh_art/IFBeamService/IFBeam_service.h"
-
 
 /// Information about the IFDB
 namespace emph
@@ -150,7 +150,7 @@ namespace emph
       }
     }
 
-    sr.put(std::move(fSpill));
+    sr.put(std::move(fSpill),art::fullSubRun());
 
   }
   

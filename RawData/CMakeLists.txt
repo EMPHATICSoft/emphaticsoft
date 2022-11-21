@@ -2,8 +2,8 @@ include(ArtDictionary)
 include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
-cet_find_package(artdaq REQUIRED)
-cet_find_package(messagefacility REQUIRED)
+find_package(artdaq_core REQUIRED)
+find_package(messagefacility REQUIRED)
 
 art_make_library(LIBRARY_NAME RawData
                  SOURCE ${src_files}

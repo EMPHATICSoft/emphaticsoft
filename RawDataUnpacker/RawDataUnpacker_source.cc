@@ -6,7 +6,7 @@
 //              based on the fragments stored there.
 ////////////////////////////////////////////////////////////////////////
 
-#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
+//#include "artdaq/ArtModules/ArtdaqFragmentNamingService.h"
 #include "art/Framework/Core/InputSourceMacros.h"
 #include "art/Framework/IO/Sources/Source.h"
 #include "art/Framework/IO/Sources/put_product_in_principal.h"
@@ -29,7 +29,7 @@
 #include "RawDataUnpacker/Unpacker.h"
 #include "RawDataUnpacker/RawDataUnpacker_source.h"
 
-//#include "ChannelMap/ChannelMapService.h"
+//#include "ChannelMap/service/ChannelMapService.h"
 
 #include "TFile.h"
 #include "TBranch.h"
@@ -418,9 +418,9 @@ namespace rawdata {
 
       // initialize channel map
       fChannelMap = new emph::cmap::ChannelMap();
-		fRunHistory = new runhist::RunHistory(fRun);
+      fRunHistory = new runhist::RunHistory(fRun);
       fChannelMap->LoadMap(fRunHistory->ChanFile());
-
+      
       // get all of the digits if this is the first event
       // get all of the fragments out and create waveforms and digits
       if (! createDigitsFromArtdaqEvent()) return false;

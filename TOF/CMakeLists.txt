@@ -7,7 +7,7 @@ art_make_library(LIBRARY_NAME ToFUtil
                  LIBRARIES PRIVATE
 )
 
-build_plugin(T0toRPC "module"
+cet_build_plugin(T0toRPC art::module
 	LIBRARIES PRIVATE
 	ToFUtil
 	RawData

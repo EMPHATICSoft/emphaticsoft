@@ -100,7 +100,9 @@ export SAM_EXPERIMENT=emph
 # For ifbeam
 export SSL_CERT_FILE=""
 
+# For GL-based event display
+export LIBGL_ALWAYS_INDIRECT=1
+
 # Additional setup
 setup ninja
-#setup libwda v2_30_0
 setup art_cpp_db_interfaces v1_4_0

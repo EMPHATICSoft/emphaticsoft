@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 #include "TVector3.h"
-#include "DetectorDefs.h"
+#include "Geometry/DetectorDefs.h"
 
 class TGeoNode;
 class TGeoVolume;

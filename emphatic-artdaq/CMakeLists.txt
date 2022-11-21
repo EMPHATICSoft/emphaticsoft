@@ -9,6 +9,6 @@ set ( LIBRARY_CORE_LIB_LIST
 include(ArtDictionary)
 include(ArtMake)
 
-add_subdirectory(ArtModules)
+#add_subdirectory(ArtModules)
 add_subdirectory(BuildInfo)
 add_subdirectory(Overlays)
