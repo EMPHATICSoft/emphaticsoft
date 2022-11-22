@@ -151,7 +151,7 @@ namespace emph
     G4Track *track = step->GetTrack(); // to be used later... 
     int aPDG = track->GetDefinition()->GetPDGEncoding();
     if (aPDG == 0) { 
-//      if (fEvtNum < 25) this->SteppingActionGeantinoASCIIDump(step); 
+      if (fEvtNum < 5) this->SteppingActionGeantinoASCIIDump(step); 
       this->SteppingActionGeantinoStat(step); 
     } else {
       const G4ParticleDefinition *def = track->GetParticleDefinition();
