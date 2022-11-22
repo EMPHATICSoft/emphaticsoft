@@ -7,7 +7,8 @@
 #include "RunHistory/service/RunHistoryService.h"
 
 // Framework includes
-#include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Framework/Services/Registry/ActivityRegistry.h"
+#include "art/Framework/Principal/Run.h"
 
 namespace runhist
 {

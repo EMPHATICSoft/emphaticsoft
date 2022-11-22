@@ -1,3 +1,5 @@
+find_package(art REQUIRED EXPORT)
+
 include(ArtDictionary)
 include(ArtMake)
 
@@ -6,7 +8,7 @@ cet_build_plugin(RunHistoryService art::service
   PUBLIC
   RunHistory
   PRIVATE
-  messagefacility::MF_MessageLogger
+  art::Framework_Principal
   BASENAME_ONLY
 )
 
