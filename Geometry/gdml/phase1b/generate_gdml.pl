@@ -446,6 +446,7 @@ EOF
 	 <quantity name="LG_width0" value="113" unit="mm" />
 	 <quantity name="LG_width1" value="135" unit="mm" />
 	 <quantity name="LG_width1T" value="145.4824" unit="mm" />
+	 <constant name="LG_angle" value="3.7074" />
 	 <quantity name="LG_TransHorOff" value="0.5*(LG_width0+LG_width1T)+2." unit="mm" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
@@ -465,9 +466,9 @@ EOF
 	 <position name="LG_block@{[ $i ]}0_pos" x="(LG_TransHorOff+1.)" y="LG_height*($i-1)+2.5*($i-1)" z="0." unit="mm"/>
 	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)+2.5*($i-1)" z="0" unit="mm"/>
 	 <position name="LG_block@{[ $i ]}2_pos" x="-(LG_TransHorOff+1.)" y="LG_height*($i-1)+2.5*($i-1)" z="0." unit="mm"/>
-	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="-1.0*3.7074" z="0" unit="degree"/>
+	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="-1.0*LG_angle" z="0" unit="degree"/>
 	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="degree"/>
-	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="3.7074" z="0" unit="degree"/>
+	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="LG_angle" z="0" unit="degree"/>
 EOF
 		}
 
