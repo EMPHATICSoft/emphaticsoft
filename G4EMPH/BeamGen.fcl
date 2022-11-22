@@ -44,7 +44,11 @@ piplus_beamgen.Ysigma: 2.5
 
 piminus_beamgen: @local::standard_beamgen
 piminus_beamgen.particleType: "pion"
-piminus_beamgen.PMean: -31.
+piminus_beamgen.PMean: -8.
+piminus_beamgen.XMean: 20. 
+piminus_beamgen.YMean: 0. 
+piminus_beamgen.Xsigma: 0.5 
+piminus_beamgen.Ysigma: 0.5 
 
 kaonplus_beamgen: @local::standard_beamgen
 kaonplus_beamgen.particleType: "kaon"
@@ -61,6 +65,14 @@ electron_beamgen.Xmean: 20.  #  anticipated deflection due to the magnet.
 electron_beamgen.Xsigma: 0.5
 electron_beamgen.Ymean: 0.0
 electron_beamgen.Ysigma: 0.5
+
+muon_beamgen: @local::standard_beamgen
+muon_beamgen.particleType: "muon"
+muon_beamgen.PMean: -8.
+muon_beamgen.Xmean: 20.  #  anticipated deflection due to the magnet. 
+muon_beamgen.Xsigma: 0.5
+muon_beamgen.Ymean: 0.0
+muon_beamgen.Ysigma: 0.5
 
 
 geantino_beamgen: @local::standard_beamgen
