@@ -1,17 +1,11 @@
 include(ArtDictionary)
 include(ArtMake)
 
-find_library(LIBWDA NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH)
-
-include_directories( $ENV{LIBWDA_FQ_DIR}/include) 
-include_directories( $ENV{ART_CPP_DB_INTERFACES_INC}) 
-
-cet_build_plugin( RunHistory art::service
+cet_build_plugin(RunHistoryService art::service
   LIBRARIES
+  PUBLIC
   RunHistory
-  art::Framework_Core
-  art::Framework_Principal
-  art::Framework_Services_Registry
+  PRIVATE
   messagefacility::MF_MessageLogger
   BASENAME_ONLY
 )

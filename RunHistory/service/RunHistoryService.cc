@@ -42,5 +42,3 @@ namespace runhist
   }
   
 }
-
-DEFINE_ART_SERVICE(runhist::RunHistoryService)

@@ -14,7 +14,7 @@ art_make_library ( SOURCE ${src_files}
   RawData
   RecoBase
   ChannelMap
-  ChannelMap_service
+  ChannelMapService_service
   Geometry
   Geometry_service
   art_root_io::TFileService_service
@@ -27,7 +27,7 @@ cet_build_plugin(SSDCalibration art::module
   RawData
   RecoBase
   ChannelMap
-  ChannelMap_service
+  ChannelMapService_service
   Geometry
   Geometry_service
   art_root_io::TFileService_service

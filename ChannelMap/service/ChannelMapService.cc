@@ -52,5 +52,3 @@ namespace emph
     
   }
 }
-
-DEFINE_ART_SERVICE(emph::cmap::ChannelMapService)
