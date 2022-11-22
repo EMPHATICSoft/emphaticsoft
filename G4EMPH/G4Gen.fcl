@@ -6,10 +6,10 @@ standard_g4alg:
   G4MacroPath:         "G4EMPH/g4emph.mac" 
   G4EnergyThreshold:   1.0E-3 #GeV, stop tracking below this value
   G4EnergyThresholdStore:   0.250 #GeV, stop storing below this value. 
-  G4TokenSSDOut: "electronLG8GeVCent"
+  G4TokenSSDOut: "undef"
   G4CalibTOPAZLG: 0.006
   G4AttenuationTOPAZLG : 0.9
-  G4TokenTOPAZLGOut: "electronLG8GeVCent" 
+  G4TokenTOPAZLGOut: "undef" 
 #  G4LastDetector: "SSDStation5"
   G4LastDetector: "none"  # Lead Glass is our last detector.. 
   
