@@ -37,7 +37,6 @@ physics:
     clust:        @local::standard_ssdclust
   }
 
-  #ssd: [ stationclust  ]
   ssd: [ clust ]
 
   trigger_paths: [ ssd ]
