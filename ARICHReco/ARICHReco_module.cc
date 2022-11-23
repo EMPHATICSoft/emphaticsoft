@@ -27,8 +27,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMap.h"
-#include "RunHistory/RunHistory.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RecoBase/ARing.h"
@@ -52,16 +51,15 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    void beginRun(art::Run& run);
     //void endRun(art::Run const&);
     //      void endSubRun(art::SubRun const&);
     void endJob();
     
   private:
     void GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > &, std::unique_ptr<std::vector<rb::ARing>> &);
+
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     
-    emph::cmap::ChannelMap* fChannelMap;
-	 runhist::RunHistory* fRunHistory;
     TH2F*       fARICH2DHist[201];
     int         fEvtNum;
 
@@ -107,16 +105,6 @@ namespace emph {
     }
   }
 
-  //......................................................................
-
-  void ARICHReco::beginRun(art::Run& run)
-  {
-    // initialize channel map
-    fChannelMap = new emph::cmap::ChannelMap();
-	 fRunHistory = new runhist::RunHistory(run.run());
-    fChannelMap->LoadMap(fRunHistory->ChanFile());
-
-  }
     
   //......................................................................
   
@@ -204,7 +192,7 @@ namespace emph {
 	if (trail_found.size()>0) {
 	  
 	  emph::cmap::EChannel echan = lCh->first;
-	  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+	  emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	  if (dchan.DetId()!=emph::geo::ARICH) {
 	    std::cout << echan;
 	    std::cout << " doesn't belong to the ARICH" << std::endl;

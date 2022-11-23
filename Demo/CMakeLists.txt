@@ -1,10 +1,10 @@
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
 
-build_plugin(DemoModule "module"
+cet_build_plugin(DemoModule art::module
   LIBRARIES PRIVATE
     RawData
     RecoBase

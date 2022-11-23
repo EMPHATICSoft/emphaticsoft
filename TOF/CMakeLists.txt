@@ -7,11 +7,12 @@ art_make_library(LIBRARY_NAME ToFUtil
                  LIBRARIES PRIVATE
 )
 
-build_plugin(T0toRPC "module"
+cet_build_plugin(T0toRPC art::module
 	LIBRARIES PRIVATE
 	ToFUtil
 	RawData
 	ChannelMap
+	ChannelMap_service
 	RunHistory
 	art_root_io::TFileService_service
 	messagefacility::MF_MessageLogger

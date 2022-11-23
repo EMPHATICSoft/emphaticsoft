@@ -37,27 +37,25 @@ ssh -K -Y username@emphaticgpvm0X.fnal.gov
 ```
 mkdir /emph/app/users/[username]
 ```
-
-3. Then execute:
-
-```
-source /emph/app/setup/setup_emphatic.sh
-cd /emph/app/users/[username]
-mkdir build
-```
-
-3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username])
+3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username]), or a directory of your choosing.
 
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
 ```
 You will prompted to enter your github username and a password.  The password should be your personal access token, which you should obtain by following the instructions here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token.
 
+3. Then execute:
+
+```
+source /emph/app/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
+cd /emph/app/users/[username]/<directory-you-chose>/
+mkdir build
+```
 
 4. execute:
 
 ```
-cd /emph/app/users/[username]/build
+cd /emph/app/users/[username]/<directory-you-chose>/build
 source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
 ```
 

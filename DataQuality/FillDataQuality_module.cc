@@ -78,7 +78,7 @@ namespace emph {
       // call function to check good runs list here.
       spillqual->goodRunStatus = CheckGoodRunsList(sr.run(),sr.subRun());
 
-      sr.put(std::move(spillqual));
+      sr.put(std::move(spillqual),art::fullSubRun());
     }
 
     //----------------------------------------------------------------------

@@ -12,7 +12,7 @@
 #include "Geant4/G4MagneticField.hh"
 #include "Geant4/G4Types.hh"
 #include "Geant4/G4ThreeVector.hh"
-#include "MagneticField/MagneticFieldService.h"
+#include "MagneticField/service/MagneticFieldService.h"
 
 namespace mag {
 

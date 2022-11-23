@@ -108,6 +108,9 @@ namespace emph {
 			gGeoManager->SetVerboseLevel(0);
 
 			//fGeoManager->Import(fname.c_str());
+			TGeoManager::LockDefaultUnits(0);
+			TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kRootUnits);
+			TGeoManager::LockDefaultUnits(1);
 			TGeoManager::Import(fGDMLFile.c_str());
 
 			fGeoManager = gGeoManager;

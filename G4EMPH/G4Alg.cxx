@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 // EMPHATIC includes
-#include "Geometry/GeometryService.h"
+#include "Geometry/service/GeometryService.h"
 #include "G4EMPH/G4Alg.h"
 #include "G4Base/UserActionManager.h"
 #include "G4Base/UserActionFactory.h"

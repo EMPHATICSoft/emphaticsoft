@@ -23,7 +23,7 @@
 
 // G4EMPH includes
 #include "G4Base/UserAction.h"
-#include "Geometry/GeometryService.h"
+#include "Geometry/service/GeometryService.h"
 
 //ART includes
 #include "art/Framework/Services/Registry/ServiceHandle.h"
