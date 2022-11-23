@@ -39,10 +39,10 @@ namespace rb {
     const art::PtrVector<emph::rawdata::SSDRawDigit> Digits() const { return fDigitVec; }
 
     void SetStation(int station) {fStation = station;}
-    void SetPlane(int plane)     {fPlane = plane;}
+    void SetSensor(int sensor)     {fSensor = sensor;}
 
     int    Station()  const { return fStation; }
-    int    Plane()    const { return fPlane; } 
+    int    Sensor()    const { return fSensor; } 
     double WgtAvgStrip() const;
     double WgtRmsStrip() const;
     double AvgStrip() const;
@@ -62,7 +62,7 @@ namespace rb {
     art::PtrVector<emph::rawdata::SSDRawDigit> fDigitVec;
     int fID;
     int fStation;
-    int fPlane;
+    int fSensor;
     
   };
   
