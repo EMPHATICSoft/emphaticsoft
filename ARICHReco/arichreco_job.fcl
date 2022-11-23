@@ -1,7 +1,6 @@
 #include "ARICHReco.fcl"
 
 #include "ChannelMap.fcl"
-#include "RunHistory.fcl"
 
 process_name: ARICHReco
 
