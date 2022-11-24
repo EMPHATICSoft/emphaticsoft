@@ -17,9 +17,9 @@ namespace sim {
   fBlock(INT_MAX), // See LeadGlass block numerology in the GDML file. 
   fAncestorTrackID(0), // A track id, set when a high track is entering the block  Not yet implemented. 
   fEDeposited(0.), // in GeV, or some pre-calibrated random units. 
+  fNSteps(0),  
   fX(3, DBL_MAX), // dimensioned to 3. Compute averages in FinalizeAndCalibrate  
   fNPhots(0),
-  fNunSteps(0),  
   fWaveForm(50, 0.) // 50 4 ns bin, too much for one promt shwer, but O.K.  Perhaps we ought simulate multi-bucket, or 
                                       // unexpectdely slow Cerenkohv ( Even perhaps Dark Cerenkov radiation + break down of Lorentz Invariance) 
 //  fTrackAmpls(),
@@ -30,7 +30,7 @@ namespace sim {
   void TOPAZLGHit::Reset() {
     fEDeposited = 0.;
     for (size_t k=0; k != fX.size(); k++) fX[k] = 0.;
-    fNPhots = 0; fNunSteps=0;
+    fNPhots = 0; fNSteps=0;
     for (size_t k=0; k != fWaveForm.size(); k++) fWaveForm[k] = 0.;
 //    fTrackAmpls.clear(); fItTrackLastUsed = fTrackAmpls.rbegin();
   }
@@ -60,7 +60,7 @@ namespace sim {
   */
   void TOPAZLGHit::AddSomePhotons(int numPhot, double x, double y, double z, double t) { // To the current track ! 
     fNPhots += numPhot;
-    fNunSteps++;
+    fNSteps++;
     fX[0] += x*numPhot;
     fX[1] += y*numPhot;
     fX[2] += z*numPhot;

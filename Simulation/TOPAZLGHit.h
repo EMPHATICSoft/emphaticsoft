@@ -63,7 +63,6 @@ namespace sim {
     int fNSteps;
     std::vector<double> fX; // dimensioned to 3. Compute averages in FinalizeAndCalibrate,  Irrespectively of the trackNum/PiD that created it.   
     int fNPhots; // Total, Irrespectively of the G4 track number & PiD
-    int fNunSteps; 
     
     std::vector<int> fWaveForm;
 // Too complicated, Root pukes on this.. classes_def.xml difficult to build 
