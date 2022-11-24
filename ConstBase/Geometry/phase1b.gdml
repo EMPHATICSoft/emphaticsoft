@@ -4380,23 +4380,150 @@
 	 <materialref ref="Air"/>
 	 <solidref ref="LG_PMT_tube"/>
   </volume>
-
-  <volume name="LG_block_vol">
-	 <materialref ref="Air"/>
-	 <solidref ref="LG_box1"/>
-	 <physvol name="LG_glass_phys">
+           <volume name="LG_block00_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass00_phys">
 		<volumeref ref="LG_glass_vol"/>
 		<positionref ref="LG_trap_pos1"/>
-	 </physvol>
-	 <physvol name="LG_protrusion_phys">
+	   </physvol>
+	   <physvol name="LG_protrusion00_phys">
 		<volumeref ref="LG_protrusion_vol"/>
 		<positionref ref="LG_protrusion_pos"/>
-	 </physvol>
-	 <physvol name="LG_PMT_phys">
+	   </physvol>
+	   <physvol name="LG_PMT00_phys">
 		<volumeref ref="LG_PMT_vol"/>
 		<positionref ref="LG_PMT_pos"/>
-	 </physvol>
-  </volume>
+	   </physvol>
+        </volume>
+           <volume name="LG_block01_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass01_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion01_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT01_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block02_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass02_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion02_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT02_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block10_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass10_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion10_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT10_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block11_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass11_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion11_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT11_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block12_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass12_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion12_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT12_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block20_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass20_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion20_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT20_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block21_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass21_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion21_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT21_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
+           <volume name="LG_block22_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass22_phys">
+		<volumeref ref="LG_glass_vol"/>
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion22_phys">
+		<volumeref ref="LG_protrusion_vol"/>
+		<positionref ref="LG_protrusion_pos"/>
+	   </physvol>
+	   <physvol name="LG_PMT22_phys">
+		<volumeref ref="LG_PMT_vol"/>
+		<positionref ref="LG_PMT_pos"/>
+	   </physvol>
+        </volume>
   
   <!-- ABOVE IS FOR LG -->
 
@@ -7128,47 +7255,47 @@
 	 <materialref ref="Air"/>
 	 <solidref ref="calor_box"/>
 	 <physvol name="LG_block00_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block00_vol"/>
 		<positionref ref="LG_block00_pos"/>
 		<rotationref ref="LG_block00_rot"/>
 	 </physvol>
 	 <physvol name="LG_block01_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block01_vol"/>
 		<positionref ref="LG_block01_pos"/>
 		<rotationref ref="LG_block01_rot"/>
 	 </physvol>
 	 <physvol name="LG_block02_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block02_vol"/>
 		<positionref ref="LG_block02_pos"/>
 		<rotationref ref="LG_block02_rot"/>
 	 </physvol>
 	 <physvol name="LG_block10_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block10_vol"/>
 		<positionref ref="LG_block10_pos"/>
 		<rotationref ref="LG_block10_rot"/>
 	 </physvol>
 	 <physvol name="LG_block11_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block11_vol"/>
 		<positionref ref="LG_block11_pos"/>
 		<rotationref ref="LG_block11_rot"/>
 	 </physvol>
 	 <physvol name="LG_block12_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block12_vol"/>
 		<positionref ref="LG_block12_pos"/>
 		<rotationref ref="LG_block12_rot"/>
 	 </physvol>
 	 <physvol name="LG_block20_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block20_vol"/>
 		<positionref ref="LG_block20_pos"/>
 		<rotationref ref="LG_block20_rot"/>
 	 </physvol>
 	 <physvol name="LG_block21_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block21_vol"/>
 		<positionref ref="LG_block21_pos"/>
 		<rotationref ref="LG_block21_rot"/>
 	 </physvol>
 	 <physvol name="LG_block22_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block22_vol"/>
 		<positionref ref="LG_block22_pos"/>
 		<rotationref ref="LG_block22_rot"/>
 	 </physvol>

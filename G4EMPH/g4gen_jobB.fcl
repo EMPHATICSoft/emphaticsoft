@@ -23,7 +23,7 @@ services:
 source:
 {
   module_type: EmptyEvent
-  maxEvents: 500000
+  maxEvents: 500
   firstRun:  1293
   firstSubRun: 1
 
@@ -33,7 +33,8 @@ physics:
 {
   producers:
   {
-	generator: @local::geantino_beamgen	
+#	generator: @local::geantino_beamgen	
+	generator: @local::electron_beamgen	
 	geantgen:  @local::standard_geant4
   }
     
@@ -47,10 +48,10 @@ physics:
 
 }
 
-physics.producers.generator.Xsigma: 75.0
-physics.producers.generator.Xsigma: 75.0
-physics.producers.geantgen.G4AlgPSet.G4TokenTOPAZLGOut: "testGeantinos_1" 
-physics.producers.geantgen.G4AlgPSet.G4TokenSSDOut: "Ignore" 
+physics.producers.generator.Xsigma: 0.5
+physics.producers.generator.Ysigma: 0.5
+physics.producers.geantgen.G4AlgPSet.G4TokenTOPAZLGOut: "Electron_2_Narrow_8GeV" 
+physics.producers.geantgen.G4AlgPSet.G4TokenSSDOut: "Electron_2_Narrow_8GeV" 
    
 
 outputs:

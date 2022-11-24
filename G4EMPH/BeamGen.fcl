@@ -60,7 +60,7 @@ kaonminus_beamgen.PMean: -31.
 
 electron_beamgen: @local::standard_beamgen
 electron_beamgen.particleType: "electron"
-electron_beamgen.PMean: -8.
+electron_beamgen.PMean: 8. # The PDG charge is already negative, for pID = 11
 electron_beamgen.Xmean: 20.  #  anticipated deflection due to the magnet. 
 electron_beamgen.Xsigma: 0.5
 electron_beamgen.Ymean: 0.0
@@ -68,7 +68,7 @@ electron_beamgen.Ysigma: 0.5
 
 muon_beamgen: @local::standard_beamgen
 muon_beamgen.particleType: "muon"
-muon_beamgen.PMean: -8.
+muon_beamgen.PMean: 8.
 muon_beamgen.Xmean: 20.  #  anticipated deflection due to the magnet. 
 muon_beamgen.Xsigma: 0.5
 muon_beamgen.Ymean: 0.0

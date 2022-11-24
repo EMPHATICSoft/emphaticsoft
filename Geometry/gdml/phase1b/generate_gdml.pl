@@ -889,23 +889,31 @@ EOF
 	 <materialref ref="Air"/>
 	 <solidref ref="LG_PMT_tube"/>
   </volume>
-
-  <volume name="LG_block_vol">
-	 <materialref ref="Air"/>
-	 <solidref ref="LG_box1"/>
-	 <physvol name="LG_glass_phys">
+EOF
+	for($i = 0; $i< $n_LG; ++$i){
+		for($j = 0; $j< $m_LG; ++$j){
+		
+				print MOD <<EOF;
+           <volume name="LG_block@{[ $i ]}@{[ $j ]}_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_glass_vol"/>
 		<positionref ref="LG_trap_pos1"/>
-	 </physvol>
-	 <physvol name="LG_protrusion_phys">
+	   </physvol>
+	   <physvol name="LG_protrusion@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_protrusion_vol"/>
 		<positionref ref="LG_protrusion_pos"/>
-	 </physvol>
-	 <physvol name="LG_PMT_phys">
+	   </physvol>
+	   <physvol name="LG_PMT@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_PMT_vol"/>
 		<positionref ref="LG_PMT_pos"/>
-	 </physvol>
-  </volume>
+	   </physvol>
+        </volume>
+EOF
+			}
+		}
+		print MOD <<EOF;
   
   <!-- ABOVE IS FOR LG -->
 
@@ -1131,7 +1139,7 @@ EOF
 			for($j = 0; $j< $m_LG; ++$j){
 				print DET <<EOF;
 	 <physvol name="LG_block@{[ $i ]}@{[ $j ]}_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block@{[ $i ]}@{[ $j ]}_vol"/>
 		<positionref ref="LG_block@{[ $i ]}@{[ $j ]}_pos"/>
 		<rotationref ref="LG_block@{[ $i ]}@{[ $j ]}_rot"/>
 	 </physvol>

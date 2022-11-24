@@ -281,17 +281,23 @@ namespace emph
       const G4VPhysicalVolume *postPhysVolume = step->GetPostStepPoint()->GetPhysicalVolume();
       if (postPhysVolume == nullptr) return;
       std::string postVolName = postPhysVolume->GetName();
-      std::string preVolName = prePhysVolume->GetName();      
+      std::string preVolName = prePhysVolume->GetName();
+      if (preVolName.find("LG") == std::string::npos) return;     
+      if (postVolName.find("LG") == std::string::npos) return;     
       const G4ThreeVector posPost = step->GetPostStepPoint()->GetPosition();
-// special case: the track enters a given block.       
-      if (step->IsFirstStepInVolume() && (preVolName.find("LG_block") == 0) && (postVolName.find("LG_glass") == 0)) {  
-//         std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers Entering glass via " << preVolName << std::endl;
-            fBlockNum = this->findBlockNumberFromName(prePhysVolume);
-            if (fZGlassUpstreamFace == DBL_MAX)  fZGlassUpstreamFace  = posPost[2]; // Assum that the upstream faces are all aligned 
-	    return;
+      if (fZGlassUpstreamFace == DBL_MAX) {
+         std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers fZGlassUpstreamFace not set " << std::endl;
+        if ((postVolName.find("LG_glass") == 0)) {
+          fZGlassUpstreamFace = posPost[2];
+	    std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers fZGlassUpstreamFace is now " << fZGlassUpstreamFace << std::endl;
+	}
       }
       if ((postVolName.find("LG_glass") == std::string::npos) ||  
           (preVolName.find("LG_glass") == std::string::npos)) return;
+// Get the block number from this name       
+//      std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers Entering glass via " << preVolName << std::endl;
+      fBlockNum = this->findBlockNumberFromName(prePhysVolume);
+      
       
       const G4ThreeVector posPre = step->GetPostStepPoint()->GetPosition();
 //      std::cerr << " TOPAZLGHitAction::SteppingActionEMShowers, got position.. " << std::endl;
@@ -371,8 +377,14 @@ namespace emph
   int TOPAZLGHitAction::findBlockNumberFromName (const G4VPhysicalVolume *pVol) {
   
       std::string pVolName = pVol->GetName();
-      if (pVolName.find("LG_block") != 0 ) return INT_MAX;
-      std::string blockNumStr = pVolName.substr(8, 2);
-      return atoi(blockNumStr.c_str());
+      if (pVolName.find("LG_block") == 0 ) {
+        std::string blockNumStr = pVolName.substr(8, 2);
+        return atoi(blockNumStr.c_str());
+      }
+      if (pVolName.find("LG_glass") == 0 ) {
+        std::string blockNumStr = pVolName.substr(8, 2);
+        return atoi(blockNumStr.c_str());
+      }
+      return INT_MAX;
    }
 }//end namespace
