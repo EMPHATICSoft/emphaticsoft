@@ -171,7 +171,8 @@ namespace g4b{
 	G4ParticleDefinition* particleDefinition;
       
 	if(pdgCode==0){
-	  particleDefinition = fParticleTable->FindParticle("opticalphoton");
+	  particleDefinition = fParticleTable->FindParticle("geantino");
+//	  particleDefinition = fParticleTable->FindParticle("opticalphoton");  // no longer v4.7 .. 
 	}
 	else
 	  particleDefinition = fParticleTable->FindParticle(pdgCode);

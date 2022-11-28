@@ -29,7 +29,7 @@ physics:
 {
   producers:
   {
-	generator: @local::proton_beamgen
+	generator: @local::geantino_beamgen
   }
 
   simulate: [ generator ]

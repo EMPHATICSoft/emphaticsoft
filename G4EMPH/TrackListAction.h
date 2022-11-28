@@ -72,6 +72,7 @@ namespace emph {
 
   private:
     G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
+    G4double                fEnergyCutStore;        ///< The minimum energy for a particle to be included in the list for keeping, and dumping on ASCII file
     std::vector<sim::Track> fTracks;                 ///< The information for Track.  Abbreviated G4Track (no volume info) 
     ///< be included in the list.                          
 
