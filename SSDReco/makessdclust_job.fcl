@@ -8,9 +8,9 @@ process_name: MakeSSDClust
 services:
 {
   TFileService: { fileName: "clust_r%r_s%s_hist.root" closeFileFast: false }
-  ChannelMap: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
-  RunHistory: {}
+  ChannelMapService: @local::standard_channelmap
+  GeometryService:   @local::standard_geometry
+  RunHistoryService: {}
 }
 
 source:

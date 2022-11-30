@@ -7,8 +7,8 @@ process_name: ARICHReco
 services:
 {
   TFileService: { fileName: "arichreco_hist_r%r_s%s.root" closeFileFast: false }
-  ChannelMap: @local::standard_channelmap
-  RunHistory: {}
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: {}
 }
 
 source:
