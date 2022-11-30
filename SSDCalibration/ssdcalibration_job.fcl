@@ -9,7 +9,7 @@ services:
   TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
   RunHistoryService: {}
   ChannelMapService: @local::standard_channelmap
-  GeometryService: @local::standard_geometry
+  Geometry: @local::standard_geometry
 }
 
 source:
