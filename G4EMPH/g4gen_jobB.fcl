@@ -10,7 +10,7 @@ services:
 {
   MagneticField: @local::standard_magfield
   RunHistoryService: {}
-  GeometryService: @local::standard_geometry
+  Geometry: @local::standard_geometry
   
   # Load the service that manages root files for histograms.
 #  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
