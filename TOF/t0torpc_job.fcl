@@ -5,8 +5,8 @@ process_name: T0toRPC
 
 services:
 {
-  ChannelMap: @local::standard_channelmap
-  RunHistory: {}
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: {}
 }
 
 source:

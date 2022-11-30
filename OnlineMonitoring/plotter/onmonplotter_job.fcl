@@ -7,8 +7,8 @@ process_name: OnMon
 
 services:
 {
-  ChannelMap: @local::standard_channelmap
-  RunHistory: {}
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: {}
 }
 
 source:

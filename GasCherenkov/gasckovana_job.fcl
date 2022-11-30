@@ -14,8 +14,8 @@ services:
 {
   TFileService: { fileName: "gasckovana_r%r_s%s.root" closeFileFast: false }
   IFBeam: {}
-  RunHistory: {}
-  ChannelMap: @local::standard_channelmap
+  RunHistoryService: {}
+  ChannelMapService: @local::standard_channelmap
 }
 
 outputs:
