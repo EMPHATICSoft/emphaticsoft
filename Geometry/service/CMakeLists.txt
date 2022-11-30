@@ -10,7 +10,7 @@ cet_build_plugin( Geometry art::service
   Geometry
   messagefacility::MF_MessageLogger
   RunHistory
-  RunHistory_service
+  RunHistoryService_service
 #  art::Framework_Core
   art::Framework_Services_Registry
   cetlib_except::cetlib_except

@@ -12,7 +12,7 @@ cet_build_plugin(T0toRPC art::module
 	ToFUtil
 	RawData
 	ChannelMap
-	ChannelMap_service
+	ChannelMapService_service
 	RunHistory
 	art_root_io::TFileService_service
 	messagefacility::MF_MessageLogger

@@ -68,7 +68,7 @@ namespace emph {
 
     bool                    fIsAborted;             ///< Whether Geant4 was aborted while tracking a particle
 
-    G4double                fEnergyCut;             ///< The minimum energy for a particle to be included in the list.
+    G4double                fEnergyCut;             ///< The minimum energy for a particle to be traced.  Shared by other module 
     bool                    fManyParticles;         ///< When true, includes track ids from processes like compt and brem
 
     static sim::Particle*   fParticle;              ///< The particle and trajectory information

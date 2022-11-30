@@ -37,7 +37,8 @@ namespace emph
   //-------------------------------------------------------------
   // Constructor.
   TrackListAction::TrackListAction() : 
-    fEnergyCut(1.0*CLHEP::MeV)
+    fEnergyCut(1.0*CLHEP::MeV),
+    fEnergyCutStore(0.1*CLHEP::GeV)
   {
     fRunManager = G4RunManager::GetRunManager();
   }
@@ -54,7 +55,8 @@ namespace emph
   //-------------------------------------------------------------
   void TrackListAction::Config(fhicl::ParameterSet const& pset )
   {
-    fEnergyCut                    = pset.get< double >("G4EnergyThreshold", 0.0001)*CLHEP::GeV;
+    fEnergyCut  = pset.get< double >("G4EnergyThreshold", 0.0001)*CLHEP::GeV;
+    fEnergyCutStore  = pset.get< double >("G4EnergyThresholdStore", 0.1)*CLHEP::GeV;
     std::cerr << " TrackListAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
     std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
     std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHTrackListTuple_V1_" << aTokenJob << ".txt";
@@ -77,6 +79,7 @@ namespace emph
   {
     sim::Track myTrack;
     if (aTrack->GetTotalEnergy() < fEnergyCut) return;
+    if (aTrack->GetKineticEnergy() < fEnergyCutStore) return;
     myTrack.SetTrackID(aTrack->GetTrackID());
     myTrack.SetPId(aTrack->GetParticleDefinition()->GetPDGEncoding());
     myTrack.SetParentTrackID(aTrack->GetParentID());

@@ -251,6 +251,10 @@
      <atom value="18.9984"/>
    </element>
    
+   <element Z="11" formula="Na" name="Sodium">
+     <atom value="23.0"/>
+     
+   </element>
    <element Z="13" formula="Al" name="Aluminum">
      <atom value="26.981"/>
    </element>
@@ -267,8 +271,16 @@
      <atom value="40.078"/>
    </element>
    
+    <element Z="19" formula="K" name="Potassium">
+     <atom value="39.14"/>
+   </element>
+   
    <element Z="26" formula="Fe" name="Iron">
      <atom value="55.847"/>
+   </element>
+   
+   <element Z="51" formula="Sb" name="Antimony">
+     <atom value="144.242"/>
    </element>
    
    <element Z="60" formula="Nd" name="Neodymium">
@@ -369,9 +381,9 @@
    </material>
    
 	<material formula="ch2" name="CH2">
-     <D value="1.0"/>
-     <composite n="0.86" ref="Carbon"/>
-     <composite n="0.14" ref="Hydrogen"/>
+     <D value="1.65"/>
+     <fraction n="0.86" ref="Carbon"/>
+     <fraction n="0.14" ref="Hydrogen"/>
    </material>
  
    <material formula="mylar" name="Mylar">
@@ -382,11 +394,15 @@
    </material>
   
   <!-- To be further defined as in Shigeru Kuroda et al 1987 Jpn. J. Appl. Phys. 26 460 -->
+  <!-- Or, NIM, A270 (1988) , p. 11-20, Table 1 -->
    <material formula="leadglass" name="LeadGlass">
-     <D value="4.0"/>
-     <fraction n="0.646" ref="Lead"/>
-     <fraction n="0.127" ref="Silicon"/>
-     <fraction n="0.227" ref="Oxygen"/>
+     <D unit="g/cm3" value="5.2"/>
+     <fraction n="0.657" ref="Lead"/>
+     <fraction n="0.128" ref="Silicon"/>
+     <fraction n="0.200" ref="Oxygen"/>
+     <fraction n="0.008" ref="Potassium"/>
+     <fraction n="0.004" ref="Sodium"/>
+     <fraction n="0.003" ref="Antimony"/>
    </material>
  
    <!-- To be further defined as R134a : SF6 : n-Butane - 90:5:5, or 94.5:0.5:5 -->

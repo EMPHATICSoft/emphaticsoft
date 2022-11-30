@@ -8,7 +8,10 @@
 #include "RunHistory/service/RunHistoryService.h"
 
 // Framework includes
-#include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Framework/Services/Registry/ActivityRegistry.h"
+#include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "fhiclcpp/ParameterSet.h"
+
 
 namespace emph
 {
@@ -52,5 +55,3 @@ namespace emph
     
   }
 }
-
-DEFINE_ART_SERVICE(emph::cmap::ChannelMapService)

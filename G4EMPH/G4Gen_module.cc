@@ -9,6 +9,7 @@
 #include "G4EMPH/G4Alg.h"
 #include "G4EMPH/ParticleListAction.h"
 #include "Simulation/SSDHit.h"
+#include "Simulation/TOPAZLGHit.h"
 //#include "Simulation/Particle.h"
 #include "Simulation/Track.h"
 #include "Simulation/Simulation.h"
@@ -72,6 +73,7 @@ namespace emph {
   , fG4Alg(0)
   , fG4AlgPSet(pset.get< fhicl::ParameterSet >("G4AlgPSet") )
   {
+  
     fGeneratorLabel = fG4AlgPSet.get<std::string>("GenModuleLabel");
 
     // get the random number seed, use a random default if not specified
@@ -85,6 +87,7 @@ namespace emph {
     fStopwatch.Start();
 
     produces< std::vector<sim::SSDHit> > ();
+    produces< std::vector<sim::TOPAZLGHit> > ();
 //    produces< std::vector<sim::Particle>     	         >();
     produces< std::vector<sim::Track>     	         >();
     //    produces< art::Assns<sim::Particle, simb::MCTruth>   >();
@@ -126,6 +129,7 @@ namespace emph {
   
     // Define the SSDHit and Particle vectors.
     std::unique_ptr<std::vector<sim::SSDHit> >  ssdhlcol(new std::vector<sim::SSDHit>  );
+    std::unique_ptr<std::vector<sim::TOPAZLGHit> >  lghlcol(new std::vector<sim::TOPAZLGHit>  );
 //    std::unique_ptr<std::vector<sim::Particle>     >            pcol    (new std::vector<sim::Particle>    );
     std::unique_ptr<std::vector<sim::Track>     >            pcol    (new std::vector<sim::Track>    );
     //    std::unique_ptr< art::Assns<sim::Particle, simb::MCTruth> > tpassn  (new art::Assns<sim::Particle, simb::MCTruth>);
@@ -137,7 +141,7 @@ namespace emph {
     // make sure there is only one beam particle
     assert(beam.size() == 1);
     simb::MCParticle b = beam->at(0);
-
+    //
     // now create MCTruth
     simb::MCTruth mctru;
     mctru.SetBeam(b);
@@ -165,12 +169,13 @@ namespace emph {
 //    std::cout << "******************** HERE 1 ********************" 
 //	      << std::endl;
 //    fG4Alg->RunGeant(mct, *ssdhlcol, *pcol, trackIDToMCTruthIndex);
-    fG4Alg->RunGeant(mct, *ssdhlcol, *pcol, trackIDToMCTruthIndex); // trackIDToMCTruthIndex will be left empty... Could be cleaned up.. 
+    fG4Alg->RunGeant(mct, *ssdhlcol, *lghlcol,  *pcol, trackIDToMCTruthIndex); // trackIDToMCTruthIndex will be left empty... Could be cleaned up.. 
 //    std::cout << "******************** HERE 2 ********************" 
 //	      << std::endl;
     if (evt.id().event() < 10 ) { 
       std::cerr << "####################### The Particle List Action Size: " << pcol->size() << std::endl;
       std::cerr << "####################### The SSD Hit List Size: " << ssdhlcol->size() << std::endl;
+      std::cerr << "####################### The TOPAZLG Hit List Size: " << lghlcol->size() << std::endl;
     }
     // print the number of particles and ssd hits!
 
@@ -197,6 +202,7 @@ namespace emph {
     
     // Put the data products into the event
     evt.put(std::move(ssdhlcol));
+    evt.put(std::move(lghlcol));
     evt.put(std::move(pcol));
     //    evt.put(std::move(tpassn));
     
