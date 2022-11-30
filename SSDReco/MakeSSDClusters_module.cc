@@ -29,7 +29,6 @@ namespace emph {
   class MakeSSDClusters;
 }
 
-
 class emph::MakeSSDClusters : public art::EDProducer {
 public:
   explicit MakeSSDClusters(fhicl::ParameterSet const& pset);
@@ -53,7 +52,7 @@ private:
   art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
   TTree *ssdclust;
   int event;
-  std::vector<int> station, sens, ndigits, width, timerange;
+  std::vector<int> station, sens, ndigits, width, timerange, nclusts;
   std::vector<float> avgadc;
   
   // fcl parameters
@@ -95,6 +94,7 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("width",&width);
     ssdclust->Branch("timerange",&timerange);
     ssdclust->Branch("avgadc",&avgadc);
+    ssdclust->Branch("nclusts",&nclusts);
   }
 }
 
@@ -196,6 +196,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	      avgadc.push_back(clusters[i].AvgADC());
 	    }
 	    clusterv->push_back(clusters[i]);
+	    nclusts.push_back(clusters.size());
 	  }
 	}
       }
@@ -215,7 +216,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     width.clear();
     timerange.clear();
     avgadc.clear();
+    nclusts.clear();
   }
 }
-
 DEFINE_ART_MODULE(emph::MakeSSDClusters)
