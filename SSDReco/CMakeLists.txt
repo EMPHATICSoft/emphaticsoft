@@ -6,9 +6,9 @@ FILE( GLOB src_files *.cxx )
 cet_build_plugin(MakeSSDClusters art::module
 	LIBRARIES PRIVATE
 	ChannelMap
-	ChannelMap_service
+	ChannelMapService_service
 	RunHistory
-	RunHistory_service
+	RunHistoryService_service
 	RawData
 	RecoBase
 	ROOT::Tree

@@ -1,22 +1,17 @@
 include(ArtDictionary)
 include(ArtMake)
 
-find_library(LIBWDA NAMES wda PATHS ENV LIBWDA_LIB NO_DEFAULT_PATH)
+find_package(libwda REQUIRED EXPORT)
 
-include_directories( $ENV{LIBWDA_FQ_DIR}/include) 
-include_directories( $ENV{ART_CPP_DB_INTERFACES_INC}) 
+art_make_library(SOURCE RunHistory.cxx
+  LIBRARIES
+  PRIVATE
+  wda::wda
+)
 
-art_make_library(
-  SOURCE
-    RunHistory.cxx
-  LIBRARIES #PRIVATE
-    art::Framework_Core
-    art::Persistency_Common
-    canvas::canvas
-    fhiclcpp::fhiclcpp
-    ${LIBWDA}
-    messagefacility::MF_MessageLogger
-  )
+target_include_directories(RunHistory BEFORE
+  PRIVATE "$ENV{ART_CPP_DB_INTERFACES_INC}"
+)
 
 install_headers()
 install_source()

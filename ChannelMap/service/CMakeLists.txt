@@ -1,26 +1,19 @@
 include(ArtDictionary)
 include(ArtMake)
 
-find_package(ROOT REQUIRED)
-find_package(art REQUIRED)
-find_package(messagefacility REQUIRED)
+find_package(art REQUIRED EXPORT)
+find_package(fhiclcpp REQUIRED EXPORT)
 
-include_directories($ENV{ART_INC})
-include_directories($ENV{CETLIB_EXCEPT_INC})
-
-link_directories($ENV{CETLIB_EXCEPT_LIB})
-
-cet_build_plugin(ChannelMap art::service
-  LIBRARIES #PRIVATE
+cet_build_plugin(ChannelMapService art::service
+  LIBRARIES
+  PUBLIC
   ChannelMap
-  RunHistory
-  RunHistory_service
-  art::Framework_Core
-  art::Framework_Principal
+  PRIVATE
+  RunHistoryService_service
   art::Framework_Services_Registry
-  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
   BASENAME_ONLY
-  )
+)
 
 install_headers()
 install_fhicl()
