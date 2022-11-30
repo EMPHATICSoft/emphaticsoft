@@ -17,6 +17,7 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
