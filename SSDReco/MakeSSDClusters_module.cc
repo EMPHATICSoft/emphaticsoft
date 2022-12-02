@@ -51,9 +51,10 @@ private:
   
   art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
   TTree *ssdclust;
-  int event;
-  std::vector<int> station, sens, ndigits, width, timerange, nclusts;
+  int run,subrun,event;
+  std::vector<int> station, sens, ndigits, width, timerange;
   std::vector<float> avgadc;
+  int ncluster[16];
   
   // fcl parameters
   std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
@@ -87,6 +88,8 @@ void emph::MakeSSDClusters::beginJob()
   if (fFillTTree) {
     art::ServiceHandle<art::TFileService> tfs;
     ssdclust = tfs->make<TTree>("clusts","");
+    ssdclust->Branch("run",&run,"run/I");
+    ssdclust->Branch("subrun",&subrun,"subrun/I");
     ssdclust->Branch("event",&event,"event/I");
     ssdclust->Branch("station",&station);
     ssdclust->Branch("sens",&sens);
@@ -94,7 +97,7 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("width",&width);
     ssdclust->Branch("timerange",&timerange);
     ssdclust->Branch("avgadc",&avgadc);
-    ssdclust->Branch("nclusts",&nclusts);
+    ssdclust->Branch("ncluster",&ncluster,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15");
   }
 }
 
@@ -124,7 +127,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
     curRow = dig->Row();
 
     // if gap too big, push cluster and clear it
-    if ( curRow-prevRow > (fRowGap + 1) ) {
+    if ( curRow-prevRow > (fRowGap) ) {
       ssdClust.SetStation(station);
       ssdClust.SetSensor(sensor);
       sensClusters->push_back(ssdClust);
@@ -135,6 +138,11 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
     prevRow=curRow;
   }
 
+  // push last cluster
+  ssdClust.SetStation(station);
+  ssdClust.SetSensor(sensor);
+  sensClusters->push_back(ssdClust);
+
 }
 
 //--------------------------------------------------
@@ -142,6 +150,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 {
   std::unique_ptr< std::vector<rb::SSDCluster> > clusterv(new std::vector<rb::SSDCluster>);
 
+  run = evt.run();
+  subrun = evt.subRun();
   event = evt.event();
 
   if (fCheckDQ){
@@ -151,6 +161,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       // if no ssd hits in event, continue
       if(!eventqual->hasSSDHits){
 	rb::SSDCluster ssdClust;
+	ssdClust.SetStation(-1);
+	ssdClust.SetSensor(-1);
 	clusterv->push_back(ssdClust);
 	evt.put(std::move(clusterv));
 	return;
@@ -163,7 +175,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   }
 
   art::PtrVector<emph::rawdata::SSDRawDigit> digitList[6][6];
-  
+
+  std::fill_n(ncluster,16,0);
+
   art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdHandle;
   try{
     evt.getByLabel(fSSDRawLabel,ssdHandle);
@@ -178,10 +192,10 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       // Should really pull counts of these from geometry somehow
       for (int sta=0; sta<6; ++sta){
 	for (int sensor=0; sensor<6; ++sensor){
+	  clusters.clear();
 	  // Don't bother to cluster if we didn't have any raw digits
 	  if (digitList[sta][sensor].size()==0)
 	    continue;
-	  clusters.clear();
 	  // FormClusters() assumes digits are ordered by row
 	  this->SortByRow(digitList[sta][sensor]);
 	  this->FormClusters(digitList[sta][sensor], &clusters, sta, sensor);
@@ -194,13 +208,22 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	      width.push_back(clusters[i].Width());
 	      timerange.push_back(clusters[i].TimeRange());
 	      avgadc.push_back(clusters[i].AvgADC());
+	      int plane = -1;
+	      if (sta==0 || sta==1){
+		plane = 2*sta+sensor;
+	      }
+	      else if (sta==2 || sta==3){
+		plane = 3*sta+sensor-2;
+	      }
+	      else {
+		plane = 3*sta+(int)sensor/2-2;
+	      }
+	      ncluster[plane]++;
 	    }
 	    clusterv->push_back(clusters[i]);
-	    nclusts.push_back(clusters.size());
 	  }
 	}
       }
-	  
     }
   }
   catch(...){
@@ -216,7 +239,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     width.clear();
     timerange.clear();
     avgadc.clear();
-    nclusts.clear();
   }
 }
 DEFINE_ART_MODULE(emph::MakeSSDClusters)

@@ -25,7 +25,9 @@ namespace rb {
   
   SSDCluster::SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits, 
 			 int id) :
-    fID(id)
+    fID(id),
+    fStation(-1),
+    fSensor(-1)
   {
     assert(hits.size() > 1);
     

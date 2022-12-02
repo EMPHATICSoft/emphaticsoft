@@ -5,8 +5,8 @@ standard_ssdclust:
   module_type: MakeSSDClusters
   SSDRawLabel: "raw:SSD"
   FillTTree:   true           # Make TTree for development/debugging?
-  RowGap:      0              # If gap between RawDigits is larger than this, form a new cluster
-  CheckDQ:     false          # Check data quality for event (requires running FillDataQual first)
+  RowGap:      1              # If gap between RawDigits is larger than this, form a new cluster
+  CheckDQ:     true           # Check data quality for event (requires running FillDataQual first)
 }
 
 END_PROLOG
