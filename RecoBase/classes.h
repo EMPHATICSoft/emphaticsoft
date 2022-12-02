@@ -8,4 +8,5 @@
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/GasCkovHit.h"
 #include "RecoBase/ADC.h"
+#include "RecoBase/TrigToT0.h"
 
