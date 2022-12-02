@@ -39,5 +39,5 @@ install_source()
 install_fhicl()
 install_headers()
 
-art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::ToFUtil)
+#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::ToFUtil)
 
