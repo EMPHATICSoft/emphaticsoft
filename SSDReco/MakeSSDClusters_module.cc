@@ -138,6 +138,11 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
     prevRow=curRow;
   }
 
+  // push last cluster
+  ssdClust.SetStation(station);
+  ssdClust.SetSensor(sensor);
+  sensClusters->push_back(ssdClust);
+
 }
 
 //--------------------------------------------------
@@ -156,6 +161,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       // if no ssd hits in event, continue
       if(!eventqual->hasSSDHits){
 	rb::SSDCluster ssdClust;
+	ssdClust.SetStation(-1);
+	ssdClust.SetSensor(-1);
 	clusterv->push_back(ssdClust);
 	evt.put(std::move(clusterv));
 	return;
