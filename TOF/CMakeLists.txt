@@ -38,6 +38,3 @@ cet_build_plugin(TrigToT0Prod art::module
 install_source()
 install_fhicl()
 install_headers()
-
-#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::ToFUtil)
-

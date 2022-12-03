@@ -215,9 +215,6 @@ namespace emph {
     //......................................................................
     void TrigToT0Prod::openOutputCsvFiles() {
 //
-//       std::cerr << " TrigToT0Prod::openOutputCsv..  Files Number of RPC channel, from Channel map " 
-//           << nChanRPC << " and quit for now.. " << std::endl; exit(2);
-//    
       if (fRun == 0) {
         std::cerr << " TrigToT0Prod::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
 	exit(2);
@@ -255,7 +252,6 @@ namespace emph {
 	fFOutTrigT0Final << " Sum4PMT";
         fFOutTrigT0Final << " T0nH T0nH1 T0nH1UpDwn T0nH2 T0nH2UpDwn T0seg1 T0seq2 T0sumSigUp1" <<
 	               " T0sumSigDwn1 T0sumSigUp2 T0sumSigDwn2 T0tdcH1Bot T0tdcH1Top ";
-	fFOutTrigT0Final << " RPCHaSig500 RPCnTot  RPCnOK";
 	fFOutTrigT0Final << " " << std::endl;
       }
       fFilesAreOpen = true;
@@ -702,7 +698,7 @@ namespace emph {
     }
     //......................................................................
     void TrigToT0Prod::produce(art::Event& evt)
-    { 
+    {
       ++fNEvents;
       this->resetAllADCsTDCs();
       fRun = evt.run();
