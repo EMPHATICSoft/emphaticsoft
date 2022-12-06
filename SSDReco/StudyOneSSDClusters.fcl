@@ -1,0 +1,14 @@
+BEGIN_PROLOG
+
+standard_study1ssdcl:
+{
+  module_type: StudyOneSSDClusters
+  SSDClsLabel: "clust"
+  tokenJob: "undef"
+  dumpClusters: false
+  selectHotChannels: false
+  alignX: false
+  alignY: false
+}
+
+END_PROLOG
