@@ -184,6 +184,8 @@ namespace emph {
     }
     void emph::StudyOneSSDClusters::beginRun(art::Run const &run)
     {
+      // Assume th same geometry for all sub runs (this is called for every subruns, it turns out.. ) 
+      if (fXYUVLabels.size() != 0) return;
       std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
       fRunHistory = new runhist::RunHistory(run.run());
       fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile()); 
