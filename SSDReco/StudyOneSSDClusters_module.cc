@@ -123,6 +123,8 @@ namespace emph {
 //
       std::vector<art::Ptr<rb::SSDCluster> > fSSDclPtrs; // This is what I got from art, see analyze method. 
       std::vector<rb::SSDCluster> fSSDcls; // we will do a deep copy, as my first attempt at using the above vector failed.. 
+      art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr;
+
 //
 // Hot channel Analysis      
 //
@@ -287,16 +289,16 @@ namespace emph {
      std::vector<int> numClsX(6, 0);
      std::vector<int> numClsY(6, 0);
      if (fNEvents < 20) {
-       std::cerr << " emph::StudyOneSSDClusters::dumpXYCls, number of cluster for evt " << fEvtNum <<  "  is " << fSSDcls.size() << std::endl;
+       std::cerr << " emph::StudyOneSSDClusters::dumpXYCls, number of cluster for evt " << fEvtNum <<  "  is " << fSSDClsPtr->size() << std::endl;
      }
      
-     for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDcls.cbegin(); itCl != fSSDcls.cend(); itCl++) {
+     for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aStation = itCl->Station(); // iterator to pointer to the cluster. 
          char aView = this->getView(itCl);
 	if (aView == 'X')  numClsX[aStation]++;
 	if (aView == 'Y')  numClsY[aStation]++;
       }
-      for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDcls.cbegin(); itCl != fSSDcls.cend(); itCl++) {
+      for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
         char aView =  fXYUVLabels.at(10*aStation+aSensor); // we have done the check above.. 
@@ -315,7 +317,7 @@ namespace emph {
       }
     }
     void emph::StudyOneSSDClusters::fillHotChannels() {      
-      for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDcls.cbegin(); itCl != fSSDcls.cend(); itCl++) {
+      for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
         for (std::vector<emph::ssdr::SSDHotChannelList>::iterator itHl = fHotChans.begin(); itHl != fHotChans.end(); itHl++) {
@@ -341,19 +343,32 @@ namespace emph {
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
       if (fSSDclPtrs.size() == 0) return; // nothing to do, no data. 
       //
-      // This code fragment is simply for debugging.. 
-      if (fSSDclPtrs.size() != 1) { 
-        std::cerr << " Number of pointers to a given SSDCluster, " << fSSDclPtrs.size() << std::endl;
-      }
+      // This code fragment is simply for debugging.. And is confusing.. 
+//      if (fSSDclPtrs.size() != 1) { 
+//        std::cerr << " Number of pointers to a given SSDCluster, " << fSSDclPtrs.size() << std::endl;
+//      }
 
-      std::vector<art::Ptr<rb::SSDCluster> >::const_iterator aPtrClIt = fSSDclPtrs.cbegin();
-      art::Ptr<rb::SSDCluster> aPtrCl = *aPtrClIt;
-      std::cerr << " Station for the first cluster  " << aPtrCl->Station() << std::endl;
+//      std::vector<art::Ptr<rb::SSDCluster> >::const_iterator aPtrClIt = fSSDclPtrs.cbegin();
+//      art::Ptr<rb::SSDCluster> aPtrCl = *aPtrClIt;
+//      std::cerr << " Station for the first cluster  " << aPtrCl->Station() << std::endl;
       // 
       // These will fail, as the sStion number is clearly bogus... for many clusters.  
-      // 
-//      if (fDumpClusters) this->dumpXYCls();
-//      if (fSelectHotChannels) this->fillHotChannels(); 
+      // old, deprecated interface, with a deep copy.. 
+      //
+      evt.getByLabel (fSSDClsLabel, fSSDClsPtr);
+      fSSDcls = (*fSSDClsPtr); // deep copy here. Probably can be avoided.. 
+      if (fNEvents < 50){
+         std::cerr << " Number SSDClusters, deprecated interface (with deep copy) " << fSSDcls.size() << std::endl;
+        if (fSSDcls.size() != 0) {
+          std::vector<rb::SSDCluster>::const_iterator itClsTest = fSSDcls.cbegin(); 
+          std::cerr << " Station for the first cluster, old interface   " << itClsTest->Station() << std::endl;
+          std::vector<rb::SSDCluster>::const_iterator itClsTest2 = fSSDClsPtr->cbegin(); 
+          std::cerr << " Station for the first cluster, old interface no deep copy   " << itClsTest2->Station() << std::endl;
+	  
+        }
+      } 
+      if (fDumpClusters) this->dumpXYCls();
+      if (fSelectHotChannels) this->fillHotChannels(); 
     } // end of Analyze, event by events.  
    
    char emph::StudyOneSSDClusters::getView(std::vector<rb::SSDCluster>::const_iterator itCl) const {
