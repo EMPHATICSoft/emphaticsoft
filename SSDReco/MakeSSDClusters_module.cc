@@ -220,6 +220,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	      }
 	      ncluster[plane]++;
 	    }
+	    clusters[i].SetID(i);
 	    clusterv->push_back(clusters[i]);
 	  }
 	}
