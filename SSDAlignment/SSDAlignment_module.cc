@@ -337,6 +337,29 @@ namespace emph {
 				fX_Residual_Init[x_ind[j][k]]->Fill(res);
 				xres_array[x_ind[j][k]].push_back(res);
 			}
+			//Store first 10 events (unaligned) to look at
+			if (j<10 && i==0){
+				int event_holder = j;  //need to convert j to int for naming Event displays
+				evt_disp[j] = tfs->makeAndRegister<TGraph>(Form("event_%i",event_holder),"Unaligned Event",dim, &xz_cal[0], &x_adj[0]);
+				evt_disp[j]->Fit(fit,"Q");
+				evt_disp[j]->SetMarkerStyle(21);
+				evt_disp[j]->SetTitle(Form("Unaligned Alignment Event %i",event_holder));
+				evt_disp[j]->GetXaxis()->SetTitle("z pos (mm)");
+				evt_disp[j]->GetXaxis()->SetLimits(0,1250);
+				evt_disp[j]->GetYaxis()->SetTitle("x pos (mm)");
+				evt_disp[j]->GetYaxis()->SetRangeUser(-40,40);
+			}	
+			if (j<10 && i==loops-1){
+				int event_holder = j;  //need to convert j to int for naming Event displays
+				evt_disp_adj[j] = tfs->makeAndRegister<TGraph>(Form("adj_event_%i",event_holder),"Aligned Event",dim, &xz_cal[0], &x_adj[0]);
+				evt_disp_adj[j]->Fit(fit,"Q");
+				evt_disp_adj[j]->SetMarkerStyle(21);
+				evt_disp_adj[j]->SetTitle(Form("Aligned Alignment Event %i",event_holder));
+				evt_disp_adj[j]->GetXaxis()->SetTitle("z pos (mm)");
+				evt_disp_adj[j]->GetXaxis()->SetLimits(0,1250);
+				evt_disp_adj[j]->GetYaxis()->SetTitle("x pos (mm)");
+				evt_disp_adj[j]->GetYaxis()->SetRangeUser(-40,40);
+			}
 		}
 
 		//Repeat Process for Y
@@ -415,31 +438,12 @@ namespace emph {
 				//Filling residual plots using correct index of SSD
 				vres_array[v_ind[j][k]].push_back(res);
 			}
-			//Store first 10 events (unaligned) to look at
-			if (j<10 && i==0){
-				int event_holder = j;  //need to convert j to int for naming Event displays
-				evt_disp[j] = tfs->makeAndRegister<TGraph>(Form("event_%i",event_holder),"Unaligned Event",dim, &vz_cal[0], &v_adj[0]);
-				evt_disp[j]->Fit(fit,"Q");
-				evt_disp[j]->SetMarkerStyle(21);
-				evt_disp[j]->SetTitle(Form("Unaligned Alignment Event %i",event_holder));
-				evt_disp[j]->GetXaxis()->SetTitle("z pos (mm)");
-				evt_disp[j]->GetXaxis()->SetLimits(0,1250);
-				evt_disp[j]->GetYaxis()->SetTitle("v pos (mm)");
-				evt_disp[j]->GetYaxis()->SetRangeUser(-40,40);
-			}	
-			if (j<10 && i==loops-1){
-				int event_holder = j;  //need to convert j to int for naming Event displays
-				evt_disp_adj[j] = tfs->makeAndRegister<TGraph>(Form("adj_event_%i",event_holder),"Aligned Event",dim, &vz_cal[0], &v_adj[0]);
-				evt_disp_adj[j]->Fit(fit,"Q");
-				evt_disp_adj[j]->SetMarkerStyle(21);
-				evt_disp_adj[j]->SetTitle(Form("Aligned Alignment Event %i",event_holder));
-				evt_disp_adj[j]->GetXaxis()->SetTitle("z pos (mm)");
-				evt_disp_adj[j]->GetXaxis()->SetLimits(0,1250);
-				evt_disp_adj[j]->GetYaxis()->SetTitle("v pos (mm)");
-				evt_disp_adj[j]->GetYaxis()->SetRangeUser(-40,40);
-			}
+			
 			
 		}
+
+	//variables to fix first x/y ssd station
+	double x_ref, y_ref;
 	std::cout<<"X Shifts are:    ";
 	for(size_t j=0; j<x_shifts.size(); ++j){
 		double sum=0;
@@ -449,6 +453,9 @@ namespace emph {
 		}
 		double mean = sum / xres_array[j].size();
 		x_shifts[j] += mean;
+		//Fixing first X SSD at x=0 (shift all SSDs in X by x_shift[0])
+		if(j==0) x_ref = x_shifts[0];	
+		x_shifts[j]=x_shifts[j]-x_ref;
 		std::cout<<x_shifts[j]<<", ";
 	}
 	std::cout<<std::endl;
@@ -462,6 +469,9 @@ namespace emph {
 		}
 		double mean = sum / yres_array[j].size();
 		y_shifts[j] += mean;
+		//Fixing first Y SSD at y=0 (shift all SSDs in Y by y_shift[0])
+		if(j==0) y_ref = y_shifts[0];
+		y_shifts[j]=y_shifts[j]-y_ref;
 		std::cout<<y_shifts[j]<<", ";
 	}
 	std::cout<<std::endl;
@@ -474,7 +484,11 @@ namespace emph {
 			sum +=ures_array[j][k];
 		}
 		double mean = sum / ures_array[j].size();
-		if(j==2 || j==3) u_shifts[j] += mean;
+		if(j==2 || j==3){
+			u_shifts[j] += mean;
+			//Fixing first X/Y SSD at (0,0) (shift all u SSDs accordingly)
+			u_shifts[j]=u_shifts[j]-(sqrt(2)/2)*(x_ref-y_ref);
+		}
 		std::cout<<u_shifts[j]<<", ";
 	}
 	std::cout<<std::endl;
@@ -487,7 +501,11 @@ namespace emph {
 			sum +=vres_array[j][k];
 		}
 		double mean = sum / vres_array[j].size();
-		if(j==4 || j==5 || j==6 || j==7) v_shifts[j] += mean;
+		if(j==4 || j==5 || j==6 || j==7){
+			v_shifts[j] += mean;
+			//Fixing first X/Y SSD at (0,0) (shift all u SSDs accordingly)
+			v_shifts[j]=v_shifts[j]-(sqrt(2)/2)*(x_ref+y_ref);
+		}
 		std::cout<<v_shifts[j]<<", ";
 	}
 	std::cout<<std::endl;
