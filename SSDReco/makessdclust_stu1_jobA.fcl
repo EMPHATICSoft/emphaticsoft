@@ -50,6 +50,8 @@ physics:
 }
 
 physics.analyzers.onestu.SSDClsLabel: "clustA"
-physics.analyzers.onestu.tokenJob: "try2"
-physics.analyzers.onestu.dumpClusters: true
+physics.analyzers.onestu.tokenJob: "try3"
+physics.analyzers.onestu.dumpClusters: false  
+physics.analyzers.onestu.selectHotChannels: true
+physics.producers.clustA.CheckDQ: false
 

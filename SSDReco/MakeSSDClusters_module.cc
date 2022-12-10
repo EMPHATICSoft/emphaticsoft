@@ -153,7 +153,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   run = evt.run();
   subrun = evt.subRun();
   event = evt.event();
-
   if (fCheckDQ){
     art::Handle<dq::EventQuality> eventqual;
     try{

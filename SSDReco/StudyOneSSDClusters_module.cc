@@ -46,6 +46,7 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDHotChannelList.h"
+#include "SSDReco/SSDAlign2DXYAlgo1.h"
 //
 
 namespace emph {
@@ -57,18 +58,6 @@ namespace emph {
     
     public:
       
-      struct myLinFitResult { 
-        public:
-	  int ndgf; // number of degrees of freedom Other data member are self explicit.
-	  double offset;
-	  double slope;
-	  double sigmaOffset;
-	  double sigmaSlope;
-	  double covOffsetSlope; 
-	  double chiSq;
-	  std::vector<double> resids; // The residuals
-      };
-           
       explicit StudyOneSSDClusters(fhicl::ParameterSet const& pset); // Required!       // Optional, read/write access to event
       void analyze(const art::Event& evt);
       
@@ -97,14 +86,18 @@ namespace emph {
       std::string fTokenJob;
       std::string fSSDClsLabel;
       bool fDumpClusters;    
-      bool fSelectHotChannels;    
-      bool fAlignX;    
-      bool fAlignY;    
+      bool fSelectHotChannels;  // Mostly obsolete. 
+      bool fSelectHotChannelsFromHits; // Probably a better way.    
+      bool fDoAlignX;    
+      bool fDoAlignY;  
+      bool fDoSkipDeadOrHotStrips;  
       unsigned int fRun;
       unsigned int fSubRun;
       unsigned int fEvtNum;
       unsigned int fNEvents;
       double fPitch;
+      int fNumMaxIterAlignAlgo1;
+      double fChiSqCutAlignAlgo1;
 //
 // access to the geometry.   
 //
@@ -114,7 +107,7 @@ namespace emph {
       std::vector<double> fZlocYPlanes;
       std::vector<double> fZlocUPlanes;
       std::vector<double> fZlocVPlanes;
-      std::map<int, char> fXYUVLabels; // key on 10*stations + sensor. 
+      std::map<int, char> fXYUVLabels; // keyed on 10*stations + sensor. 
 // 
 // Container for the hot channels. 
 // 
@@ -122,13 +115,16 @@ namespace emph {
 // access to input data..   
 //
       std::vector<art::Ptr<rb::SSDCluster> > fSSDclPtrs; // This is what I got from art, see analyze method. 
-      std::vector<rb::SSDCluster> fSSDcls; // we will do a deep copy, as my first attempt at using the above vector failed.. 
-      art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr;
-
+      std::vector<rb::SSDCluster> fSSDcls; // we will do a deep copy, as my first attempt at using the above vector failed.. lower case c
+      art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr; // This works, but use the deprecated art interface.. Upper case C
 //
 // Hot channel Analysis      
 //
-   std::vector<emph::ssdr::SSDHotChannelList> fHotChans;      
+   std::vector<emph::ssdr::SSDHotChannelList> fHotChans;
+//
+// The 5 station X and Y aligners
+//
+      emph::ssdr::SSDAlign2DXYAlgo1 fAlignX, fAlignY;           
 //
 // CSV tuple output..
 // 
@@ -137,10 +133,16 @@ namespace emph {
       
       void dumpXYCls();
       void fillHotChannels();
+      void fillDeadChannels();
+      
+      void testAccess(); 
+      
+      void alignFiveStations(const art::Event& evt); // event by event alignment. 
+      
+      void selectByView(char aView, bool skipDeadOrHotChannels); // move data from fSSDClsPtr to fSSDcls, for a given view 
       
       char getView(std::vector<rb::SSDCluster>::const_iterator itCl) const; 
       
-      void  fitLin(const char dirPlane, const std::vector<double> &t, const std::vector<double> &sigT, myLinFitResult &fitRes ) const ; 
       
     }; 
     
@@ -148,15 +150,18 @@ namespace emph {
     emph::StudyOneSSDClusters::StudyOneSSDClusters(fhicl::ParameterSet const& pset) : 
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
-    fDumpClusters(false), fSelectHotChannels(false),     
-    fAlignX(false), fAlignY(false),    
+    fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
+    fDoAlignX(false), fDoAlignY(false),  fDoSkipDeadOrHotStrips(true), 
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
+    fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
      fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
     {
        std::cerr << " Constructing StudyOneSSDClusters " << std::endl;
        this->reconfigure(pset);
        fFilesAreOpen = false;
+//       fSSDClsPtr = nullptr;
+       fAlignX.SetTheView('X'); fAlignX.SetTheView('Y');
     }
     
     void emph::StudyOneSSDClusters::reconfigure(const fhicl::ParameterSet& pset)
@@ -167,15 +172,25 @@ namespace emph {
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
       fDumpClusters = pset.get<bool>("dumpClusters", false);
       fSelectHotChannels = pset.get<bool>("selectHotChannels", false);
-      fAlignX = pset.get<bool>("alignX", false);
-      fAlignY = pset.get<bool>("alignY", false);
-      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fAlignX) && (!fAlignX)) { 
+      fSelectHotChannelsFromHits = pset.get<bool>("selectHotChannelsFromHits", false);
+      std::string fNameHCFH = pset.get<std::string>("NameFileHCFH", "./SSDCalibHotChanSummary_none_1055.txt");
+      std::string fNameDCFH = pset.get<std::string>("NameFileHCFH", "./SSDCalibDeadChanSummary_none_1055.txt");
+      fDoAlignX = pset.get<bool>("alignX", false);
+      fDoAlignY = pset.get<bool>("alignY", false);
+      fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
+      fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
+      fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 20.);
+      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignX)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
-      if (fSelectHotChannels) {
+      if (fSelectHotChannels || fSelectHotChannelsFromHits) {
         for (int kSt = 0; kSt != 6; kSt++) { 
 	  for (int kSe = 0; kSe != 6; kSe++) { 
              emph::ssdr::SSDHotChannelList aHl(fRun, kSt, kSe);
+	     if (fSelectHotChannelsFromHits) {
+	       aHl.getItFromSSDCalib(fNameHCFH);
+	       aHl.getItFromSSDCalib(fNameDCFH);
+	     }
 	     fHotChans.push_back(aHl);
 	  }
 	}
@@ -196,7 +211,8 @@ namespace emph {
       }
 //
       std::vector<double> XlocXPlanes, YlocYPlanes; // labeled by view 
-      for (int k=0; k != fEmgeo->NSSDStations(); k++) {
+       std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
+     for (int k=0; k != fEmgeo->NSSDStations(); k++) {
         emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
         TVector3 posSt = aStation.Pos();
 	std::cerr << " .... For Station by index " <<  k  << " Stations name is " << aStation.Name() 
@@ -209,12 +225,14 @@ namespace emph {
 	    TVector3 pos = aPlane.Pos();
 	    fZlocXPlanes.push_back(pos[2] + posSt[2]);
 	    XlocXPlanes.push_back(pos[0] + posSt[0]);
+	    XRotXPlanes.push_back(aPlane.Rot());
 	    viewChar = 'X';
 	  }
 	  if ((std::abs(aPlane.Rot()) < 0.1) || (std::abs(aPlane.Rot() - 180.*M_PI/180.) < 0.1)) {
 	    TVector3 pos = aPlane.Pos();
 	    fZlocYPlanes.push_back(pos[2] + posSt[2]);
 	    YlocYPlanes.push_back(pos[1] + posSt[1]);
+	    YRotYPlanes.push_back(aPlane.Rot());
 	    viewChar = 'Y';
 	  }
 	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
@@ -238,12 +256,20 @@ namespace emph {
       for (size_t i=0; i != fZlocXPlanes.size(); i++) std::cerr << " " << fZlocXPlanes[i] << ",";
       std::cerr << std::endl << " X locations ";
       for (size_t i=0; i != XlocXPlanes.size(); i++) std::cerr << " " << XlocXPlanes[i] << ",";
+      std::cerr << std::endl << " X Rotations ";
+      for (size_t i=0; i != XRotXPlanes.size(); i++) std::cerr << " " << XRotXPlanes[i] << ",";
+      
       std::cerr << std::endl << " Number of SSD Y planes (Horizontal strips) " << fZlocYPlanes.size() << std::endl;
       std::cerr << " Z locations ";
       for (size_t i=0; i != fZlocYPlanes.size(); i++) std::cerr << " " << fZlocYPlanes[i] << ",";
       std::cerr << std::endl << " Y location " ;
       for (size_t i=0; i != YlocYPlanes.size(); i++) std::cerr << " " << YlocYPlanes[i] << ",";
+      std::cerr << std::endl << " Y Rotations ";
+      for (size_t i=0; i != YRotYPlanes.size(); i++) std::cerr << " " << YRotYPlanes[i] << ",";
+      
+      
       std::cerr  << std::endl << " ------------- End of StudyOneSSDClusters::beginRun ------------------" << std::endl << std::endl;
+      std::cerr << " And.. And.. quit for now " << std::endl; exit(2);
     }
     
     void emph::StudyOneSSDClusters::beginJob()
@@ -257,7 +283,7 @@ namespace emph {
 	 exit(2);
       }
       if (fDumpClusters) { 
-        std::string headerS(" subRun evt station nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
+        std::string headerS(" subRun evt station sensor nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
         std::ostringstream fNameDumpClustStrStr; fNameDumpClustStrStr << "./SSDClusterTuple_V1_" << fRun << "_" << fTokenJob;
         std::string fNameDumpClustStr(fNameDumpClustStrStr.str());
         std::string fNameDumpClusXStr(fNameDumpClustStr); fNameDumpClusXStr += "_X.txt";
@@ -296,21 +322,23 @@ namespace emph {
      
      for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aStation = itCl->Station(); // iterator to pointer to the cluster. 
-         char aView = this->getView(itCl);
+	if ((itCl->Sensor() == -1) || ( aStation == -1)) continue;
+        char aView = this->getView(itCl);
 	if (aView == 'X')  numClsX[aStation]++;
 	if (aView == 'Y')  numClsY[aStation]++;
       }
       for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
+	if ((aSensor == -1) || (aStation == -1)) continue;
         char aView =  fXYUVLabels.at(10*aStation+aSensor); // we have done the check above.. 
 	int nn = 0;
 	if (aView == 'X') nn = numClsX[aStation]; 
 	if (aView == 'Y') nn = numClsY[aStation];
 	if ((aView != 'X') && (aView != 'Y')) continue;
         std::ostringstream aLineStrStr; 
-//        std::string headerS(" subRun evt station nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
-	aLineStrStr << " " << fSubRun << " " << fEvtNum << " " << itCl->Station();
+//        std::string headerS(" subRun evt station sensor nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
+	aLineStrStr << " " << fSubRun << " " << fEvtNum << " " << itCl->Station() << " " << itCl->Sensor();
 	aLineStrStr << " " << nn << " " << itCl->ID() << " " << itCl->WgtAvgStrip() << " " 
 	            << itCl->WgtRmsStrip() << " " << itCl->AvgADC();
         std::string aLineStr(aLineStrStr.str()); 
@@ -318,61 +346,31 @@ namespace emph {
 	if (aView == 'Y')  fFOutA1Y << aLineStr << std::endl;  
       }
     }
+    
+    
+    
     void emph::StudyOneSSDClusters::fillHotChannels() {      
       for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
+	if((aSensor == -1) || (aStation == -1)) continue;
         for (std::vector<emph::ssdr::SSDHotChannelList>::iterator itHl = fHotChans.begin(); itHl != fHotChans.end(); itHl++) {
 	  if ((itHl->Station() == aStation) && (itHl->Sensor() == aSensor)) itHl->fillHit(itCl);
         }
       }
     }
-    void emph::StudyOneSSDClusters::analyze(const art::Event& evt) {
-    //
-    // Intro.. 
-    //
-      ++fNEvents;
-      fRun = evt.run();
-      if (!fFilesAreOpen) this->openOutputCsvFiles();
-      fSubRun = evt.subRun(); 
-      fEvtNum = evt.id().event();
-      
-//      std::cerr << " StudyOneSSDClusters::analyze , event " << fEvtNum << " and do not much  " <<   std::endl; 
-      
-    //
-    // Get the data. 
-      auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
-      art::fill_ptr_vector(fSSDclPtrs, hdlCls);
-      if (fSSDclPtrs.size() == 0) return; // nothing to do, no data. 
-      //
-      // This code fragment is simply for debugging.. And is confusing.. 
-//      if (fSSDclPtrs.size() != 1) { 
-//        std::cerr << " Number of pointers to a given SSDCluster, " << fSSDclPtrs.size() << std::endl;
-//      }
-
-//      std::vector<art::Ptr<rb::SSDCluster> >::const_iterator aPtrClIt = fSSDclPtrs.cbegin();
-//      art::Ptr<rb::SSDCluster> aPtrCl = *aPtrClIt;
-//      std::cerr << " Station for the first cluster  " << aPtrCl->Station() << std::endl;
-      // 
-      // These will fail, as the sStion number is clearly bogus... for many clusters.  
-      // old, deprecated interface, with a deep copy.. 
-      //
-      evt.getByLabel (fSSDClsLabel, fSSDClsPtr);
-      fSSDcls = (*fSSDClsPtr); // deep copy here. Probably can be avoided.. 
-      if (fNEvents < 50){
-         std::cerr << " Number SSDClusters, deprecated interface (with deep copy) " << fSSDcls.size() << std::endl;
-        if (fSSDcls.size() != 0) {
-          std::vector<rb::SSDCluster>::const_iterator itClsTest = fSSDcls.cbegin(); 
-          std::cerr << " Station for the first cluster, old interface   " << itClsTest->Station() << std::endl;
-          std::vector<rb::SSDCluster>::const_iterator itClsTest2 = fSSDClsPtr->cbegin(); 
-          std::cerr << " Station for the first cluster, old interface no deep copy   " << itClsTest2->Station() << std::endl;
-	  
-        }
-      } 
-      if (fDumpClusters) this->dumpXYCls();
-      if (fSelectHotChannels) this->fillHotChannels(); 
-    } // end of Analyze, event by events.  
+    
+   void emph::StudyOneSSDClusters::testAccess () {
    
+     if (fSSDClsPtr->size() == 0) return;
+     std::vector<rb::SSDCluster>::const_iterator itCl1 = fSSDClsPtr->cbegin();
+     std::cerr << " Setting the ID of the hitst cluster on station " << itCl1->Station() << " sensor " << itCl1->Sensor() << std::endl;
+     // Indeed, this does not compile.. 
+     // std::vector<rb::SSDCluster>::iterator it1 = fSSDClsPtr->begin();
+     // it1->SetID(56234);
+     // std::cerr << " check this ID " << it1->ID() << std::endl; 
+    }
+    //
    char emph::StudyOneSSDClusters::getView(std::vector<rb::SSDCluster>::const_iterator itCl) const {
    
        int aSensor = itCl->Sensor();
@@ -402,75 +400,91 @@ namespace emph {
        }
        return aView;
    }
-   void  emph::StudyOneSSDClusters::fitLin(const char dirPlane, const std::vector<double> &ts, const std::vector<double> &sigTs, 
-                                    myLinFitResult &fitRes ) const  {
-     //
-     // See good old Numerical Recipes, chapter 15.2, subroutine fit. (yeah, a subroutine!) 
-     //
-     if (ts.size() != sigTs.size()) {
-       std::cerr << " StudyOneSSDClusters::fitLin mismatch of length between measurement values ( " 
-                  << ts.size() << " )  and uncertainties ( " << sigTs.size() << " ) .. Fatal, stop here and now " << std::endl;
-		  exit(2);  
-     }
-     std::vector<double> xs;
-     switch (dirPlane) { 
-       case 'X' : 
-         xs = fZlocXPlanes;
-	 break;
-       case 'Y' : 
-          xs = fZlocYPlanes;
-	 break;
-       case 'U' : 
-         xs = fZlocUPlanes;
-	 break;
-       case 'V' : 
-         xs = fZlocVPlanes;
-	 break;
-       default : 
-       std::cerr << " StudyOneSSDClusters::fitLin Unrecognize plane direction " << dirPlane << " Fatal, stop here, there I said it  " << std::endl;
-		  exit(2);  
-     }
-     if (ts.size() != xs.size()) {
-       std::cerr << " StudyOneSSDClusters::fitLin mismatch of length between measurement values ( " 
-                  << ts.size() << " )  Z positions of planes ( " << xs.size() << " ) .. Fatal, stop here and now " << std::endl;
-		  exit(2);  
-     }
-     fitRes.ndgf = static_cast<int> (ts.size() - 2);
-     std::vector<double> ws(ts);
-     double sx = 0.; double sy = 0.; double ss = 0.;
-     for (size_t k=0; k != ts.size(); k++) {
-       ws[k] = 1.0/(sigTs[k]*sigTs[k]);
-       sx += xs[k]*ws[k]; sy += ts[k]*ws[k]; ss += ws[k];
-     }
-     const double sxoss = sx/ss;
-     double b = 0.; double st2 = 0.;
-     for (size_t k=0; k != ts.size(); k++) {
-       const double tmpT = (xs[k] - sxoss)/sigTs[k];
-       st2 += tmpT*tmpT;
-       b += tmpT*ts[k];
-     }
-/*     
-	  double sigmaSlope;
-	  double covOffsetSlope;
-	  double chiSq;
-	  std::vector<double> resids; // The residuals
-*/
-     fitRes.slope = b/st2;
-     fitRes.offset = (sy - sx*fitRes.slope)/ss;
-     fitRes.sigmaOffset = std::sqrt((1. + (sx*sx)/(ss*st2))/ss);   
-     fitRes.sigmaSlope = std::sqrt(1./st2);
-     fitRes.covOffsetSlope = -1.0 * sx/(ss*st2);
-     fitRes.chiSq = 0.;
-     fitRes.resids.clear();
-     for(size_t k=0; k != ts.size(); k++) {
-      const double rr = ts[k] - (fitRes.offset + fitRes.slope*xs[k]);
-      fitRes.resids.push_back(rr);
-      fitRes.chiSq += (rr*rr)*ws[k];
-     }
-     
-     std::cerr << " StudyOneSSDClusters::fitLin, done, offset " << fitRes.offset << " +- " 
-               <<  fitRes.sigmaOffset << " but need checking, so, quit now for good  " << std::endl; 
-     exit(2);
-     
-   } // end of fitLin..  
+   
+   void emph::StudyOneSSDClusters::selectByView(char theView, bool skipDeadOrHotStrips) {
+     fSSDcls.clear();
+     for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
+        int aSensor = itCl->Sensor();
+        int aStation = itCl->Station();
+	if((aSensor == -1) || (aStation == -1)) continue;
+        char aView = this->getView(itCl);
+	if (aView != theView) continue;
+	if (aStation > 3) {
+	  if (theView == 'X') {
+	    if (itCl->Sensor() == 0) continue; // The Proton peak is mostly on Sensor 1 
+	  } else if (theView == 'X') {
+	    if (itCl->Sensor() == 2) continue; // The Proton peak is mostly on Sensor 3 
+	  }
+	}
+	bool accept = true;
+	if (skipDeadOrHotStrips) {
+	  // a bit tedious, 
+	  for (std::vector<emph::ssdr::SSDHotChannelList>::iterator itHl = fHotChans.begin(); itHl != fHotChans.end(); itHl++) {
+            if ((itHl->Station() != aStation)  || (itHl->Sensor() != aSensor)) continue;
+	    for (int kStrip = itCl->MinStrip(); kStrip <= itCl->MaxStrip(); kStrip++) {
+	      if ((itHl->IsHot(kStrip)) ||(itHl->IsDead(kStrip))) { accept = false; break; }  
+	    }
+	  } 
+	}
+	if (accept) fSSDcls.push_back(*itCl);
+      }
+    }
+    void emph::StudyOneSSDClusters::alignFiveStations(const art::Event& evt) {
+      if (fDoAlignX) {
+        this->selectByView('X', fDoSkipDeadOrHotStrips); 
+        fAlignX.alignIt(evt, fSSDcls);
+      } 
+      if (fDoAlignY) {
+        this->selectByView('Y', fDoSkipDeadOrHotStrips); 
+        fAlignX.alignIt(evt, fSSDcls);
+      } 
+    }
+    void emph::StudyOneSSDClusters::analyze(const art::Event& evt) {
+    //
+    // Intro.. 
+    //
+      ++fNEvents;
+      fRun = evt.run();
+      if (!fFilesAreOpen) this->openOutputCsvFiles();
+      fSubRun = evt.subRun(); 
+      fEvtNum = evt.id().event();
+      
+//      std::cerr << " StudyOneSSDClusters::analyze , event " << fEvtNum << " and do not much  " <<   std::endl; 
+      
+    //
+    // Get the data. 
+      auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
+      art::fill_ptr_vector(fSSDclPtrs, hdlCls);
+      if (fSSDclPtrs.size() == 0) return; // nothing to do, no data. 
+      //
+      // This code fragment is simply for debugging.. And is confusing.. 
+//      if (fSSDclPtrs.size() != 1) { 
+//        std::cerr << " Number of pointers to a given SSDCluster, " << fSSDclPtrs.size() << std::endl;
+//      }
+
+//      std::vector<art::Ptr<rb::SSDCluster> >::const_iterator aPtrClIt = fSSDclPtrs.cbegin();
+//      art::Ptr<rb::SSDCluster> aPtrCl = *aPtrClIt;
+//      std::cerr << " Station for the first cluster  " << aPtrCl->Station() << std::endl;
+      // 
+      // These will fail, as the sStion number is clearly bogus... for many clusters.  The fill_ptr_vector is not applicable here!  
+      // old, deprecated interface, with a deep copy.. But, it works ..  
+      //
+      evt.getByLabel (fSSDClsLabel, fSSDClsPtr);
+//      this->testAccess(); 
+      fSSDcls = (*fSSDClsPtr); // deep copy here. Probably can be avoided.. Unless we want to make changes to the cluster, which we 
+      if (fNEvents < 50){
+         std::cerr << " Number SSDClusters, deprecated interface (with deep copy) " << fSSDcls.size() << std::endl;
+        if (fSSDcls.size() != 0) {
+          std::vector<rb::SSDCluster>::const_iterator itClsTest = fSSDcls.cbegin(); 
+          std::cerr << " Station for the first cluster, old interface   " << itClsTest->Station() << std::endl;
+          std::vector<rb::SSDCluster>::const_iterator itClsTest2 = fSSDClsPtr->cbegin(); 
+          std::cerr << " Station for the first cluster, old interface no deep copy   " << itClsTest2->Station() << std::endl;
+	  
+        }
+      } 
+      if (fDumpClusters) this->dumpXYCls();
+      if (fSelectHotChannels) this->fillHotChannels(); 
+      if (fDoAlignX || fDoAlignY) this->alignFiveStations(evt);
+    } // end of Analyze, event by events.  
+   
 DEFINE_ART_MODULE(emph::StudyOneSSDClusters)

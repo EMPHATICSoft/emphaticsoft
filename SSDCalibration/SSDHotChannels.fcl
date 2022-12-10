@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_ssdhotchannels:
+{
+  module_type: SSDHotChannels
+  tokenJob: "none"
+  skipHalfEvts: false
+}
+
+END_PROLOG
