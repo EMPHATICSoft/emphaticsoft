@@ -1,8 +1,0 @@
-#Identifier x0 ... x21 
-#Identifier y0 ... y21 
-#Identifier r0 ... r21 
-#Comment: #0 is the default calibration constant set.
-0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
-#Comment: #1 is the calibration constant set using Run xxxx...
