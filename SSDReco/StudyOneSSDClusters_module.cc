@@ -91,6 +91,7 @@ namespace emph {
       bool fDoAlignX;    
       bool fDoAlignY;  
       bool fDoSkipDeadOrHotStrips;  
+      bool fDoLastIs4AlignAlgo1; 
       unsigned int fRun;
       unsigned int fSubRun;
       unsigned int fEvtNum;
@@ -151,7 +152,7 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false),  fDoSkipDeadOrHotStrips(true), 
+    fDoAlignX(false), fDoAlignY(false),  fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
@@ -161,7 +162,8 @@ namespace emph {
        this->reconfigure(pset);
        fFilesAreOpen = false;
 //       fSSDClsPtr = nullptr;
-       fAlignX.SetTheView('X'); fAlignX.SetTheView('Y');
+       fAlignX.SetTheView('X'); fAlignY.SetTheView('Y');
+       
     }
     
     void emph::StudyOneSSDClusters::reconfigure(const fhicl::ParameterSet& pset)
@@ -178,9 +180,14 @@ namespace emph {
       fDoAlignX = pset.get<bool>("alignX", false);
       fDoAlignY = pset.get<bool>("alignY", false);
       fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
+      fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 20.);
-      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignX)) { 
+      std::vector<double> aZLocShifts(6, 0.);  
+      aZLocShifts = pset.get<std::vector<double> >("ZLocShifts");
+      std::vector<double> aTransUncert(6, 0.); 
+      aTransUncert  = pset.get<std::vector<double> >("TransPosUncert");
+      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
       if (fSelectHotChannels || fSelectHotChannelsFromHits) {
@@ -195,24 +202,36 @@ namespace emph {
 	  }
 	}
       }
-      std::cerr << " .... O.K. keep going .. " << std::endl;
+      fAlignX.SetTokenJob(fTokenJob);
+      fAlignY.SetTokenJob(fTokenJob);
+      fAlignX.SetDoAling0to4(fDoLastIs4AlignAlgo1);
+      fAlignY.SetDoAling0to4(fDoLastIs4AlignAlgo1);
+      fAlignX.SetZLocShifts(aZLocShifts);
+      fAlignY.SetZLocShifts(aZLocShifts);
+      fAlignX.SetOtherUncert(aTransUncert);
+      fAlignY.SetOtherUncert(aTransUncert);
+      
+      
+      std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }
     void emph::StudyOneSSDClusters::beginRun(art::Run const &run)
     {
+      if (fXYUVLabels.size() != 0) return; // Initialization already done, skip 
       // Assume th same geometry for all sub runs (this is called for every subruns, it turns out.. ) 
-      if (fXYUVLabels.size() != 0) return;
       std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
       fRunHistory = new runhist::RunHistory(run.run());
-      fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile()); 
-      for (int kSt = 0; kSt != 6; kSt++) {
-        for(int kSs =0; kSs !=6; kSs++) {
+      fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+      if ( fXYUVLabels.size() == 0) { 
+        for (int kSt = 0; kSt != 6; kSt++) {
+          for(int kSs =0; kSs !=6; kSs++) {
             fXYUVLabels.emplace(std::make_pair(10*kSt + kSs, '?'));    
-	}
+	  }
+        }
       }
 //
       std::vector<double> XlocXPlanes, YlocYPlanes; // labeled by view 
-       std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
-     for (int k=0; k != fEmgeo->NSSDStations(); k++) {
+      std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
+      for (int k=0; k != fEmgeo->NSSDStations(); k++) {
         emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
         TVector3 posSt = aStation.Pos();
 	std::cerr << " .... For Station by index " <<  k  << " Stations name is " << aStation.Name() 
@@ -226,7 +245,7 @@ namespace emph {
 	    fZlocXPlanes.push_back(pos[2] + posSt[2]);
 	    XlocXPlanes.push_back(pos[0] + posSt[0]);
 	    XRotXPlanes.push_back(aPlane.Rot());
-	    viewChar = 'X';
+	    viewChar = 'X'; // Measuring the X cooredinate of the track. See convention is SSDCalibration module. 
 	  }
 	  if ((std::abs(aPlane.Rot()) < 0.1) || (std::abs(aPlane.Rot() - 180.*M_PI/180.) < 0.1)) {
 	    TVector3 pos = aPlane.Pos();
@@ -245,7 +264,7 @@ namespace emph {
 	    fZlocUPlanes.push_back(pos[2] + posSt[2]);
 	    viewChar = 'V';
 	  }
-	  fXYUVLabels[10*k + kk] = viewChar;
+	  fXYUVLabels.at(10*k + kk) = viewChar;
 	  std::cerr << " .... .... For Sensor by index " <<  kk  << " Sensor name is " << aPlane.Name() 
 	            << " view " << viewChar << "  view, check  " << fXYUVLabels.at(10*k +kk) << std::endl;
         } // on SS Detector planes of segment of a plane.   
@@ -266,10 +285,13 @@ namespace emph {
       for (size_t i=0; i != YlocYPlanes.size(); i++) std::cerr << " " << YlocYPlanes[i] << ",";
       std::cerr << std::endl << " Y Rotations ";
       for (size_t i=0; i != YRotYPlanes.size(); i++) std::cerr << " " << YRotYPlanes[i] << ",";
-      
+      // Load the zCoords to the X Y aligner 
+      fAlignX.InitializeCoords(fDoLastIs4AlignAlgo1, fZlocXPlanes); 
+      fAlignX.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignX.SetNumIterMax(fNumMaxIterAlignAlgo1);
+      fAlignY.InitializeCoords(fDoLastIs4AlignAlgo1, fZlocYPlanes); 
+      fAlignY.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignY.SetNumIterMax(fNumMaxIterAlignAlgo1);
       
       std::cerr  << std::endl << " ------------- End of StudyOneSSDClusters::beginRun ------------------" << std::endl << std::endl;
-      std::cerr << " And.. And.. quit for now " << std::endl; exit(2);
     }
     
     void emph::StudyOneSSDClusters::beginJob()
@@ -407,12 +429,13 @@ namespace emph {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
 	if((aSensor == -1) || (aStation == -1)) continue;
+	if (itCl->WgtAvgStrip() < 0) continue;
         char aView = this->getView(itCl);
 	if (aView != theView) continue;
 	if (aStation > 3) {
 	  if (theView == 'X') {
 	    if (itCl->Sensor() == 0) continue; // The Proton peak is mostly on Sensor 1 
-	  } else if (theView == 'X') {
+	  } else if (theView == 'Y') {
 	    if (itCl->Sensor() == 2) continue; // The Proton peak is mostly on Sensor 3 
 	  }
 	}
@@ -436,7 +459,7 @@ namespace emph {
       } 
       if (fDoAlignY) {
         this->selectByView('Y', fDoSkipDeadOrHotStrips); 
-        fAlignX.alignIt(evt, fSSDcls);
+        fAlignY.alignIt(evt, fSSDcls);
       } 
     }
     void emph::StudyOneSSDClusters::analyze(const art::Event& evt) {

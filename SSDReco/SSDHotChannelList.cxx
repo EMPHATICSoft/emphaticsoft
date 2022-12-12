@@ -159,6 +159,7 @@ namespace emph {
 	  std::cerr << " SSDHotChannelList::getItFromSSDCalib, wrong file type " << fName << " fatal, quit here... " << std::endl;
 	  exit(2);
         }
+//	std::cerr << " SSDHotChannelList::getItFromSSDCalib, for Station " << fStation << " Sensor " << fSensor << std::endl;
 	const bool doHot = (fName.find("Hot") != std::string::npos);
 	if (doHot) { 
 	  fHotChannels.clear();
@@ -167,18 +168,30 @@ namespace emph {
 	}
 	std::ifstream fIn(fName.c_str());
 	int aStation=-1; int aSensor = -1; int aRow =-1;
+	int nLines = 0;
+	char aLine[1024];
 	while(fIn.good()) {
-	  fIn >>  aStation >> aSensor >> aRow ;
-	  if ((aStation != fStation) && (aSensor != fSensor)) continue;
-	  if (doHot) { 
-	    fHotChannels.push_back(aRow);
-	  } else { 
-	    fDeadChannels.push_back(aRow);
-	    if ((fDeadChannels.size() < 5) && (fStation == 5) && (fSensor == 5)) 
-	      std::cerr << " SSDHotChannelList::getItFromSSDCalib, check for station 5, last sensor, dead strip at row = " << aRow << std::endl;
-	  }
-	  
+	   fIn.getline(aLine, 1024);
+	   nLines++;
+ 	   if (nLines == 1) continue; // header.. 
+           std::string aLStr(aLine);
+           std::istringstream aLStrStr(aLine);
+	   aLStrStr >>  aStation >> aSensor >> aRow ;	  
+	   if ((aStation != fStation) || (aSensor != fSensor)) continue;
+	   if (doHot) { 
+	     fHotChannels.push_back(aRow);
+	   } else { 
+	     fDeadChannels.push_back(aRow);
+//	     if ((fDeadChannels.size() < 5) && (fStation == 5) && (fSensor == 5)) 
+//	       std::cerr << " SSDHotChannelList::getItFromSSDCalib, check for station 5, last sensor, dead strip at row = " << aRow << std::endl;
+	   }
 	}
+	if (doHot && (fHotChannels.size() != 0)) 
+	  std::cerr << " SSDHotChannelList::getItFromSSDCalib, total number of hot channels " << fHotChannels.size() 
+	            << " for Station " << fStation << " Sensor " << fSensor <<  std::endl; 
+	else if ((!doHot) && (fDeadChannels.size() != 0)) 
+	  std::cerr << " SSDHotChannelList::getItFromSSDCalib, total number of dead channels " << fDeadChannels.size() 
+	            << " for Station " << fStation << " Sensor " << fSensor << std::endl; 
 	fIn.close();
       }
    } // sddr 

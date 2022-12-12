@@ -9,6 +9,10 @@ standard_study1ssdcl:
   selectHotChannels: false
   alignX: false
   alignY: false
+  skipDeadOrHotStrips: true # file name for this info is an issue.. 
+  LastIs4AlignAlgo1: false 
+  NumMaxIterAlignAlgo1: 50
+  ChiSqCutAlignAlgo1: 20
 }
 
 END_PROLOG

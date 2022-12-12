@@ -27,8 +27,9 @@ namespace emph {
     
       public:
       
-      struct myLinFitResult { 
+      class myLinFitResult { 
         public:
+	  myLinFitResult();
 	  int ndgf; // number of degrees of freedom Other data member are self explicit.
 	  double offset;
 	  double slope;
@@ -47,6 +48,8 @@ namespace emph {
         private:
 	  const size_t fNumStations = 6;
 	  const size_t fNumStrips = 639; // Per wafer. 
+	  bool fAlign0to4;
+	  size_t fNumStationsEff;
 	  int fRunNum;  // The usual Ids for a art::event 
 	  int fSubRunNum;
 	  int fEvtNum;
@@ -66,21 +69,32 @@ namespace emph {
 // 
 // Additional cuts.. and variables. 
 //	  
-	  std::vector<int> fMinStrips; // to use only to pick the center of the beam.. !! Might be run dependant! 
-	  std::vector<int> fMaxStrips;
-	  std::ofstream fFOutA1;
+	  std::vector<double> fMinStrips; // to use only to pick the center of the beam.. !! Might be run dependant! 
+	  std::vector<double> fMaxStrips;
+	  std::vector<double> fMultScatUncert;
+	  std::vector<double> fOtherUncert;
+	  std::vector<double> fZLocShifts;
+	  std::ofstream fFOutA1, fFOutA1Dbg;
 	  
 	   
 	public:
+	 inline void SetDoAling0to4( bool lastIs4) { 
+	   fAlign0to4 = lastIs4;        
+	   fNumStationsEff = fAlign0to4 ? fNumStations-1 : fNumStations;
+	   std::cerr << " SSDAlign2DXYAlgo1::SetDoAling0to4, fNumStationsEff " << fNumStationsEff << std::endl;
+         }
          inline void SetRun(int aRunNum) { fRunNum = aRunNum; } 
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetNumIterMax( int n) { fNumIterMax = n; }
 	 inline void SetChiSqCut1 (double v) { fChiSqCut = v; } 
-	 void InitializeCoords(const std::vector<double> &zCoords);
+	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
+	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
+	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
+	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {
 	   if ((aView != 'X') && (aView != 'Y')) {
-	     std::cerr << " SSDAlign2DXYAlgo1, setting an uknow view " << aView << " fatal, quit here " << std::endl; 
+	     std::cerr << " SSDAlign2DXYAlgo1, setting an unknown view " << aView << " fatal, quit here " << std::endl; 
 	     exit(2);
 	   }
 	   fView = aView;
@@ -88,14 +102,34 @@ namespace emph {
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 
+	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
+	  double rmsPos = fPitch * itCl->WgtRmsStrip();
+	  return std::sqrt(rmsPos*rmsPos + fOtherUncert[kSt]*fOtherUncert[kSt] + fMultScatUncert[kSt]*fMultScatUncert[kSt]);
+	  
+	 }
+	 
 	 void  alignIt(const art::Event &evt, const std::vector<rb::SSDCluster> &aSSDcls); 
 	 
 	 private:
 	 
 	 inline double getTsFromCluster(size_t kStation, double strip) {
-	   double val = strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation];
-	   // depending of the view and sensor choice, flip the sign here..
-	   return val; 
+	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
+	     case 'X' :
+	       if (kStation < 4) 
+	         return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	         else return ( strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+		 break; 
+	     case 'Y' :
+	       if (kStation < 4) 
+	         return (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	         else return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+		 break; 
+	      default :
+	        std::cerr << " SSDAlign2DXYAlgo1::getTsFromCluster, unexpected view, " 
+		<< fView << " kStation " << kStation << 
+		 " internal error, fatal " << std::endl; exit(2);
+	   }
+	   return 0.; // should not happen  
 	 }
 	 void openOutputCsvFiles();
          void  fitLin(const std::vector<double> &t, const std::vector<double> &sigT, myLinFitResult &fitRes ) const ; 
