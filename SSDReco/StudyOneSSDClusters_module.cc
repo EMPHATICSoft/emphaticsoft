@@ -186,7 +186,9 @@ namespace emph {
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 20.);
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
+      std::vector<double> aPitchAngles =  pset.get<std::vector<double> >("PitchAngles", std::vector<double>(6, 0.));
       std::vector<double> aTransUncert =  pset.get<std::vector<double> >("TransPosUncert", std::vector<double>(6, 0.));
+      double aRefPointPitchOrYawAngle = pset.get<double>("RefPointPitchOrYawAngle", 3.0); // in mm, in the local frame of the sensor. 
       std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
       fRMSClusterCuts = pset.get<std::vector<double> >("RMSClusterCuts", aRMSClusterCutsDef);
       if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY)) { 
@@ -212,7 +214,10 @@ namespace emph {
       fAlignY.SetZLocShifts(aZLocShifts);
       fAlignX.SetOtherUncert(aTransUncert);
       fAlignY.SetOtherUncert(aTransUncert);
+      fAlignY.SetPitchAngles(aPitchAngles);
+      fAlignY.SetRefPtForPitchOrYawAngle(aRefPointPitchOrYawAngle);
       
+     
       
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }

@@ -32,10 +32,11 @@ namespace emph {
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView('?'), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), 
-       fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
+       fRefPointPitchOrYawAngle(3.0), fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
        fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.)  
+       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
+       fPitchOrYawAngles(fNumStations, 0.) 
      { 
         ; 
      }
@@ -43,10 +44,12 @@ namespace emph {
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView(aView), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), 
-       fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
+       fRefPointPitchOrYawAngle(3.0), fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
        fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),  
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.)
+       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
+       fPitchOrYawAngles(fNumStations, 0.) 
+       
      { 
         if ((aView != 'X') && (aView != 'Y')) {
 	     std::cerr << " SSDAlign2DXYAlgo1, setting an unknow view " << aView << " fatal, quit here " << std::endl; 

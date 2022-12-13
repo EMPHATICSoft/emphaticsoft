@@ -61,6 +61,7 @@ namespace emph {
 	  double fHalfWaferWidth;
 	  int fNumIterMax; // Maximum number of iteration 
 	  double fChiSqCut;
+	  double fRefPointPitchOrYawAngle;
 	  std::string fTokenJob;
 	  std::vector<double> fZCoords;
 	  std::vector<double> fNominalOffsets;
@@ -75,6 +76,7 @@ namespace emph {
 	  std::vector<double> fMultScatUncert;
 	  std::vector<double> fOtherUncert;
 	  std::vector<double> fZLocShifts;
+	  std::vector<double> fPitchOrYawAngles;
 	  std::ofstream fFOutA1, fFOutA1Dbg;
 	  
 	   
@@ -92,6 +94,8 @@ namespace emph {
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
 	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
+	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
+	 inline void SetRefPtForPitchOrYawAngle(double v) { fRefPointPitchOrYawAngle = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {
 	   if ((aView != 'X') && (aView != 'Y')) {
@@ -121,17 +125,28 @@ namespace emph {
 	         return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
 	         else return ( strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
 		 break; 
-	     case 'Y' :
-	       if (kStation < 4) 
-	         return (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
-	         else return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
-		 break; 
+	     case 'Y' : 
+	      {
+	       double aVal = 0.;
+	       if (kStation < 4) {  
+	         aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	       } else {
+	         aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	       } 
+	       const double aValC = this->correctTsForPitchOrYawAngle(kStation, aVal);
+	       return aValC;
+	       break; 
+	      }
 	      default :
 	        std::cerr << " SSDAlign2DXYAlgo1::getTsFromCluster, unexpected view, " 
 		<< fView << " kStation " << kStation << 
 		 " internal error, fatal " << std::endl; exit(2);
 	   }
 	   return 0.; // should not happen  
+	 }
+	 inline double correctTsForPitchOrYawAngle(size_t kStation, double ts) {
+	   const double deltaTrans = ts - fRefPointPitchOrYawAngle;
+	   return (ts + deltaTrans*fPitchOrYawAngles[kStation]);
 	 }
 	 void openOutputCsvFiles();
          void  fitLin(const std::vector<double> &t, const std::vector<double> &sigT, myLinFitResult &fitRes ) const ; 
