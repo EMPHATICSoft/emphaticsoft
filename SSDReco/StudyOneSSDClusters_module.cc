@@ -437,8 +437,8 @@ namespace emph {
         int aStation = itCl->Station();
 	if((aSensor == -1) || (aStation == -1)) continue;
 	const double aRMS = itCl->WgtRmsStrip(); 
-	std::cerr << " ... emph::StudyOneSSDClusters::selectByView, aRMS " << aRMS << "  .. Cuts, min Val  " 
-	          << fRMSClusterCuts[0] << " max Val " <<  fRMSClusterCuts[1] << std::endl;
+//	std::cerr << " ... emph::StudyOneSSDClusters::selectByView, aRMS " << aRMS << "  .. Cuts, min Val  " 
+//	          << fRMSClusterCuts[0] << " max Val " <<  fRMSClusterCuts[1] << std::endl;
 	if (aRMS < fRMSClusterCuts[0]) continue;
 	if (aRMS > fRMSClusterCuts[1]) continue;
         char aView = this->getView(itCl);

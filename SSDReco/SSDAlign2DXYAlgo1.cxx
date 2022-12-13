@@ -144,7 +144,8 @@ namespace emph {
        std::ostringstream headerStrStr; headerStrStr << " "  << fSubRunNum << " " << fEvtNum;
        std::string headerStr(headerStrStr.str());
        fNEvents++; 
-       bool debugIsOn = (fNEvents < 15) || (fEvtNum == 139999999);
+       bool debugIsOn = (fEvtNum == 86) || (fEvtNum == 140) || (fEvtNum == 383) || (fEvtNum == 412); // for spill 10, difference between laptop and gpvm02.. 
+//       bool debugIsOn = (fNEvents < 15) || (fEvtNum == 139999999);
        if (debugIsOn) std::cerr <<  " SSDAlign2DXYAlgo1::alingIt,  number of Cluster " << aSSDcls.size() << std::endl;
        if (aSSDcls. size() < fNumStationsEff) {
          if (debugIsOn) std::cerr <<  " ... Not enough data for a " << fNumStationsEff << " hit fit.. " << std::endl;
