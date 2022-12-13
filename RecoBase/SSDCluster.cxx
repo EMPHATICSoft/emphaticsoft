@@ -103,8 +103,7 @@ namespace rb {
   double SSDCluster::WgtRmsStrip() const
   {
     if (fDigitVec.empty()) return -9999.;
-    // set to 1/sqrt(12) if single strip cluster
-    if (NDigits()==1) return 1/sqrt(12);
+    if (NDigits()==1) return 1.0e-10;
 
     double rmssum=0.;
     double totalADC=0.;
