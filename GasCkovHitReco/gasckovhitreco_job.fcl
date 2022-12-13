@@ -1,7 +1,6 @@
 #include "GasCkovHitReco.fcl"
 
 #include "ChannelMap.fcl"
-#include "RunHistory.fcl"
 
 process_name: GasCkovHitReco
 

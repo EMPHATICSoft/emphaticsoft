@@ -1,7 +1,6 @@
 #include "OnMonPlotter.fcl"
 
 #include "ChannelMap.fcl"
-#include "RunHistory.fcl"
 
 process_name: OnMon
 
