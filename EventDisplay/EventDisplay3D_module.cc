@@ -1,6 +1,6 @@
 //
-// - ROOT-based 3D event display for EMPHATIC.  Requires
-//   EvtDisplayUtils, NavState, and EvtDisplayService.
+// - ROOT-based 3D event display for EMPHATIC. Uses the TEve display
+//   classes.  Requires EvtDisplayUtils, NavState, and EvtDisplayService.
 //
 
 // EMPHATIC includes
@@ -364,7 +364,7 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
   auto world_n = geoMgr->GetTopNode();
   auto etopnode = new TEveGeoTopNode(geoMgr, world_n);
 
-  etopnode->SetVisLevel(1); // 4);
+  etopnode->SetVisLevel(4); //1); // 4);
   //  etopnode->GetNode()->GetVolume()->SetVisibility(kFALSE);
 
   // ... Use helper to recursively make detector elements

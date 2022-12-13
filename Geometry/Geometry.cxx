@@ -109,7 +109,7 @@ namespace emph {
 
 			//fGeoManager->Import(fname.c_str());
 			TGeoManager::LockDefaultUnits(0);
-			TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kRootUnits);
+			TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
 			TGeoManager::LockDefaultUnits(1);
 			TGeoManager::Import(fGDMLFile.c_str());
 
