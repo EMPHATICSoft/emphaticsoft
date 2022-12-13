@@ -48,6 +48,7 @@ namespace emph {
         private:
 	  const size_t fNumStations = 6;
 	  const size_t fNumStrips = 639; // Per wafer. 
+	  const double fOneOverSqrt12; 
 	  bool fAlign0to4;
 	  size_t fNumStationsEff;
 	  int fRunNum;  // The usual Ids for a art::event 
@@ -103,8 +104,9 @@ namespace emph {
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 
 	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
-	  double rmsPos = fPitch * itCl->WgtRmsStrip();
-	  return std::sqrt(rmsPos*rmsPos + fOtherUncert[kSt]*fOtherUncert[kSt] + fMultScatUncert[kSt]*fMultScatUncert[kSt]);
+	  double aRMS = itCl->WgtRmsStrip();
+	  double errMeasSq = fOneOverSqrt12*fPitch * 1.0/(1.0 + aRMS*aRMS); // Very approximate, need a better model. 
+	  return std::sqrt(errMeasSq + fOtherUncert[kSt]*fOtherUncert[kSt] + fMultScatUncert[kSt]*fMultScatUncert[kSt]);
 	  
 	 }
 	 

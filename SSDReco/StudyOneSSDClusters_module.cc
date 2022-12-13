@@ -108,6 +108,7 @@ namespace emph {
       std::vector<double> fZlocYPlanes;
       std::vector<double> fZlocUPlanes;
       std::vector<double> fZlocVPlanes;
+      std::vector<double> fRMSClusterCuts;
       std::map<int, char> fXYUVLabels; // keyed on 10*stations + sensor. 
 // 
 // Container for the hot channels. 
@@ -140,7 +141,8 @@ namespace emph {
       
       void alignFiveStations(const art::Event& evt); // event by event alignment. 
       
-      void selectByView(char aView, bool skipDeadOrHotChannels); // move data from fSSDClsPtr to fSSDcls, for a given view 
+      void selectByView(char aView, bool skipDeadOrHotChannels); 
+       // move data from fSSDClsPtr to fSSDcls, for a given view. Also apply cuts on the RMS of the clusters. 
       
       char getView(std::vector<rb::SSDCluster>::const_iterator itCl) const; 
       
@@ -163,7 +165,7 @@ namespace emph {
        fFilesAreOpen = false;
 //       fSSDClsPtr = nullptr;
        fAlignX.SetTheView('X'); fAlignY.SetTheView('Y');
-       
+       fRMSClusterCuts = std::vector<double>{-1.0, 5.};
     }
     
     void emph::StudyOneSSDClusters::reconfigure(const fhicl::ParameterSet& pset)
@@ -183,10 +185,10 @@ namespace emph {
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 20.);
-      std::vector<double> aZLocShifts(6, 0.);  
-      aZLocShifts = pset.get<std::vector<double> >("ZLocShifts");
-      std::vector<double> aTransUncert(6, 0.); 
-      aTransUncert  = pset.get<std::vector<double> >("TransPosUncert");
+      std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
+      std::vector<double> aTransUncert =  pset.get<std::vector<double> >("TransPosUncert", std::vector<double>(6, 0.));
+      std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
+      fRMSClusterCuts = pset.get<std::vector<double> >("RMSClusterCuts", aRMSClusterCutsDef);
       if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
@@ -429,7 +431,11 @@ namespace emph {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
 	if((aSensor == -1) || (aStation == -1)) continue;
-	if (itCl->WgtAvgStrip() < 0) continue;
+	const double aRMS = itCl->WgtRmsStrip(); 
+	std::cerr << " ... emph::StudyOneSSDClusters::selectByView, aRMS " << aRMS << "  .. Cuts, min Val  " 
+	          << fRMSClusterCuts[0] << " max Val " <<  fRMSClusterCuts[1] << std::endl;
+	if (aRMS < fRMSClusterCuts[0]) continue;
+	if (aRMS > fRMSClusterCuts[1]) continue;
         char aView = this->getView(itCl);
 	if (aView != theView) continue;
 	if (aStation > 3) {
@@ -450,7 +456,7 @@ namespace emph {
 	  } 
 	}
 	if (accept) fSSDcls.push_back(*itCl);
-      }
+      } // on original clusters.. 
     }
     void emph::StudyOneSSDClusters::alignFiveStations(const art::Event& evt) {
       if (fDoAlignX) {

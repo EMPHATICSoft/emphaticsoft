@@ -28,7 +28,8 @@ namespace emph {
      SSDAlign2DXYAlgo1::myLinFitResult::myLinFitResult() : 
        ndgf(-1), offset(DBL_MAX), slope(DBL_MAX), sigmaOffset(0.), sigmaSlope(0.), covOffsetSlope(0.), chiSq(DBL_MAX), resids(0) { ; } 
      
-     SSDAlign2DXYAlgo1::SSDAlign2DXYAlgo1() : 
+     SSDAlign2DXYAlgo1::SSDAlign2DXYAlgo1() :
+       fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView('?'), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), 
        fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
@@ -39,6 +40,7 @@ namespace emph {
         ; 
      }
      SSDAlign2DXYAlgo1::SSDAlign2DXYAlgo1(char aView) : 
+       fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView(aView), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), 
        fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
