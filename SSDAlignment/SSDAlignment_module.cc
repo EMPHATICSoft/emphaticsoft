@@ -37,6 +37,7 @@
 #include "Geometry/Geometry.h"
 #include "RawData/TRB3RawDigit.h"
 #include "SSDAlignment/SSDAlign.h"
+#include "RecoBase/SSDCluster.h"
 
 using namespace emph;
 
@@ -216,6 +217,7 @@ namespace emph {
 
 	//Looping over all SSD hits
 	int nevt = ssdvec[0].Event(); //Variable to keep track of event number
+	std::cout<<"ssdvec size is  "<<ssdvec.size()<<std::endl;
 	for (size_t i=0; i<ssdvec.size(); ++i){
 		//if statement to indicate end of event, events are filtered and pushed to finalized arrays for calculating residuals, then cleared for next event
 		if (ssdvec[i].Event()!=nevt){
@@ -297,7 +299,7 @@ namespace emph {
 	std::cout<<std::endl;	
 	
 	//Residual Method of Alignment
-	int loops=200;
+	int loops=100;
 	size_t dim = x_cal[0].size(); //number of position measurements (should be 6)
 	art::ServiceHandle<art::TFileService> tfs;
 	std::cout<<"Dimension: "<<dim<<std::endl;
@@ -438,8 +440,6 @@ namespace emph {
 				//Filling residual plots using correct index of SSD
 				vres_array[v_ind[j][k]].push_back(res);
 			}
-			
-			
 		}
 
 	//variables to fix first x/y ssd station
@@ -503,7 +503,7 @@ namespace emph {
 		double mean = sum / vres_array[j].size();
 		if(j==4 || j==5 || j==6 || j==7){
 			v_shifts[j] += mean;
-			//Fixing first X/Y SSD at (0,0) (shift all u SSDs accordingly)
+			//Fixing first X/Y SSD at (0,0) (shift all v SSDs accordingly)
 			v_shifts[j]=v_shifts[j]-(sqrt(2)/2)*(x_ref+y_ref);
 		}
 		std::cout<<v_shifts[j]<<", ";
@@ -642,26 +642,33 @@ namespace emph {
   //......................................................................
   void SSDAlignment::produce(art::Event& evt)
   { 
-	  std::string labelstr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::SSD));
-	  emph::cmap::FEBoardType boardType = emph::cmap::SSD;
-	  emph::cmap::EChannel echan;
-	  echan.SetBoardType(boardType);
+	
+	  //std::string labelstr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::SSD));
+	  std::string fClusterLabel = "clust";
+	  //emph::cmap::FEBoardType boardType = emph::cmap::SSD;
+	  //emph::cmap::EChannel echan;
+	  //echan.SetBoardType(boardType);
 
-	  art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdH;
+	  //art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdH;
+	  art::Handle< std::vector<rb::SSDCluster> > clustH;
 	  
 	  
 	  try {
-		  evt.getByLabel(labelstr, ssdH);
-		  if (!ssdH->empty()) {	
-			  for (size_t idx=0; idx < ssdH->size(); ++idx) {
-				  const rawdata::SSDRawDigit& ssd = (*ssdH)[idx];
-				  echan.SetBoard(ssd.FER());
-				  echan.SetChannel(ssd.Module());
-				  emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-				  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-				  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
+		  evt.getByLabel(fClusterLabel, clustH);
+		  if (!clustH->empty()) {	
+			  for (size_t idx=0; idx < clustH->size(); ++idx) {
+				  const rb::SSDCluster& clust = (*clustH)[idx];
+				  //echan.SetBoard(clust.FER());
+				  //echan.SetChannel(clust.Module());
+				  //emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+				  //const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
+				  //const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
+
+				  const emph::geo::SSDStation &st = emgeo->GetSSDStation(clust.Station());
+				  const emph::geo::Detector &sd = st.GetSSD(clust.Sensor());
+				  
                   		  int event = evt.event();
-				  emph::al::SSDAlign hit(ssd, sd, st, event);
+				  emph::al::SSDAlign hit(clust, sd, st, event);
 				  ssdvec.push_back(hit);
 			  }
 			  fEvtNum++;
@@ -670,9 +677,7 @@ namespace emph {
 	  catch(...) {
 
 	  }
-
   }
-
-  } // end namespace emph
+} // end namespace emph
 
 DEFINE_ART_MODULE(emph::SSDAlignment)

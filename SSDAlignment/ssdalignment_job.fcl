@@ -1,10 +1,18 @@
 #include "SSDAlignment.fcl"
 
+#include "MakeSSDClusters.fcl"
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+#include "FillDataQuality.fcl"
+
 process_name: SSDAlignment
 
 services:
 {
   TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  Geometry:   @local::standard_geometry
+  RunHistoryService: {}
 }
 
 source:
@@ -32,10 +40,12 @@ physics:
 
  producers:
  {
+	dataqual:     @local::standard_dataqual
+	clust:        @local::standard_ssdclust
 	ssdalignment: @local::standard_ssdalignment
  }	
 
- reco: [ ssdalignment ]
+ reco: [ dataqual, clust, ssdalignment ]
 	
  analyzers:{}
 
