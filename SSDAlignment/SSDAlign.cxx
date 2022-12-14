@@ -15,25 +15,26 @@ namespace emph {
   //----------------------------------------------------------------------
   
   SSDAlign::SSDAlign() :   
-    _angle(0.), _strip(0.), _pitch(60.), _sensor_row(0.), _fer(0.), _module(0.), _z(0.), _event(0.)
+    _angle(0.), _strip(0.), _pitch(60.), _height(0.), _station(0.), _sensor(0.), _z(0.), _event(0.)
   {
 
   }
   
   //------------------------------------------------------------
 
-  SSDAlign::SSDAlign(const emph::rawdata::SSDRawDigit &ssd, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
+  SSDAlign::SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
   {
 	  _angle = sd.Rot();
-	  _strip = ssd.Strip();
+	  //_strip = ssd.Strip();
+	  _strip = clust.AvgStrip();
 	  _pitch = 0.06;
 	  _height = sd.Pos()[0];
 	  //_sensor_row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
-	  _sensor_row = ssd.Row();
-	  _fer = ssd.FER();
-	  _module = ssd.Module();
-	  _x = (ssd.Row()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
-	  _y = (ssd.Row()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
+	  //_sensor_row = ssd.Row();
+	  _station = clust.Station();
+	  _sensor = clust.Sensor();
+	  _x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
+	  _y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
 	  _z = sd.Pos()[2] + st.Pos()[2];
 	  _u = (sqrt(2)/2)*(this->X()-this->Y());	
 	  _v = (sqrt(2)/2)*(this->X()+this->Y());	
@@ -49,33 +50,33 @@ namespace emph {
 	  //Second is the index of the ssd used for alignment later (order they appear in beamline
 	  std::vector<int> ssd_info;
 
-	  int fer = this->FER();
-	  int module = this->Module();
+	  int station = this->Station();
+	  int sensor = this->Sensor();
 
-	  if (fer == 0 && module == 0) ssd_info = {1,0};
-	  else if (fer == 0 && module == 1) ssd_info = {0,0};
-	  else if (fer == 0 && module == 2) ssd_info = {1,1};
-	  else if (fer == 0 && module == 3) ssd_info = {0,1};
-	  else if (fer == 1 && module == 0) ssd_info = {1,2};
-	  else if (fer == 1 && module == 1) ssd_info = {0,2};
-	  else if (fer == 1 && module == 2) ssd_info = {1,3};
-	  else if (fer == 1 && module == 3) ssd_info = {0,3};
-	  else if (fer == 1 && module == 4) ssd_info = {2,2};
-	  else if (fer == 1 && module == 5) ssd_info = {2,3};
-	  else if (fer == 2 && module == 0) ssd_info = {0,4};
-	  else if (fer == 2 && module == 1) ssd_info = {0,5};
-	  else if (fer == 2 && module == 2) ssd_info = {1,4};
-	  else if (fer == 2 && module == 3) ssd_info = {1,5};
-	  else if (fer == 2 && module == 4) ssd_info = {3,4};
-	  else if (fer == 2 && module == 5) ssd_info = {3,5};
-	  else if (fer == 3 && module == 0) ssd_info = {0,6};
-	  else if (fer == 3 && module == 1) ssd_info = {0,7};
-	  else if (fer == 3 && module == 2) ssd_info = {1,6};
-	  else if (fer == 3 && module == 3) ssd_info = {1,7};
-	  else if (fer == 3 && module == 4) ssd_info = {3,6};
-	  else if (fer == 3 && module == 5) ssd_info = {3,7};
+	  if (station == 0 && sensor == 0) ssd_info = {1,0};
+	  else if (station == 0 && sensor == 1) ssd_info = {0,0};
+	  else if (station == 1 && sensor == 0) ssd_info = {1,1};
+	  else if (station == 1 && sensor == 1) ssd_info = {0,1};
+	  else if (station == 2 && sensor == 1) ssd_info = {1,2};
+	  else if (station == 2 && sensor == 2) ssd_info = {0,2};
+	  else if (station == 3 && sensor == 1) ssd_info = {1,3};
+	  else if (station == 3 && sensor == 2) ssd_info = {0,3};
+	  else if (station == 2 && sensor == 0) ssd_info = {2,2};
+	  else if (station == 3 && sensor == 0) ssd_info = {2,3};
+	  else if (station == 4 && sensor == 0) ssd_info = {0,4};
+	  else if (station == 4 && sensor == 1) ssd_info = {0,5};
+	  else if (station == 4 && sensor == 2) ssd_info = {1,4};
+	  else if (station == 4 && sensor == 3) ssd_info = {1,5};
+	  else if (station == 4 && sensor == 4) ssd_info = {3,4};
+	  else if (station == 4 && sensor == 5) ssd_info = {3,5};
+	  else if (station == 5 && sensor == 0) ssd_info = {0,6};
+	  else if (station == 5 && sensor == 1) ssd_info = {0,7};
+	  else if (station == 5 && sensor == 2) ssd_info = {1,6};
+	  else if (station == 5 && sensor == 3) ssd_info = {1,7};
+	  else if (station == 5 && sensor == 4) ssd_info = {3,6};
+	  else if (station == 5 && sensor == 5) ssd_info = {3,7};
 
-	  else{ssd_info = {-1,-1}; std::cout<<"fer and mod "<< fer<< " "<<module<<std::endl;}
+	  else{ssd_info = {-1,-1}; std::cout<<"station and mod "<< station<< " "<<sensor<<std::endl;}
 
 	  return ssd_info;
   }
@@ -109,13 +110,14 @@ namespace emph {
   bool SSDAlign::IsSingleHit(std::vector<double>& hits)
   {
     //Combine 2 nearby hits into 1
-    if (hits.size()==2 && abs(hits[0]-hits[1]<=this->Pitch())) {
+    if (hits.size()==2 && abs(hits[0]-hits[1])<=this->Pitch()) {
 	hits = {(hits[0]+hits[1])/2};
+	//std::cout<<"hist[0] "<<hits[0]<<"   hits[1] "<<hits[1]<<std::endl;
     }
     //Combine 3 nearby hits into 1
     if (hits.size()==3){
 	std::sort(hits.begin(),hits.end());
-	if(abs(hits[0]-hits[1]<=this->Pitch()) && abs(hits[1]-hits[2]<=this->Pitch())){
+	if(abs(hits[0]-hits[1])<=this->Pitch() && abs(hits[1]-hits[2])<=this->Pitch()){
 		hits = {hits[1]};
 	}
 	
@@ -285,7 +287,6 @@ namespace emph {
     o << " SSD Strip = "     << std::setw(5) << std::right << h.Strip()
       << " Angle = "     << std::setw(5) << std::right << h.Angle()
       << " Pitch = "        << std::setw(5) << std::right << h.Pitch()     
-      << " SSD Sensor Row = "        << std::setw(5) << std::right << h.Sensor_Row()     
       << " Event Number  = "        << std::setw(5) << std::right << h.Event();
     return o;
   }

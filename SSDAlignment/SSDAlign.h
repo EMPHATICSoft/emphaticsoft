@@ -13,6 +13,7 @@
 #include "RawData/RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "Geometry/Geometry.h"
+#include "RecoBase/SSDCluster.h"
 
 namespace emph{
   namespace al{
@@ -21,7 +22,7 @@ namespace emph{
   class SSDAlign {
   public:
     SSDAlign(); // Default constructor
-    SSDAlign(const emph::rawdata::SSDRawDigit &ssdraw, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt); // Default constructor
+    SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt); // Default constructor
     virtual ~SSDAlign() {}; //Destructor
     
   private:
@@ -30,9 +31,8 @@ namespace emph{
     double _strip;  // avg. strip position
     double _pitch;
     double _height;
-    double _sensor_row;
-    int _fer;
-    int _module;
+    int _station;
+    int _sensor;
 	 double _x, _y, _z, _u, _v;
 	 double _xcal, _ycal, _zcal;
     int _event;
@@ -43,9 +43,8 @@ namespace emph{
     double Strip() const { return _strip; }
     double Pitch() const { return _pitch; }
     double Height() const { return _height; }
-    double Sensor_Row() const { return _sensor_row; }
-    int FER() const { return _fer; }
-    int Module() const { return _module; }
+    int Station() const { return _station; }
+    int Sensor() const { return _sensor; }
     double X() const { return _x; }
     double Y() const { return _y; }
     double Z() const { return _z; }
@@ -58,9 +57,8 @@ namespace emph{
     void SetStrip(double strip) { _strip = strip; }
     void SetPitch(double pitch) { _pitch = pitch; }
     void SetHeight(double height) { _height = height; }
-    void SetSensor_Row(double sensor_row) { _sensor_row = sensor_row; }
-    void SetFER(int fer) { _fer = fer; }
-    void SetModule(int module) { _module = module; }
+    void SetStation(int station) { _station = station; }
+    void SetSensor(int sensor) { _sensor = sensor; }
     void SetX(double x) { _x = x; }
     void SetY(double y) { _y = y; }
     void SetZ(double z) { _z = z; }
