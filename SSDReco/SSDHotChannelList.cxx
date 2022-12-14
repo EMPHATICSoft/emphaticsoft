@@ -167,6 +167,11 @@ namespace emph {
 	  fDeadChannels.clear();
 	}
 	std::ifstream fIn(fName.c_str());
+	if (!fIn.good()) {
+	   std::cerr << " SSDHotChannelList::getItFromSSDCalib, file name " << fName 
+	             << " does not exists, or is empty, fatal, quit here  " << std::endl;
+		     exit(2);
+	}
 	int aStation=-1; int aSensor = -1; int aRow =-1;
 	int nLines = 0;
 	char aLine[1024];
