@@ -53,7 +53,7 @@ private:
   TTree *ssdclust;
   int run,subrun,event;
   std::vector<int> station, sens, ndigits, width, timerange;
-  std::vector<float> avgadc;
+  std::vector<float> avgadc, avgstrip, wgtavgstrip, wgtrmsstrip;
   int ncluster[16];
   
   // fcl parameters
@@ -97,6 +97,9 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("width",&width);
     ssdclust->Branch("timerange",&timerange);
     ssdclust->Branch("avgadc",&avgadc);
+    ssdclust->Branch("avgstrip",&avgstrip);
+    ssdclust->Branch("wgtavgstrip",&wgtavgstrip);
+    ssdclust->Branch("wgtrmsstrip",&wgtrmsstrip);
     ssdclust->Branch("ncluster",&ncluster,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15");
   }
 }
@@ -204,6 +207,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	      width.push_back(clusters[i].Width());
 	      timerange.push_back(clusters[i].TimeRange());
 	      avgadc.push_back(clusters[i].AvgADC());
+	      avgstrip.push_back(clusters[i].AvgStrip());
+	      wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+	      wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
 	      int plane = -1;
 	      if (sta==0 || sta==1){
 		plane = 2*sta+sensor;
@@ -236,6 +242,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     width.clear();
     timerange.clear();
     avgadc.clear();
+    avgstrip.clear();
+    wgtavgstrip.clear();
+    wgtrmsstrip.clear();
   }
 }
 DEFINE_ART_MODULE(emph::MakeSSDClusters)
