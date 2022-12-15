@@ -158,18 +158,16 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   event = evt.event();
 
   if (fCheckDQ){
-    art::Handle<dq::EventQuality> eventqual;
-    try{
-      evt.getByLabel("dataqual",eventqual);
-      // if no ssd hits in event, continue
-      if(!eventqual->hasSSDHits){
-	evt.put(std::move(clusterv));
-	return;
-      }
-    }
-    catch(...){
-      std::cout<<"No Data Quality product found in event but CheckDQ set to true!"<<std::endl;
+    //art::Handle<dq::EventQuality> eventqual;
+    auto eventqual = evt.getHandle<dq::EventQuality>("dataqual");
+    if(!eventqual){
+      mf::LogError("MakeSSDClusters")<<"No Data Quality product found in event but CheckDQ set to true!";
       abort();
+    }
+    // if no ssd hits in event, continue
+    if(!eventqual->hasSSDHits){
+      evt.put(std::move(clusterv));
+      return;
     }
   }
 
@@ -177,59 +175,55 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 
   std::fill_n(ncluster,16,0);
 
-  art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdHandle;
-  try{
-    evt.getByLabel(fSSDRawLabel,ssdHandle);
-    if (!ssdHandle->empty()) {
-      for (size_t idx=0; idx<ssdHandle->size(); ++idx){
-	art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
-	emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
-	emph::cmap::DChannel dchan = cmap->DetChan(echan);
-	digitList[dchan.Station()][dchan.Channel()].push_back(ssdDig);
-      }
-      std::vector<rb::SSDCluster> clusters;
-      // Should really pull counts of these from geometry somehow
-      for (int sta=0; sta<6; ++sta){
-	for (int sensor=0; sensor<6; ++sensor){
-	  clusters.clear();
-	  // Don't bother to cluster if we didn't have any raw digits
-	  if (digitList[sta][sensor].size()==0)
-	    continue;
-	  // FormClusters() assumes digits are ordered by row
-	  this->SortByRow(digitList[sta][sensor]);
-	  this->FormClusters(digitList[sta][sensor], &clusters, sta, sensor);
-	  for (int i=0; i<(int)clusters.size(); i++){
-	    // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
-	    if (fFillTTree) {
-	      station.push_back(clusters[i].Station());
-	      sens.push_back(clusters[i].Sensor());
-	      ndigits.push_back(clusters[i].NDigits());
-	      width.push_back(clusters[i].Width());
-	      timerange.push_back(clusters[i].TimeRange());
-	      avgadc.push_back(clusters[i].AvgADC());
-	      avgstrip.push_back(clusters[i].AvgStrip());
-	      wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
-	      wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
-	      int plane = -1;
-	      if (sta==0 || sta==1){
-		plane = 2*sta+sensor;
-	      }
-	      else if (sta==2 || sta==3){
-		plane = 3*sta+sensor-2;
-	      }
-	      else {
-		plane = 3*sta+(int)sensor/2-2;
-	      }
-	      ncluster[plane]++;
+  //art::Handle< > > ssdHandle;
+  auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
+  if (!ssdHandle->empty()) {
+    for (size_t idx=0; idx<ssdHandle->size(); ++idx){
+      art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
+      emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
+      emph::cmap::DChannel dchan = cmap->DetChan(echan);
+      digitList[dchan.Station()][dchan.Channel()].push_back(ssdDig);
+    }
+    std::vector<rb::SSDCluster> clusters;
+    // Should really pull counts of these from geometry somehow
+    for (int sta=0; sta<6; ++sta){
+      for (int sensor=0; sensor<6; ++sensor){
+	clusters.clear();
+	// Don't bother to cluster if we didn't have any raw digits
+	if (digitList[sta][sensor].size()==0)
+	  continue;
+	// FormClusters() assumes digits are ordered by row
+	this->SortByRow(digitList[sta][sensor]);
+	this->FormClusters(digitList[sta][sensor], &clusters, sta, sensor);
+	for (int i=0; i<(int)clusters.size(); i++){
+	  // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
+	  if (fFillTTree) {
+	    station.push_back(clusters[i].Station());
+	    sens.push_back(clusters[i].Sensor());
+	    ndigits.push_back(clusters[i].NDigits());
+	    width.push_back(clusters[i].Width());
+	    timerange.push_back(clusters[i].TimeRange());
+	    avgadc.push_back(clusters[i].AvgADC());
+	    avgstrip.push_back(clusters[i].AvgStrip());
+	    wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+	    wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
+	    int plane = -1;
+	    if (sta==0 || sta==1){
+	      plane = 2*sta+sensor;
 	    }
-	    clusters[i].SetID(i);
-	    clusterv->push_back(clusters[i]);
+	    else if (sta==2 || sta==3){
+	      plane = 3*sta+sensor-2;
+	    }
+	    else {
+	      plane = 3*sta+(int)sensor/2-2;
+	    }
+	    ncluster[plane]++;
 	  }
+	  clusters[i].SetID(i);
+	  clusterv->push_back(clusters[i]);
 	}
       }
     }
-  }
-  catch(...){
   }
 
   evt.put(std::move(clusterv));
