@@ -1,0 +1,39 @@
+#include "BadChannelFinder.fcl"
+#include "ChannelMap.fcl"
+
+process_name: BadChannelFinder
+
+services:
+{
+    TFileService: { fileName: "ssdhitrate_r%r-%R_s%s-%S_hist.root" closeFileFast: false }
+    ChannelMapService: @local::standard_channelmap
+    RunHistoryService: {}
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+#outputs:
+#{
+# out1:
+#  {
+#   module_type: RootOutput
+#   fileName:    "emphdata_r%r_s%s.root"
+#   fastCloning: false   
+#  }
+#}
+
+physics:
+{
+  analyzers:
+  {
+    badchan: @local::standard_badchan
+  }
+
+  ana: [ badchan ]
+
+  end_paths: [ ana ]
+}

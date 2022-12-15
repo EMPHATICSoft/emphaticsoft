@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_badchan:
+{
+  module_type:  BadChannelFinder
+  SSDRawLabel:  "raw:SSD"
+}
+
+END_PROLOG
