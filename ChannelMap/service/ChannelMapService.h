@@ -40,6 +40,8 @@ namespace emph
       DChannel DetChan(EChannel echan) { return fChannelMap->DetChan(echan); }
       
       EChannel ElectChan(DChannel dchan) { return fChannelMap->ElectChan(dchan); }
+      
+      bool IsValidEChan(EChannel& echan) {return fChannelMap->IsValidEChan(echan); }
 
     private:
       bool fAbortIfFileNotFound;
