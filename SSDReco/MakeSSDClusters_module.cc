@@ -158,7 +158,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   event = evt.event();
 
   if (fCheckDQ){
-    //art::Handle<dq::EventQuality> eventqual;
     auto eventqual = evt.getHandle<dq::EventQuality>("dataqual");
     if(!eventqual){
       mf::LogError("MakeSSDClusters")<<"No Data Quality product found in event but CheckDQ set to true!";
@@ -175,7 +174,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 
   std::fill_n(ncluster,16,0);
 
-  //art::Handle< > > ssdHandle;
   auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
   if (!ssdHandle->empty()) {
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
