@@ -19,27 +19,14 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
+#include "SSDReco/SSDAlignSimpleLinFit.h"
 
 namespace emph { 
   namespace ssdr {
  
     class SSDAlign2DXYAlgo1 {
     
-      public:
-      
-      class myLinFitResult { 
-        public:
-	  myLinFitResult();
-	  int ndgf; // number of degrees of freedom Other data member are self explicit.
-	  double offset;
-	  double slope;
-	  double sigmaOffset;
-	  double sigmaSlope;
-	  double covOffsetSlope; 
-	  double chiSq;
-	  std::vector<double> resids; // The residuals
-      };
-           
+       public:
       
 	SSDAlign2DXYAlgo1(); // No args .. for now.. 
 	SSDAlign2DXYAlgo1(char aView); // No args .. for now.. 
@@ -61,12 +48,13 @@ namespace emph {
 	  double fHalfWaferWidth;
 	  int fNumIterMax; // Maximum number of iteration 
 	  double fChiSqCut;
-	  double fRefPointPitchOrYawAngle;
+//	  double fRefPointPitchOrYawAngle;
 	  std::string fTokenJob;
 	  std::vector<double> fZCoords;
-	  std::vector<double> fNominalOffsets;
-	  std::vector<double> fResiduals;   // the current one, for the a specific event. 
-	  std::vector<double> fMeanResiduals;// the meanvalue over a run.. 
+	  std::vector<double> fNominalOffsets; // for station 4 and 5, Y View Sensor 3 
+	  std::vector<double> fNominalOffsetsAlt45; // for station 4 and 5, Y View Sensor 2 
+	  std::vector<double> fResiduals;   // the current one, for the a specific event. Actually, not used so far. 
+	  std::vector<double> fMeanResiduals;// the meanvalue over a run..Or previously fitted..  
 	  std::vector<double> fRMSResiduals;
 // 
 // Additional cuts.. and variables. 
@@ -77,6 +65,8 @@ namespace emph {
 	  std::vector<double> fOtherUncert;
 	  std::vector<double> fZLocShifts;
 	  std::vector<double> fPitchOrYawAngles;
+	  
+	  emph::ssdr::SSDAlignSimpleLinFit myLinFit; // no contructor argument. 
 	  std::ofstream fFOutA1, fFOutA1Dbg;
 	  
 	   
@@ -95,7 +85,8 @@ namespace emph {
 	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
 	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
 	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
-	 inline void SetRefPtForPitchOrYawAngle(double v) { fRefPointPitchOrYawAngle = v; }
+//	 inline void SetRefPtForPitchOrYawAngle(double v) { fRefPointPitchOrYawAngle = v; }
+	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v;} 
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {
 	   if ((aView != 'X') && (aView != 'Y')) {
@@ -115,23 +106,26 @@ namespace emph {
 	 }
 	 
 	 void  alignIt(const art::Event &evt, const std::vector<rb::SSDCluster> &aSSDcls); 
+	 void  alignItAlt45(const bool skipStation4, const art::Event &evt, 
+	                                  const std::vector<rb::SSDCluster> &aSSDcls); // find the residuals for station 4 & 5, Sensor 2 (in Y). 
 	 
 	 private:
 	 
-	 inline double getTsFromCluster(size_t kStation, double strip) {
+	 inline double getTsFromCluster(size_t kStation, bool alternate45, double strip) {
 	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
 	     case 'X' :
 	       if (kStation < 4) 
-	         return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
-	         else return ( strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	         return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+	         else return ( strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 		 break; 
 	     case 'Y' : 
 	      {
 	       double aVal = 0.;
 	       if (kStation < 4) {  
-	         aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	         aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 	       } else {
-	         aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation]);
+	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+		 else aVal =  ( strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 	       } 
 	       const double aValC = this->correctTsForPitchOrYawAngle(kStation, aVal);
 	       return aValC;
@@ -145,11 +139,9 @@ namespace emph {
 	   return 0.; // should not happen  
 	 }
 	 inline double correctTsForPitchOrYawAngle(size_t kStation, double ts) {
-	   const double deltaTrans = ts - fRefPointPitchOrYawAngle;
-	   return (ts + deltaTrans*fPitchOrYawAngles[kStation]);
+	   return (ts + ts*fPitchOrYawAngles[kStation]);
 	 }
 	 void openOutputCsvFiles();
-         void  fitLin(const std::vector<double> &t, const std::vector<double> &sigT, myLinFitResult &fitRes ) const ; 
 	
     };
   

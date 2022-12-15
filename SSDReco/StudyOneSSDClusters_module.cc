@@ -90,6 +90,9 @@ namespace emph {
       bool fSelectHotChannelsFromHits; // Probably a better way.    
       bool fDoAlignX;    
       bool fDoAlignY;  
+      bool fDoAlignXAlt45;  
+      bool fDoAlignYAlt45;  
+      bool fDoAlignYAlt5;  
       bool fDoSkipDeadOrHotStrips;  
       bool fDoLastIs4AlignAlgo1; 
       unsigned int fRun;
@@ -124,7 +127,7 @@ namespace emph {
 //
    std::vector<emph::ssdr::SSDHotChannelList> fHotChans;
 //
-// The 5 station X and Y aligners
+// The 5 station X and Y aligners (with option of doing only 0 to 4 )
 //
       emph::ssdr::SSDAlign2DXYAlgo1 fAlignX, fAlignY;           
 //
@@ -141,7 +144,7 @@ namespace emph {
       
       void alignFiveStations(const art::Event& evt); // event by event alignment. 
       
-      void selectByView(char aView, bool skipDeadOrHotChannels); 
+      void selectByView(char aView, bool alternate45, bool skipDeadOrHotChannels); 
        // move data from fSSDClsPtr to fSSDcls, for a given view. Also apply cuts on the RMS of the clusters. 
       
       char getView(std::vector<rb::SSDCluster>::const_iterator itCl) const; 
@@ -154,7 +157,8 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false),  fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
+    fDoAlignX(false), fDoAlignY(false), fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
+     fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
@@ -181,6 +185,9 @@ namespace emph {
       std::string fNameDCFH = pset.get<std::string>("NameFileHCFH", "./SSDCalibDeadChanSummary_none_1055.txt");
       fDoAlignX = pset.get<bool>("alignX", false);
       fDoAlignY = pset.get<bool>("alignY", false);
+      fDoAlignXAlt45 = pset.get<bool>("alignXAlt45", false);
+      fDoAlignYAlt45 = pset.get<bool>("alignYAlt45", false);
+      fDoAlignYAlt5 = pset.get<bool>("alignYAlt5", false);
       fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
@@ -188,10 +195,13 @@ namespace emph {
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
       std::vector<double> aPitchAngles =  pset.get<std::vector<double> >("PitchAngles", std::vector<double>(6, 0.));
       std::vector<double> aTransUncert =  pset.get<std::vector<double> >("TransPosUncert", std::vector<double>(6, 0.));
-      double aRefPointPitchOrYawAngle = pset.get<double>("RefPointPitchOrYawAngle", 3.0); // in mm, in the local frame of the sensor. 
+      std::vector<double> aMeanResidY =  pset.get<std::vector<double> >("MeanResidualsY", std::vector<double>(6, 0.));
+      
+//      double aRefPointPitchOrYawAngle = pset.get<double>("RefPointPitchOrYawAngle", 3.0); // in mm, in the local frame of the sensor. 
+//    confusing and not needed. 
       std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
       fRMSClusterCuts = pset.get<std::vector<double> >("RMSClusterCuts", aRMSClusterCutsDef);
-      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY)) { 
+      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY) && (!fDoAlignYAlt45) && (!fDoAlignYAlt5)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
       if (fSelectHotChannels || fSelectHotChannelsFromHits) {
@@ -215,8 +225,9 @@ namespace emph {
       fAlignX.SetOtherUncert(aTransUncert);
       fAlignY.SetOtherUncert(aTransUncert);
       fAlignY.SetPitchAngles(aPitchAngles);
-      fAlignY.SetRefPtForPitchOrYawAngle(aRefPointPitchOrYawAngle);
-      
+//      fAlignY.SetRefPtForPitchOrYawAngle(aRefPointPitchOrYawAngle);
+      fAlignY.SetFittedResiduals(aMeanResidY);
+     
      
       
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
@@ -430,7 +441,7 @@ namespace emph {
        return aView;
    }
    
-   void emph::StudyOneSSDClusters::selectByView(char theView, bool skipDeadOrHotStrips) {
+   void emph::StudyOneSSDClusters::selectByView(char theView, bool alternate45, bool skipDeadOrHotStrips) {
      fSSDcls.clear();
      for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
@@ -447,7 +458,8 @@ namespace emph {
 	  if (theView == 'X') {
 	    if (itCl->Sensor() == 0) continue; // The Proton peak is mostly on Sensor 1 
 	  } else if (theView == 'Y') {
-	    if (itCl->Sensor() == 2) continue; // The Proton peak is mostly on Sensor 3 
+	    if ((!alternate45) && (itCl->Sensor() == 2)) continue; // The Proton peak is mostly on Sensor 3 
+	    if ((alternate45) && (itCl->Sensor() == 3)) continue; // True for station 4 and 5. Station 4 data looks dismal.. 
 	  }
 	}
 	bool accept = true;
@@ -465,12 +477,17 @@ namespace emph {
     }
     void emph::StudyOneSSDClusters::alignFiveStations(const art::Event& evt) {
       if (fDoAlignX) {
-        this->selectByView('X', fDoSkipDeadOrHotStrips); 
+        this->selectByView('X', false, fDoSkipDeadOrHotStrips); 
         fAlignX.alignIt(evt, fSSDcls);
       } 
       if (fDoAlignY) {
-        this->selectByView('Y', fDoSkipDeadOrHotStrips); 
+        this->selectByView('Y', false, fDoSkipDeadOrHotStrips); 
         fAlignY.alignIt(evt, fSSDcls);
+      } 
+      if (fDoAlignYAlt45 || fDoAlignYAlt5) {
+        this->selectByView('Y', true, fDoSkipDeadOrHotStrips); 
+        if (fDoAlignYAlt45) fAlignY.alignItAlt45(false, evt, fSSDcls);
+        if (fDoAlignYAlt5) fAlignY.alignItAlt45(true, evt, fSSDcls);
       } 
     }
     void emph::StudyOneSSDClusters::analyze(const art::Event& evt) {
@@ -518,7 +535,7 @@ namespace emph {
       } 
       if (fDumpClusters) this->dumpXYCls();
       if (fSelectHotChannels) this->fillHotChannels(); 
-      if (fDoAlignX || fDoAlignY) this->alignFiveStations(evt);
+      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45) this->alignFiveStations(evt);
     } // end of Analyze, event by events.  
    
 DEFINE_ART_MODULE(emph::StudyOneSSDClusters)
