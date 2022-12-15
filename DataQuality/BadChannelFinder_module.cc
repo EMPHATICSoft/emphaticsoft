@@ -118,19 +118,14 @@ void emph::dq::BadChannelFinder::analyze(art::Event const& evt)
   run = evt.run();
   subrun = evt.subRun();
 
-  art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdHandle;
-  try{
-    evt.getByLabel(fSSDRawLabel,ssdHandle);
-    if (!ssdHandle->empty()) {
-      // only count triggers with SSD Hits
-      ntriggers++;
-      for (size_t idx=0; idx<ssdHandle->size(); ++idx){
-	art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
-	Nhit[ssdDig->FER()][ssdDig->Module()][ssdDig->Row()]++;
-      }
+  auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
+  if (ssdHandle) {
+    // only count triggers with SSD Hits
+    ntriggers++;
+    for (size_t idx=0; idx<ssdHandle->size(); ++idx){
+      art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
+      Nhit[ssdDig->FER()][ssdDig->Module()][ssdDig->Row()]++;
     }
-  }
-  catch(...){
   }
   
 }
