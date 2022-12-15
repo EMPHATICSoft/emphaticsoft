@@ -18,6 +18,9 @@
 #include "RawData/SSDRawDigit.h"
 
 namespace rb {
+
+  // index is the ADC value from the DAQ (0-7), result is the converted ADC value
+  const unsigned int adcMap[] = {41, 58, 73, 88, 103, 118, 133, 140};
   
   class SSDCluster {
   public:
