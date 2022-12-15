@@ -160,10 +160,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       evt.getByLabel("dataqual",eventqual);
       // if no ssd hits in event, continue
       if(!eventqual->hasSSDHits){
-	rb::SSDCluster ssdClust;
-	ssdClust.SetStation(-1);
-	ssdClust.SetSensor(-1);
-	clusterv->push_back(ssdClust);
 	evt.put(std::move(clusterv));
 	return;
       }
