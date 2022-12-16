@@ -22,8 +22,10 @@
 
 #include "ChannelMap/service/ChannelMapService.h"
 #include "DataQuality/EventQuality.h"
+#include "Geometry/service/GeometryService.h"
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/SSDCluster.h"
+#include "SSDReco/MakeSSDClusters.h"
 
 namespace emph {
   class MakeSSDClusters;
@@ -52,7 +54,7 @@ private:
   art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
   TTree *ssdclust;
   int run,subrun,event;
-  std::vector<int> station, sens, ndigits, width, timerange;
+  std::vector<int> station, sens, view, ndigits, width, timerange;
   std::vector<float> avgadc, avgstrip, wgtavgstrip, wgtrmsstrip;
   int ncluster[16];
   
@@ -62,8 +64,10 @@ private:
   int         fRowGap;      ///< Maximum allowed gap between strips for forming clusters
   bool        fCheckDQ;     ///< Check data quality for event
 
-static  bool CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
-		    const art::Ptr<emph::rawdata::SSDRawDigit>& b);
+  rb::planeView getSensorView(int station, int sensor);
+
+  static bool CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
+			   const art::Ptr<emph::rawdata::SSDRawDigit>& b);
   void SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>& dl);
 
   void FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
@@ -93,6 +97,7 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("event",&event,"event/I");
     ssdclust->Branch("station",&station);
     ssdclust->Branch("sens",&sens);
+    ssdclust->Branch("view",&view);
     ssdclust->Branch("ndigits",&ndigits);
     ssdclust->Branch("width",&width);
     ssdclust->Branch("timerange",&timerange);
@@ -118,10 +123,34 @@ void emph::MakeSSDClusters::SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>
 }
 
 //--------------------------------------------------
+rb::planeView emph::MakeSSDClusters::getSensorView(int station, int sensor)
+{
+  art::ServiceHandle<emph::geo::GeometryService> geo;
+  auto emgeo = geo->Geo();
+  const emph::geo::SSDStation &st = emgeo->GetSSDStation(station);
+  const emph::geo::Detector   &sd = st.GetSSD(sensor);
+  // add stuff here to check sd.Rot() and get view from that.
+  // x-view: π/2, 3π/2
+  if (abs(fmod(sd.Rot()-3.14/2,3.14)) < 0.2)
+    return rb::X_VIEW;
+  // y-view: 0,π
+  else if (abs(fmod(sd.Rot(),3.14)) < 0.2)
+    return rb::Y_VIEW;
+  // u-view: 3π/4, 7π/4
+  else if (abs(fmod(sd.Rot()-3*3.14/4,3.14)) < 0.2)
+    return rb::U_VIEW;
+  // w-view: π/4, 5π/4
+  else if (abs(fmod(sd.Rot()-3.14/4,3.14)) < 0.2)
+    return rb::W_VIEW;
+  return rb::INIT;
+}
+
+//--------------------------------------------------
 void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
 		  std::vector<rb::SSDCluster>* sensClusters,
 		  int station, int sensor)
 { 
+  rb::planeView view = getSensorView(station,sensor);
   int prevRow=sensDigits[0]->Row();
   int curRow;
   rb::SSDCluster ssdClust;
@@ -133,6 +162,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
     if ( curRow-prevRow > (fRowGap) ) {
       ssdClust.SetStation(station);
       ssdClust.SetSensor(sensor);
+      ssdClust.SetView(view);
       sensClusters->push_back(ssdClust);
       ssdClust = rb::SSDCluster();
     }
@@ -144,6 +174,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   // push last cluster
   ssdClust.SetStation(station);
   ssdClust.SetSensor(sensor);
+  ssdClust.SetView(view);
   sensClusters->push_back(ssdClust);
 
 }
@@ -198,6 +229,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	  if (fFillTTree) {
 	    station.push_back(clusters[i].Station());
 	    sens.push_back(clusters[i].Sensor());
+	    view.push_back(clusters[i].View());
 	    ndigits.push_back(clusters[i].NDigits());
 	    width.push_back(clusters[i].Width());
 	    timerange.push_back(clusters[i].TimeRange());
@@ -230,6 +262,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     ssdclust->Fill();
     station.clear();
     sens.clear();
+    view.clear();
     ndigits.clear();
     width.clear();
     timerange.clear();
