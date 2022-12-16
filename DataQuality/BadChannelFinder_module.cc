@@ -82,11 +82,11 @@ void emph::dq::BadChannelFinder::beginJob()
   bcstats = tfs->make<TTree>("bcstats","");
   bcstats->Branch("run",&run,"run/I");
   bcstats->Branch("subrun",&subrun,"subrun/I");
+  bcstats->Branch("ntriggers",&ntriggers,"ntriggers/I");
   bcstats->Branch("fer",&fer,"fer/I");
   bcstats->Branch("mod",&mod,"mod/I");
   bcstats->Branch("row",&row,"row/I");
   bcstats->Branch("nhit",&nhit,"nhit/F");
-
   ntriggers=0;
 }
 
@@ -110,6 +110,7 @@ void emph::dq::BadChannelFinder::endSubRun(const art::SubRun& sr)
       }
     }  
   }
+  ntriggers=0;
 }
 
 //--------------------------------------------------
