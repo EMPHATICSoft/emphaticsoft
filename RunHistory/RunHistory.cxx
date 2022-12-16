@@ -127,7 +127,7 @@ namespace runhist{
 		  _chanFile=file_path+"ChannelMap/ChannelMap_Jan22_Run436.txt";
 		  _calibVer=1;
 	  }
-	  else if(_runNumber >= 605 && _runNumber <= 1385){
+	  else if(_runNumber >= 605 && _runNumber <= 1386){
 		  _geoFile=file_path+"Geometry/phase1b.gdml";
 		  _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
 		  _calibVer=2;
