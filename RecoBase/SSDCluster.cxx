@@ -84,8 +84,8 @@ namespace rb {
     double sum=0.;
     double totalADC=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      sum += fDigitVec[i]->Row()*fDigitVec[i]->ADC();
-      totalADC+=fDigitVec[i]->ADC();
+      sum += fDigitVec[i]->Row()*adcMap[fDigitVec[i]->ADC()];
+      totalADC+=adcMap[fDigitVec[i]->ADC()];
     }
     return sum/totalADC;
 
@@ -101,8 +101,8 @@ namespace rb {
     double rmssum=0.;
     double totalADC=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*fDigitVec[i]->ADC();
-      totalADC+=fDigitVec[i]->ADC();
+      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
+      totalADC+=adcMap[fDigitVec[i]->ADC()];
     }
     return sqrt(rmssum/totalADC);
 
@@ -137,7 +137,7 @@ namespace rb {
 
     double sum=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      sum += fDigitVec[i]->ADC();
+      sum += adcMap[fDigitVec[i]->ADC()];
     }
     return sum/NDigits();
 
