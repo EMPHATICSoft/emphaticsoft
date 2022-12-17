@@ -30,7 +30,8 @@ namespace emph {
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView('?'), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), 
-       fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
+       fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
+       fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
        fNominalOffsetsAlt45(fNumStations, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
@@ -42,7 +43,8 @@ namespace emph {
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView(aView), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), 
-       fTokenJob("undef"), fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
+       fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
+       fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
        fNominalOffsetsAlt45(fNumStations, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),  
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
@@ -82,7 +84,7 @@ namespace emph {
          case 'X' :
            for (size_t k=0; k != 4; k++) { 
              fNominalOffsets[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..
-             fNominalOffsetsAlt45[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..
+             fNominalOffsetsAlt45[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..Not sure.. 
 	   }
 	   for (size_t k=4; k != 6; k++) { 
 	       fNominalOffsets[k] = 2.0*fHalfWaferWidth; // To be checked.. 
@@ -329,7 +331,8 @@ namespace emph {
        std::string headerStr(headerStrStr.str());
        fNEvents++; 
        bool debugIsOn = (fNEvents < 100) || (fEvtNum == 139999999);
-       if (debugIsOn) std::cerr <<  " SSDAlign2DXYAlgo1::alingItAlt45,  number of Cluster " << aSSDcls.size() << std::endl;
+       if (debugIsOn) std::cerr <<  " SSDAlign2DXYAlgo1::alingItAlt45,  number of Cluster " << aSSDcls.size() 
+                                << " fNumStationsEff " << fNumStationsEff << std::endl;
        if ((aSSDcls. size() < fNumStationsEff) && (!skipStation4)) {
          if (debugIsOn) std::cerr <<  " ... Not enough data for a " << fNumStationsEff << " hit fit.. " << std::endl;
 	 return;
@@ -384,7 +387,8 @@ namespace emph {
 	    if (debugIsOn) std::cerr <<  " ... Too many clusters for station 5 So, No fits " << std::endl;
 	    return;
 	 }
-      
+	 nHitsTotal += nHits[5]; 
+       
        }
        myLinFit.resids = std::vector<double>(fNumStationsEff, 0.);
        std::vector<double> tsData(fNumStationsEff, 0.); 
@@ -464,7 +468,7 @@ namespace emph {
 		      prevPChiSq = prevChiSq; 
 		      prevChiSq = myLinFit.chiSq; 
 		      nIter++;
-		      if (fEvtNum < 20) {
+		      if (fEvtNum < 200) {
 		 	 fFOutA1Dbg << headerStr << " " << kTrSeqNum;
 		         fFOutA1Dbg << " " << itCl0->WgtAvgStrip() << " " << itCl1->WgtAvgStrip() << " " << itCl2->WgtAvgStrip();
 		         fFOutA1Dbg << " " << itCl3->WgtAvgStrip() << " " << itCl4->WgtAvgStrip() << " " << itCl5->WgtAvgStrip();

@@ -192,10 +192,13 @@ namespace emph {
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 20.);
+      const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
+      // default value for transverse (X) kick is for 120 GeV, assuming COMSOL file is correct. based on G4EMPH 
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
       std::vector<double> aPitchAngles =  pset.get<std::vector<double> >("PitchAngles", std::vector<double>(6, 0.));
       std::vector<double> aTransUncert =  pset.get<std::vector<double> >("TransPosUncert", std::vector<double>(6, 0.));
       std::vector<double> aMeanResidY =  pset.get<std::vector<double> >("MeanResidualsY", std::vector<double>(6, 0.));
+      std::vector<double> aMeanResidX =  pset.get<std::vector<double> >("MeanResidualsX", std::vector<double>(6, 0.));
       
 //      double aRefPointPitchOrYawAngle = pset.get<double>("RefPointPitchOrYawAngle", 3.0); // in mm, in the local frame of the sensor. 
 //    confusing and not needed. 
@@ -223,10 +226,12 @@ namespace emph {
       fAlignX.SetZLocShifts(aZLocShifts);
       fAlignY.SetZLocShifts(aZLocShifts);
       fAlignX.SetOtherUncert(aTransUncert);
+      fAlignX.SetMagnetKick120GeV(aMagnetiKick);
       fAlignY.SetOtherUncert(aTransUncert);
       fAlignY.SetPitchAngles(aPitchAngles);
 //      fAlignY.SetRefPtForPitchOrYawAngle(aRefPointPitchOrYawAngle);
       fAlignY.SetFittedResiduals(aMeanResidY);
+      fAlignX.SetFittedResiduals(aMeanResidX);
      
      
       
@@ -456,7 +461,8 @@ namespace emph {
 	if (aView != theView) continue;
 	if (aStation > 3) {
 	  if (theView == 'X') {
-	    if (itCl->Sensor() == 0) continue; // The Proton peak is mostly on Sensor 1 
+	    if ((!alternate45) && (itCl->Sensor() == 0)) continue; // The Proton peak is mostly on Sensor 0 
+	    if ((alternate45) && (itCl->Sensor() == 1)) continue;// ...  For both station 4 and 5 .. Yes, at least for run 1055
 	  } else if (theView == 'Y') {
 	    if ((!alternate45) && (itCl->Sensor() == 2)) continue; // The Proton peak is mostly on Sensor 3 
 	    if ((alternate45) && (itCl->Sensor() == 3)) continue; // True for station 4 and 5. Station 4 data looks dismal.. 
@@ -535,7 +541,7 @@ namespace emph {
       } 
       if (fDumpClusters) this->dumpXYCls();
       if (fSelectHotChannels) this->fillHotChannels(); 
-      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45) this->alignFiveStations(evt);
+      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45 || fDoAlignYAlt5) this->alignFiveStations(evt);
     } // end of Analyze, event by events.  
    
 DEFINE_ART_MODULE(emph::StudyOneSSDClusters)

@@ -29,7 +29,7 @@ namespace emph {
        public:
       
 	SSDAlign2DXYAlgo1(); // No args .. for now.. 
-	SSDAlign2DXYAlgo1(char aView); // No args .. for now.. 
+	SSDAlign2DXYAlgo1(char aView); // X or Y
         ~SSDAlign2DXYAlgo1();
 	
         private:
@@ -50,6 +50,7 @@ namespace emph {
 	  double fChiSqCut;
 //	  double fRefPointPitchOrYawAngle;
 	  std::string fTokenJob;
+	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fZCoords;
 	  std::vector<double> fNominalOffsets; // for station 4 and 5, Y View Sensor 3 
 	  std::vector<double> fNominalOffsetsAlt45; // for station 4 and 5, Y View Sensor 2 
@@ -87,6 +88,7 @@ namespace emph {
 	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
 //	 inline void SetRefPtForPitchOrYawAngle(double v) { fRefPointPitchOrYawAngle = v; }
 	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v;} 
+	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {
 	   if ((aView != 'X') && (aView != 'Y')) {
@@ -114,10 +116,20 @@ namespace emph {
 	 inline double getTsFromCluster(size_t kStation, bool alternate45, double strip) {
 	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
 	     case 'X' :
-	       if (kStation < 4) 
-	         return ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-	         else return ( strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-		 break; 
+	     {
+	       double aVal=0.;
+	       if (kStation < 4) {
+	         aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+	       } else {
+	         if (!alternate45) aVal =  strip*fPitch - fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
+		 else aVal =  -1.0*strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
+		 // Momentum correction, for 120 GeV primary beam  
+		 aVal += fMagnetKick120GeV * (fZCoords[kStation] - fZCoordsMagnetCenter);
+		 // Yaw Correction 
+	       }
+	       return aVal;
+	       break;
+	     } 
 	     case 'Y' : 
 	      {
 	       double aVal = 0.;
