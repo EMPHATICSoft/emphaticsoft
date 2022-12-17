@@ -25,7 +25,6 @@
 #include "Geometry/service/GeometryService.h"
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/SSDCluster.h"
-#include "SSDReco/MakeSSDClusters.h"
 
 namespace emph {
   class MakeSSDClusters;
