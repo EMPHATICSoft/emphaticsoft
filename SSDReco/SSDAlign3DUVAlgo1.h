@@ -6,8 +6,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef SSDALIGN2DXYALGO1_H
-#define SSDALIGN2DXYALGO1_H
+#ifndef SSDALIGN3DUVYALGO1_H
+#define SSDALIGN3DUVALGO1_H
 
 #include <vector>
 #include <stdint.h>
@@ -29,34 +29,31 @@ namespace emph {
        public:
       
 	SSDAlign2DXYAlgo1(); // No args .. for now.. 
-	SSDAlign2DXYAlgo1(char aView); // X or Y
+	SSDAlign2DXYAlgo1(char aView, int aStation); U or V 
         ~SSDAlign2DXYAlgo1();
 	
         private:
 	  const size_t fNumStations = 6;
 	  const size_t fNumStrips = 639; // Per wafer. 
 	  const double fOneOverSqrt12; 
-	  bool fAlign0to4;
-	  size_t fNumStationsEff;
 	  int fRunNum;  // The usual Ids for a art::event 
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
 	  bool fFilesAreOpen;
-	  char fView;      
+	  char fView; 
+	  int fStation; // the sensor to align..      
 	  double fPitch;
 	  double fHalfWaferWidth;
 	  int fNumIterMax; // Maximum number of iteration 
 	  double fChiSqCut;
-//	  double fRefPointPitchOrYawAngle;
 	  std::string fTokenJob;
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fZCoords;
-	  std::vector<double> fNominalOffsets; // for station 4 and 5, Y View Sensor 3 
+	  std::vector<double> fNominalOffsets; // for station 4 and 5, ?????  
 	  std::vector<double> fNominalOffsetsAlt45; // for station 4 and 5, Y View Sensor 2 
-	  std::vector<double> fResiduals;   // the current one, for the a specific event. Actually, not used so far. 
-	  std::vector<double> fMeanResiduals;// the meanvalue over a run..Or previously fitted..  
-	  std::vector<double> fRMSResiduals;
+	  std::vector<double> fMeanResidualsX;// the meanvalue over a run..Or previously fitted..  
+	  std::vector<double> fMeanResidualsY;// the meanvalue over a run..Or previously fitted..  
 // 
 // Additional cuts.. and variables. 
 //	  
@@ -64,19 +61,15 @@ namespace emph {
 	  std::vector<double> fMaxStrips;
 	  std::vector<double> fMultScatUncert;
 	  std::vector<double> fOtherUncert;
-	  std::vector<double> fZLocShifts;
-	  std::vector<double> fPitchOrYawAngles;
-	  
-	  emph::ssdr::SSDAlignSimpleLinFit myLinFit; // no contructor argument. 
+	  std::vector<double> fZLocShifts;// not used 
+	  std::vector<double> fPitchOrYawAngles; // not used 
+//
+	  emph::ssdr::SSDAlignSimpleLinFit myLinFit; 
+
 	  std::ofstream fFOutA1, fFOutA1Dbg;
 	  
 	   
 	public:
-	 inline void SetDoAling0to4( bool lastIs4) { 
-	   fAlign0to4 = lastIs4;        
-	   fNumStationsEff = fAlign0to4 ? fNumStations-1 : fNumStations;
-	   std::cerr << " SSDAlign2DXYAlgo1::SetDoAling0to4, fNumStationsEff " << fNumStationsEff << std::endl;
-         }
          inline void SetRun(int aRunNum) { fRunNum = aRunNum; } 
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
@@ -91,7 +84,7 @@ namespace emph {
 	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {
-	   if ((aView != 'X') && (aView != 'Y')) {
+	   if ((aView != 'U') && (aView != 'V')) {
 	     std::cerr << " SSDAlign2DXYAlgo1, setting an unknown view " << aView << " fatal, quit here " << std::endl; 
 	     exit(2);
 	   }
@@ -107,11 +100,14 @@ namespace emph {
 	  
 	 }
 	 
-	 void  alignIt(const art::Event &evt, const std::vector<rb::SSDCluster> &aSSDcls); 
-	 void  alignItAlt45(const bool skipStation4, const art::Event &evt, 
-	                                  const std::vector<rb::SSDCluster> &aSSDcls); // find the residuals for station 4 & 5, Sensor 2 (in Y). 
+	 void  alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
+	 void  alignItAlt45(const art::Event &evt, 
+	                                 const art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr ); 
+					 // find the residuals for station 4 & 5, Sensor 4 and 5 ( I think..) 
 	 
 	 private:
+	 
+	 bool recoX(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) 
 	 
 	 inline double getTsFromCluster(size_t kStation, bool alternate45, double strip) {
 	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
@@ -160,4 +156,4 @@ namespace emph {
   } // namespace ssdr
 }// namespace emph
 
-#endif // SSDAlign2DXYAlgo1
+#endif // SSDAlign3DUVAlgo1
