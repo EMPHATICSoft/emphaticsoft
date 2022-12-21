@@ -84,8 +84,8 @@ namespace rb {
     double sum=0.;
     double totalADC=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      sum += fDigitVec[i]->Row()*fDigitVec[i]->ADC();
-      totalADC+=fDigitVec[i]->ADC();
+      sum += fDigitVec[i]->Row()*adcMap[fDigitVec[i]->ADC()];
+      totalADC+=adcMap[fDigitVec[i]->ADC()];
     }
     if (std::abs(totalADC) < 1.0e-10) {
 //      std::cerr << " SSDCluster::WgtAvgStrip, totalAdc is 0. for station " 
@@ -110,8 +110,13 @@ namespace rb {
     double meanStrip = this->WgtAvgStrip();
     if (meanStrip < -1) return -9999.;
     for (size_t i=0; i<NDigits(); ++i) {
+<<<<<<< HEAD
       rmssum += pow((fDigitVec[i]->Row()-meanStrip), 2)*fDigitVec[i]->ADC();
       totalADC+=fDigitVec[i]->ADC();
+=======
+      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
+      totalADC+=adcMap[fDigitVec[i]->ADC()];
+>>>>>>> main
     }
     if (std::abs(totalADC) < 1.0e-10) return -9999.;
     return sqrt(rmssum/totalADC);
@@ -147,7 +152,7 @@ namespace rb {
 
     double sum=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      sum += fDigitVec[i]->ADC();
+      sum += adcMap[fDigitVec[i]->ADC()];
     }
     return sum/NDigits();
 

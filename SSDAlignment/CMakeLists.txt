@@ -13,9 +13,12 @@ art_make_library ( SOURCE ${src_files}
 	LIBRARY_NAME  SSDAlignment
                    LIBRARIES
 		   RawData
+		   RecoBase
 		   ChannelMap
-			RunHistory
-			Geometry
+		   ChannelMapService_service
+		   RunHistory
+		   RunHistoryService_service
+		   Geometry
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
                    ROOT::Hist
@@ -26,6 +29,7 @@ build_plugin(SSDAlignment "module"
     RawData
     SSDAlignment
     ChannelMap
+    ChannelMapService_service
 	 RunHistory
     Geometry
     art_root_io::TFileService_service
