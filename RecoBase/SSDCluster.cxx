@@ -80,20 +80,12 @@ namespace rb {
   double SSDCluster::WgtAvgStrip() const
   {
     if (fDigitVec.empty()) return -9999.;
-    if (this->NDigits() == 1) return fDigitVec[0]->Row();
+
     double sum=0.;
     double totalADC=0.;
     for (size_t i=0; i<NDigits(); ++i) {
       sum += fDigitVec[i]->Row()*adcMap[fDigitVec[i]->ADC()];
       totalADC+=adcMap[fDigitVec[i]->ADC()];
-    }
-    if (std::abs(totalADC) < 1.0e-10) {
-//      std::cerr << " SSDCluster::WgtAvgStrip, totalAdc is 0. for station " 
-//                << this->Station() << " Sensor " << this->Sensor()  << " NDigits " 
-//		                   << this->NDigits() << " 1rst digit " << fDigitVec[0]->Row()
-//                                             << " ADC value " <<  this->fDigitVec[0]->ADC() 
-//					     << " fatal, quit here and now " << std::endl; 
-        return -9999.;
     }
     return sum/totalADC;
 
@@ -103,22 +95,15 @@ namespace rb {
   double SSDCluster::WgtRmsStrip() const
   {
     if (fDigitVec.empty()) return -9999.;
-    if (NDigits()==1) return 1.0e-10;
+    // set to 1/sqrt(12) if single strip cluster
+    if (NDigits()==1) return 1/sqrt(12);
 
     double rmssum=0.;
     double totalADC=0.;
-    double meanStrip = this->WgtAvgStrip();
-    if (meanStrip < -1) return -9999.;
     for (size_t i=0; i<NDigits(); ++i) {
-<<<<<<< HEAD
-      rmssum += pow((fDigitVec[i]->Row()-meanStrip), 2)*fDigitVec[i]->ADC();
-      totalADC+=fDigitVec[i]->ADC();
-=======
       rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
       totalADC+=adcMap[fDigitVec[i]->ADC()];
->>>>>>> main
     }
-    if (std::abs(totalADC) < 1.0e-10) return -9999.;
     return sqrt(rmssum/totalADC);
 
   }
