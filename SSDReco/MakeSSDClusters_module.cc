@@ -205,7 +205,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   std::fill_n(ncluster,16,0);
 
   auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
-  if (!ssdHandle->empty()) {
+  if (ssdHandle.isValid()) {
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
       art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
