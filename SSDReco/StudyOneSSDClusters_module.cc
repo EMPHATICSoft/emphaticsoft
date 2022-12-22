@@ -369,8 +369,23 @@ namespace emph {
         int aStation = itCl->Station(); // iterator to pointer to the cluster. 
 	if ((itCl->Sensor() == -1) || ( aStation == -1)) continue;
         char aView = this->getView(itCl);
-	if (aView == 'X')  numClsX[aStation]++;
-	if (aView == 'Y')  numClsY[aStation]++;
+	rb::planeView newView = itCl->View();
+	if (aView == 'X')  {
+	  if (newView != rb::X_VIEW)  {
+	    std::cerr << " StudyOneSSDClusters::dumpXYCls Inconsistent view, X view here and new View " 
+	               << newView << " fatal quit here and now " << std::endl;
+	    exit(2);       
+	  }
+	  numClsX[aStation]++;
+	}
+	if (aView == 'Y')  {
+	  if (newView != rb::Y_VIEW)  {
+	    std::cerr << " StudyOneSSDClusters::dumpXYCls Inconsistent view, Y view here and new View " 
+	               << newView << " fatal quit here and now " << std::endl;
+	    exit(2);       
+	  }
+	  numClsY[aStation]++;
+	}
       }
       for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
