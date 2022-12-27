@@ -102,7 +102,7 @@ namespace emph {
 	 
 	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
 	  double aRMS = itCl->WgtRmsStrip();
-	  double errMeasSq = fOneOverSqrt12*fPitch * 1.0/(1.0 + aRMS*aRMS); // Very approximate, need a better model. 
+	  double errMeasSq = (1.0/12.)*fPitch * fPitch * 1.0/(1.0 + aRMS*aRMS); // Very approximate, need a better model. 
 	  return std::sqrt(errMeasSq + fOtherUncert[kSt]*fOtherUncert[kSt] + fMultScatUncert[kSt]*fMultScatUncert[kSt]);
 	  
 	 }

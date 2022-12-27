@@ -47,6 +47,7 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDHotChannelList.h"
 #include "SSDReco/SSDAlign2DXYAlgo1.h"
+#include "SSDReco/SSDAlign3DUVAlgo1.h"
 //
 
 namespace emph {
@@ -90,6 +91,7 @@ namespace emph {
       bool fSelectHotChannelsFromHits; // Probably a better way.    
       bool fDoAlignX;    
       bool fDoAlignY;  
+      bool fDoAlignUV;  
       bool fDoAlignXAlt45;  
       bool fDoAlignYAlt45;  
       bool fDoAlignYAlt5;  
@@ -129,7 +131,8 @@ namespace emph {
 //
 // The 5 station X and Y aligners (with option of doing only 0 to 4 )
 //
-      emph::ssdr::SSDAlign2DXYAlgo1 fAlignX, fAlignY;           
+      emph::ssdr::SSDAlign2DXYAlgo1 fAlignX, fAlignY;
+      emph::ssdr::SSDAlign3DUVAlgo1 fAlignUV;           
 //
 // CSV tuple output..
 // 
@@ -157,7 +160,7 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false), fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
+    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
      fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.),
@@ -185,14 +188,16 @@ namespace emph {
       std::string fNameDCFH = pset.get<std::string>("NameFileHCFH", "./SSDCalibDeadChanSummary_none_1055.txt");
       fDoAlignX = pset.get<bool>("alignX", false);
       fDoAlignY = pset.get<bool>("alignY", false);
+      fDoAlignUV = pset.get<bool>("alignUV", false);
       fDoAlignXAlt45 = pset.get<bool>("alignXAlt45", false);
       fDoAlignYAlt45 = pset.get<bool>("alignYAlt45", false);
       fDoAlignYAlt5 = pset.get<bool>("alignYAlt5", false);
       fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
-      fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 10);
-      fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 20.);
-      const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
+      fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 1000);
+      fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
+      double aChiSqCut3DUVXY = pset.get<double>("ChiSqCutAlign3DUVXY", 100.);
+     const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
       // default value for transverse (X) kick is for 120 GeV, assuming COMSOL file is correct. based on G4EMPH 
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
       std::vector<double> aPitchAngles =  pset.get<std::vector<double> >("PitchAngles", std::vector<double>(6, 0.));
@@ -204,7 +209,7 @@ namespace emph {
 //    confusing and not needed. 
       std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
       fRMSClusterCuts = pset.get<std::vector<double> >("RMSClusterCuts", aRMSClusterCutsDef);
-      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY) && (!fDoAlignYAlt45) && (!fDoAlignYAlt5)) { 
+      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY) && (!fDoAlignYAlt45) && (!fDoAlignYAlt5) && (!fDoAlignUV)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
       if (fSelectHotChannels || fSelectHotChannelsFromHits) {
@@ -232,7 +237,18 @@ namespace emph {
 //      fAlignY.SetRefPtForPitchOrYawAngle(aRefPointPitchOrYawAngle);
       fAlignY.SetFittedResiduals(aMeanResidY);
       fAlignX.SetFittedResiduals(aMeanResidX);
-     
+// 
+// Same for UV aligner. 
+//
+//      fAlignUV.SetZLocShifts(aZLocShifts);
+      fAlignUV.SetMagnetKick120GeV(aMagnetiKick);
+      fAlignUV.SetOtherUncert(aTransUncert);
+      fAlignUV.SetFittedResidualsForY(aMeanResidY);
+      fAlignUV.SetFittedResidualsForX(aMeanResidX);
+      fAlignUV.SetChiSqCutXY(aChiSqCut3DUVXY); 
+      fAlignUV.SetTokenJob(fTokenJob);
+      
+         
      
       
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
@@ -284,7 +300,7 @@ namespace emph {
 	  }
 	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos();
-	    fZlocUPlanes.push_back(pos[2] + posSt[2]);
+	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
 	    viewChar = 'V';
 	  }
 	  fXYUVLabels.at(10*k + kk) = viewChar;
@@ -313,6 +329,7 @@ namespace emph {
       fAlignX.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignX.SetNumIterMax(fNumMaxIterAlignAlgo1);
       fAlignY.InitializeCoords(fDoLastIs4AlignAlgo1, fZlocYPlanes); 
       fAlignY.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignY.SetNumIterMax(fNumMaxIterAlignAlgo1);
+      fAlignUV.InitializeCoords(false, fZlocXPlanes, fZlocYPlanes, fZlocUPlanes, fZlocVPlanes); 
       
       std::cerr  << std::endl << " ------------- End of StudyOneSSDClusters::beginRun ------------------" << std::endl << std::endl;
     }
@@ -510,6 +527,9 @@ namespace emph {
         if (fDoAlignYAlt45) fAlignY.alignItAlt45(false, evt, fSSDcls);
         if (fDoAlignYAlt5) fAlignY.alignItAlt45(true, evt, fSSDcls);
       } 
+      if (fDoAlignUV) {
+        fAlignUV.alignIt(evt, fSSDClsPtr);   
+      }
     }
     void emph::StudyOneSSDClusters::analyze(const art::Event& evt) {
     //
@@ -538,7 +558,7 @@ namespace emph {
 //      art::Ptr<rb::SSDCluster> aPtrCl = *aPtrClIt;
 //      std::cerr << " Station for the first cluster  " << aPtrCl->Station() << std::endl;
       // 
-      // These will fail, as the sStion number is clearly bogus... for many clusters.  The fill_ptr_vector is not applicable here!  
+      // These, above, will fail, as the sStion number is clearly bogus... for many clusters.  The fill_ptr_vector is not applicable here!  
       // old, deprecated interface, with a deep copy.. But, it works ..  
       //
       evt.getByLabel (fSSDClsLabel, fSSDClsPtr);
@@ -556,7 +576,7 @@ namespace emph {
       } 
       if (fDumpClusters) this->dumpXYCls();
       if (fSelectHotChannels) this->fillHotChannels(); 
-      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45 || fDoAlignYAlt5) this->alignFiveStations(evt);
+      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45 || fDoAlignYAlt5 || fDoAlignUV ) this->alignFiveStations(evt);
     } // end of Analyze, event by events.  
    
 DEFINE_ART_MODULE(emph::StudyOneSSDClusters)

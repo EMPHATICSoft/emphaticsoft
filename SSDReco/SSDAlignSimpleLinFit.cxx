@@ -24,7 +24,7 @@ namespace emph {
   namespace ssdr {
   
      SSDAlignSimpleLinFit::SSDAlignSimpleLinFit() : 
-       ndgf(-1), offset(DBL_MAX), slope(DBL_MAX), sigmaOffset(0.), sigmaSlope(0.), covOffsetSlope(0.), chiSq(DBL_MAX), resids(0), 
+       ndgf(-1), offset(DBL_MAX), slope(DBL_MAX), sigmaOffset(0.), sigmaSlope(0.), covOffsetSlope(0.), chiSq(DBL_MAX), resids(6, 0), 
        fZCoords(6, 0.) { ; } 
      
        void SSDAlignSimpleLinFit::fitLin(bool align0to4, const std::vector<double> &ts, const std::vector<double> &sigTs) { 
@@ -61,7 +61,7 @@ namespace emph {
          st2 += tmpT*tmpT;
          b += tmpT*ts[k];
        }
-//       std::cerr << " SSDAlign2DXYAlgo1::fitLin...  Sum of the weights " << ss << " st2 " << st2 << " b " << b << std::endl; 
+ //      std::cerr << " SSDAlign2DXYAlgo1::fitLin...  Sum of the weights " << ss << " st2 " << st2 << " b " << b << std::endl; 
        this->slope = b/st2;
        this->offset = (sy - sx*this->slope)/ss;
        this->sigmaOffset = std::sqrt((1. + (sx*sx)/(ss*st2))/ss);   
