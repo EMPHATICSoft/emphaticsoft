@@ -47,6 +47,7 @@ namespace emph {
         private:
 	  const size_t fNumStations = 6;
 	  const size_t fNumStrips = 639; // Per wafer. 
+	  const double fSqrt2, fOneOverSqrt2;
 	  const double fOneOverSqrt12; 
 	  int fRunNum;  // The usual Ids for a art::event 
 	  int fSubRunNum;
@@ -66,8 +67,7 @@ namespace emph {
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fZCoordXs, fZCoordYs,  fZCoordUs, fZCoordVs;
 	  std::vector<double> fNominalOffsetsX, fNominalOffsetsY, fNominalOffsetsXAlt45, fNominalOffsetsYAlt45; // Nominal offsets not yet used.. 
-	  std::vector<double> fNominalOffsetsU, fNominalOffsetsUAlt45; 
-	  double fNominalOffsetsV, fNominalOffsetsVAlt45; // Only for station 5  
+	  std::vector<double> fNominalOffsetsU, fNominalOffsetsV; 
 	  std::vector<double> fFittedResidualsX;// the meanvalue over a run..Or previously fitted..  
 	  std::vector<double> fFittedResidualsY;// the meanvalue over a run..Or previously fitted..  
           // For future use..
@@ -89,6 +89,7 @@ namespace emph {
           double fTrXOffset, fTrYOffset, fTrXSlope, fTrYSlope; // Assume straight track, neglect the magent kick, too small, given the large 
 	                                                   // uncertainties .  Also, these are the slopes upstream of the magnet.   
           double fTrXOffsetErr, fTrYOffsetErr, fTrXSlopeErr, fTrYSlopeErr; 
+	  double fTrXCovOffSl, fTrYCovOffSl;
 //
           double fChiSqX, fChiSqY; 
 	  std::vector<int> fNHitsXView, fNHitsYView; 
@@ -104,7 +105,7 @@ namespace emph {
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetNumIterMax( int n) { fNumIterMax = n; }
-	 inline void SetChiSqCut1 (double v) { fChiSqCut = v; } 
+	 inline void SetChiSqCut (double v) { fChiSqCut = v; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 //	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
 	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
@@ -116,6 +117,9 @@ namespace emph {
 	 inline void SetChiSqCutXY(double v) { fChiSqCutXY = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs);
+/*
+** Obsolete, we do both U and V here.. 
+
 	 inline void SetTheView(char aView) {
 	   if ((aView != 'U') && (aView != 'V')) {
 	     std::cerr << " SSDAlign3DUVAlgo1, setting an unknown view " << aView << " fatal, quit here " << std::endl; 
@@ -123,6 +127,7 @@ namespace emph {
 	   }
 	   fView = aView;
 	 }
+*/
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 
@@ -134,7 +139,7 @@ namespace emph {
 	 
 	 bool checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
-	 double GetTsFromCluster(char aView, size_t kStation,  double strip) const;
+	 double GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX=true) const;
 	 
 	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
 	  double aRMS = itCl->WgtRmsStrip();

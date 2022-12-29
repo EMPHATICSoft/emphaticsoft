@@ -24,6 +24,7 @@ namespace emph {
   namespace ssdr {
 
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1() :
+       fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView('?'), fStation(2), fAlt45(false), fSensor(-1),
@@ -32,7 +33,7 @@ namespace emph {
        fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(4, 0.), fZCoordVs(2, 0.),
        fNominalOffsetsX(fNumStations, 0.), fNominalOffsetsY(fNumStations, 0.), 
        fNominalOffsetsXAlt45(fNumStations, 0.), fNominalOffsetsYAlt45(fNumStations, 0.), 
-       fNominalOffsetsU(4, 0.), fNominalOffsetsUAlt45(2, 0.), fNominalOffsetsV(0.), fNominalOffsetsVAlt45(0.), 
+       fNominalOffsetsU(4, 0.), fNominalOffsetsV(2, 0.),
        fFittedResidualsX(fNumStations, 0.), fFittedResidualsY(fNumStations, 0.),
        fPitchAngles(fNumStations, 0.), fPitchAnglesAlt(fNumStations, 0.), 
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
@@ -41,12 +42,13 @@ namespace emph {
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fTrType(ssdr::NONE), 
        fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), 
        fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX), 
-       fChiSqX(DBL_MAX), fChiSqY(DBL_MAX),
+       fTrXCovOffSl(DBL_MAX), fTrYCovOffSl(DBL_MAX), fChiSqX(DBL_MAX), fChiSqY(DBL_MAX),
        fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0) 
      { 
         ; 
      }
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1(char aView, int aStation, bool alt45) : 
+       fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
        fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
        fView(aView), fStation(aStation), fAlt45(alt45), 
@@ -55,7 +57,7 @@ namespace emph {
        fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(4, 0.), fZCoordVs(2, 0.),
        fNominalOffsetsX(fNumStations, 0.), fNominalOffsetsY(fNumStations, 0.), 
        fNominalOffsetsXAlt45(fNumStations, 0.), fNominalOffsetsYAlt45(fNumStations, 0.), 
-       fNominalOffsetsU(4, 0.), fNominalOffsetsUAlt45(2, 0.), fNominalOffsetsV(0.), fNominalOffsetsVAlt45(0.), 
+       fNominalOffsetsU(4, 0.), fNominalOffsetsV(2, 0.),
        fFittedResidualsX(fNumStations, 0.),  fFittedResidualsY(fNumStations, 0.),
        fPitchAngles(fNumStations, 0.), fPitchAnglesAlt(fNumStations, 0.), 
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
@@ -64,7 +66,7 @@ namespace emph {
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fTrType(ssdr::NONE),
        fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), 
        fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX), 
-       fChiSqX(DBL_MAX), fChiSqY(DBL_MAX),
+       fTrXCovOffSl(DBL_MAX), fTrYCovOffSl(DBL_MAX), fChiSqX(DBL_MAX), fChiSqY(DBL_MAX),
        fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0) 
        
      { 
@@ -96,7 +98,7 @@ namespace emph {
      void SSDAlign3DUVAlgo1::initTrackParams() {
             fTrXOffset=DBL_MAX; fTrYOffset=DBL_MAX; fTrXSlope=DBL_MAX; fTrYSlope=DBL_MAX; 
        fTrXOffsetErr=DBL_MAX; fTrYOffsetErr=DBL_MAX; fTrXSlopeErr=DBL_MAX; fTrYSlopeErr=DBL_MAX; 
-       fChiSqX=DBL_MAX; fChiSqY=DBL_MAX;
+       fChiSqX=DBL_MAX; fChiSqY=DBL_MAX; fTrXCovOffSl= DBL_MAX; fTrYCovOffSl= DBL_MAX;
      }
      void SSDAlign3DUVAlgo1::InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs)
@@ -140,6 +142,10 @@ namespace emph {
         fNominalOffsetsX[k] = 2.0*fHalfWaferWidth;
         fNominalOffsetsY[k] = 2.0*fHalfWaferWidth;
        } 
+       for (size_t k=0; k != 4; k++) {
+        fNominalOffsetsU[k] = -fHalfWaferWidth;
+        if (k < 2) fNominalOffsetsV[k] = -2.0*fHalfWaferWidth; // To be checked.. 
+      } 
        
        
 //       std::cerr << " SSDAlign3DUVAlgo1::InitailizeCoords  " << std::endl;
@@ -207,7 +213,7 @@ namespace emph {
      
      void ssdr::SSDAlign3DUVAlgo1::openOutputCsvFiles() {
        std::ostringstream fNameXYStrStr, fNameXYUStrStr, fNameXYVStrStr; 
-       fNameXYStrStr << "SSDAlign3DX_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
+       fNameXYStrStr << "SSDAlign3DXY_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
        std::string fNameXYStr(fNameXYStrStr.str());
        fFOutXY.open(fNameXYStr.c_str());
        fFOutXY<< " spill evt trType nHitsT ";
@@ -215,20 +221,28 @@ namespace emph {
        for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << "nHY" << kSt << " ";
        fFOutXY << "xOff xOffErr xSl xSlErr chiSqX yOff yOffErr ySl ySlErr chiSqY " << std::endl;
        //
-       // to be done, fFoutXYU and V 
+       // Similar, fFoutXYU and V .. We skip the track definition.. 
        //
+       fNameXYUStrStr << "SSDAlign3DXYU_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
+       std::string fNameXYUStr(fNameXYUStrStr.str());
+       fFOutXYU.open(fNameXYUStr.c_str());
+       fFOutXYU << " spill evt kSt iHU  xPred xPredErr yPred yPredErr xObs yObs chiSq " << std::endl;
+       fNameXYVStrStr << "SSDAlign3DXYV_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
+       std::string fNameXYVStr(fNameXYVStrStr.str());
+       fFOutXYV.open(fNameXYVStr.c_str());
+       fFOutXYV << " spill evt kSt iHV xPred xPredErr yPred yPredErr xObs yObs chiSq " << std::endl;
      } 
 
      //
      // This is cloned code!.. See SSDAlign2DXY to be cleaned up. 
      //
-     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip) const 
+     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX) const 
      {
           const bool alternate45 = false; // we will use only 
+	  double aVal = 0.;
 	   switch (aView) { // see SSDCalibration/SSDCalibration_module 
 	     case 'X' :
 	     {
-	       double aVal=0.;
 	       if (kStation < 4) {
 	         aVal =  ( -1.0*strip*fPitch + fNominalOffsetsX[kStation] + fFittedResidualsX[kStation]);
 	       } else {
@@ -243,7 +257,6 @@ namespace emph {
 	     } 
 	     case 'Y' : 
 	      {
-	       double aVal = 0.;
 	       if (kStation < 4) {  
 	         aVal =  (strip*fPitch + fNominalOffsetsY[kStation]  + fFittedResidualsY[kStation]);
 	       } else {
@@ -256,23 +269,31 @@ namespace emph {
 	      }
 	      case 'U' :
 	      {
-	       double aVal = 0.;
-	       if (kStation < 4) {  
-	         aVal =  (strip*fPitch + fNominalOffsetsU[kStation-2]);// no fitted Residual in this version, as this is what this class is about to determine 
+	       if (kStation < 4) { 
+	         if (kStation == 2) { // no fitted Residual in this version, as this is what this class is about to determine  
+		    if (getX) aVal = fOneOverSqrt2 * (2.3483*strip*fPitch + fNominalOffsetsU[kStation-2]) - 21.7863; 
+		    else aVal = fOneOverSqrt2 * (2.1722*strip*fPitch + fNominalOffsetsU[kStation-2]) - 12.69688; 
+		 } if (kStation == 3) {
+		    if (getX) aVal = fOneOverSqrt2 * (2.40*strip*fPitch + fNominalOffsetsU[kStation-2]) - 22.401; 
+		    else aVal = fOneOverSqrt2 * (2.199*strip*fPitch + fNominalOffsetsU[kStation-2]) - 12.9302; 
+		 }
 	       } else {
-	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsetsU[kStation-2]);
-		 else aVal =  ( strip*fPitch + fNominalOffsetsUAlt45[kStation-2]);
+	         aVal =  fOneOverSqrt2 *  ( strip*fPitch + fNominalOffsetsU[kStation-2]); // sign convention to be reviewed. Irrelevant, no data ( for 1055 at least..)  
 	       }
 	       return aVal;
 	      } 
 	      case 'V' :
 	      {
-	       double aVal = 0.;
-	       if (kStation == 5) {  
-	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsetsV);
-		 else aVal =  ( strip*fPitch + fNominalOffsetsVAlt45);
-	       }
-	       return aVal;
+	         if (kStation == 4) { // no fitted Residual in this version, Adding constant to get the right relation.. For run 1055 only! 
+	           if (getX) aVal =  fOneOverSqrt2 *  ( 1.9937*strip*fPitch + fNominalOffsetsV[kStation-2]) - 49.6982; // sign convention to be reviewed. 
+	           else aVal = fOneOverSqrt2 *  ( -1.9756*strip*fPitch - fNominalOffsetsV[kStation-2]) + 49.5511; 
+		 }
+	         if (kStation == 5) { // Crazy values for station 5.. 
+	           if (getX) aVal =  fOneOverSqrt2 *  ( 6.0910*strip*fPitch + fNominalOffsetsV[kStation-2]) - 162.516; // sign convention to be reviewed. 
+	           else aVal = fOneOverSqrt2 *  ( -10.6832*strip*fPitch - fNominalOffsetsV[kStation-2]) + 282.8606; 
+		 }
+		                                                                      // sign convention to be reviewed.
+	        return aVal;
 	      } 
 	      default :
 	        std::cerr << " SSDAlign3DUVAlgo1::getTsFromCluster, unexpected view, " 
@@ -374,6 +395,7 @@ namespace emph {
 	    fTrXSlope =  myLinFitX.slope;
 	    fTrXSlopeErr =  myLinFitX.sigmaSlope;
 	    fChiSqX = myLinFitX.chiSq;
+	    fTrXCovOffSl = myLinFitX.covOffsetSlope;
 	    if (debugIsOn) 
 	       std::cerr << " Acceptable chi-Sq = " << myLinFitX.chiSq << " Track Offset " << fTrXOffset << "  Slope " << fTrXSlope << std::endl;
 	    return true;
@@ -392,6 +414,7 @@ namespace emph {
 	    fTrYSlope =  myLinFitY.slope;
 	    fTrYSlopeErr =  myLinFitY.sigmaSlope;
 	    fChiSqY = myLinFitY.chiSq;
+	    fTrYCovOffSl = myLinFitY.covOffsetSlope;
 	    if (debugIsOn) 
 	       std::cerr << " Acceptable chi-Sq = " << myLinFitY.chiSq << " Track Offset " << fTrYOffset << "  Slope " << fTrYSlope << std::endl;
 	    return true;
@@ -451,8 +474,10 @@ namespace emph {
 	            fTrXOffsetErr = myLinFitX.sigmaOffset;
 	            fTrXSlope =  myLinFitX.slope;
 	            fTrXSlopeErr =  myLinFitX.sigmaSlope;
+	            fTrXCovOffSl = myLinFitX.covOffsetSlope;
 	            if (debugIsOn) 
-	               std::cerr << "Best chi-Sq = " << myLinFitX.chiSq << " so fat.. with Track Offset " << fTrXOffset << "  Slope " << fTrXSlope << std::endl;
+	               std::cerr << "Best chi-Sq = " << myLinFitX.chiSq << " so fat.. with Track Offset " 
+		                 << fTrXOffset << "  Slope " << fTrXSlope << std::endl;
 		  }
 	        } else {
                   myLinFitY.fitLin(false, tsDataAlt, tsDataAltErr);		
@@ -461,8 +486,10 @@ namespace emph {
 	            fTrYOffsetErr = myLinFitY.sigmaOffset;
 	            fTrYSlope =  myLinFitY.slope;
 	            fTrYSlopeErr =  myLinFitY.sigmaSlope;
+	            fTrYCovOffSl = myLinFitY.covOffsetSlope;
 	            if (debugIsOn) 
-	               std::cerr << "Best chi-Sq = " << myLinFitY.chiSq << " so fat.. with Track Offset " << fTrYOffset << "  Slope " << fTrYSlope << std::endl;
+	               std::cerr << "Best chi-Sq = " << myLinFitY.chiSq << " so fat.. with Track Offset " 
+		                 << fTrYOffset << "  Slope " << fTrYSlope << std::endl;
 		
 		  }
 	        } 
@@ -493,11 +520,99 @@ namespace emph {
 
      bool ssdr::SSDAlign3DUVAlgo1::checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
      
-       std::cerr << " SSDAlign3DUVAlgo1::checkUV, " << view << " Station " << kStation 
-                 << "nH " << aSSDClsPtr->size() << "  to be implemented.. " << std::endl;
-		 
-       return false;	 
+       bool debugIsOn = (fEvtNum < 25);    
      
+       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::checkUV, view Index " << view << " Station " << kStation 
+                 << " nunH " << aSSDClsPtr->size() << "  working on it.. " << std::endl;
+	
+       if (kStation < 2) {
+         std::cerr << " SSDAlign3DUVAlgo1::checkUV, " << view << " Unexpected Station number = " << kStation << " fatal mistake! " << std::endl; 
+	 exit(2);
+       } 
+       if ((view  == rb::W_VIEW) && (kStation < 4)) {
+         std::cerr << " SSDAlign3DUVAlgo1::checkUV, " << view << " Unexpected Station number = " << kStation << " fatal mistake! " << std::endl; 
+	 exit(2);
+       } 
+
+       size_t kStEff = kStation - 2;
+       if (view  == rb::W_VIEW) kStEff = kStation - 4;
+       	 
+       double xPred, yPred, xPredErrSq, yPredErrSq;
+       char cView = '?';
+       switch (view) {
+         case rb::U_VIEW :
+	 {
+	   xPred = fTrXOffset + fZCoordUs[kStEff]*fTrXSlope;
+	   xPredErrSq = fTrXOffsetErr*fTrXOffsetErr + fZCoordUs[kStEff]*fTrXSlopeErr*fZCoordUs[kStEff]*fTrXSlopeErr 
+	                + fZCoordUs[kStEff]*fTrXCovOffSl;
+	   yPred = fTrYOffset + fZCoordUs[kStEff]*fTrYSlope;
+	   yPredErrSq = fTrYOffsetErr*fTrYOffsetErr + fZCoordUs[kStEff]*fTrYSlopeErr*fZCoordUs[kStEff]*fTrYSlopeErr 
+	                + fZCoordUs[kStEff]*fTrYCovOffSl;
+	   cView = 'U';
+	   break;
+	 } 
+	 case rb::W_VIEW :
+	 {
+	   xPred = fTrXOffset + fZCoordVs[kStEff]*fTrXSlope;
+	   xPredErrSq = fTrXOffsetErr*fTrXOffsetErr + fZCoordVs[kStEff]*fTrXSlopeErr*fZCoordVs[kStEff]*fTrXSlopeErr 
+	                + fZCoordVs[kStEff]*fTrXCovOffSl;
+	   yPred = fTrYOffset + fZCoordVs[kStEff]*fTrYSlope;
+	   yPredErrSq = fTrYOffsetErr*fTrYOffsetErr + fZCoordVs[kStEff]*fTrYSlopeErr*fZCoordVs[kStEff]*fTrYSlopeErr 
+	                + fZCoordVs[kStEff]*fTrYCovOffSl;
+	 
+	   cView = 'V';
+	   break;
+	 }
+	 default:
+	 { 
+           std::cerr << " SSDAlign3DUVAlgo1::checkUV, Unexpected " << view << " Station number = " << kStation << " fatal mistake! " << std::endl; 
+	   exit(2);
+         } 
+       }
+       if (debugIsOn) {
+           if (xPredErrSq < 0.) std::cerr << " .... ???? Negative predicted uncertainty for X , problem with covariance of linFit " << std::endl;
+           if (yPredErrSq < 0.) std::cerr << " .... ???? Negative predicted uncertainty for Y , problem with covariance of linFit " << std::endl;
+           std::cerr << " .... xPred " << xPred << " +- " << std::sqrt(std::abs(xPredErrSq)) 
+                                << "  yPred " << yPred << " +- " << std::sqrt(std::abs(yPredErrSq)) << std::endl;
+       }
+       double chiBest = DBL_MAX; int ihSelBest = INT_MAX;
+       double xObsBest = DBL_MAX; double yObsBest = DBL_MAX;
+       int ihSel = 0;
+       for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
+          if (itCl->View() != view) continue;
+	  const size_t kSt = static_cast<size_t>(itCl->Station());
+          if (kSt != kStation) continue;
+          double aStrip = itCl->WgtAvgStrip();
+	  double xObs = this->GetTsFromCluster(cView, kStation, aStrip, true);  // Twice th strip  strip ? 
+	  double yObs = this->GetTsFromCluster(cView, kStation, aStrip, false);
+	  double tsUncert = this->GetTsUncertainty(kStation, itCl);
+	  double tsXErrSq = xPredErrSq + tsUncert*tsUncert; 	   
+	  double tsYErrSq = yPredErrSq + tsUncert*tsUncert; 	   
+          double dx = xObs - xPred;
+	  double dy = yObs - yPred;
+	  double chi= (dx*dx/tsXErrSq + dy*dy/tsYErrSq);
+	  if (debugIsOn) std::cerr << " ... strip " << aStrip << " XObs " << xObs 
+	                          << " dx " << dx << " YObs " << yObs <<  " dy " << dy << " chiSq " << chi << std::endl;
+	  if (chi < chiBest) {
+	    xObsBest = xObs;
+	    yObsBest = yObs;
+	    chiBest = chi;
+	    ihSelBest = ihSel;
+	  }
+	  ihSel++;
+	  
+       }
+       if (ihSelBest == INT_MAX) return false;
+       std::ostringstream headStrStr; 
+       headStrStr << " " << fSubRunNum << " " << fEvtNum << " " << kStation << " " << ihSelBest
+                  << " " << xPred << " " << std::sqrt(std::abs(xPredErrSq)) << " " << yPred << " " << std::sqrt(std::abs(yPredErrSq));
+       std::string headStr(headStrStr.str());
+       if (cView == 'U') {
+         fFOutXYU << headStr << " " << xObsBest << " " << yObsBest << " " << chiBest << std::endl;
+       } else {
+         fFOutXYV << headStr << " " << xObsBest << " " << yObsBest << " " << chiBest << std::endl;
+       } 
+       return true;	 
      } 
      
      void ssdr::SSDAlign3DUVAlgo1::dumpXYInfo(int nHitsT) {
@@ -536,7 +651,14 @@ namespace emph {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
        if (gotX || gotY) this->dumpXYInfo(static_cast<int>(aSSDClsPtr->size()));
-
+       if (gotX && gotY) { 
+         for (size_t kStU=2; kStU != fNumStations; kStU++) {
+           this->checkUV(rb::U_VIEW, kStU, aSSDClsPtr);
+         }
+         for (size_t kStV=4; kStV != fNumStations; kStV++) {
+           this->checkUV(rb::W_VIEW, kStV, aSSDClsPtr);
+         }
+       }
        if(fEvtNum > 250000000) {
          std::cerr << " ssdr::SSDAlign3DUVAlgo1::alignIt, quit here and at event " << fEvtNum << " quit now ! " << std::endl;
 	 exit(2); 

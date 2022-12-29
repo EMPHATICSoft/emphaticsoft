@@ -197,6 +197,7 @@ namespace emph {
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 1000);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
       double aChiSqCut3DUVXY = pset.get<double>("ChiSqCutAlign3DUVXY", 100.);
+      double aChiSqCut3DUVUV = pset.get<double>("ChiSqCutAlign3DUVUV", 100.);
      const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
       // default value for transverse (X) kick is for 120 GeV, assuming COMSOL file is correct. based on G4EMPH 
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
@@ -246,6 +247,7 @@ namespace emph {
       fAlignUV.SetFittedResidualsForY(aMeanResidY);
       fAlignUV.SetFittedResidualsForX(aMeanResidX);
       fAlignUV.SetChiSqCutXY(aChiSqCut3DUVXY); 
+      fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
       
          
@@ -270,6 +272,7 @@ namespace emph {
 //
       std::vector<double> XlocXPlanes, YlocYPlanes; // labeled by view 
       std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
+      std::vector<double> XRotUPlanes, XRotVPlanes; // labeled by view 
       for (int k=0; k != fEmgeo->NSSDStations(); k++) {
         emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
         TVector3 posSt = aStation.Pos();
@@ -296,11 +299,13 @@ namespace emph {
 	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos();
 	    fZlocUPlanes.push_back(pos[2] + posSt[2]);
+	    XRotUPlanes.push_back(aPlane.Rot());
 	    viewChar = 'U';
 	  }
 	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos();
 	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
+	    XRotVPlanes.push_back(aPlane.Rot());
 	    viewChar = 'V';
 	  }
 	  fXYUVLabels.at(10*k + kk) = viewChar;
@@ -322,8 +327,11 @@ namespace emph {
       for (size_t i=0; i != fZlocYPlanes.size(); i++) std::cerr << " " << fZlocYPlanes[i] << ",";
       std::cerr << std::endl << " Y location " ;
       for (size_t i=0; i != YlocYPlanes.size(); i++) std::cerr << " " << YlocYPlanes[i] << ",";
-      std::cerr << std::endl << " Y Rotations ";
-      for (size_t i=0; i != YRotYPlanes.size(); i++) std::cerr << " " << YRotYPlanes[i] << ",";
+      std::cerr << std::endl << " U Rotations ";
+      for (size_t i=0; i != XRotUPlanes.size(); i++) std::cerr << " " << XRotUPlanes[i] << ",";
+      std::cerr << std::endl << " V Rotations ";
+      for (size_t i=0; i != XRotVPlanes.size(); i++) std::cerr << " " << XRotVPlanes[i] << ",";
+      std::cerr << std::endl << "------------------------------------" << std::endl; 
       // Load the zCoords to the X Y aligner 
       fAlignX.InitializeCoords(fDoLastIs4AlignAlgo1, fZlocXPlanes); 
       fAlignX.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignX.SetNumIterMax(fNumMaxIterAlignAlgo1);
@@ -354,6 +362,12 @@ namespace emph {
         std::string fNameDumpClusYStr(fNameDumpClustStr); fNameDumpClusYStr += "_Y.txt";
         fFOutA1Y.open(fNameDumpClusYStr.c_str());
         fFOutA1Y << headerS << std::endl;
+        std::string fNameDumpClusUStr(fNameDumpClustStr); fNameDumpClusUStr += "_U.txt";
+        fFOutA1U.open(fNameDumpClusUStr.c_str());
+        fFOutA1U << headerS << std::endl;
+        std::string fNameDumpClusVStr(fNameDumpClustStr); fNameDumpClusVStr += "_V.txt";
+        fFOutA1V.open(fNameDumpClusVStr.c_str());
+        fFOutA1V << headerS << std::endl;
       }
       fFilesAreOpen = true;
     }
@@ -363,7 +377,7 @@ namespace emph {
       std::cerr << " StudyOneSSDClusters::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Number of events " <<  fNEvents << std::endl;
       if (fDumpClusters) {
-        fFOutA1X.close(); fFOutA1Y.close();
+        fFOutA1X.close(); fFOutA1Y.close();fFOutA1U.close(); fFOutA1V.close();
       }
       if (fSelectHotChannels) {
         for (std::vector<emph::ssdr::SSDHotChannelList>::iterator itHl = fHotChans.begin(); itHl != fHotChans.end(); itHl++) 
@@ -378,6 +392,8 @@ namespace emph {
      // first count the number of hits for the X stations and Y station.. Will do the U and V laters.. 
      std::vector<int> numClsX(6, 0);
      std::vector<int> numClsY(6, 0);
+     std::vector<int> numClsV(6, 0);
+     std::vector<int> numClsU(6, 0);
      if (fNEvents < 20) {
        std::cerr << " emph::StudyOneSSDClusters::dumpXYCls, number of cluster for evt " << fEvtNum <<  "  is " << fSSDClsPtr->size() << std::endl;
      }
@@ -403,6 +419,8 @@ namespace emph {
 	  }
 	  numClsY[aStation]++;
 	}
+	if (itCl->View() == rb::U_VIEW) numClsU[aStation]++;
+	if (itCl->View() == rb::W_VIEW) numClsV[aStation]++;
       }
       for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
@@ -412,7 +430,8 @@ namespace emph {
 	int nn = 0;
 	if (aView == 'X') nn = numClsX[aStation]; 
 	if (aView == 'Y') nn = numClsY[aStation];
-	if ((aView != 'X') && (aView != 'Y')) continue;
+	if (itCl->View() == rb::U_VIEW) nn = numClsU[aStation];
+	if (itCl->View() == rb::W_VIEW) nn = numClsV[aStation];
         std::ostringstream aLineStrStr; 
 //        std::string headerS(" subRun evt station sensor nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
 	aLineStrStr << " " << fSubRun << " " << fEvtNum << " " << itCl->Station() << " " << itCl->Sensor();
@@ -421,6 +440,8 @@ namespace emph {
         std::string aLineStr(aLineStrStr.str()); 
 	if (aView == 'X')  fFOutA1X << aLineStr << std::endl;  
 	if (aView == 'Y')  fFOutA1Y << aLineStr << std::endl;  
+	if (itCl->View() == rb::U_VIEW)  fFOutA1U << aLineStr << std::endl;  
+	if (itCl->View() == rb::W_VIEW)  fFOutA1V << aLineStr << std::endl;  
       }
     }
     
