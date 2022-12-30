@@ -26,7 +26,7 @@ namespace emph {
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1() :
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fStation(2), fAlt45(false), fSensor(-1),
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), fChiSqCutXY(100.),
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
@@ -50,7 +50,7 @@ namespace emph {
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1(char aView, int aStation, bool alt45) : 
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fMomentumIsSet(false), fFilesAreOpen(false),
        fView(aView), fStation(aStation), fAlt45(alt45), 
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), fChiSqCutXY(100.),
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
@@ -210,7 +210,16 @@ namespace emph {
       if (fFOutXYU.is_open()) fFOutXYU.close();
       if (fFOutXYV.is_open()) fFOutXYV.close();
      }
-     
+     void ssdr::SSDAlign3DUVAlgo1::SetForMomentum(double p) {
+       if (fMomentumIsSet) {
+         std::cerr << " ssdr::SSDAlign3DUVAlgo1::SetForMomentum, already called, skip!!! " << std::endl;
+	 return;
+       }
+       const double pRatio = 120.0 / p;
+       fMagnetKick120GeV *= pRatio;
+       for (size_t k=0; k != fMultScatUncert.size(); k++) fMultScatUncert[k] *= std::abs(pRatio); 
+       fMomentumIsSet = true;
+     }
      void ssdr::SSDAlign3DUVAlgo1::openOutputCsvFiles() {
        std::ostringstream fNameXYStrStr, fNameXYUStrStr, fNameXYVStrStr; 
        fNameXYStrStr << "SSDAlign3DXY_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";

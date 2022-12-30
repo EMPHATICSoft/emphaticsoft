@@ -53,6 +53,7 @@ namespace emph {
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
+	  bool fMomentumIsSet; // a flag to make sure we don't set the momentum more than once in the same job. 
 	  bool fFilesAreOpen;
 	  char fView; 
 	  int fStation; // the station & sensor to align 
@@ -117,6 +118,7 @@ namespace emph {
 	 inline void SetChiSqCutXY(double v) { fChiSqCutXY = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs);
+	 void SetForMomentum(double p); // Rescale the Magnet kick, deviation on the X-Z plane 
 /*
 ** Obsolete, we do both U and V here.. 
 

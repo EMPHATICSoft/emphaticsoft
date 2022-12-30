@@ -42,6 +42,7 @@ namespace emph {
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
+	  bool fMomentumIsSet; // a flag to make sure we don't set the momentum more than once in the same job. 
 	  bool fFilesAreOpen;
 	  char fView;      
 	  double fPitch;
@@ -97,6 +98,7 @@ namespace emph {
 	   }
 	   fView = aView;
 	 }
+	 void SetForMomentum(double p); // Rescale the Magnet kick, deviation on the X-Z plane 
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 

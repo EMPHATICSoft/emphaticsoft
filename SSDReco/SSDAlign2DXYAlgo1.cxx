@@ -28,7 +28,7 @@ namespace emph {
 
      SSDAlign2DXYAlgo1::SSDAlign2DXYAlgo1() :
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
+       fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), 
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
@@ -41,7 +41,7 @@ namespace emph {
      }
      SSDAlign2DXYAlgo1::SSDAlign2DXYAlgo1(char aView) : 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fFilesAreOpen(false),
+       fAlign0to4(false), fNumStationsEff(fNumStations), fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fMomentumIsSet(false), fFilesAreOpen(false),
        fView(aView), fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), 
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fZCoords(fNumStations, 0.), fNominalOffsets(fNumStations, 0.), 
@@ -111,13 +111,23 @@ namespace emph {
 	   fMinStrips[5] = 490.; fMaxStrips[5] = 700.; 
 	   break;
        }
-       // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  
+       // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  But it does includes the target.
        fMultScatUncert[1] =  0.003201263;   
        fMultScatUncert[2] =  0.02213214;   
        fMultScatUncert[3] =  0.03676218;   
        fMultScatUncert[4] =  0.1022451;   
        fMultScatUncert[5] =  0.1327402;  
         
+     }
+     void ssdr::SSDAlign2DXYAlgo1::SetForMomentum(double p) {
+       if (fMomentumIsSet) {
+         std::cerr << " ssdr::SSDAlign3DUVAlgo1::SetForMomentum, already called, skip!!! " << std::endl;
+	 return;
+       }
+       const double pRatio = 120.0 / p;
+       fMagnetKick120GeV *= pRatio;
+       for (size_t k=0; k != fMultScatUncert.size(); k++) fMultScatUncert[k] *= std::abs(pRatio); 
+       fMomentumIsSet = true;
      }
      void  SSDAlign2DXYAlgo1::openOutputCsvFiles() {
        std::ostringstream fNameStrStr, fNameDbgStrStr; 

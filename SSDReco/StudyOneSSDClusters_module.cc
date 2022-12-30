@@ -104,6 +104,7 @@ namespace emph {
       double fPitch;
       int fNumMaxIterAlignAlgo1;
       double fChiSqCutAlignAlgo1;
+      double fSetMCRMomentum; // The momentum for a given run.. 
 //
 // access to the geometry.   
 //
@@ -163,7 +164,7 @@ namespace emph {
     fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
      fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
-    fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.),
+    fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.), fSetMCRMomentum(120.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
      fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
     {
@@ -198,7 +199,8 @@ namespace emph {
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
       double aChiSqCut3DUVXY = pset.get<double>("ChiSqCutAlign3DUVXY", 100.);
       double aChiSqCut3DUVUV = pset.get<double>("ChiSqCutAlign3DUVUV", 100.);
-     const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
+      const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
+      fSetMCRMomentum = pset.get<double>("SetMCRMomentum", 120.);
       // default value for transverse (X) kick is for 120 GeV, assuming COMSOL file is correct. based on G4EMPH 
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
       std::vector<double> aPitchAngles =  pset.get<std::vector<double> >("PitchAngles", std::vector<double>(6, 0.));
@@ -238,6 +240,7 @@ namespace emph {
 //      fAlignY.SetRefPtForPitchOrYawAngle(aRefPointPitchOrYawAngle);
       fAlignY.SetFittedResiduals(aMeanResidY);
       fAlignX.SetFittedResiduals(aMeanResidX);
+      
 // 
 // Same for UV aligner. 
 //
@@ -249,9 +252,6 @@ namespace emph {
       fAlignUV.SetChiSqCutXY(aChiSqCut3DUVXY); 
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
-      
-         
-     
       
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }
@@ -339,6 +339,13 @@ namespace emph {
       fAlignY.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignY.SetNumIterMax(fNumMaxIterAlignAlgo1);
       fAlignUV.InitializeCoords(false, fZlocXPlanes, fZlocYPlanes, fZlocUPlanes, fZlocVPlanes); 
       
+      std::cerr << " End of ZCoordinates Setting ... " << std::endl << std::endl; 
+      
+      if (std::abs(fSetMCRMomentum - 120) > 0.1) {
+        std::cerr << " Resetting the effective momentum kick for  momentum " << fSetMCRMomentum << std::endl;
+        fAlignX.SetForMomentum(fSetMCRMomentum); fAlignY.SetForMomentum(fSetMCRMomentum);
+	fAlignUV.SetForMomentum(fSetMCRMomentum);
+      }
       std::cerr  << std::endl << " ------------- End of StudyOneSSDClusters::beginRun ------------------" << std::endl << std::endl;
     }
     
