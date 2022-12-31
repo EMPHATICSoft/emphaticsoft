@@ -212,7 +212,8 @@ namespace emph {
 //    confusing and not needed. 
       std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
       fRMSClusterCuts = pset.get<std::vector<double> >("RMSClusterCuts", aRMSClusterCutsDef);
-      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY) && (!fDoAlignYAlt45) && (!fDoAlignYAlt5) && (!fDoAlignUV)) { 
+      if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY) && (!fDoAlignXAlt45)
+                           && (!fDoAlignYAlt45) && (!fDoAlignYAlt5) && (!fDoAlignUV)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
       if (fSelectHotChannels || fSelectHotChannelsFromHits) {
@@ -554,6 +555,10 @@ namespace emph {
         this->selectByView('Y', true, fDoSkipDeadOrHotStrips); 
         if (fDoAlignYAlt45) fAlignY.alignItAlt45(false, evt, fSSDcls);
         if (fDoAlignYAlt5) fAlignY.alignItAlt45(true, evt, fSSDcls);
+      } 
+      if (fDoAlignXAlt45) {
+        this->selectByView('X', true, fDoSkipDeadOrHotStrips); 
+        fAlignX.alignItAlt45(false, evt, fSSDcls);
       } 
       if (fDoAlignUV) {
         fAlignUV.alignIt(evt, fSSDClsPtr);   
