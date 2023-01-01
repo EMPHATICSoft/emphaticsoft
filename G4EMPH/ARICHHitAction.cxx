@@ -71,7 +71,7 @@ namespace emph
     std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHARICHHitTuple_V1_" << aTokenJob << ".txt";
     std::string fNameStr(fNameStrStr.str());
     fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " evt track photonid blkNum time " << std::endl;
+    fFOutStudy1 << " event parent_track mPMT_anode time " << std::endl;
   }
 
   //-------------------------------------------------------------
@@ -107,7 +107,7 @@ namespace emph
 
 			  fARICHHits.push_back(arichHit);
 			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
-			  fFOutStudy1 << " " << aTrack->GetTrackID() << " " << aTrack->GetDefinition()->GetPDGEncoding();
+			  fFOutStudy1 << " " << aTrack->GetParentID();
 			  fFOutStudy1 << " " << arichHit.GetBlockNumber();
 			  fFOutStudy1 << " " << arichHit.GetTime() << std::endl;
 
