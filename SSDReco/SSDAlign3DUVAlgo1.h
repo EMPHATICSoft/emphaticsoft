@@ -17,25 +17,11 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
+#include "RecoBase/BeamTrackAlgo1.h" 
 
 namespace emph { 
   namespace ssdr {
- 
-    typedef enum tTrAlignType { NONE = 0, // unspecified. 
-                                XYONLY = 10,
-                                XONLY = 2,
-				YONLY = 3,
-				XYUCONF1 = 11,
-				XYUCONF2 = 12,
-				XYUCONF3 = 13,
-				XYVCONF1 = 21,
-				XYVCONF2 = 22,
-				XYVCONF3 = 23,
-				XYUVCONF1 = 121, // prelim... incomplete, too confusing.
-				XYUVCONF2 = 122,
-				XYUVCONF3 = 123,
-			} TrAlignType;
-				
+ 				
     class SSDAlign3DUVAlgo1 {
     
        public:
@@ -86,13 +72,7 @@ namespace emph {
 	  std::vector<double> fMultScatUncert;
 	  std::vector<double> fOtherUncert;
 //
-          TrAlignType fTrType;
-          double fTrXOffset, fTrYOffset, fTrXSlope, fTrYSlope; // Assume straight track, neglect the magent kick, too small, given the large 
-	                                                   // uncertainties .  Also, these are the slopes upstream of the magnet.   
-          double fTrXOffsetErr, fTrYOffsetErr, fTrXSlopeErr, fTrYSlopeErr; 
-	  double fTrXCovOffSl, fTrYCovOffSl;
-//
-          double fChiSqX, fChiSqY; 
+          rb::BeamTrackAlgo1 fTrXY;
 	  std::vector<int> fNHitsXView, fNHitsYView; 
 	  
 	  
@@ -119,6 +99,10 @@ namespace emph {
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs);
 	 void SetForMomentum(double p); // Rescale the Magnet kick, deviation on the X-Z plane 
+	 //
+	 // Getter, only one output, the reconstructed track.. 
+	 // 
+	 inline rb::BeamTrackAlgo1 *GetBeamTrackPtr() const { return &fTrXY; }
 /*
 ** Obsolete, we do both U and V here.. 
 
@@ -155,7 +139,6 @@ namespace emph {
 //	   return (ts + ts*fPitchOrYawAngles[kStation]);
 	   return ts;
 	 }
-	 void initTrackParams();
 	 void openOutputCsvFiles();
 	 void dumpXYInfo(int nHitsT);
 	

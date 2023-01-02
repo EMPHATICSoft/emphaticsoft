@@ -39,10 +39,7 @@ namespace emph {
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
        fRollAngles(fNumStations, 0.), fRollAnglesAlt(fNumStations, 0.),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fTrType(ssdr::NONE), 
-       fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), 
-       fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX), 
-       fTrXCovOffSl(DBL_MAX), fTrYCovOffSl(DBL_MAX), fChiSqX(DBL_MAX), fChiSqY(DBL_MAX),
+       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), 
        fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0) 
      { 
         ; 
@@ -63,10 +60,7 @@ namespace emph {
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
        fRollAngles(fNumStations, 0.), fRollAnglesAlt(fNumStations, 0.),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fTrType(ssdr::NONE),
-       fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), 
-       fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX), 
-       fTrXCovOffSl(DBL_MAX), fTrYCovOffSl(DBL_MAX), fChiSqX(DBL_MAX), fChiSqY(DBL_MAX),
+       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.),
        fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0) 
        
      { 
@@ -94,11 +88,6 @@ namespace emph {
 	    if (fAlt45) fSensor = 4;
 	    break;
 	 }   
-     }
-     void SSDAlign3DUVAlgo1::initTrackParams() {
-            fTrXOffset=DBL_MAX; fTrYOffset=DBL_MAX; fTrXSlope=DBL_MAX; fTrYSlope=DBL_MAX; 
-       fTrXOffsetErr=DBL_MAX; fTrYOffsetErr=DBL_MAX; fTrXSlopeErr=DBL_MAX; fTrYSlopeErr=DBL_MAX; 
-       fChiSqX=DBL_MAX; fChiSqY=DBL_MAX; fTrXCovOffSl= DBL_MAX; fTrYCovOffSl= DBL_MAX;
      }
      void SSDAlign3DUVAlgo1::InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs)
@@ -149,53 +138,6 @@ namespace emph {
        
        
 //       std::cerr << " SSDAlign3DUVAlgo1::InitailizeCoords  " << std::endl;
-       /*
-       * To be reviewd.. for wide angle tracks, on needs to Z position of the sensors. 
-       * 
-       for (size_t k=0; k != fNumStations; k++) {
-        if (std::abs(fZLocShifts[k]) > 1.0e-10) {
-	   std::cerr << " ... For Station  " << k <<  " Shifting the Z position by " << fZLocShifts[k] << " from " << fZCoords[k];
-	  fZCoords[k] += fZLocShifts[k]; 
-	  std::cerr << " to " << fZCoords[k] << std::endl;
-	}
-	if (std::abs(fOtherUncert[k]) > 1/0e-10) {
-	  std::cerr << " ....  For Station " << k <<  " Adding (in quadrature) transverse position uncertainty of  " 
-	  << fOtherUncert[k] << " from " << fZCoords[k] << std::endl;
-	}
-       }
-       for ( 
-         case 'X' :
-           for (size_t k=0; k != 4; k++) { 
-             fNominalOffsets[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..
-//             fNominalOffsetsAlt45[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..Not sure.. 
-	   }
-	   for (size_t k=4; k != 6; k++) { 
-	       fNominalOffsets[k] = 2.0*fHalfWaferWidth; // To be checked.. 
-//               fNominalOffsetsAlt45[k] = -2.0*fHalfWaferWidth; // xcoord is proportional to - strip number.. To be checked.. 
-	    }
-	    break;
-	 case 'Y' :
-           for (size_t k=0; k != 4; k++) { 
-             fNominalOffsets[k] = -fHalfWaferWidth; // ycoord is proportional to  strip number.. 
-             fNominalOffsetsAlt45[k] = fHalfWaferWidth; // ycoord is proportional to - strip number..
-	   }
-	   for (size_t k=4; k != 6; k++)  {
-	     fNominalOffsets[k] = 2.0*fHalfWaferWidth; // Using the 2nd sensor. Called Sensor 3 for Y I think... Y coord to trip number is flipped. 
-             fNominalOffsetsAlt45[k] = -2.0*fHalfWaferWidth; // ycoord is proportional to +  strip number.. Down sensor 
-	   }
-           // 
-           // Min amd maximum window.. To be defined.. Based on histogramming cluster positions.. 
-           //
-	   fMinStrips[0] = 250.; fMaxStrips[0] = 500.; 
-	   fMinStrips[1] = 260.; fMaxStrips[1] = 510.; 
-	   fMinStrips[2] = 275.; fMaxStrips[2] = 525.; 
-	   fMinStrips[3] = 275.; fMaxStrips[3] = 525.; 
-	   fMinStrips[4] = 525.; fMaxStrips[4] = 700.; // There are dead channels at lower strip count, distribution of strip choppy. 
-	   fMinStrips[5] = 490.; fMaxStrips[5] = 700.; 
-	   break;
-       }
-       // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  
-       */
        
        fMultScatUncert[1] =  0.003201263;   
        fMultScatUncert[2] =  0.02213214;   
@@ -399,14 +341,11 @@ namespace emph {
 //	     return false; See blow.. 
 	    } 
           } else {
-	    fTrXOffset = myLinFitX.offset;
-	    fTrXOffsetErr = myLinFitX.sigmaOffset;
-	    fTrXSlope =  myLinFitX.slope;
-	    fTrXSlopeErr =  myLinFitX.sigmaSlope;
-	    fChiSqX = myLinFitX.chiSq;
-	    fTrXCovOffSl = myLinFitX.covOffsetSlope;
+	    fTrXY.SetXTrParams(myLinFitX.offset, myLinFitX.slope);
+	    fTrXY.SetXTrParamsErrs(myLinFitX.sigmaOffset, myLinFitX.sigmaSlope, myLinFitX.covOffsetSlope);
+	    fTrXY.SetXChiSq(myLinFitX.chiSq);
 	    if (debugIsOn) 
-	       std::cerr << " Acceptable chi-Sq = " << myLinFitX.chiSq << " Track Offset " << fTrXOffset << "  Slope " << fTrXSlope << std::endl;
+	       std::cerr << " Acceptable chi-Sq = " << myLinFitX.chiSq << " Track Offset " << fTrXY.XOffset() << "  Slope " << fTrXY.XSlope() << std::endl;
 	    return true;
 	  }
 	} else {
@@ -418,14 +357,11 @@ namespace emph {
 //	     return false; See blow.. 
 	    } 
           } else {
-	    fTrYOffset = myLinFitY.offset;
-	    fTrYOffsetErr = myLinFitY.sigmaOffset;
-	    fTrYSlope =  myLinFitY.slope;
-	    fTrYSlopeErr =  myLinFitY.sigmaSlope;
-	    fChiSqY = myLinFitY.chiSq;
-	    fTrYCovOffSl = myLinFitY.covOffsetSlope;
+	    fTrXY.SetYTrParams(myLinFitY.offset, myLinFitY.slope);
+	    fTrXY.SetYTrParamsErrs(myLinFitY.sigmaOffset, myLinFitY.sigmaSlope, myLinFitY.covOffsetSlope);
+	    fTrXY.SetYChiSq(myLinFitY.chiSq);
 	    if (debugIsOn) 
-	       std::cerr << " Acceptable chi-Sq = " << myLinFitY.chiSq << " Track Offset " << fTrYOffset << "  Slope " << fTrYSlope << std::endl;
+	       std::cerr << " Acceptable chi-Sq = " << myLinFitY.chiSq << " Track Offset " << fTrXY.YOffset() << "  Slope " << fTrXY.YSlope() << std::endl;
 	    return true;
 	  }
 	}
@@ -479,26 +415,20 @@ namespace emph {
 		if (theView == rb::X_VIEW) {  
                   myLinFitX.fitLin(false, tsDataAlt, tsDataAltErr);		
                   if (myLinFitX.chiSq < chiSqBest) {
-	            fTrXOffset = myLinFitX.offset;
-	            fTrXOffsetErr = myLinFitX.sigmaOffset;
-	            fTrXSlope =  myLinFitX.slope;
-	            fTrXSlopeErr =  myLinFitX.sigmaSlope;
-	            fTrXCovOffSl = myLinFitX.covOffsetSlope;
+	            fTrXY.SetXTrParams(myLinFitX.offset, myLinFitX.slope);
+	            fTrXY.SetXTrParamsErrs(myLinFitX.sigmaOffset, myLinFitX.sigmaSlope, myLinFitX.covOffsetSlope);
 	            if (debugIsOn) 
 	               std::cerr << "Best chi-Sq = " << myLinFitX.chiSq << " so fat.. with Track Offset " 
-		                 << fTrXOffset << "  Slope " << fTrXSlope << std::endl;
+		                 << fTrXY.XOffset() << "  Slope " << fTrXY.XSlope() << std::endl;
 		  }
 	        } else {
                   myLinFitY.fitLin(false, tsDataAlt, tsDataAltErr);		
                   if (myLinFitY.chiSq < chiSqBest) {
-	            fTrYOffset = myLinFitY.offset;
-	            fTrYOffsetErr = myLinFitY.sigmaOffset;
-	            fTrYSlope =  myLinFitY.slope;
-	            fTrYSlopeErr =  myLinFitY.sigmaSlope;
-	            fTrYCovOffSl = myLinFitY.covOffsetSlope;
+	            fTrXY.SetYTrParams(myLinFitY.offset, myLinFitY.slope);
+	            fTrXY.SetYTrParamsErrs(myLinFitY.sigmaOffset, myLinFitY.sigmaSlope, myLinFitY.covOffsetSlope);
 	            if (debugIsOn) 
 	               std::cerr << "Best chi-Sq = " << myLinFitY.chiSq << " so fat.. with Track Offset " 
-		                 << fTrYOffset << "  Slope " << fTrYSlope << std::endl;
+		                 << fTrXY.YOffset() << "  Slope " << fTrXY.YSlope() << std::endl;
 		
 		  }
 	        } 
@@ -512,14 +442,14 @@ namespace emph {
       
        if (chiSqBest < fChiSqCutXY) {
           if (theView == rb::X_VIEW) { 
-	    fChiSqX = chiSqBest;
+	    fTrXY.SetXChiSq (chiSqBest);
 	    if (debugIsOn) 
-	       std::cerr << " Acceptable X fit chi-Sq = " << chiSqBest << " Track Offset " << fTrXOffset << "  Slope " << fTrXSlope << std::endl;
+	       std::cerr << " Acceptable X fit chi-Sq = " << chiSqBest << " Track Offset " << fTrXY.XOffset() << "  Slope " << fTrXY.XSlope() << std::endl;
 	    return true;
 	  } else {
-	    fChiSqY = chiSqBest;
+	    fTrXY.SetYChiSq (chiSqBest);
 	    if (debugIsOn) 
-	       std::cerr << " Acceptable Y fit chi-Sq = " << chiSqBest << " Track Offset " << fTrYOffset << "  Slope " << fTrYSlope << std::endl;
+	       std::cerr << " Acceptable Y fit chi-Sq = " << chiSqBest << " Track Offset " << fTrXY.YOffset() << "  Slope " << fTrXY.YSlope() << std::endl;
 	    return true;
 	  }
        }
@@ -545,29 +475,34 @@ namespace emph {
 
        size_t kStEff = kStation - 2;
        if (view  == rb::W_VIEW) kStEff = kStation - 4;
+       double aTrXOffset = fTrXY.XOffset(); double aTrYOffset = fTrXY.YOffset(); 
+       double aTrXOffsetErr = fTrXY.XOffsetErr(); double aTrYOffsetErr = fTrXY.YOffsetErr();
+       double aTrXSlope = fTrXY.XSlope(); double aTrYSlope = fTrXY.YSlope(); 
+       double aTrXSlopeErr = fTrXY.XSlopeErr(); double aTrYSlopeErr = fTrXY.YSlopeErr();
+       double aTrXCovOffSl = fTrXY.XCovOffSl(); double aTrYCovOffSl = fTrXY.YCovOffSl();
        	 
        double xPred, yPred, xPredErrSq, yPredErrSq;
        char cView = '?';
        switch (view) {
          case rb::U_VIEW :
 	 {
-	   xPred = fTrXOffset + fZCoordUs[kStEff]*fTrXSlope;
-	   xPredErrSq = fTrXOffsetErr*fTrXOffsetErr + fZCoordUs[kStEff]*fTrXSlopeErr*fZCoordUs[kStEff]*fTrXSlopeErr 
-	                + fZCoordUs[kStEff]*fTrXCovOffSl;
-	   yPred = fTrYOffset + fZCoordUs[kStEff]*fTrYSlope;
-	   yPredErrSq = fTrYOffsetErr*fTrYOffsetErr + fZCoordUs[kStEff]*fTrYSlopeErr*fZCoordUs[kStEff]*fTrYSlopeErr 
-	                + fZCoordUs[kStEff]*fTrYCovOffSl;
+	   xPred = aTrXOffset + fZCoordUs[kStEff]*aTrXSlope;
+	   xPredErrSq = aTrXOffsetErr*aTrXOffsetErr + fZCoordUs[kStEff]*aTrXSlopeErr*fZCoordUs[kStEff]*aTrXSlopeErr 
+	                + fZCoordUs[kStEff]*aTrXCovOffSl;
+	   yPred = aTrYOffset + fZCoordUs[kStEff]*aTrYSlope;
+	   yPredErrSq = aTrYOffsetErr*aTrYOffsetErr + fZCoordUs[kStEff]*aTrYSlopeErr*fZCoordUs[kStEff]*aTrYSlopeErr 
+	                + fZCoordUs[kStEff]*aTrYCovOffSl;
 	   cView = 'U';
 	   break;
 	 } 
 	 case rb::W_VIEW :
 	 {
-	   xPred = fTrXOffset + fZCoordVs[kStEff]*fTrXSlope;
-	   xPredErrSq = fTrXOffsetErr*fTrXOffsetErr + fZCoordVs[kStEff]*fTrXSlopeErr*fZCoordVs[kStEff]*fTrXSlopeErr 
-	                + fZCoordVs[kStEff]*fTrXCovOffSl;
-	   yPred = fTrYOffset + fZCoordVs[kStEff]*fTrYSlope;
-	   yPredErrSq = fTrYOffsetErr*fTrYOffsetErr + fZCoordVs[kStEff]*fTrYSlopeErr*fZCoordVs[kStEff]*fTrYSlopeErr 
-	                + fZCoordVs[kStEff]*fTrYCovOffSl;
+	   xPred = aTrXOffset + fZCoordVs[kStEff]*aTrXSlope;
+	   xPredErrSq = aTrXOffsetErr*aTrXOffsetErr + fZCoordVs[kStEff]*aTrXSlopeErr*fZCoordVs[kStEff]*aTrXSlopeErr 
+	                + fZCoordVs[kStEff]*aTrXCovOffSl;
+	   yPred = aTrYOffset + fZCoordVs[kStEff]*aTrYSlope;
+	   yPredErrSq = aTrYOffsetErr*aTrYOffsetErr + fZCoordVs[kStEff]*aTrYSlopeErr*fZCoordVs[kStEff]*aTrYSlopeErr 
+	                + fZCoordVs[kStEff]*aTrYCovOffSl;
 	 
 	   cView = 'V';
 	   break;
@@ -625,11 +560,13 @@ namespace emph {
      } 
      
      void ssdr::SSDAlign3DUVAlgo1::dumpXYInfo(int nHitsT) {
-       fFOutXY << " " << fSubRunNum << " " << fEvtNum << " " << fTrType << " "  << nHitsT;
+       fFOutXY << " " << fSubRunNum << " " << fEvtNum << " " << fTrXY.Type() << " "  << nHitsT;
        for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << " " << fNHitsXView[kSt];
        for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << " " << fNHitsYView[kSt];
-       fFOutXY << " " << fTrXOffset << " " << fTrXOffsetErr<< " " << fTrXSlope << " " << fTrXSlopeErr << " " << fChiSqX;
-       fFOutXY << " " << fTrYOffset << " " << fTrYOffsetErr<< " " << fTrYSlope << " " << fTrYSlopeErr << " " << fChiSqY << std::endl;
+       fFOutXY << " " << fTrXY.XOffset() << " " << fTrXY.XOffsetErr() << " " << fTrXY.XSlope() 
+                      << " " << fTrXY.XSlopeErr() << " " << fTrXY.XChiSq();
+       fFOutXY << " " << fTrXY.YOffset() << " " << fTrXY.YOffsetErr() << " " 
+                     << fTrXY.YSlope() << " " << fTrXY.YSlopeErr() << " " << fTrXY.YChiSq() << std::endl;
        
      }
      void  ssdr::SSDAlign3DUVAlgo1::alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
@@ -637,16 +574,15 @@ namespace emph {
        fEvtNum = evt.id().event();
        fSubRunNum = evt.subRun();
        fRunNum = evt.run();
-       this->initTrackParams();
+       fTrXY.Reset();
        if (!fFOutXY.is_open()) this->openOutputCsvFiles();
-       fTrType = ssdr::NONE;
-       bool debugIsOn = fEvtNum < 15;
+        bool debugIsOn = fEvtNum < 15;
        if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::alignIt, at event " << fEvtNum << std::endl;
       
        bool gotX = this->recoXY(rb::X_VIEW, aSSDClsPtr);
        if (gotX) {
           if (debugIsOn) std::cerr << " Got a 2d XZ track... for evt " << fEvtNum << std::endl;
-	  fTrType = ssdr::XONLY;
+	  fTrXY.SetType(rb::XONLY);
        }  else  {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
@@ -654,8 +590,8 @@ namespace emph {
        bool gotY = this->recoXY(rb::Y_VIEW, aSSDClsPtr);
        if (gotY) {
           if (debugIsOn) std::cerr << " Got a 2d YZ track... for evt " << fEvtNum << std::endl;
-	  if (fTrType == ssdr::XONLY) fTrType = ssdr::XYONLY;
-	  if (fTrType == ssdr::NONE) fTrType = ssdr::YONLY;
+	  if (fTrXY.Type() == rb::XONLY) fTrXY.SetType(rb::XYONLY);
+	  if (fTrXY.Type() == rb::NONE) fTrXY.SetType(rb::YONLY);;
        }  else  {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
