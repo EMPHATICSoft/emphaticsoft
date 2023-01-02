@@ -2,6 +2,7 @@
 #include "RecoBase/SSDHit.h"
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/TrackSegment.h"
+#include "RecoBase/BeamTrackAlgo1.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/Spill.h"
 #include "RecoBase/ARing.h"
