@@ -102,7 +102,7 @@ namespace emph {
 	 //
 	 // Getter, only one output, the reconstructed track.. 
 	 // 
-	 inline rb::BeamTrackAlgo1 *GetBeamTrackPtr() const { return &fTrXY; }
+	 inline rb::BeamTrackAlgo1 GetBeamTrack() const { return fTrXY; } // Deep copy, but small struct.. 
 /*
 ** Obsolete, we do both U and V here.. 
 
