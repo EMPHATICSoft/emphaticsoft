@@ -40,6 +40,21 @@ cet_build_plugin(StudyOneSSDClusters art::module
 	art_root_io::TFileService_service
 )
 
+cet_build_plugin(RecoBeamTracksAlgo1 art::module
+	LIBRARIES PRIVATE
+	SSDRecoUtil
+	ChannelMap
+	ChannelMapService_service
+	RunHistory
+	RunHistoryService_service
+	RawData
+	RecoBase
+	Geometry
+	ROOT::Core
+	ROOT::Physics
+	art_root_io::TFileService_service
+)
+
 install_headers()
 install_source()
 install_fhicl()

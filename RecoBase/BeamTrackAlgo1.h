@@ -22,6 +22,7 @@ namespace rb {
 				XYUCONF1 = 11,
 				XYUCONF2 = 12,
 				XYUCONF3 = 13,
+				XYUCONF4 = 14,
 				XYVCONF1 = 21,
 				XYVCONF2 = 22,
 				XYVCONF3 = 23,

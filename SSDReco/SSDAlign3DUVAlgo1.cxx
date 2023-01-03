@@ -591,19 +591,25 @@ namespace emph {
        if (gotY) {
           if (debugIsOn) std::cerr << " Got a 2d YZ track... for evt " << fEvtNum << std::endl;
 	  if (fTrXY.Type() == rb::XONLY) fTrXY.SetType(rb::XYONLY);
-	  if (fTrXY.Type() == rb::NONE) fTrXY.SetType(rb::YONLY);;
+	  if (fTrXY.Type() == rb::NONE) fTrXY.SetType(rb::YONLY);
        }  else  {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
        if (gotX || gotY) this->dumpXYInfo(static_cast<int>(aSSDClsPtr->size()));
-       if (gotX && gotY) { 
+       if (gotX && gotY) {
+         int numUVCheck = 0; 
          for (size_t kStU=2; kStU != fNumStations; kStU++) {
-           this->checkUV(rb::U_VIEW, kStU, aSSDClsPtr);
+           if (this->checkUV(rb::U_VIEW, kStU, aSSDClsPtr)) numUVCheck++;
          }
-         for (size_t kStV=4; kStV != fNumStations; kStV++) {
-           this->checkUV(rb::W_VIEW, kStV, aSSDClsPtr);
-         }
+	 if (numUVCheck == 1) fTrXY.SetType(rb::XYUCONF1);
+	 if (numUVCheck == 2) fTrXY.SetType(rb::XYUCONF2);
+	 if (numUVCheck == 3) fTrXY.SetType(rb::XYUCONF3);
+	 if (numUVCheck == 4) fTrXY.SetType(rb::XYUCONF4);
        }
+	 // Not worth doing.. stereo angle clearly wrong, of mis labeled. 
+//         for (size_t kStV=4; kStV != fNumStations; kStV++) {
+//           this->checkUV(rb::W_VIEW, kStV, aSSDClsPtr);
+//         }
        if(fEvtNum > 250000000) {
          std::cerr << " ssdr::SSDAlign3DUVAlgo1::alignIt, quit here and at event " << fEvtNum << " quit now ! " << std::endl;
 	 exit(2); 
