@@ -163,17 +163,11 @@ namespace emph {
        fMomentumIsSet = true;
      }
      void ssdr::SSDAlign3DUVAlgo1::openOutputCsvFiles() {
-       std::ostringstream fNameXYStrStr, fNameXYUStrStr, fNameXYVStrStr; 
-       fNameXYStrStr << "SSDAlign3DXY_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
-       std::string fNameXYStr(fNameXYStrStr.str());
-       fFOutXY.open(fNameXYStr.c_str());
-       fFOutXY<< " spill evt trType nHitsT ";
-       for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << "nHX" << kSt << " ";
-       for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << "nHY" << kSt << " ";
-       fFOutXY << "xOff xOffErr xSl xSlErr chiSqX yOff yOffErr ySl ySlErr chiSqY " << std::endl;
        //
-       // Similar, fFoutXYU and V .. We skip the track definition.. 
+       // only the UV matching info is here... 
        //
+       
+       std::ostringstream fNameXYUStrStr, fNameXYVStrStr;
        fNameXYUStrStr << "SSDAlign3DXYU_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
        std::string fNameXYUStr(fNameXYUStrStr.str());
        fFOutXYU.open(fNameXYUStr.c_str());
@@ -559,23 +553,13 @@ namespace emph {
        return true;	 
      } 
      
-     void ssdr::SSDAlign3DUVAlgo1::dumpXYInfo(int nHitsT) {
-       fFOutXY << " " << fSubRunNum << " " << fEvtNum << " " << fTrXY.Type() << " "  << nHitsT;
-       for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << " " << fNHitsXView[kSt];
-       for (size_t kSt=0; kSt != fNumStations; kSt++) fFOutXY << " " << fNHitsYView[kSt];
-       fFOutXY << " " << fTrXY.XOffset() << " " << fTrXY.XOffsetErr() << " " << fTrXY.XSlope() 
-                      << " " << fTrXY.XSlopeErr() << " " << fTrXY.XChiSq();
-       fFOutXY << " " << fTrXY.YOffset() << " " << fTrXY.YOffsetErr() << " " 
-                     << fTrXY.YSlope() << " " << fTrXY.YSlopeErr() << " " << fTrXY.YChiSq() << std::endl;
-       
-     }
      void  ssdr::SSDAlign3DUVAlgo1::alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
        
        fEvtNum = evt.id().event();
        fSubRunNum = evt.subRun();
        fRunNum = evt.run();
        fTrXY.Reset();
-       if (!fFOutXY.is_open()) this->openOutputCsvFiles();
+       if (!fFOutXYU.is_open()) this->openOutputCsvFiles();
         bool debugIsOn = fEvtNum < 15;
        if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::alignIt, at event " << fEvtNum << std::endl;
       
@@ -595,7 +579,7 @@ namespace emph {
        }  else  {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
-       if (gotX || gotY) this->dumpXYInfo(static_cast<int>(aSSDClsPtr->size()));
+//       if (gotX || gotY) this->dumpXYInfo(static_cast<int>(aSSDClsPtr->size())); Move to RecoBeamTrackAlgo1
        if (gotX && gotY) {
          int numUVCheck = 0; 
          for (size_t kStU=2; kStU != fNumStations; kStU++) {

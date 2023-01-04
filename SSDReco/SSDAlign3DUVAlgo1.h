@@ -103,6 +103,8 @@ namespace emph {
 	 // Getter, only one output, the reconstructed track.. 
 	 // 
 	 inline rb::BeamTrackAlgo1 GetBeamTrack() const { return fTrXY; } // Deep copy, but small struct.. 
+	 inline std::vector<int> GetNHitsXView () const { return fNHitsXView; }
+	 inline std::vector<int> GetNHitsYView () const { return fNHitsYView; }
 /*
 ** Obsolete, we do both U and V here.. 
 

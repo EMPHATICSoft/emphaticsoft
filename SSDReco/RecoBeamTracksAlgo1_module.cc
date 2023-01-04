@@ -99,11 +99,8 @@ namespace emph {
       std::vector<double> fZlocUPlanes;
       std::vector<double> fZlocVPlanes;
       std::vector<double> fRMSClusterCuts;
-      std::map<int, char> fXYUVLabels; // keyed on 10*stations + sensor.  Historical, no longer needed.  
-// 
-// Container for the hot channels. 
-// 
-//
+      std::map<int, char> fXYUVLabels; // keyed on 10*stations + sensor.  Historical, no longer needed.
+      //
 // access to input data..   
 //
       art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr; // This works, but use the deprecated art interface.. Upper case C
@@ -118,8 +115,10 @@ namespace emph {
 //
 // CSV tuple output..
 // 
-      std::ofstream fFOutA1;
+      std::ofstream fFOutXY;
       void openOutputCsvFiles();
+      
+      void dumpXYInfo(int nh, const rb::BeamTrackAlgo1 &tr);
       
       void alignFiveStations(const art::Event& evt); // event by event alignment. 
       
@@ -302,6 +301,13 @@ namespace emph {
 	 << " RecoBeamTracksAlgo1::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
 	 exit(2);
       }
+       std::ostringstream fNameXYStrStr, fNameXYUStrStr, fNameXYVStrStr; 
+       fNameXYStrStr << "SSDAlign3DXY_Run_" << fRun << "_" << fTokenJob << "_V1.txt";
+       std::string fNameXYStr(fNameXYStrStr.str());
+       fFOutXY.open(fNameXYStr.c_str());
+       fFOutXY<< " spill evt trType nHitsT stXMissed stXExtra stYMissed stYExtra ";
+       fFOutXY << "xOff xOffErr xSl xSlErr chiSqX yOff yOffErr ySl ySlErr chiSqY " << std::endl;
+      
       fFilesAreOpen = true;
     }
     
@@ -311,6 +317,29 @@ namespace emph {
       std::cerr << " Number of events " <<  fNEvents << std::endl;
     }
     
+    void emph::RecoBeamTracksAlgo1::dumpXYInfo(int nHitsT, const rb::BeamTrackAlgo1 &fTrXY) {
+     
+       fFOutXY << " " << fSubRun << " " << fEvtNum << " " << fTrXY.Type() << " "  << nHitsT;
+       
+       int stXMissed = -1;  int stXExtra = -1; int stYMissed = -1; int stYExtra = -1;
+       std::vector<int> aNhStsX = fAlignUV.GetNHitsXView(); std::vector<int> aNhStsY = fAlignUV.GetNHitsYView();       
+       for (size_t kSt=0; kSt != aNhStsX.size(); kSt++) {
+         if (aNhStsX[kSt] == 1) continue;
+	 if (aNhStsX[kSt] == 0) stXMissed = static_cast<int>(kSt);
+	 else stXExtra = kSt; // there might be more than one station.. Take the last one, rather arbitrarily. 
+       }
+       for (size_t kSt=0; kSt != aNhStsY.size(); kSt++) {
+         if (aNhStsY[kSt] == 1) continue;
+	 if (aNhStsY[kSt] == 0) stYMissed = static_cast<int>(kSt);
+	 else stYExtra = kSt;
+       }
+       fFOutXY << " " << stXMissed << " " << stXExtra << " " << stYMissed << " " << stYExtra;
+       fFOutXY << " " <<  fTrXY.XOffset() << " " << fTrXY.XOffsetErr() << " " << fTrXY.XSlope() 
+                      << " " << fTrXY.XSlopeErr() << " " << fTrXY.XChiSq();
+       fFOutXY << " " << fTrXY.YOffset() << " " << fTrXY.YOffsetErr() << " " 
+                     << fTrXY.YSlope() << " " << fTrXY.YSlopeErr() << " " << fTrXY.YChiSq() << std::endl;
+       
+     }
     //
    
     void emph::RecoBeamTracksAlgo1::produce(art::Event& evt) {
@@ -324,22 +353,23 @@ namespace emph {
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
       
-//      std::cerr << " RecoBeamTracksAlgo1::analyze , event " << fEvtNum << " and do not much  " <<   std::endl; 
-      
+//      std::cerr << " RecoBeamTracksAlgo1::analyze , event " << fEvtNum << " and do not much  else.. Stop here  " <<   std::endl; 
+//      exit(2);
     //
     // Get the data. 
       //
       //
       evt.getByLabel (fSSDClsLabel, fSSDClsPtr);
       if (fNEvents < 50){
-         std::cerr << " Number SSDClusters, deprecated interface (with deep copy) " << fSSDClsPtr->size() << std::endl;
+         std::cerr << " Number SSDClusters, deprecated interface " << fSSDClsPtr->size() << std::endl;
       } 
       fAlignUV.alignIt(evt, fSSDClsPtr);
       //
       // We always produce, even if the track is lousy. 
       //
-//      rb::BeamTrackAlgo1 theTrack = fAlignUV->GetBeamTrack();
-      btracks->push_back( fAlignUV.GetBeamTrack() ); 
+      rb::BeamTrackAlgo1 theTrack = fAlignUV.GetBeamTrack();
+      this->dumpXYInfo(static_cast<int>(fSSDClsPtr->size()), theTrack);
+      btracks->push_back( theTrack ); 
       
       evt.put(std::move(btracks));
       
