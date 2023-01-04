@@ -22,6 +22,7 @@
 #include "TGeoMaterial.h"
 #include <TGeoManager.h>
 #include "TH2D.h"
+#include "TRandom3.h"
 
 // G4 includes
 #include "Geant4/G4Event.hh"
@@ -99,6 +100,10 @@ namespace emph
 		  int blknum = findBlockNumberFromName(postvolume);
 
 		  if(blknum>=0){
+
+			  // Temporary solution for QE efficiency. Will switch to a separate class hooking info from gdml
+			  TRandom3 *rand = new TRandom3(0);			  
+			  if(rand->Uniform()>0.3) return;
 
 			  sim::ARICHHit arichHit;
 			  arichHit.SetBlockNumber(blknum);
