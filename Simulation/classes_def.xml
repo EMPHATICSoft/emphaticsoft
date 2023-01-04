@@ -24,5 +24,8 @@
   <class name="sim::TOPAZLGHit"        />
   <class name="std::vector<sim::TOPAZLGHit>"        />
   <class name="art::Wrapper< std::vector<sim::TOPAZLGHit>    >"/>
- 
+  <class name="sim::ARICHHit"        />
+  <class name="std::vector<sim::ARICHHit>"        />
+  <class name="art::Wrapper< std::vector<sim::ARICHHit>    >"/>
+
 </lcgdict>

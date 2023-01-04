@@ -28,6 +28,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "Geant4/QGSP_BERT.hh"
+#include "Geant4/G4Cerenkov.hh"
 
 #include "Geant4/G4VModularPhysicsList.hh"
 
