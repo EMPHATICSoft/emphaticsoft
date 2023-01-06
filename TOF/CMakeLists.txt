@@ -35,6 +35,20 @@ cet_build_plugin(TrigToT0Prod art::module
 	messagefacility::MF_MessageLogger
 )
 
+cet_build_plugin(LGCaloPrelimStudy art::module
+	LIBRARIES PRIVATE
+	ToFUtil
+	RecoBase
+	RawData
+	ChannelMap
+	ChannelMapService_service
+	RunHistory
+	RunHistoryService_service
+	Geometry
+	art_root_io::TFileService_service
+	messagefacility::MF_MessageLogger
+)
+
 install_source()
 install_fhicl()
 install_headers()
