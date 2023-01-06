@@ -74,19 +74,19 @@ namespace rb {
    
     // Getters
     inline rb::BeamTrType Type() const { return fTrType; }
-    inline double XOffset () const { return fTrXOffset; } 
-    inline double XSlope () const { return fTrXSlope; } 
-    inline double XOffsetErr () const { return fTrXOffsetErr; } 
-    inline double XSlopeErr () const { return fTrXSlopeErr; } 
-    inline double XChiSq () const { return fChiSqX; } 
+    inline double XOffset() const { return fTrXOffset; } 
+    inline double XSlope() const { return fTrXSlope; } 
+    inline double XOffsetErr() const { return fTrXOffsetErr; } 
+    inline double XSlopeErr() const { return fTrXSlopeErr; } 
+    inline double XChiSq() const { return fChiSqX; } 
     inline double XCovOffSl() const {return fTrXCovOffSl;}
     
 
-    inline double YOffset () const { return fTrYOffset; } 
-    inline double YSlope () const { return fTrYSlope; } 
-    inline double YOffsetErr () const { return fTrYOffsetErr; } 
-    inline double YSlopeErr () const { return fTrYSlopeErr; } 
-    inline double YChiSq () const { return fChiSqY; } 
+    inline double YOffset() const { return fTrYOffset; } 
+    inline double YSlope() const { return fTrYSlope; } 
+    inline double YOffsetErr() const { return fTrYOffsetErr; } 
+    inline double YSlopeErr() const { return fTrYSlopeErr; } 
+    inline double YChiSq() const { return fChiSqY; } 
     inline double YCovOffSl() const {return fTrYCovOffSl;}
     
     friend std::ostream& operator << (std::ostream& o, const BeamTrackAlgo1& h);
