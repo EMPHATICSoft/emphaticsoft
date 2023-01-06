@@ -775,9 +775,19 @@ namespace emph {
 	    if (!wfHandle->empty()) { 
 	      FillTrigPlots(wfHandle); 
 	    }
-         } catch(...) { std::cerr << " Error in uploading Trigger wave forms .. " << std::endl; return; } 
+         } catch(...) { 
+	    std::cerr << " Error in uploading Trigger wave forms .. " << std::endl; 
+            std::unique_ptr<rb::TrigToT0>
+                aTrigToT0Ptr(new rb::TrigToT0(0, 0., 0, INT_MAX, 0., 0.));
+            evt.put(std::move(aTrigToT0Ptr));
+	    return; 
+	 } 
          this->FillTrigT0Final(evt, gotT0); // this will do the move.. 
+	 return;
       }
+      std::unique_ptr<rb::TrigToT0>
+          aTrigToT0Ptr(new rb::TrigToT0(0, 0., 0, INT_MAX, 0., 0.));
+      evt.put(std::move(aTrigToT0Ptr));
       
       
     }
