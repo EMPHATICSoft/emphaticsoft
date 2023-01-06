@@ -85,5 +85,12 @@
   </class>
   <class name="std::vector<rb::BeamTrackAlgo1>"        />
   <class name="art::Wrapper< std::vector<rb::BeamTrackAlgo1>    >"/>
+  
+  <class name="rb::TrigToT0"    ClassVersion="11">
+   <version ClassVersion="11" checksum="3408702871"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="art::Wrapper< rb::TrigToT0>"        />
+
 
  </lcgdict>
