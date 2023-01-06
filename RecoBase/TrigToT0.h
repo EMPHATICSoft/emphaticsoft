@@ -31,7 +31,7 @@ namespace rb {
     double SumSigUpT0() const { return fsumSigUpT0; }  // The integrated ADC count of the up segments for the selected segment number. 
     double SumSigDownT0() const { return fsumSigDownT0; } // Same, but for the down segment. 
     
-    bool isPrettyGood (double trigAmplCut[2], double T0AmplCut[2]); //  Very simple requirements, one Trig signal, one T0, amplitude cuts. 
+    bool isPrettyGood (double trigAmplCut[2], double T0AmplCut[2]) const; //  Very simple requirements, one Trig signal, one T0, amplitude cuts. 
     
     friend std::ostream& operator << (std::ostream& o, const TrigToT0& h);
     

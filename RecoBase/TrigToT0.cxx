@@ -40,7 +40,7 @@ namespace rb {
   }
   
   //------------------------------------------------------------
-  bool TrigToT0::isPrettyGood(double trigAmplCut[2], double T0AmplCut[2]) 
+  bool TrigToT0::isPrettyGood(double trigAmplCut[2], double T0AmplCut[2]) const 
   {
     if (fnPeakTrig != 4) return false;
     if (fnumSegT0 != 1) return false;
