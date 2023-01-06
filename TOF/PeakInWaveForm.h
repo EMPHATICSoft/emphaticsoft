@@ -51,6 +51,7 @@ namespace emph {
  	bool findBipolar(const std::vector<uint16_t> &wfm, double signif, size_t startBin);
  	bool findDCInSiPM(const std::vector<uint16_t> &wfm, double signif, size_t startBin);
  	bool findDCInPMT(const std::vector<uint16_t> &wfm, double signif, size_t startBin);
+ 	bool findDCInPMTLGCalo(const std::vector<uint16_t> &wfm, double signif, size_t startBin);
  	size_t findDCNegStart(const std::vector<uint16_t> &wfm, double signif, size_t startBin);
 	inline void setNewSumSig(double s) {fSumSig = s;} // Used only from findItWithin
 	
