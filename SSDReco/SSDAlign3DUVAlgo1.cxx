@@ -138,13 +138,21 @@ namespace emph {
        
        
 //       std::cerr << " SSDAlign3DUVAlgo1::InitailizeCoords  " << std::endl;
-       
+       //
+       // Obtained in Dec 2022, with target in. 
+       //
+       /*
        fMultScatUncert[1] =  0.003201263;   
        fMultScatUncert[2] =  0.02213214;   
        fMultScatUncert[3] =  0.03676218;   
        fMultScatUncert[4] =  0.1022451;   
-       fMultScatUncert[5] =  0.1327402;  
-    
+       fMultScatUncert[5] =  0.1327402; 
+       */ 
+       fMultScatUncert[1] =  0.003830147;   
+       fMultScatUncert[2] =  0.01371613;	
+       fMultScatUncert[3] =  0.01947578;	
+       fMultScatUncert[4] =  0.05067243;  
+       fMultScatUncert[5] =  0.06630287;    
      }
      
      SSDAlign3DUVAlgo1::~SSDAlign3DUVAlgo1() {

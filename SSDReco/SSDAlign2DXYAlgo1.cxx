@@ -112,11 +112,21 @@ namespace emph {
 	   break;
        }
        // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  But it does includes the target.
+       //
+       // Obtained in Dec 2022, with target in. 
+       //
+       /*
        fMultScatUncert[1] =  0.003201263;   
        fMultScatUncert[2] =  0.02213214;   
        fMultScatUncert[3] =  0.03676218;   
        fMultScatUncert[4] =  0.1022451;   
-       fMultScatUncert[5] =  0.1327402;  
+       fMultScatUncert[5] =  0.1327402; 
+       */ 
+       fMultScatUncert[1] =  0.003830147;   
+       fMultScatUncert[2] =  0.01371613;	
+       fMultScatUncert[3] =  0.01947578;	
+       fMultScatUncert[4] =  0.05067243;  
+       fMultScatUncert[5] =  0.06630287;
         
      }
      void ssdr::SSDAlign2DXYAlgo1::SetForMomentum(double p) {
