@@ -87,6 +87,10 @@ namespace emph {
 	 } else if (fDetType == emph::geo::Trigger)  return findDCInPMT(wfm, signif, startBin);  
 	 return foundOne;
        }
+       bool PeakInWaveForm::isLGSaturated(const std::vector<uint16_t> &wfm) {
+         for (size_t k=0; k != wfm.size(); k++) if (wfm[k] == 0) return true;
+	 return false;
+       }
        
        bool PeakInWaveForm::findBipolar(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
        {

@@ -27,6 +27,7 @@ namespace emph {
 	bool findIt(const std::vector<uint16_t> &wfm, double signif, size_t startBin=10);
 	bool findItWithin(tof::PeakInWaveForm &aPeakFirst, const std::vector<uint16_t> &wfm, double signif); // we will change the first peak.. 
 	bool findItAfter(const tof::PeakInWaveForm &aPeakFirst, const std::vector<uint16_t> &wfm, double signif); // we will change the first peak.. 
+	bool isLGSaturated(const std::vector<uint16_t> &wfm);
 
       private:
       
