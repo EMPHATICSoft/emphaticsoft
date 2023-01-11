@@ -105,17 +105,6 @@ namespace emph {
 	 inline rb::BeamTrackAlgo1 GetBeamTrack() const { return fTrXY; } // Deep copy, but small struct.. 
 	 inline std::vector<int> GetNHitsXView () const { return fNHitsXView; }
 	 inline std::vector<int> GetNHitsYView () const { return fNHitsYView; }
-/*
-** Obsolete, we do both U and V here.. 
-
-	 inline void SetTheView(char aView) {
-	   if ((aView != 'U') && (aView != 'V')) {
-	     std::cerr << " SSDAlign3DUVAlgo1, setting an unknown view " << aView << " fatal, quit here " << std::endl; 
-	     exit(2);
-	   }
-	   fView = aView;
-	 }
-*/
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 
@@ -127,7 +116,8 @@ namespace emph {
 	 
 	 bool checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
-	 double GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX=true) const;
+//	 double GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX=true) const;
+	 double GetTsFromCluster(char aView, size_t kStation,  double strip) const;
 	 
 	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
 	  double aRMS = itCl->WgtRmsStrip();

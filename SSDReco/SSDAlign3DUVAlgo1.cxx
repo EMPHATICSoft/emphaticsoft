@@ -179,17 +179,18 @@ namespace emph {
        fNameXYUStrStr << "SSDAlign3DXYU_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
        std::string fNameXYUStr(fNameXYUStrStr.str());
        fFOutXYU.open(fNameXYUStr.c_str());
-       fFOutXYU << " spill evt kSt iHU  xPred xPredErr yPred yPredErr xObs yObs chiSq " << std::endl;
+       fFOutXYU << " spill evt kSt iHU  xPred xPredErr yPred yPredErr uPred uObs chiSq " << std::endl;
        fNameXYVStrStr << "SSDAlign3DXYV_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
        std::string fNameXYVStr(fNameXYVStrStr.str());
        fFOutXYV.open(fNameXYVStr.c_str());
-       fFOutXYV << " spill evt kSt iHV xPred xPredErr yPred yPredErr xObs yObs chiSq " << std::endl;
+       fFOutXYV << " spill evt kSt iHV xPred xPredErr yPred yPredErr wPred wObs chiSq " << std::endl;
      } 
 
      //
      // This is cloned code!.. See SSDAlign2DXY to be cleaned up. 
      //
-     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX) const 
+//     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX) const 
+     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip) const 
      {
           const bool alternate45 = false; // we will use only 
 	  double aVal = 0.;
@@ -222,30 +223,12 @@ namespace emph {
 	      }
 	      case 'U' :
 	      {
-	       if (kStation < 4) { 
-	         if (kStation == 2) { // no fitted Residual in this version, as this is what this class is about to determine  
-		    if (getX) aVal = fOneOverSqrt2 * (2.3483*strip*fPitch + fNominalOffsetsU[kStation-2]) - 21.7863; 
-		    else aVal = fOneOverSqrt2 * (2.1722*strip*fPitch + fNominalOffsetsU[kStation-2]) - 12.69688; 
-		 } if (kStation == 3) {
-		    if (getX) aVal = fOneOverSqrt2 * (2.40*strip*fPitch + fNominalOffsetsU[kStation-2]) - 22.401; 
-		    else aVal = fOneOverSqrt2 * (2.199*strip*fPitch + fNominalOffsetsU[kStation-2]) - 12.9302; 
-		 }
-	       } else {
-	         aVal =  fOneOverSqrt2 *  ( strip*fPitch + fNominalOffsetsU[kStation-2]); // sign convention to be reviewed. Irrelevant, no data ( for 1055 at least..)  
-	       }
-	       return aVal;
+		 aVal =  (strip*fPitch + fNominalOffsetsY[kStation-2]  + 1.0e-10);
+	         return aVal;
 	      } 
 	      case 'V' :
 	      {
-	         if (kStation == 4) { // no fitted Residual in this version, Adding constant to get the right relation.. For run 1055 only! 
-	           if (getX) aVal =  fOneOverSqrt2 *  ( 1.9937*strip*fPitch + fNominalOffsetsV[kStation-2]) - 49.6982; // sign convention to be reviewed. 
-	           else aVal = fOneOverSqrt2 *  ( -1.9756*strip*fPitch - fNominalOffsetsV[kStation-2]) + 49.5511; 
-		 }
-	         if (kStation == 5) { // Crazy values for station 5.. 
-	           if (getX) aVal =  fOneOverSqrt2 *  ( 6.0910*strip*fPitch + fNominalOffsetsV[kStation-2]) - 162.516; // sign convention to be reviewed. 
-	           else aVal = fOneOverSqrt2 *  ( -10.6832*strip*fPitch - fNominalOffsetsV[kStation-2]) + 282.8606; 
-		 }
-		                                                                      // sign convention to be reviewed.
+		 aVal =  (strip*fPitch + fNominalOffsetsY[kStation-2]  + 1.0e-10);
 	        return aVal;
 	      } 
 	      default :
@@ -515,33 +498,33 @@ namespace emph {
 	   exit(2);
          } 
        }
-       if (debugIsOn) {
+      const double uPred = fOneOverSqrt2 * (xPred + yPred);  // + or - 
+      const double wPred = fOneOverSqrt2 * (xPred - yPred);  // + or - 
+      if (debugIsOn) {
            if (xPredErrSq < 0.) std::cerr << " .... ???? Negative predicted uncertainty for X , problem with covariance of linFit " << std::endl;
            if (yPredErrSq < 0.) std::cerr << " .... ???? Negative predicted uncertainty for Y , problem with covariance of linFit " << std::endl;
            std::cerr << " .... xPred " << xPred << " +- " << std::sqrt(std::abs(xPredErrSq)) 
-                                << "  yPred " << yPred << " +- " << std::sqrt(std::abs(yPredErrSq)) << std::endl;
+                                << "  yPred " << yPred << " +- " << std::sqrt(std::abs(yPredErrSq)) << " uPred " << uPred << std::endl;
        }
        double chiBest = DBL_MAX; int ihSelBest = INT_MAX;
-       double xObsBest = DBL_MAX; double yObsBest = DBL_MAX;
+       double uvObsBest = DBL_MAX;
        int ihSel = 0;
        for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
           if (itCl->View() != view) continue;
 	  const size_t kSt = static_cast<size_t>(itCl->Station());
           if (kSt != kStation) continue;
-          double aStrip = itCl->WgtAvgStrip();
-	  double xObs = this->GetTsFromCluster(cView, kStation, aStrip, true);  // Twice th strip  strip ? 
-	  double yObs = this->GetTsFromCluster(cView, kStation, aStrip, false);
-	  double tsUncert = this->GetTsUncertainty(kStation, itCl);
-	  double tsXErrSq = xPredErrSq + tsUncert*tsUncert; 	   
-	  double tsYErrSq = yPredErrSq + tsUncert*tsUncert; 	   
-          double dx = xObs - xPred;
-	  double dy = yObs - yPred;
-	  double chi= (dx*dx/tsXErrSq + dy*dy/tsYErrSq);
-	  if (debugIsOn) std::cerr << " ... strip " << aStrip << " XObs " << xObs 
-	                          << " dx " << dx << " YObs " << yObs <<  " dy " << dy << " chiSq " << chi << std::endl;
+          const double aStrip = itCl->WgtAvgStrip();
+//	  double xObs = this->GetTsFromCluster(cView, kStation, aStrip, true);  // Twice th strip  strip ? 
+//	  double yObs = this->GetTsFromCluster(cView, kStation, aStrip, false);
+          const double uvObs =  this->GetTsFromCluster(cView, kStation, aStrip);
+	  const double uvObsUncert = this->GetTsUncertainty(kStation, itCl);
+	  const double uvUncertSq = uvObsUncert*uvObsUncert + 0.5 * (xPredErrSq + yPredErrSq);
+	  double duv = (cView == 'U') ? (uPred - uvObs) : (wPred - uvObs);
+	  double chi= (duv*duv/uvUncertSq);
+	  if (debugIsOn) std::cerr << " ... strip " << aStrip << " U or V Obs " << uvObs 
+	                          << " duv " << duv << " chiSq " << chi << std::endl;
 	  if (chi < chiBest) {
-	    xObsBest = xObs;
-	    yObsBest = yObs;
+	    uvObsBest = uvObs;
 	    chiBest = chi;
 	    ihSelBest = ihSel;
 	  }
@@ -554,9 +537,9 @@ namespace emph {
                   << " " << xPred << " " << std::sqrt(std::abs(xPredErrSq)) << " " << yPred << " " << std::sqrt(std::abs(yPredErrSq));
        std::string headStr(headStrStr.str());
        if (cView == 'U') {
-         fFOutXYU << headStr << " " << xObsBest << " " << yObsBest << " " << chiBest << std::endl;
+         fFOutXYU << headStr << " " << uPred << " " << uvObsBest << " " << chiBest << std::endl;
        } else {
-         fFOutXYV << headStr << " " << xObsBest << " " << yObsBest << " " << chiBest << std::endl;
+         fFOutXYV << headStr << " " << wPred << " " << uvObsBest << " " << chiBest << std::endl;
        } 
        return true;	 
      } 
@@ -568,7 +551,7 @@ namespace emph {
        fRunNum = evt.run();
        fTrXY.Reset();
        if (!fFOutXYU.is_open()) this->openOutputCsvFiles();
-        bool debugIsOn = fEvtNum < 15;
+        bool debugIsOn = fEvtNum < 25;
        if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::alignIt, at event " << fEvtNum << std::endl;
       
        bool gotX = this->recoXY(rb::X_VIEW, aSSDClsPtr);
