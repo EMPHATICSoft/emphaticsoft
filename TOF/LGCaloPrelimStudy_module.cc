@@ -102,6 +102,7 @@ namespace emph {
 //
      std::vector<emph::tof::PeakInWaveForm> fPeakLGs; // details
      std::vector<double> fLGsAmpl;
+     bool fLGA4IsSaturated; 
      //
      // flags for studying, dumping the info. 
      //
@@ -128,7 +129,7 @@ namespace emph {
       fZMagnet(757.7), fZLG(2886.4),  fMagnetKick120GeV(-0.612e-3), // Should be replace by proper acces to the geometry.. 
       fEffBeamMomentum(18.), // Set for run 1293, nominal P = 12 GeV, but magnet kick probably overestimated. 
       fAmplTriggerCut{0., 5000.}, fAmplT0Cut{0., 250.}, 
-      fLGsAmpl(nChanLG+2, 0.)
+      fLGsAmpl(nChanLG+2, 0.), fLGA4IsSaturated(false)
     {
     
       fAmplTriggerCut[1] = 5000.;
@@ -188,6 +189,7 @@ namespace emph {
       fFOutA1.open(aFoutA1Str.c_str());
       fFOutA1 << " spill evt trigA T0SegNum t0A TrType xOff  xSl chiSqX yOff ySl chiSqY xMagnet yMagnet xLG xLGErr yLG yLGErr ";   
       for (size_t kLG=0; kLG != nChanLG; kLG++) fFOutA1 << "  LGA" << kLG; 
+      fFOutA1 << "  LGA4_Sat "; 
       fFOutA1 << std::endl;
       // 
       std::ostringstream aFoutXTrStrStr;
@@ -196,6 +198,7 @@ namespace emph {
       fFOutXTr.open(aFoutXTrStr.c_str());
       fFOutXTr << " spill evt trigA T0SegNum t0A xOff  xSl chiSqX xMagnet xLG xLGErr ";   
       for (size_t kLG=0; kLG != nChanLG; kLG++) fFOutXTr << "  LGA" << kLG; 
+      fFOutXTr << "  LGA4_Sat "; 
       fFOutXTr << std::endl;
      
       std::ostringstream aFoutYTrStrStr;
@@ -204,6 +207,7 @@ namespace emph {
       fFOutYTr.open(aFoutYTrStr.c_str());
       fFOutYTr << " spill evt trigA T0SegNum t0A yOff  ySl chiSqY yMagnet yLG yLGErr ";   
       for (size_t kLG=0; kLG != nChanLG; kLG++) fFOutYTr << "  LGA" << kLG; 
+      fFOutYTr << "  LGA4_Sat "; 
       fFOutYTr << std::endl;
      
       std::ostringstream aFoutNoTrStrStr;
@@ -211,7 +215,8 @@ namespace emph {
       std::string aFoutNoTrStr(aFoutNoTrStrStr.str()); 
       fFOutNoTr.open(aFoutNoTrStr.c_str());
       fFOutNoTr << " spill evt trigA T0SegNum t0A ";   
-      for (size_t kLG=0; kLG != nChanLG; kLG++) fFOutNoTr << "  LGA" << kLG; 
+      for (size_t kLG=0; kLG != nChanLG; kLG++) fFOutNoTr << "  LGA" << kLG;
+      fFOutNoTr << "  LGA4_Sat "; 
       fFOutNoTr << std::endl;
        
       fFilesAreOpen = true;
@@ -244,6 +249,7 @@ namespace emph {
       fFOutA1 << " " << xMagnet << " " << yMagnet << " " 
              << xLG << " " << std::sqrt(std::abs(xLGErrSq)) << " " << yLG << " " << std::sqrt(std::abs(yLGErrSq));
       for (size_t k=0; k != nChanLG; k++) fFOutA1 << " " << fLGsAmpl[k] ;
+      if (fLGA4IsSaturated) fFOutA1 << " 1 "; else fFOutA1 << " 0 ";
       fFOutA1 << std::endl;  
     }
     //......................................................................
@@ -255,6 +261,7 @@ namespace emph {
               << fTrigToT0Ptr->SegT0() << " " 
 	      << 0.5*(fTrigToT0Ptr->SumSigUpT0() + fTrigToT0Ptr->SumSigDownT0()) ;
       for (size_t k=0; k != nChanLG; k++) fFOutNoTr << " " << fLGsAmpl[k] ;
+      if (fLGA4IsSaturated) fFOutNoTr << " 1 "; else fFOutNoTr << " 0 ";
       fFOutNoTr << std::endl;  
     }
     
@@ -278,6 +285,7 @@ namespace emph {
 	                + fZLG*aBeamTrIt->XCovOffSl();
       fFOutXTr << " " << xMagnet <<  " "  << xLG << " " << std::sqrt(std::abs(xLGErrSq));
       for (size_t k=0; k != nChanLG; k++) fFOutXTr << " " << fLGsAmpl[k] ;
+      if (fLGA4IsSaturated) fFOutXTr << " 1 "; else fFOutXTr << " 0 ";
       fFOutXTr << std::endl;  
     }
     //......................................................................
@@ -298,6 +306,7 @@ namespace emph {
 	                + fZLG*aBeamTrIt->YCovOffSl();
       fFOutYTr << " " << yMagnet << " " << yLG << " " << std::sqrt(std::abs(yLGErrSq));
       for (size_t k=0; k != nChanLG; k++) fFOutYTr << " " << fLGsAmpl[k] ;
+      if (fLGA4IsSaturated) fFOutYTr << " 1 "; else fFOutYTr << " 0 ";
       fFOutYTr << std::endl;  
     }
     //......................................................................
@@ -319,6 +328,7 @@ namespace emph {
     void LGCaloPrelimStudy::fillLGAmpls(const bool debugIsOn) { 
       
       for (size_t k=0; k != nChanLG; k++) fLGsAmpl[k] = 0.;
+      fLGA4IsSaturated = false;
       
       emph::cmap::FEBoardType boardType = emph::cmap::V1720;
       
@@ -346,7 +356,9 @@ namespace emph {
 	   } else {
 	     // Need to check detchan index here.. 
 	     if (detchan < fLGsAmpl.size()) fLGsAmpl[detchan] = firstPeak.getSumSig();
+	     if (detchan == 4) fLGA4IsSaturated = firstPeak.isLGSaturated(tmpwf);
 	        if (debugIsOn) std::cerr << " ...   Found a peak..Sum Signal " << fLGsAmpl[detchan] <<std::endl;
+	        if (debugIsOn && fLGA4IsSaturated)  { std::cerr << " ........  And the ADC is saturated ... " << std::endl; }     
 	   }
 	 }
       }
@@ -361,7 +373,8 @@ namespace emph {
       if (fSubRun == 1) return; // Skip the first spill, mismatch vetween SSD data and V1720 ADCs 
        fEvtNum = evt.id().event();  
       ++fNEvents;
-      const bool debugIsOn = (fNEvents < 100); 
+      const bool debugIsOn = (fNEvents < 100) || ((fSubRun == 10) && (fEvtNum == 192)) 
+                             || ((fSubRun == 10) && (fEvtNum == 506)) || ((fSubRun == 10) && (fEvtNum == 822)) ; 
       
       std::string labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(7)); // LGCalo has index 7.  I think.. 
       try {
