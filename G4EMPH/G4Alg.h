@@ -81,6 +81,7 @@ namespace emph {
     int             fSLGhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager
     int             fSARICHhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager
     int             fStopActionIndex;            ///< index of theFast Stop Action in the UserActionManager
+    int             fOpticalActionIndex;            ///< index of theFast Stop Action in the UserActionManager
 
     std::vector<std::string> fUserActions;///< UserAction classes 
 

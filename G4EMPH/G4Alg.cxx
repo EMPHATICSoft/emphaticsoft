@@ -24,6 +24,7 @@
 #include "SimulationBase/MCTruth.h"
 #include "G4EMPH/SSDHitAction.h"
 #include "G4EMPH/FastStopAction.h"
+#include "G4EMPH/OpticalAction.h"
 //#include "G4EMPH/ParticleListAction.h"
 #include "G4EMPH/TrackListAction.h"
 #include "G4EMPH/TOPAZLGHitAction.h"
@@ -58,6 +59,7 @@ namespace emph {
     , fSLGhaIndex(0)
     , fSARICHhaIndex(0)
     , fStopActionIndex(0) 
+    , fOpticalActionIndex(0) 
       
   {
 
@@ -162,6 +164,10 @@ namespace emph {
     sh4->SetName("emph::FastStopAction");
     sh4->Config( pset );
     
+    emph::OpticalAction* sh5 = new emph::OpticalAction();
+    sh5->SetName("emph::OpticalAction");
+    sh5->Config( pset );
+
     // the ParticleListAction must be added to the UserActionManager 
     // first as it has to define the track ID in the case that the 
     // current particle to track is from an EM process that would cause
@@ -177,12 +183,14 @@ namespace emph {
     uam->AddAndAdoptAction(sh2);   
     uam->AddAndAdoptAction(sh3);
     uam->AddAndAdoptAction(sh4);
+    uam->AddAndAdoptAction(sh5);
     // Should we bother with this.. ??? It seems that it is hardcoded in    
     fPlaIndex = 0; // Again, could change. 
     fShaIndex = 1; // SSD is the 2nd one..   Might change is we add others !  See above.. Very Sneaky.. 
     fSLGhaIndex = 2; // TOPAZLG is the 3rd one..   Yack,.. who knows..  
     fSARICHhaIndex = 3; // ARICH 
     fStopActionIndex = 4;
+    fOpticalActionIndex = 5;
     
     ConfigUserActionManager(fUserActions,pset);
 
