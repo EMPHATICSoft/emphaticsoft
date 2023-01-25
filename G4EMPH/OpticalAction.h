@@ -61,7 +61,7 @@ namespace emph {
 
   private:
 
-    std::string fLastDetectorName;     
+    bool ON_OFF;     
 
     art::ServiceHandle<emph::geo::GeometryService> fGeo; // could be useful, but not for now.. 
     

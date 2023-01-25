@@ -44,7 +44,7 @@ namespace emph
   //-------------------------------------------------------------
   // Constructor.
   OpticalAction::OpticalAction() : 
-    fLastDetectorName("None")
+    ON_OFF(false)
   {
     fRunManager = G4RunManager::GetRunManager();
   }
@@ -58,10 +58,8 @@ namespace emph
   //-------------------------------------------------------------
   void OpticalAction::Config(fhicl::ParameterSet const& pset )
   {
-    fLastDetectorName = pset.get< std::string >("G4LastDetector", "None");
-    if (fLastDetectorName != "None") { 
-      std::cerr << " OpticalAction::Config Last Detector for tracking " << fLastDetectorName << std::endl;
-    }  
+    ON_OFF = pset.get<bool>("G4OpticalSwitch", false);
+	 std::cout << "G4OpticalSwitch: " << ON_OFF << std::endl;
   }
 
   //-------------------------------------------------------------
@@ -71,7 +69,7 @@ namespace emph
 
   //-------------------------------------------------------------
   // Create our initial sim::SSDHit vector and add it to the vector of vectors
-  void OpticalAction::PreTrackingAction(const G4Track* ) //track)
+  void OpticalAction::PreTrackingAction(const G4Track*) //track)
   {
   }
 
@@ -86,21 +84,21 @@ namespace emph
   {
 	  //mf::LogInfo("OpticalAction") << "OpticalAction::SteppingAction";
 	  //    std::cerr << " Entering OpticalAction::SteppingAction " << std::endl;
+	  if(ON_OFF==false)return;
+
 	  G4Track * track = theStep->GetTrack();
 	  if (track->GetParticleDefinition()->GetParticleName() !="opticalphoton") return;
 
 	  if (theStep->GetPreStepPoint() == NULL) return;
-	  if (theStep->GetPreStepPoint() == NULL) return;
 
-	  if(theStep->GetPreStepPoint()->GetPhysicalVolume() != NULL &&
-			  theStep->GetPostStepPoint()->GetPhysicalVolume()!= NULL) {
+	  std::string preStepPointName  = theStep->GetPreStepPoint()->GetPhysicalVolume()->GetName();
+		  if (preStepPointName.find("aerogel")==std::string::npos && preStepPointName.find("ARICH")==std::string::npos)
+		  {
+			  std::cout<<"preStepName "<<preStepPointName<<std::endl;
+			  track->SetTrackStatus(fStopAndKill); 
+			  return; 
+		  }
 
-		  std::string preStepPointName  = theStep->GetPreStepPoint()->GetPhysicalVolume()->GetName();
-		  if (preStepPointName != "ARICH_phys" ) 
-		  { track->SetTrackStatus(fStopAndKill); return; }
-	  }
-
-	  //     std::cerr << " Leaving OpticalAction::SteppingAction " << std::endl;
   }// end of OpticalAction::SteppingAction
 
 
