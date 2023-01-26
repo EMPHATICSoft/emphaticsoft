@@ -80,7 +80,6 @@ namespace emph {
     //
     // Internal stepping function, for geantinos, vs ASCII tracking, vs high statistics geantinos. 
     //
-    int findBlockNumberFromName (const G4VPhysicalVolume *pVol);
   };
 
 } // namespace emph

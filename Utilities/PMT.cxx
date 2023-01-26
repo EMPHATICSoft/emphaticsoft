@@ -13,14 +13,14 @@ namespace emph {
 	namespace arich_util {
 
 		PMT::PMT() :
-			fPMTnum(-1), fDarkRate(0), fQECorrection(1)
+			fPMTnum(-1), fName(""), fDarkRate(0), fQECorrection(1)
 		{
 		}
 
 		//--------------------------------------------------------------------------------
 
-		PMT::PMT(int n, double dark, double qecor, std::vector<std::pair<double, double> > qe) :
-			fPMTnum(n), fDarkRate(dark), fQECorrection(qecor), fQE(qe)
+		PMT::PMT(int n, std::string name, double dark, double qecor, std::vector<std::pair<double, double> > qe) :
+			fPMTnum(n), fName(name), fDarkRate(dark), fQECorrection(qecor), fQE(qe)
 		{
 		}
 

@@ -114,6 +114,7 @@ namespace emph {
 
 				int NPMTs() const { return fNPMTs; }
 				emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
+				emph::arich_util::PMT FindPMTByName(std::string name);
 
 				//    TGeoMaterial* Material(double x, double y, double z) const;
 

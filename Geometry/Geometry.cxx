@@ -157,8 +157,8 @@ namespace emph {
 				double w,q;
 				w = matrix->Get(i,0);
 				q = matrix->Get(i,1);
-				//nm, percent
-				fQEVector.push_back(std::make_pair(w*1e-9,q*1e-2));
+				//nm->mm, percent->probability
+				fQEVector.push_back(std::make_pair(w*1e-6,q*1e-2));
 			}
 			sort(fQEVector.begin(),fQEVector.end());
 
@@ -259,6 +259,7 @@ namespace emph {
 					int num = mpmt.findBlockNumberFromName(name);
 					if(num<0)continue;
 					mpmt.SetPMTnum(num);
+					mpmt.SetName(name);
 					mpmt.SetQE(qeV);
 					mpmt.SetDarkRate(darkr);
 
@@ -333,6 +334,15 @@ namespace emph {
 				fSSDStation.push_back(st);
 			}
 
+		}
+
+		emph::arich_util::PMT Geometry::FindPMTByName(std::string name)
+		{
+			for(int i=0; i<fNPMTs; i++){
+				if(fPMT[i].Name()==name)return fPMT[i];
+			}
+			mf::LogWarning("LoadNewGeometry") << "Cannot Find PMT " << name << "\n" << "Using PMT No. 0 as an instance \n";
+			return fPMT[0];
 		}
 
 	} // end namespace geo
