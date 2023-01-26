@@ -14,7 +14,9 @@
 #include <string>
 #include <vector>
 #include "TVector3.h"
+#include "TGDMLMatrix.h"
 #include "Geometry/DetectorDefs.h"
+#include "Utilities/PMT.h"
 
 class TGeoNode;
 class TGeoVolume;
@@ -108,8 +110,11 @@ namespace emph {
 
 				int NSSDStations() const { return fNSSDStations; }
 				int NSSDs() const { return fNSSDs; }
-
 				SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
+
+				int NPMTs() const { return fNPMTs; }
+				emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
+				emph::arich_util::PMT FindPMTByName(std::string name);
 
 				//    TGeoMaterial* Material(double x, double y, double z) const;
 
@@ -121,6 +126,8 @@ namespace emph {
 				Geometry();
 
 				bool LoadGDMLFile();
+				std::vector<std::pair<double, double> > ReadMatrix(TGDMLMatrix* matrix);
+				void ExtractPMTInfo(const TGeoVolume* v);
 				void ExtractDetectorInfo(int i, const TGeoNode* n);
 				void ExtractMagnetInfo(const TGeoVolume* v);
 				void ExtractSSDInfo(const TGeoNode* n);
@@ -138,6 +145,9 @@ namespace emph {
 				double fDetectorUSZPos[NDetectors];
 				double fDetectorDSZPos[NDetectors];
 				bool fDetectorLoad[NDetectors];
+
+				int    fNPMTs;
+				std::vector<emph::arich_util::PMT> fPMT;
 
 				TGeoManager* fGeoManager;
 

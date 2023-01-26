@@ -22,7 +22,6 @@
 #include "TGeoMaterial.h"
 #include <TGeoManager.h>
 #include "TH2D.h"
-#include "TRandom3.h"
 
 // G4 includes
 #include "Geant4/G4Event.hh"
@@ -34,6 +33,7 @@
 #include "Geant4/G4SystemOfUnits.hh"
 #include "Geant4/globals.hh"
 #include "Geant4/G4Poisson.hh"
+#include "Geant4/G4PhysicalConstants.hh"
 
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -97,16 +97,19 @@ namespace emph
 	  G4VPhysicalVolume* postvolume = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
 
 	  if (aTrack->GetTrackStatus()==fStopAndKill && aTrack->GetParticleDefinition()->GetParticleName() =="opticalphoton" && postvolume){
-		  int blknum = findBlockNumberFromName(postvolume);
+		  std::string pVolName = postvolume->GetName();
+		  if(pVolName.find("PMT_phys") == std::string::npos)return;
+		  emph::arich_util::PMT mpmt = fGeo->Geo()->FindPMTByName(pVolName);
 
-		  if(blknum>=0){
+		  double e = step->GetPreStepPoint()->GetTotalEnergy();
+		  std::cout<<"e "<<e<<std::endl;
+		  double l = h_Planck*c_light/e;//mm
+		  //std::cout<<"wavelength "<<l<<" mm"<<std::endl;
 
-			  // Temporary solution for QE efficiency. Will switch to a separate class hooking info from gdml
-			  TRandom3 *rand = new TRandom3(0);			  
-			  if(rand->Uniform()>0.3) return;
+		  if(mpmt.ifDet(l)){
 
 			  sim::ARICHHit arichHit;
-			  arichHit.SetBlockNumber(blknum);
+			  arichHit.SetBlockNumber(mpmt.PMTnum());
 			  arichHit.AddToAncestorTrack(aTrack->GetParentID());
 			  arichHit.SetTime(step->GetPreStepPoint()->GetGlobalTime()/CLHEP::second);
 
@@ -139,23 +142,4 @@ namespace emph
   {
      
   }
-
-  int ARICHHitAction::findBlockNumberFromName (const G4VPhysicalVolume *pVol) {
-  
-      std::string pVolName = pVol->GetName();
-		std::string blockNumStr;
-		int x, y, ax, ay;
-      if (pVolName.find("mPMT") == 0 ) {
-        blockNumStr = pVolName.substr(9, 1);
-        y = atoi(blockNumStr.c_str());
-        blockNumStr = pVolName.substr(11, 1);
-        x = atoi(blockNumStr.c_str());
-        blockNumStr = pVolName.substr(18, 1);
-		  ay = atoi(blockNumStr.c_str());
-        blockNumStr = pVolName.substr(20, 1);
-		  ax = atoi(blockNumStr.c_str());
-		  return y*1000+x*100+ay*10+ax;
-      }
-      return -1;
-   }
 }//end namespace
