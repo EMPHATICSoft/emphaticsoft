@@ -54,6 +54,24 @@ namespace emph {
 			return false;
 		}
 
+		int PMT::findBlockNumberFromName(std::string name)
+		{
+			int x, y, ax, ay;
+			std::string blockNumStr;
+			if (name.find("mPMT") == 0 ) {
+				blockNumStr = name.substr(9, 1);
+				y = atoi(blockNumStr.c_str());
+				blockNumStr = name.substr(11, 1);
+				x = atoi(blockNumStr.c_str());
+				blockNumStr = name.substr(18, 1);
+				ay = atoi(blockNumStr.c_str());
+				blockNumStr = name.substr(20, 1);
+				ax = atoi(blockNumStr.c_str());
+				return y*1000+x*100+ay*10+ax;
+			}
+			return -1;
+		}
+
 
 	} // end namespace geo
 } // end namespace emph

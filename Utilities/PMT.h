@@ -30,6 +30,7 @@ namespace emph {
 				void SetQE(std::vector<std::pair<double, double> > qe) {fQE = qe;}
 
 				bool ifDet(double wavelength);
+				int findBlockNumberFromName(std::string name);
 
 			private:    
 				int fPMTnum;
