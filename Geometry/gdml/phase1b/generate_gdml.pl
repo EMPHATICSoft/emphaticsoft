@@ -126,6 +126,7 @@ if ( defined $target)
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
+gen_PMTs(); # generates PMTs to be used
 gen_Solids();    # generates solids
 gen_Modules();   # generate modules
 gen_DetEnclosure();   # generate DetEnclosure
@@ -517,6 +518,32 @@ sub gen_Materials()
 	print MAT <<EOF;
 
   @{[ dumpfile('material.gdml')]}
+
+EOF
+
+	close(MAT);
+}
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++ gen_PMTs +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_PMTs() 
+{
+
+	# Create the <PMT> fragment file name,
+	# add file to list of output GDML fragments,
+	# and open it
+	$MAT = "phase1_PMTs" . $suffix . ".gdml";
+	push (@gdmlFiles, $MAT);
+	$MAT = ">" . $MAT;
+	open(MAT) or die("Could not open file $MAT for writing");
+
+
+	print MAT <<EOF;
+
+  @{[ dumpfile('PMT.gdml')]}
 
 EOF
 
