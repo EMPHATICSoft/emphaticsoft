@@ -39,6 +39,7 @@ namespace emph {
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
+	  int fNEvtsCompact;
 	  bool fMomentumIsSet; // a flag to make sure we don't set the momentum more than once in the same job. 
 	  bool fFilesAreOpen;
 	  char fView; 
@@ -78,7 +79,7 @@ namespace emph {
 	  
 	  emph::ssdr::SSDAlignSimpleLinFit myLinFitX, myLinFitY; 
 
-	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV;
+	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV, fFOutCompact;
 	  
 	   
 	public:
@@ -109,6 +110,7 @@ namespace emph {
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 
 	 void  alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
+	 void dumpCompactEvt(int spill, int evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 
 	 private:
 	 
@@ -117,7 +119,7 @@ namespace emph {
 	 bool checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
 //	 double GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX=true) const;
-	 double GetTsFromCluster(char aView, size_t kStation,  double strip) const;
+	 double GetTsFromCluster(char aView, size_t kStation,  size_t sensor, double strip) const;
 	 
 	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
 	  double aRMS = itCl->WgtRmsStrip();
@@ -133,6 +135,11 @@ namespace emph {
 	 }
 	 void openOutputCsvFiles();
 	 void dumpXYInfo(int nHitsT);
+	 // 
+	 // For the 2nd order fitter, write compact events.. and the nominal coordinates. 
+	 //
+	 void writeNominalCoords();
+	 
 	
     };
   

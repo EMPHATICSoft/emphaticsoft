@@ -26,14 +26,14 @@ namespace emph {
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1() :
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fMomentumIsSet(false), fFilesAreOpen(false),
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fStation(2), fAlt45(false), fSensor(-1),
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), fChiSqCutXY(100.),
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
-       fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(4, 0.), fZCoordVs(2, 0.),
+       fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(2, 0.), fZCoordVs(4, 0.),
        fNominalOffsetsX(fNumStations, 0.), fNominalOffsetsY(fNumStations, 0.), 
        fNominalOffsetsXAlt45(fNumStations, 0.), fNominalOffsetsYAlt45(fNumStations, 0.), 
-       fNominalOffsetsU(4, 0.), fNominalOffsetsV(2, 0.),
+       fNominalOffsetsU(2, 0.), fNominalOffsetsV(4, 0.),
        fFittedResidualsX(fNumStations, 0.), fFittedResidualsY(fNumStations, 0.),
        fPitchAngles(fNumStations, 0.), fPitchAnglesAlt(fNumStations, 0.), 
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
@@ -44,17 +44,18 @@ namespace emph {
      { 
         ; 
      }
-     SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1(char aView, int aStation, bool alt45) : 
+     // Out dated constructor, to be deleted at some point. 
+     SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1(char aView, int aStation, bool alt45) :  
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fMomentumIsSet(false), fFilesAreOpen(false),
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fMomentumIsSet(false), fFilesAreOpen(false),
        fView(aView), fStation(aStation), fAlt45(alt45), 
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), fChiSqCutXY(100.),
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
-       fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(4, 0.), fZCoordVs(2, 0.),
+       fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(2, 0.), fZCoordVs(4, 0.),
        fNominalOffsetsX(fNumStations, 0.), fNominalOffsetsY(fNumStations, 0.), 
        fNominalOffsetsXAlt45(fNumStations, 0.), fNominalOffsetsYAlt45(fNumStations, 0.), 
-       fNominalOffsetsU(4, 0.), fNominalOffsetsV(2, 0.),
+       fNominalOffsetsU(2, 0.), fNominalOffsetsV(4, 0.),
        fFittedResidualsX(fNumStations, 0.),  fFittedResidualsY(fNumStations, 0.),
        fPitchAngles(fNumStations, 0.), fPitchAnglesAlt(fNumStations, 0.), 
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
@@ -107,13 +108,13 @@ namespace emph {
        fZCoordYs[5] = zCoordYs[7];
        myLinFitX.SetZCoords(fZCoordXs);
        myLinFitY.SetZCoords(fZCoordYs);
-       if (zCoordUs.size() != 4) {
-         std::cerr <<  " SSDAlign3DUVAlgo1::InitializeCoords,, unexpected number of U planes. should be 4 of them, we have " 
+       if (zCoordUs.size() != 2) {
+         std::cerr <<  " SSDAlign3DUVAlgo1::InitializeCoords,, unexpected number of U planes. should be 2 of them, we have " 
 	           <<  zCoordUs.size()  << " fatal, here and now " << std::endl;
 		   exit(2);
        }
-       if (zCoordVs.size() != 2) {
-         std::cerr <<  " SSDAlign3DUVAlgo1::InitializeCoords,, unexpected number of V planes. should be 2 of them, we have " 
+       if (zCoordVs.size() != 4) {
+         std::cerr <<  " SSDAlign3DUVAlgo1::InitializeCoords,, unexpected number of V planes. should be 4 of them, we have " 
 	           <<  zCoordVs.size()  << " fatal, here and now " << std::endl;
 		   exit(2);
        }
@@ -127,15 +128,19 @@ namespace emph {
         fNominalOffsetsX[k] = fHalfWaferWidth;
         fNominalOffsetsY[k] = -fHalfWaferWidth;
       } 
-       for (size_t k=4; k != 6; k++) {
+       for (size_t k=4; k != 6; k++) { // for Station 4 and 5, 
         fNominalOffsetsX[k] = 2.0*fHalfWaferWidth;
         fNominalOffsetsY[k] = 2.0*fHalfWaferWidth;
        } 
-       for (size_t k=0; k != 4; k++) {
+       for (size_t k=0; k != 2; k++) { // for Station 2 and 3 
         fNominalOffsetsU[k] = -fHalfWaferWidth;
-        if (k < 2) fNominalOffsetsV[k] = -2.0*fHalfWaferWidth; // To be checked.. 
       } 
-       
+        for (size_t k=0; k != 4; k++) { // for Station 4 and 5,  
+        fNominalOffsetsV[k] = 2.0*fHalfWaferWidth;
+        if ((k == 1) || (k == 2)) fNominalOffsetsV[k] = -2.0*fHalfWaferWidth; // To be checked.. 
+        if (k == 3) fNominalOffsetsV[k] = -2.0*fHalfWaferWidth; // To be checked.. 
+      } 
+      
        
 //       std::cerr << " SSDAlign3DUVAlgo1::InitailizeCoords  " << std::endl;
        //
@@ -159,6 +164,10 @@ namespace emph {
       if (fFOutXY.is_open()) fFOutXY.close();
       if (fFOutXYU.is_open()) fFOutXYU.close();
       if (fFOutXYV.is_open()) fFOutXYV.close();
+      if (fFOutCompact.is_open()) {
+          std::cerr << " Closing the compact event data with " << fNEvtsCompact << " events selected " << std::endl;
+          fFOutCompact.close();
+      }
      }
      void ssdr::SSDAlign3DUVAlgo1::SetForMomentum(double p) {
        if (fMomentumIsSet) {
@@ -183,14 +192,13 @@ namespace emph {
        fNameXYVStrStr << "SSDAlign3DXYV_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
        std::string fNameXYVStr(fNameXYVStrStr.str());
        fFOutXYV.open(fNameXYVStr.c_str());
-       fFOutXYV << " spill evt kSt iHV xPred xPredErr yPred yPredErr wPred wObs chiSq " << std::endl;
+       fFOutXYV << " spill evt kSt iHV xPred xPredErr yPred yPredErr wPred wObs chiSq sensor " << std::endl;
      } 
 
      //
-     // This is cloned code!.. See SSDAlign2DXY to be cleaned up. 
+     // This is cloned code!.. See SSDAlign2DXY to be cleaned up.  This is a more recent version, better..  
      //
-//     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX) const 
-     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation,  double strip) const 
+     double ssdr::SSDAlign3DUVAlgo1::GetTsFromCluster(char aView, size_t kStation, size_t sensor,  double strip) const 
      {
           const bool alternate45 = false; // we will use only 
 	  double aVal = 0.;
@@ -221,14 +229,24 @@ namespace emph {
 	       return aVal;
 	       break; 
 	      }
-	      case 'U' :
+	      case 'U' : // Station 2 and 3 
 	      {
-		 aVal =  (strip*fPitch + fNominalOffsetsY[kStation-2]  + 1.0e-10);
+		 aVal =  (strip*fPitch + fNominalOffsetsU[kStation-2]  + 1.0e-10);
 	         return aVal;
 	      } 
-	      case 'V' :
+	      case 'V' :// Station 4 and 5, double sensors.  
 	      {
-		 aVal =  (strip*fPitch + fNominalOffsetsY[kStation-2]  + 1.0e-10);
+	         if (kStation < 4) {
+	            std::cerr << " SSDAlign3DUVAlgo1::getTsFromCluster, unexpected station " << kStation 
+		              << " for W view internal error, fatal " << std::endl; exit(2);
+		 }
+	         if (sensor < 4) {
+	            std::cerr << " SSDAlign3DUVAlgo1::getTsFromCluster, unexpected sensor " << sensor 
+		              << " for W view internal error, fatal " << std::endl; exit(2);
+		 }
+	         size_t indexNom = 2*(kStation-4) + (sensor-4);
+		 aVal =  (strip*fPitch + fNominalOffsetsV[indexNom]  + 1.0e-10);
+		 if ((kStation == 5) && (sensor == 4)) aVal *= -1.;
 	        return aVal;
 	      } 
 	      default :
@@ -307,8 +325,8 @@ namespace emph {
 	    if (debugIsOn) std::cerr << " .... No hits for station " << kSt << std::endl;
 	  } else {
 	    double aStrip = mySSDClsPtrsFirst[kSt]->WgtAvgStrip();
-	    if (theView == rb::X_VIEW) tsData[kSt] = GetTsFromCluster('X', kSt, aStrip);
-	    else tsData[kSt] = GetTsFromCluster('Y', kSt, aStrip);
+	    if (theView == rb::X_VIEW) tsData[kSt] = GetTsFromCluster('X', kSt, 0, aStrip); // sensor number does not matter.. for X view... 
+	    else tsData[kSt] = GetTsFromCluster('Y', kSt, 0, aStrip);
 	    tsDataErr[kSt] = GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
 	    if (debugIsOn) {
 	       if (theView == rb::X_VIEW) std::cerr << " .... For station " << kSt << " strip " << aStrip 
@@ -362,8 +380,8 @@ namespace emph {
 	  if (i2 == 2) itcl2 = mySSDClsPtrs3rd[2];
 	  if (itcl2 == aSSDClsPtr->cend()) continue; //do not allow for missing hits... 
 	  double aStrip2 = itcl2->WgtAvgStrip();
-	  if (theView == rb::X_VIEW) tsDataAlt[2] = GetTsFromCluster('X', 2, aStrip2);
-	  else tsDataAlt[2] = GetTsFromCluster('Y', 2, aStrip2);
+	  if (theView == rb::X_VIEW) tsDataAlt[2] = GetTsFromCluster('X', 2, 0, aStrip2);
+	  else tsDataAlt[2] = GetTsFromCluster('Y', 2, 0, aStrip2);
 	  tsDataAltErr[2] = GetTsUncertainty(2, itcl2);
 	  
 	 
@@ -373,8 +391,8 @@ namespace emph {
 	    if (i3 == 2) itcl3 = mySSDClsPtrs3rd[3];
 	    if (itcl3 == aSSDClsPtr->cend()) continue;
 	    double aStrip3 = itcl3->WgtAvgStrip();
-	    if (theView == rb::X_VIEW) tsDataAlt[3] = GetTsFromCluster('X', 3, aStrip3);
-	    else tsDataAlt[3] = GetTsFromCluster('X', 3, aStrip3);
+	    if (theView == rb::X_VIEW) tsDataAlt[3] = GetTsFromCluster('X', 3, 0, aStrip3);
+	    else tsDataAlt[3] = GetTsFromCluster('X', 3, 0, aStrip3);
 	    tsDataAltErr[3] = GetTsUncertainty(3, itcl3);
 	    
 	    for (int i4 = 0; i4 != numMaxH2345; i4++) {
@@ -383,8 +401,8 @@ namespace emph {
 	      if (i4 == 2) itcl4 = mySSDClsPtrs3rd[4];
 	      if (itcl4 == aSSDClsPtr->cend()) continue;
 	      double aStrip4 = itcl4->WgtAvgStrip();
-	      if (theView == rb::X_VIEW) tsDataAlt[4] = GetTsFromCluster('X', 4, aStrip4);
-	      else tsDataAlt[4] = GetTsFromCluster('Y', 4, aStrip4);
+	      if (theView == rb::X_VIEW) tsDataAlt[4] = GetTsFromCluster('X', 4, 0, aStrip4);
+	      else tsDataAlt[4] = GetTsFromCluster('Y', 4, 0, aStrip4);
 	      tsDataAltErr[4] = GetTsUncertainty(4, itcl4);
 	    
 	      for (int i5 = 0; i5 != numMaxH2345; i5++) {
@@ -393,8 +411,8 @@ namespace emph {
 	        if (i5 == 2) itcl5 = mySSDClsPtrs3rd[5];
 	        if (itcl5 == aSSDClsPtr->cend()) continue;
 	        double aStrip5 = itcl5->WgtAvgStrip();
-	        if (theView == rb::X_VIEW) tsDataAlt[5] = GetTsFromCluster('X', 5, aStrip5);
-		else tsDataAlt[5] = GetTsFromCluster('Y', 5, aStrip5);
+	        if (theView == rb::X_VIEW) tsDataAlt[5] = GetTsFromCluster('X', 5, 0, aStrip5);
+		else tsDataAlt[5] = GetTsFromCluster('Y', 5, 0, aStrip5);
 	        tsDataAltErr[5] = GetTsUncertainty(5, itcl5);
 		
 		if (theView == rb::X_VIEW) {  
@@ -508,15 +526,18 @@ namespace emph {
        }
        double chiBest = DBL_MAX; int ihSelBest = INT_MAX;
        double uvObsBest = DBL_MAX;
+       int sensorBest = -1;
        int ihSel = 0;
        for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
           if (itCl->View() != view) continue;
 	  const size_t kSt = static_cast<size_t>(itCl->Station());
           if (kSt != kStation) continue;
           const double aStrip = itCl->WgtAvgStrip();
-//	  double xObs = this->GetTsFromCluster(cView, kStation, aStrip, true);  // Twice th strip  strip ? 
-//	  double yObs = this->GetTsFromCluster(cView, kStation, aStrip, false);
-          const double uvObs =  this->GetTsFromCluster(cView, kStation, aStrip);
+          const double uvObs =  this->GetTsFromCluster(cView, kStation, itCl->Sensor(), aStrip);
+	  // special case for station 5, sometimes.. 
+	  if ((kSt == 5) && (itCl->View() == rb::W_VIEW)) {
+	    if (debugIsOn) std::cerr << " ... .... W view, Sensor " << itCl->Sensor() <<  std::endl;
+	  } 
 	  const double uvObsUncert = this->GetTsUncertainty(kStation, itCl);
 	  const double uvUncertSq = uvObsUncert*uvObsUncert + 0.5 * (xPredErrSq + yPredErrSq);
 	  double duv = (cView == 'U') ? (uPred - uvObs) : (wPred - uvObs);
@@ -527,6 +548,7 @@ namespace emph {
 	    uvObsBest = uvObs;
 	    chiBest = chi;
 	    ihSelBest = ihSel;
+	    sensorBest = itCl->Sensor();  
 	  }
 	  ihSel++;
 	  
@@ -539,7 +561,7 @@ namespace emph {
        if (cView == 'U') {
          fFOutXYU << headStr << " " << uPred << " " << uvObsBest << " " << chiBest << std::endl;
        } else {
-         fFOutXYV << headStr << " " << wPred << " " << uvObsBest << " " << chiBest << std::endl;
+         fFOutXYV << headStr << " " << wPred << " " << uvObsBest << " " << chiBest << " " << sensorBest << std::endl;
        } 
        return true;	 
      } 
@@ -573,18 +595,18 @@ namespace emph {
 //       if (gotX || gotY) this->dumpXYInfo(static_cast<int>(aSSDClsPtr->size())); Move to RecoBeamTrackAlgo1
        if (gotX && gotY) {
          int numUVCheck = 0; 
-         for (size_t kStU=2; kStU != fNumStations; kStU++) {
+         for (size_t kStU=2; kStU != fNumStations-2; kStU++) {
            if (this->checkUV(rb::U_VIEW, kStU, aSSDClsPtr)) numUVCheck++;
          }
 	 if (numUVCheck == 1) fTrXY.SetType(rb::XYUCONF1);
 	 if (numUVCheck == 2) fTrXY.SetType(rb::XYUCONF2);
+	 // Not worth doing.. stereo angle clearly wrong, of mis labeled. Well, try it again.. 
+         for (size_t kStV=4; kStV != fNumStations; kStV++) {
+           this->checkUV(rb::W_VIEW, kStV, aSSDClsPtr);
+         }
 	 if (numUVCheck == 3) fTrXY.SetType(rb::XYUCONF3);
 	 if (numUVCheck == 4) fTrXY.SetType(rb::XYUCONF4);
        }
-	 // Not worth doing.. stereo angle clearly wrong, of mis labeled. 
-//         for (size_t kStV=4; kStV != fNumStations; kStV++) {
-//           this->checkUV(rb::W_VIEW, kStV, aSSDClsPtr);
-//         }
        if(fEvtNum > 250000000) {
          std::cerr << " ssdr::SSDAlign3DUVAlgo1::alignIt, quit here and at event " << fEvtNum << " quit now ! " << std::endl;
 	 exit(2); 

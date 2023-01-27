@@ -91,7 +91,8 @@ namespace emph {
       bool fSelectHotChannelsFromHits; // Probably a better way.    
       bool fDoAlignX;    
       bool fDoAlignY;  
-      bool fDoAlignUV;  
+      bool fDoAlignUV; 
+      bool fDoGenCompact; 
       bool fDoAlignXAlt45;  
       bool fDoAlignYAlt45;  
       bool fDoAlignYAlt5;  
@@ -161,7 +162,8 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
+    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoGenCompact(false),
+    fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
      fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.), fSetMCRMomentum(120.),
@@ -190,6 +192,7 @@ namespace emph {
       fDoAlignX = pset.get<bool>("alignX", false);
       fDoAlignY = pset.get<bool>("alignY", false);
       fDoAlignUV = pset.get<bool>("alignUV", false);
+      fDoGenCompact = pset.get<bool>("genCompactEvts", false);
       fDoAlignXAlt45 = pset.get<bool>("alignXAlt45", false);
       fDoAlignYAlt45 = pset.get<bool>("alignYAlt45", false);
       fDoAlignYAlt5 = pset.get<bool>("alignYAlt5", false);
@@ -207,7 +210,9 @@ namespace emph {
       std::vector<double> aTransUncert =  pset.get<std::vector<double> >("TransPosUncert", std::vector<double>(6, 0.));
       std::vector<double> aMeanResidY =  pset.get<std::vector<double> >("MeanResidualsY", std::vector<double>(6, 0.));
       std::vector<double> aMeanResidX =  pset.get<std::vector<double> >("MeanResidualsX", std::vector<double>(6, 0.));
-      
+//      if (fDoGenCompact)  std::cerr << " StudyOneSSDCluster, we should generate the compact data set " << std::endl;
+//      else std::cerr << " StudyOneSSDCluster, we should NOT generate the compact data set " << std::endl;
+//      std::cerr << " ...and quit for now.. " << std::endl; exit(2);
 //      double aRefPointPitchOrYawAngle = pset.get<double>("RefPointPitchOrYawAngle", 3.0); // in mm, in the local frame of the sensor. 
 //    confusing and not needed. 
       std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
@@ -297,14 +302,16 @@ namespace emph {
 	    YRotYPlanes.push_back(aPlane.Rot());
 	    viewChar = 'Y';
 	  }
-	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocUPlanes.push_back(pos[2] + posSt[2]);
-	    XRotUPlanes.push_back(aPlane.Rot());
-	    viewChar = 'U';
-	  }
 	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos();
+	    if (fZlocUPlanes.size() < 2) { // From what I have been told.. 
+	      fZlocUPlanes.push_back(pos[2] + posSt[2]);
+	      XRotUPlanes.push_back(aPlane.Rot());
+	    }
+	    viewChar = 'U';
+	  }
+	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
+	    TVector3 pos = aPlane.Pos(); 
 	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
 	    XRotVPlanes.push_back(aPlane.Rot());
 	    viewChar = 'V';
@@ -378,6 +385,7 @@ namespace emph {
         fFOutA1V << headerS << std::endl;
       }
       fFilesAreOpen = true;
+      
     }
     
     void emph::StudyOneSSDClusters::endJob() {
@@ -561,7 +569,11 @@ namespace emph {
         fAlignX.alignItAlt45(false, evt, fSSDcls);
       } 
       if (fDoAlignUV) {
-        fAlignUV.alignIt(evt, fSSDClsPtr);   
+        fAlignUV.alignIt(evt, fSSDClsPtr);
+	if (fDoGenCompact) {
+//	   std::cerr << " emph::StudyOneSSDClusters::alignFiveStations calling dumpCompactEvt, and quit here and now .. " << std::endl; exit(2);
+	   fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, fSSDClsPtr);
+	}  
       }
     }
     void emph::StudyOneSSDClusters::analyze(const art::Event& evt) {

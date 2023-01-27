@@ -66,8 +66,10 @@ namespace emph {
 	           << zCoords.size() << " fatal, and that is it! " << std::endl; exit(2); 
        }
        for (size_t k=0; k != 5; k++) fZCoords[k] = zCoords[k]; 
-       fZCoords[5] = zCoords[7];
-       myLinFit.SetZCoords(fZCoords);
+       fZCoords[5] = zCoords[7];  // Check this !!!! weird, but I think, correct... 
+       std::cerr << " SSDAlign2DXYAlgo1::InitializeCoords, check for weird Z ";
+       for (size_t kSt=0; kSt != fZCoords.size(); kSt++) std::cerr << " " << fZCoords[kSt]; 
+        myLinFit.SetZCoords(fZCoords);
        std::cerr << " SSDAlign2DXYAlgo1::InitailizeCoords  " << std::endl;
        for (size_t k=0; k != fNumStations; k++) {
         if (std::abs(fZLocShifts[k]) > 1.0e-10) {
