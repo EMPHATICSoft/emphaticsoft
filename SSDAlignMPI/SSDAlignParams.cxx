@@ -1,0 +1,156 @@
+////////////////////////////////////////////////////////////////////////
+/// \brief  The Geometry for the SSD aligner 
+///          Used by main SSD Aligner Algo1 package.   
+/// \author  lebrun@fnal.gov
+/// \date
+////////////////////////////////////////////////////////////////////////
+
+#include <cmath>
+#include <ios>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <climits>
+#include <cfloat>
+
+#include "SSDAlignParams.h"
+
+namespace emph {
+  namespace rbal {
+  
+     SSDAlignParams::SSDAlignParams():
+       myGeo(emph::rbal::BTAlignGeom::getInstance()),
+       fNumStations(myGeo->NumStations()), 
+       fNumSensorsXorY(myGeo->NumSensorsXorY()), 
+       fNumSensorsU(myGeo->NumSensorsU()), 
+       fNumSensorsV(myGeo->NumSensorsV()),
+       fMode("2DY"), // Currently, 2DX, 2DY, 3D Default is 2DY (no magnetic deflection, to 1rst order, so, easiest. 
+       fMoveLongByStation(true)
+     { 
+        this->ReLoad(); 
+     }
+     //
+     // Setters 
+     //
+     void SSDAlignParams::ReLoad() {
+       std::cerr << " SSDAlignParams::ReLoad, mode is " << fMode << std::endl;
+       fDat.clear();
+       int aMinNumber=0;
+       if (fMode == std::string("2DY") || fMode == std::string("3D")) { 
+	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
+	   SSDAlignParam aPar; 
+	   aPar.SetView('Y'); aPar.SetSensor(kSe);
+	   aPar.SetType(emph::rbal::TRSHIFT); 
+	   aPar.SetLimits(std::pair<double, double>(-5., 5.0));
+	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) { 
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
+	   }
+	   aPar.SetType(emph::rbal::ZSHIFT); 
+	   aPar.SetLimits(std::pair<double, double>(-10., 10.0));
+	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) { 
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
+	   }
+	   aPar.SetType(emph::rbal::PITCHCORR); 
+	   aPar.SetLimits(std::pair<double, double>(-0.001, 0.005)); // Should be always positiv, max. tilt of ~ 36 degrees.
+	   // re-scale that, way too large..  
+	   aPar.SetValue(1.0e-6);
+	   aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
+	 }
+	 if (fMode == std::string("2DY")) return;
+       }
+       if (fMode == std::string("2DX") || fMode == std::string("3D")) { 
+	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
+	   SSDAlignParam aPar; 
+	   aPar.SetView('X'); aPar.SetSensor(kSe);
+	   aPar.SetType(emph::rbal::TRSHIFT); 
+	   aPar.SetLimits(std::pair<double, double>(-5., 5.0));
+	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) {
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
+	   }
+	   aPar.SetType(emph::rbal::PITCHCORR); 
+	   aPar.SetLimits(std::pair<double, double>(-0.001, 0.005)); // Should be always positiv, max. tilt of ~ 36 degrees. Way too much. 
+	   // Readjust to something much smaller.. 
+	   aPar.SetValue(1.0e-6);
+	   aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
+	   if (fMoveLongByStation) continue; 
+	   aPar.SetType(emph::rbal::ZSHIFT); 
+	   aPar.SetLimits(std::pair<double, double>(-10., 10.0));
+	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) {
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
+	   }
+	 }
+	 SSDAlignParam aPar2;
+	 aPar2.SetType(emph::rbal::ZMAGC); 
+	 aPar2.SetView('X'); aPar2.SetSensor(0);
+	 aPar2.SetValue(myGeo->ZCoordsMagnetCenter()); // to be refined, once we align from data from Phase1b 
+	 aPar2.SetLimits(std::pair<double, double>(myGeo->ZCoordsMagnetCenter()-10., myGeo->ZCoordsMagnetCenter() + 10.0));
+	 aPar2.CheckAndComposeName(); aPar2.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar2);
+	 aPar2.SetType(emph::rbal::KICKMAGN); 
+	 const double kick = myGeo->MagnetKick120GeV(); aPar2.SetValue(kick);
+	 if (kick > 0.) aPar2.SetLimits(std::pair<double, double>(0.5*kick, 2.0*kick));
+	 else  aPar2.SetLimits(std::pair<double, double>(2.0*kick, 0.5*kick));
+	 aPar2.CheckAndComposeName();aPar2.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar2);
+	 if (fMode == std::string("2DX")) return;
+      }
+      if (fMode == std::string("3D")) {  // Adding U, V views .  But first, Rolls and Pitch size for X and Y views. 
+         std::vector<char> views{'X', 'Y', 'U', 'V'};
+	 for (size_t kV = 0; kV !=2; kV++) { 
+ 	   for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { // Reference frame is defined, station 0 & station 5 could have tilts and Rolls
+	     SSDAlignParam aPar; 
+	     aPar.SetType(emph::rbal::ROLL); 
+	     aPar.SetLimits(std::pair<double, double>(-0.25, 0.25));
+	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
+	   }
+         }
+	 // U views and V views 
+	 std::vector<size_t> nums{fNumSensorsU, fNumSensorsV};
+	 for (size_t kV = 2; kV !=4; kV++) { 
+ 	   for (size_t kSe=1; kSe != nums[kV-2]; kSe++) {
+	     SSDAlignParam aPar; 
+	     aPar.SetType(emph::rbal::TRSHIFT); 
+	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
+	     aPar.SetLimits(std::pair<double, double>(-5., 5.0));
+	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
+	     if (!fMoveLongByStation) {
+	       aPar.SetType(emph::rbal::ZSHIFT); 
+	       aPar.SetLimits(std::pair<double, double>(-10., 10.0));
+	       aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	       aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
+	     }
+	     aPar.SetType(emph::rbal::PITCHCORR); 
+	     aPar.SetLimits(std::pair<double, double>(-0.001, 0005)); // always positiv, max. tilt of ~ 36 degrees. 
+	     aPar.SetValue(1.0e-6);
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
+	     aPar.SetType(emph::rbal::ROLL); 
+	     aPar.SetLimits(std::pair<double, double>(-0.25, 0.25));
+	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
+	  } // on Sensors  
+        } // on Views 
+      } // 3D 
+    } // Reload
+    
+    void SSDAlignParams::DumpTable(const std::string &token) const {
+      std::string fName("./AlignParams_"); fName += token; fName += std::string("_"); fName += fMode; 
+      fName += std::string("_V1.txt");
+      std::ofstream fOut(fName.c_str());
+      fOut << " name number value DownLimit UpLimit " << std::endl;
+      for (std::vector<SSDAlignParam>::const_iterator it=fDat.cbegin(); it!=fDat.cend(); it++) { 
+        fOut << " " << it->Name() << " " << it->MinuitNumber() << " " 
+	     << it->Value() << " " << it->Limits().first << " " << it->Limits().second << std::endl;
+      }
+      fOut.close();
+    } 
+//     
+   } // namespace 
+}  // namespace   
+     
