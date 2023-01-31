@@ -39,9 +39,11 @@ namespace emph {
        aFOut.close();
     }
     
-    void SSDAlign3DUVAlgo1::dumpCompactEvt(int spill, int evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+    void SSDAlign3DUVAlgo1::dumpCompactEvt(int spill, int evt, bool strictY6St, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
       if (!fFOutCompact.is_open()) {
-       std::ostringstream aFOutCompactStrStr; aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1b.dat";
+       std::ostringstream aFOutCompactStrStr; 
+       if (!strictY6St) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1b.dat";
+       else aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1c.dat";
        std::string aFOutCompactStr(aFOutCompactStrStr.str());
        fFOutCompact.open(aFOutCompactStr.c_str(),  std::ios::binary | std::ios::out);
        this->writeNominalCoords();
@@ -96,7 +98,14 @@ namespace emph {
       //
       // allow for 1 missing hit missing in all views, but no extra cluster  
       //
-      for (size_t kSt=0; kSt != fNumStations+2; kSt++) if ( (nClX[kSt] > 1) || (nClY[kSt] > 1)) return ;
+      if (!strictY6St) { 
+        for (size_t kSt=0; kSt != fNumStations+2; kSt++) if ( (nClX[kSt] > 1) || (nClY[kSt] > 1)) return ;
+      } else {
+        if ((nClY[4] > 0) || (nClY[6] > 0)) return;
+	for (size_t kSt=0; kSt != fNumStations+2; kSt++) if (nClX[kSt] > 1) return;
+	for (size_t kSt=0; kSt != 4; kSt++) if (nClY[kSt] == 0) return;
+	if ((nClY[5] == 0) || (nClY[7] == 0)) return;
+      }
       int aNumX = 0; for (size_t kSt=0; kSt != fNumStations+2; kSt++) aNumX += nClX[kSt];
       int aNumY = 0; for (size_t kSt=0; kSt != fNumStations+2; kSt++) aNumY += nClY[kSt];
       if ((aNumX < 5) || (aNumY < 5)) return;
@@ -108,7 +117,10 @@ namespace emph {
       // event selected for higher order alignments. 
       //
       int key=687400;
-      int numDouble = 2 * (2*(fNumStations+2) + 2 + 4); // fir 2 is mean & RMS, then, X + Y + U + V
+      if (strictY6St) key++;
+      int numDouble = ( 2 * (2*(fNumStations+2) + 2 + 4)) ; // fir 2 is mean & RMS, then, X + Y + U + V
+      // a bit of memory waste if strictY6 is true, 4 doubles being either 0 or DBL_MAX. 
+      // but keep the code relatively simple. 
       fFOutCompact.write(reinterpret_cast<char*>(&key), sizeof(int)); 
       fFOutCompact.write(reinterpret_cast<char*>(&numDouble), sizeof(int));
       fFOutCompact.write(reinterpret_cast<char*>(&spill), sizeof(int)); 
