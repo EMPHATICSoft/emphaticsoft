@@ -28,7 +28,9 @@ namespace emph {
        fNumSensorsU(myGeo->NumSensorsU()), 
        fNumSensorsV(myGeo->NumSensorsV()),
        fMode("2DY"), // Currently, 2DX, 2DY, 3D Default is 2DY (no magnetic deflection, to 1rst order, so, easiest. 
-       fMoveLongByStation(true)
+       fMoveLongByStation(true),
+       fUseSoftLimits(false), // irrelevant here, I would think.. 
+       fStrictSt6(true)  
      { 
         this->ReLoad(); 
      }
@@ -41,6 +43,7 @@ namespace emph {
        int aMinNumber=0;
        if (fMode == std::string("2DY") || fMode == std::string("3D")) { 
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
+           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
 	   SSDAlignParam aPar; 
 	   aPar.SetView('Y'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 
@@ -65,6 +68,7 @@ namespace emph {
        }
        if (fMode == std::string("2DX") || fMode == std::string("3D")) { 
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
+           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
 	   SSDAlignParam aPar; 
 	   aPar.SetView('X'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 

@@ -48,6 +48,8 @@ int main(int argc, char **argv) {
 				      // indeed, making a new subfit type, allowing for TrShift + Magnet 
    int SensorForFitSubType(INT_MAX); // Valid strings are "All" (nothing fixed), TRShift, PitchCorr, 
    int maxEvts = 1000000;
+   bool strictSt6 = true;
+   
    size_t kSeTrShifted = INT_MAX;
    std::string viewShifted("none");
    double trShift = 0.;
@@ -61,6 +63,13 @@ int main(int argc, char **argv) {
    unsigned int  scanP1Index = INT_MAX;
    unsigned int  scanP2Index = INT_MAX;
    int nScanPts = 50;
+   bool doSoftLimits = false;
+   bool applyEmittanceConstraint = false;
+   double betaFunctionY = 1357.; // Only valid for 120 GeV  See e-mail from Mike Olander, Jan 20 
+   double betaFunctionX = 377.; // Only valid for 120 GeV 
+   double alphaFunctionY = -25.1063; // same..  
+   double alphaFunctionX = -8.62823; // 
+  
      
     MPI_Init(NULL, NULL);
 
@@ -89,6 +98,14 @@ int main(int argc, char **argv) {
         } else if (parStr.find("maxEvt") != std::string::npos) {
           valStrStr >> maxEvts;
           if (myRank == 0) std::cerr << " Requested number of events  "  << maxEvts << std::endl;
+        } else if (parStr.find("strictSt6") != std::string::npos) {
+          int iS=0;
+          valStrStr >> iS;
+	  strictSt6 = (iS == 1);
+          if (myRank == 0) {
+	    if (strictSt6) std::cerr << " We will require 6 Y view hits, no more, no less  "  << std::endl;
+	    else std::cerr << " Allowing for one missing hits in the Y view, includes less illuminated station 4 & 5 sensors  "  << std::endl;
+	  }  
         } else if (parStr.find("spill") != std::string::npos) {
           valStrStr >> selectedSpill;
           if (myRank == 0) std::cerr << " Requested spill  "  << selectedSpill << std::endl;
@@ -132,6 +149,25 @@ int main(int argc, char **argv) {
           if ((myRank == 0) && doCallFCNOnce)  std::cerr << "We will do a single call to FCN, and quit  " << std::endl;
           if ((myRank == 0) && (!doCallFCNOnce))  std::cerr << "We will do the complete fit.  " << std::endl;
          } else if (parStr.find("doMinos") != std::string::npos) {
+        } else if (parStr.find("softLimits") != std::string::npos) {
+          int iS;
+          valStrStr >> iS;
+	  doSoftLimits = (iS == 1);
+          if ((myRank == 0) && doSoftLimits)  std::cerr << "We will use soft limit, assume a Gaussian model for errors (now default)   " << std::endl;
+          if ((myRank == 0) && (!doSoftLimits))  std::cerr << "We will use strict limit on survey params, i.e., define . Minuit Limits  " << std::endl;
+         } else if (parStr.find("beamConstraint") != std::string::npos) {
+          int iS;
+          valStrStr >> iS;
+	  applyEmittanceConstraint = (iS == 1);
+          if ((myRank == 0) && applyEmittanceConstraint)  std::cerr << "We will use apply beam emittance constraint, assuming 120 GeV    " << std::endl;
+          if ((myRank == 0) && (!applyEmittanceConstraint))  std::cerr << "We will NOT use beam emittance constrain (default)   " << std::endl;
+         } else if (parStr.find("betaFuncY") != std::string::npos) {
+          valStrStr >> betaFunctionY;
+          if (myRank == 0) std::cerr << " Twiss beta Function, Vertical     "  << betaFunctionY << std::endl;	
+         } else if (parStr.find("betaFuncX") != std::string::npos) {
+          valStrStr >> betaFunctionX;
+          if (myRank == 0) std::cerr << " Twiss beta Function, Horizontal     "  << betaFunctionX << std::endl;	
+        } else if (parStr.find("doMinos") != std::string::npos) {
           int iDoMinos;
           valStrStr >> iDoMinos;
 	  doMinos = (iDoMinos == 1);
@@ -160,7 +196,10 @@ int main(int argc, char **argv) {
     std::string topDirAll("/home/lebrun/EMPHATIC/DataLaptop/");
     std::string myHostName(std::getenv("HOSTNAME"));
     if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/"); // On fnal Wilson
-    std::string aFName(topDirAll);  aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    std::string aFName(topDirAll);  
+    if (!strictSt6) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    else aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1c.dat");
+
      
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -173,7 +212,10 @@ int main(int argc, char **argv) {
     	      << " option " << token <<  " starting at " << dateNow << std::endl;
 	      
      emph::rbal::BTAlignInput myBTIn;
+     
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
+     if (strictSt6) { numExpected = 58586; myBTIn.SetKey(687401); }
+     
      if (myRank == 0)  {
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;
@@ -186,8 +228,11 @@ int main(int argc, char **argv) {
     
     emph::rbal::BTAlignGeom *myGeo = emph::rbal::BTAlignGeom::getInstance();
     emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance();
+    myParams->SetStrictSt6(strictSt6); 
     //
     myParams->SetMode(fitType);
+    myParams->SetSoftLimits(doSoftLimits);
+    
     if (fitType == std::string("2DX")); myParams->SetMoveLongByStation(false);
     if ((fitType == std::string("2DY")) || (fitType == std::string("3D"))) {
     /*
@@ -282,7 +327,6 @@ int main(int argc, char **argv) {
 //    exit(2);
 
     ROOT::Minuit2::MnUserParameters uPars;
-    size_t kPar = 0;
     for (size_t kPar=0; kPar != myParams->size();  kPar++) { 
       std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
       std::string aName(itP->Name());
@@ -290,15 +334,24 @@ int main(int argc, char **argv) {
       double err = 0.1*std::abs(itP->Limits().second);
       if (err < 1.0e-10) err = 0.1;
       uPars.Add(aName, aValue, err);
-      uPars.SetLimits(aName, itP->Limits().first, itP->Limits().second);
+      if (!doSoftLimits) uPars.SetLimits(aName, itP->Limits().first, itP->Limits().second);
     }
     
     
     emph::rbal::BeamTrackSSDAlignFCN theFCN(fitType, &myBTIn);
+    theFCN.SetSoftLimits(doSoftLimits);
+    theFCN.SetBeamConstraint(applyEmittanceConstraint);
+    // Wrong value above... 
+//    if (applyEmittanceConstraint) { 
+//      theFCN.SetBeamAlphaBetaFunctionY(alphaFunctionY, betaFunctionY); 
+//      theFCN.SetBeamAlphaBetaFunctionX(alphaFunctionX, betaFunctionX);
+//    } 
+    //
+    
     if (doCallFCNOnce) {
       std::vector<double> parTmp(myParams->size(), 0.); 
       for (size_t k=0; k != myParams->size(); k++) {
- 	 std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
+ 	 std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(k);
 	 parTmp[k] = itP->Value();
       }
       theFCN.SetDebug(true);
@@ -387,28 +440,10 @@ int main(int argc, char **argv) {
          std::cerr << " The minimum is " << min << std::endl;
        }
      }
-     // Requested contours ?
-     if (min.IsValid() && (contourP1Index < static_cast<unsigned int>(myParams->size())) 
-           && (contourP2Index < static_cast<unsigned int>(myParams->size()))) {
-       
-       ROOT::Minuit2::MnContours contour(theFCN, min);
-       std::vector<std::pair<double, double> > resContour = contour(contourP1Index, contourP2Index, nContourPts); 
-       std::string aNameC("./BTFit2ndOrder_"); aNameC += token;  aNameC += std::string("_Contour_");
-       std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(contourP1Index));
-       std::vector<emph::rbal::SSDAlignParam>::const_iterator itP2 = myParams->It(static_cast<size_t>(contourP2Index));
-       aNameC += itP1->Name() + std::string("__") + itP2->Name() + std::string(".txt");
-       std::ofstream fOutC(aNameC.c_str());
-       fOutC << " k  " << itP1->Name() << " " << itP2->Name() << " " << std::endl;
-       int k = 0; 
-       for (std::vector<std::pair<double, double> >::const_iterator it =  resContour.cbegin(); it != resContour.cend(); it++, k++) {
-         fOutC << " " << k << " " << it->first << " " << it->second << std::endl;
-       }
-       fOutC.close();
-     }
      // Requested Scans..  ? My own, based on Limits.. 
      if ((scanP1Index < static_cast<unsigned int>(myParams->size())) 
            && (scanP2Index < static_cast<unsigned int>(myParams->size()))) {
-        std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(scanP1Index));
+        std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(scanP1Index)); // !!by Minuit Parameters numberr. See printed list.. 
         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP2 = myParams->It(static_cast<size_t>(scanP2Index));
         if (myRank == 0) std::cerr << " Requesting Scans..For parameters " << itP1->Name()
 	       << " and " << itP2->Name() << " Number of calls if FCN history file, so far " << theFCN.NCalls() <<std::endl;
@@ -420,24 +455,33 @@ int main(int argc, char **argv) {
            std::vector<emph::rbal::SSDAlignParam>::const_iterator itPC = myParams->It(kp);
 	   tmpPars[kp] = min.UserState().Value(itPC->Name());
 	 }
-	 if (myRank == 0) std::cerr << " k " << itP1->Name() << " " << itP2->Name() << " chiSq " << std::endl;
+	 std::ofstream aFoutScan;
+	 if (myRank == 0) {
+	    std::string aNameScan("./Scan_"); aNameScan += token + std::string("_V1.txt");
+	    aFoutScan.open(aNameScan.c_str());
+	    aFoutScan << " k " << itP1->Name() << " " << itP2->Name() << " chiSq " << std::endl;
+	 }
 	 int ncc = 0;
 	 for (int iSc1=0; iSc1 != nScanPts; iSc1++) {
 	   tmpPars[scanP1Index] =  limitsP1.first + iSc1*delta1;
+	   if (fitType == std::string("2DY") && (scanP1Index == 1)) tmpPars[scanP1Index] = -0.55 + iSc1*0.0025; // temporary.. 
 	   for (int iSc2=0; iSc2 != nScanPts; iSc2++) {
 	     tmpPars[scanP2Index] =  limitsP2.first + iSc2*delta2;
+	     if (fitType == std::string("2DY") && (scanP2Index == 4)) tmpPars[scanP2Index] = -1.812 + iSc2*0.0025; // temporary.. 
 	     double chiSqTmp = theFCN(tmpPars);
-	     if (myRank == 0) std::cerr << " " << ncc << " " 
-	                                << tmpPars[scanP1Index] << " " << tmpPars[scanP2Index] << chiSqTmp << std::endl;
+	     if (myRank == 0) 
+	       aFoutScan  << " " << ncc << " " 
+	                                << tmpPars[scanP1Index] << " " << tmpPars[scanP2Index] << " " << chiSqTmp << std::endl;
 					// Result also available in FCN History file. 
 	     ncc++;
 	   }
 	 }
-         if (myRank == 0) std::cerr << " Done with Scan" << itP1->Name()
-	       << " and " << itP2->Name() << " Number of calls if FCN history file " << theFCN.NCalls() <<std::endl;
+         if (myRank == 0) { aFoutScan.close(); std::cerr << " Done with Scan" << itP1->Name()
+	       << " and " << itP2->Name() << " Number of calls if FCN history file " << theFCN.NCalls() <<std::endl; }
     
      }
-     std::cerr << " .. ChiSq " << min.Fval() << " Final Values and Minos Errors Num Params " <<  myParams->size() << std::endl;
+     if (myRank == 0) 
+        std::cerr << " .. ChiSq " << min.Fval() << " Final Values and Minos Errors Num Params " <<  myParams->size() << std::endl;
      //
      // Call minos 
      //
@@ -467,6 +511,26 @@ int main(int argc, char **argv) {
            if (myRank == 0) 
 	      std::cerr << " " << aName << " " << theValue << " " << err.first << "  " << err.second << std::endl;
 	 } 
+       }
+     // Requested contours ?
+       if (min.IsValid() && (contourP1Index < static_cast<unsigned int>(myParams->size())) 
+           && (contourP2Index < static_cast<unsigned int>(myParams->size()))) { // !!Indices by Minuit Parameters numberr. See printed list..
+       
+         theFCN.SetUpError(3.0);
+         ROOT::Minuit2::MnContours contour(theFCN, min);
+         std::vector<std::pair<double, double> > resContour = contour(contourP1Index, contourP2Index, nContourPts); 
+         std::string aNameC("./BTFit2ndOrder_"); aNameC += token;  aNameC += std::string("_Contour_");
+         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(contourP1Index));
+         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP2 = myParams->It(static_cast<size_t>(contourP2Index));
+         aNameC += itP1->Name() + std::string("__") + itP2->Name() + std::string(".txt");
+         std::ofstream fOutC(aNameC.c_str());
+         fOutC << " k  " << itP1->Name() << " " << itP2->Name() << " " << std::endl;
+         int k = 0; 
+         for (std::vector<std::pair<double, double> >::const_iterator it =  resContour.cbegin(); it != resContour.cend(); it++, k++) {
+           fOutC << " " << k << " " << it->first << " " << it->second << std::endl;
+         }
+         fOutC.close();
+         theFCN.SetUpError(1.0);
        }
      } else {
        if (myRank == 0) {

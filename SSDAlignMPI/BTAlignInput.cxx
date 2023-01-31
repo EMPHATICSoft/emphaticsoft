@@ -15,18 +15,19 @@
 #include <vector>
 #include <climits>
 #include <cfloat>
-
+#include <mpi.h>
 #include "BTAlignInput.h"
 
 namespace emph {
   namespace rbal {
   
-     BTAlignInput::BTAlignInput() { ; }
+     BTAlignInput::BTAlignInput() : fKey(687400) { ; }
        
      size_t BTAlignInput::FillItFromFile(int nEvtExpected, const char *fName, int selSpill) {
        std::ifstream fIn(fName, std::ios::in | std::ios::binary);
        if ((!fIn.is_open()) || (!fIn.good())) {
          std::cerr << " BTAlignInput::FillItFromFile, file with name " << std::string(fName) << " ain't there, or no good. Fatal " << std::endl;
+         MPI_Finalize();
 	 exit(2);
        }
        int nEvtRead = 0;
@@ -39,6 +40,7 @@ namespace emph {
 	 if (aKey != static_cast<int>(fKey)) {
 	   std::cerr << " BTAlignInput::FillItFromFile, 1rst word in file " << std::string(fName) 
 	            << " has key " << aKey << " expecting " << static_cast<int>(fKey) << " fatal, quit here and now " << std::endl;
+           MPI_Finalize();
 	   exit(2);
 	 }
 	 fIn.read(reinterpret_cast<char*>(&numDoublePerEvt), sizeof(int) );

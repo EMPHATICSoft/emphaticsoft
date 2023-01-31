@@ -92,7 +92,7 @@ namespace emph {
         if (it->ChiSq() < lim) { s += it->ChiSq(); nn++; }
       }
       if (nn > 2) return s/nn; 
-      return DBL_MAX;
+      return 1.0e9; // Otherwise, it will give infiniies later on 
     }
     
     double BeamTracks::MeanResid(const std::string &fitType, char view, size_t sensor, double window) const { 

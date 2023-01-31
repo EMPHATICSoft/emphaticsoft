@@ -421,22 +421,26 @@ namespace emph{
       }
     } // collectBeamTracks
     
-    double MeanChiSqFromBTracks(BeamTracks &myDat, double upLimit) { 
+    double MeanChiSqFromBTracks(BeamTracks &myDat, double upLimit, double chiAddSum) { 
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 //      std::cerr << " MeanChiSqFromBTracks, Start, myRank " << myRank << " UpLimit  " << upLimit << std::endl;
       int np;
       MPI_Comm_size(MPI_COMM_WORLD, &np);
-      if (np == 1) return myDat.MeanChiSq(upLimit);
+      if (np == 1) {
+//         std::cerr << " .... MeanChiSqFromBTracks, one process, meanChi from tracking " 
+//	           << myDat.MeanChiSq(upLimit) << " Survey + beam   " << chiAddSum << std::endl;
+         return ( myDat.MeanChiSq(upLimit) + chiAddSum) ;
+      }
       double mean = 0.;
       // The summation node is rank 0 ;
       if (myRank != 0) {
-        double meanLocal = myDat.MeanChiSq(upLimit);
+        double meanLocal = myDat.MeanChiSq(upLimit) + chiAddSum;
 //        std::cerr << " MeanChiSqFromBTracks, myRank " << myRank << " meanLocal " <<  meanLocal << std::endl;
 	int tagTally = 1000*myRank + 1; // arbitrary.. 
         MPI_Send((void*) &meanLocal, 1, MPI_DOUBLE, 0, tagTally, MPI_COMM_WORLD );
       } else {
-        mean += myDat.MeanChiSq(upLimit);
+        mean += myDat.MeanChiSq(upLimit) + chiAddSum;
 //        std::cerr << " MeanChiSqFromBTracks, myRank " << myRank << " meanLocal " <<  mean << std::endl;
         for (int kp=1; kp != np; kp++ ) { 
           double meanWorker = 0;
@@ -450,7 +454,7 @@ namespace emph{
       // broadcast this info. 
       //
       int tagTally = 2000*myRank + 1;
-      double meanGlobal = DBL_MAX;
+      double meanGlobal = 1.0e10;
       if (myRank == 0) {
         meanGlobal = mean/np;
 	int tagTally = 100000*myRank + 1; // arbitrary.. 

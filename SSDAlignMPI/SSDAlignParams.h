@@ -29,7 +29,9 @@ namespace emph{
         const size_t fNumSensorsU; // Station 2 and 3, one sensor each 
         const size_t fNumSensorsV; // Station 2 and 3, one sensor each 
 	std::string fMode; // Currently, 2DX, 2DY, 3D Default is 2DY (no magnetic deflection, to 1rst order, so, easiest.
-	bool fMoveLongByStation; // We do (or do not move) all individual sensors within a station. )  
+	bool fMoveLongByStation; // We do (or do not move) all individual sensors within a station. ) 
+	bool fUseSoftLimits;
+	bool fStrictSt6;  
 	//
 	std::vector<SSDAlignParam> fDat;
 	 
@@ -56,6 +58,9 @@ namespace emph{
 	inline void SetMoveLongByStation(bool m) { 
 	  const bool doReload = (fMoveLongByStation != m);  fMoveLongByStation = m; if (doReload) this->ReLoad(); 
 	}
+	inline void SetStrictSt6(bool m) {
+	  const bool doReload = (fStrictSt6 != m);  fStrictSt6 = m; if (doReload) this->ReLoad(); 
+	}
 	inline void SetLimits(paramType t, char view, size_t sensor, const std::pair<double,double> lim) {
 	  std::vector<SSDAlignParam>::iterator it = this->It(t, view, sensor);
 	  if (it == fDat.end()) return;
@@ -66,14 +71,14 @@ namespace emph{
 	  if (it == fDat.end()) return;
 	  it->SetValue(val);
 	}  
-	
+	inline void SetSoftLimits(bool u) { fUseSoftLimits = u; } 
 	// Getter 
 	inline std::string Mode() const { return fMode; } 
 	inline size_t NumParams() const { return fDat.size(); }
 	inline std::vector<SSDAlignParam>::iterator ItEnd() { return fDat.end(); }  
 	inline std::vector<SSDAlignParam>::iterator ItBegin()  { return fDat.begin(); }  
 	inline size_t size() const { return fDat.size(); }
-	inline std::vector<SSDAlignParam>::const_iterator It(size_t kPar)  const { 
+	inline std::vector<SSDAlignParam>::const_iterator It(size_t kPar)  { 
 	   for (std::vector<SSDAlignParam>::const_iterator it = fDat.cbegin(); it != fDat.cend(); it++) {
 	     if (it->MinuitNumber() == kPar) return it;
 	   }

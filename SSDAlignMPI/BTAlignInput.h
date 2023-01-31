@@ -37,11 +37,16 @@ namespace emph{
 	void DumpCVSForR(int aRank, char view, const std::string &token) const ; // just an ASCII version.. one line, one event. 
 	
       private:
-        const size_t fKey = 687400; // this must be the word in the binary file.
+        size_t fKey = 687400; // this must be the word in the binary file. If strictSt6, see below.. 
         const size_t fNumStations = 6; // For Phase1b 
 	std::vector<BeamTrackCluster> fDat;
 	   
       public:
+        //
+	// Setter 
+	// 
+	inline void SetKey(size_t k) {fKey = k; } 
+      
         inline size_t GetNumEvts() const {return fDat.size(); } 
 	inline std::vector<BeamTrackCluster>::const_iterator cbegin() const { return fDat.cbegin(); }
 	inline std::vector<BeamTrackCluster>::const_iterator cend() const { return fDat.cend(); }

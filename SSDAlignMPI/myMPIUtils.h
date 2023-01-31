@@ -19,7 +19,7 @@ namespace emph{
     void distributeEvtsSlow(BTAlignInput &myDat); // Thousands of MPI_Send/ MPI_Recv of ~500 bytes.. 
     void distributeEvts(BTAlignInput &myDat, double sleepFact=1.0e-10); // buffering.. optimization... not needed! 
     void collectBeamTracks(BeamTracks &myDat, bool removeOnWorkerRank = true);
-    double MeanChiSqFromBTracks(BeamTracks &myDat, double upLimit); 
+    double MeanChiSqFromBTracks(BeamTracks &myDat, double upLimit, double chiAddSum); 
   }
 }
 #endif
