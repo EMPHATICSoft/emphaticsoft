@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
    double dumVar = 0; // place holder.. 
    std::string token("none");
    
-   std::string optStr("none");
+   bool strictSt6 = false;
    
     MPI_Init(NULL, NULL);
 
@@ -44,11 +44,11 @@ int main(int argc, char **argv) {
     MPI_Get_processor_name(processor_name, &name_len);
     
     if (argc < 3) {
-      std::cerr << " ./BTDist MPI version. Need at least two argument, optStr  and value argument. Fatal   " << std::endl;
+      std::cerr << " ./BTDist MPI version. Need at least two arguments, such at token  and value argument. Fatal   " << std::endl;
       MPI_Finalize(); 
       exit(2);
     }
-    if (myRank == 0) std::cout << " Job argument decoding, number of args  "  << argc << std::endl;
+    if (myRank == 0) std::cerr << " Job argument decoding, number of args  "  << argc << std::endl;
     int argcR = argc - 1;
     bool pCenterOptUsed = false; 
     bool pRangeOptUsed = false; 
@@ -61,27 +61,32 @@ int main(int argc, char **argv) {
     for (int kArg = 0; kArg != argcR/2; kArg++) {
       std::string parStr(argv[1+2*kArg]);
       std::string valStr(argv[2+2*kArg]);
-      if (myRank == 0) std::cout << " parStr " << parStr << " valStr " << valStr << std::endl;
+      if (myRank == 0) std::cerr << " parStr " << parStr << " valStr " << valStr << std::endl;
       std::string valStrcpy(valStr);
       for (size_t ii=0; ii != valStrcpy.length(); ii++) if (valStrcpy[ii] == '.') valStrcpy[ii] ='p';
       std::istringstream valStrStr(valStr);
-      if (parStr.find("opt") != std::string::npos) {
-        optStr = valStr;
-        if (myRank == 0) std::cout << " Option is  "  << optStr << std::endl;
-      } else if (parStr.find("token") != std::string::npos) {
+      if (parStr.find("token") != std::string::npos) {
         valStrStr >> token;
-        if (myRank == 0) std::cout << " token is  "  << token << std::endl;
+        if (myRank == 0) std::cerr << " token is  "  << token << std::endl;
+      } else if (parStr.find("strictSt6") != std::string::npos) {
+        int iS=0;
+        valStrStr >> iS;
+	strictSt6 = (iS == 1);
+        if (myRank == 0) {
+	  if (strictSt6) std::cerr << " We will require 6 Y view hits, no more, no less  "  << std::endl;
+	  else std::cerr << " Allowing for one missing hits in the Y view, includes less illuminated station 4 & 5 sensors  "  << std::endl;
+	}  
       } else if (parStr.find("spill") != std::string::npos) {
           valStrStr >> selectedSpill;
-          if (myRank == 0) std::cout << " Requested spill  "  << selectedSpill << std::endl;
+          if (myRank == 0) std::cerr << " Requested spill  "  << selectedSpill << std::endl;
        } else if (parStr.find("sleepFact") != std::string::npos) {
           valStrStr >> sleepFact;
-          if (myRank == 0) std::cout << " Requested spill  "  << selectedSpill << std::endl;
+          if (myRank == 0) std::cerr << " Requested spill  "  << selectedSpill << std::endl;
        } else if (parStr.find("perfTrans") != std::string::npos) {
           valStrStr >> perfTrans;
-          if (myRank == 0) std::cout << " Requested spill  "  << selectedSpill << std::endl;
+          if (myRank == 0) std::cerr << " perfTrans flag   "  << perfTrans << std::endl;
      } else {
-        if (myRank == 0) std::cout << " Unrecognized argument   "  << parStr <<  " fata, quit here and now " << std::endl;
+        if (myRank == 0) std::cerr << " Unrecognized argument   "  << parStr <<  " fata, quit here and now " << std::endl;
         MPI_Finalize();
         exit(2);
       }
@@ -91,7 +96,9 @@ int main(int argc, char **argv) {
     std::string myHostName(std::getenv("HOSTNAME"));
     if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/");
 
-    std::string aFName(topDirAll);  aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    std::string aFName(topDirAll);  
+    if (!strictSt6) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    else aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1c.dat");
      
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -101,10 +108,13 @@ int main(int argc, char **argv) {
     strftime(tmbuf, sizeof tmbuf, "%Y-%m-%d_%H_%M_%S", nowtm);
     std::string dateNow(tmbuf);
     std::cerr << ".... from processor " << std::string(processor_name) << " rank " << myRank << " out of " << world_size 
-    	      << " option " << optStr <<  " starting at " << dateNow << std::endl;
+    	      << " token " << token <<  " starting at " << dateNow << std::endl;
 	      
      emph::rbal::BTAlignInput myBT;
-     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
+     
+     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. if strictSt6 = false
+     if (strictSt6) { numExpected = 58586; myBT.SetKey(687401); }
+     
      if (myRank == 0) myBT.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 
     if (perfTrans == 1) { // Obsolete.. 
@@ -132,7 +142,7 @@ int main(int argc, char **argv) {
      //
      std::cerr << " Number of events for rank " << myRank << " is " << myBT.GetNumEvts() << std::endl;
      if (myRank < 5) {
-        myBT.DumpCVSForR(myRank, 'X', token);
+        myBT.DumpCVSForR(myRank, 'Y', token);
      }
      gettimeofday(&tvEnd,NULL);
      time_t nowTimeEnd = tvEnd.tv_sec;      
