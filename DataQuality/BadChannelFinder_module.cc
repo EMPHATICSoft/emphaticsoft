@@ -58,9 +58,13 @@ private:
 
   TTree *bcstats;
   std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
+  float fColdChanRate;      ///< Cut value for cold channels
+  float fHotChanRate;       ///< Cut value for hot channels
+  std::string fCSVFileName; ///< CSV filename for output stats
+  FILE* fBadChanCSV;
   unsigned int run, subrun;
   unsigned int fer, mod, row;
-  float nhit;
+  float hitrate;
   unsigned int ntriggers;   ///< Number of triggers with SSD hits, to scale plots
   float Nhit[nFER][nMod][640]={{{0}}};
 };
@@ -69,7 +73,10 @@ private:
 //--------------------------------------------------
 emph::dq::BadChannelFinder::BadChannelFinder(fhicl::ParameterSet const& pset)
   : EDAnalyzer{pset},
-  fSSDRawLabel (pset.get< std::string >("SSDRawLabel"))
+  fSSDRawLabel (pset.get< std::string >("SSDRawLabel")),
+  fColdChanRate (pset.get< float >     ("ColdChanRate")),
+  fHotChanRate (pset.get< float >      ("HotChanRate")),
+  fCSVFileName (pset.get< std::string >("CSVFileName"))
   // More initializers here.
 {
   // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -86,8 +93,10 @@ void emph::dq::BadChannelFinder::beginJob()
   bcstats->Branch("fer",&fer,"fer/I");
   bcstats->Branch("mod",&mod,"mod/I");
   bcstats->Branch("row",&row,"row/I");
-  bcstats->Branch("nhit",&nhit,"nhit/F");
+  bcstats->Branch("hitrate",&hitrate,"hitrate/F");
   ntriggers=0;
+  fBadChanCSV = fopen(fCSVFileName.c_str(),"w");
+  fprintf(fBadChanCSV, "#run,subrun,detector,channel,state\n");
 }
 
 //--------------------------------------------------
@@ -101,10 +110,17 @@ void emph::dq::BadChannelFinder::endSubRun(const art::SubRun& sr)
 	emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
 	if (!cmap->IsValidEChan(echan))
 	    continue;
-	for( row=0; row<640; ++row){
-	  nhit=Nhit[fer][mod][row]/ntriggers;
+	for(row=0; row<640; ++row){
+	  unsigned int chanState=0; // 0: good, 1: cold, 2: hot
+	  hitrate=Nhit[fer][mod][row]/ntriggers;
 	  bcstats->Fill();
+	  if (hitrate <= fColdChanRate)
+	    chanState=1;
+	  else if (hitrate > fHotChanRate)
+	    chanState=2;
 	  //std::cout<<fer<<":"<<mod<<":"<<row<<":"<<hitVec[3]<<std::endl;
+	  if (chanState)// && ntriggers>1000) // don't bother with small non-beam files
+	    fprintf(fBadChanCSV, "%d,%d,SSD,%d-%d-%d,%d\n",run,subrun,fer,mod,row,chanState);
 	  Nhit[fer][mod][row]=0;
 	}
       }
