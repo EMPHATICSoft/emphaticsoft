@@ -43,3 +43,5 @@ physics:
   stream1: [ out1 ]
   end_paths: [ stream1 ]
 }
+
+physics.producers.clust.CheckDQ: false

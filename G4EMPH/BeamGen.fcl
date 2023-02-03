@@ -35,6 +35,14 @@ standard_beamgen:
 
 proton_beamgen: @local::standard_beamgen
 proton_beamgen.particleType: "proton"
+proton_beamgen.PMean: 120.
+proton_beamgen.XMean: 0. 
+proton_beamgen.YMean: 0. 
+proton_beamgen.Xsigma: 0.5e-8 
+proton_beamgen.Ysigma: 0.5e-8 
+proton_beamgen.PXsigma: 1.e-8
+proton_beamgen.PYsigma: 1.e-8
+proton_beamgen.Zstart: -2.0
 
 piplus_beamgen: @local::standard_beamgen
 piplus_beamgen.particleType: "pion"
