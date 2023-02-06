@@ -58,7 +58,9 @@
 //#include <sstream>
 
 #include "EventDisplay/EvtDisplayUtils.h"
-#include "RecoBase/SSDHit.h"
+#include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
+#include "DetGeoMap/DetGeoMap.h"
 
 // ... Anonymous namespace for helpers.
 namespace {
@@ -121,10 +123,12 @@ namespace emph {
     TGLabel          *fTlRun,*fTlSubRun,*fTlEvt;
 
     TEveTrackList *fTrackList;
-    TEveElementList *fSSDHitsList;
+    TEveElementList *fSSDClustsList;
+
+    dgmap::DetGeoMap* fDetGeoMap;
 
     void makeNavPanel();
-    void drawSSDHit(Int_t mColor, Int_t mSize, const rb::SSDHit& hit);
+    void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
     
   };
 
@@ -149,7 +153,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDetXZScene(0),fDetYZScene(0),fEvtXZScene(0),fEvtYZScene(0),
   fTeRun(0),fTeSubRun(0),fTeEvt(0),
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
-  fTrackList(0),fSSDHitsList(0)
+  fTrackList(0),fSSDClustsList(0),fDetGeoMap(NULL)
 {
   
   //  if ( trkMaxStepSize_ < 0.1 )trkMaxStepSize_ = 0.1;
@@ -393,51 +397,23 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 }
 
 // ... Helper for drawing hit as a TEvePointSet with specified color, markersize, and hit index
-void emph::EventDisplay3D::drawSSDHit(Int_t mColor, Int_t mSize, 
-				      const rb::SSDHit& hit)
+void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize, 
+				      const rb::SSDCluster& cl)
 {
-  /*  std::string hstr=" hit %d";
-      std::string dstr=" hit# %d\nLayer: %d";
-      std::string strlst=pstr+hstr;
-      std::string strlab=pstr+dstr;
-  */
-  
-  if (hit.Angle() == 90.) 
-    std::cout << "y-view" << std::endl;
-  if (hit.Angle() == 0.)
-    std::cout << "x-view" << std::endl;
-  if (hit.Angle() == 45.)
-    std::cout << "u-view" << std::endl;
-  
-  //  TEvePointSet* h = new TEvePointSet(Form(strlst.c_str(),n));
-  //  TEvePointSet* h = new TEvePointSet();
+
+  rb::LineSegment ls;
+  if (! fDetGeoMap)
+    fDetGeoMap = new dgmap::DetGeoMap();
+
+  fDetGeoMap->SSDClusterToLineSegment(cl, ls);
+
   TEveLine* l = new TEveLine();
-  //    h->SetTitle(Form(strlab.c_str(),n,hit.shell()));
-  // calculate end points of strip 
-  double w = 9.8*10;
-  double x0 = 0.;
-  double y0 = -w/2.;
-  double x1 = 0.;
-  double y1 = w/2.;
-  double z = 100.;
   
-  l->SetNextPoint(x0,y0,z);
-  l->SetNextPoint(x1,y1,z);
+  l->SetNextPoint(ls.X0()[0], ls.X0()[1], ls.X0()[2]);
+  l->SetNextPoint(ls.X1()[0], ls.X1()[1], ls.X1()[2]);
   l->SetLineColor(mColor);
   l->SetMarkerSize(mSize);
-  fSSDHitsList->AddElement(l);
-
-  TEveLine* l2 = new TEveLine();
-  z += 10.;
-  x0 = -w/2.;
-  y0 = 0.;
-  x1 = w/2.;
-  y1 = 0.;
-  l2->SetNextPoint(x0,y0,z);
-  l2->SetNextPoint(x1,y1,z);
-  l2->SetLineColor(mColor);
-  l2->SetMarkerSize(mSize);
-  fSSDHitsList->AddElement(l2);
+  fSSDClustsList->AddElement(l);
   
 }
 
@@ -476,24 +452,30 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
   //    std::vector<art::Handle<IntersectionCollection>> hitsHandles;
   //    event.getManyByType(hitsHandles);
 
-  if (fSSDHitsList == 0) {
-    fSSDHitsList = new TEveElementList("SSD Hits"); 
-    fSSDHitsList->IncDenyDestroy();              // protect element against destruction
+  if (fSSDClustsList == 0) {
+    fSSDClustsList = new TEveElementList("SSD Clusters"); 
+    fSSDClustsList->IncDenyDestroy();              // protect element against destruction
   }
   else {
-    fSSDHitsList->DestroyElements();             // destroy children of the element
+    fSSDClustsList->DestroyElements();             // destroy children of the element
   }
   
-  //  TEveElementList* SSDHitsList  = new TEveElementList("SSD Hits"); 
+  try {
+    std::string ssdClusterLabel = "STUFF";
 
-  rb::SSDHit ssdhit;
-  ssdhit.SetAngle(90.);
-  ssdhit.SetStrip(0.);
-  ssdhit.SetPitch(0.06);
-  drawSSDHit(kRed,4,ssdhit); //,SSDHitsList);
-  ssdhit.SetAngle(0.);
-  ssdhit.SetStrip(0.);
-  drawSSDHit(kRed,4,ssdhit);
+    art::Handle<std::vector<rb::SSDCluster> > ssdClusters;
+    event.getByLabel(ssdClusterLabel,ssdClusters);
+    
+    if  (!ssdClusters->empty()) {
+      for (size_t idx=0; idx>ssdClusters->size(); ++idx) {
+	const rb::SSDCluster& cl = (*ssdClusters)[idx];
+	drawSSDClust(kRed,4,cl);
+      }
+    }
+  }
+  catch(...) {
+
+  }
 
   /*
   for ( auto const& handle: hitsHandles ){
@@ -508,8 +490,8 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
       }
     }
 */
-  //  fSSDHitsList->AddElement(SSDHitsList);  
-  gEve->AddElement(fSSDHitsList);
+  //  fSSDClustsList->AddElement(SSDHitsList);  
+  gEve->AddElement(fSSDClustsList);
 
   // Draw the generated tracks as helices in a uniform axial field
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
