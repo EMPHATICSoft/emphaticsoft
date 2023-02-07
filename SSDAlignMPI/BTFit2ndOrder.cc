@@ -46,6 +46,9 @@ int main(int argc, char **argv) {
    std::string fitSubType("TrShift"); // Valid strings are "NoFixes" (nothing fixed), TrShift, PitchCorr, ZShift, Roll (for now..)
                                       // Adding Magnet Z position, MagnetZPos and MagnetKick.  Both can be added  
 				      // indeed, making a new subfit type, allowing for TrShift + Magnet 
+				      // Feb 2 2023 (a day after GroundHog day, who knows, may our Minos will improve. 
+				      // Try subfit type "TrTiltShift"  "TrZShift" only tilts and transverse shifts, or only 
+				      // Tr and long shifts. Only valid for 2D (test first in the vertical plane). 
    int SensorForFitSubType(INT_MAX); // Valid strings are "All" (nothing fixed), TRShift, PitchCorr, 
    int maxEvts = 1000000;
    bool strictSt6 = true;
@@ -378,11 +381,12 @@ int main(int argc, char **argv) {
 	 std::string aName(itP->Name());
 //         if (myRank == 0) std::cerr << " ... On Rank0, at Name .. " 
 //                                 << aName << " Sensor " << itP->SensorI() << std::endl;
-	 if ((fitSubType == std::string("TrShift")) && 
+	 if (((fitSubType == std::string("TrShift")) || 
+	      (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")))   && 
 	     (SensorForFitSubType == INT_MAX) && (aName.find("TransShift") == 0)) isFixed = false;
-	 if ((fitSubType == std::string("ZShift")) && 
+	 if (((fitSubType == std::string("ZShift"))||(fitSubType == std::string("TrZShift"))) && 
 	     (SensorForFitSubType == INT_MAX) && (aName.find("LongShift") == 0)) isFixed = false;
-	 if ((fitSubType == std::string("PitchCorr")) && 
+	 if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift"))) && 
 	     (SensorForFitSubType == INT_MAX) && (aName.find("Tilt") == 0)) isFixed = false;
 	 if ((fitSubType == std::string("DeltaRoll")) && 
 	     (SensorForFitSubType == INT_MAX) && (aName.find("Roll") == 0)) isFixed = false;
