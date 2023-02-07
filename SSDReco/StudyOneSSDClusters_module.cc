@@ -93,7 +93,7 @@ namespace emph {
       bool fDoAlignY;  
       bool fDoAlignUV; 
       bool fDoGenCompact;
-      bool fDoGenCompactStrictY6St;
+      bool fDoGenCompactStrictY6St, fDoGenCompactStrictX6St, fDoGenCompactStrictXY6St;
       bool fDoAlignXAlt45;  
       bool fDoAlignYAlt45;  
       bool fDoAlignYAlt5;  
@@ -163,7 +163,8 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoGenCompact(false), fDoGenCompactStrictY6St(false),
+    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoGenCompact(false), 
+    fDoGenCompactStrictY6St(false), fDoGenCompactStrictX6St(false), fDoGenCompactStrictXY6St(false),
     fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
      fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
@@ -195,6 +196,8 @@ namespace emph {
       fDoAlignUV = pset.get<bool>("alignUV", false);
       fDoGenCompact = pset.get<bool>("genCompactEvts", false);
       fDoGenCompactStrictY6St = pset.get<bool>("genCompactEvtsStrictY6St", false);
+      fDoGenCompactStrictX6St = pset.get<bool>("genCompactEvtsStrictX6St", false);
+      fDoGenCompactStrictXY6St = pset.get<bool>("genCompactEvtsStrictXY6St", false);
       fDoAlignXAlt45 = pset.get<bool>("alignXAlt45", false);
       fDoAlignYAlt45 = pset.get<bool>("alignYAlt45", false);
       fDoAlignYAlt5 = pset.get<bool>("alignYAlt5", false);
@@ -572,8 +575,10 @@ namespace emph {
       } 
       if (fDoAlignUV) {
         fAlignUV.alignIt(evt, fSSDClsPtr); // such that we have 3D tracks.. 
-	if (fDoGenCompact) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, false,  fSSDClsPtr);
-	if (fDoGenCompactStrictY6St) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, true, fSSDClsPtr); 
+	if (fDoGenCompact) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, false,  false, fSSDClsPtr);
+	if (fDoGenCompactStrictY6St) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, true, false, fSSDClsPtr); 
+	if (fDoGenCompactStrictX6St) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, false, true, fSSDClsPtr); 
+	if (fDoGenCompactStrictXY6St) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, true, true, fSSDClsPtr); 
 	  // We ask for exactly 6 Y hits, to make the 2nd order FCN chiSq more robust.. 
       }
     }

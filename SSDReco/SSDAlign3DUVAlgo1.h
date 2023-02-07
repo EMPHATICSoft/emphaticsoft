@@ -110,7 +110,7 @@ namespace emph {
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 
 	 void  alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
-	 void dumpCompactEvt(int spill, int evt, bool strictY6, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
+	 void dumpCompactEvt(int spill, int evt, bool strictY6, bool strictX6, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 // strictY6:  Requires 6 hits, and no hits from the little (or no ) exposure sensor in station 4 and 5, for the Y view.. 
 	 
 	 private:

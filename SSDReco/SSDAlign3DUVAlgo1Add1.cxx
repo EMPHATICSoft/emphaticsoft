@@ -39,14 +39,20 @@ namespace emph {
        aFOut.close();
     }
     
-    void SSDAlign3DUVAlgo1::dumpCompactEvt(int spill, int evt, bool strictY6St, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+    void SSDAlign3DUVAlgo1::dumpCompactEvt(int spill, int evt, bool strictY6St, bool strictX6St, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
       if (!fFOutCompact.is_open()) {
        std::ostringstream aFOutCompactStrStr; 
-       if (!strictY6St) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1b.dat";
-       else aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1c.dat";
+       if ((!strictY6St) && (!strictX6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1b.dat";
+       else {
+         if ((strictY6St) && (!strictX6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1c2.dat";
+         if ((strictX6St) && (!strictY6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1d.dat";
+         if ((strictX6St) && (strictY6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1e.dat";
+       
+       }
        std::string aFOutCompactStr(aFOutCompactStrStr.str());
        fFOutCompact.open(aFOutCompactStr.c_str(),  std::ios::binary | std::ios::out);
        this->writeNominalCoords();
+       std::cerr << " Opening CompactEvt file " << aFOutCompactStr << " andkeep going  .. " << std::endl; 
       }
       //
       // Require at most one cluster per Sensor.. There can be at most two missing hits. 
@@ -98,14 +104,22 @@ namespace emph {
       //
       // allow for 1 missing hit missing in all views, but no extra cluster  
       //
-      if (!strictY6St) { 
-        for (size_t kSt=0; kSt != fNumStations+2; kSt++) if ( (nClX[kSt] > 1) || (nClY[kSt] > 1)) return ;
-      } else {
+      for (size_t kSt=0; kSt != fNumStations+2; kSt++) if ( (nClX[kSt] > 1) || (nClY[kSt] > 1)) return ;
+      if (strictY6St) {
         if ((nClY[4] > 0) || (nClY[6] > 0)) return;
-	for (size_t kSt=0; kSt != fNumStations+2; kSt++) if (nClX[kSt] > 1) return;
-	for (size_t kSt=0; kSt != 4; kSt++) if (nClY[kSt] == 0) return;
-	if ((nClY[5] == 0) || (nClY[7] == 0)) return;
+        for (size_t kSt=0; kSt != 4; kSt++) if (nClY[kSt] == 0) return;
+        if ((nClY[5] == 0) || (nClY[7] == 0)) return;
+        if (nClY[4] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+        if (nClY[6] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
       }
+      if (strictX6St) {
+        if ((nClX[4] > 0) || (nClX[6] > 0)) return;
+        for (size_t kSt=0; kSt != 4; kSt++) if (nClX[kSt] == 0) return;
+        if ((nClX[5] == 0) || (nClX[7] == 0)) return;
+        if (nClX[4] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+        if (nClX[6] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+      }
+
       int aNumX = 0; for (size_t kSt=0; kSt != fNumStations+2; kSt++) aNumX += nClX[kSt];
       int aNumY = 0; for (size_t kSt=0; kSt != fNumStations+2; kSt++) aNumY += nClY[kSt];
       if ((aNumX < 5) || (aNumY < 5)) return;
@@ -118,6 +132,7 @@ namespace emph {
       //
       int key=687400;
       if (strictY6St) key++;
+      if (strictX6St) key += 2;
       int numDouble = ( 2 * (2*(fNumStations+2) + 2 + 4)) ; // fir 2 is mean & RMS, then, X + Y + U + V
       // a bit of memory waste if strictY6 is true, 4 doubles being either 0 or DBL_MAX. 
       // but keep the code relatively simple. 
