@@ -15,7 +15,7 @@ services : {
 
   # From toyExperiment
   Geometry   : @local::standard_geometry
-  RunHistory : {}
+  RunHistoryService : {}
   # From art-workbook
   EvtDisplayService : {}
 
@@ -25,16 +25,18 @@ physics :{
   analyzers: {
     eventDisplay : {
       module_type     : EventDisplay3D
-#      genParticleTag  : "evtgen"
-#      drawHits        : true
-#      drawGenTracks   : true
-#      hitMarkerSize   : 3.0
-#      trkMaxR         : 100.
-#      trkMaxZ         : 50.
-#      trkMaxStepSize  : 1.
-      camRotateCenterH: -0.26
-      camRotateCenterV: -2.0
-      camDollyDelta   : 500.
+      camRotateCenterH : -0.26
+      camRotateCenterV : -2.0
+      camDollyDelta    : 500.
+      DrawMCTruth      : true
+      MCTruthLabel     : "g4gen"
+      DrawSSDClusters  : true
+      SSDClustLabel    : "clust"
+      DrawTracks       : true
+      TracksLabel      : "ssdreco"
+      DrawVertices     : true
+      VerticesLabel    : "vtxreco"
+      VisLevel         : 4
     }
   }
 
