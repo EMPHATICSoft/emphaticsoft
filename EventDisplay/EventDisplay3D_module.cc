@@ -94,16 +94,18 @@ namespace emph {
   private:
 
     // Set by parameter set variables.
-    //    art::InputTag   gensTag_;
-    //    bool            drawGenTracks_;
-    //    bool            drawHits_;
-    //    Double_t        hitMarkerSize_;
-    //    Double_t        trkMaxR_;
-    //    Double_t        trkMaxZ_;
-    //    Double_t        trkMaxStepSize_;
     Double_t        camRotateCenterH_;
     Double_t        camRotateCenterV_;
     Double_t        camDollyDelta_;
+    bool            fDrawMCTruth;
+    std::string     fMCTruthLabel;
+    bool            fDrawSSDClusters;
+    std::string     fSSDClustLabel;
+    bool            fDrawTracks;
+    std::string     fTracksLabel;
+    bool            fDrawVertices;
+    std::string     fVerticesLabel;
+    int             fVisLevel;
 
     art::ServiceHandle<emph::geo::GeometryService> geom_;
 
@@ -129,23 +131,29 @@ namespace emph {
 
     void makeNavPanel();
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
-    
+    void DrawSSDClusters(const art::Event& event);
+    void DrawMCTruth(const art::Event& event);
+    void DrawTracks(const art::Event& event);
+    void DrawVertices(const art::Event& event);
+
   };
 
 }
 
 emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   art::EDAnalyzer(pset),
-  //  gensTag_        ( pset.get<std::string>("genParticleTag") ),
-  //  drawGenTracks_  ( pset.get<bool>       ("drawGenTracks",true) ),
-  //  drawHits_       ( pset.get<bool>       ("drawHits",true) ),
-  //  hitMarkerSize_  ( pset.get<Double_t>   ("hitMarkerSize", 2.) ),
-  //  trkMaxR_        ( pset.get<Double_t>   ("trkMaxR", 100.) ),
-  //  trkMaxZ_        ( pset.get<Double_t>   ("trkMaxZ", 50.) ),
-  //  trkMaxStepSize_ ( pset.get<Double_t>   ("trkMaxStepSize", 1.) ), // ROOT default is 20
   camRotateCenterH_ ( pset.get<Double_t>   ("camRotateCenterH", 0.26) ),
   camRotateCenterV_ ( pset.get<Double_t>   ("camRotateCenterV",-2.  ) ),
   camDollyDelta_    ( pset.get<Double_t>   ("camDollyDelta",500.) ),
+  fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
+  fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","g4gen") ),
+  fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
+  fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
+  fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
+  fTracksLabel      ( pset.get<std::string>("TracksLabel","ssdreco") ),
+  fDrawVertices     ( pset.get<bool>       ("DrawVertices",true) ),
+  fVerticesLabel    ( pset.get<std::string>("VerticesLabel","vtxreco") ),
+  fVisLevel         ( pset.get<int>        ("VisLevel",4) ),
   geom_(art::ServiceHandle<emph::geo::GeometryService>()),
   visutil_(new emph::EvtDisplayUtils()),
   fSimpleGeom(0),
@@ -368,7 +376,7 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
   auto world_n = geoMgr->GetTopNode();
   auto etopnode = new TEveGeoTopNode(geoMgr, world_n);
 
-  etopnode->SetVisLevel(4); //1); // 4);
+  etopnode->SetVisLevel(fVisLevel); 
   //  etopnode->GetNode()->GetVolume()->SetVisibility(kFALSE);
 
   // ... Use helper to recursively make detector elements
@@ -396,6 +404,7 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 
 }
 
+//------------------------------------------------------------
 // ... Helper for drawing hit as a TEvePointSet with specified color, markersize, and hit index
 void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize, 
 				      const rb::SSDCluster& cl)
@@ -405,53 +414,24 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
   if (! fDetGeoMap)
     fDetGeoMap = new dgmap::DetGeoMap();
 
-  fDetGeoMap->SSDClusterToLineSegment(cl, ls);
+  if (fDetGeoMap->SSDClusterToLineSegment(cl, ls)) {
+    //    std::cout << ls << std::endl;
+    
+    TEveLine* l = new TEveLine();
+    
+    l->SetNextPoint(ls.X0()[0], ls.X0()[1], ls.X0()[2]);
+    l->SetNextPoint(ls.X1()[0], ls.X1()[1], ls.X1()[2]);
+    l->SetLineColor(mColor);
+    l->SetMarkerSize(mSize);
+    fSSDClustsList->AddElement(l);
+  }
 
-  TEveLine* l = new TEveLine();
-  
-  l->SetNextPoint(ls.X0()[0], ls.X0()[1], ls.X0()[2]);
-  l->SetNextPoint(ls.X1()[0], ls.X1()[1], ls.X1()[2]);
-  l->SetLineColor(mColor);
-  l->SetMarkerSize(mSize);
-  fSSDClustsList->AddElement(l);
-  
 }
 
-void emph::EventDisplay3D::analyze(const art::Event& event )
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawSSDClusters(const art::Event& event)
 {
-  std::cout << "%%%%% Entering EventDisplay3D::analyze() %%%%% " << std::endl;
-
-  // ... Update the run and event numbers in the TGTextEntry widgets in the Navigation panel
-  std::ostringstream sstr;
-  sstr << event.id().run();
-  visutil_->fTbRun->Clear();
-  visutil_->fTbRun->AddText(0,sstr.str().c_str());
-  gClient->NeedRedraw(fTeRun);
-
-  std::cout << "%%%%% Updating run %%%%% " << std::endl;
-
-  sstr.str("");
-  sstr << event.id().event();
-  visutil_->fTbEvt->Clear();
-  visutil_->fTbEvt->AddText(0,sstr.str().c_str());
-  gClient->NeedRedraw(fTeEvt);
-
-  std::cout << "%%%%% Updating event %%%%% " << std::endl;
-
-  // ... Delete visualization structures associated with previous event
-  std::cout << "%%%%% Deleting visualization structures... %%%%% " << std::endl;
-  gEve->GetViewers()->DeleteAnnotations();
-  gEve->GetCurrentEvent()->DestroyElements();
-  std::cout << "%%%%% Deleted visualization structures. %%%%% " << std::endl;
-
-  // Draw the detector hits
-  // ~~~~~~~~~~~~~~~~~~~~~~~
-  
-
-  //  if (drawHits_) {
-  //    std::vector<art::Handle<IntersectionCollection>> hitsHandles;
-  //    event.getManyByType(hitsHandles);
-
   if (fSSDClustsList == 0) {
     fSSDClustsList = new TEveElementList("SSD Clusters"); 
     fSSDClustsList->IncDenyDestroy();              // protect element against destruction
@@ -461,37 +441,84 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
   }
   
   try {
-    std::string ssdClusterLabel = "STUFF";
-
-    art::Handle<std::vector<rb::SSDCluster> > ssdClusters;
-    event.getByLabel(ssdClusterLabel,ssdClusters);
+    
+    //    art::Handle<std::vector<rb::SSDCluster> > ssdClusters;
+    auto ssdClusters = event.getHandle<std::vector<rb::SSDCluster>>(fSSDClustLabel);
     
     if  (!ssdClusters->empty()) {
-      for (size_t idx=0; idx>ssdClusters->size(); ++idx) {
+      for (size_t idx=0; idx<ssdClusters->size(); ++idx) {
 	const rb::SSDCluster& cl = (*ssdClusters)[idx];
 	drawSSDClust(kRed,4,cl);
       }
     }
   }
   catch(...) {
-
+    
   }
-
-  /*
-  for ( auto const& handle: hitsHandles ){
-      for ( auto const& hit: *handle ){
-        if ( hit.genTrack()->pdgId() == PDGCode::K_plus ){
-          drawHit("K+",kGreen,hitMarkerSize_,ikp++,hit,KpHitsList);
-        } else if ( hit.genTrack()->pdgId() == PDGCode::K_minus ){
-          drawHit("K-",kYellow,hitMarkerSize_,ikm++,hit,KmHitsList);
-        } else{
-          drawHit("Bkg",kViolet+1,hitMarkerSize_,ibkg++,hit,BkgHitsList);
-        }
-      }
-    }
-*/
   //  fSSDClustsList->AddElement(SSDHitsList);  
-  gEve->AddElement(fSSDClustsList);
+  gEve->AddElement(fSSDClustsList);    
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawMCTruth(const art::Event& )
+{
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawTracks(const art::Event& )
+{
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawVertices(const art::Event& )
+{
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::analyze(const art::Event& event )
+{
+  //  std::cout << "%%%%% Entering EventDisplay3D::analyze() %%%%% " << std::endl;
+
+  // ... Update the run and event numbers in the TGTextEntry widgets in the Navigation panel
+  std::ostringstream sstr;
+  sstr << event.id().run();
+  visutil_->fTbRun->Clear();
+  visutil_->fTbRun->AddText(0,sstr.str().c_str());
+  gClient->NeedRedraw(fTeRun);
+
+  //  std::cout << "%%%%% Updating run %%%%% " << std::endl;
+
+  sstr.str("");
+  sstr << event.id().event();
+  visutil_->fTbEvt->Clear();
+  visutil_->fTbEvt->AddText(0,sstr.str().c_str());
+  gClient->NeedRedraw(fTeEvt);
+
+  //  std::cout << "%%%%% Updating event %%%%% " << std::endl;
+
+  // ... Delete visualization structures associated with previous event
+  //  std::cout << "%%%%% Deleting visualization structures... %%%%% " << std::endl;
+  gEve->GetViewers()->DeleteAnnotations();
+  gEve->GetCurrentEvent()->DestroyElements();
+  //  std::cout << "%%%%% Deleted visualization structures. %%%%% " << std::endl;
+
+  // Draw MC truth
+  if (fDrawMCTruth) DrawMCTruth(event); // currently does nothing
+
+  // Draw reco objects
+  // ~~~~~~~~~~~~~~~~~~~~~~~  
+  if (fDrawSSDClusters) DrawSSDClusters(event);
+  if (fDrawTracks)      DrawTracks(event); // currently does nothing
+  if (fDrawVertices)    DrawVertices(event); // currently does nothing
+
 
   // Draw the generated tracks as helices in a uniform axial field
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -499,7 +526,7 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
 
 //  if (drawGenTracks_) {
 //    auto gens = event.getValidHandle<GenParticleCollection>(gensTag_);
-
+/*
   if (fTrackList == 0) {
     fTrackList = new TEveTrackList("Tracks"); 
     fTrackList->SetLineWidth(4);
@@ -532,6 +559,7 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
   fTrackList->AddElement(track);
   fTrackList->MakeTracks();
   gEve->AddElement(fTrackList);
+*/
   
   // Import event into ortho views and apply projections
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

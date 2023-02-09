@@ -31,7 +31,7 @@ namespace emph {
       
       int station = cl.Station();
       int sensor = cl.Sensor();
-      rb::planeView view = cl.View();
+      //      rb::planeView view = cl.View();
       double strip = cl.WgtAvgStrip();
       double pitch = 0.06;
 
@@ -48,27 +48,39 @@ namespace emph {
 	double strippos = strip*pitch - sd.Height()/2;
 	double cosrot = cos(sd.Rot());
 	double sinrot = sin(sd.Rot());
-	// note, an SSD that measures "y" (vertical position) has a rotation of 0 degrees.
-	if (view == rb::X_VIEW) { // rotation angle is assumed to be ~90deg.
-	  x0[0] = sd.Pos()[0] - strippos*sinrot;
-	  x1[0] = sd.Pos()[0] + strippos*sinrot;
-	  x0[1] = sd.Pos()[1] - (sd.Width()/2)*(1-cos(sd.Rot()));
-	  x1[1] = sd.Pos()[1] + (sd.Width()/2)*(1-cos(sd.Rot()));
-	  
-	}
-	else {
-	  x0[1] = sd.Pos()[1] - strippos*cosrot;
-	  x1[1] = sd.Pos()[1] + strippos*cosrot;
-	  x0[0] = sd.Pos()[0] - (sd.Width()/2)*(1-sin(sd.Rot()));
-	  x1[0] = sd.Pos()[0] + (sd.Width()/2)*(1-sin(sd.Rot()));
-	}
+	double tx0[2], tx1[2];
+
+	tx0[0] = -sd.Width()/2;
+	tx1[0] = sd.Width()/2;
+	tx0[1] = strippos;
+	tx1[1] = strippos;
+
+	x0[0] = -tx0[0]*cosrot + tx0[1]*sinrot + sd.Pos()[0];
+	x0[1] = tx0[0]*sinrot + tx0[1]*cosrot + sd.Pos()[1];
+
+	x1[0] = -tx1[0]*cosrot + tx1[1]*sinrot + sd.Pos()[0];
+	x1[1] = tx1[0]*sinrot + tx1[1]*cosrot + sd.Pos()[1];
+
+	/*
+	tx0[0] = -sd.Width()/2 + sd.Pos()[0];
+	tx1[0] = sd.Width()/2 + sd.Pos()[0];
+	tx0[1] = strippos + sd.Pos()[1];
+	tx1[1] = strippos + sd.Pos()[1];
+
+	x0[0] = tx0[0]*cosrot - tx0[1]*sinrot; 
+	x0[1] = tx0[0]*sinrot + tx0[1]*cosrot; 
+
+	x1[0] = tx1[0]*cosrot - tx1[1]*sinrot; 
+	x1[1] = tx1[0]*sinrot + tx1[1]*cosrot; 
+	*/
+ 
 	ls.SetX0(x0);
-	ls.SetX1(x1);
+	ls.SetX1(x1);	  
       }
       catch(...) {
 	return false;
       }
-
+      
       return true;
 
     }
