@@ -59,7 +59,8 @@ namespace emph {
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
 	   }
 	   aPar.SetType(emph::rbal::PITCHCORR); 
-	   aPar.SetLimits(std::pair<double, double>(-0.001, 0.005)); // Should be always positiv, max. tilt of ~ 36 degrees.
+	   aPar.SetLimits(std::pair<double, double>(-0.005, 0.005)); // Should be always positiv, max. tilt of ~ 36 degrees.
+	   // For station 0, Y view, we find that the fit prefers negative values.. ==> strip pitch is a bit wider than 60 microns?  
 	   // re-scale that, way too large..  
 	   aPar.SetValue(1.0e-6);
 	   aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
@@ -78,7 +79,7 @@ namespace emph {
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
 	   }
 	   aPar.SetType(emph::rbal::PITCHCORR); 
-	   aPar.SetLimits(std::pair<double, double>(-0.001, 0.005)); // Should be always positiv, max. tilt of ~ 36 degrees. Way too much. 
+	   aPar.SetLimits(std::pair<double, double>(-0.005, 0.005)); // Should be always positiv, max. tilt of ~ 36 degrees. Way too much. 
 	   // Readjust to something much smaller.. 
 	   aPar.SetValue(1.0e-6);
 	   aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
@@ -108,6 +109,7 @@ namespace emph {
 	 for (size_t kV = 0; kV !=2; kV++) { 
  	   for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { // Reference frame is defined, station 0 & station 5 could have tilts and Rolls
 	     SSDAlignParam aPar; 
+	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
 	     aPar.SetType(emph::rbal::ROLL); 
 	     aPar.SetLimits(std::pair<double, double>(-0.25, 0.25));
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
@@ -117,11 +119,12 @@ namespace emph {
 	 // U views and V views 
 	 std::vector<size_t> nums{fNumSensorsU, fNumSensorsV};
 	 for (size_t kV = 2; kV !=4; kV++) { 
- 	   for (size_t kSe=1; kSe != nums[kV-2]; kSe++) {
+ 	   for (size_t kSe=0; kSe != nums[kV-2]; kSe++) {
 	     SSDAlignParam aPar; 
 	     aPar.SetType(emph::rbal::TRSHIFT); 
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
-	     aPar.SetLimits(std::pair<double, double>(-5., 5.0));
+	     aPar.SetLimits(std::pair<double, double>(-25., 25.0)); // Not clear what the offsets are.. 
+	     if ((kV == 2)) aPar.SetLimits(std::pair<double, double>(-5., 5.0)); // Check, offsets are indeed small. 
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
 	     if (!fMoveLongByStation) {
@@ -141,6 +144,8 @@ namespace emph {
 	  } // on Sensors  
         } // on Views 
       } // 3D 
+//      std::string aTokenTmp("FromReload");
+//      this->DumpTable(aTokenTmp);
     } // Reload
     
     void SSDAlignParams::DumpTable(const std::string &token) const {

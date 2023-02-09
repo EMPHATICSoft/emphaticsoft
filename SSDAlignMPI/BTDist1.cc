@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 
     std::string aFName(topDirAll);  
     if (!strictSt6) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
-    else aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1c.dat");
+    else aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA5_V1e.dat");
      
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
      emph::rbal::BTAlignInput myBT;
      
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. if strictSt6 = false
-     if (strictSt6) { numExpected = 58586; myBT.SetKey(687401); }
+     if (strictSt6) { numExpected = 41321; myBT.SetKey(687403); }
      
      if (myRank == 0) myBT.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 
@@ -136,13 +136,13 @@ int main(int argc, char **argv) {
      }
 	      
 	            
-     emph::rbal::distributeEvts(myBT, sleepFact); 
+     emph::rbal::distributeEvts(myBT); 
      //
      // test.. 
      //
      std::cerr << " Number of events for rank " << myRank << " is " << myBT.GetNumEvts() << std::endl;
-     if (myRank < 5) {
-        myBT.DumpCVSForR(myRank, 'Y', token);
+     if (myRank < 3) {
+        myBT.DumpCVSForR(myRank, 'V', token);
      }
      gettimeofday(&tvEnd,NULL);
      time_t nowTimeEnd = tvEnd.tv_sec;      

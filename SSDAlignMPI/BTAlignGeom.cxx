@@ -35,7 +35,7 @@ namespace emph {
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},
        fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},      
-       fTrNomPosU{-fHalfWaferWidth, -fHalfWaferWidth},
+       fTrNomPosU{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
        fTrNomPosV{fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
        fTrDeltaPosU(fNumSensorsU, 0.), fTrDeltaPosV(fNumSensorsV, 0.), 
@@ -156,7 +156,7 @@ namespace emph {
 	 case 'U' :  { fRollU[kSe] = v;  break;} 
 	 case 'V' :  case 'W' : { fRollV[kSe] = v; break;}
 	 default : { 
-	      std::cerr << " BTAlignGeom::SetDeltaRoll, unknown view " << view << " fatal, quit " << std::endl; 
+	      std::cerr << " BTAlignGeom::SetRoll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 

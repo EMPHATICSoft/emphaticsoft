@@ -38,10 +38,12 @@ namespace emph{
       double fBeamGammaX, fBeamGammaY;
       bool fSoftLimits;
       double fUpLimForChiSq; // Upper limit for accepting fitted tracks.
-      bool fDebugIsOn; 
+      bool fDebugIsOn;
+      mutable bool fDumpBeamTracksForR;  
       mutable int fNCalls;
       double fErrorDef; // for Minuit. , and for pitch err.. 
       mutable std::vector<double> fResids;
+      mutable std::string fNameForBeamTracks;
       mutable std::ofstream fFOutHistory;
       
     public:
@@ -55,6 +57,8 @@ namespace emph{
       void SetStrictSt6(bool v) { fStrictSt6 = v; } 
       void SetSoftLimits(bool v) { fSoftLimits = v; } 
       void SetUpError(double v) { fErrorDef = v; }
+      void SetDumpBeamTracksForR(bool v) { fDumpBeamTracksForR = v; } 
+      void SetNameForBeamTracks (const std::string &aName) { fNameForBeamTracks = aName; } 
       inline void SetDebug(bool d=true) {fDebugIsOn = true;} 
       // Get, basic operators, interface to Minuit2 
       virtual double Up() const {return fErrorDef;}

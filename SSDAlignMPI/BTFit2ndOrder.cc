@@ -50,8 +50,10 @@ int main(int argc, char **argv) {
 				      // Try subfit type "TrTiltShift"  "TrZShift" only tilts and transverse shifts, or only 
 				      // Tr and long shifts. Only valid for 2D (test first in the vertical plane). 
    int SensorForFitSubType(INT_MAX); // Valid strings are "All" (nothing fixed), TRShift, PitchCorr, 
+   char ViewForFitSubType('A'); // Applicable for one sensor at a time, for V plane and U plane, mostly. 
    int maxEvts = 1000000;
-   bool strictSt6 = true;
+   bool strictSt6Y = true;
+   bool strictSt6X = true; // only 2/3 of the event, but worth while, I guess.
    
    size_t kSeTrShifted = INT_MAX;
    std::string viewShifted("none");
@@ -62,12 +64,13 @@ int main(int argc, char **argv) {
    bool doMinos = true;
    unsigned int  contourP1Index = INT_MAX;
    unsigned int  contourP2Index = INT_MAX;
-   int nContourPts = 100;
+   int nContourPts = 20;
    unsigned int  scanP1Index = INT_MAX;
    unsigned int  scanP2Index = INT_MAX;
    int nScanPts = 50;
    bool doSoftLimits = false;
    bool applyEmittanceConstraint = false;
+   // To be corrected!! See BeamTrackSSDAlignFCN.cxx
    double betaFunctionY = 1357.; // Only valid for 120 GeV  See e-mail from Mike Olander, Jan 20 
    double betaFunctionX = 377.; // Only valid for 120 GeV 
    double alphaFunctionY = -25.1063; // same..  
@@ -101,13 +104,21 @@ int main(int argc, char **argv) {
         } else if (parStr.find("maxEvt") != std::string::npos) {
           valStrStr >> maxEvts;
           if (myRank == 0) std::cerr << " Requested number of events  "  << maxEvts << std::endl;
-        } else if (parStr.find("strictSt6") != std::string::npos) {
+        } else if (parStr.find("strictSt6Y") != std::string::npos) {
           int iS=0;
           valStrStr >> iS;
-	  strictSt6 = (iS == 1);
+	  strictSt6Y = (iS == 1);
           if (myRank == 0) {
-	    if (strictSt6) std::cerr << " We will require 6 Y view hits, no more, no less  "  << std::endl;
+	    if (strictSt6Y) std::cerr << " We will require 6 Y view hits, no more, no less  "  << std::endl;
 	    else std::cerr << " Allowing for one missing hits in the Y view, includes less illuminated station 4 & 5 sensors  "  << std::endl;
+	  }  
+        } else if (parStr.find("strictSt6X") != std::string::npos) {
+          int iS=0;
+          valStrStr >> iS;
+	  strictSt6X = (iS == 1);
+          if (myRank == 0) {
+	    if (strictSt6X) std::cerr << " We will require 6 X view hits, no more, no less  "  << std::endl;
+	    else std::cerr << " Allowing for one missing hits in the X view, includes less illuminated station 4 & 5 sensors  "  << std::endl;
 	  }  
         } else if (parStr.find("spill") != std::string::npos) {
           valStrStr >> selectedSpill;
@@ -127,6 +138,9 @@ int main(int argc, char **argv) {
         } else if (parStr.find("SensorForFitSubType") != std::string::npos) {
           valStrStr >> SensorForFitSubType;
           if (myRank == 0) std::cerr << " All sensor attribute fixed, except one, which is    "  << SensorForFitSubType << std::endl;	
+        } else if (parStr.find("ViewForFitSubType") != std::string::npos) {
+          ViewForFitSubType = valStr[0];
+          if (myRank == 0) std::cerr << " The Selected view for a specific sensor is     "  << ViewForFitSubType << std::endl;	
         } else if (parStr.find("contourP1Index") != std::string::npos) {
           valStrStr >> contourP1Index;
           if (myRank == 0) std::cerr << " Contour Parameter Index  1   "  << contourP1Index << std::endl;	
@@ -151,7 +165,6 @@ int main(int argc, char **argv) {
 	  doCallFCNOnce = (iCallFCNOnce == 1);
           if ((myRank == 0) && doCallFCNOnce)  std::cerr << "We will do a single call to FCN, and quit  " << std::endl;
           if ((myRank == 0) && (!doCallFCNOnce))  std::cerr << "We will do the complete fit.  " << std::endl;
-         } else if (parStr.find("doMinos") != std::string::npos) {
         } else if (parStr.find("softLimits") != std::string::npos) {
           int iS;
           valStrStr >> iS;
@@ -188,7 +201,26 @@ int main(int argc, char **argv) {
     }
     
     if ((fitType != std::string("2DX")) && (fitType != std::string("2DY")) && (fitType != std::string("3D")) ) {
-      std::cerr << " BTFit2ndOrder, unrecognized fit type " << fitType << " fatal, quit here and now " << std::endl;
+      if (myRank == 0) std::cerr << " BTFit2ndOrder, unrecognized fit type " << fitType << " fatal, quit here and now " << std::endl;
+      MPI_Finalize();
+      exit(2);
+    }
+    if ((SensorForFitSubType != INT_MAX) && (ViewForFitSubType == 'A')) {
+      if (myRank == 0) std::cerr << " BTFit2ndOrder, Requesting optimization of a specific sensor " 
+                                 << SensorForFitSubType << " but view is not specfified, fatal (for now) " << std::endl;
+      MPI_Finalize();
+      exit(2);
+    }
+    if ((SensorForFitSubType == INT_MAX) && (ViewForFitSubType != 'A')) {
+      if (myRank == 0) std::cerr << " BTFit2ndOrder, Requesting optimization of a specific sensor with view " 
+                                 << ViewForFitSubType << " but sensor index is not specfified, fatal (for now) " << std::endl;
+      MPI_Finalize();
+      exit(2);
+    }
+    if ((ViewForFitSubType != 'A') && (ViewForFitSubType != 'X') && (ViewForFitSubType != 'Y') 
+                                   && (ViewForFitSubType != 'U') &&(ViewForFitSubType != 'V')) {
+      if (myRank == 0) std::cerr << " BTFit2ndOrder, Requesting optimization of an inexistant sensor view " 
+                                 << ViewForFitSubType << " fatal That is it " << std::endl;
       MPI_Finalize();
       exit(2);
     }
@@ -200,10 +232,12 @@ int main(int argc, char **argv) {
     std::string myHostName(std::getenv("HOSTNAME"));
     if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/"); // On fnal Wilson
     std::string aFName(topDirAll);  
-    if (!strictSt6) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
-    else aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1c.dat");
-
-     
+    if ((!strictSt6Y) && (!strictSt6X)) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    else {
+      if ((strictSt6Y) && (!strictSt6X)) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA3_V1c2.dat");
+      if ((!strictSt6Y) && (strictSt6X)) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA4_V1d.dat");
+      if ((strictSt6Y) && (strictSt6X))  aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA5_V1e.dat");
+    } 
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
     gettimeofday(&tvStart,NULL);
@@ -217,8 +251,9 @@ int main(int argc, char **argv) {
      emph::rbal::BTAlignInput myBTIn;
      
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
-     if (strictSt6) { numExpected = 58586; myBTIn.SetKey(687401); }
-     
+     if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
+     if ((strictSt6X)  && (!strictSt6Y)) { numExpected = 49651; myBTIn.SetKey(687402); }
+     if ((strictSt6X)  && (strictSt6Y)) { numExpected = 41321; myBTIn.SetKey(687403); } 
      if (myRank == 0)  {
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;
@@ -231,7 +266,7 @@ int main(int argc, char **argv) {
     
     emph::rbal::BTAlignGeom *myGeo = emph::rbal::BTAlignGeom::getInstance();
     emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance();
-    myParams->SetStrictSt6(strictSt6); 
+    myParams->SetStrictSt6(strictSt6X || strictSt6Y); 
     //
     myParams->SetMode(fitType);
     myParams->SetSoftLimits(doSoftLimits);
@@ -292,11 +327,38 @@ int main(int argc, char **argv) {
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.03585  ); 
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
+ // 
+//  Result from xxth attemps, all LongShift fixed, null, Tr and tilt, with soft limits. Tilt factor now positive..  Or consistent with zero. 
+//  StrictSt6 X Y See Feb_7 Scan series. 
+// 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.6051372735  );  //Starts to make sense.. 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.599688114 );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.130612278 );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.0105059891  ); 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
       // Now that is stable.. 
       for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.0000004); // Turn it off! 
       myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
+//
+//   U coordinates; 
+//
+     myParams->SetValue(emph::rbal::TRSHIFT, 'U', 0,  0.137950); // First single Param min. 
+     myParams->SetValue(emph::rbal::TRSHIFT, 'U', 1,  0.2920131); // First single Param min. 
+     myGeo->SetUnknwonUncert('U', 0, 0.025);    myGeo->SetUnknwonUncert('U', 1, 0.025); // tentative.. 
+//
+// V coordinates.
+//
+     for (size_t k=0; k!= 4; k++) myGeo->SetUnknwonUncert('V', k, 10.0); // Turn of ftheir weight, not rough aligned yet.    
+     myGeo->SetUnknwonUncert('V', 1, 0.025); // attempting to aling the second sensor V, in Station 4. 
+     // Success.. 
+     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1,  0.1158870367); // First single Param minimization. 
+     myGeo->SetUnknwonUncert('V', 2, 0.2); // Semi successfull, large error, poor statistics. 
+     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2,  -0.1220843105); //  We get the X from a Projection from station 4& 5 on 1500 evets. for Run 1055 
+     // Uncertainty is 800 microns.  
+     myGeo->SetUnknwonUncert('V', 2, 0.5); // Semi successfull, large error, poor statistics. 
+     myGeo->SetUnknwonUncert('V', 3, 0.5); // Semi successfull, large error, poor statistics. 
      
-    
     } 
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1,  1.585286); 
@@ -305,22 +367,32 @@ int main(int argc, char **argv) {
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -1.495283); 
 //
 //   2n try , reducing the error .  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1,  1.68684 ); 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2,  2.5173  );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3,  4.18659 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -5.0 ); // Poor statistics.. 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5,  -0.279456 );
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.030); // Only ~ 2 strips, in average.. 
-      myGeo->SetUnknwonUncert('X', 4, 5.0);  myGeo->SetUnknwonUncert('X', 6, 5.0); // again, suspicious track that are widely deflected.  
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1,  1.68684 ); 
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2,  2.5173  );  
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3,  4.18659 );  
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -5.0 ); // Poor statistics.. 
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5,  -0.279456 );
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
+//      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.030); // Only ~ 2 strips, in average.. 
+//      myGeo->SetUnknwonUncert('X', 4, 5.0);  myGeo->SetUnknwonUncert('X', 6, 5.0); // again, suspicious track that are widely deflected.  
 //   3rd (or 4rth)   try , reducing the error .  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.70846   ); 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 2.57212  );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3, 4.25464  );  
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.70846   ); 
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 2.57212  );  
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3, 4.25464  );  
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -5.0 ); // Poor statistics.. 
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5, -0.320193  );
+//      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
+//      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // a fraction of the strip.. 
+//
+// Strict St6, Feb 7 
+//     
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.68564   ); 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 2.49931  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3, 4.1595  );  
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -5.0 ); // Poor statistics.. 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5, -0.320193  );
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5, -0.251312  );
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // Only ~ 2 strips, in average.. 
+      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // a fraction of the strip.. 
 
     } 
     
@@ -381,30 +453,38 @@ int main(int argc, char **argv) {
 	 std::string aName(itP->Name());
 //         if (myRank == 0) std::cerr << " ... On Rank0, at Name .. " 
 //                                 << aName << " Sensor " << itP->SensorI() << std::endl;
-	 if (((fitSubType == std::string("TrShift")) || 
-	      (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")))   && 
-	     (SensorForFitSubType == INT_MAX) && (aName.find("TransShift") == 0)) isFixed = false;
-	 if (((fitSubType == std::string("ZShift"))||(fitSubType == std::string("TrZShift"))) && 
-	     (SensorForFitSubType == INT_MAX) && (aName.find("LongShift") == 0)) isFixed = false;
-	 if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift"))) && 
-	     (SensorForFitSubType == INT_MAX) && (aName.find("Tilt") == 0)) isFixed = false;
-	 if ((fitSubType == std::string("DeltaRoll")) && 
-	     (SensorForFitSubType == INT_MAX) && (aName.find("Roll") == 0)) isFixed = false;
+//  Re-write these clauses.. Keyin on whether or not we ask for a specific sensor. 
+         if (SensorForFitSubType == INT_MAX) { 
+	   if (((fitSubType == std::string("TrShift")) || (fitSubType == std::string("TrShiftMagnetKick")) ||
+	        (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")))   && 
+	        (aName.find("TransShift") == 0)) isFixed = false;
+	   if (((fitSubType == std::string("ZShift"))||(fitSubType == std::string("TrZShift"))) && 
+	        (aName.find("LongShift") == 0)) isFixed = false;
+	   if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift"))) && 
+	        (aName.find("Tilt") == 0)) isFixed = false;
+	   if ((fitSubType == std::string("DeltaRoll")) && 
+	       (aName.find("Roll") == 0)) isFixed = false;
+	 } else {
+	   if ((ViewForFitSubType == itP->View()) && (SensorForFitSubType == itP->SensorI())) { 
 	 // Specific sensors. 
-	 // Find the sensor in the struct,  
-	 if ((fitSubType == std::string("TrShift")) && 
-	     (SensorForFitSubType == itP->SensorI()) && (aName.find("TransShift") == 0)) isFixed = false;
-	 if ((fitSubType == std::string("ZShift")) && 
-	     (SensorForFitSubType == itP->SensorI()) && (aName.find("LongShift") == 0)) isFixed = false;
-	 if ((fitSubType == std::string("PitchCorr")) && 
-	     (SensorForFitSubType == itP->SensorI()) && (aName.find("Tilt") == 0)) isFixed = false;
-	 if ((fitSubType == std::string("DeltaRoll")) && 
-	     (SensorForFitSubType == itP->SensorI()) && (aName.find("Roll") == 0)) isFixed = false;
+	 // Find the sensor in the struct, Require  
+	     if ((fitSubType == std::string("TrShift")) && (aName.find("TransShift") == 0)) isFixed = false;
+	     if ((fitSubType == std::string("TrTiltShift")) && (aName.find("TransShift") == 0)) isFixed = false;
+	     if ((fitSubType == std::string("ZShift")) && (aName.find("LongShift") == 0)) isFixed = false;
+	     if ((fitSubType == std::string("PitchCorr")) && (aName.find("Tilt") == 0)) isFixed = false;
+	     if ((fitSubType == std::string("TrTiltShift")) && (aName.find("Tilt") == 0)) isFixed = false;
+	     if ((fitSubType == std::string("DeltaRoll")) && (aName.find("Roll") == 0)) isFixed = false;
+	   }
+	 }
+	 // Tuning the magnet.. Might not be needed, if we have the accurate field map. 
 	 if (((fitSubType == std::string("MagnetZPos")) || (fitSubType == std::string("MagnetZPosKick"))) &&
 	      (aName.find("LongMagC") == 0)) isFixed = false;   
 	 if (((fitSubType == std::string("MagnetKick")) || (fitSubType == std::string("MagnetZPosKick"))) &&
 	      (aName.find("KickMag") == 0)) isFixed = false;
 	 if (((fitSubType == std::string("TrShiftMagnetKick")) || (fitSubType == std::string("MagnetZPosKick"))) &&
+	      (aName.find("KickMag") == 0)) isFixed = false;
+	 // try tilt and KickMag    
+	 if (((fitSubType == std::string("TrTiltShiftMagnetKick"))) &&
 	      (aName.find("KickMag") == 0)) isFixed = false;
 	 if (isFixed) namesToBeFixed.push_back(aName);
 	 fixed[kPar] = isFixed;
@@ -423,18 +503,20 @@ int main(int argc, char **argv) {
      // Minimize
      //
      ROOT::Minuit2::FunctionMinimum min = migrad();
-     if (!min.IsValid()) {
+     bool myMinMigrad = min.IsValid();
+     if (!myMinMigrad) {
        if (myRank == 0) {
          std::cerr << "  ... On rank 0, Minimum from Migrad is invalid... " << std::endl;
 	 std::cerr << min << std::endl;
 //	 theFCN.CloseChiSqHistoryFile();
        }
-       MPI_Finalize();
-       exit(2);
+//       MPI_Finalize();
+//       exit(2); 
+// We want to be able to do the Scan.. 
      } else {
        
        if (myRank == 0) {
-         std::cerr << "  ... On rank 0, Minimum from Migrad has been delcared valid... " << std::endl;
+         std::cerr << "  ... On rank 0, Minimum from Migrad has been declared valid... " << std::endl;
          gettimeofday(&tvStop,NULL);
          time_t nowTimeStop = tvStop.tv_sec;
          struct tm *nowtm = localtime(&nowTimeStop);
@@ -443,22 +525,50 @@ int main(int argc, char **argv) {
          std::cerr << "  ... On rank 0, Minimum from Migrad has been declared valid...time  " << dateNow << std::endl;
          std::cerr << " The minimum is " << min << std::endl;
        }
+       //
+       // Save the set of track for this solution.. 
+       //
+       std::vector<double> parsSol(myParams->size(), 0.);
+       for (size_t kP=0; kP != myParams->size(); kP++) parsSol[kP] = min.UserState().Value(kP);
+       theFCN.SetDumpBeamTracksForR(true);
+       std::string aNameSol("./BeamTracksFromMin_"); aNameSol += token; aNameSol += std::string("_V1.txt");
+       theFCN.SetNameForBeamTracks(aNameSol);
+       double chiSol = theFCN(parsSol);
+       if (myRank == 0) {
+         if (std::abs(chiSol - min.Fval()) > 1.0e-3) {
+	     std::cerr << " .... On Rank 0, dump tracks for CVS, inconsistent chi-Sq problem, at min  " 
+	               <<  min.Fval()  << " by FCN call " << chiSol << " Fatal.. " << std::endl; 
+	     MPI_Finalize(); exit(2);
+	 }
+       }    	       
+       theFCN.SetDumpBeamTracksForR(false);
+       
      }
      // Requested Scans..  ? My own, based on Limits.. 
      if ((scanP1Index < static_cast<unsigned int>(myParams->size())) 
            && (scanP2Index < static_cast<unsigned int>(myParams->size()))) {
-        std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(scanP1Index)); // !!by Minuit Parameters numberr. See printed list.. 
+        std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(scanP1Index));
+	 // !!by Minuit Parameters numberr. See printed list.. 
         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP2 = myParams->It(static_cast<size_t>(scanP2Index));
         if (myRank == 0) std::cerr << " Requesting Scans..For parameters " << itP1->Name()
 	       << " and " << itP2->Name() << " Number of calls if FCN history file, so far " << theFCN.NCalls() <<std::endl;
 	 std::vector<double> tmpPars(myParams->size(), 0.); size_t kp = 0;
 	 std::pair<double, double> limitsP1 =  itP1->Limits(); std::pair<double, double> limitsP2 =  itP2->Limits();
 	 double range1 = limitsP1.second - limitsP1.first; double range2 = limitsP2.second - limitsP2.first; 
-	 double delta1 = range1/nScanPts; double delta2 = range2/nScanPts;
+	 double start1 = limitsP1.first; double start2 = limitsP2.first;	 
 	 for (size_t kp=0; kp != myParams->size(); kp++) {
            std::vector<emph::rbal::SSDAlignParam>::const_iterator itPC = myParams->It(kp);
 	   tmpPars[kp] = min.UserState().Value(itPC->Name());
 	 }
+	 //
+	 // Using the Migrad errors, if the minimum is valid. 
+	 //
+	 if (myMinMigrad) {
+	   range1 = 3.0*min.UserState().Error(itP1->Name()); range2 = 3.0*min.UserState().Error(itP2->Name());
+	   start1 = min.UserState().Value(itP1->Name()) - 0.5*range1;
+	   start2 = min.UserState().Value(itP2->Name()) - 0.5*range2;
+	 }
+	 double delta1 = range1/nScanPts; double delta2 = range2/nScanPts;
 	 std::ofstream aFoutScan;
 	 if (myRank == 0) {
 	    std::string aNameScan("./Scan_"); aNameScan += token + std::string("_V1.txt");
@@ -467,11 +577,9 @@ int main(int argc, char **argv) {
 	 }
 	 int ncc = 0;
 	 for (int iSc1=0; iSc1 != nScanPts; iSc1++) {
-	   tmpPars[scanP1Index] =  limitsP1.first + iSc1*delta1;
-	   if (fitType == std::string("2DY") && (scanP1Index == 1)) tmpPars[scanP1Index] = -0.55 + iSc1*0.0025; // temporary.. 
+	   tmpPars[scanP1Index] =  start1 + iSc1*delta1;
 	   for (int iSc2=0; iSc2 != nScanPts; iSc2++) {
-	     tmpPars[scanP2Index] =  limitsP2.first + iSc2*delta2;
-	     if (fitType == std::string("2DY") && (scanP2Index == 4)) tmpPars[scanP2Index] = -1.812 + iSc2*0.0025; // temporary.. 
+	     tmpPars[scanP2Index] =  start2 + iSc2*delta2;
 	     double chiSqTmp = theFCN(tmpPars);
 	     if (myRank == 0) 
 	       aFoutScan  << " " << ncc << " " 
@@ -489,7 +597,7 @@ int main(int argc, char **argv) {
      //
      // Call minos 
      //
-     if (doMinos) { 
+     if (myMinMigrad && doMinos) { 
         ROOT::Minuit2::MnMinos minos(theFCN, min);
      //
      // Print the results. 
@@ -517,12 +625,15 @@ int main(int argc, char **argv) {
 	 } 
        }
      // Requested contours ?
-       if (min.IsValid() && (contourP1Index < static_cast<unsigned int>(myParams->size())) 
+       if (myMinMigrad && (contourP1Index < static_cast<unsigned int>(myParams->size())) 
            && (contourP2Index < static_cast<unsigned int>(myParams->size()))) { // !!Indices by Minuit Parameters numberr. See printed list..
        
-         theFCN.SetUpError(3.0);
+         theFCN.SetUpError(2.0);
+	 std::cerr << " On rank " << myRank << " Just before declaring ROOT::Minuit2::MnContours " << std::endl;
          ROOT::Minuit2::MnContours contour(theFCN, min);
+	 std::cerr << " On rank " << myRank << " Just before running ROOT::Minuit2::MnContours " << std::endl;
          std::vector<std::pair<double, double> > resContour = contour(contourP1Index, contourP2Index, nContourPts); 
+	 std::cerr << " On rank " << myRank << " Just after running ROOT::Minuit2::MnContours " << std::endl;
          std::string aNameC("./BTFit2ndOrder_"); aNameC += token;  aNameC += std::string("_Contour_");
          std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(contourP1Index));
          std::vector<emph::rbal::SSDAlignParam>::const_iterator itP2 = myParams->It(static_cast<size_t>(contourP2Index));

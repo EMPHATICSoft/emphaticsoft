@@ -37,10 +37,11 @@ namespace emph {
     fBeamGammaY((1.0 + fBeamAlphaFunctionY*fBeamAlphaFunctionY)/fBeamBetaFunctionY),
     fSoftLimits(false),
     fUpLimForChiSq(1000.),
-    fDebugIsOn(false), 
+    fDebugIsOn(false), fDumpBeamTracksForR(false),
     fNCalls(0), 
     FCNBase(),
-    fErrorDef(1.) 
+    fErrorDef(1.),
+    fNameForBeamTracks("none") 
     {
       // We overwrite the Twiss parameters, based on e-mail from Mike Olander, Jan 31 
       const double l172 = 172.1455; // meters  
@@ -110,7 +111,7 @@ namespace emph {
        emph::rbal::BeamTrack aTr;
        aTr.SetDoMigrad(false); // Minuit Minimize will do .. 
 //       aTr.SetDebug((iEvt < 5));
-       aTr.SetDebug(false);
+//       aTr.SetDebug(false);
        if (fFitType == std::string("2DY")) { 
          aTr.doFit2D('Y', it); 
        } else if (fFitType == std::string("2DX")) aTr.doFit2D('X', it); 
@@ -141,6 +142,11 @@ namespace emph {
          fFOutHistory << " " << pars[k];
        } 
        fFOutHistory << std::endl;
+     }
+     if (fDumpBeamTracksForR) {
+        emph::rbal::collectBeamTracks(myBTrs, false);
+	if (myRank == 0) 
+	  myBTrs.DumpForCVS(fNameForBeamTracks.c_str());
      }  
      return chi2;
     }

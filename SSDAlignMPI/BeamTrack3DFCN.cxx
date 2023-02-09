@@ -33,7 +33,8 @@ namespace emph {
       
     double BeamTrack3DFCN::operator()(const std::vector<double> &pars) const {
     
-      assert(pars.size() != 4);
+      assert(pars.size() == 4);
+//       std::cerr << " BeamTrack3DFCN::operator(), begin, x0 " << pars[0] << std::endl;
       const double zMag = myGeo->ZCoordsMagnetCenter();
       const double kick = myGeo->MagnetKick120GeV();
       double chi2 = 0.;
@@ -77,18 +78,26 @@ namespace emph {
 	    const double xPred = x0 + slx0*z;
 	    const double yPred = y0 + sly0*z;
 	    const double uPred = fOneOverSqrt2 * ( xPred + yPred);
-	    const double vPred = fOneOverSqrt2 * ( xPred - yPred);
+	    const double vPred = fOneOverSqrt2 * ( -xPred - yPred);
 	    tPred = (aView == 'U') ? uPred + vPred * myGeo->Roll(aView, kSe) :  vPred + uPred * myGeo->Roll(aView, kSe);
 	    tMeas = ( strip*pitch + myGeo->TrPos(aView, kSe));
-	    if (kSe == 4) tMeas *=-1.; // I think I know this, to be checks.. 
+//	    if ((fItCl->EvtNum() == 16) && (fItCl->Spill() == 10)) 
+//	        std::cerr << " ..... U & V  for evt 16, spill 10 View " << aView << " kSe " << kSe 
+//	  	      << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
 	  }
 	  double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
 	  const double dt = (tPred - tMeas);
 	  fResids[kSeT] = dt;
 	  kSeT++;
 	  chi2 += (dt * dt )/tMeasErrSq;
-	}
-      }
+//          if ((fItCl->EvtNum() == 16) && (fItCl->Spill() == 10)) 
+//	    std::cerr << " Debugging bad offsets for evt 16, spill 10 View " << aView 
+//	              << " kSe " << kSe << " tPred " <<  tPred << " tMeas " << tMeas 
+//		      << " tMeasErrSq " << tMeasErrSq << " chi2 " << chi2 << std::endl;
+//	  
+	} // on the sensors. 
+      } // on the views 
+//      std::cerr << " BeamTrack3DFCN::operator(), done chiSq " << chi2 << std::endl;
       return chi2;
     }
      

@@ -39,7 +39,7 @@ namespace emph {
       fx0Err(DBL_MAX, DBL_MAX), fy0Err(DBL_MAX, DBL_MAX), 
       fslx0Err(DBL_MAX, DBL_MAX), fsly0Err(DBL_MAX, DBL_MAX),
       fresids(2*fNumSensorsXorY + fNumSensorsU + fNumSensorsV, DBL_MAX) // assume 3D, a bit of wast of memory if only 2D    
-      { ; } 
+      {  ; } 
     
      double BeamTrack::doFit2D(char view, std::vector<BeamTrackCluster>::const_iterator it) {
        fSpill = it->Spill();   fEvtNum = it->EvtNum();
@@ -153,19 +153,20 @@ namespace emph {
          std::vector<double>initValsV{initValsX.first, initValsX.second, initValsY.first, initValsY.second};
          std::vector<double>initValsE{0.5, 0.001, 0.5, 0.001};
          ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
-	 ROOT::Minuit2::FunctionMinimum min = theMinimizer.Minimize(fFcn2D, initValsV, initValsE);
+	 ROOT::Minuit2::FunctionMinimum min = theMinimizer.Minimize(fFcn3D, initValsV, initValsE);
  	 const std::vector<double> myErrs = min.UserParameters().Errors();
          if (fDebugIsOn) std::cerr << " Minimize minimum " << min << std::endl; 
-         fx0 = min.UserParameters().Value(nameT0X); fslx0 = min.UserParameters().Value(nameSlT0X);
+//         fx0 = min.UserParameters().Value(nameT0X); fslx0 = min.UserParameters().Value(nameSlT0X);
+         fx0 = min.UserParameters().Value(0); fslx0 = min.UserParameters().Value(1);
 	 finalParams[0] = fx0; finalParams[1] = fslx0;
 	 fx0Err = std::pair<double, double> (myErrs[0], myErrs[0]); 
 	 fslx0Err =std::pair<double, double> (myErrs[1], myErrs[1]); 
-         fy0 = min.UserState().Value(nameT0Y); fsly0 = min.UserState().Value(nameSlT0Y);
+         fy0 = min.UserState().Value(2); fsly0 = min.UserState().Value(3);
 	 finalParams[2] = fy0; finalParams[3] = fsly0;
 	 fy0Err = std::pair<double, double> (myErrs[2], myErrs[2]); 
 	 fsly0Err =std::pair<double, double> (myErrs[3], myErrs[3]); 
 	 minFValM = min.Fval();
-       	 
+      	 
        } 
        double finalChi = fFcn3D(finalParams);
        fchiSq = finalChi;
@@ -174,7 +175,8 @@ namespace emph {
 		    << finalChi << "  Something wrong, quit here and now " << std::endl;
 		    exit(2);
        }
-       for (size_t kSe = 0; kSe != fNumSensorsXorY; kSe++) fresids[kSe] = fFcn2D.Resid(kSe);
+       for (size_t kSe = 0; kSe != fresids.size(); kSe++) fresids[kSe] = fFcn3D.Resid(kSe);
+       if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << finalChi << std::endl; 
        return finalChi;
      }
      

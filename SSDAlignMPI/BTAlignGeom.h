@@ -24,7 +24,7 @@ namespace emph{
         const size_t fNumStations = 6; // For Phase1b 
         const size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
         const size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each 
-        const size_t fNumSensorsV = 4; // Station 2 and 3, one sensor each 
+        const size_t fNumSensorsV = 4; // Station 4 and 5, two sensors each 
 	const size_t fNumStrips = 639; // to be verified at some point.. Consitent with the gdml, I think.. 
 	//
 	double fZCoordsMagnetCenter; 
