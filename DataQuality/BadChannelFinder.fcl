@@ -5,7 +5,7 @@ standard_badchan:
   module_type:  BadChannelFinder
   SSDRawLabel:  "raw:SSD"
   ColdChanRate: 0
-  HotChanRate:  0.03
+  HotChanRate:  0.035
   CSVFileName:  "badChannels.csv"
 }
 
