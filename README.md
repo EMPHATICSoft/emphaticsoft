@@ -117,6 +117,7 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
    buildtool --generator=ninja
    ```
    * any subsequent builds (still have to be in the build directory):
+   ```
    ninja
    ```
 <a name="run"></a>
