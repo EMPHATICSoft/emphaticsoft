@@ -74,7 +74,8 @@ int main(int argc, char **argv) {
    double betaFunctionY = 1357.; // Only valid for 120 GeV  See e-mail from Mike Olander, Jan 20 
    double betaFunctionX = 377.; // Only valid for 120 GeV 
    double alphaFunctionY = -25.1063; // same..  
-   double alphaFunctionX = -8.62823; // 
+   double alphaFunctionX = -8.62823; //
+   int runNum = 1055; 
   
      
     MPI_Init(NULL, NULL);
@@ -104,6 +105,9 @@ int main(int argc, char **argv) {
         } else if (parStr.find("maxEvt") != std::string::npos) {
           valStrStr >> maxEvts;
           if (myRank == 0) std::cerr << " Requested number of events  "  << maxEvts << std::endl;
+        } else if (parStr.find("runNum") != std::string::npos) {
+          valStrStr >> runNum;
+          if (myRank == 0) std::cerr << " Run number will be "  << runNum << std::endl;
         } else if (parStr.find("strictSt6Y") != std::string::npos) {
           int iS=0;
           valStrStr >> iS;
@@ -231,13 +235,17 @@ int main(int argc, char **argv) {
     std::string topDirAll("/home/lebrun/EMPHATIC/DataLaptop/");
     std::string myHostName(std::getenv("HOSTNAME"));
     if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/"); // On fnal Wilson
-    std::string aFName(topDirAll);  
-    if ((!strictSt6Y) && (!strictSt6X)) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    std::string aFName(topDirAll); 
+    std::ostringstream runNumStrStr;   runNumStrStr << runNum;
+    std::string runNumStr(runNumStrStr.str());
+    std::string aFileDescr; 
+    if ((!strictSt6Y) && (!strictSt6X)) aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA1_V1b.dat");
     else {
-      if ((strictSt6Y) && (!strictSt6X)) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA3_V1c2.dat");
-      if ((!strictSt6Y) && (strictSt6X)) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA4_V1d.dat");
-      if ((strictSt6Y) && (strictSt6X))  aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA5_V1e.dat");
-    } 
+      if ((strictSt6Y) && (!strictSt6X))  aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA3_V1c2.dat");
+      if ((!strictSt6Y) && (strictSt6X))  aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA4_V1d.dat");
+      if ((strictSt6Y) && (strictSt6X))   aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA5_V1e.dat");
+    }
+    aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
     gettimeofday(&tvStart,NULL);
@@ -253,10 +261,12 @@ int main(int argc, char **argv) {
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
      if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
      if ((strictSt6X)  && (!strictSt6Y)) { numExpected = 49651; myBTIn.SetKey(687402); }
-     if ((strictSt6X)  && (strictSt6Y)) { numExpected = 41321; myBTIn.SetKey(687403); } 
+     if ((strictSt6X)  && (strictSt6Y)) { numExpected = 41321; myBTIn.SetKey(687403); }  // Only valid for run 1055
      if (myRank == 0)  {
+         std::cerr << " Doing the Fit2ndorder on file " << aFName << std::endl;
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;
+//	 std::cerr << " And quit for now... " << std::endl; MPI_Finalize(); exit(2);
       }
 
      emph::rbal::distributeEvts(myBTIn); 
@@ -348,16 +358,26 @@ int main(int argc, char **argv) {
      myGeo->SetUnknwonUncert('U', 0, 0.025);    myGeo->SetUnknwonUncert('U', 1, 0.025); // tentative.. 
 //
 // V coordinates.
-//
-     for (size_t k=0; k!= 4; k++) myGeo->SetUnknwonUncert('V', k, 10.0); // Turn of ftheir weight, not rough aligned yet.    
-     myGeo->SetUnknwonUncert('V', 1, 0.025); // attempting to aling the second sensor V, in Station 4. 
+//SensorForFitSubType
+     for (size_t k=0; k!= 4; k++) myGeo->SetUnknwonUncert('V', k, 10.0); // Turn of ftheir weight, not rough aligned yet. 
+     for (size_t k=0; k!= 4; k++) myParams->SetValue(emph::rbal::TRSHIFT, 'V', k,  0.);   // To make sure.. 
+     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1,  2.219765422); // Success value, keep.. Little bias due to sift Limits. 
+//     if (SensorForFitSubType != 1) myGeo->SetUnknwonUncert('V', 1, 100.); // Semi successfull, large error, poor statistics. 
+//     else myGeo->SetUnknwonUncert('V', 1, 0.025); // attempting to aling the second sensor V, in Station 4. 
+//     myGeo->SetUnknwonUncert('V', 1, 0.025); // attempting to aling the second sensor V, in Station 4. 
+     myGeo->SetUnknwonUncert('V', 1, 5.0); // still FUBAR  
+     myGeo->SetUnknwonUncert('V', 0, 5.0); // still FUBAR  
      // Success.. 
-     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1,  0.1158870367); // First single Param minimization. 
-     myGeo->SetUnknwonUncert('V', 2, 0.2); // Semi successfull, large error, poor statistics. 
-     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2,  -0.1220843105); //  We get the X from a Projection from station 4& 5 on 1500 evets. for Run 1055 
-     // Uncertainty is 800 microns.  
-     myGeo->SetUnknwonUncert('V', 2, 0.5); // Semi successfull, large error, poor statistics. 
-     myGeo->SetUnknwonUncert('V', 3, 0.5); // Semi successfull, large error, poor statistics. 
+//     if (SensorForFitSubType != 2) myGeo->SetUnknwonUncert('V', 2, 100.); // Semi successfull, large error, poor statistics. 
+//     else myGeo->SetUnknwonUncert('V', 2, 0.025); // attempting to aling the first sensor V, in Station 5. 
+     myGeo->SetUnknwonUncert('V', 2, 0.025); // Success.. Leave it as that. 
+     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2,  1.148411723); //  We get the X from a Projection from station 4& 5 on 1500 evets. for Run 1055 
+     // But.. Residual looks O.K, with some noise.. Central peak is at resid 0., sigma 48 microns.  
+     // Last plane.. V 3, station 5.  Uncertainty is 800 microns.  
+     myGeo->SetUnknwonUncert('V', 3, 0.025); // attempting to aling the second sensor V, in Station 5. 
+     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3,  -3.361921529); // Geeting there.. 
+     myGeo->SetUnknwonUncert('V', 2, 5.0); // still FUBAR  
+     myGeo->SetUnknwonUncert('V', 3, 5.0); // still FUBAR  
      
     } 
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
@@ -394,7 +414,26 @@ int main(int argc, char **argv) {
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
       for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // a fraction of the strip.. 
 
-    } 
+    }
+    if (fitType == std::string("3D")) {  // Result loosening up the alignment constraints, Feb 10 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.4232866132  );  // Back to previously found value, the 600 micron was due to soft limit constraints. . 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.688700314 );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.250664639 );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.050701327  ); 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.681291094 ); 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 2.487036371  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3, 4.143409683 );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -5.0 ); // Poor statistics.. 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5,  -0.2362932867 );
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
+      myParams->SetValue(emph::rbal::TRSHIFT, 'U', 0,  0.1310751719); //  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'U', 1,  0.2708798602 ); // 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1, 2.276203614 ); // Success value, keep.. Little bias due to sift Limits. 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2, 1.071068301 ); // Success value, keep.. Little bias due to sift Limits. 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3, -3.284696663 ); // Success value, keep.. Little bias due to sift Limits. 
+   } 
     
     if (myRank == 0) myParams->DumpTable(token); 
 //    if (myRank == 0) std::cerr << " Booby trap, stop now " << std::endl;
@@ -457,23 +496,32 @@ int main(int argc, char **argv) {
          if (SensorForFitSubType == INT_MAX) { 
 	   if (((fitSubType == std::string("TrShift")) || (fitSubType == std::string("TrShiftMagnetKick")) ||
 	        (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")))   && 
-	        (aName.find("TransShift") == 0)) isFixed = false;
+	        (aName.find("TransShift") != std::string::npos)) isFixed = false;
 	   if (((fitSubType == std::string("ZShift"))||(fitSubType == std::string("TrZShift"))) && 
-	        (aName.find("LongShift") == 0)) isFixed = false;
+	        (aName.find("LongShift") != std::string::npos)) isFixed = false;
 	   if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift"))) && 
-	        (aName.find("Tilt") == 0)) isFixed = false;
+	        (aName.find("Tilt") != std::string::npos)) isFixed = false;
 	   if ((fitSubType == std::string("DeltaRoll")) && 
-	       (aName.find("Roll") == 0)) isFixed = false;
+	       (aName.find("DeltaRoll") != std::string::npos)) isFixed = false;
 	 } else {
 	   if ((ViewForFitSubType == itP->View()) && (SensorForFitSubType == itP->SensorI())) { 
 	 // Specific sensors. 
 	 // Find the sensor in the struct, Require  
-	     if ((fitSubType == std::string("TrShift")) && (aName.find("TransShift") == 0)) isFixed = false;
-	     if ((fitSubType == std::string("TrTiltShift")) && (aName.find("TransShift") == 0)) isFixed = false;
-	     if ((fitSubType == std::string("ZShift")) && (aName.find("LongShift") == 0)) isFixed = false;
-	     if ((fitSubType == std::string("PitchCorr")) && (aName.find("Tilt") == 0)) isFixed = false;
-	     if ((fitSubType == std::string("TrTiltShift")) && (aName.find("Tilt") == 0)) isFixed = false;
-	     if ((fitSubType == std::string("DeltaRoll")) && (aName.find("Roll") == 0)) isFixed = false;
+	     if ((fitSubType == std::string("TrShift")) && (aName.find("TransShift") != std::string::npos)) isFixed = false;
+	     if ((fitSubType == std::string("TrTiltShift")) && (aName.find("TransShift") != std::string::npos)) isFixed = false;
+	     if ((fitSubType == std::string("ZShift")) && (aName.find("LongShift") != std::string::npos)) isFixed = false;
+	     if ((fitSubType == std::string("PitchCorr")) && (aName.find("Tilt") != std::string::npos)) isFixed = false;
+	     if ((fitSubType == std::string("TrTiltShift")) && (aName.find("Tilt") != std::string::npos)) isFixed = false;
+	     if ((fitSubType == std::string("DeltaRoll")) && (aName.find("DeltaRoll") != std::string::npos)) isFixed = false;
+	     if (fitSubType == std::string("TrShiftTiltRoll")) {
+	        if (aName.find("DeltaRoll") != std::string::npos) isFixed = false;
+	        if (aName.find("TransShift") != std::string::npos) isFixed = false;
+	        if (aName.find("Tilt") != std::string::npos) isFixed = false;
+	     }
+	     if (fitSubType == std::string("TiltRoll")) {
+	        if (aName.find("DeltaRoll") != std::string::npos) isFixed = false;
+	        if (aName.find("Tilt") != std::string::npos) isFixed = false;
+	     }
 	   }
 	 }
 	 // Tuning the magnet.. Might not be needed, if we have the accurate field map. 
@@ -486,6 +534,14 @@ int main(int argc, char **argv) {
 	 // try tilt and KickMag    
 	 if (((fitSubType == std::string("TrTiltShiftMagnetKick"))) &&
 	      (aName.find("KickMag") == 0)) isFixed = false;
+	  // This sensor is not illuminated, or simply dead for run 1055 
+//	  if (aName.find("_V_0") != std::string::npos) isFixed = true;
+	  if (aName.find("_V_") != std::string::npos) { // gave up on V sensors for now, something still wrong.. 
+	      isFixed = true;
+	  }
+	 //
+	 // decided.. 
+	 //
 	 if (isFixed) namesToBeFixed.push_back(aName);
 	 fixed[kPar] = isFixed;
 	 if ((myRank == 0) && (!isFixed))  
@@ -608,7 +664,7 @@ int main(int argc, char **argv) {
          if ((fitSubType != std::string("NoFixes")) && fixed[kPar]) continue; 
          std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
          std::string aName(itP->Name());
-         if (aName.find("TransShift") == std::string::npos) continue; // This is the uncertainty we reall care about.. 
+//         if (aName.find("TransShift") == std::string::npos) continue; // This is the uncertainty we reall care about.. 
          double theValue  = min.UserState().Value(aName);
          std::pair<double, double> err = minos(kPar, 1000);
          ROOT::Minuit2::MinosError mey = minos.Minos(kPar);
