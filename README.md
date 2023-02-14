@@ -56,7 +56,7 @@ mkdir build
 
 ```
 cd /emph/app/users/[username]/<directory-you-chose>/build
-source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
+source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
 ```
 
 5. To compile the code (must be in the "build" directory!):
