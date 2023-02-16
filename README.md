@@ -32,6 +32,24 @@ If you are using Linux you need to include another flag:
 ```
 ssh -K -Y username@emphaticgpvm0X.fnal.gov
 ```
+Note to Mac users: add the following lines to your $HOME/.ssh/config file:
+```
+Host *.fnal.gov
+Protocol 2
+GSSAPIAuthentication yes
+GSSAPIDelegateCredentials yes
+ForwardAgent yes
+ForwardX11 yes
+ForwardX11Trusted yes
+ServerAliveInterval 60 #For some users these lines need to be commented out
+```
+Mac users may sometimes need additional environment variable:
+
+``` 
+export KRB5CCNAME=FILE:/tmp/krb5cc_`id -u` 
+```
+You should add that export command to your bash login so you don't have to do it or remember it every time. 
+
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
 ```
