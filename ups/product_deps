@@ -257,10 +257,10 @@ caendigitizer   v2_12_0         -     only_for_build
 caenvme         v2_50           -     only_for_build
 cetmodules	v3_20_00	-     only_for_build
 geant4          v4_11_0_p02b    - 
-ifbeam          v2_5_14          -
+ifbeam          v2_5_14         -
 nucondb         v2_5_14
 ifdh_art        v2_15_00        -
-srproxy         v00.34           -
+srproxy         v00.39          -
 end_product_list
 ####################################
 
