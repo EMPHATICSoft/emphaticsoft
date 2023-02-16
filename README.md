@@ -48,7 +48,7 @@ Mac users may sometimes need additional environment variable:
 ``` 
 export KRB5CCNAME=FILE:/tmp/krb5cc_`id -u` 
 ```
-
+You should add that export command to your bash login so you don't have to do it or remember it every time. 
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
