@@ -24,11 +24,13 @@ namespace runhist {
     
     bool _isLoaded;
     bool _isConfig;
+    bool _magnetIn;
     int _runNumber;
     int _nSubrun;
     double _beamMom;
-	 std::string  _geoFile;
-	 std::string  _chanFile;
+    std::string  _geoFile;
+    std::string  _chanFile;
+    std::string  _target;
     int  _calibVer;
     std::vector<std::string> _det;
     int _nTrig;
@@ -43,6 +45,7 @@ namespace runhist {
     int        Run() const { return _runNumber; }
     int        NSubrun();
     double     BeamMom();
+    std::string Target();
     std::string GeoFile();
     std::string ChanFile();
     int        CalibVer();

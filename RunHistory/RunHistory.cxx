@@ -11,7 +11,8 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-#include "art_cpp_db_interfaces/query_engine_api.h"
+#include "Database/include/query_engine_api.h"
+//#include "art_cpp_db_interfaces/query_engine_api.h"
 #pragma GCC diagnostic pop
 
 namespace runhist{
@@ -34,7 +35,9 @@ namespace runhist{
     _runNumber(run)
   {
     _QEURL = "";
-    
+    _beamMom = 0.;
+    _target = "Unknown";
+
   }
   
   //----------------------------------------------------------------------
@@ -45,6 +48,8 @@ namespace runhist{
       _runNumber = run;
       _isLoaded = false;
       _isConfig = false;
+      _beamMom = 0.;
+      _target = "Unknown";
     }
 
     return true;
@@ -63,8 +68,19 @@ namespace runhist{
   
   double RunHistory::BeamMom()
   {
-    if (!_isLoaded) assert(LoadFromDB());
+    if (!_isLoaded) LoadFromDB();
+    //assert(LoadFromDB());
     return _beamMom;
+
+  }
+
+  //----------------------------------------------------------------------
+  
+  std::string RunHistory::Target()
+  {
+    if (!_isLoaded) LoadFromDB();
+    //assert(LoadFromDB());
+    return _target;
 
   }
 
@@ -140,25 +156,33 @@ namespace runhist{
 	  return true;
   }
 
+  //----------------------------------------------------------------------
+
   bool RunHistory::LoadFromDB()
   {
-
     if (_QEURL.empty()) return false;
 
-    QueryEngine<int,int,double> runquery(_QEURL,"emph_prod","runs","nsubrun","ntrig","beammom");
+    QueryEngine<int,double,std::string,std::string> runquery(_QEURL,"emphatic_prd","emph","runs","nsubruns","momentum","target","magnet_in");
     runquery.where("run","eq",_runNumber);
 
     auto result = runquery.get();
 
+    if (result.size() == 0) return false;
+    std::string magStr;
+
     for (auto& row : result) {
       //      std::cout << "(" << column<0>(row) << "," << column<1>(row) << "," << column<2>(row) << ")" << std::endl;
       _nSubrun = column<0>(row);
-      _nTrig  = column<1>(row);
-      _beamMom = column<2>(row);
-
+      _beamMom = column<1>(row);
+      _target = column<2>(row);
+      magStr = column<3>(row);
+      if (magStr == "True")
+	_magnetIn = true;
+      else
+	_magnetIn = false;
     }
-
-	 _isLoaded = true;
+    
+    _isLoaded = true;
     return true;
 
   }
