@@ -40,7 +40,9 @@ namespace runhist
     
   private:
     std::unique_ptr<runhist::RunHistory> fRunHistory;
-    
+    bool fLoadFromDB;
+    std::string fQEURL;
+
   };
   
 }
