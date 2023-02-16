@@ -38,7 +38,7 @@ cet_build_plugin(RawDataUnpacker art::source
   RawDataUnpacker
   ChannelMap
   RunHistory
-  ChannelMap_service
+  ChannelMapService_service
   ROOT::Core
   ROOT::Tree
   ROOT::Hist

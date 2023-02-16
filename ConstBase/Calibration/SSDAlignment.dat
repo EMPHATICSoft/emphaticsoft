@@ -1,0 +1,9 @@
+#Identifier x0 ... x21
+#Identifier y0 ... y21
+#Identifier r0 ... r21
+#Comment: #0 is the default alignment constant set.
+0 X 0 -1.7735 -2.77811 -4.53663 2.91368 -1.24249 3.02807 -1.34171 
+0 Y 0 0.385631 1.57094 2.09545 -7.89163 1.83093 -11.1279 -0.240269 
+0 U 0 0 4.33448 4.12163 0 0 0 0 
+0 V 0 0 0 0 -0.969813 -7.90947 -3.97615 -2.58212 
+#Comment: #1 is the alignment constant set using Run xxxx...

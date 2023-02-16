@@ -1,0 +1,63 @@
+#include "MakeSSDClusters.fcl"
+#include "StudyOneSSDClusters.fcl"
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+
+process_name: MakeSSDClust
+
+services:
+{
+  TFileService: { fileName: "clust_r%r_s%s_hist.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  Geometry:   @local::standard_geometry
+  RunHistoryService: {}
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "emphdata-ssdclust_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    clustA:        @local::standard_ssdclust
+  }
+  
+  analyzers:
+   {
+    onestu:       @local::standard_study1ssdcl
+   }
+
+  ssd: [ clustA  ]
+  ana: [ onestu ]
+  trigger_paths: [ ssd ]
+  stream1: [ out1 ]
+  end_paths: [ana, stream1 ]
+}
+
+physics.analyzers.onestu.SSDClsLabel: "clustA"
+physics.analyzers.onestu.tokenJob: "4St_try6_NodZ_U1"
+physics.analyzers.onestu.dumpClusters: false  
+physics.analyzers.onestu.selectHotChannels: false
+physics.analyzers.onestu.selectHotChannelsFromHits: true
+physics.analyzers.onestu.alignY: true
+physics.analyzers.onestu.ChiSqCutAlignAlgo1: 50.
+physics.analyzers.onestu.LastIs4AlignAlgo1: true
+physics.analyzers.onestu.TransPosUncert: [1.0e-3, 0.05, 0.1, 0.1, 0.2, 0.2]
+physics.analyzers.onestu.ZLocShifts: [0., 0., 0., 0., 0.0001, 0.00001]
+physics.producers.clustA.CheckDQ: false
+

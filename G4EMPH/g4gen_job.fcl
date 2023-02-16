@@ -9,7 +9,7 @@ process_name: G4Sim
 services:
 {
   MagneticField: @local::standard_magfield
-  RunHistory: {}
+  RunHistoryService: {}
   Geometry: @local::standard_geometry
   
   # Load the service that manages root files for histograms.

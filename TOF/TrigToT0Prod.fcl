@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_trigtot0prod:
+{
+  module_type: TrigToT0Prod
+  makeT0FullNtuple: false
+  makeTrigFullNtuple: false 
+  makeEventSummaryFullNtuple: false
+}
+
+END_PROLOG

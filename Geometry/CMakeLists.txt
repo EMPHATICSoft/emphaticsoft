@@ -17,6 +17,7 @@ art_make_library(
     messagefacility::MF_MessageLogger
     cetlib::container_algorithms
     cetlib::cetlib
+	 Utilities
     )
 
 install_headers()

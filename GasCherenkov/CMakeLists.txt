@@ -15,7 +15,7 @@ art_make_library ( SOURCE ${src_files}
                    RawData
                    RecoBase
                    ChannelMap
-                   ChannelMap_service
+                   ChannelMapService_service
                    art::Framework_Core
                    art::Framework_Principal
                    art::Persistency_Common
@@ -30,7 +30,7 @@ cet_build_plugin(GasCkovAna art::module
     RawData
     RecoBase
     ChannelMap
-    ChannelMap_service
+    ChannelMapService_service
     art::Framework_Core
     art::Framework_Principal
     art::Persistency_Common

@@ -7,9 +7,10 @@ process_name: MakeSSDClust
 
 services:
 {
-  ChannelMap: @local::standard_channelmap
+  TFileService: { fileName: "clust_r%r_s%s_hist.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
-  RunHistory: {}
+  RunHistoryService: {}
 }
 
 source:
@@ -36,10 +37,11 @@ physics:
     clust:        @local::standard_ssdclust
   }
 
-  #ssd: [ stationclust  ]
   ssd: [ clust ]
 
   trigger_paths: [ ssd ]
   stream1: [ out1 ]
   end_paths: [ stream1 ]
 }
+
+physics.producers.clust.CheckDQ: false

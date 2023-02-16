@@ -53,7 +53,11 @@ namespace emph {
 	   foundOne = findBipolar(wfm, signif, startBin);
 	   if (foundOne) return foundOne;
 	   return findDCInSiPM(wfm, signif, startBin);
-	 } else if (fDetType == emph::geo::Trigger)  return findDCInPMT(wfm, signif, startBin);  
+	 } else if (fDetType == emph::geo::Trigger)  {
+	    return findDCInPMT(wfm, signif, startBin);
+	 } else if (fDetType == emph::geo::LGCalo)  { 
+	   return findDCInPMTLGCalo(wfm, signif, startBin);
+	 } 
 	 return foundOne;
        }
        bool PeakInWaveForm::findItAfter(const PeakInWaveForm &aPeak, const std::vector<uint16_t> &wfm, double signif) 
@@ -82,6 +86,10 @@ namespace emph {
 	   return findDCInSiPM(wfm, signif, startBin);
 	 } else if (fDetType == emph::geo::Trigger)  return findDCInPMT(wfm, signif, startBin);  
 	 return foundOne;
+       }
+       bool PeakInWaveForm::isLGSaturated(const std::vector<uint16_t> &wfm) {
+         for (size_t k=0; k != wfm.size(); k++) if (wfm[k] == 0) return true;
+	 return false;
        }
        
        bool PeakInWaveForm::findBipolar(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
@@ -195,6 +203,46 @@ namespace emph {
        bool PeakInWaveForm::findDCInPMT(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
        {
           if (fDebugIsOn) std::cerr << " PeakInWaveForm::findDCInPMT, startBin " << startBin << std::endl;
+   	  size_t kNeg = this->findDCNegStart(wfm, signif, startBin);
+          if (fDebugIsOn) std::cerr << " ... Wave seems to start at or after bin  " << kNeg << std::endl;
+	  if (kNeg == wfm.size()) { if (fDebugIsOn) std::cerr << " ... No good .. " << std::endl; return false; }
+	  // search for the maximum amplitude.
+	  fStartBin = kNeg; 
+	  fPeakBin = wfm.size();
+	  fPeakVal = -1.;
+	  size_t kEndSearchPeak = ((kNeg + 10) >= wfm.size()) ? wfm.size() : (kNeg + 10);
+          for (size_t k1= kNeg; k1 != kEndSearchPeak; k1++) {
+	   const double val = fBaseline - wfm[k1];
+	   if (val > fPeakVal) { fPeakVal = val; fPeakBin = k1;}
+	  }
+          if (fDebugIsOn) std::cerr << " ... Assing Peak Bin at   " << fPeakBin << " value  " << fPeakVal << std::endl;
+	  double aSum = 0.; fEndBin = wfm.size() - 2;
+	  fEndBin = 1024;
+          for (size_t k2= kNeg; k2 != wfm.size() - 2; k2++) {
+	    const double val = fBaseline - wfm[k2];
+	    aSum += val;
+	    if (((std::abs(val)/(std::abs(aSum) + 1.0e-10)) < fCutIntegration) && ((static_cast<int>(k2) - static_cast<int>(fPeakBin)) > 4)) {
+	      if (fDebugIsOn) std::cerr << " ... Inegration converged, assing End  Bin at   " << k2 << " current Value " << val << " current sum   " 
+	                                << aSum << " diff Bin " << static_cast<int>(k2) - static_cast<int>(fPeakBin) <<  std::endl;
+	      fEndBin = k2;
+	      break; 
+	    }
+	    if ((k2-kNeg) > 15) {
+	      if (fDebugIsOn) std::cerr << " ... Max width reached, assing End  Bin at   " << k2 <<  std::endl;
+	      fEndBin = k2;
+	      break;
+	    }
+	    
+	  }
+	  fPeakType = UNIPOLAR;
+	  if (fEndBin == 1024) { fEndBin = wfm.size()- 1; fPeakType = DCINCOMPLETE; }
+          if (fDebugIsOn) std::cerr << " ... about to call  fillInMoments, start, end bins  " << fStartBin << " " << fEndBin << std::endl;
+	  fillInMoments(wfm, fStartBin, fEndBin+1);
+	  return true;
+       }
+       bool PeakInWaveForm::findDCInPMTLGCalo(const std::vector<uint16_t> &wfm, double signif, size_t startBin) 
+       {
+          if (fDebugIsOn) std::cerr << " PeakInWaveForm::findDCInPMTLGCalo, startBin " << startBin << std::endl;
    	  size_t kNeg = this->findDCNegStart(wfm, signif, startBin);
           if (fDebugIsOn) std::cerr << " ... Wave seems to start at or after bin  " << kNeg << std::endl;
 	  if (kNeg == wfm.size()) { if (fDebugIsOn) std::cerr << " ... No good .. " << std::endl; return false; }

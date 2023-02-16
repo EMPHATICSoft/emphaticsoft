@@ -25,6 +25,8 @@ namespace sim{
     class SSDHit;
 //    class Particle;
     class Track;
+    class TOPAZLGHit;
+    class ARICHHit;
 }
 
 namespace emph {
@@ -42,6 +44,8 @@ namespace emph {
     
     void RunGeant(std::vector< const simb::MCTruth* >& mctruths,
                   std::vector<sim::SSDHit> & flshitlist,
+                  std::vector<sim::TOPAZLGHit> & lghitlist,
+                  std::vector<sim::ARICHHit> & arichhitlist,
                   std::vector< sim::Track >& tracklist,
                   std::map<int, size_t >& trackIDToMCTruthIndex);
     
@@ -69,9 +73,15 @@ namespace emph {
     bool            fManyParticles;       ///< if true, keep individual track ids from processes like compt and brem
     bool            fSparseTrajectories;  ///< if true, only save necessary points in particle trajectories
     std::string     fGenModuleLabel;      ///< label of module that made the particles to track
-
-    int             fPlaIndex;            ///< index of the ParticleListAction in the UserActionManager
+//
+// as far as I can see, these are not used.. 
+//
+    int             fPlaIndex;            ///< index of the TrackListAction in the UserActionManager
     int             fShaIndex;            ///< index of the SSDHitAction in the UserActionManager
+    int             fSLGhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager
+    int             fSARICHhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager
+    int             fStopActionIndex;            ///< index of theFast Stop Action in the UserActionManager
+    int             fOpticalActionIndex;            ///< index of theFast Stop Action in the UserActionManager
 
     std::vector<std::string> fUserActions;///< UserAction classes 
 

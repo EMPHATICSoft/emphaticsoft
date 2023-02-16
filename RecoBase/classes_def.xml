@@ -12,7 +12,9 @@
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
 
-  <class name="rb::SSDCluster"    ClassVersion="16">
+  <class name="rb::SSDCluster"    ClassVersion="18">
+   <version ClassVersion="18" checksum="1269027569"/>
+   <version ClassVersion="17" checksum="3199786114"/>
    <version ClassVersion="16" checksum="2498245746"/>
    <version ClassVersion="15" checksum="2833724937"/>
    <version ClassVersion="14" checksum="2833724937"/>
@@ -77,5 +79,18 @@
   </class>
   <class name="std::vector<rb::ADC>"        />
   <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
+  
+  <class name="rb::BeamTrackAlgo1"    ClassVersion="10">
+   <version ClassVersion="10" checksum="3643844846"/>
+  </class>
+  <class name="std::vector<rb::BeamTrackAlgo1>"        />
+  <class name="art::Wrapper< std::vector<rb::BeamTrackAlgo1>    >"/>
+  
+  <class name="rb::TrigToT0"    ClassVersion="11">
+   <version ClassVersion="11" checksum="3408702871"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="art::Wrapper< rb::TrigToT0>"        />
+
 
  </lcgdict>

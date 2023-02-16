@@ -85,6 +85,7 @@ cet_build_plugin(EventDisplay3D art::module
   Geometry
   Geometry_service
   RecoBase
+  DetGeoMap
 #  EventDisplayBase
   art::Framework_Core
   art::Framework_Principal

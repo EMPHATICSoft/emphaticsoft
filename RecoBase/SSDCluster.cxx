@@ -25,7 +25,9 @@ namespace rb {
   
   SSDCluster::SSDCluster(const art::PtrVector<emph::rawdata::SSDRawDigit>& hits, 
 			 int id) :
-    fID(id)
+    fID(id),
+    fStation(-1),
+    fSensor(-1)
   {
     assert(hits.size() > 1);
     
@@ -82,8 +84,8 @@ namespace rb {
     double sum=0.;
     double totalADC=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      sum += fDigitVec[i]->Row()*fDigitVec[i]->ADC();
-      totalADC+=fDigitVec[i]->ADC();
+      sum += fDigitVec[i]->Row()*adcMap[fDigitVec[i]->ADC()];
+      totalADC+=adcMap[fDigitVec[i]->ADC()];
     }
     return sum/totalADC;
 
@@ -99,8 +101,8 @@ namespace rb {
     double rmssum=0.;
     double totalADC=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*fDigitVec[i]->ADC();
-      totalADC+=fDigitVec[i]->ADC();
+      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
+      totalADC+=adcMap[fDigitVec[i]->ADC()];
     }
     return sqrt(rmssum/totalADC);
 
@@ -135,7 +137,7 @@ namespace rb {
 
     double sum=0.;
     for (size_t i=0; i<NDigits(); ++i) {
-      sum += fDigitVec[i]->ADC();
+      sum += adcMap[fDigitVec[i]->ADC()];
     }
     return sum/NDigits();
 
@@ -181,7 +183,7 @@ namespace rb {
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const rb::SSDCluster& h)
   {
-    o << "SSD Station Cluster for Station "<< h.Station()<<", Plane "<<h.Plane()<<std::endl;
+    o << "SSD Station Cluster for Station "<< h.Station()<<", Sensor "<<h.Sensor()<<std::endl;
     o << h.NDigits()<< " raw digits in cluster"<<std::endl;
     o << "Min Time: "<< h.MinTime()<<std::endl;
     o << "Max Time: "<< h.MaxTime()<<std::endl;

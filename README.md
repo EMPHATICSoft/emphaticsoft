@@ -47,7 +47,7 @@ You will prompted to enter your github username and a password.  The password sh
 3. Then execute:
 
 ```
-source /emph/app/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
+source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
 cd /emph/app/users/[username]/<directory-you-chose>/
 mkdir build
 ```
@@ -56,7 +56,7 @@ mkdir build
 
 ```
 cd /emph/app/users/[username]/<directory-you-chose>/build
-source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
+source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
 ```
 
 5. To compile the code (must be in the "build" directory!):
@@ -117,6 +117,7 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
    buildtool --generator=ninja
    ```
    * any subsequent builds (still have to be in the build directory):
+   ```
    ninja
    ```
 <a name="run"></a>

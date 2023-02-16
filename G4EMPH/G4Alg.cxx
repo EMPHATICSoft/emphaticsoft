@@ -24,8 +24,11 @@
 #include "SimulationBase/MCTruth.h"
 #include "G4EMPH/SSDHitAction.h"
 #include "G4EMPH/FastStopAction.h"
+#include "G4EMPH/OpticalAction.h"
 //#include "G4EMPH/ParticleListAction.h"
 #include "G4EMPH/TrackListAction.h"
+#include "G4EMPH/TOPAZLGHitAction.h"
+#include "G4EMPH/ARICHHitAction.h"
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "Simulation/Track.h"
@@ -53,6 +56,11 @@ namespace emph {
     , fGenModuleLabel     (pset.get< std::string     >("GenModuleLabel")     )
     , fPlaIndex(0)
     , fShaIndex(0)
+    , fSLGhaIndex(0)
+    , fSARICHhaIndex(0)
+    , fStopActionIndex(0) 
+    , fOpticalActionIndex(0) 
+      
   {
 
     /// dummy vector in case user didn't set "AddedUserActions" in fcl file
@@ -137,17 +145,29 @@ namespace emph {
 //    pl->Config( pset );
     
     emph::TrackListAction* ptl  = new emph::TrackListAction();
-    ptl->SetName("emph::ParticleListAction");
+    ptl->SetName("emph::TrackListAction");
     ptl->Config( pset );
 
     emph::SSDHitAction* sh = new emph::SSDHitAction();
     sh->SetName("emph::SSDHitAction");
     sh->Config( pset );
-
-    emph::FastStopAction* sh2 = new emph::FastStopAction();
-    sh2->SetName("emph::FastStopAction");
+    
+    emph::TOPAZLGHitAction* sh2 = new emph::TOPAZLGHitAction();
+    sh2->SetName("emph::TOPAZLGHitAction");
     sh2->Config( pset );
     
+	 emph::ARICHHitAction* sh3 = new emph::ARICHHitAction();
+    sh3->SetName("emph::ARICHHitAction");
+    sh3->Config( pset );
+
+    emph::FastStopAction* sh4 = new emph::FastStopAction();
+    sh4->SetName("emph::FastStopAction");
+    sh4->Config( pset );
+    
+    emph::OpticalAction* sh5 = new emph::OpticalAction();
+    sh5->SetName("emph::OpticalAction");
+    sh5->Config( pset );
+
     // the ParticleListAction must be added to the UserActionManager 
     // first as it has to define the track ID in the case that the 
     // current particle to track is from an EM process that would cause
@@ -161,9 +181,17 @@ namespace emph {
     uam->AddAndAdoptAction(ptl);
     uam->AddAndAdoptAction(sh);   
     uam->AddAndAdoptAction(sh2);   
-    fShaIndex = uam->GetSize() - 2; // SSD is the 2nd one..   Might change is we add others !  See above.. Very Sneaky.. 
+    uam->AddAndAdoptAction(sh3);
+    uam->AddAndAdoptAction(sh4);
+    uam->AddAndAdoptAction(sh5);
+    // Should we bother with this.. ??? It seems that it is hardcoded in    
     fPlaIndex = 0; // Again, could change. 
-
+    fShaIndex = 1; // SSD is the 2nd one..   Might change is we add others !  See above.. Very Sneaky.. 
+    fSLGhaIndex = 2; // TOPAZLG is the 3rd one..   Yack,.. who knows..  
+    fSARICHhaIndex = 3; // ARICH 
+    fStopActionIndex = 4;
+    fOpticalActionIndex = 5;
+    
     ConfigUserActionManager(fUserActions,pset);
 
     std::cout << "%%%%%%%%%% ACTION LIST %%%%%%%%%%" << std::endl;
@@ -288,6 +316,8 @@ namespace emph {
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< const simb::MCTruth* >& mctruths,
                        std::vector<sim::SSDHit> & ssdhitlist,
+                       std::vector<sim::TOPAZLGHit> & lghitlist,
+                       std::vector<sim::ARICHHit> & arichhitlist,
                        std::vector< sim::Track >& tracklist,
                        std::map<int, size_t>& trackIDToMCTruthIndex)
   {
@@ -300,15 +330,29 @@ namespace emph {
     // getting instance of particle list action.
     SSDHitAction* sh = dynamic_cast<SSDHitAction *>(uam->GetAction(fShaIndex));
     // getting instance of ssd hit action.
+    TOPAZLGHitAction* shLG = dynamic_cast<TOPAZLGHitAction *>(uam->GetAction(fSLGhaIndex));
+    ARICHHitAction* shARICH = dynamic_cast<ARICHHitAction *>(uam->GetAction(fSARICHhaIndex));
 
 //    particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     tracklist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
-    ssdhitlist  .clear();
-
+    ssdhitlist.clear();
+    lghitlist.clear();
+    
     // trackIDToMCTruthIndex keeps track of which trackIDs correspond to which MCTruth
     // in mctruths
     trackIDToMCTruthIndex.clear();
-
+//
+//   std::cerr << " G4Alg::RunGeant, before fG4Help->G4Run... " << std::endl;
+//   std::cerr << " Size of MCTruth ptrs " << mctruths.size() << std::endl;
+   for (std::vector<const simb::MCTruth* >::const_iterator itMcT = mctruths.cbegin();  itMcT != mctruths.cend(); itMcT++) {
+       const simb::MCTruth* mctTmp = (*itMcT);
+       if (mctTmp->NParticles() != 1) {
+         std::cerr << " One incident particle per event, please, fatal..  " << std::endl; exit(2);
+       }
+       const simb::MCParticle aParticle = mctTmp->GetParticle(0);
+//       std::cerr << " Code ... " << aParticle.PdgCode() << std::endl;
+//       std::cerr << " Keep going 0921  " << std::endl; 
+    }
     fG4Help->G4Run(mctruths);
     
     //trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
@@ -317,6 +361,10 @@ namespace emph {
     // getting track list from particlelistaction.cxx
     ssdhitlist = sh->GetAllHits();
     // getting ssd hit list from ssdhitaction.cxx
+    lghitlist = shLG->GetAllHits();
+    // getting TOPAZ Lead Glass hit list from topazlghitaction.cxx
+    arichhitlist = shARICH->GetAllHits();
+    // getting ARICH
     return;
   }// end of RunGeant
 

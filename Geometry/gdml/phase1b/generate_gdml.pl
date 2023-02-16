@@ -126,6 +126,7 @@ if ( defined $target)
 
 gen_Define(); 	 # generates definitions at beginning of GDML
 gen_Materials(); # generates materials to be used
+gen_PMTs(); # generates PMTs to be used
 gen_Solids();    # generates solids
 gen_Modules();   # generate modules
 gen_DetEnclosure();   # generate DetEnclosure
@@ -176,6 +177,7 @@ sub gen_Define()
 
     <constant name="DEG2RAD" value="pi/180." />
 	 <quantity name="world_size" value="7000." unit="mm"/>
+	 <quantity name="Tolerance_space" value="1." unit="mm" />
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
 EOF
@@ -186,8 +188,9 @@ EOF
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
+	 <quantity name="T0_shift" value="-852.9" unit="mm"/>
 	 <quantity name="T0_acrylic_shift" value="40.0" unit="mm"/>
-	 <position name="T0_pos" z="-852.9+T0_acrylic_shift+T0_length*0.5" unit="mm"/>
+	 <position name="T0_pos" z="T0_shift+T0_acrylic_shift+T0_length*0.5"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -199,7 +202,7 @@ EOF
 		for($i = 0; $i < $n_acrylic; ++$i){
 			$j=$i%2;
 			print DEF <<EOF;
-	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-T0_acrylic_shift+T0_acrylic_width*$j" unit="mm"/>
+	 <position name="T0_acrylic@{[ $i ]}_pos" x="T0_acrylic_width*($i-($n_acrylic-1)*0.5)" z="-T0_acrylic_shift+T0_acrylic_width*$j"/>
 EOF
 		}
 		print DEF <<EOF;
@@ -219,7 +222,7 @@ EOF
 	 <quantity name="target_width" value="100.0" unit="mm"/>
 	 <quantity name="target_height" value="50.0" unit="mm"/>
 
-	 <position name="target_pos" x="0" y="0" z="200.5" unit="mm"/>
+	 <position name="target_pos" x="0" y="0" z="200.5"/>
 
 	 <!-- ABOVE IS FOR TARGET -->
 
@@ -230,6 +233,7 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR MAGNET -->
 
+    <quantity name="magnetShift" value="757.7" unit="mm"/>
     <quantity name="magnetSideWidth" value="50" unit="mm"/>
 	 <quantity name="magnetSideZLength" value="160" unit="mm"/>
 	 <quantity name="magnetSideOHeight" value="240" unit="mm"/>
@@ -237,12 +241,12 @@ EOF
 	 <quantity name="magnetSideIHeight1" value="62" unit="mm"/>
 	 <quantity name="magnetSideIHeight2" value="80" unit="mm"/>
 
-	 <position name="magnet_pos" x="0" y="0" z="757.7" unit="mm"/>
+	 <position name="magnet_pos" x="0" y="0" z="magnetShift"/>
 
 EOF
 		for($i = 0; $i < $magnet_layer; ++$i){
 			print DEF <<EOF;
-    <position name="magnetSide_pos@{[ $i ]}" x="0" y="0" z="(-1+$i)*magnetSideWidth" unit="mm"/>
+    <position name="magnetSide_pos@{[ $i ]}" x="0" y="0" z="(-1+$i)*magnetSideWidth"/>
 EOF
 		}
 		print DEF <<EOF;
@@ -271,52 +275,51 @@ EOF
 		 unit="mm" />
 	 <quantity name="Mylar_Window_thick" value="0.500"
 		 unit="mm" />
+	 <quantity name="Mylar_shift" value="10" unit="mm"/>
 
 	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
 	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
 	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
-	 <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssdsingle00_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0"
-			z="-10." unit="mm" />
-	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0"
-			z="10." unit="mm" />
+
+	 <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
+	 <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
+	 <position name="ssdsingle00_pos" x="0" y="0" z="0"/>
+	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick"/>
+	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick"/>
+	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
+	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
 	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
 	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-	 <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssdrotate00_pos" x="0" y="0" z="0" unit="mm"/>
-	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssdrotate20_pos" x="0" y="0" z="3" unit="mm"/>
-	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
-	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0"
-			z="-10." unit="mm" />
-	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0"
-		 z="10." unit="mm" />
+	 <quantity name="ssd3plane_shift" value="3" unit="mm" />
+
+	 <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
+	 <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
+	 <position name="ssdrotate00_pos" x="0" y="0" z="0"/>
+	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick"/>
+	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick"/>
+	 <position name="ssdrotate20_pos" x="0" y="0" z="ssd3plane_shift"/>
+	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
+	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
+	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 	 <quantity name="ssdStationdoubleLength" value="100" unit="mm" />
 	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
-	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" unit="mm" />
-	 <position name="ssddouble00_pos" x="0.5*ssdD0_height" y="0" z="0" unit="mm"/>
-	 <position name="ssddouble01_pos" x="-0.5*ssdD0_height" y="0" z="0" unit="mm"/>
-	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" unit="mm"/>
-	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" unit="mm"/>
-	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="3" unit="mm"/>
-	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="3" unit="mm"/>
-	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="3+ssdD0_thick" unit="mm"/>
-	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0"
-			z="-10." unit="mm" />
-	 <position name="ssddouble_DSMylarWindow_pos" x="0" y="0"
-		 z="10." unit="mm" />
+
+	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" />
+	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" />
+	 <position name="ssddouble00_pos" x="0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" />
+	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
+	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
+	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
+	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
+	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
+	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
+	 <position name="ssddouble_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 EOF
 		$isensor = 0;
@@ -344,25 +347,26 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR ARICH -->
 
+	 <quantity name="arich_shift" value="1377.9" unit="mm"/>
 	 <quantity name="arich_thick" value="280.0" unit="mm"/>
 	 <quantity name="arich_width" value="365.0" unit="mm"/>
 	 <quantity name="arich_height" value="365.0" unit="mm"/>
 
-	 <position name="arich_pos" x="0" y="0" z="1377.9+0.5*arich_thick" unit="mm"/>
+	 <position name="arich_pos" x="0" y="0" z="arich_shift+0.5*arich_thick" />
 
 	 <quantity name="aerogel_thick0" value="18.9" unit="mm"/>
 	 <quantity name="aerogel_thick1" value="20.4" unit="mm"/>
 	 <quantity name="aerogel_size" value="93.0" unit="mm"/>
-	 <quantity name="aerogel_shift" value="43-0.5*arich_thick" unit="mm"/>
+	 <quantity name="aerogel_shift" value="43.0" unit="mm"/>
 	 
-	 <position name="aerogel_pos0" x="0" y="0" z="aerogel_shift+0.5*aerogel_thick0" unit="mm"/>
-	 <position name="aerogel_pos1" x="0" y="0" z="aerogel_shift+aerogel_thick0+0.5*aerogel_thick1" unit="mm"/>
+	 <position name="aerogel_pos0" x="0" y="0" z="aerogel_shift-0.5*arich_thick+0.5*aerogel_thick0" />
+	 <position name="aerogel_pos1" x="0" y="0" z="aerogel_shift-0.5*arich_thick+aerogel_thick0+0.5*aerogel_thick1" />
 
 	 <quantity name="mPMT_thick" value="16.4" unit="mm"/>
 	 <quantity name="mPMT_size" value="49.3" unit="mm"/>
 	 <quantity name="mPMT_gap" value="5.4" unit="mm"/>
 	 <quantity name="manode_size" value="6.0" unit="mm"/>
-	 <quantity name="mPMT_shift" value="aerogel_shift+200" unit="mm"/>
+	 <quantity name="mPMT_shift" value="103.0" unit="mm"/>
 
 EOF
 		for($i = 0; $i < $n_mPMT1d; ++$i){
@@ -370,7 +374,7 @@ EOF
 				for($k = 0; $k < $n_anode1d; ++$k){
 					for($l = 0; $l < $n_anode1d; ++$l){
 						print DEF <<EOF;
-	 <position name="mPMT@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}_pos" x="(@{[ -($n_mPMT1d-1)/2 ]}+@{[ $j ]})*(mPMT_size+mPMT_gap)+(@{[ -($n_anode1d-1)/2 ]}+@{[ $l ]})*manode_size" y="(@{[ -($n_mPMT1d-1)/2 ]}+@{[ $i ]})*(mPMT_size+mPMT_gap)+(@{[ -($n_anode1d-1)/2 ]}+@{[ $k ]})*manode_size" z="mPMT_shift+0.5*mPMT_thick" unit="mm"/>
+	 <position name="mPMT@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}_pos" x="(@{[ -($n_mPMT1d-1)/2 ]}+@{[ $j ]})*(mPMT_size+mPMT_gap)+(@{[ -($n_anode1d-1)/2 ]}+@{[ $l ]})*manode_size" y="(@{[ -($n_mPMT1d-1)/2 ]}+@{[ $i ]})*(mPMT_size+mPMT_gap)+(@{[ -($n_anode1d-1)/2 ]}+@{[ $k ]})*manode_size" z="mPMT_shift+0.5*mPMT_thick" />
 EOF
 					}
 				}
@@ -380,7 +384,8 @@ EOF
 	 
 	 <quantity name="PMTplate_thick" value="5.8" unit="mm"/>
 	 <quantity name="PMTplate_size" value="195.7" unit="mm"/>
-	 <position name="PMTplate_pos" x="0" y="0" z="mPMT_shift+mPMT_thick+0.5*PMTplate_thick" unit="mm"/>
+
+	 <position name="PMTplate_pos" x="0" y="0" z="mPMT_shift+mPMT_thick+0.5*PMTplate_thick" />
 
 	 <!-- ABOVE IS FOR ARICH -->
 
@@ -396,40 +401,42 @@ EOF
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <position name="RPC_pos" x="0" y="0" z="2699.7+0.5*RPC_thick" unit="mm" />
+	 <quantity name="RPC_shift" value="2699.7" unit="mm" />
+
+	 <position name="RPC_pos" x="0" y="0" z="RPC_shift+0.5*RPC_thick"/>
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
 
 	 <quantity name="RPC_PCB_thick" value="1" unit="mm" />
 	 <quantity name="RPC_acrylic_thick" value="1" unit="mm" />
-	 <quantity name="RPC_gas_width" value="960" unit="mm" />
-	 <quantity name="RPC_gas_height" value="250" unit="mm" />
+	 <quantity name="RPC_gas_width" value="960.5" unit="mm" />
+	 <quantity name="RPC_gas_height" value="250.5" unit="mm" />
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
 EOF
 		for($i = 0; $i < $n_cover; ++$i){
 			print DEF <<EOF;
-	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)" unit="mm"/>
-	 <position name="RPC_comb@{[ $i ]}_pos" z="(RPC_PCB_thick*($n_gas+1)+RPC_gas_thick*$n_gas+RPC_acrylic_thick*$n_gas*$n_cover+RPC_comb_thick)*($i-($n_cover-1)*0.5)" unit="mm"/>
+	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)"/>
 EOF
 		}
-		for($i = 0; $i < $n_gas+1; ++$i){
-			print DEF <<EOF;
-	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
-EOF
-		}
-		for($i = 0; $i < $n_gas; ++$i){
-			print DEF <<EOF;
-	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
-EOF
-			for($j = 0; $j < $n_cover; ++$j){
-				print DEF <<EOF;
-	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
-EOF
-			}
-		}
-
+#		
+#		for($i = 0; $i < $n_gas+1; ++$i){
+#			print DEF <<EOF;
+#	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
+#EOF
+#		}
+#		for($i = 0; $i < $n_gas; ++$i){
+#			print DEF <<EOF;
+#	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
+#EOF
+#			for($j = 0; $j < $n_cover; ++$j){
+#				print DEF <<EOF;
+#	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
+#EOF
+#			}
+#		}
+#
 		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR RPC -->
@@ -445,40 +452,38 @@ EOF
 	 <quantity name="LG_height" value="122" unit="mm" />
 	 <quantity name="LG_width0" value="113" unit="mm" />
 	 <quantity name="LG_width1" value="135" unit="mm" />
-	 <constant name="LG_angle_v" value="3.7022129"/>
-	 <quantity name="LG_angle" value="LG_angle_v" unit="deg" />
+	 <quantity name="LG_width1T" value="145.4824" unit="mm" />
+	 <quantity name="LG_angle" value="3.7074" unit="degree"/>
+	 <quantity name="LG_TransHorOff_shift" value="2." unit="mm" />
 
 	 <quantity name="LG_protrusion_thick" value="40" unit="mm" />
 	 <quantity name="LG_PMTr" value="38" unit="mm" />
 	 <quantity name="LG_PMTl" value="120" unit="mm" />
 
-	 <position name="LG_para_pos1" x="(LG_width1-LG_width0)*0.5" y="0" z="0" unit="mm"/>
-	 <position name="LG_para_pos" x="(LG_width1-LG_width0)*0.5" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-
-	 <position name="LG_glass_pos" x="0" y="0" z="-0.5*(LG_protrusion_thick+LG_PMTl)" unit="mm"/>
-	 <position name="LG_protrusion_pos" x="0" y="0" z="0.5*(LG_length-LG_PMTl)" unit="mm"/>
-	 <position name="LG_PMT_pos" x="0" y="0" z="0.5*(1*LG_protrusion_thick+LG_length)" unit="mm"/>
+	 <position name="LG_trap_pos1" x="0" y="0" z="-0.5*(LG_TransHorOff_shift+LG_length+LG_protrusion_thick+LG_PMTl-LG_length)"/>
+	 <position name="LG_protrusion_pos" x="0" y="0" z="LG_length-0.5*(LG_TransHorOff_shift+LG_length+LG_protrusion_thick+LG_PMTl)+0.5*LG_protrusion_thick"/>
+	 <position name="LG_PMT_pos" x="0" y="0" z="LG_length-0.5*(LG_TransHorOff_shift+LG_length+LG_protrusion_thick+LG_PMTl)+LG_protrusion_thick+0.5*LG_PMTl"/>
 
 
 EOF
 		for($i = 0; $i < $n_LG; ++$i){
 			print DEF <<EOF;
-	 <position name="LG_block@{[ $i ]}0_pos" x="-LG_width0" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <position name="LG_block@{[ $i ]}2_pos" x="LG_width0+(LG_width1-LG_width0)" y="LG_height*($i-1)" z="0." unit="mm"/>
-	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="0" z="180" unit="deg"/>
-	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" unit="deg"/>
-	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="-LG_angle" z="0" unit="deg"/>
+	 <position name="LG_block@{[ $i ]}0_pos" x="(0.5*(LG_width0+LG_width1T)+LG_TransHorOff_shift+Tolerance_space)" y="LG_height*($i-1)+2.5*($i-1)" z="0."/>
+	 <position name="LG_block@{[ $i ]}1_pos" x="0" y="LG_height*($i-1)+2.5*($i-1)" z="0"/>
+	 <position name="LG_block@{[ $i ]}2_pos" x="-(0.5*(LG_width0+LG_width1T)+LG_TransHorOff_shift+Tolerance_space)" y="LG_height*($i-1)+2.5*($i-1)" z="0."/>
+	 <rotation name="LG_block@{[ $i ]}0_rot" x="0" y="-1.0*LG_angle" z="0" />
+	 <rotation name="LG_block@{[ $i ]}1_rot" x="0" y="0" z="0" />
+	 <rotation name="LG_block@{[ $i ]}2_rot" x="0" y="LG_angle" z="0" />
 EOF
 		}
 
 		print DEF <<EOF;
 	 <quantity name="calor_length" value="520" unit="mm" />
 	 <quantity name="calor_height" value="380" unit="mm" />
-	 <quantity name="calor_width" value="450" unit="mm" />
+	 <quantity name="calor_width" value="900" unit="mm" />
 
 	 <quantity name="calor_shift" value="2886.4" unit="mm" />
-	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5" unit="mm"/>
+	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5"/>
 
 	 <!-- ABOVE IS FOR LG -->
 
@@ -513,6 +518,32 @@ sub gen_Materials()
 	print MAT <<EOF;
 
   @{[ dumpfile('material.gdml')]}
+
+EOF
+
+	close(MAT);
+}
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++ gen_PMTs +++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sub gen_PMTs() 
+{
+
+	# Create the <PMT> fragment file name,
+	# add file to list of output GDML fragments,
+	# and open it
+	$MAT = "phase1_PMTs" . $suffix . ".gdml";
+	push (@gdmlFiles, $MAT);
+	$MAT = ">" . $MAT;
+	open(MAT) or die("Could not open file $MAT for writing");
+
+
+	print MAT <<EOF;
+
+  @{[ dumpfile('PMT.gdml')]}
 
 EOF
 
@@ -654,7 +685,7 @@ EOF
 
 	 <!-- BELOW IS FOR RPC -->
 
-	 <box name="RPC_box" x="RPC_width" y="RPC_height" z="RPC_thick"/>
+	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_thick"/>
 
 	 <box name="RPC_Al_box" x="RPC_width" y="RPC_height" z="RPC_Al_thick"/>
 	 <box name="RPC_comb_box" x="RPC_width" y="RPC_height" z="RPC_comb_thick"/>
@@ -671,20 +702,10 @@ EOF
 		print SOL <<EOF;
 
 	 <!-- BELOW IS FOR LG -->
-
-	 <para name="LG_para1" x="LG_width0" y="LG_height" z="LG_length" theta="LG_angle_v*DEG2RAD" alpha="pi/2." phi="pi/2." aunit="rad" lunit="mm"/>
-	 <box name="LG_box1" x="LG_width0" y="LG_height" z="LG_length"/>
-	 <box name="LG_box2" x="LG_width0" y="LG_height" z="LG_length+LG_protrusion_thick+LG_PMTl"/>
-	 <union name="LG_union">
-		<first ref="LG_box1"/>  <second ref="LG_para1"/>
-		<positionref ref="LG_para_pos1" />
-	 </union>	 
-	 <union name="LG_block_union">
-		<first ref="LG_box2"/>  <second ref="LG_para1"/>
-		<positionref ref="LG_para_pos" />
-	 </union>	 
-
-	 <tube name="LG_protrusion_tube" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
+	 
+	 <trd name="LG_box1" x1="(Tolerance_space+LG_width0)" x2="(Tolerance_space+LG_width1T)" y1="(2*Tolerance_space+LG_height)" y2="(2*Tolerance_space+LG_height)" z="2.0+LG_TransHorOff_shift+LG_length+LG_protrusion_thick+LG_PMTl" />
+	 <trd name="LG_trap" x1="LG_width0" x2="LG_width1" y1="LG_height" y2="LG_height" z="LG_length" />
+	 <tube name="LG_protrusion_tube" rmin="0" rmax="LG_PMTr" z="LG_protrusion_thick" deltaphi="360" aunit="deg"/>
 	 <tube name="LG_PMT_tube" rmax="LG_PMTr" z="LG_PMTl" deltaphi="360" aunit="deg"/>
 
 	 <box name="calor_box" x="calor_width" y="calor_height" z="calor_length"/>
@@ -889,34 +910,42 @@ EOF
 
   <volume name="LG_glass_vol">
 	 <materialref ref="LeadGlass"/>
-	 <solidref ref="LG_union"/>
+	 <solidref ref="LG_trap"/>
   </volume>
   <volume name="LG_protrusion_vol">
 	 <materialref ref="LeadGlass"/>
 	 <solidref ref="LG_protrusion_tube"/>
   </volume>
   <volume name="LG_PMT_vol">
-	 <materialref ref="LeadGlass"/>
+	 <materialref ref="Air"/>
 	 <solidref ref="LG_PMT_tube"/>
   </volume>
-
-  <volume name="LG_block_vol">
-	 <materialref ref="Air"/>
-	 <solidref ref="LG_block_union"/>
-	 <physvol name="LG_glass_phys">
+EOF
+	for($i = 0; $i< $n_LG; ++$i){
+		for($j = 0; $j< $m_LG; ++$j){
+		
+				print MOD <<EOF;
+           <volume name="LG_block@{[ $i ]}@{[ $j ]}_vol">
+	   <materialref ref="Air"/>
+	   <solidref ref="LG_box1"/>
+	   <physvol name="LG_glass@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_glass_vol"/>
-		<positionref ref="LG_glass_pos"/>
-	 </physvol>
-	 <physvol name="LG_protrusion_phys">
+		<positionref ref="LG_trap_pos1"/>
+	   </physvol>
+	   <physvol name="LG_protrusion@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_protrusion_vol"/>
 		<positionref ref="LG_protrusion_pos"/>
-	 </physvol>
-	 <physvol name="LG_PMT_phys">
+	   </physvol>
+	   <physvol name="LG_PMT@{[ $i ]}@{[ $j ]}_phys">
 		<volumeref ref="LG_PMT_vol"/>
 		<positionref ref="LG_PMT_pos"/>
-	 </physvol>
-  </volume>
-
+	   </physvol>
+        </volume>
+EOF
+			}
+		}
+		print MOD <<EOF;
+  
   <!-- ABOVE IS FOR LG -->
 
 EOF
@@ -1117,35 +1146,7 @@ EOF
 		<volumeref ref="RPC_Al_vol"/>
 		<positionref ref="RPC_Al@{[ $i ]}_pos"/>
 	 </physvol>
-	 <physvol name="RPC_comb@{[ $i ]}_phys">
-		<volumeref ref="RPC_comb_vol"/>
-		<positionref ref="RPC_comb@{[ $i ]}_pos"/>
-	 </physvol>
 EOF
-		}
-		for($i = 0; $i < $n_gas+1; ++$i){
-			print DET <<EOF;
-	 <physvol name="RPC_PCB@{[ $i ]}_phys">
-		<volumeref ref="RPC_PCB_vol"/>
-		<positionref ref="RPC_PCB@{[ $i ]}_pos"/>
-	 </physvol>
-EOF
-		}
-		for($i = 0; $i < $n_gas; ++$i){
-			print DET <<EOF;
-	 <physvol name="RPC_gas@{[ $i ]}_phys">
-		<volumeref ref="RPC_gas_vol"/>
-		<positionref ref="RPC_gas@{[ $i ]}_pos"/>
-	 </physvol>
-EOF
-			for($j = 0; $j < $n_cover; ++$j){
-				print DET <<EOF;
-	 <physvol name="RPC_acrylic@{[ $i ]}@{[ $j ]}_phys">
-		<volumeref ref="RPC_acrylic_vol"/>
-		<positionref ref="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos"/>
-	 </physvol>
-EOF
-			}
 		}
 		print DET <<EOF;
   </volume>
@@ -1160,7 +1161,7 @@ EOF
 
 
   <!-- BELOW IS FOR LG -->
-
+  
   <volume name="calor_vol">
 	 <materialref ref="Air"/>
 	 <solidref ref="calor_box"/>
@@ -1169,7 +1170,7 @@ EOF
 			for($j = 0; $j< $m_LG; ++$j){
 				print DET <<EOF;
 	 <physvol name="LG_block@{[ $i ]}@{[ $j ]}_phys">
-		<volumeref ref="LG_block_vol"/>
+		<volumeref ref="LG_block@{[ $i ]}@{[ $j ]}_vol"/>
 		<positionref ref="LG_block@{[ $i ]}@{[ $j ]}_pos"/>
 		<rotationref ref="LG_block@{[ $i ]}@{[ $j ]}_rot"/>
 	 </physvol>

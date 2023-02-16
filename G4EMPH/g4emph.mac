@@ -14,7 +14,7 @@
 #      **** COMMAND NOT FOUND </...> *****
 #      **** Batch is interrupted!! *****
 # message when run on such a list.
-/physics_engine/neutron/timeLimit 515000.0 ns
+#/physics_engine/neutron/timeLimit 515000.0 ns
 /physics_engine/neutron/energyLimit 0.0 GeV
 
 /control/echo "(G4UImanager) end of g4emph.mac"

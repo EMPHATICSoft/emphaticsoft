@@ -1,0 +1,56 @@
+#include "SSDAlignment.fcl"
+
+#include "MakeSSDClusters.fcl"
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+#include "FillDataQuality.fcl"
+
+process_name: SSDAlignment
+
+services:
+{
+  TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  Geometry:   @local::standard_geometry
+  RunHistoryService: {}
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "ssd_align_hist_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	dataqual:     @local::standard_dataqual
+	clust:        @local::standard_ssdclust
+	ssdalignment: @local::standard_ssdalignment
+ }	
+
+ reco: [ dataqual, clust, ssdalignment ]
+	
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+
+}

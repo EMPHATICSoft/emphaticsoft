@@ -9,7 +9,7 @@ cet_cmake_env()
 cet_set_compiler_flags(DIAGS VIGILANT
   WERROR
   NO_UNDEFINED
-  EXTRA_FLAGS -pedantic -Wno-dev)
+  EXTRA_FLAGS -pedantic)
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
@@ -25,6 +25,7 @@ add_subdirectory(ChannelMap)
 add_subdirectory(CAFMaker)
 add_subdirectory(DataQuality)
 add_subdirectory(Demo)
+add_subdirectory(DetGeoMap)
 add_subdirectory(emphatic-artdaq)
 add_subdirectory(EventDisplay)
 add_subdirectory(G4Base)
@@ -45,9 +46,11 @@ add_subdirectory(SimulationBase)
 add_subdirectory(SpillInfo)
 add_subdirectory(StandardRecord)
 add_subdirectory(SSDCalibration)
+add_subdirectory(SSDAlignment)
 add_subdirectory(SSDReco)
 add_subdirectory(SSD_FERMerger)
 add_subdirectory(TOF)
+add_subdirectory(Utilities)
 
 # ups - table and config files
 add_subdirectory(ups)
