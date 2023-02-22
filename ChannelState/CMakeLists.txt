@@ -22,8 +22,9 @@ art_make_library(
 #		messagefacility::MF_MessageLogger
 		)
 
-target_include_directories(ChannelState BEFORE
-  PRIVATE "$ENV{ART_CPP_DB_INTERFACES_INC}"
+cet_make_exec( NAME getSSDChannelStates
+  SOURCE getSSDChannelStates.cc
+  LIBRARIES ChannelState
 )
 
 install_headers()

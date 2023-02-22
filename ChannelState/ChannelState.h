@@ -29,7 +29,7 @@ namespace emph {
     virtual ~ChannelState() {}; //Destructor
     
     ChannelStateType State(emph::geo::DetectorType detId, int chanId);
-
+    const std::unordered_map<int,ChannelStateType> StateMap(emph::geo::DetectorType detId) { if (!fLoaded[detId]) LoadTable(detId); return fStateMap[detId]; }
     void SetLoadSSDFromDB(bool v) { fLoadSSDFromDB = v; }
     void SetLoadARICHFromDB(bool v) { fLoadARICHFromDB = v; }
     void SetSSDFileName(std::string s) { fSSDFileName = s; }
