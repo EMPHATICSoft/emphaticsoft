@@ -14,10 +14,6 @@ cet_make_exec( NAME emph_runHistory
   LIBRARIES RunHistory
 )
 
-target_include_directories(RunHistory BEFORE
-  PRIVATE "$ENV{ART_CPP_DB_INTERFACES_INC}"
-)
-
 install_headers()
 install_source()
 install_fhicl()
