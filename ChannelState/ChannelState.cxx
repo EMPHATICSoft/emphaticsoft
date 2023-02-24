@@ -78,10 +78,10 @@ namespace emph {
     const double instant = fRun*1.e6+fSubrun;
     int channel;
     int state;
-    const std::array<std::string, 2> column_names = {"__channel","state"};
-    ConditionsDBResponse<2> response = condb.query(folder,column_names,instant);
+    const std::array<std::string, 1> column_names = {"state"};
+    ConditionsDBResponse<1> response = condb.query(folder,column_names,instant);
     auto& stateMap = fStateMap[detId];
-    while( response.get_row(channel,state) ) {
+    while( response.get_row(state) ) {
       stateMap[channel] = static_cast<ChannelStateType>(state);
     }
     

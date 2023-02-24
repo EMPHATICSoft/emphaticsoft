@@ -12,7 +12,7 @@ int main(int argc, char **argv)
   
   emph::ChannelState* chanState = new emph::ChannelState();
   chanState->SetLoadSSDFromDB(true);
-  chanState->SetCondbURL("https://dbdata2vm.fnal.gov:8043/service/emphatic_con_prod/");
+  chanState->SetCondbURL("https://dbdata2vm.fnal.gov:9443/emphatic_con_prod/app/");
   chanState->SetRunSubrun(runNum,subrunNum);
 
   auto stateMap = chanState->StateMap(emph::geo::SSD);
