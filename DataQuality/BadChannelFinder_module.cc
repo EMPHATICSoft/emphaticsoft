@@ -23,6 +23,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "ChannelMap/service/ChannelMapService.h"
+#include "ChannelState/ChannelState.h"
 #include "RawData/SSDRawDigit.h"
 
 namespace emph {
@@ -125,12 +126,10 @@ void emph::dq::BadChannelFinder::endSubRun(const art::SubRun& sr)
 	    setRms[set]+=pow(Nhit[fer][mod][set*16+idr]-setAvg[set],2);
 	  }
 	  setRms[set]=sqrt(setRms[set]/16);
-	  // std::cout<<"Set "<<set<<" avg: "<<setAvg[set]<<std::endl;
-	  // std::cout<<"Set "<<set<<" rms: "<<setRms[set]<<std::endl;
 	}
 
 	for(row=0; row<640; ++row){
-	  unsigned int chanState=0; // 0: good, 1: hot, 2: cold
+	  tChannelState chanState = kGood;
 	  hitrate=Nhit[fer][mod][row]/ntriggers;
 	  int nhit=Nhit[fer][mod][row];
 	  int set = floor(row/16);
@@ -144,9 +143,9 @@ void emph::dq::BadChannelFinder::endSubRun(const art::SubRun& sr)
 	    nsigma=99;
 	  bcstats->Fill();
 	  if (hitrate > fHotChanRate)
-	    chanState=1;
+	    chanState=kHot;
 	  else if (hitrate <= fColdChanRate)
-	    chanState=2;
+	    chanState=kDead;
 	  //std::cout<<fer<<":"<<mod<<":"<<row<<":"<<hitVec[3]<<std::endl;
 	  if (chanState)// && ntriggers>1000) // don't bother with small non-beam files
 	    fprintf(fBadChanCSV, "%d,%d,%d\n",(int)(run*1e6 + subrun),(int)(fer*1e6 + mod*1e4 + row),chanState);
