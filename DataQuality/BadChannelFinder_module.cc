@@ -65,6 +65,7 @@ private:
   unsigned int run, subrun;
   unsigned int fer, mod, row;
   float hitrate;
+  float nsigma;
   unsigned int ntriggers;   ///< Number of triggers with SSD hits, to scale plots
   float Nhit[nFER][nMod][640]={{{0}}};
 };
@@ -94,9 +95,10 @@ void emph::dq::BadChannelFinder::beginJob()
   bcstats->Branch("mod",&mod,"mod/I");
   bcstats->Branch("row",&row,"row/I");
   bcstats->Branch("hitrate",&hitrate,"hitrate/F");
+  bcstats->Branch("nsigma",&nsigma,"nsigma/F");
   ntriggers=0;
   fBadChanCSV = fopen(fCSVFileName.c_str(),"w");
-  fprintf(fBadChanCSV, "#run,subrun,detector,channel,state\n");
+  fprintf(fBadChanCSV, "#run/subrun,channel,state\n");
 }
 
 //--------------------------------------------------
@@ -110,17 +112,44 @@ void emph::dq::BadChannelFinder::endSubRun(const art::SubRun& sr)
 	emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
 	if (!cmap->IsValidEChan(echan))
 	    continue;
+
+	// find avg, rms in groups of 16
+	float setAvg[40]={0};
+	float setRms[40]={0};
+	for(unsigned int set=0; set<40; ++set){
+	  for(unsigned int idr=0; idr<16; ++idr){
+	    setAvg[set]+=Nhit[fer][mod][set*16+idr];
+	  }
+	  setAvg[set]=setAvg[set]/16;
+	  for(unsigned int idr=0; idr<16; ++idr){
+	    setRms[set]+=pow(Nhit[fer][mod][set*16+idr]-setAvg[set],2);
+	  }
+	  setRms[set]=sqrt(setRms[set]/16);
+	  // std::cout<<"Set "<<set<<" avg: "<<setAvg[set]<<std::endl;
+	  // std::cout<<"Set "<<set<<" rms: "<<setRms[set]<<std::endl;
+	}
+
 	for(row=0; row<640; ++row){
-	  unsigned int chanState=0; // 0: good, 1: cold, 2: hot
+	  unsigned int chanState=0; // 0: good, 1: hot, 2: cold
 	  hitrate=Nhit[fer][mod][row]/ntriggers;
+	  int nhit=Nhit[fer][mod][row];
+	  int set = floor(row/16);
+	  if (setRms[set])
+	    nsigma=(nhit-setAvg[set])/setRms[set];
+	  // these will be cold channels
+	  else if (nhit==0)
+	    nsigma=-99;
+	  // this case can be ignored. leave as good state
+	  else
+	    nsigma=99;
 	  bcstats->Fill();
-	  if (hitrate <= fColdChanRate)
+	  if (hitrate > fHotChanRate)
 	    chanState=1;
-	  else if (hitrate > fHotChanRate)
+	  else if (hitrate <= fColdChanRate)
 	    chanState=2;
 	  //std::cout<<fer<<":"<<mod<<":"<<row<<":"<<hitVec[3]<<std::endl;
 	  if (chanState)// && ntriggers>1000) // don't bother with small non-beam files
-	    fprintf(fBadChanCSV, "%d,%d,SSD,%d-%d-%d,%d\n",run,subrun,fer,mod,row,chanState);
+	    fprintf(fBadChanCSV, "%d,%d,%d\n",(int)(run*1e6 + subrun),(int)(fer*1e6 + mod*1e4 + row),chanState);
 	  Nhit[fer][mod][row]=0;
 	}
       }
