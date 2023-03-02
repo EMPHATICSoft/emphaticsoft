@@ -8,7 +8,7 @@
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-truncation"
-#include "Database/include/condb_cpp_interface.h"
+#include "Database/include/nova_condb_cpp_interface.h"
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 
@@ -23,7 +23,7 @@ namespace emph {
   ChannelState::ChannelState() : 
     fLoadSSDFromDB(false), fLoadARICHFromDB(false), 
     fSSDFileName(""), fARICHFileName(""),
-    fCondbURL(""), fRun(0), fSubrun(0)
+    fCondbURL(""), fDataType(""), fRun(0), fSubrun(0)
   {
     fLoaded.clear();
   }
@@ -63,6 +63,8 @@ namespace emph {
     std::string folder;
     if (fLoaded[detId]) return true;
 
+    assert(! fDataType.empty());
+
     if (detId == emph::geo::SSD) {
       folder = "emph.ssdbadchan";
     }
@@ -76,12 +78,13 @@ namespace emph {
     
     ConditionsDB condb = ConditionsDB(fCondbURL);
     const double instant = fRun*1.e6+fSubrun;
+    double tv;
     int channel;
     int state;
-    const std::array<std::string, 1> column_names = {"state"};
-    ConditionsDBResponse<1> response = condb.query(folder,column_names,instant);
+    const std::array<std::string, 3> column_names = {"channel","tv","state"};
+    ConditionsDBResponse<3> response = condb.query(folder,fDataType,column_names,instant);
     auto& stateMap = fStateMap[detId];
-    while( response.get_row(state) ) {
+    while( response.get_row(channel,tv,state) ) {
       stateMap[channel] = static_cast<ChannelStateType>(state);
     }
     

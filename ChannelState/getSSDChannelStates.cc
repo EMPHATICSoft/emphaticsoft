@@ -12,14 +12,24 @@ int main(int argc, char **argv)
   
   emph::ChannelState* chanState = new emph::ChannelState();
   chanState->SetLoadSSDFromDB(true);
-  chanState->SetCondbURL("https://dbdata2vm.fnal.gov:9443/emphatic_con_prod/app/");
+  chanState->SetDataType("data");
+  chanState->SetCondbURL("https://dbdata2vm.fnal.gov:9443/emphatic_con_prod/app");
   chanState->SetRunSubrun(runNum,subrunNum);
 
   auto stateMap = chanState->StateMap(emph::geo::SSD);
 
-  std::cout << "stateMap.size() = " << stateMap.size() << std::endl;
-  
-  std::cout << "All other SSD channels are assumed to be good." << std::endl;
+  int nDead = 0; 
+  int nHot = 0;
+  for (auto state : stateMap) {
+    emph::ChannelStateType st = static_cast<emph::ChannelStateType>(state.second);
+    if (st != emph::ChannelStateType::kGood) {
+      if (st == emph::ChannelStateType::kHot) ++nHot;
+      if (st == emph::ChannelStateType::kDead) ++nDead;
+    }
+  }
+  std::cout << "N(Dead) = " << nDead << std::endl;
+  std::cout << "N(Hot) = " << nHot << std::endl;
+  std::cout << "N(Good) = " << (stateMap.size() - nDead - nHot) << std::endl;
 
   delete chanState;
 

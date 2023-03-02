@@ -36,6 +36,7 @@ namespace emph {
     void SetARICHFileName(std::string s) { fARICHFileName = s; }
     void SetCondbURL(std::string url) { fCondbURL = url; }
     void SetRunSubrun(int run, int subrun);
+    void SetDataType(std::string dt) { fDataType = dt; }
 
   private:
 
@@ -48,6 +49,7 @@ namespace emph {
     std::string fARICHFileName;
 
     std::string fCondbURL;
+    std::string fDataType;
     int fRun;
     int fSubrun;
     
