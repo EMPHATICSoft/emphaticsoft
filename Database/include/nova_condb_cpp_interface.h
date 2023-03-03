@@ -5,8 +5,8 @@
 // For Conditions Database questions and requests contact Stephen White (swhite@fnal.gov)
 // For CONDB_CPP_INTERFACE questions contact Brandon White (bjwhite@fnal.gov) with questions
 ////////////////////////////////////////////////////////////////////////
-#ifndef CONDB_CPP_INTERFACE
-#define CONDB_CPP_INTERFACE
+#ifndef NOVACONDB_CPP_INTERFACE
+#define NOVACONDB_CPP_INTERFACE
 
 #include "../util/csv.h"
 #include <sstream>
@@ -53,12 +53,7 @@ class ConditionsDBResponse {
 
   template <typename... Cols>
     void parse_headers_impl(Cols&... cols) {
-    _validity_interval_start = std::stod(_csv_parser.next_line());
-    std::string int_end = _csv_parser.next_line();
-    if ( int_end != "-" )
-      _validity_interval_end = std::stod(int_end);
     _csv_parser.read_header(io::ignore_extra_column, cols...);
-    std::string data_types = _csv_parser.next_line(); // Currently unused
   }
 
   std::string _data;
@@ -144,6 +139,8 @@ class ConditionsDB : private ConditionsDBBase {
     std::string data_resrc_id = "/get?table=" + folder + "&t=" + std::to_string(instant) + "&type=" + datatype + "&columns=";
     bool isFirst = true;
     for(auto & cname : column_names) {
+      if (cname == "channel") continue;
+      if (cname == "tv") continue;
       if (isFirst) {
 	data_resrc_id += cname;
 	isFirst = false;
