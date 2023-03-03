@@ -21,7 +21,8 @@ namespace emph
     reconfigure(pset);
     
     fChannelState = new ChannelState();
-    
+    fChannelState->SetDataType("data");
+
     reg.sPreBeginSubRun.watch(this, &ChannelStateService::preBeginSubRun);
     
   }

@@ -4,7 +4,7 @@ standard_channelstate:
 {
   LoadSSDFromDB: true
   LoadARICHFromDB: true
-  CondbURL: "https://dbdata2vm.fnal.gov:8043/service/emphatic_con_prod/"
+  CondbURL: "https://dbdata2vm.fnal.gov:9443/emphatic_con_prod/app"
 }
 
 END_PROLOG
