@@ -20,6 +20,7 @@ find_package(art_root_io REQUIRED)
 
 # source
 add_subdirectory(ARICHReco)
+add_subdirectory(ARICHMod)
 add_subdirectory(BACkovHitReco)
 add_subdirectory(ChannelMap)
 add_subdirectory(ChannelState)

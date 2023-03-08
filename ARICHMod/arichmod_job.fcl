@@ -1,0 +1,53 @@
+#include "ARICHMod.fcl"
+
+#include "ChannelMap.fcl"
+#include "RunHistory.fcl"
+
+process_name: ARICHMod
+
+services:
+{
+  TFileService: { fileName: "arichmod_hist_r%r_s%s.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: @local::standard_runhistory
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "arichmod_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	arichmod: @local::standard_arichmod
+ }	
+
+ reco: [ arichmod ]
+	
+ filters:{}
+
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [  ]
+
+}

@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_arichmod:
+{
+  module_type: ARICHMod
+
+  arich_event: 12850
+}
+
+END_PROLOG
