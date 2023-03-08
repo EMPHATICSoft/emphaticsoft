@@ -113,7 +113,6 @@ namespace emph {
   void ARICHMod::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H)
   {
     //fARICH2DHist->Reset();
-
     // find reference time for each fpga
     std::map<int,double> refTime;
     for (size_t idx=0; idx < trb3H->size(); ++idx) {
@@ -221,6 +220,11 @@ namespace emph {
       }//leading time loop
       
     }//leading time channel map loop
+
+    if (fEvtNum>7000 && fEvtNum<7100){
+        std::cout<< "Here is a simple event loop set for a given event range"<<'\n';
+        std::cout<< "Currently on event: "<<fEvtNum<<"     You can output other variables, change the range, etc."<<'\n';
+    }
     
   }
   
