@@ -74,13 +74,20 @@ namespace emph {
 	    tPred += xPred * myGeo->Roll(aView, kSe);
 	    tMeas =  ( strip*pitch + myGeo->TrPos(aView, kSe));
 	    if (kSe >= 4) tMeas =  ( -1.0*strip*pitch + myGeo->TrPos(aView, kSe));
-	  } else if ((aView == 'U') || (aView == 'V'))  {
+	  } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
 	    const double xPred = x0 + slx0*z;
 	    const double yPred = y0 + sly0*z;
 	    const double uPred = fOneOverSqrt2 * ( xPred + yPred);
-	    const double vPred = fOneOverSqrt2 * ( -xPred - yPred);
+	    const double vPred = fOneOverSqrt2 * ( xPred - yPred);
 	    tPred = (aView == 'U') ? uPred + vPred * myGeo->Roll(aView, kSe) :  vPred + uPred * myGeo->Roll(aView, kSe);
-	    tMeas = ( strip*pitch + myGeo->TrPos(aView, kSe));
+	    if (aView == 'U') { 
+	      tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
+	    } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
+	      if (kSe == 0) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe)); // Unknown, this is a place holder. 
+	      else if (kSe == 1) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
+	      else if (kSe == 2) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe));
+	      else if (kSe == 3) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe)); // exploring... 
+	    }
 //	    if ((fItCl->EvtNum() == 16) && (fItCl->Spill() == 10)) 
 //	        std::cerr << " ..... U & V  for evt 16, spill 10 View " << aView << " kSe " << kSe 
 //	  	      << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
