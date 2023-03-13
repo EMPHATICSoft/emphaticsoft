@@ -85,6 +85,37 @@ namespace emph {
 
     }
 
+    //----------------------------------------------------------------------
+
+    rawdata::SSDRawDigit* DetGeoMap::SSDSimHitToRawDigit(const sim::SSDHit& ssdhit)
+    {
+      int32_t station=0;
+      int32_t module=0; 
+      int32_t chip=0; 
+      int32_t set=0; 
+      int32_t strip=0; 
+      int32_t t=0; 
+      int32_t adc=0; 
+      int32_t trig=0; 
+
+      // work some magic and set the values above
+      station = int32_t(ssdhit.GetZ());
+
+      // create raw digit to return
+
+      rawdata::SSDRawDigit* dig = new rawdata::SSDRawDigit(station,
+							   module,
+							   chip,
+							   set,
+							   strip,
+							   t,
+							   adc,
+							   trig);
+
+      return dig;
+
+    }
+
   } // end namespace dgmap
   
 } // end namespace emph
