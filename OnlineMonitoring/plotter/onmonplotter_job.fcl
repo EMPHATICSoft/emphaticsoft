@@ -1,5 +1,6 @@
 #include "OnMonPlotter.fcl"
 
+#include "RunHistory.fcl"
 #include "ChannelMap.fcl"
 
 process_name: OnMon
@@ -7,7 +8,7 @@ process_name: OnMon
 services:
 {
   ChannelMapService: @local::standard_channelmap
-  RunHistoryService: {}
+  RunHistoryService: @local::standard_runhistory
 }
 
 source:

@@ -9,8 +9,9 @@ art_make_library(SOURCE RunHistory.cxx
   wda::wda
 )
 
-target_include_directories(RunHistory BEFORE
-  PRIVATE "$ENV{ART_CPP_DB_INTERFACES_INC}"
+cet_make_exec( NAME emph_runHistory
+  SOURCE emph_runHistory.cc
+  LIBRARIES RunHistory
 )
 
 install_headers()

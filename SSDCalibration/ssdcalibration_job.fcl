@@ -1,13 +1,14 @@
 #include "SSDCalibration.fcl"
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
+#include "RunHistory.fcl"
 
 process_name: SSDCalibration
 
 services:
 {
   TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
-  RunHistoryService: {}
+  RunHistoryService: @local::standard_runhistory
   ChannelMapService: @local::standard_channelmap
   Geometry: @local::standard_geometry
 }

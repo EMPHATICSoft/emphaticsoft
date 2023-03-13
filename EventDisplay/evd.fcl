@@ -2,6 +2,7 @@
 # Run the 3D event display
 #
 #include "Geometry.fcl"
+#include "RunHistory.fcl"
 
 process_name : eventDisplay01
 
@@ -15,7 +16,7 @@ services : {
 
   # From toyExperiment
   Geometry   : @local::standard_geometry
-  RunHistoryService : {}
+  RunHistoryService : @local::standard_runhistory
   # From art-workbook
   EvtDisplayService : {}
 

@@ -4,6 +4,7 @@
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
 #include "FillDataQuality.fcl"
+#include "RunHistory.fcl"
 
 process_name: SSDAlignment
 
@@ -12,7 +13,7 @@ services:
   TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
-  RunHistoryService: {}
+  RunHistoryService: @local::standard_runhistory
 }
 
 source:
