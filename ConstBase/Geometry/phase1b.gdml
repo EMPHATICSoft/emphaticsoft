@@ -1291,8 +1291,8 @@ values="202.14067278287462 12.054573032169143
    
    <material formula="SiO2" name="SiliconDioxide">
      <D value="4.0"/>
-     <composite n="0.467" ref="Silicon"/>
-     <composite n="0.533" ref="Oxygen"/>
+     <fraction n="0.467" ref="Silicon"/>
+     <fraction n="0.533" ref="Oxygen"/>
    </material>
  
 	<material formula="ch2" name="CH2">
