@@ -159,7 +159,7 @@ namespace emph {
 
     int  FindTopT0(int);
     int  FindLeadT0(int);
-    int  FindLeftRPC(int);
+    int  FindLftRPC(int);
     int  FindLeadRPC(int);
     int  GetSegT0(int);
     int  GetSegRPC(int);
@@ -189,8 +189,14 @@ namespace emph {
     double tot_temp;
 
     TTree *tree;
-    std::array<int,    n_seg_t0>  T0_Seg;  // Segment of T0
-    std::array<int,    n_seg_rpc> Rpc_Seg; // Segment of RPC
+    TTree *tree_fine;
+    std::array<int,    n_seg_t0>  T0_seg;  // Segment of T0
+    std::array<int,    n_seg_rpc> RPC_seg; // Segment of RPC
+
+    std::array<double, n_seg_t0> TDC_top_ln_hi; // T0 caribration parameter of high edge for T0 top signals
+    std::array<double, n_seg_t0> TDC_top_ln_lo; // T0 caribration parameter of low edge for T0 top signals
+    std::array<double, n_seg_t0> TDC_bot_ln_hi; // T0 caribration parameter of high edge for T0 bottom signals
+    std::array<double, n_seg_t0> TDC_bot_ln_lo; // T0 caribration parameter of low edge for T0 bottom signals
 
     std::array<double, n_seg_t0> ADC_top_q; // Charge of top signals
     std::array<double, n_seg_t0> ADC_bot_q; // Charge of bottom signals
@@ -199,19 +205,42 @@ namespace emph {
     std::array<double, n_seg_t0> ADC_top_blw; // Baseline of top signals
     std::array<double, n_seg_t0> ADC_bot_blw; // Baseline of bottom signals
 
+    std::array<double, n_seg_rpc> RPC_lft_ln_hi; // RPC caribration parameter of high edge for left signals
+    std::array<double, n_seg_rpc> RPC_lft_ln_lo; // RPC caribration parameter of low edge for left signals
+    std::array<double, n_seg_rpc> RPC_rgt_ln_hi; // RPC caribration parameter of high edge for right signals
+    std::array<double, n_seg_rpc> RPC_rgt_ln_lo; // RPC caribration parameter of low edge for right signals
+
     std::vector<std::vector<double>> TDC_top_t; // Time of top signals
-    std::vector<std::vector<int>>    TDC_top_lead; // Flag of leading in top signals
+    std::vector<std::vector<int>>    TDC_top_flg; // Flag of leading in top signals
     std::vector<std::vector<double>> TDC_top_tot; // TOT of top signals
     std::vector<std::vector<double>> TDC_bot_t; // Time of bottom signals
-    std::vector<std::vector<int>>    TDC_bot_lead; // Flag of leading in bottom signals
+    std::vector<std::vector<int>>    TDC_bot_flg; // Flag of leading in bottom signals
     std::vector<std::vector<double>> TDC_bot_tot; // TOT of bottom signals
 
-    std::vector<std::vector<double>> RPC_lf_t; // Time of left signals
-    std::vector<std::vector<int>>    RPC_lf_lead; // Flag of leading in left signals
-    std::vector<std::vector<double>> RPC_lf_tot; // TOT of left signals
-    std::vector<std::vector<double>> RPC_rt_t; // Time of right signals
-    std::vector<std::vector<int>>    RPC_rt_lead; // Flag of leading in right signals
-    std::vector<std::vector<double>> RPC_rt_tot; // TOT of right signals
+    std::vector<std::vector<double>> TDC_top_lead; // Time of leading signals of top channel
+    std::vector<std::vector<double>> TDC_top_lead_fine; // Fineime of leading signals of top channel
+    std::vector<std::vector<double>> TDC_top_trail; // Time of trailing signals of top channel
+    std::vector<std::vector<double>> TDC_top_trail_fine; // Finetime of trailing signals of top channel
+    std::vector<std::vector<double>> TDC_bot_lead; // Time of leading signals of bot channel
+    std::vector<std::vector<double>> TDC_bot_lead_fine; // Fineime of leading signals of bot channel
+    std::vector<std::vector<double>> TDC_bot_trail; // Time of trailing signals of bot channel
+    std::vector<std::vector<double>> TDC_bot_trail_fine; // Finetime of trailing signals of bot channel
+
+    std::vector<std::vector<double>> RPC_lft_t; // Time of left signals
+    std::vector<std::vector<int>>    RPC_lft_flg; // Flag of leading in left signals
+    std::vector<std::vector<double>> RPC_lft_tot; // TOT of left signals
+    std::vector<std::vector<double>> RPC_rgt_t; // Time of right signals
+    std::vector<std::vector<int>>    RPC_rgt_flg; // Flag of leading in right signals
+    std::vector<std::vector<double>> RPC_rgt_tot; // TOT of right signals
+
+    std::vector<std::vector<double>> RPC_lft_lead; // Time of leading signals of lft channel
+    std::vector<std::vector<double>> RPC_lft_lead_fine; // Fineime of leading signals of lft channel
+    std::vector<std::vector<double>> RPC_lft_trail; // Time of trailing signals of lft channel
+    std::vector<std::vector<double>> RPC_lft_trail_fine; // Finetime of trailing signals of lft channel
+    std::vector<std::vector<double>> RPC_rgt_lead; // Time of leading signals of rgt channel
+    std::vector<std::vector<double>> RPC_rgt_lead_fine; // Fineime of leading signals of rgt channel
+    std::vector<std::vector<double>> RPC_rgt_trail; // Time of trailing signals of rgt channel
+    std::vector<std::vector<double>> RPC_rgt_trail_fine; // Finetime of trailing signals of rgt channel
 
   };
 
@@ -254,19 +283,65 @@ namespace emph {
       std::cout << "Loaded channel map from file " << fChanMapFileName << std::endl;
     }
 
+    for(int i = 0; i < n_seg_t0; i++){
+      T0_seg.at(i) = i;
+    }
+
+    for(int i = 1; i < n_ch_t0; i++){
+      if(FindTopT0(i)){
+	TDC_top_ln_hi.at(GetSegT0(i)) = trb3_linear_high_T0.at(i);
+	TDC_top_ln_lo.at(GetSegT0(i)) = trb3_linear_low;
+      }else{
+	TDC_bot_ln_hi.at(GetSegT0(i)) = trb3_linear_high_T0.at(i);
+	TDC_bot_ln_lo.at(GetSegT0(i)) = trb3_linear_low;
+      }
+    }
+
+    for(int i = 0; i < n_seg_rpc; i++){
+      RPC_seg.at(i) = i;
+    }
+
+    for(int i = 1; i < n_ch_rpc; i++){
+      if(FindLftRPC(i)){
+	RPC_lft_ln_hi.at(GetSegRPC(i)) = trb3_linear_high_RPC.at(i);
+	RPC_lft_ln_lo.at(GetSegRPC(i)) = trb3_linear_low;
+      }else{
+	RPC_rgt_ln_hi.at(GetSegRPC(i)) = trb3_linear_high_RPC.at(i);
+	RPC_rgt_ln_lo.at(GetSegRPC(i)) = trb3_linear_low;
+      }
+    }
+
     TDC_top_t.resize(n_seg_t0);
-    TDC_top_lead.resize(n_seg_t0);
+    TDC_top_flg.resize(n_seg_t0);
     TDC_top_tot.resize(n_seg_t0);
     TDC_bot_t.resize(n_seg_t0);
-    TDC_bot_lead.resize(n_seg_t0);
+    TDC_bot_flg.resize(n_seg_t0);
     TDC_bot_tot.resize(n_seg_t0);
 
-    RPC_lf_t.resize(n_seg_t0);
-    RPC_lf_lead.resize(n_seg_t0);
-    RPC_lf_tot.resize(n_seg_t0);
-    RPC_rt_t.resize(n_seg_t0);
-    RPC_rt_lead.resize(n_seg_t0);
-    RPC_rt_tot.resize(n_seg_t0);
+    TDC_top_lead.resize(n_seg_t0);
+    TDC_top_lead_fine.resize(n_seg_t0);
+    TDC_top_trail.resize(n_seg_t0);
+    TDC_top_trail_fine.resize(n_seg_t0);
+    TDC_bot_lead.resize(n_seg_t0);
+    TDC_bot_lead_fine.resize(n_seg_t0);
+    TDC_bot_trail.resize(n_seg_t0);
+    TDC_bot_trail_fine.resize(n_seg_t0);
+
+    RPC_lft_t.resize(n_seg_t0);
+    RPC_lft_flg.resize(n_seg_t0);
+    RPC_lft_tot.resize(n_seg_t0);
+    RPC_rgt_t.resize(n_seg_t0);
+    RPC_rgt_flg.resize(n_seg_t0);
+    RPC_rgt_tot.resize(n_seg_t0);
+
+    RPC_lft_lead.resize(n_seg_t0);
+    RPC_lft_lead_fine.resize(n_seg_t0);
+    RPC_lft_trail.resize(n_seg_t0);
+    RPC_lft_trail_fine.resize(n_seg_t0);
+    RPC_rgt_lead.resize(n_seg_t0);
+    RPC_rgt_lead_fine.resize(n_seg_t0);
+    RPC_rgt_trail.resize(n_seg_t0);
+    RPC_rgt_trail_fine.resize(n_seg_t0);
 
     // create TTree for TRB3RawDigits
     art::ServiceHandle<art::TFileService> tfs;
@@ -274,8 +349,8 @@ namespace emph {
     tree = tfs->make<TTree>("T0AnaTree","");
     std::cout << "tree = " << tree << std::endl;
 
-    tree->Branch("T0_seg", &T0_Seg);
-    tree->Branch("RPC_seg", &Rpc_Seg);
+    tree->Branch("T0_seg", &T0_seg);
+    tree->Branch("RPC_seg", &RPC_seg);
 
     tree->Branch("ADC_top_q", &ADC_top_q);
     tree->Branch("ADC_bot_q", &ADC_bot_q);
@@ -285,20 +360,63 @@ namespace emph {
     tree->Branch("ADC_bot_blw", &ADC_bot_blw);
 
     tree->Branch("TDC_top_t",  &TDC_top_t);
-    tree->Branch("TDC_top_lead", &TDC_top_lead);
+    tree->Branch("TDC_top_flg", &TDC_top_flg);
     tree->Branch("TDC_top_tot",  &TDC_top_tot);
     tree->Branch("TDC_bot_t",  &TDC_bot_t);
-    tree->Branch("TDC_bot_lead", &TDC_bot_lead);
+    tree->Branch("TDC_bot_flg", &TDC_bot_flg);
     tree->Branch("TDC_bot_tot",  &TDC_bot_tot);
 
-    tree->Branch("RPC_lf_t",  &RPC_lf_t);
-    tree->Branch("RPC_lf_lead", &RPC_lf_lead);
-    tree->Branch("RPC_lf_tot",  &RPC_lf_tot);
-    tree->Branch("RPC_rt_t",  &RPC_rt_t);
-    tree->Branch("RPC_rt_lead", &RPC_rt_lead);
-    tree->Branch("RPC_rt_tot",  &RPC_rt_tot);
+    tree->Branch("RPC_lft_t",  &RPC_lft_t);
+    tree->Branch("RPC_lft_flg", &RPC_lft_flg);
+    tree->Branch("RPC_lft_tot",  &RPC_lft_tot);
+    tree->Branch("RPC_rgt_t",  &RPC_rgt_t);
+    tree->Branch("RPC_rgt_flg", &RPC_rgt_flg);
+    tree->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
 
-    std::cout << "tree = " << tree << std::endl;
+    tree_fine = tfs->make<TTree>("T0AnaTree_fine","");
+    std::cout << "tree_fine = " << tree_fine << std::endl;
+
+    tree_fine->Branch("T0_seg", &T0_seg);
+    tree_fine->Branch("RPC_seg", &RPC_seg);
+
+    tree_fine->Branch("ADC_top_q", &ADC_top_q);
+    tree_fine->Branch("ADC_bot_q", &ADC_bot_q);
+    tree_fine->Branch("ADC_top_max", &ADC_top_max);
+    tree_fine->Branch("ADC_bot_max", &ADC_bot_max);
+    tree_fine->Branch("ADC_top_blw", &ADC_top_blw);
+    tree_fine->Branch("ADC_bot_blw", &ADC_bot_blw);
+
+    tree_fine->Branch("TDC_top_lead",  &TDC_top_lead);
+    tree_fine->Branch("TDC_top_lead_fine",  &TDC_top_lead_fine);
+    tree_fine->Branch("TDC_top_trail",  &TDC_top_trail);
+    tree_fine->Branch("TDC_top_trail_fine",  &TDC_top_trail_fine);
+    tree_fine->Branch("TDC_top_tot",  &TDC_top_tot);
+    tree_fine->Branch("TDC_top_ln_hi",  &TDC_top_ln_hi);
+    tree_fine->Branch("TDC_top_ln_lo",  &TDC_top_ln_lo);
+
+    tree_fine->Branch("TDC_bot_lead",  &TDC_bot_lead);
+    tree_fine->Branch("TDC_bot_lead_fine",  &TDC_bot_lead_fine);
+    tree_fine->Branch("TDC_bot_trail",  &TDC_bot_trail);
+    tree_fine->Branch("TDC_bot_trail_fine",  &TDC_bot_trail_fine);
+    tree_fine->Branch("TDC_bot_tot",  &TDC_bot_tot);
+    tree_fine->Branch("TDC_bot_ln_hi",  &TDC_bot_ln_hi);
+    tree_fine->Branch("TDC_bot_ln_lo",  &TDC_bot_ln_lo);
+
+    tree_fine->Branch("RPC_lft_lead",  &RPC_lft_lead);
+    tree_fine->Branch("RPC_lft_lead_fine",  &RPC_lft_lead_fine);
+    tree_fine->Branch("RPC_lft_trail",  &RPC_lft_trail);
+    tree_fine->Branch("RPC_lft_trail_fine",  &RPC_lft_trail_fine);
+    tree_fine->Branch("RPC_lft_tot",  &RPC_lft_tot);
+    tree_fine->Branch("RPC_lft_ln_hi",  &RPC_lft_ln_hi);
+    tree_fine->Branch("RPC_lft_ln_lo",  &RPC_lft_ln_lo);
+
+    tree_fine->Branch("RPC_rgt_lead",  &RPC_rgt_lead);
+    tree_fine->Branch("RPC_rgt_lead_fine",  &RPC_rgt_lead_fine);
+    tree_fine->Branch("RPC_rgt_trail",  &RPC_rgt_trail);
+    tree_fine->Branch("RPC_rgt_trail_fine",  &RPC_rgt_trail_fine);
+    tree_fine->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
+    tree_fine->Branch("RPC_rgt_ln_hi",  &RPC_rgt_ln_hi);
+    tree_fine->Branch("RPC_rgt_ln_lo",  &RPC_rgt_ln_lo);
     
   }
 
@@ -324,7 +442,7 @@ namespace emph {
   }
 
   //......................................................................
-  int T0Ana::FindLeftRPC(int ch_daq)
+  int T0Ana::FindLftRPC(int ch_daq)
   {
     if (ch_daq >= 1 && ch_daq <= 16) return 1;
 
@@ -392,9 +510,18 @@ namespace emph {
   {
     for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
       TDC_top_t.at(i_seg).clear();
+      TDC_top_flg.at(i_seg).clear();
       TDC_top_lead.at(i_seg).clear();
+      TDC_top_lead_fine.at(i_seg).clear();
+      TDC_top_trail.at(i_seg).clear();
+      TDC_top_trail_fine.at(i_seg).clear();
+
       TDC_bot_t.at(i_seg).clear();
+      TDC_bot_flg.at(i_seg).clear();
       TDC_bot_lead.at(i_seg).clear();
+      TDC_bot_lead_fine.at(i_seg).clear();
+      TDC_bot_trail.at(i_seg).clear();
+      TDC_bot_trail_fine.at(i_seg).clear();
     }
 
     time_trig_t0 = 0;
@@ -412,10 +539,26 @@ namespace emph {
       }else{
 	if(FindTopT0(evt_ch)){
 	  TDC_top_t.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - time_trig_t0);
-	  TDC_top_lead.at(GetSegT0(evt_ch)).push_back(FindLeadT0(evt_ch));
+	  TDC_top_flg.at(GetSegT0(evt_ch)).push_back(FindLeadT0(evt_ch));
+
+	  if(FindLeadT0(evt_ch)){
+	    TDC_top_lead.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - time_trig_t0);
+	    TDC_top_lead_fine.at(GetSegT0(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }else{
+	    TDC_top_trail.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - time_trig_t0);
+	    TDC_top_trail_fine.at(GetSegT0(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }
 	}else{
 	  TDC_bot_t.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - time_trig_t0);
-	  TDC_bot_lead.at(GetSegT0(evt_ch)).push_back(FindLeadT0(evt_ch));
+	  TDC_bot_flg.at(GetSegT0(evt_ch)).push_back(FindLeadT0(evt_ch));
+
+	  if(FindLeadT0(evt_ch)){
+	    TDC_bot_lead.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - time_trig_t0);
+	    TDC_bot_lead_fine.at(GetSegT0(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }else{
+	    TDC_bot_trail.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - time_trig_t0);
+	    TDC_bot_trail_fine.at(GetSegT0(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }
 	}
       }
     }// end loop over TRB3 signals
@@ -425,10 +568,19 @@ namespace emph {
   void T0Ana::GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
     for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
-      RPC_lf_t.at(i_seg).clear();
-      RPC_lf_lead.at(i_seg).clear();
-      RPC_rt_t.at(i_seg).clear();
-      RPC_rt_lead.at(i_seg).clear();
+      RPC_lft_t.at(i_seg).clear();
+      RPC_lft_flg.at(i_seg).clear();
+      RPC_lft_lead.at(i_seg).clear();
+      RPC_lft_lead_fine.at(i_seg).clear();
+      RPC_lft_trail.at(i_seg).clear();
+      RPC_lft_trail_fine.at(i_seg).clear();
+
+      RPC_rgt_t.at(i_seg).clear();
+      RPC_rgt_flg.at(i_seg).clear();
+      RPC_rgt_lead.at(i_seg).clear();
+      RPC_rgt_lead_fine.at(i_seg).clear();
+      RPC_rgt_trail.at(i_seg).clear();
+      RPC_rgt_trail_fine.at(i_seg).clear();
     }
 
     time_trig_rpc = 0;
@@ -444,12 +596,28 @@ namespace emph {
       if(evt_ch == 0){
 	time_trig_rpc = time_evt_rpc;
       }else{
-	if(FindLeftRPC(evt_ch)){
-	  RPC_lf_t.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
-	  RPC_lf_lead.at(GetSegRPC(evt_ch)).push_back(FindLeadRPC(evt_ch));
+	if(FindLftRPC(evt_ch)){
+	  RPC_lft_t.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
+	  RPC_lft_flg.at(GetSegRPC(evt_ch)).push_back(FindLeadRPC(evt_ch));
+
+	  if(FindLeadRPC(evt_ch)){
+	    RPC_lft_lead.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
+	    RPC_lft_lead_fine.at(GetSegRPC(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }else{
+	    RPC_lft_trail.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
+	    RPC_lft_trail_fine.at(GetSegRPC(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }
 	}else{
-	  RPC_rt_t.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
-	  RPC_rt_lead.at(GetSegRPC(evt_ch)).push_back(FindLeadRPC(evt_ch));
+	  RPC_rgt_t.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
+	  RPC_rgt_flg.at(GetSegRPC(evt_ch)).push_back(FindLeadRPC(evt_ch));
+
+	  if(FindLeadRPC(evt_ch)){
+	    RPC_rgt_lead.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
+	    RPC_rgt_lead_fine.at(GetSegRPC(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }else{
+	    RPC_rgt_trail.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - time_trig_rpc);
+	    RPC_rgt_trail_fine.at(GetSegRPC(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
+	  }
 	}
       }
     }// end loop over TRB3 signals
@@ -466,7 +634,7 @@ namespace emph {
       tdc_lead.clear();
       tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
-	if(TDC_top_lead.at(i_seg).at(i_tdc) == 1){
+	if(TDC_top_flg.at(i_seg).at(i_tdc) == 1){
 	  tdc_lead.push_back(TDC_top_t.at(i_seg).at(i_tdc));
 	}else{
 	  tdc_trail.push_back(TDC_top_t.at(i_seg).at(i_tdc));
@@ -507,7 +675,7 @@ namespace emph {
       tdc_lead.clear();
       tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
-	if(TDC_bot_lead.at(i_seg).at(i_tdc) == 1){
+	if(TDC_bot_flg.at(i_seg).at(i_tdc) == 1){
 	  tdc_lead.push_back(TDC_bot_t.at(i_seg).at(i_tdc));
 	}else{
 	  tdc_trail.push_back(TDC_bot_t.at(i_seg).at(i_tdc));
@@ -550,17 +718,17 @@ namespace emph {
   void T0Ana::GetRPCTot(void)
   {
     for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
-      RPC_lf_tot.at(i_seg).clear();
-      RPC_rt_tot.at(i_seg).clear();
+      RPC_lft_tot.at(i_seg).clear();
+      RPC_rgt_tot.at(i_seg).clear();
 
-      n_tdc = RPC_lf_t.at(i_seg).size();
+      n_tdc = RPC_lft_t.at(i_seg).size();
       tdc_lead.clear();
       tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
-	if(RPC_lf_lead.at(i_seg).at(i_tdc) == 1){
-	  tdc_lead.push_back(RPC_lf_t.at(i_seg).at(i_tdc));
+	if(RPC_lft_flg.at(i_seg).at(i_tdc) == 1){
+	  tdc_lead.push_back(RPC_lft_t.at(i_seg).at(i_tdc));
 	}else{
-	  tdc_trail.push_back(RPC_lf_t.at(i_seg).at(i_tdc));
+	  tdc_trail.push_back(RPC_lft_t.at(i_seg).at(i_tdc));
 	}
       }
 
@@ -576,7 +744,7 @@ namespace emph {
 	  }//for(n_tdc_trail)
 	  if(!tot_vec.empty()){
 	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
-	    RPC_lf_tot.at(i_seg).push_back(tot_temp);
+	    RPC_lft_tot.at(i_seg).push_back(tot_temp);
 	  }//if(tot empty)
 	}//for(n_tdc_lead)
       }else{
@@ -589,19 +757,19 @@ namespace emph {
 	  }//for(n_tdc_lead)
 	  if(!tot_vec.empty()){
 	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
-	    RPC_lf_tot.at(i_seg).push_back(tot_temp);
+	    RPC_lft_tot.at(i_seg).push_back(tot_temp);
 	  }//if(tot empty)
 	}//for(n_tdc_trail)
       }//if(n_tdc)
 
-      n_tdc = RPC_rt_t.at(i_seg).size();
+      n_tdc = RPC_rgt_t.at(i_seg).size();
       tdc_lead.clear();
       tdc_trail.clear();
       for(int i_tdc = 0; i_tdc < n_tdc; i_tdc++){
-	if(RPC_rt_lead.at(i_seg).at(i_tdc) == 1){
-	  tdc_lead.push_back(RPC_rt_t.at(i_seg).at(i_tdc));
+	if(RPC_rgt_flg.at(i_seg).at(i_tdc) == 1){
+	  tdc_lead.push_back(RPC_rgt_t.at(i_seg).at(i_tdc));
 	}else{
-	  tdc_trail.push_back(RPC_rt_t.at(i_seg).at(i_tdc));
+	  tdc_trail.push_back(RPC_rgt_t.at(i_seg).at(i_tdc));
 	}
       }
 
@@ -617,7 +785,7 @@ namespace emph {
 	  }//for(n_tdc_trail)
 	  if(!tot_vec.empty()){
 	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
-	    RPC_rt_tot.at(i_seg).push_back(tot_temp);
+	    RPC_rgt_tot.at(i_seg).push_back(tot_temp);
 	  }//if(tot empty)
 	}//for(n_tdc_lead)
       }else{
@@ -630,8 +798,8 @@ namespace emph {
 	  }//for(n_tdc_lead)
 	  if(!tot_vec.empty()){
 	    tot_temp = *std::min_element(tot_vec.begin(), tot_vec.end());
-	    RPC_rt_tot.at(i_seg).push_back(tot_temp);
-	  }//if(tot empty)
+	    RPC_rgt_tot.at(i_seg).push_back(tot_temp);
+	  }//if(tot <empty)
 	}//for(n_tdc_trail)
       }//if(n_tdc)
     }//for(n_seg)
@@ -642,18 +810,12 @@ namespace emph {
   void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
   {
     for(int i = 0; i < n_seg_t0; i++){
-      T0_Seg[i]   = i;
-
       ADC_top_q[i]   = -999999.0;
       ADC_bot_q[i]   = -999999.0;
       ADC_top_max[i] = -9999.0;
       ADC_bot_max[i] = -9999.0;
       ADC_top_blw[i] = -1.0;
       ADC_bot_blw[i] = -1.0;
-    }
-
-    for(int i = 0; i < n_seg_rpc; i++){
-      Rpc_Seg[i]  = i;
     }
 
     // get ADC info for T0
@@ -697,6 +859,7 @@ namespace emph {
     }
 
     tree->Fill();
+    tree_fine->Fill();
 
   }
 
