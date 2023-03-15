@@ -845,7 +845,7 @@ EOF
 					for($l = 0; $l < $n_anode1d; ++$l){
 						print MOD <<EOF;
 	 <volume name="mPMT_vol@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box@{[ $i ]}_@{[ $j ]}_anode@{[ $k ]}_@{[$l]}"/>
 	</volume>
 EOF

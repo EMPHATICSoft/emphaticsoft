@@ -380,6 +380,12 @@
      <composite n="1" ref="Silicon"/>
    </material>
    
+   <material formula="SiO2" name="SiliconDioxide">
+     <D value="4.0"/>
+     <composite n="0.467" ref="Silicon"/>
+     <composite n="0.533" ref="Oxygen"/>
+   </material>
+ 
 	<material formula="ch2" name="CH2">
      <D value="1.65"/>
      <fraction n="0.86" ref="Carbon"/>
