@@ -24,6 +24,8 @@ namespace sim {
     double     GetPy() const {return fP[1]; }
     double     GetPz() const {return fP[2]; }
 
+    double     GetDE() const {return fDE; }
+
     int        GetPId() const {return fPId; } // pdg value
 
     int        GetPlane() const {return fPlane; }
@@ -33,6 +35,8 @@ namespace sim {
 
     void       SetX(double x[3]) {fX.clear(); for (int i=0; i<3; ++i) fX.push_back(x[i]);}
     void       SetP(double p[3]) {fP.clear(); for (int i=0; i<3; ++i) fP.push_back(p[i]);}
+    void       SetDE(double de) {fDE = de; }
+
     void       SetPId(int id) { fPId = id; }
     void       SetPlane(int plane) { fPlane = plane; }
     void       SetSensor(int sensor) { fSensor = sensor; }
@@ -42,6 +46,7 @@ namespace sim {
   private:
     std::vector<double> fX;
     std::vector<double> fP;
+    double fDE; // amount of energy deposited
     int    fPId;
 
     int    fPlane;

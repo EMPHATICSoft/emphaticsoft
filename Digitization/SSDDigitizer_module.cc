@@ -59,6 +59,8 @@ namespace emph {
     //    void endJob();
     
   private:
+    std::string fG4Label;
+
     //    TTree* fSSDTree;
     /*
     int fRun;
@@ -100,8 +102,10 @@ namespace emph {
 
   //......................................................................
 
-  void SSDDigitizer::reconfigure(const fhicl::ParameterSet& )//pset)
+  void SSDDigitizer::reconfigure(const fhicl::ParameterSet& pset)
   {
+    fG4Label = pset.get<std::string>("G4Label");
+
     //    fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
   }
 
@@ -137,10 +141,9 @@ namespace emph {
   void SSDDigitizer::produce(art::Event& evt)
   { 
 
-    std::string labelStr = "geantgen"; // NOTE, this is probably the wrong label.
-    art::Handle< std::vector<std::vector<sim::SSDHit> > > ssdHitH;
+    art::Handle< std::vector<sim::SSDHit> > ssdHitH;
     try {
-      evt.getByLabel(labelStr,ssdHitH);
+      evt.getByLabel(fG4Label,ssdHitH);
     }
     catch(...) {
       std::cout << "WARNING: No SSDHits found!" << std::endl;
@@ -155,21 +158,19 @@ namespace emph {
 	
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
 
-	const std::vector<sim::SSDHit> ssdv = (*ssdHitH)[idx];
+	const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
 	rawdata::SSDRawDigit* dig;
 
-	for (size_t idx2=0; idx2 < ssdv.size(); ++idx2) {
-	  dig = dgmap->SSDSimHitToRawDigit(ssdv[idx2]);
-	  if (dig) {
-	    ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
-	    delete dig;
-	  }
+	dig = dgmap->SSDSimHitToRawDigit(ssdhit);
+	if (dig) {
+	  ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
+	  delete dig;
 	}
-
+	
       } // end loop over SSD hits for the event
       		
     }
-
+    
     evt.put(std::move(ssdRawD));
 
   } // SSDDigitizer::analyze()

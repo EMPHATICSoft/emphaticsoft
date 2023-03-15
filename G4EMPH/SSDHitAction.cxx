@@ -103,6 +103,12 @@ namespace emph
     /// Get the pointer to the track
     G4Track *track = step->GetTrack();
   
+    //check that we are in the correct material to record a hit - ie scintillator
+    std::string material = track->GetMaterial()->GetName();
+    if(material.compare("SiliconWafer") != 0 ) {
+      return;
+    }
+    
     const CLHEP::Hep3Vector &pos0 = step->GetPreStepPoint()->GetPosition(); // Start of the step
     const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
     const CLHEP::Hep3Vector &mom  = track->GetMomentum();
@@ -129,14 +135,6 @@ namespace emph
       track->SetTrackStatus(fStopAndKill);
     */
     
-    //check that we are in the correct material to record a hit - ie scintillator
-    std::string material = track->GetMaterial()->GetName();
-    if(material.compare("SiliconWafer") != 0 ) {
-      return;
-    }
-    
-    //    const double edep = step->GetTotalEnergyDeposit()/CLHEP::GeV;
-    
     // Get the position and time the particle first enters
     // the volume, as well as the pdg code.  that information is
     // obtained from the G4Track object that corresponds to this step
@@ -145,10 +143,12 @@ namespace emph
     
     ssdHit.SetPId( track->GetDefinition()->GetPDGEncoding() );
     ssdHit.SetTrackID( track->GetTrackID() );
+    const double edep = step->GetTotalEnergyDeposit()/CLHEP::GeV;
+    ssdHit.SetDE(edep);
     
     // need to add code to figure out SSD plane, sensor and strip
 
-    /// Add position
+    /// Add position, momentum
     ssdHit.SetX(tpos0);
     ssdHit.SetP(mom0);
 

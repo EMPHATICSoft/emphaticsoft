@@ -28,8 +28,10 @@ namespace emph {
       DetGeoMap(); // Default constructor
       virtual ~DetGeoMap() {}; //Destructor
 
-      void SetRun(int run) { fRun = run; }
-      
+      void SetRun(int run) { fRun = run;} 
+      void SetUseGeometry(bool ug) { fUseGeometry = ug; }
+      void Reset();
+
       //      bool LoadMap(std::string fname="");
       //      void SetAbortIfFileNotFound(bool f) { fAbortIfFileNotFound = f;}
       //      void SetMapFileName(std::string fname) { if (fname != fMapFileName) {
@@ -39,8 +41,11 @@ namespace emph {
       rawdata::SSDRawDigit* SSDSimHitToRawDigit(const sim::SSDHit& ssdhit);
       
     private:
-
+      bool fUseGeometry;
       int fRun;
+      std::vector<double> fSSDStationMinZ;
+      std::vector<double> fSSDStationMaxZ;
+
       //      bool fIsLoaded;
       //      bool fAbortIfFileNotFound;
       //      std::string fMapFileName;

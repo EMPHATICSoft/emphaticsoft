@@ -22,12 +22,11 @@ namespace emph
     DetGeoMapService::DetGeoMapService(const fhicl::ParameterSet& pset,
 					 art::ActivityRegistry & reg)
     {
-      reconfigure(pset);
-      
       //      art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       fDetGeoMap = new DetGeoMap();
-
+      reconfigure(pset);
+      
       reg.sPreBeginRun.watch(this, &DetGeoMapService::preBeginRun);
 
     }
@@ -39,9 +38,9 @@ namespace emph
     }
     
     //-----------------------------------------------------------
-    void DetGeoMapService::reconfigure(const fhicl::ParameterSet& )// pset)
+    void DetGeoMapService::reconfigure(const fhicl::ParameterSet& pset)
     {
-      //      fAbortIfFileNotFound = pset.get<bool>("AbortIfFileNotFound");
+      fDetGeoMap->SetUseGeometry(pset.get<bool>("UseGeometry"));
     }
     
     //----------------------------------------------------------
@@ -51,6 +50,7 @@ namespace emph
       //      art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       fDetGeoMap->SetRun(run.run());
+      fDetGeoMap->Reset();
     }
     
   }

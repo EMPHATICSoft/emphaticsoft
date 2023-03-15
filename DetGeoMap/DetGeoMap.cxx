@@ -12,16 +12,20 @@
 #include <cassert>
 #include <string>
 
+#include "TGeoManager.h"
+#include "TGeoNode.h"
+#include "TGeoVolume.h"
+
 namespace emph {
   namespace dgmap {
   
     //----------------------------------------------------------------------
     
     DetGeoMap::DetGeoMap()
-      //      fIsLoaded(false), fMapFileName("")
     {
-      //      fEChanMap.clear();
-      //      fDChanMap.clear();
+      fSSDStationMinZ.clear();     
+      fSSDStationMaxZ.clear();     
+      art::ServiceHandle<emph::geo::GeometryService> geo;
     }
   
     //----------------------------------------------------------------------
@@ -86,9 +90,33 @@ namespace emph {
     }
 
     //----------------------------------------------------------------------
+    void DetGeoMap::Reset()
+    {
+      fSSDStationMinZ.clear();
+      fSSDStationMaxZ.clear();
+
+      art::ServiceHandle<emph::geo::GeometryService> geo;
+      auto geom = geo->Geo();
+      std::cout << geom << std::endl;
+
+      double z;
+      double dz;
+      for (int i=0; i<geom->NSSDStations(); ++i) {
+	z = geom->GetSSDStation(i).Pos()[2];
+	dz = geom->GetSSDStation(i).Dz();
+	std::cout << "ssd station " << i << " z = " << z << " +/- " << dz 
+		  << std::endl;
+	fSSDStationMinZ.push_back(z-dz);
+	fSSDStationMaxZ.push_back(z+dz);
+      }
+      
+    }
+
+    //----------------------------------------------------------------------
 
     rawdata::SSDRawDigit* DetGeoMap::SSDSimHitToRawDigit(const sim::SSDHit& ssdhit)
     {
+      rawdata::SSDRawDigit* dig = 0;
       int32_t station=0;
       int32_t module=0; 
       int32_t chip=0; 
@@ -98,19 +126,40 @@ namespace emph {
       int32_t adc=0; 
       int32_t trig=0; 
 
+      art::ServiceHandle<emph::geo::GeometryService> geo;
+      auto geom = geo->Geo()->ROOTGeoManager();
+      
+      double hitX = ssdhit.GetX();
+      double hitY = ssdhit.GetY();
+      double hitZ = ssdhit.GetZ();
+      TGeoNode* node = geom->FindNode(hitX,hitY,hitZ);
+      TGeoVolume* vol = node->GetVolume();
+
+      //      vol->Print();
+      std::string volName = vol->GetName(); 
+      std::string nodeName = node->GetName();
+      std::cout << "(" << hitX << "," << hitY << "," << hitZ << ")" 
+		<< std::endl;
+      std::cout << volName << ", " << nodeName << std::endl;
+      
       // work some magic and set the values above
-      station = int32_t(ssdhit.GetZ());
+      size_t iStation=0;
+      for (; iStation<fSSDStationMinZ.size(); ++iStation) {
+    	if ((hitZ > fSSDStationMinZ[iStation]) &&
+	    (hitZ < fSSDStationMaxZ[iStation])) break;
+      }
+      if (iStation == fSSDStationMinZ.size()) {
+	// this should never happen.  It means the hit Z position is outside of a 
+	// SSD station volume.  Return a NULL pointer.
+	return dig;
+      }
+     
+      station = int32_t(iStation);
+      std::cout << "station = " << station << std::endl;
 
       // create raw digit to return
-
-      rawdata::SSDRawDigit* dig = new rawdata::SSDRawDigit(station,
-							   module,
-							   chip,
-							   set,
-							   strip,
-							   t,
-							   adc,
-							   trig);
+      dig = new rawdata::SSDRawDigit(station, module, chip, set,
+				     strip, t, adc, trig);
 
       return dig;
 
