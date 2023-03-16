@@ -73,6 +73,10 @@ namespace emph {
     bool            fManyParticles;       ///< if true, keep individual track ids from processes like compt and brem
     bool            fSparseTrajectories;  ///< if true, only save necessary points in particle trajectories
     std::string     fGenModuleLabel;      ///< label of module that made the particles to track
+    long int fMisalignModNum; ///< For now, set simply a single int parameter to drive the simulation of the misalignments.  
+    double fMisalignDoubleSSDGap; ///< Well, life is not that simple.  Gat to add this one.   
+    unsigned int fMisalignSeed; ///< We do not use the Geant4/CLHEP random generator to kick the detector element out of nominal alignment
+                       /// <  to be able to generate the set of particle, at least for the first (few?) events.  
 //
 // as far as I can see, these are not used.. 
 //
@@ -84,7 +88,7 @@ namespace emph {
     int             fOpticalActionIndex;            ///< index of theFast Stop Action in the UserActionManager
 
     std::vector<std::string> fUserActions;///< UserAction classes 
-
+    
   };
 }
 

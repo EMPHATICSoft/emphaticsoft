@@ -10,6 +10,7 @@
 #include "cetlib_except/exception.h"
 
 #include "G4Base/DetectorConstruction.h"
+#include "G4Base/EmphMisaligner.h"
 #include "G4Base/GlobalMagneticField.h"
 #include "MagneticField/service/MagneticFieldService.h"
 #include "Geometry/service/GeometryService.h"
@@ -39,19 +40,37 @@ namespace g4b{
   // Constructor
   DetectorConstruction::DetectorConstruction(std::string const& gdmlFile,
                                              bool        const& overlapCheck,
-                                             bool        const& validateSchema)
+                                             bool        const& validateSchema, 
+					     int misalignModelNum, unsigned int misAlignSeed, double misalignDoubleSSDGap)
   {
     if ( gdmlFile.empty() ) {
       throw cet::exception("DetectorConstruction") << "Supplied GDML filename is empty\n"
 						   << __FILE__ << ":" << __LINE__ << "\n";
     }
+    std::cerr << "DetectorConstruction::DetectorConstruction, begin with gdmlFile " 
+              <<  gdmlFile << " with misalignModelNum " << misalignModelNum << std::endl;
     // Get the path to the GDML file from the Geometry interface.
     const G4String GDMLfile = static_cast<const G4String>( gdmlFile );
 
     // Use Geant4's GDML parser to convert the geometry to Geant4 format.
     G4GDMLParser parser;
     parser.SetOverlapCheck(overlapCheck);
-    parser.Read(GDMLfile,validateSchema);
+    if (overlapCheck) std::cerr << " ... We will check for eventual volumes overlaps.. Good " << std::endl;
+    else std::cerr << " ... We will NOT check for eventual volumes overlaps.. Results will be suspicious " << std::endl;
+    std::string effGDMLFile(gdmlFile); // effective geometry file name.
+    if (misalignModelNum != 0) {
+      std::cerr << " We will modify the G4 Geometry to implement quasi-realistic misalignments, model number " 
+                << misalignModelNum << std::endl;
+		
+      g4b::EmphMisaligner myMis(gdmlFile, misAlignSeed);
+      myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
+      std::ostringstream misStrStr; misStrStr << "./MisAlignedEmphPhase1x_" 
+                                                << misalignModelNum << "_" << misAlignSeed << ".gdml";
+      std::string misStr(misStrStr.str());
+      myMis.writeIt(misStr.c_str());
+      effGDMLFile = misStr;
+    }
+    parser.Read(effGDMLFile,validateSchema);
 
     // Fetch the world physical volume from the parser.  This contains
     // the entire detector, not just the outline of the experimental

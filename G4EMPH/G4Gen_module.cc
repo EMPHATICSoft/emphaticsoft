@@ -83,7 +83,9 @@ namespace emph {
     // setup the random number service for Geant4, the "G4Engine" label is a 
     // special tag setting up a global engine for use by Geant4/CLHEP
     createEngine(seed, "G4Engine");
-
+    
+    //
+    std::cerr << " G4Gen::G4Gen Constructor.. after create engine " << std::endl;
     // Start counting the time
     fStopwatch.Start();
 
@@ -109,6 +111,8 @@ namespace emph {
   //___________________________________________________________________________
   void G4Gen::beginRun(art::Run& ) //run) 
   {
+    
+    std::cerr << " G4Gen::begin run ..before instantiate g4alg " << std::endl;
     fG4Alg = new G4Alg(fG4AlgPSet);
     
     return;

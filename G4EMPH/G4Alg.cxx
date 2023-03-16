@@ -54,6 +54,9 @@ namespace emph {
     , fManyParticles      (pset.get< bool            >("ManyParticles")  )
     , fSparseTrajectories (pset.get< bool            >("SparseTrajectories") )
     , fGenModuleLabel     (pset.get< std::string     >("GenModuleLabel")     )
+    , fMisalignModNum     (pset.get< long int     >("MisalignModel", 0     ))
+    , fMisalignDoubleSSDGap     (pset.get< double     >("MisalignDoubleSSDGap", 3.1     ))
+    , fMisalignSeed     (pset.get< unsigned int     >("MisalignSeed", 12345     ))
     , fPlaIndex(0)
     , fShaIndex(0)
     , fSLGhaIndex(0)
@@ -62,7 +65,8 @@ namespace emph {
     , fOpticalActionIndex(0) 
       
   {
-
+    std::cerr << " G4Alg::G4Alg, MisalignModel = " << fMisalignModNum 
+              << " SSDDoule Gap " << fMisalignDoubleSSDGap << "  Misaling Seed " << fMisalignSeed << std::endl;
     /// dummy vector in case user didn't set "AddedUserActions" in fcl file
     std::vector<std::string>  nullstrvec;  // empty vector of strings
     const std::vector<std::string>& psetstrvec = 
@@ -97,6 +101,10 @@ namespace emph {
                                 fG4PhysListName,
                                 geo->Geo()->GDMLFile());
 
+    fG4Help->SetMisalignModNum(fMisalignModNum);
+    fG4Help->SetMisalignSeed(fMisalignSeed);
+    fG4Help->SetMisalignDoubleSSDGap(fMisalignDoubleSSDGap);
+    
     // more control over GDML processing (before InitPhysics)
     const bool dfltOverlap = false;
     const bool dfltSchema  = true;

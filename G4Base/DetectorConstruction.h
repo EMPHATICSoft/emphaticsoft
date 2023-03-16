@@ -22,7 +22,9 @@ namespace g4b {
     /// Standard constructor and destructor.
     explicit DetectorConstruction(std::string const& gdmlFile,
                                   bool        const& overlapCheck   = false,
-                                  bool        const& validateSchema = true);
+                                  bool        const& validateSchema = true,
+				  int         misalignModel = 0, unsigned int misalignSeed = 1234, 
+				  double gapDoubleSSD = 3.0);
     virtual ~DetectorConstruction();
 
     /// The key method in this class; returns the Geant4 version of
