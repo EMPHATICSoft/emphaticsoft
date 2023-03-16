@@ -28,7 +28,6 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
 #include "Geant4/globals.hh"
-
 #include "Simulation/SSDHit.h"
 
 // Forward declarations.
@@ -71,7 +70,7 @@ namespace emph {
   private:
     std::vector<sim::SSDHit>  fSSDHits;                 ///< The information for SSD hits.
     G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
-    ///< be included in the list.                          
+        ///< be included in the list.                          
     bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
 
     art::ServiceHandle<emph::geo::GeometryService> fGeo;
@@ -80,9 +79,8 @@ namespace emph {
     // Convenient way to get information for within event debugging.. 
     //
     G4RunManager *fRunManager;
-    
     std::ofstream fFOutStudy1;
-
+   
   };
 
 } // namespace g4n

@@ -22,6 +22,7 @@
 #include "Geant4/G4Step.hh"
 #include "Geant4/G4DynamicParticle.hh"
 #include "Geant4/G4StepPoint.hh"
+#include "Geant4/G4TouchableHandle.hh"
 #include "Geant4/G4EnergyLossForExtrapolator.hh"
 #include "Geant4/globals.hh"
 
@@ -64,7 +65,7 @@ namespace emph
     std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHSSDTuple_V1_" << aTokenJob << ".txt";
     std::string fNameStr(fNameStrStr.str());
     fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " evt track pId x y z px py pz  " << std::endl;
+    fFOutStudy1 << " evt track pId x y z xl yl zl px py pz  " << std::endl;
   }
 
   //-------------------------------------------------------------
@@ -103,8 +104,8 @@ namespace emph
     /// Get the pointer to the track
     G4Track *track = step->GetTrack();
   
-    const CLHEP::Hep3Vector &pos0 = step->GetPreStepPoint()->GetPosition(); // Start of the step
-    const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
+    const G4ThreeVector &pos0 = step->GetPreStepPoint()->GetPosition(); // Start of the step
+    const G4ThreeVector &pos  = step->GetPostStepPoint()->GetPosition();                   // End of the step
     const CLHEP::Hep3Vector &mom  = track->GetMomentum();
 
     MF_LOG_DEBUG("SSDHitAction") << " momentum = "
@@ -136,7 +137,13 @@ namespace emph
     }
     
     //    const double edep = step->GetTotalEnergyDeposit()/CLHEP::GeV;
-    
+    //
+    // Convert to Local coordinates. 
+    //
+    G4TouchableHandle theTouchable = step->GetPreStepPoint()->GetTouchableHandle();
+    G4ThreeVector localPos0 = theTouchable->GetHistory()->GetTopTransform().TransformPoint(pos0);
+    G4ThreeVector localPos1 = theTouchable->GetHistory()->GetTopTransform().TransformPoint(pos);
+    //
     // Get the position and time the particle first enters
     // the volume, as well as the pdg code.  that information is
     // obtained from the G4Track object that corresponds to this step
@@ -156,6 +163,7 @@ namespace emph
     fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
     fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding();
     fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2];
+    fFOutStudy1 << " " << localPos0[0] << " " << localPos0[1] << " " << localPos0[2];
     fFOutStudy1 << " " << mom0[0] << " " << mom0[1] << " " << mom0[2] << std::endl;
     
     
