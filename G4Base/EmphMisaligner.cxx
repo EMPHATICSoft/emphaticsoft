@@ -68,7 +68,10 @@ namespace g4b{
     const long int iSigmaTr =  iSigma4;
    
     const double sigZ =  static_cast<double>(iSigmaZ); // now in mm. Possible range from 0 to 99 mm, or ~10 cm offset (unlikely)
-    const double sigTr = 0.1* static_cast<double>(iSigmaTr); // maximum is 9.9 mm, sigma. 
+    // Note: we still do need to implement the gap, even if the translations are very small. 
+    // The case where there is no gap and no translation is faulty, but unphysical 
+    //
+    const double sigTr = std::max(0.01, (0.1* static_cast<double>(iSigmaTr))); // maximum is 9.9 mm, sigma. 
     const double sigRolls =  0.1*static_cast<double>(iSigmaRolls); // now in degrees. 
     const double sigYP =  0.1*static_cast<double>(iSigmaYawPitch); // now in degrees. 
     std::cerr << " EmphMisaligner::doIt, sigZ " << sigZ << " sigTr " << sigTr 
@@ -161,7 +164,7 @@ namespace g4b{
 	const double thRollDelta = thRollDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigRolls; 
 	const double newRot = nomRot + thRollDelta;
 	std::ostringstream llStrStr; llStrStr << "            " 
-	        << "<rotation name=\"" << name << " z=\"" << newRot  << "\" unit=\"deg\"/> ";
+	        << "<rotation name=\"" << name << "\" z=\"" << newRot  << "\" unit=\"deg\"/> ";
 	std::string llStr(llStrStr.str());
 	*il = llStr;
       }
@@ -171,7 +174,7 @@ namespace g4b{
      // We will assume that the roll is identical for both sensor located at the same Z 
     for (std::vector<std::string>::iterator il0 = ilTrueBeg; il0 != fLines.end(); il0++) {
       const std::string orig0Str(*il0);
-      if (orig0Str.find("rotation name=\"ssddouble0") != std::string::npos) {
+      if (orig0Str.find("rotation name=\"ssddouble") != std::string::npos) {
 //	std::cerr << " ... loop 0 line " << orig0Str << std::endl;
         double nomRot0 = this->getValue(orig0Str, zKey);
 	std::string name0 = this->getName(orig0Str);
@@ -179,22 +182,21 @@ namespace g4b{
 	const double thRollDelta = thRollDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigRolls; 
 	const double newRot = nomRot0 + thRollDelta;
 	std::ostringstream ll0StrStr; ll0StrStr << "            " 
-	        << "<rotation name=\"" << name0 << " z=\"" << newRot  << "\" unit=\"deg\"/> ";
+	        << "<rotation name=\"" << name0 << "\" z=\"" << newRot  << "\" unit=\"deg\"/> ";
 	std::string ll0Str(ll0StrStr.str());
 	*il0 = ll0Str;
-        for (std::vector<std::string>::iterator il1 = ilTrueBeg; il1 != fLines.end(); il1++) {
-           const std::string orig1Str(*il1);
-           if (orig1Str.find("rotation name=\"ssddouble1") == std::string::npos) continue;
-//	   std::cerr << " ... .... loop 1 line " << orig1Str << std::endl;
-           double nomRot1 = this->getValue(orig1Str, zKey);
-	   if (std::abs(nomRot1 - nomRot0) > 0.01) continue; // Wrong view, we keep looking 
-	   std::string name1 = this->getName(orig1Str);
-	   std::ostringstream ll1StrStr; ll1StrStr << "            " 
-	        << "<rotation name=\"" << name1 << " z=\"" << newRot  << "\" unit=\"deg\"/> ";
-	   std::string ll1Str(ll1StrStr.str());
-	   *il1 = ll1Str;
-	   break;
-	} // on il1. 
+	std::vector<std::string>::iterator ilNext = il0; ilNext++;
+	// Assume here that the matching sensor is on the next line. !!! 
+        const std::string orig1Str(*ilNext);
+        if (orig0Str.find("rotation name=\"ssddouble") == std::string::npos) continue; // 
+        double nomRot1 = this->getValue(orig1Str, zKey);
+	const double newRot1 = nomRot1 + thRollDelta;
+	std::string name1 = this->getName(orig1Str);
+	std::ostringstream ll1StrStr; ll1StrStr << "            " 
+	        << "<rotation name=\"" << name1 << "\" z=\"" << newRot1  << "\" unit=\"deg\"/> ";
+	std::string ll1Str(ll1StrStr.str());
+	*ilNext = ll1Str;
+	il0++; // need to skip to the next one. 
 	// 
       } // got name match on double0 
     }// on il0.   
@@ -254,7 +256,7 @@ namespace g4b{
     }
   }
   void EmphMisaligner::doSSDTransOffsetOnPlanes(double sigmaTrShifts, double dGap) {
-    if (std::abs(sigmaTrShifts) <  1.0e-4) return;
+//    if (std::abs(sigmaTrShifts) <  1.0e-4) return;  // No we always do it, there is the gap. 
     if (std::abs(dGap) > 30.) return; // unrealistic 
     std::cerr << " EmphMisaligner::doSSDTransOffsetOnPlanes, sigmaTrShifts " << sigmaTrShifts << " dGap " << dGap << std::endl;
     std::vector<std::string> keyPos; // to store the neame we will be replace in the definition of physical voume for complete station. 
@@ -511,7 +513,7 @@ namespace g4b{
        const double vShift1 = oneOSqrt2*(dGap + ssddouble20VShift1);
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[9] << "Mis1_pos\" x =\"0.3536*ssdD0_height" 
-	    << vShift1 << "\" y=\"-0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\" />";
+	    << vShift1 << "\" y=\"0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\" />";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -548,26 +550,34 @@ namespace g4b{
     //
     std::cerr << " Now doing the replacement in physical volume declaration " << std::endl;
     std::vector<std::string>::iterator ilB = fLines.begin(); 
+    std::vector<std::string>::iterator ilB2 = fLines.begin(); 
     for (std::vector<std::string>::iterator il = ilB; il != fLines.end(); il++) {
       std::string origStr(*il);
       if (origStr.find("<volume name=\"ssdStationsingle0_vol\">") != std::string::npos) { ilB=il; break; } 
     }
     std::vector<std::string> keyMisses; keyMisses.push_back("Mis0_pos"); keyMisses.push_back("Mis1_pos");
     for (size_t k=0; k != keyPos.size(); k++) {
-       for (std::vector<std::string>::iterator il = ilB; il != fLines.end(); il++) {
+       size_t nl=0;
+       for (std::vector<std::string>::iterator il = ilB; il != fLines.end(); il++, nl++) {
          std::string origStr(*il);
 	 size_t iPos0 = origStr.find(keyPos[k]);
 	 if (iPos0 != std::string::npos) {
 	   std::string newStr(origStr);
 	   newStr.replace(iPos0, keyPos[k].length()+4, (keyPos[k]+keyMisses[0]));
 	   *il= newStr;
+//	   std::cerr << " Replaced " << keyPos[k] << " by " << keyPos[k]+keyMisses[0] << " at line number " << nl << std::endl;
+	   ilB2 = il; ilB2++;
+	   break;
 	 }
-	 continue;
+       } 
+       for (std::vector<std::string>::iterator il = ilB2; il != fLines.end(); il++, nl++) {
+         std::string origStr(*il);
 	 size_t iPos1 = origStr.find(keyPos[k]);
 	 if (iPos1 != std::string::npos) {
 	   std::string newStr(origStr);
 	   newStr.replace(iPos1, keyPos[k].length()+4, (keyPos[k]+keyMisses[1]));
 	   *il= newStr;
+//	   std::cerr << " Replaced " << keyPos[k] << " by " << keyPos[k]+keyMisses[1] << " at line number " << nl << std::endl;
 	   break;
 	 }
        }
