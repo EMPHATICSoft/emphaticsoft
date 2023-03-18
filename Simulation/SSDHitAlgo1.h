@@ -21,9 +21,11 @@ namespace sim {
     double     GetY() const {return fX[1]; }
     double     GetZ() const {return fX[2]; }
 
-    double     GetYLocal0() const {return fYLocal0; } // entrance "measuring coordinate", Y by defintion if the View angle set to 0.  
-    double     GetYLocal1() const {return fYLocal1; } // exit in the measuring coordinate  
-    std::string GetG4VolName() const {return fG4VolName; }  
+    double     GetTLocal0() const {return fTLocal0; } // entrance "transverse measuring coordinate", Y by arbitrary setting in G4EMPH,
+                                                      //  to be explicit , when the View angle, or rotation angle of the waver, is set to 0.  
+    double     GetTLocal1() const {return fTLocal1; } // exit in the same measuring coordinate system  
+    double     GetEDep()  const { return fEDep; } // Used to determine the ADC amplitude for the corresponding set of rawdata strips. 
+//    std::string GetG4SensorVolName() const {return fG4SensorVolName; }  
     
     
     double     GetPx() const {return fP[0]; } // additional ino. 
@@ -32,6 +34,7 @@ namespace sim {
 
     int        GetPId() const {return fPId; } // pdg value
 
+    int        GetStation() const {return fStation; }
     int        GetPlane() const {return fPlane; }
     int        GetSensor() const {return fSensor; }
     int        GetStrip() const {return fStrip; }
@@ -41,12 +44,14 @@ namespace sim {
     
     // Added, the only crucial info to convert the hit to a set of raw SSDstrip (more than one, rather frequently. ) 
      
-    void       SetYLocal0(double y) {fYLocal0=y;}
-    void       SetYLocal1(double y) {fYLocal1=y;}
-    void       SetG4VolName(const std::string &v) {fG4VolName = v;}
+    void       SetTLocal0(double y) {fTLocal0=y;}
+    void       SetTLocal1(double y) {fTLocal1=y;}
+//    void       SetG4SensorVolName(const std::string &v) {fG4SensorVolName = v;}
+    void       SetEDep(const double &e) {fEDep = e;}
     //
     void       SetP(double p[3]) {fP.clear(); for (int i=0; i<3; ++i) fP.push_back(p[i]);}
     void       SetPId(int id) { fPId = id; }
+    void       SetStation(int s) { fStation = s; } //valid range are 0 to 5 
     void       SetPlane(int plane) { fPlane = plane; }
     void       SetSensor(int sensor) { fSensor = sensor; }
     void       SetStrip(int strip) { fStrip = strip; }
@@ -55,15 +60,17 @@ namespace sim {
   private:
     std::vector<double> fX;
     // Added/// 
-    double fYLocal0;
-    double fYLocal1;
-    std::string fG4VolName;
+    double fTLocal0; // entrance Y coordinate 
+    double fTLocal1;
+    double fEDep; // energy deposition 
+//    std::string fG4SensorVolName; // No longer needed, we have now the station number (0 through 5) and the plane number (also 0 through 5, 0 to 1, or 0 to 2)
     std::vector<double> fP;
     int    fPId;
 
-    int    fPlane;
-    int    fSensor; 
-    int    fStrip;
+    short int    fStation;
+    short int    fPlane;
+    short int    fSensor; 
+    short int    fStrip;
 
     int    fTrackID;
   };

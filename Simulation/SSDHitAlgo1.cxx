@@ -10,7 +10,7 @@
 namespace sim {
 
   SSDHitAlgo1::SSDHitAlgo1() :
-    fX(0), fYLocal0(0.), fYLocal1(0), fG4VolName("?"), fP(0), fPId(0), fPlane(-1), fSensor(-1), fStrip(-1), fTrackID(-1)
+    fX(0), fTLocal0(0.), fTLocal1(0), fEDep(0.), fP(0), fPId(0), fStation(255), fPlane(255), fSensor(255), fStrip(1023), fTrackID(-1)
   {
 
   }
