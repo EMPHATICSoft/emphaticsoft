@@ -205,11 +205,16 @@ namespace g4b{
     if (std::abs(sigYP)  < 1.0e-4) return;
     std::cerr << " EmphMisaligner::doSSDYawPitchOnStations Rotate the stations, Yaw and Pitch, isgYP  " 
               << sigYP << " degrees " <<  std::endl;
+    if (sigYP > 5.) {
+      std::cerr << " EmphMisaligner::doSSDYawPitchOnStations sigYP greater than 5, unrelasitic, fatal " << std::endl;
+      exit(2);
+    }
     // Here we add the rotation matrices for the 6 stations. 
     // Search for the 1rst instance of "ABOVE IS FOR SSD"
     std::string blankStr(""); blankStr.clear();
     int nl = 0;
     bool didIt = false;
+    std::vector<std::string> myNamesRot;
     for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++, nl++) {
         std::string origStr(*il);
 	if (origStr.find("ABOVE IS FOR SSD") != std::string::npos) {
@@ -220,14 +225,17 @@ namespace g4b{
 	  std::string aComment("          <!-- Not Quite, Adding Yaw and Pitch for station  -->");
 	  ilAdd = fLines.insert(ilAdd, aComment); ilAdd++;
 	  ilAdd = fLines.insert(ilAdd, blankStr); ilAdd++;
-          for (size_t kSt=0; kSt != 5; kSt++) {
+          for (size_t kSt=0; kSt != 6; kSt++) {
+	    // need to cheat a little bit, Station is leaning on the magnet.. Or the RICH.. Reduce width.. 
+	    const double sigYPR = (kSt > 3  ) ? 0.5*sigYP : sigYP;
 	    const double thPitchDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
-	    const double thPitchDelta = thPitchDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigYP; 
+	    const double thPitchDelta = thPitchDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigYPR; 
 	    const double thYawDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
-	    const double thYawchDelta = thYawDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigYP; 
+	    const double thYawchDelta = thYawDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigYPR;
+	    std::ostringstream lnStrStr; lnStrStr << "\"SSDStation_" << kSt << "_physMisRot\"";
+	    std::string lnStr(lnStrStr.str()); myNamesRot.push_back(lnStr);
 	    std::ostringstream llStrStr; llStrStr << "            " 
-	        << "<rotation name=\"SSDStation_" << kSt << "_physMisRot\" x=\"" << thPitchDelta 
-		<< "\" y=\"" <<  thYawchDelta << "\" unit=\"deg\"/> ";
+	        << "<rotation name=" << lnStr << " x=\"" << thPitchDelta << "\" y=\"" <<  thYawchDelta << "\" unit=\"deg\"/> ";
 	    std::string llStr(llStrStr.str());
 	    ilAdd = fLines.insert(ilAdd, llStr); ilAdd++;
 	    	
@@ -238,22 +246,245 @@ namespace g4b{
 	}
         if (didIt) break; // should not be needed !
     }
-    // Now use these new quatities.
-    for (int kSt=0; kSt != 5; kSt++) {  
-      for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++, nl++) {
-        std::string origStr(*il);
-	std::ostringstream keyStrStr; keyStrStr << "positionref ref=\"ssdStation" << kSt << "_pos";
-	std::string keyStr(keyStrStr.str());
-	if (origStr.find(keyStr) != std::string::npos) {
-	  std::vector<std::string>::iterator ilAdd = il; ilAdd++;
-	  std::ostringstream keyIStrStr; keyIStrStr 
-	    << "                         <rotationref ref=\"SSDStation_" << kSt << "_physMisRot\"/>";
-	  std::string keyIStr(keyIStrStr.str());
-	  ilAdd = fLines.insert(ilAdd, keyIStr); ilAdd++; 
-          break;
-        }
-      }
+    std::cerr << " .... Declare the Yaw/Pitch rotation matrices... all " << myNamesRot.size() << " of them.. " << std::endl;
+    std::cerr << " ................ last " << myNamesRot[5] << std::endl;
+    //
+    // Now create a new mother volume such that we can place the rotated set of planes in a new local reference frame. 
+    // start with Boxes 
+    //
+    std::vector<std::string>::iterator ilI1 =  fLines.begin(); 
+    nl=0; 
+    for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++, nl++) {
+      std::string aLine(*il);
+      if (aLine.find("<box name=\"ssddouble_bkpln_box") != std::string::npos) { 
+        ilI1  = il; ilI1++; ilI1++; nl+= 3; break;
+      } 
     }
+    //
+    // We create three big boxes, emcompassing mother volumes of existing stations..  
+    //  Volume is air, air to air, we do not add any materials.
+    //  scale factor tune to the maximum yaw or Pitch angle of 5 degrees. Roughly! 
+    //
+    const double extraLengthSingle = 1.2 *( 1. + 150.0*(M_PI*sigYP/180.)); // 1.2 safety factor ??? 
+    const double extraLengthRotate = 1.7 *( 1. + 200.0*(M_PI*sigYP/180.)); // 1.7 empirically determined for sigYP = 3.8 degrees. 
+    const double extraLengthDouble = 1.2 * (1. + 300.0*(M_PI*0.5*sigYP/180.)); 
+   
+    std::ostringstream addBox1StrStr; addBox1StrStr << 
+	"	  <box name=\"ssdStationsingleSup_box\" x=\"1.2*ssdStationsingleWidth\"" <<
+	                 " y=\"1.2*ssdStationsingleHeight\" " << 
+			 " z=\"" << extraLengthSingle << "+ssdStationsingleLength\" />"; 
+    std::string addBox1Str(addBox1StrStr.str());
+    ilI1 = fLines.insert(ilI1, addBox1Str); ilI1++; nl++;
+    
+    std::ostringstream addBox2StrStr; addBox2StrStr << 
+	"	  <box name=\"ssdStationrotateSup_box\" x=\"1.2*ssdStationrotateWidth\"" <<
+	                 " y=\"1.2*ssdStationrotateHeight\" " << 
+		" z=\"" << extraLengthRotate << "+ssdStationrotateLength\" />"; 
+    std::string addBox2Str(addBox2StrStr.str());
+    ilI1 = fLines.insert(ilI1, addBox2Str); ilI1++; nl++;
+    
+     std::ostringstream addBox3StrStr; addBox3StrStr << 
+	"	  <box name=\"ssdStationdoubleSup_box\" x=\"1.2*ssdStationdoubleWidth\"" <<
+	          " y=\"1.2*ssdStationdoubleHeight\" " << 
+		  " z=\"" << extraLengthDouble << "+ssdStationdoubleLength\" />"; 
+    std::string addBox3Str(addBox3StrStr.str());
+    ilI1 = fLines.insert(ilI1, addBox3Str); ilI1++; nl++;
+    std::string blLine("          ");
+    ilI1 = fLines.insert(ilI1, blLine); ilI1++;
+//
+// Now, after creating the stations, we insert these station in those bounding boxes. With the adhoc rotations
+//      
+    std::vector<std::string>::iterator ilI2 =  ilI1;
+    nl=0;  
+    for (std::vector<std::string>::iterator il = ilI1; il != fLines.end(); il++, nl++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStationdouble1_vol") != std::string::npos) {
+        ilI2  = il; ilI2++; nl++;
+       for (std::vector<std::string>::iterator il2 = ilI2; il2 != fLines.end(); il2++, nl++) {
+          std::string aLine2(*il2);
+          if (aLine2.find("</volume>") != std::string::npos) { 
+             ilI2  = il2; ilI2++; ilI2++;
+	     break;
+	  }
+	}
+	break;
+      } 
+    }
+    std::string aNewLine000("	  <volume name=\"ssdStationsingle0Sup_vol\">"); 
+    std::string aNewLine001("	  <volume name=\"ssdStationsingle1Sup_vol\">"); 
+    std::string aNewLine010("	  <volume name=\"ssdStationrotate0Sup_vol\">"); 
+    std::string aNewLine011("	  <volume name=\"ssdStationrotate1Sup_vol\">"); 
+    std::string aNewLine020("	  <volume name=\"ssdStationdouble0Sup_vol\">"); 
+    std::string aNewLine021("	  <volume name=\"ssdStationdouble1Sup_vol\">"); 
+
+    std::string aNewLineMat("	         <materialref ref=\"Air\"/>"); 
+
+    std::string aNewLinebs("	         <solidref ref=\"ssdStationsingleSup_box\"/>"); 
+    std::string aNewLinebr("	         <solidref ref=\"ssdStationrotateSup_box\"/>"); 
+    std::string aNewLinebd("	         <solidref ref=\"ssdStationdoubleSup_box\"/>"); 
+    
+    std::string aNewLine100("	         <physvol name=\"ssdStationsingle0_phys\">"); 
+    std::string aNewLine101("	         <physvol name=\"ssdStationsingle1_phys\">"); 
+    std::string aNewLine110("	         <physvol name=\"ssdStationrotate0_phys\">"); 
+    std::string aNewLine111("	         <physvol name=\"ssdStationrotate1_phys\">"); 
+    std::string aNewLine120("	         <physvol name=\"ssdStationdouble0_phys\">"); 
+    std::string aNewLine121("	         <physvol name=\"ssdStationdouble1_phys\">"); 
+    
+     
+    std::string aNewLine200("	             <volumeref ref=\"ssdStationsingle0_vol\"/>"); 
+    std::string aNewLine201("	             <volumeref ref=\"ssdStationsingle1_vol\"/>"); 
+    std::string aNewLine210("	             <volumeref ref=\"ssdStationrotate0_vol\"/>"); 
+    std::string aNewLine211("	             <volumeref ref=\"ssdStationrotate1_vol\"/>"); 
+    std::string aNewLine220("	             <volumeref ref=\"ssdStationdouble0_vol\"/>"); 
+    std::string aNewLine221("	             <volumeref ref=\"ssdStationdouble1_vol\"/>"); 
+
+    std::string aNewLine2xx("	             <rotationref ref=");
+    std::string aNewLine300(aNewLine2xx + myNamesRot[0] + std::string(" />")); 
+    std::string aNewLine301(aNewLine2xx + myNamesRot[1] + std::string(" />")); 
+    std::string aNewLine310(aNewLine2xx + myNamesRot[2] + std::string(" />")); 
+    std::string aNewLine311(aNewLine2xx + myNamesRot[3] + std::string(" />")); 
+    std::string aNewLine320(aNewLine2xx + myNamesRot[4] + std::string(" />")); 
+    std::string aNewLine321(aNewLine2xx + myNamesRot[5] + std::string(" />"));
+     
+    std::string aNewLineCenter("	             <positionref ref=\"center\"/>"); 
+    std::string aNewLineEP("	        </physvol>"); 
+    std::string aNewLineEV("	  </volume>"); 
+   
+    ilI2 = fLines.insert(ilI2, aNewLine000); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineMat); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLinebs); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine100); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine200); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineCenter); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine300); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEP); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEV); ilI2++;
+    ilI2 = fLines.insert(ilI2, blLine); ilI2++;
+    
+    ilI2 = fLines.insert(ilI2, aNewLine001); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineMat); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLinebs); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine101); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine201); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineCenter); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine301); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEP); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEV); ilI2++;
+    ilI2 = fLines.insert(ilI2, blLine); ilI2++;
+    
+    ilI2 = fLines.insert(ilI2, aNewLine010); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineMat); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLinebr); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine110); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine210); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineCenter); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine310); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEP); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEV); ilI2++;
+    ilI2 = fLines.insert(ilI2, blLine); ilI2++;
+    
+    ilI2 = fLines.insert(ilI2, aNewLine011); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineMat); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLinebr); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine111); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine211); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineCenter); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine311); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEP); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEV); ilI2++;
+    ilI2 = fLines.insert(ilI2, blLine); ilI2++;
+    
+    ilI2 = fLines.insert(ilI2, aNewLine020); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineMat); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLinebd); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine120); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine220); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineCenter); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine320); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEP); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEV); ilI2++;
+    ilI2 = fLines.insert(ilI2, blLine); ilI2++;
+    
+    ilI2 = fLines.insert(ilI2, aNewLine021); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineMat); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLinebd); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine121); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine221); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineCenter); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLine321); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEP); ilI2++;
+    ilI2 = fLines.insert(ilI2, aNewLineEV); ilI2++;
+    ilI2 = fLines.insert(ilI2, blLine); ilI2++;
+   
+    // Now we replace in the spectrometer volume the untilted stations with the one which contains the 
+    // tilted volumes.  
+    std::vector<std::string>::iterator ilI3 = ilI2;
+    for (std::vector<std::string>::iterator il = ilI3; il != fLines.end(); il++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStation0_phys") != std::string::npos) { ilI3 = il; ilI3++; break; }
+    }
+    std::string aLineI3(*ilI3);
+    std::string keyRepI3_0("ssdStationsingle0_vol");
+    size_t iPosI3 = aLineI3.find(keyRepI3_0);
+    if (iPosI3 == std::string::npos) {
+      std::cerr << " EmphMisaligner::doSSDYawPitchOnStations, logic problem at line " << aLineI3 << " fatal " << std::endl; 
+      exit(2);
+    }
+    aLineI3.replace(iPosI3, keyRepI3_0.length(), "ssdStationsingle0Sup_vol");
+    *ilI3 = aLineI3; ilI3++;
+    
+    for (std::vector<std::string>::iterator il = ilI3; il != fLines.end(); il++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStation1_phys") != std::string::npos) { ilI3 = il; ilI3++; break; }
+    }
+    aLineI3 = (*ilI3);
+    std::string keyRepI3_1("ssdStationsingle1_vol");
+    iPosI3 = aLineI3.find(keyRepI3_1);
+    aLineI3.replace(iPosI3, keyRepI3_1.length(), "ssdStationsingle1Sup_vol");
+    *ilI3 = aLineI3; ilI3++;
+    
+    for (std::vector<std::string>::iterator il = ilI3; il != fLines.end(); il++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStation2_phys") != std::string::npos) { ilI3 = il; ilI3++; break; }
+    }
+    aLineI3 = (*ilI3);
+    std::string keyRepI3_2("ssdStationrotate0_vol");
+    iPosI3 = aLineI3.find(keyRepI3_2);
+    aLineI3.replace(iPosI3, keyRepI3_2.length(), "ssdStationrotate0Sup_vol");
+    *ilI3 = aLineI3; ilI3++;
+    
+    for (std::vector<std::string>::iterator il = ilI3; il != fLines.end(); il++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStation3_phys") != std::string::npos) { ilI3 = il; ilI3++; break; }
+    }
+    aLineI3 = (*ilI3);
+    std::string keyRepI3_3("ssdStationrotate1_vol");
+    iPosI3 = aLineI3.find(keyRepI3_3);
+    aLineI3.replace(iPosI3, keyRepI3_3.length(), "ssdStationrotate1Sup_vol");
+    *ilI3 = aLineI3; ilI3++;
+    
+     for (std::vector<std::string>::iterator il = ilI3; il != fLines.end(); il++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStation4_phys") != std::string::npos) { ilI3 = il; ilI3++; break; }
+    }
+    aLineI3 = (*ilI3);
+    std::string keyRepI3_4("ssdStationdouble0_vol");
+    iPosI3 = aLineI3.find(keyRepI3_4);
+    aLineI3.replace(iPosI3, keyRepI3_4.length(), "ssdStationdouble0Sup_vol");
+    *ilI3 = aLineI3; ilI3++;
+    
+     for (std::vector<std::string>::iterator il = ilI3; il != fLines.end(); il++) {
+      std::string aLine(*il);
+      if (aLine.find("ssdStation5_phys") != std::string::npos) { ilI3 = il; ilI3++; break; }
+    }
+    aLineI3 = (*ilI3);
+    std::string keyRepI3_5("ssdStationdouble1_vol");
+    iPosI3 = aLineI3.find(keyRepI3_5);
+    aLineI3.replace(iPosI3, keyRepI3_5.length(), "ssdStationdouble1Sup_vol");
+    *ilI3 = aLineI3; ilI3++;
+    
+   
+    
   }
   void EmphMisaligner::doSSDTransOffsetOnPlanes(double sigmaTrShifts, double dGap) {
 //    if (std::abs(sigmaTrShifts) <  1.0e-4) return;  // No we always do it, there is the gap. 
