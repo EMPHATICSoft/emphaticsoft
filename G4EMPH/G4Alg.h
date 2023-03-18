@@ -22,7 +22,8 @@ namespace simb{
     class MCTruth;
 }
 namespace sim{
-    class SSDHit;
+//    class SSDHit;
+    class SSDHitAlgo1;
 //    class Particle;
     class Track;
     class TOPAZLGHit;
@@ -38,24 +39,25 @@ namespace emph {
     virtual ~G4Alg();                        
 
     void RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
-                  std::vector<sim::SSDHit> & ssdhitlist,
+//                  std::vector<sim::SSDHit> & ssdhitlist,
+                  std::vector<sim::SSDHitAlgo1> & ssdhitlist,
                   std::vector< sim::Track >& tracklist,
                   std::vector< std::vector<std::pair<size_t, size_t> > >&   pListLimits);
     
     void RunGeant(std::vector< const simb::MCTruth* >& mctruths,
-                  std::vector<sim::SSDHit> & flshitlist,
+                  std::vector<sim::SSDHitAlgo1> & flshitlist,
                   std::vector<sim::TOPAZLGHit> & lghitlist,
                   std::vector<sim::ARICHHit> & arichhitlist,
                   std::vector< sim::Track >& tracklist,
                   std::map<int, size_t >& trackIDToMCTruthIndex);
     
     void RunGeant(art::Ptr<simb::MCTruth> mctruth,
-                  std::vector<sim::SSDHit> & flshitlist,
+                  std::vector<sim::SSDHitAlgo1> & flshitlist,
                   std::vector< sim::Track >& tracklist,
                   int trackIDOffset=-1);
 
     void RunGeant(const simb::MCTruth* mctruth,
-                  std::vector<sim::SSDHit> & ssdhitlist,
+                  std::vector<sim::SSDHitAlgo1> & ssdhitlist,
                   std::vector< sim::Track >& tracklist,
                   int trackIDOffset=-1);
 

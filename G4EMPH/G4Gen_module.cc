@@ -9,6 +9,7 @@
 #include "G4EMPH/G4Alg.h"
 #include "G4EMPH/ParticleListAction.h"
 #include "Simulation/SSDHit.h"
+#include "Simulation/SSDHitAlgo1.h"
 #include "Simulation/TOPAZLGHit.h"
 #include "Simulation/ARICHHit.h"
 //#include "Simulation/Particle.h"
@@ -89,7 +90,8 @@ namespace emph {
     // Start counting the time
     fStopwatch.Start();
 
-    produces< std::vector<sim::SSDHit> > ();
+//    produces< std::vector<sim::SSDHit> > ();
+    produces< std::vector<sim::SSDHitAlgo1> > ();
     produces< std::vector<sim::TOPAZLGHit> > ();
     produces< std::vector<sim::ARICHHit> > ();
 //    produces< std::vector<sim::Particle>     	         >();
@@ -134,7 +136,8 @@ namespace emph {
     // before passing a physics list to the run manager
   
     // Define the SSDHit and Particle vectors.
-    std::unique_ptr<std::vector<sim::SSDHit> >  ssdhlcol(new std::vector<sim::SSDHit>  );
+//    std::unique_ptr<std::vector<sim::SSDHit> >  ssdhlcol(new std::vector<sim::SSDHit>  );
+    std::unique_ptr<std::vector<sim::SSDHitAlgo1> >  ssdhlcol(new std::vector<sim::SSDHitAlgo1>  );
     std::unique_ptr<std::vector<sim::TOPAZLGHit> >  lghlcol(new std::vector<sim::TOPAZLGHit>  );
     std::unique_ptr<std::vector<sim::ARICHHit> >  arichhlcol(new std::vector<sim::ARICHHit>  );
 //    std::unique_ptr<std::vector<sim::Particle>     >            pcol    (new std::vector<sim::Particle>    );
