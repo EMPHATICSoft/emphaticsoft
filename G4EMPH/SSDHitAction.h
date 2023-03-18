@@ -29,6 +29,7 @@
 
 #include "Geant4/globals.hh"
 #include "Simulation/SSDHit.h"
+#include "Simulation/SSDHitAlgo1.h"
 
 // Forward declarations.
 class G4Event;
@@ -63,12 +64,15 @@ namespace emph {
     // gets specific ssdhit.
     sim::SSDHit GetSSDHit(size_t i) const { return fSSDHits[i]; }
     std::vector <sim::SSDHit> GetAllHits() const { return fSSDHits; }
-    // gets all the ssdhits
+     sim::SSDHitAlgo1 GetSSDHitAlgo1(size_t i) const { return fSSDHitsAlgo1[i]; }
+    std::vector <sim::SSDHitAlgo1> GetAllHitsAlgo1() const { return fSSDHitsAlgo1; }
+   // gets all the ssdhits
 
   private:
 
   private:
     std::vector<sim::SSDHit>  fSSDHits;                 ///< The information for SSD hits.
+    std::vector<sim::SSDHitAlgo1>  fSSDHitsAlgo1;                 ///< The information for SSD hits.
     G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
         ///< be included in the list.                          
     bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
