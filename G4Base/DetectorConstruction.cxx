@@ -71,7 +71,7 @@ namespace g4b{
       effGDMLFile = misStr;
     }
     parser.Read(effGDMLFile,validateSchema);
-
+//    std::cerr << " Geometry created, we stop here " << std::endl; exit(2);
     // Fetch the world physical volume from the parser.  This contains
     // the entire detector, not just the outline of the experimental
     // hall.
