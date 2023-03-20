@@ -31,7 +31,15 @@ namespace rawdata {
     int32_t ADC() const { return fADC; }
     int32_t TrigNum() const { return fTrigNum; }
     int32_t Row() const { return fRow; }
-    
+ 
+// 
+// For Simulation:  We seemingly don't a map for converting a row number, as given by a coodinate on the sensor plane, 
+//  in the simulation, to a set, chip and strip number. The reciprocal of the function getSensorRow is not uniquely determined. 
+//  So, in the converter of a Sim::SSDHit (original, or Algo1), we need a more direct way to set the Row number, as the chip, set and strip number
+// are not used in the reconstruction code. 
+// Paul Lebrun March 20 2023   
+// 
+    inline void SetRow(uint32_t aRow) { fRow = aRow; }   
     friend std::ostream& operator << (std::ostream& o, const SSDRawDigit& r);
 
     static uint32_t getSensorRow(int, int, int);
