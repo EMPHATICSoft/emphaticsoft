@@ -181,6 +181,8 @@ namespace emph
     ssdHitAlgo1.SetEDep(step->GetTotalEnergyDeposit());
     ssdHitAlgo1.SetPId( track->GetDefinition()->GetPDGEncoding() );
     ssdHitAlgo1.SetTrackID( track->GetTrackID() );
+    ssdHitAlgo1.SetTLocal0(localPos0[1]); // always the y coordinate, by definition 
+    ssdHitAlgo1.SetTLocal1(localPos1[1]); // always the y coordinate, by definition 
 //    ssdHitAlgo1.SetG4SensorVolName(volName  ); No longer needed. 
     // Tedious.. not my fault ! 
     const G4LogicalVolume *volM0 = vol0->GetMotherLogical();
