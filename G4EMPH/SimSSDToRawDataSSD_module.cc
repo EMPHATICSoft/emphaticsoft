@@ -192,6 +192,7 @@ namespace emph {
       std::vector<size_t> numPlanes{2,2,3,3,6,6};
       for (size_t kSt = 0; kSt != 6; kSt++) {
         for(size_t kSe = 0; kSe != numPlanes[kSt]; kSe++) {
+	  for (size_t k=0; k != adcVals.size(); k++) adcVals[k] = 0;
 	  emph::cmap::DChannel dchan(emph::geo::SSD, kSe, kSt, 0);
 	  emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
 	  int32_t aFERBoard = echan.Board(); int32_t aChanModule = echan.Channel();
@@ -247,7 +248,7 @@ namespace emph {
 	                             << " Adc value " << adcVals[kStr] << std::endl;
 	    adcVals[kStr] = std::min(d15, adcVals[kStr]) - 1; // Only 3 or 4 bit ADC, we are told.  to be checked
 	    // Note: chip and set are not used in the reconstruction 
-	    rawdata::SSDRawDigit digit((uint32_t) kSt, (uint32_t) aChanModule, 0, 0, static_cast<uint32_t>(kStr), 
+	    rawdata::SSDRawDigit digit(aFERBoard, (uint32_t) aChanModule, 0, 0, static_cast<uint32_t>(kStr), 
 	                         0, static_cast<uint32_t>(adcVals[kStr]), 0) ;
             digit.SetRow(static_cast<uint32_t>(kStr));		 
             if (fCheck1Stu) this->StudyCheck1(aFERBoard, aChanModule, kSt, kSe, digit);
