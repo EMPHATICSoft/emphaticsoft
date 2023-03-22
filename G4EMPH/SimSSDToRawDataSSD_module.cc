@@ -104,7 +104,8 @@ namespace emph {
       void openOutputCsvFiles();
       void StudyCheck1 (uint32_t FER, uint32_t module, size_t station, size_t plane,
                           rawdata::SSDRawDigit &aDigit); 
-      
+			  
+      void testChannelMapBackConverter(); // And quit there, and now.. 
     }; 
     
 // .....................................................................................
@@ -169,6 +170,8 @@ namespace emph {
     //
     // Intro.. 
     //
+//      this->testChannelMapBackConverter(); 
+      
       const bool debugIsOn = false;
       ++fNEvents;
       std::unique_ptr<std::vector<rawdata::SSDRawDigit> >  ssdhlcol(new std::vector<rawdata::SSDRawDigit>  );
@@ -269,5 +272,21 @@ namespace emph {
 	fFOutA1 << " " << fEvtNum << " " << aFER << " " << aModule << " " << station << " " << plane 
 	       << " " << digit.Row() << " " << digit.ADC() << std::endl;
     }
+    
+    void SimSSDToRawDataSSD::testChannelMapBackConverter() {
+    
+      std::cerr << 
+      " SimSSDToRawDataSSD::testChannelMapBackConverter... Is the combination of the std:maps fEChanMap and fDChanMap are uniquely reciprocal ? " << std::endl;
+      std::cerr << " Start with station 0 ... " << std::endl;
+      for (int kPl=0; kPl !=2; kPl++) { 
+        emph::cmap::DChannel dchan(emph::geo::SSD, kPl, 0, 0);
+	std::cerr << " Declare dchan, station " << dchan.Station() << " Sensor is " << dchan.Channel() << std::endl;
+        emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
+	std::cerr << " Corresponding channel is, board  " << echan.Board() << "  BChannel " << echan.Channel() << std::endl;
+	emph::cmap::DChannel dChanBack = fCmap->DetChan(echan); 
+        std::cerr << " ... The station is now " << dChanBack.Station() << " Sensor is " << dChanBack.Channel() << std::endl;
+     }
+//     std::cerr << " And.... Quit for now after this very simple test... " << std::endl; exit(2);
+   }
 } // name space emph       
 DEFINE_ART_MODULE(emph::SimSSDToRawDataSSD)
