@@ -25,9 +25,9 @@ namespace emph {
 				EChannel(emph::cmap::FEBoardType b, int board, int channel) { fBoardType = b; fBoard = board; fChannel = channel; };
 				virtual ~EChannel() {};
 
-				emph::cmap::FEBoardType BoardType() { return fBoardType; }
-				int Board()   { return fBoard; }
-				int Channel() { return fChannel; }
+				emph::cmap::FEBoardType BoardType() const  { return fBoardType; }
+				int Board()   const  { return fBoard; }
+				int Channel() const  { return fChannel; }
 
 				void SetBoardType(emph::cmap::FEBoardType b) { fBoardType = b; }
 				void SetBoard(int board) { fBoard = board; }
@@ -77,10 +77,10 @@ namespace emph {
 				DChannel(emph::geo::DetectorType detId, int channel, int station, short hilo) { fId = detId; fChannel = channel; fStation = station; fHiLo = hilo; };
 				virtual ~DChannel() {};
 
-				emph::geo::DetectorType DetId() { return fId; }
-				int Channel() { return fChannel; }
-				int Station() { return fStation; }
-				short HiLo() { return fHiLo; }
+				emph::geo::DetectorType DetId() const { return fId; }
+				int Channel() const  { return fChannel; }
+				int Station() const  { return fStation; }
+				short HiLo() const  { return fHiLo; }
 
 				void SetDetId(emph::geo::DetectorType id) { fId = id; }
 				void SetChannel(int chan) { fChannel = chan; }
@@ -101,8 +101,8 @@ namespace emph {
 						}
 					}
 					return false;
-				}
-
+				}				
+				
 				inline bool operator>(const DChannel& dchan) const {
 					if (fId > dchan.fId) return true;
 					if (fId == dchan.fId) {
@@ -126,6 +126,35 @@ namespace emph {
 				short fHiLo;
 		};
 
+                struct DChannelMapCmp {
+                     bool operator()(const emph::cmap::DChannel lhs, const emph::cmap::DChannel rhs) const
+                     {
+			if (lhs.DetId() < rhs.DetId()) return true;
+			if (lhs.DetId() == rhs.DetId()) {
+						if (lhs.Channel() < rhs.Channel()) return true;
+						if (lhs.Channel() == rhs.Channel()) {
+						   if (lhs.Station() < rhs.Station()) return true;
+						   if (lhs.Station() == rhs.Station()) {
+							if (lhs.HiLo() < rhs.HiLo()) return true;
+						   }
+						}
+					}
+					return false;
+                     }
+                };
+                struct EChannelMapCmp {
+                     bool operator()(const emph::cmap::EChannel lhs, const emph::cmap::EChannel rhs) const
+                     {
+			   if (lhs.BoardType() < rhs.BoardType()) return true;
+			   if (lhs.BoardType() == rhs.BoardType()) {
+			   	   if (lhs.Board() < rhs.Board()) return true;
+			   	   if (lhs.Board() == rhs.Board()) {
+			   		   if (lhs.Channel() < rhs.Channel()) return true;
+			   	   }
+			   }
+			   return false;
+                     }
+                };
 		class ChannelMap {
 			public:
 				ChannelMap(); // Default constructor
@@ -141,14 +170,16 @@ namespace emph {
 				emph::cmap::EChannel ElectChan(emph::cmap::DChannel dchan) { if (!fIsLoaded) LoadMap(); return fDChanMap[dchan];}
 
 				bool IsValidEChan(emph::cmap::EChannel& echan);
+				
+				void testAccessSSD(); 
 
 			private:
 
 				bool fIsLoaded;
 				bool fAbortIfFileNotFound;
 				std::string fMapFileName;
-				std::map<emph::cmap::EChannel,emph::cmap::DChannel> fEChanMap;
-				std::map<emph::cmap::DChannel,emph::cmap::EChannel> fDChanMap;
+				std::map<emph::cmap::EChannel,emph::cmap::DChannel, emph::cmap::EChannelMapCmp> fEChanMap;
+				std::map<emph::cmap::DChannel,emph::cmap::EChannel, emph::cmap::DChannelMapCmp> fDChanMap;
 
 		};
 

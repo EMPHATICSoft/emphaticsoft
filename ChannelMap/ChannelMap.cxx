@@ -70,7 +70,6 @@ namespace emph {
       short dHiLo;
       int dStation;
       std::string comment;
-      
       while (getline(mapFile,line)) {
 	std::stringstream lineStr(line);
 	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> dStation >> comment;
@@ -91,8 +90,29 @@ namespace emph {
 
       std::cout<<"Loaded channel map from " << fMapFileName << std::endl;
 
+//      this->testAccessSSD();
+
       return true;
       
+    }
+    void ChannelMap::testAccessSSD() { 
+       std::cerr << 
+      "  ChannelMap::testAccessSSD... Is the combination of the std:maps fEChanMap and fDChanMap are uniquely reciprocal ? " << std::endl;
+      std::cerr << " Start with station 0 ... " << std::endl;
+      for (int kPl=0; kPl !=2; kPl++) { 
+        emph::cmap::DChannel dchan(emph::geo::SSD, kPl, 0, 0);
+	std::cerr << " Declare dchan, station " << dchan.Station() << " Sensor is " << dchan.Channel()<< std::endl;
+        emph::cmap::EChannel echan = this->ElectChan(dchan);
+	std::cerr << " Corresponding channel is, board  " << echan.Board() << "  Electronic Channel " << echan.Channel() << std::endl;
+	emph::cmap::DChannel dChanBack = this->DetChan(echan); 
+        std::cerr << " ... The station is now " << dChanBack.Station() << " Sensor is " << dChanBack.Channel() << std::endl;
+	if (dChanBack.Station() != 0) {
+	  std::cerr << " simple test fails!!.. Fatal... Quit here and now.. " << std::endl; exit(2);
+	}
+     }
+//     std::cerr << " And.... Quit for now after this very simple test... " << std::endl; exit(2);
+     
+    
     }
   } // end namespace cmap
   
