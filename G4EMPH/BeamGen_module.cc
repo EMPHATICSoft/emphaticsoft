@@ -60,8 +60,10 @@ namespace emph {
       void        GetPXYHist();
       void        GetPID();
 
+      TRandom3    *fRand;
       int         fPID;
       uint64_t    fEvtCount;
+      uint32_t      fRandomSeed;
       double      fZstart;
       double      fMass;
       double      fXmax;
@@ -109,6 +111,9 @@ namespace emph {
     produces<std::vector<simb::MCParticle> >();
     
     configure(ps);
+    
+    fRand = new TRandom3(fRandomSeed);
+    
     GetXYHist();
     GetPXYHist();
     GetPID();
@@ -128,6 +133,7 @@ namespace emph {
     
     //    fRun           = ps.get<int>("runNum",1000000);
     //    fSubrun        = ps.get<int>("subrunNum",0);
+    fRandomSeed    = ps.get<uint32_t>("RandomSeed", 0);
     fZstart        = ps.get<double>("Zstart", -200.); // in cm.  may not reach the Trigger counter, which is not in the geometry, in any case.. 
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
@@ -157,6 +163,8 @@ namespace emph {
     fPYsigma        = ps.get<double>("PYsigma",0.);
 
     fParticleType = ps.get<std::string>("particleType","unknown");
+    
+    std::cerr << " BeamGenModule, fRandomSeed is " << fRandomSeed << std::endl;
   }
 
   /***************************************************************************/
@@ -268,10 +276,7 @@ namespace emph {
   {
     if ((++fEvtCount)%1000 == 0)
       std::cout << "Event " << fEvtCount << std::endl;
-        
-    TRandom3 *rand = new TRandom3(0);
-    gRandom = rand;
-    
+            
     // now get beam particle position
     TLorentzVector pos;
     
@@ -282,19 +287,19 @@ namespace emph {
     else { // get random position from flat or Gaussian distribution
       if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
 	  fXYDistSource == "flatxy") {
-	pos[0] = rand->Uniform()*(fXmax - fXmin) / CLHEP::cm;
-        pos[1]= rand->Uniform()*(fYmax - fYmin) / CLHEP::cm;
+	pos[0] = fRand->Uniform()*(fXmax - fXmin) / CLHEP::cm;
+        pos[1]= fRand->Uniform()*(fYmax - fYmin) / CLHEP::cm;
       }
       else { // default is Gauss
 //	std::cout << "here 1234" << std::endl;
-	pos[0] = rand->Gaus(fXmean,fXsigma) / CLHEP::cm;
-        pos[1] = rand->Gaus(fYmean,fYsigma) / CLHEP::cm;
+	pos[0] = fRand->Gaus(fXmean,fXsigma) / CLHEP::cm;
+        pos[1] = fRand->Gaus(fYmean,fYsigma) / CLHEP::cm;
       }
     }
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
-    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    double pmag = TMath::Abs(fRand->Gaus(fPmean,fPsigma));
     double pb[3];
     double pxpz,pypz;
     
@@ -304,12 +309,12 @@ namespace emph {
     else { // get random position from flat or Gaussian distribution
       if (fPXYDistSource == "FlatPXY" || fPXYDistSource == "flatPXY" ||
 	  fPXYDistSource == "flatpxy") {
-	pxpz = rand->Uniform()*(fPXmax - fPXmin);
-	pypz = rand->Uniform()*(fPYmax - fPYmin);
+	pxpz = fRand->Uniform()*(fPXmax - fPXmin);
+	pypz = fRand->Uniform()*(fPYmax - fPYmin);
       }
       else { // default is Gauss
-	pxpz = rand->Gaus(fPXmean,fPXsigma);
-	pypz = rand->Gaus(fPYmean,fPYsigma);
+	pxpz = fRand->Gaus(fPXmean,fPXsigma);
+	pypz = fRand->Gaus(fPYmean,fPYsigma);
       }
     }
 
