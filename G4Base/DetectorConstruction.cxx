@@ -58,7 +58,7 @@ namespace g4b{
     if (overlapCheck) std::cerr << " ... We will check for eventual volumes overlaps.. Good " << std::endl;
     else std::cerr << " ... We will NOT check for eventual volumes overlaps.. Results will be suspicious " << std::endl;
     std::string effGDMLFile(gdmlFile); // effective geometry file name.
-    if (misalignModelNum != 0) {
+    if ((misalignModelNum != 0)  || (std::abs(misalignDoubleSSDGap) < 1.0e-3)) {
       std::cerr << " We will modify the G4 Geometry to implement quasi-realistic misalignments, model number " 
                 << misalignModelNum << std::endl;
 		

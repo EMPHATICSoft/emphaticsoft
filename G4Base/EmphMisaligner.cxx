@@ -487,7 +487,7 @@ namespace g4b{
     
   }
   void EmphMisaligner::doSSDTransOffsetOnPlanes(double sigmaTrShifts, double dGap) {
-//    if (std::abs(sigmaTrShifts) <  1.0e-4) return;  // No we always do it, there is the gap. 
+//    if (std::abs(sigmaTrShifts) <  1.0e-4) return;  // Now we always do it, there is the gap. 
     if (std::abs(dGap) > 30.) return; // unrealistic 
     std::cerr << " EmphMisaligner::doSSDTransOffsetOnPlanes, sigmaTrShifts " << sigmaTrShifts << " dGap " << dGap << std::endl;
     std::vector<std::string> keyPos; // to store the neame we will be replace in the definition of physical voume for complete station. 
