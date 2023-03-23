@@ -224,7 +224,8 @@ namespace emph {
     //
   }
   void EMPHATICMagneticField::uploadFromTextFile(const G4String &fName) {
-  
+        
+	std::cerr << " Entering EMPHATICMagneticField::uploadFromTextFile fName " << fName <<  std::endl;
 	double numbers[6];
 	std::ifstream fileIn(fName.c_str());
 	if (!fileIn.is_open()) {
@@ -488,9 +489,10 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
   {
 //    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 100.));
     bool debugIsOn = false;
-    B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
-    B[1] = 0.;
-    B[2] = 0.; 
+    B[0] = 0.5e-4; // a bit of a waste of CPU, but it makes the code a bit cleaner 
+    B[1] = 0.5e-4;
+    B[2] = 0.5e-4;  // Who know what the residual field is at MT6.. Does not matter... 
+    if (fFieldIsOff) return;
     if (debugIsOn) std::cerr << " EMPHATICMagneticField::MagneticField, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
     if (fStorageIsStlVector) {
       if ((x[0] < fXMin) || (x[0] > fXMax) || (x[1] < fYMin) || (x[1] > fYMax)|| (x[2] < fZMin) || (x[2] > fZMax)) return;

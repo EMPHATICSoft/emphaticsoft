@@ -25,6 +25,9 @@ FieldFileName: "/emph/data/users/lebrun/MagFieldMarch292022/mfMap.txt"
 # or if you run on an other machine, say the goold old laptop Paul Lebrun got to keep for its retirement,  
 #
 #FieldFileName: "/home/lebrun/EMPHATIC/MagFieldMarch29/mfMap.txt"
+#
+# a Convenience flag to turn the field off and on, to debug.. 
+FieldIsOff: false  
   
 }
 

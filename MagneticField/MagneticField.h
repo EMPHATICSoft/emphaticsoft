@@ -71,6 +71,7 @@ namespace emph {
     G4FieldManager* GetGlobalFieldManager(); 
     
   private:
+    bool fFieldIsOff;
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
     bool fHasBeenAligned; 
     bool fUseOnlyCentralPart;
@@ -104,6 +105,8 @@ namespace emph {
    inline void setUseOnlyTheCentralPart(bool  t=true) {  fUseOnlyCentralPart = t; } 
    inline void setXZipOne(double x) { xZipOne = x; } 
    inline void setYZipOne(double y) { yZipOne = y; } 
+   inline void SetFieldOn() { fFieldIsOff = false; }
+   inline void SetFieldOff() { fFieldIsOff = true; }
    private:
     void uploadFromRootFile(const G4String &fName);
     void uploadFromTextFile(const G4String &fName);

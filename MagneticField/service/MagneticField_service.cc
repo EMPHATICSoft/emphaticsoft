@@ -18,7 +18,7 @@ namespace emph
   MagneticFieldService::MagneticFieldService(const fhicl::ParameterSet& pset,
 				   art::ActivityRegistry & reg)
   {
-
+    fFieldIsOff = false;
     reconfigure(pset);
 /*
     Jonathan decided to by-pass the fcl .. 
@@ -38,6 +38,10 @@ namespace emph
     fMagneticField = new emph::EMPHATICMagneticField(fFileName);
 */
     fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
+    if (fFieldIsOff) fMagneticField->SetFieldOff();
+    else fMagneticField->SetFieldOn();
+
+    
     // Temporary tweak and study: assume we have no ziptrack data for the outer core.. 
     // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
 //    fMagneticField->setUseOnlyTheCentralPart(true);
@@ -57,6 +61,7 @@ namespace emph
   {
     
     fFieldFileName = pset.get< std::string >("FieldFileName");
+    fFieldIsOff = pset.get< bool >("FieldIsOff", false);
     
   }
   

@@ -36,7 +36,7 @@ namespace emph
   private:
     emph::EMPHATICMagneticField* fMagneticField;
     std::string fFieldFileName;
-    
+    bool fFieldIsOff;
   };
   
 }
