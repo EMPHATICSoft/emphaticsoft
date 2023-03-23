@@ -115,7 +115,7 @@ namespace emph {
 	 
 	 private:
 	 
-	 inline double getTsFromCluster(size_t kStation, bool alternate45, double strip) {
+	 inline double getTsFromCluster(size_t kStation, size_t kPlane, bool alternate45, double strip) {
 	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
 	     case 'X' :
 	     {
@@ -123,8 +123,13 @@ namespace emph {
 	       if (kStation < 4) {
 	         aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 	       } else {
-	         if (!alternate45) aVal =  strip*fPitch - fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
-		 else aVal =  -1.0*strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
+	         if (!alternate45) {
+		    aVal =  strip*fPitch - fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
+		    if (kPlane == 0) aVal *= -1.;
+		 } else {
+		   aVal =  -1.0*strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
+		   // Obsolete.. 
+		 }
 		 // Momentum correction, for 120 GeV primary beam  
 		 aVal += fMagnetKick120GeV * (fZCoords[kStation] - fZCoordsMagnetCenter);
 		 // Yaw Correction 
@@ -138,8 +143,16 @@ namespace emph {
 	       if (kStation < 4) {  
 	         aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 	       } else {
-	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-		 else aVal =  ( strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+//
+//   When using the Monte-Carlo, and possibly the data , we had a sign mistake, before March 23 2023 	       
+	         if (!alternate45) {
+		   aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+		   if (kPlane == 2) aVal *= -1;
+	       
+//	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+		  } else {
+		    aVal =  ( strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+		  } 
 	       } 
 	       const double aValC = this->correctTsForPitchOrYawAngle(kStation, aVal);
 	       return aValC;
