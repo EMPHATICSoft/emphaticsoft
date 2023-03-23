@@ -20,7 +20,7 @@ namespace runhist{
   //----------------------------------------------------------------------
   /*  
   RunHistory::RunHistory() :   
-    _isLoaded(false), _isConfig(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _geoFile(""), _chanFile(""), _calibVer(0), _nTrig(0), _QEURL("")
+    _isLoaded(false), _isConfig(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _geoFile(""), _chanFile(""), _alignFile(""), _calibVer(0), _nTrig(0), _QEURL("")
   {
     _det.clear();
 
@@ -104,6 +104,15 @@ namespace runhist{
 
   //----------------------------------------------------------------------
   
+  std::string RunHistory::AlignFile()
+  {
+    if (!_isConfig) LoadConfig();
+    return _alignFile;
+
+  }
+
+  //----------------------------------------------------------------------
+  
   int RunHistory::CalibVer()
   {
     if (!_isConfig) LoadConfig();
@@ -141,11 +150,13 @@ namespace runhist{
 	  if(_runNumber >= 436 && _runNumber <= 605){
 		  _geoFile=file_path+"Geometry/phase1a.gdml";
 		  _chanFile=file_path+"ChannelMap/ChannelMap_Jan22_Run436.txt";
+          //_alignFile=file_path+"Calibration/SSDAlignment.dat"; //No alignment file for run 1a yet
 		  _calibVer=1;
 	  }
 	  else if(_runNumber > 605 && _runNumber <= 1386){
 		  _geoFile=file_path+"Geometry/phase1b.gdml";
 		  _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
+          _alignFile=file_path+"Calibration/SSDAlignment.dat";
 		  _calibVer=2;
 	  }
 	  else{

@@ -76,6 +76,8 @@ namespace emph{
     std::vector<double> PositionAtStations(std::vector<std::vector<double>> xpos,std::vector<std::vector<double>> ypos, std::vector<std::vector<double>> pos);
     std::vector<int> IndexAtStations(std::vector<std::vector<double>> pos);
     std::vector<double> StationZpos();
+    void LoadShifts(std::string fname, std::vector<double> &x, std::vector<double> &y, std::vector<double> &u, std::vector<double> &v);
+    double GetShift(int station, int sensor);
     void CalibrateXYZ(double *cal); 
     
     friend std::ostream& operator << (std::ostream& o, const SSDAlign& h);

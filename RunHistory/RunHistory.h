@@ -30,6 +30,7 @@ namespace runhist {
     double _beamMom;
     std::string  _geoFile;
     std::string  _chanFile;
+    std::string  _alignFile;
     std::string  _target;
     int  _calibVer;
     std::vector<std::string> _det;
@@ -48,6 +49,7 @@ namespace runhist {
     std::string Target();
     std::string GeoFile();
     std::string ChanFile();
+    std::string AlignFile();
     int        CalibVer();
     std::vector<std::string> DetectorList();
     int        NTriggers();
@@ -56,6 +58,7 @@ namespace runhist {
     bool       SetRun(int run);
     void       SetGeo(std::string geoFile) { _geoFile = geoFile; }
     void       SetChan(std::string chanFile) { _chanFile = chanFile; }
+    void       SetAlign(std::string alignFile) { _alignFile = alignFile; }
     void       SetCalib(int calibVer) { _calibVer = calibVer; }
     void       SetQEURL(std::string uri) { _QEURL = uri; }
   };
