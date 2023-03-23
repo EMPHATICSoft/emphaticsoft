@@ -97,7 +97,8 @@ namespace emph {
       bool fDoAlignXAlt45;  
       bool fDoAlignYAlt45;  
       bool fDoAlignYAlt5;  
-      bool fDoSkipDeadOrHotStrips;  
+      bool fDoSkipDeadOrHotStrips; 
+      bool fUseFullDownstreamStations;  
       bool fDoLastIs4AlignAlgo1; 
       unsigned int fRun;
       unsigned int fSubRun;
@@ -166,7 +167,7 @@ namespace emph {
     fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoGenCompact(false), 
     fDoGenCompactStrictY6St(false), fDoGenCompactStrictX6St(false), fDoGenCompactStrictXY6St(false),
     fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
-     fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
+     fDoSkipDeadOrHotStrips(true), fUseFullDownstreamStations(false), fDoLastIs4AlignAlgo1(false),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.), fSetMCRMomentum(120.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
@@ -202,6 +203,7 @@ namespace emph {
       fDoAlignYAlt45 = pset.get<bool>("alignYAlt45", false);
       fDoAlignYAlt5 = pset.get<bool>("alignYAlt5", false);
       fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
+      fUseFullDownstreamStations = pset.get<bool>("useFullDownstreamStations", false); // For MC, debatable for real data 
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 1000);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
@@ -535,7 +537,7 @@ namespace emph {
 	if (aRMS > fRMSClusterCuts[1]) continue;
         char aView = this->getView(itCl);
 	if (aView != theView) continue;
-	if (aStation > 3) {
+	if ((!fUseFullDownstreamStations) && (aStation > 3)) {
 	  if (theView == 'X') {
 	    if ((!alternate45) && (itCl->Sensor() == 0)) continue; // The Proton peak is mostly on Sensor 0 
 	    if ((alternate45) && (itCl->Sensor() == 1)) continue;// ...  For both station 4 and 5 .. Yes, at least for run 1055
