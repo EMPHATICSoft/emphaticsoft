@@ -179,7 +179,7 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fEvtNum = evt.id().event();
       
-      if (debugIsOn) std::cerr << " SimSSDToRawDataSSD::analyze , event " << fEvtNum << " and do not much  " <<   std::endl; 
+      if (debugIsOn) std::cerr << " SimSSDToRawDataSSD::analyze , event " << fEvtNum <<  std::endl; 
       
 //      auto tokenForTrack = evt.getProductTokens<std::vector<sim::Track>(); 
       
@@ -206,8 +206,8 @@ namespace emph {
 	    const double yy1 = fHalfHeight + it->GetTLocal1();
 	    if ((yy0 < 0.) || (yy0 > fSensorHeight)) continue; // Should not happen! 
 	    if ((yy1 < 0.) || (yy1 > fSensorHeight)) continue; // Should not happen! 
-	    if (debugIsOn) std::cerr << " ... At station " << kSt << " plane " << kSe << " y0 " 
-	              << yy0 << " y1 " << yy1 << std::endl;
+	    if (debugIsOn) std::cerr << " ... At station " << kSt << " plane " << kSe << " yy0 " 
+	              << yy0 << " yy1 " << yy1 << " X Global " << it->GetX() << " Y Global " << it->GetY() << std::endl;
 	    // Does the track cross a strip boundary ? 
 	    short int strip0 = static_cast<short int>(std::abs(yy0/fPitch)); 
 	    short int strip1 = static_cast<short int>(std::abs(yy1/fPitch));
