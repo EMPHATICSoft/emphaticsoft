@@ -299,6 +299,9 @@ namespace emph {
 	             if ((itCl5->WgtAvgStrip() < fMinStrips[5]) || (itCl5->WgtAvgStrip() >= fMaxStrips[5])) continue;
 	             tsData[5] = getTsFromCluster(5, itCl5->Sensor(), false , itCl5->WgtAvgStrip()); 
 	             tsDataErr[5] = this->GetTsUncertainty(5, itCl5);
+	             if (debugIsOn) std::cerr << " .. Stations 5 weighted strip number " 
+	                << itCl5->WgtAvgStrip() << " tsData " << tsData[5] << " NominalOff set " << fNominalOffsets[5] 
+			<< " assumed Residual " << fResiduals[5] << std::endl;
 		     // Now fit.. a few times keep transfering the residuals 
 		     myLinFit.chiSq = DBL_MAX; std::vector<double> tsDataStart(tsData); int nIter = 0;
 		     bool didConverged = false;
