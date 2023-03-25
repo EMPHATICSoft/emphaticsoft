@@ -148,7 +148,7 @@ namespace emph {
 	         if (!alternate45) {
 		   aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 		   if (kPlane == 2) { aVal *= -1;  } // last correction, related fence counting.. MC based ! Guess.. to be checked..
-		   if (kPlane == 3) { aVal -= fPitch; } // last correction, related fence counting.. MC based ! Probably not the last one
+//		   if (kPlane == 3) { aVal -= fPitch; } // last correction, related fence counting.. MC based ! Probably not the last one
 	       
 //	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 		  } else {

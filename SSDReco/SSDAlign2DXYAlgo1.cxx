@@ -105,12 +105,14 @@ namespace emph {
            // 
            // Min amd maximum window.. To be defined.. Based on histogramming cluster positions.. 
            //
-	   fMinStrips[0] = 250.; fMaxStrips[0] = 500.; 
-	   fMinStrips[1] = 260.; fMaxStrips[1] = 510.; 
-	   fMinStrips[2] = 275.; fMaxStrips[2] = 525.; 
-	   fMinStrips[3] = 275.; fMaxStrips[3] = 525.; 
-	   fMinStrips[4] = 525.; fMaxStrips[4] = 700.; // There are dead channels at lower strip count, distribution of strip choppy. 
-	   fMinStrips[5] = 490.; fMaxStrips[5] = 700.; 
+	   // Comment this out, that was for data, trial and error.. We should use the methos Select by View in the main module.. 
+	   // 
+	   // fMinStrips[0] = 250.; fMaxStrips[0] = 500.; 
+	  // fMinStrips[1] = 260.; fMaxStrips[1] = 510.; 
+	  // fMinStrips[2] = 275.; fMaxStrips[2] = 525.; 
+	  // fMinStrips[3] = 275.; fMaxStrips[3] = 525.; 
+	  // fMinStrips[4] = 525.; fMaxStrips[4] = 700.; // There are dead channels at lower strip count, distribution of strip choppy. 
+	  // fMinStrips[5] = 490.; fMaxStrips[5] = 700.; 
 	   break;
        }
        // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  But it does includes the target.
@@ -129,6 +131,14 @@ namespace emph {
        fMultScatUncert[3] =  0.01947578;	
        fMultScatUncert[4] =  0.05067243;  
        fMultScatUncert[5] =  0.06630287;
+       /*
+       ** This is momentum dependent... Carefull..At 120 GeV, no target, one has: (after rejection of wide scattering event, presumably hadronic.) 
+       */
+       fMultScatUncert[1] =  0.003201263;   
+       fMultScatUncert[2] =  0.00512;   
+       fMultScatUncert[3] =  0.0092;   
+       fMultScatUncert[4] =  0.0212;   
+       fMultScatUncert[5] =  0.0264; 
         
      }
      void ssdr::SSDAlign2DXYAlgo1::SetForMomentum(double p) {
@@ -172,7 +182,7 @@ namespace emph {
        std::ostringstream headerStrStr; headerStrStr << " "  << fSubRunNum << " " << fEvtNum;
        std::string headerStr(headerStrStr.str());
        fNEvents++; 
-       bool debugIsOn = (fNEvents < 15) || (fEvtNum == 4) || (fEvtNum == 9);
+       bool debugIsOn = (fNEvents < 15) || (fEvtNum == 11) || (fEvtNum == 9);
        if (debugIsOn) std::cerr <<  " SSDAlign2DXYAlgo1::alingIt, " << " evtNum " << fEvtNum  
                                 <<  " number of Cluster " << aSSDcls.size() << std::endl;
        if (aSSDcls. size() < fNumStationsEff) {
@@ -181,9 +191,12 @@ namespace emph {
        }
        std::vector<size_t> nHits(fNumStationsEff, 0);
        for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDcls.cbegin(); itCl != aSSDcls.cend(); itCl++) {
-         size_t kSt = itCl->Station();
+        size_t kSt = itCl->Station();
+         if (debugIsOn) std::cerr << " .... For Station " << kSt << " Weigthed average strip " << itCl->WgtAvgStrip() 
+	                          << " numSt " << fNumStationsEff  << std::endl;
          if (kSt >=  fNumStationsEff) continue; // Should not happen, when fAlign0to4 is false  
 	 if ((itCl->WgtAvgStrip() < fMinStrips[kSt]) || (itCl->WgtAvgStrip() >= fMaxStrips[kSt])) continue;
+	 
 	 nHits[kSt]++;
        }
        if (debugIsOn) {
@@ -221,7 +234,7 @@ namespace emph {
 	 tsDataErr[0] = this->GetTsUncertainty(0, itCl0);
 	 tsData[0] = getTsFromCluster(0, itCl0->Sensor(), false, itCl0->WgtAvgStrip()); 
 	 if (debugIsOn) std::cerr << " ... Stations 0 weighted strip number " 
-	                << itCl0->WgtAvgStrip() << " tsData " << tsData[0] << " NominalOff set " << fNominalOffsets[0] 
+	                << itCl0->WgtAvgStrip() << " tsData " << tsData[0] << " +-" << tsDataErr[0] << " NominalOff set " << fNominalOffsets[0] 
 			<< " assumed Residual " << fResiduals[0] << std::endl;
          for (std::vector<rb::SSDCluster>::const_iterator itCl1 = aSSDcls.cbegin(); itCl1 != aSSDcls.cend(); itCl1++) {
 	   if (itCl1->Station() != 1) continue;
@@ -229,7 +242,7 @@ namespace emph {
 	   tsData[1] = getTsFromCluster(1, itCl0->Sensor(), false, itCl1->WgtAvgStrip()); 
 	   tsDataErr[1] = this->GetTsUncertainty(1, itCl1);
 	   if (debugIsOn) std::cerr << " ... Stations 1 weighted strip number " 
-	                << itCl1->WgtAvgStrip() << " tsData " << tsData[1] << " NominalOff set " << fNominalOffsets[1] 
+	                << itCl1->WgtAvgStrip() << " tsData " << tsData[1] << " +-" << tsDataErr[1] << " NominalOff set " << fNominalOffsets[1] 
 			<< " assumed Residual " << fResiduals[1] << std::endl;
           for (std::vector<rb::SSDCluster>::const_iterator itCl2 = aSSDcls.cbegin(); itCl2 != aSSDcls.cend(); itCl2++) {
 	     if (itCl2->Station() != 2) continue;
@@ -237,7 +250,7 @@ namespace emph {
 	     tsData[2] = getTsFromCluster(2, itCl2->Sensor(),  false, itCl2->WgtAvgStrip()); 
 	     tsDataErr[2] = this->GetTsUncertainty(2, itCl2);
 	     if (debugIsOn) std::cerr << " ... Stations 2 weighted strip number " 
-	                << itCl2->WgtAvgStrip() << " tsData " << tsData[2] << " NominalOff set " << fNominalOffsets[2] 
+	                << itCl2->WgtAvgStrip() << " tsData " << tsData[2] << " +-" << tsDataErr[2] << " NominalOff set " << fNominalOffsets[2] 
 			<< " assumed Residual " << fResiduals[2] << std::endl;
              for (std::vector<rb::SSDCluster>::const_iterator itCl3 = aSSDcls.cbegin(); itCl3 != aSSDcls.cend(); itCl3++) {
 	       if (itCl3->Station() != 3) continue;
@@ -245,7 +258,7 @@ namespace emph {
 	       tsData[3] = getTsFromCluster(3, itCl3->Sensor(),   false, itCl3->WgtAvgStrip()); 
 	       tsDataErr[3] = this->GetTsUncertainty(3, itCl3);
 	       if (debugIsOn) std::cerr << " ... Stations 3 weighted strip number " 
-	                << itCl3->WgtAvgStrip() << " tsData " << tsData[3] << " NominalOff set " << fNominalOffsets[3] 
+	                << itCl3->WgtAvgStrip() << " tsData " << tsData[3]  << " +-" << tsDataErr[3] << " NominalOff set " << fNominalOffsets[3] 
 			<< " assumed Residual " << fResiduals[3] << std::endl;
                for (std::vector<rb::SSDCluster>::const_iterator itCl4 = aSSDcls.cbegin(); itCl4 != aSSDcls.cend(); itCl4++) {
 	         if (itCl4->Station() != 4) continue;
@@ -253,7 +266,7 @@ namespace emph {
 	         tsDataErr[4] = this->GetTsUncertainty(4, itCl4);
 	         if ((itCl4->WgtAvgStrip() < fMinStrips[4]) || (itCl4->WgtAvgStrip() >= fMaxStrips[4])) continue;
 	         if (debugIsOn) std::cerr << " .. Stations 4 weighted strip number " 
-	                << itCl4->WgtAvgStrip() << " tsData " << tsData[4] << " NominalOff set " << fNominalOffsets[4] 
+	                << itCl4->WgtAvgStrip() << " tsData " << tsData[4] << " +-" << tsDataErr[4] << " NominalOff set " << fNominalOffsets[4] 
 			<< " assumed Residual " << fResiduals[4] << std::endl;
 		 if (fAlign0to4) { // This is mostly repeated code.. Need to create a small private method. 
 		     myLinFit.chiSq = DBL_MAX; std::vector<double> tsDataStart(tsData); int nIter = 0;
@@ -262,7 +275,7 @@ namespace emph {
 		        if (debugIsOn) std::cerr << " ... .... Case 0 to 4 nIter " << nIter << " before fitLin " << std::endl;
 		        myLinFit.fitLin(fAlign0to4, tsData, tsDataErr);
 		        if (nIter > 5) {
-			  if ((std::abs(prevChiSq - myLinFit.chiSq) < 0.25) && (std::abs(prevChiSq - prevPChiSq) < 0.1)) {
+			  if ((std::abs(prevChiSq - myLinFit.chiSq) < 0.1) && (std::abs(prevChiSq - prevPChiSq) < 0.2)) {
 			    if (debugIsOn) std::cerr << " Convergence reached, final chiSq " 
 			                             << myLinFit.chiSq << "Previous " << prevChiSq << " previous, previous " << prevPChiSq << std::endl;
 			    didConverged = true;			     
@@ -300,17 +313,28 @@ namespace emph {
 	             tsData[5] = getTsFromCluster(5, itCl5->Sensor(), false , itCl5->WgtAvgStrip()); 
 	             tsDataErr[5] = this->GetTsUncertainty(5, itCl5);
 	             if (debugIsOn) std::cerr << " .. Stations 5 weighted strip number " 
-	                << itCl5->WgtAvgStrip() << " tsData " << tsData[5] << " NominalOff set " << fNominalOffsets[5] 
+	                << itCl5->WgtAvgStrip() << " tsData " << tsData[5] <<  " +-" << tsDataErr[5] << " NominalOff set " << fNominalOffsets[5] 
 			<< " assumed Residual " << fResiduals[5] << std::endl;
 		     // Now fit.. a few times keep transfering the residuals 
 		     myLinFit.chiSq = DBL_MAX; std::vector<double> tsDataStart(tsData); int nIter = 0;
-		     bool didConverged = false;
+		     bool didConverged = false; kTrSeqNum = 0;
+		     if (fEvtNum < 20) {
+		           fFOutA1Dbg << headerStr << " " << kTrSeqNum;
+			   fFOutA1Dbg << " " << itCl0->WgtAvgStrip() << " " << itCl1->WgtAvgStrip() << " " << itCl2->WgtAvgStrip();
+			   fFOutA1Dbg << " " << itCl3->WgtAvgStrip() << " " << itCl4->WgtAvgStrip() << " " << itCl5->WgtAvgStrip();
+			   for(size_t kSt=0; kSt != tsDataStart.size(); kSt++) fFOutA1Dbg << " " << tsData[kSt];
+			   fFOutA1Dbg << " " << myLinFit.GetTrOffInit(tsData) << " 0. " << 
+			                           myLinFit.GetTrSlInit(tsData) << " 0. 0. " ;
+			   for(size_t kSt=0; kSt != tsDataStart.size(); kSt++) fFOutA1Dbg << " " << myLinFit.resids[kSt];
+			   fFOutA1Dbg << std::endl;
+		     } 
                      while  ((nIter < fNumIterMax)  && (!didConverged)) { // chi-square cut a user parameter, to be tuned.. 
+		       kTrSeqNum++;
 		       myLinFit.fitLin(fAlign0to4, tsData, tsDataErr);
 		       if (nIter > 5) {
-			 if ((std::abs(prevChiSq - myLinFit.chiSq) < 0.25) && (std::abs(prevChiSq - prevPChiSq) < 0.1)) {
+			 if ((std::abs(prevChiSq - myLinFit.chiSq) < 0.1) && (std::abs(prevChiSq - prevPChiSq) < 0.2)) {
 			     if (debugIsOn) std::cerr << " Convergence reached, final chiSq " 
-			                             << myLinFit.chiSq << "Previous " << prevChiSq << " previous, previous " << prevPChiSq << std::endl;
+			                             << myLinFit.chiSq << " Previous " << prevChiSq << " previous, previous " << prevPChiSq << std::endl;
 			     didConverged = true;			     
 			  }
 			}
@@ -337,7 +361,6 @@ namespace emph {
 			 for(size_t kSt=0; kSt != tsDataStart.size(); kSt++) 
 			    fFOutA1 << " " << tsDataStart[kSt] - tsData[kSt]; 
 			 fFOutA1 << std::endl;
-			 kTrSeqNum++;
 		      }
 		    } // itCl5
 		  } // 5 or 6 stations hits.. 

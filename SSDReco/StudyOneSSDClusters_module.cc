@@ -531,22 +531,24 @@ namespace emph {
         int aStation = itCl->Station();
 	if((aSensor == -1) || (aStation == -1)) continue;
 	const double aRMS = itCl->WgtRmsStrip(); 
-//	std::cerr << " ... emph::StudyOneSSDClusters::selectByView, aRMS " << aRMS << "  .. Cuts, min Val  " 
-//	          << fRMSClusterCuts[0] << " max Val " <<  fRMSClusterCuts[1] << std::endl;
+	if (fEvtNum < 15) std::cerr << " ... emph::StudyOneSSDClusters::selectByView, Station " << aStation 
+	         << " Sensor " << aSensor << " aRMS " << aRMS << "  .. Cuts, min Val  " 
+	          << fRMSClusterCuts[0] << " max Val " <<  fRMSClusterCuts[1] << std::endl;
 	if (aRMS < fRMSClusterCuts[0]) continue;
 	if (aRMS > fRMSClusterCuts[1]) continue;
         char aView = this->getView(itCl);
 	if (aView != theView) continue;
 	if ((!fUseFullDownstreamStations) && (aStation > 3)) {
 	  if (theView == 'X') {
-	    if ((!alternate45) && (itCl->Sensor() == 0)) continue; // The Proton peak is mostly on Sensor 0 
-	    if ((alternate45) && (itCl->Sensor() == 1)) continue;// ...  For both station 4 and 5 .. Yes, at least for run 1055
+	    if ((!alternate45) && (aSensor == 0)) continue; // The Proton peak is mostly on Sensor 0 
+	    if ((alternate45) && (aSensor == 1)) continue;// ...  For both station 4 and 5 .. Yes, at least for run 1055
 	  } else if (theView == 'Y') {
-	    if ((!alternate45) && (itCl->Sensor() == 2)) continue; // The Proton peak is mostly on Sensor 3 
-	    if ((alternate45) && (itCl->Sensor() == 3)) continue; // True for station 4 and 5. Station 4 data looks dismal.. 
+	    if ((!alternate45) && (aSensor == 2)) continue; // The Proton peak is mostly on Sensor 3 
+	    if ((alternate45) && (aSensor == 3)) continue; // True for station 4 and 5. Station 4 data looks dismal.. 
 	  }
 	}
 	bool accept = true;
+	if (fEvtNum < 15) std::cerr << " .... ....  Accepted  " << std::endl;
 	if (skipDeadOrHotStrips) {
 	  // a bit tedious, 
 	  for (std::vector<emph::ssdr::SSDHotChannelList>::iterator itHl = fHotChans.begin(); itHl != fHotChans.end(); itHl++) {
@@ -555,7 +557,11 @@ namespace emph {
 	      if ((itHl->IsHot(kStrip)) ||(itHl->IsDead(kStrip))) { accept = false; break; }  
 	    }
 	  } 
+	  if (accept && (fEvtNum < 15)) std::cerr << " .... .... Check, not Dead, Not Hot still accepted  " << std::endl;
+	  if ((!accept) && (fEvtNum < 15)) std::cerr << " .... .... Rejected, Hot or Dead  " << std::endl;
 	}
+	if (accept && (fEvtNum < 15)) std::cerr << " .... .... Still accepted, ..   " << std::endl;
+	if ((!accept) && (fEvtNum < 15)) std::cerr << " .... .... Rejected, ...   " << std::endl;
 	if (accept) fSSDcls.push_back(*itCl);
       } // on original clusters.. 
     }
