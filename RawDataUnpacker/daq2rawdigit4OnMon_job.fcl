@@ -24,6 +24,7 @@ source:
   SSDFilePrefix: "/data/"
   readSSDData: false
   readTRB3Data: true
+  readCAENData: true
 }
 
 outputs:
@@ -51,7 +52,8 @@ outputs:
 physics:
 {
 
-  stream1:  [ out1, out2 ]
+  #stream1:  [ out1, out2 ]
+  stream1:  [ out2 ]
 
   end_paths:     [stream1]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
 }
