@@ -20,7 +20,7 @@ source:
   timeWindow: 50000
   nEvents: 0
   verbosity: 0
-  channelMapFileName: "ChannelMap_Jun22.txt"
+  channelMapFileName: "ChannelMap_Mar23.txt"
   SSDFilePrefix: "/data/"
   readSSDData: false
   readTRB3Data: true
