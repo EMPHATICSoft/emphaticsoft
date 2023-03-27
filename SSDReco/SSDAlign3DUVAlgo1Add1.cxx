@@ -78,6 +78,10 @@ namespace emph {
 	            << itCl->View() << " strip " << itCl->WgtAvgStrip() << " rms " << itCl->WgtRmsStrip() << std::endl;
 	size_t kStI = kSt;
 	if (itCl->View() == rb::X_VIEW) {
+	  //
+	  // Concocted based on real data run 1055.. 
+          //	 ... but it seems correct, despite being a bit confusing.. March 27 2023
+	  // 
 	  if ((kSt == 4) && (kSe % 2 == 1)) kStI = 5;
 	  if (kSt == 5) { if (kSe % 2 == 0) kStI = 6; else kStI = 7; }
 	  nClX[kStI]++;
