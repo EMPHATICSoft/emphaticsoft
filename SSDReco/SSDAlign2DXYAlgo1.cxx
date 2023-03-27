@@ -35,7 +35,7 @@ namespace emph {
        fNominalOffsetsAlt45(fNumStations, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
-       fPitchOrYawAngles(fNumStations, 0.) 
+       fPitchOrYawAngles(fNumStations, 0.), myLinFit(), myConvert('Y')
      { 
         ; 
      }
@@ -48,7 +48,7 @@ namespace emph {
        fNominalOffsetsAlt45(fNumStations, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),  
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
-       fPitchOrYawAngles(fNumStations, 0.) 
+       fPitchOrYawAngles(fNumStations, 0.), myLinFit(), myConvert(fView) 
        
      { 
         if ((aView != 'X') && (aView != 'Y')) {
@@ -61,94 +61,18 @@ namespace emph {
      }
      void  SSDAlign2DXYAlgo1::InitializeCoords(bool lastIs4, const std::vector<double> &zCoords) {
        fAlign0to4 = lastIs4;
-       if (zCoords.size() != 8) {
-         std::cerr << "  SSDAlign2DXYAlgo1::InitailizeCoords Unexpected number of ZCoords, " 
-	           << zCoords.size() << " fatal, and that is it! " << std::endl; exit(2); 
-       }
-       for (size_t k=0; k != 5; k++) fZCoords[k] = zCoords[k]; 
-       fZCoords[5] = zCoords[7];  // Check this !!!! weird, but I think, correct... 
-       std::cerr << " SSDAlign2DXYAlgo1::InitializeCoords, check for weird Z ";
-       for (size_t kSt=0; kSt != fZCoords.size(); kSt++) std::cerr << " " << fZCoords[kSt]; 
-        myLinFit.SetZCoords(fZCoords);
-       std::cerr << " SSDAlign2DXYAlgo1::InitailizeCoords  " << std::endl;
-       for (size_t k=0; k != fNumStations; k++) {
-        if (std::abs(fZLocShifts[k]) > 1.0e-10) {
-	   std::cerr << " ... For Station  " << k <<  " Shifting the Z position by " << fZLocShifts[k] << " from " << fZCoords[k];
-	  fZCoords[k] += fZLocShifts[k]; 
-	  std::cerr << " to " << fZCoords[k] << std::endl;
-	}
-	if (std::abs(fOtherUncert[k]) > 1/0e-10) {
-	  std::cerr << " ....  For Station " << k <<  " Adding (in quadrature) transverse position uncertainty of  " 
-	  << fOtherUncert[k] << " from " << fZCoords[k] << std::endl;
-	}
-       }
-       switch (fView) { 
-         case 'X' :
-           for (size_t k=0; k != 4; k++) { 
-             fNominalOffsets[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..
-             fNominalOffsetsAlt45[k] = fHalfWaferWidth; // xcoord is proportional to - strip number..Not sure.. 
-	   }
-	   for (size_t k=4; k != 6; k++) { 
-	       fNominalOffsets[k] = 2.0*fHalfWaferWidth; // To be checked.. 
-               fNominalOffsetsAlt45[k] = -2.0*fHalfWaferWidth; // xcoord is proportional to - strip number.. To be checked.. 
-	    }
-	    break;
-	 case 'Y' :
-           for (size_t k=0; k != 4; k++) { 
-             fNominalOffsets[k] = -fHalfWaferWidth; // ycoord is proportional to  strip number.. 
-             fNominalOffsetsAlt45[k] = fHalfWaferWidth; // ycoord is proportional to - strip number..
-	   }
-	   for (size_t k=4; k != 6; k++)  {
-	     fNominalOffsets[k] = 2.0*fHalfWaferWidth; // Using the 2nd sensor. Called Sensor 3 for Y I think... Y coord to trip number is flipped. 
-             fNominalOffsetsAlt45[k] = -2.0*fHalfWaferWidth; // ycoord is proportional to +  strip number.. Down sensor 
-	   }
-           // 
-           // Min amd maximum window.. To be defined.. Based on histogramming cluster positions.. 
-           //
-	   // Comment this out, that was for data, trial and error.. We should use the methos Select by View in the main module.. 
-	   // 
-	   // fMinStrips[0] = 250.; fMaxStrips[0] = 500.; 
-	  // fMinStrips[1] = 260.; fMaxStrips[1] = 510.; 
-	  // fMinStrips[2] = 275.; fMaxStrips[2] = 525.; 
-	  // fMinStrips[3] = 275.; fMaxStrips[3] = 525.; 
-	  // fMinStrips[4] = 525.; fMaxStrips[4] = 700.; // There are dead channels at lower strip count, distribution of strip choppy. 
-	  // fMinStrips[5] = 490.; fMaxStrips[5] = 700.; 
-	   break;
-       }
-       // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  But it does includes the target.
-       //
-       // Obtained in Dec 2022, with target in. 
-       //
-       /*
-       fMultScatUncert[1] =  0.003201263;   
-       fMultScatUncert[2] =  0.02213214;   
-       fMultScatUncert[3] =  0.03676218;   
-       fMultScatUncert[4] =  0.1022451;   
-       fMultScatUncert[5] =  0.1327402; 
-       */ 
-       fMultScatUncert[1] =  0.003830147;   
-       fMultScatUncert[2] =  0.01371613;	
-       fMultScatUncert[3] =  0.01947578;	
-       fMultScatUncert[4] =  0.05067243;  
-       fMultScatUncert[5] =  0.06630287;
-       /*
-       ** This is momentum dependent... Carefull..At 120 GeV, no target, one has: (after rejection of wide scattering event, presumably hadronic.) 
-       */
-       fMultScatUncert[1] =  0.003201263;   
-       fMultScatUncert[2] =  0.00512;   
-       fMultScatUncert[3] =  0.0092;   
-       fMultScatUncert[4] =  0.0212;   
-       fMultScatUncert[5] =  0.0264; 
-        
+       this->myConvert.InitializeAllCoords(zCoords);
+       std::vector<double> zCoordsForLinFit(fNumStations, 0.); 
+       for (size_t kSt=0; kSt!=5; kSt++) zCoordsForLinFit[kSt] = zCoords[kSt]; 
+       zCoordsForLinFit[5] = zCoords[7];
+       myLinFit.SetZCoords(zCoordsForLinFit);
      }
      void ssdr::SSDAlign2DXYAlgo1::SetForMomentum(double p) {
        if (fMomentumIsSet) {
          std::cerr << " ssdr::SSDAlign3DUVAlgo1::SetForMomentum, already called, skip!!! " << std::endl;
 	 return;
        }
-       const double pRatio = 120.0 / p;
-       fMagnetKick120GeV *= pRatio;
-       for (size_t k=0; k != fMultScatUncert.size(); k++) fMultScatUncert[k] *= std::abs(pRatio); 
+       myConvert.SetForMomentum(p);
        fMomentumIsSet = true;
      }
      void  SSDAlign2DXYAlgo1::openOutputCsvFiles() {
@@ -231,42 +155,42 @@ namespace emph {
        for (std::vector<rb::SSDCluster>::const_iterator itCl0 = aSSDcls.cbegin(); itCl0 != aSSDcls.cend(); itCl0++) {
 	 if (itCl0->Station() != 0) continue;
 	 if ((itCl0->WgtAvgStrip() < fMinStrips[0]) || (itCl0->WgtAvgStrip() >= fMaxStrips[0])) continue;
-	 tsDataErr[0] = this->GetTsUncertainty(0, itCl0);
-	 tsData[0] = getTsFromCluster(0, itCl0->Sensor(), false, itCl0->WgtAvgStrip()); 
+	 tsDataErr[0] = myConvert.GetTsUncertainty(0, itCl0);
+	 tsData[0] = myConvert.GetTsFromCluster(0, itCl0->Sensor(), itCl0->WgtAvgStrip()); 
 	 if (debugIsOn) std::cerr << " ... Stations 0 weighted strip number " 
-	                << itCl0->WgtAvgStrip() << " tsData " << tsData[0] << " +-" << tsDataErr[0] << " NominalOff set " << fNominalOffsets[0] 
+	                << itCl0->WgtAvgStrip() << " tsData " << tsData[0] << " +-" << tsDataErr[0] 
 			<< " assumed Residual " << fResiduals[0] << std::endl;
          for (std::vector<rb::SSDCluster>::const_iterator itCl1 = aSSDcls.cbegin(); itCl1 != aSSDcls.cend(); itCl1++) {
 	   if (itCl1->Station() != 1) continue;
 	   if ((itCl1->WgtAvgStrip() < fMinStrips[1]) || (itCl1->WgtAvgStrip() >= fMaxStrips[1])) continue;
-	   tsData[1] = getTsFromCluster(1, itCl0->Sensor(), false, itCl1->WgtAvgStrip()); 
-	   tsDataErr[1] = this->GetTsUncertainty(1, itCl1);
+	   tsData[1] = myConvert.GetTsFromCluster(1, itCl0->Sensor(), itCl1->WgtAvgStrip()); 
+	   tsDataErr[1] = myConvert.GetTsUncertainty(1, itCl1);
 	   if (debugIsOn) std::cerr << " ... Stations 1 weighted strip number " 
-	                << itCl1->WgtAvgStrip() << " tsData " << tsData[1] << " +-" << tsDataErr[1] << " NominalOff set " << fNominalOffsets[1] 
+	                << itCl1->WgtAvgStrip() << " tsData " << tsData[1] << " +-" << tsDataErr[1]  
 			<< " assumed Residual " << fResiduals[1] << std::endl;
           for (std::vector<rb::SSDCluster>::const_iterator itCl2 = aSSDcls.cbegin(); itCl2 != aSSDcls.cend(); itCl2++) {
 	     if (itCl2->Station() != 2) continue;
 	     if ((itCl2->WgtAvgStrip() < fMinStrips[2]) || (itCl2->WgtAvgStrip() >= fMaxStrips[2])) continue;
-	     tsData[2] = getTsFromCluster(2, itCl2->Sensor(),  false, itCl2->WgtAvgStrip()); 
-	     tsDataErr[2] = this->GetTsUncertainty(2, itCl2);
+	     tsData[2] = myConvert.GetTsFromCluster(2, itCl2->Sensor(), itCl2->WgtAvgStrip()); 
+	     tsDataErr[2] = myConvert.GetTsUncertainty(2, itCl2);
 	     if (debugIsOn) std::cerr << " ... Stations 2 weighted strip number " 
-	                << itCl2->WgtAvgStrip() << " tsData " << tsData[2] << " +-" << tsDataErr[2] << " NominalOff set " << fNominalOffsets[2] 
+	                << itCl2->WgtAvgStrip() << " tsData " << tsData[2] << " +-" << tsDataErr[2] 
 			<< " assumed Residual " << fResiduals[2] << std::endl;
              for (std::vector<rb::SSDCluster>::const_iterator itCl3 = aSSDcls.cbegin(); itCl3 != aSSDcls.cend(); itCl3++) {
 	       if (itCl3->Station() != 3) continue;
 	       if ((itCl3->WgtAvgStrip() < fMinStrips[3]) || (itCl3->WgtAvgStrip() >= fMaxStrips[3])) continue;
-	       tsData[3] = getTsFromCluster(3, itCl3->Sensor(),   false, itCl3->WgtAvgStrip()); 
-	       tsDataErr[3] = this->GetTsUncertainty(3, itCl3);
+	       tsData[3] = myConvert.GetTsFromCluster(3, itCl3->Sensor(), itCl3->WgtAvgStrip()); 
+	       tsDataErr[3] = myConvert.GetTsUncertainty(3, itCl3);
 	       if (debugIsOn) std::cerr << " ... Stations 3 weighted strip number " 
 	                << itCl3->WgtAvgStrip() << " tsData " << tsData[3]  << " +-" << tsDataErr[3] << " NominalOff set " << fNominalOffsets[3] 
 			<< " assumed Residual " << fResiduals[3] << std::endl;
                for (std::vector<rb::SSDCluster>::const_iterator itCl4 = aSSDcls.cbegin(); itCl4 != aSSDcls.cend(); itCl4++) {
 	         if (itCl4->Station() != 4) continue;
-	         tsData[4] = getTsFromCluster(4, itCl4->Sensor(), false, itCl4->WgtAvgStrip()); 
-	         tsDataErr[4] = this->GetTsUncertainty(4, itCl4);
+	         tsData[4] = myConvert.GetTsFromCluster(4, itCl4->Sensor(), itCl4->WgtAvgStrip()); 
+	         tsDataErr[4] = myConvert.GetTsUncertainty(4, itCl4);
 	         if ((itCl4->WgtAvgStrip() < fMinStrips[4]) || (itCl4->WgtAvgStrip() >= fMaxStrips[4])) continue;
 	         if (debugIsOn) std::cerr << " .. Stations 4 weighted strip number " 
-	                << itCl4->WgtAvgStrip() << " tsData " << tsData[4] << " +-" << tsDataErr[4] << " NominalOff set " << fNominalOffsets[4] 
+	                << itCl4->WgtAvgStrip() << " tsData " << tsData[4] << " +-" << tsDataErr[4] 
 			<< " assumed Residual " << fResiduals[4] << std::endl;
 		 if (fAlign0to4) { // This is mostly repeated code.. Need to create a small private method. 
 		     myLinFit.chiSq = DBL_MAX; std::vector<double> tsDataStart(tsData); int nIter = 0;
@@ -310,10 +234,10 @@ namespace emph {
                    for (std::vector<rb::SSDCluster>::const_iterator itCl5 = aSSDcls.cbegin(); itCl5 != aSSDcls.cend(); itCl5++) {
 	             if (itCl5->Station() != 5) continue;
 	             if ((itCl5->WgtAvgStrip() < fMinStrips[5]) || (itCl5->WgtAvgStrip() >= fMaxStrips[5])) continue;
-	             tsData[5] = getTsFromCluster(5, itCl5->Sensor(), false , itCl5->WgtAvgStrip()); 
-	             tsDataErr[5] = this->GetTsUncertainty(5, itCl5);
+	             tsData[5] = myConvert.GetTsFromCluster(5, itCl5->Sensor(), itCl5->WgtAvgStrip()); 
+	             tsDataErr[5] = myConvert.GetTsUncertainty(5, itCl5);
 	             if (debugIsOn) std::cerr << " .. Stations 5 weighted strip number " 
-	                << itCl5->WgtAvgStrip() << " tsData " << tsData[5] <<  " +-" << tsDataErr[5] << " NominalOff set " << fNominalOffsets[5] 
+	                << itCl5->WgtAvgStrip() << " tsData " << tsData[5] <<  " +-" << tsDataErr[5]  
 			<< " assumed Residual " << fResiduals[5] << std::endl;
 		     // Now fit.. a few times keep transfering the residuals 
 		     myLinFit.chiSq = DBL_MAX; std::vector<double> tsDataStart(tsData); int nIter = 0;
@@ -377,6 +301,7 @@ namespace emph {
 */
      } 
      void  SSDAlign2DXYAlgo1::alignItAlt45(const bool skipStation4, const art::Event &evt, const std::vector<rb::SSDCluster> &aSSDcls) {
+       std::cerr << " SSDAlign2DXYAlgo1::alignItAlt45, deprecated, do not use, fatal... " << std::endl; exit(2);
        fRunNum = evt.run();
        if (!fFilesAreOpen) this->openOutputCsvFiles();
        fSubRunNum = evt.subRun(); 
@@ -457,32 +382,32 @@ namespace emph {
        for (std::vector<rb::SSDCluster>::const_iterator itCl0 = aSSDcls.cbegin(); itCl0 != aSSDcls.cend(); itCl0++) {
 	 if (itCl0->Station() != 0) continue;
 	 if ((itCl0->WgtAvgStrip() < fMinStrips[0]) || (itCl0->WgtAvgStrip() >= fMaxStrips[0])) continue;
-	 tsDataErr[0] = this->GetTsUncertainty(0, itCl0);
-	 tsData[0] = getTsFromCluster(0, itCl0->Sensor(), false, itCl0->WgtAvgStrip()); 
+	 tsDataErr[0] = myConvert.GetTsUncertainty(0, itCl0);
+	 tsData[0] = myConvert.GetTsFromCluster(0, itCl0->Sensor(), itCl0->WgtAvgStrip()); 
 	 if (debugIsOn) std::cerr << " ... Stations 0 weighted strip number " 
 	                << itCl0->WgtAvgStrip() << " tsData " << tsData[0] << " NominalOff set " << fNominalOffsets[0] 
 			<< " assumed Mean Residual " << fMeanResiduals[0] << std::endl;
          for (std::vector<rb::SSDCluster>::const_iterator itCl1 = aSSDcls.cbegin(); itCl1 != aSSDcls.cend(); itCl1++) {
 	   if (itCl1->Station() != 1) continue;
 	   if ((itCl1->WgtAvgStrip() < fMinStrips[1]) || (itCl1->WgtAvgStrip() >= fMaxStrips[1])) continue;
-	   tsData[1] = getTsFromCluster(1, itCl1->Sensor(), false, itCl1->WgtAvgStrip()); 
-	   tsDataErr[1] = this->GetTsUncertainty(1, itCl1);
+	   tsData[1] = myConvert.GetTsFromCluster(1, itCl1->Sensor(), itCl1->WgtAvgStrip()); 
+	   tsDataErr[1] = myConvert.GetTsUncertainty(1, itCl1);
 	   if (debugIsOn) std::cerr << " ... Stations 1 weighted strip number " 
 	                << itCl1->WgtAvgStrip() << " tsData " << tsData[1] << " NominalOff set " << fNominalOffsets[1] 
 			<< " assumed Mean Residual " << fMeanResiduals[1] << std::endl;
           for (std::vector<rb::SSDCluster>::const_iterator itCl2 = aSSDcls.cbegin(); itCl2 != aSSDcls.cend(); itCl2++) {
 	     if (itCl2->Station() != 2) continue;
 	     if ((itCl2->WgtAvgStrip() < fMinStrips[2]) || (itCl2->WgtAvgStrip() >= fMaxStrips[2])) continue;
-	     tsData[2] = getTsFromCluster(2, itCl2->Sensor(), false, itCl2->WgtAvgStrip()); 
-	     tsDataErr[2] = this->GetTsUncertainty(2, itCl2);
+	     tsData[2] = myConvert.GetTsFromCluster(2, itCl2->Sensor(), itCl2->WgtAvgStrip()); 
+	     tsDataErr[2] = myConvert.GetTsUncertainty(2, itCl2);
 	     if (debugIsOn) std::cerr << " ... Stations 2 weighted strip number " 
 	                << itCl2->WgtAvgStrip() << " tsData " << tsData[2] << " NominalOff set " << fNominalOffsets[2] 
 			<< " assumed mean Residual " << fMeanResiduals[2] << std::endl;
              for (std::vector<rb::SSDCluster>::const_iterator itCl3 = aSSDcls.cbegin(); itCl3 != aSSDcls.cend(); itCl3++) {
 	       if (itCl3->Station() != 3) continue;
 	       if ((itCl3->WgtAvgStrip() < fMinStrips[3]) || (itCl3->WgtAvgStrip() >= fMaxStrips[3])) continue;
-	       tsData[3] = getTsFromCluster(3, itCl3->Sensor(), false, itCl3->WgtAvgStrip()); 
-	       tsDataErr[3] = this->GetTsUncertainty(3, itCl3);
+	       tsData[3] = myConvert.GetTsFromCluster(3, itCl3->Sensor(), itCl3->WgtAvgStrip()); 
+	       tsDataErr[3] = myConvert.GetTsUncertainty(3, itCl3);
 	       bool didSinglePseudoHitStation4 = false;
 	       if (debugIsOn) std::cerr << " ... Stations 3 weighted strip number " 
 	                << itCl3->WgtAvgStrip() << " tsData " << tsData[3] << " NominalOff set " << fNominalOffsets[3] 
@@ -490,8 +415,8 @@ namespace emph {
                for (std::vector<rb::SSDCluster>::const_iterator itCl4 = aSSDcls.cbegin(); itCl4 != aSSDcls.cend(); itCl4++) {
 	         if (!skipStation4) {   
 	           if (itCl4->Station() != 4) continue;
-	           tsData[4] = getTsFromCluster(4, itCl4->Sensor(), false, itCl4->WgtAvgStrip()); 
-	           tsDataErr[4] = this->GetTsUncertainty(4, itCl4);
+	           tsData[4] = myConvert.GetTsFromCluster(4, itCl4->Sensor(), itCl4->WgtAvgStrip()); 
+	           tsDataErr[4] = myConvert.GetTsUncertainty(4, itCl4);
 	           if ((itCl4->WgtAvgStrip() < fMinStrips[4]) || (itCl4->WgtAvgStrip() >= fMaxStrips[4])) continue;
 	           if (debugIsOn) std::cerr << " .. Stations 4 weighted strip number " 
 	                << itCl4->WgtAvgStrip() << " tsData " << tsData[4] << " NominalOff set " << fNominalOffsets[4] 
@@ -505,8 +430,8 @@ namespace emph {
                  for (std::vector<rb::SSDCluster>::const_iterator itCl5 = aSSDcls.cbegin(); itCl5 != aSSDcls.cend(); itCl5++) {
 	           if (itCl5->Station() != 5) continue;
 	           if ((itCl5->WgtAvgStrip() < fMinStrips[5]) || (itCl5->WgtAvgStrip() >= fMaxStrips[5])) continue;
-	           tsData[5] = getTsFromCluster(5, itCl5->Sensor(), false , itCl5->WgtAvgStrip()); 
-	           tsDataErr[5] = this->GetTsUncertainty(5, itCl5);
+	           tsData[5] = myConvert.GetTsFromCluster(5, itCl5->Sensor() , itCl5->WgtAvgStrip()); 
+	           tsDataErr[5] = myConvert.GetTsUncertainty(5, itCl5);
 		   // Now fit.. a few times keep transfering the residuals 
 		   myLinFit.chiSq = DBL_MAX; std::vector<double> tsDataStart(tsData); int nIter = 0;
 		   bool didConverged = false;

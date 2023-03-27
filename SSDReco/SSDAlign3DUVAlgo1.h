@@ -18,6 +18,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
 #include "RecoBase/BeamTrackAlgo1.h" 
+#include "SSDReco/ConvertDigitToWCoordAlgo1.h"
 
 namespace emph { 
   namespace ssdr {
@@ -27,7 +28,7 @@ namespace emph {
        public:
       
 	SSDAlign3DUVAlgo1(); // No args .. for now.. 
-	SSDAlign3DUVAlgo1(char aView, int aStation, bool atl45); // U or V 
+	SSDAlign3DUVAlgo1(char aView, int aStation, int aSensor); // U or V 
         ~SSDAlign3DUVAlgo1();
 	
         private:
@@ -44,7 +45,6 @@ namespace emph {
 	  bool fFilesAreOpen;
 	  char fView; 
 	  int fStation; // the station & sensor to align 
-	  bool fAlt45; // will dictated which sensor will be used. 
 	  int fSensor;      
 	  double fPitch;
 	  double fHalfWaferWidth;
@@ -54,8 +54,6 @@ namespace emph {
 	  std::string fTokenJob;
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fZCoordXs, fZCoordYs,  fZCoordUs, fZCoordVs;
-	  std::vector<double> fNominalOffsetsX, fNominalOffsetsY, fNominalOffsetsXAlt45, fNominalOffsetsYAlt45; // Nominal offsets not yet used.. 
-	  std::vector<double> fNominalOffsetsU, fNominalOffsetsV; 
 	  std::vector<double> fFittedResidualsX;// the meanvalue over a run..Or previously fitted..  
 	  std::vector<double> fFittedResidualsY;// the meanvalue over a run..Or previously fitted..  
           // For future use..
@@ -78,6 +76,10 @@ namespace emph {
 	  
 	  
 	  emph::ssdr::SSDAlignSimpleLinFit myLinFitX, myLinFitY; 
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertX; // View is the argument.. 
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertY; // One instance for each view.. Not a waste of memory, maximum dims are 8, not 22 
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertU; // For sake of uniformity. 
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertV; // 
 
 	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV, fFOutCompact;
 	  
@@ -90,12 +92,14 @@ namespace emph {
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 //	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
-	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
+	 inline void SetOtherUncert(const std::vector<double> v) { 
+	    fOtherUncert = v; myConvertX.SetOtherUncert(v); myConvertY.SetOtherUncert(v); 
+	    myConvertU.SetOtherUncert(v); myConvertV.SetOtherUncert(v);} 
 //	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
 //	 inline void SetRefPtForPitchOrYawAngle(double v) { fRefPointPitchOrYawAngle = v; }
-	 inline void SetFittedResidualsForX(std::vector<double> v) { fFittedResidualsX = v;} 
-	 inline void SetFittedResidualsForY(std::vector<double> v) { fFittedResidualsY = v;} 
-	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; }
+	 inline void SetFittedResidualsForX(std::vector<double> v) { fFittedResidualsX = v; myConvertX.SetFittedResiduals(v); } 
+	 inline void SetFittedResidualsForY(std::vector<double> v) { fFittedResidualsY = v; myConvertY.SetFittedResiduals(v); } 
+	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; myConvertX.SetMagnetKick120GeV(v);}
 	 inline void SetChiSqCutXY(double v) { fChiSqCutXY = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs);
@@ -118,17 +122,7 @@ namespace emph {
 	 bool recoXY(rb::planeView view,  const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
 	 bool checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
-	 
-//	 double GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX=true) const;
-	 double GetTsFromCluster(char aView, size_t kStation,  size_t sensor, double strip) const;
-	 
-	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
-	  double aRMS = itCl->WgtRmsStrip();
-	  double errMeasSq = (1.0/12.)*fPitch * fPitch * 1.0/(1.0 + aRMS*aRMS); // Very approximate, need a better model. 
-	  return std::sqrt(errMeasSq + fOtherUncert[kSt]*fOtherUncert[kSt] + fMultScatUncert[kSt]*fMultScatUncert[kSt]);
-	  
-	 }
-	 
+	 	 	 
 //	 inline double correctTsForPitchOrYawAngle(size_t kStation, int sensor, double ts) {
 	 inline double correctTsForPitchOrYawAngle(size_t , int, double ts) {
 //	   return (ts + ts*fPitchOrYawAngles[kStation]);

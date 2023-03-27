@@ -20,6 +20,7 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
+#include "SSDReco/ConvertDigitToWCoordAlgo1.h"
 
 namespace emph { 
   namespace ssdr {
@@ -51,6 +52,9 @@ namespace emph {
 	  double fChiSqCut;
 //	  double fRefPointPitchOrYawAngle;
 	  std::string fTokenJob;
+	  //
+	  // We keep those for now, but all transfered to the Convertion digit to global coord system class. 
+	  //
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fZCoords;
 	  std::vector<double> fNominalOffsets; // for station 4 and 5, Y View Sensor 3 
@@ -69,6 +73,7 @@ namespace emph {
 	  std::vector<double> fPitchOrYawAngles;
 	  
 	  emph::ssdr::SSDAlignSimpleLinFit myLinFit; // no contructor argument. 
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvert; // View is the argument.. 
 	  std::ofstream fFOutA1, fFOutA1Dbg;
 	  
 	   
@@ -84,12 +89,11 @@ namespace emph {
 	 inline void SetNumIterMax( int n) { fNumIterMax = n; }
 	 inline void SetChiSqCut1 (double v) { fChiSqCut = v; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
-	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
-	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
-	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
-//	 inline void SetRefPtForPitchOrYawAngle(double v) { fRefPointPitchOrYawAngle = v; }
-	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v;} 
-	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; }
+	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; myConvert.SetZLocShifts(v); } 
+	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; myConvert.SetOtherUncert(v); } 
+	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; myConvert.SetPitchAngles(v); } 
+	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v; myConvert.SetFittedResiduals(v);} 
+	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; myConvert.SetMagnetKick120GeV(v);}
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {
 	   if ((aView != 'X') && (aView != 'Y')) {
@@ -97,79 +101,18 @@ namespace emph {
 	     exit(2);
 	   }
 	   fView = aView;
+	   myConvert.SetTheView(aView);
 	 }
 	 void SetForMomentum(double p); // Rescale the Magnet kick, deviation on the X-Z plane 
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
-	 
-	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
-	  double aRMS = itCl->WgtRmsStrip();
-	  double errMeasSq = (1.0/12.)*fPitch * fPitch * 1.0/(1.0 + aRMS*aRMS); // Very approximate, need a better model. 
-	  return std::sqrt(errMeasSq + fOtherUncert[kSt]*fOtherUncert[kSt] + fMultScatUncert[kSt]*fMultScatUncert[kSt]);
-	  
-	 }
-	 
+	 	 
 	 void  alignIt(const art::Event &evt, const std::vector<rb::SSDCluster> &aSSDcls); 
 	 void  alignItAlt45(const bool skipStation4, const art::Event &evt, 
 	                                  const std::vector<rb::SSDCluster> &aSSDcls); // find the residuals for station 4 & 5, Sensor 2 (in Y). 
 	 
 	 private:
 	 
-	 inline double getTsFromCluster(size_t kStation, size_t kPlane, bool alternate45, double strip) {
-	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
-	     case 'X' :
-	     {
-	       double aVal=0.;
-	       if (kStation < 4) {
-	         aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-	       } else {
-	         if (!alternate45) {
-		    aVal =  strip*fPitch - fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
-		    if (kPlane == 0) aVal *= -1.;
-		 } else {
-		   aVal =  -1.0*strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
-		   // Obsolete.. 
-		 }
-		 // Momentum correction, for 120 GeV primary beam  
-		 aVal += fMagnetKick120GeV * (fZCoords[kStation] - fZCoordsMagnetCenter);
-		 // Yaw Correction 
-	       }
-	       return aVal;
-	       break;
-	     } 
-	     case 'Y' : 
-	      {
-	       double aVal = 0.;
-	       if (kStation < 4) {  
-	         aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-	       } else {
-//
-//   When using the Monte-Carlo, and possibly the data , we had a sign mistake, before March 23 2023 	       
-	         if (!alternate45) {
-		   aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-		   if (kPlane == 2) { aVal *= -1;  } // last correction, related fence counting.. MC based ! Guess.. to be checked..
-//		   if (kPlane == 3) { aVal -= fPitch; } // last correction, related fence counting.. MC based ! Probably not the last one
-	       
-//	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-		  } else {
-		    // Should be deprecated.. 
-		    aVal =  ( strip*fPitch + fNominalOffsetsAlt45[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-		  } 
-	       } 
-	       const double aValC = this->correctTsForPitchOrYawAngle(kStation, aVal);
-	       return aValC;
-	       break; 
-	      }
-	      default :
-	        std::cerr << " SSDAlign2DXYAlgo1::getTsFromCluster, unexpected view, "
-		<< fView << " kStation " << kStation << 
-		 " internal error, fatal " << std::endl; exit(2);
-	   }
-	   return 0.; // should not happen  
-	 }
-	 inline double correctTsForPitchOrYawAngle(size_t kStation, double ts) {
-	   return (ts + ts*fPitchOrYawAngles[kStation]);
-	 }
 	 void openOutputCsvFiles();
 	
     };
