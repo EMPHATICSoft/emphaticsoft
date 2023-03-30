@@ -133,29 +133,34 @@ namespace runhist{
 
   bool RunHistory::LoadConfig()
   {
-
-	  std::string file_path;
-	  file_path = getenv ("CETPKG_SOURCE");
-	  file_path = file_path + "/ConstBase/" ;
-
-	  if(_runNumber >= 436 && _runNumber <= 605){
-		  _geoFile=file_path+"Geometry/phase1a.gdml";
-		  _chanFile=file_path+"ChannelMap/ChannelMap_Jan22_Run436.txt";
-		  _calibVer=1;
-	  }
-	  else if(_runNumber > 605 && _runNumber <= 1386){
-		  _geoFile=file_path+"Geometry/phase1b.gdml";
-		  _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
-		  _calibVer=2;
-	  }
-	  else{
-		  std::cout << "Run " << _runNumber << " is not in the database." << std::endl;
-		  std::abort();
-	  }
-
-	  return true;
+    
+    std::string file_path;
+    file_path = getenv ("CETPKG_SOURCE");
+    file_path = file_path + "/ConstBase/" ;
+    
+    if(_runNumber >= 436 && _runNumber <= 605){
+      _geoFile=file_path+"Geometry/phase1a.gdml";
+      _chanFile=file_path+"ChannelMap/ChannelMap_Jan22_Run436.txt";
+      _calibVer=1;
+    }
+    else if(_runNumber > 605 && _runNumber <= 1386){
+      _geoFile=file_path+"Geometry/phase1b.gdml";
+      _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
+      _calibVer=2;
+    }
+    else if(_runNumber >= 2000){
+      _geoFile=file_path+"Geometry/phase1b.gdml";
+      _chanFile=file_path+"ChannelMap/ChannelMap_Mar23.txt";
+      _calibVer=2;
+    }
+    else{
+      std::cout << "Run " << _runNumber << " is not in the database." << std::endl;
+      std::abort();
+    }
+    
+    return true;
   }
-
+  
   //----------------------------------------------------------------------
 
   bool RunHistory::LoadFromDB()
