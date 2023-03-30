@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 // Class:       RawDataUnpacker
 // Module Type: input source
 // Author:      jpaley@fnal.gov, eflumerf@fnal.gov
@@ -304,7 +304,7 @@ namespace rawdata {
 	auto& cfrag = *((*cfragIter).second.front());
 	auto cfragId = (*cfragIter).first;
 	emphaticdaq::CAENV1720Fragment caenfrag(cfrag);
-	fWaveForms[cfragId].push_back(Unpack::GetWaveFormsFrom1720Fragment(caenfrag));	  
+	fWaveForms[cfragId].push_back(Unpack::GetWaveFormsFrom1720Fragment(caenfrag,cfragId));	  
 	fFragTimestamps[cfragId].push_back(cfrag.timestamp());
 	(*cfragIter).second.pop_front();
       }
@@ -436,6 +436,8 @@ namespace rawdata {
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
 	auto fragId = fFragId[ifrag];
 	fT0[fragId] = fFragTimestamps[fragId][0];
+	if (fVerbosity)
+	  std::cout << "T0[" << fragId << "] = " << fT0[fragId] << std::endl;
 
 	if (fFirstSubRunHasExtraTrigger) {
 	  if (fSubrun == 1) { // skip these extra fragments
@@ -492,6 +494,8 @@ namespace rawdata {
 	  }
 	}
       }
+      if (fVerbosity) std::cout << "earliest timestamp = " << earliestTimestamp 
+				<< std::endl;
 
       //      std::cout << fEvtCount << ", " << fSSDEvtIdx << ", " << std::endl;
       if ((fEvtCount > 0) && (fSSDEvtIdx > 0)  &&
@@ -513,7 +517,10 @@ namespace rawdata {
 	  }
 	}
       }
-      
+
+      if (fVerbosity)
+	std::cout << "event dt = " << earliestTimestamp-fPrevTS << std::endl;
+
       fPrevTS = earliestTimestamp;
       if (fReadSSDData)
 	++fSSDEvtIdx;
@@ -532,11 +539,11 @@ namespace rawdata {
 	
 	if (fWaveForms.count(thisFragId)) {
 	  thisFragTimestamp = fWaveForms[thisFragId][thisFragCount][0].FragmentTime() - fT0[thisFragId];
-	  /*
-	    std::cout << "dT CAEN " << thisFragId << " = " 
-	    << (thisFragTimestamp - earliestTimestamp)
-	    << std::endl;
-	  */
+	  if (fVerbosity)
+	    std::cout << "dT CAEN board " << thisFragId << " = " 
+		      << (thisFragTimestamp - earliestTimestamp)
+		      << std::endl;
+	  
 	  if ((thisFragTimestamp - earliestTimestamp) < fTimeWindow) {
 	    emph::cmap::FEBoardType boardType = emph::cmap::V1720;
 	    int boardNum = thisFragId;
@@ -549,7 +556,7 @@ namespace rawdata {
 	      if (! fChannelMap->IsValidEChan(echan)) continue;
 	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 	      tdig.SetDetChannel(dchan.Channel());
-	      // std::cout << echan << " maps to " << dchan << std::endl;
+	      //	      std::cout << echan << " maps to " << dchan << std::endl;
 	      evtWaveForms[dchan.DetId()]->push_back(tdig);
 	      ++nObjects;
 	    }
@@ -561,7 +568,12 @@ namespace rawdata {
 	    
 	    thisFragTimestamp = fTRB3RawDigits[thisFragId][thisFragCount][0].GetFragmentTimestamp() - fT0[thisFragId];
 	    
-	    /*
+	    if (fVerbosity) {
+	      std::cout << "dT TRB3 board " << thisFragId << " = " 
+			<< (thisFragTimestamp - earliestTimestamp)
+			<< std::endl;
+	    }
+	      /*
 	      std::cout << "dT TRB3 " << thisFragId << " = " 
 	      << (thisFragTimestamp - earliestTimestamp)
 	      << std::endl;
