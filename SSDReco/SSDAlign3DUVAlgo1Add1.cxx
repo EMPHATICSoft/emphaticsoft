@@ -39,7 +39,8 @@ namespace emph {
        aFOut.close();
     }
     
-    void SSDAlign3DUVAlgo1::dumpCompactEvt(int spill, int evt, bool strictY6St, bool strictX6St, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+    void SSDAlign3DUVAlgo1::dumpCompactEvt(int spill, int evt, bool strictY6St, bool strictX6St, 
+                                           const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
       if (!fFOutCompact.is_open()) {
        std::ostringstream aFOutCompactStrStr; 
        if ((!strictY6St) && (!strictX6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1b.dat";
@@ -110,18 +111,23 @@ namespace emph {
       //
       for (size_t kSt=0; kSt != fNumStations+2; kSt++) if ( (nClX[kSt] > 1) || (nClY[kSt] > 1)) return ;
       if (strictY6St) {
-        if ((nClY[4] > 0) || (nClY[6] > 0)) return;
+        // This was to avoid the poor statistics in some of the double sensor, real data, run 1055 
+//        if ((nClY[4] > 0) || (nClY[6] > 0)) return;
         for (size_t kSt=0; kSt != 4; kSt++) if (nClY[kSt] == 0) return;
-        if ((nClY[5] == 0) || (nClY[7] == 0)) return;
-        if (nClY[4] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
-        if (nClY[6] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+	if ((nClY[4] + nClY[5]) == 0) return;    
+	if ((nClY[6] + nClY[7]) == 0) return;    
+//        if ((nClY[5] == 0) || (nClY[7] == 0)) return;
+//        if (nClY[4] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+//        if (nClY[6] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
       }
       if (strictX6St) {
-        if ((nClX[4] > 0) || (nClX[6] > 0)) return;
+//        if ((nClX[4] > 0) || (nClX[6] > 0)) return;
         for (size_t kSt=0; kSt != 4; kSt++) if (nClX[kSt] == 0) return;
-        if ((nClX[5] == 0) || (nClX[7] == 0)) return;
-        if (nClX[4] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
-        if (nClX[6] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+//        if ((nClX[5] == 0) || (nClX[7] == 0)) return;
+//        if (nClX[4] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+//        if (nClX[6] != 0) return; // We also veto the low multiplicity sensor, concentrated onsensor 5 and 7 of station 4 & 5. 
+	if ((nClX[4] + nClX[5]) == 0) return;    
+	if ((nClX[6] + nClX[7]) == 0) return;    
       }
 
       int aNumX = 0; for (size_t kSt=0; kSt != fNumStations+2; kSt++) aNumX += nClX[kSt];

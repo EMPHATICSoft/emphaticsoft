@@ -112,6 +112,7 @@ namespace emph {
 	 inline std::vector<int> GetNHitsYView () const { return fNHitsYView; }
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
+	 inline int GetNEvtsCompact() const { return fNEvtsCompact; } 
 	 
 	 void  alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 void dumpCompactEvt(int spill, int evt, bool strictY6, bool strictX6, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 

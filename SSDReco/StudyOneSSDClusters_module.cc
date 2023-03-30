@@ -399,6 +399,7 @@ namespace emph {
       
       std::cerr << " StudyOneSSDClusters::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Number of events " <<  fNEvents << std::endl;
+      if (fDoAlignUV) std::cerr << " Number of events Saved Compact format " << fAlignUV.GetNEvtsCompact()  << std::endl;
       if (fDumpClusters) {
         fFOutA1X.close(); fFOutA1Y.close();fFOutA1U.close(); fFOutA1V.close();
       }
