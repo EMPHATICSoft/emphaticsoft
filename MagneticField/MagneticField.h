@@ -47,7 +47,7 @@ namespace emph {
   };
 
   struct bFieldZipTrackPoint {
-    float t, x, y, z, fbx, fby, fbz, theta; // in kG, internally. 
+    float t, x, y, z, fbx, fby, fbz, theta; // in kG, internally. // For Sensis file, in Tesla. 
   };
   
   class EMPHATICMagneticField: public G4MagneticField {
@@ -64,6 +64,7 @@ namespace emph {
     void test2(); // test integration, study expected deflections.  
     void test3(); // test calculation of preliminary acceptance sensitivity of beam axis and/or SSD Yaw uncertainty.  
     void studyZipTrackData1(); // June 4 2022:  Received from Leo, who received from Mike Tartaglia. 
+    void studyZipTrackData2(); // March 28 2023:  Received from Leo, who received from Mike Tartaglia. 
     std::pair<double, double> getMaxByAtCenter();
 
   protected:
@@ -111,6 +112,7 @@ namespace emph {
     void uploadFromRootFile(const G4String &fName);
     void uploadFromTextFile(const G4String &fName);
     void uploadFromOneCSVZipFile(const G4String &fName);
+    void uploadFromOneCSVSensisFile(const G4String &fName);
     inline size_t indexForVector(double *xyz) const {
       double *ptr = xyz; 
 //      size_t iX = static_cast<size_t>(floor(((*ptr) - fXMin)/fStepX)); ptr++; // floor seems to fail if close to real boundary.. 

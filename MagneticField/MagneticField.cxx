@@ -68,11 +68,14 @@ namespace emph {
       //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
       if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
       else this->uploadFromTextFile(filename);
-      // These tests do something, comment out for sake of saving time for production use. 
-      //    this->test1();
+      // These tests do something, comment out for sake of saving time for production use.     
+          this->SetFieldOn();	// Set also in the G4EMPH, and the reconstruction.. Please check..       
+// 
+//          this->test1();
       //    this->test2();
       //    this->test3();
       //      this->studyZipTrackData1();
+      //     this->studyZipTrackData2();
     }
     
   void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
@@ -883,40 +886,48 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
     // Look at the divergence of the field.. 
     //
     std::cerr << " EMPHATICMagneticField::test1, generating simple CSV test files.. " << std::endl;
-    std::string fName1 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2.txt") : std::string("./EmphMagField_StlMap_v2.txt"); 
+    std::string fName1 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2a.txt") : std::string("./EmphMagField_StlMap_v2a.txt"); 
     std ::ofstream fOutForR(fName1.c_str());
-    fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
+    fOutForR << " x y z B0x B0y B0z B0 dB0xdx dB0ydy dB0zdz divB0 B1x B1y B1z B1 divB1" << std::endl;
     
+    const double delta = 5.;
     double xN[3], xF[3], B0N[3], B0F[3], B1N[3], B1F[3];
-    
     for (int iX = -10; iX != 10; iX++) { 
        const double x = 7.5 + iX*0.956; 
        xN[0] = x; // in mm, apparently... 
-       xF[0] = x + 10.;
+       xF[0] = x + delta;
        for (int iY = -10; iY != 20; iY++) { 
         const double y = 15.34 + iY*0.892; 
          xN[1] = y ;
-         xF[1] = y + 10.;
+         xF[1] = y + delta;
          for (int iZ = -80; iZ != 120; iZ++) { 
            const double z = iZ*4.578; 
            xN[2] = z;
-           xF[2] = z + 10.;
+           xF[2] = z + delta;
            this->setInterpolatingOption(0);
            this->MagneticField(xN, B0N); // xN is in mm.. 
            this->MagneticField(xF, B0F);
+	   //
+	   // Bug in the sign of Bz ???? 
+	   //
+	   B0N[2] *= -1.; B0F[2] *= -1.;
 	   double divB0 = 0.; double b0Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
-	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
+	   for (size_t kk=0; kk != 3; kk++) { 
+	     divB0 += (B0F[kk] - B0N[kk])/delta; // kG/mm 
 	     b0Norm += B0N[kk]*B0N[kk];
 	   }
 	   fOutForR << " " << x << " " << y << " " << z << " " 
-	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
-		    << std::sqrt(b0Norm) << " " << divB0;
+	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " << std::sqrt(b0Norm) << " " 
+		    << (B0F[0] - B0N[0])/delta << " " <<  (B0F[1] - B0N[1])/delta << " " << (B0F[2] - B0N[2])/delta << " " << divB0;
            this->setInterpolatingOption(1);
            this->MagneticField(xN, B1N); // xN is in mm.. 
            this->MagneticField(xF, B1F);
+	   //
+	   // Bug in the sign of Bz ???? 
+	   //
+	   B0N[2] *= -1.; B0F[2] *= -1.;
 	   double divB1 = 0.; double b1Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
+	   for (size_t kk=0; kk != 3; kk++) { 
 	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
 	     b1Norm += B1N[kk]*B1N[kk];
 	   }
@@ -927,38 +938,46 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
     }
     fOutForR.close();
     std::cerr << " Quit, debugging anomalous difference between stl vector and map " << std::endl; exit(2);
-    std::string fName2 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2b.txt") : std::string("./EmphMagField_StlMap_v2b.txt"); 
+    std::string fName2 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2c.txt") : std::string("./EmphMagField_StlMap_v2c.txt"); 
     fOutForR.open(fName2.c_str());
-    fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
-    
+    fOutForR << " x y z B0x B0y B0z B0 dB0xdx dB0ydy dB0zdz divB0 B1x B1y B1z B1 divB1" << std::endl;
     for (int iX = -150; iX != 150; iX++) { 
        const double x = 7.5 + iX*0.956; 
        xN[0] = x; // in mm, apparently... 
-       xF[0] = x + 10.;
+       xF[0] = x + delta;
        for (int iY = -10; iY != 20; iY++) { 
         const double y = 15.34 + iY*0.892; 
          xN[1] = y ;
-         xF[1] = y + 10.;
+         xF[1] = y + delta;
          for (int iZ = -5; iZ != 5; iZ++) { 
            const double z = 0. + iZ*4.578; 
            xN[2] = z;
-           xF[2] = z + 10.;
+           xF[2] = z + delta;
            this->setInterpolatingOption(0);
            this->MagneticField(xN, B0N); // xN is in mm.. 
            this->MagneticField(xF, B0F);
+	   //
+	   // Bug in the sign of Bz ???? 
+	   //
+	   B0N[2] *= -1.; B0F[2] *= -1.;
 	   double divB0 = 0.; double b0Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
-	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
+	   for (size_t kk=0; kk != 3; kk++) { 
+	     divB0 += (B0F[kk] - B0N[kk])/delta; // kG/mm 
 	     b0Norm += B0N[kk]*B0N[kk];
 	   }
 	   fOutForR << " " << x << " " << y << " " << z << " " 
 	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
-		    << std::sqrt(b0Norm) << " " << divB0;
+		    << std::sqrt(b0Norm) << " " << 
+		    (B0F[0] - B0N[0])/delta << " " <<  (B0F[1] - B0N[1])/delta << " " << (B0F[2] - B0N[2])/delta << " " << divB0;
            this->setInterpolatingOption(1);
            this->MagneticField(xN, B1N); // xN is in mm.. 
            this->MagneticField(xF, B1F);
+	   //
+	   // Bug in the sign of Bz ???? 
+	   //
+	   B0N[2] *= -1.; B0F[2] *= -1.;
 	   double divB1 = 0.; double b1Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
+	   for (size_t kk=0; kk != 3; kk++) { 
 	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
 	     b1Norm += B1N[kk]*B1N[kk];
 	   }
@@ -1133,7 +1152,7 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
       xN[0] = 0.; xN[1] = 0.;
       double byMax=-1000.;
       double zAtMax=-1000.;
-      this->setInterpolatingOption(1);
+      this->setInterpolatingOption(0);
       for (int iZ = -300; iZ != 500; iZ++) {
         xN[2] = 1.0*iZ;
         this->MagneticField(xN, B0N); // xN is in mm.. 
