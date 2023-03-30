@@ -21,7 +21,7 @@ art_make_library ( SOURCE ${src_files}
 		   Geometry
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
-                   ROOT::Hist
+           ROOT::Hist
 )
 
 cet_build_plugin(MomReco art::module

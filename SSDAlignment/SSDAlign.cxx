@@ -299,14 +299,6 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-  double SSDAlign::GetShift(int station, int sensor){
-      //returns value that should be added to the position measurement
-      std::cout<<station<<sensor<<std::endl;
-      return 0.;
-    
-  }
-
-  //------------------------------------------------------------
    void SSDAlign::CalibrateXYZ(double *cal)
   {
 	  _x=_x+cal[0];
