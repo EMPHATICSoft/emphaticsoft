@@ -29,7 +29,7 @@ namespace emph {
     myGeo(emph::rbal::BTAlignGeom::getInstance()),
     myParams(emph::rbal::SSDAlignParams::getInstance()),
     myBTIn(DataIn), 
-    fFitType(aFitType),
+    fFitType(aFitType), fIsMC(false), 
     fStrictSt6(true), fBeamConstraint(false), 
     fBeamBetaFunctionY(1357.), fBeamBetaFunctionX(377.), // in cm 
     fBeamAlphaFunctionY(-25.11), fBeamAlphaFunctionX(-8.63), // in cm 
@@ -109,6 +109,7 @@ namespace emph {
      for (std::vector<emph::rbal::BeamTrackCluster>::const_iterator it = myBTIn->cbegin(); it != myBTIn->cend(); it++) {
        if (!it->Keep()) continue; 
        emph::rbal::BeamTrack aTr;
+       aTr.SetMCFlag(fIsMC);
        aTr.SetDoMigrad(false); // Minuit Minimize will do .. 
 //       aTr.SetDebug((iEvt < 5));
 //       aTr.SetDebug(false);
@@ -116,6 +117,9 @@ namespace emph {
          aTr.doFit2D('Y', it); 
        } else if (fFitType == std::string("2DX")) aTr.doFit2D('X', it); 
        else if (fFitType == std::string("3D")) aTr.doFit3D(it);
+       if ((myRank == 1) && (iEvt < 20) && fDebugIsOn)  {
+          std::cerr << " Evt " << it->EvtNum() << " x0 " << aTr.X0() << " y0 " << aTr.Y0() << " chi2 " << aTr.ChiSq() << std::endl;
+       }
        myBTrs.AddBT(aTr);
        iEvt++;
      }
@@ -134,7 +138,7 @@ namespace emph {
      //
      double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, fUpLimForChiSq, (chiAddBeam + chiSoftLim) ); // We leave them be.. in the container.. 
      if ((fDebugIsOn) && (myRank == 0)) 
-       std::cerr << " .... Did all the tracks fits.. on rank 0, at least.. chi2 is  " << chi2 << std::endl;
+       std::cerr << " .... Did all the tracks fits.. on rank 0, at least.. chi2 is  " << chi2 << " fUpLimForChiSq " << fUpLimForChiSq << std::endl;
      
      if ((myRank == 0) && fFOutHistory.is_open())  {
        fFOutHistory << " " << fNCalls << " " << chi2;
@@ -172,6 +176,73 @@ namespace emph {
     double BeamTrackSSDAlignFCN::SurveyConstraints(const std::vector<double> &pars) const { // Using Soft Limits. 
       double chiAdd = 0.;
       if (fDebugIsOn) std::cerr << " BeamTrackSSDAlignFCN::SurveyConstraints.. on " << pars.size() << " parameters " << std::endl;
+      //
+      // Implement tying the double sensor together..Constraint on avoiding overlaps. The Gap has to be positive   
+      //
+      for (size_t kPar1=0; kPar1 != pars.size(); kPar1++) {
+        std::vector<SSDAlignParam>::const_iterator it1 = myParams->It(kPar1);
+	if (it1->Name() == std::string("TransShift_Y_4")) {
+	  const double tryY4 = it1->Value();
+	  for (size_t kPar2=0; kPar2 != pars.size(); kPar2++) {
+            std::vector<SSDAlignParam>::const_iterator it2 = myParams->It(kPar2);
+	     if (it2->Name() != std::string("TransShift_Y_5")) continue;
+	     const double deltaTrY45 = tryY4 + it2->Value(); // check the sign here. 
+	     if ((it2->Value() > 0.) && (tryY4 > 0.)) break; // no problem 
+//	     std::cerr << " BeamTrackSSDAlignFCN::SurveyConstraints Gap Constraint, DeltaTr4   " 
+//	               << tryY4 << " 5 " << it2->Value() << " Sum " << deltaTrY45 << std::endl;
+	     if (deltaTrY45 < 0.) chiAdd +=  10.0*deltaTrY45*deltaTrY45; // arbitrary...  
+	     break;
+	  }
+	  break;
+	}
+      }
+//      std::cerr << " BeamTrackSSDAlignFCN::SurveyConstraints, Positivity of YGap, 45, adding  " << chiAdd << std::endl;
+      for (size_t kPar1=0; kPar1 != pars.size(); kPar1++) {
+        std::vector<SSDAlignParam>::const_iterator it1 = myParams->It(kPar1);
+	if (it1->Name() == std::string("TransShift_Y_6")) {
+	  const double tryY6 = it1->Value();
+	  for (size_t kPar2=0; kPar2 != pars.size(); kPar2++) {
+            std::vector<SSDAlignParam>::const_iterator it2 = myParams->It(kPar2);
+	     if (it2->Name() != std::string("TransShift_Y_7")) continue;
+	     const double deltaTrY67 = tryY6 + it2->Value(); // check the sign here. 
+	     if (deltaTrY67 < 0.) chiAdd +=  10.0*deltaTrY67*deltaTrY67;  
+	     break;
+	  }
+	  break;
+	}
+      }
+       for (size_t kPar1=0; kPar1 != pars.size(); kPar1++) {
+        std::vector<SSDAlignParam>::const_iterator it1 = myParams->It(kPar1);
+	if (it1->Name() == std::string("TransShift_X_4")) {
+	  const double tryX4 = it1->Value();
+	  for (size_t kPar2=0; kPar2 != pars.size(); kPar2++) {
+            std::vector<SSDAlignParam>::const_iterator it2 = myParams->It(kPar2);
+	     if (it2->Name() != std::string("TransShift_X_5")) continue;
+	     const double deltaTrX45 = tryX4 + it2->Value(); // check the sign here. 
+	     if (deltaTrX45 < 0.) chiAdd +=  0.0001*deltaTrX45*deltaTrX45;  
+	     break;
+	  }
+	  break;
+	}
+      }
+//      std::cerr << " BeamTrackSSDAlignFCN::SurveyConstraints, Positivity of YGap, 45, adding  " << chiAdd << std::endl;
+      for (size_t kPar1=0; kPar1 != pars.size(); kPar1++) {
+        std::vector<SSDAlignParam>::const_iterator it1 = myParams->It(kPar1);
+	if (it1->Name() == std::string("TransShift_X_6")) {
+	  const double tryX6 = it1->Value();
+	  for (size_t kPar2=0; kPar2 != pars.size(); kPar2++) {
+            std::vector<SSDAlignParam>::const_iterator it2 = myParams->It(kPar2);
+	     if (it2->Name() != std::string("TransShift_X_7")) continue;
+	     const double deltaTrX67 = tryX6 + it2->Value(); // check the sign here. 
+	     if (deltaTrX67 < 0.) chiAdd +=  0.0001*deltaTrX67*deltaTrX67;  
+	     break;
+	  }
+	  break;
+	}
+      }
+     // Survey constraints, as of February 2023. 
+     // Comment this out, for MC studies.. 
+     /*
       for (size_t kPar=0; kPar != pars.size(); kPar++) {
         std::vector<SSDAlignParam>::const_iterator it = myParams->It(kPar);
         const double deltaUp = std::abs(it->UpLimit() - pars[kPar]);
@@ -183,6 +254,7 @@ namespace emph {
 	   << " sigma " << sigma <<  " chi " << chiA << std::endl;
 	chiAdd += chiA;
       }
+      */
       if (fDebugIsOn) std::cerr << " ........ Adding a total of " << chiAdd << " chi-square " << std::endl;
       return chiAdd;
     }
@@ -197,6 +269,7 @@ namespace emph {
      int nAcc = 0;
      for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) {
        const double yy = it->Y0(); const double slyy = it->Sly0();
+       if (it->ChiSq() > 200.) continue;     // Added, for MC studies.. Also should be valid for data....   
        if (std::abs(slyy - meanSly) > 0.0015) continue;  // we ignore multiple scattering or interaction in the Silcon wafer.  Valid only at 120 GeV 
        nAcc++;
        aaY0 += yy; aa2Y0 += yy*yy; aaSly0 += slyy; aa2Sly0 += slyy*slyy; 
@@ -229,6 +302,7 @@ namespace emph {
      int nAcc = 0;
      for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) {
        const double xx = it->X0(); const double slxx = it->Slx0();
+       if (it->ChiSq() > 200.) continue;     // Added, for MC studies.. Also should be valid for data....   
        if (std::abs(slxx - meanSlx) > 0.0015) continue;  // we ignore multiple scattering or interaction in the Silcon wafer.  Valid onlx at 120 GeV 
        nAcc++;
        aaX0 += xx; aa2X0 += xx*xx; aaSlx0 += slxx; aa2Slx0 += slxx*slxx; 

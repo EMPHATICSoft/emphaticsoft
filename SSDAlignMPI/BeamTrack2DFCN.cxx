@@ -25,12 +25,15 @@ namespace emph {
     BeamTrack2DFCN::BeamTrack2DFCN() :
     myGeo(emph::rbal::BTAlignGeom::getInstance()),
     FCNBase(),
-    fItCl(NULL), fView('?'), fErrorDef(1.), fOneOSqrt12(std::sqrt(1.0/12.)), 
+    fItCl(NULL), fIsMC(false), fView('?'), fErrorDef(1.), fOneOSqrt12(std::sqrt(1.0/12.)), 
     fResids(myGeo->NumSensorsXorY(), DBL_MAX) { ; }  
       
     double BeamTrack2DFCN::operator()(const std::vector<double> &pars) const {
     
-//      std::cerr << " BeamTrack2DFCN::operator()  Number of parameters " << pars.size() << " view " << fView <<  std::endl;
+//      const bool debugIsOn = (pars[0] < 0.5) ;
+      const bool debugIsOn = false;
+      if (debugIsOn) std::cerr << " BeamTrack2DFCN::operator()  Number of parameters " << pars.size() 
+                               << " view " << fView <<  " pars[0] " << pars[0] << std::endl;
       assert(((fView == 'X') || (fView == 'Y')));
       assert(pars.size() == 2);
       
@@ -52,23 +55,46 @@ namespace emph {
 	const double unknownErr = myGeo->UnknownUncert(fView, kSe);
 	const double z = myGeo->ZPos(fView, kSe);
 	double xPred = x0 + z * slx0;
+	if (debugIsOn) std::cerr << " .... Prediction x0 " << x0 << " slope " << slx0 << " Magnetic kick " << kick << std::endl;
 	double xMeas = 0.;
-	if ((fView == 'X') && (z > zMag))  xPred += (z  -  zMag) *  kick;
-	if (fView == 'X') {
-	  xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe));
-	  if (kSe >= 4) xMeas *= -1.0;
-	  if (z > zMag) xPred += (z  -  zMag) *  kick;
-        } else {
-	  xMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(fView, kSe)) :
+	if (!fIsMC) { 
+	  if ((fView == 'X') && (z > zMag))  xPred += (z  -  zMag) *  kick;
+	  if (fView == 'X') {
+	    xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe));
+	    if (kSe >= 4) xMeas *= -1.0;
+	    if (z > zMag) xPred += (z  -  zMag) *  kick; // Why doing it twice ???? This is likely to be a bug. 
+          } else {
+	    xMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(fView, kSe)) :
 	                      ( -strip*pitch + myGeo->TrPos(fView, kSe)) ;
-	}
+	  		      
+	  }
+	} else {
+//	  std::cerr << " Assuming Monte-Carlo .. Tr Pos assumed " << myGeo->TrPos(fView, kSe) << std::endl;
+	  if ((fView == 'X') && (z > zMag))  xPred -= (z  -  zMag) *  kick; // Sign of the BField differ.. 
+	  if (fView == 'X') {
+	    if (kSe < 4) {
+	      xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe)); // Same as above. 
+	    } else  {
+	      xMeas =  -strip*pitch + myGeo->TrPos(fView, kSe);
+	    }
+	    if ((kSe > 3) && (kSe % 2) == 1) xMeas *=-1;      
+          } else { // Y view 
+	      
+	      xMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(fView, kSe)) :
+	                      ( strip*pitch - myGeo->TrPos(fView, kSe)) ;
+	      if ((kSe > 3) && (kSe % 2) == 1) xMeas *=-1;      
+	  }
+	}  // MC vs real data.. Sign and offset convention might differ.. Ugly... 
+	
 	double xMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
 	const double dx = (xPred - xMeas); fResids[kSe] = dx;
-//	std::cerr << " ...... kSe " << kSe << " strip " << strip << " pitch " << pitch 
-//	          << " stripErrSq " << stripErrSq << " z " << z << " xPred " << xPred 
-//		  << " xMeas " << xMeas << " err " << std::sqrt(xMeasErrSq) << " resid " << dx << " chi2 " << chi2 << std::endl; 
+	if (debugIsOn) std::cerr << " ...... kSe " << kSe << " strip " << strip << " pitch " << pitch 
+	          << " stripErrSq " << stripErrSq << " z " << z << " xPred " << xPred 
+		  << " xMeas " << xMeas << " err " << std::sqrt(xMeasErrSq) << " resid " << dx << " chi2 " << chi2 << std::endl; 
+		  
 	chi2 += (dx * dx )/xMeasErrSq;
       }
+      if (debugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
       return chi2;
     }
   } // name space 

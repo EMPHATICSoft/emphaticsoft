@@ -176,7 +176,7 @@ namespace emph{
 	  size_t nW = myDat.FillForMPITransfer(itF, tmpDat);	    
 	  itF->DoNotUse();
 //
-//	  myDat.Remove(aSpill, aEvtNum);  That was the slow part, I am pretty sure!!!  
+//	  myDat.Remove(aSpill, aEvtNum);  That was the slow part, I think !!! 
 	  tagTally = 100000*kP + nTransfer;
           MPI_Send((void*) &tmpDat[0], nW, MPI_DOUBLE, kP, tagTally, MPI_COMM_WORLD );
 	  if ((nTransfer < 3) || (nTransfer%1000 == 0))

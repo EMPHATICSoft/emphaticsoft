@@ -36,7 +36,7 @@ namespace emph {
        fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},      
        fTrNomPosU{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
-       fTrNomPosV{fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  
+       fTrNomPosV{-fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  // Weird...!... MC bug ???? 
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
        fTrDeltaPosU(fNumSensorsU, 0.), fTrDeltaPosV(fNumSensorsV, 0.), 
        fTrDeltaPitchX(fNumSensorsXorY, 0.), fTrDeltaPitchY(fNumSensorsXorY, 0.),  
@@ -137,7 +137,9 @@ namespace emph {
 //	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break;  
 	    } 
-	 case 'Y' :  { fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;} 
+	 case 'Y' :  { 
+	    fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;
+	 } 
 	 case 'U' :  { fTrDeltaPosU[kSe] = v; fTrPosU[kSe] = fTrNomPosU[kSe] + v; break;} 
 	 case 'V' : case 'W' : { fTrDeltaPosV[kSe] = v; fTrPosV[kSe] = fTrNomPosV[kSe] + v; break;}
 	 default : { 
@@ -145,7 +147,23 @@ namespace emph {
 	      exit(2);  } 
 	}
      } 
+     void BTAlignGeom::SetValueTrShiftLastPlane(char view, double v) {
      
+       switch (view) {
+     	 case 'X' : {
+//	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
+	     fTrDeltaPosX[fNumSensorsXorY-1] = v;  fTrPosX[fNumSensorsXorY-1] = fTrNomPosX[fNumSensorsXorY-1] + v;  break;  
+	    } 
+	 case 'Y' :  { 
+	    fTrDeltaPosY[fNumSensorsXorY-1] = v; fTrPosY[fNumSensorsXorY-1] = fTrNomPosY[fNumSensorsXorY-1] + v; break;
+	 } 
+	 case 'U' :  { fTrDeltaPosU[fNumSensorsU-1] = v; fTrPosU[fNumSensorsU-1] = fTrNomPosU[fNumSensorsU-1] + v; break;} 
+	 case 'V' : case 'W' : { fTrDeltaPosV[fNumSensorsV-1] = v; fTrPosV[fNumSensorsV-1] = fTrNomPosV[fNumSensorsV-1] + v; break;}
+	 default : { 
+	      std::cerr << " BTAlignGeom::SetValueTrShiftLastPlane, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  }
+        } 
+     }
      void BTAlignGeom::SetRoll(char view,  size_t kSe, double v) {
        switch (view) {
      	 case 'X' : {
@@ -170,7 +188,7 @@ namespace emph {
 	 case 'U' :  { fTrDeltaPitchU[kSe] = v;  break;} 
 	 case 'V' :  case 'W' : { fTrDeltaPitchV[kSe] = v; break;}
 	 default : { 
-	      std::cerr << " BTAlignGeom::SetDeltaRoll, unknown view " << view << " fatal, quit " << std::endl; 
+	      std::cerr << " BTAlignGeom::SetDeltaPitchCorr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
@@ -183,7 +201,20 @@ namespace emph {
 	 case 'U' :  { fUnknownUncertU[kSe] = v;  break;} 
 	 case 'V' :  case 'W' : {  fUnknownUncertV[kSe] = v; break;}
 	 default : { 
-	      std::cerr << " BTAlignGeom::SetDeltaRoll, unknown view " << view << " fatal, quit " << std::endl; 
+	      std::cerr << " BTAlignGeom::SetUnknwonUncert, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	}
+     } 
+     void BTAlignGeom::SetMultScatUncert(char view,  size_t kSe, double v) {
+       switch (view) {
+     	 case 'X' : case 'Y' :{
+//	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
+	     fMultScatUncertXorY[kSe] = v;  break;  
+	    } 
+	 case 'U' :  { fMultScatUncertU[kSe] = v;  break;} 
+	 case 'V' :  case 'W' : {  fMultScatUncertV[kSe] = v; break;}
+	 default : { 
+	      std::cerr << " BTAlignGeom::SetMultScatUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 

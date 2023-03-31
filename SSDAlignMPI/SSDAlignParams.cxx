@@ -46,7 +46,8 @@ namespace emph {
 //       const double pitchCorrLimit = 1.0*0.005; // ~ 100 mRad. 
        if (fMode == std::string("2DY") || fMode == std::string("3D")) { 
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
-           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
+//           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
+           // Not for MC.. 
 	   SSDAlignParam aPar; 
 	   aPar.SetView('Y'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 
@@ -72,7 +73,7 @@ namespace emph {
        }
        if (fMode == std::string("2DX") || fMode == std::string("3D")) { 
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
-           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
+//           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
 	   SSDAlignParam aPar; 
 	   aPar.SetView('X'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 

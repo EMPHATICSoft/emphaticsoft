@@ -105,7 +105,10 @@ namespace emph {
 	   std::cerr << " SSDAlignParam::UpdateGeom, problem, the type is not defined,.. Quit here and now " << std::endl;
 	   exit(2);
 	 case TRSHIFT:
-	    { myGeo->SetDeltaTr(fView, fSensor, fValue); return;}
+	    { 
+//	        std::cerr << " SSDAlignParam::UpdateGeom, fSensor " << fSensor << " New value " << fValue << std::endl;
+	        myGeo->SetDeltaTr(fView, fSensor, fValue); return;
+            }
 	 case ZSHIFT:
 	     { myGeo->SetDeltaZ(fView, fSensor, fValue); return;}
 	 case PITCHCORR: 

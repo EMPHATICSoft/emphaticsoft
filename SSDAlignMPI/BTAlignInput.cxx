@@ -37,6 +37,10 @@ namespace emph {
        while (fIn.good()) {
          XViewData.clear(); YViewData.clear(); UViewData.clear(); VViewData.clear();
          fIn.read(reinterpret_cast<char*>(&aKey), sizeof(int)); 
+	 if ( (fIn.rdstate() & std::ifstream::eofbit ) != 0 ) {
+	    std::cerr << " BTAlignInput::FillItFromFile  Reached EOF, nEvtRead " << nEvtRead << std::endl;
+	    break;
+	 }
 	 if (aKey != static_cast<int>(fKey)) {
 	   std::cerr << " BTAlignInput::FillItFromFile, 1rst word in file " << std::string(fName) 
 	            << " has key " << aKey << " expecting " << static_cast<int>(fKey) << " fatal, quit here and now " << std::endl;

@@ -42,6 +42,7 @@ namespace emph {
       {  ; } 
     
      double BeamTrack::doFit2D(char view, std::vector<BeamTrackCluster>::const_iterator it) {
+     
        fSpill = it->Spill();   fEvtNum = it->EvtNum();
        fType = (view  == 'X') ? std::string("2DX") : std::string("2DY"); 
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit2D for event " << it->EvtNum() << " Spill " << it->Spill() 
@@ -112,6 +113,10 @@ namespace emph {
 		    return DBL_MAX;
        }
        for (size_t kSe = 0; kSe != fNumSensorsXorY; kSe++) fresids[kSe] = fFcn2D.Resid(kSe);  
+       if (fDebugIsOn) {
+          std::cerr << " .... BeamTrack::doFit2D for view " << view << " is done, and quit here... " << std::endl;
+	  exit(2);
+	} 
        return minFValM;
      }
      double BeamTrack::doFit3D(std::vector<BeamTrackCluster>::const_iterator it) {
@@ -194,7 +199,8 @@ namespace emph {
          return std::pair<double, double>(DBL_MAX, DBL_MAX); // we need at one cluster in station 0 or 1. 
        }
        // Locate the other point, choose station
-       // Need to update this for the momentum kick  
+       // Need to update this for the momentum kick
+       /*  
        double t5_StripRMS_A = it->TheRmsStrip(view, 6); double t5_StripRMS_B = it->TheRmsStrip(view, 7);
        double slt0_init = 0.;
        if (t5_StripRMS_A < 1000.) {
@@ -226,7 +232,9 @@ namespace emph {
         } else {
            return std::pair<double, double>(DBL_MAX, DBL_MAX); // we need at one cluster in station 0 or 1. 
 	 }
-       }  
+       }
+       */  
+       double slt0_init = 0.;  
        return std::pair<double, double>(t0_init, slt0_init);
     }
      
@@ -243,6 +251,10 @@ namespace emph {
          return std::pair<double, double>(DBL_MAX, DBL_MAX); // we need at one cluster in station 0 or 1. 
        }
        // Locate the other point, choose station 
+       /*
+       ** This code is used only for the aligner, and typical slope is tens of micro radians, at most, at 120 GeV.  Therefore, we can savely 
+       * assume zero slope. 
+       *
        double t5_StripRMS_A = it->TheRmsStrip(view, 6); double t5_StripRMS_B = it->TheRmsStrip(view, 7);
        double slt0_init = 0.;
        if (t5_StripRMS_A < 1000.) {
@@ -274,7 +286,9 @@ namespace emph {
         } else {
            return std::pair<double, double>(DBL_MAX, DBL_MAX); // we need at one cluster in station 0 or 1. 
 	 }
-       }  
+       }
+       */
+       double slt0_init = 0.;  
        return std::pair<double, double>(t0_init, slt0_init);
     } 
     
