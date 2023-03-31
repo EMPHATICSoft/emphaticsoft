@@ -26,6 +26,7 @@ namespace emph{
       
     private:
       BTAlignGeom* myGeo;
+      bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
       size_t fNumSensorsTotal;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
       double fErrorDef, fOneOverSqrt2, fOneOSqrt12; // for Minuit. 
@@ -38,6 +39,7 @@ namespace emph{
      
       inline void SetClusterPtr(std::vector<BeamTrackCluster>::const_iterator it) { fItCl = it; } 
       inline void SetErrorDef(double e) { fErrorDef = e; }
+      inline void SetMCFlag(bool v) { fIsMC = v; }
       inline double Resid(size_t kSe) const {
         if (kSe < fResids.size()) return fResids[kSe];
 	return DBL_MAX;

@@ -66,9 +66,11 @@ namespace emph{
 	void SetDeltaZ(char view, size_t sensor, double value);  // move individual sensors. For X, & Y, sensor ranges from 0 to fNumSensorsXoY 
 	void SetDeltaZStation(char view, size_t aStation, double value); // move individual stations.. 
 	void SetDeltaTr(char view, size_t kSe, double value); 
+	void SetValueTrShiftLastPlane(char view, double value);
 	void SetRoll(char view, size_t kSe, double value); 
 	void SetDeltaPitchCorr(char view, size_t kSe, double value); 
 	void SetUnknwonUncert(char view,  size_t kSe, double v);
+	void SetMultScatUncert(char view,  size_t kSe, double v);
 	inline void SetZCoordsMagnetCenter(double v) { fZCoordsMagnetCenter = v; } 
 	inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; } 
 	

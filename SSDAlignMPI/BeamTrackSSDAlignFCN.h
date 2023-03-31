@@ -31,6 +31,7 @@ namespace emph{
       mutable SSDAlignParams* myParams;
       emph::rbal::BTAlignInput *myBTIn;
       std::string fFitType;
+      bool fIsMC; // Very ugly, not sure about sign conventions.. 
       bool fStrictSt6;
       bool fBeamConstraint;
       double fBeamBetaFunctionY, fBeamBetaFunctionX;
@@ -48,6 +49,11 @@ namespace emph{
       
     public:
       // Setters
+      void SetMCFlag(bool v) {
+         fIsMC = v; 
+         if (v) std::cerr << " BeamTrackSSDAlignFCN, This is will be a Monte Carlo study " << std::endl;
+	 else  std::cerr << " BeamTrackSSDAlignFCN, This is will be a study on Real Data" << std::endl;
+      } 
       void SetPtrInput(emph::rbal::BTAlignInput *in) { myBTIn = in;}
       void SetUpLimForChiSq(double u) {  fUpLimForChiSq = u;}
       void SetFitType(const std::string &aft) { fFitType = aft; } 
@@ -59,8 +65,10 @@ namespace emph{
       void SetUpError(double v) { fErrorDef = v; }
       void SetDumpBeamTracksForR(bool v) { fDumpBeamTracksForR = v; } 
       void SetNameForBeamTracks (const std::string &aName) { fNameForBeamTracks = aName; } 
-      inline void SetDebug(bool d=true) {fDebugIsOn = true;} 
+      inline void SetDebug(bool d=true) {fDebugIsOn = true;}
+   
       // Get, basic operators, interface to Minuit2 
+      inline bool GetMCFlag() const { return fIsMC; } 
       virtual double Up() const {return fErrorDef;}
       virtual double operator()(const std::vector<double>&) const; // argument is the parameter vector. (from 12 to 64 parameters, depending on the 
      

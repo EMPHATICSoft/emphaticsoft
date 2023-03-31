@@ -27,6 +27,8 @@ namespace emph{
     private:
       BTAlignGeom* myGeo;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
+      bool fIsMC; // The sign convention for converting a strip number to local, then world system might be different.. 
+                  // Very unfortunate. To be fixed when such sign convention is fully checked for Phase1b data. 
       char fView; // X or Y 
       double fErrorDef, fOneOSqrt12; // for Minuit. , and for pitch err.. 
       mutable std::vector<double> fResids;
@@ -38,6 +40,7 @@ namespace emph{
      
       inline void SetClusterPtr(std::vector<BeamTrackCluster>::const_iterator it) { fItCl = it; } 
       inline void SetView(char aView) { fView = aView; }
+      inline void SetMCFlag(bool v) { fIsMC = v; }
       inline void SetErrorDef(double e) { fErrorDef = e; }
       
       inline char View() const { return fView; } 

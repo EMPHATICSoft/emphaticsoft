@@ -55,6 +55,12 @@ namespace emph{
     public:
       inline void SetSpill(int aSpill) { fSpill = aSpill; }
       inline void SetEvtNum(int a) { fEvtNum = a; }
+      inline void SetMCFlag(bool v) {
+//        if (v) std::cerr << "  rbal::BeamTrack, This is a Monte-Carlo study " << std::endl;
+//	else  std::cerr << "  rbal::BeamTrack, This is a  study on real data " << std::endl;
+        fFcn2D.SetMCFlag(v); 
+        fFcn3D.SetMCFlag(v); 
+      }
       inline void SetDebug(bool v=true) { fDebugIsOn = v;}
       inline void SetChiSq(double c) {fchiSq = c; }
       inline void SetDoMigrad(double v) { fDoMigrad = v; }
