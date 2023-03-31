@@ -22,6 +22,7 @@ V1720	2			3		T0		20		0		0		x
 V1720	3			0		GasCkov	0		0		0		US
 V1720	3			1		GasCkov	1		0		0		DSInner
 V1720	3			2		GasCkov	2		0		0		DSOuter	
+V1720	3			3		Trigger	99		0		0		TrigCoinc
 V1720	4			0		BACkov	0		0		0		USRight		
 V1720	4			1		BACkov	1		0		0		USLeft
 V1720	4			2		BACkov	2		0		0		USTop
