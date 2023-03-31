@@ -75,7 +75,9 @@ int main(int argc, char **argv) {
    double betaFunctionX = 377.; // Only valid for 120 GeV 
    double alphaFunctionY = -25.1063; // same..  
    double alphaFunctionX = -8.62823; //
-   int runNum = 1055; 
+   double uPLimitOnChiSqTrackFits = 200.; 
+   int runNum = 1055; // For data... 
+   std::string G4EMPHDescrToken("none");
   
      
     MPI_Init(NULL, NULL);
@@ -108,6 +110,9 @@ int main(int argc, char **argv) {
         } else if (parStr.find("runNum") != std::string::npos) {
           valStrStr >> runNum;
           if (myRank == 0) std::cerr << " Run number will be "  << runNum << std::endl;
+        } else if (parStr.find("MCInToken") != std::string::npos) {
+          G4EMPHDescrToken = valStr;
+          if (myRank == 0) std::cerr << " The Input data is G4EMP, token is "  << G4EMPHDescrToken << std::endl;
         } else if (parStr.find("strictSt6Y") != std::string::npos) {
           int iS=0;
           valStrStr >> iS;
@@ -193,10 +198,13 @@ int main(int argc, char **argv) {
 	  doMinos = (iDoMinos == 1);
           if ((myRank == 0) && doMinos)  std::cerr << "We will run a Minos analysis   " << std::endl;
           if ((myRank == 0) && (!doMinos))  std::cerr << "We will not run a Minos analysis.   " << std::endl;
-      } else if (parStr.find("token") != std::string::npos) {
+        } else if (parStr.find("UpLimChisSqTr") != std::string::npos) {
+          valStrStr >> uPLimitOnChiSqTrackFits;
+          if (myRank == 0) std::cerr << " The upper limit on a the chiSq of a Beam Track is      "  << uPLimitOnChiSqTrackFits << std::endl;	
+        } else if (parStr.find("token") != std::string::npos) {
           token = valStr;
           if (myRank == 0) std::cerr << " Token will be   "  << token << std::endl;
-       } else {
+        } else {
           if (myRank == 0) std::cerr << " Unrecognized argument   "  << parStr <<  " fatal, quit here and now " << std::endl;
           MPI_Finalize();
           exit(2);
@@ -243,8 +251,13 @@ int main(int argc, char **argv) {
     else {
       if ((strictSt6Y) && (!strictSt6X))  aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA3_V1c2.dat");
       if ((!strictSt6Y) && (strictSt6X))  aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA4_V1d.dat");
-      if ((strictSt6Y) && (strictSt6X))   aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA5_V1e.dat");
-    }
+      if ((strictSt6Y) && (strictSt6X))   {
+         aFileDescr = std::string("_5St_try9_AlignUV_GenCompactA5_V1e.dat");
+	 if (G4EMPHDescrToken != std::string("none")) {
+	   aFileDescr = std::string("_5St_try9_AlignUV_") + G4EMPHDescrToken + std::string("_V1e.dat");  
+	 }
+      } 
+    } 
     aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -261,7 +274,10 @@ int main(int argc, char **argv) {
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
      if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
      if ((strictSt6X)  && (!strictSt6Y)) { numExpected = 49651; myBTIn.SetKey(687402); }
-     if ((strictSt6X)  && (strictSt6Y)) { numExpected = 41321; myBTIn.SetKey(687403); }  // Only valid for run 1055
+     if ((strictSt6X)  && (strictSt6Y)) { 
+        numExpected = 41321; myBTIn.SetKey(687403); // Only valid for run 1055
+	if (G4EMPHDescrToken != std::string("none"))  numExpected = -1; // Variable, too much clerical work with this check. 
+     }  
      if (myRank == 0)  {
          std::cerr << " Doing the Fit2ndorder on file " << aFName << std::endl;
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
@@ -275,6 +291,22 @@ int main(int argc, char **argv) {
     //
     
     emph::rbal::BTAlignGeom *myGeo = emph::rbal::BTAlignGeom::getInstance();
+    if (G4EMPHDescrToken.find("SimProtonNoTgt") != std::string::npos) {
+       std::cerr << " Geometry, G4EMPH (should be unique, though.. " << std::endl;
+       myGeo->SetMultScatUncert('X', 1,  0.003201263);  myGeo->SetMultScatUncert('Y', 1,  0.003201263); 
+       myGeo->SetMultScatUncert('X', 2, 0.00512);  myGeo->SetMultScatUncert('Y', 2, 0.00512); 
+       myGeo->SetMultScatUncert('X', 3, 0.0092);	myGeo->SetMultScatUncert('Y', 3, 0.0092);
+       myGeo->SetMultScatUncert('X', 4, 0.0212);	myGeo->SetMultScatUncert('Y', 4, 0.0212);	
+       myGeo->SetMultScatUncert('X', 5, 0.0264); myGeo->SetMultScatUncert('Y', 5, 0.0264);	
+       myGeo->SetMultScatUncert('U', 0, 0.00512);  
+       myGeo->SetMultScatUncert('U', 1, 0.0092);	
+       myGeo->SetMultScatUncert('W', 0, 0.0212);  
+       myGeo->SetMultScatUncert('W', 1, 0.0212);	
+       myGeo->SetMultScatUncert('W', 2, 0.0264);  
+       myGeo->SetMultScatUncert('W', 3, 0.0264);	 // clusmy.. typo error prone.. 
+       if (G4EMPHDescrToken.find("3a") != std::string::npos)  myGeo->SetMagnetKick120GeV(1.0e-10);
+    }
+    
     emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance();
     myParams->SetStrictSt6(strictSt6X || strictSt6Y); 
     //
@@ -305,80 +337,96 @@ int main(int argc, char **argv) {
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6, 2.5 ); // at limit large, but very few statistic for 120 GeV beam. 
       */
 //       
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.075); // Only ~ 1 strips, in average.. 
-      myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
+      if (G4EMPHDescrToken == std::string("none")) { 
+         for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.075); // Only ~ 1 strips, in average.. 
+         myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected. 
+       } else {
+         for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.001); // Turn this off .. 
+       } 
 // 
 //  Result from 3rd attemps 
 //
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.418312  );  //Starts to make sense.. 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.66995 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.22679 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.05875  ); 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
+      if (G4EMPHDescrToken == std::string("none")) { 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.418312  );  //Starts to make sense.. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.66995 );  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.22679 );  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.05875  ); 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
       // Now that is stable.. 
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.04); // Only ~ 1 strips, in average.. 
-      myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
+        for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.04); // Only ~ 1 strips, in average.. 
+        myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.
 //
 // Result of the first Z minimization.. 
 //     
-      myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 1, -1.39071  );  //Starts to make sense.. 
-      myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 2, -2.28253);  
-      myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 3, -2.41788);  
-      myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 4, -9.97131  ); // does not matter. Can't tell..  
-      myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 5, -0.239897 );
-      myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 6, -10.0  ); // at limit large, but very few statistic for 120 GeV beam. 
+        myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 1, -1.39071  );  //Starts to make sense.. 
+        myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 2, -2.28253);  
+        myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 3, -2.41788);  
+        myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 4, -9.97131  ); // does not matter. Can't tell..  
+        myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 5, -0.239897 );
+        myParams->SetValue(emph::rbal::ZSHIFT, 'Y', 6, -10.0  ); // at limit large, but very few statistic for 120 GeV beam. 
  // 
 //  Result from 5th attemps, all 2DY parameters free.  
 //
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.43052  );  //Starts to make sense.. 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.64884 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.22319 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.03585  ); 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.43052  );  //Starts to make sense.. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.64884 );  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.22319 );  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.03585  ); 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
  // 
 //  Result from xxth attemps, all LongShift fixed, null, Tr and tilt, with soft limits. Tilt factor now positive..  Or consistent with zero. 
 //  StrictSt6 X Y See Feb_7 Scan series. 
 // 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.6051372735  );  //Starts to make sense.. 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.599688114 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.130612278 );  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.0105059891  ); 
-      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.6051372735  );  //Starts to make sense.. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.599688114 );  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.130612278 );  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -5.  ); // large, but very few statistic for 120 GeV beam.  
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, -2.0105059891  ); 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
       // Now that is stable.. 
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.0000004); // Turn it off! 
-      myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
+        for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.0000004); // Turn it off! 
+          myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
 //
 //   U coordinates; 
 //
-     myParams->SetValue(emph::rbal::TRSHIFT, 'U', 0,  0.137950); // First single Param min. 
-     myParams->SetValue(emph::rbal::TRSHIFT, 'U', 1,  0.2920131); // First single Param min. 
-     myGeo->SetUnknwonUncert('U', 0, 0.025);    myGeo->SetUnknwonUncert('U', 1, 0.025); // tentative.. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'U', 0,  0.137950); // First single Param min. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'U', 1,  0.2920131); // First single Param min. 
+//     myGeo->SetUnknwonUncert('U', 0, 0.025);    myGeo->SetUnknwonUncert('U', 1, 0.025); // tentative.. 
+// Feb 15. 
+        myGeo->SetUnknwonUncert('U', 0, 0.000000025);    myGeo->SetUnknwonUncert('U', 1, 0.00000025); // tentative.. 
 //
 // V coordinates.
 //SensorForFitSubType
-     for (size_t k=0; k!= 4; k++) myGeo->SetUnknwonUncert('V', k, 10.0); // Turn of ftheir weight, not rough aligned yet. 
-     for (size_t k=0; k!= 4; k++) myParams->SetValue(emph::rbal::TRSHIFT, 'V', k,  0.);   // To make sure.. 
-     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1,  2.219765422); // Success value, keep.. Little bias due to sift Limits. 
+        for (size_t k=0; k!= 4; k++) myGeo->SetUnknwonUncert('V', k, 10.0); // Turn of ftheir weight, not rough aligned yet. 
+        for (size_t k=0; k!= 4; k++) myParams->SetValue(emph::rbal::TRSHIFT, 'V', k,  0.);   // To make sure.. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1,  2.219765422); // Success value, keep.. Little bias due to sift Limits. 
 //     if (SensorForFitSubType != 1) myGeo->SetUnknwonUncert('V', 1, 100.); // Semi successfull, large error, poor statistics. 
 //     else myGeo->SetUnknwonUncert('V', 1, 0.025); // attempting to aling the second sensor V, in Station 4. 
 //     myGeo->SetUnknwonUncert('V', 1, 0.025); // attempting to aling the second sensor V, in Station 4. 
-     myGeo->SetUnknwonUncert('V', 1, 5.0); // still FUBAR  
-     myGeo->SetUnknwonUncert('V', 0, 5.0); // still FUBAR  
+        myGeo->SetUnknwonUncert('V', 1, 5.0); // still FUBAR  
+        myGeo->SetUnknwonUncert('V', 0, 5.0); // still FUBAR  
      // Success.. 
 //     if (SensorForFitSubType != 2) myGeo->SetUnknwonUncert('V', 2, 100.); // Semi successfull, large error, poor statistics. 
 //     else myGeo->SetUnknwonUncert('V', 2, 0.025); // attempting to aling the first sensor V, in Station 5. 
-     myGeo->SetUnknwonUncert('V', 2, 0.025); // Success.. Leave it as that. 
-     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2,  1.148411723); //  We get the X from a Projection from station 4& 5 on 1500 evets. for Run 1055 
+        myGeo->SetUnknwonUncert('V', 2, 0.025); // Success.. Leave it as that. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2,  1.148411723); //  We get the X from a Projection from station 4& 5 on 1500 evets. for Run 1055 
      // But.. Residual looks O.K, with some noise.. Central peak is at resid 0., sigma 48 microns.  
      // Last plane.. V 3, station 5.  Uncertainty is 800 microns.  
-     myGeo->SetUnknwonUncert('V', 3, 0.025); // attempting to aling the second sensor V, in Station 5. 
-     myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3,  -3.361921529); // Geeting there.. 
-     myGeo->SetUnknwonUncert('V', 2, 5.0); // still FUBAR  
-     myGeo->SetUnknwonUncert('V', 3, 5.0); // still FUBAR  
-     
+        myGeo->SetUnknwonUncert('V', 3, 0.025); // attempting to aling the second sensor V, in Station 5. 
+        myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3,  -3.361921529); // Geeting there.. 
+        myGeo->SetUnknwonUncert('V', 2, 5.0); // still FUBAR  
+        myGeo->SetUnknwonUncert('V', 3, 5.0); // still FUBAR  
+      }  else { // Real data vs G4EMP initial value settings 
+      /*
+          myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  0.5  );  //To test the convergence..  
+          myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4,  3.25);  // Fitting with a DGap of 3.25 
+          myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6,  3.25);  // Fitting with a DGap of 3.25 
+          myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5,  3.25 );
+          myGeo->SetValueTrShiftLastPlane('Y', 3.25 );  // MC cheat, setting the gap.. Fixing the reference frame on center.. 
+ 	  std::cerr << " ..... ...... Done  " << std::endl;  
+      */
+     }
     } 
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1,  1.585286); 
@@ -404,18 +452,26 @@ int main(int argc, char **argv) {
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
 //      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // a fraction of the strip.. 
 //
-// Strict St6, Feb 7 
-//     
+// Strict St6, Feb 7 , real data... 
+//
+/*     
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.68564   ); 
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 2.49931  );  
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3, 4.1595  );  
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4,  -5.0 ); // Poor statistics.. 
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5, -0.251312  );
       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6,  -5.0 );
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // a fraction of the strip.. 
+*/
+// 
+//       
+      
+//      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.025); // a fraction of the strip.. 
+// Feb 16 
+      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('X', k, 0.000000025); // a fraction of the strip.. 
 
     }
     if (fitType == std::string("3D")) {  // Result loosening up the alignment constraints, Feb 10 
+    /* For data, Feb 10 
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1,  -0.4232866132  );  // Back to previously found value, the 600 micron was due to soft limit constraints. . 
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2,  -1.688700314 );  
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3,  -2.250664639 );  
@@ -433,6 +489,7 @@ int main(int argc, char **argv) {
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1, 2.276203614 ); // Success value, keep.. Little bias due to sift Limits. 
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2, 1.071068301 ); // Success value, keep.. Little bias due to sift Limits. 
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3, -3.284696663 ); // Success value, keep.. Little bias due to sift Limits. 
+     */
    } 
     
     if (myRank == 0) myParams->DumpTable(token); 
@@ -453,8 +510,10 @@ int main(int argc, char **argv) {
     
     
     emph::rbal::BeamTrackSSDAlignFCN theFCN(fitType, &myBTIn);
+    theFCN.SetMCFlag(G4EMPHDescrToken != std::string("none"));
     theFCN.SetSoftLimits(doSoftLimits);
     theFCN.SetBeamConstraint(applyEmittanceConstraint);
+    theFCN.SetUpLimForChiSq(uPLimitOnChiSqTrackFits);
     // Wrong value above... 
 //    if (applyEmittanceConstraint) { 
 //      theFCN.SetBeamAlphaBetaFunctionY(alphaFunctionY, betaFunctionY); 
@@ -474,6 +533,8 @@ int main(int argc, char **argv) {
       MPI_Finalize(); 
       exit(0);
    } 
+   
+//    if (myRank == 1) theFCN.SetDebug(true);
     
     ROOT::Minuit2::MnMigrad  migrad(theFCN, uPars);
     //
