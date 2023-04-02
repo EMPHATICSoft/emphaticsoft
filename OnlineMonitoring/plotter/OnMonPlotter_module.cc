@@ -13,6 +13,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TProfile.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -170,6 +171,8 @@ namespace emph {
       TH1F* fTriggerEff;
       TH1F* fTriggerDeltaT;
       TH1F* fTriggerTime;
+      TH1F* fTriggerDeltaTVsTime;
+      TProfile* fTriggerDeltaTVsTimeProf;
       std::vector<TH1F*> fSSDProf;
       std::vector<TH1F*> fSSDNHit;
 
@@ -409,17 +412,23 @@ namespace emph {
           fLGCaloWaveForm[i]->Scale(scale);
         }
       }
+      
+      TH1D* trigProj = fTriggerDeltaTVsTimeProf->ProjectionX();
+      for (int i=1; i<trigProj->GetNbinsX(); ++i) {
+	fTriggerDeltaTVsTime->SetBinContent(i,trigProj->GetBinContent(i));
+	fTriggerDeltaTVsTime->SetBinError(i,trigProj->GetBinError(i));
+      }
 
-     fNTriggerLGArray->SetBinContent(1.5,1.5,fNEventsLGCalo[6]);
-     fNTriggerLGArray->SetBinContent(2.5,2.5,fNEventsLGCalo[4]);
-     fNTriggerLGArray->SetBinContent(3.5,3.5,fNEventsLGCalo[2]);
-     fNTriggerLGArray->SetBinContent(1.5,3.5,fNEventsLGCalo[0]);
-     fNTriggerLGArray->SetBinContent(2.5,3.5,fNEventsLGCalo[1]);
-     fNTriggerLGArray->SetBinContent(1.5,2.5,fNEventsLGCalo[3]);
-     fNTriggerLGArray->SetBinContent(3.5,2.5,fNEventsLGCalo[5]);
-     fNTriggerLGArray->SetBinContent(2.5,1.5,fNEventsLGCalo[7]);
-     fNTriggerLGArray->SetBinContent(3.5,1.5,fNEventsLGCalo[8]);
-
+      fNTriggerLGArray->SetBinContent(1.5,1.5,fNEventsLGCalo[6]);
+      fNTriggerLGArray->SetBinContent(2.5,2.5,fNEventsLGCalo[4]);
+      fNTriggerLGArray->SetBinContent(3.5,3.5,fNEventsLGCalo[2]);
+      fNTriggerLGArray->SetBinContent(1.5,3.5,fNEventsLGCalo[0]);
+      fNTriggerLGArray->SetBinContent(2.5,3.5,fNEventsLGCalo[1]);
+      fNTriggerLGArray->SetBinContent(1.5,2.5,fNEventsLGCalo[3]);
+      fNTriggerLGArray->SetBinContent(3.5,2.5,fNEventsLGCalo[5]);
+      fNTriggerLGArray->SetBinContent(2.5,1.5,fNEventsLGCalo[7]);
+      fNTriggerLGArray->SetBinContent(3.5,1.5,fNEventsLGCalo[8]);
+      
       char filename[32];
       sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
       TFile* f = new TFile(filename,"RECREATE");
@@ -617,6 +626,11 @@ namespace emph {
 	fTriggerTime = h.GetTH1F(hname);
 	sprintf(hname,"TriggerDeltaT");
 	fTriggerDeltaT = h.GetTH1F(hname);
+	sprintf(hname,"TriggerDeltaTVsTime");
+	fTriggerDeltaTVsTime = h.GetTH1F(hname);
+	sprintf(hname,"TriggerDeltaTVsTimeProf");
+	TAxis *xaxis = fTriggerDeltaTVsTime->GetXaxis();
+	fTriggerDeltaTVsTimeProf = new TProfile(hname,fTriggerDeltaTVsTime->GetTitle(),xaxis->GetNbins(),xaxis->GetBinLowEdge(1),xaxis->GetBinUpEdge(xaxis->GetNbins()));
         std::cout << "Making Trigger ADC OnMon plots" << std::endl;
         for (int i=0; i<nchannel; ++i) {	  
           sprintf(hname,"TriggerADC_%d",i);
@@ -1152,14 +1166,19 @@ namespace emph {
       std::string labelStr;
       std::string labelStr2;
 
-      if (fNEvents == 1) {
+      if (fNEvents == 10) {
 	fFirstEventTime = evt.time();
 	fLastEventTime = evt.time();
       }
+      if (fNEvents >= 11) {
+	double event_T = (evt.time().timeHigh()-fFirstEventTime.timeHigh()) + (evt.time().timeLow() - fFirstEventTime.timeLow())*1.e-9;
+	//	std::cout << "event time = " << event_T << std::endl;
 
-      fTriggerTime->Fill((evt.time().timeHigh()-fFirstEventTime.timeHigh()) + (evt.time().timeLow() - fFirstEventTime.timeLow())*1.e-9);
-      if (fNEvents > 1) {
-	fTriggerDeltaT->Fill((evt.time().timeHigh()-fFirstEventTime.timeHigh())*1.e-3 + (evt.time().timeLow() - fLastEventTime.timeLow())*1.e-6);
+	double event_dT = (evt.time().timeHigh()-fFirstEventTime.timeHigh())*1.e-3 + (evt.time().timeLow() - fLastEventTime.timeLow())*1.e-6;	
+	
+	fTriggerTime->Fill(event_T);
+	fTriggerDeltaTVsTimeProf->Fill(event_T,event_dT);
+	fTriggerDeltaT->Fill(event_dT);
 	fLastEventTime = evt.time();
       }
       
