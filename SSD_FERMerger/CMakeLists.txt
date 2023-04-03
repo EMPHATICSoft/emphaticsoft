@@ -17,5 +17,10 @@ cet_make_exec( NAME Merger
   LIBRARIES SSD_FERMerger
 )
 
+cet_make_exec( NAME Subrun_Merger
+  SOURCE Subrun_Merger.cc
+  LIBRARIES SSD_FERMerger
+)
+
 install_source()
 install_headers()
