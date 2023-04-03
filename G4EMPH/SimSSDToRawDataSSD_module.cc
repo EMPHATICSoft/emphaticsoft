@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <map>
 #include <climits>
 #include <cfloat>
 //
@@ -47,8 +48,32 @@ using namespace emph;
 
 namespace emph {
   //
+    class DeadSSDStripListForSensor {
+     
+      public:
+      
+        explicit DeadSSDStripListForSensor(const std::string &fileNameStr);
+	
+        inline bool isDead(short int aStation, short int aSensor, short int aStrip) const {
+	  int aStaSens = 10*aStation + aSensor;
+	  try { 
+	    const std::vector<short int> &v = fStrips.at(aStaSens);
+	    if (v.size() == 0) return false;
+	    for (std::vector<short int>::const_iterator it=v.cbegin(); it != v.cend(); it++) {
+	     if (*it == aStrip) return true;
+	    }
+	    return false;
+	  } catch (...) {
+	   return false;
+	  }
+	}
+      private:
     
+      std::map<int, std::vector<short int> > fStrips;
+    };
+            
     class SimSSDToRawDataSSD : public art::EDProducer {
+        
     public:
       explicit SimSSDToRawDataSSD(fhicl::ParameterSet const& pset); // Required!       // Optional, read/write access to event
   // Plugins should not be copied or assigned.
@@ -90,6 +115,10 @@ namespace emph {
       // Convenient deduced quantities.. 
       const short int fMaxStripNumber;
       const double fHalfHeight;
+//      
+// Implement dead strips.. 
+//
+      DeadSSDStripListForSensor fDeadStrips;
 //
 // access to data..   
 //
@@ -97,7 +126,6 @@ namespace emph {
       emph::geo::Geometry *fEmgeo;
       art::ServiceHandle<emph::cmap::ChannelMapService> fCmap;
       std::vector<sim::SSDHitAlgo1> fSSDInVec;
-//
 // CSV tuple output..
 // 
       std::ofstream fFOutA1;
@@ -108,6 +136,60 @@ namespace emph {
       void testChannelMapBackConverter(); // And quit there, and now.. 
     }; 
     
+ // .....................................................................................
+ //
+   DeadSSDStripListForSensor::DeadSSDStripListForSensor(const std::string &fNameStr) {
+        
+       std::cerr << " Constructing DeadSSDStripListForSensor " << std::endl;
+       const char *fOrig = getenv("CETPKG_SOURCE");
+       const std::string fFullNameStr = std::string(fOrig) + 
+           std::string("/ConstBase/Calibration/") + fNameStr;   
+       std::ifstream fIn(fFullNameStr.c_str());
+         if (!fIn.is_open()) {
+           std::cerr << "Constructing DeadSSDStripListForSensor , failed to open " 
+	             << fFullNameStr << " fatal, quit here.. " << std::endl; exit(2);
+	 }
+	 std::vector<short int> v1;
+	 short int aStation=99; short int aSensor= 99; short int aRow = 999;
+	 short int aStationPrev=0; short int aSensorPrev= 0;
+	 int nLines = 0;
+	 char aLine[1024];
+	 bool first = true;
+	 int nDeadTotal = 0; 
+         while (fIn.good()) {
+	   fIn.getline(aLine, 1024);
+	   nLines++;
+           std::string aLStr(aLine);
+ 	   if (nLines == 1) { 
+	     if (aLStr.find("Station Sensor Row") == std::string::npos) {
+                 std::cerr << "Constructing DeadSSDStripListForSensor , wrong header on file " 
+	             << fFullNameStr.c_str() << " fatal, quit here.. " << std::endl; exit(2);
+	     }
+	     continue; 
+	   }
+           std::istringstream aLStrStr(aLine);
+	   aLStrStr >>  aStation >> aSensor >> aRow ;
+	   if ((aStationPrev != aStation) || (aSensorPrev != aSensor)) {
+	     if (!first) {
+	       int aStaSens = aStationPrev*10 + aSensorPrev;
+	       fStrips.insert({aStaSens, v1});
+	       v1.clear();
+	     }
+	     first = false;
+	   } else {
+	     v1.push_back(aRow); nDeadTotal++;
+	   }
+	   aStationPrev	 = aStation; aSensorPrev = aSensor;  
+	} // on lines in file .
+	if (v1.size() > 0) { 
+ 	  int aStaSens = aStationPrev*10 + aSensorPrev;
+	  fStrips.insert({aStaSens, v1});
+	}
+        std::cerr << " ..... Total number of dead channels " << nDeadTotal 
+	          << " check map size " << fStrips.size() << std::endl;
+	fIn.close();
+    }
+    
 // .....................................................................................
     SimSSDToRawDataSSD::SimSSDToRawDataSSD(fhicl::ParameterSet const& pset) : 
     EDProducer(pset), 
@@ -115,6 +197,7 @@ namespace emph {
      fRun(0), fEvtNum(INT_MAX), fNEvents(0), 
      fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(40.), fFracChargeSharing(0.3),
      fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), fHalfHeight(0.5*fSensorHeight),
+     fDeadStrips(std::string("SSDCalibDeadChanSummary_none_1055.txt")),
      fRunHistory(nullptr), fEmgeo(nullptr)  
      
     {
@@ -209,8 +292,10 @@ namespace emph {
 	    if (debugIsOn) std::cerr << " ... At station " << kSt << " plane " << kSe << " yy0 " 
 	              << yy0 << " yy1 " << yy1 << " X Global " << it->GetX() << " Y Global " << it->GetY() << std::endl;
 	    // Does the track cross a strip boundary ? 
-	    short int strip0 = static_cast<short int>(std::abs(yy0/fPitch)); 
+	    short int strip0 = static_cast<short int>(std::abs(yy0/fPitch));
+	    if (fDeadStrips.isDead(static_cast<short int>(kSt), static_cast<short int>(kSe), strip0)) continue; 
 	    short int strip1 = static_cast<short int>(std::abs(yy1/fPitch));
+	    if (fDeadStrips.isDead(static_cast<short int>(kSt), static_cast<short int>(kSe), strip1)) continue; 
 	    if ((strip0 >= fMaxStripNumber) || (strip1 >= fMaxStripNumber)) continue; // very, very rarely. 
 	    const double deTot = it->GetEDep(); const double deTotHalf = 0.5*deTot;
 	    if (debugIsOn) std::cerr << " ... .... strip0 " << strip0 << " strip 1 " << strip1 << " deTot " << deTot << std::endl;
