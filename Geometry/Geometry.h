@@ -36,6 +36,7 @@ namespace emph {
 				std::string Name() const { return fName;}
 				TVector3 Pos() const { return fPos;}
 				double Rot() const { return fRot;} 
+				double IsFlip() const { return fFlip;} 
 //				double X() const { return fX;} 
 //				double Y() const { return fY;} 
 				double Dz() const { return fDz;}
@@ -45,6 +46,7 @@ namespace emph {
 				void SetName(std::string n) {fName = n; }
 				void SetPos(TVector3 pos) {fPos = pos;}
 				void SetRot(double rot) {fRot = rot;}
+				void SetFlip(bool flip) {fFlip = flip;}
 //				void SetX(double x) {fX = x;}
 //				void SetY(double y) {fY = y;}
 				void SetDz(double dz) {fDz = dz;}
@@ -54,7 +56,8 @@ namespace emph {
 			private:    
 				std::string fName;
 				TVector3 fPos;
-				double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), clockwise as seen by the beam
+				double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), anticlockwise as seen by the beam
+				bool fFlip; // facing or back to the beam, for fRot = 0, if channel 0 is at the bottom and 640 at the top (read-out on the right side), fFlip = 0
 				double fDz;
 				double fWidth;
 				double fHeight;

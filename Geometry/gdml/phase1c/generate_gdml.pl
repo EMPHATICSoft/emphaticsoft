@@ -350,7 +350,7 @@ EOF
 				for($k = 0; $k < $SSD_par[$SSD_station[$i]]; ++$k){
 
 					print DEF <<EOF;
-	 <rotation name="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180*@{[ $SSD_side[$isensor] ]}" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
+	 <rotation name="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
 EOF
 					$isensor ++;
 				}
