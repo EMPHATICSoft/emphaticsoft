@@ -46,6 +46,7 @@ int main(int argc, char* argv[]){
 			Detector sensor = st.GetSSD(j);
 			std::cout << "The " << j <<"-th SSD sensor in the " << i <<"-th SSD station is located at " << sensor.Pos()[0] << " " << sensor.Pos()[1] << " " << sensor.Pos()[2]+st.Pos()[2] << " "<< unit << "." << std::endl;
 			std::cout << "The rotation angle is " << sensor.Rot() << std::endl;
+			std::cout << "The SSD is flipped? " << sensor.IsFlip() << std::endl;
 		}
 	}
 
