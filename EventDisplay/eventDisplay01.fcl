@@ -1,0 +1,44 @@
+#
+# Run the 3D event display
+#
+#include "Geometry.fcl"
+
+process_name : eventDisplay01
+
+source : {
+  module_type : RootInput
+  fileNames   : [ "emphdata_r1384_s2.root" ]
+  maxEvents   : -1
+}
+
+services : {
+
+  # From toyExperiment
+  Geometry   : @local::standard_geometry
+
+  # From art-workbook
+  EvtDisplayService : {}
+
+}
+
+physics :{
+  analyzers: {
+    eventDisplay : {
+      module_type     : EventDisplay3D
+#      genParticleTag  : "evtgen"
+#      drawHits        : true
+#      drawGenTracks   : true
+#      hitMarkerSize   : 3.0
+#      trkMaxR         : 100.
+#      trkMaxZ         : 50.
+#      trkMaxStepSize  : 1.
+      camRotateCenterH: -0.26
+      camRotateCenterV: -2.0
+      camDollyDelta   : 500.
+    }
+  }
+
+  e1        : [ eventDisplay ]
+  end_paths : [ e1 ]
+
+}

@@ -1,0 +1,48 @@
+#include "MakeSSDClusters.fcl"
+
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+#include "RunHistory.fcl"
+
+process_name: MakeSSDClust
+
+services:
+{
+  TFileService: { fileName: "clust_r%r_s%s_hist.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  Geometry:   @local::standard_geometry
+  RunHistoryService: @local::standard_runhistory
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "emphdata-ssdclust_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    clust:        @local::standard_ssdclust
+  }
+
+  ssd: [ clust ]
+
+  trigger_paths: [ ssd ]
+  stream1: [ out1 ]
+  end_paths: [ stream1 ]
+}
+
+physics.producers.clust.CheckDQ: false

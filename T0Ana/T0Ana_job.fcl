@@ -1,10 +1,15 @@
 #include "T0Ana.fcl"
 
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+
 process_name: T0Ana
 
 services:
 {
- TFileService: { fileName: "T0Ana_r%r_s%s.root" closeFileFast: false}
+  TFileService: { fileName: "T0Ana_r%r_s%s.root" closeFileFast: false}
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: @local::standard_runhistory
 }
 
 source:

@@ -20,6 +20,7 @@ namespace rawdata{
     fTstart(-1),
     fChannel(-1),
     fBoard(-1),
+    fDetChannel(-1),
     fIsMC(false),
     fFragmentTimestamp(0)
   {
@@ -31,6 +32,7 @@ namespace rawdata{
 		     std::vector<uint16_t> adclist,
 		     uint32_t tdc, uint64_t fragTS) :
     fADC(adclist), fTstart(tdc), fChannel(channel), fBoard(board),
+    fDetChannel(-1),
     fIsMC(false), fFragmentTimestamp(fragTS)
   {
   }
@@ -126,16 +128,6 @@ namespace rawdata{
     float sum=0;
     for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i) sum += fADC[i];
     return sum;
-  }
-
-  //--------------------------------------------------
-  float WaveForm::Charge(int adcOffset, int nhits,  int nsamp) const
-  {
-    int x1=adcOffset+nhits;
-    float bl = this->Baseline(adcOffset,nhits);
-    float sum=0;
-    for ( size_t i=x1; i<size_t(x1+nsamp) && i<fADC.size(); ++i) sum += (fADC[i]-bl);
-    return -sum;
   }
 
   //------------------------------------------------------------

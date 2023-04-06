@@ -12,6 +12,7 @@ build_plugin(T0Ana "module"
   LIBRARIES PRIVATE
     RawData
     ChannelMap
+    ChannelMapService_service
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist

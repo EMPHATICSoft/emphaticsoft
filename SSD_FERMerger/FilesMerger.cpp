@@ -17,7 +17,7 @@
 #include <cmath>
 #include <arpa/inet.h>
 #include <vector>
-#include <boost/utility.hpp>
+// #include <boost/utility.hpp>
 #include "stib.h"
 #include <algorithm>
 #include <stdint.h>
@@ -696,7 +696,7 @@ namespace ssd {
 	}
       //std::cout << "Run Number " << runNumber << std::endl;
       if (fileName == "")
-	fileName = "Run" + runNumber_ + "_" + subrunNumber_ + "_Merged.dat";
+	fileName = "Run" + runNumber_ + "_" + subrunNumber_ + ".dat";
       cout << "[" << __LINE__ << "]" << __PRETTY_FUNCTION__ << " Saving events in file: " << filesDirectory + fileName << endl;
     
       ofstream outFile((filesDirectory + fileName).c_str(), ios::binary);

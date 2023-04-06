@@ -14,7 +14,9 @@
 #include <string>
 #include <vector>
 #include "TVector3.h"
-#include "DetectorDefs.h"
+#include "TGDMLMatrix.h"
+#include "Geometry/DetectorDefs.h"
+#include "Utilities/PMT.h"
 
 class TGeoNode;
 class TGeoVolume;
@@ -31,14 +33,20 @@ namespace emph {
 				Detector(std::string name, TVector3 pos, double dz, double w, double h);
 				~Detector() {};
 
-				std::string Name() { return fName;}
-				TVector3 Pos() { return fPos;}
-				double Dz() { return fDz;}
-				double Width() { return fWidth;}
-				double Height() { return fHeight;}
+				std::string Name() const { return fName;}
+				TVector3 Pos() const { return fPos;}
+				double Rot() const { return fRot;} 
+//				double X() const { return fX;} 
+//				double Y() const { return fY;} 
+				double Dz() const { return fDz;}
+				double Width() const { return fWidth;}
+				double Height() const { return fHeight;}
 
 				void SetName(std::string n) {fName = n; }
 				void SetPos(TVector3 pos) {fPos = pos;}
+				void SetRot(double rot) {fRot = rot;}
+//				void SetX(double x) {fX = x;}
+//				void SetY(double y) {fY = y;}
 				void SetDz(double dz) {fDz = dz;}
 				void SetWidth(double w) {fWidth = w;}
 				void SetHeight(double h) {fHeight = h;}
@@ -46,6 +54,7 @@ namespace emph {
 			private:    
 				std::string fName;
 				TVector3 fPos;
+				double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), clockwise as seen by the beam
 				double fDz;
 				double fWidth;
 				double fHeight;
@@ -61,16 +70,16 @@ namespace emph {
 				void SetDz(double dz) {fDz = dz;}
 				void SetWidth(double w) {fWidth = w;}
 				void SetHeight(double h) {fHeight = h;}
+				void AddSSD(Detector ssd) {fSSD.push_back(ssd); }
 
-				std::string Name() { return fName; }
-				TVector3 Pos() {return fPos;}
+				std::string Name() const { return fName; }
+				TVector3 Pos() const {return fPos;}
 
 				int NSSDs() const {return (int)fSSD.size(); };
-				Detector GetSSD(int i) {return fSSD[i]; }
-				void AddSSD(Detector ssd) {fSSD.push_back(ssd); }
-				double Dz() { return fDz;}
-				double Width() { return fWidth; }
-				double Height() {return fHeight; }
+				Detector GetSSD(int i) const {return fSSD[i]; }
+				double Dz() const { return fDz;}
+				double Width() const { return fWidth; }
+				double Height() const {return fHeight; }
 
 			private:
 				std::string fName;
@@ -101,8 +110,11 @@ namespace emph {
 
 				int NSSDStations() const { return fNSSDStations; }
 				int NSSDs() const { return fNSSDs; }
-
 				SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
+
+				int NPMTs() const { return fNPMTs; }
+				emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
+				emph::arich_util::PMT FindPMTByName(std::string name);
 
 				//    TGeoMaterial* Material(double x, double y, double z) const;
 
@@ -114,6 +126,8 @@ namespace emph {
 				Geometry();
 
 				bool LoadGDMLFile();
+				std::vector<std::pair<double, double> > ReadMatrix(TGDMLMatrix* matrix);
+				void ExtractPMTInfo(const TGeoVolume* v);
 				void ExtractDetectorInfo(int i, const TGeoNode* n);
 				void ExtractMagnetInfo(const TGeoVolume* v);
 				void ExtractSSDInfo(const TGeoNode* n);
@@ -131,6 +145,9 @@ namespace emph {
 				double fDetectorUSZPos[NDetectors];
 				double fDetectorDSZPos[NDetectors];
 				bool fDetectorLoad[NDetectors];
+
+				int    fNPMTs;
+				std::vector<emph::arich_util::PMT> fPMT;
 
 				TGeoManager* fGeoManager;
 

@@ -1,0 +1,39 @@
+BEGIN_PROLOG
+
+standard_g4alg:
+{
+  GenModuleLabel:      generator
+  G4MacroPath:         "G4EMPH/g4emph.mac" 
+  G4EnergyThreshold:   1.0E-3 #GeV, stop tracking below this value
+  G4EnergyThresholdStore:   0.250 #GeV, stop storing below this value. 
+  G4TokenSSDOut: "undef"
+  G4CalibTOPAZLG: 0.006
+  G4AttenuationTOPAZLG : 0.9
+  G4TokenTOPAZLGOut: "undef" 
+#  G4LastDetector: "SSDStation5"
+  G4LastDetector: "none"  # Lead Glass is our last detector.. 
+  
+  # If true, keep individual track ids from processes like compt and brem and
+  # annihil.  If false, all the same simulation is done, just less truth
+  # information is saved. Similarly with RecordFirstBrem and RecordFirstPair.
+  ManyParticles:       false
+
+  SparseTrajectories:  true   #if true, only save necessary points in particle trajectories
+  G4PhysListName:      "QGSP_BERT_HP;G4OpticalPhysics"
+# Done in code .. For now.. We will restore this functionality later, perhaps. 
+#  AddedUserActions: ["emph::SSDHitAction", "emph::TrackListAction", "emph::FastStopAction", "emph::TOPAZLGHitAction"]
+}
+
+manyparticles_g4alg:               @local::standard_g4alg
+manyparticles_g4alg.ManyParticles: true
+
+standard_geant4:
+{
+  module_type:         G4Gen
+  G4AlgPSet:           @local::standard_g4alg
+}
+
+manyParticles_geant4:           @local::standard_geant4
+manyParticles_geant4.G4AlgPSet: @local::manyparticles_g4alg
+
+END_PROLOG

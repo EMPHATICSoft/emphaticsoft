@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+#   This file defines the configuration for the "GasCkovAna" job module
+ 
+standard_gasckovana:
+{
+ module_type:		GasCkovAna
+ ADCThresh0:            0.
+ ADCThresh1:            0.
+ ADCThresh2:            0.
+}
+
+END_PROLOG

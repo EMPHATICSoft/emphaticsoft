@@ -1,0 +1,80 @@
+#include "MakeSSDClusters.fcl"
+#include "RecoBeamTracksAlgo1.fcl"
+#include "TrigToT0Prod.fcl"
+#include "ChannelMap.fcl"
+#include "LGCaloPrelimStudy.fcl"
+#include "Geometry.fcl"
+#include "RunHistory.fcl"
+
+process_name: MakeSSDClust
+
+services:
+{
+  TFileService: { fileName: "clust_r%r_s%s_hist.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  Geometry:   @local::standard_geometry
+  RunHistoryService: @local::standard_runhistory
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "emphdata-ssdclust_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+physics:
+{
+  producers:
+  {
+
+    trigT0C:        @local::standard_trigtot0prod
+    clustC:        @local::standard_ssdclust
+    recoBTrC:        @local::standard_recobeamtracksalgo1
+  }
+  
+  analyzers: {
+     anaTrLG: @local::standard_lgcaloprelimstudy
+   }
+
+  ssd: [ trigT0C, clustC,  recoBTrC ]
+  ana: [ anaTrLG ]
+  trigger_paths: [ ssd]
+  stream1: [ out1 ]
+  end_paths: [ana, stream1 ]
+}
+
+physics.producers.recoBTrC.SSDClsLabel: "clustC"
+physics.producers.recoBTrC.tokenJob: "5St_try9_RecoXYU_B85c"
+physics.producers.recoBTrC.dumpClusters: false  
+physics.producers.recoBTrC.selectHotChannels: false
+physics.producers.recoBTrC.selectHotChannelsFromHits: true
+physics.producers.recoBTrC.alignUV: true
+physics.producers.recoBTrC.ChiSqCutAlignAlgo1: 2000.
+physics.producers.recoBTrC.ChiSqCutAlign3DUVXY: 400.
+physics.producers.recoBTrC.ChiSqCutAlign3DUVUV: 1.0e9
+physics.producers.recoBTrC.NumMaxIterAlignAlgo1: 500
+physics.producers.recoBTrC.LastIs4AlignAlgo1: false
+physics.producers.recoBTrC.SetMCRMomentum: 18.0
+physics.producers.recoBTrC.TransPosUncert: [0.2, 0.2, 0.2, 0.2, 0.3, 0.3]
+physics.producers.recoBTrC.ZLocShifts: [0., 0., 0., 0., 0.0001, 0.00001]
+#physics.producers.recoBTrC.MeanResidualsX: [0, 1.6543, 1.8946, 3.2653, -1.540, 0. ]
+physics.producers.recoBTrC.MeanResidualsX: [0.0, 1.402657,  1.081791,  2.156929, -4.515154, 0.0]
+physics.producers.recoBTrC.MeanResidualsY: [ 0.0, 1.386586, 1.021927,  2.074216, -4.691123, 0.0] 
+physics.producers.clustC.CheckDQ: false
+#
+physics.analyzers.anaTrLG.BeamTrackLabel: recoBTrC
+physics.analyzers.anaTrLG.TrigToT0Label:trigT0C 
+physics.analyzers.anaTrLG.tokenJob: "5St_try9_RecoXYU_B85c"
+#
+ 

@@ -1,7 +1,7 @@
 set( PACKAGE OnlineMonitoringUtil )
 FILE( GLOB src_files *.cxx )
 
-cet_find_package(ROOT REQUIRED)
+find_package(ROOT REQUIRED)
 
 art_make_library( SOURCE          ${src_files}
 	  	            LIBRARY_NAME    OnlineMonitoringUtil

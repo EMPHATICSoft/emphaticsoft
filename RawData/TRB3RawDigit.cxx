@@ -16,7 +16,7 @@ namespace emph {
       tdc_header_word(0),
       tdc_epoch_word(0),
       tdc_measurement_word(0),
-      event_index(0), fragmentTimestamp(0)
+      event_index(0), fragmentTimestamp(0), detChan(-1)
     {
     }
 
@@ -27,7 +27,7 @@ namespace emph {
       tdc_header_word(header),
       tdc_epoch_word(epoch),
       tdc_measurement_word(measurement),
-      event_index(0), fragmentTimestamp(fragTS)
+      event_index(0), fragmentTimestamp(fragTS), detChan(-1)
     {
     }
 

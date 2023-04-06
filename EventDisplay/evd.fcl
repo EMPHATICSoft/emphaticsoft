@@ -1,53 +1,47 @@
-#include "evd_services.fcl"
+#
+# Run the 3D event display
+#
 #include "Geometry.fcl"
+#include "RunHistory.fcl"
 
-process_name: EVD
+process_name : eventDisplay01
 
-
-services:
-{
-  RandomNumberGenerator: {} #ART native random number generator
-  Geometry:  @local::standard_geometry
-
-#  @table::core_services
-
-  # EVD services
-  PlotDrawingOptions:       @local::standard_plotdrawingopt
-  GeometryDrawingOptions:   @local::standard_geomdrawingopt
-  SimulationDrawingOptions: @local::standard_simdrawingopt
-  RawDrawingOptions:        @local::standard_rawdrawingopt
-  RecoDrawingOptions:       @local::standard_recodrawingopt
-#  ScanOptions:              @local::standard_scanopt
-#  SliceNavigator:           @local::standard_slicenavigator
-  Colors:                   @local::standard_colors
-  EventDisplay:             @local::standard_evd
+source : {
+  module_type : RootInput
+  fileNames   : [ "emphdata_r1384_s2.root" ]
+  maxEvents   : -1
 }
 
-#Look at the input files
-source:
-{
-  module_type: RootInput
-  fileNames:   [ "emphdata.root" ]
-  maxEvents:   -1       # Number of events to create
+services : {
+
+  # From toyExperiment
+  Geometry   : @local::standard_geometry
+  RunHistoryService : @local::standard_runhistory
+  # From art-workbook
+  EvtDisplayService : {}
+
 }
 
-# Define and configure some modules to do work on each event.
-# First modules are defined; they are scheduled later.
-# Modules are grouped by type.
-physics:
-{
-  analyzers:
-  {
-    evdisp:
-    {
-      module_type: EVD
+physics :{
+  analyzers: {
+    eventDisplay : {
+      module_type     : EventDisplay3D
+      camRotateCenterH : -0.26
+      camRotateCenterV : -2.0
+      camDollyDelta    : 500.
+      DrawMCTruth      : true
+      MCTruthLabel     : "g4gen"
+      DrawSSDClusters  : true
+      SSDClustLabel    : "clust"
+      DrawTracks       : true
+      TracksLabel      : "ssdreco"
+      DrawVertices     : true
+      VerticesLabel    : "vtxreco"
+      VisLevel         : 4
     }
   }
 
-  #list the modules for this path, order matters, filters reject all following items
-  evd: [ evdisp ]
+  e1        : [ eventDisplay ]
+  end_paths : [ e1 ]
 
-  #end_path are things that do not modify art::Event, includes analyzers and output modules. 
-  #all items here can be run simultaneously
-  end_paths: [ evd ]
 }

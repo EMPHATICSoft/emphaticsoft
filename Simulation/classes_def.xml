@@ -1,0 +1,31 @@
+<!--  Include art::Wrapper lines for objects that we would like to put  -->
+<!--  into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
+<!--  lines and for all objects that are data members of those objects.-->
+ 
+<lcgdict>
+  <class name="sim::SSDHit"    ClassVersion="11" >
+   <version ClassVersion="11" checksum="1038206630"/>
+    <version ClassVersion="10" checksum="995705853"/>
+  </class>
+  <class name="std::vector<sim::SSDHit>"        />
+  <class name="std::vector<std::vector<sim::SSDHit> >"        />
+  <class name="art::Wrapper< std::vector<sim::SSDHit>    >"/>
+  <class name="art::Wrapper< std::vector<std::vector<sim::SSDHit> >   >"/>
+  <class name="sim::Particle"    ClassVersion="11" >
+   <version ClassVersion="11" checksum="1551138086"/>
+    <version ClassVersion="10" checksum="995705853"/>
+  </class>
+  <class name="std::vector<sim::Particle>"        />
+  <class name="art::Wrapper< std::vector<sim::Particle>    >"/>
+  <class name="sim::Track"        />
+  <class name="std::vector<sim::Track>"        />
+  <class name="art::Wrapper< std::vector<sim::Track>    >"/>
+  <class name="sim::TOPAZLGHit"        />
+  <class name="std::vector<sim::TOPAZLGHit>"        />
+  <class name="art::Wrapper< std::vector<sim::TOPAZLGHit>    >"/>
+  <class name="sim::ARICHHit"        />
+  <class name="std::vector<sim::ARICHHit>"        />
+  <class name="art::Wrapper< std::vector<sim::ARICHHit>    >"/>
+
+</lcgdict>
