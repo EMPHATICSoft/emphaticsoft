@@ -76,6 +76,7 @@ int main(int argc, char **argv) {
    double alphaFunctionY = -25.1063; // same..  
    double alphaFunctionX = -8.62823; //
    double uPLimitOnChiSqTrackFits = 200.; 
+   double assumedDoubleGap = 3.25; // starting value for the gap 
    int runNum = 1055; // For data... 
    std::string G4EMPHDescrToken("none");
   
@@ -201,6 +202,9 @@ int main(int argc, char **argv) {
         } else if (parStr.find("UpLimChisSqTr") != std::string::npos) {
           valStrStr >> uPLimitOnChiSqTrackFits;
           if (myRank == 0) std::cerr << " The upper limit on a the chiSq of a Beam Track is      "  << uPLimitOnChiSqTrackFits << std::endl;	
+        } else if (parStr.find("DoubleGap") != std::string::npos) {
+          valStrStr >> assumedDoubleGap;
+          if (myRank == 0) std::cerr << " The gap betweeen double sensors is assumed to be       "  << assumedDoubleGap << std::endl;	
         } else if (parStr.find("token") != std::string::npos) {
           token = valStr;
           if (myRank == 0) std::cerr << " Token will be   "  << token << std::endl;
@@ -305,6 +309,7 @@ int main(int argc, char **argv) {
        myGeo->SetMultScatUncert('W', 2, 0.0264);  
        myGeo->SetMultScatUncert('W', 3, 0.0264);	 // clusmy.. typo error prone.. 
        if (G4EMPHDescrToken.find("3a") != std::string::npos)  myGeo->SetMagnetKick120GeV(1.0e-10);
+       if (G4EMPHDescrToken.find("4a") != std::string::npos)  myGeo->SetMagnetKick120GeV(1.0e-10);
     }
     
     emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance();
@@ -490,6 +495,18 @@ int main(int argc, char **argv) {
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2, 1.071068301 ); // Success value, keep.. Little bias due to sift Limits. 
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3, -3.284696663 ); // Success value, keep.. Little bias due to sift Limits. 
      */
+     // ease the search for the minimum.. And, Change the definition of the coordinate system. 
+     //
+     bool withGap = true;
+     if (G4EMPHDescrToken.find("NoTgtMis03a") != std::string::npos) withGap = false;
+     if (G4EMPHDescrToken.find("NoTgtMis04a") != std::string::npos) withGap = false;
+     if (G4EMPHDescrToken.find("NoTgtMis04b") != std::string::npos) withGap = false;
+     if (withGap) { 
+       myGeo->SetValueTrShiftLastPlane('X', assumedDoubleGap );  
+       myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
+       myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap );  
+       myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
+     }
    } 
     
     if (myRank == 0) myParams->DumpTable(token); 
@@ -597,9 +614,9 @@ int main(int argc, char **argv) {
 	      (aName.find("KickMag") == 0)) isFixed = false;
 	  // This sensor is not illuminated, or simply dead for run 1055 
 //	  if (aName.find("_V_0") != std::string::npos) isFixed = true;
-	  if (aName.find("_V_") != std::string::npos) { // gave up on V sensors for now, something still wrong.. 
-	      isFixed = true;
-	  }
+//	  if (aName.find("_V_") != std::string::npos) { // gave up on V sensors for now, something still wrong.. 
+//	      isFixed = true;
+//	  }
 	 //
 	 // decided.. 
 	 //
