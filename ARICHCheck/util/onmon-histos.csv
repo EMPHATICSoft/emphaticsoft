@@ -1,0 +1,42 @@
+Name,Title,Category,Type,nx,x1,x2,ny,y1,y2,Option,Detector,Reset,Look back,Caption
+NRawObjectsHisto,Number of Raw Objects Per Detector;Detector;Number,All Detectors,TH2F,9,0,9,100,0,100,colz:logz:detlbl:autozoomz,emph,subrun,1,Distribution of the number of raw data objects per detector per event.
+NTriggerVsDet,Number of Triggers Seen by Each Detector;Detector;Number,All Detectors,TH1F,9,0,9,0,0,0,detlbl:hist:autozoomy,emph,subrun,1,Shows number of triggers seen by each detector.
+TriggerVsSubrun,Number of triggers per subrun seen by each detector.;Subrun;Detector,All Detectors,TH2F,600,0,600,9,0,9,colz:autozoomz:special:zoomsr,emph,run,1,Number of triggers per subrun recorded by each detector.
+HitEffPerChannel,Hit Efficiency per Channel seen by each detector.;Detector;Channel,All Detectors,TH2F,39,0,39,64,0,64,colz:autozoomz:special:zoomsr,emph,subrun,1,Hit efficiency vs. (Detector,Channel).
+TRB3NHitsPerChannel,TRB3 hits per electronic channels;Channel;FPGA,All Detectors,TH2F,65,0,65,20,0,20,colz,emph,run,1,TRB3 number of hits per electronic channels.
+T0ADC*,T0 ADC Distribution;ADC,T0,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for T0 channels.
+T0NTDC*,Number of T0 Hits Per Event;TDC,T0,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of T0 hits seen in each event on a given channel.
+T0TDCVsADC*,T0 TDC vs ADC Distribution,T0,TH2F,512,0,4095,512,0,4095,colz,emph,subrun,1,Shows distribution of TDC vs ADC for T0 hits.
+T0TDCChanVsADCChan, T0 TDC vs ADC channel;ADC Channel;TDC Channel,T0,TH2F,20,0,20,20,0,20,colz,emph,subrun,1,TDC vs ADC channel.
+T0RisingTimeSum,(T0 - Trigger) time;Time,T0,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
+T0FallingTimeSum,(T0 - Trigger) time;Time,T0,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
+T0RisingTime*,(T0 - Trigger) time;Time,T0,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+T0FallingTime*,(T0 - Trigger) time;Time,T0,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+LGCaloADC*,LGCalo ADC Distribution;ADC,LGCalo,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for lead glass calorimeter channels.
+BACkovQ*,BACkov Charge Distribution;Q,BACkov,TH1F,200,-100,900,0,0,0,,emph,subrun,1,Shows Charge distribution for beam aerogel cherenkov detector.
+GasCkovADC*,Gas Ckov ADC Distribution;ADC,GasCkov,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for gas cherenkov detector.
+TriggerTime,Event Time Since Start of Spill;seconds,Trigger,TH1F,420,0,4.2,0,0,0,,emph,subrun,1,Shows event time since first event in the subrun.
+TriggerDeltaT,Event Delta-t Distribution;ms,Trigger,TH1F,200,0,1,0,0,0,,emph,subrun,1,Distribution of time to next event in the subrun.
+TriggerEff,Trigger PMT Inefficiency;PMT;Inefficiency,Trigger,TH1F,4,1,5,0,0,0,,emph,subrun,1,Shows trigger PMT inefficiency.
+TriggerADC*,Trigger ADC Distribution;ADC,Trigger,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for trigger detector PMTs.
+SSDProfile*,SSD Profile;Channel;Number of Hits,SSD,TH1F,640,0,640,0,0,0,,emph,subrun,1,Beam profile plots from SSDs.
+SSDNHits*,SSD Hit Multiplicity;Number of Hits,SSD,TH1F,50,0,50,0,0,0,,emph,subrun,1,Hit multiplicity distributions from SSDs.
+BACkovWaveForm*,BACkov Average Waveform;Tick;ADC,BACkov,TH1F,200,0,200,0,0,0,,emph,subrun,1,Shows average waveform from the BACkov detector PMTs.
+RPCNTDC*,Number of RPC Hits Per Event;TDC,RPC,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of RPC hits seen in each event on a given channel.
+RPCRisingTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
+RPCFallingTimeSum,(RPC - Trigger) time;Time,RPC,TH1F,1024,-6e6,6e6,0,0,0,,emph,run,1,Sum of differences between all channels and channel 0 (trigger).
+RPCRisingTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+RPCFallingTime*,(RPC - Trigger) time;Time,RPC,TH1F,512,-6e6,6e6,0,0,0,,emph,run,1,Difference between this channel and channel 0 (trigger).
+RPCTOT*,RPC time over threshold;Time,RPC,TH1F,1024,-1e5,1e5,0,0,0,,emph,run,1,difference between leading and trailing edge of each RPC channel pair.
+ARICHNHits,ARICH hits per event;Number of hits,ARICH,TH1F,150,0,150,0,0,0,,emph,run,1,Number of ARICH hits per event.
+ARICHNHitsPxl,ARICH hits XY;Pixel X;Pixel Y,ARICH,TH2F,24,0,24,24,0,24,colz,emph,run,1,ARICH hits by pixel X and pixel Y.
+ARICHHitTimes,ARICH leading and trailing times;Time-trigger (ns),ARICH,TH1F,200,-600,-400,0,0,0,,emph,run,1,ARICH leading and trailing times for all channels.
+ARICHHitToT,ARICH;Time over threshold (ns),ARICH,TH1F,100,0,100,0,0,0,,emph,run,1,ARICH time over threshold for all channels.
+ARICHNTrails,ARICH;Number of trailing times,ARICH,TH1F,10,0,10,0,0,0,,emph,run,1,ARICH number of trailing times after one leading time.
+LGCaloWaveForm*,LG Calorimeter Average Waveform;Tick;ADC,LGCalo,TH1F,200,0,200,0,0,0,,emph,run,1,Shows average waveform from the LG Calorimeter PMTs.
+LGCaloIntCharge*,LG Calorimeter Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the integrated charge distribution from the LG Calorimeter PMTs.
+LGCaloTotalCharge*,LG Calorimeter Total Integrated Charge;Integrated Charge;Counts,LGCalo,TH1F,200,0,26000,0,0,0,,emph,run,1,Shows the total integrated charge distribution from the LG Calorimeter PMTs.
+LGCaloCenterRatio*,LG Calorimeter Integrated Charge Ratio;Center Block Ch. / Total Ch.;Counts,LGCalo,TH1F,200,0,1,0,0,0,,emph,run,1,Shows the integrated charge ratio from the LG Calorimeter PMTs.
+LGCaloEdgeRatio*,LG Calorimeter Integrated Charge Ratio;Edge Blocks Ch. / Total Ch.;Counts,LGCalo,TH1F,200,0,1,0,0,0,,emph,run,1,Shows the integrated charge ratio from the LG Calorimeter PMTs.
+LGCaloIntChgVsRatio,Total Integrated Charge Vs Center Ratio;Center Ratio;Integrated Charge,LGCalo,TH2F,200,0,1,200,0,26000,colz:logz,emph,run,1,Total Integrated Charge Vs Center Ratio.
+NTriggerLGArray,Number of Triggers per LG Block;Block;Block,LGCalo,TH2F,3,0,3,3,0,3,colz:logz,emph,run,1,Distribution of the triggers among the LG calorimeter blocks.

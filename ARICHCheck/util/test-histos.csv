@@ -1,0 +1,10 @@
+Name,Title,Category,Type,nx,x1,x2,ny,y1,y2,Option,Detector,Reset,Look back,Caption
+Test1D,Test1D Title,Cat1,TH1F,10,0,1,,,,,all,run,5,Test 1D histogram
+Test2D,Test2D Title,Cat1,TH2F,10,0,1,10,0,1,,all,run,5,Test 2D histogramTest
+Cat2,TestCat2 Title,Cat2,TH1F,10,0,1,,,,,all,run,5,Test adding a new category
+TestMultiCat,TestMultiCat Title,Cat1 : Cat2,TH1F,10,0,1,,,,,all,run,5,Test adding histogram to multiple categories
+TestSubCat,TestSubCat Title,Cat1/SubCat1,TH1F,10,0,1,,,,,all,run,5,Test adding a histogram to a sub-category
+TestSubCat2,TestSubCat2 Title,Cat1/SubCat1 : Cat1/SubCat2 : Cat2/SubCat1,TH1F,10,0,1,,,,,all,run,5,Test adding with multiple subcategories
+TestSubCat3,TestSubCat3 Title,Cat1/SubCat1/SubSubCat1,TH1F,10,0,1,,,,,all,run,5,Test adding to subcategory of subcategory
+TestRegExp_*,Test regular expression matching,RegEx,TH1F,10,0,1,,,,,all,run,5,Test if matching to regular expressions works
+TestFDND,Test FDND,Context,TH1F,10,0,1,,,,,emph,run,5,Test histograms with same name but different contexts
