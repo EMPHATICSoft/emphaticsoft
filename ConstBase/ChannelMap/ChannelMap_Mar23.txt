@@ -70,10 +70,10 @@ TRB3	18			29		T0		15		0		0		x
 TRB3	18			30		T0		15		1		0		x
 TRB3	18			31		T0		16		0		0		x
 TRB3	18			32		T0		16		1		0		x
-TRB3	18			33		T0		18		0		0		x
-TRB3	18			34		T0		18		1		0		x
-TRB3	18			35		T0		17		0		0		x
-TRB3	18			36		T0		17		1		0		x
+TRB3	18			33		T0		17		0		0		x
+TRB3	18			34		T0		17		1		0		x
+TRB3	18			35		T0		18		0		0		x
+TRB3	18			36		T0		18		1		0		x
 TRB3	18			37		T0		19		0		0		x
 TRB3	18			38		T0		19		1		0		x
 TRB3	18			39		T0		20		0		0		TopLeft
