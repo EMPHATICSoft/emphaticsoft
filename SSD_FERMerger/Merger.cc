@@ -28,6 +28,7 @@ const string fer0Name = "FER0";
 const string fer1Name = "FER1";
 const string fer2Name = "FER2";
 const string fer3Name = "FER3";
+const string fer4Name = "FER4";
 //const string RD53MiddlewareName  = "RD53Middleware";
 //const string OTEastName     	   = "fed000";
 //const string OTWestName     	   = "fed001";
@@ -72,6 +73,7 @@ int main(int argc, char **argv)
   stationNames.push_back(fer1Name);
   stationNames.push_back(fer2Name);
   stationNames.push_back(fer3Name);
+  stationNames.push_back(fer4Name);
   //stationNames.push_back(fer1Name);
   //stationNames.push_back(RD53MiddlewareName);
 

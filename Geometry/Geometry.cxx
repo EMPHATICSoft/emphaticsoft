@@ -292,6 +292,7 @@ namespace emph {
 			fNSSDs = 0;
 
 			double angle;
+			bool flip;
 
 			for (auto name : nodeName) {
 				SSDStation st;
@@ -323,6 +324,10 @@ namespace emph {
 						angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
 						if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
 						sensor.SetRot(angle);
+						const Double_t* rotation_matrix = sensor_n->GetMatrix()->GetRotationMatrix();
+						if(*(rotation_matrix+8)>0)flip=false;
+						else flip=true;
+						sensor.SetFlip(flip);
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
 
