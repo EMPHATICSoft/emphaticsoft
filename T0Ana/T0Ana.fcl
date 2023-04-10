@@ -4,7 +4,7 @@ standard_t0ana:
 {
   module_type: T0Ana
 
-  channelMapFileName: "ChannelMap_Jun22.txt"
+  channelMapFileName: "ChannelMap_Mar23.txt"
 }
 
 no_ssd_t0ana: @local::standard_t0ana
