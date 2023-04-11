@@ -75,6 +75,7 @@ $nstation_type = 4; # types of station
 # Visualization of SSDs can be found at DocDB 1260
 @SSD_bkpln= (1, 2, 2, 1); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0", "D0"); # SSD type in a station
+$nD0chan = 640; # number of channels per sensor
 $nSSD_station = 8; # num. of stations
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
 @SSD_station_shift = (0, 100, 200, 300, 500, 900, 1000, 1200); # position of stations, need to be corrected
@@ -267,6 +268,9 @@ EOF
 	 <quantity name="ssdD0_height" value="38.34" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
+	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
+	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
+	 
 EOF
 		for($i = 0; $i < $nSSD_station; ++$i){
 			print DEF <<EOF;
@@ -358,6 +362,13 @@ EOF
 		}
 
 	}
+
+	for($i = 0; $i < $nD0chan; ++$i){
+		print DEF <<EOF;
+		<position name="ssd_chan_@{[ $i ]}_pos" x="0" y="(@{[ -($nD0chan-1)/2 ]}+@{[ $i ]})*(ssdD0_chanwidth+ssdD0_changap)" z="0"/>
+EOF
+	}
+
 		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR SSD -->
@@ -649,6 +660,8 @@ EOF
 
 	 <!-- BELOW IS FOR SSD -->
 
+	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
+
 EOF
 		for($i = 0; $i < $nstation_type; ++$i){
 			print SOL <<EOF;
@@ -818,12 +831,28 @@ EOF
 
   <!-- BELOW IS FOR SSD -->
 
+		 <volume name="ssd_chan_vol">
+			<materialref ref="SiliconWafer"/>
+			<solidref ref="ssd_chan_box"/>
+		 </volume>
+
 EOF
 		for($i = 0; $i < $nstation_type; ++$i){
 			print MOD <<EOF;
 		 <volume name="ssd@{[ $station_type[$i] ]}_vol">
 			<materialref ref="SiliconWafer"/>
 			<solidref ref="ssd@{[ $station_type[$i] ]}_box"/>
+EOF
+			for($j = 0; $j < $nD0chan; ++$j){
+				print MOD <<EOF;
+		 <physvol name="ssd_chan_@{[ $j ]}_vol">
+			<volumeref ref="ssd_chan_vol"/>
+			<positionref ref="ssd_chan_@{[ $j ]}_pos"/>
+		 </physvol>
+EOF
+			}
+
+			print MOD <<EOF;
 		 </volume>
 
 		 <volume name="ssd@{[ $station_type[$i] ]}_bkpln_vol">
