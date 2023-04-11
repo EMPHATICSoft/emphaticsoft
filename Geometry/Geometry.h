@@ -27,6 +27,27 @@ class TVector3;
 namespace emph {
 	namespace geo {
 
+		class Strip {
+			public:
+				Strip();
+				Strip(std::string name, TVector3 pos, double dw);
+				~Strip() {};
+
+				std::string Name() const { return fName;}
+				TVector3 Pos() const { return fPos;}
+				double Dw() const { return fDw;}
+
+				void SetName(std::string n) {fName = n; }
+				void SetPos(TVector3 pos) {fPos = pos;}
+				void SetDw(double dw) {fDw = dw;}
+
+			private:    
+				std::string fName;
+				TVector3 fPos;
+				double fDw;
+		};
+
+
 		class Detector {
 			public:
 				Detector();
@@ -42,6 +63,7 @@ namespace emph {
 				double Dz() const { return fDz;}
 				double Width() const { return fWidth;}
 				double Height() const { return fHeight;}
+				void AddStrip(Strip strip) {fStrip.push_back(strip); }
 
 				void SetName(std::string n) {fName = n; }
 				void SetPos(TVector3 pos) {fPos = pos;}
@@ -52,6 +74,8 @@ namespace emph {
 				void SetDz(double dz) {fDz = dz;}
 				void SetWidth(double w) {fWidth = w;}
 				void SetHeight(double h) {fHeight = h;}
+				int NStrips() const {return (int)fStrip.size(); };
+				Strip GetStrip(int i) const {return fStrip[i]; }
 
 			private:    
 				std::string fName;
@@ -61,6 +85,7 @@ namespace emph {
 				double fDz;
 				double fWidth;
 				double fHeight;
+				std::vector<Strip> fStrip;
 		};
 
 		class SSDStation {
@@ -92,6 +117,7 @@ namespace emph {
 				double fHeight;
 				std::vector<Detector> fSSD;
 		};
+
 
 		class Geometry {
 			public:

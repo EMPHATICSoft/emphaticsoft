@@ -30,6 +30,22 @@
 namespace emph {
 	namespace geo {
 
+		Strip::Strip() :
+			fName(""), fPos(-1e6,-1e6,-1e6), fDw(-99999)
+		{
+		}
+
+		//--------------------------------------------------------------------------------
+
+		Strip::Strip(std::string name, TVector3 pos, double dw) :
+			fName(name), fDw(dw)
+		{
+			fPos = pos;
+
+		}
+
+		//--------------------------------------------------------------------------------
+
 		Detector::Detector() :
 			fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.)
 		{
@@ -281,6 +297,7 @@ namespace emph {
 
 			std::string sString = "ssdStation";
 			std::string ssubString = "ssdsensor";
+			std::string schanString = "ssd_chan";
 
 			for (int i=0; i<nnodes; ++i) {
 				std::string name = world_v->GetNode(i)->GetName();
@@ -331,8 +348,26 @@ namespace emph {
 						sensor.SetWidth(2*sensor_box->GetDX());
 						sensor.SetHeight(2*sensor_box->GetDY());
 
+						// now add channels to each SSD sensor
+						int nchan = sensor_n->GetNodes()->GetEntries();
+						for( int k=0; k<nchan; ++k){
+							std::string name = sensor_v->GetNode(k)->GetName();
+							if(name.find(schanString) != std::string::npos){
+								Strip strip;
+								TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(name.c_str());
+								TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
+								TGeoBBox* strip_box = (TGeoBBox*)strip_v->GetShape();
+
+								strip.SetName(name);
+								strip.SetDw(2*strip_box->GetDY());
+								strip.SetPos(strip_n->GetMatrix()->GetTranslation());
+								sensor.AddStrip(strip);
+							}
+						}
+
 						st.AddSSD(sensor);
 						fNSSDs++;
+
 					}
 				}
 				
