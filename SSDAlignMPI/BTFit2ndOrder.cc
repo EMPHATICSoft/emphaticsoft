@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
    std::string token("none");
    bool doCallFCNOnce = false; // for debugging purpose.. One cll to FCCN and that is it. 
    bool doMinos = true;
+   bool doLoadParamsFromPreviousRun = false;
    unsigned int  contourP1Index = INT_MAX;
    unsigned int  contourP2Index = INT_MAX;
    int nContourPts = 20;
@@ -175,6 +176,11 @@ int main(int argc, char **argv) {
 	  doCallFCNOnce = (iCallFCNOnce == 1);
           if ((myRank == 0) && doCallFCNOnce)  std::cerr << "We will do a single call to FCN, and quit  " << std::endl;
           if ((myRank == 0) && (!doCallFCNOnce))  std::cerr << "We will do the complete fit.  " << std::endl;
+       } else if (parStr.find("startFromPrev") != std::string::npos) {
+          int iTmpPrev;
+          valStrStr >> iTmpPrev;
+	  doLoadParamsFromPreviousRun = (iTmpPrev == 1);
+          if ((myRank == 0) && doLoadParamsFromPreviousRun)  std::cerr << "We will restart from previous, same seq major tag  " << std::endl;
         } else if (parStr.find("softLimits") != std::string::npos) {
           int iS;
           valStrStr >> iS;
@@ -204,7 +210,7 @@ int main(int argc, char **argv) {
           if (myRank == 0) std::cerr << " The upper limit on a the chiSq of a Beam Track is      "  << uPLimitOnChiSqTrackFits << std::endl;	
         } else if (parStr.find("DoubleGap") != std::string::npos) {
           valStrStr >> assumedDoubleGap;
-          if (myRank == 0) std::cerr << " The gap betweeen double sensors is assumed to be       "  << assumedDoubleGap << std::endl;	
+          if (myRank == 0) std::cerr << " The gap betweeen double sensors is assumed to be "  << assumedDoubleGap << std::endl;	
         } else if (parStr.find("token") != std::string::npos) {
           token = valStr;
           if (myRank == 0) std::cerr << " Token will be   "  << token << std::endl;
@@ -281,7 +287,8 @@ int main(int argc, char **argv) {
      if ((strictSt6X)  && (strictSt6Y)) { 
         numExpected = 41321; myBTIn.SetKey(687403); // Only valid for run 1055
 	if (G4EMPHDescrToken != std::string("none"))  numExpected = -1; // Variable, too much clerical work with this check. 
-     }  
+     }
+     if (maxEvts !=  1000000)  numExpected = maxEvts; // a bit of an abuse of variables names... Speed things up.. 
      if (myRank == 0)  {
          std::cerr << " Doing the Fit2ndorder on file " << aFName << std::endl;
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
@@ -433,6 +440,16 @@ int main(int argc, char **argv) {
       */
      }
     } 
+    bool withGap = true;
+    if (G4EMPHDescrToken.find("NoTgtMis03a") != std::string::npos) withGap = false;
+    if (G4EMPHDescrToken.find("NoTgtMis04a") != std::string::npos) withGap = false;
+    if (G4EMPHDescrToken.find("NoTgtMis04b") != std::string::npos) withGap = false;
+    if (withGap) { 
+      myGeo->SetValueTrShiftLastPlane('X', assumedDoubleGap );  
+      myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
+      myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap );  
+      myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
+    }
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1,  1.585286); 
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2,  1.697424);  
@@ -497,16 +514,34 @@ int main(int argc, char **argv) {
      */
      // ease the search for the minimum.. And, Change the definition of the coordinate system. 
      //
-     bool withGap = true;
-     if (G4EMPHDescrToken.find("NoTgtMis03a") != std::string::npos) withGap = false;
-     if (G4EMPHDescrToken.find("NoTgtMis04a") != std::string::npos) withGap = false;
-     if (G4EMPHDescrToken.find("NoTgtMis04b") != std::string::npos) withGap = false;
-     if (withGap) { 
-       myGeo->SetValueTrShiftLastPlane('X', assumedDoubleGap );  
-       myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
-       myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap );  
-       myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
-     }
+     if ((G4EMPHDescrToken.find("NoTgtMis04c") != std::string::npos) || 
+         (G4EMPHDescrToken.find("NoTgtMis04d") != std::string::npos)) { // Obtained April 5, Try3D_Sim4c_d_1. The transverse shifts offsets did not changed, 
+	                                                                // 4c to 4d.  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1, 0.451439 );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2, -0.9407  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 3, 0.05456  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, 3.02121  );
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, 2.88603	); 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 6, 2.87873  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.28087  ); 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 1.13102  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 3, 2.11685  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4, 3.11639  );  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5, 2.66438  );
+      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6, 2.62064  );
+      myParams->SetValue(emph::rbal::TRSHIFT, 'U', 0, 0.90913  ); //  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'U', 1, 2.60271  ); // 
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 0, -4.9796  ); //  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 1, -5.3733  ); //  
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2, -0.5959  ); //
+      myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3, -2.16742 ); //  
+    }
+    //
+    // New method, reload from a file... 
+    //
+    if (doLoadParamsFromPreviousRun) {
+      myParams->LoadValueFromPreviousRun(token);
+    }
    } 
     
     if (myRank == 0) myParams->DumpTable(token); 
@@ -573,13 +608,15 @@ int main(int argc, char **argv) {
 //  Re-write these clauses.. Keyin on whether or not we ask for a specific sensor. 
          if (SensorForFitSubType == INT_MAX) { 
 	   if (((fitSubType == std::string("TrShift")) || (fitSubType == std::string("TrShiftMagnetKick")) ||
-	        (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")))   && 
+	        (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")) || 
+		(fitSubType == std::string("TrTiltRollShift")))   && 
 	        (aName.find("TransShift") != std::string::npos)) isFixed = false;
 	   if (((fitSubType == std::string("ZShift"))||(fitSubType == std::string("TrZShift"))) && 
 	        (aName.find("LongShift") != std::string::npos)) isFixed = false;
-	   if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift"))) && 
+	   if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift")) ||
+	        (fitSubType == std::string("TrTiltRollShift"))) && 
 	        (aName.find("Tilt") != std::string::npos)) isFixed = false;
-	   if ((fitSubType == std::string("DeltaRoll")) && 
+	   if (((fitSubType == std::string("DeltaRoll")) || (fitSubType == std::string("TrTiltRollShift"))) && 
 	       (aName.find("DeltaRoll") != std::string::npos)) isFixed = false;
 	 } else {
 	   if ((ViewForFitSubType == itP->View()) && (SensorForFitSubType == itP->SensorI())) { 
@@ -638,6 +675,21 @@ int main(int argc, char **argv) {
      //
      ROOT::Minuit2::FunctionMinimum min = migrad();
      bool myMinMigrad = min.IsValid();
+     //
+     // Save the minimum values, no matter if the minimum is valid or not.. 
+     //
+     if (myRank == 0) {
+       std::string fNameMinRes("./MinValues_"); fNameMinRes += token + std::string(".txt");      
+       std::ofstream fOutMinRes(fNameMinRes.c_str());
+       for (size_t kPar=0; kPar != myParams->size();  kPar++) {
+         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
+         std::string aName(itP->Name());
+         double theValue  = min.UserState().Value(aName);
+         double theError  = min.UserState().Error(aName);
+	 fOutMinRes << " " << aName << " " << theValue << " " << theError << std::endl;
+       }
+       fOutMinRes.close();
+     }
      if (!myMinMigrad) {
        if (myRank == 0) {
          std::cerr << "  ... On rank 0, Minimum from Migrad is invalid... " << std::endl;
@@ -647,6 +699,17 @@ int main(int argc, char **argv) {
 //       MPI_Finalize();
 //       exit(2); 
 // We want to be able to do the Scan.. 
+       //
+       // Save the set of track for this solution..Even if flaky..  
+       //
+       std::vector<double> parsSol(myParams->size(), 0.);
+       for (size_t kP=0; kP != myParams->size(); kP++) parsSol[kP] = min.UserState().Value(kP);
+       theFCN.SetDumpBeamTracksForR(true);
+       std::string aNameSol("./BeamTracksFromMBadin_"); aNameSol += token; aNameSol += std::string("_V1.txt");
+       theFCN.SetNameForBeamTracks(aNameSol);
+       double chiSol = theFCN(parsSol);
+       theFCN.SetDumpBeamTracksForR(false);
+      
      } else {
        
        if (myRank == 0) {
@@ -744,18 +807,28 @@ int main(int argc, char **argv) {
          std::string aName(itP->Name());
 //         if (aName.find("TransShift") == std::string::npos) continue; // This is the uncertainty we reall care about.. 
          double theValue  = min.UserState().Value(aName);
-         std::pair<double, double> err = minos(kPar, 1000);
-         ROOT::Minuit2::MinosError mey = minos.Minos(kPar);
-	 if (!mey.IsValid()) {
-	   if (myRank == 0) { 
-	     std::cerr << "  " << aName << "  !!!! Minos failed .. reverting to Migrad error " << std::endl;
-             double theValue  = min.UserState().Value(aName);
-	     double err = min.UserState().Error(aName);
-	     std::cerr << " " << aName << " " << theValue << " " << err << std::endl; 
-	   }
+	 if ((G4EMPHDescrToken.find("NoTgtMis04d") != std::string::npos) && 
+	     ((aName.find("_4") != std::string::npos) || (aName.find("_6") != std::string::npos))) {
+	     if (myRank == 0) { 
+	       std::cerr << "  " << aName << "  Skip Minos on poorly determined sesnsor.. reverting to Migrad error " << std::endl;
+               double theValue  = min.UserState().Value(aName);
+	       double err = min.UserState().Error(aName);
+	       std::cerr << " " << aName << " " << theValue << " " << err << std::endl; 
+	     }
 	 } else { 
-           if (myRank == 0) 
+           std::pair<double, double> err = minos(kPar, 200);
+           ROOT::Minuit2::MinosError mey = minos.Minos(kPar);
+	   if (!mey.IsValid()) {
+	     if (myRank == 0) { 
+	       std::cerr << "  " << aName << "  !!!! Minos failed .. reverting to Migrad error " << std::endl;
+               double theValue  = min.UserState().Value(aName);
+	       double err = min.UserState().Error(aName);
+	       std::cerr << " " << aName << " " << theValue << " " << err << std::endl; 
+	     }
+	   } else { 
+             if (myRank == 0) 
 	      std::cerr << " " << aName << " " << theValue << " " << err.first << "  " << err.second << std::endl;
+	   }
 	 } 
        }
      // Requested contours ?

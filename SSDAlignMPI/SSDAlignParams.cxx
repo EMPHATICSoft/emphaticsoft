@@ -10,13 +10,12 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <climits>
 #include <cfloat>
-
 #include "SSDAlignParams.h"
+#include "myMPIUtils.h"
 
 namespace emph {
   namespace rbal {
@@ -42,7 +41,7 @@ namespace emph {
        fDat.clear();
        int aMinNumber=0;
 //        const double pitchCorrLimit = 3.0*0.005; // ~ 170 mRad. 
-        const double pitchCorrLimit = 30.0*0.005; // ~ 170 mRad. 
+        const double pitchCorrLimit = 0.09; // ~ 5 degrees.  
 //       const double pitchCorrLimit = 1.0*0.005; // ~ 100 mRad. 
        if (fMode == std::string("2DY") || fMode == std::string("3D")) { 
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
@@ -51,7 +50,7 @@ namespace emph {
 	   SSDAlignParam aPar; 
 	   aPar.SetView('Y'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 
-	   aPar.SetLimits(std::pair<double, double>(-55., 55.0));
+	   aPar.SetLimits(std::pair<double, double>(-10., 10.0));
 	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) { 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
@@ -115,7 +114,7 @@ namespace emph {
 	     SSDAlignParam aPar; 
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
 	     aPar.SetType(emph::rbal::ROLL); 
-	     aPar.SetLimits(std::pair<double, double>(-0.25, 0.25));
+	     aPar.SetLimits(std::pair<double, double>(-pitchCorrLimit, pitchCorrLimit));
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
 	   }
@@ -125,11 +124,12 @@ namespace emph {
 	 for (size_t kV = 2; kV !=4; kV++) { 
  	   for (size_t kSe=0; kSe != nums[kV-2]; kSe++) {
 	     SSDAlignParam aPar; 
-	     aPar.SetType(emph::rbal::TRSHIFT); 
+	     aPar.SetType(emph::rbal::TRSHIFT);
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
-	     if (kV == 3) aPar.SetLimits(std::pair<double, double>(-150., 150.0)); // Not clear what the offsets are.. Tuning V views 
-	     if ((kV == 3) && (kSe == 3))  aPar.SetLimits(std::pair<double, double>(-1500., 1500.0)); // Not clear what the offsets are.. Tuning V views 
-	     if (kV == 2) aPar.SetLimits(std::pair<double, double>(-150., 150.0)); // Checked U , offsets are indeed small. 
+	     // for MC.. To study for data.. (sign convention problem.. ) 
+	     if (kV == 3) aPar.SetLimits(std::pair<double, double>(-15., 15.)); // Not clear what the offsets are.. Tuning V views 
+	     if ((kV == 3) && (kSe == 3))  aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Not clear what the offsets are.. Tuning V views 
+	     if (kV == 2) aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Checked U , offsets are indeed small. 
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
 	     if (!fMoveLongByStation) {
@@ -143,7 +143,7 @@ namespace emph {
 	     aPar.SetValue(1.0e-6);
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
 	     aPar.SetType(emph::rbal::ROLL); 
-	     aPar.SetLimits(std::pair<double, double>(-0.25, 0.25));
+	     aPar.SetLimits(std::pair<double, double>(-pitchCorrLimit, pitchCorrLimit));
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
 	  } // on Sensors  
@@ -164,7 +164,47 @@ namespace emph {
       }
       fOut.close();
     } 
-//     
+//    
+    void SSDAlignParams::LoadValueFromPreviousRun(const std::string token) {
+      // Get the rank of the process
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+      // a Place holder.  Only rank 0 reads the file. 
+      std::vector<double> allVals(fDat.size(), 0.);
+        // Works only for 10 iterations.. 
+      if (myRank == 0) {
+        std::string cIterNum = token.substr(token.length()-1, 1);
+        int aPrevIterNum = std::atoi(cIterNum.c_str()) - 1;
+        std::ostringstream fNameStrStr; 
+        fNameStrStr << "./MinValues_" << token.substr(0, token.length()-1) << aPrevIterNum << ".txt";
+        std::string fNameStr(fNameStrStr.str());
+        std::cerr << " SSDAlignParams::LoadValueFromPreviousRun, current token is " 
+	          << token << " filename is "  << fNameStr << std::endl;
+        std::ifstream fIn(fNameStr.c_str());
+        if (!fIn.is_open()) {
+           std::cerr << "SSDAlignParams::LoadValueFromPreviousRun , failed to open " << fNameStr << " fatal, quit here.. " << std::endl; exit(2);
+	}
+	std::vector<SSDAlignParam>::iterator it=fDat.begin();
+	char aLine[1024]; size_t nLines=0;
+	while (fIn.good()) {
+	   fIn.getline(aLine, 1024);
+           std::string aLStr(aLine);
+           std::istringstream aLStrStr(aLine);
+	   std::string aName; double aVal; double aErr; 
+	   aLStrStr >> aName >> aVal >> aErr; 
+	   if ((aName.find(it->Name()) == std::string::npos) && (it->Name().find(aName) == std::string::npos)) {
+	     std::cerr << "SSDAlignParams::LoadValueFromPreviousRun, out of order param " << aName 
+	               << " already loaded " << it->Name() << " fatal, quit here and now " << std::endl; exit(2);
+	   }
+	   allVals[nLines] = aVal;
+	   it->SetValue(aVal); 
+	   it++;
+	   nLines++;
+	   if (it == fDat.end()) break;
+	}
+      }
+      emph::rbal::broadcastFCNParams(allVals);
+    }
    } // namespace 
 }  // namespace   
      

@@ -130,6 +130,8 @@ namespace emph{
 	//
 	void DumpTable(const std::string &token) const; // Asci, CSV format 
 	
+	void LoadValueFromPreviousRun(const std::string token); 
+	
 	private:
 	  
 	inline std::vector<SSDAlignParam>::iterator It(paramType t, char view, size_t sensor) {
