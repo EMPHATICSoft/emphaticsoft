@@ -486,7 +486,7 @@ namespace emph {
       return 4;
     }else if(ch_daq == 11 || ch_daq == 12 || ch_daq == 31 || ch_daq == 32){
       return 5;
-    }else if(ch_daq == 13 || ch_daq == 14 || ch_daq == 33 || ch_daq == 35){
+    }else if(ch_daq == 13 || ch_daq == 14 || ch_daq == 33 || ch_daq == 34){
       return 6;
     }else if(ch_daq == 15 || ch_daq == 16 || ch_daq == 35 || ch_daq == 36){
       return 7;
