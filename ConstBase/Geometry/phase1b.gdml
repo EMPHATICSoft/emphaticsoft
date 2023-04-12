@@ -1289,6 +1289,12 @@ values="202.14067278287462 12.054573032169143
      <composite n="1" ref="Silicon"/>
    </material>
    
+   <material formula="SiO2" name="SiliconDioxide">
+     <D value="4.0"/>
+     <fraction n="0.467" ref="Silicon"/>
+     <fraction n="0.533" ref="Oxygen"/>
+   </material>
+ 
 	<material formula="ch2" name="CH2">
      <D value="1.65"/>
      <fraction n="0.86" ref="Carbon"/>
@@ -2091,2307 +2097,2307 @@ values="202.14067278287462 12.054573032169143
 			<solidref ref="aerogel_box1"/>
 		</volume>
 	 <volume name="mPMT_vol0_0_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_0_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_0_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_1_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_1_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol0_2_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box0_2_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_0_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_0_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_1_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_1_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol1_2_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box1_2_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_0_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_0_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_1_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_1_anode7_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode0_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode0_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode1_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode1_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode2_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode2_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode3_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode3_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode4_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode4_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode5_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode5_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode6_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode6_7"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_0">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_0"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_1">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_1"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_2">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_2"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_3">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_3"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_4">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_4"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_5">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_5"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_6">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_6"/>
 	</volume>
 	 <volume name="mPMT_vol2_2_anode7_7">
-	 	<materialref ref="SiliconWafer"/>
+	 	<materialref ref="SiliconDioxide"/>
 	 	<solidref ref="mPMT_box2_2_anode7_7"/>
 	</volume>
 

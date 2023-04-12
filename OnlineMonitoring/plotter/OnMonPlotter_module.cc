@@ -382,6 +382,32 @@ namespace emph {
 
     void OnMonPlotter::endSubRun(const art::SubRun&)
     {
+      if (fNEvents > 0) {
+	float scale = 1./float(fNEvents);
+	fTriggerEff->Scale(scale);
+	for (size_t i=0; i<fBACkovWaveForm.size(); ++i) {
+	  scale = 1./float(fNEventsBACkov[i]);
+	  fBACkovWaveForm[i]->Scale(scale);
+	  fNEventsBACkov[i]=0;
+	}
+
+	fNTriggerLGArray->SetBinContent(1.5,1.5,fNEventsLGCalo[6]);
+	fNTriggerLGArray->SetBinContent(2.5,2.5,fNEventsLGCalo[4]);
+	fNTriggerLGArray->SetBinContent(3.5,3.5,fNEventsLGCalo[2]);
+	fNTriggerLGArray->SetBinContent(1.5,3.5,fNEventsLGCalo[0]);
+	fNTriggerLGArray->SetBinContent(2.5,3.5,fNEventsLGCalo[1]);
+	fNTriggerLGArray->SetBinContent(1.5,2.5,fNEventsLGCalo[3]);
+	fNTriggerLGArray->SetBinContent(3.5,2.5,fNEventsLGCalo[5]);
+	fNTriggerLGArray->SetBinContent(2.5,1.5,fNEventsLGCalo[7]);
+	fNTriggerLGArray->SetBinContent(3.5,1.5,fNEventsLGCalo[8]);
+        for (size_t i=0; i<fLGCaloWaveForm.size(); ++i) {
+          scale = 1./float(fNEventsLGCalo[i]);
+          fLGCaloWaveForm[i]->Scale(scale);
+	  fNEventsLGCalo[i]=0;
+        }
+	fNEvents=0;
+      }
+
       std::cout<<"Writing file for run/subrun: " << fRun << "/" << fSubrun << std::endl;
       char filename[32];
       sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
@@ -397,29 +423,6 @@ namespace emph {
 
     void OnMonPlotter::endJob()
     {
-      if (fNEvents > 0) {
-	float scale = 1./float(fNEvents);
-	fTriggerEff->Scale(scale);
-	for (size_t i=0; i<fBACkovWaveForm.size(); ++i) {
-	  scale = 1./float(fNEventsBACkov[i]);
-	  fBACkovWaveForm[i]->Scale(scale);
-	}
-        for (size_t i=0; i<fLGCaloWaveForm.size(); ++i) {
-          scale = 1./float(fNEventsLGCalo[i]);
-          fLGCaloWaveForm[i]->Scale(scale);
-        }
-      }
-
-     fNTriggerLGArray->SetBinContent(1.5,1.5,fNEventsLGCalo[6]);
-     fNTriggerLGArray->SetBinContent(2.5,2.5,fNEventsLGCalo[4]);
-     fNTriggerLGArray->SetBinContent(3.5,3.5,fNEventsLGCalo[2]);
-     fNTriggerLGArray->SetBinContent(1.5,3.5,fNEventsLGCalo[0]);
-     fNTriggerLGArray->SetBinContent(2.5,3.5,fNEventsLGCalo[1]);
-     fNTriggerLGArray->SetBinContent(1.5,2.5,fNEventsLGCalo[3]);
-     fNTriggerLGArray->SetBinContent(3.5,2.5,fNEventsLGCalo[5]);
-     fNTriggerLGArray->SetBinContent(2.5,1.5,fNEventsLGCalo[7]);
-     fNTriggerLGArray->SetBinContent(3.5,1.5,fNEventsLGCalo[8]);
-
       char filename[32];
       sprintf(filename,"onmon_r%d_s%d.root", fRun, fSubrun);
       TFile* f = new TFile(filename,"RECREATE");

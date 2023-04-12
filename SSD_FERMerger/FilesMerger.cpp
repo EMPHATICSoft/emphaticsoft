@@ -270,13 +270,15 @@ namespace ssd {
 	    station = 2;
 	  else if (stationName == "FER3")
 	    station = 3;
+	  else if (stationName == "FER4")
+	    station = 4;
 	  else
 	    {
 	      cout << __PRETTY_FUNCTION__ << "\tUnrecognized station name: " << stationName << endl;
 	      exit(EXIT_FAILURE);
 	    }
 	  cout << __PRETTY_FUNCTION__ << "Building events for station name: " << stationName << " which is station #: " << station << endl;
-	  if (true && (station == 0 || station == 1 || station == 2 || station == 3))
+	  if (true && (station == 0 || station == 1 || station == 2 || station == 3|| station == 4))
 	    {
 	      int dataTriggerDelay = 0; //85;//-0x58; //Time for trigger to reach FPGA
 	      int stationDelay = 0; //trigger delay between stations
@@ -284,7 +286,7 @@ namespace ssd {
 		dataTriggerDelay = 2; 
 		stationDelay     = 0; //85;//-0x58; //Time for trigger to reach FPGA
 	      }
-	      else if (station == 2 || station == 3) {
+	      else if (station == 2 || station == 3 || station == 4) {
 		dataTriggerDelay = 1; 
 		stationDelay     = 4; //85;//-0x58; //Time for trigger to reach FPGA
 	      }
@@ -435,7 +437,7 @@ namespace ssd {
 			  if (binid == 2)
 			    stripplus++;
 			
-			  if (station == 2 || station == 3)
+			  if (station == 2 || station == 3 || station == 4)
 			    eventBCO *= 2;
 			  PxEvent *event=0;
 			  //UNCOMMENT TO SEE THE DATA BCO!!!!!!
@@ -521,7 +523,7 @@ namespace ssd {
 			  else if (dataType == 2) //HIGH BCO
 			    {
 			    
-			      if (station == 2 || station == 3)
+			      if (station == 2 || station == 3 || station == 4)
 				{
 				  highBco = (((uint64_t)((word >> 16) & 0x00ffff)) << 32);
 				  // std::cout << "[" << __LINE__ << "]"
@@ -549,7 +551,7 @@ namespace ssd {
 			      uint64_t eventBCO = stationDelay + (highBco & 0xffffffff00000000ULL) + bco;
 			      eventBCO -= dataTriggerDelay;
 			    
-			      if (station == 2 || station == 3)
+			      if (station == 2 || station == 3 || station == 4)
 				eventBCO *= 2;
 			      PxEvent *event = 0;
 			      if (false && triggerNumber_ % 10000 == 0)
