@@ -38,6 +38,7 @@ namespace sim {
     void       SetDE(double de) {fDE = de; }
 
     void       SetPId(int id) { fPId = id; }
+    void       SetStation(int station) { fStation = station; }
     void       SetPlane(int plane) { fPlane = plane; }
     void       SetSensor(int sensor) { fSensor = sensor; }
     void       SetStrip(int strip) { fStrip = strip; }
@@ -49,6 +50,7 @@ namespace sim {
     double fDE; // amount of energy deposited
     int    fPId;
 
+    int    fStation;
     int    fPlane;
     int    fSensor; 
     int    fStrip;
