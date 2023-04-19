@@ -837,23 +837,36 @@ EOF
 		 </volume>
 
 EOF
-		for($i = 0; $i < $nstation_type; ++$i){
-			print MOD <<EOF;
-		 <volume name="ssd@{[ $station_type[$i] ]}_vol">
+		$lay=0;
+		$sen=0;
+		for($i = 0; $i < $nSSD_station; ++$i){
+			for($j = 0; $j < $SSD_lay[$SSD_station[$i]]; ++$j){
+				++$lay;
+				for($k = 0; $k < $SSD_par[$SSD_station[$i]]; ++$k){
+					++$sen;
+					print MOD <<EOF;
+		 <volume name="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssd@{[ $station_type[$i] ]}_box"/>
+			<solidref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}_box"/>
 EOF
-			for($j = 0; $j < $nD0chan; ++$j){
-				print MOD <<EOF;
-		 <physvol name="ssd_chan_@{[ $j ]}_vol">
+					for($l = 0; $l < $nD0chan; ++$l){
+						print MOD <<EOF;
+		 <physvol name="ssd_chan_@{[ $i ]}_@{[ $lay ]}_@{[ $sen ]}_@{[ $l ]}_vol">
 			<volumeref ref="ssd_chan_vol"/>
-			<positionref ref="ssd_chan_@{[ $j ]}_pos"/>
+			<positionref ref="ssd_chan_@{[ $l ]}_pos"/>
 		 </physvol>
 EOF
-			}
-
-			print MOD <<EOF;
+					}
+				print MOD <<EOF;
 		 </volume>
+
+EOF
+				}
+			}
+		}
+
+		for($i = 0; $i < $nstation_type; ++$i){
+			print MOD <<EOF;
 
 		 <volume name="ssd@{[ $station_type[$i] ]}_bkpln_vol">
 			<materialref ref="CarbonFiber"/>
@@ -1103,7 +1116,7 @@ EOF
 
 						print DET <<EOF;
 		 <physvol name="ssdsensor@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_phys">
-			<volumeref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}_vol"/>
+			<volumeref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $j ]}@{[ $k ]}_pos"/>
 			<rotationref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
 		 </physvol>
