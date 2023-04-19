@@ -114,9 +114,9 @@ namespace emph {
 	 
 	 private:
 	 
-	 bool recoXY(rb::planeView view,  const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
+	 bool recoXY(geo::sensorView view,  const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
-	 bool checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
+	 bool checkUV(geo::sensorView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
 //	 double GetTsFromCluster(char aView, size_t kStation,  double strip, bool getX=true) const;
 	 double GetTsFromCluster(char aView, size_t kStation,  size_t sensor, double strip) const;
