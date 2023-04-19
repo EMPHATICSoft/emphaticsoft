@@ -19,9 +19,9 @@
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <quantity name="T0_shift" value="-852.9" unit="mm"/>
+	 <quantity name="T0_shift" value="-267.5" unit="mm"/>
 	 <quantity name="T0_acrylic_shift" value="40.0" unit="mm"/>
-	 <position name="T0_pos" z="T0_shift+T0_acrylic_shift+T0_length*0.5"/>
+	 <position name="T0_pos" z="T0_shift+T0_acrylic_shift"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -64,9 +64,9 @@
 
 	 <!-- BELOW IS FOR MAGNET -->
 
-    <quantity name="magnetShift" value="757.7" unit="mm"/>
+    <quantity name="magnetShift" value="987.645" unit="mm"/>
     <quantity name="magnetSideWidth" value="50" unit="mm"/>
-	 <quantity name="magnetSideZLength" value="160" unit="mm"/>
+	 <quantity name="magnetSideZLength" value="168.35" unit="mm"/>
 	 <quantity name="magnetSideOHeight" value="240" unit="mm"/>
 	 <quantity name="magnetSideIHeight0" value="48" unit="mm"/>
 	 <quantity name="magnetSideIHeight1" value="62" unit="mm"/>
@@ -90,13 +90,13 @@
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
 	 
 	 <quantity name="ssdStation0_shift" value="0" unit="mm"/>
-	 <quantity name="ssdStation1_shift" value="100" unit="mm"/>
-	 <quantity name="ssdStation2_shift" value="200" unit="mm"/>
-	 <quantity name="ssdStation3_shift" value="300" unit="mm"/>
-	 <quantity name="ssdStation4_shift" value="500" unit="mm"/>
-	 <quantity name="ssdStation5_shift" value="900" unit="mm"/>
-	 <quantity name="ssdStation6_shift" value="1000" unit="mm"/>
-	 <quantity name="ssdStation7_shift" value="1200" unit="mm"/>
+	 <quantity name="ssdStation1_shift" value="281" unit="mm"/>
+	 <quantity name="ssdStation2_shift" value="501" unit="mm"/>
+	 <quantity name="ssdStation3_shift" value="615" unit="mm"/>
+	 <quantity name="ssdStation4_shift" value="846" unit="mm"/>
+	 <quantity name="ssdStation5_shift" value="1146.38" unit="mm"/>
+	 <quantity name="ssdStation6_shift" value="1471.82" unit="mm"/>
+	 <quantity name="ssdStation7_shift" value="1744.82" unit="mm"/>
 
 	 <quantity name="carbon_fiber_thick" value="0.300"
 		 unit="mm" />
@@ -836,7 +836,7 @@
 	 <!-- ABOVE IS FOR SSD -->
 	 <!-- BELOW IS FOR ARICH -->
 
-	 <quantity name="arich_shift" value="1377.9" unit="mm"/>
+	 <quantity name="arich_shift" value="1862.82" unit="mm"/>
 	 <quantity name="arich_thick" value="280.0" unit="mm"/>
 	 <quantity name="arich_width" value="365.0" unit="mm"/>
 	 <quantity name="arich_height" value="365.0" unit="mm"/>
@@ -1447,9 +1447,8 @@
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <quantity name="RPC_shift" value="2699.7" unit="mm" />
-
-	 <position name="RPC_pos" x="0" y="0" z="RPC_shift+0.5*RPC_thick"/>
+	 <quantity name="RPC0_shift" value="3953.38" unit="mm" />
+	 <quantity name="RPC1_shift" value="4050.39" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
@@ -1460,6 +1459,8 @@
 	 <quantity name="RPC_gas_height" value="250.5" unit="mm" />
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
+	 <position name="RPC0_pos" z="RPC0_shift+0.5*RPC_thick"/>
+	 <position name="RPC1_pos" z="RPC1_shift+0.5*RPC_thick"/>
 	 <position name="RPC_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)"/>
 	 <position name="RPC_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)"/>
 
@@ -80034,11 +80035,16 @@ values="202.14067278287462 12.054573032169143
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="RPC_phys">
+
+  <physvol name="RPC0_phys">
 	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC_pos"/>
+	 <positionref ref="RPC0_pos"/>
   </physvol>
 
+  <physvol name="RPC1_phys">
+	 <volumeref ref="RPC_vol"/>
+	 <positionref ref="RPC1_pos"/>
+  </physvol>
   <!-- ABOVE IS FOR RPC -->
 
 
