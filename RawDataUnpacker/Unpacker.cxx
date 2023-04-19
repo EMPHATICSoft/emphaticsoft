@@ -11,7 +11,7 @@
 namespace emph {
   namespace rawdata {
 
-    std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag)
+    std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag, int boardNum)
     {
       bool isVerbose = false;
       char* verboseStr = getenv("EMPH_UNPACK_VERBOSE");
@@ -65,8 +65,9 @@ namespace emph {
       if (isVerbose)
 	std::cout << "\tNumber of channels: " << nChannels << "\n";
       
-      const int board = header.boardID;
-      int boardNum = board;
+      //      const int board = header.boardID;
+      //      int boardNum = board;
+      //      boardNum = frag.fragmentID();
 
       if (isVerbose) {
 	//--get the number of 32-bit words (quad_bytes) from the header
@@ -145,12 +146,7 @@ namespace emph {
             epoch_word = word;
           if((word & 0xe0000000) == 0x80000000){
     	       uint32_t tdc_word = word;
-             rawdata::TRB3RawDigit trb3dig;
-             trb3dig.fgpa_header_word = sseheader->subevent_id;
-             trb3dig.tdc_header_word  = tdc_header;
-             trb3dig.tdc_epoch_word   = epoch_word;
-             trb3dig.tdc_measurement_word = tdc_word;
-	     trb3dig.fragmentTimestamp = fragTS;
+             rawdata::TRB3RawDigit trb3dig(sseheader->subevent_id,tdc_header,epoch_word,tdc_word,fragTS);
 	     if (isVerbose)
 	       std::cout << "Making raw digit: " << sseheader->subevent_id << ", " << tdc_header << ", " << epoch_word << ", " << tdc_word << std::endl;
              trb3vec.push_back(trb3dig);

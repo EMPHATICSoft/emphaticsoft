@@ -24,7 +24,7 @@ namespace emph {
     //----------------------------------------------------------------------
 
     DChannel::DChannel() :
-      fId(emph::geo::DetectorType::NDetectors), fChannel(-1)
+      fId(emph::geo::DetectorType::NDetectors), fChannel(-1), fStation(-1)
     {
     }
     
@@ -38,16 +38,23 @@ namespace emph {
     }
   
     //----------------------------------------------------------------------
+    
+    bool ChannelMap::IsValidEChan(emph::cmap::EChannel& echan)
+    {
+      emph::cmap::DChannel dchan = this->DetChan(echan);
+      if (dchan.DetId() == emph::geo::NDetectors) return false;
+      return true;
+    }
+
+    //----------------------------------------------------------------------
 
     bool ChannelMap::LoadMap(std::string fname)
     {
+      
       if (fname.empty() && fIsLoaded) return true;
       if ((fname == fMapFileName) && fIsLoaded) return true;
 
       std::ifstream mapFile;
-      std::string file_path;
-      file_path = getenv ("CETPKG_SOURCE");
-      fname = file_path + "/ChannelMap/" + fname;
       mapFile.open(fname.c_str());
       if (!mapFile.is_open()) {
 	if (fAbortIfFileNotFound) std::abort();
@@ -61,24 +68,28 @@ namespace emph {
       std::string det;
       int dChannel;
       short dHiLo;
+      int dStation;
       std::string comment;
       
       while (getline(mapFile,line)) {
 	std::stringstream lineStr(line);
-	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> comment;
+	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> dStation >> comment;
 	if (boardType[0] == '#') continue;
 	
 	emph::cmap::FEBoardType iBoardType = emph::cmap::Board::Id(boardType);
 	emph::geo::DetectorType iDet = emph::geo::DetInfo::Id(det);
-	DChannel dchan(iDet,dChannel,dHiLo);
+	DChannel dchan(iDet,dChannel,dStation,dHiLo);
 	EChannel echan(iBoardType,board,eChannel);
-	std::cout << dchan << " <--> " << echan << std::endl;
+	//	std::cout << dchan << " <--> " << echan << std::endl;
 	fEChanMap[echan] = dchan;
 	fDChanMap[dchan] = echan;
 	
       }
       mapFile.close();
       fIsLoaded = true;
+      fMapFileName = fname;
+
+      std::cout<<"Loaded channel map from " << fMapFileName << std::endl;
 
       return true;
       

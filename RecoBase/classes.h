@@ -1,5 +1,13 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "RecoBase/SSDHit.h"
+#include "RecoBase/SSDCluster.h"
 #include "RecoBase/TrackSegment.h"
+#include "RecoBase/BeamTrackAlgo1.h"
 #include "RecoBase/SpacePoint.h"
+#include "RecoBase/Spill.h"
+#include "RecoBase/ARing.h"
+#include "RecoBase/BACkovHit.h"
+#include "RecoBase/GasCkovHit.h"
+#include "RecoBase/ADC.h"
+#include "RecoBase/TrigToT0.h"
 

@@ -1,7 +1,15 @@
 # emphaticsoft
 Base repository for art-based code
 
+#### Setting up
+* [On emphaticgpvm01.fnal.gov over ssh](#gpvm) <br>
+* [Locally in a Docker containter](#docker) <br>
+
+[Running art](#run) <br>
+[Generating documentation](#docs) <br>
+
 ---
+<a name="gpvm"></a>
 ## Instructions for setting up the code for the first time on emphaticgpvm01.fnal.gov:
 
 0.  Get a ticket for access EMPHATIC computer:
@@ -18,38 +26,58 @@ kinit username@FNAL.GOV
 klist
 ssh -Y username@emphaticgpvm0X.fnal.gov
 ```
-Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.  
+Where "X" should be replaced with "1", "2" or "3", to login to one of emmphatic's three virtual machines.
+
+If you are using Linux you need to include another flag:
+```
+ssh -K -Y username@emphaticgpvm0X.fnal.gov
+```
+Note to Mac users: add the following lines to your $HOME/.ssh/config file:
+```
+Host *.fnal.gov
+Protocol 2
+GSSAPIAuthentication yes
+GSSAPIDelegateCredentials yes
+ForwardAgent yes
+ForwardX11 yes
+ForwardX11Trusted yes
+ServerAliveInterval 60 #For some users these lines need to be commented out
+```
+Mac users may sometimes need additional environment variable:
+
+``` 
+export KRB5CCNAME=FILE:/tmp/krb5cc_`id -u` 
+```
+You should add that export command to your bash login so you don't have to do it or remember it every time. 
 
 2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
 
 ```
 mkdir /emph/app/users/[username]
 ```
-
-3. Then execute:
-
-```
-source /emph/app/setup/setup_emphatic.sh
-cd /emph/app/users/[username]
-mkdir build
-```
-
-3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username])
+3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username]), or a directory of your choosing.
 
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
 ```
 You will prompted to enter your github username and a password.  The password should be your personal access token, which you should obtain by following the instructions here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token.
 
+3. Then execute:
+
+```
+source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
+cd /emph/app/users/[username]/<directory-you-chose>/
+mkdir build
+```
 
 4. execute:
 
 ```
-cd /emph/app/users/[username]/build
-source /emph/app/users/[username]/emphaticsoft/ups/setup_for_development -p
+cd /emph/app/users/[username]/<directory-you-chose>/build
+source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
 ```
 
-6. To compile the code (must be in the "build" directory!):
+5. To compile the code (must be in the "build" directory!):
 
 ```
 buildtool --generator=ninja
@@ -58,6 +86,7 @@ buildtool --generator=ninja
 Note, once you've done this step, you can simply call "ninja" to compile changes.
 
 ---
+<a name="docker"></a>
 ## Instructions for running a Docker container on your own machine to build the code:
 
 Docker is a commercial software (free for now) that allows EMPHATIC to release the software we use, including all the dependencies and for users to run it on a variety of operating systems.  Docker images of EMPHATIC software are made available via a networked file system provided by CERN, namely CVMFS.  
@@ -106,8 +135,10 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
    buildtool --generator=ninja
    ```
    * any subsequent builds (still have to be in the build directory):
+   ```
    ninja
    ```
+<a name="run"></a>
 ## Running run on emphaticsoft art modules. 
 
    * Now that you have build shared objects that could run under art, the real work can start, i.e., running art and your EMPHATIC shared objects to get some histograms that can be seen using root, or simple ASCII .csv files, that can be studied with any analysis tools you like.  These intructions are valid if  you are on emphaticgpvm0X.fnal.gov or your own machine.  First, go to the build directory, and if you have not done so, execute the two setups mentioned above. 
@@ -144,3 +175,39 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
      
      will work.. 
 
+<a name="docs"></a>
+## Generating documentation
+Refer to [docs](https://github.com/EMPHATICSoft/emphaticsoft/tree/main/docs)
+
+## How to Develop EMPHATIC Code
+
+In order to make changes to EMPHATIC software, you will need to create your own git Branch.  After you have pulled the emphaticsoft repository, you can create a new branch and switch to it by executing:
+
+```
+git branch <your_branch_name>
+git checkout <your_branch_name>
+```
+
+where you should change <your_branch_name> to a name of your choosing.  You can then edit and commit changes to that branch as much as you want without affecting other EMPHATIC developers.  Dominic wrote some instructions for making changes to a git branch in DocDB (https://emphatic-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=1428).  
+
+When you create a branch, it will be a static copy of emphaticsoft at the time you created a branch.  But in general, it is good practice to merge in changes that others make to the main branch so your branch does not fall far behind the main branch.  You can do that by e.g.:
+
+```
+git checkout main
+git pull
+git checkout <your_branch_name>
+git merge main
+git push origin <your_branch_name>
+```
+
+Once your changes are thoroughly tested and your are ready for them to go into the main branch, you should execute a pull request.  To do this, first make sure your branch is up to date with changes from the main branch (see above), then go to the https://github.com/EMPHATICSoft/emphaticsoft/branches, find your branch, click the "new pull request" button next to your branch, and follow the resulting instructions to create a new pull request.  You should then ask another EMPHATICsoft developer to review your changes.  Contact Laura Fields, Jon Paley, and Gavin Davies if you aren't sure who should review it.  Once that person has signed off on your code, you should then merge the pull request and delete your branch.  Instructions here:  https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request. 
+
+## Copyright and Licensing
+
+Copyright © 2023 FERMI NATIONAL ACCELERATOR LABORATORY for the benefit of the EMPHATIC Collaboration.
+
+This repository, and all software contained within, except where noted within the individual source files, is licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Copyright is granted to FERMI NATIONAL ACCELERATOR LABORATORY on behalf of the  Experiment to Measure the Production of Hadrons At a Test beam In Chicagoland (EMPHATIC) experiment. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.

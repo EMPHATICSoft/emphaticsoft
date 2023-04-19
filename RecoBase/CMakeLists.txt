@@ -6,6 +6,7 @@ art_make_library(
   SOURCE ${src_files}
   LIBRARIES PRIVATE
     RawData
+    Geometry
     art::Framework_Core
     art::Persistency_Common
     canvas::canvas
@@ -21,4 +22,4 @@ install_fhicl()
 
 #add_subdirectory(nova)
 
-#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RawData)
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RecoBase)

@@ -1,0 +1,62 @@
+#include "SpillInfo.fcl"
+#include "GasCkovAna.fcl"
+#include "ChannelMap.fcl"
+#include "RunHistory.fcl"
+
+process_name: GasCkovAna
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+services:
+{
+  TFileService: { fileName: "gasckovana_r%r_s%s.root" closeFileFast: false }
+  IFBeam: {}
+  RunHistoryService: @local::standard_runhistory
+  ChannelMapService: @local::standard_channelmap
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "gasckov_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	spillinfo: @local::standard_spillinfo
+ }	
+
+ filters:{}
+
+ analyzers:
+ {
+	gasckovana: @local::standard_gasckovana
+ }
+
+ p1: [ spillinfo ]
+ e1: [ gasckovana, out1 ] 
+	
+ trigger_paths: [ p1 ]
+ end_paths: [e1 ]
+
+# stream1: [ out1 ]
+
+# ana: [ gasckovana ]
+
+# end_paths: [ ana ]
+}

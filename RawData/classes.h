@@ -1,5 +1,7 @@
 #include "canvas/Persistency/Common/Wrapper.h"
+#include "canvas/Persistency/Common/PtrVector.h"
 //#include "RawData/RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RawData/SpillData.h"

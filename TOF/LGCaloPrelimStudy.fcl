@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_lgcaloprelimstudy:
+{
+  module_type: LGCaloPrelimStudy
+  BeamTrackLabel: beamTrackA
+  TrigToT0Label:trigT0A 
+  EffBeamMomentum: 18.
+# Cuts on trigger counter are defaulted in the c++   
+}
+
+END_PROLOG

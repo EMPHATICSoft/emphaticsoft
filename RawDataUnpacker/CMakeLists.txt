@@ -2,10 +2,10 @@ include(ArtDictionary)
 include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
-cet_find_package(art REQUIRED)
-cet_find_package(artdaq REQUIRED)
-cet_find_package(messagefacility REQUIRED)
-cet_find_package(ROOT REQUIRED)
+find_package(art REQUIRED)
+find_package(artdaq REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT REQUIRED)
 
 include_directories($ENV{ARTDAQ_CORE_INC})
 include_directories($ENV{ARTDAQ_INC})
@@ -32,18 +32,19 @@ art_make_library(LIBRARY_NAME RawDataUnpacker
                            RawData
 )
 
-simple_plugin(RawDataUnpacker "source"
-              LIBRARIES   PRIVATE
-                          RawData
-                          RawDataUnpacker
-                          ChannelMap
-                          ChannelMap_service
-                          ROOT::Core
-                          ROOT::Tree
-                          ROOT::Hist
-                          artdaq_core::artdaq-core_Data
-                          artdaq_core::artdaq-core_Utilities
-                          art_root_io::TFileService_service
+cet_build_plugin(RawDataUnpacker art::source
+  LIBRARIES   PRIVATE
+  RawData
+  RawDataUnpacker
+  ChannelMap
+  RunHistory
+  ChannelMapService_service
+  ROOT::Core
+  ROOT::Tree
+  ROOT::Hist
+  artdaq_core::artdaq-core_Data
+  artdaq_core::artdaq-core_Utilities
+  art_root_io::TFileService_service
 )
 
 install_headers()

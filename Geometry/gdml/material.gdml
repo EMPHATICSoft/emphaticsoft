@@ -13,32 +13,32 @@
 
 	<!-- The rindex of aerogel 1 -->
 	<matrix
-		name="AERO_1035_RINDEX"
+		name="AERO_1026_RINDEX"
 		coldim="2"
-		values="1.6*eV  1.035
-				  5.0*eV  1.035"
+		values="1.6*eV  1.026
+				  5.0*eV  1.026"
 	/>
 
 	<!-- The rindex of aerogel 2 -->
 	<matrix
-		name="AERO_1045_RINDEX"
+		name="AERO_1030_RINDEX"
 		coldim="2"
-		values="1.6*eV  1.045
-				  5.0*eV  1.045"
+		values="1.6*eV  1.030
+				  5.0*eV  1.030"
 	/>
 	<!-- ********** Refractive index end ********** -->
 
 
    <!-- ********** Absorption length ********** -->
 	<matrix
-      name="AERO_1035_ABS"
+      name="AERO_1026_ABS"
       coldim="2"
 		values="1.6*eV  200.*cm
 				  5.0*eV  200.*cm"
 	/>
 
 	<matrix
-      name="AERO_1045_ABS"
+      name="AERO_1030_ABS"
       coldim="2"
 		values="1.6*eV  200.*cm
 				  5.0*eV  200.*cm"
@@ -47,7 +47,7 @@
 
    <!-- ********** Rayleigh scattering length ********** -->
 	<matrix
-      name="AERO_1035_RAY"
+      name="AERO_1026_RAY"
       coldim="2"
       values="1.60*eV  52.640*cm
 					1.65*eV  48.520*cm
@@ -121,7 +121,7 @@
 	/>
 
 	<matrix
-      name="AERO_1045_RAY"
+      name="AERO_1030_RAY"
       coldim="2"
       values="1.60*eV  38.020*cm
 					1.65*eV  35.180*cm
@@ -251,6 +251,10 @@
      <atom value="18.9984"/>
    </element>
    
+   <element Z="11" formula="Na" name="Sodium">
+     <atom value="23.0"/>
+     
+   </element>
    <element Z="13" formula="Al" name="Aluminum">
      <atom value="26.981"/>
    </element>
@@ -267,8 +271,16 @@
      <atom value="40.078"/>
    </element>
    
+    <element Z="19" formula="K" name="Potassium">
+     <atom value="39.14"/>
+   </element>
+   
    <element Z="26" formula="Fe" name="Iron">
      <atom value="55.847"/>
+   </element>
+   
+   <element Z="51" formula="Sb" name="Antimony">
+     <atom value="144.242"/>
    </element>
    
    <element Z="60" formula="Nd" name="Neodymium">
@@ -288,24 +300,24 @@
      <fraction n="0.24" ref="Oxygen"/>
    </material>
 
-	<material name="AERO_1035">
-      <property name="RINDEX" ref="AERO_1035_RINDEX"/>
-      <property name="ABSLENGTH" ref="AERO_1035_ABS"/>
-      <property name="RAYLEIGH" ref="AERO_1035_RAY"/>
+	<material name="AERO_1026">
+      <property name="RINDEX" ref="AERO_1026_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1026_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1026_RAY"/>
 
-      <D value="0.124"/>
+      <D value="0.097"/>
       <fraction n="0.467" ref="Silicon"/>
-      <fraction n="1.0-0.467" ref="Oxygen"/>
+      <fraction n="0.533" ref="Oxygen"/>
    </material>
 
-   <material name="AERO_1045">
-      <property name="RINDEX" ref="AERO_1045_RINDEX"/>
-      <property name="ABSLENGTH" ref="AERO_1045_ABS"/>
-      <property name="RAYLEIGH" ref="AERO_1045_RAY"/>
+   <material name="AERO_1030">
+      <property name="RINDEX" ref="AERO_1030_RINDEX"/>
+      <property name="ABSLENGTH" ref="AERO_1030_ABS"/>
+      <property name="RAYLEIGH" ref="AERO_1030_RAY"/>
 
-      <D value="0.159"/>
+      <D value="0.110"/>
       <fraction n="0.467" ref="Silicon"/>
-      <fraction n="1.0-0.467" ref="Oxygen"/>
+      <fraction n="0.533" ref="Oxygen"/>
    </material>
 
    <material name="GAS">
@@ -316,7 +328,7 @@
 
       <D value="0.0112"/>
       <fraction n="0.211" ref="Carbon"/>
-      <fraction n="1.0-0.211" ref="Fluorine"/>
+      <fraction n="0.789" ref="Fluorine"/>
    </material>
 	
    <material formula="NdFeB" name="NeodymiumAlloy" state="solid" >
@@ -355,12 +367,31 @@
      <fraction n="0.07" ref="Hydrogen"/>
      <fraction n="0.13" ref="Oxygen"/>
    </material>
+ 
+   <material formula="GFRP" name="FiberGlass">
+     <D value="1.55"/>
+     <fraction n="0.8" ref="Carbon"/>
+     <fraction n="0.07" ref="Hydrogen"/>
+     <fraction n="0.13" ref="Oxygen"/>
+   </material>
    
    <material formula="Si" name="SiliconWafer">
      <D value="2.3"/>
      <composite n="1" ref="Silicon"/>
    </material>
    
+   <material formula="SiO2" name="SiliconDioxide">
+     <D value="4.0"/>
+     <fraction n="0.467" ref="Silicon"/>
+     <fraction n="0.533" ref="Oxygen"/>
+   </material>
+ 
+	<material formula="ch2" name="CH2">
+     <D value="1.65"/>
+     <fraction n="0.86" ref="Carbon"/>
+     <fraction n="0.14" ref="Hydrogen"/>
+   </material>
+ 
    <material formula="mylar" name="Mylar">
      <D unit="g/cm3" value="1.397"/>
      <fraction n="0.042" ref="Hydrogen"/>
@@ -369,11 +400,15 @@
    </material>
   
   <!-- To be further defined as in Shigeru Kuroda et al 1987 Jpn. J. Appl. Phys. 26 460 -->
+  <!-- Or, NIM, A270 (1988) , p. 11-20, Table 1 -->
    <material formula="leadglass" name="LeadGlass">
-     <D value="4.0"/>
-     <fraction n="0.646" ref="Lead"/>
-     <fraction n="0.127" ref="Silicon"/>
-     <fraction n="0.227" ref="Oxygen"/>
+     <D unit="g/cm3" value="5.2"/>
+     <fraction n="0.657" ref="Lead"/>
+     <fraction n="0.128" ref="Silicon"/>
+     <fraction n="0.200" ref="Oxygen"/>
+     <fraction n="0.008" ref="Potassium"/>
+     <fraction n="0.004" ref="Sodium"/>
+     <fraction n="0.003" ref="Antimony"/>
    </material>
  
    <!-- To be further defined as R134a : SF6 : n-Butane - 90:5:5, or 94.5:0.5:5 -->

@@ -4,19 +4,93 @@
 <!--  lines and for all objects that are data members of those objects.-->
  
 <lcgdict>
-  <class name="rb::SSDHit"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+  <class name="rb::SSDHit"    ClassVersion="12">
+   <version ClassVersion="12" checksum="4189656060"/>
+   <version ClassVersion="11" checksum="2728825684"/>
+    <version ClassVersion="10" checksum="1"/>
   </class>
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
-  <class name="rb::TrackSegment"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+
+  <class name="rb::SSDCluster"    ClassVersion="18">
+   <version ClassVersion="18" checksum="1269027569"/>
+   <version ClassVersion="17" checksum="3199786114"/>
+   <version ClassVersion="16" checksum="2498245746"/>
+   <version ClassVersion="15" checksum="2833724937"/>
+   <version ClassVersion="14" checksum="2833724937"/>
+   <version ClassVersion="13" checksum="2833724937"/>
+   <version ClassVersion="12" checksum="2833724937"/>
+   <version ClassVersion="11" checksum="1280789249"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="std::vector<rb::SSDCluster>"        />
+  <class name="art::Wrapper< std::vector<rb::SSDCluster>    >"/>
+
+  <class name="rb::TrackSegment"    ClassVersion="11">
+   <version ClassVersion="11" checksum="4133908667"/>
+    <version ClassVersion="10" checksum="2"/>
   </class>
   <class name="std::vector<rb::TrackSegment>"        />
   <class name="art::Wrapper< std::vector<rb::TrackSegment>    >"/>
-  <class name="rb::SpacePoint"    ClassVersion="10">
-    <version ClassVersion="10" checksum=""/>
+
+  <class name="rb::SpacePoint"    ClassVersion="11">
+   <version ClassVersion="11" checksum="3081214743"/>
+    <version ClassVersion="10" checksum="3"/>
   </class>
   <class name="std::vector<rb::SpacePoint>"        />
   <class name="art::Wrapper< std::vector<rb::SpacePoint>    >"/>
+
+  <class name="rb::Spill"    ClassVersion="12">
+   <version ClassVersion="12" checksum="3502095394"/>
+   <version ClassVersion="11" checksum="2114632241"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="std::vector<rb::Spill>"        />
+  <class name="art::Wrapper< rb::Spill>"        />
+  <class name="art::Wrapper< std::vector<rb::Spill>    >"/>
+
+  <class name="rb::ARing"    ClassVersion="11">
+   <version ClassVersion="11" checksum="2715429707"/>
+    <version ClassVersion="10" checksum="4"/>
+  </class>
+  <class name="std::vector<rb::ARing>"        />
+  <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
+
+  <class name="rb::BACkovHit"    ClassVersion="13">
+   <version ClassVersion="13" checksum="401007675"/>
+   <version ClassVersion="12" checksum="2996980846"/>
+    <version ClassVersion="10" checksum="5"/>
+  </class>
+  <class name="std::vector<rb::BACkovHit>"        />
+  <class name="art::Wrapper< std::vector<rb::BACkovHit>    >"/>
+
+  <class name="rb::GasCkovHit"    ClassVersion="13">
+   <version ClassVersion="13" checksum="3907294428"/>
+   <version ClassVersion="12" checksum="4165743097"/>
+    <version ClassVersion="10" checksum="6"/>
+  </class>
+  <class name="std::vector<rb::GasCkovHit>"        />
+  <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
+
+  <class name="rb::ADC"    ClassVersion="13">
+   <version ClassVersion="13" checksum="114040"/>
+   <version ClassVersion="12" checksum="3706276525"/>
+    <version ClassVersion="10" checksum="7"/>
+  </class>
+  <class name="std::vector<rb::ADC>"        />
+  <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
+  
+  <class name="rb::BeamTrackAlgo1"    ClassVersion="10">
+   <version ClassVersion="10" checksum="3643844846"/>
+  </class>
+  <class name="std::vector<rb::BeamTrackAlgo1>"        />
+  <class name="art::Wrapper< std::vector<rb::BeamTrackAlgo1>    >"/>
+  
+  <class name="rb::TrigToT0"    ClassVersion="11">
+   <version ClassVersion="11" checksum="3408702871"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="art::Wrapper< rb::TrigToT0>"        />
+
+
  </lcgdict>

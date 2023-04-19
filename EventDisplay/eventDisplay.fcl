@@ -1,0 +1,37 @@
+#
+# Run the event display on an art file
+#
+
+#include "Geometry.fcl"
+
+process_name : eventDisplay
+
+source : {
+  module_type : RootInput
+  fileNames   : [ "emphdata_r1384_s2.root" ]
+  maxEvents   : -1
+}
+
+services : {
+  TFileService  : { fileName : "eventDisplay01.root" }
+  Geometry   : @local::standard_geometry
+
+}
+
+physics :{
+  analyzers: {
+    eventDisplay : {
+      module_type     : EventDisplay
+      prompt          : true
+      waitFor         : mouse
+      multipage       : true
+      plotFileName    : "plots.jpg"
+      orientation     : "landscape"
+      maxDisplay      : 999
+    }
+  }
+
+  e1        : [ eventDisplay ]
+  end_paths : [ e1 ]
+
+}

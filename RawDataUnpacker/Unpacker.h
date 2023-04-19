@@ -24,7 +24,7 @@ namespace emph {
     public:
 
       static std::vector<emph::rawdata::WaveForm>
-	GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& f);
+	GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& f, int id);
 
       static std::vector<emph::rawdata::TRB3RawDigit>
         GetTRB3RawDigitsFromFragment(emphaticdaq::TRB3Fragment& frag);
