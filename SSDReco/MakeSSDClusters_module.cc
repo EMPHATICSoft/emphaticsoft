@@ -63,8 +63,6 @@ private:
   int         fRowGap;      ///< Maximum allowed gap between strips for forming clusters
   bool        fCheckDQ;     ///< Check data quality for event
 
-  rb::planeView getSensorView(int station, int sensor);
-
   static bool CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
 			   const art::Ptr<emph::rawdata::SSDRawDigit>& b);
   void SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>& dl);
@@ -122,34 +120,16 @@ void emph::MakeSSDClusters::SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>
 }
 
 //--------------------------------------------------
-rb::planeView emph::MakeSSDClusters::getSensorView(int station, int sensor)
-{
-  art::ServiceHandle<emph::geo::GeometryService> geo;
-  auto emgeo = geo->Geo();
-  const emph::geo::SSDStation &st = emgeo->GetSSDStation(station);
-  const emph::geo::Detector   &sd = st.GetSSD(sensor);
-  // add stuff here to check sd.Rot() and get view from that.
-  // x-view: π/2, 3π/2
-  if (abs(fmod(sd.Rot()-3.14/2,3.14)) < 0.2)
-    return rb::X_VIEW;
-  // y-view: 0,π
-  else if (abs(fmod(sd.Rot(),3.14)) < 0.2)
-    return rb::Y_VIEW;
-  // u-view: 3π/4, 7π/4
-  else if (abs(fmod(sd.Rot()-3*3.14/4,3.14)) < 0.2)
-    return rb::U_VIEW;
-  // w-view: π/4, 5π/4
-  else if (abs(fmod(sd.Rot()-3.14/4,3.14)) < 0.2)
-    return rb::W_VIEW;
-  return rb::INIT;
-}
-
-//--------------------------------------------------
 void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
 		  std::vector<rb::SSDCluster>* sensClusters,
 		  int station, int sensor)
 { 
-  rb::planeView view = getSensorView(station,sensor);
+  art::ServiceHandle<emph::geo::GeometryService> geo;
+  auto emgeo = geo->Geo();
+  const emph::geo::SSDStation &st = emgeo->GetSSDStation(station);
+  const emph::geo::Detector   &sd = st.GetSSD(sensor);
+  geo::sensorView view = sd.View();
+
   int prevRow=sensDigits[0]->Row();
   int curRow;
   rb::SSDCluster ssdClust;
