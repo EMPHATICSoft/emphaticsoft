@@ -9,6 +9,7 @@ art_make_library(LIBRARY_NAME SSDRecoUtil
 		 	   art::Framework_Core
 			   art::Persistency_Common
 			   canvas::canvas
+			   ROOT::Physics
 )
 
 cet_build_plugin(MakeSSDClusters art::module

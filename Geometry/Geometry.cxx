@@ -62,6 +62,25 @@ namespace emph {
 
 		//--------------------------------------------------------------------------------
 
+		sensorView Detector::View() const
+		{
+		  // x-view: π/2, 3π/2
+		  if (abs(fmod(this->Rot()-3.14/2,3.14)) < 0.2)
+		    return X_VIEW;
+		  // y-view: 0,π
+		  else if (abs(fmod(this->Rot(),3.14)) < 0.2)
+		    return Y_VIEW;
+		  // u-view: 3π/4, 7π/4
+		  else if (abs(fmod(this->Rot()-3*3.14/4,3.14)) < 0.2)
+		    return U_VIEW;
+		  // w-view: π/4, 5π/4
+		  else if (abs(fmod(this->Rot()-3.14/4,3.14)) < 0.2)
+		    return W_VIEW;
+		  return INIT;
+		}
+
+		//--------------------------------------------------------------------------------
+
 		SSDStation::SSDStation() :
 			fName(""), fPos(-1e6,-1e6,-1e6), fDz(-99999), fWidth(0.), fHeight(0.), fSSD(0)
 		{
@@ -349,7 +368,7 @@ namespace emph {
 						sensor.SetHeight(2*sensor_box->GetDY());
 
 						// now add channels to each SSD sensor
-						if(sensor_n->GetNodes()!=NULL){
+						if (sensor_n->GetNodes() ) {
 							int nchan = sensor_n->GetNodes()->GetEntries();
 							for( int k=0; k<nchan; ++k){
 								std::string name = sensor_v->GetNode(k)->GetName();
@@ -366,7 +385,6 @@ namespace emph {
 								}
 							}
 						}
-
 						st.AddSSD(sensor);
 						fNSSDs++;
 
