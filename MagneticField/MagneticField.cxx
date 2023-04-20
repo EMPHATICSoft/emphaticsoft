@@ -723,7 +723,8 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
       std::cerr << " EMPHATICMagneticField::Integrate , wrong arguments, vectors must be dimensioned to 6. Fatal, quit here and now " << std::endl;
       exit(2);
     }
-    const double QCst = charge * 1.0e3 / 0.03; // meter to mm, factor 10 to convert kG to Tesla. The factor 3 in denomintar is standard MKS units. 
+//    const double QCst = charge * 1.0e3 / 0.03; // meter to mm, factor 10 to convert kG to Tesla. The factor 3 in denomintar is standard MKS units. 
+    const double QCst = charge / 0.3; // Set for Reconstruction....  The factor 3 in denomintar is standard MKS units. 
     const bool doEuler = (iOpt == 0) || (iOpt == 10) ||  (iOpt == 100);
     const bool doOnlyBy = (iOpt/10 == 1);
     const double ZAccuracy = 1.0; // one mm, guess should be good enough. 
@@ -758,33 +759,35 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
       }
       xxMiddle[0] += slx*stepZ/2.; xxMiddle[1] += sly*stepZ/2.;
       xxStop[0] += slx*stepZ; xxStop[1] += sly*stepZ;
-      if (debugIsOn) std::cerr << " At x,y,z " << pos[0] << " " << pos[1] << " " << pos[2] << " step size " << stepZ << std::endl;
-      this->MagneticField(xxMiddle, bAtZMiddle);
+//      this->MagneticField(xxMiddle, bAtZMiddle);
+      this->GetFieldValue(xxMiddle, bAtZMiddle); // For reconstruction..Same coordinate system as in G4.  We think..  
+      if (debugIsOn) std::cerr << " At x,y,z " << pos[0] << " " << pos[1] << " " << pos[2] 
+                               << " step size " << stepZ << " By  " << bAtZMiddle[1] << std::endl;
       //
       // Change of slope along the X-axis (dominant component).
       //
-      if (std::abs(bAtZMiddle[1]) > 0.5e-3) { 
+      if (std::abs(bAtZMiddle[1]) > 0.5e-4) { 
 	if (doEuler) { 
           const double radXMiddle = QCst *  p * slz / bAtZMiddle[1]; // in Tesla, radius in mm 
           const double dSlx = stepZ/radXMiddle; // first order, Euler method.
 	  slx +=  dSlx;
 	  if (debugIsOn) std::cerr << " ...............  delta Slx " << dSlx << " new slx " << slx << std::endl;
 	} else { 
-         this->MagneticField(xxStart, bAtZStart);
+         this->GetFieldValue(xxStart, bAtZStart);
          const double radXStart = QCst *  p * slz / bAtZStart[1]; // in Tesla, radius in mm 
          const double dSlxK1 = stepZ/radXStart; // first order, Euler method.
 	 double xxPos1[3]; for(size_t k=0; k !=3; k++) xxPos1[k] = xxMiddle[k];
 	 xxPos1[0] += dSlxK1*stepZ/2.;
-         this->MagneticField(xxPos1, bAtFirst);
+         this->GetFieldValue(xxPos1, bAtFirst);
          const double radXFirst = QCst *  p * slz /bAtFirst[1]; 
 	 const double dSlxK2 = 0.5*stepZ/radXFirst;
 	 double xxPos2[3]; for(size_t k=0; k !=3; k++) xxPos2[k] = xxMiddle[k];
 	 xxPos2[0] += dSlxK2*stepZ/2.;
-         this->MagneticField(xxPos2, bAtSecond);
+         this->GetFieldValue(xxPos2, bAtSecond);
          const double radXSecond = QCst *  p * slz /bAtSecond[1]; 
 	 const double dSlxK3 = 0.5*stepZ/radXSecond;
 	 xxStop[0] += dSlxK3*stepZ;
-         this->MagneticField(xxStop, bAtZStop);
+         this->GetFieldValue(xxStop, bAtZStop);
          const double radXLast = QCst *  p * slz /bAtZStop[1]; 
 	 const double dSlxK4 = stepZ/radXLast;
 	 const double dSlxRK = dSlxK1/6. + dSlxK2/3. + dSlxK3/3. + dSlxK4/6.;
@@ -826,7 +829,8 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
        // neglect Bz 
 	 
      } // integration along the path.. 
-      if (debugIsOn) std::cerr << " .. Final slopes, x, y, " << slx << ", " << sly <<  " and position " << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
+      if (debugIsOn) std::cerr << " .. Final slopes, x, y, " << slx << ", " << sly 
+                               <<  " and position " << pos[0] << ", " << pos[1] << ", " << pos[2] << " and momentum " << pos[5] << std::endl;
      for (size_t k=0; k != 6; k++) end[k] = pos[k]; 
   } 
   void EMPHATICMagneticField::NoteOnDoubleFromASCIIFromCOMSOL() const {
