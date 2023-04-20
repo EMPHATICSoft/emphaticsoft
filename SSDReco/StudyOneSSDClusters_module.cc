@@ -48,7 +48,11 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "SSDReco/SSDHotChannelList.h"
 #include "SSDReco/SSDAlign2DXYAlgo1.h"
 #include "SSDReco/SSDAlign3DUVAlgo1.h"
+#include "SSDReco/VolatileAlignmentParams.h" 
 //
+
+
+// emph::ssdr::VolatileAlignmentParams*   emph::ssdr::VolatileAlignmentParams::instancePtr=NULL;
 
 namespace emph {
   class StudyOneSSDClusters;
@@ -91,7 +95,8 @@ namespace emph {
       bool fSelectHotChannelsFromHits; // Probably a better way.    
       bool fDoAlignX;    
       bool fDoAlignY;  
-      bool fDoAlignUV; 
+      bool fDoAlignUV;
+      bool fDoAlignUVAndFit; // fit 3 D track at an arbitrary momentum Need all we can get, all Views.  
       bool fDoGenCompact;
       bool fDoGenCompactStrictY6St, fDoGenCompactStrictX6St, fDoGenCompactStrictXY6St;
       bool fDoAlignXAlt45;  
@@ -164,7 +169,7 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoGenCompact(false), 
+    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoAlignUVAndFit(false), fDoGenCompact(false), 
     fDoGenCompactStrictY6St(false), fDoGenCompactStrictX6St(false), fDoGenCompactStrictXY6St(false),
     fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
      fDoSkipDeadOrHotStrips(true), fUseFullDownstreamStations(false), fDoLastIs4AlignAlgo1(false),
@@ -195,6 +200,7 @@ namespace emph {
       fDoAlignX = pset.get<bool>("alignX", false);
       fDoAlignY = pset.get<bool>("alignY", false);
       fDoAlignUV = pset.get<bool>("alignUV", false);
+      fDoAlignUVAndFit = pset.get<bool>("alignUVAndFit", false);
       fDoGenCompact = pset.get<bool>("genCompactEvts", false);
       fDoGenCompactStrictY6St = pset.get<bool>("genCompactEvtsStrictY6St", false);
       fDoGenCompactStrictX6St = pset.get<bool>("genCompactEvtsStrictX6St", false);
@@ -207,7 +213,8 @@ namespace emph {
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 1000);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
-      double aChiSqCut3DUVXY = pset.get<double>("ChiSqCutAlign3DUVXY", 100.);
+      double aChiSqCut3DUVX = pset.get<double>("ChiSqCutAlign3DUVX", 500.);
+      double aChiSqCut3DUVY = pset.get<double>("ChiSqCutAlign3DUVY", 100.);
       double aChiSqCut3DUVUV = pset.get<double>("ChiSqCutAlign3DUVUV", 100.);
       const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
       fSetMCRMomentum = pset.get<double>("SetMCRMomentum", 120.);
@@ -225,7 +232,7 @@ namespace emph {
       std::vector<double> aRMSClusterCutsDef{-1.0, 5.};
       fRMSClusterCuts = pset.get<std::vector<double> >("RMSClusterCuts", aRMSClusterCutsDef);
       if ((!fDumpClusters) && (!fSelectHotChannels) && (!fDoAlignX) && (!fDoAlignY) && (!fDoAlignXAlt45)
-                           && (!fDoAlignYAlt45) && (!fDoAlignYAlt5) && (!fDoAlignUV)) { 
+                           && (!fDoAlignYAlt45) && (!fDoAlignYAlt5) && (!fDoAlignUV) && (!fDoAlignUVAndFit)) { 
         std::cerr << " .... Nothing to do !!! Therefore, quit here and now  " << std::endl; exit(2);
       }
       if (fSelectHotChannels || fSelectHotChannelsFromHits) {
@@ -262,17 +269,20 @@ namespace emph {
       fAlignUV.SetOtherUncert(aTransUncert);
       fAlignUV.SetFittedResidualsForY(aMeanResidY);
       fAlignUV.SetFittedResidualsForX(aMeanResidX);
-      fAlignUV.SetChiSqCutXY(aChiSqCut3DUVXY); 
+      fAlignUV.SetChiSqCutX(aChiSqCut3DUVX); 
+      fAlignUV.SetChiSqCutY(aChiSqCut3DUVY); 
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
+      if (fDoAlignUVAndFit) fAlignUV.SetDo3DFit(true);
       
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }
     void emph::StudyOneSSDClusters::beginRun(art::Run const &run)
     {
+      std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
       if (fXYUVLabels.size() != 0) return; // Initialization already done, skip 
       // Assume th same geometry for all sub runs (this is called for every subruns, it turns out.. ) 
-      std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
+      std::cerr << "  .... Things are not initialized, proceed  " << std::endl;
       fRunHistory = new runhist::RunHistory(run.run());
       fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
       if ( fXYUVLabels.size() == 0) { 
@@ -285,7 +295,8 @@ namespace emph {
 //
       std::vector<double> XlocXPlanes, YlocYPlanes; // labeled by view 
       std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
-      std::vector<double> XRotUPlanes, XRotVPlanes; // labeled by view 
+      std::vector<double> XRotUPlanes, XRotVPlanes; // labeled by view
+      std::cerr << " .... Start looping over stations... " << fEmgeo->NSSDStations() << " of them ... " << std::endl;  
       for (int k=0; k != fEmgeo->NSSDStations(); k++) {
         emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
         TVector3 posSt = aStation.Pos();
@@ -399,7 +410,7 @@ namespace emph {
       
       std::cerr << " StudyOneSSDClusters::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Number of events " <<  fNEvents << std::endl;
-      if (fDoAlignUV) std::cerr << " Number of events Saved Compact format " << fAlignUV.GetNEvtsCompact()  << std::endl;
+      if (fDoAlignUV || fDoAlignUVAndFit) std::cerr << " Number of events Saved Compact format " << fAlignUV.GetNEvtsCompact()  << std::endl;
       if (fDumpClusters) {
         fFOutA1X.close(); fFOutA1Y.close();fFOutA1U.close(); fFOutA1V.close();
       }
@@ -567,6 +578,7 @@ namespace emph {
       } // on original clusters.. 
     }
     void emph::StudyOneSSDClusters::alignFiveStations(const art::Event& evt) {
+      fAlignUV.Reset3DFitInputData(); 
       if (fDoAlignX) {
         this->selectByView('X', false, fDoSkipDeadOrHotStrips); 
         fAlignX.alignIt(evt, fSSDcls);
@@ -584,7 +596,7 @@ namespace emph {
         this->selectByView('X', true, fDoSkipDeadOrHotStrips); 
         fAlignX.alignItAlt45(false, evt, fSSDcls);
       } 
-      if (fDoAlignUV) {
+      if (fDoAlignUV || fDoAlignUVAndFit) {
         fAlignUV.alignIt(evt, fSSDClsPtr); // such that we have 3D tracks.. 
 	if (fDoGenCompact) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, false,  false, fSSDClsPtr);
 	if (fDoGenCompactStrictY6St) fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, true, false, fSSDClsPtr); 
@@ -638,7 +650,7 @@ namespace emph {
       } 
       if (fDumpClusters) this->dumpXYCls();
       if (fSelectHotChannels) this->fillHotChannels(); 
-      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45 || fDoAlignYAlt5 || fDoAlignUV ) this->alignFiveStations(evt);
+      if (fDoAlignX || fDoAlignY || fDoAlignXAlt45 || fDoAlignYAlt45 || fDoAlignYAlt5 || fDoAlignUV || fDoAlignUVAndFit) this->alignFiveStations(evt);
     } // end of Analyze, event by events.  
    
 DEFINE_ART_MODULE(emph::StudyOneSSDClusters)

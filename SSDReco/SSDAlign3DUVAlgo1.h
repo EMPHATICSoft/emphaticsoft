@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   3D aligner, U and V sensor offset fitting. 
+///          And a 3D fit using the Manetic field integrator.  See SSD3DTrackFitAlgo1
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
@@ -19,16 +20,19 @@
 #include "SSDReco/SSDAlignSimpleLinFit.h"
 #include "RecoBase/BeamTrackAlgo1.h" 
 #include "SSDReco/ConvertDigitToWCoordAlgo1.h"
+#include "SSDReco/SSD3DTrackFitFCNAlgo1.h"
 
 namespace emph { 
   namespace ssdr {
  				
     class SSDAlign3DUVAlgo1 {
     
+       typedef std::vector<rb::SSDCluster>::const_iterator myItCl; 
+    
+       
        public:
       
 	SSDAlign3DUVAlgo1(); // No args .. for now.. 
-	SSDAlign3DUVAlgo1(char aView, int aStation, int aSensor); // U or V 
         ~SSDAlign3DUVAlgo1();
 	
         private:
@@ -41,6 +45,7 @@ namespace emph {
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
 	  int fNEvtsCompact;
+	  bool fDo3DFit;
 	  bool fMomentumIsSet; // a flag to make sure we don't set the momentum more than once in the same job. 
 	  bool fFilesAreOpen;
 	  char fView; 
@@ -50,7 +55,8 @@ namespace emph {
 	  double fHalfWaferWidth;
 	  int fNumIterMax; // Maximum number of iteration 
 	  double fChiSqCut;
-	  double fChiSqCutXY;
+	  double fChiSqCutX, fChiSqCutY;
+	  double fMomentumInit3DFit;
 	  std::string fTokenJob;
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fZCoordXs, fZCoordYs,  fZCoordUs, fZCoordVs;
@@ -71,17 +77,19 @@ namespace emph {
 	  std::vector<double> fMultScatUncert;
 	  std::vector<double> fOtherUncert;
 //
+          std::vector<myItCl> fDataFor3DFit;
           rb::BeamTrackAlgo1 fTrXY;
 	  std::vector<int> fNHitsXView, fNHitsYView; 
 	  
 	  
 	  emph::ssdr::SSDAlignSimpleLinFit myLinFitX, myLinFitY; 
+	  emph::ssdr::SSD3DTrackFitFCNAlgo1 *myNonLin3DFitPtr; 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertX; // View is the argument.. 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertY; // One instance for each view.. Not a waste of memory, maximum dims are 8, not 22 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertU; // For sake of uniformity. 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertV; // 
 
-	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV, fFOutCompact;
+	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV, fFOut3DFit, fFOutCompact;
 	  
 	   
 	public:
@@ -91,6 +99,7 @@ namespace emph {
 	 inline void SetNumIterMax( int n) { fNumIterMax = n; }
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
+	 inline void SetDo3DFit(bool b=true) { fDo3DFit = b; }
 //	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
 	 inline void SetOtherUncert(const std::vector<double> v) { 
 	    fOtherUncert = v; myConvertX.SetOtherUncert(v); myConvertY.SetOtherUncert(v); 
@@ -100,7 +109,8 @@ namespace emph {
 	 inline void SetFittedResidualsForX(std::vector<double> v) { fFittedResidualsX = v; myConvertX.SetFittedResiduals(v); } 
 	 inline void SetFittedResidualsForY(std::vector<double> v) { fFittedResidualsY = v; myConvertY.SetFittedResiduals(v); } 
 	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; myConvertX.SetMagnetKick120GeV(v);}
-	 inline void SetChiSqCutXY(double v) { fChiSqCutXY = v; }
+	 inline void SetChiSqCutX(double v) { fChiSqCutX = v; }
+	 inline void SetChiSqCutY(double v) { fChiSqCutY = v; }
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs);
 	 void SetForMomentum(double p); // Rescale the Magnet kick, deviation on the X-Z plane 
@@ -113,6 +123,7 @@ namespace emph {
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 inline int GetNEvtsCompact() const { return fNEvtsCompact; } 
+	 inline void Reset3DFitInputData() { fDataFor3DFit.clear(); } 
 	 
 	 void  alignIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 void dumpCompactEvt(int spill, int evt, bool strictY6, bool strictX6, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
@@ -122,8 +133,12 @@ namespace emph {
 	 
 	 bool recoXY(rb::planeView view,  const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
+	 int recoUV(rb::planeView view, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
+	 
 	 bool checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 	 	 
+	 bool fit3D(size_t minNumHits); 
+	 
 //	 inline double correctTsForPitchOrYawAngle(size_t kStation, int sensor, double ts) {
 	 inline double correctTsForPitchOrYawAngle(size_t , int, double ts) {
 //	   return (ts + ts*fPitchOrYawAngles[kStation]);

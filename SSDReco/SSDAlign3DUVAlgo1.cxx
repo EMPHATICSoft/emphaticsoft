@@ -17,6 +17,9 @@
 #include "SSDReco/SSDHotChannelList.h" 
 #include "RecoBase/SSDCluster.h" 
 #include "SSDReco/SSDAlign3DUVAlgo1.h" 
+#include "Minuit2/MnUserParameterState.h"
+#include "Minuit2/MnMigrad.h"
+#include "Minuit2/FunctionMinimum.h"
 
  using namespace emph;
 
@@ -26,9 +29,11 @@ namespace emph {
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1() :
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fMomentumIsSet(false), fFilesAreOpen(false),
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fDo3DFit(false),
+       fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fStation(2), fSensor(2),
-       fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), fChiSqCut(20.), fChiSqCutXY(100.),
+       fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), 
+       fChiSqCut(20.), fChiSqCutX(500.), fChiSqCutY(100.), fMomentumInit3DFit(120), 
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(2, 0.), fZCoordVs(4, 0.),
        fFittedResidualsX(fNumStations, 0.), fFittedResidualsY(fNumStations, 0.),
@@ -36,53 +41,11 @@ namespace emph {
        fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
        fRollAngles(fNumStations, 0.), fRollAnglesAlt(fNumStations, 0.),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), 
-       fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0), myLinFitX(), myLinFitY(),
+       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fDataFor3DFit(), 
+       fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0), myLinFitX(), myLinFitY(), myNonLin3DFitPtr(nullptr),
        myConvertX('X'), myConvertY('Y'), myConvertU('U'), myConvertV('V')
      { 
         ; 
-     }
-     // Out dated constructor, to be deleted at some point. 
-     SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1(char aView, int aStation, int aSensor) :  
-       fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
-       fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fMomentumIsSet(false), fFilesAreOpen(false),
-       fView(aView), fStation(aStation), fSensor(aSensor), 
-       fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10),fChiSqCut(20.), fChiSqCutXY(100.),
-       fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
-       fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(2, 0.), fZCoordVs(4, 0.),
-       fFittedResidualsX(fNumStations, 0.),  fFittedResidualsY(fNumStations, 0.),
-       fPitchAngles(fNumStations, 0.), fPitchAnglesAlt(fNumStations, 0.), 
-       fYawAngles(fNumStations, 0.), fYawAnglesAlt(fNumStations, 0.), 
-       fRollAngles(fNumStations, 0.), fRollAnglesAlt(fNumStations, 0.),
-       fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.),
-       fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0), myLinFitX(), myLinFitY(), 
-       myConvertX('X'), myConvertY('Y'), myConvertU('U'), myConvertV('V') 
-       
-     { 
-        if ((aView != 'U') && (aView != 'V')) {
-	     std::cerr << " SSDAlign3DUVAlgo1, setting an unknow view " << aView << " fatal, quit here " << std::endl; 
-	     exit(2);
-	}
-	if (aStation < 2 ) {
-	     std::cerr << " SSDAlign3DUVAlgo1, Station " << aStation << " has no U nor V views,  fatal, quit here " << std::endl; 
-	     exit(2);
-	}
-	switch (aStation) {
-	  case 2:
-	    fSensor = 2; // Correct 
-	    break;
-	  case 3:
-	    fSensor = 2; 
-	    break;
-	  case 4:
-	    fSensor = aSensor; // double sensors... 
-	    break;
-	  case 5:
-	    fSensor = aSensor; // same  
-	    break;
-	 }   
      }
      void SSDAlign3DUVAlgo1::InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs)
@@ -129,10 +92,12 @@ namespace emph {
       if (fFOutXY.is_open()) fFOutXY.close();
       if (fFOutXYU.is_open()) fFOutXYU.close();
       if (fFOutXYV.is_open()) fFOutXYV.close();
+      if (fFOut3DFit.is_open()) fFOut3DFit.close();
       if (fFOutCompact.is_open()) {
           std::cerr << " Closing the compact event data with " << fNEvtsCompact << " events selected " << std::endl;
           fFOutCompact.close();
       }
+      delete myNonLin3DFitPtr;
      }
      void ssdr::SSDAlign3DUVAlgo1::SetForMomentum(double p) {
        if (fMomentumIsSet) {
@@ -141,6 +106,7 @@ namespace emph {
        }
        myConvertX.SetForMomentum(p); myConvertY.SetForMomentum(p); myConvertU.SetForMomentum(p); myConvertV.SetForMomentum(p);
        fMomentumIsSet = true;
+       fMomentumInit3DFit = p;
      }
      void ssdr::SSDAlign3DUVAlgo1::openOutputCsvFiles() {
        //
@@ -156,6 +122,15 @@ namespace emph {
        std::string fNameXYVStr(fNameXYVStrStr.str());
        fFOutXYV.open(fNameXYVStr.c_str());
        fFOutXYV << " spill evt kSt iHV xPred xPredErr yPred yPredErr wPred wObs chiSq sensor " << std::endl;
+       //
+       // And 3D fit 
+       //
+       std::ostringstream fName3DFitStrStr;
+       fName3DFitStrStr << "SSDAlign3DFit_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
+       std::string fName3DFitStr(fName3DFitStrStr.str());
+       fFOut3DFit.open(fName3DFitStr.c_str());
+       fFOut3DFit << " spill evt chiSq ndgf nFCN x0 errX0 Slx0 errSlx0 y0 errY0 Sly0 errSly0 p errP " << std::endl;
+       
      } 
 
      bool ssdr::SSDAlign3DUVAlgo1::recoXY(rb::planeView theView, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
@@ -226,6 +201,9 @@ namespace emph {
 	    if (debugIsOn) std::cerr << " .... No hits for station " << kSt << std::endl;
 	  } else {
 	    double aStrip = mySSDClsPtrsFirst[kSt]->WgtAvgStrip();
+	    double aStripErr = mySSDClsPtrsFirst[kSt]->WgtRmsStrip();
+	    if (std::isnan(aStrip) || std::isnan(aStripErr)) continue;
+	    fDataFor3DFit.push_back(mySSDClsPtrsFirst[kSt]);
 	    if (theView == rb::X_VIEW) { 
 	       tsData[kSt] = myConvertX.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip); 
 	       tsDataErr[kSt] = myConvertX.GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
@@ -244,7 +222,7 @@ namespace emph {
 	
 	if (theView == rb::X_VIEW) { 
           myLinFitX.fitLin(false, tsData, tsDataErr);
-          if (myLinFitX.chiSq > fChiSqCutXY) {
+          if (myLinFitX.chiSq > fChiSqCutX) {
 	    if (debugIsOn) {
 	       std::cerr << " Unacceptable chi-Sq = " << myLinFitX.chiSq << " need to look at second hits.. We will try it out  " << std::endl;
 //	     return false; See blow.. 
@@ -260,7 +238,7 @@ namespace emph {
 	} else {
 	
           myLinFitY.fitLin(false, tsData, tsDataErr);
-          if (myLinFitY.chiSq > fChiSqCutXY) {
+          if (myLinFitY.chiSq > fChiSqCutY) {
 	    if (debugIsOn) {
 	       std::cerr << " Unacceptable chi-Sq = " << myLinFitY.chiSq << " need to look at second hits.. We will try it out  " << std::endl;
 //	     return false; See blow.. 
@@ -364,7 +342,7 @@ namespace emph {
 	   
 	} // on hits from station 2. 
       
-       if (chiSqBest < fChiSqCutXY) {
+       if (chiSqBest < std::max(fChiSqCutX, fChiSqCutY)) {
           if (theView == rb::X_VIEW) { 
 	    fTrXY.SetXChiSq (chiSqBest);
 	    if (debugIsOn) 
@@ -380,7 +358,93 @@ namespace emph {
     
        return false;
      }
-
+     int ssdr::SSDAlign3DUVAlgo1::recoUV(rb::planeView view, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+     
+       //
+       // For now, we take all U or V hits, for the fit later on.  But, we always take only the first encountered hit.   
+       //
+       
+       bool debugIsOn = (fEvtNum < 2);    
+     
+       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::RecoUV, view Index " << view  
+                 << " nunH " << aSSDClsPtr->size() << "  working on it.. " << std::endl;
+       std::vector<int> NumHitsPerStation(fNumStations, 0); // valid only for Phase1b 
+       int nnT = 0;
+       for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
+          if (itCl->View() != view) continue;
+	  // Room for selection, such rejection of hot channels., or perhaps, crude XY cuts.. 
+	  const size_t kSt = static_cast<size_t>(itCl->Station());
+	  if (std::isnan(itCl->WgtRmsStrip()) || std::isnan(itCl->WgtAvgStrip())) continue;
+	  NumHitsPerStation[kSt]++; nnT++;
+       }
+       for (size_t kSt=0; kSt != fNumStations; kSt++) if (NumHitsPerStation[kSt] > 1) return 0;
+       for (size_t kSt=0; kSt != fNumStations; kSt++) NumHitsPerStation[kSt] = 0;
+       //
+       // redo, this time store the hit for the 3D fit. 
+       //
+       for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
+          if (itCl->View() != view) continue;
+	  // Room for selection, such rejection of hot channels., or perhaps, crude XY cuts.. 
+	  const size_t kSt = static_cast<size_t>(itCl->Station());
+	  if (std::isnan(itCl->WgtRmsStrip()) || std::isnan(itCl->WgtAvgStrip())) continue;
+	  NumHitsPerStation[kSt]++;
+	  if (NumHitsPerStation[kSt] == 1) fDataFor3DFit.push_back(itCl);
+       }
+       if (debugIsOn) std::cerr << " ...... Number of hits in the last 4 stations " 
+           << NumHitsPerStation[2] << " " << NumHitsPerStation[3] << " " 
+	   << NumHitsPerStation[4] << " " << NumHitsPerStation[5] << " " << std::endl;
+       return nnT;
+     } 
+     bool ssdr::SSDAlign3DUVAlgo1::fit3D(size_t minNumHits) {
+       
+//       bool debugIsOn = ( fEvtNum > 1159 );  
+       bool debugIsOn = false;  
+     
+       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::fit3D, min num hits " 
+                                << minNumHits << " actual number of Hits " << fDataFor3DFit.size() << std::endl;
+     
+       if (fDataFor3DFit.size() < minNumHits) return false; // other cuts possible. 
+       if (myNonLin3DFitPtr == nullptr) myNonLin3DFitPtr = new SSD3DTrackFitFCNAlgo1(fRunNum); 
+       myNonLin3DFitPtr->SetDebugOn(debugIsOn);
+       myNonLin3DFitPtr->SetInputClusters(fDataFor3DFit);
+       myNonLin3DFitPtr->ResetZpos();
+       if (fRunNum == 1293)  myNonLin3DFitPtr->SetMCFlag(true); // Very, very ugly, but let us move on..  
+       ROOT::Minuit2::MnUserParameters uPars;
+       uPars.Add(std::string("X_0"), fTrXY.XOffset(), 0.1, -20., 20.);  
+       uPars.Add(std::string("Slx_0"), 0., 0.0005, -0.1, 0.1);  
+       uPars.Add(std::string("Y_0"), fTrXY.YOffset(), 0.1, -20., 20.);  
+       uPars.Add(std::string("Sly_0"), 0., 0.0005, -0.1, 0.1);  
+       uPars.Add(std::string("Mom"), fMomentumInit3DFit, 5., -250., 250.);  
+       
+       ROOT::Minuit2::MnMigrad migrad((*myNonLin3DFitPtr), uPars);
+       //
+       ROOT::Minuit2::FunctionMinimum min = migrad(2000);
+       if (debugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
+       //
+       if (!min.IsValid()) return false;
+       // Out to CSV file for R studies. 
+       fFOut3DFit << " " << fSubRunNum << " " << fEvtNum << " " << min.Fval() 
+                  << " " << fDataFor3DFit.size() - 5 << " " << min.NFcn(); 
+       std::vector<double> parsOut(5, 0.); 
+       for (unsigned int kPar=0; kPar != 5;  kPar++) {
+         double theValue  = min.UserState().Value(kPar);
+	 parsOut[kPar] = theValue;
+         double theError  = min.UserState().Error(kPar);
+	 fFOut3DFit << " " << theValue << " " << theError;
+       }
+       fFOut3DFit << " " << std::endl;
+       // 
+       // could be commented out to avoid too many CSV files..
+       std::ostringstream fNameTmpStrStr;
+       fNameTmpStrStr << "SSDAlign3DFIResids_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
+       std::string fNameTmpStr(fNameTmpStrStr.str());
+       myNonLin3DFitPtr->OpenOutResids(fNameTmpStr); // we won't re-open, I check for that.. 
+       (*myNonLin3DFitPtr)(parsOut); 
+       myNonLin3DFitPtr->SpitOutResids(fSubRunNum, fEvtNum);
+//       if (debugIsOn) { std::cerr << " .. O.K., enough for now, quit!....  " << std::endl; exit(2); } 
+      return true;
+     
+     }
      bool ssdr::SSDAlign3DUVAlgo1::checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
      
        bool debugIsOn = (fEvtNum < 25);    
@@ -529,6 +593,11 @@ namespace emph {
          }
 	 if (numUVCheck == 3) fTrXY.SetType(rb::XYUCONF3);
 	 if (numUVCheck == 4) fTrXY.SetType(rb::XYUCONF4);
+	 if (fDo3DFit) {
+	   int nnU = this->recoUV(rb::U_VIEW, aSSDClsPtr);
+	   int nnV = this->recoUV(rb::W_VIEW, aSSDClsPtr);
+	   if (nnU + nnV > 1) this->fit3D(11); 
+	 }
        }
        if(fEvtNum > 250000000) {
          std::cerr << " ssdr::SSDAlign3DUVAlgo1::alignIt, quit here and at event " << fEvtNum << " quit now ! " << std::endl;

@@ -194,7 +194,8 @@ namespace emph {
       fAlignUV.SetOtherUncert(aTransUncert);
       fAlignUV.SetFittedResidualsForY(aMeanResidY);
       fAlignUV.SetFittedResidualsForX(aMeanResidX);
-      fAlignUV.SetChiSqCutXY(aChiSqCut3DUVXY); 
+      fAlignUV.SetChiSqCutX(aChiSqCut3DUVXY); 
+      fAlignUV.SetChiSqCutY(aChiSqCut3DUVXY); 
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
       
