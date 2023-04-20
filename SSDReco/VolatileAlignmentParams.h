@@ -65,14 +65,14 @@ namespace emph{
 	
 	// Setters 
 	
-	void SetDeltaZ(rb::planeView view, size_t sensor, double value);  // move individual sensors. For X, & Y, sensor ranges from 0 to fNumSensorsXoY 
-	void SetDeltaZStation(rb::planeView view, size_t aStation, double value); // move individual stations.. 
-	void SetDeltaTr(rb::planeView view, size_t kSe, double value); 
-	void SetValueTrShiftLastPlane(rb::planeView view, double value);
-	void SetRoll(rb::planeView view, size_t kSe, double value); 
-	void SetDeltaPitchCorr(rb::planeView view, size_t kSe, double value); 
-	void SetUnknwonUncert(rb::planeView view,  size_t kSe, double v);
-	void SetMultScatUncert(rb::planeView view,  size_t kSe, double v);
+	void SetDeltaZ(emph::geo::sensorView view, size_t sensor, double value);  // move individual sensors. For X, & Y, sensor ranges from 0 to fNumSensorsXoY 
+	void SetDeltaZStation(emph::geo::sensorView view, size_t aStation, double value); // move individual stations.. 
+	void SetDeltaTr(emph::geo::sensorView view, size_t kSe, double value); 
+	void SetValueTrShiftLastPlane(emph::geo::sensorView view, double value);
+	void SetRoll(emph::geo::sensorView view, size_t kSe, double value); 
+	void SetDeltaPitchCorr(emph::geo::sensorView view, size_t kSe, double value); 
+	void SetUnknwonUncert(emph::geo::sensorView view,  size_t kSe, double v);
+	void SetMultScatUncert(emph::geo::sensorView view,  size_t kSe, double v);
 	inline void SetZCoordsMagnetCenter(double v) { fZCoordsMagnetCenter = v; } 
 	inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; } 
 	
@@ -86,71 +86,71 @@ namespace emph{
 	inline double ZCoordsMagnetCenter() const { return fZCoordsMagnetCenter; } 
 	inline double MagnetKick120GeV() const { return fMagnetKick120GeV; } 
 	
-	inline double ZPos(rb::planeView view, size_t kSt, size_t kSe) {  // Relevant ndex is the Station index for X and Y,  
+	inline double ZPos(emph::geo::sensorView view, size_t kSt, size_t kSe) {  // Relevant ndex is the Station index for X and Y,  
 	// Ugly.... Valid only for Phase1b  
           switch (view) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
 	     return (fZPosX[kS]);  
 	    } 
-	    case rb::Y_VIEW :  { 
+	    case emph::geo::Y_VIEW :  { 
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return (fZPosY[kS]); } 
-	    case rb::U_VIEW :  { return (fZPosU[kSt-2]); } 
-	    case rb::W_VIEW :  { return (fZPosV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fZPosU[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fZPosV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::ZPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	  }
 	  return 0.;  // Should never happen.. 
 	}
-	inline double TrPos(rb::planeView view, size_t kSt, size_t kSe) { // Transverse 
+	inline double TrPos(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
           switch (view) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fTrPosX[kS];  
 	    } 
-	    case rb::Y_VIEW :  { 
+	    case emph::geo::Y_VIEW :  { 
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fTrPosY[kS]; } 
-	    case rb::U_VIEW :  { return (fTrPosU[kSt-2]); } 
-	    case rb::W_VIEW :  { return (fTrPosV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fTrPosU[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fTrPosV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::TrPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen.. 
 	}
-	inline double DeltaPitch(rb::planeView view, size_t kSt, size_t kSe) { // Transverse 
+	inline double DeltaPitch(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
           switch (view) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fTrDeltaPitchX[kS];  
 	    } 
-	    case rb::Y_VIEW :  { 
+	    case emph::geo::Y_VIEW :  { 
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fTrDeltaPitchY[kS]; } 
-	    case rb::U_VIEW :  { return (fTrDeltaPitchU[kSt-2]); } 
-	    case rb::W_VIEW :  { return (fTrDeltaPitchV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fTrDeltaPitchU[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fTrDeltaPitchV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen.. 
 	}
-	inline double Roll(rb::planeView view, size_t kSt, size_t kSe) { // Transverse 
+	inline double Roll(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
           switch (view) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fRollX[kS];  
 	    } 
-	    case rb::Y_VIEW :  {
+	    case emph::geo::Y_VIEW :  {
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fRollY[kS]; 
 	    } 
-	    case rb::U_VIEW :  { return (fRollU[kSt-2]); } 
-	    case rb::W_VIEW :  { return (fRollV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fRollU[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fRollV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -158,18 +158,18 @@ namespace emph{
 	  return 0.;  // Should never happen..
 	}
 	
-	inline double UnknownUncert(rb::planeView view, size_t kSt,  size_t kSe) { // Transverse 
+	inline double UnknownUncert(emph::geo::sensorView view, size_t kSt,  size_t kSe) { // Transverse 
           switch (view) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fUnknownUncertXorY[kS];  
 	    } 
-	    case rb::Y_VIEW :  {
+	    case emph::geo::Y_VIEW :  {
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fUnknownUncertXorY[kS]; 
 	    } 
-	    case rb::U_VIEW :  { return (fUnknownUncertU[kSt-2]); } 
-	    case rb::W_VIEW :  { return (fUnknownUncertV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fUnknownUncertU[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fUnknownUncertV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -177,25 +177,25 @@ namespace emph{
 	  return 0.;  // Should never happen..
 	}
 	   
-	inline double MultScatUncert(rb::planeView view, size_t kSt, size_t kSe) { // Transverse 
+	inline double MultScatUncert(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
           switch (view) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fMultScatUncertXorY[kS];  
 	    } 
-	    case rb::Y_VIEW :  {
+	    case emph::geo::Y_VIEW :  {
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fMultScatUncertXorY[kS]; 
 	    } 
-	    case rb::U_VIEW :  { return (fMultScatUncertU[kSt-2]); } 
-	    case rb::W_VIEW :  { return (fMultScatUncertV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fMultScatUncertU[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fMultScatUncertV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen..
 	}
-        inline double Pitch(rb::planeView view, size_t kSt, size_t kSe) { return (fPitch * (1.0 - this->DeltaPitch(view, kSt, kSe))); }
+        inline double Pitch(emph::geo::sensorView view, size_t kSt, size_t kSe) { return (fPitch * (1.0 - this->DeltaPitch(view, kSt, kSe))); }
 	    
     };
   } // geo 

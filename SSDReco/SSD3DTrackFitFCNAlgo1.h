@@ -70,7 +70,6 @@ namespace emph{
     private:
     
        void getZPos() const ; // to be called at the beginning of a fit, when we know the list of SSDCluster.  
-       rb::planeView getSensorView(int station, int sensor) const;
       
      };
    }

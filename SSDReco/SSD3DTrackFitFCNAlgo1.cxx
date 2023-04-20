@@ -98,15 +98,15 @@ namespace emph {
           std::vector<rb::SSDCluster>::const_iterator it = *itCl;
  	  const int kSt = it->Station();
  	  const int kSe = it->Sensor();
-	  rb::planeView aView = this->getSensorView(kSt, kSe);
+	  emph::geo::sensorView aView = it->View();
 	  size_t kSeT = 0; // For the residuals. Easier to plot and understand this way, but messy to code in this context.
 	  // Valid for Phase1b  
 	  switch (aView) {
-	    case rb::X_VIEW : { kSeT = (kSt < 4) ? kSt : 4 + 2*(kSt-4) + kSe % 2; break; } 
-	    case rb::Y_VIEW : { kSeT = (kSt < 4) ? kSt : 4 + 2*(kSt-4) + kSe % 2; kSeT += fEmVolAlP->NumSensorsXorY(); break; } 
-	    case rb::U_VIEW : { kSeT =  2.0*fEmVolAlP->NumSensorsXorY() + kSt - 2; break; } // Station 2 and 3. , one U sensor perstation. 
-	    case rb::W_VIEW : { kSeT =  2.0*fEmVolAlP->NumSensorsXorY() + 2 + 2*(kSt - 4) + kSe % 2; break; } // Station 4 and 5, double sensors.  
-	    case rb::INIT : { continue; } // Phase1b only.. 
+	    case emph::geo::X_VIEW : { kSeT = (kSt < 4) ? kSt : 4 + 2*(kSt-4) + kSe % 2; break; } 
+	    case emph::geo::Y_VIEW : { kSeT = (kSt < 4) ? kSt : 4 + 2*(kSt-4) + kSe % 2; kSeT += fEmVolAlP->NumSensorsXorY(); break; } 
+	    case emph::geo::U_VIEW : { kSeT =  2.0*fEmVolAlP->NumSensorsXorY() + kSt - 2; break; } // Station 2 and 3. , one U sensor perstation. 
+	    case emph::geo::W_VIEW : { kSeT =  2.0*fEmVolAlP->NumSensorsXorY() + 2 + 2*(kSt - 4) + kSe % 2; break; } // Station 4 and 5, double sensors.  
+	    default : { continue; } // Phase1b only.. 
 	 }
 	 if (kSeT > 21) {
 	   std::cerr << " SSD3DTrackFitFCNAlgo1::operator, Wrong residual indexing " << kSeT 
@@ -142,44 +142,44 @@ namespace emph {
 	  const double vPred = -1.0*fOneOverSqrt2 * ( xPred + yPred);
 	  // T coordinate (measuring 
 	  switch (aView) {
-	    case rb::X_VIEW : {
+	    case emph::geo::X_VIEW : {
 	      tPred = xPred ; 
 	      tPred += yPred * fEmVolAlP->Roll(aView, kSt, kSe);
 	      break;
 	    }
-	    case rb::Y_VIEW : {
+	    case emph::geo::Y_VIEW : {
 	      tPred = yPred ; 
 	      tPred += xPred * fEmVolAlP->Roll(aView, kSt, kSe);
 	      break;
 	    }
-	    case rb::U_VIEW : {
+	    case emph::geo::U_VIEW : {
 	      tPred = uPred ; 
 	      tPred += vPred * fEmVolAlP->Roll(aView, kSt, kSe);
 	      break;
 	    }
-	    case rb::W_VIEW : {
+	    case emph::geo::W_VIEW : {
 	      tPred = vPred ; 
 	      tPred += uPred * fEmVolAlP->Roll(aView, kSt, kSe);
 	      break;
 	    }
-	    case rb::INIT : { continue; }
+	    default : { continue; }
 	    
 	  } // end of transverse coordinate prediction. 
 	  if (!fIsMC) { 
-	    if (aView == rb::X_VIEW) {
+	    if (aView == emph::geo::X_VIEW) {
 	      tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      if (kSe >= 4) tMeas *= -1.0;
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... X View " << " kSe " << kSe 
 	  	      << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if (aView == rb::Y_VIEW) {
+	    } else if (aView == emph::geo::Y_VIEW) {
 	      tMeas =  ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      if (kSe >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... Y View " << " kSe " << kSe 
 	  	      << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if ((aView == rb::U_VIEW) || (aView == rb::W_VIEW))  { // V is a.k.a. W 
-	      if (aView == rb::U_VIEW) { 
+	    } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
+	      if (aView == emph::geo::U_VIEW) { 
 	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
 	        if (kSe == 0) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
@@ -192,21 +192,21 @@ namespace emph {
 	  	      << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
 	    }
 	  } else { // Monte Carlo Convention 
-	    if (aView == rb::X_VIEW) {
+	    if (aView == emph::geo::X_VIEW) {
 	      tMeas = ( -1.0 * strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;    // for now.. Need to keep checking this.. Shameful.   
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... X View " << " kSe " << kSe 
 	  	      << " xPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if (aView == rb::Y_VIEW) {
+	    } else if (aView == emph::geo::Y_VIEW) {
 	      tMeas = (kSe < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
 	                      ( strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)) ;
 	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;      
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... Y View " << " kSe " << kSe 
 	  	      << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if ((aView == rb::U_VIEW) || (aView == rb::W_VIEW))  { // V is a.k.a. W 
-	      if (aView == rb::U_VIEW) { 
+	    } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
+	      if (aView == emph::geo::U_VIEW) { 
 	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
 	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
@@ -253,26 +253,6 @@ namespace emph {
 	if ((zz > zMag) && (fZLocDownstrMagnet == DBL_MAX)) fZLocDownstrMagnet = zz; // in a given view, assume z order for the incoming data. 
       }
     }  
-
-    rb::planeView SSD3DTrackFitFCNAlgo1::getSensorView(int station, int sensor) const
-    {
-       const emph::geo::SSDStation &st = fEmgeo->GetSSDStation(station);
-       const emph::geo::Detector   &sd = st.GetSSD(sensor);
-      // add stuff here to check sd.Rot() and get view from that.
-      // x-view: π/2, 3π/2
-      if (abs(fmod(sd.Rot()-3.14/2,3.14)) < 0.2) // Maximum 5 degree misalignment! 
-        return rb::X_VIEW;
-      // y-view: 0,π
-      else if (abs(fmod(sd.Rot(),3.14)) < 0.2)
-        return rb::Y_VIEW;
-      // u-view: 3π/4, 7π/4
-      else if (abs(fmod(sd.Rot()-3*3.14/4,3.14)) < 0.2)
-        return rb::U_VIEW;
-      // w-view: π/4, 5π/4
-      else if (abs(fmod(sd.Rot()-3.14/4,3.14)) < 0.2)
-       return rb::W_VIEW;
-      return rb::INIT;
-    }
     void SSD3DTrackFitFCNAlgo1::OpenOutResids(const std::string &fNameStr) {
       if (fFOutResids.is_open()) return;
       fFOutResids.open(fNameStr.c_str());

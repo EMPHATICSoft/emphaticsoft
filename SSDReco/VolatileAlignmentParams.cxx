@@ -67,24 +67,24 @@ namespace emph {
      //
      // Setters 
      //
-     void VolatileAlignmentParams::SetDeltaZ(rb::planeView view, size_t kSe, double v) {
+     void VolatileAlignmentParams::SetDeltaZ(emph::geo::sensorView view, size_t kSe, double v) {
        switch (view) {
-     	 case rb::X_VIEW : {
+     	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
 	     fZDeltaPosX[kSe] =  fZPosX[kSe] = fZNomPosX[kSe] + v;  break;  
 	    } 
-	 case rb::Y_VIEW :  { fZDeltaPosY[kSe] = v; fZPosY[kSe] = fZNomPosY[kSe] + v; break;} 
-	 case rb::U_VIEW :  { fZDeltaPosU[kSe] = v; fZPosU[kSe] = fZNomPosU[kSe] + v; break;} 
-	 case rb::W_VIEW : { fZDeltaPosV[kSe] = v; fZPosV[kSe] = fZNomPosV[kSe] + v; break;}
+	 case emph::geo::Y_VIEW :  { fZDeltaPosY[kSe] = v; fZPosY[kSe] = fZNomPosY[kSe] + v; break;} 
+	 case emph::geo::U_VIEW :  { fZDeltaPosU[kSe] = v; fZPosU[kSe] = fZNomPosU[kSe] + v; break;} 
+	 case emph::geo::W_VIEW : { fZDeltaPosV[kSe] = v; fZPosV[kSe] = fZNomPosV[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaZ, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
 //     
-     void VolatileAlignmentParams::SetDeltaZStation(rb::planeView view,  size_t kSt, double v) {
+     void VolatileAlignmentParams::SetDeltaZStation(emph::geo::sensorView view,  size_t kSt, double v) {
        switch (view) {
-     	 case rb::X_VIEW : {
+     	 case emph::geo::X_VIEW : {
 	     if (kSt < 4) { 
 	       fZDeltaPosX[kSt] =  v; fZPosX[kSt] = fZNomPosX[kSt] + v; 
 	     } else if (kSt == 4) {
@@ -98,7 +98,7 @@ namespace emph {
 	    }
 	    break;
 	 }
-     	 case rb::Y_VIEW : {
+     	 case emph::geo::Y_VIEW : {
 	   if (kSt < 4) { 
 	     fZDeltaPosY[kSt] =  v; fZPosY[kSt] = fZNomPosY[kSt] + v; 
 	   } else if (kSt == 4) {
@@ -112,7 +112,7 @@ namespace emph {
 	   }
 	   break;
 	 }	  
-	 case rb::U_VIEW :  { 
+	 case emph::geo::U_VIEW :  { 
 	  if (kSt == 4) { 
 	    for (size_t kSe=0; kSe != 2; kSe++) { 
 	      fZDeltaPosU[kSe] = v; fZPosU[kSe] = fZNomPosU[kSe] + v;
@@ -120,7 +120,7 @@ namespace emph {
 	  }
 	  break;
 	 } 
-	 case rb::W_VIEW : { 
+	 case emph::geo::W_VIEW : { 
 	   if (kSt == 5) { 
 	     for (size_t kSe=0; kSe != 4; kSe++) { 
 	       fZDeltaPosV[kSe] = v; fZPosV[kSe] = fZNomPosV[kSe] + v;
@@ -133,88 +133,88 @@ namespace emph {
 	      exit(2);  } 
 	}
      } 
-     void VolatileAlignmentParams::SetDeltaTr(rb::planeView view,  size_t kSe, double v) {
+     void VolatileAlignmentParams::SetDeltaTr(emph::geo::sensorView view,  size_t kSe, double v) {
        switch (view) {
-     	 case rb::X_VIEW : {
+     	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break;  
 	    } 
-	 case rb::Y_VIEW :  { 
+	 case emph::geo::Y_VIEW :  { 
 	    fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;
 	 } 
-	 case rb::U_VIEW :  { fTrDeltaPosU[kSe] = v; fTrPosU[kSe] = fTrNomPosU[kSe] + v; break;} 
-	 case rb::W_VIEW : { fTrDeltaPosV[kSe] = v; fTrPosV[kSe] = fTrNomPosV[kSe] + v; break;}
+	 case emph::geo::U_VIEW :  { fTrDeltaPosU[kSe] = v; fTrPosU[kSe] = fTrNomPosU[kSe] + v; break;} 
+	 case emph::geo::W_VIEW : { fTrDeltaPosV[kSe] = v; fTrPosV[kSe] = fTrNomPosV[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaTr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
-     void VolatileAlignmentParams::SetValueTrShiftLastPlane(rb::planeView view, double v) {
+     void VolatileAlignmentParams::SetValueTrShiftLastPlane(emph::geo::sensorView view, double v) {
      
        switch (view) {
-     	 case rb::X_VIEW : {
+     	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPosX[fNumSensorsXorY-1] = v;  fTrPosX[fNumSensorsXorY-1] = fTrNomPosX[fNumSensorsXorY-1] + v;  break;  
 	    } 
-	 case rb::Y_VIEW :  { 
+	 case emph::geo::Y_VIEW :  { 
 	    fTrDeltaPosY[fNumSensorsXorY-1] = v; fTrPosY[fNumSensorsXorY-1] = fTrNomPosY[fNumSensorsXorY-1] + v; break;
 	 } 
-	 case rb::U_VIEW :  { fTrDeltaPosU[fNumSensorsU-1] = v; fTrPosU[fNumSensorsU-1] = fTrNomPosU[fNumSensorsU-1] + v; break;} 
-	 case rb::W_VIEW : { fTrDeltaPosV[fNumSensorsV-1] = v; fTrPosV[fNumSensorsV-1] = fTrNomPosV[fNumSensorsV-1] + v; break;}
+	 case emph::geo::U_VIEW :  { fTrDeltaPosU[fNumSensorsU-1] = v; fTrPosU[fNumSensorsU-1] = fTrNomPosU[fNumSensorsU-1] + v; break;} 
+	 case emph::geo::W_VIEW : { fTrDeltaPosV[fNumSensorsV-1] = v; fTrPosV[fNumSensorsV-1] = fTrNomPosV[fNumSensorsV-1] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetValueTrShiftLastPlane, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  }
         } 
      }
-     void VolatileAlignmentParams::SetRoll(rb::planeView view,  size_t kSe, double v) {
+     void VolatileAlignmentParams::SetRoll(emph::geo::sensorView view,  size_t kSe, double v) {
        switch (view) {
-     	 case rb::X_VIEW : {
+     	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fRollX[kSe] = v;   break;  
 	    } 
-	 case rb::Y_VIEW :  { fRollY[kSe] = v;  break;} 
-	 case rb::U_VIEW :  { fRollU[kSe] = v;  break;} 
-	 case rb::W_VIEW : { fRollV[kSe] = v; break;}
+	 case emph::geo::Y_VIEW :  { fRollY[kSe] = v;  break;} 
+	 case emph::geo::U_VIEW :  { fRollU[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : { fRollV[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetRoll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
-     void VolatileAlignmentParams::SetDeltaPitchCorr(rb::planeView view,  size_t kSe, double v) {
+     void VolatileAlignmentParams::SetDeltaPitchCorr(emph::geo::sensorView view,  size_t kSe, double v) {
        switch (view) {
-     	 case rb::X_VIEW : {
+     	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPitchX[kSe] = v;   break;  
 	    } 
-	 case rb::Y_VIEW :  { fTrDeltaPitchY[kSe] = v;  break;} 
-	 case rb::U_VIEW :  { fTrDeltaPitchU[kSe] = v;  break;} 
-	 case rb::W_VIEW : { fTrDeltaPitchV[kSe] = v; break;}
+	 case emph::geo::Y_VIEW :  { fTrDeltaPitchY[kSe] = v;  break;} 
+	 case emph::geo::U_VIEW :  { fTrDeltaPitchU[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : { fTrDeltaPitchV[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaPitchCorr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
-     void VolatileAlignmentParams::SetUnknwonUncert(rb::planeView view,  size_t kSe, double v) {
+     void VolatileAlignmentParams::SetUnknwonUncert(emph::geo::sensorView view,  size_t kSe, double v) {
        switch (view) {
-     	 case rb::X_VIEW : case rb::Y_VIEW :{
+     	 case emph::geo::X_VIEW : case emph::geo::Y_VIEW :{
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fUnknownUncertXorY[kSe] = v;  break;  
 	    } 
-	 case rb::U_VIEW :  { fUnknownUncertU[kSe] = v;  break;} 
-	 case rb::W_VIEW : {  fUnknownUncertV[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fUnknownUncertU[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : {  fUnknownUncertV[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetUnknwonUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
-     void VolatileAlignmentParams::SetMultScatUncert(rb::planeView view,  size_t kSe, double v) {
+     void VolatileAlignmentParams::SetMultScatUncert(emph::geo::sensorView view,  size_t kSe, double v) {
        switch (view) {
-     	 case rb::X_VIEW : case rb::Y_VIEW :{
+     	 case emph::geo::X_VIEW : case emph::geo::Y_VIEW :{
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fMultScatUncertXorY[kSe] = v;  break;  
 	    } 
-	 case rb::U_VIEW :  { fMultScatUncertU[kSe] = v;  break;} 
-	 case rb::W_VIEW : {  fMultScatUncertV[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fMultScatUncertU[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : {  fMultScatUncertV[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetMultScatUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
