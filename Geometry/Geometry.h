@@ -26,7 +26,13 @@ class TVector3;
 
 namespace emph {
 	namespace geo {
-
+		enum sensorView {
+			INIT=0,
+			X_VIEW=1, ///< x-measuring view
+			Y_VIEW,   ///< y-measuring view
+			U_VIEW,
+			W_VIEW
+		};
 		class Strip {
 			public:
 				Strip();
@@ -63,6 +69,7 @@ namespace emph {
 				double Dz() const { return fDz;}
 				double Width() const { return fWidth;}
 				double Height() const { return fHeight;}
+				sensorView View() const;
 				void AddStrip(Strip strip) {fStrip.push_back(strip); }
 
 				void SetName(std::string n) {fName = n; }
