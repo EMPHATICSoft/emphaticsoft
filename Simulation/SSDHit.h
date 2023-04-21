@@ -28,6 +28,7 @@ namespace sim {
 
     int        GetPId() const {return fPId; } // pdg value
 
+    int        GetStation() const { return fStation; }
     int        GetPlane() const {return fPlane; }
     int        GetSensor() const {return fSensor; }
     int        GetStrip() const {return fStrip; }

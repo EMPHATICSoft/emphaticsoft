@@ -24,9 +24,7 @@ namespace emph {
     
     DetGeoMap::DetGeoMap()
     {
-      fSSDStationMinZ.clear();     
-      fSSDStationMaxZ.clear();     
-      art::ServiceHandle<emph::geo::GeometryService> geo;
+      //      art::ServiceHandle<emph::geo::GeometryService> geo;
     }
   
     //----------------------------------------------------------------------
@@ -93,122 +91,10 @@ namespace emph {
     //----------------------------------------------------------------------
     void DetGeoMap::Reset()
     {
-      fSSDStationMinZ.clear();
-      fSSDStationMaxZ.clear();
 
-      art::ServiceHandle<emph::geo::GeometryService> geo;
-      auto geom = geo->Geo();
-      std::cout << geom << std::endl;
-
-      double z;
-      double dz;
-      for (int i=0; i<geom->NSSDStations(); ++i) {
-	z = geom->GetSSDStation(i).Pos()[2];
-	dz = geom->GetSSDStation(i).Dz();
-	std::cout << "ssd station " << i << " z = " << z << " +/- " << dz 
-		  << std::endl;
-	fSSDStationMinZ.push_back(z-dz);
-	fSSDStationMaxZ.push_back(z+dz);
-      }
-      
     }
 
     //----------------------------------------------------------------------
-
-    rawdata::SSDRawDigit* DetGeoMap::SSDSimHitToRawDigit(const sim::SSDHit& ssdhit)
-    {
-      rawdata::SSDRawDigit* dig = 0;
-      int32_t station=0;
-      int32_t module=0; 
-      int32_t chip=0; 
-      int32_t set=0; 
-      int32_t strip=0; 
-      int32_t t=0; 
-      int32_t adc=0; 
-      int32_t trig=0; 
-
-      art::ServiceHandle<emph::geo::GeometryService> geo;
-      auto geom = geo->Geo()->ROOTGeoManager();
-
-      TGeoNavigator* nav = new TGeoNavigator(geom);
-      std::cout << "here!" << nav << std::endl;
-
-      double mHitPos[3]; // master hit position
-      //      double lHitPos[3]; // local hit position on the sensor
-      mHitPos[0] = ssdhit.GetX();
-      mHitPos[1] = ssdhit.GetY();
-      mHitPos[2] = ssdhit.GetZ();
-      //      double dE = ssdhit.GetDE();
-
-      std::cout << "nav level = " << nav->GetLevel() << std::endl;
-      std::cout << nav->GetPath() << std::endl;
-      //      TGeoNode* node2 = nav->FindNode(mHitPos[0],mHitPos[1],mHitPos[2]);
-      //      std::cout << node2 << std::endl;
-
-      TGeoNode* node = geom->FindNode(mHitPos[0],mHitPos[1],mHitPos[2]);
-      //      node->MasterToLocal(mHitPos,lHitPos);
-      std::string nodeName = node->GetName();
-      //      std::string node2Name = node2->GetName();
-      //      std::cout << nodeName << ", " << node2Name << std::endl;
-
-      int chan;
-      sscanf(nodeName.c_str(),"ssd_chan_%d_vol",&chan);
-      std::cout << "Channel number: " << chan << std::endl;
-
-      //      std::cout << nav->GetMother()->GetName() << std::endl;
-
-      //      std::cout << nodeName << " has " << node->CountDaughters() 
-      //		<< " daughters" << std::endl;
-      
-      //      TGeoVolume* vol = node->GetVolume();
-
-      //      vol->Print();
-      //      std::string volName = vol->GetName(); 
-      //      std::cout << "(" << hitX << "," << hitY << "," << hitZ << "), dE= " 
-      //		<< dE << std::endl;
-      //      std::cout << volName << ", " << nodeName << std::endl;
-
-      //      auto nav = geom->GetCurrentNavigator();
-      //      std::cout << "nav = " << nav << std::endl;
-      
-      //      nav->MasterToLocal(mHitPos,lHitPos);
-      /*
-      std::cout << "(" << mHitPos[0] << "," << mHitPos[1] << ","
-		<< mHitPos[2] << ")-->(" << lHitPos[0] << "," 
-		<< lHitPos[1] << "," << lHitPos[2] << ")" << std::endl;
-      */
-      
-      // work some magic and set the values above
-      size_t iStation=0;
-      for (; iStation<fSSDStationMinZ.size(); ++iStation) {
-    	if ((mHitPos[2] > fSSDStationMinZ[iStation]) &&
-	    (mHitPos[2] < fSSDStationMaxZ[iStation])) break;
-      }
-      if (iStation == fSSDStationMinZ.size()) {
-	// this should never happen.  It means the hit Z position is outside of a 
-	// SSD station volume.  Return a NULL pointer.
-	return dig;
-      }
-     
-      station = int32_t(iStation);
-      //      std::cout << "station = " << station << std::endl;
-
-      // create raw digit to return
-      module = chan/640;
-      chip = (chan - 640*module)/128;
-      strip = chan%128;
-      std::cout << "(station, module, chip, set, strip) = ("
-		<< station << ", "
-		<< module << ", " 
-		<< chip << ", " 
-		<< set << ", " 
-		<< strip << ")" << std::endl;
-      dig = new rawdata::SSDRawDigit(station, module, chip, set,
-				     strip, t, adc, trig);
-
-      return dig;
-
-    }
 
   } // end namespace dgmap
   

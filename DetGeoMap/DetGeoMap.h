@@ -38,13 +38,10 @@ namespace emph {
       //	  fMapFileName = fname; fIsLoaded=false;} }
 
       bool SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls);
-      rawdata::SSDRawDigit* SSDSimHitToRawDigit(const sim::SSDHit& ssdhit);
       
     private:
       bool fUseGeometry;
       int fRun;
-      std::vector<double> fSSDStationMinZ;
-      std::vector<double> fSSDStationMaxZ;
 
       //      bool fIsLoaded;
       //      bool fAbortIfFileNotFound;

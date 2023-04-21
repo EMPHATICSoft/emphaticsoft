@@ -41,6 +41,9 @@ namespace emph
       
       EChannel ElectChan(DChannel dchan) { return fChannelMap->ElectChan(dchan); }
 
+      std::map<emph::cmap::EChannel,emph::cmap::DChannel> EMap() { return fChannelMap->EChanMap(); }
+      std::map<emph::cmap::DChannel,emph::cmap::EChannel> DMap() { return fChannelMap->DChanMap(); }
+
     private:
       bool fAbortIfFileNotFound;
       ChannelMap* fChannelMap;

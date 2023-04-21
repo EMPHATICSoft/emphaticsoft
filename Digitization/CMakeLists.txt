@@ -15,8 +15,8 @@ art_make_library ( SOURCE ${src_files}
 		G4Base
 		Geometry
 		RawData
-		DetGeoMap
-		DetGeoMapService_service
+		ChannelMap
+		ChannelMapService_service
 		art_root_io::TFileService_service
 #                ROOT::Hist
 #                ROOT::Tree
@@ -29,8 +29,8 @@ cet_build_plugin(SSDDigitizer art::module
     Simulation
     Geometry
     RawData
-    DetGeoMap
-    DetGeoMapService_service
+    ChannelMap
+    ChannelMapService_service
     art_root_io::TFileService_service
     art::Framework_Core
     art::Persistency_Common

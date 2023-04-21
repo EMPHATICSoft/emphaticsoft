@@ -30,7 +30,8 @@
 #include "Geometry/DetectorDefs.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
-#include "DetGeoMap/service/DetGeoMapService.h"
+//#include "DetGeoMap/service/DetGeoMapService.h"
+#include "ChannelMap/service/ChannelMapService.h"
 
 using namespace emph;
 
@@ -61,6 +62,10 @@ namespace emph {
   private:
     std::string fG4Label;
 
+    std::unordered_map<int,int> fSensorMap;
+
+    void FillSensorMap();
+
     //    TTree* fSSDTree;
     /*
     int fRun;
@@ -87,6 +92,8 @@ namespace emph {
     //    fEvent = 0;
     this->reconfigure(pset);
 
+    fSensorMap.clear();
+
     produces<std::vector<rawdata::SSDRawDigit> >();
 
   }
@@ -110,32 +117,21 @@ namespace emph {
   }
 
   //......................................................................
-  /*
-  void SSDDigitizer::beginJob()
+  
+  void SSDDigitizer::FillSensorMap()
   {
-    art::ServiceHandle<art::TFileService> tfs;
-    if (fMakeSSDTree) {
-      fSSDTree = tfs->make<TTree>("fSSDTree","");
-      fSSDTree->Branch("run",&fRun);
-      fSSDTree->Branch("subrun",&fSubrun);
-      fSSDTree->Branch("event",&fEvent);
-      fSSDTree->Branch("pid",&fPid);
-      fSSDTree->Branch("ssdx",&fSSDx);
-      fSSDTree->Branch("ssdy",&fSSDy);
-      fSSDTree->Branch("ssdz",&fSSDz);
-      fSSDTree->Branch("ssdpx",&fSSDx);
-      fSSDTree->Branch("ssdpy",&fSSDy);
-      fSSDTree->Branch("ssdpz",&fSSDz);
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+
+    auto echanMap = cmap->EMap();
+    for (auto it=echanMap.begin(); it != echanMap.end(); ++it) {
+      auto dchan = it->second;
+      if (dchan.DetId() == emph::geo::SSD) {
+	fSensorMap[dchan.HiLo()] = dchan.Channel();
+	//	std::cout << dchan.HiLo() << "," << dchan.Channel() << std::endl;
+      }
     }
-
-  }    
-  */
-  //......................................................................
-  /*    
-  void SSDDigitizer::endJob() {     
-
   }
-  */
+  
   //......................................................................
 
   void SSDDigitizer::produce(art::Event& evt)
@@ -151,24 +147,47 @@ namespace emph {
     
     std::unique_ptr<std::vector<rawdata::SSDRawDigit> >ssdRawD(new std::vector<rawdata::SSDRawDigit>);
     
-    art::ServiceHandle<emph::dgmap::DetGeoMapService> detGeoMap;
-    auto dgmap = detGeoMap->Map();
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
 
     if (!ssdHitH->empty()) {
-	
+
+      int station, chip, set, strip, t, adc, trig;
+      int sensor;
+      t = 0;
+      trig = 0;
+
+      emph::cmap::EChannel echan;
+      emph::cmap::DChannel dchan;
+      echan.SetBoardType(emph::cmap::SSD);
+      dchan.SetDetId(emph::geo::SSD);
+      dchan.SetChannel(-1);
+
+      if (fSensorMap.empty()) FillSensorMap();
+
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
-
+	
 	const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
-	rawdata::SSDRawDigit* dig;
+	rawdata::SSDRawDigit* dig=0;
+	
+	station = ssdhit.GetStation();
+	sensor = ssdhit.GetSensor(); // need to convert this from 0-27 range to 0-5
+	strip = ssdhit.GetStrip();
+	chip = strip/128;
+	set = strip/128; // not sure what "set" is... do we even use this for anything?  Is it redundant?
+	adc = ssdhit.GetDE()/8; // this needs attention!
 
-	dig = dgmap->SSDSimHitToRawDigit(ssdhit);
-	if (dig) {
-	  ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
-	  delete dig;
-	}
+	dchan.SetStation(station);
+	dchan.SetHiLo(sensor);
+	dchan.SetChannel(fSensorMap[sensor]);
+	echan = cmap->ElectChan(dchan);
+	dig = new rawdata::SSDRawDigit(echan.Board(), echan.Channel(), chip, set,
+				       strip, t, adc, trig);
+	//	std::cout << "(" << station << "," << sensor << "," << fSensorMap[sensor] << ") --> (" << echan.Board() << "," << echan.Channel() << ")" << std::endl;
+	ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
+	delete dig;
 	
       } // end loop over SSD hits for the event
-      		
+      
     }
     
     evt.put(std::move(ssdRawD));

@@ -43,7 +43,7 @@ namespace emph
   //-------------------------------------------------------------
   // Constructor.
   SSDHitAction::SSDHitAction() : 
-    fEnergyCut(0)
+    fEnergyCut(0), fPerformFOutStudy(false)
   {
     fRunManager = G4RunManager::GetRunManager();
   }
@@ -52,7 +52,8 @@ namespace emph
   // Destructor.
   SSDHitAction::~SSDHitAction()
   {
-    fFOutStudy1.close();
+    if (fPerformFOutStudy)
+      fFOutStudy1.close();
   }
 
   //-------------------------------------------------------------
@@ -60,11 +61,16 @@ namespace emph
   {
     fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     std::cerr << " SSDHitAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
-    std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
-    std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHSSDTuple_V1_" << aTokenJob << ".txt";
-    std::string fNameStr(fNameStrStr.str());
-    fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " evt track pId x y z px py pz  " << std::endl;
+
+    fPerformFOutStudy = pset.get< bool >("PerformFOutStudy",false);
+
+    if (fPerformFOutStudy) {
+      std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
+      std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHSSDTuple_V1_" << aTokenJob << ".txt";
+      std::string fNameStr(fNameStrStr.str());
+      fFOutStudy1.open(fNameStr.c_str());
+      fFOutStudy1 << " evt track pId x y z px py pz  " << std::endl;
+    }
   }
 
   //-------------------------------------------------------------
@@ -112,7 +118,8 @@ namespace emph
     if(material.compare("SiliconWafer") != 0 ) {
       return;
     }
-    //		fFOutStudy1 << " " << material << " " << track->GetStep()->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() << " " <<  track->GetStep()->GetPostStepPoint()->GetTouchableHandle()->GetVolume()->GetName() ;
+    //	if (fPerformFOutStudy)	
+    // fFOutStudy1 << " " << material << " " << track->GetStep()->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() << " " <<  track->GetStep()->GetPostStepPoint()->GetTouchableHandle()->GetVolume()->GetName() ;
 
     const CLHEP::Hep3Vector &pos0 = step->GetPreStepPoint()->GetPosition(); // Start of the step
     const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
@@ -121,7 +128,7 @@ namespace emph
     MF_LOG_DEBUG("SSDHitAction") << " momentum = "
 				 << mom.x() << " " << mom.y() << " " 
 				 << mom.z() << " " << mom.mag();
-
+    
     double tpos0[3] = {pos0.x()/CLHEP::mm, pos0.y()/CLHEP::mm, pos0.z()/CLHEP::mm}; ///< Start of the step
     double tpos1[3] = {pos.x()/CLHEP::mm , pos.y()/CLHEP::mm , pos.z()/CLHEP::mm};  ///< End of the step
 
@@ -158,64 +165,30 @@ namespace emph
 
     // need to add code to figure out SSD station, plane, sensor and strip
 
-    int strip;
-    sscanf(volStr.c_str(),"ssd_chan_%d_vol",&strip);
-
-    int station=-1;
-    int plane=-1;
-
-    G4VPhysicalVolume* vol2 = step->GetPostStepPoint()->GetPhysicalVolume();
-    std::string volStr2 = vol2->GetName();
-    if (volStr2.find("ssdbkplnsingle") != std::string::npos) {
-      // extract station and plane
-      int stpl;
-      sscanf(volStr2.c_str(),"ssdbkplnsingle%d_phys",&stpl);
-      station = stpl/10;
-      plane = stpl%10;
-    }
-    else if (volStr2.find("ssdbkplnrotate") != std::string::npos) {
-      int stpl;
-      sscanf(volStr2.c_str(),"ssdbkplnrotate%d_phys",&stpl);
-      station = stpl/10;
-      plane = stpl%10;
-    }
-    else if (volStr2.find("ssdbkplndouble2pl") != std::string::npos) {
-      int stpl;
-      sscanf(volStr2.c_str(),"ssdbkplndouble2pl%d_phys",&stpl);
-      station = stpl/10;
-      plane = stpl%10;
-    }
-    else if (volStr2.find("ssdbkplndouble3pl") != std::string::npos) {
-      int stpl;
-      sscanf(volStr2.c_str(),"ssdbkplndouble3pl%d_phys",&stpl);
-      station = stpl/10;
-      plane = stpl%10;
-    }
-
-    std::cout << "volStr = " << volStr << ", volStr2 = " << volStr2 << std::endl;
-    std::cout << "(station, plane, strip) = (" << station << "," << plane << ","
-	      << strip << ")" << std::endl;
-    /*
-    G4VPhysicalVolume* vol = step->GetPreStepPoint()->GetPhysicalVolume();
-    std::string volStr = vol->GetName();
-    std::cout << "volStr = " << volStr << std::endl;
-    */
-    /*
-    */
+    int station, plane, sensor, strip;
+    sscanf(volStr.c_str(),"ssd_chan_%d_%d_%d_%d_vol",
+	   &station,&plane,&sensor,&strip);
+    plane -= 1;
+    sensor -= 1;
+    //    std::cout << "(station, plane, sensor, strip) = (" << station << "," 
+    //	      << plane << "," << sensor << "," << strip << ")" << std::endl;
+    ssdHit.SetStation(station);
+    ssdHit.SetPlane(plane);
+    ssdHit.SetSensor(sensor);
+    ssdHit.SetStrip(strip);
 
     /// Add position, momentum
     ssdHit.SetX(tpos_s);
     ssdHit.SetP(mom0);
 
     fSSDHits.push_back(ssdHit);
-    fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
-    fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding() << std::endl;
-    fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2]  << std::endl;
-    fFOutStudy1 << " " << tpos1[0] << " " << tpos1[1] << " " << tpos1[2]  << std::endl;
-    fFOutStudy1 << " " << mom0[0] << " " << mom0[1] << " " << mom0[2] << " " << step->GetTotalEnergyDeposit() << std::endl;
-
-    //fFLSHit->AddPos(tpos2[0], tpos2[1], tpos2[2], (double)step->GetPreStepPoint()->GetGlobalTime()/CLHEP::ns, step->GetPreStepPoint()->GetKineticEnergy()  / CLHEP::GeV);
-
+    if (fPerformFOutStudy) {
+      fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
+      fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding() << std::endl;
+      fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2]  << std::endl;
+      fFOutStudy1 << " " << tpos1[0] << " " << tpos1[1] << " " << tpos1[2]  << std::endl;
+      fFOutStudy1 << " " << mom0[0] << " " << mom0[1] << " " << mom0[2] << " " << step->GetTotalEnergyDeposit() << std::endl;
+    }
 
   }// end of SSDHitAction::SteppingAction
 
