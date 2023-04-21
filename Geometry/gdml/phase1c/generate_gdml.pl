@@ -78,7 +78,8 @@ $nstation_type = 4; # types of station
 $nD0chan = 640; # number of channels per sensor
 $nSSD_station = 8; # num. of stations
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
-@SSD_station_shift = (0, 100, 200, 300, 500, 900, 1000, 1200); # position of stations, need to be corrected
+@SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); # position of stations, need to be corrected
+#@SSD_station_shift = (0, 100, 200, 300, 500, 900, 1000, 1200); # position of stations, need to be corrected
 
 # constants for ARICH
 $arich_switch = 1;
@@ -89,9 +90,10 @@ $n_anode1d = 8;
 
 # constants for RPC
 $RPC_switch = 1;
+$n_RPC = 2;
 $n_glass = 6;
 $n_gas = 2;
-$n_cover=2;
+$n_cover = 2;
 
 # constants for LG
 $LG_switch = 1;
@@ -192,9 +194,9 @@ EOF
 	 <quantity name="T0_length" value="280.0" unit="mm"/>
 	 <quantity name="T0_width" value="210.0" unit="mm"/>
 	 <quantity name="T0_height" value="300.0" unit="mm"/>
-	 <quantity name="T0_shift" value="-852.9" unit="mm"/>
+	 <quantity name="T0_shift" value="-267.5" unit="mm"/>
 	 <quantity name="T0_acrylic_shift" value="40.0" unit="mm"/>
-	 <position name="T0_pos" z="T0_shift+T0_acrylic_shift+T0_length*0.5"/>
+	 <position name="T0_pos" z="T0_shift+T0_acrylic_shift"/>
 
 	 <quantity name="T0_acrylic_length" value="150.0" unit="mm"/>
 	 <quantity name="T0_acrylic_width" value="3.0" unit="mm"/>
@@ -237,9 +239,9 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR MAGNET -->
 
-    <quantity name="magnetShift" value="757.7" unit="mm"/>
+    <quantity name="magnetShift" value="987.645" unit="mm"/>
     <quantity name="magnetSideWidth" value="50" unit="mm"/>
-	 <quantity name="magnetSideZLength" value="160" unit="mm"/>
+	 <quantity name="magnetSideZLength" value="168.35" unit="mm"/>
 	 <quantity name="magnetSideOHeight" value="240" unit="mm"/>
 	 <quantity name="magnetSideIHeight0" value="48" unit="mm"/>
 	 <quantity name="magnetSideIHeight1" value="62" unit="mm"/>
@@ -378,7 +380,7 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR ARICH -->
 
-	 <quantity name="arich_shift" value="1377.9" unit="mm"/>
+	 <quantity name="arich_shift" value="1862.82" unit="mm"/>
 	 <quantity name="arich_thick" value="280.0" unit="mm"/>
 	 <quantity name="arich_width" value="365.0" unit="mm"/>
 	 <quantity name="arich_height" value="365.0" unit="mm"/>
@@ -432,9 +434,8 @@ EOF
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
-	 <quantity name="RPC_shift" value="2699.7" unit="mm" />
-
-	 <position name="RPC_pos" x="0" y="0" z="RPC_shift+0.5*RPC_thick"/>
+	 <quantity name="RPC0_shift" value="3953.38" unit="mm" />
+	 <quantity name="RPC1_shift" value="4050.39" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
@@ -446,28 +447,17 @@ EOF
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
 EOF
+		for($i = 0; $i < $n_RPC; ++$i){
+			print DEF <<EOF;
+	 <position name="RPC@{[ $i ]}_pos" z="RPC@{[ $i ]}_shift+0.5*RPC_thick"/>
+EOF
+		}
+
 		for($i = 0; $i < $n_cover; ++$i){
 			print DEF <<EOF;
 	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)"/>
 EOF
 		}
-#		
-#		for($i = 0; $i < $n_gas+1; ++$i){
-#			print DEF <<EOF;
-#	 <position name="RPC_PCB@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-$n_gas*0.5)" unit="mm"/>
-#EOF
-#		}
-#		for($i = 0; $i < $n_gas; ++$i){
-#			print DEF <<EOF;
-#	 <position name="RPC_gas@{[ $i ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)" unit="mm"/>
-#EOF
-#			for($j = 0; $j < $n_cover; ++$j){
-#				print DEF <<EOF;
-#	 <position name="RPC_acrylic@{[ $i ]}@{[ $j ]}_pos" z="(RPC_PCB_thick+RPC_gas_thick+RPC_acrylic_thick*2)*($i-($n_gas-1)*0.5)+(RPC_acrylic_thick+RPC_gas_thick)*($j-($n_cover-1)*0.5)" unit="mm"/>
-#EOF
-#			}
-#		}
-#
 		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR RPC -->
@@ -837,23 +827,36 @@ EOF
 		 </volume>
 
 EOF
-		for($i = 0; $i < $nstation_type; ++$i){
-			print MOD <<EOF;
-		 <volume name="ssd@{[ $station_type[$i] ]}_vol">
+		$lay=0;
+		$sen=0;
+		for($i = 0; $i < $nSSD_station; ++$i){
+			for($j = 0; $j < $SSD_lay[$SSD_station[$i]]; ++$j){
+				++$lay;
+				for($k = 0; $k < $SSD_par[$SSD_station[$i]]; ++$k){
+					++$sen;
+					print MOD <<EOF;
+		 <volume name="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssd@{[ $station_type[$i] ]}_box"/>
+			<solidref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}_box"/>
 EOF
-			for($j = 0; $j < $nD0chan; ++$j){
-				print MOD <<EOF;
-		 <physvol name="ssd_chan_@{[ $j ]}_vol">
+					for($l = 0; $l < $nD0chan; ++$l){
+						print MOD <<EOF;
+		 <physvol name="ssd_chan_@{[ $i ]}_@{[ $lay ]}_@{[ $sen ]}_@{[ $l ]}_vol">
 			<volumeref ref="ssd_chan_vol"/>
-			<positionref ref="ssd_chan_@{[ $j ]}_pos"/>
+			<positionref ref="ssd_chan_@{[ $l ]}_pos"/>
 		 </physvol>
 EOF
-			}
-
-			print MOD <<EOF;
+					}
+				print MOD <<EOF;
 		 </volume>
+
+EOF
+				}
+			}
+		}
+
+		for($i = 0; $i < $nstation_type; ++$i){
+			print MOD <<EOF;
 
 		 <volume name="ssd@{[ $station_type[$i] ]}_bkpln_vol">
 			<materialref ref="CarbonFiber"/>
@@ -1103,7 +1106,7 @@ EOF
 
 						print DET <<EOF;
 		 <physvol name="ssdsensor@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_phys">
-			<volumeref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}_vol"/>
+			<volumeref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_vol"/>
 			<positionref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $j ]}@{[ $k ]}_pos"/>
 			<rotationref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
 		 </physvol>
@@ -1362,11 +1365,17 @@ EOF
 
   <!-- BELOW IS FOR RPC -->
 
-  <physvol name="RPC_phys">
-	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC_pos"/>
-  </physvol>
+EOF
+		for($i = 0; $i < $n_RPC; ++$i){
+			print WORLD <<EOF;
 
+  <physvol name="RPC@{[ $i ]}_phys">
+	 <volumeref ref="RPC_vol"/>
+	 <positionref ref="RPC@{[ $i ]}_pos"/>
+  </physvol>
+EOF
+		}
+		print WORLD <<EOF;
   <!-- ABOVE IS FOR RPC -->
 
 EOF

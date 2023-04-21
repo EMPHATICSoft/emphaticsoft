@@ -368,7 +368,8 @@ namespace emph {
 						sensor.SetHeight(2*sensor_box->GetDY());
 
 						// now add channels to each SSD sensor
-						if (sensor_n->GetNodes() ) {
+						//if (sensor_n->GetNodes() ) {
+						if (false) {
 							int nchan = sensor_n->GetNodes()->GetEntries();
 							for( int k=0; k<nchan; ++k){
 								std::string name = sensor_v->GetNode(k)->GetName();
