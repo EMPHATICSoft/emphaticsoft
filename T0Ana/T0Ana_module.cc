@@ -28,8 +28,10 @@
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
+#include "Geometry/service/GeometryService.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RecoBase/SSDHit.h"
 
 // Define parameters of detectors
 #define N_SEG_T0 10
@@ -210,12 +212,15 @@ namespace emph {
     std::array<double, n_seg_rpc> RPC_rgt_ln_lo; // RPC caribration parameter of low edge for right signals
 
     double TDC_trg_t; // Time of triger signals for T0 TDC
+    uint64_t TDC_trg_ts; // Timestamp of triger signals for T0 TDC
 
+    std::vector<std::vector<double>> TDC_top_ts; // Timestamp of leading signals of top channel
     std::vector<std::vector<double>> TDC_top_lead; // Time of leading signals of top channel
     std::vector<std::vector<double>> TDC_top_lead_fine; // Fineime of leading signals of top channel
     std::vector<std::vector<double>> TDC_top_trail; // Time of trailing signals of top channel
     std::vector<std::vector<double>> TDC_top_trail_fine; // Finetime of trailing signals of top channel
     std::vector<std::vector<double>> TDC_top_tot; // TOT of top signals
+    std::vector<std::vector<double>> TDC_bot_ts; // Timestamp of leading signals of bot channel
     std::vector<std::vector<double>> TDC_bot_lead; // Time of leading signals of bot channel
     std::vector<std::vector<double>> TDC_bot_lead_fine; // Fineime of leading signals of bot channel
     std::vector<std::vector<double>> TDC_bot_trail; // Time of trailing signals of bot channel
@@ -223,12 +228,15 @@ namespace emph {
     std::vector<std::vector<double>> TDC_bot_tot; // TOT of bottom signals
 
     double RPC_trg_t; // Time of triger signals for T0 TDC
+    uint64_t RPC_trg_ts; // Timestamp of triger signals for T0 TDC
 
+    std::vector<std::vector<double>> RPC_lft_ts; // Timestamp of leading signals of lft channel
     std::vector<std::vector<double>> RPC_lft_lead; // Time of leading signals of lft channel
     std::vector<std::vector<double>> RPC_lft_lead_fine; // Fineime of leading signals of lft channel
     std::vector<std::vector<double>> RPC_lft_trail; // Time of trailing signals of lft channel
     std::vector<std::vector<double>> RPC_lft_trail_fine; // Finetime of trailing signals of lft channel
     std::vector<std::vector<double>> RPC_lft_tot; // TOT of left signals
+    std::vector<std::vector<double>> RPC_rgt_ts; // Timestamp of leading signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_lead; // Time of leading signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_lead_fine; // Fineime of leading signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_trail; // Time of trailing signals of rgt channel
@@ -293,22 +301,26 @@ namespace emph {
       }
     }
 
+    TDC_top_ts.resize(n_seg_t0);
     TDC_top_lead.resize(n_seg_t0);
     TDC_top_lead_fine.resize(n_seg_t0);
     TDC_top_trail.resize(n_seg_t0);
     TDC_top_trail_fine.resize(n_seg_t0);
     TDC_top_tot.resize(n_seg_t0);
+    TDC_bot_ts.resize(n_seg_t0);
     TDC_bot_lead.resize(n_seg_t0);
     TDC_bot_lead_fine.resize(n_seg_t0);
     TDC_bot_trail.resize(n_seg_t0);
     TDC_bot_trail_fine.resize(n_seg_t0);
     TDC_bot_tot.resize(n_seg_t0);
 
+    RPC_lft_ts.resize(n_seg_t0);
     RPC_lft_lead.resize(n_seg_t0);
     RPC_lft_lead_fine.resize(n_seg_t0);
     RPC_lft_trail.resize(n_seg_t0);
     RPC_lft_trail_fine.resize(n_seg_t0);
     RPC_lft_tot.resize(n_seg_t0);
+    RPC_rgt_ts.resize(n_seg_t0);
     RPC_rgt_lead.resize(n_seg_t0);
     RPC_rgt_lead_fine.resize(n_seg_t0);
     RPC_rgt_trail.resize(n_seg_t0);
@@ -330,17 +342,23 @@ namespace emph {
     tree->Branch("ADC_bot_blw", &ADC_bot_blw);
 
     tree->Branch("TDC_trg_t",  &TDC_trg_t);
+    tree->Branch("TDC_trg_ts",  &TDC_trg_ts);
+    tree->Branch("TDC_top_ts",  &TDC_top_ts);
     tree->Branch("TDC_top_lead",  &TDC_top_lead);
     tree->Branch("TDC_top_trail",  &TDC_top_trail);
     tree->Branch("TDC_top_tot",  &TDC_top_tot);
+    tree->Branch("TDC_bot_ts",  &TDC_bot_ts);
     tree->Branch("TDC_bot_lead",  &TDC_bot_lead);
     tree->Branch("TDC_bot_trail",  &TDC_bot_trail);
     tree->Branch("TDC_bot_tot",  &TDC_bot_tot);
 
     tree->Branch("RPC_trg_t",  &RPC_trg_t);
+    tree->Branch("RPC_trg_ts",  &RPC_trg_ts);
+    tree->Branch("RPC_lft_ts",  &RPC_lft_ts);
     tree->Branch("RPC_lft_lead",  &RPC_lft_lead);
     tree->Branch("RPC_lft_trail",  &RPC_lft_trail);
     tree->Branch("RPC_lft_tot",  &RPC_lft_tot);
+    tree->Branch("RPC_rgt_ts",  &RPC_rgt_ts);
     tree->Branch("RPC_rgt_lead",  &RPC_rgt_lead);
     tree->Branch("RPC_rgt_trail",  &RPC_rgt_trail);
     tree->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
@@ -483,11 +501,13 @@ namespace emph {
   void T0Ana::GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
     for(int i_seg = 0; i_seg < n_seg_t0; i_seg++){
+      TDC_top_ts.at(i_seg).clear();
       TDC_top_lead.at(i_seg).clear();
       TDC_top_lead_fine.at(i_seg).clear();
       TDC_top_trail.at(i_seg).clear();
       TDC_top_trail_fine.at(i_seg).clear();
 
+      TDC_bot_ts.at(i_seg).clear();
       TDC_bot_lead.at(i_seg).clear();
       TDC_bot_lead_fine.at(i_seg).clear();
       TDC_bot_trail.at(i_seg).clear();
@@ -506,9 +526,11 @@ namespace emph {
 
       if(evt_ch == 0){
 	TDC_trg_t = time_evt_t0;
+	TDC_trg_ts = digvec.at(i_evt).GetFragmentTimestamp();
       }else{
 	if(FindTopT0(evt_ch)){
 	  if(FindLeadT0(evt_ch)){
+	    TDC_top_ts.at(GetSegT0(evt_ch)).push_back(static_cast<double>(digvec.at(i_evt).GetFragmentTimestamp()));
 	    TDC_top_lead.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - TDC_trg_t);
 	    TDC_top_lead_fine.at(GetSegT0(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
 	  }else{
@@ -517,6 +539,7 @@ namespace emph {
 	  }
 	}else{
 	  if(FindLeadT0(evt_ch)){
+	    TDC_bot_ts.at(GetSegT0(evt_ch)).push_back(static_cast<double>(digvec.at(i_evt).GetFragmentTimestamp()));
 	    TDC_bot_lead.at(GetSegT0(evt_ch)).push_back(time_evt_t0 - TDC_trg_t);
 	    TDC_bot_lead_fine.at(GetSegT0(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
 	  }else{
@@ -532,11 +555,13 @@ namespace emph {
   void T0Ana::GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>& digvec)
   {
     for(int i_seg = 0; i_seg < n_seg_rpc; i_seg++){
+      RPC_lft_ts.at(i_seg).clear();
       RPC_lft_lead.at(i_seg).clear();
       RPC_lft_lead_fine.at(i_seg).clear();
       RPC_lft_trail.at(i_seg).clear();
       RPC_lft_trail_fine.at(i_seg).clear();
 
+      RPC_rgt_ts.at(i_seg).clear();
       RPC_rgt_lead.at(i_seg).clear();
       RPC_rgt_lead_fine.at(i_seg).clear();
       RPC_rgt_trail.at(i_seg).clear();
@@ -555,9 +580,11 @@ namespace emph {
 
       if(evt_ch == 0){
 	RPC_trg_t = time_evt_rpc;
+	RPC_trg_ts = digvec.at(i_evt).GetFragmentTimestamp();
       }else{
 	if(FindLftRPC(evt_ch)){
 	  if(FindLeadRPC(evt_ch)){
+	    RPC_lft_ts.at(GetSegRPC(evt_ch)).push_back(static_cast<double>(digvec.at(i_evt).GetFragmentTimestamp()));
 	    RPC_lft_lead.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - RPC_trg_t);
 	    RPC_lft_lead_fine.at(GetSegRPC(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
 	  }else{
@@ -566,6 +593,7 @@ namespace emph {
 	  }
 	}else{
 	  if(FindLeadRPC(evt_ch)){
+	    RPC_rgt_ts.at(GetSegRPC(evt_ch)).push_back(static_cast<double>(digvec.at(i_evt).GetFragmentTimestamp()));
 	    RPC_rgt_lead.at(GetSegRPC(evt_ch)).push_back(time_evt_rpc - RPC_trg_t);
 	    RPC_rgt_lead_fine.at(GetSegRPC(evt_ch)).push_back(digvec.at(i_evt).GetFineTime());
 	  }else{
