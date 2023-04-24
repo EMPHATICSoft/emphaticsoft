@@ -28,10 +28,10 @@
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
-#include "Geometry/service/GeometryService.h"
+// #include "Geometry/service/GeometryService.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
-#include "RecoBase/SSDHit.h"
+// #include "RecoBase/SSDHit.h"
 
 // Define parameters of detectors
 #define N_SEG_T0 10
@@ -201,8 +201,10 @@ namespace emph {
     std::array<double, n_seg_t0> TDC_bot_ln_hi; // T0 caribration parameter of high edge for T0 bottom signals
     std::array<double, n_seg_t0> TDC_bot_ln_lo; // T0 caribration parameter of low edge for T0 bottom signals
 
-    std::array<double, n_seg_t0> ADC_top_max; // Pulse height of top signals
-    std::array<double, n_seg_t0> ADC_bot_max; // Pulse height of bottom signals
+    std::array<double, n_seg_t0> ADC_top_t; // Pulse time of top signals
+    std::array<double, n_seg_t0> ADC_bot_t; // Pulse time of bottom signals
+    std::array<double, n_seg_t0> ADC_top_hgt; // Pulse height of top signals
+    std::array<double, n_seg_t0> ADC_bot_hgt; // Pulse height of bottom signals
     std::array<double, n_seg_t0> ADC_top_blw; // Baseline of top signals
     std::array<double, n_seg_t0> ADC_bot_blw; // Baseline of bottom signals
 
@@ -336,8 +338,10 @@ namespace emph {
     tree->Branch("T0_seg", &T0_seg);
     tree->Branch("RPC_seg", &RPC_seg);
 
-    tree->Branch("ADC_top_max", &ADC_top_max);
-    tree->Branch("ADC_bot_max", &ADC_bot_max);
+    tree->Branch("ADC_top_t", &ADC_top_t);
+    tree->Branch("ADC_bot_t", &ADC_bot_t);
+    tree->Branch("ADC_top_hgt", &ADC_top_hgt);
+    tree->Branch("ADC_bot_hgt", &ADC_bot_hgt);
     tree->Branch("ADC_top_blw", &ADC_top_blw);
     tree->Branch("ADC_bot_blw", &ADC_bot_blw);
 
@@ -369,8 +373,10 @@ namespace emph {
     tree_fine->Branch("T0_seg", &T0_seg);
     tree_fine->Branch("RPC_seg", &RPC_seg);
 
-    tree_fine->Branch("ADC_top_max", &ADC_top_max);
-    tree_fine->Branch("ADC_bot_max", &ADC_bot_max);
+    tree_fine->Branch("ADC_top_t", &ADC_top_t);
+    tree_fine->Branch("ADC_bot_t", &ADC_bot_t);
+    tree_fine->Branch("ADC_top_hgt", &ADC_top_hgt);
+    tree_fine->Branch("ADC_bot_hgt", &ADC_bot_hgt);
     tree_fine->Branch("ADC_top_blw", &ADC_top_blw);
     tree_fine->Branch("ADC_bot_blw", &ADC_bot_blw);
 
@@ -748,8 +754,8 @@ namespace emph {
   void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
   {
     for(int i = 0; i < n_seg_t0; i++){
-      ADC_top_max[i] = -9999.0;
-      ADC_bot_max[i] = -9999.0;
+      ADC_top_hgt[i] = -9999.0;
+      ADC_bot_hgt[i] = -9999.0;
       ADC_top_blw[i] = -1.0;
       ADC_bot_blw[i] = -1.0;
     }
@@ -769,10 +775,12 @@ namespace emph {
 	emph::cmap::DChannel dchan = cmap->DetChan(T0echan);
 	int detchan = dchan.Channel();
 	if (detchan > 0 && detchan <= n_seg_t0){
-	  ADC_bot_max[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADC_bot_t[detchan - 1] = wvfm.PeakTDC();
+	  ADC_bot_hgt[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
 	  ADC_bot_blw[detchan - 1] = wvfm.BLWidth();
 	}else if(detchan > n_seg_t0 && detchan <= n_ch_det_t0){
-	  ADC_top_max[detchan%(n_seg_t0 + 1)] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADC_top_t[detchan%(n_seg_t0 + 1)] = wvfm.PeakTDC();
+	  ADC_top_hgt[detchan%(n_seg_t0 + 1)] = wvfm.Baseline()-wvfm.PeakADC();
 	  ADC_top_blw[detchan%(n_seg_t0 + 1)] = wvfm.BLWidth();
 	}
       } // end loop over T0 ADC channels
