@@ -15,19 +15,13 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 
 #include "Geometry/DetectorDefs.h"
+#include "Geometry/Geometry.h"
 #include "RawData/SSDRawDigit.h"
 
 namespace rb {
 
   // index is the ADC value from the DAQ (0-7), result is the converted ADC value
   const unsigned int adcMap[] = {41, 58, 73, 88, 103, 118, 133, 140};
-  enum planeView {
-    INIT=0,
-    X_VIEW=1, ///< x-measuring view
-    Y_VIEW,   ///< y-measuring view
-    U_VIEW,
-    W_VIEW
-  };
 
   class SSDCluster {
   public:
@@ -50,11 +44,11 @@ namespace rb {
 
     void SetStation(int station) {fStation = station;}
     void SetSensor(int sensor)   {fSensor = sensor;}
-    void SetView(rb::planeView view)      {fView = view;}
+    void SetView(emph::geo::sensorView view)      {fView = view;}
 
     int    Station()  const { return fStation; }
     int    Sensor()    const { return fSensor; } 
-    rb::planeView View() const { return fView; }
+    emph::geo::sensorView View() const { return fView; }
     double WgtAvgStrip() const;
     double WgtRmsStrip() const;
     double AvgStrip() const;
@@ -75,7 +69,7 @@ namespace rb {
     int fID;
     int fStation;
     int fSensor;
-    rb::planeView fView;
+    emph::geo::sensorView fView;
   };
   
 }

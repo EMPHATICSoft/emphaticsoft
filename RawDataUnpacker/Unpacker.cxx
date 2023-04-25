@@ -11,7 +11,7 @@
 namespace emph {
   namespace rawdata {
 
-    std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag)
+    std::vector<emph::rawdata::WaveForm> Unpack::GetWaveFormsFrom1720Fragment(emphaticdaq::CAENV1720Fragment& frag, int boardNum)
     {
       bool isVerbose = false;
       char* verboseStr = getenv("EMPH_UNPACK_VERBOSE");
@@ -65,8 +65,9 @@ namespace emph {
       if (isVerbose)
 	std::cout << "\tNumber of channels: " << nChannels << "\n";
       
-      const int board = header.boardID;
-      int boardNum = board;
+      //      const int board = header.boardID;
+      //      int boardNum = board;
+      //      boardNum = frag.fragmentID();
 
       if (isVerbose) {
 	//--get the number of 32-bit words (quad_bytes) from the header
