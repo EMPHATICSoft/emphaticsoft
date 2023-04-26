@@ -69,20 +69,20 @@ namespace emph {
 	  std::cerr << " Station " <<  kSt << " Sensor " << kSe << " View " 
 	            << itCl->View() << " strip " << itCl->WgtAvgStrip() << " rms " << itCl->WgtRmsStrip() << std::endl;
 	size_t kStI = kSt;
-	if (itCl->View() == rb::X_VIEW) {
+	if (itCl->View() == geo::X_VIEW) {
 	  if ((kSt == 4) && (kSe % 2 == 1)) kStI = 5;
 	  if (kSt == 5) { if (kSe % 2 == 0) kStI = 6; else kStI = 7; }
 	  nClX[kStI]++;
 	  mySSDClsPtrsX[kStI] = itCl;
-	} else if (itCl->View() == rb::Y_VIEW) {
+	} else if (itCl->View() == geo::Y_VIEW) {
 	  if ((kSt == 4) && (kSe % 2 == 1)) kStI = 5;
 	  if (kSt == 5) { if (kSe % 2 == 0) kStI = 6; else kStI = 7; }
 	  nClY[kStI]++;
 	  mySSDClsPtrsY[kStI] = itCl;
-	} else if (itCl->View() == rb::U_VIEW) {
+	} else if (itCl->View() == geo::U_VIEW) {
 	  nClU[kSt-2]++;
 	  mySSDClsPtrsU[kSt-2] = itCl;
-	} else if (itCl->View() == rb::W_VIEW) {
+	} else if (itCl->View() == geo::W_VIEW) {
 	  kStI = 2*(kSt-4) + kSe - 4;
 	  if (kStI > 3) {
 	    std::cerr << " SSDAlign3DUVAlgo1::dumpCompactEvt, inconsistent W view with station and sensor index " 

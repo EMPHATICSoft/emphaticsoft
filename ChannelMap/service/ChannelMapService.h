@@ -43,6 +43,7 @@ namespace emph
 
       std::map<emph::cmap::EChannel,emph::cmap::DChannel> EMap() { return fChannelMap->EChanMap(); }
       std::map<emph::cmap::DChannel,emph::cmap::EChannel> DMap() { return fChannelMap->DChanMap(); }
+      emph::cmap::ChannelMap* CMap() const { return fChannelMap; }
 
     private:
       bool fAbortIfFileNotFound;

@@ -644,7 +644,7 @@ namespace ssd {
     
       EventMonicelli *currentEvent = 0;
       //int k                 = 1;
-      for (unsigned int s = 0; s < 4; s++)
+      for (unsigned int s = 0; s < stationNames_.size(); s++)
 	for (std::map<uint64_t, PxEvent *>::iterator it = memory_[s].begin(); it != memory_[s].end(); it++)
 	  {
 	    if (it->second->getTriggerNumber() != -1) //  &&  TriggerToRemove.find(it->second->getTriggerNumber())!=TriggerToRemove.end())

@@ -418,9 +418,9 @@ namespace emph {
         int aStation = itCl->Station(); // iterator to pointer to the cluster. 
 	if ((itCl->Sensor() == -1) || ( aStation == -1)) continue;
         char aView = this->getView(itCl);
-	rb::planeView newView = itCl->View();
+	geo::sensorView newView = itCl->View();
 	if (aView == 'X')  {
-	  if (newView != rb::X_VIEW)  {
+	  if (newView != geo::X_VIEW)  {
 	    std::cerr << " StudyOneSSDClusters::dumpXYCls Inconsistent view, X view here and new View " 
 	               << newView << " fatal quit here and now " << std::endl;
 	    exit(2);       
@@ -428,15 +428,15 @@ namespace emph {
 	  numClsX[aStation]++;
 	}
 	if (aView == 'Y')  {
-	  if (newView != rb::Y_VIEW)  {
+	  if (newView != geo::Y_VIEW)  {
 	    std::cerr << " StudyOneSSDClusters::dumpXYCls Inconsistent view, Y view here and new View " 
 	               << newView << " fatal quit here and now " << std::endl;
 	    exit(2);       
 	  }
 	  numClsY[aStation]++;
 	}
-	if (itCl->View() == rb::U_VIEW) numClsU[aStation]++;
-	if (itCl->View() == rb::W_VIEW) numClsV[aStation]++;
+	if (itCl->View() == geo::U_VIEW) numClsU[aStation]++;
+	if (itCl->View() == geo::W_VIEW) numClsV[aStation]++;
       }
       for(std::vector<rb::SSDCluster>::const_iterator itCl = fSSDClsPtr->cbegin(); itCl != fSSDClsPtr->cend(); itCl++) {
         int aSensor = itCl->Sensor();
@@ -446,8 +446,8 @@ namespace emph {
 	int nn = 0;
 	if (aView == 'X') nn = numClsX[aStation]; 
 	if (aView == 'Y') nn = numClsY[aStation];
-	if (itCl->View() == rb::U_VIEW) nn = numClsU[aStation];
-	if (itCl->View() == rb::W_VIEW) nn = numClsV[aStation];
+	if (itCl->View() == geo::U_VIEW) nn = numClsU[aStation];
+	if (itCl->View() == geo::W_VIEW) nn = numClsV[aStation];
         std::ostringstream aLineStrStr; 
 //        std::string headerS(" subRun evt station sensor nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
 	aLineStrStr << " " << fSubRun << " " << fEvtNum << " " << itCl->Station() << " " << itCl->Sensor();
@@ -456,8 +456,8 @@ namespace emph {
         std::string aLineStr(aLineStrStr.str()); 
 	if (aView == 'X')  fFOutA1X << aLineStr << std::endl;  
 	if (aView == 'Y')  fFOutA1Y << aLineStr << std::endl;  
-	if (itCl->View() == rb::U_VIEW)  fFOutA1U << aLineStr << std::endl;  
-	if (itCl->View() == rb::W_VIEW)  fFOutA1V << aLineStr << std::endl;  
+	if (itCl->View() == geo::U_VIEW)  fFOutA1U << aLineStr << std::endl;  
+	if (itCl->View() == geo::W_VIEW)  fFOutA1V << aLineStr << std::endl;  
       }
     }
     

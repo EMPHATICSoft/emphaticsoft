@@ -81,11 +81,13 @@ namespace emph {
       int Channel() { return fChannel; }
       int Station() { return fStation; }
       short HiLo() { return fHiLo; }
+      int Plane () { return fPlane; }
 
       void SetDetId(emph::geo::DetectorType id) { fId = id; }
       void SetChannel(int chan) { fChannel = chan; }
       void SetStation(int station) { fStation = station; }
       void SetHiLo(short hilo) { fHiLo = hilo; }
+      void SetPlane(int plane) { fPlane = plane; }
 
       inline bool operator==(const DChannel& dchan) const {
 	return ((dchan.fId == fId)&&(dchan.fStation == fStation)&&
@@ -142,6 +144,7 @@ namespace emph {
       int fChannel;
       int fStation;
       short fHiLo;
+      int fPlane;    ///< plane number only for SSDs - other detectors don't need this
     };
 
     class ChannelMap {

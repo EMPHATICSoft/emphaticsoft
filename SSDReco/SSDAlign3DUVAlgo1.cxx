@@ -257,33 +257,33 @@ namespace emph {
 	   return 0.; // should not happen  
        }
        
-      bool ssdr::SSDAlign3DUVAlgo1::recoXY(rb::planeView theView, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+      bool ssdr::SSDAlign3DUVAlgo1::recoXY(geo::sensorView theView, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
      
 //
-        if ((theView != rb::X_VIEW) && (theView != rb::Y_VIEW)) {
-	  std::cerr << " SSDAlign3DUVAlgo1::recoXY, unexpected view enum rb::planeView " << theView << " expect X or Y, fatal, I said it " << std::endl;
+        if ((theView != geo::X_VIEW) && (theView != geo::Y_VIEW)) {
+	  std::cerr << " SSDAlign3DUVAlgo1::recoXY, unexpected view enum geo::sensorView " << theView << " expect X or Y, fatal, I said it " << std::endl;
 	  exit(2);
 	}
         const int numMaxH2345 = 3; // Could become a run time parameter. Not yet!.. loops below don't allow it
         bool debugIsOn = (fEvtNum < 25); 
         std::vector<int> nHits(fNumStations, 0); int nHitsTotal = aSSDClsPtr->size();
-	if (debugIsOn && (theView == rb::X_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXX. X view, at event " 
+	if (debugIsOn && (theView == geo::X_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXX. X view, at event " 
 	                         << fEvtNum << " number of clusters " << nHitsTotal <<  std::endl;
-	if (debugIsOn && (theView == rb::Y_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXX. Y view, at event " 
+	if (debugIsOn && (theView == geo::Y_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXX. Y view, at event " 
 	                         << fEvtNum << " number of clusters " << nHitsTotal <<  std::endl;
 //
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsFirst(fNumStations, aSSDClsPtr->cend());
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrs2nd(fNumStations, aSSDClsPtr->cend());
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrs3rd(fNumStations, aSSDClsPtr->cend());
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrs4rth(fNumStations, aSSDClsPtr->cend());
-	if (theView == rb::X_VIEW) for(size_t kSt=0; kSt != fNumStations; kSt++) fNHitsXView[kSt] = 0;
+	if (theView == geo::X_VIEW) for(size_t kSt=0; kSt != fNumStations; kSt++) fNHitsXView[kSt] = 0;
 	else for(size_t kSt=0; kSt != fNumStations; kSt++) fNHitsYView[kSt] = 0;  	 
         for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
           if (itCl->View() != theView) continue;
 	  const size_t kSt = static_cast<size_t>(itCl->Station());
 	  nHits[kSt]++;
 	  if (kSt >= fNumStations ) continue; // should not happen  
-	  if (theView == rb::X_VIEW) fNHitsXView[kSt]++; 
+	  if (theView == geo::X_VIEW) fNHitsXView[kSt]++; 
 	  else fNHitsYView[kSt]++; 
 	  // Require on and only one cluster for the first two station. 
 	  if (itCl->Station() < 2) {
@@ -312,7 +312,7 @@ namespace emph {
 	  if (debugIsOn) std::cerr << " .... Too many missing hits =  " << numMiss << std::endl;
 	  return false;
 	}
-        if (theView == rb::X_VIEW) myLinFitX.resids = std::vector<double>(fNumStations, 0.);
+        if (theView == geo::X_VIEW) myLinFitX.resids = std::vector<double>(fNumStations, 0.);
         else myLinFitY.resids = std::vector<double>(fNumStations, 0.);
 	std::vector<double> tsData(fNumStations, 0.);
         std::vector<double> tsDataErr(fNumStations, 3.0*fPitch); //
@@ -325,18 +325,18 @@ namespace emph {
 	    if (debugIsOn) std::cerr << " .... No hits for station " << kSt << std::endl;
 	  } else {
 	    double aStrip = mySSDClsPtrsFirst[kSt]->WgtAvgStrip();
-	    if (theView == rb::X_VIEW) tsData[kSt] = GetTsFromCluster('X', kSt, 0, aStrip); // sensor number does not matter.. for X view... 
+	    if (theView == geo::X_VIEW) tsData[kSt] = GetTsFromCluster('X', kSt, 0, aStrip); // sensor number does not matter.. for X view... 
 	    else tsData[kSt] = GetTsFromCluster('Y', kSt, 0, aStrip);
 	    tsDataErr[kSt] = GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
 	    if (debugIsOn) {
-	       if (theView == rb::X_VIEW) std::cerr << " .... For station " << kSt << " strip " << aStrip 
+	       if (theView == geo::X_VIEW) std::cerr << " .... For station " << kSt << " strip " << aStrip 
 	                                   << " ts " << tsData[kSt] << " +- " << tsDataErr[kSt] << " fitted Resid " << fFittedResidualsX[kSt] <<  std::endl;
 	       else  std::cerr << " .... For station " << kSt << " strip " << aStrip 
 	                                   << " ts " << tsData[kSt] << " +- " << tsDataErr[kSt] << " fitted Resid " << fFittedResidualsY[kSt] <<  std::endl;
 	    }
 	  }
 	}
-	if (theView == rb::X_VIEW) { 
+	if (theView == geo::X_VIEW) { 
           myLinFitX.fitLin(false, tsData, tsDataErr);
           if (myLinFitX.chiSq > fChiSqCutXY) {
 	    if (debugIsOn) {
@@ -380,7 +380,7 @@ namespace emph {
 	  if (i2 == 2) itcl2 = mySSDClsPtrs3rd[2];
 	  if (itcl2 == aSSDClsPtr->cend()) continue; //do not allow for missing hits... 
 	  double aStrip2 = itcl2->WgtAvgStrip();
-	  if (theView == rb::X_VIEW) tsDataAlt[2] = GetTsFromCluster('X', 2, 0, aStrip2);
+	  if (theView == geo::X_VIEW) tsDataAlt[2] = GetTsFromCluster('X', 2, 0, aStrip2);
 	  else tsDataAlt[2] = GetTsFromCluster('Y', 2, 0, aStrip2);
 	  tsDataAltErr[2] = GetTsUncertainty(2, itcl2);
 	  
@@ -391,7 +391,7 @@ namespace emph {
 	    if (i3 == 2) itcl3 = mySSDClsPtrs3rd[3];
 	    if (itcl3 == aSSDClsPtr->cend()) continue;
 	    double aStrip3 = itcl3->WgtAvgStrip();
-	    if (theView == rb::X_VIEW) tsDataAlt[3] = GetTsFromCluster('X', 3, 0, aStrip3);
+	    if (theView == geo::X_VIEW) tsDataAlt[3] = GetTsFromCluster('X', 3, 0, aStrip3);
 	    else tsDataAlt[3] = GetTsFromCluster('X', 3, 0, aStrip3);
 	    tsDataAltErr[3] = GetTsUncertainty(3, itcl3);
 	    
@@ -401,7 +401,7 @@ namespace emph {
 	      if (i4 == 2) itcl4 = mySSDClsPtrs3rd[4];
 	      if (itcl4 == aSSDClsPtr->cend()) continue;
 	      double aStrip4 = itcl4->WgtAvgStrip();
-	      if (theView == rb::X_VIEW) tsDataAlt[4] = GetTsFromCluster('X', 4, 0, aStrip4);
+	      if (theView == geo::X_VIEW) tsDataAlt[4] = GetTsFromCluster('X', 4, 0, aStrip4);
 	      else tsDataAlt[4] = GetTsFromCluster('Y', 4, 0, aStrip4);
 	      tsDataAltErr[4] = GetTsUncertainty(4, itcl4);
 	    
@@ -411,11 +411,11 @@ namespace emph {
 	        if (i5 == 2) itcl5 = mySSDClsPtrs3rd[5];
 	        if (itcl5 == aSSDClsPtr->cend()) continue;
 	        double aStrip5 = itcl5->WgtAvgStrip();
-	        if (theView == rb::X_VIEW) tsDataAlt[5] = GetTsFromCluster('X', 5, 0, aStrip5);
+	        if (theView == geo::X_VIEW) tsDataAlt[5] = GetTsFromCluster('X', 5, 0, aStrip5);
 		else tsDataAlt[5] = GetTsFromCluster('Y', 5, 0, aStrip5);
 	        tsDataAltErr[5] = GetTsUncertainty(5, itcl5);
 		
-		if (theView == rb::X_VIEW) {  
+		if (theView == geo::X_VIEW) {  
                   myLinFitX.fitLin(false, tsDataAlt, tsDataAltErr);		
                   if (myLinFitX.chiSq < chiSqBest) {
 	            fTrXY.SetXTrParams(myLinFitX.offset, myLinFitX.slope);
@@ -444,7 +444,7 @@ namespace emph {
 	} // on hits from station 2. 
       
        if (chiSqBest < fChiSqCutXY) {
-          if (theView == rb::X_VIEW) { 
+          if (theView == geo::X_VIEW) { 
 	    fTrXY.SetXChiSq (chiSqBest);
 	    if (debugIsOn) 
 	       std::cerr << " Acceptable X fit chi-Sq = " << chiSqBest << " Track Offset " << fTrXY.XOffset() << "  Slope " << fTrXY.XSlope() << std::endl;
@@ -460,7 +460,7 @@ namespace emph {
        return false;
      }
 
-     bool ssdr::SSDAlign3DUVAlgo1::checkUV(rb::planeView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+     bool ssdr::SSDAlign3DUVAlgo1::checkUV(geo::sensorView view, size_t kStation, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
      
        bool debugIsOn = (fEvtNum < 25);    
      
@@ -471,13 +471,13 @@ namespace emph {
          std::cerr << " SSDAlign3DUVAlgo1::checkUV, " << view << " Unexpected Station number = " << kStation << " fatal mistake! " << std::endl; 
 	 exit(2);
        } 
-       if ((view  == rb::W_VIEW) && (kStation < 4)) {
+       if ((view  == geo::W_VIEW) && (kStation < 4)) {
          std::cerr << " SSDAlign3DUVAlgo1::checkUV, " << view << " Unexpected Station number = " << kStation << " fatal mistake! " << std::endl; 
 	 exit(2);
        } 
 
        size_t kStEff = kStation - 2;
-       if (view  == rb::W_VIEW) kStEff = kStation - 4;
+       if (view  == geo::W_VIEW) kStEff = kStation - 4;
        double aTrXOffset = fTrXY.XOffset(); double aTrYOffset = fTrXY.YOffset(); 
        double aTrXOffsetErr = fTrXY.XOffsetErr(); double aTrYOffsetErr = fTrXY.YOffsetErr();
        double aTrXSlope = fTrXY.XSlope(); double aTrYSlope = fTrXY.YSlope(); 
@@ -487,7 +487,7 @@ namespace emph {
        double xPred, yPred, xPredErrSq, yPredErrSq;
        char cView = '?';
        switch (view) {
-         case rb::U_VIEW :
+         case geo::U_VIEW :
 	 {
 	   xPred = aTrXOffset + fZCoordUs[kStEff]*aTrXSlope;
 	   xPredErrSq = aTrXOffsetErr*aTrXOffsetErr + fZCoordUs[kStEff]*aTrXSlopeErr*fZCoordUs[kStEff]*aTrXSlopeErr 
@@ -498,7 +498,7 @@ namespace emph {
 	   cView = 'U';
 	   break;
 	 } 
-	 case rb::W_VIEW :
+	 case geo::W_VIEW :
 	 {
 	   xPred = aTrXOffset + fZCoordVs[kStEff]*aTrXSlope;
 	   xPredErrSq = aTrXOffsetErr*aTrXOffsetErr + fZCoordVs[kStEff]*aTrXSlopeErr*fZCoordVs[kStEff]*aTrXSlopeErr 
@@ -535,7 +535,7 @@ namespace emph {
           const double aStrip = itCl->WgtAvgStrip();
           const double uvObs =  this->GetTsFromCluster(cView, kStation, itCl->Sensor(), aStrip);
 	  // special case for station 5, sometimes.. 
-	  if ((kSt == 5) && (itCl->View() == rb::W_VIEW)) {
+	  if ((kSt == 5) && (itCl->View() == geo::W_VIEW)) {
 	    if (debugIsOn) std::cerr << " ... .... W view, Sensor " << itCl->Sensor() <<  std::endl;
 	  } 
 	  const double uvObsUncert = this->GetTsUncertainty(kStation, itCl);
@@ -576,7 +576,7 @@ namespace emph {
         bool debugIsOn = fEvtNum < 25;
        if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::alignIt, at event " << fEvtNum << std::endl;
       
-       bool gotX = this->recoXY(rb::X_VIEW, aSSDClsPtr);
+       bool gotX = this->recoXY(geo::X_VIEW, aSSDClsPtr);
        if (gotX) {
           if (debugIsOn) std::cerr << " Got a 2d XZ track... for evt " << fEvtNum << std::endl;
 	  fTrXY.SetType(rb::XONLY);
@@ -584,7 +584,7 @@ namespace emph {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
 	   
-       bool gotY = this->recoXY(rb::Y_VIEW, aSSDClsPtr);
+       bool gotY = this->recoXY(geo::Y_VIEW, aSSDClsPtr);
        if (gotY) {
           if (debugIsOn) std::cerr << " Got a 2d YZ track... for evt " << fEvtNum << std::endl;
 	  if (fTrXY.Type() == rb::XONLY) fTrXY.SetType(rb::XYONLY);
@@ -596,13 +596,13 @@ namespace emph {
        if (gotX && gotY) {
          int numUVCheck = 0; 
          for (size_t kStU=2; kStU != fNumStations-2; kStU++) {
-           if (this->checkUV(rb::U_VIEW, kStU, aSSDClsPtr)) numUVCheck++;
+           if (this->checkUV(geo::U_VIEW, kStU, aSSDClsPtr)) numUVCheck++;
          }
 	 if (numUVCheck == 1) fTrXY.SetType(rb::XYUCONF1);
 	 if (numUVCheck == 2) fTrXY.SetType(rb::XYUCONF2);
 	 // Not worth doing.. stereo angle clearly wrong, of mis labeled. Well, try it again.. 
          for (size_t kStV=4; kStV != fNumStations; kStV++) {
-           this->checkUV(rb::W_VIEW, kStV, aSSDClsPtr);
+           this->checkUV(geo::W_VIEW, kStV, aSSDClsPtr);
          }
 	 if (numUVCheck == 3) fTrXY.SetType(rb::XYUCONF3);
 	 if (numUVCheck == 4) fTrXY.SetType(rb::XYUCONF4);

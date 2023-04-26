@@ -1,728 +1,728 @@
-#BoardT	BNum	BChannel	Detector	DChannel	HiLoDStation Comment
-V1720	0			0		T0		1		0		0		x
-V1720	0			1		T0		2		0		0		x
-V1720	0			2		T0		3		0		0		x
-V1720	0			3		T0		4		0		0		x
-V1720	0			4		T0		5		0		0		x
-V1720	0			5		T0		6		0		0		x
-V1720	0			6		T0		7		0		0		x
-V1720	0			7		T0		8		0		0		x
-V1720	1			0		T0		9		0		0		x
-V1720	1			1		T0		10		0		0		x
-V1720	1			2		T0		11		0		0		x
-V1720	1			3		T0		12		0		0		x
-V1720	1			4		T0		13		0		0		x
-V1720	1			5		T0		14		0		0		x	
-V1720	1			6		T0		15		0		0		x
-V1720	1			7		T0		16		0		0		x
-V1720	2			0		T0		18		0		0		x	
-V1720	2			1		T0		17		0		0		x
-V1720	2			2		T0		19		0		0		x
-V1720	2			3		T0		20		0		0		x
-V1720	2			4		GasCkov	0		0		0		US
-V1720	2			5		GasCkov	1		0		0		DSInner
-V1720	2			6		GasCkov	2		0		0		DSOuter
-V1720	3			0		BACkov	0		0		0		USRight		
-V1720	3			1		BACkov	1		0		0		USLeft
-V1720	3			2		BACkov	2		0		0		USTop
-V1720	3			3		BACkov	3		0		0		MidRight
-V1720	3			4		BACkov	4		0		0		MidLeft
-V1720	3			5		BACkov	5		0		0		DS
-V1720	4			0		Trigger	99		0		0		TrigCoinc
-V1720	4			1		Trigger	0		0		0		TrigPMT1
-V1720	4			2		Trigger	1		0		0		TrigPMT2
-V1720	4			3		Trigger	2		0		0		TrigPMT3
-V1720	4			4		Trigger	3		0		0		TrigPMT4
-V1720	4			7		LGCalo	0		0		0		TopLeft 
-V1720	5			0		LGCalo	1		0		0		TopCenter
-V1720	5			1		LGCalo	2		0		0		TopRight
-V1720	5			2		LGCalo	3		0		0		MidLeft
-V1720	5			3		LGCalo	4		0		0		MidCenter
-V1720	5			4		LGCalo	5		0		0		MidRight
-V1720	5			5		LGCalo	6		0		0		BotLeft
-V1720	5			6		LGCalo	7		0		0		BotCenter
-V1720	5			7		LGCalo	8		0		0		BotRight
-TRB3	18			0		T0		500		0		0		x
-TRB3	18			1		T0		1		0		0		BottomRight
-TRB3	18			2		T0		1		1		0		BottomRight
-TRB3	18			3		T0		2		0		0		x
-TRB3	18			4		T0		2		1		0		x
-TRB3	18			5		T0		3		0		0		x
-TRB3	18			6		T0		3		1		0		x
-TRB3	18			7		T0		4		0		0		x
-TRB3	18			8		T0		4		1		0		x
-TRB3	18			9		T0		5		0		0		x
-TRB3	18			10		T0		5		1		0		x
-TRB3	18			11		T0		6		0		0		x
-TRB3	18			12		T0		6		1		0		x
-TRB3	18			13		T0		7		0		0		x
-TRB3	18			14		T0		7		1		0		x
-TRB3	18			15		T0		8		0		0		x
-TRB3	18			16		T0		8		1		0		x
-TRB3	18			17		T0		9		0		0		x
-TRB3	18			18		T0		9		1		0		x
-TRB3	18			19		T0		10		0		0		BottomLeft
-TRB3	18			20		T0		10		1		0		BottomLeft
-TRB3	18			21		T0		11		0		0		TopRight
-TRB3	18			22		T0		11		1		0		TopRight
-TRB3	18			23		T0		12		0		0		x
-TRB3	18			24		T0		12		1		0		x
-TRB3	18			25		T0		13		0		0		x
-TRB3	18			26		T0		13		1		0		x
-TRB3	18			27		T0		14		0		0		x
-TRB3	18			28		T0		14		1		0		x
-TRB3	18			29		T0		15		0		0		x
-TRB3	18			30		T0		15		1		0		x
-TRB3	18			31		T0		16		0		0		x
-TRB3	18			32		T0		16		1		0		x
-TRB3	18			33		T0		18		0		0		x
-TRB3	18			34		T0		18		1		0		x
-TRB3	18			35		T0		17		0		0		x
-TRB3	18			36		T0		17		1		0		x
-TRB3	18			37		T0		19		0		0		x
-TRB3	18			38		T0		19		1		0		x
-TRB3	18			39		T0		20		0		0		TopLeft
-TRB3	18			40		T0		20		1		0		TopLeft
-TRB3	19			0 		RPC		500		0		0		x
-TRB3	19			1 		RPC		1		0		0		TopLeft
-TRB3	19			2 		RPC		1		1		0		TopLeft
-TRB3	19			3 		RPC		2		0		0		x
-TRB3	19			4 		RPC		2		1		0		x
-TRB3	19			5 		RPC		3		0		0		x
-TRB3	19			6 		RPC		3		1		0		x
-TRB3	19			7 		RPC		4		0		0		x
-TRB3	19			8 		RPC		4		1		0		x
-TRB3	19			9 		RPC		5		0		0		x
-TRB3	19			10		RPC		5		1		0		x
-TRB3	19			11		RPC		6		0		0		x
-TRB3	19			12		RPC		6		1		0		x
-TRB3	19			13		RPC		7		0		0		x
-TRB3	19			14		RPC		7		1		0		x
-TRB3	19			15		RPC		8		0		0		BotLeft
-TRB3	19			16		RPC		8		1		0		BotLeft
-TRB3	19			17		RPC		9		0		0		TopRight
-TRB3	19			18		RPC		9		1		0		TopRight
-TRB3	19			19		RPC		10		0		0		x
-TRB3	19			20		RPC		10		1		0		x
-TRB3	19			21		RPC		11		0		0		x
-TRB3	19			22		RPC		11		1		0		x
-TRB3	19			23		RPC		12		0		0		x
-TRB3	19			24		RPC		12		1		0		x
-TRB3	19			25		RPC		13		0		0		x
-TRB3	19			26		RPC		13		1		0		x
-TRB3	19			27		RPC		14		0		0		x
-TRB3	19			28		RPC		14		1		0		x
-TRB3	19			29		RPC		15		0		0		x
-TRB3	19			30		RPC		15		1		0		x
-TRB3	19			31		RPC		16		0		0		BotRight
-TRB3	19			32		RPC		16		1		0		BotRight
-TRB3	4			0		ARICH		500		0	0			x
-TRB3	4			1		ARICH		57		0		0		x
-TRB3	4			2		ARICH		56		0		0		x
-TRB3	4			3		ARICH		49		0		0		x
-TRB3	4			4		ARICH		48		0		0		x
-TRB3	4			5		ARICH		41		0		0		x
-TRB3	4			6		ARICH		40		0		0		x
-TRB3	4			7		ARICH		33		0		0		x
-TRB3	4			8		ARICH		32		0		0		x
-TRB3	4			9		ARICH		25		0		0		x
-TRB3	4			10		ARICH		24		0		0		x
-TRB3	4			11		ARICH		17		0		0		x
-TRB3	4			12		ARICH		16		0		0		x
-TRB3	4			13		ARICH		9		0		0		x
-TRB3	4			14		ARICH		8		0		0		x
-TRB3	4			15		ARICH		1		0		0		x
-TRB3	4			16		ARICH		0		0		0		x
-TRB3	4			17		ARICH		57		1		0		x
-TRB3	4			18		ARICH		56		1		0		x
-TRB3	4			19		ARICH		49		1		0		x
-TRB3	4			20		ARICH		48		1		0		x
-TRB3	4			21		ARICH		41		1		0		x
-TRB3	4			22		ARICH		40		1		0		x
-TRB3	4			23		ARICH		33		1		0		x
-TRB3	4			24		ARICH		32		1		0		x
-TRB3	4			25		ARICH		25		1		0		x
-TRB3	4			26		ARICH		24		1		0		x
-TRB3	4			27		ARICH		17		1		0		x
-TRB3	4			28		ARICH		16		1		0		x
-TRB3	4			29		ARICH		9		1		0		x
-TRB3	4			30		ARICH		8		1		0		x
-TRB3	4			31		ARICH		1		1		0		x
-TRB3	4			32		ARICH		0		1		0		x
-TRB3	4			33		ARICH		57		2		0		x
-TRB3	4			34		ARICH		56		2		0		x
-TRB3	4			35		ARICH		49		2		0		x
-TRB3	4			36		ARICH		48		2		0		x
-TRB3	4			37		ARICH		41		2		0		x
-TRB3	4			38		ARICH		40		2		0		x
-TRB3	4			39		ARICH		33		2		0		x
-TRB3	4			40		ARICH		32		2		0		x
-TRB3	4			41		ARICH		25		2		0		x
-TRB3	4			42		ARICH		24		2		0		x
-TRB3	4			43		ARICH		17		2		0		x
-TRB3	4			44		ARICH		16		2		0		x
-TRB3	4			45		ARICH		9		2		0		x
-TRB3	4			46		ARICH		8		2		0		x
-TRB3	4			47		ARICH		1		2		0		x
-TRB3	4			48		ARICH		0		2		0		x
-TRB3	5			0		ARICH		500		0	0			x
-TRB3	5			1		ARICH		59       	0		0		x
-TRB3	5			2		ARICH		58      	0	0			x
-TRB3	5			3		ARICH		51		0		0		x
-TRB3	5			4		ARICH		50		0		0		x
-TRB3	5			5		ARICH		43		0		0		x
-TRB3	5			6		ARICH		42		0		0		x
-TRB3	5			7		ARICH		35		0		0		x
-TRB3	5			8		ARICH		34		0		0		x
-TRB3	5			9		ARICH		27		0		0		x
-TRB3	5			10		ARICH		26		0		0		x
-TRB3	5			11		ARICH		19		0		0		x
-TRB3	5			12		ARICH		18		0		0		x
-TRB3	5			13		ARICH		11		0		0		x
-TRB3	5			14		ARICH		10		0		0		x
-TRB3	5			15		ARICH		3 		0		0		x
-TRB3	5			16		ARICH		2 		0		0		x
-TRB3	5			17		ARICH		59		1		0		x
-TRB3	5			18		ARICH		58		1		0		x
-TRB3	5			19		ARICH		51		1		0		x
-TRB3	5			20		ARICH		50		1		0		x
-TRB3	5			21		ARICH		43		1		0		x
-TRB3	5			22		ARICH		42		1		0		x
-TRB3	5			23		ARICH		35		1		0		x
-TRB3	5			24		ARICH		34		1		0		x
-TRB3	5			25		ARICH		27		1		0		x
-TRB3	5			26		ARICH		26		1		0		x
-TRB3	5			27		ARICH		19		1		0		x
-TRB3	5			28		ARICH		18		1		0		x
-TRB3	5			29		ARICH		11		1		0		x
-TRB3	5			30		ARICH		10		1		0		x
-TRB3	5			31		ARICH		3 		1		0		x
-TRB3	5			32		ARICH		2 		1		0		x
-TRB3	5			33		ARICH		59		2		0		x
-TRB3	5			34		ARICH		58		2		0		x
-TRB3	5			35		ARICH		51		2		0		x
-TRB3	5			36		ARICH		50		2		0		x
-TRB3	5			37		ARICH		43		2		0		x
-TRB3	5			38		ARICH		42		2		0		x
-TRB3	5			39		ARICH		35		2		0		x
-TRB3	5			40		ARICH		34		2		0		x
-TRB3	5			41		ARICH		27		2		0		x
-TRB3	5			42		ARICH		26		2		0		x
-TRB3	5			43		ARICH		19		2		0		x
-TRB3	5			44		ARICH		18		2		0		x
-TRB3	5			45		ARICH		11		2		0		x
-TRB3	5			46		ARICH		10		2		0		x
-TRB3	5			47		ARICH		3 		2		0		x
-TRB3	5			48		ARICH		2 		2		0		x
-TRB3	6			0		ARICH		500		0	0			x
-TRB3	6			1		ARICH		61         	0		0		x
-TRB3	6			2		ARICH		60      	0	0			x
-TRB3	6			3		ARICH		53		0		0		x
-TRB3	6			4		ARICH		52		0		0		x
-TRB3	6			5		ARICH		45		0		0		x
-TRB3	6			6		ARICH		44		0		0		x
-TRB3	6			7		ARICH		37		0		0		x
-TRB3	6			8		ARICH		36		0		0		x
-TRB3	6			9		ARICH		29		0		0		x
-TRB3	6			10		ARICH		28		0		0		x
-TRB3	6			11		ARICH		21		0		0		x
-TRB3	6			12		ARICH		20		0		0		x
-TRB3	6			13		ARICH		13		0		0		x
-TRB3	6			14		ARICH		12		0		0		x
-TRB3	6			15		ARICH		5 		0		0		x
-TRB3	6			16		ARICH		4 		0		0		x
-TRB3	6			17		ARICH		61		1		0		x
-TRB3	6			18		ARICH		60		1		0		x
-TRB3	6			19		ARICH		53		1		0		x
-TRB3	6			20		ARICH		52		1		0		x
-TRB3	6			21		ARICH		45		1		0		x
-TRB3	6			22		ARICH		44		1		0		x
-TRB3	6			23		ARICH		37		1		0		x
-TRB3	6			24		ARICH		36		1		0		x
-TRB3	6			25		ARICH		29		1		0		x
-TRB3	6			26		ARICH		28		1		0		x
-TRB3	6			27		ARICH		21		1		0		x
-TRB3	6			28		ARICH		20		1		0		x
-TRB3	6			29		ARICH		13		1		0		x
-TRB3	6			30		ARICH		12		1		0		x
-TRB3	6			31		ARICH		5 		1		0		x
-TRB3	6			32		ARICH		4 		1		0		x
-TRB3	6			33		ARICH		61		2		0		x
-TRB3	6			34		ARICH		60		2		0		x
-TRB3	6			35		ARICH		53		2		0		x
-TRB3	6			36		ARICH		52		2		0		x
-TRB3	6			37		ARICH		45		2		0		x
-TRB3	6			38		ARICH		44		2		0		x
-TRB3	6			39		ARICH		37		2		0		x
-TRB3	6			40		ARICH		36		2		0		x
-TRB3	6			41		ARICH		29		2		0		x
-TRB3	6			42		ARICH		28		2		0		x
-TRB3	6			43		ARICH		21		2		0		x
-TRB3	6			44		ARICH		20		2		0		x
-TRB3	6			45		ARICH		13		2		0		x
-TRB3	6			46		ARICH		12		2		0		x
-TRB3	6			47		ARICH		5 		2		0		x
-TRB3	6			48		ARICH		4 		2		0		x
-TRB3	7			0		ARICH		500		0	0			x
-TRB3	7			1		ARICH		63		0		0		x
-TRB3	7			2		ARICH		62		0		0		x
-TRB3	7			3		ARICH		55		0		0		x
-TRB3	7			4		ARICH		54		0		0		x
-TRB3	7			5		ARICH		47		0		0		x
-TRB3	7			6		ARICH		46		0		0		x
-TRB3	7			7		ARICH		39		0		0		x
-TRB3	7			8		ARICH		38		0		0		x
-TRB3	7			9		ARICH		31		0		0		x
-TRB3	7			10		ARICH		30		0		0		x
-TRB3	7			11		ARICH		23		0		0		x
-TRB3	7			12		ARICH		22		0		0		x
-TRB3	7			13		ARICH		15		0		0		x
-TRB3	7			14		ARICH		14		0		0		x
-TRB3	7			15		ARICH		7		0		0		x
-TRB3	7			16		ARICH		6		0		0		x
-TRB3	7			17		ARICH		63		1		0		x
-TRB3	7			18		ARICH		62		1		0		x
-TRB3	7			19		ARICH		55		1		0		x
-TRB3	7			20		ARICH		54		1		0		x
-TRB3	7			21		ARICH		47		1		0		x
-TRB3	7			22		ARICH		46		1		0		x
-TRB3	7			23		ARICH		39		1		0		x
-TRB3	7			24		ARICH		38		1		0		x
-TRB3	7			25		ARICH		31		1		0		x
-TRB3	7			26		ARICH		30		1		0		x
-TRB3	7			27		ARICH		23		1		0		x
-TRB3	7			28		ARICH		22		1		0		x
-TRB3	7			29		ARICH		15		1		0		x
-TRB3	7			30		ARICH		14		1		0		x
-TRB3	7			31		ARICH		7		1		0		x
-TRB3	7			32		ARICH		6		1		0		x
-TRB3	7			33		ARICH		63		2		0		x
-TRB3	7			34		ARICH		62		2		0		x
-TRB3	7			35		ARICH		55		2		0		x
-TRB3	7			36		ARICH		54		2		0		x
-TRB3	7			37		ARICH		47		2		0		x
-TRB3	7			38		ARICH		46		2		0		x
-TRB3	7			39		ARICH		39		2		0		x
-TRB3	7			40		ARICH		38		2		0		x
-TRB3	7			41		ARICH		31		2		0		x
-TRB3	7			42		ARICH		30		2		0		x
-TRB3	7			43		ARICH		23		2		0		x
-TRB3	7			44		ARICH		22		2		0		x
-TRB3	7			45		ARICH		15		2		0		x
-TRB3	7			46		ARICH		14		2		0		x
-TRB3	7			47		ARICH		7		2		0		x
-TRB3	7			48		ARICH		6		2		0		x
-TRB3	8			0		ARICH		500		3	0			x
-TRB3	8			1		ARICH		57		3		0		x
-TRB3	8			2		ARICH		56		3		0		x
-TRB3	8			3		ARICH		49		3		0		x
-TRB3	8			4		ARICH		48		3		0		x
-TRB3	8			5		ARICH		41		3		0		x
-TRB3	8			6		ARICH		40		3		0		x
-TRB3	8			7		ARICH		33		3		0		x
-TRB3	8			8		ARICH		32		3		0		x
-TRB3	8			9		ARICH		25		3		0		x
-TRB3	8			10		ARICH		24		3		0		x
-TRB3	8			11		ARICH		17		3		0		x
-TRB3	8			12		ARICH		16		3		0		x
-TRB3	8			13		ARICH		9		3		0		x
-TRB3	8			14		ARICH		8		3		0		x
-TRB3	8			15		ARICH		1		3		0		x
-TRB3	8			16		ARICH		0		3		0		x
-TRB3	8			17		ARICH		57		4		0		x
-TRB3	8			18		ARICH		56		4		0		x
-TRB3	8			19		ARICH		49		4		0		x
-TRB3	8			20		ARICH		48		4		0		x
-TRB3	8			21		ARICH		41		4		0		x
-TRB3	8			22		ARICH		40		4		0		x
-TRB3	8			23		ARICH		33		4		0		x
-TRB3	8			24		ARICH		32		4		0		x
-TRB3	8			25		ARICH		25		4		0		x
-TRB3	8			26		ARICH		24		4		0		x
-TRB3	8			27		ARICH		17		4		0		x
-TRB3	8			28		ARICH		16		4		0		x
-TRB3	8			29		ARICH		9		4		0		x
-TRB3	8			30		ARICH		8		4		0		x
-TRB3	8			31		ARICH		1		4		0		x
-TRB3	8			32		ARICH		0		4		0		x
-TRB3	8			33		ARICH		57		5		0		x
-TRB3	8			34		ARICH		56		5		0		x
-TRB3	8			35		ARICH		49		5		0		x
-TRB3	8			36		ARICH		48		5		0		x
-TRB3	8			37		ARICH		41		5		0		x
-TRB3	8			38		ARICH		40		5		0		x
-TRB3	8			39		ARICH		33		5		0		x
-TRB3	8			40		ARICH		32		5		0		x
-TRB3	8			41		ARICH		25		5		0		x
-TRB3	8			42		ARICH		24		5		0		x
-TRB3	8			43		ARICH		17		5		0		x
-TRB3	8			44		ARICH		16		5		0		x
-TRB3	8			45		ARICH		9		5		0		x
-TRB3	8			46		ARICH		8		5		0		x
-TRB3	8			47		ARICH		1		5		0		x
-TRB3	8			48		ARICH		0		5		0		x
-TRB3	9			0		ARICH		500		3	0			x
-TRB3	9			1		ARICH		59      	3	0			x
-TRB3	9			2		ARICH		58      	3	0			x
-TRB3	9			3		ARICH		51		3		0		x
-TRB3	9			4		ARICH		50		3		0		x
-TRB3	9			5		ARICH		43		3		0		x
-TRB3	9			6		ARICH		42		3		0		x
-TRB3	9			7		ARICH		35		3		0		x
-TRB3	9			8		ARICH		34		3		0		x
-TRB3	9			9		ARICH		27		3		0		x
-TRB3	9			10		ARICH		26		3		0		x
-TRB3	9			11		ARICH		19		3		0		x
-TRB3	9			12		ARICH		18		3		0		x
-TRB3	9			13		ARICH		11		3		0		x
-TRB3	9			14		ARICH		10		3		0		x
-TRB3	9			15		ARICH		3 		3		0		x
-TRB3	9			16		ARICH		2 		3		0		x
-TRB3	9			17		ARICH		59		4		0		x
-TRB3	9			18		ARICH		58		4		0		x
-TRB3	9			19		ARICH		51		4		0		x
-TRB3	9			20		ARICH		50		4		0		x
-TRB3	9			21		ARICH		43		4		0		x
-TRB3	9			22		ARICH		42		4		0		x
-TRB3	9			23		ARICH		35		4		0		x
-TRB3	9			24		ARICH		34		4		0		x
-TRB3	9			25		ARICH		27		4		0		x
-TRB3	9			26		ARICH		26		4		0		x
-TRB3	9			27		ARICH		19		4		0		x
-TRB3	9			28		ARICH		18		4		0		x
-TRB3	9			29		ARICH		11		4		0		x
-TRB3	9			30		ARICH		10		4		0		x
-TRB3	9			31		ARICH		3 		4		0		x
-TRB3	9			32		ARICH		2 		4		0		x
-TRB3	9			33		ARICH		59		5		0		x
-TRB3	9			34		ARICH		58		5		0		x
-TRB3	9			35		ARICH		51		5		0		x
-TRB3	9			36		ARICH		50		5		0		x
-TRB3	9			37		ARICH		43		5		0		x
-TRB3	9			38		ARICH		42		5		0		x
-TRB3	9			39		ARICH		35		5		0		x
-TRB3	9			40		ARICH		34		5		0		x
-TRB3	9			41		ARICH		27		5		0		x
-TRB3	9			42		ARICH		26		5		0		x
-TRB3	9			43		ARICH		19		5		0		x
-TRB3	9			44		ARICH		18		5		0		x
-TRB3	9			45		ARICH		11		5		0		x
-TRB3	9			46		ARICH		10		5		0		x
-TRB3	9			47		ARICH		3 		5		0		x
-TRB3	9			48		ARICH		2 		5		0		x
-TRB3	10			0		ARICH		500		3	0			x
-TRB3	10			1		ARICH		61      	3	0			x
-TRB3	10			2		ARICH		60      	3	0			x
-TRB3	10			3		ARICH		53		3		0		x
-TRB3	10			4		ARICH		52		3		0		x
-TRB3	10			5		ARICH		45		3		0		x
-TRB3	10			6		ARICH		44		3		0		x
-TRB3	10			7		ARICH		37		3		0		x
-TRB3	10			8		ARICH		36		3		0		x
-TRB3	10			9		ARICH		29		3		0		x
-TRB3	10			10		ARICH		28		3		0		x
-TRB3	10			11		ARICH		21		3		0		x
-TRB3	10			12		ARICH		20		3		0		x
-TRB3	10			13		ARICH		13		3		0		x
-TRB3	10			14		ARICH		12		3		0		x
-TRB3	10			15		ARICH		5 		3		0		x
-TRB3	10			16		ARICH		4 		3		0		x
-TRB3	10			17		ARICH		61		4		0		x
-TRB3	10			18		ARICH		60		4		0		x
-TRB3	10			19		ARICH		53		4		0		x
-TRB3	10			20		ARICH		52		4		0		x
-TRB3	10			21		ARICH		45		4		0		x
-TRB3	10			22		ARICH		44		4		0		x
-TRB3	10			23		ARICH		37		4		0		x
-TRB3	10			24		ARICH		36		4		0		x
-TRB3	10			25		ARICH		29		4		0		x
-TRB3	10			26		ARICH		28		4		0		x
-TRB3	10			27		ARICH		21		4		0		x
-TRB3	10			28		ARICH		20		4		0		x
-TRB3	10			29		ARICH		13		4		0		x
-TRB3	10			30		ARICH		12		4		0		x
-TRB3	10			31		ARICH		5 		4		0		x
-TRB3	10			32		ARICH		4 		4		0		x
-TRB3	10			33		ARICH		61		5		0		x
-TRB3	10			34		ARICH		60		5		0		x
-TRB3	10			35		ARICH		53		5		0		x
-TRB3	10			36		ARICH		52		5		0		x
-TRB3	10			37		ARICH		45		5		0		x
-TRB3	10			38		ARICH		44		5		0		x
-TRB3	10			39		ARICH		37		5		0		x
-TRB3	10			40		ARICH		36		5		0		x
-TRB3	10			41		ARICH		29		5		0		x
-TRB3	10			42		ARICH		28		5		0		x
-TRB3	10			43		ARICH		21		5		0		x
-TRB3	10			44		ARICH		20		5		0		x
-TRB3	10			45		ARICH		13		5		0		x
-TRB3	10			46		ARICH		12		5		0		x
-TRB3	10			47		ARICH		5 		5		0		x
-TRB3	10			48		ARICH		4 		5		0		x
-TRB3	11			0		ARICH		500		3	0			x
-TRB3	11			1		ARICH		63		3		0		x
-TRB3	11			2		ARICH		62		3		0		x
-TRB3	11			3		ARICH		55		3		0		x
-TRB3	11			4		ARICH		54		3		0		x
-TRB3	11			5		ARICH		47		3		0		x
-TRB3	11			6		ARICH		46		3		0		x
-TRB3	11			7		ARICH		39		3		0		x
-TRB3	11			8		ARICH		38		3		0		x
-TRB3	11			9		ARICH		31		3		0		x
-TRB3	11			10		ARICH		30		3		0		x
-TRB3	11			11		ARICH		23		3		0		x
-TRB3	11			12		ARICH		22		3		0		x
-TRB3	11			13		ARICH		15		3		0		x
-TRB3	11			14		ARICH		14		3		0		x
-TRB3	11			15		ARICH		7		3		0		x
-TRB3	11			16		ARICH		6		3		0		x
-TRB3	11			17		ARICH		63		4		0		x
-TRB3	11			18		ARICH		62		4		0		x
-TRB3	11			19		ARICH		55		4		0		x
-TRB3	11			20		ARICH		54		4		0		x
-TRB3	11			21		ARICH		47		4		0		x
-TRB3	11			22		ARICH		46		4		0		x
-TRB3	11			23		ARICH		39		4		0		x
-TRB3	11			24		ARICH		38		4		0		x
-TRB3	11			25		ARICH		31		4		0		x
-TRB3	11			26		ARICH		30		4		0		x
-TRB3	11			27		ARICH		23		4		0		x
-TRB3	11			28		ARICH		22		4		0		x
-TRB3	11			29		ARICH		15		4		0		x
-TRB3	11			30		ARICH		14		4		0		x
-TRB3	11			31		ARICH		7		4		0		x
-TRB3	11			32		ARICH		6		4		0		x
-TRB3	11			33		ARICH		63		5		0		x
-TRB3	11			34		ARICH		62		5		0		x
-TRB3	11			35		ARICH		55		5		0		x
-TRB3	11			36		ARICH		54		5		0		x
-TRB3	11			37		ARICH		47		5		0		x
-TRB3	11			38		ARICH		46		5		0		x
-TRB3	11			39		ARICH		39		5		0		x
-TRB3	11			40		ARICH		38		5		0		x
-TRB3	11			41		ARICH		31		5		0		x
-TRB3	11			42		ARICH		30		5		0		x
-TRB3	11			43		ARICH		23		5		0		x
-TRB3	11			44		ARICH		22		5		0		x
-TRB3	11			45		ARICH		15		5		0		x
-TRB3	11			46		ARICH		14		5		0		x
-TRB3	11			47		ARICH		7		5		0		x
-TRB3	11			48		ARICH		6		5		0		x
-TRB3	12			0		ARICH		500		6	0			x
-TRB3	12			1		ARICH		57		6		0		x
-TRB3	12			2		ARICH		56		6		0		x
-TRB3	12			3		ARICH		49		6		0		x
-TRB3	12			4		ARICH		48		6		0		x
-TRB3	12			5		ARICH		41		6		0		x
-TRB3	12			6		ARICH		40		6		0		x
-TRB3	12			7		ARICH		33		6		0		x
-TRB3	12			8		ARICH		32		6		0		x
-TRB3	12			9		ARICH		25		6		0		x
-TRB3	12			10		ARICH		24		6		0		x
-TRB3	12			11		ARICH		17		6		0		x
-TRB3	12			12		ARICH		16		6		0		x
-TRB3	12			13		ARICH		9		6		0		x
-TRB3	12			14		ARICH		8		6		0		x
-TRB3	12			15		ARICH		1		6		0		x
-TRB3	12			16		ARICH		0		6		0		x
-TRB3	12			17		ARICH		57		7		0		x
-TRB3	12			18		ARICH		56		7		0		x
-TRB3	12			19		ARICH		49		7		0		x
-TRB3	12			20		ARICH		48		7		0		x
-TRB3	12			21		ARICH		41		7		0		x
-TRB3	12			22		ARICH		40		7		0		x
-TRB3	12			23		ARICH		33		7		0		x
-TRB3	12			24		ARICH		32		7		0		x
-TRB3	12			25		ARICH		25		7		0		x
-TRB3	12			26		ARICH		24		7		0		x
-TRB3	12			27		ARICH		17		7		0		x
-TRB3	12			28		ARICH		16		7		0		x
-TRB3	12			29		ARICH		9		7		0		x
-TRB3	12			30		ARICH		8		7		0		x
-TRB3	12			31		ARICH		1		7		0		x
-TRB3	12			32		ARICH		0		7		0		x
-TRB3	12			33		ARICH		57		8		0		x
-TRB3	12			34		ARICH		56		8		0		x
-TRB3	12			35		ARICH		49		8		0		x
-TRB3	12			36		ARICH		48		8		0		x
-TRB3	12			37		ARICH		41		8		0		x
-TRB3	12			38		ARICH		40		8		0		x
-TRB3	12			39		ARICH		33		8		0		x
-TRB3	12			40		ARICH		32		8		0		x
-TRB3	12			41		ARICH		25		8		0		x
-TRB3	12			42		ARICH		24		8		0		x
-TRB3	12			43		ARICH		17		8		0		x
-TRB3	12			44		ARICH		16		8		0		x
-TRB3	12			45		ARICH		9		8		0		x
-TRB3	12			46		ARICH		8		8		0		x
-TRB3	12			47		ARICH		1		8		0		x
-TRB3	12			48		ARICH		0		8		0		x
-TRB3	13			0		ARICH		500		6	0			x
-TRB3	13			1		ARICH		59      	6	0			x
-TRB3	13			2		ARICH		58      	6	0			x
-TRB3	13			3		ARICH		51		6		0		x
-TRB3	13			4		ARICH		50		6		0		x
-TRB3	13			5		ARICH		43		6		0		x
-TRB3	13			6		ARICH		42		6		0		x
-TRB3	13			7		ARICH		35		6		0		x
-TRB3	13			8		ARICH		34		6		0		x
-TRB3	13			9		ARICH		27		6		0		x
-TRB3	13			10		ARICH		26		6		0		x
-TRB3	13			11		ARICH		19		6		0		x
-TRB3	13			12		ARICH		18		6		0		x
-TRB3	13			13		ARICH		11		6		0		x
-TRB3	13			14		ARICH		10		6		0		x
-TRB3	13			15		ARICH		3 		6		0		x
-TRB3	13			16		ARICH		2 		6		0		x
-TRB3	13			17		ARICH		59		7		0		x
-TRB3	13			18		ARICH		58		7		0		x
-TRB3	13			19		ARICH		51		7		0		x
-TRB3	13			20		ARICH		50		7		0		x
-TRB3	13			21		ARICH		43		7		0		x
-TRB3	13			22		ARICH		42		7		0		x
-TRB3	13			23		ARICH		35		7		0		x
-TRB3	13			24		ARICH		34		7		0		x
-TRB3	13			25		ARICH		27		7		0		x
-TRB3	13			26		ARICH		26		7		0		x
-TRB3	13			27		ARICH		19		7		0		x
-TRB3	13			28		ARICH		18		7		0		x
-TRB3	13			29		ARICH		11		7		0		x
-TRB3	13			30		ARICH		10		7		0		x
-TRB3	13			31		ARICH		3 		7		0		x
-TRB3	13			32		ARICH		2 		7		0		x
-TRB3	13			33		ARICH		59		8		0		x
-TRB3	13			34		ARICH		58		8		0		x
-TRB3	13			35		ARICH		51		8		0		x
-TRB3	13			36		ARICH		50		8		0		x
-TRB3	13			37		ARICH		43		8		0		x
-TRB3	13			38		ARICH		42		8		0		x
-TRB3	13			39		ARICH		35		8		0		x
-TRB3	13			40		ARICH		34		8		0		x
-TRB3	13			41		ARICH		27		8		0		x
-TRB3	13			42		ARICH		26		8		0		x
-TRB3	13			43		ARICH		19		8		0		x
-TRB3	13			44		ARICH		18		8		0		x
-TRB3	13			45		ARICH		11		8		0		x
-TRB3	13			46		ARICH		10		8		0		x
-TRB3	13			47		ARICH		3 		8		0		x
-TRB3	13			48		ARICH		2 		8		0		x
-TRB3	14			0		ARICH		500		6	0			x
-TRB3	14			1		ARICH		61      	6	0			x
-TRB3	14			2		ARICH		60      	6	0			x
-TRB3	14			3		ARICH		53		6		0		x
-TRB3	14			4		ARICH		52		6		0		x
-TRB3	14			5		ARICH		45		6		0		x
-TRB3	14			6		ARICH		44		6		0		x
-TRB3	14			7		ARICH		37		6		0		x
-TRB3	14			8		ARICH		36		6		0		x
-TRB3	14			9		ARICH		29		6		0		x
-TRB3	14			10		ARICH		28		6		0		x
-TRB3	14			11		ARICH		21		6		0		x
-TRB3	14			12		ARICH		20		6		0		x
-TRB3	14			13		ARICH		13		6		0		x
-TRB3	14			14		ARICH		12		6		0		x
-TRB3	14			15		ARICH		5 		6		0		x
-TRB3	14			16		ARICH		4 		6		0		x
-TRB3	14			17		ARICH		61		7		0		x
-TRB3	14			18		ARICH		60		7		0		x
-TRB3	14			19		ARICH		53		7		0		x
-TRB3	14			20		ARICH		52		7		0		x
-TRB3	14			21		ARICH		45		7		0		x
-TRB3	14			22		ARICH		44		7		0		x
-TRB3	14			23		ARICH		37		7		0		x
-TRB3	14			24		ARICH		36		7		0		x
-TRB3	14			25		ARICH		29		7		0		x
-TRB3	14			26		ARICH		28		7		0		x
-TRB3	14			27		ARICH		21		7		0		x
-TRB3	14			28		ARICH		20		7		0		x
-TRB3	14			29		ARICH		13		7		0		x
-TRB3	14			30		ARICH		12		7		0		x
-TRB3	14			31		ARICH		5 		7		0		x
-TRB3	14			32		ARICH		4 		7		0		x
-TRB3	14			33		ARICH		61		8		0		x
-TRB3	14			34		ARICH		60		8		0		x
-TRB3	14			35		ARICH		53		8		0		x
-TRB3	14			36		ARICH		52		8		0		x
-TRB3	14			37		ARICH		45		8		0		x
-TRB3	14			38		ARICH		44		8		0		x
-TRB3	14			39		ARICH		37		8		0		x
-TRB3	14			40		ARICH		36		8		0		x
-TRB3	14			41		ARICH		29		8		0		x
-TRB3	14			42		ARICH		28		8		0		x
-TRB3	14			43		ARICH		21		8		0		x
-TRB3	14			44		ARICH		20		8		0		x
-TRB3	14			45		ARICH		13		8		0		x
-TRB3	14			46		ARICH		12		8		0		x
-TRB3	14			47		ARICH		5 		8		0		x
-TRB3	14			48		ARICH		4 		8		0		x
-TRB3	15			0		ARICH		500		6	0			x
-TRB3	15			1		ARICH		63		6		0		x
-TRB3	15			2		ARICH		62		6		0		x
-TRB3	15			3		ARICH		55		6		0		x
-TRB3	15			4		ARICH		54		6		0		x
-TRB3	15			5		ARICH		47		6		0		x
-TRB3	15			6		ARICH		46		6		0		x
-TRB3	15			7		ARICH		39		6		0		x
-TRB3	15			8		ARICH		38		6		0		x
-TRB3	15			9		ARICH		31		6		0		x
-TRB3	15			10		ARICH		30		6		0		x
-TRB3	15			11		ARICH		23		6		0		x
-TRB3	15			12		ARICH		22		6		0		x
-TRB3	15			13		ARICH		15		6		0		x
-TRB3	15			14		ARICH		14		6		0		x
-TRB3	15			15		ARICH		7		6		0		x
-TRB3	15			16		ARICH		6		6		0		x
-TRB3	15			17		ARICH		63		7		0		x
-TRB3	15			18		ARICH		62		7		0		x
-TRB3	15			19		ARICH		55		7		0		x
-TRB3	15			20		ARICH		54		7		0		x
-TRB3	15			21		ARICH		47		7		0		x
-TRB3	15			22		ARICH		46		7		0		x
-TRB3	15			23		ARICH		39		7		0		x
-TRB3	15			24		ARICH		38		7		0		x
-TRB3	15			25		ARICH		31		7		0		x
-TRB3	15			26		ARICH		30		7		0		x
-TRB3	15			27		ARICH		23		7		0		x
-TRB3	15			28		ARICH		22		7		0		x
-TRB3	15			29		ARICH		15		7		0		x
-TRB3	15			30		ARICH		14		7		0		x
-TRB3	15			31		ARICH		7		7		0		x
-TRB3	15			32		ARICH		6		7		0		x
-TRB3	15			33		ARICH		63		8		0		x
-TRB3	15			34		ARICH		62		8		0		x
-TRB3	15			35		ARICH		55		8		0		x
-TRB3	15			36		ARICH		54		8		0		x
-TRB3	15			37		ARICH		47		8		0		x
-TRB3	15			38		ARICH		46		8		0		x
-TRB3	15			39		ARICH		39		8		0		x
-TRB3	15			40		ARICH		38		8		0		x
-TRB3	15			41		ARICH		31		8		0		x
-TRB3	15			42		ARICH		30		8		0		x
-TRB3	15			43		ARICH		23		8		0		x
-TRB3	15			44		ARICH		22		8		0		x
-TRB3	15			45		ARICH		15		8		0		x
-TRB3	15			46		ARICH		14		8		0		x
-TRB3	15			47		ARICH		7		8		0		x
-TRB3	15			48		ARICH		6		8		0		x
-SSD	0			0		SSD		0		0		0		0
-SSD	0			1		SSD		1		0		0		1
-SSD	0			2		SSD		0		0		1		2
-SSD	0			3		SSD		1		0		1		3
-SSD	1			0		SSD		1		0		2		5
-SSD	1			1		SSD		2		0		2		6
-SSD	1			2		SSD		1		0		3		8
-SSD	1			3		SSD		2		0		3		9
-SSD	1			4		SSD		0		0		2		4
-SSD	1			5		SSD		0		0		3		7
-SSD	2			0		SSD		0		0		4		10
-SSD	2			1		SSD		1		0		4		10
-SSD	2			2		SSD		2		0		4		11
-SSD	2			3		SSD		3		0		4		11
-SSD	2			4		SSD		4		0		4		12
-SSD	2			5		SSD		5		0		4		12
-SSD	3			0		SSD		0		0		5		13
-SSD	3			1		SSD		1		0		5		13
-SSD	3			2		SSD		2		0		5		14
-SSD	3			3		SSD		3		0		5		14
-SSD	3			4		SSD		4		0		5		15
-SSD	3			5		SSD		5		0		5		15
+#BoardT	BNum	BChannel	Detector	DChannel	HiLo		DStation	Plane		Comment
+V1720	0	0		T0		1		0		0		0		x
+V1720	0	1		T0		2		0		0		0		x
+V1720	0	2		T0		3		0		0		0		x
+V1720	0	3		T0		4		0		0		0		x
+V1720	0	4		T0		5		0		0		0		x
+V1720	0	5		T0		6		0		0		0		x
+V1720	0	6		T0		7		0		0		0		x
+V1720	0	7		T0		8		0		0		0		x
+V1720	1	0		T0		9		0		0		0		x
+V1720	1	1		T0		10		0		0		0		x
+V1720	1	2		T0		11		0		0		0		x
+V1720	1	3		T0		12		0		0		0		x
+V1720	1	4		T0		13		0		0		0		x
+V1720	1	5		T0		14		0		0		0		x
+V1720	1	6		T0		15		0		0		0		x
+V1720	1	7		T0		16		0		0		0		x
+V1720	2	0		T0		18		0		0		0		x
+V1720	2	1		T0		17		0		0		0		x
+V1720	2	2		T0		19		0		0		0		x
+V1720	2	3		T0		20		0		0		0		x
+V1720	2	4		GasCkov		0		0		0		0		US
+V1720	2	5		GasCkov		1		0		0		0		DSInner
+V1720	2	6		GasCkov		2		0		0		0		DSOuter
+V1720	3	0		BACkov		0		0		0		0		USRight
+V1720	3	1		BACkov		1		0		0		0		USLeft
+V1720	3	2		BACkov		2		0		0		0		USTop
+V1720	3	3		BACkov		3		0		0		0		MidRight
+V1720	3	4		BACkov		4		0		0		0		MidLeft
+V1720	3	5		BACkov		5		0		0		0		DS
+V1720	4	0		Trigger		99		0		0		0		TrigCoinc
+V1720	4	1		Trigger		0		0		0		0		TrigPMT1
+V1720	4	2		Trigger		1		0		0		0		TrigPMT2
+V1720	4	3		Trigger		2		0		0		0		TrigPMT3
+V1720	4	4		Trigger		3		0		0		0		TrigPMT4
+V1720	4	7		LGCalo		0		0		0		0		TopLeft
+V1720	5	0		LGCalo		1		0		0		0		TopCenter
+V1720	5	1		LGCalo		2		0		0		0		TopRight
+V1720	5	2		LGCalo		3		0		0		0		MidLeft
+V1720	5	3		LGCalo		4		0		0		0		MidCenter
+V1720	5	4		LGCalo		5		0		0		0		MidRight
+V1720	5	5		LGCalo		6		0		0		0		BotLeft
+V1720	5	6		LGCalo		7		0		0		0		BotCenter
+V1720	5	7		LGCalo		8		0		0		0		BotRight
+TRB3	18	0		T0		500		0		0		0		x
+TRB3	18	1		T0		1		0		0		0		BottomRight
+TRB3	18	2		T0		1		1		0		0		BottomRight
+TRB3	18	3		T0		2		0		0		0		x
+TRB3	18	4		T0		2		1		0		0		x
+TRB3	18	5		T0		3		0		0		0		x
+TRB3	18	6		T0		3		1		0		0		x
+TRB3	18	7		T0		4		0		0		0		x
+TRB3	18	8		T0		4		1		0		0		x
+TRB3	18	9		T0		5		0		0		0		x
+TRB3	18	10		T0		5		1		0		0		x
+TRB3	18	11		T0		6		0		0		0		x
+TRB3	18	12		T0		6		1		0		0		x
+TRB3	18	13		T0		7		0		0		0		x
+TRB3	18	14		T0		7		1		0		0		x
+TRB3	18	15		T0		8		0		0		0		x
+TRB3	18	16		T0		8		1		0		0		x
+TRB3	18	17		T0		9		0		0		0		x
+TRB3	18	18		T0		9		1		0		0		x
+TRB3	18	19		T0		10		0		0		0		BottomLeft
+TRB3	18	20		T0		10		1		0		0		BottomLeft
+TRB3	18	21		T0		11		0		0		0		TopRight
+TRB3	18	22		T0		11		1		0		0		TopRight
+TRB3	18	23		T0		12		0		0		0		x
+TRB3	18	24		T0		12		1		0		0		x
+TRB3	18	25		T0		13		0		0		0		x
+TRB3	18	26		T0		13		1		0		0		x
+TRB3	18	27		T0		14		0		0		0		x
+TRB3	18	28		T0		14		1		0		0		x
+TRB3	18	29		T0		15		0		0		0		x
+TRB3	18	30		T0		15		1		0		0		x
+TRB3	18	31		T0		16		0		0		0		x
+TRB3	18	32		T0		16		1		0		0		x
+TRB3	18	33		T0		18		0		0		0		x
+TRB3	18	34		T0		18		1		0		0		x
+TRB3	18	35		T0		17		0		0		0		x
+TRB3	18	36		T0		17		1		0		0		x
+TRB3	18	37		T0		19		0		0		0		x
+TRB3	18	38		T0		19		1		0		0		x
+TRB3	18	39		T0		20		0		0		0		TopLeft
+TRB3	18	40		T0		20		1		0		0		TopLeft
+TRB3	19	0		RPC		500		0		0		0		x
+TRB3	19	1		RPC		1		0		0		0		TopLeft
+TRB3	19	2		RPC		1		1		0		0		TopLeft
+TRB3	19	3		RPC		2		0		0		0		x
+TRB3	19	4		RPC		2		1		0		0		x
+TRB3	19	5		RPC		3		0		0		0		x
+TRB3	19	6		RPC		3		1		0		0		x
+TRB3	19	7		RPC		4		0		0		0		x
+TRB3	19	8		RPC		4		1		0		0		x
+TRB3	19	9		RPC		5		0		0		0		x
+TRB3	19	10		RPC		5		1		0		0		x
+TRB3	19	11		RPC		6		0		0		0		x
+TRB3	19	12		RPC		6		1		0		0		x
+TRB3	19	13		RPC		7		0		0		0		x
+TRB3	19	14		RPC		7		1		0		0		x
+TRB3	19	15		RPC		8		0		0		0		BotLeft
+TRB3	19	16		RPC		8		1		0		0		BotLeft
+TRB3	19	17		RPC		9		0		0		0		TopRight
+TRB3	19	18		RPC		9		1		0		0		TopRight
+TRB3	19	19		RPC		10		0		0		0		x
+TRB3	19	20		RPC		10		1		0		0		x
+TRB3	19	21		RPC		11		0		0		0		x
+TRB3	19	22		RPC		11		1		0		0		x
+TRB3	19	23		RPC		12		0		0		0		x
+TRB3	19	24		RPC		12		1		0		0		x
+TRB3	19	25		RPC		13		0		0		0		x
+TRB3	19	26		RPC		13		1		0		0		x
+TRB3	19	27		RPC		14		0		0		0		x
+TRB3	19	28		RPC		14		1		0		0		x
+TRB3	19	29		RPC		15		0		0		0		x
+TRB3	19	30		RPC		15		1		0		0		x
+TRB3	19	31		RPC		16		0		0		0		BotRight
+TRB3	19	32		RPC		16		1		0		0		BotRight
+TRB3	4	0		ARICH		500		0		0		0		x
+TRB3	4	1		ARICH		57		0		0		0		x
+TRB3	4	2		ARICH		56		0		0		0		x
+TRB3	4	3		ARICH		49		0		0		0		x
+TRB3	4	4		ARICH		48		0		0		0		x
+TRB3	4	5		ARICH		41		0		0		0		x
+TRB3	4	6		ARICH		40		0		0		0		x
+TRB3	4	7		ARICH		33		0		0		0		x
+TRB3	4	8		ARICH		32		0		0		0		x
+TRB3	4	9		ARICH		25		0		0		0		x
+TRB3	4	10		ARICH		24		0		0		0		x
+TRB3	4	11		ARICH		17		0		0		0		x
+TRB3	4	12		ARICH		16		0		0		0		x
+TRB3	4	13		ARICH		9		0		0		0		x
+TRB3	4	14		ARICH		8		0		0		0		x
+TRB3	4	15		ARICH		1		0		0		0		x
+TRB3	4	16		ARICH		0		0		0		0		x
+TRB3	4	17		ARICH		57		1		0		0		x
+TRB3	4	18		ARICH		56		1		0		0		x
+TRB3	4	19		ARICH		49		1		0		0		x
+TRB3	4	20		ARICH		48		1		0		0		x
+TRB3	4	21		ARICH		41		1		0		0		x
+TRB3	4	22		ARICH		40		1		0		0		x
+TRB3	4	23		ARICH		33		1		0		0		x
+TRB3	4	24		ARICH		32		1		0		0		x
+TRB3	4	25		ARICH		25		1		0		0		x
+TRB3	4	26		ARICH		24		1		0		0		x
+TRB3	4	27		ARICH		17		1		0		0		x
+TRB3	4	28		ARICH		16		1		0		0		x
+TRB3	4	29		ARICH		9		1		0		0		x
+TRB3	4	30		ARICH		8		1		0		0		x
+TRB3	4	31		ARICH		1		1		0		0		x
+TRB3	4	32		ARICH		0		1		0		0		x
+TRB3	4	33		ARICH		57		2		0		0		x
+TRB3	4	34		ARICH		56		2		0		0		x
+TRB3	4	35		ARICH		49		2		0		0		x
+TRB3	4	36		ARICH		48		2		0		0		x
+TRB3	4	37		ARICH		41		2		0		0		x
+TRB3	4	38		ARICH		40		2		0		0		x
+TRB3	4	39		ARICH		33		2		0		0		x
+TRB3	4	40		ARICH		32		2		0		0		x
+TRB3	4	41		ARICH		25		2		0		0		x
+TRB3	4	42		ARICH		24		2		0		0		x
+TRB3	4	43		ARICH		17		2		0		0		x
+TRB3	4	44		ARICH		16		2		0		0		x
+TRB3	4	45		ARICH		9		2		0		0		x
+TRB3	4	46		ARICH		8		2		0		0		x
+TRB3	4	47		ARICH		1		2		0		0		x
+TRB3	4	48		ARICH		0		2		0		0		x
+TRB3	5	0		ARICH		500		0		0		0		x
+TRB3	5	1		ARICH		59		0		0		0		x
+TRB3	5	2		ARICH		58		0		0		0		x
+TRB3	5	3		ARICH		51		0		0		0		x
+TRB3	5	4		ARICH		50		0		0		0		x
+TRB3	5	5		ARICH		43		0		0		0		x
+TRB3	5	6		ARICH		42		0		0		0		x
+TRB3	5	7		ARICH		35		0		0		0		x
+TRB3	5	8		ARICH		34		0		0		0		x
+TRB3	5	9		ARICH		27		0		0		0		x
+TRB3	5	10		ARICH		26		0		0		0		x
+TRB3	5	11		ARICH		19		0		0		0		x
+TRB3	5	12		ARICH		18		0		0		0		x
+TRB3	5	13		ARICH		11		0		0		0		x
+TRB3	5	14		ARICH		10		0		0		0		x
+TRB3	5	15		ARICH		3		0		0		0		x
+TRB3	5	16		ARICH		2		0		0		0		x
+TRB3	5	17		ARICH		59		1		0		0		x
+TRB3	5	18		ARICH		58		1		0		0		x
+TRB3	5	19		ARICH		51		1		0		0		x
+TRB3	5	20		ARICH		50		1		0		0		x
+TRB3	5	21		ARICH		43		1		0		0		x
+TRB3	5	22		ARICH		42		1		0		0		x
+TRB3	5	23		ARICH		35		1		0		0		x
+TRB3	5	24		ARICH		34		1		0		0		x
+TRB3	5	25		ARICH		27		1		0		0		x
+TRB3	5	26		ARICH		26		1		0		0		x
+TRB3	5	27		ARICH		19		1		0		0		x
+TRB3	5	28		ARICH		18		1		0		0		x
+TRB3	5	29		ARICH		11		1		0		0		x
+TRB3	5	30		ARICH		10		1		0		0		x
+TRB3	5	31		ARICH		3		1		0		0		x
+TRB3	5	32		ARICH		2		1		0		0		x
+TRB3	5	33		ARICH		59		2		0		0		x
+TRB3	5	34		ARICH		58		2		0		0		x
+TRB3	5	35		ARICH		51		2		0		0		x
+TRB3	5	36		ARICH		50		2		0		0		x
+TRB3	5	37		ARICH		43		2		0		0		x
+TRB3	5	38		ARICH		42		2		0		0		x
+TRB3	5	39		ARICH		35		2		0		0		x
+TRB3	5	40		ARICH		34		2		0		0		x
+TRB3	5	41		ARICH		27		2		0		0		x
+TRB3	5	42		ARICH		26		2		0		0		x
+TRB3	5	43		ARICH		19		2		0		0		x
+TRB3	5	44		ARICH		18		2		0		0		x
+TRB3	5	45		ARICH		11		2		0		0		x
+TRB3	5	46		ARICH		10		2		0		0		x
+TRB3	5	47		ARICH		3		2		0		0		x
+TRB3	5	48		ARICH		2		2		0		0		x
+TRB3	6	0		ARICH		500		0		0		0		x
+TRB3	6	1		ARICH		61		0		0		0		x
+TRB3	6	2		ARICH		60		0		0		0		x
+TRB3	6	3		ARICH		53		0		0		0		x
+TRB3	6	4		ARICH		52		0		0		0		x
+TRB3	6	5		ARICH		45		0		0		0		x
+TRB3	6	6		ARICH		44		0		0		0		x
+TRB3	6	7		ARICH		37		0		0		0		x
+TRB3	6	8		ARICH		36		0		0		0		x
+TRB3	6	9		ARICH		29		0		0		0		x
+TRB3	6	10		ARICH		28		0		0		0		x
+TRB3	6	11		ARICH		21		0		0		0		x
+TRB3	6	12		ARICH		20		0		0		0		x
+TRB3	6	13		ARICH		13		0		0		0		x
+TRB3	6	14		ARICH		12		0		0		0		x
+TRB3	6	15		ARICH		5		0		0		0		x
+TRB3	6	16		ARICH		4		0		0		0		x
+TRB3	6	17		ARICH		61		1		0		0		x
+TRB3	6	18		ARICH		60		1		0		0		x
+TRB3	6	19		ARICH		53		1		0		0		x
+TRB3	6	20		ARICH		52		1		0		0		x
+TRB3	6	21		ARICH		45		1		0		0		x
+TRB3	6	22		ARICH		44		1		0		0		x
+TRB3	6	23		ARICH		37		1		0		0		x
+TRB3	6	24		ARICH		36		1		0		0		x
+TRB3	6	25		ARICH		29		1		0		0		x
+TRB3	6	26		ARICH		28		1		0		0		x
+TRB3	6	27		ARICH		21		1		0		0		x
+TRB3	6	28		ARICH		20		1		0		0		x
+TRB3	6	29		ARICH		13		1		0		0		x
+TRB3	6	30		ARICH		12		1		0		0		x
+TRB3	6	31		ARICH		5		1		0		0		x
+TRB3	6	32		ARICH		4		1		0		0		x
+TRB3	6	33		ARICH		61		2		0		0		x
+TRB3	6	34		ARICH		60		2		0		0		x
+TRB3	6	35		ARICH		53		2		0		0		x
+TRB3	6	36		ARICH		52		2		0		0		x
+TRB3	6	37		ARICH		45		2		0		0		x
+TRB3	6	38		ARICH		44		2		0		0		x
+TRB3	6	39		ARICH		37		2		0		0		x
+TRB3	6	40		ARICH		36		2		0		0		x
+TRB3	6	41		ARICH		29		2		0		0		x
+TRB3	6	42		ARICH		28		2		0		0		x
+TRB3	6	43		ARICH		21		2		0		0		x
+TRB3	6	44		ARICH		20		2		0		0		x
+TRB3	6	45		ARICH		13		2		0		0		x
+TRB3	6	46		ARICH		12		2		0		0		x
+TRB3	6	47		ARICH		5		2		0		0		x
+TRB3	6	48		ARICH		4		2		0		0		x
+TRB3	7	0		ARICH		500		0		0		0		x
+TRB3	7	1		ARICH		63		0		0		0		x
+TRB3	7	2		ARICH		62		0		0		0		x
+TRB3	7	3		ARICH		55		0		0		0		x
+TRB3	7	4		ARICH		54		0		0		0		x
+TRB3	7	5		ARICH		47		0		0		0		x
+TRB3	7	6		ARICH		46		0		0		0		x
+TRB3	7	7		ARICH		39		0		0		0		x
+TRB3	7	8		ARICH		38		0		0		0		x
+TRB3	7	9		ARICH		31		0		0		0		x
+TRB3	7	10		ARICH		30		0		0		0		x
+TRB3	7	11		ARICH		23		0		0		0		x
+TRB3	7	12		ARICH		22		0		0		0		x
+TRB3	7	13		ARICH		15		0		0		0		x
+TRB3	7	14		ARICH		14		0		0		0		x
+TRB3	7	15		ARICH		7		0		0		0		x
+TRB3	7	16		ARICH		6		0		0		0		x
+TRB3	7	17		ARICH		63		1		0		0		x
+TRB3	7	18		ARICH		62		1		0		0		x
+TRB3	7	19		ARICH		55		1		0		0		x
+TRB3	7	20		ARICH		54		1		0		0		x
+TRB3	7	21		ARICH		47		1		0		0		x
+TRB3	7	22		ARICH		46		1		0		0		x
+TRB3	7	23		ARICH		39		1		0		0		x
+TRB3	7	24		ARICH		38		1		0		0		x
+TRB3	7	25		ARICH		31		1		0		0		x
+TRB3	7	26		ARICH		30		1		0		0		x
+TRB3	7	27		ARICH		23		1		0		0		x
+TRB3	7	28		ARICH		22		1		0		0		x
+TRB3	7	29		ARICH		15		1		0		0		x
+TRB3	7	30		ARICH		14		1		0		0		x
+TRB3	7	31		ARICH		7		1		0		0		x
+TRB3	7	32		ARICH		6		1		0		0		x
+TRB3	7	33		ARICH		63		2		0		0		x
+TRB3	7	34		ARICH		62		2		0		0		x
+TRB3	7	35		ARICH		55		2		0		0		x
+TRB3	7	36		ARICH		54		2		0		0		x
+TRB3	7	37		ARICH		47		2		0		0		x
+TRB3	7	38		ARICH		46		2		0		0		x
+TRB3	7	39		ARICH		39		2		0		0		x
+TRB3	7	40		ARICH		38		2		0		0		x
+TRB3	7	41		ARICH		31		2		0		0		x
+TRB3	7	42		ARICH		30		2		0		0		x
+TRB3	7	43		ARICH		23		2		0		0		x
+TRB3	7	44		ARICH		22		2		0		0		x
+TRB3	7	45		ARICH		15		2		0		0		x
+TRB3	7	46		ARICH		14		2		0		0		x
+TRB3	7	47		ARICH		7		2		0		0		x
+TRB3	7	48		ARICH		6		2		0		0		x
+TRB3	8	0		ARICH		500		3		0		0		x
+TRB3	8	1		ARICH		57		3		0		0		x
+TRB3	8	2		ARICH		56		3		0		0		x
+TRB3	8	3		ARICH		49		3		0		0		x
+TRB3	8	4		ARICH		48		3		0		0		x
+TRB3	8	5		ARICH		41		3		0		0		x
+TRB3	8	6		ARICH		40		3		0		0		x
+TRB3	8	7		ARICH		33		3		0		0		x
+TRB3	8	8		ARICH		32		3		0		0		x
+TRB3	8	9		ARICH		25		3		0		0		x
+TRB3	8	10		ARICH		24		3		0		0		x
+TRB3	8	11		ARICH		17		3		0		0		x
+TRB3	8	12		ARICH		16		3		0		0		x
+TRB3	8	13		ARICH		9		3		0		0		x
+TRB3	8	14		ARICH		8		3		0		0		x
+TRB3	8	15		ARICH		1		3		0		0		x
+TRB3	8	16		ARICH		0		3		0		0		x
+TRB3	8	17		ARICH		57		4		0		0		x
+TRB3	8	18		ARICH		56		4		0		0		x
+TRB3	8	19		ARICH		49		4		0		0		x
+TRB3	8	20		ARICH		48		4		0		0		x
+TRB3	8	21		ARICH		41		4		0		0		x
+TRB3	8	22		ARICH		40		4		0		0		x
+TRB3	8	23		ARICH		33		4		0		0		x
+TRB3	8	24		ARICH		32		4		0		0		x
+TRB3	8	25		ARICH		25		4		0		0		x
+TRB3	8	26		ARICH		24		4		0		0		x
+TRB3	8	27		ARICH		17		4		0		0		x
+TRB3	8	28		ARICH		16		4		0		0		x
+TRB3	8	29		ARICH		9		4		0		0		x
+TRB3	8	30		ARICH		8		4		0		0		x
+TRB3	8	31		ARICH		1		4		0		0		x
+TRB3	8	32		ARICH		0		4		0		0		x
+TRB3	8	33		ARICH		57		5		0		0		x
+TRB3	8	34		ARICH		56		5		0		0		x
+TRB3	8	35		ARICH		49		5		0		0		x
+TRB3	8	36		ARICH		48		5		0		0		x
+TRB3	8	37		ARICH		41		5		0		0		x
+TRB3	8	38		ARICH		40		5		0		0		x
+TRB3	8	39		ARICH		33		5		0		0		x
+TRB3	8	40		ARICH		32		5		0		0		x
+TRB3	8	41		ARICH		25		5		0		0		x
+TRB3	8	42		ARICH		24		5		0		0		x
+TRB3	8	43		ARICH		17		5		0		0		x
+TRB3	8	44		ARICH		16		5		0		0		x
+TRB3	8	45		ARICH		9		5		0		0		x
+TRB3	8	46		ARICH		8		5		0		0		x
+TRB3	8	47		ARICH		1		5		0		0		x
+TRB3	8	48		ARICH		0		5		0		0		x
+TRB3	9	0		ARICH		500		3		0		0		x
+TRB3	9	1		ARICH		59		3		0		0		x
+TRB3	9	2		ARICH		58		3		0		0		x
+TRB3	9	3		ARICH		51		3		0		0		x
+TRB3	9	4		ARICH		50		3		0		0		x
+TRB3	9	5		ARICH		43		3		0		0		x
+TRB3	9	6		ARICH		42		3		0		0		x
+TRB3	9	7		ARICH		35		3		0		0		x
+TRB3	9	8		ARICH		34		3		0		0		x
+TRB3	9	9		ARICH		27		3		0		0		x
+TRB3	9	10		ARICH		26		3		0		0		x
+TRB3	9	11		ARICH		19		3		0		0		x
+TRB3	9	12		ARICH		18		3		0		0		x
+TRB3	9	13		ARICH		11		3		0		0		x
+TRB3	9	14		ARICH		10		3		0		0		x
+TRB3	9	15		ARICH		3		3		0		0		x
+TRB3	9	16		ARICH		2		3		0		0		x
+TRB3	9	17		ARICH		59		4		0		0		x
+TRB3	9	18		ARICH		58		4		0		0		x
+TRB3	9	19		ARICH		51		4		0		0		x
+TRB3	9	20		ARICH		50		4		0		0		x
+TRB3	9	21		ARICH		43		4		0		0		x
+TRB3	9	22		ARICH		42		4		0		0		x
+TRB3	9	23		ARICH		35		4		0		0		x
+TRB3	9	24		ARICH		34		4		0		0		x
+TRB3	9	25		ARICH		27		4		0		0		x
+TRB3	9	26		ARICH		26		4		0		0		x
+TRB3	9	27		ARICH		19		4		0		0		x
+TRB3	9	28		ARICH		18		4		0		0		x
+TRB3	9	29		ARICH		11		4		0		0		x
+TRB3	9	30		ARICH		10		4		0		0		x
+TRB3	9	31		ARICH		3		4		0		0		x
+TRB3	9	32		ARICH		2		4		0		0		x
+TRB3	9	33		ARICH		59		5		0		0		x
+TRB3	9	34		ARICH		58		5		0		0		x
+TRB3	9	35		ARICH		51		5		0		0		x
+TRB3	9	36		ARICH		50		5		0		0		x
+TRB3	9	37		ARICH		43		5		0		0		x
+TRB3	9	38		ARICH		42		5		0		0		x
+TRB3	9	39		ARICH		35		5		0		0		x
+TRB3	9	40		ARICH		34		5		0		0		x
+TRB3	9	41		ARICH		27		5		0		0		x
+TRB3	9	42		ARICH		26		5		0		0		x
+TRB3	9	43		ARICH		19		5		0		0		x
+TRB3	9	44		ARICH		18		5		0		0		x
+TRB3	9	45		ARICH		11		5		0		0		x
+TRB3	9	46		ARICH		10		5		0		0		x
+TRB3	9	47		ARICH		3		5		0		0		x
+TRB3	9	48		ARICH		2		5		0		0		x
+TRB3	10	0		ARICH		500		3		0		0		x
+TRB3	10	1		ARICH		61		3		0		0		x
+TRB3	10	2		ARICH		60		3		0		0		x
+TRB3	10	3		ARICH		53		3		0		0		x
+TRB3	10	4		ARICH		52		3		0		0		x
+TRB3	10	5		ARICH		45		3		0		0		x
+TRB3	10	6		ARICH		44		3		0		0		x
+TRB3	10	7		ARICH		37		3		0		0		x
+TRB3	10	8		ARICH		36		3		0		0		x
+TRB3	10	9		ARICH		29		3		0		0		x
+TRB3	10	10		ARICH		28		3		0		0		x
+TRB3	10	11		ARICH		21		3		0		0		x
+TRB3	10	12		ARICH		20		3		0		0		x
+TRB3	10	13		ARICH		13		3		0		0		x
+TRB3	10	14		ARICH		12		3		0		0		x
+TRB3	10	15		ARICH		5		3		0		0		x
+TRB3	10	16		ARICH		4		3		0		0		x
+TRB3	10	17		ARICH		61		4		0		0		x
+TRB3	10	18		ARICH		60		4		0		0		x
+TRB3	10	19		ARICH		53		4		0		0		x
+TRB3	10	20		ARICH		52		4		0		0		x
+TRB3	10	21		ARICH		45		4		0		0		x
+TRB3	10	22		ARICH		44		4		0		0		x
+TRB3	10	23		ARICH		37		4		0		0		x
+TRB3	10	24		ARICH		36		4		0		0		x
+TRB3	10	25		ARICH		29		4		0		0		x
+TRB3	10	26		ARICH		28		4		0		0		x
+TRB3	10	27		ARICH		21		4		0		0		x
+TRB3	10	28		ARICH		20		4		0		0		x
+TRB3	10	29		ARICH		13		4		0		0		x
+TRB3	10	30		ARICH		12		4		0		0		x
+TRB3	10	31		ARICH		5		4		0		0		x
+TRB3	10	32		ARICH		4		4		0		0		x
+TRB3	10	33		ARICH		61		5		0		0		x
+TRB3	10	34		ARICH		60		5		0		0		x
+TRB3	10	35		ARICH		53		5		0		0		x
+TRB3	10	36		ARICH		52		5		0		0		x
+TRB3	10	37		ARICH		45		5		0		0		x
+TRB3	10	38		ARICH		44		5		0		0		x
+TRB3	10	39		ARICH		37		5		0		0		x
+TRB3	10	40		ARICH		36		5		0		0		x
+TRB3	10	41		ARICH		29		5		0		0		x
+TRB3	10	42		ARICH		28		5		0		0		x
+TRB3	10	43		ARICH		21		5		0		0		x
+TRB3	10	44		ARICH		20		5		0		0		x
+TRB3	10	45		ARICH		13		5		0		0		x
+TRB3	10	46		ARICH		12		5		0		0		x
+TRB3	10	47		ARICH		5		5		0		0		x
+TRB3	10	48		ARICH		4		5		0		0		x
+TRB3	11	0		ARICH		500		3		0		0		x
+TRB3	11	1		ARICH		63		3		0		0		x
+TRB3	11	2		ARICH		62		3		0		0		x
+TRB3	11	3		ARICH		55		3		0		0		x
+TRB3	11	4		ARICH		54		3		0		0		x
+TRB3	11	5		ARICH		47		3		0		0		x
+TRB3	11	6		ARICH		46		3		0		0		x
+TRB3	11	7		ARICH		39		3		0		0		x
+TRB3	11	8		ARICH		38		3		0		0		x
+TRB3	11	9		ARICH		31		3		0		0		x
+TRB3	11	10		ARICH		30		3		0		0		x
+TRB3	11	11		ARICH		23		3		0		0		x
+TRB3	11	12		ARICH		22		3		0		0		x
+TRB3	11	13		ARICH		15		3		0		0		x
+TRB3	11	14		ARICH		14		3		0		0		x
+TRB3	11	15		ARICH		7		3		0		0		x
+TRB3	11	16		ARICH		6		3		0		0		x
+TRB3	11	17		ARICH		63		4		0		0		x
+TRB3	11	18		ARICH		62		4		0		0		x
+TRB3	11	19		ARICH		55		4		0		0		x
+TRB3	11	20		ARICH		54		4		0		0		x
+TRB3	11	21		ARICH		47		4		0		0		x
+TRB3	11	22		ARICH		46		4		0		0		x
+TRB3	11	23		ARICH		39		4		0		0		x
+TRB3	11	24		ARICH		38		4		0		0		x
+TRB3	11	25		ARICH		31		4		0		0		x
+TRB3	11	26		ARICH		30		4		0		0		x
+TRB3	11	27		ARICH		23		4		0		0		x
+TRB3	11	28		ARICH		22		4		0		0		x
+TRB3	11	29		ARICH		15		4		0		0		x
+TRB3	11	30		ARICH		14		4		0		0		x
+TRB3	11	31		ARICH		7		4		0		0		x
+TRB3	11	32		ARICH		6		4		0		0		x
+TRB3	11	33		ARICH		63		5		0		0		x
+TRB3	11	34		ARICH		62		5		0		0		x
+TRB3	11	35		ARICH		55		5		0		0		x
+TRB3	11	36		ARICH		54		5		0		0		x
+TRB3	11	37		ARICH		47		5		0		0		x
+TRB3	11	38		ARICH		46		5		0		0		x
+TRB3	11	39		ARICH		39		5		0		0		x
+TRB3	11	40		ARICH		38		5		0		0		x
+TRB3	11	41		ARICH		31		5		0		0		x
+TRB3	11	42		ARICH		30		5		0		0		x
+TRB3	11	43		ARICH		23		5		0		0		x
+TRB3	11	44		ARICH		22		5		0		0		x
+TRB3	11	45		ARICH		15		5		0		0		x
+TRB3	11	46		ARICH		14		5		0		0		x
+TRB3	11	47		ARICH		7		5		0		0		x
+TRB3	11	48		ARICH		6		5		0		0		x
+TRB3	12	0		ARICH		500		6		0		0		x
+TRB3	12	1		ARICH		57		6		0		0		x
+TRB3	12	2		ARICH		56		6		0		0		x
+TRB3	12	3		ARICH		49		6		0		0		x
+TRB3	12	4		ARICH		48		6		0		0		x
+TRB3	12	5		ARICH		41		6		0		0		x
+TRB3	12	6		ARICH		40		6		0		0		x
+TRB3	12	7		ARICH		33		6		0		0		x
+TRB3	12	8		ARICH		32		6		0		0		x
+TRB3	12	9		ARICH		25		6		0		0		x
+TRB3	12	10		ARICH		24		6		0		0		x
+TRB3	12	11		ARICH		17		6		0		0		x
+TRB3	12	12		ARICH		16		6		0		0		x
+TRB3	12	13		ARICH		9		6		0		0		x
+TRB3	12	14		ARICH		8		6		0		0		x
+TRB3	12	15		ARICH		1		6		0		0		x
+TRB3	12	16		ARICH		0		6		0		0		x
+TRB3	12	17		ARICH		57		7		0		0		x
+TRB3	12	18		ARICH		56		7		0		0		x
+TRB3	12	19		ARICH		49		7		0		0		x
+TRB3	12	20		ARICH		48		7		0		0		x
+TRB3	12	21		ARICH		41		7		0		0		x
+TRB3	12	22		ARICH		40		7		0		0		x
+TRB3	12	23		ARICH		33		7		0		0		x
+TRB3	12	24		ARICH		32		7		0		0		x
+TRB3	12	25		ARICH		25		7		0		0		x
+TRB3	12	26		ARICH		24		7		0		0		x
+TRB3	12	27		ARICH		17		7		0		0		x
+TRB3	12	28		ARICH		16		7		0		0		x
+TRB3	12	29		ARICH		9		7		0		0		x
+TRB3	12	30		ARICH		8		7		0		0		x
+TRB3	12	31		ARICH		1		7		0		0		x
+TRB3	12	32		ARICH		0		7		0		0		x
+TRB3	12	33		ARICH		57		8		0		0		x
+TRB3	12	34		ARICH		56		8		0		0		x
+TRB3	12	35		ARICH		49		8		0		0		x
+TRB3	12	36		ARICH		48		8		0		0		x
+TRB3	12	37		ARICH		41		8		0		0		x
+TRB3	12	38		ARICH		40		8		0		0		x
+TRB3	12	39		ARICH		33		8		0		0		x
+TRB3	12	40		ARICH		32		8		0		0		x
+TRB3	12	41		ARICH		25		8		0		0		x
+TRB3	12	42		ARICH		24		8		0		0		x
+TRB3	12	43		ARICH		17		8		0		0		x
+TRB3	12	44		ARICH		16		8		0		0		x
+TRB3	12	45		ARICH		9		8		0		0		x
+TRB3	12	46		ARICH		8		8		0		0		x
+TRB3	12	47		ARICH		1		8		0		0		x
+TRB3	12	48		ARICH		0		8		0		0		x
+TRB3	13	0		ARICH		500		6		0		0		x
+TRB3	13	1		ARICH		59		6		0		0		x
+TRB3	13	2		ARICH		58		6		0		0		x
+TRB3	13	3		ARICH		51		6		0		0		x
+TRB3	13	4		ARICH		50		6		0		0		x
+TRB3	13	5		ARICH		43		6		0		0		x
+TRB3	13	6		ARICH		42		6		0		0		x
+TRB3	13	7		ARICH		35		6		0		0		x
+TRB3	13	8		ARICH		34		6		0		0		x
+TRB3	13	9		ARICH		27		6		0		0		x
+TRB3	13	10		ARICH		26		6		0		0		x
+TRB3	13	11		ARICH		19		6		0		0		x
+TRB3	13	12		ARICH		18		6		0		0		x
+TRB3	13	13		ARICH		11		6		0		0		x
+TRB3	13	14		ARICH		10		6		0		0		x
+TRB3	13	15		ARICH		3		6		0		0		x
+TRB3	13	16		ARICH		2		6		0		0		x
+TRB3	13	17		ARICH		59		7		0		0		x
+TRB3	13	18		ARICH		58		7		0		0		x
+TRB3	13	19		ARICH		51		7		0		0		x
+TRB3	13	20		ARICH		50		7		0		0		x
+TRB3	13	21		ARICH		43		7		0		0		x
+TRB3	13	22		ARICH		42		7		0		0		x
+TRB3	13	23		ARICH		35		7		0		0		x
+TRB3	13	24		ARICH		34		7		0		0		x
+TRB3	13	25		ARICH		27		7		0		0		x
+TRB3	13	26		ARICH		26		7		0		0		x
+TRB3	13	27		ARICH		19		7		0		0		x
+TRB3	13	28		ARICH		18		7		0		0		x
+TRB3	13	29		ARICH		11		7		0		0		x
+TRB3	13	30		ARICH		10		7		0		0		x
+TRB3	13	31		ARICH		3		7		0		0		x
+TRB3	13	32		ARICH		2		7		0		0		x
+TRB3	13	33		ARICH		59		8		0		0		x
+TRB3	13	34		ARICH		58		8		0		0		x
+TRB3	13	35		ARICH		51		8		0		0		x
+TRB3	13	36		ARICH		50		8		0		0		x
+TRB3	13	37		ARICH		43		8		0		0		x
+TRB3	13	38		ARICH		42		8		0		0		x
+TRB3	13	39		ARICH		35		8		0		0		x
+TRB3	13	40		ARICH		34		8		0		0		x
+TRB3	13	41		ARICH		27		8		0		0		x
+TRB3	13	42		ARICH		26		8		0		0		x
+TRB3	13	43		ARICH		19		8		0		0		x
+TRB3	13	44		ARICH		18		8		0		0		x
+TRB3	13	45		ARICH		11		8		0		0		x
+TRB3	13	46		ARICH		10		8		0		0		x
+TRB3	13	47		ARICH		3		8		0		0		x
+TRB3	13	48		ARICH		2		8		0		0		x
+TRB3	14	0		ARICH		500		6		0		0		x
+TRB3	14	1		ARICH		61		6		0		0		x
+TRB3	14	2		ARICH		60		6		0		0		x
+TRB3	14	3		ARICH		53		6		0		0		x
+TRB3	14	4		ARICH		52		6		0		0		x
+TRB3	14	5		ARICH		45		6		0		0		x
+TRB3	14	6		ARICH		44		6		0		0		x
+TRB3	14	7		ARICH		37		6		0		0		x
+TRB3	14	8		ARICH		36		6		0		0		x
+TRB3	14	9		ARICH		29		6		0		0		x
+TRB3	14	10		ARICH		28		6		0		0		x
+TRB3	14	11		ARICH		21		6		0		0		x
+TRB3	14	12		ARICH		20		6		0		0		x
+TRB3	14	13		ARICH		13		6		0		0		x
+TRB3	14	14		ARICH		12		6		0		0		x
+TRB3	14	15		ARICH		5		6		0		0		x
+TRB3	14	16		ARICH		4		6		0		0		x
+TRB3	14	17		ARICH		61		7		0		0		x
+TRB3	14	18		ARICH		60		7		0		0		x
+TRB3	14	19		ARICH		53		7		0		0		x
+TRB3	14	20		ARICH		52		7		0		0		x
+TRB3	14	21		ARICH		45		7		0		0		x
+TRB3	14	22		ARICH		44		7		0		0		x
+TRB3	14	23		ARICH		37		7		0		0		x
+TRB3	14	24		ARICH		36		7		0		0		x
+TRB3	14	25		ARICH		29		7		0		0		x
+TRB3	14	26		ARICH		28		7		0		0		x
+TRB3	14	27		ARICH		21		7		0		0		x
+TRB3	14	28		ARICH		20		7		0		0		x
+TRB3	14	29		ARICH		13		7		0		0		x
+TRB3	14	30		ARICH		12		7		0		0		x
+TRB3	14	31		ARICH		5		7		0		0		x
+TRB3	14	32		ARICH		4		7		0		0		x
+TRB3	14	33		ARICH		61		8		0		0		x
+TRB3	14	34		ARICH		60		8		0		0		x
+TRB3	14	35		ARICH		53		8		0		0		x
+TRB3	14	36		ARICH		52		8		0		0		x
+TRB3	14	37		ARICH		45		8		0		0		x
+TRB3	14	38		ARICH		44		8		0		0		x
+TRB3	14	39		ARICH		37		8		0		0		x
+TRB3	14	40		ARICH		36		8		0		0		x
+TRB3	14	41		ARICH		29		8		0		0		x
+TRB3	14	42		ARICH		28		8		0		0		x
+TRB3	14	43		ARICH		21		8		0		0		x
+TRB3	14	44		ARICH		20		8		0		0		x
+TRB3	14	45		ARICH		13		8		0		0		x
+TRB3	14	46		ARICH		12		8		0		0		x
+TRB3	14	47		ARICH		5		8		0		0		x
+TRB3	14	48		ARICH		4		8		0		0		x
+TRB3	15	0		ARICH		500		6		0		0		x
+TRB3	15	1		ARICH		63		6		0		0		x
+TRB3	15	2		ARICH		62		6		0		0		x
+TRB3	15	3		ARICH		55		6		0		0		x
+TRB3	15	4		ARICH		54		6		0		0		x
+TRB3	15	5		ARICH		47		6		0		0		x
+TRB3	15	6		ARICH		46		6		0		0		x
+TRB3	15	7		ARICH		39		6		0		0		x
+TRB3	15	8		ARICH		38		6		0		0		x
+TRB3	15	9		ARICH		31		6		0		0		x
+TRB3	15	10		ARICH		30		6		0		0		x
+TRB3	15	11		ARICH		23		6		0		0		x
+TRB3	15	12		ARICH		22		6		0		0		x
+TRB3	15	13		ARICH		15		6		0		0		x
+TRB3	15	14		ARICH		14		6		0		0		x
+TRB3	15	15		ARICH		7		6		0		0		x
+TRB3	15	16		ARICH		6		6		0		0		x
+TRB3	15	17		ARICH		63		7		0		0		x
+TRB3	15	18		ARICH		62		7		0		0		x
+TRB3	15	19		ARICH		55		7		0		0		x
+TRB3	15	20		ARICH		54		7		0		0		x
+TRB3	15	21		ARICH		47		7		0		0		x
+TRB3	15	22		ARICH		46		7		0		0		x
+TRB3	15	23		ARICH		39		7		0		0		x
+TRB3	15	24		ARICH		38		7		0		0		x
+TRB3	15	25		ARICH		31		7		0		0		x
+TRB3	15	26		ARICH		30		7		0		0		x
+TRB3	15	27		ARICH		23		7		0		0		x
+TRB3	15	28		ARICH		22		7		0		0		x
+TRB3	15	29		ARICH		15		7		0		0		x
+TRB3	15	30		ARICH		14		7		0		0		x
+TRB3	15	31		ARICH		7		7		0		0		x
+TRB3	15	32		ARICH		6		7		0		0		x
+TRB3	15	33		ARICH		63		8		0		0		x
+TRB3	15	34		ARICH		62		8		0		0		x
+TRB3	15	35		ARICH		55		8		0		0		x
+TRB3	15	36		ARICH		54		8		0		0		x
+TRB3	15	37		ARICH		47		8		0		0		x
+TRB3	15	38		ARICH		46		8		0		0		x
+TRB3	15	39		ARICH		39		8		0		0		x
+TRB3	15	40		ARICH		38		8		0		0		x
+TRB3	15	41		ARICH		31		8		0		0		x
+TRB3	15	42		ARICH		30		8		0		0		x
+TRB3	15	43		ARICH		23		8		0		0		x
+TRB3	15	44		ARICH		22		8		0		0		x
+TRB3	15	45		ARICH		15		8		0		0		x
+TRB3	15	46		ARICH		14		8		0		0		x
+TRB3	15	47		ARICH		7		8		0		0		x
+TRB3	15	48		ARICH		6		8		0		0		x
+SSD	0	0		SSD		0		0		0		0		x
+SSD	0	1		SSD		1		1		0		1		x
+SSD	0	2		SSD		0		2		1		2		x
+SSD	0	3		SSD		1		3		1		3		x
+SSD	1	0		SSD		1		5		2		5		x
+SSD	1	1		SSD		2		6		2		6		x
+SSD	1	2		SSD		1		8		3		8		x
+SSD	1	3		SSD		2		9		3		9		x
+SSD	1	4		SSD		0		4		2		4		x
+SSD	1	5		SSD		0		7		3		7		x
+SSD	2	0		SSD		0		10		4		10		x
+SSD	2	1		SSD		1		11		4		10		x
+SSD	2	2		SSD		2		12		4		11		x
+SSD	2	3		SSD		3		13		4		11		x
+SSD	2	4		SSD		4		14		4		12		x
+SSD	2	5		SSD		5		15		4		12		x
+SSD	3	0		SSD		0		16		5		13		x
+SSD	3	1		SSD		1		17		5		13		x
+SSD	3	2		SSD		2		18		5		14		x
+SSD	3	3		SSD		3		19		5		14		x
+SSD	3	4		SSD		4		20		5		15		x
+SSD	3	5		SSD		5		21		5		15		x
