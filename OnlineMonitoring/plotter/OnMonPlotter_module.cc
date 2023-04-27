@@ -131,7 +131,7 @@ namespace emph {
       static const unsigned int kT0Offset = 0;
       static const unsigned int kRPCOffset = 1;
       static const unsigned int kSSDOffset = 1;
-      static const unsigned int kARICHOffset = kSSDOffset+22;
+      static const unsigned int kARICHOffset = kSSDOffset+28;
       static const unsigned int kLGCaloOffset = kARICHOffset+9;
       // define histograms
 
