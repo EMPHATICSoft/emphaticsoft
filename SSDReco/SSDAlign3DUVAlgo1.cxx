@@ -397,7 +397,7 @@ namespace emph {
      } 
      bool ssdr::SSDAlign3DUVAlgo1::fit3D(size_t minNumHits) {
        
-//       bool debugIsOn = ( fEvtNum > 1159 );  
+//       bool debugIsOn = ( fEvtNum == 1 );  
        bool debugIsOn = false;  
      
        if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::fit3D, min num hits " 
@@ -411,14 +411,14 @@ namespace emph {
        if (fRunNum == 1293)  myNonLin3DFitPtr->SetMCFlag(true); // Very, very ugly, but let us move on..  
        ROOT::Minuit2::MnUserParameters uPars;
        uPars.Add(std::string("X_0"), fTrXY.XOffset(), 0.1, -20., 20.);  
-       uPars.Add(std::string("Slx_0"), 0., 0.0005, -0.1, 0.1);  
+       uPars.Add(std::string("Slx_0"), 0.001, 0.005, -0.1, 0.1);  
        uPars.Add(std::string("Y_0"), fTrXY.YOffset(), 0.1, -20., 20.);  
-       uPars.Add(std::string("Sly_0"), 0., 0.0005, -0.1, 0.1);  
-       uPars.Add(std::string("Mom"), fMomentumInit3DFit, 5., -250., 250.);  
+       uPars.Add(std::string("Sly_0"), 0.001, 0.005, -0.1, 0.1);  
+       uPars.Add(std::string("Mom"), fMomentumInit3DFit, 15., -250., 250.);  
        
        ROOT::Minuit2::MnMigrad migrad((*myNonLin3DFitPtr), uPars);
        //
-       ROOT::Minuit2::FunctionMinimum min = migrad(2000);
+       ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
        if (debugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
        //
        if (!min.IsValid()) return false;

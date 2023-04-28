@@ -27,7 +27,7 @@ namespace emph{
         const size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
         const size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each 
         const size_t fNumSensorsV = 4; // Station 4 and 5, two sensors each 
-	const size_t fNumStrips = 640; // Inconsistent with the height of the Sensors, by one 60 micron pitch  
+	const size_t fNumStrips = 639; // Inconsistent with the height of the Sensors, by one 60 micron pitch  
 	//
 	double fZCoordsMagnetCenter, fMagnetKick120GeV;
 	double fPitch;
@@ -86,7 +86,7 @@ namespace emph{
 	inline double ZCoordsMagnetCenter() const { return fZCoordsMagnetCenter; } 
 	inline double MagnetKick120GeV() const { return fMagnetKick120GeV; } 
 	
-	inline double ZPos(emph::geo::sensorView view, size_t kSt, size_t kSe) {  // Relevant ndex is the Station index for X and Y,  
+	inline double ZPos(emph::geo::sensorView view, size_t kSt, size_t kSe=0) {  // Relevant ndex is the Station index for X and Y,  
 	// Ugly.... Valid only for Phase1b  
           switch (view) {
 	    case emph::geo::X_VIEW : {
