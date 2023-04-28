@@ -65,6 +65,8 @@ namespace emph {
     void test3(); // test calculation of preliminary acceptance sensitivity of beam axis and/or SSD Yaw uncertainty.  
     void studyZipTrackData1(); // June 4 2022:  Received from Leo, who received from Mike Tartaglia. 
     void studyZipTrackData2(); // March 28 2023:  Received from Leo, who received from Mike Tartaglia. 
+    void writeBinary(const std::string &fNameOut) const; // for fast access, later on... 
+    void readBinary(const std::string &fNameIn); // for fast access,no checks.. 
     std::pair<double, double> getMaxByAtCenter();
 
   protected:

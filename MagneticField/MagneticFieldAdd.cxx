@@ -186,5 +186,64 @@ namespace emph {
       numLines++;
     }
     fileIn.close();
-  }    
+  }
+  void EMPHATICMagneticField::writeBinary(const std::string &fName) const {
+    std::ofstream fileOut(fName.c_str(), std::ios::out | std::ios::binary); 
+    if ((!fileOut.is_open()) || (!fileOut.good())) {
+         std::cerr << "EMPHATICMagneticField::writeBinary, file with name " << std::string(fName) << " can not be written, bail out " << std::endl;
+	 exit(2);
+    }
+    int numCells[3]; numCells[0] = fNStepX; numCells[1] = fNStepY; numCells[2] = fNStepZ;
+    fileOut.write(reinterpret_cast<char*> (&numCells[0]), 3*sizeof(int));
+    double bounds[9]; bounds[0] = fXMin; bounds[1] = fYMin; bounds[2] =  fZMin; 
+    bounds[3] =  fXMax; bounds[4] =  fYMax;  bounds[5] = fZMax;
+    bounds[6] = fStepX; bounds[7] = fStepY; bounds[8] = fStepZ; 
+    fileOut.write(reinterpret_cast<char*>(&bounds[0]), 9*sizeof(double));
+    std::vector<double>  dd(3*static_cast<size_t>(fNStepZ), 0.); 
+    std::cerr << " EMPHATICMagneticField::writeBinary... fNStepX " << fNStepX << " Y " << fNStepY << std::endl;
+     for (size_t kx = 0; kx !=  static_cast<size_t>(fNStepX); kx++) { 
+      for (size_t ky = 0; ky != static_cast<size_t>(fNStepY); ky++) {
+       size_t kk=0; 
+        for(size_t kz = 0; kz != static_cast<size_t>(fNStepZ); kz++, kk+=3) { 
+	   size_t iv = indexForVector(kx, ky, kz);
+	   dd[kk] = ffield[iv].fbx; dd[kk+1] = ffield[iv].fby; dd[kk+2] = ffield[iv].fbz;
+	}
+	fileOut.write(reinterpret_cast<char*>(&dd[0]), dd.size()*sizeof(double));
+      }
+    } 
+    fileOut.close();
+  }
+  void EMPHATICMagneticField::readBinary(const std::string &fName) {
+    std::ifstream fileIn(fName.c_str(), std::ios::in | std::ios::binary); 
+    if ((!fileIn.is_open()) || (!fileIn.good())) {
+         std::cerr << "EMPHATICMagneticField::readBinary, file with name " << std::string(fName) << " can not be read, bail out " << std::endl;
+	 exit(2);
+    }
+    int numCells[3];
+    fileIn.read(reinterpret_cast<char*> (&numCells[0]), 3*sizeof(int));
+    fNStepX =  numCells[0];  fNStepY = numCells[1]; fNStepZ = numCells[2];
+    double bounds[9]; 
+    fileIn.read(reinterpret_cast<char*>(&bounds[0]), 9*sizeof(double));
+    fXMin = bounds[0]; fYMin = bounds[1]; fZMin = bounds[2]; 
+    fXMax = bounds[3]; fYMax = bounds[4]; fZMax = bounds[5];
+    fStepX = bounds[6]; fStepY = bounds[7]; fStepZ = bounds[8]; 
+    bFieldPoint aBV; aBV.fbx = nan("FCOMSOL"); aBV.fby = nan("FCOMSOL"); aBV.fbz = nan("FCOMSOL");
+    size_t nTot = static_cast<size_t>(fNStepX) * static_cast<size_t>(fNStepY) * static_cast<size_t>(fNStepZ); 
+    for (size_t i=0; i != nTot; i++) ffield.push_back(aBV);
+    std::vector<double>  dd( 3*static_cast<size_t>(fNStepZ), 0.); 
+    for (size_t kx = 0; kx !=  static_cast<size_t>(fNStepX); kx++) { 
+      for (size_t ky = 0; ky != static_cast<size_t>(fNStepY); ky++) {
+	fileIn.read(reinterpret_cast<char*>(&dd[0]), dd.size()*sizeof(double));
+        size_t kk=0; 
+        for(size_t kz = 0; kz !=  static_cast<size_t>(fNStepZ); kz++, kk+=3) { 
+	   size_t iv = indexForVector(kx, ky, kz);
+	   ffield[iv].fbx = dd[kk]; ffield[iv].fby = dd[kk+1];  ffield[iv].fbz = dd[kk+2];
+	}
+      }
+    } 
+    fileIn.close();
+  }
+  
+  
+      
 } // emph namespace

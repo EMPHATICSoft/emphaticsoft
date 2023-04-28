@@ -67,7 +67,8 @@ namespace emph {
       //    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
       //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
       if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
-      else this->uploadFromTextFile(filename);
+      else if (filename.find(".txt") != std::string::npos) this->uploadFromTextFile(filename);
+      else if (filename.find("Binary.dat") != std::string::npos) this->readBinary(filename);
       // These tests do something, comment out for sake of saving time for production use.     
           this->SetFieldOn();	// Set also in the G4EMPH, and the reconstruction.. Please check..       
 // 
@@ -76,6 +77,13 @@ namespace emph {
       //    this->test3();
       //      this->studyZipTrackData1();
       //     this->studyZipTrackData2();
+     
+      if (fVerbosity == 1) {  // a bit dirty debugging and dumping in one go.. 
+          std::string fNameOut("/home/lebrun/EMPHATIC/MagFieldMarch29/mfMapBinary.dat"); 
+	  this->writeBinary(fNameOut);
+          std::cerr << " Got the COMSOL field map, dump it Binary, and quit for now " << std::endl; exit(2); 
+      }
+      
     }
     
   void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
