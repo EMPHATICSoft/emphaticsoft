@@ -168,8 +168,7 @@ namespace emph
     int station, plane, sensor, strip;
     sscanf(volStr.c_str(),"ssd_chan_%d_%d_%d_%d_vol",
 	   &station,&plane,&sensor,&strip);
-    plane -= 1;
-    sensor -= 1;
+
     //    std::cout << "(station, plane, sensor, strip) = (" << station << "," 
     //	      << plane << "," << sensor << "," << strip << ")" << std::endl;
     ssdHit.SetStation(station);
