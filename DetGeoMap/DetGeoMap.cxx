@@ -12,16 +12,19 @@
 #include <cassert>
 #include <string>
 
+#include "TGeoManager.h"
+#include "TGeoNode.h"
+#include "TGeoVolume.h"
+#include "TGeoNavigator.h"
+
 namespace emph {
   namespace dgmap {
   
     //----------------------------------------------------------------------
     
     DetGeoMap::DetGeoMap()
-      //      fIsLoaded(false), fMapFileName("")
     {
-      //      fEChanMap.clear();
-      //      fDChanMap.clear();
+      //      art::ServiceHandle<emph::geo::GeometryService> geo;
     }
   
     //----------------------------------------------------------------------
@@ -84,6 +87,14 @@ namespace emph {
       return true;
 
     }
+
+    //----------------------------------------------------------------------
+    void DetGeoMap::Reset()
+    {
+
+    }
+
+    //----------------------------------------------------------------------
 
   } // end namespace dgmap
   

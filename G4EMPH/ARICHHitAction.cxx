@@ -102,7 +102,7 @@ namespace emph
 		  emph::arich_util::PMT mpmt = fGeo->Geo()->FindPMTByName(pVolName);
 
 		  double e = step->GetPreStepPoint()->GetTotalEnergy();
-		  std::cout<<"e "<<e<<std::endl;
+		  //		  std::cout<<"e "<<e<<std::endl;
 		  double l = h_Planck*c_light/e;//mm
 		  //std::cout<<"wavelength "<<l<<" mm"<<std::endl;
 
