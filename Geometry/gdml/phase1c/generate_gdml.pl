@@ -831,9 +831,7 @@ EOF
 		$sen=0;
 		for($i = 0; $i < $nSSD_station; ++$i){
 			for($j = 0; $j < $SSD_lay[$SSD_station[$i]]; ++$j){
-				++$lay;
 				for($k = 0; $k < $SSD_par[$SSD_station[$i]]; ++$k){
-					++$sen;
 					print MOD <<EOF;
 		 <volume name="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_vol">
 			<materialref ref="SiliconWafer"/>
@@ -851,7 +849,9 @@ EOF
 		 </volume>
 
 EOF
+					++$sen;
 				}
+				++$lay;
 			}
 		}
 
