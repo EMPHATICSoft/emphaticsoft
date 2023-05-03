@@ -5,7 +5,6 @@
 
 // EMPHATIC includes
 #include "DetGeoMap/service/DetGeoMapService.h"
-//#include "RunHistory/service/RunHistoryService.h"
 
 // Framework includes
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
@@ -22,8 +21,6 @@ namespace emph
     DetGeoMapService::DetGeoMapService(const fhicl::ParameterSet& pset,
 					 art::ActivityRegistry & reg)
     {
-      //      art::ServiceHandle<runhist::RunHistoryService> rhs;
-
       fDetGeoMap = new DetGeoMap();
       reconfigure(pset);
       
@@ -46,9 +43,6 @@ namespace emph
     //----------------------------------------------------------
     void DetGeoMapService::preBeginRun(const art::Run& run)
     {
-      //      fDetGeoMap->SetAbortIfFileNotFound(fAbortIfFileNotFound);      
-      //      art::ServiceHandle<runhist::RunHistoryService> rhs;
-
       fDetGeoMap->SetRun(run.run());
       fDetGeoMap->Reset();
     }

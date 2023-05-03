@@ -18,8 +18,6 @@ art_make_library ( SOURCE ${src_files}
 		ChannelMap
 		ChannelMapService_service
 		art_root_io::TFileService_service
-#                ROOT::Hist
-#                ROOT::Tree
 		)
 
 cet_build_plugin(SSDDigitizer art::module
@@ -35,8 +33,6 @@ cet_build_plugin(SSDDigitizer art::module
     art::Framework_Core
     art::Persistency_Common
     messagefacility::MF_MessageLogger
-#    ROOT::Hist
-#    ROOT::Tree
 )
 
 install_source()
