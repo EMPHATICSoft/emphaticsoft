@@ -94,7 +94,7 @@ namespace emph {
 
     fSensorMap.clear();
 
-    produces<std::vector<rawdata::SSDRawDigit> >();
+    produces<std::vector<rawdata::SSDRawDigit> >("SSD");
 
   }
 
@@ -151,7 +151,7 @@ namespace emph {
 
     if (!ssdHitH->empty()) {
 
-      int station, chip, set, strip, t, adc, trig;
+      int station, row, t, adc, trig;
       int sensor;
       t = 0;
       trig = 0;
@@ -171,17 +171,17 @@ namespace emph {
 	
 	station = ssdhit.GetStation();
 	sensor = ssdhit.GetSensor(); // need to convert this from 0-27 range to 0-5
-	strip = ssdhit.GetStrip();
-	chip = strip/128;
-	set = strip/128; // not sure what "set" is... do we even use this for anything?  Is it redundant?
+	row = ssdhit.GetStrip();
 	adc = ssdhit.GetDE()/8; // this needs attention!
 
 	dchan.SetStation(station);
 	dchan.SetHiLo(sensor);
 	dchan.SetChannel(fSensorMap[sensor]);
 	echan = cmap->ElectChan(dchan);
-	dig = new rawdata::SSDRawDigit(echan.Board(), echan.Channel(), chip, set,
-				       strip, t, adc, trig);
+
+	// NOTE: charge-sharing across strips needs to be implemented!  For now we just assume one strip per G4 hit...
+	dig = new rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row,
+				       t, adc, trig);
 	//	std::cout << "(" << station << "," << sensor << "," << fSensorMap[sensor] << ") --> (" << echan.Board() << "," << echan.Channel() << ")" << std::endl;
 	ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
 	delete dig;
@@ -190,7 +190,7 @@ namespace emph {
       
     }
     
-    evt.put(std::move(ssdRawD));
+    evt.put(std::move(ssdRawD),"SSD");
 
   } // SSDDigitizer::analyze()
 

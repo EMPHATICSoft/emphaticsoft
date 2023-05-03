@@ -26,7 +26,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-dig_r%r_s%s.root"
+   fileName:    "emphmc-dig_r%r_s%s.root"
    fastCloning: false
    
   }
@@ -36,10 +36,10 @@ physics:
 {
   producers:
   {
-    ssddigitizer:        @local::standard_ssddigitizer
+    raw:        @local::standard_ssddigitizer
   }
 
-  digitizer: [ ssddigitizer ]
+  digitizer: [ raw ]
 
   trigger_paths: [ digitizer ]
   stream1: [ out1 ]

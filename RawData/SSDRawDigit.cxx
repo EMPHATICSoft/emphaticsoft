@@ -2,6 +2,9 @@
 /// \brief   SSDRawDigit class
 /// \author  jpaley@fnal.gov
 /// \date
+/// \note:   *** Note that "strip" in the raw digit class is not the same
+///              as "strip" in the geometry.  The corresponding variable
+///              to the geometry strip is "row".
 ////////////////////////////////////////////////////////////////////////
 #include "RawData/SSDRawDigit.h"
 
@@ -35,8 +38,18 @@ namespace emph {
     fFER(station), fModule(module), fChip(chip), fSet(set), fStrip(strip), fTime(t),
     fADC(adc), fTrigNum(trigtype)
   {
-      fRow = getSensorRow();
-		fBco2s = 144;
+    fRow = getSensorRow();
+    fBco2s = 144;
+  }
+  
+  //----------------------------------------------------------------------
+  
+  rawdata::SSDRawDigit::SSDRawDigit(int32_t station, int32_t module, int32_t row, 
+				    int32_t t, int32_t adc, int32_t trigtype) :
+    fFER(station), fModule(module), fTime(t), fADC(adc), 
+    fTrigNum(trigtype), fRow(row)
+  {
+    fBco2s = 144;
   }
   
   //------------------------------------------------------------
