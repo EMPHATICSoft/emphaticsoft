@@ -35,7 +35,8 @@ namespace emph {
        fNominalOffsetsAlt45(fNumStations, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0), fRMSResiduals(fNumStations, 0),
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fZLocShifts(fNumStations, 0.),
-       fPitchOrYawAngles(fNumStations, 0.), myLinFit(), myConvert('Y')
+       fPitchOrYawAngles(fNumStations, 0.), fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
+       myLinFit(), myConvert('Y')
      { 
         ; 
      }

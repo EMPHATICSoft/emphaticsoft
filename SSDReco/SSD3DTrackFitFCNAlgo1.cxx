@@ -33,7 +33,7 @@ namespace emph {
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), 
     fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(20.0), // last parameter might need some tuning.. This is the value at 120 GeV.
     fNumSensorsTotal(2*fEmVolAlP->NumSensorsXorY() + fEmVolAlP->NumSensorsU() + fEmVolAlP->NumSensorsV()),
-    fData(), fZPos(),
+    fData(), fZPos(), fMagShift(3, 0.),
     fErrorDef(1.), fOneOverSqrt2(1.0/std::sqrt(2.)), 
     fOneOSqrt12(std::sqrt(1.0/12.)), fResids(fNumSensorsTotal, DBL_MAX),
     fZLocUpstreamMagnet(DBL_MAX), fZLocDownstrMagnet(DBL_MAX) {
@@ -99,9 +99,16 @@ namespace emph {
            startMag[4] = sly0*pars[4]; // assume small slope, sin(theta) = theta.. 
            startMag[5] = std::abs(pars[4]) * std::sqrt(1.0 - slx0*slx0 - sly0*sly0); 
            endMag[2] = zLocDownstrMagnet; 
+	   // 
+	   // Implement Magnet misalignment.. 
+	   startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+	   //
+	   // Back shift.. 
+	   endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
            slx1 = endMag[3]/pars[4]; sly1 = endMag[4]/pars[4]; 
            xPredAtSt[3] = endMag[0]; yPredAtSt[3] = endMag[1];
+	   
 	   // correction for the small difference of X and Y planes. 
 	   double ddZXY = fEmVolAlP->ZPos(emph::geo::Y_VIEW, 3) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 3); yPredAtSt[3] += ddZXY*sly1;  
            if (fDebugIsOn) 
@@ -123,7 +130,9 @@ namespace emph {
          startMag[4] = sly1*pars[4];; // assume small slope, sin(theta) = theta.. 
          startMag[5] = std::abs(pars[4]) * std::sqrt(1.0 - slx1*slx1 - sly1*sly1);
 	 endMag[2] = zLocDownstrMagnet; 
+ 	 startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
          fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+	 endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
          double slx2 = endMag[3]/pars[4]; double sly2 = endMag[4]/pars[4]; 
          xPredAtSt[4] = endMag[0]; yPredAtSt[4] = endMag[1];
 	 // correction for the small difference of X and Y planes. 
@@ -141,14 +150,16 @@ namespace emph {
 	   zLocUpstreamMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 4);
 	   zLocDownstrMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 6);
 	   if (fDebugIsOn) std::cerr << " Downstream fringe  zLocUpstreamMagnet " <<  zLocUpstreamMagnet << " Downstream " << zLocDownstrMagnet << std::endl;
-           startMag[0] = xPredAtSt[4]; // assume station 0 is the origin. 
-           startMag[1] = yPredAtSt[4]; // assume station 0 is the origin. 
+           startMag[0] = xPredAtSt[4];  
+           startMag[1] = yPredAtSt[4]; 
            startMag[2] = zLocUpstreamMagnet; 
            startMag[3] = slx2*pars[4]; // 
            startMag[4] = sly2*pars[4];; // assume small slope, sin(theta) = theta.. 
            startMag[5] = std::abs(pars[4]) * std::sqrt(1.0 - slx2*slx2 - sly2*sly2);
 	   endMag[2] = zLocDownstrMagnet; 
+ 	   startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+	   endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
            double slx3 = endMag[3]/pars[4]; double sly3 = endMag[4]/pars[4];
            xPredAtSt[5] = endMag[0]; yPredAtSt[5] = endMag[1];
 	 // correction for the small difference of X and Y planes. 
@@ -181,6 +192,7 @@ namespace emph {
           std::vector<rb::SSDCluster>::const_iterator it = *itCl;
  	  const int kSt = it->Station();
  	  const int kSe = it->Sensor();
+	  const int kS = (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt; // in dex ranging from 0 to 7, inclusive, for Phase1b, list of sensors by view.  
 	  emph::geo::sensorView aView = it->View();
 	  size_t kSeT = 0; // For the residuals. Easier to plot and understand this way, but messy to code in this context.
 	  // Valid for Phase1b  
@@ -275,9 +287,9 @@ namespace emph {
 	  	      << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  
 		      << " TransOffset " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl; 
 	    } else if (aView == emph::geo::Y_VIEW) {
-	      tMeas = (kSe < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
+	      tMeas = (kS < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
 	                      ( strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)) ;
-	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;      
+	      if ((kS > 3) && (kS % 2) == 1) tMeas *=-1;      
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... Y View " << " kSe " << kSe 
 	  	      << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
@@ -303,8 +315,8 @@ namespace emph {
 	                             << std::sqrt(tMeasErrSq) << " current Chi2 " << chi2 << std::endl;
         } // on the SSD Clusters 
 //      std::cerr << " SSD3DTrackFitFCNAlgo1::operator(), done chiSq " << chi2 << std::endl;
-      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
-//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
+//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
+      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
       fLastChi2 = chi2;
       return chi2;
     }

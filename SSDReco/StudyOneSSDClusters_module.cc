@@ -48,7 +48,8 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "SSDReco/SSDHotChannelList.h"
 #include "SSDReco/SSDAlign2DXYAlgo1.h"
 #include "SSDReco/SSDAlign3DUVAlgo1.h"
-#include "SSDReco/VolatileAlignmentParams.h" 
+#include "SSDReco/VolatileAlignmentParams.h"
+#include "MagneticField/service/MagneticFieldService.h" 
 //
 
 
@@ -118,11 +119,14 @@ namespace emph {
 //
       runhist::RunHistory *fRunHistory;
       emph::geo::Geometry *fEmgeo;
+      emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+      
       std::vector<double> fZlocXPlanes;
       std::vector<double> fZlocYPlanes;
       std::vector<double> fZlocUPlanes;
       std::vector<double> fZlocVPlanes;
       std::vector<double> fRMSClusterCuts;
+      std::vector<double> fMagShift;
       std::map<int, char> fXYUVLabels; // keyed on 10*stations + sensor. 
 // 
 // Container for the hot channels. 
@@ -146,6 +150,8 @@ namespace emph {
 // CSV tuple output..
 // 
       std::ofstream fFOutA1X, fFOutA1Y, fFOutA1U, fFOutA1V;
+      
+      
       void openOutputCsvFiles();
       
       void dumpXYCls();
@@ -176,6 +182,7 @@ namespace emph {
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.), fSetMCRMomentum(120.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
+     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
      fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
     {
        std::cerr << " Constructing StudyOneSSDClusters " << std::endl;
@@ -184,6 +191,15 @@ namespace emph {
 //       fSSDClsPtr = nullptr;
        fAlignX.SetTheView('X'); fAlignY.SetTheView('Y');
        fRMSClusterCuts = std::vector<double>{-1.0, 5.};
+       fMagShift = std::vector<double>(3, 0.);       
+       
+       //
+       // import the alignment parameter, from the SSDAlign project. 
+       //
+//       if (fTokenJob.find("Mis06c_1") != std::string::npos) fEmVolAlP->SetTransShiftFor4c5c6c(false, 1.);
+//       if (fTokenJob.find("Mis06c_2") != std::string::npos) fEmVolAlP->SetTransShiftFor4c5c6c(true, 1.0); // staring at the residual of alignmenta job 05c_8d2
+// best so far.. 
+       if (fTokenJob.find("Mis06c") != std::string::npos) fEmVolAlP->SetTransShiftFor4c5c6c(true, 2.0); // staring at the residual of alignmenta job 05c_8d2
     }
     
     void emph::StudyOneSSDClusters::reconfigure(const fhicl::ParameterSet& pset)
@@ -217,6 +233,8 @@ namespace emph {
       double aChiSqCut3DUVY = pset.get<double>("ChiSqCutAlign3DUVY", 100.);
       double aChiSqCut3DUVUV = pset.get<double>("ChiSqCutAlign3DUVUV", 100.);
       const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
+      fMagShift = pset.get<std::vector<double> >("MagnetShift", std::vector<double>(3., 0.));
+      std::cerr << " Check Magnet shift is now " << fMagShift[0] << " / " << fMagShift[1] << " / " << fMagShift[2] << std::endl;
       fSetMCRMomentum = pset.get<double>("SetMCRMomentum", 120.);
       // default value for transverse (X) kick is for 120 GeV, assuming COMSOL file is correct. based on G4EMPH 
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
@@ -274,7 +292,7 @@ namespace emph {
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
       if (fDoAlignUVAndFit) fAlignUV.SetDo3DFit(true);
-      
+      fAlignUV.SetMagnetShift(fMagShift);
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }
     void emph::StudyOneSSDClusters::beginRun(art::Run const &run)

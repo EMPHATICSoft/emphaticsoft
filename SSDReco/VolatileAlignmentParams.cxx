@@ -35,7 +35,7 @@ namespace emph {
        fTrNomPosX{fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, 
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},
        fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
-                  -fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},      
+                  fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},      
        fTrNomPosU{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
        fTrNomPosV{-fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  // Weird...!... MC bug ???? 
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
@@ -138,10 +138,14 @@ namespace emph {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break;  
+// flip sign ???? 
+//	     fTrDeltaPosX[kSe] = -v;  fTrPosX[kSe] = fTrNomPosX[kSe] - v;  break;  
 	    } 
 	 case emph::geo::Y_VIEW :  { 
 	    fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;
+//	    fTrDeltaPosY[kSe] = -v; fTrPosY[kSe] = fTrNomPosY[kSe] - v; break;
 	 } 
+	 // flip sign as well ????? .. 
 	 case emph::geo::U_VIEW :  { fTrDeltaPosU[kSe] = v; fTrPosU[kSe] = fTrNomPosU[kSe] + v; break;} 
 	 case emph::geo::W_VIEW : { fTrDeltaPosV[kSe] = v; fTrPosV[kSe] = fTrNomPosV[kSe] + v; break;}
 	 default : { 
@@ -219,6 +223,38 @@ namespace emph {
 	      std::cerr << " VolatileAlignmentParams::SetMultScatUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
+     }
+     void VolatileAlignmentParams::SetTransShiftFor4c5c6c(bool correctX57, double factBad) {
+     //
+     // See job Sim5c_8d1 (30 GeV) on my desk1 machine and 4c_g (120 GeV) on the wilson cluster. 
+     // We take the 30 GeV.. Worst case.. 
+     // 
+        std::cerr << " VolatileAlignmentParams::SetTransShiftFor4c5c6c, in effect.. " << std::endl;
+        this->SetDeltaTr(emph::geo::X_VIEW, 1, 1.30528);
+        this->SetDeltaTr(emph::geo::X_VIEW, 2, 1.40432 );
+        this->SetDeltaTr(emph::geo::X_VIEW, 3, 2.42377);
+        this->SetDeltaTr(emph::geo::X_VIEW, 4, 4.3912 );
+        this->SetDeltaTr(emph::geo::X_VIEW, 5, 2.39239);
+        this->SetDeltaTr(emph::geo::X_VIEW, 6, 4.15928);
+        this->SetDeltaTr(emph::geo::X_VIEW, 7,  3.0   );  // See parameter Dgap (double sensor gap)
+	 
+        this->SetDeltaTr(emph::geo::Y_VIEW, 1,  0.457939 );
+        this->SetDeltaTr(emph::geo::Y_VIEW, 2,  -0.905573);
+        this->SetDeltaTr(emph::geo::Y_VIEW, 3,  0.0796809);
+        this->SetDeltaTr(emph::geo::Y_VIEW, 4,  2.94305  );
+        this->SetDeltaTr(emph::geo::Y_VIEW, 5,  3.01591  );
+        this->SetDeltaTr(emph::geo::Y_VIEW, 6,  2.8699   );
+        this->SetDeltaTr(emph::geo::Y_VIEW, 7,  3.0   );  // See parameter Dgap (double sensor gap) 
+        this->SetDeltaTr(emph::geo::U_VIEW, 0,  0.726008 );
+        this->SetDeltaTr(emph::geo::U_VIEW, 1,  2.85987  );
+        this->SetDeltaTr(emph::geo::W_VIEW, 0,  -5.42706 );
+        this->SetDeltaTr(emph::geo::W_VIEW, 1,  -4.71627 );
+        this->SetDeltaTr(emph::geo::W_VIEW, 2,  -1.262   );
+        this->SetDeltaTr(emph::geo::W_VIEW, 3,  -1.15554 );
+	if (correctX57) {
+           this->SetDeltaTr(emph::geo::X_VIEW, 7,  3.0 - factBad*0.5091 );  // The last term is the average of the residual from the alignment fit 5c_8d2
+           this->SetDeltaTr(emph::geo::X_VIEW, 5,  2.39239 - factBad*0.150 );  // The last term is the average of the residual from the alignment fit 5c_8d2
+	}    
      } 
    } // namespace 
 }  // namespace   

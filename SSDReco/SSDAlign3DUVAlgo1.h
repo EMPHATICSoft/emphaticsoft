@@ -21,6 +21,7 @@
 #include "RecoBase/BeamTrackAlgo1.h" 
 #include "SSDReco/ConvertDigitToWCoordAlgo1.h"
 #include "SSDReco/SSD3DTrackFitFCNAlgo1.h"
+#include "SSDReco/VolatileAlignmentParams.h"
 
 namespace emph { 
   namespace ssdr {
@@ -46,6 +47,7 @@ namespace emph {
 	  int fNEvents; // Incremental events count for a given job. 
 	  int fNEvtsCompact;
 	  bool fDo3DFit;
+          bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
 	  bool fMomentumIsSet; // a flag to make sure we don't set the momentum more than once in the same job. 
 	  bool fFilesAreOpen;
 	  char fView; 
@@ -59,10 +61,11 @@ namespace emph {
 	  double fMomentumInit3DFit;
 	  std::string fTokenJob;
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
+	  std::vector<double> fMagShift;
 	  std::vector<double> fZCoordXs, fZCoordYs,  fZCoordUs, fZCoordVs;
-	  std::vector<double> fFittedResidualsX;// the meanvalue over a run..Or previously fitted..  
+	  std::vector<double> fFittedResidualsX;// the meanvalue over a run..Or previously fitted.. // No longer used, (May 2023)  
 	  std::vector<double> fFittedResidualsY;// the meanvalue over a run..Or previously fitted..  
-          // For future use..
+          // For future use.. Or not.. I defined a new VolatileAligmmentParams class. 
 	  std::vector<double> fPitchAngles;
 	  std::vector<double> fPitchAnglesAlt; // for the sensor with fewer ptoton beam statistics. 
 	  std::vector<double> fYawAngles;
@@ -83,11 +86,15 @@ namespace emph {
 	  
 	  
 	  emph::ssdr::SSDAlignSimpleLinFit myLinFitX, myLinFitY; 
-	  emph::ssdr::SSD3DTrackFitFCNAlgo1 *myNonLin3DFitPtr; 
+	  emph::ssdr::SSD3DTrackFitFCNAlgo1 *myNonLin3DFitPtr;
+	  // Obsolete... I think..  
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertX; // View is the argument.. 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertY; // One instance for each view.. Not a waste of memory, maximum dims are 8, not 22 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertU; // For sake of uniformity. 
-	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertV; // 
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvertV; //
+          emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+	  
+	   
 
 	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV, fFOut3DFit, fFOutCompact;
 	  
@@ -100,6 +107,7 @@ namespace emph {
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 	 inline void SetDo3DFit(bool b=true) { fDo3DFit = b; }
+	 inline void SetMagnetShift(std::vector<double> v) { fMagShift = v; }
 //	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
 	 inline void SetOtherUncert(const std::vector<double> v) { 
 	    fOtherUncert = v; myConvertX.SetOtherUncert(v); myConvertY.SetOtherUncert(v); 

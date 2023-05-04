@@ -42,6 +42,7 @@ namespace emph{
       size_t fNumSensorsTotal;
       std::vector<myItCl> fData; 
       mutable std::vector<double> fZPos;
+      mutable std::vector<double> fMagShift;
       double fErrorDef; // for Minuit. 
       double fOneOverSqrt2, fOneOSqrt12;
       mutable std::vector<double> fResids;
@@ -58,6 +59,7 @@ namespace emph{
       inline void ResetZpos() { fZPos.clear(); fZLocUpstreamMagnet = DBL_MAX; fZLocDownstrMagnet = DBL_MAX; }
       inline void SetErrorDef(double e) { fErrorDef = e; }
       inline void SetMCFlag(bool v) { fIsMC = v; }
+      inline void SetMagnetShift(std::vector<double> v) { fMagShift = v; }  
       inline void SetDebugOn(bool v = true) { fDebugIsOn = v; }
       inline void SetIntegrationStep(double s) { fIntegrationStep = s; }
       inline double Resid(size_t kSe) const {

@@ -63,6 +63,8 @@ namespace emph{
       
         VolatileAlignmentParams(const VolatileAlignmentParams&) = delete;   // no copy constructor. 
 	
+	
+	
 	// Setters 
 	
 	void SetDeltaZ(emph::geo::sensorView view, size_t sensor, double value);  // move individual sensors. For X, & Y, sensor ranges from 0 to fNumSensorsXoY 
@@ -75,6 +77,10 @@ namespace emph{
 	void SetMultScatUncert(emph::geo::sensorView view,  size_t kSe, double v);
 	inline void SetZCoordsMagnetCenter(double v) { fZCoordsMagnetCenter = v; } 
 	inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; } 
+	//
+	// Monte-Carlo studies. April-May-June 2023. 
+	//
+	void SetTransShiftFor4c5c6c(bool correctResid57=false, double factBad=1.0); 
 	
 	// Getter 
 	inline size_t NumStations() const { return fNumStations; } 
@@ -109,10 +115,14 @@ namespace emph{
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
+//	     std::cerr << " VolatileAlignmentParams::TrPos, X,  kSt " << kSt << " kSe " << kSe << " kS " 
+//	               << kS <<  " X nom " << fTrNomPosX[kS] << " delta " << fTrDeltaPosX[kS] <<  " pos " << fTrPosX[kS] << std::endl;
 	     return fTrPosX[kS];  
 	    } 
 	    case emph::geo::Y_VIEW :  { 
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
+//	     std::cerr << " VolatileAlignmentParams::TrPos, Y,  kSt " << kSt << " kSe " << kSe << " kS " 
+//	               << kS <<  " Y nom " << fTrNomPosY[kS] << " delta " << fTrDeltaPosY[kS] << " pos " << fTrPosY[kS] <<  std::endl;
 	     return fTrPosY[kS]; } 
 	    case emph::geo::U_VIEW :  { return (fTrPosU[kSt-2]); } 
 	    case emph::geo::W_VIEW :  { return (fTrPosV[(kSt-4)*2 + kSe % 2]); }

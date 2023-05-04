@@ -21,6 +21,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
 #include "SSDReco/ConvertDigitToWCoordAlgo1.h"
+#include "SSDReco/VolatileAlignmentParams.h" 
 
 namespace emph { 
   namespace ssdr {
@@ -71,9 +72,10 @@ namespace emph {
 	  std::vector<double> fOtherUncert;
 	  std::vector<double> fZLocShifts;
 	  std::vector<double> fPitchOrYawAngles;
-	  
+          emph::ssdr::VolatileAlignmentParams *fEmVolAlP;	  
 	  emph::ssdr::SSDAlignSimpleLinFit myLinFit; // no contructor argument. 
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 myConvert; // View is the argument.. 
+	  
 	  std::ofstream fFOutA1, fFOutA1Dbg;
 	  
 	   

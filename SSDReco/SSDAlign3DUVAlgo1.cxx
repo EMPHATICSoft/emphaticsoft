@@ -29,7 +29,7 @@ namespace emph {
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1() :
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fDo3DFit(false),
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fDo3DFit(false), fIsMC(false), 
        fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fStation(2), fSensor(2),
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), 
@@ -43,7 +43,8 @@ namespace emph {
        fMinStrips(fNumStations, -1), fMaxStrips(fNumStations, fNumStrips+1), 
        fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.), fDataFor3DFit(), 
        fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0), myLinFitX(), myLinFitY(), myNonLin3DFitPtr(nullptr),
-       myConvertX('X'), myConvertY('Y'), myConvertU('U'), myConvertV('V')
+       myConvertX('X'), myConvertY('Y'), myConvertU('U'), myConvertV('V'), 
+       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
      { 
         ; 
      }
@@ -135,6 +136,7 @@ namespace emph {
 
      bool ssdr::SSDAlign3DUVAlgo1::recoXY(emph::geo::sensorView theView, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
      
+        fIsMC = fTokenJob.find("SimProton") != std::string::npos;
 //
         if ((theView != emph::geo::X_VIEW) && (theView != emph::geo::Y_VIEW)) {
 	  std::cerr << " SSDAlign3DUVAlgo1::recoXY, unexpected view enum emph::geo::sensorView " << theView << " expect X or Y, fatal, I said it " << std::endl;
@@ -202,20 +204,38 @@ namespace emph {
 	  } else {
 	    double aStrip = mySSDClsPtrsFirst[kSt]->WgtAvgStrip();
 	    double aStripErr = mySSDClsPtrsFirst[kSt]->WgtRmsStrip();
+	    size_t kSe = mySSDClsPtrsFirst[kSt]->Sensor();
+	    size_t kS = (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt; // in dex ranging from 0 to 7, inclusive, for Phase1b, list of sensors by view. 
 	    if (std::isnan(aStrip) || std::isnan(aStripErr)) continue;
 	    fDataFor3DFit.push_back(mySSDClsPtrsFirst[kSt]);
 	    if (theView == emph::geo::X_VIEW) { 
-	       tsData[kSt] = myConvertX.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip); 
+//	       tsData[kSt] = myConvertX.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip);
+// Very clumsy Upgrade to use the new VolatileAlignment data. 
+               if (!fIsMC) { 
+	          tsData[kSt] =  ( -1.0*aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
+	          if (kSt >= 4)  tsData[kSt] *= -1.0; // Incomplete... To be checked again!!!! 
+	       } else {
+	          tsData[kSt]  = ( -1.0 * aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
+	          if ((kSt > 3) && (kSe % 2) == 1) tsData[kSt] *=-1;    // for now.. Need to keep checking this.. Shameful.   
+	       }
 	       tsDataErr[kSt] = myConvertX.GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
 	    } else {
-	       tsData[kSt] = myConvertY.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip);
+//	       tsData[kSt] = myConvertY.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip);
+               if (!fIsMC) { // Most likely wrong by now.. Work in progress... 
+	          tsData[kSt]  =  ( aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
+	          if (kSt >= 4) tsData[kSt] =  ( -1.0*aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
+	       } else {
+	          tsData[kSt] = (kS < 4) ? ( aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe)) :
+	                      ( aStrip*fPitch - fEmVolAlP->TrPos(theView, kSt, kSe)) ;
+	          if ((kS > 3) && (kS % 2) == 1) tsData[kSt] *=-1;
+	       }
 	       tsDataErr[kSt] = myConvertY.GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
 	    }
 	    if (debugIsOn) {
-	       if (theView == emph::geo::X_VIEW) std::cerr << " .... For station " << kSt << " strip " << aStrip 
+	       if (theView == emph::geo::X_VIEW) std::cerr << " .... For X station ";
+	       else std::cerr << " .... For Y station ";
+	       std::cerr << kSt << " strip " << aStrip 
 	                                   << " ts " << tsData[kSt] << " +- " << tsDataErr[kSt] << " fitted Resid " << fFittedResidualsX[kSt] <<  std::endl;
-	       else  std::cerr << " .... For station " << kSt << " strip " << aStrip 
-	                                   << " ts " << tsData[kSt] << " +- " << tsDataErr[kSt] << " fitted Resid " << fFittedResidualsY[kSt] <<  std::endl;
 	    }
 	  }
 	}
@@ -404,7 +424,10 @@ namespace emph {
                                 << minNumHits << " actual number of Hits " << fDataFor3DFit.size() << std::endl;
      
        if (fDataFor3DFit.size() < minNumHits) return false; // other cuts possible. 
-       if (myNonLin3DFitPtr == nullptr) myNonLin3DFitPtr = new SSD3DTrackFitFCNAlgo1(fRunNum); 
+       if (myNonLin3DFitPtr == nullptr) {
+          myNonLin3DFitPtr = new SSD3DTrackFitFCNAlgo1(fRunNum);
+          myNonLin3DFitPtr->SetMagnetShift(fMagShift); 
+       }
        myNonLin3DFitPtr->SetDebugOn(debugIsOn);
        myNonLin3DFitPtr->SetInputClusters(fDataFor3DFit);
        myNonLin3DFitPtr->ResetZpos();
