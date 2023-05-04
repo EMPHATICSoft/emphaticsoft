@@ -129,7 +129,7 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
       const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
       const emph::geo::Detector   &sd = st.GetSSD(dchan.Channel());
       
-      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.HiLo(),sd.View());
+      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
     }
   }
 }

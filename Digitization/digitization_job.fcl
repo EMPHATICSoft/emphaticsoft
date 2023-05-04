@@ -1,0 +1,47 @@
+#include "SSDDigitizer.fcl"
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+#include "RunHistory.fcl"
+#include "DetGeoMap.fcl"
+
+process_name: Digitizer
+
+services:
+{
+  TFileService: { fileName: "ssddig_r%r_s%s_hist.root" closeFileFast: false }
+  RunHistoryService: @local::standard_runhistory
+  Geometry:   @local::standard_geometry
+  ChannelMapService: @local::standard_channelmap
+  DetGeoMapService: @local::standard_detgeomap
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "emphmc-dig_r%r_s%s.root"
+   fastCloning: false
+   
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    raw:        @local::standard_ssddigitizer
+  }
+
+  digitizer: [ raw ]
+
+  trigger_paths: [ digitizer ]
+  stream1: [ out1 ]
+  end_paths: [ stream1 ]
+}

@@ -10,6 +10,7 @@ cet_build_plugin(DetGeoMapService art::service
   DetGeoMap
   PRIVATE
   RunHistoryService_service
+  ChannelMapService_service
   art::Framework_Services_Registry
   fhiclcpp::fhiclcpp
   BASENAME_ONLY
