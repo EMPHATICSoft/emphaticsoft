@@ -131,7 +131,7 @@ namespace emph {
       static const unsigned int kT0Offset = 0;
       static const unsigned int kRPCOffset = 1;
       static const unsigned int kSSDOffset = 1;
-      static const unsigned int kARICHOffset = kSSDOffset+22;
+      static const unsigned int kARICHOffset = kSSDOffset+28;
       static const unsigned int kLGCaloOffset = kARICHOffset+9;
       // define histograms
 
@@ -811,19 +811,9 @@ namespace emph {
 	    int station = ssd.FER();
 	    int module = ssd.Module();
 	    int row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
-	    int sensor=-1;
-	    if (station == 0)
-	      sensor = module;
-	    else {
-	      if (station == 1) 
-		sensor = module+4;
-	      else {
-		if (station == 2)
-		  sensor = module+10;
-		else 
-		  sensor = module+16;
-	      }
-	    }
+	    emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,station,module);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
+	    int sensor=dchan.HiLo();
 
 	    if (station >= 0) {
 	      fSSDProf[sensor]->Fill(row);
