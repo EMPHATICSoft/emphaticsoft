@@ -33,8 +33,7 @@ const string fer4Name = "FER4";
 //const string OTEastName     	   = "fed000";
 //const string OTWestName     	   = "fed001";
 //const string nim                 = "Nim";
-const int MaxSubRun = 1;
-//const int MaxSubRun = 1000;
+const int MaxSubRun = 1000;
 
 int main(int argc, char **argv)
 {
