@@ -47,6 +47,21 @@ cet_build_plugin(RawDataUnpacker art::source
   art_root_io::TFileService_service
 )
 
+cet_build_plugin(SSDUnpacker art::source
+  LIBRARIES   PRIVATE
+  RawData
+  RawDataUnpacker
+  ChannelMap
+  RunHistory
+  ChannelMapService_service
+  ROOT::Core
+  ROOT::Tree
+  ROOT::Hist
+#  artdaq_core::artdaq-core_Data
+#  artdaq_core::artdaq-core_Utilities
+  art_root_io::TFileService_service
+)
+
 install_headers()
 install_source()
 install_fhicl()
