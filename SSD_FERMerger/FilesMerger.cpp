@@ -631,8 +631,6 @@ namespace ssd {
 				event->setTriggerNumber(triggerNumber_);
 				event->addTriggerNumber(station, triggerNumber_);
 				event->setCurrentBCO(eventBCO);
-
-				cout<<"Trigger: "<<triggerNumber_<<" bco: "<<eventBCO<<endl;
 			      }
 			    }
 			}
