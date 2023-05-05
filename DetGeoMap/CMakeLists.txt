@@ -17,6 +17,8 @@ art_make_library(
 		Geometry
 		Geometry_service
 		RecoBase
+		RawData
+		Simulation
 		messagefacility::MF_MessageLogger
 		)
 
@@ -24,4 +26,4 @@ install_headers()
 install_fhicl()
 install_source()
 
-#add_subdirectory(service)
+add_subdirectory(service)

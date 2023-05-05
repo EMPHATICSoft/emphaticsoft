@@ -1,137 +1,137 @@
-#BoardT	BNum	BChannel	Detector	DChannel	HiLoDStation Comment
-V1720	0			0		Trigger	99		0		0		TrigCoinc
-V1720	0			1		T0		1		0		0		x
-V1720	0			2		T0		2		0		0		x
-V1720	0			3		T0		3		0		0		x
-V1720	0			4		T0		4		0		0		x
-V1720	0			5		T0		5		0		0		x
-V1720	0			6		T0		6		0		0		x
-V1720	0			7		T0		7		0		0		x
-V1720	1			0		T0		8		0		0		x
-V1720	1			1		LGCalo	0		0		0		TopLeft 
-V1720	1			2		T0		10		0		0		x
-V1720	1			3		T0		11		0		0		x
-V1720	1			4		T0		12		0		0		x
-V1720	1			5		T0		13		0		0		x
-V1720	1			6		T0		14		0		0		x	
-V1720	1			7		T0		15		0		0		x
-V1720	2			0		T0		16		0		0		x
-V1720	2			1		T0		17		0		0		x	
-V1720	2			2		T0		18		0		0		x
-V1720	2			3		Trigger	2		0		0		x
-V1720	2			4		GasCkov	0		0		0		US
-V1720	2			5		GasCkov	1		0		0		DSInner
-V1720	2			6		GasCkov	2		0		0		DSOuter
-V1720	2			7		Trigger	3		0		0		x
-V1720	3			0		BACkov	0		0		0		USRight		
-V1720	3			1		BACkov	1		0		0		USLeft
-V1720	3			2		BACkov	2		0		0		USTop
-V1720	3			3		BACkov	3		0		0		MidRight
-V1720	3			4		BACkov	4		0		0		MidLeft
-V1720	3			5		BACkov	5		0		0		DS
-V1720	3			6		Trigger	0		0		0		BeamLeftTop?
-V1720	3			7		Trigger	1		0		0		x
-V1720	4			0		LGCalo	1		0		0		TopCenter
-V1720	4			1		LGCalo	2		0		0		TopRight
-V1720	4			2		LGCalo	3		0		0		MidLeft
-V1720	4			3		LGCalo	4		0		0		MidCenter
-V1720	4			4		LGCalo	5		0		0		MidRight
-V1720	4			5		LGCalo	6		0		0		BotLeft
-V1720	4			6		LGCalo	7		0		0		BotCenter
-V1720	4			7		LGCalo	8		0		0		BotRight
-TRB3	18			0		T0		500		0		0		x
-TRB3	18			1		T0		16		0		0		x
-TRB3	18			2		T0		16		1		0		x
-TRB3	18			3		T0		15		0		0		x
-TRB3	18			4		T0		15		1		0		x
-TRB3	18			5		T0		14		0		0		x
-TRB3	18			6		T0		14		1		0		x
-TRB3	18			7		T0		13		0		0		x
-TRB3	18			8		T0		13		1		0		x
-TRB3	18			9		T0		12		0		0		x
-TRB3	18			10		T0		12		1		0		x
-TRB3	18			11		T0		11		0		0		x
-TRB3	18			12		T0		11		1		0		x
-TRB3	18			13		T0		10		0		0		x
-TRB3	18			14		T0		10		1		0		x
-TRB3	18			15		T0		9		0		0		x
-TRB3	18			16		T0		9		1		0		x
-TRB3	18			17		T0		8		0		0		x
-TRB3	18			18		T0		8		1		0		x
-TRB3	18			19		T0		7		0		0		x
-TRB3	18			20		T0		7		1		0		x
-TRB3	18			21		T0		6		0		0		x
-TRB3	18			22		T0		6		1		0		x
-TRB3	18			23		T0		5		0		0		x
-TRB3	18			24		T0		5		1		0		x
-TRB3	18			25		T0		4		0		0		x
-TRB3	18			26		T0		4		1		0		x
-TRB3	18			27		T0		3		0		0		x
-TRB3	18			28		T0		3		1		0		x
-TRB3	18			29		T0		2		0		0		x
-TRB3	18			30		T0		2		1		0		x
-TRB3	18			31		T0		1		0		0		x
-TRB3	18			32		T0		1		1		0		x
-TRB3	18			57		T0		20		0		0		x
-TRB3	18			58		T0		20		1		0		x
-TRB3	18			59		T0		19		0		0		x
-TRB3	18			60		T0		19		1		0		x
-TRB3	18			61		T0		18		0		0		x
-TRB3	18			62		T0		18		1		0		x
-TRB3	18			63		T0		17		0		0		x
-TRB3	18			64		T0		17		1		0		x
-TRB3	19			0 		RPC		500		0		0		x
-TRB3	19			1 		RPC		1		0		0		TopLeft
-TRB3	19			2 		RPC		1		1		0		TopLeft
-TRB3	19			3 		RPC		2		0		0		x
-TRB3	19			4 		RPC		2		1		0		x
-TRB3	19			5 		RPC		3		0		0		x
-TRB3	19			6 		RPC		3		1		0		x
-TRB3	19			7 		RPC		4		0		0		x
-TRB3	19			8 		RPC		4		1		0		x
-TRB3	19			9 		RPC		5		0		0		x
-TRB3	19			10		RPC		5		1		0		x
-TRB3	19			11		RPC		6		0		0		x
-TRB3	19			12		RPC		6		1		0		x
-TRB3	19			13		RPC		7		0		0		x
-TRB3	19			14		RPC		7		1		0		x
-TRB3	19			15		RPC		8		0		0		BotLeft
-TRB3	19			16		RPC		8		1		0		BotLeft
-TRB3	19			17		RPC		9		0		0		TopRight
-TRB3	19			18		RPC		9		1		0		TopRight
-TRB3	19			19		RPC		10		0		0		x
-TRB3	19			20		RPC		10		1		0		x
-TRB3	19			21		RPC		11		0		0		x
-TRB3	19			22		RPC		11		1		0		x
-TRB3	19			23		RPC		12		0		0		x
-TRB3	19			24		RPC		12		1		0		x
-TRB3	19			25		RPC		13		0		0		x
-TRB3	19			26		RPC		13		1		0		x
-TRB3	19			27		RPC		14		0		0		x
-TRB3	19			28		RPC		14		1		0		x
-TRB3	19			29		RPC		15		0		0		x
-TRB3	19			30		RPC		15		1		0		x
-TRB3	19			31		RPC		16		0		0		BotRight
-TRB3	19			32		RPC		16		1		0		BotRight
-SSD	0			0		SSD		0		0		0		0
-SSD	0			1		SSD		1		0		0		1
-SSD	0			2		SSD		0		0		1		2
-SSD	0			3		SSD		1		0		1		3
-SSD	1			0		SSD		1		0		2		5
-SSD	1			1		SSD		2		0		2		6
-SSD	1			2		SSD		1		0		3		8
-SSD	1			3		SSD		2		0		3		9
-SSD	1			4		SSD		0		0		2		4
-SSD	1			5		SSD		0		0		3		7
-SSD	2			0		SSD		0		0		4		10
-SSD	2			1		SSD		1		0		4		10
-SSD	2			2		SSD		2		0		4		11
-SSD	2			3		SSD		3		0		4		11
-SSD	2			4		SSD		4		0		4		12
-SSD	2			5		SSD		5		0		4		12
-SSD	3			0		SSD		0		0		5		13
-SSD	3			1		SSD		1		0		5		13
-SSD	3			2		SSD		2		0		5		14
-SSD	3			3		SSD		3		0		5		14
-SSD	3			4		SSD		4		0		5		15
-SSD	3			5		SSD		5		0		5		15
+#BoardT	BNum	BChannel	Detector	DChannel	HiLo		DStation	Plane		Comment
+V1720	0	0		Trigger		99		0		0		0		TrigCoinc
+V1720	0	1		T0		1		0		0		0		x
+V1720	0	2		T0		2		0		0		0		x
+V1720	0	3		T0		3		0		0		0		x
+V1720	0	4		T0		4		0		0		0		x
+V1720	0	5		T0		5		0		0		0		x
+V1720	0	6		T0		6		0		0		0		x
+V1720	0	7		T0		7		0		0		0		x
+V1720	1	0		T0		8		0		0		0		x
+V1720	1	1		LGCalo		0		0		0		0		TopLeft
+V1720	1	2		T0		10		0		0		0		x
+V1720	1	3		T0		11		0		0		0		x
+V1720	1	4		T0		12		0		0		0		x
+V1720	1	5		T0		13		0		0		0		x
+V1720	1	6		T0		14		0		0		0		x
+V1720	1	7		T0		15		0		0		0		x
+V1720	2	0		T0		16		0		0		0		x
+V1720	2	1		T0		17		0		0		0		x
+V1720	2	2		T0		18		0		0		0		x
+V1720	2	3		Trigger		2		0		0		0		x
+V1720	2	4		GasCkov		0		0		0		0		US
+V1720	2	5		GasCkov		1		0		0		0		DSInner
+V1720	2	6		GasCkov		2		0		0		0		DSOuter
+V1720	2	7		Trigger		3		0		0		0		x
+V1720	3	0		BACkov		0		0		0		0		USRight
+V1720	3	1		BACkov		1		0		0		0		USLeft
+V1720	3	2		BACkov		2		0		0		0		USTop
+V1720	3	3		BACkov		3		0		0		0		MidRight
+V1720	3	4		BACkov		4		0		0		0		MidLeft
+V1720	3	5		BACkov		5		0		0		0		DS
+V1720	3	6		Trigger		0		0		0		0		BeamLeftTop?
+V1720	3	7		Trigger		1		0		0		0		x
+V1720	4	0		LGCalo		1		0		0		0		TopCenter
+V1720	4	1		LGCalo		2		0		0		0		TopRight
+V1720	4	2		LGCalo		3		0		0		0		MidLeft
+V1720	4	3		LGCalo		4		0		0		0		MidCenter
+V1720	4	4		LGCalo		5		0		0		0		MidRight
+V1720	4	5		LGCalo		6		0		0		0		BotLeft
+V1720	4	6		LGCalo		7		0		0		0		BotCenter
+V1720	4	7		LGCalo		8		0		0		0		BotRight
+TRB3	18	0		T0		500		0		0		0		x
+TRB3	18	1		T0		16		0		0		0		x
+TRB3	18	2		T0		16		1		0		0		x
+TRB3	18	3		T0		15		0		0		0		x
+TRB3	18	4		T0		15		1		0		0		x
+TRB3	18	5		T0		14		0		0		0		x
+TRB3	18	6		T0		14		1		0		0		x
+TRB3	18	7		T0		13		0		0		0		x
+TRB3	18	8		T0		13		1		0		0		x
+TRB3	18	9		T0		12		0		0		0		x
+TRB3	18	10		T0		12		1		0		0		x
+TRB3	18	11		T0		11		0		0		0		x
+TRB3	18	12		T0		11		1		0		0		x
+TRB3	18	13		T0		10		0		0		0		x
+TRB3	18	14		T0		10		1		0		0		x
+TRB3	18	15		T0		9		0		0		0		x
+TRB3	18	16		T0		9		1		0		0		x
+TRB3	18	17		T0		8		0		0		0		x
+TRB3	18	18		T0		8		1		0		0		x
+TRB3	18	19		T0		7		0		0		0		x
+TRB3	18	20		T0		7		1		0		0		x
+TRB3	18	21		T0		6		0		0		0		x
+TRB3	18	22		T0		6		1		0		0		x
+TRB3	18	23		T0		5		0		0		0		x
+TRB3	18	24		T0		5		1		0		0		x
+TRB3	18	25		T0		4		0		0		0		x
+TRB3	18	26		T0		4		1		0		0		x
+TRB3	18	27		T0		3		0		0		0		x
+TRB3	18	28		T0		3		1		0		0		x
+TRB3	18	29		T0		2		0		0		0		x
+TRB3	18	30		T0		2		1		0		0		x
+TRB3	18	31		T0		1		0		0		0		x
+TRB3	18	32		T0		1		1		0		0		x
+TRB3	18	57		T0		20		0		0		0		x
+TRB3	18	58		T0		20		1		0		0		x
+TRB3	18	59		T0		19		0		0		0		x
+TRB3	18	60		T0		19		1		0		0		x
+TRB3	18	61		T0		18		0		0		0		x
+TRB3	18	62		T0		18		1		0		0		x
+TRB3	18	63		T0		17		0		0		0		x
+TRB3	18	64		T0		17		1		0		0		x
+TRB3	19	0		RPC		500		0		0		0		x
+TRB3	19	1		RPC		1		0		0		0		TopLeft
+TRB3	19	2		RPC		1		1		0		0		TopLeft
+TRB3	19	3		RPC		2		0		0		0		x
+TRB3	19	4		RPC		2		1		0		0		x
+TRB3	19	5		RPC		3		0		0		0		x
+TRB3	19	6		RPC		3		1		0		0		x
+TRB3	19	7		RPC		4		0		0		0		x
+TRB3	19	8		RPC		4		1		0		0		x
+TRB3	19	9		RPC		5		0		0		0		x
+TRB3	19	10		RPC		5		1		0		0		x
+TRB3	19	11		RPC		6		0		0		0		x
+TRB3	19	12		RPC		6		1		0		0		x
+TRB3	19	13		RPC		7		0		0		0		x
+TRB3	19	14		RPC		7		1		0		0		x
+TRB3	19	15		RPC		8		0		0		0		BotLeft
+TRB3	19	16		RPC		8		1		0		0		BotLeft
+TRB3	19	17		RPC		9		0		0		0		TopRight
+TRB3	19	18		RPC		9		1		0		0		TopRight
+TRB3	19	19		RPC		10		0		0		0		x
+TRB3	19	20		RPC		10		1		0		0		x
+TRB3	19	21		RPC		11		0		0		0		x
+TRB3	19	22		RPC		11		1		0		0		x
+TRB3	19	23		RPC		12		0		0		0		x
+TRB3	19	24		RPC		12		1		0		0		x
+TRB3	19	25		RPC		13		0		0		0		x
+TRB3	19	26		RPC		13		1		0		0		x
+TRB3	19	27		RPC		14		0		0		0		x
+TRB3	19	28		RPC		14		1		0		0		x
+TRB3	19	29		RPC		15		0		0		0		x
+TRB3	19	30		RPC		15		1		0		0		x
+TRB3	19	31		RPC		16		0		0		0		BotRight
+TRB3	19	32		RPC		16		1		0		0		BotRight
+SSD	0	0		SSD		0		0		0		0		x
+SSD	0	1		SSD		1		1		0		1		x
+SSD	0	2		SSD		0		2		1		2		x
+SSD	0	3		SSD		1		3		1		3		x
+SSD	1	0		SSD		1		5		2		5		x
+SSD	1	1		SSD		2		6		2		6		x
+SSD	1	2		SSD		1		8		3		8		x
+SSD	1	3		SSD		2		9		3		9		x
+SSD	1	4		SSD		0		4		2		4		x
+SSD	1	5		SSD		0		7		3		7		x
+SSD	2	0		SSD		0		10		4		10		x
+SSD	2	1		SSD		1		11		4		10		x
+SSD	2	2		SSD		2		12		4		11		x
+SSD	2	3		SSD		3		13		4		11		x
+SSD	2	4		SSD		4		14		4		12		x
+SSD	2	5		SSD		5		15		4		12		x
+SSD	3	0		SSD		0		16		5		13		x
+SSD	3	1		SSD		1		17		5		13		x
+SSD	3	2		SSD		2		18		5		14		x
+SSD	3	3		SSD		3		19		5		14		x
+SSD	3	4		SSD		4		20		5		15		x
+SSD	3	5		SSD		5		21		5		15		x
