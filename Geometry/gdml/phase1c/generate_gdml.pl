@@ -182,7 +182,7 @@ sub gen_Define()
   <define>
 
     <constant name="DEG2RAD" value="pi/180." />
-	 <quantity name="world_size" value="7000." unit="mm"/>
+	 <quantity name="world_size" value="10000." unit="mm"/>
 	 <quantity name="Tolerance_space" value="1." unit="mm" />
 	 <position name="center" x="0" y="0" z="0" unit="mm"/>
 
@@ -503,7 +503,7 @@ EOF
 	 <quantity name="calor_height" value="380" unit="mm" />
 	 <quantity name="calor_width" value="900" unit="mm" />
 
-	 <quantity name="calor_shift" value="2886.4" unit="mm" />
+	 <quantity name="calor_shift" value="4286.4" unit="mm" />
 	 <position name="calor_pos" x="0" y="0" z="calor_shift+calor_length*0.5"/>
 
 	 <!-- ABOVE IS FOR LG -->
