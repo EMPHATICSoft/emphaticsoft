@@ -27,6 +27,7 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
+#include "ArtUtils/AssociationUtil.h"
 #include "Geometry/DetectorDefs.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
@@ -95,6 +96,7 @@ namespace emph {
     fSensorMap.clear();
 
     produces<std::vector<rawdata::SSDRawDigit> >("SSD");
+    produces<art::Assns<rawdata::SSDRawDigit, sim::SSDHit> >();
 
   }
 
@@ -146,6 +148,8 @@ namespace emph {
     }
     
     std::unique_ptr<std::vector<rawdata::SSDRawDigit> >ssdRawD(new std::vector<rawdata::SSDRawDigit>);
+    std::unique_ptr<art::Assns<rawdata::SSDRawDigit, sim::SSDHit> >
+      hitDigitAssns(new art::Assns<rawdata::SSDRawDigit, sim::SSDHit>);
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
 
@@ -184,6 +188,11 @@ namespace emph {
 				       t, adc, trig);
 	//	std::cout << "(" << station << "," << sensor << "," << fSensorMap[sensor] << ") --> (" << echan.Board() << "," << echan.Channel() << ")" << std::endl;
 	ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
+
+	// Need art::Ptr for association
+	art::Ptr<sim::SSDHit> hitPtr(ssdHitH,idx);
+	util::CreateAssn(evt, *ssdRawD, hitPtr, *hitDigitAssns);
+
 	delete dig;
 	
       } // end loop over SSD hits for the event
@@ -191,6 +200,7 @@ namespace emph {
     }
     
     evt.put(std::move(ssdRawD),"SSD");
+    evt.put(std::move(hitDigitAssns));
 
   } // SSDDigitizer::analyze()
 

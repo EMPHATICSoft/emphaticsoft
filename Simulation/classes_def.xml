@@ -30,4 +30,10 @@
   <class name="std::vector<sim::ARICHHit>"        />
   <class name="art::Wrapper< std::vector<sim::ARICHHit>    >"/>
 
+  <class name="art::Assns<sim::SSDHit,    emph::rawdata::SSDRawDigit,void>" />
+  <class name="art::Assns<emph::rawdata::SSDRawDigit,    sim::SSDHit,void>" />
+
+  <class name="art::Wrapper<art::Assns<sim::SSDHit,    emph::rawdata::SSDRawDigit,void> >" />
+  <class name="art::Wrapper<art::Assns<emph::rawdata::SSDRawDigit,    sim::SSDHit,void> >" />
+
 </lcgdict>

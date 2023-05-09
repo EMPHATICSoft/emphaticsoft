@@ -1,4 +1,8 @@
 #include "canvas/Persistency/Common/Wrapper.h"
+#include "canvas/Persistency/Common/Assns.h"
+
+#include "RawData/SSDRawDigit.h"
+
 #include "Simulation/SSDHit.h"
 #include "Simulation/TOPAZLGHit.h"
 #include "Simulation/Particle.h"
