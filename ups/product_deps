@@ -260,7 +260,7 @@ geant4          v4_11_0_p02b    -
 ifbeam          v2_5_14         -
 nucondb         v2_5_14
 ifdh_art        v2_15_00        -
-srproxy         v00.41          -
+srproxy         v00.42          -
 end_product_list
 ####################################
 
