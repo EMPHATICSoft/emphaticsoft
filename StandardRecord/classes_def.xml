@@ -1,0 +1,25 @@
+<lcgdict>
+
+ <class name="caf::StandardRecord" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1542996796"/>
+  <version ClassVersion="10" checksum="3065678388"/>
+ </class>
+
+ <class name="caf::SRHeader" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3811607721"/>
+ </class>
+
+ <class name="caf::SRARing" ClassVersion="10" >
+  <version ClassVersion="10" checksum="4087695020"/>
+ </class>
+ <class name="std::vector<caf::SRARing>" />
+
+ <class name="caf::SRARingBranch" ClassVersion="10" >
+  <version ClassVersion="10" checksum="1710063260"/>
+ </class>
+
+ <class name="caf::SRVector3D" ClassVersion="10" >
+  <version ClassVersion="10" checksum="2884901936"/>
+ </class>
+
+</lcgdict>
