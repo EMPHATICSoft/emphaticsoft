@@ -1,0 +1,56 @@
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+
+#include "CAFMaker.fcl"
+
+#include "ARICHReco.fcl"
+
+process_name: CAF
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "reco_cafmaker_hist.root" closeFileFast: false }
+  scheduler: { wantSummary: false }
+  TimeTracker: {}
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: @local::standard_runhistory
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type: RootInput
+  maxEvents:   -1
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "reco_cafmaker.root"
+    fastCloning: false
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    arichreco: @local::standard_arichreco
+    cafmaker:  @local::standard_cafmaker
+  }
+
+  analyzers:{}
+
+  makecaf:   [ arichreco, cafmaker ]
+  stream1:   [ ]
+  end_paths: [ ]
+
+
+  stream1: [ out1 ]
+  trigger_paths: [ makecaf ]  
+  end_paths:     [ stream1 ]
+
+}

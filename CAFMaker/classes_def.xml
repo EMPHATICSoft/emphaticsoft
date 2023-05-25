@@ -8,6 +8,7 @@
   <class name="art::PtrVector<caf::StandardRecord>" />
 
   <class name="art::Wrapper<caf::StandardRecord >" />
+  <class name="art::Wrapper<std::vector<caf::StandardRecord> >" />
   <class name="art::Wrapper<art::PtrVector<caf::StandardRecord> >" />
 
 </lcgdict>
