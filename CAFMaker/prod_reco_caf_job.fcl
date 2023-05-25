@@ -10,7 +10,7 @@ process_name: CAF
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "reco_cafmaker_hist.root" closeFileFase: false }
+  TFileService: { fileName: "reco_cafmaker_hist.root" closeFileFast: false }
   scheduler: { wantSummary: false }
   TimeTracker: {}
   ChannelMapService: @local::standard_channelmap
