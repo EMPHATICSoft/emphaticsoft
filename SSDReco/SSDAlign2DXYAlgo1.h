@@ -80,6 +80,10 @@ namespace emph {
 	  
 	   
 	public:
+	 // 
+	 // Some getter, for checking .. 
+	 //
+	 inline double AssumedResidual(size_t kSt) const { return fMeanResiduals[kSt]; } 
 	 inline void SetDoAling0to4( bool lastIs4) { 
 	   fAlign0to4 = lastIs4;        
 	   fNumStationsEff = fAlign0to4 ? fNumStations-1 : fNumStations;
@@ -94,7 +98,7 @@ namespace emph {
 	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; myConvert.SetZLocShifts(v); } 
 	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; myConvert.SetOtherUncert(v); } 
 	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; myConvert.SetPitchAngles(v); } 
-	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v; myConvert.SetFittedResiduals(v);} 
+	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v; myConvert.SetFittedResiduals(v); } 
 	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; myConvert.SetMagnetKick120GeV(v);}
 	 void InitializeCoords(bool lastIs4, const std::vector<double> &zCoords);
 	 inline void SetTheView(char aView) {

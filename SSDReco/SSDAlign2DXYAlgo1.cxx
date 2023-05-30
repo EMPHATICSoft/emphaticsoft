@@ -109,7 +109,7 @@ namespace emph {
        fNEvents++; 
        bool debugIsOn = (fNEvents < 15) || (fEvtNum == 11) || (fEvtNum == 9);
        if (debugIsOn) std::cerr <<  " SSDAlign2DXYAlgo1::alingIt, " << " evtNum " << fEvtNum  
-                                <<  " number of Cluster " << aSSDcls.size() << std::endl;
+                                <<  " number of Cluster " << aSSDcls.size() << " Mean Residual for station 1 " << fMeanResiduals[1] << std::endl;
        if (aSSDcls. size() < fNumStationsEff) {
          if (debugIsOn) std::cerr <<  " ... Not enough data for a " << fNumStationsEff << " hit fit.. " << std::endl;
 	 return;
@@ -126,7 +126,7 @@ namespace emph {
        }
        if (debugIsOn) {
           if (!fAlign0to4) std::cerr << " Number of Hits " <<  nHits[0] << ", " << nHits[1] 
-                                << ", " <<  nHits[2]  << ", " << nHits[3] << ","  << nHits[4]<< ","  << nHits[5] << std::endl;
+                                << ", " <<  nHits[2]  << ", " << nHits[3] << ", "  << nHits[4]<< ", "  << nHits[5] << std::endl;
 	  else 	std::cerr << " Number of Hits " <<  nHits[0] << ", " << nHits[1] 
                                 << ", " <<  nHits[2]  << ", " << nHits[3] << ", "  << nHits[4] << std::endl;
        }

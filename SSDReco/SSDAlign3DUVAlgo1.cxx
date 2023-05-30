@@ -20,6 +20,7 @@
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"
 #include "Minuit2/FunctionMinimum.h"
+#include "Geometry/service/GeometryService.h"
 
  using namespace emph;
 
@@ -33,7 +34,7 @@ namespace emph {
        fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fStation(2), fSensor(2),
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), 
-       fChiSqCut(20.), fChiSqCutX(500.), fChiSqCutY(100.), fMomentumInit3DFit(120), 
+       fChiSqCut(20.), fChiSqCutX(500.), fChiSqCutY(100.), fMomentumInit3DFit(120), fNoMagnet(false),
        fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(2, 0.), fZCoordVs(4, 0.),
        fFittedResidualsX(fNumStations, 0.), fFittedResidualsY(fNumStations, 0.),
@@ -45,14 +46,18 @@ namespace emph {
        fNHitsXView(fNumStations, 0), fNHitsYView(fNumStations, 0), myLinFitX(), myLinFitY(), myNonLin3DFitPtr(nullptr),
        myConvertX('X'), myConvertY('Y'), myConvertU('U'), myConvertV('V'), 
        fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
-     { 
-        ; 
-     }
+     { ;
+    }
      void SSDAlign3DUVAlgo1::InitializeCoords(bool lastIs4, const std::vector<double> &zCoordXs, const std::vector<double> &zCoordYs,
 	                                     const std::vector<double> &zCoordUs, const std::vector<double> &zCoordVs)
       {
      
-        if (lastIs4)  {
+       art::ServiceHandle<emph::geo::GeometryService> geo;
+       if (geo->Geo() == nullptr) {
+         std::cerr << " Problem in SSDAlign3DUVAlgo1::InitializeCoords, can not get the Geometry unique pointer... Fatal, quit now " << std::endl; exit(2);
+       }
+       fNoMagnet = (geo->Geo()->MagnetUSZPos() < 0.);
+         if (lastIs4)  {
 	  std::cerr << " SSDAlign3DUVAlgo1::InitializeCoords, unsupported option alt45, quit here and now " << std::endl;
 	  exit(2);
        }
@@ -130,7 +135,9 @@ namespace emph {
        fName3DFitStrStr << "SSDAlign3DFit_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
        std::string fName3DFitStr(fName3DFitStrStr.str());
        fFOut3DFit.open(fName3DFitStr.c_str());
-       fFOut3DFit << " spill evt chiSq ndgf nFCN x0 errX0 Slx0 errSlx0 y0 errY0 Sly0 errSly0 p errP " << std::endl;
+       fFOut3DFit << " spill evt validFlag chiSq ndgf nFCN x0 errX0 Slx0 errSlx0 y0 errY0 Sly0 errSly0";
+       if (!fNoMagnet) fFOut3DFit << " p errP ";
+       fFOut3DFit << std::endl;
        
      } 
 
@@ -417,11 +424,13 @@ namespace emph {
      } 
      bool ssdr::SSDAlign3DUVAlgo1::fit3D(size_t minNumHits) {
        
-//       bool debugIsOn = ( fEvtNum == 1 );  
+//       bool debugIsOn = ( fEvtNum == 5 );  
        bool debugIsOn = false;  
      
-       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::fit3D, min num hits " 
+       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::fit3D, evt " << fEvtNum <<  " min num hits " 
                                 << minNumHits << " actual number of Hits " << fDataFor3DFit.size() << std::endl;
+       if (debugIsOn && fNoMagnet) std::cerr << " ..........  Magnet has been removed... " << std::endl;
+       if (debugIsOn && (!fNoMagnet)) std::cerr << " ..........  Magnet is in the beam line.. " << std::endl;
      
        if (fDataFor3DFit.size() < minNumHits) return false; // other cuts possible. 
        if (myNonLin3DFitPtr == nullptr) {
@@ -431,32 +440,70 @@ namespace emph {
        myNonLin3DFitPtr->SetDebugOn(debugIsOn);
        myNonLin3DFitPtr->SetInputClusters(fDataFor3DFit);
        myNonLin3DFitPtr->ResetZpos();
+       myNonLin3DFitPtr->SetExpectedMomentum(fMomentumInit3DFit); 
        if (fRunNum == 1293)  myNonLin3DFitPtr->SetMCFlag(true); // Very, very ugly, but let us move on..  
        ROOT::Minuit2::MnUserParameters uPars;
-       uPars.Add(std::string("X_0"), fTrXY.XOffset(), 0.1, -20., 20.);  
-       uPars.Add(std::string("Slx_0"), 0.001, 0.005, -0.1, 0.1);  
-       uPars.Add(std::string("Y_0"), fTrXY.YOffset(), 0.1, -20., 20.);  
-       uPars.Add(std::string("Sly_0"), 0.001, 0.005, -0.1, 0.1);  
-       uPars.Add(std::string("Mom"), fMomentumInit3DFit, 15., -250., 250.);  
-       
+       std::vector<double> parsOut, parsOutErr;
+       double x0Start =  fTrXY.XOffset(); double y0Start =  fTrXY.YOffset();
+       // Debugging the coordinate transform, something is wrong for Y positive, track, few mm above the gap.  
+ //      if (fEvtNum == 5) { x0Start = -14.476; y0Start = 16.3339; }
+       uPars.Add(std::string("X_0"), x0Start, 0.1, -20., 20.);  
+       uPars.Add(std::string("Slx_0"), 0.00037808, 0.001, -0.1, 0.1);  // for Misligned 7c. No magnet Misalignament flag 25000025, Dgap = 3.0 mm  
+       uPars.Add(std::string("Y_0"), y0Start, 0.1, -20., 20.);  
+       uPars.Add(std::string("Sly_0"), -0.00244194, 0.001, -0.1, 0.1); 
+       unsigned int nPars = 4; 
+       if (!fNoMagnet) {
+          nPars++;
+          uPars.Add(std::string("Mom"), fMomentumInit3DFit, 2., 0.5*fMomentumInit3DFit, 1.5*fMomentumInit3DFit); 
+       } 
+       std::vector<double> initValsV, initValsE; // for use in the Simple Minimizer.. 
+       for (unsigned int k=0; k != nPars; k++) { initValsV.push_back(uPars.Value(k)); initValsE.push_back(uPars.Error(k)); } 
+       // Testing the FCN, once .. 
+       if (debugIsOn) { 
+         std::cerr << " ....... About to test the FCN with " << initValsV.size() << " parameters.. " << std::endl;
+         double aChiSqOnce = (*myNonLin3DFitPtr)(initValsV);
+//         std::cerr << " chi-Square Once.. " << aChiSqOnce << " .... and that is enough for now " << std::endl; exit(2);
+         std::cerr << " chi-Square Once.. " << aChiSqOnce << " .... and that we keep going... " << std::endl;
+       }
        ROOT::Minuit2::MnMigrad migrad((*myNonLin3DFitPtr), uPars);
+       if (debugIsOn) std::cerr << " ..... About to call migrad... " << std::endl;
        //
        ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
        if (debugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
        //
-       if (!min.IsValid()) return false;
+       const bool isMigradValid = min.IsValid(); 
+       bool isSimplexValid = true;
+       int flagValid = 0; // 0 nothing worked, 1 MiGrad is O.K., 2, Simplex is Ok.  
+       double chiSq = DBL_MAX;
+       int numCallFCN = 0;
+       if (!isMigradValid) {
+         ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
+	 ROOT::Minuit2::FunctionMinimum minS = theMinimizer.Minimize(*myNonLin3DFitPtr, initValsV, initValsE);
+ 	 parsOutErr = minS.UserParameters().Errors();
+ 	 parsOut = minS.UserParameters().Params();
+         isSimplexValid = minS.IsValid();
+	 chiSq = minS.Fval(); numCallFCN=minS.NFcn();
+	 if (isSimplexValid) flagValid = 2;
+       } else {
+	 chiSq = min.Fval();
+ 	 parsOutErr = min.UserParameters().Errors();
+ 	 parsOut = min.UserParameters().Params();
+	 flagValid = 1; numCallFCN=min.NFcn();
+       }
        // Out to CSV file for R studies. 
-       fFOut3DFit << " " << fSubRunNum << " " << fEvtNum << " " << min.Fval() 
-                  << " " << fDataFor3DFit.size() - 5 << " " << min.NFcn(); 
-       std::vector<double> parsOut(5, 0.); 
-       for (unsigned int kPar=0; kPar != 5;  kPar++) {
-         double theValue  = min.UserState().Value(kPar);
-	 parsOut[kPar] = theValue;
-         double theError  = min.UserState().Error(kPar);
-	 fFOut3DFit << " " << theValue << " " << theError;
+       fFOut3DFit << " " << fSubRunNum << " " << fEvtNum << " "; 
+       fFOut3DFit << " " << flagValid << " " << chiSq 
+                  << " " << fDataFor3DFit.size() - 5 << " " << numCallFCN; 
+       if ((!isSimplexValid) && (!isMigradValid)) {
+         fFOut3DFit << " " << fTrXY.XOffset() << " " << DBL_MAX << " 0. 0. " << fTrXY.YOffset() << " " << DBL_MAX << " 0. 0. 0. 0. ";
+         fFOut3DFit << " " << std::endl;
+         return false ; 
+       }
+       for (unsigned int kPar=0; kPar != parsOut.size();  kPar++) {  // Hopefully, all vector lengths do match .
+	 fFOut3DFit << " " << parsOut[kPar] << " " << parsOutErr[kPar];
        }
        fFOut3DFit << " " << std::endl;
-       // 
+      // 
        // could be commented out to avoid too many CSV files..
        std::ostringstream fNameTmpStrStr;
        fNameTmpStrStr << "SSDAlign3DFIResids_Run_" << fRunNum << "_" << fTokenJob << "_V1.txt";
@@ -464,8 +511,8 @@ namespace emph {
        myNonLin3DFitPtr->OpenOutResids(fNameTmpStr); // we won't re-open, I check for that.. 
        (*myNonLin3DFitPtr)(parsOut); 
        myNonLin3DFitPtr->SpitOutResids(fSubRunNum, fEvtNum);
-//       if (debugIsOn) { std::cerr << " .. O.K., enough for now, quit!....  " << std::endl; exit(2); } 
-      return true;
+       if (debugIsOn) { std::cerr << " .. O.K., enough for now, quit!....  " << std::endl; exit(2); } 
+      return true ;
      
      }
      bool ssdr::SSDAlign3DUVAlgo1::checkUV(emph::geo::sensorView view, size_t kStation, 
@@ -620,7 +667,8 @@ namespace emph {
 	 if (fDo3DFit) {
 	   int nnU = this->recoUV(emph::geo::U_VIEW, aSSDClsPtr);
 	   int nnV = this->recoUV(emph::geo::W_VIEW, aSSDClsPtr);
-	   if (nnU + nnV > 1) this->fit3D(11); 
+	   if (debugIsOn) std::cerr << " .... Considering doing a 3D fit with nnU " << nnU << " and nnV " << nnV << std::endl; 
+	   if (nnU + nnV > 0) this->fit3D(10); 
 	 }
        }
        if(fEvtNum > 250000000) {

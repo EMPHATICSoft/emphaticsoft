@@ -59,6 +59,7 @@ namespace emph {
 	  double fChiSqCut;
 	  double fChiSqCutX, fChiSqCutY;
 	  double fMomentumInit3DFit;
+	  bool fNoMagnet;
 	  std::string fTokenJob;
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fMagShift;

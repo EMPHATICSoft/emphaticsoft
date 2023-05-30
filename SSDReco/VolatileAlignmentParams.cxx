@@ -44,6 +44,8 @@ namespace emph {
        fTrDeltaPitchU(fNumSensorsU, 0.), fTrDeltaPitchV(fNumSensorsV, 0.), 
        fRollX(fNumSensorsXorY, 0.), fRollY(fNumSensorsXorY, 0.),  
        fRollU(fNumSensorsU, 0.), fRollV(fNumSensorsV, 0.),
+       fRollXC(fNumSensorsXorY, 0.), fRollYC(fNumSensorsXorY, 0.),  
+       fRollUC(fNumSensorsU, 0.), fRollVC(fNumSensorsV, 0.),
        fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287},
        fMultScatUncertU{0.05067243, 0.05067243}, 
        fMultScatUncertV{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
@@ -184,6 +186,20 @@ namespace emph {
 	      exit(2);  } 
 	}
      } 
+     void VolatileAlignmentParams::SetRollCenter(emph::geo::sensorView view,  size_t kSe, double v) {
+       switch (view) {
+     	 case emph::geo::X_VIEW : {
+//	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
+	     fRollXC[kSe] = v;   break;  
+	    } 
+	 case emph::geo::Y_VIEW :  { fRollYC[kSe] = v;  break;} 
+	 case emph::geo::U_VIEW :  { fRollUC[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : { fRollVC[kSe] = v; break;}
+	 default : { 
+	      std::cerr << " VolatileAlignmentParams::SetRollCenter, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	}
+     } 
      void VolatileAlignmentParams::SetDeltaPitchCorr(emph::geo::sensorView view,  size_t kSe, double v) {
        switch (view) {
      	 case emph::geo::X_VIEW : {
@@ -255,6 +271,52 @@ namespace emph {
            this->SetDeltaTr(emph::geo::X_VIEW, 7,  3.0 - factBad*0.5091 );  // The last term is the average of the residual from the alignment fit 5c_8d2
            this->SetDeltaTr(emph::geo::X_VIEW, 5,  2.39239 - factBad*0.150 );  // The last term is the average of the residual from the alignment fit 5c_8d2
 	}    
+     }
+     void VolatileAlignmentParams::SetGeomFromSSDAlign(const std::string &fileName) {
+       std::ifstream fIn(fileName.c_str());
+       if (!fIn.is_open()) {
+           std::cerr << "VolatileAlignmentParams::SetGeomFromSSDAlign , failed to open " << fileName << " fatal, quit here.. " << std::endl; exit(2);
+       }
+       char aLine[1024];
+       std::cerr << " VolatileAlignmentParams::SetGeomFromSSDAlign, uploading Params from file " << fileName << std::endl;
+       std::string tokenTransShift("TransShift_X_");
+       std::string tokenRoll("DeltaRoll_X_");
+       while (fIn.good()) {
+         fIn.getline(aLine, 1024);
+         std::string aLStr(aLine);
+         std::istringstream aLStrStr(aLine);
+	 std::string aName; double aVal; double aErr; 
+	 aLStrStr >> aName >> aVal >> aErr; 
+	 // we skip the tilts, only stransverse shifts and rolls for now.. 
+	 if (aName.find("TransShift") != std::string::npos) {
+	   std::string aSensStr=aName.substr(tokenTransShift.length(), 1);
+	   size_t aSens = static_cast<size_t>(std::atoi(aSensStr.c_str()));
+	   std::cerr << ".... Uploading TransShift, name " <<  aName << ", sensor " <<  aSens << " value " << aVal << std::endl;
+	   if (aName.find("_X") != std::string::npos) this->SetDeltaTr(emph::geo::X_VIEW, aSens, aVal);
+	   if (aName.find("_Y") != std::string::npos) this->SetDeltaTr(emph::geo::Y_VIEW, aSens, aVal);
+	   if (aName.find("_U") != std::string::npos) this->SetDeltaTr(emph::geo::U_VIEW, aSens, aVal);
+	   if (aName.find("_V") != std::string::npos) this->SetDeltaTr(emph::geo::W_VIEW, aSens, aVal);
+	 }
+	 if (aName.find("DeltaRoll") != std::string::npos) {
+	   std::string aSensStr=aName.substr(tokenRoll.length(), 1);
+	   size_t aSens = static_cast<size_t>(std::atoi(aSensStr.c_str()));
+	   std::cerr << ".... Uploading Roll angle, name " <<  aName << ", sensor " <<  aSens << " value " << aVal << std::endl;
+	   if (aName.find("_X") != std::string::npos) this->SetRoll(emph::geo::X_VIEW, aSens, aVal);
+	   if (aName.find("_Y") != std::string::npos) this->SetRoll(emph::geo::Y_VIEW, aSens, aVal);
+	   if (aName.find("_U") != std::string::npos) this->SetRoll(emph::geo::U_VIEW, aSens, aVal);
+	   if (aName.find("_V") != std::string::npos) this->SetRoll(emph::geo::W_VIEW, aSens, aVal);
+	 }
+	 if (aName.find("DeltaRollCenter") != std::string::npos) {
+	   std::string aSensStr=aName.substr(tokenRoll.length(), 1);
+	   size_t aSens = static_cast<size_t>(std::atoi(aSensStr.c_str()));
+	   std::cerr << ".... Uploading Roll Center name " <<  aName << ", sensor " <<  aSens << " value " << aVal << std::endl;
+	   if (aName.find("_X") != std::string::npos) this->SetRollCenter(emph::geo::X_VIEW, aSens, aVal);
+	   if (aName.find("_Y") != std::string::npos) this->SetRollCenter(emph::geo::Y_VIEW, aSens, aVal);
+	   if (aName.find("_U") != std::string::npos) this->SetRollCenter(emph::geo::U_VIEW, aSens, aVal);
+	   if (aName.find("_V") != std::string::npos) this->SetRollCenter(emph::geo::W_VIEW, aSens, aVal);
+	 }
+	 
+       }
      } 
    } // namespace 
 }  // namespace   

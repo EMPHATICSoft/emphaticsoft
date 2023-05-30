@@ -38,9 +38,11 @@ namespace emph{
       emph::EMPHATICMagneticField *fMagField;
       bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
       bool fDebugIsOn;
-      double fIntegrationStep; 
+      double fIntegrationStep;
+      double fExpectedMomentum; 
       size_t fNumSensorsTotal;
-      std::vector<myItCl> fData; 
+      std::vector<myItCl> fData;
+      bool fNoMagnet; 
       mutable std::vector<double> fZPos;
       mutable std::vector<double> fMagShift;
       double fErrorDef; // for Minuit. 
@@ -59,7 +61,9 @@ namespace emph{
       inline void ResetZpos() { fZPos.clear(); fZLocUpstreamMagnet = DBL_MAX; fZLocDownstrMagnet = DBL_MAX; }
       inline void SetErrorDef(double e) { fErrorDef = e; }
       inline void SetMCFlag(bool v) { fIsMC = v; }
-      inline void SetMagnetShift(std::vector<double> v) { fMagShift = v; }  
+      inline void SetNoMagnet(bool v=true) { fNoMagnet = v; }
+      inline void SetMagnetShift(std::vector<double> v) { fMagShift = v; } 
+      inline void SetExpectedMomentum(double v) { fExpectedMomentum = v; } 
       inline void SetDebugOn(bool v = true) { fDebugIsOn = v; }
       inline void SetIntegrationStep(double s) { fIntegrationStep = s; }
       inline double Resid(size_t kSe) const {

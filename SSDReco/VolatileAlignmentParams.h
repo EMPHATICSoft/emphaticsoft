@@ -44,7 +44,8 @@ namespace emph{
  	std::vector<double> fRollX, fRollY, fRollU, fRollV; // Roll angle,
 	// For intance, for X view,  x -> x + y*fRollX, where cos(roll angle) ~ 1.0 and sin(roll angle) ~ roll angle
 	// Although not strictly geometrical, the following uncertainties are part of this singleton. 
-	//
+	// Added May 21 -23 2023 : The center of rotation is unlikely to be the center of wafer, or the beam axis.  Allow for one more parameter per Sensor. 
+ 	std::vector<double> fRollXC, fRollYC, fRollUC, fRollVC; // Roll angle Centers
 	std::vector<double> fMultScatUncertXorY, fMultScatUncertU, fMultScatUncertV;
 	std::vector<double> fUnknownUncertXorY, fUnknownUncertU, fUnknownUncertV;
 	//
@@ -72,6 +73,7 @@ namespace emph{
 	void SetDeltaTr(emph::geo::sensorView view, size_t kSe, double value); 
 	void SetValueTrShiftLastPlane(emph::geo::sensorView view, double value);
 	void SetRoll(emph::geo::sensorView view, size_t kSe, double value); 
+	void SetRollCenter(emph::geo::sensorView view, size_t kSe, double value); 
 	void SetDeltaPitchCorr(emph::geo::sensorView view, size_t kSe, double value); 
 	void SetUnknwonUncert(emph::geo::sensorView view,  size_t kSe, double v);
 	void SetMultScatUncert(emph::geo::sensorView view,  size_t kSe, double v);
@@ -80,7 +82,8 @@ namespace emph{
 	//
 	// Monte-Carlo studies. April-May-June 2023. 
 	//
-	void SetTransShiftFor4c5c6c(bool correctResid57=false, double factBad=1.0); 
+	void SetTransShiftFor4c5c6c(bool correctResid57=false, double factBad=1.0);
+	void SetGeomFromSSDAlign(const std::string &aFileName);  
 	
 	// Getter 
 	inline size_t NumStations() const { return fNumStations; } 
@@ -162,7 +165,25 @@ namespace emph{
 	    case emph::geo::U_VIEW :  { return (fRollU[kSt-2]); } 
 	    case emph::geo::W_VIEW :  { return (fRollV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
-	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
+	      std::cerr << " VolatileAlignmentParams::Roll, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	   }
+	  return 0.;  // Should never happen..
+	}
+	inline double RollCenter(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
+          switch (view) {
+	    case emph::geo::X_VIEW : {
+	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
+	     return fRollXC[kS];  
+	    } 
+	    case emph::geo::Y_VIEW :  {
+	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
+	      return fRollYC[kS]; 
+	    } 
+	    case emph::geo::U_VIEW :  { return (fRollUC[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fRollVC[(kSt-4)*2 + kSe % 2]); }
+	    default : { 
+	      std::cerr << " VolatileAlignmentParams::RollCenter, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen..

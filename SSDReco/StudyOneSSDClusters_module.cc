@@ -91,6 +91,7 @@ namespace emph {
       bool fFilesAreOpen;
       std::string fTokenJob;
       std::string fSSDClsLabel;
+      std::string fSSDAlignmentResult;
       bool fDumpClusters;    
       bool fSelectHotChannels;  // Mostly obsolete. 
       bool fSelectHotChannelsFromHits; // Probably a better way.    
@@ -173,7 +174,7 @@ namespace emph {
 // .....................................................................................
     emph::StudyOneSSDClusters::StudyOneSSDClusters(fhicl::ParameterSet const& pset) : 
     EDAnalyzer(pset), 
-    fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
+    fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"), fSSDAlignmentResult("?"),
     fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
     fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoAlignUVAndFit(false), fDoGenCompact(false), 
     fDoGenCompactStrictY6St(false), fDoGenCompactStrictX6St(false), fDoGenCompactStrictXY6St(false),
@@ -200,12 +201,14 @@ namespace emph {
 //       if (fTokenJob.find("Mis06c_2") != std::string::npos) fEmVolAlP->SetTransShiftFor4c5c6c(true, 1.0); // staring at the residual of alignmenta job 05c_8d2
 // best so far.. 
        if (fTokenJob.find("Mis06c") != std::string::npos) fEmVolAlP->SetTransShiftFor4c5c6c(true, 2.0); // staring at the residual of alignmenta job 05c_8d2
+       if (fSSDAlignmentResult != std::string("?")) fEmVolAlP->SetGeomFromSSDAlign(fSSDAlignmentResult); 
     }
     
     void emph::StudyOneSSDClusters::reconfigure(const fhicl::ParameterSet& pset)
     {
       std::cerr << " emph::StudyOneSSDClusters::reconfigure ... " <<std::endl;
       fSSDClsLabel = pset.get<std::string>("SSDClsLabel");   
+      fSSDAlignmentResult = pset.get<std::string>("SSDAlignmentResult", "?");   
       std::cerr << "  ... fSSDClsLabel " << fSSDClsLabel << std::endl;   
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
       fDumpClusters = pset.get<bool>("dumpClusters", false);
@@ -390,6 +393,10 @@ namespace emph {
         fAlignX.SetForMomentum(fSetMCRMomentum); fAlignY.SetForMomentum(fSetMCRMomentum);
 	fAlignUV.SetForMomentum(fSetMCRMomentum);
       }
+      // 
+      // Check Residual 
+      //
+      std::cerr << " ........ Assumed residual for station 1, Y  " << fAlignY.AssumedResidual(1) << std::endl;
       std::cerr  << std::endl << " ------------- End of StudyOneSSDClusters::beginRun ------------------" << std::endl << std::endl;
     }
     
