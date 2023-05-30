@@ -8,6 +8,8 @@ art_make_library(LIBRARY_NAME SSDRecoUtil
 		           RecoBase
 			   MagneticField
 			   MagneticField_service
+			   Geometry
+			   Geometry_service
 		 	   art::Framework_Core
 			   art::Persistency_Common
 			   canvas::canvas
@@ -41,6 +43,7 @@ cet_build_plugin(StudyOneSSDClusters art::module
 	MagneticField_service
 	RawData
 	RecoBase
+	Geometry_service 
 	Geometry
 	ROOT::Core
 	ROOT::Physics
