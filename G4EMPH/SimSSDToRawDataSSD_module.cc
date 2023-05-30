@@ -52,9 +52,11 @@ namespace emph {
      
       public:
       
-        explicit DeadSSDStripListForSensor(const std::string &fileNameStr);
+        DeadSSDStripListForSensor(); // No dead strips whatsoever. 
+        DeadSSDStripListForSensor(const std::string &fileNameStr);
 	
         inline bool isDead(short int aStation, short int aSensor, short int aStrip) const {
+	  if (fStrips.empty()) return false;
 	  int aStaSens = 10*aStation + aSensor;
 	  try { 
 	    const std::vector<short int> &v = fStrips.at(aStaSens);
@@ -118,6 +120,7 @@ namespace emph {
 //      
 // Implement dead strips.. 
 //
+      std::string fDeadStripsFileName;
       DeadSSDStripListForSensor fDeadStrips;
 //
 // access to data..   
@@ -138,9 +141,14 @@ namespace emph {
     
  // .....................................................................................
  //
+   DeadSSDStripListForSensor::DeadSSDStripListForSensor() { ; }
    DeadSSDStripListForSensor::DeadSSDStripListForSensor(const std::string &fNameStr) {
         
        std::cerr << " Constructing DeadSSDStripListForSensor " << std::endl;
+       if (fNameStr == std::string("none") || fNameStr == std::string("?")) {
+         std::cerr << " ....  No dead channel whatsoever " << std::endl; 
+	 return;
+       }
        const char *fOrig = getenv("CETPKG_SOURCE");
        const std::string fFullNameStr = std::string(fOrig) + 
            std::string("/ConstBase/Calibration/") + fNameStr;   
@@ -197,13 +205,16 @@ namespace emph {
      fRun(0), fEvtNum(INT_MAX), fNEvents(0), 
      fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(40.), fFracChargeSharing(0.3),
      fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), fHalfHeight(0.5*fSensorHeight),
-     fDeadStrips(std::string("SSDCalibDeadChanSummary_none_1055.txt")),
+     fDeadStripsFileName("SSDCalibDeadChanSummary_none_1055.txt"),
      fRunHistory(nullptr), fEmgeo(nullptr)  
      
     {
        std::cerr << " Constructing SimSSDToRawDataSSD " << std::endl;
        this->produces< std::vector<rawdata::SSDRawDigit> > ();
        this->reconfigure(pset);
+       if (fDeadStripsFileName != std::string("none")) 
+          fDeadStrips = DeadSSDStripListForSensor(fDeadStripsFileName);
+       
        fFilesAreOpen = false;
     }
     
@@ -214,6 +225,7 @@ namespace emph {
       fSSDHitLabel = pset.get<std::string>("SSDHitLabel");
       fConvertDedxToADCbits = pset.get<double>("ConvertDedxToADCbits", 40.);
       fFracChargeSharing =  pset.get<double>("FracChargeSharing", 0.3);
+      fDeadStripsFileName = pset.get<std::string>("fileNameDeadStrip", "SSDCalibDeadChanSummary_none_1055.txt"); 
     }
     void SimSSDToRawDataSSD::beginRun(art::Run &run)
     {
