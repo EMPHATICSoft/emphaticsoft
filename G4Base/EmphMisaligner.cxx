@@ -20,7 +20,7 @@ namespace g4b{
   //------------------------------------------------
   // Constructor
   EmphMisaligner::EmphMisaligner(const std::string &fNameIn, unsigned int aSeed)
-  : fModelNumber(0), fGapDoubleSSD(3.0)
+  : fModelNumber(0), fGapDoubleSSD(3.0), fTransShiftsRaw(22, 0.), fRollsRaw(22, 0.), fYawsPitchsRaw(22, 0.)
   {
    this->readIt(fNameIn.c_str());
    srand(aSeed);
@@ -55,6 +55,14 @@ namespace g4b{
     }
     fOut.close();
   }
+  void EmphMisaligner::dumpRawMisAlignParams(const char* fName) const {
+    std::ofstream fOut(fName);
+    fOut << " kSeT TransShift deltaRoll " << std::endl;
+    for (size_t kP=0; kP != fTransShiftsRaw.size(); kP++) {
+      fOut << " " << kP << " " <<  fTransShiftsRaw[kP] << " " << fRollsRaw[kP] << std::endl;
+    }
+    fOut.close();
+  }
   //------------------------------------------------
   void EmphMisaligner::doIt(int aModelNum, double gapD) {
     fModelNumber = aModelNum; 
@@ -80,6 +88,7 @@ namespace g4b{
     this->doSSDYawPitchOnStations(sigYP);
     this->doSSDZTranslationOnStations(sigZ); // on stations only
     this->doSSDTransOffsetOnPlanes(sigTr, gapD); // on individual planes. Could induce volume overlaps! 
+    
   }
   double EmphMisaligner::getRandomShift(double sig) {
     const double sign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
@@ -162,6 +171,17 @@ namespace g4b{
 	std::string name = this->getName(origStr);
 	const double thRollDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
 	const double thRollDelta = thRollDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigRolls; 
+	// Signs could be wrong!!! 
+	if (origStr.find("rotation name=\"ssdsingle0_0_0_rot") != std::string::npos) fRollsRaw[8] =  thRollDelta;
+	if (origStr.find("rotation name=\"ssdsingle0_1_0_rot") != std::string::npos) fRollsRaw[0] =  -thRollDelta; 
+	if (origStr.find("rotation name=\"ssdsingle1_0_0_rot") != std::string::npos) fRollsRaw[9] =  thRollDelta;
+	if (origStr.find("rotation name=\"ssdsingle1_1_0_rot") != std::string::npos) fRollsRaw[1] =  -thRollDelta; 
+	if (origStr.find("rotation name=\"ssdrotate0_0_0_rot") != std::string::npos) fRollsRaw[16] = thRollDelta;
+	if (origStr.find("rotation name=\"ssdrotate0_1_0_rot") != std::string::npos) fRollsRaw[10] = thRollDelta;
+	if (origStr.find("rotation name=\"ssdrotate0_2_0_rot") != std::string::npos) fRollsRaw[2] = -thRollDelta;
+	if (origStr.find("rotation name=\"ssdrotate1_0_0_rot") != std::string::npos) fRollsRaw[17] = thRollDelta;
+	if (origStr.find("rotation name=\"ssdrotate1_1_0_rot") != std::string::npos) fRollsRaw[11] = thRollDelta;
+	if (origStr.find("rotation name=\"ssdrotate1_2_0_rot") != std::string::npos) fRollsRaw[3] = -thRollDelta;
 	const double newRot = nomRot + thRollDelta;
 	std::ostringstream llStrStr; llStrStr << "            " 
 	        << "<rotation name=\"" << name << "\" z=\"" << newRot  << "\" unit=\"deg\"/> ";
@@ -180,6 +200,20 @@ namespace g4b{
 	std::string name0 = this->getName(orig0Str);
 	const double thRollDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
 	const double thRollDelta = thRollDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * sigRolls; 
+	// again, sign could be wrong here.  We'll compare absolute values for a start. 
+	if (orig0Str.find("rotation name=\"ssddouble0_0_0_rot") != std::string::npos) fRollsRaw[4] =  -thRollDelta; // -X 
+	// not in this loop, see below. 
+//	if (orig0Str.find("rotation name=\"ssddouble0_0_1_rot") != std::string::npos) fRollsRaw[5] =  thRollDelta; // X 
+	if (orig0Str.find("rotation name=\"ssddouble0_1_0_rot") != std::string::npos) fRollsRaw[8+4] =  thRollDelta; // Y 
+	if (orig0Str.find("rotation name=\"ssddouble0_1_1_rot") != std::string::npos) fRollsRaw[8+5] =  -thRollDelta; // Y
+	if (orig0Str.find("rotation name=\"ssddouble0_2_0_rot") != std::string::npos) fRollsRaw[16+2+0] =  thRollDelta; // V Plane
+	if (orig0Str.find("rotation name=\"ssddouble0_2_1_rot") != std::string::npos) fRollsRaw[16+2+1] = -thRollDelta;
+	if (orig0Str.find("rotation name=\"ssddouble1_0_0_rot") != std::string::npos) fRollsRaw[6] = -thRollDelta; // -X 
+//	if (orig0Str.find("rotation name=\"ssddouble1_0_1_rot") != std::string::npos) fRollsRaw[7] = thRollDelta; // X 
+	if (orig0Str.find("rotation name=\"ssddouble1_1_0_rot") != std::string::npos) fRollsRaw[8+6] = thRollDelta;
+//	if (orig0Str.find("rotation name=\"ssddouble1_1_1_rot") != std::string::npos) fRollsRaw[8+7] = -thRollDelta;
+	if (orig0Str.find("rotation name=\"ssddouble1_2_0_rot") != std::string::npos) fRollsRaw[16+2+2] = thRollDelta;
+//	if (orig0Str.find("rotation name=\"ssddouble1_2_1_rot") != std::string::npos) fRollsRaw[16+2+3] = -thRollDelta;
 	const double newRot = nomRot0 + thRollDelta;
 	std::ostringstream ll0StrStr; ll0StrStr << "            " 
 	        << "<rotation name=\"" << name0 << "\" z=\"" << newRot  << "\" unit=\"deg\"/> ";
@@ -199,7 +233,14 @@ namespace g4b{
 	il0++; // need to skip to the next one. 
 	// 
       } // got name match on double0 
-    }// on il0.   
+    }// on il0. 
+    //
+    // Now inplmement the roll for the 2nd sensors. 
+    //
+    fRollsRaw[5] = fRollsRaw[4]; fRollsRaw[7] = fRollsRaw[6]; 
+    fRollsRaw[13] = fRollsRaw[12]; fRollsRaw[15] = fRollsRaw[14];
+    fRollsRaw[19] = fRollsRaw[18]; fRollsRaw[21] = fRollsRaw[20];
+    //   
   }
   void EmphMisaligner::doSSDYawPitchOnStations(double sigYP) {
     if (std::abs(sigYP)  < 1.0e-4) return;
@@ -493,13 +534,14 @@ namespace g4b{
     std::vector<std::string> keyPos; // to store the neame we will be replace in the definition of physical voume for complete station. 
     // First step, declare new positions. Tedious, one line at a time.. 
     // We keep the nominal line, We some time have to add line... Code bloat, ugly, but it should work.. 
-    keyPos.push_back("ssdsingle00");
+    keyPos.push_back("ssdsingle00"); // Y view, station 0 and 1 
     std::string posPos("_pos");
     for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[0]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[8] = yShift0; // Y shift to Y shift, not rotated., first plane 
        std::ostringstream aNew0StrStr;  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[0] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
@@ -511,6 +553,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[9] = yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr 
 	    << "                <position name=\"" << keyPos[0] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
@@ -520,14 +563,15 @@ namespace g4b{
        break;
     }
     std::cerr << " ...Done ssdsingle00 " << std::endl;
-    // Shamelessly near cloning
-     keyPos.push_back("ssdsingle10");
+    // Shamelessly near cloning.  This will be for 
+     keyPos.push_back("ssdsingle10"); // X view, station 0 and 1 
      for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[1]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
-       std::ostringstream aNew0StrStr;  aNew0StrStr 
+       fTransShiftsRaw[0] = -xShift0;
+        std::ostringstream aNew0StrStr;  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[1] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
        
@@ -537,6 +581,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[1] = -xShift1; 
        std::ostringstream aNew1StrStr;  aNew1StrStr 
 	    << "                <position name=\"" << keyPos[1] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -545,13 +590,14 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew1Str);
        break;
     }
-    // That was for station ssdStationsingle0, and ssdStationsingle0 Now the rotated station 1 
-     keyPos.push_back("ssdrotate00");
+    // That was for station ssdStationsingle0, and ssdStationsingle1 Now the rotated station 2 
+     keyPos.push_back("ssdrotate00"); // Now U view 
     for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[2]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[16] = (1.0/std::sqrt(2.))*(-xShift0 + yShift0);
        std::ostringstream aNew0StrStr;  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[2] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
@@ -562,6 +608,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[17] = (1.0/std::sqrt(2.))*(-xShift1 + yShift1);
        std::ostringstream aNew1StrStr;  aNew1StrStr 
 	    << "                <position name=\"" << keyPos[2] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
@@ -570,13 +617,15 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew1Str);
        break;
     }
-    // again
-     keyPos.push_back("ssdrotate10");
+    // again Now Y view, for station 2 and 3 
+     keyPos.push_back("ssdrotate10"); // This is a Y view 
      for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[3]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[10] = yShift0;
+       
        std::ostringstream aNew0StrStr;  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[3] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -587,6 +636,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[11] = yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr 
 	    << "                <position name=\"" << keyPos[3] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -595,13 +645,14 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew1Str);
        break;
     }
-     // And again
-     keyPos.push_back("ssdrotate20");
+     // And again, X view Station 2 and 3. 
+     keyPos.push_back("ssdrotate20");  
      for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[4]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[2] = -xShift0;
        std::ostringstream aNew0StrStr;  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[4] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssd3plane_shift\" />";
@@ -612,6 +663,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[3] = -xShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr 
 	    << "                <position name=\"" << keyPos[4] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssd3plane_shift\" />";
@@ -621,13 +673,14 @@ namespace g4b{
        break;
     }
     // Now, similar for double wafer, but must include the gap.   Twice as long..  
-    keyPos.push_back("ssddouble00");
+    keyPos.push_back("ssddouble00"); // First, an X (well -X) sensor. 
     double ssddouble00XShift0 = 0.; double ssddouble00XShift1 = 0.;
     for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[5]+posPos) == std::string::npos) continue;
        const double xShift0 = dGap + this->getRandomShift(sigmaTrShifts); ssddouble00XShift0 = xShift0 - dGap; 
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[4] = -xShift0;
        std::ostringstream aNew0StrStr; aNew0StrStr.setf(std::ios_base::showpos);  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[5] << "Mis0_pos\" x =\"0.5*ssdD0_height" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
@@ -638,6 +691,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = dGap + this->getRandomShift(sigmaTrShifts); ssddouble00XShift1 = xShift1 - dGap; 
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[6] = -xShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[5] << "Mis1_pos\" x =\"0.5*ssdD0_height" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
@@ -646,13 +700,14 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew1Str);
        break;
     }
-    // ssddouble01
+    // ssddouble01 X Views, other side  
     keyPos.push_back("ssddouble01");
     for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[6]+posPos) == std::string::npos) continue;
        const double xShift0 = -1.0*dGap + ssddouble00XShift0;
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[5] = -xShift0;
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
 	    << "                <position name=\"" << keyPos[6] << "Mis0_pos\" x =\"-0.5*ssdD0_height" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
@@ -663,6 +718,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 =  -1.0*dGap + ssddouble00XShift1;
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
+       fTransShiftsRaw[7] = -xShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[6] << "Mis1_pos\" x =\"-0.5*ssdD0_height" 
 	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
@@ -671,7 +727,7 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew1Str);
        break;
     }
-   // ssddouble10
+   // ssddouble10  Y views 
     keyPos.push_back("ssddouble10");
     double ssddouble10YShift0 = 0.; double ssddouble10YShift1 = 0.;
      for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
@@ -679,6 +735,8 @@ namespace g4b{
        if (origStr.find(keyPos[7]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = -1.0*dGap + this->getRandomShift(sigmaTrShifts); ssddouble10YShift0 = yShift0 + dGap;
+       fTransShiftsRaw[8+4] = yShift0;
+      
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
 	    << "                <position name=\"" << keyPos[7] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"-0.5*ssdD0_height" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -689,6 +747,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = -1.0*dGap + this->getRandomShift(sigmaTrShifts); ssddouble10YShift1 = yShift1 + dGap;
+       fTransShiftsRaw[8+6] = yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[7] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"-0.5*ssdD0_height" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -697,13 +756,15 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew1Str);
        break;
     }
-   // ssddouble11 
+   // ssddouble11  Y view  
     keyPos.push_back("ssddouble11");
      for (std::vector<std::string>::iterator il = fLines.begin(); il != fLines.end(); il++) {
        std::string origStr(*il);
        if (origStr.find(keyPos[8]+posPos) == std::string::npos) continue;
        const double xShift0 = this->getRandomShift(sigmaTrShifts);
        const double yShift0 = dGap + ssddouble10YShift0;
+       fTransShiftsRaw[8+5] = -yShift0;
+       
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
 	    << "                <position name=\"" << keyPos[8] << "Mis0_pos\" x =\"" 
 	    << xShift0 << "\" y=\"0.5*ssdD0_height" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -714,6 +775,7 @@ namespace g4b{
        ilAdd++;
        const double xShift1 = this->getRandomShift(sigmaTrShifts);
        const double yShift1 = dGap + ssddouble10YShift1;
+       fTransShiftsRaw[8+7] = -yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[8] << "Mis1_pos\" x =\"" 
 	    << xShift1 << "\" y=\"0.5*ssdD0_height" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
@@ -732,6 +794,8 @@ namespace g4b{
        if (origStr.find(keyPos[9]+posPos) == std::string::npos) continue;
        ssddouble20VShift0 = this->getRandomShift(sigmaTrShifts);
        const double vShift0 = oneOSqrt2*(dGap + ssddouble20VShift0);
+       fTransShiftsRaw[16+2+0] = vShift0;
+       
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
 	    << "                <position name=\"" << keyPos[9] << "Mis0_pos\" x =\"0.3536*ssdD0_height" 
 	    << vShift0 << "\" y=\"0.3536*ssdD0_height" << vShift0 << "\" z=\"ssd3plane_shift\" />";
@@ -742,6 +806,8 @@ namespace g4b{
        ilAdd++;
        ssddouble20VShift1 = this->getRandomShift(sigmaTrShifts);
        const double vShift1 = oneOSqrt2*(dGap + ssddouble20VShift1);
+       fTransShiftsRaw[16+2+2] = vShift1;
+       
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[9] << "Mis1_pos\" x =\"0.3536*ssdD0_height" 
 	    << vShift1 << "\" y=\"0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\" />";
@@ -758,6 +824,7 @@ namespace g4b{
        std::string origStr(*il);
        if (origStr.find(keyPos[10]+posPos) == std::string::npos) continue;
        const double vShift0 = -oneOSqrt2*(dGap + ssddouble20VShift0);
+       fTransShiftsRaw[16+2+1] = vShift0;
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
 	    << "                <position name=\"" << keyPos[10] << "Mis0_pos\" x =\"-0.3536*ssdD0_height" 
 	    << vShift0 << "\" y=\"-0.3536*ssdD0_height" << vShift0 << "\" z=\"ssd3plane_shift\" />";
@@ -767,6 +834,7 @@ namespace g4b{
        ilAdd = fLines.insert(ilAdd, aNew0Str);
        ilAdd++;
        const double vShift1 = -oneOSqrt2*(dGap + ssddouble20VShift1);
+       fTransShiftsRaw[16+2+3] = vShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
 	    << "                <position name=\"" << keyPos[10] << "Mis1_pos\" x =\"-0.3536*ssdD0_height" 
 	    << vShift1 << "\" y=\"-0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\" />";

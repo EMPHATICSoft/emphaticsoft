@@ -29,11 +29,15 @@ namespace g4b {
 
     void doIt(int aModelNum, double gapDoubleSSD);
     void writeIt(const char* fName) const;
+    void dumpRawMisAlignParams(const char* fName) const;
 
   private:
   
     int fModelNumber;
     double fGapDoubleSSD;
+    std::vector<double> fTransShiftsRaw; // sorted by X, 1-8, Y 1-8, U 1-2, V 1-4 total length 22 
+    std::vector<double> fRollsRaw; // same ordering. 
+    std::vector<double> fYawsPitchsRaw; // same ordering. Blank for now, gave up on making this thing hopelessly complicate
     std::vector<std::string> fLines;
 
     void readIt(const char* fName);
@@ -44,6 +48,7 @@ namespace g4b {
     double getValue(const std::string &line, const std::string &key=std::string("value=")); // from a line.    
     std::string getName(const std::string &line); // from a line.    
     double getRandomShift(double sig); 
+    // For checking the solution, after SSD align run 
   };
 
 } // namespace g4b
