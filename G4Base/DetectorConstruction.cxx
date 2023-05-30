@@ -68,6 +68,10 @@ namespace g4b{
                                                 << misalignModelNum << "_" << misAlignSeed << ".gdml";
       std::string misStr(misStrStr.str());
       myMis.writeIt(misStr.c_str());
+      std::ostringstream misStrStr2; misStrStr2 << "./MisAlignedEmphPhase1xPred_" 
+                                                << misalignModelNum << "_" << misAlignSeed << ".txt";
+      std::string misStr2(misStrStr2.str());
+      myMis.dumpRawMisAlignParams(misStr2.c_str());
       effGDMLFile = misStr;
     }
     parser.Read(effGDMLFile,validateSchema);
