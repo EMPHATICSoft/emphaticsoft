@@ -257,6 +257,11 @@ namespace emph {
 		void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
 		{
 			TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
+			if (magnet_n == nullptr) {
+			   fMagnetUSZPos = -1000.;
+			   fMagnetDSZPos = -999.;
+			   return;
+			}
 			TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
 			TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
 
