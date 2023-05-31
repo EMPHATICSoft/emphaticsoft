@@ -13,6 +13,7 @@
 
 #include "StandardRecord/SRHeader.h"
 #include "StandardRecord/SRARingBranch.h"
+#include "StandardRecord/SRSSDClustBranch.h"
 
 /// Common Analysis Files
 namespace caf
@@ -28,8 +29,9 @@ namespace caf
       StandardRecord();
       ~StandardRecord();
 
-      SRHeader       hdr;   ///< Header branch: run, subrun, etc.
-      SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
+      SRHeader         hdr;     ///< Header branch: run, subrun, etc.
+      SRARingBranch    ring;    ///< ARICH ring branch: nhit, radius, etc.
+      SRSSDClustBranch cluster; ///< SSD cluster branch: avgstrip, etc.
       
     }; // end class
 
