@@ -32,7 +32,13 @@ namespace caf
       SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
       
     }; // end class
-
+  /// an attempt to add an SRTruth class
+    class SRTruth
+	{
+	 std::vector<float> p = {}; 	/// Maybe this should be a set size...
+	 std::string ptype = {}; 	/// Do we use PDG particle numbering?
+	 std::string targetmaterial = {}; 
+	}; // end class	
 } // end caf namespace
 
 #endif // STANDARDRECORD_H
