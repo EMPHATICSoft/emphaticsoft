@@ -1,0 +1,11 @@
+////////////////////////////////////
+// \file SRTruth.cxx
+// \brief 
+////////////////////////////////////
+
+#include "SRTruth.h"
+#include <vector>
+
+namespace caf
+{
+}
