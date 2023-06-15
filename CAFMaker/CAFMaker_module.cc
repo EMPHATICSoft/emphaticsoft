@@ -47,6 +47,9 @@
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
 
+// CAF filler includes
+#include "CAFMaker/HeaderFiller.h"
+
 namespace caf {
   /// Module to create Common Analysis Files from ART files
   class CAFMaker : public art::EDProducer {
@@ -171,16 +174,9 @@ namespace caf {
     StandardRecord* prec = &rec;  // TTree wants a pointer-to-pointer
     fRecTree->SetBranchAddress("rec", &prec);
 
-    // Get metadata information for header
-    unsigned int run = evt.run();
-    unsigned int subrun = evt.subRun();
-    unsigned int spillNum = evt.id().event();
-
-    rec.hdr = SRHeader();
-
-    rec.hdr.run    = run;
-    rec.hdr.subrun = subrun;
-    rec.hdr.evt    = spillNum;
+    // get header info first
+    HeaderFiller hf;
+    hf.Fill(evt, rec);
 
     mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 

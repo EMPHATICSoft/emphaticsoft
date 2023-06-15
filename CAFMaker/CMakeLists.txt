@@ -13,7 +13,7 @@ include_directories( $ENV{IFDHC_INC} )
 
 
 set( PACKAGE CAFMaker )
-FILE( GLOB src_files *.cc )
+FILE( GLOB src_files *.cc *.cxx )
 
 art_make_library( LIBRARY_NAME ${PACKAGE}
 		  SOURCE ${src_files}
@@ -43,6 +43,7 @@ build_dictionary( CAFMaker
 		)
 
 simple_plugin ( CAFMaker "module"
+                CAFMaker
 	      	StandardRecord
                 art::Framework_Core
 		art::Framework_Principal
