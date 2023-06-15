@@ -20,8 +20,8 @@ namespace caf
 	  std::string T_ptype = {};	// Do we use PDG particle numbering?
 	  std::string T_targetmaterial = {};
 	
-	SRTruth(std::vector<float> p, std::string ptype,std::string targetmaterial);		// Construct an SRTruth object
-	void setSRTruth(std::vector<float> p, std::string ptype, std::string targetmaterial); 	// SRTruth member function
+	  SRTruth(std::vector<float> p, std::string ptype,std::string targetmaterial);		// Construct an SRTruth object
+	  void setSRTruth(std::vector<float> p, std::string ptype, std::string targetmaterial); 	// SRTruth member function
 										// TODO: add functions to get the individual components of SRTruth
 	}; //end class
 }
