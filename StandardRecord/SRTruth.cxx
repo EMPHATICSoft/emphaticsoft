@@ -10,9 +10,9 @@
 namespace caf
 {
 	// SRTruth constructor
-	SRTruth::SRTruth(std::vector<float> p, std::string ptype, std::string targetmaterial)
+	SRTruth::SRTruth()
 	{
-		setSRTruth(p,ptype,targetmaterial);
+		//setSRTruth(p,ptype,targetmaterial);
 	}
 	// SRTruth member function
 	void SRTruth::setSRTruth(std::vector<float> p, std::string ptype, std::string targetmaterial)
@@ -20,5 +20,9 @@ namespace caf
 		T_p = p;
 		T_ptype = ptype;
 		T_targetmaterial = targetmaterial;
+	}
+	// SRTruth default constructor
+	void SRTruth::setDefault()
+	{
 	}
 }

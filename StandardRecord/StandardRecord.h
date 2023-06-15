@@ -30,7 +30,7 @@ namespace caf
 
       SRHeader       hdr;   ///< Header branch: run, subrun, etc.
       SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
-     // SRTruth	     truth; ///< True momentum, particle type, target material TODO: write an associated truth() function?
+      SRTruth	     truth; ///< True momentum, particle type, target material TODO: write an associated truth() function?
     }; // end class	
 } // end caf namespace
 
