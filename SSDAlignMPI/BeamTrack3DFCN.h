@@ -15,6 +15,7 @@
 #include "BeamTrackCluster.h" 
 #include "BTAlignGeom.h"
 #include "Minuit2/FCNBase.h"
+#include "BTMagneticField.h"
 
 namespace emph{ 
   namespace rbal {
@@ -27,10 +28,15 @@ namespace emph{
     private:
       BTAlignGeom* myGeo;
       bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
+      bool fNoMagnet; // to align on 120 GeV. 
+      bool fDebugIsOn;
       size_t fNumSensorsTotal;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
       double fErrorDef, fOneOverSqrt2, fOneOSqrt12; // for Minuit. 
+      double fNominalMomentum;
+      mutable int fNCalls;
       mutable std::vector<double> fResids;
+      mutable BTMagneticField *fMagField;
       
     public:
     
@@ -39,13 +45,16 @@ namespace emph{
      
       inline void SetClusterPtr(std::vector<BeamTrackCluster>::const_iterator it) { fItCl = it; } 
       inline void SetErrorDef(double e) { fErrorDef = e; }
+      inline void SetNoMagnet(bool v=true) { fNoMagnet = v; }
       inline void SetMCFlag(bool v) { fIsMC = v; }
+      inline void SetNominalMomentum(double v) { fNominalMomentum = v; } 
       inline double Resid(size_t kSe) const {
         if (kSe < fResids.size()) return fResids[kSe];
 	return DBL_MAX;
       }
+      inline void resetNumCalls() { fNCalls = 0; }
       
-      
+      inline void SetDebugOn(bool v=true) { fDebugIsOn = v; }
      };
    }
 }

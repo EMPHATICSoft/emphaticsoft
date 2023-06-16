@@ -42,7 +42,8 @@ namespace emph {
       const double x0 = pars[0]; // Could be y.. 
       const double slx0 = pars[1];
       const double zMag = myGeo->ZCoordsMagnetCenter();
-      const double kick = myGeo->MagnetKick120GeV();
+      const double kick = myGeo->MagnetKick120GeV(); // The whole things works only at 120 GeV.  At 30 GeV, or lower, we need the Y coordinated 
+      // and the full 3D magnetic field integrator to compute the predicted X coordinate. 
       for (size_t kSe = 0; kSe != numS; kSe++) {
         fResids[kSe] = DBL_MAX;
         const double rmsStr = fItCl->TheRmsStrip(fView, kSe);
@@ -55,10 +56,10 @@ namespace emph {
 	const double unknownErr = myGeo->UnknownUncert(fView, kSe);
 	const double z = myGeo->ZPos(fView, kSe);
 	double xPred = x0 + z * slx0;
+	if ((fView == 'X') && (z > zMag))  xPred += (z  -  zMag) *  kick;
 	if (debugIsOn) std::cerr << " .... Prediction x0 " << x0 << " slope " << slx0 << " Magnetic kick " << kick << std::endl;
 	double xMeas = 0.;
 	if (!fIsMC) { 
-	  if ((fView == 'X') && (z > zMag))  xPred += (z  -  zMag) *  kick;
 	  if (fView == 'X') {
 	    xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe));
 	    if (kSe >= 4) xMeas *= -1.0;
@@ -70,7 +71,6 @@ namespace emph {
 	  }
 	} else {
 //	  std::cerr << " Assuming Monte-Carlo .. Tr Pos assumed " << myGeo->TrPos(fView, kSe) << std::endl;
-	  if ((fView == 'X') && (z > zMag))  xPred -= (z  -  zMag) *  kick; // Sign of the BField differ.. 
 	  if (fView == 'X') {
 	    if (kSe < 4) {
 	      xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe)); // Same as above. 

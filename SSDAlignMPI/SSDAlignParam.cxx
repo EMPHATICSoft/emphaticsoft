@@ -24,6 +24,7 @@ namespace emph {
   
     SSDAlignParam::SSDAlignParam() : 
       myGeo(emph::rbal::BTAlignGeom::getInstance()),
+      fFixedInMinuit(true),
       fMinNum(-1),  // The Minuit parameter number 
       fName("Undef"), // full name 
       fView('?'), //
@@ -50,8 +51,8 @@ namespace emph {
 	             << ".... is not a free parameter, as it defines our reference frame. So,  Quit here and now " << std::endl;
 	   exit(2);
        }
-       if ((fSensor ==  7) && ((fView == 'X') || (fView == 'Y')) && ((fType == TRSHIFT) || (fType == ZSHIFT))) {
- 	   std::cerr << " SSDAlignParam::ComposeName, problem, The X or Y view for station 5, sensor 7, in each view ...." << std::endl
+       if ((fSensor ==  7) && ((fView == 'Y')) && ((fType == TRSHIFT) || (fType == ZSHIFT))) {
+ 	   std::cerr << " SSDAlignParam::ComposeName, problem, The Y view for station 5, sensor 7 ...." << std::endl
 	             << ".... is not a free parameter, as it defines our reference frame. So,  Quit here and now " << std::endl;
 	   exit(2);
        }
@@ -84,6 +85,8 @@ namespace emph {
 	   { fName = std::string("Tilt"); break; }
 	 case ROLL: 
 	   { fName = std::string("DeltaRoll"); break; }
+	 case ROLLC: 
+	   { fName = std::string("DeltaRollCenter"); break; }
 	 case ZMAGC:      
 	   { fName = std::string("LongMagC"); return fName; }
 	 case KICKMAGN:      
@@ -115,17 +118,27 @@ namespace emph {
 	    { myGeo->SetDeltaPitchCorr(fView, fSensor, fValue); return; }
 	 case ROLL: 
 	   { myGeo->SetRoll(fView, fSensor, fValue); return; }
+	 case ROLLC: 
+	   { myGeo->SetRollCenter(fView, fSensor, fValue); return; }
 	 case ZMAGC:      
 	   { myGeo->SetZCoordsMagnetCenter(fValue); return; }
 	 case KICKMAGN:      
 	   { myGeo->SetMagnetKick120GeV(fValue);   return; }
        
          default:
-	   std::cerr << " SSDAlignParam::ComposeName, problem, Internal logic, no valid type  " << std::endl;
+	   std::cerr << " SSDAlignParam::UpdateGeom, problem, Internal logic, no valid type  " << std::endl;
 	   exit(2);
        }
-   
-    
-    }   
+     }
+     bool SSDAlignParam::isOutOfPencilBeam() const {
+       // Based on R studies of run Try3D_Sim7b_1f1_2_V1, assuming that the spot size of the beam is, in some (poorly defined) 
+       // reference frame, at X0 = - 4.5 mm and Y0 = 3.8, sigma spot size = 1.5 mm, then no 120 GeV beam tracks do make it to 
+       // the folling sensors:  
+       if ((fName.find("_X_4") != std::string::npos) || (fName.find("_X_6") != std::string::npos)) return true;
+       if ((fName.find("_Y_4") != std::string::npos) || (fName.find("_Y_6") != std::string::npos)) return true;
+       if (fName.find("_V_0") != std::string::npos) return true;
+       if (fName.find("_V_2") != std::string::npos) return true;
+       return false;
+     }
   } // name space.. 
 }     

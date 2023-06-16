@@ -27,6 +27,7 @@ namespace emph{
       ZSHIFT,      /// We will move the sensor longitudinally 
       PITCHCORR,   /// We will tilt the sensor, either a Pitch angle (Y view) or Yaw angle (X view), thereby reducing the apparent SSD strip pitch 
       ROLL, /// We will rotate the sensor about the Z axis. 
+      ROLLC, /// The center of rotation (in the relevant transverse coordinate) . 
       ZMAGC, /// The shift of the magnetic center 
       KICKMAGN // The strength of the magnetic kick.  
     };
@@ -39,6 +40,7 @@ namespace emph{
      
     private:
       BTAlignGeom* myGeo;
+      bool fFixedInMinuit;
       int fMinNum;  // The Minuit parameter number 
       std::string fName; // full name 
       char fView; //
@@ -50,6 +52,7 @@ namespace emph{
     public:
     
       inline void SetMinuitNumber(int i) { fMinNum=i; }
+      inline void SetFixedInMinuit(bool v=true) {fFixedInMinuit = v;}
       inline void SetView(char v) { fView = v; }
       inline void SetSensor(size_t s) { fSensor = s; }
       inline void SetType(paramType t) { fType = t; }
@@ -59,6 +62,7 @@ namespace emph{
       inline void SetLimits(std::pair<double, double> p) { fLimits = p;}
       //
       inline int MinuitNumber() const { return fMinNum; }
+      inline bool isFixedInMinuit() const { return fFixedInMinuit; }
       inline char View() const { return fView; }
       inline size_t SensorS() const { return fSensor; }
       inline int SensorI() const { return static_cast<int>(fSensor); }
@@ -69,6 +73,11 @@ namespace emph{
       inline double DownLimit() const { return fLimits.first; } 
       inline double UpLimit() const { return fLimits.second; } 
     
+	//
+	// Specific to the 120 GeV alignment based procedure, 
+	//
+      bool isOutOfPencilBeam() const; 
+      
       void UpdateGeom() const; 
 
     };

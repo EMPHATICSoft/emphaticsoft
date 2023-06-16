@@ -32,6 +32,7 @@ namespace emph{
 	double fPitch;
 	double fWaferWidth;
 	double fHalfWaferWidth;
+	double fIntegrationStepSize;
 	// all dimension to the number of sensors (or SSD wafer), view by view. , in order of increasing Z 
 	std::vector<double> fZNomPosX, fZNomPosY, fZNomPosU, fZNomPosV; // Z position, nominal, as is in phase1b.gdml  
  	std::vector<double> fZDeltaPosX, fZDeltaPosY, fZDeltaPosU, fZDeltaPosV; // Z position tweaks, as determined by this package, from the multiBT fitter.  
@@ -40,11 +41,13 @@ namespace emph{
  	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY, fTrDeltaPitchU, fTrDeltaPitchV; // Yaw or Pitch angle, leading to a reduced pitch. 
 	// Pitch = nominal Pitch * ( 1 - fTrDeltaPitchX), as cos(Yaw) ~ (1.0 - Yaw*yaw)  DeltaPitch always a positive quantity. 
  	std::vector<double> fRollX, fRollY, fRollU, fRollV; // Roll angle,
+ 	std::vector<double> fRollXC, fRollYC, fRollUC, fRollVC; // Center of rotation with respect to the center of the coordinate system. 
 	// For intance, for X view,  x -> x + y*fRollX, where cos(roll angle) ~ 1.0 and sin(roll angle) ~ roll angle
 	// Although not strictly geometrical, the following uncertainties are part of this singleton. 
-	//
+	// May 21 -22 : add a correction to the uncertainty on where the rotation center is.. 
+	// So x -> x + ( y - fRollXC)*fRollX, where, it is likely that fRollXC is of the order of tens of mm.  
 	std::vector<double> fMultScatUncertXorY, fMultScatUncertU, fMultScatUncertV;
-	std::vector<double> fUnknownUncertXorY, fUnknownUncertU, fUnknownUncertV;
+	std::vector<double> fUnknownUncertX, fUnknownUncertY, fUnknownUncertU, fUnknownUncertV;
 	//
 	// Internal variables, for quick access 
 	std::vector<double> fZPosX, fZPosY, fZPosU, fZPosV; 
@@ -68,11 +71,14 @@ namespace emph{
 	void SetDeltaTr(char view, size_t kSe, double value); 
 	void SetValueTrShiftLastPlane(char view, double value);
 	void SetRoll(char view, size_t kSe, double value); 
+	void SetRollCenter(char view, size_t kSe, double value); 
 	void SetDeltaPitchCorr(char view, size_t kSe, double value); 
-	void SetUnknwonUncert(char view,  size_t kSe, double v);
+	void SetUnknownUncert(char view,  size_t kSe, double v);
+	void SetUnknownUncert(char view,  double v); // all sensors within a view 
 	void SetMultScatUncert(char view,  size_t kSe, double v);
 	inline void SetZCoordsMagnetCenter(double v) { fZCoordsMagnetCenter = v; } 
-	inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; } 
+	inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; }
+	inline void SetIntegrationStepSize(double s) { fIntegrationStepSize = s; } 
 	
 	// Getter 
 	inline size_t NumStations() const { return fNumStations; } 
@@ -83,6 +89,7 @@ namespace emph{
 	inline size_t NumStrips() const { return fNumStrips; }
 	inline double ZCoordsMagnetCenter() const { return fZCoordsMagnetCenter; } 
 	inline double MagnetKick120GeV() const { return fMagnetKick120GeV; } 
+	inline double IntegrationStepSize() const { return fIntegrationStepSize; } 
 	
 	inline double ZPos(char view, size_t kSe) {  // longitudinal 
           switch (view) {
@@ -143,7 +150,23 @@ namespace emph{
 	    case 'V' :  { return (fRollV[kSe]); }
 	    case 'W' :  { return (fRollV[kSe]); }
 	    default : { 
-	      std::cerr << " BTAlignGeom::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
+	      std::cerr << " BTAlignGeom::Roll, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	   }
+	  return 0.;  // Should never happen..
+	}
+	inline double RollCenter(char view, size_t kSe) { // Transverse 
+          switch (view) {
+	    case 'X' : {
+//	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
+	     return (fRollXC[kSe]);  
+	    } 
+	    case 'Y' :  { return (fRollYC[kSe]); } 
+	    case 'U' :  { return (fRollUC[kSe]); } 
+	    case 'V' :  { return (fRollVC[kSe]); }
+	    case 'W' :  { return (fRollVC[kSe]); }
+	    default : { 
+	      std::cerr << " BTAlignGeom::RollCenter, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen..
@@ -153,9 +176,9 @@ namespace emph{
           switch (view) {
 	    case 'X' : {
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
-	     return (fUnknownUncertXorY[kSe]);  
+	     return (fUnknownUncertX[kSe]);  
 	    } 
-	    case 'Y' :  { return (fUnknownUncertXorY[kSe]); } 
+	    case 'Y' :  { return (fUnknownUncertY[kSe]); } 
 	    case 'U' :  { return (fUnknownUncertU[kSe]); } 
 	    case 'V' : case 'W' : { return (fUnknownUncertV[kSe]); }
 	    default : { 
@@ -180,7 +203,13 @@ namespace emph{
 	  return 0.;  // Should never happen..
 	}
         inline double Pitch(char view, size_t kSe) { return (fPitch * (1.0 - this->DeltaPitch(view, kSe))); }
-	    
+	//
+	// to handle the 120 GeV pencil beam 
+	void SetUncertErrorOutOfPencilBeam() ; 
+	//
+	// Moving the stations.... Study the longitudinal shifts. 
+	//
+	void MoveZPosOfXUVByY();
     };
   } // rbal 
 } // emph

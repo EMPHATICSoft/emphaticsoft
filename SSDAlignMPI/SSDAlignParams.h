@@ -31,19 +31,22 @@ namespace emph{
 	std::string fMode; // Currently, 2DX, 2DY, 3D Default is 2DY (no magnetic deflection, to 1rst order, so, easiest.
 	bool fMoveLongByStation; // We do (or do not move) all individual sensors within a station. ) 
 	bool fUseSoftLimits;
-	bool fStrictSt6;  
+	bool fStrictSt6;       
+	char fSpecificView;
+        int fSpecificSensor;
+ 
 	//
+	std::vector<std::string> fSubTypeDirectory;
 	std::vector<SSDAlignParam> fDat;
 	 
 	static SSDAlignParams* instancePtr;
 	
       public:
-      
         inline static SSDAlignParams* getInstance() {
 	 if ( instancePtr == NULL ) instancePtr = new SSDAlignParams();
 	 return instancePtr;
 	}
-      
+        
         SSDAlignParams(const SSDAlignParams&) = delete;   // no copy constructor. 
 	
 	// Setters 
@@ -55,6 +58,7 @@ namespace emph{
 	  else std::cerr << " ..... No mode change, Not Reloading !... " << std::endl;
 	  if (doReload) this->ReLoad(); 
 	}
+	inline void SetSpecificMinuitFixes(char specificStation, int SpecificSensor);  // must be called before SetMinuitParamFixes
 	inline void SetMoveLongByStation(bool m) { 
 	  const bool doReload = (fMoveLongByStation != m);  fMoveLongByStation = m; if (doReload) this->ReLoad(); 
 	}
@@ -71,12 +75,28 @@ namespace emph{
 	  if (it == fDat.end()) return;
 	  it->SetValue(val);
 	}  
+	inline void SetValue(const std::string &aName, double val) {
+	   for (std::vector<SSDAlignParam>::iterator it = fDat.begin(); it != fDat.end(); it++) {
+	     if (it->Name() == aName) { it->SetValue(val); return;}
+	   }
+	}  
 	inline void SetSoftLimits(bool u) { fUseSoftLimits = u; } 
+	inline void SetSpecificSensor(int sensorIndex) { fSpecificSensor = sensorIndex; }
+	inline void SetSpecificView(char aView) { fSpecificView = aView; }
+	
 	// Getter 
+        inline bool isSubFitTypeValid(const std::string &aType) {
+	  for (std::vector<std::string>::const_iterator it = fSubTypeDirectory.cbegin(); it != fSubTypeDirectory.cend(); it++) {
+	    if (aType == (*it)) return true;
+	  }
+	  return false;
+	}
 	inline std::string Mode() const { return fMode; } 
 	inline size_t NumParams() const { return fDat.size(); }
 	inline std::vector<SSDAlignParam>::iterator ItEnd() { return fDat.end(); }  
 	inline std::vector<SSDAlignParam>::iterator ItBegin()  { return fDat.begin(); }  
+	inline std::vector<SSDAlignParam>::const_iterator ItCEnd() { return fDat.cend(); }  
+	inline std::vector<SSDAlignParam>::const_iterator ItCBegin()  { return fDat.cbegin(); }  
 	inline size_t size() const { return fDat.size(); }
 	inline std::vector<SSDAlignParam>::const_iterator It(size_t kPar)  { 
 	   for (std::vector<SSDAlignParam>::const_iterator it = fDat.cbegin(); it != fDat.cend(); it++) {
@@ -104,6 +124,21 @@ namespace emph{
 	  MPI_Finalize(); exit(2);
 	  return fDat.cend(); 
 	}
+	inline void  FixMinuitParam(paramType t, char view, size_t sensor, bool isFixed=true)  {
+	  if ((t == emph::rbal::ZMAGC) || (t == emph::rbal::KICKMAGN)) {
+	    for (std::vector<SSDAlignParam>::iterator it = fDat.begin(); it != fDat.end(); it++) 
+	      if (t != it->Type()) { it->SetFixedInMinuit(isFixed); return;}
+	    std::cerr << " SSDAlignParams::It , undefined paramtype related to the magnet " << t << " Fatal... " << std::endl;
+	    MPI_Finalize(); exit(2);
+	    return; 
+	  }
+	  for (std::vector<SSDAlignParam>::iterator it = fDat.begin(); it != fDat.end(); it++) {
+	    if (t != it->Type()) continue;
+	    if (view != it->View()) continue;
+	    if (sensor != it->SensorS()) continue;
+	    it->SetFixedInMinuit(isFixed);
+	  }
+	}
 	inline size_t NumSensorsXorY() const { return fNumSensorsXorY; } 
 	inline size_t NumSensorsU() const { return fNumSensorsU; } 
 	inline size_t NumSensorsV() const { return fNumSensorsV; } 	
@@ -113,12 +148,12 @@ namespace emph{
 	  if (it == fDat.cend()) return std::pair<double, double>(DBL_MAX, DBL_MAX);
 	  return it->Limits();
 	}
-        inline double Value(paramType t, char view, size_t sensor) {
+        inline double Value(paramType t, char view, size_t sensor) const {
 	  std::vector<SSDAlignParam>::const_iterator it=this->Itc(t, view, sensor);
 	  if (it == fDat.cend()) return DBL_MAX;
 	  return it->Value();
 	}
-        inline double Value(size_t k) {
+        inline double Value(size_t k) const {
 	  std::vector<SSDAlignParam>::const_iterator it = fDat.cbegin(); 
 	  for (size_t kk=0; kk!= k; kk++) { 
 	    it++;  if (it == fDat.cend()) return DBL_MAX;
@@ -126,11 +161,28 @@ namespace emph{
 	  return it->Value();
 	}
 	//
+	// Checks
+	//
+	void SetMinuitParamFixes(const std::string &fitSubtype, int pencilBeamMode=0); 
+	 // Last argument: Phase1b only, 
+	 // if 1, 120 Gev beam, sigma x ~ sigmay = 1.5 mm spot size, x=-3.8, y=+4.5 (little or no W view).  
+	 // if 0, assume broad beam, centered, all sensors can be moved, subject to fitSubTypeMode. 
+	 // if -1, leave the pencil beam paramters fixes, move the others.
+	//
 	// IO 
 	//
 	void DumpTable(const std::string &token) const; // Asci, CSV format 
+	//
+	// To unload some of the messy and lengthy statements in the main program. 
+	//
+	void SetParamsForG4EMPHRun5c();
+	void SetParamsForG4EMPHRun6g();
+	void SetParamsForG4EMPHRun6h();
 	
-	void LoadValueFromPreviousRun(const std::string token); 
+	
+	void LoadValueFromPreviousRun(const std::string token, bool isSimplex=false); 
+	void LoadValueFromPreviousFCNHistory(const std::string token, int requestedNCallNumber = INT_MAX); 
+	void FixParamsForView(const char aView, bool isFixed=true, const std::string &paramName=std::string ("")); 
 	
 	private:
 	  

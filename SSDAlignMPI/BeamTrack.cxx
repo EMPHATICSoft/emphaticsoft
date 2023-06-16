@@ -30,14 +30,14 @@ namespace emph {
   
     BeamTrack::BeamTrack() : 
       myGeo(emph::rbal::BTAlignGeom::getInstance()),
-      fDebugIsOn(false), fDoMigrad(false),
+      fDebugIsOn(false), fDoMigrad(false), fAlignMode(true), fNoMagnet(false),
       fNumSensorsXorY(myGeo->NumSensorsXorY()),
       fNumSensorsU(myGeo->NumSensorsU()),
       fNumSensorsV(myGeo->NumSensorsV()),
       fSpill(-1), fEvtNum(-1), fType("Undef"),
       fx0(DBL_MAX), fy0(DBL_MAX), fslx0(DBL_MAX), fsly0(DBL_MAX),
-      fx0Err(DBL_MAX, DBL_MAX), fy0Err(DBL_MAX, DBL_MAX), 
-      fslx0Err(DBL_MAX, DBL_MAX), fsly0Err(DBL_MAX, DBL_MAX),
+      fx0Err(DBL_MAX, DBL_MAX), fy0Err(DBL_MAX, DBL_MAX), fmom(DBL_MAX), fNominalMomentum(29.0), 
+      fslx0Err(DBL_MAX, DBL_MAX), fsly0Err(DBL_MAX, DBL_MAX), fmomErr(DBL_MAX, DBL_MAX), 
       fresids(2*fNumSensorsXorY + fNumSensorsU + fNumSensorsV, DBL_MAX) // assume 3D, a bit of wast of memory if only 2D    
       {  ; } 
     
@@ -121,44 +121,97 @@ namespace emph {
      }
      double BeamTrack::doFit3D(std::vector<BeamTrackCluster>::const_iterator it) {
        fSpill = it->Spill();   fEvtNum = it->EvtNum();
+//       std::cerr <<  " BeamTrack::doFit3D, at event " << fEvtNum << std::endl;
+//       fDebugIsOn = fEvtNum > 63;
+// Debug missing low statistics on V4b, V5b views.. 
+//       const double rmsV4b = it->TheRmsStrip('V', 1);
+//       std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
+//       fDebugIsOn = ((rmsV4b < 100.) && (fEvtNum > 42)); 
+//       if (fDebugIsOn) 
+//         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
+       fDebugIsOn = false;
+//         fDebugIsOn = ((fEvtNum == 38)  & (fSpill == 12));
+	 if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
+       fFcn3D.SetDebugOn(fDebugIsOn);
+       // 
        fType = std::string("3D");
-       fFcn3D.SetClusterPtr(it);	
+       fFcn3D.SetClusterPtr(it);
+       const double pMonStartVal = fAlignMode ? fNominalMomentum :  50.; // Hardcoded intial value!  Need to get it from the main..
+       fFcn3D.SetNominalMomentum(fNominalMomentum);
+       // we start slightly off momentum.. to force the minimizer to do some work..  	
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D for event " << it->EvtNum() << " Spill " << it->Spill() << std::endl;
        ROOT::Minuit2::MnUserParameters uPars;
        std::pair<double, double> initValsX = this-> SetInitValuesX('X', it);
        if (initValsX.first == DBL_MAX) return DBL_MAX; // not enough data. 
        std::string nameT0X("XOffset"); std::string nameSlT0X("XSlope");
-       uPars.Add(nameT0X, initValsX.first); uPars.Add(nameSlT0X, initValsX.second);
+       uPars.Add(nameT0X, initValsX.first, 0.250, -50., 50.); uPars.Add(nameSlT0X, 5e-4, 0.001, -0.1, 0.1);
        if (fDebugIsOn) std::cerr << " ... Initial Xoffset " <<initValsX.first << " Slope " << initValsX.second << std::endl;
        // Same for Y 
         std::pair<double, double> initValsY = this-> SetInitValuesY('Y', it);
        if (initValsY.first == DBL_MAX) return DBL_MAX; // not enough data. 
        std::string nameT0Y("YOffset"); std::string nameSlT0Y("YSlope");
-       uPars.Add(nameT0Y, initValsY.first); uPars.Add(nameSlT0Y, initValsY.second);
+       uPars.Add(nameT0Y, initValsY.first, 0.250, -50., 50.); uPars.Add(nameSlT0Y, 2.0e-4, 0.001, -0.1, 0.1);
+       size_t numPars = 4;
+       double integrationStep = myGeo->IntegrationStepSize();
+       if (!fNoMagnet) { 
+          uPars.Add(std::string("PMom"), pMonStartVal, 20., -250., 250.);
+	  if (fDebugIsOn) std::cerr << " ...  We will fit Using the field map,  pMonStartVal " << pMonStartVal << std::endl;
+          numPars++;
+       }
        if (fDebugIsOn) std::cerr << " ... Initial Yoffset " <<initValsY.first << " Slope " << initValsY.second << std::endl;
        double minFValM = 0.;
-       std::vector<double> finalParams(4, 0);
-        if (fDoMigrad) {
+       std::vector<double> finalParams(numPars, 0);
+       bool okFit = true;
+         if (fDoMigrad) {
        //
          ROOT::Minuit2::MnMigrad migrad(fFcn3D, uPars);
+	 if ((!fNoMagnet) && fAlignMode) migrad.Fix("PMom");
        //
-         ROOT::Minuit2::FunctionMinimum min = migrad();
-         if (fDebugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
+        ROOT::Minuit2::FunctionMinimum min = migrad(1000, 0.1);
+	 if (!min.IsValid() && (numPars == 5) && (!fNoMagnet)) { //  try again, flipping the sign of slopes, whatever they are in this first minimization. 
+           if (fDebugIsOn) std::cerr << " Migrad minimum, first  " << min << std::endl; 
+	   // No limits, this around.. 
+	   const double ax0 = min.UserState().Value(nameT0X);
+	   const double ay0 = min.UserState().Value(nameT0Y);
+	   const double aslx0 = min.UserState().Value(nameSlT0X);
+	   const double asly0 = min.UserState().Value(nameSlT0Y);
+	   const double anewP = min.UserState().Value(std::string("PMom"));
+           ROOT::Minuit2::MnUserParameters uPars2nd;
+	   uPars2nd.Add(nameT0X, ax0, 0.150); uPars2nd.Add(nameSlT0X, -1.0*aslx0, 0.001);
+	   uPars2nd.Add(nameT0Y, ay0, 0.150); uPars2nd.Add(nameSlT0Y, -1.0*asly0, 0.001);
+	   if (!fNoMagnet) uPars2nd.Add(std::string("PMom"), anewP + 5.0, 10.);
+           ROOT::Minuit2::MnMigrad migrad2nd(fFcn3D, uPars2nd);
+	   if ((!fNoMagnet) && fAlignMode) migrad2nd.Fix("PMom");
+ 	   min = migrad2nd(1000, 0.1);
+	 }
+         if (fDebugIsOn) std::cerr << " Migrad minimum, 2nd of good first " << min << std::endl; 
        
-         ROOT::Minuit2::MnMinos minos(fFcn3D, min);
+//         ROOT::Minuit2::MnMinos minos(fFcn3D, min);
        
          fx0 = min.UserState().Value(nameT0X); fslx0 = min.UserState().Value(nameSlT0X);
-         fx0Err = minos(0); fslx0Err = minos(1);
          fy0 = min.UserState().Value(nameT0Y); fsly0 = min.UserState().Value(nameSlT0Y);
-         fy0Err = minos(2); fsly0Err = minos(3);
+	 fx0Err.first = min.UserState().Error(nameT0X); fx0Err.second = fx0Err.first; // since we skip Minos 
+	 fy0Err.first = min.UserState().Error(nameT0Y); fx0Err.second = fx0Err.first; // since we skip Minos 
+	 fslx0Err.first = min.UserState().Error(nameSlT0X); fslx0Err.second = fslx0Err.first; // since we skip Minos 
+	 fsly0Err.first = min.UserState().Error(nameSlT0Y); fsly0Err.second = fsly0Err.first; // since we skip Minos 
          finalParams[0] = fx0; finalParams[1] = fslx0;
          finalParams[2] = fy0; finalParams[3] = fsly0;
+	 if (numPars == 5) {
+	    finalParams[4] = min.UserState().Value(std::string("PMom"));
+	    fmom = finalParams[4];
+	    fmomErr.first = min.UserState().Error(std::string("PMom")); fmomErr.second = fmomErr.first;
+	 }
  	 minFValM = min.Fval();
+	 okFit = min.IsValid();
       } else {
          std::vector<double>initValsV{initValsX.first, initValsX.second, initValsY.first, initValsY.second};
          std::vector<double>initValsE{0.5, 0.001, 0.5, 0.001};
+	 if (numPars == 5) { 
+	   initValsV.push_back(pMonStartVal); initValsE.push_back(5.0);
+	 }
          ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
-	 ROOT::Minuit2::FunctionMinimum min = theMinimizer.Minimize(fFcn3D, initValsV, initValsE);
+	 // set a maximum number of calls to FCN.  Strategy is the default one. 
+	 ROOT::Minuit2::FunctionMinimum min = theMinimizer.Minimize(fFcn3D, initValsV, initValsE, 1, 200, 0.1);
  	 const std::vector<double> myErrs = min.UserParameters().Errors();
          if (fDebugIsOn) std::cerr << " Minimize minimum " << min << std::endl; 
 //         fx0 = min.UserParameters().Value(nameT0X); fslx0 = min.UserParameters().Value(nameSlT0X);
@@ -170,18 +223,20 @@ namespace emph {
 	 finalParams[2] = fy0; finalParams[3] = fsly0;
 	 fy0Err = std::pair<double, double> (myErrs[2], myErrs[2]); 
 	 fsly0Err =std::pair<double, double> (myErrs[3], myErrs[3]); 
+	 if (numPars == 5) finalParams[4] = min.UserState().Value(4);
 	 minFValM = min.Fval();
-      	 
        } 
        double finalChi = fFcn3D(finalParams);
        fchiSq = finalChi;
        if (std::abs(finalChi - minFValM )/finalChi >  1.0e-6) {
-         std::cerr << " BeamTrack::doFit2D gave non-reproducible chi-Square.. " << minFValM << " vs  finalChi " 
+         std::cerr << " BeamTrack::doFit3D gave non-reproducible chi-Square.. " << minFValM << " vs  finalChi " 
 		    << finalChi << "  Something wrong, quit here and now " << std::endl;
 		    exit(2);
        }
        for (size_t kSe = 0; kSe != fresids.size(); kSe++) fresids[kSe] = fFcn3D.Resid(kSe);
-       if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << finalChi << std::endl; 
+       if (!okFit) fchiSq *=- 1.0;
+       if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 
+       if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
        return finalChi;
      }
      
@@ -294,7 +349,7 @@ namespace emph {
     
     int BeamTrack::Serialize(std::vector<double> &data) const {  // For MPI transfer. 
       data.clear();
-      const double nW = 4 + 4 + 8 + 1 + fresids.size();
+      const double nW = 4 + 5 + 10 + 1 + fresids.size();
       data.push_back(nW);
       data.push_back(static_cast<double>(fSpill));
       data.push_back(static_cast<double>(fEvtNum));
@@ -303,31 +358,33 @@ namespace emph {
       if (fType.find("2DY") == 0)  data.push_back(2.);
       if (fType.find("3D") == 0)  data.push_back(3.);
      // A waste of memore if 2D.. but simplifies the code.. 
-      data.push_back(fx0); data.push_back(fy0); data.push_back(fslx0); data.push_back(fsly0);
+      data.push_back(fx0); data.push_back(fy0); data.push_back(fslx0); data.push_back(fsly0); data.push_back(fmom);
       data.push_back(fx0Err.first); data.push_back(fx0Err.second);
       data.push_back(fy0Err.first); data.push_back(fy0Err.second);
       data.push_back(fslx0Err.first); data.push_back(fslx0Err.second);
       data.push_back(fsly0Err.first); data.push_back(fsly0Err.second);
+      data.push_back(fmomErr.first); data.push_back(fsly0Err.second);
       data.push_back(fchiSq);
       for (size_t kSe = 0; kSe != fresids.size(); kSe++) data.push_back(fresids[kSe]);
-      return nW;
+      return static_cast<int>(nW);
     }
 // 
     
     void BeamTrack::DeSerialize(const std::vector<double> &data) { // For MPI transfer. 
       std::vector<double>::const_iterator it=data.cbegin();
       size_t nW = static_cast<size_t>(*it); it++;
-      size_t nResids =  nW - 17; // See above
+      size_t nResids =  nW - 20; // See above
       fSpill = *it; it++; fEvtNum=*it, it++;
       int ffType = static_cast<int>(*it); it++;
       if (ffType = 1) fType=std::string("2DX"); 
       if (ffType = 2) fType=std::string("2DY"); 
       if (ffType = 3) fType=std::string("3D");
-      fx0  = *it; it++; fy0  = *it; it++; fslx0  = *it; it++; fsly0  = *it; it++;
+      fx0  = *it; it++; fy0  = *it; it++; fslx0  = *it; it++; fsly0  = *it; it++; fmom = *it; it++;
       fx0Err.first = *it; it++; fx0Err.second = *it; it++;
       fy0Err.first = *it; it++; fy0Err.second = *it; it++;
       fslx0Err.first = *it; it++; fslx0Err.second = *it; it++;
       fsly0Err.first = *it; it++; fsly0Err.second = *it; it++;
+      fmomErr.first = *it; it++; fmomErr.second = *it; it++;
       fchiSq = *it; it++;
       fresids.clear();
       for (size_t kSe = 0; kSe != nResids; kSe++) { fresids.push_back(*it); it++; }

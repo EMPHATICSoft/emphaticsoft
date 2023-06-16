@@ -25,7 +25,7 @@ namespace emph {
        fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3),
        fPitch(0.06),
        fWaferWidth(static_cast<int>(fNumStrips)*fPitch),
-       fHalfWaferWidth(0.5*fWaferWidth),  
+       fHalfWaferWidth(0.5*fWaferWidth), fIntegrationStepSize(0.),  
        fZNomPosX{0.75, 121.25, 363.15, 484.15, 985.75, 985.75, 1211.95, 1211.95}, 
        fZNomPosY{0.15, 120.65, 360.75, 481.75, 986.35, 986.35, 1212.55, 1212.55},
        fZNomPosU{360.15,  481.15}, fZNomPosV{988.75, 988.75, 1214.95, 1214.95},
@@ -43,10 +43,13 @@ namespace emph {
        fTrDeltaPitchU(fNumSensorsU, 0.), fTrDeltaPitchV(fNumSensorsV, 0.), 
        fRollX(fNumSensorsXorY, 0.), fRollY(fNumSensorsXorY, 0.),  
        fRollU(fNumSensorsU, 0.), fRollV(fNumSensorsV, 0.),
-       fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287},
+       fRollXC(fNumSensorsXorY, 0.), fRollYC(fNumSensorsXorY, 0.),  
+       fRollUC(fNumSensorsU, 0.), fRollVC(fNumSensorsV, 0.),
+       fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287}, // At 120 GeV, no target
        fMultScatUncertU{0.05067243, 0.05067243}, 
        fMultScatUncertV{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
-       fUnknownUncertXorY(fNumSensorsXorY, 0.5), fUnknownUncertU(fNumSensorsU, 0.5), fUnknownUncertV(fNumSensorsV, 0.5),
+       fUnknownUncertX(fNumSensorsXorY, 1.0e-4), fUnknownUncertY(fNumSensorsXorY, 1.0e-4),
+       fUnknownUncertU(fNumSensorsU, 1.0e-4), fUnknownUncertV(fNumSensorsV, 1.0e-4),
        fZPosX(fNumSensorsXorY, 0.),  fZPosY(fNumSensorsXorY, 0.), 
        fZPosU(fNumSensorsU, 0.),fZPosV(fNumSensorsV, 0.),
        fTrPosX(fNumSensorsXorY, 0.),  fTrPosY(fNumSensorsXorY, 0.), 
@@ -61,7 +64,10 @@ namespace emph {
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosY[kSe] = fTrNomPosY[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPosU[kSe] = fTrNomPosU[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsV; kSe++) { fTrPosV[kSe] = fTrNomPosV[kSe]; } 
-       
+       //
+       // Attempting to understand problem at 30 GeV, kick is wrong.. Reconstructed momentum is 18.4, in average... 
+       // This is with a fixed kick. 
+       // fMagnetKick120GeV *= 30.0/18.4; 
      }
      //
      // Setters 
@@ -134,7 +140,6 @@ namespace emph {
      void BTAlignGeom::SetDeltaTr(char view,  size_t kSe, double v) {
        switch (view) {
      	 case 'X' : {
-//	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break;  
 	    } 
 	 case 'Y' :  { 
@@ -178,6 +183,22 @@ namespace emph {
 	      exit(2);  } 
 	}
      } 
+     void BTAlignGeom::SetRollCenter(char view,  size_t kSe, double v) {
+       switch (view) {
+     	 case 'X' : {
+//	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
+	     fRollXC[kSe] = v;   break;  
+	    } 
+	 case 'Y' :  { fRollYC[kSe] = v;  break;} 
+	 case 'U' :  { fRollUC[kSe] = v;  break;} 
+	 case 'V' :  case 'W' : { 
+	       fRollVC[kSe] = v; 
+	       break;}
+	 default : { 
+	      std::cerr << " BTAlignGeom::SetRollCenter, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	}
+     } 
      void BTAlignGeom::SetDeltaPitchCorr(char view,  size_t kSe, double v) {
        switch (view) {
      	 case 'X' : {
@@ -192,16 +213,38 @@ namespace emph {
 	      exit(2);  } 
 	}
      } 
-     void BTAlignGeom::SetUnknwonUncert(char view,  size_t kSe, double v) {
+     void BTAlignGeom::SetUnknownUncert(char view,  size_t kSe, double v) {
        switch (view) {
-     	 case 'X' : case 'Y' :{
-//	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
-	     fUnknownUncertXorY[kSe] = v;  break;  
+     	 case 'X'  :{
+	     fUnknownUncertX[kSe] = v;  break;  
+	    } 
+     	 case 'Y' :{
+	     fUnknownUncertY[kSe] = v;  break;  
 	    } 
 	 case 'U' :  { fUnknownUncertU[kSe] = v;  break;} 
 	 case 'V' :  case 'W' : {  fUnknownUncertV[kSe] = v; break;}
 	 default : { 
-	      std::cerr << " BTAlignGeom::SetUnknwonUncert, unknown view " << view << " fatal, quit " << std::endl; 
+	      std::cerr << " BTAlignGeom::SetUnknownUncert, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	}
+     } 
+     void BTAlignGeom::SetUnknownUncert(char view,  double v) {
+       switch (view) {
+     	 case 'X'  :{
+	     for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) fUnknownUncertX[kSe] = v;  
+	     break;  
+	    } 
+     	 case 'Y' :{
+	     for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) fUnknownUncertY[kSe] = v;  
+	     break;  
+	    } 
+	 case 'U' :  { for (size_t kSe=0; kSe != fNumSensorsU; kSe++) fUnknownUncertU[kSe] = v;  
+	                 break;
+			 } 
+	 case 'V' :  case 'W' : {  for (size_t kSe=0; kSe != fNumSensorsV; kSe++) fUnknownUncertV[kSe] = v; 
+	     break;}
+	 default : { 
+	      std::cerr << " BTAlignGeom::SetUnknownUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
@@ -217,7 +260,21 @@ namespace emph {
 	      std::cerr << " BTAlignGeom::SetMultScatUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
-     } 
+     }	
+     void BTAlignGeom::SetUncertErrorOutOfPencilBeam() { 
+       this->SetUnknownUncert('X', 4, 100.); this->SetUnknownUncert('Y', 4, 100.);
+       this->SetUnknownUncert('X', 6, 100.); this->SetUnknownUncert('Y', 6, 100.);
+       this->SetUnknownUncert('V', 0, 100.); this->SetUnknownUncert('V', 2, 100.);
+//       this->SetUnknownUncert('V', 100.);
+     }
+     void BTAlignGeom::MoveZPosOfXUVByY() {
+       for (size_t kSt = 1; kSt != fNumStations; kSt++) { // Phase1b limits, the last station stay put.. 
+         const double theZDeltaPosY = fZDeltaPosY[kSt]; 
+	 // Phase1b : At station 4, we get the first double sensors at index 4, and the 5th sensor is at the same Z. 
+	 this->SetDeltaZStation('X', kSt, theZDeltaPosY); 
+	 if (kSt == 4) this->SetDeltaZStation('U', 4, theZDeltaPosY); 
+       }
+     }
    } // namespace 
 }  // namespace   
      

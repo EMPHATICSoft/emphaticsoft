@@ -17,6 +17,7 @@
 #include <cfloat>
 #include <cassert>
 
+#include <mpi.h>
 #include "BeamTrackSSDAlignFCN.h"
 #include "myMPIUtils.h"
 
@@ -29,19 +30,21 @@ namespace emph {
     myGeo(emph::rbal::BTAlignGeom::getInstance()),
     myParams(emph::rbal::SSDAlignParams::getInstance()),
     myBTIn(DataIn), 
-    fFitType(aFitType), fIsMC(false), 
-    fStrictSt6(true), fBeamConstraint(false), 
+    fFitType(aFitType), fIsMC(false), fNoMagnet(false),
+    fStrictSt6(true), fBeamConstraint(false), fAlignMode(true), fDoAntiPencilBeam(false), fDoAllowLongShiftByStation(false),
+    fAssumedSlopeSigma(1.0),  
     fBeamBetaFunctionY(1357.), fBeamBetaFunctionX(377.), // in cm 
     fBeamAlphaFunctionY(-25.11), fBeamAlphaFunctionX(-8.63), // in cm 
     fBeamGammaX((1.0 + fBeamAlphaFunctionX*fBeamAlphaFunctionX)/fBeamBetaFunctionX), // See Twiss Param definition, TRANSPORT manual, p. 39 
     fBeamGammaY((1.0 + fBeamAlphaFunctionY*fBeamAlphaFunctionY)/fBeamBetaFunctionY),
+    fNominalMomentum(29.6), // For the 30 GeV exercise.
     fSoftLimits(false),
     fUpLimForChiSq(1000.),
     fDebugIsOn(false), fDumpBeamTracksForR(false),
     fNCalls(0), 
     FCNBase(),
     fErrorDef(1.),
-    fNameForBeamTracks("none") 
+    fNameForBeamTracks("none"), fIsOK(0) 
     {
       // We overwrite the Twiss parameters, based on e-mail from Mike Olander, Jan 31 
       const double l172 = 172.1455; // meters  
@@ -79,16 +82,16 @@ namespace emph {
       fNCalls++;
 
       
-      fResids.resize(parsM.size());
+      fResids.resize(parsM.size()); // Why ????? 
       std::vector<double> pars(parsM); // need to copy, as the value could (should not, if all goes well, i.e., Minuit determines its next 
                                        // move on the same value of the chisq, which is broadcast from rank 0  
       //
       // Broadcast, make sure all the worker node have the same Parameters (different set of events.. )
       //
       emph::rbal::broadcastFCNParams(pars);
-      if ((fDebugIsOn) && (myRank == 1)) std::cerr << " BeamTrackSSDAlignFCN::operator, from rank " 
-              << myRank << " after broadcast params, numPrams " << pars.size() << std::endl;
-      if ((fDebugIsOn) && (myRank == 1)) std::cerr << " .... Geometry has been updated.. " << pars.size() << std::endl;
+      if ((fDebugIsOn) && (myRank == 0)) std::cerr 
+        << " BeamTrackSSDAlignFCN::operator, from rank 0 after broadcast params, numPrams " << pars.size() << std::endl;
+//      if ((fDebugIsOn) && (myRank == 0)) std::cerr << " .... Geometry has been updated.. " << pars.size() << std::endl;
       //
       // Update the geometry. we do assume the number of Minuit and those from our own interface to the geometry 
       // are identical.  
@@ -97,34 +100,77 @@ namespace emph {
       for (std::vector<SSDAlignParam>::iterator it = myParams->ItBegin(); it != myParams->ItEnd(); it++, kP++) {
 	it->SetValue(pars[kP]);
       }
+      
+      if (fDoAllowLongShiftByStation) myGeo->MoveZPosOfXUVByY();
+        
       double chiSoftLim = 0.;
       if (fSoftLimits) {
         chiSoftLim = this->SurveyConstraints(pars);
       }
+      bool flagTracks = false;
+      // If no information on the validity flags of the tracks, resize the associated vector. 
+      if (fIsOK.size() == 0) {
+        flagTracks = true; 
+ 	fIsOK = std::vector<bool>(myBTIn->GetNumEvts(), true);
+      } 
       //
       // Loop over all the tracks. 
       //
      emph::rbal::BeamTracks myBTrs; 
      size_t iEvt = 0;
-     for (std::vector<emph::rbal::BeamTrackCluster>::const_iterator it = myBTIn->cbegin(); it != myBTIn->cend(); it++) {
+     size_t kk=0;
+     size_t nOKs = 0;
+     if (fDebugIsOn) std::cerr << " BeamTrackSSDAlignFCN::operator, from rank " << myRank << " looping on " 
+                               << myBTIn->GetNumEvts() << " events " << std::endl; 
+     for (std::vector<emph::rbal::BeamTrackCluster>::const_iterator it = myBTIn->cbegin(); it != myBTIn->cend(); it++, kk++) {
        if (!it->Keep()) continue; 
        emph::rbal::BeamTrack aTr;
+       if ((!flagTracks) && (kk < fIsOK.size()) && (!fIsOK[kk])) continue;
        aTr.SetMCFlag(fIsMC);
+       aTr.SetNoMagnet(fNoMagnet);
        aTr.SetDoMigrad(false); // Minuit Minimize will do .. 
-//       aTr.SetDebug((iEvt < 5));
-//       aTr.SetDebug(false);
+       aTr.SetAlignMode(fAlignMode); 
+       aTr.SetNominalMomentum(fNominalMomentum);
+       aTr.SetDebug((iEvt < 5));
+//       aTr.SetDebug(true);
        if (fFitType == std::string("2DY")) { 
          aTr.doFit2D('Y', it); 
        } else if (fFitType == std::string("2DX")) aTr.doFit2D('X', it); 
-       else if (fFitType == std::string("3D")) aTr.doFit3D(it);
-       if ((myRank == 1) && (iEvt < 20) && fDebugIsOn)  {
+       else if (fFitType == std::string("3D")) {
+          aTr.SetDoMigrad(true); // a bit trickier if fitting momentum as well  
+          aTr.doFit3D(it);
+       }
+       // if we are working on the sensors that are not covered by the 120 GeV pencil beam, let us not include 
+       // the track that are too close to the pencil beam.  Rough cut.. 
+        if (flagTracks) {
+         if (fDoAntiPencilBeam && (fFitType == std::string("3D")) && (aTr.X0() < 0.) && (aTr.Y0() > 0.)) fIsOK[kk] = false;
+         if (aTr.ChiSq() < 0.) {
+           if ((myRank == 0) && (iEvt < 100) && fDebugIsOn)  {
+              std::cerr << " Evt " << it->EvtNum() << " fit 3D failed, we will no longer try to fit this track. " << std::endl;
+           }
+           fIsOK[kk] = false;
+	 } else if (aTr.ChiSq() > fUpLimForChiSq) { 
+           if ((myRank == 0) && (iEvt < 100) && fDebugIsOn)  {
+              std::cerr << " Evt " << it->EvtNum() << " fit 3D has too big of a chi-Sq, reject this track.  " << std::endl;
+           }
+	   fIsOK[kk] = false;
+	 }
+       } else {
+         // a track become bad.. set a high value, but we will keep in the mean chiSq. 
+         if (aTr.ChiSq() < 0.) aTr.SetChiSq(2.0*fUpLimForChiSq); // arbitrary.. but we will include this track in the tally, now.. 
+       } 
+       if ((myRank == 0) && (iEvt < 100) && fDebugIsOn)  {
           std::cerr << " Evt " << it->EvtNum() << " x0 " << aTr.X0() << " y0 " << aTr.Y0() << " chi2 " << aTr.ChiSq() << std::endl;
        }
+       if (!fIsOK[kk]) { iEvt++; continue; }
+       nOKs++;
        myBTrs.AddBT(aTr);
        iEvt++;
      }
-      if (fDebugIsOn) std::cerr << " .... from rank " 
-        << myRank << " Did all the tracks fits.. " << iEvt << " of them " << std::endl;
+//      std::cerr << " BeamTrackSSDAlignFCN, operator(), on rank " << myRank << " MPI Barrier, nOKs " << nOKs << std::endl; 
+      MPI_Barrier(MPI_COMM_WORLD);
+     if (fDebugIsOn && (myRank == 0))  std::cerr << " .... from rank 0.. Did all the tracks fits.. " 
+                 << iEvt << " of them " << " successful " <<  nOKs << std::endl;
      // 	
      // Adding beam Constraint
      //
@@ -133,10 +179,15 @@ namespace emph {
        if ((fFitType == std::string("3D")) || (fFitType == std::string("2DX"))) chiAddBeam += this->BeamConstraintX(myBTrs);
        if ((fFitType == std::string("3D")) || (fFitType == std::string("2DY"))) chiAddBeam += this->BeamConstraintY(myBTrs);
      }
+     chiAddBeam += this->SlopeConstraintAtStation0(myBTrs);
+     if ((fDebugIsOn) && (myRank == 0)) 
+       std::cerr << " .... Applied  SlopeConstraintAtStation0, on rank 0, chiAd is   " << chiAddBeam << std::endl;
      
      // Collect the mean Chi-Sq, average...  
      //
-     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, fUpLimForChiSq, (chiAddBeam + chiSoftLim) ); // We leave them be.. in the container.. 
+     // 
+//     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, fUpLimForChiSq, (chiAddBeam + chiSoftLim) ); // We leave them be.. in the container.. 
+     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, DBL_MAX/2, (chiAddBeam + chiSoftLim) ); // We include the ones that  
      if ((fDebugIsOn) && (myRank == 0)) 
        std::cerr << " .... Did all the tracks fits.. on rank 0, at least.. chi2 is  " << chi2 << " fUpLimForChiSq " << fUpLimForChiSq << std::endl;
      
@@ -151,7 +202,11 @@ namespace emph {
         emph::rbal::collectBeamTracks(myBTrs, false);
 	if (myRank == 0) 
 	  myBTrs.DumpForCVS(fNameForBeamTracks.c_str());
-     }  
+     }
+      // We must synchronize here, as we will be collecting all the tracks..
+      // Debugging the apparent infinite loop in Migrad.. 
+      //
+//      std::cerr << " BeamTrackSSDAlignFCN, operator(), on rank " << myRank << " before return, chiSq " << chi2 << std::endl; 
      return chi2;
     }
     void BeamTrackSSDAlignFCN::OpenChiSqHistoryFile(const std::string &token) {
@@ -175,7 +230,9 @@ namespace emph {
     
     double BeamTrackSSDAlignFCN::SurveyConstraints(const std::vector<double> &pars) const { // Using Soft Limits. 
       double chiAdd = 0.;
-      if (fDebugIsOn) std::cerr << " BeamTrackSSDAlignFCN::SurveyConstraints.. on " << pars.size() << " parameters " << std::endl;
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+      if (fDebugIsOn && (myRank == 0)) std::cerr << " BeamTrackSSDAlignFCN::SurveyConstraints.. on " << pars.size() << " parameters " << std::endl;
       //
       // Implement tying the double sensor together..Constraint on avoiding overlaps. The Gap has to be positive   
       //
@@ -255,11 +312,13 @@ namespace emph {
 	chiAdd += chiA;
       }
       */
-      if (fDebugIsOn) std::cerr << " ........ Adding a total of " << chiAdd << " chi-square " << std::endl;
+      if ((myRank == 0) && fDebugIsOn) std::cerr << " ........ Adding a total of " << chiAdd << " chi-square " << std::endl;
       return chiAdd;
     }
     double BeamTrackSSDAlignFCN::BeamConstraintY(const emph::rbal::BeamTracks &btrs) const {
      // Compute Sigma Y0 and sly0; 
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
      double aaY0 = 0.; double aa2Y0=0.;  double aaSly0 = 0.; double aa2Sly0=0.;
      // Compute the mean slope first..  No cuts.. 
      for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) 
@@ -283,7 +342,7 @@ namespace emph {
      const double sigmaSlyPred = std::sqrt(std::abs(epsil*fBeamGammaY)); // also in mrad
      const double delta = sigmaSlyPred - sigmaSly;
      const double chiAdd =  std::min(1.0e9, std::abs(std::exp(delta*delta/(sigmaSlyPred*sigmaSlyPred)) -1.));
-     if (fDebugIsOn) {
+     if (fDebugIsOn && (myRank == 0)) {
        std::cerr << " BeamTrackSSDAlignFCN::BeamConstraintY on " << btrs.size() << " tracks " << std::endl;
        std::cerr << " ............. sigmaY " << std::sqrt(sigmaYSq) << " sigmaSly " 
                  << sigmaSly <<  " betaY " << fBeamBetaFunctionY << " epsil " << epsil << " sigmaSlyPred " << sigmaSlyPred << " chiAdd " << chiAdd << std::endl;
@@ -292,7 +351,11 @@ namespace emph {
     }
     // Same in the X view 
     double BeamTrackSSDAlignFCN::BeamConstraintX(const emph::rbal::BeamTracks  &btrs) const {
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
      // Compute Sigma X0 and slx0; 
+     /*
+     * Winter 2023 code, O.K., but we don't have good values for the Twiss params of our beams!.. 
      double aaX0 = 0.; double aa2X0=0.;  double aaSlx0 = 0.; double aa2Slx0=0.;
      // Compute the mean slope first..  No cuts.. 
      for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) 
@@ -300,12 +363,16 @@ namespace emph {
      const double meanSlx = aaSlx0/static_cast<int>(btrs.size());
      aaSlx0 = 0.;
      int nAcc = 0;
+     double avMom = 0; double avMom2 = 0.;
      for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) {
        const double xx = it->X0(); const double slxx = it->Slx0();
-       if (it->ChiSq() > 200.) continue;     // Added, for MC studies.. Also should be valid for data....   
+       if (it->ChiSq() > 50.) continue;     // Added, for MC studies.. Also should be valid for data....   
        if (std::abs(slxx - meanSlx) > 0.0015) continue;  // we ignore multiple scattering or interaction in the Silcon wafer.  Valid onlx at 120 GeV 
        nAcc++;
        aaX0 += xx; aa2X0 += xx*xx; aaSlx0 += slxx; aa2Slx0 += slxx*slxx; 
+       if ((std::abs(fNominalMomentum) > 0.1) && (it->Mom() != DBL_MAX))) {
+         avMom += it->Mom(); avMom2 += it->Mom() * it->Mom(); 
+       }
      }
      if (nAcc < 3) return 1.0e9;
      const double meanSlx0Acc = aaSlx0/nAcc;
@@ -321,9 +388,63 @@ namespace emph {
        std::cerr << " ............. sigmaX " << std::sqrt(sigmaXSq) << " sigmaSlx " 
                  << sigmaSlx << " epsil " << epsil << " sigmaSlxPred " << sigmaSlxPred << " chiAdd " << chiAdd << std::endl;
      }
+     */
+     // Obsolete as well, we simply fix the momentum in the BT fits. 
+     double chiAdd = 0.;
+     if (std::abs(fNominalMomentum) > 0.1) { 
+       double avMom = 0; double avMom2 = 0.; int nMoms = 0; double varMom = DBL_MAX;
+       for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) {
+         if (it->Mom() != DBL_MAX) {
+           avMom += it->Mom(); avMom2 += it->Mom() * it->Mom(); nMoms++;
+         }
+       }
+       if (nMoms > 5) {
+         avMom /= nMoms; 
+         varMom = (avMom2 - nMoms * avMom *avMom)/(nMoms *(nMoms-1));
+	 //
+	 // April 28 : we do not use the variance in the additional chi-square, because, if SSD sensors are misaligned, the 
+	 // the momentum resolution will decrease.. So, let us a fixed variance 
+	 const double varMomFixed = 0.01 * fNominalMomentum * fNominalMomentum;
+         chiAdd += (fNominalMomentum - avMom) * (fNominalMomentum - avMom)/varMomFixed;
+       }
+//       if (fDebugIsOn && (myRank == 0)) {
+       if ((myRank == 0)) {
+         std::cerr << " BeamTrackSSDAlignFCN::BeamConstraintX on " << btrs.size() << " tracks " 
+	           <<  " Nominal momentum " << fNominalMomentum << " average  " 
+		    << avMom << " sigma " << std::sqrt(varMom) << " chiAdd " << chiAdd << std::endl;
+       }
+     }  
      return chiAdd;
     }
-    
+    //
+    // However, we definitly want to avoid the broadening/split of average Beam Track slopes, which do occur if we have both Rolls 
+    // transverse offsets. 
+    double BeamTrackSSDAlignFCN::SlopeConstraintAtStation0(const emph::rbal::BeamTracks  &btrs) const {
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+      if (btrs.size() < 3) {
+        if ((fDebugIsOn) && (myRank == 0)) {
+           std::cerr << " BeamTrackSSDAlignFCN::SlopeConstraintAtStation0 on " << btrs.size() 
+	             << " tracks Not enough tracks, nothing to add ... " << std::endl;
+        }
+        return 0.;
+      }
+      double slxAv = 0.; double slyAv = 0.; double slxSq = 0.; double slySq = 0.;
+      for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) {
+        const double slx = it->Slx0(); const double sly = it->Sly0(); 
+        slxAv += slx; slyAv += sly;  slxSq += slx*slx; slySq += sly*sly;
+      }
+      slxAv /= btrs.size(); slyAv /= btrs.size();
+      const double sigSlxSq = (slxSq - slxAv*slxAv*btrs.size())/(btrs.size() - 1);
+      const double sigSlySq = (slySq - slyAv*slyAv*btrs.size())/(btrs.size() - 1);
+      double chiAdd = (sigSlxSq + sigSlxSq)/(fAssumedSlopeSigma*fAssumedSlopeSigma);
+      if ((fDebugIsOn) && (myRank == 0)) {
+         std::cerr << " BeamTrackSSDAlignFCN::SlopeConstraintAtStation0 on " << btrs.size() << " tracks " 
+	           <<  " Expected Slope Sigma " << fAssumedSlopeSigma << " average  X sigma " 
+		    << std::sqrt(std::abs(sigSlxSq)) << " in Y " << std::sqrt(std::abs(sigSlySq)) << " chiAdd " << chiAdd << std::endl;
+      }
+      return chiAdd;
+    }
   }
 }  
  

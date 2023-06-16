@@ -32,9 +32,14 @@ namespace emph{
       
     private:
       BTAlignGeom* myGeo; // should not be needed, but does not hurt.. 
+      bool fNoMagnet;
       std::vector<BeamTrack> fData;
       
     public:
+      inline void SetNoMagnet(bool v=true) {
+        fNoMagnet = v;
+	for (std::vector<BeamTrack>::iterator it = fData.begin(); it != fData.end(); it++) it->SetNoMagnet(v); 
+      }
       inline void AddBT(BeamTrack &aTr) { fData.push_back(aTr); } 
       inline size_t size() const { return fData.size(); }
       inline void clear() { fData.clear(); }

@@ -32,11 +32,17 @@ namespace emph{
       emph::rbal::BTAlignInput *myBTIn;
       std::string fFitType;
       bool fIsMC; // Very ugly, not sure about sign conventions.. 
+      bool fNoMagnet; 
       bool fStrictSt6;
       bool fBeamConstraint;
+      bool fAlignMode;
+      bool fDoAllowLongShiftByStation;
+      bool fDoAntiPencilBeam; 
+      double fAssumedSlopeSigma;
       double fBeamBetaFunctionY, fBeamBetaFunctionX;
       double fBeamAlphaFunctionY, fBeamAlphaFunctionX;
       double fBeamGammaX, fBeamGammaY;
+      double fNominalMomentum;
       bool fSoftLimits;
       double fUpLimForChiSq; // Upper limit for accepting fitted tracks.
       bool fDebugIsOn;
@@ -46,6 +52,9 @@ namespace emph{
       mutable std::vector<double> fResids;
       mutable std::string fNameForBeamTracks;
       mutable std::ofstream fFOutHistory;
+      mutable std::vector<bool> fIsOK; // dimensioned on the number of events, on a given rank. 
+      //  States that this track ought to contribute to the chiSq, based solely on the first iteration.  
+      
       
     public:
       // Setters
@@ -58,14 +67,21 @@ namespace emph{
       void SetUpLimForChiSq(double u) {  fUpLimForChiSq = u;}
       void SetFitType(const std::string &aft) { fFitType = aft; } 
       void SetBeamConstraint(bool v) { fBeamConstraint = v; } 
+      void SetAlignMode(bool v=true) { fAlignMode = v; } 
+      void SetAntiPencilBeam(bool v=true) {fDoAntiPencilBeam = v;}
+      void SetAllowLongShiftByStation(bool v=true) { fDoAllowLongShiftByStation = true; } 
+      void SetNoMagnet(bool v=true) {fNoMagnet = v;}
       void SetBeamAlphaBetaFunctionY (double a, double b) {fBeamAlphaFunctionY = a; fBeamBetaFunctionY = b;}
       void SetBeamAlphaBetaFunctionX (double a, double b) {fBeamAlphaFunctionX = a; fBeamBetaFunctionX = b;}
       void SetStrictSt6(bool v) { fStrictSt6 = v; } 
       void SetSoftLimits(bool v) { fSoftLimits = v; } 
       void SetUpError(double v) { fErrorDef = v; }
+      void SetNominalMomentum(double p) { fNominalMomentum = p; } 
       void SetDumpBeamTracksForR(bool v) { fDumpBeamTracksForR = v; } 
       void SetNameForBeamTracks (const std::string &aName) { fNameForBeamTracks = aName; } 
+      inline void SetAssumedSlopeSigma(double v) { fAssumedSlopeSigma = v; }
       inline void SetDebug(bool d=true) {fDebugIsOn = true;}
+      inline void ResetOKFlags() { fIsOK.clear();}
    
       // Get, basic operators, interface to Minuit2 
       inline bool GetMCFlag() const { return fIsMC; } 
@@ -83,7 +99,8 @@ namespace emph{
     private:  
     
       double BeamConstraintY(const emph::rbal::BeamTracks &btrs) const;  
-      double BeamConstraintX(const emph::rbal::BeamTracks &btrs) const;  
+      double BeamConstraintX(const emph::rbal::BeamTracks &btrs) const;  // this include the nominal momentum. 
+      double SlopeConstraintAtStation0(const emph::rbal::BeamTracks &btrs) const;
       double SurveyConstraints(const std::vector<double> &pars) const; // for all parameter.  In this case, parameters are not Minuit limited.  
     };
   }

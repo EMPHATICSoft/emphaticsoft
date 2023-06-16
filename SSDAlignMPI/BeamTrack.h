@@ -34,13 +34,15 @@ namespace emph{
       BTAlignGeom* myGeo;
       bool fDebugIsOn;
       bool fDoMigrad;
+      bool fAlignMode;
+      bool fNoMagnet;
       size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2  // should be const..but then I can't remove tracks..  
       size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each 
       size_t fNumSensorsV = 4; // Station 2 and 3, one sensor each 
       int fSpill, fEvtNum;
       std::string fType;
-      double fx0, fy0, fslx0, fsly0;
-      std::pair<double, double> fx0Err, fy0Err, fslx0Err, fsly0Err; // Minos error. 
+      double fx0, fy0, fslx0, fsly0, fmom, fNominalMomentum;
+      std::pair<double, double> fx0Err, fy0Err, fslx0Err, fsly0Err, fmomErr; // Migrad error. (or minimize) 
       double fchiSq;
       std::vector<double> fresids; // all views, in the following order X, Y, U and V 
       
@@ -61,9 +63,15 @@ namespace emph{
         fFcn2D.SetMCFlag(v); 
         fFcn3D.SetMCFlag(v); 
       }
+      inline void SetNoMagnet(bool v=true) {
+        fNoMagnet = v;
+	fFcn3D.SetNoMagnet(v);
+      }
       inline void SetDebug(bool v=true) { fDebugIsOn = v;}
       inline void SetChiSq(double c) {fchiSq = c; }
-      inline void SetDoMigrad(double v) { fDoMigrad = v; }
+      inline void SetNominalMomentum(double p) { fNominalMomentum = p; } 
+      inline void SetDoMigrad(bool v) { fDoMigrad = v; }
+      inline void SetAlignMode(bool v) { fAlignMode = v; }
       // support for centering, such that we can make tentative track quality selection. 
       //
       inline size_t NumSensorsXorY() const { return fNumSensorsXorY; }
@@ -76,11 +84,12 @@ namespace emph{
       inline double Y0() const { return fy0; }
       inline double Slx0() const { return fslx0; }
       inline double Sly0() const { return fsly0; }
-      
+      inline double Mom() const { return fmom; }
       inline double X0Err(bool isLow) const { return ((isLow) ? fx0Err.first : fx0Err.second); }
       inline double Y0Err(bool isLow) const { return ((isLow) ? fy0Err.first : fy0Err.second); }
       inline double Slx0Err(bool isLow) const { return ((isLow) ? fslx0Err.first : fslx0Err.second); }
       inline double Sly0Err(bool isLow) const { return ((isLow) ? fsly0Err.first : fsly0Err.second); }
+      inline double MomErr(bool isLow) const { return ((isLow) ? fmomErr.first : fmomErr.second); }
 
       inline double ChiSq() const { return fchiSq; } 
       inline double Resid(size_t kSe) const { // kSe ranges from 0 to 2*fNumSensorsXorY + fNumSensorsU + fNumSensorsV-1 

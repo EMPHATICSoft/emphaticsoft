@@ -127,8 +127,8 @@ int main(int argc, char **argv) {
      myGeo->SetDeltaTr(  'Y', 5, -2.03585  ); 
      myGeo->SetDeltaTr(  'Y', 6,   -5.0        ); // at limit large, but very few statistic for 120 GeV beam. 
       // Now that is stable.. 
-      for (size_t k=0; k!= 8; k++) myGeo->SetUnknwonUncert('Y', k, 0.0000004); // Turn it off! 
-      myGeo->SetUnknwonUncert('Y', 4, 5.0);  myGeo->SetUnknwonUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
+      for (size_t k=0; k!= 8; k++) myGeo->SetUnknownUncert('Y', k, 0.0000004); // Turn it off! 
+      myGeo->SetUnknownUncert('Y', 4, 5.0);  myGeo->SetUnknownUncert('Y', 6, 5.0); // again, suspicious track that are widely deflected.  
 
     
     if (kSeTrShifted != INT_MAX) myGeo->SetDeltaTr(viewShifted[0], kSeTrShifted, trShift);

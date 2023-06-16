@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include "BTAlignGeom.h"
+#include "BTMagneticField.h"
 #include "BTAlignInput.h"
 #include "SSDAlignParams.h"
 #include "BeamTracks.h"
@@ -22,6 +23,7 @@
 #include "Minuit2/FunctionMinimum.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"
+#include "Minuit2/MnSimplex.h"
 #include "Minuit2/MnMinos.h"
 #include "Minuit2/MinosError.h"
 #include "Minuit2/MnContours.h"
@@ -31,8 +33,9 @@
 // In this main, just ditribute the event and check them.  
 // 
 
-emph::rbal::BTAlignGeom* emph::rbal::BTAlignGeom::instancePtr=NULL; 
-emph::rbal::SSDAlignParams* emph::rbal::SSDAlignParams::instancePtr=NULL; 
+emph::rbal::BTAlignGeom* emph::rbal::BTAlignGeom::instancePtr=nullptr; 
+emph::rbal::SSDAlignParams* emph::rbal::SSDAlignParams::instancePtr=nullptr; 
+emph::rbal::BTMagneticField* emph::rbal::BTMagneticField::instancePtr=nullptr; 
 
 //
 // Main program for doing the complete ~ 64 parameters fit of all misalignment SSD parameters. 
@@ -49,6 +52,7 @@ int main(int argc, char **argv) {
 				      // Feb 2 2023 (a day after GroundHog day, who knows, may our Minos will improve. 
 				      // Try subfit type "TrTiltShift"  "TrZShift" only tilts and transverse shifts, or only 
 				      // Tr and long shifts. Only valid for 2D (test first in the vertical plane). 
+				      // April 28, adding TrShiftX456, vary only the 3 downstream sensors. 
    int SensorForFitSubType(INT_MAX); // Valid strings are "All" (nothing fixed), TRShift, PitchCorr, 
    char ViewForFitSubType('A'); // Applicable for one sensor at a time, for V plane and U plane, mostly. 
    int maxEvts = 1000000;
@@ -62,12 +66,15 @@ int main(int argc, char **argv) {
    std::string token("none");
    bool doCallFCNOnce = false; // for debugging purpose.. One cll to FCCN and that is it. 
    bool doMinos = true;
+   bool doMigrad = false;
    bool doLoadParamsFromPreviousRun = false;
    unsigned int  contourP1Index = INT_MAX;
    unsigned int  contourP2Index = INT_MAX;
    int nContourPts = 20;
    unsigned int  scanP1Index = INT_MAX;
    unsigned int  scanP2Index = INT_MAX;
+   std::string scanP1Name("none"); 
+   std::string scanP2Name("none"); 
    int nScanPts = 50;
    bool doSoftLimits = false;
    bool applyEmittanceConstraint = false;
@@ -76,9 +83,12 @@ int main(int argc, char **argv) {
    double betaFunctionX = 377.; // Only valid for 120 GeV 
    double alphaFunctionY = -25.1063; // same..  
    double alphaFunctionX = -8.62823; //
+   double nominalMomentum = 29.7; // for the 30 GeV analysis
    double uPLimitOnChiSqTrackFits = 200.; 
    double assumedDoubleGap = 3.25; // starting value for the gap 
    int runNum = 1055; // For data... 
+   double integrationStepSize = 0.;
+   double magnetShiftX = 0.; double magnetShiftY = 0.; double magnetShiftZ = 0.;  
    std::string G4EMPHDescrToken("none");
   
      
@@ -161,12 +171,12 @@ int main(int argc, char **argv) {
         } else if (parStr.find("nContourPts") != std::string::npos) {
           valStrStr >> nContourPts;
           if (myRank == 0) std::cerr << " Number of Contour points    "  << nContourPts << std::endl;	
-         } else if (parStr.find("scanP1Index") != std::string::npos) {
-          valStrStr >> scanP1Index;
-          if (myRank == 0) std::cerr << " Scan Parameter Index  1   "  << scanP1Index << std::endl;	
-        } else if (parStr.find("scanP2Index") != std::string::npos) {
-          valStrStr >> scanP2Index;
-          if (myRank == 0) std::cerr << " Scan Parameter Index  2   "  << scanP2Index << std::endl;	
+         } else if (parStr.find("scanP1Name") != std::string::npos) {
+	  scanP1Name = valStr; 
+          if (myRank == 0) std::cerr << " Scan Parameter Name  1   "  << valStr << std::endl;	
+        } else if (parStr.find("scanP2Name") != std::string::npos) {
+	  scanP2Name = valStr; 
+          if (myRank == 0) std::cerr << " Scan Parameter Name  2   "  << valStr << std::endl;	
         } else if (parStr.find("nScanPts") != std::string::npos) {
           valStrStr >> nScanPts;
           if (myRank == 0) std::cerr << " Number of Scan points    "  << nScanPts << std::endl;	
@@ -193,6 +203,9 @@ int main(int argc, char **argv) {
 	  applyEmittanceConstraint = (iS == 1);
           if ((myRank == 0) && applyEmittanceConstraint)  std::cerr << "We will use apply beam emittance constraint, assuming 120 GeV    " << std::endl;
           if ((myRank == 0) && (!applyEmittanceConstraint))  std::cerr << "We will NOT use beam emittance constrain (default)   " << std::endl;
+         } else if (parStr.find("nomMom") != std::string::npos) {
+          valStrStr >> nominalMomentum;
+          if (myRank == 0) std::cerr << " The nominal momentum is      "  << nominalMomentum << std::endl;	
          } else if (parStr.find("betaFuncY") != std::string::npos) {
           valStrStr >> betaFunctionY;
           if (myRank == 0) std::cerr << " Twiss beta Function, Vertical     "  << betaFunctionY << std::endl;	
@@ -211,7 +224,31 @@ int main(int argc, char **argv) {
         } else if (parStr.find("DoubleGap") != std::string::npos) {
           valStrStr >> assumedDoubleGap;
           if (myRank == 0) std::cerr << " The gap betweeen double sensors is assumed to be "  << assumedDoubleGap << std::endl;	
-        } else if (parStr.find("token") != std::string::npos) {
+        } else if (parStr.find("IntegrationStep") != std::string::npos) {
+          valStrStr >> integrationStepSize;
+          if (myRank == 0)  {
+	     if (integrationStepSize > 1.0e-6)  
+	       std::cerr << " The Magnetic Field map will be upload and 3D track fit will fit momentum with step size "  
+	                             << integrationStepSize << std::endl;
+	     else if (std::abs(integrationStepSize) < 1.0e-6)		     
+	       std::cerr << " Simple kick approximation will be used, but the momentum will be fitted.  "  << std::endl;
+	     else 
+	       std::cerr << " We will assume this is 120 GeV track, no momentum fits.  "  << std::endl;
+				     
+	     }
+        } else if (parStr.find("MagShiftX") != std::string::npos) {
+          valStrStr >> magnetShiftX;
+          if (myRank == 0) std::cerr << " The Magnetic Field map will be shifted along the X axis by  "  
+	                             << magnetShiftX << std::endl;
+        } else if (parStr.find("MagShiftY") != std::string::npos) {
+          valStrStr >> magnetShiftY;
+          if (myRank == 0) std::cerr << " The Magnetic Field map will be shifted along the Y axis by  "  
+	                             << magnetShiftY << std::endl;
+         } else if (parStr.find("MagShiftZ") != std::string::npos) {
+          valStrStr >> magnetShiftZ;
+          if (myRank == 0) std::cerr << " The Magnetic Field map will be shifted along the Z axis by  "  
+	                             << magnetShiftZ << std::endl;
+      } else if (parStr.find("token") != std::string::npos) {
           token = valStr;
           if (myRank == 0) std::cerr << " Token will be   "  << token << std::endl;
         } else {
@@ -301,9 +338,11 @@ int main(int argc, char **argv) {
     // Now deal with the parameters.. 
     //
     
+//    if (myRank == 0) std::cerr << " ... Instantiating the Geometry...  " << std::endl;
+    
     emph::rbal::BTAlignGeom *myGeo = emph::rbal::BTAlignGeom::getInstance();
     if (G4EMPHDescrToken.find("SimProtonNoTgt") != std::string::npos) {
-       std::cerr << " Geometry, G4EMPH (should be unique, though.. " << std::endl;
+//       std::cerr << " Geometry, G4EMPH (should be unique, though.. " << std::endl;
        myGeo->SetMultScatUncert('X', 1,  0.003201263);  myGeo->SetMultScatUncert('Y', 1,  0.003201263); 
        myGeo->SetMultScatUncert('X', 2, 0.00512);  myGeo->SetMultScatUncert('Y', 2, 0.00512); 
        myGeo->SetMultScatUncert('X', 3, 0.0092);	myGeo->SetMultScatUncert('Y', 3, 0.0092);
@@ -318,7 +357,21 @@ int main(int argc, char **argv) {
        if (G4EMPHDescrToken.find("3a") != std::string::npos)  myGeo->SetMagnetKick120GeV(1.0e-10);
        if (G4EMPHDescrToken.find("4a") != std::string::npos)  myGeo->SetMagnetKick120GeV(1.0e-10);
     }
-    
+    //
+    if (integrationStepSize > 0.) { 
+      if (myRank == 0) std::cerr << " ... Instantiating Magnetic field. " << std::endl;
+      emph::rbal::BTMagneticField *myMagField = emph::rbal::BTMagneticField::getInstance();
+      if (myRank == 0) {
+        double xxx[3]; xxx[0] = 2.3; xxx[1] = 5.6; xxx[2] = 757.; double bField[3];
+	myMagField->GetFieldValue(xxx, bField); 
+	std::cerr << " Test on the Magnetic field, approximate center By " << bField[0] << "  By " << bField[1] << std::endl;
+//	std::cerr << " ..... And quit for now.... " << std::endl; exit(2);
+      }
+      if (std::abs(magnetShiftX) > 1.0e-3) myMagField->SetReAlignShiftX(magnetShiftX);
+      if (std::abs(magnetShiftY) > 1.0e-3) myMagField->SetReAlignShiftY(magnetShiftY);
+      if (std::abs(magnetShiftZ) > 1.0e-3) myMagField->SetReAlignShiftZ(magnetShiftZ);
+      myGeo->SetIntegrationStepSize(integrationStepSize);
+    } 
     emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance();
     myParams->SetStrictSt6(strictSt6X || strictSt6Y); 
     //
@@ -440,10 +493,7 @@ int main(int argc, char **argv) {
       */
      }
     } 
-    bool withGap = true;
-    if (G4EMPHDescrToken.find("NoTgtMis03a") != std::string::npos) withGap = false;
-    if (G4EMPHDescrToken.find("NoTgtMis04a") != std::string::npos) withGap = false;
-    if (G4EMPHDescrToken.find("NoTgtMis04b") != std::string::npos) withGap = false;
+    bool withGap = (std::abs(assumedDoubleGap) >  1.0e-6);
     if (withGap) { 
       myGeo->SetValueTrShiftLastPlane('X', assumedDoubleGap );  
       myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
@@ -514,8 +564,14 @@ int main(int argc, char **argv) {
      */
      // ease the search for the minimum.. And, Change the definition of the coordinate system. 
      //
-     if ((G4EMPHDescrToken.find("NoTgtMis04c") != std::string::npos) || 
-         (G4EMPHDescrToken.find("NoTgtMis04d") != std::string::npos)) { // Obtained April 5, Try3D_Sim4c_d_1. The transverse shifts offsets did not changed, 
+//     if ((G4EMPHDescrToken.find("NoTgtMis04c") != std::string::npos) || 
+//         (G4EMPHDescrToken.find("NoTgtMis04d") != std::string::npos)) { // Obtained April 5, Try3D_Sim4c_d_1. The transverse shifts offsets did not changed, 
+//
+//      Moving out to series 5	
+// 
+      if ((G4EMPHDescrToken.find("NoTgtMis04") !=  std::string::npos) && 
+           ((G4EMPHDescrToken.find("NoTgtMis04c") != std::string::npos) || 
+           (G4EMPHDescrToken.find("NoTgtMis04d") != std::string::npos))) {
 	                                                                // 4c to 4d.  
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 1, 0.451439 );  
       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 2, -0.9407  );  
@@ -536,6 +592,15 @@ int main(int argc, char **argv) {
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 2, -0.5959  ); //
       myParams->SetValue(emph::rbal::TRSHIFT, 'V', 3, -2.16742 ); //  
     }
+    if (G4EMPHDescrToken.find("NoTgtMis05d") !=  std::string::npos) {
+// Very temporary !     
+       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 2, 0.0004  );
+       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 4, -0.5  );
+       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 5, 1.0  );
+       myParams->SetValue(emph::rbal::TRSHIFT, 'X', 6, 0.75  );
+       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 4, -0.0003  );
+       myParams->SetValue(emph::rbal::TRSHIFT, 'Y', 5, 0.0005  );
+    }
     //
     // New method, reload from a file... 
     //
@@ -553,9 +618,11 @@ int main(int argc, char **argv) {
     for (size_t kPar=0; kPar != myParams->size();  kPar++) { 
       std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
       std::string aName(itP->Name());
+      if (aName == scanP1Name) scanP1Index = kPar; if (aName == scanP2Name) scanP2Index = kPar;
       double aValue = itP->Value();
       double err = 0.1*std::abs(itP->Limits().second);
       if (err < 1.0e-10) err = 0.1;
+//      if (aName.find("TransShift") != std::string::npos) err = 2.0;
       uPars.Add(aName, aValue, err);
       if (!doSoftLimits) uPars.SetLimits(aName, itP->Limits().first, itP->Limits().second);
     }
@@ -565,6 +632,8 @@ int main(int argc, char **argv) {
     theFCN.SetMCFlag(G4EMPHDescrToken != std::string("none"));
     theFCN.SetSoftLimits(doSoftLimits);
     theFCN.SetBeamConstraint(applyEmittanceConstraint);
+    theFCN.SetNominalMomentum(nominalMomentum);
+    theFCN.SetAlignMode(true); // In this context, kind of obvious. 
     theFCN.SetUpLimForChiSq(uPLimitOnChiSqTrackFits);
     // Wrong value above... 
 //    if (applyEmittanceConstraint) { 
@@ -574,14 +643,40 @@ int main(int argc, char **argv) {
     //
     
     if (doCallFCNOnce) {
-      std::vector<double> parTmp(myParams->size(), 0.); 
+      std::vector<double> parTmp1(myParams->size(), 0.); 
       for (size_t k=0; k != myParams->size(); k++) {
  	 std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(k);
-	 parTmp[k] = itP->Value();
+	 parTmp1[k] = itP->Value();
       }
       theFCN.SetDebug(true);
-      double chiSqTmp = theFCN(parTmp); 
-      std::cerr << " Caling FCN once.. Result from rank " << myRank << " is " << chiSqTmp << std::endl;
+      theFCN.SetDumpBeamTracksForR(true);
+      std::string aNameSol("./BeamTracksFromOneCall_"); aNameSol += token; aNameSol += std::string("_V1.txt");
+      theFCN.SetNameForBeamTracks(aNameSol);
+      double chiSqTmp1 = theFCN(parTmp1); 
+      std::cerr << " Calling FCN once.. Result from rank " << myRank << " is " << chiSqTmp1 << std::endl;
+      //
+      // Test reproducibilty of FCN 
+      //
+      if (myRank == 0) std::cerr << " Furthermore... " << std::endl;
+      for (int kTest=0; kTest != 4; kTest++) {
+        std::vector<double> parTmpT(myParams->size(), 0.); 
+        theFCN.SetDebug(false);
+        theFCN.SetDumpBeamTracksForR(false);
+        for (size_t k=0; k != myParams->size(); k++) {
+ 	   std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(k);
+	   parTmpT[k] = itP->Value();
+	   if (itP->Name().find("TransShift_X_5") != std::string::npos) parTmpT[k] = 0.1*(kTest + 1);
+	   if (itP->Name().find("TransShift_X_6") != std::string::npos) {
+	     parTmpT[k] = -0.2*(kTest + 1);
+             if (myRank == 0) std::cerr << " .... At kTest " << kTest << " ... setting  " << itP->Name() << " to " << parTmpT[k] << std::endl;
+	   }
+ 	}
+        double chiSqTmpT = theFCN(parTmpT); 
+        if (myRank == 0) std::cerr << " .... At kTest " << kTest << " ...  Result from rank 0 is " << chiSqTmpT << std::endl;
+      }
+      double chiSqTmp1Redo = theFCN(parTmp1); 
+      std::cerr << " .... Back to where we were..on rank  " << myRank << " is " << chiSqTmp1Redo << std::endl;
+      std::cerr << " .... And done for good on rank .... " << myRank << std::endl;
       MPI_Finalize(); 
       exit(0);
    } 
@@ -589,6 +684,7 @@ int main(int argc, char **argv) {
 //    if (myRank == 1) theFCN.SetDebug(true);
     
     ROOT::Minuit2::MnMigrad  migrad(theFCN, uPars);
+    ROOT::Minuit2::MnSimplex minSimple(theFCN, uPars);
     //
     // Fix them, depending on subMode.. 
    //
@@ -611,6 +707,11 @@ int main(int argc, char **argv) {
 	        (fitSubType == std::string("TrZShift")) ||(fitSubType == std::string("TrTiltShift")) || 
 		(fitSubType == std::string("TrTiltRollShift")))   && 
 	        (aName.find("TransShift") != std::string::npos)) isFixed = false;
+	   if (fitSubType == std::string("TrShiftX456")) {
+	     if ((aName.find("TransShift_X_4") != std::string::npos) || 
+	         (aName.find("TransShift_X_5") != std::string::npos) || (aName.find("TransShift_X_6") != std::string::npos))
+		 isFixed = false;
+	   }
 	   if (((fitSubType == std::string("ZShift"))||(fitSubType == std::string("TrZShift"))) && 
 	        (aName.find("LongShift") != std::string::npos)) isFixed = false;
 	   if (((fitSubType == std::string("PitchCorr")) || (fitSubType == std::string("TrTiltShift")) ||
@@ -673,23 +774,57 @@ int main(int argc, char **argv) {
      //
      // Minimize
      //
-     ROOT::Minuit2::FunctionMinimum min = migrad();
-     bool myMinMigrad = min.IsValid();
+     bool myMinMigrad = false;  bool myMinSimple = false; 
+     if (doMigrad) { 
+        ROOT::Minuit2::FunctionMinimum min = migrad(500, 0.1);
+        myMinMigrad = min.IsValid();
+        if (myRank == 0) {
+          std::string fNameMinRes("./MinValues_Migrad"); fNameMinRes += token + std::string(".txt");      
+          std::ofstream fOutMinRes(fNameMinRes.c_str()); // Bad, cloned code.. Stupid Minuit2 interface. 
+          for (size_t kPar=0; kPar != myParams->size();  kPar++) {
+           std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
+           std::string aName(itP->Name());
+           double theValue  = min.UserState().Value(aName);
+           double theError  = min.UserState().Error(aName);
+	   fOutMinRes << " " << aName << " " << theValue << " " << theError << std::endl;
+         }
+         fOutMinRes.close();
+       }
+     } else {
+        ROOT::Minuit2::FunctionMinimum min = minSimple(500, 0.);
+        myMinSimple = min.IsValid();
+        if (myRank == 0) {
+	  std::cerr << min << std::endl;
+          std::string fNameMinRes("./MinValues_Simplex"); fNameMinRes += token + std::string(".txt");      
+          std::ofstream fOutMinRes(fNameMinRes.c_str());
+         for (size_t kPar=0; kPar != myParams->size();  kPar++) {
+           std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
+           std::string aName(itP->Name());
+           double theValue  = min.UserState().Value(aName);
+           double theError  = min.UserState().Error(aName);
+	   fOutMinRes << " " << aName << " " << theValue << " " << theError << std::endl;
+         }
+         fOutMinRes.close();
+         //
+         // Save the set of track for this solution..Even if flaky..  
+         //
+         std::vector<double> parsSol(myParams->size(), 0.);
+         for (size_t kP=0; kP != myParams->size(); kP++) parsSol[kP] = min.UserState().Value(kP);
+         theFCN.SetDumpBeamTracksForR(true);
+         std::string aNameSol("./BeamTracksFromMBadin_"); aNameSol += token; aNameSol += std::string("_V1.txt");
+         theFCN.SetNameForBeamTracks(aNameSol);
+         double chiSol = theFCN(parsSol);
+         theFCN.SetDumpBeamTracksForR(false);
+	 if (myRank == 0) std::cerr << " Bailing out after simplex... " << std::endl;
+         MPI_Finalize();
+         exit(2); 
+      
+       }
+     } 
      //
      // Save the minimum values, no matter if the minimum is valid or not.. 
-     //
-     if (myRank == 0) {
-       std::string fNameMinRes("./MinValues_"); fNameMinRes += token + std::string(".txt");      
-       std::ofstream fOutMinRes(fNameMinRes.c_str());
-       for (size_t kPar=0; kPar != myParams->size();  kPar++) {
-         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP = myParams->It(kPar);
-         std::string aName(itP->Name());
-         double theValue  = min.UserState().Value(aName);
-         double theError  = min.UserState().Error(aName);
-	 fOutMinRes << " " << aName << " " << theValue << " " << theError << std::endl;
-       }
-       fOutMinRes.close();
-     }
+     // Temporary bailing out... to be clean-up, if we find that MnSimple works better for us.. Then, no Minos.. 
+     /*
      if (!myMinMigrad) {
        if (myRank == 0) {
          std::cerr << "  ... On rank 0, Minimum from Migrad is invalid... " << std::endl;
@@ -742,6 +877,42 @@ int main(int argc, char **argv) {
        
      }
      // Requested Scans..  ? My own, based on Limits.. 
+     // One D scan.. Some cloned code... 
+     if ((scanP1Index < static_cast<unsigned int>(myParams->size())) 
+           && scanP2Index == INT_MAX) {
+        std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(scanP1Index));
+	 // !!by Minuit Parameters numberr. See printed list.. 
+         if (myRank == 0) std::cerr << " Requesting Scan..1D...  For parameter " << itP1->Name() 
+	     << " Number of calls if FCN history file, so far " << theFCN.NCalls() <<std::endl;
+	 std::vector<double> tmpPars(myParams->size(), 0.); size_t kp = 0;
+	 std::pair<double, double> limitsP1 =  itP1->Limits();
+	 double range1 = limitsP1.second - limitsP1.first;
+	 double start1 = limitsP1.first;	 
+	 for (size_t kp=0; kp != myParams->size(); kp++) {
+           std::vector<emph::rbal::SSDAlignParam>::const_iterator itPC = myParams->It(kp);
+	   tmpPars[kp] = min.UserState().Value(itPC->Name());
+	 }
+	 double delta1 = range1/nScanPts;
+	 std::ofstream aFoutScan;
+	 if (myRank == 0) {
+	    std::string aNameScan("./Scan1D_"); aNameScan += token + std::string("_V1.txt");
+	    aFoutScan.open(aNameScan.c_str());
+	    aFoutScan << " k " << itP1->Name() << " chiSq " << std::endl;
+	 }
+	 int ncc = 0;
+	 for (int iSc1=0; iSc1 != nScanPts; iSc1++) {
+	   tmpPars[scanP1Index] =  start1 + iSc1*delta1;
+	   double chiSqTmp = theFCN(tmpPars);
+	   if (myRank == 0) 
+	       aFoutScan  << " " << ncc << " " 
+	                                << tmpPars[scanP1Index] <<  " " << chiSqTmp << std::endl;
+					// Result also available in FCN History file. 
+	     ncc++;
+	   }
+         if (myRank == 0) { aFoutScan.close(); std::cerr << " Done with 1D Scan" << itP1->Name()
+	        << " Number of calls if FCN history file " << theFCN.NCalls() <<std::endl; }
+     }
+     
      if ((scanP1Index < static_cast<unsigned int>(myParams->size())) 
            && (scanP2Index < static_cast<unsigned int>(myParams->size()))) {
         std::vector<emph::rbal::SSDAlignParam>::const_iterator itP1 = myParams->It(static_cast<size_t>(scanP1Index));
@@ -756,14 +927,6 @@ int main(int argc, char **argv) {
 	 for (size_t kp=0; kp != myParams->size(); kp++) {
            std::vector<emph::rbal::SSDAlignParam>::const_iterator itPC = myParams->It(kp);
 	   tmpPars[kp] = min.UserState().Value(itPC->Name());
-	 }
-	 //
-	 // Using the Migrad errors, if the minimum is valid. 
-	 //
-	 if (myMinMigrad) {
-	   range1 = 3.0*min.UserState().Error(itP1->Name()); range2 = 3.0*min.UserState().Error(itP2->Name());
-	   start1 = min.UserState().Value(itP1->Name()) - 0.5*range1;
-	   start2 = min.UserState().Value(itP2->Name()) - 0.5*range2;
 	 }
 	 double delta1 = range1/nScanPts; double delta2 = range2/nScanPts;
 	 std::ofstream aFoutScan;
@@ -870,5 +1033,5 @@ int main(int argc, char **argv) {
      if (myRank == 0) theFCN.CloseChiSqHistoryFile();
      std::cerr << " Done, calling MPI_Finalze from " << myRank << std::endl;
      MPI_Finalize();
-     
+   */  
 }

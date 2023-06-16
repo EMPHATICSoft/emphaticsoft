@@ -23,7 +23,7 @@ namespace emph {
   namespace rbal {
   
     BeamTracks::BeamTracks() :
-    myGeo(emph::rbal::BTAlignGeom::getInstance()) {; } 
+    myGeo(emph::rbal::BTAlignGeom::getInstance()), fNoMagnet(false) {; } 
       
 
     void BeamTracks::DumpForCVS(const char *fName) const {
@@ -35,8 +35,9 @@ namespace emph {
       bool is2DY = (it0->Type() == std::string("2DY"));
       bool is3D =  (it0->Type() == std::string("3D"));
       fOut << " spill evt ";
-      if (is2DX || is3D) fOut << " x0 x0ErrL x0ErrH slx0 slx0ErrL slx0ErrH";
-      if (is2DY || is3D) fOut << " y0 y0ErrL y0ErrH sly0 sly0ErrL sly0ErrH";
+      if (is2DX || is3D) fOut << " x0 x0Err x0ErrH slx0 slx0Err slx0ErrH";
+      if (is2DY || is3D) fOut << " y0 y0Err y0ErrH sly0 sly0Err sly0ErrH";
+      if (is3D) fOut << " p pErrL pErrH"; 
       fOut << " chiSq ";
       size_t numResids =  (is2DX || is2DY) ? it0->NumSensorsXorY() : (2*it0->NumSensorsXorY() + it0->NumSensorsU() + it0->NumSensorsV());
       for (size_t kSe=0; kSe != numResids; kSe++) fOut << " resid" << kSe;
@@ -55,6 +56,7 @@ namespace emph {
          fOut << " " << it->Y0() << " " <<  it->Y0Err(true) << " " << it->Y0Err(false); 
          fOut << " " << it->Sly0() << " " <<  it->Sly0Err(true) << " " << it->Sly0Err(false); 
         }
+	if (is3D) fOut << " " << it->Mom() << " " << it->MomErr(true) << " " << it->MomErr(false); 
         fOut << " " << it->ChiSq();
         for (size_t kSe=0; kSe != numResids; kSe++) fOut << " " << it->Resid(kSe);
         fOut << " " << std::endl;
