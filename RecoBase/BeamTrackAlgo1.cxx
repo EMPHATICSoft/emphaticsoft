@@ -16,7 +16,7 @@ namespace rb {
   //----------------------------------------------------------------------
   
   BeamTrackAlgo1::BeamTrackAlgo1() : 
-    fTrType (rb::NONE), 
+    fTrType (rb::NONE), fUserFlag(INT_MAX), 
    fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX),  
    fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX),
    fTrXCovOffSl(DBL_MAX), fTrYCovOffSl(DBL_MAX), fChiSqX(DBL_MAX), fChiSqY(DBL_MAX)
