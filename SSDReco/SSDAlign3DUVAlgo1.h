@@ -4,7 +4,7 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef SSDALIGN3DUVYALGO1_H
+#ifndef SSDALIGN3DUVALGO1_H
 #define SSDALIGN3DUVALGO1_H
 
 #include <vector>

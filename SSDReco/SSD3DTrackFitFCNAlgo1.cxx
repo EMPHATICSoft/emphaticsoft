@@ -274,13 +274,13 @@ namespace emph {
 	  if (!fIsMC) { 
 	    if (aView == emph::geo::X_VIEW) {
 	      tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      if (kSe >= 4) tMeas *= -1.0;
+	      if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... X View " << " kSe " << kSe 
 	  	      << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
 	    } else if (aView == emph::geo::Y_VIEW) {
 	      tMeas =  ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      if (kSe >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	      if (kS >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      if (fDebugIsOn) 
 	        std::cerr << " ..... Y View " << " kSe " << kSe 
 	  	      << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 

@@ -65,6 +65,10 @@ namespace emph {
        for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPosU[kSe] = fTrNomPosU[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsV; kSe++) { fTrPosV[kSe] = fTrNomPosV[kSe]; } 
        
+       // an assumption !! 
+       
+       fZPosErr = 5.0e-9;  // Turn this off, because it will affect only mometum scale (correlated errors) 
+       
      }
      //
      // Setters 
@@ -281,6 +285,7 @@ namespace emph {
        std::cerr << " VolatileAlignmentParams::SetGeomFromSSDAlign, uploading Params from file " << fileName << std::endl;
        std::string tokenTransShift("TransShift_X_");
        std::string tokenRoll("DeltaRoll_X_");
+       std::string tokenRollCenter("DeltaRollCenter_X_"); // The length of the strings are the same for all Views. 
        while (fIn.good()) {
          fIn.getline(aLine, 1024);
          std::string aLStr(aLine);
@@ -297,7 +302,7 @@ namespace emph {
 	   if (aName.find("_U") != std::string::npos) this->SetDeltaTr(emph::geo::U_VIEW, aSens, aVal);
 	   if (aName.find("_V") != std::string::npos) this->SetDeltaTr(emph::geo::W_VIEW, aSens, aVal);
 	 }
-	 if (aName.find("DeltaRoll") != std::string::npos) {
+	 if ((aName.find("DeltaRoll") != std::string::npos) && (aName.find("Center") == std::string::npos)) {
 	   std::string aSensStr=aName.substr(tokenRoll.length(), 1);
 	   size_t aSens = static_cast<size_t>(std::atoi(aSensStr.c_str()));
 	   std::cerr << ".... Uploading Roll angle, name " <<  aName << ", sensor " <<  aSens << " value " << aVal << std::endl;
@@ -307,7 +312,7 @@ namespace emph {
 	   if (aName.find("_V") != std::string::npos) this->SetRoll(emph::geo::W_VIEW, aSens, aVal);
 	 }
 	 if (aName.find("DeltaRollCenter") != std::string::npos) {
-	   std::string aSensStr=aName.substr(tokenRoll.length(), 1);
+	   std::string aSensStr=aName.substr(tokenRollCenter.length(), 1);
 	   size_t aSens = static_cast<size_t>(std::atoi(aSensStr.c_str()));
 	   std::cerr << ".... Uploading Roll Center name " <<  aName << ", sensor " <<  aSens << " value " << aVal << std::endl;
 	   if (aName.find("_X") != std::string::npos) this->SetRollCenter(emph::geo::X_VIEW, aSens, aVal);

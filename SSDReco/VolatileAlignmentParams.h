@@ -33,6 +33,8 @@ namespace emph{
 	double fPitch;
 	double fWaferWidth;
 	double fHalfWaferWidth;
+	double fZPosErr; // assume that all the station (excluding station 0) Z position have 
+	                 // an alignment uncertainty, longitudinal.
 	// all dimension to the number of sensors (or SSD wafer), view by view. , in order of increasing Z 
 	// We should not have nominal positions here, but they are conveninent to have here.. 
 	std::vector<double> fZNomPosX, fZNomPosY, fZNomPosU, fZNomPosV; // Z position, nominal, as is in phase1b.gdml  
@@ -67,7 +69,7 @@ namespace emph{
 	
 	
 	// Setters 
-	
+	void SetZPosErr(double v) { fZPosErr = v; } 
 	void SetDeltaZ(emph::geo::sensorView view, size_t sensor, double value);  // move individual sensors. For X, & Y, sensor ranges from 0 to fNumSensorsXoY 
 	void SetDeltaZStation(emph::geo::sensorView view, size_t aStation, double value); // move individual stations.. 
 	void SetDeltaTr(emph::geo::sensorView view, size_t kSe, double value); 
@@ -94,12 +96,12 @@ namespace emph{
 	inline size_t NumStrips() const { return fNumStrips; }
 	inline double ZCoordsMagnetCenter() const { return fZCoordsMagnetCenter; } 
 	inline double MagnetKick120GeV() const { return fMagnetKick120GeV; } 
-	
+	inline double ZPosErr() const { return fZPosErr; } 
 	inline double ZPos(emph::geo::sensorView view, size_t kSt, size_t kSe=0) {  // Relevant ndex is the Station index for X and Y,  
 	// Ugly.... Valid only for Phase1b  
           switch (view) {
 	    case emph::geo::X_VIEW : {
-	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
+	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt; // kS is the index into the View array, ranging from 0 to 7, inclusive (Phase1b 
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
 	     return (fZPosX[kS]);  
 	    } 
