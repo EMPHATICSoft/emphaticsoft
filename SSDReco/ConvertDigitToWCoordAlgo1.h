@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   2D aligner, X-Z view or Y-Z view, indepedently from each others. 
-///          Algorithm one.  Could beong to SSDCalibration, but, this aligner 
-///          requires some crude track reconstruction, as it is based on track residuals, i
-///          of SSD strip that are on too often. 
+/// \brief   Convertion of a SSDCluster strip average and RMS to a coordinate.  
+///          Algorithm one.  Could beong to SSDCalibration... 
+///          The first version uses its private 2D alignment based figures. 
+///          The most recent version uses the volaltile 
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include "RecoBase/SSDCluster.h"
+#include "SSDReco/VolatileAlignmentParams.h"
 
 namespace emph { 
   namespace ssdr {
@@ -25,13 +26,16 @@ namespace emph {
 	explicit ConvertDigitToWCoordAlgo1(char aView); // X or Y, U or V
 	
         private:
-	  const size_t fNumStations = 6;
-	  const size_t fNumStrips = 639; // Per wafer. 
-	  const double fOneOverSqrt12; 
+	  static const size_t fNumStations = 6;
+	  static const size_t fNumStrips = 639; // Per wafer. 
+	  static const double fOneOverSqrt12;
+	  bool fIsMC; // Ugly!.  
 	  char fView;
+	  bool fDebugIsOn;
 	  bool fMomentumIsSet;      
 	  double fPitch;
 	  double fHalfWaferHeight;
+	  // This is mostly obsolete... need clean-up
 	  std::vector<double> fZCoords;
 	  std::vector<double> fZLocShifts;
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
@@ -46,8 +50,15 @@ namespace emph {
 	  std::vector<double> fMultScatUncert;
 	  std::vector<double> fOtherUncert;
 	  std::vector<double> fPitchOrYawAngles;
+//
+// This was the old version (Winter 2023..) 
+//
+          emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+
 	  
 	public:
+	 inline void SetDebugOn( bool v=true) { fDebugIsOn = v; } 
+	 inline void SetForMC(bool v=true) { fIsMC = v;} 
 	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
 	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
 	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v;} 
@@ -144,7 +155,14 @@ namespace emph {
 	 inline double correctTsForPitchOrYawAngle(size_t kStation, double ts) {
 	   return (ts + ts*fPitchOrYawAngles[kStation]);
 	 }
-    };
+//
+// New version... To be included in SSD3DTrackFitFCNAlgo1, at some point... Or, this entire class could go away.. 
+	 
+	 std::pair<double, double> getTrCoord(std::vector<rb::SSDCluster>::const_iterator it, double pMomMultScatter); 
+	 // the 2nd argument is the presumed momentum, to compute the multiple scattering uncertainty. Target not included.  
+	 // the pair is (coord, corrdErrSquared)  
+	 
+    }; // this class 
   
   } // namespace ssdr
 }// namespace emph
