@@ -17,7 +17,7 @@ namespace caf
 	{
 	public:
 	  std::vector<float> T_p = {};	// Maybe this should be a set size...
-	  std::string T_ptype = {};	// Do we use PDG particle numbering?
+	  int  T_ptype = {};	// Do we use PDG particle numbering? The answer is yes, so make int
 	  std::string T_targetmaterial = {};
 	 
 	  SRTruth(); 			// Default constructor
