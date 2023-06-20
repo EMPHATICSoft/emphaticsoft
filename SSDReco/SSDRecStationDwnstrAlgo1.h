@@ -54,7 +54,7 @@ namespace emph {
           std::vector<rb::SSDStationPtAlgo1> fStPoints; // the stuff this routine produces. 
 	  mutable std::ofstream fFOutSt;
 	  // Internal stuff.. 
-	  std::vector<int> fClUsages; 
+	  std::vector<int> fClUsages;
 	  int fNxCls, fNyCls, fNuCls; // the last stands for U or W (we have a maximum of three views 	  
 	  
 	public:
@@ -77,7 +77,12 @@ namespace emph {
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CBegin() const { return fStPoints.cbegin(); } 
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CEnd() const { return fStPoints.cend(); } 
 	 inline rb::SSDStationPtAlgo1 GetStPoint(std::vector<rb::SSDStationPtAlgo1>::const_iterator it) const { return *it; } // Deep copy, but small struct.. 
-	 
+	 // 
+	 // Reset Usage flags (to be called post reconstruction. 
+	 //
+	 inline void ResetUsage() const { // pseudo const, not part of this reconstruction. For tracking usage.. 
+	   for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++) it->SetUserFlag(0);
+	 }
 	 size_t RecIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
 	 void dumpInfoForR() const;

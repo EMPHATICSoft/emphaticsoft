@@ -55,7 +55,7 @@ namespace emph {
       if (fDebugIsOn) std::cerr << "SSDDwnstrTrackFitFCNAlgo1::operator, Start, number of track parameters " 
                                 << pars.size() << " Number of data pts " << fData.size() << std::endl;  
       if (fDebugIsOn && fNoMagnet) std::cerr << "  .....   The Magnet has been removed.. " << std::endl;
-      if (fData.size() <  4) return 2.0e10; // require at least 4 SSD Space Points 
+      if (fData.size() <  3) return 2.0e10; // require at least 3 SSD Space Points 
       if ((!fNoMagnet) && (std::abs(1.0/pars[4]) < 0.1)) return 5.0e10; // low momentum cut offf.. To be adjested later on. 
        // if Mininuit attemps to change the sign of momentum, or jumps too far, assign  a very large chi-square. 
       if (fDebugIsOn) std::cerr << " ... Assume Monte Carlo sign conventions Expected value for momentum  " << fStartingMomentum << std::endl; 
@@ -81,10 +81,6 @@ namespace emph {
          std::cerr  << std::endl; 
       }
       // check the input
-      if (fData.size() != 4) {
-        std::cerr << " SSDDwnstrTrackFitFCNAlgo1::operator(), wrong size for the input data " << fData.size() 
-	          << ", should be 4 points " << std::endl; 
-      }
       std::vector<double> xPredAtSt(4, 0.); // Phase1b 
       std::vector<double> yPredAtSt(4, 0.);
       const size_t numStationLast = (fNoMagnet) ? 6 : 4; // Phase1b 

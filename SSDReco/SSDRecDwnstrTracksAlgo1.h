@@ -116,7 +116,8 @@ namespace emph {
 	 size_t RecAndFitAll4Stations();
 	 size_t RecAndFitStation234();
 	 size_t RecAndFitStation235();
-	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);	 
+	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
+	 bool IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const;	 
 	 void openOutputCsvFiles() const;	 
 	
     };

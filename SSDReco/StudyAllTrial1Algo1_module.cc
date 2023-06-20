@@ -132,12 +132,12 @@ namespace emph {
 // 
     double fMeanUpstreamXSlope, fMeanUpstreamYSlope;
      // where the SSD alignment could be considered valid. 
-     int fNumClUpstr, fNumClDwnstr, fNumBeamTracks, fNumVertices;
+     int fNumClUpstr, fNumClDwnstr, fNumBeamTracks, fNumVertices, fNumVertDwn;
      std::vector<int> fStationsRecMult;
 //
 // CSV tuple output..
 // 
-      std::ofstream fFOutMultSum, fFOutVertices;
+      std::ofstream fFOutMultSum, fFOutVertices, fFOutVertDwn;
       
 //
 // access to input data..   
@@ -145,6 +145,10 @@ namespace emph {
       std::vector<art::Ptr<rb::SSDCluster> > fSSDclPtrs; // This is what I got from art, see analyze method. 
       std::vector<rb::SSDCluster> fSSDcls; // we will do a deep copy, as my first attempt at using the above vector failed.. lower case c
       art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr; // This works, but use the deprecated art interface.. Upper case C
+      
+      double InvariantMass(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1, 
+                           std::vector<rb::DwnstrTrackAlgo1>::const_iterator it2) const;
+          // assumeing negligible rest mass particle associted with Downstream tracks. 
       
       void openOutputCsvFiles();
       void dumpSummaryMultiplicities(); 
@@ -163,7 +167,7 @@ namespace emph {
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fUpStreamBeamTrRec(), 
     fXPencil120(-3.8), fYPencil120(4.5), // Obtained in the analysis of 120 GeV runs 1043 and 1055.  Phase1b
     fMeanUpstreamXSlope(0.0004851102), fMeanUpstreamYSlope(0.002182192), // Only for run 1066, 1067... (31 GeV). 
-    fNumClUpstr(0), fNumClDwnstr(0), fNumBeamTracks(0), fNumVertices(0), fStationsRecMult(4, 0)
+    fNumClUpstr(0), fNumClDwnstr(0), fNumBeamTracks(0), fNumVertices(0), fNumVertDwn(0), fStationsRecMult(4, 0)
     {
        std::cerr << " Constructing StudyAllTrial1Algo1 " << std::endl;
        this->reconfigure(pset);
@@ -235,19 +239,23 @@ namespace emph {
       std::ostringstream fNameMultStrStr; fNameMultStrStr << "./StudyAllTrial1Algo1_Mult_" << fRun << "_" << fTokenJob << "_V1.txt";
       std::string fNameMultStr(fNameMultStrStr.str());
       fFOutMultSum.open(fNameMultStr.c_str());
-      fFOutMultSum << " spill evt numClUp nClDwnstr nUpstrTr nBeamTr nStPt2 nStPt3 nStPt4 nStPt5 nTrsDwn nVert " << std::endl;
+      fFOutMultSum << " spill evt numClUp nClDwnstr nUpstrTr nBeamTr nStPt2 nStPt3 nStPt4 nStPt5 nTrsDwn nVert nVertDwn " << std::endl;
       //
       std::ostringstream fNameVertStrStr; fNameVertStrStr << "./StudyAllTrial1Algo1_Vertices_" << fRun << "_" << fTokenJob << "_V1.txt";
       std::string fNameVertStr(fNameVertStrStr.str());
       fFOutVertices.open(fNameVertStr.c_str());
       fFOutVertices << " spill evt iV  itUp itDwn zx zxErr zy zyErr " << std::endl;  
+      std::ostringstream fNameVertDStrStr; fNameVertDStrStr << "./StudyAllTrial1Algo1_VertDwn_" << fRun << "_" << fTokenJob << "_V1.txt";
+      std::string fNameVertDStr(fNameVertDStrStr.str());
+      fFOutVertDwn.open(fNameVertDStr.c_str());
+      fFOutVertDwn << " spill evt iV  itDwn1 itDwn2 zx zxErr zy zyErr " << std::endl;  
       fFilesAreOpen = true;
     }
     
     void emph::StudyAllTrial1Algo1::endJob() {
       std::cerr << " StudyAllTrial1Algo1::endJob , for run " << fRun << " last subrun " << fSubRun << std::endl;
       std::cerr << " Number of events " <<  fNEvents << std::endl;
-      fFOutVertices.close(); fFOutMultSum.close();
+      fFOutVertices.close(); fFOutMultSum.close(); fFOutVertDwn.close();
     }
     
     void emph::StudyAllTrial1Algo1::dumpSummaryMultiplicities() { 
@@ -255,13 +263,13 @@ namespace emph {
 //        fFOutMultSum << " subRun evt numClUp nClD nUpstrTr nStPt2  nStPt3 nStPt4 nStPt5 nStPt2 nTrsDwn " << std::endl;
         fFOutMultSum << " " << fSubRun << " " << fEvtNum << " " << fNumClUpstr << " " << fNumClDwnstr;
 	if (fUpStreamBeamTrRec.Size() == 0) {
-	  fFOutMultSum << " 0 0 0 0 0 0 0 0 " << std::endl;
+	  fFOutMultSum << " 0 0 0 0 0 0 0 0 0 " << std::endl;
 	  return;
 	} else {
 	  fFOutMultSum << " " << fUpStreamBeamTrRec.Size() << " " << fNumBeamTracks;  
 	}
 	for (size_t k = 0; k != fStationsRecMult.size(); k++) fFOutMultSum << " " << fStationsRecMult[k]; 
-	fFOutMultSum << " " << fDwnstrTrRec.Size() << " " << fNumVertices << std::endl;
+	fFOutMultSum << " " << fDwnstrTrRec.Size() << " " << fNumVertices <<  " " << fNumVertDwn << std::endl;
     }
     
     void emph::StudyAllTrial1Algo1::analyze(const art::Event& evt) {
@@ -273,7 +281,7 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum == 30)) ; 
+      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum == 24)) ; 
       
       
     //
@@ -316,7 +324,7 @@ namespace emph {
       }
       
       if (fSSDcls.size() == 0) { this->dumpSummaryMultiplicities();  return; } // nothing to do, no data. 
-      fNumClUpstr = 0; fNumClDwnstr = 0; fNumVertices = 0;
+      fNumClUpstr = 0; fNumClDwnstr = 0; fNumVertices = 0; fNumVertDwn = 0;
       // 
       // Tally the number of clusters..
       //
@@ -403,6 +411,7 @@ namespace emph {
         const double x0uErr = itUp->XOffsetErr(); const double y0uErr = itUp->YOffsetErr();
 	const double slx0uErr = itUp->XSlopeErr(); const double sly0uErr = itUp->YSlopeErr();
 	size_t kTrDwn = 0;
+	
         for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator itDwn = fDwnstrTrRec.CBegin();  itDwn != fDwnstrTrRec.CEnd(); itDwn++, kTrDwn++) { 
 	  const double slx0d = itDwn->XSlope(); const double sly0d = itDwn->YSlope();
 	// Ignoring correlation between X and Y, via the U and W measurements.. 
@@ -435,8 +444,62 @@ namespace emph {
 //      if (fNEvents > 200) {
 //        std::cerr << " Analyze... Stop here.. check after 200 events " << std::endl; exit(2);
 //      }
+      
+      size_t kTrDwn1 = 0;
+      for(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1 =  fDwnstrTrRec.CBegin();  it1 != fDwnstrTrRec.CEnd(); it1++, kTrDwn1++) {
+        if (it1->ChiSq() > 25.) continue;
+        const double xd1 = it1->XOffset(); const double yd1 = it1->YOffset();	
+	const double slxd1 = it1->XSlope(); const double slyd1 = it1->YSlope();
+	// Ignoring correlation between X and Y, via the U and W measurements.. 
+	const double slxd1Err = it1->XSlopeErr(); const double slyd1Err = it1->YSlopeErr();
+	const double xd1Err = it1->XOffsetErr(); const double yd1Err = it1->YOffsetErr();
+	size_t kTrDwn2 = 0;
+        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it2 = fDwnstrTrRec.CBegin();  it2 != fDwnstrTrRec.CEnd(); it2++, kTrDwn2++) { 
+          if (it2->ChiSq() > 25.) continue;
+	  if (kTrDwn2 < kTrDwn1) continue;
+	  if (it2 == it1) continue;
+	  if (this->InvariantMass(it1, it2) < 0.1) continue; // Too small invariant mass (neglecting rest mass of the pair) 
+          const double xd2 = it2->XOffset(); const double yd2 = it2->YOffset();	
+	  const double xd2Err = it2->XOffsetErr(); const double yd2Err = it2->YOffsetErr();
+	  const double slxd2 = it2->XSlope(); const double slyd2 = it2->YSlope();
+	// Ignoring correlation between X and Y, via the U and W measurements.. 
+	  const double slxd2Err = it2->XSlopeErr(); const double slyd2Err = it2->YSlopeErr();
+	  //
+	  const double zxNum = (xd1 - xd2); const double zxDenom = (slxd2 - slxd1); const double zx = zxNum/zxDenom;
+	  if (std::isnan(zx)) continue;
+	  const double zxNumErr = std::sqrt(xd1Err*xd1Err + xd2Err*xd2Err);
+	  const double zxDenomErr = std::sqrt(slxd1Err*slxd1Err + slxd2Err*slxd2Err);
+	  // Again, ingore correlation between offsets and slopes.. 
+	  const double zxErr = std::abs(zx) * std::sqrt(zxNumErr*zxNumErr/(zxNum*zxNum) + zxDenomErr*zxDenomErr/(zxDenom*zxDenom)); 
+
+	  const double zyNum = (yd1 - yd2); const double zyDenom = (slyd2 - slyd1); const double zy = zyNum/zyDenom;
+	  if (std::isnan(zy)) continue;
+	  const double zyNumErr = std::sqrt(yd1Err*yd1Err + yd2Err*yd2Err);
+	  const double zyDenomErr = std::sqrt(slyd1Err*slyd1Err + slyd2Err*slyd2Err);
+	  // Again, ingore correlation between offsets and slopes.. 
+	  const double zyErr = std::abs(zy) * std::sqrt(zyNumErr*zyNumErr/(zyNum*zyNum) + zyDenomErr*zyDenomErr/(zyDenom*zyDenom)); 
+	  const double zz = 0.5*(zx+zy); // arbitrary.. 
+ 	  if (std::abs(zz - 250.) < 5000.) fNumVertDwn++;
+//          fFOutVertices << " subRun evt iV itUp itDwn zx zxErr zyErr  zyErr " << std::endl;  
+	   fFOutVertDwn << " " << fSubRun << " " << fEvtNum << " " << fNumVertDwn << " " << kTrDwn1 << " " << kTrDwn2 
+	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr << std::endl; 
+        } //  on dwonstream Tracks
+      } // on Upstream tracks.. 
       this->dumpSummaryMultiplicities();  return;
 	
     } // end of Analyze, event by events.  
-   
+    double emph::StudyAllTrial1Algo1::InvariantMass(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1, 
+                                              std::vector<rb::DwnstrTrackAlgo1>::const_iterator it2) const {
+					      
+					      
+       const double px1 = it1->XSlope()*std::abs(it1->Momentum()); 
+       const double py1 = it1->YSlope()*std::abs(it1->Momentum()); 
+       const double pz1 = std::sqrt(it1->Momentum()*it1->Momentum() - px1*px1 - py1*py1); 
+       const double px2 = it2->XSlope()*std::abs(it2->Momentum()); 
+       const double py2 = it2->YSlope()*std::abs(it2->Momentum()); 
+       const double pz2 = std::sqrt(it2->Momentum()*it2->Momentum() - px2*px2 - py2*py2);
+       const double deltaPx = px2-px1; const double deltaPy = py2-py1;   double deltaPz = pz2-pz1;
+       return std::sqrt(deltaPx+deltaPx + deltaPy+deltaPy + deltaPz+deltaPz); 
+       				      
+    }				      
 DEFINE_ART_MODULE(emph::StudyAllTrial1Algo1)

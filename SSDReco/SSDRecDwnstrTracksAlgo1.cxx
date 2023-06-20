@@ -75,10 +75,12 @@ namespace emph {
       if ((fInputSt2Pts.Size() == 0) || (fInputSt3Pts.Size() == 0)) {
         if (fDebugIsOn) std::cerr << " ...  No data from station 2 or 3, Pointers are null, so, no tracks.. " << std::endl;
 	return 0; 
-      } 
+      }
+      fInputSt2Pts.ResetUsage(); fInputSt3Pts.ResetUsage(); fInputSt4Pts.ResetUsage();  fInputSt5Pts.ResetUsage(); 
       if ((fInputSt4Pts.Size() > 0) && (fInputSt5Pts.Size() > 0) ) return this->RecAndFitAll4Stations();  
        
       if (fInputSt4Pts.Size() == 0) {
+//        std::cerr << " Encountered spill/event " << fSubRunNum << "/" << fEvtNum << " with no Space Points in Station 4 " << std::endl;
         if (fInputSt5Pts.Size() > 0) {
 	   return this->RecAndFitStation235();
 	} else {
@@ -87,6 +89,7 @@ namespace emph {
 	}
       } 
       if (fInputSt5Pts.Size()) {
+//        std::cerr << " Encountered spill/event " << fSubRunNum << "/" << fEvtNum << " with no Space Points in Station 5 " << std::endl;
         if (fInputSt4Pts.Size() > 0) {
 	   return this->RecAndFitStation234();
 	} else {
@@ -100,32 +103,44 @@ namespace emph {
     //
     size_t SSDRecDwnstrTracksAlgo1::RecAndFitAll4Stations() {
     
-     const double dz25 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
-     if (fDebugIsOn) std::cerr << " Starting on RecAndFitAll4Stations, dz25 = " << dz25 << " with " 
+      const double dz25 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
+      if (fDebugIsOn) std::cerr << " Starting on RecAndFitAll4Stations, dz25 = " << dz25 << " with " 
                                << fInputSt2Pts.Size() << " St2 Pts,  " << fInputSt3Pts.Size() << " St3 Pts, "  
 			       << fInputSt4Pts.Size() << " St4 Pts,  " << fInputSt5Pts.Size() << " St5 Pts " << std::endl;
-     for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
-       const double x2Start = itSt2->X(); 
-       const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
-       
-       for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++) { 
+      for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
+        const double x2Start = itSt2->X(); 
+        const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
+        if (itSt2->UserFlag() != 0) continue;
+	if (fDebugIsOn) std::cerr << " ... At station 2, at x = " << itSt2->X() << " Y " << itSt2->Y() << std::endl; 
+        for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++) { 
+          if (itSt3->UserFlag() != 0) continue;
+ 	  if (fDebugIsOn) std::cerr << " ... ... At station 3, at x = " << itSt3->X() << " Y " << itSt3->Y() << std::endl; 
+   
+          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt4 = fInputSt4Pts.CBegin(); itSt4 != fInputSt4Pts.CEnd(); itSt4++) { 
+            if (itSt4->UserFlag() != 0) continue;
+  	    if (fDebugIsOn) std::cerr << " ... ... ... At station 4, at x = " << itSt4->X() << " Y " << itSt4->Y() << std::endl; 
     
-         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt4 = fInputSt4Pts.CBegin(); itSt4 != fInputSt4Pts.CEnd(); itSt4++) { 
-      
-           for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++) {
-             const double x5End = itSt5->X();
-             const double y5End = itSt5->Y();// To estimate starting value for the track param fit.
-	     const double xSlopeStart =  (x5End - x2Start)/dz25; const double ySlopeStart =  (y5End - y2Start)/dz25;
-             fFitterFCN->ResetInputPts();
-	     fFitterFCN->AddInputPt(itSt2); // Deep copy in inner loop.. Oh well... 
-	     fFitterFCN->AddInputPt(itSt3);
-	     fFitterFCN->AddInputPt(itSt4);
-	     fFitterFCN->AddInputPt(itSt5);
-	     this->doFitAndStore(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart);
+            for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++) {
+              if (itSt5->UserFlag() != 0) continue;
+  	      if (fDebugIsOn) std::cerr << " ... ... ... ... At station 5, at x = " << itSt5->X() << " Y " << itSt5->Y() << std::endl; 
+              const double x5End = itSt5->X();
+              const double y5End = itSt5->Y();// To estimate starting value for the track param fit.
+	      const double xSlopeStart =  (x5End - x2Start)/dz25; const double ySlopeStart =  (y5End - y2Start)/dz25;
+              fFitterFCN->ResetInputPts();
+	      fFitterFCN->AddInputPt(itSt2); // Deep copy in inner loop.. Oh well... 
+	      fFitterFCN->AddInputPt(itSt3);
+	      fFitterFCN->AddInputPt(itSt4);
+	      fFitterFCN->AddInputPt(itSt5);
+	      if (this->doFitAndStore(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+	        int kTrCnt = static_cast<int>(fTrs.size());
+		itSt2->SetUserFlag(kTrCnt); itSt3->SetUserFlag(kTrCnt); 
+		itSt4->SetUserFlag(kTrCnt); itSt5->SetUserFlag(kTrCnt); // no chi-square arbitration for now.. 
+	      }
             } // on Space Points in Station 5 
           } // on Space Points in Station 4 
         } // on Space Points in Station 3 
       } // on Space Points in Station 2
+      if (fDebugIsOn) std::cerr << " End of SSDRecDwnstrTracksAlgo1::RecAndFitAll4Stations, num Tracks " << fTrs.size();
       return fTrs.size(); 
     }
     //
@@ -139,21 +154,32 @@ namespace emph {
      for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
        const double x2Start = itSt2->X(); 
        const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
+       if (itSt2->UserFlag() != 0) continue;
+	if (fDebugIsOn) std::cerr << " ... At station 2, at x = " << itSt2->X() << " Y " << itSt2->Y() << std::endl; 
        
        for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++) { 
+         if (itSt3->UserFlag() != 0) continue;
+ 	 if (fDebugIsOn) std::cerr << " ... ... At station 3, at x = " << itSt3->X() << " Y " << itSt3->Y() << std::endl; 
     
          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt4 = fInputSt4Pts.CBegin(); itSt4 != fInputSt4Pts.CEnd(); itSt4++) { 
-          const double x4End = itSt4->X();
+           if (itSt4->UserFlag() != 0) continue;
+  	    if (fDebugIsOn) std::cerr << " ... ... ... At station 4, at x = " << itSt4->X() << " Y " << itSt4->Y() << std::endl; 
+           const double x4End = itSt4->X();
            const double y4End = itSt4->Y();// To estimate starting value for the track param fit.
 	   const double xSlopeStart =  (x4End - x2Start)/dz24; const double ySlopeStart =  (y4End - y2Start)/dz24;
            fFitterFCN->ResetInputPts();
 	   fFitterFCN->AddInputPt(itSt2); // Deep copy in inner loop.. Oh well... 
 	   fFitterFCN->AddInputPt(itSt3);
 	   fFitterFCN->AddInputPt(itSt4);
-	   this->doFitAndStore(rb::STATION234, x2Start, y2Start, xSlopeStart, ySlopeStart);
+	   if (this->doFitAndStore(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+	        int kTrCnt = static_cast<int>(fTrs.size());
+		itSt2->SetUserFlag(kTrCnt); itSt3->SetUserFlag(kTrCnt); 
+		itSt4->SetUserFlag(kTrCnt); 
+	    }
           } // on Space Points in Station 4 
         } // on Space Points in Station 3 
       } // on Space Points in Station 2 
+      if (fDebugIsOn) std::cerr << " End of SSDRecDwnstrTracksAlgo1::RecAndFitStation234, num Tracks " << fTrs.size();
       return ( fTrs.size() - nTrBefore);
     }
     //
@@ -167,10 +193,16 @@ namespace emph {
       for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
         const double x2Start = itSt2->X(); 
         const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
+        if (itSt2->UserFlag() != 0) continue;
+	if (fDebugIsOn) std::cerr << " ... At station 2, at x = " << itSt2->X() << " Y " << itSt2->Y() << std::endl; 
        
         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++) { 
-    
-          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++) { 
+         if (itSt3->UserFlag() != 0) continue;
+ 	 if (fDebugIsOn) std::cerr << " ... ... At station 3, at x = " << itSt3->X() << " Y " << itSt3->Y() << std::endl; 
+	 
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++) { 
+            if (itSt5->UserFlag() != 0) continue;
+  	    if (fDebugIsOn) std::cerr << " ... ... ... At station 5, at x = " << itSt5->X() << " Y " << itSt5->Y() << std::endl; 
             const double x5End = itSt5->X();
             const double y5End = itSt5->Y();// To estimate starting value for the track param fit.
 	    const double xSlopeStart =  (x5End - x2Start)/dz25; const double ySlopeStart =  (y5End - y2Start)/dz25;
@@ -178,10 +210,15 @@ namespace emph {
 	    fFitterFCN->AddInputPt(itSt2); // Deep copy in inner loop.. Oh well... 
 	    fFitterFCN->AddInputPt(itSt3);
 	    fFitterFCN->AddInputPt(itSt5);
-	    this->doFitAndStore(rb::STATION235, x2Start, y2Start, xSlopeStart, ySlopeStart);
+	    if (this->doFitAndStore(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+	        int kTrCnt = static_cast<int>(fTrs.size());
+		itSt2->SetUserFlag(kTrCnt); itSt3->SetUserFlag(kTrCnt); 
+		itSt5->SetUserFlag(kTrCnt); 
+	    }
           } // on Space Points in Station 5 
         } // on Space Points in Station 3 
       } // on Space Points in Station 2 
+      if (fDebugIsOn) std::cerr << " End of SSDRecDwnstrTracksAlgo1::RecAndFitStation235, num Tracks " << fTrs.size();
       return ( fTrs.size() - nTrBefore);
     }
     //
@@ -257,10 +294,22 @@ namespace emph {
 	   }
 	 }
        }
-       fTrs.push_back(aTr);
-       return true;
+       if (!this->IsAlreadyFound(aTr))  { fTrs.push_back(aTr); return true; }
+//       } else {
+       // else should do arbitration here.. For now, just count track that not exactly the same.. 
+       //  this->ArbitrateAndStore(aTr);
+//       }
+       return false;
     } // doFitAndStore
     //
+    bool SSDRecDwnstrTracksAlgo1::IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const {  // this needs tuning.. 
+      if (fTrs.size() == 0) return false;
+      for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it ++) {
+        if ((std::abs(aTr.XSlope() - it->XSlope()) < 1.0e-5) && 
+	    (std::abs(aTr.YSlope() - it->YSlope()) < 1.0e-5) && (std::abs(aTr.Momentum() - it->Momentum()) < 0.05 )) return true;   
+      }
+      return false;
+    }
     void SSDRecDwnstrTracksAlgo1::openOutputCsvFiles() const {
        //
        // only the UV matching info is here... 
