@@ -76,6 +76,7 @@ namespace emph {
     G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
         ///< be included in the list.                          
     bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
+    bool fPerformFOutStudy;
 
     art::ServiceHandle<emph::geo::GeometryService> fGeo;
     

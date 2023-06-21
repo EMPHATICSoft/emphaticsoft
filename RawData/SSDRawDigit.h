@@ -21,6 +21,8 @@ namespace rawdata {
 
     SSDRawDigit(int32_t station, int32_t module, int32_t chip, int32_t set, int32_t strip,
             int32_t t, int32_t adc, int32_t trigtype);
+    SSDRawDigit(int32_t station, int32_t module, int32_t row, int32_t t, 
+		int32_t adc, int32_t trigtype);
 
     int32_t FER() const { return fFER; }
     int32_t Module() const { return fModule; }

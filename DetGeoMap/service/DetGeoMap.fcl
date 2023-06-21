@@ -1,8 +1,8 @@
 BEGIN_PROLOG
 
-standard_channelmap:
+standard_detgeomap:
 {
-  AbortIfFileNotFound: true
+  UseGeometry: true
 }
 
 END_PROLOG

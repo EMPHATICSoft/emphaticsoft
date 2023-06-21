@@ -1,0 +1,39 @@
+#include "ChannelMap.fcl"
+
+process_name: RawConvert
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "ssd2root_%r_%s.root" closeFileFast: false }
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type:               SSDUnpacker
+  createArtEvents:   true
+  numWaveFormPlots:  100
+  nEvents: -1
+  verbosity: 0
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "emphssd_r%r_s%s.root" #default file name, can override from command line with -o or --output
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+  stream1:  [ out1 ]
+
+  end_paths:     [stream1]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously
+}

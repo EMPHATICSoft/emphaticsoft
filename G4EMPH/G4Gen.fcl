@@ -12,6 +12,7 @@ standard_g4alg:
   G4TokenTOPAZLGOut: "undef" 
 #  G4LastDetector: "SSDStation5"
   G4LastDetector: "none"  # Lead Glass is our last detector.. 
+  PerformFOutStudy:  false
   
   # If true, keep individual track ids from processes like compt and brem and
   # annihil.  If false, all the same simulation is done, just less truth
