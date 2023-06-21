@@ -1,0 +1,1474 @@
+The following module label is either not assigned to any path,
+or it has been assigned to ignored path(s):
+  out1
+%MSG-i MF_INIT_OK:  Early 06-Feb-2023 18:09:04 CST JobSetup
+Messagelogger initialization complete.
+%MSG
+06-Feb-2023 18:09:05 CST  Initiating request to open input file "/emph/data/users/gsdavies/prod2/artdaq/1200/1205/emphdata_v02.00_r1205_s1.artdaq.root"
+06-Feb-2023 18:09:05 CST  Opened input file "/emph/data/users/gsdavies/prod2/artdaq/1200/1205/emphdata_v02.00_r1205_s1.artdaq.root"
+Loaded channel map from /emph/app/users/rchirco/emph_10.7.22/emphaticsoft/ConstBase/ChannelMap/ChannelMap_Jun22.txt
+Begin processing the 1st record. run: 1205 subRun: 1 event: 0 at 06-Feb-2023 18:09:06 CST
+Begin processing the 2nd record. run: 1205 subRun: 1 event: 1 at 06-Feb-2023 18:09:06 CST
+Begin processing the 3rd record. run: 1205 subRun: 1 event: 2 at 06-Feb-2023 18:09:06 CST
+Peak Start Bin: 30
+Starting in bin: 30
+Pulse found
+Max bin is: 30
+NEW max bin is: 31
+Max bin is: 31
+NEW max bin is: 32
+Max bin is: 32
+Bin is: 33...max bin is: 32
+Pulse dropping...
+Max bin is: 32
+Bin is: 34...max bin is: 32
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 32
+Bin is: 35...max bin is: 32
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 32
+Bin is: 36...max bin is: 32
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 32
+Bin is: 37...max bin is: 32
+Pulse dropping...
+Integration converged...
+Bin is: 37...max bin is: 32
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 37
+Starting in bin: 38
+Pulse found
+Max bin is: 38
+Bin is: 39...max bin is: 38
+Pulse dropping...
+Max bin is: 38
+Bin is: 40...max bin is: 38
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 38
+Bin is: 41...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 38
+Bin is: 42...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 38
+Bin is: 43...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 38
+Bin is: 44...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 38
+Bin is: 45...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 38
+Bin is: 46...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 38
+Bin is: 47...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 38
+Bin is: 48...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 38
+Bin is: 49...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 38
+Bin is: 50...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 38
+Bin is: 51...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 38
+Bin is: 52...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Max bin is: 38
+Bin is: 53...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 15
+Max bin is: 38
+Bin is: 54...max bin is: 38
+Pulse dropping...
+This is noise...
+Dist from max bin: 16
+Bin is: 54
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 54
+Starting in bin: 55
+Pulse found
+Max bin is: 55
+NEW max bin is: 56
+Max bin is: 56
+Bin is: 57...max bin is: 56
+Pulse dropping...
+Max bin is: 56
+Bin is: 58...max bin is: 56
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 56
+Bin is: 59...max bin is: 56
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 56
+NEW max bin is: 60
+Down back up...Bin is: 60
+Ending in bin: 60
+Starting in bin: 61
+Pulse found
+Max bin is: 61
+Bin is: 62...max bin is: 61
+Pulse dropping...
+This is noise...
+Max bin is: 61
+Bin is: 63...max bin is: 61
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 61
+Bin is: 64...max bin is: 61
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 61
+Bin is: 65...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 61
+Bin is: 66...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 61
+Bin is: 67...max bin is: 61
+Pulse dropping...
+Integration converged...
+Bin is: 67...max bin is: 61
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 67
+Starting in bin: 68
+No pulse
+Ending in bin: 68
+Starting in bin: 69
+Pulse found
+Max bin is: 69
+Bin is: 70...max bin is: 69
+Pulse dropping...
+This is noise...
+Max bin is: 69
+Bin is: 71...max bin is: 69
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 69
+NEW max bin is: 72
+Down back up...Bin is: 72
+Ending in bin: 72
+Starting in bin: 73
+Pulse found
+Max bin is: 73
+Bin is: 74...max bin is: 73
+Pulse dropping...
+Max bin is: 73
+Bin is: 75...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 73
+Bin is: 76...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 73
+Bin is: 77...max bin is: 73
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 73
+Bin is: 78...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 73
+Bin is: 79...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 73
+Bin is: 80...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 73
+Bin is: 81...max bin is: 73
+Pulse dropping...
+Dist from max bin: 8
+Max bin is: 73
+Bin is: 82...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 73
+Bin is: 83...max bin is: 73
+Pulse dropping...
+Dist from max bin: 10
+Max bin is: 73
+Bin is: 84...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 73
+Bin is: 85...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 73
+Bin is: 86...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 73
+Bin is: 87...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Max bin is: 73
+Bin is: 88...max bin is: 73
+Pulse dropping...
+Dist from max bin: 15
+Max bin is: 73
+Bin is: 89...max bin is: 73
+Pulse dropping...
+This is noise...
+Dist from max bin: 16
+Bin is: 89
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 89
+Starting in bin: 90
+No pulse
+Ending in bin: 90
+Starting in bin: 91
+No pulse
+Ending in bin: 91
+Starting in bin: 92
+No pulse
+Ending in bin: 92
+Starting in bin: 93
+No pulse
+Ending in bin: 93
+Starting in bin: 94
+Pulse found
+Max bin is: 94
+Bin is: 95...max bin is: 94
+Pulse dropping...
+Max bin is: 94
+Bin is: 96...max bin is: 94
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 94
+Bin is: 97...max bin is: 94
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 94
+Bin is: 98...max bin is: 94
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 94
+NEW max bin is: 99
+Down back up...Bin is: 99
+Ending in bin: 99
+Starting in bin: 100
+Pulse found
+Max bin is: 100
+NEW max bin is: 101
+Max bin is: 101
+Bin is: 102...max bin is: 101
+Pulse dropping...
+Max bin is: 101
+Bin is: 103...max bin is: 101
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 101
+Bin is: 104...max bin is: 101
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 101
+Bin is: 105...max bin is: 101
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 101
+Bin is: 106...max bin is: 101
+Pulse dropping...
+Dist from max bin: 5
+Max bin is: 101
+Bin is: 107...max bin is: 101
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+End of function..?
+Ending in bin: 108
+NPeaks: 4
+Extrapolated
+Peak Start Bin: 29
+Starting in bin: 29
+Pulse found
+Max bin is: 29
+NEW max bin is: 30
+Max bin is: 30
+NEW max bin is: 31
+Max bin is: 31
+Bin is: 32...max bin is: 31
+Pulse dropping...
+Max bin is: 31
+Bin is: 33...max bin is: 31
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 31
+Bin is: 34...max bin is: 31
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 31
+Bin is: 35...max bin is: 31
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 31
+Bin is: 36...max bin is: 31
+Pulse dropping...
+Integration converged...
+Bin is: 36...max bin is: 31
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 36
+Starting in bin: 37
+Pulse found
+Max bin is: 37
+Bin is: 38...max bin is: 37
+Pulse dropping...
+Max bin is: 37
+Bin is: 39...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 37
+Bin is: 40...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 37
+Bin is: 41...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 37
+Bin is: 42...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 37
+Bin is: 43...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 37
+Bin is: 44...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 37
+Bin is: 45...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 37
+Bin is: 46...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 37
+Bin is: 47...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 37
+Bin is: 48...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 37
+Bin is: 49...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 37
+Bin is: 50...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 37
+Bin is: 51...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Max bin is: 37
+Bin is: 52...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 15
+Max bin is: 37
+Bin is: 53...max bin is: 37
+Pulse dropping...
+This is noise...
+Dist from max bin: 16
+Bin is: 53
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 53
+Starting in bin: 54
+No pulse
+Ending in bin: 54
+Starting in bin: 55
+Pulse found
+Max bin is: 55
+Bin is: 56...max bin is: 55
+Pulse dropping...
+Max bin is: 55
+Bin is: 57...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 55
+Bin is: 58...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 55
+Bin is: 59...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 55
+Bin is: 60...max bin is: 55
+Pulse dropping...
+Dist from max bin: 5
+Max bin is: 55
+Bin is: 61...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 55
+Bin is: 62...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 55
+Bin is: 63...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 55
+Bin is: 64...max bin is: 55
+Pulse dropping...
+Dist from max bin: 9
+Max bin is: 55
+Bin is: 65...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 55
+Bin is: 66...max bin is: 55
+Pulse dropping...
+Dist from max bin: 11
+Max bin is: 55
+Bin is: 67...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 55
+Bin is: 68...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 55
+Bin is: 69...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Max bin is: 55
+Bin is: 70...max bin is: 55
+Pulse dropping...
+Dist from max bin: 15
+Max bin is: 55
+Bin is: 71...max bin is: 55
+Pulse dropping...
+This is noise...
+Dist from max bin: 16
+Bin is: 71
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 71
+Starting in bin: 72
+No pulse
+Ending in bin: 72
+Starting in bin: 73
+Pulse found
+Max bin is: 73
+Bin is: 74...max bin is: 73
+Pulse dropping...
+This is noise...
+Max bin is: 73
+NEW max bin is: 75
+Down back up...Bin is: 75
+Ending in bin: 75
+Starting in bin: 76
+Pulse found
+Max bin is: 76
+NEW max bin is: 77
+Max bin is: 77
+Bin is: 78...max bin is: 77
+Pulse dropping...
+This is noise...
+Max bin is: 77
+NEW max bin is: 79
+Down back up...Bin is: 79
+Ending in bin: 79
+Starting in bin: 80
+Pulse found
+Max bin is: 80
+Bin is: 81...max bin is: 80
+Pulse dropping...
+This is noise...
+Max bin is: 80
+Bin is: 82...max bin is: 80
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 80
+Bin is: 83...max bin is: 80
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 80
+Bin is: 84...max bin is: 80
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 80
+Bin is: 85...max bin is: 80
+Pulse dropping...
+Dist from max bin: 5
+Max bin is: 80
+Bin is: 86...max bin is: 80
+Pulse dropping...
+Dist from max bin: 6
+Max bin is: 80
+Bin is: 87...max bin is: 80
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 80
+Bin is: 88...max bin is: 80
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 80
+Bin is: 89...max bin is: 80
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 80
+Bin is: 90...max bin is: 80
+Pulse dropping...
+Dist from max bin: 10
+Max bin is: 80
+Bin is: 91...max bin is: 80
+Pulse dropping...
+Dist from max bin: 11
+Max bin is: 80
+Bin is: 92...max bin is: 80
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 80
+Bin is: 93...max bin is: 80
+Pulse dropping...
+Integration converged...
+Bin is: 93...max bin is: 80
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 93
+Starting in bin: 94
+Pulse found
+Max bin is: 94
+NEW max bin is: 95
+Max bin is: 95
+NEW max bin is: 96
+Max bin is: 96
+Bin is: 97...max bin is: 96
+Pulse dropping...
+Max bin is: 96
+Bin is: 98...max bin is: 96
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 96
+Bin is: 99...max bin is: 96
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 96
+Bin is: 100...max bin is: 96
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 96
+Bin is: 101...max bin is: 96
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 96
+Bin is: 102...max bin is: 96
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 96
+Bin is: 103...max bin is: 96
+Pulse dropping...
+Dist from max bin: 7
+Max bin is: 96
+Bin is: 104...max bin is: 96
+Pulse dropping...
+Dist from max bin: 8
+Max bin is: 96
+Bin is: 105...max bin is: 96
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 96
+Bin is: 106...max bin is: 96
+Pulse dropping...
+Dist from max bin: 10
+Max bin is: 96
+Bin is: 107...max bin is: 96
+Pulse dropping...
+Dist from max bin: 11
+End of function..?
+Ending in bin: 108
+NPeaks: 4
+Extrapolated
+Peak Start Bin: 29
+Starting in bin: 29
+Pulse found
+Max bin is: 29
+NEW max bin is: 30
+Max bin is: 30
+Bin is: 31...max bin is: 30
+Pulse dropping...
+This is noise...
+Max bin is: 30
+Bin is: 32...max bin is: 30
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 30
+Bin is: 33...max bin is: 30
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 30
+Bin is: 34...max bin is: 30
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 30
+Bin is: 35...max bin is: 30
+Pulse dropping...
+Integration converged...
+Bin is: 35...max bin is: 30
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 35
+Starting in bin: 36
+Pulse found
+Max bin is: 36
+Bin is: 37...max bin is: 36
+Pulse dropping...
+Max bin is: 36
+Bin is: 38...max bin is: 36
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 36
+Bin is: 39...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 36
+Bin is: 40...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 36
+Bin is: 41...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 36
+Bin is: 42...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 36
+Bin is: 43...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 36
+Bin is: 44...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 36
+Bin is: 45...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 36
+Bin is: 46...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 36
+Bin is: 47...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 36
+Bin is: 48...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 36
+Bin is: 49...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 36
+Bin is: 50...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Max bin is: 36
+Bin is: 51...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 15
+Max bin is: 36
+Bin is: 52...max bin is: 36
+Pulse dropping...
+This is noise...
+Dist from max bin: 16
+Bin is: 52
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 52
+Starting in bin: 53
+Pulse found
+Max bin is: 53
+Bin is: 54...max bin is: 53
+Pulse dropping...
+Max bin is: 53
+Bin is: 55...max bin is: 53
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 53
+NEW max bin is: 56
+Down back up...Bin is: 56
+Ending in bin: 56
+Starting in bin: 57
+Pulse found
+Max bin is: 57
+Bin is: 58...max bin is: 57
+Pulse dropping...
+Max bin is: 57
+Bin is: 59...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 57
+Bin is: 60...max bin is: 57
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 57
+Bin is: 61...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 57
+Bin is: 62...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 57
+Bin is: 63...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 57
+Bin is: 64...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 57
+Bin is: 65...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 57
+Bin is: 66...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 57
+Bin is: 67...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 57
+Bin is: 68...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 57
+Bin is: 69...max bin is: 57
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 57
+Bin is: 70...max bin is: 57
+Pulse dropping...
+Integration converged...
+Bin is: 70...max bin is: 57
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 70
+Starting in bin: 71
+Pulse found
+Max bin is: 71
+Bin is: 72...max bin is: 71
+Pulse dropping...
+Max bin is: 71
+Bin is: 73...max bin is: 71
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 71
+Bin is: 74...max bin is: 71
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 71
+Bin is: 75...max bin is: 71
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 71
+Bin is: 76...max bin is: 71
+Pulse dropping...
+Dist from max bin: 5
+Max bin is: 71
+NEW max bin is: 77
+Down back up...Bin is: 77
+Ending in bin: 77
+Starting in bin: 78
+No pulse
+Ending in bin: 78
+Starting in bin: 79
+Pulse found
+Max bin is: 79
+Bin is: 80...max bin is: 79
+Pulse dropping...
+Max bin is: 79
+Bin is: 81...max bin is: 79
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 79
+Bin is: 82...max bin is: 79
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 79
+Bin is: 83...max bin is: 79
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 79
+Bin is: 84...max bin is: 79
+Pulse dropping...
+Integration converged...
+Bin is: 84...max bin is: 79
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 84
+Starting in bin: 85
+Pulse found
+Max bin is: 85
+NEW max bin is: 86
+Max bin is: 86
+NEW max bin is: 87
+Max bin is: 87
+Bin is: 88...max bin is: 87
+Pulse dropping...
+Max bin is: 87
+Bin is: 89...max bin is: 87
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 87
+Bin is: 90...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 87
+Bin is: 91...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 87
+Bin is: 92...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 87
+Bin is: 93...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 87
+Bin is: 94...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 87
+Bin is: 95...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 87
+Bin is: 96...max bin is: 87
+Pulse dropping...
+Dist from max bin: 9
+Max bin is: 87
+Bin is: 97...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 87
+Bin is: 98...max bin is: 87
+Pulse dropping...
+Dist from max bin: 11
+Max bin is: 87
+Bin is: 99...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 87
+Bin is: 100...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 87
+Bin is: 101...max bin is: 87
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Bin is: 101
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 101
+Starting in bin: 102
+No pulse
+Ending in bin: 102
+NPeaks: 5
+Extrapolated
+Peak Start Bin: 33
+Starting in bin: 33
+Pulse found
+Max bin is: 33
+NEW max bin is: 34
+Max bin is: 34
+Bin is: 35...max bin is: 34
+Pulse dropping...
+This is noise...
+Max bin is: 34
+Bin is: 36...max bin is: 34
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 34
+Bin is: 37...max bin is: 34
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 34
+Bin is: 38...max bin is: 34
+Pulse dropping...
+Dist from max bin: 4
+Max bin is: 34
+Bin is: 39...max bin is: 34
+Pulse dropping...
+Integration converged...
+Bin is: 39...max bin is: 34
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 39
+Starting in bin: 40
+No pulse
+Ending in bin: 40
+Starting in bin: 41
+Pulse found
+Max bin is: 41
+Bin is: 42...max bin is: 41
+Pulse dropping...
+This is noise...
+Max bin is: 41
+Bin is: 43...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 41
+Bin is: 44...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 41
+Bin is: 45...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 41
+Bin is: 46...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 41
+Bin is: 47...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 41
+Bin is: 48...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 41
+Bin is: 49...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 41
+Bin is: 50...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 41
+Bin is: 51...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 41
+Bin is: 52...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 41
+Bin is: 53...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 12
+Max bin is: 41
+Bin is: 54...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 41
+Bin is: 55...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 14
+Max bin is: 41
+Bin is: 56...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 15
+Max bin is: 41
+Bin is: 57...max bin is: 41
+Pulse dropping...
+This is noise...
+Dist from max bin: 16
+Bin is: 57
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 57
+Starting in bin: 58
+Pulse found
+Max bin is: 58
+NEW max bin is: 59
+Max bin is: 59
+NEW max bin is: 60
+Max bin is: 60
+NEW max bin is: 61
+Max bin is: 61
+Bin is: 62...max bin is: 61
+Pulse dropping...
+Max bin is: 61
+Bin is: 63...max bin is: 61
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 61
+Bin is: 64...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 3
+Max bin is: 61
+Bin is: 65...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 61
+Bin is: 66...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 61
+Bin is: 67...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 61
+Bin is: 68...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 7
+Max bin is: 61
+Bin is: 69...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 61
+Bin is: 70...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 61
+Bin is: 71...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 61
+Bin is: 72...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 11
+Max bin is: 61
+Bin is: 73...max bin is: 61
+Pulse dropping...
+Dist from max bin: 12
+Max bin is: 61
+Bin is: 74...max bin is: 61
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Bin is: 74
+Start and end bins far apart...
+Peak Confirmed
+Calculating new baseline...
+Ending in bin: 74
+Starting in bin: 75
+Pulse found
+Max bin is: 75
+NEW max bin is: 76
+Max bin is: 76
+Bin is: 77...max bin is: 76
+Pulse dropping...
+Max bin is: 76
+Bin is: 78...max bin is: 76
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 76
+Bin is: 79...max bin is: 76
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 76
+Bin is: 80...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 76
+Bin is: 81...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 76
+Bin is: 82...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 76
+Bin is: 83...max bin is: 76
+Pulse dropping...
+Dist from max bin: 7
+Max bin is: 76
+Bin is: 84...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 8
+Max bin is: 76
+Bin is: 85...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 9
+Max bin is: 76
+Bin is: 86...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 10
+Max bin is: 76
+Bin is: 87...max bin is: 76
+Pulse dropping...
+Dist from max bin: 11
+Max bin is: 76
+Bin is: 88...max bin is: 76
+Pulse dropping...
+Dist from max bin: 12
+Max bin is: 76
+Bin is: 89...max bin is: 76
+Pulse dropping...
+This is noise...
+Dist from max bin: 13
+Max bin is: 76
+Bin is: 90...max bin is: 76
+Pulse dropping...
+Dist from max bin: 14
+Max bin is: 76
+NEW max bin is: 91
+Down back up...Bin is: 91
+Ending in bin: 91
+Starting in bin: 92
+Pulse found
+Max bin is: 92
+Bin is: 93...max bin is: 92
+Pulse dropping...
+Max bin is: 92
+Bin is: 94...max bin is: 92
+Pulse dropping...
+This is noise...
+Dist from max bin: 2
+Max bin is: 92
+Bin is: 95...max bin is: 92
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 92
+Bin is: 96...max bin is: 92
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 92
+Bin is: 97...max bin is: 92
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 92
+Bin is: 98...max bin is: 92
+Pulse dropping...
+This is noise...
+Dist from max bin: 6
+Max bin is: 92
+NEW max bin is: 99
+Down back up...Bin is: 99
+Ending in bin: 99
+Starting in bin: 100
+Pulse found
+Max bin is: 100
+Bin is: 101...max bin is: 100
+Pulse dropping...
+This is noise...
+Max bin is: 100
+Bin is: 102...max bin is: 100
+Pulse dropping...
+Dist from max bin: 2
+Max bin is: 100
+Bin is: 103...max bin is: 100
+Pulse dropping...
+Dist from max bin: 3
+Max bin is: 100
+Bin is: 104...max bin is: 100
+Pulse dropping...
+This is noise...
+Dist from max bin: 4
+Max bin is: 100
+Bin is: 105...max bin is: 100
+Pulse dropping...
+This is noise...
+Dist from max bin: 5
+Max bin is: 100
+Bin is: 106...max bin is: 100
+Pulse dropping...
+Dist from max bin: 6
+Max bin is: 100
+Bin is: 107...max bin is: 100
+Pulse dropping...
+Dist from max bin: 7
+End of function..?
+Ending in bin: 108
+NPeaks: 3
+Extrapolated
+Begin processing the 4th record. run: 1205 subRun: 1 event: 3 at 06-Feb-2023 18:09:06 CST
+Begin processing the 5th record. run: 1205 subRun: 1 event: 4 at 06-Feb-2023 18:09:06 CST
+Begin processing the 6th record. run: 1205 subRun: 1 event: 5 at 06-Feb-2023 18:09:06 CST
+Begin processing the 7th record. run: 1205 subRun: 1 event: 6 at 06-Feb-2023 18:09:06 CST
+Begin processing the 8th record. run: 1205 subRun: 1 event: 7 at 06-Feb-2023 18:09:06 CST
+Begin processing the 9th record. run: 1205 subRun: 1 event: 8 at 06-Feb-2023 18:09:06 CST
+Begin processing the 10th record. run: 1205 subRun: 1 event: 9 at 06-Feb-2023 18:09:06 CST
+Begin processing the 11th record. run: 1205 subRun: 1 event: 10 at 06-Feb-2023 18:09:06 CST
+Begin processing the 12th record. run: 1205 subRun: 1 event: 11 at 06-Feb-2023 18:09:06 CST
+Begin processing the 13th record. run: 1205 subRun: 1 event: 12 at 06-Feb-2023 18:09:06 CST
+Begin processing the 14th record. run: 1205 subRun: 1 event: 13 at 06-Feb-2023 18:09:06 CST
+Begin processing the 15th record. run: 1205 subRun: 1 event: 14 at 06-Feb-2023 18:09:06 CST
+Begin processing the 16th record. run: 1205 subRun: 1 event: 15 at 06-Feb-2023 18:09:06 CST
+Begin processing the 17th record. run: 1205 subRun: 1 event: 16 at 06-Feb-2023 18:09:06 CST
+Begin processing the 18th record. run: 1205 subRun: 1 event: 17 at 06-Feb-2023 18:09:06 CST
+Begin processing the 19th record. run: 1205 subRun: 1 event: 18 at 06-Feb-2023 18:09:06 CST
+Begin processing the 20th record. run: 1205 subRun: 1 event: 19 at 06-Feb-2023 18:09:06 CST
+Begin processing the 21st record. run: 1205 subRun: 1 event: 20 at 06-Feb-2023 18:09:06 CST
+Begin processing the 22nd record. run: 1205 subRun: 1 event: 21 at 06-Feb-2023 18:09:06 CST
+Begin processing the 23rd record. run: 1205 subRun: 1 event: 22 at 06-Feb-2023 18:09:06 CST
+Begin processing the 24th record. run: 1205 subRun: 1 event: 23 at 06-Feb-2023 18:09:06 CST
+Begin processing the 25th record. run: 1205 subRun: 1 event: 24 at 06-Feb-2023 18:09:06 CST
+Begin processing the 26th record. run: 1205 subRun: 1 event: 25 at 06-Feb-2023 18:09:06 CST
+Begin processing the 27th record. run: 1205 subRun: 1 event: 26 at 06-Feb-2023 18:09:06 CST
+Begin processing the 28th record. run: 1205 subRun: 1 event: 27 at 06-Feb-2023 18:09:06 CST
+Begin processing the 29th record. run: 1205 subRun: 1 event: 28 at 06-Feb-2023 18:09:06 CST
+Begin processing the 30th record. run: 1205 subRun: 1 event: 29 at 06-Feb-2023 18:09:06 CST
+Begin processing the 31st record. run: 1205 subRun: 1 event: 30 at 06-Feb-2023 18:09:06 CST
+Begin processing the 32nd record. run: 1205 subRun: 1 event: 31 at 06-Feb-2023 18:09:06 CST
+Begin processing the 33rd record. run: 1205 subRun: 1 event: 32 at 06-Feb-2023 18:09:06 CST
+Begin processing the 34th record. run: 1205 subRun: 1 event: 33 at 06-Feb-2023 18:09:06 CST
+Begin processing the 35th record. run: 1205 subRun: 1 event: 34 at 06-Feb-2023 18:09:06 CST
+Begin processing the 36th record. run: 1205 subRun: 1 event: 35 at 06-Feb-2023 18:09:06 CST
+Begin processing the 37th record. run: 1205 subRun: 1 event: 36 at 06-Feb-2023 18:09:06 CST
+Begin processing the 38th record. run: 1205 subRun: 1 event: 37 at 06-Feb-2023 18:09:06 CST
+Begin processing the 39th record. run: 1205 subRun: 1 event: 38 at 06-Feb-2023 18:09:06 CST
+Begin processing the 40th record. run: 1205 subRun: 1 event: 39 at 06-Feb-2023 18:09:06 CST
+Begin processing the 41st record. run: 1205 subRun: 1 event: 40 at 06-Feb-2023 18:09:06 CST
+Begin processing the 42nd record. run: 1205 subRun: 1 event: 41 at 06-Feb-2023 18:09:06 CST
+Begin processing the 43rd record. run: 1205 subRun: 1 event: 42 at 06-Feb-2023 18:09:06 CST
+Begin processing the 44th record. run: 1205 subRun: 1 event: 43 at 06-Feb-2023 18:09:06 CST
+Begin processing the 45th record. run: 1205 subRun: 1 event: 44 at 06-Feb-2023 18:09:06 CST
+Begin processing the 46th record. run: 1205 subRun: 1 event: 45 at 06-Feb-2023 18:09:06 CST
+Begin processing the 47th record. run: 1205 subRun: 1 event: 46 at 06-Feb-2023 18:09:06 CST
+Begin processing the 48th record. run: 1205 subRun: 1 event: 47 at 06-Feb-2023 18:09:06 CST
+Begin processing the 49th record. run: 1205 subRun: 1 event: 48 at 06-Feb-2023 18:09:06 CST
+Begin processing the 50th record. run: 1205 subRun: 1 event: 49 at 06-Feb-2023 18:09:06 CST
+Begin processing the 51st record. run: 1205 subRun: 1 event: 50 at 06-Feb-2023 18:09:06 CST
+Begin processing the 52nd record. run: 1205 subRun: 1 event: 51 at 06-Feb-2023 18:09:06 CST
+Begin processing the 53rd record. run: 1205 subRun: 1 event: 52 at 06-Feb-2023 18:09:06 CST
+Begin processing the 54th record. run: 1205 subRun: 1 event: 53 at 06-Feb-2023 18:09:06 CST
+Begin processing the 55th record. run: 1205 subRun: 1 event: 54 at 06-Feb-2023 18:09:06 CST
+Begin processing the 56th record. run: 1205 subRun: 1 event: 55 at 06-Feb-2023 18:09:06 CST
+Begin processing the 57th record. run: 1205 subRun: 1 event: 56 at 06-Feb-2023 18:09:06 CST
+Begin processing the 58th record. run: 1205 subRun: 1 event: 57 at 06-Feb-2023 18:09:06 CST
+Begin processing the 59th record. run: 1205 subRun: 1 event: 58 at 06-Feb-2023 18:09:06 CST
+Begin processing the 60th record. run: 1205 subRun: 1 event: 59 at 06-Feb-2023 18:09:06 CST
+Begin processing the 61st record. run: 1205 subRun: 1 event: 60 at 06-Feb-2023 18:09:06 CST
+Begin processing the 62nd record. run: 1205 subRun: 1 event: 61 at 06-Feb-2023 18:09:06 CST
+Begin processing the 63rd record. run: 1205 subRun: 1 event: 62 at 06-Feb-2023 18:09:06 CST
+Begin processing the 64th record. run: 1205 subRun: 1 event: 63 at 06-Feb-2023 18:09:06 CST
+Begin processing the 65th record. run: 1205 subRun: 1 event: 64 at 06-Feb-2023 18:09:06 CST
+Begin processing the 66th record. run: 1205 subRun: 1 event: 65 at 06-Feb-2023 18:09:06 CST
+Begin processing the 67th record. run: 1205 subRun: 1 event: 66 at 06-Feb-2023 18:09:06 CST
+Begin processing the 68th record. run: 1205 subRun: 1 event: 67 at 06-Feb-2023 18:09:06 CST
+Begin processing the 69th record. run: 1205 subRun: 1 event: 68 at 06-Feb-2023 18:09:06 CST
+Begin processing the 70th record. run: 1205 subRun: 1 event: 69 at 06-Feb-2023 18:09:06 CST
+Begin processing the 71st record. run: 1205 subRun: 1 event: 70 at 06-Feb-2023 18:09:06 CST
+Begin processing the 72nd record. run: 1205 subRun: 1 event: 71 at 06-Feb-2023 18:09:06 CST
+Begin processing the 73rd record. run: 1205 subRun: 1 event: 72 at 06-Feb-2023 18:09:06 CST
+Begin processing the 74th record. run: 1205 subRun: 1 event: 73 at 06-Feb-2023 18:09:06 CST
+Begin processing the 75th record. run: 1205 subRun: 1 event: 74 at 06-Feb-2023 18:09:06 CST
+Begin processing the 76th record. run: 1205 subRun: 1 event: 75 at 06-Feb-2023 18:09:06 CST
+Begin processing the 77th record. run: 1205 subRun: 1 event: 76 at 06-Feb-2023 18:09:06 CST
+Begin processing the 78th record. run: 1205 subRun: 1 event: 77 at 06-Feb-2023 18:09:06 CST
+Begin processing the 79th record. run: 1205 subRun: 1 event: 78 at 06-Feb-2023 18:09:06 CST
+Begin processing the 80th record. run: 1205 subRun: 1 event: 79 at 06-Feb-2023 18:09:06 CST
+Begin processing the 81st record. run: 1205 subRun: 1 event: 80 at 06-Feb-2023 18:09:06 CST
+Begin processing the 82nd record. run: 1205 subRun: 1 event: 81 at 06-Feb-2023 18:09:06 CST
+Begin processing the 83rd record. run: 1205 subRun: 1 event: 82 at 06-Feb-2023 18:09:06 CST
+Begin processing the 84th record. run: 1205 subRun: 1 event: 83 at 06-Feb-2023 18:09:06 CST
+Begin processing the 85th record. run: 1205 subRun: 1 event: 84 at 06-Feb-2023 18:09:06 CST
+Begin processing the 86th record. run: 1205 subRun: 1 event: 85 at 06-Feb-2023 18:09:06 CST
+Begin processing the 87th record. run: 1205 subRun: 1 event: 86 at 06-Feb-2023 18:09:06 CST
+Begin processing the 88th record. run: 1205 subRun: 1 event: 87 at 06-Feb-2023 18:09:06 CST
+Begin processing the 89th record. run: 1205 subRun: 1 event: 88 at 06-Feb-2023 18:09:06 CST
+Begin processing the 90th record. run: 1205 subRun: 1 event: 89 at 06-Feb-2023 18:09:06 CST
+Begin processing the 91st record. run: 1205 subRun: 1 event: 90 at 06-Feb-2023 18:09:06 CST
+Begin processing the 92nd record. run: 1205 subRun: 1 event: 91 at 06-Feb-2023 18:09:06 CST
+Begin processing the 93rd record. run: 1205 subRun: 1 event: 92 at 06-Feb-2023 18:09:06 CST
+Begin processing the 94th record. run: 1205 subRun: 1 event: 93 at 06-Feb-2023 18:09:06 CST
+Begin processing the 95th record. run: 1205 subRun: 1 event: 94 at 06-Feb-2023 18:09:06 CST
+Begin processing the 96th record. run: 1205 subRun: 1 event: 95 at 06-Feb-2023 18:09:06 CST
+Begin processing the 97th record. run: 1205 subRun: 1 event: 96 at 06-Feb-2023 18:09:06 CST
+Begin processing the 98th record. run: 1205 subRun: 1 event: 97 at 06-Feb-2023 18:09:06 CST
+Begin processing the 99th record. run: 1205 subRun: 1 event: 98 at 06-Feb-2023 18:09:06 CST
+Begin processing the 100th record. run: 1205 subRun: 1 event: 99 at 06-Feb-2023 18:09:06 CST
+Begin processing the 200th record. run: 1205 subRun: 1 event: 199 at 06-Feb-2023 18:09:06 CST
+Begin processing the 300th record. run: 1205 subRun: 1 event: 299 at 06-Feb-2023 18:09:06 CST
+Begin processing the 500th record. run: 1205 subRun: 1 event: 499 at 06-Feb-2023 18:09:06 CST
+Begin processing the 900th record. run: 1205 subRun: 1 event: 899 at 06-Feb-2023 18:09:06 CST
+Begin processing the 1700th record. run: 1205 subRun: 1 event: 1699 at 06-Feb-2023 18:09:06 CST
+Begin processing the 3300th record. run: 1205 subRun: 1 event: 3299 at 06-Feb-2023 18:09:07 CST
+Begin processing the 6500th record. run: 1205 subRun: 1 event: 6499 at 06-Feb-2023 18:09:08 CST
+Begin processing the 12900th record. run: 1205 subRun: 1 event: 12899 at 06-Feb-2023 18:09:10 CST
+06-Feb-2023 18:09:10 CST  Closed input file "/emph/data/users/gsdavies/prod2/artdaq/1200/1205/emphdata_v02.00_r1205_s1.artdaq.root"
+# of Sus Triggers = 4
+
+TrigReport ---------- Event summary -------------
+TrigReport Events total = 14794 passed = 14794 failed = 0
+
+TrigReport ---------- Modules in End-path ----------
+TrigReport        Run    Success      Error Name
+TrigReport      14794      14794          0 calotest
+
+TimeReport ---------- Time summary [sec] -------
+TimeReport CPU = 4.024628 Real = 4.100683
+
+MemReport  ---------- Memory summary [base-10 MB] ------
+MemReport  VmPeak = 815.223 VmHWM = 251.388
+
+Art has completed and will exit with status 0.

@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_maketrack:
+{
+  module_type: MakeTrack
+  CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
+}
+
+END_PROLOG

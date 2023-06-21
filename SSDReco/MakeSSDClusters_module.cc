@@ -61,6 +61,33 @@ private:
   static const int NStations = 8;
   static const int MaxSensPerSta = 6;
   int ncluster[NPlanes];
+
+  std::vector<float> clustdist0;
+  std::vector<float> clustdist1;
+  std::vector<float> clustdist2;
+  std::vector<float> clustdist3;
+  std::vector<float> clustdist4;
+  std::vector<float> clustdist5;
+  std::vector<float> clustdist6;
+  std::vector<float> clustdist7;
+  std::vector<float> clustdist8;
+  std::vector<float> clustdist9;
+  std::vector<float> clustdist10;
+  std::vector<float> clustdist11;
+  std::vector<float> clustdist12;
+  std::vector<float> clustdist13;
+  std::vector<float> clustdist14;
+  std::vector<float> clustdist15;
+  std::vector<float> clustdist16;
+  std::vector<float> clustdist17;
+  std::vector<float> clustdist18;
+  std::vector<float> clustdist19;
+  std::vector<float> clustdist20;
+
+  //std::vector<std::vector<float>> clustdist;
+
+  //float clustdist[NPlanes][640];
+  
   std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
   
   // fcl parameters
@@ -109,6 +136,40 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("wgtavgstrip",&wgtavgstrip);
     ssdclust->Branch("wgtrmsstrip",&wgtrmsstrip);
     ssdclust->Branch("ncluster",&ncluster,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15:plane16:plane17:plane18:plane19");
+
+    //ssdclust->Branch("clustdist",&clustdist,"cd0/I:cd1:cd2:cd3:cd4:cd5:cd6:cd7:cd8:cd9:cd10:cd11:cd12:cd13:cd14:cd15:cd16:cd17:cd18:cd19");
+
+    ssdclust->Branch("clustdist0",&clustdist0);
+    ssdclust->Branch("clustdist1",&clustdist1);
+    ssdclust->Branch("clustdist2",&clustdist2);
+    ssdclust->Branch("clustdist3",&clustdist3);
+    ssdclust->Branch("clustdist4",&clustdist4);
+    ssdclust->Branch("clustdist5",&clustdist5);
+    ssdclust->Branch("clustdist6",&clustdist6);
+    ssdclust->Branch("clustdist7",&clustdist7);
+    ssdclust->Branch("clustdist8",&clustdist8);
+    ssdclust->Branch("clustdist9",&clustdist9); 
+    ssdclust->Branch("clustdist10",&clustdist10);
+    ssdclust->Branch("clustdist11",&clustdist11);
+    ssdclust->Branch("clustdist12",&clustdist12);
+    ssdclust->Branch("clustdist13",&clustdist13);
+    ssdclust->Branch("clustdist14",&clustdist14);
+    ssdclust->Branch("clustdist15",&clustdist15);
+    ssdclust->Branch("clustdist16",&clustdist16);
+    ssdclust->Branch("clustdist17",&clustdist17);
+    ssdclust->Branch("clustdist18",&clustdist18);
+    ssdclust->Branch("clustdist19",&clustdist19);
+    ssdclust->Branch("clustdist20",&clustdist20);
+/*    ssdclust->Branch("clustdist21",&clustdist[21]);
+    ssdclust->Branch("clustdist22",&clustdist[22]);
+    ssdclust->Branch("clustdist23",&clustdist[23]);
+    ssdclust->Branch("clustdist24",&clustdist[24]);
+    ssdclust->Branch("clustdist25",&clustdist[25]);
+    ssdclust->Branch("clustdist26",&clustdist[26]);
+    ssdclust->Branch("clustdist27",&clustdist[27]);
+    ssdclust->Branch("clustdist28",&clustdist[28]);
+*/
+    //ssdclust->Branch("clustdist",&clustdist,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15:plane16:plane17:plane18:plane19");
   }
 }
 
@@ -208,6 +269,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 
   std::fill_n(ncluster,NPlanes,0);
 
+  //std::fill_n(clustdist,NPlanes,0);
+
   auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
   if (ssdHandle.isValid()) {
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
@@ -242,6 +305,32 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	    wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
 	    int plane = planeViewMap[std::make_pair(sta,sensor)].first;
 	    ncluster[plane]++;
+            if (plane == 0) clustdist0.push_back(clusters[i].WgtAvgStrip());
+	    if (plane == 1) clustdist1.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 2) clustdist2.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 3) clustdist3.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 4) clustdist4.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 5) clustdist5.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 6) clustdist6.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 7) clustdist7.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 8) clustdist8.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 9) clustdist9.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 10) clustdist10.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 11) clustdist11.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 12) clustdist12.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 13) clustdist13.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 14) clustdist14.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 15) clustdist15.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 16) clustdist16.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 17) clustdist17.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 18) clustdist18.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 19) clustdist19.push_back(clusters[i].WgtAvgStrip());
+            if (plane == 20) clustdist20.push_back(clusters[i].WgtAvgStrip());
+ 
+            //clustdist[plane].push_back(clusters[i].WgtAvgStrip());
+	    //for (int j=0; j<640; j++){
+            //     clustdist[plane][j] = clusters[i].WgtAvgStrip();
+	    //}
 	  }
 	  clusters[i].SetID(i);
 	  clusterv->push_back(clusters[i]);
@@ -264,6 +353,35 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     avgstrip.clear();
     wgtavgstrip.clear();
     wgtrmsstrip.clear();
+    clustdist0.clear();
+    clustdist1.clear();
+    clustdist2.clear();
+    clustdist3.clear();
+    clustdist4.clear();
+    clustdist5.clear();
+    clustdist6.clear();
+    clustdist7.clear();
+    clustdist8.clear();
+    clustdist9.clear();
+    clustdist10.clear();
+    clustdist11.clear();
+    clustdist12.clear();
+    clustdist13.clear();
+    clustdist14.clear();
+    clustdist15.clear();
+    clustdist16.clear();
+    clustdist17.clear();
+    clustdist18.clear();
+    clustdist19.clear();
+    clustdist20.clear();
+/*    clustdist21.clear();
+    clustdist22.clear();
+    clustdist23.clear();
+    clustdist24.clear();
+    clustdist25.clear();
+    clustdist26.clear();
+    clustdist27.clear();
+    clustdist28.clear();*/
   }
 }
 DEFINE_ART_MODULE(emph::MakeSSDClusters)
