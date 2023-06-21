@@ -43,13 +43,14 @@
 
 // emphaticsoft includes
 //#include "RecoBase/ARing.h"
-
+// #include "RawData/SSDRawDigit.h"
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
 
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
+#include "CAFMaker/SSDHitsFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -186,6 +187,11 @@ namespace caf {
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
     
+    // Get ARing info from ARichReco
+    SSDHitsFiller ssdhitsf;
+    ssdhitsf.fLabel = fParams.SSDRawLabel();
+    ssdhitsf.Fill(evt,rec);
+
     fRecTree->Fill();
     srcol->push_back(rec);
 

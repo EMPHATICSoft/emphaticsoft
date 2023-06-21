@@ -7,6 +7,7 @@ standard_cafmaker:{
     FileExtension: ".caf.root"
 
     ARingLabel:    "arichreco"
+    SSDRawLabel:  "raw:SSD"
 }
 
 END_PROLOG

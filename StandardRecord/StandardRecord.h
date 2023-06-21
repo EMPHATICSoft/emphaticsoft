@@ -31,7 +31,7 @@ namespace caf
 
       SRHeader       hdr;   ///< Header branch: run, subrun, etc.
       SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
-      SRSSDHitsBranch hits; ///< SSD Hits branch: angle, strip, pitch
+      SRSSDHitsBranch hits; ///< SSD Hits branch:
     }; // end class
 
 } // end caf namespace
