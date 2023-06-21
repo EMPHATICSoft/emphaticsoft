@@ -54,6 +54,7 @@
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
+#include "CAFMaker/MCTruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -186,47 +187,18 @@ namespace caf {
     mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     // Get ARing info from ARichReco
+	
+// commenting out ARICH stuff
 
-    ARICHFiller arichf;
-    arichf.fLabel = fParams.ARingLabel();
-    arichf.Fill(evt,rec);
+   // ARICHFiller arichf;
+   // arichf.fLabel = fParams.ARingLabel();
+   // arichf.Fill(evt,rec);
 
    // Get SRTruth info from the MCTruth 
 
    if (fParams.GetMCTruth()) {
-
-    // get beam particle at this handle
-    art::Handle<std::vector<simb::MCParticle>> beam;
-    evt.getByLabel("generator", beam);
-
-    // make sure there is only one beam particle
-    assert(beam.size() == 1);
-    simb::MCParticle b = beam->at(0);    
-    /*
-    float pbeam[3];
-    int beampid;
-    std::string trgt;
-    */
-
-   // now create MCTruth
-   //    simb::MCTruth mctru;
-   // mctru.SetBeam(b);
-
-   // assign the truth member of rec with a default constructor  
-    rec.truth = caf::SRTruth();
-
-   // assign beam position, momentum
-    auto beamPos = b.Position();
-    auto beamMom = b.Momentum();
-    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
-      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
-   
-   // give those beam positions, momenta to the corresponding leafs 
-    for (int i=0; i<3; ++i) {
-      rec.truth.xbeam[i] = beamPos[i];
-      rec.truth.pbeam[i] = beamMom[i];
-    } // end for loop
-
+	MCTruthFiller mctruthf;
+	mctruthf.Fill(evt,rec);
     } // end if statement
     fRecTree->Fill();
     srcol->push_back(rec);
