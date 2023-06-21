@@ -42,15 +42,21 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
-#include "RecoBase/ARing.h"
+//#include "RecoBase/ARing.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
 
+<<<<<<< HEAD
 // Maybe these includes fixes the <simb> problem
 #include "SimulationBase/MCTruth.h"
 #include "SimulationBase/MCParticle.h"
 
+=======
+// CAF filler includes
+#include "CAFMaker/HeaderFiller.h"
+#include "CAFMaker/ARICHFiller.h"
+>>>>>>> main
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -176,21 +182,14 @@ namespace caf {
     StandardRecord* prec = &rec;  // TTree wants a pointer-to-pointer
     fRecTree->SetBranchAddress("rec", &prec);
 
-    // Get metadata information for header
-    unsigned int run = evt.run();
-    unsigned int subrun = evt.subRun();
-    unsigned int spillNum = evt.id().event();
-
-    rec.hdr = SRHeader();
-
-    rec.hdr.run    = run;
-    rec.hdr.subrun = subrun;
-    rec.hdr.evt    = spillNum;
+    // get header info first
+    HeaderFiller hf;
+    hf.Fill(evt, rec);
 
     mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
-
     // Get ARing info from ARichReco
+<<<<<<< HEAD
     art::Handle< std::vector <rb::ARing> > arv;
     GetByLabelStrict(evt, fParams.ARingLabel(), arv);
     std::vector<rb::ARing> arings;
@@ -212,6 +211,11 @@ namespace caf {
     // make sure there is only one beam particle
     assert(beam.size() == 1);
     simb::MCParticle b = beam->at(0);
+=======
+    ARICHFiller arichf;
+    arichf.fLabel = fParams.ARingLabel();
+    arichf.Fill(evt,rec);
+>>>>>>> main
     
     /*
     float pbeam[3];
