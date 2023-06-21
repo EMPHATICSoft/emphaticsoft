@@ -23,7 +23,8 @@
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
- <class name="caf::SRTruth" ClassVersion="11" >
+ <class name="caf::SRTruth" ClassVersion="12" >
+  <version ClassVersion="12" checksum="1103954238"/>
   <version ClassVersion="11" checksum="225587328"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

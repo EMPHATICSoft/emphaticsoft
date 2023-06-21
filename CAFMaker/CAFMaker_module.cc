@@ -47,16 +47,13 @@
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
 
-<<<<<<< HEAD
-// Maybe these includes fixes the <simb> problem
+//  these includes fixes the <simb> problem
 #include "SimulationBase/MCTruth.h"
 #include "SimulationBase/MCParticle.h"
 
-=======
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
->>>>>>> main
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -189,34 +186,22 @@ namespace caf {
     mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     // Get ARing info from ARichReco
-<<<<<<< HEAD
-    art::Handle< std::vector <rb::ARing> > arv;
-    GetByLabelStrict(evt, fParams.ARingLabel(), arv);
-    std::vector<rb::ARing> arings;
-    if(!arv.failedToGet()) arings = *arv;
 
-    for (unsigned int ringId = 0; ringId < arings.size(); ++ ringId) {
-      rec.ring.arich.push_back(SRARing());
-      SRARing& srARing = rec.ring.arich.back();
+    ARICHFiller arichf;
+    arichf.fLabel = fParams.ARingLabel();
+    arichf.Fill(evt,rec);
 
-      srARing.nhit = arings[ringId].NHits();
-    } // end for ringId
+   // Get SRTruth info from the MCTruth 
 
    if (fParams.GetMCTruth()) {
-    // Get MCTruth 
+
     // get beam particle at this handle
     art::Handle<std::vector<simb::MCParticle>> beam;
     evt.getByLabel("generator", beam);
 
     // make sure there is only one beam particle
     assert(beam.size() == 1);
-    simb::MCParticle b = beam->at(0);
-=======
-    ARICHFiller arichf;
-    arichf.fLabel = fParams.ARingLabel();
-    arichf.Fill(evt,rec);
->>>>>>> main
-    
+    simb::MCParticle b = beam->at(0);    
     /*
     float pbeam[3];
     int beampid;
