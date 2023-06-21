@@ -49,7 +49,8 @@
 
 // Maybe these includes fixes the <simb> problem
 #include "SimulationBase/MCTruth.h"
-#include "SimulationBase/MCParticle.h"
+
+// Maybe these includes fixes an undefined simb::MCTruth problem
 
 
 namespace caf {
@@ -203,7 +204,7 @@ namespace caf {
       srARing.nhit = arings[ringId].NHits();
     } // end for ringId
 
-   if (fParams.GetMCTruth()) {
+
     // Get MCTruth 
     // get beam particle at this handle
     art::Handle<std::vector<simb::MCParticle>> beam;
@@ -212,33 +213,18 @@ namespace caf {
     // make sure there is only one beam particle
     assert(beam.size() == 1);
     simb::MCParticle b = beam->at(0);
-    
-    /*
-    float pbeam[3];
-    int beampid;
-    std::string trgt;
-    */
-
+ 
    // now create MCTruth
-   //    simb::MCTruth mctru;
+    art::Handle<>
+    simb::MCTruth mctru;
    // mctru.SetBeam(b);
 
-   // assign the truth member of rec with a default constructor  
-    rec.truth = caf::SRTruth();
+//    auto beamPos = b.Position();
+//    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
+//    beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+    
 
-   // assign beam position, momentum
-    auto beamPos = b.Position();
-    auto beamMom = b.Momentum();
-    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
-      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
-   
-   // give those beam positions, momenta to the corresponding leafs 
-    for (int i=0; i<3; ++i) {
-      rec.truth.xbeam[i] = beamPos[i];
-      rec.truth.pbeam[i] = beamMom[i];
-    } // end for loop
 
-    } // end if statement
     fRecTree->Fill();
     srcol->push_back(rec);
 

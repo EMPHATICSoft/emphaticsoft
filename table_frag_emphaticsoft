@@ -1,0 +1,4 @@
+# setup the products used by emphaticsoft that do not have any qualifiers
+# make the setup optional in case running on a machine where these
+# products are not installed - they are not needed for code development
+    setupOptional( fife_utils )

@@ -16,11 +16,16 @@ namespace caf
 	class SRTruth
 	{
 	public:
-	  std::vector<float> T_p = {};	// Maybe this should be a set size...
-	  int  T_ptype = {};	// Do we use PDG particle numbering? The answer is yes, so make int
-	  std::string T_targetmaterial = {};
+	  float pbeam[3];
+	  float xbeam[3];
+	  int beampid;
+	  std::string trgt;
+
+	  float trgt_thick;
+	  float trgt_dens;
 	 
 	  SRTruth(); 			// Default constructor
+	  ~SRTruth() {};
 	}; //end class
 }
 #endif //SRTRUTH_H

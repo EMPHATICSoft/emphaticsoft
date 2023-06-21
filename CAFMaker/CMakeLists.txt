@@ -18,6 +18,8 @@ FILE( GLOB src_files *.cc )
 art_make_library( LIBRARY_NAME ${PACKAGE}
 		  SOURCE ${src_files}
 		  LIBRARIES StandardRecord
+		  	    SimulationBase
+		  	    Simulation
 		  	    art::Framework_Core
 			    art::Persistency_Common
 			    canvas::canvas
@@ -32,6 +34,8 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
 
 build_dictionary( CAFMaker
 		  DICTIONARY_LIBRARIES StandardRecord
+		  		  	SimulationBase
+		  			Simulation
 		  		       StandardRecord_dict
 				       art::Framework_Core
 				       ${ART_FRAMEWORK_PRINCIPAL}
@@ -44,6 +48,8 @@ build_dictionary( CAFMaker
 
 simple_plugin ( CAFMaker "module"
 	      	StandardRecord
+		SimulationBase
+		Simulation
                 art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry
