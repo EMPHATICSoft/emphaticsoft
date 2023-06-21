@@ -1,9 +1,10 @@
 #include "RunHistory.fcl"
 #include "ChannelMap.fcl"
-
+#include "Geometry.fcl"
 #include "CAFMaker.fcl"
 
 #include "ARICHReco.fcl"
+#include "MakeSSDClusters.fcl"
 
 process_name: CAF
 
@@ -15,6 +16,7 @@ services:
   TimeTracker: {}
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
+  Geometry: @local::standard_geometry
 }
 
 #Start each new event with an empty event.
@@ -39,18 +41,22 @@ physics:
   producers:
   {
     arichreco: @local::standard_arichreco
+    ssdclusts: @local::standard_ssdclust
     cafmaker:  @local::standard_cafmaker
   }
 
   analyzers:{}
 
-  makecaf:   [ arichreco, cafmaker ]
-  stream1:   [ ]
-  end_paths: [ ]
+  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+ # stream1:   [ ]
+ # end_paths: [ ]
 
 
-  stream1: [ out1 ]
-  trigger_paths: [ makecaf ]  
-  end_paths:     [ stream1 ]
+ # stream1: [ out1 ]
+ # trigger_paths: [ makecaf ]  
+ # end_paths:     [ stream1 ]
 
 }
+
+physics.producers.ssdclusts.FillTTree: false
+physics.producers.ssdclusts.CheckDQ: false

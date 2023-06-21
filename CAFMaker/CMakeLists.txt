@@ -18,7 +18,8 @@ FILE( GLOB src_files *.cc *.cxx )
 art_make_library( LIBRARY_NAME ${PACKAGE}
 		  SOURCE ${src_files}
 		  LIBRARIES StandardRecord
-		  	    art::Framework_Core
+		  	    RecoBase
+ 			    art::Framework_Core
 			    art::Persistency_Common
 			    canvas::canvas
 			    messagefacility::MF_MessageLogger
@@ -45,6 +46,7 @@ build_dictionary( CAFMaker
 simple_plugin ( CAFMaker "module"
                 CAFMaker
 	      	StandardRecord
+		RecoBase
                 art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry
