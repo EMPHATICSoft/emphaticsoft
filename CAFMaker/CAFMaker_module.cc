@@ -42,7 +42,8 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
-//#include "RecoBase/ARing.h"
+#include "RecoBase/ARing.h"
+#include "RecoBase/SSDCluster.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -51,6 +52,7 @@
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/MCTruthFiller.h"
+#include "CAFMaker/ClusterFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -184,11 +186,10 @@ namespace caf {
 
     // Get ARing info from ARichReco
 	
-// commenting out ARICH stuff
 
-   // ARICHFiller arichf;
-   // arichf.fLabel = fParams.ARingLabel();
-   // arichf.Fill(evt,rec);
+    ARICHFiller arichf;
+    arichf.fLabel = fParams.ARingLabel();
+    arichf.Fill(evt,rec);
 
    // Get SRTruth info from the MCTruth 
 
@@ -204,6 +205,11 @@ namespace caf {
     evt.put(std::move(srcol));
 
   } // end produce
+
+
+
+
+
 
   //......................................................................
   void CAFMaker::endSubRun(art::SubRun& sr) {

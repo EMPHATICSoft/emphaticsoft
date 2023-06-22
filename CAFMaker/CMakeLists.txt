@@ -20,7 +20,8 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
 		  LIBRARIES StandardRecord
 		  	    SimulationBase
 		  	    Simulation
-		  	    art::Framework_Core
+		  	    RecoBase
+ 			    art::Framework_Core
 			    art::Persistency_Common
 			    canvas::canvas
 			    messagefacility::MF_MessageLogger
@@ -51,6 +52,7 @@ simple_plugin ( CAFMaker "module"
 	      	StandardRecord
 		SimulationBase
 		Simulation
+		RecoBase
                 art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry
