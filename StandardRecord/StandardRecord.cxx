@@ -5,7 +5,8 @@ namespace caf
   StandardRecord::StandardRecord() :
     hdr(),
     ring(),
-    truth()	 // Added truth, I really don't know if this does something
+    truth(),	 
+    hits()
   {
   }
   

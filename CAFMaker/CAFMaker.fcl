@@ -7,6 +7,7 @@ standard_cafmaker:{
     FileExtension: ".caf.root"
     ARingLabel:    "arichreco"
     GetMCTruth:    true
+    SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
 }
 

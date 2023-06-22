@@ -22,6 +22,7 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
 		  	    Simulation
 		  	    RecoBase
  			    art::Framework_Core
+                            RawData
 			    art::Persistency_Common
 			    canvas::canvas
 			    messagefacility::MF_MessageLogger
@@ -53,6 +54,7 @@ simple_plugin ( CAFMaker "module"
 		SimulationBase
 		Simulation
 		RecoBase
+                RawData
                 art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry

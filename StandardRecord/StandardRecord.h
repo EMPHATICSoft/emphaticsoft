@@ -14,7 +14,9 @@
 #include "StandardRecord/SRHeader.h"
 #include "StandardRecord/SRARingBranch.h"
 #include "StandardRecord/SRTruth.h"
+#include "StandardRecord/SRSSDHitsBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
+
 /// Common Analysis Files
 namespace caf
 {
@@ -32,7 +34,9 @@ namespace caf
       SRHeader       hdr;   ///< Header branch: run, subrun, etc.
       SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
       SRTruth	     truth; ///< Simulation truth momenta, position, ID, etc.
+      SRSSDHitsBranch hits; ///< SSD Hits branch:
       SRSSDClustBranch cluster; ///SSD Cluster Branch: avgadc, avgstrip, etc
+
     }; // end class
 
 } // end caf namespace
