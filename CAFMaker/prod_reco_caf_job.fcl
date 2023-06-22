@@ -48,15 +48,7 @@ physics:
   analyzers:{}
 
   makecaf:   [ arichreco, ssdclusts, cafmaker ]
- # stream1:   [ ]
- # end_paths: [ ]
-
-
- # stream1: [ out1 ]
- # trigger_paths: [ makecaf ]  
- # end_paths:     [ stream1 ]
 
 }
-
 physics.producers.ssdclusts.FillTTree: false
 physics.producers.ssdclusts.CheckDQ: false

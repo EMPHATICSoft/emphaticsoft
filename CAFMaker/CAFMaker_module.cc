@@ -42,6 +42,7 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
+#include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
 
@@ -51,6 +52,7 @@
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
+#include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 
 namespace caf {
@@ -193,17 +195,17 @@ namespace caf {
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
     
+    // Get SSDHits from RawDigits
+    SSDHitsFiller ssdhitsf;
+    ssdhitsf.fLabel = fParams.SSDRawLabel();
+    ssdhitsf.Fill(evt,rec);
+
     fRecTree->Fill();
     srcol->push_back(rec);
 
     evt.put(std::move(srcol));
 
   } // end produce
-
-
-
-
-
 
   //......................................................................
   void CAFMaker::endSubRun(art::SubRun& sr) {
