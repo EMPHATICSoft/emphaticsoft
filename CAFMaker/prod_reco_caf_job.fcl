@@ -5,6 +5,7 @@
 
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
+
 process_name: CAF
 
 services:
@@ -40,22 +41,24 @@ physics:
   producers:
   {
     arichreco: @local::standard_arichreco
+    ssdclusts: @local::standard_ssdclust
     cafmaker:  @local::standard_cafmaker
     ssdhits:  @local::standard_ssdclust
   }
 
   analyzers:{}
 
-  makecaf:   [ arichreco, ssdhits, cafmaker ]
-  //stream1:   [ ]
- // end_paths: [ ]
+  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+ # stream1:   [ ]
+ # end_paths: [ ]
 
 
- // stream1: [ out1 ]
- // trigger_paths: [ makecaf ]  
- // end_paths:     [ stream1 ]
+ # stream1: [ out1 ]
+ # trigger_paths: [ makecaf ]  
+ # end_paths:     [ stream1 ]
 
 }
-
+physics.producers.ssdclusts.FillTTree: false
+physics.producers.ssdclusts.CheckDQ: false
 physics.producers.ssdhits.FillTTree: false
 physics.producers.ssdhits.CheckDQ: false

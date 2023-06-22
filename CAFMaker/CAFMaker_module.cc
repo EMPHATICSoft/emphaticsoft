@@ -42,8 +42,10 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
-//#include "RecoBase/ARing.h"
-// #include "RawData/SSDRawDigit.h"
+#include "RawData/SSDRawDigit.h"
+#include "RecoBase/ARing.h"
+#include "RecoBase/SSDCluster.h"
+
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
 
@@ -51,6 +53,7 @@
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
+#include "CAFMaker/ClusterFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -186,8 +189,13 @@ namespace caf {
     ARICHFiller arichf;
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
+
+    // Get SSDClust info from SSDReco
+    ClusterFiller clustf; ///arich -> cluster
+    clustf.fLabel = fParams.SSDClustLabel();
+    clustf.Fill(evt,rec);
     
-    // Get ARing info from ARichReco
+    // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
