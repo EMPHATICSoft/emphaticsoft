@@ -1,6 +1,6 @@
 ////////////////////////////////////
 // \file SRTruth.cxx
-// \brief 
+// \brief Contains the default constructor for the StandardRecord Truth member
 ////////////////////////////////////
 
 #include "SRTruth.h"
@@ -9,11 +9,12 @@
 
 namespace caf
 {
-	// default SRTruth constructor, won't do anything
-	SRTruth::SRTruth(): pbeam{0,0,0} // defaultly construct the beam particle momentum to be zero
+	// default SRTruth constructor
+	SRTruth::SRTruth(): pbeam{0,0,0}
 	{
-	 beampid = 2212,  // defaultly construct the beam particle id to be a proton
-	 trgt = "C",	 // default target, not sure whether to use "" like that?
-	 trgt_dens = 1;  // default target density 
+	 beampid = 2212,  // default beam is proton
+	 trgt = "C",	 // default target is Carbon
+	 trgt_dens = 1,  // default target density
+	 trgt_thick = 20; // default target thickness 
 	}
 }

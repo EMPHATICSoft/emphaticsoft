@@ -47,10 +47,6 @@
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
 
-//  these includes fixes the <simb> problem
-#include "SimulationBase/MCTruth.h"
-#include "SimulationBase/MCParticle.h"
-
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
@@ -196,10 +192,12 @@ namespace caf {
 
    // Get SRTruth info from the MCTruth 
 
-   if (fParams.GetMCTruth()) {
-	MCTruthFiller mctruthf;
-	mctruthf.Fill(evt,rec);
+   if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
+				// set to "true" if needed
+  	MCTruthFiller mctruthf;
+  	mctruthf.Fill(evt,rec);
     } // end if statement
+
     fRecTree->Fill();
     srcol->push_back(rec);
 
