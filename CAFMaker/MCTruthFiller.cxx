@@ -21,30 +21,22 @@ namespace caf
     // make sure there is only one beam particle
     assert(beam.size() == 1);
     simb::MCParticle b = beam->at(0);    
-    /*
-    float pbeam[3];
-    int beampid;
-    std::string trgt;
-    */
-
-   // now create MCTruth
-   //    simb::MCTruth mctru;
-   // mctru.SetBeam(b);
 
    // assign the truth member of rec with a default constructor  
     stdrec.truth = caf::SRTruth();
 
-   // assign beam position, momentum
+   // assign beam position, momentum, ID
     auto beamPos = b.Position();
     auto beamMom = b.Momentum();
-    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
-      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+    auto beamId = b.PdgCode();
    
    // give those beam positions, momenta to the corresponding leafs 
     for (int i=0; i<3; ++i) {
       stdrec.truth.xbeam[i] = beamPos[i];
       stdrec.truth.pbeam[i] = beamMom[i];
     } // end for loop
+
+    stdrec.truth.beampid = beamId; 
   }
 
 } // end namespace caf

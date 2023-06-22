@@ -187,9 +187,9 @@ namespace caf {
     // Get ARing info from ARichReco
 	
 
-    ARICHFiller arichf;
-    arichf.fLabel = fParams.ARingLabel();
-    arichf.Fill(evt,rec);
+   // ARICHFiller arichf;
+   // arichf.fLabel = fParams.ARingLabel();
+   // arichf.Fill(evt,rec);
 
    // Get SRTruth info from the MCTruth 
 
