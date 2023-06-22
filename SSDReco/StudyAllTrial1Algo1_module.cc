@@ -281,7 +281,7 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum == 24)) ; 
+      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum == 263)) ; 
       
       
     //
@@ -296,18 +296,6 @@ namespace emph {
 			        
       fUpStreamBeamTrRec.Reset();
       
-      //
-      // This code fragment is simply for debugging.. And is confusing.. 
-//      if (fSSDclPtrs.size() != 1) { 
-//        std::cerr << " Number of pointers to a given SSDCluster, " << fSSDclPtrs.size() << std::endl;
-//      }
-
-//      std::vector<art::Ptr<rb::SSDCluster> >::const_iterator aPtrClIt = fSSDclPtrs.cbegin();
-//      art::Ptr<rb::SSDCluster> aPtrCl = *aPtrClIt;
-//      std::cerr << " Station for the first cluster  " << aPtrCl->Station() << std::endl;
-      // 
-      // These, above, will fail, as the sStion number is clearly bogus... for many clusters.  The fill_ptr_vector is not applicable here!  
-      // old, deprecated interface, with a deep copy.. But, it works ..  
       //
       evt.getByLabel (fSSDClsLabel, fSSDClsPtr);
       

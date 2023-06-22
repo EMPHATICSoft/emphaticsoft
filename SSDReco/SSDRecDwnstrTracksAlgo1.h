@@ -44,6 +44,7 @@ namespace emph {
 	  int fNEvents; // Incremental events count for a given job. 
 	  bool fDebugIsOn; 
 	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
+	  bool fNoMagnet; // set once we know the geometry.. 
 	  double fChiSqCut;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  std::string fTokenJob;

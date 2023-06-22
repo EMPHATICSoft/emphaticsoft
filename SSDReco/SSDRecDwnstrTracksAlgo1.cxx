@@ -29,12 +29,13 @@ namespace emph {
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), 
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
-      fNEvents(0), fDebugIsOn(false), fDoMigrad(true), fChiSqCut(5.0), fPrelimMomentum(50.0), 
+      fNEvents(0), fDebugIsOn(false), fDoMigrad(true), fNoMagnet(false), fChiSqCut(5.0), fPrelimMomentum(50.0), 
       fTokenJob("undef"), fFitterFCN(nullptr),
       fInputSt2Pts(2), fInputSt3Pts(3), fInputSt4Pts(4), fInputSt5Pts(5), 
       fTrs()
       {
       ;
+      
     }
     // 
     SSDRecDwnstrTracksAlgo1::~SSDRecDwnstrTracksAlgo1() {
@@ -70,6 +71,7 @@ namespace emph {
       if (fEmgeo == nullptr) {
          fRunHistory = new runhist::RunHistory(fRunNum);   
          fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+         fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
       }   
       fTrs.clear();
       if ((fInputSt2Pts.Size() == 0) || (fInputSt3Pts.Size() == 0)) {
@@ -239,8 +241,9 @@ namespace emph {
 //       uPars.Add(std::string("PInv"), 1.0/fPrelimMomentum, 2.0/fPrelimMomentum, -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
 // Start with negative momentum, to (usually), observe a change of sign in this parameter (assuming positive beam 
 // 
-       uPars.Add(std::string("PInv"), -1.0/fPrelimMomentum, std::abs(2.0/fPrelimMomentum), -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
-       unsigned int nPars = 5; 
+        if (!fNoMagnet) 
+	  uPars.Add(std::string("PInv"), -1.0/fPrelimMomentum, std::abs(2.0/fPrelimMomentum), -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
+       unsigned int nPars = (fNoMagnet) ? 4 : 5; 
        std::vector<double> initValsV, initValsE; // for use in the Simple Minimizer.. 
        for (unsigned int k=0; k != nPars; k++) { initValsV.push_back(uPars.Value(k)); initValsE.push_back(uPars.Error(k)); } 
        // Testing the FCN, once .. 
@@ -283,8 +286,13 @@ namespace emph {
        if (fDebugIsOn && (flagValid == 2)) std::cerr <<  " Simplex fit succeeded, chiSq " << chiSq << std::endl;
        rb::DwnstrTrackAlgo1 aTr; 
        aTr.SetType(type); 
-       aTr.SetTrParams(parsOut[0], parsOut[1], parsOut[2], parsOut[3], 1.0/parsOut[4]);
-       aTr.SetTrParamsErrs(parsOutErr[0], parsOutErr[1], parsOutErr[2], parsOutErr[3], parsOutErr[4]/(parsOut[4]*parsOut[4]));
+       if (parsOut.size() == 5) { 
+         aTr.SetTrParams(parsOut[0], parsOut[1], parsOut[2], parsOut[3], 1.0/parsOut[4]);
+         aTr.SetTrParamsErrs(parsOutErr[0], parsOutErr[1], parsOutErr[2], parsOutErr[3], parsOutErr[4]/(parsOut[4]*parsOut[4]));
+       } else {
+         aTr.SetTrParams(parsOut[0], parsOut[1], parsOut[2], parsOut[3], DBL_MAX);
+         aTr.SetTrParamsErrs(parsOutErr[0], parsOutErr[1], parsOutErr[2], parsOutErr[3], DBL_MAX);
+       }
        aTr.SetChiSq(chiSq);
        if (flagValid == 1 && min.HasCovariance()) {
          for (size_t i=0; i != static_cast<size_t>(nPars); i++) {
