@@ -93,5 +93,10 @@
   </class>
   <class name="art::Wrapper< rb::TrigToT0>"        />
 
-
+  <class name="rb::CaloHit"    ClassVersion="11">
+   <version ClassVersion="11" checksum="2792378261"/>
+     <version ClassVersion="10" checksum="1"/>
+   </class>
+   <class name="std::vector<rb::CaloHit>"        />
+   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
  </lcgdict>

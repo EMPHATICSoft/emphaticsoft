@@ -42,6 +42,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/ADC.h"
+#include "RecoBase/CaloHit.h"
 
 using namespace emph;
 
@@ -108,6 +109,8 @@ namespace emph {
     bool fMakeWaveFormPlots;
     bool fWant;
 
+    std::vector<rb::CaloHit> calohits;
+
   };
 
   //.......................................................................
@@ -117,6 +120,7 @@ namespace emph {
   {
     //fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
     this->reconfigure(pset);
+    this->produces< std::vector<rb::CaloHit> >();
     //fEvtNum = 0;
     //fCheckClusters     (pset.get< bool >("CheckClusters"));
   }
@@ -254,6 +258,8 @@ namespace emph {
          fWant = false;
       }
       else fWant = true;
+      //if (fEvtNum != 20) fMakeWaveFormPlots = false;
+      //else fMakeWaveFormPlots = true;
   }
 
   //......................................................................
@@ -266,6 +272,7 @@ namespace emph {
       emph::cmap::EChannel echan;
       echan.SetBoardType(boardType);
       if (fMakeWaveFormPlots) {
+//std::cout<<"hey"<<std::endl;
         if (!wvfmH->empty()) {
           for (size_t idx=0; idx < wvfmH->size(); ++idx) {
             const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
@@ -288,7 +295,14 @@ namespace emph {
                 }
                 getBaseline(adcvals,8.0,10,true);
 		   
-                if (findPeaks(adcvals)==1) getIntChargePlots(adcvals,detchan);
+                if (findPeaks(adcvals)==1){
+	           getIntChargePlots(adcvals,detchan);
+		   rb::CaloHit onehit;
+		   onehit.SetChannel(detchan);
+                   //rb::CaloHit onehit(adcvals,detchan);
+		   calohits.push_back(onehit);
+	           std::cout<<"I'm here"<<std::endl; //could be up to 9 times 
+		}
               }
             }
           }
@@ -374,6 +388,9 @@ namespace emph {
 
   void emph::CaloProd::produce(art::Event& evt)
   {
+    std::unique_ptr< std::vector<rb::CaloHit> > calohitv(new std::vector<rb::CaloHit>);
+
+    std::cout<<"new event eaaow"<<std::endl;
 
     ++fNEvents;
     fRun = evt.run();
@@ -381,7 +398,10 @@ namespace emph {
     fEvtNum = evt.id().event();
     std::string labelStr;
 
+    //std::vector<rb::CaloHit> calohits;
+
     for (int i=0; i<emph::geo::NDetectors; ++i) {
+        calohits.clear();
 
         labelStr = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
         art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
@@ -391,7 +411,12 @@ namespace emph {
           if (!wfHandle->empty()) {
             if (i == emph::geo::Trigger){fWantLGCalo(wfHandle);}
             if (i == emph::geo::LGCalo){ //  FillLGCaloPlots(wfHandle);
-               if (fWant) FillLGCaloPlots(wfHandle);
+               if (fWant){
+		  FillLGCaloPlots(wfHandle);
+		  for (size_t i=0; i<calohits.size(); i++){
+		      calohitv->push_back(calohits[i]);
+		  }
+	       } 
             }
           }
       
@@ -399,6 +424,7 @@ namespace emph {
         catch(...) {
         }
     }
+    evt.put(std::move(calohitv));
   }  
 } // end namespace emph
 
