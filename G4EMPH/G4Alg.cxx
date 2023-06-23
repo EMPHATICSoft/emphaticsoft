@@ -25,7 +25,7 @@
 #include "G4EMPH/SSDHitAction.h"
 #include "G4EMPH/FastStopAction.h"
 #include "G4EMPH/OpticalAction.h"
-//#include "G4EMPH/ParticleListAction.h"
+#include "G4EMPH/ParticleListAction.h"
 #include "G4EMPH/TrackListAction.h"
 #include "G4EMPH/TOPAZLGHitAction.h"
 #include "G4EMPH/ARICHHitAction.h"
@@ -140,9 +140,9 @@ namespace emph {
 // The ParticleNavigator goes into infinite loop, and we do not need it.. We use something simpler. The particle ancestry is also 
 // availabe in the for of the G4Track ancestry.  Which, in our case, is much simpler than for the typical Neutrino experiment
 // We do tracking, mostly..     
-//    emph::ParticleListAction* pl  = new emph::ParticleListAction(fEnergyThresh,fManyParticles);
-//    pl->SetName("emph::ParticleListAction");
-//    pl->Config( pset );
+    emph::ParticleListAction* pl  = new emph::ParticleListAction(fEnergyThresh,fManyParticles);
+    pl->SetName("emph::ParticleListAction");
+    pl->Config( pset );
     
     emph::TrackListAction* ptl  = new emph::TrackListAction();
     ptl->SetName("emph::TrackListAction");
@@ -177,7 +177,7 @@ namespace emph {
     //if (false) std::cerr << "RWH: fPlaIndex " << fPlaIndex
     //          << " vs " << uam->GetIndex("g4n::ParticleListAction")
     //          << std::endl
-    
+    uam->AddAndAdoptAction(pl);    
     uam->AddAndAdoptAction(ptl);
     uam->AddAndAdoptAction(sh);   
     uam->AddAndAdoptAction(sh2);   
