@@ -202,6 +202,58 @@ git push origin <your_branch_name>
 
 Once your changes are thoroughly tested and your are ready for them to go into the main branch, you should execute a pull request.  To do this, first make sure your branch is up to date with changes from the main branch (see above), then go to the https://github.com/EMPHATICSoft/emphaticsoft/branches, find your branch, click the "new pull request" button next to your branch, and follow the resulting instructions to create a new pull request.  You should then ask another EMPHATICsoft developer to review your changes.  Contact Laura Fields, Jon Paley, and Gavin Davies if you aren't sure who should review it.  Once that person has signed off on your code, you should then merge the pull request and delete your branch.  Instructions here:  https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request. 
 
+## Working with Git
+
+This section explains how to:  
+
+1)Make a branch in your home directory  
+2) Clone `main` into it  
+3) Check differences between the two branches  
+4) Push changes into your local branch  
+5) Add files from your branch to the main branch  
+6) Push changes into the main branch  
+7) Merge your branch with the main branch  
+
+* Go to your user directory: `/emph/app/users/<your_username>`  
+* Make a new directory ( ex: `git_practice`  )
+* Go into the new directory  
+* Run: `git clone https://github.com/EmphaticSoft/emphaticsoft`  
+* This clones the main branch into the directory we just made
+* Go into the `emphaticsoft`  directory
+* Run: `git checkout -b <new_branch_name> `  
+* This makes a new branch and switches into it  
+* Run: `git branch` to see what branch we are in (* on side) and the other branches are listed below  
+* Run: `git checkout <branch_name> ` to change between branches  
+* Make necessary changes **in your branch**  
+* Run `git add <1st_file_name> <2nd_file_name> .... ` to add as many new files to the main branch as you want  
+   * Files in green are the ones we are going to commit  
+   * Files in red are being ignored for now (because they weren't added)  
+* First time you are pushing a new branch, run: `git push -u origin <branch_name>`  
+* Every time after that just use `git push`  
+* Run: `git status` to see the differences between the branch you are in and main  
+* Go back to your directory (`git_practice`)  
+* Make a new build directory using: `mkdir build`   
+* Run : `source /emph/app/users/dhuerta/git_practice/emphaticsoft/setup/setup_emphatic.sh`  
+* Go into the build directory (`cd /emph/app/users/<your_username>/git_practice/build` )
+* Run : source /emph/app/users/dhuerta/git_practice/emphaticsoft/ups/setup_for_development -p 
+* Compile (use `buildtool --generator=ninja` the first time and just `ninja` any time after that)
+   * Might get build error, run ninja and if you still have an error fix now
+* If all of your changes are made and you are ready to have them go into your branch,  go to: `/emph/app/users/<your_username>/git_practice/emphaticsoft`   
+* Run: `git push`  
+   * Use your token as your password
+* Go to GitHub **online**  
+* Click on view pull request  
+* Request a reviewer and have them accept your changes
+* Once they have approved it the changes should be made to your branch, **but not main**
+To merge your branch with Main:
+Run git checkout main to switch into the main branch
+Can run git branch to double check where you are and to see  your branch name
+Run: git merge <branch_name>
+GitHub may ask you to correct any overlaps or issues at this time
+Once all problems have been resolved run: git add <file_to merge>
+Run git push to make changes to the main branch
+
+
 ## Copyright and Licensing
 
 Copyright © 2023 FERMI NATIONAL ACCELERATOR LABORATORY for the benefit of the EMPHATIC Collaboration.
