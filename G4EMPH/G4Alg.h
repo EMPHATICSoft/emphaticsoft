@@ -76,6 +76,7 @@ namespace emph {
 //
 // as far as I can see, these are not used.. 
 //
+    int		    fPlatIndex;		//< index of the ParticleListAction in the UserActionManager
     int             fPlaIndex;            ///< index of the TrackListAction in the UserActionManager
     int             fShaIndex;            ///< index of the SSDHitAction in the UserActionManager
     int             fSLGhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager

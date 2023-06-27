@@ -100,37 +100,63 @@ namespace emph {
   // the fParentIDMap
   int ParticleListAction::GetParentage(int trackid) const
   {
-    int parentid = sim::kNoParticleId;
-    std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
-    // search the fParentIDMap recursively until we have the parent id 
-    // of the first EM particle that led to this one
-    std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
-    while( itr != fParentIDMap.end() ){
-      std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
-      MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
+	 int parentid = sim::kNoParticleId;
+	 std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
+   
+	 // search the fParentIDMap recursively until we have the parent id 
+	 // of the first EM particle that led to this one
+	 std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
+	 
+	int nIterations = 0;
+	 while( itr != fParentIDMap.end() ){
+		 std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
+     		 MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
 					 << " " << (*itr).second;
-      // set the parentid to the current parent ID, when the loop ends
-      // this id will be the first EM particle
-      parentid = (*itr).second;
-      itr = fParentIDMap.find(parentid);
-    //  std::cerr << "Parent ID: " << parentid << std::endl;
+      		 // set the parentid to the current parent ID, when the loop ends
+      		 // this id will be the first EM particle
+		 parentid = (*itr).second;
+		 itr = fParentIDMap.find(parentid);
+   		 //  std::cerr << "Parent ID: " << parentid << std::endl;
 
-    //if ( parentid == (*itr).second ) {return parentid;}
-    // if the current id matches its parent, then exit the loop and return the current id.
+   		 //if ( parentid == (*itr).second ) {return parentid;}
+   		 // if the current id matches its parent, then exit the loop and return the current id.
+		++nIterations;
+		if (nIterations > 10){return parentid;}
+   		 }
 
-    }
 
 
+	 MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
 
-    MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
-
-    return parentid;
-  }
+	 return parentid;
+ }
 
   //-------------------------------------------------------------
   // Create our initial sim::Particle object and add it to the sim::ParticleList.
   void ParticleListAction::PreTrackingAction(const G4Track* track)
   {
+/*	const G4int trackID = track->GetTrackID() + fTrackIDOffset;	// get the track ID for this particle
+	fCurrentTrackID = trackID;
+	
+	G4int parentID = track->GetParentID() + fTrackIDOffset;		// get the parent id from Geant for free
+	
+	const G4ParticleDefinition* partdef = track->GetDefinition();	
+	const G4int pdg = partdef-> GetPDGEncoding();			// get the particle type
+	
+	auto trackPos = track->GetPosition();				// get the particle position
+	
+
+	const G4double energy = track->GetKineticEnergy();		// get the kinetic energy
+	float fEnergyCut = 1;						// arbitrary energy cutoff for weak, pitiful, unimportant particles
+
+	if (energy < fEnergyCut){return;}
+	else{
+		std::cerr << "Particle passed! Track ID: " << trackID << " parent ID: " << parentID << " PDG: " << pdg << " Position: (" <<  trackPos[0] << 
+				"," << trackPos[1] << "," << trackPos[2] << ")" << std::endl; 
+*/
+	
+
+    
     // get the track ID for this particle
     const G4int trackID = track->GetTrackID() + fTrackIDOffset;
     fCurrentTrackID = trackID;
@@ -255,7 +281,7 @@ namespace emph {
 	  
 	  // do add the particle to the parent id map though
 	  // and set the current track id to be it's ultimate parent
-	  fParentIDMap.emplace(fCurrentTrackID, parentID);  // this also checks if the key is unique.  If so, does nothing. 
+	  // fParentIDMap.emplace(fCurrentTrackID, parentID);  // this also checks if the key is unique.  If so, does nothing. 
 
           std::cerr << "Before parentage!!!!!!" << std::endl;
           std::cerr << "fCurrentTrackID: " << fCurrentTrackID << " parentID: " << parentID << std::endl;
@@ -264,7 +290,7 @@ namespace emph {
 
           std::cerr << "ProcessName: " << process_name << std::endl;
 
-	  fCurrentTrackID = this->GetParentage(fCurrentTrackID); // Why this ???? 
+	  //fCurrentTrackID = this->GetParentage(fCurrentTrackID); // Why this ???? 
 
           std::cerr << "Getting Parent" << std::endl;
 
@@ -335,6 +361,7 @@ namespace emph {
     }
 
     return;
+
   }
 
   //-------------------------------------------------------------
