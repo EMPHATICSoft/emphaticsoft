@@ -16,7 +16,7 @@ namespace rb {
   //----------------------------------------------------------------------
   
   SSDStationPtAlgo1::SSDStationPtAlgo1() :
-     fType(rb::STNONE), fStationNum(INT_MAX), fUserFlag(INT_MAX), fX(DBL_MAX),  
+     fType(rb::STNONE), fId(INT_MAX), fStationNum(INT_MAX), fUserFlag(INT_MAX), fX(DBL_MAX),  
      fY(DBL_MAX), fXErr(DBL_MAX), fYErr(DBL_MAX),
      fChiSq(DBL_MAX), fUorVPred(DBL_MAX), fUorVObsRaw(DBL_MAX), fUorVObsCorr(DBL_MAX)
      { ; } 
@@ -33,6 +33,7 @@ namespace rb {
 	    exit(2);
 	  }
 	  fClIds.push_back(itCl->ID()); fClViews.push_back(itCl->View());
+	  fClSensorIds.push_back(itCl->Sensor());
 	  fClAvs.push_back(aClCorrectedMean);  fClSigmas.push_back(aClErr);
 	//
 	  if (fClViews.size() == 2) {
