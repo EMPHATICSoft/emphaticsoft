@@ -18,7 +18,8 @@ namespace rb {
     typedef enum tDwnstrTrType { TRDWNNONE = 0, // unspecified. 
                                  FOURSTATION = 1, // Best case
 				 STATION234 = 2,
-				 STATION235 = 3 
+				 STATION235 = 3, 
+                                 SIXSTATION = 10 // Best case, when we have no magnet, target in fron ot Station 0
 			} DwnstrTrType;
 				
   
@@ -30,19 +31,20 @@ namespace rb {
   private:
 
      DwnstrTrType fTrType;
+     int fId; 
      mutable int fUserFlag; 
      double fTrXOffset, fTrYOffset, fTrXSlope, fTrYSlope; // curved track track, these are the parameters at Station 2. (phase1b) 
      double fTrMom; // momentum                                                   //   
      double fTrXOffsetErr, fTrYOffsetErr, fTrXSlopeErr, fTrYSlopeErr; // uncertainties for quantities above .
      double fTrMomErr; // momentum                                                   //   
      std::vector<double> fCovXY; // covariance matrix to compute the uncertainties 
-     double fChiSq; 
+     double fChiSq; // Note: if  atrack is abritrated away, it's chi-Square will be set to DBL_MAX, at some point. 
 //     std::vector<int> fNHitsXView, fNHitsYView;  not sure if relevant, limited use.. 
 	  
   public:
    // Setters 
    inline void Reset() { // Set everyting to NONE or DBL_MAX, to be refilled again.  
-     fTrXOffset =  DBL_MAX; fTrYOffset = DBL_MAX;
+     fTrXOffset =  DBL_MAX; fTrYOffset = DBL_MAX; fId = INT_MAX;
      fTrXSlope = DBL_MAX; fTrYSlope = DBL_MAX; fTrMom = 120.0;
      fChiSq = -1.; for (size_t k=0; k!= fCovXY.size(); k++) fCovXY[k] = DBL_MAX;
    }
@@ -54,12 +56,14 @@ namespace rb {
      fTrXOffsetErr = x0; fTrYOffsetErr = y0; fTrXSlopeErr = xSl; fTrYSlopeErr = ySl;
      fTrMomErr = p;
    }
-   inline void SetChiSq(double c ) { fChiSq = c;}
+   inline void SetID(int id ) { fId = id;}
+   inline void SetChiSq(double c ) { fChiSq = c;}  
    inline void SetCovarianceMatrix(size_t k, double v) { if (k < fCovXY.size()) fCovXY[k] = v;}
    inline void SetUserFlag(int v) const {fUserFlag = v;} 
 
     // Getters
     inline rb::DwnstrTrType Type() const { return fTrType; }
+    inline int ID() const { return fId; } 
     inline double XOffset() const { return fTrXOffset; } 
     inline double XSlope() const { return fTrXSlope; } 
     inline double XOffsetErr() const { return fTrXOffsetErr; } 

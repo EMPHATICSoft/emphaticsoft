@@ -16,7 +16,7 @@ namespace rb {
   //----------------------------------------------------------------------
   
   DwnstrTrackAlgo1::DwnstrTrackAlgo1() : 
-    fTrType (rb::TRDWNNONE), fUserFlag(INT_MAX), 
+    fTrType (rb::TRDWNNONE), fId(INT_MAX), fUserFlag(INT_MAX), 
    fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), fTrMom(120.),  
    fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX),
    fTrMomErr(DBL_MAX),
