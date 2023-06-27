@@ -49,6 +49,7 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "SSDReco/SSDRecUpstreamTgtAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
 #include "SSDReco/SSDRecDwnstrTracksAlgo1.h" 
+#include "SSDReco/SSDRecBrickTracksAlgo1.h" 
 //
 
 
@@ -107,11 +108,13 @@ namespace emph {
      int fMaxNumBeamTracks;
      int fMinNumDwnstrTracks;
      int fMaxNumDwnstrTracks;
-     bool fDoAntiSt2; 
+     bool fDoAntiSt2;
+     bool fDoIronBrick;
 //
 //   Downstream of the target. 
 //
      double fDwnstrChiSqCut; 
+     double fConfirmBrickChiSqCut; 
 //
 // access to the geometry.   
 //
@@ -123,6 +126,7 @@ namespace emph {
 //
       ssdr::SSDRecUpstreamTgtAlgo1 fUpStreamBeamTrRec;  // Reconstruct the upstream of the target, Station 0 and 1 (Phase1b)     
       ssdr::SSDRecDwnstrTracksAlgo1 fDwnstrTrRec;  // Downstream, station 2, through 5   
+      ssdr::SSDRecBrickTracksAlgo1 fBrickTrRec;  // Downstream, station 2, through 5   
 //
 // Internal stuff 
 //
@@ -162,7 +166,8 @@ namespace emph {
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0), 
     fSetMCRMomentum(30.), fPrelimMomentumSecondaries(5.0), fChiSqCutXYUVStAlgo1(20.), 
     fMaxUpstreamSlopeX(0.005), fMaxUpstreamSlopeY(0.005), fMaxDistFrom120Beam(100.),
-    fMaxNumBeamTracks(10), fMinNumDwnstrTracks(1), fMaxNumDwnstrTracks(20), fDoAntiSt2(false), fDwnstrChiSqCut(10.),   
+    fMaxNumBeamTracks(10), fMinNumDwnstrTracks(1), fMaxNumDwnstrTracks(20), fDoAntiSt2(false), fDwnstrChiSqCut(10.), 
+    fConfirmBrickChiSqCut(500),   
     fRunHistory(nullptr), fEmgeo(nullptr), 
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fUpStreamBeamTrRec(), 
     fXPencil120(-3.8), fYPencil120(4.5), // Obtained in the analysis of 120 GeV runs 1043 and 1055.  Phase1b
@@ -192,6 +197,8 @@ namespace emph {
       fMinNumDwnstrTracks = pset.get<int>("minNumDwnstrTracks", 1);
       fMaxNumDwnstrTracks = pset.get<int>("maxNumDwnstrTracks", 20);
       fDoAntiSt2 = pset.get<bool>("doAntiSt2", false);
+      fDoIronBrick = pset.get<bool>("doIronBrick", false);
+      fConfirmBrickChiSqCut = pset.get<double>("confirmBrickChiSqCut", 500.);
       fPrelimMomentumSecondaries = pset.get<double>("prelimMomentum", 5.);
       fDwnstrChiSqCut = pset.get<double>("dwnstrChiSqCut", 10.);
       fChiSqCutXYUVStAlgo1 = pset.get<double>("chiSqCutXYUVStAlgo1", 1000.);
@@ -199,7 +206,13 @@ namespace emph {
       // Transfering this info to algorithms.. 
       //
       fUpStreamBeamTrRec.SetTokenJob(fTokenJob);
-      fDwnstrTrRec.SetTokenJob(fTokenJob);
+      if (!fDoIronBrick) {
+        fDwnstrTrRec.SetTokenJob(fTokenJob);
+      } else { 
+        fBrickTrRec.SetTokenJob(fTokenJob);
+	fBrickTrRec.SetDistFromBeamCenterCut(fMaxDistFrom120Beam);
+	fBrickTrRec.SetChiSqCut(fConfirmBrickChiSqCut);
+      }
       // Upload the latest alignment 
       const std::string alignParamsStr = pset.get<std::string>("alignParamFileName");
       const char *pathHere = std::getenv("CETPKG_BUILD");
@@ -218,11 +231,19 @@ namespace emph {
       emph::EMPHATICMagneticField *fMagField = bField->Field();
       fMagField->G4GeomAlignIt(fEmgeo);
       fUpStreamBeamTrRec.SetRun(fRun);
-      fDwnstrTrRec.SetRun(fRun);
-      fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
-      for(size_t kSt=2; kSt != 6; kSt++)  {
-        fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
-      }	
+      if (!fDoIronBrick) { 
+        fDwnstrTrRec.SetRun(fRun);
+        fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
+        for(size_t kSt=2; kSt != 6; kSt++)  {
+          fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
+        }
+      } else { 
+        fBrickTrRec.SetRun(fRun);
+        fBrickTrRec.SetAssumedMomentum(fPrelimMomentumSecondaries);
+        for(size_t kSt=2; kSt != 6; kSt++)  {
+          fBrickTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
+        }
+       }	
        std::cerr  << std::endl << " ------------- End of StudyAllTrial1Algo1::beginRun ------------------" << std::endl << std::endl;
     }
     
@@ -262,14 +283,18 @@ namespace emph {
     
 //        fFOutMultSum << " subRun evt numClUp nClD nUpstrTr nStPt2  nStPt3 nStPt4 nStPt5 nStPt2 nTrsDwn " << std::endl;
         fFOutMultSum << " " << fSubRun << " " << fEvtNum << " " << fNumClUpstr << " " << fNumClDwnstr;
-	if (fUpStreamBeamTrRec.Size() == 0) {
+	if ((!fDoIronBrick) && (fUpStreamBeamTrRec.Size() == 0)) {
 	  fFOutMultSum << " 0 0 0 0 0 0 0 0 0 " << std::endl;
 	  return;
 	} else {
 	  fFOutMultSum << " " << fUpStreamBeamTrRec.Size() << " " << fNumBeamTracks;  
 	}
 	for (size_t k = 0; k != fStationsRecMult.size(); k++) fFOutMultSum << " " << fStationsRecMult[k]; 
-	fFOutMultSum << " " << fDwnstrTrRec.Size() << " " << fNumVertices <<  " " << fNumVertDwn << std::endl;
+	if (!fDoIronBrick) {
+	   fFOutMultSum << " " << fDwnstrTrRec.Size() << " " << fNumVertices <<  " " << fNumVertDwn << std::endl;
+	} else {
+	   fFOutMultSum << " " << fBrickTrRec.Size() << " 0 0 " << std::endl;
+	}   
     }
     
     void emph::StudyAllTrial1Algo1::analyze(const art::Event& evt) {
@@ -281,7 +306,7 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum == 263)) ; 
+      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum > 99999999)) ; 
       
       
     //
@@ -325,43 +350,56 @@ namespace emph {
       //
       // Beam Tracks 
       //
-      fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum); 
-      fUpStreamBeamTrRec.recoXY(fSSDClsPtr);
-      //
-      // Cuts on beam track here. 
-      //
-      if (fUpStreamBeamTrRec.Size() == 0) { this->dumpSummaryMultiplicities();  return; }
-      if (debugIsOn) std::cerr << " ... Back to Analyze, got " << fUpStreamBeamTrRec.Size() << " upstream track(s) " << std::endl;
-      fNumBeamTracks = 0; size_t kTr=0;  
-      for(std::vector<rb::BeamTrackAlgo1>::const_iterator itUpTr = fUpStreamBeamTrRec.CBegin();  itUpTr != fUpStreamBeamTrRec.CEnd(); itUpTr++, kTr++) {
-        const double deltaX120 = itUpTr->XOffset() - fXPencil120; const double deltaY120 = itUpTr->YOffset() - fYPencil120;
-	const double dist120 = std::sqrt(deltaX120*deltaX120 + deltaY120*deltaY120);
-	if (debugIsOn) std::cerr << " .... Distance from 120 GeV Beam center " << dist120 << " Track slopes " << itUpTr->XSlope() 
+      fNumBeamTracks = 0;
+      if (!fDoIronBrick) { 
+        fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum); 
+        fUpStreamBeamTrRec.recoXY(fSSDClsPtr);
+        //
+        // Cuts on beam track here. 
+        //
+        if (fUpStreamBeamTrRec.Size() == 0) { this->dumpSummaryMultiplicities();  return; }
+        if (debugIsOn) std::cerr << " ... Back to Analyze, got " << fUpStreamBeamTrRec.Size() << " upstream track(s) " << std::endl;
+        size_t kTr=0; 
+       
+        for(std::vector<rb::BeamTrackAlgo1>::const_iterator itUpTr = fUpStreamBeamTrRec.CBegin();  
+	   itUpTr != fUpStreamBeamTrRec.CEnd(); itUpTr++, kTr++) {
+          const double deltaX120 = itUpTr->XOffset() - fXPencil120; const double deltaY120 = itUpTr->YOffset() - fYPencil120;
+	  const double dist120 = std::sqrt(deltaX120*deltaX120 + deltaY120*deltaY120);
+	  if (debugIsOn) std::cerr << " .... Distance from 120 GeV Beam center " << dist120 << " Track slopes " << itUpTr->XSlope() 
 	          << " , " << itUpTr->YSlope() << std::endl;
-	if (dist120 > fMaxDistFrom120Beam) { if (debugIsOn) std::cerr << " ... rejected, too far from beam center " << std::endl; continue; }
-	if ((std::abs(itUpTr->XSlope() - fMeanUpstreamXSlope) > fMaxUpstreamSlopeX) || 
+	  if (dist120 > fMaxDistFrom120Beam) { if (debugIsOn) std::cerr << " ... rejected, too far from beam center " << std::endl; continue; }
+	  if ((std::abs(itUpTr->XSlope() - fMeanUpstreamXSlope) > fMaxUpstreamSlopeX) || 
 	    (std::abs(itUpTr->YSlope() - fMeanUpstreamYSlope) > fMaxUpstreamSlopeY)) {
 	     if (debugIsOn) std::cerr << " ... rejected, too large slope  " << std::endl;
 	     continue;
-	}
-	itUpTr->SetUserFlag(1);
-	fNumBeamTracks++;
-      }
-      if (debugIsOn) std::cerr << " ... Beam Track tally " << fNumBeamTracks << " max is " << fMaxNumBeamTracks << std::endl;
-      if (fNumBeamTracks == 0) { 
-         if (debugIsOn) std::cerr << " ... No Beam track, rejected," << std::endl; 
-         this->dumpSummaryMultiplicities();  return; 
-      }
-      if (fNumBeamTracks > fMaxNumBeamTracks || (fUpStreamBeamTrRec.Size() > static_cast<size_t>(fMaxNumBeamTracks))) { 
-        if (debugIsOn) std::cerr << " ... Rejected Too many beam tracks," << fNumBeamTracks << " max is " << fMaxNumBeamTracks << std::endl;
-        this->dumpSummaryMultiplicities();  return; 
-      }
+	  }
+	  itUpTr->SetUserFlag(1);
+	  fNumBeamTracks++;
+        }
+        if (debugIsOn) std::cerr << " ... Beam Track tally " << fNumBeamTracks << " max is " << fMaxNumBeamTracks << std::endl;
+        if (fNumBeamTracks == 0) { 
+          if (debugIsOn) std::cerr << " ... No Beam track, rejected," << std::endl; 
+          this->dumpSummaryMultiplicities();  return; 
+        }
+        if (fNumBeamTracks > fMaxNumBeamTracks || (fUpStreamBeamTrRec.Size() > static_cast<size_t>(fMaxNumBeamTracks))) { 
+          if (debugIsOn) std::cerr << " ... Rejected Too many beam tracks," << fNumBeamTracks << " max is " << fMaxNumBeamTracks << std::endl;
+          this->dumpSummaryMultiplicities();  return; 
+        }
+      } // default reconstruction, upstream of the real target, starting with Upstream (so called Beam) track(s). 
       //
-      // Now reconstructed the Downstream (of the target) Space points. 
+      // Now reconstructed the Downstream (of the target) Space points. If we have the Iron Brick in front of Station 0, then 
+      // Special operation, as our buddy Vladimir Putin would say.. 
       //
-      fDwnstrTrRec.SetDebugOn(debugIsOn); 
-      for(size_t kSt=2; kSt != 6; kSt++)  {
-	fStationsRecMult[kSt-2] = fDwnstrTrRec.RecStation(kSt, evt, fSSDClsPtr);
+      if (!fDoIronBrick) { 
+        fDwnstrTrRec.SetDebugOn(debugIsOn); 
+        for(size_t kSt=2; kSt != 6; kSt++)  {
+	  fStationsRecMult[kSt-2] = fDwnstrTrRec.RecStation(kSt, evt, fSSDClsPtr);
+        }
+      } else {
+        fBrickTrRec.SetDebugOn(debugIsOn); 
+        for(size_t kSt=2; kSt != 6; kSt++)  {
+	  fStationsRecMult[kSt-2] = fBrickTrRec.RecStation(kSt, evt, fSSDClsPtr);
+        }
       }
       if ((fDoAntiSt2) && (fStationsRecMult[0] > 0))  {
 	  this->dumpSummaryMultiplicities();  
@@ -371,6 +409,15 @@ namespace emph {
       //
       // Now downstream tracks.. 
       //
+      if (fDoIronBrick) {
+        fBrickTrRec.RecAndFitIt(evt, fSSDClsPtr);     
+	fBrickTrRec.dumpStInfoForR();
+        fBrickTrRec.dumpInfoForR();
+	this->dumpSummaryMultiplicities();  
+        if (fEvtNum > 100) { std::cerr << " Event " << fEvtNum << " done , quit here and now .. " << std::endl; exit(2); }
+        return ; 
+      } 
+      
       fDwnstrTrRec.RecAndFitIt(evt);
       //
       // Cut on track multiplities 
