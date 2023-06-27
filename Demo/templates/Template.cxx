@@ -23,18 +23,11 @@ namespace NAMESPACE
   //.......................................................................
   MODULENAME::MODULENAME(const fhicl::ParameterSet& pset)
   {
-    reconfigure(pset);
-
     //    produces< std::vector<int> >();
   }
 
   //......................................................................
   MODULENAME::~MODULENAME()
-  {
-  }
-
-  //......................................................................
-  void MODULENAME::reconfigure(const fhicl::ParameterSet& pset)
   {
   }
 

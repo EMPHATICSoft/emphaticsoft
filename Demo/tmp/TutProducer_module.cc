@@ -35,8 +35,6 @@ namespace tut
 
     void produce(art::Event& evt);
 
-    void reconfigure(const fhicl::ParameterSet& pset);
-
     void beginJob();
 
   protected:
@@ -53,23 +51,17 @@ namespace tut
 {
   //.......................................................................
   TutProducer::TutProducer(const fhicl::ParameterSet& pset)
-  : EDProducer(pset)
+    : EDProducer(pset),
+      fGeantLabel   (pset.get<std::string>("GeantLabel")),
+      fCellHitLabel (pset.get<std::string>("CellHitLabel"))
+      
   {
-    reconfigure(pset);
-
     produces<std::vector<rb::Prong> >();
   }
 
   //......................................................................
   TutProducer::~TutProducer()
   {
-  }
-
-  //......................................................................
-  void TutProducer::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    fGeantLabel = pset.get<std::string>("GeantLabel");
-    fCellHitLabel = pset.get<std::string>("CellHitLabel");
   }
 
   //......................................................................
