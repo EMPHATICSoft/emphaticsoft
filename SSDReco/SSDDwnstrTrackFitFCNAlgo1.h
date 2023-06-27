@@ -77,6 +77,8 @@ namespace emph{
         if (kSe < fResids.size()) return fResids[kSe];
 	return DBL_MAX;
       }
+      // Adding  upstream of the nominal target, but downstream of the iron brick
+      void AddInputUpstreamStation(size_t kSt, double xVal, double xValErr, double yVal, double yValErr); 
       //  
       //  Getter 
       //

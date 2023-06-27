@@ -33,7 +33,8 @@ namespace emph {
     fRunHistory(new runhist::RunHistory(runNum)),   
     fEmgeo(new emph::geo::Geometry(fRunHistory->GeoFile())),
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
-    fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(20.0), // last parameter might need some tuning.. This is the value at 120 GeV.
+    fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(20.0), 
+    // last parameter might need some tuning.. This is the value at 120 GeV.
     fStartingMomentum(30.), // expected momentum, used to compute the mult. scattering uncertainty. 
     fNumSensorsTotal(2*fEmVolAlP->NumSensorsXorY() -4 + fEmVolAlP->NumSensorsU() + fEmVolAlP->NumSensorsV()),
     fData(), fNoMagnet(false), fZPos(), fMagShift(3, 0.),
@@ -49,7 +50,13 @@ namespace emph {
     }
     SSDDwnstrTrackFitFCNAlgo1::~SSDDwnstrTrackFitFCNAlgo1() {
       if (fFOutResids.is_open()) fFOutResids.close();
-    }  
+    } 
+    void SSDDwnstrTrackFitFCNAlgo1::AddInputUpstreamStation(size_t kSt, double xVal, double xValErr, double yVal, double yValErr) {
+      rb::SSDStationPtAlgo1 aPt;
+      aPt.SetStationNum(static_cast<int>(kSt)); 
+      aPt.SetID(9999); aPt.SetX(xVal, xValErr); aPt.SetY(yVal, yValErr);
+      fData.push_back(aPt);
+    } 
     double SSDDwnstrTrackFitFCNAlgo1::operator()(const std::vector<double> &pars) const {
     
       if (fDebugIsOn) std::cerr << "SSDDwnstrTrackFitFCNAlgo1::operator, Start, number of track parameters " 
