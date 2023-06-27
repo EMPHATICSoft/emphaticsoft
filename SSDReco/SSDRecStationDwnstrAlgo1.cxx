@@ -42,8 +42,7 @@ namespace emph {
       fIsMC(false), // Ugly, we are still working on the sign convention and rotation angles signs.. 
       fChiSqCut(5.0), // for XYU (or XYW) cut. 
       fPrelimMomentum(5.0),
-      fTokenJob("undef"), fStPoints(), fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0)  {
-      
+      fTokenJob("undef"), fStPoints(), fFOutSt(nullptr), fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0)  {
 	 if ((fStationNum < 2) || (fStationNum > 5)) {
 	      std::cerr << " SSDRecStationDwnstrAlgo1 Station number, value " << fStationNum 
 	                << " is wrong for phase1b data, quit here and now " << std::endl;
@@ -51,12 +50,15 @@ namespace emph {
 	 }
          fCoordConvert.SetForMC(fIsMC); 
       }
-
+    //
      SSDRecStationDwnstrAlgo1::~SSDRecStationDwnstrAlgo1() {
-       if (fFOutSt.is_open()) fFOutSt.close(); 
+       if (fFOutSt == nullptr) return; 
+       if (fFOutSt->is_open()) fFOutSt->close();
+       delete fFOutSt;
      }
      // 
      size_t SSDRecStationDwnstrAlgo1::RecIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+       fIdStPtNow = 0;
        if (fStationNum == INT_MAX) {
          std::cerr <<  " SSDRecStationDwnstrAlgo1::RecIt The station number for this instance is not defined.  ";
 	 std::cerr << " One must call SetStationNumber.. Fatal " << std::endl; exit(2);
@@ -215,6 +217,7 @@ namespace emph {
 	     rb:: SSDStationPtAlgo1 aStPt;
 	     const double errX = std::sqrt(std::abs(xDat.second));  const double errY = std::sqrt(std::abs(yDat.second)); 
 	     aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
+	     aStPt.SetID(fIdStPtNow);
 	     aStPt.SetY(yValCorr, errY);
 	     aStPt.SetUorVInfo(uorvPred, 0.06*itClUorV->WgtAvgStrip(), uDat.first); 
 	     aStPt.SetChiSq(aChiSq);
@@ -222,6 +225,7 @@ namespace emph {
 	     aStPt.Add(itClX, xValCorr, errX);  
 	     aStPt.Add(itClY, yValCorr, errY); 
 	     aStPt.Add(itClUorV, uorvPred, std::sqrt(uPredErrSq));
+	     fIdStPtNow++;
 	     if (fDebugIsOn) std::cerr << " ......  Adding " << std::endl << aStPt << std::endl;; 
 	     fStPoints.push_back(aStPt);
 	   } // on confirming U or W view   
@@ -267,6 +271,7 @@ namespace emph {
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
 	   const double errX = std::sqrt(std::abs(xDat.second));  const double errY = std::sqrt(std::abs(yDat.second)); 
+	   aStPt.SetID(fIdStPtNow);
 	   aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
 	   aStPt.SetY(yValCorr, errY); 
 	   aStPt.SetStation(fStationNum);
@@ -274,6 +279,7 @@ namespace emph {
 	   aStPt.Add(itClY, yValCorr, errY);  
 	   if (fDebugIsOn) std::cerr << " Adding " << std::endl << aStPt << std::endl;; 
 	   fStPoints.push_back(aStPt);
+	   fIdStPtNow++;
 	 } // onY view
        } // on X view 
        return fStPoints.size() - nStart;
@@ -336,7 +342,9 @@ namespace emph {
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
 	   const double errX = std::sqrt(std::abs(xDat.second));  
-	   const double errY = fSqrt2*(std::sqrt(std::abs(uorvDat.second) + xDat.second)); // assume uncorrelated errors.. Not quite true, aligmnment.  
+	   const double errY = fSqrt2*(std::sqrt(std::abs(uorvDat.second) + xDat.second)); 
+	   // assume uncorrelated errors.. Not quite true, aligmnment.  	   
+	   aStPt.SetID(fIdStPtNow);
 	   aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
 	   aStPt.SetY(yValCorr, errY); 
 	   aStPt.SetStation(fStationNum);  
@@ -344,6 +352,7 @@ namespace emph {
 	   aStPt.Add(itClUorV, uorvValCorr, uorvDat.second);  
 	   if (fDebugIsOn) std::cerr << " Adding " << std::endl << aStPt << std::endl;; 
 	   fStPoints.push_back(aStPt);
+	   fIdStPtNow++;
 	 } // on U or V view
        } // on X view 
        return fStPoints.size() - nStart;
@@ -407,6 +416,7 @@ namespace emph {
 	   rb:: SSDStationPtAlgo1 aStPt;
 	   const double errY = std::sqrt(std::abs(yDat.second));  
 	   const double errX = fSqrt2*(std::sqrt(std::abs(uorvDat.second) + yDat.second)); 
+	   aStPt.SetID(fIdStPtNow);
 	   aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
 	   aStPt.SetY(yValCorr, errY); 
 	   aStPt.SetStation(fStationNum);  
@@ -414,6 +424,7 @@ namespace emph {
 	   aStPt.Add(itClUorV, uorvValCorr, uorvDat.second);  
 	   if (fDebugIsOn) std::cerr << " Adding " << std::endl << aStPt << std::endl;; 
 	   fStPoints.push_back(aStPt);
+	   fIdStPtNow++;
 	 } // on U or V view
        } // on X view 
        return fStPoints.size() - nStart;
@@ -427,20 +438,20 @@ namespace emph {
        std::ostringstream fNameStrStr;
        fNameStrStr << "SSDRecStationDwnstrAlgo1_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
        std::string fNameStr(fNameStrStr.str());
-       fFOutSt.open(fNameStr.c_str());
-       fFOutSt << " spill evt nPts iPt type x xErr y yErr uvPred uvObsRaw uvobsCorr chiSq " << std::endl;
+       fFOutSt = new std::ofstream(fNameStr.c_str());
+       (*fFOutSt) << " spill evt nPts iPt type x xErr y yErr uvPred uvObsRaw uvobsCorr chiSq " << std::endl;
        //
        
      }
      void ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForR() const {
        if (fStPoints.size() == 0) return;
-       if (!fFOutSt.is_open()) this->openOutputCsvFiles(); 
+       if (fFOutSt == nullptr)  this->openOutputCsvFiles(); 
        std::ostringstream headerStrStr; 
        headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fStPoints.size(); 
        std::string headerStr(headerStrStr.str());
        size_t k=0;
        for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
-         fFOutSt << headerStr << " " << k << " " << it->Type()  
+         (*fFOutSt) << headerStr << " " << k << " " << it->Type()  
 	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() 
 		 << " " << it->UorWPred() << " "  << it->UorWObsRaw() << " " << it->UorWObsCorr() << " " << it->ChiSq() << std::endl; 
        }

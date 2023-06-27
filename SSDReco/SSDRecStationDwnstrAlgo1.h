@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <fstream>
+#include <fstream>
 
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
@@ -30,8 +31,7 @@ namespace emph {
     
        
        public:
-      
-	explicit SSDRecStationDwnstrAlgo1(size_t aStationnum); // No args .. for now.. 
+	 explicit SSDRecStationDwnstrAlgo1(size_t aStationnum); // No args .. for now.. 
         ~SSDRecStationDwnstrAlgo1();
 	
         private:
@@ -52,13 +52,15 @@ namespace emph {
 	  std::string fTokenJob;
 	  //
           std::vector<rb::SSDStationPtAlgo1> fStPoints; // the stuff this routine produces. 
-	  mutable std::ofstream fFOutSt;
+	  mutable std::ofstream *fFOutSt; // A pointer, such that we can optionally instantiate it, needed if this class is within an stl vector. 
 	  // Internal stuff.. 
+	  int fIdStPtNow; // Identifying the SSDStationPtAlgo1 objects.
 	  std::vector<int> fClUsages;
 	  int fNxCls, fNyCls, fNuCls; // the last stands for U or W (we have a maximum of three views 	  
 	  
 	public:
 	 inline void SetDebugOn(bool v = true) { fDebugIsOn = v; }
+         inline void SetStationNum(int aStNum) { fStationNum = aStNum; } 
          inline void SetRun(int aRunNum) { fRunNum = aRunNum; } 
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
@@ -76,7 +78,14 @@ namespace emph {
 	 inline size_t Size() const {return fStPoints.size(); }
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CBegin() const { return fStPoints.cbegin(); } 
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CEnd() const { return fStPoints.cend(); } 
-	 inline rb::SSDStationPtAlgo1 GetStPoint(std::vector<rb::SSDStationPtAlgo1>::const_iterator it) const { return *it; } // Deep copy, but small struct.. 
+	 inline rb::SSDStationPtAlgo1 GetStPoint(std::vector<rb::SSDStationPtAlgo1>::const_iterator it) const { return *it; } 
+	 // Deep copy, but small struct..
+	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator GetStationPointPtr(int id) const { 
+	   for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt = fStPoints.cbegin(); itSt != fStPoints.cend(); itSt++) { 
+	     if (itSt->ID() == id) return itSt;
+	   }
+	   return fStPoints.cend(); 
+	 } 
 	 // 
 	 // Reset Usage flags (to be called post reconstruction. 
 	 //
