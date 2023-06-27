@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <string>
+#include "SRTrueParticle.h"
 
 ///Common Analysis Files
 namespace caf
@@ -16,6 +17,8 @@ namespace caf
 	class SRTruth
 	{
 	public:
+	  SRTrueParticle beam;
+
 	  float pbeam[3];
 	  float xbeam[3];
 	  int beampid;
