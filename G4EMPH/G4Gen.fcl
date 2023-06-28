@@ -10,14 +10,14 @@ standard_g4alg:
   G4CalibTOPAZLG: 0.006
   G4AttenuationTOPAZLG : 0.9
   G4TokenTOPAZLGOut: "undef" 
-#  G4LastDetector: "SSDStation5"
-  G4LastDetector: "none"  # Lead Glass is our last detector.. 
+  G4LastDetector: "ssdStation7"
+#  G4LastDetector: "none"  # Lead Glass is our last detector.. 
   PerformFOutStudy:  false
   
   # If true, keep individual track ids from processes like compt and brem and
   # annihil.  If false, all the same simulation is done, just less truth
   # information is saved. Similarly with RecordFirstBrem and RecordFirstPair.
-  ManyParticles:       false
+  ManyParticles:       true
 
   SparseTrajectories:  true   #if true, only save necessary points in particle trajectories
   G4PhysListName:      "QGSP_BERT_HP;G4OpticalPhysics"
