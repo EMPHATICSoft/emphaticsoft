@@ -321,6 +321,7 @@ namespace emph {
                        std::vector<sim::TOPAZLGHit> & lghitlist,
                        std::vector<sim::ARICHHit> & arichhitlist,
                        std::vector< sim::Track >& tracklist,
+		       std::vector< sim::Particle >& particlelist,
                        std::map<int, size_t>& trackIDToMCTruthIndex)
   {
     
@@ -335,7 +336,7 @@ namespace emph {
     TOPAZLGHitAction* shLG = dynamic_cast<TOPAZLGHitAction *>(uam->GetAction(fSLGhaIndex));
     ARICHHitAction* shARICH = dynamic_cast<ARICHHitAction *>(uam->GetAction(fSARICHhaIndex));
 
-   //  particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
+    particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     tracklist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     ssdhitlist.clear();
     lghitlist.clear();
@@ -358,7 +359,8 @@ namespace emph {
     fG4Help->G4Run(mctruths);
     
    //  trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
-
+    particlelist = plat->GetList();
+    // getting particle list from particlelist
     tracklist = pla->GetAllTracks();
     // getting track list from particlelistaction.cxx
     ssdhitlist = sh->GetAllHits();

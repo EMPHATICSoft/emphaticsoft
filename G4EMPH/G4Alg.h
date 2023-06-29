@@ -23,7 +23,7 @@ namespace simb{
 }
 namespace sim{
     class SSDHit;
-//    class Particle;
+    class Particle;
     class Track;
     class TOPAZLGHit;
     class ARICHHit;
@@ -47,6 +47,7 @@ namespace emph {
                   std::vector<sim::TOPAZLGHit> & lghitlist,
                   std::vector<sim::ARICHHit> & arichhitlist,
                   std::vector< sim::Track >& tracklist,
+		  std::vector< sim::Particle >& particlelist,
                   std::map<int, size_t >& trackIDToMCTruthIndex);
     
     void RunGeant(art::Ptr<simb::MCTruth> mctruth,

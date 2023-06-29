@@ -192,8 +192,8 @@ namespace emph {
       		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process      
       		std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
       		
-		fParentIDMap.emplace(fCurrentTrackID, parentID);		// to start finding the parent, we add the particle and its
-      										// parent to the map: fCurrentTrackID --> parentID
+		fParentIDMap.emplace(fCurrentTrackID, parentID);		// place the particle and its parent in the id map
+
       		std::cerr << "Shower Particle! Added " << fCurrentTrackID << " and " << parentID << " to the fParentIDMap" << std::endl;
       
       		// we want to exclude particles which are daughters of particles we don't care about,
@@ -212,7 +212,8 @@ namespace emph {
 			sim::ParticleNavigator::iterator parentEntry = fParticleNav->find(parentID);	// get the parent entry from fParticleNav
 			sim::Particle* parent = (*parentEntry).second;					// get the pointer to the parent particle
 			parent->AddDaughter(trackID);							// add the daughter to the parent
-			std::cerr << "Added to parent!" << std::endl;
+			std::cerr << "Added to parent: " << parentID << std::endl;
+			std::cerr << "Parent has new daughter with ID: " << parent->Daughter(0) << std::endl;
 		}
 	}
             
