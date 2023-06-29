@@ -191,15 +191,15 @@ namespace emph {
 
       		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process      
       		std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
-      
-      
+      		
 		fParentIDMap.emplace(fCurrentTrackID, parentID);		// to start finding the parent, we add the particle and its
       										// parent to the map: fCurrentTrackID --> parentID
       		std::cerr << "Shower Particle! Added " << fCurrentTrackID << " and " << parentID << " to the fParentIDMap" << std::endl;
       
-      // we want to exclude particles which are daughters of particles we don't care about, check if the immediate parent is in the particle list
+      		// we want to exclude particles which are daughters of particles we don't care about,
+		// check if the immediate parent is in the particle list
       
-      		if (fParticleNav->find(parentID) == fParticleNav->end()){// if it isn't...
+      		if (fParticleNav->find(parentID) == fParticleNav->end()){	// if it isn't...
 			std::cerr << "Immediate parent " << parentID << " isn't in fParticleNav... halting tracking..." << std::endl;
 	  		fCurrentTrackID = sim::kNoParticleId;			
 	  		fParticle = 0;						// reset, skip the whole particle
