@@ -147,7 +147,7 @@ namespace emph {
 
 	const G4int trackID = track->GetTrackID() + fTrackIDOffset;	// get the track ID for this particle
 	fCurrentTrackID = trackID;					// set the fCurrentTrackID to the actual, real, current particle
-	size_t mcTruthIndex = 0;					// set the index of this particle in the truth record to 0
+	// size_t mcTruthIndex = 0;					// set the index of this particle in the truth record to 0
     
 	const G4ParticleDefinition*      partdef = track->GetDefinition();      // on our way to get an MCTruth object assoc. with this track...
 	const G4int                      pdg = partdef->GetPDGEncoding();       // get the particle type
@@ -177,8 +177,8 @@ namespace emph {
       		if (ppi != 0){
 			process_name = "Primary";
 			parentID = 0;					// even primary particles deserve a parent... in this case, it's 0
-			mcTruthIndex = ppi->MCTruthIndex();		// grab the index for the primary particle
-			std::cerr << "Got mcTruthIndex for trackid " << trackID << std::endl;
+			// mcTruthIndex = ppi->MCTruthIndex();		// grab the index for the primary particle
+			// std::cerr << "Got mcTruthIndex for trackid " << trackID << std::endl;
       		}
       		else{
 			throw cet::exception("ParticleListAction") << "ppi = 0 for trackid " << trackID << std::endl;
@@ -205,46 +205,35 @@ namespace emph {
 	  		fParticle = 0;						// reset, skip the whole particle
 	  		return;
 		}
+		else{
+			// we want to find the sim::Particle of the parent from fParticleNav, maybe grab a pointer to it, and execute something
+			// like this to make sure every (relevant) parent has access to their (relevant) daughter particles
+			// fParentParticle = fParticleNav->find(parentID) or something
+			// fParentParticle->AddDaughter(trackID) 
+		}
 	}
             
-      /*      
-    	}	
-		
-										// we attempt to find the mctruth index for the particle
-	if (fTrackIDToMCTruthIndex.count(trackID) > 0){
-		mcTruthIndex = fTrackIDToMCTruthIndex.at(trackID);
-		std::cerr << "Found mcTruthIndex for trackid " << trackID << std::endl; 
-	}
-	else if (fTrackIDToMCTruthIndex.count(parentID) > 0){		// or it's relevant parent,
-		mcTruthIndex = fTrackIDToMCTruthIndex.at(parentID);
-		std::cerr << "Couldn't find mcTruthIndex for " << trackID << ", so using the relevant parent's..." << std::endl; 
-	}
-	else{								// if we can't, throw exeption, something is wrong
-		throw cet::exception("ParticleListAction") << "Cannot find MCTruth index for trackid " << trackID << " or parentid: "
-								<< parentID << std::endl;
-	}
-			
-	if (process_name.empty()){process_name = "unknown";}		// protect against an empty process name
-					
-	}
-      */
 	
-      	// now that we have an MCTruth index, we can make a sim::Particle object
-      	fParticle = new sim::Particle(trackID, pdg, process_name, parentID, dp->GetMass()/CLHEP::GeV);
-      
+        fParticle = new sim::Particle(trackID, pdg, process_name, parentID, dp->GetMass()/CLHEP::GeV);
+		
       	const G4ThreeVector& polarization = track->GetPolarization();			// and make a polarization vector
       	fParticle->SetPolarization(TVector3(polarization.x(), polarization.y(), polarization.z()));
-      
+	
+	const G4ThreeVector& momentum = track->GetMomentum();                           // get the momentum 
+	
+	const TLorentzVector& momentumHolder = TLorentzVector(momentum[0], momentum[1], momentum[2], track->GetTotalEnergy());
+	const TLorentzVector& positionHolder = TLorentzVector(trackPos[0], trackPos[1], trackPos[2], track->GetGlobalTime());
+	
+	fParticle->AddTrajectoryPoint(positionHolder, momentumHolder);
+	
+	
+ 
       	fParticleNav->Add(fParticle);
-      	std::cerr << "Added fParticle! trackID: " << trackID << ", PDG: " << pdg << ", process: " << process_name << ", parentID: " << parentID 
-			<< ", Mass: " << dp->GetMass()/CLHEP::GeV << std::endl;
-      	// this code still won't work, 
-      	if (fTrackIDToMCTruthIndex.count(trackID) > 0){
-		fTrackIDToMCTruthIndex.emplace(trackID, mcTruthIndex);
-		std::cerr << "Added particle to the Track to Index map: " << trackID << " --> " << mcTruthIndex << std::endl;
-      	}
+      	std::cerr << "Added fParticle! trackID: " << fParticle->TrackId() << ", PDG: " << fParticle->PdgCode() << ", process: " << fParticle->Process()
+			<< ", parentID: " << fParticle->Mother() << ", Mass: " << fParticle->Mass()
+			<< " Momentum: (" << fParticle->Px() << ", " << fParticle->Py() << ", " << fParticle->Pz() << ")" << std::endl;
+      
     
-    //    return;
   }	
 
 	
@@ -254,7 +243,7 @@ namespace emph {
     const G4int trackID = track->GetTrackID() + fTrackIDOffset;
     fCurrentTrackID = trackID;
     size_t mcTruthIndex = 0;
-    
+
     // get the parent id from Geant for the current track:
     G4int parentID = track->GetParentID() + fTrackIDOffset;
     std::cerr << "Got Parent ID" << parentID << " for track ID " << trackID << std::endl;
