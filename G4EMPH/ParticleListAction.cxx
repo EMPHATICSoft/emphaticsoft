@@ -208,8 +208,11 @@ namespace emph {
 		else{
 			// we want to find the sim::Particle of the parent from fParticleNav, maybe grab a pointer to it, and execute something
 			// like this to make sure every (relevant) parent has access to their (relevant) daughter particles
-			// fParentParticle = fParticleNav->find(parentID) or something
-			// fParentParticle->AddDaughter(trackID) 
+			std::cerr << "Found parent in fParticleNav..." << std::endl;
+			sim::ParticleNavigator::iterator parentEntry = fParticleNav->find(parentID);	// get the parent entry from fParticleNav
+			sim::Particle* parent = (*parentEntry).second;					// get the pointer to the parent particle
+			parent->AddDaughter(trackID);							// add the daughter to the parent
+			std::cerr << "Added to parent!" << std::endl;
 		}
 	}
             
