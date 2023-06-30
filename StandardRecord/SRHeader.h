@@ -21,13 +21,10 @@ namespace caf
     uint32_t timestamp;
     float  intensity;
     float  momentum;
-    float  MT5CPR, MT6CPR;// gas Ckov pressure readings
-    float  MT5CP2, MT6CP2;// iFix readings
-    float  TBCCDI;         // TestBeam ckov counts inner
-    float  TBCCDO;         // TestBeam ckov counts outer
-    float  MT6CA1;         // MT6 ckov east mirror counts
-    float  MT6CA2;         // MT6 ckov west mirror counts
-    float  MT6CA3;         // MT6 ckov top mirror counts
+    float  gcp5, gcp5iFix;
+    float  gcp6, gcp6iFix;
+    float  tbccdi, tbccdo;
+    float  mt6ca1, mt6ca2, mt6ca3;
 
     void setDefault();
   };
