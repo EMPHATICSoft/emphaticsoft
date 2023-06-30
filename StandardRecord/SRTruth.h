@@ -17,13 +17,10 @@ namespace caf
 	class SRTruth
 	{
 	public:
-	  SRTrueParticle beam;
+	  SRTrueParticle beam;		// this will hold all the particles generated during simulation
+	  std::vector<caf::SRTrueParticle> particles;
 
-	  float pbeam[3];
-	  float xbeam[3];
-	  int beampid;
 	  std::string trgt;
-
 	  float trgt_thick;
 	  float trgt_dens;
 	 

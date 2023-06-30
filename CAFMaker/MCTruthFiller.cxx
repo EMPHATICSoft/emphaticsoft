@@ -24,7 +24,7 @@ namespace caf
 
    // assign the truth member of rec with a default constructor  
     stdrec.truth = caf::SRTruth();
-
+/*
    // assign beam position, momentum, ID
     auto beamPos = b.Position();
     auto beamMom = b.Momentum();
@@ -36,7 +36,8 @@ namespace caf
       stdrec.truth.pbeam[i] = beamMom[i];
     } // end for loop
 
-    stdrec.truth.beampid = beamId; 
+    stdrec.truth.beampid = beamId;
+*/ 
   }
 
 } // end namespace caf

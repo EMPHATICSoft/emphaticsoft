@@ -21,7 +21,7 @@ namespace caf
                 int pdg;
                 float energy;
                 std::vector <caf::SRTrueParticle> daughters;
-		int mother;
+		//caf::SRTrueParticle mother;
 		std::string process;
 
                 SRTrueParticle();

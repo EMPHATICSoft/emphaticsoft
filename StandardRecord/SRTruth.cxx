@@ -10,9 +10,8 @@
 namespace caf
 {
 	// default SRTruth constructor
-	SRTruth::SRTruth(): pbeam{0,0,0}
+	SRTruth::SRTruth()
 	{
-	 beampid = 2212,  // default beam is proton
 	 trgt = "C",	 // default target is Carbon
 	 trgt_dens = 1,  // default target density
 	 trgt_thick = 20; // default target thickness 
