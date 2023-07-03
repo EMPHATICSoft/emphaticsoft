@@ -47,12 +47,17 @@ namespace emph {
 	  int fNEvents; // Incremental events count for a given job. 
 	  bool fDebugIsOn; 
           bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
+	  bool fDoFirstAndLastStrips;
 	  double fChiSqCut;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  std::string fTokenJob;
 	  //
           std::vector<rb::SSDStationPtAlgo1> fStPoints; // the stuff this routine produces. 
 	  mutable std::ofstream *fFOutSt; // A pointer, such that we can optionally instantiate it, needed if this class is within an stl vector. 
+	  mutable std::ofstream *fFOutStYFirst; // A list of X coordinate for which the Y measuring strip number is 0 
+	  mutable std::ofstream *fFOutStYLast; // A list of X coordinate for which the Y measuring strip number is 639 
+	  mutable std::ofstream *fFOutStXFirst; // A list of Y coordinate for which the X measuring strip number is 0 
+	  mutable std::ofstream *fFOutStXLast; // A list of Y coordinate for which the X measuring strip number is 639 
 	  // Internal stuff.. 
 	  int fIdStPtNow; // Identifying the SSDStationPtAlgo1 objects.
 	  std::vector<int> fClUsages;
@@ -66,6 +71,7 @@ namespace emph {
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
 	 inline void SetForMC(bool v=true) { fIsMC=v; fCoordConvert.SetForMC();  }
+	 inline void SetDoFirstAndLastStrips(bool v=true) { fDoFirstAndLastStrips = v; } 
 	 inline void SetPreliminaryMomentum(double p) { fPrelimMomentum = p; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 	 inline void Clear() { fStPoints.clear(); }
@@ -75,6 +81,7 @@ namespace emph {
 	 inline int Station() const { return fStationNum; }
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }
+	 inline bool DoFirstAndLastStrips() const { return fDoFirstAndLastStrips; }
 	 inline size_t Size() const {return fStPoints.size(); }
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CBegin() const { return fStPoints.cbegin(); } 
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CEnd() const { return fStPoints.cend(); } 
@@ -95,6 +102,8 @@ namespace emph {
 	 size_t RecIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
 	 void dumpInfoForR() const;
+	 void dumpInfoForRXViewEdges(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const;
+	 void dumpInfoForRYViewEdges(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const;
 	 
        private:
 	 

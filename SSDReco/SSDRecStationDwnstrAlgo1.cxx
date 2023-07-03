@@ -40,9 +40,11 @@ namespace emph {
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0), fStationNum(static_cast<int>(kSt)), 
       fNEvents(0), fDebugIsOn(false),
       fIsMC(false), // Ugly, we are still working on the sign convention and rotation angles signs.. 
+      fDoFirstAndLastStrips(false),
       fChiSqCut(5.0), // for XYU (or XYW) cut. 
       fPrelimMomentum(5.0),
-      fTokenJob("undef"), fStPoints(), fFOutSt(nullptr), fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0)  {
+      fTokenJob("undef"), fStPoints(), fFOutSt(nullptr), fFOutStYFirst(nullptr), fFOutStYLast(nullptr), 
+      fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0)  {
 	 if ((fStationNum < 2) || (fStationNum > 5)) {
 	      std::cerr << " SSDRecStationDwnstrAlgo1 Station number, value " << fStationNum 
 	                << " is wrong for phase1b data, quit here and now " << std::endl;
@@ -52,9 +54,18 @@ namespace emph {
       }
     //
      SSDRecStationDwnstrAlgo1::~SSDRecStationDwnstrAlgo1() {
-       if (fFOutSt == nullptr) return; 
-       if (fFOutSt->is_open()) fFOutSt->close();
-       delete fFOutSt;
+       if (fFOutSt != nullptr) { 
+         if (fFOutSt->is_open()) fFOutSt->close();
+         delete fFOutSt;
+       } 
+       if (fFOutStYFirst != nullptr) { 
+         if (fFOutStYFirst->is_open()) fFOutStYFirst->close();
+         delete fFOutStYFirst;
+       }
+         if (fFOutStYLast != nullptr) {
+         if (fFOutStYLast->is_open()) fFOutStYLast->close();
+         delete fFOutStYLast;
+       }
      }
      // 
      size_t SSDRecStationDwnstrAlgo1::RecIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
@@ -144,7 +155,7 @@ namespace emph {
 	 size_t kSeX = static_cast<size_t>(itClX->Sensor());
 	 if (fDebugIsOn) {
 	   std::cerr << " At cluster on X view, station " << itClX->Station() << " Sensor  " 
-	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() << " RMS " << itClX->WgtRmsStrip() << std::endl;
+	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() << " RMS " << itClX->WgtRmsStrip() << " ClID " << itClX->ID() << std::endl;
 	 }
 	 const std::pair<double, double> xDat = fCoordConvert.getTrCoord(itClX, fPrelimMomentum);
          size_t kuy = 0;
@@ -158,7 +169,7 @@ namespace emph {
 	   size_t kSeY = static_cast<size_t>(itClY->Sensor());
 	   if (fDebugIsOn) {
 	     std::cerr << " At cluster on Y view, station " << itClY->Station() << " Sensor  " 
-	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " << itClY->WgtRmsStrip() << std::endl;
+	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " << itClY->WgtRmsStrip() << " ClID " << itClY->ID() << std::endl;
 	   }
 	   const std::pair<double, double> yDat = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
 	   if (std::abs(yDat.first) > 60.) { // about 20 mm gap? 
@@ -193,7 +204,8 @@ namespace emph {
 	     size_t kSeU = static_cast<size_t>(itClUorV->Sensor()); // dropping the suffix"orV". 
 	     if (fDebugIsOn) {
 	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
-	             << kSeU << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
+	             << kSeU << " weighted strip " << itClUorV->WgtAvgStrip() 
+		     << " RMS " << itClUorV->WgtRmsStrip() << " ClID " << itClUorV->ID() << std::endl;
 	     }
 	     const std::pair<double, double> uDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
 	     const double angleRollU = (kSt <4) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeU) : 
@@ -439,8 +451,37 @@ namespace emph {
        fNameStrStr << "SSDRecStationDwnstrAlgo1_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
        std::string fNameStr(fNameStrStr.str());
        fFOutSt = new std::ofstream(fNameStr.c_str());
-       (*fFOutSt) << " spill evt nPts iPt type x xErr y yErr uvPred uvObsRaw uvobsCorr chiSq " << std::endl;
+       (*fFOutSt) << " spill evt nPts iPt type sIdX sIdY sIdUorV x xErr y yErr uvPred uvObsRaw uvobsCorr chiSq " << std::endl;
        //
+       if (fDoFirstAndLastStrips) {
+       
+         std::ostringstream fName2StrStr;
+         fName2StrStr << "SSDRecStationDwnstrAlgo1Y_FirstStrip_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
+         std::string fName2Str(fName2StrStr.str());
+         fFOutStYFirst = new std::ofstream(fName2Str.c_str());
+           (*fFOutStYFirst) << " spill evt nPts iPt type x xErr y yErr chiSq yStripAv yStripRMS " << std::endl;
+       
+         std::ostringstream fName3StrStr;
+         fName3StrStr << "SSDRecStationDwnstrAlgo1Y_LastStrip_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
+         std::string fName3Str(fName3StrStr.str());
+         fFOutStYLast = new std::ofstream(fName3Str.c_str());
+           (*fFOutStYLast) << " spill evt nPts iPt type x xErr y yErr chiSq yStripAv yStripRMS " << std::endl;
+       
+         
+         std::ostringstream fName4StrStr;
+         fName4StrStr << "SSDRecStationDwnstrAlgo1X_FirstStrip_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
+         std::string fName4Str(fName4StrStr.str());
+         fFOutStXFirst = new std::ofstream(fName4Str.c_str());
+           (*fFOutStXFirst) << " spill evt nPts iPt type x xErr y yErr chiSq yStripAv xStripRMS " << std::endl;
+       
+         std::ostringstream fName5StrStr;
+         fName5StrStr << "SSDRecStationDwnstrAlgo1X_LastStrip_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
+         std::string fName5Str(fName5StrStr.str());
+         fFOutStXLast = new std::ofstream(fName5Str.c_str());
+           (*fFOutStXLast) << " spill evt nPts iPt type x xErr y yErr chiSq yStripAv xStripRMS " << std::endl;
+       
+       
+       }
        
      }
      void ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForR() const {
@@ -451,10 +492,100 @@ namespace emph {
        std::string headerStr(headerStrStr.str());
        size_t k=0;
        for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
-         (*fFOutSt) << headerStr << " " << k << " " << it->Type()  
+       	 size_t numClInSpSt = it->NumClusters();
+	 int sIdX=9999;  int sIdY=9999;  int sIdUorV=9999;
+	 for (size_t kCl=0; kCl != numClInSpSt; kCl++) {
+	    emph::geo::sensorView aView =  it->ClusterView(kCl);
+	    int aSensor = it->ClusterSensorId(kCl);
+	    switch (aView) {
+	        case emph::geo::X_VIEW : {sIdX = aSensor; break; }
+	        case emph::geo::Y_VIEW : {sIdY = aSensor; break; }
+	        case emph::geo::U_VIEW : {sIdUorV = aSensor; break; }
+	        case emph::geo::W_VIEW : {sIdUorV = aSensor; break; }
+		default : { 
+		  std::cerr << " ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForR, unrecognized SSD Cluster.. keep going.. " << std::endl;
+		}
+	   }
+        (*fFOutSt) << headerStr << " " << k << " " << it->Type()  << " " << sIdX << " " << sIdY << " " << sIdUorV
 	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() 
 		 << " " << it->UorWPred() << " "  << it->UorWObsRaw() << " " << it->UorWObsCorr() << " " << it->ChiSq() << std::endl; 
-       }
+		 
+	} // on Clusters, here, also views..  	 
+       } // On Space Points
      }
+     //
+     
+     void ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForRYViewEdges(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const {
+       if (!fDoFirstAndLastStrips) return;
+       if (fStPoints.size() == 0) return;
+       if (fFOutSt == nullptr)  this->openOutputCsvFiles(); 
+       std::ostringstream headerStrStr; 
+       headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fStPoints.size(); 
+       std::string headerStr(headerStrStr.str());
+       size_t k=0;
+       for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
+       	 size_t numClInSpSt = it->NumClusters();
+	 if ((it->Type() != 4) && (it->Type() != 7)) continue; 
+	 for (size_t kCl=0; kCl != numClInSpSt; kCl++) {
+	    emph::geo::sensorView aView =  it->ClusterView(kCl);
+	    if (aView != emph::geo::Y_VIEW) continue;
+	    int aSIdY = it->ClusterSensorId(kCl);
+	    int aClID = it->ClusterID(kCl);
+	    // go back and search for the corresponding cluster.. 
+            for(std::vector<rb::SSDCluster>::const_iterator itClY = aSSDClsPtr->cbegin(); itClY != aSSDClsPtr->cend(); itClY++) {
+              if (itClY->Station() != fStationNum) continue;
+	      if (itClY->View() != emph::geo::Y_VIEW) continue;
+	      if (itClY->Sensor() != aSIdY) continue;
+	      if (itClY->ID() != aClID) continue;
+	      if (itClY->MinStrip() == 0) {
+                (*fFOutStYFirst) << headerStr << " " << k << " " << it->Type() 
+	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() << " " 
+		 << it->ChiSq() << " " << itClY->WgtAvgStrip() << " " << itClY->WgtRmsStrip() << std::endl; 
+	      }
+	      if (itClY->MaxStrip() == 638) {
+                (*fFOutStYLast) << headerStr << " " << k << " " << it->Type() 
+	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() << " " 
+		 << it->ChiSq() << " " << itClY->WgtAvgStrip() << " " << itClY->WgtRmsStrip() << " " << std::endl; 
+	      }
+	   }       
+        } // 
+       } // On Space Point 
+     } // dumpInfoForRYViewEdges
+     void ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForRXViewEdges(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const {
+       if (!fDoFirstAndLastStrips) return; 
+       if (fStPoints.size() == 0) return;
+       if (fFOutSt == nullptr)  this->openOutputCsvFiles(); 
+       std::ostringstream headerStrStr; 
+       headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fStPoints.size(); 
+       std::string headerStr(headerStrStr.str());
+       size_t k=0;
+       for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
+       	 size_t numClInSpSt = it->NumClusters();
+	 if ((it->Type() != 4) && (it->Type() != 7)) continue; 
+	 for (size_t kCl=0; kCl != numClInSpSt; kCl++) {
+	    emph::geo::sensorView aView =  it->ClusterView(kCl);
+	    if (aView != emph::geo::X_VIEW) continue;
+	    int aSIdX = it->ClusterSensorId(kCl);
+	    int aClID = it->ClusterID(kCl);
+	    // go back and search for the corresponding cluster.. 
+            for(std::vector<rb::SSDCluster>::const_iterator itClX = aSSDClsPtr->cbegin(); itClX != aSSDClsPtr->cend(); itClX++) {
+              if (itClX->Station() != fStationNum) continue;
+	      if (itClX->View() != emph::geo::X_VIEW) continue;
+	      if (itClX->Sensor() != aSIdX) continue;
+	      if (itClX->ID() != aClID) continue;
+	      if (itClX->MinStrip() == 0) {
+                (*fFOutStXFirst) << headerStr << " " << k << " " << it->Type() 
+	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() << " " 
+		 << it->ChiSq() << " " << itClX->WgtAvgStrip() << " " << itClX->WgtRmsStrip() << std::endl; 
+	      }
+	      if (itClX->MaxStrip() == 638) {
+                (*fFOutStXLast) << headerStr << " " << k << " " << it->Type() 
+	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() << " " 
+		 << it->ChiSq() << " " << itClX->WgtAvgStrip() << " " << itClX->WgtRmsStrip() << " " << std::endl; 
+	      }
+	   }       
+        } // 
+       } // On Space Point 
+     } // dumpInfoForRXViewEdges
   } // namespace ssdr
 } //  namespace emph 

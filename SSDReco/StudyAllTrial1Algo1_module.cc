@@ -110,6 +110,7 @@ namespace emph {
      int fMaxNumDwnstrTracks;
      bool fDoAntiSt2;
      bool fDoIronBrick;
+     bool fDoFirstAndLastStrips;
 //
 //   Downstream of the target. 
 //
@@ -162,7 +163,7 @@ namespace emph {
 // .....................................................................................
     emph::StudyAllTrial1Algo1::StudyAllTrial1Algo1(fhicl::ParameterSet const& pset) : 
     EDAnalyzer(pset), 
-    fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"), fSSDAlignmentResult("?"),
+    fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"), fSSDAlignmentResult("none"),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0), 
     fSetMCRMomentum(30.), fPrelimMomentumSecondaries(5.0), fChiSqCutXYUVStAlgo1(20.), 
     fMaxUpstreamSlopeX(0.005), fMaxUpstreamSlopeY(0.005), fMaxDistFrom120Beam(100.),
@@ -177,17 +178,13 @@ namespace emph {
        std::cerr << " Constructing StudyAllTrial1Algo1 " << std::endl;
        this->reconfigure(pset);
        fFilesAreOpen = false;       
-       //
-       // import the alignment parameter, from the SSDAlign project. 
-       //
-       if (fSSDAlignmentResult != std::string("?")) fEmVolAlP->SetGeomFromSSDAlign(fSSDAlignmentResult); 
     }
     
     void emph::StudyAllTrial1Algo1::reconfigure(const fhicl::ParameterSet& pset)
     {
       std::cerr << " emph::StudyAllTrial1Algo1::reconfigure ... " <<std::endl;
       fSSDClsLabel = pset.get<std::string>("SSDClsLabel");   
-      fSSDAlignmentResult = pset.get<std::string>("SSDAlignmentResult", "?");   
+      fSSDAlignmentResult = pset.get<std::string>("SSDAlignmentResult", "none");   
       std::cerr << "  ... fSSDClsLabel " << fSSDClsLabel << std::endl;   
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
       fMaxUpstreamSlopeX = pset.get<double>("maxUpstreamSlopeX", 0.005);
@@ -198,6 +195,7 @@ namespace emph {
       fMaxNumDwnstrTracks = pset.get<int>("maxNumDwnstrTracks", 20);
       fDoAntiSt2 = pset.get<bool>("doAntiSt2", false);
       fDoIronBrick = pset.get<bool>("doIronBrick", false);
+      fDoFirstAndLastStrips = pset.get<bool>("doFirstAndLastStrips", false);
       fConfirmBrickChiSqCut = pset.get<double>("confirmBrickChiSqCut", 500.);
       fPrelimMomentumSecondaries = pset.get<double>("prelimMomentum", 5.);
       fDwnstrChiSqCut = pset.get<double>("dwnstrChiSqCut", 10.);
@@ -218,8 +216,8 @@ namespace emph {
       const char *pathHere = std::getenv("CETPKG_BUILD");
       const std::string ffName(pathHere + std::string("/") + alignParamsStr) ;
       std::cerr << " StudyAllTrial1Algo1::reconfigure, uploading alignment data from file " << ffName << std::endl;
-      fEmVolAlP->SetGeomFromSSDAlign(ffName);      
-      std::cerr << " .... O.K. done with reconfugure,  keep going ....  " << std::endl; 
+      if (ffName.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(ffName);      
+      std::cerr << " .... O.K. done with reconfigure,  keep going ....  " << std::endl; 
     }
     void emph::StudyAllTrial1Algo1::beginRun(art::Run const &run)
     {
@@ -240,6 +238,7 @@ namespace emph {
       } else { 
         fBrickTrRec.SetRun(fRun);
         fBrickTrRec.SetAssumedMomentum(fPrelimMomentumSecondaries);
+	fBrickTrRec.SetDoFirstAndLastStrips(fDoFirstAndLastStrips);
         for(size_t kSt=2; kSt != 6; kSt++)  {
           fBrickTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
         }
@@ -306,15 +305,15 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      const bool debugIsOn = ((fSubRun == 10) && (fEvtNum > 99999999)) ; 
-      
-      
+      const bool debugIsOn = ((fSubRun == 100) && (fEvtNum == 700)) ; 
     //
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
       
-      if (debugIsOn) std::cerr << " StudyAllTrial1Algo1::analyze , event " << fEvtNum << "  on " 
+      if (debugIsOn) std::cerr << " Debugging.. StudyAllTrial1Algo1::analyze , event " << fEvtNum << "  on " 
+                               << fSSDclPtrs.size() <<  " clusters " <<   std::endl;
+      std::cerr << " StudyAllTrial1Algo1::analyze , event " << fEvtNum << "  on " 
                                << fSSDclPtrs.size() <<  " clusters " <<   std::endl;
 			       
 //      if (fEvtNum > 100) { std::cerr << " 100 evt is enough, quit here and now " << std::endl; exit(2); }		       
@@ -390,6 +389,7 @@ namespace emph {
       // Now reconstructed the Downstream (of the target) Space points. If we have the Iron Brick in front of Station 0, then 
       // Special operation, as our buddy Vladimir Putin would say.. 
       //
+      bool isCleanSingleTrack = (fNumClUpstr < 5); // hopefully, clean Station 1 and 0 
       if (!fDoIronBrick) { 
         fDwnstrTrRec.SetDebugOn(debugIsOn); 
         for(size_t kSt=2; kSt != 6; kSt++)  {
@@ -399,6 +399,7 @@ namespace emph {
         fBrickTrRec.SetDebugOn(debugIsOn); 
         for(size_t kSt=2; kSt != 6; kSt++)  {
 	  fStationsRecMult[kSt-2] = fBrickTrRec.RecStation(kSt, evt, fSSDClsPtr);
+	  if (fStationsRecMult[kSt-2] != 1) isCleanSingleTrack = false;
         }
       }
       if ((fDoAntiSt2) && (fStationsRecMult[0] > 0))  {
@@ -410,11 +411,12 @@ namespace emph {
       // Now downstream tracks.. 
       //
       if (fDoIronBrick) {
+        if ((!isCleanSingleTrack) && (fMaxNumDwnstrTracks == 1)) { this->dumpSummaryMultiplicities(); return; } 
         fBrickTrRec.RecAndFitIt(evt, fSSDClsPtr);     
-	fBrickTrRec.dumpStInfoForR();
+	fBrickTrRec.dumpStInfoForR(fSSDClsPtr);
         fBrickTrRec.dumpInfoForR();
 	this->dumpSummaryMultiplicities();  
-        if (fEvtNum > 100) { std::cerr << " Event " << fEvtNum << " done , quit here and now .. " << std::endl; exit(2); }
+//        if (fEvtNum > 20) { std::cerr << " Event " << fEvtNum << " done , quit here and now .. " << std::endl; exit(2); }
         return ; 
       } 
       
