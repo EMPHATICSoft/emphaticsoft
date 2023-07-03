@@ -62,6 +62,8 @@ namespace emph {
 	  //
 	  // internal variables..
 	  //
+	  size_t fMaxNumTrComb;
+	  size_t fMaxNumSpacePts;
 	  std::vector<double>  fDeltaZX, fDeltaZY, fDeltaZSqX, fDeltaZSqY; 
 	  std::string fTokenJob;
 	  ssdr::SSDDwnstrTrackFitFCNAlgo1 *fFitterFCN;
@@ -88,10 +90,16 @@ namespace emph {
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetDistFromBeamCenterCut( double v) { fDistFromBeamCenterCut = v; }
+	 inline void SetMaxNumTrComb(size_t n) { fMaxNumTrComb = n; }
+	 inline void SetMaxNumSpacePts(size_t n) { fMaxNumSpacePts = n; }
 	 inline void SetBeamCenterX( double v) { fBeamCenterX = v; }
 	 inline void SetBeamCenterY( double v) { fBeamCenterY = v; }
 	 inline void SetTrackSlopeCut(double v) { fTrackSlopeCut = v; }  
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
+	 inline void SetDoFirstAndLastStrips(bool v = true) {
+	   for (size_t kSt=0; kSt != fInputStPts.size(); kSt++) fInputStPts[kSt].SetDoFirstAndLastStrips(v);
+
+	 }
 	 inline void SetAssumedMomentum(double p) { // For multiple scattering uncertainties.. 
 	   fAssumedMomentum = p; // some kind of mean value. 
 	   for (size_t kSt=0; kSt != fInputStPts.size(); kSt++) fInputStPts[kSt].SetPreliminaryMomentum(p);
@@ -127,8 +135,14 @@ namespace emph {
 	 
 	 size_t RecAndFitIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 void dumpInfoForR() const;
-	 inline void dumpStInfoForR() const {
-	   for (size_t kSt=0; kSt != fInputStPts.size(); kSt++) fInputStPts[kSt].dumpInfoForR();
+	 inline void dumpStInfoForR(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const {
+	   for (size_t kSt=0; kSt != fInputStPts.size(); kSt++) {
+	      fInputStPts[kSt].dumpInfoForR();
+	      if (fInputStPts[kSt].DoFirstAndLastStrips()) {
+	        fInputStPts[kSt].dumpInfoForRXViewEdges(aSSDClsPtr);
+	        fInputStPts[kSt].dumpInfoForRYViewEdges(aSSDClsPtr);
+	      }
+	   }
 	 }
 	 
        private:
