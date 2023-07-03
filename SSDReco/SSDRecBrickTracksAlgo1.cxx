@@ -38,7 +38,7 @@ namespace emph {
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
       fNEvents(0), fDebugIsOn(false), fDoMigrad(true), fNoMagnet(false), 
       fDistFromBeamCenterCut(10.), fBeamCenterX(-3.5), fBeamCenterY(4.5),  fTrackSlopeCut(0.050), 
-      fChiSqCut(1000.0), fAssumedMomentum(5.0), 
+      fChiSqCut(1000.0), fAssumedMomentum(5.0), fMaxNumTrComb(50000), fMaxNumSpacePts(25),
       fDeltaZX(6, DBL_MAX), fDeltaZY(6, DBL_MAX), // Phase1b only. 
       fDeltaZSqX(6, DBL_MAX), fDeltaZSqY(6, DBL_MAX), // Phase1b only. 
       fTokenJob("undef"), fFitterFCN(nullptr),
@@ -113,7 +113,7 @@ namespace emph {
       
       size_t nArbs = this->Arbitrate(); 
       if (nArbs > 0) {
-//        this->dumpInfoForR(); done in the main art mdule 
+//        this->dumpInfoForR(); done in the main art module 
         this->dumpCompactEvt(aSSDClsPtr); // move also there? 
       }
 
@@ -170,6 +170,12 @@ namespace emph {
          y1Data.push_back(std::pair<double, double>(0., 1.0e6)); y1Indices.push_back(INT_MAX); ny1++; 
 	 if (fDebugIsOn) std::cerr << " Added dummy point at Station 1, YView, check size " << y1Data.size() << std::endl;
       }
+      size_t nSpacePtsTot = 0;
+      for (size_t kSt = 0; kSt != fInputStPts.size(); kSt++) nSpacePtsTot += fInputStPts[kSt].Size();
+      if (nSpacePtsTot > fMaxNumSpacePts) {
+        if (fDebugIsOn) std::cerr << " ... Too many Space Points (" << nSpacePtsTot << ")  in station 2 through 5.. geve up  " << std::endl;
+	return 0;
+      } 			       
       for (size_t kSt = 0; kSt != fInputStPts.size(); kSt++) fInputStPts[kSt].ResetUsage();
       //     
       // preload the data, to put some multiplicity cuts in stations, and avoid too many inner loops in this pattern recognition. 
@@ -316,15 +322,25 @@ namespace emph {
 			//
 			SSDTrPreArbitrationAlgo1 aNewTrAA(itNewTr->ID(), x0Indices[kx0], y0Indices[ky0], x1Indices[kx1], y1Indices[ky1], 
 			                            itSt2->ID(), itSt3->ID(), itSt4->ID(), itSt5->ID());
-			fTrsForArb.push_back(aNewTrAA); // Not triple A quality.. 			    
+			fTrsForArb.push_back(aNewTrAA); // Not triple A quality.. 
+			// Limit the number of combinations.. Brute force, no physics done here.. JUst picking up somewide angle tracks. 
+			if (fTrsForArb.size() > 50000) break;			    
 		      }
+	              if (fTrsForArb.size() > fMaxNumTrComb) break;			    
 		    } // on Space Points in Station 4 
+		    if (fTrsForArb.size() > fMaxNumTrComb) break;			    
 	          } // on Space Points in Station 3
+		  if (fTrsForArb.size() > fMaxNumTrComb) break;			    
                 } // on Space Points in Station 2
+		if (fTrsForArb.size() > fMaxNumTrComb) break;			    
               } // On Y coordinate, Station 1  
+	      if (fTrsForArb.size() > fMaxNumTrComb) break;			    
             } // On X coordinate, Station 1 
+	    if (fTrsForArb.size() > fMaxNumTrComb) break;			    
           } // On Space Points Station 5 
+	  if (fTrsForArb.size() > fMaxNumTrComb) break;			    
         } // on Y coordinate, Station 0  
+        if (fTrsForArb.size() > fMaxNumTrComb) break;			    
       } // on X coordinate, Station 0
       // 
       // Place holder for arbitation., and dumping the Cluster for re-alignment.    
@@ -445,28 +461,9 @@ namespace emph {
 	             << fTrsForArb[kArbA].fTrId << std::endl;
 	    exit(2); 
           }
-	  if (itA->ChiSq() == DBL_MAX) continue;  // Already out of the picture. 
-	  // Not needed.. I think 
-	  /*
-	  std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3A = fInputStPts[1].getStationPointPtr(fTrsForArb[kArbA].fIdSt3); 
-	  if (itSt3A == fInputStPts[0].cend()) {
-            std::cerr << " SSDRecBrickTracksAlgo1::Arbitrate Logic error, unknown Station Point Station 3 ID  " 
-	             << fTrsForArb[kArbA].fIdSt2 << std::endl;
-	    exit(2); 
-          }
-	  std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt4A = fInputStPts[2].getStationPointPtr(fTrsForArb[kArbA].fIdSt4); 
-	  if (itSt4A == fInputStPts[2].cend()) {
-            std::cerr << " SSDRecBrickTracksAlgo1::Arbitrate Logic error, unknown Station Point Station 4 ID  " 
-	             << fTrsForArb[kArbA].fIdSt4 << std::endl;
-	    exit(2); 
-          }
-	  std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5A = fInputStPts[3].getStationPointPtr(fTrsForArb[kArbA].fIdSt5); 
-	  if (itSt5A == fInputStPts[3].cend()) {
-            std::cerr << " SSDRecBrickTracksAlgo1::Arbitrate Logic error, unknown Station Point Station 5 ID  " 
-	             << fTrsForArb[kArbA].fIdSt5 << std::endl;
-	    exit(2); 
-          }
-	  */
+	  if (itA->ChiSq() >= DBL_MAX) continue;  // Already out of the picture. 
+	  const double x5A = itA->XOffset() + fDeltaZX[5]*itA->XSlope();
+	  const double y5A = itA->YOffset() + fDeltaZY[5]*itA->YSlope();
 	  for (size_t kArbB = kArbA+1; kArbB != fTrsForArb.size(); kArbB++) { 
 	    std::vector<rb::DwnstrTrackAlgo1>::iterator itB = this->GetTrackPtr(fTrsForArb[kArbB].fTrId); 
 	    if (itB == fTrs.end()) {
@@ -474,12 +471,24 @@ namespace emph {
 	             << fTrsForArb[kArbB].fTrId << std::endl;
 	      exit(2); 
             }
-	    if (itB->ChiSq() == DBL_MAX) continue;  // Already out of the picture. 
-	    if (itA->ChiSq() == DBL_MAX) break;  // Track A is already out, no point comaring to all the others..  
-	    if ( (fTrsForArb[kArbA].fIdSt5 != fTrsForArb[kArbB].fIdSt5) && 
-	         (fTrsForArb[kArbA].fIdSt4 != fTrsForArb[kArbB].fIdSt4) && 
-		 (fTrsForArb[kArbA].fIdSt3 != fTrsForArb[kArbB].fIdSt3) ) continue; // O.K., distinct..
-            // pick the smallest chiSq 
+	    if (itB->ChiSq() >= DBL_MAX) continue;  // Already out of the picture.
+	    bool isSame = false; 
+	    if  (fTrsForArb[kArbA].fIdSt5 == fTrsForArb[kArbB].fIdSt5) isSame = true;  // pointing to two different Space Point  of Station5. 
+	    const double x5B = itB->XOffset() + fDeltaZX[5]*itB->XSlope();
+	    const double y5B = itB->YOffset() + fDeltaZY[5]*itB->YSlope();
+	    const double dd5Sq = (x5A - x5B)*(x5A - x5B) + (y5A - y5B)*(y5A - y5B);
+	    // but too close to each other.. Say 2 mm 
+	    if (dd5Sq < 4.0) isSame = true; 
+            // 
+	    // In addtiion, Require at least 2 distinct space points not to be arbitrated away  
+	    //
+	    int n234Shared = 0;
+	    if (fTrsForArb[kArbA].fIdSt2 == fTrsForArb[kArbB].fIdSt2) n234Shared++;
+	    if (fTrsForArb[kArbA].fIdSt3 == fTrsForArb[kArbB].fIdSt3) n234Shared++;
+	    if (fTrsForArb[kArbA].fIdSt4 == fTrsForArb[kArbB].fIdSt4) n234Shared++;
+	    if (n234Shared > 1) isSame = true;
+           // pick the smallest chiSq
+	    if (!isSame) continue; 
 	    hasChanged = true;
 	    numDeprecated++;
 	    if ( itB->ChiSq() > itA->ChiSq()) { 
@@ -493,10 +502,17 @@ namespace emph {
 			      << " whose chi sq is " << itB->ChiSq() << std::endl;   
 	      itA->SetChiSq(DBL_MAX); 
 	    }
+	    break;
 	  } // on kArbB
         } // on kArba 
         if (!hasChanged) break;
 	nItrBigLoop++;
+	if (nItrBigLoop > 100) { // kill this event.. too messy... 
+	  for (std::vector<rb::DwnstrTrackAlgo1>::iterator it=fTrs.begin(); it != fTrs.end(); it++) it->SetChiSq(DBL_MAX);
+	  std::cerr << " SSDRecBrickTracksAlgo1::Arbitrate, spill " << fSubRunNum << " evt " 
+	            << fEvtNum << " too messy, reject this event.. " << std::endl;
+	  return 0;
+	}
       } // Loop on possible change. 
       if (fDebugIsOn) std::cerr << " End of arbitration, after " << nItrBigLoop 
                                 << " kill-loops, num Deprecated  " << numDeprecated << " out of " << fTrs.size() << std::endl;
@@ -524,12 +540,12 @@ namespace emph {
        std::string headerStr(headerStrStr.str());
        int nTrOK = 0; 
        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++)  
-         if (it->ChiSq() != DBL_MAX) nTrOK++;
+         if (it->ChiSq() < DBL_MAX) nTrOK++;
 
        size_t k=0;
        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++, k++) { 
-         if (it->ChiSq() == DBL_MAX) continue;
-         fFOutTrs << headerStr << " " << nTrOK << " " << k << " " << it->Type()  
+         if (it->ChiSq() >= DBL_MAX) continue;
+         fFOutTrs << headerStr << " " << nTrOK << " " << it->ID() << " " << it->Type()  
 	         << " " << it->XOffset() << " " << it->XOffsetErr() << " " << it->XSlope() << " " << it->XSlopeErr()
 		 << " " << it->YOffset() << " " << it->YOffsetErr() << " " << it->YSlope() << " " << it->YSlopeErr()
 		 << " " << it->ChiSq() << std::endl; 
