@@ -283,7 +283,7 @@ namespace emph {
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
-                       std::vector<sim::SSDHitAlgo1> & ssdhitlist,
+                       std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector< sim::Track> & tracklist,
                        std::vector< std::vector< std::pair<size_t, size_t> > >&  pListLimits)
   {  
@@ -324,7 +324,7 @@ namespace emph {
   //______________________________________________________________________________
   void G4Alg::RunGeant(std::vector< const simb::MCTruth* >& mctruths,
 //                       std::vector<sim::SSDHit> & ssdhitlist,
-                       std::vector<sim::SSDHitAlgo1> & ssdhitlist,
+                       std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector<sim::TOPAZLGHit> & lghitlist,
                        std::vector<sim::ARICHHit> & arichhitlist,
                        std::vector< sim::Track >& tracklist,
@@ -368,8 +368,8 @@ namespace emph {
 
     tracklist = pla->GetAllTracks();
     // getting track list from particlelistaction.cxx
-//    ssdhitlist = sh->GetAllHits();
-    ssdhitlist = sh->GetAllHitsAlgo1();
+//    ssdhitlist = sh->GetAllHitsAlgo1();
+    ssdhitlist = sh->GetAllHits();
     // getting ssd hit list from ssdhitaction.cxx
     lghitlist = shLG->GetAllHits();
     // getting TOPAZ Lead Glass hit list from topazlghitaction.cxx
@@ -381,7 +381,7 @@ namespace emph {
   //______________________________________________________________________________
 
   void G4Alg::RunGeant(art::Ptr<simb::MCTruth>         mctruth,
-                       std::vector<sim::SSDHitAlgo1> & ssdhitlist,
+                       std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector< sim::Track >&   tracklist,
                        int                             trackIDOffset)
   {  
@@ -390,7 +390,7 @@ namespace emph {
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(const simb::MCTruth*             mctruth,
-                       std::vector<sim::SSDHitAlgo1>  & ,
+                       std::vector<sim::SSDHit>  & ,
                        std::vector< sim::Track >   & ,
                        int                              trackIDOffset)
   {

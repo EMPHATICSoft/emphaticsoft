@@ -63,13 +63,14 @@ namespace emph
     std::cerr << " SSDHitAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
 
     fPerformFOutStudy = pset.get< bool >("PerformFOutStudy",false);
-
+   
+    
     if (fPerformFOutStudy) {
       std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
       std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHSSDTuple_V1_" << aTokenJob << ".txt";
       std::string fNameStr(fNameStrStr.str());
       fFOutStudy1.open(fNameStr.c_str());
-      fFOutStudy1 << " evt track pId x y z px py pz  " << std::endl;
+      fFOutStudy1 << " evt track pId x y z px py pz station sensor strip de " << std::endl;
     }
   }
 
@@ -104,7 +105,7 @@ namespace emph
   // With every step, add to the particle's trajectory.
   void SSDHitAction::SteppingAction(const G4Step* step)
   {
-    G4VPhysicalVolume* vol = step->GetPreStepPoint()->GetPhysicalVolume();
+    G4VPhysicalVolume* vol = step->GetPreStepPoint()->GetPhysicalVolume(); // Recording the position when the track is leaving the strip. 
     std::string volStr = vol->GetName();
     if (volStr.find("ssd_chan_") == std::string::npos) return;
 
@@ -118,12 +119,19 @@ namespace emph
     if(material.compare("SiliconWafer") != 0 ) {
       return;
     }
-    //	if (fPerformFOutStudy)	
-    // fFOutStudy1 << " " << material << " " << track->GetStep()->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() << " " <<  track->GetStep()->GetPostStepPoint()->GetTouchableHandle()->GetVolume()->GetName() ;
 
     const CLHEP::Hep3Vector &pos0 = step->GetPreStepPoint()->GetPosition(); // Start of the step
     const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
+    const CLHEP::Hep3Vector &posFinal  = step->GetPostStepPoint()->GetPosition();                   // Also the end of the step
     const CLHEP::Hep3Vector &mom  = track->GetMomentum();
+ //
+    // Convert to Local coordinates.
+    //
+    G4TouchableHandle theTouchable = step->GetPreStepPoint()->GetTouchableHandle();
+    G4ThreeVector localPos0 = theTouchable->GetHistory()->GetTopTransform().TransformPoint(pos0); //entrance
+    G4ThreeVector localPos1 = theTouchable->GetHistory()->GetTopTransform().TransformPoint(posFinal); //exit
+//
+// I sugges to store this as well.    
     
 //    MF_LOG_DEBUG("SSDHitAction") << " momentum = "
 //				 << mom.x() << " " << mom.y() << " " 
@@ -170,12 +178,26 @@ namespace emph
     int station, plane, sensor, strip;
     sscanf(volStr.c_str(),"ssd_chan_%d_%d_%d_%d_vol",
 	   &station,&plane,&sensor,&strip);
+//
+//  The above is wrong... Correcting it... July 5 :  first we correct the station number. This is done in the perl script. 
+// We still have the sensor number a the global sensor index, for the whole detector.. So, 
+//
+    std::vector<int> sensorStationNumberOffsets{0, 2, 4, 7, 10, 16}; //Phase1b only.. 
+//
+//    G4LogicalVolume *volLog0 = vol->GetMotherLogical(); 
+//    if (volLog0 == nullptr) {
+//      std::cerr << " SSDHitAction::SteppingAction Mother Logical volume of strip has nullptr, quite here and now " << std::endl;
+//      exit(2);
+//    }
 
-    //    std::cout << "(station, plane, sensor, strip) = (" << station << "," 
-    //	      << plane << "," << sensor << "," << strip << ")" << std::endl;
+//    std::cout << " In vol " << vol->GetName() << "  Mother logical volume of strip is " << volLog0->GetName() << std::endl; 
+    size_t kSt = static_cast<size_t>(station);
+    std::cout << "(station, plane, sensor, strip) = (" << station << "," 
+    	      << plane << "," << sensor-sensorStationNumberOffsets[kSt] << "," << strip << ")" 
+	      << " Local pos0 " << localPos0 << std::endl;
     ssdHit.SetStation(station);
-    ssdHit.SetPlane(plane);
-    ssdHit.SetSensor(sensor);
+    ssdHit.SetPlane(plane); // ill defined... Should either a char or something like empk::geo::X_VIEW, ...
+    ssdHit.SetSensor(sensor - sensorStationNumberOffsets[kSt]);
     ssdHit.SetStrip(strip);
 
     /// Add position, momentum
@@ -185,10 +207,11 @@ namespace emph
     fSSDHits.push_back(ssdHit);
     if (fPerformFOutStudy) {
       fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
-      fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding() << std::endl;
-      fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2]  << std::endl;
-      fFOutStudy1 << " " << tpos1[0] << " " << tpos1[1] << " " << tpos1[2]  << std::endl;
-      fFOutStudy1 << " " << mom0[0] << " " << mom0[1] << " " << mom0[2] << " " << step->GetTotalEnergyDeposit() << std::endl;
+      fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding();
+      fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2];
+//      fFOutStudy1 << " " << tpos1[0] << " " << tpos1[1] << " " << tpos1[2]  << std::endl; 
+      fFOutStudy1 << " " << mom0[0] << " " << mom0[1] << " " << mom0[2] << " " << station << " " << sensor << " " << strip 
+                  << " " << step->GetTotalEnergyDeposit() << std::endl;
     }
 
   }// end of SSDHitAction::SteppingAction

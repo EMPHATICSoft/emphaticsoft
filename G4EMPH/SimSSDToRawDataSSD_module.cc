@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to Convert sim::SSDHitAlgo1 to rawdata::SSDRawDigit
+/// \brief   Producer module to Convert sim::SSDHit (was previouslu Algo1) to rawdata::SSDRawDigit
 ////            Also a small CSV ASCII file to check the result.  
 /// \author  $Author: lebrun $
 ////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,8 @@
 #include "Geometry/Geometry.h"
 // The above should not be needed... 
 #include "Geometry/DetectorDefs.h"
-#include "Simulation/SSDHitAlgo1.h"
+//#include "Simulation/SSDHitAlgo1.h" // July 5, deprecated... 
+#include "Simulation/SSDHit.h" // now using this one.. 
 #include "RawData/SSDRawDigit.h"
 //#include "Simulation/Track.h"
 // The above should not be needed...In fact, better not to look at it..  
@@ -128,7 +129,8 @@ namespace emph {
       runhist::RunHistory *fRunHistory;
       emph::geo::Geometry *fEmgeo;
       art::ServiceHandle<emph::cmap::ChannelMapService> fCmap;
-      std::vector<sim::SSDHitAlgo1> fSSDInVec;
+//      std::vector<sim::SSDHitAlgo1> fSSDInVec;
+      std::vector<sim::SSDHit> fSSDInVec;
 // CSV tuple output..
 // 
       std::ofstream fFOutA1;
@@ -265,7 +267,7 @@ namespace emph {
     //
     // Intro.. 
     //
-//      this->testChannelMapBackConverter(); 
+    //  this->testChannelMapBackConverter(); 
       
       const bool debugIsOn = false;
       ++fNEvents;
@@ -280,23 +282,37 @@ namespace emph {
       
     //
     // Get the data. 
-      art::Handle<std::vector<sim::SSDHitAlgo1> > theSSDHits;
+//      art::Handle<std::vector<sim::SSDHitAlgo1> > theSSDHits;
+      art::Handle<std::vector<sim::SSDHit> > theSSDHits;
       evt.getByLabel (fSSDHitLabel, theSSDHits);
       if (debugIsOn) std::cerr << " .... We will convert " << theSSDHits->size() << " simulated hits.. " << std::endl;
     //
       std::vector<short int> adcVals(fMaxStripNumber, 0);
       const short int d15 = 15;
     //
-      std::vector<size_t> numPlanes{2,2,3,3,6,6};
+      std::vector<size_t> numSensors{2,2,3,3,6,6};
       for (size_t kSt = 0; kSt != 6; kSt++) {
-        for(size_t kSe = 0; kSe != numPlanes[kSt]; kSe++) {
+        for(size_t kSe = 0; kSe != numSensors[kSt]; kSe++) {
 	  for (size_t k=0; k != adcVals.size(); k++) adcVals[k] = 0;
 	  emph::cmap::DChannel dchan(emph::geo::SSD, kSe, kSt, 0);
+          int aPlane = fCmap->GetDetectorPlaneFromStationSensorForPhase1b(dchan); dchan.SetPlane(aPlane); 
 	  emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
 	  int32_t aFERBoard = echan.Board(); int32_t aChanModule = echan.Channel();
-	  for (std::vector<sim::SSDHitAlgo1>::const_iterator it=theSSDHits->cbegin(); it != theSSDHits->cend(); it++) {
+	  if (debugIsOn) std::cerr << " .... At station " << kSt << " Sensor " << kSe << " Board " 
+	                           << aFERBoard << " chanModule " << aChanModule << std::endl;
+	  for (std::vector<sim::SSDHit>::const_iterator it=theSSDHits->cbegin(); it != theSSDHits->cend(); it++) {
 	    if (it->GetStation() != static_cast<int>(kSt)) continue;
-	    if (it->GetPlane() != static_cast<int>(kSe)) continue;
+	    if (it->GetSensor() != static_cast<int>(kSe)) continue;
+	    size_t kStrip = static_cast<size_t>(it->GetStrip());
+	    const double deTot = it->GetDE(); 
+	    if (debugIsOn) std::cerr << " .... Storing strip " << kStrip << " deTot " << deTot << std::endl;
+	    //
+	    // The following is the old (prior to June 20 2023) code to the merge with the main, which does not have the local 
+	    // position information, which makes it more dfficult to implement, as we have to find out the exact geometry.  
+	    // 
+	    /*
+	    ** Skip this for now, as we do not have the local position. 
+	    **
 	    const double yy0 = fHalfHeight + it->GetTLocal0();
 	    const double yy1 = fHalfHeight + it->GetTLocal1();
 	    if ((yy0 < 0.) || (yy0 > fSensorHeight)) continue; // Should not happen! 
@@ -338,8 +354,13 @@ namespace emph {
 		    if (kStr < (size_t) fMaxStripNumber) 
 		        adcVals[kStr] += static_cast<short int>(std::min(15.0, deCenter*fConvertDedxToADCbits));
 		  }
-	        }  
+	        }
 	     } // one strip or more..   
+	*/  
+	    if (static_cast<int>(kStrip) > fMaxStripNumber) continue; // Should not happen 
+	    if (fDeadStrips.isDead(static_cast<short int>(kSt), 
+	                           static_cast<short int>(kSe), static_cast<short int>(kStrip) )) continue; // could happen... 
+	    adcVals[kStrip] += fConvertDedxToADCbits*deTot*1.0e4; // completly arbitrary for now.. 
 	  } // Collecting the input Sim data 
 	  if (debugIsOn) std::cerr << " summing all up for sensor " << kSe << " station " << kSt << std::endl;
 	  for (size_t kStr=0; kStr != adcVals.size(); kStr++) { 
@@ -354,7 +375,7 @@ namespace emph {
             if (fCheck1Stu) this->StudyCheck1(aFERBoard, aChanModule, kSt, kSe, digit);
 	    ssdhlcol->push_back(digit);
 	  }
-	} // on planes
+	} // on Sensors
       } // on Stations
       
       evt.put(std::move(ssdhlcol));
@@ -363,27 +384,40 @@ namespace emph {
     //
     // simple ASCII dump of the  
     //
-    void SimSSDToRawDataSSD::StudyCheck1 (uint32_t aFER, uint32_t aModule, size_t station, size_t plane, 
+  void SimSSDToRawDataSSD::StudyCheck1 (uint32_t aFER, uint32_t aModule, size_t station, size_t plane, 
                                             rawdata::SSDRawDigit &digit) {
 //        fFOutA1 << " evt kFER kMod kSt kPl iHit kStrip adcStrip ";
 	fFOutA1 << " " << fEvtNum << " " << aFER << " " << aModule << " " << station << " " << plane 
 	       << " " << digit.Row() << " " << digit.ADC() << std::endl;
-    }
-    
-    void SimSSDToRawDataSSD::testChannelMapBackConverter() {
-    
-      std::cerr << 
-      " SimSSDToRawDataSSD::testChannelMapBackConverter... Is the combination of the std:maps fEChanMap and fDChanMap are uniquely reciprocal ? " << std::endl;
-      std::cerr << " Start with station 0 ... " << std::endl;
-      for (int kPl=0; kPl !=2; kPl++) { 
-        emph::cmap::DChannel dchan(emph::geo::SSD, kPl, 0, 0);
-	std::cerr << " Declare dchan, station " << dchan.Station() << " Sensor is " << dchan.Channel() << std::endl;
-        emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
-	std::cerr << " Corresponding channel is, board  " << echan.Board() << "  BChannel " << echan.Channel() << std::endl;
-	emph::cmap::DChannel dChanBack = fCmap->DetChan(echan); 
-        std::cerr << " ... The station is now " << dChanBack.Station() << " Sensor is " << dChanBack.Channel() << std::endl;
-     }
-//     std::cerr << " And.... Quit for now after this very simple test... " << std::endl; exit(2);
    }
+    
+  void SimSSDToRawDataSSD::testChannelMapBackConverter() {
+    
+    std::cerr << 
+      " SimSSDToRawDataSSD::testChannelMapBackConverter... " << std::endl 
+       << " Is the combination of the std:maps fEChanMap and fDChanMap are uniquely reciprocal ? " << std::endl;
+     std::cerr << " Start with station 0 ... " << std::endl;
+     for (int kPl=0; kPl !=2; kPl++) { 
+       emph::cmap::DChannel dchan(emph::geo::SSD, kPl, 0, 0);
+       int aPlane = fCmap->GetDetectorPlaneFromStationSensorForPhase1b(dchan); dchan.SetPlane(aPlane); 
+       std::cerr << " Declare dchan, station " << dchan.Station() << " Sensor is " << dchan.Channel() << std::endl;
+       emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
+       std::cerr << " Corresponding channel is, board  " << echan.Board() << "  BChannel " << echan.Channel() << std::endl;
+       emph::cmap::DChannel dChanBack = fCmap->DetChan(echan); 
+       std::cerr << " ... The station is now " << dChanBack.Station() << " Sensor is " << dChanBack.Channel() << std::endl;
+     }
+     std::cerr << " End with station 4 ... " << std::endl;
+     for (int kPl=0; kPl !=3; kPl++) { 
+       emph::cmap::DChannel dchan(emph::geo::SSD, kPl, 4, 0);
+       int aPlane = fCmap->GetDetectorPlaneFromStationSensorForPhase1b(dchan); dchan.SetPlane(aPlane); 
+       std::cerr << " Declare dchan, station " << dchan.Station() << " Sensor is " << dchan.Channel() << std::endl;
+       emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
+       std::cerr << " Corresponding channel is, board  " << echan.Board() << "  BChannel " << echan.Channel() << std::endl;
+       emph::cmap::DChannel dChanBack = fCmap->DetChan(echan); 
+       std::cerr << " ... The station is now " << dChanBack.Station() << " Sensor is " << dChanBack.Channel() << std::endl;
+     }
+     std::cerr << " And.... Quit for now after this very simple test... " << std::endl; exit(2);
+  }
+   
 } // name space emph       
 DEFINE_ART_MODULE(emph::SimSSDToRawDataSSD)
