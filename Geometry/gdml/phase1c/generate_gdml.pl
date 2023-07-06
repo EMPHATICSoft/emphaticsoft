@@ -267,7 +267,7 @@ EOF
 	 <!-- BELOW IS FOR SSD -->
 
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
-	 <quantity name="ssdD0_height" value="38.34" unit="mm"/>
+	 <quantity name="ssdD0_height" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>

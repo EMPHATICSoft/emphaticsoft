@@ -1,0 +1,54 @@
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+#include "CAFMaker.fcl"
+
+#include "ARICHReco.fcl"
+#include "MakeSSDClusters.fcl"
+
+process_name: CAF
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "reco_cafmaker_hist.root" closeFileFast: false }
+  scheduler: { wantSummary: false }
+  TimeTracker: {}
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: @local::standard_runhistory
+  Geometry: @local::standard_geometry
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type: RootInput
+  maxEvents:   -1
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "reco_cafmaker.root"
+    fastCloning: false
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    arichreco: @local::standard_arichreco
+    ssdclusts: @local::standard_ssdclust
+    cafmaker:  @local::standard_cafmaker
+  }
+
+  analyzers:{}
+
+  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+
+}
+physics.producers.ssdclusts.FillTTree: false
+physics.producers.ssdclusts.CheckDQ: false

@@ -22,6 +22,7 @@
 #include "artdaq-core/Data/Fragment.hh"
 
 #include "RawData/SSDRawDigit.h"
+#include "RawDataUnpacker/SSDUnpacker.h"
 #include "RawDataUnpacker/Unpacker.h"
 
 #include <string>
@@ -98,7 +99,7 @@ void emph::RawDataMerger::produce(art::Event& evt) {
     uint64_t bco = 0;
     bool isFirst = true;
     do {
-      auto tmp_ssd_hits = Unpack::readSSDHitsFromFileStream(ssd_file,isFirst);
+      auto tmp_ssd_hits = SSDUnpack::readSSDHitsFromFileStream(ssd_file,isFirst);
       if (isFirst) isFirst = false;
       bco = tmp_ssd_hits.first;
       hits = tmp_ssd_hits.second;
