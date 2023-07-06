@@ -4,7 +4,8 @@ namespace caf
 {
   StandardRecord::StandardRecord() :
     hdr(),
-    ring()
+    ring(),
+    calo()
   {
   }
   

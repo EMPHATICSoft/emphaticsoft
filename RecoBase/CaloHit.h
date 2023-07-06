@@ -26,13 +26,23 @@ namespace rb {
   private:
 
     int _channel; //block number (0-8, 4 is the center)
+    //const std::vector<uint16_t> _wfm; //waveform vector (108 bins)
+    int _time;
+    float _intchg;
 
   public:
     // Getters
-    double Channel() const {return _channel; }
-
+    int Channel() const {return _channel; }
+    //const std::vector<uint16_t> WaveForm() const {return _wfm; }
+    int Time() const {return _time; }
+    float IntCharge() const {return _intchg; }
+   
     // Setters
     void SetChannel(int chan) { _channel = chan; }
+    //void SetWaveForm(const std::vector<uint16_t> &wfm) { _wfm = wfm; }
+    void SetTime(const std::vector<uint16_t> &wfm);
+    //void SetTime(const std::vector<uint16_t> &wfm){ _time = std::min_element(wfm.begin(),wfm.end()) - wfm.begin(); }   
+    void SetIntCharge(float intchg) { _intchg = intchg; }
 
     friend std::ostream& operator << (std::ostream& o, const CaloHit& h);
   };

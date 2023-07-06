@@ -78,7 +78,7 @@ namespace emph {
     void    FillLGCaloPlots(art::Handle< std::vector<rawdata::WaveForm> > &);
     void    getBaseline(const std::vector<uint16_t> &wfm, double signif, size_t startBin, bool calo);
     int     findPeaks(const std::vector<uint16_t> &wfm); //, double sigma, double threshold=0.05);
-    void    getIntChargePlots(const std::vector<uint16_t> &adcvals, int detchan);
+    float    getIntChargePlots(const std::vector<uint16_t> &adcvals, int detchan);
 
     emph::cmap::ChannelMap* fChannelMap;
     runhist::RunHistory* fRunHistory;
@@ -99,6 +99,7 @@ namespace emph {
     std::vector<unsigned int> fNEventsLGCalo;
     TH1F* fLGCaloWaveForm[nChanCal];
     TH1F* fLGCaloIntCharge[nChanCal];
+    std::vector< std::vector<double> > intchg;
 
     static const unsigned int nChanTrig = 4;
     double fBaseline = 0;
@@ -258,7 +259,9 @@ namespace emph {
          fWant = false;
       }
       else fWant = true;
-      //if (fEvtNum != 20) fMakeWaveFormPlots = false;
+      //if (fEvtNum != 12) fMakeWaveFormPlots = false; //pulse on first block
+      //if (fEvtNum != 6088) fMakeWaveFormPlots = false; //negative int charge on block 5
+      //if (fEvtNum != 16797) fMakeWaveFormPlots = false;
       //else fMakeWaveFormPlots = true;
   }
 
@@ -296,12 +299,14 @@ namespace emph {
                 getBaseline(adcvals,8.0,10,true);
 		   
                 if (findPeaks(adcvals)==1){
-	           getIntChargePlots(adcvals,detchan);
+	           float intchg = getIntChargePlots(adcvals,detchan);
 		   rb::CaloHit onehit;
 		   onehit.SetChannel(detchan);
+		   onehit.SetTime(adcvals);
+		   onehit.SetIntCharge(intchg);
                    //rb::CaloHit onehit(adcvals,detchan);
 		   calohits.push_back(onehit);
-	           std::cout<<"I'm here"<<std::endl; //could be up to 9 times 
+	           //std::cout<<"I'm here: "<<fEvtNum<<std::endl; //could be up to 9 times 
 		}
               }
             }
@@ -346,6 +351,10 @@ namespace emph {
 
   //......................................................................
 
+  
+
+  //......................................................................
+
   int emph::CaloProd::findPeaks(const std::vector<uint16_t> &wfm){ //, double sigma, double threshold){
       Int_t nMaxPeak =3;
       TSpectrum* s = new TSpectrum(nMaxPeak);
@@ -365,7 +374,7 @@ namespace emph {
 
   //......................................................................
 
-  void emph::CaloProd::getIntChargePlots(const std::vector<uint16_t> &adcvals, int detchan){
+  float emph::CaloProd::getIntChargePlots(const std::vector<uint16_t> &adcvals, int detchan){
     float x1=peakStartBin;
     float nsamp=35; //25; //range where the signal is
     float avg = 0; int ic = 0;
@@ -378,10 +387,21 @@ namespace emph {
     avg /= float(ic); //baseline for each signal
 
     for (size_t i=x1; i<size_t(x1+nsamp) && i<adcvals.size(); ++i){
-        sum += (avg-adcvals[i]); //total integrated charge over the range
+        sum += (avg-adcvals[i]); //total (baseline-subtracted) integrated charge over the range
     }
+    //similar funtions in RawData/Waveform.h but not fully sufficient 
 
     fLGCaloIntCharge[detchan]->Fill(sum);
+
+    //std::cout<<"Event Number: "<<fEvtNum<<std::endl;
+    if (sum < 0){
+       std::cout<<"Negative sum found: "<<fEvtNum<<std::endl;
+       //std::cout<<"Peak starts at: "<<peakStartBin<<std::endl;
+       //std::cout<<"Baseline is: "<<avg<<std::endl;
+       //std::cout<<"Integrated charge is: "<<sum<<std::endl;
+    }
+
+    return sum;
   }
 
   //......................................................................
@@ -390,7 +410,7 @@ namespace emph {
   {
     std::unique_ptr< std::vector<rb::CaloHit> > calohitv(new std::vector<rb::CaloHit>);
 
-    std::cout<<"new event eaaow"<<std::endl;
+    //std::cout<<"new event eaaow"<<std::endl;
 
     ++fNEvents;
     fRun = evt.run();

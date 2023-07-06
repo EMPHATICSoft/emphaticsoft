@@ -13,6 +13,7 @@
 
 #include "StandardRecord/SRHeader.h"
 #include "StandardRecord/SRARingBranch.h"
+#include "StandardRecord/SRCaloHitBranch.h"
 
 /// Common Analysis Files
 namespace caf
@@ -30,6 +31,7 @@ namespace caf
 
       SRHeader       hdr;   ///< Header branch: run, subrun, etc.
       SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
+      SRCaloHitBranch calo; ///<LGCalo hit branch: _channel, _time, _intchg
       
     }; // end class
 
