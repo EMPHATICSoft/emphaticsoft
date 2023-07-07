@@ -269,7 +269,7 @@ namespace emph {
     //
     //  this->testChannelMapBackConverter(); 
       
-      const bool debugIsOn = false;
+      const bool debugIsOn = true;
       ++fNEvents;
       std::unique_ptr<std::vector<rawdata::SSDRawDigit> >  ssdhlcol(new std::vector<rawdata::SSDRawDigit>  );
       fRun = evt.run();
@@ -288,7 +288,11 @@ namespace emph {
       if (debugIsOn) std::cerr << " .... We will convert " << theSSDHits->size() << " simulated hits.. " << std::endl;
     //
       std::vector<short int> adcVals(fMaxStripNumber, 0);
-      const short int d15 = 15;
+//       const short int d15 = 15; // Crummy constant, used in 2022 -> July 2023.. 
+  // index is the ADC value from the DAQ (0-7), result is the converted ADC value
+  // Shamelessly (well.. I should say shamefully..) copied from rb::Cluster code.. 
+     const unsigned int adcMap[] = {41, 58, 73, 88, 103, 118, 133, 140};
+
     //
       std::vector<size_t> numSensors{2,2,3,3,6,6};
       for (size_t kSt = 0; kSt != 6; kSt++) {
@@ -367,11 +371,19 @@ namespace emph {
 	    if (adcVals[kStr] == 0) continue; // zero-suppression is in effect
 	    if (debugIsOn) std::cerr << " summing up, at strip " << kStr << " uint32_t conv " << static_cast<uint32_t>(kStr)
 	                             << " Adc value " << adcVals[kStr] << std::endl;
-	    adcVals[kStr] = std::min(d15, adcVals[kStr]) - 1; // Only 3 or 4 bit ADC, we are told.  to be checked
+	    size_t kAdc=0;
+	    if (static_cast<unsigned int>(adcVals[kStr]) < adcMap[kAdc]) continue; // below threshold, skip. 
+	    while (kAdc < 8) {
+	      if (static_cast<unsigned int>(adcVals[kStr]) < adcMap[kAdc]) break;
+	      kAdc++;
+	    }
+	    uint32_t finalValAdc = static_cast<uint32_t>(kAdc);
+	    		     
 	    // Note: chip and set are not used in the reconstruction 
+	    
 	    rawdata::SSDRawDigit digit(aFERBoard, (uint32_t) aChanModule, 0, 0, static_cast<uint32_t>(kStr), 
-	                         0, static_cast<uint32_t>(adcVals[kStr]), 0) ;
-            digit.SetRow(static_cast<uint32_t>(kStr));		 
+	                         0, finalValAdc, 0) ;
+            digit.SetRow(static_cast<uint32_t>(kStr)); //Should not be needed.. 		 
             if (fCheck1Stu) this->StudyCheck1(aFERBoard, aChanModule, kSt, kSe, digit);
 	    ssdhlcol->push_back(digit);
 	  }
