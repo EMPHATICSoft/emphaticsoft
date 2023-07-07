@@ -43,7 +43,8 @@
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
- <class name="caf::SRTruth" ClassVersion="15" >
+ <class name="caf::SRTruth" ClassVersion="16" >
+  <version ClassVersion="16" checksum="2143789429"/>
   <version ClassVersion="15" checksum="1677831554"/>
   <version ClassVersion="14" checksum="2640008266"/>
   <version ClassVersion="13" checksum="2186144378"/>
@@ -53,6 +54,12 @@
  </class>
 
  <class name="caf::SRParticle" ClassVersion="-1" >
+  <version ClassVersion="-1" checksum="1"/>
+ </class>
+ <class name="caf::SRTrueParticle" ClassVersion="-1" >
+  <version ClassVersion="-1" checksum="1"/>
+ </class>
+ <class name="caf::SRTrajectory" ClassVersion="-1" >
   <version ClassVersion="-1" checksum="1"/>
  </class>
 </lcgdict>

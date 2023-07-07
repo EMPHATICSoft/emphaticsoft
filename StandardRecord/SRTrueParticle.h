@@ -14,9 +14,10 @@
 // Common Analysis Files
 namespace caf
 {
-        class SRTrueParticle : public SRParticle
+        class SRTrueParticle
         {
         public:
+		SRParticle ptcl;
                 std::vector <caf::SRTrueParticle> daughters;
 		//caf::SRTrueParticle mother;
 

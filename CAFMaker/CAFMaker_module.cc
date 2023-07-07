@@ -52,7 +52,7 @@
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
-#include "CAFMaker/MCTruthFiller.h"
+#include "CAFMaker/SRTruthFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 
@@ -193,12 +193,12 @@ namespace caf {
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
 
-   // Get SRTruth info from the MCTruth 
+   // Get SRTruth  
 
    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
-  	MCTruthFiller mctruthf;
-  	mctruthf.Fill(evt,rec);
+  	SRTruthFiller srtruthf;
+  	srtruthf.Fill(evt,rec);
     } // end if statement
 
     // Get SSDClust info from SSDReco
