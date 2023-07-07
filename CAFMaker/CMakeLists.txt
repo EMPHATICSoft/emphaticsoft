@@ -13,11 +13,13 @@ include_directories( $ENV{IFDHC_INC} )
 
 
 set( PACKAGE CAFMaker )
-FILE( GLOB src_files *.cc )
+FILE( GLOB src_files *.cc *.cxx )
 
 art_make_library( LIBRARY_NAME ${PACKAGE}
 		  SOURCE ${src_files}
 		  LIBRARIES StandardRecord
+                            RawData
+                            RecoBase
 		  	    art::Framework_Core
 			    art::Persistency_Common
 			    canvas::canvas
@@ -43,7 +45,10 @@ build_dictionary( CAFMaker
 		)
 
 simple_plugin ( CAFMaker "module"
+                CAFMaker
 	      	StandardRecord
+                RawData
+                RecoBase
                 art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry

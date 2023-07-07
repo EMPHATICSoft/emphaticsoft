@@ -1,7 +1,13 @@
 <lcgdict>
 
+<<<<<<< HEAD
  <class name="caf::StandardRecord" ClassVersion="12" >
   <version ClassVersion="12" checksum="2189588822"/>
+=======
+ <class name="caf::StandardRecord" ClassVersion="13" >
+  <version ClassVersion="13" checksum="142906859"/>
+  <version ClassVersion="12" checksum="2588380332"/>
+>>>>>>> main
   <version ClassVersion="11" checksum="1542996796"/>
   <version ClassVersion="10" checksum="3065678388"/>
  </class>
@@ -19,6 +25,7 @@
   <version ClassVersion="10" checksum="1710063260"/>
  </class>
 
+<<<<<<< HEAD
  <class name="caf::SRCaloHit" ClassVersion="10" >
   <version ClassVersion="10" checksum="787758373"/>
  </class>
@@ -26,6 +33,24 @@
 
  <class name="caf::SRCaloHitBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="2111527492"/>
+=======
+ <class name="caf::SRSSDHits" ClassVersion="10" >
+  <version ClassVersion="10" checksum="464570951"/>
+ </class>
+ <class name="std::vector<caf::SRSSDHits>" />
+
+ <class name="caf::SRSSDHitsBranch" ClassVersion="10" >
+  <version ClassVersion="10" checksum="1716345376"/>
+ </class>
+
+ <class name="caf::SRSSDClust" ClassVersion="10" >
+  <version ClassVersion="10" checksum="64380129"/>
+ </class>
+ <class name="std::vector<caf::SRSSDClust>" />
+
+ <class name="caf::SRSSDClustBranch" ClassVersion="10" >
+  <version ClassVersion="10" checksum="2585169092"/>
+>>>>>>> main
  </class>
 
  <class name="caf::SRVector3D" ClassVersion="10" >

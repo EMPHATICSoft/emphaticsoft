@@ -83,7 +83,7 @@
 	 <!-- BELOW IS FOR SSD -->
 
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
-	 <quantity name="ssdD0_height" value="38.34" unit="mm"/>
+	 <quantity name="ssdD0_height" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
@@ -164,30 +164,38 @@
 	 <position name="ssdbkplndouble2pl0_pos" x="0" y="0" z="ssdD0_thick" />
 	 <position name="ssdbkplndouble2pl1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
 
+	 <rotation name="ssdStation0_rot" x="-0.44" y="-2.02" unit="deg"/>
 	 <rotation name="ssdsingle0_0_0_rot" x="180.0*0" z="0" unit="deg"/>
 	 <rotation name="ssdsingle0_1_0_rot" x="180.0*1" z="270" unit="deg"/>
+	 <rotation name="ssdStation1_rot" x="0.24" y="-1.26" unit="deg"/>
 	 <rotation name="ssdsingle1_0_0_rot" x="180.0*0" z="0" unit="deg"/>
 	 <rotation name="ssdsingle1_1_0_rot" x="180.0*1" z="270" unit="deg"/>
+	 <rotation name="ssdStation2_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssdrotate2_0_0_rot" x="180.0*0" z="315" unit="deg"/>
 	 <rotation name="ssdrotate2_1_0_rot" x="180.0*1" z="0" unit="deg"/>
 	 <rotation name="ssdrotate2_2_0_rot" x="180.0*0" z="270" unit="deg"/>
+	 <rotation name="ssdStation3_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssdrotate3_0_0_rot" x="180.0*0" z="315" unit="deg"/>
 	 <rotation name="ssdrotate3_1_0_rot" x="180.0*1" z="0" unit="deg"/>
 	 <rotation name="ssdrotate3_2_0_rot" x="180.0*0" z="270" unit="deg"/>
+	 <rotation name="ssdStation4_rot" x="-0.06" y="-1.49" unit="deg"/>
 	 <rotation name="ssdsingle4_0_0_rot" x="180.0*0" z="0" unit="deg"/>
 	 <rotation name="ssdsingle4_1_0_rot" x="180.0*1" z="270" unit="deg"/>
+	 <rotation name="ssdStation5_rot" x="0.36" y="0.31" unit="deg"/>
 	 <rotation name="ssddouble3pl5_0_0_rot" x="180.0*0" z="270" unit="deg"/>
 	 <rotation name="ssddouble3pl5_0_1_rot" x="180.0*0" z="90" unit="deg"/>
 	 <rotation name="ssddouble3pl5_1_0_rot" x="180.0*1" z="0" unit="deg"/>
 	 <rotation name="ssddouble3pl5_1_1_rot" x="180.0*1" z="180" unit="deg"/>
 	 <rotation name="ssddouble3pl5_2_0_rot" x="180.0*1" z="315" unit="deg"/>
 	 <rotation name="ssddouble3pl5_2_1_rot" x="180.0*1" z="135" unit="deg"/>
+	 <rotation name="ssdStation6_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssddouble3pl6_0_0_rot" x="180.0*0" z="270" unit="deg"/>
 	 <rotation name="ssddouble3pl6_0_1_rot" x="180.0*0" z="90" unit="deg"/>
 	 <rotation name="ssddouble3pl6_1_0_rot" x="180.0*1" z="0" unit="deg"/>
 	 <rotation name="ssddouble3pl6_1_1_rot" x="180.0*1" z="180" unit="deg"/>
 	 <rotation name="ssddouble3pl6_2_0_rot" x="180.0*1" z="315" unit="deg"/>
 	 <rotation name="ssddouble3pl6_2_1_rot" x="180.0*1" z="135" unit="deg"/>
+	 <rotation name="ssdStation7_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssddouble2pl7_0_0_rot" x="180.0*0" z="270" unit="deg"/>
 	 <rotation name="ssddouble2pl7_0_1_rot" x="180.0*0" z="90" unit="deg"/>
 	 <rotation name="ssddouble2pl7_1_0_rot" x="180.0*1" z="0" unit="deg"/>
@@ -79984,41 +79992,49 @@ values="202.14067278287462 12.054573032169143
 		  <physvol name="ssdStation0_phys">
 			 <volumeref ref="ssdStationsingle0_vol"/>
 			 <positionref ref="ssdStation0_pos"/>
+			 <rotationref ref="ssdStation0_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation1_phys">
 			 <volumeref ref="ssdStationsingle1_vol"/>
 			 <positionref ref="ssdStation1_pos"/>
+			 <rotationref ref="ssdStation1_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation2_phys">
 			 <volumeref ref="ssdStationrotate2_vol"/>
 			 <positionref ref="ssdStation2_pos"/>
+			 <rotationref ref="ssdStation2_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation3_phys">
 			 <volumeref ref="ssdStationrotate3_vol"/>
 			 <positionref ref="ssdStation3_pos"/>
+			 <rotationref ref="ssdStation3_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation4_phys">
 			 <volumeref ref="ssdStationsingle4_vol"/>
 			 <positionref ref="ssdStation4_pos"/>
+			 <rotationref ref="ssdStation4_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation5_phys">
 			 <volumeref ref="ssdStationdouble3pl5_vol"/>
 			 <positionref ref="ssdStation5_pos"/>
+			 <rotationref ref="ssdStation5_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation6_phys">
 			 <volumeref ref="ssdStationdouble3pl6_vol"/>
 			 <positionref ref="ssdStation6_pos"/>
+			 <rotationref ref="ssdStation6_rot"/>
 		  </physvol>
 
 		  <physvol name="ssdStation7_phys">
 			 <volumeref ref="ssdStationdouble2pl7_vol"/>
 			 <positionref ref="ssdStation7_pos"/>
+			 <rotationref ref="ssdStation7_rot"/>
 		  </physvol>
   <!-- ABOVE IS FOR SSD -->
 

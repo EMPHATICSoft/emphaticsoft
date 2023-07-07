@@ -5,7 +5,11 @@ namespace caf
   StandardRecord::StandardRecord() :
     hdr(),
     ring(),
+<<<<<<< HEAD
     calo()
+=======
+    hits()
+>>>>>>> main
   {
   }
   

@@ -42,10 +42,18 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
+#include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
+#include "RecoBase/SSDCluster.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
+
+// CAF filler includes
+#include "CAFMaker/HeaderFiller.h"
+#include "CAFMaker/ARICHFiller.h"
+#include "CAFMaker/SSDHitsFiller.h"
+#include "CAFMaker/ClusterFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -171,33 +179,27 @@ namespace caf {
     StandardRecord* prec = &rec;  // TTree wants a pointer-to-pointer
     fRecTree->SetBranchAddress("rec", &prec);
 
-    // Get metadata information for header
-    unsigned int run = evt.run();
-    unsigned int subrun = evt.subRun();
-    unsigned int spillNum = evt.id().event();
-
-    rec.hdr = SRHeader();
-
-    rec.hdr.run    = run;
-    rec.hdr.subrun = subrun;
-    rec.hdr.evt    = spillNum;
+    // get header info first
+    HeaderFiller hf;
+    hf.Fill(evt, rec);
 
     mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
-
     // Get ARing info from ARichReco
-    art::Handle< std::vector <rb::ARing> > arv;
-    GetByLabelStrict(evt, fParams.ARingLabel(), arv);
-    std::vector<rb::ARing> arings;
-    if(!arv.failedToGet()) arings = *arv;
+    ARICHFiller arichf;
+    arichf.fLabel = fParams.ARingLabel();
+    arichf.Fill(evt,rec);
 
-    for (unsigned int ringId = 0; ringId < arings.size(); ++ ringId) {
-      rec.ring.arich.push_back(SRARing());
-      SRARing& srARing = rec.ring.arich.back();
-
-      srARing.nhit = arings[ringId].NHits();
-    } // end for ringId
+    // Get SSDClust info from SSDReco
+    ClusterFiller clustf; ///arich -> cluster
+    clustf.fLabel = fParams.SSDClustLabel();
+    clustf.Fill(evt,rec);
     
+    // Get SSDHits from RawDigits
+    SSDHitsFiller ssdhitsf;
+    ssdhitsf.fLabel = fParams.SSDRawLabel();
+    ssdhitsf.Fill(evt,rec);
+
     fRecTree->Fill();
     srcol->push_back(rec);
 
