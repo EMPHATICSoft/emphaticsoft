@@ -9,9 +9,9 @@
 namespace caf
 {
   SRCaloHit::SRCaloHit() :
-    _channel(4),
-    _time(0),
-    _intchg(std::numeric_limits<float>::signaling_NaN())
+    channel(4),
+    time(0),
+    intchg(std::numeric_limits<float>::signaling_NaN())
   {
   }
 
@@ -23,9 +23,9 @@ namespace caf
   //--------------------------------------------------------------------
   void SRCaloHit::setDefault()
   {
-    _channel = 4; //change this?
-    _time    = 0;
-    _intchg  = 0.; 
+    channel = 4; //change this?
+    time    = 0;
+    intchg  = 0.; 
   }
 
 } // end namespace

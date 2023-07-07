@@ -15,9 +15,9 @@ namespace caf
     SRCaloHit();
     virtual ~SRCaloHit();
 
-    int _channel; //block number (0-8, 4 is the center)
-    int _time; //where the peak of the signal waveform occurs
-    float _intchg; //integrated charge
+    int channel; //block number (0-8, 4 is the center)
+    int time; //where the peak of the signal waveform occurs
+    float intchg; //integrated charge
 
     virtual void setDefault();
   };

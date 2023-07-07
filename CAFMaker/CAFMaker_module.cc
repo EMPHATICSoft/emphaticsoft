@@ -45,6 +45,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/CaloHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -54,6 +55,7 @@
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
+#include "CAFMaker/CaloFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -199,6 +201,11 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
+  
+    // Get CaloHit info from CaloProd
+    CaloFiller calof;
+    calof.fLabel = fParams.CaloHitLabel();
+    calof.Fill(evt,rec);
 
     fRecTree->Fill();
     srcol->push_back(rec);

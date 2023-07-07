@@ -93,7 +93,8 @@
   </class>
   <class name="art::Wrapper< rb::TrigToT0>"        />
 
-  <class name="rb::CaloHit"    ClassVersion="11">
+  <class name="rb::CaloHit"    ClassVersion="12">
+   <version ClassVersion="12" checksum="1882680550"/>
    <version ClassVersion="11" checksum="2792378261"/>
      <version ClassVersion="10" checksum="1"/>
    </class>

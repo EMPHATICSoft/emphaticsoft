@@ -5,6 +5,7 @@
 
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
+#include "CaloProd.fcl"
 
 process_name: CAF
 
@@ -42,12 +43,13 @@ physics:
   {
     arichreco: @local::standard_arichreco
     ssdclusts: @local::standard_ssdclust
+    caloprod:  @local::standard_caloprod
     cafmaker:  @local::standard_cafmaker
   }
 
   analyzers:{}
 
-  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+  makecaf:   [ arichreco, ssdclusts, caloprod, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false
