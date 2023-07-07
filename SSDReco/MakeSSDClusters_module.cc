@@ -185,7 +185,6 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
 //--------------------------------------------------
 void emph::MakeSSDClusters::produce(art::Event& evt)
 {
-  std::cerr << " Entering emph::MakeSSDClusters::produce ... " << std::endl;
   std::unique_ptr< std::vector<rb::SSDCluster> > clusterv(new std::vector<rb::SSDCluster>);
 
   run = evt.run();
@@ -204,26 +203,19 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       return;
     }
   }
+
   art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxSensPerSta];
 
   std::fill_n(ncluster,NPlanes,0);
 
-  std::cerr << " ... ... Before getting the rawdata handle, of label " << fSSDRawLabel 
-            <<  " NStations " << NStations << " MaxSensPerSta " << MaxSensPerSta << std::endl;
   auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
-  std::cerr << " ... ... After getting the rawdata handle, ... " << std::endl;
   if (ssdHandle.isValid()) {
-    std::cerr << " ... ... handle is valid.. , ... handle size " << ssdHandle->size() <<  std::endl;
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
-     std::cerr << " ... ... ... at idx  " << idx <<  std::endl;
-     art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
-     std::cerr << " ... ... ... after using the handle at idx  " << idx <<  std::endl;
+      art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
-      std::cerr << " ... ... ... upload station " << dchan.Station() << " dchan " << dchan.Channel() << "  onto  digitList " <<  std::endl;
       digitList[dchan.Station()][dchan.Channel()].push_back(ssdDig);
     }
-    std::cerr << " ... ... got all digitList " <<  std::endl;
     std::vector<rb::SSDCluster> clusters;
     // Should really pull counts of these from geometry somehow
     for (int sta=0; sta<NStations; ++sta){
@@ -257,12 +249,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       }
     }
   }
-  
-  std::cerr << " ... ... Before pushing the cluster onto events..., ... with " << clusterv->size() << " clusters " << std::endl;
 
   evt.put(std::move(clusterv));
-  
-  std::cerr << " ... ... done pushing the cluster onto events... " << std::endl;
 
   if (fFillTTree) {
     ssdclust->Fill();
