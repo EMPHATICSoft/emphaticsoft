@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <string>
-#include "SRTrueParticle.h"
+#include "SRParticle.h"
 
 ///Common Analysis Files
 namespace caf
@@ -17,8 +17,8 @@ namespace caf
 	class SRTruth
 	{
 	public:
-	  SRTrueParticle beam;		// this will hold all the particles generated during simulation
-	  std::vector<caf::SRTrueParticle> particles;
+	  SRParticle beam;		// this will hold all the particles generated during simulation
+	  std::vector<caf::SRParticle> particles;
 
 	  std::string trgt;
 	  float trgt_thick;

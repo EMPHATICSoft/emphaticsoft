@@ -14,7 +14,8 @@
  <class name="std::pair<size_t, unsigned char>"                                   />
  <class name="std::vector< std::pair<size_t, unsigned char> >"                    />
 
- <class name="simb::MCParticle"    ClassVersion="10"                               >
+ <class name="simb::MCParticle"    ClassVersion="11"                               >
+  <version ClassVersion="11" checksum="3004880"/>
   <version ClassVersion="10" checksum="275984218"/>
  </class>
  <class name="simb::MCTrajectory"  ClassVersion="11"                               >

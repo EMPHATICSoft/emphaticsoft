@@ -43,14 +43,16 @@
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
- <class name="caf::SRTruth" ClassVersion="13" >
+ <class name="caf::SRTruth" ClassVersion="15" >
+  <version ClassVersion="15" checksum="1677831554"/>
+  <version ClassVersion="14" checksum="2640008266"/>
   <version ClassVersion="13" checksum="2186144378"/>
   <version ClassVersion="12" checksum="1103954238"/>
   <version ClassVersion="11" checksum="225587328"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
 
- <class name="caf::SRTrueParticle" ClassVersion="-1" >
+ <class name="caf::SRParticle" ClassVersion="-1" >
   <version ClassVersion="-1" checksum="1"/>
  </class>
 </lcgdict>
