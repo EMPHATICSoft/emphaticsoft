@@ -377,7 +377,7 @@ namespace emph {
 	      if (static_cast<unsigned int>(adcVals[kStr]) < adcMap[kAdc]) break;
 	      kAdc++;
 	    }
-	    uint32_t finalValAdc = static_cast<uint32_t>(kAdc);
+	    uint32_t finalValAdc = static_cast<uint32_t>(kAdc-1);
 	    		     
 	    // Note: chip and set are not used in the reconstruction 
 	    
