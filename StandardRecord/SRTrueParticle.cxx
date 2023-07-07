@@ -10,11 +10,7 @@
 namespace caf
 {
         // default SRTrueParticle constructor
-        SRTrueParticle::SRTrueParticle():
-                vrt{0,0,0},
-                mom{0,0,0}
+        SRTrueParticle::SRTrueParticle() 
                 {
-                 pdg = 25;
-                 energy = 125.0;
                 }
 }

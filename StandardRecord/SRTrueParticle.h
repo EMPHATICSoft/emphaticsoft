@@ -9,20 +9,16 @@
 
 #include <vector>
 #include <string>
+#include "StandardRecord/SRParticle.h"
 
 // Common Analysis Files
 namespace caf
 {
-        class SRTrueParticle
+        class SRTrueParticle : public SRParticle
         {
         public:
-                float vrt[3];
-                float mom[3];
-                int pdg;
-                float energy;
                 std::vector <caf::SRTrueParticle> daughters;
 		//caf::SRTrueParticle mother;
-		std::string process;
 
                 SRTrueParticle();
                 ~SRTrueParticle(){};
