@@ -33,7 +33,7 @@ namespace simb
 
   //...................................................................
   MCParticle::~MCParticle() 
-  {
+  {std::cerr << "Destructing simb::MCParticle\n";
   }
 
 }

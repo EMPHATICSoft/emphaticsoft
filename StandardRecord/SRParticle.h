@@ -24,8 +24,9 @@ namespace caf {
     static const int s_uninitialized; //! Don't write this as ROOT output
 
     SRParticle();
+    ~SRParticle() {};
 
-  protected:
+  
     typedef std::set<int>   daughters_type;
 
     int                     fstatus;        ///< Status code from generator, geant, etc
@@ -42,8 +43,7 @@ namespace caf {
     TLorentzVector          fGvtx;          ///< Vertex needed by generater (genie) to rebuild 
                                             ///< genie::EventRecord for event reweighting
     int                     frescatter;     ///< rescatter code
-
-  public:
+  //public:
 
     // Standard constructor.  If the mass is not supplied in the
     // argument, then the PDG mass is used.
@@ -55,15 +55,13 @@ namespace caf {
                const int mother  = -1,
                const double mass = s_uninitialized,
                const int status  = 1);
-//    virtual ~SRParticle() = default;
-
     // our own copy and move assignment constructors (default)
     SRParticle(SRParticle const &)            = default; // Copy constructor.
     SRParticle& operator=( const SRParticle&) = default;
     SRParticle(SRParticle&&) = default;
     SRParticle& operator= (SRParticle&&) = default;
 
-
+//	virtual ~SRParticle(){};
     // constructor for copy from SRParticle, but with offset trackID
     SRParticle(SRParticle const&, int);
 

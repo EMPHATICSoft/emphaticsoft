@@ -10,7 +10,14 @@
 namespace caf
 {
         // default SRTrueParticle constructor
-        SRTrueParticle::SRTrueParticle() 
-                {
-                }
+  SRTrueParticle::SRTrueParticle() : SRParticle()
+  {
+
+  }
+
+  SRTrueParticle::SRTrueParticle(SRParticle& p) : SRParticle(p)
+  {
+
+  }
+
 }

@@ -68,7 +68,7 @@ namespace caf {
     /// Standard constructor: Start with initial position and momentum
     /// of the particle.
     SRTrajectory();
-
+    //virtual ~SRTrajectory(){std::cerr << "Destructing caf::SRTrajectory\n";};
   private:
     list_type  ftrajectory;        ///< The list of trajectory points
     ProcessMap fTrajectoryProcess; ///< map of the scattering process to index

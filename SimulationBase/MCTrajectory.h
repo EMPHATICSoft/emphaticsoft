@@ -66,7 +66,7 @@ namespace simb{
 	public:
 		MCTrajectory();
 		MCTrajectory(const TLorentzVector& position, const TLorentzVector& momentum); 
-		~MCTrajectory();		
+		~MCTrajectory(){std::cerr << "Destructing simb::MCTrajectory\n";};		
 	};
 }
 

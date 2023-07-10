@@ -24,7 +24,6 @@ namespace simb{
 	MCTrajectory::MCTrajectory(const TLorentzVector& position, const TLorentzVector& momentum) 
 		: caf::SRTrajectory(position, momentum){}
 
-	MCTrajectory::~MCTrajectory(){}
 
 
 }
