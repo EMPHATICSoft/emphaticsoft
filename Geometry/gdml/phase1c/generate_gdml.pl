@@ -78,8 +78,8 @@ $nstation_type = 4; # types of station
 $nD0chan = 640; # number of channels per sensor
 $nSSD_station = 8; # num. of stations
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
-@SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); # position of stations, need to be corrected
-#@SSD_station_shift = (0, 100, 200, 300, 500, 900, 1000, 1200); # position of stations, need to be corrected
+@SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); 
+@SSD_station_rotation = ([-0.44, -2.02], [0.24, -1.26], [0,0], [0,0], [-0.06, -1.49], [0.36, 0.31], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 
 # constants for ARICH
 $arich_switch = 1;
@@ -267,7 +267,7 @@ EOF
 	 <!-- BELOW IS FOR SSD -->
 
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
-	 <quantity name="ssdD0_height" value="38.34" unit="mm"/>
+	 <quantity name="ssdD0_height" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
@@ -352,6 +352,11 @@ EOF
 EOF
 		$isensor = 0;
 		for($i = 0; $i < $nSSD_station; ++$i){
+
+					print DEF <<EOF;
+	 <rotation name="ssdStation@{[ $i ]}_rot" x="@{[ $SSD_station_rotation[$i][0] ]}" y="@{[ $SSD_station_rotation[$i][1] ]}" unit="deg"/>
+EOF
+
 			for($j = 0; $j < $SSD_lay[$SSD_station[$i]]; ++$j){
 				for($k = 0; $k < $SSD_par[$SSD_station[$i]]; ++$k){
 
@@ -1334,6 +1339,7 @@ EOF
 		  <physvol name="ssdStation@{[ $i]}_phys">
 			 <volumeref ref="ssdStation@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}_vol"/>
 			 <positionref ref="ssdStation@{[ $i ]}_pos"/>
+			 <rotationref ref="ssdStation@{[ $i ]}_rot"/>
 		  </physvol>
 EOF
 

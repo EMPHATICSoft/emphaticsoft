@@ -19,9 +19,9 @@ namespace caf
    auto hitv = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
 
     if(!fSSDRawLabel.empty() && hitv.failedToGet()) {
-      std::cout << "CAFMaker: No product of type '"
-		<< abi::__cxa_demangle(typeid(*hitv).name(), 0, 0, 0)
-		<< "' found under label '" << fLabel << "'. " << std::endl;
+       std::cout << "CAFMaker: No product of type '"
+      	<< abi::__cxa_demangle(typeid(*hitv).name(), 0, 0, 0)
+      	<< "' found under label '" << fLabel << "'. " << std::endl;
     }
       
  std::vector <emph::rawdata::SSDRawDigit> ssdhits;
@@ -41,7 +41,7 @@ namespace caf
       srSSDHits.TrigNum = ssdhits[hitId].TrigNum();
       srSSDHits.Row = ssdhits[hitId].Row();
     } // end for hitId
-   std::cout << "loop" << std::endl;
+   //   std::cout << "loop" << std::endl;
   }
 
 } // end namespace caf
