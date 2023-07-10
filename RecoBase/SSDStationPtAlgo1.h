@@ -45,7 +45,9 @@ namespace rb {
 	int fId;
 	int fStationNum;
 	mutable int fUserFlag; 
-	double fX, fY, fXErr, fYErr; // Assumes all measurement are taken at the same Z. 
+	double fX, fY; // Assumes all measurement are taken at the same Z. 
+	mutable double fXErr, fYErr; // A bit Sleazy:  we will change the uncertainty, based on a change of the momentm. 
+	// See below  
 	double fChiSq; // only valid for 3 View Points. 
 	double fUorVPred, fUorVObsRaw, fUorVObsCorr; 
 	std::vector<int> fClIds;
@@ -104,8 +106,9 @@ namespace rb {
 	inline double ClusterCorrMeasurement(size_t k) const { 
 	   if (k >= fClAvs.size()) { return DBL_MAX; } return fClAvs[k]; } 
 	inline double ClusterMeasurementError(size_t k) const { 
-	   if (k >= fClSigmas.size()) { return DBL_MAX; } return fClSigmas[k]; } 
-	     
+	   if (k >= fClSigmas.size()) { return DBL_MAX; } return fClSigmas[k]; }
+	    
+	void ReScaleMultUncert(double multScatt120, double pOld, double pNew) const;
         // IO
 	
        friend std::ostream& operator << (std::ostream& o, const SSDStationPtAlgo1& h);

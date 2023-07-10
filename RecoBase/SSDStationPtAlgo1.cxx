@@ -62,6 +62,32 @@ namespace rb {
 	        || (fClViews[2] == emph::geo::W_VIEW)) fType = rb::STXYW; 
 	 }
    }
+   void SSDStationPtAlgo1::ReScaleMultUncert(double multScatt120, double pOld, double pNew) const {  
+     // pseudo const, we don't change the position, just the uncertainty. 
+	  const double ratioPOld120Sq = (120./pOld)*(120./pOld);
+	  const double ratioPNew120Sq = (120./pNew)*(120./pNew);
+	  const double xErrSQOther = fXErr*fXErr - multScatt120*multScatt120*ratioPOld120Sq;
+	  const double fXErrOld = fXErr; 
+	  if (xErrSQOther < 0.) {
+	    std::cerr << " ReScaleMultUncert::SSDStationPtAlgo1, Station " << fStationNum<< " pOld " << pOld 
+	             << " pNew " << pNew << " ratioPOldSq " << ratioPOld120Sq << " new " 
+		     << ratioPNew120Sq << " xErrSQOther " << xErrSQOther << " mulScatt120 " <<  multScatt120
+		     << " OlXErr " << fXErrOld << std::endl;
+	    std::cerr << " SSDStationPtAlgo1::ReScaleMultUncert Problem, multScatt too large for X view !!! pOld = " 
+	              << pOld << " X Err " << fXErr << " Fatal, quit now.. " << std::endl; 
+	    exit(2); 
+	  }
+	  fXErr  = std::sqrt(xErrSQOther + multScatt120*multScatt120*ratioPNew120Sq); 
+	  const double yErrSQOther = fYErr*fYErr - multScatt120*multScatt120*ratioPOld120Sq;
+	  if (yErrSQOther < 0.) {
+	    std::cerr << " SSDStationPtAlgo1::ReScaleMultUncert Problem, multScatt too large for Y view !!! pOld = " 
+	              << pOld << " Y Err " << fYErr << " Fatal, quit now.. " << std::endl; 
+	    exit(2); 
+	  }
+	  fYErr = std::sqrt(yErrSQOther + multScatt120*multScatt120*ratioPNew120Sq); 
+   } 
+   //
+   //     
    std::ostream& operator<< (std::ostream& o, const rb::SSDStationPtAlgo1& h) {
      o << "SSD Station Point, Algo1 for Station  "<< h.Station() << ", type is ";
      switch (h.Type()) {
