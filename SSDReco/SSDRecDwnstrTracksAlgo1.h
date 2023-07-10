@@ -38,15 +38,19 @@ namespace emph {
           runhist::RunHistory *fRunHistory;
           emph::geo::Geometry *fEmgeo;
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+	  ssdr::ConvertDigitToWCoordAlgo1 fCoordConvert;   
+	    //  This is also invoked in SSDRecStationPoints.. Along the volatile Alignment Params, should be an art service.  
 	  int fRunNum;  // The usual Ids for a art::event 
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
-	  bool fDebugIsOn; 
+	  bool fDebugIsOn;
+	  bool fIsMC; // The usual Ugly flag..  
 	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
 	  bool fNoMagnet; // set once we know the geometry.. 
 	  double fChiSqCut;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
+	  double fChiSqCutPreArb;
 	  std::string fTokenJob;
 	  ssdr::SSDDwnstrTrackFitFCNAlgo1 *fFitterFCN;
 	  //
@@ -56,6 +60,8 @@ namespace emph {
 	   
 	  mutable std::ofstream fFOutTrs;
 	  // Internal stuff.. ???
+	  double fPrelimFitMom;
+	  double fPrelimFitChiSq;
 	  
 	public:
 	 inline void SetDebugOn(bool v = true) { 
@@ -69,12 +75,22 @@ namespace emph {
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
+	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
 	 inline void SetPreliminaryMomentum(double p) { // For multiple scattering uncertainties.. 
 	   fPrelimMomentum = p; 
+	   fCoordConvert.SetForMomentum(p);
 	   fInputSt2Pts.SetPreliminaryMomentum(p); 
 	   fInputSt3Pts.SetPreliminaryMomentum(p); 
 	   fInputSt4Pts.SetPreliminaryMomentum(p); 
 	   fInputSt5Pts.SetPreliminaryMomentum(p); 
+	 } 
+	 inline void SetForMC(bool v=true) { // For multiple scattering uncertainties.. 
+	   fIsMC = v;
+	   fCoordConvert.SetForMC(v);
+	   fInputSt2Pts.SetForMC(v); 
+	   fInputSt3Pts.SetForMC(v); 
+	   fInputSt4Pts.SetForMC(v); 
+	   fInputSt5Pts.SetForMC(v); 
 	 } 
 	 inline void SetTokenJob(const std::string &aT) { 
 	   fTokenJob = aT; fInputSt2Pts.SetTokenJob(aT); 
@@ -117,7 +133,8 @@ namespace emph {
 	 size_t RecAndFitAll4Stations();
 	 size_t RecAndFitStation234();
 	 size_t RecAndFitStation235();
-	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
+	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart, double pStart = 50.);
+	 bool doPrelimFit(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
 	 bool IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const;	 
 	 void openOutputCsvFiles() const;	 
 	
