@@ -205,7 +205,7 @@ namespace emph {
     EDProducer(pset), 
     fFilesAreOpen(false), fCheck1Stu(false), fTokenJob("undef"), fSSDHitLabel("?"),
      fRun(0), fEvtNum(INT_MAX), fNEvents(0), 
-     fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(40.), fFracChargeSharing(0.3),
+     fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(80.), fFracChargeSharing(0.3),
      fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), fHalfHeight(0.5*fSensorHeight),
      fDeadStripsFileName("SSDCalibDeadChanSummary_none_1055.txt"),
      fRunHistory(nullptr), fEmgeo(nullptr)  
@@ -225,7 +225,7 @@ namespace emph {
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
       fCheck1Stu = pset.get<bool>("doCheck11Stu", false);
       fSSDHitLabel = pset.get<std::string>("SSDHitLabel");
-      fConvertDedxToADCbits = pset.get<double>("ConvertDedxToADCbits", 40.);
+      fConvertDedxToADCbits = pset.get<double>("ConvertDedxToADCbits", 80.);
       fFracChargeSharing =  pset.get<double>("FracChargeSharing", 0.3);
       fDeadStripsFileName = pset.get<std::string>("fileNameDeadStrip", "SSDCalibDeadChanSummary_none_1055.txt"); 
     }
@@ -269,13 +269,13 @@ namespace emph {
     //
     //  this->testChannelMapBackConverter(); 
       
-      const bool debugIsOn = true;
       ++fNEvents;
       std::unique_ptr<std::vector<rawdata::SSDRawDigit> >  ssdhlcol(new std::vector<rawdata::SSDRawDigit>  );
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fEvtNum = evt.id().event();
       
+      const bool debugIsOn = (fEvtNum == 51);
       if (debugIsOn) std::cerr << " SimSSDToRawDataSSD::analyze , event " << fEvtNum <<  std::endl; 
       
 //      auto tokenForTrack = evt.getProductTokens<std::vector<sim::Track>(); 
@@ -366,10 +366,10 @@ namespace emph {
 	                           static_cast<short int>(kSe), static_cast<short int>(kStrip) )) continue; // could happen... 
 	    adcVals[kStrip] += fConvertDedxToADCbits*deTot*1.0e4; // completly arbitrary for now.. 
 	  } // Collecting the input Sim data 
-	  if (debugIsOn) std::cerr << " summing all up for sensor " << kSe << " station " << kSt << std::endl;
+	  if (debugIsOn) std::cerr << " Summing all up for sensor " << kSe << " station " << kSt << std::endl;
 	  for (size_t kStr=0; kStr != adcVals.size(); kStr++) { 
 	    if (adcVals[kStr] == 0) continue; // zero-suppression is in effect
-	    if (debugIsOn) std::cerr << " summing up, at strip " << kStr << " uint32_t conv " << static_cast<uint32_t>(kStr)
+	    if (debugIsOn) std::cerr << " Summing up, at strip " << kStr << " uint32_t conv " << static_cast<uint32_t>(kStr)
 	                             << " Adc value " << adcVals[kStr] << std::endl;
 	    size_t kAdc=0;
 	    if (static_cast<unsigned int>(adcVals[kStr]) < adcMap[kAdc]) continue; // below threshold, skip. 
