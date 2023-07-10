@@ -12,6 +12,7 @@
 #define SIMB_MCPARTICLE_H
 
 #include "StandardRecord/SRParticle.h"
+#include "StandardRecord/SRTrajectory.h"
 #include <set>
 #include <string>
 #include <iostream>

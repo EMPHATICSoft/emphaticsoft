@@ -18,6 +18,21 @@
 #include <set>
 #include <map>
 
+namespace simb{
+	MCTrajectory::MCTrajectory(): caf::SRTrajectory(){}
+	
+	MCTrajectory::MCTrajectory(const TLorentzVector& position, const TLorentzVector& momentum) 
+		: caf::SRTrajectory(position, momentum){}
+
+	MCTrajectory::~MCTrajectory(){}
+
+
+}
+
+
+
+
+/*
 namespace simb {
 
   // Nothing special need be done for the default constructor or destructor.
@@ -284,3 +299,4 @@ namespace simb {
   }
 
 } // namespace sim
+*/

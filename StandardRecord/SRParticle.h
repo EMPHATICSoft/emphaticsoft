@@ -55,7 +55,7 @@ namespace caf {
                const int mother  = -1,
                const double mass = s_uninitialized,
                const int status  = 1);
-
+//    virtual ~SRParticle() = default;
 
     // our own copy and move assignment constructors (default)
     SRParticle(SRParticle const &)            = default; // Copy constructor.
