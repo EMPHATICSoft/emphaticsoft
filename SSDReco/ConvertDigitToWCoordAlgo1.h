@@ -30,9 +30,11 @@ namespace emph {
 	  static const size_t fNumStrips = 639; // Per wafer. 
 	  static const double fOneOverSqrt12;
 	  bool fIsMC; // Ugly!.  
+	  bool fIsReadyToGo; // Can't fully initialize everything in the constructor.. This should be amn ar service!!! 
 	  char fView;
 	  bool fDebugIsOn;
-	  bool fMomentumIsSet;      
+	  bool fMomentumIsSet;
+	  double fEffMomentum;      
 	  double fPitch;
 	  double fHalfWaferHeight;
 	  // This is mostly obsolete... need clean-up
@@ -47,7 +49,8 @@ namespace emph {
 // 
 // Additional variables for resolution studies,  chi square cuts and so forth. 
 //	  
-	  std::vector<double> fMultScatUncert;
+	  std::vector<double> fMultScatUncert120; // at 120 GeV, does not include the target! 
+	  std::vector<double> fMultScatUncert;  // Possibly rescaled at a given momentum. 
 	  std::vector<double> fOtherUncert;
 	  std::vector<double> fPitchOrYawAngles;
 //
@@ -59,7 +62,7 @@ namespace emph {
 	public:
 	 inline void SetDebugOn( bool v=true) { fDebugIsOn = v; } 
 	 inline void SetForMC(bool v=true) { fIsMC = v;} 
-	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } 
+	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } // Obsolete.. 
 	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
 	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v;} 
 	 inline void SetZLocShifts(std::vector<double> v) { fZLocShifts = v;} 
@@ -83,7 +86,9 @@ namespace emph {
 	 }
 	 void InitializeAllCoords(const std::vector<double> &zCoords);
 	 void SetForMomentum(double p); // Rescale the Magnet kick, deviation on the X-Z plane 
-	 
+	 inline bool IsReadyToGo() const {return fIsReadyToGo; } // This class should be cleaned, with Volatile, moved as Geometry service. 
+	 inline double GetMultScatUncert(size_t kSt) const { return fMultScatUncert[kSt]; } // no checks.. Explit args in SSDRecDwnnstTr
+	 inline double GetMultScatUncert120(size_t kSt) const { return fMultScatUncert120[kSt]; }
 	 inline double GetTsUncertainty(size_t kSt, std::vector<rb::SSDCluster>::const_iterator itCl) const {
 	  double aRMS = itCl->WgtRmsStrip();
 	  double errMeasSq = (1.0/12.)*fPitch * fPitch * 1.0/(1.0 + aRMS*aRMS); // Very approximate, need a better model. 
