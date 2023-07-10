@@ -80,6 +80,9 @@ namespace emph {
        if (fEmgeo == nullptr) {
          fRunHistory = new runhist::RunHistory(fRunNum);   
          fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+        } 
+	// This should be part of the Geometry package.. 
+	if (!fCoordConvert.IsReadyToGo()) {
 	 // We use the nominal Z position, for now.. 
 	 std::vector<double> zPosStations;
 	 std::cerr << " SSDRecStationDwnstrAlgo1::RecIt Storing Z Positions ..." << std::endl; 
@@ -153,11 +156,13 @@ namespace emph {
          if (itClX->Station() != fStationNum) continue;
 	 if (itClX->View() != emph::geo::X_VIEW) continue;
 	 size_t kSeX = static_cast<size_t>(itClX->Sensor());
+	 const std::pair<double, double> xDat = fCoordConvert.getTrCoord(itClX, fPrelimMomentum);
 	 if (fDebugIsOn) {
 	   std::cerr << " At cluster on X view, station " << itClX->Station() << " Sensor  " 
-	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() << " RMS " << itClX->WgtRmsStrip() << " ClID " << itClX->ID() << std::endl;
+	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() 
+		     << " RMS " << itClX->WgtRmsStrip() << " ClID " << itClX->ID() << " X (no Roll) " 
+		     << xDat.first << " +- " << std::sqrt(xDat.second) << std::endl;
 	 }
-	 const std::pair<double, double> xDat = fCoordConvert.getTrCoord(itClX, fPrelimMomentum);
          size_t kuy = 0;
 	 const double angleRollX = fEmVolAlP->Roll(emph::geo::X_VIEW, kSt, kSeX);
 	 const double angleRollCenterX = fEmVolAlP->RollCenter(emph::geo::X_VIEW, kSt, kSeX);
@@ -167,11 +172,13 @@ namespace emph {
            if (itClY->Station() != fStationNum) continue;
 	   if (itClY->View() != emph::geo::Y_VIEW) continue;
 	   size_t kSeY = static_cast<size_t>(itClY->Sensor());
-	   if (fDebugIsOn) {
-	     std::cerr << " At cluster on Y view, station " << itClY->Station() << " Sensor  " 
-	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " << itClY->WgtRmsStrip() << " ClID " << itClY->ID() << std::endl;
-	   }
 	   const std::pair<double, double> yDat = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
+	   if (fDebugIsOn) {
+	     std::cerr << " ... At cluster on Y view, station " << itClY->Station() << " Sensor  " 
+	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " 
+		     << itClY->WgtRmsStrip() << " ClID " << itClY->ID() << " Y (no Roll) " 
+		     << yDat.first << " +- " << std::sqrt(yDat.second) << std::endl;
+	   }
 	   if (std::abs(yDat.first) > 60.) { // about 20 mm gap? 
 	     if (fDebugIsOn) {
 	        std::cerr << " ..... Very large Y coordinate .." << yDat.first << " Investigate.. " << std::endl; 
@@ -194,8 +201,7 @@ namespace emph {
 	     vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
 	   }
            size_t kuu = 0;
-	   if (fDebugIsOn) std::cerr << " .... yDat " << yDat.first << " +- " << std::sqrt(yDat.second) 
-	                             <<  " uPred " << uPred << " vPred " << vPred << std::endl; 
+	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
              if (fClUsages[kuu] != 0) continue;
              if (itClUorV->Station() != fStationNum) continue;
@@ -203,7 +209,7 @@ namespace emph {
 	     if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
 	     size_t kSeU = static_cast<size_t>(itClUorV->Sensor()); // dropping the suffix"orV". 
 	     if (fDebugIsOn) {
-	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
+	       std::cerr << " ... ... At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
 	             << kSeU << " weighted strip " << itClUorV->WgtAvgStrip() 
 		     << " RMS " << itClUorV->WgtRmsStrip() << " ClID " << itClUorV->ID() << std::endl;
 	     }

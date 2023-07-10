@@ -48,7 +48,7 @@ namespace emph {
 	  bool fDebugIsOn; 
           bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
 	  bool fDoFirstAndLastStrips;
-	  double fChiSqCut;
+	  double fChiSqCut, fChiSqCutPreArb;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  std::string fTokenJob;
 	  //
@@ -70,6 +70,7 @@ namespace emph {
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
+	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
 	 inline void SetForMC(bool v=true) { fIsMC=v; fCoordConvert.SetForMC();  }
 	 inline void SetDoFirstAndLastStrips(bool v=true) { fDoFirstAndLastStrips = v; } 
 	 inline void SetPreliminaryMomentum(double p) { fPrelimMomentum = p; } 
@@ -99,6 +100,7 @@ namespace emph {
 	 inline void ResetUsage() const { // pseudo const, not part of this reconstruction. For tracking usage.. 
 	   for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++) it->SetUserFlag(0);
 	 }
+	 	 
 	 size_t RecIt(const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr); 
 	 
 	 void dumpInfoForR() const;
