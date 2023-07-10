@@ -29,12 +29,12 @@ namespace emph {
     const double ConvertDigitToWCoordAlgo1::fOneOverSqrt12 = 1.0/std::sqrt(12.);
      
      ConvertDigitToWCoordAlgo1::ConvertDigitToWCoordAlgo1(char aView) :        
-       fIsMC(false), fView(aView), fDebugIsOn(false), 
-       fMomentumIsSet(false), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
+       fIsMC(false), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
+       fMomentumIsSet(false), fEffMomentum(120.), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
        fZCoords(fNumStations+2, 0.), fZLocShifts(fNumStations+2, 0.), 
        fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fNominalOffsets(fNumStations, 0.), fDownstreamGaps(2, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0),
-       fMultScatUncert( fNumStations, 0.), fOtherUncert(fNumStations, 0.),
+       fMultScatUncert120( fNumStations, 0.), fMultScatUncert(fNumStations, 0.), fOtherUncert(fNumStations, 0.),
        fPitchOrYawAngles(fNumStations, 0.),
        fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
      { 
@@ -45,13 +45,14 @@ namespace emph {
         }
      }
      void ConvertDigitToWCoordAlgo1::SetForMomentum(double p) {
-       if (fMomentumIsSet) {
-         std::cerr << " ssdr::SSDAlign3DUVAlgo1::SetForMomentum, already called, skip!!! " << std::endl;
+       if (fMomentumIsSet || (std::abs(std::abs(fEffMomentum) - std::abs(p)) < 1.0e-3) ) {
+//         std::cerr << " ssdr::SSDAlign3DUVAlgo1::SetForMomentum, already called, skip!!! " << std::endl;
 	 return;
        }
        const double pRatio = 120.0 / p;
        fMagnetKick120GeV *= pRatio;
-       for (size_t k=0; k != fMultScatUncert.size(); k++) fMultScatUncert[k] *= std::abs(pRatio); 
+       for (size_t k=0; k != fMultScatUncert.size(); k++) fMultScatUncert[k] = fMultScatUncert120[k] * std::abs(pRatio);
+       fEffMomentum = std::abs(p); 
        fMomentumIsSet = true;
      }
      void  ConvertDigitToWCoordAlgo1::InitializeAllCoords(const std::vector<double> &zCoords) {
@@ -131,19 +132,22 @@ namespace emph {
        fMultScatUncert[4] =  0.1022451;   
        fMultScatUncert[5] =  0.1327402; 
        */ 
-       fMultScatUncert[1] =  0.003830147;   
-       fMultScatUncert[2] =  0.01371613;	
-       fMultScatUncert[3] =  0.01947578;	
-       fMultScatUncert[4] =  0.05067243;  
-       fMultScatUncert[5] =  0.06630287;
+       // fMultScatUncert[1] =  0.003830147;   
+       // fMultScatUncert[2] =  0.01371613;	
+       //fMultScatUncert[3] =  0.01947578;	
+       // fMultScatUncert[4] =  0.05067243;  
+       // fMultScatUncert[5] =  0.06630287;
        /*
        ** This is momentum dependent... Carefull..At 120 GeV, no target, one has: (after rejection of wide scattering event, presumably hadronic.) 
        */
-       fMultScatUncert[1] =  0.003201263;   
-       fMultScatUncert[2] =  0.00512;   
-       fMultScatUncert[3] =  0.0092;   
-       fMultScatUncert[4] =  0.0212;   
-       fMultScatUncert[5] =  0.0264; 
+       fMultScatUncert120[1] =  0.003201263;   
+       fMultScatUncert120[2] =  0.00512;   
+       fMultScatUncert120[3] =  0.0092;   
+       fMultScatUncert120[4] =  0.0212;   
+       fMultScatUncert120[5] =  0.0264; 
+       
+       for (size_t kSt=0; kSt != fMultScatUncert120.size(); kSt++) fMultScatUncert[kSt] = fMultScatUncert120[kSt];
+       fIsReadyToGo = true;
         
      }
      
