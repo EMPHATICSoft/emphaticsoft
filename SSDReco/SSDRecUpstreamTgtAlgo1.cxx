@@ -54,7 +54,7 @@ namespace emph {
         runhist::RunHistory *aRunHistory = new runhist::RunHistory(fRunNum);
         fEmgeo = new emph::geo::Geometry(aRunHistory->GeoFile());
       }
-      const bool debugIsOn = (fEvtNum == 999999); 
+      const bool debugIsOn = (fEvtNum < 7); 
       if (debugIsOn) std::cerr << " SSDRecUpstreamTgtAlgo1::recoXY, spill " << fSubRunNum << " evt " << fEvtNum << std::endl;
       fTrXYs.clear();
       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsX0;
@@ -107,7 +107,12 @@ namespace emph {
         const double rmsStrNX0 = std::max(0.1, itClX0->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
 	const double stripX0ErrSq = (1.0/rmsStrNX0*rmsStrNX0)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
 	const double X0Raw = -1.0*stripX0*pitchX0 + fEmVolAlP->TrPos(emph::geo::X_VIEW, 0, 0); 
-	if (debugIsOn) std::cerr << " .. At station 0, X view strip0 " << stripX0 << "  X0 Raw " << X0Raw << std::endl;
+	if (debugIsOn) {
+	    std::cerr << " .. At station 0, X view strip0 " << stripX0 << "  X0 Raw " << X0Raw << std::endl;
+	    std::cerr << " Average strip " << itClX0->AvgStrip() << " Min Strip " 
+	              << itClX0->MinStrip() << " Max Strip " << itClX0->MaxStrip() << std::endl;
+	    
+	}
         for(std::vector< std::vector<rb::SSDCluster>::const_iterator >::const_iterator ittClY0=mySSDClsPtrsY0.cbegin(); 
             ittClY0 != mySSDClsPtrsY0.cend(); ittClY0++) {
 	  std::vector<rb::SSDCluster>::const_iterator itClY0 = *ittClY0;  
