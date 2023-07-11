@@ -136,11 +136,11 @@ namespace emph {
   void ParticleListAction::PreTrackingAction(const G4Track* track)
   {
 	const G4double energy = track->GetKineticEnergy();		// get the kinetic energy
-	float fEnergyCut = 0.001;;			
-    	// std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
+	//	float fEnergyCut = 1;			
+	//	std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
 
 	if (energy < fEnergyCut){   			// if the particle is below the energy cut, we should not add it to the list, and skip it
-                std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
+	  //                std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
                 fParticle = 0;          		// we do not want to step this particle, so setting fParticle to 0 is ?needed?
                 return;
         }

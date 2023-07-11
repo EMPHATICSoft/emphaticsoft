@@ -194,13 +194,13 @@ namespace caf {
     arichf.Fill(evt,rec);
 
 */   // Get SRTruth  
-/*
+
    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
   	SRTruthFiller srtruthf;
   	srtruthf.Fill(evt,rec);
     } // end if statement
-*/
+/*
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
@@ -210,7 +210,7 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-
+*/
     fRecTree->Fill();
     srcol->push_back(rec);
 

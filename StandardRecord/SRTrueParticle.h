@@ -18,13 +18,11 @@ namespace caf
         {
         public:
                 std::vector <caf::SRTrueParticle> daughters;
-		//caf::SRTrueParticle mother;
-
+		
                 SRTrueParticle();
 		SRTrueParticle(SRParticle& b);
                 ~SRTrueParticle(){};
 
-		//SRTrueParticle(const SRParticle& p){};
         }; //end class>
 }
 #endif //SRTrueParticle_H

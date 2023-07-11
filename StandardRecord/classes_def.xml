@@ -59,6 +59,7 @@
  <class name="caf::SRTrueParticle" ClassVersion="-1" >
   <version ClassVersion="-1" checksum="1"/>
  </class>
+<class name="std::vector<caf::SRTrueParticle>" />
  <class name="caf::SRTrajectory" ClassVersion="-1" >
   <version ClassVersion="-1" checksum="1"/>
  </class>
