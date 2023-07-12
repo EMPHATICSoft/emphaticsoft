@@ -192,9 +192,9 @@ namespace emph
 
 //    std::cout << " In vol " << vol->GetName() << "  Mother logical volume of strip is " << volLog0->GetName() << std::endl; 
     size_t kSt = static_cast<size_t>(station);
-    std::cout << "(station, plane, sensor, strip) = (" << station << "," 
-    	      << plane << "," << sensor-sensorStationNumberOffsets[kSt] << "," << strip << ")" 
-	      << " Local pos0 " << localPos0 << std::endl;
+//    std::cout << "(station, plane, sensor, strip) = (" << station << "," 
+//    	      << plane << "," << sensor-sensorStationNumberOffsets[kSt] << "," << strip << ")" 
+//	      << " Local pos0 " << localPos0 << std::endl;
     ssdHit.SetStation(station);
     ssdHit.SetPlane(plane); // ill defined... Should either a char or something like empk::geo::X_VIEW, ...
     ssdHit.SetSensor(sensor - sensorStationNumberOffsets[kSt]);
@@ -205,7 +205,7 @@ namespace emph
     ssdHit.SetP(mom0);
 
     fSSDHits.push_back(ssdHit);
-    if (fPerformFOutStudy) {
+    if (fPerformFOutStudy &&  (fRunManager->GetCurrentEvent()->GetEventID() < 20000)) {
       fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
       fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding();
       fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2];
