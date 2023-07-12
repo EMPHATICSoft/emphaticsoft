@@ -272,11 +272,11 @@ namespace emph {
       std::ostringstream fNameVertStrStr; fNameVertStrStr << "./StudyAllTrial1Algo1_Vertices_" << fRun << "_" << fTokenJob << "_V1.txt";
       std::string fNameVertStr(fNameVertStrStr.str());
       fFOutVertices.open(fNameVertStr.c_str());
-      fFOutVertices << " spill evt iV  itUp itDwn zx zxErr zy zyErr " << std::endl;  
+      fFOutVertices << " spill evt iV  itUp itDwn zx zxErr zy zyErr xVUp yVUp " << std::endl;  
       std::ostringstream fNameVertDStrStr; fNameVertDStrStr << "./StudyAllTrial1Algo1_VertDwn_" << fRun << "_" << fTokenJob << "_V1.txt";
       std::string fNameVertDStr(fNameVertDStrStr.str());
       fFOutVertDwn.open(fNameVertDStr.c_str());
-      fFOutVertDwn << " spill evt iV  itDwn1 itDwn2 zx zxErr zy zyErr " << std::endl;  
+      fFOutVertDwn << " spill evt iV  itDwn1 itDwn2 zx zxErr zy zyErr xVDwn yVDw xVUp yVUp  " << std::endl;  
       fFilesAreOpen = true;
     }
     
@@ -316,7 +316,8 @@ namespace emph {
 //      const bool debugIsOn = ((fSubRun == 100) && (fEvtNum == 700)) ; // Real data, for Iron Brick run 
 //      const bool debugIsOn = ((fEvtNum == 51) || (fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
 //      const bool debugIsOn = ((fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
-     const bool debugIsOn = false;
+//     const bool debugIsOn = (fEvtNum > 81717); // root-Minuit crash at evt 81719 fixed by eliminating very back prelim chi-sq 
+       const bool debugIsOn = false;
     //
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
@@ -454,6 +455,7 @@ namespace emph {
       const double dz20 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 2) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 0);
       if (debugIsOn) std::cerr << "---------------------------- " << std::endl 
          << " Starting Ustream/Downstream vertexin..on evt " << fEvtNum <<  std::endl; 
+      double xVUpstr = DBL_MAX; double yVUpstr = DBL_MAX;
       for(std::vector<rb::BeamTrackAlgo1>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();  itUp != fUpStreamBeamTrRec.CEnd(); itUp++, kTrUp++) {
         const double x0u = itUp->XOffset(); const double y0u = itUp->YOffset();
 	const double slx0u = itUp->XSlope(); const double sly0u = itUp->YSlope();
@@ -488,24 +490,33 @@ namespace emph {
 	  const double zyErr = std::abs(zy) * std::sqrt(zyNumErr*zyNumErr/(zyNum*zyNum) + zyDenomErr*zyDenomErr/(zyDenom*zyDenom)); 
 	  if (debugIsOn) std::cerr << " Z vertex, X-Z plane " << zx << " +- " << zxErr << " Z vertex, Y-Z plane " << zy << " +- " << zyErr << std::endl;
 	  const double zz = 0.5*(zx+zy); // arbitrary.. 
+	  xVUpstr = x0u + zz * itUp->XSlope(); yVUpstr = y0u + zz * itUp->YSlope();
  	  if (std::abs(zz - 250.) < 5000.) fNumVertices++;
 	  else continue;
 //          fFOutVertices << " subRun evt iV itUp itDwn zx zxErr zyErr  zyErr " << std::endl;  
 	   fFOutVertices << " " << fSubRun << " " << fEvtNum << " " << fNumVertices << " " << kTrUp << " " << kTrDwn 
-	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr << std::endl; 
+	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr << " " << xVUpstr << " " <<  yVUpstr <<  std::endl; 
         } //  on dwonstream Tracks
       } // on Upstream tracks.. 
 //      if (fNEvents > 200) {
 //        std::cerr << " Analyze... Stop here.. check after 200 events " << std::endl; exit(2);
 //      }
       
-      size_t kTrDwn1 = 0;
       if (debugIsOn) std::cerr << "---------------------------- " << std::endl 
          << " Starting Dwonstream/Downstream vertexin.. on evt " << fEvtNum <<  std::endl; 
 	const double z2 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
+      // Loop for the stiffest track, to estimate best transverse position. 
+      int itIDBest = INT_MAX; double highestP = 0.;
+      for(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1 =  fDwnstrTrRec.CBegin();  it1 != fDwnstrTrRec.CEnd(); it1++) {
+	if (it1->ChiSq() > fDwnstrVertChiSqCut) continue;
+	if (std::abs(it1->Momentum()) < 1.0) continue; 
+        if (std::abs(it1->Momentum()) > highestP) { highestP = std::abs(it1->Momentum()); itIDBest = it1->ID(); }
+      }
+      size_t kTrDwn1 = 0;
+      double xVDwnstr = DBL_MAX; double yVDwnstr = DBL_MAX;
       for(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1 =  fDwnstrTrRec.CBegin();  it1 != fDwnstrTrRec.CEnd(); it1++, kTrDwn1++) {
 	if (it1->ChiSq() > fDwnstrVertChiSqCut) continue;
-	if (std::abs(it1->Momentum()) < 2.0) continue; 
+	if (std::abs(it1->Momentum()) < 1.0) continue; 
         const double xd1 = it1->XOffset(); const double yd1 = it1->YOffset();	
 	const double slxd1 = it1->XSlope(); const double slyd1 = it1->YSlope();
 	// Ignoring correlation between X and Y, via the U and W measurements.. 
@@ -516,7 +527,7 @@ namespace emph {
 	size_t kTrDwn2 = 0;
         for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it2 = fDwnstrTrRec.CBegin();  it2 != fDwnstrTrRec.CEnd(); it2++, kTrDwn2++) { 
 	  if (it2->ChiSq() > fDwnstrVertChiSqCut) continue;
-	  if (std::abs(it2->Momentum()) < 2.0) continue; 
+	  if (std::abs(it2->Momentum()) < 1.0) continue; 
 	  if (kTrDwn2 < kTrDwn1) continue;
 	  if (it2 == it1) continue;
 	  const double aMass = this->InvariantMass(it1, it2);
@@ -545,6 +556,13 @@ namespace emph {
 	  // Again, ingore correlation between offsets and slopes.. 
 	  const double zyErr = std::abs(zy) * std::sqrt(zyNumErr*zyNumErr/(zyNum*zyNum) + zyDenomErr*zyDenomErr/(zyDenom*zyDenom)); 
 	  const double zz = 0.5*(zx+zy); // arbitrary.. 
+	  if (itIDBest == it1->ID()) { 
+	    xVDwnstr = xd1 + slxd1 * (zz - z2);
+	    yVDwnstr = yd1 + slyd1 * (zz - z2);
+	  } else if (itIDBest == it2->ID()) {
+	    xVDwnstr = xd2 + slxd2 * (zz - z2);
+	    yVDwnstr = yd2 + slyd2 * (zz - z2);
+	  }
 	  if (debugIsOn)  {
 	     std::cerr << " Z vertex, X-Z plane " << zx << " +- " << zxErr << " Z vertex, Y-Z plane " << zy << " +- " << zyErr << std::endl;
 	     std::cerr << " Check evt number.. Within vertex loop  " << fEvtNum << std::endl;
@@ -552,15 +570,16 @@ namespace emph {
  	  if (std::abs(zz - 250.) < 5000.) fNumVertDwn++;
 //          fFOutVertices << " subRun evt iV itUp itDwn zx zxErr zyErr  zyErr " << std::endl;  
 	   fFOutVertDwn << " " << fSubRun << " " << fEvtNum << " " << fNumVertDwn << " " << it1->ID() << " " << it2->ID() 
-	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr << std::endl; 
+	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr 
+			 << " " << xVDwnstr << " " <<  yVDwnstr << " " << xVUpstr << " " << yVUpstr << std::endl; 
         } //  on dwonstream Tracks
       } // on Upstream tracks.. 
       this->dumpSummaryMultiplicities();  
-      if (debugIsOn) { 
-          std::cerr << " .... O.K., End of Analyze of art module, enough is enough .. " << std::endl; 
-	  fFOutVertDwn.close(); fFOutVertices.close(); fFOutMultSum.close();
-          exit(2); 
-      }
+//      if (debugIsOn) { 
+//          std::cerr << " .... O.K., End of Analyze of art module, enough is enough .. " << std::endl; 
+//	  fFOutVertDwn.close(); fFOutVertices.close(); fFOutMultSum.close();
+//          exit(2); 
+//      }
       return;
 	
     } // end of Analyze, event by events.  
