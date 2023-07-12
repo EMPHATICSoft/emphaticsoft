@@ -69,6 +69,7 @@ namespace emph {
     static const int n_ch_rpc = N_CH_RPC; // Number of all channels for RPC
     static const int RPC_board = 1283;
     static const int T0_board = 1282;
+    static const int n_wf = 100;
 
     const double epoch_const    = 10240026.0; // Constant for epochtime
     const double coarse_const   = 5000.0; // Constant for coarsetime
@@ -186,13 +187,14 @@ namespace emph {
     std::vector<double> tdc_lead;
     std::vector<double> tdc_trail;
     std::vector<double> tot_vec;
+    std::vector<uint16_t> adc_wf_top;
+    std::vector<uint16_t> adc_wf_bot;
     int    n_tdc;
     int    n_tdc_lead;
     int    n_tdc_trail;
     double tot_temp;
 
     TTree *tree;
-    TTree *tree_fine;
     std::array<int,    n_seg_t0>  T0_seg;  // Segment of T0
     std::array<int,    n_seg_rpc> RPC_seg; // Segment of RPC
 
@@ -209,6 +211,9 @@ namespace emph {
     std::array<double, n_seg_t0> ADC_bot_hgt; // Pulse height of bottom signals
     std::array<double, n_seg_t0> ADC_top_blw; // Baseline of top signals
     std::array<double, n_seg_t0> ADC_bot_blw; // Baseline of bottom signals
+
+    std::vector<std::vector<double>> ADC_top_wave; // Waveform of top signals
+    std::vector<std::vector<double>> ADC_bot_wave; // Waveform of bottom signals
 
     std::array<double, n_seg_rpc> RPC_lft_ln_hi; // RPC caribration parameter of high edge for left signals
     std::array<double, n_seg_rpc> RPC_lft_ln_lo; // RPC caribration parameter of low edge for left signals
@@ -322,6 +327,9 @@ namespace emph {
     TDC_bot_trail_fine.resize(n_seg_t0);
     TDC_bot_tot.resize(n_seg_t0);
 
+    ADC_top_wave.resize(n_seg_t0);
+    ADC_bot_wave.resize(n_seg_t0);
+
     RPC_lft_ts.resize(n_seg_t0);
     RPC_lft_lead.resize(n_seg_t0);
     RPC_lft_lead_fine.resize(n_seg_t0);
@@ -352,18 +360,24 @@ namespace emph {
     tree->Branch("ADC_bot_hgt", &ADC_bot_hgt);
     tree->Branch("ADC_top_blw", &ADC_top_blw);
     tree->Branch("ADC_bot_blw", &ADC_bot_blw);
+    tree->Branch("ADC_top_wave", &ADC_top_wave);
+    tree->Branch("ADC_bot_wave", &ADC_bot_wave);
 
     tree->Branch("TDC_trg_t",  &TDC_trg_t);
     tree->Branch("TDC_trg_ts",  &TDC_trg_ts);
     tree->Branch("TDC_top_ts",  &TDC_top_ts);
     tree->Branch("TDC_top_lead",  &TDC_top_lead);
+    tree->Branch("TDC_top_lead_fine",  &TDC_top_lead_fine);
     tree->Branch("TDC_top_lead_first",  &TDC_top_lead_first);
     tree->Branch("TDC_top_trail",  &TDC_top_trail);
+    tree->Branch("TDC_top_trail_fine",  &TDC_top_trail_fine);
     tree->Branch("TDC_top_tot",  &TDC_top_tot);
     tree->Branch("TDC_bot_ts",  &TDC_bot_ts);
     tree->Branch("TDC_bot_lead",  &TDC_bot_lead);
+    tree->Branch("TDC_bot_lead_fine",  &TDC_bot_lead_fine);
     tree->Branch("TDC_bot_lead_first",  &TDC_bot_lead_first);
     tree->Branch("TDC_bot_trail",  &TDC_bot_trail);
+    tree->Branch("TDC_bot_trail_fine",  &TDC_bot_trail_fine);
     tree->Branch("TDC_bot_tot",  &TDC_bot_tot);
 
     tree->Branch("RPC_trg_t",  &RPC_trg_t);
@@ -379,61 +393,6 @@ namespace emph {
     tree->Branch("RPC_rgt_trail",  &RPC_rgt_trail);
     tree->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
 
-    tree_fine = tfs->make<TTree>("T0AnaTree_fine","");
-    std::cout << "tree_fine = " << tree_fine << std::endl;
-
-    tree_fine->Branch("T0_seg", &T0_seg);
-    tree_fine->Branch("RPC_seg", &RPC_seg);
-
-    tree_fine->Branch("ADC_top_ts", &ADC_top_ts);
-    tree_fine->Branch("ADC_bot_ts", &ADC_bot_ts);
-    tree_fine->Branch("ADC_top_t", &ADC_top_t);
-    tree_fine->Branch("ADC_bot_t", &ADC_bot_t);
-    tree_fine->Branch("ADC_top_hgt", &ADC_top_hgt);
-    tree_fine->Branch("ADC_bot_hgt", &ADC_bot_hgt);
-    tree_fine->Branch("ADC_top_blw", &ADC_top_blw);
-    tree_fine->Branch("ADC_bot_blw", &ADC_bot_blw);
-
-    tree_fine->Branch("TDC_trg_t",  &TDC_trg_t);
-
-    tree_fine->Branch("TDC_top_lead",  &TDC_top_lead);
-    tree_fine->Branch("TDC_top_lead_fine",  &TDC_top_lead_fine);
-    tree_fine->Branch("TDC_top_lead_first",  &TDC_top_lead_first);
-    tree_fine->Branch("TDC_top_trail",  &TDC_top_trail);
-    tree_fine->Branch("TDC_top_trail_fine",  &TDC_top_trail_fine);
-    tree_fine->Branch("TDC_top_tot",  &TDC_top_tot);
-    tree_fine->Branch("TDC_top_ln_hi",  &TDC_top_ln_hi);
-    tree_fine->Branch("TDC_top_ln_lo",  &TDC_top_ln_lo);
-
-    tree_fine->Branch("TDC_bot_lead",  &TDC_bot_lead);
-    tree_fine->Branch("TDC_bot_lead_fine",  &TDC_bot_lead_fine);
-    tree_fine->Branch("TDC_bot_lead_first",  &TDC_bot_lead_first);
-    tree_fine->Branch("TDC_bot_trail",  &TDC_bot_trail);
-    tree_fine->Branch("TDC_bot_trail_fine",  &TDC_bot_trail_fine);
-    tree_fine->Branch("TDC_bot_tot",  &TDC_bot_tot);
-    tree_fine->Branch("TDC_bot_ln_hi",  &TDC_bot_ln_hi);
-    tree_fine->Branch("TDC_bot_ln_lo",  &TDC_bot_ln_lo);
-
-    tree_fine->Branch("RPC_trg_t",  &RPC_trg_t);
-
-    tree_fine->Branch("RPC_lft_lead",  &RPC_lft_lead);
-    tree_fine->Branch("RPC_lft_lead_fine",  &RPC_lft_lead_fine);
-    tree_fine->Branch("RPC_lft_lead_first",  &RPC_lft_lead_first);
-    tree_fine->Branch("RPC_lft_trail",  &RPC_lft_trail);
-    tree_fine->Branch("RPC_lft_trail_fine",  &RPC_lft_trail_fine);
-    tree_fine->Branch("RPC_lft_tot",  &RPC_lft_tot);
-    tree_fine->Branch("RPC_lft_ln_hi",  &RPC_lft_ln_hi);
-    tree_fine->Branch("RPC_lft_ln_lo",  &RPC_lft_ln_lo);
-
-    tree_fine->Branch("RPC_rgt_lead",  &RPC_rgt_lead);
-    tree_fine->Branch("RPC_rgt_lead_fine",  &RPC_rgt_lead_fine);
-    tree_fine->Branch("RPC_rgt_lead_first",  &RPC_rgt_lead_first);
-    tree_fine->Branch("RPC_rgt_trail",  &RPC_rgt_trail);
-    tree_fine->Branch("RPC_rgt_trail_fine",  &RPC_rgt_trail_fine);
-    tree_fine->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
-    tree_fine->Branch("RPC_rgt_ln_hi",  &RPC_rgt_ln_hi);
-    tree_fine->Branch("RPC_rgt_ln_lo",  &RPC_rgt_ln_lo);
-    
   }
 
   //......................................................................
@@ -824,6 +783,10 @@ namespace emph {
       ADC_bot_hgt[i] = -9999.0;
       ADC_top_blw[i] = -1.0;
       ADC_bot_blw[i] = -1.0;
+      ADC_top_wave.at(i).clear();
+      ADC_bot_wave.at(i).clear();
+      ADC_top_wave.at(i).resize(n_wf);
+      ADC_bot_wave.at(i).resize(n_wf);
     }
 
     // get ADC info for T0
@@ -845,11 +808,19 @@ namespace emph {
 	  ADC_bot_t[detchan - 1] = wvfm.PeakTDC();
 	  ADC_bot_hgt[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
 	  ADC_bot_blw[detchan - 1] = wvfm.BLWidth();
+	  adc_wf_bot = wvfm.AllADC();
+	  for(int i_wf = 0; i_wf < std::min(n_wf, static_cast<int>(adc_wf_bot.size())); i_wf++){
+	    ADC_bot_wave.at(detchan - 1).at(i_wf) = adc_wf_bot.at(i_wf);
+	  }//end loop over T0 ADC_waveform
 	}else if(detchan > n_seg_t0 && detchan <= n_ch_det_t0){
 	  ADC_top_ts[detchan%(n_seg_t0 + 1)] = static_cast<double>(wvfm.FragmentTime());
 	  ADC_top_t[detchan%(n_seg_t0 + 1)] = wvfm.PeakTDC();
 	  ADC_top_hgt[detchan%(n_seg_t0 + 1)] = wvfm.Baseline()-wvfm.PeakADC();
 	  ADC_top_blw[detchan%(n_seg_t0 + 1)] = wvfm.BLWidth();
+	  adc_wf_top = wvfm.AllADC();
+	  for(int i_wf = 0; i_wf < std::min(n_wf, static_cast<int>(adc_wf_top.size())); i_wf++){
+	    ADC_top_wave.at(detchan%(n_seg_t0 + 1)).at(i_wf) = adc_wf_top.at(i_wf);
+	  }//end loop over T0 ADC_waveform
 	}
       } // end loop over T0 ADC channels
     }
@@ -869,7 +840,6 @@ namespace emph {
     }
 
     tree->Fill();
-    tree_fine->Fill();
 
   }
 
