@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Definition of a Beam track, 3D, reconstructed based on 2D on plane XZ, YZ, independentely, 
+/// \brief   Definition of a Downstream track, 3D, reconstructed based on 2D on plane XZ, YZ, independentely, 
 ///          and cross-check downstream of the target with U projection (V currently too confusing.. ) 
 /// \author  lebrun@fnal.gov
 /// \date

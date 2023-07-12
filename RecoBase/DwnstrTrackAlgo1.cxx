@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Track segment class
-/// \author  jpaley@fnal.gov
+/// \brief   Downstream Track segment class
+/// \author  jpaley@fnal.gov, lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
 #include "RecoBase/DwnstrTrackAlgo1.h"
@@ -28,12 +28,15 @@ namespace rb {
   
   std::ostream& operator<< (std::ostream& o, const DwnstrTrackAlgo1& h)
   {
+    auto aPrec = o.precision();
+    auto aFlags = o.flags();
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
     o << " Downstream Track --> x0, y0 " << h.XOffset() << " +- " << h.XOffsetErr() 
                            << " ," << h.YOffset() << " +- " << h.YOffsetErr() << "  slopes "  
                            << h.XSlope() << " +- " << h.XSlopeErr() << " " << h.YSlope()  
 			   << " +- " << h.YSlopeErr()  << std::endl;
     o << " Downstream Track fitted momentum [GeV] " << h.Momentum() << " +- " << h.MomentumErr() << std::endl; 
+    o.flags(aFlags); o.precision(aPrec);
     return o;
   }
   
