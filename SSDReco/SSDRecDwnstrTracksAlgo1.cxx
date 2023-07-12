@@ -178,6 +178,8 @@ namespace emph {
 	      fFitterFCN->AddInputPt(itSt4);
 	      fFitterFCN->AddInputPt(itSt5);
 	      if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+	        if (fPrelimFitChiSq > 500.) continue; // To be tuned for real data, O.K. for MC. Bogus track.. 
+		if (std::abs(fPrelimFitMom) < 1.0) continue; // For now!!!   We are interested in low momentum tracks.. 
                 fFitterFCN->ResetInputPts();
 	        itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimMomentum, fPrelimFitMom); 
 		itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimMomentum, fPrelimFitMom);
@@ -245,6 +247,8 @@ namespace emph {
 	   fFitterFCN->AddInputPt(itSt3);
 	   fFitterFCN->AddInputPt(itSt4);
 	   if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+	     if (fPrelimFitChiSq > 500.) continue; // To be tuned for real data, O.K. for MC. Bogus track.. 
+	     if (std::abs(fPrelimFitMom) < 1.0) continue; // For now!!!   We are interested in low momentum tracks.. 
              fFitterFCN->ResetInputPts();
 	     itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimMomentum, fPrelimFitMom); 
 	     itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimMomentum, fPrelimFitMom);
@@ -302,6 +306,8 @@ namespace emph {
 	    fFitterFCN->AddInputPt(itSt3);
 	    fFitterFCN->AddInputPt(itSt5);
 	    if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+	     if (fPrelimFitChiSq > 500.) continue; // To be tuned for real data, O.K. for MC. Bogus track.. 
+	     if (std::abs(fPrelimFitMom) < 1.0) continue; // For now!!!   We are interested in low momentum tracks.. 
              fFitterFCN->ResetInputPts();
 	     itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimMomentum, fPrelimFitMom); 
 	     itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimMomentum, fPrelimFitMom);
