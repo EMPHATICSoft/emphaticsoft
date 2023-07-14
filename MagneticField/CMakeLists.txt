@@ -10,6 +10,8 @@ include_directories( $ENV{ROOT_INC} )
 art_make_library(
   SOURCE
     MagneticField.cxx
+    ProbeCalib.cxx
+    FieldMap.cxx
   LIBRARIES
     RunHistory
     Geometry
@@ -25,6 +27,7 @@ art_make_library(
     Geant4::G4interfaces
     Geant4::G4run
     Geant4::G4tracking
+	field_map_tools
     )
 
 install_headers()
@@ -32,3 +35,4 @@ install_source()
 install_fhicl()
 
 add_subdirectory(service)
+add_subdirectory(field_map_tools)
