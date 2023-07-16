@@ -49,7 +49,8 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "SSDReco/SSDRecUpstreamTgtAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
 #include "SSDReco/SSDRecDwnstrTracksAlgo1.h" 
-#include "SSDReco/SSDRecBrickTracksAlgo1.h" 
+#include "SSDReco/SSDRecBrickTracksAlgo1.h"
+#include "SSDReco/SSDRecVertexAlgo1.h" 
 //
 
 
@@ -128,6 +129,7 @@ namespace emph {
       ssdr::SSDRecUpstreamTgtAlgo1 fUpStreamBeamTrRec;  // Reconstruct the upstream of the target, Station 0 and 1 (Phase1b)     
       ssdr::SSDRecDwnstrTracksAlgo1 fDwnstrTrRec;  // Downstream, station 2, through 5   
       ssdr::SSDRecBrickTracksAlgo1 fBrickTrRec;  // Downstream, station 2, through 5   
+      ssdr::SSDRecVertexAlgo1 fRecVert; // The vertice, done via a non-linear MINUIT2 fit.
 //
 // Internal stuff 
 //
@@ -449,7 +451,18 @@ namespace emph {
       //
       //if (debugIsOn) { std::cerr << " .... O.K., Back to Analyze of art module, enough is enough .. " << std::endl; exit(2); }
       // Vertex analysis donw here... This should be in a SSD vertex reconstruction package. 
+      
+      // Vertex Analysis, done better.. We keep the code below for compare..
+      //
+      if (fUpStreamBeamTrRec.Size() == 1) {
+        fRecVert.SetDebugOn(debugIsOn);
+	std::vector<rb::BeamTrackAlgo1>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();
+        fRecVert.RecAndFitIt(evt, itUp, fDwnstrTrRec);
+	fRecVert.dumpInfoForR();
+      }
       // Limit the multiplicities.. 
+      /*
+      ** Obsolete.. 
       size_t kTrUp = 0; 
       if (fUpStreamBeamTrRec.Size() > 2) { this->dumpSummaryMultiplicities();  return; } // cut on the very noisy event, upstream. 
       const double dz20 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 2) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 0);
@@ -574,6 +587,7 @@ namespace emph {
 			 << " " << xVDwnstr << " " <<  yVDwnstr << " " << xVUpstr << " " << yVUpstr << std::endl; 
         } //  on dwonstream Tracks
       } // on Upstream tracks.. 
+      */
       this->dumpSummaryMultiplicities();  
 //      if (debugIsOn) { 
 //          std::cerr << " .... O.K., End of Analyze of art module, enough is enough .. " << std::endl; 
