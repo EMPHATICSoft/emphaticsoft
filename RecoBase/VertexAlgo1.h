@@ -15,6 +15,7 @@
 
 namespace rb {
   
+  
   class VertexAlgo1 {
   public:
     VertexAlgo1(); // Default constructor
@@ -31,9 +32,10 @@ namespace rb {
 	  
   public:
    // Setters 
-   inline void Reset() { // Set everyting to NONE or DBL_MAX, to be refilled again.  
+   inline void Reset() {// Set everyting to NONE or DBL_MAX, to be refilled again.  
      fX =  DBL_MAX; fY = DBL_MAX; fZ = DBL_MAX; fId = INT_MAX;
      fChiSq = -1.; for (size_t k=0; k!= fCovXYZ.size(); k++) fCovXYZ[k] = DBL_MAX;
+     fTrackUIDs.clear();
    }
    inline void SetPosition(double x0, double y0, double z0) {
      fX = x0; fY = y0;  fZ = z0;
@@ -44,6 +46,7 @@ namespace rb {
    inline void SetID(int id ) { fId = id;}
    inline void SetChiSq(double c ) { fChiSq = c;}  
    inline void SetCovarianceMatrix(size_t k, double v) { if (k < fCovXYZ.size()) fCovXYZ[k] = v;}
+   inline void AddTrackUID(int uid) { fTrackUIDs.push_back(uid); }
 
     // Getters
     inline int ID() const { return fId; } 
@@ -54,8 +57,8 @@ namespace rb {
     inline double YErr() const { return fYErr; } 
     inline double ZErr() const { return fZErr; } 
     inline double ChiSq() const { return fChiSq; } 
-    
-    inline std::vector<double> CovMatrix() const {return fCovXYZ;}
+    inline size_t NumDwnstr() const {return fTrackUIDs.size(); }
+    inline std::vector<double> CovMatrix() const {return fCovXYZ; }
     
     friend std::ostream& operator << (std::ostream& o, const VertexAlgo1& h);
   };
