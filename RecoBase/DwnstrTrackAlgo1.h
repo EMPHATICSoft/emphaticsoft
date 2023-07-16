@@ -80,6 +80,7 @@ namespace rb {
     inline int UserFlag() const { return fUserFlag; }
     
     inline std::vector<double> CovMatrix() const {return fCovXY;}
+    inline double CovMatrix(size_t i, size_t j) const {return fCovXY[5*i +j];} // No checks.. 
     
     friend std::ostream& operator << (std::ostream& o, const DwnstrTrackAlgo1& h);
   };

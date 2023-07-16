@@ -477,7 +477,7 @@ namespace emph {
        //
        const bool isMigradValid = min.IsValid(); 
        //
-       bool isSimplexValid = true;
+       bool isSimplexValid = false;
        int flagValid = 0; // 0 nothing worked, 1 MiGrad is O.K., 2, Simplex is Ok.  
        double chiSq = DBL_MAX;
        if (!isMigradValid) {
@@ -519,7 +519,7 @@ namespace emph {
          for (size_t i=0; i != static_cast<size_t>(nPars); i++) {
            for (size_t j=0; j != static_cast<size_t>(nPars); j++) {
 	     const double cc = min.UserCovariance()(i,j);
-             aTr.SetCovarianceMatrix((i*(nPars-1) + j), cc);
+             aTr.SetCovarianceMatrix((i*nPars + j), cc);
 	   }
 	 }
        }

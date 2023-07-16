@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   2D linear fit FCN function for Beam Track alignment.   
+/// \brief   3D linear fit FCN function for Beam Track alignment. Or preliminary Physics Studies.    
 ///          Requires Minuit2 
 /// \author  lebrun@fnal.gov
 /// \date
