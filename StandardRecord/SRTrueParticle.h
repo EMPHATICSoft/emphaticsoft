@@ -17,7 +17,7 @@ namespace caf
         class SRTrueParticle: public SRParticle
         {
         public:
-                std::vector <caf::SRTrueParticle> daughters;
+                std::vector <caf::SRTrueParticle> daughters;	// a vector of daughter particles
 		
                 SRTrueParticle();
 		SRTrueParticle(SRParticle& b);

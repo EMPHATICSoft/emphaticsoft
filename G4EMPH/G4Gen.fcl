@@ -4,7 +4,7 @@ standard_g4alg:
 {
   GenModuleLabel:      generator
   G4MacroPath:         "G4EMPH/g4emph.mac" 
-  G4EnergyThreshold:   1.0E-3 #GeV, stop tracking below this value
+  G4EnergyThreshold:   5.0E-3 #GeV, stop tracking below this value
   G4EnergyThresholdStore:   0.250 #GeV, stop storing below this value. 
   G4TokenSSDOut: "undef"
   G4CalibTOPAZLG: 0.006

@@ -275,13 +275,9 @@ namespace sim
   void ParticleNavigator::clear()
   {
     for ( iterator i = fParticleList.begin(); i != fParticleList.end(); ++i ){
-      std::cerr << "Got here!!!! Simulation/ParticleNavigator" << std::endl;
 	delete (*i).second;
-	std::cerr << "2 Got here!!!!Simulation/ParticleNavigator" << std::endl;
     }
-    std::cerr << "3 Got here!!!!Simulation/ParticleNavigator\n";
     fParticleList.clear();
-    std::cerr << "4 Got here!!!!Simulation/ParticleNavigator\n";
     fPrimaries.clear();
 
     eveIdCalculator.reset();
