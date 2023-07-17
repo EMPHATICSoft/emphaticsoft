@@ -831,7 +831,7 @@ EOF
 EOF
 						for($m = 0; $m < $nD0chan; ++$m){
 							print MOD <<EOF;
-		 <physvol name="ssd_chan_@{[ $i ]}_@{[ $lay ]}_@{[ $sen ]}_@{[ $m ]}_vol">
+		 <physvol name="ssd_chan_@{[ $station ]}_@{[ $lay ]}_@{[ $sen ]}_@{[ $m ]}_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_@{[ $m ]}_pos"/>
 		 </physvol>
