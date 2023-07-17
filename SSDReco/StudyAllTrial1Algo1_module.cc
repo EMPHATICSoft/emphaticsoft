@@ -456,6 +456,7 @@ namespace emph {
       //
       if (fUpStreamBeamTrRec.Size() == 1) {
         fRecVert.SetDebugOn(debugIsOn);
+	fRecVert.SetTokenJob(fTokenJob);
 	std::vector<rb::BeamTrackAlgo1>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();
         fRecVert.RecAndFitIt(evt, itUp, fDwnstrTrRec);
 	fRecVert.dumpInfoForR();

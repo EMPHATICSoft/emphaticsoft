@@ -119,7 +119,6 @@ namespace emph {
        fFOutVert.open(fNameStr.c_str());
        fFOutVert << " spill evt nDwntr X XErr Y YErr Z ZErr chiSq " << std::endl;
        //
-       
      }
      //
      void SSDRecVertexAlgo1::dumpInfoForR() const {
@@ -127,7 +126,7 @@ namespace emph {
        if (fVert.ChiSq() == DBL_MAX) return;
        fFOutVert << " " << fSubRunNum << " " << fEvtNum; 
        fFOutVert << " " << fVert.NumDwnstr() << " " << fVert.X() << " " << fVert.XErr() << " " 
-                 << fVert.Y() << " " << fVert.YErr() << " " << fVert.Z() << " " << fVert.ZErr() << fVert.ChiSq() << std::endl;   
+                 << fVert.Y() << " " << fVert.YErr() << " " << fVert.Z() << " " << fVert.ZErr() << " " << fVert.ChiSq() << std::endl;   
      }
   } // namespace ssdr
 } // namespace emph
