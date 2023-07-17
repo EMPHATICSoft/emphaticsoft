@@ -226,6 +226,8 @@ ra<double> FieldMap::findB(FieldMapInd inInd) const {
 
 
 
+
+
 bool FieldMap::insideMap(ra<double> Xi, FieldMapInd& closestInd) const {
     // Quick hi-reject rate test first.
     if (Xi(z) +(*offset)(z) < minZind) return false;
@@ -239,6 +241,8 @@ bool FieldMap::insideMap(ra<double> Xi, FieldMapInd& closestInd) const {
     if (!found) return false;
     return (*this)(closestInd).valid;
 }
+
+
 
 
 
@@ -275,6 +279,68 @@ double FieldMap::findDiv(FieldMapInd inInd) const {
     } else {
         return std::min( DBL_MAX,1.0/DBL_MIN );
     }
+}
+
+
+
+
+
+bool FieldMap::interpolate(ra<double> Xi, ra<double>& B) const {
+    // Interpolate a 3 d quadratic with cross terms.
+    FieldMapInd closestInd;
+    if (!insideMap(Xi,closestInd)) return false;
+
+
+
+    // 1st index is x direction, then y & z.  Create interpolator & set its grid
+    polyMint BinterpX,BinterpY,BinterpZ;
+    ra<double> Xgrid(3);        ra<double> Ygrid(3);        ra<double> Zgrid(3);
+    FieldMapInd indL, indN;
+
+    if (!findLastX(closestInd,indL) || !findNextX(closestInd,indN)) return false;
+    Xgrid(1) = (findX(indL))(x);                // findX returns lab coordinates
+    Xgrid(2) = (findX(closestInd))(x);
+    Xgrid(3) = (findX(indN))(x);
+
+    if (!findLastY(closestInd,indL) || !findNextY(closestInd,indN)) return false;
+    Ygrid(1) = (findX(indL))(y);
+    Ygrid(2) = (findX(closestInd))(y);
+    Ygrid(3) = (findX(indN))(y);
+
+    if (!findLastZ(closestInd,indL) || !findNextZ(closestInd,indN)) return false;
+    Zgrid(1) = (findX(indL))(z);
+    Zgrid(2) = (findX(closestInd))(z);
+    Zgrid(3) = (findX(indN))(z);
+
+    BinterpX.setUpGrid(Xgrid, Ygrid, Zgrid);
+    BinterpY.setUpGrid(Xgrid, Ygrid, Zgrid);
+    BinterpZ.setUpGrid(Xgrid, Ygrid, Zgrid);
+
+
+    ra<double> Bx(3,3,3);   ra<double> By(3,3,3);       ra<double> Bz(3,3,3);
+    FieldMapInd tmp;        FieldMapItr itr;
+    for (int jX=-1; jX<=+1; ++jX) {
+        tmp.iX = closestInd.iX +jX;
+        for (int jY=-1; jY<=+1; ++jY) {
+            tmp.iY = closestInd.iY +jY;
+            for (int jZ=-1; jZ<=+1; ++jZ) {
+                tmp.iZ = closestInd.iZ +jZ;
+                if (!findItr(tmp, itr) || !itr->valid) return false;
+                Bx(jX+2,jY+2,jZ+2) = itr->Bx;
+                By(jX+2,jY+2,jZ+2) = itr->By;
+                Bz(jX+2,jY+2,jZ+2) = itr->Bz;
+                /* DEBUG cout << "At ind (" << tmp.iX << ", " << tmp.iY << ", " << tmp.iZ << "), the field is ("
+                    << Bx(jX+2,jY+2,jZ+2) << ", " << By(jX+2,jY+2,jZ+2) << ", " << Bz(jX+2,jY+2,jZ+2) << ")" << endl;
+                GUBED */
+            }
+        }
+    }
+    
+    BinterpX.fillValues(Bx);    BinterpY.fillValues(By);    BinterpZ.fillValues(Bz);
+
+    B(x) = BinterpX.eval(Xi);   B(y) = BinterpY.eval(Xi);   B(z) = BinterpZ.eval(Xi);
+
+    return true;
 }
 
 

@@ -16,6 +16,7 @@ using std::vector;
 #include "MagneticField/field_map_tools/quadd.h"
 #include "MagneticField/field_map_tools/funcs.h"
 #include "MagneticField/field_map_tools/inputtextfile.h"
+#include "MagneticField/field_map_tools/polyMint.h"
 #include "MagneticField/ProbeCalib.h"
 
 

@@ -7,6 +7,7 @@ art_make_library(
   SOURCE
     inputtextfile.cpp
     quadd.cpp
+    polyMint.cpp
   LIBRARIES
     ROOT::Core
     ROOT::Geom
