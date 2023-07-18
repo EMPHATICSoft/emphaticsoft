@@ -101,7 +101,7 @@ namespace emph {
   int ParticleListAction::GetParentage(int trackid) const
   {
 	 int parentid = sim::kNoParticleId;
-	 std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
+	 //std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
    
 	 // search the fParentIDMap recursively until we have the parent id 
 	 // of the first EM particle that led to this one
@@ -109,7 +109,7 @@ namespace emph {
 	 
 	int nIterations = 0;
 	 while( itr != fParentIDMap.end() ){
-		 std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
+		 //std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
      		 MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
 					 << " " << (*itr).second;
       		 // set the parentid to the current parent ID, when the loop ends
@@ -154,23 +154,23 @@ namespace emph {
 	const G4DynamicParticle*         dp = track->GetDynamicParticle();      //
 	const G4PrimaryParticle*         pp = dp->GetPrimaryParticle();         // its a surprise tool that'll help us later...
     
-	std::cerr << "%%%%% New Particle: trackID = " << trackID << " PDG: " << pdg <<" %%%%%" << std::endl;	
+	//std::cerr << "%%%%% New Particle: trackID = " << trackID << " PDG: " << pdg <<" %%%%%" << std::endl;	
 	
-	std::cerr << "Energy = " << energy << std::endl;
+	//std::cerr << "Energy = " << energy << std::endl;
     	auto trackPos = track->GetPosition();
-	std::cerr << "Got Position..." << std::endl;
-	std::cerr << "In Volume: " << track->GetVolume()->GetLogicalVolume()->GetName() << std::endl;	
+	//std::cerr << "Got Position..." << std::endl;
+	//std::cerr << "In Volume: " << track->GetVolume()->GetLogicalVolume()->GetName() << std::endl;	
 		
 
 	G4int parentID = track->GetParentID() + fTrackIDOffset;			// get the parent id from Geant for free
 
-    	std::cerr << "Got immediate parent: parentID = " << parentID << std::endl;
+    	//std::cerr << "Got immediate parent: parentID = " << parentID << std::endl;
     
     	
     	std::string process_name;					// something to record the process by which this particle was produced...
 	    
     	if (pp != 0){							// if this is a primary particle, we do something special because it's special
-      		std::cerr << "Primary Particle!" << std::endl;
+      		//std::cerr << "Primary Particle!" << std::endl;
       		const G4VUserPrimaryParticleInformation* gppi = pp->GetUserInformation();
       		const g4b::PrimaryParticleInformation* ppi = dynamic_cast<const g4b::PrimaryParticleInformation*>(gppi);	// no idea what this does
       
@@ -190,17 +190,17 @@ namespace emph {
       		// the parent of the particle that isn't another shower-er
 
       		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process      
-      		std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
+      		//std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
       		
 		fParentIDMap.emplace(fCurrentTrackID, parentID);		// place the particle and its parent in the id map
 
-      		std::cerr << "Shower Particle! Added " << fCurrentTrackID << " and " << parentID << " to the fParentIDMap" << std::endl;
+      		//std::cerr << "Shower Particle! Added " << fCurrentTrackID << " and " << parentID << " to the fParentIDMap" << std::endl;
       
       		// we want to exclude particles which are daughters of particles we don't care about,
 		// check if the immediate parent is in the particle list
       
       		if (fParticleNav->find(parentID) == fParticleNav->end()){	// if it isn't...
-			std::cerr << "Immediate parent " << parentID << " isn't in fParticleNav... halting tracking..." << std::endl;
+			//std::cerr << "Immediate parent " << parentID << " isn't in fParticleNav... halting tracking..." << std::endl;
 	  		fCurrentTrackID = sim::kNoParticleId;			
 	  		fParticle = 0;						// reset, skip the whole particle
 	  		return;
@@ -208,12 +208,12 @@ namespace emph {
 		else{
 			// we want to find the sim::Particle of the parent from fParticleNav, maybe grab a pointer to it, and execute something
 			// like this to make sure every (relevant) parent has access to their (relevant) daughter particles
-			std::cerr << "Found parent in fParticleNav..." << std::endl;
+			//std::cerr << "Found parent in fParticleNav..." << std::endl;
 			sim::ParticleNavigator::iterator parentEntry = fParticleNav->find(parentID);	// get the parent entry from fParticleNav
 			sim::Particle* parent = (*parentEntry).second;					// get the pointer to the parent particle
 			parent->AddDaughter(trackID);							// add the daughter to the parent
-			std::cerr << "Added to parent: " << parentID << std::endl;
-			std::cerr << "Parent has new daughter with ID: " << parent->Daughter(0) << std::endl;
+			//std::cerr << "Added to parent: " << parentID << std::endl;
+			//std::cerr << "Parent has new daughter with ID: " << parent->Daughter(0) << std::endl;
 		}
 	}
             
@@ -233,9 +233,9 @@ namespace emph {
 	
  
       	fParticleNav->Add(fParticle);
-      	std::cerr << "Added fParticle! trackID: " << fParticle->TrackId() << ", PDG: " << fParticle->PdgCode() << ", process: " << fParticle->Process()
-			<< ", parentID: " << fParticle->Mother() << ", Mass: " << fParticle->Mass()
-			<< " Momentum: (" << fParticle->Px() << ", " << fParticle->Py() << ", " << fParticle->Pz() << ")" << std::endl;
+      	//std::cerr << "Added fParticle! trackID: " << fParticle->TrackId() << ", PDG: " << fParticle->PdgCode() << ", process: " << fParticle->Process()
+	//		<< ", parentID: " << fParticle->Mother() << ", Mass: " << fParticle->Mass()
+	//		<< " Momentum: (" << fParticle->Px() << ", " << fParticle->Py() << ", " << fParticle->Pz() << ")" << std::endl;
       
     
   }	
