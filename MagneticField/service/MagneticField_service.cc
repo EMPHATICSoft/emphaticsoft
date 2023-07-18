@@ -7,6 +7,7 @@
 
 // EMPHATIC includes
 #include "MagneticField/service/MagneticFieldService.h"
+#include "MagneticField/TestEmphMagneticField.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -42,6 +43,16 @@ namespace emph
     // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
 //    fMagneticField->setUseOnlyTheCentralPart(true);
     
+    // Testing, if need be 
+    if (fTestNumber != 0) {
+      emph::TestEmphMagneticField myTest(fMagneticField); 
+      switch (fTestNumber) {
+        case 1: { myTest.test1(); break; } 
+        case 2: { myTest.test2(); break; } 
+        case 3: { myTest.test3(); break; } 
+	default: { break;}
+      }
+    }    
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
   }
@@ -57,7 +68,7 @@ namespace emph
   {
     
     fFieldFileName = pset.get< std::string >("FieldFileName");
-    
+    fTestNumber = pset.get<int>("TestNumber", 0);
   }
   
   //----------------------------------------------------------

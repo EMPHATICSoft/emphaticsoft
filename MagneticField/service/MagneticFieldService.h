@@ -36,6 +36,7 @@ namespace emph
   private:
     emph::EMPHATICMagneticField* fMagneticField;
     std::string fFieldFileName;
+    int fTestNumber; // Optionally, we will invoke the test just after instantiate the MagneticField class. 
     
   };
   
