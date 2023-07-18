@@ -12,6 +12,7 @@ art_make_library(
     MagneticField.cxx
     ProbeCalib.cxx
     FieldMap.cxx
+    TestEmphMagneticField.cxx
   LIBRARIES
     RunHistory
     Geometry

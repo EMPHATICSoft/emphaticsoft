@@ -51,13 +51,13 @@
 namespace emph {
 
   EMPHATICMagneticField::EMPHATICMagneticField(const G4String &filename) :
-    fStorageIsStlVector(true), fHasBeenAligned(false), fUseOnlyCentralPart(false), fInnerBoreRadius(23.5), // This is the Phase1b Japanese Magnet. 
+    fUseMeasured(false), fStorageIsStlVector(true), fHasBeenAligned(false), fUseOnlyCentralPart(false), fInnerBoreRadius(23.5), // This is the Phase1b Japanese Magnet. 
     step(0), start{-16., -16., -20.},// for the root test file, units are cm Not sure about start values.
     fG4ZipTrackOffset{ 0., 0., 400.},  // Will be overwritten based on the G4/Art based geometry. 
     fNStepX(1), fNStepY(1), fNStepZ(1),
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
-    fInterpolateOption(0)
+    fInterpolateOption(0), fVerbosity(0), fMeasuredUpstr(nullptr), fMeasuredDwnstr(nullptr),fMeasuredCentral(nullptr)
     {
 #ifdef debug
       fVerbosity = 1;
@@ -66,13 +66,31 @@ namespace emph {
 #endif
       //    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
       //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
+      if (filename.find("MagFieldSensis_July_2023") != std::string::npos) { /// my laptop.. 
+        std::cerr << "EMPHATICMagneticField::EMPHATICMagneticField Using the 3 maps from AP-STD " << std::endl;
+	std::string fileNameProbe(filename);
+	if (fileNameProbe.back() != '/')  fileNameProbe += std::string("/");
+	fileNameProbe+=std::string("Probe_calibration_Mar2023.csv"); 
+	ProbeCalib aProbeCalib(fileNameProbe);
+	std::string fileNameCentral(filename); 
+	if (fileNameCentral.back() != '/')  fileNameCentral += std::string("/");
+	fileNameCentral+=std::string("EMPHATIC_body_scan_5280148.csv"); 
+	fMeasuredCentral = new FieldMap(fileNameCentral, aProbeCalib);
+	std::string fileNameUpstr(filename); 
+	if (fileNameUpstr.back() != '/')  fileNameUpstr += std::string("/");
+	fileNameUpstr+=std::string("EMPHATIC_smallApertureFringe.csv"); 
+	fMeasuredUpstr = new FieldMap(fileNameUpstr, aProbeCalib);
+	std::string fileNameDwnstr(filename); 
+	if (fileNameDwnstr.back() != '/')  fileNameDwnstr += std::string("/");
+	fileNameDwnstr+=std::string("EMPHATIC_smallApertureFringe.csv"); 
+	fMeasuredDwnstr = new FieldMap(fileNameDwnstr, aProbeCalib);
+	fUseMeasured = true;
+//	std::cerr << " Got the 3 Sensis map, And quit for now!!... " << std::endl; exit(2);
+	return;
+      }
+      
       if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
       else this->uploadFromTextFile(filename);
-      // These tests do something, comment out for sake of saving time for production use. 
-      //    this->test1();
-      //    this->test2();
-      //    this->test3();
-      //      this->studyZipTrackData1();
     }
     
   void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
@@ -438,55 +456,15 @@ namespace emph {
   }
   
   EMPHATICMagneticField::~EMPHATICMagneticField() {
-    
+    delete fMeasuredUpstr; delete fMeasuredDwnstr; delete fMeasuredCentral;
   }
   
-void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
-  
-    double numbers[8];
-    ffieldZipTrack.clear(); // may be we want add all of them, to rethink.. for now, one at a time. 
-    std::ifstream fileIn(fName.c_str());
-    if (!fileIn.is_open()) {
-      std::cerr << " EMPHATICMagneticField::uploadFromOneCSVZipFile, file " << fName << " can not be open, fatal .." << std::endl; 
-      exit(2);
-    }
-    std::string line;
-    char aLinecStr[1024];
-    int numLines = 0;
-    // first pass, check the grid is uniform. 
-    // Units are assumed to be in mm 
-    while (fileIn.good()) {
-      fileIn.getline(aLinecStr, 1024);
-      std::string aLine(aLinecStr);
-      if (aLine.length() < 2) continue; // end of file suspected, or blank in the file 
-      if (numLines == 0) {
-	  if (aLine.find("T X Y Z Bx By Bz Theta") == std::string::npos) { // Comment line from Mike T. dAQ.
-	     std::cerr << " Unexpected header line " << aLine <<  " unknow file , quit here and now " << std::endl; exit(2); }   
-      } else {
-        bFieldZipTrackPoint aPt;
-	std::istringstream  aLStr(aLine);
-  	int count = 0; std::string num;
-  	while((count < 8) && (aLStr >> num)){
-  	     if(num == "NaN") {
-	         numbers[count] = 0;
-		 std::cerr << " NaN found at line " << numLines << " line " << aLine << std::endl;
-             }
-  	     else  numbers[count] = std::stod(num); // probably a bad idea to treat NaN as field is really physically vanishing.. 
-  				count++;
-  	}
-	aPt.t = numbers[0];  aPt.x = numbers[1]; aPt.y = numbers[2]; aPt.z = numbers[3];
-	aPt.fbx = numbers[4]; aPt.fby = numbers[5]; aPt.fbz = numbers[6]; aPt.theta = numbers[7];
-        ffieldZipTrack.push_back(aPt);
-      } 
-      numLines++;
-    }
-    fileIn.close();
-}    
   // Member functions
   
   void EMPHATICMagneticField::MagneticField(const double x[3], double B[3]) const 
   {
 //    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 100.));
+    if (fUseMeasured) this->MagneticFieldMeasured(x, B);
     bool debugIsOn = false;
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
@@ -689,7 +667,28 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
     v.setZ(B[2]);   
     return v;
   }
-  
+//
+// New Measurement, Sensis probe, AP-STD
+//
+  void EMPHATICMagneticField::MagneticFieldMeasured(const double x[3], double B[3]) const {
+    for (size_t k=0; k != 3; k++) B[k] = 0.;
+    if ((fMeasuredUpstr == nullptr) || (fMeasuredUpstr == nullptr) || (fMeasuredUpstr == nullptr)) return;
+    ra<double> coord(3); 
+    coord(0) = 1.0e-3*x[0]; // convert mm to meter 
+    coord(1) = 1.0e-3*x[1];
+    coord(2) = 1.0e-3*x[2];
+    std::cerr << "EMPHATICMagneticField::MagneticFieldMeasured Transfer C array to ra, y  " << coord(1) << std::endl;
+    FieldMap::FieldMapInd closestInd;
+    ra<double> Bm(3);
+    if (fMeasuredUpstr->insideMap(coord, closestInd)) {
+       fMeasuredUpstr->interpolate(coord, Bm);
+    } else if (fMeasuredCentral->insideMap(coord, closestInd)) {
+       fMeasuredCentral->interpolate(coord, Bm);
+    }  else if (fMeasuredDwnstr->insideMap(coord, closestInd)) {
+       fMeasuredDwnstr->interpolate(coord, Bm);
+    }
+    B[0] = Bm(0); B[1] = Bm(1); B[2] = Bm(2); // Conversion factor may be needed. 
+  }
   
   void EMPHATICMagneticField::GetFieldValue(const double x[3], double* B) const
   {
@@ -710,7 +709,7 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
     }
     for (size_t k=0; k != 3; k++) B[k] = BInKg[k]*CLHEP::kilogauss;
   }
-    
+   
   void EMPHATICMagneticField::Integrate(int iOpt, int charge, double stepAlongZ,
                             std::vector<double> &start, std::vector<double> &end) const {
     
@@ -875,255 +874,6 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
 //    }
   }
 
-  void EMPHATICMagneticField::test1() {
-    
-    
-    // Look at the divergence of the field.. 
-    //
-    std::cerr << " EMPHATICMagneticField::test1, generating simple CSV test files.. " << std::endl;
-    std::string fName1 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2.txt") : std::string("./EmphMagField_StlMap_v2.txt"); 
-    std ::ofstream fOutForR(fName1.c_str());
-    fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
-    
-    double xN[3], xF[3], B0N[3], B0F[3], B1N[3], B1F[3];
-    
-    for (int iX = -10; iX != 10; iX++) { 
-       const double x = 7.5 + iX*0.956; 
-       xN[0] = x; // in mm, apparently... 
-       xF[0] = x + 10.;
-       for (int iY = -10; iY != 20; iY++) { 
-        const double y = 15.34 + iY*0.892; 
-         xN[1] = y ;
-         xF[1] = y + 10.;
-         for (int iZ = -80; iZ != 120; iZ++) { 
-           const double z = iZ*4.578; 
-           xN[2] = z;
-           xF[2] = z + 10.;
-           this->setInterpolatingOption(0);
-           this->MagneticField(xN, B0N); // xN is in mm.. 
-           this->MagneticField(xF, B0F);
-	   double divB0 = 0.; double b0Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
-	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
-	     b0Norm += B0N[kk]*B0N[kk];
-	   }
-	   fOutForR << " " << x << " " << y << " " << z << " " 
-	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
-		    << std::sqrt(b0Norm) << " " << divB0;
-           this->setInterpolatingOption(1);
-           this->MagneticField(xN, B1N); // xN is in mm.. 
-           this->MagneticField(xF, B1F);
-	   double divB1 = 0.; double b1Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
-	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
-	     b1Norm += B1N[kk]*B1N[kk];
-	   }
-	   fOutForR << " " << B1N[0] << " " << B1N[1] << " " << B1N[2] << " " 
-		    << std::sqrt(b1Norm) << " " << divB1 << std::endl;
-       }
-      }
-    }
-    fOutForR.close();
-    std::cerr << " Quit, debugging anomalous difference between stl vector and map " << std::endl; exit(2);
-    std::string fName2 = fStorageIsStlVector ? std::string("./EmphMagField_StlVector_v2b.txt") : std::string("./EmphMagField_StlMap_v2b.txt"); 
-    fOutForR.open(fName2.c_str());
-    fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
-    
-    for (int iX = -150; iX != 150; iX++) { 
-       const double x = 7.5 + iX*0.956; 
-       xN[0] = x; // in mm, apparently... 
-       xF[0] = x + 10.;
-       for (int iY = -10; iY != 20; iY++) { 
-        const double y = 15.34 + iY*0.892; 
-         xN[1] = y ;
-         xF[1] = y + 10.;
-         for (int iZ = -5; iZ != 5; iZ++) { 
-           const double z = 0. + iZ*4.578; 
-           xN[2] = z;
-           xF[2] = z + 10.;
-           this->setInterpolatingOption(0);
-           this->MagneticField(xN, B0N); // xN is in mm.. 
-           this->MagneticField(xF, B0F);
-	   double divB0 = 0.; double b0Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
-	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
-	     b0Norm += B0N[kk]*B0N[kk];
-	   }
-	   fOutForR << " " << x << " " << y << " " << z << " " 
-	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
-		    << std::sqrt(b0Norm) << " " << divB0;
-           this->setInterpolatingOption(1);
-           this->MagneticField(xN, B1N); // xN is in mm.. 
-           this->MagneticField(xF, B1F);
-	   double divB1 = 0.; double b1Norm = 0.;
-	   for (size_t kk=0; kk != 2; kk++) { 
-	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
-	     b1Norm += B1N[kk]*B1N[kk];
-	   }
-	   fOutForR << " " << B1N[0] << " " << B1N[1] << " " << B1N[2] << " " 
-		    << std::sqrt(b1Norm) << " " << divB1 << std::endl;
-       }
-      }
-    }
-    
-    fOutForR.close();
-   //
-    // final test, random points, lots of them, to measure performance.. 
-    // Since this is a local stress test, no need to keep track of seeds, random correctness, just use rand
-    //
-    /*
-    std::cerr << " ....  Start random poking, stress test, and performance " << std::endl;
-    this->setInterpolatingOption(1);
-    for (int izzz =0; izzz < 10; izzz++) {
-      std::cerr << " izzzzz.. " << izzz << std::endl; 
-      for (int k=0; k != 100000000; k++) {
-//                       123456789
-         xN[0] = -180. + 360.0*static_cast<double>(rand())/RAND_MAX; 
-         xN[1] = -180. + 360.0*static_cast<double>(rand())/RAND_MAX; 
-         xN[2] = -400. + 400.0*static_cast<double>(rand())/RAND_MAX; 
-         this->MagneticField(xN, B1N); // xN is in mm.. 
-         if (( k < 5) || ((k % 5000000) == 1) ) 
-            std::cerr << " k " << k << " x = " << xN[0] << " y " << xN[1] << " z " << xN[2] << " By " << B1N[1] << std::endl;
-      }
-    }
-  */  
-   
-  }
-  
-  void EMPHATICMagneticField::test2() {
-    
-//      std::cerr << " EMPHATICMagneticField::test2, and quit now !... " << std::endl; exit(2);
-      std::vector<double> start(6); 
-      std::vector<double> stop(6);
-      std::cerr << " EMPHATICMagneticField::test2 setting interpolation 3D radial " << std::endl;
-      this->setInterpolatingOption(0); 
-      double p = 10.0;
-      start[0] = 4.0; start[1] = 11.0; start[2] = - 15.0; stop[2] = 450.; 
-      double DeltaZ = stop[2] - start[2];
-      double slx =0.1e-3; double sly = -0.2e-3; double slz = std::sqrt( 1.0 - slx*slx - sly*sly); 
-      start[3] = p*slx; start[4] = p*sly;  start[5] = slz*p;
-    
-      this->Integrate(10, 1, 15.0, start, stop);
-      double slxFinal = stop[3]/p;      double slyFinal = stop[4]/p;
-      std::cerr << " .. Euler, Bx = Bz = 0., Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl; 
-      stop[2] = 450.; 	  
-      this->Integrate(0, 1, 15.0, start, stop); 
-      slxFinal = stop[3]/p;   slyFinal = stop[4]/p;
-      std::cerr << " ..Euler, Bz = 0.,  Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl;   
-      stop[2] = 450.; 	  
-      this->Integrate(1, 1, 15.0, start, stop); 
-      slxFinal = stop[3]/p;   slyFinal = stop[4]/p;
-      std::cerr << " ..RungeKutta, Bz = 0.,  Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl;   
-
-      this->setInterpolatingOption(1); 
-      std::cerr << " EMPHATICMagneticField::test2 setting interpolation 3D grid, linear " << std::endl;
-      this->Integrate(10, 1, 15.0, start, stop);
-      slxFinal = stop[3]/p;   slyFinal = stop[4]/p;
-      std::cerr << " .. Euler, Bx = Bz = 0., Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl;   
-      stop[2] = 450.;  
-      this->Integrate(0, 1, 15.0, start, stop); 
-      slxFinal = stop[3]/p;   slyFinal = stop[4]/p;
-      std::cerr << " .... Euler, Bz = 0. Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl;   
-      stop[2] = 450.; 	  
-      this->Integrate(1, 1, 15.0, start, stop); 
-      slxFinal = stop[3]/p;   slyFinal = stop[4]/p;
-      std::cerr << " ..RungeKutta, Bz = 0.,  Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl;   
-      
-      std ::ofstream fOutForR("./EmphMagField_p10_v3.txt");
-      fOutForR << " p stepZ y dSlx3DR_E dslxLin_E dSlx3DR_RK dslxLin_RK " << std::endl;
-      for (int kp=1; kp !=3; kp++) { 
-        p = 1.0; 
-	if (kp == 2) p = 10.;
-        for (int kStep=1; kStep != 15; kStep++) {
-          const double stepZ = 2.0 + 0.1*kStep*kStep;
-          for (int kY= -100; kY != 100.; kY++) { 
-            start[0] = -4.0; start[1] = 0.5*kY; start[2] = - 200.0; stop[2] = 200.; 
-            DeltaZ = stop[2] - start[2];
-            slx =0.1e-5; sly = -0.2e-5; slz = std::sqrt( 1.0 - slx*slx - sly*sly); 
-            start[3] = p*slx; start[4] = p*sly;  start[5] = slz*p;
-	    this->setInterpolatingOption(0); 
-            this->Integrate(0, 1, stepZ, start, stop); 
-	    const double dSlx3DR_E = stop[3]/p - slx;
-	    stop[2] = 450.;
-            this->Integrate(1, 1, stepZ, start, stop); 
-	    const double dSlx3DR_RK = stop[3]/p - slx;
-	    stop[2] = 450.;
-	    this->setInterpolatingOption(1); 
-            this->Integrate(0, 1, stepZ, start, stop); 
-	    const double dSlxLin_E = stop[3]/p - slx;
-	    stop[2] = 450.;
-            this->Integrate(1, 1, stepZ, start, stop); 
-	    const double dSlxLin_RK = stop[3]/p - slx;
-	    stop[2] = 450.;
-	    fOutForR << " " << p << " " << stepZ << " " << start[1] << " " 
-	             << dSlx3DR_E << " " << dSlxLin_E << " " << dSlx3DR_RK << " " << dSlxLin_RK << std::endl;
-	  }
-	}
-      }
-      fOutForR.close();
-    }  
-  void EMPHATICMagneticField::test3() {
-    //
-    // Assuming a beam spot size of 1 cm, Gaussian, 
-    //
-    std::vector<double> start(6); 
-    std::vector<double> stop(6);
-    this->setInterpolatingOption(0); 
-    const double p = 5.0; // arbitrarily 
-    int numEvts = 1000000;
-    // Test access to a Geant4 random number.. 
-    //
-    std ::ofstream fOutForR("./EmphMagField_test3_p5_Acceptance_v1.txt");
-    fOutForR << " iEvt xS yS slxI slxI2 xF yF xFS2 yFS2 slxF slxFS2  xFMagP5 yFMagP5 slxFMagP5" << std::endl;
-    start[2] = -200.;
-    stop[2] = 450.;
-    double pt = 0.1;
-    for (int kEvt=0; kEvt != numEvts; kEvt++) {
-      const double xNoOffset = 10.0*G4RandGauss::shoot();
-      start[0] = xNoOffset;
-      start[1] = 10.0*G4RandGauss::shoot();
-      start[2] = -200.;
-      stop[2] = 450.;
-      double slxNoOff =( pt/p)*2.0*M_PI*G4RandGauss::shoot();
-      double slx2Off = 2.0e-3 + slxNoOff;
-      double sly =( pt/p)*2.0*M_PI*G4UniformRand();
-      start[3] = p*slxNoOff; start[4] = p*sly; 
-      double slz = std::sqrt( 1.0 - slxNoOff*slxNoOff - sly*sly);  
-      start[5] = slz*p;
-      stop[0] = -1.e10; stop[1] = -1.e10;
-      this->Integrate(0, 1, 2., start, stop);
-      const double xF = stop[0];
-      const double slxFinal = stop[3]/p;
-      const double yF = stop[1];
-      stop[0] = -1.e10; stop[1] = -1.e10;      
-      start[3] = p*slx2Off; start[4] = p*sly;
-      start[2] = -200.;
-      stop[2] = 450.;
-      this->Integrate(0, 1, 2., start, stop);
-      const double xFS2 = stop[0];
-      const double yFS2 = stop[1];
-      const double slxFinalS2 = stop[3]/p;
-      stop[0] = -1.e10; stop[1] = -1.e10; 
-      start[0] =  xNoOffset - 5.0;  
-      start[3] = p*slxNoOff; start[4] = p*sly;
-      start[2] = -200.;
-      stop[2] = 450.;
-      this->Integrate(0, 1, 2., start, stop);
-      const double xFMagP5 = stop[0];
-      const double yFMagP5 = stop[1];
-      const double slxFinalMagP5 = stop[3]/p;
-      fOutForR << " " << kEvt << " " << start[0] << " " << start[1] << " " <<  1000.0*slxNoOff << " " << 1000.0*slx2Off 
-               << " " << xF << " " << yF << " " << xFS2 << " " << yFS2 << " " << 1000.0*slxFinal << " " << 1000.0*slxFinalS2
-	       << " " << xFMagP5 << " " << yFMagP5 << " " << 1000.0*slxFinalMagP5 << std::endl;
-    }
-    fOutForR.close();
-  }  
       
   std::pair<double, double> EMPHATICMagneticField::getMaxByAtCenter()  {
   
@@ -1143,42 +893,5 @@ void EMPHATICMagneticField::uploadFromOneCSVZipFile(const G4String &fName) {
   }
 
 
-  void EMPHATICMagneticField::studyZipTrackData1() {
-    
-//    std::string fNameZipIn("/home/lebrun/EMPHATIC/Documents/MagnetJune2022/DataMay22/Ycentered_X348_ByUp_220602-0953.csv");
-    std::string fNameZipIn("/home/lebrun/EMPHATIC/Documents/MagnetJune2022/DataMay22/Ycentered_X358_ByUp_220601-1506_LevelShift.csv");
-    this->uploadFromOneCSVZipFile(fNameZipIn);
-    double zFieldMax = 0.;
-    double byMax = -1000.;
-    for (std::vector<bFieldZipTrackPoint>::const_iterator itZ = ffieldZipTrack.cbegin();  itZ != ffieldZipTrack.cend(); itZ++) { 
-      if (std::abs(static_cast<double>(itZ->fby)) > byMax) { byMax = static_cast<double>(std::abs(itZ->fby)); zFieldMax = static_cast<double>(itZ->z); }
-    }
-    std::cerr << " EMPHATICMagneticField::studyZipTrackData1, number of ZipTrack Pts " << ffieldZipTrack.size() 
-              << " By max " << byMax << " at Z = " << zFieldMax << std::endl;
-    std::pair<double, double> byMaxCOMSOL = this->getMaxByAtCenter();	      
-    std::cerr << " ... and from COMSOL, max at z = " << byMaxCOMSOL.first << " |by| " << byMaxCOMSOL.second << std::endl;
-    // 
-    // Assume we are the real probe is centered, bith X and Y Look at the Z profile.. 
-    //
-    const double zOffset = byMaxCOMSOL.first - zFieldMax;
-    std::ofstream fOut("./studyZipTrackData1_CentralScan_Ycentered_X358_ByUp.txt");
-    fOut << " z BxP ByP BzP Bp BxC ByC BzC BC " << std::endl;
-    double xN[3], B0N[3];
-    xN[0] = 0.; xN[1] = 0.;
-    for (std::vector<bFieldZipTrackPoint>::const_iterator itZ = ffieldZipTrack.cbegin();  itZ != ffieldZipTrack.cend(); itZ++) { 
-      xN[2] = itZ->z + zOffset; 
-      this->MagneticField(xN, B0N);
-      for (int k=0; k != 3; k++) B0N[k] /=10.; // to Tesla.  
-      double bNormC = 0.; for (int k=0; k != 3; k++) bNormC += B0N[k]*B0N[k];
-      bNormC = std::sqrt(bNormC);
-      const double bNormP = std::sqrt(itZ->fbx*itZ->fbx + itZ->fby*itZ->fby + itZ->fbz*itZ->fbz);
-      fOut << " " << itZ->z << " " << -1.0*itZ->fbx << " " <<  -1.0*itZ->fby << " " << -1.0*itZ->fbz << " "  
-                  << bNormP << " " << B0N[0] << " " << B0N[1] << " " << B0N[2] << " "  << bNormC << std::endl;
-    }
-    fOut.close();
-    // Test access to a Geant4 random number.. 
-    //
-   //    std ::ofstream fOutForR("./EmphMagField_test3_p5_Acceptance_v1.txt");
-  }
 } // end namespace emph
 
