@@ -52,6 +52,7 @@ namespace emph
         case 3: { myTest.test3(); break; } 
 	default: { break;}
       }
+      std::cerr << " MagneticFieldService::MagneticFieldService, done with test, and quit for now,  " <<std::endl; exit(2);
     }    
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
