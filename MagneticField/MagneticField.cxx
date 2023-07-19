@@ -74,7 +74,9 @@ namespace emph {
 	ProbeCalib aProbeCalib(fileNameProbe);
 	std::string fileNameCentral(filename); 
 	if (fileNameCentral.back() != '/')  fileNameCentral += std::string("/");
-	fileNameCentral+=std::string("EMPHATIC_body_scan_5280148.csv"); 
+	fileNameCentral+=std::string("EMPHATIC_body_scan_5280148.csv"); // correct name 
+//	fileNameCentral+=std::string("EMPHATIC_body_scan_5280158.csv"); // incorrect, looking forward to error message or a crash 
+//       yes, crash.. 
 	fMeasuredCentral = new FieldMap(fileNameCentral, aProbeCalib);
 	std::string fileNameUpstr(filename); 
 	if (fileNameUpstr.back() != '/')  fileNameUpstr += std::string("/");
@@ -85,7 +87,7 @@ namespace emph {
 	fileNameDwnstr+=std::string("EMPHATIC_smallApertureFringe.csv"); 
 	fMeasuredDwnstr = new FieldMap(fileNameDwnstr, aProbeCalib);
 	fUseMeasured = true;
-//	std::cerr << " Got the 3 Sensis map, And quit for now!!... " << std::endl; exit(2);
+	std::cerr << " ....Got the 3 Sensis map... " << std::endl; 
 	return;
       }
       
@@ -464,7 +466,11 @@ namespace emph {
   void EMPHATICMagneticField::MagneticField(const double x[3], double B[3]) const 
   {
 //    bool debugIsOn = ((std::abs(x[0] + 2.06) < 0.01) && (std::abs(x[1] - 6.42) < 0.01) && (std::abs(x[2] + 141.918) < 100.));
-    if (fUseMeasured) this->MagneticFieldMeasured(x, B);
+    if (fUseMeasured) {
+       this->MagneticFieldMeasured(x, B);
+//       std::cerr << " EMPHATICMagneticField::MagneticField Check return B[1] " << B[1] << std::endl;
+       return;
+    }
     bool debugIsOn = false;
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
@@ -673,21 +679,31 @@ namespace emph {
   void EMPHATICMagneticField::MagneticFieldMeasured(const double x[3], double B[3]) const {
     for (size_t k=0; k != 3; k++) B[k] = 0.;
     if ((fMeasuredUpstr == nullptr) || (fMeasuredUpstr == nullptr) || (fMeasuredUpstr == nullptr)) return;
+//    std::cerr << " Before instantiating ra<double>... " << std::endl;
     ra<double> coord(3); 
-    coord(0) = 1.0e-3*x[0]; // convert mm to meter 
-    coord(1) = 1.0e-3*x[1];
-    coord(2) = 1.0e-3*x[2];
-    std::cerr << "EMPHATICMagneticField::MagneticFieldMeasured Transfer C array to ra, y  " << coord(1) << std::endl;
+    coord(1) = 1.0e-3*x[0]; // convert mm to meter 
+//    std::cerr << " After instantiating ra<double>...coord(3) and setting x  " << coord(1) <<  std::endl;
+    coord(2) = 1.0e-3*x[1];
+    coord(3) = 1.0e-3*x[2];
+//    std::cerr << "EMPHATICMagneticField::MagneticFieldMeasured Transfer C array to ra, y  " << coord(1) << std::endl;
     FieldMap::FieldMapInd closestInd;
     ra<double> Bm(3);
     if (fMeasuredUpstr->insideMap(coord, closestInd)) {
+       std::cerr << " ... In the upstream fringe field, Z  " <<  x[2] << std::endl;
        fMeasuredUpstr->interpolate(coord, Bm);
     } else if (fMeasuredCentral->insideMap(coord, closestInd)) {
+       std::cerr << " ... In the body, central region Z " << x[2] << std::endl;
        fMeasuredCentral->interpolate(coord, Bm);
     }  else if (fMeasuredDwnstr->insideMap(coord, closestInd)) {
+       std::cerr << " ... In the downstream fringe field, Z " << x[2] << std::endl;
        fMeasuredDwnstr->interpolate(coord, Bm);
+    }  else {
+       std::cerr << " ... Outside the 3 map, Z " << x[2] << std::endl;
+       return;
     }
-    B[0] = Bm(0); B[1] = Bm(1); B[2] = Bm(2); // Conversion factor may be needed. 
+    B[0] = Bm(1); B[1] = Bm(2); B[2] = Bm(3); // Conversion factor may be needed. 
+//    std::cerr << " EMPHATICMagneticField::MagneticFieldMeasured, after first access By " << B[1] << std::endl;
+//    std::cerr << " ..... And quit now ... " << std::endl; exit(2);
   }
   
   void EMPHATICMagneticField::GetFieldValue(const double x[3], double* B) const
