@@ -11,12 +11,9 @@
 #include <vector>
 
 // ROOT includes
-//#include "TFile.h"
-//#include "TH1F.h"
-//#include "TH2F.h"
-#include "TH3F.h"
-//#include "TVector3.h"
+#include "TH2F.h"
 #include "TTree.h"
+#include "TGraph.h"
 
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
@@ -71,39 +68,62 @@ namespace emph {
     pdd MakeIntersection(pdd A, pdd B, pdd C, pdd D);
     
   private:
-   
+  
     emph::cmap::ChannelMap* fChannelMap;
     runhist::RunHistory* fRunHistory;
-    emph::geo::Geometry *emgeo;
+    emph::geo::Geometry* emgeo;
     TTree*      spacepoint;
     int run,subrun,event;
     int         fEvtNum;
-	//std::vector<const rb::SSDCluster> clusters;
 
-//MAYBE THIS art::PtrVector<const rb::SSDCluster> clusters;
+    //MAYBE THIS art::PtrVector<const rb::SSDCluster> clusters;
     std::vector<const rb::SSDCluster*> clusters;
-    //std::vector<rb::LineSegment> strips;
     std::vector<rb::LineSegment> stripv;
     std::vector<rb::SpacePoint> spv;
 
-    std::map<std::pair<int, int>, int> clustMap; 
-    std::map<std::pair<int, rb::LineSegment&>, int> clustStripMap;
-    //std::vector<std::pair<int,rb::LineSegment&>> clustsegpair;
-    std::vector<std::pair<const rb::SSDCluster&, rb::LineSegment&>> clustsegpair;
-//std::unique_ptr< std::vector<std::pair<const rb::SSDCluster&,rb::LineSegment&>> > clustsegpair;
-    //std::map<const std::pair<int, int>, emph::geo::sensorView> clustMap;
-    //std::map<std::pair<const emph::geo::SSDStation, const emph::geo::Detector>, int> clustMap;
+    std::map<std::pair<int, int>, int> clustMap;
     std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
+
     bool        fMakePlots;
     int 	goodclust = 0;
     int 	fTotClust;
     int         naur = 0; 
+    size_t         nPlanes = 20;
+
     //fcl parameters
     bool        fCheckClusters;     ///< Check clusters for event 
 
-    TH3F*       fSpacePoint3D;
-
     emph::dgmap::DetGeoMap* fDetGeoMap;
+
+    int st;
+    TH2F* spdist0;
+    TH2F* spdist1;
+    TH2F* spdist2;
+    TH2F* spdist3;
+    TH2F* spdist4;
+    TH2F* spdist5;
+    TH2F* spdist6;
+    TH2F* spdist7;
+
+    TH2F* spdist2_xy;
+    TH2F* spdist3_xy;
+    TH2F* spdist2_ux;
+    TH2F* spdist3_ux;
+    TH2F* spdist2_uy;
+    TH2F* spdist3_uy;
+
+    TH2F* xzdist;
+    TH2F* yzdist;
+
+    TH2F* xzdist_evt[100];
+    TGraph* Gxzdist_evt[100];
+
+    double xvec[8] = {0,0,0,0,0,0,0,0};
+    double zvec[8] = {0,0,0,0,0,0,0,0};
+
+//    std::vector<const Double_t>* xvec;
+//    std::vector<const Double_t>* zvec;
+
   };
 
   //.......................................................................
@@ -113,7 +133,7 @@ namespace emph {
     fCheckClusters     (pset.get< bool >("CheckClusters")),
     fDetGeoMap(NULL)
   {
-
+    this->produces< std::vector<rb::SpacePoint> >();
     //fEvtNum = 0;
     //fCheckClusters     (pset.get< bool >("CheckClusters"));
   }
@@ -140,21 +160,23 @@ namespace emph {
     fChannelMap = new emph::cmap::ChannelMap();
     fRunHistory = new runhist::RunHistory(run.run());
     fChannelMap->LoadMap(fRunHistory->ChanFile());
-  //auto emgeo = geo->Geo();
-  //auto emcmap = cmap->CMap();
-/*  for (int fer=0; fer<10; ++fer){
-    for (int mod=0; mod<6; ++mod){
-      emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
-      if (!fChannelMap->IsValidEChan(echan)) continue;
-        emph::cmap::DChannel dchan = cmap->DetChan(echan);
+    emgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
 
-      const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-      const emph::geo::Detector   &sd = st.GetSSD(dchan.Channel());
+    for (int fer=0; fer<10; ++fer){
+      for (int mod=0; mod<6; ++mod){
+        emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
+        if (!fChannelMap->IsValidEChan(echan)) continue;
+          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 
-      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
+        const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
+        const emph::geo::Detector   &sd = st.GetSSD(dchan.Channel());
+
+        planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
+      }
     }
-  }*/
   }
+
+  //......................................................................
    
   void emph::MakeTrack::beginJob()
   {
@@ -163,8 +185,35 @@ namespace emph {
     spacepoint->Branch("run",&run,"run/I");
     spacepoint->Branch("subrun",&subrun,"subrun/I");
     spacepoint->Branch("event",&event,"event/I");
-    //fSpacePoint3D = tfs->make<TH3F>("fSpacePoint3D","3D Visual of Space Points",1000,0.,1000.,1000.,0.,1000.,2000,0.,2000.);
-    //spacepoint->Branch("SpacePoint3D",&SpacePoint3D,"SpacePoint3D");
+   
+    spdist0 = tfs->make<TH2F>("spdist0","spdist0",1000,-50.,50.,1000,-50.,50.); 
+    spdist1 = tfs->make<TH2F>("spdist1","spdist1",1000,-50.,50.,1000,-50.,50.);
+    spdist2 = tfs->make<TH2F>("spdist2","spdist2",1000,-50.,50.,1000,-50.,50.);
+    spdist3 = tfs->make<TH2F>("spdist3","spdist3",1000,-50.,50.,1000,-50.,50.);
+    spdist4 = tfs->make<TH2F>("spdist4","spdist4",1000,-50.,50.,1000,-50.,50.);
+    spdist5 = tfs->make<TH2F>("spdist5","spdist5",1000,-50.,50.,1000,-50.,50.);
+    spdist6 = tfs->make<TH2F>("spdist6","spdist6",1000,-50.,50.,1000,-50.,50.);
+    spdist7 = tfs->make<TH2F>("spdist7","spdist7",1000,-50.,50.,1000,-50.,50.);
+
+    spdist2_xy = tfs->make<TH2F>("spdist2_xy","spdist2_xy",1000,-50.,50.,1000,-50.,50.);
+    spdist3_xy = tfs->make<TH2F>("spdist3_xy","spdist3_xy",1000,-50.,50.,1000,-50.,50.);
+    spdist2_ux = tfs->make<TH2F>("spdist2_ux","spdist2_ux",1000,-50.,50.,1000,-50.,50.);
+    spdist3_ux = tfs->make<TH2F>("spdist3_ux","spdist3_ux",1000,-50.,50.,1000,-50.,50.);
+    spdist2_uy = tfs->make<TH2F>("spdist2_uy","spdist2_uy",1000,-50.,50.,1000,-50.,50.);
+    spdist3_uy = tfs->make<TH2F>("spdist3_uy","spdist3_uy",1000,-50.,50.,1000,-50.,50.);
+
+    xzdist = tfs->make<TH2F>("xzdist","xzdist",2050,-50.,2000.,1000,-50.,50.); 
+    yzdist = tfs->make<TH2F>("yzdist","yzdist",2050,-50.,2000.,1000,-50.,50.);
+
+    char *hevt = new char[11];
+    //char *Ghevt = new char[11];
+    for (int i=0; i<100; i++){
+	sprintf(hevt,"spdist_e%d",i);
+        //sprintf(Ghevt,"Gspdist_e%d",i);
+        //Gxzdist_evt[i] = tfs->make<TGraph>(8,xvec,zvec);
+	xzdist_evt[i] = tfs->make<TH2F>(hevt,hevt,2050,-50.,2000.,1000,-50.,50.);
+    } 
+
   }
  
   //......................................................................
@@ -181,28 +230,9 @@ namespace emph {
   {
     if (!fDetGeoMap) fDetGeoMap = new emph::dgmap::DetGeoMap();
 
-    //std::cout<<"In MakePoint"<<std::endl;
-
-     //std::unique_ptr< std::vector<std::pair<int,rb::LineSegment&>> > clustsegpair(new std::vector<std::pair<int,rb::LineSegment&>>);
-
     //probably doesn't need to be an if statement?
     if(fDetGeoMap->SSDClusterToLineSegment(cl, ls)){
-	//std::cout<<"Made line segment"<<std::endl;
 
-	//std::cout<<"Cluster (sta,sen): "<<cl.Station()<<","<<cl.Sensor()<<std::endl;
-	//clustsegpair.push_back(std::pair<const rb::SSDCluster&,rb::LineSegment&>(cl,ls));
-        //std::cout<<"One segment (in makepoint)"<<std::endl;
-        //std::cout<<"("<<ls.X0()[0]<<", "<<ls.X0()[1]<<", "<<ls.X0()[2]<<")"<<std::endl;
-        //std::cout<<"("<<ls.X1()[0]<<", "<<ls.X1()[1]<<", "<<ls.X1()[2]<<")"<<std::endl;
-/*
-        if (cl.Station()==0){ //station is 0
-        //shouldn't be the same as above!!!  
-             std::cout<<"One segment (in clustsegpair)"<<std::endl;
-             std::cout<<"("<<clustsegpair[0].second.X0()[0]<<", "<<clustsegpair[0].second.X0()[1]<<", "<<clustsegpair[0].second.X0()[2]<<")"<<std::endl;
-             std::cout<<"("<<clustsegpair[0].second.X1()[0]<<", "<<clustsegpair[0].second.X1()[1]<<", "<<clustsegpair[0].second.X1()[2]<<")"<<std::endl;
-
-        }
-*/
     }
   }
 
@@ -239,8 +269,6 @@ namespace emph {
   //......................................................................
   void emph::MakeTrack::produce(art::Event& evt)
   {
-      //std::unique_ptr< std::vector<rb::SSDCluster> > clusters(new std::vector<rb::SSDCluster>);
-   //clustsegpair.clear();
 
     std::unique_ptr< std::vector<rb::SpacePoint> > spacepointv(new std::vector<rb::SpacePoint>);
 
@@ -251,9 +279,11 @@ namespace emph {
 
     //debug
     //if(fEvtNum==877) fMakePlots = true; //two clusters in a (sta,sen)=(2,0)
-    if(fEvtNum==2826) fMakePlots = true; //good event one cluster per plane 
-    else fMakePlots = false;
-    //fMakePlots = true;
+    //if(fEvtNum==2826) fMakePlots = true; //good event one cluster per plane 
+
+    //if(fEvtNum==877) fMakePlots = true;
+    //else fMakePlots = false;
+    fMakePlots = true;
 
     if(fMakePlots){ 
 
@@ -271,22 +301,16 @@ namespace emph {
       evt.getByLabel(fClusterLabel, clustH);
       if (!clustH->empty()){
          for (size_t idx=0; idx < clustH->size(); ++idx) {
-	      //std::cout<<fEvtNum<<std::endl;
               const rb::SSDCluster& clust = (*clustH)[idx];
               //MAYBE THIS   art::Ptr<const rb::SSDCluster> clustRR(clustH,idx);
 
-              //const emph::geo::SSDStation &st = emgeo->GetSSDStation(clust.Station());
-              //const emph::geo::Detector &sd = st.GetSSD(clust.Sensor());
 	      ++clustMap[std::pair<int,int>(clust.Station(),clust.Sensor())];
-
-	      //std::cout<<"Station: "<<clust.Station()<<"...Sensor: "<<clust.Sensor()<<std::endl;
-
 	      clusters.push_back(&clust); //push back a  pointer
 
               //MAYBE THIS   clusters.push_back(clustRR);
-	      //clusters->push_back(&clust); //push back a  pointer
 	  }
-	  //std::cout<<"cluster vector size: "<<clusters.size()<<std::endl;
+
+//ONE CLUSTER PER PLANE
 
 	  bool goodEvent = false; //true
           //If there are more clusters than sensors, skip event
@@ -299,250 +323,273 @@ namespace emph {
 	     else {naur++; std::cout<<                     "Naurrrrrrr        :("<<std::endl;}
           }
 	  else naur++;
-	 
+//ONE CLUSTER PER PLANE
+	  //bool goodEvent = true;
+		
 	  //std::cout<<"clusters.size(): "<<clusters.size()<<std::endl;
- 
+
+         std::vector<const rb::SSDCluster*> cl_group[20];
+         std::vector<const rb::LineSegment*> ls_group[20];
+
+         for (size_t i=0; i<clusters.size(); i++){
+             geo::sensorView view = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].second;
+
+             //group clusters according to plane
+             //within each station,do every combination
+             int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
+             cl_group[plane].push_back(clusters[i]);
+             //ls_group[plane].push_back(&stripv[i]);
+          }
+//ANY CLUSTER
+/*          bool goodEvent = true;
+          for (size_t i=0; i<nPlanes; i++){
+              if (cl_group[i].size() == 0){ goodEvent = false; break; }
+          }
+*/
+//ANY CLUSTER
+          //std::cout<<"Good event is..."<<goodEvent<<std::endl;
+
 	  rb::LineSegment strip;
           if (goodEvent==true && clusters.size() > 0){
 	     for (size_t i=0; i<clusters.size(); i++){
-	        std::cout<<"Cluster station is: "<<clusters[i]->Station()	<<std::endl;
 		stripv.push_back(strip);
-	        //clustsegpair.push_back(std::pair<const rb::SSDCluster&,rb::LineSegment&>(*clusters[i],stripv[i]));	
-	        //MakePoint(clustsegpair[i].first,clustsegpair[i].second);
 		MakePoint(*clusters[i],stripv[i]);
+		
+		int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
+	        //ls_group[plane].push_back(&stripv[i]);
 	     }
-          }
- 	  
+          }//makepoint is misleading it's more like makesegment
+
 	//if line segment populated, make a point		 
-	if (goodEvent == true){ // && strips.size() > 0){
-	   //stripvcheck
-	   /*
-	   for (size_t i=0; i<stripv.size(); i++){
-	       std::cout<<"........"<<std::endl;
-	       //std::cout<<"Cluster station is: "<<clustsegpair[i].first.Station()
-               //           <<" and sensor is : "<<clustsegpair[i].first.Sensor()<<std::endl;
-	       std::cout<<"("<<stripv[i].X0()[0]<<", "<<stripv[i].X0()[1]<<", "<<stripv[i].X0()[2]<<")"<<std::endl;
-	       std::cout<<"("<<stripv[i].X1()[0]<<", "<<stripv[i].X1()[1]<<", "<<stripv[i].X1()[2]<<")"<<std::endl;
-	   }
-	   */
-
-//	   for (size_t i=0; i<clustsegpair.size(); i++){
-//	       std::cout<<"...checking pairs..."<<std::endl;
-//	       std::cout<<"Cluster station: "<<clustsegpair[i].first.Station()<<std::endl;
-//	       std::cout<<"("<<clustsegpair[i].second.X0()[0]<<", "<<clustsegpair[i].second.X0()[1]<<", "<<clustsegpair[i].second.X0()[2]<<")"<<std::endl;
-//               std::cout<<"("<<clustsegpair[i].second.X1()[0]<<", "<<clustsegpair[i].second.X1()[1]<<", "<<clustsegpair[i].second.X1()[2]<<")"<<std::endl;
-//         } 
-
-	   //if (station 0)
-	   std::vector< std::vector< const rb::SSDCluster*> > xy;
-	   std::vector< std::vector< rb::LineSegment> > xy_stripv;
-	   std::vector< std::vector< const rb::SSDCluster*> > xyu;
-	   std::vector< std::vector< rb::LineSegment> > xyu_stripv;
-	   //std::vector< std::vector<  rb::SSDCluster> > xy;
-	   //std::vector< std::vector<  rb::SSDCluster> > xyu;
-
-	   for (size_t i=1; i<clusters.size()-1; i++){
-	   //group clusters into groups according to station
-	   //probably not the smartest way
-	   std::vector<const rb::SSDCluster*> tmp;
-	   std::vector<rb::LineSegment> tmp_stripv;
-		 //last station
-	         if (clusters[i]->Station()==7){
-                    tmp.push_back(clusters[i]);    tmp_stripv.push_back(stripv[i]);
-                    tmp.push_back(clusters[i+1]);  tmp_stripv.push_back(stripv[i+1]); 
-                    xy.push_back(tmp);             xy_stripv.push_back(tmp_stripv);
-                 }
-		 if (clusters[i]->Station()==clusters[i-1]->Station() && clusters[i]->Station()!=clusters[i+1]->Station()){ 
-		    // || clusters[i]->Station()==clusters[i+1]->Station() && clusters[i]->Station()!=clusters[i-1]->Station()){
-		 //pushback i and i-1 to xy
-		    tmp.push_back(clusters[i-1]);  tmp_stripv.push_back(stripv[i-1]);
-		    tmp.push_back(clusters[i]);    tmp_stripv.push_back(stripv[i]);
-		    xy.push_back(tmp);             xy_stripv.push_back(tmp_stripv);
-		 }
-		 if (clusters[i]->Station()==clusters[i-1]->Station() && clusters[i]->Station()==clusters[i+1]->Station()){
-		 //pusback i, i-1,i+1 to xyu i+2
-		    tmp.push_back(clusters[i-1]);  tmp_stripv.push_back(stripv[i-1]);
-                    tmp.push_back(clusters[i]);    tmp_stripv.push_back(stripv[i]);
-		    tmp.push_back(clusters[i+1]);  tmp_stripv.push_back(stripv[i+1]);
-                    xyu.push_back(tmp);            xyu_stripv.push_back(tmp_stripv);
-		    i++;
-                 }
-	   tmp.clear();
-	   }
-	   
-	   //xy and xyu check
-/*	   std::cout<<"xy check"<<std::endl;
-	   for (size_t i=0; i<xy.size(); i++){
-           std::cout<<"i: "<<i<<std::endl;
-		for (size_t j=0; j<xy[i].size(); j++){
-	            std::cout<<"xy[i].size(): "<<xy[i].size()<<std::endl;
-		    std::cout<<"j: "<<j<<std::endl;
-		    std::cout<<"Cluster Station: "<<xy[i][j]->Station()<<"...Sensor: "<<xy[i][j]->Sensor()<<std::endl;
-		}
-	   }	
-           std::cout<<"xyu check"<<std::endl;
-	   for (size_t i=0; i<xyu.size(); i++){
-           std::cout<<"i: "<<i<<std::endl;
-                for (size_t j=0; j<xyu[i].size(); j++){
-                    std::cout<<"xyu[i].size(): "<<xyu[i].size()<<std::endl;
-                    std::cout<<"j: "<<j<<std::endl;
-                    std::cout<<"Cluster Station: "<<xyu[i][j]->Station()<<"...Sensor: "<<xyu[i][j]->Sensor()<<std::endl;
-                }
-           }    
-*/
-
+	//if (goodEvent == true && stripv.size() > 0){
 	   rb::SpacePoint sp;
-	   //make points for xy
-           for (size_t i=0; i<xy_stripv.size(); i++){
-	       //for (size_t j=0; j<xy_stripv[i].size(); j++){	   
-	           pdd fA = std::make_pair(xy_stripv[i][0].X0()[0],xy_stripv[i][0].X0()[1]);
-                   pdd fB = std::make_pair(xy_stripv[i][0].X1()[0],xy_stripv[i][0].X1()[1]);
-                   pdd fC = std::make_pair(xy_stripv[i][1].X0()[0],xy_stripv[i][1].X0()[1]);
-                   pdd fD = std::make_pair(xy_stripv[i][1].X1()[0],xy_stripv[i][1].X1()[1]);
 
-                   pdd point = MakeIntersection(fA,fB,fC,fD);
+	  /* std::vector<const rb::SSDCluster*> cl_group[20];
+           std::vector<const rb::LineSegment*> ls_group[20];
 
-		   //make point vector (x,y,z)
-	           double x[3] = {point.first,point.second,xy_stripv[i][0].X0()[2]}; 
-		   //z-component for .X0() and .X1() should be the same
+           for (size_t i=0; i<clusters.size(); i++){
+	       geo::sensorView view = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].second;
 
-		   //set SpacePoint object 
-		   sp.SetX(x);
-		   //fSpacePoint3D->Fill(x[0],x[1],x[2]);
-		   spv.push_back(sp); 
-		   //add to unique pointer vector 
-		   spacepointv->push_back(sp);
+	       //group clusters according to plane
+	       //within each station,do every combination
+	       int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
+	       cl_group[plane].push_back(clusters[i]);
+               ls_group[plane].push_back(&stripv[i]);
+           }
 
-		   std::cout<<"Space Point position: "<<"("<<x[0]<<","<<x[1]<<","<<x[2]<<")"<<std::endl;
-	       //}
+	   bool goodEvent = true;
+           for (size_t i=0; i<20; i++){
+	       if (cl_group[i].size() == 0){ goodEvent = false; break; }
 	   }
-	   //make points for xyu
-	   //unsure if we want to do this in this way
-	   for (size_t i=0; i<xyu.size(); i++){
-		   pdd fA01 = std::make_pair(xyu_stripv[i][0].X0()[0],xyu_stripv[i][0].X0()[1]);
-                   pdd fB01 = std::make_pair(xyu_stripv[i][0].X1()[0],xyu_stripv[i][0].X1()[1]);
-                   pdd fC01 = std::make_pair(xyu_stripv[i][1].X0()[0],xyu_stripv[i][1].X0()[1]);
-                   pdd fD01 = std::make_pair(xyu_stripv[i][1].X1()[0],xyu_stripv[i][1].X1()[1]);
+	   std::cout<<"Good event is..."<<goodEvent<<std::endl;
+ */
+	   if (goodEvent == true && stripv.size() > 0){
 
-	           pdd point01 = MakeIntersection(fA01,fB01,fC01,fD01);	  
+	   for (size_t i=0; i<clusters.size(); i++){
+	       geo::sensorView view = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].second;
+               int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
+               ls_group[plane].push_back(&stripv[i]);
+           }
+		
+	   //for stations 2 and 3 only (xy)
+	   for (size_t i=0; i<nPlanes; i++){
+	       if (i==5 || i==8 ){
+		  for (size_t j=0; j<ls_group[i].size(); j++){
+                      for (size_t k=0; k<ls_group[i+1].size(); k++){
+	                  st = cl_group[i][j]->Station();
+                          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                          pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-	           pdd fA02 = std::make_pair(xyu_stripv[i][0].X0()[0],xyu_stripv[i][0].X0()[1]);
-                   pdd fB02 = std::make_pair(xyu_stripv[i][0].X1()[0],xyu_stripv[i][0].X1()[1]);
-                   pdd fC02 = std::make_pair(xyu_stripv[i][2].X0()[0],xyu_stripv[i][2].X0()[1]);
-                   pdd fD02 = std::make_pair(xyu_stripv[i][2].X1()[0],xyu_stripv[i][2].X1()[1]);
+                          pdd point = MakeIntersection(fA,fB,fC,fD);
+                          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+                          sp.SetX(x);
+                          if (cl_group[i+1][k]->Station() == st){}
+                          else std::cout<<"XY: Stations do not match..."<<std::endl;
 
-                   pdd point02 = MakeIntersection(fA02,fB02,fC02,fD02);
-
-		   pdd fA12 = std::make_pair(xyu_stripv[i][1].X0()[0],xyu_stripv[i][1].X0()[1]);
-                   pdd fB12 = std::make_pair(xyu_stripv[i][1].X1()[0],xyu_stripv[i][1].X1()[1]);
-                   pdd fC12 = std::make_pair(xyu_stripv[i][2].X0()[0],xyu_stripv[i][2].X0()[1]);
-                   pdd fD12 = std::make_pair(xyu_stripv[i][2].X1()[0],xyu_stripv[i][2].X1()[1]);
-
-                   pdd point12 = MakeIntersection(fA12,fB12,fC12,fD12);
-
-		   //average of three points (center of mass)
-                   double ptavg_x2 = (point01.first + point02.first + point12.first)/3. ;
-                   double ptavg_y2 = (point01.second + point02.second + point12.second)/3. ;
-
-                   pdd point2 = std::make_pair(ptavg_x2, ptavg_y2);
-	        
-		   //make point vector (x,y,z)
-		   double x[3] = {point2.first,point2.second,xyu_stripv[i][0].X0()[2]};
-		   //z-component for .X0() and .X1() should be the same
-
-		   //set SpacePoint object
-		   sp.SetX(x);
-                   spv.push_back(sp);
-                   //add to unique pointer vector
-                   spacepointv->push_back(sp);
-
-	           std::cout<<"Space Point position: "<<"("<<x[0]<<","<<x[1]<<","<<x[2]<<")"<<std::endl;
+                          sp.SetStation(st);
+                          spv.push_back(sp);
+                          if (st==2) spdist2_xy->Fill(x[0],x[1]);
+                          if (st==3) spdist3_xy->Fill(x[0],x[1]);
+		      }
+		   }
+	       }
 	   }
+	   //for stations 2 and 3 only (uy)
+	   for (size_t i=0; i<nPlanes; i++){
+               if (i==4 || i==7 ){
+                  for (size_t j=0; j<ls_group[i].size(); j++){
+                      for (size_t k=0; k<ls_group[i+1].size(); k++){
+                          st = cl_group[i][j]->Station();
+                          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                          pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-	   std::cout<<"The total number of points is "<<spv.size()<<std::endl; 
-	   for (size_t i=0; i<spv.size(); i++){
-//		std::cout<<"Space Point position: "<<spv[i].Pos()<<std::endl;
-	   }	  
- 
-	   //if groupsize =2 do point, if =3 average between points
-	   //for each station of two sensors...and what about three? avg of two points?
-	   //    for (size_t i=0; i<clusters.size(); i++){
-/*
-	   //Station 0		
-	   pdd fA0 = std::make_pair(stripv[0].X0()[0],stripv[0].X0()[1]);
-           pdd fB0 = std::make_pair(stripv[0].X1()[0],stripv[0].X1()[1]); 
-           pdd fC0 = std::make_pair(stripv[1].X0()[0],stripv[1].X0()[1]);
-           pdd fD0 = std::make_pair(stripv[1].X1()[0],stripv[1].X1()[1]);
+                          pdd point = MakeIntersection(fA,fB,fC,fD);
+                          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+                          sp.SetX(x);
+                          if (cl_group[i+1][k]->Station() == st){}
+                          else std::cout<<"XY: Stations do not match..."<<std::endl;
 
-	   pdd point0 = MakeIntersection(fA0,fB0,fC0,fD0);
+                          sp.SetStation(st);
+                          spv.push_back(sp);
+                          if (st==2) spdist2_uy->Fill(x[0],x[1]);
+                          if (st==3) spdist3_uy->Fill(x[0],x[1]);
+                      }
+                   }
+               }
+           }
+	   //for stations 2 and 3 only (ux)
+	   for (size_t i=0; i<nPlanes; i++){
+               if (i==4 || i==7 ){
+                  for (size_t j=0; j<ls_group[i].size(); j++){
+                      for (size_t k=0; k<ls_group[i+2].size(); k++){
+                          st = cl_group[i][j]->Station();
+                          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          pdd fC = std::make_pair(ls_group[i+2][k]->X0()[0],ls_group[i+2][k]->X0()[1]);
+                          pdd fD = std::make_pair(ls_group[i+2][k]->X1()[0],ls_group[i+2][k]->X1()[1]);
 
-	   //Station 1
-	   pdd fA1 = std::make_pair(stripv[2].X0()[0],stripv[2].X0()[1]);
-           pdd fB1 = std::make_pair(stripv[2].X1()[0],stripv[2].X1()[1]);
-           pdd fC1 = std::make_pair(stripv[3].X0()[0],stripv[3].X0()[1]);
-           pdd fD1 = std::make_pair(stripv[3].X1()[0],stripv[3].X1()[1]);
+                          pdd point = MakeIntersection(fA,fB,fC,fD);
+                          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+                          sp.SetX(x);
+                          if (cl_group[i+2][k]->Station() == st){}
+                          else std::cout<<"XY: Stations do not match..."<<std::endl;
 
-           pdd point1 = MakeIntersection(fA1,fB1,fC1,fD1);
+                          sp.SetStation(st);
+                          spv.push_back(sp);
+                          if (st==2) spdist2_ux->Fill(x[0],x[1]);
+                          if (st==3) spdist3_ux->Fill(x[0],x[1]);
+                      }
+                   }
+               }
+           }
 
-	   //Station 2
-	   //three combinations 4 5 6
-	   pdd fA2_45 = std::make_pair(stripv[4].X0()[0],stripv[4].X0()[1]);
-           pdd fB2_45 = std::make_pair(stripv[4].X1()[0],stripv[4].X1()[1]);
-           pdd fC2_45 = std::make_pair(stripv[5].X0()[0],stripv[5].X0()[1]);
-           pdd fD2_45 = std::make_pair(stripv[5].X1()[0],stripv[5].X1()[1]);
+	   for (size_t i=0; i<nPlanes; i++){
+	       //station 0,1,4,7
+	       if (i==0 || i==2 || i==10 || i==18){ //|| i==4 || i==7 || i==10 || i==18){
+		  //if (i==4 || i==7) i++;
+	          for (size_t j=0; j<ls_group[i].size(); j++){
+		      st = cl_group[i][j]->Station();
+		      //std::cout<<"Station is..."<<st<<std::endl;
+	              for (size_t k=0; k<ls_group[i+1].size(); k++){
+		          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                          pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-           pdd point2_45 = MakeIntersection(fA2_45,fB2_45,fC2_45,fD2_45);
+                          pdd point = MakeIntersection(fA,fB,fC,fD);	 
 
-	   pdd fA2_56 = std::make_pair(stripv[5].X0()[0],stripv[5].X0()[1]);
-           pdd fB2_56 = std::make_pair(stripv[5].X1()[0],stripv[5].X1()[1]);
-           pdd fC2_56 = std::make_pair(stripv[6].X0()[0],stripv[6].X0()[1]);
-           pdd fD2_56 = std::make_pair(stripv[6].X1()[0],stripv[6].X1()[1]);
+		          //make point vector (x,y,z)
+		          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+		          //z-component for .X0() and .X1() should be the same      
 
-           pdd point2_56 = MakeIntersection(fA2_56,fB2_56,fC2_56,fD2_56);
+			  //set SpacePoint object
+			  sp.SetX(x);
 
-	   pdd fA2_46 = std::make_pair(stripv[4].X0()[0],stripv[4].X0()[1]);
-           pdd fB2_46 = std::make_pair(stripv[4].X1()[0],stripv[4].X1()[1]);
-           pdd fC2_46 = std::make_pair(stripv[6].X0()[0],stripv[6].X0()[1]);
-           pdd fD2_46 = std::make_pair(stripv[6].X1()[0],stripv[6].X1()[1]);
+			  //check stations
+			  if (cl_group[i+1][k]->Station() == st){} 
+                          else std::cout<<"XY: Stations do not match..."<<std::endl;
+                          
+                          sp.SetStation(st);
+			  spv.push_back(sp);
+                          //add to unique pointer vector
+                          spacepointv->push_back(sp);
 
-           pdd point2_46 = MakeIntersection(fA2_46,fB2_46,fC2_46,fD2_46);
+			  if (st==0) spdist0->Fill(x[0],x[1]);
+                          if (st==1) spdist1->Fill(x[0],x[1]);
+                          if (st==4) spdist4->Fill(x[0],x[1]);
+			  if (st==7) spdist7->Fill(x[0],x[1]); 
+			  //if (st==2) spdist2_xy->Fill(x[0],x[1]);
+			  //if (st==3) spdist3_xy->Fill(x[0],x[1]);
+		          //if (st!=2 || st!=3) 
+		          xzdist->Fill(x[2],x[0]);
+			  //if (st!=2 || st!=3) 
+			  yzdist->Fill(x[2],x[1]);
+			  if (fEvtNum < 100){
+			     xzdist_evt[fEvtNum]->Fill(x[2],x[0]);
+			     xvec[st] = x[2];
+			     zvec[st] = x[0];
+		          }
+		      }
+	          }
+		  //std::cout<<"Station is "<<st<<" and sensor is "<<i<<std::endl;
+	          //if (st!=2 || st!=3) 
+	          i++; //skip following sensor
+		  //if (i==5) --i; //idk why this just doesn't work
+		  //if (i==8) --i;
+		  //std::cout<<"AND NOW Station is "<<st<<" and sensor is "<<i<<std::endl;
+	       }
+	       //station 2,3,5,6
+	       if (i==4 || i==7 || i==12 || i==15){
+	          for (size_t j=0; j<ls_group[i].size(); j++){
+		      st = cl_group[i][j]->Station();
+		      //std::cout<<"Station is..."<<st<<std::endl;
+                      for (size_t k=0; k<ls_group[i+1].size(); k++){
+			  for (size_t l=0; l<ls_group[i+2].size(); l++){ 
+			      pdd fA01 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                              pdd fB01 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                              pdd fC01 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]); 
+                              pdd fD01 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-	   //average of three points (center of mass)
-	   double ptavg_x2 = (point2_45.first + point2_56.first + point2_46.first)/3. ;
-	   double ptavg_y2 = (point2_45.second + point2_56.second + point2_46.second)/3. ;
+                              pdd point01 = MakeIntersection(fA01,fB01,fC01,fD01);
 
-	   pdd point2 = std::make_pair(ptavg_x2, ptavg_y2); 
+                   	      pdd fA02 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                   	      pdd fB02 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                              pdd fC02 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
+	                      pdd fD02 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
 
-	   //Station 3
-	   //three combinations 7 8 9 
-	   pdd fA3_78 = std::make_pair(stripv[7].X0()[0],stripv[7].X0()[1]);
-           pdd fB3_78 = std::make_pair(stripv[7].X1()[0],stripv[7].X1()[1]);
-           pdd fC3_78 = std::make_pair(stripv[8].X0()[0],stripv[8].X0()[1]);
-           pdd fD3_78 = std::make_pair(stripv[8].X1()[0],stripv[8].X1()[1]);
+                   	      pdd point02 = MakeIntersection(fA02,fB02,fC02,fD02);
 
-           pdd point3_78 = MakeIntersection(fA3_78,fB3_78,fC3_78,fD3_78);
+                   	      pdd fA12 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                              pdd fB12 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
+                              pdd fC12 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
+                              pdd fD12 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
 
-           pdd fA3_89 = std::make_pair(stripv[8].X0()[0],stripv[8].X0()[1]);
-           pdd fB3_89 = std::make_pair(stripv[8].X1()[0],stripv[8].X1()[1]);
-           pdd fC3_89 = std::make_pair(stripv[9].X0()[0],stripv[9].X0()[1]);
-           pdd fD3_89 = std::make_pair(stripv[9].X1()[0],stripv[9].X1()[1]);
+	                      pdd point12 = MakeIntersection(fA12,fB12,fC12,fD12);
 
-           pdd point3_89 = MakeIntersection(fA3_89,fB3_89,fC3_89,fD3_89);
+			      //average of three points (center of mass)
+			      double ptavg_x2 = (point01.first + point02.first + point12.first)/3. ;
+			      double ptavg_y2 = (point01.second + point02.second + point12.second)/3. ;
+			      
+			      pdd point2 = std::make_pair(ptavg_x2, ptavg_y2);
+				
+			      //make point vector (x,y,z)
+                              double x[3] = {point2.first,point2.second,ls_group[i][j]->X0()[2]};
+            	              //z-component for .X0() and .X1() should be the same
+                   
+                              //set SpacePoint object
+                   	      sp.SetX(x);	 
+	
+		              //check stations 
+		              if (cl_group[i+1][k]->Station() == st && cl_group[i+2][l]->Station() == st){}
+                              else std::cout<<"XYU: Stations do not match..."<<std::endl;    
+			      //reverse the logic (if this or this) + no else?
 
-           pdd fA3_79 = std::make_pair(stripv[7].X0()[0],stripv[7].X0()[1]);
-           pdd fB3_79 = std::make_pair(stripv[7].X1()[0],stripv[7].X1()[1]);
-           pdd fC3_79 = std::make_pair(stripv[9].X0()[0],stripv[9].X0()[1]);
-           pdd fD3_79 = std::make_pair(stripv[9].X1()[0],stripv[9].X1()[1]);
-
-           pdd point3_79 = MakeIntersection(fA3_79,fB3_79,fC3_79,fD3_79);
-
-	   //average of three points (center of mass)
-	   double ptavg_x3 = (point3_78.first + point3_89.first + point3_79.first)/3. ;
-           double ptavg_y3 = (point3_78.second + point3_89.second + point3_79.second)/3. ;
-
-           pdd point3 = std::make_pair(ptavg_x3, ptavg_y3);
-*/
-	   //maybe put things into a rb::SpacePoint object (or a vector of them) and add to art file
+			      sp.SetStation(st);
+                              spv.push_back(sp);
+                              //add to unique pointer vector
+                              spacepointv->push_back(sp);
+                          
+                              if (st==2) spdist2->Fill(x[0],x[1]);
+                              if (st==3) spdist3->Fill(x[0],x[1]);
+			      if (st==5) spdist5->Fill(x[0],x[1]);
+			      if (st==6) spdist6->Fill(x[0],x[1]);
+			      xzdist->Fill(x[2],x[0]);
+                              yzdist->Fill(x[2],x[1]);
+			      if (fEvtNum < 100){
+				 xzdist_evt[fEvtNum]->Fill(x[2],x[0]);
+				 xvec[st] = x[2];
+                                 zvec[st] = x[0];
+		              }
+			  }
+                      }
+		  }
+	          i += 2;	
+	       }
+	   }
 
 ///
 /*
@@ -559,26 +606,36 @@ namespace emph {
 
 	spv.clear();
 	stripv.clear();
-	clustsegpair.clear();
-	clustStripMap.clear(); 
 	clusters.clear();
         clustMap.clear();
 
-	  //fEvtNum++;
-	  // Place SSDSpacePoint object into event
-//	  evt.put(std::move(SpacePoint_Robertv)); //or fSPVector?
-	//}
-//	fEvtNum++; //can get rid of?
+	if (fEvtNum < 100){
+           art::ServiceHandle<art::TFileService> tfs;
+           char *Ghevt = new char[12];
+           sprintf(Ghevt,"Gspdist_e%d",fEvtNum);
+           if (xvec[0] != 0 && xvec[1] != 0 && xvec[2] != 0 && xvec[3] != 0 && xvec[4] != 0 && xvec[5] != 0 && xvec[6] != 0 && xvec[7] != 0){
+	      Gxzdist_evt[fEvtNum] = tfs->makeAndRegister<TGraph>(Ghevt,Ghevt,8,xvec,zvec);
+              Gxzdist_evt[fEvtNum]->GetYaxis()->SetRangeUser(-50,50);
+              Gxzdist_evt[fEvtNum]->GetXaxis()->SetLimits(-50,1900);
+	      Gxzdist_evt[fEvtNum]->SetMarkerStyle(3);
+              Gxzdist_evt[fEvtNum]->SetMarkerSize(2);
+	   }
+	}	
+
       }
-    }
+    } //try
     catch(...) {
 
     }
-//    spacepoint->Fill();
+    for (int i=0; i<8; i++){
+        xvec[i] = 0;
+	zvec[i] = 0;
+    }
   } //want plots
-  //evt.put(std::move(spacepointv));
+  evt.put(std::move(spacepointv));
+
   }
 
 } // end namespace emph
 
-DEFINE_ART_MODULE(emph::MakeTrack) //_Robert)
+DEFINE_ART_MODULE(emph::MakeTrack)
