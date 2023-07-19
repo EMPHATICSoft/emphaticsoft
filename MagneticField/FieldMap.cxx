@@ -4,7 +4,7 @@
 //
 //  Created by Leo Bellantoni on 3/29/23.
 //
-
+#include <fstream>
 #include <cfloat>
 #include "MagneticField/FieldMap.h"
 
@@ -15,6 +15,14 @@
 FieldMap::FieldMap(string mapFile, ProbeCalib calib) : offset(nullptr) {
     double const inch2Meter = 25.4/1000.0;
  
+    // Check first that we have a valid file 
+    //
+    std::ifstream fInTmp(mapFile); 
+    if((!fInTmp.is_open()) || (!fInTmp.good())) {
+      std::cerr << " Magentic Measured FieldMap::FieldMap, file " << mapFile << " not found or no good.. Fatal " << std::endl;
+      exit(2);
+    }
+    fInTmp.close();
     // Determine the dimensions for the ra<AtPoint> structure
     inputtextfile mapData(mapFile);
     std::string makeWhite = ",";
@@ -230,6 +238,9 @@ ra<double> FieldMap::findB(FieldMapInd inInd) const {
 
 bool FieldMap::insideMap(ra<double> Xi, FieldMapInd& closestInd) const {
     // Quick hi-reject rate test first.
+    
+    std::cerr << " FieldMap::insideMap Xi(z) " << Xi(z) << " offset " 
+              << (*offset)(z) << " minZin " << minZind << " maxZin " << maxZind << std::endl; 
     if (Xi(z) +(*offset)(z) < minZind) return false;
     if (Xi(z) +(*offset)(z) > maxZind) return false;
     
