@@ -167,7 +167,7 @@ namespace emph {
           fNEventsLGCalo.push_back(0);
     }
     for (int i=0; i<nchancal; ++i){
-          fLGCaloIntCharge[i] = tfs->make<TH1F>(Form("LGCaloIntCharge_%d",i),Form("LG Calo Integrated Charge %d",i),200,0.,26000.);
+          fLGCaloIntCharge[i] = tfs->make<TH1F>(Form("LGCaloIntCharge_%d",i),Form("LG Calo Integrated Charge %d",i),500,-500.,7500.); //200,0,26000
     }
 
     RunInfo = tfs->make<TTree>("RunInfo","");
@@ -309,6 +309,7 @@ namespace emph {
 	           //std::cout<<"I'm here: "<<fEvtNum<<std::endl; //could be up to 9 times 
 		}
               }
+	      else std::cout<<"NO CALO HIT: "<<fEvtNum<<std::endl;
             }
           }
         }
