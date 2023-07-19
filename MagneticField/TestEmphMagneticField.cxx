@@ -25,6 +25,44 @@ namespace emph {
     
     double xN[3], xF[3], B0N[3], B0F[3], B1N[3], B1F[3];
     
+    //
+    // Test one access .. 
+    //
+    xN[0] = -5.0; xN[1] = 5.0; xN[2] = 190.25; 
+    fBField->setInterpolatingOption(0);
+    fBField->MagneticField(xN, B0N); // xN is in mm.. 
+    std::cerr << " TestEmphMagneticField::test1, first access, By " << B0N[1] << std::endl; 
+//    std::cerr << " Amazing!...  And quit now.." << std::endl; exit(2);
+    xN[0] = -0.55; xN[1] = 1.56; xF[0] = xN[0] + 10.; xF[1] = xN[1] + 10.; 
+//    for (int iZ = -80; iZ != 120; iZ++) { 
+    for (int iZ = 58; iZ != 65; iZ++) { // Should be inside the body of the magent, if previously in the upstream fringe. 
+           const double z = iZ*4.578; 
+           xN[2] = z;
+           xF[2] = z + 10.;
+           fBField->setInterpolatingOption(0); // irrelevant if using the Measured map (Sensis probe AP-STD)
+           fBField->MagneticField(xN, B0N); // xN is in mm.. 
+           fBField->MagneticField(xF, B0F);
+	   double divB0 = 0.; double b0Norm = 0.;
+	   for (size_t kk=0; kk != 2; kk++) { 
+	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
+	     b0Norm += B0N[kk]*B0N[kk];
+	   }
+	   fOutForR << " " << x << " " << y << " " << z << " " 
+	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
+		    << std::sqrt(b0Norm) << " " << divB0;
+           fBField->setInterpolatingOption(1);
+           fBField->MagneticField(xN, B1N); // xN is in mm.. 
+           fBField->MagneticField(xF, B1F);
+	   double divB1 = 0.; double b1Norm = 0.;
+	   for (size_t kk=0; kk != 2; kk++) { 
+	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
+	     b1Norm += B1N[kk]*B1N[kk];
+	   }
+	   fOutForR << " " << B1N[0] << " " << B1N[1] << " " << B1N[2] << " " 
+		    << std::sqrt(b1Norm) << " " << divB1 << std::endl;
+    }
+    std::cerr << " Quit, debugging this silly test of access....  " << std::endl; exit(2);
+     
     for (int iX = -10; iX != 10; iX++) { 
        const double x = 7.5 + iX*0.956; 
        xN[0] = x; // in mm, apparently... 
@@ -62,10 +100,11 @@ namespace emph {
       }
     }
     fOutForR.close();
-    std::cerr << " Quit, debugging anomalous difference between stl vector and map " << std::endl; exit(2);
+    std::cerr << " Quit, debugging fit silly test of access....  " << std::endl; exit(2);
     std::string fName2("./EmphMagField_Test1_v3b.txt");
     fOutForR.open(fName2.c_str());
     fOutForR << " x y z B0x B0y B0z B0 divB0 B1x B1y B1z B1 divB1" << std::endl;
+    
     
     for (int iX = -150; iX != 150; iX++) { 
        const double x = 7.5 + iX*0.956; 
