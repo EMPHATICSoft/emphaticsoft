@@ -34,6 +34,7 @@ namespace caf {
     int                     fpdgCode;       ///< PDG code
     int                     fmother;        ///< Mother
     std::string             fprocess;       ///< Detector-simulation physics process that created the particle
+    int			    fprocessSubtype;///< Int for the process subtype that needs an enum from Geant to decipher
     std::string             fendprocess;    ///< end process for the particle
     caf::SRTrajectory      ftrajectory;    ///< particle trajectory (position,momentum)
     double                  fmass;          ///< Mass; from PDG unless overridden Should be in GeV
@@ -93,6 +94,7 @@ namespace caf {
     // particle. If this is a primary particle, it will have the
     // value "primary"
     std::string Process()   const;
+    int ProcessSubtype()    const;
 
     std::string EndProcess()   const;
     void SetEndProcess(std::string s);
@@ -207,6 +209,7 @@ inline       int             caf::SRParticle::PdgCode()                const { r
 inline       int             caf::SRParticle::Mother()                 const { return fmother;                  }
 inline const TVector3&     caf::SRParticle::Polarization()           const { return fpolarization;            }
 inline       std::string     caf::SRParticle::Process()                const { return fprocess;                 }
+inline	     int 	     caf::SRParticle::ProcessSubtype()         const { return fprocessSubtype;          }
 inline       std::string     caf::SRParticle::EndProcess()             const { return fendprocess;              }
 inline       int             caf::SRParticle::NumberDaughters()        const { return fdaughters.size();        }
 inline       unsigned int    caf::SRParticle::NumberTrajectoryPoints() const { return ftrajectory.size();       }

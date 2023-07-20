@@ -31,6 +31,7 @@ USERACTIONREG3(emph, ParticleListAction, emph::ParticleListAction)
 // C/C++ includes
 #include <algorithm>
 #include <string>
+#include <map>
 
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -136,11 +137,10 @@ namespace emph {
   void ParticleListAction::PreTrackingAction(const G4Track* track)
   {
 	const G4double energy = track->GetKineticEnergy();		// get the kinetic energy
-	//	float fEnergyCut = 1;			
-	//	std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
+//		std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
 
 	if (energy < fEnergyCut){   			// if the particle is below the energy cut, we should not add it to the list, and skip it
-	  //                std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
+//	                  std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
                 fParticle = 0;          		// we do not want to step this particle, so setting fParticle to 0 is ?needed?
                 return;
         }
@@ -168,7 +168,8 @@ namespace emph {
     
     	
     	std::string process_name;					// something to record the process by which this particle was produced...
-	    
+	int subprocess_name = 0;
+    
     	if (pp != 0){							// if this is a primary particle, we do something special because it's special
       		//std::cerr << "Primary Particle!" << std::endl;
       		const G4VUserPrimaryParticleInformation* gppi = pp->GetUserInformation();
@@ -188,10 +189,13 @@ namespace emph {
       		// keep all information for now, even for EM shower.  Sometime later we will probably apply cuts so that 
       		// if it is part of the EM shower, we don't want to keep a bunch of electrons, and we will go back and find
       		// the parent of the particle that isn't another shower-er
+		
+      		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process            
+		//std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
 
-      		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process      
-      		//std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
-      		
+		subprocess_name = track->GetCreatorProcess()->GetProcessSubType();
+		//std::cerr << "Subprocess type: " << subprocess_name << std::endl;
+		
 		fParentIDMap.emplace(fCurrentTrackID, parentID);		// place the particle and its parent in the id map
 
       		//std::cerr << "Shower Particle! Added " << fCurrentTrackID << " and " << parentID << " to the fParentIDMap" << std::endl;
@@ -229,15 +233,14 @@ namespace emph {
 	const TLorentzVector& positionHolder = TLorentzVector(trackPos[0], trackPos[1], trackPos[2], track->GetGlobalTime());
 	
 	fParticle->AddTrajectoryPoint(positionHolder, momentumHolder);
-	
+	fParticle->fprocessSubtype = subprocess_name;
 	
  
       	fParticleNav->Add(fParticle);
       	//std::cerr << "Added fParticle! trackID: " << fParticle->TrackId() << ", PDG: " << fParticle->PdgCode() << ", process: " << fParticle->Process()
 	//		<< ", parentID: " << fParticle->Mother() << ", Mass: " << fParticle->Mass()
 	//		<< " Momentum: (" << fParticle->Px() << ", " << fParticle->Py() << ", " << fParticle->Pz() << ")" << std::endl;
-      
-    
+      	
   }	
 
 	
