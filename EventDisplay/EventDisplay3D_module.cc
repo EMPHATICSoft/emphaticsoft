@@ -98,7 +98,7 @@ namespace emph {
     Double_t        camRotateCenterV_;
     Double_t        camDollyDelta_;
     bool            fDrawMCTruth;
-    std::string     fMCTruthLabel;
+    bool            fDrawTrueSSDHits;
     bool            fDrawSSDClusters;
     std::string     fSSDClustLabel;
     bool            fDrawTracks;
@@ -106,6 +106,7 @@ namespace emph {
     bool            fDrawVertices;
     std::string     fVerticesLabel;
     int             fVisLevel;
+    bool            fSSDStripVis;
 
     art::ServiceHandle<emph::geo::GeometryService> geom_;
 
@@ -125,6 +126,7 @@ namespace emph {
     TGLabel          *fTlRun,*fTlSubRun,*fTlEvt;
 
     TEveTrackList *fTrackList;
+    TEveElementList *fTrueSSDHitsList;
     TEveElementList *fSSDClustsList;
 
     dgmap::DetGeoMap* fDetGeoMap;
@@ -132,10 +134,11 @@ namespace emph {
     void makeNavPanel();
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
     void DrawSSDClusters(const art::Event& event);
+    void DrawTrueSSDHits(const art::Event& event);
     void DrawMCTruth(const art::Event& event);
     void DrawTracks(const art::Event& event);
     void DrawVertices(const art::Event& event);
-
+    void SetSSDStripVis(bool vis, bool isFirst=false);
   };
 
 }
@@ -146,7 +149,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   camRotateCenterV_ ( pset.get<Double_t>   ("camRotateCenterV",-2.  ) ),
   camDollyDelta_    ( pset.get<Double_t>   ("camDollyDelta",500.) ),
   fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
-  fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","g4gen") ),
+  fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
   fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
@@ -154,6 +157,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDrawVertices     ( pset.get<bool>       ("DrawVertices",true) ),
   fVerticesLabel    ( pset.get<std::string>("VerticesLabel","vtxreco") ),
   fVisLevel         ( pset.get<int>        ("VisLevel",4) ),
+  fSSDStripVis      ( pset.get<bool>       ("SSDStripVis",false) ),
   geom_(art::ServiceHandle<emph::geo::GeometryService>()),
   visutil_(new emph::EvtDisplayUtils()),
   fSimpleGeom(0),
@@ -161,7 +165,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDetXZScene(0),fDetYZScene(0),fEvtXZScene(0),fEvtYZScene(0),
   fTeRun(0),fTeSubRun(0),fTeEvt(0),
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
-  fTrackList(0),fSSDClustsList(0),fDetGeoMap(NULL)
+  fTrackList(0),fTrueSSDHitsList(0),fSSDClustsList(0),fDetGeoMap(NULL)
 {
   
   //  if ( trkMaxStepSize_ < 0.1 )trkMaxStepSize_ = 0.1;
@@ -336,6 +340,61 @@ void emph::EventDisplay3D::beginJob()
 
 }
 
+//------------------------------------------------------------
+// Set the visibility of the individual strips
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::SetSSDStripVis( bool vis, bool isFirst)
+{
+  if (!isFirst && (fSSDStripVis == vis)) return;
+  fSSDStripVis = vis;
+
+  auto geo    = geom_->Geo();
+  auto geoMgr = geo->ROOTGeoManager();
+  
+  const TGeoNode* world_n = (TGeoNode*)geoMgr->GetTopNode();
+  int nnodes = world_n->GetNodes()->GetEntries();
+  const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+  
+  std::vector<std::string> nodeName;
+  
+  std::string sString = "ssdStation";
+  std::string ssubString = "ssdsensor";
+  std::string schanString = "ssd_chan";
+  
+  for (int i=0; i<nnodes; ++i) {
+    std::string name = world_v->GetNode(i)->GetName();
+    if (name.find(sString) != std::string::npos)
+      nodeName.push_back(name);
+  }
+  
+  for (auto name : nodeName) {
+    TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
+    TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
+        
+    int nsub = st_n->GetNodes()->GetEntries();
+    for( int j=0; j<nsub; ++j){
+      std::string name = st_v->GetNode(j)->GetName();
+      if (name.find(ssubString) != std::string::npos){
+	TGeoNode* sensor_n = (TGeoNode*)st_v->GetNode(name.c_str());
+	TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
+	// now add channels to each SSD sensor
+	if(sensor_n->GetNodes()!=NULL){
+	  int nchan = sensor_n->GetNodes()->GetEntries();
+	  for( int k=0; k<nchan; ++k){
+	    std::string name = sensor_v->GetNode(k)->GetName();
+	    if(name.find(schanString) != std::string::npos){
+	      TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(name.c_str());
+	      TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
+	      strip_v->SetVisibility(vis);
+	    }
+	  } // loop over strips
+	}	
+      }
+    } // loop over sensors
+  } // loop over stations
+}
+
 void emph::EventDisplay3D::beginRun( const art::Run& )
 {
   std::cout << "%%%%% Start of EventDisplay3d::beginRun() %%%%%" << std::endl;
@@ -378,6 +437,11 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 
   etopnode->SetVisLevel(fVisLevel); 
   //  etopnode->GetNode()->GetVolume()->SetVisibility(kFALSE);
+
+  // Set visibility of individual SSD strips.  Not sure if this actually 
+  // helps, but the intent was to speed up geometry rendering in the GL window
+  // when the strips are made invisible
+  SetSSDStripVis(fSSDStripVis,true);
 
   // ... Use helper to recursively make detector elements
   //     transparent & set custom colors
@@ -425,6 +489,54 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
     l->SetMarkerSize(mSize);
     fSSDClustsList->AddElement(l);
   }
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawTrueSSDHits(const art::Event& event)
+{
+  if (fTrueSSDHitsList == 0) {
+    fTrueSSDHitsList = new TEveElementList("True SSD Hits");
+    fTrueSSDHitsList->IncDenyDestroy();
+  }
+  else {
+    fTrueSSDHitsList->DestroyElements();             // destroy children of the element
+  }
+
+  try {    
+    auto ssdHits = event.getHandle<std::vector<sim::SSDHit>>("geantgen");
+    
+    if  (!ssdHits->empty()) {
+      std::cout << "Found " << ssdHits->size() << " true SSD hits" << std::endl;
+      for (size_t idx=0; idx<ssdHits->size(); ++idx) {
+	const sim::SSDHit& hit = (*ssdHits)[idx];
+	double x = hit.GetX();
+	double y = hit.GetY();
+	double z = hit.GetZ();
+	std::cout << "Hit at (" << x << "," << y << "," << z << ")" << std::endl;
+	TEveLine* lx = new TEveLine();	
+	lx->SetNextPoint(x-1.,y,z);
+	lx->SetNextPoint(x+1.,y,z);
+	lx->SetLineColor(kYellow+2);
+	lx->SetMarkerSize(4);
+
+	TEveLine* ly = new TEveLine();	
+	ly->SetNextPoint(x,y-1.,z);
+	ly->SetNextPoint(x,y+1.,z);
+	ly->SetLineColor(kYellow+2);
+	ly->SetMarkerSize(4);
+
+	fTrueSSDHitsList->AddElement(lx);
+	fTrueSSDHitsList->AddElement(ly);
+      }
+    }
+  }
+  catch(...) {
+    
+  }
+  //  fSSDClustsList->AddElement(SSDHitsList);  
+  gEve->AddElement(fTrueSSDHitsList);    
 
 }
 
@@ -512,6 +624,7 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
 
   // Draw MC truth
   if (fDrawMCTruth) DrawMCTruth(event); // currently does nothing
+  if (fDrawTrueSSDHits) DrawTrueSSDHits(event);
 
   // Draw reco objects
   // ~~~~~~~~~~~~~~~~~~~~~~~  
