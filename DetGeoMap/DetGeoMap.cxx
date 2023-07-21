@@ -52,10 +52,13 @@ namespace emph {
 	double x1[3];
 	x0[2] = x1[2] = sd.Pos()[2] + st.Pos()[2];
 	double strippos = gstrip.Pos()[1]; //sd.Height()/2 - strip*pitch;	
-	double cosrot = cos(sd.Rot());
-	double sinrot = sin(sd.Rot());
-	//	if (! sd.IsFlip())
-	//	  sinrot *= -1.;
+	double rot = sd.Rot();
+	if(sd.IsFlip()){
+		strippos = - strippos;
+		rot = 2*TMath::Pi() - rot;
+	}
+	double cosrot = cos(rot);
+	double sinrot = sin(rot);
 
 	double tx0[2], tx1[2];
 
