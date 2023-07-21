@@ -86,6 +86,7 @@
 	 <quantity name="ssdD0_height" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
+	 <quantity name="ssdD0_chanheight" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
 	 
@@ -140,12 +141,12 @@
 	 <quantity name="ssdStationdouble3plWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdouble3plHeight" value="300" unit="mm" />
 
-	 <position name="ssddouble3pl00_pos" x="0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssddouble3pl01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble3pl00_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble3pl01_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble3pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
 	 <position name="ssddouble3pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
-	 <position name="ssddouble3pl20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
-	 <position name="ssddouble3pl21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
+	 <position name="ssddouble3pl20_pos" x="0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
+	 <position name="ssddouble3pl21_pos" x="-0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
 	 <position name="ssddouble3pl_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssddouble3pl_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 	 <position name="ssdbkplndouble3pl0_pos" x="0" y="0" z="ssdD0_thick" />
@@ -155,8 +156,8 @@
 	 <quantity name="ssdStationdouble2plWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdouble2plHeight" value="300" unit="mm" />
 
-	 <position name="ssddouble2pl00_pos" x="0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssddouble2pl01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble2pl00_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble2pl01_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble2pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
 	 <position name="ssddouble2pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
 	 <position name="ssddouble2pl_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
@@ -166,35 +167,35 @@
 
 	 <rotation name="ssdStation0_rot" x="-0.44" y="-2.02" unit="deg"/>
 	 <rotation name="ssdsingle0_0_0_rot" x="180.0*0" z="0" unit="deg"/>
-	 <rotation name="ssdsingle0_1_0_rot" x="180.0*1" z="270" unit="deg"/>
+	 <rotation name="ssdsingle0_1_0_rot" x="180.0*1" z="90" unit="deg"/>
 	 <rotation name="ssdStation1_rot" x="0.24" y="-1.26" unit="deg"/>
 	 <rotation name="ssdsingle1_0_0_rot" x="180.0*0" z="0" unit="deg"/>
-	 <rotation name="ssdsingle1_1_0_rot" x="180.0*1" z="270" unit="deg"/>
+	 <rotation name="ssdsingle1_1_0_rot" x="180.0*1" z="90" unit="deg"/>
 	 <rotation name="ssdStation2_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssdrotate2_0_0_rot" x="180.0*0" z="315" unit="deg"/>
-	 <rotation name="ssdrotate2_1_0_rot" x="180.0*1" z="0" unit="deg"/>
-	 <rotation name="ssdrotate2_2_0_rot" x="180.0*0" z="270" unit="deg"/>
+	 <rotation name="ssdrotate2_1_0_rot" x="180.0*0" z="0" unit="deg"/>
+	 <rotation name="ssdrotate2_2_0_rot" x="180.0*1" z="90" unit="deg"/>
 	 <rotation name="ssdStation3_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssdrotate3_0_0_rot" x="180.0*0" z="315" unit="deg"/>
-	 <rotation name="ssdrotate3_1_0_rot" x="180.0*1" z="0" unit="deg"/>
-	 <rotation name="ssdrotate3_2_0_rot" x="180.0*0" z="270" unit="deg"/>
+	 <rotation name="ssdrotate3_1_0_rot" x="180.0*0" z="0" unit="deg"/>
+	 <rotation name="ssdrotate3_2_0_rot" x="180.0*1" z="90" unit="deg"/>
 	 <rotation name="ssdStation4_rot" x="-0.06" y="-1.49" unit="deg"/>
 	 <rotation name="ssdsingle4_0_0_rot" x="180.0*0" z="0" unit="deg"/>
-	 <rotation name="ssdsingle4_1_0_rot" x="180.0*1" z="270" unit="deg"/>
+	 <rotation name="ssdsingle4_1_0_rot" x="180.0*1" z="90" unit="deg"/>
 	 <rotation name="ssdStation5_rot" x="0.36" y="0.31" unit="deg"/>
 	 <rotation name="ssddouble3pl5_0_0_rot" x="180.0*0" z="270" unit="deg"/>
 	 <rotation name="ssddouble3pl5_0_1_rot" x="180.0*0" z="90" unit="deg"/>
 	 <rotation name="ssddouble3pl5_1_0_rot" x="180.0*1" z="0" unit="deg"/>
 	 <rotation name="ssddouble3pl5_1_1_rot" x="180.0*1" z="180" unit="deg"/>
-	 <rotation name="ssddouble3pl5_2_0_rot" x="180.0*1" z="315" unit="deg"/>
-	 <rotation name="ssddouble3pl5_2_1_rot" x="180.0*1" z="135" unit="deg"/>
+	 <rotation name="ssddouble3pl5_2_0_rot" x="180.0*1" z="45" unit="deg"/>
+	 <rotation name="ssddouble3pl5_2_1_rot" x="180.0*1" z="225" unit="deg"/>
 	 <rotation name="ssdStation6_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssddouble3pl6_0_0_rot" x="180.0*0" z="270" unit="deg"/>
 	 <rotation name="ssddouble3pl6_0_1_rot" x="180.0*0" z="90" unit="deg"/>
 	 <rotation name="ssddouble3pl6_1_0_rot" x="180.0*1" z="0" unit="deg"/>
 	 <rotation name="ssddouble3pl6_1_1_rot" x="180.0*1" z="180" unit="deg"/>
-	 <rotation name="ssddouble3pl6_2_0_rot" x="180.0*1" z="315" unit="deg"/>
-	 <rotation name="ssddouble3pl6_2_1_rot" x="180.0*1" z="135" unit="deg"/>
+	 <rotation name="ssddouble3pl6_2_0_rot" x="180.0*1" z="45" unit="deg"/>
+	 <rotation name="ssddouble3pl6_2_1_rot" x="180.0*1" z="225" unit="deg"/>
 	 <rotation name="ssdStation7_rot" x="0" y="0" unit="deg"/>
 	 <rotation name="ssddouble2pl7_0_0_rot" x="180.0*0" z="270" unit="deg"/>
 	 <rotation name="ssddouble2pl7_0_1_rot" x="180.0*0" z="90" unit="deg"/>
@@ -2042,7 +2043,7 @@ values="202.14067278287462 12.054573032169143
 
 	 <!-- BELOW IS FOR SSD -->
 
-	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
+	 <box name="ssd_chan_box" x="ssdD0_chanheight" y="ssdD0_chanwidth" z="ssdD0_thick" />
 
 	  <box name="ssdStationsingle_box" x="ssdStationsingleWidth" y="ssdStationsingleHeight" z="ssdStationsingleLength" />
 	  <box name="ssdsingle_MylarWindow_box" x="ssdStationsingleWidth*0.8" y="ssdStationsingleWidth*0.8" z="Mylar_Window_thick" />

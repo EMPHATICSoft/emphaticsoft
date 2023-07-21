@@ -69,9 +69,9 @@ $nstation_type = 4; # types of station
 @bkpln_size = (1.0, 1.3, 2.6, 2.6); # bkpln size scale to SSD sensor
 @SSD_lay = (2, 3, 3, 2); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2, 2); # num. of SSD in a layer
-@SSD_angle = (0, 270, 0, 270, 315, 0, 270, 315, 0, 270, 0, 270, 270, 90, 0, 180, 315, 135, 270, 90, 0, 180, 315, 135, 270, 90, 0, 180); # angle from measuring Y
-@SSD_side = (0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1); # angle from measuring Y
-#Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
+@SSD_angle = (0, 90, 0, 90, 315, 0, 90, 315, 0, 90, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
+@SSD_side = (0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1); # angle from measuring Y
+#Due to the coordination system, the angles are equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); see docdb 1583 for details; the rotation is inverted when the sensor is flipped 
 # Visualization of SSDs can be found at DocDB 1260
 @SSD_bkpln= (1, 2, 2, 1); # num. of bkpln in a station
 @SSD_mod = ("D0", "D0", "D0", "D0"); # SSD type in a station
@@ -270,6 +270,7 @@ EOF
 	 <quantity name="ssdD0_height" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
 	 
+	 <quantity name="ssdD0_chanheight" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
 	 
@@ -325,12 +326,12 @@ EOF
 	 <quantity name="ssdStationdouble3plWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdouble3plHeight" value="300" unit="mm" />
 
-	 <position name="ssddouble3pl00_pos" x="0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssddouble3pl01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble3pl00_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble3pl01_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble3pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
 	 <position name="ssddouble3pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
-	 <position name="ssddouble3pl20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
-	 <position name="ssddouble3pl21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
+	 <position name="ssddouble3pl20_pos" x="0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
+	 <position name="ssddouble3pl21_pos" x="-0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
 	 <position name="ssddouble3pl_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssddouble3pl_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 	 <position name="ssdbkplndouble3pl0_pos" x="0" y="0" z="ssdD0_thick" />
@@ -340,8 +341,8 @@ EOF
 	 <quantity name="ssdStationdouble2plWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationdouble2plHeight" value="300" unit="mm" />
 
-	 <position name="ssddouble2pl00_pos" x="0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssddouble2pl01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble2pl00_pos" x="-0.5*ssdD0_height" y="0" z="0" />
+	 <position name="ssddouble2pl01_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble2pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
 	 <position name="ssddouble2pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
 	 <position name="ssddouble2pl_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
@@ -655,7 +656,7 @@ EOF
 
 	 <!-- BELOW IS FOR SSD -->
 
-	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
+	 <box name="ssd_chan_box" x="ssdD0_chanheight" y="ssdD0_chanwidth" z="ssdD0_thick" />
 
 EOF
 		for($i = 0; $i < $nstation_type; ++$i){
