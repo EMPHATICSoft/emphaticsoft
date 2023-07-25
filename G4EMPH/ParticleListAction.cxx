@@ -193,8 +193,6 @@ namespace emph {
       		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process            
 		//std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
 
-		subprocess_name = track->GetCreatorProcess()->GetProcessSubType();
-		//std::cerr << "Subprocess type: " << subprocess_name << std::endl;
 		
 		fParentIDMap.emplace(fCurrentTrackID, parentID);		// place the particle and its parent in the id map
 
@@ -233,8 +231,6 @@ namespace emph {
 	const TLorentzVector& positionHolder = TLorentzVector(trackPos[0], trackPos[1], trackPos[2], track->GetGlobalTime());
 	
 	fParticle->AddTrajectoryPoint(positionHolder, momentumHolder);
-	fParticle->fprocessSubtype = subprocess_name;
-	
  
       	fParticleNav->Add(fParticle);
       	//std::cerr << "Added fParticle! trackID: " << fParticle->TrackId() << ", PDG: " << fParticle->PdgCode() << ", process: " << fParticle->Process()
