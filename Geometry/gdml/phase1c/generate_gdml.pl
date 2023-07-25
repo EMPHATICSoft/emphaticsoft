@@ -228,7 +228,7 @@ EOF
 	 <quantity name="target_width" value="100.0" unit="mm"/>
 	 <quantity name="target_height" value="50.0" unit="mm"/>
 
-	 <position name="target_pos" x="0" y="0" z="200.5"/>
+	 <position name="target_pos" x="0" y="0" z="380.5"/>
 
 	 <!-- ABOVE IS FOR TARGET -->
 
@@ -269,10 +269,10 @@ EOF
 	 <quantity name="ssdD0_thick" value=".300" unit="mm"/>
 	 <quantity name="ssdD0_height" value="38.46" unit="mm"/>
 	 <quantity name="ssdD0_width" value="98.33" unit="mm"/>
-	 
+
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
-	 
+
 EOF
 		for($i = 0; $i < $nSSD_station; ++$i){
 			print DEF <<EOF;
@@ -280,61 +280,70 @@ EOF
 EOF
 		}
 
-			print DEF <<EOF;
+		print DEF <<EOF;
 
-	 <quantity name="carbon_fiber_thick" value="0.300"
-		 unit="mm" />
-	 <quantity name="Mylar_Window_thick" value="0.500"
-		 unit="mm" />
-	 <quantity name="Mylar_shift" value="10" unit="mm"/>
+	 <quantity name="bkpln_thick" value="6.35" unit="mm" />
+	 <quantity name="bkpln_width" value="115.98" unit="mm" />
+	 <quantity name="bkpln_hole" value="80.00" unit="mm" />
+
+	 <quantity name="Mylar_Window_thick" value="0.500" unit="mm" />
+	 <quantity name="Mylar_shift" value="20" unit="mm"/>
 
 	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
-	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
-	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
+	 <quantity name="ssdStationsingleWidth" value="300" unit="mm" />
+	 <quantity name="ssdStationsingleHeight" value="300" unit="mm" />
 
 EOF
 
-			for($i = 0; $i < $nSSD_station; ++$i){
-				print DEF <<EOF;
-		<position name="ssdStation@{[ $i ]}_pos" x="0" y="0" z="ssdStation@{[ $i ]}_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
-EOF
-			}
-
+		for($i = 0; $i < $nSSD_station; ++$i){
 			print DEF <<EOF;
+		<position name="ssdStation@{[ $i ]}_pos" x="0" y="0" z="ssdStation@{[ $i ]}_shift+ssdD0_thick-0.5*bkpln_thick"/>
+EOF
+		}
+
+		print DEF <<EOF;
+
+		<position name="ssd_bkpln_u1_pos" x="70" y="0" z="0"/>
+		<rotation name="ssd_bkpln_u1_rot" y="-90" unit="deg"/>
+		<position name="ssd_bkpln_u2_pos" x="0" y="-70" z="0"/>
+		<rotation name="ssd_bkpln_u2_rot" y="-90" z="-90" unit="deg"/>
+		<rotation name="ssd_bkpln_u3_rot" z="90" unit="deg"/>
+		<position name="ssd_bkpln_u4_pos" x="80.1" y="-80.4"/>
+		<rotation name="ssd_bkpln_u4_rot" y="-90" z="135" unit="deg"/>
 
 	 <position name="ssdsingle00_pos" x="0" y="0" z="0"/>
-	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick"/>
-	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick"/>
+	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick"/>
+	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+bkpln_thick"/>
 	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
-	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
-	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-	 <quantity name="ssd3plane_shift" value="3" unit="mm" />
+	 <quantity name="ssdStationrotateWidth" value="300" unit="mm" />
+	 <quantity name="ssdStationrotateHeight" value="300" unit="mm" />
+	 <quantity name="ssd3plane_shift" value="10" unit="mm" />
 
 	 <position name="ssdrotate00_pos" x="0" y="0" z="0"/>
-	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick"/>
-	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick"/>
+	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick"/>
+	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+bkpln_thick"/>
 	 <position name="ssdrotate20_pos" x="0" y="0" z="ssd3plane_shift"/>
-	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
+	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="ssd3plane_shift+0.5*ssdD0_thick+0.5*bkpln_thick" />
 	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 	 <quantity name="ssdStationdouble3plLength" value="100" unit="mm" />
-	 <quantity name="ssdStationdouble3plWidth" value="300" unit="mm" />
-	 <quantity name="ssdStationdouble3plHeight" value="300" unit="mm" />
+	 <quantity name="ssdStationdouble3plWidth" value="450" unit="mm" />
+	 <quantity name="ssdStationdouble3plHeight" value="450" unit="mm" />
 
 	 <position name="ssddouble3pl00_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble3pl01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssddouble3pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
-	 <position name="ssddouble3pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
+	 <position name="ssddouble3pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+bkpln_thick" />
+	 <position name="ssddouble3pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+bkpln_thick" />
 	 <position name="ssddouble3pl20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
 	 <position name="ssddouble3pl21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
 	 <position name="ssddouble3pl_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssddouble3pl_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
-	 <position name="ssdbkplndouble3pl0_pos" x="0" y="0" z="ssdD0_thick" />
-	 <position name="ssdbkplndouble3pl1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
+	 <position name="ssdbkplndouble3pl0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick" />
+	 <position name="ssdbkplndouble3pl1_pos" x="0" y="0" z="ssd3plane_shift+0.5*ssdD0_thick+0.5*bkpln_thick" />
 
 	 <quantity name="ssdStationdouble2plLength" value="100" unit="mm" />
 	 <quantity name="ssdStationdouble2plWidth" value="300" unit="mm" />
@@ -342,18 +351,17 @@ EOF
 
 	 <position name="ssddouble2pl00_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble2pl01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssddouble2pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
-	 <position name="ssddouble2pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
+	 <position name="ssddouble2pl10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+bkpln_thick" />
+	 <position name="ssddouble2pl11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+bkpln_thick" />
 	 <position name="ssddouble2pl_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssddouble2pl_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
-	 <position name="ssdbkplndouble2pl0_pos" x="0" y="0" z="ssdD0_thick" />
-	 <position name="ssdbkplndouble2pl1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
+	 <position name="ssdbkplndouble2pl0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick" />
 
 EOF
 		$isensor = 0;
 		for($i = 0; $i < $nSSD_station; ++$i){
 
-					print DEF <<EOF;
+			print DEF <<EOF;
 	 <rotation name="ssdStation@{[ $i ]}_rot" x="@{[ $SSD_station_rotation[$i][0] ]}" y="@{[ $SSD_station_rotation[$i][1] ]}" unit="deg"/>
 EOF
 
@@ -368,18 +376,18 @@ EOF
 			}
 		}
 
-	}
 
-	for($i = 0; $i < $nD0chan; ++$i){
-		print DEF <<EOF;
+		for($i = 0; $i < $nD0chan; ++$i){
+			print DEF <<EOF;
 		<position name="ssd_chan_@{[ $i ]}_pos" x="0" y="(@{[ -($nD0chan-1)/2 ]}+@{[ $i ]})*(ssdD0_chanwidth+ssdD0_changap)" z="0"/>
 EOF
-	}
+		}
 
 		print DEF <<EOF;
 
 	 <!-- ABOVE IS FOR SSD -->
 EOF
+	}
 
 	if($arich_switch){
 		print DEF <<EOF;
@@ -656,14 +664,47 @@ EOF
 	 <!-- BELOW IS FOR SSD -->
 
 	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
+	 <box name="ssd_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+	 <box name="ssd_bkpln_box1" x="bkpln_width" y="bkpln_width" z="bkpln_thick" />
+	 <box name="ssd_bkpln_box2" x="bkpln_hole" y="bkpln_hole" z="bkpln_thick" />
+    <tube name="ssd_bkpln_tube" z="bkpln_thick" rmax="85.0" deltaphi="90" aunit="deg"/>
+    <trd name="ssd_bkpln_trd" x1="bkpln_thick" x2="bkpln_thick" y1="115.98" y2="170.00" z="140"/>
+    <trd name="ssd_bkpln_tri" x1="bkpln_thick" x2="bkpln_thick" y1="0" y2="115.98" z="57.99"/>
+
+    <union name="ssd_bkpln_u1">
+	   <first ref="ssd_bkpln_box1"/>
+		<second ref="ssd_bkpln_trd"/>
+		<positionref ref="ssd_bkpln_u1_pos"/>
+	   <rotationref ref="ssd_bkpln_u1_rot"/>
+	 </union>
+	 <union name="ssd_bkpln_u2">
+		<first ref="ssd_bkpln_u1"/>
+		<second ref="ssd_bkpln_trd"/>
+		<positionref ref="ssd_bkpln_u2_pos"/>
+	   <rotationref ref="ssd_bkpln_u2_rot"/>
+	 </union>
+	 <union name="ssd_bkpln_u3">
+		<first ref="ssd_bkpln_u2"/>
+		<second ref="ssd_bkpln_tube"/>
+	   <rotationref ref="ssd_bkpln_u3_rot"/>
+	 </union>
+	 <union name="ssd_bkpln_u4">
+	   <first ref="ssd_bkpln_u3"/>
+		<second ref="ssd_bkpln_tri"/>
+		<positionref ref="ssd_bkpln_u4_pos"/>
+	   <rotationref ref="ssd_bkpln_u4_rot"/>
+	 </union>
+
+	 <subtraction name="ssd_bkpln_box">
+	   <first ref="ssd_bkpln_u4"/>
+		<second ref="ssd_bkpln_box2"/>
+	 </subtraction>
 
 EOF
 		for($i = 0; $i < $nstation_type; ++$i){
 			print SOL <<EOF;
 	  <box name="ssdStation@{[ $station_type[$i] ]}_box" x="ssdStation@{[ $station_type[$i] ]}Width" y="ssdStation@{[ $station_type[$i] ]}Height" z="ssdStation@{[ $station_type[$i] ]}Length" />
 	  <box name="ssd@{[ $station_type[$i] ]}_MylarWindow_box" x="ssdStation@{[ $station_type[$i] ]}Width*0.8" y="ssdStation@{[ $station_type[$i] ]}Width*0.8" z="Mylar_Window_thick" />
-	  <box name="ssd@{[ $station_type[$i] ]}_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
-	  <box name="ssd@{[ $station_type[$i] ]}_bkpln_box" x="@{[ $bkpln_size[$i] ]}*ssdD0_width" y="@{[ $bkpln_size[$i] ]}*ssdD0_width" z="carbon_fiber_thick" />
 
 EOF
 		}
@@ -840,7 +881,7 @@ EOF
 					print MOD <<EOF;
 		 <volume name="ssd@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}@{[ $j ]}@{[ $k ]}_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssd@{[ $station_type[$SSD_station[$i]] ]}_box"/>
+			<solidref ref="ssd_box"/>
 EOF
 					for($l = 0; $l < $nD0chan; ++$l){
 						print MOD <<EOF;
@@ -865,7 +906,7 @@ EOF
 
 		 <volume name="ssd@{[ $station_type[$i] ]}_bkpln_vol">
 			<materialref ref="CarbonFiber"/>
-			<solidref ref="ssd@{[ $station_type[$i] ]}_bkpln_box"/>
+			<solidref ref="ssd_bkpln_box"/>
 		 </volume>
 
 	  <volume name="ssd@{[ $station_type[$i] ]}_MylarWindow_vol">
