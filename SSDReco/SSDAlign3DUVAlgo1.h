@@ -47,6 +47,8 @@ namespace emph {
 	  int fNEvents; // Incremental events count for a given job. 
 	  int fNEvtsCompact;
 	  bool fDo3DFit;
+	  bool fDoUseTightClusters;
+	  bool fDoAllowSideClusters;
           bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
 	  bool fMomentumIsSet; // a flag to make sure we don't set the momentum more than once in the same job. 
 	  bool fFilesAreOpen;
@@ -98,6 +100,10 @@ namespace emph {
 	   
 
 	  std::ofstream fFOutXY, fFOutXYU, fFOutXYV, fFOut3DFit, fFOutCompact;
+	  //
+	  // Deep internal to selec tracks for Alignment. 
+	  // 
+          std::vector<double> fPosRawPencilBeam;
 	  
 	   
 	public:
@@ -108,6 +114,8 @@ namespace emph {
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 	 inline void SetDo3DFit(bool b=true) { fDo3DFit = b; }
+	 inline void SetDoUseTightClusters(bool b=true) { fDoUseTightClusters = b; }
+	 inline void SetDoAllowSideClusters(bool b=true) { fDoAllowSideClusters = b; }
 	 inline void SetMagnetShift(std::vector<double> v) { fMagShift = v; }
 //	 inline void SetZLocShifts(const std::vector<double> v) { fZLocShifts = v; } 
 	 inline void SetOtherUncert(const std::vector<double> v) { 
@@ -160,7 +168,9 @@ namespace emph {
 	 //
 	 void writeNominalCoords();
 	 
-	
+       private:
+       
+         bool IsInPencilBeamRegion(std::vector<rb::SSDCluster>::const_iterator itCl);
     };
   
   } // namespace ssdr

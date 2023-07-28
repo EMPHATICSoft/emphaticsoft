@@ -47,13 +47,16 @@ namespace emph {
        else {
          if ((strictY6St) && (!strictX6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1c2.dat";
          if ((strictX6St) && (!strictY6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1d.dat";
-         if ((strictX6St) && (strictY6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1e.dat";
+//         if ((strictX6St) && (strictY6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1e.dat";
+// With track number 
+         if ((strictX6St) && (strictY6St)) aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1g.dat";
        
        }
        std::string aFOutCompactStr(aFOutCompactStrStr.str());
        fFOutCompact.open(aFOutCompactStr.c_str(),  std::ios::binary | std::ios::out);
        this->writeNominalCoords();
        std::cerr << " Opening CompactEvt file " << aFOutCompactStr << " andkeep going  .. " << std::endl; 
+       if (fDoUseTightClusters) std::cerr << " ........ Selecting narrow low de clusters.. " << std::endl;
       }
       //
       // Require at most one cluster per Sensor.. There can be at most two missing hits. 
@@ -66,17 +69,28 @@ namespace emph {
       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsU(2, aSSDClsPtr->cend());  // station 2 nd 3 
       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsV(4, aSSDClsPtr->cend());// station 4 and 5, two adjacent sensors.  
       // double sensors are disjoint, a track can't be at two place at the same time 
+      std::vector< int> nClXInBeam(fNumStations+2, 0);  
+      std::vector< int> nClYInBeam(fNumStations+2, 0); 
+      std::vector< int> nClUInBeam(2, 0);  
+      std::vector< int> nClVInBeam(4, 0); 
       std::vector< int> nClX(fNumStations+2, 0);  
       std::vector< int> nClY(fNumStations+2, 0); 
       std::vector< int> nClU(2, 0);  
       std::vector< int> nClV(4, 0); 
-      const double stripAvNone = 0.; const double stripRmsNone = 1.0e9; 
-      if ((fSubRunNum == 10) && (fEvtNum == 10))  std::cerr << " Check for event 10 from spill 10, cluster table " << std::endl;
+      std::vector< int> nClXOutBeam(fNumStations+2, 0);  
+      std::vector< int> nClYOutBeam(fNumStations+2, 0); 
+      std::vector< int> nClUOutBeam(2, 0);  
+      std::vector< int> nClVOutBeam(4, 0); 
+     const double stripAvNone = 0.; const double stripRmsNone = 1.0e9;
+      const bool debugIsOn =  (fSubRunNum == 10) && (fEvtNum < 200);
+      if (debugIsOn)  std::cerr << " Check for event 10 from spill 10, cluster table " << std::endl;
       for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
+	if ((fDoUseTightClusters) && ((itCl->Width() > 2) ||  (itCl->AvgADC() > 1100.)) ) continue; // cut only on Width.. 
         const size_t kSt = itCl->Station(); const size_t kSe = itCl->Sensor(); 
-	if ((fSubRunNum == 10) && (fEvtNum == 10)) 
+	if (debugIsOn) 
 	  std::cerr << " Station " <<  kSt << " Sensor " << kSe << " View " 
-	            << itCl->View() << " strip " << itCl->WgtAvgStrip() << " rms " << itCl->WgtRmsStrip() << std::endl;
+	            << itCl->View() << " strip " << itCl->WgtAvgStrip() 
+		    << " rms " << itCl->WgtRmsStrip() << " Width " << itCl->Width() << " Avg ADC " << itCl->AvgADC() << std::endl;
 	size_t kStI = kSt;
 	  //
 	  // Concocted based on real data run 1055.. 
@@ -85,16 +99,31 @@ namespace emph {
 	if (itCl->View() == geo::X_VIEW) {
 	  if ((kSt == 4) && (kSe % 2 == 1)) kStI = 5;
 	  if (kSt == 5) { if (kSe % 2 == 0) kStI = 6; else kStI = 7; }
-	  nClX[kStI]++;
-	  mySSDClsPtrsX[kStI] = itCl;
+	  if (fDoAllowSideClusters) {
+	    if (this->IsInPencilBeamRegion(itCl))  { nClXInBeam[kStI]++; nClX[kStI]++; mySSDClsPtrsX[kStI] = itCl;} 
+	    else  nClXOutBeam[kStI]++;
+	  } else { 
+	    nClX[kStI]++;
+	    mySSDClsPtrsX[kStI] = itCl;
+	  }
 	} else if (itCl->View() == geo::Y_VIEW) {
 	  if ((kSt == 4) && (kSe % 2 == 1)) kStI = 5;
 	  if (kSt == 5) { if (kSe % 2 == 0) kStI = 6; else kStI = 7; }
-	  nClY[kStI]++;
-	  mySSDClsPtrsY[kStI] = itCl;
+	  if (fDoAllowSideClusters) {
+	    if (this->IsInPencilBeamRegion(itCl))  { nClYInBeam[kStI]++; nClY[kStI]++; mySSDClsPtrsY[kStI] = itCl;} 
+	    else  nClYOutBeam[kStI]++;
+	  } else { 
+	    nClY[kStI]++;
+	    mySSDClsPtrsY[kStI] = itCl;
+	  }
 	} else if (itCl->View() == geo::U_VIEW) {
-	  nClU[kSt-2]++;
-	  mySSDClsPtrsU[kSt-2] = itCl;
+	  if (fDoAllowSideClusters) {
+	    if (this->IsInPencilBeamRegion(itCl))  { nClUInBeam[kSt-2]++; nClU[kSt-2]++; mySSDClsPtrsU[kSt-2] = itCl;} 
+	    else  nClUOutBeam[kSt-2]++;
+	  } else { 
+	    nClU[kSt-2]++;
+	    mySSDClsPtrsU[kSt-2] = itCl;
+	  }
 	} else if (itCl->View() == geo::W_VIEW) {
 	  kStI = 2*(kSt-4) + kSe - 4;
 	  if (kStI > 3) {
@@ -102,14 +131,42 @@ namespace emph {
 	              << kSt << " / " << kSe << " skip this cluster.. " << std::endl;
 	    continue;
 	  }
-	  nClV[kStI]++;
-	  mySSDClsPtrsV[kStI] = itCl;
+	  if (fDoAllowSideClusters) {
+	    if (this->IsInPencilBeamRegion(itCl))  { nClVInBeam[kStI]++; nClV[kStI]++; mySSDClsPtrsV[kStI] = itCl;} 
+	    else nClVOutBeam[kStI]++;
+	  } else { 
+	    nClV[kStI]++;
+	    mySSDClsPtrsV[kStI] = itCl;
+	  }
 	}
+      }
+      if (debugIsOn) {
+         std::cerr << " nClX "; 
+        for (size_t kk=0; kk != nClX.size(); kk++)  std::cerr << " " << nClX[kk] << ", ";
+	 std::cerr << std::endl;
+         std::cerr << " nClY "; 
+        for (size_t kk=0; kk != nClY.size(); kk++)  std::cerr << " " << nClY[kk] << ", ";
+	 std::cerr << std::endl;
+	if (fDoAllowSideClusters) {
+           std::cerr << " nClX In Beam "; 
+           for (size_t kk=0; kk != nClXInBeam.size(); kk++)  std::cerr << " " << nClXInBeam[kk] << ", ";
+	   std::cerr << std::endl;
+           std::cerr << " nClY InBeam"; 
+           for (size_t kk=0; kk != nClYInBeam.size(); kk++)  std::cerr << " " << nClYInBeam[kk] << ", ";
+	   std::cerr << std::endl;
+           std::cerr << " nClX Out Beam "; 
+           for (size_t kk=0; kk != nClXOutBeam.size(); kk++)  std::cerr << " " << nClXOutBeam[kk] << ", ";
+	   std::cerr << std::endl;
+           std::cerr << " nClY Out Beam"; 
+           for (size_t kk=0; kk != nClYOutBeam.size(); kk++)  std::cerr << " " << nClYOutBeam[kk] << ", ";
+	   std::cerr << std::endl;
+	 }
       }
       //
       // allow for 1 missing hit missing in all views, but no extra cluster  
       //
       for (size_t kSt=0; kSt != fNumStations+2; kSt++) if ( (nClX[kSt] > 1) || (nClY[kSt] > 1)) return ;
+      //
       if (strictY6St) {
         // This was to avoid the poor statistics in some of the double sensor, real data, run 1055 
 //        if ((nClY[4] > 0) || (nClY[6] > 0)) return;
@@ -172,6 +229,45 @@ namespace emph {
          fFOutCompact.write(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
       }
       fNEvtsCompact++;
+    }
+    //
+    bool SSDAlign3DUVAlgo1::IsInPencilBeamRegion(std::vector<rb::SSDCluster>::const_iterator itCl) {
+      if (fPosRawPencilBeam.size() == 0) {
+        for (size_t k=0; k != 60; k++) fPosRawPencilBeam.push_back(1.0e9); // index is station*10 + sensor. See dumpClusters 
+        // Based on run 1043, running DumpClusters.. 
+        fPosRawPencilBeam[1] = 365.; // XView, Station 0, sensor 1 
+        fPosRawPencilBeam[11] = 390.; // XView, Station 1, sensor 1 
+        fPosRawPencilBeam[22] = 400.; // XView, Station 2, sensor 2   Tuned by hand, looking at histogram  
+        fPosRawPencilBeam[32] = 410.; // XView, Station 3, sensor 2   Tuned by hand,  
+        fPosRawPencilBeam[41] = 610.; // XView, Station 4, sensor 1   Tuned by hand,  
+        fPosRawPencilBeam[51] = 620.; // XView, Station 5, sensor 1   Tuned by hand,  
+	//
+	// Y View ... 
+	//
+        fPosRawPencilBeam[0] = 390. ; // YView, Station 0, sensor 0 
+        fPosRawPencilBeam[10] = 385.; // YView, Station 1, sensor 0 
+        fPosRawPencilBeam[21] = 415.; // YView, Station 2, sensor 1   
+        fPosRawPencilBeam[31] = 420.; // YView, Station 3, sensor 2   Tuned by hand,  
+        fPosRawPencilBeam[43] = 555.; // YView, Station 4, sensor 3   Tuned by hand,  
+        fPosRawPencilBeam[53] = 590.; // YView, Station 5, sensor 3   Tuned by hand,  
+	//
+	// U View ... 
+	//
+        fPosRawPencilBeam[20] = 325.; // UView, Station 2, sensor 0 
+        fPosRawPencilBeam[30] = 325.; // UView, Station 3, sensor 0 
+	//
+	// V View ... 
+	//
+        fPosRawPencilBeam[45] = 550.; // UView, Station 2, sensor 0 
+        fPosRawPencilBeam[55] = 640.; // UView, Station 3, sensor 0 
+	
+      }
+      size_t iPos = 10*itCl->Station() + itCl->Sensor();
+      if (iPos > 59) return false;
+      if (fPosRawPencilBeam[iPos] > 1000.) return false;
+      if (std::abs(itCl->WgtAvgStrip() - fPosRawPencilBeam[iPos] ) > 125.) return false;
+      return true;
+      
     }
   } // ssdr
 }

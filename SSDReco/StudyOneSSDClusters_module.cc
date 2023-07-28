@@ -107,6 +107,8 @@ namespace emph {
       bool fDoSkipDeadOrHotStrips; 
       bool fUseFullDownstreamStations;  
       bool fDoLastIs4AlignAlgo1; 
+      bool fDoUseTightClusters;
+      bool fDoAllowSideClusters; // at some 3 or 5 sigma (see code) for alignment purposes. 
       unsigned int fRun;
       unsigned int fSubRun;
       unsigned int fEvtNum;
@@ -179,7 +181,8 @@ namespace emph {
     fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoAlignUVAndFit(false), fDoGenCompact(false), 
     fDoGenCompactStrictY6St(false), fDoGenCompactStrictX6St(false), fDoGenCompactStrictXY6St(false),
     fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
-     fDoSkipDeadOrHotStrips(true), fUseFullDownstreamStations(false), fDoLastIs4AlignAlgo1(false),
+     fDoSkipDeadOrHotStrips(true), fUseFullDownstreamStations(false), fDoLastIs4AlignAlgo1(false), 
+     fDoUseTightClusters(true), fDoAllowSideClusters(true),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
     fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.), fSetMCRMomentum(120.),
      fRunHistory(nullptr), fEmgeo(nullptr), 
@@ -230,6 +233,8 @@ namespace emph {
       fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
       fUseFullDownstreamStations = pset.get<bool>("useFullDownstreamStations", false); // For MC, debatable for real data 
       fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
+      fDoUseTightClusters = pset.get<bool>("TightClustersAlgo1", true);
+      fDoAllowSideClusters = pset.get<bool>("AllowSideClusters", true);
       fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 1000);
       fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
       double aChiSqCut3DUVX = pset.get<double>("ChiSqCutAlign3DUVX", 500.);
@@ -294,6 +299,8 @@ namespace emph {
       fAlignUV.SetChiSqCutY(aChiSqCut3DUVY); 
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
+      fAlignUV.SetDoUseTightClusters(fDoUseTightClusters);
+      fAlignUV.SetDoAllowSideClusters(fDoAllowSideClusters);
       if (fDoAlignUVAndFit) fAlignUV.SetDo3DFit(true);
       fAlignUV.SetMagnetShift(fMagShift);
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
@@ -411,7 +418,7 @@ namespace emph {
 	 exit(2);
       }
       if (fDumpClusters) { 
-        std::string headerS(" subRun evt station sensor nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
+        std::string headerS(" subRun evt station sensor nCl iCl nH wgtAvgStrip wgtRmsStrip avgADC ");
         std::ostringstream fNameDumpClustStrStr; fNameDumpClustStrStr << "./SSDClusterTuple_V1_" << fRun << "_" << fTokenJob;
         std::string fNameDumpClustStr(fNameDumpClustStrStr.str());
         std::string fNameDumpClusXStr(fNameDumpClustStr); fNameDumpClusXStr += "_X.txt";
@@ -462,25 +469,8 @@ namespace emph {
         int aStation = itCl->Station(); // iterator to pointer to the cluster. 
 //	std::cerr << " ..... Station " << aStation << " Sensor " <<  itCl->Sensor() << std::endl;
 	if ((itCl->Sensor() == -1) || ( aStation == -1)) continue;
-        char aView = this->getView(itCl);
-	emph::geo::sensorView newView = itCl->View();
-	if (aView == 'X')  {
-	  if (newView != emph::geo::X_VIEW)  {
-	    std::cerr << " StudyOneSSDClusters::dumpXYCls Inconsistent view, X view here and new View " 
-	               << newView << " fatal quit here and now " << std::endl;
-	    exit(2);       
-	  }
-	  numClsX[aStation]++;
-	}
-	if (aView == 'Y')  {
-//	   std::cerr << " ..... ... Got view Y "  << std::endl;
-	  if (newView != emph::geo::Y_VIEW)  {
-	    std::cerr << " StudyOneSSDClusters::dumpXYCls Inconsistent view, Y view here and new View " 
-	               << newView << " fatal quit here and now " << std::endl;
-	    exit(2);       
-	  }
-	  numClsY[aStation]++;
-	}
+	if (itCl->View() == emph::geo::X_VIEW) numClsX[aStation]++;
+	if (itCl->View() == emph::geo::Y_VIEW) numClsY[aStation]++;
 	if (itCl->View() == emph::geo::U_VIEW) numClsU[aStation]++;
 	if (itCl->View() == emph::geo::W_VIEW) numClsV[aStation]++;
       }
@@ -488,20 +478,19 @@ namespace emph {
         int aSensor = itCl->Sensor();
         int aStation = itCl->Station();
 	if ((aSensor == -1) || (aStation == -1)) continue;
-        char aView =  fXYUVLabels.at(10*aStation+aSensor); // we have done the check above.. 
 	int nn = 0;
-	if (aView == 'X') nn = numClsX[aStation]; 
-	if (aView == 'Y') nn = numClsY[aStation];
+	if (itCl->View() == emph::geo::X_VIEW) nn = numClsX[aStation]; 
+	if (itCl->View() == emph::geo::Y_VIEW) nn = numClsY[aStation];
 	if (itCl->View() == emph::geo::U_VIEW) nn = numClsU[aStation];
 	if (itCl->View() == emph::geo::W_VIEW) nn = numClsV[aStation];
         std::ostringstream aLineStrStr; 
-//        std::string headerS(" subRun evt station sensor nCl iCl wgtAvgStrip wgtRmsStrip avgADC ");
+//        std::string headerS(" subRun evt station sensor nCl iCl ?????? wgtAvgStrip wgtRmsStrip avgADC ");
 	aLineStrStr << " " << fSubRun << " " << fEvtNum << " " << itCl->Station() << " " << itCl->Sensor();
-	aLineStrStr << " " << nn << " " << itCl->ID() << " " << itCl->WgtAvgStrip() << " " 
+	aLineStrStr << " " << nn << " " << itCl->ID() << " " << itCl->Width() << " " <<  itCl->WgtAvgStrip() << " " 
 	            << itCl->WgtRmsStrip() << " " << itCl->AvgADC();
         std::string aLineStr(aLineStrStr.str()); 
-	if (aView == 'X')  fFOutA1X << aLineStr << std::endl;  
-	if (aView == 'Y')  fFOutA1Y << aLineStr << std::endl;  
+	if (itCl->View() == emph::geo::X_VIEW)  fFOutA1X << aLineStr << std::endl;  
+	if (itCl->View() == emph::geo::Y_VIEW)  fFOutA1Y << aLineStr << std::endl;  
 	if (itCl->View() == emph::geo::U_VIEW)  fFOutA1U << aLineStr << std::endl;  
 	if (itCl->View() == emph::geo::W_VIEW)  fFOutA1V << aLineStr << std::endl;  
       }
