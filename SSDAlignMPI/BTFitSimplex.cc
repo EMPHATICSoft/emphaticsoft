@@ -109,6 +109,13 @@ int main(int argc, char **argv) {
     // Get the rank of the process
     int myRank;
     MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+    // 
+    // Debugging crash in MPI .. This should run.. 
+//    if (token.find("non") != std::string::npos) { 
+//       std::cerr << " Check MPI sanity... " << std::endl;
+//          emph::rbal::BeamTracks myBTrs; // empty.. 
+//         double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, DBL_MAX/2, (0.111) ); // We include the ones that  
+//    }
     
     if (myRank == 0) std::cerr << " Job argument decoding, number of args  "  << argc << std::endl;
     if (argc > 1) { 
@@ -321,7 +328,6 @@ int main(int argc, char **argv) {
     }
     //
     // Get the data, a set of SSD Cluster. 
-    // 
     
     std::string topDirAll("/home/lebrun/EMPHATIC/DataLaptop/");
     std::string myHostName(std::getenv("HOSTNAME"));
@@ -341,7 +347,20 @@ int main(int argc, char **argv) {
 	   aFileDescr = std::string("_") + G4EMPHDescrToken + std::string("_V1e.dat");  
 	 }
       } 
-    } 
+    }
+    if (runNum == 1366)  aFileDescr = std::string("_TgtGraphite120Gev_BrickV2_1o1d_V1f.dat");
+    if ((runNum == 1366) && (token.find("Try3D_R1366_2a") != std::string::npos))  aFileDescr = std::string("_TgtGraphite120Gev_BrickV2_NA_V1f.dat");
+    if ((runNum == 1366) && (token.find("Try3D_R1366_3a") != std::string::npos))  aFileDescr = std::string("_TgtGraphite120Gev_BrickV2_NA2C_V1f.dat");
+    if ((runNum == 1366) && (token.find("Try3D_R1366_4a") != std::string::npos))  aFileDescr = std::string("_TgtGraphite120Gev_BrickV2_NotPreAligned_1o1g_V1g.dat");
+    if ((runNum == 1366) && 
+        ((token.find("Try3D_R1366_4b") != std::string::npos) || 
+	 (token.find("Try3D_R1366_4c") != std::string::npos) || 
+	 (token.find("Try3D_R1366_4d") != std::string::npos) ||
+	 (token.find("Try3D_R1366_4e") != std::string::npos))) 
+	     aFileDescr = std::string("_TgtGraphite120Gev_BrickV2_1o1g_V1g.dat");
+    if ((runNum == 1043) && ((token.find("TightCl_1a") != std::string::npos) ||
+                             (token.find("TightCl_1b") != std::string::npos)))  aFileDescr = std::string("_5St_try9_AlignUV_TightCluster_1a_V1g.dat");
+    if ((runNum == 1043) && (token.find("TightCl_1c") != std::string::npos))  aFileDescr = std::string("_5St_try9_AlignUV_TightCluster_1b_V1g.dat");
     aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -361,10 +380,11 @@ int main(int argc, char **argv) {
      if ((strictSt6X)  && (strictSt6Y)) { 
         numExpected = 41321; myBTIn.SetKey(687403); // Only valid for run 1055
 	if (G4EMPHDescrToken != std::string("none"))  numExpected = -1; // Variable, too much clerical work with this check. 
+	if (runNum == 1366) myBTIn.SetKey(687503);
      }
      if (maxEvts !=  1000000)  numExpected = maxEvts; // a bit of an abuse of variables names... Speed things up.. 
      if (myRank == 0)  {
-         std::cerr << " Doing the Fit2ndorder on file " << aFName << std::endl;
+         std::cerr << " Doing the Fit2ndorder, Simplex,  on file " << aFName << std::endl;
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;
 //	 std::cerr << " And quit for now... " << std::endl; MPI_Finalize(); exit(2);
