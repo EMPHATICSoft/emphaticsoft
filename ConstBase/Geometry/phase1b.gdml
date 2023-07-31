@@ -89,62 +89,72 @@
     <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
 	 
-	 <quantity name="ssdStation0_shift" value="0" unit="mm"/>
-	 <quantity name="ssdStation1_shift" value="120.5" unit="mm"/>
-	 <quantity name="ssdStation2_shift" value="360.0" unit="mm"/>
-	 <quantity name="ssdStation3_shift" value="481.0" unit="mm"/>
-	 <quantity name="ssdStation4_shift" value="985.6" unit="mm"/>
-	 <quantity name="ssdStation5_shift" value="1211.8" unit="mm"/>
+    <quantity name="ssdStation0_shift" value="0" unit="mm"/>
+    <quantity name="ssdStation1_shift" value="120.5" unit="mm"/>
+    <quantity name="ssdStation2_shift" value="360" unit="mm"/>
+    <quantity name="ssdStation3_shift" value="481" unit="mm"/>
+    <quantity name="ssdStation4_shift" value="985.6" unit="mm"/>
+    <quantity name="ssdStation5_shift" value="1211.8" unit="mm"/>
 
-	 <quantity name="carbon_fiber_thick" value="0.300"
-		 unit="mm" />
-	 <quantity name="Mylar_Window_thick" value="0.500"
-		 unit="mm" />
-	 <quantity name="Mylar_shift" value="10" unit="mm"/>
+	 <quantity name="bkpln_thick" value="6.35" unit="mm" />
+	 <quantity name="bkpln_width" value="115.98" unit="mm" />
+	 <quantity name="bkpln_hole" value="80.00" unit="mm" />
+
+	 <quantity name="Mylar_Window_thick" value="0.500" unit="mm" />
+	 <quantity name="Mylar_shift" value="20" unit="mm"/>
 
 	 <quantity name="ssdStationsingleLength" value="50" unit="mm" />
-	 <quantity name="ssdStationsingleWidth" value="150" unit="mm" />
-	 <quantity name="ssdStationsingleHeight" value="150" unit="mm" />
+	 <quantity name="ssdStationsingleWidth" value="300" unit="mm" />
+	 <quantity name="ssdStationsingleHeight" value="300" unit="mm" />
 
-	 <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
-	 <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
+      <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*bkpln_thick"/>
+      <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*bkpln_thick"/>
+      <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*bkpln_thick"/>
+      <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*bkpln_thick"/>
+      <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*bkpln_thick"/>
+      <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*bkpln_thick"/>
+
+      <position name="ssd_bkpln_u1_pos" x="70" y="0" z="0"/>
+      <rotation name="ssd_bkpln_u1_rot" y="-90" unit="deg"/>
+      <position name="ssd_bkpln_u2_pos" x="0" y="-70" z="0"/>
+      <rotation name="ssd_bkpln_u2_rot" y="-90" z="-90" unit="deg"/>
+      <rotation name="ssd_bkpln_u3_rot" z="90" unit="deg"/>
+      <position name="ssd_bkpln_u4_pos" x="80.1" y="-80.4"/>
+      <rotation name="ssd_bkpln_u4_rot" y="-90" z="135" unit="deg"/>
+
 	 <position name="ssdsingle00_pos" x="0" y="0" z="0"/>
-	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="ssdD0_thick"/>
-	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick"/>
+	 <position name="ssdbkplnsingle0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick"/>
+	 <position name="ssdsingle10_pos" x="0" y="0" z="ssdD0_thick+bkpln_thick"/>
 	 <position name="ssdsingle_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssdsingle_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
-	 <quantity name="ssdStationrotateWidth" value="200" unit="mm" />
-	 <quantity name="ssdStationrotateHeight" value="200" unit="mm" />
-	 <quantity name="ssd3plane_shift" value="3" unit="mm" />
+	 <quantity name="ssdStationrotateWidth" value="300" unit="mm" />
+	 <quantity name="ssdStationrotateHeight" value="300" unit="mm" />
+	 <quantity name="ssd3plane_shift" value="10" unit="mm" />
 
-	 <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
-	 <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*carbon_fiber_thick"/>
 	 <position name="ssdrotate00_pos" x="0" y="0" z="0"/>
-	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="ssdD0_thick"/>
-	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+carbon_fiber_thick"/>
+	 <position name="ssdbkplnrotate0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick"/>
+	 <position name="ssdrotate10_pos" x="0" y="0" z="ssdD0_thick+bkpln_thick"/>
 	 <position name="ssdrotate20_pos" x="0" y="0" z="ssd3plane_shift"/>
-	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
+	 <position name="ssdbkplnrotate1_pos" x="0" y="0" z="ssd3plane_shift+0.5*ssdD0_thick+0.5*bkpln_thick" />
 	 <position name="ssdrotate_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssdrotate_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
 
 	 <quantity name="ssdStationdoubleLength" value="100" unit="mm" />
-	 <quantity name="ssdStationdoubleWidth" value="300" unit="mm" />
-	 <quantity name="ssdStationdoubleHeight" value="300" unit="mm" />
+	 <quantity name="ssdStationdoubleWidth" value="450" unit="mm" />
+	 <quantity name="ssdStationdoubleHeight" value="450" unit="mm" />
 
-	 <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*carbon_fiber_thick" />
-	 <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*carbon_fiber_thick" />
 	 <position name="ssddouble00_pos" x="0.5*ssdD0_height" y="0" z="0" />
 	 <position name="ssddouble01_pos" x="-0.5*ssdD0_height" y="0" z="0" />
-	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="ssdD0_thick" />
-	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
-	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+carbon_fiber_thick" />
+	 <position name="ssddouble10_pos" y="-0.5*ssdD0_height" x="0" z="ssdD0_thick+bkpln_thick" />
+	 <position name="ssddouble11_pos" y="0.5*ssdD0_height" x="0" z="ssdD0_thick+bkpln_thick" />
 	 <position name="ssddouble20_pos" x="0.354*ssdD0_height" y="0.354*ssdD0_height" z="ssd3plane_shift" />
 	 <position name="ssddouble21_pos" x="-0.354*ssdD0_height" y="-0.354*ssdD0_height" z="ssd3plane_shift" />
-	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="ssd3plane_shift+ssdD0_thick" />
 	 <position name="ssddouble_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 	 <position name="ssddouble_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
+	 <position name="ssdbkplndouble0_pos" x="0" y="0" z="0.5*ssdD0_thick+0.5*bkpln_thick" />
+	 <position name="ssdbkplndouble1_pos" x="0" y="0" z="ssd3plane_shift+0.5*ssdD0_thick+0.5*bkpln_thick" />
 
 	 <rotation name="ssdsingle0_0_0_rot" z="0" unit="deg"/>
 	 <rotation name="ssdsingle0_1_0_rot" z="270" unit="deg"/>
@@ -2010,21 +2020,50 @@ values="202.14067278287462 12.054573032169143
 	 <!-- BELOW IS FOR SSD -->
 
 	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
+	 <box name="ssd_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+    <box name="ssd_bkpln_box1" x="bkpln_width" y="bkpln_width" z="bkpln_thick" />
+    <box name="ssd_bkpln_box2" x="bkpln_hole" y="bkpln_hole" z="bkpln_thick" />
+    <tube name="ssd_bkpln_tube" z="bkpln_thick" rmax="85.0" deltaphi="90" aunit="deg"/>
+    <trd name="ssd_bkpln_trd" x1="bkpln_thick" x2="bkpln_thick" y1="115.98" y2="170.00" z="140"/>
+    <trd name="ssd_bkpln_tri" x1="bkpln_thick" x2="bkpln_thick" y1="0" y2="115.98" z="57.99"/>
+
+    <union name="ssd_bkpln_u1">
+	   <first ref="ssd_bkpln_box1"/>
+		<second ref="ssd_bkpln_trd"/>
+		<positionref ref="ssd_bkpln_u1_pos"/>
+	   <rotationref ref="ssd_bkpln_u1_rot"/>
+	 </union>
+	 <union name="ssd_bkpln_u2">
+		<first ref="ssd_bkpln_u1"/>
+		<second ref="ssd_bkpln_trd"/>
+		<positionref ref="ssd_bkpln_u2_pos"/>
+	   <rotationref ref="ssd_bkpln_u2_rot"/>
+	 </union>
+	 <union name="ssd_bkpln_u3">
+		<first ref="ssd_bkpln_u2"/>
+		<second ref="ssd_bkpln_tube"/>
+	   <rotationref ref="ssd_bkpln_u3_rot"/>
+	 </union>
+	 <union name="ssd_bkpln_u4">
+	   <first ref="ssd_bkpln_u3"/>
+		<second ref="ssd_bkpln_tri"/>
+		<positionref ref="ssd_bkpln_u4_pos"/>
+	   <rotationref ref="ssd_bkpln_u4_rot"/>
+	 </union>
+
+	 <subtraction name="ssd_bkpln_box">
+	   <first ref="ssd_bkpln_u4"/>
+		<second ref="ssd_bkpln_box2"/>
+	 </subtraction>
 
 	  <box name="ssdStationsingle_box" x="ssdStationsingleWidth" y="ssdStationsingleHeight" z="ssdStationsingleLength" />
 	  <box name="ssdsingle_MylarWindow_box" x="ssdStationsingleWidth*0.8" y="ssdStationsingleWidth*0.8" z="Mylar_Window_thick" />
-	  <box name="ssdsingle_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
-	  <box name="ssdsingle_bkpln_box" x="1*ssdD0_width" y="1*ssdD0_width" z="carbon_fiber_thick" />
 
 	  <box name="ssdStationrotate_box" x="ssdStationrotateWidth" y="ssdStationrotateHeight" z="ssdStationrotateLength" />
 	  <box name="ssdrotate_MylarWindow_box" x="ssdStationrotateWidth*0.8" y="ssdStationrotateWidth*0.8" z="Mylar_Window_thick" />
-	  <box name="ssdrotate_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
-	  <box name="ssdrotate_bkpln_box" x="1.3*ssdD0_width" y="1.3*ssdD0_width" z="carbon_fiber_thick" />
 
 	  <box name="ssdStationdouble_box" x="ssdStationdoubleWidth" y="ssdStationdoubleHeight" z="ssdStationdoubleLength" />
 	  <box name="ssddouble_MylarWindow_box" x="ssdStationdoubleWidth*0.8" y="ssdStationdoubleWidth*0.8" z="Mylar_Window_thick" />
-	  <box name="ssddouble_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
-	  <box name="ssddouble_bkpln_box" x="2.6*ssdD0_width" y="2.6*ssdD0_width" z="carbon_fiber_thick" />
 
 	 <!-- ABOVE IS FOR SSD -->
 
@@ -2689,7 +2728,7 @@ values="202.14067278287462 12.054573032169143
 
 		 <volume name="ssdsingle000_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdsingle_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_0_0_0_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -5253,7 +5292,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdsingle010_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdsingle_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_0_1_1_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -7817,7 +7856,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdsingle100_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdsingle_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_1_2_2_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -10381,7 +10420,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdsingle110_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdsingle_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_1_3_3_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -12945,7 +12984,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdrotate200_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdrotate_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_2_4_4_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -15509,7 +15548,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdrotate210_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdrotate_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_2_5_5_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -18073,7 +18112,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdrotate220_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdrotate_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_2_6_6_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -20637,7 +20676,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdrotate300_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdrotate_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_3_7_7_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -23201,7 +23240,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdrotate310_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdrotate_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_3_8_8_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -25765,7 +25804,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdrotate320_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssdrotate_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_3_9_9_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -28329,7 +28368,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble400_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_4_10_10_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -30893,7 +30932,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble401_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_4_10_11_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -33457,7 +33496,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble410_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_4_11_12_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -36021,7 +36060,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble411_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_4_11_13_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -38585,7 +38624,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble420_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_4_12_14_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -41149,7 +41188,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble421_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_4_12_15_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -43713,7 +43752,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble500_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_5_13_16_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -46277,7 +46316,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble501_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_5_13_17_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -48841,7 +48880,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble510_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_5_14_18_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -51405,7 +51444,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble511_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_5_14_19_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -53969,7 +54008,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble520_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_5_15_20_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -56533,7 +56572,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssddouble521_vol">
 			<materialref ref="SiliconWafer"/>
-			<solidref ref="ssddouble_box"/>
+			<solidref ref="ssd_box"/>
 		 <physvol name="ssd_chan_5_15_21_0_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_0_pos"/>
@@ -59097,7 +59136,7 @@ values="202.14067278287462 12.054573032169143
 		 </volume>
 		 <volume name="ssdsingle_bkpln_vol">
 			<materialref ref="CarbonFiber"/>
-			<solidref ref="ssdsingle_bkpln_box"/>
+			<solidref ref="ssd_bkpln_box"/>
 		 </volume>
 
 	  <volume name="ssdsingle_MylarWindow_vol">
@@ -59107,7 +59146,7 @@ values="202.14067278287462 12.054573032169143
 
 		 <volume name="ssdrotate_bkpln_vol">
 			<materialref ref="CarbonFiber"/>
-			<solidref ref="ssdrotate_bkpln_box"/>
+			<solidref ref="ssd_bkpln_box"/>
 		 </volume>
 
 	  <volume name="ssdrotate_MylarWindow_vol">
@@ -59117,7 +59156,7 @@ values="202.14067278287462 12.054573032169143
 
 		 <volume name="ssddouble_bkpln_vol">
 			<materialref ref="CarbonFiber"/>
-			<solidref ref="ssddouble_bkpln_box"/>
+			<solidref ref="ssd_bkpln_box"/>
 		 </volume>
 
 	  <volume name="ssddouble_MylarWindow_vol">
