@@ -319,7 +319,9 @@ namespace emph {
 //      const bool debugIsOn = ((fEvtNum == 51) || (fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
 //      const bool debugIsOn = ((fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
 //     const bool debugIsOn = (fEvtNum > 81717); // root-Minuit crash at evt 81719 fixed by eliminating very back prelim chi-sq 
-       const bool debugIsOn = false;
+     const bool debugIsOn = ((fSubRun == 100) && ((fEvtNum == 48 ) || (fEvtNum == 56 ) || (fEvtNum == 142 ) || (fEvtNum == 92 )));
+       // For spill 100, good track from RScript, check loading 
+//       const bool debugIsOn = false;
     //
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
