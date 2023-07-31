@@ -23,14 +23,14 @@ namespace emph {
   namespace rbal {
   
     BeamTrackCluster::BeamTrackCluster() : 
-    fSpill(-1),  fEvtNum(-1), fKeep(true)
+    fSpill(-1),  fEvtNum(-1), fTrId(INT_MAX), fKeep(true)
     { ; } 
     
 // 
     
-    BeamTrackCluster::BeamTrackCluster(int spill, int evt, const std::vector<double> &XViewData, 
+    BeamTrackCluster::BeamTrackCluster(int spill, int evt, int trId, const std::vector<double> &XViewData, 
                 const std::vector<double> &YViewData, const std::vector<double> &UViewData, const std::vector<double> &VViewData) : 
-    fSpill(spill),  fEvtNum(evt), fKeep(true),
+    fSpill(spill),  fEvtNum(evt), fTrId(trId), fKeep(true),
     fXAvStrips(XViewData.size()/2, 0.), fXRmsStrips(XViewData.size()/2, 1.0e9),
     fYAvStrips(YViewData.size()/2, 0.), fYRmsStrips(YViewData.size()/2, 1.0e9),
     fUAvStrips(UViewData.size()/2, 0.), fURmsStrips(UViewData.size()/2, 1.0e9),

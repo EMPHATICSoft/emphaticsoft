@@ -404,17 +404,22 @@ namespace emph {
 //      std::cerr << " SSDAlignParams::SetMinuitParamFixes, fitSubType " << fitSubType 
 //               << " pencilBeamMode " << pencilBeamMode <<  " Specific Sensor " 
 //		<< fSpecificSensor << " spec. view " << fSpecificView << std::endl;
+// 
       for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
         it->SetFixedInMinuit(true); // by default, nothing moves. 
 	const std::string aName(it->Name());
+	// Confusing nomenclature.. Sorry about that.. 
+//	 std::cerr << " ..... At Name " << aName << std::endl;
 	if ((aName.find("TransShift") == 0) && (fitSubType.find("Tr") != std::string::npos) 
 	                                  && (fitSubType.find("Shift") != std::string::npos)) it->SetFixedInMinuit(false);
-	if ((aName.find("DeltaRoll") == 0) && (fitSubType.find("Roll") != std::string::npos))  it->SetFixedInMinuit(false);
-	if ((aName.find("DeltaRollCenter") == 0) && (fitSubType.find("Center") != std::string::npos))  it->SetFixedInMinuit(false);
-	if ((aName.find("LongShift") == 0) && (fitSubType.find("ZShift") != std::string::npos))  it->SetFixedInMinuit(false);
-	if ((aName.find("Tilt") == 0) && (fitSubType.find("Tilt") != std::string::npos))  it->SetFixedInMinuit(false);
+	if ((aName.substr(0,9) == std::string("DeltaRoll")) && (aName.find("Center") == std::string::npos) && 
+	    (fitSubType.find("Roll") != std::string::npos))  it->SetFixedInMinuit(false);
+	if ((aName.substr(0,15) == std::string("DeltaRollCenter")) && (fitSubType.find("Center") != std::string::npos))  it->SetFixedInMinuit(false);
+	if ((aName.substr(0,9) == std::string("LongShift")) && (fitSubType.find("ZShift") != std::string::npos))  it->SetFixedInMinuit(false);
+	if ((aName.substr(0,4) == std::string("Tilt")) && (fitSubType.find("Tilt") != std::string::npos))  it->SetFixedInMinuit(false);
       // Magnet related stuff.. 
-     
+        
+//	if (!it->isFixedInMinuit()) std::cerr <<  " ... Really Preliminary... We will vay " << aName << std::endl; 
 	if (((fitSubType == std::string("MagnetZPos")) || (fitSubType == std::string("MagnetZPosKick"))) &&
 	      (aName.find("LongMagC") == 0)) it->SetFixedInMinuit(false);   
 	if (((fitSubType == std::string("MagnetKick")) || (fitSubType == std::string("MagnetZPosKick"))) &&
@@ -427,13 +432,14 @@ namespace emph {
 	 //
 	 // decided... not quite ... 
 	 //
+//	 if (!it->isFixedInMinuit()) std::cerr <<  " ... Preliminary... We will vay " << aName << std::endl; 
 	 if ((pencilBeamMode == 1) && (it->isOutOfPencilBeam())) it->SetFixedInMinuit(true);
 	 if ((pencilBeamMode == -1) && (!(it->isOutOfPencilBeam()))) it->SetFixedInMinuit(true);
       
 	// Now turn back, if we ask for a specific sensor and/or view 				  
         if ((fSpecificSensor != INT_MAX) && (fSpecificSensor != it->SensorI())) it->SetFixedInMinuit(true);   
         if ((fSpecificView != 'A') && (fSpecificView != it->View())) it->SetFixedInMinuit(true);  
-//	if (!it->isFixedInMinuit()) std::cerr <<  " we will vay " << aName << std::endl; 
+//	if (!it->isFixedInMinuit()) std::cerr <<  " ... Final We will vay " << aName << std::endl; 
       }
       // Special cases, transverse shift. 
       if (fitSubType == std::string("TrShiftX456")) { // Phase1b 
@@ -468,6 +474,7 @@ namespace emph {
 	  if ((it->View() == 'X') || (it->View() == 'Y')) it->SetFixedInMinuit(false);
 	}
       } 
+//      std::cerr << " ..... And quit for now!... " << std::endl; exit(2);
       return;
     } 
     void SSDAlignParams::FixParamsForView(const char aView, bool isTrue, const std::string &paramName) {

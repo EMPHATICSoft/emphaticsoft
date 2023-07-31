@@ -30,12 +30,16 @@ namespace emph {
          MPI_Finalize();
 	 exit(2);
        }
+       std::string fNameStr(fName);
+       bool hasTrId =  (fNameStr.find("V1f") != std::string::npos) || 
+                       (fNameStr.find("V1g") != std::string::npos); // run dependent.. messy.. Check ..Two different gen compact.. 
        int nEvtRead = 0;
-       int aKey, numDoublePerEvt, spill, evt;
+       int aKey, numDoublePerEvt, spill, evt, trId;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
        double stripInfo[2];
        while (fIn.good()) {
          XViewData.clear(); YViewData.clear(); UViewData.clear(); VViewData.clear();
+	 int triD = 0; 
          fIn.read(reinterpret_cast<char*>(&aKey), sizeof(int)); 
 	 if ( (fIn.rdstate() & std::ifstream::eofbit ) != 0 ) {
 	    std::cerr << " BTAlignInput::FillItFromFile  Reached EOF, nEvtRead " << nEvtRead << std::endl;
@@ -52,6 +56,7 @@ namespace emph {
 	                               << nEvtExpected << " events with " <<  numDoublePerEvt << " doubles per Evts " << std::endl;
 	  	  
 	 fIn.read(reinterpret_cast<char*>(&spill), sizeof(int) ); fIn.read(reinterpret_cast<char*>(&evt), sizeof(int) );
+	 if (hasTrId) fIn.read(reinterpret_cast<char*>(&trId), sizeof(int) );
 	 for (int k=0; k != fNumStations+2; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
 	   XViewData.push_back(stripInfo[0]); XViewData.push_back(stripInfo[1]); 
@@ -69,7 +74,7 @@ namespace emph {
 	   VViewData.push_back(stripInfo[0]); VViewData.push_back(stripInfo[1]); 
 	 }
 	 if ((selSpill != INT_MAX) && (spill != selSpill)) continue;
-	 BeamTrackCluster aBT(spill, evt, XViewData, YViewData, UViewData, VViewData);
+	 BeamTrackCluster aBT(spill, evt, trId,  XViewData, YViewData, UViewData, VViewData);
 	 fDat.push_back(aBT);
 	 nEvtRead++;
 	 if (nEvtRead == nEvtExpected) {
@@ -94,12 +99,13 @@ namespace emph {
        double *ptr = dat;
        int spill = static_cast<int>(*ptr); ptr++;
        int evt = static_cast<int>(*ptr); ptr++;
+       int aTrId = static_cast<int>(*ptr); ptr++;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
        for (int k=0; k != 2*(fNumStations+2); k++) { XViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 2*(fNumStations+2); k++) { YViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 4; k++) { UViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 8; k++) { VViewData.push_back(*ptr); ptr++; }
-       BeamTrackCluster aBT(spill, evt,  XViewData, YViewData, UViewData, VViewData);
+       BeamTrackCluster aBT(spill, evt, aTrId,  XViewData, YViewData, UViewData, VViewData);
        fDat.push_back(aBT);
      }
      
@@ -109,7 +115,8 @@ namespace emph {
        evtRaw.clear();
        evtRaw.push_back(static_cast<double>(it->Spill()));
        evtRaw.push_back(static_cast<double>(it->EvtNum()));
-       size_t nW = 2;// We do not include fKeep, no point, it is used only in the context of MPI
+       evtRaw.push_back(static_cast<double>(it->TrId()));
+       size_t nW = 3;// We do not include fKeep, no point, it is used only in the context of MPI
        for (int k=0; k != fNumStations+2; k++) { 
          evtRaw.push_back(it->TheAvStrip('X', k));
          evtRaw.push_back(it->TheRmsStrip('X', k));
@@ -164,13 +171,13 @@ namespace emph {
        } 
        std::ofstream fOut(aName.c_str());
        // header 
-       fOut << " spill evt";
+       fOut << " spill evt trId";
        for (size_t k=0; k != numDat; k++) fOut << " av" << k << " rms" << k; 
        fOut << " " << std::endl;
        // data 
        for (std::vector<BeamTrackCluster>::const_iterator it = fDat.cbegin(); it != fDat.cend(); it++) {
          if (!it->Keep()) continue;
-         fOut << " " << it->Spill() << " " << it->EvtNum();
+         fOut << " " << it->Spill() << " " << it->EvtNum() << " " << it->TrId();
 	 for (size_t k=0; k != numDat; k++) {
 	   fOut << " " << it->TheAvStrip(view, k) << " " << it->TheRmsStrip(view, k);
 	 }

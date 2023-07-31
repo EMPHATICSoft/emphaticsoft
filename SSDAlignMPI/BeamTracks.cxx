@@ -41,12 +41,13 @@ namespace emph {
       fOut << " chiSq ";
       size_t numResids =  (is2DX || is2DY) ? it0->NumSensorsXorY() : (2*it0->NumSensorsXorY() + it0->NumSensorsU() + it0->NumSensorsV());
       for (size_t kSe=0; kSe != numResids; kSe++) fOut << " resid" << kSe;
-      fOut << " " << std::endl;
+      fOut << " numOKResid " << std::endl;
       //
       for (std::vector<BeamTrack>::const_iterator it = it0; it != fData.cend(); it++) {
         if (std::isnan(it->ChiSq())) continue;
         if (std::isinf(it->ChiSq())) continue;
 	if (it->ChiSq() == DBL_MAX) continue;
+	if (it->ChiSq() < 0.) continue;
         fOut << " " << it->Spill() << " " << it->EvtNum();
         if (is2DX || is3D) {
          fOut << " " << it->X0() << " " <<  it->X0Err(true) << " " << it->X0Err(false); 
@@ -58,8 +59,12 @@ namespace emph {
         }
 	if (is3D) fOut << " " << it->Mom() << " " << it->MomErr(true) << " " << it->MomErr(false); 
         fOut << " " << it->ChiSq();
-        for (size_t kSe=0; kSe != numResids; kSe++) fOut << " " << it->Resid(kSe);
-        fOut << " " << std::endl;
+	int numOKResid = 0;
+        for (size_t kSe=0; kSe != numResids; kSe++) {
+	   if (std::abs(it->Resid(kSe)) < 100.) numOKResid++;
+	   fOut << " " << it->Resid(kSe);
+	}
+        fOut << " " << numOKResid << " " << std::endl;
      
       }
       fOut.close();

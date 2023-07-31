@@ -80,9 +80,7 @@ namespace emph {
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
       fNCalls++;
-
-      
-      fResids.resize(parsM.size()); // Why ????? 
+      fResids.resize(parsM.size()); // Why ????? We could have changed our mind in defining residuals... 
       std::vector<double> pars(parsM); // need to copy, as the value could (should not, if all goes well, i.e., Minuit determines its next 
                                        // move on the same value of the chisq, which is broadcast from rank 0  
       //
@@ -160,7 +158,9 @@ namespace emph {
          if (aTr.ChiSq() < 0.) aTr.SetChiSq(2.0*fUpLimForChiSq); // arbitrary.. but we will include this track in the tally, now.. 
        } 
        if ((myRank == 0) && (iEvt < 100) && fDebugIsOn)  {
-          std::cerr << " Evt " << it->EvtNum() << " x0 " << aTr.X0() << " y0 " << aTr.Y0() << " chi2 " << aTr.ChiSq() << std::endl;
+          std::cerr << " spill " << it->Spill() << " Evt " << it->EvtNum() << " TrId " << it->TrId() 
+	            << " x0 " << aTr.X0() << " x' " << aTr.Slx0() << 
+	                        " y0 " << aTr.Y0() << " y' " << aTr.Sly0() <<  " chi2 " << aTr.ChiSq() << std::endl;
        }
        if (!fIsOK[kk]) { iEvt++; continue; }
        nOKs++;
@@ -187,7 +187,9 @@ namespace emph {
      //
      // 
 //     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, fUpLimForChiSq, (chiAddBeam + chiSoftLim) ); // We leave them be.. in the container.. 
+      MPI_Barrier(MPI_COMM_WORLD);
      double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, DBL_MAX/2, (chiAddBeam + chiSoftLim) ); // We include the ones that  
+      MPI_Barrier(MPI_COMM_WORLD);
      if ((fDebugIsOn) && (myRank == 0)) 
        std::cerr << " .... Did all the tracks fits.. on rank 0, at least.. chi2 is  " << chi2 << " fUpLimForChiSq " << fUpLimForChiSq << std::endl;
      
@@ -437,7 +439,7 @@ namespace emph {
       slxAv /= btrs.size(); slyAv /= btrs.size();
       const double sigSlxSq = (slxSq - slxAv*slxAv*btrs.size())/(btrs.size() - 1);
       const double sigSlySq = (slySq - slyAv*slyAv*btrs.size())/(btrs.size() - 1);
-      double chiAdd = (sigSlxSq + sigSlxSq)/(fAssumedSlopeSigma*fAssumedSlopeSigma);
+      double chiAdd = (sigSlxSq + sigSlySq)/(fAssumedSlopeSigma*fAssumedSlopeSigma);
       if ((fDebugIsOn) && (myRank == 0)) {
          std::cerr << " BeamTrackSSDAlignFCN::SlopeConstraintAtStation0 on " << btrs.size() << " tracks " 
 	           <<  " Expected Slope Sigma " << fAssumedSlopeSigma << " average  X sigma " 

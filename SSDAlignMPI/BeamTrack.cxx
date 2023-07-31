@@ -130,25 +130,32 @@ namespace emph {
 //       if (fDebugIsOn) 
 //         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
        fDebugIsOn = false;
-//         fDebugIsOn = ((fEvtNum == 38)  & (fSpill == 12));
+//         fDebugIsOn = ((fEvtNum == 48)  && (fSpill == 100));
 	 if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
        fFcn3D.SetDebugOn(fDebugIsOn);
        // 
        fType = std::string("3D");
        fFcn3D.SetClusterPtr(it);
+       fchiSq = -1.0;
        const double pMonStartVal = fAlignMode ? fNominalMomentum :  50.; // Hardcoded intial value!  Need to get it from the main..
        fFcn3D.SetNominalMomentum(fNominalMomentum);
        // we start slightly off momentum.. to force the minimizer to do some work..  	
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D for event " << it->EvtNum() << " Spill " << it->Spill() << std::endl;
        ROOT::Minuit2::MnUserParameters uPars;
        std::pair<double, double> initValsX = this-> SetInitValuesX('X', it);
-       if (initValsX.first == DBL_MAX) return DBL_MAX; // not enough data. 
+       if (initValsX.first == DBL_MAX) {
+          if (fDebugIsOn) std::cerr << " Not enough data on the X view, give up.. " << std::endl;
+          return -1.0; // not enough data. 
+       }
        std::string nameT0X("XOffset"); std::string nameSlT0X("XSlope");
        uPars.Add(nameT0X, initValsX.first, 0.250, -50., 50.); uPars.Add(nameSlT0X, 5e-4, 0.001, -0.1, 0.1);
        if (fDebugIsOn) std::cerr << " ... Initial Xoffset " <<initValsX.first << " Slope " << initValsX.second << std::endl;
        // Same for Y 
         std::pair<double, double> initValsY = this-> SetInitValuesY('Y', it);
-       if (initValsY.first == DBL_MAX) return DBL_MAX; // not enough data. 
+       if (initValsY.first == DBL_MAX) {
+          if (fDebugIsOn) std::cerr << " Not enough data on the Y view, give up.. " << std::endl;
+          return -1.0; // not enough data.
+       } 
        std::string nameT0Y("YOffset"); std::string nameSlT0Y("YSlope");
        uPars.Add(nameT0Y, initValsY.first, 0.250, -50., 50.); uPars.Add(nameSlT0Y, 2.0e-4, 0.001, -0.1, 0.1);
        size_t numPars = 4;
@@ -203,6 +210,11 @@ namespace emph {
 	 }
  	 minFValM = min.Fval();
 	 okFit = min.IsValid();
+	 if (fDebugIsOn) { 
+	   if ( okFit) std::cerr << " Migrad fit is valid, fit values " << std::endl;
+	   else std::cerr << " Migrad Fit is invalid " << std::endl;
+	   std::cerr << min << std::endl;
+	 }
       } else {
          std::vector<double>initValsV{initValsX.first, initValsX.second, initValsY.first, initValsY.second};
          std::vector<double>initValsE{0.5, 0.001, 0.5, 0.001};
@@ -225,6 +237,11 @@ namespace emph {
 	 fsly0Err =std::pair<double, double> (myErrs[3], myErrs[3]); 
 	 if (numPars == 5) finalParams[4] = min.UserState().Value(4);
 	 minFValM = min.Fval();
+	 if (fDebugIsOn) { 
+	   if ( okFit) std::cerr << " Simplex fit is valid, fit values " << std::endl;
+	   else std::cerr << " Simplex Fit is invalid " << std::endl;
+	   std::cerr << min << std::endl;
+	 }
        } 
        double finalChi = fFcn3D(finalParams);
        fchiSq = finalChi;
@@ -234,10 +251,13 @@ namespace emph {
 		    exit(2);
        }
        for (size_t kSe = 0; kSe != fresids.size(); kSe++) fresids[kSe] = fFcn3D.Resid(kSe);
-       if (!okFit) fchiSq *=- 1.0;
+       if ((!okFit) || (std::abs(fx0) > 150.) || (std::abs(fy0) > 150.)) {
+          std::cerr << " Detecting funky x0 or y0 value " << fx0 << " fy0 " << fy0 << " quit here and now .. " << std::endl; exit(2);
+          fchiSq *=- 1.0;
+       }
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 
        if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
-       return finalChi;
+       return fchiSq;
      }
      
      
