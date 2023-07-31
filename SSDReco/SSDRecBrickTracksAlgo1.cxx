@@ -36,7 +36,7 @@ namespace emph {
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fCoordConvert('A'),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
-      fNEvents(0), fDebugIsOn(false), fDoMigrad(true), fNoMagnet(false), 
+      fNEvents(0), fNumCompactSaved(0), fDebugIsOn(false), fDoMigrad(true), fNoMagnet(false), 
       fDistFromBeamCenterCut(10.), fBeamCenterX(-3.5), fBeamCenterY(4.5),  fTrackSlopeCut(0.050), 
       fChiSqCut(1000.0), fAssumedMomentum(5.0), fMaxNumTrComb(50000), fMaxNumSpacePts(25),
       fDeltaZX(6, DBL_MAX), fDeltaZY(6, DBL_MAX), // Phase1b only. 
@@ -54,6 +54,7 @@ namespace emph {
     SSDRecBrickTracksAlgo1::~SSDRecBrickTracksAlgo1() {
       if (fFOutTrs.is_open()) fFOutTrs.close();
       if (fFOutCompact.is_open()) fFOutCompact.close();
+      std::cerr << " SSDRecBrickTracksAlgo1 destructor, number of saved Compact events for alignment " << fNumCompactSaved << std::endl;
       delete fFitterFCN;
     }
     //
@@ -554,19 +555,35 @@ namespace emph {
      void SSDRecBrickTracksAlgo1::dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
        if (!fFOutCompact.is_open()) {
          std::ostringstream aFOutCompactStrStr; 
-         aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1f.dat";
+         aFOutCompactStrStr << "./CompactAlgo1Data_" << fRunNum  << "_" << fTokenJob << "_V1g.dat";
          std::string aFOutCompactStr(aFOutCompactStrStr.str());
          fFOutCompact.open(aFOutCompactStr.c_str(),  std::ios::binary | std::ios::out);
          std::cerr << " Opening CompactEvt file " << aFOutCompactStr << " andkeep going  .. " << std::endl; 
        }
+       const double maxClustSep = 75.;
        if (fDebugIsOn) std::cerr << " SSDRecBrickTracksAlgo1::dumpCompactEvt, at spill " << fSubRunNum << " evt " << fEvtNum << std::endl;
        int key=687503; // fixed, distinct from similar code found in SSDAlign3DUVAlgo1Add
        int numDouble = ( 2 * (2*(8) + 2 + 4)) ; // for 2 is mean & RMS, then, X + Y + U + V // Phase1b 
+       // Version 1g:  Consider only the single track events.. And wide angle.. 
+       int numOKTracks = 0;
+        for (std::vector<SSDTrPreArbitrationAlgo1>::const_iterator itTArb = fTrsForArb.cbegin(); itTArb != fTrsForArb.cend(); itTArb++) { 
+         std::vector<rb::DwnstrTrackAlgo1>::const_iterator itTr = GetTrackPtrConst(itTArb->fTrId);
+	 if (itTr == fTrs.cend()) continue; // Should not happen.. 
+	 if (itTr->ChiSq() > 1.0e9) continue; // Could happen, duplicated or really bad track.
+	 const double scatAngle = std::sqrt(itTr->XSlope() * itTr->XSlope() +  itTr->YSlope() * itTr->YSlope());
+	 if (scatAngle < 0.01) continue; 
+	 numOKTracks++; 
+       }
+       if (fDebugIsOn) std::cerr << " ... Number of good arbitrated tracks .. " << numOKTracks << std::endl;
+       if (numOKTracks != 1) return;
+       int numClReal = 0;
        const double stripAvNone = 0.; const double stripRmsNone = 1.0e9; 
        for (std::vector<SSDTrPreArbitrationAlgo1>::const_iterator itTArb = fTrsForArb.cbegin(); itTArb != fTrsForArb.cend(); itTArb++) { 
          std::vector<rb::DwnstrTrackAlgo1>::const_iterator itTr = GetTrackPtrConst(itTArb->fTrId);
 	 if (itTr == fTrs.cend()) continue; // Should not happen.. 
-	 if (itTr->ChiSq() > 1.0e9) continue; // Could happen, duplicated or really bad track. 
+	 if (itTr->ChiSq() > 1.0e9) continue; // Could happen, duplicated or really bad track.
+	 const double scatAngle = std::sqrt(itTr->XSlope() * itTr->XSlope() +  itTr->YSlope() * itTr->YSlope());
+	 if (scatAngle < 0.01) continue;   
          // a bit of memory waste if strictY6 is true, 4 doubles being either 0 or DBL_MAX. 
       // but keep the code relatively simple. 
       	 if (fDebugIsOn) std::cerr  << " ..... At track " << itTr->ID() << std::endl;
@@ -577,19 +594,27 @@ namespace emph {
 	 // Now fill those.. Not the most efficient way...  
 	 for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	   if ((itCl->Station() == 0) && (itCl->View() == emph::geo::X_VIEW) 
-	      && (itCl->ID() == itTArb->fIdClX0)) { mySSDClsPtrsX[0] = itCl; break; }  
+	      && (itCl->ID() == itTArb->fIdClX0) && (this->isClusterIsolated(itCl, aSSDClsPtr, maxClustSep))) { 
+	        {mySSDClsPtrsX[0] = itCl; numClReal++; break; } 
+	      }  
 	 } // on clusters, any of them 
 	 for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	   if ((itCl->Station() == 1) && (itCl->View() == emph::geo::X_VIEW) 
-	      && (itCl->ID() == itTArb->fIdClX1)) {mySSDClsPtrsX[1] = itCl; break; } 
+	      && (itCl->ID() == itTArb->fIdClX1) &&  (this->isClusterIsolated(itCl, aSSDClsPtr, maxClustSep))) {
+	         mySSDClsPtrsX[1] = itCl; numClReal++;break; 
+		 } 
 	 } // on clusters, any of them 
 	 for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	   if ((itCl->Station() == 0) && (itCl->View() == emph::geo::Y_VIEW) 
-	      && (itCl->ID() == itTArb->fIdClY0)) { mySSDClsPtrsY[0] = itCl; break; }  
+	      && (itCl->ID() == itTArb->fIdClY0) && (this->isClusterIsolated(itCl, aSSDClsPtr, maxClustSep))) { 
+	         mySSDClsPtrsY[0] = itCl; numClReal++;break; 
+		 }
 	 } // on clusters, any of them 
 	 for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	   if ((itCl->Station() == 1) && (itCl->View() == emph::geo::Y_VIEW) 
-	      && (itCl->ID() == itTArb->fIdClY1)) {mySSDClsPtrsY[1] =  itCl; break; }  
+	      && (itCl->ID() == itTArb->fIdClY1) && (this->isClusterIsolated(itCl, aSSDClsPtr, maxClustSep))) {
+	         mySSDClsPtrsY[1] =  itCl; numClReal++; break; 
+	         }
 	 } // on clusters, any of them 
 	 if (fDebugIsOn) std::cerr  << " ..... ... done station 0 and 1  " << std::endl;
 	 // Now the Space Point Stations.. Tedious, the pointer have a different layout..
@@ -621,8 +646,13 @@ namespace emph {
 	                                << " View " << aView << " sensor " << aSensor << " ID " << aID << std::endl; 
 	      for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	   	if ((itCl->Station() == static_cast<int>(kSt)) && (itCl->View() == aView) 
-	   	     && (itCl->ID() == aID)) { 
-		  if (fDebugIsOn) std::cerr << " ... Found it mean strip " << itCl->WgtAvgStrip() << std::endl;
+	   	     && (itCl->ID() == aID)) {
+		  if (!this->isClusterIsolated(itCl, aSSDClsPtr, maxClustSep)) {
+		    if (fDebugIsOn) std::cerr << " Cluster is not isolated,.. skip .. " << std::endl; 
+		    continue;
+		  }  
+		  if (fDebugIsOn) std::cerr << " ... Isolated Cluster, found it mean strip " << itCl->WgtAvgStrip() << std::endl;
+		  numClReal++;
 	          if (kSt < 4) { 
 	            if (aView == emph::geo::X_VIEW) mySSDClsPtrsX[kSt] = itCl; 
 	            if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[kSt] = itCl; 
@@ -641,6 +671,10 @@ namespace emph {
 	 //
 	 // Write stuff out.. 
 	 //  
+	 if (fDebugIsOn) std::cerr << " ... Total number of good clusters " << numClReal << std::endl;
+	 if (numClReal < 10) return;
+	 fNumCompactSaved++;
+	 std::cerr << " SSDRecBrickTracksAlgo1::dumpCompactEvt, saving alignment event " << fEvtNum << std::endl;
          fFOutCompact.write(reinterpret_cast<char*>(&key), sizeof(int)); 
          fFOutCompact.write(reinterpret_cast<char*>(&numDouble), sizeof(int));
          fFOutCompact.write(reinterpret_cast<char*>(&fSubRunNum), sizeof(int)); 
@@ -679,6 +713,20 @@ namespace emph {
          }
        } // On tracks 
      } // end of dumpCompactEvt
+     // 
+     bool SSDRecBrickTracksAlgo1::isClusterIsolated(std::vector<rb::SSDCluster>::const_iterator itClSel, 
+	                        const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr, double nStripCut) {
+	 int numNeighbors = 0; // includes itself... 
+	 const double stripNumSel = itClSel->WgtAvgStrip();			
+	 for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
+	   if ((itCl->Station() != itClSel->Station()) || (itCl->Sensor() != itClSel->Sensor())) continue; 
+	   const double stripNumTmp = itCl->WgtAvgStrip();
+	   if (std::abs(stripNumTmp - stripNumSel) > nStripCut) continue; // too far away, won't bother us.. 
+	   numNeighbors++;
+	 } // on clusters, any of them 
+	 if (numNeighbors == 0) return false; // should not happen
+	 return (numNeighbors == 1); 			
+     }
      
   } // namespace ssdr
 } // namespace emph

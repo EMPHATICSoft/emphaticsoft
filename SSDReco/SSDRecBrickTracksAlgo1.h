@@ -52,6 +52,7 @@ namespace emph {
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
+	  int fNumCompactSaved;
 	  bool fDebugIsOn; 
 	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
 	  bool fNoMagnet; // set once we know the geometry.. 
@@ -151,7 +152,9 @@ namespace emph {
 	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
 	 
 	 bool IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const;
-	 size_t Arbitrate(); // could use a onption flag. 	 
+	 bool isClusterIsolated(std::vector<rb::SSDCluster>::const_iterator itClSel, 
+	                        const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr, double nStripCut);
+	 size_t Arbitrate(); // could be used with an option flag. 	 
 	 void openOutputCsvFiles() const;	 
          void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
 	
