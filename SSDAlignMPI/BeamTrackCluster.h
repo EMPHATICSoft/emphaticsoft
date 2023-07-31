@@ -19,12 +19,13 @@ namespace emph{
     
     public:
       BeamTrackCluster();
-      explicit BeamTrackCluster(int spill, int evt, const std::vector<double> &XViewData, 
+      explicit BeamTrackCluster(int spill, int evt, int trId, const std::vector<double> &XViewData, 
                 const std::vector<double> &YViewData, const std::vector<double> &UViewData, const std::vector<double> &VViewData);
      
     private: 
       int fSpill; 
       int fEvtNum;
+      int fTrId; 
       mutable bool fKeep; // keep or not... On Rank 0, we do not waste time in deleting events.. Used only in the MPI context. 
       std::vector<double> fXAvStrips, fXRmsStrips, fYAvStrips, fYRmsStrips;
       std::vector<double> fUAvStrips, fURmsStrips, fVAvStrips, fVRmsStrips;
@@ -35,6 +36,7 @@ namespace emph{
       // Getters 
       inline int Spill() const { return fSpill; }
       inline int EvtNum() const { return fEvtNum; }
+      inline int TrId() const { return fTrId; }
       inline bool Keep() const {return fKeep;}
       inline double TheAvStrip(char view, size_t kSt) const {  
         switch (view) {
