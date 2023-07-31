@@ -189,10 +189,10 @@ namespace emph{
 //	  sleep(5);
 	} else {
 	   if (myDat.GetNumEvts() == numPerProcs[myRank]) break;
-//           MPI_Status statusProbe;
-//	   MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &statusProbe);
-	   int nD = 46; // I know this.. Hopefully I won't change my mind.. 
-//	   MPI_Get_count(&statusProbe, MPI_DOUBLE, &nD);
+           MPI_Status statusProbe;
+	   MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &statusProbe);
+	   int nD = 47; // I think I know this.. But I did change my mind, Jun 27 2023. So, 
+	   MPI_Get_count(&statusProbe, MPI_DOUBLE, &nD);
 	   if ((nTransfer < 3) || (nTransfer%1000 == 0)) std::cerr << "  .... from rank " 
 	      << myRank << " after probing , expecting " << nD << "  doubles .. " << std::endl;
            MPI_Status statusRec;
@@ -286,7 +286,7 @@ namespace emph{
       } else {
 	 MPI_Status statusProbe;
 	 MPI_Probe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &statusProbe);
-	 int nWRec = 0; // I know this.. Hopefully I won't change my mind.. 
+	 int nWRec = 0; // Upgrade, unknown.. 
 	 MPI_Get_count(&statusProbe, MPI_DOUBLE, &nWRec);
          MPI_Status statusRec;
 	 if (sleepBest > 0 && (myRank > 1)) {
@@ -304,9 +304,9 @@ namespace emph{
 	 bufferPtr = &buffer[0];
          for (int iEvt=0; iEvt != numPerProcs[myRank]; iEvt++) {
 	   myDat.AddFromMPIData(bufferPtr);
-	   if ((iEvt < 3) || (iEvt > (numPerProcs[myRank] - 4)))
-	      std::cerr << " ... from Rank " << myRank << " Last event stored iEvt " << iEvt << " evtNum " 
-	                           << myDat.rbegin()->EvtNum() << " spill " << myDat.rbegin()->Spill() << std::endl;
+//	   if ((iEvt < 3) || (iEvt > (numPerProcs[myRank] - 4)))
+//	      std::cerr << " ... from Rank " << myRank << " Last event stored iEvt " << iEvt << " evtNum " 
+//	                           << myDat.rbegin()->EvtNum() << " spill " << myDat.rbegin()->Spill() << std::endl;
 	   bufferPtr += nD; 
 	    
          }
@@ -408,20 +408,20 @@ namespace emph{
 	   }
 	   for (int kp=1; kp != np; kp++ ) {
 	     if (nRecFromRank[kp] == nPerRank[kp]) continue; // skip, we are done... 
-	     // we have fixed size records.. So this is not needed... and fails soemtimes.. 
-//             MPI_Status statusProbe;
-//	     MPI_Probe(kp, MPI_ANY_TAG, MPI_COMM_WORLD, &statusProbe);
-//	     int nD;
-//	     MPI_Get_count(&statusProbe, MPI_DOUBLE, &nD);
-//	     if ((nTransfer < 3) || (nTransfer%1000 == 0)) std::cerr << "  .... from rank " 
-//	      << kp << " after probing , expecting " << nD << "  doubles from rank 0 " << std::endl;
+             MPI_Status statusProbe;
+	     MPI_Probe(kp, MPI_ANY_TAG, MPI_COMM_WORLD, &statusProbe);
+	     int nD;
+	     MPI_Get_count(&statusProbe, MPI_DOUBLE, &nD);
+	     if ((nTransfer < 3) || (nTransfer%1000 == 0)) std::cerr << "  .... from rank " 
+	      << kp << " after probing , expecting " << nD << "  doubles from rank 0 " << std::endl;
              MPI_Status statusRec;
-	     std::vector<double> dataTmp(static_cast<size_t>(numWords), DBL_MAX); // Over sized, 64 bit transfers? 
+	     std::vector<double> dataTmp(static_cast<size_t>(nD), DBL_MAX); // Over sized, 64 bit transfers? 
              MPI_Recv((void*) &dataTmp[0], numWords, MPI_DOUBLE, kp, MPI_ANY_TAG, MPI_COMM_WORLD, &statusRec );
-	     if (statusRec.MPI_ERROR != MPI_SUCCESS) {
-	        std::cerr << "  .... failed received buffer, error " << statusRec.MPI_ERROR << " tag is " 
-	          << statusRec.MPI_TAG << " from rank " << kp << " Number of track so far " << myDat.size() <<  " check numWords " << numWords << std::endl;
-	     }
+//	     if (statusRec.MPI_ERROR != MPI_SUCCESS) {
+//	        std::cerr << "  .... collectBeamTracks failed received buffer, error " << statusRec.MPI_ERROR << " tag is " 
+//	          << statusRec.MPI_TAG << " from rank " << kp << " Number of track so far " 
+//		                       << myDat.size() <<  " check numWords " << numWords << std::endl;
+//	     }
 	     BeamTrack aTrack; 
 	     aTrack.DeSerialize(dataTmp);
 	     myDat.AddBT(aTrack);
@@ -477,23 +477,17 @@ namespace emph{
         mean += myDat.MeanChiSq(upLimit) + chiAddSum;
 //        std::cerr << " .... MeanChiSqFromBTracks, myRank " << myRank << " meanLocal " <<  mean << " check np " << np << std::endl;
         for (int kp=1; kp != np; kp++ ) { 
-          double meanWorker = 0;
+          double meanWorker = 0.;
           MPI_Status statusRec;
-//          std::cerr << " .... MeanChiSqFromBTracks, from myRank " << myRank << " attempting to received from " <<  kp << "---" << std::endl;
-	  MPI_Status statusProbe;
-          MPI_Probe(kp, MPI_ANY_TAG, MPI_COMM_WORLD, &statusProbe);
-	  int nD;
-	  MPI_Get_count(&statusProbe, MPI_DOUBLE, &nD);
-	  if (nD != 1) {
-	        std::cerr << " MeanChiSqFromBTracks, rank 0  Probing the count for chi-square transfer, nD " << nD << " tag is " 
-	          << statusProbe.MPI_TAG << " from rank " << kp  << "---" << std::endl;
-	  
-	  }
           MPI_Recv((void*) &meanWorker, 1, MPI_DOUBLE, kp, MPI_ANY_TAG, MPI_COMM_WORLD, &statusRec );
-	  if (statusRec.MPI_ERROR != MPI_SUCCESS) {
-	        std::cerr << "  .... failed received buffer, error " << statusRec.MPI_ERROR << " tag is " 
-	          << statusRec.MPI_TAG << " from rank " << kp  << "---" << std::endl;
-	     }
+	  
+//	if (statusRec.MPI_ERROR != MPI_SUCCESS) {
+//	      std::cerr << "  .... MeanChiSqFromBTracks, collect data,  failed received buffer, !!!!!! " << std::endl; 
+//	      char errNow[1024]; int il=1024; MPI_Error_string(statusRec.MPI_ERROR, errNow, &il);
+//	      std::string errStr(errNow);
+//	      std::cerr << "  .... MeanChiSqFromBTracks, collect data,  failed received buffer, error " << errStr << " tag is " 
+//		<< statusRec.MPI_TAG << " from rank " << kp  << " ---" << std::endl;
+//	   }
           mean += meanWorker;
         }
       }
@@ -503,6 +497,7 @@ namespace emph{
       //
       int tagTally = 2000*myRank + 1;
       double meanGlobal = 1.0e10;
+      MPI_Barrier(MPI_COMM_WORLD);
       if (myRank == 0) {
         meanGlobal = mean/np;
 	int tagTally = 100000*myRank + 1; // arbitrary.. 
@@ -511,10 +506,12 @@ namespace emph{
       } else {
         MPI_Status statusRec;
         MPI_Recv((void*) &meanGlobal, 1, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &statusRec );
-	  if (statusRec.MPI_ERROR != MPI_SUCCESS) {
-	        std::cerr << "  .... failed received buffer, error " << statusRec.MPI_ERROR << " tag is " 
-	          << statusRec.MPI_TAG << " from rank " << myRank  << std::endl;
-	     }
+//	  if (statusRec.MPI_ERROR != MPI_SUCCESS) {
+//	        char errNow[4096]; int il=4095; MPI_Error_string(statusRec.MPI_ERROR, errNow, &il);
+//		std::string errStr(errNow);
+//	        std::cerr << "  ....MeanChiSqFromBTracks, broadcast,  failed received buffer, error " << errStr << " tag is " 
+//	          << statusRec.MPI_TAG << " from rank " << myRank  << std::endl;
+//	     }
       }
 //      if (myRank == 0) std::cerr << " MeanChiSqFromBTracks, end game on rank 0, check " <<   meanGlobal << std::endl;
       return meanGlobal;
