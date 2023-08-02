@@ -5,6 +5,7 @@
 ///   Valid only for the Phase1b.gdml!. 
 /// \version $Id: EmphMisaligner.cxx,v 1.20 2012-12-03 23:29:49 rhatcher Exp $
 /// \author  seligman@nevis.columbia.edu, brebel@fnal.gov
+///  August 1 2023:  Upgrade the geometry 
 ////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <cstring>
@@ -250,6 +251,7 @@ namespace g4b{
       std::cerr << " EmphMisaligner::doSSDYawPitchOnStations sigYP greater than 5, unrelasitic, fatal " << std::endl;
       exit(2);
     }
+    std::cerr << " EmphMisaligner::doSSDYawPitchOnStations, to be re-comissioned, if need be !!! " << std::endl; exit(2);
     // Here we add the rotation matrices for the 6 stations. 
     // Search for the 1rst instance of "ABOVE IS FOR SSD"
     std::string blankStr(""); blankStr.clear();
@@ -529,6 +531,8 @@ namespace g4b{
   }
   void EmphMisaligner::doSSDTransOffsetOnPlanes(double sigmaTrShifts, double dGap) {
 //    if (std::abs(sigmaTrShifts) <  1.0e-4) return;  // Now we always do it, there is the gap. 
+// August 1 2023 : strip level geometry, 
+// Simplify, edit directly into the file without changing the position name     
     if (std::abs(dGap) > 30.) return; // unrealistic 
     std::cerr << " EmphMisaligner::doSSDTransOffsetOnPlanes, sigmaTrShifts " << sigmaTrShifts << " dGap " << dGap << std::endl;
     std::vector<std::string> keyPos; // to store the neame we will be replace in the definition of physical voume for complete station. 
@@ -543,8 +547,8 @@ namespace g4b{
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[8] = yShift0; // Y shift to Y shift, not rotated., first plane 
        std::ostringstream aNew0StrStr;  aNew0StrStr 
-	    << "                <position name=\"" << keyPos[0] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[0] << "Mis0_pos\" x=\"" 
+	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -555,8 +559,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[9] = yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr 
-	    << "                <position name=\"" << keyPos[0] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[0] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -572,8 +576,8 @@ namespace g4b{
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[0] = -xShift0;
         std::ostringstream aNew0StrStr;  aNew0StrStr 
-	    << "                <position name=\"" << keyPos[1] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[1] << "Mis0_pos\" x=\"" 
+	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -583,8 +587,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[1] = -xShift1; 
        std::ostringstream aNew1StrStr;  aNew1StrStr 
-	    << "                <position name=\"" << keyPos[1] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[1] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -599,8 +603,8 @@ namespace g4b{
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[16] = (1.0/std::sqrt(2.))*(-xShift0 + yShift0);
        std::ostringstream aNew0StrStr;  aNew0StrStr 
-	    << "                <position name=\"" << keyPos[2] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[2] << "Mis0_pos\" x=\"" 
+	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -610,8 +614,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[17] = (1.0/std::sqrt(2.))*(-xShift1 + yShift1);
        std::ostringstream aNew1StrStr;  aNew1StrStr 
-	    << "                <position name=\"" << keyPos[2] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[2] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -628,7 +632,7 @@ namespace g4b{
        
        std::ostringstream aNew0StrStr;  aNew0StrStr 
 	    << "                <position name=\"" << keyPos[3] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -638,8 +642,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[11] = yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr 
-	    << "                <position name=\"" << keyPos[3] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[3] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -654,8 +658,8 @@ namespace g4b{
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[2] = -xShift0;
        std::ostringstream aNew0StrStr;  aNew0StrStr 
-	    << "                <position name=\"" << keyPos[4] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssd3plane_shift\" />";
+	    << "                <position name=\"" << keyPos[4] << "Mis0_pos\" x=\"" 
+	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"ssd3plane_shift\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -665,8 +669,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[3] = -xShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr 
-	    << "                <position name=\"" << keyPos[4] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssd3plane_shift\" />";
+	    << "                <position name=\"" << keyPos[4] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"ssd3plane_shift\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -682,8 +686,8 @@ namespace g4b{
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[4] = -xShift0;
        std::ostringstream aNew0StrStr; aNew0StrStr.setf(std::ios_base::showpos);  aNew0StrStr 
-	    << "                <position name=\"" << keyPos[5] << "Mis0_pos\" x =\"0.5*ssdD0_height" 
-	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[5] << "Mis0_pos\" x=\"0.5*ssdD0_height" 
+	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -693,8 +697,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[6] = -xShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
-	    << "                <position name=\"" << keyPos[5] << "Mis1_pos\" x =\"0.5*ssdD0_height" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[5] << "Mis1_pos\" x=\"0.5*ssdD0_height" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -709,7 +713,7 @@ namespace g4b{
        const double yShift0 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[5] = -xShift0;
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
-	    << "                <position name=\"" << keyPos[6] << "Mis0_pos\" x =\"-0.5*ssdD0_height" 
+	    << "                <position name=\"" << keyPos[6] << "Mis0_pos\" x=\"-0.5*ssdD0_height" 
 	    << xShift0 << "\" y=\"" << yShift0 << "\" z=\"0.\" />";
        
        const std::string aNew0Str(aNew0StrStr.str());
@@ -720,8 +724,8 @@ namespace g4b{
        const double yShift1 = this->getRandomShift(sigmaTrShifts);
        fTransShiftsRaw[7] = -xShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
-	    << "                <position name=\"" << keyPos[6] << "Mis1_pos\" x =\"-0.5*ssdD0_height" 
-	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\" />";
+	    << "                <position name=\"" << keyPos[6] << "Mis1_pos\" x=\"-0.5*ssdD0_height" 
+	    << xShift1 << "\" y=\"" << yShift1 << "\" z=\"0.\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -738,8 +742,8 @@ namespace g4b{
        fTransShiftsRaw[8+4] = yShift0;
       
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
-	    << "                <position name=\"" << keyPos[7] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"-0.5*ssdD0_height" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[7] << "Mis0_pos\" x=\"" 
+	    << xShift0 << "\" y=\"-0.5*ssdD0_height" << yShift0 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -749,8 +753,8 @@ namespace g4b{
        const double yShift1 = -1.0*dGap + this->getRandomShift(sigmaTrShifts); ssddouble10YShift1 = yShift1 + dGap;
        fTransShiftsRaw[8+6] = yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
-	    << "                <position name=\"" << keyPos[7] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"-0.5*ssdD0_height" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[7] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"-0.5*ssdD0_height" << yShift1 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -766,8 +770,8 @@ namespace g4b{
        fTransShiftsRaw[8+5] = -yShift0;
        
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
-	    << "                <position name=\"" << keyPos[8] << "Mis0_pos\" x =\"" 
-	    << xShift0 << "\" y=\"0.5*ssdD0_height" << yShift0 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[8] << "Mis0_pos\" x=\"" 
+	    << xShift0 << "\" y=\"0.5*ssdD0_height" << yShift0 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -777,8 +781,8 @@ namespace g4b{
        const double yShift1 = dGap + ssddouble10YShift1;
        fTransShiftsRaw[8+7] = -yShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
-	    << "                <position name=\"" << keyPos[8] << "Mis1_pos\" x =\"" 
-	    << xShift1 << "\" y=\"0.5*ssdD0_height" << yShift1 << "\" z=\"ssdD0_thick+carbon_fiber_thick\" />";
+	    << "                <position name=\"" << keyPos[8] << "Mis1_pos\" x=\"" 
+	    << xShift1 << "\" y=\"0.5*ssdD0_height" << yShift1 << "\" z=\"ssdD0_thick+bkpln_thick\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -797,8 +801,8 @@ namespace g4b{
        fTransShiftsRaw[16+2+0] = vShift0;
        
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
-	    << "                <position name=\"" << keyPos[9] << "Mis0_pos\" x =\"0.3536*ssdD0_height" 
-	    << vShift0 << "\" y=\"0.3536*ssdD0_height" << vShift0 << "\" z=\"ssd3plane_shift\" />";
+	    << "                <position name=\"" << keyPos[9] << "Mis0_pos\" x=\"0.3536*ssdD0_height" 
+	    << vShift0 << "\" y=\"0.3536*ssdD0_height" << vShift0 << "\" z=\"ssd3plane_shift\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -809,8 +813,8 @@ namespace g4b{
        fTransShiftsRaw[16+2+2] = vShift1;
        
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
-	    << "                <position name=\"" << keyPos[9] << "Mis1_pos\" x =\"0.3536*ssdD0_height" 
-	    << vShift1 << "\" y=\"0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\" />";
+	    << "                <position name=\"" << keyPos[9] << "Mis1_pos\" x=\"0.3536*ssdD0_height" 
+	    << vShift1 << "\" y=\"0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -826,8 +830,8 @@ namespace g4b{
        const double vShift0 = -oneOSqrt2*(dGap + ssddouble20VShift0);
        fTransShiftsRaw[16+2+1] = vShift0;
        std::ostringstream aNew0StrStr;  aNew0StrStr.setf(std::ios_base::showpos); aNew0StrStr 
-	    << "                <position name=\"" << keyPos[10] << "Mis0_pos\" x =\"-0.3536*ssdD0_height" 
-	    << vShift0 << "\" y=\"-0.3536*ssdD0_height" << vShift0 << "\" z=\"ssd3plane_shift\" />";
+	    << "                <position name=\"" << keyPos[10] << "Mis0_pos\" x=\"-0.3536*ssdD0_height" 
+	    << vShift0 << "\" y=\"-0.3536*ssdD0_height" << vShift0 << "\" z=\"ssd3plane_shift\"/>";
        
        const std::string aNew0Str(aNew0StrStr.str());
        std::vector<std::string>::iterator ilAdd = il; ilAdd++;
@@ -836,8 +840,8 @@ namespace g4b{
        const double vShift1 = -oneOSqrt2*(dGap + ssddouble20VShift1);
        fTransShiftsRaw[16+2+3] = vShift1;
        std::ostringstream aNew1StrStr;  aNew1StrStr.setf(std::ios_base::showpos); aNew1StrStr 
-	    << "                <position name=\"" << keyPos[10] << "Mis1_pos\" x =\"-0.3536*ssdD0_height" 
-	    << vShift1 << "\" y=\"-0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\" />";
+	    << "                <position name=\"" << keyPos[10] << "Mis1_pos\" x=\"-0.3536*ssdD0_height" 
+	    << vShift1 << "\" y=\"-0.3536*ssdD0_height" << vShift1 << "\" z=\"ssd3plane_shift\"/>";
        
        const std::string aNew1Str(aNew1StrStr.str());
        ilAdd = fLines.insert(ilAdd, aNew1Str);
@@ -849,22 +853,26 @@ namespace g4b{
     //
     std::cerr << " Now doing the replacement in physical volume declaration " << std::endl;
     std::vector<std::string>::iterator ilB = fLines.begin(); 
-    std::vector<std::string>::iterator ilB2 = fLines.begin(); 
+    std::vector<std::string>::iterator ilB2 = fLines.begin();
+    size_t nlEff=0; 
     for (std::vector<std::string>::iterator il = ilB; il != fLines.end(); il++) {
       std::string origStr(*il);
+      nlEff++;
       if (origStr.find("<volume name=\"ssdStationsingle0_vol\">") != std::string::npos) { ilB=il; break; } 
     }
     std::vector<std::string> keyMisses; keyMisses.push_back("Mis0_pos"); keyMisses.push_back("Mis1_pos");
     for (size_t k=0; k != keyPos.size(); k++) {
-       size_t nl=0;
+       size_t nl=nlEff;
        for (std::vector<std::string>::iterator il = ilB; il != fLines.end(); il++, nl++) {
          std::string origStr(*il);
+	 size_t iPosPositionOK = origStr.find("positionref ref="); 
+	 if (iPosPositionOK == std::string::npos) continue;
 	 size_t iPos0 = origStr.find(keyPos[k]);
 	 if (iPos0 != std::string::npos) {
 	   std::string newStr(origStr);
 	   newStr.replace(iPos0, keyPos[k].length()+4, (keyPos[k]+keyMisses[0]));
 	   *il= newStr;
-//	   std::cerr << " Replaced " << keyPos[k] << " by " << keyPos[k]+keyMisses[0] << " at line number " << nl << std::endl;
+	   std::cerr << " Replaced " << keyPos[k] << " by " << keyPos[k]+keyMisses[0] << " at line number " << nl << std::endl;
 	   ilB2 = il; ilB2++;
 	   break;
 	 }
@@ -872,11 +880,13 @@ namespace g4b{
        for (std::vector<std::string>::iterator il = ilB2; il != fLines.end(); il++, nl++) {
          std::string origStr(*il);
 	 size_t iPos1 = origStr.find(keyPos[k]);
+	 size_t iPosPositionOK = origStr.find("positionref ref="); 
+	 if (iPosPositionOK == std::string::npos) continue;
 	 if (iPos1 != std::string::npos) {
 	   std::string newStr(origStr);
 	   newStr.replace(iPos1, keyPos[k].length()+4, (keyPos[k]+keyMisses[1]));
 	   *il= newStr;
-//	   std::cerr << " Replaced " << keyPos[k] << " by " << keyPos[k]+keyMisses[1] << " at line number " << nl << std::endl;
+	   std::cerr << " Replaced " << keyPos[k] << " by " << keyPos[k]+keyMisses[1] << " at line number " << nl << std::endl;
 	   break;
 	 }
        }

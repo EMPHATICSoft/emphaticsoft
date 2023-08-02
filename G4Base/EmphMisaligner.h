@@ -5,6 +5,7 @@
 ///
 /// \version $Id: EmphMisaligner.h,v 1.15 2012-12-03 23:29:50 rhatcher Exp $
 /// \author  lebrun@fnal.gov
+///  August 1 2023:  Upgrade the geometry, support rolls of stations.. 
 ////////////////////////////////////////////////////////////////////////
 
 ///
