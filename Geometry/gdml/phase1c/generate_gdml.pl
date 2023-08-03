@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Linyan 2022.01.12
+# Linyan 2023.08.03
 
 # Structure of this program is taken from generate_gdml.pl that 
 # generates MicroBooNE / Nova fragment files (Thank you.)
@@ -14,7 +14,7 @@
 # suffix command to help organize your work.
 
 # Manuals can be found at DocDB 1242
-# Visualization of SSDs can be found at DocDB 1260
+# Visualization of SSDs can be found at DocDB 1662
 
 use Getopt::Long;
 use Math::BigFloat;
@@ -62,7 +62,7 @@ $magnet_switch = 1;
 $magnet_layer = 3;
 
 # constants for SSD
-# Check DocDB 1260 for details.
+# Check DocDB 1662 for details.
 $SSD_switch = 1;
 $nstation_type = 4; # types of station
 @station_type = ("single", "rotate", "double3pl", "double2pl"); # yx, wyx, xxyyww, xxyy 
@@ -322,7 +322,7 @@ EOF
 					else{
 						 print DEF <<EOF;
                    <position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]"/>
-						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]+$j*ssdD0_thick+$j*mount_thick+$j*ssd_bkpln_thick+0.5*ssdD0_thick+0.5*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]+0.5*ssdD0_thick+0.5*ssd_bkpln_thick"/>
 					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}+@{[ $SSD_mount_rotation[$imount][0]]}" y="@{[ $SSD_mount_rotation[$imount][1] ]}" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
 EOF
 						$isensor++;
