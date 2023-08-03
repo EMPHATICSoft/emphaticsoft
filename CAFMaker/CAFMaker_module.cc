@@ -205,12 +205,12 @@ namespace caf {
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
-    
+*/    
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-*/
+
     fRecTree->Fill();
     srcol->push_back(rec);
 
