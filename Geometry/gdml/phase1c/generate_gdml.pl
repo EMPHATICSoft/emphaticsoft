@@ -276,6 +276,8 @@ EOF
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
 
+	 <quantity name="ssd_bkpln_thick" value=".300" unit="mm"/>
+
 EOF
 		for($i = 0; $i < $nSSD_station; ++$i){
 			print DEF <<EOF;
@@ -311,7 +313,8 @@ EOF
 				for($k = 0; $k < $SSD_par[ $SSD_station[ $i ] ]; ++$k){
 					if($j < 2){
 						print DEF <<EOF;
-						<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]+$j*ssdD0_thick+$j*mount_thick"/>
+						<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]+$j*ssdD0_thick+$j*mount_thick+$j*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]+$j*ssdD0_thick+$j*mount_thick+$j*ssd_bkpln_thick+0.5*ssdD0_thick+0.5*ssd_bkpln_thick"/>
 					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}+@{[ $SSD_mount_rotation[$imount ][0]]}" y="@{[ $SSD_mount_rotation[$imount][1] ]}" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
 EOF
 						$isensor++;
@@ -319,6 +322,7 @@ EOF
 					else{
 						 print DEF <<EOF;
                    <position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$SSD_mount_shift[ $imount ]+$j*ssdD0_thick+$j*mount_thick+$j*ssd_bkpln_thick+0.5*ssdD0_thick+0.5*ssd_bkpln_thick"/>
 					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}+@{[ $SSD_mount_rotation[$imount][0]]}" y="@{[ $SSD_mount_rotation[$imount][1] ]}" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
 EOF
 						$isensor++;
@@ -331,7 +335,7 @@ EOF
 		for($i = 0; $i < $nSSD_station; ++$i){
 			for($j = 0; $j < $SSD_mount[ $SSD_station[ $i ] ]; ++$j){
 				print DEF <<EOF;
-				<position name="ssdmount_@{[ $i ]}_@{[ $j ]}_pos" x="0" y="0" z="$SSD_mount_shift[ $imount ]+0.5*ssdD0_thick+0.5*mount_thick"/>
+				<position name="ssdmount_@{[ $i ]}_@{[ $j ]}_pos" x="0" y="0" z="$SSD_mount_shift[ $imount ]+0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
 				<rotation name="ssdmount_@{[ $i ]}_@{[ $j ]}_rot" x="@{[ $SSD_mount_rotation[$i][0] ]}" y="@{[ $SSD_mount_rotation[$i][1] ]}" unit="deg"/>
 EOF
 				$imount++;
@@ -654,6 +658,8 @@ EOF
 
 	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
 	 <box name="ssd_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+	 <box name="ssd_bkpln_box" x="ssdD0_width" y="ssdD0_height" z="ssd_bkpln_thick" />
+
 	 <box name="ssd_mount_box1" x="mount_width" y="mount_width" z="mount_thick" />
 	 <box name="ssd_mount_box2" x="mount_hole" y="mount_hole" z="mount_thick" />
     <tube name="ssd_mount_tube" z="mount_thick" rmax="85.0" deltaphi="90" aunit="deg"/>
@@ -893,11 +899,6 @@ EOF
 		for($i = 0; $i < $nstation_type; ++$i){
 			print MOD <<EOF;
 
-		 <volume name="ssd_mount_vol">
-			<materialref ref="CarbonFiber"/>
-			<solidref ref="ssd_mount_box"/>
-		 </volume>
-
 	  <volume name="ssd@{[ $station_type[$i] ]}_MylarWindow_vol">
 		 <materialref ref="Mylar"/>
 		 <solidref ref="ssd@{[ $station_type[$i] ]}_MylarWindow_box"/>
@@ -906,6 +907,17 @@ EOF
 EOF
 		}
 		print MOD <<EOF;
+
+		 <volume name="ssd_bkpln_vol">
+			<materialref ref="CarbonFiber"/>
+			<solidref ref="ssd_bkpln_box"/>
+		 </volume>
+
+		 <volume name="ssd_mount_vol">
+			<materialref ref="IronShell"/>
+			<solidref ref="ssd_mount_box"/>
+		 </volume>
+
 
   <!-- ABOVE IS FOR SSD -->
 
@@ -1145,6 +1157,13 @@ EOF
 			<positionref ref="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos"/>
 			<rotationref ref="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
 		 </physvol>
+
+		 <physvol name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_phys">
+			<volumeref ref="ssd_bkpln_vol"/>
+			<positionref ref="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos"/>
+			<rotationref ref="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot"/>
+		 </physvol>
+
 EOF
 					}
 				}
