@@ -31,8 +31,8 @@ namespace emph {
 	 exit(2);
        }
        std::string fNameStr(fName);
-       bool hasTrId =  (fNameStr.find("V1f") != std::string::npos) || 
-                       (fNameStr.find("V1g") != std::string::npos); // run dependent.. messy.. Check ..Two different gen compact.. 
+       bool hasTrId = ( (fNameStr.find("1366") != std::string::npos) && ((fNameStr.find("V1f") != std::string::npos) || 
+                       (fNameStr.find("V1g") != std::string::npos))); // run dependent.. messy.. Check ..Two different gen compact.. 
        int nEvtRead = 0;
        int aKey, numDoublePerEvt, spill, evt, trId;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
