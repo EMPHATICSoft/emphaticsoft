@@ -348,16 +348,20 @@ namespace emph {
 	    YRotYPlanes.push_back(aPlane.Rot());
 	    viewChar = 'Y';
 	  }
-	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
+	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos();
-	    if (fZlocUPlanes.size() < 2) { // From what I have been told.. 
-	      fZlocUPlanes.push_back(pos[2] + posSt[2]);
-	      XRotUPlanes.push_back(aPlane.Rot());
-	    }
+            // Phase1b Single sensor.. But we find them twice.. Confusing.. 
+	      if (fZlocUPlanes.size() < 2) {
+	        fZlocUPlanes.push_back(pos[2] + posSt[2]);
+	        XRotUPlanes.push_back(aPlane.Rot());
+	      }
 	    viewChar = 'U';
 	  }
-	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
+	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos(); 
+	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
+	    XRotVPlanes.push_back(aPlane.Rot());
+            // Phase1b These are double sensors.. stash them twice... 
 	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
 	    XRotVPlanes.push_back(aPlane.Rot());
 	    viewChar = 'V';
@@ -381,8 +385,14 @@ namespace emph {
       for (size_t i=0; i != fZlocYPlanes.size(); i++) std::cerr << " " << fZlocYPlanes[i] << ",";
       std::cerr << std::endl << " Y location " ;
       for (size_t i=0; i != YlocYPlanes.size(); i++) std::cerr << " " << YlocYPlanes[i] << ",";
+      std::cerr << std::endl << " Number of SSD U planes (45 deg strips) " << fZlocUPlanes.size() << std::endl;
+      std::cerr << " Z locations ";
+      for (size_t i=0; i != fZlocUPlanes.size(); i++) std::cerr << " " << fZlocUPlanes[i] << ",";
       std::cerr << std::endl << " U Rotations ";
       for (size_t i=0; i != XRotUPlanes.size(); i++) std::cerr << " " << XRotUPlanes[i] << ",";
+      std::cerr << std::endl << " Number of SSD V planes (-45 deg strips) " << fZlocVPlanes.size() << std::endl;
+      std::cerr << " Z locations ";
+      for (size_t i=0; i != fZlocVPlanes.size(); i++) std::cerr << " " << fZlocVPlanes[i] << ",";
       std::cerr << std::endl << " V Rotations ";
       for (size_t i=0; i != XRotVPlanes.size(); i++) std::cerr << " " << XRotVPlanes[i] << ",";
       std::cerr << std::endl << "------------------------------------" << std::endl; 
