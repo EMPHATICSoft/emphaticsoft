@@ -361,6 +361,7 @@ int main(int argc, char **argv) {
     if ((runNum == 1043) && ((token.find("TightCl_1a") != std::string::npos) ||
                              (token.find("TightCl_1b") != std::string::npos)))  aFileDescr = std::string("_5St_try9_AlignUV_TightCluster_1a_V1g.dat");
     if ((runNum == 1043) && (token.find("TightCl_1c") != std::string::npos))  aFileDescr = std::string("_5St_try9_AlignUV_TightCluster_1b_V1g.dat");
+    if ((runNum == 1293) && (token.find("TgtMag09") != std::string::npos))  aFileDescr = std::string("_SimProtonMisA1TgtMag09a_V1g.dat");
     aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -386,6 +387,13 @@ int main(int argc, char **argv) {
      if (myRank == 0)  {
          std::cerr << " Doing the Fit2ndorder, Simplex,  on file " << aFName << std::endl;
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
+	 if (aFName.find("SimProtonMisA1TgtMag09a") != std::string::npos) { 
+	   std::cerr << " Adding data, different beam spots.. " << std::endl;
+	   std::string aFName2(aFName); size_t iP2 = aFName2.find("Mag09a"); aFName2.replace(iP2, 6, std::string("Mag09b"));
+	   myBTIn.FillItFromFile(1000000, aFName2.c_str(), selectedSpill);
+	   std::string aFName3(aFName); size_t iP3 = aFName3.find("Mag09a"); aFName3.replace(iP3, 6, std::string("Mag09c"));
+	   myBTIn.FillItFromFile(1000000, aFName3.c_str(), selectedSpill);
+	 }
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;
 //	 std::cerr << " And quit for now... " << std::endl; MPI_Finalize(); exit(2);
       }
