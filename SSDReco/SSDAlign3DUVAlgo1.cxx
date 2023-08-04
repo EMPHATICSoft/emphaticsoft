@@ -30,7 +30,7 @@ namespace emph {
      SSDAlign3DUVAlgo1::SSDAlign3DUVAlgo1() :
        fSqrt2(std::sqrt(2.)), fOneOverSqrt2(1.0/std::sqrt(2.)), 
        fOneOverSqrt12(1.0/std::sqrt(12.)),  
-       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fDo3DFit(false), fIsMC(false), 
+       fRunNum(0), fSubRunNum(0), fEvtNum(0), fNEvents(0), fNEvtsCompact(0), fDo3DFit(false), fDoUseTightClusters(false), fIsMC(false), 
        fMomentumIsSet(false), fFilesAreOpen(false),
        fView('?'), fStation(2), fSensor(2),
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), 
