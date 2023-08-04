@@ -15,6 +15,7 @@ namespace caf
   public:
 
     void Fill(art::Event&, caf::StandardRecord&);
+    bool GetG4Hits;
 
   };
 

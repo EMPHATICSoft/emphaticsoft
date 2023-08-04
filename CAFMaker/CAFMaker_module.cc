@@ -1,3 +1,4 @@
+
 ////////////////////////////////////////////////////////////////////////
 /// \brief   This module creates Common Analysis Files.
 ////////////////////////////////////////////////////////////////////////
@@ -198,6 +199,7 @@ namespace caf {
    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
   	SRTruthFiller srtruthf;
+	srtruthf.GetG4Hits = fParams.GetMCHits();
   	srtruthf.Fill(evt,rec);
     } // end if statement
 /*

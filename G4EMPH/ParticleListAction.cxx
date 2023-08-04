@@ -464,7 +464,7 @@ namespace emph {
     // disgusting static pointer.. Set to zero above.. Let us not use it The SSD (or ARICH, or..) do store similar information.. 
     // I do not see the point of storing such information.. 
 
-    return;
+    //return;
     if ( !fParticle ) return;
     
     // For the most part, we just want to add the post-step
@@ -472,7 +472,7 @@ namespace emph {
     // exception: In PreTrackingAction, the correct time information
     // is not available.  So add the correct vertex information here.
 
-    std::cerr << "Stepping into trajecotry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
+    std::cerr << "Stepping into trajectry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
 
     if ( fParticle->NumberTrajectoryPoints() == 0 ){
       // Get the pre-step information from the G4Step.
