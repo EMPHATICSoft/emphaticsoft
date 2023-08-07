@@ -109,12 +109,6 @@
 	 <quantity name="ssdStationsingleWidth" value="300" unit="mm" />
 	 <quantity name="ssdStationsingleHeight" value="300" unit="mm" />
 
-      <position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*mount_thick"/>
-      <position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*mount_thick"/>
-      <position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*mount_thick"/>
-      <position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*mount_thick"/>
-      <position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*mount_thick"/>
-      <position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*mount_thick"/>
 		<position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*mount_thick"/>
 						<position name="ssdsensor_0_0_0_pos" x="0" y="0" z="0+0*ssdD0_thick+0*mount_thick+0*ssd_bkpln_thick"/>
 						<position name="ssd_bkpln_0_0_0_pos" x="0" y="0" z="0+0*ssdD0_thick+0*mount_thick+0*ssd_bkpln_thick+0.5*ssdD0_thick+0.5*ssd_bkpln_thick"/>
