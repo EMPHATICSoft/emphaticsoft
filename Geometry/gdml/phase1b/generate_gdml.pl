@@ -298,12 +298,6 @@ EOF
 
 EOF
 
-		for($i = 0; $i < $nSSD_station; ++$i){
-         print DEF <<EOF;
-      <position name="ssdStation@{[ $i ]}_pos" x="0" y="0" z="ssdStation@{[ $i ]}_shift+ssdD0_thick-0.5*mount_thick"/>
-EOF
-      }
-
 		$imount = 0;
 		$isensor = 0;
 		for($i = 0; $i < $nSSD_station; ++$i){
