@@ -260,7 +260,8 @@ namespace emph{
          std::cerr << " distribute evts , from rank 0, start at " << dateNowStart << std::endl;
       }
 //      std::cerr << " No! quit here and now " << std::endl; MPI_Finalize(); exit(2); 
-      size_t nD = 46; // I know this.. Hopefully I won't change my mind.. 
+//      size_t nD = 46; // I know this.. Hopefully I won't change my mind.. 
+      size_t nD = 47; // Upgrade for studying Iron Brick run, need TrId  
       std::vector<double> tmpBuffer(nD, 0.); // factor 10 is for debugging.. 
       size_t nDb = nD*sizeof(double);
       double buffer[nD*(numPerProcs[myRank]+ np + 1)]; // to gaurantee enough space ??? flimsy.. 
