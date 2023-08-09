@@ -61,6 +61,9 @@ private:
   static const int NStations = 8;
   static const int MaxSensPerSta = 6;
   int ncluster[NPlanes];
+
+  std::vector<float> clustdist[NPlanes];
+
   std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
   
   // fcl parameters
@@ -109,6 +112,13 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("wgtavgstrip",&wgtavgstrip);
     ssdclust->Branch("wgtrmsstrip",&wgtrmsstrip);
     ssdclust->Branch("ncluster",&ncluster,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15:plane16:plane17:plane18:plane19");
+
+    char *clustd = new char[12];
+    for (int i=0; i<NPlanes; i++){
+        sprintf(clustd,"clustdist%d",i);
+        ssdclust->Branch(clustd,&clustdist[i]);
+    }
+
   }
 }
 
@@ -242,6 +252,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	    wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
 	    int plane = planeViewMap[std::make_pair(sta,sensor)].first;
 	    ncluster[plane]++;
+
+	    clustdist[plane].push_back(clusters[i].WgtAvgStrip());
+
 	  }
 	  clusters[i].SetID(i);
 	  clusterv->push_back(clusters[i]);
@@ -264,6 +277,11 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     avgstrip.clear();
     wgtavgstrip.clear();
     wgtrmsstrip.clear();
+
+    for (int i=0; i<NPlanes; i++){ 
+        clustdist[i].clear();
+    }
+
   }
 }
 DEFINE_ART_MODULE(emph::MakeSSDClusters)
