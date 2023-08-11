@@ -62,17 +62,29 @@ namespace g4b{
       std::cerr << " We will modify the G4 Geometry to implement quasi-realistic misalignments, model number " 
                 << misalignModelNum << std::endl;
 		
-      g4b::EmphMisaligner myMis(gdmlFile, misAlignSeed);
-      myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
-      std::ostringstream misStrStr; misStrStr << "./MisAlignedEmphPhase1x_" 
-                                                << misalignModelNum << "_" << misAlignSeed << ".gdml";
-      std::string misStr(misStrStr.str());
-      myMis.writeIt(misStr.c_str());
-      std::ostringstream misStrStr2; misStrStr2 << "./MisAlignedEmphPhase1xPred_" 
-                                                << misalignModelNum << "_" << misAlignSeed << ".txt";
-      std::string misStr2(misStrStr2.str());
-      myMis.dumpRawMisAlignParams(misStr2.c_str());
-      effGDMLFile = misStr;
+// 
+// Previous code, 
+//      g4b::EmphMisaligner myMis(gdmlFile, misAlignSeed);
+//      myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
+//      std::ostringstream misStrStr; misStrStr << "./MisAlignedEmphPhase1x_" 
+//                                                << misalignModelNum << "_" << misAlignSeed << ".gdml";
+//      std::string misStr(misStrStr.str());
+//      myMis.writeIt(misStr.c_str());
+//      std::ostringstream misStrStr2; misStrStr2 << "./MisAlignedEmphPhase1xPred_" 
+//                                                << misalignModelNum << "_" << misAlignSeed << ".txt";
+//      std::string misStr2(misStrStr2.str());
+//      myMis.dumpRawMisAlignParams(misStr2.c_str());
+//      effGDMLFile = misStr;
+//      
+//     We now create a new version of the perl script itself and run it from here.
+//  
+       g4b::EmphMisaligner myMis(std::string(""), misAlignSeed);
+       
+       myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
+       std::cerr << "   .............. done it ... now run the perl script.. " << std::endl;   
+       effGDMLFile = myMis.runIt(std::string("Tr1")); 
+       std::cerr << "   .............. ran the perl script..gdml file path is " << effGDMLFile << std::endl;
+//                 << std::endl <<  " .................. And quit now.. " << std::endl; exit(2);
     }
     parser.Read(effGDMLFile,validateSchema);
 //    std::cerr << " Geometry created, we stop here " << std::endl; exit(2);

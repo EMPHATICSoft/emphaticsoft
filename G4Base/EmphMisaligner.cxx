@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <unistd.h>
 #include "G4Base/EmphMisaligner.h"
 
 namespace g4b{
@@ -22,7 +23,7 @@ namespace g4b{
   //------------------------------------------------
   // Constructor
   EmphMisaligner::EmphMisaligner(const std::string &aNameIn, unsigned int aSeed)
-  : fNameIn(aNameIn), fModelNumber(0), fGapDoubleSSD(3.0), fSigZ(0.), fSigRoll(0.), fSigTr(0.), fSigYP(0.),
+  : fNameIn(aNameIn), fModelNumber(0), fSeed(aSeed), fGapDoubleSSD(3.0), fSigZ(0.), fSigRoll(0.), fSigTr(0.), fSigYP(0.),
   fXTransShiftsRaw(22, 0.), fYTransShiftsRaw(22, 0.),
   fRollsRaw(22, 0.), fYawsRaw(22, 0.), fPitchesRaw(22, 0.)
   { 
@@ -31,13 +32,13 @@ namespace g4b{
       if (srcDir == nullptr) {
         std::cerr << " EmphMisaligner::EmphMisaligner, build environment not set, give up right here and now " << std::endl; exit(2);
       }
-      fNameIn = std::string(srcDir) + std::string("/Geometry/gdml/pahse1b/generate_gdml.pl");
+      fNameIn = std::string(srcDir) + std::string("/Geometry/gdml/phase1b/generate_gdml.pl");
    } else if (aNameIn == std::string("phase1c")) {
       const char *srcDir = std::getenv("CETPKG_SOURCE");
       if (srcDir == nullptr) {
         std::cerr << " EmphMisaligner::EmphMisaligner, build environment not set, give up right here and now " << std::endl; exit(2);
       }
-      fNameIn = std::string(srcDir) + std::string("/Geometry/gdml/pahse1c/generate_gdml.pl");
+      fNameIn = std::string(srcDir) + std::string("/Geometry/gdml/phase1c/generate_gdml.pl");
    } 
    srand(aSeed);
   }
@@ -88,6 +89,39 @@ namespace g4b{
       fOut << (*it) << std::endl;
     }
     fOut.close();
+  }
+  std::string EmphMisaligner::runIt(const std::string &suffix) const { // return a complete Unix path name, the gdml file to use in the 
+     char cwdBuff[2048];
+     const char *mycwd = getcwd(cwdBuff, 2048);
+     const char *srcDir = std::getenv("CETPKG_SOURCE");
+     std::string theWkDirTop(srcDir); theWkDirTop += std::string("/Geometry/gdml/");
+     std::string theWkDirBot(theWkDirTop); theWkDirBot += std::string("phase1b/");  // To be extend do phase1c, if we get to it..
+     std::ostringstream suffixAllStrStr; suffixAllStrStr << suffix << "_" << fModelNumber << "_" << fSeed << "_";
+     std::string suffixAll(suffixAllStrStr.str());
+     std::string fNamePerlScript(theWkDirBot); 
+     fNamePerlScript += std::string("generate_gdml_") + suffixAll + std::string(".pl");
+     this->writeIt(fNamePerlScript.c_str());
+     pid_t aPid = getpid(); std::ostringstream aPiStrStr;  aPiStrStr << "_" << aPid;
+     std::string fNameOutGdmlTmp(theWkDirBot); 
+     fNameOutGdmlTmp += std::string("phase1bTmp_") + suffixAll +  aPiStrStr.str() + std::string(".gdml"); 
+     std::string cmd0("chmod +x "); 
+     cmd0 += fNamePerlScript;
+     system(cmd0.c_str());
+     std::string cmd1(fNamePerlScript); 
+     cmd1 += std::string(" -o ") + fNameOutGdmlTmp;
+     cmd1 += std::string(" -m 0 -t 0 -suffix ") + suffixAll;
+     system(cmd1.c_str());
+     //
+     std::string fNameOutGdml(mycwd); 
+     fNameOutGdml += std::string("/phase1b_") + suffixAll + std::string(".gdml"); 
+     std::string cmd2(theWkDirTop); 
+     cmd2 += std::string("make_gdml.pl -i ") +  fNameOutGdmlTmp + std::string(" -o ") +  fNameOutGdml;
+     system(cmd2.c_str());
+     // 
+     // clean up 
+     std::string cmd3("/bin/rm ./phase1_*.gdml "); cmd3 += fNameOutGdmlTmp;
+     system(cmd3.c_str());
+     return std::string(fNameOutGdml);
   }
   void EmphMisaligner::dumpRawMisAlignParams(const char* fName) const {
     std::ofstream fOut(fName);
@@ -168,10 +202,15 @@ namespace g4b{
     size_t iPos=fLine_SSD_station_shift.find("("); iPos++;
     std::string remLine = fLine_SSD_station_shift.substr(iPos);
     bool isLastValue = false;
-    while(iPos < remLine.length() && (!isLastValue)) {
+    while((!isLastValue)) {
       size_t iPosComma = remLine.find(","); 
       if (iPosComma == std::string::npos)  isLastValue = true;
-      std::string valString = remLine.substr(0, iPosComma); 
+      std::string valString; 
+      if (!isLastValue) valString = remLine.substr(0, iPosComma);
+      else {
+        size_t iPosEnd = remLine.find(")");
+	 valString = remLine.substr(0, iPosEnd);
+      } 
       std::istringstream valInStrStr(valString); double zz;  valInStrStr >> zz;
       // Flat distribution... 
       const double zPosDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
@@ -185,6 +224,8 @@ namespace g4b{
     for (size_t k=0;  k != fZShiftsRaw.size()-1; k++) lineOut << fZShiftsRaw[k] << ", ";
     lineOut << fZShiftsRaw[fZShiftsRaw.size()-1] << ");"; 
     fLine_SSD_station_shift = lineOut.str();  
+//    std::cerr <<  " ... fLine_SSD_station_shift " << fLine_SSD_station_shift << std::endl;
+//    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
   }
   
   void EmphMisaligner::doSSDRolls() {
@@ -192,10 +233,12 @@ namespace g4b{
     //
     std::cerr << " EmphMisaligner::doSSDRolls with sigRolls " << fSigRoll << std::endl;
     fRollsRaw.clear();
+//    std::cerr << " ...Nominal rools " << fLine_SSD_angle << std::endl;
     size_t iPos=fLine_SSD_angle.find("("); iPos++;
     std::string remLine = fLine_SSD_angle.substr(iPos);
     bool isLastValue = false;
-    while(iPos < remLine.length() && (!isLastValue)) {
+    int iSensor = 0; 
+    while((iPos < remLine.length()) && (!isLastValue)) {
       size_t iPosComma = remLine.find(","); 
       if (iPosComma == std::string::npos)  isLastValue = true;
       std::string valString = remLine.substr(0, iPosComma); 
@@ -204,14 +247,18 @@ namespace g4b{
       const double zRollDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
       const double zRoll = zRollDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigRoll; 
       zz += zRoll; fRollsRaw.push_back(zz);
+//      std::cerr << " Sensor " << iSensor << " New roll angle " << zz << std::endl;
       iPosComma++; 
-      remLine = fLine_SSD_angle.substr(iPosComma); iPos = iPosComma;
+      remLine = remLine.substr(iPosComma); iPos = iPosComma;
+//      iSensor++;
     }
     // Now rewrite the line.. 
     std::ostringstream lineOut; lineOut << "@SSD_angle = ("; 
-    for (size_t k=0;  k != fZShiftsRaw.size()-1; k++) lineOut << fZShiftsRaw[k] << ", ";
-    lineOut << fZShiftsRaw[fZShiftsRaw.size()-1] << ");"; 
+    for (size_t k=0;  k != fRollsRaw.size()-1; k++) lineOut << fRollsRaw[k] << ", ";
+    lineOut << fRollsRaw[fRollsRaw.size()-1] << ");"; 
     fLine_SSD_angle = lineOut.str(); 
+//    std::cerr <<  " ... fLine_SSD_angle " << fLine_SSD_angle << std::endl;
+//    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
   }  
   void EmphMisaligner::doSSDYawPitchOnMounts() {
     if (fSigYP < 1.0e-4) return;
@@ -220,6 +267,7 @@ namespace g4b{
     // Start by counting the number of double elements 
     size_t nPars = 0; fPitchesRaw.clear(); fYawsRaw.clear();
     for (size_t k=0; k != fLine_SSD_mount_rotation.length(); k++) if (fLine_SSD_mount_rotation[k] == '[') nPars++; 
+    std::cerr << " ...... Num of mounts " << nPars << std::endl;; 
     for (size_t k=0; k != nPars; k++) {
       const double thPitchDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
       fPitchesRaw.push_back(thPitchDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigYP); 
@@ -234,6 +282,8 @@ namespace g4b{
       else strOut << ");";
     }
     fLine_SSD_mount_rotation = strOut.str();
+//    std::cerr <<  " ... fLine_SSD_mount_rotation " << fLine_SSD_mount_rotation << std::endl;
+//    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
   }
 
   void EmphMisaligner::doSSDTransOffsetOnPlanes() {
@@ -242,10 +292,13 @@ namespace g4b{
 // August 5 2023 : Simplify, edit a single line..     
     if (std::abs(fGapDoubleSSD) > 30.) return; // unrealistic 
     std::cerr << " EmphMisaligner::doSSDTransOffsetOnPlanes, sigmaTrShifts " << fSigTr << " dGap " << fGapDoubleSSD << std::endl;
+//    std::cerr << " ... begin line " <<  fLine_SSD_shift.substr(0, 60) << std::endl;
     size_t iPos=fLine_SSD_shift.find("("); iPos++;
-    std::string remLine = fLine_SSD_station_shift.substr(iPos);
+    std::string remLine = fLine_SSD_shift.substr(iPos);
     iPos=remLine.find("["); iPos++;
+    remLine = remLine.substr(iPos);
     bool isLastValue = false; fXTransShiftsRaw.clear();  fYTransShiftsRaw.clear();
+//    int iSensor = 0;
     while((iPos < remLine.length()) && (!isLastValue)) {
       size_t iPosComma = remLine.find(","); 
       if (iPosComma == std::string::npos)  isLastValue = true;
@@ -258,19 +311,22 @@ namespace g4b{
       const double xPosDelta = xPosDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigTr; 
       xx += xPosDelta; fXTransShiftsRaw.push_back(xx);
       size_t iPosY = iPosComma + 1;
+      remLine = remLine.substr(iPosY+1);
       size_t iPosClosePar = remLine.find("]");
-      remLine = fLine_SSD_station_shift.substr(iPosY, iPosClosePar);
       std::string valStringY = remLine.substr(0, iPosClosePar); 
-      std::istringstream valInYStrStr(valStringX); double yy;  valInYStrStr >> yy;
+      std::istringstream valInYStrStr(valStringY); double yy;  valInYStrStr >> yy;
       const double yPosDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
       const double yPosDelta = yPosDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigTr; 
       yy += yPosDelta; fYTransShiftsRaw.push_back(yy);
-      if (isLastValue) break;
+      if (isLastValue)  break; 
       remLine = remLine.substr(iPosClosePar+1);
+//      std::cerr << " .... set new vals x and y , remline length " << remLine.length() << std::endl;
       size_t iPosOpenPar = remLine.find("["); 
-      if (iPosOpenPar == std::string::npos) break; 
+      if (iPosOpenPar == std::string::npos) break;  
       remLine = remLine.substr(iPosOpenPar+1);
       iPos = iPosOpenPar+1;
+//      std::cerr << " ... At Sensor " << iSensor << " iPos " << iPos << " remLine length " << remLine.length() << std::endl; 
+//      iSensor++;
     }
     std::ostringstream strOut; strOut << "@SSD_shift = ("; 
     for (size_t kP = 0; kP != fXTransShiftsRaw.size(); kP++) {
@@ -279,5 +335,7 @@ namespace g4b{
       else strOut << ");";
     }
     fLine_SSD_shift = strOut.str();
+//    std::cerr <<  " ... fLine_SSD_shift " << fLine_SSD_shift << std::endl;
+//    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
   }  
 } // namespace

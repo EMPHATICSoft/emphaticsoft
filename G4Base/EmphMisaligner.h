@@ -33,12 +33,15 @@ namespace g4b {
 
     void doIt(int aModelNum, double gapDoubleSSD); 
     void writeIt(const char* aName) const;
+    std::string runIt(const std::string &suffix) const; // return a complete Unix path name, the gdml file to use in the 
+    // in the G4EMPH DetectorConstruction constructor. 
     void dumpRawMisAlignParams(const char* fName) const; // Obsolete, we can just look at the perl script. 
 
   private:
   
     std::string fNameIn;
     int fModelNumber;
+    unsigned int fSeed;
     double fGapDoubleSSD, fSigZ, fSigRoll, fSigTr, fSigYP;
     std::vector<double> fZShiftsRaw; // On station, sorted as in 
     std::vector<double> fXTransShiftsRaw; // sorted as in the perl script. 
@@ -51,7 +54,9 @@ namespace g4b {
     std::string fLine_SSD_shift; // for what I called rotation centers, 
     std::string fLine_SSD_mount_rotation; // For Pitch and Yaw 
     std::string fLine_SSD_angle; 
-
+//
+    void SetModelNumber(int am) { fModelNumber = am; } 
+    void SetGapDoubleSSD(double d) { fGapDoubleSSD = d; } 
     void readAndModifyIt(); // 
     void doSSDRolls();
     void doSSDYawPitchOnMounts();
