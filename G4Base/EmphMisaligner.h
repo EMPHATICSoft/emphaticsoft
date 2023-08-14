@@ -40,9 +40,14 @@ namespace g4b {
   private:
   
     std::string fNameIn;
+    bool fDoOnlyYTrans, fDoOnlyXTrans;
     int fModelNumber;
     unsigned int fSeed;
     double fGapDoubleSSD, fSigZ, fSigRoll, fSigTr, fSigYP;
+    std::vector<char> fViews; 
+    std::vector<size_t> fViewIndicesY, fViewIndicesX, fViewIndicesU, fViewIndicesV; 
+    //with above, to organize the parameters along while printing the truth values. 
+    // To compare with minimization.. 
     std::vector<double> fZShiftsRaw; // On station, sorted as in 
     std::vector<double> fXTransShiftsRaw; // sorted as in the perl script. 
     std::vector<double> fYTransShiftsRaw; //
@@ -57,7 +62,8 @@ namespace g4b {
 //
     void SetModelNumber(int am) { fModelNumber = am; } 
     void SetGapDoubleSSD(double d) { fGapDoubleSSD = d; } 
-    void readAndModifyIt(); // 
+    void readToModifyIt(); //
+    void setViewIndices();  
     void doSSDRolls();
     void doSSDYawPitchOnMounts();
     void doSSDZTranslationOnStations(); // on stations only
@@ -65,7 +71,10 @@ namespace g4b {
     double getValue(const std::string &line, const std::string &key=std::string("value=")); // from a line.  Obsolete  
     std::string getName(const std::string &line); // from a line.  Obsolete    
     double getRandomShift(double sig); 
-    // For checking the solution, after SSD align run 
+
+   public:
+    void SetDoOnlyYTrans(bool t=true) { fDoOnlyYTrans = t; }
+    void SetDoOnlyXTrans(bool t=true) { fDoOnlyXTrans = t; }
   };
 
 } // namespace g4b

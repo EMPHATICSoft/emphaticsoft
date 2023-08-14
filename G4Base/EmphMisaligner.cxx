@@ -23,8 +23,10 @@ namespace g4b{
   //------------------------------------------------
   // Constructor
   EmphMisaligner::EmphMisaligner(const std::string &aNameIn, unsigned int aSeed)
-  : fNameIn(aNameIn), fModelNumber(0), fSeed(aSeed), fGapDoubleSSD(3.0), fSigZ(0.), fSigRoll(0.), fSigTr(0.), fSigYP(0.),
-  fXTransShiftsRaw(22, 0.), fYTransShiftsRaw(22, 0.),
+  : fNameIn(aNameIn), fDoOnlyYTrans(false), fDoOnlyXTrans(false),
+  fModelNumber(0), fSeed(aSeed), fGapDoubleSSD(3.0), fSigZ(0.), fSigRoll(0.), fSigTr(0.), fSigYP(0.),
+  fViews(22, '?'), fViewIndicesY(), fViewIndicesX(), fViewIndicesU(), fViewIndicesV(),
+  fZShiftsRaw(6, 0.), fXTransShiftsRaw(22, 0.), fYTransShiftsRaw(22, 0.),
   fRollsRaw(22, 0.), fYawsRaw(22, 0.), fPitchesRaw(22, 0.)
   { 
    if ((aNameIn == std::string("")) || aNameIn.empty() || (aNameIn == std::string("phase1b"))) {
@@ -43,7 +45,7 @@ namespace g4b{
    srand(aSeed);
   }
   //------------------------------------------------
-  void EmphMisaligner::readAndModifyIt() 
+  void EmphMisaligner::readToModifyIt() 
   {
     std::ifstream fIn(fNameIn.c_str());
     if (!fIn.is_open()) {
@@ -57,30 +59,50 @@ namespace g4b{
       fIn.getline(aLine, 2048);
       nLines++;
       std::string ll(aLine);
+//      if (nLines < 100) std::cerr << ll << std::endl;
       if (ll.find("@SSD_station_shift") == 0) {
         fLine_SSD_station_shift = ll;
-        this->doSSDZTranslationOnStations(); 
-	fLines.push_back(fLine_SSD_station_shift);
       } else if (ll.find("@SSD_shift") == 0) {
         fLine_SSD_shift = ll;
-	this->doSSDTransOffsetOnPlanes();
-	fLines.push_back(fLine_SSD_shift);
       } else if (ll.find("@SSD_mount_rotation") == 0) {
         fLine_SSD_mount_rotation = ll;
-	this->doSSDYawPitchOnMounts();
-	fLines.push_back(fLine_SSD_mount_rotation);
       } else if (ll.find("@SSD_angle") == 0) {
         fLine_SSD_angle = ll;
-	this->doSSDRolls();
+	this->setViewIndices();
+      } 
+    }
+    // Remove the last line, it is blank. 
+    fIn.close();
+    std::cerr << "g4b::EmphAligner, read " << fLines.size() << " from file " << std::string(fNameIn) << std::endl; 
+    std::cerr << " Now, modify it.. " << std::endl;    
+    this->doSSDZTranslationOnStations(); 
+    this->doSSDTransOffsetOnPlanes();
+    this->doSSDRolls();
+    this->doSSDYawPitchOnMounts();
+    // Now replace the lines, store the text..  
+    fIn.open(fNameIn.c_str());
+    nLines = 0;
+    fLines.clear();
+    while (fIn.good()) { 
+      fIn.getline(aLine, 2048);
+      nLines++;
+      std::string ll(aLine);
+//      if (nLines < 100) std::cerr << ll << std::endl;
+      if (ll.find("@SSD_station_shift") == 0) {
+	fLines.push_back(fLine_SSD_station_shift);
+      } else if (ll.find("@SSD_shift") == 0) {
+	fLines.push_back(fLine_SSD_shift);
+      } else if (ll.find("@SSD_mount_rotation") == 0) {
+	fLines.push_back(fLine_SSD_mount_rotation);
+      } else if (ll.find("@SSD_angle") == 0) {
 	fLines.push_back(fLine_SSD_angle);
       } else { 
         fLines.push_back(ll); 
       }
     }
     // Remove the last line, it is blank. 
-    fLines.pop_back();
-    std::cerr << "g4b::EmphAligner, read " << fLines.size() << " from file " << std::string(fNameIn) << std::endl;     
     fIn.close();
+    fLines.pop_back();
   }
   //
   void EmphMisaligner::writeIt(const char* fName) const {
@@ -121,20 +143,93 @@ namespace g4b{
      // clean up 
      std::string cmd3("/bin/rm ./phase1_*.gdml "); cmd3 += fNameOutGdmlTmp;
      system(cmd3.c_str());
+     std::string fNameOutTruth(mycwd); 
+     fNameOutTruth += std::string("/TruthValues_") + suffixAll + std::string(".txt");
+     this->dumpRawMisAlignParams(fNameOutTruth.c_str()); 
+     
      return std::string(fNameOutGdml);
   }
+  
   void EmphMisaligner::dumpRawMisAlignParams(const char* fName) const {
     std::ofstream fOut(fName);
-    fOut << " kSeT TransShiftX TransShifty deltaRoll " << std::endl;
-    for (size_t kP=0; kP != fXTransShiftsRaw.size(); kP++) {
-      fOut << " " << kP << " " <<  fXTransShiftsRaw[kP] << " " <<  fXTransShiftsRaw[kP] << " "
-           << fRollsRaw[kP] << std::endl;
+//    fOut << " kSeT TransShiftX TransShifty deltaRoll " << std::endl;
+//    for (size_t kP=0; kP != fXTransShiftsRaw.size(); kP++) {
+//      fOut << " " << kP << " " <<  fXTransShiftsRaw[kP] << " " <<  fYTransShiftsRaw[kP] << " "
+//           << fRollsRaw[kP] << std::endl;
+//    }
+// 
+//  For easy comparison of the result of the Algo1 SSDAlign MPI fits.. 
+//  Skip the Tilts, a Yaw or Pitch causes G4 volume overlap, not a good idea.. 
+//
+    const double oneOverSqrt2 = 1.0 /std::sqrt(2);
+    fOut << "Tilt_Y_0 1.0e-6 1.0e-6 " << std::endl; // made up error, does not matter
+    for (size_t kY=1; kY != fViewIndicesY.size(); kY++) {
+      const size_t iSensor = fViewIndicesY[kY];
+      fOut << "TransShift_Y_" << kY << " " << fYTransShiftsRaw[iSensor] << " 1.0e-6 " << std::endl;
+      std::cerr << " .... Dump Y Trans ..kY " << kY << " sensor " <<  iSensor  << " val  " << fYTransShiftsRaw[iSensor] << std::endl;
+      size_t iStation = kY;
+      if ((kY == 4) || kY == 5) iStation = 4; 
+      if ((kY == 6) || kY == 7) iStation = 5; 
+      if (iStation != 5) fOut << "LongShift_Y_" << kY << " " << fZShiftsRaw[iStation] << " 1.0e-6 " << std::endl; 
+      fOut << "Tilt_Y_" << kY << " 1.0e-6 1.0e-6 " << std::endl; // made up error, does not matter
     }
+    fOut << "Tilt_X_0 1.0e-6 1.0e-6 " << std::endl; // made up error, does not matter
+    for (size_t kX=1; kX != fViewIndicesX.size(); kX++) {
+      const size_t iSensor = fViewIndicesX[kX];
+      fOut << "TransShift_X_" << kX << " " << fXTransShiftsRaw[iSensor] << " 1.0e-6 " << std::endl;
+      std::cerr << " .... Dump X Trans ..kX " << kX << " sensor " <<  iSensor  << " val  " << fXTransShiftsRaw[iSensor] << std::endl;
+      fOut << "Tilt_X_" << kX << " 1.0e-6 1.0e-6 " << std::endl; // made up error, does not matter
+    }
+    fOut << "LongMagC 757.7 76.77 " << std::endl;
+    fOut << "KickMag -0.000612 3.06e-05 " << std::endl;
+    //
+    // Now the Rolls and Roll Center. X and then Y.. Historical/Hysterical ordering, due to progression in defining params. 
+    for (size_t kX=0; kX != fViewIndicesX.size(); kX++) {
+      const size_t iSensor = fViewIndicesX[kX];
+      const size_t iSensorY = fViewIndicesY[kX];  // X and Y have same dimensions.. 
+      fOut << "DeltaRoll_X_" << kX << " " << fRollsRaw[iSensor] << " 1.0e-6 " << std::endl;
+      std::cerr << " .... Dump X Rolls ..kX " << kX << " sensor " <<  iSensor  << " Yval  " << fYTransShiftsRaw[iSensorY] << std::endl;
+      fOut << "DeltaRollCenter_X_" << kX << " " << fYTransShiftsRaw[iSensorY] << " 1.0e-6 " << std::endl; 
+    }
+    for (size_t kY=1; kY != fViewIndicesY.size(); kY++) {
+      const size_t iSensor = fViewIndicesX[kY];
+      const size_t iSensorX = fViewIndicesY[kY];  // X and Y have same dimensions.. 
+      fOut << "DeltaRoll_Y_" << kY << " " << fRollsRaw[iSensor] << " 1.0e-6 " << std::endl;
+      std::cerr << " .... Dump Y Rolls ..kX " << kY << " sensor " <<  iSensor  << " Xval  " << fXTransShiftsRaw[iSensorX] << std::endl;
+      fOut << "DeltaRollCenter_Y_" << kY << " " << fXTransShiftsRaw[iSensorX] << " 1.0e-6 " << std::endl; 
+    }
+     
+    
+    for (size_t kU=0; kU != fViewIndicesU.size(); kU++) {
+      const size_t iSensor = fViewIndicesU[kU];
+      const double deltaU = oneOverSqrt2 * (fXTransShiftsRaw[iSensor] - fYTransShiftsRaw[iSensor]); //phase1b, check signs. 
+      const double deltaV = oneOverSqrt2 * (-fXTransShiftsRaw[iSensor] - fYTransShiftsRaw[iSensor]); //phase1b, check signs. 
+      fOut << "TransShift_U_" << kU << " " << deltaU << " 1.0e-6 " << std::endl;
+      const size_t iStation = kU + 4; // Phase1b only 
+//      fOut << "LongShift_U_" << kU << " " << fZShiftsRaw[iStation] << " 1.0e-6 " << std::endl; 
+// Not defined in the SSDAlignAlog1 mnimizer, use the shift from x or Y internally.. 
+      fOut << "Tilt_U_" << kU << " 1.0e-6 1.0e-6 " << std::endl; // made up error, does not matter
+      fOut << "DeltaRoll_U_" << kU << " " << fRollsRaw[iSensor] << " 1.0e-6 " << std::endl;
+      fOut << "DeltaRollCenter_U_" << kU << " " << deltaV << " 1.0e-6 " << std::endl; 
+    }
+    for (size_t kV=0; kV != fViewIndicesV.size(); kV++) {
+      const size_t iSensor = fViewIndicesV[kV];
+      const double deltaU = oneOverSqrt2 * (fXTransShiftsRaw[iSensor] - fYTransShiftsRaw[iSensor]); //phase1b, check signs. 
+      const double deltaV = oneOverSqrt2 * (-fXTransShiftsRaw[iSensor] - fYTransShiftsRaw[iSensor]); //phase1b, check signs. 
+      fOut << "TransShift_V_" << kV << " " << deltaV << " 1.0e-6 " << std::endl;
+      size_t iStation = 4 + kV/2; // Phase1b only 
+      fOut << "Tilt_V_" << kV << " 1.0e-6 1.0e-6 " << std::endl; // made up error, does not matter
+      fOut << "DeltaRoll_V_" << kV << " " << fRollsRaw[iSensor] << " 1.0e-6 " << std::endl;
+      fOut << "DeltaRollCenter_V_" << kV << " " << deltaU << " 1.0e-6 " << std::endl; 
+    }
+    // Now the Rolls and Roll Center.. 
+    
     fOut.close();
   }
   //------------------------------------------------
   void EmphMisaligner::doIt(int aModelNum, double gapD) {
-    fModelNumber = aModelNum; 
+    fModelNumber = aModelNum;
+    fGapDoubleSSD = gapD; 
     // implement stwitched based on a simple cnvention based on the model. 
     const long int iSigmaRolls =  fModelNumber/(100*100*100);
     const long int iSigma2 =  (fModelNumber - 100*100*100*iSigmaRolls);
@@ -154,7 +249,7 @@ namespace g4b{
     std::cerr << " EmphMisaligner::doIt, sigZ " << fSigZ << " sigTr " << fSigTr 
               << " SigYP " << fSigYP << " sigRolls " << fSigRoll << std::endl;
 	      
-    this->readAndModifyIt();
+    this->readToModifyIt();
     
   }
   double EmphMisaligner::getRandomShift(double sig) {
@@ -227,20 +322,64 @@ namespace g4b{
 //    std::cerr <<  " ... fLine_SSD_station_shift " << fLine_SSD_station_shift << std::endl;
 //    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
   }
+  void EmphMisaligner::setViewIndices() { // Written only for phase1b, could work on phase1c 
+//    std::cerr << " EmphMisaligner::setViewIndices...Nominal rolls " << fLine_SSD_angle << std::endl;
+    size_t iPos=fLine_SSD_angle.find("("); iPos++;
+    std::string remLine = fLine_SSD_angle.substr(iPos);
+    bool isLastValue = false;
+    size_t iSensor = 0; fViewIndicesY.clear(); fViewIndicesX.clear(); fViewIndicesU.clear();fViewIndicesV.clear();
+    while(true) { 
+      size_t iPosComma = remLine.find(","); 
+      if (iPosComma == std::string::npos)  { 
+         isLastValue = true; iPosComma = remLine.find(")"); 
+      }
+      std::string valString = remLine.substr(0, iPosComma); 
+      std::istringstream valInStrStr(valString); double zz;  valInStrStr >> zz;
+//      std::cerr << " ..... iSensor " << iSensor << " valString " << valString << std::endl;
+      if ((std::abs(zz) < 0.1) || (std::abs(180.0 - zz) < 0.1)) { fViews[iSensor] = 'Y'; fViewIndicesY.push_back(iSensor); }
+      if ((std::abs(90.0 - zz) < 0.1) || (std::abs(270.0 - zz) < 0.1)) { fViews[iSensor] = 'X'; fViewIndicesX.push_back(iSensor); }
+      if ((std::abs(-45.0 - zz) < 0.1) || (std::abs(315.0 - zz) < 0.1)) { fViews[iSensor] = 'U'; fViewIndicesU.push_back(iSensor); } 
+      if ((std::abs(45.0 - zz) < 0.1) || (std::abs(225.0 - zz) < 0.1)) { fViews[iSensor] = 'V'; fViewIndicesV.push_back(iSensor); }
+      if (isLastValue) break;
+      iPosComma++; 
+      remLine = remLine.substr(iPosComma); iPos = iPosComma;
+      iSensor++;
+    }
+    // Now rewrite the line..
+    std::cerr << " fViews ";
+    for (size_t k=0; k != fViews.size(); k++) std::cerr << " " << fViews[k];
+    std::cerr << std::endl;
+    std::cerr << " fViewsIndicesY ";
+    for (size_t k=0; k != fViewIndicesY.size(); k++) std::cerr << " " << fViewIndicesY[k];
+    std::cerr << std::endl;
+    std::cerr << " fViewsIndicesX ";
+    for (size_t k=0; k != fViewIndicesX.size(); k++) std::cerr << " " << fViewIndicesX[k];
+    std::cerr << std::endl;
+    std::cerr << " fViewsIndicesU ";
+    for (size_t k=0; k != fViewIndicesU.size(); k++) std::cerr << " " << fViewIndicesU[k];
+    std::cerr << std::endl;
+    std::cerr << " fViewsIndicesX ";
+    for (size_t k=0; k != fViewIndicesV.size(); k++) std::cerr << " " << fViewIndicesV[k];
+    std::cerr << std::endl;
+//    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
+  }  
   
   void EmphMisaligner::doSSDRolls() {
     if (std::abs(fSigRoll)  < 1.0e-6) return;
     //
     std::cerr << " EmphMisaligner::doSSDRolls with sigRolls " << fSigRoll << std::endl;
     fRollsRaw.clear();
-//    std::cerr << " ...Nominal rools " << fLine_SSD_angle << std::endl;
+//    std::cerr << " ...Nominal rolls " << fLine_SSD_angle << std::endl;
     size_t iPos=fLine_SSD_angle.find("("); iPos++;
     std::string remLine = fLine_SSD_angle.substr(iPos);
     bool isLastValue = false;
     int iSensor = 0; 
-    while((iPos < remLine.length()) && (!isLastValue)) {
+    while(true) {
       size_t iPosComma = remLine.find(","); 
-      if (iPosComma == std::string::npos)  isLastValue = true;
+      if (iPosComma == std::string::npos)  {
+        isLastValue = true;
+	iPosComma = remLine.find(")");
+      }
       std::string valString = remLine.substr(0, iPosComma); 
       std::istringstream valInStrStr(valString); double zz;  valInStrStr >> zz;
       // Flat distribution... 
@@ -248,6 +387,9 @@ namespace g4b{
       const double zRoll = zRollDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigRoll; 
       zz += zRoll; fRollsRaw.push_back(zz);
 //      std::cerr << " Sensor " << iSensor << " New roll angle " << zz << std::endl;
+      // Sensor 0, View Y, station zero has no rolls by definition 
+      if (iSensor == 0) zz = 0.;
+      if (isLastValue) break;
       iPosComma++; 
       remLine = remLine.substr(iPosComma); iPos = iPosComma;
 //      iSensor++;
@@ -297,45 +439,55 @@ namespace g4b{
     std::string remLine = fLine_SSD_shift.substr(iPos);
     iPos=remLine.find("["); iPos++;
     remLine = remLine.substr(iPos);
-    bool isLastValue = false; fXTransShiftsRaw.clear();  fYTransShiftsRaw.clear();
-//    int iSensor = 0;
-    while((iPos < remLine.length()) && (!isLastValue)) {
+    fXTransShiftsRaw.clear();  fYTransShiftsRaw.clear();
+    size_t iSensor = 0;
+    std::vector<double> fXG4(22, 0.); std::vector<double> fYG4(22, 0.);
+    while(true) {
       size_t iPosComma = remLine.find(","); 
-      if (iPosComma == std::string::npos)  isLastValue = true;
       std::string valStringX = remLine.substr(0, iPosComma); 
       std::istringstream valInXStrStr(valStringX); double xx;  valInXStrStr >> xx;
       // Flat distribution... 
-      if ((xx < 0.) && (std::abs(xx) > 10.)) xx -= 0.5*fGapDoubleSSD; // This should be in the nominal geometry.. 
-      if ((xx > 0.) && (std::abs(xx) > 10.)) xx += 0.5*fGapDoubleSSD; //  
+      double aGapDoubleSSD = 0.;
+      if ((xx < 0.) && (std::abs(xx) > 10.))aGapDoubleSSD = -0.5*fGapDoubleSSD; // This should be in the nominal geometry.. 
+      if ((xx > 0.) && (std::abs(xx) > 10.))aGapDoubleSSD = 0.5*fGapDoubleSSD; //  
       const double xPosDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
-      const double xPosDelta = xPosDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigTr; 
-      xx += xPosDelta; fXTransShiftsRaw.push_back(xx);
+      double xPosDelta = ((iSensor == fViewIndicesX[0]) || (iSensor == fViewIndicesY[0])) ?
+                               aGapDoubleSSD : aGapDoubleSSD + xPosDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigTr; 
+      if (fDoOnlyYTrans && (fViews[iSensor] != 'Y')) xPosDelta = aGapDoubleSSD;		       
+      if (fDoOnlyXTrans && (fViews[iSensor] != 'X')) xPosDelta = aGapDoubleSSD;		       
+      xx += xPosDelta; fXTransShiftsRaw.push_back(xPosDelta);
+      fXG4[iSensor] = xx;
       size_t iPosY = iPosComma + 1;
       remLine = remLine.substr(iPosY+1);
       size_t iPosClosePar = remLine.find("]");
       std::string valStringY = remLine.substr(0, iPosClosePar); 
       std::istringstream valInYStrStr(valStringY); double yy;  valInYStrStr >> yy;
       const double yPosDeltaSign = ((static_cast<double>(rand())/RAND_MAX ) < 0.5) ? -1. : 1.;
-      const double yPosDelta = yPosDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigTr; 
-      yy += yPosDelta; fYTransShiftsRaw.push_back(yy);
-      if (isLastValue)  break; 
+      double yPosDelta = ((iSensor == fViewIndicesX[0]) || (iSensor == fViewIndicesY[0]) || (iSensor == fViewIndicesY[7])) ?
+                               0. : yPosDeltaSign * (static_cast<double>(rand())/RAND_MAX ) * fSigTr; 
+      if (fDoOnlyYTrans && (fViews[iSensor] != 'Y')) yPosDelta = 0.;		       
+      if (fDoOnlyXTrans && (fViews[iSensor] != 'X')) yPosDelta = 0.;		       
+      yy += yPosDelta; fYTransShiftsRaw.push_back(yPosDelta);
+      fYG4[iSensor] = yy;
       remLine = remLine.substr(iPosClosePar+1);
+      std::cerr << " ... At Sensor " << iSensor << " View " << fViews[iSensor] << " X-delta and Y-delta,  last  " 
+                << *fXTransShiftsRaw.rbegin() << ", " <<*fYTransShiftsRaw.rbegin() 
+		<< " G4Vals " << fXG4[iSensor] << ", " <<  fYG4[iSensor] << std::endl; 
 //      std::cerr << " .... set new vals x and y , remline length " << remLine.length() << std::endl;
       size_t iPosOpenPar = remLine.find("["); 
-      if (iPosOpenPar == std::string::npos) break;  
+      if (iPosOpenPar == std::string::npos) break; 
       remLine = remLine.substr(iPosOpenPar+1);
       iPos = iPosOpenPar+1;
-//      std::cerr << " ... At Sensor " << iSensor << " iPos " << iPos << " remLine length " << remLine.length() << std::endl; 
-//      iSensor++;
+      iSensor++;
     }
     std::ostringstream strOut; strOut << "@SSD_shift = ("; 
-    for (size_t kP = 0; kP != fXTransShiftsRaw.size(); kP++) {
-      strOut << "[" << fXTransShiftsRaw[kP] << ", " << fYTransShiftsRaw[kP] << "]";
-      if (kP != (fXTransShiftsRaw.size() - 1)) strOut << ", ";
+    for (size_t kP = 0; kP != fXG4.size(); kP++) {
+      strOut << "[" << fXG4[kP] << ", " << fYG4[kP] << "]";
+      if (kP != (fXG4.size() - 1)) strOut << ", ";
       else strOut << ");";
     }
     fLine_SSD_shift = strOut.str();
-//    std::cerr <<  " ... fLine_SSD_shift " << fLine_SSD_shift << std::endl;
+    std::cerr <<  " ... fLine_SSD_shift " << fLine_SSD_shift << std::endl;
 //    std::cerr << " ..... And quit for now.. " << std::endl; exit(2);
   }  
 } // namespace

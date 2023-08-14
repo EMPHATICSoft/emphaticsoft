@@ -48,7 +48,7 @@ namespace g4b{
 						   << __FILE__ << ":" << __LINE__ << "\n";
     }
     std::cerr << "DetectorConstruction::DetectorConstruction, begin with gdmlFile " 
-              <<  gdmlFile << " with misalignModelNum " << misalignModelNum << std::endl;
+              <<  gdmlFile << std::endl << ".... with misalignModelNum " << misalignModelNum << " DGap " << misalignDoubleSSDGap << std::endl;
     // Get the path to the GDML file from the Geometry interface.
     const G4String GDMLfile = static_cast<const G4String>( gdmlFile );
 
@@ -79,12 +79,12 @@ namespace g4b{
 //     We now create a new version of the perl script itself and run it from here.
 //  
        g4b::EmphMisaligner myMis(std::string(""), misAlignSeed);
-       
+       myMis.SetDoOnlyYTrans(); // Temporary, debugging.. 
        myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
        std::cerr << "   .............. done it ... now run the perl script.. " << std::endl;   
        effGDMLFile = myMis.runIt(std::string("Tr1")); 
-       std::cerr << "   .............. ran the perl script..gdml file path is " << effGDMLFile << std::endl;
-//                 << std::endl <<  " .................. And quit now.. " << std::endl; exit(2);
+       std::cerr << "   .............. ran the perl script..gdml file path is " << effGDMLFile << std::endl;        
+//       std::cerr << std::endl <<  " .................. And quit now.. " << std::endl; exit(2);
     }
     parser.Read(effGDMLFile,validateSchema);
 //    std::cerr << " Geometry created, we stop here " << std::endl; exit(2);
