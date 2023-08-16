@@ -79,7 +79,7 @@ namespace g4b{
 //     We now create a new version of the perl script itself and run it from here.
 //  
        g4b::EmphMisaligner myMis(std::string(""), misAlignSeed);
-       myMis.SetDoOnlyYTrans(); // Temporary, debugging.. 
+//       myMis.SetDoOnlyYTrans(); // Temporary, debugging.. 
        myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
        std::cerr << "   .............. done it ... now run the perl script.. " << std::endl;   
        effGDMLFile = myMis.runIt(std::string("Tr1")); 
