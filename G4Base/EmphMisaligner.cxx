@@ -456,6 +456,7 @@ namespace g4b{
       if (fDoOnlyYTrans && (fViews[iSensor] != 'Y')) xPosDelta = aGapDoubleSSD;		       
       if (fDoOnlyXTrans && (fViews[iSensor] != 'X')) xPosDelta = aGapDoubleSSD;		       
       xx += xPosDelta; fXTransShiftsRaw.push_back(xPosDelta);
+      if ((iSensor == 11) || (iSensor == 17)) *fXTransShiftsRaw.rbegin() *= -1.0;; // phase1b, due to flipping, 90 vs 270 degrees. 
       fXG4[iSensor] = xx;
       size_t iPosY = iPosComma + 1;
       remLine = remLine.substr(iPosY+1);
@@ -468,6 +469,7 @@ namespace g4b{
       if (fDoOnlyYTrans && (fViews[iSensor] != 'Y')) yPosDelta = 0.;		       
       if (fDoOnlyXTrans && (fViews[iSensor] != 'X')) yPosDelta = 0.;		       
       yy += yPosDelta; fYTransShiftsRaw.push_back(yPosDelta);
+      if ((iSensor == 12) || (iSensor == 18)) *fYTransShiftsRaw.rbegin() *= -1.0;; // phase1b, due to flipping, 90 vs 270 degrees. 
       fYG4[iSensor] = yy;
       remLine = remLine.substr(iPosClosePar+1);
       std::cerr << " ... At Sensor " << iSensor << " View " << fViews[iSensor] << " X-delta and Y-delta,  last  " 
