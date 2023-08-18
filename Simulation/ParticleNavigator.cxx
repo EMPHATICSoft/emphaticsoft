@@ -275,9 +275,8 @@ namespace sim
   void ParticleNavigator::clear()
   {
     for ( iterator i = fParticleList.begin(); i != fParticleList.end(); ++i ){
-      delete (*i).second;
+	delete (*i).second;
     }
-
     fParticleList.clear();
     fPrimaries.clear();
 

@@ -1,16 +1,13 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  MCTrajectory.cxx
+/// \file  SRTrajectory.cxx
 /// \brief Container of trajectory information for a particle
-///
-/// \author  seligman@nevis.columbia.edu changes by jpaley@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "cetlib_except/exception.h"
-
-#include "SimulationBase/MCTrajectory.h"
+//#include "cetlib_except/exception.h"
+#include "StandardRecord/SRTrajectory.h"
 
 #include <TLorentzVector.h>
-
+#include <TVector3.h>
 #include <cmath>
 #include <deque>
 #include <iterator>
@@ -18,36 +15,22 @@
 #include <set>
 #include <map>
 
-namespace simb{
-	MCTrajectory::MCTrajectory(): caf::SRTrajectory(){}
-	
-	MCTrajectory::MCTrajectory(const TLorentzVector& position, const TLorentzVector& momentum) 
-		: caf::SRTrajectory(position, momentum){}
-
-
-
-}
-
-
-
-
-/*
-namespace simb {
+namespace caf {
 
   // Nothing special need be done for the default constructor or destructor.
-  MCTrajectory::MCTrajectory() 
+  SRTrajectory::SRTrajectory() 
     : ftrajectory()
   {}
 
   //----------------------------------------------------------------------------
-  MCTrajectory::MCTrajectory( const TLorentzVector& position, 
+  SRTrajectory::SRTrajectory( const TLorentzVector& position, 
 			      const TLorentzVector& momentum )
   {
     ftrajectory.push_back( value_type( position, momentum ) );
   }
 
   //----------------------------------------------------------------------------
-  const TLorentzVector& MCTrajectory::Position( const size_type index ) const
+  const TLorentzVector& SRTrajectory::Position( const size_type index ) const
   {
     const_iterator i = ftrajectory.begin();
     std::advance(i,index);
@@ -55,7 +38,7 @@ namespace simb {
   }
 
   //----------------------------------------------------------------------------
-  const TLorentzVector& MCTrajectory::Momentum( const size_type index ) const
+  const TLorentzVector& SRTrajectory::Momentum( const size_type index ) const
   {
     const_iterator i = ftrajectory.begin();
     std::advance(i,index);
@@ -63,7 +46,7 @@ namespace simb {
   }
 
   //----------------------------------------------------------------------------
-  double MCTrajectory::TotalLength() const
+  double SRTrajectory::TotalLength() const
   {
     const int N = size();
     if(N < 2) return 0;
@@ -78,10 +61,10 @@ namespace simb {
   }
 
   //----------------------------------------------------------------------------
-  std::ostream& operator<< ( std::ostream& output, const MCTrajectory& list )
+  std::ostream& operator<< ( std::ostream& output, const SRTrajectory& list )
   {
     // Determine a field width for the voxel number.
-    MCTrajectory::size_type numberOfTrajectories = list.size();
+    SRTrajectory::size_type numberOfTrajectories = list.size();
     int numberOfDigits = (int) std::log10( (double) numberOfTrajectories ) + 1;
 
     // A simple header.
@@ -89,8 +72,8 @@ namespace simb {
     output << "#" << ": < position (x,y,z,t), momentum (Px,Py,Pz,E) >" << std::endl; 
 
     // Write each trajectory point on a separate line.
-    MCTrajectory::size_type nTrajectory = 0;
-    for ( MCTrajectory::const_iterator trajectory = list.begin(); trajectory != list.end(); ++trajectory, ++nTrajectory ){
+    SRTrajectory::size_type nTrajectory = 0;
+    for ( SRTrajectory::const_iterator trajectory = list.begin(); trajectory != list.end(); ++trajectory, ++nTrajectory ){
         output.width( numberOfDigits );
         output << nTrajectory << ": "
 	       << "< (" << (*trajectory).first.X() 
@@ -108,7 +91,7 @@ namespace simb {
   }
 
   //----------------------------------------------------------------------------
-  unsigned char MCTrajectory::ProcessToKey(std::string const& process) const
+  unsigned char SRTrajectory::ProcessToKey(std::string const& process) const
   {
     unsigned char key = 0;
     
@@ -128,7 +111,7 @@ namespace simb {
   }
   
   //----------------------------------------------------------------------------
-  std::string MCTrajectory::KeyToProcess(unsigned char const& key) const
+  std::string SRTrajectory::KeyToProcess(unsigned char const& key) const
   {
     std::string process("Unknown");
     
@@ -147,7 +130,7 @@ namespace simb {
   }
   
   //----------------------------------------------------------------------------
-  void MCTrajectory::Add(TLorentzVector const& p,
+  void SRTrajectory::Add(TLorentzVector const& p,
                          TLorentzVector const& m,
                          std::string    const& process,
                          bool keepTransportation)
@@ -171,7 +154,8 @@ namespace simb {
   }
 
   //----------------------------------------------------------------------------
-  void MCTrajectory::Sparsify(double margin, bool keep_second_to_last)
+  
+    void SRTrajectory::Sparsify(double margin, bool keep_second_to_last)
   {
     // This is a divide-and-conquer algorithm. If the straight line between two
     // points is close enough to all the intermediate points, then just keep
@@ -211,9 +195,9 @@ namespace simb {
       toCheck.pop_front();
 
       // Should never have been given a degenerate range
-      if(hiIdx < loIdx+2)
-        throw cet::exception("MCTrajectory") << "Degnerate range in Sparsify method";
-
+      if(hiIdx < loIdx+2){
+        //throw cet::exception("SRTrajectory") << "Degnerate range in Sparsify method";
+	}
       const TVector3 loVec = at(loIdx).first.Vect();
       const TVector3 hiVec = at(hiIdx).first.Vect();
 
@@ -236,11 +220,12 @@ namespace simb {
         // Split in half
         const int midIdx = (loIdx+hiIdx)/2;
         // Should never have a range this small
-        if(midIdx == loIdx)
-          throw cet::exception("MCTrajectory") << "Midpoint in sparsification is same as lowpoint";
-        if(midIdx == hiIdx)
-          throw cet::exception("MCTrajectory") << "Midpoint in sparsification is same as hipoint";
-
+        if(midIdx == loIdx){
+          //throw cet::exception("SRTrajectory") << "Midpoint in sparsification is same as lowpoint";
+	}
+        if(midIdx == hiIdx){
+          //throw cet::exception("SRTrajectory") << "Midpoint in sparsification is same as hipoint";
+	}
         // The range can be small enough that upon splitting, the new ranges
         // are degenerate, and should just be written out straight away. Check
         // for those cases.
@@ -298,4 +283,3 @@ namespace simb {
   }
 
 } // namespace sim
-*/
