@@ -6,12 +6,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <fstream>
 #include <cstdlib>
-#include "MagneticField/TestEmphMagneticField.h"
+#include "MagneticField/test/TestEmphMagneticField.h"
 #include "Geant4/Randomize.hh"
 
 namespace emph { 
-  TestEmphMagneticField::TestEmphMagneticField(EMPHATICMagneticField* theField) : fBField(theField) {
-     ;
+  TestEmphMagneticField::TestEmphMagneticField(emph::MagneticField* theField) : 
+    fBField(theField) {
+   
   }
   //
   void TestEmphMagneticField::test1() {
@@ -30,7 +31,7 @@ namespace emph {
     //
     xN[0] = -5.0; xN[1] = 5.0; xN[2] = 190.25; 
     fBField->setInterpolatingOption(0);
-    fBField->MagneticField(xN, B0N); // xN is in mm.. 
+    fBField->Field(xN, B0N); // xN is in mm.. 
     std::cerr << " TestEmphMagneticField::test1, first access, By " << B0N[1] << std::endl; 
 //    std::cerr << " Amazing!...  And quit now.." << std::endl; exit(2);
     xN[0] = -0.55; xN[1] = 1.56; xF[0] = xN[0] + 10.; xF[1] = xN[1] + 10.; 
@@ -40,19 +41,19 @@ namespace emph {
            xN[2] = z;
            xF[2] = z + 10.;
            fBField->setInterpolatingOption(0); // irrelevant if using the Measured map (Sensis probe AP-STD)
-           fBField->MagneticField(xN, B0N); // xN is in mm.. 
-           fBField->MagneticField(xF, B0F);
+           fBField->Field(xN, B0N); // xN is in mm.. 
+           fBField->Field(xF, B0F);
 	   double divB0 = 0.; double b0Norm = 0.;
 	   for (size_t kk=0; kk != 2; kk++) { 
 	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
 	     b0Norm += B0N[kk]*B0N[kk];
 	   }
-	   fOutForR << " " << x << " " << y << " " << z << " " 
+	   fOutForR << " " << xN[0] << " " << xN[1] << " " << xN[2] << " " 
 	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
 		    << std::sqrt(b0Norm) << " " << divB0;
            fBField->setInterpolatingOption(1);
-           fBField->MagneticField(xN, B1N); // xN is in mm.. 
-           fBField->MagneticField(xF, B1F);
+           fBField->Field(xN, B1N); // xN is in mm.. 
+           fBField->Field(xF, B1F);
 	   double divB1 = 0.; double b1Norm = 0.;
 	   for (size_t kk=0; kk != 2; kk++) { 
 	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
@@ -76,8 +77,8 @@ namespace emph {
            xN[2] = z;
            xF[2] = z + 10.;
            fBField->setInterpolatingOption(0);
-           fBField->MagneticField(xN, B0N); // xN is in mm.. 
-           fBField->MagneticField(xF, B0F);
+           fBField->Field(xN, B0N); // xN is in mm.. 
+           fBField->Field(xF, B0F);
 	   double divB0 = 0.; double b0Norm = 0.;
 	   for (size_t kk=0; kk != 2; kk++) { 
 	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
@@ -87,8 +88,8 @@ namespace emph {
 	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
 		    << std::sqrt(b0Norm) << " " << divB0;
            fBField->setInterpolatingOption(1);
-           fBField->MagneticField(xN, B1N); // xN is in mm.. 
-           fBField->MagneticField(xF, B1F);
+           fBField->Field(xN, B1N); // xN is in mm.. 
+           fBField->Field(xF, B1F);
 	   double divB1 = 0.; double b1Norm = 0.;
 	   for (size_t kk=0; kk != 2; kk++) { 
 	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
@@ -119,8 +120,8 @@ namespace emph {
            xN[2] = z;
            xF[2] = z + 10.;
            fBField->setInterpolatingOption(0);
-           fBField->MagneticField(xN, B0N); // xN is in mm.. 
-           fBField->MagneticField(xF, B0F);
+           fBField->Field(xN, B0N); // xN is in mm.. 
+           fBField->Field(xF, B0F);
 	   double divB0 = 0.; double b0Norm = 0.;
 	   for (size_t kk=0; kk != 2; kk++) { 
 	     divB0 += (B0F[kk] - B0N[kk])/10.; // kG/mm 
@@ -130,8 +131,8 @@ namespace emph {
 	            << B0N[0] << " " << B0N[1] << " " << B0N[2] << " " 
 		    << std::sqrt(b0Norm) << " " << divB0;
            fBField->setInterpolatingOption(1);
-           fBField->MagneticField(xN, B1N); // xN is in mm.. 
-           fBField->MagneticField(xF, B1F);
+           fBField->Field(xN, B1N); // xN is in mm.. 
+           fBField->Field(xF, B1F);
 	   double divB1 = 0.; double b1Norm = 0.;
 	   for (size_t kk=0; kk != 2; kk++) { 
 	     divB1 += (B1F[kk] - B1N[kk])/10.; // kG/mm 
@@ -158,7 +159,7 @@ namespace emph {
          xN[0] = -180. + 360.0*static_cast<double>(rand())/RAND_MAX; 
          xN[1] = -180. + 360.0*static_cast<double>(rand())/RAND_MAX; 
          xN[2] = -400. + 400.0*static_cast<double>(rand())/RAND_MAX; 
-         fBField->MagneticField(xN, B1N); // xN is in mm.. 
+         fBField->Field(xN, B1N); // xN is in mm.. 
          if (( k < 5) || ((k % 5000000) == 1) ) 
             std::cerr << " k " << k << " x = " << xN[0] << " y " << xN[1] << " z " << xN[2] << " By " << B1N[1] << std::endl;
       }

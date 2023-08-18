@@ -6,11 +6,7 @@
 //
 #include <fstream>
 #include <cfloat>
-#include "MagneticField/FieldMap.h"
-
-
-
-
+#include "MagneticField/field_map_tools/FieldMap.h"
 
 FieldMap::FieldMap(string mapFile, ProbeCalib calib) : offset(nullptr) {
     double const inch2Meter = 25.4/1000.0;

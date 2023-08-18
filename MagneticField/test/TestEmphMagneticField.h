@@ -17,15 +17,15 @@ namespace emph {
       
       public:
       
-        explicit TestEmphMagneticField(EMPHATICMagneticField* theField);
-	
-        void test1(); // Check that divB ~ 0.;  
-        void test2(); // test integration, study expected deflections.  
-        void test3(); // test calculation of preliminary acceptance sensitivity of beam axis and/or SSD Yaw uncertainty.  
-	
-      private:
-        EMPHATICMagneticField* fBField;
-	
+      explicit TestEmphMagneticField(emph::MagneticField* theField);
+      
+      void test1(); // Check that divB ~ 0.;  
+      void test2(); // test integration, study expected deflections.  
+      void test3(); // test calculation of preliminary acceptance sensitivity of beam axis and/or SSD Yaw uncertainty.  
+      
+    private:
+      emph::MagneticField* fBField;
+      
     };
 
 } // namespace emph 

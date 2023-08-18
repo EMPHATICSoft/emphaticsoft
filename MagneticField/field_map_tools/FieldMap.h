@@ -8,8 +8,6 @@
 #ifndef LppFieldMap_H
 #define LppFieldMap_H
 
-
-
 #include <cfloat>
 #include <vector>
 using std::vector;
@@ -17,7 +15,7 @@ using std::vector;
 #include "MagneticField/field_map_tools/funcs.h"
 #include "MagneticField/field_map_tools/inputtextfile.h"
 #include "MagneticField/field_map_tools/polyMint.h"
-#include "MagneticField/ProbeCalib.h"
+#include "MagneticField/field_map_tools/ProbeCalib.h"
 
 
 

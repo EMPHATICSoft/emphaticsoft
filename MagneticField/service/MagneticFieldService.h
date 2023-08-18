@@ -31,12 +31,12 @@ namespace emph
     
     void preBeginRun(const art::Run& run);
     
-    emph::EMPHATICMagneticField* Field() const { return fMagneticField; }
+    emph::MagneticField* Field() const { return fMagneticField; }
     
   private:
-    emph::EMPHATICMagneticField* fMagneticField;
+    emph::MagneticField* fMagneticField;
     std::string fFieldFileName;
-    int fTestNumber; // Optionally, we will invoke the test just after instantiate the MagneticField class. 
+    //    int fTestNumber; // Optionally, we will invoke the test just after instantiate the MagneticField class. 
     
   };
   

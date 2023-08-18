@@ -21,7 +21,9 @@ FieldFileName: "/emph/data/mag_field_maps/mfMap.txt"
 # or if you run on an other machine, say the goold old laptop Paul Lebrun got to keep for its retirement,  
 #
 #FieldFileName: "/home/lebrun/EMPHATIC/MagFieldMarch29/mfMap.txt"
-  
+
+StoreMapAsStlVector: true  
+Verbosity: 1
 }
 
 END_PROLOG

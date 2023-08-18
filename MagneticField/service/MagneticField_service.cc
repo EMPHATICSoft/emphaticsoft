@@ -7,7 +7,7 @@
 
 // EMPHATIC includes
 #include "MagneticField/service/MagneticFieldService.h"
-#include "MagneticField/TestEmphMagneticField.h"
+//#include "MagneticField/TestEmphMagneticField.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -20,40 +20,10 @@ namespace emph
 				   art::ActivityRegistry & reg)
   {
 
-    reconfigure(pset);
-/*
-    Jonathan decided to by-pass the fcl .. 
-    Not sure this is the best option.. Paul Lebrun, Oct 20 2022. 
-    cet::search_path sp("CETPKG_SOURCE");
+    fMagneticField = new emph::MagneticField();
 
-    std::string fFileName;
-    sp.find_file(fFieldFileName,fFileName);
-    struct stat sb;
-    if ( fFileName.empty() || stat(fFileName.c_str(), &sb)!=0 ) {
-      // failed to resolve the file name
-      throw cet::exception("NoMagFieldMap")
-        << "Magnetic field map file " << fFileName << " not found!\n"
-        << __FILE__ << ":" << __LINE__ << "\n";
-    }
-    
-    fMagneticField = new emph::EMPHATICMagneticField(fFileName);
-*/
-    fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
-    // Temporary tweak and study: assume we have no ziptrack data for the outer core.. 
-    // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
-//    fMagneticField->setUseOnlyTheCentralPart(true);
-    
-    // Testing, if need be 
-    if (fTestNumber != 0) {
-      emph::TestEmphMagneticField myTest(fMagneticField); 
-      switch (fTestNumber) {
-        case 1: { myTest.test1(); break; } 
-        case 2: { myTest.test2(); break; } 
-        case 3: { myTest.test3(); break; } 
-	default: { break;}
-      }
-      std::cerr << " MagneticFieldService::MagneticFieldService, done with test, and quit for now,  " <<std::endl; exit(2);
-    }    
+    reconfigure(pset);
+
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
   }
@@ -66,10 +36,11 @@ namespace emph
   
   //-----------------------------------------------------------
   void MagneticFieldService::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    
-    fFieldFileName = pset.get< std::string >("FieldFileName");
-    fTestNumber = pset.get<int>("TestNumber", 0);
+  {    
+    fMagneticField->SetFieldFileName(pset.get< std::string >("FieldFileName"));
+    fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
+    fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
+
   }
   
   //----------------------------------------------------------

@@ -6,7 +6,7 @@
 //
 
 #include <iostream>
-#include "MagneticField/ProbeCalib.h"
+#include "MagneticField/field_map_tools/ProbeCalib.h"
 
 
 

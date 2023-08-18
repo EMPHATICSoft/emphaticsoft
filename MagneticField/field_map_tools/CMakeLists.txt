@@ -8,6 +8,8 @@ art_make_library(
     inputtextfile.cpp
     quadd.cpp
     polyMint.cpp
+    ProbeCalib.cxx
+    FieldMap.cxx
   LIBRARIES
     ROOT::Core
     ROOT::Geom
