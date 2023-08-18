@@ -7,6 +7,7 @@ Base repository for art-based code
 
 [Running art](#run) <br>
 [Generating documentation](#docs) <br>
+[Developing EMPHATICSoft Code](#develop) <br>
 
 ---
 <a name="gpvm"></a>
@@ -179,6 +180,7 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
 ## Generating documentation
 Refer to [docs](https://github.com/EMPHATICSoft/emphaticsoft/tree/main/docs)
 
+<a name="develop"></a>
 ## How to Develop EMPHATIC Code
 
 In order to make changes to EMPHATIC software, you will need to create your own git Branch.  After you have pulled the emphaticsoft repository, you can create a new branch and switch to it by executing:
