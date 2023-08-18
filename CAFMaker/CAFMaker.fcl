@@ -6,6 +6,8 @@ standard_cafmaker:{
     CAFFilename:   "" # Provide a string to override the automatic filename
     FileExtension: ".caf.root"
     ARingLabel:    "arichreco"
+    GetMCTruth:    true
+    GetMCHits:     false
     SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
 }

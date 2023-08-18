@@ -9,6 +9,7 @@ art_make_library(
   SOURCE ${src_files}
   LIBRARIES PRIVATE
   SimulationBase
+  StandardRecord
   art::Framework_Core
   ROOT::Core
   PUBLIC

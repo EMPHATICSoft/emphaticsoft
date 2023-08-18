@@ -31,6 +31,7 @@ USERACTIONREG3(emph, ParticleListAction, emph::ParticleListAction)
 // C/C++ includes
 #include <algorithm>
 #include <string>
+#include <map>
 
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -100,42 +101,152 @@ namespace emph {
   // the fParentIDMap
   int ParticleListAction::GetParentage(int trackid) const
   {
-    int parentid = sim::kNoParticleId;
-    std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
-    // search the fParentIDMap recursively until we have the parent id 
-    // of the first EM particle that led to this one
-    std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
-    while( itr != fParentIDMap.end() ){
-      std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
-      MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
+	 int parentid = sim::kNoParticleId;
+	 //std::cerr << "Get Parentage!!!!!!! for track ID " << trackid << std::endl;
+   
+	 // search the fParentIDMap recursively until we have the parent id 
+	 // of the first EM particle that led to this one
+	 std::map<int,int>::const_iterator itr = fParentIDMap.find(trackid);
+	 
+	int nIterations = 0;
+	 while( itr != fParentIDMap.end() ){
+		 //std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
+     		 MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
 					 << " " << (*itr).second;
-      // set the parentid to the current parent ID, when the loop ends
-      // this id will be the first EM particle
-      parentid = (*itr).second;
-      itr = fParentIDMap.find(parentid);
-    //  std::cerr << "Parent ID: " << parentid << std::endl;
+      		 // set the parentid to the current parent ID, when the loop ends
+      		 // this id will be the first EM particle
+		 parentid = (*itr).second;
+		 itr = fParentIDMap.find(parentid);
+   		 //  std::cerr << "Parent ID: " << parentid << std::endl;
 
-    //if ( parentid == (*itr).second ) {return parentid;}
-    // if the current id matches its parent, then exit the loop and return the current id.
+   		 //if ( parentid == (*itr).second ) {return parentid;}
+   		 // if the current id matches its parent, then exit the loop and return the current id.
+		++nIterations;
+		if (nIterations > 20){return parentid;}
+   		 }
 
-    }
 
 
+	 MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
 
-    MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
-
-    return parentid;
-  }
+	 return parentid;
+ }
 
   //-------------------------------------------------------------
   // Create our initial sim::Particle object and add it to the sim::ParticleList.
   void ParticleListAction::PreTrackingAction(const G4Track* track)
   {
+	const G4double energy = track->GetKineticEnergy();		// get the kinetic energy
+//		std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
+
+	if (energy < fEnergyCut){   			// if the particle is below the energy cut, we should not add it to the list, and skip it
+//	                  std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
+                fParticle = 0;          		// we do not want to step this particle, so setting fParticle to 0 is ?needed?
+                return;
+        }
+
+	const G4int trackID = track->GetTrackID() + fTrackIDOffset;	// get the track ID for this particle
+	fCurrentTrackID = trackID;					// set the fCurrentTrackID to the actual, real, current particle
+	// size_t mcTruthIndex = 0;					// set the index of this particle in the truth record to 0
+    
+	const G4ParticleDefinition*      partdef = track->GetDefinition();      // on our way to get an MCTruth object assoc. with this track...
+	const G4int                      pdg = partdef->GetPDGEncoding();       // get the particle type
+	const G4DynamicParticle*         dp = track->GetDynamicParticle();      //
+	const G4PrimaryParticle*         pp = dp->GetPrimaryParticle();         // its a surprise tool that'll help us later...
+    
+	//std::cerr << "%%%%% New Particle: trackID = " << trackID << " PDG: " << pdg <<" %%%%%" << std::endl;	
+	
+	//std::cerr << "Energy = " << energy << std::endl;
+    	auto trackPos = track->GetPosition();
+	//std::cerr << "Got Position..." << std::endl;
+	//std::cerr << "In Volume: " << track->GetVolume()->GetLogicalVolume()->GetName() << std::endl;	
+		
+
+	G4int parentID = track->GetParentID() + fTrackIDOffset;			// get the parent id from Geant for free
+
+    	//std::cerr << "Got immediate parent: parentID = " << parentID << std::endl;
+    
+    	
+    	std::string process_name;					// something to record the process by which this particle was produced...
+	int subprocess_name = 0;
+    
+    	if (pp != 0){							// if this is a primary particle, we do something special because it's special
+      		//std::cerr << "Primary Particle!" << std::endl;
+      		const G4VUserPrimaryParticleInformation* gppi = pp->GetUserInformation();
+      		const g4b::PrimaryParticleInformation* ppi = dynamic_cast<const g4b::PrimaryParticleInformation*>(gppi);	// no idea what this does
+      
+      		if (ppi != 0){
+			process_name = "Primary";
+			parentID = 0;					// even primary particles deserve a parent... in this case, it's 0
+			// mcTruthIndex = ppi->MCTruthIndex();		// grab the index for the primary particle
+			// std::cerr << "Got mcTruthIndex for trackid " << trackID << std::endl;
+      		}
+      		else{
+			throw cet::exception("ParticleListAction") << "ppi = 0 for trackid " << trackID << std::endl;
+      		}
+    	}	
+    	else{						
+      		// keep all information for now, even for EM shower.  Sometime later we will probably apply cuts so that 
+      		// if it is part of the EM shower, we don't want to keep a bunch of electrons, and we will go back and find
+      		// the parent of the particle that isn't another shower-er
+		
+      		process_name = track->GetCreatorProcess()->GetProcessName();	// record the particle's process            
+		//std::cerr << "Secondary Particle! Process: " << process_name << std::endl;
+
+		
+		fParentIDMap.emplace(fCurrentTrackID, parentID);		// place the particle and its parent in the id map
+
+      		//std::cerr << "Shower Particle! Added " << fCurrentTrackID << " and " << parentID << " to the fParentIDMap" << std::endl;
+      
+      		// we want to exclude particles which are daughters of particles we don't care about,
+		// check if the immediate parent is in the particle list
+      
+      		if (fParticleNav->find(parentID) == fParticleNav->end()){	// if it isn't...
+			//std::cerr << "Immediate parent " << parentID << " isn't in fParticleNav... halting tracking..." << std::endl;
+	  		fCurrentTrackID = sim::kNoParticleId;			
+	  		fParticle = 0;						// reset, skip the whole particle
+	  		return;
+		}
+		else{
+			// we want to find the sim::Particle of the parent from fParticleNav, maybe grab a pointer to it, and execute something
+			// like this to make sure every (relevant) parent has access to their (relevant) daughter particles
+			//std::cerr << "Found parent in fParticleNav..." << std::endl;
+			sim::ParticleNavigator::iterator parentEntry = fParticleNav->find(parentID);	// get the parent entry from fParticleNav
+			sim::Particle* parent = (*parentEntry).second;					// get the pointer to the parent particle
+			parent->AddDaughter(trackID);							// add the daughter to the parent
+			//std::cerr << "Added to parent: " << parentID << std::endl;
+			//std::cerr << "Parent has new daughter with ID: " << parent->Daughter(0) << std::endl;
+		}
+	}
+            
+	
+        fParticle = new sim::Particle(trackID, pdg, process_name, parentID, dp->GetMass()/CLHEP::GeV);
+		
+      	const G4ThreeVector& polarization = track->GetPolarization();			// and make a polarization vector
+      	fParticle->SetPolarization(TVector3(polarization.x(), polarization.y(), polarization.z()));
+	
+	const G4ThreeVector& momentum = track->GetMomentum();                           // get the momentum 
+	
+	const TLorentzVector& momentumHolder = TLorentzVector(momentum[0], momentum[1], momentum[2], track->GetTotalEnergy());
+	const TLorentzVector& positionHolder = TLorentzVector(trackPos[0], trackPos[1], trackPos[2], track->GetGlobalTime());
+	
+	fParticle->AddTrajectoryPoint(positionHolder, momentumHolder);
+ 
+      	fParticleNav->Add(fParticle);
+      	//std::cerr << "Added fParticle! trackID: " << fParticle->TrackId() << ", PDG: " << fParticle->PdgCode() << ", process: " << fParticle->Process()
+	//		<< ", parentID: " << fParticle->Mother() << ", Mass: " << fParticle->Mass()
+	//		<< " Momentum: (" << fParticle->Px() << ", " << fParticle->Py() << ", " << fParticle->Pz() << ")" << std::endl;
+      	
+  }	
+
+	
+
+/*    
     // get the track ID for this particle
     const G4int trackID = track->GetTrackID() + fTrackIDOffset;
     fCurrentTrackID = trackID;
     size_t mcTruthIndex = 0;
-    
+
     // get the parent id from Geant for the current track:
     G4int parentID = track->GetParentID() + fTrackIDOffset;
     std::cerr << "Got Parent ID" << parentID << " for track ID " << trackID << std::endl;
@@ -255,7 +366,7 @@ namespace emph {
 	  
 	  // do add the particle to the parent id map though
 	  // and set the current track id to be it's ultimate parent
-	  fParentIDMap.emplace(fCurrentTrackID, parentID);  // this also checks if the key is unique.  If so, does nothing. 
+	  // fParentIDMap.emplace(fCurrentTrackID, parentID);  // this also checks if the key is unique.  If so, does nothing. 
 
           std::cerr << "Before parentage!!!!!!" << std::endl;
           std::cerr << "fCurrentTrackID: " << fCurrentTrackID << " parentID: " << parentID << std::endl;
@@ -264,7 +375,7 @@ namespace emph {
 
           std::cerr << "ProcessName: " << process_name << std::endl;
 
-	  fCurrentTrackID = this->GetParentage(fCurrentTrackID); // Why this ???? 
+	  //fCurrentTrackID = this->GetParentage(fCurrentTrackID); // Why this ???? 
 
           std::cerr << "Getting Parent" << std::endl;
 
@@ -335,7 +446,9 @@ namespace emph {
     }
 
     return;
+
   }
+*/
 
   //-------------------------------------------------------------
   void ParticleListAction::PostTrackingAction( const G4Track* )
@@ -351,7 +464,7 @@ namespace emph {
     // disgusting static pointer.. Set to zero above.. Let us not use it The SSD (or ARICH, or..) do store similar information.. 
     // I do not see the point of storing such information.. 
 
-    return;
+    //return;
     if ( !fParticle ) return;
     
     // For the most part, we just want to add the post-step
@@ -359,7 +472,7 @@ namespace emph {
     // exception: In PreTrackingAction, the correct time information
     // is not available.  So add the correct vertex information here.
 
-    std::cerr << "Stepping into trajecotry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
+    std::cerr << "Stepping into trajectry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
 
     if ( fParticle->NumberTrajectoryPoints() == 0 ){
       // Get the pre-step information from the G4Step.

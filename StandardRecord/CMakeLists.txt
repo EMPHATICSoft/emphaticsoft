@@ -1,5 +1,7 @@
 include(ArtDictionary)
 include(ArtMake)
+include(CetMake)
+include(BasicPlugin)
 
 add_subdirectory(Proxy)
 
@@ -20,6 +22,7 @@ cet_make_library( LIBRARY_NAME StandardRecord
 		  LIBRARIES    ${ROOT_BASIC_LIB_LIST}
 		  	       ${ROOT_CORE}
 			       ${ROOT_LIBRARIES}
+			       ROOT::EG
 		)
 
 build_dictionary( StandardRecord

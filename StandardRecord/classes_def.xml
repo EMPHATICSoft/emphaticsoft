@@ -1,6 +1,7 @@
 <lcgdict>
 
- <class name="caf::StandardRecord" ClassVersion="13" >
+ <class name="caf::StandardRecord" ClassVersion="14" >
+  <version ClassVersion="14" checksum="101113006"/>
   <version ClassVersion="13" checksum="142906859"/>
   <version ClassVersion="12" checksum="2588380332"/>
   <version ClassVersion="11" checksum="1542996796"/>
@@ -45,4 +46,24 @@
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
+ <class name="caf::SRTruth" ClassVersion="16" >
+  <version ClassVersion="16" checksum="2143789429"/>
+  <version ClassVersion="15" checksum="1677831554"/>
+  <version ClassVersion="14" checksum="2640008266"/>
+  <version ClassVersion="13" checksum="2186144378"/>
+  <version ClassVersion="12" checksum="1103954238"/>
+  <version ClassVersion="11" checksum="225587328"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+
+ <class name="caf::SRParticle" ClassVersion="-1" >
+  <version ClassVersion="-1" checksum="1"/>
+ </class>
+ <class name="caf::SRTrueParticle" ClassVersion="-1" >
+  <version ClassVersion="-1" checksum="1"/>
+ </class>
+<class name="std::vector<caf::SRTrueParticle>" />
+ <class name="caf::SRTrajectory" ClassVersion="-1" >
+  <version ClassVersion="-1" checksum="1"/>
+ </class>
 </lcgdict>

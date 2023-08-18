@@ -33,7 +33,7 @@ physics:
 {
   producers:
   {
-	generator: @local::piplus_beamgen
+	generator: @local::proton_beamgen
 	geantgen:  @local::standard_geant4
   }
 

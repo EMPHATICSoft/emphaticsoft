@@ -1,9 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  MCTrajectory.h
-/// \version $Id: MCTrajectory.h,v 1.6 2012-11-01 19:18:11 brebel Exp $
-/// \brief Trajectory class
-///
-/// \author  seligman@nevis.columbia.edu, changes by jpaley@fnal.gov
+/// \file  SRTrajectory.h
 ////////////////////////////////////////////////////////////////////////
 
 /// This class describes the trajectory of a particle created in the
@@ -14,7 +10,7 @@
 
 /// - Methods Position(int) and Momentum(int) for those who are unfamiliar with the
 ///   concept of "first" and "second" as used with STL pairs:
-///      sim::Trajectory* trajectory = simb::MCParticle.Trajectory();
+///      sim::Trajectory* trajectory = caf::MCParticle.Trajectory();
 ///      int numberOfPonts = trajectory->size();
 ///      for (int i=0; i<numberOfPoints; ++i)
 ///        {
@@ -22,7 +18,7 @@
 ///           TLorentzVector momentum = trajectory->Momentum(i);
 ///        }
 ///   The STL equivalent to the above statements (more efficient):
-///      sim::Trajectory* trajectory = simb::MCParticle.Trajectory();
+///      sim::Trajectory* trajectory = caf::MCParticle.Trajectory();
 ///      for ( sim::Trajectory::const_iterator i = trajectory->begin();
 ///            i != trajectory->end(); ++i )
 ///        {
@@ -45,37 +41,17 @@
 /// Geant4, the units will be (mm,ns,GeV), but this class does not
 /// enforce this.
 
-
-
-
-
-
-
-
-#ifndef SIMB_MCTRAJECTORY_H
-#define SIMB_MCTRAJECTORY_H
+#ifndef SRTRAJECTORY_H
+#define SRTRAJECTORY_H
 
 #include <vector>
 #include <iostream>
-
 #include <TLorentzVector.h>
-#include "StandardRecord/SRTrajectory.h"
+#include "StandardRecord/SRVector3D.h"
 
-namespace simb{
-	class MCTrajectory: public caf::SRTrajectory {
-	public:
-		MCTrajectory();
-		MCTrajectory(const TLorentzVector& position, const TLorentzVector& momentum); 
-		~MCTrajectory(){std::cerr << "Destructing simb::MCTrajectory\n";};		
-	};
-}
+namespace caf {
 
-
-
-/*
-namespace simb {
-
-  class MCTrajectory {
+  class SRTrajectory {
   public:
     /// Some type definitions to make life easier, and to help "hide"
     /// the implementation details.  (If you're not familiar with STL,
@@ -91,8 +67,8 @@ namespace simb {
     typedef std::vector< std::pair<size_t, unsigned char> >           ProcessMap;
     /// Standard constructor: Start with initial position and momentum
     /// of the particle.
-    MCTrajectory();
-
+    SRTrajectory();
+    //virtual ~SRTrajectory(){std::cerr << "Destructing caf::SRTrajectory\n";};
   private:
     list_type  ftrajectory;        ///< The list of trajectory points
     ProcessMap fTrajectoryProcess; ///< map of the scattering process to index
@@ -100,7 +76,7 @@ namespace simb {
 
   public:
 
-    MCTrajectory( const TLorentzVector& vertex,
+    SRTrajectory( const TLorentzVector& vertex,
                   const TLorentzVector& momentum );
 
     /// The accessor methods described above.
@@ -117,7 +93,7 @@ namespace simb {
 
     double TotalLength() const;
 
-    friend std::ostream& operator<< ( std::ostream& output, const MCTrajectory& );
+    friend std::ostream& operator<< ( std::ostream& output, const SRTrajectory& );
 
     /// Standard STL methods, to make this class look like an STL map.
     /// Again, if you don't know STL, you can just ignore these
@@ -133,7 +109,7 @@ namespace simb {
 
     size_type size()                    const;
     bool      empty()                   const;
-    void      swap(simb::MCTrajectory& other);
+    void      swap(caf::SRTrajectory& other);
     void      clear();
 
     // Note that there's no non-const version of operator[] or at() here; once
@@ -164,49 +140,47 @@ namespace simb {
 
   };
 
-} // namespace simb
+} // namespace caf
 
-inline double           simb::MCTrajectory::X ( const size_type i ) const { return Position(i).X();      }
-inline double           simb::MCTrajectory::Y ( const size_type i ) const { return Position(i).Y();      }
-inline double           simb::MCTrajectory::Z ( const size_type i ) const { return Position(i).Z();      }
-inline double           simb::MCTrajectory::T ( const size_type i ) const { return Position(i).T();      }
-inline double           simb::MCTrajectory::Px( const size_type i ) const { return Momentum(i).Px();     }
-inline double           simb::MCTrajectory::Py( const size_type i ) const { return Momentum(i).Py();     }
-inline double           simb::MCTrajectory::Pz( const size_type i ) const { return Momentum(i).Pz();     }
-inline double           simb::MCTrajectory::E ( const size_type i ) const { return Momentum(i).E();      }
+inline double           caf::SRTrajectory::X ( const size_type i ) const { return Position(i).X();      }
+inline double           caf::SRTrajectory::Y ( const size_type i ) const { return Position(i).Y();      }
+inline double           caf::SRTrajectory::Z ( const size_type i ) const { return Position(i).Z();      }
+inline double           caf::SRTrajectory::T ( const size_type i ) const { return Position(i).T();      }
+inline double           caf::SRTrajectory::Px( const size_type i ) const { return Momentum(i).Px();     }
+inline double           caf::SRTrajectory::Py( const size_type i ) const { return Momentum(i).Py();     }
+inline double           caf::SRTrajectory::Pz( const size_type i ) const { return Momentum(i).Pz();     }
+inline double           caf::SRTrajectory::E ( const size_type i ) const { return Momentum(i).E();      }
 
-inline simb::MCTrajectory::iterator               simb::MCTrajectory::begin()             { return ftrajectory.begin();  }
-inline simb::MCTrajectory::const_iterator         simb::MCTrajectory::begin()       const { return ftrajectory.begin();  }
-inline simb::MCTrajectory::iterator               simb::MCTrajectory::end()               { return ftrajectory.end();    }
-inline simb::MCTrajectory::const_iterator         simb::MCTrajectory::end()         const { return ftrajectory.end();    }
-inline simb::MCTrajectory::reverse_iterator       simb::MCTrajectory::rbegin()            { return ftrajectory.rbegin(); }
-inline simb::MCTrajectory::const_reverse_iterator simb::MCTrajectory::rbegin()      const { return ftrajectory.rbegin(); }
-inline simb::MCTrajectory::reverse_iterator       simb::MCTrajectory::rend()              { return ftrajectory.rend();   }
-inline simb::MCTrajectory::const_reverse_iterator simb::MCTrajectory::rend()        const { return ftrajectory.rend();   }
-inline simb::MCTrajectory::size_type              simb::MCTrajectory::size()        const { return ftrajectory.size();   }
-inline bool                                       simb::MCTrajectory::empty()       const { return ftrajectory.empty();  }
-inline void                                       simb::MCTrajectory::clear()             { ftrajectory.clear();         }
-inline void                                       simb::MCTrajectory::swap(simb::MCTrajectory& other)
+inline caf::SRTrajectory::iterator               caf::SRTrajectory::begin()             { return ftrajectory.begin();  }
+inline caf::SRTrajectory::const_iterator         caf::SRTrajectory::begin()       const { return ftrajectory.begin();  }
+inline caf::SRTrajectory::iterator               caf::SRTrajectory::end()               { return ftrajectory.end();    }
+inline caf::SRTrajectory::const_iterator         caf::SRTrajectory::end()         const { return ftrajectory.end();    }
+inline caf::SRTrajectory::reverse_iterator       caf::SRTrajectory::rbegin()            { return ftrajectory.rbegin(); }
+inline caf::SRTrajectory::const_reverse_iterator caf::SRTrajectory::rbegin()      const { return ftrajectory.rbegin(); }
+inline caf::SRTrajectory::reverse_iterator       caf::SRTrajectory::rend()              { return ftrajectory.rend();   }
+inline caf::SRTrajectory::const_reverse_iterator caf::SRTrajectory::rend()        const { return ftrajectory.rend();   }
+inline caf::SRTrajectory::size_type              caf::SRTrajectory::size()        const { return ftrajectory.size();   }
+inline bool                                       caf::SRTrajectory::empty()       const { return ftrajectory.empty();  }
+inline void                                       caf::SRTrajectory::clear()             { ftrajectory.clear();         }
+inline void                                       caf::SRTrajectory::swap(caf::SRTrajectory& other)
                                                                                 { ftrajectory.swap( other.ftrajectory ); }
 
-inline const simb::MCTrajectory::value_type&      simb::MCTrajectory::operator[](const simb::MCTrajectory::size_type i) const
+inline const caf::SRTrajectory::value_type&      caf::SRTrajectory::operator[](const caf::SRTrajectory::size_type i) const
                                                                                                 { return ftrajectory[i]; }
 
-inline const simb::MCTrajectory::value_type&      simb::MCTrajectory::at(const simb::MCTrajectory::size_type i)         const
+inline const caf::SRTrajectory::value_type&      caf::SRTrajectory::at(const caf::SRTrajectory::size_type i)         const
                                                                                              { return ftrajectory.at(i); }
 
-inline void                                       simb::MCTrajectory::push_back(const simb::MCTrajectory::value_type& v )
+inline void                                       caf::SRTrajectory::push_back(const caf::SRTrajectory::value_type& v )
                                                                                              { ftrajectory.push_back(v); }
 
-inline void                                       simb::MCTrajectory::push_back(const TLorentzVector& p,
+inline void                                       caf::SRTrajectory::push_back(const TLorentzVector& p,
                                                                                 const TLorentzVector& m )
-                                                         { ftrajectory.push_back( simb::MCTrajectory::value_type(p,m) ); }
+                                                         { ftrajectory.push_back( caf::SRTrajectory::value_type(p,m) ); }
 
-inline void                                       simb::MCTrajectory::Add(const TLorentzVector& p,
+inline void                                       caf::SRTrajectory::Add(const TLorentzVector& p,
                                                                           const TLorentzVector& m )    { push_back(p,m); }
 
-inline simb::MCTrajectory::ProcessMap    const&   simb::MCTrajectory::TrajectoryProcesses() const { return fTrajectoryProcess; }
+inline caf::SRTrajectory::ProcessMap    const&   caf::SRTrajectory::TrajectoryProcesses() const { return fTrajectoryProcess; }
 
-*/
-
-#endif // SIMB_MCTRAJECTORY_H
+#endif // SRTrajectory_H
