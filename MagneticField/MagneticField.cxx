@@ -241,16 +241,18 @@ namespace emph {
       if (fStorageIsStlVector) {  
 	size_t ii = this->indexForVector(numbers);
 	if (ii < fBfield.size()) { 
-	  fBfield[ii].fbx = 10.0*numbers[3]; fBfield[ii].fby =10.0* numbers[4]; fBfield[ii].fbz = 10.0*numbers[5]; // Tesla to KG
+	  fBfield[ii].fbx = numbers[3]; 
+	  fBfield[ii].fby = numbers[4]; 
+	  fBfield[ii].fbz = numbers[5]; 
 	}
       } else {
 	int indX = static_cast<int>(floor(numbers[0]-start[0])/step);
 	int indY = static_cast<int>(floor(numbers[1]-start[1])/step);
 	int indZ = static_cast<int>(floor(numbers[2]-start[2])/step);
 	std::vector<double> temp;
-	temp.push_back(numbers[3]*10.); // Tesla to kG. 
-	temp.push_back(numbers[4]*10.);
-	temp.push_back(numbers[5]*10.);
+	temp.push_back(numbers[3]); // Tesla to kG. 
+	temp.push_back(numbers[4]);
+	temp.push_back(numbers[5]);
 	fFieldMap[indX][indY][indZ] = temp;
       }
     }
