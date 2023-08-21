@@ -30,8 +30,8 @@ cet_build_plugin(MakeTrack art::module
     ToFUtil
     RawData
     RecoBase
-    ChannelMap
-	 RunHistory
+    ChannelMapService_service
+    Geometry_service    
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Core

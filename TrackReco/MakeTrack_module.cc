@@ -34,9 +34,8 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // EMPHATICSoft includes
-#include "ChannelMap/ChannelMap.h"
-#include "RunHistory/RunHistory.h"
-#include "Geometry/Geometry.h"
+#include "ChannelMap/service/ChannelMapService.h"
+#include "Geometry/service/GeometryService.h"
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/DetGeoMap.h"
 #include "RecoBase/LineSegment.h"
@@ -54,7 +53,7 @@ namespace emph {
   class MakeTrack : public art::EDProducer {
   public:
     explicit MakeTrack(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-    //~MakeTrack();
+    ~MakeTrack() {};
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
@@ -72,9 +71,6 @@ namespace emph {
     
   private:
   
-    emph::cmap::ChannelMap* fChannelMap;
-    runhist::RunHistory* fRunHistory;
-    emph::geo::Geometry* emgeo;
     TTree*      spacepoint;
     int run,subrun,event;
     int         fEvtNum;
@@ -181,15 +177,14 @@ namespace emph {
   
   void MakeTrack::beginRun(art::Run& run)
   {
-    fChannelMap = new emph::cmap::ChannelMap();
-    fRunHistory = new runhist::RunHistory(run.run());
-    fChannelMap->LoadMap(fRunHistory->ChanFile());
-    emgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+    art::ServiceHandle<emph::cmap::ChannelMapService> fChannelMap;
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto emgeo = geo->Geo();
 
     for (int fer=0; fer<10; ++fer){
       for (int mod=0; mod<6; ++mod){
         emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
-        if (!fChannelMap->IsValidEChan(echan)) continue;
+        if (!fChannelMap->CMap()->IsValidEChan(echan)) continue;
           emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 
         const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
