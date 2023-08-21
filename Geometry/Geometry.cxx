@@ -136,20 +136,28 @@ namespace emph {
       mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
 					<< fGDMLFile << "\n";
 
-      //      if (fGeoManager) delete fGeoManager;
+      if (fGeoManager) delete fGeoManager;
+
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
       int old_verbosity = gGeoManager->GetVerboseLevel();
 
       // TGeoManager is too verbose when loading geometry.
       // Make it quiet.
-      gGeoManager->SetVerboseLevel(0);
+      fGeoManager->SetVerboseLevel(0);
+      fGeoManager->LockDefaultUnits(0);
+      fGeoManager->SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
+      fGeoManager->LockDefaultUnits(1);
+      fGeoManager->Import(fGDMLFile.c_str());
 
-      //fGeoManager->Import(fname.c_str());
+      //      fGeoManager->Import(fname.c_str());
+      /*
       TGeoManager::LockDefaultUnits(0);
       TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
       TGeoManager::LockDefaultUnits(1);
       TGeoManager::Import(fGDMLFile.c_str());
-
-      fGeoManager = gGeoManager;
+      */
+      //      fGeoManager = new TGeoManager( *gGeoManager);
 
       mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
 
