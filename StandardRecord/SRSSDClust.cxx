@@ -12,6 +12,7 @@ namespace caf
   
     station(std::numeric_limits<int>::signaling_NaN()),
     sens(std::numeric_limits<int>::signaling_NaN()),
+    plane(std::numeric_limits<int>::signaling_NaN()),
     avgstrip(std::numeric_limits<double>::signaling_NaN()),
     wgtavgstrip(std::numeric_limits<double>::signaling_NaN()),
     wgtrmsstrip(std::numeric_limits<double>::signaling_NaN()),

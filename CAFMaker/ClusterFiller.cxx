@@ -13,9 +13,7 @@ namespace caf
 {
   void ClusterFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
-    art::Handle< std::vector <rb::SSDCluster> > clusterv;
-
-    evt.getByLabel(fLabel, clusterv); //fLabel -> fParams.SSDClusterLabel()
+    auto clusterv = evt.getHandle<std::vector <rb::SSDCluster> >(fLabel);
 
     if(!fLabel.empty() && clusterv.failedToGet()) {
       std::cout << "CAFMaker: No product of type '"
@@ -42,6 +40,7 @@ namespace caf
       srSSDClust.width = ssdclusters[clusterId].Width();
       srSSDClust.sens = ssdclusters[clusterId].Sensor();
       srSSDClust.station = ssdclusters[clusterId].Station();
+      srSSDClust.plane = ssdclusters[clusterId].Plane();
       srSSDClust.ndigits = ssdclusters[clusterId].NDigits();
 
     } // end for clusterId
