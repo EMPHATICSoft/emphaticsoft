@@ -153,6 +153,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
 		  int station, int sensor)
 { 
   geo::sensorView view = planeViewMap[std::make_pair(station,sensor)].second;
+  int plane = planeViewMap[std::make_pair(station,sensor)].first;
 
   int prevRow=sensDigits[0]->Row();
   int curRow;
@@ -165,6 +166,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
     if ( curRow-prevRow > (fRowGap) ) {
       ssdClust.SetStation(station);
       ssdClust.SetSensor(sensor);
+      ssdClust.SetPlane(plane);
       ssdClust.SetView(view);
       sensClusters->push_back(ssdClust);
       ssdClust = rb::SSDCluster();
@@ -177,6 +179,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   // push last cluster
   ssdClust.SetStation(station);
   ssdClust.SetSensor(sensor);
+  ssdClust.SetPlane(plane);
   ssdClust.SetView(view);
   sensClusters->push_back(ssdClust);
 

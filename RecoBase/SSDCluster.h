@@ -44,10 +44,12 @@ namespace rb {
 
     void SetStation(int station) {fStation = station;}
     void SetSensor(int sensor)   {fSensor = sensor;}
+    void SetPlane(int plane)     {fPlane  = plane;}
     void SetView(emph::geo::sensorView view)      {fView = view;}
 
     int    Station()  const { return fStation; }
-    int    Sensor()    const { return fSensor; } 
+    int    Sensor()   const { return fSensor; } 
+    int    Plane()    const { return fPlane; }
     emph::geo::sensorView View() const { return fView; }
     double WgtAvgStrip() const;
     double WgtRmsStrip() const;
@@ -69,6 +71,7 @@ namespace rb {
     int fID;
     int fStation;
     int fSensor;
+    int fPlane;
     emph::geo::sensorView fView;
   };
   
