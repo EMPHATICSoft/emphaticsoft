@@ -3,6 +3,7 @@
 #include "Geometry.fcl"
 #include "CAFMaker.fcl"
 
+#include "SpillInfo.fcl"
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
 
@@ -17,6 +18,7 @@ services:
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
   Geometry: @local::standard_geometry
+  IFBeam:{}
 }
 
 #Start each new event with an empty event.
@@ -40,6 +42,7 @@ physics:
 {
   producers:
   {
+    spillinfo: @local::standard_spillinfo
     arichreco: @local::standard_arichreco
     ssdclusts: @local::standard_ssdclust
     cafmaker:  @local::standard_cafmaker
@@ -47,7 +50,7 @@ physics:
 
   analyzers:{}
 
-  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+  makecaf:   [ spillinfo, arichreco, ssdclusts, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false
