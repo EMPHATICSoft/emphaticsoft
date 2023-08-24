@@ -14,12 +14,10 @@
  <class name="std::pair<size_t, unsigned char>"                                   />
  <class name="std::vector< std::pair<size_t, unsigned char> >"                    />
 
- <class name="simb::MCParticle"    ClassVersion="11"                               >
-  <version ClassVersion="11" checksum="3004880"/>
+ <class name="simb::MCParticle"    ClassVersion="10"                               >
   <version ClassVersion="10" checksum="275984218"/>
  </class>
- <class name="simb::MCTrajectory"  ClassVersion="12"                               >
-  <version ClassVersion="12" checksum="3167233513"/>
+ <class name="simb::MCTrajectory"  ClassVersion="11"                               >
   <version ClassVersion="11" checksum="749513453"/>
   <version ClassVersion="10" checksum="1656038010"/>
  </class>

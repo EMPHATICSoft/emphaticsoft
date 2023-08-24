@@ -25,7 +25,7 @@
 #include "G4EMPH/SSDHitAction.h"
 #include "G4EMPH/FastStopAction.h"
 #include "G4EMPH/OpticalAction.h"
-#include "G4EMPH/ParticleListAction.h"
+//#include "G4EMPH/ParticleListAction.h"
 #include "G4EMPH/TrackListAction.h"
 #include "G4EMPH/TOPAZLGHitAction.h"
 #include "G4EMPH/ARICHHitAction.h"
@@ -54,7 +54,6 @@ namespace emph {
     , fManyParticles      (pset.get< bool            >("ManyParticles")  )
     , fSparseTrajectories (pset.get< bool            >("SparseTrajectories") )
     , fGenModuleLabel     (pset.get< std::string     >("GenModuleLabel")     )
-    , fPlatIndex(0)
     , fPlaIndex(0)
     , fShaIndex(0)
     , fSLGhaIndex(0)
@@ -141,9 +140,9 @@ namespace emph {
 // The ParticleNavigator goes into infinite loop, and we do not need it.. We use something simpler. The particle ancestry is also 
 // availabe in the for of the G4Track ancestry.  Which, in our case, is much simpler than for the typical Neutrino experiment
 // We do tracking, mostly..     
-    emph::ParticleListAction* pl  = new emph::ParticleListAction(fEnergyThresh,fManyParticles);
-    pl->SetName("emph::ParticleListAction");
-    pl->Config( pset );
+//    emph::ParticleListAction* pl  = new emph::ParticleListAction(fEnergyThresh,fManyParticles);
+//    pl->SetName("emph::ParticleListAction");
+//    pl->Config( pset );
     
     emph::TrackListAction* ptl  = new emph::TrackListAction();
     ptl->SetName("emph::TrackListAction");
@@ -178,21 +177,20 @@ namespace emph {
     //if (false) std::cerr << "RWH: fPlaIndex " << fPlaIndex
     //          << " vs " << uam->GetIndex("g4n::ParticleListAction")
     //          << std::endl
-    uam->AddAndAdoptAction(pl);    
+    
     uam->AddAndAdoptAction(ptl);
     uam->AddAndAdoptAction(sh);   
     uam->AddAndAdoptAction(sh2);   
     uam->AddAndAdoptAction(sh3);
     uam->AddAndAdoptAction(sh4);
     uam->AddAndAdoptAction(sh5);
-    // Should we bother with this.. ??? It seems that it is hardcoded in 
-    fPlatIndex = 0;   
-    fPlaIndex = 1; // Again, could change. 
-    fShaIndex =2; // SSD is the 2nd one..   Might change is we add others !  See above.. Very Sneaky.. 
-    fSLGhaIndex = 3; // TOPAZLG is the 3rd one..   Yack,.. who knows..  
-    fSARICHhaIndex = 4; // ARICH 
-    fStopActionIndex = 5;
-    fOpticalActionIndex = 6;
+    // Should we bother with this.. ??? It seems that it is hardcoded in    
+    fPlaIndex = 0; // Again, could change. 
+    fShaIndex = 1; // SSD is the 2nd one..   Might change is we add others !  See above.. Very Sneaky.. 
+    fSLGhaIndex = 2; // TOPAZLG is the 3rd one..   Yack,.. who knows..  
+    fSARICHhaIndex = 3; // ARICH 
+    fStopActionIndex = 4;
+    fOpticalActionIndex = 5;
     
     ConfigUserActionManager(fUserActions,pset);
 
@@ -321,13 +319,12 @@ namespace emph {
                        std::vector<sim::TOPAZLGHit> & lghitlist,
                        std::vector<sim::ARICHHit> & arichhitlist,
                        std::vector< sim::Track >& tracklist,
-		       std::vector< sim::Particle >& particlelist,
                        std::map<int, size_t>& trackIDToMCTruthIndex)
   {
     
     g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-   // dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
-    ParticleListAction* plat = dynamic_cast<ParticleListAction *>(uam->GetAction(fPlatIndex));
+    //dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
+//    ParticleListAction* pla = dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex));
     TrackListAction* pla = dynamic_cast<TrackListAction *>(uam->GetAction(fPlaIndex));
 //    pla->ResetTrackIDOffset();
     // getting instance of particle list action.
@@ -336,7 +333,7 @@ namespace emph {
     TOPAZLGHitAction* shLG = dynamic_cast<TOPAZLGHitAction *>(uam->GetAction(fSLGhaIndex));
     ARICHHitAction* shARICH = dynamic_cast<ARICHHitAction *>(uam->GetAction(fSARICHhaIndex));
 
-    particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
+//    particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     tracklist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     ssdhitlist.clear();
     lghitlist.clear();
@@ -358,9 +355,8 @@ namespace emph {
     }
     fG4Help->G4Run(mctruths);
     
-   //  trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
-    particlelist = plat->GetList();
-    // getting particle list from particlelist
+    //trackIDToMCTruthIndex = pla->TrackIDToMCTruthIndexMap();
+
     tracklist = pla->GetAllTracks();
     // getting track list from particlelistaction.cxx
     ssdhitlist = sh->GetAllHits();
@@ -388,13 +384,13 @@ namespace emph {
                        std::vector< sim::Track >   & ,
                        int                              trackIDOffset)
   {
-    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
+//    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
+//    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
 
     MF_LOG_DEBUG("G4Alg") << *mctruth;
 
     if(trackIDOffset > 0){
-      dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset(trackIDOffset);
+//      dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset(trackIDOffset);
        std::cerr << " G4Alg::RunGeant  trackIDOffset is not use when dealing only with sim::Track list " << std::endl; 
     }
 
@@ -407,8 +403,8 @@ namespace emph {
   bool G4Alg::IsAborted()
   {
     return false;
-    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
-    return dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->IsAborted();
+//    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
+//    return dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->IsAborted();
   } // Check whether Geant event was aborted
  
 } // end namespace
