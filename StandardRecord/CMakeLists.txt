@@ -9,7 +9,7 @@ add_subdirectory(Proxy)
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( $ENV{ROOT_INC} )
 
-cet_find_package( ROOT COMPONENTS Core REQUIRED )
+find_package( ROOT COMPONENTS Core REQUIRED )
 
 set( PACKAGE StandardRecord )
 FILE( GLOB src_files *.cxx )
