@@ -27,12 +27,13 @@ namespace sim
                      const int mother,
                      const double mass,
                      const int status)
-    : caf::SRParticle(trackId, pdg, process, mother, mass, status)
+    : simb::MCParticle(trackId, pdg, process, mother, mass, status)
   {
   }
 
   //...................................................................
-  /*Particle::~Particle(): 
-  {}
-*/
+  Particle::~Particle() 
+  {
+  }
+
 }

@@ -8,11 +8,12 @@
 #define SIM_PARTICLE_H
 
 #include <vector>
-#include "StandardRecord/SRParticle.h"
+#include "SimulationBase/MCParticle.h"
+#include "SimulationBase/MCTruth.h"
 
 namespace sim {
   /// A single unit of energy deposition in the liquid scintillator
-  class Particle : public caf::SRParticle {
+  class Particle : public simb::MCParticle {
   public:
     /// An indicator for an uninitialized variable (see Particle.cxx).
     static const int s_uninitialized; //! Don't write this as ROOT output
@@ -24,7 +25,7 @@ namespace sim {
 	     const double mass = s_uninitialized,
 	     const int status = 1);
     
-    ~Particle(){};
+    ~Particle();
     
   };
   

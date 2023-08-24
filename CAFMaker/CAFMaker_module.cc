@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////////
 /// \brief   This module creates Common Analysis Files.
 ////////////////////////////////////////////////////////////////////////
@@ -53,7 +52,6 @@
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
-#include "CAFMaker/SRTruthFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 
@@ -189,19 +187,9 @@ namespace caf {
     //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     // Get ARing info from ARichReco
-	
     ARICHFiller arichf;
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
-
-   // Get SRTruth  
-
-   if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
-				// set to "true" if needed
-  	SRTruthFiller srtruthf;
-	srtruthf.GetG4Hits = fParams.GetMCHits();
-  	srtruthf.Fill(evt,rec);
-    } // end if statement
 
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster

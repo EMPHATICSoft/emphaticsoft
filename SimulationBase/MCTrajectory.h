@@ -45,13 +45,6 @@
 /// Geant4, the units will be (mm,ns,GeV), but this class does not
 /// enforce this.
 
-
-
-
-
-
-
-
 #ifndef SIMB_MCTRAJECTORY_H
 #define SIMB_MCTRAJECTORY_H
 
@@ -59,20 +52,7 @@
 #include <iostream>
 
 #include <TLorentzVector.h>
-#include "StandardRecord/SRTrajectory.h"
 
-namespace simb{
-	class MCTrajectory: public caf::SRTrajectory {
-	public:
-		MCTrajectory();
-		MCTrajectory(const TLorentzVector& position, const TLorentzVector& momentum); 
-		~MCTrajectory(){std::cerr << "Destructing simb::MCTrajectory\n";};		
-	};
-}
-
-
-
-/*
 namespace simb {
 
   class MCTrajectory {
@@ -206,7 +186,5 @@ inline void                                       simb::MCTrajectory::Add(const 
                                                                           const TLorentzVector& m )    { push_back(p,m); }
 
 inline simb::MCTrajectory::ProcessMap    const&   simb::MCTrajectory::TrajectoryProcesses() const { return fTrajectoryProcess; }
-
-*/
 
 #endif // SIMB_MCTRAJECTORY_H
