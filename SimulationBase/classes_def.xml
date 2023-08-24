@@ -18,7 +18,8 @@
   <version ClassVersion="11" checksum="3004880"/>
   <version ClassVersion="10" checksum="275984218"/>
  </class>
- <class name="simb::MCTrajectory"  ClassVersion="12"                               >
+ <class name="simb::MCTrajectory"  ClassVersion="13"                               >
+  <version ClassVersion="13" checksum="2657842874"/>
   <version ClassVersion="12" checksum="3167233513"/>
   <version ClassVersion="11" checksum="749513453"/>
   <version ClassVersion="10" checksum="1656038010"/>

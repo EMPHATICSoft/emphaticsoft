@@ -195,19 +195,18 @@ namespace caf {
     arichf.Fill(evt,rec);
 
 */   // Get SRTruth  
-
    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
   	SRTruthFiller srtruthf;
 	srtruthf.GetG4Hits = fParams.GetMCHits();
   	srtruthf.Fill(evt,rec);
     } // end if statement
-/*
+
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
-*/    
+    
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
