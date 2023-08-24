@@ -356,13 +356,30 @@ int main(int argc, char **argv) {
         ((token.find("Try3D_R1366_4b") != std::string::npos) || 
 	 (token.find("Try3D_R1366_4c") != std::string::npos) || 
 	 (token.find("Try3D_R1366_4d") != std::string::npos) ||
+	 (token.find("Try3D_R1366_4f") != std::string::npos) ||
+	 (token.find("Try3D_R1366_4g") != std::string::npos) ||
+	 (token.find("Try3D_R1366_4h") != std::string::npos) ||
+	 (token.find("Try3D_R1366_4i") != std::string::npos) ||
+	 (token.find("Try3D_R1366_4j") != std::string::npos) ||
 	 (token.find("Try3D_R1366_4e") != std::string::npos))) 
 	     aFileDescr = std::string("_TgtGraphite120Gev_BrickV2_1o1g_V1g.dat");
     if ((runNum == 1043) && ((token.find("TightCl_1a") != std::string::npos) ||
                              (token.find("TightCl_1b") != std::string::npos)))  aFileDescr = std::string("_5St_try9_AlignUV_TightCluster_1a_V1g.dat");
     if ((runNum == 1043) && (token.find("TightCl_1c") != std::string::npos))  aFileDescr = std::string("_5St_try9_AlignUV_TightCluster_1b_V1g.dat");
     if ((runNum == 1293) && (token.find("TgtMag09") != std::string::npos))  aFileDescr = std::string("_SimProtonMisA1TgtMag09a_V1g.dat");
-    aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
+//    if ((runNum == 1293) && (token.find("TgtMag09") != std::string::npos))  aFileDescr = std::string("_SimProtonMisA0TgtMag09a_V1g.dat"); // A0 is not misaligned, review the 
+    // U V orientation  (it has been flipped by 90 degrees, I suspect.. To be checked.. 
+//    if ((runNum == 1293) && (token.find("NoTgtNoMag09d") != std::string::npos))  aFileDescr = std::string("_SimProtonNoMisNoTgtNoMagB0TgtMag09d_V1g.dat");
+    if ((runNum == 1293) && (token.find("NoTgtNoMag09d") != std::string::npos))  aFileDescr = std::string("_SimMuonNoMisNoTgtNoMagB0TgtMag09d_V1g.dat"); // August 7 
+    if ((runNum == 1293) && (token.find("NoTgtNoMag09e") != std::string::npos))  aFileDescr = std::string("_SimMuonMisSt2A1NoTgtNoMagB0TgtMag09d_V1g.dat"); // August 8 & 9 
+    if ((runNum == 1293) && (token.find("NoTgtNoMag09f") != std::string::npos))  aFileDescr = std::string("_SimMuonMisSt2A1NoTgtNoMagB0TgtMag09d_V1g.dat"); // August 9, late 
+    if ((runNum == 1293) && (token.find("MisMod5NoTgt") != std::string::npos))  aFileDescr = std::string("_SimMuonMisMod5NoTgtNoMagB0TgtMag09d_V1g.dat"); // August 11, mid-day 
+    if ((runNum == 1293) && (token.find("MisMod6NoTgt") != std::string::npos))  aFileDescr = std::string("_SimMuonMisMod6NoTgtNoMagB0TgtMag09d_V1g.dat"); // August 12, late morning
+    // ==> Re ran, August 14 
+    if ((runNum == 1293) && (token.find("MisMod7NoTgt") != std::string::npos))  aFileDescr = std::string("_SimMuonMisMod7NoTgtNoMagB0TgtMag09d_V1g.dat"); // August 12, late morning
+    if ((runNum == 1293) && (token.find("MisMod7bNoTgt") != std::string::npos))  aFileDescr = std::string("_SimMuonMisMod7bNoTgtNoMagB0TgtMag09d_V1g.dat"); // August 12, late morning
+    if ((runNum == 1293) && (token.find("MisMod6bNoTgt") != std::string::npos))  aFileDescr = std::string("_SimMuonMisMod6NoTgtNoMagB0TgtMag09b_V1g.dat"); // August 12, late morning
+   aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
     gettimeofday(&tvStart,NULL);
@@ -446,9 +463,9 @@ int main(int argc, char **argv) {
     bool withGap = (std::abs(assumedDoubleGap) >  1.0e-6);
     if (withGap) { 
       myGeo->SetValueTrShiftLastPlane('X', assumedDoubleGap );  
-      myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
-      myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap ); // This will be over written..   
-      myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
+//      myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap ); // Misleading, this should be fixed...  
+//      myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap ); // This will be over written..   
+//      myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
     }
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
       for (size_t k=0; k!= 8; k++) myGeo->SetUnknownUncert('X', k, 0.000000025); // a fraction of the strip.. 
@@ -632,6 +649,16 @@ int main(int argc, char **argv) {
 	       << " and " << itP2->Name() << " Number of calls if FCN history file, so far " << theFCN.NCalls() <<std::endl;
 	 std::vector<double> tmpPars(myParams->size(), 0.); size_t kp = 0;
 	 std::pair<double, double> limitsP1 =  itP1->Limits(); std::pair<double, double> limitsP2 =  itP2->Limits();
+//	 if (itP1->Name().find("TransShift") == 0) limitsP1 = std::pair<double, double>(-1.0, 1.0); August 9, NoTgtNoMag09e_1b1
+//	 if (itP2->Name().find("TransShift") == 0) limitsP2 = std::pair<double, double>(-1.0, 1.0);
+         if (token.find("NoTgtNoMag09f_1b1") != std::string::npos) { 
+	   if (itP1->Name().find("TransShift_Y_1") == 0) limitsP1 = std::pair<double, double>(0.25, 0.75); // August 9, NoTgtNoMag09f_1b1
+	   if (itP2->Name().find("TransShift_Y_5") == 0) limitsP2 = std::pair<double, double>(-0.25, 0.25);
+	 } else if (token.find("MisMod5NoTgt_1a1") != std::string::npos) {
+	   if (itP1->Name().find("TransShift_Y_1") == 0) limitsP1 = std::pair<double, double>(-0.2 -0.75, -0.2 + 0.75); // August 9, NoTgtNoMag09f_1b1
+	   if (itP2->Name().find("TransShift_Y_5") == 0) limitsP2 = std::pair<double, double>(0.2 - 4.5, 0.2 + 4.5);
+	 }
+	 
 	 double range1 = limitsP1.second - limitsP1.first; double range2 = limitsP2.second - limitsP2.first; 
 	 double start1 = limitsP1.first; double start2 = limitsP2.first;	 
 	 for (size_t kp=0; kp != myParams->size(); kp++) {
@@ -685,7 +712,7 @@ int main(int argc, char **argv) {
           double theError  = min.UserState().Error(aName);
           fOutMinRes << " " << aName << " " << theValue << " " << theError << std::endl;
 	  // Add the extra gap for the last plane, Y view, which defines the reference frame.  Phase1b only. 
-	  if (aName.find("Tilt_Y_6") != std::string::npos) fOutMinRes << " TransShift_Y_7" << " " << assumedDoubleGap << " 1.0e-8 " << std::endl;
+	  if (aName.find("Tilt_Y_6") != std::string::npos) fOutMinRes << " TransShift_Y_7" << " 0. 1.0e-8 " << std::endl; 
         }
         fOutMinRes.close();
       }

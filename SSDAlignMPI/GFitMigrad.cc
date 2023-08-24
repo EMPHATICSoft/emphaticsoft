@@ -532,9 +532,9 @@ int main(int argc, char **argv) {
     bool withGap = (std::abs(assumedDoubleGap) >  1.0e-6);
     if (withGap) { 
       myGeo->SetValueTrShiftLastPlane('X', assumedDoubleGap );  
-      myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
-      myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap ); // This will be over written..   
-      myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
+//      myGeo->SetValueTrShiftLastPlane('Y', assumedDoubleGap );  
+//      myGeo->SetValueTrShiftLastPlane('U', assumedDoubleGap ); // This will be over written..   
+//      myGeo->SetValueTrShiftLastPlane('W', assumedDoubleGap );  
     }
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
 //      myParams->SetValue(emph::rbal::TRSHIFT, 'X', 1,  1.585286); 

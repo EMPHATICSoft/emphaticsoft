@@ -249,6 +249,8 @@ namespace emph {
 	   nLines++;
 	   if (it == fDat.end()) break;
 	}
+	this->CheatWithTruthValues(); 
+	
       }
       emph::rbal::broadcastFCNParams(allVals);
     }
@@ -315,6 +317,13 @@ namespace emph {
 	 }
        }
        emph::rbal::broadcastFCNParams(allVals);
+    
+    }
+    void SSDAlignParams::CheatWithTruthValues() {
+     // Back door, should not be called..Debugging truth table... 
+     
+    //  this->SetValue(emph::rbal::TRSHIFT, 'X', 1, 1.38);
+    //  this->SetValue(emph::rbal::TRSHIFT, 'X', 2, 1.37 );
     
     }
     void SSDAlignParams::SetParamsForG4EMPHRun5c() {  // volatile, we will keep updating by hand.. Could use Load from previous run
@@ -473,7 +482,22 @@ namespace emph {
 	  if (aName.find("TransShift") != 0) continue; 
 	  if ((it->View() == 'X') || (it->View() == 'Y')) it->SetFixedInMinuit(false);
 	}
-      } 
+      }
+      
+      //
+      // No good EDM for TransShifts, with no rolls.. And simulated data!  Then, indeed, it could make sens to fix Station 5 sensors. All of  them..      
+      //
+//      for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+        // August 7 & 9  : fix a new reference frame.. Test on one signle TransShift (Y_1)  (after bug fix in distributeEvents.., August 9) 
+//        if ((it->Name() == std::string("TransShift_X_6")) || 
+//	    (it->Name() == std::string("TransShift_X_7")) || 
+//	    (it->Name() == std::string("TransShift_Y_6")) || 
+//	    (it->Name() == std::string("TransShift_Y_7")) )   it->SetFixedInMinuit(true); 
+// August 8 : make sure we have a vail Simplex minimum with ~ 13900 tr
+//            if (it->Name().find("TransShift") != 0) continue; // already set to fix if we use TransShift submode. 
+//	    if (it->Name() == std::string("TransShift_Y_1")) continue;
+//	    it->SetFixedInMinuit(true); 
+//      }
 //      std::cerr << " ..... And quit for now!... " << std::endl; exit(2);
       return;
     } 

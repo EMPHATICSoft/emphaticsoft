@@ -200,6 +200,7 @@ namespace emph{
 	  return fDat.end();
 	}
         void ReLoad(); // after a change of mode, or at construction time. 
+	void CheatWithTruthValues(); // back doorr to upload true value, to debug Truth table 
     };
   } // rbal 
 } // emph

@@ -129,7 +129,7 @@ namespace emph {
        aTr.SetDoMigrad(false); // Minuit Minimize will do .. 
        aTr.SetAlignMode(fAlignMode); 
        aTr.SetNominalMomentum(fNominalMomentum);
-       aTr.SetDebug((iEvt < 5));
+       aTr.SetDebug(fDebugIsOn && (iEvt < 5));
 //       aTr.SetDebug(true);
        if (fFitType == std::string("2DY")) { 
          aTr.doFit2D('Y', it); 
@@ -148,8 +148,9 @@ namespace emph {
            }
            fIsOK[kk] = false;
 	 } else if (aTr.ChiSq() > fUpLimForChiSq) { 
-           if ((myRank == 0) && (iEvt < 100) && fDebugIsOn)  {
-              std::cerr << " Evt " << it->EvtNum() << " fit 3D has too big of a chi-Sq, reject this track.  " << std::endl;
+           if ((myRank < 10) && (iEvt < 100) && fDebugIsOn)  {
+              std::cerr << " Rank " << myRank << " Evt/spill " << it->EvtNum() << " / " << it->Spill() << " fit 3D has too big of a chi-Sq, " 
+	                <<  aTr.ChiSq() << " reject this track.  " << std::endl;
            }
 	   fIsOK[kk] = false;
 	 }
@@ -157,7 +158,7 @@ namespace emph {
          // a track become bad.. set a high value, but we will keep in the mean chiSq. 
          if (aTr.ChiSq() < 0.) aTr.SetChiSq(2.0*fUpLimForChiSq); // arbitrary.. but we will include this track in the tally, now.. 
        } 
-       if ((myRank == 0) && (iEvt < 100) && fDebugIsOn)  {
+       if ((myRank < 10) && (iEvt < 10) && fDebugIsOn)  {
           std::cerr << " spill " << it->Spill() << " Evt " << it->EvtNum() << " TrId " << it->TrId() 
 	            << " x0 " << aTr.X0() << " x' " << aTr.Slx0() << 
 	                        " y0 " << aTr.Y0() << " y' " << aTr.Sly0() <<  " chi2 " << aTr.ChiSq() << std::endl;
@@ -169,8 +170,8 @@ namespace emph {
      }
 //      std::cerr << " BeamTrackSSDAlignFCN, operator(), on rank " << myRank << " MPI Barrier, nOKs " << nOKs << std::endl; 
       MPI_Barrier(MPI_COMM_WORLD);
-     if (fDebugIsOn && (myRank == 0))  std::cerr << " .... from rank 0.. Did all the tracks fits.. " 
-                 << iEvt << " of them " << " successful " <<  nOKs << std::endl;
+     if (fDebugIsOn && (myRank < 10))  std::cerr << " .... from rank " << myRank << " .. Did all the tracks fits.. " 
+                 << iEvt << " of them " << " successful " <<  nOKs << " check size of container " << myBTrs.size() << std::endl;
      // 	
      // Adding beam Constraint
      //
