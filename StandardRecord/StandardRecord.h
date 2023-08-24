@@ -16,6 +16,7 @@
 #include "StandardRecord/SRTruth.h"
 #include "StandardRecord/SRSSDHitsBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
+#include "StandardRecord/SRBACkovBranch.h"
 
 /// Common Analysis Files
 namespace caf
@@ -31,11 +32,12 @@ namespace caf
       StandardRecord();
       ~StandardRecord();
 
-      SRHeader       hdr;   ///< Header branch: run, subrun, etc.
-      SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
-      SRTruth	     truth; ///< Simulation truth momenta, position, ID, etc.
-      SRSSDHitsBranch hits; ///< SSD Hits branch:
+      SRHeader         hdr;   ///< Header branch: run, subrun, etc.
+      SRARingBranch    ring; ///< ARICH ring branch: nhit, radius, etc.
+      SRTruth	       truth; ///< Simulation truth momenta, position, ID, etc.
+      SRSSDHitsBranch  hits; ///< SSD Hits branch:
       SRSSDClustBranch cluster; ///SSD Cluster Branch: avgadc, avgstrip, etc
+      SRBACkovBranch   backov; ///< BACkov PMT charge and PID
 
     }; // end class
 

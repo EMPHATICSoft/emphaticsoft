@@ -6,7 +6,8 @@ namespace caf
     hdr(),
     ring(),
     truth(),	 
-    hits()
+    hits(),
+    backov()
   {
   }
   

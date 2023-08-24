@@ -33,6 +33,9 @@
   <version ClassVersion="10" checksum="1716345376"/>
  </class>
 
+ <class name="caf::SRBACkovBranch" ClassVersion="10" >
+ </class>
+
  <class name="caf::SRSSDClust" ClassVersion="10" >
   <version ClassVersion="10" checksum="64380129"/>
  </class>

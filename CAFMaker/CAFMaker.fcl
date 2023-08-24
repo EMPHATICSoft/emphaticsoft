@@ -10,6 +10,7 @@ standard_cafmaker:{
     GetMCHits:     false
     SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
+    BACkovLabel: "backovreco"
 }
 
 END_PROLOG

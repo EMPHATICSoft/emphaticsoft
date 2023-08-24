@@ -20,7 +20,7 @@ namespace rb {
   private:
 
     float _charge[6]; // Charge deposited in BACkov PMTs 
-    bool _PID[5]; //PID numbering scheme from PDG (0 is "unknown")
+    bool _PID[5]; //Entries are 0 or 1 (can be or can't be this particle) ordered (e,mu,pi,K,p)
     
   public:
     // Getters
@@ -35,7 +35,7 @@ namespace rb {
 
     // Setters
     void SetCharge(float x[6]) { for (int i=0; i<6; ++i) _charge[i] = x[i]; }
-    void SetPID(bool pid[6]) { for (int i=0; i<5; ++i) _PID[i] = pid[i]; }
+    void SetPID(bool pid[5]) { for (int i=0; i<5; ++i) _PID[i] = pid[i]; }
     
   };
   

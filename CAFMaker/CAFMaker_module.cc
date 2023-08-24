@@ -208,6 +208,12 @@ namespace caf {
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
 */    
+/*
+    // Get BACkov info from SSDReco
+    BACkovFiller backovf; 
+    backovf.fLabel = fParams.BACkovHitLabel();
+    backovf.Fill(evt,rec);
+*/
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
