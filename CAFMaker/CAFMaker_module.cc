@@ -183,7 +183,8 @@ namespace caf {
     HeaderFiller hf;
     hf.Fill(evt, rec);
 
-    mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
+    // TML: Why are we printing this out for every single event?
+    //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     // Get ARing info from ARichReco
     ARICHFiller arichf;
@@ -194,7 +195,7 @@ namespace caf {
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
-    
+
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
