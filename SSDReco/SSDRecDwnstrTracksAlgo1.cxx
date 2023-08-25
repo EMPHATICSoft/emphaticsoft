@@ -48,6 +48,7 @@ namespace emph {
        if (fEmgeo == nullptr) {
          fRunHistory = new runhist::RunHistory(fRunNum);   
          fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+         fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
 	 // We use the nominal Z position, for now.. 
        }
        if (!fCoordConvert.IsReadyToGo()) {
