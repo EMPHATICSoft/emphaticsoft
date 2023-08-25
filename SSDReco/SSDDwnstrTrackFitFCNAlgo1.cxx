@@ -46,6 +46,7 @@ namespace emph {
        fMagField = bField->Field();
        art::ServiceHandle<emph::geo::GeometryService> geo;
        fNoMagnet = geo->Geo()->MagnetUSZPos() < 0.;
+       std::cerr << " SSDDwnstrTrackFitFCNAlgo1::SSDDwnstrTrackFitFCNAlgo1, Magnet MagnetUSZPos() " <<  geo->Geo()->MagnetUSZPos() << std::endl; 
 //
     }
     SSDDwnstrTrackFitFCNAlgo1::~SSDDwnstrTrackFitFCNAlgo1() {
