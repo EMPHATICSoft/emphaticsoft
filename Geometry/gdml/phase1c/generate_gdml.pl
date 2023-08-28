@@ -68,7 +68,7 @@ $nstation_type = 4; # types of station
 @station_type = ("single", "rotate", "double3pl", "double2pl"); # yx, wyx, xxyyww, xxyy 
 @SSD_lay = (2, 3, 3, 2); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2, 2); # num. of SSD in a layer
-@SSD_side = (0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1); # angle from measuring Y
+@SSD_side = (0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1); # angle from measuring Y
 #Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
 # Visualization of SSDs can be found at DocDB 1260
 @SSD_mount= (1, 2, 2, 1); # num. of mount in a station
