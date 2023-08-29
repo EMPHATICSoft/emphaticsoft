@@ -66,6 +66,7 @@ namespace caf {
     virtual ~CAFMaker();
 
     void produce(art::Event& evt) noexcept;
+    void beginSubRun(art::SubRun &sr) noexcept;
 
     void respondToOpenInputFile(const art::FileBlock& fb);
 
@@ -84,6 +85,8 @@ namespace caf {
     TFile*      fFile;
     TTree*      fRecTree;
     TH1D*       hEvents;
+
+    caf::SRHeader fHeader;
 
     void InitializeOutfile();
 
@@ -166,6 +169,13 @@ namespace caf {
   }
   
   //......................................................................
+
+  void CAFMaker::beginSubRun(art::SubRun& sr) noexcept {
+    HeaderFiller hf;
+    hf.Fill(sr, fHeader);
+  }
+
+  //......................................................................
   void CAFMaker::produce(art::Event& evt) noexcept {
     // Normally CAFMaker is run without an output ART stream, so these go
     // nowhere, but can be occasionally useful for filtering as part of
@@ -179,9 +189,9 @@ namespace caf {
     StandardRecord* prec = &rec;  // TTree wants a pointer-to-pointer
     fRecTree->SetBranchAddress("rec", &prec);
 
-    // get header info first
-    HeaderFiller hf;
-    hf.Fill(evt, rec);
+    // set event-level header info first
+    rec.hdr = fHeader;
+    rec.hdr.evt = evt.id().event();
 
     // TML: Why are we printing this out for every single event?
     //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;

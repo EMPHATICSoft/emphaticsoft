@@ -9,34 +9,34 @@
 
 namespace caf
 {
-  void HeaderFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
+  void HeaderFiller::Fill(art::SubRun& sr, caf::SRHeader& hdr)
   {
     // Get metadata information for header
-    unsigned int run = evt.run();
-    unsigned int subrun = evt.subRun();
-    unsigned int spillNum = evt.id().event();
+    unsigned int run = sr.run();
+    unsigned int subrun = sr.subRun();
     
-    stdrec.hdr = SRHeader();
-
-    stdrec.hdr.run    = run;
-    stdrec.hdr.subrun = subrun;
-    stdrec.hdr.evt    = spillNum;
+    hdr.run    = -1;
+    hdr.subrun = -1;
 
     art::Handle<rb::Spill> spillHandle;
     try {
-      evt.getByLabel("spillinfo",spillHandle);
-      stdrec.hdr.timestamp = spillHandle->Timestamp();
-      stdrec.hdr.intensity = spillHandle->Intensity();
-      stdrec.hdr.momentum  = spillHandle->Momentum();
-      stdrec.hdr.gcp5      = spillHandle->MT5CPR();
-      stdrec.hdr.gcp6      = spillHandle->MT6CPR();
-      stdrec.hdr.gcp5iFix  = spillHandle->MT5CP2();
-      stdrec.hdr.gcp5iFix  = spillHandle->MT6CP2();
-      stdrec.hdr.tbccdi    = spillHandle->TBCCDI();
-      stdrec.hdr.tbccdo    = spillHandle->TBCCDO();
-      stdrec.hdr.mt6ca1    = spillHandle->MT6CA1();
-      stdrec.hdr.mt6ca2    = spillHandle->MT6CA2();
-      stdrec.hdr.mt6ca3    = spillHandle->MT6CA3();
+      sr.getByLabel("spillinfo",spillHandle);
+      hdr.timestamp = spillHandle->Timestamp();
+      hdr.intensity = spillHandle->Intensity();
+      hdr.momentum  = spillHandle->Momentum();
+      hdr.gcp5      = spillHandle->MT5CPR();
+      hdr.gcp6      = spillHandle->MT6CPR();
+      hdr.gcp5iFix  = spillHandle->MT5CP2();
+      hdr.gcp5iFix  = spillHandle->MT6CP2();
+      hdr.tbccdi    = spillHandle->TBCCDI();
+      hdr.tbccdo    = spillHandle->TBCCDO();
+      hdr.mt6ca1    = spillHandle->MT6CA1();
+      hdr.mt6ca2    = spillHandle->MT6CA2();
+      hdr.mt6ca3    = spillHandle->MT6CA3();
+
+      hdr.run    = run;
+      hdr.subrun = subrun;
+      
     }
     catch(...) {
       std::cout << "No spill info object found!  That's ok if this is MC" 
