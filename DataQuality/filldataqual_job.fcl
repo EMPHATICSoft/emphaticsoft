@@ -13,7 +13,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-dataqual_r%r_s%s.root"
+   fileName:    "emphdata-dataqual_r%r_s%04s.root"
    fastCloning: false
    
   }
