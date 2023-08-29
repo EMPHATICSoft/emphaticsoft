@@ -3,6 +3,7 @@
 // \brief   TODO
 ////////////////////////////////////////////////////////////////////////
 #include <limits>
+#include <string.h>
 
 #include "StandardRecord/SRBACkov.h"
 

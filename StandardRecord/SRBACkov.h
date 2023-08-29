@@ -4,8 +4,6 @@
 #ifndef SRBACKOV_H
 #define SRBACKOV_H
 
-#include "StandardRecord/SRVector3D.h"
-
 namespace caf
 {
   /// An SRBACkov is a simple descriptor for the BACkov.
