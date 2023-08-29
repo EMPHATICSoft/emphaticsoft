@@ -15,7 +15,7 @@ services:
   Geometry: @local::standard_geometry
   
   # Load the service that manages root files for histograms.
-#  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
+#  TFileService: { fileName: "daq2root_%r_%04s.root" closeFileFast: false }
   
   RandomNumberGenerator: {} #ART native random number generator
 
@@ -71,7 +71,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName:    "emphmc_r%r_s%s.root" #default file name, can override from command line with -o or --output
+    fileName:    "emphmc_r%r_s%04s.root" #default file name, can override from command line with -o or --output
 #    SelectEvents: [ simulate ]
   }
 }
