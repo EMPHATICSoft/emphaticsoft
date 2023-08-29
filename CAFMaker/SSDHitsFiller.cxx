@@ -5,7 +5,6 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "CAFMaker/SSDHitsFiller.h"
-#include "RecoBase/ARing.h"
 #include "RawData/SSDRawDigit.h"
 
 #include "art/Framework/Principal/Handle.h"
@@ -15,14 +14,14 @@ namespace caf
 {
   void SSDHitsFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
-   std::string fSSDRawLabel ="raw:SSD"; ///< Data label for SSD Raw Digits
-   auto hitv = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
+    auto hitv = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fLabel);
 
-    if(!fSSDRawLabel.empty() && hitv.failedToGet()) {
-       std::cout << "CAFMaker: No product of type '"
-      	<< abi::__cxa_demangle(typeid(*hitv).name(), 0, 0, 0)
-      	<< "' found under label '" << fLabel << "'. " << std::endl;
-    }
+    // TML: commenting this bit out because we have many events without hits and this is super noisy
+    // if(!fLabel.empty() && hitv.failedToGet()) {
+    //    std::cout << "CAFMaker: No product of type '"
+    //   	<< abi::__cxa_demangle(typeid(*hitv).name(), 0, 0, 0)
+    //   	<< "' found under label '" << fLabel << "'. " << std::endl;
+    // }
       
  std::vector <emph::rawdata::SSDRawDigit> ssdhits;
     if(!hitv.failedToGet()) ssdhits = *hitv;

@@ -37,7 +37,8 @@
   <version ClassVersion="10" checksum="3005628000"/>
  </class>
 
- <class name="caf::SRSSDClust" ClassVersion="10" >
+ <class name="caf::SRSSDClust" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1811875468"/>
   <version ClassVersion="10" checksum="64380129"/>
  </class>
  <class name="std::vector<caf::SRSSDClust>" />
