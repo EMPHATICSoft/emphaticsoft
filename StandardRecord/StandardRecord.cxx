@@ -7,7 +7,6 @@ namespace caf
     ring(),
     hits(),
     backov()
-    hits()
   {
   }
   

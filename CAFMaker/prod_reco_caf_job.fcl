@@ -5,6 +5,7 @@
 
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
+#include "BACkovHitReco.fcl"
 
 process_name: CAF
 
@@ -40,14 +41,15 @@ physics:
 {
   producers:
   {
-    arichreco: @local::standard_arichreco
-    ssdclusts: @local::standard_ssdclust
-    cafmaker:  @local::standard_cafmaker
+    arichreco:  @local::standard_arichreco
+    ssdclusts:  @local::standard_ssdclust
+    backovreco: @local::standard_backovhitreco
+    cafmaker:   @local::standard_cafmaker
   }
 
   analyzers:{}
 
-  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+  makecaf:   [ arichreco, ssdclusts, backovreco, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false

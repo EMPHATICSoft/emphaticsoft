@@ -8,7 +8,7 @@ standard_cafmaker:{
     ARingLabel:    "arichreco"
     SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
-    BACkovLabel: "backovreco"
+    BACkovHitLabel: "backovreco"
 }
 
 END_PROLOG

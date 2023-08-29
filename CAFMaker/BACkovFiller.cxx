@@ -26,7 +26,7 @@ namespace caf
     std::vector<rb::BACkovHit> backovhits;
     if(!bhitv.failedToGet()) backovhits = *bhitv;
 
-    for (unsigned int bhitId = 0; bhitId < backovhits.size(); ++ bhitId) {
+    for (unsigned int bhitId = 0; bhitId < backovhits.size(); ++bhitId) {
       stdrec.backov.backovhits.push_back(SRBACkov());
       SRBACkov& srBACkov = stdrec.backov.backovhits.back();
 
@@ -41,7 +41,7 @@ namespace caf
      srBACkov.PID[3] = backovhits[bhitId].IsKaon(); 
      srBACkov.PID[4] = backovhits[bhitId].IsProton(); 
 
-    } // end for ringId
+    } 
 
   }
 

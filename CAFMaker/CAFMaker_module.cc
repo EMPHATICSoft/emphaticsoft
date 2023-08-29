@@ -45,6 +45,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/BACkovHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -54,6 +55,7 @@
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
+#include "CAFMaker/BACkovFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -195,15 +197,15 @@ namespace caf {
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
 
-    // Get BACkov info from SSDReco
-    BACkovFiller backovf; 
-    backovf.fLabel = fParams.BACkovHitLabel();
-    backovf.Fill(evt,rec);
+    // Get BACkov info from BACovHitReco
+    //BACkovFiller backovf; 
+    //backovf.fLabel = fParams.BACkovHitLabel();
+    //backovf.Fill(evt,rec);
 
     // Get SSDHits from RawDigits
-    SSDHitsFiller ssdhitsf;
-    ssdhitsf.fLabel = fParams.SSDRawLabel();
-    ssdhitsf.Fill(evt,rec);
+    //SSDHitsFiller ssdhitsf;
+    //ssdhitsf.fLabel = fParams.SSDRawLabel();
+    //ssdhitsf.Fill(evt,rec);
 
     fRecTree->Fill();
     srcol->push_back(rec);
