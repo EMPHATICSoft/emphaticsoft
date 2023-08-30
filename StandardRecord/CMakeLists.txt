@@ -3,7 +3,7 @@ include(ArtMake)
 include(CetMake)
 include(BasicPlugin)
 
-add_subdirectory(Proxy)
+#add_subdirectory(Proxy)
 
 # for classes_def.xml!!
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )

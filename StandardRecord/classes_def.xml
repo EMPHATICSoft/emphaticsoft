@@ -1,6 +1,7 @@
 <lcgdict>
 
- <class name="caf::StandardRecord" ClassVersion="15" >
+ <class name="caf::StandardRecord" ClassVersion="16" >
+  <version ClassVersion="16" checksum="101113006"/>
   <version ClassVersion="15" checksum="142906859"/>
   <version ClassVersion="14" checksum="101113006"/>
   <version ClassVersion="13" checksum="142906859"/>
