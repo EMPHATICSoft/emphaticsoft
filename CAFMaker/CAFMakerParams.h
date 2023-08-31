@@ -26,9 +26,9 @@ namespace caf
 
     Atom<string> FileExtension {Name("FileExtension")};
     Atom<string> ARingLabel    {Name("ARingLabel")};
-    Atom<bool> GetMCTruth      {Name("GetMCTruth")};
-    Atom<bool> GetMCHits       {Name("GetMCHits")};
-    Atom<string> SSDRawLabel    {Name("SSDRawLabel")};
+    Atom<bool>   GetMCTruth    {Name("GetMCTruth")};
+    Atom<bool>   GetMCHits     {Name("GetMCHits")};
+    Atom<string> SSDRawLabel   {Name("SSDRawLabel")};
     Atom<string> SSDClustLabel {Name("SSDClustLabel")};
   }; // end struct
 } // end namespace

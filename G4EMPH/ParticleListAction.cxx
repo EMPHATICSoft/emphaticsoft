@@ -472,7 +472,7 @@ namespace emph {
     // exception: In PreTrackingAction, the correct time information
     // is not available.  So add the correct vertex information here.
 
-    std::cerr << "Stepping into trajectry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
+    //    std::cerr << "Stepping into trajectry point " << fParticle->NumberTrajectoryPoints()+1 << std::endl;
 
     if ( fParticle->NumberTrajectoryPoints() == 0 ){
       // Get the pre-step information from the G4Step.

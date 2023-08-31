@@ -15,9 +15,6 @@
 #include "StandardRecord/SRARingBranch.h"
 #include "StandardRecord/SRSSDHitsBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
-//#include "StandardRecord/SRTrajectory.h"
-//#include "StandardRecord/SRParticle.h"
-//#include "StandardRecord/SRTrueParticle.h"
 #include "StandardRecord/SRTruth.h"
 
 /// Common Analysis Files
