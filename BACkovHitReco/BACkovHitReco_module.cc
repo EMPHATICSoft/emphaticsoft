@@ -47,9 +47,6 @@ namespace emph {
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     //void endRun(art::Run const&);
@@ -61,7 +58,7 @@ namespace emph {
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     
-    int mom;
+    int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
     std::vector<std::vector<int>> BACkov_signal;
     std::vector<std::vector<int>> PID_table; //in the form {e,mu,pi,k,p} w/ {1,1,0,0,0} being e/mu are possible particles
     int pid_num;
@@ -76,12 +73,11 @@ namespace emph {
   //.......................................................................
   
   BACkovHitReco::BACkovHitReco(fhicl::ParameterSet const& pset)
-    : EDProducer(pset)
+    : EDProducer(pset),
+      mom (pset.get<int>("momentum",0))
   {
 
     this->produces< std::vector<rb::BACkovHit>>();
-
-    this->reconfigure(pset);
 
   }
 
@@ -92,13 +88,6 @@ namespace emph {
     //======================================================================
     // Clean up any memory allocated by your module
     //======================================================================
-  }
-
-  //......................................................................
-
-  void BACkovHitReco::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    mom = pset.get<int>("momentum",0);
   }
 
   //......................................................................

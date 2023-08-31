@@ -37,9 +37,6 @@ namespace demo {
       // Optional, read/write access to event
       void produce(art::Event& evt); 
 
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
-
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
       
@@ -62,7 +59,13 @@ namespace demo
 {
   //.......................................................................
   DemoModule::DemoModule(fhicl::ParameterSet const& pset) 
-    : EDProducer(pset)
+    : EDProducer(pset),
+      fInt              (pset.get< int              >("MyInt")),
+      fVecInt           (pset.get< std::vector<int> >("MyVectorInt")),
+      fFloat            (pset.get< float            >("MyFloat")),
+      fDouble           (pset.get< double           >("MyDouble")),
+      fInputModuleLabel (pset.get< std::string      >("MyInputModuleLabel"))
+
   {
     //======================================================================
     // This is the constructor "nova" will use to create your module.
@@ -76,8 +79,6 @@ namespace demo
     // file.
     //======================================================================
 
-    this->reconfigure(pset);
-    
     // tell the module what it is making as this is a EDProducer
     produces< std::vector<int> >();
 
@@ -93,17 +94,6 @@ namespace demo
     //======================================================================
   }
 
-  //......................................................................
-  void DemoModule::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    // Keep everything lined up for clarity (stylistic)
-    fInt              = pset.get< int              >("MyInt");
-    fVecInt           = pset.get< std::vector<int> >("MyVectorInt");
-    fFloat            = pset.get< float            >("MyFloat");
-    fDouble           = pset.get< double           >("MyDouble");
-    fInputModuleLabel = pset.get< std::string      >("MyInputModuleLabel");
-  }
-      
   //......................................................................
   void DemoModule::beginJob()
   {
