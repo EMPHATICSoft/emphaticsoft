@@ -257,6 +257,13 @@ namespace emph {
     void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
     {
       TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
+		if ( magnet_n == nullptr ){
+			mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i))
+				<< " magnet not found in gdml. \n"
+				<< "check your spelling. \n";
+			return;
+		}
+
       TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
       TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
 
