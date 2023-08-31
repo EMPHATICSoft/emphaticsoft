@@ -54,9 +54,6 @@ namespace emph {
      // Optional, read/write access to event
       void produce(art::Event& evt) override;
 
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
-
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
       void endJob();
@@ -144,19 +141,19 @@ namespace emph {
     //.......................................................................
     TrigToT0Prod::TrigToT0Prod(fhicl::ParameterSet const& pset)
       : EDProducer(pset),
-      fFilesAreOpen(false),
-      fTokenJob("none"),
-      fRun(0), fSubRun(0), fEvtNum(0), 
-      fT0ADCs(nChanT0+2, 0.),
-      fT0TDCs(nChanT0+2, DBL_MAX),
-      fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
-      fTrigPeakADCs(nChanTrig, 0.),
-      fTrigADCs(nChanTrig, 0.),
-      fMakeT0FullNtuple(true),
-      fMakeTrigFullNtuple(true),
-      fMakeEventSummaryNTuple(true),
-      fNumT0Hits(0),		     
-      fNumT0HitsFirst(0),		     
+	fFilesAreOpen(false),
+	fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+	fRun(0), fSubRun(0), fEvtNum(0), 
+	fT0ADCs(nChanT0+2, 0.),
+	fT0TDCs(nChanT0+2, DBL_MAX),
+	fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
+	fTrigPeakADCs(nChanTrig, 0.),
+	fTrigADCs(nChanTrig, 0.),
+	fMakeT0FullNtuple  (pset.get<bool>("makeT0FullNtuple",true)), // keep them for now.. 
+	fMakeTrigFullNtuple (pset.get<bool>("makeTrigFullNtuple",true)),
+	fMakeEventSummaryNTuple (pset.get<bool>("makeEventSummaryFullNtuple",false)),
+	fNumT0Hits(0),		     
+	fNumT0HitsFirst(0),		     
       fNumT0HitsFirstUpDown(0),		     
       fNumT0Hits2nd(0),		     
       fNumT0Hits2ndUpDown(0),  	     
@@ -170,7 +167,6 @@ namespace emph {
       fTdcUniqueSegmentTop(DBL_MAX)
     {
 
-      this->reconfigure(pset);
       produces< rb::TrigToT0 >();
 
     }
@@ -187,16 +183,6 @@ namespace emph {
       //======================================================================
       // Clean up any memory allocated by your module
       //======================================================================
-    }
-
-    //......................................................................
-    void TrigToT0Prod::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fMakeT0FullNtuple  = pset.get<bool>("makeT0FullNtuple",true); // keep them for now.. 
-      fMakeTrigFullNtuple = pset.get<bool>("makeTrigFullNtuple",true);
-      fMakeEventSummaryNTuple = pset.get<bool>("makeEventSummaryFullNtuple",false);
-      
     }
 
     //......................................................................

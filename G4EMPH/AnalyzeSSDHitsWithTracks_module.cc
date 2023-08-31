@@ -47,9 +47,6 @@ namespace emph {
       explicit AnalyzeSSDHitsWithTracks(fhicl::ParameterSet const& pset); // Required!       // Optional, read/write access to event
       void analyze(const art::Event& evt);
 
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
-
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
       void beginRun(art::Run const&);
@@ -97,25 +94,21 @@ namespace emph {
     
 // .....................................................................................
     AnalyzeSSDHitsWithTracks::AnalyzeSSDHitsWithTracks(fhicl::ParameterSet const& pset) : 
-    EDAnalyzer(pset), 
-    fFilesAreOpen(false), fDoPResol1Stu(false), fDoMult2Stu(false), fTokenJob("undef"), fSSDHitLabel("?"), fTrackLabel("?"),
-     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
-     fRunHistory(nullptr), fEmgeo(nullptr), fEmSSDHits(nullptr), fEmTracks(nullptr), 
-     fZlocXPlanes(0), fZlocXStations(0), fZlocYPlanes(0), fZlocYStations(0) 
+      EDAnalyzer(pset), 
+      fFilesAreOpen(false),
+      fDoPResol1Stu (pset.get<bool>("doPresol1Stu", false)),
+      fDoMult2Stu   (pset.get<bool>("doMult2Stu", false)),
+      fTokenJob     (pset.get<std::string>("tokenJob", "UnDef")),
+      fSSDHitLabel  (pset.get<std::string>("SSDHitLabel")),
+      fTrackLabel   (pset.get<std::string>("TrackLabel")),
+      fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
+      fRunHistory(nullptr), fEmgeo(nullptr), fEmSSDHits(nullptr), fEmTracks(nullptr), 
+      fZlocXPlanes(0), fZlocXStations(0), fZlocYPlanes(0), fZlocYStations(0)
     {
        std::cerr << " Constructing AnalyzeSSDHitsWithTracks " << std::endl;
-       this->reconfigure(pset);
        fFilesAreOpen = false;
     }
     
-    void AnalyzeSSDHitsWithTracks::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fDoPResol1Stu = pset.get<bool>("doPresol1Stu", false);
-      fDoMult2Stu = pset.get<bool>("doMult2Stu", false);
-     fSSDHitLabel = pset.get<std::string>("SSDHitLabel");
-      fTrackLabel = pset.get<std::string>("TrackLabel");
-    }
     void AnalyzeSSDHitsWithTracks::beginRun(art::Run const &run)
     {
      std::cerr << " AnalyzeSSDHitsWithTracks::beginRun, run " << run.id() << std::endl;

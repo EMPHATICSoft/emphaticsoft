@@ -43,6 +43,7 @@ namespace emph
       
     private:
       DetGeoMap* fDetGeoMap;
+      bool fUseGeometry;
       
     };
     

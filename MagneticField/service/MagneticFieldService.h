@@ -27,8 +27,6 @@ namespace emph
 			 art::ActivityRegistry& reg);
     virtual ~MagneticFieldService();
     
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     void preBeginRun(const art::Run& run);
     
     emph::EMPHATICMagneticField* Field() const { return fMagneticField; }

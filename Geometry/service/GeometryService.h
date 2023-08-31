@@ -30,8 +30,6 @@ namespace emph
 			art::ActivityRegistry& reg);
       virtual ~GeometryService();
       
-      void reconfigure(const fhicl::ParameterSet& pset);
-    
       void preBeginRun(const art::Run& run);
 
       emph::geo::Geometry* Geo() const { return fGeometry.get(); }
