@@ -23,19 +23,19 @@ namespace simb {
 
   class MCParticle: public caf::SRParticle  {
   public:
-	static const int s_uninitialized;
-	
-	MCParticle();
-
-	MCParticle(const int trackId, const int pdg,
-	     const std::string process,
-	     const int mother = -1,
-	     const double mass = s_uninitialized,
-	     const int status = 1);
+    static const int s_uninitialized;
     
-    	~MCParticle();
-	
-		
+    MCParticle();
+
+    MCParticle(const int trackId, const int pdg,
+	       const std::string process,
+	       const int mother = -1,
+	       const double mass = s_uninitialized,
+	       const int status = 1);
+    
+    ~MCParticle();
+    
+    
   };
 }
 #endif // SIMB_MCPARTICLE_H

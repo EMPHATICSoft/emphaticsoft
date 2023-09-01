@@ -32,8 +32,6 @@ namespace runhist
 		      art::ActivityRegistry& reg);
     virtual ~RunHistoryService();
     
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     void preBeginRun(const art::Run& run);
     
     runhist::RunHistory* RunHist() const { return fRunHistory.get(); }

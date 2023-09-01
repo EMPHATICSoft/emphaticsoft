@@ -3,13 +3,13 @@ include(ArtMake)
 include(CetMake)
 include(BasicPlugin)
 
-add_subdirectory(Proxy)
+#add_subdirectory(Proxy)
 
 # for classes_def.xml!!
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 include_directories( $ENV{ROOT_INC} )
 
-cet_find_package( ROOT COMPONENTS Core REQUIRED )
+find_package( ROOT COMPONENTS Core REQUIRED )
 
 set( PACKAGE StandardRecord )
 FILE( GLOB src_files *.cxx )

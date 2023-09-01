@@ -7,7 +7,6 @@
 
 // EMPHATIC includes
 #include "MagneticField/service/MagneticFieldService.h"
-//#include "MagneticField/TestEmphMagneticField.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -17,12 +16,14 @@ namespace emph
 {
   //------------------------------------------------------------
   MagneticFieldService::MagneticFieldService(const fhicl::ParameterSet& pset,
-				   art::ActivityRegistry & reg)
+					     art::ActivityRegistry & reg):
+    fFieldFileName (pset.get< std::string >("FieldFileName"))
   {
-
     fMagneticField = new emph::MagneticField();
 
-    reconfigure(pset);
+    fMagneticField->SetFieldFileName(pset.get< std::string >("FieldFileName"));
+    fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
+    fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
 
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
@@ -32,15 +33,6 @@ namespace emph
   
   MagneticFieldService::~MagneticFieldService()
   {
-  }
-  
-  //-----------------------------------------------------------
-  void MagneticFieldService::reconfigure(const fhicl::ParameterSet& pset)
-  {    
-    fMagneticField->SetFieldFileName(pset.get< std::string >("FieldFileName"));
-    fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
-    fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
-
   }
   
   //----------------------------------------------------------

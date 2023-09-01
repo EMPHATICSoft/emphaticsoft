@@ -27,7 +27,6 @@ namespace caf {
     ~SRParticle() {};
 
   
-    typedef std::set<int>   daughters_type;
 
     int                     fstatus;        ///< Status code from generator, geant, etc
     int                     ftrackId;       ///< TrackId
@@ -38,7 +37,7 @@ namespace caf {
     caf::SRTrajectory      ftrajectory;    ///< particle trajectory (position,momentum)
     double                  fmass;          ///< Mass; from PDG unless overridden Should be in GeV
     TVector3              fpolarization;  ///< Polarization
-    daughters_type          fdaughters;     ///< Sorted list of daughters of this particle.
+    std::set<int>          fdaughters;     ///< Sorted list of daughters of this particle.
     double                  fWeight;        ///< Assigned weight to this particle for MC tests
     TLorentzVector          fGvtx;          ///< Vertex needed by generater (genie) to rebuild 
                                             ///< genie::EventRecord for event reweighting
@@ -181,8 +180,6 @@ namespace caf {
     double Weight() const;
     void   SetWeight(double wt);
 
-    void SparsifyTrajectory(double margin = 0.1, bool keep_second_to_last = false);
-
     // Define a comparison operator for particles.  This allows us to
     // keep them in sets or maps.  It makes sense to order a list of
     // particles by track ID... but take care!  After we get past the
@@ -255,9 +252,9 @@ inline       void            caf::SRParticle::AddTrajectoryPoint(TLorentzVector 
                                                                   std::string    const& process,
                                                                   bool keepTransportation)
                                                                               { ftrajectory.Add( position, momentum, process, keepTransportation); }
-inline       void            caf::SRParticle::SparsifyTrajectory(double margin,
-                                                                  bool keep_second_to_last)
-                                                                              { ftrajectory.Sparsify( margin, keep_second_to_last );            }
+//inline       void            caf::SRParticle::SparsifyTrajectory(double margin,
+//                                                                  bool keep_second_to_last)
+//                                                                              { ftrajectory.Sparsify( margin, keep_second_to_last );            }
 inline       void            caf::SRParticle::AddDaughter(int const trackID)     { fdaughters.insert(trackID);                }
 inline       void            caf::SRParticle::SetPolarization(TVector3 const& p) { fpolarization = p;                         }
 inline       void            caf::SRParticle::SetRescatter(int code)             { frescatter    = code;                      }

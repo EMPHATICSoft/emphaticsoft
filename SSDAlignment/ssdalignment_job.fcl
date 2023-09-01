@@ -10,7 +10,7 @@ process_name: SSDAlignment
 
 services:
 {
-  TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "ssd_align_hist_r%r_s%04s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
@@ -27,7 +27,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "ssd_align_hist_r%r_s%s.root"
+   fileName:    "ssd_align_hist_r%r_s%04s.root"
    fastCloning: false
    
   }

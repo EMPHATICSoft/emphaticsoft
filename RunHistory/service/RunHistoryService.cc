@@ -14,9 +14,11 @@ namespace runhist
 {
   //------------------------------------------------------------
   RunHistoryService::RunHistoryService(const fhicl::ParameterSet& pset,
-				       art::ActivityRegistry & reg)
+				       art::ActivityRegistry & reg):
+    fLoadFromDB (pset.get<bool>("LoadFromDB"))
   {
-    reconfigure(pset);
+    if (fLoadFromDB)
+      fQEURL = pset.get<std::string>("QEURL");
 
     reg.sPreBeginRun.watch(this, &RunHistoryService::preBeginRun);
     
@@ -26,15 +28,6 @@ namespace runhist
   
   RunHistoryService::~RunHistoryService()
   {
-  }
-  
-  //-----------------------------------------------------------
-  void RunHistoryService::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    fLoadFromDB = pset.get<bool>("LoadFromDB");
-    if (fLoadFromDB)
-      fQEURL = pset.get<std::string>("QEURL");
-    
   }
   
   //----------------------------------------------------------

@@ -110,7 +110,7 @@ namespace caf {
   // Return the "index-th' daughter in the list.
   int SRParticle::Daughter( const int index ) const
   {
-    daughters_type::const_iterator i = fdaughters.begin();
+    std::set<int>::const_iterator i = fdaughters.begin();
     std::advance( i, index );
     return *i;
   }

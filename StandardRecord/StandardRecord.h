@@ -13,9 +13,9 @@
 
 #include "StandardRecord/SRHeader.h"
 #include "StandardRecord/SRARingBranch.h"
-#include "StandardRecord/SRTruth.h"
 #include "StandardRecord/SRSSDHitsBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
+#include "StandardRecord/SRTruth.h"
 
 /// Common Analysis Files
 namespace caf
