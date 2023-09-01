@@ -6,7 +6,7 @@ process_name: BeamGen
 services:
 {
   # Load the service that manages root files for histograms.
-#  TFileService: { fileName: "daq2root_%r_%04s.root" closeFileFast: false }
+#  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
   
 #  scheduler:    { wantSummary: true }
 #  TimeTracker:  {}
@@ -47,7 +47,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName:    "emphmc_r%r_s%04s.root" #default file name, can override from command line with -o or --output
+    fileName:    "emphmc_r%r_s%s.root" #default file name, can override from command line with -o or --output
 #    SelectEvents: [ simulate ]
   }
 }
