@@ -56,6 +56,7 @@
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/BACkovFiller.h"
+#include "CAFMaker/SRTruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -78,7 +79,7 @@ namespace caf {
     virtual void endSubRun(art::SubRun& sr);
 
   protected:
-    CAFMakerParams fParams;
+    CAFMaker fParams;
 
     std::string fCAFFilename;
 
@@ -202,7 +203,15 @@ namespace caf {
     ARICHFiller arichf;
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
-
+    
+    // Get SRTruth  
+    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
+				// set to "true" if needed
+      SRTruthFiller srtruthf;
+      srtruthf.GetG4Hits = fParams.GetMCHits();
+      srtruthf.Fill(evt,rec);
+    } // end if statement
+    
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();

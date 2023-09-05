@@ -46,9 +46,6 @@ namespace emph {
     
     void analyze(const art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     //    void beginRun(art::Run const&);
@@ -75,11 +72,10 @@ namespace emph {
   
   //.......................................................................
   G4EMPHValidate::G4EMPHValidate(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset)
+    : EDAnalyzer(pset),
+      fMakeSSDTree (pset.get<bool>("MakeSSDTree"))
   {
     fEvent = 0;
-    this->reconfigure(pset);
-
   }
 
   //......................................................................
@@ -89,13 +85,6 @@ namespace emph {
     //======================================================================
     // Clean up any memory allocated by your module
     //======================================================================
-  }
-
-  //......................................................................
-
-  void G4EMPHValidate::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
   }
 
   //......................................................................

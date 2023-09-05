@@ -63,9 +63,6 @@ namespace emph {
     // Optional, read/write access to event
     void analyze(const art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     //    void beginRun(art::Run& run);
     //      void endSubRun(art::SubRun const&);
@@ -100,11 +97,12 @@ namespace emph {
   //.......................................................................
   
   SSDHotChannels::SSDHotChannels(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset), fNumStrips(639), fTokenJob("undef"), fSkipHalfEvts(false), 
+    : EDAnalyzer(pset), fNumStrips(639), 
+      fTokenJob     (pset.get<std::string>("tokenJob", "UnDef")),
+      fSkipHalfEvts (pset.get<bool>("skipHalfEvts", false)),
       fRun(0), fSubRun(-1), fEvtNum(0), fNEvents(0), fHists(0)
   {
 
-    this->reconfigure(pset);
     for (int kSt = 0; kSt !=6; kSt++) {
       for (int kSe = 0; kSe !=6; kSe++) {
         SSDHotChannels::ChanHist  aHist(kSt, kSe); 
@@ -124,16 +122,6 @@ namespace emph {
 
   //......................................................................
 
-  void SSDHotChannels::reconfigure(const fhicl::ParameterSet& pset)
-  {  
-       
-      std::cerr << " emph::SSDHotChannels::reconfigure ... " <<std::endl;
-      fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fSkipHalfEvts = pset.get<bool>("skipHalfEvts", false);
-  }
-
-  //......................................................................
-  
   //  void SSDHotChannels::beginRun(art::Run& run)
   //  {
   // initialize channel map

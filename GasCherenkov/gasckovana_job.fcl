@@ -13,7 +13,7 @@ source:
 
 services:
 {
-  TFileService: { fileName: "gasckovana_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "gasckovana_r%r_s%04s.root" closeFileFast: false }
   IFBeam: {}
   RunHistoryService: @local::standard_runhistory
   ChannelMapService: @local::standard_channelmap
@@ -24,7 +24,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "gasckov_r%r_s%s.root"
+   fileName:    "gasckov_r%r_s%04s.root"
    fastCloning: false
    
   }
