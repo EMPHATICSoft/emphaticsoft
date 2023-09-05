@@ -1,15 +1,26 @@
 <lcgdict>
 
+<<<<<<< HEAD
  <class name="caf::StandardRecord" ClassVersion="14" >
   <version ClassVersion="14" checksum="4062141010"/>
+=======
+
+ <class name="caf::StandardRecord" ClassVersion="16" >
+  <version ClassVersion="16" checksum="101113006"/>
+  <version ClassVersion="15" checksum="142906859"/>
+  <version ClassVersion="14" checksum="101113006"/>
+>>>>>>> main
   <version ClassVersion="13" checksum="142906859"/>
   <version ClassVersion="12" checksum="2588380332"/>
   <version ClassVersion="11" checksum="1542996796"/>
   <version ClassVersion="10" checksum="3065678388"/>
  </class>
 
- <class name="caf::SRHeader" ClassVersion="10" >
+ <class name="caf::SRHeader" ClassVersion="13" >
+  <version ClassVersion="13" checksum="2119411727"/>
+  <version ClassVersion="12" checksum="1938231633"/>
   <version ClassVersion="10" checksum="3811607721"/>
+  <version ClassVersion="11" checksum="3811607721"/>
  </class>
 
  <class name="caf::SRARing" ClassVersion="10" >
@@ -30,7 +41,17 @@
   <version ClassVersion="10" checksum="1716345376"/>
  </class>
 
- <class name="caf::SRSSDClust" ClassVersion="10" >
+ <class name="caf::SRBACkov" ClassVersion="10" >
+  <version ClassVersion="10" checksum="2512846135"/>
+ </class>
+ <class name="std::vector<caf::SRBACkov>" />
+
+ <class name="caf::SRBACkovBranch" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3005628000"/>
+ </class>
+
+ <class name="caf::SRSSDClust" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1811875468"/>
   <version ClassVersion="10" checksum="64380129"/>
  </class>
  <class name="std::vector<caf::SRSSDClust>" />
@@ -51,5 +72,31 @@
  <class name="caf::SRVector3D" ClassVersion="10" >
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
+
+ <class name="std::vector<TLorentzVector>" />
+
+ <class name="caf::SRTrajectory" ClassVersion="11" >
+  <version ClassVersion="11" checksum="791125708"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRTrajectory>" />
+
+ <class name="caf::SRParticle" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2907376710"/>
+  <version ClassVersion="10" checksum="791125708"/>
+ </class>
+ <class name="std::vector<caf::SRParticle>" />
+
+ <class name="caf::SRTrueParticle" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1974990857"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRTrueParticle>" />
+
+ <class name="caf::SRTruth" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2143789429"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRTruth>" />
 
 </lcgdict>

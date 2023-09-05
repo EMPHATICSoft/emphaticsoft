@@ -8,8 +8,14 @@ standard_cafmaker:{
     ARingLabel:    "arichreco"
     SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
+<<<<<<< HEAD
     SSDHitLabel: "ssdhits"
     //TrueSSDHitLabel: "truessdhits" 
+=======
+    BACkovHitLabel: "backovreco"
+    GetMCTruth:    true
+    GetMCHits:     false
+>>>>>>> main
 }
 
 END_PROLOG

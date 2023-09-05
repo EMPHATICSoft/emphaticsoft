@@ -20,10 +20,9 @@ namespace emph
     
     //------------------------------------------------------------
     ChannelMapService::ChannelMapService(const fhicl::ParameterSet& pset,
-					 art::ActivityRegistry & reg)
+					 art::ActivityRegistry & reg):
+      fAbortIfFileNotFound (pset.get<bool>("AbortIfFileNotFound"))      
     {
-      reconfigure(pset);
-      
       art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       fChannelMap = new ChannelMap();
@@ -37,13 +36,7 @@ namespace emph
     ChannelMapService::~ChannelMapService()
     {
     }
-    
-    //-----------------------------------------------------------
-    void ChannelMapService::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fAbortIfFileNotFound = pset.get<bool>("AbortIfFileNotFound");
-    }
-    
+        
     //----------------------------------------------------------
     void ChannelMapService::preBeginRun(const art::Run& )
     {

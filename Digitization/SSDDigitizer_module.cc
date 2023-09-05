@@ -49,9 +49,6 @@ namespace emph {
     
     void produce(art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     //    void beginJob();
     //    void beginRun(art::Run const&);
@@ -87,11 +84,10 @@ namespace emph {
   
   //.......................................................................
   SSDDigitizer::SSDDigitizer(fhicl::ParameterSet const& pset)
-    : EDProducer(pset)
+    : EDProducer(pset),
+      fG4Label (pset.get<std::string>("G4Label"))
   {
     //    fEvent = 0;
-    this->reconfigure(pset);
-
     fSensorMap.clear();
 
     produces<std::vector<rawdata::SSDRawDigit> >("SSD");
@@ -109,15 +105,6 @@ namespace emph {
 
   //......................................................................
 
-  void SSDDigitizer::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    fG4Label = pset.get<std::string>("G4Label");
-
-    //    fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
-  }
-
-  //......................................................................
-  
   void SSDDigitizer::FillSensorMap()
   {
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;

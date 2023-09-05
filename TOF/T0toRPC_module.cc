@@ -51,9 +51,6 @@ namespace emph {
       // Optional, read/write access to event
       void analyze(const art::Event& evt);
 
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
-
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
       void endJob();
@@ -150,38 +147,35 @@ namespace emph {
     //.......................................................................
     T0toRPC::T0toRPC(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
-      fFilesAreOpen(false),
-      fTokenJob("none"),
-      fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
-      fT0ADCs(nChanT0+2, 0.),
-      fT0TDCs(nChanT0+2, DBL_MAX),
-      fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
-      fRPCTDCs(2*nChanRPC+1, DBL_MAX),
-      fRPCHiLows(2*nChanRPC+1, false),
-      fRPCEChans(2*nChanRPC+1, INT_MAX), // used only for algorithm consistency..
-      fTrigPeakADCs(nChanTrig, 0.),
-      fTrigADCs(nChanTrig, 0.),
-      fMakeT0FullNtuple(true),
-      fMakeRPCFullNtuple(true),
-      fMakeTrigFullNtuple(true),
-      fMakeEventSummaryNTuple(false),
-      fNumT0Hits(0),		     
-      fNumT0HitsFirst(0),		     
-      fNumT0HitsFirstUpDown(0),		     
-      fNumT0Hits2nd(0),		     
-      fNumT0Hits2ndUpDown(0),  	     
-      fT0SegmentHitFirst(-1),
-      fT0SegmentHit2nd(-1),   
-      fT0SumSigUpFirst(0.),
-      fT0SumSigDownFirst(0.),
-      fT0SumSigUp2nd(0.),
-      fT0SumSigDown2nd(0.),
-      fTdcUniqueSegmentBottom(DBL_MAX),
-      fTdcUniqueSegmentTop(DBL_MAX)
+	fFilesAreOpen(false),
+	fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+	fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
+	fT0ADCs(nChanT0+2, 0.),
+	fT0TDCs(nChanT0+2, DBL_MAX),
+	fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
+	fRPCTDCs(2*nChanRPC+1, DBL_MAX),
+	fRPCHiLows(2*nChanRPC+1, false),
+	fRPCEChans(2*nChanRPC+1, INT_MAX), // used only for algorithm consistency..
+	fTrigPeakADCs(nChanTrig, 0.),
+	fTrigADCs(nChanTrig, 0.),
+	fMakeT0FullNtuple  (pset.get<bool>("makeT0FullNtuple",true)), // keep them for now.. 
+	fMakeRPCFullNtuple (pset.get<bool>("makeRPCFullNtuple",true)),
+        fMakeTrigFullNtuple (pset.get<bool>("makeTrigFullNtuple",true)),
+        fMakeEventSummaryNTuple (pset.get<bool>("makeEventSummaryFullNtuple",false)),
+        fNumT0Hits(0),		     
+        fNumT0HitsFirst(0),		     
+        fNumT0HitsFirstUpDown(0),		     
+        fNumT0Hits2nd(0),		     
+        fNumT0Hits2ndUpDown(0),  	     
+        fT0SegmentHitFirst(-1),
+        fT0SegmentHit2nd(-1),   
+        fT0SumSigUpFirst(0.),
+        fT0SumSigDownFirst(0.),
+        fT0SumSigUp2nd(0.),
+        fT0SumSigDown2nd(0.),
+        fTdcUniqueSegmentBottom(DBL_MAX),
+        fTdcUniqueSegmentTop(DBL_MAX)
     {
-
-      this->reconfigure(pset);
-
     }
     
     //......................................................................
@@ -197,17 +191,6 @@ namespace emph {
       //======================================================================
       // Clean up any memory allocated by your module
       //======================================================================
-    }
-
-    //......................................................................
-    void T0toRPC::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fMakeT0FullNtuple  = pset.get<bool>("makeT0FullNtuple",true); // keep them for now.. 
-      fMakeRPCFullNtuple = pset.get<bool>("makeRPCFullNtuple",true);
-      fMakeTrigFullNtuple = pset.get<bool>("makeTrigFullNtuple",true);
-      fMakeEventSummaryNTuple = pset.get<bool>("makeEventSummaryFullNtuple",false);
-      
     }
 
     //......................................................................

@@ -20,8 +20,6 @@ namespace NAMESPACE
 
     void produce(art::Event& evt);
 
-    void reconfigure(const fhicl::ParameterSet& pset);
-
     void beginJob();
 
   protected:

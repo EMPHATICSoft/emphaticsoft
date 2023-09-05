@@ -33,8 +33,6 @@ namespace emph
 			art::ActivityRegistry& reg);
       virtual ~ChannelMapService();
       
-      void reconfigure(const fhicl::ParameterSet& pset);
-    
       void preBeginRun(const art::Run& run);
 
       DChannel DetChan(EChannel echan) { return fChannelMap->DetChan(echan); }

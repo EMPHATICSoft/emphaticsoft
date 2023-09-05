@@ -25,8 +25,6 @@ namespace emph
       TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kRootUnits);
       TGeoManager::LockDefaultUnits(1);
 
-      reconfigure(pset);
-      
       art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       reg.sPreBeginRun.watch(this, &GeometryService::preBeginRun);
@@ -40,12 +38,6 @@ namespace emph
     }
     
     //-----------------------------------------------------------
-    void GeometryService::reconfigure(const fhicl::ParameterSet& )//pset)
-    {
-
-    }
-    
-    //----------------------------------------------------------
     // If we have run-dependent geometry, do something here to reload
     // the geometry if necessary
     //----------------------------------------------------------

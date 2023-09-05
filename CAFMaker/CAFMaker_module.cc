@@ -45,7 +45,11 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
+<<<<<<< HEAD
 #include "Simulation/SSDHit.h"
+=======
+#include "RecoBase/BACkovHit.h"
+>>>>>>> main
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -55,7 +59,12 @@
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
+<<<<<<< HEAD
 #include "CAFMaker/TrueSSDHitsFiller.h"
+=======
+#include "CAFMaker/BACkovFiller.h"
+#include "CAFMaker/SRTruthFiller.h"
+>>>>>>> main
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -68,6 +77,7 @@ namespace caf {
     virtual ~CAFMaker();
 
     void produce(art::Event& evt) noexcept;
+    void beginSubRun(art::SubRun &sr) noexcept;
 
     void respondToOpenInputFile(const art::FileBlock& fb);
 
@@ -77,7 +87,7 @@ namespace caf {
     virtual void endSubRun(art::SubRun& sr);
 
   protected:
-    CAFMakerParams fParams;
+    CAFMaker fParams;
 
     std::string fCAFFilename;
 
@@ -86,6 +96,8 @@ namespace caf {
     TFile*      fFile;
     TTree*      fRecTree;
     TH1D*       hEvents;
+
+    caf::SRHeader fHeader;
 
     void InitializeOutfile();
 
@@ -168,6 +180,13 @@ namespace caf {
   }
   
   //......................................................................
+
+  void CAFMaker::beginSubRun(art::SubRun& sr) noexcept {
+    HeaderFiller hf;
+    hf.Fill(sr, fHeader);
+  }
+
+  //......................................................................
   void CAFMaker::produce(art::Event& evt) noexcept {
     // Normally CAFMaker is run without an output ART stream, so these go
     // nowhere, but can be occasionally useful for filtering as part of
@@ -181,21 +200,35 @@ namespace caf {
     StandardRecord* prec = &rec;  // TTree wants a pointer-to-pointer
     fRecTree->SetBranchAddress("rec", &prec);
 
-    // get header info first
-    HeaderFiller hf;
-    hf.Fill(evt, rec);
+    // set event-level header info first
+    rec.hdr = fHeader;
+    rec.hdr.evt = evt.id().event();
 
-    mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
+    // TML: Why are we printing this out for every single event?
+    //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     // Get ARing info from ARichReco
     ARICHFiller arichf;
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
-
+    
+    // Get SRTruth  
+    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
+				// set to "true" if needed
+      SRTruthFiller srtruthf;
+      srtruthf.GetG4Hits = fParams.GetMCHits();
+      srtruthf.Fill(evt,rec);
+    } // end if statement
+    
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
+
+    // Get BACkov info from BACovHitReco
+    BACkovFiller backovf; 
+    backovf.fLabel = fParams.BACkovHitLabel();
+    backovf.Fill(evt,rec);
     
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
