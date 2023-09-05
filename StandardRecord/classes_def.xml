@@ -1,5 +1,6 @@
 <lcgdict>
 
+
  <class name="caf::StandardRecord" ClassVersion="16" >
   <version ClassVersion="16" checksum="101113006"/>
   <version ClassVersion="15" checksum="142906859"/>
@@ -33,6 +34,15 @@
 
  <class name="caf::SRSSDHitsBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="1716345376"/>
+ </class>
+
+ <class name="caf::SRBACkov" ClassVersion="10" >
+  <version ClassVersion="10" checksum="2512846135"/>
+ </class>
+ <class name="std::vector<caf::SRBACkov>" />
+
+ <class name="caf::SRBACkovBranch" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3005628000"/>
  </class>
 
  <class name="caf::SRSSDClust" ClassVersion="11" >

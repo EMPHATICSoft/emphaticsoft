@@ -45,6 +45,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/BACkovHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -54,6 +55,7 @@
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
+#include "CAFMaker/BACkovFiller.h"
 #include "CAFMaker/SRTruthFiller.h"
 
 namespace caf {
@@ -77,7 +79,7 @@ namespace caf {
     virtual void endSubRun(art::SubRun& sr);
 
   protected:
-    CAFMakerParams fParams;
+    CAFMaker fParams;
 
     std::string fCAFFilename;
 
@@ -215,6 +217,11 @@ namespace caf {
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
 
+    // Get BACkov info from BACovHitReco
+    BACkovFiller backovf; 
+    backovf.fLabel = fParams.BACkovHitLabel();
+    backovf.Fill(evt,rec);
+    
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
