@@ -340,6 +340,7 @@ namespace emph {
     }
     //
     bool SSDRecDwnstrTracksAlgo1::doPrelimFit(rb::DwnstrTrType type, double xStart, double yStart, double xSlopeStart, double ySlopeStart) {
+       fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsOut, parsOutErr;
 //       fFitterFCN->SetDebugOn(fDebugIsOn);
@@ -361,6 +362,7 @@ namespace emph {
 // 
 //        if (!fNoMagnet) 
 //	  uPars.Add(std::string("PInv"), 1.0/fPrelimMomentum, std::abs(2.0/fPrelimMomentum), -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
+       
         if (!fNoMagnet)  // test this.. 
 	  uPars.Add(std::string("PInv"), 1.0/50., std::abs(2.0/50.), -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
        unsigned int nPars = (fNoMagnet) ? 4 : 5; 
@@ -368,7 +370,9 @@ namespace emph {
        for (unsigned int k=0; k != nPars; k++) { initValsV.push_back(uPars.Value(k)); initValsE.push_back(uPars.Error(k)); } 
        // Testing the FCN, once .. 
        if (fDebugIsOn) { 
-         std::cerr << " ....... About to test the FCN with " << initValsV.size() << " parameters.. " << std::endl;
+//         fFitterFCN->SetDebugOn(true); 
+         if (fNoMagnet) std::cerr << " ....... About to test the FCN, No Magnet,  with " << initValsV.size() << " parameters.. " << std::endl;
+         else std::cerr << " ....... About to test the FCN, Magnet in place,  with " << initValsV.size() << " parameters.. " << std::endl;
          double aChiSqOnce = (*fFitterFCN)(initValsV);
 //         std::cerr << " chi-Square Once.. " << aChiSqOnce << " .... and that is enough for now " << std::endl; exit(2);
          std::cerr << " chi-Square Once.. " << aChiSqOnce << " .... and that we keep going... " << std::endl;

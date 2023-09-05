@@ -96,6 +96,7 @@ namespace emph {
 	  
 	 }
 	 inline double GetTsFromCluster(size_t kStation, size_t kPlane, double strip) {
+	   std::cerr << " ConvertDigitToWCoordAlgo1::GetTsFromCluster Obsolete coordinate setting, quit here and now !! " << std::endl; exit(2);
 	   switch (fView) { // see SSDCalibration/SSDCalibration_module 
 	     case 'X' :
 	     {

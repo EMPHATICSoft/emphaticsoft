@@ -121,6 +121,11 @@ namespace emph {
 	   break;
 	   
       }
+      //
+      // fNominalOffsets is obsolete (August 2023), check this by setting them to DBL_MAX
+      //
+      for (size_t k=0; k!=fNominalOffsets.size(); k++)  fNominalOffsets[k] = DBL_MAX;
+      
        // Setting of the uncertainties.  Base on G4EMPH, see g4gen_jobC.fcl, Should be valid for X and Y  But it does includes the target.
        //
        // Obtained in Dec 2022, with target in. 
@@ -161,18 +166,22 @@ namespace emph {
 	const double stripErrSq = (1.0/rmsStrN*rmsStrN)/12.; // just a guess!!!  Suspicious.. 
 	const size_t kSt = static_cast<size_t>(itCl->Station());
 	const emph::geo::sensorView aView = itCl->View();
-	const size_t kSe = static_cast<size_t> (itCl->Sensor()); 
+	const size_t kSe = static_cast<size_t> (itCl->Sensor()); // local to the station.  
         const double pitch = fEmVolAlP->Pitch(aView, kSt, kSe);	
-	if (fDebugIsOn) std::cerr << " ConvertDigitToWCoordAlgo1::getTrCoord, for Station " 
-	                          << itCl->Station() << " TrShift " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
 	double tMeas = DBL_MAX; 
 	const double multScatErr = fMultScatUncert[kSt]*120./pMomMultScatErr;
 	const double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr;
 	// The Alignment parameters are organized by view, 
 	                 // with indics ranging from 0 to 7 (X & Y views) , 0 an1 (U) and 0-3 for W views. 
 			 // Clone code.. This should belong to the converter.. 
-	const int kS = (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt; // in dex ranging from 0 to 7 (X or Y), inclusive, for Phase1b, list of sensors by view. 
+	const int kS = (kSt > 3) ? 
+	               (4 + (kSt-4)*2 + kSe % 2) : kSt; // in dex ranging from 0 to 7 (X or Y), inclusive, for Phase1b, list of sensors by view. 
+		       // To be changing is we set the geometry to station 2&3 having  W_VIEW
 	// This needs to be cleaned Up Hysterical... Actually, it looks like the code leads to identical results, fIsMC no longer needed.  
+	if (fDebugIsOn) std::cerr << " ConvertDigitToWCoordAlgo1::getTrCoord, for Station " 
+	                          << itCl->Station() << " kse " << kSe  << " kS " << kS << " View " 
+				  << aView << " strip " << strip
+				  << " TrShift " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
 	if (!fIsMC) { 
 	    if (aView == emph::geo::X_VIEW) {
 	      tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
@@ -182,7 +191,7 @@ namespace emph {
 	      if (kS >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 //	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;      
 	    } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
-	      if (aView == emph::geo::U_VIEW) { 
+	      if (kSt < 4) { // Sept 1- Sep5  attempt at sorting out orientations.. 
 	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
 	      if (kS == 4) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)); // Based on the analsis of run 1274. 
@@ -202,16 +211,43 @@ namespace emph {
 	    if (aView == emph::geo::X_VIEW) {
 	      tMeas = ( -1.0 * strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;    // for now.. Need to keep checking this.. Shameful.   
+	      // Attempting to use the new convention, based on (wrongly assigned!) flip boolean in the geometry.
+	      // But... But... these equations the same as above, for real data!....  
+//	      if ((kSt == 4) && (kSe == 1)) {
+//	        std::cerr << " ConvertDigitToWCoordAlgo1::getTrCoord, St4 X kSe " << kSe << " strip " 
+//		          << strip << " trPos " << fEmVolAlP->TrPos(aView, kSt, kSe) <<  " tMeas " << tMeas << std::endl;
+//	        // Based on the Main branch, we now must have 
+//	        const double tMeasTmp = ( -1.0 * strip*pitch );
+//	        std::cerr << " ..... ..... For GDML Main branch, tMeas must be " << tMeasTmp << std::endl;
+//	      }      
 	    } else if (aView == emph::geo::Y_VIEW) {
+//	      tMeas =  ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));  // data See above... 
+//	      if (kS >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // data  see above. 
 	      tMeas = (kSt < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
-	                      ( strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)) ;
-	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;      
+	                      ( -strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) ;
+//	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1; // Commented out, to match data. 
+//              if ((kSt == 4) && ((kSe % 2) == 1)){ 
+//	         const double critStrip5p1 = -1.0*( 5.1 - fEmVolAlP->TrPos(aView, kSt, kSe))/ pitch;
+//                 std::cerr << " .....ConvertDigitToWCoordAlgo1::getTrCoord.... " << std::endl 
+//		           << "  For event 2, some MC.. we want the Y coordinate = 5.1, so we expect strip " << critStrip5p1  << std::endl; 
+//		 std::cerr << " Current strip number is " << strip << " Y offset " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
+//	      } 
 	    } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
-	      if (aView == emph::geo::U_VIEW) { 
+	      if (kSt < 4) { // attempt at sorting out orientations.., Sept 1 2023. (No fIsMC dirty flag.. )
 	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+		if (fDebugIsOn) std::cerr << ".......  assumed view " << aView << ", at Station " << kSt << " kSe " << kSe 
+		                          << " tMeas MC = tMeas Data = " << tMeas << std::endl; 
 	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
-	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
-	        if ((kSe % 2) ==  1) tMeas *= -1.0;
+	        double tMeasMC = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
+	        if ((kSe % 2) ==  1) tMeasMC *= -1.0;
+		// True data
+		tMeas = DBL_MAX; 
+	        if (kS == 4) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)); // Based on the analsis of run 1274. 
+	        else if (kS == 5) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	        else if (kS == 6) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe));
+	        else if (kS == 7) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // exploring... 
+		if (fDebugIsOn) std::cerr << " ......  assumed  view " << aView << ", at Station " << kSt 
+		                << " tMeas MC " << tMeasMC << " data Algo1 " << tMeas << std::endl; 
 	      }
 	    }
 	    if (fDebugIsOn) 

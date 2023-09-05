@@ -29,59 +29,104 @@ namespace emph {
        fHalfWaferWidth(0.5*fWaferWidth),  
        fZNomPosX{0.75, 121.25, 363.15, 484.15, 985.75, 985.75, 1211.95, 1211.95}, 
        fZNomPosY{0.15, 120.65, 360.75, 481.75, 986.35, 986.35, 1212.55, 1212.55},
-       fZNomPosU{360.15,  481.15}, fZNomPosV{988.75, 988.75, 1214.95, 1214.95},
+//       fZNomPosSt4and5{360.15,  481.15}, fZNomPosSt2and3{988.75, 988.75, 1214.95, 1214.95},
+       fZNomPosSt2and3{360.15,  481.15, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}, 
+       fZNomPosSt4and5{988.75, 988.75, 1214.95, 1214.95, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX},    // Change of convention Aug. Sept 2023 
        fZDeltaPosX(fNumSensorsXorY, 0.),  fZDeltaPosY(fNumSensorsXorY, 0.), 
-       fZDeltaPosU(fNumSensorsU, 0.), fZDeltaPosV(fNumSensorsV, 0.),
+       fZDeltaPosSt2and3(fNumSensorsU, 0.), fZDeltaPosSt4and5(fNumSensorsV, 0.),
        fTrNomPosX{fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, 
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},
+//       fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
+//                  fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth}, 
+// Sept 5, sorting negative Y  
        fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
-                  fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},      
-       fTrNomPosU{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
-       fTrNomPosV{-fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  // Weird...!... MC bug ???? 
+                  0., fWaferWidth, 0., fWaferWidth},  
+//            August 25 2023, flip the sign for Y4a, Y5a.. Following the GDML data. 		      
+//       fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
+//                  -fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},   
+// Aug 30 -31.. Sorting U and V ..  Spet 4 : back to old config   
+//       fTrNomPosSt4and5{-fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  // Weird...!... MC bug ???? 
+// Sept 5       
+       fTrNomPosSt4and5{0., 0., 0., 0.},  //Trial.. 
+       fTrNomPosSt2and3{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
+//            Sept 2 2023, flip the sign for Y4a, Y5a.. Following the GDML data. 		      
+//       fTrNomPosSt4and5{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 0., 0.},  // Weird...!... MC bug ???? 
+//       fTrNomPosSt2and3{-fWaferWidth, -fWaferWidth,-fWaferWidth, -fWaferWidth, 0., 0., 0., 0., 0., 0.}, //  give shits of -15. ? Investigating..
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
-       fTrDeltaPosU(fNumSensorsU, 0.), fTrDeltaPosV(fNumSensorsV, 0.), 
+       fTrDeltaPosSt2and3(fNumSensorsV, 0.), fTrDeltaPosSt4and5(fNumSensorsU, 0.), 
        fTrDeltaPitchX(fNumSensorsXorY, 0.), fTrDeltaPitchY(fNumSensorsXorY, 0.),  
-       fTrDeltaPitchU(fNumSensorsU, 0.), fTrDeltaPitchV(fNumSensorsV, 0.), 
+       fTrDeltaPitchV(fNumSensorsV, 0.), fTrDeltaPitchU(fNumSensorsU, 0.), 
        fRollX(fNumSensorsXorY, 0.), fRollY(fNumSensorsXorY, 0.),  
-       fRollU(fNumSensorsU, 0.), fRollV(fNumSensorsV, 0.),
+       fRollV(fNumSensorsV, 0.), fRollU(fNumSensorsU, 0.),
        fRollXC(fNumSensorsXorY, 0.), fRollYC(fNumSensorsXorY, 0.),  
-       fRollUC(fNumSensorsU, 0.), fRollVC(fNumSensorsV, 0.),
+       fRollVC(fNumSensorsV, 0.), fRollUC(fNumSensorsU, 0.),
        fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287},
-       fMultScatUncertU{0.05067243, 0.05067243}, 
-       fMultScatUncertV{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
-       fUnknownUncertXorY(fNumSensorsXorY, 0.0005), fUnknownUncertU(fNumSensorsU, 0.0005), fUnknownUncertV(fNumSensorsV, 0.0005),
+       fMultScatUncertV{0.05067243, 0.05067243}, // Probably too big, to be revisited 
+       fMultScatUncertU{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
+       fUnknownUncertXorY(fNumSensorsXorY, 0.0005), fUnknownUncertV(fNumSensorsV, 0.0005), fUnknownUncertU(fNumSensorsU, 0.0005),
        fZPosX(fNumSensorsXorY, 0.),  fZPosY(fNumSensorsXorY, 0.), 
-       fZPosU(fNumSensorsU, 0.),fZPosV(fNumSensorsV, 0.),
+       fZPosSt4and5(fNumSensorsV, 0.),fZPosSt2and3(fNumSensorsU, 0.),
        fTrPosX(fNumSensorsXorY, 0.),  fTrPosY(fNumSensorsXorY, 0.), 
-       fTrPosU(fNumSensorsU, 0.),fTrPosV(fNumSensorsV, 0.)
+       fTrPosSt4and5(fNumSensorsV, 0.),fTrPosSt2and3(fNumSensorsU, 0.)
      { 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fZPosX[kSe] = fZNomPosX[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fZPosY[kSe] = fZNomPosY[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fZPosU[kSe] = fZNomPosU[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsV; kSe++) { fZPosV[kSe] = fZNomPosV[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsV; kSe++) { fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe]; } 
 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosX[kSe] = fTrNomPosX[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosY[kSe] = fTrNomPosY[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPosU[kSe] = fTrNomPosU[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsV; kSe++) { fTrPosV[kSe] = fTrNomPosV[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsV; kSe++) { fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe]; } 
        
        // an assumption !! 
        
        fZPosErr = 5.0e-9;  // Turn this off, because it will affect only mometum scale (correlated errors) 
        
      }
+     void VolatileAlignmentParams::UpdateNominalFromStandardGeom(emph::geo::Geometry *theGeo) {
+       std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom ....Y View updates only....  " << std::endl;
+       std::cerr << " Number of SSD Stations " << theGeo->NSSDStations() << std::endl;
+       size_t iSensX=0; size_t iSensY=0; size_t iSensU=0; size_t iSensV=0;
+       for (int kSt=0; kSt != theGeo->NSSDStations(); kSt++) { 
+         const emph::geo::SSDStation aSt = theGeo->GetSSDStation(kSt);
+	 const TVector3 aStPos = aSt.Pos();
+	 std::cerr << " ... At Station " << aSt.Name() << " Position, X  " << aStPos.X() << " Y " << aStPos.Y() 
+	           << " " << aStPos.Z() + aSt.Dz() << std::endl; 
+         for (int kSe=0; kSe != aSt.NSSDs(); kSe++) {
+	   const emph::geo::Detector aSensor = aSt.GetSSD(kSe); 
+	   const TVector3 aSePos = aSensor.Pos();
+	   std::cerr << " ... ... At Sensor " << aSensor.Name() << " View " << aSensor.View()  
+	             << " Position, X  " << aSePos.X() << " Y " << aSePos.Y() << " Z " << aSePos.Z() << std::endl; 
+	   if (aSensor.View() == emph::geo::Y_VIEW) {
+	     if (aSensor.IsFlip()) 
+	        std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
+		          << " vs, flipped,  " << aSePos.Y() <<  " iSensY " <<iSensY <<  std::endl;
+	     else  std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
+		          << " vs, Not flipped,  " << aSePos.Y() << " iSensY " <<iSensY << std::endl;
+	   }	     
+           if (aSensor.View() == emph::geo::X_VIEW) iSensX++; 
+           if (aSensor.View() == emph::geo::Y_VIEW) iSensY++; 
+           if (aSensor.View() == emph::geo::U_VIEW) iSensU++; 
+           if (aSensor.View() == emph::geo::W_VIEW) iSensV++; 
+	 }
+	 std::cerr << std::endl;
+       }
+//       std::cerr << " And... And .. quit for now !!! " << std::endl; exit(2);
+     }
      //
      // Setters 
      //
      void VolatileAlignmentParams::SetDeltaZ(emph::geo::sensorView view, size_t kSe, double v) {
+        std::cerr << " VolatileAlignmentParams::SetDeltaZ, Broken!! fatal " << std::endl; exit(2);
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
 	     fZDeltaPosX[kSe] =  fZPosX[kSe] = fZNomPosX[kSe] + v;  break;  
 	    } 
 	 case emph::geo::Y_VIEW :  { fZDeltaPosY[kSe] = v; fZPosY[kSe] = fZNomPosY[kSe] + v; break;} 
-	 case emph::geo::U_VIEW :  { fZDeltaPosU[kSe] = v; fZPosU[kSe] = fZNomPosU[kSe] + v; break;} 
-	 case emph::geo::W_VIEW : { fZDeltaPosV[kSe] = v; fZPosV[kSe] = fZNomPosV[kSe] + v; break;}
+	 case emph::geo::U_VIEW :  { fZDeltaPosSt4and5[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt4and5[kSe] + v; break;} 
+	 case emph::geo::W_VIEW : { fZDeltaPosSt2and3[kSe] = v; fZPosSt4and5[kSe] = fZNomPosSt2and3[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaZ, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -89,6 +134,7 @@ namespace emph {
      } 
 //     
      void VolatileAlignmentParams::SetDeltaZStation(emph::geo::sensorView view,  size_t kSt, double v) {
+        std::cerr << " VolatileAlignmentParams::SetDeltaZStation, Broken!! fatal " << std::endl; exit(2);
        switch (view) {
      	 case emph::geo::X_VIEW : {
 	     if (kSt < 4) { 
@@ -117,30 +163,30 @@ namespace emph {
 	     }  
 	   }
 	   break;
-	 }	  
-	 case emph::geo::U_VIEW :  { 
-	  if (kSt == 4) { 
+	 }
+	 // Still trying to figure out the orientation U vs W.. Code conservatively.. 	  
+	 case emph::geo::W_VIEW :   
+	 case emph::geo::U_VIEW :  
+	  if (kSt < 4) { 
 	    for (size_t kSe=0; kSe != 2; kSe++) { 
-	      fZDeltaPosU[kSe] = v; fZPosU[kSe] = fZNomPosU[kSe] + v;
+	      fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v;
+	    }
+	  } else { 
+	    for (size_t kSe=0; kSe != 4; kSe++) { 
+	      fZDeltaPosSt4and5[kSe] = v; fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe] + v;
 	    }
 	  }
 	  break;
-	 } 
-	 case emph::geo::W_VIEW : { 
-	   if (kSt == 5) { 
-	     for (size_t kSe=0; kSe != 4; kSe++) { 
-	       fZDeltaPosV[kSe] = v; fZPosV[kSe] = fZNomPosV[kSe] + v;
-	     }
-	   }
-	   break;
-	 }
+	  
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::ZDeltaZStation, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
      void VolatileAlignmentParams::SetDeltaTr(emph::geo::sensorView view,  size_t kSe, double v) {
-       switch (view) {
+        std::cerr << " VolatileAlignmentParams::SetDeltaTr, Broken!! fatal " << std::endl; exit(2);
+     
+      switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break;  
@@ -152,14 +198,16 @@ namespace emph {
 //	    fTrDeltaPosY[kSe] = -v; fTrPosY[kSe] = fTrNomPosY[kSe] - v; break;
 	 } 
 	 // flip sign as well ????? .. 
-	 case emph::geo::U_VIEW :  { fTrDeltaPosU[kSe] = v; fTrPosU[kSe] = fTrNomPosU[kSe] + v; break;} 
-	 case emph::geo::W_VIEW : { fTrDeltaPosV[kSe] = v; fTrPosV[kSe] = fTrNomPosV[kSe] + v; break;}
+	 case emph::geo::U_VIEW :  { fTrDeltaPosSt4and5[kSe] = v; fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe] + v; break;} 
+	 case emph::geo::W_VIEW : { fTrDeltaPosSt2and3[kSe] = v; fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaTr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
      void VolatileAlignmentParams::SetValueTrShiftLastPlane(emph::geo::sensorView view, double v) {
+
+       std::cerr << " VolatileAlignmentParams::SetValueTrShiftLastPlane, Broken!! fatal " << std::endl; exit(2);
      
        switch (view) {
      	 case emph::geo::X_VIEW : {
@@ -169,8 +217,8 @@ namespace emph {
 	 case emph::geo::Y_VIEW :  { 
 	    fTrDeltaPosY[fNumSensorsXorY-1] = v; fTrPosY[fNumSensorsXorY-1] = fTrNomPosY[fNumSensorsXorY-1] + v; break;
 	 } 
-	 case emph::geo::U_VIEW :  { fTrDeltaPosU[fNumSensorsU-1] = v; fTrPosU[fNumSensorsU-1] = fTrNomPosU[fNumSensorsU-1] + v; break;} 
-	 case emph::geo::W_VIEW : { fTrDeltaPosV[fNumSensorsV-1] = v; fTrPosV[fNumSensorsV-1] = fTrNomPosV[fNumSensorsV-1] + v; break;}
+	 case emph::geo::W_VIEW :  { fTrDeltaPosSt4and5[fNumSensorsU-1] = v; fTrPosSt2and3[fNumSensorsU-1] = fTrNomPosSt2and3[fNumSensorsU-1] + v; break;} 
+	 case emph::geo::U_VIEW : { fTrDeltaPosSt2and3[fNumSensorsV-1] = v; fTrPosSt4and5[fNumSensorsV-1] = fTrNomPosSt4and5[fNumSensorsV-1] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetValueTrShiftLastPlane, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  }
@@ -265,12 +313,18 @@ namespace emph {
         this->SetDeltaTr(emph::geo::Y_VIEW, 5,  3.01591  );
         this->SetDeltaTr(emph::geo::Y_VIEW, 6,  2.8699   );
         this->SetDeltaTr(emph::geo::Y_VIEW, 7,  3.0   );  // See parameter Dgap (double sensor gap) 
-        this->SetDeltaTr(emph::geo::U_VIEW, 0,  0.726008 );
-        this->SetDeltaTr(emph::geo::U_VIEW, 1,  2.85987  );
-        this->SetDeltaTr(emph::geo::W_VIEW, 0,  -5.42706 );
-        this->SetDeltaTr(emph::geo::W_VIEW, 1,  -4.71627 );
-        this->SetDeltaTr(emph::geo::W_VIEW, 2,  -1.262   );
-        this->SetDeltaTr(emph::geo::W_VIEW, 3,  -1.15554 );
+//        this->SetDeltaTr(emph::geo::U_VIEW, 0,  0.726008 );
+//        this->SetDeltaTr(emph::geo::U_VIEW, 1,  2.85987  );
+//        this->SetDeltaTr(emph::geo::W_VIEW, 0,  -5.42706 );
+//        this->SetDeltaTr(emph::geo::W_VIEW, 1,  -4.71627 );
+//        this->SetDeltaTr(emph::geo::W_VIEW, 2,  -1.262   );
+//        this->SetDeltaTr(emph::geo::W_VIEW, 3,  -1.15554 );
+        this->SetDeltaTr(emph::geo::W_VIEW, 0,  0.726008 );
+        this->SetDeltaTr(emph::geo::W_VIEW, 1,  2.85987  );
+        this->SetDeltaTr(emph::geo::U_VIEW, 0,  -5.42706 );
+        this->SetDeltaTr(emph::geo::U_VIEW, 1,  -4.71627 );
+        this->SetDeltaTr(emph::geo::U_VIEW, 2,  -1.262   );
+        this->SetDeltaTr(emph::geo::U_VIEW, 3,  -1.15554 );
 	if (correctX57) {
            this->SetDeltaTr(emph::geo::X_VIEW, 7,  3.0 - factBad*0.5091 );  // The last term is the average of the residual from the alignment fit 5c_8d2
            this->SetDeltaTr(emph::geo::X_VIEW, 5,  2.39239 - factBad*0.150 );  // The last term is the average of the residual from the alignment fit 5c_8d2

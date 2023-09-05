@@ -15,6 +15,7 @@
 #include <vector>
 #include <stdint.h>
 #include <iostream>
+#include "Geometry/Geometry.h"
 #include "RecoBase/SSDCluster.h" 
 
 namespace emph{ 
@@ -25,8 +26,8 @@ namespace emph{
         VolatileAlignmentParams();
         const size_t fNumStations = 6; // For Phase1b 
         const size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
-        const size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each 
-        const size_t fNumSensorsV = 4; // Station 4 and 5, two sensors each 
+        const size_t fNumSensorsU = 8; // Station 2 and 3, one sensor each, or conversely (new convention) Station 4 and 5
+        const size_t fNumSensorsV = 8; // Have not made my mind yet, so over dimension  
 	const size_t fNumStrips = 639; // Inconsistent with the height of the Sensors, by one 60 micron pitch  
 	//
 	double fZCoordsMagnetCenter, fMagnetKick120GeV;
@@ -37,23 +38,27 @@ namespace emph{
 	                 // an alignment uncertainty, longitudinal.
 	// all dimension to the number of sensors (or SSD wafer), view by view. , in order of increasing Z 
 	// We should not have nominal positions here, but they are conveninent to have here.. 
-	std::vector<double> fZNomPosX, fZNomPosY, fZNomPosU, fZNomPosV; // Z position, nominal, as is in phase1b.gdml  
- 	std::vector<double> fZDeltaPosX, fZDeltaPosY, fZDeltaPosU, fZDeltaPosV; // Z position tweaks, as determined by this package, from the multiBT fitter.  
-	std::vector<double> fTrNomPosX, fTrNomPosY, fTrNomPosU, fTrNomPosV; // Transverse position, nominal 
- 	std::vector<double> fTrDeltaPosX, fTrDeltaPosY, fTrDeltaPosU, fTrDeltaPosV; // Transverse tweaks. 
- 	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY, fTrDeltaPitchU, fTrDeltaPitchV; // Yaw or Pitch angle, leading to a reduced pitch. 
+	std::vector<double> fZNomPosX, fZNomPosY; 
+	std::vector<double> fZNomPosSt2and3, fZNomPosSt4and5; // Z position, nominal, as is in phase1b.gdml  
+ 	std::vector<double> fZDeltaPosX, fZDeltaPosY; 
+	std::vector<double> fZDeltaPosSt2and3, fZDeltaPosSt4and5; // Z position tweaks, as determined by this package, from the multiBT fitter.  
+	std::vector<double> fTrNomPosX, fTrNomPosY; 
+	std::vector<double> fTrNomPosSt4and5, fTrNomPosSt2and3; // Transverse position, nominal 
+ 	std::vector<double> fTrDeltaPosX, fTrDeltaPosY;
+	std::vector<double> fTrDeltaPosSt2and3, fTrDeltaPosSt4and5; // Transverse tweaks. 
+ 	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY, fTrDeltaPitchV, fTrDeltaPitchU; // Yaw or Pitch angle, leading to a reduced pitch. 
 	// Pitch = nominal Pitch * ( 1 - fTrDeltaPitchX), as cos(Yaw) ~ (1.0 - Yaw*yaw)  DeltaPitch always a positive quantity. 
- 	std::vector<double> fRollX, fRollY, fRollU, fRollV; // Roll angle,
+ 	std::vector<double> fRollX, fRollY, fRollV, fRollU; // Roll angle,
 	// For intance, for X view,  x -> x + y*fRollX, where cos(roll angle) ~ 1.0 and sin(roll angle) ~ roll angle
 	// Although not strictly geometrical, the following uncertainties are part of this singleton. 
 	// Added May 21 -23 2023 : The center of rotation is unlikely to be the center of wafer, or the beam axis.  Allow for one more parameter per Sensor. 
- 	std::vector<double> fRollXC, fRollYC, fRollUC, fRollVC; // Roll angle Centers
-	std::vector<double> fMultScatUncertXorY, fMultScatUncertU, fMultScatUncertV;
-	std::vector<double> fUnknownUncertXorY, fUnknownUncertU, fUnknownUncertV;
+ 	std::vector<double> fRollXC, fRollYC, fRollVC, fRollUC; // Roll angle Centers
+	std::vector<double> fMultScatUncertXorY, fMultScatUncertV, fMultScatUncertU;
+	std::vector<double> fUnknownUncertXorY, fUnknownUncertV, fUnknownUncertU;
 	//
 	// Internal variables, for quick access 
-	std::vector<double> fZPosX, fZPosY, fZPosU, fZPosV; 
-	std::vector<double> fTrPosX, fTrPosY, fTrPosU, fTrPosV; 
+	std::vector<double> fZPosX, fZPosY, fZPosSt4and5, fZPosSt2and3; 
+	std::vector<double> fTrPosX, fTrPosY, fTrPosSt4and5, fTrPosSt2and3; 
 	 
 	static VolatileAlignmentParams* instancePtr;
 	
@@ -63,7 +68,10 @@ namespace emph{
 	 if ( instancePtr == NULL ) instancePtr = new VolatileAlignmentParams();
 	 return instancePtr;
 	}
-      
+        
+	void UpdateNominalFromStandardGeom(emph::geo::Geometry *theGeo); 
+	
+	
         VolatileAlignmentParams(const VolatileAlignmentParams&) = delete;   // no copy constructor. 
 	
 	
@@ -98,7 +106,10 @@ namespace emph{
 	inline double MagnetKick120GeV() const { return fMagnetKick120GeV; } 
 	inline double ZPosErr() const { return fZPosErr; } 
 	inline double ZPos(emph::geo::sensorView view, size_t kSt, size_t kSe=0) {  // Relevant ndex is the Station index for X and Y,  
-	// Ugly.... Valid only for Phase1b  
+	// Ugly.... Valid only for Phase1b Moreover, I possibility of swap U vs V.. Code in such a way we can 
+	// figure this out.. Rely on the plane ordering, which does not depend on the stereo angle, for U vs W 
+	  if (((kSt == 2) || (kSt == 3)) && (kSe == 0)) return fZPosSt2and3[kSt-2]; 
+	  if (((kSt == 4) || (kSt == 5)) && (kSe > 3)) return fZPosSt4and5[(kSt-4)*2 + kSe % 2]; 
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt; // kS is the index into the View array, ranging from 0 to 7, inclusive (Phase1b 
@@ -108,8 +119,8 @@ namespace emph{
 	    case emph::geo::Y_VIEW :  { 
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return (fZPosY[kS]); } 
-	    case emph::geo::U_VIEW :  { return (fZPosU[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fZPosV[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { std::cerr << " VolatileAlignmentParams::ZPos, real mess, unexpected case U_VIEW, fatal...  " << std::endl; exit(2); } 
+	    case emph::geo::W_VIEW :  { std::cerr << " VolatileAlignmentParams::ZPos, real mess, unexpected case W_VIEW, fatal...  " << std::endl; exit(2); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::ZPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -117,6 +128,8 @@ namespace emph{
 	  return 0.;  // Should never happen.. 
 	}
 	inline double TrPos(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
+	  if (((kSt == 2) || (kSt == 3)) && (kSe == 0)) return fTrPosSt2and3[kSt-2]; 
+	  if (((kSt == 4) || (kSt == 5)) && (kSe >3)) return fTrPosSt4and5[(kSt-4)*2 + kSe % 2]; 
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -129,15 +142,16 @@ namespace emph{
 //	     std::cerr << " VolatileAlignmentParams::TrPos, Y,  kSt " << kSt << " kSe " << kSe << " kS " 
 //	               << kS <<  " Y nom " << fTrNomPosY[kS] << " delta " << fTrDeltaPosY[kS] << " pos " << fTrPosY[kS] <<  std::endl;
 	     return fTrPosY[kS]; } 
-	    case emph::geo::U_VIEW :  { return (fTrPosU[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fTrPosV[(kSt-4)*2 + kSe % 2]); }
+	     // Carefull.. if we swap the U vs W definition of Station 2&3 vs Station 4& 5 Sept 4 2023. 
+//	    case emph::geo::U_VIEW :  { return (fTrPosSt2and3[kSt-2]); } 
+//	    case emph::geo::W_VIEW :  { return (fTrPosSt4and5[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::TrPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen.. 
 	}
-	inline double DeltaPitch(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
+	inline double DeltaPitch(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Pitch Inconsistent notation from above!!!!!   
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;

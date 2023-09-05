@@ -75,8 +75,11 @@ namespace emph {
 	 std::cerr << " One must call SetStationNumber.. Fatal " << std::endl; exit(2);
        }
        fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
-       if (fDebugIsOn) std::cerr << " SSDRecStationDwnstrAlgo1::RecIt, starting on spill " 
+       if (fDebugIsOn) {
+           std::cerr << " SSDRecStationDwnstrAlgo1::RecIt, starting on spill " 
                                  << fSubRunNum << " evt " << fEvtNum << " with " << aSSDClsPtr->size() << " Clusters (all Stations) " << std::endl;
+//	   fCoordConvert.SetDebugOn(true);
+       }			 
        if (fEmgeo == nullptr) {
          fRunHistory = new runhist::RunHistory(fRunNum);   
          fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
@@ -182,7 +185,7 @@ namespace emph {
 	   if (std::abs(yDat.first) > 60.) { // about 20 mm gap? 
 	     if (fDebugIsOn) {
 	        std::cerr << " ..... Very large Y coordinate .." << yDat.first << " Investigate.. " << std::endl; 
-		fCoordConvert.SetDebugOn(true); 
+//		fCoordConvert.SetDebugOn(true); 
 		const std::pair<double, double> yDatCheck = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
 		std::cerr << " ... yDatCheck " << yDatCheck.first << "  And quit for now... " << std::endl;
 		exit(2); 
@@ -196,6 +199,16 @@ namespace emph {
 	   if (fIsMC) { //  X coord sign, hyterical reason
 	     uPred = fOneOverSqrt2 * ( -xValCorr + yValCorr);
 	     vPred = -1.0*fOneOverSqrt2 * ( xValCorr + yValCorr);
+	     if (fDebugIsOn) {
+	       std::cerr << " .... Setting U and V from x = " << xValCorr << " y = " << yValCorr 
+	                 << " MC pred, u " << uPred << " v " << vPred 
+			 << " Data vals, u " << fOneOverSqrt2 * ( xValCorr + yValCorr) << " v " 
+			 << -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr) << std::endl;
+	       std::cerr << " .......... ......... setting as Data!!!! " << std::endl;	 
+	     }
+	     uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
+	     vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
+	       
 	   } else { 
 	     uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
 	     vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
@@ -205,29 +218,30 @@ namespace emph {
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
              if (fClUsages[kuu] != 0) continue;
              if (itClUorV->Station() != fStationNum) continue;
-	     if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
-	     if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	     if ((itClUorV->View() ==  emph::geo::X_VIEW) ||(itClUorV->View() ==  emph::geo::Y_VIEW)) continue;
+	     // To leave some flexibility on what we call U or W.. No X or Y !  
+//	     if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+//	     if ((kSt > 3) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
 	     size_t kSeU = static_cast<size_t>(itClUorV->Sensor()); // dropping the suffix"orV". 
 	     if (fDebugIsOn) {
 	       std::cerr << " ... ... At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
-	             << kSeU << " weighted strip " << itClUorV->WgtAvgStrip() 
+	             << kSeU << " View " <<  itClUorV->View() << " weighted strip " << itClUorV->WgtAvgStrip() 
 		     << " RMS " << itClUorV->WgtRmsStrip() << " ClID " << itClUorV->ID() << std::endl;
 	     }
-	     const std::pair<double, double> uDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
-	     const double angleRollU = (kSt <4) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeU) : 
-	                                          fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeU);   // V == W 
-	     const double angleRollCenterU = (kSt <4) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeU) : 
-	                                                fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeU);
-	     const double uorvPred = (kSt < 4) ? uPred + ( vPred - angleRollCenterU) * angleRollU :  
-	                                         vPred + ( uPred  - angleRollCenterU) * angleRollU ;
-	     const double deltaXYU = uorvPred - uDat.first;
-	     if (fDebugIsOn) std::cerr << " .... After correction for Rolls, uorvPred " << uorvPred  << std::endl;
+	     const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
+	     const double angleRollUorV = fEmVolAlP->Roll(itClUorV->View(), kSt, kSeU);  
+	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(itClUorV->View(), kSt, kSeU); 
+	     const double uorvPred = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
+	                                         uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
+	     const double deltaXYU = uorvPred - uorvDat.first;
+	     if (fDebugIsOn) std::cerr << " .... After correction for Rolls, uorvPred " << uorvPred  
+	                               << " Data " << uorvDat.first << " Diff " << deltaXYU << std::endl;
 	     const double uPredErrSq = 0.5 * (xDat.second + yDat.second);
 	     // Blow-up the erro for the V view, given the lack of accuracy in the alignment Assume 1 mm to 1 nanometer, to test.  
-	     const double deltaErrSq = (itClUorV->View() == emph::geo::W_VIEW) ? (1.0e-9 +  uPredErrSq + uDat.second) : 
-	                                                                          (uPredErrSq + uDat.second);
+	     const double deltaErrSq = (itClUorV->View() == emph::geo::W_VIEW) ? (1.0e-9 +  uPredErrSq + uorvDat.second) : 
+	                                                                          (uPredErrSq + uorvDat.second);
 	     const double aChiSq = (deltaXYU * deltaXYU)/deltaErrSq;
-	     if (fDebugIsOn) std::cerr << " .... uDat " << uDat.first << " +- " << std::sqrt(uDat.second) 
+	     if (fDebugIsOn) std::cerr << " .... uDat " << uorvDat.first << " +- " << std::sqrt(uorvDat.second) 
 	                             <<  " deltaXYU  " << deltaXYU << " +-  " << std::sqrt(deltaErrSq) << " chiSq " << aChiSq << std::endl; 
 	     if (aChiSq > fChiSqCut) continue;
 	     // tag and store 
@@ -237,7 +251,7 @@ namespace emph {
 	     aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
 	     aStPt.SetID(fIdStPtNow);
 	     aStPt.SetY(yValCorr, errY);
-	     aStPt.SetUorVInfo(uorvPred, 0.06*itClUorV->WgtAvgStrip(), uDat.first); 
+	     aStPt.SetUorVInfo(uorvPred, 0.06*itClUorV->WgtAvgStrip(), uorvDat.first); 
 	     aStPt.SetChiSq(aChiSq);
 	     aStPt.SetStation(fStationNum);
 	     aStPt.Add(itClX, xValCorr, errX);  

@@ -222,7 +222,8 @@ namespace emph {
       const char *pathHere = std::getenv("CETPKG_BUILD");
       const std::string ffName(pathHere + std::string("/") + alignParamsStr) ;
       std::cerr << " StudyAllTrial1Algo1::reconfigure, uploading alignment data from file " << ffName << std::endl;
-      if (ffName.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(ffName);      
+      if (ffName.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(ffName); 
+           
       std::cerr << " .... O.K. done with reconfigure,  keep going ....  " << std::endl; 
     }
     void emph::StudyAllTrial1Algo1::beginRun(art::Run const &run)
@@ -252,7 +253,10 @@ namespace emph {
         for(size_t kSt=2; kSt != 6; kSt++)  {
           fBrickTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
         }
-       }	
+       }
+       
+       fEmVolAlP->UpdateNominalFromStandardGeom(fEmgeo);
+       	
        std::cerr  << std::endl << " ------------- End of StudyAllTrial1Algo1::beginRun ------------------" << std::endl << std::endl;
     }
     
@@ -319,9 +323,9 @@ namespace emph {
 //      const bool debugIsOn = ((fEvtNum == 51) || (fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
 //      const bool debugIsOn = ((fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
 //     const bool debugIsOn = (fEvtNum > 81717); // root-Minuit crash at evt 81719 fixed by eliminating very back prelim chi-sq 
-     const bool debugIsOn = ((fSubRun == 100) && ((fEvtNum == 48 ) || (fEvtNum == 56 ) || (fEvtNum == 142 ) || (fEvtNum == 92 )));
+//     const bool debugIsOn = ((fSubRun == 100) && ((fEvtNum == 48 ) || (fEvtNum == 56 ) || (fEvtNum == 142 ) || (fEvtNum == 92 )));
        // For spill 100, good track from RScript, check loading 
-//       const bool debugIsOn = false;
+       const bool debugIsOn = (fEvtNum == 9);
     //
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
