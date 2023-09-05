@@ -624,7 +624,7 @@ bool goodEvent = false;
                           pdd _point = MakeIntersection(_fA,_fB,_fC,_fD);	 
 
 		          //make point vector (x,y,z)
-		          double _x[3] = {_point.first,_point.second,ls_group[i][j]->X0()[2]};
+		          double x[3] = {_point.first,_point.second,ls_group[i][j]->X0()[2]};
 		          //z-component for .X0() and .X1() should be the same      
 
 			  double fA[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
@@ -632,18 +632,18 @@ bool goodEvent = false;
                           double fC[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
                           double fD[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
 
-                          double x[3];
-                          MakeIntersection3D(fA,fB,fC,fD,x);
+                          double _x[3];
+                          MakeIntersection3D(fA,fB,fC,fD,_x);
 
 			  //check
 			  std::cout<<"......PREVIOUS....."<<std::endl;
-			  std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
+			  std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
 			  std::cout<<"........NEW........"<<std::endl;
-                          std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
+                          std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
    			  std::cout<<"..................."<<std::endl;
 
 			  //set SpacePoint object
-			  sp.SetX(_x);
+			  sp.SetX(x);
 
 			  //check stations
 			  if (cl_group[i+1][k]->Station() == st){} 
@@ -735,10 +735,10 @@ bool goodEvent = false;
 			      double ptavg_x2 = (_point01.first + _point02.first + _point12.first)/3. ;
 			      double ptavg_y2 = (_point01.second + _point02.second + _point12.second)/3. ;
 
-			      double x[3];
+			      double _x[3];
 
 			      for (int i=0; i<3; i++){
-			          x[i] = (x01[i]+x02[i]+x12[i])/3.;
+			          _x[i] = (x01[i]+x02[i]+x12[i])/3.;
 			      }
 
 			     //double ptavg_x2 = point12.first; 
@@ -747,18 +747,18 @@ bool goodEvent = false;
 			      pdd _point2 = std::make_pair(ptavg_x2, ptavg_y2);
 				
 			      //make point vector (x,y,z)
-                              double _x[3] = {_point2.first,_point2.second,ls_group[i][j]->X0()[2]};
+                              double x[3] = {_point2.first,_point2.second,ls_group[i][j]->X0()[2]};
             	              //z-component for .X0() and .X1() should be the same
                    
 			      //check		
 			      std::cout<<"......PREVIOUS....."<<std::endl;
-                              std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
-                              std::cout<<"........NEW........"<<std::endl;
                               std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
+                              std::cout<<"........NEW........"<<std::endl;
+                              std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
                               std::cout<<"..................."<<std::endl;
 
                               //set SpacePoint object
-                   	      sp.SetX(_x);	 
+                   	      sp.SetX(x);	 
 	
 		              //check stations 
 		              if (cl_group[i+1][k]->Station() == st && cl_group[i+2][l]->Station() == st){}
