@@ -1,0 +1,44 @@
+#include "ReadoutWaveform.fcl"
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+
+process_name: ReadoutWaveform
+
+services:
+{
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: @local::standard_runhistory
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+ }
+
+ reco: [ readoutwaveform ]
+
+ filters:{}
+
+ analyzers:
+ {
+	readoutwaveform: @local::standard_readoutwaveform
+ }
+
+ ana: [ readoutwaveform ]
+
+}
