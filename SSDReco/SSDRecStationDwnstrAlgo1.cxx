@@ -195,24 +195,8 @@ namespace emph {
 	   const double angleRollCenterY = fEmVolAlP->RollCenter(emph::geo::Y_VIEW, kSt, kSeY);
 	   const double xValCorr = xDat.first + (yDat.first - angleRollCenterX) * angleRollX; 
 	   const double yValCorr = yDat.first + (xDat.first - angleRollCenterY) * angleRollY;
-	   double uPred, vPred; 
-	   if (fIsMC) { //  X coord sign, hyterical reason
-	     uPred = fOneOverSqrt2 * ( -xValCorr + yValCorr);
-	     vPred = -1.0*fOneOverSqrt2 * ( xValCorr + yValCorr);
-	     if (fDebugIsOn) {
-	       std::cerr << " .... Setting U and V from x = " << xValCorr << " y = " << yValCorr 
-	                 << " MC pred, u " << uPred << " v " << vPred 
-			 << " Data vals, u " << fOneOverSqrt2 * ( xValCorr + yValCorr) << " v " 
-			 << -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr) << std::endl;
-	       std::cerr << " .......... ......... setting as Data!!!! " << std::endl;	 
-	     }
-	     uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
-	     vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
-	       
-	   } else { 
-	     uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
-	     vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
-	   }
+	   const double uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
+	   const double vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
            size_t kuu = 0;
 	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
@@ -352,24 +336,14 @@ namespace emph {
 	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
 	             << kSeUorV << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
 	   }
-	   if (fIsMC) { // The Roll correction is not obvious.. iterate? 
-	     yPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first + xDat.first) : (-fSqrt2 * uorvDat.first - xDat.first);
-	     uPred = fOneOverSqrt2 * ( -xDat.first + yPred);
-	     vPred = -1.0*fOneOverSqrt2 * (xDat.first + yPred);
-	   } else { 
-	     yPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first - xDat.first) : (-fSqrt2 * uorvDat.first + xDat.first);
-	     uPred = fOneOverSqrt2 * ( xDat.first + yPred);
-	     vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
-	   }
+	   // To be checked, depends on Delta Roll definition Sept 5 2023. 
+	   yPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first - xDat.first) : (-fSqrt2 * uorvDat.first + xDat.first);
+	   uPred = fOneOverSqrt2 * ( xDat.first + yPred);
+	    vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
 	   const double uorvValCorr = (kSt < 4) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
 	                                          vPred + ( uPred  - angleRollCenterUorV) * angleRollUorV ;
 	   const double xValCorr = xDat.first + (yPred - angleRollCenterX) * angleRollX; 
-	   double yValCorr;
-	   if (fIsMC) {
-	     yValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr + xDat.first) : (-fSqrt2 * uorvValCorr  - xDat.first);
-	   } else {
-	     yValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr - xDat.first) : (-fSqrt2 * uorvValCorr + xDat.first);
-	   }					 
+	   const double yValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr - xDat.first) : (-fSqrt2 * uorvValCorr + xDat.first);
            fClUsages[kux] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
@@ -424,25 +398,13 @@ namespace emph {
 	                                        fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);  
 	   const double angleRollCenterUorV = (kSt <4) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeUorV) : 
 	                                              fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);
-	   double xPred, uPred, vPred;
-	   if (fIsMC) { // The Roll correction is not obvious.. iterate? 
-	     xPred = (kSt < 4) ?  (-fSqrt2 * uorvDat.first + yDat.first) : (-fSqrt2 * uorvDat.first - yDat.first);
-	     uPred = fOneOverSqrt2 * ( -xPred  + yDat.first);
-	     vPred = -1.0*fOneOverSqrt2 * (xPred + yDat.first);
-	   } else { 
-	     xPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first - yDat.first) : (fSqrt2 * uorvDat.first + yDat.first);
-	     uPred = fOneOverSqrt2 * ( yDat.first + xPred);
-	     vPred = -1.0*fOneOverSqrt2 * ( yDat.first - xPred);
-	   }
+	   const double   xPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first - yDat.first) : (fSqrt2 * uorvDat.first + yDat.first);
+	   const double  uPred = fOneOverSqrt2 * ( yDat.first + xPred);
+	   const double vPred = -1.0*fOneOverSqrt2 * ( yDat.first - xPred);
 	   const double uorvValCorr = (kSt < 4) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
 	                                          vPred + ( uPred  - angleRollCenterUorV) * angleRollUorV ;
 	   const double yValCorr = yDat.first + (xPred - angleRollCenterY) * angleRollY; 
-	   double xValCorr;
-	   if (fIsMC) {
-	     xValCorr = (kSt < 4) ?  (-fSqrt2 * uorvValCorr + yDat.first) : (-fSqrt2 * uorvValCorr  - yDat.first);
-	   } else {
-	     xValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr - yDat.first) : (fSqrt2 * uorvValCorr + yDat.first);
-	   }					 
+	   const double  xValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr - yDat.first) : (fSqrt2 * uorvValCorr + yDat.first);
            fClUsages[kuy] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;

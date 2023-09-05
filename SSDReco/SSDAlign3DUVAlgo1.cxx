@@ -143,7 +143,6 @@ namespace emph {
 
      bool ssdr::SSDAlign3DUVAlgo1::recoXY(emph::geo::sensorView theView, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
      
-        fIsMC = fTokenJob.find("SimProton") != std::string::npos;
 //
         if ((theView != emph::geo::X_VIEW) && (theView != emph::geo::Y_VIEW)) {
 	  std::cerr << " SSDAlign3DUVAlgo1::recoXY, unexpected view enum emph::geo::sensorView " << theView << " expect X or Y, fatal, I said it " << std::endl;
@@ -217,25 +216,14 @@ namespace emph {
 	    fDataFor3DFit.push_back(mySSDClsPtrsFirst[kSt]);
 	    if (theView == emph::geo::X_VIEW) { 
 //	       tsData[kSt] = myConvertX.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip);
-// Very clumsy Upgrade to use the new VolatileAlignment data. 
-               if (!fIsMC) { 
-	          tsData[kSt] =  ( -1.0*aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
-	          if (kSt >= 4)  tsData[kSt] *= -1.0; // Incomplete... To be checked again!!!! 
-	       } else {
-	          tsData[kSt]  = ( -1.0 * aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
-	          if ((kSt > 3) && (kSe % 2) == 1) tsData[kSt] *=-1;    // for now.. Need to keep checking this.. Shameful.   
-	       }
+// Very clumsy Upgrade to use the new VolatileAlignment data. To be verified again after early Sept Clean-up 
+	        tsData[kSt] =  ( -1.0*aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
+	        if (kSt >= 4)  tsData[kSt] *= -1.0; // Incomplete... To be checked again!!!! 
 	       tsDataErr[kSt] = myConvertX.GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
 	    } else {
 //	       tsData[kSt] = myConvertY.GetTsFromCluster(kSt, mySSDClsPtrsFirst[kSt]->Sensor(), aStrip);
-               if (!fIsMC) { // Most likely wrong by now.. Work in progress... 
-	          tsData[kSt]  =  ( aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
-	          if (kSt >= 4) tsData[kSt] =  ( -1.0*aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
-	       } else {
-	          tsData[kSt] = (kS < 4) ? ( aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe)) :
-	                      ( aStrip*fPitch - fEmVolAlP->TrPos(theView, kSt, kSe)) ;
-	          if ((kS > 3) && (kS % 2) == 1) tsData[kSt] *=-1;
-	       }
+	       tsData[kSt]  =  ( aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
+	       if (kSt >= 4) tsData[kSt] =  ( -1.0*aStrip*fPitch + fEmVolAlP->TrPos(theView, kSt, kSe));
 	       tsDataErr[kSt] = myConvertY.GetTsUncertainty(kSt, mySSDClsPtrsFirst[kSt]);
 	    }
 	    if (debugIsOn) {

@@ -58,7 +58,6 @@ namespace emph {
       if ((!fNoMagnet) && (std::abs(pars[4]) < 0.5)) return 5.0e10; 
        // if Mininuit attemps to change the sign of momentum, or jumps too far, assign  a very large chi-square. 
       if (fZPos.size() == 0) this->getZPos();
-      if (fDebugIsOn && fIsMC) std::cerr << " ... Assume Monte Carlo sign conventions Expected value for momentum  " << fExpectedMomentum << std::endl; 
       if (fNoMagnet) {  
 	 assert(pars.size() == 4);
       } else {
@@ -240,9 +239,8 @@ namespace emph {
 //	  }  
 	  double xPred = xPredAtSt[kSt] ; double yPred = yPredAtSt[kSt]; double tPred = 0.; double tMeas = 0.;
 	  // Here we need to implement the transverse shift, from fEmVolAlP
-	  double uPred = fOneOverSqrt2 * ( -xPred + yPred);
 	    // Debugging for real data.. Run 1043, May 29 - May 30 
-	  if (!fIsMC) uPred = fOneOverSqrt2 * ( xPred + yPred);
+	  const double uPred = fOneOverSqrt2 * ( xPred + yPred);
 	  const double vPred = -1.0*fOneOverSqrt2 * ( xPred + yPred);
 	  // T coordinate (measuring 
 	  const double angleRoll = fEmVolAlP->Roll(aView, kSt, kSe);
@@ -271,69 +269,39 @@ namespace emph {
 	    default : { continue; }
 	    
 	  } // end of transverse coordinate prediction. 
-	  if (!fIsMC) { 
-	    if (aView == emph::geo::X_VIEW) {
-	      tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
-	      if (fDebugIsOn) 
-	        std::cerr << " ..... X View " << " kSe " << kSe 
-	  	      << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if (aView == emph::geo::Y_VIEW) {
-	      tMeas =  ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      if (kS >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      if (fDebugIsOn) 
-	        std::cerr << " ..... Y View " << " kSe " << kSe 
-	  	      << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
-	      if (aView == emph::geo::U_VIEW) { 
-	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
-	        if (kSe == 0) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
-	        else if (kSe == 1) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	        else if (kSe == 2) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe));
-	        else if (kSe == 3) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // exploring... 
-	      }
-	      if (fDebugIsOn) 
-	        std::cerr << " ..... Coords  View " << aView << " kSe " << kSe 
-	  	      << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
+	  if (aView == emph::geo::X_VIEW) {
+	    tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	    if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
+	    if (fDebugIsOn) 
+	      std::cerr << " ..... X View " << " kSe " << kSe 
+	            << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
+	  } else if (aView == emph::geo::Y_VIEW) {
+	    tMeas =  ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	    if (kS >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	    if (fDebugIsOn) 
+	      std::cerr << " ..... Y View " << " kSe " << kSe 
+	            << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
+	  } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
+	    if (aView == emph::geo::U_VIEW) { 
+	      tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	    } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
+	      if (kSe == 0) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
+	      else if (kSe == 1) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	      else if (kSe == 2) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe));
+	      else if (kSe == 3) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // exploring... 
 	    }
-	  } else { // Monte Carlo Convention 
-	    if (aView == emph::geo::X_VIEW) {
-	      tMeas = ( -1.0 * strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      if ((kSt > 3) && (kSe % 2) == 1) tMeas *=-1;    // for now.. Need to keep checking this.. Shameful.   
-	      if (fDebugIsOn) 
-	        std::cerr << " ..... X View " << " kSe " << kSe 
-	  	      << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  
-		      << " TransOffset " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl; 
-	    } else if (aView == emph::geo::Y_VIEW) {
-	      tMeas = (kS < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
-	                      ( strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)) ;
-	      if ((kS > 3) && (kS % 2) == 1) tMeas *=-1;      
-	      if (fDebugIsOn) 
-	        std::cerr << " ..... Y View " << " kSe " << kSe 
-	  	      << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	    } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
-	      if (aView == emph::geo::U_VIEW) { 
-	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
-	        tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
-	        if ((kSe % 2) ==  1) tMeas *= -1.0;
-	      }
-	      if (fDebugIsOn) 
-	        std::cerr << " ..... Coords  View " << aView << " kSe " << kSe 
-	  	      << " xPred " << xPred << " yPred " <<  yPred << " uPred " 
-		      << uPred << " vPred " << vPred << " tPred " << tPred <<  " tMeas " 
-		      << tMeas << " trPos " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl; 
-	      }
-	    }
-	    double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
-	    const double dt = (tPred - tMeas);
-	    fResids[kSeT] = dt;
-	    const double deltaChi2 =  (dt * dt )/tMeasErrSq;
-	    chi2 += deltaChi2;
-            if (fDebugIsOn) std::cerr << " ....   ..... Index kSeT " << kSeT << " dt " << dt << " +- " 
-	                             << std::sqrt(tMeasErrSq) << " multScatErr " << multScatErr  << " unknownErr " << unknownErr
-				     <<  " delta Chi2 " << deltaChi2 << std::endl;
+	  }
+	  if (fDebugIsOn) 
+	    std::cerr << " ..... Coords  View " << aView << " kSe " << kSe 
+	  	  << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
+	  double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
+	  const double dt = (tPred - tMeas);
+	  fResids[kSeT] = dt;
+	  const double deltaChi2 =  (dt * dt )/tMeasErrSq;
+	  chi2 += deltaChi2;
+          if (fDebugIsOn) std::cerr << " ....	..... Index kSeT " << kSeT << " dt " << dt << " +- " 
+	  			   << std::sqrt(tMeasErrSq) << " multScatErr " << multScatErr  << " unknownErr " << unknownErr
+	        		   <<  " delta Chi2 " << deltaChi2 << std::endl;
         } // on the SSD Clusters 
 //      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
       if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
