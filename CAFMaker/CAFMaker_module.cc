@@ -79,7 +79,7 @@ namespace caf {
     virtual void endSubRun(art::SubRun& sr);
 
   protected:
-    CAFMaker fParams;
+    CAFMakerParams fParams;
 
     std::string fCAFFilename;
 
