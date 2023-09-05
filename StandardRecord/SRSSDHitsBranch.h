@@ -9,7 +9,6 @@
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
     class SRSSDHitsBranch
     {
     public:
