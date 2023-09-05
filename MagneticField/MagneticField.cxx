@@ -77,14 +77,16 @@ namespace emph {
     
   void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
   
-    fG4ZipTrackOffset[2] = -theEMPhGeometry->MagnetUSZPos() + 82.5; // rough guess! 
+    fG4ZipTrackOffset[2] = -150. -theEMPhGeometry->MagnetUSZPos(); //82.5; // rough guess! 
+    //fG4ZipTrackOffset[2] = -theEMPhGeometry->MagnetUSZPos() + 82.5; //82.5; // rough guess!
     std::cerr << " EMPHATICMagneticField::G4GeomAlignIt G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
     fHasBeenAligned = true; 
 //
 // Testing... at COMSOL coordinate of z = -82.5 mm, By ~ 7.5 Kg, 1/2  field 
 //     
     double xTest[3], xTest2[3], BTest[3], BTest2[3]; 
-    xTest[0] = 0.; xTest[1] = 0.; xTest[2] = -82.5;  xTest2[0] = 0.01; xTest2[1] = 0.004; xTest2[2] = -52.5; // in mm 
+    xTest[0] = 0.; xTest[1] = 0.; xTest[2] = -150.; //-82.5;  
+    xTest2[0] = 0.01; xTest2[1] = 0.004; xTest2[2] = -52.5; // in mm 
 //    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k]; // The equation in the GetFieldValue. 
     this->MagneticField(xTest, BTest);
     std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, internal Variables  " 

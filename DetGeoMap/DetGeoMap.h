@@ -18,6 +18,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
+#include "Geometry/service/GeometryService.h"
 
 namespace emph {
 
@@ -42,6 +43,7 @@ namespace emph {
     private:
       bool fUseGeometry;
       int fRun;
+      art::ServiceHandle<emph::geo::GeometryService> geo;
 
       //      bool fIsLoaded;
       //      bool fAbortIfFileNotFound;

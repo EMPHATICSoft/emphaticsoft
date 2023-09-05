@@ -68,7 +68,10 @@ namespace emph {
     void endJob();
     void MakePoint(const rb::SSDCluster& cl, rb::LineSegment& ls);
     pdd MakeIntersection(pdd A, pdd B, pdd C, pdd D);
-    
+    void MakeIntersection3D(double A[3],double B[3], double C[3], double D[3], double F[3]);
+    double dotProduct(double a[3], double b[3]); 
+    void crossProduct(double a[3], double b[3], double c[3]);
+
   private:
   
     TTree*      spacepoint;
@@ -261,6 +264,7 @@ namespace emph {
   {
     if (!fDetGeoMap) fDetGeoMap = new emph::dgmap::DetGeoMap();
 
+    //std::cout<<"Plane in MakePoint is "<<cl.Plane()<<std::endl;
     //probably doesn't need to be an if statement?
     if(fDetGeoMap->SSDClusterToLineSegment(cl, ls)){
 
@@ -296,7 +300,70 @@ namespace emph {
       }
 
   }
+
+  //......................................................................
+
+  void emph::MakeTrack::MakeIntersection3D(double A[3],double B[3], double C[3], double D[3], double F[3]){
+        double p[3];
+        double v[3];
+        double q[3]; 
+        double u[3];
+        for (int i=0; i<3; i++){
+	    p[i] = A[i];
+	    v[i] = B[i] - A[i];
+            q[i] = C[i];
+            u[i] = D[i] - C[i];
+        }
+
+        // find cross product a = v x u
+        double a[3];
+        crossProduct(v,u,a);
+
+        // find dot product = (v x u) . (v x u)
+        double dot = dotProduct(a,a);
+
+        // if v and u are parallel (v x u = 0), then no intersection, return NaN point
+        if(dot == 0){
+	  for (int i=0; i<3; i++){
+	      F[i] = NAN;
+	  }
+	}
+	
+        // find b = (Q1-P1) x u
+        double b_temp[3]; 
+        for (int i=0; i<3; i++){
+            b_temp[i] = q[i] - p[i];
+        }
+
+        double b[3];
+        crossProduct(b_temp,u,b);
+   
+        // find t = (b.a)/(a.a) = ((Q1-P1) x u) .(v x u) / (v x u) . (v x u)
+        double t = dotProduct(b,a) / dot;
+
+        for (int i=0; i<3; i++){
+	    F[i] = p[i] + (t*v[i]);
+	}
+  } 
+
+  //......................................................................
+
+  double emph::MakeTrack::dotProduct(double a[3], double b[3]){
+     double product = 0;
+     for (int i=0; i<3; i++){
+         product = product + a[i] * b[i];
+     }
+     return product;
+  }
+
+  //......................................................................
   
+  void emph::MakeTrack::crossProduct(double a[3], double b[3], double c[3]){
+     c[0] = a[1] * b[2] - a[2] * b[1];
+     c[1] = -(a[0] * b[2] - a[2] * b[0]);
+     c[2] = a[0] * b[1] - a[1] * b[0];
+  }
+ 
   //......................................................................
   void emph::MakeTrack::produce(art::Event& evt)
   {
@@ -312,7 +379,7 @@ namespace emph {
     //if(fEvtNum==877) fMakePlots = true; //two clusters in a (sta,sen)=(2,0)
     //if(fEvtNum==2826) fMakePlots = true; //good event one cluster per plane 
 
-    //if(fEvtNum==877) fMakePlots = true;
+    //if(fEvtNum==5) fMakePlots = true;
     //else fMakePlots = false;
     fMakePlots = true;
 
@@ -345,7 +412,13 @@ bool goodEvent = false;
          for (size_t idx=0; idx < clustH->size(); ++idx) {
               const rb::SSDCluster& clust = (*clustH)[idx];
               //MAYBE THIS   art::Ptr<const rb::SSDCluster> clustRR(clustH,idx);
-
+/*
+	      std::cout<<"Station from cluster handle is "<<clust.Station()<<std::endl;
+	      std::cout<<"Sensor from cluster handle is "<<clust.Sensor()<<std::endl;
+	      std::cout<<"Plane from cluster handle is "<<clust.Plane()<<std::endl;
+	      std::cout<<"HiLo from cluster handle is "<<clust.HiLo()<<std::endl;
+	      std::cout<<"........"<<std::endl;
+*/
 	      ++clustMap[std::pair<int,int>(clust.Station(),clust.Sensor())];
 	      clusters.push_back(&clust); //push back a  pointer
 
@@ -439,13 +512,22 @@ bool goodEvent = false;
 		  for (size_t j=0; j<ls_group[i].size(); j++){
                       for (size_t k=0; k<ls_group[i+1].size(); k++){
 	                  st = cl_group[i][j]->Station();
-                          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
-                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
-                          pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
-                          pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
+                          //pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          //pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          //pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                          //pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-                          pdd point = MakeIntersection(fA,fB,fC,fD);
-                          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+                          //pdd point = MakeIntersection(fA,fB,fC,fD);
+                          //double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+
+		          double fA[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+			  double fB[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
+		          double fC[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
+			  double fD[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
+
+			  double x[3];
+			  MakeIntersection3D(fA,fB,fC,fD,x);
+			
                           sp.SetX(x);
                           if (cl_group[i+1][k]->Station() == st){}
                           else std::cout<<"XY: Stations do not match..."<<std::endl;
@@ -464,13 +546,22 @@ bool goodEvent = false;
                   for (size_t j=0; j<ls_group[i].size(); j++){
                       for (size_t k=0; k<ls_group[i+1].size(); k++){
                           st = cl_group[i][j]->Station();
-                          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
-                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
-                          pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
-                          pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
+                          //pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          //pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          //pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                          //pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-                          pdd point = MakeIntersection(fA,fB,fC,fD);
-                          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+                          //pdd point = MakeIntersection(fA,fB,fC,fD);
+                          //double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+
+			  double fA[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+                          double fB[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
+                          double fC[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
+                          double fD[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
+
+                          double x[3];
+                          MakeIntersection3D(fA,fB,fC,fD,x);
+
                           sp.SetX(x);
                           if (cl_group[i+1][k]->Station() == st){}
                           else std::cout<<"XY: Stations do not match..."<<std::endl;
@@ -489,13 +580,21 @@ bool goodEvent = false;
                   for (size_t j=0; j<ls_group[i].size(); j++){
                       for (size_t k=0; k<ls_group[i+2].size(); k++){
                           st = cl_group[i][j]->Station();
-                          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
-                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
-                          pdd fC = std::make_pair(ls_group[i+2][k]->X0()[0],ls_group[i+2][k]->X0()[1]);
-                          pdd fD = std::make_pair(ls_group[i+2][k]->X1()[0],ls_group[i+2][k]->X1()[1]);
+                          //pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          //pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          //pdd fC = std::make_pair(ls_group[i+2][k]->X0()[0],ls_group[i+2][k]->X0()[1]);
+                          //pdd fD = std::make_pair(ls_group[i+2][k]->X1()[0],ls_group[i+2][k]->X1()[1]);
 
-                          pdd point = MakeIntersection(fA,fB,fC,fD);
-                          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+                          //pdd point = MakeIntersection(fA,fB,fC,fD);
+			  double fA[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+                          double fB[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
+                          double fC[3] = { ls_group[i+2][k]->X0()[0], ls_group[i+2][k]->X0()[1], ls_group[i+2][k]->X0()[2] };
+                          double fD[3] = { ls_group[i+2][k]->X1()[0], ls_group[i+2][k]->X1()[1], ls_group[i+2][k]->X1()[2] };
+
+                          double x[3];
+                          MakeIntersection3D(fA,fB,fC,fD,x);
+	
+                          //double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
                           sp.SetX(x);
                           if (cl_group[i+2][k]->Station() == st){}
                           else std::cout<<"XY: Stations do not match..."<<std::endl;
@@ -517,19 +616,34 @@ bool goodEvent = false;
 		      st = cl_group[i][j]->Station();
 		      //std::cout<<"Station is..."<<st<<std::endl;
 	              for (size_t k=0; k<ls_group[i+1].size(); k++){
-		          pdd fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
-                          pdd fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
-                          pdd fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
-                          pdd fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
+		          pdd _fA = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                          pdd _fB = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                          pdd _fC = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                          pdd _fD = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-                          pdd point = MakeIntersection(fA,fB,fC,fD);	 
+                          pdd _point = MakeIntersection(_fA,_fB,_fC,_fD);	 
 
 		          //make point vector (x,y,z)
-		          double x[3] = {point.first,point.second,ls_group[i][j]->X0()[2]};
+		          double _x[3] = {_point.first,_point.second,ls_group[i][j]->X0()[2]};
 		          //z-component for .X0() and .X1() should be the same      
 
+			  double fA[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+                          double fB[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
+                          double fC[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
+                          double fD[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
+
+                          double x[3];
+                          MakeIntersection3D(fA,fB,fC,fD,x);
+
+			  //check
+			  std::cout<<"......PREVIOUS....."<<std::endl;
+			  std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
+			  std::cout<<"........NEW........"<<std::endl;
+                          std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
+   			  std::cout<<"..................."<<std::endl;
+
 			  //set SpacePoint object
-			  sp.SetX(x);
+			  sp.SetX(_x);
 
 			  //check stations
 			  if (cl_group[i+1][k]->Station() == st){} 
@@ -572,42 +686,79 @@ bool goodEvent = false;
 		      //std::cout<<"Station is..."<<st<<std::endl;
                       for (size_t k=0; k<ls_group[i+1].size(); k++){
 			  for (size_t l=0; l<ls_group[i+2].size(); l++){ 
-         	              pdd fA01 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
-                              pdd fB01 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
-                              pdd fC01 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]); 
-                              pdd fD01 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
+         	              pdd _fA01 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                              pdd _fB01 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                              pdd _fC01 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]); 
+                              pdd _fD01 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
 
-                              pdd point01 = MakeIntersection(fA01,fB01,fC01,fD01);
+                              pdd _point01 = MakeIntersection(_fA01,_fB01,_fC01,_fD01);
 
-                   	      pdd fA02 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
-                   	      pdd fB02 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
-                              pdd fC02 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
-	                      pdd fD02 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
+			      double fA01[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+                              double fB01[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
+                              double fC01[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
+                              double fD01[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
 
-                   	      pdd point02 = MakeIntersection(fA02,fB02,fC02,fD02);
+                              double x01[3];
+                              MakeIntersection3D(fA01,fB01,fC01,fD01,x01);
 
-                   	      pdd fA12 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
-                              pdd fB12 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
-                              pdd fC12 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
-                              pdd fD12 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
+                   	      pdd _fA02 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
+                   	      pdd _fB02 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
+                              pdd _fC02 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
+	                      pdd _fD02 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
 
-	                      pdd point12 = MakeIntersection(fA12,fB12,fC12,fD12);
+                   	      pdd _point02 = MakeIntersection(_fA02,_fB02,_fC02,_fD02);
+
+			      double fA02[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+                              double fB02[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
+                              double fC02[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i+2][l]->X0()[2] };
+                              double fD02[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i+2][l]->X1()[2] };
+
+                              double x02[3];
+                              MakeIntersection3D(fA02,fB02,fC02,fD02,x02);
+
+                   	      pdd _fA12 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
+                              pdd _fB12 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
+                              pdd _fC12 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
+                              pdd _fD12 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
+
+	                      pdd _point12 = MakeIntersection(_fA12,_fB12,_fC12,_fD12);
+
+			      double fA12[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
+                              double fB12[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
+                              double fC12[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i+2][l]->X0()[2] };
+                              double fD12[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i+2][l]->X1()[2] };
+
+                              double x12[3];
+                              MakeIntersection3D(fA12,fB12,fC12,fD12,x12);
 
 			      //average of three points (center of mass)
-			      double ptavg_x2 = (point01.first + point02.first + point12.first)/3. ;
-			      double ptavg_y2 = (point01.second + point02.second + point12.second)/3. ;
+			      double ptavg_x2 = (_point01.first + _point02.first + _point12.first)/3. ;
+			      double ptavg_y2 = (_point01.second + _point02.second + _point12.second)/3. ;
+
+			      double x[3];
+
+			      for (int i=0; i<3; i++){
+			          x[i] = (x01[i]+x02[i]+x12[i])/3.;
+			      }
 
 			     //double ptavg_x2 = point12.first; 
 		             //double ptavg_y2 = point12.second;
 			      
-			      pdd point2 = std::make_pair(ptavg_x2, ptavg_y2);
+			      pdd _point2 = std::make_pair(ptavg_x2, ptavg_y2);
 				
 			      //make point vector (x,y,z)
-                              double x[3] = {point2.first,point2.second,ls_group[i][j]->X0()[2]};
+                              double _x[3] = {_point2.first,_point2.second,ls_group[i][j]->X0()[2]};
             	              //z-component for .X0() and .X1() should be the same
                    
+			      //check		
+			      std::cout<<"......PREVIOUS....."<<std::endl;
+                              std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
+                              std::cout<<"........NEW........"<<std::endl;
+                              std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
+                              std::cout<<"..................."<<std::endl;
+
                               //set SpacePoint object
-                   	      sp.SetX(x);	 
+                   	      sp.SetX(_x);	 
 	
 		              //check stations 
 		              if (cl_group[i+1][k]->Station() == st && cl_group[i+2][l]->Station() == st){}
@@ -784,7 +935,7 @@ bool goodEvent = false;
 	for (size_t j=0; j<xvec_sim.size(); j++){
             if ( abs(zvec[i] - zvec_sim[j]) < 20){
 //std::cout<<"Event is: "<<fEvtNum<<std::endl;
-               std::cout<<"z pos diff:"<<abs(zvec[i] - zvec_sim[j])<<std::endl;
+               //std::cout<<"z pos diff:"<<abs(zvec[i] - zvec_sim[j])<<std::endl;
                double res = xvec[i] - xvec_sim[j];
                res_x[i]->Fill(res);  
 	    }     
