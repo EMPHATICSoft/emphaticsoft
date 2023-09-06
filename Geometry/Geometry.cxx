@@ -258,9 +258,12 @@ namespace emph {
     {
       TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
 		if ( magnet_n == nullptr ){
-			mf::LogWarning("LoadNewGeometry") << DetInfo::Name(DetectorType(i))
+			mf::LogWarning("LoadNewGeometry") 
 				<< " magnet not found in gdml. \n"
 				<< "check your spelling. \n";
+			fMagnetUSZPos = -1e6;
+			fMagnetDSZPos = -1e6;
+
 			return;
 		}
 
