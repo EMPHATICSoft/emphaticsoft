@@ -102,6 +102,7 @@ namespace emph {
     {
       fGeoManager = 0;
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
+      fMagnetLoad = false;
       this->SetGDMLFile(fname);
     }
 
@@ -275,6 +276,7 @@ namespace emph {
 
       fMagnetUSZPos = zcenter-dz;
       fMagnetDSZPos = zcenter+dz;
+		fMagnetLoad = true;
 
     }
 
