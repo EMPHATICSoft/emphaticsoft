@@ -517,7 +517,7 @@ void emph::EventDisplay3D::drawMCParticle(Int_t mColor, Int_t mSize,
 	    << part.ftrajectory.X(0) << "," << part.ftrajectory.Y(0) << "," 
 	    << part.ftrajectory.Z(0) << ")";
   l->SetNextPoint(part.ftrajectory.X(0), part.ftrajectory.Y(0), part.ftrajectory.Z(0));  
-  for (size_t i=1; i<part.ftrajectory.NPoints(); ++i) {
+  for (size_t i=1; i<part.ftrajectory.size(); ++i) {
     std::cout << "->(" << part.ftrajectory.X(i) << ","
 	      << part.ftrajectory.Y(i) <<"," << part.ftrajectory.Z(i) <<")";
     l->SetNextPoint(part.ftrajectory.X(i), part.ftrajectory.Y(i), part.ftrajectory.Z(i));  
