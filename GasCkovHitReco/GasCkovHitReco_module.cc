@@ -171,17 +171,17 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rawdata::WaveForm* wvfm_ptr = &wvfm; 
-	    const rb::ADC wvr;
+	    //const rawdata::WaveForm* wvfm_ptr = &wvfm; 
+	    const rb::ADC wvr(wvfm);
 	    int chan = wvfm.Channel();
-	    int board = wvfm.Board();
-            echan.SetBoard(board);
-            echan.SetChannel(chan);
-            emph::cmap::DChannel dchan = cmap->DetChan(echan);
-            int detchan = dchan.Channel();
-            float Q = wvr.Charge(wvfm_ptr);
-            fGasCkovChargeHist[detchan]->Fill(Q);
-            Qvec[detchan]=Q;
+        int board = wvfm.Board();
+        echan.SetBoard(board);
+        echan.SetChannel(chan);
+        emph::cmap::DChannel dchan = cmap->DetChan(echan);
+        int detchan = dchan.Channel();
+        float Q = wvr.Charge();
+        fGasCkovChargeHist[detchan]->Fill(Q);
+        Qvec[detchan]=Q;
 	  }  
     }
    

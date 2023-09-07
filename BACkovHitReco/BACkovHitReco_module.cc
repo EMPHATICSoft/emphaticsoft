@@ -156,17 +156,16 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-            const rawdata::WaveForm* wvfm_ptr = &wvfm;
-	    const rb::ADC wvr;
+	    const rb::ADC wvr(wvfm);
 	    int chan = wvfm.Channel();
-	    int board = wvfm.Board();
-            echan.SetBoard(board);
-            echan.SetChannel(chan);
-            emph::cmap::DChannel dchan = cmap->DetChan(echan);
-            int detchan = dchan.Channel();
-            float Q = wvr.BACkovCharge(wvfm_ptr);
-            fBACkovChargeHist[detchan]->Fill(Q);
-            Qvec[detchan]=Q;
+        int board = wvfm.Board();
+        echan.SetBoard(board);
+        echan.SetChannel(chan);
+        emph::cmap::DChannel dchan = cmap->DetChan(echan);
+        int detchan = dchan.Channel();
+        float Q = wvr.BACkovCharge();
+        fBACkovChargeHist[detchan]->Fill(Q);
+        Qvec[detchan]=Q;
 	  }  
     }
     float low_q = Qvec[0]+Qvec[1]+Qvec[2];

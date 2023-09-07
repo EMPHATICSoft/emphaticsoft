@@ -662,8 +662,7 @@ namespace emph {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rawdata::WaveForm* wvfm_ptr = &wvfm;
-	    const rb::ADC wvr; 
+	    const rb::ADC wvr(wvfm); 
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
@@ -674,7 +673,7 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvr.Charge(wvfm_ptr);
+	      float q = wvr.BACkovCharge();
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot
