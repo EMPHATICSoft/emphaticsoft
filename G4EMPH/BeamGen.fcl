@@ -63,8 +63,8 @@ piplus_4GeV.particleType: "pion"
 piplus_4GeV.PMean: 4.
 piplus_4GeV.XMean: 0. 
 piplus_4GeV.YMean: 0. 
-piplus_4GeV.Xsigma: 20. 
-piplus_4GeV.Ysigma: 20. 
+piplus_4GeV.Xsigma: 5. 
+piplus_4GeV.Ysigma: 5. 
 
 kaonplus_beamgen: @local::standard_beamgen
 kaonplus_beamgen.particleType: "kaon"
