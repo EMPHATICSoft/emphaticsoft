@@ -66,9 +66,6 @@ namespace emph {
       // Optional, read/write access to event
       void analyze(const art::Event& evt);
 
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
-
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
       void beginRun(art::Run const& /*run*/);
@@ -199,37 +196,21 @@ namespace emph {
 
     //.......................................................................
     OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
-      : EDAnalyzer(pset)
+      : EDAnalyzer(pset),
+	fSHMname           (pset.get<std::string>("SHMHandle")),
+	fuseSHM            (pset.get<bool>("useSHM")),
+	fTickerOn          (pset.get<bool>("TickerOn")),
+	fMakeWaveFormPlots (pset.get<bool>("makeWaveFormPlots",true)),
+	fMakeTRB3Plots     (pset.get<bool>("makeTRB3Plots",true)),
+	fMakeSSDPlots      (pset.get<bool>("makeSSDPlots",false))
     {
 
-      this->reconfigure(pset);
       HistoTable::Instance(Settings::Instance().fCSVFile.c_str(),
 		       Settings::Instance().fDet);
-
-    }
-
-    //......................................................................
-    OnMonPlotter::~OnMonPlotter()
-    {
-      //======================================================================
-      // Clean up any memory allocated by your module
-      //======================================================================
-    }
-
-    //......................................................................
-    void OnMonPlotter::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fSHMname = pset.get<std::string>("SHMHandle");
-      fuseSHM = pset.get<bool>("useSHM");
-      fTickerOn = pset.get<bool>("TickerOn");
 
       //if (fIPC) delete fIPC;
       if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
       else fIPC = nullptr;
-
-      fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
-      fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
-      fMakeSSDPlots = pset.get<bool>("makeSSDPlots",false);
       
       // try to find the correct path to the .csv file.
       std::string filename = pset.get< std::string > ("CSVFile");
@@ -251,6 +232,15 @@ namespace emph {
       } // loop on directory attempts
 
       Settings::Instance().fDet = kEMPH;
+
+    }
+
+    //......................................................................
+    OnMonPlotter::~OnMonPlotter()
+    {
+      //======================================================================
+      // Clean up any memory allocated by your module
+      //======================================================================
     }
 
     //......................................................................

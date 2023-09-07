@@ -23,7 +23,7 @@ namespace simb{
 }
 namespace sim{
     class SSDHit;
-//    class Particle;
+    class Particle;
     class Track;
     class TOPAZLGHit;
     class ARICHHit;
@@ -47,6 +47,7 @@ namespace emph {
                   std::vector<sim::TOPAZLGHit> & lghitlist,
                   std::vector<sim::ARICHHit> & arichhitlist,
                   std::vector< sim::Track >& tracklist,
+		  std::vector< sim::Particle >& particlelist,
                   std::map<int, size_t >& trackIDToMCTruthIndex);
     
     void RunGeant(art::Ptr<simb::MCTruth> mctruth,
@@ -76,6 +77,7 @@ namespace emph {
 //
 // as far as I can see, these are not used.. 
 //
+    int		    fPlatIndex;		//< index of the ParticleListAction in the UserActionManager
     int             fPlaIndex;            ///< index of the TrackListAction in the UserActionManager
     int             fShaIndex;            ///< index of the SSDHitAction in the UserActionManager
     int             fSLGhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager

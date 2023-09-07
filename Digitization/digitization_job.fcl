@@ -8,7 +8,7 @@ process_name: Digitizer
 
 services:
 {
-  TFileService: { fileName: "ssddig_r%r_s%s_hist.root" closeFileFast: false }
+  TFileService: { fileName: "ssddig_r%r_s%04s_hist.root" closeFileFast: false }
   RunHistoryService: @local::standard_runhistory
   Geometry:   @local::standard_geometry
   ChannelMapService: @local::standard_channelmap
@@ -26,7 +26,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphmc-dig_r%r_s%s.root"
+   fileName:    "emphmc-dig_r%r_s%04s.root"
    fastCloning: false
    
   }

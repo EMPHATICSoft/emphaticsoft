@@ -16,10 +16,9 @@ namespace emph
 {
   //------------------------------------------------------------
   MagneticFieldService::MagneticFieldService(const fhicl::ParameterSet& pset,
-				   art::ActivityRegistry & reg)
+					     art::ActivityRegistry & reg):
+    fFieldFileName (pset.get< std::string >("FieldFileName"))
   {
-
-    reconfigure(pset);
 /*
     Jonathan decided to by-pass the fcl .. 
     Not sure this is the best option.. Paul Lebrun, Oct 20 2022. 
@@ -53,14 +52,6 @@ namespace emph
   }
   
   //-----------------------------------------------------------
-  void MagneticFieldService::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    
-    fFieldFileName = pset.get< std::string >("FieldFileName");
-    
-  }
-  
-  //----------------------------------------------------------
   // If we have run-dependent field, do something here to reload
   // the field if necessary
   //----------------------------------------------------------

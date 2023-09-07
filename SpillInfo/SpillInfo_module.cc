@@ -28,7 +28,7 @@
 
 #include "RecoBase/Spill.h"
 
-//IFDB includes
+//IFDB include
 #include "ifbeam.h" 
 //#include "Munits.h"
 //#include "IFBeam_service.h"

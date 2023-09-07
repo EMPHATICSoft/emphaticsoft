@@ -40,6 +40,9 @@ namespace emph
     
   private:
     ChannelState* fChannelState;
+    bool fLoadSSDFromDB;
+    bool fLoadARICHFromDB;
+    std::string fCondbURL;
     
   };
   
