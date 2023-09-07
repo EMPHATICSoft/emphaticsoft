@@ -45,11 +45,8 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
-<<<<<<< HEAD
 #include "Simulation/SSDHit.h"
-=======
 #include "RecoBase/BACkovHit.h"
->>>>>>> main
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -59,12 +56,9 @@
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
-<<<<<<< HEAD
 #include "CAFMaker/TrueSSDHitsFiller.h"
-=======
 #include "CAFMaker/BACkovFiller.h"
 #include "CAFMaker/SRTruthFiller.h"
->>>>>>> main
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -87,7 +81,7 @@ namespace caf {
     virtual void endSubRun(art::SubRun& sr);
 
   protected:
-    CAFMaker fParams;
+    CAFMakerParams fParams;
 
     std::string fCAFFilename;
 

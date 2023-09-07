@@ -52,7 +52,7 @@ physics:
 
   analyzers:{}
 
-  makecaf:   [ spillinfo, arichreco, ssdclusts,backovreco, cafmaker ]
+  makecaf:   [ spillinfo, arichreco, ssdclusts, backovreco, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false

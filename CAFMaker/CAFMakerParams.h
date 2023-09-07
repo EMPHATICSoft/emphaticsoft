@@ -30,11 +30,9 @@ namespace caf
     Atom<bool>   GetMCHits     {Name("GetMCHits")};
     Atom<string> SSDRawLabel   {Name("SSDRawLabel")};
     Atom<string> SSDClustLabel {Name("SSDClustLabel")};
-<<<<<<< HEAD
     Atom<string> SSDHitLabel    {Name("SSDHitLabel")};
-=======
     Atom<string> BACkovHitLabel {Name("BACkovHitLabel")};
->>>>>>> main
+
   }; // end struct
 } // end namespace
 

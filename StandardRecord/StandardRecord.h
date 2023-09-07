@@ -15,12 +15,9 @@
 #include "StandardRecord/SRARingBranch.h"
 #include "StandardRecord/SRSSDHitsBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
-<<<<<<< HEAD
 #include "StandardRecord/SRTrueSSDHitsBranch.h"
-=======
 #include "StandardRecord/SRBACkovBranch.h"
 #include "StandardRecord/SRTruth.h"
->>>>>>> main
 
 /// Common Analysis Files
 namespace caf
@@ -41,11 +38,8 @@ namespace caf
       SRTruth	     truth; ///< Simulation truth momenta, position, ID, etc.
       SRSSDHitsBranch hits; ///< SSD Hits branch:
       SRSSDClustBranch cluster; ///SSD Cluster Branch: avgadc, avgstrip, etc
-<<<<<<< HEAD
       SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
-=======
       SRBACkovBranch   backov; ///< BACkov PMT charge and PID
->>>>>>> main
 
     }; // end class
 

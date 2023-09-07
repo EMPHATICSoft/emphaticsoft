@@ -1,15 +1,10 @@
 <lcgdict>
 
-<<<<<<< HEAD
- <class name="caf::StandardRecord" ClassVersion="14" >
-  <version ClassVersion="14" checksum="4062141010"/>
-=======
-
- <class name="caf::StandardRecord" ClassVersion="16" >
+ <class name="caf::StandardRecord" ClassVersion="17" >
+  <version ClassVersion="17" checksum="3783923968"/>
   <version ClassVersion="16" checksum="101113006"/>
   <version ClassVersion="15" checksum="142906859"/>
   <version ClassVersion="14" checksum="101113006"/>
->>>>>>> main
   <version ClassVersion="13" checksum="142906859"/>
   <version ClassVersion="12" checksum="2588380332"/>
   <version ClassVersion="11" checksum="1542996796"/>

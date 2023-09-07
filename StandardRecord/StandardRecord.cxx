@@ -5,14 +5,10 @@ namespace caf
   StandardRecord::StandardRecord() :
     hdr(),
     ring(),
-<<<<<<< HEAD
     hits(),
-    truehits()
-=======
+    truehits(),
     backov(),
-    truth(),	 
-    hits()
->>>>>>> main
+    truth()
   {
   }
   
