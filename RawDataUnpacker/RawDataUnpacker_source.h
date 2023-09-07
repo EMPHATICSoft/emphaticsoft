@@ -18,6 +18,7 @@
 
 #include "TTree.h"
 #include "TH1I.h"
+#include "TH2D.h"
 #include "TDirectory.h"
 #include <string>
 #include <vector>
@@ -57,9 +58,13 @@ namespace emph {
       bool    createDigitsFromArtdaqEvent();
       bool    createSSDDigits();
       void    makeTDiffHistos();
+      void    calcTimeWalkCorr();
+      bool    findT0s();
+
       bool    fIsFirst;
       bool    fCreateArtEvents;
       bool    fMakeTDiffHistos;
+      bool    fMakeTimeWalkHistos;
       bool    fReadSSDData;
       bool    fReadTRB3Data;
       bool    fReadCAENData;
@@ -85,6 +90,8 @@ namespace emph {
       std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > fSSDRawDigits;
       
       std::unordered_map<artdaq::Fragment::fragment_id_t,uint64_t> fT0;
+      std::unordered_map<artdaq::Fragment::fragment_id_t,double> fTWCorr0;
+      std::unordered_map<artdaq::Fragment::fragment_id_t,double> fTWCorr1;
       
       art::SourceHelper const& fSourceHelper;
       std::string   fDAQDataLabel;
@@ -93,12 +100,17 @@ namespace emph {
       std::vector<artdaq::Fragment::fragment_id_t> fFragId;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,size_t> fFragCounter;
+      std::unordered_map<artdaq::Fragment::fragment_id_t,size_t> fFragOffset;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fFragTimestamps;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<std::vector<emph::rawdata::WaveForm> > > fWaveForms;
       
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<std::vector<emph::rawdata::TRB3RawDigit> > > fTRB3RawDigits;
+
+      std::unordered_map<artdaq::Fragment::fragment_id_t,TH2D*> fdTvsT;
+      std::unordered_map<artdaq::Fragment::fragment_id_t,TH2D*> fTvsFrag;
+      std::unordered_map<artdaq::Fragment::fragment_id_t,TH1D*> fTHist;
 
       TTree* fTRB3Tree;
       std::vector<uint32_t> fTRB3_HeaderWord;
