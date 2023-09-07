@@ -1,11 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 // File: MagneticField.cxx
-// Description: User Field class implementation.
+// Description: User Field class implementation.  Note, the convention of the 
+// magnetic field map is that the field is in units of kilogauss, and that the 
+// origin of the map is at the center of the upstream face of the magnet.
 ///////////////////////////////////////////////////////////////////////////////
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 
+#include "CLHEP/Units/SystemOfUnits.h"
 #include "MagneticField/MagneticField.h"
 
 #include "Geometry/DetectorDefs.h"
@@ -250,7 +253,7 @@ namespace emph {
 	int indY = static_cast<int>(floor(numbers[1]-start[1])/step);
 	int indZ = static_cast<int>(floor(numbers[2]-start[2])/step);
 	std::vector<double> temp;
-	temp.push_back(numbers[3]); // Tesla to kG. 
+	temp.push_back(numbers[3]); 
 	temp.push_back(numbers[4]);
 	temp.push_back(numbers[5]);
 	fFieldMap[indX][indY][indZ] = temp;
@@ -293,7 +296,10 @@ namespace emph {
       CalcFieldFromVector(x,B);
     else
       CalcFieldFromMap(x,B);
-    
+
+    // convert to proper units
+    for (int i=0; i<3; ++i) B[i] *= CLHEP::kilogauss;
+
     if (fVerbosity) {
       
       std::cerr << "(x, y, z) = (" << x[0] << ", " << x[1] << ", " << x[2] 
