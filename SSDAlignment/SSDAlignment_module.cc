@@ -53,9 +53,6 @@ namespace emph {
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     void beginRun(art::Run& run);
@@ -88,7 +85,6 @@ namespace emph {
   SSDAlignment::SSDAlignment(fhicl::ParameterSet const& pset)
     : EDProducer(pset)
   {
-    //this->reconfigure(pset);
     evt_disp = new TGraph*[10];
     evt_disp_adj = new TGraph*[10];
     fEvtNum = 0;
@@ -106,12 +102,6 @@ namespace emph {
 
   //......................................................................
 
-  // void SSDAlignment::reconfigure(const fhicl::ParameterSet& pset)
-  // {    
-  // }
- 
-  //......................................................................
-  
   void SSDAlignment::beginJob()
   {
 	char hname[64];

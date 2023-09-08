@@ -40,6 +40,8 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
   Geometry
   Geometry_service
   RecoBase
+  Simulation
+  StandardRecord
   art::Framework_Core
   art::Framework_Principal
   art::Persistency_Common  
@@ -86,6 +88,8 @@ cet_build_plugin(EventDisplay3D art::module
   Geometry_service
   RecoBase
   DetGeoMap
+  Simulation
+  StandardRecord
 #  EventDisplayBase
   art::Framework_Core
   art::Framework_Principal

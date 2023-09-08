@@ -19,11 +19,12 @@ namespace emph
     
     //------------------------------------------------------------
     DetGeoMapService::DetGeoMapService(const fhicl::ParameterSet& pset,
-					 art::ActivityRegistry & reg)
+				       art::ActivityRegistry & reg):
+      fUseGeometry (pset.get<bool>("UseGeometry"))
     {
       fDetGeoMap = new DetGeoMap();
-      reconfigure(pset);
-      
+      fDetGeoMap->SetUseGeometry(fUseGeometry);
+
       reg.sPreBeginRun.watch(this, &DetGeoMapService::preBeginRun);
 
     }
@@ -32,12 +33,6 @@ namespace emph
     
     DetGeoMapService::~DetGeoMapService()
     {
-    }
-    
-    //-----------------------------------------------------------
-    void DetGeoMapService::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fDetGeoMap->SetUseGeometry(pset.get<bool>("UseGeometry"));
     }
     
     //----------------------------------------------------------

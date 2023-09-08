@@ -16,10 +16,16 @@ namespace emph
 {
   //------------------------------------------------------------
   ChannelStateService::ChannelStateService(const fhicl::ParameterSet& pset,
-					   art::ActivityRegistry & reg)
+					   art::ActivityRegistry & reg):
+    fLoadSSDFromDB   (pset.get<bool>("LoadSSDFromDB")),
+    fLoadARICHFromDB (pset.get<bool>("LoadARICHFromDB")),
+    fCondbURL        (pset.get<std::string>("CondbURL"))
+
   {
-    reconfigure(pset);
-    
+    fChannelState->SetLoadSSDFromDB(fLoadSSDFromDB);
+    fChannelState->SetLoadARICHFromDB(fLoadARICHFromDB);
+    fChannelState->SetCondbURL(fCondbURL);
+
     fChannelState = new ChannelState();
     fChannelState->SetDataType("data");
 
@@ -31,14 +37,6 @@ namespace emph
   
   ChannelStateService::~ChannelStateService()
   {
-  }
-  
-  //-----------------------------------------------------------
-  void ChannelStateService::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    fChannelState->SetLoadSSDFromDB(pset.get<bool>("LoadSSDFromDB"));
-    fChannelState->SetLoadARICHFromDB(pset.get<bool>("LoadARICHFromDB"));
-    fChannelState->SetCondbURL(pset.get<std::string>("CondbURL"));
   }
   
   //----------------------------------------------------------

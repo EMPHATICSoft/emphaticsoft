@@ -15,6 +15,7 @@ namespace caf
 
     int station;
     int sens;
+    int plane;
     double avgstrip;  ///< average strip
     double wgtavgstrip;
     double wgtrmsstrip;

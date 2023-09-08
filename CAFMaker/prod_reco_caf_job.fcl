@@ -3,8 +3,10 @@
 #include "Geometry.fcl"
 #include "CAFMaker.fcl"
 
+#include "SpillInfo.fcl"
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
+#include "BACkovHitReco.fcl"
 
 process_name: CAF
 
@@ -17,6 +19,7 @@ services:
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
   Geometry: @local::standard_geometry
+  IFBeam:{}
 }
 
 #Start each new event with an empty event.
@@ -40,14 +43,16 @@ physics:
 {
   producers:
   {
-    arichreco: @local::standard_arichreco
-    ssdclusts: @local::standard_ssdclust
-    cafmaker:  @local::standard_cafmaker
+    spillinfo: @local::standard_spillinfo
+    arichreco:  @local::standard_arichreco
+    ssdclusts:  @local::standard_ssdclust
+    backovreco: @local::standard_backovhitreco
+    cafmaker:   @local::standard_cafmaker
   }
 
   analyzers:{}
 
-  makecaf:   [ arichreco, ssdclusts, cafmaker ]
+  makecaf:   [ spillinfo, arichreco, ssdclusts,backovreco, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false
