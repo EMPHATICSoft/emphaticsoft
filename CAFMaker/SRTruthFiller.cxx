@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRTrueParticleFiller.cxx
+// \file    SRTruthFiller.cxx
 // \brief    
 //          
 ////////////////////////////////////////////////////////////////////////
@@ -7,13 +7,15 @@
 #include "CAFMaker/SRTruthFiller.h"
 #include "StandardRecord/SRParticle.h"
 #include "Simulation/Particle.h"
+#include "Simulation/SSDHit.h"
 #include "art/Framework/Principal/Handle.h"
 #include <cxxabi.h>
 #include <typeinfo>
 
 namespace caf
 {
-  void SRTruthFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec){
+  void SRTruthFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
+  {
     art::Handle< std::vector <sim::Particle> > pcal;
 
     try {
@@ -61,6 +63,40 @@ namespace caf
       stdrec.truth.beam.daughters = daughters;// record the vector of daughter particles into the CAF
     }
     catch(...) {}
+    //dah edits start here
+    art::Handle< std::vector<sim::SSDHit> > truehitv;
+    try {
+      evt.getByLabel(fLabel, truehitv);
+    }
+    catch(...) {
+      std::cout << "WARNING: No SSDHits found!" << std::endl;
+    }
+    for (unsigned int truehitId = 0; truehitId < truehitv->size(); ++truehitId) {
+
+      const sim::SSDHit& ssdhits = (*truehitv)[truehitId];
+
+      stdrec.truth.truehits.truehits.push_back(SRTrueSSDHits());
+      SRTrueSSDHits& srTrueSSDHits = stdrec.truth.truehits.truehits.back();
+
+      srTrueSSDHits.GetX = ssdhits.GetX();
+      srTrueSSDHits.GetY = ssdhits.GetY();
+      srTrueSSDHits.GetZ = ssdhits.GetZ();
+
+      srTrueSSDHits.GetPx = ssdhits.GetPx();
+      srTrueSSDHits.GetPy = ssdhits.GetPy();
+      srTrueSSDHits.GetPz = ssdhits.GetPz();
+
+      srTrueSSDHits.GetDE = ssdhits.GetDE();
+      srTrueSSDHits.GetPId = ssdhits.GetPId();
+
+      srTrueSSDHits.GetStation = ssdhits.GetStation();
+      srTrueSSDHits.GetPlane = ssdhits.GetPlane();
+      srTrueSSDHits.GetSensor = ssdhits.GetSensor();
+      srTrueSSDHits.GetStrip = ssdhits.GetStrip();
+      srTrueSSDHits.GetTrackID = ssdhits.GetTrackID();
+
+    } // end for truehitId
+
   }
 
 } // end namespace caf

@@ -80,10 +80,23 @@
  </class>
  <class name="std::vector<caf::SRTrueParticle>" />
 
- <class name="caf::SRTruth" ClassVersion="11" >
+ <class name="caf::SRTruth" ClassVersion="12" >
+  <version ClassVersion="12" checksum="1977587420"/>
   <version ClassVersion="11" checksum="2143789429"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
  <class name="std::vector<caf::SRTruth>" />
+
+ <class name="caf::SRTrueSSDHits" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3083444448"/>
+ </class>
+ <class name="std::vector<caf::SRTrueSSDHits>" /> 
+
+ <class name="caf::SRTrueSSDHitsBranch" ClassVersion="10" >
+  <version ClassVersion="10" checksum="3550546688"/>
+ </class>
+
+
+
 
 </lcgdict>

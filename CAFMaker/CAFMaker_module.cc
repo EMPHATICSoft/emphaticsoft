@@ -46,6 +46,7 @@
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/BACkovHit.h"
+#include "Simulation/SSDHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -209,6 +210,7 @@ namespace caf {
 				// set to "true" if needed
       SRTruthFiller srtruthf;
       srtruthf.GetG4Hits = fParams.GetMCHits();
+      srtruthf.fLabel = fParams.SSDHitLabel();
       srtruthf.Fill(evt,rec);
     } // end if statement
     
