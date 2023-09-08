@@ -19,28 +19,12 @@ namespace emph
 					     art::ActivityRegistry & reg):
     fFieldFileName (pset.get< std::string >("FieldFileName"))
   {
-/*
-    Jonathan decided to by-pass the fcl .. 
-    Not sure this is the best option.. Paul Lebrun, Oct 20 2022. 
-    cet::search_path sp("CETPKG_SOURCE");
+    fMagneticField = new emph::MagneticField();
 
-    std::string fFileName;
-    sp.find_file(fFieldFileName,fFileName);
-    struct stat sb;
-    if ( fFileName.empty() || stat(fFileName.c_str(), &sb)!=0 ) {
-      // failed to resolve the file name
-      throw cet::exception("NoMagFieldMap")
-        << "Magnetic field map file " << fFileName << " not found!\n"
-        << __FILE__ << ":" << __LINE__ << "\n";
-    }
-    
-    fMagneticField = new emph::EMPHATICMagneticField(fFileName);
-*/
-    fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
-    // Temporary tweak and study: assume we have no ziptrack data for the outer core.. 
-    // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
-//    fMagneticField->setUseOnlyTheCentralPart(true);
-    
+    fMagneticField->SetFieldFileName(pset.get< std::string >("FieldFileName"));
+    fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
+    fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
+
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
   }
@@ -51,7 +35,7 @@ namespace emph
   {
   }
   
-  //-----------------------------------------------------------
+  //----------------------------------------------------------
   // If we have run-dependent field, do something here to reload
   // the field if necessary
   //----------------------------------------------------------

@@ -56,11 +56,13 @@
 #include <TEveLine.h>
 
 //#include <sstream>
+#include <map>
 
 #include "EventDisplay/EvtDisplayUtils.h"
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/LineSegment.h"
 #include "DetGeoMap/DetGeoMap.h"
+#include "Simulation/Particle.h"
 
 // ... Anonymous namespace for helpers.
 namespace {
@@ -107,6 +109,8 @@ namespace emph {
     std::string     fVerticesLabel;
     int             fVisLevel;
 
+    std::unordered_map<int,int> partColor;
+
     art::ServiceHandle<emph::geo::GeometryService> geom_;
 
     std::unique_ptr<emph::EvtDisplayUtils>visutil_;
@@ -126,11 +130,13 @@ namespace emph {
 
     TEveTrackList *fTrackList;
     TEveElementList *fSSDClustsList;
+    TEveElementList* fMCTrueParticleList;
 
     dgmap::DetGeoMap* fDetGeoMap;
 
     void makeNavPanel();
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
+    void drawMCParticle(Int_t mColor, Int_t mSize, const sim::Particle& part);
     void DrawSSDClusters(const art::Event& event);
     void DrawMCTruth(const art::Event& event);
     void DrawTracks(const art::Event& event);
@@ -146,7 +152,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   camRotateCenterV_ ( pset.get<Double_t>   ("camRotateCenterV",-2.  ) ),
   camDollyDelta_    ( pset.get<Double_t>   ("camDollyDelta",500.) ),
   fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
-  fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","g4gen") ),
+  fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
   fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
@@ -163,7 +169,14 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
   fTrackList(0),fSSDClustsList(0),fDetGeoMap(NULL)
 {
-  
+
+  partColor[211] = kGreen-2;
+  partColor[2212] = kRed;
+  partColor[-211] = kGreen+2;
+  partColor[-321] = kYellow+2;
+  partColor[321] = kYellow-2;
+  partColor[-11] = kWhite+2;
+  partColor[11] = kWhite-2;
   //  if ( trkMaxStepSize_ < 0.1 )trkMaxStepSize_ = 0.1;
 
 }
@@ -462,9 +475,59 @@ void emph::EventDisplay3D::DrawSSDClusters(const art::Event& event)
 
 //------------------------------------------------------------
 
-void emph::EventDisplay3D::DrawMCTruth(const art::Event& )
+void emph::EventDisplay3D::DrawMCTruth(const art::Event& event)
 {
+  if (fMCTrueParticleList == 0) {
+    fMCTrueParticleList = new TEveElementList("MC Particles"); 
+    fMCTrueParticleList->IncDenyDestroy();              // protect element against destruction
+  }
+  else {
+    fMCTrueParticleList->DestroyElements();             // destroy children of the element
+  }
 
+  try {    
+    //    art::Handle<std::vector<rb::SSDCluster> > ssdClusters;
+    auto particles = event.getHandle<std::vector<sim::Particle>>(fMCTruthLabel);
+    
+    if  (!particles->empty()) {
+      for (size_t idx=0; idx<particles->size(); ++idx) {
+	const sim::Particle& part = (*particles)[idx];
+	drawMCParticle(partColor[part.fpdgCode],4,part);
+      }
+    }
+  }
+  catch(...) {
+    std::cerr << "No true particles found under label: " << fMCTruthLabel 
+	      << std::endl;
+  }
+
+  gEve->AddElement(fMCTrueParticleList);
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::drawMCParticle(Int_t mColor, Int_t mSize, 
+					  const sim::Particle& part)
+{ 
+  
+  double x0[3];
+  double x1[3];
+  TEveLine* l = new TEveLine();    
+  std::cout << "drawMCParticle: " << part.fpdgCode << " (" 
+	    << part.ftrajectory.X(0) << "," << part.ftrajectory.Y(0) << "," 
+	    << part.ftrajectory.Z(0) << ")";
+  l->SetNextPoint(part.ftrajectory.X(0), part.ftrajectory.Y(0), part.ftrajectory.Z(0));  
+  for (size_t i=1; i<part.ftrajectory.size(); ++i) {
+    std::cout << "->(" << part.ftrajectory.X(i) << ","
+	      << part.ftrajectory.Y(i) <<"," << part.ftrajectory.Z(i) <<")";
+    l->SetNextPoint(part.ftrajectory.X(i), part.ftrajectory.Y(i), part.ftrajectory.Z(i));  
+  }
+  std::cout << std::endl;
+
+  l->SetMarkerSize(mSize);
+  l->SetLineColor(mColor);
+  fMCTrueParticleList->AddElement(l);
+  
 }
 
 //------------------------------------------------------------
