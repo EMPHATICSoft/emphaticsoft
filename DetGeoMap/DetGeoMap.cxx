@@ -34,25 +34,35 @@ namespace emph {
       
       int station = cl.Station();
       int sensor = cl.Sensor();
-      //      rb::planeView view = cl.View();
       double strip = cl.WgtAvgStrip();
       double pitch = 0.06;
-
+      
       try {
 	art::ServiceHandle<emph::geo::GeometryService> geo;
 	auto geom = geo->Geo();
 	
 	const emph::geo::SSDStation &st = geom->GetSSDStation(station);
 	const emph::geo::Detector &sd = st.GetSSD(sensor);
-	
+	const emph::geo::Strip &gstrip = sd.GetStrip(int(strip));
+
+	//	auto sxyz = gstrip.Pos();
+	//	std::cout << "Strip position = (" << sxyz[0] << "," << sxyz[1] << "," << sxyz[2] << ")" << std::endl;
+
 	double x0[3];
 	double x1[3];
 	x0[2] = x1[2] = sd.Pos()[2] + st.Pos()[2];
-	double strippos = strip*pitch - sd.Height()/2;
-	double cosrot = cos(sd.Rot());
-	double sinrot = sin(sd.Rot());
+	double strippos = gstrip.Pos()[1]; //sd.Height()/2 - strip*pitch;	
+	double rot = sd.Rot();
+	if(sd.IsFlip()){
+		strippos = - strippos;
+		rot = 2*TMath::Pi() - rot;
+	}
+	double cosrot = cos(rot);
+	double sinrot = sin(rot);
+
 	double tx0[2], tx1[2];
 
+	//	std::cout << "Calculated position = (" << 
 	tx0[0] = -sd.Width()/2;
 	tx1[0] = sd.Width()/2;
 	tx0[1] = strippos;
