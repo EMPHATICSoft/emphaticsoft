@@ -58,16 +58,17 @@ namespace emph {
 
       // define histograms
       
-		TFile* f; 
-        std::array<TH2F*,8> h_wvfms;
-        std::array<int,8> nentries_wvfms= {0};
-		int iboard;
+        std::array<std::array<TH2F*,8>,6> h_wvfms;
+        std::array<std::array<int,8>,6> nentries_wvfms= {0};
+        int plotsize; //0 is small, 1 is medium, 2 is large, 3 is very large
+        int plotmax;
+        int plotmin;
     };
 
     //.......................................................................
     ReadoutWaveform::ReadoutWaveform(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
-      iboard(pset.get<int>("boardNum",0))
+       plotsize(pset.get<int>("PlotSize",0))
     {
     }
 
@@ -83,14 +84,19 @@ namespace emph {
     void ReadoutWaveform::beginJob()
 	 {
 		 fNEvents=0;
+         art::ServiceHandle<art::TFileService> tfs;
 
-		 char filename[32];
-		 sprintf(filename,Form("wvfms_board%i.root",iboard));
-		 f = new TFile(filename,"RECREATE");
+         if (plotsize==0) {plotmax = 1900; plotmin = 1800;}
+         if (plotsize==1) {plotmax = 1900; plotmin = 1700;}
+         if (plotsize==2) {plotmax = 2000; plotmin = 1600;}
+         if (plotsize==3) {plotmax = 2000; plotmin = 1400;}
+         int nbins = (plotmax-plotmin)*2;
 
-         for (int i=0; i<8; ++i){
-            h_wvfms[i] = new TH2F(Form("wvfm_%i", i), Form("V1720 Board %i Chan %i", iboard, i), 100, 0, 100, 200, 1800 , 1900);
-            h_wvfms[i]->GetYaxis()->SetTitle("mV");
+         for (int i=0; i<6; ++i){
+            for (int j=0; j<8; ++j){
+                h_wvfms[i][j] = tfs->make<TH2F>(Form("wvfm_%i_%i", i, j), Form("V1720 Board %i Chan %i", i, j), 108, 0, 108, nbins, plotmin , plotmax);
+                h_wvfms[i][j]->GetYaxis()->SetTitle("mV");
+            }
          }
 
 	 }
@@ -99,11 +105,13 @@ namespace emph {
 
     void ReadoutWaveform::endJob()
     {
-      for (int i=0; i<8; ++i){
-        h_wvfms[i]->Write();
+      for (int i=0; i<6; ++i){
+          for (int j=0; j<8; ++j){
+                //h_wvfms[i][j]->GetYaxis()->SetRangeUser(h_wvfms
+          }
       }
-      f->Close();
-      delete f; f=0;
+      //f->Close();
+      //delete f; f=0;
     }
     
     //......................................................................
@@ -124,20 +132,19 @@ namespace emph {
                  float bl = wvfm.Baseline();
                  float max = wvfm.Baseline()-wvfm.PeakADC();
                  float adc_to_mV = 2000./4096;
-                 if(board!=iboard)continue;
-                 //if (fNEvents!=10) continue;
                  echan.SetBoard(board);
                  echan.SetChannel(chan);
                  auto adcvals = wvfm.AllADC();
                  //Stop filling after 1000 waveforms have been added
-                 if (nentries_wvfms[chan] > 1000) continue;
+                 if (nentries_wvfms[board][chan] > 1000) continue;
                  for (size_t i=0; i<adcvals.size(); ++i) {
-                     h_wvfms[chan]->Fill(i+1,adcvals[i]*adc_to_mV);
+                     float mV = adcvals[i]*adc_to_mV;
+                     h_wvfms[board][chan]->Fill(i,mV);
                  }
-                 nentries_wvfms[chan]+=1;
+             nentries_wvfms[board][chan]+=1;
              }
          }
-     }
+    }
 
     //......................................................................
 

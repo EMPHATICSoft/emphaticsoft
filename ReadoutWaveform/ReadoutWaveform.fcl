@@ -3,7 +3,7 @@ BEGIN_PROLOG
 standard_readoutwaveform:
 {
   module_type: ReadoutWaveform
-  boardNum: 4
+  PlotSize: 2
 }
 
 END_PROLOG
