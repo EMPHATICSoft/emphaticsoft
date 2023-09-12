@@ -200,7 +200,8 @@ namespace emph {
 	  echan.SetChannel(ssd.Module());
 	  emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-	  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
+	  const emph::geo::Plane &pln = st.GetPlane(dchan.Plane());
+	  const emph::geo::Detector &sd = pln.SSD(dchan.HiLo());
 	  rb::SSDHit hit(ssd, sd);
 	  double x = (ssd.Row()*hit.Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0];
 	  double y = (ssd.Row()*hit.Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1];

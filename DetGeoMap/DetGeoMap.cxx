@@ -34,6 +34,7 @@ namespace emph {
       
       int station = cl.Station();
       int sensor = cl.Sensor();
+      int plane  = cl.Plane();
       //      rb::planeView view = cl.View();
       double strip = cl.WgtAvgStrip();
       double pitch = 0.06;
@@ -43,7 +44,8 @@ namespace emph {
 	auto geom = geo->Geo();
 	
 	const emph::geo::SSDStation &st = geom->GetSSDStation(station);
-	const emph::geo::Detector &sd = st.GetSSD(sensor);
+	const emph::geo::Plane& pln = st.GetPlane(plane);
+	const emph::geo::Detector &sd = pln.SSD(sensor);
 	
 	double x0[3];
 	double x1[3];

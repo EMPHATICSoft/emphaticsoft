@@ -15,6 +15,8 @@
 #include <vector>
 #include "TVector3.h"
 #include "TGDMLMatrix.h"
+#include "TGeoMatrix.h"
+
 #include "Geometry/DetectorDefs.h"
 #include "Utilities/PMT.h"
 
@@ -25,171 +27,201 @@ class TGeoManager;
 class TVector3;
 
 namespace emph {
-	namespace geo {
-		enum sensorView {
-			INIT=0,
-			X_VIEW=1, ///< x-measuring view
-			Y_VIEW,   ///< y-measuring view
-			U_VIEW,
-			W_VIEW
-		};
-		class Strip {
-			public:
-				Strip();
-				Strip(std::string name, TVector3 pos, double dw);
-				~Strip() {};
+  namespace geo {
+    enum sensorView {
+      INIT=0,
+      X_VIEW=1, ///< x-measuring view
+      Y_VIEW,   ///< y-measuring view
+      U_VIEW,
+      W_VIEW
+    };
+    class Strip {
+    public:
+      Strip();
+      Strip(std::string name, TVector3 pos, double dw);
+      ~Strip() {};
 
-				std::string Name() const { return fName;}
-				TVector3 Pos() const { return fPos;}
-				double Dw() const { return fDw;}
+      std::string Name() const { return fName;}
+      TVector3 Pos() const { return fPos;}
+      double Dw() const { return fDw;}
+      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
-				void SetName(std::string n) {fName = n; }
-				void SetPos(TVector3 pos) {fPos = pos;}
-				void SetDw(double dw) {fDw = dw;}
+      void SetName(std::string n) {fName = n; }
+      void SetPos(TVector3 pos) {fPos = pos;}
+      void SetDw(double dw) {fDw = dw;}
+      void SetGeoMatrix(TGeoMatrix* m) {fGeoMatrix = m; }
 
-			private:    
-				std::string fName;
-				TVector3 fPos;
-				double fDw;
-		};
+    private:    
+      std::string fName;
+      TVector3 fPos;
+      double fDw;
+      TGeoMatrix* fGeoMatrix;
+    };
+
+    class Detector {
+    public:
+      Detector();
+      Detector(std::string name, TVector3 pos, double dz, double w, double h);
+      ~Detector() {};
+
+      std::string Name() const { return fName;}
+      TVector3 Pos() const { return fPos;}
+      double Rot() const { return fRot;} 
+      double IsFlip() const { return fFlip;} 
+      //				double X() const { return fX;} 
+      //				double Y() const { return fY;} 
+      double Dz() const { return fDz;}
+      double Width() const { return fWidth;}
+      double Height() const { return fHeight;}
+      sensorView View() const;
+      void AddStrip(Strip strip) {fStrip.push_back(strip); }
+
+      void SetGeoMatrix(TGeoMatrix* m) {fGeoMatrix = m; }
+      void SetName(std::string n) {fName = n; }
+      void SetPos(TVector3 pos) {fPos = pos;}
+      void SetRot(double rot) {fRot = rot;}
+      void SetFlip(bool flip) {fFlip = flip;}
+      //				void SetX(double x) {fX = x;}
+      //				void SetY(double y) {fY = y;}
+      void SetDz(double dz) {fDz = dz;}
+      void SetWidth(double w) {fWidth = w;}
+      void SetHeight(double h) {fHeight = h;}
+      int NStrips() const {return (int)fStrip.size(); };
+      Strip GetStrip(int i) const {return fStrip[i]; }
+      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
+
+    private:    
+      std::string fName;
+      TVector3 fPos;
+      double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), anticlockwise as seen by the beam
+      bool fFlip; // facing or back to the beam, for fRot = 0, if channel 0 is at the bottom and 640 at the top (read-out on the right side), fFlip = 0
+      double fDz;
+      double fWidth;
+      double fHeight;
+      std::vector<Strip> fStrip;
+      TGeoMatrix* fGeoMatrix;
+    };
+
+    class Plane {
+    public:
+      Plane();
+      ~Plane() {};
+
+      Detector SSD(int i) const { return fSSD[i];}
+      int  NSSDs() { return int(fSSD.size()); }
+      void AddSSD(Detector ssd) { fSSD.push_back(ssd); }
+
+    private:
+      std::vector<Detector> fSSD;
+    };
+
+    class SSDStation {
+    public:
+      SSDStation();
+      ~SSDStation() {};
+
+      void SetName(std::string n) {fName = n; }
+      void SetPos(TVector3 pos) {fPos = pos;}
+      void SetDz(double dz) {fDz = dz;}
+      void SetWidth(double w) {fWidth = w;}
+      void SetHeight(double h) {fHeight = h;}
+      void AddPlane(Plane p) {fPlane.push_back(p); }
+      void SetGeoMatrix(TGeoMatrix* m) {fGeoMatrix = m; }
+
+      std::string Name() const { return fName; }
+      TVector3 Pos() const {return fPos;}
+
+      int NPlanes() const {return (int)fPlane.size(); };
+      Plane  GetPlane(int i) const {return fPlane[i]; }
+      double Dz() const { return fDz;}
+      double Width() const { return fWidth; }
+      double Height() const {return fHeight; }
+      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
+
+    private:
+      std::string fName;
+      TVector3 fPos;
+      double fDz;
+      double fWidth;
+      double fHeight;
+      std::vector<Plane> fPlane;
+      TGeoMatrix* fGeoMatrix;
+    };
 
 
-		class Detector {
-			public:
-				Detector();
-				Detector(std::string name, TVector3 pos, double dz, double w, double h);
-				~Detector() {};
+    class Geometry {
+    public:
+      Geometry(std::string fname);
+      ~Geometry() {};
 
-				std::string Name() const { return fName;}
-				TVector3 Pos() const { return fPos;}
-				double Rot() const { return fRot;} 
-				double IsFlip() const { return fFlip;} 
-//				double X() const { return fX;} 
-//				double Y() const { return fY;} 
-				double Dz() const { return fDz;}
-				double Width() const { return fWidth;}
-				double Height() const { return fHeight;}
-				sensorView View() const;
-				void AddStrip(Strip strip) {fStrip.push_back(strip); }
+      bool SetGDMLFile(std::string fname);
 
-				void SetName(std::string n) {fName = n; }
-				void SetPos(TVector3 pos) {fPos = pos;}
-				void SetRot(double rot) {fRot = rot;}
-				void SetFlip(bool flip) {fFlip = flip;}
-//				void SetX(double x) {fX = x;}
-//				void SetY(double y) {fY = y;}
-				void SetDz(double dz) {fDz = dz;}
-				void SetWidth(double w) {fWidth = w;}
-				void SetHeight(double h) {fHeight = h;}
-				int NStrips() const {return (int)fStrip.size(); };
-				Strip GetStrip(int i) const {return fStrip[i]; }
+      double WorldWidth() const  { return fWorldWidth; }
+      double WorldHeight() const { return fWorldHeight; }
+      double WorldLength() const { return fWorldLength;}
 
-			private:    
-				std::string fName;
-				TVector3 fPos;
-				double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), anticlockwise as seen by the beam
-				bool fFlip; // facing or back to the beam, for fRot = 0, if channel 0 is at the bottom and 640 at the top (read-out on the right side), fFlip = 0
-				double fDz;
-				double fWidth;
-				double fHeight;
-				std::vector<Strip> fStrip;
-		};
+      double MagnetUSZPos() const {return fMagnetUSZPos; }
+      double MagnetDSZPos() const {return fMagnetDSZPos; }
 
-		class SSDStation {
-			public:
-				SSDStation();
-				~SSDStation() {};
+      double DetectorUSZPos(int i) const {return fDetectorUSZPos[i]; }
+      double DetectorDSZPos(int i) const {return fDetectorDSZPos[i]; }
+      bool DetectorLoad(int i) const {return fDetectorLoad[i]; }
 
-				void SetName(std::string n) {fName = n; }
-				void SetPos(TVector3 pos) {fPos = pos;}
-				void SetDz(double dz) {fDz = dz;}
-				void SetWidth(double w) {fWidth = w;}
-				void SetHeight(double h) {fHeight = h;}
-				void AddSSD(Detector ssd) {fSSD.push_back(ssd); }
+      int NSSDStations() const { return fNSSDStations; }
+      int NSSDs() const { return fNSSDs; }
+      SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
 
-				std::string Name() const { return fName; }
-				TVector3 Pos() const {return fPos;}
+      int NPMTs() const { return fNPMTs; }
+      emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
+      emph::arich_util::PMT FindPMTByName(std::string name);
 
-				int NSSDs() const {return (int)fSSD.size(); };
-				Detector GetSSD(int i) const {return fSSD[i]; }
-				double Dz() const { return fDz;}
-				double Width() const { return fWidth; }
-				double Height() const {return fHeight; }
+      //    TGeoMaterial* Material(double x, double y, double z) const;
 
-			private:
-				std::string fName;
-				TVector3 fPos;
-				double fDz;
-				double fWidth;
-				double fHeight;
-				std::vector<Detector> fSSD;
-		};
+      std::string GDMLFile() const {return fGDMLFile; }
 
+      TGeoManager* ROOTGeoManager() const { return fGeoManager; }
 
-		class Geometry {
-			public:
-				Geometry(std::string fname);
-				~Geometry() {};
+      bool LocalToWorld(int station, int sensor, int plane, int strip, 
+			double p[3], double newp[3]);
+      //      bool WorldToLocal(int station, int sensor, int plane, int strip,
+      //			double p[3], double newp[3]);
 
-				bool SetGDMLFile(std::string fname);
+    private:
+      Geometry();
 
-				double WorldWidth() const  { return fWorldWidth; }
-				double WorldHeight() const { return fWorldHeight; }
-				double WorldLength() const { return fWorldLength;}
+      bool LoadGDMLFile();
+      std::vector<std::pair<double, double> > ReadMatrix(TGDMLMatrix* matrix);
+      void ExtractPMTInfo(const TGeoVolume* v);
+      void ExtractDetectorInfo(int i, const TGeoNode* n);
+      void ExtractMagnetInfo(const TGeoVolume* v);
+      void ExtractSSDInfo(const TGeoNode* n);
 
-				double MagnetUSZPos() const {return fMagnetUSZPos; }
-				double MagnetDSZPos() const {return fMagnetDSZPos; }
+      std::string fGDMLFile;
 
-				double DetectorUSZPos(int i) const {return fDetectorUSZPos[i]; }
-				double DetectorDSZPos(int i) const {return fDetectorDSZPos[i]; }
-				bool DetectorLoad(int i) const {return fDetectorLoad[i]; }
+      int    fNSSDStations;
+      int    fNSSDs;
+      double fWorldWidth;
+      double fWorldHeight;
+      double fWorldLength;
+      double fMagnetUSZPos;
+      double fMagnetDSZPos;
+      std::vector<SSDStation> fSSDStation;
+      double fDetectorUSZPos[NDetectors];
+      double fDetectorDSZPos[NDetectors];
+      bool fDetectorLoad[NDetectors];
 
-				int NSSDStations() const { return fNSSDStations; }
-				int NSSDs() const { return fNSSDs; }
-				SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
+      int    fNPMTs;
+      std::vector<emph::arich_util::PMT> fPMT;
+      std::vector<TGeoMatrix*> fSSDStationMatrix;
+      std::vector<std::vector<std::vector<TGeoMatrix*> > > fSSDSensorMatrix;
+      
+      //      std::unordered_map<std::string,TGeoMatrix*> fSSDStripMatrix;
 
-				int NPMTs() const { return fNPMTs; }
-				emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
-				emph::arich_util::PMT FindPMTByName(std::string name);
+      TGeoManager* fGeoManager;
 
-				//    TGeoMaterial* Material(double x, double y, double z) const;
+    };
 
-				std::string GDMLFile() const {return fGDMLFile; }
-
-				TGeoManager* ROOTGeoManager() const { return fGeoManager; }
-
-			private:
-				Geometry();
-
-				bool LoadGDMLFile();
-				std::vector<std::pair<double, double> > ReadMatrix(TGDMLMatrix* matrix);
-				void ExtractPMTInfo(const TGeoVolume* v);
-				void ExtractDetectorInfo(int i, const TGeoNode* n);
-				void ExtractMagnetInfo(const TGeoVolume* v);
-				void ExtractSSDInfo(const TGeoNode* n);
-
-				std::string fGDMLFile;
-
-				int    fNSSDStations;
-				int    fNSSDs;
-				double fWorldWidth;
-				double fWorldHeight;
-				double fWorldLength;
-				double fMagnetUSZPos;
-				double fMagnetDSZPos;
-				std::vector<SSDStation> fSSDStation;
-				double fDetectorUSZPos[NDetectors];
-				double fDetectorDSZPos[NDetectors];
-				bool fDetectorLoad[NDetectors];
-
-				int    fNPMTs;
-				std::vector<emph::arich_util::PMT> fPMT;
-
-				TGeoManager* fGeoManager;
-
-		};
-
-	}  // end namespace geo
+  }  // end namespace geo
 } // end namespace emph
 
 

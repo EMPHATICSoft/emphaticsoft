@@ -59,9 +59,10 @@ private:
   std::vector<float> avgadc, avgstrip, wgtavgstrip, wgtrmsstrip;
   static const int NPlanes = 20;
   static const int NStations = 8;
-  static const int MaxSensPerSta = 6;
+  static const int MaxPlnsPerSta = 3;
+  static const int MaxSensPerPln = 2;
   int ncluster[NPlanes];
-  std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
+  //  std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
   
   // fcl parameters
   std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
@@ -75,7 +76,7 @@ private:
 
   void FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
 		    std::vector<rb::SSDCluster>* sensClusters,
-		    int station, int sensor);
+		    int station, int plane, int sensor);
 };
 
 //--------------------------------------------------
@@ -127,9 +128,10 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
 	emph::cmap::DChannel dchan = cmap->DetChan(echan);
       
       const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-      const emph::geo::Detector   &sd = st.GetSSD(dchan.Channel());
+      const emph::geo::Plane      &pl = st.GetPlane(dchan.Plane());
+      const emph::geo::Detector   &sd = pl.SSD(dchan.HiLo());
       
-      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
+      //      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
     }
   }
 }
@@ -149,11 +151,14 @@ void emph::MakeSSDClusters::SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>
 
 //--------------------------------------------------
 void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
-		  std::vector<rb::SSDCluster>* sensClusters,
-		  int station, int sensor)
+	       std::vector<rb::SSDCluster>* sensClusters,
+	       int station, int plane, int sensor)
 { 
-  geo::sensorView view = planeViewMap[std::make_pair(station,sensor)].second;
-  int plane = planeViewMap[std::make_pair(station,sensor)].first;
+  auto emgeo = geo->Geo();
+  
+  geo::sensorView view = emgeo->GetSSDStation(station).GetPlane(plane).SSD(sensor).View();
+  //  geo::sensorView view = planeViewMap[std::make_pair(station,sensor)].second;
+  //  int plane = planeViewMap[std::make_pair(station,sensor)].first;
 
   int prevRow=sensDigits[0]->Row();
   int curRow;
@@ -207,7 +212,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     }
   }
 
-  art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxSensPerSta];
+  art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxPlnsPerSta][MaxSensPerPln];
 
   std::fill_n(ncluster,NPlanes,0);
 
@@ -217,44 +222,48 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
-      digitList[dchan.Station()][dchan.Channel()].push_back(ssdDig);
+      digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssdDig);
     }
     std::vector<rb::SSDCluster> clusters;
     // Should really pull counts of these from geometry somehow
     for (int sta=0; sta<NStations; ++sta){
-      for (int sensor=0; sensor<MaxSensPerSta; ++sensor){
-	clusters.clear();
-	// Don't bother to cluster if we didn't have any raw digits
-	if (digitList[sta][sensor].size()==0)
-	  continue;
-	// FormClusters() assumes digits are ordered by row
-	this->SortByRow(digitList[sta][sensor]);
-	this->FormClusters(digitList[sta][sensor], &clusters, sta, sensor);
-	for (int i=0; i<(int)clusters.size(); i++){
-	  // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
-	  if (fFillTTree) {
-	    station.push_back(clusters[i].Station());
-	    sens.push_back(clusters[i].Sensor());
-	    view.push_back(clusters[i].View());
-	    ndigits.push_back(clusters[i].NDigits());
-	    width.push_back(clusters[i].Width());
-	    timerange.push_back(clusters[i].TimeRange());
-	    avgadc.push_back(clusters[i].AvgADC());
-	    avgstrip.push_back(clusters[i].AvgStrip());
-	    wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
-	    wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
-	    int plane = planeViewMap[std::make_pair(sta,sensor)].first;
-	    ncluster[plane]++;
+      for (int pln=0; pln<MaxPlnsPerSta; ++pln){
+	for (int sensor=0; sensor<MaxSensPerPln; ++sensor){
+	  clusters.clear();
+	  // Don't bother to cluster if we didn't have any raw digits
+	  if (digitList[sta][pln][sensor].size()==0)
+	    continue;
+	  // FormClusters() assumes digits are ordered by row
+	  this->SortByRow(digitList[sta][pln][sensor]);
+	  this->FormClusters(digitList[sta][pln][sensor], 
+			     &clusters, sta, pln, sensor);
+	  for (int i=0; i<(int)clusters.size(); i++){
+	    // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
+	    if (fFillTTree) {
+	      station.push_back(clusters[i].Station());
+	      sens.push_back(clusters[i].Sensor());
+	      view.push_back(clusters[i].View());
+	      ndigits.push_back(clusters[i].NDigits());
+	      width.push_back(clusters[i].Width());
+	      timerange.push_back(clusters[i].TimeRange());
+	      avgadc.push_back(clusters[i].AvgADC());
+	      avgstrip.push_back(clusters[i].AvgStrip());
+	      wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+	      wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
+	      int plane = clusters[i].Plane();
+	      //	      int plane = planeViewMap[std::make_pair(sta,sensor)].first;
+	      ncluster[plane]++;
+	    }
+	    clusters[i].SetID(i);
+	    clusterv->push_back(clusters[i]);
 	  }
-	  clusters[i].SetID(i);
-	  clusterv->push_back(clusters[i]);
 	}
       }
     }
   }
-
+  
   evt.put(std::move(clusterv));
-
+  
   if (fFillTTree) {
     ssdclust->Fill();
     station.clear();
