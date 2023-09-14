@@ -193,18 +193,18 @@ namespace emph {
 
     int nstation = emgeo->NSSDStations();
     for ( int i = 0; i < nstation; i++){
-      emph::geo::SSDStation sta = emgeo->GetSSDStation(i);
-      int nplanes = sta.NPlanes();
+      const emph::geo::SSDStation* sta = emgeo->GetSSDStation(i);
+      int nplanes = sta->NPlanes();
       for ( int k = 0; k < nplanes; ++k){
-	emph::geo::Plane pln = sta.GetPlane(k);
-	int nsensor = pln.NSSDs();
+	const emph::geo::Plane* pln = sta->GetPlane(k);
+	int nsensor = pln->NSSDs();
 	for ( int j = 0; j < nsensor; j++){
-	  emph::geo::Detector sensor = pln.SSD(j);
-	  std::cout << "The " << j <<"-th SSD sensor in the " << k << "-th plane in the " << i <<"-th SSD station is located at " << sensor.Pos()[0] << " " << sensor.Pos()[1] << " " << sensor.Pos()[2]+sta.Pos()[2] << " mm." << std::endl;
-	  std::cout << "The rotation angle is " << sensor.Rot() << std::endl;
+	  const emph::geo::Detector* sensor = pln->SSD(j);
+	  std::cout << "The " << j <<"-th SSD sensor in the " << k << "-th plane in the " << i <<"-th SSD station is located at " << sensor->Pos()[0] << " " << sensor->Pos()[1] << " " << sensor->Pos()[2]+sta->Pos()[2] << " mm." << std::endl;
+	  std::cout << "The rotation angle is " << sensor->Rot() << std::endl;
 	  //Creating vectors for z positions of x and y ssds		
-	  if(sensor.Rot() == 3*M_PI/2) xz_cal.push_back(sensor.Pos()[2]+sta.Pos()[2]);
-	  else if(sensor.Rot() == 0 ) yz_cal.push_back(sensor.Pos()[2]+sta.Pos()[2]);
+	  if(sensor->Rot() == 3*M_PI/2) xz_cal.push_back(sensor->Pos()[2]+sta->Pos()[2]);
+	  else if(sensor->Rot() == 0 ) yz_cal.push_back(sensor->Pos()[2]+sta->Pos()[2]);
 	}
       }
     }
@@ -658,12 +658,12 @@ namespace emph {
 	  //const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
 	  //const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
 
-	  const emph::geo::SSDStation &st = emgeo->GetSSDStation(clust.Station());
-	  const emph::geo::Plane &pl = st.GetPlane(clust.Plane());
-	  const emph::geo::Detector &sd = pl.SSD(clust.Sensor());
+	  const emph::geo::SSDStation* st = emgeo->GetSSDStation(clust.Station());
+	  const emph::geo::Plane* pl = st->GetPlane(clust.Plane());
+	  const emph::geo::Detector* sd = pl->SSD(clust.Sensor());
 				  
 	  int event = evt.event();
-	  emph::al::SSDAlign hit(clust, sd, st, event);
+	  emph::al::SSDAlign hit(clust, *sd, *st, event);
 	  ssdvec.push_back(hit);
 	}
 	fEvtNum++;

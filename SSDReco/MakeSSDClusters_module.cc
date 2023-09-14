@@ -119,13 +119,15 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
   // Fill <station,sensor> -> <plane,view> map
   // only need to do this once
   // making fer larger than current to future proof - shoudln't add much time since we're still only running this once
+
+  /*
   auto emgeo = geo->Geo();
   auto emcmap = cmap->CMap();
   for (int fer=0; fer<10; ++fer){
     for (int mod=0; mod<6; ++mod){
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
       if (!emcmap->IsValidEChan(echan)) continue;
-	emph::cmap::DChannel dchan = cmap->DetChan(echan);
+      emph::cmap::DChannel dchan = cmap->DetChan(echan);
       
       const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
       const emph::geo::Plane      &pl = st.GetPlane(dchan.Plane());
@@ -134,6 +136,7 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
       //      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
     }
   }
+  */
 }
 
 //--------------------------------------------------
@@ -156,17 +159,19 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
 { 
   auto emgeo = geo->Geo();
   
-  geo::sensorView view = emgeo->GetSSDStation(station).GetPlane(plane).SSD(sensor).View();
-  //  geo::sensorView view = planeViewMap[std::make_pair(station,sensor)].second;
-  //  int plane = planeViewMap[std::make_pair(station,sensor)].first;
+  auto gSt = emgeo->GetSSDStation(station);
+  auto gPl = gSt->GetPlane(plane);
+  auto gD = gPl->SSD(sensor);
+  
+  geo::sensorView view = gD->View();
 
   int prevRow=sensDigits[0]->Row();
   int curRow;
   rb::SSDCluster ssdClust;
+  int i=0; 
   // loop over digits on sensor
   for (auto & dig : sensDigits) {
     curRow = dig->Row();
-
     // if gap too big, push cluster and clear it
     if ( curRow-prevRow > (fRowGap) ) {
       ssdClust.SetStation(station);
@@ -217,6 +222,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   std::fill_n(ncluster,NPlanes,0);
 
   auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
+
   if (ssdHandle.isValid()) {
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
       art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
@@ -224,6 +230,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
       digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssdDig);
     }
+
     std::vector<rb::SSDCluster> clusters;
     // Should really pull counts of these from geometry somehow
     for (int sta=0; sta<NStations; ++sta){
@@ -237,6 +244,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	  this->SortByRow(digitList[sta][pln][sensor]);
 	  this->FormClusters(digitList[sta][pln][sensor], 
 			     &clusters, sta, pln, sensor);
+
 	  for (int i=0; i<(int)clusters.size(); i++){
 	    // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
 	    if (fFillTTree) {

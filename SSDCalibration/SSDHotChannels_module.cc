@@ -199,13 +199,13 @@ namespace emph {
 	  echan.SetBoard(ssd.FER());
 	  echan.SetChannel(ssd.Module());
 	  emph::cmap::DChannel dchan = cmap->DetChan(echan);
-	  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-	  const emph::geo::Plane &pln = st.GetPlane(dchan.Plane());
-	  const emph::geo::Detector &sd = pln.SSD(dchan.HiLo());
-	  rb::SSDHit hit(ssd, sd);
-	  double x = (ssd.Row()*hit.Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0];
-	  double y = (ssd.Row()*hit.Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1];
-	  double z = st.Pos()[2] + sd.Pos()[2];
+	  const emph::geo::SSDStation *st = emgeo->GetSSDStation(dchan.Station());
+	  const emph::geo::Plane *pln = st->GetPlane(dchan.Plane());
+	  const emph::geo::Detector *sd = pln->SSD(dchan.HiLo());
+	  rb::SSDHit hit(ssd, *sd);
+	  double x = (ssd.Row()*hit.Pitch()-sd->Height()/2)*sin(sd->Rot())+sd->Pos()[0];
+	  double y = (ssd.Row()*hit.Pitch()-sd->Height()/2)*cos(sd->Rot())+sd->Pos()[1];
+	  double z = st->Pos()[2] + sd->Pos()[2];
 	  if ( fNEvents < 2 ) std::cout << x << " " << y << " " << z << std::endl;
 	  //
 	  // fill our hists..

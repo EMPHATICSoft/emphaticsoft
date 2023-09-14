@@ -48,6 +48,17 @@ namespace emph {
 
     //----------------------------------------------------------------------
 
+    void ChannelMap::PrintE2D()
+    {
+      std::map<emph::cmap::EChannel,emph::cmap::DChannel>::iterator itr=fEChanMap.begin();
+      
+      for (; itr != fEChanMap.end(); ++itr) {
+	std::cout << itr->first << "-->" << itr->second << std::endl;
+      }
+    }
+
+    //----------------------------------------------------------------------
+
     bool ChannelMap::LoadMap(std::string fname)
     {
       
@@ -93,6 +104,8 @@ namespace emph {
       fMapFileName = fname;
 
       std::cout<<"Loaded channel map from " << fMapFileName << std::endl;
+
+      //      this->PrintE2D();
 
       return true;
       

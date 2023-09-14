@@ -87,7 +87,7 @@ namespace emph {
       void SetWidth(double w) {fWidth = w;}
       void SetHeight(double h) {fHeight = h;}
       int NStrips() const {return (int)fStrip.size(); };
-      Strip GetStrip(int i) const {return fStrip[i]; }
+      const Strip* GetStrip(int i) const {return &fStrip[i]; }
       TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
     private:    
@@ -107,8 +107,8 @@ namespace emph {
       Plane();
       ~Plane() {};
 
-      Detector SSD(int i) const { return fSSD[i];}
-      int  NSSDs() { return int(fSSD.size()); }
+      const Detector* SSD(int i) const { return &fSSD[i];}
+      int  NSSDs() const { return int(fSSD.size()); }
       void AddSSD(Detector ssd) { fSSD.push_back(ssd); }
 
     private:
@@ -132,7 +132,7 @@ namespace emph {
       TVector3 Pos() const {return fPos;}
 
       int NPlanes() const {return (int)fPlane.size(); };
-      Plane  GetPlane(int i) const {return fPlane[i]; }
+      const Plane* GetPlane(int i) const {return &fPlane[i]; }
       double Dz() const { return fDz;}
       double Width() const { return fWidth; }
       double Height() const {return fHeight; }
@@ -168,8 +168,9 @@ namespace emph {
       bool DetectorLoad(int i) const {return fDetectorLoad[i]; }
 
       int NSSDStations() const { return fNSSDStations; }
+      int NSSDPlanes() const { return fNSSDPlanes; }
       int NSSDs() const { return fNSSDs; }
-      SSDStation GetSSDStation(int i) {return fSSDStation[i]; }
+      const SSDStation* GetSSDStation(int i) const {return &fSSDStation[i]; }
 
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
@@ -180,11 +181,6 @@ namespace emph {
       std::string GDMLFile() const {return fGDMLFile; }
 
       TGeoManager* ROOTGeoManager() const { return fGeoManager; }
-
-      bool LocalToWorld(int station, int sensor, int plane, int strip, 
-			double p[3], double newp[3]);
-      //      bool WorldToLocal(int station, int sensor, int plane, int strip,
-      //			double p[3], double newp[3]);
 
     private:
       Geometry();
@@ -199,6 +195,7 @@ namespace emph {
       std::string fGDMLFile;
 
       int    fNSSDStations;
+      int    fNSSDPlanes;
       int    fNSSDs;
       double fWorldWidth;
       double fWorldHeight;

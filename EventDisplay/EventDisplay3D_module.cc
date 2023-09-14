@@ -376,9 +376,9 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
     auto station = geo->GetSSDStation(i);
     TEveGeoShape* egs = new TEveGeoShape(Form(stationId.c_str(),i));
     double stPos[3];
-    station.Pos().GetXYZ(stPos);
+    station->Pos().GetXYZ(stPos);
     std::cout << "stPos = (" << stPos[0] << "," << stPos[1] << "," << stPos[2] << ")" << std::endl;
-    egs->SetShape(new TGeoBBox(station.Width(),station.Height(),station.Dz(),stPos));
+    egs->SetShape(new TGeoBBox(station->Width(),station->Height(),station->Dz(),stPos));
     egs->SetMainColor(kGreen+1);
     det2D->AddElement(egs);
   }

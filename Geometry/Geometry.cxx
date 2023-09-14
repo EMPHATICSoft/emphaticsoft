@@ -208,75 +208,6 @@ namespace emph {
       return fQEVector;
     }
 		
-    //---------------------------------------------------------------------
-    bool Geometry::LocalToWorld(int station, int plane, int sensor, int strip, 
-				double pos[3], double newpos[3])
-    {
-      
-      const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
-      int nnodes = world_n->GetNodes()->GetEntries();
-      const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-
-      std::vector<std::string> nodeName;
-
-      std::string sString = "ssdStation";
-      std::string ssubString = "ssdsensor";
-      std::string schanString = "ssd_chan";
-      std::string ssubSubString = "ssdsensordouble";
-      std::string schanStringCompare = std::to_string(int(strip));
-      std::string num;
-
-      TGeoMatrix *stripM=0;
-      TGeoMatrix *sensorM=0;
-      TGeoMatrix *stationM=0;
-
-      for (int i=0; i<nnodes; ++i) {
-	std::string name = world_v->GetNode(i)->GetName();
-        if (name.find(sString) != std::string::npos)
-	  nodeName.push_back(name);
-      }
-
-      for (auto name : nodeName) {
-	TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
-	TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
-
-	int nsub = st_n->GetNodes()->GetEntries();
-	for( int j=0; j<nsub; ++j){
-	  std::string name = st_v->GetNode(j)->GetName();
-	  if (name.find(ssubString) != std::string::npos){
-	    TGeoNode* sensor_n = (TGeoNode*)st_v->GetNode(name.c_str());
-	    TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
-	    if(sensor_n->GetNodes()!=NULL){
-	      int nchan = sensor_n->GetNodes()->GetEntries();
-	      for( int k=0; k<nchan; ++k){
-		std::string name2 = sensor_v->GetNode(k)->GetName();
-		if(name2.find(schanString) != std::string::npos){
-		  num = Form("%d_%d_%d_%d_",station,plane,sensor,(int)strip);
-		  if(name2.find(num) != std::string::npos){
-		    TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(name.c_str());
-		    stripM = strip_n->GetMatrix();
-		    sensorM = sensor_n->GetMatrix();		    
-		    stationM = st_n->GetMatrix();
-		  }
-		}
-	      }
-	    }
-	  }
-	}
-      }
-
-      if (!stripM || !sensorM || !stationM) {
-	return false;
-      }
-
-      double tpos[3];
-      stripM->LocalToMaster(pos,newpos);
-      sensorM->LocalToMaster(newpos,tpos);
-      stationM->LocalToMaster(tpos,newpos);
-
-      return true;
-    }
-		
     //--------------------------------------------------------------------------------
     void Geometry::ExtractDetectorInfo(int i, const TGeoNode* world_n)
     {
@@ -293,6 +224,7 @@ namespace emph {
 	if ( fNSSDStations > 0 ){
 
 	  std::cout<<"n SSD Stations: "<<fNSSDStations <<std::endl;
+	  std::cout<<"n SSD planes: "<<fNSSDPlanes <<std::endl;
 	  std::cout<<"n SSD sensors: "<<fNSSDs <<std::endl;
 
 	  fDetectorLoad[i] = true;
@@ -402,12 +334,14 @@ namespace emph {
       }
 
       fNSSDStations = (int)nodeName.size();
+      fNSSDPlanes = 0;
       fNSSDs = 0;
 
       double angle;
       bool flip;
 
       for (auto name : nodeName) {
+
 	SSDStation st;
 	TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
 	TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
@@ -423,9 +357,9 @@ namespace emph {
 
 	// now add individual SSDs to the station
 	int nsub = st_n->GetNodes()->GetEntries();
-	int nplanes=-1;
+	int nplanes=0;
 	int iSt, iPl, iSe;
-	Plane* plane=0;
+	Plane* plane=new Plane();
 	for( int j=0; j<nsub; ++j){
 	  std::string name = st_v->GetNode(j)->GetName();
 	  if (name.find(ssubString) != std::string::npos){
@@ -433,6 +367,7 @@ namespace emph {
 	    if (nplanes < iPl) { // new plane
 	      st.AddPlane(Plane(*plane));
 	      plane = new Plane();
+	      fNSSDPlanes++;
 	      nplanes++;
 	    }
 	    Detector sensor;
@@ -478,6 +413,9 @@ namespace emph {
 	    
 	  }
 	}
+	// don't forget to add the last plane!
+	st.AddPlane(Plane(*plane));
+	fNSSDPlanes++;
 	
 	fSSDStation.push_back(st);
       }

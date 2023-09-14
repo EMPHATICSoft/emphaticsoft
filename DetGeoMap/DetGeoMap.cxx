@@ -42,10 +42,10 @@ namespace emph {
       art::ServiceHandle<emph::geo::GeometryService> geo;
       auto geom = geo->Geo();
       
-      const emph::geo::SSDStation &st = geom->GetSSDStation(station);
-      const emph::geo::Plane& pln = st.GetPlane(plane);
-      const emph::geo::Detector &sd = pln.SSD(sensor);
-      const emph::geo::Strip& sp = sd.GetStrip(istrip);
+      const emph::geo::SSDStation* st = geom->GetSSDStation(station);
+      const emph::geo::Plane* pln = st->GetPlane(plane);
+      const emph::geo::Detector* sd = pln->SSD(sensor);
+      const emph::geo::Strip* sp = sd->GetStrip(istrip);
       double pitch = 0.06;
 
       double x0[3];
@@ -55,16 +55,16 @@ namespace emph {
 
       x0[1] = x1[1] = delta_strip*pitch;
       x0[2] = x1[2] = 0.;
-      x0[0] = -sd.Width()/2;
-      x1[0] = sd.Width()/2;
+      x0[0] = -sd->Width()/2;
+      x1[0] = sd->Width()/2;
 
-      sp.GeoMatrix()->LocalToMaster(x0,tx0);
-      sd.GeoMatrix()->LocalToMaster(tx0,tx1);
-      st.GeoMatrix()->LocalToMaster(tx1,x0);
+      sp->GeoMatrix()->LocalToMaster(x0,tx0);
+      sd->GeoMatrix()->LocalToMaster(tx0,tx1);
+      st->GeoMatrix()->LocalToMaster(tx1,x0);
 
-      sp.GeoMatrix()->LocalToMaster(x1,tx0);
-      sd.GeoMatrix()->LocalToMaster(tx0,tx1);
-      st.GeoMatrix()->LocalToMaster(tx1,x1);
+      sp->GeoMatrix()->LocalToMaster(x1,tx0);
+      sd->GeoMatrix()->LocalToMaster(tx0,tx1);
+      st->GeoMatrix()->LocalToMaster(tx1,x1);
  
       ls.SetX0(x0);
       ls.SetX1(x1);	  
