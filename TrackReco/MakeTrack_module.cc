@@ -71,6 +71,7 @@ namespace emph {
     void MakeIntersection3D(double A[3],double B[3], double C[3], double D[3], double F[3]);
     double dotProduct(double a[3], double b[3]); 
     void crossProduct(double a[3], double b[3], double c[3]);
+    void ClosestApproach(double A[3],double B[3], double C[3], double D[3], double F[3], double l1[3], double l2[3]);
 
   private:
   
@@ -132,14 +133,28 @@ namespace emph {
 
     TH1F* res_x[8];
     TH1F* res_y[8];
+    TH1F* res_x_re[8];
+    TH1F* res_y_re[8];
+
+    double xsp[8] = {999,999,999,999,999,999,999,999};
+    double ysp[8] = {999,999,999,999,999,999,999,999};
+    double zsp[8] = {999,999,999,999,999,999,999,999};
 
     double xvec[8] = {999,999,999,999,999,999,999,999};
     double yvec[8] = {999,999,999,999,999,999,999,999};
     double zvec[8] = {999,999,999,999,999,999,999,999};
+
+    std::vector<double> xvec_re;
+    std::vector<double> yvec_re;
+    std::vector<double> zvec_re;
   
     std::vector<double> xvec_sim;
     std::vector<double> yvec_sim;
     std::vector<double> zvec_sim;
+
+    std::vector<std::pair<double, int>> xvec_sim_pair;
+    std::vector<std::pair<double, int>> yvec_sim_pair;
+    std::vector<std::pair<double, int>> zvec_sim_pair;
     //double xvec_sim[8] = {999,999,999,999,999,999,999,999};
     //double yvec_sim[8] = {999,999,999,999,999,999,999,999};
     //double zvec_sim[8] = {999,999,999,999,999,999,999,999};
@@ -242,11 +257,21 @@ namespace emph {
 
     char *hresx = new char[7];
     char *hresy = new char[7];
+    char *hresxre = new char[12];
+    char *hresyre = new char[12];
     for (int i=0; i<8; i++){
 	sprintf(hresx,"res_x_%d",i);
-        res_x[i] = tfs->make<TH1F>(hresx,hresx,100,-0.1,0.1);
+        res_x[i] = tfs->make<TH1F>(hresx,hresx,100,-0.1,0.1);	
+        //res_x_re[i] = tfs->make<TH1F>(hresx,hresx,100,-0.1,0.1);
         sprintf(hresy,"res_y_%d",i);
         res_y[i] = tfs->make<TH1F>(hresy,hresy,100,-0.1,0.1);
+	//res_y_re[i] = tfs->make<TH1F>(hresy,hresy,100,-0.1,0.1);
+    }
+    for (int i=0; i<8; i++){
+        sprintf(hresxre,"res_x_re_%d",i);
+        res_x_re[i] = tfs->make<TH1F>(hresxre,hresxre,100,-0.1,0.1);
+	sprintf(hresyre,"res_y_re_%d",i);
+        res_y_re[i] = tfs->make<TH1F>(hresyre,hresyre,100,-0.1,0.1);
     }
   }
  
@@ -297,8 +322,107 @@ namespace emph {
         double x = (b2*c1 - b1*c2)/determinant;
         double y = (a1*c2 - a2*c1)/determinant;
         return std::make_pair(x, y);
-      }
+      } 
 
+  }
+
+  //......................................................................
+
+  void emph::MakeTrack::ClosestApproach(double A[3],double B[3], double C[3], double D[3], double F[3], double l1[3], double l2[3]){
+
+        double r12 = (B[0] - A[0])*(B[0] - A[0]) + (B[1] - A[1])*(B[1] - A[1]) + (B[2] - A[2])*(B[2] - A[2]);
+	double r22 = (D[0] - C[0])*(D[0] - C[0]) + (D[1] - C[1])*(D[1] - C[1]) + (D[2] - C[2])*(D[2] - C[2]);
+
+	double d4321 = (D[0] - C[0])*(B[0] - A[0]) + (D[1] - C[1])*(B[1] - A[1]) + (D[2] - C[2])*(B[2] - A[2]);
+        double d3121 = (C[0] - A[0])*(B[0] - A[0]) + (C[1] - A[1])*(B[1] - A[1]) + (C[2] - A[2])*(B[2] - A[2]);
+	double d4331 = (D[0] - C[0])*(C[0] - A[0]) + (D[1] - C[1])*(C[1] - A[1]) + (D[2] - C[2])*(C[2] - A[2]);
+
+        //double s = (d4321*d4331 + d3121*r22) / (r12*r22 + d4321*d4321);
+        //double t = (d4321*d3121 - d4331*r12) / (r12*r22 + d4321*d4321);
+	double s = (-d4321*d4331 + d3121*r22) / (r12*r22 - d4321*d4321);
+	double t = (d4321*d3121 - d4331*r12) / (r12*r22 - d4321*d4321);
+
+	double L1[3]; double L2[3];
+	if ( s >= 0 && s <= 1 && t >=0 && t <= 1){
+	   std::cout<<"Closest approach all good :)"<<std::endl;
+//	else std::cout<<"Uh oh"<<std::endl;
+
+       	   //l1(s) = A + s(B-A)	
+	   //l2(t) = C + t(D-C)
+	   //double L1[3]; double L2[3];
+	   for (int i=0; i<3; i++){
+	       L1[i] = A[i] + s*(B[i] - A[i]);
+	       L2[i] = C[i] + t*(D[i] - C[i]);	    
+	       F[i] = (L1[i] + L2[i])/2.;
+	       l1[i] = L1[i]; 
+	       l2[i] = L2[i];
+	   }
+	//}
+	//std::cout<<"CA CHECK (L1)...x: "<<L1[0]<<"   y: "<<L1[1]<<"   z: "<<L1[2]<<std::endl;
+	//std::cout<<"CA CHECK (L2)...x: "<<L2[0]<<"   y: "<<L2[1]<<"   z: "<<L2[2]<<std::endl;
+        }
+	else{
+	   std::cout<<"Uh oh"<<std::endl;
+	   std::cout<<"A: ("<<A[0]<<","<<A[1]<<","<<A[2]<<")"<<std::endl;
+	   std::cout<<"B: ("<<B[0]<<","<<B[1]<<","<<B[2]<<")"<<std::endl;
+	   std::cout<<"C: ("<<C[0]<<","<<C[1]<<","<<C[2]<<")"<<std::endl;
+	   std::cout<<"D: ("<<D[0]<<","<<D[1]<<","<<D[2]<<")"<<std::endl;
+	   std::cout<<"s: "<<s<<std::endl;
+	   std::cout<<"t: "<<t<<std::endl;
+
+	   std::clamp(s,0.,1.);
+	   std::clamp(t,0.,1.);
+ 	
+	   double l1p3[3]; 
+	   double l1p4[3];
+	   double l2p1[3];
+	   double l2p2[3];
+ 
+           double d4121 = (D[0] - A[0])*(B[0] - A[0]) + (D[1] - A[1])*(B[1] - A[1]) + (D[2] - A[2])*(B[2] - A[2]); 
+	   double d4332 = (D[0] - C[0])*(C[0] - B[0]) + (D[1] - C[1])*(C[1] - B[1]) + (D[2] - C[2])*(C[2] - B[2]);
+
+           double s_l1p3 = d3121/r12;
+	   double s_l1p4 = d4121/r12;
+	   double t_l2p1 = -d4331/r22;
+	   double t_l2p2 = -d4332/r22;
+
+	   double d_l1p3; 	
+	   double d_l1p4;
+	   double d_l2p1;
+	   double d_l2p2;
+
+	   for (int i=0; i<3; i++){	
+	       l1p3[i] = A[i] + s_l1p3*(B[i] - A[i]);
+               l1p4[i] = A[i] + s_l1p4*(B[i] - A[i]); 
+	       l2p1[i] = C[i] + t_l2p1*(D[i] - C[i]);
+	       l2p2[i] = C[i] + t_l2p2*(D[i] - C[i]);
+
+	       //d_l1p3 = (C[i] - l1p3[i])*(C[i] - l1p3[i]);	
+	       //d_l1p4 = (D[i] - l1p4[i])*(D[i] - l1p4[i]);
+	       //d_l2p1 = (A[i] - l2p1[i])*(A[i] - l2p1[i]);
+	       //d_l2p2 = (B[i] - l2p2[i])*(B[i] - l2p2[i]);
+	   }   
+	   d_l1p3 = dotProduct(C,l1p3);
+	   d_l1p4 = dotProduct(D,l1p4);
+	   d_l2p1 = dotProduct(A,l2p1);
+	   d_l2p2 = dotProduct(B,l2p2);
+	   
+	   if (d_l1p3 < d_l1p4){
+	      for (int i=0; i<3; i++) L1[i] = l1p3[i];
+	   }
+	   else{
+	      for (int i=0; i<3; i++) L1[i] = l1p4[i];
+	   }
+	   if (d_l2p1 < d_l2p2){
+	      for (int i=0; i<3; i++) L2[i] = l2p1[i];
+	   }
+	   else{
+	      for (int i=0; i<3; i++) L2[i] = l2p2[i];
+	   }
+	   for (int i=0; i<3; i++){
+		F[i] = (L1[i] + L2[i])/2.;
+           }
+	}	
   }
 
   //......................................................................
@@ -379,7 +503,7 @@ namespace emph {
     //if(fEvtNum==877) fMakePlots = true; //two clusters in a (sta,sen)=(2,0)
     //if(fEvtNum==2826) fMakePlots = true; //good event one cluster per plane 
 
-    //if(fEvtNum==5) fMakePlots = true;
+    //if(fEvtNum==43) fMakePlots = true;
     //else fMakePlots = false;
     fMakePlots = true;
 
@@ -635,12 +759,25 @@ bool goodEvent = false;
                           double _x[3];
                           MakeIntersection3D(fA,fB,fC,fD,_x);
 
+			  double fAsz[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+			  double fBsz[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X0()[2] };
+			  double fCsz[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i][j]->X0()[2] };
+		          double fDsz[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i][j]->X0()[2] };
+
+		          double xsz[3];
+			  MakeIntersection3D(fAsz,fBsz,fCsz,fDsz,xsz);
+
+			  double xca[3];
+	                  double l1[3]; double l2[3];
+			  ClosestApproach(fA,fB,fC,fD,xca,l1,l2);
+
 			  //check
-			  std::cout<<"......PREVIOUS....."<<std::endl;
-			  std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
-			  std::cout<<"........NEW........"<<std::endl;
-                          std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
-   			  std::cout<<"..................."<<std::endl;
+			  std::cout<<"...................STATION "<<st<<"......................"<<std::endl;
+                          //std::cout<<"PREVIOUS...x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
+			  //std::cout<<"SZ CHECK...x: "<<xsz[0]<<"   y: "<<xsz[1]<<"   z: "<<xsz[2]<<std::endl;
+                          //std::cout<<"NEW........x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
+		          std::cout<<"CA CHECK...x: "<<xca[0]<<"   y: "<<xca[1]<<"   z: "<<xca[2]<<std::endl;
+                          std::cout<<".................................................."<<std::endl;
 
 			  //set SpacePoint object
 			  sp.SetX(x);
@@ -664,11 +801,18 @@ bool goodEvent = false;
 		          xzdist->Fill(x[2],x[0]);
 			  //if (st!=2 || st!=3) 
 			  yzdist->Fill(x[2],x[1]);
-			  if (fEvtNum < 2000){
+			  if (fEvtNum < 8000){
 			     //xzdist_evt[fEvtNum]->Fill(x[2],x[0]);
-			     xvec[st] = x[0];
-			     yvec[st] = x[1];
-			     zvec[st] = x[2];
+			     xvec[st] = xca[0];
+			     yvec[st] = xca[1];
+			     zvec[st] = xca[2];
+			     //xvec_re.push_back(l1[0]);
+		             //xvec_re.push_back(l2[0]);
+			     //yvec_re.push_back(l1[1]);
+                             //yvec_re.push_back(l2[1]);
+			     //yvec_re.push_back(l1[2]);
+                             //zvec_re.push_back(l2[2]);
+			     
 		          }
 		      }
 	          }
@@ -693,6 +837,14 @@ bool goodEvent = false;
 
                               pdd _point01 = MakeIntersection(_fA01,_fB01,_fC01,_fD01);
 
+			      double fA01sz[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+			      double fB01sz[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X0()[2] };
+			      double fC01sz[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i][j]->X0()[2] };
+		              double fD01sz[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i][j]->X0()[2] };
+
+			      double x01sz[3];
+			      MakeIntersection3D(fA01sz,fB01sz,fC01sz,fD01sz,x01sz);
+
 			      double fA01[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
                               double fB01[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
                               double fC01[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
@@ -701,6 +853,10 @@ bool goodEvent = false;
                               double x01[3];
                               MakeIntersection3D(fA01,fB01,fC01,fD01,x01);
 
+			      double x01ca[3];
+			      double l1_01[3]; double l2_01[3];
+                              ClosestApproach(fA01,fB01,fC01,fD01,x01ca,l1_01,l2_01);
+
                    	      pdd _fA02 = std::make_pair(ls_group[i][j]->X0()[0],ls_group[i][j]->X0()[1]);
                    	      pdd _fB02 = std::make_pair(ls_group[i][j]->X1()[0],ls_group[i][j]->X1()[1]);
                               pdd _fC02 = std::make_pair(ls_group[i+2][l]->X0()[0],ls_group[i+2][l]->X0()[1]);
@@ -708,13 +864,25 @@ bool goodEvent = false;
 
                    	      pdd _point02 = MakeIntersection(_fA02,_fB02,_fC02,_fD02);
 
+			      double fA02sz[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
+			      double fB02sz[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X0()[2] };
+			      double fC02sz[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i][j]->X0()[2] };
+		              double fD02sz[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i][j]->X0()[2] };
+
+			      double x02sz[3];
+                              MakeIntersection3D(fA02sz,fB02sz,fC02sz,fD02sz,x02sz);
+
 			      double fA02[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
                               double fB02[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
                               double fC02[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i+2][l]->X0()[2] };
                               double fD02[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i+2][l]->X1()[2] };
 
                               double x02[3];
+                              double l1_02[3]; double l2_02[3];
                               MakeIntersection3D(fA02,fB02,fC02,fD02,x02);
+
+			      double x02ca[3];
+                              ClosestApproach(fA02,fB02,fC02,fD02,x02ca,l1_02,l2_02);
 
                    	      pdd _fA12 = std::make_pair(ls_group[i+1][k]->X0()[0],ls_group[i+1][k]->X0()[1]);
                               pdd _fB12 = std::make_pair(ls_group[i+1][k]->X1()[0],ls_group[i+1][k]->X1()[1]);
@@ -722,6 +890,14 @@ bool goodEvent = false;
                               pdd _fD12 = std::make_pair(ls_group[i+2][l]->X1()[0],ls_group[i+2][l]->X1()[1]);
 
 	                      pdd _point12 = MakeIntersection(_fA12,_fB12,_fC12,_fD12);
+
+			      double fA12sz[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i][j]->X0()[2] };
+			      double fB12sz[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i][j]->X0()[2] };
+			      double fC12sz[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i][j]->X0()[2] };
+			      double fD12sz[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i][j]->X0()[2] };	
+
+			      double x12sz[3];
+                              MakeIntersection3D(fA12sz,fB12sz,fC12sz,fD12sz,x12sz);
 
 			      double fA12[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
                               double fB12[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
@@ -731,14 +907,22 @@ bool goodEvent = false;
                               double x12[3];
                               MakeIntersection3D(fA12,fB12,fC12,fD12,x12);
 
+			      double x12ca[3];
+                              double l1_12[3]; double l2_12[3];
+                              ClosestApproach(fA12,fB12,fC12,fD12,x12ca,l1_12,l2_12);
+
 			      //average of three points (center of mass)
 			      double ptavg_x2 = (_point01.first + _point02.first + _point12.first)/3. ;
 			      double ptavg_y2 = (_point01.second + _point02.second + _point12.second)/3. ;
 
 			      double _x[3];
+			      double xsz[3];
+			      double xca[3];
 
 			      for (int i=0; i<3; i++){
 			          _x[i] = (x01[i]+x02[i]+x12[i])/3.;
+				  xsz[i] = (x01sz[i]+x02sz[i]+x12sz[i])/3.;
+				  xca[i] = (x01ca[i]+x02ca[i]+x12ca[i])/3.;
 			      }
 
 			     //double ptavg_x2 = point12.first; 
@@ -751,11 +935,12 @@ bool goodEvent = false;
             	              //z-component for .X0() and .X1() should be the same
                    
 			      //check		
-			      std::cout<<"......PREVIOUS....."<<std::endl;
-                              std::cout<<"x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
-                              std::cout<<"........NEW........"<<std::endl;
-                              std::cout<<"x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
-                              std::cout<<"..................."<<std::endl;
+			      std::cout<<"...................STATION "<<st<<"......................"<<std::endl;
+                              //std::cout<<"PREVIOUS...x: "<<x[0]<<"   y: "<<x[1]<<"   z: "<<x[2]<<std::endl;
+			      //std::cout<<"SZ CHECK...x: "<<xsz[0]<<"   y: "<<xsz[1]<<"   z: "<<xsz[2]<<std::endl;
+                              //std::cout<<"NEW........x: "<<_x[0]<<"   y: "<<_x[1]<<"   z: "<<_x[2]<<std::endl;
+                              std::cout<<"CA CHECK...x: "<<xca[0]<<"   y: "<<xca[1]<<"   z: "<<xca[2]<<std::endl;
+                              std::cout<<".................................................."<<std::endl;
 
                               //set SpacePoint object
                    	      sp.SetX(x);	 
@@ -776,11 +961,11 @@ bool goodEvent = false;
 			      if (st==6) spdist6->Fill(x[0],x[1]);
 			      xzdist->Fill(x[2],x[0]);
                               yzdist->Fill(x[2],x[1]);
-			      if (fEvtNum < 2000){
+			      if (fEvtNum < 8000){
 				 //xzdist_evt[fEvtNum]->Fill(x[2],x[0]);
-				 xvec[st] = x[0];
-				 yvec[st] = x[1];
-                                 zvec[st] = x[2];
+				 xvec[st] = xca[0];
+				 yvec[st] = xca[1];
+                                 zvec[st] = xca[2];
 		              }
 			  }
                       }
@@ -807,7 +992,7 @@ bool goodEvent = false;
 	clusters.clear();
         clustMap.clear();
 
-	if (fEvtNum < 2000){
+	if (fEvtNum < 8000){
            if (!ssdHitH->empty() && goodEvent == true) {
 		//std::cout<<"fEvtNum good: "<<fEvtNum<<std::endl;
 //	      std::cout<<"Handle size: "<<ssdHitH->size()<<std::endl;
@@ -818,16 +1003,98 @@ bool goodEvent = false;
 		  xvec_sim.push_back(ssdhit.GetX());
 		  yvec_sim.push_back(ssdhit.GetY());
 		  zvec_sim.push_back(ssdhit.GetZ());
+//std::cout<<"getting ssdhit"<<std::endl;
+	          xvec_sim_pair.push_back(std::pair<double, int>(ssdhit.GetX(),ssdhit.GetStation()));
+                  yvec_sim_pair.push_back(std::pair<double, int>(ssdhit.GetY(),ssdhit.GetStation()));
+                  zvec_sim_pair.push_back(std::pair<double, int>(ssdhit.GetZ(),ssdhit.GetStation()));
 		  //std::cout<<"Handle size: "<<ssdHitH->size()<<std::endl; 
                   //int plane_sim = ssdhit->GetPlane(); 
-
+//std::cout<<"got ssdhit"<<std::endl;
 		  //xvec_sim[plane_sim] = ssdhit->GetX();
 		  //yvec_sim[plane_sim] = ssdhit->GetY();
 		  //zvec_sim[plane_sim] = ssdhit->GetZ();
               }
 	   }
       } 
+    //double xsp[8];
+    //double ysp[8];
+    //double zsp[8];
+    if (goodEvent == true){
+       //int j =0;
+       //while (j<8){
+	//std::cout<<"xvec_sim_pair.size() = "<<xvec_sim_pair.size()<<std::endl;
+       for (int j=0; j<8; j++){
+       double xsum = 0.;
+       double ysum = 0.;
+       double zsum = 0.;
+       int xc=0; int yc=0; int zc=0;
 
+       //for (int j=0; j<8; j++){
+	  for (size_t i=0; i<xvec_sim_pair.size(); i++){
+	      if (j == xvec_sim_pair[i].second) {
+	         xsum += xvec_sim_pair[i].first;
+                 ysum += yvec_sim_pair[i].first;
+                 zsum += zvec_sim_pair[i].first;
+		 xc++; yc++; zc++;
+	//	std::cout<<"station "<<j<<std::endl;
+	      }
+	  }
+        //  j++;
+       xsp[j] = xsum/(double)xc;
+       ysp[j] = ysum/(double)yc;
+       zsp[j] = zsum/(double)zc;
+       //std::cout<<"sim vector: "<<xsp[j]<<","<<ysp[j]<<","<<zsp[j]<<std::endl; 
+     }
+   }
+/*    double xsum[8]; double ysum[8]; double zsum[8];
+    int xc[8]; int yc[8]; int zc[8];
+    std::fill( xsum, xsum + 8, 0. );
+    std::fill( xc, xc + 8, 1 );
+    std::fill( ysum, ysum + 8, 0. );
+    std::fill( yc, yc + 8, 1 );
+    std::fill( zsum, zsum + 8, 0. );
+    std::fill( zc, zc + 8, 1 );
+
+for (int rsta = 0; rsta<8; rsta++){
+
+//    std::cout<<"Size of sim vector is "<<xvec_sim.size()<<std::endl;
+//    for (size_t j=0; j<xvec_sim.size(); j++){
+//	std::cout<<"sim vector: "<<xvec_sim[j]<<","<<yvec_sim[j]<<","<<zvec_sim[j]<<std::endl;
+//	}
+//    for (size_t j=0; j<xvec_sim.size(); j++){
+//	std::cout<<"j beg is "<<j<<std::endl;
+        xsum[rsta] += xvec_sim[j];
+        ysum[rsta] += yvec_sim[j];
+        zsum[rsta] += zvec_sim[j];
+        int counter = 1;
+	for (size_t i=1; i<zvec_sim.size(); i++){
+        //while (abs(zvec_sim[j] - zvec_sim[j+i]) < 20){
+	     if(abs(zvec_sim[j] - zvec_sim[j+i]) < 10){
+           counter++;
+           xc[rsta]++; yc[rsta]++; zc[rsta]++;  
+           xsum[rsta] += xvec_sim[j+i];
+           ysum[rsta] += yvec_sim[j+i];
+           zsum[rsta] += zvec_sim[j+i];
+	     }   
+          //i+       }
+        }
+        j+=counter;
+ //       xsp[rsta] = xsum/(double)counter;
+ //       ysp[rsta] = ysum/(double)counter;
+ //       zsp[rsta] = zsum/(double)counter;
+//        std::cout<<"(SIM) STATION "<<rsta<<std::endl;
+//        std::cout<<"("<<xsp[rsta]<<","<<ysp[rsta]<<","<<zsp[rsta]<<")"<<std::endl;
+        rsta++;
+//	std::cout<<"j end is "<<j<<std::endl;
+    }
+    xsp[rsta] = xsum[rsta]/(double)xc[rsta];
+    ysp[rsta] = ysum[rsta]/(double)yc[rsta];
+    zsp[rsta] = zsum[rsta]/(double)zc[rsta];    
+    std::cout<<"(SIM) STATION "<<rsta<<std::endl;
+    std::cout<<"("<<xsp[rsta]<<","<<ysp[rsta]<<","<<zsp[rsta]<<")"<<std::endl;
+}
+*/	
+//	}
       if (fEvtNum < 100){
            art::ServiceHandle<art::TFileService> tfs;
            char *Ghevt = new char[12];
@@ -859,7 +1126,8 @@ bool goodEvent = false;
 	      sprintf(Gxzsim,"GMULT_xze%d",fEvtNum);		
 	      //sprintf(Gyzsim,"GMULT_yze%d",fEvtNum);
 
-              size_t graphsize = xvec_sim.size();
+              //size_t graphsize = xvec_sim.size();
+	      size_t graphsize = 8; //xsp.size();
               //double xvec_sim_arr[graphsize];
 	      //for (size_t i=0; i<graphsize; i++){ 
 		//  xvec_sim_arr[i] =  xvec_sim[i];
@@ -872,7 +1140,8 @@ bool goodEvent = false;
 	      //get array by the address of the first element of the vector
 	      //GSIM[fEvtNum] = tfs->makeAndRegister<TGraph>(Ghevt,Ghevt,graphsize,&zvec_sim[0],&xvec_sim[0]);
               //Gxzdist_evt[fEvtNum] = tfs->makeAndRegister<TGraph>(Ghevt,Ghevt,8,zvec,xvec);
-	      GSIM_xz[fEvtNum] = tfs->make<TGraph>(graphsize,&zvec_sim[0],&xvec_sim[0]);
+//	      GSIM_xz[fEvtNum] = tfs->make<TGraph>(graphsize,&zvec_sim[0],&xvec_sim[0]);
+	      GSIM_xz[fEvtNum] = tfs->make<TGraph>(graphsize,&zsp[0],&xsp[0]);
               Gxzdist_evt[fEvtNum] = tfs->make<TGraph>(8,zvec,xvec);			
 
               GMULT_xz[fEvtNum]->Add(Gxzdist_evt[fEvtNum]);
@@ -900,10 +1169,12 @@ bool goodEvent = false;
            if (yvec[0] != 999 && yvec[1] != 999 && yvec[2] != 999 && yvec[3] != 999 && yvec[4] != 999 && yvec[5] != 999 && yvec[6] != 999 && yvec[7] != 999){
 	      sprintf(Gyzsim,"GMULT_yze%d",fEvtNum);
 	      sprintf(Ghevt,"Gyzdist_e%d",fEvtNum);
-	      size_t graphsize = yvec_sim.size();
+	      //size_t graphsize = yvec_sim.size();
+	      size_t graphsize = 8; //ysp.size();
 
 	      GMULT_yz[fEvtNum] = tfs->makeAndRegister<TMultiGraph>(Gyzsim,Gyzsim);
-	      GSIM_yz[fEvtNum] = tfs->make<TGraph>(graphsize,&zvec_sim[0],&yvec_sim[0]);
+//	      GSIM_yz[fEvtNum] = tfs->make<TGraph>(graphsize,&zvec_sim[0],&yvec_sim[0]);
+	       GSIM_yz[fEvtNum] = tfs->make<TGraph>(graphsize,&zsp[0],&ysp[0]);
               Gyzdist_evt[fEvtNum] = tfs->make<TGraph>(8,zvec,yvec);
               GMULT_yz[fEvtNum]->Add(Gyzdist_evt[fEvtNum]);
               GMULT_yz[fEvtNum]->Add(GSIM_yz[fEvtNum]);
@@ -930,7 +1201,44 @@ bool goodEvent = false;
     catch(...) {
 
     }
-    //std::cout<<"Event is: "<<fEvtNum<<std::endl;
+/*
+    double xsp[8];
+    double ysp[8];
+    double zsp[8];
+    int rsta = 0;
+    for (size_t j=0; j<xvec_sim.size(); j++){
+        double xsum = xvec_sim[j];
+	double ysum = yvec_sim[j];
+	double zsum = zvec_sim[j];
+	int counter = 1;
+	while (abs(zvec_sim[j] - zvec_sim[j+1]) < 20){
+	   counter++;
+	   xsum += xvec_sim[j+1];
+	   ysum += yvec_sim[j+1];
+	   zsum += zvec_sim[j+1];
+	   j++;	
+        }
+	xsp[rsta] = xsum/(double)counter;
+        ysp[rsta] = ysum/(double)counter;
+	zsp[rsta] = zsum/(double)counter;
+        std::cout<<"("<<xsp[rsta]<<","<<ysp[rsta]<<","<<zsp[rsta]<<")"<<std::endl;
+	rsta++;
+    }
+*/
+if (goodEvent == true){
+    for (int i=0; i<8; i++){
+        if (xsp[i] == 999) std::cout<<"OHHHHH "<<i<<std::endl;
+	if (ysp[i] == 999) std::cout<<"OHHHHH "<<i<<std::endl;
+        if (zsp[i] == 999) std::cout<<"OHHHHH "<<i<<std::endl;
+    }
+
+    for (int i=0; i<8; i++){
+	double xres_re = xvec[i] - xsp[i];
+	double yres_re = yvec[i] - ysp[i];
+        res_x_re[i]->Fill(xres_re);
+	res_y_re[i]->Fill(yres_re);
+    }
+	  
     for (int i=0; i<8; i++){
 	for (size_t j=0; j<xvec_sim.size(); j++){
             if ( abs(zvec[i] - zvec_sim[j]) < 20){
@@ -947,15 +1255,38 @@ bool goodEvent = false;
             }
         }
     }
-
+}
+/*    for (size_t i=0; i<xvec_re.size(); i++){
+        for (size_t j=0; j<xvec_sim.size(); j++){
+            if ( abs(zvec_re[i] - zvec_sim[j]) < 0.5){
+	       double res_re = xvec_re[i] - xvec_sim[j];
+	       res_x_re[i]->Fill(res_re);
+	    }
+	}
+	for (size_t j=0; j<yvec_sim.size(); j++){
+            if ( abs(zvec_re[i] - zvec_sim[j]) < 0.5){
+               double res_re = yvec_re[i] - yvec_sim[j];
+               res_y_re[i]->Fill(res_re);
+            }
+        }
+    }
+*/
     for (int i=0; i<8; i++){
-        xvec[i] = 999;
-	yvec[i] = 999;
-	zvec[i] = 999;
+        xvec[i] = 999; xsp[i] = 999;
+	yvec[i] = 999; ysp[i] = 999;
+	zvec[i] = 999; zsp[i] = 999;
     }
     xvec_sim.clear();
     yvec_sim.clear();
     zvec_sim.clear();
+	xvec_re.clear();
+	yvec_re.clear();
+	zvec_re.clear();
+    xvec_sim_pair.clear();
+    yvec_sim_pair.clear();
+    zvec_sim_pair.clear();
+
+
   } //want plots
   evt.put(std::move(spacepointv));
 

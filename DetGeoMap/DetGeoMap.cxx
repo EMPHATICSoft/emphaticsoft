@@ -91,10 +91,10 @@ namespace emph {
         double r_world0[3];  double r_world1[3];
 
         r_chan0[0] = tx0[0];
-        r_chan0[1] = 0;
+        r_chan0[1] = (strip - floor(strip))*pitch; //0;
         r_chan0[2] = 0.; //sd.Pos()[2] + st.Pos()[2];
         r_chan1[0] = tx1[0]; 
-        r_chan1[1] = 0; //gstrip.Pos()[1]; //tx1[1];
+        r_chan1[1] = (strip - floor(strip))*pitch; //0; //gstrip.Pos()[1]; //tx1[1];
         r_chan1[2] = r_chan0[2];
 
         if(sd.IsFlip()){
@@ -251,7 +251,10 @@ namespace emph {
 	  std::cout<<"..............................."<<std::endl;
       }
 
-
+//      if (plane == 0 || plane == 1){
+//	 r_world0[2] += 0.3;
+//	 r_world1[2] += 0.3;
+//      }
 
 	/*
 	tx0[0] = -sd.Width()/2 + sd.Pos()[0];
