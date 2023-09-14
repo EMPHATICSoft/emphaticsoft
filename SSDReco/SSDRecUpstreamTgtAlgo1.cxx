@@ -33,7 +33,7 @@ namespace emph {
       fRunNum(0), fSubRunNum(0), fEvtNum(-1), fNEvents(0), fIsMC(false), fFilesAreOpen(false), 
       fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNominalMomentum(120.),
       fTokenJob("undef"),
-      fEmgeo(nullptr), fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
+      fEmgeo(nullptr), fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fConvertCoord('A')
     
     {
      	  
@@ -106,10 +106,10 @@ namespace emph {
 	const double stripX0 = itClX0->WgtAvgStrip();
         const double rmsStrNX0 = std::max(0.1, itClX0->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
 	const double stripX0ErrSq = (1.0/rmsStrNX0*rmsStrNX0)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
-	const double X0Raw = -1.0*stripX0*pitchX0 + fEmVolAlP->TrPos(emph::geo::X_VIEW, 0, 0); 
+	const double X0Raw = fConvertCoord.getTrCoord(itClX0, fNominalMomentum).first;
 	if (debugIsOn) {
-	    std::cerr << " .. At station 0, X view strip0 " << stripX0 << "  X0 Raw " << X0Raw << std::endl;
-	    std::cerr << " Average strip " << itClX0->AvgStrip() << " Min Strip " 
+	    std::cerr << " .. At station 0, X view strip0 " << stripX0 << "  X0 Raw " << X0Raw 
+	              << " Average strip " << itClX0->AvgStrip() << " Min Strip " 
 	              << itClX0->MinStrip() << " Max Strip " << itClX0->MaxStrip() << std::endl;
 	    
 	}
@@ -119,9 +119,9 @@ namespace emph {
 	  const double stripY0 = itClY0->WgtAvgStrip();
           const double rmsStrNY0 = std::max(0.1, itClY0->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
 	  const double stripY0ErrSq = (1.0/rmsStrNY0*rmsStrNY0)/12.; 
-	  const double Y0Raw = stripY0*pitchY0 + fEmVolAlP->TrPos(emph::geo::Y_VIEW, 0, 0); 
-	  const double X0 = X0Raw - (Y0Raw - angleRollCenterX0) * angleRollX0;
-	  const double Y0 = Y0Raw - (X0Raw - angleRollCenterY0) * angleRollY0;
+	  const double Y0Raw = fConvertCoord.getTrCoord(itClY0, fNominalMomentum).first; 
+	  const double X0 = X0Raw + (Y0Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 0, 0);
+	  const double Y0 = Y0Raw + (X0Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 0, 0);
 	  if (debugIsOn) std::cerr << " .. At station 0, Y View strip0 " << stripY0 << "  Y0 Raw " 
 	                           << Y0Raw << " X0 " << X0 << " Y0 " << Y0 << std::endl;
           for(std::vector< std::vector<rb::SSDCluster>::const_iterator >::const_iterator ittClX1=mySSDClsPtrsX1.cbegin(); 
@@ -130,19 +130,21 @@ namespace emph {
 	    const double stripX1 = itClX1->WgtAvgStrip();
             const double rmsStrNX1 = std::max(0.1, itClX1->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
 	    const double stripX1ErrSq = (1.0/rmsStrNX1*rmsStrNX1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
-	    const double X1Raw = -1.0*stripX1*pitchX1 + fEmVolAlP->TrPos(emph::geo::X_VIEW, 1, 1); 
-	    if (debugIsOn) std::cerr << " .. At station 1, X view strip1 " << stripX1 << "  X0 Raw " << X1Raw << std::endl;
+	    const double X1Raw = fConvertCoord.getTrCoord(itClX1, fNominalMomentum).first; 
+	    if (debugIsOn) std::cerr << " .. At station 1, X view strip1 " << stripX1 << "  X1 Raw " << X1Raw << std::endl;
             for(std::vector< std::vector<rb::SSDCluster>::const_iterator >::const_iterator ittClY1=mySSDClsPtrsY1.cbegin(); 
               ittClY1 != mySSDClsPtrsY1.cend(); ittClY1++) {
 	      std::vector<rb::SSDCluster>::const_iterator itClY1 = *ittClY1;  
 	      const double stripY1 = itClY1->WgtAvgStrip();
               const double rmsStrNY1 = std::max(0.1, itClY1->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
 	      const double stripY1ErrSq = (1.0/rmsStrNY1*rmsStrNY1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
-	      const double Y1Raw = stripY1*pitchY1 + fEmVolAlP->TrPos(emph::geo::Y_VIEW, 0, 0);
-	      const double X1 = X1Raw - (Y1Raw - angleRollCenterX1) * angleRollX1;
-	      const double Y1 = Y1Raw - (X1Raw - angleRollCenterY1) * angleRollY1;
+	      const double Y1Raw = fConvertCoord.getTrCoord(itClY1, fNominalMomentum).first; 
+	      const double X1 = X1Raw + (Y1Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 1, 0);
+	      const double Y1 = Y1Raw + (X1Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 1, 0);
 	     if (debugIsOn) std::cerr << " .. At station 1, Y View strip1 " << stripY0 << "  Y1 Raw " 
-	                           << Y0Raw << " X1 " << X1 << " Y1 " << Y1 << std::endl;
+	                           << Y1Raw << " X1 " << X1 << " Y1 " << Y1 << " RollCenter Y " 
+				   << fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 1, 0) << " Roll X " 
+				   << fEmVolAlP->Roll(emph::geo::X_VIEW, 1, 0) << std::endl;
 	      // track params, slope and uncertainties. 
 	      
 	      const double XSlope = (X1 - X0) / deltaZX;

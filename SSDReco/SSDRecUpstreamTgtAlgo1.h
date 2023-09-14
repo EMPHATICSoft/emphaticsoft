@@ -53,6 +53,7 @@ namespace emph {
 	  std::string fTokenJob;
 	  emph::geo::Geometry *fEmgeo;
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+	  emph::ssdr::ConvertDigitToWCoordAlgo1 fConvertCoord;
 //
           std::vector<myItCl> fDataForXYRec; // We store the pointer, and implictly assume that the list of SSDCluster, within an event, 
 	  // stays the same. Protect module wide by constness..  

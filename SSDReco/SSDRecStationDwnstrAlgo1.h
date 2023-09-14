@@ -49,6 +49,7 @@ namespace emph {
           bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
 	  bool fDoFirstAndLastStrips;
 	  double fChiSqCut, fChiSqCutPreArb;
+	  mutable double fXWindowWidth, fYWindowWidth, fXWindowCenter, fYWindowCenter;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  std::string fTokenJob;
 	  //
@@ -71,6 +72,8 @@ namespace emph {
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
 	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
+	 inline void SetXYWindowWidth( double vx, double vy ) { fXWindowWidth = vx; fYWindowWidth = vy;}
+	 inline void SetXYWindowCenter( double vx, double vy ) { fXWindowCenter = vx; fYWindowCenter = vy;}
 	 inline void SetForMC(bool v=true) { fIsMC=v; fCoordConvert.SetForMC();  }
 	 inline void SetDoFirstAndLastStrips(bool v=true) { fDoFirstAndLastStrips = v; } 
 	 inline void SetPreliminaryMomentum(double p) { fPrelimMomentum = p; } 
@@ -106,6 +109,13 @@ namespace emph {
 	 void dumpInfoForR() const;
 	 void dumpInfoForRXViewEdges(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const;
 	 void dumpInfoForRYViewEdges(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const;
+	 int NumTriplets() const  {
+	   int n = 0;
+	   for (std::vector<rb::SSDStationPtAlgo1>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++) {
+	     if ((it->Type() ==  rb::STXYW) || (it->Type() ==  rb::STXYU)) n++;
+	   }
+	   return n;
+	 }
 	 
        private:
 	 

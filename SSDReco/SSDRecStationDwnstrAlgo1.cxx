@@ -41,7 +41,8 @@ namespace emph {
       fNEvents(0), fDebugIsOn(false),
       fIsMC(false), // Ugly, we are still working on the sign convention and rotation angles signs.. 
       fDoFirstAndLastStrips(false),
-      fChiSqCut(5.0), // for XYU (or XYW) cut. 
+      fChiSqCut(5.0), fChiSqCutPreArb(DBL_MAX),// for XYU (or XYW) cut. 
+      fXWindowWidth(1.0e4), fYWindowWidth(1.0e4), fXWindowCenter(0.), fYWindowCenter(0.),
       fPrelimMomentum(5.0),
       fTokenJob("undef"), fStPoints(), fFOutSt(nullptr), fFOutStYFirst(nullptr), fFOutStYLast(nullptr), 
       fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0)  {
@@ -88,7 +89,7 @@ namespace emph {
 	if (!fCoordConvert.IsReadyToGo()) {
 	 // We use the nominal Z position, for now.. 
 	 std::vector<double> zPosStations;
-	 std::cerr << " SSDRecStationDwnstrAlgo1::RecIt Storing Z Positions ..." << std::endl; 
+	 std::cerr << " SSDRecStationDwnstrAlgo1::RecIt, Station " << fStationNum << " Storing Z Positions ..." << std::endl; 
 	 for (size_t kSt=0; kSt != 6; kSt++) {
 	   TVector3 tmpPos = fEmgeo->GetSSDStation(kSt).Pos(); 
 	   double zz = tmpPos[2];
@@ -142,7 +143,11 @@ namespace emph {
        if ((fNxCls2nd != 0) && (fNyCls2nd != 0)) nAdded = this->recoXY(aSSDClsPtr);
        if ((fNxCls2nd != 0) && (fNuCls2nd != 0)) nAdded = this->recoXUorW(aSSDClsPtr);
        if ((fNyCls2nd != 0) && (fNuCls2nd != 0)) nAdded = this->recoYUorW(aSSDClsPtr);
-       if (fDebugIsOn) std::cerr << " .... Adding  " << nAdded << " Tentative 3D points " << std::endl;
+       if (fDebugIsOn) {
+//          std::cerr << " .... Adding  " << nAdded << " Tentative 3D points " << " ... And quit right here and now " << std::endl;
+//	  exit(2);
+          std::cerr << " .... Adding  " << nAdded << " Tentative 3D points " << " ... And keep going " << std::endl;
+       }
        return this->Size(); 
      }
      //
@@ -151,8 +156,11 @@ namespace emph {
      size_t SSDRecStationDwnstrAlgo1::recoXYUorW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
        size_t kux = 0; 
        size_t nStart = fStPoints.size();
-       if (fDebugIsOn) std::cerr << " Starting SSDRecStationDwnstrAlgo1::recoXYUorW, Station " << fStationNum 
+       if (fDebugIsOn) {
+          std::cerr << " Starting SSDRecStationDwnstrAlgo1::recoXYUorW, Station " << fStationNum 
                         << "  with a total of " << aSSDClsPtr->size() << " clusters " << std::endl;
+	  fCoordConvert.SetDebugOn(fDebugIsOn);
+	}	  
        const size_t kSt = static_cast<size_t>(fStationNum);
        for(std::vector<rb::SSDCluster>::const_iterator itClX = aSSDClsPtr->cbegin(); itClX != aSSDClsPtr->cend(); itClX++, kux++) {
          if (fClUsages[kux] != 0) continue;
@@ -160,6 +168,11 @@ namespace emph {
 	 if (itClX->View() != emph::geo::X_VIEW) continue;
 	 size_t kSeX = static_cast<size_t>(itClX->Sensor());
 	 const std::pair<double, double> xDat = fCoordConvert.getTrCoord(itClX, fPrelimMomentum);
+	 if (std::abs(xDat.first - fXWindowCenter) > fXWindowWidth) {
+	   if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected X location  " 
+	                              << fXWindowCenter << " delta " << xDat.first - fXWindowCenter << std::endl;
+	   continue;
+	 }
 	 if (fDebugIsOn) {
 	   std::cerr << " At cluster on X view, station " << itClX->Station() << " Sensor  " 
 	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() 
@@ -176,6 +189,11 @@ namespace emph {
 	   if (itClY->View() != emph::geo::Y_VIEW) continue;
 	   size_t kSeY = static_cast<size_t>(itClY->Sensor());
 	   const std::pair<double, double> yDat = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
+	   if (std::abs(yDat.first - fYWindowCenter) > fYWindowWidth) {
+	     if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected Y location  " 
+	                              << fYWindowCenter << " delta " << yDat.first - fYWindowCenter << std::endl;
+	     continue;
+	   }
 	   if (fDebugIsOn) {
 	     std::cerr << " ... At cluster on Y view, station " << itClY->Station() << " Sensor  " 
 	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " 
@@ -195,8 +213,15 @@ namespace emph {
 	   const double angleRollCenterY = fEmVolAlP->RollCenter(emph::geo::Y_VIEW, kSt, kSeY);
 	   const double xValCorr = xDat.first + (yDat.first - angleRollCenterX) * angleRollX; 
 	   const double yValCorr = yDat.first + (xDat.first - angleRollCenterY) * angleRollY;
+//   Now presumably correct.  Sept 8 2023. token job Run_1274_NoTgt31Gev_ClSept_A1e_1o1, or _c7
 	   const double uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
 	   const double vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
+//   Wrong, presumably, tokenjob Run_1274_NoTgt31Gev_ClSept_A1e_1o1_W1
+//	   const double vPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
+//	   const double uPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
+//   Wrong, presumably, tokenjob Run_1274_NoTgt31Gev_ClSept_A1e_1o1_W2  Chenge the sign of 
+//	   const double uPred = -1.0*fOneOverSqrt2 * ( xValCorr + yValCorr);
+//	   const double vPred = fOneOverSqrt2 * ( -xValCorr + yValCorr);
            size_t kuu = 0;
 	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
@@ -269,6 +294,11 @@ namespace emph {
 	   std::cerr << " At cluster on X view, station " << itClX->Station() << " Sensor  " 
 	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() << " RMS " << itClX->WgtRmsStrip() << std::endl;
 	 }
+	 if (std::abs(xDat.first - fXWindowCenter) > fXWindowWidth) {
+	   if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected X location  " 
+	                              << fXWindowCenter << " delta " << xDat.first - fXWindowCenter << std::endl;
+	   continue;
+	 }
          for(std::vector<rb::SSDCluster>::const_iterator itClY = aSSDClsPtr->cbegin(); itClY != aSSDClsPtr->cend(); itClY++, kuy++) {
            if (fClUsages[kuy] != 0) continue;
            if (itClY->Station() != fStationNum) continue;
@@ -282,6 +312,11 @@ namespace emph {
 	   if (fDebugIsOn) {
 	     std::cerr << " At cluster on Y view, station " << itClY->Station() << " Sensor  " 
 	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " << itClY->WgtRmsStrip() << std::endl;
+	   }
+	   if (std::abs(yDat.first - fYWindowCenter) > fYWindowWidth) {
+	     if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected Y location  " 
+	                              << fYWindowCenter << " delta " << yDat.first - fYWindowCenter << std::endl;
+	     continue;
 	   }
            fClUsages[kux] = 1; fClUsages[kuy] = 1;
 	   // constraints, store.. 
@@ -320,11 +355,16 @@ namespace emph {
 	   std::cerr << " At cluster on X view, station " << itClX->Station() << " Sensor  " 
 	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() << " RMS " << itClX->WgtRmsStrip() << std::endl;
 	 }
+	 if (std::abs(xDat.first - fXWindowCenter) > fXWindowWidth) {
+	   if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected X location  " 
+	                              << fXWindowCenter << " delta " << xDat.first - fXWindowCenter << std::endl;
+	   continue;
+	 }
          for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
            if (fClUsages[kuu] != 0) continue;
            if (itClUorV->Station() != fStationNum) continue;
-	   if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
-	   if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	   if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	   if ((kSt > 3) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
 	   size_t kSeUorV = static_cast<size_t>(itClUorV->Sensor());
 	   const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
 	   const double angleRollUorV = (kSt <4) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
@@ -337,13 +377,13 @@ namespace emph {
 	             << kSeUorV << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
 	   }
 	   // To be checked, depends on Delta Roll definition Sept 5 2023. 
-	   yPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first - xDat.first) : (-fSqrt2 * uorvDat.first + xDat.first);
+	   yPred = (kSt > 3) ?  (fSqrt2 * uorvDat.first - xDat.first) : (-fSqrt2 * uorvDat.first + xDat.first);
 	   uPred = fOneOverSqrt2 * ( xDat.first + yPred);
 	    vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
-	   const double uorvValCorr = (kSt < 4) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
+	   const double uorvValCorr = (kSt > 3) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
 	                                          vPred + ( uPred  - angleRollCenterUorV) * angleRollUorV ;
 	   const double xValCorr = xDat.first + (yPred - angleRollCenterX) * angleRollX; 
-	   const double yValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr - xDat.first) : (-fSqrt2 * uorvValCorr + xDat.first);
+	   const double yValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr - xDat.first) : (-fSqrt2 * uorvValCorr + xDat.first);
            fClUsages[kux] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
@@ -383,28 +423,33 @@ namespace emph {
 	     std::cerr << " At cluster on Y view, station " << itClY->Station() << " Sensor  " 
 	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " << itClY->WgtRmsStrip() << std::endl;
 	 }
+	   if (std::abs(yDat.first - fYWindowCenter) > fYWindowWidth) {
+	     if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected Y location  " 
+	                              << fYWindowCenter << " delta " << yDat.first - fYWindowCenter << std::endl;
+	     continue;
+	   }
          for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
            if (fClUsages[kuu] != 0) continue;
            if (itClUorV->Station() != fStationNum) continue;
-	   if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
-	   if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	   if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	   if ((kSt > 3) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
 	   size_t kSeUorV = static_cast<size_t>(itClUorV->Sensor());
 	   if (fDebugIsOn) {
 	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
 	             << kSeUorV << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
 	   }
 	   const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
-	   const double angleRollUorV = (kSt <4) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
+	   const double angleRollUorV = (kSt > 3) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
 	                                        fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);  
 	   const double angleRollCenterUorV = (kSt <4) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeUorV) : 
 	                                              fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);
-	   const double   xPred = (kSt < 4) ?  (fSqrt2 * uorvDat.first - yDat.first) : (fSqrt2 * uorvDat.first + yDat.first);
+	   const double   xPred = (kSt > 3) ?  (fSqrt2 * uorvDat.first - yDat.first) : (fSqrt2 * uorvDat.first + yDat.first);
 	   const double  uPred = fOneOverSqrt2 * ( yDat.first + xPred);
 	   const double vPred = -1.0*fOneOverSqrt2 * ( yDat.first - xPred);
-	   const double uorvValCorr = (kSt < 4) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
+	   const double uorvValCorr = (kSt > 3) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
 	                                          vPred + ( uPred  - angleRollCenterUorV) * angleRollUorV ;
 	   const double yValCorr = yDat.first + (xPred - angleRollCenterY) * angleRollY; 
-	   const double  xValCorr = (kSt < 4) ?  (fSqrt2 * uorvValCorr - yDat.first) : (fSqrt2 * uorvValCorr + yDat.first);
+	   const double  xValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr - yDat.first) : (fSqrt2 * uorvValCorr + yDat.first);
            fClUsages[kuy] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;

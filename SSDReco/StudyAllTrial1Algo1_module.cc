@@ -175,7 +175,8 @@ namespace emph {
     fRunHistory(nullptr), fEmgeo(nullptr), 
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fUpStreamBeamTrRec(), 
     fXPencil120(-3.8), fYPencil120(4.5), // Obtained in the analysis of 120 GeV runs 1043 and 1055.  Phase1b
-    fMeanUpstreamXSlope(0.0004851102), fMeanUpstreamYSlope(0.002182192), // Only for run 1066, 1067... (31 GeV). 
+//    fMeanUpstreamXSlope(0.0004851102), fMeanUpstreamYSlope(0.002182192), // Only for run 1066, 1067... (31 GeV). 
+    fMeanUpstreamXSlope(0.000811), fMeanUpstreamYSlope(0.002182192), // Only for run 1274 (31 GeV). After retuning TransShift_X_1 from 0.72 to 2.0  
     fNumClUpstr(0), fNumClDwnstr(0), fNumBeamTracks(0), fNumVertices(0), fNumVertDwn(0), fStationsRecMult(4, 0)
     {
        std::cerr << " Constructing StudyAllTrial1Algo1 " << std::endl;
@@ -241,6 +242,7 @@ namespace emph {
       //
       if (fRun == 1293) fDwnstrTrRec.SetForMC(true);
       if (!fDoIronBrick) { 
+        if (fRun == 1274) fUpStreamBeamTrRec.SetNominalMomentum(31.);
         fDwnstrTrRec.SetRun(fRun);
         fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
         for(size_t kSt=2; kSt != 6; kSt++)  {
@@ -325,13 +327,19 @@ namespace emph {
 //     const bool debugIsOn = (fEvtNum > 81717); // root-Minuit crash at evt 81719 fixed by eliminating very back prelim chi-sq 
 //     const bool debugIsOn = ((fSubRun == 100) && ((fEvtNum == 48 ) || (fEvtNum == 56 ) || (fEvtNum == 142 ) || (fEvtNum == 92 )));
        // For spill 100, good track from RScript, check loading 
-       const bool debugIsOn = (fEvtNum == 9);
+//       const bool debugIsOn = (fEvtNum < 20);
+       bool debugIsOn = false;
+// Run 1274, sorting out Station 4 and 5, negative Y... Running on Spill 10 only
+       debugIsOn = ((fRun == 1274) && ((fEvtNum == 1209) || (fEvtNum == 3462) || (fEvtNum == 3472) || 
+                               (fEvtNum == 4244) || (fEvtNum == 4476) || (fEvtNum == 6191)));
+	debugIsOn = ((fRun == 1293) && (fEvtNum < 20));		       
     //
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
       
-      if (debugIsOn) std::cerr << " Debugging.. StudyAllTrial1Algo1::analyze , event " << fEvtNum << "  on " 
+      if (debugIsOn) std::cerr << " Debugging.. StudyAllTrial1Algo1::analyze, run " << fRun 
+                               << "spill " << fSubRun << " event " <<  fEvtNum << "  on " 
                                << fSSDclPtrs.size() <<  " clusters " <<   std::endl;
 			       
 //      if (fEvtNum > 100) { std::cerr << " 100 evt is enough, quit here and now " << std::endl; exit(2); }		       
@@ -368,17 +376,18 @@ namespace emph {
       // Beam Tracks 
       //
       fNumBeamTracks = 0;
+      std::vector<rb::BeamTrackAlgo1>::const_iterator itUpTrSel; 
       if (!fDoIronBrick) { 
         fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum); 
         fUpStreamBeamTrRec.recoXY(fSSDClsPtr);
-	if ((fRun == 1293) && (fEvtNum < 10000)) fUpStreamBeamTrRec.dumpXYInforR(INT_MAX);
+	if ((fNEvents < 25000) && (fNumClUpstr < 6) ) fUpStreamBeamTrRec.dumpXYInforR(INT_MAX);
         //
         // Cuts on beam track here. 
         //
         if (fUpStreamBeamTrRec.Size() == 0) { this->dumpSummaryMultiplicities();  return; }
         if (debugIsOn) std::cerr << " ... Back to Analyze, got " << fUpStreamBeamTrRec.Size() << " upstream track(s) " << std::endl;
         size_t kTr=0; 
-       
+        itUpTrSel = fUpStreamBeamTrRec.CEnd(); 
         for(std::vector<rb::BeamTrackAlgo1>::const_iterator itUpTr = fUpStreamBeamTrRec.CBegin();  
 	   itUpTr != fUpStreamBeamTrRec.CEnd(); itUpTr++, kTr++) {
           const double deltaX120 = itUpTr->XOffset() - fXPencil120; const double deltaY120 = itUpTr->YOffset() - fYPencil120;
@@ -392,6 +401,7 @@ namespace emph {
 	     continue;
 	  }
 	  itUpTr->SetUserFlag(1);
+	  itUpTrSel = itUpTr;
 	  fNumBeamTracks++;
         }
         if (debugIsOn) std::cerr << " ... Beam Track tally " << fNumBeamTracks << " max is " << fMaxNumBeamTracks << std::endl;
@@ -409,10 +419,16 @@ namespace emph {
       // Special operation, as our buddy Vladimir Putin would say.. 
       //
       bool isCleanSingleTrack = (fNumClUpstr < 5); // hopefully, clean Station 1 and 0 
-      if (!fDoIronBrick) { 
-        fDwnstrTrRec.SetDebugOn(debugIsOn); 
+      if (!fDoIronBrick) {
+        fDwnstrTrRec.SetItUpstreamTrack(itUpTrSel); 
+        fDwnstrTrRec.SetDebugOn(debugIsOn);
         for(size_t kSt=2; kSt != 6; kSt++)  {
 	  fStationsRecMult[kSt-2] = fDwnstrTrRec.RecStation(kSt, evt, fSSDClsPtr);
+	  if ((kSt == 3)  &&  (fDwnstrTrRec.NumTripletsSt2and3() == 0)) {
+	    if (debugIsOn) std::cerr << " Neither Station 2 not 3 have a triplet.. Suspicious event, abandon.. " << std::endl;
+	    this->dumpSummaryMultiplicities();  
+	    return; 
+	  }
         }
       } else {
         fBrickTrRec.SetDebugOn(debugIsOn); 
