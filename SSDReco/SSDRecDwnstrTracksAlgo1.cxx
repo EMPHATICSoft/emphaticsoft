@@ -31,6 +31,7 @@ namespace emph {
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
       fNEvents(0), fDebugIsOn(false), fDoMigrad(true), fNoMagnet(false), fChiSqCut(5.0), 
       fPrelimMomentum(50.0), fChiSqCutPreArb(100.),
+      fDoUseUpstreamTrack(false), 
       fTokenJob("undef"), fFitterFCN(nullptr),
       fInputSt2Pts(2), fInputSt3Pts(3), fInputSt4Pts(4), fInputSt5Pts(5), 
       fTrs()
@@ -45,11 +46,18 @@ namespace emph {
     //
     size_t SSDRecDwnstrTracksAlgo1::RecStation(size_t kSt, const art::Event &evt, 
                                 const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+       fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
+       if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::RecStation, spill " << fSubRunNum << " evt " << fEvtNum << " Station " << kSt << std::endl;
        if (fEmgeo == nullptr) {
          fRunHistory = new runhist::RunHistory(fRunNum);   
          fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
          fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
 	 // We use the nominal Z position, for now.. 
+	 if (fDoUseUpstreamTrack && (kSt > 3) ) {
+	   fInputSt2Pts.SetXYWindowWidth( 5.0, 5.0); 
+	   fInputSt3Pts.SetXYWindowWidth( 7.5, 7.5);
+	   if (fDebugIsOn) std::cerr << " XYWindows for station 2 and 3 are set... " << std::endl;
+	 }
        }
        if (!fCoordConvert.IsReadyToGo()) {
 	 std::vector<double> zPosStations;
@@ -64,11 +72,40 @@ namespace emph {
 	 }
 	 fCoordConvert.InitializeAllCoords(zPosStations); 
        }
+       double xAtStation  = 0.; double yAtStation  = 0.; 
+       if (fDoUseUpstreamTrack && (kSt > 3)) {  
+         TVector3 tmpPos0 = fEmgeo->GetSSDStation(0).Pos(); 
+         const double zzSt0 = tmpPos0[2];
+         TVector3 tmpPoskSt = fEmgeo->GetSSDStation(kSt).Pos(); 
+         const double zzStThis = tmpPoskSt[2];
+         double dzSt0ForWindow = zzStThis - zzSt0;
+	 xAtStation = itUpstrTr->XOffset() + dzSt0ForWindow * itUpstrTr->XSlope();
+	 yAtStation = itUpstrTr->YOffset() + dzSt0ForWindow * itUpstrTr->YSlope();
+	 if (fDebugIsOn) std::cerr << " .....  From Upstream track, xAtStation.. " << xAtStation << " yAtStation " << std::endl;
+        }
 	switch (kSt) {
-	  case 2 : { return fInputSt2Pts.RecIt(evt, aSSDClsPtr); }
-	  case 3 : { return fInputSt3Pts.RecIt(evt, aSSDClsPtr); }
-	  case 4 : { return fInputSt4Pts.RecIt(evt, aSSDClsPtr); }
-	  case 5 : { return fInputSt5Pts.RecIt(evt, aSSDClsPtr); }
+	  case 2 : { 
+	   
+	     fInputSt2Pts.SetDebugOn(fDebugIsOn);
+	     if (fDoUseUpstreamTrack) {
+	       if (fDoUseUpstreamTrack) fInputSt2Pts.SetXYWindowCenter( xAtStation, yAtStation);
+	      return fInputSt2Pts.RecIt(evt, aSSDClsPtr); }
+	    }
+	  case 3 : { 
+	     fInputSt3Pts.SetDebugOn(fDebugIsOn);
+	     if (fDoUseUpstreamTrack) fInputSt3Pts.SetXYWindowCenter( xAtStation, yAtStation);
+	     return fInputSt3Pts.RecIt(evt, aSSDClsPtr); 
+	  }
+	  case 4 : { 
+	     fInputSt4Pts.SetDebugOn(fDebugIsOn);
+//	     if (fDoUseUpstreamTrack) fInputSt4Pts.SetXYWindowCenter( xAtStation, yAtStation);
+	    return fInputSt4Pts.RecIt(evt, aSSDClsPtr); 
+	  }
+	  case 5 : { 
+	     fInputSt5Pts.SetDebugOn(fDebugIsOn);
+//	     if (fDoUseUpstreamTrack) fInputSt4Pts.SetXYWindowCenter( xAtStation, yAtStation);
+	     return fInputSt5Pts.RecIt(evt, aSSDClsPtr); 
+	  }
 	  default : {return 0; } // should not happen 
 	}
 				

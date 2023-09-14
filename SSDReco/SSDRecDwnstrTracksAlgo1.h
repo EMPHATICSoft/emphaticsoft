@@ -18,6 +18,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/VolatileAlignmentParams.h"
 #include "RecoBase/SSDStationPtAlgo1.h" 
+#include "RecoBase/BeamTrackAlgo1.h" 
 #include "RecoBase/DwnstrTrackAlgo1.h" 
 #include "SSDReco/SSDDwnstrTrackFitFCNAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
@@ -51,6 +52,7 @@ namespace emph {
 	  double fChiSqCut;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  double fChiSqCutPreArb;
+	  bool fDoUseUpstreamTrack; 
 	  std::string fTokenJob;
 	  ssdr::SSDDwnstrTrackFitFCNAlgo1 *fFitterFCN;
 	  //
@@ -62,6 +64,7 @@ namespace emph {
 	  // Internal stuff.. ???
 	  double fPrelimFitMom;
 	  double fPrelimFitChiSq;
+	  mutable std::vector<rb::BeamTrackAlgo1>::const_iterator itUpstrTr; // Dangling pointer.  Use with caution. access protected by above boolean.
 	  
 	public:
 	 inline void SetDebugOn(bool v = true) { 
@@ -76,6 +79,8 @@ namespace emph {
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
 	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
+	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fDoUseUpstreamTrack = true; itUpstrTr = it; }
+	 inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
 	 inline void SetPreliminaryMomentum(double p) { // For multiple scattering uncertainties.. 
 	   fPrelimMomentum = p; 
 	   fCoordConvert.SetForMomentum(p);
@@ -126,6 +131,9 @@ namespace emph {
 	   if (fInputSt3Pts.Size() > 0) fInputSt3Pts.dumpInfoForR(); 
 	   if (fInputSt4Pts.Size() > 0) fInputSt4Pts.dumpInfoForR(); 
 	   if (fInputSt5Pts.Size() > 0) fInputSt5Pts.dumpInfoForR();
+	 }
+	 inline int NumTripletsSt2and3() const {
+	   return  (fInputSt2Pts.NumTriplets() + fInputSt3Pts.NumTriplets());
 	 }
 	 
        private:
