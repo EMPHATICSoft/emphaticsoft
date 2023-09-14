@@ -185,10 +185,13 @@ namespace emph {
 	  if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
 	} else if (aView == emph::geo::Y_VIEW) {
 	  tMeas = (kS < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
-			     ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+			     ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10
+	  if ((kSe == 2) && (kSt > 3)) tMeas *= -1.0;
 	} else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
 	  if (kSt < 4) { // Sept 1- Sep5  attempt at sorting out orientations.. 
 	    tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	    if (fDebugIsOn) std::cerr << "  .... kSt " << kSt << "  pitch " << pitch << " strip " 
+	                              << strip << " TrShift, again " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
 	  } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
 	  if (kS == 4) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe)); // Based on the analsis of run 1274. 
 	  else if (kS == 5) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
