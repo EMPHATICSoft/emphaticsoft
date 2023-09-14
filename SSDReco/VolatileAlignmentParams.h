@@ -46,15 +46,18 @@ namespace emph{
 	std::vector<double> fTrNomPosSt4and5, fTrNomPosSt2and3; // Transverse position, nominal 
  	std::vector<double> fTrDeltaPosX, fTrDeltaPosY;
 	std::vector<double> fTrDeltaPosSt2and3, fTrDeltaPosSt4and5; // Transverse tweaks. 
- 	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY, fTrDeltaPitchV, fTrDeltaPitchU; // Yaw or Pitch angle, leading to a reduced pitch. 
+ 	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY;
+	std::vector<double> fTrDeltaPitchSt2and3, fTrDeltaPitchSt4and5; // Yaw or Pitch angle, leading to a reduced pitch. 
 	// Pitch = nominal Pitch * ( 1 - fTrDeltaPitchX), as cos(Yaw) ~ (1.0 - Yaw*yaw)  DeltaPitch always a positive quantity. 
- 	std::vector<double> fRollX, fRollY, fRollV, fRollU; // Roll angle,
+ 	std::vector<double> fRollX, fRollY;
+	std::vector<double> fRollSt2and3, fRollSt4and5; // Roll angle,
 	// For intance, for X view,  x -> x + y*fRollX, where cos(roll angle) ~ 1.0 and sin(roll angle) ~ roll angle
 	// Although not strictly geometrical, the following uncertainties are part of this singleton. 
 	// Added May 21 -23 2023 : The center of rotation is unlikely to be the center of wafer, or the beam axis.  Allow for one more parameter per Sensor. 
- 	std::vector<double> fRollXC, fRollYC, fRollVC, fRollUC; // Roll angle Centers
-	std::vector<double> fMultScatUncertXorY, fMultScatUncertV, fMultScatUncertU;
-	std::vector<double> fUnknownUncertXorY, fUnknownUncertV, fUnknownUncertU;
+ 	std::vector<double> fRollXC, fRollYC;
+	std::vector<double> fRollSt2and3C, fRollSt4and5C; // Roll angle Centers
+	std::vector<double> fMultScatUncertXorY, fMultScatUncertSt2and3, fMultScatUncertSt4and5;
+	std::vector<double> fUnknownUncertXorY, fUnknownUncertSt2and3, fUnknownUncertSt4and5;
 	//
 	// Internal variables, for quick access 
 	std::vector<double> fZPosX, fZPosY, fZPosSt4and5, fZPosSt2and3; 
@@ -151,7 +154,12 @@ namespace emph{
 	   }
 	  return 0.;  // Should never happen.. 
 	}
-	inline double DeltaPitch(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Pitch Inconsistent notation from above!!!!!   
+	inline double DeltaPitch(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Pitch    
+	  if (((kSt == 2) || (kSt == 3)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW))) 
+	    return  fTrDeltaPitchSt2and3[kSt-2];
+	  if (((kSt == 4) || (kSt == 5)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fTrDeltaPitchSt4and5[(kSt-4)*2 + kSe % 2];
+	     
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -160,8 +168,6 @@ namespace emph{
 	    case emph::geo::Y_VIEW :  { 
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	     return fTrDeltaPitchY[kS]; } 
-	    case emph::geo::U_VIEW :  { return (fTrDeltaPitchU[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fTrDeltaPitchV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -169,6 +175,10 @@ namespace emph{
 	  return 0.;  // Should never happen.. 
 	}
 	inline double Roll(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
+	  if (((kSt == 2) || (kSt == 3)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fRollSt2and3[kSt-2];
+	  if (((kSt == 4) || (kSt == 5)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fRollSt4and5[(kSt-4)*2 + kSe % 2];
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -178,8 +188,6 @@ namespace emph{
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fRollY[kS]; 
 	    } 
-	    case emph::geo::U_VIEW :  { return (fRollU[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fRollV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::Roll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -187,6 +195,10 @@ namespace emph{
 	  return 0.;  // Should never happen..
 	}
 	inline double RollCenter(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
+	  if (((kSt == 2) || (kSt == 3)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fRollSt2and3C[kSt -2];
+	  if (((kSt == 4) || (kSt == 5)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fRollSt4and5C[(kSt-4)*2 + kSe % 2];
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -196,8 +208,6 @@ namespace emph{
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fRollYC[kS]; 
 	    } 
-	    case emph::geo::U_VIEW :  { return (fRollUC[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fRollVC[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::RollCenter, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -206,6 +216,10 @@ namespace emph{
 	}
 	
 	inline double UnknownUncert(emph::geo::sensorView view, size_t kSt,  size_t kSe) { // Transverse 
+	  if (((kSt == 2) || (kSt == 3)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fUnknownUncertSt2and3[kSt-2];
+	  if (((kSt == 4) || (kSt == 5)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fUnknownUncertSt4and5[(kSt-4)*2 + kSe % 2];
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -215,8 +229,6 @@ namespace emph{
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fUnknownUncertXorY[kS]; 
 	    } 
-	    case emph::geo::U_VIEW :  { return (fUnknownUncertU[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fUnknownUncertV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -225,6 +237,10 @@ namespace emph{
 	}
 	   
 	inline double MultScatUncert(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
+	  if (((kSt == 2) || (kSt == 3)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fMultScatUncertSt2and3[kSt-2];
+	  if (((kSt == 4) || (kSt == 5)) && ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)))
+	    return  fMultScatUncertSt4and5[(kSt-4)*2 + kSe % 2];
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -234,8 +250,6 @@ namespace emph{
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return fMultScatUncertXorY[kS]; 
 	    } 
-	    case emph::geo::U_VIEW :  { return (fMultScatUncertU[kSt-2]); } 
-	    case emph::geo::W_VIEW :  { return (fMultScatUncertV[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 

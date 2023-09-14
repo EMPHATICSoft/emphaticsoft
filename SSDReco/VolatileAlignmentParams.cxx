@@ -39,15 +39,22 @@ namespace emph {
 //       fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
 //                  fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth}, 
 // Sept 5, sorting negative Y  
+//       fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
+//                  0., fWaferWidth, 0., fWaferWidth}, 
+// Sept 9, back to where they were on Aug 30.  Density plot on run NoTgt31Gev_ClSept_A1e_1o1_c7 indicate Y flipped sensors, on data. 
+// NoTgt31Gev_ClSept_A1e_1o1_c9
        fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
-                  0., fWaferWidth, 0., fWaferWidth},  
+                  fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},  
 //            August 25 2023, flip the sign for Y4a, Y5a.. Following the GDML data. 		      
 //       fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
 //                  -fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},   
 // Aug 30 -31.. Sorting U and V ..  Spet 4 : back to old config   
 //       fTrNomPosSt4and5{-fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  // Weird...!... MC bug ???? 
 // Sept 5       
-       fTrNomPosSt4and5{0., 0., 0., 0.},  //Trial.. 
+//       fTrNomPosSt4and5{0., 0., 0., 0.},  //Trial.. 
+// Sept 9, on real data, run 1274, must set those as prior to Aug 30 Option c9 
+//
+       fTrNomPosSt4and5{-fWaferWidth, -fWaferWidth,-fWaferWidth, -fWaferWidth, 0., 0., 0., 0.}, 
        fTrNomPosSt2and3{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
 //            Sept 2 2023, flip the sign for Y4a, Y5a.. Following the GDML data. 		      
 //       fTrNomPosSt4and5{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 0., 0.},  // Weird...!... MC bug ???? 
@@ -55,15 +62,15 @@ namespace emph {
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
        fTrDeltaPosSt2and3(fNumSensorsV, 0.), fTrDeltaPosSt4and5(fNumSensorsU, 0.), 
        fTrDeltaPitchX(fNumSensorsXorY, 0.), fTrDeltaPitchY(fNumSensorsXorY, 0.),  
-       fTrDeltaPitchV(fNumSensorsV, 0.), fTrDeltaPitchU(fNumSensorsU, 0.), 
+       fTrDeltaPitchSt2and3(fNumSensorsV, 0.), fTrDeltaPitchSt4and5(fNumSensorsU, 0.), 
        fRollX(fNumSensorsXorY, 0.), fRollY(fNumSensorsXorY, 0.),  
-       fRollV(fNumSensorsV, 0.), fRollU(fNumSensorsU, 0.),
+       fRollSt2and3(fNumSensorsV, 0.), fRollSt4and5(fNumSensorsU, 0.),
        fRollXC(fNumSensorsXorY, 0.), fRollYC(fNumSensorsXorY, 0.),  
-       fRollVC(fNumSensorsV, 0.), fRollUC(fNumSensorsU, 0.),
+       fRollSt2and3C(fNumSensorsV, 0.), fRollSt4and5C(fNumSensorsU, 0.),
        fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287},
-       fMultScatUncertV{0.05067243, 0.05067243}, // Probably too big, to be revisited 
-       fMultScatUncertU{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
-       fUnknownUncertXorY(fNumSensorsXorY, 0.0005), fUnknownUncertV(fNumSensorsV, 0.0005), fUnknownUncertU(fNumSensorsU, 0.0005),
+       fMultScatUncertSt2and3{0.05067243, 0.05067243}, // Probably too big, to be revisited 
+       fMultScatUncertSt4and5{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
+       fUnknownUncertXorY(fNumSensorsXorY, 0.0005), fUnknownUncertSt2and3(fNumSensorsV, 0.0005), fUnknownUncertSt4and5(fNumSensorsU, 0.0005),
        fZPosX(fNumSensorsXorY, 0.),  fZPosY(fNumSensorsXorY, 0.), 
        fZPosSt4and5(fNumSensorsV, 0.),fZPosSt2and3(fNumSensorsU, 0.),
        fTrPosX(fNumSensorsXorY, 0.),  fTrPosY(fNumSensorsXorY, 0.), 
@@ -118,7 +125,7 @@ namespace emph {
      // Setters 
      //
      void VolatileAlignmentParams::SetDeltaZ(emph::geo::sensorView view, size_t kSe, double v) {
-        std::cerr << " VolatileAlignmentParams::SetDeltaZ, Broken!! fatal " << std::endl; exit(2);
+        std::cerr << " VolatileAlignmentParams::SetDeltaZ, assuming U view is for Station 4 and 5 !  " << std::endl;
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
@@ -134,7 +141,7 @@ namespace emph {
      } 
 //     
      void VolatileAlignmentParams::SetDeltaZStation(emph::geo::sensorView view,  size_t kSt, double v) {
-        std::cerr << " VolatileAlignmentParams::SetDeltaZStation, Broken!! fatal " << std::endl; exit(2);
+        std::cerr << " VolatileAlignmentParams::SetDeltaZStation, assuming U view is for Station 4 and 5 !  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : {
 	     if (kSt < 4) { 
@@ -184,8 +191,11 @@ namespace emph {
 	}
      } 
      void VolatileAlignmentParams::SetDeltaTr(emph::geo::sensorView view,  size_t kSe, double v) {
-        std::cerr << " VolatileAlignmentParams::SetDeltaTr, Broken!! fatal " << std::endl; exit(2);
-     
+        std::cerr << " VolatileAlignmentParams::SetDeltaTr, assuming U view is for Station 4 and 5 " << std::endl;
+        if ((view == emph::geo::U_VIEW) || (view == emph::geo::W_VIEW)) {
+	  std::cerr << " .... Stereo Views...  Skip chenge for now, due to probalble mislabeling.. "  << std::endl;
+	  return;
+	}
       switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fTrNomPosX.size()) { std::cerr .... No checks!. 
@@ -198,8 +208,8 @@ namespace emph {
 //	    fTrDeltaPosY[kSe] = -v; fTrPosY[kSe] = fTrNomPosY[kSe] - v; break;
 	 } 
 	 // flip sign as well ????? .. 
-	 case emph::geo::U_VIEW :  { fTrDeltaPosSt4and5[kSe] = v; fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe] + v; break;} 
-	 case emph::geo::W_VIEW : { fTrDeltaPosSt2and3[kSe] = v; fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe] + v; break;}
+	 case emph::geo::U_VIEW :  { fTrDeltaPosSt4and5[kSe] = v; fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe] + v; break;} 
+	 case emph::geo::W_VIEW : { fTrDeltaPosSt2and3[kSe] = v; fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaTr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -207,7 +217,7 @@ namespace emph {
      } 
      void VolatileAlignmentParams::SetValueTrShiftLastPlane(emph::geo::sensorView view, double v) {
 
-       std::cerr << " VolatileAlignmentParams::SetValueTrShiftLastPlane, Broken!! fatal " << std::endl; exit(2);
+       std::cerr << " VolatileAlignmentParams::SetValueTrShiftLastPlane, assuming U view is for Station 4 and 5  " << std::endl; 
      
        switch (view) {
      	 case emph::geo::X_VIEW : {
@@ -217,76 +227,82 @@ namespace emph {
 	 case emph::geo::Y_VIEW :  { 
 	    fTrDeltaPosY[fNumSensorsXorY-1] = v; fTrPosY[fNumSensorsXorY-1] = fTrNomPosY[fNumSensorsXorY-1] + v; break;
 	 } 
-	 case emph::geo::W_VIEW :  { fTrDeltaPosSt4and5[fNumSensorsU-1] = v; fTrPosSt2and3[fNumSensorsU-1] = fTrNomPosSt2and3[fNumSensorsU-1] + v; break;} 
-	 case emph::geo::U_VIEW : { fTrDeltaPosSt2and3[fNumSensorsV-1] = v; fTrPosSt4and5[fNumSensorsV-1] = fTrNomPosSt4and5[fNumSensorsV-1] + v; break;}
+	 case emph::geo::W_VIEW :  { fTrDeltaPosSt2and3[fNumSensorsU-1] = v; fTrPosSt2and3[fNumSensorsU-1] = fTrNomPosSt2and3[fNumSensorsU-1] + v; break;} 
+	 case emph::geo::U_VIEW : { fTrDeltaPosSt4and5[fNumSensorsV-1] = v; fTrPosSt4and5[fNumSensorsV-1] = fTrNomPosSt4and5[fNumSensorsV-1] + v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetValueTrShiftLastPlane, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  }
         } 
      }
      void VolatileAlignmentParams::SetRoll(emph::geo::sensorView view,  size_t kSe, double v) {
+       std::cerr << " VolatileAlignmentParams::SetRoll, assuming U view is for Station 4 and 5  " << std::endl; 
+     
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fRollX[kSe] = v;   break;  
 	    } 
 	 case emph::geo::Y_VIEW :  { fRollY[kSe] = v;  break;} 
-	 case emph::geo::U_VIEW :  { fRollU[kSe] = v;  break;} 
-	 case emph::geo::W_VIEW : { fRollV[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fRollSt4and5[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : { fRollSt2and3[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetRoll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
      void VolatileAlignmentParams::SetRollCenter(emph::geo::sensorView view,  size_t kSe, double v) {
+       std::cerr << " VolatileAlignmentParams::SetRollCenter, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fRollXC[kSe] = v;   break;  
 	    } 
 	 case emph::geo::Y_VIEW :  { fRollYC[kSe] = v;  break;} 
-	 case emph::geo::U_VIEW :  { fRollUC[kSe] = v;  break;} 
-	 case emph::geo::W_VIEW : { fRollVC[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fRollSt4and5C[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : { fRollSt2and3C[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetRollCenter, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
      void VolatileAlignmentParams::SetDeltaPitchCorr(emph::geo::sensorView view,  size_t kSe, double v) {
+       std::cerr << " VolatileAlignmentParams::SetDeltaPitchCorr, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fTrDeltaPitchX[kSe] = v;   break;  
 	    } 
 	 case emph::geo::Y_VIEW :  { fTrDeltaPitchY[kSe] = v;  break;} 
-	 case emph::geo::U_VIEW :  { fTrDeltaPitchU[kSe] = v;  break;} 
-	 case emph::geo::W_VIEW : { fTrDeltaPitchV[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fTrDeltaPitchSt4and5[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : { fTrDeltaPitchSt2and3[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetDeltaPitchCorr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
      void VolatileAlignmentParams::SetUnknwonUncert(emph::geo::sensorView view,  size_t kSe, double v) {
+       std::cerr << " VolatileAlignmentParams::SetUnknwonUncert, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : case emph::geo::Y_VIEW :{
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fUnknownUncertXorY[kSe] = v;  break;  
 	    } 
-	 case emph::geo::U_VIEW :  { fUnknownUncertU[kSe] = v;  break;} 
-	 case emph::geo::W_VIEW : {  fUnknownUncertV[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fUnknownUncertSt4and5[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : {  fUnknownUncertSt2and3[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetUnknwonUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	}
      } 
      void VolatileAlignmentParams::SetMultScatUncert(emph::geo::sensorView view,  size_t kSe, double v) {
+       std::cerr << " VolatileAlignmentParams::SetMultScatUncert, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : case emph::geo::Y_VIEW :{
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
 	     fMultScatUncertXorY[kSe] = v;  break;  
 	    } 
-	 case emph::geo::U_VIEW :  { fMultScatUncertU[kSe] = v;  break;} 
-	 case emph::geo::W_VIEW : {  fMultScatUncertV[kSe] = v; break;}
+	 case emph::geo::U_VIEW :  { fMultScatUncertSt4and5[kSe] = v;  break;} 
+	 case emph::geo::W_VIEW : {  fMultScatUncertSt2and3[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " VolatileAlignmentParams::SetMultScatUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -347,6 +363,10 @@ namespace emph {
 	 std::string aName; double aVal; double aErr; 
 	 aLStrStr >> aName >> aVal >> aErr; 
 	 // we skip the tilts, only stransverse shifts and rolls for now.. 
+	 // Change only X_1 and Y_1 for now.. Test!. 
+	 if (aName.find("_1") == std::string::npos) continue;
+	 if (aName.find("U_")!= std::string::npos) continue;
+	 if (aName.find("V_")!= std::string::npos) continue;
 	 if (aName.find("TransShift") != std::string::npos) {
 	   std::string aSensStr=aName.substr(tokenTransShift.length(), 1);
 	   size_t aSens = static_cast<size_t>(std::atoi(aSensStr.c_str()));
