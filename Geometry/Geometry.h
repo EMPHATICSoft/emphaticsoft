@@ -162,6 +162,7 @@ namespace emph {
 
       double MagnetUSZPos() const {return fMagnetUSZPos; }
       double MagnetDSZPos() const {return fMagnetDSZPos; }
+      bool MagnetLoad() const {return fMagnetLoad; }
 
       double DetectorUSZPos(int i) const {return fDetectorUSZPos[i]; }
       double DetectorDSZPos(int i) const {return fDetectorDSZPos[i]; }
@@ -202,22 +203,17 @@ namespace emph {
       double fWorldLength;
       double fMagnetUSZPos;
       double fMagnetDSZPos;
+      bool   fMagnetLoad;
       std::vector<SSDStation> fSSDStation;
       double fDetectorUSZPos[NDetectors];
       double fDetectorDSZPos[NDetectors];
-      bool fDetectorLoad[NDetectors];
-
+      bool   fDetectorLoad[NDetectors];
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
-      std::vector<TGeoMatrix*> fSSDStationMatrix;
-      std::vector<std::vector<std::vector<TGeoMatrix*> > > fSSDSensorMatrix;
-      
-      //      std::unordered_map<std::string,TGeoMatrix*> fSSDStripMatrix;
 
       TGeoManager* fGeoManager;
 
     };
-
   }  // end namespace geo
 } // end namespace emph
 

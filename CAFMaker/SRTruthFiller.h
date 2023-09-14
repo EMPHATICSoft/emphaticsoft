@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRTruth.h
+// \file    SRTruthFiller.h
 // \note    Class to fill CAF MC particle info
 ////////////////////////////////////////////////////////////////////////
 #ifndef SRTRUTHFILLER_H
@@ -16,6 +16,7 @@ namespace caf
 
     void Fill(art::Event&, caf::StandardRecord&);
     bool GetG4Hits;
+    std::string fLabel;
 
   };
 

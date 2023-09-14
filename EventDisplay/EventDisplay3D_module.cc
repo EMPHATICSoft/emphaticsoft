@@ -100,6 +100,7 @@ namespace emph {
     Double_t        camRotateCenterV_;
     Double_t        camDollyDelta_;
     bool            fDrawMCTruth;
+    bool            fDrawTrueSSDHits;
     std::string     fMCTruthLabel;
     bool            fDrawSSDClusters;
     std::string     fSSDClustLabel;
@@ -108,6 +109,8 @@ namespace emph {
     bool            fDrawVertices;
     std::string     fVerticesLabel;
     int             fVisLevel;
+    bool            fSSDStripVis;
+    double          fTrueEnergyThresh;
 
     std::unordered_map<int,int> partColor;
 
@@ -129,6 +132,7 @@ namespace emph {
     TGLabel          *fTlRun,*fTlSubRun,*fTlEvt;
 
     TEveTrackList *fTrackList;
+    TEveElementList *fTrueSSDHitsList;
     TEveElementList *fSSDClustsList;
     TEveElementList* fMCTrueParticleList;
 
@@ -138,10 +142,11 @@ namespace emph {
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
     void drawMCParticle(Int_t mColor, Int_t mSize, const sim::Particle& part);
     void DrawSSDClusters(const art::Event& event);
+    void DrawTrueSSDHits(const art::Event& event);
     void DrawMCTruth(const art::Event& event);
     void DrawTracks(const art::Event& event);
     void DrawVertices(const art::Event& event);
-
+    void SetSSDStripVis(bool vis, bool isFirst=false);
   };
 
 }
@@ -152,6 +157,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   camRotateCenterV_ ( pset.get<Double_t>   ("camRotateCenterV",-2.  ) ),
   camDollyDelta_    ( pset.get<Double_t>   ("camDollyDelta",500.) ),
   fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
+  fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
   fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
@@ -160,6 +166,8 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDrawVertices     ( pset.get<bool>       ("DrawVertices",true) ),
   fVerticesLabel    ( pset.get<std::string>("VerticesLabel","vtxreco") ),
   fVisLevel         ( pset.get<int>        ("VisLevel",4) ),
+  fSSDStripVis      ( pset.get<bool>       ("SSDStripVis",false) ),
+  fTrueEnergyThresh ( pset.get<double>     ("TrueEnergyThresh",5.) ),
   geom_(art::ServiceHandle<emph::geo::GeometryService>()),
   visutil_(new emph::EvtDisplayUtils()),
   fSimpleGeom(0),
@@ -167,23 +175,24 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDetXZScene(0),fDetYZScene(0),fEvtXZScene(0),fEvtYZScene(0),
   fTeRun(0),fTeSubRun(0),fTeEvt(0),
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
-  fTrackList(0),fSSDClustsList(0),fDetGeoMap(NULL)
+  fTrackList(0),fTrueSSDHitsList(0),fSSDClustsList(0),fDetGeoMap(NULL)
 {
 
-  partColor[211] = kGreen-2;
-  partColor[2212] = kRed;
-  partColor[-211] = kGreen+2;
-  partColor[-321] = kYellow+2;
-  partColor[321] = kYellow-2;
-  partColor[-11] = kWhite+2;
-  partColor[11] = kWhite-2;
-  //  if ( trkMaxStepSize_ < 0.1 )trkMaxStepSize_ = 0.1;
+  partColor[211] = kGreen-2; // pi+
+  partColor[2212] = kRed; // proton
+  partColor[-211] = kGreen+2; // pi-
+  partColor[-321] = kYellow+2; // K-
+  partColor[321] = kYellow-2; // K+
+  partColor[11] = kGray; // e-
+  partColor[-11] = kGray+2;  // e+
+  partColor[13] = kBlue-2; // mu-
+  partColor[-13] = kBlue+2; // mu+
 
 }
 
 void emph::EventDisplay3D::makeNavPanel()
 {
-  std::cout << "%%%%% EventDisplay3d::makeNavPanel() %%%%%" << std::endl;
+  //  std::cout << "%%%%% EventDisplay3d::makeNavPanel() %%%%%" << std::endl;
 
   // Create control panel for event navigation
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -276,7 +285,7 @@ void emph::EventDisplay3D::makeNavPanel()
 
 void emph::EventDisplay3D::beginJob()
 {
-  std::cout << "%%%%% Start of EventDisplay3d::beginJob() %%%%%" << std::endl;
+  //  std::cout << "%%%%% Start of EventDisplay3d::beginJob() %%%%%" << std::endl;
 
   // Initialize global Eve application manager (return gEve)
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -345,19 +354,74 @@ void emph::EventDisplay3D::beginJob()
   glv->CurrentCamera().RotateRad(camRotateCenterH_,camRotateCenterV_);
   //  glv->CurrentCamera().Dolly(camDollyDelta_,kFALSE,kFALSE);
 
-  std::cout << "%%%%% End of EventDisplay3d::beginJob() %%%%%" << std::endl;
+  //  std::cout << "%%%%% End of EventDisplay3d::beginJob() %%%%%" << std::endl;
 
+}
+
+//------------------------------------------------------------
+// Set the visibility of the individual strips
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::SetSSDStripVis( bool vis, bool isFirst)
+{
+  if (!isFirst && (fSSDStripVis == vis)) return;
+  fSSDStripVis = vis;
+
+  auto geo    = geom_->Geo();
+  auto geoMgr = geo->ROOTGeoManager();
+  
+  const TGeoNode* world_n = (TGeoNode*)geoMgr->GetTopNode();
+  int nnodes = world_n->GetNodes()->GetEntries();
+  const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+  
+  std::vector<std::string> nodeName;
+  
+  std::string sString = "ssdStation";
+  std::string ssubString = "ssdsensor";
+  std::string schanString = "ssd_chan";
+  
+  for (int i=0; i<nnodes; ++i) {
+    std::string name = world_v->GetNode(i)->GetName();
+    if (name.find(sString) != std::string::npos)
+      nodeName.push_back(name);
+  }
+  
+  for (auto name : nodeName) {
+    TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
+    TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
+        
+    int nsub = st_n->GetNodes()->GetEntries();
+    for( int j=0; j<nsub; ++j){
+      std::string name = st_v->GetNode(j)->GetName();
+      if (name.find(ssubString) != std::string::npos){
+	TGeoNode* sensor_n = (TGeoNode*)st_v->GetNode(name.c_str());
+	TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
+	// now add channels to each SSD sensor
+	if(sensor_n->GetNodes()!=NULL){
+	  int nchan = sensor_n->GetNodes()->GetEntries();
+	  for( int k=0; k<nchan; ++k){
+	    std::string name2 = sensor_v->GetNode(k)->GetName();
+	    if(name2.find(schanString) != std::string::npos){
+	      TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(name2.c_str());
+	      TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
+	      strip_v->SetVisibility(vis);
+	    }
+	  } // loop over strips
+	}	
+      }
+    } // loop over sensors
+  } // loop over stations
 }
 
 void emph::EventDisplay3D::beginRun( const art::Run& )
 {
-  std::cout << "%%%%% Start of EventDisplay3d::beginRun() %%%%%" << std::endl;
+  //  std::cout << "%%%%% Start of EventDisplay3d::beginRun() %%%%%" << std::endl;
 
   gEve->GetGlobalScene()->DestroyElements();
   fDetXZScene->DestroyElements();
   fDetYZScene->DestroyElements();
 
-  std::cout << "%%%%% EventDisplay3d cleaned up from previous event %%%%%" << std::endl;
+  //  std::cout << "%%%%% EventDisplay3d cleaned up from previous event %%%%%" << std::endl;
   
   auto geo    = geom_->Geo();
   auto geoMgr = geo->ROOTGeoManager();
@@ -367,23 +431,23 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 
   // add SSDStations
 
-  std::cout << "%%%%% EventDisplay3d adding SSDStations %%%%%" << std::endl;
+  //  std::cout << "%%%%% EventDisplay3d adding SSDStations %%%%%" << std::endl;
 
   int nSSDStations = geo->NSSDStations();
   std::string stationId="SSD Station %d";
   for (int i=0; i<nSSDStations; ++i) {
-    std::cout << "%%%%% Adding Station " << i << std::endl;
+    //    std::cout << "%%%%% Adding Station " << i << std::endl;
     auto station = geo->GetSSDStation(i);
     TEveGeoShape* egs = new TEveGeoShape(Form(stationId.c_str(),i));
     double stPos[3];
     station->Pos().GetXYZ(stPos);
-    std::cout << "stPos = (" << stPos[0] << "," << stPos[1] << "," << stPos[2] << ")" << std::endl;
+    //    std::cout << "stPos = (" << stPos[0] << "," << stPos[1] << "," << stPos[2] << ")" << std::endl;
     egs->SetShape(new TGeoBBox(station->Width(),station->Height(),station->Dz(),stPos));
     egs->SetMainColor(kGreen+1);
     det2D->AddElement(egs);
   }
   
-  std::cout << "%%%%% EventDisplay3d done adding SSDStations %%%%%" << std::endl;
+  //  std::cout << "%%%%% EventDisplay3d done adding SSDStations %%%%%" << std::endl;
 
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   auto world_n = geoMgr->GetTopNode();
@@ -391,6 +455,11 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 
   etopnode->SetVisLevel(fVisLevel); 
   //  etopnode->GetNode()->GetVolume()->SetVisibility(kFALSE);
+
+  // Set visibility of individual SSD strips.  Not sure if this actually 
+  // helps, but the intent was to speed up geometry rendering in the GL window
+  // when the strips are made invisible
+  SetSSDStripVis(fSSDStripVis,true);
 
   // ... Use helper to recursively make detector elements
   //     transparent & set custom colors
@@ -438,6 +507,54 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
     l->SetMarkerSize(mSize);
     fSSDClustsList->AddElement(l);
   }
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawTrueSSDHits(const art::Event& event)
+{
+  if (fTrueSSDHitsList == 0) {
+    fTrueSSDHitsList = new TEveElementList("True SSD Hits");
+    fTrueSSDHitsList->IncDenyDestroy();
+  }
+  else {
+    fTrueSSDHitsList->DestroyElements();             // destroy children of the element
+  }
+
+  try {    
+    auto ssdHits = event.getHandle<std::vector<sim::SSDHit>>("geantgen");
+    
+    if  (!ssdHits->empty()) {
+      //      std::cout << "Found " << ssdHits->size() << " true SSD hits" << std::endl;
+      for (size_t idx=0; idx<ssdHits->size(); ++idx) {
+	const sim::SSDHit& hit = (*ssdHits)[idx];
+	double x = hit.GetX();
+	double y = hit.GetY();
+	double z = hit.GetZ();
+	//	std::cout << "Hit at (" << x << "," << y << "," << z << ")" << std::endl;
+	TEveLine* lx = new TEveLine();	
+	lx->SetNextPoint(x-1.,y,z);
+	lx->SetNextPoint(x+1.,y,z);
+	lx->SetLineColor(kYellow+2);
+	lx->SetMarkerSize(4);
+
+	TEveLine* ly = new TEveLine();	
+	ly->SetNextPoint(x,y-1.,z);
+	ly->SetNextPoint(x,y+1.,z);
+	ly->SetLineColor(kYellow+2);
+	ly->SetMarkerSize(4);
+
+	fTrueSSDHitsList->AddElement(lx);
+	fTrueSSDHitsList->AddElement(ly);
+      }
+    }
+  }
+  catch(...) {
+    
+  }
+  //  fSSDClustsList->AddElement(SSDHitsList);  
+  gEve->AddElement(fTrueSSDHitsList);    
 
 }
 
@@ -492,7 +609,12 @@ void emph::EventDisplay3D::DrawMCTruth(const art::Event& event)
     if  (!particles->empty()) {
       for (size_t idx=0; idx<particles->size(); ++idx) {
 	const sim::Particle& part = (*particles)[idx];
-	drawMCParticle(partColor[part.fpdgCode],4,part);
+	// don't draw gammas, neutrinos and nuclei
+	int pdgCode = abs(part.fpdgCode);
+	if ((pdgCode != 22) && (pdgCode < 10000) &&
+	    (pdgCode != 12) && (pdgCode != 14) && (pdgCode != 16))
+	  if (part.E(0) > fTrueEnergyThresh)
+	    drawMCParticle(partColor[part.fpdgCode],4,part);
       }
     }
   }
@@ -513,16 +635,17 @@ void emph::EventDisplay3D::drawMCParticle(Int_t mColor, Int_t mSize,
   double x0[3];
   double x1[3];
   TEveLine* l = new TEveLine();    
-  std::cout << "drawMCParticle: " << part.fpdgCode << " (" 
-	    << part.ftrajectory.X(0) << "," << part.ftrajectory.Y(0) << "," 
-	    << part.ftrajectory.Z(0) << ")";
+  //  std::cout << "drawMCParticle: " << part.fpdgCode << " " << part.E(0) 
+  //	    << " MeV: (" 
+  //	    << part.ftrajectory.X(0) << "," << part.ftrajectory.Y(0) << "," 
+  //	    << part.ftrajectory.Z(0) << ")";
   l->SetNextPoint(part.ftrajectory.X(0), part.ftrajectory.Y(0), part.ftrajectory.Z(0));  
   for (size_t i=1; i<part.ftrajectory.size(); ++i) {
-    std::cout << "->(" << part.ftrajectory.X(i) << ","
-	      << part.ftrajectory.Y(i) <<"," << part.ftrajectory.Z(i) <<")";
+    //    std::cout << "->(" << part.ftrajectory.X(i) << ","
+    //	      << part.ftrajectory.Y(i) <<"," << part.ftrajectory.Z(i) <<")";
     l->SetNextPoint(part.ftrajectory.X(i), part.ftrajectory.Y(i), part.ftrajectory.Z(i));  
   }
-  std::cout << std::endl;
+  //  std::cout << std::endl;
 
   l->SetMarkerSize(mSize);
   l->SetLineColor(mColor);
@@ -575,6 +698,7 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
 
   // Draw MC truth
   if (fDrawMCTruth) DrawMCTruth(event); // currently does nothing
+  if (fDrawTrueSSDHits) DrawTrueSSDHits(event);
 
   // Draw reco objects
   // ~~~~~~~~~~~~~~~~~~~~~~~  

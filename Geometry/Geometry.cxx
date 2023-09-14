@@ -110,6 +110,7 @@ namespace emph {
     {
       fGeoManager = 0;
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
+      fMagnetLoad = false;
       this->SetGDMLFile(fname);
     }
 
@@ -266,6 +267,16 @@ namespace emph {
     void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
     {
       TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
+		if ( magnet_n == nullptr ){
+			mf::LogWarning("LoadNewGeometry") 
+				<< " magnet not found in gdml. \n"
+				<< "check your spelling. \n";
+			fMagnetUSZPos = -1e6;
+			fMagnetDSZPos = -1e6;
+
+			return;
+		}
+
       TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
       TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
 
@@ -274,6 +285,7 @@ namespace emph {
 
       fMagnetUSZPos = zcenter-dz;
       fMagnetDSZPos = zcenter+dz;
+		fMagnetLoad = true;
 
     }
 
@@ -324,6 +336,7 @@ namespace emph {
       std::vector<std::string> nodeName;
 
       std::string sString = "ssdStation";
+      std::string smountString = "ssd_mount";
       std::string ssubString = "ssdsensor";
       std::string schanString = "ssd_chan";
 
@@ -409,8 +422,7 @@ namespace emph {
 	      }
 	    }
 	    plane->AddSSD(sensor);
-	    fNSSDs++;
-	    
+	    fNSSDs++;	    
 	  }
 	}
 	// don't forget to add the last plane!

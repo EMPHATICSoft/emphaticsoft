@@ -11,6 +11,7 @@ standard_cafmaker:{
     BACkovHitLabel: "backovreco"
     GetMCTruth:    true
     GetMCHits:     false
+    SSDHitLabel: "geantgen" //dah
 }
 
 END_PROLOG
