@@ -72,6 +72,10 @@ namespace rb {
 	  fUorVPred = u1; fUorVObsRaw = u2;  fUorVObsCorr = u3;
 	}
 	inline void SetStation(int aSt) { fStationNum = aSt; }
+	inline void SetClSensorIds(int kSeX, int kSeY, int kSeUorV) { 
+	  fClSensorIds.clear(); fClSensorIds.push_back(kSeX);  fClSensorIds.push_back(kSeY);
+	  fClSensorIds.push_back(kSeUorV); 
+	}
 	inline void SetType(SSDStationPtType aType) { fType = aType; }
 	inline void SetChiSq(double v) {fChiSq = v; }
 	inline void SetUserFlag(int v) const  {fUserFlag = v;} 
