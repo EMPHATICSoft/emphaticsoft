@@ -63,6 +63,8 @@ namespace rb {
     int    MaxTime() const;
     int    TimeRange() const { return (MaxTime()-MinTime()); }
 
+    //    std::cout << "AvgADC values:" << AvgADC() << std::endl;
+
     friend std::ostream& operator << (std::ostream& o, const SSDCluster& h);
     
   private:
