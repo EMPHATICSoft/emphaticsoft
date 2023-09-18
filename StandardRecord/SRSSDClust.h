@@ -29,6 +29,7 @@ namespace caf
     int width;
     unsigned int ndigits;
     virtual void setDefault();
+
   };
 
 } // end namespace
