@@ -14,6 +14,8 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TTree.h"
+#include "TVectorD.h"
+#include "TGraph.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -29,6 +31,7 @@
 // EMPHATICSoft includes
 #include "Geometry/DetectorDefs.h"
 #include "Simulation/SSDHit.h"
+#include "Simulation/Particle.h"
 
 using namespace emph;
 
@@ -45,9 +48,6 @@ namespace emph {
     ~G4EMPHValidate();
     
     void analyze(const art::Event& evt);
-    
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
@@ -75,11 +75,10 @@ namespace emph {
   
   //.......................................................................
   G4EMPHValidate::G4EMPHValidate(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset)
+    : EDAnalyzer(pset),
+      fMakeSSDTree (pset.get<bool>("MakeSSDTree"))
   {
     fEvent = 0;
-    this->reconfigure(pset);
-
   }
 
   //......................................................................
@@ -89,13 +88,6 @@ namespace emph {
     //======================================================================
     // Clean up any memory allocated by your module
     //======================================================================
-  }
-
-  //......................................................................
-
-  void G4EMPHValidate::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    fMakeSSDTree = pset.get<bool>("MakeSSDTree"); 
   }
 
   //......................................................................
@@ -130,7 +122,7 @@ namespace emph {
   { 
 
     std::string labelStr = "geantgen"; // NOTE, this is probably the wrong label.
-    art::Handle< std::vector<std::vector<sim::SSDHit> > > ssdHitH;
+    art::Handle< std::vector<sim::SSDHit> > ssdHitH;
     try {
       evt.getByLabel(labelStr,ssdHitH);
     }
@@ -145,27 +137,64 @@ namespace emph {
       fSubrun = evt.subRun();
       fEvent++;
       fPid = 0; // deal with this later
-
+      fSSDx.clear();
+      fSSDy.clear();
+      fSSDz.clear();
+      fSSDpx.clear();
+      fSSDpy.clear();
+      fSSDpz.clear();
+      
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
-	// clear/reset vectors for each particle
-	fSSDx.clear();
-	fSSDy.clear();
-	fSSDz.clear();
-	fSSDpx.clear();
-	fSSDpy.clear();
-	fSSDpz.clear();
-	const std::vector<sim::SSDHit> ssdv = (*ssdHitH)[idx];
-	for (size_t idx2=0; idx2 < ssdv.size(); ++idx2) {
-	  fSSDx.push_back(ssdv[idx2].GetX());
-	  fSSDy.push_back(ssdv[idx2].GetY());
-	  fSSDz.push_back(ssdv[idx2].GetZ());
-	  fSSDpx.push_back(ssdv[idx2].GetPx());
-	  fSSDpy.push_back(ssdv[idx2].GetPy());
-	  fSSDpz.push_back(ssdv[idx2].GetPz());
-	}
-	fSSDTree->Fill();
-      } // end loop over SSD hits for the event
-      		
+	auto ssdv = (*ssdHitH)[idx];
+	fSSDx.push_back(ssdv.GetX());
+	fSSDy.push_back(ssdv.GetY());
+	fSSDz.push_back(ssdv.GetZ());
+	fSSDpx.push_back(ssdv.GetPx());
+	fSSDpy.push_back(ssdv.GetPy());
+	fSSDpz.push_back(ssdv.GetPz());
+      }
+      fSSDTree->Fill();
+
+      art::Handle< std::vector<sim::Particle> > partH;
+      try {
+	evt.getByLabel(labelStr,partH);
+      }
+      catch(...) {
+	std::cout << "WARNING: No sim::Particles found!" << std::endl;
+      }
+      
+      art::ServiceHandle<art::TFileService> tfs;
+
+      if (!partH->empty()) {
+	
+	TVectorD zpos;
+	TVectorD xpos;
+	TVectorD ypos;
+	char grName[64];
+
+	sprintf(grName,"Event_%d",fEvent);
+	tfs->mkdir(grName);
+	for (size_t idx=0; idx < partH->size(); ++idx) {
+	  auto part = (*partH)[idx];
+	  auto traj = part.ftrajectory;
+	  size_t npoints = traj.size();
+	  zpos.ResizeTo(npoints);
+	  xpos.ResizeTo(npoints);
+	  ypos.ResizeTo(npoints);
+	  for (size_t i=0; i<npoints; ++i) {
+	    zpos[i] = traj.Z(i);
+	    xpos[i] = traj.X(i);
+	    ypos[i] = traj.Y(i);
+	  }
+	  sprintf(grName,"zVsx_%d_%d",fEvent,int(idx));
+	  TGraph* zxG = tfs->make<TGraph>(zpos,xpos);
+	  zxG->SetName(grName);
+	  zxG->Write();
+	  sprintf(grName,"zVsy_%d_%d",fEvent,int(idx));
+	  TGraph* zyG = tfs->make<TGraph>(zpos,ypos);
+	  zyG->SetName(grName);
+	} // end loop over SSD hits for the event
+      }
     }
 
   } // G4EMPHValidate::analyze()

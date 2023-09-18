@@ -70,9 +70,10 @@ namespace g4b{
   G4VPhysicalVolume* DetectorConstruction::Construct()
   {
     // Setup the magnetic field situation 
-    art::ServiceHandle<emph::MagneticFieldService> bField;
-    auto magField = bField->Field(); //get the provider
-    
+    //    art::ServiceHandle<emph::MagneticFieldService> bField;
+    //    auto magField = bField->Field(); //get the provider
+    mag::GlobalMagneticField* magField = new mag::GlobalMagneticField();
+
     G4FieldManager* fieldMgr
       = G4TransportationManager::GetTransportationManager()->GetFieldManager();
     fieldMgr->SetDetectorField(magField);
@@ -91,92 +92,6 @@ namespace g4b{
       ->GetPropagatorInField();
     fieldPropagator->SetMinimumEpsilonStep(1.e-5*mm);
     fieldPropagator->SetMaximumEpsilonStep(1.e-2*mm);
-    /*
-    // loop over the possible fields
-    for(auto fd : pProvider->Fields()){
-      switch (fd.fMode) {
-      case mag::kNoBFieldMode:
-      break;
-      case mag::kConstantBFieldMode: {
-      // Attach this to the magnetized volume only, so get that volume
-      G4LogicalVolume *bvol = G4LogicalVolumeStore::GetInstance()->GetVolume(fd.fVolume);
-          
-          // Define the basic field, using p we should get the uniform field
-          G4UniformMagField* magField = new G4UniformMagField( fd.fField * CLHEP::tesla );
-          fFieldMgr = new G4FieldManager();
-          fFieldMgr->SetDetectorField(magField);
-          fFieldMgr->CreateChordFinder(magField);
-          
-          MF_LOG_INFO("DetectorConstruction")
-          << "Setting uniform magnetic field to be "
-          << magField->GetConstantFieldValue().x() << " "
-          << magField->GetConstantFieldValue().y() << " "
-          << magField->GetConstantFieldValue().z() << " "
-          << " in " << bvol->GetName();
-          
-          // Reset the chord finding accuracy
-          // fFieldMgr->GetChordFinder()->SetDeltaChord(1.0 * cm);
-          
-          // the boolean tells the field manager to use local volume
-          bvol->SetFieldManager(fFieldMgr, true);
-          
-          break;
-        } // case mag::kConstantBFieldMode
-        case mag::kFieldRZMapMode: {
- 
-          // Attach this to the magnetized volume only, so get that volume
-          G4LogicalVolume *bvol = G4LogicalVolumeStore::GetInstance()->GetVolume(fd.fVolume);
-
-          mag::GlobalMagneticField *magField = new mag::GlobalMagneticField();
-          fFieldMgr = new G4FieldManager();
-          fFieldMgr->SetDetectorField(magField);
-          fFieldMgr->CreateChordFinder(magField);
-
-          MF_LOG_INFO("DetectorConstruction")
-          << "Setting magnetic field in kFieldRZMapMode to be"
-          << " in " << bvol->GetName();
-
-          // the boolean tells the field manager to use local volume
-          bvol->SetFieldManager(fFieldMgr, true);
-
-          break;
-        } // case mag::kFieldRZMapMode
-        case mag::kFieldXYZMapMode: {
-
-          // Attach this to the magnetized volume only, so get that volume
-          G4LogicalVolume *bvol = G4LogicalVolumeStore::GetInstance()->GetVolume(fd.fVolume);
-
-          mag::GlobalMagneticField *magField = new mag::GlobalMagneticField();
-          fFieldMgr = new G4FieldManager();
-          fFieldMgr->SetDetectorField(magField);
-          fFieldMgr->CreateChordFinder(magField);
-  
-          MF_LOG_INFO("DetectorConstruction")
-          << "Setting magnetic field in kFieldXYZMapMode to be"
-          << " in " << bvol->GetName();
-
-           // the boolean tells the field manager to use local volume
-          bvol->SetFieldManager(fFieldMgr, true);
-          
-          break;
-        } // case mag::kFieldXYZMapMode
-        default: // Complain if the user asks for something not handled
-          MF_LOG_ERROR("DetectorConstruction")
-          << "Unknown or illegal Magneticfield "
-          << "mode specified: " 
-          << fd.fMode
-          << ". Note that AutomaticBFieldMode is reserved.";
-          break;
-      } // end switch cases
-      
-      } // end loop over fields
-    */
-    //
-    // Align the magnet..
-    
-    art::ServiceHandle<emph::geo::GeometryService> geomService;
-    const emph::geo::Geometry* theGeo = geomService->Geo();
-    magField->G4GeomAlignIt(theGeo);
     
     return fWorld;
   }

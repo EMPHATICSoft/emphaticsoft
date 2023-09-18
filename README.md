@@ -7,6 +7,7 @@ Base repository for art-based code
 
 [Running art](#run) <br>
 [Generating documentation](#docs) <br>
+[Developing EMPHATICSoft Code](#develop) <br>
 
 ---
 <a name="gpvm"></a>
@@ -179,6 +180,7 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
 ## Generating documentation
 Refer to [docs](https://github.com/EMPHATICSoft/emphaticsoft/tree/main/docs)
 
+<a name="develop"></a>
 ## How to Develop EMPHATIC Code
 
 In order to make changes to EMPHATIC software, you will need to create your own git Branch.  After you have pulled the emphaticsoft repository, you can create a new branch and switch to it by executing:
@@ -253,7 +255,18 @@ Once your changes are thoroughly tested and your are ready for them to go into t
 * Run: `git merge <branch_name>` 
 * GitHub may ask you to correct any overlaps or issues at this time 
 * Once all problems have been resolved run: `git add <file_to_merge>` 
-* Run `git push` to make changes to the main branch 
+* Run `git push` to make changes to the main branch
+*
+
+**To merge main into your branch:**
+* Run `git checkout main` to switch into the main branch
+* Run `git pull`
+* Run `git checkout <branch_name>`
+* Run `git merge main`
+* GitHub may ask you to correct any overlaps or issues at this time 
+* Once all problems have been resolved run: `git add <file_to_merge>` 
+* Run `git push` to make changes to your branch
+* 
 
 ## Copyright and Licensing
 

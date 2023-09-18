@@ -27,16 +27,14 @@ namespace emph
 			 art::ActivityRegistry& reg);
     virtual ~MagneticFieldService();
     
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     void preBeginRun(const art::Run& run);
     
-    emph::EMPHATICMagneticField* Field() const { return fMagneticField; }
+    emph::MagneticField* Field() const { return fMagneticField; }
     
   private:
-    emph::EMPHATICMagneticField* fMagneticField;
+    emph::MagneticField* fMagneticField;
     std::string fFieldFileName;
-    
+
   };
   
 }

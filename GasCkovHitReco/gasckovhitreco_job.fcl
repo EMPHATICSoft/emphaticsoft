@@ -7,7 +7,7 @@ process_name: GasCkovHitReco
 
 services:
 {
-  TFileService: { fileName: "gasckovhitreco_hist_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "gasckovhitreco_hist_r%r_s%04s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
 }
@@ -23,7 +23,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "gasckovhitreco_r%r_s%s.root"
+   fileName:    "gasckovhitreco_r%r_s%04s.root"
    fastCloning: false
    
   }

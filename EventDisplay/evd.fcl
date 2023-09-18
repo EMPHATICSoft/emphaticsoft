@@ -30,8 +30,8 @@ physics :{
       camRotateCenterV : -2.0
       camDollyDelta    : 500.
       DrawMCTruth      : true
-      MCTruthLabel     : "g4gen"
       DrawTrueSSDHits  : true
+      MCTruthLabel     : "geantgen"
       DrawSSDClusters  : true
       SSDClustLabel    : "clust"
       DrawTracks       : true
@@ -40,6 +40,7 @@ physics :{
       VerticesLabel    : "vtxreco"
       VisLevel         : 2
       SSDStripVis      : false
+      TrueEnergyThresh : 50. #MeV
     }
   }
 
