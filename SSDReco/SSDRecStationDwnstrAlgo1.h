@@ -90,6 +90,7 @@ namespace emph {
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CBegin() const { return fStPoints.cbegin(); } 
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator CEnd() const { return fStPoints.cend(); } 
 	 inline rb::SSDStationPtAlgo1 GetStPoint(std::vector<rb::SSDStationPtAlgo1>::const_iterator it) const { return *it; } 
+	 inline rb::SSDStationPtAlgo1 GetStPoint(size_t i) const { return fStPoints[i]; } 
 	 // Deep copy, but small struct..
 	 inline std::vector<rb::SSDStationPtAlgo1>::const_iterator GetStationPointPtr(int id) const { 
 	   for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt = fStPoints.cbegin(); itSt != fStPoints.cend(); itSt++) { 

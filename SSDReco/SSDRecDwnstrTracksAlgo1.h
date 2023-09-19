@@ -46,7 +46,8 @@ namespace emph {
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
 	  bool fDebugIsOn;
-	  bool fIsMC; // The usual Ugly flag..  
+	  bool fIsMC; // The usual Ugly flag.. 
+	  bool fIsGoodForAlignment;  
 	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
 	  bool fNoMagnet; // set once we know the geometry.. 
 	  double fChiSqCut;
@@ -61,6 +62,8 @@ namespace emph {
 	  std::vector<rb::DwnstrTrackAlgo1> fTrs; // the tracks, produced here..  
 	   
 	  mutable std::ofstream fFOutTrs;
+	  mutable std::ofstream fFOutCompact; 
+	  mutable std::ofstream fFOutCompactInfo; 
 	  // Internal stuff.. ???
 	  double fPrelimFitMom;
 	  double fPrelimFitChiSq;
@@ -121,6 +124,7 @@ namespace emph {
 	 inline size_t Size() const {return fTrs.size(); }
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CBegin() const { return fTrs.cbegin(); } 
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CEnd() const { return fTrs.cend(); } 
+	 inline bool IsGoodForAlignment() const { return fIsGoodForAlignment; } 
 	 
 	 size_t RecStation(size_t kSt, const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 
@@ -136,6 +140,8 @@ namespace emph {
 	   return  (fInputSt2Pts.NumTriplets() + fInputSt3Pts.NumTriplets());
 	 }
 	 
+	 void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
+	 
        private:
 	 
 	 size_t RecAndFitAll4Stations();
@@ -145,7 +151,6 @@ namespace emph {
 	 bool doPrelimFit(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
 	 bool IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const;	 
 	 void openOutputCsvFiles() const;	 
-	
     };
   
   } // namespace ssdr

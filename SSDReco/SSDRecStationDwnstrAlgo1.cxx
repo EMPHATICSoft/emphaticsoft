@@ -159,8 +159,8 @@ namespace emph {
        if (fDebugIsOn) {
           std::cerr << " Starting SSDRecStationDwnstrAlgo1::recoXYUorW, Station " << fStationNum 
                         << "  with a total of " << aSSDClsPtr->size() << " clusters " << std::endl;
-	  fCoordConvert.SetDebugOn(fDebugIsOn);
-	}	  
+       }	  
+       fCoordConvert.SetDebugOn(fDebugIsOn);
        const size_t kSt = static_cast<size_t>(fStationNum);
        for(std::vector<rb::SSDCluster>::const_iterator itClX = aSSDClsPtr->cbegin(); itClX != aSSDClsPtr->cend(); itClX++, kux++) {
          if (fClUsages[kux] != 0) continue;
@@ -512,6 +512,8 @@ namespace emph {
        
      }
      void ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForR() const {
+       if ((fSubRunNum == 10) && (fEvtNum < 20)) 
+             std::cerr << " ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForR, Station " << fStationNum << " spill 10, evt " << fEvtNum << std::endl;
        if (fStPoints.size() == 0) return;
        if (fFOutSt == nullptr)  this->openOutputCsvFiles(); 
        std::ostringstream headerStrStr; 
@@ -533,11 +535,11 @@ namespace emph {
 		  std::cerr << " ssdr::SSDRecStationDwnstrAlgo1::dumpInfoForR, unrecognized SSD Cluster.. keep going.. " << std::endl;
 		}
 	   }
-        (*fFOutSt) << headerStr << " " << k << " " << it->Type()  << " " << sIdX << " " << sIdY << " " << sIdUorV
+ 	 } // on Clusters, here, also views..  	 
+         (*fFOutSt) << headerStr << " " << k << " " << it->Type()  << " " << sIdX << " " << sIdY << " " << sIdUorV
 	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() 
 		 << " " << it->UorWPred() << " "  << it->UorWObsRaw() << " " << it->UorWObsCorr() << " " << it->ChiSq() << std::endl; 
 		 
-	} // on Clusters, here, also views..  	 
        } // On Space Points
      }
      //
