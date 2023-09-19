@@ -58,13 +58,13 @@ namespace emph {
       x0[0] = -sd->Width()/2;
       x1[0] = sd->Width()/2;
 
-      sp->GeoMatrix()->LocalToMaster(x0,tx0);
-      sd->GeoMatrix()->LocalToMaster(tx0,tx1);
-      st->GeoMatrix()->LocalToMaster(tx1,x0);
+      sp->LocalToMaster(x0,tx0);
+      sd->LocalToMaster(tx0,tx1);
+      st->LocalToMaster(tx1,x0);
 
-      sp->GeoMatrix()->LocalToMaster(x1,tx0);
-      sd->GeoMatrix()->LocalToMaster(tx0,tx1);
-      st->GeoMatrix()->LocalToMaster(tx1,x1);
+      sp->LocalToMaster(x1,tx0);
+      sd->LocalToMaster(tx0,tx1);
+      st->LocalToMaster(tx1,x1);
  
       ls.SetX0(x0);
       ls.SetX1(x1);	  

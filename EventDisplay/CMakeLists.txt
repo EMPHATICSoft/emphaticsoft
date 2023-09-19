@@ -29,16 +29,11 @@ set( CET_DICT_FUNCTIONS TRUE)
 art_make_library( LIBRARY_NAME ${PACKAGE}
   SOURCE ${src_files} # ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE}Cint.cc
   LIBRARIES 
-  #GeometryDrawingOptions_service
-#  RecoDrawingOptions_service
-#  PlotDrawingOptions_service
-#  RawDrawingOptions_service
-#  SimulationDrawingOptions_service
-#  EventDisplayBase_Colors_service
-#  SimulationBase
-#  EventDisplayBase
+  ChannelMap
+  ChannelMapService_service
   Geometry
   Geometry_service
+  RawData
   RecoBase
   Simulation
   StandardRecord
@@ -84,8 +79,11 @@ cet_build_plugin(EventDisplay3D art::module
   LIBRARIES REG
   EventDisplay
   EvtDisplayService_service
+  ChannelMap
+  ChannelMapService_service
   Geometry
   Geometry_service
+  RawData
   RecoBase
   DetGeoMap
   Simulation

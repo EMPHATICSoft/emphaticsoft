@@ -6,6 +6,14 @@
 // EMPHATIC includes
 #include "Geometry/Geometry.h"
 #include "Geometry/service/GeometryService.h"
+#include "ChannelMap/ChannelMap.h"
+#include "ChannelMap/service/ChannelMapService.h"
+#include "EventDisplay/EvtDisplayUtils.h"
+#include "RawData/SSDRawDigit.h"
+#include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
+#include "DetGeoMap/DetGeoMap.h"
+#include "Simulation/Particle.h"
 
 // art includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -54,15 +62,10 @@
 #include <TEveTrack.h>
 #include <TEveTrackPropagator.h>
 #include <TEveLine.h>
+#include <TEveBox.h>
 
 //#include <sstream>
 #include <map>
-
-#include "EventDisplay/EvtDisplayUtils.h"
-#include "RecoBase/SSDCluster.h"
-#include "RecoBase/LineSegment.h"
-#include "DetGeoMap/DetGeoMap.h"
-#include "Simulation/Particle.h"
 
 // ... Anonymous namespace for helpers.
 namespace {
@@ -102,6 +105,8 @@ namespace emph {
     bool            fDrawMCTruth;
     bool            fDrawTrueSSDHits;
     std::string     fMCTruthLabel;
+    bool            fDrawSSDDigits;
+    std::string     fSSDDigitLabel;
     bool            fDrawSSDClusters;
     std::string     fSSDClustLabel;
     bool            fDrawTracks;
@@ -115,6 +120,7 @@ namespace emph {
     std::unordered_map<int,int> partColor;
 
     art::ServiceHandle<emph::geo::GeometryService> geom_;
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap_;
 
     std::unique_ptr<emph::EvtDisplayUtils>visutil_;
     TEveGeoShape* fSimpleGeom;
@@ -133,14 +139,17 @@ namespace emph {
 
     TEveTrackList *fTrackList;
     TEveElementList *fTrueSSDHitsList;
+    TEveElementList *fSSDDigitsList;
     TEveElementList *fSSDClustsList;
     TEveElementList* fMCTrueParticleList;
 
     dgmap::DetGeoMap* fDetGeoMap;
 
     void makeNavPanel();
+    void drawSSDDigit(Int_t mColor, Int_t mSize, const emph::rawdata::SSDRawDigit& dig);
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
     void drawMCParticle(Int_t mColor, Int_t mSize, const sim::Particle& part);
+    void DrawSSDDigits(const art::Event& event);
     void DrawSSDClusters(const art::Event& event);
     void DrawTrueSSDHits(const art::Event& event);
     void DrawMCTruth(const art::Event& event);
@@ -159,6 +168,8 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
   fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
   fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
+  fDrawSSDDigits    ( pset.get<bool>       ("DrawSSDDigits",true) ),
+  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","raw:SSD") ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
   fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
@@ -169,13 +180,15 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fSSDStripVis      ( pset.get<bool>       ("SSDStripVis",false) ),
   fTrueEnergyThresh ( pset.get<double>     ("TrueEnergyThresh",5.) ),
   geom_(art::ServiceHandle<emph::geo::GeometryService>()),
+  cmap_(art::ServiceHandle<emph::cmap::ChannelMapService>()),
   visutil_(new emph::EvtDisplayUtils()),
   fSimpleGeom(0),
   fXZView(0),fYZView(0),fXZMgr(0),fYZMgr(0),
   fDetXZScene(0),fDetYZScene(0),fEvtXZScene(0),fEvtYZScene(0),
   fTeRun(0),fTeSubRun(0),fTeEvt(0),
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
-  fTrackList(0),fTrueSSDHitsList(0),fSSDClustsList(0),fDetGeoMap(NULL)
+  fTrackList(0),fTrueSSDHitsList(0),fSSDDigitsList(0), 
+  fSSDClustsList(0),fDetGeoMap(NULL)
 {
 
   partColor[211] = kGreen-2; // pi+
@@ -511,6 +524,54 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
 }
 
 //------------------------------------------------------------
+// ... Helper for drawing SSD hit
+void emph::EventDisplay3D::drawSSDDigit(Int_t mColor, Int_t mSize, 
+					const emph::rawdata::SSDRawDigit& dig)
+{
+
+  int FER = dig.FER();
+  int module = dig.Module();
+  int strip = dig.Strip();
+
+  auto cm = cmap_->CMap();
+  emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,FER,module);
+  emph::cmap::DChannel dchan = cm->DetChan(echan);
+
+  const emph::geo::SSDStation* st = geom_->Geo()->GetSSDStation(dchan.Station());
+  const emph::geo::Plane* pl = st->GetPlane(dchan.Plane());
+  const emph::geo::Detector* sensor = pl->SSD(dchan.HiLo());
+  const emph::geo::Strip* sp = sensor->GetStrip(strip);
+
+  double dz=sensor->Dz();
+  double zmin=-dz/2.;
+  double dx=0.06;
+  double xmin=-dx/2.;
+  double dy=sensor->Width();
+  double ymin=-dy/2.;
+  double x1[3];
+  double x2[3];
+  double x3[3];
+  TEveBox* b = new TEveBox();
+  int ivtx=0; 
+  for (int iz=0; iz<2; iz++) {
+    for (int iy=0; iy<2; iy++) {
+      for (int ix=0; ix<2; ix++) {
+	x1[0] = xmin + ix*dx;
+	x1[1] = ymin + iy*dy;
+	x1[2] = zmin + iz*dz;
+	sp->LocalToMaster(x1,x2);  // strip to sensor
+	sensor->LocalToMaster(x2,x3); // sensor to station
+	st->LocalToMaster(x3,x1); // station to global
+	b->SetVertex(ivtx++,x1[0],x1[1],x1[2]);
+      }
+    }
+  }
+  b->SetLineColor(mColor);
+  fSSDDigitsList->AddElement(b);
+
+}
+
+//------------------------------------------------------------
 
 void emph::EventDisplay3D::DrawTrueSSDHits(const art::Event& event)
 {
@@ -585,8 +646,37 @@ void emph::EventDisplay3D::DrawSSDClusters(const art::Event& event)
   catch(...) {
     
   }
-  //  fSSDClustsList->AddElement(SSDHitsList);  
   gEve->AddElement(fSSDClustsList);    
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawSSDDigits(const art::Event& event)
+{
+  if (fSSDDigitsList == 0) {
+    fSSDDigitsList = new TEveElementList("SSD Raw Digits"); 
+    fSSDDigitsList->IncDenyDestroy();              // protect element against destruction
+  }
+  else {
+    fSSDDigitsList->DestroyElements();             // destroy children of the element
+  }
+  
+  try {
+    
+    auto ssdDigits = event.getHandle<std::vector<emph::rawdata::SSDRawDigit>>(fSSDDigitLabel);
+    
+    if  (!ssdDigits->empty()) {
+      for (size_t idx=0; idx<ssdDigits->size(); ++idx) {
+	const emph::rawdata::SSDRawDigit& dig = (*ssdDigits)[idx];
+	drawSSDDigit(kMagenta,4,dig);
+      }
+    }
+  }
+  catch(...) {
+    
+  }
+  gEve->AddElement(fSSDDigitsList);    
 
 }
 

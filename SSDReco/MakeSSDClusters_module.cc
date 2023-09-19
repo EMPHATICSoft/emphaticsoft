@@ -193,6 +193,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   ssdClust.SetView(view);
   sensClusters->push_back(ssdClust);
 
+  std::cout << "Formed cluster of size " << sensClusters->size() << std::endl;
 }
 
 //--------------------------------------------------

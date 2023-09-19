@@ -32,13 +32,14 @@ physics :{
       DrawMCTruth      : true
       DrawTrueSSDHits  : true
       MCTruthLabel     : "geantgen"
+      DrawSSDDigits:   : true
       DrawSSDClusters  : true
       SSDClustLabel    : "clust"
       DrawTracks       : true
       TracksLabel      : "ssdreco"
       DrawVertices     : true
       VerticesLabel    : "vtxreco"
-      VisLevel         : 2
+      VisLevel         : 1
       SSDStripVis      : false
       TrueEnergyThresh : 50. #MeV
     }

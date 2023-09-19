@@ -44,7 +44,8 @@ namespace emph {
       std::string Name() const { return fName;}
       TVector3 Pos() const { return fPos;}
       double Dw() const { return fDw;}
-      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
+      void LocalToMaster(double x1[3], double x2[3]) const { fGeoMatrix->LocalToMaster(x1,x2); }
+      //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
       void SetName(std::string n) {fName = n; }
       void SetPos(TVector3 pos) {fPos = pos;}
@@ -74,13 +75,17 @@ namespace emph {
       double Width() const { return fWidth;}
       double Height() const { return fHeight;}
       sensorView View() const;
+      int  Id() const { return fId; }
+
       void AddStrip(Strip strip) {fStrip.push_back(strip); }
 
       void SetGeoMatrix(TGeoMatrix* m) {fGeoMatrix = m; }
+      void SetGeoMatrixMount(TGeoMatrix* m) {fGeoMatrixMount = m; }
       void SetName(std::string n) {fName = n; }
       void SetPos(TVector3 pos) {fPos = pos;}
       void SetRot(double rot) {fRot = rot;}
       void SetFlip(bool flip) {fFlip = flip;}
+      void SetId(int id) {fId = id;}
       //				void SetX(double x) {fX = x;}
       //				void SetY(double y) {fY = y;}
       void SetDz(double dz) {fDz = dz;}
@@ -88,9 +93,10 @@ namespace emph {
       void SetHeight(double h) {fHeight = h;}
       int NStrips() const {return (int)fStrip.size(); };
       const Strip* GetStrip(int i) const {return &fStrip[i]; }
-      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
+      void LocalToMaster(double x1[3], double x2[3]) const;
 
     private:    
+      int   fId;
       std::string fName;
       TVector3 fPos;
       double fRot; // rotation in x-y plane, starting from y-axis (fRot = 0 for y-axis), anticlockwise as seen by the beam
@@ -100,6 +106,7 @@ namespace emph {
       double fHeight;
       std::vector<Strip> fStrip;
       TGeoMatrix* fGeoMatrix;
+      TGeoMatrix* fGeoMatrixMount;
     };
 
     class Plane {
@@ -136,7 +143,9 @@ namespace emph {
       double Dz() const { return fDz;}
       double Width() const { return fWidth; }
       double Height() const {return fHeight; }
-      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
+      void LocalToMaster(double x1[3], double x2[3]) const
+      {fGeoMatrix->LocalToMaster(x1,x2);}
+      //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
     private:
       std::string fName;
@@ -172,6 +181,8 @@ namespace emph {
       int NSSDPlanes() const { return fNSSDPlanes; }
       int NSSDs() const { return fNSSDs; }
       const SSDStation* GetSSDStation(int i) const {return &fSSDStation[i]; }
+      const Detector* GetSSDSensor(int i) {return fSSDSensorMap[i]; }
+      int GetSSDId(int station, int plane, int sensor) const;
 
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
@@ -210,7 +221,7 @@ namespace emph {
       bool   fDetectorLoad[NDetectors];
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
-
+      std::unordered_map<int, const Detector*> fSSDSensorMap;
       TGeoManager* fGeoManager;
 
     };
