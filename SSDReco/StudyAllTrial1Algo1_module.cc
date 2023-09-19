@@ -330,9 +330,11 @@ namespace emph {
 //       const bool debugIsOn = (fEvtNum < 20);
        bool debugIsOn = false;
 // Run 1274, sorting out Station 4 and 5, negative Y... Running on Spill 10 only
-       debugIsOn = ((fRun == 1274) && ((fEvtNum == 1209) || (fEvtNum == 3462) || (fEvtNum == 3472) || 
-                               (fEvtNum == 4244) || (fEvtNum == 4476) || (fEvtNum == 6191)));
-	debugIsOn = ((fRun == 1293) && (fEvtNum < 20));		       
+//       debugIsOn = ((fRun == 1274) && ((fEvtNum == 1209) || (fEvtNum == 3462) || (fEvtNum == 3472) || 
+//                               (fEvtNum == 4244) || (fEvtNum == 4476) || (fEvtNum == 6191)));
+//	debugIsOn = ((fRun == 1293) && (fEvtNum < 20));		       
+//	debugIsOn = ((fRun == 1274) && (fEvtNum < 20));		       
+	debugIsOn = ((fRun == 1274) && (fSubRun == 10) && ((fEvtNum == 183) || (fEvtNum == 671)) );		       
     //
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
@@ -456,6 +458,16 @@ namespace emph {
       } 
       
       fDwnstrTrRec.RecAndFitIt(evt);
+      // 
+      // Saving for alignment ? 
+      //
+      if (fDwnstrTrRec.IsGoodForAlignment()) {
+	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
+	    fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
+      }
+
+      
+      fDwnstrTrRec.dumpStInfoForR();
       //
       // Cut on track multiplities 
       // 
@@ -465,7 +477,6 @@ namespace emph {
       if (debugIsOn) std::cerr << " .... O.K., Number of downstream tracks...  " << fDwnstrTrRec.Size() << std::endl;
       
       if (fUpStreamBeamTrRec.Size() > 0) fUpStreamBeamTrRec.dumpXYInforR(1);
-      fDwnstrTrRec.dumpStInfoForR();
       fDwnstrTrRec.dumpInfoForR();
       if (debugIsOn) std::cerr << " Check evt number.. after dumping Dwn tracks   " << fEvtNum << std::endl;
       //
