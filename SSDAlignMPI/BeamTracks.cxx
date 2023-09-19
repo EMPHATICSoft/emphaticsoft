@@ -23,7 +23,7 @@ namespace emph {
   namespace rbal {
   
     BeamTracks::BeamTracks() :
-    myGeo(emph::rbal::BTAlignGeom::getInstance()), fNoMagnet(false) {; } 
+    myGeo(emph::rbal::BTAlignGeom::getInstance()), fNoMagnet(false), fSelectedView('A') {; } 
       
 
     void BeamTracks::DumpForCVS(const char *fName) const {
@@ -31,6 +31,7 @@ namespace emph {
       std::vector<BeamTrack>::const_iterator it0 = fData.cbegin();
       if ((it0->Type().find("2D") != 0) && (it0->Type().find("3D") != 0)) return;
       std::ofstream fOut(fName);
+      std::cerr << " BeamTracks::DumpForCVS Number of tracks " << fData.size() << std::endl;
       bool is2DX = (it0->Type() == std::string("2DX")); 
       bool is2DY = (it0->Type() == std::string("2DY"));
       bool is3D =  (it0->Type() == std::string("3D"));

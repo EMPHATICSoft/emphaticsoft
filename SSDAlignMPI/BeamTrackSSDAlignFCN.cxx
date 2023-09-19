@@ -31,7 +31,8 @@ namespace emph {
     myParams(emph::rbal::SSDAlignParams::getInstance()),
     myBTIn(DataIn), 
     fFitType(aFitType), fIsMC(false), fNoMagnet(false),
-    fStrictSt6(true), fBeamConstraint(false), fAlignMode(true), fDoAntiPencilBeam(false), fDoAllowLongShiftByStation(false),
+    fStrictSt6(true), fBeamConstraint(false), fAlignMode(true), fDoAntiPencilBeam(false), fSelectedView('A'), 
+    fDoAllowLongShiftByStation(false),
     fAssumedSlopeSigma(1.0),  
     fBeamBetaFunctionY(1357.), fBeamBetaFunctionX(377.), // in cm 
     fBeamAlphaFunctionY(-25.11), fBeamAlphaFunctionX(-8.63), // in cm 
@@ -114,7 +115,8 @@ namespace emph {
       //
       // Loop over all the tracks. 
       //
-     emph::rbal::BeamTracks myBTrs; 
+     emph::rbal::BeamTracks myBTrs;
+     myBTrs.SetSelectedView(fSelectedView); 
      size_t iEvt = 0;
      size_t kk=0;
      size_t nOKs = 0;
@@ -123,6 +125,7 @@ namespace emph {
      for (std::vector<emph::rbal::BeamTrackCluster>::const_iterator it = myBTIn->cbegin(); it != myBTIn->cend(); it++, kk++) {
        if (!it->Keep()) continue; 
        emph::rbal::BeamTrack aTr;
+       aTr.SetSelectedView(fSelectedView);
        if ((!flagTracks) && (kk < fIsOK.size()) && (!fIsOK[kk])) continue;
        aTr.SetMCFlag(fIsMC);
        aTr.SetNoMagnet(fNoMagnet);
@@ -130,6 +133,7 @@ namespace emph {
        aTr.SetAlignMode(fAlignMode); 
        aTr.SetNominalMomentum(fNominalMomentum);
        aTr.SetDebug(fDebugIsOn && (iEvt < 5));
+//       if ((kk % 100) == 0) std::cerr << " BeamTrackSSDAlignFCN::operator, at evt " << kk << std::endl;
 //       aTr.SetDebug(true);
        if (fFitType == std::string("2DY")) { 
          aTr.doFit2D('Y', it); 
@@ -170,8 +174,10 @@ namespace emph {
      }
 //      std::cerr << " BeamTrackSSDAlignFCN, operator(), on rank " << myRank << " MPI Barrier, nOKs " << nOKs << std::endl; 
       MPI_Barrier(MPI_COMM_WORLD);
-     if (fDebugIsOn && (myRank < 10))  std::cerr << " .... from rank " << myRank << " .. Did all the tracks fits.. " 
-                 << iEvt << " of them " << " successful " <<  nOKs << " check size of container " << myBTrs.size() << std::endl;
+//     if (fDebugIsOn && (myRank < 10))  std::cerr << " .... from rank " << myRank << " .. Did all the tracks fits.. " 
+//                 << iEvt << " of them " << " successful " <<  nOKs << " check size of container " << myBTrs.size() << std::endl;
+//     if ((myRank < 10))  std::cerr << " .... from rank " << myRank << " .. Did all the tracks fits.. " 
+//                 << iEvt << " of them " << " successful " <<  nOKs << " check size of container " << myBTrs.size() << std::endl;
      // 	
      // Adding beam Constraint
      //

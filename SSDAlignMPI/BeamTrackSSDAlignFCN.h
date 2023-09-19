@@ -38,6 +38,7 @@ namespace emph{
       bool fAlignMode;
       bool fDoAllowLongShiftByStation;
       bool fDoAntiPencilBeam; 
+      char fSelectedView;
       double fAssumedSlopeSigma;
       double fBeamBetaFunctionY, fBeamBetaFunctionX;
       double fBeamAlphaFunctionY, fBeamAlphaFunctionX;
@@ -63,6 +64,7 @@ namespace emph{
          if (v) std::cerr << " BeamTrackSSDAlignFCN, This is will be a Monte Carlo study " << std::endl;
 	 else  std::cerr << " BeamTrackSSDAlignFCN, This is will be a study on Real Data" << std::endl;
       } 
+      void SetSelectedView(char v = 'A') {fSelectedView = v;}
       void SetPtrInput(emph::rbal::BTAlignInput *in) { myBTIn = in;}
       void SetUpLimForChiSq(double u) {  fUpLimForChiSq = u;}
       void SetFitType(const std::string &aft) { fFitType = aft; } 

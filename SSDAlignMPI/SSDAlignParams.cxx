@@ -47,6 +47,7 @@ namespace emph {
 	fSubTypeDirectory.push_back(std::string("TrTiltRollShift"));
 	fSubTypeDirectory.push_back(std::string("TrShiftX456"));
 	fSubTypeDirectory.push_back(std::string("TrShiftXYOnly"));
+	fSubTypeDirectory.push_back(std::string("TrShiftXYWOnly"));
 	fSubTypeDirectory.push_back(std::string("TrShiftXOnly"));
 	fSubTypeDirectory.push_back(std::string("TrShiftYOnly"));
 	fSubTypeDirectory.push_back(std::string("TrZShift"));
@@ -481,6 +482,14 @@ namespace emph {
 	  const std::string aName(it->Name());
 	  if (aName.find("TransShift") != 0) continue; 
 	  if ((it->View() == 'X') || (it->View() == 'Y')) it->SetFixedInMinuit(false);
+	}
+      }
+      if (fitSubType == std::string("TrShiftXYWOnly")) { // Phase1b 
+        for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+          it->SetFixedInMinuit(true); // by default, nothing moves. 
+	  const std::string aName(it->Name());
+	  if (aName.find("TransShift") != 0) continue; 
+	  if ((it->View() == 'X') || (it->View() == 'Y') || (it->View() == 'V')) it->SetFixedInMinuit(false);
 	}
       }
       

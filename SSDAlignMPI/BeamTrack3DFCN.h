@@ -30,6 +30,7 @@ namespace emph{
       bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
       bool fNoMagnet; // to align on 120 GeV. 
       bool fDebugIsOn;
+      char fSelectedView;
       size_t fNumSensorsTotal;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
       double fErrorDef, fOneOverSqrt2, fOneOSqrt12; // for Minuit. 
@@ -53,6 +54,7 @@ namespace emph{
 	return DBL_MAX;
       }
       inline void resetNumCalls() { fNCalls = 0; }
+      inline void SetSelectedView(char v) { fSelectedView = v; } 
       
       inline void SetDebugOn(bool v=true) { fDebugIsOn = v; }
      };

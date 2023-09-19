@@ -31,6 +31,7 @@ namespace emph {
     double BeamTrack2DFCN::operator()(const std::vector<double> &pars) const {
     
 //      const bool debugIsOn = (pars[0] < 0.5) ;
+      std::cerr << " Obsolete.. quit here and now " << std::endl; exit(2);
       const bool debugIsOn = false;
       if (debugIsOn) std::cerr << " BeamTrack2DFCN::operator()  Number of parameters " << pars.size() 
                                << " view " << fView <<  " pars[0] " << pars[0] << std::endl;
@@ -59,33 +60,13 @@ namespace emph {
 	if ((fView == 'X') && (z > zMag))  xPred += (z  -  zMag) *  kick;
 	if (debugIsOn) std::cerr << " .... Prediction x0 " << x0 << " slope " << slx0 << " Magnetic kick " << kick << std::endl;
 	double xMeas = 0.;
-	if (!fIsMC) { 
-	  if (fView == 'X') {
-	    xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe));
-	    if (kSe >= 4) xMeas *= -1.0;
-	    if (z > zMag) xPred += (z  -  zMag) *  kick; // Why doing it twice ???? This is likely to be a bug. 
-          } else {
-	    xMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(fView, kSe)) :
-	                      ( -strip*pitch + myGeo->TrPos(fView, kSe)) ;
-	  		      
-	  }
-	} else {
-//	  std::cerr << " Assuming Monte-Carlo .. Tr Pos assumed " << myGeo->TrPos(fView, kSe) << std::endl;
-	  if (fView == 'X') {
-	    if (kSe < 4) {
-	      xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe)); // Same as above. 
-	    } else  {
-	      xMeas =  -strip*pitch + myGeo->TrPos(fView, kSe);
-	    }
-	    if ((kSe > 3) && (kSe % 2) == 1) xMeas *=-1;      
-          } else { // Y view 
-	      
-	      xMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(fView, kSe)) :
-	                      ( strip*pitch - myGeo->TrPos(fView, kSe)) ;
-	      if ((kSe > 3) && (kSe % 2) == 1) xMeas *=-1;      
-	  }
-	}  // MC vs real data.. Sign and offset convention might differ.. Ugly... 
-	
+	if (fView == 'X') {
+	  xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe));
+	  if ((kSe >= 4) && ((kSe % 2) == 1)) xMeas *= -1.0;
+	} else if (fView == 'Y') {
+	  xMeas =  ( strip*pitch + myGeo->TrPos(fView, kSe));
+	  if (kSe >= 4) xMeas =  ( -1.0*strip*pitch + myGeo->TrPos(fView, kSe));
+	}
 	double xMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
 	const double dx = (xPred - xMeas); fResids[kSe] = dx;
 	if (debugIsOn) std::cerr << " ...... kSe " << kSe << " strip " << strip << " pitch " << pitch 

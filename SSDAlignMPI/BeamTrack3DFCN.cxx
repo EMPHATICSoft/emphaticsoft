@@ -27,7 +27,7 @@ namespace emph {
   namespace rbal {
     
     BeamTrack3DFCN::BeamTrack3DFCN() :
-    myGeo(emph::rbal::BTAlignGeom::getInstance()), fIsMC(true), fNoMagnet(false),
+    myGeo(emph::rbal::BTAlignGeom::getInstance()), fIsMC(true), fNoMagnet(false), fDebugIsOn(false), fSelectedView('A'),
     fNumSensorsTotal(2*myGeo->NumSensorsXorY() + myGeo->NumSensorsU() + myGeo->NumSensorsV()),
     FCNBase(),
     fItCl(NULL), fErrorDef(1.), fOneOverSqrt2(1.0/std::sqrt(2.)), fNominalMomentum(120.),
@@ -52,7 +52,6 @@ namespace emph {
 //      const bool neglectFringeFieldDown = false;
 //      const bool debugIsOn = ((pars[0] > 0.25) && (pars[2] < -0.25)); 
       if (debugIsOn) std::cerr << "BeamTrack3DFCN::operator, number of track parameters " << pars.size() << std::endl;  
-      if (debugIsOn && fIsMC) std::cerr << " ... Assume Monte Carlo sign conventions  " << std::endl;
       const double integrationStepSize = myGeo->IntegrationStepSize();
       if (!fNoMagnet) {
         // If we bother to integrate the field for a given 4D phase space space at station 0, might as well fit the momentum
@@ -182,14 +181,19 @@ namespace emph {
           }	
         }
       } // NoMagnet 
-      std::vector<char> views{'X', 'Y', 'U', 'V'};
+      std::vector<char> views{'X', 'Y', 'V', 'U'}; // Switch U and V for data!!! Sept 15 2016. 
       size_t kSeT = 0;
       for (int iView = 0; iView !=4; iView++) { 
         char aView = views[iView];
+	if (fSelectedView != 'A') { // Complicated and perhaps confusing logic... 
+	   if (((fSelectedView == 'X') || (fSelectedView == 'Y')) && (aView != fSelectedView)) continue;
+	   if ((fSelectedView == 'Z') && (iView > 1)) continue;
+	   if ((fSelectedView == 'W') && (iView == 3)) continue; // For TrShiftXYW (reject the Station 4 & 5 stereo views ) 
+	}   
         size_t numS = myGeo->NumSensorsXorY();
 	if (aView == 'U') numS = myGeo->NumSensorsU(); 
 	if (aView == 'V') numS = myGeo->NumSensorsV();
-	if (debugIsOn) std::cerr << " .... At View " << aView << std::endl;
+	if (debugIsOn) std::cerr << " .... At View " << aView << " numS " << std::endl;
         for (size_t kSe = 0; kSe != numS; kSe++) {
 	  fResids[kSeT] = DBL_MAX;
           const double rmsStr = std::max(0.1, fItCl->TheRmsStrip(aView, kSe)); // some very small RMS reappaered.. To be investigated. 
@@ -222,84 +226,56 @@ namespace emph {
 	    } else {
 	      kSxy = (kSe < 2) ? 4 : 6;
 	    }
-	    if (fIsMC) { //  X to minus, hyterical reason
-	       uPred = fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]);
-	       vPred = -1.0*fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]);
-	    } else { // Debugging for real data.. Run 1043, May 29 
-	      uPred = fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]);
-	      vPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]);
-	    }
+	    uPred = fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]);
+	    vPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]);
 	    tPred = (aView == 'U') ? uPred + ( vPred - angleRollCenter) * angleRoll :  
 	                             vPred + ( uPred  - angleRollCenter) * angleRoll ;
 	  }
-	  if (!fIsMC) { 
-	    if (aView == 'X') {
-	      tMeas =  ( -1.0*strip*pitch + myGeo->TrPos(aView, kSe));
-	      if ((kSe >= 4) && ((kSe % 2) == 1)) tMeas *= -1.0;
-	    } else if (aView == 'Y') {
-	      tMeas =  ( strip*pitch + myGeo->TrPos(aView, kSe));
-	      if (kSe >= 4) tMeas =  ( -1.0*strip*pitch + myGeo->TrPos(aView, kSe));
-//	      if (std::abs(tMeas) > 60.) {
-//	        std::cerr << " BeamTrack3DFCN::operator(), Y view, anomalously large coordinate, " 
-//		          << kSe  << " tMeas " << tMeas << " and quit here.. " <<  std::endl; exit(2);
-//	      }
-	    } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
-	     /// To be reviewed.. for data.. 
-	      tPred = (aView == 'U') ? uPred + (vPred - angleRollCenter) * angleRoll :  
-	                               vPred + (uPred - angleRollCenter) * angleRoll ;
-	      if (aView == 'U') { 
-	        tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
-	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
-	        if (kSe == 0) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); // Tested, on run 1274, June 5  
-	        else if (kSe == 1) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
-	        else if (kSe == 2) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); //  Jun 5 2023, better than the June 3 option, 
-//	        else if (kSe == 2) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));  // June  3 
-	        else if (kSe == 3) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe)); // exploring... 
-	      }
+	  if (aView == 'X') {
+	    tMeas =  ( -1.0*strip*pitch + myGeo->TrPos(aView, kSe));
+	    if ((kSe >= 4) && ((kSe % 2) == 1)) tMeas *= -1.0;
+	  } else if (aView == 'Y') {
+	    tMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(aView, kSe)) :
+			     ( -1.0*strip*pitch + myGeo->TrPos(aView, kSe)); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10
+	    if (((kSe % 2) == 0) && (kSe > 3)) tMeas *= -1.0; // kse ranges from 0 to 7, not the sensor index within the station. 
+//	    if (std::abs(tMeas) > 60.) {
+//	      std::cerr << " BeamTrack3DFCN::operator(), Y view, anomalously large coordinate, " 
+//	        	<< kSe  << " tMeas " << tMeas << " and quit here.. " <<  std::endl; exit(2);
+//	    }
+	  } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
+	   /// To be reviewed.. for data.. 
+	    tPred = (aView == 'U') ? uPred + (vPred - angleRollCenter) * angleRoll :  
+	  			     vPred + (uPred - angleRollCenter) * angleRoll ;
+	    if (aView == 'V') { 
+	      tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
+	    } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
+	      if (kSe == 0) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); // Tested, on run 1274, June 5  
+	      else if (kSe == 1) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
+	      else if (kSe == 2) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); //  Jun 5 2023, better than the June 3 option, 
+//	      else if (kSe == 2) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));  // June  3 
+	      else if (kSe == 3) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe)); // exploring... 
 	    }
-	    if (debugIsOn)     std::cerr << " ..... So, pred is now " << tPred << " and .. for real data,.. for this view " 
+	  }
+	  if (debugIsOn)     std::cerr << " ..... So, pred is now " << tPred << " and .. for MC or real data,.. for this view " 
 	                                 << aView << " tMeas " << tMeas  << std::endl; 
-	  } else { // Monte Carlo Convention 
-	    if (aView == 'X') {
-	      tMeas = ( -1.0 * strip*pitch + myGeo->TrPos(aView, kSe));
-	      if (debugIsOn && (kSe == 7)) std::cerr << " ....X view confirming sensor kSe 7  strip " 
-	                << strip << " TrPos " << myGeo->TrPos(aView, kSe) << std::endl;
-	      if ((kSe > 3) && (kSe % 2) == 1) tMeas *=-1;      
-	    } else if (aView == 'Y') {
-	      tMeas = (kSe < 4) ? ( strip*pitch + myGeo->TrPos(aView, kSe)) :
-	                      ( strip*pitch - myGeo->TrPos(aView, kSe)) ;
-	      if ((kSe > 3) && (kSe % 2) == 1) tMeas *=-1;      
-	    } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
-	      if (aView == 'U') { 
-	        tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
-	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics.
-	       // But this is MC convention, we should know!!!!  
-	        tMeas = (strip*pitch + myGeo->TrPos(aView, kSe)); // Unknown, this is a place holder. 
-	        if ((kSe % 2) ==  1) tMeas *= -1.0;
-		
-	      }
-	    }
-	    if (debugIsOn)     std::cerr << " .....So, pred is now " << tPred 
-	                  << " and for MC data, for  this view " << aView << " tMeas " << tMeas  << std::endl; 
-	    }
-	    const double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
-	    const double dt = (tPred - tMeas);
-	    fResids[kSeT] = dt;
-	    kSeT++;
-	    const double deltaChiSq = (dt * dt )/tMeasErrSq;
-	    chi2 += deltaChiSq;
-	    if (debugIsOn) std::cerr << " ....... Meas err " << std::sqrt(pitch*pitch*stripErrSq) << "  multScatErr " << multScatErr 
-	                << " unknownErr " << unknownErr << "  dt  " << dt <<  " Current delta chi2 " << deltaChiSq << std::endl;
-//          if ((fItCl->EvtNum() == 16) && (fItCl->Spill() == 10)) 
-//	    std::cerr << " Debugging bad offsets for evt 16, spill 10 View " << aView 
-//	              << " kSe " << kSe << " tPred " <<  tPred << " tMeas " << tMeas 
-//		      << " tMeasErrSq " << tMeasErrSq << " chi2 " << chi2 << std::endl;
+	  const double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
+	  const double dt = (tPred - tMeas);
+	  fResids[kSeT] = dt;
+	  kSeT++;
+	  const double deltaChiSq = (dt * dt )/tMeasErrSq;
+	  chi2 += deltaChiSq;
+	  if (debugIsOn) std::cerr << " ....... Meas err " << std::sqrt(pitch*pitch*stripErrSq) << "  multScatErr " << multScatErr 
+	  	      << " unknownErr " << unknownErr << "  dt  " << dt <<  " Current delta chi2 " << deltaChiSq << std::endl;
+//        if ((fItCl->EvtNum() == 16) && (fItCl->Spill() == 10)) 
+//	  std::cerr << " Debugging bad offsets for evt 16, spill 10 View " << aView 
+//	  	    << " kSe " << kSe << " tPred " <<  tPred << " tMeas " << tMeas 
+//	            << " tMeasErrSq " << tMeasErrSq << " chi2 " << chi2 << std::endl;
 //	  
 	} // on the sensors. 
       } // on the views 
       if (std::isnan(chi2)) return 2.5e9; // Should not need this protection.. 
-      if (debugIsOn) std::cerr << " BeamTrack3DFCN::operator(), done chiSq " << chi2 << std::endl;
-//      if (debugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
+      if (debugIsOn) std::cerr << " BeamTrack3DFCN::operator(), Selected View " << fSelectedView << " done chiSq " << chi2 << std::endl;
+      if (debugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
       return chi2;
     }
      

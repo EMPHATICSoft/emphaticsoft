@@ -31,12 +31,15 @@ namespace emph {
 	 exit(2);
        }
        std::string fNameStr(fName);
-       bool hasTrId = ( (fNameStr.find("1366") != std::string::npos) && ((fNameStr.find("V1f") != std::string::npos) || 
-                       (fNameStr.find("V1g") != std::string::npos))); // run dependent.. messy.. Check ..Two different gen compact.. 
+//       bool hasTrId = ( (fNameStr.find("1366") != std::string::npos) && ((fNameStr.find("V1f") != std::string::npos) || 
+//                       (fNameStr.find("V1g") != std::string::npos))); // run dependent.. messy.. Check ..Two different gen compact.. Deprecated!!! 
+       bool hasTrId = (fNameStr.find("V1g") != std::string::npos); 
        int nEvtRead = 0;
        int aKey, numDoublePerEvt, spill, evt, trId;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
        double stripInfo[2];
+       int spillIncrement = (fDat.size() == 0) ? 0 : spillIncrement = fDat.rbegin()->Spill();
+       // in case we concatenate multiple simulated samples..
        while (fIn.good()) {
          XViewData.clear(); YViewData.clear(); UViewData.clear(); VViewData.clear();
 	 int triD = 0; 
@@ -64,17 +67,20 @@ namespace emph {
 	 for (int k=0; k != fNumStations+2; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
 	   YViewData.push_back(stripInfo[0]); YViewData.push_back(stripInfo[1]); 
+//	   if (evt == 54) std::cerr << " BTAlignInput::FillItFromFile evt " << evt << " Y view strpinfo " << stripInfo[0] << " / " <<  stripInfo[1] << std::endl;
 	 }
 	 for (int k=0; k != 2; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
-	   UViewData.push_back(stripInfo[0]); UViewData.push_back(stripInfo[1]); 
+	   VViewData.push_back(stripInfo[0]); VViewData.push_back(stripInfo[1]); 
+//	   if (evt == 54) std::cerr << " BTAlignInput::FillItFromFile evt " << evt << " U view strpinfo " << stripInfo[0] << " / " <<  stripInfo[1] << std::endl;
 	 }
 	 for (int k=0; k != 4; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
-	   VViewData.push_back(stripInfo[0]); VViewData.push_back(stripInfo[1]); 
+	   UViewData.push_back(stripInfo[0]); UViewData.push_back(stripInfo[1]); 
+//	   if (evt == 54) std::cerr << " BTAlignInput::FillItFromFile evt " << evt << " V view strpinfo " << stripInfo[0] << " / " <<  stripInfo[1] << std::endl;
 	 }
 	 if ((selSpill != INT_MAX) && (spill != selSpill)) continue;
-	 BeamTrackCluster aBT(spill, evt, trId,  XViewData, YViewData, UViewData, VViewData);
+	 BeamTrackCluster aBT(spill + spillIncrement, evt, trId,  XViewData, YViewData, UViewData, VViewData);
 	 fDat.push_back(aBT);
 	 nEvtRead++;
 	 if (nEvtRead == nEvtExpected) {

@@ -33,9 +33,11 @@ namespace emph{
     private:
       BTAlignGeom* myGeo; // should not be needed, but does not hurt.. 
       bool fNoMagnet;
+      char fSelectedView;
       std::vector<BeamTrack> fData;
       
     public:
+      inline void SetSelectedView(char v = 'A') { fSelectedView = v; }
       inline void SetNoMagnet(bool v=true) {
         fNoMagnet = v;
 	for (std::vector<BeamTrack>::iterator it = fData.begin(); it != fData.end(); it++) it->SetNoMagnet(v); 

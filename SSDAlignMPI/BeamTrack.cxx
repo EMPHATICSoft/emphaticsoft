@@ -30,7 +30,7 @@ namespace emph {
   
     BeamTrack::BeamTrack() : 
       myGeo(emph::rbal::BTAlignGeom::getInstance()),
-      fDebugIsOn(false), fDoMigrad(false), fAlignMode(true), fNoMagnet(false),
+      fDebugIsOn(false), fDoMigrad(false), fAlignMode(true), fNoMagnet(false), fSelectedView('A'), 
       fNumSensorsXorY(myGeo->NumSensorsXorY()),
       fNumSensorsU(myGeo->NumSensorsU()),
       fNumSensorsV(myGeo->NumSensorsV()),
@@ -42,7 +42,7 @@ namespace emph {
       {  ; } 
     
      double BeamTrack::doFit2D(char view, std::vector<BeamTrackCluster>::const_iterator it) {
-     
+       std::cerr << " Obsolete, deprecated, quit here and now .. " << std::endl; exit(2);
        fSpill = it->Spill();   fEvtNum = it->EvtNum();
        fType = (view  == 'X') ? std::string("2DX") : std::string("2DY"); 
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit2D for event " << it->EvtNum() << " Spill " << it->Spill() 
@@ -129,13 +129,14 @@ namespace emph {
 //       fDebugIsOn = ((rmsV4b < 100.) && (fEvtNum > 42)); 
 //       if (fDebugIsOn) 
 //         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
-       fDebugIsOn = false;
-//         fDebugIsOn = ((fEvtNum == 48)  && (fSpill == 100));
-	 if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
-       fFcn3D.SetDebugOn(fDebugIsOn);
+        fDebugIsOn = false;
+//         fDebugIsOn = ((fEvtNum == 5)  && (fSpill == 10));
+	 if (fDebugIsOn)  std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
+       fFcn3D.SetDebugOn(false);
        // 
        fType = std::string("3D");
        fFcn3D.SetClusterPtr(it);
+       fFcn3D.SetSelectedView(fSelectedView);
        fchiSq = -1.0;
        const double pMonStartVal = fAlignMode ? fNominalMomentum :  50.; // Hardcoded intial value!  Need to get it from the main..
        fFcn3D.SetNominalMomentum(fNominalMomentum);
@@ -169,10 +170,23 @@ namespace emph {
        double minFValM = 0.;
        std::vector<double> finalParams(numPars, 0);
        bool okFit = true;
-         if (fDoMigrad) {
+//       if (fDoMigrad) std::cerr << " Doing Migrad... "; 
+//       else std::cerr << " Simplex Minimizer ... "; 
+//       std::cerr << " fSelectedView is " << fSelectedView << " and quit here and now.. " << std::endl; exit(2);
+       if (fDoMigrad) {
        //
          ROOT::Minuit2::MnMigrad migrad(fFcn3D, uPars);
 	 if ((!fNoMagnet) && fAlignMode) migrad.Fix("PMom");
+	 if (fSelectedView == 'Y') {
+	   migrad.Fix("XOffset");
+	   migrad.Fix("XSlope");
+	   migrad.Fix("PMom");
+	 }
+	 if (fSelectedView == 'X') {
+	   migrad.Fix("YOffset");
+	   migrad.Fix("YSlope");
+	   migrad.Fix("PMom");
+	 }
        //
         ROOT::Minuit2::FunctionMinimum min = migrad(1000, 0.1);
 	 if (!min.IsValid() && (numPars == 5) && (!fNoMagnet)) { //  try again, flipping the sign of slopes, whatever they are in this first minimization. 
@@ -222,7 +236,18 @@ namespace emph {
 	   initValsV.push_back(pMonStartVal); initValsE.push_back(5.0);
 	 }
          ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
-	 // set a maximum number of calls to FCN.  Strategy is the default one. 
+/*
+	 if (fSelectedView == 'Y') {
+	   theMinimizer.Fix("XOffset");
+	   theMinimizer.Fix("XSlope");
+	   theMinimizer.Fix("PMom");
+	 }
+	 if (fSelectedView == 'X') {
+	   theMinimizer.Fix("YOffset");
+	   theMinimizer.Fix("YSlope");
+	   theMinimizer.Fix("PMom");
+	 }
+*/	 // set a maximum number of calls to FCN.  Strategy is the default one. 
 	 ROOT::Minuit2::FunctionMinimum min = theMinimizer.Minimize(fFcn3D, initValsV, initValsE, 1, 200, 0.1);
  	 const std::vector<double> myErrs = min.UserParameters().Errors();
          if (fDebugIsOn) std::cerr << " Minimize minimum " << min << std::endl; 
@@ -245,18 +270,23 @@ namespace emph {
        } 
        double finalChi = fFcn3D(finalParams);
        fchiSq = finalChi;
+       if (!okFit) {
+         if (fDebugIsOn) std::cerr <<  " Fit failed, reject this track.. " << std::endl;
+	 fchiSq = -1.0e8;
+	 return fchiSq;
+       }
        if (std::abs(finalChi - minFValM )/finalChi >  1.0e-6) {
          std::cerr << " BeamTrack::doFit3D gave non-reproducible chi-Square.. " << minFValM << " vs  finalChi " 
 		    << finalChi << "  Something wrong, quit here and now " << std::endl;
 		    exit(2);
        }
        for (size_t kSe = 0; kSe != fresids.size(); kSe++) fresids[kSe] = fFcn3D.Resid(kSe);
-       if ((!okFit) || (std::abs(fx0) > 150.) || (std::abs(fy0) > 150.)) {
-          std::cerr << " Detecting funky x0 or y0 value " << fx0 << " fy0 " << fy0 << " quit here and now .. " << std::endl; exit(2);
+       if (fDebugIsOn && ((std::abs(fx0) > 150.) || (std::abs(fy0) > 150.))) {
+          std::cerr << " Detecting funky x0 or y0 value " << fx0 << " fy0 " << fy0 << " reject this track " << std::endl; 
           fchiSq *=- 1.0;
        }
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 
-       if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
+//       if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
        return fchiSq;
      }
      

@@ -23,8 +23,8 @@ namespace emph{
         BTAlignGeom();
         const size_t fNumStations = 6; // For Phase1b 
         const size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
-        const size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each 
-        const size_t fNumSensorsV = 4; // Station 4 and 5, two sensors each 
+        const size_t fNumSensorsW = 2; // Station 2 and 3, one sensor each 
+        const size_t fNumSensorsU = 4; // Station 4 and 5, two sensors each : Note Sept 14 2023 : Switch U and V, W(a.k.a. V) is now upstream of the magnet.  
 	const size_t fNumStrips = 639; // to be verified at some point.. Consitent with the gdml, I think.. 
 	//
 	double fZCoordsMagnetCenter; 
@@ -34,24 +34,24 @@ namespace emph{
 	double fHalfWaferWidth;
 	double fIntegrationStepSize;
 	// all dimension to the number of sensors (or SSD wafer), view by view. , in order of increasing Z 
-	std::vector<double> fZNomPosX, fZNomPosY, fZNomPosU, fZNomPosV; // Z position, nominal, as is in phase1b.gdml  
- 	std::vector<double> fZDeltaPosX, fZDeltaPosY, fZDeltaPosU, fZDeltaPosV; // Z position tweaks, as determined by this package, from the multiBT fitter.  
-	std::vector<double> fTrNomPosX, fTrNomPosY, fTrNomPosU, fTrNomPosV; // Transverse position, nominal 
- 	std::vector<double> fTrDeltaPosX, fTrDeltaPosY, fTrDeltaPosU, fTrDeltaPosV; // Transverse tweaks. 
- 	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY, fTrDeltaPitchU, fTrDeltaPitchV; // Yaw or Pitch angle, leading to a reduced pitch. 
+	std::vector<double> fZNomPosX, fZNomPosY, fZNomPosSt2and3, fZNomPosSt4and5; // Z position, nominal, as is in phase1b.gdml  
+ 	std::vector<double> fZDeltaPosX, fZDeltaPosY, fZDeltaPosSt2and3, fZDeltaPosSt4and5; // Z position tweaks, as determined by this package, from the multiBT fitter.  
+	std::vector<double> fTrNomPosX, fTrNomPosY, fTrNomPosSt2and3, fTrNomPosSt4and5; // Transverse position, nominal 
+ 	std::vector<double> fTrDeltaPosX, fTrDeltaPosY, fTrDeltaPosSt2and3, fTrDeltaPosSt4and5; // Transverse tweaks. 
+ 	std::vector<double> fTrDeltaPitchX, fTrDeltaPitchY, fTrDeltaPitchSt2and3, fTrDeltaPitchSt4and5; // Yaw or Pitch angle, leading to a reduced pitch. 
 	// Pitch = nominal Pitch * ( 1 - fTrDeltaPitchX), as cos(Yaw) ~ (1.0 - Yaw*yaw)  DeltaPitch always a positive quantity. 
- 	std::vector<double> fRollX, fRollY, fRollU, fRollV; // Roll angle,
- 	std::vector<double> fRollXC, fRollYC, fRollUC, fRollVC; // Center of rotation with respect to the center of the coordinate system. 
+ 	std::vector<double> fRollX, fRollY, fRollSt2and3, fRollSt4and5; // Roll angle,
+ 	std::vector<double> fRollXC, fRollYC, fRollSt2and3C, fRollSt4and5C; // Center of rotation with respect to the center of the coordinate system. 
 	// For intance, for X view,  x -> x + y*fRollX, where cos(roll angle) ~ 1.0 and sin(roll angle) ~ roll angle
 	// Although not strictly geometrical, the following uncertainties are part of this singleton. 
 	// May 21 -22 : add a correction to the uncertainty on where the rotation center is.. 
 	// So x -> x + ( y - fRollXC)*fRollX, where, it is likely that fRollXC is of the order of tens of mm.  
-	std::vector<double> fMultScatUncertXorY, fMultScatUncertU, fMultScatUncertV;
-	std::vector<double> fUnknownUncertX, fUnknownUncertY, fUnknownUncertU, fUnknownUncertV;
+	std::vector<double> fMultScatUncertXorY, fMultScatUncertW, fMultScatUncertU;
+	std::vector<double> fUnknownUncertX, fUnknownUncertY, fUnknownUncertW, fUnknownUncertU;
 	//
 	// Internal variables, for quick access 
-	std::vector<double> fZPosX, fZPosY, fZPosU, fZPosV; 
-	std::vector<double> fTrPosX, fTrPosY, fTrPosU, fTrPosV; 
+	std::vector<double> fZPosX, fZPosY, fZPosSt2and3, fZPosSt4and5; 
+	std::vector<double> fTrPosX, fTrPosY, fTrPosSt2and3, fTrPosSt4and5; 
 	 
 	static BTAlignGeom* instancePtr;
 	
@@ -84,8 +84,8 @@ namespace emph{
 	inline size_t NumStations() const { return fNumStations; } 
 	inline size_t NumSensorsXorY() const { return fNumSensorsXorY; } 
 	inline size_t NumSensorsU() const { return fNumSensorsU; } 
-	inline size_t NumSensorsV() const { return fNumSensorsV; } 	
-	inline size_t NumSensorsW() const { return fNumSensorsV; }
+	inline size_t NumSensorsV() const { return fNumSensorsW; } 	
+	inline size_t NumSensorsW() const { return fNumSensorsW; }
 	inline size_t NumStrips() const { return fNumStrips; }
 	inline double ZCoordsMagnetCenter() const { return fZCoordsMagnetCenter; } 
 	inline double MagnetKick120GeV() const { return fMagnetKick120GeV; } 
@@ -98,9 +98,9 @@ namespace emph{
 	     return (fZPosX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fZPosY[kSe]); } 
-	    case 'U' :  { return (fZPosU[kSe]); } 
-	    case 'V' :  { return (fZPosV[kSe]); }
-	    case 'W' :  { return (fZPosV[kSe]); }
+	    case 'U' :  { return (fZPosSt4and5[kSe]); } 
+	    case 'V' :  { return (fZPosSt2and3[kSe]); }
+	    case 'W' :  { return (fZPosSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::ZPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -114,9 +114,9 @@ namespace emph{
 	     return (fTrPosX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fTrPosY[kSe]); } 
-	    case 'U' :  { return (fTrPosU[kSe]); } 
-	    case 'V' :  { return (fTrPosV[kSe]); }
-	    case 'W' :  { return (fTrPosV[kSe]); }
+	    case 'U' :  { return (fTrPosSt4and5[kSe]); } 
+	    case 'V' :  { return (fTrPosSt2and3[kSe]); }
+	    case 'W' :  { return (fTrPosSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::TrPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -130,9 +130,9 @@ namespace emph{
 	     return (fTrDeltaPitchX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fTrDeltaPitchY[kSe]); } 
-	    case 'U' :  { return (fTrDeltaPitchU[kSe]); } 
-	    case 'V' :  { return (fTrDeltaPitchV[kSe]); }
-	    case 'W' :  { return (fTrDeltaPitchV[kSe]); }
+	    case 'U' :  { return (fTrDeltaPitchSt4and5[kSe]); } 
+	    case 'V' :  { return (fTrDeltaPitchSt2and3[kSe]); }
+	    case 'W' :  { return (fTrDeltaPitchSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -146,9 +146,9 @@ namespace emph{
 	     return (fRollX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fRollY[kSe]); } 
-	    case 'U' :  { return (fRollU[kSe]); } 
-	    case 'V' :  { return (fRollV[kSe]); }
-	    case 'W' :  { return (fRollV[kSe]); }
+	    case 'U' :  { return (fRollSt4and5[kSe]); } 
+	    case 'V' :  { return (fRollSt2and3[kSe]); }
+	    case 'W' :  { return (fRollSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::Roll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -162,9 +162,9 @@ namespace emph{
 	     return (fRollXC[kSe]);  
 	    } 
 	    case 'Y' :  { return (fRollYC[kSe]); } 
-	    case 'U' :  { return (fRollUC[kSe]); } 
-	    case 'V' :  { return (fRollVC[kSe]); }
-	    case 'W' :  { return (fRollVC[kSe]); }
+	    case 'U' :  { return (fRollSt4and5C[kSe]); } 
+	    case 'V' :  { return (fRollSt2and3C[kSe]); }
+	    case 'W' :  { return (fRollSt2and3C[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::RollCenter, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -180,7 +180,7 @@ namespace emph{
 	    } 
 	    case 'Y' :  { return (fUnknownUncertY[kSe]); } 
 	    case 'U' :  { return (fUnknownUncertU[kSe]); } 
-	    case 'V' : case 'W' : { return (fUnknownUncertV[kSe]); }
+	    case 'V' : case 'W' : { return (fUnknownUncertW[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::UnknownUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -195,7 +195,7 @@ namespace emph{
 	     return (fMultScatUncertXorY[kSe]);  
 	    } 
 	    case 'U' :  { return (fMultScatUncertU[kSe]); } 
-	    case 'V' :  case 'W' :{ return (fMultScatUncertV[kSe]); }
+	    case 'V' :  case 'W' :{ return (fMultScatUncertW[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::MultScatUncert, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
