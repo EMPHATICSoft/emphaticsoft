@@ -92,9 +92,10 @@ namespace emph {
        
      }
      void VolatileAlignmentParams::UpdateNominalFromStandardGeom(emph::geo::Geometry *theGeo) {
-       std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom ....Y View updates only....  " << std::endl;
+       std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom ....Dump values, for use in SSDAlign...   " << std::endl;
        std::cerr << " Number of SSD Stations " << theGeo->NSSDStations() << std::endl;
        size_t iSensX=0; size_t iSensY=0; size_t iSensU=0; size_t iSensV=0;
+       std::vector<double> zPosSensorsX;  std::vector<double> zPosSensorsY; std::vector<double> zPosSensorsW; std::vector<double> zPosSensorsU;
        for (int kSt=0; kSt != theGeo->NSSDStations(); kSt++) { 
          const emph::geo::SSDStation aSt = theGeo->GetSSDStation(kSt);
 	 const TVector3 aStPos = aSt.Pos();
@@ -105,20 +106,47 @@ namespace emph {
 	   const TVector3 aSePos = aSensor.Pos();
 	   std::cerr << " ... ... At Sensor " << aSensor.Name() << " View " << aSensor.View()  
 	             << " Position, X  " << aSePos.X() << " Y " << aSePos.Y() << " Z " << aSePos.Z() << std::endl; 
-	   if (aSensor.View() == emph::geo::Y_VIEW) {
-	     if (aSensor.IsFlip()) 
-	        std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
-		          << " vs, flipped,  " << aSePos.Y() <<  " iSensY " <<iSensY <<  std::endl;
-	     else  std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
-		          << " vs, Not flipped,  " << aSePos.Y() << " iSensY " <<iSensY << std::endl;
-	   }	     
-           if (aSensor.View() == emph::geo::X_VIEW) iSensX++; 
-           if (aSensor.View() == emph::geo::Y_VIEW) iSensY++; 
-           if (aSensor.View() == emph::geo::U_VIEW) iSensU++; 
-           if (aSensor.View() == emph::geo::W_VIEW) iSensV++; 
+//	   if (aSensor.View() == emph::geo::Y_VIEW) {
+//	     if (aSensor.IsFlip()) 
+//	        std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
+//		          << " vs, flipped,  " << aSePos.Y() <<  " iSensY " <<iSensY <<  std::endl;
+//	     else  std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
+//		          << " vs, Not flipped,  " << aSePos.Y() << " iSensY " <<iSensY << std::endl;
+//	   }	     
+           if (aSensor.View() == emph::geo::X_VIEW) {
+	      iSensX++; 
+	      zPosSensorsX.push_back(aSePos.Z() + aStPos.Z()); 
+	   }
+           if (aSensor.View() == emph::geo::Y_VIEW)  {	   
+	      iSensY++; 
+	      zPosSensorsY.push_back(aSePos.Z() + aStPos.Z());
+	   } 
+           if (aSensor.View() == emph::geo::U_VIEW) {
+	      zPosSensorsU.push_back(aSePos.Z() + aStPos.Z());
+	      iSensU++; 
+	   }
+           if (aSensor.View() == emph::geo::W_VIEW) {
+	      iSensV++; 
+	      zPosSensorsW.push_back(aSePos.Z() + aStPos.Z());
+	   }
 	 }
 	 std::cerr << std::endl;
        }
+       std::cerr << " Z position Views X ";
+       for (std::vector<double>::const_iterator it=zPosSensorsX.cbegin(); it != zPosSensorsX.cend(); it++) std::cerr << " " << *it << ",";
+       std::cerr << std::endl << std::endl;
+       std::cerr << " Z position Views Y ";
+       for (std::vector<double>::const_iterator it=zPosSensorsY.cbegin(); it != zPosSensorsY.cend(); it++) std::cerr << " " << *it << ",";
+       std::cerr << std::endl << std::endl;
+       std::cerr << " Z position Views W ";
+       for (std::vector<double>::const_iterator it=zPosSensorsW.cbegin(); it != zPosSensorsW.cend(); it++) std::cerr << " " << *it << ",";
+       std::cerr << std::endl << std::endl;
+       std::cerr << " Z position Views U ";
+       for (std::vector<double>::const_iterator it=zPosSensorsU.cbegin(); it != zPosSensorsU.cend(); it++) std::cerr << " " << *it << ",";
+       std::cerr << std::endl << std::endl;
+//
+// We should upload these new values.. It will make small differences, negligible for now.. But not in the alignment procedure. 
+//       
 //       std::cerr << " And... And .. quit for now !!! " << std::endl; exit(2);
      }
      //
@@ -251,7 +279,7 @@ namespace emph {
 	}
      } 
      void VolatileAlignmentParams::SetRollCenter(emph::geo::sensorView view,  size_t kSe, double v) {
-       std::cerr << " VolatileAlignmentParams::SetRollCenter, assuming U view is for Station 4 and 5  " << std::endl; 
+//       std::cerr << " VolatileAlignmentParams::SetRollCenter, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
@@ -266,7 +294,7 @@ namespace emph {
 	}
      } 
      void VolatileAlignmentParams::SetDeltaPitchCorr(emph::geo::sensorView view,  size_t kSe, double v) {
-       std::cerr << " VolatileAlignmentParams::SetDeltaPitchCorr, assuming U view is for Station 4 and 5  " << std::endl; 
+//       std::cerr << " VolatileAlignmentParams::SetDeltaPitchCorr, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
@@ -281,7 +309,7 @@ namespace emph {
 	}
      } 
      void VolatileAlignmentParams::SetUnknwonUncert(emph::geo::sensorView view,  size_t kSe, double v) {
-       std::cerr << " VolatileAlignmentParams::SetUnknwonUncert, assuming U view is for Station 4 and 5  " << std::endl; 
+//       std::cerr << " VolatileAlignmentParams::SetUnknwonUncert, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : case emph::geo::Y_VIEW :{
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
@@ -295,7 +323,7 @@ namespace emph {
 	}
      } 
      void VolatileAlignmentParams::SetMultScatUncert(emph::geo::sensorView view,  size_t kSe, double v) {
-       std::cerr << " VolatileAlignmentParams::SetMultScatUncert, assuming U view is for Station 4 and 5  " << std::endl; 
+//       std::cerr << " VolatileAlignmentParams::SetMultScatUncert, assuming U view is for Station 4 and 5  " << std::endl; 
        switch (view) {
      	 case emph::geo::X_VIEW : case emph::geo::Y_VIEW :{
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
@@ -364,7 +392,7 @@ namespace emph {
 	 aLStrStr >> aName >> aVal >> aErr; 
 	 // we skip the tilts, only stransverse shifts and rolls for now.. 
 	 // Change only X_1 and Y_1 for now.. Test!. 
-	 if (aName.find("_1") == std::string::npos) continue;
+//	 if (aName.find("_1") == std::string::npos) continue;
 	 if (aName.find("U_")!= std::string::npos) continue;
 	 if (aName.find("V_")!= std::string::npos) continue;
 	 if (aName.find("TransShift") != std::string::npos) {
