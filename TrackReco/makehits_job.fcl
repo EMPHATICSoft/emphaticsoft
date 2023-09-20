@@ -1,15 +1,15 @@
-#include "MakeTrack.fcl"
+#include "MakeHits.fcl"
 
 #include "RunHistory.fcl"
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
 #include "DetGeoMap.fcl"
-#
-process_name: MakeTrack
+
+process_name: MakeHits
 
 services:
 {
-  TFileService: { fileName: "track_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "hits_r%r_s%s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
@@ -26,7 +26,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-track_r%r_s%s.root"
+   fileName:    "emphdata-hits_r%r_s%s.root"
    fastCloning: false
 
   }
@@ -42,10 +42,10 @@ physics:
    #     dataqual:     @local::standard_dataqual
    #     clust:        @local::standard_ssdclust
    #     momreco:      @local::standard_momreco
-   maketrack: @local::standard_maketrack
+   makehits: @local::standard_makehits
  }
 
- reco: [ maketrack ]
+ reco: [ makehits ]
 
  analyzers:{}
 

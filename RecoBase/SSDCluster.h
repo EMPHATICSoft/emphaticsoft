@@ -46,14 +46,12 @@ namespace rb {
     void SetSensor(int sensor)   {fSensor = sensor;}
     void SetPlane(int plane)     {fPlane  = plane;}
     void SetView(emph::geo::sensorView view)      {fView = view;}
-    void SetPlane(int plane)     {fPlane = plane;} //std::cout<<"In RecoBase, plane is "<<fPlane<<std::endl;}
     void SetHiLo(int hilo)       {fHiLo = hilo;} //std::cout<<"In RecoBase, hilo is "<<fHiLo<<std::endl;}}
 
     int    Station()  const { return fStation; }
     int    Sensor()   const { return fSensor; } 
     int    Plane()    const { return fPlane; }
     emph::geo::sensorView View() const { return fView; }
-    int    Plane()     const { return fPlane; }
     int    HiLo()      const { return fHiLo; }
     double WgtAvgStrip() const;
     double WgtRmsStrip() const;
@@ -77,7 +75,6 @@ namespace rb {
     int fSensor;
     int fPlane;
     emph::geo::sensorView fView;
-    int fPlane;
     int fHiLo;
   };
   

@@ -174,7 +174,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   rb::SSDCluster ssdClust;
   // loop over digits on sensor
 
-  int plane = planeViewMap[std::make_pair(station,sensor)].first;
+  //int plane = planeViewMap[std::make_pair(station,sensor)].first;
   int hilo = dchanHiLoMap[std::make_pair(station,sensor)];
   //std::cout<<"Plane: "<<plane<<std::endl;
   //std::cout<<"HILO: "<<hilo<<std::endl;

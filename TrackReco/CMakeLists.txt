@@ -24,8 +24,8 @@ include_directories($ENV{ART_ROOT_IO_INC})
 #		   ROOT::Tree
 #)
 
-#cet_build_plugin(MakeTrack "module"
-cet_build_plugin(MakeTrack art::module
+#cet_build_plugin(MakeHits "module"
+cet_build_plugin(MakeHits art::module
   LIBRARIES PRIVATE
     ToFUtil
     RawData

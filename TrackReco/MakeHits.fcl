@@ -1,8 +1,8 @@
 BEGIN_PROLOG
 
-standard_maketrack:
+standard_makehits:
 {
-  module_type: MakeTrack
+  module_type: MakeHits
   CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
 }
 
