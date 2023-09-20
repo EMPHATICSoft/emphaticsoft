@@ -395,10 +395,9 @@ namespace emph {
 	  TGeoNode* mount_n = (TGeoNode*)st_v->GetNode(mountname.c_str());
 	  TGeoVolume* mount_v = (TGeoVolume*)mount_n->GetVolume();
 	  int nsensors = mount_n->GetNodes()->GetEntries();
-
 	  for (int kk=0; kk<nsensors; ++kk) {
 	    std::string sname = mount_v->GetNode(kk)->GetName();
-	    if (sname.find(ssubString) != std::string::npos){
+	    if (sname.find(ssubString) != std::string::npos){	
 	      sscanf(sname.c_str(),"ssdsensor_%d_%d_%d_phys",&iSt,&iPl,&iSe);
 	      if (nplanes < iPl) { // new plane
 		st.AddPlane(Plane(*plane));
@@ -407,7 +406,7 @@ namespace emph {
 		nplanes++;
 	      }
 	      Detector sensor;
-	      TGeoNode* sensor_n = (TGeoNode*)mount_v->GetNode(name.c_str());
+	      TGeoNode* sensor_n = (TGeoNode*)mount_v->GetNode(sname.c_str());
 	      TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
 	      TGeoBBox* sensor_box = (TGeoBBox*)sensor_v->GetShape();
 	      
@@ -425,7 +424,7 @@ namespace emph {
 	      sensor.SetFlip(flip);
 	      sensor.SetWidth(2*sensor_box->GetDX());
 	      sensor.SetHeight(2*sensor_box->GetDY());
-	      
+
 	      // now add channels to each SSD sensor
 	      if(sensor_n->GetNodes()!=NULL){
 		int nchan = sensor_n->GetNodes()->GetEntries();
