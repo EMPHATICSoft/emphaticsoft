@@ -61,7 +61,11 @@ private:
   static const int NStations = 8;
   static const int MaxSensPerSta = 6;
   int ncluster[NPlanes];
+
+  std::vector<float> clustdist[NPlanes];
+
   std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
+  std::map<std::pair<int, int>, int > dchanHiLoMap;
   
   // fcl parameters
   std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
@@ -109,6 +113,13 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("wgtavgstrip",&wgtavgstrip);
     ssdclust->Branch("wgtrmsstrip",&wgtrmsstrip);
     ssdclust->Branch("ncluster",&ncluster,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15:plane16:plane17:plane18:plane19");
+
+    char *clustd = new char[12];
+    for (int i=0; i<NPlanes; i++){
+        sprintf(clustd,"clustdist%d",i);
+        ssdclust->Branch(clustd,&clustdist[i]);
+    }
+
   }
 }
 
@@ -128,7 +139,10 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
       
       const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
       const emph::geo::Detector   &sd = st.GetSSD(dchan.Channel());
-      
+      std::cout<<"HILO: "<<dchan.HiLo()<<std::endl;
+      //make dchan map for hilo use? 
+
+      dchanHiLoMap[std::make_pair(dchan.Station(),dchan.Channel())] = dchan.HiLo();
       planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
     }
   }
@@ -159,6 +173,12 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   int curRow;
   rb::SSDCluster ssdClust;
   // loop over digits on sensor
+
+  //int plane = planeViewMap[std::make_pair(station,sensor)].first;
+  int hilo = dchanHiLoMap[std::make_pair(station,sensor)];
+  //std::cout<<"Plane: "<<plane<<std::endl;
+  //std::cout<<"HILO: "<<hilo<<std::endl;
+
   for (auto & dig : sensDigits) {
     curRow = dig->Row();
 
@@ -168,6 +188,8 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
       ssdClust.SetSensor(sensor);
       ssdClust.SetPlane(plane);
       ssdClust.SetView(view);
+      ssdClust.SetPlane(plane);
+      ssdClust.SetHiLo(hilo);
       sensClusters->push_back(ssdClust);
       ssdClust = rb::SSDCluster();
     }
@@ -176,11 +198,23 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
     prevRow=curRow;
   }
 
+  // add plane
+  //int plane = planeViewMap[std::make_pair(station,sensor)].first;
+  //std::cout<<"Plane: "<<plane<<std::endl;
+  //ssdClust.SetPlane(plane);
+
+  // add hilo
+  //int hilo = dchanHiLoMap[std::make_pair(station,sensor)];
+  //std::cout<<"HILO: "<<hilo<<std::endl;
+  //ssdClust.SetHiLo(hilo);
+
   // push last cluster
   ssdClust.SetStation(station);
   ssdClust.SetSensor(sensor);
   ssdClust.SetPlane(plane);
   ssdClust.SetView(view);
+  ssdClust.SetPlane(plane);
+  ssdClust.SetHiLo(hilo);
   sensClusters->push_back(ssdClust);
 
 }
@@ -229,6 +263,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	  continue;
 	// FormClusters() assumes digits are ordered by row
 	this->SortByRow(digitList[sta][sensor]);
+
+	//int hilo = dchan.HiLo();
+
 	this->FormClusters(digitList[sta][sensor], &clusters, sta, sensor);
 	for (int i=0; i<(int)clusters.size(); i++){
 	  // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
@@ -245,6 +282,9 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	    wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
 	    int plane = planeViewMap[std::make_pair(sta,sensor)].first;
 	    ncluster[plane]++;
+
+	    clustdist[plane].push_back(clusters[i].WgtAvgStrip());
+
 	  }
 	  clusters[i].SetID(i);
 	  clusterv->push_back(clusters[i]);
@@ -267,6 +307,11 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     avgstrip.clear();
     wgtavgstrip.clear();
     wgtrmsstrip.clear();
+
+    for (int i=0; i<NPlanes; i++){ 
+        clustdist[i].clear();
+    }
+
   }
 }
 DEFINE_ART_MODULE(emph::MakeSSDClusters)

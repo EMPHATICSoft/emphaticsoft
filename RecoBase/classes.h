@@ -10,4 +10,4 @@
 #include "RecoBase/GasCkovHit.h"
 #include "RecoBase/ADC.h"
 #include "RecoBase/TrigToT0.h"
-
+#include "RecoBase/CaloHit.h"
