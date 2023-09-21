@@ -29,6 +29,8 @@ namespace sim {
 
     int        GetAncestorPId() const ; // pdg value for the track ID, which is a secondary coming our of the target 
                                                       // or the primary itself. Pick the one with the highest number visible photons at the PMT cathode.  
+    int        GetPId() const {return fPId; } // pdg value
+    void       SetPId(int id) { fPId = id; }
 
     int        GetAncestorTrackNum() const; // Corresponding 
 
@@ -65,6 +67,9 @@ namespace sim {
     int fNPhots; // Total, Irrespectively of the G4 track number & PiD
     
     std::vector<int> fWaveForm;
+
+    int    fPId;
+
 // Too complicated, Root pukes on this.. classes_def.xml difficult to build 
 //    std::vector<std::pair<int, int> > fTrackAmpls;
 //    std::vector<std::pair<int, int> >::reverse_iterator fItTrackLastUsed;

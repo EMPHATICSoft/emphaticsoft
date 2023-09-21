@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_caloprod:
+{
+  module_type: CaloProd
+}
+
+END_PROLOG

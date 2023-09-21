@@ -21,14 +21,17 @@ namespace rb {
   private:
 
     double _x[3]; // rotation angle about the vertical y-axis
+    int    fStation; //SSD station of the Space Point
 
   public:
     // Getters
     const double* Pos() const { return _x; }
+    int           Station() const { return fStation; }
 
     // Setters
     void SetX(double* x0) { for (int i=0; i<3; ++i) _x[i] = x0[i]; }
-    
+    void SetStation(int station) {fStation = station;}   
+ 
     friend std::ostream& operator << (std::ostream& o, const SpacePoint& h);
   };
   
