@@ -28,7 +28,8 @@
   <version ClassVersion="10" checksum="1710063260"/>
  </class>
 
- <class name="caf::SRSSDHits" ClassVersion="10" >
+ <class name="caf::SRSSDHits" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2183098450"/>
   <version ClassVersion="10" checksum="464570951"/>
  </class>
  <class name="std::vector<caf::SRSSDHits>" />
