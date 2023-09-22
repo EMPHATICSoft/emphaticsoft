@@ -61,6 +61,7 @@ namespace emph {
         std::array<std::array<TH2F*,8>,6> h_wvfms;
         std::array<std::array<int,8>,6> nentries_wvfms= {0};
         int plotsize; //0 is small, 1 is medium, 2 is large, 3 is very large
+        int nwvfms;
         int plotmax;
         int plotmin;
     };
@@ -68,7 +69,8 @@ namespace emph {
     //.......................................................................
     ReadoutWaveform::ReadoutWaveform(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
-       plotsize(pset.get<int>("PlotSize",0))
+       plotsize(pset.get<int>("PlotSize",0)),
+       nwvfms(pset.get<int>("NumberOfWvfms",0))
     {
     }
 
@@ -135,8 +137,8 @@ namespace emph {
                  echan.SetBoard(board);
                  echan.SetChannel(chan);
                  auto adcvals = wvfm.AllADC();
-                 //Stop filling after 1000 waveforms have been added
-                 if (nentries_wvfms[board][chan] > 1000) continue;
+                 //Stop filling after specified number of wvfms in fcl file waveforms have been added
+                 if (nentries_wvfms[board][chan] > nwvfms) continue;
                  for (size_t i=0; i<adcvals.size(); ++i) {
                      float mV = adcvals[i]*adc_to_mV;
                      h_wvfms[board][chan]->Fill(i,mV);

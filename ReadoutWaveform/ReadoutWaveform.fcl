@@ -4,6 +4,7 @@ standard_readoutwaveform:
 {
   module_type: ReadoutWaveform
   PlotSize: 2
+  NumberOfWvfms: 1000
 }
 
 END_PROLOG
