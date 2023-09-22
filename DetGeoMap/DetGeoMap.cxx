@@ -23,9 +23,9 @@ namespace emph {
   
     //----------------------------------------------------------------------
     
-    DetGeoMap::DetGeoMap()
+    DetGeoMap::DetGeoMap():
+    geo(art::ServiceHandle<emph::geo::GeometryService>())
     {
-      //      art::ServiceHandle<emph::geo::GeometryService> geo;
     }
   
     //----------------------------------------------------------------------

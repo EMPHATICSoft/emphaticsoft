@@ -116,6 +116,8 @@ namespace emph {
 
       const Detector* SSD(int i) const { return &fSSD[i];}
       int  NSSDs() const { return int(fSSD.size()); }
+      sensorView View() { if (fSSD.empty()) return INIT; return fSSD[0].View(); }
+
       void AddSSD(Detector ssd) { fSSD.push_back(ssd); }
 
     private:
@@ -128,6 +130,7 @@ namespace emph {
       ~SSDStation() {};
 
       void SetName(std::string n) {fName = n; }
+      void SetId(int id) { fId = id; }
       void SetPos(TVector3 pos) {fPos = pos;}
       void SetDz(double dz) {fDz = dz;}
       void SetWidth(double w) {fWidth = w;}
@@ -136,6 +139,7 @@ namespace emph {
       void SetGeoMatrix(TGeoMatrix* m) {fGeoMatrix = m; }
 
       std::string Name() const { return fName; }
+      int Id() const { return fId; }
       TVector3 Pos() const {return fPos;}
 
       int NPlanes() const {return (int)fPlane.size(); };
@@ -148,6 +152,7 @@ namespace emph {
       //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
     private:
+      int fId;
       std::string fName;
       TVector3 fPos;
       double fDz;

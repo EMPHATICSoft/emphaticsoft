@@ -34,7 +34,101 @@ namespace emph {
     fStepX(0.), fStepY(0.), fStepZ(0.),
     fInterpolateOption(0), fVerbosity(0)
     {
-
+/*<<<<<<< HEAD
+#ifdef debug
+      fVerbosity = 1;
+#else
+      fVerbosity = 0;
+#endif
+      //    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
+      //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
+      if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
+      else this->uploadFromTextFile(filename);
+      // These tests do something, comment out for sake of saving time for production use. 
+      //    this->test1();
+      //    this->test2();
+      //    this->test3();
+      //      this->studyZipTrackData1();
+    }
+    
+  void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
+  
+    fG4ZipTrackOffset[2] = -150. -theEMPhGeometry->MagnetUSZPos(); //82.5; // rough guess! 
+    //fG4ZipTrackOffset[2] = -theEMPhGeometry->MagnetUSZPos() + 82.5; //82.5; // rough guess!
+    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
+    fHasBeenAligned = true; 
+//
+// Testing... at COMSOL coordinate of z = -82.5 mm, By ~ 7.5 Kg, 1/2  field 
+//     
+    double xTest[3], xTest2[3], BTest[3], BTest2[3]; 
+    xTest[0] = 0.; xTest[1] = 0.; xTest[2] = -150.; //-82.5;  
+    xTest2[0] = 0.01; xTest2[1] = 0.004; xTest2[2] = -52.5; // in mm 
+//    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k]; // The equation in the GetFieldValue. 
+    this->MagneticField(xTest, BTest);
+    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, internal Variables  " 
+              << BTest[1] <<  " kG "  << std::endl;
+    this->MagneticField(xTest2, BTest2);
+    std::cerr << " .......... again, 20mm inward " << BTest2[1] << std::endl;
+    for (size_t k=0; k != 3; k++) xTest[k] -= fG4ZipTrackOffset[k];
+    BTest[1] = 0.;
+    this->GetFieldValue(xTest, BTest);
+    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;
+   
+  }
+  
+  void EMPHATICMagneticField::uploadFromRootFile(const G4String &fName) {
+  
+    fStorageIsStlVector = false; // Could up grade later.. 
+    std::cerr << " EMPHATICMagneticField::uploadFromRootFile, currently disable does not provide stable answers with current compilers... " << std::endl;
+    std::cerr << " Fatal error, quit here and now " << std::endl; exit(2);
+  
+    //for(int i = 0; i < 250; i++){
+    //  for(int j = 0; j < 250; j++){
+    //  for(int k = 0; k < 250; k++){
+    //  std::vector<double> temp(3, 0);
+    //  field[i][j][k] = temp;
+    //  }		
+    //  }	
+    //  }
+    
+    TFile mfFile(fName.c_str(), "READ");
+    std::cout << " ==> Opening file " << fName << " to read magnetic field..."
+	   << G4endl;
+    
+    if (mfFile.IsZombie()) {
+      std::cerr << "Error opening file" << G4endl;
+      exit(-1);
+    }	
+    TTree *tree = (TTree*) mfFile.Get("magField");
+    
+    double x;
+    double y;
+    double z;
+    double Bx;
+    double By;
+    double Bz;
+    
+    std::ofstream fOutForR;
+    if (fVerbosity)  {
+      fOutForR.open("./EmphMagField_v1.txt");
+      fOutForR << " x y z dx dy dz bx by bz " << std::endl;
+    }
+    tree->SetBranchAddress("x", &x);
+    tree->SetBranchAddress("y", &y);
+    tree->SetBranchAddress("z", &z);
+    tree->SetBranchAddress("Bx", &Bx);
+    tree->SetBranchAddress("By", &By);
+    tree->SetBranchAddress("Bz", &Bz);
+    
+    int nEntries = tree->GetEntries();
+    
+    tree->GetEntry(0);
+    double xPrev = x; 
+    double yPrev = y; 
+    double zPrev = z; 
+=======
+>>>>>>> main
+*/
     }
     
   //----------------------------------------------------------------------

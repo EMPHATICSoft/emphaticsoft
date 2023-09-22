@@ -57,13 +57,14 @@ private:
   int run,subrun,event;
   std::vector<int> station, sens, view, ndigits, width, timerange;
   std::vector<float> avgadc, avgstrip, wgtavgstrip, wgtrmsstrip;
-  static const int NPlanes = 20;
+  
+  int NPlanes;
   static const int NStations = 8;
   static const int MaxPlnsPerSta = 3;
   static const int MaxSensPerPln = 2;
-  int ncluster[NPlanes];
-  //  std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
-  
+  std::vector<int> ncluster;
+  //  std::vector<float> clustdist;
+
   // fcl parameters
   std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
   bool        fFillTTree;   ///< Fill TTree with plots for debugging/development?
@@ -93,6 +94,8 @@ emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
 //--------------------------------------------------
 void emph::MakeSSDClusters::beginJob()
 {
+  //  clustdist.resize(NPlanes);
+
   if (fFillTTree) {
     art::ServiceHandle<art::TFileService> tfs;
     ssdclust = tfs->make<TTree>("clusts","");
@@ -109,34 +112,26 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("avgstrip",&avgstrip);
     ssdclust->Branch("wgtavgstrip",&wgtavgstrip);
     ssdclust->Branch("wgtrmsstrip",&wgtrmsstrip);
-    ssdclust->Branch("ncluster",&ncluster,"plane0/I:plane1:plane2:plane3:plane4:plane5:plane6:plane7:plane8:plane9:plane10:plane11:plane12:plane13:plane14:plane15:plane16:plane17:plane18:plane19");
+    ssdclust->Branch("ncluster",&ncluster);
+
+    /*
+    char *clustd = new char[12];
+    for (int i=0; i<NPlanes; i++){
+        sprintf(clustd,"clustdist%d",i);
+        ssdclust->Branch(clustd,&clustdist[i]);
+    }
+    */
+
   }
 }
 
 //--------------------------------------------------
 void emph::MakeSSDClusters::beginRun(art::Run&)
 {
-  // Fill <station,sensor> -> <plane,view> map
-  // only need to do this once
-  // making fer larger than current to future proof - shoudln't add much time since we're still only running this once
-
-  /*
   auto emgeo = geo->Geo();
-  auto emcmap = cmap->CMap();
-  for (int fer=0; fer<10; ++fer){
-    for (int mod=0; mod<6; ++mod){
-      emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
-      if (!emcmap->IsValidEChan(echan)) continue;
-      emph::cmap::DChannel dchan = cmap->DetChan(echan);
-      
-      const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-      const emph::geo::Plane      &pl = st.GetPlane(dchan.Plane());
-      const emph::geo::Detector   &sd = pl.SSD(dchan.HiLo());
-      
-      //      planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
-    }
-  }
-  */
+  NPlanes = emgeo->NSSDPlanes();
+  ncluster.resize(NPlanes);
+  
 }
 
 //--------------------------------------------------
@@ -170,6 +165,9 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   rb::SSDCluster ssdClust;
   int i=0; 
   // loop over digits on sensor
+
+  //std::cout<<"Plane: "<<plane<<std::endl;
+
   for (auto & dig : sensDigits) {
     curRow = dig->Row();
     // if gap too big, push cluster and clear it
@@ -178,6 +176,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
       ssdClust.SetSensor(sensor);
       ssdClust.SetPlane(plane);
       ssdClust.SetView(view);
+      ssdClust.SetPlane(plane);
       sensClusters->push_back(ssdClust);
       ssdClust = rb::SSDCluster();
     }
@@ -191,9 +190,13 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   ssdClust.SetSensor(sensor);
   ssdClust.SetPlane(plane);
   ssdClust.SetView(view);
+  ssdClust.SetPlane(plane);
   sensClusters->push_back(ssdClust);
-
-  std::cout << "Formed cluster of size " << sensClusters->size() << std::endl;
+  /*
+  std::cout << "Formed cluster of size " << sensClusters->size() 
+	    << " at (station,plane,sensor) = (" << station << "," 
+	    << plane << "," << sensor << ")" << std::endl;
+  */
 }
 
 //--------------------------------------------------
@@ -220,7 +223,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 
   art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxPlnsPerSta][MaxSensPerPln];
 
-  std::fill_n(ncluster,NPlanes,0);
+  std::fill_n(ncluster.begin(),ncluster.size(),0);
 
   auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
 
@@ -260,7 +263,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	      wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
 	      wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
 	      int plane = clusters[i].Plane();
-	      //	      int plane = planeViewMap[std::make_pair(sta,sensor)].first;
 	      ncluster[plane]++;
 	    }
 	    clusters[i].SetID(i);
@@ -285,6 +287,13 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     avgstrip.clear();
     wgtavgstrip.clear();
     wgtrmsstrip.clear();
+    ncluster.clear();
+    /*
+    for (int i=0; i<NPlanes; i++){ 
+        clustdist[i].clear();
+    }
+    */
+
   }
 }
 DEFINE_ART_MODULE(emph::MakeSSDClusters)

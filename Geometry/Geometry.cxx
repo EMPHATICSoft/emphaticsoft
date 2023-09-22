@@ -68,7 +68,7 @@ namespace emph {
       double tx[3];
       if (fName.find("ssd") != std::string::npos) { // include mount position if this is a SSD
 	fGeoMatrix->LocalToMaster(x1,tx);
-	fGeoMatrix->LocalToMaster(tx,x2);
+	fGeoMatrixMount->LocalToMaster(tx,x2);
       }
       else
 	fGeoMatrix->LocalToMaster(x1,x2);
@@ -160,20 +160,28 @@ namespace emph {
       mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
 					<< fGDMLFile << "\n";
 
-      //      if (fGeoManager) delete fGeoManager;
+      if (fGeoManager) delete fGeoManager;
+
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
       int old_verbosity = gGeoManager->GetVerboseLevel();
 
       // TGeoManager is too verbose when loading geometry.
       // Make it quiet.
-      gGeoManager->SetVerboseLevel(0);
+      fGeoManager->SetVerboseLevel(0);
+      fGeoManager->LockDefaultUnits(0);
+      fGeoManager->SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
+      fGeoManager->LockDefaultUnits(1);
+      fGeoManager->Import(fGDMLFile.c_str());
 
-      //fGeoManager->Import(fname.c_str());
+      //      fGeoManager->Import(fname.c_str());
+      /*
       TGeoManager::LockDefaultUnits(0);
       TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
       TGeoManager::LockDefaultUnits(1);
       TGeoManager::Import(fGDMLFile.c_str());
-
-      fGeoManager = gGeoManager;
+      */
+      //      fGeoManager = new TGeoManager( *gGeoManager);
 
       mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
 
@@ -362,12 +370,12 @@ namespace emph {
       }
 
       fNSSDStations = (int)nodeName.size();
+      fSSDStation.resize(nodeName.size());
       fNSSDPlanes = 0;
       fNSSDs = 0;
 
       double angle;
       bool flip;
-      Plane* plane=new Plane();
 
       for (auto name : nodeName) {
 
@@ -376,8 +384,13 @@ namespace emph {
 	TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
 	TGeoBBox* st_box = (TGeoBBox*)st_v->GetShape();
 
+	// get the right sensor id
+	int stId;
+	sscanf(name.c_str(),"ssdStation%d",&stId);
+	
 	// first add basic info about the SSD station
 	st.SetName(name);
+	st.SetId(stId);
 	st.SetDz(st_box->GetDZ());
 	st.SetPos(st_n->GetMatrix()->GetTranslation());
 	st.SetWidth(2*st_box->GetDX());
@@ -385,10 +398,11 @@ namespace emph {
 	st.SetGeoMatrix(st_n->GetMatrix());
 
 	// now add individual SSDs to the station
-	// loop over SSD mounts
+	// loop over SSD mounts and sensors to create planes
 	int nmounts = st_n->GetNodes()->GetEntries();
 	int iSt, iPl, iSe;
 	int nplanes=0;
+	Plane* plane = new Plane();
 	for( int j=0; j<nmounts; ++j){
 	  std::string mountname = st_v->GetNode(j)->GetName();
 	  if (mountname.find(smountString) == std::string::npos) continue;
@@ -453,8 +467,8 @@ namespace emph {
 	// don't forget to add the last plane!
 	st.AddPlane(Plane(*plane));
 	fNSSDPlanes++;
-	
-	fSSDStation.push_back(st);
+
+	fSSDStation[st.Id()] = st;
       }
       
     }

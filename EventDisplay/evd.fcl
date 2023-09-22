@@ -41,7 +41,7 @@ physics :{
       TracksLabel      : "ssdreco"
       DrawVertices     : true
       VerticesLabel    : "vtxreco"
-      VisLevel         : 1
+      VisLevel         : 4
       SSDStripVis      : false
       TrueEnergyThresh : 50. #MeV
     }

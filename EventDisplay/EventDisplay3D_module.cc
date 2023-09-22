@@ -504,7 +504,9 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize, 
 				      const rb::SSDCluster& cl)
 {
-
+  std::cout << "SSD cluster at (" << cl.Station() << ","
+	    << cl.Plane() << "," << cl.Sensor() << ")" << std::endl;
+  
   rb::LineSegment ls;
   if (! fDetGeoMap)
     fDetGeoMap = new dgmap::DetGeoMap();
@@ -518,6 +520,10 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
     l->SetNextPoint(ls.X1()[0], ls.X1()[1], ls.X1()[2]);
     l->SetLineColor(mColor);
     l->SetMarkerSize(mSize);
+    std::cout << "Draw line segment from (" << ls.X0()[0] << "," 
+	      << ls.X0()[1] << "," << ls.X0()[2] << ") to ("
+	      << ls.X1()[0] << "," << ls.X1()[1] << "," << ls.X1()[2] << ")"
+	      << std::endl;
     fSSDClustsList->AddElement(l);
   }
 
@@ -595,15 +601,17 @@ void emph::EventDisplay3D::DrawTrueSSDHits(const art::Event& event)
 	double z = hit.GetZ();
 	//	std::cout << "Hit at (" << x << "," << y << "," << z << ")" << std::endl;
 	TEveLine* lx = new TEveLine();	
-	lx->SetNextPoint(x-1.,y,z);
-	lx->SetNextPoint(x+1.,y,z);
+	lx->SetNextPoint(x-5.,y,z);
+	lx->SetNextPoint(x+5.,y,z);
 	lx->SetLineColor(kYellow+2);
+	lx->SetLineWidth(2);
 	lx->SetMarkerSize(4);
 
 	TEveLine* ly = new TEveLine();	
-	ly->SetNextPoint(x,y-1.,z);
-	ly->SetNextPoint(x,y+1.,z);
+	ly->SetNextPoint(x,y-5.,z);
+	ly->SetNextPoint(x,y+5.,z);
 	ly->SetLineColor(kYellow+2);
+	ly->SetLineWidth(2);
 	ly->SetMarkerSize(4);
 
 	fTrueSSDHitsList->AddElement(lx);
