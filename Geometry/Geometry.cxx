@@ -63,7 +63,7 @@ namespace emph {
 
     //--------------------------------------------------------------------------------
 
-    void Detector::LocalToMaster(double x1[3], double x2[3]) const
+    void Detector::LocalToMother(double x1[3], double x2[3]) const
     {
       double tx[3];
       if (fName.find("ssd") != std::string::npos) { // include mount position if this is a SSD

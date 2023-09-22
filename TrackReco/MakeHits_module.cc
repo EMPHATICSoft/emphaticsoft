@@ -169,22 +169,6 @@ namespace emph {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
-    /*
-    art::ServiceHandle<emph::cmap::ChannelMapService> fChannelMap;
-
-    for (int fer=0; fer<10; ++fer){
-      for (int mod=0; mod<6; ++mod){
-        emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
-        if (!fChannelMap->CMap()->IsValidEChan(echan)) continue;
-          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-
-        const emph::geo::SSDStation* st = emgeo->GetSSDStation(dchan.Station());
-	const emph::geo::Plane      *pl = st->GetPlane(dchan.Plane());       
-        const emph::geo::Detector   *sd = pl->SSD(dchan.Channel());
-
-      }
-    }
-    */
   }
 
   //......................................................................
@@ -352,9 +336,6 @@ namespace emph {
   //......................................................................
   void emph::MakeHits::produce(art::Event& evt)
   {
-
-    //    art::ServiceHandle<emph::geo::GeometryService> geo;
-    //    auto emgeo = geo->Geo();
 
     std::unique_ptr< std::vector<rb::SpacePoint> > spacepointv(new std::vector<rb::SpacePoint>);
 

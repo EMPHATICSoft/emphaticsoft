@@ -63,7 +63,6 @@ private:
   static const int MaxPlnsPerSta = 3;
   static const int MaxSensPerPln = 2;
   std::vector<int> ncluster;
-  //  std::vector<float> clustdist;
 
   // fcl parameters
   std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
@@ -94,7 +93,6 @@ emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
 //--------------------------------------------------
 void emph::MakeSSDClusters::beginJob()
 {
-  //  clustdist.resize(NPlanes);
 
   if (fFillTTree) {
     art::ServiceHandle<art::TFileService> tfs;
@@ -113,14 +111,6 @@ void emph::MakeSSDClusters::beginJob()
     ssdclust->Branch("wgtavgstrip",&wgtavgstrip);
     ssdclust->Branch("wgtrmsstrip",&wgtrmsstrip);
     ssdclust->Branch("ncluster",&ncluster);
-
-    /*
-    char *clustd = new char[12];
-    for (int i=0; i<NPlanes; i++){
-        sprintf(clustd,"clustdist%d",i);
-        ssdclust->Branch(clustd,&clustdist[i]);
-    }
-    */
 
   }
 }

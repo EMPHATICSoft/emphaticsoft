@@ -129,7 +129,6 @@ namespace emph {
 	      if (fPlane > dchan.fPlane) return true;
 	      if (fPlane == dchan.fPlane) 
 		if (fChannel > dchan.fChannel) return true;
-	      //	      if ((fHiLo>=0) && (fHiLo > dchan.fHiLo)) return true;
 	    }
 	  }
 	  else {
@@ -179,7 +178,7 @@ namespace emph {
       std::map<emph::cmap::DChannel,emph::cmap::EChannel> DChanMap() { return fDChanMap; }
 
       void PrintE2D(); // print out map, echan -> dchan
-      //      void PrintD2E(); // print out map, dchan -> echan;
+      void PrintD2E(); // print out map, dchan -> echan;
 
     private:
 
