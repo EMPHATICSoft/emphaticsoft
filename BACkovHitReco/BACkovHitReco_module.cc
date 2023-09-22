@@ -32,6 +32,7 @@
 #include "RawData/WaveForm.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/ADC.h"
+#include "SignalTime/SignalTime.h"
 
 using namespace emph;
 
@@ -57,6 +58,7 @@ namespace emph {
     void GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    emph::st::SignalTime stmap;
     
     int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
     std::vector<std::vector<int>> BACkov_signal;
@@ -159,6 +161,10 @@ namespace emph {
 	    const rb::ADC wvr(wvfm);
 	    int chan = wvfm.Channel();
         int board = wvfm.Board();
+        if (event<10){
+            std::cout<<board<<"  "<<chan<<"  ";
+            std::cout<<stmap.SigTime(board,chan)<<std::endl;
+        }
         echan.SetBoard(board);
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
@@ -208,6 +214,7 @@ namespace emph {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
+    if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
 
     std::string labelStr = "raw:BACkov";
     art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
