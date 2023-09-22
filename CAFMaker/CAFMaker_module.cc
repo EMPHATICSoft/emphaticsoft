@@ -45,6 +45,8 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/BACkovHit.h"
+#include "Simulation/SSDHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -54,6 +56,8 @@
 #include "CAFMaker/ARICHFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
+#include "CAFMaker/BACkovFiller.h"
+#include "CAFMaker/SRTruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -200,12 +204,26 @@ namespace caf {
     ARICHFiller arichf;
     arichf.fLabel = fParams.ARingLabel();
     arichf.Fill(evt,rec);
-
+    
+    // Get SRTruth  
+    if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
+				// set to "true" if needed
+      SRTruthFiller srtruthf;
+      srtruthf.GetG4Hits = fParams.GetMCHits();
+      srtruthf.fLabel = fParams.SSDHitLabel();
+      srtruthf.Fill(evt,rec);
+    } // end if statement
+    
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
 
+    // Get BACkov info from BACovHitReco
+    BACkovFiller backovf; 
+    backovf.fLabel = fParams.BACkovHitLabel();
+    backovf.Fill(evt,rec);
+    
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();

@@ -17,6 +17,7 @@ cet_make_library(
   ROOT::EG
   PUBLIC
   ROOT::Physics
+  StandardRecord
   )
 
 install_headers()

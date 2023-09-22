@@ -102,6 +102,7 @@ namespace emph {
     {
       fGeoManager = 0;
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
+      fMagnetLoad = false;
       this->SetGDMLFile(fname);
     }
 
@@ -136,20 +137,28 @@ namespace emph {
       mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
 					<< fGDMLFile << "\n";
 
-      //      if (fGeoManager) delete fGeoManager;
+      if (fGeoManager) delete fGeoManager;
+
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
       int old_verbosity = gGeoManager->GetVerboseLevel();
 
       // TGeoManager is too verbose when loading geometry.
       // Make it quiet.
-      gGeoManager->SetVerboseLevel(0);
+      fGeoManager->SetVerboseLevel(0);
+      fGeoManager->LockDefaultUnits(0);
+      fGeoManager->SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
+      fGeoManager->LockDefaultUnits(1);
+      fGeoManager->Import(fGDMLFile.c_str());
 
-      //fGeoManager->Import(fname.c_str());
+      //      fGeoManager->Import(fname.c_str());
+      /*
       TGeoManager::LockDefaultUnits(0);
       TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
       TGeoManager::LockDefaultUnits(1);
       TGeoManager::Import(fGDMLFile.c_str());
-
-      fGeoManager = gGeoManager;
+      */
+      //      fGeoManager = new TGeoManager( *gGeoManager);
 
       mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
 
@@ -257,6 +266,16 @@ namespace emph {
     void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
     {
       TGeoNode* magnet_n = (TGeoNode*)world_v->GetNode("magnet_phys");
+		if ( magnet_n == nullptr ){
+			mf::LogWarning("LoadNewGeometry") 
+				<< " magnet not found in gdml. \n"
+				<< "check your spelling. \n";
+			fMagnetUSZPos = -1e6;
+			fMagnetDSZPos = -1e6;
+
+			return;
+		}
+
       TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
       TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
 
@@ -265,6 +284,7 @@ namespace emph {
 
       fMagnetUSZPos = zcenter-dz;
       fMagnetDSZPos = zcenter+dz;
+		fMagnetLoad = true;
 
     }
 
@@ -315,6 +335,7 @@ namespace emph {
       std::vector<std::string> nodeName;
 
       std::string sString = "ssdStation";
+      std::string smountString = "ssd_mount";
       std::string ssubString = "ssdsensor";
       std::string schanString = "ssd_chan";
 
@@ -348,49 +369,59 @@ namespace emph {
 
 	int nsub = st_n->GetNodes()->GetEntries();
 	for( int j=0; j<nsub; ++j){
-	  std::string name = st_v->GetNode(j)->GetName();
-	  if (name.find(ssubString) != std::string::npos){
-	    Detector sensor;
-	    TGeoNode* sensor_n = (TGeoNode*)st_v->GetNode(name.c_str());
-	    TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
-	    TGeoBBox* sensor_box = (TGeoBBox*)sensor_v->GetShape();
 
-	    sensor.SetName(name);
-	    sensor.SetDz(sensor_box->GetDZ());
-	    sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
-	    angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
-	    if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
-	    sensor.SetRot(angle);
-	    const Double_t* rotation_matrix = sensor_n->GetMatrix()->GetRotationMatrix();
-	    if(*(rotation_matrix+8)>0)flip=false;
-	    else flip=true;
-	    sensor.SetFlip(flip);
-	    sensor.SetWidth(2*sensor_box->GetDX());
-	    sensor.SetHeight(2*sensor_box->GetDY());
+		std::string jname = st_v->GetNode(j)->GetName();
+		if (jname.find(smountString) == std::string::npos) continue;
+		TGeoNode* mount_n = (TGeoNode*)st_v->GetNode(jname.c_str());
+		TGeoVolume* mount_v = (TGeoVolume*)mount_n->GetVolume();
+		int jsub = mount_n->GetNodes()->GetEntries();
 
-	    // now add channels to each SSD sensor
-	    if(sensor_n->GetNodes()!=NULL){
-	      int nchan = sensor_n->GetNodes()->GetEntries();
-	      for( int k=0; k<nchan; ++k){
-		std::string name = sensor_v->GetNode(k)->GetName();
-		if(name.find(schanString) != std::string::npos){
-		  Strip strip;
-		  TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(name.c_str());
-		  TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
-		  TGeoBBox* strip_box = (TGeoBBox*)strip_v->GetShape();
-		  
-		  strip.SetName(name);
-		  strip.SetDw(2*strip_box->GetDY());
-		  strip.SetPos(strip_n->GetMatrix()->GetTranslation());
-		  sensor.AddStrip(strip);
+		for( int k=0; k<jsub; ++k){
+
+			std::string name = mount_v->GetNode(k)->GetName();
+			if (name.find(ssubString) != std::string::npos){
+				Detector sensor;
+				TGeoNode* sensor_n = (TGeoNode*)mount_v->GetNode(name.c_str());
+				TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
+				TGeoBBox* sensor_box = (TGeoBBox*)sensor_v->GetShape();
+
+				sensor.SetName(name);
+				sensor.SetDz(sensor_box->GetDZ());
+				sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
+				angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
+				if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.2)angle = 2*TMath::Pi()-angle;
+				sensor.SetRot(angle);
+				const Double_t* rotation_matrix = sensor_n->GetMatrix()->GetRotationMatrix();
+				if(*(rotation_matrix+8)>0.2)flip=false;
+				else flip=true;
+				sensor.SetFlip(flip);
+				sensor.SetWidth(2*sensor_box->GetDX());
+				sensor.SetHeight(2*sensor_box->GetDY());
+
+				// now add channels to each SSD sensor
+				if(sensor_n->GetNodes()!=NULL){
+					int nchan = sensor_n->GetNodes()->GetEntries();
+					for( int k=0; k<nchan; ++k){
+						std::string name = sensor_v->GetNode(k)->GetName();
+						if(name.find(schanString) != std::string::npos){
+							Strip strip;
+							TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(name.c_str());
+							TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
+							TGeoBBox* strip_box = (TGeoBBox*)strip_v->GetShape();
+
+							strip.SetName(name);
+							strip.SetDw(2*strip_box->GetDY());
+							strip.SetPos(strip_n->GetMatrix()->GetTranslation());
+							sensor.AddStrip(strip);
+						}
+					}
+				}
+
+				st.AddSSD(sensor);
+				fNSSDs++;
+			}
+
 		}
-	      }
-	    }
-
-	    st.AddSSD(sensor);
-	    fNSSDs++;
-	    
-	  }
 	}
 	
 	fSSDStation.push_back(st);
