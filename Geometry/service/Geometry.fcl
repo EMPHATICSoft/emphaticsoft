@@ -2,7 +2,7 @@ BEGIN_PROLOG
 
 standard_geometry:
 {
-  GeoFileName: "gdml/phase1c.gdml"
+  GeoFileName: "gdml/phase1b.gdml"
 }
 
 END_PROLOG

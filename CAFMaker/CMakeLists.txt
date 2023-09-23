@@ -21,7 +21,6 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
                             RawData
                             RecoBase
 			    Simulation
-			    ChannelMap
 			    ChannelMapService_service
 			    Geometry
 			    Geometry_service
