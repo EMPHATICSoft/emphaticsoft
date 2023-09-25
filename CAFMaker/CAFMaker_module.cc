@@ -47,6 +47,9 @@
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/BACkovHit.h"
 #include "Simulation/SSDHit.h"
+#include "ChannelMap/service/ChannelMapService.h"
+#include "Geometry/service/GeometryService.h"
+#include "Geometry/Geometry.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
