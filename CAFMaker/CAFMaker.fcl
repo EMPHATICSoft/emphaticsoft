@@ -9,7 +9,8 @@ standard_cafmaker:{
     SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
     BACkovHitLabel: "backovreco"
-    GetMCTruth:    true
+    GetMCTruth:    true //use for creating MC CAF's
+    //GetMCTruth:    false //use for creating data CAF's
     GetMCHits:     false
     SSDHitLabel: "geantgen" //dah
 }

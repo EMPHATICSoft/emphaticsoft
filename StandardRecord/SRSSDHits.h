@@ -11,7 +11,6 @@ namespace caf
   {
   public:
     SRSSDHits(); // Default constructor
-    // SSDHit(const emph::rawdata::SSDRawDigit &ssdraw, const emph::geo::Detector &st); // Default constructor
     virtual ~SRSSDHits(); //Destructor
 
     float FER;
@@ -23,6 +22,9 @@ namespace caf
     float ADC;
     float TrigNum;
     float Row;
+    int Station;
+    int Sensor;
+    int Plane;
 
     virtual void setDefault();
   };
