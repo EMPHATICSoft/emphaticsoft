@@ -19,8 +19,8 @@ namespace caf
     TrigNum(std::numeric_limits<float>::signaling_NaN()),
     Row(std::numeric_limits<float>::signaling_NaN()),
     Station(std::numeric_limits<int>::signaling_NaN()),
-    Sensor(std::numeric_limits<int>::signaling_NaN())
-
+    Sensor(std::numeric_limits<int>::signaling_NaN()),
+    Plane(std::numeric_limits<int>::signaling_NaN())
  {
   }
 
