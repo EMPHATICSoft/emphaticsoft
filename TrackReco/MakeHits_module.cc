@@ -77,13 +77,12 @@ namespace emph {
     std::vector<rb::SpacePoint> spv;
 
     std::map<std::pair<int, int>, int> clustMap;
-    std::map<std::pair<int, int>, std::pair<int, geo::sensorView> > planeViewMap;
 
     bool        fMakePlots;
     int 	goodclust = 0;
     int 	fTotClust;
     int         badclust = 0; 
-    size_t      nPlanes = 20;
+    size_t      nPlanes;
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
@@ -167,22 +166,9 @@ namespace emph {
   
   void MakeHits::beginRun(art::Run& run)
   {
-    art::ServiceHandle<emph::cmap::ChannelMapService> fChannelMap;
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
-
-    for (int fer=0; fer<10; ++fer){
-      for (int mod=0; mod<6; ++mod){
-        emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
-        if (!fChannelMap->CMap()->IsValidEChan(echan)) continue;
-          emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-
-        const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-        const emph::geo::Detector   &sd = st.GetSSD(dchan.Channel());
-
-        planeViewMap[std::make_pair(dchan.Station(),dchan.Channel())] = std::make_pair(dchan.Plane(),sd.View());
-      }
-    }
+    nPlanes = emgeo->NSSDPlanes();
   }
 
   //......................................................................
@@ -411,19 +397,20 @@ namespace emph {
 	     else {badclust++;} // std::cout<<                 "Naurrrrrrr        :("<<std::endl;}
           }
 	  else badclust++;
-		
-         std::vector<const rb::SSDCluster*> cl_group[20];
-         std::vector<const rb::LineSegment*> ls_group[20];
+	  
+	  std::vector<std::vector<const rb::SSDCluster*> > cl_group;
+	  std::vector<std::vector<const rb::LineSegment*> > ls_group;
+	  cl_group.resize(nPlanes);
+	  ls_group.resize(nPlanes);
 
          for (size_t i=0; i<clusters.size(); i++){
-             geo::sensorView view = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].second;
-
-             //group clusters according to plane
-             //within each station, do every combination
-             int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
-             cl_group[plane].push_back(clusters[i]);
-          }
-
+	   int plane = clusters[i]->Plane();
+	   
+	   //group clusters according to plane
+	   //within each station, do every combination
+	   cl_group[plane].push_back(clusters[i]);
+	 }
+	 
 	  //ANY CLUSTER
           /*bool goodEvent = true;
           for (size_t i=0; i<nPlanes; i++){
@@ -437,7 +424,6 @@ namespace emph {
 		stripv.push_back(strip);
 		MakeSegment(*clusters[i],stripv[i]);
 		
-		//int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
 	     }
           }
 
@@ -445,11 +431,10 @@ namespace emph {
 
 	  if (goodEvent == true && stripv.size() > 0){
 	     for (size_t i=0; i<clusters.size(); i++){
-	         geo::sensorView view = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].second;
-                 int plane = planeViewMap[std::make_pair(clusters[i]->Station(),clusters[i]->Sensor())].first;
-                 ls_group[plane].push_back(&stripv[i]);
+                 int plane = clusters[i]->Plane();
+		 ls_group[plane].push_back(&stripv[i]);
              }
-		
+	     
 	     for (size_t i=0; i<nPlanes; i++){
 	         //station 0,1,4,7
 	         if (i==0 || i==2 || i==10 || i==18){ //|| i==4 || i==7 || i==10 || i==18){

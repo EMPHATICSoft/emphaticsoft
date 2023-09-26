@@ -212,45 +212,48 @@ namespace emph {
       std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
       std::vector<double> XRotUPlanes, XRotVPlanes; // labeled by view 
       for (int k=0; k != fEmgeo->NSSDStations(); k++) {
-        emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
-        TVector3 posSt = aStation.Pos();
-	std::cerr << " .... For Station by index " <<  k  << " Stations name is " << aStation.Name() 
-	          << " Number of planes " << aStation.NSSDs() << std::endl;
-        for (int kk=0; kk != aStation.NSSDs(); kk++) {
-          emph::geo::Detector aPlane = aStation.GetSSD(kk);
-	  char viewChar = '?';
-	  if ((std::abs(aPlane.Rot() - 270.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 90.*M_PI/180.) < 0.1) || 
-	     (std::abs(aPlane.Rot() + 270.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 90.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocXPlanes.push_back(pos[2] + posSt[2]);
-	    XlocXPlanes.push_back(pos[0] + posSt[0]);
-	    XRotXPlanes.push_back(aPlane.Rot());
-	    viewChar = 'X'; // Measuring the X cooredinate of the track. See convention is SSDCalibration module. 
-	  }
-	  if ((std::abs(aPlane.Rot()) < 0.1) || (std::abs(aPlane.Rot() - 180.*M_PI/180.) < 0.1)) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocYPlanes.push_back(pos[2] + posSt[2]);
-	    YlocYPlanes.push_back(pos[1] + posSt[1]);
-	    YRotYPlanes.push_back(aPlane.Rot());
-	    viewChar = 'Y';
-	  }
-	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocUPlanes.push_back(pos[2] + posSt[2]);
-	    XRotUPlanes.push_back(aPlane.Rot());
-	    viewChar = 'U';
-	  }
-	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
-	    XRotVPlanes.push_back(aPlane.Rot());
-	    viewChar = 'V';
-	  }
-	  fXYUVLabels.at(10*k + kk) = viewChar;
-	  std::cerr << " .... .... For Sensor by index " <<  kk  << " Sensor name is " << aPlane.Name() 
-	            << " view " << viewChar << "  view, check  " << fXYUVLabels.at(10*k +kk) << std::endl;
-        } // on SS Detector planes of segment of a plane.   
-      } // on index k, SSD Stations.
+        const emph::geo::SSDStation* aStation = fEmgeo->GetSSDStation(k);
+        TVector3 posSt = aStation->Pos();
+	std::cerr << " .... For Station by index " <<  k  << " Stations name is " << aStation->Name() 
+	          << " Number of planes " << aStation->NPlanes() << std::endl;
+	for (int jj=0; jj < aStation->NPlanes(); ++jj) {
+	  const emph::geo::Plane* sPlane = aStation->GetPlane(jj);
+	  for (int kk=0; kk != sPlane->NSSDs(); kk++) {
+	    const emph::geo::Detector* aPlane = sPlane->SSD(kk);
+	    char viewChar = '?';
+	    if ((std::abs(aPlane->Rot() - 270.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() - 90.*M_PI/180.) < 0.1) || 
+		(std::abs(aPlane->Rot() + 270.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() + 90.*M_PI/180.) < 0.1) ) {
+	      TVector3 pos = aPlane->Pos();
+	      fZlocXPlanes.push_back(pos[2] + posSt[2]);
+	      XlocXPlanes.push_back(pos[0] + posSt[0]);
+	      XRotXPlanes.push_back(aPlane->Rot());
+	      viewChar = 'X'; // Measuring the X cooredinate of the track. See convention is SSDCalibration module. 
+	    }
+	    if ((std::abs(aPlane->Rot()) < 0.1) || (std::abs(aPlane->Rot() - 180.*M_PI/180.) < 0.1)) {
+	      TVector3 pos = aPlane->Pos();
+	      fZlocYPlanes.push_back(pos[2] + posSt[2]);
+	      YlocYPlanes.push_back(pos[1] + posSt[1]);
+	      YRotYPlanes.push_back(aPlane->Rot());
+	      viewChar = 'Y';
+	    }
+	    if ((std::abs(aPlane->Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() - 45.*M_PI/180.) < 0.1) ) {
+	      TVector3 pos = aPlane->Pos();
+	      fZlocUPlanes.push_back(pos[2] + posSt[2]);
+	      XRotUPlanes.push_back(aPlane->Rot());
+	      viewChar = 'U';
+	    }
+	    if ((std::abs(aPlane->Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() + 45.*M_PI/180.) < 0.1) ) {
+	      TVector3 pos = aPlane->Pos();
+	      fZlocVPlanes.push_back(pos[2] + posSt[2]);
+	      XRotVPlanes.push_back(aPlane->Rot());
+	      viewChar = 'V';
+	    }
+	    fXYUVLabels.at(10*k + kk) = viewChar;
+	    std::cerr << " .... .... For Sensor by index " <<  kk  << " Sensor name is " << aPlane->Name() 
+		      << " view " << viewChar << "  view, check  " << fXYUVLabels.at(10*k +kk) << std::endl;
+	  } // on SS Detector planes of segment of a plane.   
+	} // on index k, SSD Stations.
+      }
       if (fZlocXPlanes.size() < 5)  { std::cerr << " Not enough X planes to do this study, quit here and now " << std::endl; exit(2); }
       std::cerr << " Number of SSD X planes (vertical strips) " << fZlocXPlanes.size() << std::endl; 
       std::cerr << " Z locations ";

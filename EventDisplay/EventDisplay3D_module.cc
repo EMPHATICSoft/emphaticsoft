@@ -6,6 +6,14 @@
 // EMPHATIC includes
 #include "Geometry/Geometry.h"
 #include "Geometry/service/GeometryService.h"
+#include "ChannelMap/ChannelMap.h"
+#include "ChannelMap/service/ChannelMapService.h"
+#include "EventDisplay/EvtDisplayUtils.h"
+#include "RawData/SSDRawDigit.h"
+#include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
+#include "DetGeoMap/DetGeoMap.h"
+#include "Simulation/Particle.h"
 
 // art includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -54,15 +62,10 @@
 #include <TEveTrack.h>
 #include <TEveTrackPropagator.h>
 #include <TEveLine.h>
+#include <TEveBox.h>
 
 //#include <sstream>
 #include <map>
-
-#include "EventDisplay/EvtDisplayUtils.h"
-#include "RecoBase/SSDCluster.h"
-#include "RecoBase/LineSegment.h"
-#include "DetGeoMap/DetGeoMap.h"
-#include "Simulation/Particle.h"
 
 // ... Anonymous namespace for helpers.
 namespace {
@@ -102,6 +105,8 @@ namespace emph {
     bool            fDrawMCTruth;
     bool            fDrawTrueSSDHits;
     std::string     fMCTruthLabel;
+    bool            fDrawSSDDigits;
+    std::string     fSSDDigitLabel;
     bool            fDrawSSDClusters;
     std::string     fSSDClustLabel;
     bool            fDrawTracks;
@@ -115,6 +120,7 @@ namespace emph {
     std::unordered_map<int,int> partColor;
 
     art::ServiceHandle<emph::geo::GeometryService> geom_;
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap_;
 
     std::unique_ptr<emph::EvtDisplayUtils>visutil_;
     TEveGeoShape* fSimpleGeom;
@@ -133,14 +139,17 @@ namespace emph {
 
     TEveTrackList *fTrackList;
     TEveElementList *fTrueSSDHitsList;
+    TEveElementList *fSSDDigitsList;
     TEveElementList *fSSDClustsList;
     TEveElementList* fMCTrueParticleList;
 
     dgmap::DetGeoMap* fDetGeoMap;
 
     void makeNavPanel();
+    void drawSSDDigit(Int_t mColor, Int_t mSize, const emph::rawdata::SSDRawDigit& dig);
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
     void drawMCParticle(Int_t mColor, Int_t mSize, const sim::Particle& part);
+    void DrawSSDDigits(const art::Event& event);
     void DrawSSDClusters(const art::Event& event);
     void DrawTrueSSDHits(const art::Event& event);
     void DrawMCTruth(const art::Event& event);
@@ -159,6 +168,8 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
   fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
   fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
+  fDrawSSDDigits    ( pset.get<bool>       ("DrawSSDDigits",true) ),
+  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","raw:SSD") ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
   fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
@@ -169,13 +180,15 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fSSDStripVis      ( pset.get<bool>       ("SSDStripVis",false) ),
   fTrueEnergyThresh ( pset.get<double>     ("TrueEnergyThresh",5.) ),
   geom_(art::ServiceHandle<emph::geo::GeometryService>()),
+  cmap_(art::ServiceHandle<emph::cmap::ChannelMapService>()),
   visutil_(new emph::EvtDisplayUtils()),
   fSimpleGeom(0),
   fXZView(0),fYZView(0),fXZMgr(0),fYZMgr(0),
   fDetXZScene(0),fDetYZScene(0),fEvtXZScene(0),fEvtYZScene(0),
   fTeRun(0),fTeSubRun(0),fTeEvt(0),
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
-  fTrackList(0),fTrueSSDHitsList(0),fSSDClustsList(0),fDetGeoMap(NULL)
+  fTrackList(0),fTrueSSDHitsList(0),fSSDDigitsList(0), 
+  fSSDClustsList(0),fDetGeoMap(NULL)
 {
 
   partColor[211] = kGreen-2; // pi+
@@ -192,7 +205,6 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
 
 void emph::EventDisplay3D::makeNavPanel()
 {
-  //  std::cout << "%%%%% EventDisplay3d::makeNavPanel() %%%%%" << std::endl;
 
   // Create control panel for event navigation
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -285,7 +297,6 @@ void emph::EventDisplay3D::makeNavPanel()
 
 void emph::EventDisplay3D::beginJob()
 {
-  //  std::cout << "%%%%% Start of EventDisplay3d::beginJob() %%%%%" << std::endl;
 
   // Initialize global Eve application manager (return gEve)
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -354,7 +365,6 @@ void emph::EventDisplay3D::beginJob()
   glv->CurrentCamera().RotateRad(camRotateCenterH_,camRotateCenterV_);
   //  glv->CurrentCamera().Dolly(camDollyDelta_,kFALSE,kFALSE);
 
-  //  std::cout << "%%%%% End of EventDisplay3d::beginJob() %%%%%" << std::endl;
 
 }
 
@@ -415,13 +425,11 @@ void emph::EventDisplay3D::SetSSDStripVis( bool vis, bool isFirst)
 
 void emph::EventDisplay3D::beginRun( const art::Run& )
 {
-  //  std::cout << "%%%%% Start of EventDisplay3d::beginRun() %%%%%" << std::endl;
 
   gEve->GetGlobalScene()->DestroyElements();
   fDetXZScene->DestroyElements();
   fDetYZScene->DestroyElements();
 
-  //  std::cout << "%%%%% EventDisplay3d cleaned up from previous event %%%%%" << std::endl;
   
   auto geo    = geom_->Geo();
   auto geoMgr = geo->ROOTGeoManager();
@@ -431,24 +439,18 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 
   // add SSDStations
 
-  //  std::cout << "%%%%% EventDisplay3d adding SSDStations %%%%%" << std::endl;
-
   int nSSDStations = geo->NSSDStations();
   std::string stationId="SSD Station %d";
   for (int i=0; i<nSSDStations; ++i) {
-    //    std::cout << "%%%%% Adding Station " << i << std::endl;
     auto station = geo->GetSSDStation(i);
     TEveGeoShape* egs = new TEveGeoShape(Form(stationId.c_str(),i));
     double stPos[3];
-    station.Pos().GetXYZ(stPos);
-    //    std::cout << "stPos = (" << stPos[0] << "," << stPos[1] << "," << stPos[2] << ")" << std::endl;
-    egs->SetShape(new TGeoBBox(station.Width(),station.Height(),station.Dz(),stPos));
+    station->Pos().GetXYZ(stPos);
+    egs->SetShape(new TGeoBBox(station->Width(),station->Height(),station->Dz(),stPos));
     egs->SetMainColor(kGreen+1);
     det2D->AddElement(egs);
   }
   
-  //  std::cout << "%%%%% EventDisplay3d done adding SSDStations %%%%%" << std::endl;
-
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   auto world_n = geoMgr->GetTopNode();
   auto etopnode = new TEveGeoTopNode(geoMgr, world_n);
@@ -491,13 +493,11 @@ void emph::EventDisplay3D::beginRun( const art::Run& )
 void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize, 
 				      const rb::SSDCluster& cl)
 {
-
   rb::LineSegment ls;
   if (! fDetGeoMap)
     fDetGeoMap = new dgmap::DetGeoMap();
 
   if (fDetGeoMap->SSDClusterToLineSegment(cl, ls)) {
-    //    std::cout << ls << std::endl;
     
     TEveLine* l = new TEveLine();
     
@@ -507,6 +507,54 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
     l->SetMarkerSize(mSize);
     fSSDClustsList->AddElement(l);
   }
+
+}
+
+//------------------------------------------------------------
+// ... Helper for drawing SSD hit
+void emph::EventDisplay3D::drawSSDDigit(Int_t mColor, Int_t mSize, 
+					const emph::rawdata::SSDRawDigit& dig)
+{
+
+  int FER = dig.FER();
+  int module = dig.Module();
+  int strip = dig.Strip();
+
+  auto cm = cmap_->CMap();
+  emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,FER,module);
+  emph::cmap::DChannel dchan = cm->DetChan(echan);
+
+  const emph::geo::SSDStation* st = geom_->Geo()->GetSSDStation(dchan.Station());
+  const emph::geo::Plane* pl = st->GetPlane(dchan.Plane());
+  const emph::geo::Detector* sensor = pl->SSD(dchan.HiLo());
+  const emph::geo::Strip* sp = sensor->GetStrip(strip);
+
+  double dz=sensor->Dz();
+  double zmin=-dz/2.;
+  double dx=0.06;
+  double xmin=-dx/2.;
+  double dy=sensor->Width();
+  double ymin=-dy/2.;
+  double x1[3];
+  double x2[3];
+  double x3[3];
+  TEveBox* b = new TEveBox();
+  int ivtx=0; 
+  for (int iz=0; iz<2; iz++) {
+    for (int iy=0; iy<2; iy++) {
+      for (int ix=0; ix<2; ix++) {
+	x1[0] = xmin + ix*dx;
+	x1[1] = ymin + iy*dy;
+	x1[2] = zmin + iz*dz;
+	sp->LocalToMother(x1,x2);  // strip to sensor
+	sensor->LocalToMother(x2,x3); // sensor to station
+	st->LocalToMother(x3,x1); // station to global
+	b->SetVertex(ivtx++,x1[0],x1[1],x1[2]);
+      }
+    }
+  }
+  b->SetLineColor(mColor);
+  fSSDDigitsList->AddElement(b);
 
 }
 
@@ -526,23 +574,23 @@ void emph::EventDisplay3D::DrawTrueSSDHits(const art::Event& event)
     auto ssdHits = event.getHandle<std::vector<sim::SSDHit>>("geantgen");
     
     if  (!ssdHits->empty()) {
-      //      std::cout << "Found " << ssdHits->size() << " true SSD hits" << std::endl;
       for (size_t idx=0; idx<ssdHits->size(); ++idx) {
 	const sim::SSDHit& hit = (*ssdHits)[idx];
 	double x = hit.GetX();
 	double y = hit.GetY();
 	double z = hit.GetZ();
-	//	std::cout << "Hit at (" << x << "," << y << "," << z << ")" << std::endl;
 	TEveLine* lx = new TEveLine();	
-	lx->SetNextPoint(x-1.,y,z);
-	lx->SetNextPoint(x+1.,y,z);
+	lx->SetNextPoint(x-5.,y,z);
+	lx->SetNextPoint(x+5.,y,z);
 	lx->SetLineColor(kYellow+2);
+	lx->SetLineWidth(2);
 	lx->SetMarkerSize(4);
 
 	TEveLine* ly = new TEveLine();	
-	ly->SetNextPoint(x,y-1.,z);
-	ly->SetNextPoint(x,y+1.,z);
+	ly->SetNextPoint(x,y-5.,z);
+	ly->SetNextPoint(x,y+5.,z);
 	ly->SetLineColor(kYellow+2);
+	ly->SetLineWidth(2);
 	ly->SetMarkerSize(4);
 
 	fTrueSSDHitsList->AddElement(lx);
@@ -585,8 +633,37 @@ void emph::EventDisplay3D::DrawSSDClusters(const art::Event& event)
   catch(...) {
     
   }
-  //  fSSDClustsList->AddElement(SSDHitsList);  
   gEve->AddElement(fSSDClustsList);    
+
+}
+
+//------------------------------------------------------------
+
+void emph::EventDisplay3D::DrawSSDDigits(const art::Event& event)
+{
+  if (fSSDDigitsList == 0) {
+    fSSDDigitsList = new TEveElementList("SSD Raw Digits"); 
+    fSSDDigitsList->IncDenyDestroy();              // protect element against destruction
+  }
+  else {
+    fSSDDigitsList->DestroyElements();             // destroy children of the element
+  }
+  
+  try {
+    
+    auto ssdDigits = event.getHandle<std::vector<emph::rawdata::SSDRawDigit>>(fSSDDigitLabel);
+    
+    if  (!ssdDigits->empty()) {
+      for (size_t idx=0; idx<ssdDigits->size(); ++idx) {
+	const emph::rawdata::SSDRawDigit& dig = (*ssdDigits)[idx];
+	drawSSDDigit(kMagenta,4,dig);
+      }
+    }
+  }
+  catch(...) {
+    
+  }
+  gEve->AddElement(fSSDDigitsList);    
 
 }
 
@@ -635,17 +712,10 @@ void emph::EventDisplay3D::drawMCParticle(Int_t mColor, Int_t mSize,
   double x0[3];
   double x1[3];
   TEveLine* l = new TEveLine();    
-  //  std::cout << "drawMCParticle: " << part.fpdgCode << " " << part.E(0) 
-  //	    << " MeV: (" 
-  //	    << part.ftrajectory.X(0) << "," << part.ftrajectory.Y(0) << "," 
-  //	    << part.ftrajectory.Z(0) << ")";
   l->SetNextPoint(part.ftrajectory.X(0), part.ftrajectory.Y(0), part.ftrajectory.Z(0));  
   for (size_t i=1; i<part.ftrajectory.size(); ++i) {
-    //    std::cout << "->(" << part.ftrajectory.X(i) << ","
-    //	      << part.ftrajectory.Y(i) <<"," << part.ftrajectory.Z(i) <<")";
     l->SetNextPoint(part.ftrajectory.X(i), part.ftrajectory.Y(i), part.ftrajectory.Z(i));  
   }
-  //  std::cout << std::endl;
 
   l->SetMarkerSize(mSize);
   l->SetLineColor(mColor);
@@ -671,8 +741,6 @@ void emph::EventDisplay3D::DrawVertices(const art::Event& )
 
 void emph::EventDisplay3D::analyze(const art::Event& event )
 {
-  //  std::cout << "%%%%% Entering EventDisplay3D::analyze() %%%%% " << std::endl;
-
   // ... Update the run and event numbers in the TGTextEntry widgets in the Navigation panel
   std::ostringstream sstr;
   sstr << event.id().run();
@@ -680,21 +748,15 @@ void emph::EventDisplay3D::analyze(const art::Event& event )
   visutil_->fTbRun->AddText(0,sstr.str().c_str());
   gClient->NeedRedraw(fTeRun);
 
-  //  std::cout << "%%%%% Updating run %%%%% " << std::endl;
-
   sstr.str("");
   sstr << event.id().event();
   visutil_->fTbEvt->Clear();
   visutil_->fTbEvt->AddText(0,sstr.str().c_str());
   gClient->NeedRedraw(fTeEvt);
 
-  //  std::cout << "%%%%% Updating event %%%%% " << std::endl;
-
   // ... Delete visualization structures associated with previous event
-  //  std::cout << "%%%%% Deleting visualization structures... %%%%% " << std::endl;
   gEve->GetViewers()->DeleteAnnotations();
   gEve->GetCurrentEvent()->DestroyElements();
-  //  std::cout << "%%%%% Deleted visualization structures. %%%%% " << std::endl;
 
   // Draw MC truth
   if (fDrawMCTruth) DrawMCTruth(event); // currently does nothing

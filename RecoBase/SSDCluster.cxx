@@ -28,8 +28,7 @@ namespace rb {
     fID(id),
     fStation(-1),
     fSensor(-1),
-    fPlane(-1),
-    fHiLo(-1)
+    fPlane(-1)
   {
     assert(hits.size() > 1);
     

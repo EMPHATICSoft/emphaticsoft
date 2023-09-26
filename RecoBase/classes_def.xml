@@ -4,6 +4,7 @@
 <!--  lines and for all objects that are data members of those objects.-->
  
 <lcgdict>
+
   <class name="rb::SSDHit"    ClassVersion="12">
    <version ClassVersion="12" checksum="4189656060"/>
    <version ClassVersion="11" checksum="2728825684"/>
@@ -12,7 +13,8 @@
   <class name="std::vector<rb::SSDHit>"        />
   <class name="art::Wrapper< std::vector<rb::SSDHit>    >"/>
 
-  <class name="rb::SSDCluster"    ClassVersion="21">
+  <class name="rb::SSDCluster"    ClassVersion="22">
+   <version ClassVersion="22" checksum="3511136863"/>
    <version ClassVersion="21" checksum="2659661316"/>
    <version ClassVersion="20" checksum="3511136863"/>
    <version ClassVersion="19" checksum="2321509360"/>

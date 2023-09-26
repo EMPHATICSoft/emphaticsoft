@@ -16,12 +16,12 @@ namespace caf
     GetPy(std::numeric_limits<float>::signaling_NaN()),
     GetPz(std::numeric_limits<float>::signaling_NaN()),
     GetDE(std::numeric_limits<float>::signaling_NaN()),
-    GetPId(std::numeric_limits<float>::signaling_NaN()),
-    GetStation(std::numeric_limits<float>::signaling_NaN()),
-    GetPlane(std::numeric_limits<float>::signaling_NaN()),
-    GetSensor(std::numeric_limits<float>::signaling_NaN()),
-    GetStrip(std::numeric_limits<float>::signaling_NaN()),
-    GetTrackID(std::numeric_limits<float>::signaling_NaN())
+    GetPId(std::numeric_limits<int>::signaling_NaN()),
+    GetStation(std::numeric_limits<int>::signaling_NaN()),
+    GetPlane(std::numeric_limits<int>::signaling_NaN()),
+    GetSensor(std::numeric_limits<int>::signaling_NaN()),
+    GetStrip(std::numeric_limits<int>::signaling_NaN()),
+    GetTrackID(std::numeric_limits<int>::signaling_NaN())
   {
   }
   //--------------------------------------------------------------------
