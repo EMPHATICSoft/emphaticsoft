@@ -9,7 +9,7 @@ process_name: MakeHits
 
 services:
 {
-  TFileService: { fileName: "hits_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "%ifb_hits_hist.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
@@ -26,7 +26,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-hits_r%r_s%s.root"
+   fileName:    "%ifb_hits.root"
    fastCloning: false
 
   }
