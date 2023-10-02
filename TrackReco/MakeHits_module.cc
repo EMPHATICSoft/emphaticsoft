@@ -83,6 +83,7 @@ namespace emph {
     int 	fTotClust;
     int         badclust = 0; 
     size_t      nPlanes;
+    size_t      nStations;
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
@@ -169,6 +170,7 @@ namespace emph {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
+    nStations = emgeo->NSSDStations();
   }
 
   //......................................................................
@@ -376,6 +378,9 @@ namespace emph {
 
     bool goodEvent = false;
 
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto emgeo = geo->Geo();
+
     try {
       evt.getByLabel(fClusterLabel, clustH);
       if (!clustH->empty()){
@@ -387,28 +392,33 @@ namespace emph {
 
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
-	  if (clusters.size()==20){ //what should this be...
+	  if (clusters.size()==20){
 	     for (auto i : clustMap){
-	         //std::cout<<"cluster (sta,plane)..."<<i.first.first<<","<<i.first.second<<std::endl;
-		 if (i.second != 1){goodEvent = false; break;} //std::cout<<"More than one cluster per plane :("<<std::endl;}        
+		 if (i.second != 1){goodEvent = false; break;} 
 	         else goodEvent = true;
 	     }
-	     if (goodEvent==true) {goodclust++;} //std::cout<<"First test passed :3 @ Event "<<fEvtNum<<std::endl;}
-	     else {badclust++;} // std::cout<<                 "Naurrrrrrr        :("<<std::endl;}
+	     if (goodEvent==true) {goodclust++;} 
+	     else {badclust++;}
           }
 	  else badclust++;
 	  
-	  std::vector<std::vector<const rb::SSDCluster*> > cl_group;
-	  std::vector<std::vector<const rb::LineSegment*> > ls_group;
-	  cl_group.resize(nPlanes);
-	  ls_group.resize(nPlanes);
+         std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
+         std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group;
+         cl_group.resize(nStations);
+         ls_group.resize(nStations);
+
+	 for (size_t i=0; i<nStations; i++){
+	     cl_group[i].resize(nPlanes);
+             ls_group[i].resize(nPlanes);
+	 }
 
          for (size_t i=0; i<clusters.size(); i++){
 	   int plane = clusters[i]->Plane();
-	   
+	   int station = clusters[i]->Station();	 
+ 
 	   //group clusters according to plane
 	   //within each station, do every combination
-	   cl_group[plane].push_back(clusters[i]);
+	   cl_group[station][plane].push_back(clusters[i]);
 	 }
 	 
 	  //ANY CLUSTER
@@ -432,122 +442,121 @@ namespace emph {
 	  if (goodEvent == true && stripv.size() > 0){
 	     for (size_t i=0; i<clusters.size(); i++){
                  int plane = clusters[i]->Plane();
-		 ls_group[plane].push_back(&stripv[i]);
+		 int station = clusters[i]->Station();
+		 ls_group[station][plane].push_back(&stripv[i]);
              }
-	     
-	     for (size_t i=0; i<nPlanes; i++){
-	         //station 0,1,4,7
-	         if (i==0 || i==2 || i==10 || i==18){ //|| i==4 || i==7 || i==10 || i==18){
-	            for (size_t j=0; j<ls_group[i].size(); j++){
-		        st = cl_group[i][j]->Station();
-	                for (size_t k=0; k<ls_group[i+1].size(); k++){
-			    double fA[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
-                            double fB[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
-                            double fC[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
-                            double fD[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
 
-			    double x[3];
-	                    double l1[3]; double l2[3];
-			    ClosestApproach(fA,fB,fC,fD,x,l1,l2);
+	     for (size_t i=0; i<nStations; i++){
+		 int nssds = emgeo->GetSSDStation(i)->NPlanes();
+	         for (size_t j=0; j<nPlanes; j++){ 
+                     if (nssds == 2){ //station 0,1,4,7
+	                 for (size_t k=0; k<ls_group[i][j].size(); k++){
+		             st = cl_group[i][j][k]->Station();
+		             for (size_t l=0; l<ls_group[i][j+1].size(); l++){  
+		                 double fA[3] = { ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] };
+                                 double fB[3] = { ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] };
+                                 double fC[3] = { ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] };
+                                 double fD[3] = { ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] };
 
-			    //set SpacePoint object
-			    sp.SetX(x);
+			         double x[3];
+	                         double l1[3]; double l2[3];
+			         ClosestApproach(fA,fB,fC,fD,x,l1,l2);
 
-			    //check stations
-			    if (cl_group[i+1][k]->Station() == st){} 
-                            else std::cout<<"XY: Stations do not match..."<<std::endl;
+			         //set SpacePoint object
+			         sp.SetX(x);
+
+			         //check stations
+			         if (cl_group[i][j+1][l]->Station() == st){} 
+                                 else std::cout<<"XY: Stations do not match..."<<std::endl;
                           
-                            sp.SetStation(st);
-			    spv.push_back(sp);
-                            //add to unique pointer vector
-                            spacepointv->push_back(sp);
+                                 sp.SetStation(st);
+			         spv.push_back(sp);
+                                 //add to unique pointer vector
+                                 spacepointv->push_back(sp);
 
-			    if (st==0) spdist0->Fill(x[0],x[1]);
-                            if (st==1) spdist1->Fill(x[0],x[1]);
-                            if (st==4) spdist4->Fill(x[0],x[1]);
-			    if (st==7) spdist7->Fill(x[0],x[1]); 
-		            xzdist->Fill(x[2],x[0]);
-			    yzdist->Fill(x[2],x[1]);
+			         if (st==0) spdist0->Fill(x[0],x[1]);
+                                 if (st==1) spdist1->Fill(x[0],x[1]);
+                                 if (st==4) spdist4->Fill(x[0],x[1]);
+			         if (st==7) spdist7->Fill(x[0],x[1]); 
+		                 xzdist->Fill(x[2],x[0]);
+			         yzdist->Fill(x[2],x[1]);
 
-			    //check for plots
-			    if (fEvtNum < 8000){
-			       xvec[st] = x[0];
-			       yvec[st] = x[1];
-			       zvec[st] = x[2];
+		         	 //check for plots
+			         if (fEvtNum < 8000){
+			            xvec[st] = x[0];
+			            yvec[st] = x[1];
+			            zvec[st] = x[2];
+		                 }
 		            }
-		        }
-	            }
-	          i++; //skip following sensor
-	       }
-	       //station 2,3,5,6
-	       if (i==4 || i==7 || i==12 || i==15){
-	          for (size_t j=0; j<ls_group[i].size(); j++){
-		      st = cl_group[i][j]->Station();
-                      for (size_t k=0; k<ls_group[i+1].size(); k++){
-			  for (size_t l=0; l<ls_group[i+2].size(); l++){ 
-			      double fA01[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
-                              double fB01[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
-                              double fC01[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
-                              double fD01[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
+	                }
+		    }
+	            if (nssds == 3){ //station 2,3,5,6
+	               for (size_t k=0; k<ls_group[i][j].size(); k++){
+		           st = cl_group[i][j][k]->Station();
+                           for (size_t l=0; l<ls_group[i][j+1].size(); l++){
+			       for (size_t m=0; m<ls_group[i][j+2].size(); m++){ 
+			           double fA01[3] = { ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] };
+                                   double fB01[3] = { ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] };
+                                   double fC01[3] = { ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] };
+                                   double fD01[3] = { ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] };
 
-			      double x01[3];
-			      double l1_01[3]; double l2_01[3];
-                              ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01);
+			           double x01[3];
+			           double l1_01[3]; double l2_01[3];
+                                   ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01);
 
-			      double fA02[3] = { ls_group[i][j]->X0()[0], ls_group[i][j]->X0()[1], ls_group[i][j]->X0()[2] };
-                              double fB02[3] = { ls_group[i][j]->X1()[0], ls_group[i][j]->X1()[1], ls_group[i][j]->X1()[2] };
-                              double fC02[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i+2][l]->X0()[2] };
-                              double fD02[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i+2][l]->X1()[2] };
+			           double fA02[3] = { ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] };
+                                   double fB02[3] = { ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] };
+                                   double fC02[3] = { ls_group[i][j+2][m]->X0()[0], ls_group[i][j+2][m]->X0()[1], ls_group[i][j+2][m]->X0()[2] };
+                                   double fD02[3] = { ls_group[i][j+2][m]->X1()[0], ls_group[i][j+2][m]->X1()[1], ls_group[i][j+2][m]->X1()[2] };
 
-                              double x02[3];
-                              double l1_02[3]; double l2_02[3];
-                              ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02);
+                                   double x02[3];
+                                   double l1_02[3]; double l2_02[3];
+                                   ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02);
 
-			      double fA12[3] = { ls_group[i+1][k]->X0()[0], ls_group[i+1][k]->X0()[1], ls_group[i+1][k]->X0()[2] };
-                              double fB12[3] = { ls_group[i+1][k]->X1()[0], ls_group[i+1][k]->X1()[1], ls_group[i+1][k]->X1()[2] };
-                              double fC12[3] = { ls_group[i+2][l]->X0()[0], ls_group[i+2][l]->X0()[1], ls_group[i+2][l]->X0()[2] };
-                              double fD12[3] = { ls_group[i+2][l]->X1()[0], ls_group[i+2][l]->X1()[1], ls_group[i+2][l]->X1()[2] };
+			           double fA12[3] = { ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] };
+                                   double fB12[3] = { ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] };
+                                   double fC12[3] = { ls_group[i][j+2][m]->X0()[0], ls_group[i][j+2][m]->X0()[1], ls_group[i][j+2][m]->X0()[2] };
+                                   double fD12[3] = { ls_group[i][j+2][m]->X1()[0], ls_group[i][j+2][m]->X1()[1], ls_group[i][j+2][m]->X1()[2] };
 
-                              double x12[3];
-                              double l1_12[3]; double l2_12[3];
-                              ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12);
+                                   double x12[3];
+                                   double l1_12[3]; double l2_12[3];
+                                   ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12);
 
-			      //average of three points (center of mass)
-			      double x[3];
-			      for (int i=0; i<3; i++){
-				  x[i] = (x01[i]+x02[i]+x12[i])/3.;
-			      }
+			           //average of three points (center of mass)
+			           double x[3];
+			           for (int i=0; i<3; i++){
+				       x[i] = (x01[i]+x02[i]+x12[i])/3.;
+			           }
 
-                              //set SpacePoint object
-                   	      sp.SetX(x);	 
+                                   //set SpacePoint object
+                   	           sp.SetX(x);	 
 	
-		              //check stations 
-		              if (cl_group[i+1][k]->Station() == st && cl_group[i+2][l]->Station() == st){}
-                              else std::cout<<"XYU: Stations do not match..."<<std::endl;    
-			      //reverse the logic (if this or this) + no else?
+		                   //check stations 
+		                   if (cl_group[i][j+1][l]->Station() == st && cl_group[i][j+2][m]->Station() == st){}
+                                   else std::cout<<"XYU: Stations do not match..."<<std::endl;    
 
-			      sp.SetStation(st);
-                              spv.push_back(sp);
-                              //add to unique pointer vector
-                              spacepointv->push_back(sp);
+			           sp.SetStation(st);
+                                   spv.push_back(sp);
+                                   //add to unique pointer vector
+                                   spacepointv->push_back(sp);
                           
-                              if (st==2) spdist2->Fill(x[0],x[1]);
-                              if (st==3) spdist3->Fill(x[0],x[1]);
-			      if (st==5) spdist5->Fill(x[0],x[1]);
-			      if (st==6) spdist6->Fill(x[0],x[1]);
-			      xzdist->Fill(x[2],x[0]);
-                              yzdist->Fill(x[2],x[1]);
+                                   if (st==2) spdist2->Fill(x[0],x[1]);
+                                   if (st==3) spdist3->Fill(x[0],x[1]);
+			           if (st==5) spdist5->Fill(x[0],x[1]);
+			           if (st==6) spdist6->Fill(x[0],x[1]);
+			           xzdist->Fill(x[2],x[0]);
+                                   yzdist->Fill(x[2],x[1]);
 
-			      //check for plots
-			      if (fEvtNum < 8000){
-				 xvec[st] = x[0];
-				 yvec[st] = x[1];
-                                 zvec[st] = x[2];
-		              }
-			  }
-                      }
-		  }
-	          i += 2;	
+			           //check for plots
+			           if (fEvtNum < 8000){
+				      xvec[st] = x[0];
+				      yvec[st] = x[1];
+                                      zvec[st] = x[2];
+		                   }
+			       }
+                           }
+		       }
+		   }
 	       }
 	   }
 	}
