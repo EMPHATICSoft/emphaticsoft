@@ -30,7 +30,8 @@ namespace st {
     const bool IsTimeMapLoaded() const { return _fIsLoaded; }
     const int* TimeMap() const { return _signaltime; }
 
-    int SigTime(const int &board, const int &channel) const{
+    int SigTime(const int& index) const {return _signaltime[index]; }
+    int SigTime(const int& board, const int& channel) const{
         int index = board*8 + channel;
         return _signaltime[index];
     }

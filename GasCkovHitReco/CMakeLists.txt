@@ -15,6 +15,7 @@ art_make_library ( SOURCE ${src_files}
 		   RecoBase
 		   ChannelMap
 		   ChannelMapService_service
+           SignalTime
 			RunHistory
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
@@ -27,6 +28,7 @@ cet_build_plugin(GasCkovHitReco art::module
     RecoBase
     ChannelMap
     ChannelMapService_service
+    SignalTime
 	 RunHistory
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger

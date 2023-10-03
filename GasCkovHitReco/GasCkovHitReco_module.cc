@@ -32,6 +32,7 @@
 #include "RawData/WaveForm.h"
 #include "RecoBase/GasCkovHit.h"
 #include "RecoBase/ADC.h"
+#include "SignalTime/SignalTime.h"
 
 using namespace emph;
 
@@ -57,6 +58,7 @@ namespace emph {
     void GetGasCkovHit(art::Handle< std::vector<rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    emph::st::SignalTime stmap;
     
     int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
     std::vector<std::vector<int>> GasCkov_signal;
@@ -172,7 +174,7 @@ namespace emph {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
 	    //const rawdata::WaveForm* wvfm_ptr = &wvfm; 
-	    const rb::ADC wvr(wvfm);
+	    const rb::ADC wvr(wvfm,stmap);
 	    int chan = wvfm.Channel();
         int board = wvfm.Board();
         echan.SetBoard(board);
@@ -221,6 +223,7 @@ namespace emph {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
+    if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
 
     std::string labelStr = "raw:GasCkov";
     art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;

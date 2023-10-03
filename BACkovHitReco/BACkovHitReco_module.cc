@@ -69,6 +69,7 @@ namespace emph {
     unsigned int fNEvents;
     int event;
     TH1F*       fBACkovChargeHist[6];
+    TH2F*       fBACkovChargeTimeHist[6];
 
   };
 
@@ -102,11 +103,21 @@ namespace emph {
     char hname[64];
     for (int i=0; i<=5; ++i) {
       sprintf(hname,"BACkovQ_%d",i);
-      if(i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),260,-1,25);
-      else fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),410,-2,80);
+      if(i!=3 && i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),100,-1,10);
+      else if (i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),150,-1,25);
+      else fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),400,-2,80);
       fBACkovChargeHist[i]->GetXaxis()->SetTitle("Charge (pC)");
       fBACkovChargeHist[i]->GetYaxis()->SetTitle("Number of Events"); 
     }
+    for (int i=0; i<=5; ++i) {
+      sprintf(hname,"BACkovQT_%d",i);
+      if(i!=3 && i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,200,-2,80);
+      else if (i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,200,-2,80);
+      else fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,400,-2,80);
+      fBACkovChargeTimeHist[i]->GetXaxis()->SetTitle("Time (ns)");
+      fBACkovChargeTimeHist[i]->GetYaxis()->SetTitle("Charge (pC)");
+    }
+
 
     std::cout<<"**************************************************"<<std::endl;
     std::cout<< "Beam Configuration: "<<mom<<" GeV/c"<<std::endl;
@@ -158,20 +169,20 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rb::ADC wvr(wvfm);
+	    const rb::ADC wvr(wvfm,stmap);
 	    int chan = wvfm.Channel();
         int board = wvfm.Board();
-        if (event<10){
-            std::cout<<board<<"  "<<chan<<"  ";
-            std::cout<<stmap.SigTime(board,chan)<<std::endl;
-        }
         echan.SetBoard(board);
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int detchan = dchan.Channel();
-        float Q = wvr.BACkovCharge();
-        fBACkovChargeHist[detchan]->Fill(Q);
-        Qvec[detchan]=Q;
+        //float Q = wvr.BACkovCharge();
+
+        float q = wvr.SWCharge();
+        float t = wvr.Time();
+        fBACkovChargeHist[detchan]->Fill(q);
+        fBACkovChargeTimeHist[detchan]->Fill(t,q);
+        Qvec[detchan]=q;
 	  }  
     }
     float low_q = Qvec[0]+Qvec[1]+Qvec[2];

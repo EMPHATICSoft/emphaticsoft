@@ -21,6 +21,7 @@ cet_build_plugin(OnMonPlotter art::module
   RecoBase
   ChannelMap
   ChannelMapService_service
+  SignalTime
   RunHistory
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger

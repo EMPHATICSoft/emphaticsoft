@@ -74,7 +74,9 @@
   <class name="std::vector<rb::GasCkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
 
-  <class name="rb::ADC"    ClassVersion="13">
+  <class name="rb::ADC"    ClassVersion="15">
+   <version ClassVersion="15" checksum="1016659584"/>
+   <version ClassVersion="14" checksum="2242256476"/>
    <version ClassVersion="13" checksum="114040"/>
    <version ClassVersion="12" checksum="3706276525"/>
     <version ClassVersion="10" checksum="7"/>

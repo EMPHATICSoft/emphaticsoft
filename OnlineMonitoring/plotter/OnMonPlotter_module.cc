@@ -37,6 +37,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/ADC.h"
+#include "SignalTime/SignalTime.h"
 
 
 using namespace emph;
@@ -99,6 +100,7 @@ namespace emph {
       void HandleRequestsThread();
 
       art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+      emph::st::SignalTime stmap;
 
       OnMonProdIPC* fIPC;         ///< Communicates with viewer
       std::string   fSHMname;     ///< Shared memory for communication
@@ -662,7 +664,7 @@ namespace emph {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rb::ADC wvr(wvfm); 
+	    const rb::ADC wvr(wvfm,stmap); 
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
@@ -673,7 +675,7 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvr.BACkovCharge();
+	      float q = wvr.SWCharge();
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot
@@ -1131,6 +1133,7 @@ namespace emph {
       ++fNEvents;
       fRun = evt.run();
       fSubrun = evt.subRun();     
+      if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
       std::string labelStr;
       std::string labelStr2;
 
