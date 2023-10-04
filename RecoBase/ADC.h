@@ -28,22 +28,26 @@ namespace rb {
 
     int _v1720index;
     int _exptime;
-    float _charge;
+    float _baseline;
     float _time;
+    float _charge;
 
   public:
     // Getters
     const int V1720Index() const { return _v1720index; }
     const float ExpectedTime() const { return _exptime; }
+    const float Baseline() const { return _baseline; }
     const float Time() const { return _time; }
     const float Charge() const { return _charge; }
     
     // Setters
     void SetV1720Index(int i) { _v1720index = i; }
     void SetExpectedTime(int t) { _exptime = t; }
+    void SetBaseline(int bl) { _baseline = bl; }
     void SetTime(float t) { _time = t; }
     void SetCharge(float q) { _charge = q; }
 
+    float CalcBaseline(const emph::rawdata::WaveForm&) const;
     float CalcTime(const emph::rawdata::WaveForm&) const;
     float CalcCharge(const emph::rawdata::WaveForm&) const;
     void CalcSWCharge(const emph::rawdata::WaveForm&);

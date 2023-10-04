@@ -158,8 +158,9 @@ namespace emph {
   
   void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
   {
-    //Create empty vectors to hold charge values
+    //Create empty vectors to hold charge and time values
     float Qvec[6];
+    float Tvec[6];
 
     //int BACnchan = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
     emph::cmap::FEBoardType boardType = emph::cmap::V1720;
@@ -176,13 +177,14 @@ namespace emph {
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int detchan = dchan.Channel();
-        if (detchan!=5) wvr.CalcFitCharge(wvfm);
+        //if (detchan!=5) wvr.CalcFitCharge(wvfm);
 
         float q = wvr.Charge();
         float t = wvr.Time();
         fBACkovChargeHist[detchan]->Fill(q);
         fBACkovChargeTimeHist[detchan]->Fill(t,q);
         Qvec[detchan]=q;
+        Tvec[detchan]=t;
 	  }  
     }
     float low_q = Qvec[0]+Qvec[1]+Qvec[2];
@@ -215,6 +217,7 @@ namespace emph {
     //Create object and store BACkov Charge and PID results
     rb::BACkovHit BACkovHit;
     BACkovHit.SetCharge(Qvec);
+    BACkovHit.SetTime(Tvec);
     BACkovHit.SetPID(PID_prob);
     BACkovHits->push_back(BACkovHit);
   }

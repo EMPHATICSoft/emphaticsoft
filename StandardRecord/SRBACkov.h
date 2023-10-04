@@ -13,8 +13,8 @@ namespace caf
     SRBACkov();
     virtual ~SRBACkov();
 
-    float charge[6];    ///< charge recorded for each BACkov PMT
-    bool  PID[5];       ///< probability (0 or 1) of being {e,mu,pi,K,p}
+    float charge;    ///< charge recorded for BACkov PMT
+    float time;     ///< time of hit recorded for BACkov PMT
 
     virtual void setDefault();
   };

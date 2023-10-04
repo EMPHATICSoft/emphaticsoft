@@ -19,6 +19,7 @@ namespace rb{
   {
     _v1720index = -999;
     _exptime = -999;
+    _baseline = -999;
     _time = -999;
     _charge = -999;
   }
@@ -29,9 +30,27 @@ namespace rb{
   {
     _v1720index = wvfm.Board()*8 + wvfm.Channel();
     _exptime = stmap.SigTime(_v1720index);
+    _baseline = this->CalcBaseline(wvfm);
     _time = this->CalcTime(wvfm);
     _charge = this->CalcCharge(wvfm);
   }
+
+  //--------------------------------------------------
+  float ADC::CalcBaseline(const emph::rawdata::WaveForm& wvfm) const
+  {
+    int tmin = _exptime - 15;
+    int tmax = _exptime + 30;
+    if (tmin<0) tmin=0;
+    if (tmax>108) tmax=108;
+
+    float bl;
+    if (tmin>20) bl = wvfm.Baseline(0,20); //use first 20 if signal is not here
+    else if (tmax<88) bl = wvfm.Baseline(88,20); //use last 20 if signal is not here
+    else bl = (wvfm.Baseline(0,10) + wvfm.Baseline (98,10))/2.; //use first 10 and last 10 if necessary
+
+    return bl;
+  }
+
 
   //--------------------------------------------------
   float ADC::CalcTime(const emph::rawdata::WaveForm& wvfm) const
@@ -60,12 +79,9 @@ namespace rb{
     int tmax = _exptime + 30;
     if (tmin<0) tmin=0;
     if (tmax>108) tmax=108;
-    float bl;
-    if (tmin>10) bl = wvfm.Baseline(0,10); //use first 10 if signal is not here
-    else bl = wvfm.Baseline(98,10); //else use last 10
 
     float sum=0;
-    for ( size_t i=tmin; i<size_t(tmax) && i<wvfm.NADC(); ++i) sum += wvfm.ADC(i)-bl;
+    for ( size_t i=tmin; i<size_t(tmax) && i<wvfm.NADC(); ++i) sum += wvfm.ADC(i)-_baseline;
     //convert to pC
     float charge = (-1*sum*2*4e-9*1e12)/(50*4096);
     return charge;
@@ -78,9 +94,6 @@ namespace rb{
     int tmax = _exptime + 30;
     if (tmin<0) tmin=0;
     if (tmax>108) tmax=108;
-    float bl;
-    if (tmin>10) bl = wvfm.Baseline(0,10); //use first 10 if signal is not here
-    else bl = wvfm.Baseline(98,10); //else use last 10
 
     size_t win_size = 10;
     float sum=0;
@@ -89,7 +102,7 @@ namespace rb{
         if (i+win_size>size_t(tmax)) break; //stop integrating window if it extends beyond window size
         float winsum=0;
         for (size_t j=i; j<size_t(i+win_size); ++j){
-            winsum += wvfm.ADC(j)-bl;
+            winsum += wvfm.ADC(j)-_baseline;
         }
         //convert to pC
         winsum = (-1*winsum*2*4e-9*1e12)/(50*4096);
@@ -128,18 +141,14 @@ namespace rb{
           hist->SetBinContent(i+1,wvfm.ADC(i)*adc_to_mV);
       }
 
-      float bl;
-      if (_time>40) bl = wvfm.Baseline(0,10); //use first 10 if signal is not here
-      else bl = wvfm.Baseline(98,10); //else use last 10
-
       //expected time of signal
       int tmin = _exptime - 15;
       int tmax = _exptime + 30;
       
 
-      float max = bl - wvfm.PeakADC(true);
+      float max = _baseline - wvfm.PeakADC(true);
       TF1 *fitFcn = new TF1("fitFcn",&rb::ADC::wvfmFitFunction,0,108,5);
-      fitFcn->SetParameters(bl*adc_to_mV,0,-max*adc_to_mV,_exptime,1);
+      fitFcn->SetParameters(_baseline*adc_to_mV,0,-max*adc_to_mV,_exptime,1);
       fitFcn->SetParLimits(2,-3000,0);
       fitFcn->SetParLimits(3,tmin,tmax);
       fitFcn->SetParLimits(4,0,5);

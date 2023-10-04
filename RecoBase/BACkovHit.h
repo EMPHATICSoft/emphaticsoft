@@ -20,12 +20,15 @@ namespace rb {
   private:
 
     float _charge[6]; // Charge deposited in BACkov PMTs 
+    float _time[6]; // Charge deposited in BACkov PMTs 
     bool _PID[5]; //Entries are 0 or 1 (can be or can't be this particle) ordered (e,mu,pi,K,p)
     
   public:
     // Getters
     const float* Charge() const { return _charge; }
     float ChargeChan(int chan) const { return _charge[chan]; }
+    const float* Time() const { return _time; }
+    float TimeChan(int chan) const { return _time[chan]; }
     const bool*  PID() const { return _PID; }
     bool IsElectron() const { return _PID[0]; }
     bool IsMuon() const { return _PID[1]; }
@@ -34,7 +37,8 @@ namespace rb {
     bool IsProton() const { return _PID[4]; }
 
     // Setters
-    void SetCharge(float x[6]) { for (int i=0; i<6; ++i) _charge[i] = x[i]; }
+    void SetCharge(float q[6]) { for (int i=0; i<6; ++i) _charge[i] = q[i]; }
+    void SetTime(float t[6]) { for (int i=0; i<6; ++i) _time[i] = t[i]; }
     void SetPID(bool pid[5]) { for (int i=0; i<5; ++i) _PID[i] = pid[i]; }
     
   };

@@ -16,6 +16,7 @@ namespace rb {
   BACkovHit::BACkovHit()    
   {
     for (int i=0; i<6; ++i) { _charge[i] = -9999.; }
+    for (int i=0; i<6; ++i) { _time[i] = -9999.; }
     for (int i=0; i<5; ++i) { _PID[i] = 0; }
   }
   

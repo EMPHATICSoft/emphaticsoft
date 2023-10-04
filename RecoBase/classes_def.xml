@@ -58,7 +58,8 @@
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
 
-  <class name="rb::BACkovHit"    ClassVersion="13">
+  <class name="rb::BACkovHit"    ClassVersion="14">
+   <version ClassVersion="14" checksum="1233153501"/>
    <version ClassVersion="13" checksum="401007675"/>
    <version ClassVersion="12" checksum="2996980846"/>
     <version ClassVersion="10" checksum="5"/>
@@ -74,7 +75,8 @@
   <class name="std::vector<rb::GasCkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
 
-  <class name="rb::ADC"    ClassVersion="16">
+  <class name="rb::ADC"    ClassVersion="17">
+   <version ClassVersion="17" checksum="2358953481"/>
    <version ClassVersion="16" checksum="3461814886"/>
    <version ClassVersion="15" checksum="1016659584"/>
    <version ClassVersion="14" checksum="2242256476"/>

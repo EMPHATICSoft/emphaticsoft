@@ -6,11 +6,15 @@
 
 #include "StandardRecord/SRBACkovBranch.h"
 
-
 namespace caf
 {
   SRBACkovBranch::SRBACkovBranch():
-    nbackovhits(-1)
+    nbackovhits(-1),
+    PID{std::numeric_limits<bool>::signaling_NaN(),
+        std::numeric_limits<bool>::signaling_NaN(),
+        std::numeric_limits<bool>::signaling_NaN(),
+        std::numeric_limits<bool>::signaling_NaN(),
+        std::numeric_limits<bool>::signaling_NaN()}
   {
   }
 

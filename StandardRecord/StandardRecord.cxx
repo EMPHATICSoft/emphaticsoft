@@ -5,9 +5,9 @@ namespace caf
   StandardRecord::StandardRecord() :
     hdr(),
     ring(),
-    backov(),
     truth(),	 
-    hits()
+    hits(),
+    backov()
   {
   }
   

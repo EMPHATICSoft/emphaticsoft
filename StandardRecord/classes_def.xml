@@ -37,12 +37,14 @@
   <version ClassVersion="10" checksum="1716345376"/>
  </class>
 
- <class name="caf::SRBACkov" ClassVersion="10" >
+ <class name="caf::SRBACkov" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2513657104"/>
   <version ClassVersion="10" checksum="2512846135"/>
  </class>
  <class name="std::vector<caf::SRBACkov>" />
 
- <class name="caf::SRBACkovBranch" ClassVersion="10" >
+ <class name="caf::SRBACkovBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1730709028"/>
   <version ClassVersion="10" checksum="3005628000"/>
  </class>
 

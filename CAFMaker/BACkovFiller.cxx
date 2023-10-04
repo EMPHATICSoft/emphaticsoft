@@ -13,6 +13,7 @@ namespace caf
 {
   void BACkovFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
+      std::cout<<"HERE   1"<<std::endl;
     art::Handle< std::vector <rb::BACkovHit> > bhitv;
 
     evt.getByLabel(fLabel, bhitv);
@@ -25,22 +26,23 @@ namespace caf
       
     std::vector<rb::BACkovHit> backovhits;
     if(!bhitv.failedToGet()) backovhits = *bhitv;
+    std::cout<<backovhits.size()<<std::endl;
 
     for (unsigned int bhitId = 0; bhitId < backovhits.size(); ++bhitId) {
       stdrec.backov.backovhits.push_back(SRBACkov());
-      SRBACkov& srBACkov = stdrec.backov.backovhits.back();
 
       //Fill all 6 PMT channels with charge values
       for (int i=0; i<6; ++i){
-          srBACkov.charge[i] = backovhits[bhitId].ChargeChan(i);
+          SRBACkov& srBACkov = stdrec.backov.backovhits[i];
+          srBACkov.charge = backovhits[bhitId].ChargeChan(i);
+          srBACkov.time = backovhits[bhitId].TimeChan(i);
       }
       //Fill 5 PID possibilities
-     srBACkov.PID[0] = backovhits[bhitId].IsElectron(); 
-     srBACkov.PID[1] = backovhits[bhitId].IsMuon(); 
-     srBACkov.PID[2] = backovhits[bhitId].IsPion(); 
-     srBACkov.PID[3] = backovhits[bhitId].IsKaon(); 
-     srBACkov.PID[4] = backovhits[bhitId].IsProton(); 
-
+     stdrec.backov.PID[0] = backovhits[bhitId].IsElectron(); 
+     stdrec.backov.PID[1] = backovhits[bhitId].IsMuon(); 
+     stdrec.backov.PID[2] = backovhits[bhitId].IsPion(); 
+     stdrec.backov.PID[3] = backovhits[bhitId].IsKaon(); 
+     stdrec.backov.PID[4] = backovhits[bhitId].IsProton(); 
     } 
 
   }
