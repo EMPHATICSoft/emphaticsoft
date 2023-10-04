@@ -21,7 +21,6 @@ namespace rb{
     _exptime = -999;
     _time = -999;
     _charge = -999;
-    _swcharge = -999;
   }
 
   //--------------------------------------------------
@@ -32,8 +31,6 @@ namespace rb{
     _exptime = stmap.SigTime(_v1720index);
     _time = this->CalcTime(wvfm);
     _charge = this->CalcCharge(wvfm);
-    _swcharge = this->CalcSWCharge(wvfm);
-  
   }
 
   //--------------------------------------------------
@@ -51,10 +48,6 @@ namespace rb{
                 time = int(i);
            }
        }
-    }
-    if (time==0){
-        //for (size_t i=0; i<wvfm.NADC(); ++i) std::cout<< wvfm.ADC(i)<<std::endl;
-        std::cout<<steepest_slope<<std::endl;
     }
     return 4.*time; //convert to ns
   }
@@ -78,7 +71,7 @@ namespace rb{
     return charge;
   }
   //--------------------------------------------------
-  float ADC::CalcSWCharge(const emph::rawdata::WaveForm& wvfm) const
+  void ADC::CalcSWCharge(const emph::rawdata::WaveForm& wvfm)
   {
     //Sliding Window Integration (for small ADC signals)
     int tmin = _exptime - 15;
@@ -104,7 +97,70 @@ namespace rb{
     }
     //Get max value of sliding window integration
     float charge = *std::max_element(chargevec.begin(),chargevec.end());
-    return charge;
+    SetCharge(charge);
+  }
+   //--------------------------------------------------
+  double ADC::background(double *x, double *par)
+  {
+      return par[0] + par[1]*x[0];
+  }
+
+  //--------------------------------------------------
+  double ADC::gaussianPeak(double *x, double *par)
+  {
+      return par[0]*TMath::Exp(-0.5*(pow(x[0]-par[1],2))/(pow(par[2],2)));
+  }
+
+
+  //--------------------------------------------------
+  double ADC::wvfmFitFunction(double *x, double *par)
+  {
+      return background(x,par) + gaussianPeak(x,&par[2]);
+  }
+
+
+  //--------------------------------------------------
+  void ADC::CalcFitCharge(const emph::rawdata::WaveForm& wvfm)
+  {
+      float adc_to_mV = 2000./4096;
+      TH1F *hist = new TH1F("Waveform","wvfm",105,0,105);
+      for (size_t i=0; i<wvfm.NADC(); ++i) {
+          hist->SetBinContent(i+1,wvfm.ADC(i)*adc_to_mV);
+      }
+
+      float bl;
+      if (_time>40) bl = wvfm.Baseline(0,10); //use first 10 if signal is not here
+      else bl = wvfm.Baseline(98,10); //else use last 10
+
+      //expected time of signal
+      int tmin = _exptime - 15;
+      int tmax = _exptime + 30;
+      
+
+      float max = bl - wvfm.PeakADC(true);
+      TF1 *fitFcn = new TF1("fitFcn",&rb::ADC::wvfmFitFunction,0,108,5);
+      fitFcn->SetParameters(bl*adc_to_mV,0,-max*adc_to_mV,_exptime,1);
+      fitFcn->SetParLimits(2,-3000,0);
+      fitFcn->SetParLimits(3,tmin,tmax);
+      fitFcn->SetParLimits(4,0,5);
+
+
+      hist->Fit("fitFcn", "Q0");
+      //hist->Fit("fitFcn");
+
+      //double chi2 = fitFcn->GetChisquare();
+
+      double par[5];
+      fitFcn->GetParameters(par);
+
+      //Area under gaussian
+      float area = -par[2]*par[4]*sqrt(2*M_PI);
+      //float charge = ((4e-9*1e12*1e-3)/(50))*signalFcn->Integral(par[3]-5*par[4],par[3]+5*par[4]);
+      float charge = ((4e-9*1e12*1e-3)/(50))*area;
+      delete hist;
+      delete fitFcn;
+
+      SetCharge(charge);
   }
 
   //--------------------------------------------------

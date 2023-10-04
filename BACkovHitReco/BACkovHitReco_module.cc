@@ -111,8 +111,8 @@ namespace emph {
     }
     for (int i=0; i<=5; ++i) {
       sprintf(hname,"BACkovQT_%d",i);
-      if(i!=3 && i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,200,-2,80);
-      else if (i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,200,-2,80);
+      if(i!=3 && i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,100,-1,10);
+      else if (i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,150,-1,25);
       else fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,400,-2,80);
       fBACkovChargeTimeHist[i]->GetXaxis()->SetTitle("Time (ns)");
       fBACkovChargeTimeHist[i]->GetYaxis()->SetTitle("Charge (pC)");
@@ -169,16 +169,16 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rb::ADC wvr(wvfm,stmap);
+	    rb::ADC wvr(wvfm,stmap);
 	    int chan = wvfm.Channel();
         int board = wvfm.Board();
         echan.SetBoard(board);
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int detchan = dchan.Channel();
-        //float Q = wvr.BACkovCharge();
+        if (detchan!=5) wvr.CalcFitCharge(wvfm);
 
-        float q = wvr.SWCharge();
+        float q = wvr.Charge();
         float t = wvr.Time();
         fBACkovChargeHist[detchan]->Fill(q);
         fBACkovChargeTimeHist[detchan]->Fill(t,q);
