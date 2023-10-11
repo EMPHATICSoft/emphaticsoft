@@ -348,7 +348,7 @@ namespace emph {
 	    YRotYPlanes.push_back(aPlane.Rot());
 	    viewChar = 'Y';
 	  }
-	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
+	  if ((std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
 	    TVector3 pos = aPlane.Pos();
             // Phase1b Single sensor.. But we find them twice.. Confusing.. 
 	      if (fZlocUPlanes.size() < 2) {
@@ -357,11 +357,9 @@ namespace emph {
 	      }
 	    viewChar = 'U';
 	  }
-	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
+	  if ((std::abs(aPlane.Rot() - 135.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 315.0*M_PI/180.) < 0.1) ) {
+	    std::cerr << " At V plane " << aPlane.Name() << std::endl;
 	    TVector3 pos = aPlane.Pos(); 
-	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
-	    XRotVPlanes.push_back(aPlane.Rot());
-            // Phase1b These are double sensors.. stash them twice... 
 	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
 	    XRotVPlanes.push_back(aPlane.Rot());
 	    viewChar = 'V';
