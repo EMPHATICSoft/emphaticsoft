@@ -61,17 +61,6 @@ namespace emph {
 	             << "....  So,  Quit here and now " << std::endl;
 	   exit(2);
        }
-       if ((fSensor >= myGeo->NumSensorsU()  ) && (fView == 'U')) {
- 	   std::cerr << " SSDAlignParam::ComposeName, problem, The U view has a maximum of 2 sensors, current value is " << fSensor <<  std::endl
-	             << "....  So,  Quit here and now " << std::endl;
-	   exit(2);
-       }
-       if (fView == 'W') fView = 'V'; 
-       if ((fSensor >= myGeo->NumSensorsV()  ) && (fView == 'V')) {
- 	   std::cerr << " SSDAlignParam::ComposeName, problem, The V view has a maximum of 4 sensors, current value is " << fSensor <<  std::endl
-	             << "....  So,  Quit here and now " << std::endl;
-	   exit(2);
-       }
      
        switch (fType) {
          case NONE:
@@ -102,7 +91,6 @@ namespace emph {
        return fName;
     } 
     void SSDAlignParam::UpdateGeom () const {
-    
          switch (fType) {
          case NONE:
 	   std::cerr << " SSDAlignParam::UpdateGeom, problem, the type is not defined,.. Quit here and now " << std::endl;
@@ -136,8 +124,8 @@ namespace emph {
        // the folling sensors:  
        if ((fName.find("_X_4") != std::string::npos) || (fName.find("_X_6") != std::string::npos)) return true;
        if ((fName.find("_Y_4") != std::string::npos) || (fName.find("_Y_6") != std::string::npos)) return true;
-       if (fName.find("_V_0") != std::string::npos) return true;
-       if (fName.find("_V_2") != std::string::npos) return true;
+//       if (fName.find("_U_0") != std::string::npos) return true;
+//       if (fName.find("_U_2") != std::string::npos) return true;
        return false;
      }
   } // name space.. 

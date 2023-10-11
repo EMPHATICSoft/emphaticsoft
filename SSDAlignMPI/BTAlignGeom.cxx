@@ -39,7 +39,7 @@ namespace emph {
 //       fZNomPosSt4and5{992.725, 992.725, 1218.92, 1218.92},
        fZNomPosSt4and5{986.35, 986.35, 1212.55, 1212.55},
        fZDeltaPosX(fNumSensorsXorY, 0.),  fZDeltaPosY(fNumSensorsXorY, 0.), 
-       fZDeltaPosSt2and3(fNumSensorsW, 0.), fZDeltaPosSt4and5(fNumSensorsU, 0.),
+       fZDeltaPosSt2and3(fNumSensorsU, 0.), fZDeltaPosSt4and5(fNumSensorsW, 0.),
        fTrNomPosX{fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, 
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth},
        fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
@@ -47,32 +47,35 @@ namespace emph {
        fTrNomPosSt2and3{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shits of -15. ? Investigating..
        fTrNomPosSt4and5{-fWaferWidth, -fWaferWidth, -fWaferWidth, -fWaferWidth},  // Weird...!... MC bug ???? 
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
-       fTrDeltaPosSt2and3(fNumSensorsW, 0.), fTrDeltaPosSt4and5(fNumSensorsU, 0.), 
+       fTrDeltaPosSt2and3(fNumSensorsU, 0.), fTrDeltaPosSt4and5(fNumSensorsW, 0.), 
        fTrDeltaPitchX(fNumSensorsXorY, 0.), fTrDeltaPitchY(fNumSensorsXorY, 0.),  
-       fTrDeltaPitchSt2and3(fNumSensorsW, 0.), fTrDeltaPitchSt4and5(fNumSensorsU, 0.), 
+       fTrDeltaPitchSt2and3(fNumSensorsU, 0.), fTrDeltaPitchSt4and5(fNumSensorsW, 0.), 
        fRollX(fNumSensorsXorY, 0.), fRollY(fNumSensorsXorY, 0.),  
-       fRollSt2and3(fNumSensorsW, 0.), fRollSt4and5(fNumSensorsU, 0.),
+       fRollSt2and3(fNumSensorsU, 0.), fRollSt4and5(fNumSensorsW, 0.),
        fRollXC(fNumSensorsXorY, 0.), fRollYC(fNumSensorsXorY, 0.),  
-       fRollSt2and3C(fNumSensorsW, 0.), fRollSt4and5C(fNumSensorsU, 0.),
-       fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287}, // At 120 GeV, with target
-       fMultScatUncertW{0.01948, 0.05067243}, 
-       fMultScatUncertU{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
+       fRollSt2and3C(fNumSensorsU, 0.), fRollSt4and5C(fNumSensorsW, 0.),
+//       fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287}, // At 120 GeV, with target
+//       fMultScatUncertU{0.01948, 0.05067243}, 
+//       fMultScatUncertW{0.05067243, 0.05067243, 0.06630287, 0.06630287},        
+       fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.02, 0.02, 0.02, 0.02}, // At 120 GeV, with No target (guessed 
+       fMultScatUncertU{0.01948, 0.02}, 
+       fMultScatUncertW{0.05067243, 0.02, 0.02, 0.02},        
        fUnknownUncertX(fNumSensorsXorY, 1.0e-4), fUnknownUncertY(fNumSensorsXorY, 1.0e-4),
        fUnknownUncertW(fNumSensorsW, 1.0e-4), fUnknownUncertU(fNumSensorsU, 1.0e-4),
        fZPosX(fNumSensorsXorY, 0.),  fZPosY(fNumSensorsXorY, 0.), 
-       fZPosSt2and3(fNumSensorsW, 0.),fZPosSt4and5(fNumSensorsU, 0.),
+       fZPosSt2and3(fNumSensorsU, 0.),fZPosSt4and5(fNumSensorsW, 0.),
        fTrPosX(fNumSensorsXorY, 0.),  fTrPosY(fNumSensorsXorY, 0.), 
-       fTrPosSt2and3(fNumSensorsW, 0.),fTrPosSt4and5(fNumSensorsU, 0.)
+       fTrPosSt2and3(fNumSensorsU, 0.),fTrPosSt4and5(fNumSensorsW, 0.)
      { 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fZPosX[kSe] = fZNomPosX[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fZPosY[kSe] = fZNomPosY[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe]; } 
 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosX[kSe] = fTrNomPosX[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosY[kSe] = fTrNomPosY[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe]; } 
-       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe]; } 
+       for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe]; } 
        //
        // Attempting to understand problem at 30 GeV, kick is wrong.. Reconstructed momentum is 18.4, in average... 
        // This is with a fixed kick. 
@@ -88,8 +91,8 @@ namespace emph {
 	     fZDeltaPosX[kSe] =  fZPosX[kSe] = fZNomPosX[kSe] + v;  break;  
 	    } 
 	 case 'Y' :  { fZDeltaPosY[kSe] = v; fZPosY[kSe] = fZNomPosY[kSe] + v; break;} 
-	 case 'W' : case 'V' : { fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v; break;} 
-	 case 'U' : { fZDeltaPosSt4and5[kSe] = v; fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe] + v; break;}
+	 case 'U' : { fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v; break;} 
+	 case 'V' : case 'W' :{ fZDeltaPosSt4and5[kSe] = v; fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetDeltaZ, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -126,20 +129,16 @@ namespace emph {
 	   }
 	   break;
 	 }	  
-	 case 'W' :  case 'V' : { 
-	  if (kSt == 2) { 
+	 case 'U' :  { 
 	    for (size_t kSe=0; kSe != 2; kSe++) { 
 	      fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v;
 	    }
-	  }
 	  break;
 	 } 
-	 case 'U' : { 
-	   if (kSt == 5) { 
+	 case 'V' : case 'W' : { 
 	     for (size_t kSe=0; kSe != 4; kSe++) { 
 	       fZDeltaPosSt4and5[kSe] = v; fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe] + v;
 	     }
-	   }
 	 }
 	 default : { 
 	      std::cerr << " BTAlignGeom::ZDeltaZStation, unknown view " << view << " fatal, quit " << std::endl; 
@@ -154,8 +153,8 @@ namespace emph {
 	 case 'Y' :  { 
 	    fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;
 	 } 
-	 case 'W' : case 'V' : { fTrDeltaPosSt2and3[kSe] = v; fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe] + v; break;} 
-	 case 'U' :  { fTrDeltaPosSt4and5[kSe] = v; fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe] + v; break;}
+	 case 'U' : { fTrDeltaPosSt2and3[kSe] = v; fTrPosSt2and3[kSe] = fTrNomPosSt2and3[kSe] + v; break;} 
+	 case 'W' :  case 'V' : { fTrDeltaPosSt4and5[kSe] = v; fTrPosSt4and5[kSe] = fTrNomPosSt4and5[kSe] + v; break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetDeltaTr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -171,8 +170,8 @@ namespace emph {
 	 case 'Y' :  { 
 	    fTrDeltaPosY[fNumSensorsXorY-1] = v; fTrPosY[fNumSensorsXorY-1] = fTrNomPosY[fNumSensorsXorY-1] + v; break;
 	 } 
-	 case 'W' : case 'V' : { fTrDeltaPosSt2and3[fNumSensorsW-1] = v; fTrPosSt2and3[fNumSensorsW-1] = fTrNomPosSt2and3[fNumSensorsW-1] + v; break;} 
-	 case 'U' : { fTrDeltaPosSt4and5[fNumSensorsU-1] = v; fTrPosSt4and5[fNumSensorsU-1] = fTrNomPosSt4and5[fNumSensorsU-1] + v; break;}
+	 case 'U' : { fTrDeltaPosSt2and3[fNumSensorsU-1] = v; fTrPosSt2and3[fNumSensorsU-1] = fTrNomPosSt2and3[fNumSensorsU-1] + v; break;} 
+	 case 'W' : case 'V' : { fTrDeltaPosSt4and5[fNumSensorsW-1] = v; fTrPosSt4and5[fNumSensorsW-1] = fTrNomPosSt4and5[fNumSensorsW-1] + v; break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetValueTrShiftLastPlane, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  }
@@ -182,11 +181,13 @@ namespace emph {
        switch (view) {
      	 case 'X' : {
 //	     if (sensor >= fRollNomPosX.size()) { std::cerr .... No checks!. 
-	     fRollX[kSe] = v;   break;  
+	     fRollX[kSe] = v;     
+//	     std::cerr << " BTAlignGeom::SetRoll ... X View for kSe " << kSe << " Setting Roll to " << v << std::endl; 
+	     break;
 	    } 
 	 case 'Y' :  { fRollY[kSe] = v;  break;} 
-	 case 'U' :  { fRollSt4and5[kSe] = v;  break;} 
-	 case 'V' :  case 'W' : { fRollSt2and3[kSe] = v; break;}
+	 case 'W' : case 'V' : { fRollSt4and5[kSe] = v;  break;} 
+	 case 'U' :  { fRollSt2and3[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetRoll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -199,9 +200,9 @@ namespace emph {
 	     fRollXC[kSe] = v;   break;  
 	    } 
 	 case 'Y' :  { fRollYC[kSe] = v;  break;} 
-	 case 'U' :  { fRollSt4and5C[kSe] = v;  break;} 
+	 case 'U' :  { fRollSt2and3C[kSe] = v;  break;} 
 	 case 'V' :  case 'W' : { 
-	       fRollSt2and3C[kSe] = v; 
+	       fRollSt4and5C[kSe] = v; 
 	       break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetRollCenter, unknown view " << view << " fatal, quit " << std::endl; 
@@ -215,8 +216,8 @@ namespace emph {
 	     fTrDeltaPitchX[kSe] = v;   break;  
 	    } 
 	 case 'Y' :  { fTrDeltaPitchY[kSe] = v;  break;} 
-	 case 'W' : case 'V' : { fTrDeltaPitchSt2and3[kSe] = v;  break;} 
-	 case 'U' :  { fTrDeltaPitchSt4and5[kSe] = v; break;}
+	 case 'U' : { fTrDeltaPitchSt2and3[kSe] = v;  break;} 
+	 case 'W' :  case 'V' :  { fTrDeltaPitchSt4and5[kSe] = v; break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetDeltaPitchCorr, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -247,10 +248,10 @@ namespace emph {
 	     for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) fUnknownUncertY[kSe] = v;  
 	     break;  
 	    } 
-	 case 'U' :  { for (size_t kSe=0; kSe != fNumSensorsU; kSe++) fUnknownUncertU[kSe] = v;  
+	 case 'W' :  case 'V' : { for (size_t kSe=0; kSe != fNumSensorsW; kSe++) fUnknownUncertW[kSe] = v;  
 	                 break;
 			 } 
-	 case 'V' :  case 'W' : {  for (size_t kSe=0; kSe != fNumSensorsW; kSe++) fUnknownUncertW[kSe] = v; 
+	 case 'U' :  {  for (size_t kSe=0; kSe != fNumSensorsU; kSe++) fUnknownUncertU[kSe] = v; 
 	     break;}
 	 default : { 
 	      std::cerr << " BTAlignGeom::SetUnknownUncert, unknown view " << view << " fatal, quit " << std::endl; 
@@ -273,7 +274,7 @@ namespace emph {
      void BTAlignGeom::SetUncertErrorOutOfPencilBeam() { 
        this->SetUnknownUncert('X', 4, 100.); this->SetUnknownUncert('Y', 4, 100.);
        this->SetUnknownUncert('X', 6, 100.); this->SetUnknownUncert('Y', 6, 100.);
-       this->SetUnknownUncert('U', 0, 100.); this->SetUnknownUncert('U', 2, 100.);
+//       this->SetUnknownUncert('U', 0, 100.); this->SetUnknownUncert('U', 2, 100.);
 //       this->SetUnknownUncert('V', 100.);
      }
      void BTAlignGeom::MoveZPosOfXUVByY() {

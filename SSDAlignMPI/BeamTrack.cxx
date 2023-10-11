@@ -130,7 +130,7 @@ namespace emph {
 //       if (fDebugIsOn) 
 //         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
         fDebugIsOn = false;
-//         fDebugIsOn = ((fEvtNum == 5)  && (fSpill == 10));
+//        fDebugIsOn = ((fEvtNum == 5)  && (fSpill == 10));
 	 if (fDebugIsOn)  std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
        fFcn3D.SetDebugOn(false);
        // 
@@ -138,7 +138,8 @@ namespace emph {
        fFcn3D.SetClusterPtr(it);
        fFcn3D.SetSelectedView(fSelectedView);
        fchiSq = -1.0;
-       const double pMonStartVal = fAlignMode ? fNominalMomentum :  50.; // Hardcoded intial value!  Need to get it from the main..
+//       const double pMonStartVal = fAlignMode ? fNominalMomentum :  50.; // Hardcoded intial value!  Need to get it from the main..
+       const double pMonStartVal = fNominalMomentum; // Hardcoded intial value!  Need to get it from the main..
        fFcn3D.SetNominalMomentum(fNominalMomentum);
        // we start slightly off momentum.. to force the minimizer to do some work..  	
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D for event " << it->EvtNum() << " Spill " << it->Spill() << std::endl;
@@ -162,7 +163,9 @@ namespace emph {
        size_t numPars = 4;
        double integrationStep = myGeo->IntegrationStepSize();
        if (!fNoMagnet) { 
-          uPars.Add(std::string("PMom"), pMonStartVal, 20., -250., 250.);
+          if (pMonStartVal > 0.) 
+             uPars.Add(std::string("PMom"), pMonStartVal, 0.05*pMonStartVal, pMonStartVal*0.5,  pMonStartVal*2.5);
+	  else  uPars.Add(std::string("PMom"), pMonStartVal, -0.05*pMonStartVal, pMonStartVal*2.5,  pMonStartVal*0.1); 
 	  if (fDebugIsOn) std::cerr << " ...  We will fit Using the field map,  pMonStartVal " << pMonStartVal << std::endl;
           numPars++;
        }
@@ -281,8 +284,8 @@ namespace emph {
 		    exit(2);
        }
        for (size_t kSe = 0; kSe != fresids.size(); kSe++) fresids[kSe] = fFcn3D.Resid(kSe);
-       if (fDebugIsOn && ((std::abs(fx0) > 150.) || (std::abs(fy0) > 150.))) {
-          std::cerr << " Detecting funky x0 or y0 value " << fx0 << " fy0 " << fy0 << " reject this track " << std::endl; 
+       if ((std::abs(fx0) > 150.) || (std::abs(fy0) > 150.)) {
+          if (fDebugIsOn) std::cerr << " Detecting funky x0 or y0 value " << fx0 << " fy0 " << fy0 << " reject this track " << std::endl; 
           fchiSq *=- 1.0;
        }
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 

@@ -90,7 +90,9 @@ namespace emph {
          // Compute the expected kick, define intercepts and slopes downstream of the magnet, based on the Magneticfield integrator class. 
 	 // Take into account the effect of the fringe field.. 
 	  if (fMagField == nullptr) fMagField = emph::rbal::BTMagneticField::getInstance();
-          const int Q = (pars[4] > 0.) ? -1 : 1 ; // Let us flipt the sign of the charge.. The X coordinate has been flipped, perhaps... 
+//          const int Q = (pars[4] > 0.) ? -1 : 1 ; // Let us flipt the sign of the charge.. The X coordinate has been flipped, perhaps... 
+          const int Q = (pars[4] > 0.) ? 1 : -1 ; // Reverting back, based on run 1274, and letting the momentum float (fAlignMode = true )
+	  // Sept 27, series 3f1, 3g1, 3h1  
 //         const double stepAlongZ = integrationStepSize * (std::abs(pars[4])/120.);
           const double stepAlongZ = integrationStepSize; // such we don't introduce suspicious correlations.. 
           std::vector<double> startMag(6, 0.); std::vector<double> endMag(6, 0.); 
@@ -181,29 +183,52 @@ namespace emph {
           }	
         }
       } // NoMagnet 
-      std::vector<char> views{'X', 'Y', 'V', 'U'}; // Switch U and V for data!!! Sept 15 2016. 
+      std::vector<char> views{'X', 'Y', 'U', 'V'}; // Switch U and V for data!!! Sept 15 2016. 
       size_t kSeT = 0;
+      int numMeasurements = 0;
+      int numMeasurementsXY = 0;
+      int numMeasurementsX = 0;
       for (int iView = 0; iView !=4; iView++) { 
         char aView = views[iView];
+         size_t numS = myGeo->NumSensorsXorY();
+	if (aView == 'U') numS = myGeo->NumSensorsU(); 
+	if (aView == 'V') numS = myGeo->NumSensorsV();
+        for (size_t kSe = 0; kSe != numS; kSe++) {
+	  fResids[kSeT] = DBL_MAX;
+          const double rmsStr = std::max(0.1, fItCl->TheRmsStrip(aView, kSe)); // some very small RMS reappaered.. To be investigated. 
+	  if (rmsStr > 1000.) continue; // no measurement. 
+	  numMeasurements++; if (iView < 2) numMeasurementsXY++; if (iView == 0) numMeasurementsX++;
+        }
+      }
+      if (debugIsOn) std::cerr << " numMeasurements " << numMeasurements << " X " << numMeasurementsX << " XY " << numMeasurementsXY << std::endl;
+      if ((fSelectedView == 'A') && (numMeasurementsX < 6)) return 2.0e9;
+      if ((fSelectedView == 'Z') && (numMeasurements < 12)) return 2.0e9; // reject track that are not strict 6 + 6, if TrShiftXYOnly (fSelectedView = 'Z'). 
+      if (((fSelectedView == 'U') || (fSelectedView == 'W')) && (numMeasurementsXY < 12)) return 2.0e9; // reject track that are not strict 6 + 6, if TrShiftXYOnly (fSelectedView = 'Z'). 
+      
+      for (int iView = 0; iView !=4; iView++) { 
+        char aView = views[iView];
+	if (debugIsOn) std::cerr << "  ... The selected view is " << fSelectedView << std::endl;
 	if (fSelectedView != 'A') { // Complicated and perhaps confusing logic... 
 	   if (((fSelectedView == 'X') || (fSelectedView == 'Y')) && (aView != fSelectedView)) continue;
 	   if ((fSelectedView == 'Z') && (iView > 1)) continue;
 	   if ((fSelectedView == 'W') && (iView == 3)) continue; // For TrShiftXYW (reject the Station 4 & 5 stereo views ) 
+	   if ((fSelectedView == 'U') && (iView == 2)) continue; // For TrShiftXYU (reject the Station 2 & 3 stereo views ) 
 	}   
         size_t numS = myGeo->NumSensorsXorY();
 	if (aView == 'U') numS = myGeo->NumSensorsU(); 
 	if (aView == 'V') numS = myGeo->NumSensorsV();
-	if (debugIsOn) std::cerr << " .... At View " << aView << " numS " << std::endl;
+	if (debugIsOn) std::cerr << " .... At View " << aView << " numS " << numS << std::endl;
         for (size_t kSe = 0; kSe != numS; kSe++) {
 	  fResids[kSeT] = DBL_MAX;
           const double rmsStr = std::max(0.1, fItCl->TheRmsStrip(aView, kSe)); // some very small RMS reappaered.. To be investigated. 
 	  if (debugIsOn) std::cerr << " .... At Sensor " << kSe << " Strip " << fItCl->TheAvStrip(aView, kSe) << " RMS " << rmsStr << std::endl;
 	  if (rmsStr > 1000.) { kSeT++; continue; } // no measurement. 
+	  numMeasurements++; if (iView < 2) numMeasurementsXY++;
 	  const double rmsStrN = rmsStr/fOneOSqrt12;
 	  const double strip = fItCl->TheAvStrip(aView, kSe);
           const double pitch = myGeo->Pitch(aView, kSe); 
 	  const double stripErrSq = (1.0/rmsStrN*rmsStrN)/12.; // just a guess!!!
-	  const double multScatErr =  myGeo->MultScatUncert(aView, kSe) * 120.0/fNominalMomentum;
+	  const double multScatErr =  myGeo->MultScatUncert(aView, kSe) * 120.0/std::abs(fNominalMomentum);
 	  if ((kSe != 0) && (multScatErr < 1.0e-26)) {
 	   std::cerr << " BeamTrack3DFCN::operator(),Too low mult scatt err at kSe  " << kSe <<  " view " << aView << " quit here and now " << std::endl; 
 	   exit(2); 
@@ -216,18 +241,23 @@ namespace emph {
 	  if (aView == 'X') {
 	    tPred = xPredAtSt[kSe]; 
 	    tPred += (yPredAtSt[kSe] - angleRollCenter) * angleRoll;
+	    if (debugIsOn) std::cerr << " ... XView roll correction " << (yPredAtSt[kSe] - angleRollCenter) * angleRoll << std::endl;
 	  } else if (aView == 'Y') {
 	    tPred = yPredAtSt[kSe]; 
 	    tPred += (xPredAtSt[kSe] - angleRollCenter) * angleRoll;
+	    if (debugIsOn) std::cerr << " ... YView roll correction " << (xPredAtSt[kSe] - angleRollCenter) * angleRoll << std::endl;
 	  } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
 	    size_t kSxy = 0; // very clumsy.. Phase 1b only, 
-	    if (aView == 'U') {
-	      kSxy = (kSe == 0) ? 2 : 3;
-	    } else {
+	    if (aView == 'V') { // Station 4 and 5, kSe = 0 though 3, kSxy, points to the X or Y position, ranging from 0 to 7 (Sept 19..) 
+	    // predicted position at kSxy = 4 is the same as kSxy = 5 (same Z); same for 6 and 7. 
 	      kSxy = (kSe < 2) ? 4 : 6;
+	    } else {
+	      kSxy = (kSe == 0) ? 2 : 3;
 	    }
-	    uPred = fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]);
-	    vPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]);
+	    uPred = fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]); // Sept 19, declared correct, but negated by Linyan, Sept 22. Try3D_R1274_3b2_1, Try3D_R1274_3b2_1
+//	    uPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]); // False, I suspect.. Not sure, let us try, Try3D_R1274_3b3_1 
+	    vPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]); // presumed correct 
+//	    vPred = 1.0*fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]); // False, I suspect.. Not sure, let us try, Try3D_R1274_3b3_1 
 	    tPred = (aView == 'U') ? uPred + ( vPred - angleRollCenter) * angleRoll :  
 	                             vPred + ( uPred  - angleRollCenter) * angleRoll ;
 	  }
@@ -246,9 +276,10 @@ namespace emph {
 	   /// To be reviewed.. for data.. 
 	    tPred = (aView == 'U') ? uPred + (vPred - angleRollCenter) * angleRoll :  
 	  			     vPred + (uPred - angleRollCenter) * angleRoll ;
-	    if (aView == 'V') { 
+	    if (aView == 'U') { // Station 2 & 3 
 	      tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
 	    } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
+	      // September 23 - 25 2023, aligning with SSDReco/SSDRecStationDwnstrAlgo1 
 	      if (kSe == 0) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); // Tested, on run 1274, June 5  
 	      else if (kSe == 1) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));
 	      else if (kSe == 2) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); //  Jun 5 2023, better than the June 3 option, 
@@ -257,7 +288,7 @@ namespace emph {
 	    }
 	  }
 	  if (debugIsOn)     std::cerr << " ..... So, pred is now " << tPred << " and .. for MC or real data,.. for this view " 
-	                                 << aView << " tMeas " << tMeas  << std::endl; 
+	                                 << aView << " tMeas " << tMeas  << " Tr Shift .. " << myGeo->TrPos(aView, kSe) << std::endl; 
 	  const double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
 	  const double dt = (tPred - tMeas);
 	  fResids[kSeT] = dt;

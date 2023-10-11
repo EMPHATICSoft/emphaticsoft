@@ -71,12 +71,12 @@ namespace emph {
 	 }
 	 for (int k=0; k != 2; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
-	   VViewData.push_back(stripInfo[0]); VViewData.push_back(stripInfo[1]); 
+	   UViewData.push_back(stripInfo[0]); UViewData.push_back(stripInfo[1]); 
 //	   if (evt == 54) std::cerr << " BTAlignInput::FillItFromFile evt " << evt << " U view strpinfo " << stripInfo[0] << " / " <<  stripInfo[1] << std::endl;
 	 }
 	 for (int k=0; k != 4; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
-	   UViewData.push_back(stripInfo[0]); UViewData.push_back(stripInfo[1]); 
+	   VViewData.push_back(stripInfo[0]); VViewData.push_back(stripInfo[1]); 
 //	   if (evt == 54) std::cerr << " BTAlignInput::FillItFromFile evt " << evt << " V view strpinfo " << stripInfo[0] << " / " <<  stripInfo[1] << std::endl;
 	 }
 	 if ((selSpill != INT_MAX) && (spill != selSpill)) continue;

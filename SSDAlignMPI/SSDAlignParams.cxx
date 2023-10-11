@@ -14,6 +14,7 @@
 #include <vector>
 #include <climits>
 #include <cfloat>
+#include <cstdlib>
 #include "SSDAlignParams.h"
 #include "myMPIUtils.h"
 
@@ -43,11 +44,13 @@ namespace emph {
 	fSubTypeDirectory.push_back(std::string("TrShiftMagnetKick"));
 	fSubTypeDirectory.push_back(std::string("MagnetKick"));
         fSubTypeDirectory.push_back(std::string("TrRollCenterShift"));
+	fSubTypeDirectory.push_back(std::string("TrRollCenterShiftXYOnly"));
 	fSubTypeDirectory.push_back(std::string("TrRollShift"));
 	fSubTypeDirectory.push_back(std::string("TrTiltRollShift"));
 	fSubTypeDirectory.push_back(std::string("TrShiftX456"));
 	fSubTypeDirectory.push_back(std::string("TrShiftXYOnly"));
 	fSubTypeDirectory.push_back(std::string("TrShiftXYWOnly"));
+	fSubTypeDirectory.push_back(std::string("TrShiftXYUOnly"));
 	fSubTypeDirectory.push_back(std::string("TrShiftXOnly"));
 	fSubTypeDirectory.push_back(std::string("TrShiftYOnly"));
 	fSubTypeDirectory.push_back(std::string("TrZShift"));
@@ -67,6 +70,7 @@ namespace emph {
        fDat.clear();
        int aMinNumber=0;
 //        const double pitchCorrLimit = 3.0*0.005; // ~ 170 mRad. 
+        const double rollCorrLimit = 0.18; // ~ 10 degrees.  Large
         const double pitchCorrLimit = 0.09; // ~ 5 degrees.  
 	const double rollCenterLimit= 250.; // for real data... 
 //	const double rollCenterLimit= 25.; // for testing 
@@ -147,8 +151,9 @@ namespace emph {
 	     SSDAlignParam aPar; 
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
 	     aPar.SetType(emph::rbal::ROLL); 
-	     aPar.SetLimits(std::pair<double, double>(-pitchCorrLimit, pitchCorrLimit));
-	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
+	     aPar.SetLimits(std::pair<double, double>(-rollCorrLimit, rollCorrLimit));
+//	     aPar.SetValue(-0.25*rollCorrLimit); // test.. Should be 0. by default.. 
+	     aPar.SetValue(0.); // test.. Should be 0. by default.. 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
 	     aPar.SetType(emph::rbal::ROLLC); 
 	     aPar.SetLimits(std::pair<double, double>(-rollCenterLimit, rollCenterLimit));
@@ -164,9 +169,10 @@ namespace emph {
 	     aPar.SetType(emph::rbal::TRSHIFT);
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
 	     // for MC.. To study for data.. (sign convention problem.. ) 
-	     if (kV == 3) aPar.SetLimits(std::pair<double, double>(-15., 15.)); // Not clear what the offsets are.. Tuning V views 
-	     if ((kV == 3) && (kSe == 3))  aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Not clear what the offsets are.. Tuning V views 
-	     if (kV == 2) aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Checked U , offsets are indeed small. 
+//	     if (kV == 3) aPar.SetLimits(std::pair<double, double>(-15., 15.)); // Not clear what the offsets are.. Tuning V views 
+//	     if ((kV == 3) && (kSe == 3))  aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Not clear what the offsets are.. Tuning V views 
+//	     if (kV == 2) aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Checked U , offsets are indeed small. 
+             aPar.SetLimits(std::pair<double, double>(-8., 8.0)); 
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
 	     if (!fMoveLongByStation) {
@@ -180,7 +186,7 @@ namespace emph {
 	     aPar.SetValue(1.0e-6);
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
 	     aPar.SetType(emph::rbal::ROLL); 
-	     aPar.SetLimits(std::pair<double, double>(-pitchCorrLimit, pitchCorrLimit));
+	     aPar.SetLimits(std::pair<double, double>(-rollCorrLimit, rollCorrLimit));
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar);
 	     aPar.SetType(emph::rbal::ROLLC); 
@@ -319,6 +325,21 @@ namespace emph {
        }
        emph::rbal::broadcastFCNParams(allVals);
     
+    }
+    void SSDAlignParams::RandomizeRollsAndRollCenters(double rollW, double rollCW) {
+      for(std::vector<SSDAlignParam>::iterator it=fDat.begin(); it!=fDat.end(); it++) { 
+        switch (it->Type()) {
+          case emph::rbal::ROLL : case emph::rbal::ROLLC : {  
+	    const double fact = (it->Type() == emph::rbal::ROLL) ? rollW : rollCW;
+	    const double range = fact * std::abs(it->UpLimit() - it->DownLimit());
+	    int i1 = std::rand(); int i2 = std::rand(); 
+	    const double aSign = (i1 < RAND_MAX/2) ? -1.0 : 1.0; 
+	    const double newV = aSign * range * static_cast<double>(i2)/static_cast<double>(RAND_MAX);
+	    it->SetValue(newV);
+	  }
+	  default: { continue; } 
+	}
+      }
     }
     void SSDAlignParams::CheatWithTruthValues() {
      // Back door, should not be called..Debugging truth table... 
@@ -490,6 +511,24 @@ namespace emph {
 	  const std::string aName(it->Name());
 	  if (aName.find("TransShift") != 0) continue; 
 	  if ((it->View() == 'X') || (it->View() == 'Y') || (it->View() == 'V')) it->SetFixedInMinuit(false);
+	}
+      }
+      if (fitSubType == std::string("TrShiftXYUOnly")) { // Phase1b 
+        for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+          it->SetFixedInMinuit(true); // by default, nothing moves. 
+	  const std::string aName(it->Name());
+	  if (aName.find("TransShift") != 0) continue; 
+	  if ((it->View() == 'X') || (it->View() == 'Y') || (it->View() == 'U')) it->SetFixedInMinuit(false);
+	}
+      }
+      if (fitSubType == std::string("TrRollCenterShiftXYOnly")) { // Phase1b 
+        for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+          it->SetFixedInMinuit(true); // by default, nothing moves. 
+	  const std::string aName(it->Name());
+	  const bool varying =  ((aName.find("TransShift") == 0) || (aName.find("DeltaRoll") == 0)); // include the DeltaRollCenter_X_2
+	  if (!varying) continue;
+	  if ((it->View() == 'X') || (it->View() == 'Y')) it->SetFixedInMinuit(false);
+	  if ((it->View() == 'X') || (it->View() == 'Y')) it->SetFixedInMinuit(false);
 	}
       }
       

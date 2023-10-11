@@ -38,6 +38,7 @@ namespace emph {
     fBeamAlphaFunctionY(-25.11), fBeamAlphaFunctionX(-8.63), // in cm 
     fBeamGammaX((1.0 + fBeamAlphaFunctionX*fBeamAlphaFunctionX)/fBeamBetaFunctionX), // See Twiss Param definition, TRANSPORT manual, p. 39 
     fBeamGammaY((1.0 + fBeamAlphaFunctionY*fBeamAlphaFunctionY)/fBeamBetaFunctionY),
+    fSoftLimitDoubleSensorCrack( 1.0e-6),
     fNominalMomentum(29.6), // For the 30 GeV exercise.
     fSoftLimits(false),
     fUpLimForChiSq(1000.),
@@ -45,7 +46,7 @@ namespace emph {
     fNCalls(0), 
     FCNBase(),
     fErrorDef(1.),
-    fNameForBeamTracks("none"), fIsOK(0) 
+    fNameForBeamTracks("none"), fIsOK(0), fGapValues(6, DBL_MAX) 
     {
       // We overwrite the Twiss parameters, based on e-mail from Mike Olander, Jan 31 
       const double l172 = 172.1455; // meters  
@@ -96,7 +97,9 @@ namespace emph {
       // are identical.  
       //
       int kP=0;
+//      if (myRank == 0) std::cerr << " BeamTrackSSDAlignFCN::operator list of setting values.. nCalls " << fNCalls << std::endl;
       for (std::vector<SSDAlignParam>::iterator it = myParams->ItBegin(); it != myParams->ItEnd(); it++, kP++) {
+//        if (myRank == 0) std::cerr << " param " << it->Name() << " new value " << pars[kP] << std::endl;  
 	it->SetValue(pars[kP]);
       }
       
@@ -178,6 +181,58 @@ namespace emph {
 //                 << iEvt << " of them " << " successful " <<  nOKs << " check size of container " << myBTrs.size() << std::endl;
 //     if ((myRank < 10))  std::cerr << " .... from rank " << myRank << " .. Did all the tracks fits.. " 
 //                 << iEvt << " of them " << " successful " <<  nOKs << " check size of container " << myBTrs.size() << std::endl;
+//
+// Adding geometrical constraint for the double sensors
+//
+     double chiAddGeomCrack = 0.;
+     const double maxStripPitch = 639*0.06; // Ugly should come from the geometry..  
+     if ((fFitType == std::string("3D")) && (fSoftLimitDoubleSensorCrack > 1.0e-6)) {
+       if (fDebugIsOn) std::cerr << " Starting SoftLimitDoubleSensorCrack, minimum gap " << fMinimumDoubleSensorCrack 
+                                 << " chi sq fact " <<  fSoftLimitDoubleSensorCrack << std::endl; 
+       const std::vector<char> views = {'X', 'Y', 'V' }; // the 3 view for Station for and 5; 
+       for (size_t iView = 0; iView !=3; iView++) { 
+         const char aView = views[iView];
+         size_t numS = myGeo->NumSensorsXorY();
+	 if (aView == 'V') numS = myGeo->NumSensorsV();
+	 const size_t kSeInit = (iView < 2) ? 4 : 0;
+	 double tMin = 0; double tMax = 0.;
+	 double trInner, trInnera, trInnerb, tr00, tr639;
+         for (size_t kSe = kSeInit; kSe != numS; kSe++) {
+	   const size_t kStDwn = (kSe - kSeInit) / 2 ;
+	   const bool kSeEven = ((kSe % 2) == 0);
+	   // Compute the position xt x = =y =0., the center of the detector.. 
+	   if (aView == 'X') {
+	    tr00 = myGeo->TrPos(aView, kSe);
+	    if (!kSeEven) tr00 *= -1.0;
+	    tr639 =  ( -1.0*maxStripPitch + myGeo->TrPos(aView, kSe));
+	    if (!kSeEven) tr639 *= -1.0;
+	  } else if (aView == 'Y') {
+	    tr00 = myGeo->TrPos(aView, kSe);
+	    if (kSeEven) tr00 *= -1.0; // kse ranges from 0 to 7, not the sensor index within the station. 
+	    tr639 = ( -1.0*maxStripPitch + myGeo->TrPos(aView, kSe)); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10
+	    if (kSeEven) tr639 *= -1.0; // kse ranges from 0 to 7, not the sensor index within the station. 
+	  } else { // V is a.k.a. W 
+	      if (kSeEven) tr00 =  -myGeo->TrPos(aView, kSe); // Tested, on run 1274, Oct 7
+	      else  tr00 =  myGeo->TrPos(aView, kSe); 
+	      if (kSeEven) tr639 = -maxStripPitch - myGeo->TrPos(aView, kSe); // Tested, on run 1274, Oct 7   
+	      else  tr639 = maxStripPitch + myGeo->TrPos(aView, kSe);
+	  }
+	  trInner = (std::abs(tr00) < std::abs(tr639)) ? tr00 : tr639;
+	  if (kSeEven) trInnera = trInner; else trInnerb = trInner;
+	  if (!kSeEven) {
+	    size_t gapIndex = iView + 3*kStDwn ;
+	    fGapValues[gapIndex] = std::abs(trInnerb + trInnera);
+	    if (fDebugIsOn) std::cerr << " View " << aView << " Station " <<  4 + (kSe - kSeInit)/2 
+	                              << " trInnera " << trInnera << " opp. side " << trInnerb << " gap " << fGapValues[gapIndex] << std::endl;
+	    if (fGapValues[gapIndex] < fMinimumDoubleSensorCrack) { 
+	      const double badGap = fGapValues[gapIndex] - fMinimumDoubleSensorCrack;
+	      chiAddGeomCrack += badGap*badGap*fSoftLimitDoubleSensorCrack;
+	    }
+	  }//    
+	 } // on sensors
+       } // on Views 
+       if (fDebugIsOn) std::cerr << " Gap analysis,  final, adding " << chiAddGeomCrack << " to chiSq " << std::endl;
+     } // Double Sensor geometrical constraint. 
      // 	
      // Adding beam Constraint
      //
@@ -195,7 +250,7 @@ namespace emph {
      // 
 //     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, fUpLimForChiSq, (chiAddBeam + chiSoftLim) ); // We leave them be.. in the container.. 
       MPI_Barrier(MPI_COMM_WORLD);
-     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, DBL_MAX/2, (chiAddBeam + chiSoftLim) ); // We include the ones that  
+     double chi2 = emph::rbal::MeanChiSqFromBTracks(myBTrs, DBL_MAX/2, (chiAddBeam + chiSoftLim + chiAddGeomCrack) ); // We include all the nasty contributions
       MPI_Barrier(MPI_COMM_WORLD);
      if ((fDebugIsOn) && (myRank == 0)) 
        std::cerr << " .... Did all the tracks fits.. on rank 0, at least.. chi2 is  " << chi2 << " fUpLimForChiSq " << fUpLimForChiSq << std::endl;
@@ -204,6 +259,9 @@ namespace emph {
        fFOutHistory << " " << fNCalls << " " << chi2;
        for (size_t k = 0; k != parsM.size(); k++) {
          fFOutHistory << " " << pars[k];
+       } 
+       for (size_t k = 0; k != fGapValues.size(); k++) {
+         fFOutHistory << " " << fGapValues[k];
        } 
        fFOutHistory << std::endl;
      }
@@ -227,6 +285,10 @@ namespace emph {
       fFOutHistory << " nCalls chi2";
       for (std::vector<SSDAlignParam>::iterator it = myParams->ItBegin(); it != myParams->ItEnd(); it++)
         fFOutHistory << " " << it->Name();
+      std::vector<char> views = {'X', 'Y', 'V'};
+      for (int kSt=4; kSt !=6; kSt++) {
+        for (size_t iView=0; iView != views.size(); iView++) fFOutHistory << " Gap_" << kSt << "_" << views[iView];
+      }
       fFOutHistory << std::endl;
     }
     
