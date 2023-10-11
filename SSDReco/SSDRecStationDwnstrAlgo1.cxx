@@ -377,13 +377,13 @@ namespace emph {
 	             << kSeUorV << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
 	   }
 	   // To be checked, depends on Delta Roll definition Sept 5 2023. 
-	   yPred = (kSt > 3) ?  (fSqrt2 * uorvDat.first - xDat.first) : (-fSqrt2 * uorvDat.first + xDat.first);
+	   yPred = (kSt > 3) ?  (-fSqrt2 * uorvDat.first + xDat.first) : (fSqrt2 * uorvDat.first - xDat.first);
 	   uPred = fOneOverSqrt2 * ( xDat.first + yPred);
 	    vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
-	   const double uorvValCorr = (kSt > 3) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
-	                                          vPred + ( uPred  - angleRollCenterUorV) * angleRollUorV ;
+	   const double uorvValCorr = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
+	                                          uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
 	   const double xValCorr = xDat.first + (yPred - angleRollCenterX) * angleRollX; 
-	   const double yValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr - xDat.first) : (-fSqrt2 * uorvValCorr + xDat.first);
+	   const double yValCorr = (kSt > 3) ?  (-fSqrt2 * uorvValCorr + xDat.first) : (fSqrt2 * uorvValCorr - xDat.first);
            fClUsages[kux] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
@@ -441,15 +441,15 @@ namespace emph {
 	   const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
 	   const double angleRollUorV = (kSt > 3) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
 	                                        fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);  
-	   const double angleRollCenterUorV = (kSt <4) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeUorV) : 
+	   const double angleRollCenterUorV = (kSt < 4) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeUorV) : 
 	                                              fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);
-	   const double   xPred = (kSt > 3) ?  (fSqrt2 * uorvDat.first - yDat.first) : (fSqrt2 * uorvDat.first + yDat.first);
+	   const double   xPred = (kSt > 3) ?  (fSqrt2 * uorvDat.first + yDat.first) : (fSqrt2 * uorvDat.first - yDat.first);
 	   const double  uPred = fOneOverSqrt2 * ( yDat.first + xPred);
 	   const double vPred = -1.0*fOneOverSqrt2 * ( yDat.first - xPred);
-	   const double uorvValCorr = (kSt > 3) ? uPred + ( vPred - angleRollCenterUorV) * angleRollUorV :  
-	                                          vPred + ( uPred  - angleRollCenterUorV) * angleRollUorV ;
+	   const double uorvValCorr = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
+	                                          uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
 	   const double yValCorr = yDat.first + (xPred - angleRollCenterY) * angleRollY; 
-	   const double  xValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr - yDat.first) : (fSqrt2 * uorvValCorr + yDat.first);
+	   const double  xValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr + yDat.first) : (fSqrt2 * uorvValCorr - yDat.first);
            fClUsages[kuy] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
