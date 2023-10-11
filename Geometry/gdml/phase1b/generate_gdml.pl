@@ -68,8 +68,7 @@ $nstation_type = 3; # types of station
 @station_type = ("single", "rotate", "double"); # yx, wyx, xxyyww 
 @SSD_lay = (2, 3, 3); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2); # num. of SSD in a layer
-@SSD_side = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0,  0, 0,  0,  0,  0,  0,  0,  0,  0);
-#            Y0 X0 Y1 X1 U2 Y2 X2 U3 Y3 X3 X4a X4b Y4a Y4b  W4a W4b Y5a Y5b  X5a X5b W5a W5b   
+@SSD_side = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 # Visualization of SSDs can be found at DocDB 1260
 @SSD_mount= (1, 2, 2); # num. of mount in a station
 @SSD_mod = ("D0", "D0", "D0"); # SSD type in a station
@@ -78,11 +77,9 @@ $nSSD_station = 6; # numbers of station
 @SSD_station = (0, 0, 1, 1, 2, 2); # num. of stations
 @SSD_station_shift = (0, 120.5, 360.0, 481.0, 985.6, 1211.8);
 @SSD_mount_shift = (0, 0, 0, 10, 0, 10, 0, 10, 0, 10);
-@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [19.23, 0], [-19.23, 0], [0., -19.23], [0., 19.23], [13.62, -13.62], [-13.62, 13.62], [19.23, 0], [-19.23, 0], [0., -19.23], [0., 19.23], [13.62, -13.62], [-13.62, 13.62]); # shift (x, y)
-#                   St0     |   St1         |   St2                 |          St3          |  St4_0_0  | St4_0_1    |  St4_1_0    |  St4_1_1   |   St4_2_0      |   St4_2_1      |   St5_0_0 |   St5_0_1  |    St5_1_0  |   St5_1_1  |  St5_2_0       | St5_2_1 
-@SSD_mount_rotation = ([0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]);   
-@SSD_angle = (0, 270, 0, 270, 45, 0, 270, 45, 0, 270, 270, 90, 0, 180, 315, 135, 270, 90, 0, 180, 315, 135); # angle from measuring Y
-#               St0 |  St1  |    St2    |    St3    |           St4            |        St5 
+@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [19.23, 0], [-19.23, 0], [0, -19.23], [0, 19.23], [13.62, 13.62], [-13.62, -13.62], [19.23, 0], [-19.23, 0], [0, -19.23], [0, 19.23], [13.62, 13.62], [-13.62, -13.62]); # shift (x, y)
+@SSD_mount_rotation = ([0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]);
+@SSD_angle = (0, 270, 0, 270, 315, 0, 270, 315, 0, 270, 90, 270, 0, 180, 225, 45, 270, 90, 0, 180, 225, 45); # angle from measuring Y
 #Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
 
 # constants for ARICH
@@ -905,7 +902,7 @@ EOF
 EOF
 					for($l = 0; $l < $nD0chan; ++$l){
 						print MOD <<EOF;
-		 <physvol name="ssd_chan_@{[ $i ]}_@{[ $lay ]}_@{[ $sen ]}_@{[ $l ]}_vol">
+		 <physvol name="ssd_chan_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_@{[ $l ]}_vol">
 			<volumeref ref="ssd_chan_vol"/>
 			<positionref ref="ssd_chan_@{[ $l ]}_pos"/>
 		 </physvol>
