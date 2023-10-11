@@ -43,6 +43,8 @@ namespace emph{
       double fBeamBetaFunctionY, fBeamBetaFunctionX;
       double fBeamAlphaFunctionY, fBeamAlphaFunctionX;
       double fBeamGammaX, fBeamGammaY;
+      double fSoftLimitDoubleSensorCrack;
+      double fMinimumDoubleSensorCrack;
       double fNominalMomentum;
       bool fSoftLimits;
       double fUpLimForChiSq; // Upper limit for accepting fitted tracks.
@@ -55,7 +57,7 @@ namespace emph{
       mutable std::ofstream fFOutHistory;
       mutable std::vector<bool> fIsOK; // dimensioned on the number of events, on a given rank. 
       //  States that this track ought to contribute to the chiSq, based solely on the first iteration.  
-      
+      mutable std::vector<double> fGapValues; // The distance between strip 0 (or 639), ignoring the Roll angle. 
       
     public:
       // Setters
@@ -82,6 +84,8 @@ namespace emph{
       void SetDumpBeamTracksForR(bool v) { fDumpBeamTracksForR = v; } 
       void SetNameForBeamTracks (const std::string &aName) { fNameForBeamTracks = aName; } 
       inline void SetAssumedSlopeSigma(double v) { fAssumedSlopeSigma = v; }
+      inline void SetSoftLimitDoubleSensorCrack(double v) {fSoftLimitDoubleSensorCrack = v; }
+      inline void SeMinimumDoubleSensorCrack(double v) {fMinimumDoubleSensorCrack = v; }
       inline void SetDebug(bool d=true) {fDebugIsOn = true;}
       inline void ResetOKFlags() { fIsOK.clear();}
    

@@ -23,8 +23,8 @@ namespace emph{
         BTAlignGeom();
         const size_t fNumStations = 6; // For Phase1b 
         const size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
-        const size_t fNumSensorsW = 2; // Station 2 and 3, one sensor each 
-        const size_t fNumSensorsU = 4; // Station 4 and 5, two sensors each : Note Sept 14 2023 : Switch U and V, W(a.k.a. V) is now upstream of the magnet.  
+        const size_t fNumSensorsW = 4; // a.k.a V view.. Following notation in SSDReco/SSDRecStationDwnstrAlgo1 Station 4 and 5, one sensor each 
+        const size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each   
 	const size_t fNumStrips = 639; // to be verified at some point.. Consitent with the gdml, I think.. 
 	//
 	double fZCoordsMagnetCenter; 
@@ -98,9 +98,9 @@ namespace emph{
 	     return (fZPosX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fZPosY[kSe]); } 
-	    case 'U' :  { return (fZPosSt4and5[kSe]); } 
-	    case 'V' :  { return (fZPosSt2and3[kSe]); }
-	    case 'W' :  { return (fZPosSt2and3[kSe]); }
+	    case 'U' :  { return (fZPosSt2and3[kSe]); } 
+	    case 'V' :  { return (fZPosSt4and5[kSe]); }
+	    case 'W' :  { return (fZPosSt4and5[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::ZPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -114,11 +114,27 @@ namespace emph{
 	     return (fTrPosX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fTrPosY[kSe]); } 
-	    case 'U' :  { return (fTrPosSt4and5[kSe]); } 
-	    case 'V' :  { return (fTrPosSt2and3[kSe]); }
-	    case 'W' :  { return (fTrPosSt2and3[kSe]); }
+	    case 'V' :  { return (fTrPosSt4and5[kSe]); } 
+	    case 'W' :  { return (fTrPosSt4and5[kSe]); }
+	    case 'U' :  { return (fTrPosSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::TrPos, unknown view " << view << " fatal, quit " << std::endl; 
+	      exit(2);  } 
+	   }
+	  return 0.;  // Should never happen.. 
+	}
+	inline double TrNominalPos(char view, size_t kSe) { // Transverse 
+          switch (view) {
+	    case 'X' : {
+//	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
+	     return (fTrNomPosX[kSe]);  
+	    } 
+	    case 'Y' :  { return (fTrNomPosY[kSe]); } 
+	    case 'V' :  { return (fTrNomPosSt4and5[kSe]); } 
+	    case 'W' :  { return (fTrNomPosSt4and5[kSe]); }
+	    case 'U' :  { return (fTrNomPosSt2and3[kSe]); }
+	    default : { 
+	      std::cerr << " BTAlignGeom::TrNomPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
 	   }
 	  return 0.;  // Should never happen.. 
@@ -130,9 +146,9 @@ namespace emph{
 	     return (fTrDeltaPitchX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fTrDeltaPitchY[kSe]); } 
-	    case 'U' :  { return (fTrDeltaPitchSt4and5[kSe]); } 
-	    case 'V' :  { return (fTrDeltaPitchSt2and3[kSe]); }
-	    case 'W' :  { return (fTrDeltaPitchSt2and3[kSe]); }
+	    case 'W' :  { return (fTrDeltaPitchSt4and5[kSe]); } 
+	    case 'V' :  { return (fTrDeltaPitchSt4and5[kSe]); }
+	    case 'U' :  { return (fTrDeltaPitchSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::DeltaPitch, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -146,9 +162,9 @@ namespace emph{
 	     return (fRollX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fRollY[kSe]); } 
-	    case 'U' :  { return (fRollSt4and5[kSe]); } 
-	    case 'V' :  { return (fRollSt2and3[kSe]); }
-	    case 'W' :  { return (fRollSt2and3[kSe]); }
+	    case 'W' :  { return (fRollSt4and5[kSe]); } 
+	    case 'V' :  { return (fRollSt4and5[kSe]); }
+	    case 'U' :  { return (fRollSt2and3[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::Roll, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 
@@ -162,9 +178,9 @@ namespace emph{
 	     return (fRollXC[kSe]);  
 	    } 
 	    case 'Y' :  { return (fRollYC[kSe]); } 
-	    case 'U' :  { return (fRollSt4and5C[kSe]); } 
-	    case 'V' :  { return (fRollSt2and3C[kSe]); }
-	    case 'W' :  { return (fRollSt2and3C[kSe]); }
+	    case 'W' :  { return (fRollSt4and5C[kSe]); } 
+	    case 'V' :  { return (fRollSt4and5C[kSe]); }
+	    case 'U' :  { return (fRollSt2and3C[kSe]); }
 	    default : { 
 	      std::cerr << " BTAlignGeom::RollCenter, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 

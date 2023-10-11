@@ -27,7 +27,7 @@ namespace emph{
         const size_t fNumStations; // For Phase1b 
         const size_t fNumSensorsXorY; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
         const size_t fNumSensorsU; // Station 2 and 3, one sensor each 
-        const size_t fNumSensorsV; // Station 2 and 3, one sensor each 
+        const size_t fNumSensorsV; // Station 4 and 5, Two sensor each 
 	std::string fMode; // Currently, 2DX, 2DY, 3D Default is 2DY (no magnetic deflection, to 1rst order, so, easiest.
 	bool fMoveLongByStation; // We do (or do not move) all individual sensors within a station. ) 
 	bool fUseSoftLimits;
@@ -81,6 +81,30 @@ namespace emph{
 	   }
 	}  
 	inline void SetSoftLimits(bool u) { fUseSoftLimits = u; } 
+	inline void SetDoubleGaps(double v) {
+	  for (std::vector<SSDAlignParam>::iterator it = fDat.begin(); it != fDat.end(); it++) {
+	   if (it->Type() != emph::rbal::TRSHIFT) continue;
+	   switch (it->View()) {
+	      case  'X' : {
+	       if (it->SensorI() < 4) break;
+	       if ((it->SensorI() % 2) == 0) it->SetValue(-v); else  it->SetValue(v);
+	       break;
+	     }
+	      case  'Y' : {
+	       if (it->SensorI() < 4) break;
+	       if ((it->SensorI() % 2) == 0)  it->SetValue(-v); else  it->SetValue(v);
+	       break;
+	     }
+	      case  'V' : {
+	       if ((it->SensorI() % 2) == 1) it->SetValue(-v); else  it->SetValue(v); // not sure of these signs 
+	       break;
+	     }
+	     default: // assume U is for Station 2 & 3 
+	       break;
+	    }
+	  }
+	  myGeo->SetDeltaTr('Y', 7, v);
+	}
 	inline void SetSpecificSensor(int sensorIndex) { fSpecificSensor = sensorIndex; }
 	inline void SetSpecificView(char aView) { fSpecificView = aView; }
 	
@@ -182,6 +206,7 @@ namespace emph{
 	
 	void LoadValueFromPreviousRun(const std::string token, bool isSimplex=false); 
 	void LoadValueFromPreviousFCNHistory(const std::string token, int requestedNCallNumber = INT_MAX); 
+	void RandomizeRollsAndRollCenters(double rollW = 0.33333, double rollCW = 0.33333); 
 	void FixParamsForView(const char aView, bool isFixed=true, const std::string &paramName=std::string ("")); 
 	
 	private:
