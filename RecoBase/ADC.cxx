@@ -51,18 +51,35 @@ namespace rb{
     return bl;
   }
 
+  //--------------------------------------------------
+  int ADC::CalcTimeMax(const emph::rawdata::WaveForm& wvfm) const
+  {
+    //Calculate time of max ADC
+    int maxVal = -99999;
+    int s = -1;
+    int tm = 0;
+    for (size_t i=0; i<wvfm.NADC(); ++i){
+        if (wvfm.ADC(i)*s>maxVal) {
+            maxVal = wvfm.ADC(i)*s;
+            tm = int(i);
+        }
+    }
+    return tm;
 
+  }
   //--------------------------------------------------
   float ADC::CalcTime(const emph::rawdata::WaveForm& wvfm) const
   {
     //returns time of hit according to steepest slope 
+    int timemax = this->CalcTimeMax(wvfm);
     int time=0;
     int steepest_slope=0;
     for (size_t i=0; i<wvfm.NADC(); ++i){
        if (i==0) continue;
        else {
            int slope = wvfm.ADC(i)-wvfm.ADC(i-1);
-           if (slope<steepest_slope){
+           //Only record time if it is steepest slope and at most 5 ticks before  maximum ADC
+           if (slope<steepest_slope && timemax-i<=5 && timemax-i>=0){
                 steepest_slope=slope;
                 time = int(i);
            }

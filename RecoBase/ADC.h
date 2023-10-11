@@ -48,6 +48,7 @@ namespace rb {
     void SetCharge(float q) { _charge = q; }
 
     float CalcBaseline(const emph::rawdata::WaveForm&) const;
+    int CalcTimeMax(const emph::rawdata::WaveForm&) const;
     float CalcTime(const emph::rawdata::WaveForm&) const;
     float CalcCharge(const emph::rawdata::WaveForm&) const;
     void CalcSWCharge(const emph::rawdata::WaveForm&);
