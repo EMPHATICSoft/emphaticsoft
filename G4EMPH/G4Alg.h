@@ -23,8 +23,7 @@ namespace simb{
 }
 namespace sim{
     class SSDHit;
-//    class SSDHitAlgo1;
-//    class Particle;
+    class Particle;
     class Track;
     class TOPAZLGHit;
     class ARICHHit;
@@ -39,7 +38,6 @@ namespace emph {
     virtual ~G4Alg();                        
 
     void RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
-//                  std::vector<sim::SSDHit> & ssdhitlist,
                   std::vector<sim::SSDHit> & ssdhitlist,
                   std::vector< sim::Track >& tracklist,
                   std::vector< std::vector<std::pair<size_t, size_t> > >&   pListLimits);
@@ -49,6 +47,7 @@ namespace emph {
                   std::vector<sim::TOPAZLGHit> & lghitlist,
                   std::vector<sim::ARICHHit> & arichhitlist,
                   std::vector< sim::Track >& tracklist,
+		  std::vector< sim::Particle >& particlelist,
                   std::map<int, size_t >& trackIDToMCTruthIndex);
     
     void RunGeant(art::Ptr<simb::MCTruth> mctruth,
@@ -75,13 +74,10 @@ namespace emph {
     bool            fManyParticles;       ///< if true, keep individual track ids from processes like compt and brem
     bool            fSparseTrajectories;  ///< if true, only save necessary points in particle trajectories
     std::string     fGenModuleLabel;      ///< label of module that made the particles to track
-    long int fMisalignModNum; ///< For now, set simply a single int parameter to drive the simulation of the misalignments.  
-    double fMisalignDoubleSSDGap; ///< Well, life is not that simple.  Gat to add this one.   
-    unsigned int fMisalignSeed; ///< We do not use the Geant4/CLHEP random generator to kick the detector element out of nominal alignment
-                       /// <  to be able to generate the set of particle, at least for the first (few?) events.  
 //
 // as far as I can see, these are not used.. 
 //
+    int		    fPlatIndex;		//< index of the ParticleListAction in the UserActionManager
     int             fPlaIndex;            ///< index of the TrackListAction in the UserActionManager
     int             fShaIndex;            ///< index of the SSDHitAction in the UserActionManager
     int             fSLGhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager
@@ -90,7 +86,7 @@ namespace emph {
     int             fOpticalActionIndex;            ///< index of theFast Stop Action in the UserActionManager
 
     std::vector<std::string> fUserActions;///< UserAction classes 
-    
+
   };
 }
 
