@@ -328,14 +328,15 @@ namespace emph {
 //     const bool debugIsOn = ((fSubRun == 100) && ((fEvtNum == 48 ) || (fEvtNum == 56 ) || (fEvtNum == 142 ) || (fEvtNum == 92 )));
        // For spill 100, good track from RScript, check loading 
 //       const bool debugIsOn = (fEvtNum < 20);
-       bool debugIsOn = false;
+//       bool debugIsOn = false;
 // Run 1274, sorting out Station 4 and 5, negative Y... Running on Spill 10 only
 //       debugIsOn = ((fRun == 1274) && ((fEvtNum == 1209) || (fEvtNum == 3462) || (fEvtNum == 3472) || 
 //                               (fEvtNum == 4244) || (fEvtNum == 4476) || (fEvtNum == 6191)));
 //	debugIsOn = ((fRun == 1293) && (fEvtNum < 20));		       
 //	debugIsOn = ((fRun == 1274) && (fEvtNum < 20));		       
-	debugIsOn = ((fRun == 1274) && (fSubRun == 10) && ((fEvtNum == 183) || (fEvtNum == 671)) );		       
+//	debugIsOn = ((fRun == 1274) && (fSubRun == 10) && ((fEvtNum == 183) || (fEvtNum == 671)) );		       
     //
+      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && (fEvtNum == 144));
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
