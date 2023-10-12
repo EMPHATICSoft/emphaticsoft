@@ -46,6 +46,7 @@
 #include "RecoBase/ARing.h"
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/BACkovHit.h"
+#include "RecoBase/GasCkovHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -56,6 +57,7 @@
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/BACkovFiller.h"
+#include "CAFMaker/GasCkovFiller.h"
 #include "CAFMaker/SRTruthFiller.h"
 
 namespace caf {
@@ -221,6 +223,12 @@ namespace caf {
     BACkovFiller backovf; 
     backovf.fLabel = fParams.BACkovHitLabel();
     backovf.Fill(evt,rec);
+
+    // Get GasCkov info from GasCovHitReco
+    GasCkovFiller gasckovf; 
+    gasckovf.fLabel = fParams.GasCkovHitLabel();
+    gasckovf.Fill(evt,rec);
+
     
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;

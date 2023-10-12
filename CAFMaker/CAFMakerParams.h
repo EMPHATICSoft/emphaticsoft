@@ -31,6 +31,7 @@ namespace caf
     Atom<string> SSDRawLabel   {Name("SSDRawLabel")};
     Atom<string> SSDClustLabel {Name("SSDClustLabel")};
     Atom<string> BACkovHitLabel {Name("BACkovHitLabel")};
+    Atom<string> GasCkovHitLabel {Name("GasCkovHitLabel")};
   }; // end struct
 } // end namespace
 

@@ -37,7 +37,7 @@ physics:
 
  producers:
  {
-	gasckovhitreco: @local::standard_backovhitreco
+	gasckovhitreco: @local::standard_gasckovhitreco
  }	
 
  reco: [ gasckovhitreco ]

@@ -9,6 +9,7 @@ standard_cafmaker:{
     SSDRawLabel:  "raw:SSD"
     SSDClustLabel: "ssdclusts"
     BACkovHitLabel: "backovreco"
+    GasCkovHitLabel: "gasckovreco"
     GetMCTruth:    true
     GetMCHits:     false
 }

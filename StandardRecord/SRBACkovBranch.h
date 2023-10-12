@@ -10,7 +10,7 @@
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
+  /// Reconstructed BACkov hits from each of the 6 PMTs
     class SRBACkovBranch
     {
     public:
@@ -27,5 +27,5 @@ namespace caf
 
 } // end namespace
 
-#endif // SRARINGBRANCH_H
+#endif // SRBACKOVBRANCH_H
 ///////////////////////////////////////////////////////////////////////////

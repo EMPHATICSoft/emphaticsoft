@@ -165,6 +165,7 @@ namespace emph {
   {
     //Create empty vectors to hold charge values
     float Qvec[3];
+    float Tvec[3];
 
     emph::cmap::FEBoardType boardType = emph::cmap::V1720;
     emph::cmap::EChannel echan;
@@ -173,7 +174,6 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    //const rawdata::WaveForm* wvfm_ptr = &wvfm; 
 	    const rb::ADC wvr(wvfm,stmap);
 	    int chan = wvfm.Channel();
         int board = wvfm.Board();
@@ -181,9 +181,11 @@ namespace emph {
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int detchan = dchan.Channel();
-        float Q = wvr.Charge();
-        fGasCkovChargeHist[detchan]->Fill(Q);
-        Qvec[detchan]=Q;
+        float q = wvr.Charge();
+        float t = wvr.Time();
+        fGasCkovChargeHist[detchan]->Fill(q);
+        Qvec[detchan]=q;
+        Tvec[detchan]=t;
 	  }  
     }
    
@@ -213,6 +215,7 @@ namespace emph {
     //Create object and store GasCkov Charge and PID results
     rb::GasCkovHit GasCkovHit;
     GasCkovHit.SetCharge(Qvec);
+    GasCkovHit.SetTime(Tvec);
     GasCkovHit.SetPID(PID_prob);
     GasCkovHits->push_back(GasCkovHit);
   }
