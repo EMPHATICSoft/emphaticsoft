@@ -9,6 +9,7 @@
 #include "G4EMPH/G4Alg.h"
 #include "G4EMPH/ParticleListAction.h"
 #include "Simulation/SSDHit.h"
+#include "Simulation/SSDHitAlgo1.h"
 #include "Simulation/TOPAZLGHit.h"
 #include "Simulation/ARICHHit.h"
 #include "Simulation/Particle.h"
@@ -41,6 +42,7 @@
 #include "cetlib/search_path.h"
 
 #include "art/Framework/Core/ModuleMacros.h"
+#include "Geant4/Randomize.hh"
 
 namespace emph {
 
@@ -82,12 +84,18 @@ namespace emph {
     unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
     // setup the random number service for Geant4, the "G4Engine" label is a 
     // special tag setting up a global engine for use by Geant4/CLHEP
-    createEngine(seed, "G4Engine");
+    std::cerr << " G4Gen::G4Gen, the random number seed is " << seed << std::endl;
 
+    createEngine(seed, "G4Engine");
+    
+     std::cerr << " A uniform throw... " << G4UniformRand() << std::endl;
+   //
+    std::cerr << " G4Gen::G4Gen Constructor.. after create engine " << std::endl;
     // Start counting the time
     fStopwatch.Start();
 
     produces< std::vector<sim::SSDHit> > ();
+//    produces< std::vector<sim::SSDHitAlgo1> > ();
     produces< std::vector<sim::TOPAZLGHit> > ();
     produces< std::vector<sim::ARICHHit> > ();
     produces< std::vector<sim::Particle>     	         >();
@@ -109,6 +117,8 @@ namespace emph {
   //___________________________________________________________________________
   void G4Gen::beginRun(art::Run& ) //run) 
   {
+    
+    std::cerr << " G4Gen::begin run ..before instantiate g4alg " << std::endl;
     fG4Alg = new G4Alg(fG4AlgPSet);
     
     return;
@@ -131,6 +141,7 @@ namespace emph {
   
     // Define the SSDHit and Particle vectors.
     std::unique_ptr<std::vector<sim::SSDHit> >  ssdhlcol(new std::vector<sim::SSDHit>  );
+//    std::unique_ptr<std::vector<sim::SSDHitAlgo1> >  ssdhlcol(new std::vector<sim::SSDHitAlgo1>  );
     std::unique_ptr<std::vector<sim::TOPAZLGHit> >  lghlcol(new std::vector<sim::TOPAZLGHit>  );
     std::unique_ptr<std::vector<sim::ARICHHit> >  arichhlcol(new std::vector<sim::ARICHHit>  );
     std::unique_ptr<std::vector<sim::Particle>     >            pcal    (new std::vector<sim::Particle>    );

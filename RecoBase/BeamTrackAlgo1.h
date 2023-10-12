@@ -40,6 +40,7 @@ namespace rb {
   private:
 
      BeamTrType fTrType;
+     mutable int fUserFlag; 
      double fTrXOffset, fTrYOffset, fTrXSlope, fTrYSlope; // Assume straight track, these are the parameters at Station 0.   
      double fTrXOffsetErr, fTrYOffsetErr, fTrXSlopeErr, fTrYSlopeErr; // uncertainties for quantities above .
      double fTrXCovOffSl, fTrYCovOffSl; // covariance matrxi to compute the uncertainties 
@@ -71,6 +72,7 @@ namespace rb {
    }
    inline void SetXChiSq(double c ) { fChiSqX = c;}
    inline void SetYChiSq(double c ) { fChiSqY = c;}
+   inline void SetUserFlag(int v) const {fUserFlag = v;} 
    
     // Getters
     inline rb::BeamTrType Type() const { return fTrType; }
@@ -88,6 +90,7 @@ namespace rb {
     inline double YSlopeErr() const { return fTrYSlopeErr; } 
     inline double YChiSq() const { return fChiSqY; } 
     inline double YCovOffSl() const {return fTrYCovOffSl;}
+    inline int UserFlag() const { return fUserFlag; }
     
     friend std::ostream& operator << (std::ostream& o, const BeamTrackAlgo1& h);
   };
