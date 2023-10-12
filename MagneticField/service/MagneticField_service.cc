@@ -16,36 +16,15 @@ namespace emph
 {
   //------------------------------------------------------------
   MagneticFieldService::MagneticFieldService(const fhicl::ParameterSet& pset,
-				   art::ActivityRegistry & reg)
+					     art::ActivityRegistry & reg):
+    fFieldFileName (pset.get< std::string >("FieldFileName"))
   {
-    fFieldIsOff = false;
-    reconfigure(pset);
-/*
-    Jonathan decided to by-pass the fcl .. 
-    Not sure this is the best option.. Paul Lebrun, Oct 20 2022. 
-    cet::search_path sp("CETPKG_SOURCE");
+    fMagneticField = new emph::MagneticField();
 
-    std::string fFileName;
-    sp.find_file(fFieldFileName,fFileName);
-    struct stat sb;
-    if ( fFileName.empty() || stat(fFileName.c_str(), &sb)!=0 ) {
-      // failed to resolve the file name
-      throw cet::exception("NoMagFieldMap")
-        << "Magnetic field map file " << fFileName << " not found!\n"
-        << __FILE__ << ":" << __LINE__ << "\n";
-    }
-    
-    fMagneticField = new emph::EMPHATICMagneticField(fFileName);
-*/
-    fMagneticField = new emph::EMPHATICMagneticField(fFieldFileName);
-    if (fFieldIsOff) fMagneticField->SetFieldOff();
-    else fMagneticField->SetFieldOn();
+    fMagneticField->SetFieldFileName(pset.get< std::string >("FieldFileName"));
+    fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
+    fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
 
-    
-    // Temporary tweak and study: assume we have no ziptrack data for the outer core.. 
-    // Does not seem to have a bad effect, except to slow down the tracking.. as expected.
-//    fMagneticField->setUseOnlyTheCentralPart(true);
-    
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
   }
@@ -54,15 +33,6 @@ namespace emph
   
   MagneticFieldService::~MagneticFieldService()
   {
-  }
-  
-  //-----------------------------------------------------------
-  void MagneticFieldService::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    
-    fFieldFileName = pset.get< std::string >("FieldFileName");
-    fFieldIsOff = pset.get< bool >("FieldIsOff", false);
-    
   }
   
   //----------------------------------------------------------
