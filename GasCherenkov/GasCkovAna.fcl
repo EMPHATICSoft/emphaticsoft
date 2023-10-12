@@ -5,9 +5,7 @@ BEGIN_PROLOG
 standard_gasckovana:
 {
  module_type:		GasCkovAna
- ADCThresh0:            0.
- ADCThresh1:            0.
- ADCThresh2:            0.
+ ADCThresh:             [0., 0., 0.]
 }
 
 END_PROLOG

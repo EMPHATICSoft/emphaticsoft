@@ -7,7 +7,7 @@ process_name: SSDCalibration
 
 services:
 {
-  TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "ssd_align_hist_r%r_s%04s.root" closeFileFast: false }
   RunHistoryService: @local::standard_runhistory
   ChannelMapService: @local::standard_channelmap
   Geometry: @local::standard_geometry
@@ -24,7 +24,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "ssd_align_hist_r%r_s%s.root"
+   fileName:    "ssd_align_hist_r%r_s%04s.root"
    fastCloning: false
    
   }

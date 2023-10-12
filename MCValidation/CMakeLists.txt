@@ -22,6 +22,7 @@ art_make_library ( SOURCE ${src_files}
 cet_build_plugin(G4EMPHValidate art::module
   LIBRARIES PRIVATE
     MCValidation
+    StandardRecord
     SimulationBase
     Simulation
     Geometry

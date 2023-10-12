@@ -5,31 +5,46 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "CAFMaker/SSDHitsFiller.h"
-#include "RecoBase/ARing.h"
 #include "RawData/SSDRawDigit.h"
 
 #include "art/Framework/Principal/Handle.h"
 #include <cxxabi.h>
 
+#include "ChannelMap/service/ChannelMapService.h"
+#include "Geometry/service/GeometryService.h"
+#include "Geometry/Geometry.h"
+#include "ChannelMap/ChannelMap.h"
+
 namespace caf
 {
   void SSDHitsFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
-   std::string fSSDRawLabel ="raw:SSD"; ///< Data label for SSD Raw Digits
-   auto hitv = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fSSDRawLabel);
+    auto hitv = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fLabel);
 
-    if(!fSSDRawLabel.empty() && hitv.failedToGet()) {
-       std::cout << "CAFMaker: No product of type '"
-      	<< abi::__cxa_demangle(typeid(*hitv).name(), 0, 0, 0)
-      	<< "' found under label '" << fLabel << "'. " << std::endl;
-    }
+    // TML: commenting this bit out because we have many events without hits and this is super noisy
+    // if(!fLabel.empty() && hitv.failedToGet()) {
+    //    std::cout << "CAFMaker: No product of type '"
+    //   	<< abi::__cxa_demangle(typeid(*hitv).name(), 0, 0, 0)
+    //   	<< "' found under label '" << fLabel << "'. " << std::endl;
+    // }
+
       
- std::vector <emph::rawdata::SSDRawDigit> ssdhits;
+    std::vector <emph::rawdata::SSDRawDigit> ssdhits;
     if(!hitv.failedToGet()) ssdhits = *hitv;
+
+    auto&& geometryService = art::ServiceHandle<emph::geo::GeometryService>();
+    auto emgeo = geometryService->Geo();
+
+    auto&& channelMapService = art::ServiceHandle<emph::cmap::ChannelMapService>();
+    auto emcmap = channelMapService->CMap();
 
    for (unsigned int hitId = 0; hitId < ssdhits.size(); ++ hitId) {
       stdrec.hits.hits.push_back(SRSSDHits());
       SRSSDHits& srSSDHits = stdrec.hits.hits.back();
+
+      emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdhits[hitId].FER(),ssdhits[hitId].Module());
+      if (!emcmap->IsValidEChan(echan)) continue;
+      emph::cmap::DChannel dchan = emcmap->DetChan(echan);
 
       srSSDHits.FER = ssdhits[hitId].FER();
       srSSDHits.Module = ssdhits[hitId].Module();
@@ -40,8 +55,9 @@ namespace caf
       srSSDHits.ADC = ssdhits[hitId].ADC();
       srSSDHits.TrigNum = ssdhits[hitId].TrigNum();
       srSSDHits.Row = ssdhits[hitId].Row();
-    } // end for hitId
-   //   std::cout << "loop" << std::endl;
-  }
-
+      srSSDHits.Station = dchan.Station();
+      srSSDHits.Sensor  = dchan.Channel();
+      srSSDHits.Plane = dchan.Plane();
+   } // end for hitId
+  }  
 } // end namespace caf

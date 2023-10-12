@@ -4,7 +4,7 @@ process_name: SpillInfo
 
 services:
 {
-  TFileService: { fileName: "spillinfo_hist_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "spillinfo_hist_r%r_s%04s.root" closeFileFast: false }
   IFBeam:{}
 }
 
@@ -19,7 +19,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "spillinfo_r%r_s%s.root"
+   fileName:    "spillinfo_r%r_s%04s.root"
    fastCloning: false
    
   }

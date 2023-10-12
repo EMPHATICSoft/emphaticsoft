@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_makehits:
+{
+  module_type: MakeHits
+  CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
+}
+
+END_PROLOG

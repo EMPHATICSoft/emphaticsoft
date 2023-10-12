@@ -49,9 +49,6 @@ namespace emph {
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     //    void beginRun(art::Run& run);
     //      void endSubRun(art::SubRun const&);
@@ -76,7 +73,6 @@ namespace emph {
 
     //    this->produces<std::vector<rb::ARing>>();
 
-    //this->reconfigure(pset);
     fEvtNum = 0;
 
   }
@@ -89,12 +85,6 @@ namespace emph {
     // Clean up any memory allocated by your module
     //======================================================================
   }
-
-  //......................................................................
-
-  // void SSDCalibration::reconfigure(const fhicl::ParameterSet& pset)
-  // {    
-  // }
 
   //......................................................................
   
@@ -142,13 +132,14 @@ namespace emph {
 	  echan.SetBoard(ssd.FER());
 	  echan.SetChannel(ssd.Module());
 	  emph::cmap::DChannel dchan = cmap->DetChan(echan);
-	  const emph::geo::SSDStation &st = emgeo->GetSSDStation(dchan.Station());
-	  const emph::geo::Detector &sd = st.GetSSD(dchan.Channel());
-	  rb::SSDHit hit(ssd, sd);
+	  const emph::geo::SSDStation *st = emgeo->GetSSDStation(dchan.Station());
+	  const emph::geo::Plane *pln = st->GetPlane(dchan.Plane());
+	  const emph::geo::Detector *sd = pln->SSD(dchan.HiLo());
+	  rb::SSDHit hit(ssd, *sd);
 	  ssdvec.push_back(hit);
-	  double x = (ssd.Row()*hit.Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0];
-	  double y = (ssd.Row()*hit.Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1];
-	  double z = st.Pos()[2] + sd.Pos()[2];
+	  double x = (ssd.Row()*hit.Pitch()-sd->Height()/2)*sin(sd->Rot())+sd->Pos()[0];
+	  double y = (ssd.Row()*hit.Pitch()-sd->Height()/2)*cos(sd->Rot())+sd->Pos()[1];
+	  double z = st->Pos()[2] + sd->Pos()[2];
 	  if ( fEvtNum < 100 ) std::cout << x << " " << y << " " << z << std::endl;
 	}
 	fEvtNum++;

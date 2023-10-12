@@ -46,10 +46,7 @@ namespace emph {
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
-    
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
+        
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     //void endRun(art::Run const&);
@@ -74,7 +71,6 @@ namespace emph {
 
     this->produces< std::vector<rb::ARing>>();
 
-    //this->reconfigure(pset);
     fEvtNum = 0;
 
   }
@@ -90,12 +86,6 @@ namespace emph {
 
   //......................................................................
 
-  // void ARICHReco::reconfigure(const fhicl::ParameterSet& pset)
-  // {    
-  // }
-
-  //......................................................................
-  
   void ARICHReco::beginJob()
   {
     art::ServiceHandle<art::TFileService> tfs;

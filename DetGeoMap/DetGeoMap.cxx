@@ -11,6 +11,7 @@
 #include <fstream>
 #include <cassert>
 #include <string>
+#include <cmath>
 
 #include "TGeoManager.h"
 #include "TGeoNode.h"
@@ -22,9 +23,9 @@ namespace emph {
   
     //----------------------------------------------------------------------
     
-    DetGeoMap::DetGeoMap()
+    DetGeoMap::DetGeoMap():
+    geo(art::ServiceHandle<emph::geo::GeometryService>())
     {
-      //      art::ServiceHandle<emph::geo::GeometryService> geo;
     }
   
     //----------------------------------------------------------------------
@@ -34,58 +35,42 @@ namespace emph {
       
       int station = cl.Station();
       int sensor = cl.Sensor();
-      //      rb::planeView view = cl.View();
-      double strip = cl.WgtAvgStrip();
+      int plane  = cl.Plane();
+      double dstrip = cl.WgtAvgStrip();
+      int istrip = floor(dstrip);
+      double delta_strip = dstrip-istrip;
+      art::ServiceHandle<emph::geo::GeometryService> geo;
+      auto geom = geo->Geo();
+      
+      const emph::geo::SSDStation* st = geom->GetSSDStation(station);
+      const emph::geo::Plane* pln = st->GetPlane(plane);
+      const emph::geo::Detector* sd = pln->SSD(sensor);
+      const emph::geo::Strip* sp = sd->GetStrip(istrip);
       double pitch = 0.06;
 
-      try {
-	art::ServiceHandle<emph::geo::GeometryService> geo;
-	auto geom = geo->Geo();
-	
-	const emph::geo::SSDStation &st = geom->GetSSDStation(station);
-	const emph::geo::Detector &sd = st.GetSSD(sensor);
-	
-	double x0[3];
-	double x1[3];
-	x0[2] = x1[2] = sd.Pos()[2] + st.Pos()[2];
-	double strippos = strip*pitch - sd.Height()/2;
-	double cosrot = cos(sd.Rot());
-	double sinrot = sin(sd.Rot());
-	double tx0[2], tx1[2];
+      double x0[3];
+      double x1[3];
+      double tx0[3];
+      double tx1[3];
 
-	tx0[0] = -sd.Width()/2;
-	tx1[0] = sd.Width()/2;
-	tx0[1] = strippos;
-	tx1[1] = strippos;
+      x0[1] = x1[1] = delta_strip*pitch;
+      x0[2] = x1[2] = 0.;
+      x0[0] = -sd->Width()/2;
+      x1[0] = sd->Width()/2;
 
-	x0[0] = -tx0[0]*cosrot + tx0[1]*sinrot + sd.Pos()[0];
-	x0[1] = tx0[0]*sinrot + tx0[1]*cosrot + sd.Pos()[1];
+      sp->LocalToMother(x0,tx0);
+      sd->LocalToMother(tx0,tx1);
+      st->LocalToMother(tx1,x0);
 
-	x1[0] = -tx1[0]*cosrot + tx1[1]*sinrot + sd.Pos()[0];
-	x1[1] = tx1[0]*sinrot + tx1[1]*cosrot + sd.Pos()[1];
-
-	/*
-	tx0[0] = -sd.Width()/2 + sd.Pos()[0];
-	tx1[0] = sd.Width()/2 + sd.Pos()[0];
-	tx0[1] = strippos + sd.Pos()[1];
-	tx1[1] = strippos + sd.Pos()[1];
-
-	x0[0] = tx0[0]*cosrot - tx0[1]*sinrot; 
-	x0[1] = tx0[0]*sinrot + tx0[1]*cosrot; 
-
-	x1[0] = tx1[0]*cosrot - tx1[1]*sinrot; 
-	x1[1] = tx1[0]*sinrot + tx1[1]*cosrot; 
-	*/
+      sp->LocalToMother(x1,tx0);
+      sd->LocalToMother(tx0,tx1);
+      st->LocalToMother(tx1,x1);
  
-	ls.SetX0(x0);
-	ls.SetX1(x1);	  
-      }
-      catch(...) {
-	return false;
-      }
+      ls.SetX0(x0);
+      ls.SetX1(x1);	  
       
       return true;
-
+      
     }
 
     //----------------------------------------------------------------------
