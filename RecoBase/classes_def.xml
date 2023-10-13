@@ -67,7 +67,8 @@
   <class name="std::vector<rb::BACkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::BACkovHit>    >"/>
 
-  <class name="rb::GasCkovHit"    ClassVersion="13">
+  <class name="rb::GasCkovHit"    ClassVersion="14">
+   <version ClassVersion="14" checksum="4127082511"/>
    <version ClassVersion="13" checksum="3907294428"/>
    <version ClassVersion="12" checksum="4165743097"/>
     <version ClassVersion="10" checksum="6"/>

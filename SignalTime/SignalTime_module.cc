@@ -29,6 +29,8 @@
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
+#include "RecoBase/ADC.h"
+#include "SignalTime/SignalTime.h"
 
 
 using namespace emph;
@@ -51,6 +53,7 @@ namespace emph {
       void   FillWaveformPlots(art::Handle< std::vector<emph::rawdata::WaveForm> > &);
 
       art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+      emph::st::SignalTime stmap;
 
       unsigned int fRun;
       unsigned int fSubrun;
@@ -123,29 +126,20 @@ namespace emph {
 
              for (size_t idx=0; idx < wvfmH->size(); ++idx) {
                  const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
+                 rb::ADC wvr(wvfm,stmap);
                  int chan = wvfm.Channel();
                  int board = wvfm.Board();
-                 float bl = wvfm.Baseline();
-                 float max = wvfm.Baseline()-wvfm.PeakADC();
-                 float adc_to_mV = 2000./4096;
                  echan.SetBoard(board);
                  echan.SetChannel(chan);
                  auto adcvals = wvfm.AllADC();
+                 int max =-1*(wvfm.PeakADC() - wvfm.Baseline());
 
                  //Calculate index for board/channel of V1720
                  int index = (8*board)+chan;
-                 float min = 99999;
-                 int time = 99999;
-                 if (nentries_wvfms[board][chan] > 1000) continue;
-                 for (size_t i=0; i<adcvals.size(); ++i) {
-                     float mV = adcvals[i]*adc_to_mV;
-                     if (mV<min){
-                        min = mV;
-                        time = i;
-                     }
-                 }
-                 times[index].push_back(time);
-             nentries_wvfms[board][chan]+=1;
+                 int time = wvr.Time()/4;
+                 if(max>30) times[index].push_back(time); //only include time if signal is large enough
+                 //if(max>30 && index = 32) std::cout<<"time = "<<time<<std::endl;
+
              }
          }
     }
@@ -158,6 +152,7 @@ namespace emph {
 
 		 fRun = evt.run();
 		 fSubrun = evt.subRun();     
+         if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
 		 std::string labelStr;
 
 		 // get Waveformdigits
