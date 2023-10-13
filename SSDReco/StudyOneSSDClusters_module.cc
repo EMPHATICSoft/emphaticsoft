@@ -248,7 +248,8 @@ namespace emph {
       fAlignUV.SetOtherUncert(aTransUncert);
       fAlignUV.SetFittedResidualsForY(aMeanResidY);
       fAlignUV.SetFittedResidualsForX(aMeanResidX);
-      fAlignUV.SetChiSqCutXY(aChiSqCut3DUVXY); 
+      fAlignUV.SetChiSqCutX(aChiSqCut3DUVXY); 
+      fAlignUV.SetChiSqCutY(aChiSqCut3DUVXY); 
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
       
@@ -568,7 +569,7 @@ namespace emph {
         fAlignUV.alignIt(evt, fSSDClsPtr);
 	if (fDoGenCompact) {
 //	   std::cerr << " emph::StudyOneSSDClusters::alignFiveStations calling dumpCompactEvt, and quit here and now .. " << std::endl; exit(2);
-	   fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, fSSDClsPtr);
+	   fAlignUV.dumpCompactEvt(fSubRun, fEvtNum, true, true, fSSDClsPtr);
 	}  
       }
     }

@@ -91,7 +91,7 @@ namespace emph {
 	 std::vector<double> zPosStations;
 	 std::cerr << " SSDRecStationDwnstrAlgo1::RecIt, Station " << fStationNum << " Storing Z Positions ..." << std::endl; 
 	 for (size_t kSt=0; kSt != 6; kSt++) {
-	   TVector3 tmpPos = fEmgeo->GetSSDStation(kSt).Pos(); 
+	   TVector3 tmpPos = fEmgeo->GetSSDStation(kSt)->Pos(); 
 	   double zz = tmpPos[2];
 	   zPosStations.push_back(zz); 
 	   if (kSt > 3) zPosStations.push_back(zz); 

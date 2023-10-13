@@ -35,7 +35,7 @@ namespace emph{
       runhist::RunHistory *fRunHistory;
       emph::geo::Geometry *fEmgeo;
       emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
-      emph::EMPHATICMagneticField *fMagField;
+      emph::MagneticField *fMagField;
       bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
       bool fDebugIsOn;
       double fIntegrationStep;

@@ -234,8 +234,10 @@ namespace emph {
       fRunHistory = new runhist::RunHistory(fRun);
       fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
       art::ServiceHandle<emph::MagneticFieldService> bField;
-      emph::EMPHATICMagneticField *fMagField = bField->Field();
-      fMagField->G4GeomAlignIt(fEmgeo);
+      emph::MagneticField *fMagField = bField->Field();
+//      
+      // October 12, need to check the new alignment.. In Z.. Jonathan looked at at it Probably, very likely, O.K... 
+//      fMagField->G4GeomAlignIt(fEmgeo);
       fUpStreamBeamTrRec.SetRun(fRun);
       //
       // My own convention..Ugly MC/real data difference.. 

@@ -318,11 +318,11 @@ namespace emph {
       for (std::vector<myItCl>::const_iterator itCl = fData.cbegin(); itCl != fData.cend(); itCl++) {
         std::vector<rb::SSDCluster>::const_iterator it = *itCl;
  	const int kSt = static_cast<size_t>(it->Station());
- 	const int kPl = static_cast<size_t>(it->Sensor());
-        emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(kSt);
-        TVector3 posSt = aStation.Pos();
-        emph::geo::Detector aPlane = aStation.GetSSD(kPl);
-        TVector3 posPl = aPlane.Pos();
+ 	const int kSe = static_cast<size_t>(it->Sensor());
+        const emph::geo::SSDStation *aStation = fEmgeo->GetSSDStation(kSt);
+        const emph::geo::Detector *aSensor = fEmgeo->GetSSDSensor(kSe);
+        TVector3 posSt = aStation->Pos();
+        TVector3 posPl = aSensor->Pos();
 	const double zz = posPl[2] + posSt[2];
 	fZPos.push_back(zz);
 	if (zz < zMag) fZLocUpstreamMagnet = zz;

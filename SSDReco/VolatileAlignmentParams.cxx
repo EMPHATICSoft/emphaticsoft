@@ -97,14 +97,16 @@ namespace emph {
        size_t iSensX=0; size_t iSensY=0; size_t iSensU=0; size_t iSensV=0;
        std::vector<double> zPosSensorsX;  std::vector<double> zPosSensorsY; std::vector<double> zPosSensorsW; std::vector<double> zPosSensorsU;
        for (int kSt=0; kSt != theGeo->NSSDStations(); kSt++) { 
-         const emph::geo::SSDStation aSt = theGeo->GetSSDStation(kSt);
-	 const TVector3 aStPos = aSt.Pos();
-	 std::cerr << " ... At Station " << aSt.Name() << " Position, X  " << aStPos.X() << " Y " << aStPos.Y() 
-	           << " " << aStPos.Z() + aSt.Dz() << std::endl; 
-         for (int kSe=0; kSe != aSt.NSSDs(); kSe++) {
-	   const emph::geo::Detector aSensor = aSt.GetSSD(kSe); 
-	   const TVector3 aSePos = aSensor.Pos();
-	   std::cerr << " ... ... At Sensor " << aSensor.Name() << " View " << aSensor.View()  
+         const emph::geo::SSDStation *aSt = theGeo->GetSSDStation(kSt);
+	 const TVector3 aStPos = aSt->Pos();
+	 std::cerr << " ... At Station " << aSt->Name() << " Position, X  " << aStPos.X() << " Y " << aStPos.Y() 
+	           << " " << aStPos.Z() + aSt->Dz() << std::endl; 
+         for (int kPlSe=0; kPlSe != aSt->NPlanes(); kPlSe++) {
+	   const emph::geo::Plane *aPlane = aSt->GetPlane(kPlSe);
+	   for (int kSe=0; kSe != aPlane->NSSDs(); kSe++) { 
+	     const emph::geo::Detector *aSensor = aPlane->SSD(kSe); 
+	     const TVector3 aSePos = aSensor->Pos();
+	     std::cerr << " ... ... At Sensor " << aSensor->Name() << " View " << aSensor->View()  
 	             << " Position, X  " << aSePos.X() << " Y " << aSePos.Y() << " Z " << aSePos.Z() << std::endl; 
 //	   if (aSensor.View() == emph::geo::Y_VIEW) {
 //	     if (aSensor.IsFlip()) 
@@ -113,21 +115,22 @@ namespace emph {
 //	     else  std::cerr << " .... ... ... Compare with my old static data, fTrNomPosY " << fTrNomPosY[iSensY] 
 //		          << " vs, Not flipped,  " << aSePos.Y() << " iSensY " <<iSensY << std::endl;
 //	   }	     
-           if (aSensor.View() == emph::geo::X_VIEW) {
-	      iSensX++; 
-	      zPosSensorsX.push_back(aSePos.Z() + aStPos.Z()); 
-	   }
-           if (aSensor.View() == emph::geo::Y_VIEW)  {	   
-	      iSensY++; 
-	      zPosSensorsY.push_back(aSePos.Z() + aStPos.Z());
-	   } 
-           if (aSensor.View() == emph::geo::U_VIEW) {
-	      zPosSensorsU.push_back(aSePos.Z() + aStPos.Z());
-	      iSensU++; 
-	   }
-           if (aSensor.View() == emph::geo::W_VIEW) {
-	      iSensV++; 
-	      zPosSensorsW.push_back(aSePos.Z() + aStPos.Z());
+             if (aSensor->View() == emph::geo::X_VIEW) {
+	       iSensX++; 
+	       zPosSensorsX.push_back(aSePos.Z() + aStPos.Z()); 
+	     }
+             if (aSensor->View() == emph::geo::Y_VIEW)  {	   
+	        iSensY++; 
+	        zPosSensorsY.push_back(aSePos.Z() + aStPos.Z());
+	     } 
+             if (aSensor->View() == emph::geo::U_VIEW) {
+	        zPosSensorsU.push_back(aSePos.Z() + aStPos.Z());
+	        iSensU++; 
+	     }
+             if (aSensor->View() == emph::geo::W_VIEW) {
+	        iSensV++; 
+	        zPosSensorsW.push_back(aSePos.Z() + aStPos.Z());
+	     }
 	   }
 	 }
 	 std::cerr << std::endl;

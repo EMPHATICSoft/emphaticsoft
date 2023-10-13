@@ -67,7 +67,7 @@ namespace emph {
 	 std::vector<double> zPosStations;
 	 std::cerr << " SSDRecStationDwnstrAlgo1::RecIt Storing Z Positions ..." << std::endl; 
 	 for (size_t kSt=0; kSt != 6; kSt++) {
-	   TVector3 tmpPos = fEmgeo->GetSSDStation(kSt).Pos(); 
+	   TVector3 tmpPos = fEmgeo->GetSSDStation(kSt)->Pos(); 
 	   double zz = tmpPos[2];
 	   zPosStations.push_back(zz); 
 	   if (kSt > 3) zPosStations.push_back(zz); 
@@ -78,9 +78,9 @@ namespace emph {
        }
        double xAtStation  = 0.; double yAtStation  = 0.; 
        if (fDoUseUpstreamTrack && (kSt > 3)) {  
-         TVector3 tmpPos0 = fEmgeo->GetSSDStation(0).Pos(); 
+         TVector3 tmpPos0 = fEmgeo->GetSSDStation(0)->Pos(); 
          const double zzSt0 = tmpPos0[2];
-         TVector3 tmpPoskSt = fEmgeo->GetSSDStation(kSt).Pos(); 
+         TVector3 tmpPoskSt = fEmgeo->GetSSDStation(kSt)->Pos(); 
          const double zzStThis = tmpPoskSt[2];
          double dzSt0ForWindow = zzStThis - zzSt0;
 	 xAtStation = itUpstrTr->XOffset() + dzSt0ForWindow * itUpstrTr->XSlope();
