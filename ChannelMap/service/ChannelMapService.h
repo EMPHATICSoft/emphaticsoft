@@ -42,7 +42,10 @@ namespace emph
       std::map<emph::cmap::EChannel,emph::cmap::DChannel> EMap() { return fChannelMap->EChanMap(); }
       std::map<emph::cmap::DChannel,emph::cmap::EChannel> DMap() { return fChannelMap->DChanMap(); }
       int GetDetectorPlaneFromStationSensorForPhase1b(const emph::cmap::DChannel &dchan) const {  
-         return fChannelMap->GetDetectorPlaneFromStationSensorForPhase1b(dchan);
+//         return fChannelMap->GetDetectorPlaneFromStationSensorForPhase1b(dchan);
+           std::cerr << " ChannelMapService::GetDetectorPlaneFromStationSensorForPhase1b, obsolete call, stop here and now.. " << std::endl; 
+	   exit(2);
+	   return 0;
       }
       emph::cmap::ChannelMap* CMap() const { return fChannelMap; }
 
