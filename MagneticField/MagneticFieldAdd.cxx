@@ -31,10 +31,6 @@
 #include <cstdlib>
 
 #include "MagneticField/MagneticField.h"
-
-#include "Geant4/G4SystemOfUnits.hh"
-#include "Geant4/G4FieldManager.hh"
-
 #include "Geometry/DetectorDefs.h"
 #include "Geometry/Geometry.h"
 #include "TFile.h"
@@ -44,8 +40,10 @@
 //#define debug
 //
 namespace emph {
-
-  void EMPHATICMagneticField::studyZipTrackData2() { // March 28 2023:  Received from Leo, who received from Mike Tartaglia. 
+//
+/*
+** Obsolete, but I'd like to keep the code, if need be 
+  void MagneticField::studyZipTrackData2() { // March 28 2023:  Received from Leo, who received from Mike Tartaglia. 
 
 //    std::string fNameZipIn("/home/lebrun/EMPHATIC/Documents/MagnetMarch2023/EMPHATIC001_SenisBodyScan_230320.txt");
     
@@ -59,7 +57,7 @@ namespace emph {
         byMax = static_cast<double>(std::abs(itZ->fby)); zFieldMax = static_cast<double>(itZ->z); 
       }
     }
-    std::cerr << " EMPHATICMagneticField::studyZipTrackData2, number of ZipTrack Pts " << ffieldZipTrack.size() 
+    std::cerr << " MagneticField::studyZipTrackData2, number of ZipTrack Pts " << ffieldZipTrack.size() 
               << " By max " << byMax << " at Z = " << zFieldMax << std::endl;
     this->SetFieldOn();	      
     std::pair<double, double> byMaxCOMSOL = this->getMaxByAtCenter();	      
@@ -145,13 +143,13 @@ namespace emph {
     std::cerr << " And quit for now... " << std::endl; exit(2);
     
   } 
-  void EMPHATICMagneticField::uploadFromOneCSVSensisFile(const G4String &fName) {
+  void MagneticField::uploadFromOneCSVSensisFile(const G4String &fName) {
   
     double numbers[8];
     ffieldZipTrack.clear(); // may be we want add all of them, to rethink.. for now, one at a time. 
     std::ifstream fileIn(fName.c_str());
     if (!fileIn.is_open()) {
-      std::cerr << " EMPHATICMagneticField::uploadFromOneCSVSensisFile, file " << fName << " can not be open, fatal .." << std::endl; 
+      std::cerr << " MagneticField::uploadFromOneCSVSensisFile, file " << fName << " can not be open, fatal .." << std::endl; 
       exit(2);
     }
     std::string line;
@@ -187,10 +185,10 @@ namespace emph {
     }
     fileIn.close();
   }
-  void EMPHATICMagneticField::writeBinary(const std::string &fName) const {
+  void MagneticField::writeBinary(const std::string &fName) const {
     std::ofstream fileOut(fName.c_str(), std::ios::out | std::ios::binary); 
     if ((!fileOut.is_open()) || (!fileOut.good())) {
-         std::cerr << "EMPHATICMagneticField::writeBinary, file with name " << std::string(fName) << " can not be written, bail out " << std::endl;
+         std::cerr << "MagneticField::writeBinary, file with name " << std::string(fName) << " can not be written, bail out " << std::endl;
 	 exit(2);
     }
     int numCells[3]; numCells[0] = fNStepX; numCells[1] = fNStepY; numCells[2] = fNStepZ;
@@ -200,7 +198,7 @@ namespace emph {
     bounds[6] = fStepX; bounds[7] = fStepY; bounds[8] = fStepZ; 
     fileOut.write(reinterpret_cast<char*>(&bounds[0]), 9*sizeof(double));
     std::vector<double>  dd(3*static_cast<size_t>(fNStepZ), 0.); 
-    std::cerr << " EMPHATICMagneticField::writeBinary... fNStepX " << fNStepX << " Y " << fNStepY << std::endl;
+    std::cerr << " MagneticField::writeBinary... fNStepX " << fNStepX << " Y " << fNStepY << std::endl;
      for (size_t kx = 0; kx !=  static_cast<size_t>(fNStepX); kx++) { 
       for (size_t ky = 0; ky != static_cast<size_t>(fNStepY); ky++) {
        size_t kk=0; 
@@ -213,10 +211,10 @@ namespace emph {
     } 
     fileOut.close();
   }
-  void EMPHATICMagneticField::readBinary(const std::string &fName) {
+  void MagneticField::readBinary(const std::string &fName) {
     std::ifstream fileIn(fName.c_str(), std::ios::in | std::ios::binary); 
     if ((!fileIn.is_open()) || (!fileIn.good())) {
-         std::cerr << "EMPHATICMagneticField::readBinary, file with name " << std::string(fName) << " can not be read, bail out " << std::endl;
+         std::cerr << "MagneticField::readBinary, file with name " << std::string(fName) << " can not be read, bail out " << std::endl;
 	 exit(2);
     }
     int numCells[3];
@@ -244,6 +242,6 @@ namespace emph {
     fileIn.close();
   }
   
-  
+*/  
       
 } // emph namespace
