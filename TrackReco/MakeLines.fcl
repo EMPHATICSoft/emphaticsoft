@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_makelines:
+{
+  module_type: MakeLines
+  CheckSP:     false           # Check space points for event (requires running MakeHits first)
+}
+
+END_PROLOG

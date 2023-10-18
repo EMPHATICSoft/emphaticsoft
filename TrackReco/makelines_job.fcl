@@ -1,0 +1,56 @@
+#include "MakeLines.fcl"
+
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+#include "Geometry.fcl"
+#include "DetGeoMap.fcl"
+
+process_name: MakeLines
+
+services:
+{
+  TFileService: { fileName: "%ifb_lines_hist.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  Geometry:   @local::standard_geometry
+  RunHistoryService: @local::standard_runhistory
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "%ifb_lines.root"
+   fastCloning: false
+
+  }
+}
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+   #     dataqual:     @local::standard_dataqual
+   #     clust:        @local::standard_ssdclust
+   #     momreco:      @local::standard_momreco
+   makelines: @local::standard_makelines
+ }
+
+ reco: [ makelines ]
+
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+
+}

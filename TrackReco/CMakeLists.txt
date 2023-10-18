@@ -40,6 +40,21 @@ cet_build_plugin(MakeHits art::module
     ROOT::Tree
     DetGeoMap
 )
+cet_build_plugin(MakeLines art::module
+  LIBRARIES PRIVATE
+    ToFUtil
+    RawData
+    RecoBase
+    ChannelMapService_service
+    Geometry_service
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Core
+    ROOT::Hist
+    ROOT::Spectrum
+    ROOT::Tree
+    DetGeoMap
+)
 
 install_source()
 install_fhicl()
