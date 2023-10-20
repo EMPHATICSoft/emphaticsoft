@@ -142,21 +142,20 @@ namespace emph {
       }
 
       std::cout << "Got info for spill at " << spilltime.AsString() << std::endl;
-    std::cout<<"**************************************************"<<std::endl;
-    std::cout<< "Beam Configuration: "<<mom<<" GeV/c"<<std::endl;
-    std::cout << "Gas Cherenkov Upstream Pressure:   " << pressure5a <<" PSIA"<< std::endl;
-    std::cout << "Gas Cherenkov Downstream Pressure: " << pressure6a <<" PSIA"<< std::endl;
-    std::cout<<"**************************************************"<<std::endl;
+      std::cout<<"**************************************************"<<std::endl;
+      std::cout<< "Beam Configuration: "<<mom<<" GeV/c"<<std::endl;
+      std::cout << "Gas Cherenkov Upstream Pressure:   " << pressure5a <<" PSIA"<< std::endl;
+      std::cout << "Gas Cherenkov Downstream Pressure: " << pressure6a <<" PSIA"<< std::endl;
+      std::cout<<"**************************************************"<<std::endl;
 
     // Calculate cherenkov thresholds, format of arrays are {e,mu,pi,k,p}
-    std::array<double,5> particle_m = {0.511, 105.7, 135.97, 493.68, 938.27}; //MeV
+    std::array<double,5> particle_m = {0.511, 105.7, 139.57, 493.68, 938.27}; //MeV
     for (int i=0; i<5; ++i) particle_m[i] = particle_m[i]*1e-3; //convert to GeV
     
     // Calculate v using p=gamma*m*v -> solve for v
     std::array<double,5> particle_v ={};
     for (int i=0; i<5; ++i){
         particle_v[i] = 1/(sqrt(1+pow(particle_m[i]/mom,2)));
-        std::cout<< "v = "<<particle_v[i]<<std::endl;
     }
 
     // Calculate index of refraction (n) for upstream and downstream gas cherenkov
@@ -166,13 +165,6 @@ namespace emph {
     double n_upstream = (pressure5a/P_0)*(n_0-1) + 1;
     double n_downstream = (pressure6a/P_0)*(n_0-1) + 1;
 
-    //Calculate cherenkov angle for each particle cos(theta) = 1/(v*n)
-    std::array<double,5> particle_theta;
-    for (int i=0; i<5; ++i){
-        particle_theta[i] = particle_theta[i] *1e3; //convert to mrad
-        std::cout<<"Angle = "<<particle_theta[i]<<" mrad"<<std::endl;
-    }
-
     //Cherenkov condition is v>1/n for upstream GC
     //For downstream if cherenkov angle is >30mrad we expect outer PMT signal else we expect inner PMT signal
     std::array<std::vector<bool>,5> particle_sig;
@@ -180,9 +172,10 @@ namespace emph {
         if (particle_v[i] > (1/n_upstream)) particle_sig[i].push_back(1);
         else (particle_sig[i].push_back(0));
 
-        if (particle_v[i] > (1/n_upstream)){
-            dobule theta  = acos(1/(particle_v[i]*n_downstream));
-            if (particle_theta[i] < 30) {
+        if (particle_v[i] > (1/n_downstream)){
+            //Calculate cherenkov angle for each particle cos(theta) = 1/(v*n)
+            double theta  = acos(1/(particle_v[i]*n_downstream)) * 1e3; //cherenkov angle in mrad
+            if (theta < 7) {
                 particle_sig[i].push_back(1);
                 particle_sig[i].push_back(0);
             }
@@ -195,11 +188,6 @@ namespace emph {
             particle_sig[i].push_back(0);
             particle_sig[i].push_back(0);
         }
-        std::cout<<"particle #"<<i<<"   ";
-        for(int j=0; j<3; ++j){
-            std::cout<<particle_sig[i][j]<<" ";
-        }
-        std::cout<<std::endl;
         GasCkov_signal.push_back(particle_sig[i]);
     }
   }
@@ -256,7 +244,7 @@ namespace emph {
     else GasCkov_Result.push_back(0);
     if (Qvec[1]>5) GasCkov_Result.push_back(1);
     else GasCkov_Result.push_back(0);
-    if (Qvec[2]>40) GasCkov_Result.push_back(1);
+    if (Qvec[2]>10) GasCkov_Result.push_back(1);
     else GasCkov_Result.push_back(0);
 
     for (int i=0; i<5; ++i){

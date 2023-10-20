@@ -197,11 +197,11 @@ namespace emph {
     bool PID_prob[5]={0,0,0,0,0};
 
 
-    if (high_q>1) BACkov_Result.push_back(1);
+    if (high_q>4) BACkov_Result.push_back(1);
     else BACkov_Result.push_back(0);
-    if (mid_q>1) BACkov_Result.push_back(1);
+    if (mid_q>2) BACkov_Result.push_back(1);
     else BACkov_Result.push_back(0);
-    if (low_q>1) BACkov_Result.push_back(1);
+    if (low_q>2) BACkov_Result.push_back(1);
     else BACkov_Result.push_back(0);
 
     for (int k=0; k<pid_num; ++k){
