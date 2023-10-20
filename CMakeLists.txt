@@ -39,6 +39,7 @@ include(ArtMake)
 include(BuildPlugins)
 
 # source
+add_subdirectory(Align)
 add_subdirectory(ARICHReco)
 add_subdirectory(BACkovHitReco)
 add_subdirectory(CAFMaker)

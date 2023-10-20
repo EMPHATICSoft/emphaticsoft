@@ -105,4 +105,11 @@
   <class name="std::vector<rb::CaloHit>"        />
   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
 
+  <class name="rb::Track"    ClassVersion="11">
+   <version ClassVersion="11" checksum="4183331231"/>
+     <version ClassVersion="10" checksum="1"/>
+   </class>
+  <class name="std::vector<rb::Track>"        />
+  <class name="art::Wrapper< std::vector<rb::Track>    >"/>
+
  </lcgdict>
