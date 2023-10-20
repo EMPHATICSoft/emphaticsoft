@@ -14,6 +14,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TTimeStamp.h"
 
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
@@ -33,6 +34,7 @@
 #include "RecoBase/GasCkovHit.h"
 #include "RecoBase/ADC.h"
 #include "SignalTime/SignalTime.h"
+#include "RecoBase/Spill.h"
 
 using namespace emph;
 
@@ -50,8 +52,9 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
+    void beginSubRun(art::SubRun &sr);
+    void endSubRun(art::SubRun &sr);
     //void endRun(art::Run const&);
-    //      void endSubRun(art::SubRun const&);
     void endJob();
     
   private:
@@ -61,8 +64,16 @@ namespace emph {
     emph::st::SignalTime stmap;
     
     int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
-    std::vector<std::vector<int>> GasCkov_signal;
-    std::vector<std::vector<int>> PID_table; //in the form {e,mu,pi,k,p} w/ {1,1,0,0,0} being e/mu are possible particles
+    TTimeStamp spilltime;
+    float pmtadc1;
+    float pmtadc2;
+    float pmtadc3;
+    float pressure5a;
+    float pressure5b;
+    float pressure6a;
+    float pressure6b;
+
+    std::vector<std::vector<bool>> GasCkov_signal;
     int pid_num;
     unsigned int fRun;
     unsigned int fSubrun;
@@ -108,49 +119,95 @@ namespace emph {
       fGasCkovChargeHist[i]->GetYaxis()->SetTitle("Number of Events"); 
     }
 
+  }
+
+  //......................................................................
+ 
+  void GasCkovHitReco::beginSubRun(art::SubRun& sr){
+      art::Handle<rb::Spill> spillHandle;
+
+      try {
+          sr.getByLabel("spillinfo",spillHandle);
+
+          pressure5a = spillHandle->MT5CPR();
+          pressure5b = spillHandle->MT5CP2();
+          pressure6a = spillHandle->MT6CPR();
+          pressure6b = spillHandle->MT6CP2();
+          spilltime = TTimeStamp(spillHandle->Timestamp());
+
+      }
+      catch(...) {
+          std::cout << "No spill info object found!  Aborting..." << std::endl;
+          std::abort();
+      }
+
+      std::cout << "Got info for spill at " << spilltime.AsString() << std::endl;
     std::cout<<"**************************************************"<<std::endl;
     std::cout<< "Beam Configuration: "<<mom<<" GeV/c"<<std::endl;
+    std::cout << "Gas Cherenkov Upstream Pressure:   " << pressure5a <<" PSIA"<< std::endl;
+    std::cout << "Gas Cherenkov Downstream Pressure: " << pressure6a <<" PSIA"<< std::endl;
     std::cout<<"**************************************************"<<std::endl;
 
-    //Initialize truth table for checking GasCkov signals
+    // Calculate cherenkov thresholds, format of arrays are {e,mu,pi,k,p}
+    std::array<double,5> particle_m = {0.511, 105.7, 135.97, 493.68, 938.27}; //MeV
+    for (int i=0; i<5; ++i) particle_m[i] = particle_m[i]*1e-3; //convert to GeV
     
-    if(mom==2 || mom==4){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{1,0,1},{0,0,0}}); // {e,mu/pi/k/p}
-      PID_table.insert(PID_table.end(),{{1,0,0,0,0},{0,1,1,1,1}}); // {e,mu/pi/k/p}
-      pid_num=2;
+    // Calculate v using p=gamma*m*v -> solve for v
+    std::array<double,5> particle_v ={};
+    for (int i=0; i<5; ++i){
+        particle_v[i] = 1/(sqrt(1+pow(particle_m[i]/mom,2)));
+        std::cout<< "v = "<<particle_v[i]<<std::endl;
     }
-    else if(mom==8){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{1,0,1},{1,1,0},{0,0,0}}); // {e/mu,pi,k/p}
-      PID_table.insert(PID_table.end(),{{1,1,0,0,0},{0,0,1,0,0},{0,0,0,1,1}}); // {e/mu,pi,k/p}
-      pid_num=3;
+
+    // Calculate index of refraction (n) for upstream and downstream gas cherenkov
+    // Uses P = P_0 * (n-1)/(n_0-1) with P_0 = 14.6959 PSIA (1 atm) and n_0 = 1.00045 for CO2 -> n = (P/P_0)*(n_0-1) + 1
+    double P_0 = 14.6959;
+    double n_0 = 1.00045;
+    double n_upstream = (pressure5a/P_0)*(n_0-1) + 1;
+    double n_downstream = (pressure6a/P_0)*(n_0-1) + 1;
+
+    //Calculate cherenkov angle for each particle cos(theta) = 1/(v*n)
+    std::array<double,5> particle_theta;
+    for (int i=0; i<5; ++i){
+        particle_theta[i] = particle_theta[i] *1e3; //convert to mrad
+        std::cout<<"Angle = "<<particle_theta[i]<<" mrad"<<std::endl;
     }
-    else if(mom==12){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{1,0,1},{0,1,0},{0,0,0}}); // {e/mu,pi,k/p}
-      PID_table.insert(PID_table.end(),{{1,1,0,0,0},{0,0,1,0,0},{0,0,0,1,1}}); // {e/mu,pi,k/p}
-      pid_num=3;
+
+    //Cherenkov condition is v>1/n for upstream GC
+    //For downstream if cherenkov angle is >30mrad we expect outer PMT signal else we expect inner PMT signal
+    std::array<std::vector<bool>,5> particle_sig;
+    for (int i=0; i<5; ++i){
+        if (particle_v[i] > (1/n_upstream)) particle_sig[i].push_back(1);
+        else (particle_sig[i].push_back(0));
+
+        if (particle_v[i] > (1/n_upstream)){
+            dobule theta  = acos(1/(particle_v[i]*n_downstream));
+            if (particle_theta[i] < 30) {
+                particle_sig[i].push_back(1);
+                particle_sig[i].push_back(0);
+            }
+            else{
+                particle_sig[i].push_back(0);
+                particle_sig[i].push_back(1);
+            }
+        } 
+        else{
+            particle_sig[i].push_back(0);
+            particle_sig[i].push_back(0);
+        }
+        std::cout<<"particle #"<<i<<"   ";
+        for(int j=0; j<3; ++j){
+            std::cout<<particle_sig[i][j]<<" ";
+        }
+        std::cout<<std::endl;
+        GasCkov_signal.push_back(particle_sig[i]);
     }
-    else if(mom==20){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{1,0,1},{0,0,1},{0,1,0},{0,0,0}}); // {e/mu,pi,k,p}
-      PID_table.insert(PID_table.end(),{{1,1,0,0,0},{0,0,1,0,0},{0,0,0,1,0},{0,0,0,0,1}}); // {e/mu,pi,k,p}
-      pid_num=4;
-    }
-    else if(mom==31){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{1,0,1},{0,0,1},{0,0,0}}); // {e/mu,pi/k,p}
-      PID_table.insert(PID_table.end(),{{1,1,0,0,0},{0,0,1,1,0},{0,0,0,0,1}}); // {e/mu,pi/k,p}
-      pid_num=4;
-    }
-    else if(mom==60){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{1,0,1},{1,1,0},{0,0,0}}); // {e/mu/pi,k,p}
-      PID_table.insert(PID_table.end(),{{1,1,1,0,0},{0,0,0,1,0},{0,0,0,0,1}}); // {e/mu/pi,k,p}
-      pid_num=4;
-    }
-    //Abitrary assignment for 120 GeV which should all be protons
-    else if(mom==120){
-      GasCkov_signal.insert(GasCkov_signal.end(),{{0,0,0}}); // {e/mu/pi/k/p}
-      PID_table.insert(PID_table.end(),{{0,0,0,0,1}}); // {e/mu/pi/k/p}
-      pid_num=1;
-    }
-    else {std::cout<<"Error: Invalid Beam Momentum for GasCkov signals"<<std::endl; exit(0);}
+  }
+
+  //......................................................................
+  
+  void GasCkovHitReco::endSubRun(art::SubRun& sr){
+      GasCkov_signal.clear();
   }
 
   //......................................................................
@@ -202,14 +259,12 @@ namespace emph {
     if (Qvec[2]>40) GasCkov_Result.push_back(1);
     else GasCkov_Result.push_back(0);
 
-    for (int k=0; k<pid_num; ++k){
-      int result_flag=0;
-      for (int l=0; l<3; ++l){
-        if (GasCkov_Result[l]==GasCkov_signal[k][l]) result_flag+=1;
-      }
-      if(result_flag==3){
-	for(int j=0; j<5; ++j) PID_prob[j]=PID_table[k][j];
-      }
+    for (int i=0; i<5; ++i){
+        int result_flag=0;
+        for (int j=0; j<3; ++j){
+            if (GasCkov_Result[j] == GasCkov_signal[i][j]) result_flag+=1;
+        }
+        if (result_flag==3) PID_prob[i]=1;
     }
     
     //Create object and store GasCkov Charge and PID results

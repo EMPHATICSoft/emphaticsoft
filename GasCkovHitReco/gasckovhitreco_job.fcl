@@ -2,6 +2,7 @@
 
 #include "ChannelMap.fcl"
 #include "RunHistory.fcl"
+#include "SpillInfo.fcl"
 
 process_name: GasCkovHitReco
 
@@ -10,6 +11,7 @@ services:
   TFileService: { fileName: "gasckovhitreco_hist_r%r_s%04s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
+  IFBeam:{}
 }
 
 source:
@@ -37,10 +39,11 @@ physics:
 
  producers:
  {
+    spillinfo: @local::standard_spillinfo
 	gasckovhitreco: @local::standard_gasckovhitreco
  }	
 
- reco: [ gasckovhitreco ]
+ reco: [ spillinfo, gasckovhitreco ]
 	
  filters:{}
 
