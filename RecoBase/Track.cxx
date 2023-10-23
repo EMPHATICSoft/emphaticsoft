@@ -85,14 +85,47 @@ namespace rb {
   }
   
   //------------------------------------------------------------
-  //  std::ostream& operator<< (std::ostream& o, const Track& h)
-  //  {
-  //    o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-  //   o << " Track Segment --> x0(" << h._x0[0] << "," << h._x0[1] << "," 
-  //     << h._x0[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
-  //     << h._p[2] << ")"; 
-  //    return o;
-  //  }
+  
+  TVector3 Track::Pos(double z) const
+  {
+    TVector3 pos;
+    double x = -9999.;
+    double y = -9999.;
+
+    assert(_pos.size>= 2);
+
+    if (z >= _vtx[2]) {
+      size_t i=0; 
+      for (; i<_pos.size()-1; ++i) {
+	if ((z>_pos[i].Z()) && (z<_pos[i+1].Z())) {
+	  double dz = _pos[i+1].Z() - _pos[i].Z();
+	  double dx = _pos[i+1].X() - _pos[i].X();
+	  double dy = _pos[i+1].Y() - _pos[i].Y();
+	  x = _pos[i].X() + z*(dx/dz);
+	  y = _pos[i].Y() + z*(dy/dz);	  
+	  break;
+	}
+      }
+      assert(i <= _pos.size());
+    }
+
+    pos.SetX(x);
+    pos.SetY(y);
+    pos.SetZ(z);
+    
+    return pos;
+  }
+
+  //------------------------------------------------------------
+
+  std::ostream& operator<< (std::ostream& o, const Track& h)
+  {
+    o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
+    o << " Track Segment --> x0(" << h._vtx[0] << "," << h._vtx[1] << "," 
+      << h._vtx[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
+      << h._p[2] << ")"; 
+    return o;
+  }
   
 } // end namespace rawdata
 //////////////////////////////////////////////////////////////////////////////

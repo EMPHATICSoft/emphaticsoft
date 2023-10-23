@@ -61,7 +61,7 @@ namespace rb {
     void SetVtx(double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
     
-    //    friend std::ostream& operator << (std::ostream& o, const TrackSegment& h);
+    friend std::ostream& operator << (std::ostream& o, const Track& h);
   };
   
 }
