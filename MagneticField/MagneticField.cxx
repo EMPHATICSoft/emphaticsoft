@@ -25,7 +25,7 @@ namespace emph {
   
   MagneticField::MagneticField() :
     fFieldFileName(""), fFieldLoaded(false), 
-    fStorageIsStlVector(true), 
+    fStorageIsStlVector(true), fStayedInMap(true),
     step(0), start{-16., -16., -20.},
     fG4ZipTrackOffset{ 0., 0., 0.},
     fNStepX(1), fNStepY(1), fNStepZ(1),
@@ -646,6 +646,11 @@ namespace emph {
     double BInKg[3];
     const double rR = std::sqrt(x[0]*x[0] + x[1]*x[1]);
     this->Field(xAligned, B);
+    fStayedInMap = true;
+    if ((xAligned[2] > -50.) && (xAligned[2] < 210.)) { // in the region with relatively high field.. 
+       if ((xAligned[0] > fXMax) || (xAligned[0] <  fXMin)) fStayedInMap = false;
+       if ((xAligned[1] > fYMax) || (xAligned[1] <  fYMin)) fStayedInMap = false;
+    } 
   }
 
   //----------------------------------------------------------------------
@@ -666,6 +671,7 @@ namespace emph {
       std::cerr << " MagneticField::Integrate , wrong arguments, vectors must be dimensioned to 6. Fatal, quit here and now " << std::endl;
       exit(2);
     }
+    
     const double QCst = charge * 1.0e3 / 0.03; // meter to mm, factor 10 to convert kG to Tesla. The factor 3 in denomintar is standard MKS units. 
     const bool doEuler = (iOpt == 0) || (iOpt == 10) ||  (iOpt == 100);
     const bool doOnlyBy = (iOpt/10 == 1);
@@ -702,6 +708,7 @@ namespace emph {
       xxStop[0] += slx*stepZ; xxStop[1] += sly*stepZ;
       if (fVerbosity) std::cerr << " At x,y,z " << pos[0] << " " << pos[1] << " " << pos[2] << " step size " << stepZ << std::endl;
       this->Field(xxMiddle, bAtZMiddle);
+      if (!fStayedInMap) return;
       //
       // Change of slope along the X-axis (dominant component).
       //

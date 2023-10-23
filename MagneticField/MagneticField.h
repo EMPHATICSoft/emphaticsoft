@@ -37,6 +37,7 @@ namespace emph {
     std::string fFieldFileName;
     bool  fFieldLoaded;
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
+    bool fStayedInMap; // Stayed in Map while integrating.. 
     std::vector<bFieldPoint> fBfield;
     std::unordered_map<int, std::unordered_map<int, std::unordered_map<int, std::vector<double> > > > fFieldMap;
     double step;
@@ -54,6 +55,7 @@ namespace emph {
     void Integrate(int iOpt, int charge, double stepAlongZ,  
 		   std::vector<double> &start, std::vector<double> &end); 
     //    inline void setUseOnlyTheCentralPart(bool  t=true) {  fUseOnlyCentralPart = t; }    
+   inline bool didStayedInMap() { return fStayedInMap; }  // While integrating.. 
   private:
     void uploadFromTextFile();
     void AlignWithGeom();
