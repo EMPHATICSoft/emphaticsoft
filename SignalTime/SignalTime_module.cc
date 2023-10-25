@@ -126,7 +126,7 @@ namespace emph {
 
              for (size_t idx=0; idx < wvfmH->size(); ++idx) {
                  const rawdata::WaveForm& wvfm = (*wvfmH)[idx];
-                 rb::ADC wvr(wvfm,stmap);
+                 rb::ADC wvr;
                  int chan = wvfm.Channel();
                  int board = wvfm.Board();
                  echan.SetBoard(board);

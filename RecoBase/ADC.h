@@ -47,20 +47,6 @@ namespace rb {
     void SetTime(float t) { _time = t; }
     void SetCharge(float q) { _charge = q; }
 
-    float CalcBaseline(const emph::rawdata::WaveForm&) const;
-    int CalcTimeMax(const emph::rawdata::WaveForm&) const;
-    float CalcTime(const emph::rawdata::WaveForm&) const;
-    float CalcCharge(const emph::rawdata::WaveForm&) const;
-    void CalcSWCharge(const emph::rawdata::WaveForm&);
-    void CalcFitCharge(const emph::rawdata::WaveForm&);
-    //float CalcBACkovCharge(const emph::rawdata::WaveForm&, int adcoffset=0, int nhits=10, int start=25,  int nsamp=35, int win_size=8, float ADC_thresh=3)   const;   
-    
-    //Functions for Wvfm Fit Function
-    static double background(double *x,  double *par);
-    static double gaussianPeak(double *x, double *par);
-    static double wvfmFitFunction(double *x, double *par);
-
-
   };
 
 }

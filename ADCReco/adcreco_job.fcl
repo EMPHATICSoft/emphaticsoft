@@ -1,0 +1,53 @@
+#include "ADCReco.fcl"
+
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+
+process_name: ADCReco
+
+services:
+{
+  TFileService: { fileName: "adcreco_hist_r%r_s%04s.root" closeFileFast: false }
+  ChannelMapService: @local::standard_channelmap
+  RunHistoryService: @local::standard_runhistory
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "adcreco_r%r_s%04s.root"
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	adcreco: @local::standard_adcreco
+ }	
+
+ reco: [ adcreco ]
+	
+ filters:{}
+
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+
+}

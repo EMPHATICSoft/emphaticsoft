@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_adcreco:
+{
+  module_type: ADCReco
+
+}
+
+END_PROLOG
