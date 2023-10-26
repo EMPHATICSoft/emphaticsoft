@@ -39,8 +39,8 @@ namespace rb {
     const rb::SpacePoint* GetSpacePoint(int i) const;
 
     // Setters
-    void AddSSDCluster(const rb::SSDCluster& cl); 
-    void AddSpacePoint(const rb::SpacePoint& sp);
+    void Add(const rb::SSDCluster& cl); 
+    void Add(const rb::SpacePoint& sp);
 
     void SetVtx(double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }

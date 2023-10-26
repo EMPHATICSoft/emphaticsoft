@@ -53,13 +53,13 @@ namespace rb {
     TVector3 Pos(double z) const;
 
     // Setters
-    void AddSSDCluster(const rb::SSDCluster& cl); 
-    void AddTrackSegment(const rb::TrackSegment& ts);
-    void AddSpacePoint(const rb::SpacePoint& sp);
+    void Add(const rb::SSDCluster& cl); 
+    void Add(const rb::TrackSegment& ts);
+    void Add(const rb::SpacePoint& sp);
     void AddPos(TVector3 &x);
 
-    void SetVtx(double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
-    void SetP(double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
+    void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
+    void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
     
     friend std::ostream& operator << (std::ostream& o, const Track& h);
   };

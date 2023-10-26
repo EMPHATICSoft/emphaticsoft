@@ -41,6 +41,8 @@
 #include "DetGeoMap/DetGeoMap.h"
 #include "RecoBase/LineSegment.h"
 #include "RecoBase/SpacePoint.h"
+#include "RecoBase/TrackSegment.h"
+#include "RecoBase/Track.h"
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 
@@ -75,7 +77,7 @@ namespace emph {
     void    compareAngle(std::vector<sim::SSDHit> sim, rb::LineSegment track, double ang[2]);
     double  findAngleRes(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f, double reco_angle);
     void    MakeHits(rb::SpacePoint sp);
-    void    MakeLines();
+    void    MakeLines(std::vector<rb::TrackSegment> &);
 
   private:
   
@@ -146,6 +148,9 @@ namespace emph {
     std::vector<std::vector<double>> sp01;
     std::vector<std::vector<double>> sp234;
     std::vector<std::vector<double>> sp567;
+    std::vector<rb::SpacePoint> ts01;
+    std::vector<rb::SpacePoint> ts234;
+    std::vector<rb::SpacePoint> ts567;
 
     //truth position info
     std::vector<std::vector<double>> v_truth;
@@ -209,6 +214,8 @@ namespace emph {
     fDetGeoMap(NULL)
   {
     this->produces< std::vector<rb::SpacePoint> >();
+    this->produces< std::vector<rb::TrackSegment> >();
+    this->produces< std::vector<rb::Track> >();
   }
 
   //......................................................................
@@ -770,7 +777,7 @@ namespace emph {
  
   //......................................................................
 
-  void emph::MakeSingleTracks::MakeLines(){
+  void emph::MakeSingleTracks::MakeLines(std::vector<rb::TrackSegment>& tsv) {
          //segment 01 -> don't need to fit anything, just connect two points
          double lfirst01[3]; double llast01[3];
          //findLine(sp01,lfirst01,llast01);
@@ -781,7 +788,7 @@ namespace emph {
          llast01[0] = sp01[1][0];
          llast01[1] = sp01[1][1];
          llast01[2] = sp01[1][2];
-
+	 
          //segment 234
          double lfirst234[3]; double llast234[3];
          findLine(sp234,lfirst234,llast234);
@@ -790,6 +797,7 @@ namespace emph {
          double lfirst567[3]; double llast567[3];
          findLine(sp567,lfirst567,llast567);
 
+	 
          //find angles
          double scattering = findAngle(lfirst01,llast01,lfirst234,llast234);
          double bending = findAngle(lfirst234,llast234,lfirst567,llast567);
@@ -807,6 +815,53 @@ namespace emph {
          rb::LineSegment track2 = rb::LineSegment(lfirst234,llast234);
          rb::LineSegment track3 = rb::LineSegment(lfirst567,llast567);
  
+	 // create rb::TrackSegments and insert them into the vector
+	 rb::TrackSegment ts1 = rb::TrackSegment();
+	 for (auto p : spv)
+	   if (p.Station() == 0 || p.Station() == 1)
+	     ts1.Add(p);
+	 ts1.SetVtx(lfirst01);
+	 double p[3];
+	 double dx = llast01[0]-lfirst01[0];
+	 double dy = llast01[1]-lfirst01[1];
+	 double dz = llast01[2]-lfirst01[2];	 
+	 double pmag = sqrt(dx*dx + dy*dy + dz*dz);
+	 p[0] = dx/pmag;
+	 p[1] = dy/pmag;
+	 p[2] = dz/pmag;
+	 ts1.SetP(p);
+	 tsv.push_back(ts1);
+
+	 rb::TrackSegment ts2 = rb::TrackSegment();
+	 for (auto p : spv)
+	   if (p.Station() == 2 || p.Station() == 3 || p.Station() == 4)
+	     ts2.Add(p);
+	 ts2.SetVtx(lfirst234);
+	 dx = llast234[0]-lfirst234[0];
+	 dy = llast234[1]-lfirst234[1];
+	 dz = llast234[2]-lfirst234[2];	 
+	 pmag = sqrt(dx*dx + dy*dy + dz*dz);
+	 p[0] = dx/pmag;
+	 p[1] = dy/pmag;
+	 p[2] = dz/pmag;
+	 ts2.SetP(p);
+	 tsv.push_back(ts2);
+
+	 rb::TrackSegment ts3 = rb::TrackSegment();
+	 for (auto p : spv)
+	   if (p.Station() == 5 || p.Station() == 6 || p.Station() == 7)
+	     ts3.Add(p);
+	 ts3.SetVtx(lfirst567);
+	 dx = llast567[0]-lfirst567[0];
+	 dy = llast567[1]-lfirst567[1];
+	 dz = llast567[2]-lfirst567[2];	 
+	 pmag = sqrt(dx*dx + dy*dy + dz*dz);
+	 p[0] = dx/pmag;
+	 p[1] = dy/pmag;
+	 p[2] = dz/pmag;
+	 ts3.SetP(p);
+	 tsv.push_back(ts3);
+
          //reorganize for plotting
          l01x[0] = lfirst01[0]; l01x[1] = llast01[0];
          l01y[0] = lfirst01[1]; l01y[1] = llast01[1];
@@ -844,6 +899,9 @@ namespace emph {
   {
 
     std::unique_ptr< std::vector<rb::SpacePoint> > spacepointv(new std::vector<rb::SpacePoint>);
+    std::unique_ptr< std::vector<rb::TrackSegment> > tracksegmentv(new std::vector<rb::TrackSegment>);
+    std::unique_ptr< std::vector<rb::Track> > trackv(new std::vector<rb::Track>);
+    std::vector<rb::TrackSegment> tsv;
 
     run = evt.run();
     subrun = evt.subRun();
@@ -998,8 +1056,10 @@ namespace emph {
              }
 
 	     //form lines and fill plots
-	     MakeLines();
-
+	     MakeLines(tsv);
+	     for (auto ts : tsv)
+	       tracksegmentv->push_back(ts);
+	     
 	  }
 
           spv.clear();
@@ -1227,8 +1287,30 @@ namespace emph {
     zsim_pair.clear();
 
   } //want plots
-  evt.put(std::move(spacepointv));
+  
+    // now create tracks from tracksegments.  Note, this is a placeholder 
+    // for now.  The beam track needs to get the momentum from the SpillInfo, 
+    // and the secondary track needs to get the momentum from the bend angle
+ 
+    trackv->clear();
+    if (tracksegmentv->size() == 3) {
+      rb::Track beamtrk;
+      beamtrk.Add(tsv[0]);
+      beamtrk.SetP(tsv[0].P());
+      beamtrk.SetVtx(tsv[0].Vtx());
+      trackv->push_back(beamtrk);
 
+      rb::Track sectrk;
+      sectrk.Add(tsv[1]);
+      sectrk.Add(tsv[2]);
+      sectrk.SetP(tsv[1].P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
+      sectrk.SetVtx(tsv[1].Vtx()); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+      trackv->push_back(sectrk);
+    }
+
+    evt.put(std::move(spacepointv));
+    evt.put(std::move(tracksegmentv));
+    evt.put(std::move(trackv));
   }
 
 } // end namespace emph

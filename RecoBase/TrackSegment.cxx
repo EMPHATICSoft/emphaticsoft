@@ -41,6 +41,22 @@ namespace rb {
   }
   
   //------------------------------------------------------------
+  
+  void TrackSegment::Add(const rb::SpacePoint& sp) 
+  {
+    assert(_clust.empty());
+    _spcpt.push_back(sp);
+  }
+  
+  //------------------------------------------------------------
+  
+  void TrackSegment::Add(const rb::SSDCluster& cl) 
+  {
+    assert(_spcpt.empty());
+    _clust.push_back(cl);
+  }
+  
+  //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const TrackSegment& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
