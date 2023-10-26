@@ -8,7 +8,10 @@ namespace caf
     truth(),	 
     hits(),
     cluster(),
-    backov()
+    backov(),
+    spcpts(),
+    sgmnts(),
+    trks()
   {
   }
   

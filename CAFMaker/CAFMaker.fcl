@@ -13,6 +13,10 @@ standard_cafmaker:{
     //GetMCTruth:    false //use for creating data CAF's
     GetMCHits:     false
     SSDHitLabel: "geantgen" //dah
+    SpacePointLabel: "makesingletracks"
+    TrackSegmentLabel: "makesingletracks"
+    TrackLabel: "makesingletracks"
+
 }
 
 END_PROLOG

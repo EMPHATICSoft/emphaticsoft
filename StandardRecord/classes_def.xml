@@ -1,7 +1,9 @@
 <lcgdict>
 
 
- <class name="caf::StandardRecord" ClassVersion="17" >
+ <class name="caf::StandardRecord" ClassVersion="19" >
+  <version ClassVersion="19" checksum="1300734215"/>
+  <version ClassVersion="18" checksum="4256355535"/>
   <version ClassVersion="17" checksum="1390813931"/>
   <version ClassVersion="16" checksum="101113006"/>
   <version ClassVersion="15" checksum="142906859"/>
@@ -97,7 +99,24 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
+ <class name="caf::SRSpacePoint" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2803008954"/>
+  <version ClassVersion="10" checksum="3550546688"/>
+ </class>
 
+ <class name="caf::SRSpacePointBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="3521266362"/>
+  <version ClassVersion="10" checksum="3550546688"/>
+ </class>
 
+ <class name="caf::SRTrack" ClassVersion="11" >
+  <version ClassVersion="11" checksum="3996263664"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+
+ <class name="caf::SRTrackBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2711109648"/>
+  <version ClassVersion="10" checksum="3550546688"/>
+ </class>
 
 </lcgdict>
