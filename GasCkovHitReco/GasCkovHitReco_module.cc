@@ -33,7 +33,6 @@
 #include "RawData/WaveForm.h"
 #include "RecoBase/GasCkovHit.h"
 #include "RecoBase/ADC.h"
-#include "SignalTime/SignalTime.h"
 #include "RecoBase/Spill.h"
 
 using namespace emph;
@@ -58,10 +57,9 @@ namespace emph {
     void endJob();
     
   private:
-    void GetGasCkovHit(art::Handle< std::vector<rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits);
+    void GetGasCkovHit(art::Handle< std::vector<rb::ADC> > &,std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    emph::st::SignalTime stmap;
     
     int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
     TTimeStamp spilltime;
@@ -206,7 +204,7 @@ namespace emph {
   
     //......................................................................
   
-  void GasCkovHitReco::GetGasCkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits)
+  void GasCkovHitReco::GetGasCkovHit(art::Handle< std::vector<rb::ADC> > & adcH, std::unique_ptr<std::vector<rb::GasCkovHit>> & GasCkovHits)
   {
     //Create empty vectors to hold charge values
     float Qvec[3];
@@ -216,18 +214,17 @@ namespace emph {
     emph::cmap::EChannel echan;
     echan.SetBoardType(boardType);
     event = fNEvents;
-    if (!wvfmH->empty()) {
-	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rb::ADC wvr(wvfm,stmap);
-	    int chan = wvfm.Channel();
-        int board = wvfm.Board();
+    if (!adcH->empty()) {
+	  for (size_t idx=0; idx < adcH->size(); ++idx) {
+	    const rb::ADC& ADC = (*adcH)[idx];
+	    int chan = ADC.Chan();
+        int board = ADC.Board();
         echan.SetBoard(board);
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int detchan = dchan.Channel();
-        float q = wvr.Charge();
-        float t = wvr.Time();
+        float q = ADC.Charge();
+        float t = ADC.Time();
         fGasCkovChargeHist[detchan]->Fill(q);
         Qvec[detchan]=q;
         Tvec[detchan]=t;
@@ -269,23 +266,22 @@ namespace emph {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
-    if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
 
-    std::string labelStr = "raw:GasCkov";
-    art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
+    std::string labelStr = "adcreco:GasCkov";
+    art::Handle< std::vector<rb::ADC> > ADCHandle;
 
     std::unique_ptr<std::vector<rb::GasCkovHit> > GasCkovHitv(new std::vector<rb::GasCkovHit>);
 
     try {
-	evt.getByLabel(labelStr, wfHandle);
+	evt.getByLabel(labelStr, ADCHandle);
 
-	if (!wfHandle->empty()) {
-	  GetGasCkovHit(wfHandle,  GasCkovHitv);
-	}
-      }
-      catch(...) {
+	if (!ADCHandle->empty()) {
+        GetGasCkovHit(ADCHandle,  GasCkovHitv);
+    }
+    }
+    catch(...) {
 
-      }
+    }
       evt.put(std::move(GasCkovHitv));
   }
 

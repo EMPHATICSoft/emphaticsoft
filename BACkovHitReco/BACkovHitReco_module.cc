@@ -32,7 +32,6 @@
 #include "RawData/WaveForm.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/ADC.h"
-#include "SignalTime/SignalTime.h"
 
 using namespace emph;
 
@@ -55,10 +54,9 @@ namespace emph {
     void endJob();
     
   private:
-    void GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
+    void GetBACkovHit(art::Handle< std::vector<rb::ADC> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    emph::st::SignalTime stmap;
     
     int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
     std::vector<std::vector<int>> BACkov_signal;
@@ -156,7 +154,7 @@ namespace emph {
   
     //......................................................................
   
-  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
+  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<rb::ADC> > & adcH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
   {
     //Create empty vectors to hold charge and time values
     float Qvec[6];
@@ -167,20 +165,19 @@ namespace emph {
     emph::cmap::EChannel echan;
     echan.SetBoardType(boardType);
     event = fNEvents;
-    if (!wvfmH->empty()) {
-	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    rb::ADC wvr(wvfm,stmap);
-	    int chan = wvfm.Channel();
-        int board = wvfm.Board();
+    if (!adcH->empty()) {
+	  for (size_t idx=0; idx < adcH->size(); ++idx) {
+	    const rb::ADC& ADC = (*adcH)[idx];
+	    int chan = ADC.Chan();
+        int board = ADC.Board();
         echan.SetBoard(board);
         echan.SetChannel(chan);
         emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int detchan = dchan.Channel();
         //if (detchan!=5) wvr.CalcFitCharge(wvfm);
 
-        float q = wvr.Charge();
-        float t = wvr.Time();
+        float q = ADC.Charge();
+        float t = ADC.Time();
         fBACkovChargeHist[detchan]->Fill(q);
         fBACkovChargeTimeHist[detchan]->Fill(t,q);
         Qvec[detchan]=q;
@@ -228,24 +225,24 @@ namespace emph {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
-    if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
 
-    std::string labelStr = "raw:BACkov";
-    art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
+    //std::string labelStr = "ADC:BACkov";
+    std::string labelStr = "adcreco:BACkov";
+    art::Handle< std::vector<rb::ADC> > ADCHandle;
 
     std::unique_ptr<std::vector<rb::BACkovHit> > BACkovHitv(new std::vector<rb::BACkovHit>);
 
     try {
-	evt.getByLabel(labelStr, wfHandle);
+	evt.getByLabel(labelStr, ADCHandle);
 
-	if (!wfHandle->empty()) {
-	  GetBACkovHit(wfHandle,  BACkovHitv);
+	if (!ADCHandle->empty()) {
+	  GetBACkovHit(ADCHandle,  BACkovHitv);
 	}
-      }
-      catch(...) {
+    }
+    catch(...) {
 
-      }
-      evt.put(std::move(BACkovHitv));
+    }
+    evt.put(std::move(BACkovHitv));
   }
 
   } // end namespace emph

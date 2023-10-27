@@ -38,6 +38,7 @@
 #include "RawData/WaveForm.h"
 #include "RecoBase/ADC.h"
 #include "SignalTime/SignalTime.h"
+#include "ADCUtils/ADCUtils.h"
 
 
 using namespace emph;
@@ -664,7 +665,7 @@ namespace emph {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rb::ADC wvr(wvfm,stmap); 
+        const emph::adcu::ADCUtils ADCUtil(wvfm,stmap);
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
@@ -675,7 +676,7 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvr.Charge();
+	      float q = ADCUtil.Charge();
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot

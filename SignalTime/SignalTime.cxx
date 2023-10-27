@@ -60,7 +60,6 @@ namespace st{
     }
     SignalTimeFile.close();
     for( int i=0; i<48; ++i){
-        std::cout<<"index = "<<i<<"    time = "<<_signaltime[i]<<std::endl;
     }
     _fIsLoaded=true;
   }

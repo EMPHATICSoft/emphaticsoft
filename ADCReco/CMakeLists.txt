@@ -13,6 +13,7 @@ art_make_library ( SOURCE ${src_files}
                    LIBRARIES
 		   RawData
 		   RecoBase
+           ADCUtils
 		   ChannelMap
 		   ChannelMapService_service
            SignalTime
@@ -26,6 +27,7 @@ cet_build_plugin(ADCReco art::module
   LIBRARIES PRIVATE
     RawData
     RecoBase
+    ADCUtils
     ChannelMap
     ChannelMapService_service
     SignalTime

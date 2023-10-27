@@ -19,6 +19,7 @@ cet_build_plugin(OnMonPlotter art::module
   LIBRARIES REG #PRIVATE
   RawData
   RecoBase
+  ADCUtils
   ChannelMap
   ChannelMapService_service
   SignalTime

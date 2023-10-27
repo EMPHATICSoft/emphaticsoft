@@ -3,6 +3,7 @@
 #include "ChannelMap.fcl"
 #include "RunHistory.fcl"
 #include "SpillInfo.fcl"
+#include "ADCReco.fcl"
 
 process_name: GasCkovHitReco
 
@@ -39,11 +40,12 @@ physics:
 
  producers:
  {
-    spillinfo: @local::standard_spillinfo
+    spillinfo:      @local::standard_spillinfo
+    adcreco:        @local::standard_adcreco
 	gasckovhitreco: @local::standard_gasckovhitreco
  }	
 
- reco: [ spillinfo, gasckovhitreco ]
+ reco: [ spillinfo, adcreco, gasckovhitreco ]
 	
  filters:{}
 

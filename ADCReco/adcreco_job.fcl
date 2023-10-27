@@ -7,7 +7,6 @@ process_name: ADCReco
 
 services:
 {
-  TFileService: { fileName: "adcreco_hist_r%r_s%04s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
 }

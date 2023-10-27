@@ -17,6 +17,8 @@ namespace rb{
   
   ADC::ADC()
   {
+    _board = -999;
+    _chan = -999;
     _baseline = -999;
     _time = -999;
     _charge = -999;

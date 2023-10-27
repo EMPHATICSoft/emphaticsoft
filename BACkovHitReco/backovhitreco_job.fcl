@@ -2,6 +2,7 @@
 
 #include "RunHistory.fcl"
 #include "ChannelMap.fcl"
+#include "ADCReco.fcl"
 
 process_name: BACkovHitReco
 
@@ -37,10 +38,11 @@ physics:
 
  producers:
  {
+    adcreco:       @local::standard_adcreco
 	backovhitreco: @local::standard_backovhitreco
  }	
 
- reco: [ backovhitreco ]
+ reco: [ adcreco, backovhitreco ]
 	
  filters:{}
 
