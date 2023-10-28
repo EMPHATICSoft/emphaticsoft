@@ -19,6 +19,7 @@
 #include <climits>
 #include <cfloat>
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
 
 namespace rb {
 
@@ -54,7 +55,8 @@ namespace rb {
 	std::vector<emph::geo::sensorView> fClViews;
 	std::vector<int> fClSensorIds;
 	std::vector<double> fClAvs, fClSigmas; // corrected 
-        
+        rb::LineSegment fLineStripUorV; // For debugging the representation of the space point graphically. 
+	
       public: 
       
         inline void Reset() { // type will be non, vectors cleared.
@@ -79,6 +81,7 @@ namespace rb {
 	inline void SetType(SSDStationPtType aType) { fType = aType; }
 	inline void SetChiSq(double v) {fChiSq = v; }
 	inline void SetUserFlag(int v) const  {fUserFlag = v;} 
+	inline void SetLineUorV(const rb::LineSegment &lsUV) { fLineStripUorV = lsUV; }
 	// 
 	// Getter
 	//
@@ -113,6 +116,8 @@ namespace rb {
 	   if (k >= fClSigmas.size()) { return DBL_MAX; } return fClSigmas[k]; }
 	    
 	void ReScaleMultUncert(double multScatt120, double pOld, double pNew) const;
+	
+	inline rb::LineSegment LineStripUorV() const { return fLineStripUorV; } 
         // IO
 	
        friend std::ostream& operator << (std::ostream& o, const SSDStationPtAlgo1& h);
