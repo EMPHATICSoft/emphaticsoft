@@ -10,6 +10,8 @@ art_make_library(LIBRARY_NAME SSDRecoUtil
 			   MagneticField_service
 			   Geometry
 			   Geometry_service
+			   DetGeoMap
+			   DetGeoMapService_service
 		 	   art::Framework_Core
 			   art::Persistency_Common
 			   canvas::canvas
@@ -39,6 +41,8 @@ cet_build_plugin(StudyOneSSDClusters art::module
 	ChannelMapService_service
 	RunHistory
 	RunHistoryService_service
+	DetGeoMap
+	DetGeoMapService_service
 	MagneticField
 	MagneticField_service
 	RawData
@@ -59,6 +63,8 @@ cet_build_plugin(RecoBeamTracksAlgo1 art::module
 	ChannelMapService_service
 	RunHistory
 	RunHistoryService_service
+	DetGeoMap
+	DetGeoMapService_service
 	MagneticField
 	MagneticField_service
 	RawData
@@ -76,6 +82,8 @@ cet_build_plugin(StudyAllTrial1Algo1 art::module
 	ChannelMapService_service
 	RunHistory
 	RunHistoryService_service
+	DetGeoMap
+	DetGeoMapService_service
 	MagneticField
 	MagneticField_service
 	RawData
