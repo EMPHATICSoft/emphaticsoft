@@ -15,6 +15,10 @@
 
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/VolatileAlignmentParams.h"
+#include "Geometry/service/GeometryService.h"
+#include "Geometry/Geometry.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
+#include "DetGeoMap/DetGeoMap.h"
 
 namespace emph { 
   namespace ssdr {
@@ -29,6 +33,15 @@ namespace emph {
 	  static const size_t fNumStations = 6;
 	  static const size_t fNumStrips = 639; // Per wafer. 
 	  static const double fOneOverSqrt12;
+	  static const double fOneOverSqrt2;
+	  //
+	  // New access to the standard geometry..(strip based geom..)  
+	  //
+          art::ServiceHandle<emph::dgmap::DetGeoMapService> fDetGeoMapService;
+	  emph::dgmap::DetGeoMap *fDetGeoMap; 
+	  art::ServiceHandle<emph::geo::GeometryService> fGeoService;
+	  emph::geo::Geometry *fEmgeo;
+
 	  bool fIsMC; // Ugly!.  
 	  bool fIsReadyToGo; // Can't fully initialize everything in the constructor.. This should be amn ar service!!! 
 	  char fView;
@@ -54,7 +67,7 @@ namespace emph {
 	  std::vector<double> fOtherUncert;
 	  std::vector<double> fPitchOrYawAngles;
 //
-// This was the old version (Winter 2023..) 
+// This was the old version (Winter 2023..) now.... 
 //
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
 
@@ -167,6 +180,7 @@ namespace emph {
 	 std::pair<double, double> getTrCoord(std::vector<rb::SSDCluster>::const_iterator it, double pMomMultScatter); 
 	 // the 2nd argument is the presumed momentum, to compute the multiple scattering uncertainty. Target not included.  
 	 // the pair is (coord, corrdErrSquared)  
+	 double getTrCoordRoot(std::vector<rb::SSDCluster>::const_iterator it); // Via the Root based geometry, as in the event display..  
 	 
     }; // this class 
   

@@ -27,8 +27,11 @@ namespace emph {
   namespace ssdr {
   
     const double ConvertDigitToWCoordAlgo1::fOneOverSqrt12 = 1.0/std::sqrt(12.);
+    const double ConvertDigitToWCoordAlgo1::fOneOverSqrt2 = 1.0/std::sqrt(2.);
      
-     ConvertDigitToWCoordAlgo1::ConvertDigitToWCoordAlgo1(char aView) :        
+     ConvertDigitToWCoordAlgo1::ConvertDigitToWCoordAlgo1(char aView) : 
+       fDetGeoMapService(art::ServiceHandle<emph::dgmap::DetGeoMapService>()), fDetGeoMap(fDetGeoMapService->Map()),        
+       fGeoService(art::ServiceHandle<emph::geo::GeometryService>()), fEmgeo(fGeoService->Geo()),        
        fIsMC(false), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
        fMomentumIsSet(false), fEffMomentum(120.), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
        fZCoords(fNumStations+2, 0.), fZLocShifts(fNumStations+2, 0.), 
@@ -182,7 +185,8 @@ namespace emph {
 				  << " TrShift " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
 	if (aView == emph::geo::X_VIEW) {
 	  tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	  if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
+	  if ((kSt == 2) || (kSt == 3)) tMeas =  -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe);
+//	  if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
 	} else if (aView == emph::geo::Y_VIEW) {
 	  tMeas = (kS < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
 			     ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10
@@ -201,5 +205,48 @@ namespace emph {
 	}
 	return std::pair<double, double>(tMeas, tMeasErrSq);
      } 
+     
+      double ConvertDigitToWCoordAlgo1::getTrCoordRoot(std::vector<rb::SSDCluster>::const_iterator itCl) { 
+      
+      // Assumes no Rolls !... 
+        //  Transverse position, nominal.. 
+	 
+ 	const double strip = itCl->WgtAvgStrip();
+        const double rmsStr = std::max(0.1, itCl->WgtRmsStrip()); // protect against some zero values for the RMS 
+	if (rmsStr > 1000.) { return DBL_MAX; } // no measurement. 
+	const emph::geo::sensorView aView = itCl->View();
+	rb::LineSegment ls;
+	// Got to do a copy.. 
+        fDetGeoMap->SSDClusterToLineSegment(*itCl, ls);
+	if (fDebugIsOn) std::cerr << " ConvertDigitToWCoordAlgo1::getTrCoordRoot line is " << ls << std::endl;
+	switch (aView) {
+	case emph::geo::X_VIEW : { return ls.X0()[0]; }  
+	case emph::geo::Y_VIEW :  { return ls.X0()[1] ; }  
+	case emph::geo::U_VIEW : { 
+	     const double xx0 = ls.X0()[0]; const double yy0 = ls.X0()[1];
+	     const double xx1 = ls.X1()[0];  const double yy1 = ls.X1()[1];;
+	     const double x0 = fOneOverSqrt2 * ( xx0 - yy0); 
+	     const double y0 = fOneOverSqrt2 * ( xx0 + yy0); 
+	     const double x1 = fOneOverSqrt2 * ( xx1 - yy1); 
+	     const double y1 = fOneOverSqrt2 * ( xx1 + yy1); 
+	     if (fDebugIsOn) std::cerr << " ....  Rotate by -45 degrees ..pt 0  " << x0 << ", y0 " << y0 
+	                              << " pt1 " << x1 << ", y1 " << y1 << std::endl;
+	     return 0.5*(x1+x0);		      
+	}  
+	case emph::geo::W_VIEW : { 
+	     const double xx0 = ls.X0()[0]; const double yy0 = ls.X0()[1];
+	     const double xx1 = ls.X1()[0];  const double yy1 = ls.X1()[1];;
+	     const double x0 = fOneOverSqrt2 * ( xx0 + yy0); 
+	     const double y0 = fOneOverSqrt2 * ( -xx0 + yy0); 
+	     const double x1 = fOneOverSqrt2 * ( xx1 + yy1); 
+	     const double y1 = fOneOverSqrt2 * ( -xx1 + yy1); 
+	     if (fDebugIsOn) std::cerr << " ....  Rotate by +45 degrees ..pt 0  " << x0 << ", y0 " << y0 
+	                              << " pt1 " << x1 << ", y1 " << y1 << std::endl;
+	     return 0.5*(x1+x0);		      
+	}  
+	default :  { return emph::geo::INIT; } 
+     } //On Views..  
+     
+   } 
   } // ssdr
 } // emph

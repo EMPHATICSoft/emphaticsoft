@@ -14,6 +14,7 @@
 
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "Geometry/service/GeometryService.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
@@ -51,6 +52,7 @@ namespace emph {
 	  double fHalfWaferWidth;
 	  double fNominalMomentum;
 	  std::string fTokenJob;
+	  art::ServiceHandle<emph::geo::GeometryService> fGeoService;
 	  emph::geo::Geometry *fEmgeo;
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
 	  emph::ssdr::ConvertDigitToWCoordAlgo1 fConvertCoord;

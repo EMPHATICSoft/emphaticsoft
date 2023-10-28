@@ -33,8 +33,8 @@ namespace emph {
     const double SSDRecStationDwnstrAlgo1::fOneOverSqrt2= 1.0/std::sqrt(2.0);
 
     SSDRecStationDwnstrAlgo1::SSDRecStationDwnstrAlgo1(size_t kSt) :
-      fRunHistory(nullptr),   
-      fEmgeo(nullptr),
+      fGeoService(art::ServiceHandle<emph::geo::GeometryService>()), fEmgeo(nullptr),        
+      fDetGeoMapService(art::ServiceHandle<emph::dgmap::DetGeoMapService>()), fDetGeoMap(fDetGeoMapService->Map()),        
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), 
       fCoordConvert('A'),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0), fStationNum(static_cast<int>(kSt)), 
@@ -80,11 +80,8 @@ namespace emph {
            std::cerr << " SSDRecStationDwnstrAlgo1::RecIt, starting on spill " 
                                  << fSubRunNum << " evt " << fEvtNum << " with " << aSSDClsPtr->size() << " Clusters (all Stations) " << std::endl;
 //	   fCoordConvert.SetDebugOn(true);
-       }			 
-       if (fEmgeo == nullptr) {
-         fRunHistory = new runhist::RunHistory(fRunNum);   
-         fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
-        } 
+       }
+       if (fEmgeo == nullptr) 	fEmgeo = fGeoService->Geo();		 
 	// This should be part of the Geometry package.. 
 	if (!fCoordConvert.IsReadyToGo()) {
 	 // We use the nominal Z position, for now.. 
@@ -168,6 +165,7 @@ namespace emph {
 	 if (itClX->View() != emph::geo::X_VIEW) continue;
 	 size_t kSeX = static_cast<size_t>(itClX->Sensor());
 	 const std::pair<double, double> xDat = fCoordConvert.getTrCoord(itClX, fPrelimMomentum);
+	 const double xDatGeoMap = fCoordConvert.getTrCoordRoot(itClX);
 	 if (std::abs(xDat.first - fXWindowCenter) > fXWindowWidth) {
 	   if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected X location  " 
 	                              << fXWindowCenter << " delta " << xDat.first - fXWindowCenter << std::endl;
@@ -177,7 +175,7 @@ namespace emph {
 	   std::cerr << " At cluster on X view, station " << itClX->Station() << " Sensor  " 
 	             << kSeX << " weighted strip " << itClX->WgtAvgStrip() 
 		     << " RMS " << itClX->WgtRmsStrip() << " ClID " << itClX->ID() << " X (no Roll) " 
-		     << xDat.first << " +- " << std::sqrt(xDat.second) << std::endl;
+		     << xDat.first << " +- " << std::sqrt(xDat.second) << " check GeoMap " << xDatGeoMap << std::endl;
 	 }
          size_t kuy = 0;
 	 const double angleRollX = fEmVolAlP->Roll(emph::geo::X_VIEW, kSt, kSeX);
@@ -189,6 +187,7 @@ namespace emph {
 	   if (itClY->View() != emph::geo::Y_VIEW) continue;
 	   size_t kSeY = static_cast<size_t>(itClY->Sensor());
 	   const std::pair<double, double> yDat = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
+	   const double yDatGeoMap = fCoordConvert.getTrCoordRoot(itClY);
 	   if (std::abs(yDat.first - fYWindowCenter) > fYWindowWidth) {
 	     if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected Y location  " 
 	                              << fYWindowCenter << " delta " << yDat.first - fYWindowCenter << std::endl;
@@ -198,7 +197,7 @@ namespace emph {
 	     std::cerr << " ... At cluster on Y view, station " << itClY->Station() << " Sensor  " 
 	             << kSeY << " weighted strip " << itClY->WgtAvgStrip() << " RMS " 
 		     << itClY->WgtRmsStrip() << " ClID " << itClY->ID() << " Y (no Roll) " 
-		     << yDat.first << " +- " << std::sqrt(yDat.second) << std::endl;
+		     << yDat.first << " +- " << std::sqrt(yDat.second) << " check GeoMap " << yDatGeoMap  << std::endl;
 	   }
 	   if (std::abs(yDat.first) > 60.) { // about 20 mm gap? 
 	     if (fDebugIsOn) {
@@ -222,6 +221,10 @@ namespace emph {
 //   Wrong, presumably, tokenjob Run_1274_NoTgt31Gev_ClSept_A1e_1o1_W2  Chenge the sign of 
 //	   const double uPred = -1.0*fOneOverSqrt2 * ( xValCorr + yValCorr);
 //	   const double vPred = fOneOverSqrt2 * ( -xValCorr + yValCorr);
+//   Wrong, swap U and W, October 27, token job  
+//	   const double vPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
+//	   const double uPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
+
            size_t kuu = 0;
 	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
@@ -238,13 +241,14 @@ namespace emph {
 		     << " RMS " << itClUorV->WgtRmsStrip() << " ClID " << itClUorV->ID() << std::endl;
 	     }
 	     const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
+	     const double uorvDatGeoMap = fCoordConvert.getTrCoordRoot(itClUorV);
 	     const double angleRollUorV = fEmVolAlP->Roll(itClUorV->View(), kSt, kSeU);  
 	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(itClUorV->View(), kSt, kSeU); 
 	     const double uorvPred = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
 	                                         uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
 	     const double deltaXYU = uorvPred - uorvDat.first;
 	     if (fDebugIsOn) std::cerr << " .... After correction for Rolls, uorvPred " << uorvPred  
-	                               << " Data " << uorvDat.first << " Diff " << deltaXYU << std::endl;
+	                               << " Data " << uorvDat.first << " Diff " << deltaXYU << " check geodata " << uorvDatGeoMap << std::endl;
 	     const double uPredErrSq = 0.5 * (xDat.second + yDat.second);
 	     // Blow-up the erro for the V view, given the lack of accuracy in the alignment Assume 1 mm to 1 nanometer, to test.  
 	     const double deltaErrSq = (itClUorV->View() == emph::geo::W_VIEW) ? (1.0e-9 +  uPredErrSq + uorvDat.second) : 
@@ -268,6 +272,8 @@ namespace emph {
 	     aStPt.Add(itClUorV, uorvPred, std::sqrt(uPredErrSq));
 	     fIdStPtNow++;
 	     if (fDebugIsOn) std::cerr << " ......  Adding " << std::endl << aStPt << std::endl;; 
+	     rb::LineSegment lineUV; fDetGeoMap->SSDClusterToLineSegment(*itClUorV, lineUV);
+	     aStPt.SetLineUorV(lineUV);
 	     fStPoints.push_back(aStPt);
 	   } // on confirming U or W view   
 	 } // onY view
@@ -478,7 +484,8 @@ namespace emph {
        fNameStrStr << "SSDRecStationDwnstrAlgo1_Run_" << fRunNum << "_" << fTokenJob << "_Station" << fStationNum << "_V1.txt";
        std::string fNameStr(fNameStrStr.str());
        fFOutSt = new std::ofstream(fNameStr.c_str());
-       (*fFOutSt) << " spill evt nPts iPt type sIdX sIdY sIdUorV x xErr y yErr uvPred uvObsRaw uvobsCorr chiSq " << std::endl;
+       (*fFOutSt) << " spill evt nPts iPt type sIdX sIdY sIdUorV x xErr y yErr uvPred uvObsRaw uvobsCorr chiSq" << 
+                     " xUVStrip0 xUVStrip1 yUVStrip0 yUVStrip1 " << std::endl;
        //
        if (fDoFirstAndLastStrips) {
        
@@ -538,7 +545,9 @@ namespace emph {
  	 } // on Clusters, here, also views..  	 
          (*fFOutSt) << headerStr << " " << k << " " << it->Type()  << " " << sIdX << " " << sIdY << " " << sIdUorV
 	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() 
-		 << " " << it->UorWPred() << " "  << it->UorWObsRaw() << " " << it->UorWObsCorr() << " " << it->ChiSq() << std::endl; 
+		 << " " << it->UorWPred() << " "  << it->UorWObsRaw() << " " << it->UorWObsCorr() << " " << it->ChiSq();
+         rb::LineSegment ls = it->LineStripUorV();
+         (*fFOutSt) << " " << ls.X0()[0] << " " << ls.X1()[0] << " " << ls.X0()[1] << " " << ls.X1()[1] << std::endl; 
 		 
        } // On Space Points
      }

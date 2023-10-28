@@ -46,6 +46,7 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
 #include "MagneticField/service/MagneticFieldService.h"
+#include "Geometry/service/GeometryService.h"
 #include "SSDReco/SSDRecUpstreamTgtAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
 #include "SSDReco/SSDRecDwnstrTracksAlgo1.h" 
@@ -121,6 +122,7 @@ namespace emph {
 // access to the geometry.   
 //
       runhist::RunHistory *fRunHistory;
+      art::ServiceHandle<emph::geo::GeometryService> fGeoService;
       emph::geo::Geometry *fEmgeo;
       emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
 //
@@ -230,26 +232,44 @@ namespace emph {
     void emph::StudyAllTrial1Algo1::beginRun(art::Run const &run)
     {
       std::cerr << " StudyAllTrial1Algo1::beginRun, run " << run.id() << std::endl;
+      if (fRunHistory != nullptr) return; // Do this once ! 
       fRun = static_cast<int>(run.run());
       fRunHistory = new runhist::RunHistory(fRun);
-      fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+      std::cerr << " ..... Before accessing the geometry service  " << std::endl;
+      fEmgeo = fGeoService->Geo();
+      std::cerr << " ... after accessing the geometry service... Checking the Views assignment.. Phase1b or phase1c... " << std::endl;
+      for (int kSt = 0; kSt != fEmgeo->NSSDStations(); kSt++) {
+        const emph::geo::SSDStation* aSt = fEmgeo-> GetSSDStation(kSt); 
+	for (int kPl = 0; kPl != aSt->NPlanes(); kPl++) { 
+	  const emph::geo::Plane* aPl = aSt->GetPlane(kPl);
+	  std::cerr << " ... Station " << kSt << ", ( " << aSt->Name() << "), " << " Plane " 
+	            << kPl << " View " << aPl->View() << std::endl;
+	  for (int kSSD=0; kSSD != aPl->NSSDs(); kSSD++) {
+	    const emph::geo::Detector *aDet = aPl->SSD(kSSD); 
+	    std::cerr << " ... ... Sensor " << kSSD << " View " << aDet->View() << std::endl;
+	  } // on sensors; 
+	} // on planes;; 
+      } // on stations... 
       art::ServiceHandle<emph::MagneticFieldService> bField;
       emph::MagneticField *fMagField = bField->Field();
 //      
       // October 12, need to check the new alignment.. In Z.. Jonathan looked at at it Probably, very likely, O.K... 
 //      fMagField->G4GeomAlignIt(fEmgeo);
+
       fUpStreamBeamTrRec.SetRun(fRun);
       //
       // My own convention..Ugly MC/real data difference.. 
       //
       if (fRun == 1293) fDwnstrTrRec.SetForMC(true);
       if (!fDoIronBrick) { 
+        std::cerr << " Not doing Iron brick... " << std::endl;
         if (fRun == 1274) fUpStreamBeamTrRec.SetNominalMomentum(31.);
         fDwnstrTrRec.SetRun(fRun);
         fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
         for(size_t kSt=2; kSt != 6; kSt++)  {
           fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
         }
+	std::cerr << " Finished setting up Downstream Tracker.. " << std::endl;
       } else { 
         fBrickTrRec.SetRun(fRun);
         fBrickTrRec.SetAssumedMomentum(fPrelimMomentumSecondaries);
@@ -338,7 +358,7 @@ namespace emph {
 //	debugIsOn = ((fRun == 1274) && (fEvtNum < 20));		       
 //	debugIsOn = ((fRun == 1274) && (fSubRun == 10) && ((fEvtNum == 183) || (fEvtNum == 671)) );		       
     //
-      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && (fEvtNum == 144));
+      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && (fEvtNum == 5));
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
@@ -464,10 +484,10 @@ namespace emph {
       // 
       // Saving for alignment ? 
       //
-      if (fDwnstrTrRec.IsGoodForAlignment()) {
-	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
-	    fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
-      }
+       if (fDwnstrTrRec.IsGoodForAlignment()) {
+      	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
+           fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
+       }
 
       
       fDwnstrTrRec.dumpStInfoForR();

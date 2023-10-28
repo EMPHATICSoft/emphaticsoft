@@ -32,7 +32,6 @@ namespace emph {
 						       
 
     SSDRecBrickTracksAlgo1::SSDRecBrickTracksAlgo1() :
-      fRunHistory(nullptr),   
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fCoordConvert('A'),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
@@ -83,8 +82,7 @@ namespace emph {
       if (fDebugIsOn) std::cerr << " SSDRecBrickTracksAlgo1::RecIt, starting on spill " 
                                  << fSubRunNum << " evt " << fEvtNum << std::endl;
       if (fEmgeo == nullptr) {
-         fRunHistory = new runhist::RunHistory(fRunNum);   
-         fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+         fEmgeo = fGeoService->Geo();
          fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
 	 for (size_t kSt=0; kSt != fDeltaZX.size(); kSt++) { 
 	   fDeltaZX[kSt] = fEmVolAlP->ZPos(emph::geo::X_VIEW, kSt) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 0);

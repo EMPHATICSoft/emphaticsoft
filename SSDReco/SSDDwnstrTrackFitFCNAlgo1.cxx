@@ -30,8 +30,7 @@ namespace emph {
     SSDDwnstrTrackFitFCNAlgo1::SSDDwnstrTrackFitFCNAlgo1(int runNum) :
     FCNBase(),
     fRunNum(runNum),
-    fRunHistory(new runhist::RunHistory(runNum)),   
-    fEmgeo(new emph::geo::Geometry(fRunHistory->GeoFile())),
+    fEmgeo(fGeoService->Geo()),
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
     fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(20.0), 
     // last parameter might need some tuning.. This is the value at 120 GeV.

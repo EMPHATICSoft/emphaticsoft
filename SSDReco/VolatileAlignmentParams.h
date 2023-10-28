@@ -131,8 +131,6 @@ namespace emph{
 	  return 0.;  // Should never happen.. 
 	}
 	inline double TrPos(emph::geo::sensorView view, size_t kSt, size_t kSe) { // Transverse 
-	  if (((kSt == 2) || (kSt == 3)) && (kSe == 0)) return fTrPosSt2and3[kSt-2]; 
-	  if (((kSt == 4) || (kSt == 5)) && (kSe >3)) return fTrPosSt4and5[(kSt-4)*2 + kSe % 2]; 
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
@@ -146,8 +144,8 @@ namespace emph{
 //	               << kS <<  " Y nom " << fTrNomPosY[kS] << " delta " << fTrDeltaPosY[kS] << " pos " << fTrPosY[kS] <<  std::endl;
 	     return fTrPosY[kS]; } 
 	     // Carefull.. if we swap the U vs W definition of Station 2&3 vs Station 4& 5 Sept 4 2023. 
-//	    case emph::geo::U_VIEW :  { return (fTrPosSt2and3[kSt-2]); } 
-//	    case emph::geo::W_VIEW :  { return (fTrPosSt4and5[(kSt-4)*2 + kSe % 2]); }
+	    case emph::geo::U_VIEW :  { return (fTrPosSt2and3[kSt-2]); } 
+	    case emph::geo::W_VIEW :  { return (fTrPosSt4and5[(kSt-4)*2 + kSe % 2]); }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::TrPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 

@@ -25,7 +25,6 @@ namespace emph {
     const double SSDRecDwnstrTracksAlgo1::fOneOverSqrt2 = std::sqrt(0.5); 
 				
     SSDRecDwnstrTracksAlgo1::SSDRecDwnstrTracksAlgo1() :
-      fRunHistory(nullptr),   
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fCoordConvert('A'),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
@@ -53,8 +52,7 @@ namespace emph {
        if (kSt == 2) fIsGoodForAlignment = false;
        if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::RecStation, spill " << fSubRunNum << " evt " << fEvtNum << " Station " << kSt << std::endl;
        if (fEmgeo == nullptr) {
-         fRunHistory = new runhist::RunHistory(fRunNum);   
-         fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+         fEmgeo = fGeoService->Geo();
          fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
 	 // We use the nominal Z position, for now.. 
 	 if (fDoUseUpstreamTrack && (kSt > 3) ) {
@@ -139,8 +137,7 @@ namespace emph {
       if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::RecIt, starting on spill " 
                                  << fSubRunNum << " evt " << fEvtNum << std::endl;
       if (fEmgeo == nullptr) {
-         fRunHistory = new runhist::RunHistory(fRunNum);   
-         fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+         fEmgeo = fGeoService->Geo();
          fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
       }   
       fTrs.clear();
@@ -647,8 +644,8 @@ namespace emph {
        const double stripAvNone = 0.; const double stripRmsNone = 1.0e9;
        std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsX(8, aSSDClsPtr->cend());  // station 0 to 5, Phase1b
        std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsY(8, aSSDClsPtr->cend());// with two double sensor 
-       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsW(2, aSSDClsPtr->cend());  // station 2 nd 3 
-       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsU(4, aSSDClsPtr->cend());// station 4 and 5, two adjacent sensors.
+       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsU(2, aSSDClsPtr->cend());// station 2 and 3, 
+       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsW(4, aSSDClsPtr->cend());  // station 4 nd 5, two adjacent sensors.
        // Save the Station 0 and 1 unique pointers; ( A must..)
        std::vector<int> numXCl = {0, 0};  std::vector<int> numYCl = {0, 0}; 
        for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
@@ -683,20 +680,22 @@ namespace emph {
       for (size_t i2 = 0; i2 != nSp2; i2++) {
       	mySSDClsPtrsX[2] = aSSDClsPtr->cend();
 	mySSDClsPtrsY[2] = aSSDClsPtr->cend();
-	mySSDClsPtrsW[0] = aSSDClsPtr->cend();
+	mySSDClsPtrsU[0] = aSSDClsPtr->cend();
 	x2 = DBL_MAX; y2 = DBL_MAX; nCl2 = 0;
         if (fInputSt2Pts.Size() != 0) {
 	  const rb::SSDStationPtAlgo1 aPtSt2 = fInputSt2Pts.GetStPoint(i2); x2 = aPtSt2.X(); y2 = aPtSt2.Y(); nCl2 = aPtSt2.NumClusters();
 	  if (fDebugIsOn) std::cerr << " ... at Station 2, x = " << x2 << " y " << y2 << " num cl " << aPtSt2.NumClusters() << std::endl; 
 	  for (size_t kCl=0; kCl != aPtSt2.NumClusters(); kCl++) {
 	    int aId = aPtSt2.ClusterID(kCl); emph::geo::sensorView aView = aPtSt2.ClusterView(kCl); 
+	    
             for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	      if ((itCl->Station() != 2) || (itCl->View() != aView) || (itCl->ID() != aId)) continue;
 //	      if (fDebugIsOn) std::cerr << " ... setting Cluster " << (*itCl) << std::endl; 
+	      if (fDebugIsOn) std::cerr << " ... ... at Station 2, id Cluster " << aId << " View " << aView << std::endl; 
 	      if (aView == emph::geo::X_VIEW) mySSDClsPtrsX[2] = itCl;
 	      if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[2] = itCl;
-	      if (aView == emph::geo::W_VIEW) mySSDClsPtrsW[0] = itCl;
-	      if (aView == emph::geo::U_VIEW) {
+	      if (aView == emph::geo::U_VIEW) mySSDClsPtrsU[0] = itCl;
+	      if (aView == emph::geo::W_VIEW) {
 	        std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, unexpected view at Station 2 , Space point  is " << std::endl;
 		std::cerr << aPtSt2 << std::endl;
 		std::cerr << " Fatal, quit here .. " << std::endl; exit(2); 
@@ -707,7 +706,7 @@ namespace emph {
         for (size_t i3 = 0; i3 != nSp3; i3++) {
       	  mySSDClsPtrsX[3] = aSSDClsPtr->cend();
 	  mySSDClsPtrsY[3] = aSSDClsPtr->cend();
-	  mySSDClsPtrsW[1] = aSSDClsPtr->cend();
+	  mySSDClsPtrsU[1] = aSSDClsPtr->cend();
 	  x3 = DBL_MAX; y3 = DBL_MAX; nCl3 = 0;
           if (fInputSt3Pts.Size() != 0) {
 	    const rb::SSDStationPtAlgo1 aPtSt3 = fInputSt3Pts.GetStPoint(i3); x3 = aPtSt3.X(); y3 = aPtSt3.Y(); nCl3 = aPtSt3.NumClusters();
@@ -717,10 +716,11 @@ namespace emph {
               for (std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
 	        if ((itCl->Station() != 3) || (itCl->View() != aView) || (itCl->ID() != aId)) continue;
 //	        if (fDebugIsOn) std::cerr << " ... ... setting Cluster " << (*itCl) << std::endl; 
+	        if (fDebugIsOn) std::cerr << " ... ... at Station 3, id Cluster " << aId << " View " << aView << std::endl; 
 	        if (aView == emph::geo::X_VIEW) mySSDClsPtrsX[3] = itCl;
 	        if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[3] = itCl;
-	        if (aView == emph::geo::W_VIEW) mySSDClsPtrsW[1] = itCl;
-	        if (aView == emph::geo::U_VIEW) {
+	        if (aView == emph::geo::U_VIEW) mySSDClsPtrsU[1] = itCl;
+	        if (aView == emph::geo::W_VIEW) {
 	          std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, unexpected view at Station 3 , Space point  is " << std::endl;
 		  std::cerr << aPtSt3 << std::endl;
 		  std::cerr << " Fatal, quit here .. " << std::endl; exit(2); 
@@ -732,7 +732,7 @@ namespace emph {
           for (size_t i4 = 0; i4 != nSp4; i4++) {
       	    mySSDClsPtrsX[4] = aSSDClsPtr->cend(); mySSDClsPtrsX[5] = aSSDClsPtr->cend();
 	    mySSDClsPtrsY[4] = aSSDClsPtr->cend(); mySSDClsPtrsY[5] = aSSDClsPtr->cend();
-	    mySSDClsPtrsU[0] = aSSDClsPtr->cend(); mySSDClsPtrsU[1] = aSSDClsPtr->cend();
+	    mySSDClsPtrsW[0] = aSSDClsPtr->cend(); mySSDClsPtrsW[1] = aSSDClsPtr->cend();
 	    x4 = DBL_MAX; y4 = DBL_MAX; nCl4 = 0;
             if (fInputSt4Pts.Size() != 0) {
 	      const rb::SSDStationPtAlgo1 aPtSt4 = fInputSt4Pts.GetStPoint(i4); x4 = aPtSt4.X(); y4 = aPtSt4.Y(); nCl4 = aPtSt4.NumClusters();
@@ -744,10 +744,15 @@ namespace emph {
 //	          if (fDebugIsOn) std::cerr << " ... ... ... setting Cluster " << (*itCl) << std::endl; 
 		  size_t theSensor = static_cast<size_t>(itCl->Sensor());
 		  // We could/should check the sensor/view consistency here.. Bare knuckle pointer arithmetic.. 
+	          if (fDebugIsOn) std::cerr << " ... ... at Station 4, id Cluster " << aId << " View " << aView  << " cluster Sensor " << theSensor << std::endl; 
+		  if (theSensor > 1) {
+		    std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, station 4 unexpected sensor index " 
+		              << theSensor << " should be 0 or 1, fatal  " << std::endl; exit(2);
+		  }
 	          if (aView == emph::geo::X_VIEW) mySSDClsPtrsX[4 + theSensor] = itCl;
-	          if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[4 + theSensor - 2] = itCl;
-	          if (aView == emph::geo::U_VIEW) mySSDClsPtrsU[theSensor - 4] = itCl;
-	          if (aView == emph::geo::W_VIEW) {
+	          if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[4 + theSensor] = itCl; // Yb if the Sensor is 1 
+	          if (aView == emph::geo::W_VIEW) mySSDClsPtrsW[theSensor] = itCl; // Wb if the Sensor is 1 
+	          if (aView == emph::geo::U_VIEW) {
 	            std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, unexpected view at Station 4 , Space point  is " << std::endl;
 		    std::cerr << aPtSt4 << std::endl;
 		    std::cerr << " Fatal, quit here .. " << std::endl; exit(2); 
@@ -758,7 +763,7 @@ namespace emph {
             for (size_t i5 = 0; i5 != nSp5; i5++) {
       	      mySSDClsPtrsX[6] = aSSDClsPtr->cend(); mySSDClsPtrsX[7] = aSSDClsPtr->cend();
 	      mySSDClsPtrsY[6] = aSSDClsPtr->cend(); mySSDClsPtrsY[7] = aSSDClsPtr->cend();
-	      mySSDClsPtrsU[2] = aSSDClsPtr->cend(); mySSDClsPtrsU[3] = aSSDClsPtr->cend();
+	      mySSDClsPtrsW[2] = aSSDClsPtr->cend(); mySSDClsPtrsW[3] = aSSDClsPtr->cend();
 	      x5 = DBL_MAX; y5 = DBL_MAX; nCl5 = 0;
               if (fInputSt5Pts.Size() != 0) {
 	        const rb::SSDStationPtAlgo1 aPtSt5 = fInputSt5Pts.GetStPoint(i5); x5 = aPtSt5.X(); y5 = aPtSt5.Y(); nCl5 = aPtSt5.NumClusters();
@@ -770,10 +775,15 @@ namespace emph {
 //	            if (fDebugIsOn) std::cerr << " ... ... ... ... setting Cluster " << (*itCl) << std::endl; 
 		    size_t theSensor = static_cast<size_t>(itCl->Sensor());
 		    // We could/should check the sensor/view consistency here.. Bare knuckle pointer arithmetic.. 
+	            if (fDebugIsOn) std::cerr << " ... ... at Station 5, id Cluster " << aId << " View " << aView  << " cluster Sensor " << theSensor << std::endl; 
+		    if (theSensor > 1) {
+		      std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, station 5 unexpected sensor index " 
+		              << theSensor << " should be 0 or 1, fatal  " << std::endl; exit(2);
+		    }
 	            if (aView == emph::geo::X_VIEW) mySSDClsPtrsX[6 + theSensor] = itCl;
-	            if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[6 + theSensor - 2] = itCl;
-	            if (aView == emph::geo::U_VIEW) mySSDClsPtrsU[theSensor - 2] = itCl;
-	            if (aView == emph::geo::W_VIEW) {
+	            if (aView == emph::geo::Y_VIEW) mySSDClsPtrsY[6 + theSensor] = itCl;
+	            if (aView == emph::geo::W_VIEW) mySSDClsPtrsW[2 + theSensor] = itCl;
+	            if (aView == emph::geo::U_VIEW) {
 	              std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, unexpected view at Station 5 , Space point  is " << std::endl;
 		      std::cerr << aPtSt5 << std::endl;
 		      std::cerr << " Fatal, quit here .. " << std::endl; exit(2); 
@@ -812,17 +822,17 @@ namespace emph {
 	                             << stripInfo[0] << " +- " << stripInfo[1] << std::endl;
               }
               for (size_t kSt=0; kSt != 2; kSt++) {
-	        stripInfo[0] = (mySSDClsPtrsW[kSt] == aSSDClsPtr->cend()) ? stripAvNone : mySSDClsPtrsW[kSt]->WgtAvgStrip(); 
-	        stripInfo[1] = (mySSDClsPtrsW[kSt] == aSSDClsPtr->cend()) ? stripRmsNone : mySSDClsPtrsW[kSt]->WgtRmsStrip();
-                fFOutCompact.write(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
-	        if (fDebugIsOn) std::cerr << " W view, stationSensor " << kSt << " value " 
-	                             << stripInfo[0] << " +- " << stripInfo[1] << std::endl;
-              }
-              for (size_t kSt=0; kSt != 4; kSt++) {
 	        stripInfo[0] = (mySSDClsPtrsU[kSt] == aSSDClsPtr->cend()) ? stripAvNone : mySSDClsPtrsU[kSt]->WgtAvgStrip(); 
 	        stripInfo[1] = (mySSDClsPtrsU[kSt] == aSSDClsPtr->cend()) ? stripRmsNone : mySSDClsPtrsU[kSt]->WgtRmsStrip();
                 fFOutCompact.write(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
 	        if (fDebugIsOn) std::cerr << " U view, stationSensor " << kSt << " value " 
+	                             << stripInfo[0] << " +- " << stripInfo[1] << std::endl;
+              }
+              for (size_t kSt=0; kSt != 4; kSt++) {
+	        stripInfo[0] = (mySSDClsPtrsW[kSt] == aSSDClsPtr->cend()) ? stripAvNone : mySSDClsPtrsW[kSt]->WgtAvgStrip(); 
+	        stripInfo[1] = (mySSDClsPtrsW[kSt] == aSSDClsPtr->cend()) ? stripRmsNone : mySSDClsPtrsW[kSt]->WgtRmsStrip();
+                fFOutCompact.write(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
+	        if (fDebugIsOn) std::cerr << " W view, stationSensor " << kSt << " value " 
 	                             << stripInfo[0] << " +- " << stripInfo[1] << std::endl;
               }
 	    } // on Station 5 space points 

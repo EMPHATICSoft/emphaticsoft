@@ -12,6 +12,7 @@
 
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "Geometry/service/GeometryService.h"
 #include "art/Framework/Principal/Event.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
@@ -44,7 +45,7 @@ namespace emph {
 	
        private:
 	  static const double fSqrt2, fOneOverSqrt2;
-          runhist::RunHistory *fRunHistory;
+          art::ServiceHandle<emph::geo::GeometryService> fGeoService;
           emph::geo::Geometry *fEmgeo;
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
 	  ssdr::ConvertDigitToWCoordAlgo1 fCoordConvert;

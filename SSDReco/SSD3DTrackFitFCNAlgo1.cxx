@@ -29,8 +29,8 @@ namespace emph {
     
     SSD3DTrackFitFCNAlgo1::SSD3DTrackFitFCNAlgo1(int runNum) :
     FCNBase(),
-    fRunHistory(new runhist::RunHistory(runNum)),   
-    fEmgeo(new emph::geo::Geometry(fRunHistory->GeoFile())),
+    fGeoService(),  
+    fEmgeo(fGeoService->Geo()),
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), 
     fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(20.0), // last parameter might need some tuning.. This is the value at 120 GeV.
     fExpectedMomentum(30.), // expected momentum, used to compute the mult. scattering uncertainty. 

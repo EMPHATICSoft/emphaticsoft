@@ -15,7 +15,7 @@
 #include <iostream>
 
 #include "Minuit2/FCNBase.h"
-#include "RunHistory/RunHistory.h"
+#include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
 #include "MagneticField/MagneticField.h"
@@ -35,7 +35,7 @@ namespace emph{
       
     private:
       int fRunNum;
-      runhist::RunHistory *fRunHistory;
+      art::ServiceHandle<emph::geo::GeometryService> fGeoService;
       emph::geo::Geometry *fEmgeo;
       emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
       emph::MagneticField *fMagField;

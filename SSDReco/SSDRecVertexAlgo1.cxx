@@ -24,7 +24,6 @@ namespace emph {
   
 				
     SSDRecVertexAlgo1::SSDRecVertexAlgo1() :
-      fRunHistory(nullptr),   
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
@@ -43,11 +42,7 @@ namespace emph {
 			   const ssdr::SSDRecDwnstrTracksAlgo1  &dwnstr) {
 			   
        fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
-       if (fEmgeo == nullptr) {
-         fRunHistory = new runhist::RunHistory(fRunNum);   
-         fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
-	 // We use the nominal Z position, for now.. 
-       }
+       if (fEmgeo == nullptr) fGeoService->Geo();
        fChiFinal = DBL_MAX; fVert.Reset();
        const double z2 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
        fFitterFCN.SetZ2(z2);

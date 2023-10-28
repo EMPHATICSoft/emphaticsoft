@@ -109,7 +109,7 @@ namespace emph {
 //
 // access to the geometry.   
 //
-      runhist::RunHistory *fRunHistory;
+      art::ServiceHandle<emph::geo::GeometryService> fGeoService;
       emph::geo::Geometry *fEmgeo;
       std::vector<double> fZlocXPlanes;
       std::vector<double> fZlocYPlanes;
@@ -179,7 +179,7 @@ namespace emph {
       fNumMaxIterAlignAlgo1 (pset.get<int>("NumMaxIterAlignAlgo1", 1000)),
       fChiSqCutAlignAlgo1 (pset.get<double>("ChiSqCutAlignAlgo1", 1000.)),
       fSetMCRMomentum (pset.get<double>("SetMCRMomentum", 120.)),
-      fRunHistory(nullptr), fEmgeo(nullptr), 
+      fGeoService(), fEmgeo(nullptr), 
       fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
     {
        std::cerr << " Constructing StudyOneSSDClusters " << std::endl;
@@ -260,8 +260,8 @@ namespace emph {
       if (fXYUVLabels.size() != 0) return; // Initialization already done, skip 
       // Assume th same geometry for all sub runs (this is called for every subruns, it turns out.. ) 
       std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
-      fRunHistory = new runhist::RunHistory(run.run());
-      fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());
+      
+      fEmgeo = fGeoService->Geo();
       if ( fXYUVLabels.size() == 0) { 
         for (int kSt = 0; kSt != 6; kSt++) {
           for(int kSs =0; kSs !=6; kSs++) {
