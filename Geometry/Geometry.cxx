@@ -110,11 +110,26 @@ namespace emph {
 
     //--------------------------------------------------------------------------------
 
+    Target::Target() :
+      fPos(-1e6,-1e6,-1e6), fDPos(0.,0.,0.), fDensity(0.)
+    {
+      fFrac.clear();
+      fA.clear();
+      fZ.clear();
+    }
+
+    //--------------------------------------------------------------------------------
+
     Geometry::Geometry() :
       fGDMLFile("")
     {
+      fTarget = 0;
       fGeoManager = 0;
       fSSDSensorMap.clear();
+      fMagnetUSZPos = -1e6;
+      fMagnetDSZPos = -1e6;
+      fTargetUSZPos = -1e7;
+      fTargetDSZPos = -1e7;
     }
 
     //--------------------------------------------------------------------------------
@@ -196,6 +211,9 @@ namespace emph {
       fWorldHeight = world_box->GetDY();
       fWorldWidth  = world_box->GetDX();
       fWorldLength = world_box->GetDZ();
+
+      ExtractTargetInfo(world_v);
+      mf::LogInfo("ExtrackGeometry") << "extracted target geometry \n";
 
       ExtractMagnetInfo(world_v);
       mf::LogInfo("ExtractGeometry") << "extracted magnet geometry \n";
@@ -285,6 +303,42 @@ namespace emph {
     }
 
 
+    //--------------------------------------------------------------------------------
+
+    void Geometry::ExtractTargetInfo(const TGeoVolume* world_v)
+    {
+      fTargetUSZPos = -1e7;
+      fTargetDSZPos = -1e7;
+      
+      TGeoNode* target_n = (TGeoNode*)world_v->GetNode("target_phys");
+      if ( target_n == nullptr ){
+	mf::LogWarning("ExtractTargetInfo") 
+	  << " target not found in gdml. Check that this is ok! \n";
+	return;
+      }
+      
+      TGeoVolume* target_v = (TGeoVolume*)target_n->GetVolume();
+      TGeoBBox* target_box = (TGeoBBox*)target_v->GetShape();
+
+      fTarget = new Target();
+      fTarget->SetPos(target_n->GetMatrix()->GetTranslation());
+      TVector3 dPos(target_box->GetDX(),target_box->GetDY(),target_box->GetDZ());
+      fTarget->SetDPos(dPos);
+
+      fTargetUSZPos = fTarget->Pos()[2]-fTarget->DPos()[2];
+      fTargetDSZPos = fTarget->Pos()[2]+fTarget->DPos()[2];
+
+      TGeoMaterial* target_mat = target_v->GetMaterial();
+      int nel = target_mat->GetNelements();
+      for (int i=0; i<nel; ++i) {
+	TGeoElement* target_el = target_mat->GetElement(i);
+	fTarget->AddElement(target_el->GetName(),
+			    1., // JMP: note, the weight needs to be fixed...
+			    target_el->A(), target_el->Z());
+      }
+      
+    }
+      
     //--------------------------------------------------------------------------------
 
     void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)

@@ -28,6 +28,7 @@ class TVector3;
 
 namespace emph {
   namespace geo {
+
     enum sensorView {
       INIT=0,
       X_VIEW=1, ///< x-measuring view
@@ -35,6 +36,7 @@ namespace emph {
       U_VIEW,
       W_VIEW
     };
+
     class Strip {
     public:
       Strip();
@@ -162,6 +164,37 @@ namespace emph {
       TGeoMatrix* fGeoMatrix;
     };
 
+    class Target {
+    public:
+      Target();
+      ~Target() {};
+
+      void SetPos(TVector3 p) { fPos = p; }
+      void SetDPos(TVector3 dp) { fDPos = dp; }
+      void SetDensity(double rho) { fDensity = rho; }
+      void AddElement(std::string el, double frac, double A, int Z) 
+      { fEl.push_back(el); fFrac.push_back(frac); 
+	fA.push_back(A); fZ.push_back(Z); }
+
+      TVector3 Pos() const { return fPos; }
+      TVector3 DPos() const { return fDPos; }
+      double   Density() const { return fDensity; }
+      int      NEl() const { return fEl.size(); }
+      std::string El(int i) const { return fEl[i]; }
+      double   Frac(int i) const { return fFrac[i]; }
+      double   AtomA(int i) const { return fA[i]; }
+      int      AtomZ(int i) const { return fZ[i]; }
+
+    private:
+      TVector3 fPos;
+      TVector3 fDPos;
+      double   fDensity;
+      std::vector<std::string> fEl;
+      std::vector<double> fFrac;
+      std::vector<double> fA;
+      std::vector<int>    fZ;
+
+    };
 
     class Geometry {
     public:
@@ -173,6 +206,9 @@ namespace emph {
       double WorldWidth() const  { return fWorldWidth; }
       double WorldHeight() const { return fWorldHeight; }
       double WorldLength() const { return fWorldLength;}
+
+      double TargetUSZPos() const {return fTargetUSZPos; }
+      double TargetDSZPos() const {return fTargetDSZPos; }
 
       double MagnetUSZPos() const {return fMagnetUSZPos; }
       double MagnetDSZPos() const {return fMagnetDSZPos; }
@@ -193,6 +229,8 @@ namespace emph {
       emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
       emph::arich_util::PMT FindPMTByName(std::string name);
 
+      const Target* GetTarget() { return fTarget; }
+      
       //    TGeoMaterial* Material(double x, double y, double z) const;
 
       std::string GDMLFile() const {return fGDMLFile; }
@@ -208,6 +246,7 @@ namespace emph {
       void ExtractDetectorInfo(int i, const TGeoNode* n);
       void ExtractMagnetInfo(const TGeoVolume* v);
       void ExtractSSDInfo(const TGeoNode* n);
+      void ExtractTargetInfo(const TGeoVolume* v);
 
       std::string fGDMLFile;
 
@@ -219,6 +258,8 @@ namespace emph {
       double fWorldLength;
       double fMagnetUSZPos;
       double fMagnetDSZPos;
+      double fTargetUSZPos;
+      double fTargetDSZPos;
       bool   fMagnetLoad;
       std::vector<SSDStation> fSSDStation;
       double fDetectorUSZPos[NDetectors];
@@ -227,6 +268,8 @@ namespace emph {
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
       std::unordered_map<int, const Detector*> fSSDSensorMap;
+      Target* fTarget;
+
       TGeoManager* fGeoManager;
 
     };
