@@ -5,6 +5,8 @@
  
 <lcgdict>
 
+  <class name="std::vector<TVector3>"  />
+
   <class name="rb::SSDHit"    ClassVersion="12">
    <version ClassVersion="12" checksum="4189656060"/>
    <version ClassVersion="11" checksum="2728825684"/>

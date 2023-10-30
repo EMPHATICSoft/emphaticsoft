@@ -22,12 +22,12 @@ namespace caf
     stdrec.spcpts.nsp = spcpts.size();
 
     for (auto p : spcpts) {
-      caf::SRSpacePoint sp;
+      stdrec.spcpts.sp.push_back(SRSpacePoint());      
+      SRSpacePoint& sp = stdrec.spcpts.sp.back();
       for (int i=0; i<3; ++i)
 	sp.x[i] = p.Pos()[i];
       sp.station = p.Station();
       
-      stdrec.spcpts.sp.push_back(sp);
    } // end for hitId
   }  
 } // end namespace caf
