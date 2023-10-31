@@ -9,8 +9,8 @@
 #include <climits>
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
-#include "art/Framework/IO/Sources/SourceHelper.h"
-#include "art/Framework/IO/Sources/SourceTraits.h"
+//#include "art/Framework/IO/Sources/SourceHelper.h"
+//#include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
@@ -53,7 +53,6 @@ namespace emph {
       void produce (art::Event& evt);
 
       void  configure(fhicl::ParameterSet const& ps);
-	TH2D* temp;
 
     private:
 
@@ -174,18 +173,14 @@ namespace emph {
 	file_path = getenv ("CETPKG_SOURCE");
 	fname = file_path + "/" + fXYHistFile;		// there was a typo in this line, this should be correct now
 	std::cerr << "fname is " << fname << std::endl;				// debugging lines
-	std::unique_ptr<TFile> input_file{TFile::Open(fname.c_str())};		
+	std::unique_ptr<TFile> input_file{TFile::Open(fname.c_str(), "READ")};		
 	if (!input_file) {
 	  std::cerr << "Could not open " << fXYHistFile << std::endl;
 	  std::abort();
 	}	
 	fXYHist = (TH2D*)input_file->Get(fXYHistName.c_str());
-	std::cerr << "fXYHist pointer is " << fXYHist << std::endl;		// more debugging lines
-	std::cerr << "fXYHist pointer's class is " << fXYHist->Class_Name() << std::endl;
-	std::cerr << "Number of entries of " << fXYHist << " is " << fXYHist->GetEntries() << std::endl;	// at this point, BeamGen should have 
-														// the pointer, and use it's functions
-														// (GetEntries is an example)
-														// here, everything works	
+	fXYHist->SetDirectory(0);			// this line dereferences the histogram from the root file, so when the GetXYHist function
+							// ends, the root file is closed, but the histogram is okay
 	if (!fXYHist) {
 	  std::cerr << "Could not find beam (x,y) histogram " << fXYHistName << std::endl;
 	  std::abort();
@@ -215,13 +210,15 @@ namespace emph {
 	file_path = getenv ("CETPKG_SOURCE");
 	fname = file_path + "/" + fPXYHistFile;
 
-	std::unique_ptr<TFile> input_file{TFile::Open(fname.c_str())};
+	std::unique_ptr<TFile> input_file{TFile::Open(fname.c_str(), "READ")};
 
 	if (!input_file) {
 	  std::cerr << "Could not open " << fPXYHistFile << std::endl;
 	  std::abort();
 	}	
 	fPXYHist = (TH2D*)input_file->Get(fPXYHistName.c_str());
+	fPXYHist->SetDirectory(0);
+
 	if (!fPXYHist) {
 	  std::cerr << "Could not find beam (px/pz,py/pz) histogram \"" << fPXYHistName << "\"" << std::endl;
 	  std::abort();
@@ -283,11 +280,7 @@ namespace emph {
     TLorentzVector pos;
     
     pos[2] = fZstart;
-    if (fXYHist) { // get random position from histogram
-								// I think this function should have access to the fXYHist member variable,
-								// but it throws segmentation fault when calling the pointer's functions
-								// Class_Name() works, but GetEntries() and GetRandom2() doesn't for some reason
-	std::cerr << "fXYHist pointer is " << fXYHist << " fXYHist classname is " << fXYHist->Class_Name() << ", fXYHist entries: " << fXYHist->GetEntries() << "\n";
+    if (fXYHist) {
 	fXYHist->GetRandom2(pos[0],pos[1]);
     }
     else { // get random position from flat or Gaussian distribution
