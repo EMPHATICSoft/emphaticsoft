@@ -665,7 +665,7 @@ namespace emph {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-        const emph::adcu::ADCUtils ADCUtil(wvfm,stmap);
+        const emph::adcu::ADCUtils ADCUtil(wvfm,stmap,10,15);
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);

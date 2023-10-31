@@ -16,13 +16,13 @@ namespace adcu{
 
   //----------------------------------------------------------------------
   
-  ADCUtils::ADCUtils(const emph::rawdata::WaveForm& wvfm, const emph::st::SignalTime& stmap)
+  ADCUtils::ADCUtils(const emph::rawdata::WaveForm& wvfm, const emph::st::SignalTime& stmap, const int& tlow, const int& thigh)
   {
     _v1720index = wvfm.Board()*8 + wvfm.Channel();
     _exptime = stmap.SigTime(_v1720index);
     _baseline = this->CalcBaseline(wvfm);
     _time = this->CalcTime(wvfm);
-    _charge = this->CalcCharge(wvfm);
+    _charge = this->CalcCharge(wvfm, tlow, thigh);
   }
 
   //----------------------------------------------------------------------
@@ -78,11 +78,11 @@ namespace adcu{
   }
 
   //......................................................................
-  float ADCUtils::CalcCharge(const emph::rawdata::WaveForm& wvfm) const
+  float ADCUtils::CalcCharge(const emph::rawdata::WaveForm& wvfm, const int& tlow, const int& thigh) const
   {
       //Fixed Window Integration
-      int tmin = _exptime - 15;
-      int tmax = _exptime + 30;
+      int tmin = _exptime - tlow;
+      int tmax = _exptime + thigh;
       if (tmin<0) tmin=0;
       if (tmax>108) tmax=108;
 

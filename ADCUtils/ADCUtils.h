@@ -20,7 +20,7 @@ namespace adcu{
   public:
 
     ADCUtils(); //Default constructor
-    ADCUtils(const emph::rawdata::WaveForm&, const emph::st::SignalTime&); 
+    ADCUtils(const emph::rawdata::WaveForm&, const emph::st::SignalTime&, const int&, const int&); 
     ~ADCUtils() {}; //Destructor
 
   private:
@@ -42,7 +42,7 @@ namespace adcu{
     float CalcBaseline(const emph::rawdata::WaveForm&) const;
     int CalcTimeMax(const emph::rawdata::WaveForm&) const;
     float CalcTime(const emph::rawdata::WaveForm&) const;
-    float CalcCharge(const emph::rawdata::WaveForm&) const;
+    float CalcCharge(const emph::rawdata::WaveForm&, const int&, const int&) const;
   };
 }//end namespace adcu
 }//end namespace emph

@@ -4,6 +4,21 @@ standard_adcreco:
 {
   module_type: ADCReco
 
+  Trigger_low: 15
+  Trigger_high: 25
+
+  GasCkov_low: 10
+  GasCkov_high: 15
+
+  BACkov_low: 10
+  BACkov_high: 15
+
+  LGCalo_low: 20
+  LGCalo_high: 40
+
+  T0_low: 10
+  T0_high: 40
+  
 }
 
 END_PROLOG

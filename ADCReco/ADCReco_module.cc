@@ -55,27 +55,37 @@ namespace emph {
     void endJob();
     
   private:
-    void GetADC(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::ADC>> & ADCs);
+    void GetADC(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::ADC>> & ADCs, const int&, const int&);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::st::SignalTime stmap;
 
-    float CalcBaseline(const emph::rawdata::WaveForm&, const int&) const;
-    int CalcTimeMax(const emph::rawdata::WaveForm&) const;
-    float CalcTime(const emph::rawdata::WaveForm&) const;
-    float CalcCharge(const emph::rawdata::WaveForm&, const int&, const float&) const;
-    
     unsigned int fRun;
     unsigned int fSubrun;
     unsigned int fNEvents;
     int event;
+    int Trigger_low, Trigger_high;
+    int GasCkov_low, GasCkov_high;
+    int BACkov_low, BACkov_high;
+    int LGCalo_low, LGCalo_high;
+    int T0_low, T0_high;
 
   };
 
   //.......................................................................
   
   ADCReco::ADCReco(fhicl::ParameterSet const& pset)
-    : EDProducer(pset)
+    : EDProducer(pset),
+    Trigger_low (pset.get<int>("Trigger_low",0)),
+    Trigger_high (pset.get<int>("Trigger_high",0)),
+    GasCkov_low (pset.get<int>("GasCkov_low",0)),
+    GasCkov_high (pset.get<int>("GasCkov_high",0)),
+    BACkov_low (pset.get<int>("BACkov_low",0)),
+    BACkov_high (pset.get<int>("BACkov_high",0)),
+    LGCalo_low (pset.get<int>("LGCalo_low",0)),
+    LGCalo_high (pset.get<int>("LGCalo_high",0)),
+    T0_low (pset.get<int>("T0_low",0)),
+    T0_high (pset.get<int>("T0_high",0))
   {
 
     this->produces< std::vector<rb::ADC>>(emph::geo::DetInfo::Name(emph::geo::Trigger));
@@ -108,7 +118,7 @@ namespace emph {
   }
   
   //......................................................................
-  void ADCReco::GetADC(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::ADC>> & ADCs)
+  void ADCReco::GetADC(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::ADC>> & ADCs, const int& tlow, const int& thigh)
   {
     emph::cmap::FEBoardType boardType = emph::cmap::V1720;
     emph::cmap::EChannel echan;
@@ -117,7 +127,7 @@ namespace emph {
     if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-        const emph::adcu::ADCUtils ADCUtil(wvfm,stmap);
+        const emph::adcu::ADCUtils ADCUtil(wvfm,stmap,tlow,thigh);
 
         //Set baseline,charge, and time
         int board = wvfm.Board();
@@ -167,11 +177,11 @@ namespace emph {
             evt.getByLabel(labelStr, wfHandle);
 
             if (!wfHandle->empty()) {
-                if (i == emph::geo::Trigger) GetADC(wfHandle, ADCv_Trig);
-                if (i == emph::geo::GasCkov) GetADC(wfHandle, ADCv_GC);
-                if (i == emph::geo::BACkov)  GetADC(wfHandle, ADCv_BAC);
-                if (i == emph::geo::LGCalo)  GetADC(wfHandle, ADCv_LGC);
-                if (i == emph::geo::T0)      GetADC(wfHandle, ADCv_T0);
+                if (i == emph::geo::Trigger) GetADC(wfHandle, ADCv_Trig, Trigger_low, Trigger_high);
+                if (i == emph::geo::GasCkov) GetADC(wfHandle, ADCv_GC, GasCkov_low, GasCkov_high);
+                if (i == emph::geo::BACkov)  GetADC(wfHandle, ADCv_BAC, BACkov_low, BACkov_high);
+                if (i == emph::geo::LGCalo)  GetADC(wfHandle, ADCv_LGC, LGCalo_low, LGCalo_high);
+                if (i == emph::geo::T0)      GetADC(wfHandle, ADCv_T0, T0_low, T0_high);
             }
         }
         catch(...) {
