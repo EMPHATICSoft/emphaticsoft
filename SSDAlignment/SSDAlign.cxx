@@ -12,34 +12,34 @@
 namespace emph {
   namespace al{
 
-  //----------------------------------------------------------------------
-  
-  SSDAlign::SSDAlign() :   
-    _angle(0.), _strip(0.), _pitch(60.), _height(0.), _station(0.), _sensor(0.), _z(0.), _event(0.)
-  {
-
-  }
-  
-  //------------------------------------------------------------
-
-  SSDAlign::SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
-  {
-	  _angle = sd.Rot();
-	  //_strip = ssd.Strip();
-	  _strip = clust.AvgStrip();
-	  _pitch = 0.06;
-	  _height = sd.Pos()[0];
-	  //_sensor_row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
-	  //_sensor_row = ssd.Row();
-	  _station = clust.Station();
-	  _sensor = clust.Sensor();
-	  _x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
-	  _y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
-	  _z = sd.Pos()[2] + st.Pos()[2];
-	  _u = (sqrt(2)/2)*(this->X()-this->Y());	
-	  _v = (sqrt(2)/2)*(this->X()+this->Y());	
-	  _event = evt;
-  }
+    //----------------------------------------------------------------------
+    
+    SSDAlign::SSDAlign() :   
+      _angle(0.), _strip(0.), _pitch(60.), _height(0.), _station(0.), _sensor(0.), _z(0.), _event(0.)
+    {
+      
+    }
+    
+    //------------------------------------------------------------
+    
+    SSDAlign::SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
+    {
+      _angle = sd.Rot();
+      //_strip = ssd.Strip();
+      _strip = clust.AvgStrip();
+      _pitch = 0.06;
+      _height = sd.Pos()[0];
+      //_sensor_row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
+      //_sensor_row = ssd.Row();
+      _station = clust.Station();
+      _sensor = clust.Sensor();
+      _x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
+      _y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
+      _z = sd.Pos()[2] + st.Pos()[2];
+      _u = (sqrt(2)/2)*(this->X()-this->Y());	
+      _v = (sqrt(2)/2)*(this->X()+this->Y());	
+      _event = evt;
+    }
 
   //------------------------------------------------------------
   

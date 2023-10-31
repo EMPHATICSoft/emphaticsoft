@@ -61,3 +61,4 @@ physics:
 }
 physics.producers.ssdclusts.FillTTree: false
 physics.producers.ssdclusts.CheckDQ: false
+//physics.producers.cafmaker.GetMCTruth: false //include when producing MC CAF's 

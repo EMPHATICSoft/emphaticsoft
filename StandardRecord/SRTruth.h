@@ -10,6 +10,8 @@
 #include <vector>
 #include <string>
 #include "SRTrueParticle.h"
+#include "SRTrueSSDHitsBranch.h"
+
 
 ///Common Analysis Files
 namespace caf
@@ -22,6 +24,8 @@ namespace caf
 	  std::string trgt;
 	  float trgt_thick;
 	  float trgt_dens;
+
+	  SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
 	 
 	  SRTruth(); 			// Default constructor
 	  ~SRTruth() {};

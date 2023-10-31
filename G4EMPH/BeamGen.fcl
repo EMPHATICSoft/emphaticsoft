@@ -11,6 +11,7 @@ standard_beamgen:
   pxyHistFile:		     ""
   pxyHistName:		     ""
 
+  ZStart:                    -200.
   Xmax:			     0.
   Xmin:			     0.
   Ymax:			     0.
@@ -42,7 +43,6 @@ proton_beamgen.Xsigma: 0.5e-8
 proton_beamgen.Ysigma: 0.5e-8 
 proton_beamgen.PXsigma: 1.e-8
 proton_beamgen.PYsigma: 1.e-8
-proton_beamgen.Zstart: -2.0
 
 piplus_beamgen: @local::standard_beamgen
 piplus_beamgen.particleType: "pion"
@@ -57,6 +57,14 @@ piminus_beamgen.XMean: 20.
 piminus_beamgen.YMean: 0. 
 piminus_beamgen.Xsigma: 0.5 
 piminus_beamgen.Ysigma: 0.5 
+
+piplus_4GeV: @local::standard_beamgen
+piplus_4GeV.particleType: "pion"
+piplus_4GeV.PMean: 4.
+piplus_4GeV.XMean: 0. 
+piplus_4GeV.YMean: 0. 
+piplus_4GeV.Xsigma: 5. 
+piplus_4GeV.Ysigma: 5. 
 
 kaonplus_beamgen: @local::standard_beamgen
 kaonplus_beamgen.particleType: "kaon"

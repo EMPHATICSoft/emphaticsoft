@@ -7,6 +7,7 @@ namespace caf
     ring(),
     truth(),	 
     hits(),
+    cluster(),
     backov(),
     gasckov()
   {

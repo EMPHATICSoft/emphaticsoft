@@ -10,8 +10,9 @@ standard_cafmaker:{
     SSDClustLabel: "ssdclusts"
     BACkovHitLabel: "backovreco"
     GasCkovHitLabel: "gasckovreco"
-    GetMCTruth:    true
-    GetMCHits:     false
+    GetMCTruth:    true //use for creating MC CAF's
+    //GetMCTruth:    false //use for creating data CAF's
+    SSDHitLabel: "geantgen" //dah
 }
 
 END_PROLOG

@@ -3,6 +3,7 @@
 #
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
+#include "ChannelMap.fcl"
 
 process_name : eventDisplay01
 
@@ -16,6 +17,7 @@ services : {
 
   # From toyExperiment
   Geometry   : @local::standard_geometry
+  ChannelMapService : @local::standard_channelmap
   RunHistoryService : @local::standard_runhistory
   # From art-workbook
   EvtDisplayService : {}
@@ -30,7 +32,9 @@ physics :{
       camRotateCenterV : -2.0
       camDollyDelta    : 500.
       DrawMCTruth      : true
-      MCTruthLabel     : "g4gen"
+      DrawTrueSSDHits  : true
+      MCTruthLabel     : "geantgen"
+      DrawSSDDigits    : true
       DrawSSDClusters  : true
       SSDClustLabel    : "clust"
       DrawTracks       : true
@@ -38,6 +42,8 @@ physics :{
       DrawVertices     : true
       VerticesLabel    : "vtxreco"
       VisLevel         : 4
+      SSDStripVis      : false
+      TrueEnergyThresh : 50. #MeV
     }
   }
 
