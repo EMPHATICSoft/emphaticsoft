@@ -6,7 +6,9 @@
 #include "SpillInfo.fcl"
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
+#include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
+#include "GasCkovHitReco.fcl"
 
 process_name: CAF
 
@@ -46,13 +48,15 @@ physics:
     spillinfo: @local::standard_spillinfo
     arichreco:  @local::standard_arichreco
     ssdclusts:  @local::standard_ssdclust
+    adcreco:    @local::standard_adcreco
     backovreco: @local::standard_backovhitreco
+    gasckovreco: @local::standard_gasckovhitreco
     cafmaker:   @local::standard_cafmaker
   }
 
   analyzers:{}
 
-  makecaf:   [ spillinfo, arichreco, ssdclusts,backovreco, cafmaker ]
+  makecaf:   [ spillinfo, arichreco, ssdclusts, adcreco, backovreco, gasckovreco, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false

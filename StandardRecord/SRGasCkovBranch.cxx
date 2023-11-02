@@ -1,15 +1,15 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRBACkovBranch.cxx
-// \brief   An SRBAckovBranch contains vectors of SRBACkovs.
+// \file    SRGasCkovBranch.cxx
+// \brief   An SRGasCkovbranch contains vectors of SRGasCkovs.
 //          It is intended for use in the Common Analysis ROOT trees.
 ////////////////////////////////////////////////////////////////////////
 
-#include "StandardRecord/SRBACkovBranch.h"
+#include "StandardRecord/SRGasCkovBranch.h"
 
 namespace caf
 {
-  SRBACkovBranch::SRBACkovBranch():
-    nbackovhits(-1),
+  SRGasCkovBranch::SRGasCkovBranch():
+    ngasckovhits(-1),
     PID{std::numeric_limits<bool>::signaling_NaN(),
         std::numeric_limits<bool>::signaling_NaN(),
         std::numeric_limits<bool>::signaling_NaN(),
@@ -19,14 +19,14 @@ namespace caf
   }
 
   //--------------------------------------------------------------------
-  SRBACkovBranch::~SRBACkovBranch()
+  SRGasCkovBranch::~SRGasCkovBranch()
   {
   }
 
   //--------------------------------------------------------------------
-  void SRBACkovBranch::fillSizes()
+  void SRGasCkovBranch::fillSizes()
   {
-    nbackovhits = backovhits.size();
+    ngasckovhits = gasckovhits.size();
   }
 
 } // end namespace caf
