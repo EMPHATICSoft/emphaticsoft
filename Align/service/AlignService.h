@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////
-/// \brief  Simple service to provide a channel map configured to the right 
+/// \brief  Simple service to provide alignment constants
 /// \author jpaley@fnal.gov
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef CHANNELMAPSERVICE_H
-#define CHANNELMAPSERVICE_H
+#ifndef ALIGNSERVICE_H
+#define ALIGNSERVICE_H
 
-#include "ChannelMap/ChannelMap.h"
+#include "Align/Align.h"
 
 //Framework includes
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
@@ -22,36 +22,26 @@ namespace fhicl {
 
 namespace emph
 {
-  namespace cmap
+  class AlignService 
   {
-    
-    class ChannelMapService 
-    {
-    public:
-      // Get a ChannelMapService instance here
-      ChannelMapService(const fhicl::ParameterSet& pset,
-			art::ActivityRegistry& reg);
-      virtual ~ChannelMapService();
+  public:
+    // Get a AlignService instance here
+    AlignService(const fhicl::ParameterSet& pset,
+		 art::ActivityRegistry& reg);
+    virtual ~AlignService();
       
-      void preBeginRun(const art::Run& run);
+    void preBeginRun(const art::Run& run);
 
-      DChannel DetChan(EChannel echan) { return fChannelMap->DetChan(echan); }
-      
-      EChannel ElectChan(DChannel dchan) { return fChannelMap->ElectChan(dchan); }
+    Align* GetAlign() const { return fAlign; }
 
-      std::map<emph::cmap::EChannel,emph::cmap::DChannel> EMap() { return fChannelMap->EChanMap(); }
-      std::map<emph::cmap::DChannel,emph::cmap::EChannel> DMap() { return fChannelMap->DChanMap(); }
-      emph::cmap::ChannelMap* CMap() const { return fChannelMap; }
+  private:
+    bool fAbortIfFileNotFound;
+    Align* fAlign;
 
-    private:
-      bool fAbortIfFileNotFound;
-      ChannelMap* fChannelMap;
-
-    };
+  };
     
-  }
 }
 
-DECLARE_ART_SERVICE(emph::cmap::ChannelMapService, SHARED)
+DECLARE_ART_SERVICE(emph::AlignService, SHARED)
 
 #endif

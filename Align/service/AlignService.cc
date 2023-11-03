@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 // EMPHATIC includes
-#include "ChannelMap/service/ChannelMapService.h"
+#include "Align/service/AlignService.h"
 #include "RunHistory/service/RunHistoryService.h"
 
 // Framework includes
@@ -12,39 +12,33 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "fhiclcpp/ParameterSet.h"
 
-
 namespace emph
 {
-  namespace cmap
+    
+  //------------------------------------------------------------
+  AlignService::AlignService(const fhicl::ParameterSet& pset,
+			     art::ActivityRegistry & reg)
   {
-    
-    //------------------------------------------------------------
-    ChannelMapService::ChannelMapService(const fhicl::ParameterSet& pset,
-					 art::ActivityRegistry & reg):
-      fAbortIfFileNotFound (pset.get<bool>("AbortIfFileNotFound"))      
-    {
-      art::ServiceHandle<runhist::RunHistoryService> rhs;
+    art::ServiceHandle<runhist::RunHistoryService> rhs;
 
-      fChannelMap = new ChannelMap();
+    fAlign = new Align();
 
-      reg.sPreBeginRun.watch(this, &ChannelMapService::preBeginRun);
+    reg.sPreBeginRun.watch(this, &AlignService::preBeginRun);
 
-    }
-    
-    //----------------------------------------------------------
-    
-    ChannelMapService::~ChannelMapService()
-    {
-    }
-        
-    //----------------------------------------------------------
-    void ChannelMapService::preBeginRun(const art::Run& )
-    {
-      fChannelMap->SetAbortIfFileNotFound(fAbortIfFileNotFound);      
-      art::ServiceHandle<runhist::RunHistoryService> rhs;
-
-      fChannelMap->LoadMap(rhs->RunHist()->ChanFile());
-    }
-    
   }
+    
+  //----------------------------------------------------------
+    
+  AlignService::~AlignService()
+  {
+  }
+        
+  //----------------------------------------------------------
+  void AlignService::preBeginRun(const art::Run& )
+  {
+    art::ServiceHandle<runhist::RunHistoryService> rhs;
+
+    fAlign->LoadSSDConsts(rhs->RunHist()->SSDAlignFile());
+  }
+    
 }
