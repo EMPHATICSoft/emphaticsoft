@@ -9,10 +9,11 @@ include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
 art_make_library ( SOURCE ${src_files}
-                   LIBRARY_NAME  BACkovHitReco
+                   LIBRARY_NAME  ADCReco
                    LIBRARIES
 		   RawData
 		   RecoBase
+           ADCUtils
 		   ChannelMap
 		   ChannelMapService_service
            SignalTime
@@ -22,10 +23,11 @@ art_make_library ( SOURCE ${src_files}
                    ROOT::Hist
 )
 
-cet_build_plugin(BACkovHitReco art::module
+cet_build_plugin(ADCReco art::module
   LIBRARIES PRIVATE
     RawData
     RecoBase
+    ADCUtils
     ChannelMap
     ChannelMapService_service
     SignalTime

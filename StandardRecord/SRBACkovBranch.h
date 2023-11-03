@@ -5,11 +5,12 @@
 #define SRBACKOVBRANCH_H
 #include "StandardRecord/SRBACkov.h"
 
+#include <limits>
 #include <vector>
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
+  /// Reconstructed BACkov hits from each of the 6 PMTs
     class SRBACkovBranch
     {
     public:
@@ -17,7 +18,8 @@ namespace caf
       ~SRBACkovBranch();
 
       std::vector<SRBACkov>  backovhits;  ///< BACkovhits produced by BACkovHitReco
-      size_t                nbackovhits; ///< number of backovhits 
+      size_t                 nbackovhits; ///< number of backovhits 
+      bool                   PID[5];      ///< probability (0 or 1) of being {e,mu,pi,K,p}
 
       void fillSizes();
       
@@ -25,5 +27,5 @@ namespace caf
 
 } // end namespace
 
-#endif // SRARINGBRANCH_H
+#endif // SRBACKOVBRANCH_H
 ///////////////////////////////////////////////////////////////////////////

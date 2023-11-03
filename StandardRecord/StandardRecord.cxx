@@ -11,7 +11,8 @@ namespace caf
     backov(),
     spcpts(),
     sgmnts(),
-    trks()
+    trks(),
+    gasckov()
   {
   }
   

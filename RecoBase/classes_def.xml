@@ -65,7 +65,8 @@
   <class name="std::vector<rb::ARing>"        />
   <class name="art::Wrapper< std::vector<rb::ARing>    >"/>
 
-  <class name="rb::BACkovHit"    ClassVersion="13">
+  <class name="rb::BACkovHit"    ClassVersion="14">
+   <version ClassVersion="14" checksum="1233153501"/>
    <version ClassVersion="13" checksum="401007675"/>
    <version ClassVersion="12" checksum="2996980846"/>
     <version ClassVersion="10" checksum="5"/>
@@ -73,7 +74,8 @@
   <class name="std::vector<rb::BACkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::BACkovHit>    >"/>
 
-  <class name="rb::GasCkovHit"    ClassVersion="13">
+  <class name="rb::GasCkovHit"    ClassVersion="14">
+   <version ClassVersion="14" checksum="4127082511"/>
    <version ClassVersion="13" checksum="3907294428"/>
    <version ClassVersion="12" checksum="4165743097"/>
     <version ClassVersion="10" checksum="6"/>
@@ -81,7 +83,12 @@
   <class name="std::vector<rb::GasCkovHit>"        />
   <class name="art::Wrapper< std::vector<rb::GasCkovHit>    >"/>
 
-  <class name="rb::ADC"    ClassVersion="13">
+  <class name="rb::ADC"    ClassVersion="18">
+   <version ClassVersion="18" checksum="853095699"/>
+   <version ClassVersion="17" checksum="2358953481"/>
+   <version ClassVersion="16" checksum="3461814886"/>
+   <version ClassVersion="15" checksum="1016659584"/>
+   <version ClassVersion="14" checksum="2242256476"/>
    <version ClassVersion="13" checksum="114040"/>
    <version ClassVersion="12" checksum="3706276525"/>
     <version ClassVersion="10" checksum="7"/>

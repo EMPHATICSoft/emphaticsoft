@@ -1,27 +1,27 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRBACkov.cxx
+// \file    SRGasCkov.cxx
 // \brief   TODO
 ////////////////////////////////////////////////////////////////////////
 #include <limits>
 #include <string.h>
 
-#include "StandardRecord/SRBACkov.h"
+#include "StandardRecord/SRGasCkov.h"
 
 namespace caf
 {
-  SRBACkov::SRBACkov() :
+  SRGasCkov::SRGasCkov() :
     charge(std::numeric_limits<float>::signaling_NaN()),
     time(std::numeric_limits<float>::signaling_NaN())
   {
   }
 
   //--------------------------------------------------------------------
-  SRBACkov::~SRBACkov()
+  SRGasCkov::~SRGasCkov()
   {
   }
 
   //--------------------------------------------------------------------
-  void SRBACkov::setDefault()
+  void SRGasCkov::setDefault()
   {
     charge = -999;
     time = -1;

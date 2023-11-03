@@ -1,18 +1,14 @@
-#include "GasCkovHitReco.fcl"
-
-#include "ChannelMap.fcl"
-#include "RunHistory.fcl"
-#include "SpillInfo.fcl"
 #include "ADCReco.fcl"
 
-process_name: GasCkovHitReco
+#include "RunHistory.fcl"
+#include "ChannelMap.fcl"
+
+process_name: ADCReco
 
 services:
 {
-  TFileService: { fileName: "gasckovhitreco_hist_r%r_s%04s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
-  IFBeam:{}
 }
 
 source:
@@ -26,7 +22,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "gasckovhitreco_r%r_s%04s.root"
+   fileName:    "adcreco_r%r_s%04s.root"
    fastCloning: false
    
   }
@@ -40,12 +36,10 @@ physics:
 
  producers:
  {
-    spillinfo:      @local::standard_spillinfo
-    adcreco:        @local::standard_adcreco
-	gasckovhitreco: @local::standard_gasckovhitreco
+	adcreco: @local::standard_adcreco
  }	
 
- reco: [ spillinfo, adcreco, gasckovhitreco ]
+ reco: [ adcreco ]
 	
  filters:{}
 

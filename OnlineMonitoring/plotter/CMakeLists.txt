@@ -19,8 +19,10 @@ cet_build_plugin(OnMonPlotter art::module
   LIBRARIES REG #PRIVATE
   RawData
   RecoBase
+  ADCUtils
   ChannelMap
   ChannelMapService_service
+  SignalTime
   RunHistory
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger

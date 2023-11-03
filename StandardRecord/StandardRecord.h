@@ -19,6 +19,7 @@
 #include "StandardRecord/SRSpacePointBranch.h"
 #include "StandardRecord/SRTrackSegmentBranch.h"
 #include "StandardRecord/SRTrackBranch.h"
+#include "StandardRecord/SRGasCkovBranch.h"
 #include "StandardRecord/SRTruth.h"
 
 /// Common Analysis Files
@@ -44,6 +45,7 @@ namespace caf
       SRSpacePointBranch spcpts; ///< Reco space points branch.
       SRTrackSegmentBranch sgmnts; ///< Reco track segments branch
       SRTrackBranch      trks; ///< Reco space points branch.
+      SRGasCkovBranch   gasckov; ///< GasCkov PMT charge and PID
 
     }; // end class
 
