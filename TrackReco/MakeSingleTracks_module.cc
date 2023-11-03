@@ -35,10 +35,11 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // EMPHATICSoft includes
+#include "Align/service/AlignService.h"
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/service/GeometryService.h"
 #include "RecoBase/SSDCluster.h"
-#include "DetGeoMap/DetGeoMap.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
@@ -103,8 +104,6 @@ namespace emph {
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
-
-    emph::dgmap::DetGeoMap* fDetGeoMap;
 
     //histograms and graphs for hits
     TH2F* hSPDist0;
@@ -211,14 +210,14 @@ namespace emph {
   
   emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-    fCheckClusters     (pset.get< bool >("CheckClusters")),
-    fDetGeoMap(NULL)
-  {
-    this->produces< std::vector<rb::SpacePoint> >();
-    this->produces< std::vector<rb::TrackSegment> >();
-    this->produces< std::vector<rb::Track> >();
-  }
-
+    fCheckClusters     (pset.get< bool >("CheckClusters")) 
+    {
+      this->produces< std::vector<rb::SpacePoint> >();
+      this->produces< std::vector<rb::TrackSegment> >();
+      this->produces< std::vector<rb::Track> >();
+      
+    }
+  
   //......................................................................
   
 //  MakeSingleTracks::~MakeSingleTracks()
@@ -344,11 +343,11 @@ namespace emph {
 
   void emph::MakeSingleTracks::MakeSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
   {
-    if (!fDetGeoMap) fDetGeoMap = new emph::dgmap::DetGeoMap();
-
-    fDetGeoMap->SSDClusterToLineSegment(cl, ls);
+    art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
+    
+    dgm->Map()->SSDClusterToLineSegment(cl, ls);
   }
-
+  
   //......................................................................
 
   void emph::MakeSingleTracks::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3]){

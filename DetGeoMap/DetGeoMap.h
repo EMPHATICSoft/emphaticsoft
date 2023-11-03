@@ -19,6 +19,7 @@
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
 #include "Geometry/service/GeometryService.h"
+#include "Align/service/AlignService.h"
 
 namespace emph {
 
@@ -31,8 +32,8 @@ namespace emph {
 
       void SetRun(int run) { fRun = run;} 
       void SetUseGeometry(bool ug) { fUseGeometry = ug; }
-      void Reset();
-
+      void SetAlign(const emph::Align* align) { fAlign = align; }
+      void SetGeometry(const emph::geo::Geometry* geo) { fGeo = geo; }
       //      bool LoadMap(std::string fname="");
       //      void SetAbortIfFileNotFound(bool f) { fAbortIfFileNotFound = f;}
       //      void SetMapFileName(std::string fname) { if (fname != fMapFileName) {
@@ -43,7 +44,8 @@ namespace emph {
     private:
       bool fUseGeometry;
       int fRun;
-      art::ServiceHandle<emph::geo::GeometryService> geo;
+      const emph::geo::Geometry* fGeo;
+      const emph::Align* fAlign;
 
       //      bool fIsLoaded;
       //      bool fAbortIfFileNotFound;
