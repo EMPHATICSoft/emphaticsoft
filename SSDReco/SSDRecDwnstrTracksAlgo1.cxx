@@ -391,7 +391,7 @@ namespace emph {
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsOut, parsOutErr;
 //       fFitterFCN->SetDebugOn(fDebugIsOn);
-//       fFitterFCN->SetDebugOn((fEvtNum == 3));
+//       fFitterFCN->SetDebugOn((fEvtNum == 5));
        fFitterFCN->SetDebugOn(false);
        fPrelimFitMom = fPrelimMomentum;
        fPrelimFitChiSq = DBL_MAX; 
@@ -411,7 +411,7 @@ namespace emph {
 //	  uPars.Add(std::string("PInv"), 1.0/fPrelimMomentum, std::abs(2.0/fPrelimMomentum), -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
        
         if (!fNoMagnet)  // test this.. 
-	  uPars.Add(std::string("PInv"), 1.0/50., std::abs(2.0/50.), -5.0, 5.0); // could flip the sign Min. mometum is 0.1 GeV
+	  uPars.Add(std::string("PInv"), 1.0/50., std::abs(2.0/50.), -0.0080, 0.008); // could flip the sign Min. mometum is 0.1 GeV
        unsigned int nPars = (fNoMagnet) ? 4 : 5; 
        std::vector<double> initValsV, initValsE; // for use in the Simple Minimizer.. 
        for (unsigned int k=0; k != nPars; k++) { initValsV.push_back(uPars.Value(k)); initValsE.push_back(uPars.Error(k)); } 
@@ -432,6 +432,7 @@ namespace emph {
        //
        bool isMigradValid = min.IsValid(); 
        //
+//       if (fDebugIsOn) { std::cerr << " .... Migrad done, and quit here and now " << std::endl; exit(2); }
        bool isSimplexValid = true;
        int flagValid = 0; // 0 nothing worked, 1 MiGrad is O.K., 2, Simplex is Ok.  
        double chiSq = DBL_MAX;
@@ -486,6 +487,7 @@ namespace emph {
        fPrelimFitMom = 1.0/parsOut[4];
        fPrelimFitChiSq = chiSq;
        if (fDebugIsOn) std::cerr << " Setting the Preliminary momentum to " << fPrelimFitMom << std::endl;
+//       if (fEvtNum == 5) { std::cerr << " SSDRecDwnstrTracksAlgo1::doPrelimFit Event 5, quit here.. " << std::endl; exit(2); }
        return true;
     } // doPrelimFitFit
     //

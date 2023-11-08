@@ -38,6 +38,8 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "MagneticField/service/MagneticFieldService.h"
+#include "MagneticField/test/TestEmphMagneticField.h"
 //
 // simulation results per say.. stuff
 // 
@@ -86,6 +88,7 @@ namespace emph {
       bool fFilesAreOpen;
       std::string fTokenJob;
       std::string fSSDClsLabel;
+      std::string fSSDAlignmentResult;
       bool fDumpClusters;    
       bool fSelectHotChannels;  // Mostly obsolete. 
       bool fSelectHotChannelsFromHits; // Probably a better way.    
@@ -111,6 +114,7 @@ namespace emph {
 //
       art::ServiceHandle<emph::geo::GeometryService> fGeoService;
       emph::geo::Geometry *fEmgeo;
+      emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
       std::vector<double> fZlocXPlanes;
       std::vector<double> fZlocYPlanes;
       std::vector<double> fZlocUPlanes;
@@ -163,6 +167,7 @@ namespace emph {
       fFilesAreOpen(false),
       fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
       fSSDClsLabel (pset.get<std::string>("SSDClsLabel")),
+      fSSDAlignmentResult(pset.get<std::string>("SSDAlignmentResult", "none")),   
       fDumpClusters (pset.get<bool>("dumpClusters", false)),
       fSelectHotChannels (pset.get<bool>("selectHotChannels", false)),
       fSelectHotChannelsFromHits (pset.get<bool>("selectHotChannelsFromHits", false)),
@@ -179,7 +184,7 @@ namespace emph {
       fNumMaxIterAlignAlgo1 (pset.get<int>("NumMaxIterAlignAlgo1", 1000)),
       fChiSqCutAlignAlgo1 (pset.get<double>("ChiSqCutAlignAlgo1", 1000.)),
       fSetMCRMomentum (pset.get<double>("SetMCRMomentum", 120.)),
-      fGeoService(), fEmgeo(nullptr), 
+      fGeoService(), fEmgeo(nullptr), fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
       fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
     {
        std::cerr << " Constructing StudyOneSSDClusters " << std::endl;
@@ -252,15 +257,22 @@ namespace emph {
       fAlignUV.SetChiSqCutY(aChiSqCut3DUVXY); 
       fAlignUV.SetChiSqCut(aChiSqCut3DUVUV); 
       fAlignUV.SetTokenJob(fTokenJob);
+      fAlignUV.SetDo3DFit(true);
       
+      // Upload the latest alignment 
+      const std::string alignParamsStr = pset.get<std::string>("alignParamFileName");
+      const char *pathHere = std::getenv("CETPKG_BUILD");
+      const std::string ffName(pathHere + std::string("/") + alignParamsStr) ;
+      std::cerr << " StudyAllTrial1Algo1::reconfigure, uploading alignment data from file " << ffName << std::endl;
+      if (ffName.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(ffName); 
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }
     void emph::StudyOneSSDClusters::beginRun(art::Run const &run)
     {
+      std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
       if (fXYUVLabels.size() != 0) return; // Initialization already done, skip 
       // Assume th same geometry for all sub runs (this is called for every subruns, it turns out.. ) 
-      std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
-      
+      std::cerr << " ...... About to call the gemetry service....  " << std::endl;      
       fEmgeo = fGeoService->Geo();
       if ( fXYUVLabels.size() == 0) { 
         for (int kSt = 0; kSt != 6; kSt++) {
@@ -351,6 +363,14 @@ namespace emph {
         fAlignX.SetForMomentum(fSetMCRMomentum); fAlignY.SetForMomentum(fSetMCRMomentum);
 	fAlignUV.SetForMomentum(fSetMCRMomentum);
       }
+      // Check the magnetic field.. 
+      art::ServiceHandle<emph::MagneticFieldService> bField;
+      emph::MagneticField *fMagField = bField->Field();
+//      fMagField->SetVerbosity(1);
+//      emph::TestEmphMagneticField testMag(fMagField);
+//      testMag.test2(); 
+//      std::cerr << " And quit after testing integration.. " << std::endl; exit(2);
+//      
       std::cerr  << std::endl << " ------------- End of StudyOneSSDClusters::beginRun ------------------" << std::endl << std::endl;
     }
     

@@ -81,7 +81,7 @@ namespace emph {
       double pMomTmp = (1.0/pars[4]); 
       
       const bool neglectFringeFieldUp = false; 
-      const bool neglectFringeFieldDown = true; 
+      const bool neglectFringeFieldDown = false; 
       if (fDebugIsOn) {
          std::cerr << "... x0 " << x0 << " slx0 " << slx0 << " y0 " << y0 << " sly0 " << sly0;
 	 if (pars.size() == 5) std::cerr << " pMom " << 1.0/pars[4]; 
@@ -104,7 +104,7 @@ namespace emph {
         if (fIntegrationStep > 1.0e-6) {
           // Compute the expected kick, define intercepts and slopes downstream of the magnet, based on the Magneticfield integrator class. 
 	  // Take into account the effect of the fringe field.. 
-          const int Q = (pars[4] > 0.) ? -1 : 1 ; // Let us flipt the sign of the charge.. The X coordinate has been flipped, perhaps... 
+          const int Q = (pars[4] > 0.) ? 1 : -1 ; // Let us flipt the sign of the charge.. The X coordinate has been flipped, perhaps... 
 //         const double stepAlongZ = fIntegrationStep * (std::abs(pars[4])/120.);
           const double stepAlongZ = fIntegrationStep; // such we don't introduce suspicious correlations.. 
           std::vector<double> startMag(6, 0.); std::vector<double> endMag(6, 0.); 
@@ -170,7 +170,7 @@ namespace emph {
 	  if (!neglectFringeFieldDown) { 
 	    	      
 	    zLocUpstreamMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 4);
-	    zLocDownstrMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 6);
+	    zLocDownstrMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 5);
 	    if (fDebugIsOn) std::cerr << " Downstream fringe  zLocUpstreamMagnet " <<  zLocUpstreamMagnet << " Downstream " << zLocDownstrMagnet << std::endl;
             startMag[0] = xPredAtSt[2];  
             startMag[1] = yPredAtSt[2]; 
@@ -185,10 +185,10 @@ namespace emph {
             double slx3 = endMag[3]/pMomTmp; double sly3 = endMag[4]/pMomTmp;
             xPredAtSt[3] = endMag[0]; yPredAtSt[3] = endMag[1];
 	  // correction for the small difference of X and Y planes. 
-	    const double ddZXYE = fEmVolAlP->ZPos(emph::geo::Y_VIEW, 6) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 6); 
+	    const double ddZXYE = fEmVolAlP->ZPos(emph::geo::Y_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 5); 
 	    yPredAtSt[3] +=  ddZXYE*sly3;
             if (fDebugIsOn) 
-	       std::cerr << " ..... After the Downstream fringe field, xPred " << xPredAtSt[5] << " yPred " <<  yPredAtSt[5] 
+	       std::cerr << " ..... After the Downstream fringe field, xPred " << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] 
 		      << " X Slope " << slx3 << " Y Slope " << sly3 <<  std::endl; 
 	 } else {
 	   xPredAtSt[3] = xPredAtSt[2] + slx2*(fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 4)); 
@@ -224,8 +224,8 @@ namespace emph {
 	fResids[kStD+4] = dy;
         chi2 += dy*dy / (yErr*yErr);
        }  
-//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
-      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we stop here...  " << std::endl; exit(2);}
+      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
+//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we stop here...  " << std::endl; exit(2);}
       fLastChi2 = chi2;
       return chi2;
     }

@@ -180,7 +180,8 @@ namespace emph {
          size_t kuy = 0;
 	 const double angleRollX = fEmVolAlP->Roll(emph::geo::X_VIEW, kSt, kSeX);
 	 const double angleRollCenterX = fEmVolAlP->RollCenter(emph::geo::X_VIEW, kSt, kSeX);
-	 if (fDebugIsOn) std::cerr << " .... xDat " << xDat.first << " +- " << std::sqrt(xDat.second) << std::endl; 
+	 if (fDebugIsOn) std::cerr << " .... xDat " << xDat.first << " +- " << std::sqrt(xDat.second) 
+	                           <<  " angleRollX " << angleRollX << " center " << angleRollCenterX <<  std::endl; 
          for(std::vector<rb::SSDCluster>::const_iterator itClY = aSSDClsPtr->cbegin(); itClY != aSSDClsPtr->cend(); itClY++, kuy++) {
            if (fClUsages[kuy] != 0) continue;
            if (itClY->Station() != fStationNum) continue;
@@ -210,8 +211,10 @@ namespace emph {
 	   }
 	   const double angleRollY = fEmVolAlP->Roll(emph::geo::Y_VIEW, kSt, kSeY);
 	   const double angleRollCenterY = fEmVolAlP->RollCenter(emph::geo::Y_VIEW, kSt, kSeY);
-	   const double xValCorr = xDat.first + (yDat.first - angleRollCenterX) * angleRollX; 
-	   const double yValCorr = yDat.first + (xDat.first - angleRollCenterY) * angleRollY;
+	   const double xValCorr = xDat.first - (yDat.first - angleRollCenterX) * angleRollX; // sign change with respect to the fit.. we want the model value. 
+	   const double yValCorr = yDat.first - (xDat.first - angleRollCenterY) * angleRollY;
+//	   const double xValCorr = xDat.first + (yDat.first - angleRollCenterX) * angleRollX; 
+//	   const double yValCorr = yDat.first + (xDat.first - angleRollCenterY) * angleRollY;
 //   Now presumably correct.  Sept 8 2023. token job Run_1274_NoTgt31Gev_ClSept_A1e_1o1, or _c7
 	   const double uPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
 	   const double vPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);

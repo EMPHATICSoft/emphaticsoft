@@ -46,6 +46,7 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
 #include "MagneticField/service/MagneticFieldService.h"
+#include "MagneticField/test/TestEmphMagneticField.h"
 #include "Geometry/service/GeometryService.h"
 #include "SSDReco/SSDRecUpstreamTgtAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
@@ -252,6 +253,10 @@ namespace emph {
       } // on stations... 
       art::ServiceHandle<emph::MagneticFieldService> bField;
       emph::MagneticField *fMagField = bField->Field();
+//      fMagField->SetVerbosity(1);
+//      emph::TestEmphMagneticField testMag(fMagField);
+//       testMag.test2(); 
+//      std::cerr << " And quit after testing integration.. " << std::endl; exit(2);
 //      
       // October 12, need to check the new alignment.. In Z.. Jonathan looked at at it Probably, very likely, O.K... 
 //      fMagField->G4GeomAlignIt(fEmgeo);
@@ -405,7 +410,7 @@ namespace emph {
       if (!fDoIronBrick) { 
         fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum); 
         fUpStreamBeamTrRec.recoXY(fSSDClsPtr);
-	if ((fNEvents < 25000) && (fNumClUpstr < 6) ) fUpStreamBeamTrRec.dumpXYInforR(INT_MAX);
+//	if ((fNEvents < 25000) && (fNumClUpstr < 6) ) fUpStreamBeamTrRec.dumpXYInforR(INT_MAX);
         //
         // Cuts on beam track here. 
         //

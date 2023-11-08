@@ -35,7 +35,7 @@ namespace emph {
        fView('?'), fStation(2), fSensor(2),
        fPitch(0.06), fHalfWaferWidth(0.5*static_cast<int>(fNumStrips)*fPitch), fNumIterMax(10), 
        fChiSqCut(20.), fChiSqCutX(500.), fChiSqCutY(100.), fMomentumInit3DFit(120), fNoMagnet(false),
-       fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
+       fTokenJob("undef"), fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), fMagShift(3, 0.),
        fZCoordXs(fNumStations, 0.), fZCoordYs(fNumStations, 0.), fZCoordUs(2, 0.), fZCoordVs(4, 0.),
        fFittedResidualsX(fNumStations, 0.), fFittedResidualsY(fNumStations, 0.),
        fPitchAngles(fNumStations, 0.), fPitchAnglesAlt(fNumStations, 0.), 
@@ -151,11 +151,12 @@ namespace emph {
         const int numMaxH2345 = 3; // Could become a run time parameter. Not yet!.. loops below don't allow it
         bool debugIsOn = (fEvtNum < 25); 
         std::vector<int> nHits(fNumStations, 0); int nHitsTotal = aSSDClsPtr->size();
-	if (debugIsOn && (theView == emph::geo::X_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXX. X view, at event " 
+	if (debugIsOn && (theView == emph::geo::X_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXY. X view, at event " 
 	                         << fEvtNum << " number of clusters " << nHitsTotal <<  std::endl;
-	if (debugIsOn && (theView == emph::geo::Y_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXX. Y view, at event " 
+	if (debugIsOn && (theView == emph::geo::Y_VIEW)) std::cerr << " SSDAlign3DUVAlgo1::recoXY. Y view, at event " 
 	                         << fEvtNum << " number of clusters " << nHitsTotal <<  std::endl;
-//
+//      
+        if (debugIsOn) std::cerr << " ... Number of loaded cluster for 3D fit so far .. " << fDataFor3DFit.size() << std::endl;
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsFirst(fNumStations, aSSDClsPtr->cend());
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrs2nd(fNumStations, aSSDClsPtr->cend());
         std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrs3rd(fNumStations, aSSDClsPtr->cend());
@@ -272,6 +273,7 @@ namespace emph {
 	std::vector<double> tsDataAlt(tsData); 
 	std::vector<double> tsDataAltErr(tsDataErr);
 	double chiSqBest = DBL_MAX;
+	const double assumedP = 4.0;
 	//
 	for (int i2 = 0; i2 != numMaxH2345; i2++) {
 	  std::vector<rb::SSDCluster>::const_iterator itcl2 = mySSDClsPtrsFirst[2];	 
@@ -279,13 +281,9 @@ namespace emph {
 	  if (i2 == 2) itcl2 = mySSDClsPtrs3rd[2];
 	  if (itcl2 == aSSDClsPtr->cend()) continue; //do not allow for missing hits... 
 	  double aStrip2 = itcl2->WgtAvgStrip();
-	  if (theView == emph::geo::X_VIEW) {
-	    tsDataAlt[2] = myConvertX.GetTsFromCluster(itcl2->Station(), itcl2->Sensor(), aStrip2);
-	    tsDataAltErr[2] = myConvertX.GetTsUncertainty(itcl2->Station(), itcl2);
-	  } else {
-	    tsDataAlt[2] = myConvertY.GetTsFromCluster(itcl2->Station(), itcl2->Sensor(), aStrip2);
-	    tsDataAltErr[2] = myConvertY.GetTsUncertainty(itcl2->Station(), itcl2);
-	  }
+	  const std::pair<double, double> tsTmp = myConvertX.getTrCoord(itcl2, assumedP);  // The functionality ConvertX and ConvertY are now in the same 
+	  tsDataAlt[2] = tsTmp.first;
+	  tsDataAltErr[2] = tsTmp.second;
 	 
 	  for (int i3 = 0; i3 != numMaxH2345; i3++) {
 	    std::vector<rb::SSDCluster>::const_iterator itcl3 = mySSDClsPtrsFirst[3];	 
@@ -293,13 +291,9 @@ namespace emph {
 	    if (i3 == 2) itcl3 = mySSDClsPtrs3rd[3];
 	    if (itcl3 == aSSDClsPtr->cend()) continue;
 	    double aStrip3 = itcl3->WgtAvgStrip();
-	    if (theView == emph::geo::X_VIEW) {
-	      tsDataAlt[3] = myConvertX.GetTsFromCluster(itcl3->Station(), itcl3->Sensor(), aStrip3);
-	      tsDataAltErr[3] = myConvertX.GetTsUncertainty(itcl3->Station(), itcl2);
-	    } else {
-	      tsDataAlt[3] = myConvertY.GetTsFromCluster(itcl3->Station(), itcl3->Sensor(), aStrip3);
-	      tsDataAltErr[3] = myConvertY.GetTsUncertainty(itcl3->Station(), itcl3);
-	    }
+	    const std::pair<double, double> tsTmp = myConvertX.getTrCoord(itcl3, assumedP);  // The functionality ConvertX and ConvertY are now in the same 
+	    tsDataAlt[3] = tsTmp.first;
+	    tsDataAltErr[3] = tsTmp.second;
 	    
 	    for (int i4 = 0; i4 != numMaxH2345; i4++) {
 	      std::vector<rb::SSDCluster>::const_iterator itcl4 = mySSDClsPtrsFirst[4];	 
@@ -307,13 +301,9 @@ namespace emph {
 	      if (i4 == 2) itcl4 = mySSDClsPtrs3rd[4];
 	      if (itcl4 == aSSDClsPtr->cend()) continue;
 	      double aStrip4 = itcl4->WgtAvgStrip();
-	      if (theView == emph::geo::X_VIEW) {
-	        tsDataAlt[4] = myConvertX.GetTsFromCluster(itcl4->Station(), itcl4->Sensor(), aStrip4);
-	        tsDataAltErr[4] = myConvertX.GetTsUncertainty(itcl4->Station(), itcl4);
-	      } else {
-	        tsDataAlt[4] = myConvertY.GetTsFromCluster(itcl4->Station(), itcl4->Sensor(), aStrip4);
-	        tsDataAltErr[4] = myConvertY.GetTsUncertainty(itcl4->Station(), itcl4);
-	      }
+	      const std::pair<double, double> tsTmp = myConvertX.getTrCoord(itcl4, assumedP);  // The functionality ConvertX and ConvertY are now in the same 
+	      tsDataAlt[4] = tsTmp.first;
+	      tsDataAltErr[4] = tsTmp.second;
 	    
 	      for (int i5 = 0; i5 != numMaxH2345; i5++) {
 	        std::vector<rb::SSDCluster>::const_iterator itcl5 = mySSDClsPtrsFirst[5];	 
@@ -321,13 +311,9 @@ namespace emph {
 	        if (i5 == 2) itcl5 = mySSDClsPtrs3rd[5];
 	        if (itcl5 == aSSDClsPtr->cend()) continue;
 	        double aStrip5 = itcl5->WgtAvgStrip();
-	      if (theView == emph::geo::X_VIEW) {
-	        tsDataAlt[5] = myConvertX.GetTsFromCluster(itcl5->Station(), itcl5->Sensor(), aStrip5);
-	        tsDataAltErr[5] = myConvertX.GetTsUncertainty(itcl5->Station(), itcl5);
-	      } else {
-	        tsDataAlt[5] = myConvertY.GetTsFromCluster(itcl5->Station(), itcl5->Sensor(), aStrip5);
-	        tsDataAltErr[5] = myConvertY.GetTsUncertainty(itcl5->Station(), itcl5);
-	      }
+	        const std::pair<double, double> tsTmp = myConvertX.getTrCoord(itcl5, assumedP);  // The functionality ConvertX and ConvertY are now in the same 
+	        tsDataAlt[5] = tsTmp.first;
+	        tsDataAltErr[5] = tsTmp.second;
 		
 		if (theView == emph::geo::X_VIEW) {  
                   myLinFitX.fitLin(false, tsDataAlt, tsDataAltErr);		
@@ -379,7 +365,7 @@ namespace emph {
        // For now, we take all U or V hits, for the fit later on.  But, we always take only the first encountered hit.   
        //
        
-       bool debugIsOn = (fEvtNum < 2);    
+       bool debugIsOn = (fEvtNum == 5) ;    
      
        if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::RecoUV, view Index " << view  
                  << " nunH " << aSSDClsPtr->size() << "  working on it.. " << std::endl;
@@ -419,30 +405,62 @@ namespace emph {
                                 << minNumHits << " actual number of Hits " << fDataFor3DFit.size() << std::endl;
        if (debugIsOn && fNoMagnet) std::cerr << " ..........  Magnet has been removed... " << std::endl;
        if (debugIsOn && (!fNoMagnet)) std::cerr << " ..........  Magnet is in the beam line.. " << std::endl;
-     
        if (fDataFor3DFit.size() < minNumHits) return false; // other cuts possible. 
+       if (debugIsOn) {
+         std::cerr << " Input Data.. for " << fDataFor3DFit.size() << " clusters...  " << std::endl;
+         for (size_t k = 0; k != fDataFor3DFit.size(); k++) {
+	   myItCl aItCl = fDataFor3DFit[k];
+	   std::cerr << " Station  " << aItCl->Station() << " View " << aItCl->View() 
+	             << " Sensor " << aItCl->Sensor() << " strip " << aItCl->WgtAvgStrip() << std::endl; 
+         }
+	 std::cerr << " ----------------- " << std::endl;  std::cerr << std::endl;
+       }
        if (myNonLin3DFitPtr == nullptr) {
           myNonLin3DFitPtr = new SSD3DTrackFitFCNAlgo1(fRunNum);
           myNonLin3DFitPtr->SetMagnetShift(fMagShift); 
        }
-       myNonLin3DFitPtr->SetDebugOn(debugIsOn);
+       myNonLin3DFitPtr->SetDebugOn(false);
        myNonLin3DFitPtr->SetInputClusters(fDataFor3DFit);
        myNonLin3DFitPtr->ResetZpos();
        myNonLin3DFitPtr->SetExpectedMomentum(fMomentumInit3DFit); 
-       if (fRunNum == 1293)  myNonLin3DFitPtr->SetMCFlag(true); // Very, very ugly, but let us move on..  
+//       if (fRunNum == 1293)  myNonLin3DFitPtr->SetMCFlag(true); // Nov 5 2023..   Should be obsolete.. To be checked..  
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsOut, parsOutErr;
        double x0Start =  fTrXY.XOffset(); double y0Start =  fTrXY.YOffset();
-       // Debugging the coordinate transform, something is wrong for Y positive, track, few mm above the gap.  
- //      if (fEvtNum == 5) { x0Start = -14.476; y0Start = 16.3339; }
+       double x0StartSlope = fTrXY.XSlope(); double y0StartSlope = fTrXY.YSlope();
+       if (debugIsOn) {
+         std::cerr <<  " Rough XY fit, x0Start " << x0Start << " xSlope " << fTrXY.XSlope() << " y0 Start " 
+	           <<  y0Start << " YSlope " << fTrXY.YSlope()  << std::endl;
+         if (fEvtNum == 5) {
+           std::cerr << "  Event 5, spill 10 run 1274 debugging, overwritin x and y at station 0, and momenum  " << std::endl;
+	   x0Start = -7.52997; 
+	   y0Start = 2.06998; 
+	   x0StartSlope = 0.0005; 
+	   y0StartSlope = 0.0002; 
+         }
+         if (fEvtNum == 7) {
+           std::cerr << "  Event 7, spill 10 run 1274 debugging, overwritin x and y at station 0, and momenum  " << std::endl;
+	   x0Start = -2.91699; 
+	   y0Start = -2.43002; 
+	   x0StartSlope = 0.0005; 
+	   y0StartSlope = 0.0002; 
+         }
+       }
+       
        uPars.Add(std::string("X_0"), x0Start, 0.1, -20., 20.);  
-       uPars.Add(std::string("Slx_0"), 0.00037808, 0.001, -0.1, 0.1);  // for Misligned 7c. No magnet Misalignament flag 25000025, Dgap = 3.0 mm  
+       uPars.Add(std::string("Slx_0"), x0StartSlope, 0.001, -0.1, 0.1);  // for Misligned 7c. No magnet Misalignament flag 25000025, Dgap = 3.0 mm  
        uPars.Add(std::string("Y_0"), y0Start, 0.1, -20., 20.);  
-       uPars.Add(std::string("Sly_0"), -0.00244194, 0.001, -0.1, 0.1); 
+       uPars.Add(std::string("Sly_0"), y0StartSlope, 0.001, -0.1, 0.1); 
        unsigned int nPars = 4; 
        if (!fNoMagnet) {
           nPars++;
-          uPars.Add(std::string("Mom"), fMomentumInit3DFit, 2., 0.5*fMomentumInit3DFit, 1.5*fMomentumInit3DFit); 
+	  double pMin = (fMomentumInit3DFit > 0.) ? 0.01*fMomentumInit3DFit : -1.0*std::min(-5.0*fMomentumInit3DFit, 250.);
+	  double pMax = (fMomentumInit3DFit > 0.) ? std::min(5.0*fMomentumInit3DFit, 250.) : 0.01*fMomentumInit3DFit;
+	  double pStart = fMomentumInit3DFit; 
+	  if (fEvtNum == 5) pStart = 31.0;  
+          myNonLin3DFitPtr->SetExpectedMomentum(pStart); 
+          uPars.Add(std::string("Mom"), 0.5*pStart, 2., pMin, pMax); 
+	  if (debugIsOn) std::cerr << " Adding momentum parameter , start val " << fMomentumInit3DFit << " Limits " << pMin << ", " << pMax << std::endl;
        } 
        std::vector<double> initValsV, initValsE; // for use in the Simple Minimizer.. 
        for (unsigned int k=0; k != nPars; k++) { initValsV.push_back(uPars.Value(k)); initValsE.push_back(uPars.Error(k)); } 
@@ -529,6 +547,7 @@ namespace emph {
        double aTrXCovOffSl = fTrXY.XCovOffSl(); double aTrYCovOffSl = fTrXY.YCovOffSl();
        	 
        double xPred, yPred, xPredErrSq, yPredErrSq;
+       const double assumedPMom = 4.0; // to compute multiple scattering error.. low momentum, big uncertainties for now.. 
        char cView = '?';
        switch (view) {
          case emph::geo::U_VIEW :
@@ -560,8 +579,8 @@ namespace emph {
 	   exit(2);
          } 
        }
-      const double uPred = fOneOverSqrt2 * (-xPred + yPred);  // + or - ?? Now, check on simulated data.. 
-      const double wPred = -1.0*fOneOverSqrt2 * (xPred + yPred);  // + or - 
+      const double uPred = fOneOverSqrt2 * (xPred + yPred);  // Oct-Nov 2023.. 
+      const double wPred = -1.0*fOneOverSqrt2 * (-xPred + yPred);  // + or - 
       if (debugIsOn) {
            if (xPredErrSq < 0.) std::cerr << " .... ???? Negative predicted uncertainty for X , problem with covariance of linFit " << std::endl;
            if (yPredErrSq < 0.) std::cerr << " .... ???? Negative predicted uncertainty for Y , problem with covariance of linFit " << std::endl;
@@ -576,19 +595,14 @@ namespace emph {
           if (itCl->View() != view) continue;
 	  const size_t kSt = static_cast<size_t>(itCl->Station());
           if (kSt != kStation) continue;
-          const double aStrip = itCl->WgtAvgStrip();
-	  const double uvObs = (view == emph::geo::U_VIEW) ?  myConvertU.GetTsFromCluster(kStation, itCl->Sensor(), aStrip)
-	                       :  myConvertV.GetTsFromCluster(kStation, itCl->Sensor(), aStrip);  
+	  const std::pair<double,double> uvObsP =  myConvertU.getTrCoord(itCl, assumedPMom);
 	  // special case for station 5, sometimes.. 
-	  if ((kSt == 5) && (itCl->View() != emph::geo::U_VIEW)) {
-	    if (debugIsOn) std::cerr << " ... .... W or V view, Sensor " << itCl->Sensor() <<  std::endl;
-	  } 
-	  const double uvObsUncert = (view == emph::geo::U_VIEW) ? myConvertU.GetTsUncertainty(kStation, itCl)
-	                              : myConvertV.GetTsUncertainty(kStation, itCl);
+	  const double uvObs = uvObsP.first;
+	  const double uvObsUncert = uvObsP.second;
 	  const double uvUncertSq = uvObsUncert*uvObsUncert + 0.5 * (xPredErrSq + yPredErrSq);
 	  double duv = (view == emph::geo::U_VIEW) ? (uPred - uvObs) : (wPred - uvObs);
 	  double chi= (duv*duv/uvUncertSq);
-	  if (debugIsOn) std::cerr << " ... strip " << aStrip << " U or V Obs " << uvObs 
+	  if (debugIsOn) std::cerr << " ... strip " << itCl->WgtAvgStrip() << " U or V Obs " << uvObs 
 	                          << " duv " << duv << " chiSq " << chi << std::endl;
 	  if (chi < chiBest) {
 	    uvObsBest = uvObs;
@@ -619,9 +633,10 @@ namespace emph {
        fRunNum = evt.run();
        fTrXY.Reset();
        if (!fFOutXYU.is_open()) this->openOutputCsvFiles();
-        bool debugIsOn = fEvtNum < 25;
-       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::alignIt, at event " << fEvtNum << std::endl;
-      
+       bool debugIsOn = fEvtNum == 5;
+       if (debugIsOn) std::cerr << " SSDAlign3DUVAlgo1::alignIt, at event " << fEvtNum << std::endl; 
+       fDataFor3DFit.clear();
+       
        bool gotX = this->recoXY(emph::geo::X_VIEW, aSSDClsPtr);
        if (gotX) {
           if (debugIsOn) std::cerr << " Got a 2d XZ track... for evt " << fEvtNum << std::endl;
@@ -653,6 +668,7 @@ namespace emph {
 	 if (numUVCheck == 3) fTrXY.SetType(rb::XYUCONF3);
 	 if (numUVCheck == 4) fTrXY.SetType(rb::XYUCONF4);
 	 if (fDo3DFit) {
+	   if (debugIsOn) std::cerr << " .... Considering doing a 3D fit but first check on rough UV constraints... " << std::endl; 
 	   int nnU = this->recoUV(emph::geo::U_VIEW, aSSDClsPtr);
 	   int nnV = this->recoUV(emph::geo::W_VIEW, aSSDClsPtr);
 	   if (debugIsOn) std::cerr << " .... Considering doing a 3D fit with nnU " << nnU << " and nnV " << nnV << std::endl; 

@@ -159,7 +159,7 @@ namespace emph {
         
      }
      
-     std::pair<double, double> ConvertDigitToWCoordAlgo1::getTrCoord(std::vector<rb::SSDCluster>::const_iterator itCl, double pMomMultScatErr) { 
+     std::pair<double, double> ConvertDigitToWCoordAlgo1::getTrCoord(std::vector<rb::SSDCluster>::const_iterator itCl, double pMomMultScatErr) const { 
      
      // This code fragment is also found in SSD3DTrackFitFCNAlgo1.. Need clean-up...  
  	const double strip = itCl->WgtAvgStrip();
@@ -186,11 +186,11 @@ namespace emph {
 	if (aView == emph::geo::X_VIEW) {
 	  tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	  if ((kSt == 2) || (kSt == 3)) tMeas =  -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe);
-//	  if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
+	  if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
 	} else if (aView == emph::geo::Y_VIEW) {
 	  tMeas = (kS < 4) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
 			     ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10
-	  if ((kSe == 2) && (kSt > 3)) tMeas *= -1.0;
+	  if (((kSe % 2) == 0) && (kSt > 3)) tMeas *= -1.0;
 	} else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
 	  if (kSt < 4) { // Sept 1- Sep5  attempt at sorting out orientations.. 
 	    tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));

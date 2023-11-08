@@ -19,6 +19,7 @@
 #include "MagneticField/MagneticField.h"
 #include "RecoBase/SSDCluster.h" 
 #include "SSDReco/VolatileAlignmentParams.h" 
+#include "SSDReco/ConvertDigitToWCoordAlgo1.h" 
 
 namespace emph{ 
   namespace ssdr {
@@ -35,6 +36,7 @@ namespace emph{
       art::ServiceHandle<emph::geo::GeometryService> fGeoService;
       emph::geo::Geometry *fEmgeo;
       emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+      emph::ssdr::ConvertDigitToWCoordAlgo1 fMyConvert;
       emph::MagneticField *fMagField;
       bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
       bool fDebugIsOn;

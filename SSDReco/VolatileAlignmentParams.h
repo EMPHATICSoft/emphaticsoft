@@ -122,8 +122,14 @@ namespace emph{
 	    case emph::geo::Y_VIEW :  { 
 	      size_t kS =  (kSt > 3) ? (4 + (kSt-4)*2 + kSe % 2) : kSt;
 	      return (fZPosY[kS]); } 
-	    case emph::geo::U_VIEW :  { std::cerr << " VolatileAlignmentParams::ZPos, real mess, unexpected case U_VIEW, fatal...  " << std::endl; exit(2); } 
-	    case emph::geo::W_VIEW :  { std::cerr << " VolatileAlignmentParams::ZPos, real mess, unexpected case W_VIEW, fatal...  " << std::endl; exit(2); }
+	    case emph::geo::U_VIEW :  { 
+	       //  std::cerr << " VolatileAlignmentParams::ZPos, real mess, unexpected case U_VIEW, fatal...  " << std::endl; exit(2); } 
+	      return fZPosSt2and3[kSt-2];
+	    }  
+	    case emph::geo::W_VIEW :  { 
+	    // std::cerr << " VolatileAlignmentParams::ZPos, real mess, unexpected case W_VIEW, fatal...  " << std::endl; exit(2); }
+	      return fZPosSt4and5[2*(kSt-4)];
+	    }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::ZPos, unknown view " << view << " fatal, quit " << std::endl; 
 	      exit(2);  } 

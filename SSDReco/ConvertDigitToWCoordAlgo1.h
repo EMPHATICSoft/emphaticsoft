@@ -177,7 +177,7 @@ namespace emph {
 //
 // New version... To be included in SSD3DTrackFitFCNAlgo1, at some point... Or, this entire class could go away.. 
 	 
-	 std::pair<double, double> getTrCoord(std::vector<rb::SSDCluster>::const_iterator it, double pMomMultScatter); 
+	 std::pair<double, double> getTrCoord(std::vector<rb::SSDCluster>::const_iterator it, double pMomMultScatter) const; 
 	 // the 2nd argument is the presumed momentum, to compute the multiple scattering uncertainty. Target not included.  
 	 // the pair is (coord, corrdErrSquared)  
 	 double getTrCoordRoot(std::vector<rb::SSDCluster>::const_iterator it); // Via the Root based geometry, as in the event display..  

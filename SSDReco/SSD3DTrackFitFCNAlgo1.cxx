@@ -31,8 +31,8 @@ namespace emph {
     FCNBase(),
     fGeoService(),  
     fEmgeo(fGeoService->Geo()),
-    fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), 
-    fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(20.0), // last parameter might need some tuning.. This is the value at 120 GeV.
+    fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fMyConvert('A'),  
+    fMagField(nullptr), fIsMC(false), fDebugIsOn(false), fIntegrationStep(3.0), // last parameter might need some tuning.. This is the value at 31 GeV.
     fExpectedMomentum(30.), // expected momentum, used to compute the mult. scattering uncertainty. 
     fNumSensorsTotal(2*fEmVolAlP->NumSensorsXorY() + fEmVolAlP->NumSensorsU() + fEmVolAlP->NumSensorsV()),
     fData(), fNoMagnet(false), fZPos(), fMagShift(3, 0.),
@@ -58,12 +58,14 @@ namespace emph {
       if ((!fNoMagnet) && (std::abs(pars[4]) < 0.5)) return 5.0e10; 
        // if Mininuit attemps to change the sign of momentum, or jumps too far, assign  a very large chi-square. 
       if (fZPos.size() == 0) this->getZPos();
+      if (fDebugIsOn) std::cerr << " .... Got the Z positions " << std::endl;
       if (fNoMagnet) {  
 	 assert(pars.size() == 4);
       } else {
 	 assert(pars.size() == 5);
       }
       const double zMag = fEmVolAlP->ZCoordsMagnetCenter();
+      if (fDebugIsOn) std::cerr << " Z Magnet coordinate " << zMag << std::endl;
       const double kick = fEmVolAlP->MagnetKick120GeV(); // only for debugging, we use the magnetic field intgrator. 
       double chi2 = 0.;
       const double x0 = pars[0]; 
@@ -71,7 +73,7 @@ namespace emph {
       const double y0 = pars[2]; 
       const double sly0 = pars[3];
       const bool neglectFringeFieldUp = false; 
-      const bool neglectFringeFieldDown = true; 
+      const bool neglectFringeFieldDown = false; 
       if (fDebugIsOn) {
          std::cerr << "... x0 " << x0 << " slx0 " << slx0 << " y0 " << y0 << " sly0 " << sly0;
 	 if (pars.size() == 5) std::cerr << " pMom " << pars[4]; 
@@ -79,7 +81,7 @@ namespace emph {
       }
       std::vector<double> xPredAtSt(6, 0.); // Phase1b 
       std::vector<double> yPredAtSt(6, 0.);
-      const size_t numStationInStraightLine = (fNoMagnet) ? 6 : 4; // Phase1b 
+      const size_t numStationInStraightLine = (fNoMagnet) ? 6 : 3; // Phase1b , but check neglected fring fields.. 
       for (size_t kSt=0; kSt != numStationInStraightLine; kSt++) {
         size_t kSe = (kSt > 3) ? (4 + (kSt-4)*2 ) : kSt; // In phase1b, z Position are identical for sensors 4 and 5 , same with 6 == 7 
         xPredAtSt[kSt] = x0 + slx0*(fEmVolAlP->ZPos(emph::geo::X_VIEW, kSt, kSe) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 0));
@@ -93,7 +95,7 @@ namespace emph {
         if (fIntegrationStep > 1.0e-6) {
           // Compute the expected kick, define intercepts and slopes downstream of the magnet, based on the Magneticfield integrator class. 
 	  // Take into account the effect of the fringe field.. 
-          const int Q = (pars[4] > 0.) ? -1 : 1 ; // Let us flipt the sign of the charge.. The X coordinate has been flipped, perhaps... 
+          const int Q = (pars[4] > 0.) ? 1 : -1 ;  // hopefully correct.. 
 //         const double stepAlongZ = fIntegrationStep * (std::abs(pars[4])/120.);
           const double stepAlongZ = fIntegrationStep; // such we don't introduce suspicious correlations.. 
           std::vector<double> startMag(6, 0.); std::vector<double> endMag(6, 0.); 
@@ -158,7 +160,7 @@ namespace emph {
 	  if (!neglectFringeFieldDown) { 
 	    	      
 	    zLocUpstreamMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 4);
-	    zLocDownstrMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 6);
+	    zLocDownstrMagnet = fEmVolAlP->ZPos(emph::geo::X_VIEW, 5);
 	    if (fDebugIsOn) std::cerr << " Downstream fringe  zLocUpstreamMagnet " <<  zLocUpstreamMagnet << " Downstream " << zLocDownstrMagnet << std::endl;
             startMag[0] = xPredAtSt[4];  
             startMag[1] = yPredAtSt[4]; 
@@ -173,17 +175,17 @@ namespace emph {
             double slx3 = endMag[3]/pars[4]; double sly3 = endMag[4]/pars[4];
             xPredAtSt[5] = endMag[0]; yPredAtSt[5] = endMag[1];
 	  // correction for the small difference of X and Y planes. 
-	    const double ddZXYE = fEmVolAlP->ZPos(emph::geo::Y_VIEW, 6) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 6); 
+	    const double ddZXYE = fEmVolAlP->ZPos(emph::geo::Y_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 5); 
 	    yPredAtSt[5] +=  ddZXYE*sly3;
             if (fDebugIsOn) 
 	       std::cerr << " ..... After the Downstream fringe field, xPred " << xPredAtSt[5] << " yPred " <<  yPredAtSt[5] 
-		      << " X Slope " << slx3 << " Y Slope " << sly3 <<  std::endl; 
+		      << " X Slope " << slx3 << " Y Slope " << sly3 <<  std::endl << std::endl;
 	 } else {
 	   xPredAtSt[5] = xPredAtSt[4] + slx2*(fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 4)); 
 	   yPredAtSt[5] = yPredAtSt[4] + sly2*(fEmVolAlP->ZPos(emph::geo::Y_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::Y_VIEW, 4)); 
            if (fDebugIsOn) {
 	       std::cerr << " .....Negecting downstream fringe field,  after the magnet, xPred " << xPredAtSt[5] << " yPred " <<  yPredAtSt[5] 
-		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl; 		      
+		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl << std::endl; 		      
            }
 	 }
        } else { // simple kick.. 
@@ -194,7 +196,7 @@ namespace emph {
            yPredAtSt[kSt] = y0 + sly0*(fEmVolAlP->ZPos(emph::geo::Y_VIEW, kSt) - fEmVolAlP->ZPos(emph::geo::Y_VIEW, 0));
            if (fDebugIsOn) 
 	     std::cerr << " ..... After the magnet X and Y predictions, simple kick for  kSe " << kSt 
-	  	      << " kick " << kick << " xPred " << xPredAtSt[4 + (kSt-4)*2] << " yPred " <<  yPredAtSt[4 + (kSt-4)*2] << std::endl; 
+	  	      << " kick " << kick << " xPred " << xPredAtSt[4 + (kSt-4)*2] << " yPred " <<  yPredAtSt[4 + (kSt-4)*2] << std::endl << std::endl; 
           }	
         }
       } // With or without the magnet..  
@@ -237,11 +239,11 @@ namespace emph {
 //	    std::cerr << " SSD3DTrackFitFCNAlgo1::operator(), problem with accessing Z coordinates, zUgly " 
 //	              << zUgly << " kD " << kD << " Z Volatile " << zV <<  " fatal .. quit here and now...  " << std::endl; exit(2);
 //	  }  
-	  double xPred = xPredAtSt[kSt] ; double yPred = yPredAtSt[kSt]; double tPred = 0.; double tMeas = 0.;
+	  double xPred = xPredAtSt[kSt] ; double yPred = yPredAtSt[kSt]; double tPred = 0.;
 	  // Here we need to implement the transverse shift, from fEmVolAlP
 	    // Debugging for real data.. Run 1043, May 29 - May 30 
 	  const double uPred = fOneOverSqrt2 * ( xPred + yPred);
-	  const double vPred = -1.0*fOneOverSqrt2 * ( xPred + yPred);
+	  const double vPred = -1.0*fOneOverSqrt2 * ( -xPred + yPred);
 	  // T coordinate (measuring 
 	  const double angleRoll = fEmVolAlP->Roll(aView, kSt, kSe);
 	  const double angleRollCenter = fEmVolAlP->RollCenter(aView, kSt, kSe);
@@ -249,6 +251,7 @@ namespace emph {
 	    case emph::geo::X_VIEW : {
 	      tPred = xPred ; 
 	      tPred += (yPred  - angleRollCenter) * angleRoll;
+//	      if (fDebugIsOn) std::cerr << " ....angleRollCenter " << angleRollCenter << " angleRoll " << angleRoll << std::endl;
 	      break;
 	    }
 	    case emph::geo::Y_VIEW : {
@@ -269,29 +272,9 @@ namespace emph {
 	    default : { continue; }
 	    
 	  } // end of transverse coordinate prediction. 
-	  if (aView == emph::geo::X_VIEW) {
-	    tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	    if ((kSt > 3) && (kSe % 2) == 1)  tMeas *= -1.0;
-	    if (fDebugIsOn) 
-	      std::cerr << " ..... X View " << " kSe " << kSe 
-	            << " yPred " << yPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	  } else if (aView == emph::geo::Y_VIEW) {
-	    tMeas =  ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	    if (kS >= 4) tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	    if (fDebugIsOn) 
-	      std::cerr << " ..... Y View " << " kSe " << kSe 
-	            << " xPred " << xPred << " tPred " << tPred << " tMeas " << tMeas  << std::endl; 
-	  } else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
-	    if (aView == emph::geo::U_VIEW) { 
-	      tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	    } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
-	      if (kSe == 0) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Unknown, this is a place holder. 
-	      else if (kSe == 1) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
-	      else if (kSe == 2) tMeas = (-strip*pitch - fEmVolAlP->TrPos(aView, kSt, kSe));
-	      else if (kSe == 3) tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // exploring... 
-	    }
-	  }
-	  if (fDebugIsOn) 
+	  // For stip number to position along the view.
+	   
+	  const double tMeas  = fMyConvert.getTrCoord(it, fExpectedMomentum).first; 
 	    std::cerr << " ..... Coords  View " << aView << " kSe " << kSe 
 	  	  << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
 	  double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
@@ -300,30 +283,29 @@ namespace emph {
 	  const double deltaChi2 =  (dt * dt )/tMeasErrSq;
 	  chi2 += deltaChi2;
           if (fDebugIsOn) std::cerr << " ....	..... Index kSeT " << kSeT << " dt " << dt << " +- " 
-	  			   << std::sqrt(tMeasErrSq) << " multScatErr " << multScatErr  << " unknownErr " << unknownErr
-	        		   <<  " delta Chi2 " << deltaChi2 << std::endl;
+	  			   << std::sqrt(tMeasErrSq) << " multScatErr " << multScatErr  << " fExpectedMom " << fExpectedMomentum
+	        		   <<  " delta Chi2 " << deltaChi2 << std::endl << std::endl;
         } // on the SSD Clusters 
-//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
-      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
+      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; exit(2); }
+//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
       fLastChi2 = chi2;
       return chi2;
     }
      //
-     // Ugly here: access to the Z positions differe from the transverse, roll, pitch, yaw angle.. 
+     // This should no longer be neccessary...  
      // 
     void SSD3DTrackFitFCNAlgo1::getZPos() const { 
      
+      if (fDebugIsOn) std::cerr << " .... SSD3DTrackFitFCNAlgo1::getZPos(), fData.size() " << fData.size() << std::endl;   //
       if (fData.size() == 0) return;
       const double zMag = fEmVolAlP->ZCoordsMagnetCenter();
+      if (fDebugIsOn) std::cerr << " ...  zMag  " << zMag << std::endl;   //
       for (std::vector<myItCl>::const_iterator itCl = fData.cbegin(); itCl != fData.cend(); itCl++) {
         std::vector<rb::SSDCluster>::const_iterator it = *itCl;
  	const int kSt = static_cast<size_t>(it->Station());
  	const int kSe = static_cast<size_t>(it->Sensor());
-        const emph::geo::SSDStation *aStation = fEmgeo->GetSSDStation(kSt);
-        const emph::geo::Detector *aSensor = fEmgeo->GetSSDSensor(kSe);
-        TVector3 posSt = aStation->Pos();
-        TVector3 posPl = aSensor->Pos();
-	const double zz = posPl[2] + posSt[2];
+	const double zz = fEmVolAlP->ZPos(it->View(), kSt, kSe); 
+	if (fDebugIsOn) std::cerr << " .. At Station " << kSt << " View " << it->View() << " zz " << zz << std::endl;
 	fZPos.push_back(zz);
 	if (zz < zMag) fZLocUpstreamMagnet = zz;
 	if ((zz > zMag) && (fZLocDownstrMagnet == DBL_MAX)) fZLocDownstrMagnet = zz; // in a given view, assume z order for the incoming data. 
