@@ -21,7 +21,6 @@
 #include "Geant4/G4UserEventAction.hh"
 #include "Geant4/G4UserTrackingAction.hh"
 #include "Geant4/G4UserSteppingAction.hh"
-#include "Geant4/G4VisExecutive.hh"
 #include "Geant4/G4StepLimiterPhysics.hh"
 #include "Geant4/G4LogicalVolumeStore.hh"
 
@@ -44,8 +43,6 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 namespace g4b{
-
-  static G4VisExecutive* vm_ = 0;
 
   //------------------------------------------------
   // Constructor
@@ -89,7 +86,6 @@ namespace g4b{
   // Destructor
   G4Helper::~G4Helper()
   {
-    if( vm_ ) delete vm_;
 
     if ( fRunManager != 0 ){
       // In SetUserAction(), we set all the G4 user-action classes to be the
@@ -435,9 +431,6 @@ namespace g4b{
     /// Tell Geant4 to initialize the run manager.  We're ready to
     /// simulate events in the detector.
     fRunManager->Initialize();
-
-    if(!vm_) vm_ = new G4VisExecutive();
-    vm_->Initialize();
 
     // Tell the manager to execute the contents of the Geant4 macro
     // file.

@@ -130,4 +130,14 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
+ <class name="caf::SRTrackSegment" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2984398867"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+
+ <class name="caf::SRTrackSegmentBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="807789704"/>
+  <version ClassVersion="10" checksum="2"/>
+ </class>
+
 </lcgdict>

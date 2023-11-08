@@ -164,8 +164,15 @@ namespace emph {
       
       if (fIsLoaded && (fname == fGDMLFile)) // we've already opened this file, nothing to do
 	return true;
-
-      fGDMLFile = fname;
+      else if (fIsLoaded) { // need to load new geometry
+	fGDMLFile = fname;
+	delete fGeoManager;
+	fIsLoaded = false;
+	fMagnetLoad = false;
+	fSSDSensorMap.clear();
+	fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+      }
+      
       return this->LoadGDMLFile();
     }
 
