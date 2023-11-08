@@ -44,6 +44,7 @@ cet_build_plugin(StudyOneSSDClusters art::module
 	DetGeoMap
 	DetGeoMapService_service
 	MagneticField
+	MagneticField_test
 	MagneticField_service
 	RawData
 	RecoBase
@@ -85,6 +86,7 @@ cet_build_plugin(StudyAllTrial1Algo1 art::module
 	DetGeoMap
 	DetGeoMapService_service
 	MagneticField
+	MagneticField_test
 	MagneticField_service
 	RawData
 	RecoBase
