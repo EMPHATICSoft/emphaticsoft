@@ -13,10 +13,7 @@
 #include <string>
 #include <cmath>
 
-#include "TGeoManager.h"
-#include "TGeoNode.h"
-#include "TGeoVolume.h"
-#include "TGeoNavigator.h"
+#include "TGeoMatrix.h"
 
 namespace emph {
   namespace dgmap {
@@ -26,6 +23,7 @@ namespace emph {
     DetGeoMap::DetGeoMap():
       fRun(0), fGeo(0), fAlign(0)
     {
+      std::cout << "Created new DetGeoMap object!" << std::endl;
       fUseGeometry = true;      
     }
   
@@ -57,16 +55,16 @@ namespace emph {
       x0[0] = -sd->Width()/2;
       x1[0] = sd->Width()/2;
 
-      TGeoCombiTrans* T = fAlign->SSDMatrix(station,plane,sensor);
+      auto T = fAlign->SSDMatrix(station,plane,sensor);
 
       sp->LocalToMother(x0,tx0);
       sd->LocalToMother(tx0,tx1);
-      st->LocalToMother(tx1,tx0);
+      st->LocalToMother(tx1,x0);
       T->LocalToMaster(tx0,x0);
 
       sp->LocalToMother(x1,tx0);
       sd->LocalToMother(tx0,tx1);
-      st->LocalToMother(tx1,tx0);
+      st->LocalToMother(tx1,x1);
       T->LocalToMaster(tx0,x1);
 
       ls.SetX0(x0);

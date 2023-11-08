@@ -22,8 +22,6 @@
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
-//#include "art_root_io/TFileService.h"
-//#include "art_root_io/TFileDirectory.h"
 
 #include "G4Base/UserActionFactory.h"
 USERACTIONREG3(emph,TrackListAction,emph::TrackListAction)

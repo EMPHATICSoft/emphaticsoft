@@ -10,6 +10,7 @@ cet_build_plugin(AlignService art::service
   Align
   PRIVATE
   RunHistoryService_service
+  Geometry_service
   art::Framework_Services_Registry
   fhiclcpp::fhiclcpp
   BASENAME_ONLY

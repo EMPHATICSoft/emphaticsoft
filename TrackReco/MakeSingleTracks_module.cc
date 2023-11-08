@@ -827,10 +827,10 @@ namespace emph {
 	 double dx = llast01[0]-lfirst01[0];
 	 double dy = llast01[1]-lfirst01[1];
 	 double dz = llast01[2]-lfirst01[2];	 
-	 double pmag = sqrt(dx*dx + dy*dy + dz*dz);
-	 p[0] = dx/pmag;
-	 p[1] = dy/pmag;
-	 p[2] = dz/pmag;
+
+	 p[0] = dx/dz;
+	 p[1] = dy/dz;
+	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts1.SetP(p);
 	 tsv.push_back(ts1);
 
@@ -842,10 +842,10 @@ namespace emph {
 	 dx = llast234[0]-lfirst234[0];
 	 dy = llast234[1]-lfirst234[1];
 	 dz = llast234[2]-lfirst234[2];	 
-	 pmag = sqrt(dx*dx + dy*dy + dz*dz);
-	 p[0] = dx/pmag;
-	 p[1] = dy/pmag;
-	 p[2] = dz/pmag;
+
+	 p[0] = dx/dz;
+	 p[1] = dy/dz;
+	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts2.SetP(p);
 	 tsv.push_back(ts2);
 
@@ -857,10 +857,10 @@ namespace emph {
 	 dx = llast567[0]-lfirst567[0];
 	 dy = llast567[1]-lfirst567[1];
 	 dz = llast567[2]-lfirst567[2];	 
-	 pmag = sqrt(dx*dx + dy*dy + dz*dz);
-	 p[0] = dx/pmag;
-	 p[1] = dy/pmag;
-	 p[2] = dz/pmag;
+
+	 p[0] = dx/dz;
+	 p[1] = dy/dz;
+	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts3.SetP(p);
 	 tsv.push_back(ts3);
 

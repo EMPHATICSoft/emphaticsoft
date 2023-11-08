@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 /// \file    Geometry.h
 /// \brief
 /// \version 
@@ -237,6 +237,8 @@ namespace emph {
 
       TGeoManager* ROOTGeoManager() const { return fGeoManager; }
 
+      bool IsLoaded() const { return fIsLoaded; }
+
     private:
       Geometry();
 
@@ -247,6 +249,8 @@ namespace emph {
       void ExtractMagnetInfo(const TGeoVolume* v);
       void ExtractSSDInfo(const TGeoNode* n);
       void ExtractTargetInfo(const TGeoVolume* v);
+
+      bool fIsLoaded;
 
       std::string fGDMLFile;
 

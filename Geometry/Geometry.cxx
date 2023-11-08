@@ -121,8 +121,11 @@ namespace emph {
     //--------------------------------------------------------------------------------
 
     Geometry::Geometry() :
-      fGDMLFile("")
+      fIsLoaded(false), fGDMLFile("")
     {
+      fNSSDStations = 0;
+      fNSSDPlanes = 0;
+      fNSSDs = 0;
       fTarget = 0;
       fGeoManager = 0;
       fSSDSensorMap.clear();
@@ -130,18 +133,23 @@ namespace emph {
       fMagnetDSZPos = -1e6;
       fTargetUSZPos = -1e7;
       fTargetDSZPos = -1e7;
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
+      std::cout << "Created new Geometry object!" << std::endl << std::flush;
     }
 
     //--------------------------------------------------------------------------------
 
     Geometry::Geometry(std::string fname) :
-      fGDMLFile(fname), fSSDStation(0)
+      fIsLoaded(false), fGDMLFile(fname), fSSDStation(0)
     {
-      fGeoManager = 0;
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
       fMagnetLoad = false;
-      this->SetGDMLFile(fname);
       fSSDSensorMap.clear();
+      std::cout << "Creating new Geometry object!" << std::endl << std::flush;
+      this->SetGDMLFile(fname);
     }
 
     //--------------------------------------------------------------------------------
@@ -153,6 +161,9 @@ namespace emph {
 	  << "cannot use empty string for GDML file, please fix this\n"
 	  << __FILE__ << ":" << __LINE__ << "\n";
       }
+      
+      if (fIsLoaded && (fname == fGDMLFile)) // we've already opened this file, nothing to do
+	return true;
 
       fGDMLFile = fname;
       return this->LoadGDMLFile();
@@ -172,12 +183,10 @@ namespace emph {
       }
       geoFile.close();
 
-      mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
+      mf::LogWarning("LoadNewGeometry") << "loading new geometry file "
 					<< fGDMLFile << "\n";
 
-      if (fGeoManager) delete fGeoManager;
-
-      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+      //      if (fGeoManager) delete fGeoManager;
 
       int old_verbosity = gGeoManager->GetVerboseLevel();
 
@@ -198,15 +207,16 @@ namespace emph {
       */
       //      fGeoManager = new TGeoManager( *gGeoManager);
 
-      mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
-
-      fGeoManager->SetVerboseLevel(old_verbosity);
+      //      fGeoManager->SetVerboseLevel(old_verbosity);
 
       const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
+      std::cout << "world_n = " << world_n << std::endl;
 
       const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
+      std::cout << "world_v = " << world_v << std::endl;
 
       TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
+      std::cout << "world_box = " << world_box << std::endl;
 
       fWorldHeight = world_box->GetDY();
       fWorldWidth  = world_box->GetDX();
@@ -228,6 +238,10 @@ namespace emph {
 					 << DetInfo::Name(DetectorType(i)) << " geometry \n";
 	}
       }
+
+      mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
+
+      fIsLoaded = true;
 
       return true;
     }

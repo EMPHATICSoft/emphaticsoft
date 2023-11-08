@@ -32,7 +32,7 @@ namespace emph {
 
       void SetRun(int run) { fRun = run;} 
       void SetUseGeometry(bool ug) { fUseGeometry = ug; }
-      void SetAlign(const emph::Align* align) { fAlign = align; }
+      void SetAlign(emph::Align* align) { fAlign = align; }
       void SetGeometry(const emph::geo::Geometry* geo) { fGeo = geo; }
       //      bool LoadMap(std::string fname="");
       //      void SetAbortIfFileNotFound(bool f) { fAbortIfFileNotFound = f;}
@@ -45,7 +45,7 @@ namespace emph {
       bool fUseGeometry;
       int fRun;
       const emph::geo::Geometry* fGeo;
-      const emph::Align* fAlign;
+      emph::Align* fAlign;
 
       //      bool fIsLoaded;
       //      bool fAbortIfFileNotFound;

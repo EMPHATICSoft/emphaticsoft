@@ -16,42 +16,34 @@ namespace emph {
   Align::Align() 
   {
     fSSDMatrix.clear();
+    std::cout << "Created new Align object!" << std::endl;
   }
-  
+
   //----------------------------------------------------------------------    
-
-  TGeoCombiTrans* Align::SSDMatrix(int station, int plane, int sensor) const
+  
+  int Align::Hash(int station, int plane, int sensor) const 
   {
-    if (station > 0 && station < int(fSSDMatrix.size()))
-      if (plane > 0 && plane < int(fSSDMatrix[station].size()))
-	if (sensor > 0 && sensor < int(fSSDMatrix[station][plane].size()))
-	  return fSSDMatrix[station][plane][sensor];
-
-    return NULL;
+    return station*100+plane*10+sensor;
   }
 
-  //----------------------------------------------------------------------
-
-  void Align::CreateSSDMatrices(const emph::geo::Geometry* geo)
+  //----------------------------------------------------------------------    
+  
+  void Align::Unhash(int id, int& station, int& plane, int& sensor) const 
   {
-    fSSDMatrix.clear();
+    station = id/100;
+    plane = (id-station*100)/10;
+    sensor = id%10;
+  }
 
-    int nstations = geo->NSSDStations();    
-    for (int i=0; i<nstations; ++i) {
-      int nplanes = geo->GetSSDStation(i)->NPlanes();
-      std::vector<std::vector<TGeoCombiTrans*> > mp;
-      for (int j=0; j<nplanes; ++j) {
-	int nsensors = geo->GetSSDStation(i)->GetPlane(j)->NSSDs();
-	std::vector<TGeoCombiTrans*> ms;
-	ms.resize(nsensors,0);
-	for (int k=0; k<nsensors; ++k) {
-	  ms[k] = new TGeoCombiTrans();
-	}
-	mp.push_back(ms);
-      }
-      fSSDMatrix.push_back(mp);
-    }
-    
+  //----------------------------------------------------------------------    
+  
+  TGeoCombiTrans* Align::SSDMatrix(int station, int plane, int sensor)
+  {
+    int id = this->Hash(station,plane,sensor);
+
+    if (fSSDMatrix.find(id) == fSSDMatrix.end()) return NULL;
+    return fSSDMatrix[id];
+
   }
 
   //----------------------------------------------------------------------
@@ -59,13 +51,15 @@ namespace emph {
   void Align::SetSSDTranslation(int station, int plane, int sensor,
 				TGeoTranslation* t)
   {
-    if (station > 0 && station < int(fSSDMatrix.size()))
-      if (plane > 0 && plane < int(fSSDMatrix[station].size()))
-	if (sensor > 0 && sensor < int(fSSDMatrix[station][plane].size())) {
-	  if (!fSSDMatrix[station][plane][sensor])
-	    fSSDMatrix[station][plane][sensor] = new TGeoCombiTrans();
-	  fSSDMatrix[station][plane][sensor]->SetTranslation(*t);
-	}
+
+    int id = this->Hash(station,plane,sensor);
+
+    if (fSSDMatrix.find(id) != fSSDMatrix.end())
+      delete fSSDMatrix[id];
+
+    fSSDMatrix[id] = new TGeoCombiTrans();
+    fSSDMatrix[id]->SetTranslation(*t);
+
   }
 
   //----------------------------------------------------------------------
@@ -73,17 +67,16 @@ namespace emph {
   void Align::AddSSDTranslation(int station, int plane, int sensor,
 				TGeoTranslation* t)
   {
-    if (station > 0 && station < int(fSSDMatrix.size()))
-      if (plane > 0 && plane < int(fSSDMatrix[station].size()))
-	if (sensor > 0 && sensor < int(fSSDMatrix[station][plane].size())) {
-	  if (!fSSDMatrix[station][plane][sensor]) {
-	    fSSDMatrix[station][plane][sensor] = new TGeoCombiTrans();
-	    fSSDMatrix[station][plane][sensor]->SetTranslation(*t);
-	  }
-	  else {
-	    (*fSSDMatrix[station][plane][sensor]) *= (*t);
-	  }
-	}
+    int id = this->Hash(station,plane,sensor);
+
+    if (fSSDMatrix.find(id) != fSSDMatrix.end()) {
+      fSSDMatrix[id] = new TGeoCombiTrans();
+      fSSDMatrix[id]->SetTranslation(*t);      
+    }
+    else {
+      (*fSSDMatrix[id]) *= (*t);
+    }
+
   }
 
   //----------------------------------------------------------------------
@@ -91,13 +84,14 @@ namespace emph {
   void Align::SetSSDRotation(int station, int plane, int sensor,
 			     TGeoRotation* t)
   {
-    if (station > 0 && station < int(fSSDMatrix.size()))
-      if (plane > 0 && plane < int(fSSDMatrix[station].size()))
-	if (sensor > 0 && sensor < int(fSSDMatrix[station][plane].size())) {
-	  if (!fSSDMatrix[station][plane][sensor])
-	    fSSDMatrix[station][plane][sensor] = new TGeoCombiTrans();
-	  fSSDMatrix[station][plane][sensor]->SetRotation(t);
-	}
+    int id = this->Hash(station,plane,sensor);
+
+    if (fSSDMatrix.find(id) != fSSDMatrix.end()) 
+      delete fSSDMatrix[id];
+    
+    fSSDMatrix[id] = new TGeoCombiTrans();
+    fSSDMatrix[id]->SetRotation(*t);      
+
   }
   
   //----------------------------------------------------------------------
@@ -105,17 +99,16 @@ namespace emph {
   void Align::AddSSDRotation(int station, int plane, int sensor,
 			     TGeoRotation* t)
   {
-    if (station > 0 && station < int(fSSDMatrix.size()))
-      if (plane > 0 && plane < int(fSSDMatrix[station].size()))
-	if (sensor > 0 && sensor < int(fSSDMatrix[station][plane].size())) {
-	  if (!fSSDMatrix[station][plane][sensor]) {
-	    fSSDMatrix[station][plane][sensor] = new TGeoCombiTrans();
-	    fSSDMatrix[station][plane][sensor]->SetRotation(t);
-	  }
-	  else {
-	    (*fSSDMatrix[station][plane][sensor]) *= (*t);
-	  }
-	}
+    int id = this->Hash(station,plane,sensor);
+
+    if (fSSDMatrix.find(id) != fSSDMatrix.end()) {
+      fSSDMatrix[id] = new TGeoCombiTrans();
+      fSSDMatrix[id]->SetRotation(*t);      
+    }
+    else {
+      (*fSSDMatrix[id]) *= (*t);
+    }
+    
   }
 
   //----------------------------------------------------------------------
@@ -123,23 +116,27 @@ namespace emph {
   bool Align::WriteSSDConsts(std::string fname)
   {
     if (fSSDMatrix.empty()) return false;
+    
+    int station, plane, sensor;
 
     std::ofstream ofile;
     ofile.open(fname.c_str());
     if (!ofile.is_open())      std::abort();
 
-    for (size_t i=0; i<fSSDMatrix.size(); ++i)
-      for (size_t j=0; j<fSSDMatrix[i].size(); ++j)
-	for (size_t k=0; k<fSSDMatrix[i][j].size(); ++k) {
-	  auto t = fSSDMatrix[i][j][k]->GetTranslation();
-	  TGeoRotation rot;
-	  rot.SetMatrix(fSSDMatrix[i][j][k]->GetRotationMatrix());
-	  double phi, theta, psi;
-	  rot.GetAngles(phi, theta, psi);
-	  ofile << i << " " << j << " " << k << " " 
-		<< t[0] << " " << t[1] << " " << t[2] << " " 
-		<< phi << " " << theta << " " << psi << "\n";
-	}
+    for (auto itr=fSSDMatrix.begin(); itr!=fSSDMatrix.end(); ++itr) {
+      int id = itr->first;
+      this->Unhash(id,station,plane,sensor);
+
+      auto t = fSSDMatrix[id]->GetTranslation();
+      TGeoRotation rot;
+      rot.SetMatrix(fSSDMatrix[id]->GetRotationMatrix());
+      double phi, theta, psi;
+      rot.GetAngles(phi, theta, psi);
+      ofile << station << " " << plane << " " << sensor << " " 
+	    << t[0] << " " << t[1] << " " << t[2] << " " 
+	    << phi << " " << theta << " " << psi << "\n";      
+    }
+    
     ofile.close();
     return true;
   }
@@ -148,13 +145,35 @@ namespace emph {
 
   bool Align::LoadSSDConsts(std::string fname)
   {
-    if (fSSDMatrix.empty()) {
-      std::cerr << "Cannot load alignment constants into an uninitialized "
-		<< "Align object.  Please be sure to call " 
-		<< "Align::CreateSSDMatrices() first!" << std::endl;
-      abort();
+    /*
+  //----------------------------------------------------------------------
+
+  void Align::CreateSSDMatrices(const emph::geo::Geometry* geo)
+  {
+    std::cout << "Creating SSD alignment matrices" << std::endl;
+    fSSDMatrix.clear();
+
+    int nstations = geo->NSSDStations();    
+    std::cout << "nstations = " << nstations << std::endl;
+    for (int i=0; i<nstations; ++i) {
+      int nplanes = geo->GetSSDStation(i)->NPlanes();
+      std::vector<std::vector<TGeoCombiTrans*> > mp;
+      for (int j=0; j<nplanes; ++j) {
+	int nsensors = geo->GetSSDStation(i)->GetPlane(j)->NSSDs();
+	ms.resize(nsensors,0);
+	for (int k=0; k<nsensors; ++k) {
+	  ms[k] = new TGeoCombiTrans();
+	}
+	mp.push_back(ms);
+      }
     }
 
+    std::cout << "Done creating SSD alignment matrices." << std::endl;
+  }
+
+
+     */
+    
     std::ifstream ifile;
     ifile.open(fname.c_str());
     if (!ifile.is_open())  {
@@ -162,30 +181,30 @@ namespace emph {
       std::cerr << "Aborting!" << std::endl;
       std::abort();
     }
-
+    
     double dx, dy, dz;
     double phi, theta, psi;
     int station, plane, sensor;
     std::string line;
-
+    
     while (getline(ifile,line)) {
       if (line[0] == '#') continue;
       std::stringstream lineStr(line);
       lineStr >> station >> plane >> sensor 
 	      >> dx >> dy >> dz >> phi >> theta >> psi;
       
-      if (station > 0 && station < int(fSSDMatrix.size()))
-	if (plane > 0 && plane < int(fSSDMatrix[station].size()))
-	  if (sensor > 0 && sensor < int(fSSDMatrix[station][plane].size())) {
-	    if (!fSSDMatrix[station][plane][sensor]) 
-	      fSSDMatrix[station][plane][sensor] = new TGeoCombiTrans();
-	    fSSDMatrix[station][plane][sensor]->SetTranslation(dx,dy,dz);
-	    TGeoRotation rot;
-	    rot.SetAngles(phi,theta,psi);
-	    fSSDMatrix[station][plane][sensor]->SetRotation(rot);
-	  }
-    }
+      int id = this->Hash(station,plane,sensor);
 
+      if (fSSDMatrix.find(id) != fSSDMatrix.end()) delete fSSDMatrix[id];
+
+      fSSDMatrix[id] = new TGeoCombiTrans();
+      fSSDMatrix[id]->SetTranslation(dx,dy,dz);
+      TGeoRotation rot;
+      rot.SetAngles(phi,theta,psi);
+      fSSDMatrix[id]->SetRotation(rot);
+      
+    }
+    
     ifile.close();
     return true;
   }

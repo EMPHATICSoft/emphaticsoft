@@ -11,9 +11,6 @@
 #include <stdint.h>
 #include <iostream>
 
-#include "Geometry/DetectorDefs.h"
-#include "Geometry/Geometry.h"
-
 #include "TGeoMatrix.h"
 
 namespace emph {
@@ -28,20 +25,18 @@ namespace emph {
     bool LoadSSDConsts(std::string fname="");
     bool WriteSSDConsts(std::string fname="");
 
-    TGeoCombiTrans* SSDMatrix(int station, int plane, int sensor) const;
+    TGeoCombiTrans* SSDMatrix(int station, int plane, int sensor);
     void SetSSDTranslation(int station, int plane, int sensor, TGeoTranslation*);
     void AddSSDTranslation(int station, int plane, int sensor, TGeoTranslation*);
     void SetSSDRotation(int station, int plane, int sensor, TGeoRotation*);
     void AddSSDRotation(int station, int plane, int sensor, TGeoRotation*);
 
     void Reset() { fSSDMatrix.clear(); }
-    void CreateSSDMatrices(const emph::geo::Geometry*);
 
   private:
-
-  //    bool fIsLoaded;
-  //    bool fAbortIfFileNotFound;
-    std::vector<std::vector<std::vector<TGeoCombiTrans*> > > fSSDMatrix;
+    int Hash(int station, int plane, int sensor) const;
+    void Unhash(int id, int& station, int& plane, int& sensor) const;
+    std::unordered_map<int,TGeoCombiTrans*> fSSDMatrix;
 
   };
 }

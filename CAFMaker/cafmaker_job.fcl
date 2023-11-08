@@ -15,7 +15,7 @@ services:
   RunHistoryService: @local::standard_runhistory
   Geometry:   @local::standard_geometry
   ChannelMapService: @local::standard_channelmap
-  DetGeoMapService: @local::standard_detgeomap
+#  DetGeoMapService: @local::standard_detgeomap
 }
 
 #Start each new event with an empty event.

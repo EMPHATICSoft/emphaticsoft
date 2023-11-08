@@ -22,7 +22,6 @@ namespace emph
     art::ServiceHandle<runhist::RunHistoryService> rhs;
 
     fAlign = new Align();
-
     reg.sPreBeginRun.watch(this, &AlignService::preBeginRun);
 
   }
@@ -36,9 +35,11 @@ namespace emph
   //----------------------------------------------------------
   void AlignService::preBeginRun(const art::Run& )
   {
+    std::cout << "AlignService::preBeginRun" << std::endl;
     art::ServiceHandle<runhist::RunHistoryService> rhs;
 
     fAlign->LoadSSDConsts(rhs->RunHist()->SSDAlignFile());
+    
   }
     
 }

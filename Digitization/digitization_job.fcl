@@ -13,6 +13,7 @@ services:
   Geometry:   @local::standard_geometry
   ChannelMapService: @local::standard_channelmap
   DetGeoMapService: @local::standard_detgeomap
+  AlignService: {}
 }
 
 source:
