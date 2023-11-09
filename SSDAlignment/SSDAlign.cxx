@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////
 #include "SSDAlignment/SSDAlign.h"
 
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <cassert>
@@ -12,37 +13,37 @@
 namespace emph {
   namespace al{
 
-    //----------------------------------------------------------------------
-    
-    SSDAlign::SSDAlign() :   
-      _angle(0.), _strip(0.), _pitch(60.), _height(0.), _station(0.), _sensor(0.), _z(0.), _event(0.)
-    {
-      
-    }
-    
-    //------------------------------------------------------------
-    
-    SSDAlign::SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
-    {
-      _angle = sd.Rot();
-      //_strip = ssd.Strip();
-      _strip = clust.AvgStrip();
-      _pitch = 0.06;
-      _height = sd.Pos()[0];
-      //_sensor_row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
-      //_sensor_row = ssd.Row();
-      _station = clust.Station();
-      _sensor = clust.Sensor();
-      _x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
-      _y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
-      _z = sd.Pos()[2] + st.Pos()[2];
-      _u = (sqrt(2)/2)*(this->X()-this->Y());	
-      _v = (sqrt(2)/2)*(this->X()+this->Y());	
-      _event = evt;
-    }
+  //----------------------------------------------------------------------
+  SSDAlign::SSDAlign() :   
+    _isflip(0), _angle(0.), _strip(0.), _pitch(0.06), _height(0.), _station(0.), _plane(0.), _sensor(0.), _axisindex(0.), _shift(0.), _view(emph::geo::X_VIEW), _x(0.), _y(0.), _z(0.), _u(0.), _v(0.), _event(0.)
+  {
+
+  }
+  
+  //------------------------------------------------------------
+  SSDAlign::SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
+  {
+      _isflip = sd.IsFlip();
+	  _angle = sd.Rot();
+	  _strip = clust.AvgStrip();
+      if (_isflip) _strip = 639 - _strip; //flip strip number if sensor is flipped
+	  _pitch = 0.06;
+	  _height = sd.Pos()[0];
+	  _station = clust.Station();
+      _plane = clust.Plane();
+	  _sensor = clust.Sensor();
+      _axisindex = -999; //needs to be set in program since it is geometry dependent
+      _shift = 0;
+      _view = sd.View();
+	  _x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
+	  _y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
+	  _z = sd.Pos()[2] + st.Pos()[2];
+	  _u = (sqrt(2)/2)*(this->X()-this->Y());	
+	  _v = (sqrt(2)/2)*(this->X()+this->Y());	
+	  _event = evt;
+  }
 
   //------------------------------------------------------------
-  
   std::vector<int> SSDAlign::SSDInfo()
   {
 	  //This function returns a vector in the form (0/1/2,index)
@@ -80,8 +81,8 @@ namespace emph {
 
 	  return ssd_info;
   }
-  //------------------------------------------------------------
 
+  //------------------------------------------------------------
   void SSDAlign::SSDHitPosition(std::vector<std::vector<double>>& xpos, std::vector<std::vector<double>>& ypos,std::vector<std::vector<double>>& upos, std::vector<std::vector<double>>& vpos)
   {
   	  std::vector<int> ssd_info = this->SSDInfo();
@@ -106,7 +107,6 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-  
   bool SSDAlign::IsSingleHit(std::vector<double>& hits)
   {
     //Combine 2 nearby hits into 1
@@ -131,7 +131,17 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-  
+  void SSDAlign::FillEvtHolder(const std::vector<emph::al::SSDAlign>& evt, std::vector<emph::al::SSDAlign>& xevt, std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& uevt,std::vector<emph::al::SSDAlign>& vevt)
+  {
+    for (size_t i=0; i<evt.size(); ++i){
+        if(evt[i].View()==emph::geo::X_VIEW) xevt.push_back(evt[i]);
+        if(evt[i].View()==emph::geo::Y_VIEW) yevt.push_back(evt[i]);
+        if(evt[i].View()==emph::geo::U_VIEW) uevt.push_back(evt[i]);
+        if(evt[i].View()==emph::geo::W_VIEW) vevt.push_back(evt[i]);
+    }
+  }
+
+  //------------------------------------------------------------
   bool SSDAlign::IsAlignmentEvent(std::vector<std::vector<double>> pos)
   {
     //Require 1 and only 1 hit in each SSD station for given input vector of positions
@@ -148,7 +158,92 @@ namespace emph {
   } 
 
   //------------------------------------------------------------
+  bool SSDAlign::IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& evt,const int& nstations)
+  {
+    int flag=0;
+    std::vector<int> stations_hit;
+    //std::cout<<"Number of stations: "<< nstations<< "     hits: "<<evt.size()<<std::endl;
+    //Require equal number of hits to stations
+    if (evt.size()!=static_cast<size_t>(nstations)){
+        return false;
+    }
+    else{
+        for (size_t i=0; i<evt.size(); ++i){
+            stations_hit.push_back(evt[i].Station());
+        }
+        std::sort(stations_hit.begin(),stations_hit.end());
+        for (int i=0; i<nstations; ++i){
+            if (stations_hit[i]!=i) flag+=1;
+        }
+    }
 
+    if(flag==0) return true;
+    else return false;
+  }
+
+  //------------------------------------------------------------
+  bool SSDAlign::IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& xevt,const std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& evt,const int& nstations)
+  {
+    std::vector<int> stations_hit;
+    std::vector<int> xstations_hit;
+    std::vector<int> ystations_hit;
+
+    for (size_t i=0; i<evt.size(); ++i) stations_hit.push_back(evt[i].Station()); 
+    for (size_t i=0; i<xevt.size(); ++i) xstations_hit.push_back(yevt[i].Station()); 
+    for (size_t i=0; i<yevt.size(); ++i) ystations_hit.push_back(yevt[i].Station()); 
+
+    std::sort(stations_hit.begin(),stations_hit.end());
+    std::sort(xstations_hit.begin(),xstations_hit.end());
+    std::sort(ystations_hit.begin(),ystations_hit.end());
+
+    const bool s = std::adjacent_find(stations_hit.begin(), stations_hit.end()) != stations_hit.end();
+    const bool sx = std::adjacent_find(xstations_hit.begin(), xstations_hit.end()) != xstations_hit.end();
+    const bool sy = std::adjacent_find(ystations_hit.begin(), ystations_hit.end()) != ystations_hit.end();
+
+    std::vector<emph::al::SSDAlign> new_holder;
+
+    //reject any event that contains multiple hits per axis and station
+    if (s || sx || sy){
+        return false;
+    }
+    else {
+        int rotevt_index=0;
+        int xevt_index=0;
+        int yevt_index=0;
+        std::vector<bool> rot_stations (nstations,0);
+        for (size_t i=0; i<stations_hit.size(); ++i){
+            rot_stations[stations_hit[i]]=1;
+        }
+        for (int i=0; i<nstations; ++i){
+            if(rot_stations[i]){
+                new_holder.push_back(evt[rotevt_index]);
+                rotevt_index+=1;
+            }
+            else if (std::find(std::begin(xstations_hit), std::end(xstations_hit), i) != std::end(xstations_hit) && std::find(std::begin(ystations_hit), std::end(ystations_hit), i) != std::end(ystations_hit)){
+                new_holder.push_back(xevt[xevt_index]);
+                new_holder.push_back(yevt[yevt_index]);
+                xevt_index+=1;
+                yevt_index+=1;
+            }
+            else return false;
+        }
+    }
+    //Reformatting event to hold relevent x/y SSDAlign objects
+    evt.clear();
+    evt = new_holder;
+
+    //std::cout<<"views : "<<std::endl;
+    //for (size_t i =0; i<evt.size(); ++i){
+    //    std::cout<<evt[i].View()<<"  ";
+    //}
+    //std::cout<<"      stations hitsize: "<<stations_hit.size()<<"   first station hit: "<<stations_hit[0];
+    //std::cout<<std::endl;
+
+    if (stations_hit.size()==0) return false;
+    else return true;
+  }
+
+  //------------------------------------------------------------
   bool SSDAlign::IsAlignmentEvent(std::vector<std::vector<double>> xpos,std::vector<std::vector<double>> ypos,std::vector<std::vector<double>>& pos)
   {
     //bools relevent to if there are x and y hits to calculate a u/v position at each SSD station
@@ -180,7 +275,6 @@ namespace emph {
   } 
 
   //------------------------------------------------------------
-
   std::vector<double> SSDAlign::PositionAtStations(std::vector<std::vector<double>> pos)
   {
     std::vector<double> station_pos = {0,0,0,0,0,0};
@@ -199,7 +293,6 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-
   std::vector<double> SSDAlign::PositionAtStations(std::vector<std::vector<double>> xpos, std::vector<std::vector<double>> ypos, std::vector<std::vector<double>> pos)
   {
     std::vector<double> station_pos = {0,0,0,0,0,0};
@@ -249,9 +342,6 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-
-
-
   std::vector<int> SSDAlign::IndexAtStations(std::vector<std::vector<double>> pos)
   {
     std::vector<int> station_index = {0,0,0,0,0,0};
@@ -270,7 +360,6 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-  
   std::vector<double> SSDAlign::StationZpos()
   {
     std::vector<double> z_pos = {0,0,0,0,0,0};
@@ -280,7 +369,42 @@ namespace emph {
   }
 
   //------------------------------------------------------------
+  void SSDAlign::LoadShifts(std::string fname, std::vector<double> &x, std::vector<double> &y, std::vector<double> &u, std::vector<double> &v)
+  {
+    std::ifstream AlignmentFile;
+    AlignmentFile.open(fname.c_str());
+    if (!AlignmentFile.is_open()) {
+        std::cout<<"Error: SSD alignment file not found"<<std::endl;
+        std::abort();
+    }
+    //int colIdx = 0;
+    std::string line;
+    std::string holder;
+    double val;
+    std::string axis;
 
+    while (getline(AlignmentFile, line)){
+        std::stringstream lineStr(line);
+        std::cout<<lineStr.str().c_str()<<std::endl;
+        lineStr >> holder >> axis; 
+        if (holder[0]=='#') continue; 
+        while (lineStr >> val){
+            if (axis=='X') x.push_back(val);
+            if (axis=='Y') y.push_back(val);
+            if (axis=='U') u.push_back(val);
+            if (axis=='V') v.push_back(val);
+        }
+    }
+    AlignmentFile.close();
+  }
+
+  //------------------------------------------------------------
+   void SSDAlign::CalibrateXYZ(double *cal)
+  {
+	  _x=_x+cal[0];
+  }
+  
+  //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const SSDAlign& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
@@ -291,14 +415,7 @@ namespace emph {
     return o;
   }
 
-  //------------------------------------------------------------
 
-   void SSDAlign::CalibrateXYZ(double *cal)
-  {
-	  _x=_x+cal[0];
-  }
-  
-  //------------------------------------------------------------
   }
 }
 //////////////////////////////////////////////////////////////////////////////
