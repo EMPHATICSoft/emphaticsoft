@@ -344,7 +344,7 @@ namespace emph {
   void emph::MakeSingleTracks::MakeSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
   {
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
-    
+
     dgm->Map()->SSDClusterToLineSegment(cl, ls);
   }
   
@@ -939,7 +939,7 @@ namespace emph {
       catch(...) {
 	std::cout << "WARNING: No SSDHits found!" << std::endl;
       }
-      
+
       bool goodEvent = false;
       bool goodHit = false;
       
@@ -1017,6 +1017,7 @@ namespace emph {
 
           //get truth info
           if (goodEvent && spv.size() > 0 && ssdHitH->size() == nPlanes){
+
 	    for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
 	      const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
 
@@ -1060,7 +1061,6 @@ namespace emph {
 	    
 	    //form lines and fill plots
 	    MakeLines();
-	    std::cout << "Found " << tsv.size() << " track segments." << std::endl;
 	    for (auto ts : tsv) {
 	      tracksegmentv->push_back(ts);	     
 	    }

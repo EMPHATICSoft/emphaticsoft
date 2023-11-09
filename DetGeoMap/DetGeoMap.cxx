@@ -38,7 +38,7 @@ namespace emph {
       double dstrip = cl.WgtAvgStrip();
       int istrip = floor(dstrip);
       double delta_strip = dstrip-istrip;
-      
+
       const emph::geo::SSDStation* st = fGeo->GetSSDStation(station);
       const emph::geo::Plane* pln = st->GetPlane(plane);
       const emph::geo::Detector* sd = pln->SSD(sensor);
@@ -56,15 +56,15 @@ namespace emph {
       x1[0] = sd->Width()/2;
 
       auto T = fAlign->SSDMatrix(station,plane,sensor);
-
+      
       sp->LocalToMother(x0,tx0);
       sd->LocalToMother(tx0,tx1);
-      st->LocalToMother(tx1,x0);
+      st->LocalToMother(tx1,tx0);
       T->LocalToMaster(tx0,x0);
 
       sp->LocalToMother(x1,tx0);
       sd->LocalToMother(tx0,tx1);
-      st->LocalToMother(tx1,x1);
+      st->LocalToMother(tx1,tx0);
       T->LocalToMaster(tx0,x1);
 
       ls.SetX0(x0);

@@ -6,6 +6,7 @@
 // EMPHATIC includes
 #include "Align/service/AlignService.h"
 #include "RunHistory/service/RunHistoryService.h"
+#include "Geometry/service/GeometryService.h"
 
 // Framework includes
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
@@ -20,6 +21,7 @@ namespace emph
 			     art::ActivityRegistry & reg)
   {
     art::ServiceHandle<runhist::RunHistoryService> rhs;
+    art::ServiceHandle<emph::geo::GeometryService> geo;
 
     fAlign = new Align();
     reg.sPreBeginRun.watch(this, &AlignService::preBeginRun);

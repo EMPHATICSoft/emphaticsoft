@@ -217,13 +217,10 @@ namespace emph {
       //      fGeoManager->SetVerboseLevel(old_verbosity);
 
       const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
-      std::cout << "world_n = " << world_n << std::endl;
 
       const TGeoVolume* world_v = (TGeoVolume*)world_n->GetVolume();
-      std::cout << "world_v = " << world_v << std::endl;
 
       TGeoBBox* world_box = (TGeoBBox*)world_v->GetShape();      
-      std::cout << "world_box = " << world_box << std::endl;
 
       fWorldHeight = world_box->GetDY();
       fWorldWidth  = world_box->GetDX();
