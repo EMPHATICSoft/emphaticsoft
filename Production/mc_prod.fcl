@@ -54,7 +54,7 @@ physics:
 	ssdclust:  @local::standard_ssdclust
   }
 
-  simulate: [ generator , geantgen , ssddig , ssdclust]
+  simulate: [ generator , geantgen , ssddig , ssdclust ]
 
   trigger_paths: [ simulate ]
 
