@@ -64,9 +64,14 @@ namespace emph {
     static const int n_seg_t0 = N_SEG_T0;
     static const int n_ch_det_t0 = N_CH_DET_T0; // Number of leading channels for T0
     static const int n_ch_t0 = N_CH_T0; // Number of all channels for T0
+
     static const int n_seg_rpc = N_SEG_RPC;
     static const int n_ch_det_rpc = N_CH_DET_RPC; // Number of leading channels for RPC
     static const int n_ch_rpc = N_CH_RPC; // Number of all channels for RPC
+
+    static const int n_ch_bac = 6; // Number of channels of BACkov
+    static const int n_ch_gc = 3; // Number of channels of GCkov
+
     static const int RPC_board = 1283;
     static const int T0_board = 1282;
     static const int n_wf = 100;
@@ -168,7 +173,8 @@ namespace emph {
     int  GetSegRPC(int);
     void FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &,
 		       art::Handle< std::vector<rawdata::TRB3RawDigit> > &,
-		       art::Handle< std::vector<rawdata::TRB3RawDigit> > &);
+		       art::Handle< std::vector<rawdata::TRB3RawDigit> > &,
+		       art::Handle< std::vector<rawdata::WaveForm> > &);
 
     void GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
     void GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>&);
@@ -214,6 +220,10 @@ namespace emph {
 
     std::vector<std::vector<double>> ADC_top_wave; // Waveform of top signals
     std::vector<std::vector<double>> ADC_bot_wave; // Waveform of bottom signals
+
+    std::array<double, n_ch_bac> BAC_t; // Pulse time of BACkov signals
+    std::array<double, n_ch_bac> BAC_hgt; // Pulse height of BACkov signals
+    std::array<double, n_ch_bac> BAC_blw; // Baseline width of BACkov signals
 
     std::array<double, n_seg_rpc> RPC_lft_ln_hi; // RPC caribration parameter of high edge for left signals
     std::array<double, n_seg_rpc> RPC_lft_ln_lo; // RPC caribration parameter of low edge for left signals
@@ -362,6 +372,10 @@ namespace emph {
     tree->Branch("ADC_bot_blw", &ADC_bot_blw);
     tree->Branch("ADC_top_wave", &ADC_top_wave);
     tree->Branch("ADC_bot_wave", &ADC_bot_wave);
+
+    tree->Branch("BAC_t", &BAC_t);
+    tree->Branch("BAC_hgt", &BAC_hgt);
+    tree->Branch("BAC_blw", &BAC_blw);
 
     tree->Branch("TDC_trg_t",  &TDC_trg_t);
     tree->Branch("TDC_trg_ts",  &TDC_trg_ts);
@@ -772,7 +786,7 @@ namespace emph {
 
   //......................................................................
 
-  void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
+  void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3, art::Handle< std::vector<emph::rawdata::WaveForm> > & BACwvfm)
   {
     for(int i = 0; i < n_seg_t0; i++){
       ADC_top_ts[i] = -1.0;
@@ -787,6 +801,10 @@ namespace emph {
       ADC_bot_wave.at(i).clear();
       ADC_top_wave.at(i).resize(n_wf);
       ADC_bot_wave.at(i).resize(n_wf);
+
+      BAC_t[i] = -9999.0;
+      BAC_hgt[i] = -9999.0;
+      BAC_blw[i] = -1.0;
     }
 
     // get ADC info for T0
@@ -839,6 +857,26 @@ namespace emph {
       GetRPCTot();
     }
 
+    // get ADC info for BAC
+    if(!BACwvfm->empty()) {
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel BACechan;
+      BACechan.SetBoardType(boardType);
+      // loop over ADC channels
+      for (size_t idx=0; idx < BACwvfm->size(); ++idx){
+	const rawdata::WaveForm& wvfm = (*BACwvfm)[idx];
+	int chan = wvfm.Channel();
+	int board = wvfm.Board();
+	BACechan.SetBoard(board);
+	BACechan.SetChannel(chan);
+	emph::cmap::DChannel dchan = cmap->DetChan(BACechan);
+	int detchan = dchan.Channel();
+	BAC_t[detchan] = wvfm.PeakTDC();
+	BAC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
+	BAC_blw[detchan] = wvfm.BLWidth();
+      } // end loop over BACkov ADC channels
+    }
+
     tree->Fill();
 
   }
@@ -849,7 +887,7 @@ namespace emph {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
-    std::string labelStrT0, labelStrRPC;
+    std::string labelStrT0, labelStrRPC, labelStrBAC;
 
     // get WaveForm
     int i = emph::geo::T0;
@@ -861,13 +899,18 @@ namespace emph {
     labelStrRPC = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(j));
     art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > HandleRPCtrb3;
 
+    int k = emph::geo::BACkov;
+    labelStrBAC = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(k));
+    art::Handle< std::vector<emph::rawdata::WaveForm> > HandleBACwvfm;
+
     try {
       evt.getByLabel(labelStrT0, HandleT0trb3);
       evt.getByLabel(labelStrT0, HandleT0wvfm);
       evt.getByLabel(labelStrRPC, HandleRPCtrb3);
+      evt.getByLabel(labelStrBAC, HandleBACwvfm);
 
       if (!HandleT0trb3->empty()) {
-	FillT0AnaTree(HandleT0wvfm, HandleT0trb3, HandleRPCtrb3);
+	FillT0AnaTree(HandleT0wvfm, HandleT0trb3, HandleRPCtrb3, HandleBACwvfm);
       }
     }
     catch(...) {
