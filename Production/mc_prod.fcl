@@ -7,6 +7,7 @@
 #include "G4Gen.fcl"
 #include "SSDDigitizer.fcl"
 #include "MakeSSDClusters.fcl"
+#include "Align.fcl"
 
 process_name: mcprod
 
@@ -18,7 +19,7 @@ services:
   Geometry: @local::standard_geometry
   ChannelMapService: @local::standard_channelmap
   DetGeoMapService: @local::standard_detgeomap
-  
+  AlignService: @local::standard_align  
   RandomNumberGenerator: {} #ART native random number generator
 
 }

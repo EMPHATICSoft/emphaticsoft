@@ -11,23 +11,32 @@ standard_beamgen:
   pxyHistFile:		     ""
   pxyHistName:		     ""
 
+#Note: units are cm, GeV.  "Px" = px/pz, "Py" = py/pz.
+
   ZStart:                    -200.
-  Xmax:			     0.
-  Xmin:			     0.
-  Ymax:			     0.
+# parameters for flat spatial distribution
+  Xmax:			     0. 
+  Xmin:			     0. 
+  Ymax:			     0. 
   Ymin:			     0.
 
+# parameters for Gaussian spatial distribution
   Xmean: 		     0.
   Xsigma:		     0.5
   Ymean:		     0.
   Ysigma:		     0.5
 
+# parameters for Gaussian total momentum distribution (the only option for now)
   PMean:		     120.
   Psigma:		     1.e-3
+
+# parameters for flat distributions of beam slopes
   PXmax:		     0.1
   PXmin:		     -0.1
   PYmax:		     0.1
   PYmin:		     -0.1
+
+# parameters for Gaussian distributions of beam slopes
   PXmean:		     0.
   PXsigma:		     10.e-6
   PYmean:		     0.

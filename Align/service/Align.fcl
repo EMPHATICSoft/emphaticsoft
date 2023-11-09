@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-standard_channelmap:
+standard_align:
 {
   AbortIfFileNotFound: true
 }

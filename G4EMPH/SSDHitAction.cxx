@@ -118,10 +118,13 @@ namespace emph
     const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
     const CLHEP::Hep3Vector &mom  = track->GetMomentum();
 
-    MF_LOG_DEBUG("SSDHitAction") << " momentum = "
-				 << mom.x() << " " << mom.y() << " " 
-				 << mom.z() << " " << mom.mag();
-    
+    MF_LOG_DEBUG("SSDHitAction") 
+      << " momentum = "
+      << mom.x() << " " << mom.y() << " " 
+      << mom.z() << " " << mom.mag() 
+      << " position = " << pos.x() << " " << pos.y() << " "
+      << pos.z() << std::endl;
+
     double tpos0[3] = {pos0.x()/CLHEP::mm, pos0.y()/CLHEP::mm, pos0.z()/CLHEP::mm}; ///< Start of the step
     double tpos1[3] = {pos.x()/CLHEP::mm , pos.y()/CLHEP::mm , pos.z()/CLHEP::mm};  ///< End of the step
 
