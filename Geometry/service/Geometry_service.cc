@@ -28,7 +28,6 @@ namespace emph
       art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       reg.sPreBeginRun.watch(this, &GeometryService::preBeginRun);
-      //      reg.watchPreBeginRun(this, &GeometryService::preBeginRun);
     }
     
     //----------------------------------------------------------

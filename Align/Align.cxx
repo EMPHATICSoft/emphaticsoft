@@ -145,34 +145,6 @@ namespace emph {
 
   bool Align::LoadSSDConsts(std::string fname)
   {
-    /*
-  //----------------------------------------------------------------------
-
-  void Align::CreateSSDMatrices(const emph::geo::Geometry* geo)
-  {
-    std::cout << "Creating SSD alignment matrices" << std::endl;
-    fSSDMatrix.clear();
-
-    int nstations = geo->NSSDStations();    
-    std::cout << "nstations = " << nstations << std::endl;
-    for (int i=0; i<nstations; ++i) {
-      int nplanes = geo->GetSSDStation(i)->NPlanes();
-      std::vector<std::vector<TGeoCombiTrans*> > mp;
-      for (int j=0; j<nplanes; ++j) {
-	int nsensors = geo->GetSSDStation(i)->GetPlane(j)->NSSDs();
-	ms.resize(nsensors,0);
-	for (int k=0; k<nsensors; ++k) {
-	  ms[k] = new TGeoCombiTrans();
-	}
-	mp.push_back(ms);
-      }
-    }
-
-    std::cout << "Done creating SSD alignment matrices." << std::endl;
-  }
-
-
-     */
     
     std::ifstream ifile;
     ifile.open(fname.c_str());

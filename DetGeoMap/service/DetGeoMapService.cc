@@ -44,7 +44,6 @@ namespace emph
     //----------------------------------------------------------
     void DetGeoMapService::preBeginRun(const art::Run& run)
     {
-      std::cout << "DetGeoMapService::preBeginRun" << std::endl;
       art::ServiceHandle<emph::geo::GeometryService> geo;
       art::ServiceHandle<emph::AlignService> align;
 
