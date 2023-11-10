@@ -21,9 +21,6 @@ namespace caf
     
     stdrec.sgmnts.nseg = segs.size();
 
-    if (segs.size() > 0) 
-      std::cout << "FOUND TRACK SEGMENTS!" << std::endl;
-
     for (auto p : segs) {
       caf::SRTrackSegment sp;
       for (int i=0; i<3; ++i) 
@@ -32,7 +29,6 @@ namespace caf
       
       stdrec.sgmnts.seg.push_back(sp);      
     } // end of loop over track segments
-    std::cout << "sgmnts.nseg = " << stdrec.sgmnts.seg.size() << std::endl;
 
   }  
 } // end namespace caf

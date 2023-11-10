@@ -7,7 +7,7 @@ standard_cafmaker:{
     FileExtension: ".caf.root"
     ARingLabel:    "arichreco"
     SSDRawLabel:  "raw:SSD"
-    SSDClustLabel: "ssdclusts"
+    SSDClustLabel: "clust"
     BACkovHitLabel: "backovreco"
     GasCkovHitLabel: "gasckovreco"
     GetMCTruth:    true //use for creating MC CAF's
