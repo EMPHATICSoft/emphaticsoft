@@ -1,6 +1,9 @@
 #include "RunHistory.fcl"
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
+#include "DetGeoMap.fcl"
+#include "Align.fcl"
+
 #include "CAFMaker.fcl"
 
 #include "SpillInfo.fcl"
@@ -9,6 +12,7 @@
 #include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
 #include "GasCkovHitReco.fcl"
+#include "MakeSingleTracks.fcl"
 
 process_name: CAF
 
@@ -21,6 +25,9 @@ services:
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
   Geometry: @local::standard_geometry
+  DetGeoMapService: @local::standard_detgeomap
+  AlignService: @local::standard_align
+
   IFBeam:{}
 }
 
@@ -52,11 +59,12 @@ physics:
     backovreco: @local::standard_backovhitreco
     gasckovreco: @local::standard_gasckovhitreco
     cafmaker:   @local::standard_cafmaker
+    makesingletracks: @local::standard_makesingletracks
   }
 
   analyzers:{}
 
-  makecaf:   [ spillinfo, arichreco, ssdclusts, adcreco, backovreco, gasckovreco, cafmaker ]
+  makecaf:   [ spillinfo, arichreco, ssdclusts, makesingletracks, adcreco, backovreco, gasckovreco, cafmaker ]
 
 }
 physics.producers.ssdclusts.FillTTree: false
