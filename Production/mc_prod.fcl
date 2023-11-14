@@ -64,4 +64,5 @@ physics:
 
 }
 
+physics.producers.ssdclust.SSDRawLabel: "ssddig:SSD"
 physics.producers.ssdclust.CheckDQ: false
