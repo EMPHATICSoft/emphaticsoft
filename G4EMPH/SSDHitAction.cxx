@@ -11,11 +11,6 @@
 #include <vector>
 #include <map>
 
-// ROOT includes
-#include "TGeoMaterial.h"
-#include <TGeoManager.h>
-#include "TH2D.h"
-
 // G4 includes
 #include "Geant4/G4Event.hh"
 #include "Geant4/G4Track.hh"
@@ -28,8 +23,6 @@
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
-//#include "art_root_io/TFileService.h"
-//#include "art_root_io/TFileDirectory.h"
 
 #include "G4Base/UserActionFactory.h"
 USERACTIONREG3(emph,SSDHitAction,emph::SSDHitAction)
@@ -125,10 +118,13 @@ namespace emph
     const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
     const CLHEP::Hep3Vector &mom  = track->GetMomentum();
 
-    MF_LOG_DEBUG("SSDHitAction") << " momentum = "
-				 << mom.x() << " " << mom.y() << " " 
-				 << mom.z() << " " << mom.mag();
-    
+    MF_LOG_DEBUG("SSDHitAction") 
+      << " momentum = "
+      << mom.x() << " " << mom.y() << " " 
+      << mom.z() << " " << mom.mag() 
+      << " position = " << pos.x() << " " << pos.y() << " "
+      << pos.z() << std::endl;
+
     double tpos0[3] = {pos0.x()/CLHEP::mm, pos0.y()/CLHEP::mm, pos0.z()/CLHEP::mm}; ///< Start of the step
     double tpos1[3] = {pos.x()/CLHEP::mm , pos.y()/CLHEP::mm , pos.z()/CLHEP::mm};  ///< End of the step
 

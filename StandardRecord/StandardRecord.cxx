@@ -9,6 +9,9 @@ namespace caf
     hits(),
     cluster(),
     backov(),
+    spcpts(),
+    sgmnts(),
+    trks(),
     gasckov()
   {
   }

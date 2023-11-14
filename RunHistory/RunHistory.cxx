@@ -18,16 +18,6 @@
 namespace runhist{
    
   //----------------------------------------------------------------------
-  /*  
-  RunHistory::RunHistory() :   
-    _isLoaded(false), _isConfig(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _geoFile(""), _chanFile(""), _calibVer(0), _nTrig(0), _QEURL("")
-  {
-    _det.clear();
-
-  }
-  */
-
-  //----------------------------------------------------------------------
   
   RunHistory::RunHistory(int run) :
     _isLoaded(false),
@@ -104,6 +94,15 @@ namespace runhist{
 
   //----------------------------------------------------------------------
   
+  std::string RunHistory::SSDAlignFile()
+  {
+    if (!_isConfig) LoadConfig();
+    return _ssdAlignFile;
+
+  }
+
+  //----------------------------------------------------------------------
+  
   int RunHistory::CalibVer()
   {
     if (!_isConfig) LoadConfig();
@@ -137,7 +136,9 @@ namespace runhist{
     std::string file_path;
     file_path = getenv ("CETPKG_SOURCE");
     file_path = file_path + "/ConstBase/" ;
-    
+
+    _ssdAlignFile = "";
+
     if(_runNumber >= 436 && _runNumber <= 605){
       _geoFile=file_path+"Geometry/phase1a.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Jan22_Run436.txt";
@@ -151,6 +152,7 @@ namespace runhist{
     else if(_runNumber >= 2000){
       _geoFile=file_path+"Geometry/phase1c.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Mar23.txt";
+      _ssdAlignFile=file_path+"Align/SSDAlign_1c.txt";
       _calibVer=2;
     }
     else{

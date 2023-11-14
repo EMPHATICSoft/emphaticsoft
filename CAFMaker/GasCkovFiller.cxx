@@ -18,9 +18,10 @@ namespace caf
     evt.getByLabel(fLabel, gchitv);
 
     if(!fLabel.empty() && gchitv.failedToGet()) {
-      std::cout << "CAFMaker: No product of type '"
-		<< abi::__cxa_demangle(typeid(*gchitv).name(), 0, 0, 0)
-		<< "' found under label '" << fLabel << "'. " << std::endl;
+      return;
+      //      std::cout << "CAFMaker: No product of type '"
+      //		<< abi::__cxa_demangle(typeid(*gchitv).name(), 0, 0, 0)
+      //		<< "' found under label '" << fLabel << "'. " << std::endl;
     }
       
     std::vector<rb::GasCkovHit> gasckovhits;

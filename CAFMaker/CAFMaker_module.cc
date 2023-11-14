@@ -63,6 +63,9 @@
 #include "CAFMaker/BACkovFiller.h"
 #include "CAFMaker/GasCkovFiller.h"
 #include "CAFMaker/SRTruthFiller.h"
+#include "CAFMaker/SpacePointFiller.h"
+#include "CAFMaker/TrackSegmentFiller.h"
+#include "CAFMaker/TrackFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -239,6 +242,21 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
+
+    // Get SpacePoints
+    SpacePointFiller spcptf;
+    spcptf.fLabel = fParams.SpacePointLabel();
+    spcptf.Fill(evt,rec);
+
+    // Get TrackSegments
+    TrackSegmentFiller trksegf;
+    trksegf.fLabel = fParams.TrackSegmentLabel();
+    trksegf.Fill(evt,rec);
+
+    // Get Tracks
+    TrackFiller trkf;
+    trkf.fLabel = fParams.TrackLabel();
+    trkf.Fill(evt,rec);
 
     fRecTree->Fill();
     srcol->push_back(rec);

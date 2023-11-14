@@ -7,13 +7,17 @@ standard_cafmaker:{
     FileExtension: ".caf.root"
     ARingLabel:    "arichreco"
     SSDRawLabel:  "raw:SSD"
-    SSDClustLabel: "ssdclusts"
+    SSDClustLabel: "clust"
     BACkovHitLabel: "backovreco"
     GasCkovHitLabel: "gasckovreco"
-    //GetMCTruth:    true //use for creating MC CAF's
-    GetMCTruth:    false //use for creating data CAF's
-    GetMCHits:     false
+    GetMCTruth:    true //use for creating MC CAF's
+//    GetMCTruth:    false //use for creating data CAF's
+    GetMCHits:     true
     SSDHitLabel: "geantgen" //dah
+    SpacePointLabel: "makesingletracks"
+    TrackSegmentLabel: "makesingletracks"
+    TrackLabel: "makesingletracks"
+
 }
 
 END_PROLOG

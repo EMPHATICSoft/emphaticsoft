@@ -30,7 +30,6 @@
 #include "Geometry/DetectorDefs.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
-//#include "DetGeoMap/service/DetGeoMapService.h"
 #include "ChannelMap/service/ChannelMapService.h"
 
 using namespace emph;

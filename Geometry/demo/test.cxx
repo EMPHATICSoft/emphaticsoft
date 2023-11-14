@@ -33,6 +33,8 @@ int main(int argc, char* argv[]){
 	
   std::cout << "The magnet position is " << emgeo->MagnetUSZPos() << " - " << emgeo->MagnetDSZPos() << " "<< unit << "." << std::endl;
 
+  std::cout << "The target position is " << emgeo->TargetUSZPos() << " - " << emgeo->TargetDSZPos() << " "<< unit << "." << std::endl;
+
   for ( int i = Trigger ; i < NDetectors ; i++ ){
     if ( !emgeo->DetectorLoad(i) )continue;
     std::cout << "The " << DetInfo::Name(DetectorType(i)) << " position is " << emgeo->DetectorUSZPos(i) << " - " << emgeo->DetectorDSZPos(i) << " "<< unit << "." << std::endl;

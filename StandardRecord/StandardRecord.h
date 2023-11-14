@@ -16,6 +16,9 @@
 #include "StandardRecord/SRSSDHitsBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
 #include "StandardRecord/SRBACkovBranch.h"
+#include "StandardRecord/SRSpacePointBranch.h"
+#include "StandardRecord/SRTrackSegmentBranch.h"
+#include "StandardRecord/SRTrackBranch.h"
 #include "StandardRecord/SRGasCkovBranch.h"
 #include "StandardRecord/SRTruth.h"
 
@@ -39,6 +42,9 @@ namespace caf
       SRSSDHitsBranch hits; ///< SSD Hits branch:
       SRSSDClustBranch cluster; ///SSD Cluster Branch: avgadc, avgstrip, etc
       SRBACkovBranch   backov; ///< BACkov PMT charge and PID
+      SRSpacePointBranch spcpts; ///< Reco space points branch.
+      SRTrackSegmentBranch sgmnts; ///< Reco track segments branch
+      SRTrackBranch      trks; ///< Reco space points branch.
       SRGasCkovBranch   gasckov; ///< GasCkov PMT charge and PID
 
     }; // end class

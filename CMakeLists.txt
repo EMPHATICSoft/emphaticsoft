@@ -39,6 +39,7 @@ include(ArtMake)
 include(BuildPlugins)
 
 # source
+add_subdirectory(Align)
 add_subdirectory(ADCReco)
 add_subdirectory(ADCUtils)
 add_subdirectory(ARICHReco)

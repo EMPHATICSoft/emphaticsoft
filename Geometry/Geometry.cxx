@@ -110,23 +110,46 @@ namespace emph {
 
     //--------------------------------------------------------------------------------
 
-    Geometry::Geometry() :
-      fGDMLFile("")
+    Target::Target() :
+      fPos(-1e6,-1e6,-1e6), fDPos(0.,0.,0.), fDensity(0.)
     {
+      fFrac.clear();
+      fA.clear();
+      fZ.clear();
+    }
+
+    //--------------------------------------------------------------------------------
+
+    Geometry::Geometry() :
+      fIsLoaded(false), fGDMLFile("")
+    {
+      fNSSDStations = 0;
+      fNSSDPlanes = 0;
+      fNSSDs = 0;
+      fTarget = 0;
       fGeoManager = 0;
       fSSDSensorMap.clear();
+      fMagnetUSZPos = -1e6;
+      fMagnetDSZPos = -1e6;
+      fTargetUSZPos = -1e7;
+      fTargetDSZPos = -1e7;
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
+      std::cout << "Created new Geometry object!" << std::endl << std::flush;
     }
 
     //--------------------------------------------------------------------------------
 
     Geometry::Geometry(std::string fname) :
-      fGDMLFile(fname), fSSDStation(0)
+      fIsLoaded(false), fGDMLFile(fname), fSSDStation(0)
     {
-      fGeoManager = 0;
+      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
       fMagnetLoad = false;
-      this->SetGDMLFile(fname);
       fSSDSensorMap.clear();
+      std::cout << "Creating new Geometry object!" << std::endl << std::flush;
+      this->SetGDMLFile(fname);
     }
 
     //--------------------------------------------------------------------------------
@@ -138,8 +161,18 @@ namespace emph {
 	  << "cannot use empty string for GDML file, please fix this\n"
 	  << __FILE__ << ":" << __LINE__ << "\n";
       }
-
-      fGDMLFile = fname;
+      
+      if (fIsLoaded && (fname == fGDMLFile)) // we've already opened this file, nothing to do
+	return true;
+      else if (fIsLoaded) { // need to load new geometry
+	fGDMLFile = fname;
+	delete fGeoManager;
+	fIsLoaded = false;
+	fMagnetLoad = false;
+	fSSDSensorMap.clear();
+	fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+      }
+      
       return this->LoadGDMLFile();
     }
 
@@ -157,12 +190,10 @@ namespace emph {
       }
       geoFile.close();
 
-      mf::LogWarning("LoadNewGeometry") << "loading new geometry files\n"
+      mf::LogWarning("LoadNewGeometry") << "loading new geometry file "
 					<< fGDMLFile << "\n";
 
-      if (fGeoManager) delete fGeoManager;
-
-      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+      //      if (fGeoManager) delete fGeoManager;
 
       int old_verbosity = gGeoManager->GetVerboseLevel();
 
@@ -183,9 +214,7 @@ namespace emph {
       */
       //      fGeoManager = new TGeoManager( *gGeoManager);
 
-      mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
-
-      fGeoManager->SetVerboseLevel(old_verbosity);
+      //      fGeoManager->SetVerboseLevel(old_verbosity);
 
       const TGeoNode* world_n = (TGeoNode*)fGeoManager->GetTopNode();
 
@@ -196,6 +225,9 @@ namespace emph {
       fWorldHeight = world_box->GetDY();
       fWorldWidth  = world_box->GetDX();
       fWorldLength = world_box->GetDZ();
+
+      ExtractTargetInfo(world_v);
+      mf::LogInfo("ExtrackGeometry") << "extracted target geometry \n";
 
       ExtractMagnetInfo(world_v);
       mf::LogInfo("ExtractGeometry") << "extracted magnet geometry \n";
@@ -210,6 +242,10 @@ namespace emph {
 					 << DetInfo::Name(DetectorType(i)) << " geometry \n";
 	}
       }
+
+      mf::LogWarning("LoadNewGeometry") << "loaded new geometry files\n";
+
+      fIsLoaded = true;
 
       return true;
     }
@@ -285,6 +321,42 @@ namespace emph {
     }
 
 
+    //--------------------------------------------------------------------------------
+
+    void Geometry::ExtractTargetInfo(const TGeoVolume* world_v)
+    {
+      fTargetUSZPos = -1e7;
+      fTargetDSZPos = -1e7;
+      
+      TGeoNode* target_n = (TGeoNode*)world_v->GetNode("target_phys");
+      if ( target_n == nullptr ){
+	mf::LogWarning("ExtractTargetInfo") 
+	  << " target not found in gdml. Check that this is ok! \n";
+	return;
+      }
+      
+      TGeoVolume* target_v = (TGeoVolume*)target_n->GetVolume();
+      TGeoBBox* target_box = (TGeoBBox*)target_v->GetShape();
+
+      fTarget = new Target();
+      fTarget->SetPos(target_n->GetMatrix()->GetTranslation());
+      TVector3 dPos(target_box->GetDX(),target_box->GetDY(),target_box->GetDZ());
+      fTarget->SetDPos(dPos);
+
+      fTargetUSZPos = fTarget->Pos()[2]-fTarget->DPos()[2];
+      fTargetDSZPos = fTarget->Pos()[2]+fTarget->DPos()[2];
+
+      TGeoMaterial* target_mat = target_v->GetMaterial();
+      int nel = target_mat->GetNelements();
+      for (int i=0; i<nel; ++i) {
+	TGeoElement* target_el = target_mat->GetElement(i);
+	fTarget->AddElement(target_el->GetName(),
+			    1., // JMP: note, the weight needs to be fixed...
+			    target_el->A(), target_el->Z());
+      }
+      
+    }
+      
     //--------------------------------------------------------------------------------
 
     void Geometry::ExtractMagnetInfo(const TGeoVolume* world_v)
