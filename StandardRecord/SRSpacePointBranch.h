@@ -9,15 +9,15 @@
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
+  /// Reconstructed spacepoints found by various algorithms
     class SRSpacePointBranch
     {
     public:
       SRSpacePointBranch();
       ~SRSpacePointBranch();
 
-      std::vector<SRSpacePoint> sp;  ///< SpacePoints produced by ARichReco
-      size_t                nsp;     ///< number of arings 
+      std::vector<SRSpacePoint> sp;  ///< SpacePoints produced by SingleTrackReco
+      size_t                nsp;     ///< number of spacepoints
 
       void fillSizes();
       

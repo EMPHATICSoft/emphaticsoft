@@ -16,7 +16,6 @@ namespace emph {
   Align::Align() 
   {
     fSSDMatrix.clear();
-    std::cout << "Created new Align object!" << std::endl;
   }
 
   //----------------------------------------------------------------------    

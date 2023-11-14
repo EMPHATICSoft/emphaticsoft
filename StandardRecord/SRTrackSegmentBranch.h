@@ -9,7 +9,7 @@
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
+  /// Reconstructed track segments found by various algorithms
     class SRTrackSegmentBranch
     {
     public:

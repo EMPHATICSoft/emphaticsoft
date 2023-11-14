@@ -37,7 +37,6 @@ namespace emph
   //----------------------------------------------------------
   void AlignService::preBeginRun(const art::Run& )
   {
-    std::cout << "AlignService::preBeginRun" << std::endl;
     art::ServiceHandle<runhist::RunHistoryService> rhs;
 
     fAlign->LoadSSDConsts(rhs->RunHist()->SSDAlignFile());

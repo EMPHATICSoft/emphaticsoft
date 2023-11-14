@@ -4,7 +4,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 // EMPHATIC includes
-//#include "RunHistory/service/RunHistoryService.h"
 #include "Geometry/service/GeometryService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 
@@ -24,8 +23,6 @@ namespace emph
 				       art::ActivityRegistry & reg):
       fUseGeometry (pset.get<bool>("UseGeometry"))
     {
-      //      art::ServiceHandle<runhist::RunHistoryService> rhs;
-      //      art::ServiceHandle<emph::geo::GeometryService> geo;
       art::ServiceHandle<emph::AlignService> align;
 
       fDetGeoMap = new DetGeoMap();

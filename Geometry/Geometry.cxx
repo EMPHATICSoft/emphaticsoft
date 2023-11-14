@@ -135,7 +135,6 @@ namespace emph {
       fTargetDSZPos = -1e7;
       fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
 
-      std::cout << "Created new Geometry object!" << std::endl << std::flush;
     }
 
     //--------------------------------------------------------------------------------
@@ -148,7 +147,6 @@ namespace emph {
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
       fMagnetLoad = false;
       fSSDSensorMap.clear();
-      std::cout << "Creating new Geometry object!" << std::endl << std::flush;
       this->SetGDMLFile(fname);
     }
 
@@ -282,10 +280,6 @@ namespace emph {
 	ExtractSSDInfo(world_n);
 
 	if ( fNSSDStations > 0 ){
-
-	  std::cout<<"n SSD Stations: "<<fNSSDStations <<std::endl;
-	  std::cout<<"n SSD planes: "<<fNSSDPlanes <<std::endl;
-	  std::cout<<"n SSD sensors: "<<fNSSDs <<std::endl;
 
 	  fDetectorLoad[i] = true;
 	  fDetectorUSZPos[i] = fSSDStation.front().Pos()[2]-fSSDStation.front().Dz();
