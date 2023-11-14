@@ -4,6 +4,7 @@
 // \brief   
 ////////////////////////////////////////////////////////////////////////
 #include "StandardRecord/SRTrackSegment.h"
+#include <limits>
 
 namespace caf
 {
@@ -20,10 +21,11 @@ namespace caf
   //--------------------------------------------------------------------
   void SRTrackSegment::setDefault()
   {
-    vtx[0] = vtx[1] = vtx[2] = -999999.;
-    mom.SetX(0.);
-    mom.SetY(0.);
-    mom.SetZ(0.);
+    for (int i=0; i<3; ++i)
+      vtx[i] = std::numeric_limits<float>::signaling_NaN();
+    mom.SetX(std::numeric_limits<float>::signaling_NaN());
+    mom.SetY(std::numeric_limits<float>::signaling_NaN());
+    mom.SetZ(std::numeric_limits<float>::signaling_NaN());
   }
 
 } // end namespace
