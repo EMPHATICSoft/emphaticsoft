@@ -1,11 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////
-// Description: This macro holds a function that takes in four root        //
-// filesholding the regular and normalized DE and ADC data, and returns    //
-// four additional root files, with the goal of mapping charge             //
-// deposition (GetDE) into avgADC and eventually width as well.            //
-// Using phase 1c geometry.                                                //
+// Description: This macro opens two root files that hold a mapped         //
+// histogram and a bar graph for a specific sensor or all together and     //
+// makes a DE vs ADC histogram for the given sensor.                       //
 //                                                                         //
-//Date: October 30, 2023                                                   //
+//Date: November 13, 2023                                                  //
 //Author: D.A.H.                                                           //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -70,16 +68,6 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
     double xValue = mappedHistogram->GetXaxis()->GetBinCenter(i);
     binNumberToDEValue.push_back(std::make_pair(i, xValue));
   }
-  /*
-  // Iterate through the 2D vector and print each element                                                                        
-  std::cout << "binNumberToDEValue: ";
-  for (int i = 0; i < binNumberToDEValue.size(); ++i)
-    {
-      std::cout << "(" << binNumberToDEValue[i].first << ", " << binNumberToDEValue[i].second << ") ";
-    }
-  std::cout << std::endl;
-  */
-
 
   int numBins = barGraph->GetN();
                                         
@@ -100,26 +88,7 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
       double firstValue = binNumberToDEValue[i].second;
     double secondValue = binNumberToXValue[i].second;
     combinedVector.push_back(std::make_pair(firstValue, secondValue));
-  } 
-
-  /*
-  // Iterate through the 2D vector and print each element
-  std::cout << "binNumberToXValue: ";
-  for (int i = 0; i < binNumberToXValue.size(); ++i)
-    {
-      std::cout << "(" << binNumberToXValue[i].first << ", " << binNumberToXValue[i].second << ") ";
-    }
-  std::cout << std::endl;
-  */
-  
-  // Iterate through the 2D vector and print each element
-  std::cout << "combinedVector: ";
-  for (int i = 0; i < combinedVector.size(); ++i)
-    {
-      std::cout << "(" << combinedVector[i].first << ", " << combinedVector[i].second << ") ";
-    }
-  std::cout << std::endl;
-
+  }
 
   // Create a new histogram with the same bin edges as mappedHistogram
     TH1D* newHistogram = new TH1D("NewHistogram", "New Histogram", binEdges.size() - 1, binEdges.data());
@@ -132,26 +101,6 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
 	int bin = newHistogram->FindBin(binCenter);
 	newHistogram->SetBinContent(bin, adcValue);
       }
-    
-    /*
-  // Fill the new histogram with the second values from binNumberToXValue
-    for (int i = 0; i < binNumberToXValue.size(); ++i) 
-      {
-	int bin = newHistogram->FindBin(binNumberToDEValue[i].second);
-	newHistogram->SetBinContent(bin, binNumberToXValue[i].second);
-      }
-    */
-    /*
-    // Print each bin and its content
-    for (int bin = 1; bin <= newHistogram->GetNbinsX(); ++bin) {
-      double content = newHistogram->GetBinContent(bin);
-      double binLowEdge = newHistogram->GetXaxis()->GetBinLowEdge(bin);
-      double binUpEdge = newHistogram->GetXaxis()->GetBinUpEdge(bin);
-
-      std::cout << "Bin " << bin << ": (" << binLowEdge << ", " << binUpEdge << ") - Content: " << content << std::endl;
-    }
-    */ 
-
 
   // Create a canvas for the plot
   TCanvas* c1 = new TCanvas("c1", "New Histogram Plot", 1000, 500);
@@ -159,23 +108,24 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
   newHistogram->SetTitle("DE vs ADC");
   c1->Draw();
   c1->WaitPrimitive();
-  /*
-  // Close input files
-  mappedHistogramInput->Close();
-  barGraphInput->Close();
-  */ 
-  TFile DEvsADCFile("DEvsADC.root", "RECREATE");
-  /* 
-  if (!DEvsADCFile || DEvsADCFile.IsZombie()) {
-    cerr << "Error opening the output file." << endl;
-    return;
-  }
-  */ 
+
+  TString sensorName = TString(mappedHistogramFile).ReplaceAll("_mappedHistogram.root", "");
+
+  // Create a new file name for the output based on the sensor name
+  TString outputFileName = sensorName + "_DEvsADC.root";
+
+  // Create a new TFile for the output
+  TFile DEvsADCFile(outputFileName, "RECREATE");
+
   newHistogram->Write();
   DEvsADCFile.Close();
+
+  // Close input files                                
+  mappedHistogramInput->Close();
+  barGraphInput->Close();
 }
 
 void functionFile()
 {
-  Function("mappedHistogram.root", "barGraph.root");
+  Function("sensor2_mappedHistogram.root", "sensor2_barGraph.root");
 }

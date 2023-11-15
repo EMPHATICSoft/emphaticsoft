@@ -19,17 +19,12 @@
 #include <TMath.h>
 #include "TGraph.h"
 #include <cstdlib>
-/*
-std::vector<std::pair<double, int>> Funct(double DEvalue, const char* DEvsADCFile, const char* histFile)
-{
-  std::vector<std::pair<double, int>> ADCWidth;
-*/
+#include <tuple>
+
+std::vector<std::tuple<double, int, double>> ADCWidthRMS;
 
 std::vector<std::tuple<double, int, double>> Funct(double DEvalue, const char* DEvsADCFile, const char* histFile)
 {
-  std::vector<std::tuple<double, int, double>> ADCWidthRMS;
-
-
   // Open the input ROOT files
   TFile* DEvsADCInput = new TFile(DEvsADCFile, "READ");
   TFile* histInput = new TFile(histFile, "READ");
@@ -43,7 +38,7 @@ std::vector<std::tuple<double, int, double>> Funct(double DEvalue, const char* D
   
   //get histogram from the input files
   TH1D* DEvsADC = (TH1D*)DEvsADCInput->Get("NewHistogram");
-  TH3D* hist3D = (TH3D*)histInput->Get("WidthVsTADCVsRMS"); 
+  TH3D* hist3D = (TH3D*)histInput->Get("WidthVsTADCVsRMS");
 
   // Check if histograms are retrieved successfully
   if (!DEvsADC || !hist3D)
@@ -117,11 +112,9 @@ std::vector<std::tuple<double, int, double>> Funct(double DEvalue, const char* D
     std::cout << "Random width (x): " << width << std::endl;
     std::cout << "Random RMS (z): " << rms << std::endl;
 
-    //    ADCWidth.push_back(std::make_pair(ADCvalue, width));
     ADCWidthRMS.push_back(std::make_tuple(ADCvalue, width, rms));
     for (int i = 0; i < ADCWidthRMS.size(); ++i) 
       {
-	//      std::cout << "ADCvalue: " << ADCWidthRMS[i].first << ", Width: " << ADCWidthRMS[i].second << std::endl;
 	std::cout << "ADCvalue: " << std::get<0>(ADCWidthRMS[i]) << ", Width: " << std::get<1>(ADCWidthRMS[i]) << ", RMS: " << std::get<2>(ADCWidthRMS[i]) << std::endl;
 
       }
@@ -138,5 +131,5 @@ std::vector<std::tuple<double, int, double>> Funct(double DEvalue, const char* D
 
 void DEVSADC()
 {
-  Funct(0.0004, "DEvsADC.root", "3Dhist.root");
+  Funct(0.000236161, "sensor2_DEvsADC.root", " Sensor2.root");
 }

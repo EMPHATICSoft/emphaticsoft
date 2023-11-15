@@ -5,7 +5,7 @@
 // files with the goal of mapping charge deposition (GetDE) into avgADC    //
 // and eventually width as well. Using phase 1c geometry.                  //
 //                                                                         //
-//Date: November 01, 2023                                                  //
+//Date: November 09, 2023                                                  //
 //Author: D.A.H.                                                           //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -34,6 +34,7 @@ void ProcessADC(TH1* adcHist, TH1* nADCHist)
   std::vector<double> ADCBinFractions;
   std::vector<int> ADCBinValues;
   std::vector<std::pair<int, double>> ADC2DVector;
+
   // Print the number of clusters in each bin of the ADC histogram
   for (int ADCbin = 1; ADCbin <= adcHist->GetNbinsX(); ++ADCbin)
     {
@@ -72,7 +73,6 @@ void ProcessADC(TH1* adcHist, TH1* nADCHist)
     }
 }
 
-
 // Function to process an ADC histogram and update the corresponding nADC histogram
 void ProcessADCAndNADC(TH1* ntotADC, TH1* ntotadc)
 {
@@ -103,18 +103,41 @@ void ProcessADCAndNADC(TH1* ntotADC, TH1* ntotadc)
     {
       ntotadc->SetBinContent(ntotadc->FindBin(adc2DVector[i].first), adc2DVector[i].second);
     }
-}
 
+
+
+}
 
 // Function to process a DE histogram and update the corresponding nDE histogram
 void ProcessDEAndNDE(TH1* getde, TH1* ngetde)
 {
+
+  if (!getde || !ngetde) {
+    std::cerr << "Error: Invalid input histograms." << std::endl;
+    return;
+  }
+
+  int totDEclusts = 0;
+
+  for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin) {
+    int DEBinContent = getde->GetBinContent(DEbin);
+    totDEclusts += DEBinContent; // Accumulate the total
+
+    if (std::isnan(DEBinContent) || std::isinf(DEBinContent)) {
+      std::cerr << "Error: Input histogram contains NaN or Inf values." << std::endl;
+      return;
+    }
+  }
+
+  if (totDEclusts == 0) {
+    std::cerr << "Error: Total number of clusters is zero." << std::endl;
+    return;
+  }
+
   std::vector<int> DEBinContents;
   std::vector<double> DEBinFractions;
   std::vector<double> DEBinValues;
   std::vector<std::pair<double, double>> DE2DVector;
-
-  int totDEclusts = 0;
 
   for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin)
     {
@@ -142,8 +165,6 @@ void ProcessDEAndNDE(TH1* getde, TH1* ngetde)
 	}
     }
 }
-
-
 
 void hist()
 {
@@ -220,7 +241,7 @@ void hist()
 
   TH1D *ntotadc = new TH1D("ntotadc", "Normalized Total ADC (ignoring bins with fraction < 6.5e-6) ; totADC; Number of Clusters/Total Number of Clusters", 809, 41, 850);
 
-  TH1F *st0s0 = new TH1F ("st0s0", "station 0, sensor 0; totADC; Number of Clusters", 809, 41, 850);
+  TH1F *st0s0 = new TH1F ("totADC", "station 0, sensor 0; totADC; Number of Clusters", 809, 41, 850);
   TH1F *st0s1 = new TH1F ("st0s1", "station 0, sensor 1; totADC; Number of Clusters", 809, 41, 850);
   TH1F *st1s0 = new TH1F ("st1s0", "station 1, sensor 0; totADC; Number of Clusters", 809, 41, 850);
   TH1F *st1s1 = new TH1F ("st1s1", "station 1, sensor 1; totADC; Number of Clusters", 809, 41, 850);
@@ -245,7 +266,7 @@ void hist()
   TH1F *st6s4 = new TH1F ("st6s4", "station 6, sensor 4; totADC; Number of Clusters", 809, 41, 850);
   TH1F *st6s5 = new TH1F ("st6s5", "station 6, sensor 5; totADC; Number of Clusters", 809, 41, 850);
 
-  TH1F *getdest0s0 = new TH1F ("getdest0s0", "station 0, sensor 0; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
+  TH1F *getdest0s0 = new TH1F ("getde", "station 0, sensor 0; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
   TH1F *getdest0s1 = new TH1F ("getdest0s1", "station 0, sensor 1; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
   TH1F *getdest1s0 = new TH1F ("getdest1s0", "station 1, sensor 0; GetDE; Number of Hits", 10000000, 0.0000001, .0010001); 
   TH1F *getdest1s1 = new TH1F ("getdest1s1", "station 1, sensor 1; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
@@ -345,7 +366,6 @@ void hist()
   TH1F *ngetdest6s4 = new TH1F ("ngetdest6s4", "station 6, sensor 4; nGetDE; Number of Hits/Total Number of Hits", 10000000, 0.0000001, .0010001);
   TH1F *ngetdest6s5 = new TH1F ("ngetdest6s5", "station 6, sensor 5; nGetDE; Number of Hits/Total Number of Hits", 10000000, 0.0000001, .0010001);
 
-
   // Initalize the number of good data events to 0
   int n_good_data_events = 0;
   
@@ -419,72 +439,72 @@ void hist()
                 }
 	      if (sensor == 3)
                 {
-                  //plane 3                                                                                                
+                  //plane 3                
                   st1s1->Fill(TotADC);
                 }
               if (station == 2 && sensor == 0)
                 {
-                  //plane 4                                                                                                
+                  //plane 4
                   st2s0->Fill(TotADC);
                 }
               if (station == 2 && sensor == 1)
                 {
-                  //plane 5                                                                                                
+                  //plane 5
                   st2s1->Fill(TotADC);
                 }
               if (station == 2 && sensor == 2)
                 {
-                  //plane 6                                                                                                
+                  //plane 6
                   st2s2->Fill(TotADC);
                 }
               if (station == 3 && sensor == 0)
                 {
-                  //plane 7                                                                                                
+                  //plane 7
                   st3s0->Fill(TotADC);
                 }
               if (station == 3 && sensor == 1)
                 {
-                  //plane 8                                                                                                
+                  //plane 8
                   st3s1->Fill(TotADC);
                 }
               if (station == 3 && sensor == 2)
                 {
-                  //plane 9                                                                                                
+                  //plane 9
                   st3s2->Fill(TotADC);
                 }
 	      if (station == 4 && sensor == 0)
                 {
-                  //plane 10                                                                                               
+                  //plane 10
                   st4s0->Fill(TotADC);
                 }
               if (station == 4 && sensor == 1)
                 {
-                  //plane 11                                                                                               
+                  //plane 11
                   st4s1->Fill(TotADC);
                 }
               if (station == 5 && sensor == 0)
                 {
-                  //plane 12                                                                                               
+                  //plane 12
                   st5s0->Fill(TotADC);
                 }
               if (station == 5 && sensor == 1)
                 {
-                  //plane 12                                                                                               
+                  //plane 12
                   st5s1->Fill(TotADC);
                 }
               if (station == 5 && sensor == 2)
                 {
-                  //plane 13                                                                                               
+                  //plane 13           
                   st5s2->Fill(TotADC);
                 }
               if (station == 5 && sensor == 3)
                 {
-                  //plane 13                                                                                               
+                  //plane 13
                   st5s3->Fill(TotADC);
                 }
               if (station == 5 && sensor == 4)
                 {
-                  //plane 14                                                                                               
+                  //plane 14
                   st5s4->Fill(TotADC);
                 }
 	      if (station == 5 && sensor == 5)
@@ -494,22 +514,22 @@ void hist()
                 }
 	      if (station == 6 && sensor == 0)
                 {
-                  //plane 15                                                                                               
+                  //plane 15
                   st6s0->Fill(TotADC);
                 }
               if (station == 6 && sensor == 1)
                 {
-                  //plane 15                                                                                               
+                  //plane 15
                   st6s1->Fill(TotADC);
                 }
               if (station == 6 && sensor == 2)
                 {
-                  //plane 16                                                                                               
+                  //plane 16
                   st6s2->Fill(TotADC);
                 }
               if (station == 6 && sensor == 3)
                 {
-                  //plane 16                                                                                               
+                  //plane 16
                   st6s3->Fill(TotADC);
                 }
               if (station == 6 && sensor == 4)
@@ -519,7 +539,7 @@ void hist()
                 }
 	      if (station == 6 && sensor == 5)
                 {
-                  //plane 17                                                                                               
+                  //plane 17           
                   st6s5->Fill(TotADC);
                 }
 	    }
@@ -769,21 +789,19 @@ void hist()
 
   // Create vectors to store the content and fractions
   std::vector<double> adcBinFractions;
-  std::vector<int> adcBinValues;                                                                          
+  std::vector<int> adcBinValues;             
   std::vector<std::pair<int, double>> adc2DVector;
 
   int ntotadcIndex = 1;
   double threshold = 6.5e-6;
 
   // Loop over ADC bins
-  for (int nADCbin = 1; nADCbin <= ntotADC->GetNbinsX(); ++nADCbin)                                     
+  for (int nADCbin = 1; nADCbin <= ntotADC->GetNbinsX(); ++nADCbin)
     {
-      //      double nADCBinContent = ntotADC->GetBinContent(nADCbin);
       double nADCFraction = ntotADC->GetBinContent(nADCbin); 
-
+      
       if (nADCFraction > threshold)
         {
-	  //  adcBinContents.push_back(nADCBinContent);
 	  adcBinFractions.push_back(nADCFraction);
 
           // Store the corresponding x-axis value
@@ -796,6 +814,7 @@ void hist()
         }
     }
 
+  //  ProcessADCAndNADC(ntotADC, ntotadc);
   ProcessADCAndNADC(nst0s0, Nst0s0);
   ProcessADCAndNADC(nst0s1, Nst0s1);
   ProcessADCAndNADC(nst1s0, Nst1s0);
@@ -826,7 +845,7 @@ void hist()
     {
       ntotadc->SetBinContent(ntotadc->FindBin(adc2DVector[i].first), adc2DVector[i].second);
     }
- 
+
   int totDEclusts = 0; 
   for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin)
     {
@@ -856,192 +875,39 @@ void hist()
       // Create a pair and store it in the 2D vector
       DE2DVector.push_back(std::make_pair(DEBinValue, DEFraction));
     }
-  
-  for (int i = 0; i < DE2DVector.size(); ++i) 
-    {
-      ngetde->SetBinContent(i+1, DE2DVector[i].second);
-    }
 
-  //ProcessDEAndNDE(getde, ngetde);
+  ProcessDEAndNDE(getde, ngetde);
   ProcessDEAndNDE(getdest0s0, ngetdest0s0);
-
-
-
-
-
-
-  // Initialize a vector to store the number of DE bins needed for each ADC bin
-  std::vector<int> DEBinsNeeded;
-  double currentADCThreshold =  adc2DVector[0].second; //here
-  double currentADCFraction = 0.0;
-  int DEBinsCount = 0;
-  double totalADCFraction = 0.0;
-  std::vector<double> accumulatedADCFractions;
- 
-  for (int DEbin = 0; DEbin < DE2DVector.size(); ++DEbin) 
-    {
-      currentADCFraction += DE2DVector[DEbin].second;
-      DEBinsCount++;
-
-      if (currentADCFraction == 0.0)
-	{
-	  DEBinsCount = 0;
-	}
-      else if (currentADCFraction >= currentADCThreshold) 
-	{
-	  //make sure the current bin count exceeds the ADC fraction
-	  totalADCFraction += currentADCFraction;
-	  int binIndex = 1 + DEBinsNeeded.size();
-	  accumulatedADCFractions.push_back(currentADCFraction);
-	  DEBinsNeeded.push_back(DEBinsCount);
-	  DEBinsCount = 0;
-	  currentADCFraction = 0.0;
-	  
-	  if (DEBinsNeeded.size() == adc2DVector.size()) 
-	    {
-	      break; // All ADC bins processed
-	    }
-	  currentADCThreshold = adcBinFractions[DEBinsNeeded.size()];
-	}
-    }
-
-  int totbins = 0;
-  double binWidth = ngetde->GetBinWidth(1);
-
-  // Calculate the new bin edges 
-  std::vector<double> newBinEdges;
-  long double currentEdge =  0.0000001;
-  
-  for (int i = 0; i < DEBinsNeeded.size(); i++) 
-    {
-      int n = DEBinsNeeded[i];
-      newBinEdges.push_back(currentEdge);
-      currentEdge += n * binWidth;
-    }
-  newBinEdges.push_back(currentEdge);  
- 
-  TH1* mappedHistogram = ngetde->Rebin(newBinEdges.size() -1, "mappedHistogram", newBinEdges.data());
-
-  // Access and print the content of the last bin (the extra bin)
-  int lastBin = mappedHistogram->GetNbinsX() + 1;
-  double lastBinContent = mappedHistogram->GetBinContent(lastBin);
-  double lastBinEdge = mappedHistogram->GetXaxis()->GetBinUpEdge(lastBin);
-  accumulatedADCFractions.push_back(lastBinContent); 
-  newBinEdges.push_back(lastBinEdge);
-
-  // Create a vector to store the bin centers and content
-  std::vector<std::pair<double, double>> mapped2DVector;
-
-  for (int i = 1; i <= mappedHistogram->GetNbinsX(); ++i) 
-    {
-      double binContent = mappedHistogram->GetBinContent(i);
-      double binCenter = mappedHistogram->GetXaxis()->GetBinCenter(i);
-      mapped2DVector.push_back(std::make_pair(binCenter, binContent));
-    }
-
-  std::vector<std::pair<int, double>> combined2DVector;
-  size_t size2D = adc2DVector.size();
-  size_t size1D = accumulatedADCFractions.size();
-
-  for (size_t i = 0; i < size2D; ++i) 
-    {
-      int adcValue = adc2DVector[i].first;
-      double fraction = (i < size1D) ? accumulatedADCFractions[i] : 0.0;
-      if (fraction != 0.0) 
-	{
-	  combined2DVector.push_back(std::make_pair(adcValue, fraction));
-	}
-    }
-
-  double xMin = ntotADC->GetXaxis()->GetXmin();
-  double xMax = ntotADC->GetXaxis()->GetXmax();
-
-  // Create a TGraph for the bar graph
-  TGraph* barGraph = new TGraph(combined2DVector.size());
-  barGraph->GetXaxis()->SetRangeUser(xMin, xMax);
-  for (size_t i = 0; i < combined2DVector.size(); ++i) 
-    {
-      barGraph->SetPoint(i, combined2DVector[i].first, combined2DVector[i].second);
-    }
-
+  ProcessDEAndNDE(getdest0s1, ngetdest0s1);
+  ProcessDEAndNDE(getdest1s0, ngetdest1s0);
+  ProcessDEAndNDE(getdest1s1, ngetdest1s1);
+  ProcessDEAndNDE(getdest2s0, ngetdest2s0);
+  ProcessDEAndNDE(getdest2s1, ngetdest2s1);
+  ProcessDEAndNDE(getdest2s2, ngetdest2s2);
+  ProcessDEAndNDE(getdest3s0, ngetdest3s0);
+  ProcessDEAndNDE(getdest3s1, ngetdest3s1);
+  ProcessDEAndNDE(getdest3s2, ngetdest3s0);
+  ProcessDEAndNDE(getdest4s0, ngetdest4s0);
+  ProcessDEAndNDE(getdest4s1, ngetdest4s1);
+  ProcessDEAndNDE(getdest5s0, ngetdest5s0);
+  ProcessDEAndNDE(getdest5s1, ngetdest5s1);
+  ProcessDEAndNDE(getdest5s2, ngetdest5s2);
+  ProcessDEAndNDE(getdest5s3, ngetdest5s3);
+  ProcessDEAndNDE(getdest5s4, ngetdest5s4);
+  ProcessDEAndNDE(getdest5s5, ngetdest5s5);
+  ProcessDEAndNDE(getdest6s0, ngetdest6s0);
+  ProcessDEAndNDE(getdest6s1, ngetdest6s1);
+  ProcessDEAndNDE(getdest6s2, ngetdest6s2);
+  ProcessDEAndNDE(getdest6s3, ngetdest6s3);
+  ProcessDEAndNDE(getdest6s4, ngetdest6s4);
+  ProcessDEAndNDE(getdest6s5, ngetdest6s5);
   /*
-  int numXBins = mappedHistogram->GetNbinsX();
-
-  // Create a 2D vector to store (bin number, X-axis value)
-  std::vector<std::pair<int, double>> binNumberToDEValue;
-
-  for (int i = 1; i <= numXBins; ++i) {
-    double xValue = mappedHistogram->GetXaxis()->GetBinCenter(i);
-    binNumberToDEValue.push_back(std::make_pair(i, xValue));
-  }
-
-  // Print the bin number and X-axis value mapping
-  for (const auto& pair : binNumberToDEValue) {
-    int binNumber = pair.first;
-    double xValue = pair.second;
-    std::cout << "Bin Number: " << binNumber << ", X-Axis Value: " << xValue << std::endl;
-  }
-
-  int numBins = barGraph->GetN();
-
-  // Create a 2D vector to store (bin number, ADC value)
-  std::vector<std::pair<int, double>> binNumberToXValue;
-
-  for (int i = 0; i < numBins; ++i)
-    {
-      double xValue, yValue ;
-      barGraph->GetPoint(i, xValue, yValue);
-      binNumberToXValue.push_back(std::make_pair(i + 1, xValue));
-    }
-
-  // Print the bin number and x-axis value mapping
-  for (const auto& pair : binNumberToXValue) {
-    std::cout << "Bin Number: " << pair.first << ", X-Axis Value: " << pair.second << std::endl;
-  }
-
-  std::vector<std::pair<double, double>> combinedVector;
-
-  for (size_t i = 0; i < binNumberToDEValue.size() && i < binNumberToXValue.size(); ++i) {
-    double firstValue = binNumberToDEValue[i].second;
-    double secondValue = binNumberToXValue[i].second;
-    combinedVector.push_back(std::make_pair(firstValue, secondValue));
-  }
-
-  // Print the combined vector
-  for (const auto& pair : combinedVector) {
-    std::cout << "First Value: " << pair.first << ", Second Value: " << pair.second << std::endl;
-  }
-
-  int decimalPlaces = 5; 
-  int Bins = combinedVector.size();
-  
-  TH1D* DEvsADC = new TH1D("DEvsADC", "DE Values vs ADC Values", Bins, 0, Bins);
-
-  // Fill the histogram with data from combinedVector
-  for (int i = 0; i < Bins; ++i) {
-    DEvsADC->SetBinContent(i + 1, combinedVector[i].second); // Set y-values
-    
-    if (i % 10 == 0)
-      {
-      DEvsADC->GetXaxis()->SetBinLabel(i + 1, Form("%g", combinedVector[i].first));
-      }
-  }
-   
-  // Create a canvas to visualize the histogram
-  TCanvas* canvas = new TCanvas("myCanvas", "My Canvas", 1000, 500);
-  DEvsADC->SetMarkerStyle(20);
-  DEvsADC->SetMarkerSize(.5);
-  DEvsADC->Draw("P");
-  */ 
- 
-
-  /* 
   //print histograms 
   TCanvas *c1 = new TCanvas("c1","c1",1000,500);
   getde->SetFillColor(kBlue);
   getde->Draw("colz");
   getde->GetYaxis()->SetRangeUser(0, 1.1*(getde->GetMaximum()));
-     
+  
   TCanvas *c2 = new TCanvas("c2","c2",1000,500);
   totADC->SetFillColor(kBlue);
   totADC->Draw("colz");
@@ -1061,42 +927,30 @@ void hist()
   ntotadc->SetFillColor(kRed);
   ntotadc->Draw();
   ntotadc->GetYaxis()->SetRangeUser(0, 1.1*(ntotADC->GetMaximum()));
-
-  TCanvas *c6 = new TCanvas("c6", "c6", 1000, 500);
-  mappedHistogram->SetFillColor(0);
-  mappedHistogram->SetLineColor(kBlue);
-  mappedHistogram->Draw("HIST");
-  //  mappedHistogram->GetYaxis()->SetRangeUser(0, .2);  
-
-  TCanvas* c7 = new TCanvas("c7", "c7", 1000, 500);
-  barGraph->SetTitle("ADC Value vs. DE Fraction");
-  barGraph->SetMarkerStyle(21);
-  barGraph->SetMarkerSize(1.0);
-  barGraph->SetFillColor(kRed);
-  barGraph->Draw("AB1");
-  barGraph->GetXaxis()->SetTitle("ADC Value");
-  barGraph->GetYaxis()->SetTitle("Fraction");
-  // barGraph->GetYaxis()->SetRangeUser(0, .0002);
-  //c7->SaveAs("barGraph.root");
-
-  TCanvas *c8 = new TCanvas("c8", "c8", 1000, 500);
-  barGraph->Draw("AB1");
-  barGraph->GetXaxis()->SetRangeUser(xMin, xMax);
-  ntotadc->SetMarkerStyle(2);
-  ntotadc->SetMarkerSize(0.5);
-  ntotadc->Draw("P SAME");
-  ntotadc->GetXaxis()->SetRangeUser(xMin, xMax);
  
-  // Create separate output files for needed histogram 
-  TFile mappedHistogramFile(" mappedHistogram.root", "RECREATE");
-   mappedHistogram->Write();
-   mappedHistogramFile.Close();
 
-  TFile barGraphFile("barGraph.root", "RECREATE");
-  barGraph->Write();
-  barGraphFile.Close();
+  // Create separate output files for needed histogram
+  TFile getdeFile("getde.root", "RECREATE");
+  getde->Write();                                                                                  
+  getdeFile.Close();
+ 
+  TFile totADCFile("totADC.root", "RECREATE");
+  totADC->Write();
+  totADCFile.Close(); 
+
+  TFile ngetdeFile("ngetde.root", "RECREATE");
+  ngetde->Write();
+  ngetdeFile.Close();
+
+  TFile ntotADCFile("ntotADC.root", "RECREATE");
+  ntotADC->Write();
+  ntotADCFile.Close();
+  
+  TFile ntotadcFile("ntotadc.root", "RECREATE");
+  ntotadc->Write();
+  ntotadcFile.Close();
   */
-  /*
+ 
   //totADC histograms
   TCanvas *c3 = new TCanvas("c3","c3",2000,1500);
   c3->Divide(3,3);
@@ -1104,7 +958,7 @@ void hist()
   c3->cd(1);
   st0s0->SetFillColor(kBlue);
   st0s0->Draw("colz");
-
+  /*
   c3->cd(2);
   st0s1->SetFillColor(kBlue);
   st0s1->Draw("colz");
@@ -1202,210 +1056,409 @@ st5s5->SetFillColor(kBlue);
  c5->cd(6);
  st6s5->SetFillColor(kBlue);
  st6s5->Draw("colz");
+ */
+  
+ // Create separate output files for needed histograms
+ TFile st0s0File("st0s0.root", "RECREATE");  
+ st0s0->Write();
+ st0s0File.Close();
+ /*
+ TFile st0s1File("st0s1.root", "RECREATE");
+ st0s1->Write();
+ st0s1File.Close();
+
+ TFile st1s0File("st1s0.root", "RECREATE");
+ st1s0->Write();
+ st1s0File.Close();
+
+ TFile st1s1File("st1s1.root", "RECREATE");
+ st1s1->Write();
+ st1s1File.Close();
+
+ TFile st2s0File("st2s0.root", "RECREATE");
+ st2s0->Write();
+ st2s0File.Close();
+
+ TFile st2s1File("st2s1.root", "RECREATE");
+ st2s1->Write();
+ st2s1File.Close();
+
+ TFile st2s2File("st2s2.root", "RECREATE");
+ st2s2->Write();
+ st2s2File.Close();
+
+ TFile st3s0File("st3s0.root", "RECREATE");
+ st3s0->Write();
+ st3s0File.Close();
+
+ TFile st3s1File("st3s1.root", "RECREATE");
+ st3s1->Write();
+ st3s1File.Close();
+
+ TFile st3s2File("st3s2.root", "RECREATE");
+ st3s2->Write();
+ st3s2File.Close();
+
+ TFile st4s0File("st4s0.root", "RECREATE");
+ st4s0->Write();
+ st4s0File.Close();
+
+ TFile st4s1File("st4s1.root", "RECREATE");
+ st4s1->Write();
+ st4s1File.Close();
+
+ TFile st5s0File("st5s0.root", "RECREATE");
+ st5s0->Write();
+ st5s0File.Close();
+
+ TFile st5s1File("st5s1.root", "RECREATE");
+ st5s1->Write();
+ st5s1File.Close();
+
+ TFile st5s2File("st5s2.root", "RECREATE");
+ st5s2->Write();
+ st5s2File.Close();
+
+ TFile st5s3File("st5s3.root", "RECREATE");
+ st5s3->Write();
+ st5s3File.Close();
+
+ TFile st5s4File("st5s4.root", "RECREATE");
+ st5s4->Write();
+ st5s4File.Close();
+
+ TFile st5s5File("st5s5.root", "RECREATE");
+ st5s5->Write();
+ st5s5File.Close();
+
+ TFile st6s0File("st6s0.root", "RECREATE");
+ st6s0->Write();
+ st6s0File.Close();
+
+ TFile st6s1File("st6s1.root", "RECREATE");
+ st6s1->Write();
+ st6s1File.Close();
+
+ TFile st6s2File("st6s2.root", "RECREATE");
+ st6s2->Write();
+ st6s2File.Close();
+
+ TFile st6s3File("st6s3.root", "RECREATE");
+ st6s3->Write();
+ st6s3File.Close();
+
+ TFile st6s4File("st6s4.root", "RECREATE");
+ st6s4->Write();
+ st6s4File.Close();
+
+ TFile st6s5File("st6s5.root", "RECREATE");
+ st6s5->Write();
+ st6s5File.Close();
   */
 
-  /*  
+  /*
+  //getde histograms
   TCanvas *c3 = new TCanvas("c3","c3",2000,1500);
   c3->Divide(3,3);
   c3->cd(1);
   getdest0s0->SetFillColor(kBlue);
   getdest0s0->Draw("colz");
-                                                                                                           
+                  
   c3->cd(2); 
   getdest0s1->SetFillColor(kBlue);
   getdest0s1->Draw("colz");
-                                                                                                           
+                       
   c3->cd(3);        
   getdest1s0->SetFillColor(kBlue);
   getdest1s0->Draw("colz");
-                                                                                                           
+
   c3->cd(4);
   getdest1s1->SetFillColor(kBlue);
   getdest1s1->Draw("colz");            
   
   c3->cd(5);
   getdest2s0->SetFillColor(kBlue);
-  getdest2s0->Draw("colz"); 
-                                                                                                           
+  getdest2s0->Draw("colz");
+                       
   c3->cd(6);             
   getdest2s1->SetFillColor(kBlue); 
   getdest2s1->Draw("colz");
 
   c3->cd(7);
   getdest2s2->SetFillColor(kBlue);
-  getdest2s2->Draw("colz");                                                                                                           
- 
-  c3->cd(8);                                                                                                         
+  getdest2s2->Draw("colz");                           
+
+  c3->cd(8);                                                                       
   getdest3s0->SetFillColor(kBlue);
   getdest3s0->Draw("colz");
 
   c3->cd(9); 
   getdest3s1->SetFillColor(kBlue);
   getdest3s1->Draw("colz");
-                                                                                                           
+
   TCanvas *c4 = new TCanvas("c4","c4",2000,1500); 
   c4->Divide(3,3);
-                                                                                       
+   
   c4->cd(1);
   getdest3s2->SetFillColor(kBlue);
   getdest3s2->Draw("colz");
            
-  c4->cd(2);                                                                                                  
+  c4->cd(2);           
   getdest4s0->SetFillColor(kBlue);
-  getdest4s0->Draw("colz");                                                                                                                             
+  getdest4s0->Draw("colz");            
+                                                        
   c4->cd(3);
   getdest4s1->SetFillColor(kBlue);
   getdest4s1->Draw("colz");
-                                                                                                           
-  c4->cd(4);                                                                                                                  
-  getdest5s0->SetFillColor(kBlue);                                                                                     
-  getdest5s0->Draw("colz");                                                                                        
-                                                                                                                 
-  c4->cd(5);                                                                                              
-  getdest5s1->SetFillColor(kBlue);                                                            
-  getdest5s1->Draw("colz");                                                          
-                                                                                                                             
-  c4->cd(6);                                                                                              
+
+  c4->cd(4);                                          
+  getdest5s0->SetFillColor(kBlue);                       
+  getdest5s0->Draw("colz");
+                                                    
+  c4->cd(5);                      
+  getdest5s1->SetFillColor(kBlue);
+  getdest5s1->Draw("colz");
+              
+  c4->cd(6);                      
   getdest5s2->SetFillColor(kBlue);
   getdest5s2->Draw("colz");
-                                                                                                                        
-  c4->cd(7);                                                                                             
-  getdest5s3->SetFillColor(kBlue);                                                              
-  getdest5s3->Draw("colz");                                                                    
-                                                                                                  
-  c4->cd(8);                                                                                            
-  getdest5s4->SetFillColor(kBlue);                                                                        
-  getdest5s4->Draw("colz");                                                                                    
-                                                                                                                      
-  c4->cd(9);                                                                                          
-  getdest5s5->SetFillColor(kBlue);                                                                    
-  getdest5s5->Draw("colz");                                                                                                                
+                        
+  c4->cd(7);         
+  getdest5s3->SetFillColor(kBlue);            
+  getdest5s3->Draw("colz");
 
+  c4->cd(8);                    
+  getdest5s4->SetFillColor(kBlue);          
+  getdest5s4->Draw("colz");
+       
+  c4->cd(9);                  
+  getdest5s5->SetFillColor(kBlue);      
+  getdest5s5->Draw("colz");
+                     
   TCanvas *c5 = new TCanvas("c5","c5",2000,1500);                                  
-  c5->Divide(3,3);                                                                                                                                 
+  c5->Divide(3,3);
+                                                               
   c5->cd(1);                                                      
   getdest6s0->SetFillColor(kBlue);              
-  getdest6s0->Draw("colz");                                                                                                                                                                                                               
-  c5->cd(2);                                                                                      
+  getdest6s0->Draw("colz");
+
+  c5->cd(2);              
   getdest6s1->SetFillColor(kBlue);
   getdest6s1->Draw("colz");
   
   c5->cd(3);
   getdest6s2->SetFillColor(kBlue);
   getdest6s2->Draw("colz");
-                                                                                                           
+           
   c5->cd(4);  
   getdest6s3->SetFillColor(kBlue);
   getdest6s3->Draw("colz");
-                                                                                                           
+                       
   c5->cd(5);  
   getdest6s4->SetFillColor(kBlue);
-  getdest6s4->Draw("colz");                                                                                                           
+  getdest6s4->Draw("colz");                           
 
-  c5->cd(6);                                                                                                                      
+  c5->cd(6);
   getdest6s5->SetFillColor(kBlue);
   getdest6s5->Draw("colz");
+  
+  // Create separate output files for needed histograms 
+  TFile getdest0s0File("getdest0s0.root", "RECREATE");           
+  getdest0s0->Write();                                                          
+  getdest0s0File.Close();
+
+  TFile getdest0s1File("getdest0s1.root", "RECREATE");
+  getdest0s1->Write();                                                          
+  getdest0s1File.Close();
+
+  TFile getdest1s0File("getdest1s0.root", "RECREATE");
+  getdest1s0->Write();                                                         
+  getdest1s0File.Close();
+
+  TFile getdest1s1File("getdest1s1.root", "RECREATE");
+  getdest1s1->Write();                                                        
+  getdest1s1File.Close();
+
+  TFile getdest2s0File("getdest2s0.root", "RECREATE");
+  getdest2s0->Write();                        
+  getdest2s0File.Close();
+                                                            
+  TFile getdest2s1File("getdest2s1.root", "RECREATE");
+  getdest2s1->Write();  
+  getdest2s1File.Close();
+                                                           
+  TFile getdest2s2File("getdest2s2.root", "RECREATE");
+  getdest2s2->Write();     
+  getdest2s2File.Close();
+
+  TFile getdest3s0File("getdest3s0.root", "RECREATE");
+  getdest3s0->Write();                           
+  getdest3s0File.Close();
+
+  TFile getdest3s1File("getdest3s1.root", "RECREATE");
+  getdest3s1->Write();                            
+  getdest3s1File.Close();
+
+  TFile getdest3s2File("getdest3s2.root", "RECREATE");                      
+  getdest3s2->Write();
+  getdest3s2File.Close();
+  
+  TFile getdest4s0File("getdest4s0.root", "RECREATE");
+  getdest4s0->Write();                            
+  getdest4s0File.Close();
+
+  TFile getdest4s1File("getdest4s1.root", "RECREATE");
+  getdest4s1->Write();                                                          
+  getdest4s1File.Close();
+
+  TFile getdest5s0File("getdest5s0.root", "RECREATE");
+  getdest5s0->Write();                            
+  getdest5s0File.Close();           
+
+  TFile getdest5s1File("getdest5s1.root", "RECREATE");
+  getdest5s1->Write();
+  getdest5s1File.Close();
+
+  TFile getdest5s2File("getdest5s2.root", "RECREATE");
+  getdest5s2->Write();                         
+  getdest5s2File.Close();
+
+  TFile getdest5s3File("getdest5s3.root", "RECREATE");
+  getdest5s3->Write();                          
+  getdest5s3File.Close();
+                                             
+  TFile getdest5s4File("getdest5s4.root", "RECREATE");
+  getdest5s4->Write();                         
+  getdest5s4File.Close();
+   
+  TFile getdest5s5File("getdest5s5.root", "RECREATE");
+  getdest5s5->Write();                       
+  getdest5s5File.Close();
+
+  TFile getdest6s0File("getdest6s0.root", "RECREATE");
+  getdest6s0->Write();                           
+  getdest6s0File.Close();
+
+  TFile getdest6s1File("getdest6s1.root", "RECREATE");
+  getdest6s1->Write();                 
+  getdest6s1File.Close();
+                                                                                    
+  TFile getdest6s2File("getdest6s2.root", "RECREATE");
+  getdest6s2->Write();                          
+  getdest6s2File.Close();
+                                                                                  
+  TFile getdest6s3File("getdest6s3.root", "RECREATE");
+  getdest6s3->Write();                       
+  getdest6s3File.Close();
+ 
+  TFile getdest6s4File("getdest6s4.root", "RECREATE");
+  getdest6s4->Write();                          
+  getdest6s4File.Close();
+
+  TFile getdest6s5File("getdest6s5.root", "RECREATE");                          
+  getdest6s5->Write();                                                     
+  getdest6s5File.Close();     
   */
 
   /*
   //ntotADC histograms
-  TCanvas *c3 = new TCanvas("c3","c3",2000,1500);                                                                                     
-  c3->Divide(3,3);                                                                                                                   
-                                                                                                                                      
-  c3->cd(1);                                                                                                                          
-  nst0s0->SetFillColor(kBlue);                                                                                                 
-  nst0s0->Draw("colz");                                                                                                                
-                                                                                                                                      
-  c3->cd(2);                                                                                                                          
-  nst0s1->SetFillColor(kBlue);                                                                                                         
-  nst0s1->Draw("colz");                                                                                                               
-                                                                                                                                 
-  c3->cd(3);                                                                                                                         
-  nst1s0->SetFillColor(kBlue);                                                                                                         
-  nst1s0->Draw("colz");                                                                                                               
-                                                                                                                                      
-  c3->cd(4);                                                                                                                     
-  nst1s1->SetFillColor(kBlue);                                                                                                        
-  nst1s1->Draw("colz");                                                                                                          
-                                                                                                                                     
+  TCanvas *c3 = new TCanvas("c3","c3",2000,1500);                       
+  c3->Divide(3,3);
+                                
+  c3->cd(1);                                                  
+  nst0s0->SetFillColor(kBlue);                               
+  nst0s0->Draw("colz");
+                                  
+  c3->cd(2);                                                  
+  nst0s1->SetFillColor(kBlue);                                       
+  nst0s1->Draw("colz");
+                      
+  c3->cd(3);                                                 
+  nst1s0->SetFillColor(kBlue);                                       
+  nst1s0->Draw("colz");
+                           
+  c3->cd(4);                                             
+  nst1s1->SetFillColor(kBlue);                                      
+  nst1s1->Draw("colz");
+                          
   c3->cd(5);          
-  nst2s0->SetFillColor(kBlue);                                                                                                        
-  nst2s0->Draw("colz");                                                                                                                
-                                                                                                                                       
-  c3->cd(6);                                                                                                                           
-  nst2s1->SetFillColor(kBlue);                                                                                                         
-  nst2s1->Draw("colz");                                                                                                                
-                                                                                                                                       
-  c3->cd(7);                                                                                                                           
-  nst2s2->SetFillColor(kBlue);                                                                                                      
-  nst2s2->Draw("colz");                                                                                                        
+  nst2s0->SetFillColor(kBlue);                                                  
+  nst2s0->Draw("colz");                            
+  
+  c3->cd(6);                            
+  nst2s1->SetFillColor(kBlue);                                                 
+  nst2s1->Draw("colz");
+                            
+  c3->cd(7);                                                   
+  nst2s2->SetFillColor(kBlue);                                    
+  nst2s2->Draw("colz");             
 
   c3->cd(8); 
   nst3s0->SetFillColor(kBlue);
-  nst3s0->Draw("colz");                                                                                               
-                                                                                                                             
-  c3->cd(9);                                                                                                                   
-  nst3s1->SetFillColor(kBlue);                                                                                                   
-  nst3s1->Draw("colz");                                                                                                         
-                                                                                                                               
-  TCanvas *c4 = new TCanvas("c4","c4",2000,1500);                                                                           
-  c4->Divide(3,3);                                                                                                           
-                                                                                                                                
-  c4->cd(1);                                                                                                                
-  nst3s2->SetFillColor(kBlue);                                                                                                  
-  nst3s2->Draw("colz");                                                                                                          
-                                                                                                                                
-  c4->cd(2);                                                                                                                    
-  nst4s0->SetFillColor(kBlue);                                                                                                   
-  nst4s0->Draw("colz");                                                                                                          
-                                                                                                                              
-  c4->cd(3);                                                                                                                     
-  nst4s1->SetFillColor(kBlue);                                                                                                  
-  nst4s1->Draw("colz");                                                                                                       
-                                                                                                                               
-  c4->cd(4);                                                                                                                    
-  nst5s0->SetFillColor(kBlue);                                                                                                  
-  nst5s0->Draw("colz");                                                                                                       
-                                                                                                                             
-  c4->cd(5);                                                                                                                    
-  nst5s1->SetFillColor(kBlue);                                                                                                  
-  nst5s1->Draw("colz");                                                                                                        
-                                                                                                                                  
-  c4->cd(6);                                                                                                                      
-  nst5s2->SetFillColor(kBlue);                                                                                                       
-  nst5s2->Draw("colz");            
+  nst3s0->Draw("colz");
+                  
+  c3->cd(9);                                           
+  nst3s1->SetFillColor(kBlue);                                 
+  nst3s1->Draw("colz");
+                    
+  TCanvas *c4 = new TCanvas("c4","c4",2000,1500);
+  c4->Divide(3,3);
+                          
+  c4->cd(1);                                        
+  nst3s2->SetFillColor(kBlue);                                
+  nst3s2->Draw("colz");
+                     
+  c4->cd(2);                                            
+  nst4s0->SetFillColor(kBlue);                                 
+  nst4s0->Draw("colz");
+                   
+  c4->cd(3);                                             
+  nst4s1->SetFillColor(kBlue);                                
+  nst4s1->Draw("colz");
+                    
+  c4->cd(4);                                            
+  nst5s0->SetFillColor(kBlue);                                
+  nst5s0->Draw("colz");
+                  
+  c4->cd(5);                                            
+  nst5s1->SetFillColor(kBlue);                                
+  nst5s1->Draw("colz");
+                       
+  c4->cd(6);                                              
+  nst5s2->SetFillColor(kBlue);                                     
+  nst5s2->Draw("colz");
 
   c4->cd(7);
-  nst5s3->SetFillColor(kBlue);                                                                                                   
-  nst5s3->Draw("colz");                                                                                                         
-                                                                                                                               
-  c4->cd(8);                                                                                                                 
-  nst5s4->SetFillColor(kBlue);                                                                                                 
-  nst5s4->Draw("colz");                                                                                                          
-                                                                                                                                  
-  c4->cd(9);                                                                                                                       
-  nst5s5->SetFillColor(kBlue);                                                                                                      
-  nst5s5->Draw("colz");                                                                                                          
-                                                                                                                               
-  TCanvas *c5 = new TCanvas("c5","c5",2000,1500);                                                                            
-  c5->Divide(3,3);                                                                                                                
-                                                                                                                                
-  c5->cd(1);                                                                                                                   
-  nst6s0->SetFillColor(kBlue);                                                                                                  
-  nst6s0->Draw("colz");                                                                                                        
-                                                                                                                               
-  c5->cd(2);                                                                                                                     
-  nst6s1->SetFillColor(kBlue);                                                                                                   
-  nst6s1->Draw("colz");                                                                                                         
-                                                                                                                                 
-  c5->cd(3);                                                                                                                     
-  nst6s2->SetFillColor(kBlue);                                                                                                  
-  nst6s2->Draw("colz");                                                                                                         
-                                                                                                                                
-  c5->cd(4);                                                                                                                      
+  nst5s3->SetFillColor(kBlue);                                             
+  nst5s3->Draw("colz");
+                    
+  c4->cd(8);                                         
+  nst5s4->SetFillColor(kBlue);                               
+  nst5s4->Draw("colz");
+                       
+  c4->cd(9);                                               
+  nst5s5->SetFillColor(kBlue);                                    
+  nst5s5->Draw("colz");
+                    
+  TCanvas *c5 = new TCanvas("c5","c5",2000,1500);
+  c5->Divide(3,3);
+                          
+  c5->cd(1);                                           
+  nst6s0->SetFillColor(kBlue);                                
+  nst6s0->Draw("colz");
+                               
+  c5->cd(2);                      
+  nst6s1->SetFillColor(kBlue);                                             
+  nst6s1->Draw("colz");
+                                 
+  c5->cd(3);    
+  nst6s2->SetFillColor(kBlue);                                
+  nst6s2->Draw("colz");
+                     
+  c5->cd(4);                                              
   nst6s3->SetFillColor(kBlue);                                                                                                      
-  nst6s3->Draw("colz");                                                                                                        
-                                                                                                                                  
+  nst6s3->Draw("colz");
+                                                                                                                              
   c5->cd(5);                                                                                                                   
   nst6s4->SetFillColor(kBlue);                                                                                                
   nst6s4->Draw("colz");                                                                                                          
@@ -1413,7 +1466,105 @@ st5s5->SetFillColor(kBlue);
   c5->cd(6);                                                                                                                 
   nst6s5->SetFillColor(kBlue);
   nst6s5->Draw("colz"); 
+ 
+  // Create separate output files for needed histograms
+  TFile nst0s0File("nst0s0.root", "RECREATE");                                                                              
+  nst0s0->Write();                                                                                                            
+  nst0s0File.Close();                                                                                                  
+                                                                                                                       
+  TFile nst0s1File("nst0s1.root", "RECREATE");                                                                              
+  nst0s1->Write();                                                                                                  
+  nst0s1File.Close();                                                                                                        
+                                                                                                                          
+  TFile nst1s0File("nst1s0.root", "RECREATE");                                                                            
+  nst1s0->Write();                                                                                              
+  nst1s0File.Close();                                                                                                   
+                                                                                                                            
+  TFile nst1s1File("nst1s1.root", "RECREATE");                                                                               
+  nst1s1->Write();                                                                                                           
+  nst1s1File.Close();                                                                                                         
+                                                                                                                              
+  TFile nst2s0File("nst2s0.root", "RECREATE");                                                                                
+  nst2s0->Write();                                                                                                     
+  nst2s0File.Close();                                                                                                       
+                                                                                                                        
+  TFile nst2s1File("nst2s1.root", "RECREATE");                                                                            
+  nst2s1->Write();                                                                                                     
+  nst2s1File.Close();                                                                                                         
+                                                                                                                              
+  TFile nst2s2File("nst2s2.root", "RECREATE");                                                                                
+  nst2s2->Write();                                                                                                  
+  nst2s2File.Close();                                                                                              
+                                                                                                                   
+  TFile nst3s0File("nst3s0.root", "RECREATE");                                                                         
+  nst3s0->Write();                                                                                                           
+  nst3s0File.Close();                                                                                                      
+                                                                                                                              
+  TFile nst3s1File("nst3s1.root", "RECREATE");                                                                              
+  nst3s1->Write();                                                                                                              
+  nst3s1File.Close();                                                                                                           
+                                                                                                                           
+  TFile nst3s2File("nst3s2.root", "RECREATE");                                                                               
+  nst3s2->Write();                                                                                                     
+  nst3s2File.Close();                                                                                                    
+                                                                                                                            
+  TFile nst4s0File("nst4s0.root", "RECREATE");                                                                            
+  nst4s0->Write();                                                                                                           
+  nst4s0File.Close();                                                                                                         
+                                                                                                                                
+  TFile nst4s1File("nst4s1.root", "RECREATE");                                                                                 
+  nst4s1->Write();                                                                                                          
+  nst4s1File.Close();                                                                                                        
+                                                                                                                          
+  TFile nst5s0File("nst5s0.root", "RECREATE");                                                                              
+  nst5s0->Write();                                                                                                       
+  nst5s0File.Close();
+
+  TFile nst5s1File("nst5s1.root", "RECREATE");
+  nst5s1->Write();                                                                                                    
+  nst5s1File.Close();                                                                                                        
+                                                                                                                        
+  TFile nst5s2File("nst5s2.root", "RECREATE");                                                                              
+  nst5s2->Write();                                                                                                              
+  nst5s2File.Close();                                                                                                
+                                                                                                                             
+  TFile nst5s3File("nst5s3.root", "RECREATE");                                                                              
+  nst5s3->Write();                                                                                                   
+  nst5s3File.Close();                                                                                                
+                                                                                                                            
+  TFile nst5s4File("nst5s4.root", "RECREATE");                                                                         
+  nst5s4->Write();                                                                                                             
+  nst5s4File.Close();                                                                                                      
+                                                                                                                                   
+  TFile nst5s5File("nst5s5.root", "RECREATE");                                                                                
+  nst5s5->Write();                                                                                                           
+  nst5s5File.Close();                                                                                                         
+                                                                                                                               
+  TFile nst6s0File("nst6s0.root", "RECREATE");                                                                               
+  nst6s0->Write();                                                                                                           
+  nst6s0File.Close();                                                                                                          
+                                                                                                                            
+  TFile nst6s1File("nst6s1.root", "RECREATE");                                                                              
+  nst6s1->Write();                                                                                                           
+  nst6s1File.Close();                                                                                                        
+                                                                                                                           
+  TFile nst6s2File("nst6s2.root", "RECREATE");                                                                              
+  nst6s2->Write();                                                                                                        
+  nst6s2File.Close();                                                                                                       
+                                                                                                                            
+  TFile nst6s3File("nst6s3.root", "RECREATE");                                                                             
+  nst6s3->Write();                                                                                                         
+  nst6s3File.Close();                                                                                                     
+                                                                                                                         
+  TFile nst6s4File("nst6s4.root", "RECREATE");                                                                          
+  nst6s4->Write();                                                                                                         
+  nst6s4File.Close();                                                                                                  
+                                                                                                                              
+  TFile nst6s5File("nst6s5.root", "RECREATE");                                                                          
+  nst6s5->Write();                                                                                                           
+  nst6s5File.Close();  
   */
+
   /*
     //ntotadc histograms                                                                                       
     TCanvas *c3 = new TCanvas("c3","c3",2000,1500);
@@ -1515,17 +1666,316 @@ st5s5->SetFillColor(kBlue);
                                                                                                        
     c5->cd(5);                                                                                                          
     Nst6s4->SetFillColor(kBlue);                                                                               
-    Nst6s4->Draw("colz");                                                                                                                                                                           
+    Nst6s4->Draw("colz");                                              
+                                                                                   
     c5->cd(6);                                                                                                                      
     Nst6s5->SetFillColor(kBlue);                                                                                                     
     Nst6s5->Draw("colz");
+
+    // Create separate output files for needed histograms                                                                              
+    TFile Nst0s0File("Nst0s0.root", "RECREATE");                                                                           
+    if (Nst0s0File.IsOpen()) {
+    Nst0s0->Write();                                                                                                       
+    Nst0s0File.Close();
+    std::cout << "Histogram written to Nst0s0.root" << std::endl;
+    } else {
+      std::cerr << "Error: Unable to open Nst0s0.root for writing." << std::endl;
+    }                                                                                         
+                                                                                                                             
+    TFile Nst0s1File("Nst0s1.root", "RECREATE");                                                                             
+    Nst0s1->Write();                                                                                                         
+    Nst0s1File.Close();                                                                                                 
+                                                                                                                         
+    TFile Nst1s0File("Nst1s0.root", "RECREATE");                                                                          
+    Nst1s0->Write();                                                                                            
+    Nst1s0File.Close();                                                                                                      
+                                                                                                                                    
+    TFile Nst1s1File("Nst1s1.root", "RECREATE");                                                                         
+    Nst1s1->Write();                                                                                                         
+    Nst1s1File.Close();                                                                                                         
+                                                                                                                            
+    TFile Nst2s0File("Nst2s0.root", "RECREATE");                                                                             
+    Nst2s0->Write();                                                                                                           
+    Nst2s0File.Close();                                                                                                        
+                                                                                                                               
+    TFile Nst2s1File("Nst2s1.root", "RECREATE");                                                                               
+    Nst2s1->Write();                                                                                                          
+    Nst2s1File.Close();                                                                                                     
+                                                                                                                              
+    TFile Nst2s2File("Nst2s2.root", "RECREATE");                                                                               
+    Nst2s2->Write();                                                                                                            
+    Nst2s2File.Close();                                                                                                         
+                                                                                                                            
+    TFile Nst3s0File("Nst3s0.root", "RECREATE");                                                                               
+    Nst3s0->Write();                                                                                                         
+    Nst3s0File.Close();                                                                                                      
+                                                                                                                            
+    TFile Nst3s1File("Nst3s1.root", "RECREATE");                                                                    
+    Nst3s1->Write();                                                                                                     
+    Nst3s1File.Close();                                                                                               
+                                                                                                                             
+    TFile Nst3s2File("Nst3s2.root", "RECREATE");                                                                      
+    Nst3s2->Write();                                                                                                     
+    Nst3s2File.Close();                                                                                                     
+                                                                                                                           
+    TFile Nst4s0File("Nst4s0.root", "RECREATE");                                                                           
+    Nst4s0->Write();                                                                                                        
+    Nst4s0File.Close();                                                                                                      
+                                                                                                                     
+    TFile Nst4s1File("Nst4s1.root", "RECREATE");                                                                     
+    Nst4s1->Write();                                                                                                        
+    Nst4s1File.Close();
+
+    TFile Nst5s0File("Nst5s0.root", "RECREATE");
+    Nst5s0->Write();                                                                                                        
+    Nst5s0File.Close();                                                                                                        
+                                                                                                                                
+    TFile Nst5s1File("Nst5s1.root", "RECREATE");                                                                               
+    Nst5s1->Write();                                                                                                             
+    Nst5s1File.Close();                                                                                                         
+                                                                                                                              
+    TFile Nst5s2File("Nst5s2.root", "RECREATE");                                                                                 
+    Nst5s2->Write();                                                                                                        
+    Nst5s2File.Close();                                                                                                         
+                                                                                                                                  
+    TFile Nst5s3File("Nst5s3.root", "RECREATE");                                                                                  
+    Nst5s3->Write();                                                                                                             
+    Nst5s3File.Close();                                                                                                       
+                                                                                                                          
+    TFile Nst5s4File("Nst5s4.root", "RECREATE");                                                                           
+    Nst5s4->Write();                                                                                                       
+    Nst5s4File.Close();                                                                                                    
+                                                                                                                      
+    TFile Nst5s5File("Nst5s5.root", "RECREATE");                                                                 
+    Nst5s5->Write();                                                                                                        
+    Nst5s5File.Close();                                                                                                       
+                                                                                                                              
+    TFile Nst6s0File("Nst6s0.root", "RECREATE");                                                                           
+    Nst6s0->Write();                                                                                                           
+    Nst6s0File.Close();                                                                                                         
+                                                                                                                                
+    TFile Nst6s1File("Nst6s1.root", "RECREATE");                                                                             
+    Nst6s1->Write();                                                                                                          
+    Nst6s1File.Close();                                                                                                         
+                                                                                                                               
+    TFile Nst6s2File("Nst6s2.root", "RECREATE");                                                                               
+    Nst6s2->Write();                                                                                                           
+    Nst6s2File.Close();                                                                                                       
+                                                                                                                             
+    TFile Nst6s3File("Nst6s3.root", "RECREATE");                                                                              
+    Nst6s3->Write();                                                                                                      
+    Nst6s3File.Close();                                                                                                      
+                                                                                                                         
+    TFile Nst6s4File("Nst6s4.root", "RECREATE");                                                                            
+    Nst6s4->Write();                                                                                                          
+    Nst6s4File.Close();                                                                                                      
+                                                                                                                                
+    TFile Nst6s5File("Nst6s5.root", "RECREATE");                                                                               
+    Nst6s5->Write();                                                                                                     
+    Nst6s5File.Close(); 
   */
 
-  TCanvas *c3 = new TCanvas("c3", "c3", 1000, 500);                                                                                                                 
-  ngetde->Draw();                                                                                                                                                   
-  ngetde->SetFillColor(kRed);    
+ /*
+  TCanvas *c3 = new TCanvas("c3","c3",2000,1500);                                                              
+  c3->Divide(3,3);                                                                                                             
+  c3->cd(1);                                                                                                                
+  ngetdest0s0->SetFillColor(kBlue);                                                                                          
+  ngetdest0s0->Draw("colz");                                                                                                  
+                                                                                                                            
+  c3->cd(2);                                                                                                               
+  ngetdest0s1->SetFillColor(kBlue);                                                                                          
+  ngetdest0s1->Draw("colz");                                                                                                 
+                                                                                                                               
+  c3->cd(3);                                                                                                                  
+  ngetdest1s0->SetFillColor(kBlue);                                                                                           
+  ngetdest1s0->Draw("colz");                                                                                                  
+                                                                                                                              
+  c3->cd(4);                                                                                                                  
+  ngetdest1s1->SetFillColor(kBlue);                                                                                        
+  ngetdest1s1->Draw("colz");                                                                                                
+                                                                                                                               
+  c3->cd(5);                                                                                                             
+  ngetdest2s0->SetFillColor(kBlue);                                                                                             
+  ngetdest2s0->Draw("colz");                                                                                                  
+                                                                                                                                 
+  c3->cd(6);                                                                                                                   
+  ngetdest2s1->SetFillColor(kBlue);                                                                                           
+  ngetdest2s1->Draw("colz");                                                                                                  
+                                                                                                                             
+  c3->cd(7);                                                                                                                            
+  ngetdest2s2->SetFillColor(kBlue);                                                                                             
+  ngetdest2s2->Draw("colz");  
 
-  TCanvas *c4 = new TCanvas("c4", "4", 1000, 500);                                                                                                                 
-  ngetdest0s0->Draw();                                                                                                                           
-  ngetdest0s0->SetFillColor(kRed);    
+  c3->cd(8);                                                                                                                       
+  ngetdest3s0->SetFillColor(kBlue);                                                                                                    
+  ngetdest3s0->Draw("colz");                                                                                                           
+                                                                                                                                     
+  c3->cd(9);                                                                                                                        
+  ngetdest3s1->SetFillColor(kBlue);                                                                                                    
+  ngetdest3s1->Draw("colz");                                                                                                          
+                                                                                                                                       
+  TCanvas *c4 = new TCanvas("c4","c4",2000,1500);                                                                                     
+  c4->Divide(3,3);                                                                                                                      
+                                                                                                                                        
+  c4->cd(1);                                                                                                                          
+  ngetdest3s2->SetFillColor(kBlue);                                                                                                   
+  ngetdest3s2->Draw("colz");                                                                                                 
+                                                                                                                          
+  c4->cd(2);                                                                                                                           
+  ngetdest4s0->SetFillColor(kBlue);                                                                                                    
+  ngetdest4s0->Draw("colz");                                                                                                            
+                                                                                                                                        
+  c4->cd(3);                                                                                                                          
+  ngetdest4s1->SetFillColor(kBlue);                                                                                                  
+  ngetdest4s1->Draw("colz");                                                                                                            
+                                                                                                                                       
+  c4->cd(4);                                                                                                                            
+  ngetdest5s0->SetFillColor(kBlue);                                                                                                
+  ngetdest5s0->Draw("colz");                                                                                                       
+                                                                                                                                        
+  c4->cd(5);                                                                                                             
+  ngetdest5s1->SetFillColor(kBlue);                                                                                       
+  ngetdest5s1->Draw("colz");                                                                                                    
+                                                                                                                                      
+  c4->cd(6);                                                                                                                           
+  ngetdest5s2->SetFillColor(kBlue);                                                                                                     
+  ngetdest5s2->Draw("colz");                                                                                                           
+                                                                                                                         
+  c4->cd(7);                                                                                                             
+  ngetdest5s3->SetFillColor(kBlue);                                                                                                  
+  ngetdest5s3->Draw("colz");  
+
+  c4->cd(8);                                                                                                                     
+  ngetdest5s4->SetFillColor(kBlue);                                                                                                 
+  ngetdest5s4->Draw("colz");
+                                      
+  c4->cd(9);              
+  ngetdest5s5->SetFillColor(kBlue);                                    
+  ngetdest5s5->Draw("colz");
+  
+  TCanvas *c5 = new TCanvas("c5","c5",2000,1500);
+  c5->Divide(3,3);
+                                       
+  c5->cd(1);              
+  ngetdest6s0->SetFillColor(kBlue);
+  ngetdest6s0->Draw("colz");
+                                       
+  c5->cd(2);                 
+  ngetdest6s1->SetFillColor(kBlue);
+  ngetdest6s1->Draw("colz");
+                                       
+  c5->cd(3);                
+  ngetdest6s2->SetFillColor(kBlue);
+  ngetdest6s2->Draw("colz");
+                                        
+  c5->cd(4);               
+  ngetdest6s3->SetFillColor(kBlue);                                       
+  ngetdest6s3->Draw("colz");
+                                      
+  c5->cd(5);               
+  ngetdest6s4->SetFillColor(kBlue);
+  ngetdest6s4->Draw("colz");
+                                       
+  c5->cd(6);             
+  ngetdest6s5->SetFillColor(kBlue);
+  ngetdest6s5->Draw("colz"); 
+
+  // Create separate output files for needed histograms
+  TFile ngetdest0s0File("ngetdest0s0.root", "RECREATE");                        
+  ngetdest0s0->Write();                                      
+  ngetdest0s0File.Close();
+
+  TFile ngetdest0s1File("ngetdest0s1.root", "RECREATE");               
+  ngetdest0s1->Write();                                      
+  ngetdest0s1File.Close();
+
+  TFile ngetdest1s0File("ngetdest1s0.root", "RECREATE");                    
+  ngetdest1s0->Write();                                   
+  ngetdest1s0File.Close();
+
+  TFile ngetdest1s1File("ngetdest1s1.root", "RECREATE");
+  ngetdest1s1->Write();                    
+  ngetdest1s1File.Close();
+
+  TFile ngetdest2s0File("ngetdest2s0.root", "RECREATE");               
+  ngetdest2s0->Write();                                      
+  ngetdest2s0File.Close();
+
+  TFile ngetdest2s1File("ngetdest2s1.root", "RECREATE");              
+  ngetdest2s1->Write();                                      
+  ngetdest2s1File.Close();
+
+  TFile ngetdest2s2File("ngetdest2s2.root", "RECREATE");                     
+  ngetdest2s2->Write();                                       
+  ngetdest2s2File.Close();
+
+  TFile ngetdest3s0File("ngetdest3s0.root", "RECREATE");                 
+  ngetdest3s0->Write();                                     
+  ngetdest3s0File.Close();
+
+  TFile ngetdest3s1File("ngetdest3s1.root", "RECREATE");
+  ngetdest3s1->Write();                                         
+  ngetdest3s1File.Close();
+
+  TFile ngetdest3s2File("ngetdest3s2.root", "RECREATE");             
+  ngetdest3s2->Write();                                     
+  ngetdest3s2File.Close();
+
+  TFile ngetdest4s0File("ngetdest4s0.root", "RECREATE");            
+  ngetdest4s0->Write();                               
+  ngetdest4s0File.Close();
+
+  TFile ngetdest4s1File("ngetdest4s1.root", "RECREATE");                   
+  ngetdest4s1->Write();                                    
+  ngetdest4s1File.Close();
+
+  TFile ngetdest5s0File("ngetdest5s0.root", "RECREATE");               
+  ngetdest5s0->Write();                                        
+  ngetdest5s0File.Close();
+
+  TFile ngetdest5s1File("ngetdest5s1.root", "RECREATE");               
+  ngetdest5s1->Write();                                   
+  ngetdest5s1File.Close();
+
+  TFile ngetdest5s2File("ngetdest5s2.root", "RECREATE");                
+  ngetdest5s2->Write();                                            
+  ngetdest5s2File.Close();
+
+  TFile ngetdest5s3File("ngetdest5s3.root", "RECREATE");                  
+  ngetdest5s3->Write();                                         
+  ngetdest5s3File.Close();
+                                                                       
+  TFile ngetdest5s4File("ngetdest5s4.root", "RECREATE");                
+  ngetdest5s4->Write();                                        
+  ngetdest5s4File.Close();
+
+  TFile ngetdest5s5File("ngetdest5s5.root", "RECREATE");
+  ngetdest5s5->Write();
+  ngetdest5s5File.Close();
+
+  TFile ngetdest6s0File("ngetdest6s0.root", "RECREATE");                  
+  ngetdest6s0->Write();                                         
+  ngetdest6s0File.Close();
+
+  TFile ngetdest6s1File("ngetdest6s1.root", "RECREATE");               
+  ngetdest6s1->Write();                                        
+  ngetdest6s1File.Close();
+
+  TFile ngetdest6s2File("ngetdest6s2.root", "RECREATE");              
+  ngetdest6s2->Write();                                          
+  ngetdest6s2File.Close();
+
+  TFile ngetdest6s3File("ngetdest6s3.root", "RECREATE");                 
+  ngetdest6s3->Write();                                     
+  ngetdest6s3File.Close();
+
+  TFile ngetdest6s4File("ngetdest6s4.root", "RECREATE");                   
+  ngetdest6s4->Write();                                           
+  ngetdest6s4File.Close();
+
+  TFile ngetdest6s5File("ngetdest6s5.root", "RECREATE");
+  ngetdest6s5->Write();               
+  ngetdest6s5File.Close(); 
+ */
+
 }
