@@ -42,7 +42,7 @@ namespace emph {
       fIsMC(false), // Ugly, we are still working on the sign convention and rotation angles signs.. 
       fDoFirstAndLastStrips(false),
       fChiSqCut(5.0), fChiSqCutPreArb(DBL_MAX),// for XYU (or XYW) cut. 
-      fXWindowWidth(1.0e4), fYWindowWidth(1.0e4), fXWindowCenter(0.), fYWindowCenter(0.),
+      fXWindowWidth(40.), fYWindowWidth(40.0), fXWindowCenter(0.), fYWindowCenter(0.),
       fPrelimMomentum(5.0),
       fTokenJob("undef"), fStPoints(), fFOutSt(nullptr), fFOutStYFirst(nullptr), fFOutStYLast(nullptr), 
       fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0)  {
@@ -147,10 +147,20 @@ namespace emph {
        }
        return this->Size(); 
      }
+     bool SSDRecStationDwnstrAlgo1::HasUniqueYW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const {
+       int nW=0; int nY=0;
+       for(std::vector<rb::SSDCluster>::const_iterator itCl = aSSDClsPtr->cbegin(); itCl != aSSDClsPtr->cend(); itCl++) {
+         if (itCl->Station() != fStationNum) continue;
+	 if (itCl->View() == emph::geo::Y_VIEW) nY++;
+	 if (itCl->View() == emph::geo::W_VIEW) nW++;
+       }
+       if ((nY != 1) || (nW != 1)) return false;
+       return true;
+     }
      //
      // Now the details..
      //
-     size_t SSDRecStationDwnstrAlgo1::recoXYUorW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+     size_t SSDRecStationDwnstrAlgo1::recoXYUorW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr){
        size_t kux = 0; 
        size_t nStart = fStPoints.size();
        if (fDebugIsOn) {
@@ -164,8 +174,11 @@ namespace emph {
          if (itClX->Station() != fStationNum) continue;
 	 if (itClX->View() != emph::geo::X_VIEW) continue;
 	 size_t kSeX = static_cast<size_t>(itClX->Sensor());
+	 if (fDebugIsOn) std::cerr << " ...X-View,  Before fCoordConvert.getTrCoord " << std::endl;
 	 const std::pair<double, double> xDat = fCoordConvert.getTrCoord(itClX, fPrelimMomentum);
-	 const double xDatGeoMap = fCoordConvert.getTrCoordRoot(itClX);
+	 if (fDebugIsOn) std::cerr << " ...X-View,  After  fCoordConvert.getTrCoord " << std::endl;
+	 const double xDatGeoMap =  (itClX->WgtAvgStrip() < 639.) ? fCoordConvert.getTrCoordRoot(itClX) : -9999.; // bug protect, DetGeomMap screws up is 
+	 // if problem with estimate of average strip number is wrong.. 
 	 if (std::abs(xDat.first - fXWindowCenter) > fXWindowWidth) {
 	   if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected X location  " 
 	                              << fXWindowCenter << " delta " << xDat.first - fXWindowCenter << std::endl;
@@ -188,7 +201,8 @@ namespace emph {
 	   if (itClY->View() != emph::geo::Y_VIEW) continue;
 	   size_t kSeY = static_cast<size_t>(itClY->Sensor());
 	   const std::pair<double, double> yDat = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
-	   const double yDatGeoMap = fCoordConvert.getTrCoordRoot(itClY);
+	   const double yDatGeoMap =  (itClY->WgtAvgStrip() < 639.) ? fCoordConvert.getTrCoordRoot(itClX) : -9999.; // bug protect, DetGeomMap screws up is 
+	 // if problem with estimate of average strip number is wrong.. 
 	   if (std::abs(yDat.first - fYWindowCenter) > fYWindowWidth) {
 	     if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected Y location  " 
 	                              << fYWindowCenter << " delta " << yDat.first - fYWindowCenter << std::endl;
@@ -233,6 +247,7 @@ namespace emph {
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
              if (fClUsages[kuu] != 0) continue;
              if (itClUorV->Station() != fStationNum) continue;
+	     if (itClUorV->View() ==  emph::geo::INIT) continue;
 	     if ((itClUorV->View() ==  emph::geo::X_VIEW) ||(itClUorV->View() ==  emph::geo::Y_VIEW)) continue;
 	     // To leave some flexibility on what we call U or W.. No X or Y !  
 //	     if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
@@ -244,7 +259,7 @@ namespace emph {
 		     << " RMS " << itClUorV->WgtRmsStrip() << " ClID " << itClUorV->ID() << std::endl;
 	     }
 	     const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
-	     const double uorvDatGeoMap = fCoordConvert.getTrCoordRoot(itClUorV);
+	     const double uorvDatGeoMap =  (itClUorV->WgtAvgStrip() < 639.) ? fCoordConvert.getTrCoordRoot(itClX) : -9999.; // bug protect, DetGeomMap screws up is 
 	     const double angleRollUorV = fEmVolAlP->Roll(itClUorV->View(), kSt, kSeU);  
 	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(itClUorV->View(), kSt, kSeU); 
 	     const double uorvPred = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
@@ -258,7 +273,9 @@ namespace emph {
 	                                                                          (uPredErrSq + uorvDat.second);
 	     const double aChiSq = (deltaXYU * deltaXYU)/deltaErrSq;
 	     if (fDebugIsOn) std::cerr << " .... uDat " << uorvDat.first << " +- " << std::sqrt(uorvDat.second) 
-	                             <<  " deltaXYU  " << deltaXYU << " +-  " << std::sqrt(deltaErrSq) << " chiSq " << aChiSq << std::endl; 
+	                             <<  " deltaXYU  " << deltaXYU << " +-  " << std::sqrt(deltaErrSq) 
+				     << " chiSq " << aChiSq << " chiSq cut " << fChiSqCut << std::endl;
+//	     if (fDebugIsOn && (fStationNum == 5)) { std::cerr << "  check chiSqCut, and there it is " << std::endl; exit(2); }		      
 	     if (aChiSq > fChiSqCut) continue;
 	     // tag and store 
 	     fClUsages[kuu] = 1; fClUsages[kux] = 1; fClUsages[kuy] = 1;
@@ -372,8 +389,8 @@ namespace emph {
          for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
            if (fClUsages[kuu] != 0) continue;
            if (itClUorV->Station() != fStationNum) continue;
-	   if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
-	   if ((kSt > 3) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
+	   if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
+	   if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
 	   size_t kSeUorV = static_cast<size_t>(itClUorV->Sensor());
 	   const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
 	   const double angleRollUorV = (kSt <4) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
@@ -414,6 +431,7 @@ namespace emph {
      } // recoXUorV
      //
      size_t SSDRecStationDwnstrAlgo1::recoYUorW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
+       if (fStationNum == 4) { std::cerr << " SSDRecStationDwnstrAlgo1::recoYUorW, Station 4, begin.. evt " << fEvtNum << std::endl; }
        size_t kuy = 0;
        size_t nStart = fStPoints.size();
        const size_t kSt = static_cast<size_t>(fStationNum);
@@ -440,8 +458,8 @@ namespace emph {
          for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
            if (fClUsages[kuu] != 0) continue;
            if (itClUorV->Station() != fStationNum) continue;
-	   if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
-	   if ((kSt > 3) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
+	   if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
+	   if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
 	   size_t kSeUorV = static_cast<size_t>(itClUorV->Sensor());
 	   if (fDebugIsOn) {
 	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 

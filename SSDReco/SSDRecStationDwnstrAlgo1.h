@@ -83,6 +83,8 @@ namespace emph {
 	 inline void SetPreliminaryMomentum(double p) { fPrelimMomentum = p; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 	 inline void Clear() { fStPoints.clear(); }
+	 bool HasUniqueYW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const; 
+	    // Only relevant for Phase1b, station 4, where we had 3 dead readout chip (3*128 missing channel in the X view.. 
 	 //
 	 // Getter, only one output, the reconstructed track.. 
 	 //
