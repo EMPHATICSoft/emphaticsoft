@@ -161,7 +161,6 @@ namespace emph {
      
      std::pair<double, double> ConvertDigitToWCoordAlgo1::getTrCoord(std::vector<rb::SSDCluster>::const_iterator itCl, double pMomMultScatErr) const { 
      
-     // This code fragment is also found in SSD3DTrackFitFCNAlgo1.. Need clean-up...  
  	const double strip = itCl->WgtAvgStrip();
         const double rmsStr = std::max(0.1, itCl->WgtRmsStrip()); // protect against some zero values for the RMS 
 	if (rmsStr > 1000.) { return std::pair<double, double>(DBL_MAX, DBL_MAX); } // no measurement. 

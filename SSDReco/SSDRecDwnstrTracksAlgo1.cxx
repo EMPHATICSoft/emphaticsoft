@@ -30,11 +30,11 @@ namespace emph {
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
       fNEvents(0), fDebugIsOn(false), fIsMC(false), fIsGoodForAlignment(false), 
       fDoMigrad(true), fNoMagnet(false), fChiSqCut(5.0), 
-      fPrelimMomentum(50.0), fChiSqCutPreArb(100.),
+      fPrelimMomentum(50.0), fChiSqCutPreArb(100.), 
       fDoUseUpstreamTrack(false), 
-      fTokenJob("undef"), fFitterFCN(nullptr),
-      fInputSt2Pts(2), fInputSt3Pts(3), fInputSt4Pts(4), fInputSt5Pts(5), 
-      fTrs()
+      fTokenJob("undef"), fFitterFCN(nullptr), fUpDownFitterFCN(nullptr),
+      fInputSt2Pts(2), fInputSt3Pts(3), fInputSt4Pts(4), fInputSt5Pts(5), fDataItClForFits(),
+      fTrs(), fUpStrDwnStrTrack()
       {
       ;
     }
@@ -42,23 +42,28 @@ namespace emph {
     SSDRecDwnstrTracksAlgo1::~SSDRecDwnstrTracksAlgo1() {
       if (fFOutTrs.is_open()) fFOutTrs.close();
       if (fFOutCompact.is_open()) fFOutCompact.close();
+      if (fFOutCmpBeamTracks.is_open()) fFOutCmpBeamTracks.close();
       if (fFOutCompactInfo.is_open()) fFOutCompactInfo.close();
       delete fFitterFCN;
+      delete fUpDownFitterFCN;
     }
     //
     size_t SSDRecDwnstrTracksAlgo1::RecStation(size_t kSt, const art::Event &evt, 
                                 const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
        fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
-       if (kSt == 2) fIsGoodForAlignment = false;
+       if (kSt == 2) { fIsGoodForAlignment = false; fIsPerfectForAlignment = false; }
+       if (kSt == 4) fHasUniqueYWSt4 = false;
        if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::RecStation, spill " << fSubRunNum << " evt " << fEvtNum << " Station " << kSt << std::endl;
        if (fEmgeo == nullptr) {
          fEmgeo = fGeoService->Geo();
          fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
 	 // We use the nominal Z position, for now.. 
 	 if (fDoUseUpstreamTrack && (kSt > 3) ) {
-	   fInputSt2Pts.SetXYWindowWidth( 5.0, 5.0); 
-	   fInputSt3Pts.SetXYWindowWidth( 7.5, 7.5);
-	   if (fDebugIsOn) std::cerr << " XYWindows for station 2 and 3 are set... " << std::endl;
+	   fInputSt2Pts.SetXYWindowWidth( 15.0, 15.0); 
+	   fInputSt3Pts.SetXYWindowWidth( 15.0, 15.);
+	   fInputSt4Pts.SetXYWindowWidth( 25.0, 25.0); 
+	   fInputSt5Pts.SetXYWindowWidth( 25.0, 25.);
+	   if (fDebugIsOn) std::cerr << " XYWindows all Dwn station are set, as well as chiSq ... " << std::endl;
 	 }
        }
        if (!fCoordConvert.IsReadyToGo()) {
@@ -81,8 +86,8 @@ namespace emph {
          TVector3 tmpPoskSt = fEmgeo->GetSSDStation(kSt)->Pos(); 
          const double zzStThis = tmpPoskSt[2];
          double dzSt0ForWindow = zzStThis - zzSt0;
-	 xAtStation = itUpstrTr->XOffset() + dzSt0ForWindow * itUpstrTr->XSlope();
-	 yAtStation = itUpstrTr->YOffset() + dzSt0ForWindow * itUpstrTr->YSlope();
+	 xAtStation = fItUpstrTr->XOffset() + dzSt0ForWindow * fItUpstrTr->XSlope();
+	 yAtStation = fItUpstrTr->YOffset() + dzSt0ForWindow * fItUpstrTr->YSlope();
 	 if (fDebugIsOn) std::cerr << " .....  From Upstream track, xAtStation.. " << xAtStation << " yAtStation " << std::endl;
         }
 	switch (kSt) {
@@ -101,7 +106,9 @@ namespace emph {
 	  case 4 : { 
 	     fInputSt4Pts.SetDebugOn(fDebugIsOn);
 //	     if (fDoUseUpstreamTrack) fInputSt4Pts.SetXYWindowCenter( xAtStation, yAtStation);
-	    return fInputSt4Pts.RecIt(evt, aSSDClsPtr); 
+	    size_t nSt4 = fInputSt4Pts.RecIt(evt, aSSDClsPtr);
+	    fHasUniqueYWSt4 = fInputSt4Pts.HasUniqueYW(aSSDClsPtr); 
+	    return nSt4;
 	  }
 	  case 5 : { 
 	     fInputSt5Pts.SetDebugOn(fDebugIsOn);
@@ -116,6 +123,7 @@ namespace emph {
     size_t SSDRecDwnstrTracksAlgo1::RecAndFitIt(const art::Event &evt) {
     
       fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
+      fDataItClForFits.clear();
       // Assume we have a single Station 0 to Station 1 single track, clean.. 
       const bool atLeastSt2or3 = (((fInputSt2Pts.Size() > 0) && (fInputSt2Pts.NumTriplets() < 2)) || 
                                   ((fInputSt3Pts.Size() > 0) && (fInputSt3Pts.NumTriplets() < 2)));
@@ -123,7 +131,18 @@ namespace emph {
                                   ((fInputSt5Pts.Size() > 0) && (fInputSt5Pts.NumTriplets() < 2)));
 				   
       fIsGoodForAlignment = atLeastSt2or3 && atLeastSt4or5;
-      
+      fIsPerfectForAlignment = ((fInputSt2Pts.Size() == 1) && (fInputSt2Pts.NumTriplets() == 1) &&
+                             (fInputSt3Pts.Size() == 1) && (fInputSt3Pts.NumTriplets() == 1) &&
+			     (fInputSt4Pts.Size() == 1) && (fInputSt4Pts.NumTriplets() == 1) &&
+			     (fInputSt5Pts.Size() == 1) && (fInputSt5Pts.NumTriplets() == 1) );  //  NoTgt31Gev_ClSept_A2e_6a   
+       // November 11: attempt to recover the missing track at x0 <~ -10. mm due to the loss of 3 read chip on X view station 4. 
+      fIsPerfectForAlignment = ((fInputSt2Pts.Size() == 1) && (fInputSt2Pts.NumTriplets() == 1) &&
+                             (fInputSt3Pts.Size() == 1) && (fInputSt3Pts.NumTriplets() == 1) &&
+			     (fHasUniqueYWSt4) &&
+			     (fInputSt5Pts.Size() == 1) && (fInputSt5Pts.NumTriplets() == 1) );  //  NoTgt31Gev_ClSept_A2e_7a   
+       
+           
+
       // One need a fitter. 
       if (fFitterFCN == nullptr) {
         fFitterFCN = new SSDDwnstrTrackFitFCNAlgo1(fRunNum);
@@ -850,8 +869,8 @@ namespace emph {
        infoHeaderStrStr << " " << fSubRunNum << " " << fEvtNum << " " << iTr; 
        std::string infoHeader(infoHeaderStrStr.str());
        for (int il=0; il != iTr; il++) {
-         fFOutCompactInfo << infoHeader << " " << il << " " << itUpstrTr->XOffset() << " " << itUpstrTr->YOffset() 
-	                  << " " <<  itUpstrTr->XSlope() << " " << itUpstrTr->YSlope() << infoPtSts[il] << std::endl;
+         fFOutCompactInfo << infoHeader << " " << il << " " << fItUpstrTr->XOffset() << " " << fItUpstrTr->YOffset() 
+	                  << " " <<  fItUpstrTr->XSlope() << " " << fItUpstrTr->YSlope() << infoPtSts[il] << std::endl;
        } 
      } // end of dumpCompactEvt
   } // namespace ssdr

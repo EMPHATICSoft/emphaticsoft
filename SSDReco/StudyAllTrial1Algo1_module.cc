@@ -117,7 +117,7 @@ namespace emph {
 //
 //   Downstream of the target. 
 //
-     double fDwnstrChiSqCut, fDwnstrChiSqCutPreArb, fDwnstrVertChiSqCut; 
+     double fDwnstrChiSqCut, fDwnstrChiSqCutPreArb, fRecStationChiSqCut, fDwnstrVertChiSqCut; 
      double fConfirmBrickChiSqCut; 
 //
 // access to the geometry.   
@@ -364,6 +364,10 @@ namespace emph {
 //	debugIsOn = ((fRun == 1274) && (fSubRun == 10) && ((fEvtNum == 183) || (fEvtNum == 671)) );		       
     //
       bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && (fEvtNum == 5));
+//      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && 
+//          ((fEvtNum == 52) || (fEvtNum == 59) || (fEvtNum == 63) || (fEvtNum == 71) || (fEvtNum == 98)) );
+//      bool debugIsOn = ((fRun == 1274) && (fSubRun == 2) && (fEvtNum == 9584));
+//      if (fEvtNum > 10000) { std::cerr << " evt 10000... Crash investigation.. hold off " <<std::endl; exit(2); } 
     // Get the data. This is supposed the best way, but... 
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
@@ -489,13 +493,16 @@ namespace emph {
       // 
       // Saving for alignment ? 
       //
-       if (fDwnstrTrRec.IsGoodForAlignment()) {
+       if (fDwnstrTrRec.IsPerfectForAlignment()) {
       	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
            fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
        }
 
       
       fDwnstrTrRec.dumpStInfoForR();
+      bool gotBeamOrScatter = fDwnstrTrRec.doUpDwn3DClFitAndStore();
+      if ( gotBeamOrScatter ) fDwnstrTrRec.dumpBeamTracksCmp();
+      
       //
       // Cut on track multiplities 
       // 

@@ -20,6 +20,7 @@
 #include "RecoBase/SSDStationPtAlgo1.h" 
 #include "RecoBase/BeamTrackAlgo1.h" 
 #include "RecoBase/DwnstrTrackAlgo1.h" 
+#include "SSDReco/SSD3DTrackFitFCNAlgo1.h"
 #include "SSDReco/SSDDwnstrTrackFitFCNAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
 #include "Geometry/service/GeometryService.h"
@@ -48,27 +49,34 @@ namespace emph {
 	  int fNEvents; // Incremental events count for a given job. 
 	  bool fDebugIsOn;
 	  bool fIsMC; // The usual Ugly flag.. 
-	  bool fIsGoodForAlignment;  
+	  bool fIsGoodForAlignment, fIsPerfectForAlignment;  
 	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
 	  bool fNoMagnet; // set once we know the geometry.. 
 	  double fChiSqCut;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  double fChiSqCutPreArb;
 	  bool fDoUseUpstreamTrack; 
+	  bool fHasUniqueYWSt4; // Special case for station 4.. missing read out chip. 
 	  std::string fTokenJob;
 	  ssdr::SSDDwnstrTrackFitFCNAlgo1 *fFitterFCN;
+	  ssdr::SSD3DTrackFitFCNAlgo1 *fUpDownFitterFCN;
 	  //
           ssdr::SSDRecStationDwnstrAlgo1 fInputSt2Pts, fInputSt3Pts, fInputSt4Pts, fInputSt5Pts; 
 	  
+	  std::vector<myItCl> fDataItClForFits; // for UpDown 3D fits.. 
+	   
 	  std::vector<rb::DwnstrTrackAlgo1> fTrs; // the tracks, produced here..  
 	   
 	  mutable std::ofstream fFOutTrs;
 	  mutable std::ofstream fFOutCompact; 
 	  mutable std::ofstream fFOutCompactInfo; 
+	  mutable std::ofstream fFOutCmpBeamTracks; 
 	  // Internal stuff.. ???
 	  double fPrelimFitMom;
 	  double fPrelimFitChiSq;
-	  mutable std::vector<rb::BeamTrackAlgo1>::const_iterator itUpstrTr; // Dangling pointer.  Use with caution. access protected by above boolean.
+	  mutable std::vector<rb::BeamTrackAlgo1>::const_iterator fItUpstrTr; // a set of Dangling pointer.  
+	    // Use with caution. access protected by above boolean.
+	  rb::BeamTrackAlgo1 fUpStrDwnStrTrack; // global fit, to compare accuracy or biases. 
 	  
 	public:
 	 inline void SetDebugOn(bool v = true) { 
@@ -83,7 +91,7 @@ namespace emph {
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
 	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
-	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fDoUseUpstreamTrack = true; itUpstrTr = it; }
+	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fDoUseUpstreamTrack = true; fItUpstrTr = it; }
 	 inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
 	 inline void SetPreliminaryMomentum(double p) { // For multiple scattering uncertainties.. 
 	   fPrelimMomentum = p; 
@@ -110,8 +118,8 @@ namespace emph {
 	   switch (kSt) {
 	    case 2 : { fInputSt2Pts.SetChiSqCut(c); return; } 
 	    case 3 : { fInputSt3Pts.SetChiSqCut(c); return; } 
-	    case 4 : { fInputSt4Pts.SetChiSqCut(c); return; } 
-	    case 5 : { fInputSt5Pts.SetChiSqCut(c); return; }
+	    case 4 : { fInputSt4Pts.SetChiSqCut(1.5*c); return; } // We increase the cut a bit, alignment uncertainties are larger.. 
+	    case 5 : { fInputSt5Pts.SetChiSqCut(2.0*c); return; }
 	    default : { return; }  
 	   }
 	 }
@@ -126,6 +134,7 @@ namespace emph {
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CBegin() const { return fTrs.cbegin(); } 
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CEnd() const { return fTrs.cend(); } 
 	 inline bool IsGoodForAlignment() const { return fIsGoodForAlignment; } 
+	 inline bool IsPerfectForAlignment() const { return fIsPerfectForAlignment; } 
 	 
 	 size_t RecStation(size_t kSt, const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 
@@ -142,16 +151,19 @@ namespace emph {
 	 }
 	 
 	 void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
+	 void dumpBeamTracksCmp() const; // Compare the beam track parameters estimates.. 	 
+	 bool doUpDwn3DClFitAndStore( double pStart = 50.);
 	 
        private:
 	 
 	 size_t RecAndFitAll4Stations();
+	 
 	 size_t RecAndFitStation234();
 	 size_t RecAndFitStation235();
 	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart, double pStart = 50.);
 	 bool doPrelimFit(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
 	 bool IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const;	 
-	 void openOutputCsvFiles() const;	 
+	 void openOutputCsvFiles() const;
     };
   
   } // namespace ssdr

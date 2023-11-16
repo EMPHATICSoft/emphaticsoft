@@ -275,14 +275,12 @@ namespace emph {
 	  // For stip number to position along the view.
 	   
 	  const double tMeas  = fMyConvert.getTrCoord(it, fExpectedMomentum).first; 
-	    std::cerr << " ..... Coords  View " << aView << " kSe " << kSe 
-	  	  << " xPred " << xPred << " yPred " <<  yPred << " uPred " << uPred << " vPred " << vPred << std::endl; 
 	  double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr + unknownErr*unknownErr;
 	  const double dt = (tPred - tMeas);
 	  fResids[kSeT] = dt;
 	  const double deltaChi2 =  (dt * dt )/tMeasErrSq;
 	  chi2 += deltaChi2;
-          if (fDebugIsOn) std::cerr << " ....	..... Index kSeT " << kSeT << " dt " << dt << " +- " 
+          if (fDebugIsOn) std::cerr << " ....	..... Index kSeT " << kSeT << " tPred " << tPred << " tMeas " << tMeas << " dt " << dt << " +- " 
 	  			   << std::sqrt(tMeasErrSq) << " multScatErr " << multScatErr  << " fExpectedMom " << fExpectedMomentum
 	        		   <<  " delta Chi2 " << deltaChi2 << std::endl << std::endl;
         } // on the SSD Clusters 
