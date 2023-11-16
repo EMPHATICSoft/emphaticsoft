@@ -120,8 +120,8 @@ namespace emph {
 	  const double stripY0ErrSq = (1.0/rmsStrNY0*rmsStrNY0)/12.; 
 	  const double Y0Raw = fConvertCoord.getTrCoord(itClY0, fNominalMomentum).first; 
 	  const double Y0RawR = fConvertCoord.getTrCoordRoot(itClY0); 
-	  const double X0 = X0Raw + (Y0Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 0, 0);
-	  const double Y0 = Y0Raw + (X0Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 0, 0);
+	  const double X0 = X0Raw - (Y0Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 0, 0);
+	  const double Y0 = Y0Raw - (X0Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 0, 0);
 	  if (debugIsOn) std::cerr << " .. At station 0, Y View strip0 " << stripY0 << "  Y0 Raw " 
 	                           << Y0Raw << " X0-GeoMap " << Y0RawR << " X0 " << X0 << " Y0 " << Y0 << std::endl;
           for(std::vector< std::vector<rb::SSDCluster>::const_iterator >::const_iterator ittClX1=mySSDClsPtrsX1.cbegin(); 
@@ -142,8 +142,8 @@ namespace emph {
 	      const double stripY1ErrSq = (1.0/rmsStrNY1*rmsStrNY1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
 	      const double Y1Raw = fConvertCoord.getTrCoord(itClY1, fNominalMomentum).first; 
 	      const double Y1RawR = fConvertCoord.getTrCoordRoot(itClY1); 
-	      const double X1 = X1Raw + (Y1Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 1, 0);
-	      const double Y1 = Y1Raw + (X1Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 1, 0);
+	      const double X1 = X1Raw - (Y1Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 1, 0);
+	      const double Y1 = Y1Raw - (X1Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 1, 0);
 	     if (debugIsOn) std::cerr << " .. At station 1, Y View strip1 " << stripY1 << "  Y1 Raw "  
 	                           << Y1Raw << " Y1-GeoMap " <<  Y1RawR << " X1 " << X1 << " Y1 " << Y1 << " RollCenter Y " 
 				   << fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 1, 0) << " Roll X " 
@@ -162,6 +162,7 @@ namespace emph {
 	      aTr.SetTrParams(X0, Y0,  XSlope, YSlope);
 	      aTr.SetTrParamsErrs(std::sqrt(std::abs(stripX0ErrSq)), std::sqrt(std::abs(stripY0ErrSq)), 
 	                         std::sqrt(std::abs(XSlopeErrSq)), std::sqrt(std::abs(YSlopeErrSq)), 0., 0.);
+              aTr.SetTrItCls(itClX0, itClX1, itClY0, itClY1); 		 
 	      fTrXYs.push_back(aTr);
 	    } // on Clusters from Station 1, Y view
 	  } // on Clusters from Station 1, X view
