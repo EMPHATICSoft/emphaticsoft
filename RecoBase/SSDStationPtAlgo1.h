@@ -33,6 +33,8 @@ namespace rb {
 				STXYW = 7,
 			} SSDStationPtType;
 
+    typedef std::vector<rb::SSDCluster>::const_iterator myItCl; 
+    
     class SSDStationPtAlgo1 {
     
       public:
@@ -56,6 +58,7 @@ namespace rb {
 	std::vector<int> fClSensorIds;
 	std::vector<double> fClAvs, fClSigmas; // corrected 
         rb::LineSegment fLineStripUorV; // For debugging the representation of the space point graphically. 
+	std::vector<myItCl> fItClusters; // duplicate info above, but convienent.. 3 pointers not a big memory footprint.
 	
       public: 
       
@@ -64,6 +67,7 @@ namespace rb {
 	  fX = DBL_MAX; fY = DBL_MAX; fXErr = DBL_MAX; fYErr = DBL_MAX; fChiSq = DBL_MAX;
 	  fUorVPred = DBL_MAX;  fUorVObsRaw = DBL_MAX; fUorVObsCorr = DBL_MAX;
 	  fClIds.clear(); fClAvs.clear(); fClSigmas.clear(); fClViews.clear(); fClSensorIds.clear();
+	  fItClusters.clear();
 	} 
 	inline void SetStationNum(int kSt) { fStationNum = kSt; } 
 	inline void SetID(int i) { fId = i; } 
@@ -119,6 +123,9 @@ namespace rb {
 	
 	inline rb::LineSegment LineStripUorV() const { return fLineStripUorV; } 
         // IO
+	inline void fillItClusters(std::vector<myItCl> &itCls) const {
+	  itCls.clear(); for (size_t k=0; k != fItClusters.size(); k++) { itCls.push_back(fItClusters[k]); }
+	}
 	
        friend std::ostream& operator << (std::ostream& o, const SSDStationPtAlgo1& h);
     

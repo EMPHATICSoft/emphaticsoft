@@ -32,6 +32,7 @@ namespace rb {
 	              << fStationNum << " from SSDCluster ptr " <<  itCl->Station() << " fatal.. " << std::endl;
 	    exit(2);
 	  }
+	  fItClusters.push_back(itCl); 
 	  fClIds.push_back(itCl->ID()); fClViews.push_back(itCl->View());
 	  fClSensorIds.push_back(itCl->Sensor());
 	  fClAvs.push_back(aClCorrectedMean);  fClSigmas.push_back(aClErr);
