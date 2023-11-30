@@ -126,6 +126,9 @@ namespace rb {
 	inline void fillItClusters(std::vector<myItCl> &itCls) const {
 	  itCls.clear(); for (size_t k=0; k != fItClusters.size(); k++) { itCls.push_back(fItClusters[k]); }
 	}
+	inline void addItClusters(std::vector<myItCl> &itCls) const {
+	  for (size_t k=0; k != fItClusters.size(); k++) { itCls.push_back(fItClusters[k]); }
+	}
 	
        friend std::ostream& operator << (std::ostream& o, const SSDStationPtAlgo1& h);
     
