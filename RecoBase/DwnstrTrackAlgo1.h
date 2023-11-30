@@ -40,6 +40,7 @@ namespace rb {
      std::vector<double> fCovXY; // covariance matrix to compute the uncertainties 
      double fChiSq; // Note: if  atrack is abritrated away, it's chi-Square will be set to DBL_MAX, at some point. 
 //     std::vector<int> fNHitsXView, fNHitsYView;  not sure if relevant, limited use.. 
+     double fChiSqSts, fChiSqKlmX, fChiSqKlmY; // Addition info to quantify fits vs Kalman fits. 
 	  
   public:
    // Setters 
@@ -58,6 +59,7 @@ namespace rb {
    }
    inline void SetID(int id ) { fId = id;}
    inline void SetChiSq(double c ) { fChiSq = c;}  
+   inline void SetChiSqKlmInfo(double cSt, double cx, double cy ) { fChiSqSts = cSt; fChiSqKlmX = cx; fChiSqKlmY = cy;}  
    inline void SetCovarianceMatrix(size_t k, double v) { if (k < fCovXY.size()) fCovXY[k] = v;}
    inline void SetUserFlag(int v) const {fUserFlag = v;} 
 
@@ -69,6 +71,10 @@ namespace rb {
     inline double XOffsetErr() const { return fTrXOffsetErr; } 
     inline double XSlopeErr() const { return fTrXSlopeErr; } 
     inline double ChiSq() const { return fChiSq; } 
+    inline double ChiSqSts() const { return fChiSqSts; } 
+    inline double ChiSqKlmX() const { return fChiSqKlmX; } 
+    inline double ChiSqKlmY() const { return fChiSqKlmY; } 
+    
     
 
     inline double YOffset() const { return fTrYOffset; } 

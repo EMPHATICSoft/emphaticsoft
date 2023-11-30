@@ -20,7 +20,7 @@ namespace rb {
    fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), fTrMom(120.),  
    fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX),
    fTrMomErr(DBL_MAX),
-   fCovXY(25, DBL_MAX), fChiSq(DBL_MAX)
+   fCovXY(25, DBL_MAX), fChiSq(DBL_MAX), fChiSqSts(DBL_MAX), fChiSqKlmX(DBL_MAX), fChiSqKlmY(DBL_MAX) 
   {
    ;
   }
