@@ -32,7 +32,7 @@ namespace emph {
       fDoMigrad(true), fNoMagnet(false), fChiSqCut(5.0), 
       fPrelimMomentum(50.0), fChiSqCutPreArb(100.), 
       fDoUseUpstreamTrack(false), 
-      fTokenJob("undef"), fFitterFCN(nullptr), fUpDownFitterFCN(nullptr),
+      fTokenJob("undef"), fFitterFCN(nullptr), fUpDownFitterFCN(nullptr), fFitterKlmFCN(nullptr), 
       fInputSt2Pts(2), fInputSt3Pts(3), fInputSt4Pts(4), fInputSt5Pts(5), fDataItClForFits(),
       fTrs(), fUpStrDwnStrTrack()
       {
@@ -146,11 +146,14 @@ namespace emph {
       // One need a fitter. 
       if (fFitterFCN == nullptr) {
         fFitterFCN = new SSDDwnstrTrackFitFCNAlgo1(fRunNum);
+        fFitterKlmFCN = new SSD3DTrackKlmFitFCNAlgo1(fRunNum);
 	fFitterFCN->SetMCFlag(fIsMC);
       } else {
         if (fFitterFCN->RunNumber() != fRunNum) {
 	  delete fFitterFCN;
 	  fFitterFCN = new SSDDwnstrTrackFitFCNAlgo1(fRunNum);
+	  delete fFitterKlmFCN;
+          fFitterKlmFCN = new SSD3DTrackKlmFitFCNAlgo1(fRunNum);
 	}
       }
       if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::RecIt, starting on spill " 
@@ -159,7 +162,7 @@ namespace emph {
          fEmgeo = fGeoService->Geo();
          fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
       }   
-      fTrs.clear();
+      fTrs.clear(); fTrsKlm.clear();
       if ((fInputSt2Pts.Size() == 0) || (fInputSt3Pts.Size() == 0)) {
         if (fDebugIsOn) std::cerr << " ...  No data from station 2 or 3, Pointers are null, so, no tracks.. " << std::endl;
 	return 0; 
@@ -268,6 +271,16 @@ namespace emph {
 		    itSt4->SetUserFlag(kTrCnt); itSt5->SetUserFlag(kTrCnt); // no chi-square arbitration for now.. 
 	          }
 		} //  Good refit...+ storage.
+	       //
+	       // Do the Klm Fits.. 
+	       //
+	        std::vector<myItStPt> dataInKlm;
+		dataInKlm.push_back(itSt2);  
+		dataInKlm.push_back(itSt3);  
+		dataInKlm.push_back(itSt4);  
+		dataInKlm.push_back(itSt5);  
+//	        if (fDebugIsOn) { std::cerr << " ... About to call doDwn3DKlmFitAndStore, but I chicken out.. " << std::endl; exit(2); }
+	        this->doDwn3DKlmFitAndStore(dataInKlm, fPrelimFitMom);
 		// One must restore the uncertainties... The whole thing is ugly.. 
 	        itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimFitMom, fPrelimMomentum); 
 		itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimFitMom, fPrelimMomentum);
@@ -504,6 +517,7 @@ namespace emph {
        if (fDebugIsOn && (flagValid == 1)) std::cerr <<  " Migrad fit succeeded, chiSq " << chiSq << std::endl;
        if (fDebugIsOn && (flagValid == 2)) std::cerr <<  " Simplex fit succeeded, chiSq " << chiSq << std::endl;
        fPrelimFitMom = 1.0/parsOut[4];
+       if (std::abs(fPrelimFitMom) > 125) fPrelimFitMom = (parsOut[4] > 0.) ? 125.0: -125.;
        fPrelimFitChiSq = chiSq;
        if (fDebugIsOn) std::cerr << " Setting the Preliminary momentum to " << fPrelimFitMom << std::endl;
 //       if (fEvtNum == 5) { std::cerr << " SSDRecDwnstrTracksAlgo1::doPrelimFit Event 5, quit here.. " << std::endl; exit(2); }

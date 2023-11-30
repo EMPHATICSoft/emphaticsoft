@@ -22,12 +22,15 @@
 #include "RecoBase/DwnstrTrackAlgo1.h" 
 #include "SSDReco/SSD3DTrackFitFCNAlgo1.h"
 #include "SSDReco/SSDDwnstrTrackFitFCNAlgo1.h"
+#include "SSDReco/SSD3DTrackKlmFitFCNAlgo1.h"
 #include "SSDReco/SSDRecStationDwnstrAlgo1.h"
 #include "Geometry/service/GeometryService.h"
 
 
 namespace emph { 
   namespace ssdr {
+  
+    typedef std::vector<rb::SSDStationPtAlgo1>::const_iterator myItStPt; 
  				
     class SSDRecDwnstrTracksAlgo1 {
     
@@ -52,7 +55,7 @@ namespace emph {
 	  bool fIsGoodForAlignment, fIsPerfectForAlignment;  
 	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
 	  bool fNoMagnet; // set once we know the geometry.. 
-	  double fChiSqCut;
+	  double fChiSqCut, fChiSqCutKlm;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
 	  double fChiSqCutPreArb;
 	  bool fDoUseUpstreamTrack; 
@@ -60,17 +63,20 @@ namespace emph {
 	  std::string fTokenJob;
 	  ssdr::SSDDwnstrTrackFitFCNAlgo1 *fFitterFCN;
 	  ssdr::SSD3DTrackFitFCNAlgo1 *fUpDownFitterFCN;
+	  ssdr::SSD3DTrackKlmFitFCNAlgo1 *fFitterKlmFCN;
 	  //
           ssdr::SSDRecStationDwnstrAlgo1 fInputSt2Pts, fInputSt3Pts, fInputSt4Pts, fInputSt5Pts; 
 	  
 	  std::vector<myItCl> fDataItClForFits; // for UpDown 3D fits.. 
 	   
 	  std::vector<rb::DwnstrTrackAlgo1> fTrs; // the tracks, produced here..  
+	  std::vector<rb::DwnstrTrackAlgo1> fTrsKlm; // the tracks, produced here, with the Kalman filter (with one param, the momentum).   
 	   
 	  mutable std::ofstream fFOutTrs;
 	  mutable std::ofstream fFOutCompact; 
 	  mutable std::ofstream fFOutCompactInfo; 
 	  mutable std::ofstream fFOutCmpBeamTracks; 
+	  mutable std::ofstream fFOutCmpKlmTracks; 
 	  // Internal stuff.. ???
 	  double fPrelimFitMom;
 	  double fPrelimFitChiSq;
@@ -90,6 +96,7 @@ namespace emph {
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
+	 inline void SetChiSqCutKlm (double v) { fChiSqCutKlm = v; }
 	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
 	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fDoUseUpstreamTrack = true; fItUpstrTr = it; }
 	 inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
@@ -113,7 +120,7 @@ namespace emph {
 	   fTokenJob = aT; fInputSt2Pts.SetTokenJob(aT); 
 	   fInputSt3Pts.SetTokenJob(aT); fInputSt4Pts.SetTokenJob(aT); fInputSt5Pts.SetTokenJob(aT);
 	 }
-	 inline void Clear() { fTrs.clear(); }
+	 inline void Clear() { fTrs.clear(); fTrsKlm.clear();}
 	 inline void SetChiSqCutRecStation(size_t kSt, double c) { 
 	   switch (kSt) {
 	    case 2 : { fInputSt2Pts.SetChiSqCut(c); return; } 
@@ -151,8 +158,11 @@ namespace emph {
 	 }
 	 
 	 void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
-	 void dumpBeamTracksCmp() const; // Compare the beam track parameters estimates.. 	 
+	 void dumpBeamTracksCmp(bool useKlm = false) const; // Compare the beam track parameters estimates.. 	 
+	 void dumpBeamTracksCmpKlm() const; // Compare the beam track parameters estimates.. 	 
 	 bool doUpDwn3DClFitAndStore( double pStart = 50.);
+	 bool doDwn3DKlmFitAndStore(const std::vector<myItStPt> &dataIn,  double pStart = 50.);
+	 void transferKlmToClFit(); 
 	 
        private:
 	 

@@ -17,6 +17,8 @@
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"
 #include "Minuit2/FunctionMinimum.h"
+#include "canvas/Utilities/Exception.h"
+
 
 namespace emph { 
   namespace ssdr {
@@ -110,60 +112,70 @@ namespace emph {
        ROOT::Minuit2::MnMigrad migrad((*fUpDownFitterFCN), uPars);
        if (fDebugIsOn) std::cerr << " ..... About to call migrad... " << std::endl;
        //
-       ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
-       if (fDebugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
+       try { 
+          ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
+ //      } catch (art::errors::ErrorCodes FatalRootError const& e) {
+         if (fDebugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
        //
-       const bool isMigradValid = min.IsValid(); 
-       bool isSimplexValid = true;
-       int flagValid = 0; // 0 nothing worked, 1 MiGrad is O.K., 2, Simplex is Ok.  
-       double chiSq = DBL_MAX;
-       int numCallFCN = 0; 
+         const bool isMigradValid = min.IsValid(); 
+         bool isSimplexValid = true;
+         int flagValid = 0; // 0 nothing worked, 1 MiGrad is O.K., 2, Simplex is Ok. 
+         double chiSq = DBL_MAX;
+         int numCallFCN = 0; 
        
-       if (!isMigradValid) {
-         ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
-	 ROOT::Minuit2::FunctionMinimum minS = theMinimizer.Minimize(*fUpDownFitterFCN, initValsV, initValsE);
- 	 parsOutErr = minS.UserParameters().Errors();
- 	 parsOut = minS.UserParameters().Params();
-         isSimplexValid = minS.IsValid();
-	 chiSq = minS.Fval(); numCallFCN=minS.NFcn();
-	 if (isSimplexValid) flagValid = 2;
-       } else {
-	 chiSq = min.Fval();
- 	 parsOutErr = min.UserParameters().Errors();
- 	 parsOut = min.UserParameters().Params();
-	 flagValid = 1; numCallFCN=min.NFcn();
-       }
-       if (flagValid == 0) return false;
-       if (fDebugIsOn) {  
-          std::cerr << " Got a fit, chiSq " << chiSq << " number of FCN calls " << numCallFCN <<  " check again.. " << std::endl;
+         if (!isMigradValid) {
+	   try {
+             ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
+	     ROOT::Minuit2::FunctionMinimum minS = theMinimizer.Minimize(*fUpDownFitterFCN, initValsV, initValsE);
+ 	     parsOutErr = minS.UserParameters().Errors();
+ 	     parsOut = minS.UserParameters().Params();
+             isSimplexValid = minS.IsValid();
+	     chiSq = minS.Fval(); numCallFCN=minS.NFcn();
+	     if (isSimplexValid) flagValid = 2;
+	   } catch (...) { return false; }
+         } else {
+	   chiSq = min.Fval();
+ 	   parsOutErr = min.UserParameters().Errors();
+ 	   parsOut = min.UserParameters().Params();
+	   flagValid = 1; numCallFCN=min.NFcn();
+         }
+	  
+         if (flagValid == 0) return false;
+         if (fDebugIsOn) {  
+            std::cerr << " Got a fit, chiSq " << chiSq << " number of FCN calls " << numCallFCN <<  " check again.. " << std::endl;
 //	  fUpDownFitterFCN->SetDebugOn(true);
 //	  (*fUpDownFitterFCN)(parsOut);
-       }
-       fUpStrDwnStrTrack.SetType(rb::XYUW5ST);
-       fUpStrDwnStrTrack.SetTrParams(parsOut[0], parsOut[2], parsOut[1], parsOut[3]);
-       fUpStrDwnStrTrack.SetTrParamsErrs(parsOutErr[0], parsOutErr[2], parsOutErr[1], parsOutErr[3], 0., 0.);  // Covariance matrices needs to be studied. 
-       // Interface a bit incomplete.. 
-       fUpStrDwnStrTrack.SetXChiSq(chiSq); fUpStrDwnStrTrack.SetYChiSq(chiSq);
-       if (!fNoMagnet) fUpStrDwnStrTrack.SetMomentum(parsOut[4], parsOutErr[4]);
+         }
+         fUpStrDwnStrTrack.SetType(rb::XYUW5ST);
+         fUpStrDwnStrTrack.SetTrParams(parsOut[0], parsOut[2], parsOut[1], parsOut[3]);
+         fUpStrDwnStrTrack.SetTrParamsErrs(parsOutErr[0], parsOutErr[2], parsOutErr[1], parsOutErr[3], 0., 0.);  
+	 // Covariance matrices needs to be studied. 
+         // Interface a bit incomplete.. 
+         fUpStrDwnStrTrack.SetXChiSq(chiSq); fUpStrDwnStrTrack.SetYChiSq(chiSq);
+         if (!fNoMagnet) fUpStrDwnStrTrack.SetMomentum(parsOut[4], parsOutErr[4]);
       // 
 //       if (fDebugIsOn) { 
 //          std::cerr << " .. O.K., enough of SSDRecDwnstrTracksAlgo1::doUpDwn3DClFitAndStore, for now, quit!....  " 
 //                    << std::endl; exit(2); 
 //       } 
-       return true ;
+         return true ;
+      }  catch (...) { return false; }
     }
-    void SSDRecDwnstrTracksAlgo1::dumpBeamTracksCmp() const {
+    void SSDRecDwnstrTracksAlgo1::dumpBeamTracksCmp(bool useKlmTrack) const {
         
-       if (fTrs.size() == 0) return;
+       if ((!useKlmTrack) && (fTrs.size() == 0)) return;
+       if ((useKlmTrack) && (fTrsKlm.size() == 0)) return;
        if (!fFOutCmpBeamTracks.is_open()) { 
          std::ostringstream aFOutTmpStrStr; 
          aFOutTmpStrStr << "./BeamTrack3Ways_" << fRunNum  << "_" << fTokenJob << "_V1.txt";
          std::string aFOutTmpStr(aFOutTmpStrStr.str());
          fFOutCmpBeamTracks.open(aFOutTmpStr.c_str());
-         fFOutCmpBeamTracks << " spill evt x0 y0 slx0 slx0Err sly0 sly0Err slx0BTH slx0BTHErr sly0BTH sly0BTHErr pBTH pErrBTH chiSqBTH " << 
+         fFOutCmpBeamTracks << " spill evt useKlm x0 y0 slx0 slx0Err sly0 sly0Err slx0BTH slx0BTHErr sly0BTH sly0BTHErr pBTH pErrBTH chiSqBTH " << 
                    "x2 xsl2 xsl2Err y2  y2sl y2slErr p pErr chiSq thetaX thetaXErr thetaY thetaYErr theta thetaErr t tErr " << std::endl;
        }
-       fFOutCmpBeamTracks << " " << fEvtNum << " " << fSubRunNum;
+       fFOutCmpBeamTracks << " " << fSubRunNum << " " << fEvtNum;
+       if (useKlmTrack) fFOutCmpBeamTracks << " " << 1; 
+       else fFOutCmpBeamTracks << " " << 0; 
        fFOutCmpBeamTracks << " " << fItUpstrTr->XOffset() << " " << fItUpstrTr->YOffset() 
         		  << " " << fItUpstrTr->XSlope() << " " << fItUpstrTr->XSlopeErr() 
         		  << " " << fItUpstrTr->YSlope() << " " << fItUpstrTr->YSlopeErr(); 
@@ -172,14 +184,22 @@ namespace emph {
 			   << " " << fUpStrDwnStrTrack.Momentum() << " " << fUpStrDwnStrTrack.MomentumErr()
 			   << " " << fUpStrDwnStrTrack.XChiSq(); // X and Y chiSq, no difference.. see above. 
 			   
-       std::vector<rb::DwnstrTrackAlgo1>::const_iterator itSel = fTrs.cbegin(); 
-       // Take the one wit hthe smalled chi-Sq.  Should not happen as we have one Space Point in each of the downstream stations.. 
+       std::vector<rb::DwnstrTrackAlgo1>::const_iterator itSel = useKlmTrack ? fTrsKlm.cbegin(): fTrs.cbegin(); 
+       // Take the one with the smalled chi-Sq.  Should not happen as we have one Space Point in each of the downstream stations.. 
        double minChiSq = DBL_MAX;
-       if (fTrs.size() > 1) {
-         for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++) { 
-	   if (it->ChiSq() < minChiSq) { itSel = it; minChiSq = it->ChiSq(); }
+       if (useKlmTrack) { 
+         if (fTrsKlm.size() > 1) {
+           for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it=fTrsKlm.cbegin();  it!=fTrsKlm.cend(); it++) { 
+	     if (it->ChiSq() < minChiSq) { itSel = it; minChiSq = it->ChiSq(); }
+           }
          }
-       }
+       } else { 
+         if (fTrs.size() > 1) {
+           for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++) { 
+	     if (it->ChiSq() < minChiSq) { itSel = it; minChiSq = it->ChiSq(); }
+           }
+         }
+      }
        fFOutCmpBeamTracks << " " << itSel->XOffset()  << " " << itSel->XSlope() << " " << itSel->XSlopeErr() 
                           << " " << itSel->YOffset()  << " " << itSel->YSlope() << " " << itSel->YSlopeErr() 
 			  << " " << itSel->Momentum() << " " << itSel->MomentumErr() <<  " " << itSel->ChiSq();
@@ -197,7 +217,145 @@ namespace emph {
 	                   << " " << thetaY << " " << std::sqrt(std::abs(thetaYErrSq));
 	fFOutCmpBeamTracks << " " << std::sqrt(thetaSq) << " " << std::pow(thetaSqErrSq, 0.25) << " " << t << " " << tErr << std::endl;		   		  
    }			   
-	
+    
+   bool SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore(const std::vector<myItStPt> &dataIn,   double pStartTmp) {
+   
+       if (fDebugIsOn) {
+         std::cerr << " SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, spill " << fSubRunNum << " evt " 
+                                 << fEvtNum <<  " Number of SSDClusters  " << dataIn.size() << std::endl;
+        for (size_t k = 0; k != dataIn.size(); k++) {
+	   std::cerr << " ...  " <<  *(dataIn[k]) << std::endl;
+         }
+	 std::cerr << " ----------------- " << std::endl;  std::cerr << std::endl;
+       }
+       if (fNoMagnet) { 
+         if (fDebugIsOn) std::cerr << " .............. No magnet!.. Not applicable,... " <<std::endl; 
+	 return false;
+       }
+       if (fFitterKlmFCN == nullptr) {
+         std::cerr << " ..... SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, constructing a new instance of fFitterKlmFCN " << std::endl; 
+         fFitterKlmFCN  = new SSD3DTrackKlmFitFCNAlgo1(fRunNum);
+//	 fFitterKlmFCN->SetMagnetShift(fMagShift);  // To be defined in this class, for later.. 
+       }
+       const bool DoMigrad = false;
+       double pStart = pStartTmp;
+       if ((std::abs(pStartTmp) > 55.) && (pStartTmp > 0.)) pStart = 55.; // Needs retuning...
+       //  Watch for VariableMetricBuilder Initial matrix not pos.def
+       if ((std::abs(pStartTmp) > 55.) && (pStartTmp < 0.)) pStart = -55.;
+       fFitterKlmFCN->SetDebugOn(fDebugIsOn);
+       fFitterKlmFCN->SetInputClusters(dataIn);
+//       fFitterKlmFCN->SetExpectedMomentum(pStart);  
+// Be conservative, assume 30 GeV/c beam 
+       fFitterKlmFCN->SetExpectedMomentum(30.0);  
+       ROOT::Minuit2::MnUserParameters uPars;
+       std::vector<double> parsInCold, parsOut, parsOutErr;
+       unsigned int nPars = 1; 
+       const double pMin = (pStart > 0.) ? 0.01*pStart : -1.0*std::min(-5.0*pStart, 125.);
+       const double pMax = (pStart > 0.) ? std::min(5.0*pStart, 125.) : 0.01*pStart;
+       uPars.Add(std::string("Mom"), pStart, 0.05*std::abs(pStart), pMin, pMax); 
+       parsInCold.push_back(pStart); 
+       if (fDebugIsOn) std::cerr << " ..... Adding momentum parameter , start val " << pStart << " Limits " << pMin << ", " << pMax << std::endl;
+       // run test, to make sure we have a valid chiSq to start with. 
+       const double chiSqCold = (*fFitterKlmFCN)(parsInCold);
+       if (chiSqCold > 1.0e5) return false;
+       bool isMinValid = false; 
+       if (DoMigrad) { 
+         ROOT::Minuit2::MnMigrad migrad((*fFitterKlmFCN), uPars);
+         if (fDebugIsOn) std::cerr << " ..... About to call migrad... " << std::endl;
+       //
+         try {
+           ROOT::Minuit2::FunctionMinimum min = migrad(200, 0.1);
+           isMinValid = min.IsValid(); 
+           if (fDebugIsOn) std::cerr << " Function  minimum " << min << std::endl; 
+       //
+           parsOutErr = min.UserParameters().Errors();
+           parsOut = min.UserParameters().Params();
+	} catch (...) { return false; }
+       } else { 
+         std::vector<double> initValsV, initValsE; initValsV.push_back(pStart); initValsE.push_back(std::abs(0.05*pStart));
+         ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
+	 try { 
+           if (fDebugIsOn) std::cerr << " ..... About to call Simple Minimizer... " << std::endl;
+//	   fFitterKlmFCN->SetDebugOn(true);
+	   ROOT::Minuit2::FunctionMinimum minS = theMinimizer.Minimize((*fFitterKlmFCN), initValsV, initValsE);
+           if (fDebugIsOn) std::cerr << " Function  minimum " << minS << std::endl; 
+ 	   parsOutErr = minS.UserParameters().Errors();
+ 	   parsOut = minS.UserParameters().Params();
+           isMinValid = minS.IsValid();
+//	   std::cerr << " .... And quit after this first Simplex.... " << std::endl; exit(2);
+        } catch (...) { return false; } 
+       }
+       if(!isMinValid) {
+          if (fDebugIsOn) std::cerr << " ..... Migrad or Simplex Invalid, no Klm track.. " << std::endl;
+	  return false;
+       }  
+       const double finalChiSq = (*fFitterKlmFCN)(parsOut);
+       rb::DwnstrTrackAlgo1 aTr;
+       aTr.SetType(rb::FOURSTATION);
+       aTr.SetChiSq(finalChiSq);
+       const double aChiSts = fFitterKlmFCN->SumChiSqSts();
+       aTr.SetChiSqKlmInfo(aChiSts, fFitterKlmFCN->ChiSqXView(), fFitterKlmFCN->ChiSqYView());
+       const std::pair<double, double> xSt = fFitterKlmFCN->XStart(); 
+       const std::pair<double, double> ySt = fFitterKlmFCN->YStart(); 
+       const std::pair<double, double> SlxSt = fFitterKlmFCN->SlXStart(); 
+       const std::pair<double, double> SlySt = fFitterKlmFCN->SlYStart(); 
+       aTr.SetTrParams(xSt.first, SlxSt.first, ySt.first, SlySt.first, parsOut[0]);
+       aTr.SetTrParamsErrs(xSt.second, SlxSt.second, ySt.second, SlySt.second, parsOutErr[0]);
+       fTrsKlm.push_back(aTr);
+//       if (fDebugIsOn) { std::cerr << " ... and quit for now... " << std::endl; exit(2); }
+       return true;
+       //
+    } 
+    void SSDRecDwnstrTracksAlgo1::dumpBeamTracksCmpKlm() const {
+        
+       if (fTrs.size() == 0) return;
+       if (fTrsKlm.size() == 0) return;
+       if (!fFOutCmpKlmTracks.is_open()) { 
+         std::ostringstream aFOutTmpStrStr; 
+         aFOutTmpStrStr << "./SecondaryTrack2Ways_" << fRunNum  << "_" << fTokenJob << "_V1.txt";
+         std::string aFOutTmpStr(aFOutTmpStrStr.str());
+         fFOutCmpKlmTracks.open(aFOutTmpStr.c_str());
+         fFOutCmpKlmTracks << " spill evt ntr itr x2 x2Err xsl2 xsl2Err y2 y2Err y2sl y2slErr p pErr chiSq" 
+	                   << " ntrk itrk x2k x2kErr xsl2k xsl2kErr y2k x2kErr y2slk y2slkErr pk pkErr"
+			   << " chiSqk chiSqkSts chiSqkX chiSqkY" << std::endl;
+       }
+       int itNum = 0;
+       for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++, itNum++) { 
+         fFOutCmpKlmTracks << " " << fSubRunNum << " " << fEvtNum << " " << fTrs.size() << " " << itNum;
+         fFOutCmpKlmTracks << " " << it->XOffset()  << " " << it->XOffsetErr()  << " " << it->XSlope() << " " << it->XSlopeErr() 
+                          << " " << it->YOffset()  << " " << it->YOffsetErr()  << " " << it->YSlope() << " " << it->YSlopeErr() 
+			  << " " << it->Momentum() << " " << it->MomentumErr() <<  " " << it->ChiSq();
+	 std::vector<rb::DwnstrTrackAlgo1>::const_iterator itkSel=fTrsKlm.cbegin();
+	 double rrSqMin = DBL_MAX; int itkNum = 0; int itkNumSel = -1;		  
+	 for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator itk=fTrsKlm.cbegin();  itk!=fTrsKlm.cend(); itk++, itkNum++) {
+	   double rrSq = (it->XOffset() - itk->XOffset())*(it->XOffset() - itk->XOffset()) + 
+	                 (it->YOffset() - itk->YOffset())*(it->YOffset() - itk->YOffset());
+	   if (rrSq < rrSqMin) {
+	     itkSel = itk; itkNumSel=itkNum;
+	     rrSqMin = rrSq;
+	   }
+	 }
+	 fFOutCmpKlmTracks << " " << fTrsKlm.size() << " " << itkNumSel ;
+	 if (itkNumSel < 0) {
+	   fFOutCmpKlmTracks << " 0. 9.99e4 0. 9.99e4 0. 9.99e4 0. 9.99e4 9.99e4 9.99e4 1.0e6 1.0e6 1.0e6 1.0e6";
+         } else { 
+	   fFOutCmpKlmTracks << " " << itkSel->XOffset() << " " << itkSel->XOffsetErr()
+	                  << " " << itkSel->XSlope() << " " << itkSel->XSlopeErr() 
+                          << " " << itkSel->YOffset()  << " " << itkSel->YOffsetErr() 
+			  << " " << itkSel->YSlope() << " " << itkSel->YSlopeErr() 
+			  << " " << itkSel->Momentum() << " " << itkSel->MomentumErr()
+			  <<  " " << itkSel->ChiSq() << " " << itkSel->ChiSqSts() << " " 
+			  << itkSel->ChiSqKlmX() << " " << itkSel->ChiSqKlmY() ;
+	 }
+	 fFOutCmpKlmTracks << std::endl;
+       } // On track, fits
+   }
+   void SSDRecDwnstrTracksAlgo1::transferKlmToClFit() {
+     fTrs.clear();
+     for (auto it = fTrsKlm.cbegin(); it!= fTrsKlm.cend(); it++) {
+       fTrs.push_back(*it); 
+     }
+   }			   
   }
 }
 //

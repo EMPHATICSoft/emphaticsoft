@@ -114,6 +114,7 @@ namespace emph {
      bool fDoAntiSt2;
      bool fDoIronBrick;
      bool fDoFirstAndLastStrips;
+     bool fDoUseDownstrKalmanTracks; 
 //
 //   Downstream of the target. 
 //
@@ -203,10 +204,11 @@ namespace emph {
       fDoAntiSt2 = pset.get<bool>("doAntiSt2", false);
       fDoIronBrick = pset.get<bool>("doIronBrick", false);
       fDoFirstAndLastStrips = pset.get<bool>("doFirstAndLastStrips", false);
+      fDoUseDownstrKalmanTracks = pset.get<bool>("doUseDownstrKalmanTracks", false);
       fConfirmBrickChiSqCut = pset.get<double>("confirmBrickChiSqCut", 500.);
       fPrelimMomentumSecondaries = pset.get<double>("prelimMomentum", 5.);
       fDwnstrChiSqCut = pset.get<double>("dwnstrChiSqCut", 10.);
-      fDwnstrChiSqCutPreArb = pset.get<double>("dwnstrChiSqCutPreArb", 100.);
+      fDwnstrChiSqCutPreArb = pset.get<double>("dwnstrChiSqCutPreArb", 500.);
       fDwnstrVertChiSqCut = pset.get<double>("dwnstrVertChiSqCutPreArb", 3.);
       fChiSqCutXYUVStAlgo1 = pset.get<double>("chiSqCutXYUVStAlgo1", 1000.);
       // 
@@ -369,6 +371,21 @@ namespace emph {
 //      bool debugIsOn = ((fRun == 1274) && (fSubRun == 2) && (fEvtNum == 9584));
 //      if (fEvtNum > 10000) { std::cerr << " evt 10000... Crash investigation.. hold off " <<std::endl; exit(2); } 
     // Get the data. This is supposed the best way, but... 
+//      bool debugIsOn = ((fRun == 1274) && (fSubRun == 18) && (fEvtNum == 12139)); // Bad event Root 300 error, Nov 25 2023. 
+//      bool debugIsOn = ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)); // Bad event Root 300 error, Nov 25 2023. 
+      
+      if ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)) return ; // Skip fit fails..       
+      if ((fRun == 1274) && (fSubRun == 31) && (fEvtNum == 10320)) return ; // Skip fit fails..       
+//      if ((fRun == 1274) && (fSubRun == 3) && (fEvtNum == 10298)) return ; // Skip fit fails..       
+      if ((fRun == 1274) && (fSubRun == 39) && (fEvtNum == 16060)) return ; // Skip fit fails..       
+      if ((fRun == 1274) && (fSubRun == 5) && (fEvtNum == 8582)) return ; // Skip fit fails..       
+      if ((fRun == 1274) && (fSubRun == 9) && (fEvtNum == 4612)) return ; // Skip fit fails..       
+      if ((fRun == 1066) && (fSubRun == 11) && (fEvtNum == 11489)) return ; // Skip fit fails..       
+      if ((fRun == 1066) && (fSubRun == 42) && (fEvtNum == 8119)) return ; // Skip fit fails..       
+      if ((fRun == 1066) && (fSubRun == 32) && (fEvtNum == 1309)) return ; // Skip fit fails..       
+      if ((fRun == 1066) && (fSubRun == 21) && (fEvtNum == 2835)) return ; // Skip fit fails..       
+      if ((fRun == 1066) && (fSubRun == 49) && (fEvtNum == 4143)) return ; // Skip fit fails..       
+      if ((fRun == 1066) && (fSubRun == 48) && (fEvtNum == 9454)) return ; // Skip fit fails..       
       auto hdlCls = evt.getHandle<std::vector<rb::SSDCluster>>(fSSDClsLabel);
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
       
@@ -501,7 +518,14 @@ namespace emph {
       
       fDwnstrTrRec.dumpStInfoForR();
       bool gotBeamOrScatter = fDwnstrTrRec.doUpDwn3DClFitAndStore();
-      if ( gotBeamOrScatter ) fDwnstrTrRec.dumpBeamTracksCmp();
+      if ( gotBeamOrScatter ) fDwnstrTrRec.dumpBeamTracksCmp(true);
+      // 
+      // Kalman filter results, if any.. 
+      //
+      fDwnstrTrRec.dumpBeamTracksCmpKlm();
+      if (fDoUseDownstrKalmanTracks) {
+         if ( gotBeamOrScatter ) fDwnstrTrRec.dumpBeamTracksCmp(false);
+      }
       
       //
       // Cut on track multiplities 
@@ -517,12 +541,13 @@ namespace emph {
       //
       // Temporary stop 
       //
-      //if (debugIsOn) { std::cerr << " .... O.K., Back to Analyze of art module, enough is enough .. " << std::endl; exit(2); }
+//      if (debugIsOn) { std::cerr << " .... O.K., Back to Analyze of art module, enough is enough .. " << std::endl; exit(2); }
       // Vertex analysis donw here... This should be in a SSD vertex reconstruction package. 
       
       // Vertex Analysis, done better.. We keep the code below for compare..
       //
       if (fUpStreamBeamTrRec.Size() == 1) {
+        if (fDoUseDownstrKalmanTracks) fDwnstrTrRec.transferKlmToClFit();
         fRecVert.SetDebugOn(debugIsOn);
 	fRecVert.SetTokenJob(fTokenJob);
 	std::vector<rb::BeamTrackAlgo1>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();
@@ -530,133 +555,6 @@ namespace emph {
 	fRecVert.dumpInfoForR();
       }
       // Limit the multiplicities.. 
-      /*
-      ** Obsolete.. 
-      size_t kTrUp = 0; 
-      if (fUpStreamBeamTrRec.Size() > 2) { this->dumpSummaryMultiplicities();  return; } // cut on the very noisy event, upstream. 
-      const double dz20 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 2) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 0);
-      if (debugIsOn) std::cerr << "---------------------------- " << std::endl 
-         << " Starting Ustream/Downstream vertexin..on evt " << fEvtNum <<  std::endl; 
-      double xVUpstr = DBL_MAX; double yVUpstr = DBL_MAX;
-      for(std::vector<rb::BeamTrackAlgo1>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();  itUp != fUpStreamBeamTrRec.CEnd(); itUp++, kTrUp++) {
-        const double x0u = itUp->XOffset(); const double y0u = itUp->YOffset();
-	const double slx0u = itUp->XSlope(); const double sly0u = itUp->YSlope();
-        const double x0uErr = itUp->XOffsetErr(); const double y0uErr = itUp->YOffsetErr();
-	const double slx0uErr = itUp->XSlopeErr(); const double sly0uErr = itUp->YSlopeErr();
-	size_t kTrDwn = 0;
-	if (debugIsOn) std::cerr << "   At Usptream Track  xOdu " << x0u << " +- " << x0uErr << " y0u " << y0u << " +- " << y0uErr << std::endl;
-	
-        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator itDwn = fDwnstrTrRec.CBegin();  itDwn != fDwnstrTrRec.CEnd(); itDwn++, kTrDwn++) {
-	  if (itDwn->ChiSq() > fDwnstrVertChiSqCut) continue;
-	  if (std::abs(itDwn->Momentum()) < 2.0) continue; 
-	  const double slx0d = itDwn->XSlope(); const double sly0d = itDwn->YSlope();
-	// Ignoring correlation between X and Y, via the U and W measurements.. 
-	  const double slx0dErr = itDwn->XSlopeErr(); const double sly0dErr = itDwn->YSlopeErr();
-          const double x0d = itDwn->XOffset() - dz20*slx0d; const double y0d = itDwn->YOffset() - dz20*sly0d;
-	  const double x0dErr = std::sqrt(itDwn->XOffsetErr() * itDwn->XOffsetErr() + dz20*dz20*slx0dErr*slx0dErr);
-	  const double y0dErr = std::sqrt(itDwn->YOffsetErr() * itDwn->YOffsetErr() + dz20*dz20*sly0dErr*sly0dErr);
-	  if (debugIsOn) std::cerr << "   At Track " << itDwn->ID() << " x0d " << x0d << " +- " 
-	                            << x0dErr << " y0d " << y0d << " +- " << y0dErr << std::endl;
-	  //
-	  const double zxNum = (x0u - x0d); const double zxDenom = (slx0d - slx0u); const double zx = zxNum/zxDenom;
-	  if (std::isnan(zx)) continue;
-	  const double zxNumErr = std::sqrt(x0uErr*x0uErr + x0dErr*x0dErr);
-	  const double zxDenomErr = std::sqrt(slx0uErr*slx0uErr + slx0dErr*slx0dErr);
-	  // Again, ingore correlation between offsets and slopes.. 
-	  const double zxErr = std::abs(zx) * std::sqrt(zxNumErr*zxNumErr/(zxNum*zxNum) + zxDenomErr*zxDenomErr/(zxDenom*zxDenom)); 
-
-	  const double zyNum = (y0u - y0d); const double zyDenom = (sly0d - sly0u); const double zy = zyNum/zyDenom;
-	  if (std::isnan(zy)) continue;
-	  const double zyNumErr = std::sqrt(y0uErr*y0uErr + y0dErr*y0dErr);
-	  const double zyDenomErr = std::sqrt(sly0uErr*sly0uErr + sly0dErr*sly0dErr);
-	  const double zyErr = std::abs(zy) * std::sqrt(zyNumErr*zyNumErr/(zyNum*zyNum) + zyDenomErr*zyDenomErr/(zyDenom*zyDenom)); 
-	  if (debugIsOn) std::cerr << " Z vertex, X-Z plane " << zx << " +- " << zxErr << " Z vertex, Y-Z plane " << zy << " +- " << zyErr << std::endl;
-	  const double zz = 0.5*(zx+zy); // arbitrary.. 
-	  xVUpstr = x0u + zz * itUp->XSlope(); yVUpstr = y0u + zz * itUp->YSlope();
- 	  if (std::abs(zz - 250.) < 5000.) fNumVertices++;
-	  else continue;
-//          fFOutVertices << " subRun evt iV itUp itDwn zx zxErr zyErr  zyErr " << std::endl;  
-	   fFOutVertices << " " << fSubRun << " " << fEvtNum << " " << fNumVertices << " " << kTrUp << " " << kTrDwn 
-	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr << " " << xVUpstr << " " <<  yVUpstr <<  std::endl; 
-        } //  on dwonstream Tracks
-      } // on Upstream tracks.. 
-//      if (fNEvents > 200) {
-//        std::cerr << " Analyze... Stop here.. check after 200 events " << std::endl; exit(2);
-//      }
-      
-      if (debugIsOn) std::cerr << "---------------------------- " << std::endl 
-         << " Starting Dwonstream/Downstream vertexin.. on evt " << fEvtNum <<  std::endl; 
-	const double z2 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
-      // Loop for the stiffest track, to estimate best transverse position. 
-      int itIDBest = INT_MAX; double highestP = 0.;
-      for(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1 =  fDwnstrTrRec.CBegin();  it1 != fDwnstrTrRec.CEnd(); it1++) {
-	if (it1->ChiSq() > fDwnstrVertChiSqCut) continue;
-	if (std::abs(it1->Momentum()) < 1.0) continue; 
-        if (std::abs(it1->Momentum()) > highestP) { highestP = std::abs(it1->Momentum()); itIDBest = it1->ID(); }
-      }
-      size_t kTrDwn1 = 0;
-      double xVDwnstr = DBL_MAX; double yVDwnstr = DBL_MAX;
-      for(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it1 =  fDwnstrTrRec.CBegin();  it1 != fDwnstrTrRec.CEnd(); it1++, kTrDwn1++) {
-	if (it1->ChiSq() > fDwnstrVertChiSqCut) continue;
-	if (std::abs(it1->Momentum()) < 1.0) continue; 
-        const double xd1 = it1->XOffset(); const double yd1 = it1->YOffset();	
-	const double slxd1 = it1->XSlope(); const double slyd1 = it1->YSlope();
-	// Ignoring correlation between X and Y, via the U and W measurements.. 
-	const double slxd1Err = it1->XSlopeErr(); const double slyd1Err = it1->YSlopeErr();
-	const double xd1Err = it1->XOffsetErr(); const double yd1Err = it1->YOffsetErr();
-	if (debugIsOn) std::cerr << "   At Track " << it1->ID() << " xd1 " << xd1 << " +- " 
-	                            << xd1Err << " y0d " << yd1 << " +- " << yd1Err << std::endl;
-	size_t kTrDwn2 = 0;
-        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it2 = fDwnstrTrRec.CBegin();  it2 != fDwnstrTrRec.CEnd(); it2++, kTrDwn2++) { 
-	  if (it2->ChiSq() > fDwnstrVertChiSqCut) continue;
-	  if (std::abs(it2->Momentum()) < 1.0) continue; 
-	  if (kTrDwn2 < kTrDwn1) continue;
-	  if (it2 == it1) continue;
-	  const double aMass = this->InvariantMass(it1, it2);
-	  if (aMass < 0.0001) continue; // Too small invariant mass (neglecting rest mass of the pair) 
-          const double xd2 = it2->XOffset(); const double yd2 = it2->YOffset();	
-	  const double xd2Err = it2->XOffsetErr(); const double yd2Err = it2->YOffsetErr();
-	  const double slxd2 = it2->XSlope(); const double slyd2 = it2->YSlope();
-	// Ignoring correlation between X and Y, via the U and W measurements.. 
-	  const double slxd2Err = it2->XSlopeErr(); const double slyd2Err = it2->YSlopeErr();
-	  //
-	  if (debugIsOn) std::cerr << "   At Track " << it2->ID() << " xd2 " << xd2 << " +- " 
-	                            << xd2Err << " y0d " << yd2 << " +- " << yd2Err << " Invariant masss " <<  aMass << std::endl;
-	  const double zxNum = (xd1 - xd2); const double zxDenom = (slxd1 - slxd2); 
-	  const double zx = z2 - zxNum/zxDenom;  
-	  if (std::isnan(zx)) continue;
-	  const double zxNumErr = std::sqrt(xd1Err*xd1Err + xd2Err*xd2Err);
-	  const double zxDenomErr = std::sqrt(slxd1Err*slxd1Err + slxd2Err*slxd2Err);
-	  // Again, ingore correlation between offsets and slopes.. 
-	  const double zxErr = std::abs(zx) * std::sqrt(zxNumErr*zxNumErr/(zxNum*zxNum) + zxDenomErr*zxDenomErr/(zxDenom*zxDenom)); 
-
-	  const double zyNum = (yd1 - yd2); const double zyDenom = (slyd1 - slyd2); 
-	  const double zy = z2 - zyNum/zyDenom; // Z are in the G4 world coordinates 
-	  if (std::isnan(zy)) continue;
-	  const double zyNumErr = std::sqrt(yd1Err*yd1Err + yd2Err*yd2Err);
-	  const double zyDenomErr = std::sqrt(slyd1Err*slyd1Err + slyd2Err*slyd2Err);
-	  // Again, ingore correlation between offsets and slopes.. 
-	  const double zyErr = std::abs(zy) * std::sqrt(zyNumErr*zyNumErr/(zyNum*zyNum) + zyDenomErr*zyDenomErr/(zyDenom*zyDenom)); 
-	  const double zz = 0.5*(zx+zy); // arbitrary.. 
-	  if (itIDBest == it1->ID()) { 
-	    xVDwnstr = xd1 + slxd1 * (zz - z2);
-	    yVDwnstr = yd1 + slyd1 * (zz - z2);
-	  } else if (itIDBest == it2->ID()) {
-	    xVDwnstr = xd2 + slxd2 * (zz - z2);
-	    yVDwnstr = yd2 + slyd2 * (zz - z2);
-	  }
-	  if (debugIsOn)  {
-	     std::cerr << " Z vertex, X-Z plane " << zx << " +- " << zxErr << " Z vertex, Y-Z plane " << zy << " +- " << zyErr << std::endl;
-	     std::cerr << " Check evt number.. Within vertex loop  " << fEvtNum << std::endl;
-	  }
- 	  if (std::abs(zz - 250.) < 5000.) fNumVertDwn++;
-//          fFOutVertices << " subRun evt iV itUp itDwn zx zxErr zyErr  zyErr " << std::endl;  
-	   fFOutVertDwn << " " << fSubRun << " " << fEvtNum << " " << fNumVertDwn << " " << it1->ID() << " " << it2->ID() 
-	                 << " " << zx << " " << zxErr << " " << zy << " " << zyErr 
-			 << " " << xVDwnstr << " " <<  yVDwnstr << " " << xVUpstr << " " << yVUpstr << std::endl; 
-        } //  on dwonstream Tracks
-      } // on Upstream tracks.. 
-      */
       this->dumpSummaryMultiplicities();  
 //      if (debugIsOn) { 
 //          std::cerr << " .... O.K., End of Analyze of art module, enough is enough .. " << std::endl; 
