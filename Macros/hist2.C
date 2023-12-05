@@ -8,7 +8,7 @@
 // graph for each sensor (and total) in a different macro.                 //
 //  Using phase 1c geometry.                                               //
 //                                                                         //
-//Date: November 13, 2023                                                  //
+//Date: December 05, 2023                                                  //
 //Author: D.A.H.                                                           //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -23,22 +23,27 @@
 #include <TMath.h>
 #include "TGraph.h"
 
+//intitiate function that takes two histograms, adcHist: totADC for each sensor
+//(which was filled with the number of clusters per bin) and nADCHist: ntotADC
+//for each sensor (which is currently empty), fills vectors with the content 
+//from adcHist, and fills nADCHist based on the fractions per bin
+
 void ProcessADC(TH1* adcHist, TH1* nADCHist)
 {
   int totADCclusts = 0;
-
+  //loop through ADC bins and find the tot number of clusters in the histogram
   for (int ADCbin = 1; ADCbin <= adcHist->GetNbinsX(); ++ADCbin)
     {
       totADCclusts += adcHist->GetBinContent(ADCbin);
     }
 
-  // Create a vector to store ADC bin contents fractions and values
+  // Create vectors to store ADC bin contents fractions and values
   std::vector<double> ADCBinContents;
   std::vector<double> ADCBinFractions;
   std::vector<int> ADCBinValues;
   std::vector<std::pair<int, double>> ADC2DVector;
 
-  // Print the number of clusters in each bin of the ADC histogram
+  // Loop through ADC histogram and fill vectors
   for (int ADCbin = 1; ADCbin <= adcHist->GetNbinsX(); ++ADCbin)
     {
       double ADCBinContent = adcHist->GetBinContent(ADCbin);
@@ -55,11 +60,12 @@ void ProcessADC(TH1* adcHist, TH1* nADCHist)
       ADC2DVector.push_back(std::make_pair(ADCBinValue, ADCFraction));
     }
 
+  // Loop through the 2D vector and set the bin content of nADCHist
   for (int i = 0; i < ADC2DVector.size(); ++i)
     {
       if (nADCHist)
 	{
-	  // Check if i is a valid index for ADCBinFractions
+	  // Check if i is a valid index
 	  if (i >= 0 && i < ADC2DVector.size())
 	    {
 	      nADCHist->SetBinContent(i + 1, ADC2DVector[i].second);
@@ -76,7 +82,11 @@ void ProcessADC(TH1* adcHist, TH1* nADCHist)
     }
 }
 
-// Function to process an ADC histogram and update the corresponding nADC histogram
+//intitiate function that takes two histograms, ntotADC: ntotADC for each sensor 
+//(which is filled with the fractions per bin and fills vectors with the content
+//from it to fill ntotadc with the fractions per bin if the fraction is higher 
+//than the energy fraction threshold
+
 void ProcessADCAndNADC(TH1* ntotADC, TH1* ntotadc)
 {
   std::vector<double> adcBinFractions;
@@ -85,7 +95,7 @@ void ProcessADCAndNADC(TH1* ntotADC, TH1* ntotadc)
 
   int ntotadcIndex = 1;
   double threshold = 6.5e-6;
-
+  //double threshold = 1e-4; //may need to change threshold depending on sensor
   // Loop over ADC bins
   for (int nADCbin = 1; nADCbin <= ntotADC->GetNbinsX(); ++nADCbin)
     {
@@ -109,31 +119,39 @@ void ProcessADCAndNADC(TH1* ntotADC, TH1* ntotadc)
 
 }
 
-// Function to process a DE histogram and update the corresponding nDE histogram
+//intitiate function that takes two histograms, getde: for each sensor (which was 
+//filled with the number of clusters per bin) and ngetde: for each sensor (which 
+//is currently empty), fills vectors with the content from getde, and fills ngetde
+// based on the fractions per bin
+
 void ProcessDEAndNDE(TH1* getde, TH1* ngetde)
 {
-
-  if (!getde || !ngetde) {
-    std::cerr << "Error: Invalid input histograms." << std::endl;
-    return;
-  }
-
-  int totDEclusts = 0;
-
-  for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin) {
-    int DEBinContent = getde->GetBinContent(DEbin);
-    totDEclusts += DEBinContent; // Accumulate the total
-
-    if (std::isnan(DEBinContent) || std::isinf(DEBinContent)) {
-      std::cerr << "Error: Input histogram contains NaN or Inf values." << std::endl;
+  
+  if (!getde || !ngetde) 
+    {
+      std::cerr << "Error: Invalid input histograms." << std::endl;
       return;
     }
-  }
-
-  if (totDEclusts == 0) {
-    std::cerr << "Error: Total number of clusters is zero." << std::endl;
-    return;
-  }
+  
+  int totDEclusts = 0;
+  
+  for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin) 
+    {
+      int DEBinContent = getde->GetBinContent(DEbin);
+      totDEclusts += DEBinContent; // Accumulate the total
+      
+      if (std::isnan(DEBinContent) || std::isinf(DEBinContent))
+	{
+	  std::cerr << "Error: Input histogram contains NaN or Inf values." << std::endl;
+	  return;
+	}
+    }
+  
+  if (totDEclusts == 0) 
+    {
+      std::cerr << "Error: Total number of clusters is zero." << std::endl;
+      return;
+    }
 
   std::vector<int> DEBinContents;
   std::vector<double> DEBinFractions;
@@ -260,11 +278,11 @@ void hist2()
   TDirectory* dir22 = gDirectory->mkdir("Sensor22");
   TDirectory* dir23 = gDirectory->mkdir("Sensor23");
 
-  // Initalize histograms
+  // Initalize histograms, organized by sensor
   dir->cd();
   TFile* totalFile = new TFile("Total.root", "RECREATE");
   TH1D *getde = new TH1D ("getde", "GetDE; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
-  TH1D *totADC = new TH1D ("totADC", "Total ADC; totADC; Number of Clusters", 809, 41, 850);
+  TH1D *totADC = new TH1D ("totADC", "Total ADC; totADC; Number of Clusters", 809, 41, 850); // bin number chosen so there is exactly one bin per ADC value **DO NOT CHANGE**
   TH1D *ngetde = new TH1D ("ngetde", "Normalized GetDE; GetDE; Number of Hits/Total Number of Hits", 10000000, 0.0000001, 0.0010001);
   TH1D *ntotADC = new TH1D ("ntotADC", "Normalized Total ADC; totADC; Number of Clusters/Total Number of Clusters", 809, 41, 850);
   TH1D *ntotadc = new TH1D("ntotadc", "Normalized Total ADC (ignoring bins with fraction < 6.5e-6) ; totADC; Number of Clusters/Total Number of Clusters", 809, 41, 850);
@@ -272,7 +290,7 @@ void hist2()
   dir0->cd();
   TFile* sensor0File = new TFile("sensor0.root", "RECREATE");
   TH1F *getdest0s0 = new TH1F ("getde", "station 0, sensor 0; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
-  TH1F *st0s0 = new TH1F ("totADC", "station 0, sensor 0; totADC; Number of Clusters", 809, 41, 850);
+  TH1F *st0s0 = new TH1F ("totADC", "station 0, sensor 0; totADC; Number of Clusters", 809, 41, 850); 
   TH1F *ngetdest0s0 = new TH1F ("ngetde", "station 0, sensor 0; nGetDE; Number of Hits/Total Number of Hits", 10000000, 0.0000001, .0010001);
   TH1F *nst0s0 = new TH1F ("ntotADC", "station 0, sensor 0; ntotADC; Number of Clusters/Total Number of Clusters", 809, 41, 850);
   TH1F *Nst0s0 = new TH1F ("ntotadc", "station 0, sensor 0 (ignoring bins with fraction < 6.5e-6); ntotadc; Number of Clusters/Total Number of Clusters", 809, 41, 850);
@@ -453,7 +471,6 @@ void hist2()
   TH1F *nst6s4 = new TH1F ("ntotADC", "station 6, sensor 4; ntotADC; Number of Clusters/Total Number of Clusters", 809, 41, 850);
   TH1F *Nst6s4 = new TH1F ("ntotadc", "station 6, sensor 4 (ignoring bins with fraction < 6.5e-6); ntotadc; Number of Clusters/Total Number of Clusters", 809, 41, 850);
 
-
   dir23->cd();
   TFile* sensor23File = new TFile("sensor23.root", "RECREATE");
   TH1F *getdest6s5 = new TH1F ("getde", "station 6, sensor 5; GetDE; Number of Hits", 10000000, 0.0000001, .0010001);
@@ -462,6 +479,7 @@ void hist2()
   TH1F *nst6s5 = new TH1F ("ntotADC", "station 6, sensor 5; ntotADC; Number of Clusters/Total Number of Clusters", 809, 41, 850);
   TH1F *Nst6s5 = new TH1F ("ntotadc", "station 6, sensor 5 (ignoring bins with fraction < 6.5e-6); ntotadc; Number of Clusters/Total Number of Clusters", 809, 41, 850);
 
+  //change back to the global directory
   gDirectory->cd();
 
   // Initalize the number of good data events to 0
@@ -471,7 +489,7 @@ void hist2()
   int TotalADCClustersData = 0;
 
   int ndigits;
-  double TotADC;
+  double TotADC;c
 
   // Loop over our tree and each time we call GetEntries, the data in the tree is copied to recData
   for (int i = 0; i < datachain->GetEntries(); ++i)
@@ -508,6 +526,7 @@ void hist2()
 
       if (good_data_event)
         {
+	  // if good event, update counter and loop over clusts
           TotalADCClustersData += nclusts;
           n_good_data_events++;
   
@@ -515,14 +534,16 @@ void hist2()
             {
 	      int sensor = recData->cluster.clust[idx].sens;
               int station = recData->cluster.clust[idx].station;
-
               double AvgADC = recData->cluster.clust[idx].avgadc;
+
+	      // calculate totADC for all clusters
 	      TotADC = ndigits*AvgADC;
 	      totADC->Fill(TotADC);
 	      
+	      // calculate totADC for the clusters in each sensor
 	      if (station == 0 && sensor == 0)
 		{
-		  // plane 0, only has one sensor    
+		  // plane 0
 		  st0s0->Fill(TotADC);
 		}
 		if (station == 0 && sensor == 1)
@@ -632,7 +653,7 @@ void hist2()
                 }
               if (station == 6 && sensor == 4)
                 {
-                  //plane 17                                                                                               
+                  //plane 17                        
                   st6s4->Fill(TotADC);
                 }
 	      if (station == 6 && sensor == 5)
@@ -642,7 +663,7 @@ void hist2()
 		  }
 	    }
         } 
-    } // end loop over data entries   
+    } // end loop over data entries
   
   // Initalize the number of good MC events
   int n_good_MC_events = 0;
@@ -652,7 +673,7 @@ void hist2()
 
   double GetDE;
   
-  // Loop over our tree and each time we call GetEntries, the MCdata in the tree is copied to recMC.
+  // Loop over our tree and each time we call GetEntries, the MCdata in the tree is copied to recMC
   for (int a = 0; a < MCchain->GetEntries(); ++a)
     {
       MCchain->GetEntry(a); //a is the entries/events
@@ -677,19 +698,23 @@ void hist2()
         }
       if (good_MC_event)
         {
+	  // if good event,update counter and loop over clusts
           TotalDEClustersMC += ntruehits;
           n_good_MC_events++;
+
           for (int idx = 0; idx < ntruehits; ++idx)
             {
+	      //fill GetDE for all sensors 
               GetDE = recMC->truth.truehits.truehits[idx].GetDE;
               getde->Fill(GetDE);
 
 	      int sensor = recMC->truth.truehits.truehits[idx].GetSensor;
               int station = recMC->truth.truehits.truehits[idx].GetStation;
 
+	      // fill GetDE for each sensor 
 	      if (sensor == 0)
                 {
-                  // plane 0, only has one sensor
+                  // plane 0
                   getdest0s0->Fill(GetDE);
                 }
               if (sensor == 1)
@@ -722,7 +747,6 @@ void hist2()
                   //plane 6
                    getdest2s2->Fill(GetDE);
                 }
-
               if (sensor == 7)
                 {
                   //plane 7
@@ -813,7 +837,7 @@ void hist2()
     } // end loop over MC entries
 
   int totADCclusts = 0;
-
+  //loop through ADC bins and find the tot number of clusters in the histogram
   for (int ADCbin = 1; ADCbin <= totADC->GetNbinsX(); ++ADCbin)
     {
       totADCclusts += totADC->GetBinContent(ADCbin);
@@ -825,7 +849,7 @@ void hist2()
   std::vector<int> ADCBinValues;
   std::vector<std::pair<int, double>> ADC2DVector;
 
-  // Print the number of clusters in each bin of totADC
+  // Loop through ADC histogram and fill vectors
   for (int ADCbin = 1; ADCbin <= totADC->GetNbinsX(); ++ADCbin)
     {
       double ADCBinContent = totADC->GetBinContent(ADCbin);
@@ -841,11 +865,13 @@ void hist2()
       // Create a pair and store it in the 2D vector
       ADC2DVector.push_back(std::make_pair(ADCBinValue, ADCFraction));
     }
+  
+  // Loop through the 2D vector and set the bin content of ntotADC
   for (int i = 0; i < ADC2DVector.size(); ++i)  
   {
       if (ntotADC)
 	{
-	  // Check if i is a valid index for ADCBinFractions
+	  // Check if i is a valid index
 	  if (i >= 0 && i < ADC2DVector.size()) 
 	    {
 	      ntotADC->SetBinContent(i+1, ADC2DVector[i].second);
@@ -861,6 +887,7 @@ void hist2()
 	}
     }
 
+  //repeat for individual sensors using ProcessADC function
   ProcessADC(st0s0, nst0s0);
   ProcessADC(st0s1, nst0s1);
   ProcessADC(st1s0, nst1s0);
@@ -886,7 +913,7 @@ void hist2()
   ProcessADC(st6s4, nst6s4);
   ProcessADC(st6s5, nst6s5);
   
- // Create vectors to store the content and fractions
+ // Create vectors to store the fractions and bin values
   std::vector<double> adcBinFractions;
   std::vector<int> adcBinValues;             
   std::vector<std::pair<int, double>> adc2DVector;
@@ -894,7 +921,8 @@ void hist2()
   int ntotadcIndex = 1;
   double threshold = 6.5e-6;
 
-  // Loop over ADC bins
+  // Loop through ntotADC and fill vectors if the fraction is higher than the 
+  // energy fraction threshold
   for (int nADCbin = 1; nADCbin <= ntotADC->GetNbinsX(); ++nADCbin)
     {
       double nADCFraction = ntotADC->GetBinContent(nADCbin); 
@@ -913,6 +941,7 @@ void hist2()
         }
     }
 
+  //repeat for individual sensors using ProcessADCAndNADC function 
   ProcessADCAndNADC(nst0s0, Nst0s0);
   ProcessADCAndNADC(nst0s1, Nst0s1);
   ProcessADCAndNADC(nst1s0, Nst1s0);
@@ -945,18 +974,19 @@ void hist2()
     }
 
   int totDEclusts = 0; 
+  //loop through DE bins and find the tot number of clusters in the histogram  
   for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin)
     {
       totDEclusts += getde->GetBinContent(DEbin);
     }
 
-  // Create a vector to store DE bin contents
+  // Create a vector to store DE bin contents fractions and values
   std::vector<int> DEBinContents;
   std::vector<double> DEBinFractions;
   std::vector<double> DEBinValues;
   std::vector<std::pair<double, double>> DE2DVector;
 
-  // Print the number of truehits in each bin of getDE  
+  // Loop through getDE histogram and fill vectors 
   for (int DEbin = 1; DEbin <= getde->GetNbinsX(); ++DEbin)
     {
       int DEBinContent = getde->GetBinContent(DEbin);
@@ -974,6 +1004,7 @@ void hist2()
       DE2DVector.push_back(std::make_pair(DEBinValue, DEFraction));
     }
 
+  //repeat for individual sensors using ProcessDEAndNDE function and fill histograms
   ProcessDEAndNDE(getde, ngetde);
   ProcessDEAndNDE(getdest0s0, ngetdest0s0); 
   ProcessDEAndNDE(getdest0s1, ngetdest0s1);
@@ -999,10 +1030,12 @@ void hist2()
   ProcessDEAndNDE(getdest6s3, ngetdest6s3);
   ProcessDEAndNDE(getdest6s4, ngetdest6s4);
   ProcessDEAndNDE(getdest6s5, ngetdest6s5);
-
+ 
+  //write out the histograms for everything and the individual sensors in 
+  //their corresponding root files, then save and close them 
   totalFile->Write();
   totalFile->Close();
-
+  
   sensor0File->Write();
   sensor0File->Close();
 
@@ -1074,4 +1107,27 @@ void hist2()
 
   sensor23File->Write();
   sensor23File->Close();
-}
+
+
+  /*
+  //example of how to print histograms directly when running root instead of opening the file
+  TCanvas *c1 = new TCanvas("c1","c1",1000,500);
+  getdest0s0->SetFillColor(kBlue);
+  getdest0s0->Draw("colz");
+
+  TCanvas *c2 = new TCanvas("c2","c4",1000,500);
+  ngetdest0s0->SetFillColor(kBlue);
+  ngetdest0s0->Draw("colz");  
+
+  TCanvas *c3 = new TCanvas("c3","c3",1000,500);
+  st0s0->SetFillColor(kBlue);
+  st0s0->Draw("colz");
+
+  TCanvas *c4 = new TCanvas("c4","c4",1000,500);
+  nst0s0->SetFillColor(kBlue);
+  nst0s0->Draw("colz"); 
+
+  TCanvas *c5 = new TCanvas("c5","c5",1000,500);
+  Nst0s0->SetFillColor(kBlue);   
+  */
+  }

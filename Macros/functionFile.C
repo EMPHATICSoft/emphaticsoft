@@ -3,7 +3,7 @@
 // histogram and a bar graph for a specific sensor or all together and     //
 // makes a DE vs ADC histogram for the given sensor.                       //
 //                                                                         //
-//Date: November 13, 2023                                                  //
+//Date: December 05, 2023                                                  //
 //Author: D.A.H.                                                           //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -44,56 +44,61 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
    
   // Create a vector to store bin edges
   std::vector<double> binEdges;
-
   int bins = mappedHistogram->GetNbinsX();
 
-  for (int i = 1; i <= bins; ++i) {
-    double xLow = mappedHistogram->GetXaxis()->GetBinLowEdge(i);
-    double xHigh = mappedHistogram->GetXaxis()->GetBinUpEdge(i);
-    
-    binEdges.push_back(xLow);
-    binEdges.push_back(xHigh);
-  }
-
+  //find the bin edges for all the bins in mappedHistogram and store
+  for (int i = 1; i <= bins; ++i) 
+    {
+      double xLow = mappedHistogram->GetXaxis()->GetBinLowEdge(i);
+      double xHigh = mappedHistogram->GetXaxis()->GetBinUpEdge(i);
+      
+      binEdges.push_back(xLow);
+      binEdges.push_back(xHigh);
+    }
+  
   // Include the overflow bin edge
   binEdges.push_back(mappedHistogram->GetXaxis()->GetBinUpEdge(bins + 1));
 
+  //find the number of bins in mappedHistogram
   int numXBins = mappedHistogram->GetNbinsX();
                                                              
   // Create a 2D vector to store (bin number, DE value)
   std::vector<std::pair<int, double>> binNumberToDEValue;
 
+  //loop over bin and store the bin number and its corresponding value in the vector 
   for (int i = 1; i <= numXBins; ++i)
  {                                                            
     double xValue = mappedHistogram->GetXaxis()->GetBinCenter(i);
     binNumberToDEValue.push_back(std::make_pair(i, xValue));
   }
 
+  //find the number of bins in barGraph
   int numBins = barGraph->GetN();
                                         
   // Create a 2D vector to store (bin number, ADC value)
   std::vector<std::pair<int, double>> binNumberToXValue;
 
+  //loop over the barGraph bins and store the bin number and its corresponding value in the vector
   for (int i = 0; i < numBins; ++i)                                        
     {
-      double xValue, yValue ;
+      double xValue, yValue;
       barGraph->GetPoint(i, xValue, yValue);
       binNumberToXValue.push_back(std::make_pair(i + 1, xValue)); 
     }
 
+  //initiate a vector to store DE, ADC pairs 
   std::vector<std::pair<double, double>> combinedVector;
-     
+
   for (size_t i = 0; i < binNumberToDEValue.size() && i < binNumberToXValue.size(); ++i) 
     {                             
       double firstValue = binNumberToDEValue[i].second;
-    double secondValue = binNumberToXValue[i].second;
-    combinedVector.push_back(std::make_pair(firstValue, secondValue));
-  }
-
-  // Create a new histogram with the same bin edges as mappedHistogram
+      double secondValue = binNumberToXValue[i].second;
+      combinedVector.push_back(std::make_pair(firstValue, secondValue));
+    }
+  
+  // Create a new histogram with the same bin edges as mappedHistogram that stores DE vs ADC
     TH1D* newHistogram = new TH1D("NewHistogram", "New Histogram", binEdges.size() - 1, binEdges.data());
-
-        
+  
     for (int i = 0; i < combinedVector.size(); ++i) 
       {
 	double binCenter = combinedVector[i].first;
@@ -101,13 +106,33 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
 	int bin = newHistogram->FindBin(binCenter);
 	newHistogram->SetBinContent(bin, adcValue);
       }
+    
+    // Create a canvas for the plot
+    TCanvas *c6 = new TCanvas("c6", "c6", 1000, 500);
+    mappedHistogram->SetFillColor(0);
+    mappedHistogram->SetLineColor(kBlue);
+    mappedHistogram->Draw("HIST");
+    mappedHistogram->GetYaxis()->SetRangeUser(0, .2);
+    c6->Update();
+    //    c6->WaitPrimitive();
 
-  // Create a canvas for the plot
+    TCanvas* c7 = new TCanvas("c7", "c7", 1000, 500);
+    barGraph->SetTitle("ADC Value vs. DE Fraction");
+    barGraph->SetMarkerStyle(21);
+    barGraph->SetMarkerSize(1.0);
+    barGraph->SetFillColor(kRed);
+    barGraph->Draw("AB1");
+    barGraph->GetXaxis()->SetRangeUser(41, 850);
+    barGraph->GetXaxis()->SetTitle("ADC Value");
+    barGraph->GetYaxis()->SetTitle("DE Fraction");
+    c7->Update();
+    c7->WaitPrimitive();
+
   TCanvas* c1 = new TCanvas("c1", "New Histogram Plot", 1000, 500);
   newHistogram->Draw();
   newHistogram->SetTitle("DE vs ADC");
   c1->Draw();
-  c1->WaitPrimitive();
+  //  c1->WaitPrimitive();
 
   TString sensorName = TString(mappedHistogramFile).ReplaceAll("_mappedHistogram.root", "");
 
@@ -127,5 +152,5 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
 
 void functionFile()
 {
-  Function("sensor2_mappedHistogram.root", "sensor2_barGraph.root");
+  Function("sensor0_mappedHistogram.root", "sensor0_barGraph.root");
 }
