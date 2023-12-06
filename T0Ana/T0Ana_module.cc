@@ -31,7 +31,7 @@
 // #include "Geometry/service/GeometryService.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
-// #include "RecoBase/SSDHit.h"
+#include "RecoBase/SSDHit.h"
 
 // Define parameters of detectors
 #define N_SEG_T0 10
@@ -166,12 +166,13 @@ namespace emph {
     int  FindLeadRPC(int);
     int  GetSegT0(int);
     int  GetSegRPC(int);
-    void FillT0AnaTree(art::Handle< std::vector<rawdata::WaveForm> > &, // TRIGwvfm
-		       art::Handle< std::vector<rawdata::WaveForm> > &, // GCwvfm
-		       art::Handle< std::vector<rawdata::WaveForm> > &, // BACwvfm
-		       art::Handle< std::vector<rawdata::WaveForm> > &, // T0wvfm
-		       art::Handle< std::vector<rawdata::TRB3RawDigit> > &, // T0trb3
-		       art::Handle< std::vector<rawdata::TRB3RawDigit> > &); // RPCtrb3
+    void FillTreeTOF(art::Handle< std::vector<rawdata::WaveForm> > &, // T0wvfm
+		     art::Handle< std::vector<rawdata::TRB3RawDigit> > &, // T0trb3
+		     art::Handle< std::vector<rawdata::TRB3RawDigit> > &); // RPCtrb3
+    void FillTreeADC(art::Handle< std::vector<rawdata::WaveForm> > &, // TRIGwvfm
+		     art::Handle< std::vector<rawdata::WaveForm> > &, // GCwvfm
+		     art::Handle< std::vector<rawdata::WaveForm> > &); // BACwvfm
+    void FillTreeSSD(art::Handle< std::vector<rawdata::SSDRawDigit> > &); //SSD raw data
 
     void GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
     void GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>&);
@@ -261,6 +262,11 @@ namespace emph {
     std::vector<std::vector<double>> RPC_rgt_trail; // Time of trailing signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_trail_fine; // Finetime of trailing signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_tot; // TOT of right signals
+
+    std::vector<double> SSD_st;
+    std::vector<double> SSD_ch;
+    std::vector<double> SSD_t;
+    std::vector<double> SSD_adc;
 
   };
 
@@ -403,6 +409,12 @@ namespace emph {
     tree->Branch("RPC_rgt_lead",  &RPC_rgt_lead);
     tree->Branch("RPC_rgt_trail",  &RPC_rgt_trail);
     tree->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
+
+    // Branches for SSD
+    tree->Branch("SSD_st", &SSD_st);
+    tree->Branch("SSD_ch", &SSD_ch);
+    tree->Branch("SSD_t", &SSD_t);
+    tree->Branch("SSD_adc", &SSD_adc);
 
     // Branches for TDC fine parameters
     tree->Branch("TDC_top_lead_fine",  &TDC_top_lead_fine);
@@ -749,25 +761,8 @@ namespace emph {
 
   //......................................................................
 
-  void T0Ana::FillT0AnaTree(art::Handle< std::vector<emph::rawdata::WaveForm> > & TRIGwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & GCwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & BACwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
+  void T0Ana::FillTreeTOF(art::Handle< std::vector<emph::rawdata::WaveForm> > & T0wvfm, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & T0trb3, art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > & RPCtrb3)
   {
-
-    TRIG_t = -9999.0;
-    TRIG_hgt = -9999.0;
-    TRIG_blw = -1.0;
-
-    for(int i = 0; i < n_ch_gc; i++){
-      GC_t[i] = -9999.0;
-      GC_hgt[i] = -9999.0;
-      GC_blw[i] = -1.0;
-    }
-
-    for(int i = 0; i < n_ch_bac; i++){
-      BAC_t[i] = -9999.0;
-      BAC_hgt[i] = -9999.0;
-      BAC_blw[i] = -1.0;
-    }
-
     for(int i = 0; i < n_seg_t0; i++){
       ADC_top_ts[i] = -1.0;
       ADC_bot_ts[i] = -1.0;
@@ -778,66 +773,6 @@ namespace emph {
       ADC_top_blw[i] = -1.0;
       ADC_bot_blw[i] = -1.0;
     }//for(i:n_seg_t0)
-
-    // get ADC info for TRIG
-    if(!TRIGwvfm->empty()) {
-      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
-      emph::cmap::EChannel TRIGechan;
-      TRIGechan.SetBoardType(boardType);
-      // loop over ADC channels
-      for (size_t idx=0; idx < TRIGwvfm->size(); ++idx){
-	const rawdata::WaveForm& wvfm = (*TRIGwvfm)[idx];
-	int chan = wvfm.Channel();
-	int board = wvfm.Board();
-	TRIGechan.SetBoard(board);
-	TRIGechan.SetChannel(chan);
-	emph::cmap::DChannel dchan = cmap->DetChan(TRIGechan);
-	int detchan = dchan.Channel();
-	TRIG_t = wvfm.PeakTDC();
-	TRIG_hgt = wvfm.Baseline()-wvfm.PeakADC();
-	TRIG_blw = wvfm.BLWidth();
-      } // end loop over TRIG ADC channels
-    }
-
-    // get ADC info for GC
-    if(!GCwvfm->empty()) {
-      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
-      emph::cmap::EChannel GCechan;
-      GCechan.SetBoardType(boardType);
-      // loop over ADC channels
-      for (size_t idx=0; idx < GCwvfm->size(); ++idx){
-	const rawdata::WaveForm& wvfm = (*GCwvfm)[idx];
-	int chan = wvfm.Channel();
-	int board = wvfm.Board();
-	GCechan.SetBoard(board);
-	GCechan.SetChannel(chan);
-	emph::cmap::DChannel dchan = cmap->DetChan(GCechan);
-	int detchan = dchan.Channel();
-	GC_t[detchan] = wvfm.PeakTDC();
-	GC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
-	GC_blw[detchan] = wvfm.BLWidth();
-      } // end loop over GCkov ADC channels
-    }
-
-    // get ADC info for BAC
-    if(!BACwvfm->empty()) {
-      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
-      emph::cmap::EChannel BACechan;
-      BACechan.SetBoardType(boardType);
-      // loop over ADC channels
-      for (size_t idx=0; idx < BACwvfm->size(); ++idx){
-	const rawdata::WaveForm& wvfm = (*BACwvfm)[idx];
-	int chan = wvfm.Channel();
-	int board = wvfm.Board();
-	BACechan.SetBoard(board);
-	BACechan.SetChannel(chan);
-	emph::cmap::DChannel dchan = cmap->DetChan(BACechan);
-	int detchan = dchan.Channel();
-	BAC_t[detchan] = wvfm.PeakTDC();
-	BAC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
-	BAC_blw[detchan] = wvfm.BLWidth();
-      } // end loop over BACkov ADC channels
-    }
 
     // get ADC info for T0
     if (!T0wvfm->empty()) {
@@ -880,18 +815,122 @@ namespace emph {
       GetRPCTdc(VecRPCtrb3);
       GetRPCTot();
     }
-
-    tree->Fill();
-
   }
 
+  //......................................................................
+
+  void T0Ana::FillTreeADC(art::Handle< std::vector<emph::rawdata::WaveForm> > & TRIGwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & GCwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & BACwvfm)
+  {
+
+    TRIG_t = -9999.0;
+    TRIG_hgt = -9999.0;
+    TRIG_blw = -1.0;
+
+    // get ADC info for TRIG
+    if(!TRIGwvfm->empty()) {
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel TRIGechan;
+      TRIGechan.SetBoardType(boardType);
+      // loop over ADC channels
+      for (size_t idx=0; idx < TRIGwvfm->size(); ++idx){
+	const rawdata::WaveForm& wvfm = (*TRIGwvfm)[idx];
+	int chan = wvfm.Channel();
+	int board = wvfm.Board();
+	TRIGechan.SetBoard(board);
+	TRIGechan.SetChannel(chan);
+	emph::cmap::DChannel dchan = cmap->DetChan(TRIGechan);
+	// int detchan = dchan.Channel();
+	TRIG_t = wvfm.PeakTDC();
+	TRIG_hgt = wvfm.Baseline()-wvfm.PeakADC();
+	TRIG_blw = wvfm.BLWidth();
+      } // end loop over TRIG ADC channels
+    }
+
+    for(int i = 0; i < n_ch_gc; i++){
+      GC_t[i] = -9999.0;
+      GC_hgt[i] = -9999.0;
+      GC_blw[i] = -1.0;
+    }
+
+    // get ADC info for GC
+    if(!GCwvfm->empty()) {
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel GCechan;
+      GCechan.SetBoardType(boardType);
+      // loop over ADC channels
+      for (size_t idx=0; idx < GCwvfm->size(); ++idx){
+	const rawdata::WaveForm& wvfm = (*GCwvfm)[idx];
+	int chan = wvfm.Channel();
+	int board = wvfm.Board();
+	GCechan.SetBoard(board);
+	GCechan.SetChannel(chan);
+	emph::cmap::DChannel dchan = cmap->DetChan(GCechan);
+	int detchan = dchan.Channel();
+	GC_t[detchan] = wvfm.PeakTDC();
+	GC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
+	GC_blw[detchan] = wvfm.BLWidth();
+      } // end loop over GCkov ADC channels
+    }
+
+    for(int i = 0; i < n_ch_bac; i++){
+      BAC_t[i] = -9999.0;
+      BAC_hgt[i] = -9999.0;
+      BAC_blw[i] = -1.0;
+    }
+
+    // get ADC info for BAC
+    if(!BACwvfm->empty()) {
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel BACechan;
+      BACechan.SetBoardType(boardType);
+      // loop over ADC channels
+      for (size_t idx=0; idx < BACwvfm->size(); ++idx){
+	const rawdata::WaveForm& wvfm = (*BACwvfm)[idx];
+	int chan = wvfm.Channel();
+	int board = wvfm.Board();
+	BACechan.SetBoard(board);
+	BACechan.SetChannel(chan);
+	emph::cmap::DChannel dchan = cmap->DetChan(BACechan);
+	int detchan = dchan.Channel();
+	BAC_t[detchan] = wvfm.PeakTDC();
+	BAC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
+	BAC_blw[detchan] = wvfm.BLWidth();
+      } // end loop over BACkov ADC channels
+    }
+  }
+
+  void T0Ana::FillTreeSSD(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & SSDdigit)
+  {
+    SSD_st.clear();
+    SSD_ch.clear();
+    SSD_t.clear();
+    SSD_adc.clear();
+
+    // get SSD info
+    if(!SSDdigit->empty()){
+      // emph::cmap::FEBoardType boardType = emph::cmap::SSD;
+      emph::cmap::EChannel SSDechan;
+      for(size_t idx=0; idx < SSDdigit->size(); ++idx){
+	const rawdata::SSDRawDigit& ssd = (*SSDdigit)[idx];
+	SSDechan.SetBoard(ssd.FER());
+	SSDechan.SetChannel(ssd.Module());
+	emph::cmap::DChannel dchan = cmap->DetChan(SSDechan);
+	int detst = dchan.Station();
+	int detch =dchan.Channel();
+	SSD_st.push_back(detst);
+	SSD_ch.push_back(detch);
+	SSD_t.push_back(ssd.Time());
+	SSD_adc.push_back(ssd.ADC());
+      } // end loop over SSDRawDigit
+    }
+  }
   //......................................................................
   void T0Ana::analyze(const art::Event& evt)
   {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
-    std::string labelStrTRIG, labelStrGC, labelStrBAC, labelStrT0, labelStrRPC;
+    std::string labelStrTRIG, labelStrGC, labelStrBAC, labelStrT0, labelStrRPC, labelStrSSD;
 
     // get Raw Data
     int i_trig = emph::geo::Trigger;
@@ -915,6 +954,10 @@ namespace emph {
     labelStrRPC = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i_rpc));
     art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > HandleRPCtrb3;
 
+    int i_ssd = emph::geo::SSD;
+    labelStrSSD = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i_ssd));
+    art::Handle< std::vector<emph::rawdata::SSDRawDigit> > HandleSSDdigit;
+
     try {
       evt.getByLabel(labelStrTRIG, HandleTRIGwvfm);
       evt.getByLabel(labelStrGC, HandleGCwvfm);
@@ -922,10 +965,16 @@ namespace emph {
       evt.getByLabel(labelStrT0, HandleT0wvfm);
       evt.getByLabel(labelStrT0, HandleT0trb3);
       evt.getByLabel(labelStrRPC, HandleRPCtrb3);
+      evt.getByLabel(labelStrSSD, HandleSSDdigit);
 
       if (!HandleT0trb3->empty()) {
-	FillT0AnaTree(HandleTRIGwvfm, HandleGCwvfm, HandleBACwvfm, HandleT0wvfm, HandleT0trb3, HandleRPCtrb3);
+	FillTreeTOF(HandleT0wvfm, HandleT0trb3, HandleRPCtrb3);
+	FillTreeADC(HandleTRIGwvfm, HandleGCwvfm, HandleBACwvfm);
+	FillTreeSSD(HandleSSDdigit);
       }
+
+      tree->Fill();
+
     }
     catch(...) {
 
