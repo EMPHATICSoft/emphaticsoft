@@ -1,4 +1,8 @@
 #include "CAFMaker.fcl"
+#include "Geometry.fcl"
+#include "ChannelMap.fcl"
+#include "RunHistory.fcl"
+#include "DetGeoMap.fcl"
 
 process_name: CAFmaker
 
@@ -8,6 +12,10 @@ services:
   scheduler: { wantSummary: false }
   TimeTracker: {}
   #@table::standard_services
+  RunHistoryService: @local::standard_runhistory
+  Geometry:   @local::standard_geometry
+  ChannelMapService: @local::standard_channelmap
+#  DetGeoMapService: @local::standard_detgeomap
 }
 
 #Start each new event with an empty event.

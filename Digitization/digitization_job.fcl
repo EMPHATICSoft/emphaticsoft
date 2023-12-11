@@ -2,7 +2,6 @@
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
-#include "DetGeoMap.fcl"
 
 process_name: Digitizer
 
@@ -12,7 +11,6 @@ services:
   RunHistoryService: @local::standard_runhistory
   Geometry:   @local::standard_geometry
   ChannelMapService: @local::standard_channelmap
-  DetGeoMapService: @local::standard_detgeomap
 }
 
 source:

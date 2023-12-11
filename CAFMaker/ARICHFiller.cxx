@@ -18,9 +18,10 @@ namespace caf
     evt.getByLabel(fLabel, arv);
 
     if(!fLabel.empty() && arv.failedToGet()) {
-      std::cout << "CAFMaker: No product of type '"
-		<< abi::__cxa_demangle(typeid(*arv).name(), 0, 0, 0)
-		<< "' found under label '" << fLabel << "'. " << std::endl;
+      return;
+      //      std::cout << "CAFMaker: No product of type '"
+      //		<< abi::__cxa_demangle(typeid(*arv).name(), 0, 0, 0)
+      //		<< "' found under label '" << fLabel << "'. " << std::endl;
     }
       
     std::vector<rb::ARing> arings;

@@ -4,6 +4,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 // EMPHATIC includes
+#include "Geometry/service/GeometryService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 
 // Framework includes
@@ -22,6 +23,8 @@ namespace emph
 				       art::ActivityRegistry & reg):
       fUseGeometry (pset.get<bool>("UseGeometry"))
     {
+      art::ServiceHandle<emph::AlignService> align;
+
       fDetGeoMap = new DetGeoMap();
       fDetGeoMap->SetUseGeometry(fUseGeometry);
 
@@ -38,8 +41,12 @@ namespace emph
     //----------------------------------------------------------
     void DetGeoMapService::preBeginRun(const art::Run& run)
     {
+      art::ServiceHandle<emph::geo::GeometryService> geo;
+      art::ServiceHandle<emph::AlignService> align;
+
       fDetGeoMap->SetRun(run.run());
-      fDetGeoMap->Reset();
+      fDetGeoMap->SetGeometry(geo->Geo());
+      fDetGeoMap->SetAlign(align->GetAlign());
     }
     
   }

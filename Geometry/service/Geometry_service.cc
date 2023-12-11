@@ -28,7 +28,6 @@ namespace emph
       art::ServiceHandle<runhist::RunHistoryService> rhs;
 
       reg.sPreBeginRun.watch(this, &GeometryService::preBeginRun);
-
     }
     
     //----------------------------------------------------------
@@ -43,7 +42,7 @@ namespace emph
     //----------------------------------------------------------
     void GeometryService::preBeginRun(const art::Run& )
     {
-
+      std::cout << "GeometryService::preBeginRun" << std::endl;
       art::ServiceHandle<runhist::RunHistoryService> rhs;
       
       fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );

@@ -35,12 +35,15 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // EMPHATICSoft includes
+#include "Align/service/AlignService.h"
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/service/GeometryService.h"
 #include "RecoBase/SSDCluster.h"
-#include "DetGeoMap/DetGeoMap.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
 #include "RecoBase/SpacePoint.h"
+#include "RecoBase/TrackSegment.h"
+#include "RecoBase/Track.h"
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 
@@ -74,7 +77,7 @@ namespace emph {
     void    findDist(std::vector<sim::SSDHit> sim, rb::LineSegment track, int seg);
     void    compareAngle(std::vector<sim::SSDHit> sim, rb::LineSegment track, double ang[2]);
     double  findAngleRes(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f, double reco_angle);
-    void    MakeHits(rb::SpacePoint sp);
+    void    MakeHits();
     void    MakeLines();
 
   private:
@@ -86,6 +89,7 @@ namespace emph {
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> stripv;
     std::vector<rb::SpacePoint> spv;
+    std::vector<rb::TrackSegment> tsv;
     std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
     std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group;
 
@@ -100,8 +104,6 @@ namespace emph {
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
-
-    emph::dgmap::DetGeoMap* fDetGeoMap;
 
     //histograms and graphs for hits
     TH2F* hSPDist0;
@@ -146,6 +148,9 @@ namespace emph {
     std::vector<std::vector<double>> sp01;
     std::vector<std::vector<double>> sp234;
     std::vector<std::vector<double>> sp567;
+    std::vector<rb::SpacePoint> ts01;
+    std::vector<rb::SpacePoint> ts234;
+    std::vector<rb::SpacePoint> ts567;
 
     //truth position info
     std::vector<std::vector<double>> v_truth;
@@ -205,12 +210,14 @@ namespace emph {
   
   emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-    fCheckClusters     (pset.get< bool >("CheckClusters")),
-    fDetGeoMap(NULL)
-  {
-    this->produces< std::vector<rb::SpacePoint> >();
-  }
-
+    fCheckClusters     (pset.get< bool >("CheckClusters")) 
+    {
+      this->produces< std::vector<rb::SpacePoint> >();
+      this->produces< std::vector<rb::TrackSegment> >();
+      this->produces< std::vector<rb::Track> >();
+      
+    }
+  
   //......................................................................
   
 //  MakeSingleTracks::~MakeSingleTracks()
@@ -336,11 +343,11 @@ namespace emph {
 
   void emph::MakeSingleTracks::MakeSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
   {
-    if (!fDetGeoMap) fDetGeoMap = new emph::dgmap::DetGeoMap();
+    art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
 
-    fDetGeoMap->SSDClusterToLineSegment(cl, ls);
+    dgm->Map()->SSDClusterToLineSegment(cl, ls);
   }
-
+  
   //......................................................................
 
   void emph::MakeSingleTracks::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3]){
@@ -651,7 +658,9 @@ namespace emph {
 
   //......................................................................
 
-  void emph::MakeSingleTracks::MakeHits(rb::SpacePoint sp){
+  void emph::MakeSingleTracks::MakeHits()
+  {
+    rb::SpacePoint sp;
 
      art::ServiceHandle<emph::geo::GeometryService> geo;
      auto emgeo = geo->Geo();
@@ -770,7 +779,7 @@ namespace emph {
  
   //......................................................................
 
-  void emph::MakeSingleTracks::MakeLines(){
+  void emph::MakeSingleTracks::MakeLines() {
          //segment 01 -> don't need to fit anything, just connect two points
          double lfirst01[3]; double llast01[3];
          //findLine(sp01,lfirst01,llast01);
@@ -781,7 +790,7 @@ namespace emph {
          llast01[0] = sp01[1][0];
          llast01[1] = sp01[1][1];
          llast01[2] = sp01[1][2];
-
+	 
          //segment 234
          double lfirst234[3]; double llast234[3];
          findLine(sp234,lfirst234,llast234);
@@ -790,6 +799,7 @@ namespace emph {
          double lfirst567[3]; double llast567[3];
          findLine(sp567,lfirst567,llast567);
 
+	 
          //find angles
          double scattering = findAngle(lfirst01,llast01,lfirst234,llast234);
          double bending = findAngle(lfirst234,llast234,lfirst567,llast567);
@@ -807,6 +817,53 @@ namespace emph {
          rb::LineSegment track2 = rb::LineSegment(lfirst234,llast234);
          rb::LineSegment track3 = rb::LineSegment(lfirst567,llast567);
  
+	 // create rb::TrackSegments and insert them into the vector
+	 rb::TrackSegment ts1 = rb::TrackSegment();
+	 for (auto p : spv)
+	   if (p.Station() == 0 || p.Station() == 1)
+	     ts1.Add(p);
+	 ts1.SetVtx(lfirst01);
+	 double p[3];
+	 double dx = llast01[0]-lfirst01[0];
+	 double dy = llast01[1]-lfirst01[1];
+	 double dz = llast01[2]-lfirst01[2];	 
+
+	 p[0] = dx/dz;
+	 p[1] = dy/dz;
+	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
+	 ts1.SetP(p);
+	 tsv.push_back(ts1);
+
+	 rb::TrackSegment ts2 = rb::TrackSegment();
+	 for (auto p : spv)
+	   if (p.Station() == 2 || p.Station() == 3 || p.Station() == 4)
+	     ts2.Add(p);
+	 ts2.SetVtx(lfirst234);
+	 dx = llast234[0]-lfirst234[0];
+	 dy = llast234[1]-lfirst234[1];
+	 dz = llast234[2]-lfirst234[2];	 
+
+	 p[0] = dx/dz;
+	 p[1] = dy/dz;
+	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
+	 ts2.SetP(p);
+	 tsv.push_back(ts2);
+
+	 rb::TrackSegment ts3 = rb::TrackSegment();
+	 for (auto p : spv)
+	   if (p.Station() == 5 || p.Station() == 6 || p.Station() == 7)
+	     ts3.Add(p);
+	 ts3.SetVtx(lfirst567);
+	 dx = llast567[0]-lfirst567[0];
+	 dy = llast567[1]-lfirst567[1];
+	 dz = llast567[2]-lfirst567[2];	 
+
+	 p[0] = dx/dz;
+	 p[1] = dy/dz;
+	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
+	 ts3.SetP(p);
+	 tsv.push_back(ts3);
+
          //reorganize for plotting
          l01x[0] = lfirst01[0]; l01x[1] = llast01[0];
          l01y[0] = lfirst01[1]; l01y[1] = llast01[1];
@@ -842,8 +899,12 @@ namespace emph {
 
   void emph::MakeSingleTracks::produce(art::Event& evt)
   {
+    tsv.clear();
+    spv.clear();
 
     std::unique_ptr< std::vector<rb::SpacePoint> > spacepointv(new std::vector<rb::SpacePoint>);
+    std::unique_ptr< std::vector<rb::TrackSegment> > tracksegmentv(new std::vector<rb::TrackSegment>);
+    std::unique_ptr< std::vector<rb::Track> > trackv(new std::vector<rb::Track>);
 
     run = evt.run();
     subrun = evt.subRun();
@@ -858,48 +919,48 @@ namespace emph {
 
     if(fMakePlots){ 
 
-    if (fCheckClusters){
-       auto hasclusters = evt.getHandle<rb::SSDCluster>("clust");
-       if (!hasclusters){
-       mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
-       abort();
-       }
-    }
+      if (fCheckClusters){
+	auto hasclusters = evt.getHandle<rb::SSDCluster>("clust");
+	if (!hasclusters){
+	  mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
+	  abort();
+	}
+      }
 
-    std::string fClusterLabel = "clust";
-    art::Handle< std::vector<rb::SSDCluster> > clustH;
+      std::string fClusterLabel = "clust";
+      art::Handle< std::vector<rb::SSDCluster> > clustH;
 
-    std::string fG4Label = "geantgen";
-    art::Handle< std::vector<sim::SSDHit> > ssdHitH;
+      std::string fG4Label = "geantgen";
+      art::Handle< std::vector<sim::SSDHit> > ssdHitH;
 
-    try {
-      evt.getByLabel(fG4Label,ssdHitH);
-    } 
-    catch(...) {
-      std::cout << "WARNING: No SSDHits found!" << std::endl;
-    }
+      try {
+	evt.getByLabel(fG4Label,ssdHitH);
+      } 
+      catch(...) {
+	std::cout << "WARNING: No SSDHits found!" << std::endl;
+      }
 
-    bool goodEvent = false;
-    bool goodHit = false;
-
-    try {
-      evt.getByLabel(fClusterLabel, clustH);
-      if (!clustH->empty()){
-         for (size_t idx=0; idx < clustH->size(); ++idx) {
-              const rb::SSDCluster& clust = (*clustH)[idx];
-	      ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
-	      clusters.push_back(&clust); 
+      bool goodEvent = false;
+      bool goodHit = false;
+      
+      try {
+	evt.getByLabel(fClusterLabel, clustH);
+	if (!clustH->empty()){
+	  for (size_t idx=0; idx < clustH->size(); ++idx) {
+	    const rb::SSDCluster& clust = (*clustH)[idx];
+	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
+	    clusters.push_back(&clust); 
 	  }
 
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
 	  if (clusters.size()==nPlanes){
-	     for (auto i : clustMap){
-		 if (i.second != 1){goodEvent = false; break;} 
-	         else goodEvent = true;
-	     }
-	     if (goodEvent==true) {goodclust++;} 
-	     else {badclust++;}
+	    for (auto i : clustMap){
+	      if (i.second != 1){goodEvent = false; break;} 
+	      else goodEvent = true;
+	    }
+	    if (goodEvent==true) {goodclust++;} 
+	    else {badclust++;}
           }
 	  else badclust++;
 	  
@@ -907,45 +968,45 @@ namespace emph {
           ls_group.resize(nStations);
 
 	  for (size_t i=0; i<nStations; i++){
-	      cl_group[i].resize(nPlanes);
-              ls_group[i].resize(nPlanes);
+	    cl_group[i].resize(nPlanes);
+	    ls_group[i].resize(nPlanes);
 	  }
 
           for (size_t i=0; i<clusters.size(); i++){
-	      int plane = clusters[i]->Plane();
-	      int station = clusters[i]->Station();	 
- 
-	      //group clusters according to plane
-	      //within each station, do every combination
-	      cl_group[station][plane].push_back(clusters[i]);
+	    int plane = clusters[i]->Plane();
+	    int station = clusters[i]->Station();	 
+  
+	    //group clusters according to plane
+	    //within each station, do every combination
+	    cl_group[station][plane].push_back(clusters[i]);
 	  }
 	 
 	  //ANY CLUSTER
           /*bool goodEvent = true;
-          for (size_t i=0; i<nPlanes; i++){
-              if (cl_group[i].size() == 0){ goodEvent = false; break; }
-          }
+	    for (size_t i=0; i<nPlanes; i++){
+	    if (cl_group[i].size() == 0){ goodEvent = false; break; }
+	    }
           */
 
 	  rb::LineSegment strip;
           if (goodEvent == true && clusters.size() > 0){
-	     for (size_t i=0; i<clusters.size(); i++){
-		stripv.push_back(strip);
-		MakeSegment(*clusters[i],stripv[i]);
+	    for (size_t i=0; i<clusters.size(); i++){
+	      stripv.push_back(strip);
+	      MakeSegment(*clusters[i],stripv[i]);
 		
-	     }
+	    }
           }
 
-	  rb::SpacePoint sp;
 	  if (goodEvent == true && stripv.size() > 0){
-	     for (size_t i=0; i<clusters.size(); i++){
-                 int plane = clusters[i]->Plane();
-		 int station = clusters[i]->Station();
-		 ls_group[station][plane].push_back(&stripv[i]);
-             }
-	     //make reconstructed hits
-	     MakeHits(sp);
-	     spacepointv->push_back(sp);
+	    for (size_t i=0; i<clusters.size(); i++){
+	      int plane = clusters[i]->Plane();
+	      int station = clusters[i]->Station();
+	      ls_group[station][plane].push_back(&stripv[i]);
+	    }
+	    //make reconstructed hits
+	    MakeHits();
+	    for (auto sp : spv)
+	      spacepointv->push_back(sp);
 	  }
 
           ls_group.clear();
@@ -956,53 +1017,55 @@ namespace emph {
 
           //get truth info
           if (goodEvent && spv.size() > 0 && ssdHitH->size() == nPlanes){
-             for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
-                 const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
 
-	       	 //for hits comparison	
-	         xsim_pair.push_back(std::pair<double, int>(ssdhit.GetX(),ssdhit.GetStation()));
-                 ysim_pair.push_back(std::pair<double, int>(ssdhit.GetY(),ssdhit.GetStation()));
-                 zsim_pair.push_back(std::pair<double, int>(ssdhit.GetZ(),ssdhit.GetStation()));
+	    for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
+	      const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
 
-	         //for lines comparison
-	         std::vector<double> x = {ssdhit.GetX(),ssdhit.GetY(),ssdhit.GetZ()};
-                 v_truth.push_back(x);
+	      //for hits comparison	
+	      xsim_pair.push_back(std::pair<double, int>(ssdhit.GetX(),ssdhit.GetStation()));
+	      ysim_pair.push_back(std::pair<double, int>(ssdhit.GetY(),ssdhit.GetStation()));
+	      zsim_pair.push_back(std::pair<double, int>(ssdhit.GetZ(),ssdhit.GetStation()));
 
-	         //for tracks
-                 if (ssdhit.GetStation() == 0 || ssdhit.GetStation() == 1) truthhit01.push_back(ssdhit);
-                 if (ssdhit.GetStation() == 2 || ssdhit.GetStation() == 3 || ssdhit.GetStation() == 4) truthhit234.push_back(ssdhit);
-                 if (ssdhit.GetStation() == 5 || ssdhit.GetStation() == 6 || ssdhit.GetStation() == 7) truthhit567.push_back(ssdhit);
+	      //for lines comparison
+	      std::vector<double> x = {ssdhit.GetX(),ssdhit.GetY(),ssdhit.GetZ()};
+	      v_truth.push_back(x);
 
-		 //for bending and scattering angles
-                 if (ssdhit.GetStation() == 1) truthhit1.push_back(ssdhit);
-                 if (ssdhit.GetStation() == 2) truthhit2.push_back(ssdhit);
-                 if (ssdhit.GetStation() == 3) truthhit3.push_back(ssdhit);
-                 if (ssdhit.GetStation() == 6) truthhit6.push_back(ssdhit);
-             }
-             goodHit = true;
+	      //for tracks
+	      if (ssdhit.GetStation() == 0 || ssdhit.GetStation() == 1) truthhit01.push_back(ssdhit);
+	      if (ssdhit.GetStation() == 2 || ssdhit.GetStation() == 3 || ssdhit.GetStation() == 4) truthhit234.push_back(ssdhit);
+	      if (ssdhit.GetStation() == 5 || ssdhit.GetStation() == 6 || ssdhit.GetStation() == 7) truthhit567.push_back(ssdhit);
 
-       	     for (size_t i=0; i<spv.size(); i++){
-                 std::vector<double> x = {spv[i].Pos()[0],spv[i].Pos()[1],spv[i].Pos()[2]};	
-                 v_reco.push_back(x);
+	      //for bending and scattering angles
+	      if (ssdhit.GetStation() == 1) truthhit1.push_back(ssdhit);
+	      if (ssdhit.GetStation() == 2) truthhit2.push_back(ssdhit);
+	      if (ssdhit.GetStation() == 3) truthhit3.push_back(ssdhit);
+	      if (ssdhit.GetStation() == 6) truthhit6.push_back(ssdhit);
+	    }
+	    goodHit = true;
 
-	         //reconstructed hits
-                 if (spv[i].Station() == 0 || spv[i].Station() == 1) sp01.push_back(x);
-                 if (spv[i].Station() == 2 || spv[i].Station() == 3 || spv[i].Station() == 4) sp234.push_back(x);
-                 if (spv[i].Station() == 5 || spv[i].Station() == 6 || spv[i].Station() == 7) sp567.push_back(x);
-             }
+	    for (size_t i=0; i<spv.size(); i++){
+	      std::vector<double> x = {spv[i].Pos()[0],spv[i].Pos()[1],spv[i].Pos()[2]};	
+	      v_reco.push_back(x);
 
-             for (size_t i=0; i<v_truth.size(); i++){
-                 xtruth[i] = v_truth[i][0];
-                 ytruth[i] = v_truth[i][1];
-                 ztruth[i] = v_truth[i][2];
-             }
+	      //reconstructed hits
+	      if (spv[i].Station() == 0 || spv[i].Station() == 1) sp01.push_back(x);
+	      if (spv[i].Station() == 2 || spv[i].Station() == 3 || spv[i].Station() == 4) sp234.push_back(x);
+	      if (spv[i].Station() == 5 || spv[i].Station() == 6 || spv[i].Station() == 7) sp567.push_back(x);
+	    }
 
-	     //form lines and fill plots
-	     MakeLines();
-
+	    for (size_t i=0; i<v_truth.size(); i++){
+	      xtruth[i] = v_truth[i][0];
+	      ytruth[i] = v_truth[i][1];
+	      ztruth[i] = v_truth[i][2];
+	    }
+	    
+	    //form lines and fill plots
+	    MakeLines();
+	    for (auto ts : tsv) {
+	      tracksegmentv->push_back(ts);	     
+	    }
 	  }
 
-          spv.clear();
           v_reco.clear();
           v_truth.clear();
           sp01.clear();
@@ -1021,82 +1084,82 @@ namespace emph {
 	  //for hits comparison
 	  //where xsim, ysim, and zsim are avg truth hit positions
           if (goodEvent == true){
-             for (int j=0; j<8; j++){
-                 double xsum = 0.; double ysum = 0.; double zsum = 0.;
-                 int xc=0; int yc=0; int zc=0;
+	    for (int j=0; j<8; j++){
+	      double xsum = 0.; double ysum = 0.; double zsum = 0.;
+	      int xc=0; int yc=0; int zc=0;
 
-	         for (size_t i=0; i<xsim_pair.size(); i++){
-	             if (j == xsim_pair[i].second) {
-	                xsum += xsim_pair[i].first;
-                        ysum += ysim_pair[i].first;
-                        zsum += zsim_pair[i].first;
-		        xc++; yc++; zc++;
-	             }
-	         }
-                 xsim[j] = xsum/(double)xc;
-                 ysim[j] = ysum/(double)yc;
-                 zsim[j] = zsum/(double)zc;
-              }
+	      for (size_t i=0; i<xsim_pair.size(); i++){
+		if (j == xsim_pair[i].second) {
+		  xsum += xsim_pair[i].first;
+		  ysum += ysim_pair[i].first;
+		  zsum += zsim_pair[i].first;
+		  xc++; yc++; zc++;
+		}
+	      }
+	      xsim[j] = xsum/(double)xc;
+	      ysim[j] = ysum/(double)yc;
+	      zsim[j] = zsum/(double)zc;
+	    }
           }
-      } //clust not empty
+	} //clust not empty
 
-      if (goodEvent && goodHit){
-         if (fEvtNum < 100){
+	if (goodEvent && goodHit){
+	  if (fEvtNum < 100){
             art::ServiceHandle<art::TFileService> tfs;
             char *Ghevt = new char[16];
    	    char *Gxzsim = new char[12];
 	    char *Gyzsim = new char[12];
 
             if ( std::find(std::begin(xreco), std::end(xreco), 999) == std::end(xreco)){
-               sprintf(Ghevt,"gRecoHits_xz_e%d",fEvtNum);
-	       sprintf(Gxzsim,"gHits_xz_e%d",fEvtNum);		
-	       size_t graphsize = 8; //xsim.size();
+	      sprintf(Ghevt,"gRecoHits_xz_e%d",fEvtNum);
+	      sprintf(Gxzsim,"gHits_xz_e%d",fEvtNum);		
+	      size_t graphsize = 8; //xsim.size();
 
-               gHits_xz[fEvtNum] = tfs->makeAndRegister<TMultiGraph>(Gxzsim,Gxzsim);
+	      gHits_xz[fEvtNum] = tfs->makeAndRegister<TMultiGraph>(Gxzsim,Gxzsim);
 
-	       //get array by the address of the first element of the vector
-	       gSimHits_xz[fEvtNum] = tfs->make<TGraph>(graphsize,&zsim[0],&xsim[0]);
-               gRecoHits_xz[fEvtNum] = tfs->make<TGraph>(8,zreco,xreco);			
+	      //get array by the address of the first element of the vector
+	      gSimHits_xz[fEvtNum] = tfs->make<TGraph>(graphsize,&zsim[0],&xsim[0]);
+	      gRecoHits_xz[fEvtNum] = tfs->make<TGraph>(8,zreco,xreco);			
 
-               gHits_xz[fEvtNum]->Add(gRecoHits_xz[fEvtNum]);
-               gHits_xz[fEvtNum]->Add(gSimHits_xz[fEvtNum]);
+	      gHits_xz[fEvtNum]->Add(gRecoHits_xz[fEvtNum]);
+	      gHits_xz[fEvtNum]->Add(gSimHits_xz[fEvtNum]);
 
-	       gHits_xz[fEvtNum]->GetYaxis()->SetRangeUser(-50,50);
-               gHits_xz[fEvtNum]->GetXaxis()->SetLimits(-50,1900);
-               gSimHits_xz[fEvtNum]->SetMarkerStyle(3);
-               gSimHits_xz[fEvtNum]->SetMarkerSize(2);
-	       gSimHits_xz[fEvtNum]->SetMarkerColor(kRed);
-	       gSimHits_xz[fEvtNum]->SetLineColor(kRed);
+	      gHits_xz[fEvtNum]->GetYaxis()->SetRangeUser(-50,50);
+	      gHits_xz[fEvtNum]->GetXaxis()->SetLimits(-50,1900);
+	      gSimHits_xz[fEvtNum]->SetMarkerStyle(3);
+	      gSimHits_xz[fEvtNum]->SetMarkerSize(2);
+	      gSimHits_xz[fEvtNum]->SetMarkerColor(kRed);
+	      gSimHits_xz[fEvtNum]->SetLineColor(kRed);
 
-	       gRecoHits_xz[fEvtNum]->SetMarkerStyle(3);
-               gRecoHits_xz[fEvtNum]->SetMarkerSize(2);
+	      gRecoHits_xz[fEvtNum]->SetMarkerStyle(3);
+	      gRecoHits_xz[fEvtNum]->SetMarkerSize(2);
 	    }
             if ( std::find(std::begin(yreco), std::end(yreco), 999) == std::end(yreco)){
-	       sprintf(Gyzsim,"gHits_yz_e%d",fEvtNum);
-	       sprintf(Ghevt,"gRecoHits_yz_e%d",fEvtNum);
-	       size_t graphsize = 8; //ysim.size();
+	      sprintf(Gyzsim,"gHits_yz_e%d",fEvtNum);
+	      sprintf(Ghevt,"gRecoHits_yz_e%d",fEvtNum);
+	      size_t graphsize = 8; //ysim.size();
 
-	       gHits_yz[fEvtNum] = tfs->makeAndRegister<TMultiGraph>(Gyzsim,Gyzsim);
-	       gSimHits_yz[fEvtNum] = tfs->make<TGraph>(graphsize,&zsim[0],&ysim[0]);
-               gRecoHits_yz[fEvtNum] = tfs->make<TGraph>(8,zreco,yreco);
-               gHits_yz[fEvtNum]->Add(gRecoHits_yz[fEvtNum]);
-               gHits_yz[fEvtNum]->Add(gSimHits_yz[fEvtNum]);
+	      gHits_yz[fEvtNum] = tfs->makeAndRegister<TMultiGraph>(Gyzsim,Gyzsim);
+	      gSimHits_yz[fEvtNum] = tfs->make<TGraph>(graphsize,&zsim[0],&ysim[0]);
+	      gRecoHits_yz[fEvtNum] = tfs->make<TGraph>(8,zreco,yreco);
+	      gHits_yz[fEvtNum]->Add(gRecoHits_yz[fEvtNum]);
+	      gHits_yz[fEvtNum]->Add(gSimHits_yz[fEvtNum]);
 
-	       gHits_yz[fEvtNum]->GetYaxis()->SetRangeUser(-50,50);
-               gHits_yz[fEvtNum]->GetXaxis()->SetLimits(-50,1900);
-               gSimHits_yz[fEvtNum]->SetMarkerStyle(3);
-               gSimHits_yz[fEvtNum]->SetMarkerSize(2);
-               gSimHits_yz[fEvtNum]->SetMarkerColor(kRed);
-	       gSimHits_yz[fEvtNum]->SetLineColor(kRed);
+	      gHits_yz[fEvtNum]->GetYaxis()->SetRangeUser(-50,50);
+	      gHits_yz[fEvtNum]->GetXaxis()->SetLimits(-50,1900);
+	      gSimHits_yz[fEvtNum]->SetMarkerStyle(3);
+	      gSimHits_yz[fEvtNum]->SetMarkerSize(2);
+	      gSimHits_yz[fEvtNum]->SetMarkerColor(kRed);
+	      gSimHits_yz[fEvtNum]->SetLineColor(kRed);
 
-	       gRecoHits_yz[fEvtNum]->SetMarkerStyle(3);
-               gRecoHits_yz[fEvtNum]->SetMarkerSize(2);
+	      gRecoHits_yz[fEvtNum]->SetMarkerStyle(3);
+	      gRecoHits_yz[fEvtNum]->SetMarkerSize(2);
 	    }	
-         }
-      }
+	  }
+	}
 
-      if (goodEvent && goodHit){
-         if (fEvtNum < 100){
+	if (goodEvent && goodHit){
+	  if (fEvtNum < 100){
             art::ServiceHandle<art::TFileService> tfs;
             char *Gxz = new char[13];
             char *Gyz = new char[13];
@@ -1193,42 +1256,64 @@ namespace emph {
             gLine_yz567[fEvtNum]->SetMarkerColor(kGreen);
             gLine_yz567[fEvtNum]->SetLineColor(kGreen);
 
-         }
+	  }
+	}
+
+      } //try
+      catch(...) {
+
       }
 
-    } //try
-    catch(...) {
+      if (goodEvent == true){
+	for (int i=0; i<8; i++){
+	  if (xsim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
+	  if (ysim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
+	  if (zsim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
+	}
 
-    }
-
-    if (goodEvent == true){
-       for (int i=0; i<8; i++){
-           if (xsim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
-           if (ysim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
-           if (zsim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
-       }
-
-       for (int i=0; i<8; i++){
-           double xres = xreco[i] - xsim[i];
-	   double yres = yreco[i] - ysim[i];
-           hRes_x[i]->Fill(xres);
-	   hRes_y[i]->Fill(yres);
+	for (int i=0; i<8; i++){
+	  double xres = xreco[i] - xsim[i];
+	  double yres = yreco[i] - ysim[i];
+	  hRes_x[i]->Fill(xres);
+	  hRes_y[i]->Fill(yres);
         }	  
-    }
+      }
    
-    //clear reco and sim vectors for next event
-    for (int i=0; i<8; i++){
+      //clear reco and sim vectors for next event
+      for (int i=0; i<8; i++){
         xreco[i] = 999; xsim[i] = 999;
 	yreco[i] = 999; ysim[i] = 999;
 	zreco[i] = 999; zsim[i] = 999;
+      }
+      xsim_pair.clear();
+      ysim_pair.clear();
+      zsim_pair.clear();
+
+    } //want plots
+  
+    // now create tracks from tracksegments.  Note, this is a placeholder 
+    // for now.  The beam track needs to get the momentum from the SpillInfo, 
+    // and the secondary track needs to get the momentum from the bend angle
+ 
+    trackv->clear();
+    if (tracksegmentv->size() == 3) {
+      rb::Track beamtrk;
+      beamtrk.Add(tsv[0]);
+      beamtrk.SetP(tsv[0].P());
+      beamtrk.SetVtx(tsv[0].Vtx());
+      trackv->push_back(beamtrk);
+
+      rb::Track sectrk;
+      sectrk.Add(tsv[1]);
+      sectrk.Add(tsv[2]);
+      sectrk.SetP(tsv[1].P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
+      sectrk.SetVtx(tsv[1].Vtx()); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+      trackv->push_back(sectrk);
     }
-    xsim_pair.clear();
-    ysim_pair.clear();
-    zsim_pair.clear();
 
-  } //want plots
-  evt.put(std::move(spacepointv));
-
+    evt.put(std::move(spacepointv));
+    evt.put(std::move(tracksegmentv));
+    evt.put(std::move(trackv));
   }
 
 } // end namespace emph

@@ -12,7 +12,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/LineSegment.h"
-#include "DetGeoMap/DetGeoMap.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 #include "Simulation/Particle.h"
 
 // art includes
@@ -143,8 +143,6 @@ namespace emph {
     TEveElementList *fSSDClustsList;
     TEveElementList* fMCTrueParticleList;
 
-    dgmap::DetGeoMap* fDetGeoMap;
-
     void makeNavPanel();
     void drawSSDDigit(Int_t mColor, Int_t mSize, const emph::rawdata::SSDRawDigit& dig);
     void drawSSDClust(Int_t mColor, Int_t mSize, const rb::SSDCluster& clust);
@@ -188,7 +186,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fTeRun(0),fTeSubRun(0),fTeEvt(0),
   fTlRun(0),fTlSubRun(0),fTlEvt(0),
   fTrackList(0),fTrueSSDHitsList(0),fSSDDigitsList(0), 
-  fSSDClustsList(0),fDetGeoMap(NULL)
+  fSSDClustsList(0)
 {
 
   partColor[211] = kGreen-2; // pi+
@@ -494,10 +492,11 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
 				      const rb::SSDCluster& cl)
 {
   rb::LineSegment ls;
-  if (! fDetGeoMap)
-    fDetGeoMap = new dgmap::DetGeoMap();
+  
+  art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
 
-  if (fDetGeoMap->SSDClusterToLineSegment(cl, ls)) {
+
+  if (dgm->Map()->SSDClusterToLineSegment(cl, ls)) {
     
     TEveLine* l = new TEveLine();
     

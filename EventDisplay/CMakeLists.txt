@@ -86,6 +86,7 @@ cet_build_plugin(EventDisplay3D art::module
   RawData
   RecoBase
   DetGeoMap
+  DetGeoMapService_service
   Simulation
   StandardRecord
 #  EventDisplayBase
