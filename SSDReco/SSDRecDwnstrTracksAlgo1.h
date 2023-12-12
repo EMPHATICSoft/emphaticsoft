@@ -65,7 +65,8 @@ namespace emph {
 	  ssdr::SSD3DTrackFitFCNAlgo1 *fUpDownFitterFCN;
 	  ssdr::SSD3DTrackKlmFitFCNAlgo1 *fFitterKlmFCN;
 	  //
-          ssdr::SSDRecStationDwnstrAlgo1 fInputSt2Pts, fInputSt3Pts, fInputSt4Pts, fInputSt5Pts; 
+          ssdr::SSDRecStationDwnstrAlgo1 fInputSt2Pts, fInputSt3Pts, fInputSt4Pts, fInputSt5Pts, fInputSt6Pts ;
+	  // Station 7 appear to be empty on run 2098, 2113..  
 	  
 	  std::vector<myItCl> fDataItClForFits; // for UpDown 3D fits.. 
 	   
@@ -87,11 +88,11 @@ namespace emph {
 	public:
 	 inline void SetDebugOn(bool v = true) { 
 	   fDebugIsOn = v; fInputSt2Pts.SetDebugOn(v); 
-	   fInputSt3Pts.SetDebugOn(v); fInputSt4Pts.SetDebugOn(v); fInputSt5Pts.SetDebugOn(v);
+	   fInputSt3Pts.SetDebugOn(v); fInputSt4Pts.SetDebugOn(v); fInputSt5Pts.SetDebugOn(v); fInputSt6Pts.SetDebugOn(v);
 	 }
          inline void SetRun(int aRunNum) { 
 	   fRunNum = aRunNum; fInputSt2Pts.SetRun(aRunNum);
-	   fInputSt3Pts.SetRun(aRunNum); fInputSt4Pts.SetRun(aRunNum);fInputSt5Pts.SetRun(aRunNum); 
+	   fInputSt3Pts.SetRun(aRunNum); fInputSt4Pts.SetRun(aRunNum);fInputSt5Pts.SetRun(aRunNum); fInputSt6Pts.SetRun(aRunNum);
 	 } 
          inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
 	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
@@ -107,18 +108,20 @@ namespace emph {
 	   fInputSt3Pts.SetPreliminaryMomentum(p); 
 	   fInputSt4Pts.SetPreliminaryMomentum(p); 
 	   fInputSt5Pts.SetPreliminaryMomentum(p); 
+	   fInputSt6Pts.SetPreliminaryMomentum(p); 
 	 } 
-	 inline void SetForMC(bool v=true) { // For multiple scattering uncertainties.. 
+	 inline void SetForMC(bool v=true) { // For multiple scattering uncertainties.. // Obsolete..
 	   fIsMC = v;
 	   fCoordConvert.SetForMC(v);
 	   fInputSt2Pts.SetForMC(v); 
 	   fInputSt3Pts.SetForMC(v); 
 	   fInputSt4Pts.SetForMC(v); 
 	   fInputSt5Pts.SetForMC(v); 
+	   fInputSt6Pts.SetForMC(v); 
 	 } 
 	 inline void SetTokenJob(const std::string &aT) { 
 	   fTokenJob = aT; fInputSt2Pts.SetTokenJob(aT); 
-	   fInputSt3Pts.SetTokenJob(aT); fInputSt4Pts.SetTokenJob(aT); fInputSt5Pts.SetTokenJob(aT);
+	   fInputSt3Pts.SetTokenJob(aT); fInputSt4Pts.SetTokenJob(aT); fInputSt5Pts.SetTokenJob(aT); fInputSt6Pts.SetTokenJob(aT);
 	 }
 	 inline void Clear() { fTrs.clear(); fTrsKlm.clear();}
 	 inline void SetChiSqCutRecStation(size_t kSt, double c) { 
@@ -127,6 +130,7 @@ namespace emph {
 	    case 3 : { fInputSt3Pts.SetChiSqCut(c); return; } 
 	    case 4 : { fInputSt4Pts.SetChiSqCut(1.5*c); return; } // We increase the cut a bit, alignment uncertainties are larger.. 
 	    case 5 : { fInputSt5Pts.SetChiSqCut(2.0*c); return; }
+	    case 6 : { fInputSt6Pts.SetChiSqCut(2.0*c); return; }
 	    default : { return; }  
 	   }
 	 }
@@ -152,6 +156,7 @@ namespace emph {
 	   if (fInputSt3Pts.Size() > 0) fInputSt3Pts.dumpInfoForR(); 
 	   if (fInputSt4Pts.Size() > 0) fInputSt4Pts.dumpInfoForR(); 
 	   if (fInputSt5Pts.Size() > 0) fInputSt5Pts.dumpInfoForR();
+	   if (fInputSt6Pts.Size() > 0) fInputSt6Pts.dumpInfoForR();
 	 }
 	 inline int NumTripletsSt2and3() const {
 	   return  (fInputSt2Pts.NumTriplets() + fInputSt3Pts.NumTriplets());

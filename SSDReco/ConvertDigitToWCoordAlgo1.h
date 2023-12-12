@@ -27,11 +27,13 @@ namespace emph {
     
        public:
       
-	explicit ConvertDigitToWCoordAlgo1(char aView); // X or Y, U or V
+	explicit ConvertDigitToWCoordAlgo1(char aView); // X or Y, U or V,  or All of them... 
+	explicit ConvertDigitToWCoordAlgo1(int aRunNum, char aView); // To support both Phase1b and Phase1c 
+	//   X or Y, U or V,  or All of them... 
 	
         private:
-	  static const size_t fNumStations = 6;
-	  static const size_t fNumStrips = 639; // Per wafer. 
+	  static const size_t fNumStations = 8; // Upgrade to Phase1c, from 6 to 8.. 
+	  static const size_t fNumStrips = 640; // Per wafer. 5 readout chips, 128 channel each Was 639 Back in Nov. 2023.. 
 	  static const double fOneOverSqrt12;
 	  static const double fOneOverSqrt2;
 	  //
@@ -42,7 +44,8 @@ namespace emph {
 	  art::ServiceHandle<emph::geo::GeometryService> fGeoService;
 	  emph::geo::Geometry *fEmgeo;
 
-	  bool fIsMC; // Ugly!.  
+	  bool fIsPhase1c; // by default, phase1b.   
+	  bool fIsMC; // Ugly!. But Obsolete.. we hope... Stereo angle use in GeoDetMap  
 	  bool fIsReadyToGo; // Can't fully initialize everything in the constructor.. This should be amn ar service!!! 
 	  char fView;
 	  bool fDebugIsOn;
@@ -73,8 +76,12 @@ namespace emph {
 
 	  
 	public:
+	 inline void SetPhase1X( int aRunNum) { 
+	    fIsPhase1c = (aRunNum > 1999);
+	    if (fIsPhase1c) this->SetForPhase1X();  
+	 }  
 	 inline void SetDebugOn( bool v=true) { fDebugIsOn = v; } 
-	 inline void SetForMC(bool v=true) { fIsMC = v;} 
+	 inline void SetForMC(bool v=true) { fIsMC = v;} // Obsolete.. we hope !   
 	 inline void SetOtherUncert(const std::vector<double> v) { fOtherUncert = v; } // Obsolete.. 
 	 inline void SetPitchAngles(const std::vector<double> v) { fPitchOrYawAngles = v; } 
 	 inline void SetFittedResiduals(std::vector<double> v) { fMeanResiduals = v;} 
@@ -114,61 +121,90 @@ namespace emph {
 	     case 'X' :
 	     {
 	       double aVal=0.;
-	       if (kStation < 4) {
-	         aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-	       } else {
+	       if (!fIsPhase1c) { 
+	         if (kStation < 4) {
+	           aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+	         } else {
 		    aVal =  strip*fPitch - fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
 		    if (kPlane == 0) aVal *= -1.;
 //		    else aVal += 2*fPitch; // To compensate for the wrong sign addition in the NominalOffset
 		 // Momentum correction, for 120 GeV primary beam 
 		    aVal += fMagnetKick120GeV * (fZCoords[kStation] - fZCoordsMagnetCenter);
 		 }
-		 // Yaw Correction 
+		 // Yaw Correction ? 
+	       } else { // Phase1c To be checked.. 
+	         if (kStation < 5) {
+	           aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+	         } else {
+		    aVal =  strip*fPitch - fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation];
+		    if (kPlane == 0) aVal *= -1.;
+//		    else aVal += 2*fPitch; // To compensate for the wrong sign addition in the NominalOffset
+		 // Momentum correction, for 120 GeV primary beam 
+		    aVal += fMagnetKick120GeV * (fZCoords[kStation] - fZCoordsMagnetCenter);
+	          }
+		} 
 	       return aVal;
 	       break;
 	     } 
 	     case 'Y' : 
 	      {
 	       double aVal = 0.;
-	       if (kStation < 4) {  
-	         aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-	       } else {
+	       if (!fIsPhase1c) {
+	         if (kStation < 4) {  
+	           aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+	         } else {
 //
 //   When using the Monte-Carlo, and possibly the data , we had a sign mistake, before March 23 2023 	       
 		   aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
 		   if (kPlane == 2) { aVal *= -1;  } // last correction, related fence counting.. MC based ! Guess.. to be checked..
-//		   if (kPlane == 3) { aVal -= fPitch; } // last correction, related fence counting.. MC based ! Probably not the last one
 	       
-//	         if (!alternate45) aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
-	       } 
-	       const double aValC = this->correctTsForPitchOrYawAngle(kStation, aVal);
+	         } 
+		} else { // Phase1c To commissioned.. 
+	          if (kStation < 4) {  
+	            aVal =  (strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+	          } else {
+//
+//   When using the Monte-Carlo, and possibly the data , we had a sign mistake, before March 23 2023 	       
+		   aVal =  ( -1.0*strip*fPitch + fNominalOffsets[kStation] + fResiduals[kStation] + fMeanResiduals[kStation]);
+		   if (kPlane == 2) { aVal *= -1;  } // last correction, related fence counting.. MC based ! Guess.. to be checked..
+	         } 
+		
+		}
+	       const double aValC = this->correctTsForPitchOrYawAngle(kStation, aVal); // Nov. 2023: still a place holder.. 
 	       return aValC;
 	       break; 
 	      }
-	      case 'U' : // Station 2 and 3 
+	      case 'U' : // Station 2 and 3 .  For Phase1c, 2 3 and 4 
 	      {
 		 double aVal =  (strip*fPitch + fNominalOffsets[kStation]  + 1.0e-10);
 	         return aVal;
 	      } 
 	      case 'V' :// Station 4 and 5, double sensors.  
 	      {
-	         if (kStation < 4) {
+	        if (!fIsPhase1c) {
+	          if (kStation < 4) {
 	            std::cerr << " SSDAlign3DUVAlgo1::getTsFromCluster, unexpected station " << kStation 
 		              << " for W view internal error, fatal " << std::endl; exit(2);
-		 }
-	         if (kPlane < 4) {
+		  }
+	          if (kPlane < 4) {
 	            std::cerr << " SSDAlign3DUVAlgo1::getTsFromCluster, unexpected sensor " << kPlane 
 		              << " for W view internal error, fatal " << std::endl; exit(2);
-		 }
-		 double aVal =  (-strip*fPitch + fNominalOffsets[kStation]  + 1.0e-10);
-		 if (kPlane == 4) aVal *= -1.;
+		  }
+		} else { 
+		 // 
+		 // Phase1c : No checks.. 
+		 //  
+		}
+		double aVal =  (-strip*fPitch + fNominalOffsets[kStation]  + 1.0e-10);
+		if ((!fIsPhase1c) && (kPlane == 4)) aVal *= -1.;
+		// 
 	        return aVal;
 	      } 
 	      default :
 	        std::cerr << " ConvertDigitToWCoordAlgo1::getTsFromCluster, unexpected view, "
 		<< fView << " kStation " << kStation << " Sensor " << kPlane << 
 		 " internal error, fatal " << std::endl; exit(2);
-	   }
+	   } //switch view 
 	   return 0.; // should not happen  
 	 }
 	 inline double correctTsForPitchOrYawAngle(size_t kStation, double ts) {
@@ -180,7 +216,13 @@ namespace emph {
 	 std::pair<double, double> getTrCoord(std::vector<rb::SSDCluster>::const_iterator it, double pMomMultScatter) const; 
 	 // the 2nd argument is the presumed momentum, to compute the multiple scattering uncertainty. Target not included.  
 	 // the pair is (coord, corrdErrSquared)  
+	 std::pair<double, double> getTrCoord1c(std::vector<rb::SSDCluster>::const_iterator it, double pMomMultScatter) const; 
 	 double getTrCoordRoot(std::vector<rb::SSDCluster>::const_iterator it); // Via the Root based geometry, as in the event display..  
+	 // Checked on for Phase1b, and actually found it problematic, Oct-Nov 2023 
+	
+      private: 
+        void SetForPhase1X(); // Place holder.. 	
+
 	 
     }; // this class 
   

@@ -268,16 +268,20 @@ namespace emph {
       // My own convention..Ugly MC/real data difference.. 
       //
       if (fRun == 1293) fDwnstrTrRec.SetForMC(true);
+      const size_t maxKst = (fRun < 2000) ? 6 : 7; // Station 7 appears to be empty on run 2098, 2113 
       if (!fDoIronBrick) { 
         std::cerr << " Not doing Iron brick... " << std::endl;
         if (fRun == 1274) fUpStreamBeamTrRec.SetNominalMomentum(31.);
         fDwnstrTrRec.SetRun(fRun);
         fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
-        for(size_t kSt=2; kSt != 6; kSt++)  {
-          fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
-        }
+        for(size_t kSt=2; kSt != maxKst; kSt++)  {
+          fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // it is done...  
+          if (kSt == 6) fDwnstrTrRec.SetChiSqCutRecStation(kSt, 1.0e6); // Understanding Station 6 V view ??? 
+// Fixed, December 8... 
+       }
 	std::cerr << " Finished setting up Downstream Tracker.. " << std::endl;
       } else { 
+      // Not applicable for Phase1c.. 
         fBrickTrRec.SetRun(fRun);
         fBrickTrRec.SetAssumedMomentum(fPrelimMomentumSecondaries);
 	fBrickTrRec.SetDoFirstAndLastStrips(fDoFirstAndLastStrips);
@@ -285,7 +289,7 @@ namespace emph {
           fBrickTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
         }
        }
-       
+       fEmVolAlP->SetPhase1X(fRun);
        fEmVolAlP->UpdateNominalFromStandardGeom(fEmgeo);
        	
        std::cerr  << std::endl << " ------------- End of StudyAllTrial1Algo1::beginRun ------------------" << std::endl << std::endl;
@@ -365,7 +369,7 @@ namespace emph {
 //	debugIsOn = ((fRun == 1274) && (fEvtNum < 20));		       
 //	debugIsOn = ((fRun == 1274) && (fSubRun == 10) && ((fEvtNum == 183) || (fEvtNum == 671)) );		       
     //
-      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && (fEvtNum == 5));
+//      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && (fEvtNum == 5));
 //      bool debugIsOn = ((fRun == 1274) && (fSubRun == 10) && 
 //          ((fEvtNum == 52) || (fEvtNum == 59) || (fEvtNum == 63) || (fEvtNum == 71) || (fEvtNum == 98)) );
 //      bool debugIsOn = ((fRun == 1274) && (fSubRun == 2) && (fEvtNum == 9584));
@@ -373,7 +377,13 @@ namespace emph {
     // Get the data. This is supposed the best way, but... 
 //      bool debugIsOn = ((fRun == 1274) && (fSubRun == 18) && (fEvtNum == 12139)); // Bad event Root 300 error, Nov 25 2023. 
 //      bool debugIsOn = ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)); // Bad event Root 300 error, Nov 25 2023. 
-      
+// This is no longer needed, after the Minuit2 exception handle upgrade, late November 2023.. 
+//      
+      bool debugIsOn = ((fRun == 2098) && (fSubRun == 7) && (fEvtNum == 1730));
+//      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && 
+//                        ((fEvtNum == 1) || (fEvtNum == 2 ) || (fEvtNum == 4 )|| (fEvtNum == 5 ) || (fEvtNum == 9 ) || (fEvtNum == 10 )));
+//      if (fEvtNum > 25) { std::cerr << " ... ... only first few event, quit now.. " << std::endl; exit(2); }
+      if (!debugIsOn) return ; // skip, got for the first clean event.. 
       if ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)) return ; // Skip fit fails..       
       if ((fRun == 1274) && (fSubRun == 31) && (fEvtNum == 10320)) return ; // Skip fit fails..       
 //      if ((fRun == 1274) && (fSubRun == 3) && (fEvtNum == 10298)) return ; // Skip fit fails..       
@@ -390,7 +400,7 @@ namespace emph {
       art::fill_ptr_vector(fSSDclPtrs, hdlCls);
       
       if (debugIsOn) std::cerr << " Debugging.. StudyAllTrial1Algo1::analyze, run " << fRun 
-                               << "spill " << fSubRun << " event " <<  fEvtNum << "  on " 
+                               << "  spill " << fSubRun << " event " <<  fEvtNum << "  on " 
                                << fSSDclPtrs.size() <<  " clusters " <<   std::endl;
 			       
 //      if (fEvtNum > 100) { std::cerr << " 100 evt is enough, quit here and now " << std::endl; exit(2); }		       
@@ -412,7 +422,7 @@ namespace emph {
         }
       }
       
-      if (fSSDcls.size() == 0) { this->dumpSummaryMultiplicities();  return; } // nothing to do, no data. 
+      if (fSSDclPtrs.size() == 0) { this->dumpSummaryMultiplicities();  return; } // nothing to do, no data. 
       fNumClUpstr = 0; fNumClDwnstr = 0; fNumVertices = 0; fNumVertDwn = 0;
       // 
       // Tally the number of clusters..
@@ -421,7 +431,7 @@ namespace emph {
         if (itCl->Station() < 2) fNumClUpstr++;
 	else fNumClDwnstr++; 
       }
-      
+      if (debugIsOn) std::cerr << " ... Num Upstream Clusters.. " << fNumClUpstr << std::endl;
       if (fNumClUpstr == 0) { this->dumpSummaryMultiplicities();  return; } // No upstream data. 
       //
       // Beam Tracks 
@@ -473,7 +483,9 @@ namespace emph {
       if (!fDoIronBrick) {
         fDwnstrTrRec.SetItUpstreamTrack(itUpTrSel); 
         fDwnstrTrRec.SetDebugOn(debugIsOn);
-        for(size_t kSt=2; kSt != 6; kSt++)  {
+	size_t numStsDwnstrMax = (fRun < 2000) ? 6 : 7;
+	if (fRun > 1999) 
+        for(size_t kSt=2; kSt != numStsDwnstrMax; kSt++)  {
 	  fStationsRecMult[kSt-2] = fDwnstrTrRec.RecStation(kSt, evt, fSSDClsPtr);
 	  if ((kSt == 3)  &&  (fDwnstrTrRec.NumTripletsSt2and3() == 0)) {
 	    if (debugIsOn) std::cerr << " Neither Station 2 not 3 have a triplet.. Suspicious event, abandon.. " << std::endl;

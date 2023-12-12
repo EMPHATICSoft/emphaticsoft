@@ -270,6 +270,10 @@ namespace emph {
     void emph::StudyOneSSDClusters::beginRun(art::Run const &run)
     {
       std::cerr << " StudyOneSSDClusters::beginRun, run " << run.id() << std::endl;
+      if (run.id().run() > 1999) {
+        std::cerr << " .... Hum.. This module is not ready for Phase1c (and/or will be obsolete !!) so, quit now " << std::endl;
+	exit(2);
+      }
       if (fXYUVLabels.size() != 0) return; // Initialization already done, skip 
       // Assume th same geometry for all sub runs (this is called for every subruns, it turns out.. ) 
       std::cerr << " ...... About to call the gemetry service....  " << std::endl;      

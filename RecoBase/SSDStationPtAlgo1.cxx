@@ -18,7 +18,8 @@ namespace rb {
   SSDStationPtAlgo1::SSDStationPtAlgo1() :
      fType(rb::STNONE), fId(INT_MAX), fStationNum(INT_MAX), fUserFlag(INT_MAX), fX(DBL_MAX),  
      fY(DBL_MAX), fXErr(DBL_MAX), fYErr(DBL_MAX),
-     fChiSq(DBL_MAX), fUorVPred(DBL_MAX), fUorVObsRaw(DBL_MAX), fUorVObsCorr(DBL_MAX)
+     fChiSq(DBL_MAX), fUorVPred(DBL_MAX), fUorVObsRaw(DBL_MAX), fUorVObsCorr(DBL_MAX),
+     fHasXOverlap(false), fHasYOverlap(false), fHasUorVOverlap(false)
      { ; } 
 
   void SSDStationPtAlgo1::Add(std::vector<rb::SSDCluster>::const_iterator itCl, double aClCorrectedMean, double aClErr) {

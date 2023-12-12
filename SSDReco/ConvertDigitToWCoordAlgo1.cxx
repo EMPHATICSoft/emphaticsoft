@@ -34,7 +34,7 @@ namespace emph {
        fGeoService(art::ServiceHandle<emph::geo::GeometryService>()), fEmgeo(fGeoService->Geo()),        
        fIsMC(false), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
        fMomentumIsSet(false), fEffMomentum(120.), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
-       fZCoords(fNumStations+2, 0.), fZLocShifts(fNumStations+2, 0.), 
+       fZCoords(fNumStations+4, 0.), fZLocShifts(fNumStations+4, 0.), 
        fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fNominalOffsets(fNumStations, 0.), fDownstreamGaps(2, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0),
        fMultScatUncert120( fNumStations, 0.), fMultScatUncert(fNumStations, 0.), fOtherUncert(fNumStations, 0.),
@@ -46,6 +46,29 @@ namespace emph {
 	     std::cerr << " ConvertDigitToWCoordAlgo1, setting an unknow view " << aView << " fatal, quit here " << std::endl; 
 	     exit(2);
         }
+     }
+     ConvertDigitToWCoordAlgo1::ConvertDigitToWCoordAlgo1(int aRunNum, char aView) : 
+       fDetGeoMapService(art::ServiceHandle<emph::dgmap::DetGeoMapService>()), fDetGeoMap(fDetGeoMapService->Map()),        
+       fGeoService(art::ServiceHandle<emph::geo::GeometryService>()), fEmgeo(fGeoService->Geo()),        
+       fIsMC(false), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
+       fMomentumIsSet(false), fEffMomentum(120.), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
+       fZCoords(fNumStations+4, 0.), fZLocShifts(fNumStations+4, 0.), 
+       fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
+       fNominalOffsets(fNumStations, 0.), fDownstreamGaps(2, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0),
+       fMultScatUncert120( fNumStations, 0.), fMultScatUncert(fNumStations, 0.), fOtherUncert(fNumStations, 0.),
+       fPitchOrYawAngles(fNumStations, 0.),
+       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
+     {
+         fIsPhase1c =  (aRunNum > 1999);  
+         if (aView == 'W') aView = 'V';
+         if ((aView != 'X') && (aView != 'Y') && (aView != 'U') && (aView != 'V') && (aView != 'A')) {
+	     std::cerr << " ConvertDigitToWCoordAlgo1, setting an unknow view " << aView << " fatal, quit here " << std::endl; 
+	     exit(2);
+        }
+     }
+     void ConvertDigitToWCoordAlgo1::SetForPhase1X() {
+      if (!fIsPhase1c) return;
+      // Place holder... 
      }
      void ConvertDigitToWCoordAlgo1::SetForMomentum(double p) {
        if (fMomentumIsSet || (std::abs(std::abs(fEffMomentum) - std::abs(p)) < 1.0e-3) ) {
@@ -59,11 +82,12 @@ namespace emph {
        fMomentumIsSet = true;
      }
      void  ConvertDigitToWCoordAlgo1::InitializeAllCoords(const std::vector<double> &zCoords) {
-       if (zCoords.size() != 8) {
-         std::cerr << "  ConvertDigitToWCoordAlgo1::InitailizeCoords Unexpected number of ZCoords, " 
-	           << zCoords.size() << " fatal, and that is it! " << std::endl; exit(2); 
+       const size_t kStMax = (fIsPhase1c) ? 11 : 8; // kStMax is the number of X view (or Y view) of sensors. 
+       if (zCoords.size() > fZCoords.size()) {
+         std::cerr << "  ConvertDigitToWCoordAlgo1::InitailizeCoords Unexpected number of ZCoords " 
+	           << zCoords.size() << " declared here " << fZCoords.size() << " fatal, and that is it! " << std::endl; exit(2); 
        }
-       for (size_t k=0; k != 8; k++) fZCoords[k] = zCoords[k]; 
+       for (size_t k=0; k != kStMax; k++) fZCoords[k] = zCoords[k]; // check fZCoords size Which is oversized.. 
        std::cerr << " ConvertDigitToWCoordAlgo1::InitializeCoords ";
        for (size_t kSt=0; kSt != fZCoords.size(); kSt++) std::cerr << " " << fZCoords[kSt];
         std::cerr << std::endl;
@@ -160,7 +184,7 @@ namespace emph {
      }
      
      std::pair<double, double> ConvertDigitToWCoordAlgo1::getTrCoord(std::vector<rb::SSDCluster>::const_iterator itCl, double pMomMultScatErr) const { 
-     
+        if (fIsPhase1c) return this->getTrCoord1c(itCl, pMomMultScatErr); 
  	const double strip = itCl->WgtAvgStrip();
         const double rmsStr = std::max(0.1, itCl->WgtRmsStrip()); // protect against some zero values for the RMS 
 	if (rmsStr > 1000.) { return std::pair<double, double>(DBL_MAX, DBL_MAX); } // no measurement. 
@@ -204,8 +228,58 @@ namespace emph {
 	}
 	return std::pair<double, double>(tMeas, tMeasErrSq);
      } 
-     
-      double ConvertDigitToWCoordAlgo1::getTrCoordRoot(std::vector<rb::SSDCluster>::const_iterator itCl) { 
+     //
+     // clone for Phase1c.. Ugly, wasted code, but I need some slack,  code modifying will be easier. 
+      std::pair<double, double> ConvertDigitToWCoordAlgo1::getTrCoord1c(std::vector<rb::SSDCluster>::const_iterator itCl, double pMomMultScatErr) const { 
+	const double strip = itCl->WgtAvgStrip();
+        const double rmsStr = std::max(0.1, itCl->WgtRmsStrip()); // protect against some zero values for the RMS 
+	if (rmsStr > 1000.) { return std::pair<double, double>(DBL_MAX, DBL_MAX); } // no measurement. 
+	const double rmsStrN = rmsStr/fOneOverSqrt12;
+	const double stripErrSq = (1.0/rmsStrN*rmsStrN)/12.; // just a guess!!!  Suspicious.. 
+	const size_t kSt = static_cast<size_t>(itCl->Station());
+	const emph::geo::sensorView aView = itCl->View();
+	const size_t kSe = static_cast<size_t> (itCl->Sensor()); // local to the station.  
+        const double pitch = fEmVolAlP->Pitch(aView, kSt, kSe);	
+	double tMeas = DBL_MAX; 
+	const double multScatErr = fMultScatUncert[kSt]*120./pMomMultScatErr;
+	const double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr;
+	// The Alignment parameters are organized by view, 
+	                 // with indics ranging from 0 to 7 (X & Y views) , 0 an1 (U) and 0-3 for W views. 
+			 // Clone code.. This should belong to the converter.. 
+	const int kS = (kSt > 4) ? 
+	               (5 + (kSt-5)*2 + kSe % 2) : kSt; // in dex ranging from 0 to 7 (X or Y), inclusive, for Phase1b, list of sensors by view. 
+	if (fDebugIsOn) std::cerr << " ConvertDigitToWCoordAlgo1::getTrCoord1c, for Station " 
+	                          << itCl->Station() << " kse " << kSe  << " kS " << kS << " View " 
+				  << aView << " strip " << strip
+				  << " TrShift " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
+	if (aView == emph::geo::X_VIEW) {
+	  tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	  if ((kSt == 2) || (kSt == 3)) tMeas =  -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); // Same as above!. ? 
+	  if (kSt > 4) {
+	    if ((kSe % 2) == 0) tMeas =  strip*pitch; 
+	    else  tMeas =  -1.0*strip*pitch; 
+	  }
+	} else if (aView == emph::geo::Y_VIEW) {
+	  tMeas = (kS < 5) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
+			     ( strip*pitch); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10 ???? Suspicious!!!!????  
+	  if (((kSt > 4) && ((kSe % 2)) == 0)) tMeas *=  -1.0; // Corrected, December 7 
+	} else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
+	  if (kSt < 4) { // Sept 1- Sep5  attempt at sorting out orientations.. 
+	    tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
+	    if (fDebugIsOn) std::cerr << "  .... kSt " << kSt << "  pitch " << pitch << " strip " 
+	                              << strip << " TrShift, again " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
+	  } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
+	    // Assume W view, double sensor.  Opposite convention as X or Y  Dec. 1 2025.. 
+	    if ((kSe % 2) == 0) tMeas =  strip*pitch; 
+	    // Temporary kludge to study why Station 6 has bad 3pt Station chisq... 
+//	    if ((kSt == 6) && (kSe % 2) == 1) tMeas +=  -0.4; // by eye, on 4 bad events..
+	    else  tMeas =  -1.0*strip*pitch; 
+	    	  
+	  }
+	}
+	return std::pair<double, double>(tMeas, tMeasErrSq);
+     } 
+     double ConvertDigitToWCoordAlgo1::getTrCoordRoot(std::vector<rb::SSDCluster>::const_iterator itCl) { 
       
       // Assumes no Rolls !... 
         //  Transverse position, nominal.. 

@@ -28,6 +28,7 @@ namespace emph {
     // 
   
     bool SSDRecDwnstrTracksAlgo1::doUpDwn3DClFitAndStore( double pStart) {
+      if (fRunNum > 1999) return false; // not ready yet.. 
       fUpStrDwnStrTrack.Reset();
       bool isOKMult  = ((fInputSt2Pts.Size() == 1) && (fInputSt3Pts.Size() == 1) && (fInputSt4Pts.Size() == 1) 
 			    && (fInputSt5Pts.Size() == 1) );  //  NoTgt31Gev_ClSept_A2e_6a   

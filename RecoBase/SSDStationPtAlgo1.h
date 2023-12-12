@@ -53,6 +53,7 @@ namespace rb {
 	// See below  
 	double fChiSq; // only valid for 3 View Points. 
 	double fUorVPred, fUorVObsRaw, fUorVObsCorr; 
+	bool fHasXOverlap, fHasYOverlap, fHasUorVOverlap; // only applicable to Phase1c
 	std::vector<int> fClIds;
 	std::vector<emph::geo::sensorView> fClViews;
 	std::vector<int> fClSensorIds;
@@ -66,6 +67,7 @@ namespace rb {
 	  fType = rb::STNONE;
 	  fX = DBL_MAX; fY = DBL_MAX; fXErr = DBL_MAX; fYErr = DBL_MAX; fChiSq = DBL_MAX;
 	  fUorVPred = DBL_MAX;  fUorVObsRaw = DBL_MAX; fUorVObsCorr = DBL_MAX;
+	  fHasXOverlap = false; fHasYOverlap = false; fHasUorVOverlap = false;
 	  fClIds.clear(); fClAvs.clear(); fClSigmas.clear(); fClViews.clear(); fClSensorIds.clear();
 	  fItClusters.clear();
 	} 
@@ -86,6 +88,9 @@ namespace rb {
 	inline void SetChiSq(double v) {fChiSq = v; }
 	inline void SetUserFlag(int v) const  {fUserFlag = v;} 
 	inline void SetLineUorV(const rb::LineSegment &lsUV) { fLineStripUorV = lsUV; }
+	inline void SetXOverlap(bool t=true) { fHasXOverlap = t;}
+	inline void SetYOverlap(bool t=true) { fHasYOverlap = t;}
+	inline void SetUorVOverlap(bool t=true) { fHasUorVOverlap = t;}
 	// 
 	// Getter
 	//
@@ -128,6 +133,11 @@ namespace rb {
 	}
 	inline void addItClusters(std::vector<myItCl> &itCls) const {
 	  for (size_t k=0; k != fItClusters.size(); k++) { itCls.push_back(fItClusters[k]); }
+	}
+	inline void addOverlapClusters(const myItCl &itClAdded, double addedMeas, double addedMeasErr) {
+	   fItClusters.push_back(itClAdded); fClIds.push_back(itClAdded->ID()); 
+	   fClViews.push_back(itClAdded->View()); fClSensorIds.push_back(itClAdded->Sensor());
+	   fClAvs.push_back(addedMeas); fClSigmas.push_back(addedMeasErr);
 	}
 	
        friend std::ostream& operator << (std::ostream& o, const SSDStationPtAlgo1& h);

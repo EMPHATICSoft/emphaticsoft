@@ -52,6 +52,8 @@ namespace emph {
 	  bool fDebugIsOn; 
           bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. 
 	  bool fDoFirstAndLastStrips;
+	  bool fInterchangeStXandWStation6; 
+	  bool fInterchangeStYandWStation6; 
 	  double fChiSqCut, fChiSqCutPreArb;
 	  mutable double fXWindowWidth, fYWindowWidth, fXWindowCenter, fYWindowCenter;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
@@ -66,7 +68,8 @@ namespace emph {
 	  // Internal stuff.. 
 	  int fIdStPtNow; // Identifying the SSDStationPtAlgo1 objects.
 	  std::vector<int> fClUsages;
-	  int fNxCls, fNyCls, fNuCls; // the last stands for U or W (we have a maximum of three views 	  
+	  int fNxCls, fNyCls, fNuCls; // the last stands for U or W (we have a maximum of three views 	
+	  double fInViewOverlapCut; // in strips units.  
 	  
 	public:
 	 inline void SetDebugOn(bool v = true) { fDebugIsOn = v; }
@@ -131,6 +134,15 @@ namespace emph {
 	 size_t  recoXY(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 size_t  recoXUorW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 size_t  recoYUorW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
+	 
+	 bool flagDuplicateOverlapping (emph::geo::sensorView view,
+	                                std::vector<rb::SSDStationPtAlgo1>::iterator itPt1, 
+	                                std::vector<rb::SSDStationPtAlgo1>::iterator itPt2,
+	                                  double inViewCut); // argument is the difference in average strip numbers. 
+	 bool hasOverlappingClusters( std::vector<rb::SSDCluster>::const_iterator itPt1, 
+	                              std::vector<rb::SSDCluster>::const_iterator itPt2,
+	                                  double inViewCut); // assume the callers make sure they are on the same view
+	 bool arbitrateOverlapping (double inViewCut); // loop over all non-ordered pair of point, and flag  
 	 
 	 void openOutputCsvFiles() const ;	// we only modify the output streamer  
 	

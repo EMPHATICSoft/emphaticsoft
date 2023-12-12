@@ -52,7 +52,9 @@ namespace emph {
       }
       if (fEmgeo == nullptr) fEmgeo = fGeoService->Geo();
 
-      const bool debugIsOn = ((fEvtNum == 5) && (fSubRunNum == 10)); fConvertCoord.SetDebugOn(debugIsOn); 
+//      const bool debugIsOn = ((fEvtNum == 5) && (fSubRunNum == 10)); 
+      const bool debugIsOn = ((fEvtNum == 1199) && (fSubRunNum == 10)); 
+      fConvertCoord.SetDebugOn(debugIsOn); 
       if (debugIsOn) std::cerr << " SSDRecUpstreamTgtAlgo1::recoXY, spill " << fSubRunNum << " evt " << fEvtNum << std::endl;
       fTrXYs.clear();
       std::vector< std::vector<rb::SSDCluster>::const_iterator > mySSDClsPtrsX0;

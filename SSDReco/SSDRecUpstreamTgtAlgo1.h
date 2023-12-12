@@ -39,7 +39,7 @@ namespace emph {
         ~SSDRecUpstreamTgtAlgo1();
 	
         private:
-	  const size_t fNumStations = 2; // phase 1b
+	  const size_t fNumStations = 2; // phase 1b and phase1c
 	  const size_t fNumStrips = 640; // Note: previous version had one missing.  Makes no difference, really.. 
 	  const double fOneOSqrt12; 
 	  int fRunNum;  // The usual Ids for a art::event 
