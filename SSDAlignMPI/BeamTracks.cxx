@@ -23,7 +23,10 @@ namespace emph {
   namespace rbal {
   
     BeamTracks::BeamTracks() :
-    myGeo(emph::rbal::BTAlignGeom::getInstance()), fNoMagnet(false), fSelectedView('A') {; } 
+    fIsPhase1c(false), 
+    myGeo(emph::rbal::BTAlignGeom::getInstance()), 
+    myGeo1c(emph::rbal::BTAlignGeom1c::getInstance()), 
+    fNoMagnet(false), fSelectedView('A') {; } 
       
 
     void BeamTracks::DumpForCVS(const char *fName) const {
@@ -38,7 +41,8 @@ namespace emph {
       fOut << " spill evt ";
       if (is2DX || is3D) fOut << " x0 x0Err x0ErrH slx0 slx0Err slx0ErrH";
       if (is2DY || is3D) fOut << " y0 y0Err y0ErrH sly0 sly0Err sly0ErrH";
-      if (is3D) fOut << " p pErrL pErrH"; 
+      if (is3D && (!fIsPhase1c)) fOut << " p pErrL pErrH xSt5 ySt5 "; 
+      if (is3D && (fIsPhase1c)) fOut << " p pErrL pErrH xSt6 ySt6 "; 
       fOut << " chiSq ";
       size_t numResids =  (is2DX || is2DY) ? it0->NumSensorsXorY() : (2*it0->NumSensorsXorY() + it0->NumSensorsU() + it0->NumSensorsV());
       for (size_t kSe=0; kSe != numResids; kSe++) fOut << " resid" << kSe;
@@ -59,7 +63,9 @@ namespace emph {
          fOut << " " << it->Sly0() << " " <<  it->Sly0Err(true) << " " << it->Sly0Err(false); 
         }
 	if (is3D) fOut << " " << it->Mom() << " " << it->MomErr(true) << " " << it->MomErr(false); 
-        fOut << " " << it->ChiSq();
+        if (!fIsPhase1c) fOut << " " << it->X5() << " " << it->Y5() << " ";
+	else fOut << " " << it->X6() << " " << it->Y6() << " "; //X5() is the last station, for Phase1c, it is Station 6.. 
+	fOut  << it->ChiSq(); 
 	int numOKResid = 0;
         for (size_t kSe=0; kSe != numResids; kSe++) {
 	   if (std::abs(it->Resid(kSe)) < 100.) numOKResid++;

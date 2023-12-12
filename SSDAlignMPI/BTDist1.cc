@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
      //
      std::cerr << " Number of events for rank " << myRank << " is " << myBT.GetNumEvts() << std::endl;
      if (myRank < 3) {
-        myBT.DumpCVSForR(myRank, 'V', token);
+        myBT.DumpCVSForR(myRank, 9999, 'V', token);
      }
      gettimeofday(&tvEnd,NULL);
      time_t nowTimeEnd = tvEnd.tv_sec;      

@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 
 namespace emph{ 
   namespace rbal {
@@ -40,11 +41,13 @@ namespace emph{
      
     private:
       BTAlignGeom* myGeo;
+      BTAlignGeom1c* myGeo1c;
+      bool fIsPhase1c;
       bool fFixedInMinuit;
       int fMinNum;  // The Minuit parameter number 
       std::string fName; // full name 
       char fView; //
-      size_t fSensor; 
+      size_t fSensor; // Within a view.. 
       paramType fType; // TrShift, PitchCorr.. see above.
       mutable double fValue; 
       std::pair<double, double> fLimits; // All them will have limits.. angle are less than 2Pi, for instance. In practice, much smaller, one hopes. 
@@ -52,6 +55,7 @@ namespace emph{
     public:
     
       inline void SetMinuitNumber(int i) { fMinNum=i; }
+      inline void SetForPhase1c(bool t=true) { fIsPhase1c = t; }
       inline void SetFixedInMinuit(bool v=true) {fFixedInMinuit = v;}
       inline void SetView(char v) { fView = v; }
       inline void SetSensor(size_t s) { fSensor = s; }
@@ -61,6 +65,7 @@ namespace emph{
       inline void SetDownLimit(double d) { fLimits.first = d; }
       inline void SetLimits(std::pair<double, double> p) { fLimits = p;}
       //
+      inline int IsPhase1c() const { return fIsPhase1c; }
       inline int MinuitNumber() const { return fMinNum; }
       inline bool isFixedInMinuit() const { return fFixedInMinuit; }
       inline char View() const { return fView; }
@@ -79,6 +84,7 @@ namespace emph{
       bool isOutOfPencilBeam() const; 
       
       void UpdateGeom() const; 
+      void UpdateGeom1c() const; 
 
     };
   }

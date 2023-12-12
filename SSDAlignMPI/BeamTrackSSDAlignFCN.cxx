@@ -27,7 +27,9 @@ namespace emph {
   namespace rbal {
     
     BeamTrackSSDAlignFCN::BeamTrackSSDAlignFCN( const std::string &aFitType, emph::rbal::BTAlignInput *DataIn) :
+    fIsPhase1c(false),
     myGeo(emph::rbal::BTAlignGeom::getInstance()),
+    myGeo1c(emph::rbal::BTAlignGeom1c::getInstance()),
     myParams(emph::rbal::SSDAlignParams::getInstance()),
     myBTIn(DataIn), 
     fFitType(aFitType), fIsMC(false), fNoMagnet(false),
@@ -103,8 +105,10 @@ namespace emph {
 	it->SetValue(pars[kP]);
       }
       
-      if (fDoAllowLongShiftByStation) myGeo->MoveZPosOfXUVByY();
-        
+      if (fDoAllowLongShiftByStation) {
+         if (!fIsPhase1c) myGeo1c->MoveZPosOfXUVByY();
+	 else myGeo->MoveZPosOfXUVByY();
+      }  
       double chiSoftLim = 0.;
       if (fSoftLimits) {
         chiSoftLim = this->SurveyConstraints(pars);
@@ -118,7 +122,10 @@ namespace emph {
       //
       // Loop over all the tracks. 
       //
+//      if (!fIsPhase1c) { std::cerr << " BeamTrackSSDAlignFCN::operator Expecting phase1c, if not the case, stop here and now .. " << std::endl; exit(2); } 
+//      if (fIsPhase1c) { std::cerr << " BeamTrackSSDAlignFCN::operator Expecting phase1c, We keep going .. " << std::endl; } 
      emph::rbal::BeamTracks myBTrs;
+     myBTrs.SetForPhase1c(fIsPhase1c);
      myBTrs.SetSelectedView(fSelectedView); 
      size_t iEvt = 0;
      size_t kk=0;
@@ -129,13 +136,16 @@ namespace emph {
        if (!it->Keep()) continue; 
        emph::rbal::BeamTrack aTr;
        aTr.SetSelectedView(fSelectedView);
+       aTr.SetForPhase1c(fIsPhase1c);
        if ((!flagTracks) && (kk < fIsOK.size()) && (!fIsOK[kk])) continue;
        aTr.SetMCFlag(fIsMC);
        aTr.SetNoMagnet(fNoMagnet);
        aTr.SetDoMigrad(false); // Minuit Minimize will do .. 
        aTr.SetAlignMode(fAlignMode); 
        aTr.SetNominalMomentum(fNominalMomentum);
-       aTr.SetDebug(fDebugIsOn && (iEvt < 5));
+       aTr.SetNominalMomentumDisp(fNominalMomentumDisp);
+//       aTr.SetDebug(fDebugIsOn && (iEvt < 5));
+       aTr.SetDebug(false);
 //       if ((kk % 100) == 0) std::cerr << " BeamTrackSSDAlignFCN::operator, at evt " << kk << std::endl;
 //       aTr.SetDebug(true);
        if (fFitType == std::string("2DY")) { 
@@ -163,13 +173,17 @@ namespace emph {
 	 }
        } else {
          // a track become bad.. set a high value, but we will keep in the mean chiSq. 
-         if (aTr.ChiSq() < 0.) aTr.SetChiSq(2.0*fUpLimForChiSq); // arbitrary.. but we will include this track in the tally, now.. 
+         if (aTr.ChiSq() < 0.) continue; // we will not include this track in the tally, now.. 
        } 
        if ((myRank < 10) && (iEvt < 10) && fDebugIsOn)  {
           std::cerr << " spill " << it->Spill() << " Evt " << it->EvtNum() << " TrId " << it->TrId() 
 	            << " x0 " << aTr.X0() << " x' " << aTr.Slx0() << 
 	                        " y0 " << aTr.Y0() << " y' " << aTr.Sly0() <<  " chi2 " << aTr.ChiSq() << std::endl;
        }
+       // stop as soon as we have the result for evt 5, spill 10 
+//       if ((it->Spill() == 10) && (it->EvtNum() == 5)) {
+//         std::cerr << " ... Did fit for evt 5, spill 10 , chi sq " << aTr.ChiSq() << " quit here and now .. " << std::endl; exit(2);
+//       }
        if (!fIsOK[kk]) { iEvt++; continue; }
        nOKs++;
        myBTrs.AddBT(aTr);
@@ -186,14 +200,17 @@ namespace emph {
 //
      double chiAddGeomCrack = 0.;
      const double maxStripPitch = 639*0.06; // Ugly should come from the geometry..  
-     if ((fFitType == std::string("3D")) && (fSoftLimitDoubleSensorCrack > 1.0e-6)) {
+     if ((!fIsPhase1c) && (fFitType == std::string("3D")) && (fSoftLimitDoubleSensorCrack > 1.0e-6)) {
        if (fDebugIsOn) std::cerr << " Starting SoftLimitDoubleSensorCrack, minimum gap " << fMinimumDoubleSensorCrack 
                                  << " chi sq fact " <<  fSoftLimitDoubleSensorCrack << std::endl; 
        const std::vector<char> views = {'X', 'Y', 'V' }; // the 3 view for Station for and 5; 
        for (size_t iView = 0; iView !=3; iView++) { 
          const char aView = views[iView];
-         size_t numS = myGeo->NumSensorsXorY();
-	 if (aView == 'V') numS = myGeo->NumSensorsV();
+         size_t numS = (!fIsPhase1c) ? myGeo->NumSensorsXorY() : myGeo1c->NumSensorsXorY();
+	 if (aView == 'V') {
+	    numS = myGeo->NumSensorsV(); 
+	    numS = (!fIsPhase1c) ? myGeo->NumSensorsV() : myGeo1c->NumSensorsV();
+	 }
 	 const size_t kSeInit = (iView < 2) ? 4 : 0;
 	 double tMin = 0; double tMax = 0.;
 	 double trInner, trInnera, trInnerb, tr00, tr639;
@@ -238,12 +255,14 @@ namespace emph {
      //
      double chiAddBeam = 0.;
      if (fBeamConstraint) {
-       if ((fFitType == std::string("3D")) || (fFitType == std::string("2DX"))) chiAddBeam += this->BeamConstraintX(myBTrs);
-       if ((fFitType == std::string("3D")) || (fFitType == std::string("2DY"))) chiAddBeam += this->BeamConstraintY(myBTrs);
+//       if ((fFitType == std::string("3D")) || (fFitType == std::string("2DX"))) chiAddBeam += this->BeamConstraintX(myBTrs);
+//       if ((fFitType == std::string("3D")) || (fFitType == std::string("2DY"))) chiAddBeam += this->BeamConstraintY(myBTrs);
+//       Only Y emittance.. 
+         chiAddBeam += this->BeamConstraintEpsilY(myBTrs);
      }
-     chiAddBeam += this->SlopeConstraintAtStation0(myBTrs);
-     if ((fDebugIsOn) && (myRank == 0)) 
-       std::cerr << " .... Applied  SlopeConstraintAtStation0, on rank 0, chiAd is   " << chiAddBeam << std::endl;
+//     chiAddBeam += this->SlopeConstraintAtStation0(myBTrs); To be reviewed.. 
+//     if ((fDebugIsOn) && (myRank == 0)) 
+//       std::cerr << " .... Applied  SlopeConstraintAtStation0, on rank 0, chiAd is   " << chiAddBeam << std::endl;
      
      // Collect the mean Chi-Sq, average...  
      //
@@ -515,6 +534,29 @@ namespace emph {
 		    << std::sqrt(std::abs(sigSlxSq)) << " in Y " << std::sqrt(std::abs(sigSlySq)) << " chiAdd " << chiAdd << std::endl;
       }
       return chiAdd;
+    }
+    double BeamTrackSSDAlignFCN::BeamConstraintEpsilY(const emph::rbal::BeamTracks  &btrs) const {
+      // Not a true emittance, simply the variance of y*y' 
+      int myRank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
+     double aaYYPrime = 0.; double aa2YYPrime=0.;    
+     int nAcc = 0; 
+     for (std::vector<emph::rbal::BeamTrack>::const_iterator it = btrs.cbegin(); it != btrs.cend(); it++) {
+       if (std::isnan(it->ChiSq())) continue;
+       const double yy = it->Y0(); const double slyy = 1.0e3*it->Sly0(); // now in miliradian. 
+       if (it->ChiSq() > 5.0e6) continue;     // Phase1c empricial..   
+       nAcc++; aaYYPrime +=  yy*slyy; aa2YYPrime += yy*yy*slyy*slyy; 
+     }
+     if (nAcc < 3) return 0.;
+     const double avYYPrime = aaYYPrime/nAcc;
+     const double epsilY = std::sqrt(std::abs(aa2YYPrime - nAcc*avYYPrime*avYYPrime)/(nAcc-1));
+     const double chiAdd =  std::min(1.0e6, (epsilY - fExpectedEpsilY)*(epsilY - fExpectedEpsilY)/(fExpectedEpsilY*fExpectedEpsilY));
+     if (fDebugIsOn) {
+       std::cerr << " BeamTrackSSDAlignFCN::BeamConstraintEpsilY on " << btrs.size() << " tracks " << std::endl;
+       std::cerr << " ............. epsil  " << epsilY  << " chiAdd " << chiAdd << std::endl;
+     }
+//
+    return chiAdd;
     }
   }
 }  

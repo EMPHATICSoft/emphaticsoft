@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "SSDAlignParams.h"
 #include "BeamTracks.h"
 #include "BTAlignInput.h"
@@ -27,7 +28,9 @@ namespace emph{
       BeamTrackSSDAlignFCN(const std::string &afitType, emph::rbal::BTAlignInput *DataIn);
       
     private:
+      bool fIsPhase1c; 
       BTAlignGeom* myGeo;
+      BTAlignGeom1c* myGeo1c;
       mutable SSDAlignParams* myParams;
       emph::rbal::BTAlignInput *myBTIn;
       std::string fFitType;
@@ -45,7 +48,8 @@ namespace emph{
       double fBeamGammaX, fBeamGammaY;
       double fSoftLimitDoubleSensorCrack;
       double fMinimumDoubleSensorCrack;
-      double fNominalMomentum;
+      double fExpectedEpsilY;
+      double fNominalMomentum, fNominalMomentumDisp;
       bool fSoftLimits;
       double fUpLimForChiSq; // Upper limit for accepting fitted tracks.
       bool fDebugIsOn;
@@ -66,6 +70,13 @@ namespace emph{
          if (v) std::cerr << " BeamTrackSSDAlignFCN, This is will be a Monte Carlo study " << std::endl;
 	 else  std::cerr << " BeamTrackSSDAlignFCN, This is will be a study on Real Data" << std::endl;
       } 
+      inline void SetForPhase1c(bool t=true) { 
+        fIsPhase1c = t; 
+	
+//        if (t) {
+//	  
+//	}
+      }
       void SetSelectedView(char v = 'A') {fSelectedView = v;}
       void SetPtrInput(emph::rbal::BTAlignInput *in) { myBTIn = in;}
       void SetUpLimForChiSq(double u) {  fUpLimForChiSq = u;}
@@ -75,12 +86,14 @@ namespace emph{
       void SetAntiPencilBeam(bool v=true) {fDoAntiPencilBeam = v;}
       void SetAllowLongShiftByStation(bool v=true) { fDoAllowLongShiftByStation = true; } 
       void SetNoMagnet(bool v=true) {fNoMagnet = v;}
+      void SetAssumedEpsilY(double a) {fExpectedEpsilY = a; fBeamConstraint=true;  }
       void SetBeamAlphaBetaFunctionY (double a, double b) {fBeamAlphaFunctionY = a; fBeamBetaFunctionY = b;}
       void SetBeamAlphaBetaFunctionX (double a, double b) {fBeamAlphaFunctionX = a; fBeamBetaFunctionX = b;}
       void SetStrictSt6(bool v) { fStrictSt6 = v; } 
       void SetSoftLimits(bool v) { fSoftLimits = v; } 
       void SetUpError(double v) { fErrorDef = v; }
       void SetNominalMomentum(double p) { fNominalMomentum = p; } 
+      void SetNominalMomentumDisp(double p) { fNominalMomentumDisp = p; } 
       void SetDumpBeamTracksForR(bool v) { fDumpBeamTracksForR = v; } 
       void SetNameForBeamTracks (const std::string &aName) { fNameForBeamTracks = aName; } 
       inline void SetAssumedSlopeSigma(double v) { fAssumedSlopeSigma = v; }
@@ -106,6 +119,7 @@ namespace emph{
     
       double BeamConstraintY(const emph::rbal::BeamTracks &btrs) const;  
       double BeamConstraintX(const emph::rbal::BeamTracks &btrs) const;  // this include the nominal momentum. 
+      double BeamConstraintEpsilY(const emph::rbal::BeamTracks &btrs) const;  // this include the nominal momentum. 
       double SlopeConstraintAtStation0(const emph::rbal::BeamTracks &btrs) const;
       double SurveyConstraints(const std::vector<double> &pars) const; // for all parameter.  In this case, parameters are not Minuit limited.  
     };

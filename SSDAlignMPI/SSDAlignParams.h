@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <iostream>
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "SSDAlignParam.h"
 #include <mpi.h>
 
@@ -23,17 +24,20 @@ namespace emph{
     
       private: 
         SSDAlignParams();
+	bool fIsPhase1c; 
 	BTAlignGeom* myGeo;
-        const size_t fNumStations; // For Phase1b 
-        const size_t fNumSensorsXorY; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
-        const size_t fNumSensorsU; // Station 2 and 3, one sensor each 
-        const size_t fNumSensorsV; // Station 4 and 5, Two sensor each 
+	BTAlignGeom1c* myGeo1c;
+        size_t fNumStations; // For Phase1b 
+        size_t fNumSensorsXorY; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
+        size_t fNumSensorsU; // Station 2 and 3, one sensor each 
+        size_t fNumSensorsV; // Station 4 and 5, Two sensor each 
 	std::string fMode; // Currently, 2DX, 2DY, 3D Default is 2DY (no magnetic deflection, to 1rst order, so, easiest.
 	bool fMoveLongByStation; // We do (or do not move) all individual sensors within a station. ) 
 	bool fUseSoftLimits;
 	bool fStrictSt6;       
 	char fSpecificView;
         int fSpecificSensor;
+	double fLimRolls;
  
 	//
 	std::vector<std::string> fSubTypeDirectory;
@@ -51,6 +55,25 @@ namespace emph{
 	
 	// Setters 
 	
+        inline void SetForPhase1c(bool t=true) {
+	  fIsPhase1c = t; 
+	  if (fIsPhase1c) { 
+            fNumStations = myGeo1c->NumStations(); 
+            fNumSensorsXorY = myGeo1c->NumSensorsXorY(); 
+            fNumSensorsU = myGeo1c->NumSensorsU(); 
+            fNumSensorsV = myGeo1c->NumSensorsV();
+	  } else {  
+            fNumStations = myGeo->NumStations(); 
+            fNumSensorsXorY = myGeo->NumSensorsXorY(); 
+            fNumSensorsU = myGeo->NumSensorsU(); 
+            fNumSensorsV = myGeo->NumSensorsV();
+	  }
+	  this->ReLoad(); 
+	}
+        inline void SetMaximumRolls(double r) {
+	  fLimRolls = r;
+	  this->ReLoad(); 
+	}
 	inline void SetMode(const std::string &m) { 
 	  std::cerr << " SSDAlignParams::SetMode , new mode " << m << " previous mode " << fMode <<  std::endl;
 	  const bool doReload = (fMode != m);  fMode = m; 
@@ -82,6 +105,7 @@ namespace emph{
 	}  
 	inline void SetSoftLimits(bool u) { fUseSoftLimits = u; } 
 	inline void SetDoubleGaps(double v) {
+	  if (fIsPhase1c) return; // Not applicable, sensors are overlapping.. 
 	  for (std::vector<SSDAlignParam>::iterator it = fDat.begin(); it != fDat.end(); it++) {
 	   if (it->Type() != emph::rbal::TRSHIFT) continue;
 	   switch (it->View()) {
@@ -105,6 +129,11 @@ namespace emph{
 	  }
 	  myGeo->SetDeltaTr('Y', 7, v);
 	}
+	inline void SetVerticalY8(double v) {
+	  if (!fIsPhase1c) return; // Not applicable, Unsing double gap for Phase1b. 
+	  myGeo1c->SetDeltaTr('Y', 8, v);
+	}  
+	  
 	inline void SetSpecificSensor(int sensorIndex) { fSpecificSensor = sensorIndex; }
 	inline void SetSpecificView(char aView) { fSpecificView = aView; }
 	
@@ -208,6 +237,8 @@ namespace emph{
 	void LoadValueFromPreviousFCNHistory(const std::string token, int requestedNCallNumber = INT_MAX); 
 	void RandomizeRollsAndRollCenters(double rollW = 0.33333, double rollCW = 0.33333); 
 	void FixParamsForView(const char aView, bool isFixed=true, const std::string &paramName=std::string ("")); 
+	void FixParamsForViewLastStation(const char aView, bool isFixed=true); 
+	void FixParamsForAllViewsAtStation(const int kSt, bool isFixed=true); 
 	
 	private:
 	  

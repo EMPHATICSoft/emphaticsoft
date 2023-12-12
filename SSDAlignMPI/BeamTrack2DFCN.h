@@ -14,6 +14,7 @@
 
 #include "BeamTrackCluster.h" 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "Minuit2/FCNBase.h"
 
 namespace emph{ 
@@ -25,7 +26,9 @@ namespace emph{
       BeamTrack2DFCN();
       
     private:
+      bool fIsPhase1c; 
       BTAlignGeom* myGeo;
+      BTAlignGeom* myGeo1c;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
       bool fIsMC; // The sign convention for converting a strip number to local, then world system might be different.. 
                   // Very unfortunate. To be fixed when such sign convention is fully checked for Phase1b data. 
@@ -38,6 +41,12 @@ namespace emph{
       virtual double Up() const {return fErrorDef;}
       virtual double operator()(const std::vector<double>&) const; // argument is the parameter vector. (x,x' in our case.)
      
+      inline void SetForPhase1c(bool t=true) { 
+        fIsPhase1c = t; 
+        if (t) {
+	    std::cerr << " BeamTrack2DFCN:SetForPhase1cNot ready for prime time, stop here and now.. " << std::endl; exit(2); 
+	}
+      }
       inline void SetClusterPtr(std::vector<BeamTrackCluster>::const_iterator it) { fItCl = it; } 
       inline void SetView(char aView) { fView = aView; }
       inline void SetMCFlag(bool v) { fIsMC = v; }

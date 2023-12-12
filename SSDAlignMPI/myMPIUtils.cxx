@@ -261,7 +261,8 @@ namespace emph{
       }
 //      std::cerr << " No! quit here and now " << std::endl; MPI_Finalize(); exit(2); 
 //      size_t nD = 46; // I know this.. Hopefully I won't change my mind.. 
-      size_t nD = 47; // Upgrade for studying Iron Brick run, need TrId  
+      size_t nD = 47; // Upgrade for studying Iron Brick run, need TrId 
+      if (myDat.IsPhase1c()) nD += 4; // Against my best whish, deal with Phase1c.  
       std::vector<double> tmpBuffer(nD, 0.); // factor 10 is for debugging.. 
       size_t nDb = nD*sizeof(double);
       double buffer[nD*(numPerProcs[myRank]+ np + 1)]; // to gaurantee enough space ??? flimsy.. 

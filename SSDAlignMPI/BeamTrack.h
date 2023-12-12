@@ -15,6 +15,7 @@
 
 #include "BeamTrackCluster.h" 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "BeamTrack2DFCN.h" 
 #include "BeamTrack3DFCN.h" 
 
@@ -31,7 +32,9 @@ namespace emph{
       void DeSerialize(const std::vector<double> &data); // For MPI transfer. 
      
     private:
+      bool fIsPhase1c;
       BTAlignGeom* myGeo;
+      BTAlignGeom* myGeo1c;
       bool fDebugIsOn;
       bool fDoMigrad;
       bool fAlignMode;
@@ -42,7 +45,8 @@ namespace emph{
       size_t fNumSensorsV = 4; // Station 2 and 3, one sensor each 
       int fSpill, fEvtNum;
       std::string fType;
-      double fx0, fy0, fslx0, fsly0, fmom, fNominalMomentum;
+      double fx0, fy0, fslx0, fsly0, fmom, fNominalMomentum, fNominalMomentumDisp;
+      double fx5, fy5, fx6, fy6 ; // At station 5. 
       std::pair<double, double> fx0Err, fy0Err, fslx0Err, fsly0Err, fmomErr; // Migrad error. (or minimize) 
       double fchiSq;
       std::vector<double> fresids; // all views, in the following order X, Y, U and V 
@@ -56,6 +60,16 @@ namespace emph{
       std::pair<double, double> SetInitValuesY(char view, std::vector<BeamTrackCluster>::const_iterator it);
     
     public:
+      inline void SetForPhase1c(bool t=true) { 
+        fIsPhase1c = t; 
+        if (t) {
+	  fNumSensorsXorY = 9;
+	  fresids.resize(2*fNumSensorsXorY + fNumSensorsU + fNumSensorsV);
+	} else { 
+          fNumSensorsXorY = 8;
+	}
+      }
+      inline bool IsPhase1c() const { return fIsPhase1c; } 
       inline void SetSpill(int aSpill) { fSpill = aSpill; }
       inline void SetEvtNum(int a) { fEvtNum = a; }
       inline void SetSelectedView(char v = 'A') { fSelectedView = v; }
@@ -71,7 +85,12 @@ namespace emph{
       }
       inline void SetDebug(bool v=true) { fDebugIsOn = v;}
       inline void SetChiSq(double c) {fchiSq = c; }
+      inline void SetX5(double c) {fx5 = c; }
+      inline void SetY5(double c) {fy5 = c; }
+      inline void SetX6(double c) {fx6 = c; }
+      inline void SetY6(double c) {fy6 = c; }
       inline void SetNominalMomentum(double p) { fNominalMomentum = p; } 
+      inline void SetNominalMomentumDisp(double p) { fNominalMomentumDisp = p; } 
       inline void SetDoMigrad(bool v) { fDoMigrad = v; }
       inline void SetAlignMode(bool v) { fAlignMode = v; }
       // support for centering, such that we can make tentative track quality selection. 
@@ -84,6 +103,10 @@ namespace emph{
       inline std::string Type() const {return fType; } 
       inline double X0() const { return fx0; }
       inline double Y0() const { return fy0; }
+      inline double X5() const { return fx5; }
+      inline double Y5() const { return fy5; }
+      inline double X6() const { return fx6; }
+      inline double Y6() const { return fy6; }
       inline double Slx0() const { return fslx0; }
       inline double Sly0() const { return fsly0; }
       inline double Mom() const { return fmom; }

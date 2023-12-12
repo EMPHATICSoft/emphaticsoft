@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "SSDAlignParams.h"
 //
 // Attempting to to the SSD alignment over a sample of track, including, Pitch, Yaw roll angles, deltaZ, transverse positions.
@@ -22,6 +23,7 @@
 
 
 emph::rbal::BTAlignGeom* emph::rbal::BTAlignGeom::instancePtr=NULL; 
+emph::rbal::BTAlignGeom1c* emph::rbal::BTAlignGeom1c::instancePtr=NULL; 
 emph::rbal::SSDAlignParams* emph::rbal::SSDAlignParams::instancePtr=NULL; 
 
 int main(int argc, char **argv) {

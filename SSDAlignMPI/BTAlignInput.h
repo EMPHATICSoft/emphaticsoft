@@ -34,18 +34,21 @@ namespace emph{
 	}	
 	void AddFromMPIData(double *dat);
 	size_t FillForMPITransfer(std::vector<BeamTrackCluster>::const_iterator itBT, std::vector<double> &evtRaw) const;
-	void DumpCVSForR(int aRank, char view, const std::string &token) const ; // just an ASCII version.. one line, one event. 
+	void DumpCVSForR(int aRank, int aSpill, char view, const std::string &token) const ; // just an ASCII version.. one line, one event. 
 	
       private:
+        bool fIsPhase1c; 
         size_t fKey = 687400; // this must be the word in the binary file. If strictSt6, see below.. 
-        const size_t fNumStations = 6; // For Phase1b 
+        size_t fNumStations = 6; // For Phase1b 
 	std::vector<BeamTrackCluster> fDat;
 	   
       public:
         //
 	// Setter 
-	// 
+	//
+	inline void SetForPhase1c(bool t = true) { fIsPhase1c = t; fNumStations = 7;}
 	inline void SetKey(size_t k) {fKey = k; } 
+	inline bool IsPhase1c() const { return fIsPhase1c; }
       
         inline size_t GetNumEvts() const {return fDat.size(); } 
 	inline std::vector<BeamTrackCluster>::const_iterator cbegin() const { return fDat.cbegin(); }

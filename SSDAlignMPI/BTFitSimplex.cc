@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "BTMagneticField.h"
 #include "BTAlignInput.h"
 #include "SSDAlignParams.h"
@@ -33,6 +34,7 @@
 // 
 
 emph::rbal::BTAlignGeom* emph::rbal::BTAlignGeom::instancePtr=nullptr; 
+emph::rbal::BTAlignGeom1c* emph::rbal::BTAlignGeom1c::instancePtr=nullptr; 
 emph::rbal::SSDAlignParams* emph::rbal::SSDAlignParams::instancePtr=nullptr; 
 emph::rbal::BTMagneticField* emph::rbal::BTMagneticField::instancePtr=nullptr; 
 
@@ -43,6 +45,7 @@ int main(int argc, char **argv) {
 //
    
    double dumVar = 0; // place holder.. 
+   bool IsPhase1c = true; // December 4rth 2023. 
    
    std::string fitType("2DY");
    std::string fitSubType("TrShift"); // Valid strings are "NoFixes" (nothing fixed), TrShift, PitchCorr, ZShift, Roll (for now..)
@@ -60,6 +63,7 @@ int main(int argc, char **argv) {
    int aRandomSeed= 234578;
    bool fixMomentum = true;
    double aRandomRollFactor = 1.0e-9;
+   double limRolls = 0.09;
    size_t kSeTrShifted = INT_MAX;
    std::string viewShifted("none");
    double trShift = 0.;
@@ -78,7 +82,7 @@ int main(int argc, char **argv) {
    std::string scanP2Name("none"); 
    int nScanPts = 50;
    bool doSoftLimits = false;
-   int SoftLimitSlopeSigma = INT_MAX;
+   int SoftLimitEpsilY = INT_MAX;
    double SoftLimitGeomSt4St5 = 0.; // No constraints. No addition to the average chi-Square if the distance is less than 2 mm 
    bool applyEmittanceConstraint = false;
    // To be corrected!! See BeamTrackSSDAlignFCN.cxx
@@ -87,6 +91,7 @@ int main(int argc, char **argv) {
    double alphaFunctionY = -25.1063; // same..  
    double alphaFunctionX = -8.62823; //
    double nominalMomentum = 29.7; // for the 30 GeV analysis
+   double nominalMomentumDispersion = 0.; // for the 30 GeV analysis
    double uPLimitOnChiSqTrackFits = 200.; 
    double assumedDoubleGap = 2.5; // starting value for the gap 
    double MinimumGapSt4St5 = assumedDoubleGap - 0.1 ; // A bit arbitrary.. 
@@ -100,8 +105,9 @@ int main(int argc, char **argv) {
    bool doAntiPencilBeam120OnlyV = false; 
    std::string G4EMPHDescrToken("none");
    int numMaxFCNCalls = 5000;
-   bool doRejectVViews=false;
-  
+   bool doRejectVViews=false; bool doRejectSt6=false;
+   int RejectedStation = -1; 
+   double VertY8Offset = 0.;
      
     MPI_Init(NULL, NULL);
 
@@ -143,6 +149,14 @@ int main(int argc, char **argv) {
         } else if (parStr.find("MCInToken") != std::string::npos) {
           G4EMPHDescrToken = valStr;
           if (myRank == 0) std::cerr << " The Input data is G4EMP, token is "  << G4EMPHDescrToken << std::endl;
+        } else if (parStr.find("phase1c") != std::string::npos) {
+          int iS=0;
+          valStrStr >> iS;
+	  IsPhase1c = (iS == 1);
+          if (myRank == 0) {
+	    if (IsPhase1c) std::cerr << " Phase1c geometry is in effect "  << std::endl;
+	    else std::cerr << " Phase1b geometry is in effect    "  << std::endl;
+	  }  
         } else if (parStr.find("strictSt6Y") != std::string::npos) {
           int iS=0;
           valStrStr >> iS;
@@ -224,9 +238,9 @@ int main(int argc, char **argv) {
           if ((myRank == 0) && doSoftLimits)  std::cerr << "We will use soft limit, assume a Gaussian model for errors (now default)   " << std::endl;
           if ((myRank == 0) && (!doSoftLimits))  std::cerr << "We will use strict limit on survey params, i.e., implemented as Minuit Limits  " << std::endl;
           if (iS > 1) {
-	    SoftLimitSlopeSigma = iS;
-	    if (myRank == 0) std::cerr << " ... Not quite.. We will assume the the slopes at Station 0 have a sigma of " 
-	                                 << 1.0e-6*SoftLimitSlopeSigma << " micro-radian " << std::endl;
+	    SoftLimitEpsilY = iS;
+	    if (myRank == 0) std::cerr << " ... Not quite.. We will assume the Y emittance at Station 0 is about  " 
+	                                 << 1.0e-3*SoftLimitEpsilY << " milimeter*miliradian " << std::endl;
 	  }
         } else if (parStr.find("softLimitGeoSt4St5") != std::string::npos) {
           valStrStr >> SoftLimitGeomSt4St5;
@@ -262,11 +276,29 @@ int main(int argc, char **argv) {
           int iS;
           valStrStr >> iS;
 	  doRejectVViews = (iS == 1);
-          if ((myRank == 0) && doRejectVViews)  std::cerr << "We will not use the V views in Station 5    " << std::endl;
+          if ((myRank == 0) && doRejectVViews)  std::cerr << "We will not use the V views in Station 5  (or 6, if Phase1c)   " << std::endl;
           if ((myRank == 0) && (!doRejectVViews))  std::cerr << "We will use relevant V views (default)   " << std::endl;
-         } else if (parStr.find("nomMom") != std::string::npos) {
+         } else if (parStr.find("rejectedStation") != std::string::npos) {
+          valStrStr >> RejectedStation;
+          if ((myRank == 0) && (RejectedStation > 1) && (RejectedStation < 7))  
+	       std::cerr << "We will not use Station " << RejectedStation   << std::endl;
+          if ((myRank == 0) && (RejectedStation == 56) ) { std::cerr << " We will reject stations (plural) 5 and 6  "  << std::endl; }
+          if ((myRank == 0) && (RejectedStation < 2) ) { std::cerr << " Do we really want o reject Station 0 or 1 from the fit ? "  << std::endl; exit(2); }
+          if ((myRank == 0) && ((RejectedStation > 6) && (RejectedStation != 56)) ) { std::cerr << " Illegal  rejected Station " << RejectedStation   << std::endl; exit(2); }
+	  if ((RejectedStation == 6) || (RejectedStation == 56)) doRejectSt6 = true;
+        } else if (parStr.find("rejectSt6") != std::string::npos) { // Obsolete now... see just above..
+          int iS;
+          valStrStr >> iS;
+	  doRejectSt6 = (iS == 1);
+          if ((myRank == 0) && doRejectSt6)  std::cerr << "We will not use the station 6 (Applicable only to Phase1)    " << std::endl;
+          if ((myRank == 0) && (!doRejectSt6))  std::cerr << "We will use relevantSt6 (default)   " << std::endl;
+	  if (doRejectSt6) RejectedStation = 6;
+        } else if (parStr == std::string("nomMom")) {
           valStrStr >> nominalMomentum;
           if (myRank == 0) std::cerr << " The nominal momentum is      "  << nominalMomentum << std::endl;	
+         } else if (parStr == std::string("nomMomDisp")) {
+          valStrStr >> nominalMomentumDispersion;
+          if (myRank == 0) std::cerr << " The nominal momentum Dispersion is      "  << nominalMomentumDispersion << std::endl;	
          } else if (parStr.find("betaFuncY") != std::string::npos) {
           valStrStr >> betaFunctionY;
           if (myRank == 0) std::cerr << " Twiss beta Function, Vertical     "  << betaFunctionY << std::endl;	
@@ -285,6 +317,9 @@ int main(int argc, char **argv) {
         } else if (parStr.find("DoubleGap") != std::string::npos) {
           valStrStr >> assumedDoubleGap;
           if (myRank == 0) std::cerr << " The gap betweeen double sensors is assumed to be "  << assumedDoubleGap << std::endl;	
+        } else if (parStr.find("VertY8Offset") != std::string::npos) {
+          valStrStr >> VertY8Offset;
+          if (myRank == 0) std::cerr << " Shifting the reference frame definig TransShiftY8 to  "  << VertY8Offset << std::endl;	
         } else if (parStr.find("IntegrationStep") != std::string::npos) {
           valStrStr >> integrationStepSize;
           if (myRank == 0)  {
@@ -332,6 +367,9 @@ int main(int argc, char **argv) {
         } else if (parStr.find("token") != std::string::npos) {
           token = valStr;
           if (myRank == 0) std::cerr << " Token will be   "  << token << std::endl;
+        } else if (parStr == std::string("limRolls")) {
+          valStrStr >> limRolls;
+          if (myRank == 0) std::cerr << " The maximum roll angle will be   "  << limRolls << std::endl;
         } else {
           if (myRank == 0) std::cerr << " Unrecognized argument   "  << parStr <<  " fatal, quit here and now " << std::endl;
           MPI_Finalize();
@@ -342,7 +380,8 @@ int main(int argc, char **argv) {
     
     std::srand(aRandomSeed); 
     
-    if ((fitType != std::string("2DX")) && (fitType != std::string("2DY")) && (fitType != std::string("3D")) ) {
+    if ((fitType != std::string("2DX")) && (fitType != std::string("2DY")) && 
+        (fitType != std::string("3D")) && (fitType != std::string("DumpInput"))) {
       if (myRank == 0) std::cerr << " BTFit2ndOrder, unrecognized fit type " << fitType << " fatal, quit here and now " << std::endl;
       MPI_Finalize();
       exit(2);
@@ -359,7 +398,8 @@ int main(int argc, char **argv) {
     
     std::string topDirAll("/home/lebrun/EMPHATIC/DataLaptop/");
     std::string myHostName(std::getenv("HOSTNAME"));
-    if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/"); // On fnal Wilson
+    if (myRank == 0) std::cerr << " HOSTNAME is " << myHostName << std::endl; 
+    if (myHostName.find("spectrum") == std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/"); // On fnal Wilson
     std::string aFName(topDirAll); 
     std::ostringstream runNumStrStr;   runNumStrStr << runNum;
     std::string runNumStr(runNumStrStr.str());
@@ -411,7 +451,15 @@ int main(int argc, char **argv) {
     if ((runNum == 1274) && (token.find("Try3D_R1274_2") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A1e_1p1_a_V1g.dat"); // Sept 16, mid-morning
     if ((runNum == 1274) && (token.find("Try3D_R1274_3") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A1e_1p1_a_V1g.dat"); // Sept 23, mid-morning
     if ((runNum == 1274) && (token.find("Try3D_R1274_4") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A1e_1p1_a_V1g.dat"); // Silly.... 
-    aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
+    // tweaking the multiple scattering, and implementing momentum dispersion. 
+    if ((runNum == 1274) && (token.find("Try3D_R1274_5") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A1e_1p1_a_V1g.dat"); // Silly.... 
+    // Asking 16 out of 16, with pre-aligned and tight chi-sq cuts on triplet. 
+    if ((runNum == 1274) && (token.find("Try3D_R1274_6") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_6a1_1_V1g.dat"); // Not so Silly.... 
+    if ((runNum == 1274) && (token.find("Try3D_R1274_7") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a1_1_V1g.dat"); // Not so Silly.... 
+    if ((runNum == 2098) && (token.find("Try3D_R2098_7") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
+    if ((runNum == 2113) && (token.find("Try3D_R2113_7") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
+                            // Against my best whishes, Nov. Dec 2023.  
+   aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
     gettimeofday(&tvStart,NULL);
@@ -423,6 +471,7 @@ int main(int argc, char **argv) {
     	      << " option " << token <<  " starting at " << dateNow << std::endl;
 	      
      emph::rbal::BTAlignInput myBTIn;
+     myBTIn.SetForPhase1c(IsPhase1c); 
      
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
      if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
@@ -433,6 +482,7 @@ int main(int argc, char **argv) {
 	if (runNum == 1366) myBTIn.SetKey(687503);
 	if (runNum == 1274) myBTIn.SetKey(687503);
      }
+     if (IsPhase1c) myBTIn.SetKey(687603); 
      if (maxEvts !=  1000000)  numExpected = maxEvts; // a bit of an abuse of variables names... Speed things up.. 
      if (myRank == 0)  {
          std::cerr << " Doing the Fit2ndorder, Simplex,  on file " << aFName << std::endl;
@@ -447,7 +497,16 @@ int main(int argc, char **argv) {
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;
 //	 std::cerr << " And quit for now... " << std::endl; MPI_Finalize(); exit(2);
       }
-
+      
+     if ((world_size == 1) && (fitType == "DumpInput")) {
+       std::cerr << " .... this is short, dumping data from " << myBTIn.GetNumEvts() << std::endl;
+       myBTIn.DumpCVSForR(0, 10000, 'X', token); 
+       myBTIn.DumpCVSForR(0, 10000, 'Y', token); 
+       myBTIn.DumpCVSForR(0, 10000, 'U', token); 
+       myBTIn.DumpCVSForR(0, 10000, 'V', token); 
+       std::cerr << " .... this analysis is done ! " << std::endl; MPI_Finalize(); exit(2);
+     } 
+     
      emph::rbal::distributeEvts(myBTIn); 
     //
     // Now deal with the parameters.. 
@@ -456,6 +515,7 @@ int main(int argc, char **argv) {
 //    if (myRank == 0) std::cerr << " ... Instantiating the Geometry...  " << std::endl;
     
     emph::rbal::BTAlignGeom *myGeo = emph::rbal::BTAlignGeom::getInstance();
+    emph::rbal::BTAlignGeom1c *myGeo1c = emph::rbal::BTAlignGeom1c::getInstance();
     if (G4EMPHDescrToken.find("SimProtonNoTgt") != std::string::npos) {
 //       std::cerr << " Geometry, G4EMPH (should be unique, though.. " << std::endl;
        myGeo->SetMultScatUncert('X', 1,  0.003201263);  myGeo->SetMultScatUncert('Y', 1,  0.003201263); 
@@ -486,25 +546,59 @@ int main(int argc, char **argv) {
       if (std::abs(magnetShiftY) > 1.0e-3) myMagField->SetReAlignShiftY(magnetShiftY);
       if (std::abs(magnetShiftZ) > 1.0e-3) myMagField->SetReAlignShiftZ(magnetShiftZ);
       myGeo->SetIntegrationStepSize(integrationStepSize);
+      myGeo1c->SetIntegrationStepSize(integrationStepSize);
     } 
-    emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance();
+    emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance(); 
+    myParams->SetMaximumRolls(limRolls);  
+    myParams->SetForPhase1c(IsPhase1c); 
+
     myParams->SetStrictSt6(strictSt6X || strictSt6Y); 
     //
     myParams->SetMode(fitType);
     myParams->SetSoftLimits(doSoftLimits);
     
     if (std::abs(assumedDoubleGap) >  1.0e-6) myParams->SetDoubleGaps(0.5*assumedDoubleGap); 
+    if (IsPhase1c &&(std::abs(VertY8Offset) >  1.0e-6)) myParams->SetVerticalY8(VertY8Offset); 
 
     if ((fitType == std::string("2DX")) || (fitType == std::string("3D"))) {
       for (size_t k=0; k!= 8; k++) myGeo->SetUnknownUncert('X', k, 0.000000025); // a fraction of the strip.. 
+      for (size_t k=0; k!= 8; k++) myGeo1c->SetUnknownUncert('X', k, 0.000000025); // a fraction of the strip.. 
       // 
     }
-    
    bool isSetFor120Run1055 = false;
    bool isSetFor30GeVBasedOnRun1055 = false;
    
-   if(doPencilBeam120) myGeo->SetUncertErrorOutOfPencilBeam(); 
-   if(doRejectVViews) myGeo->SetUnknownUncert('V', 500.);
+   if(doPencilBeam120) myGeo->SetUncertErrorOutOfPencilBeam();
+   // Only for the last station!!!  
+   if(doRejectVViews) (IsPhase1c) ? myGeo1c->SetUnknownUncert('V', 2, 5000.) : myGeo->SetUnknownUncert('V', 2, 5000.);
+   if(doRejectVViews) (IsPhase1c) ? myGeo1c->SetUnknownUncert('V', 3, 5000.) : myGeo->SetUnknownUncert('V', 3, 5000.);
+   if (IsPhase1c && doRejectSt6) {
+      myGeo1c->SetUnknownUncert('V', 2, 5000.); myGeo1c->SetUnknownUncert('V', 3, 5000.);
+      myGeo1c->SetUnknownUncert('X', 7, 5000.); myGeo1c->SetUnknownUncert('X', 8, 5000.);
+      myGeo1c->SetUnknownUncert('Y', 7, 5000.); myGeo1c->SetUnknownUncert('Y', 8, 5000.);
+   }
+   if (IsPhase1c && (RejectedStation == 5)) {
+      myGeo1c->SetUnknownUncert('V', 0, 5000.); myGeo1c->SetUnknownUncert('V', 0, 5000.);
+      myGeo1c->SetUnknownUncert('X', 5, 5000.); myGeo1c->SetUnknownUncert('X', 6, 5000.);
+      myGeo1c->SetUnknownUncert('Y', 5, 5000.); myGeo1c->SetUnknownUncert('Y', 6, 5000.);
+   }
+   if (IsPhase1c && (RejectedStation == 56)) {
+      myGeo1c->SetUnknownUncert('V', 0, 5000.); myGeo1c->SetUnknownUncert('V', 0, 5000.);
+      myGeo1c->SetUnknownUncert('X', 5, 5000.); myGeo1c->SetUnknownUncert('X', 6, 5000.);
+      myGeo1c->SetUnknownUncert('Y', 5, 5000.); myGeo1c->SetUnknownUncert('Y', 6, 5000.);
+      myGeo1c->SetUnknownUncert('V', 2, 5000.); myGeo1c->SetUnknownUncert('V', 3, 5000.);
+      myGeo1c->SetUnknownUncert('X', 7, 5000.); myGeo1c->SetUnknownUncert('X', 8, 5000.);
+      myGeo1c->SetUnknownUncert('Y', 7, 5000.); myGeo1c->SetUnknownUncert('Y', 8, 5000.);
+   }
+   if (IsPhase1c && (RejectedStation == 4)) {
+        myGeo1c->SetUnknownUncert('X', static_cast<size_t>( RejectedStation), 5000.);
+        myGeo1c->SetUnknownUncert('Y', static_cast<size_t>( RejectedStation), 5000.);
+   }
+   if (IsPhase1c && ((RejectedStation == 3) || ((RejectedStation == 2)))) {
+        myGeo1c->SetUnknownUncert('X', static_cast<size_t>( RejectedStation), 5000.);
+        myGeo1c->SetUnknownUncert('Y', static_cast<size_t>( RejectedStation), 5000.);
+        myGeo1c->SetUnknownUncert('V', static_cast<size_t>( RejectedStation-2), 5000.);
+   }
    //
     // New method, reload from a file... 
     //
@@ -534,21 +628,25 @@ int main(int argc, char **argv) {
       uPars.Add(aName, aValue, err);
 //      if (!doSoftLimits) uPars.SetLimits(aName, itP->Limits().first, itP->Limits().second);
       uPars.SetLimits(aName, itP->Limits().first, itP->Limits().second);
-      if (myRank == 0) std::cerr << " Limits set for parameter " << aName << " are " << itP->Limits().first << ", " << itP->Limits().second << std::endl;
+//      if (myRank == 0) std::cerr << " Limits set for parameter " << aName << " are " << itP->Limits().first << ", " << itP->Limits().second << std::endl;
     }
     
     
     emph::rbal::BeamTrackSSDAlignFCN theFCN(fitType, &myBTIn);
+    theFCN.SetForPhase1c(IsPhase1c);
     theFCN.SetMCFlag(G4EMPHDescrToken != std::string("none"));
     if (magnetIsRemoved) theFCN.SetNoMagnet(true);
     theFCN.SetSoftLimits(doSoftLimits);
-    if ((SoftLimitSlopeSigma != 0) && (SoftLimitSlopeSigma != INT_MAX)) theFCN.SetAssumedSlopeSigma(SoftLimitSlopeSigma*1.0e-6);
+//    if ((SoftLimitEpsilY != 0) && (SoftLimitEpsilY != INT_MAX)) theFCN.SetAssumedSlopeSigma(SoftLimitEpsilY*1.0e-6); // actually, emittance in the Y plane 
+    // Units are mm mrad. 
     theFCN.SetSoftLimitDoubleSensorCrack(SoftLimitGeomSt4St5);
     theFCN.SeMinimumDoubleSensorCrack(MinimumGapSt4St5);
     theFCN.SetBeamConstraint(applyEmittanceConstraint);
     theFCN.SetNominalMomentum(nominalMomentum);
+    theFCN.SetNominalMomentumDisp(nominalMomentumDispersion);
     theFCN.SetAlignMode(fixMomentum); // In this context, kind of obvious. 
     theFCN.SetUpLimForChiSq(uPLimitOnChiSqTrackFits);
+    if ((SoftLimitEpsilY != 0) && (SoftLimitEpsilY != INT_MAX)) theFCN.SetAssumedEpsilY(SoftLimitEpsilY*1.0e-3); // actually, emittance in the Y plane 
     if (fitSubType == std::string("TrShiftYOnly")) {
       theFCN.SetSelectedView('Y'); std::cerr << " 3D fit, but fit only the non-bend view Y " << std::endl;
     }
@@ -624,8 +722,15 @@ int main(int argc, char **argv) {
     if ((!doPencilBeam120) && (!doAntiPencilBeam120)) myParams->SetMinuitParamFixes(fitSubType, 0);
     if (doPencilBeam120) myParams->SetMinuitParamFixes(fitSubType, 1);
     if (doAntiPencilBeam120) myParams->SetMinuitParamFixes(fitSubType, -1);
-    if (doRejectVViews) myParams->FixParamsForView('V');
-    if (doAntiPencilBeam120OnlyV && doAntiPencilBeam120) {
+    if (doRejectVViews) myParams->FixParamsForViewLastStation('V');
+    if (IsPhase1c && doRejectSt6) myParams->FixParamsForViewLastStation('A'); // A stand for all of them.. 
+    if (IsPhase1c && (RejectedStation > 1) && (RejectedStation != 56)) myParams->FixParamsForAllViewsAtStation(RejectedStation); // All sensor for this station.. 
+    if (IsPhase1c && (RejectedStation == 56)) {
+       myParams->FixParamsForAllViewsAtStation(5); 
+       myParams->FixParamsForAllViewsAtStation(6); 
+    }
+        
+   if (doAntiPencilBeam120OnlyV && doAntiPencilBeam120) {
        myParams->FixParamsForView('X');
        myParams->FixParamsForView('Y');
        myParams->FixParamsForView('W');
@@ -763,8 +868,9 @@ int main(int argc, char **argv) {
           fOutMinRes << " " << aName << " " << theValue << " " << theError << std::endl;
 	  // Add the extra gap for the last plane, Y view, which defines the reference frame.  Phase1b only. 
 	  
-	  if (aName.find("Tilt_Y_6") != std::string::npos) fOutMinRes << " TransShift_Y_7" << " " << 0.5*assumedDoubleGap << " 1.0e-8 " << std::endl; 
-        }
+	  if ((!IsPhase1c) && aName.find("Tilt_Y_6") != std::string::npos) fOutMinRes << " TransShift_Y_7" << " " << 0.5*assumedDoubleGap << " 1.0e-8 " << std::endl; 
+ 	  if ((IsPhase1c) && aName.find("Tilt_Y_7") != std::string::npos) fOutMinRes << " TransShift_Y_8" << " " << 0.5*assumedDoubleGap << " 1.0e-8 " << std::endl; 
+       }
         fOutMinRes.close();
       }
        

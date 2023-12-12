@@ -15,6 +15,7 @@
 
 #include "BeamTrack.h" 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 
 namespace emph{ 
   namespace rbal {
@@ -31,12 +32,22 @@ namespace emph{
       double RmsResid(const std::string &fitType, char view,  size_t sensor, double window = 10.) const ; 
       
     private:
+      bool fIsPhase1c;
       BTAlignGeom* myGeo; // should not be needed, but does not hurt.. 
+      BTAlignGeom1c* myGeo1c; // should not be needed, but does not hurt.. 
       bool fNoMagnet;
       char fSelectedView;
       std::vector<BeamTrack> fData;
       
     public:
+      
+      inline void SetForPhase1c(bool t=true) { 
+        fIsPhase1c = t; 
+	
+//        if (t) {
+//	  
+//	}
+      }
       inline void SetSelectedView(char v = 'A') { fSelectedView = v; }
       inline void SetNoMagnet(bool v=true) {
         fNoMagnet = v;

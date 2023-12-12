@@ -24,6 +24,8 @@ namespace emph {
   
     SSDAlignParam::SSDAlignParam() : 
       myGeo(emph::rbal::BTAlignGeom::getInstance()),
+      myGeo1c(emph::rbal::BTAlignGeom1c::getInstance()),
+      fIsPhase1c(false),
       fFixedInMinuit(true),
       fMinNum(-1),  // The Minuit parameter number 
       fName("Undef"), // full name 
@@ -51,13 +53,22 @@ namespace emph {
 	             << ".... is not a free parameter, as it defines our reference frame. So,  Quit here and now " << std::endl;
 	   exit(2);
        }
-       if ((fSensor ==  7) && ((fView == 'Y')) && ((fType == TRSHIFT) || (fType == ZSHIFT))) {
+       if (!fIsPhase1c) { 
+         if ((fSensor ==  7) && ((fView == 'Y')) && ((fType == TRSHIFT) || (fType == ZSHIFT))) {
  	   std::cerr << " SSDAlignParam::ComposeName, problem, The Y view for station 5, sensor 7 ...." << std::endl
 	             << ".... is not a free parameter, as it defines our reference frame. So,  Quit here and now " << std::endl;
 	   exit(2);
-       }
-       if ((fSensor >= myGeo->NumSensorsXorY() ) && ((fView == 'X') || (fView == 'Y'))) {
- 	   std::cerr << " SSDAlignParam::ComposeName, problem, The X or Y have a maximum of 8 sensors, current value is " << fSensor <<  std::endl
+         }
+       } else {
+	 if ((fSensor ==  8) && ((fView == 'Y')) && ((fType == TRSHIFT) || (fType == ZSHIFT))) {
+ 	   std::cerr << " SSDAlignParam::ComposeName, problem, The Y view for station 6, sensor 8 ...." << std::endl
+	             << ".... is not a free parameter, as it defines our reference frame. So,  Quit here and now " << std::endl;
+	   exit(2);
+         }
+       } 
+       if (((!fIsPhase1c) && (fSensor >= myGeo->NumSensorsXorY() ) && ((fView == 'X') || (fView == 'Y'))) || 
+           ((fIsPhase1c) && (fSensor >= myGeo1c->NumSensorsXorY() ) && ((fView == 'X') || (fView == 'Y')))) {
+ 	   std::cerr << " SSDAlignParam::ComposeName, problem, The X or Y have a maximum of 8 sensors (9 for for Phase1c) , current value is " << fSensor <<  std::endl
 	             << "....  So,  Quit here and now " << std::endl;
 	   exit(2);
        }
@@ -91,6 +102,7 @@ namespace emph {
        return fName;
     } 
     void SSDAlignParam::UpdateGeom () const {
+       if (fIsPhase1c) this->UpdateGeom1c(); 
          switch (fType) {
          case NONE:
 	   std::cerr << " SSDAlignParam::UpdateGeom, problem, the type is not defined,.. Quit here and now " << std::endl;
@@ -118,7 +130,39 @@ namespace emph {
 	   exit(2);
        }
      }
-     bool SSDAlignParam::isOutOfPencilBeam() const {
+     void SSDAlignParam::UpdateGeom1c () const {
+         switch (fType) {
+         case NONE:
+	   std::cerr << " SSDAlignParam::UpdateGeom, problem, the type is not defined,.. Quit here and now " << std::endl;
+	   exit(2);
+	 case TRSHIFT:
+	    { 
+//	        std::cerr << " SSDAlignParam::UpdateGeom, fSensor " << fSensor << " New value " << fValue << std::endl;
+	        myGeo1c->SetDeltaTr(fView, fSensor, fValue); return;
+            }
+	 case ZSHIFT:
+	     { myGeo1c->SetDeltaZ(fView, fSensor, fValue); return;}
+	 case PITCHCORR: 
+	    { myGeo1c->SetDeltaPitchCorr(fView, fSensor, fValue); return; }
+	 case ROLL: 
+	   { myGeo1c->SetRoll(fView, fSensor, fValue); return; }
+	 case ROLLC: 
+	   { myGeo1c->SetRollCenter(fView, fSensor, fValue); return; }
+	 case ZMAGC:      
+	   { myGeo1c->SetZCoordsMagnetCenter(fValue); return; }
+	 case KICKMAGN:      
+	   { myGeo1c->SetMagnetKick120GeV(fValue);   return; }
+       
+         default:
+	   std::cerr << " SSDAlignParam::UpdateGeom, problem, Internal logic, no valid type  " << std::endl;
+	   exit(2);
+       }
+     }
+     bool SSDAlignParam::isOutOfPencilBeam() const { // Only for Phase1b
+       if (fIsPhase1c) {
+         std::cerr << " SSDAlignParam::isOutOfPencilBeam, hopefully not needed for Phase1c!  Fatal, quit here and now " << std::endl;
+	 exit(2);
+       }
        // Based on R studies of run Try3D_Sim7b_1f1_2_V1, assuming that the spot size of the beam is, in some (poorly defined) 
        // reference frame, at X0 = - 4.5 mm and Y0 = 3.8, sigma spot size = 1.5 mm, then no 120 GeV beam tracks do make it to 
        // the folling sensors:  

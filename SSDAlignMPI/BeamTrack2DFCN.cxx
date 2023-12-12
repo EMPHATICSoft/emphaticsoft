@@ -23,7 +23,9 @@ namespace emph {
   namespace rbal {
     
     BeamTrack2DFCN::BeamTrack2DFCN() :
+    fIsPhase1c(false), 
     myGeo(emph::rbal::BTAlignGeom::getInstance()),
+    myGeo1c(emph::rbal::BTAlignGeom::getInstance()),
     FCNBase(),
     fItCl(NULL), fIsMC(false), fView('?'), fErrorDef(1.), fOneOSqrt12(std::sqrt(1.0/12.)), 
     fResids(myGeo->NumSensorsXorY(), DBL_MAX) { ; }  

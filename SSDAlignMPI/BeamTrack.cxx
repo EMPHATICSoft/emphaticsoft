@@ -29,17 +29,19 @@ namespace emph {
   namespace rbal {
   
     BeamTrack::BeamTrack() : 
+      fIsPhase1c(false),
       myGeo(emph::rbal::BTAlignGeom::getInstance()),
+      myGeo1c(emph::rbal::BTAlignGeom::getInstance()),
       fDebugIsOn(false), fDoMigrad(false), fAlignMode(true), fNoMagnet(false), fSelectedView('A'), 
       fNumSensorsXorY(myGeo->NumSensorsXorY()),
       fNumSensorsU(myGeo->NumSensorsU()),
       fNumSensorsV(myGeo->NumSensorsV()),
       fSpill(-1), fEvtNum(-1), fType("Undef"),
       fx0(DBL_MAX), fy0(DBL_MAX), fslx0(DBL_MAX), fsly0(DBL_MAX),
-      fx0Err(DBL_MAX, DBL_MAX), fy0Err(DBL_MAX, DBL_MAX), fmom(DBL_MAX), fNominalMomentum(29.0), 
+      fx0Err(DBL_MAX, DBL_MAX), fy0Err(DBL_MAX, DBL_MAX), fmom(DBL_MAX), fNominalMomentum(29.0), fNominalMomentumDisp(0.),
       fslx0Err(DBL_MAX, DBL_MAX), fsly0Err(DBL_MAX, DBL_MAX), fmomErr(DBL_MAX, DBL_MAX), 
       fresids(2*fNumSensorsXorY + fNumSensorsU + fNumSensorsV, DBL_MAX) // assume 3D, a bit of wast of memory if only 2D    
-      {  ; } 
+      { ; } 
     
      double BeamTrack::doFit2D(char view, std::vector<BeamTrackCluster>::const_iterator it) {
        std::cerr << " Obsolete, deprecated, quit here and now .. " << std::endl; exit(2);
@@ -121,6 +123,7 @@ namespace emph {
      }
      double BeamTrack::doFit3D(std::vector<BeamTrackCluster>::const_iterator it) {
        fSpill = it->Spill();   fEvtNum = it->EvtNum();
+       fFcn3D.SetForPhase1c(fIsPhase1c);
 //       std::cerr <<  " BeamTrack::doFit3D, at event " << fEvtNum << std::endl;
 //       fDebugIsOn = fEvtNum > 63;
 // Debug missing low statistics on V4b, V5b views.. 
@@ -130,21 +133,23 @@ namespace emph {
 //       if (fDebugIsOn) 
 //         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
         fDebugIsOn = false;
-//        fDebugIsOn = ((fEvtNum == 5)  && (fSpill == 10));
+        fDebugIsOn = ((fEvtNum == 1730)  && (fSpill == 7));
 	 if (fDebugIsOn)  std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
-       fFcn3D.SetDebugOn(false);
+       fFcn3D.SetDebugOn(fDebugIsOn);
+//       fFcn3D.SetDebugOn(false);
        // 
        fType = std::string("3D");
        fFcn3D.SetClusterPtr(it);
        fFcn3D.SetSelectedView(fSelectedView);
        fchiSq = -1.0;
 //       const double pMonStartVal = fAlignMode ? fNominalMomentum :  50.; // Hardcoded intial value!  Need to get it from the main..
-       const double pMonStartVal = fNominalMomentum; // Hardcoded intial value!  Need to get it from the main..
+       double pMonStartVal = fNominalMomentum; // Will be modified if dispersion.. 
        fFcn3D.SetNominalMomentum(fNominalMomentum);
+       fFcn3D.SetNominalMomentumDisp(fNominalMomentumDisp); // Should not be needed 
        // we start slightly off momentum.. to force the minimizer to do some work..  	
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D for event " << it->EvtNum() << " Spill " << it->Spill() << std::endl;
        ROOT::Minuit2::MnUserParameters uPars;
-       std::pair<double, double> initValsX = this-> SetInitValuesX('X', it);
+       std::pair<double, double> initValsX = this->SetInitValuesX('X', it);
        if (initValsX.first == DBL_MAX) {
           if (fDebugIsOn) std::cerr << " Not enough data on the X view, give up.. " << std::endl;
           return -1.0; // not enough data. 
@@ -163,9 +168,13 @@ namespace emph {
        size_t numPars = 4;
        double integrationStep = myGeo->IntegrationStepSize();
        if (!fNoMagnet) { 
-          if (pMonStartVal > 0.) 
-             uPars.Add(std::string("PMom"), pMonStartVal, 0.05*pMonStartVal, pMonStartVal*0.5,  pMonStartVal*2.5);
-	  else  uPars.Add(std::string("PMom"), pMonStartVal, -0.05*pMonStartVal, pMonStartVal*2.5,  pMonStartVal*0.1); 
+//         if (pMonStartVal > 0.) 
+//             uPars.Add(std::string("PMom"), pMonStartVal, 0.05*pMonStartVal, pMonStartVal*0.5,  pMonStartVal*2.5);
+//	  else  uPars.Add(std::string("PMom"), pMonStartVal, -0.05*pMonStartVal, pMonStartVal*10.0,  -1.0*pMonStartVal*10.);
+          
+           pMonStartVal += fNominalMomentumDisp*initValsX.first;
+	   if (fDebugIsOn) std::cerr << " ... Due to dispersion, shift the momentum by " << fNominalMomentumDisp*initValsX.first << " GeV/c " << std::endl;
+          uPars.Add(std::string("PMom"), pMonStartVal, 0.05*std::abs(pMonStartVal)); // no limits at all.. 
 	  if (fDebugIsOn) std::cerr << " ...  We will fit Using the field map,  pMonStartVal " << pMonStartVal << std::endl;
           numPars++;
        }
@@ -272,8 +281,16 @@ namespace emph {
 	 }
        } 
        double finalChi = fFcn3D(finalParams);
+       if (!fIsPhase1c) { 
+         fx5 = fFcn3D.GetXAtStation5();
+         fy5 = fFcn3D.GetYAtStation5();
+       } else { 
+         fx6 = fFcn3D.GetXAtStation6();
+         fy6 = fFcn3D.GetYAtStation6();
+       }
        fchiSq = finalChi;
-       if (!okFit) {
+       if (!okFit || (std::abs(finalChi - 3.0e9) < 1.0e6)) { // we also reject tracks the are outside the map..
+        //  See BeamTrack3DFCN.cxx A bit clumsy coding.. 
          if (fDebugIsOn) std::cerr <<  " Fit failed, reject this track.. " << std::endl;
 	 fchiSq = -1.0e8;
 	 return fchiSq;
@@ -289,7 +306,7 @@ namespace emph {
           fchiSq *=- 1.0;
        }
        if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 
-//       if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
+       if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
        return fchiSq;
      }
      
@@ -402,7 +419,7 @@ namespace emph {
     
     int BeamTrack::Serialize(std::vector<double> &data) const {  // For MPI transfer. 
       data.clear();
-      const double nW = 4 + 5 + 10 + 1 + fresids.size();
+      const double nW = 4 + 5 + 10 + 1 + 4 + fresids.size(); //adding also fx5, fy5, November 2 also fx6, fy6, Dec 6 
       data.push_back(nW);
       data.push_back(static_cast<double>(fSpill));
       data.push_back(static_cast<double>(fEvtNum));
@@ -416,7 +433,9 @@ namespace emph {
       data.push_back(fy0Err.first); data.push_back(fy0Err.second);
       data.push_back(fslx0Err.first); data.push_back(fslx0Err.second);
       data.push_back(fsly0Err.first); data.push_back(fsly0Err.second);
-      data.push_back(fmomErr.first); data.push_back(fsly0Err.second);
+      data.push_back(fmomErr.first); data.push_back(fmomErr.second);
+      data.push_back(fx5); data.push_back(fy5);
+      data.push_back(fx6); data.push_back(fy6);
       data.push_back(fchiSq);
       for (size_t kSe = 0; kSe != fresids.size(); kSe++) data.push_back(fresids[kSe]);
       return static_cast<int>(nW);
@@ -426,7 +445,7 @@ namespace emph {
     void BeamTrack::DeSerialize(const std::vector<double> &data) { // For MPI transfer. 
       std::vector<double>::const_iterator it=data.cbegin();
       size_t nW = static_cast<size_t>(*it); it++;
-      size_t nResids =  nW - 20; // See above
+      size_t nResids =  nW - 24; // See above
       fSpill = *it; it++; fEvtNum=*it, it++;
       int ffType = static_cast<int>(*it); it++;
       if (ffType = 1) fType=std::string("2DX"); 
@@ -438,6 +457,8 @@ namespace emph {
       fslx0Err.first = *it; it++; fslx0Err.second = *it; it++;
       fsly0Err.first = *it; it++; fsly0Err.second = *it; it++;
       fmomErr.first = *it; it++; fmomErr.second = *it; it++;
+      fx5 = *it; it++; fy5 = *it; it++;
+      fx6 = *it; it++; fy6 = *it; it++;
       fchiSq = *it; it++;
       fresids.clear();
       for (size_t kSe = 0; kSe != nResids; kSe++) { fresids.push_back(*it); it++; }

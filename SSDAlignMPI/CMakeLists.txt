@@ -41,14 +41,14 @@ link_directories(/usr/lib64/openmpi/lib/openmpi/)
 link_directories(/home/lebrun/Minuit2/Minuit2-master/lib)
 
 # Create shared library 
-add_library(${PROJECT_NAME} SHARED BeamTrackCluster.cxx BTAlignInput.cxx myMPIUtils.cxx BTAlignGeom.cxx BeamTrackSSDAlignFCN.cxx
+add_library(${PROJECT_NAME} SHARED BeamTrackCluster.cxx BTAlignInput.cxx myMPIUtils.cxx BTAlignGeom.cxx BeamTrackSSDAlignFCN.cxx BTAlignGeom1c.cxx 
                  BeamTrack.cxx BeamTracks.cxx BeamTrack2DFCN.cxx BeamTrack3DFCN.cxx SSDAlignParam.cxx SSDAlignParams.cxx BTMagneticField.cxx)
 
 # link library
 target_link_libraries(${PROJECT_NAME}  mpi_cxx mpi Minuit2 Minuit2Math GaussSim)
 
-add_executable(BTDist1 BTDist1.cc)
-target_link_libraries(BTDist1 ${PROJECT_NAME} mpi mpi_cxx mpi  )
+#add_executable(BTDist1 BTDist1.cc)
+#target_link_libraries(BTDist1 ${PROJECT_NAME} mpi mpi_cxx mpi  )
 #
 add_executable(BTTestGeom BTTestGeom.cc)
 target_link_libraries(BTTestGeom ${PROJECT_NAME} mpi mpi_cxx mpi  )
@@ -56,8 +56,8 @@ target_link_libraries(BTTestGeom ${PROJECT_NAME} mpi mpi_cxx mpi  )
 add_executable(BTTestParams BTTestParams.cc)
 target_link_libraries(BTTestParams ${PROJECT_NAME} mpi mpi_cxx mpi Minuit2 Minuit2Math GaussSim   )
 
-add_executable(BTFitA BTFitA.cc)
-target_link_libraries(BTFitA ${PROJECT_NAME} mpi mpi_cxx mpi Minuit2 Minuit2Math GaussSim  )
+#add_executable(BTFitA BTFitA.cc)
+#target_link_libraries(BTFitA ${PROJECT_NAME} mpi mpi_cxx mpi Minuit2 Minuit2Math GaussSim  )
 
 #add_executable(BTFit2ndOrderMigradOnly BTFit2ndOrderMigradOnly.cc)
 #target_link_libraries(BTFit2ndOrderMigradOnly ${PROJECT_NAME} mpi mpi_cxx mpi Minuit2 Minuit2Math GaussSim  )
@@ -68,4 +68,6 @@ target_link_libraries(BTFitSimplex ${PROJECT_NAME} mpi mpi_cxx mpi Minuit2 Minui
 add_executable(GFitMigrad GFitMigrad.cc)
 target_link_libraries(GFitMigrad ${PROJECT_NAME} mpi mpi_cxx mpi Minuit2 Minuit2Math GaussSim  )
 #
-
+add_executable(testStatusMPI testStatusMPI.cc)
+target_link_libraries(testStatusMPI mpi mpi_cxx mpi)
+#

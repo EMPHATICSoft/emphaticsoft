@@ -14,6 +14,7 @@
 #include <sys/time.h>
 
 #include "BTAlignGeom.h"
+#include "BTAlignGeom1c.h"
 #include "BTMagneticField.h"
 #include "BTAlignInput.h"
 #include "SSDAlignParams.h"
@@ -35,6 +36,7 @@
 // Migrad version of BTFitSimplex.. 
 // 
 emph::rbal::BTAlignGeom* emph::rbal::BTAlignGeom::instancePtr=nullptr; 
+emph::rbal::BTAlignGeom1c* emph::rbal::BTAlignGeom1c::instancePtr=nullptr; 
 emph::rbal::SSDAlignParams* emph::rbal::SSDAlignParams::instancePtr=nullptr; 
 emph::rbal::BTMagneticField* emph::rbal::BTMagneticField::instancePtr=nullptr; 
 

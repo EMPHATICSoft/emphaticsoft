@@ -21,7 +21,7 @@
 namespace emph {
   namespace rbal {
   
-     BTAlignInput::BTAlignInput() : fKey(687400) { ; }
+     BTAlignInput::BTAlignInput() : fIsPhase1c(false),  fKey(687400) { ; }
        
      size_t BTAlignInput::FillItFromFile(int nEvtExpected, const char *fName, int selSpill) {
        std::ifstream fIn(fName, std::ios::in | std::ios::binary);
@@ -31,15 +31,18 @@ namespace emph {
 	 exit(2);
        }
        std::string fNameStr(fName);
+//       const bool isRun2113 = (fNameStr.find("2113") != std::string::npos); 
 //       bool hasTrId = ( (fNameStr.find("1366") != std::string::npos) && ((fNameStr.find("V1f") != std::string::npos) || 
 //                       (fNameStr.find("V1g") != std::string::npos))); // run dependent.. messy.. Check ..Two different gen compact.. Deprecated!!! 
-       bool hasTrId = (fNameStr.find("V1g") != std::string::npos); 
+       const bool hasTrId = ((fNameStr.find("V1g") != std::string::npos) || (fNameStr.find("V2a") != std::string::npos)); 
+       const bool isPhase1c = (fNameStr.find("V2a") != std::string::npos); 
        int nEvtRead = 0;
        int aKey, numDoublePerEvt, spill, evt, trId;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
        double stripInfo[2];
        int spillIncrement = (fDat.size() == 0) ? 0 : spillIncrement = fDat.rbegin()->Spill();
        // in case we concatenate multiple simulated samples..
+       const int kStMaxXY = (fIsPhase1c) ? 9 : 8; 
        while (fIn.good()) {
          XViewData.clear(); YViewData.clear(); UViewData.clear(); VViewData.clear();
 	 int triD = 0; 
@@ -60,11 +63,11 @@ namespace emph {
 	  	  
 	 fIn.read(reinterpret_cast<char*>(&spill), sizeof(int) ); fIn.read(reinterpret_cast<char*>(&evt), sizeof(int) );
 	 if (hasTrId) fIn.read(reinterpret_cast<char*>(&trId), sizeof(int) );
-	 for (int k=0; k != fNumStations+2; k++) {
+	 for (int k=0; k != kStMaxXY; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
 	   XViewData.push_back(stripInfo[0]); XViewData.push_back(stripInfo[1]); 
 	 }
-	 for (int k=0; k != fNumStations+2; k++) {
+	 for (int k=0; k != kStMaxXY; k++) {
 	   fIn.read(reinterpret_cast<char*>(stripInfo), 2*sizeof(double));
 	   YViewData.push_back(stripInfo[0]); YViewData.push_back(stripInfo[1]); 
 //	   if (evt == 54) std::cerr << " BTAlignInput::FillItFromFile evt " << evt << " Y view strpinfo " << stripInfo[0] << " / " <<  stripInfo[1] << std::endl;
@@ -102,13 +105,14 @@ namespace emph {
      }
      // Serialize, de Serialize. a bit tedious, done once for the job. 
      void BTAlignInput::AddFromMPIData(double *dat) {
+       const int kStMaxXY = (fIsPhase1c) ? 9 : 8; 
        double *ptr = dat;
        int spill = static_cast<int>(*ptr); ptr++;
        int evt = static_cast<int>(*ptr); ptr++;
        int aTrId = static_cast<int>(*ptr); ptr++;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
-       for (int k=0; k != 2*(fNumStations+2); k++) { XViewData.push_back(*ptr); ptr++; } 
-       for (int k=0; k != 2*(fNumStations+2); k++) { YViewData.push_back(*ptr); ptr++; } 
+       for (int k=0; k != 2*(kStMaxXY); k++) { XViewData.push_back(*ptr); ptr++; } 
+       for (int k=0; k != 2*(kStMaxXY); k++) { YViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 4; k++) { UViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 8; k++) { VViewData.push_back(*ptr); ptr++; }
        BeamTrackCluster aBT(spill, evt, aTrId,  XViewData, YViewData, UViewData, VViewData);
@@ -123,16 +127,17 @@ namespace emph {
        evtRaw.push_back(static_cast<double>(it->EvtNum()));
        evtRaw.push_back(static_cast<double>(it->TrId()));
        size_t nW = 3;// We do not include fKeep, no point, it is used only in the context of MPI
-       for (int k=0; k != fNumStations+2; k++) { 
+       const int kStMaxXY = (fIsPhase1c) ? 9 : 8; 
+       for (int k=0; k != kStMaxXY; k++) { 
          evtRaw.push_back(it->TheAvStrip('X', k));
          evtRaw.push_back(it->TheRmsStrip('X', k));
        }
-       nW += 2*(fNumStations+2);
-        for (int k=0; k != fNumStations+2; k++) { 
+       nW += 2*(kStMaxXY);
+        for (int k=0; k != kStMaxXY; k++) { 
          evtRaw.push_back(it->TheAvStrip('Y', k));
          evtRaw.push_back(it->TheRmsStrip('Y', k));
        }
-       nW += 2*(fNumStations+2);
+       nW += 2*(kStMaxXY);
        for (int k=0; k != 2; k++) { 
          evtRaw.push_back(it->TheAvStrip('U', k));
          evtRaw.push_back(it->TheRmsStrip('U', k));
@@ -146,7 +151,7 @@ namespace emph {
        return nW;
      }
      ///
-     void BTAlignInput::DumpCVSForR(int myRank, char view, const std::string &aNameToken) const {
+     void BTAlignInput::DumpCVSForR(int myRank, int aSpill, char view, const std::string &aNameToken) const {
        std::string aName("./BTInput_Rank"); std::ostringstream rrStrStr; 
        rrStrStr << myRank; aName += rrStrStr.str() + std::string("_");
        aName += aNameToken; aName += std::string("_");
@@ -157,7 +162,7 @@ namespace emph {
          case 'X': 
          case 'Y': 
 	 {
-	    numDat = fNumStations + 2;
+	    numDat = (fIsPhase1c) ? 9 : 8;
 	    break;
 	 }
 	 case 'U':
@@ -180,9 +185,11 @@ namespace emph {
        fOut << " spill evt trId";
        for (size_t k=0; k != numDat; k++) fOut << " av" << k << " rms" << k; 
        fOut << " " << std::endl;
+       std::cerr << " BTAlignInput::DumpCVSForR,, number of events " << fDat.size() << std::endl; 
        // data 
        for (std::vector<BeamTrackCluster>::const_iterator it = fDat.cbegin(); it != fDat.cend(); it++) {
          if (!it->Keep()) continue;
+	 if ((aSpill < 9999) && (it->Spill() != aSpill)) continue; 
          fOut << " " << it->Spill() << " " << it->EvtNum() << " " << it->TrId();
 	 for (size_t k=0; k != numDat; k++) {
 	   fOut << " " << it->TheAvStrip(view, k) << " " << it->TheRmsStrip(view, k);

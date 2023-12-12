@@ -29,7 +29,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <fstream>
 #include <cstdlib>
-#include <sstream>
 
 #include "BTMagneticField.h"
 
@@ -45,7 +44,7 @@ namespace emph {
   emph::rbal::BTMagneticField::BTMagneticField() :
     fStorageIsStlVector(true), fHasBeenAligned(false), fUseOnlyCentralPart(false), fInnerBoreRadius(23.5), // This is the Phase1b Japanese Magnet. 
     step(0), start{-16., -16., -20.},// for the root test file, units are cm Not sure about start values.
-    fG4ZipTrackOffset{ 0., 0., -1.0*(757.7 - 160/2.)},  //defined art base Geometry package.  first term is the magnet_shft, 2nd term hals to size of the magnet box length.  
+    fG4ZipTrackOffset{ 0., 0., 400.},  // Will be overwritten based on the G4/Art based geometry. 
     fNStepX(1), fNStepY(1), fNStepZ(1),
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
@@ -57,17 +56,16 @@ namespace emph {
       fVerbosity = 0;
 #endif
     
-     std::string fileName("mfMap_TRIUMF_FNALMeas_2023_08_14-v2.txt");
+     std::string fileName("mfMapBinary.dat");
      std::string myHostName(std::getenv("HOSTNAME"));
       
-     std::string topDirAll =(myHostName.find("spectrum") == std::string::npos) ? 
+     std::string topDirAll =(myHostName.find("fnal") != std::string::npos) ? 
             std::string("/work1/next/lebrun/EMPHATIC/Data/") : std::string("/home/lebrun/EMPHATIC/DataLaptop/"); 
 	     // On fnal Wilson or on my desk1 
      std::string fullName = topDirAll + fileName;
       //    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
       //    std::cerr <<  " BTMagneticField::BTMagneticField...  And quit for now... " << std::endl; exit(2);
-//     this->readBinaryAndBroadcast(fullName);
-     this->readAndBroadcast(fullName); // txt file. 
+     this->readBinaryAndBroadcast(fullName);
      this->G4GeomAlignIt();
 
       // These tests do something, comment out for sake of saving time for production use.     
@@ -78,7 +76,7 @@ namespace emph {
   void emph::rbal::BTMagneticField::G4GeomAlignIt() {
   
 //    fG4ZipTrackOffset[2] = -theEMPhGeometry->MagnetUSZPos() + 82.5; // rough guess! 
-//    fG4ZipTrackOffset[2] =  -595.2; // Extracted from running complete g4gen_job*   
+    fG4ZipTrackOffset[2] =  -595.2; // Extracted from running complete g4gen_job*   
     std::cerr << " BTMagneticField::G4GeomAlignIt G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
     for (size_t k=0; k !=3; k++) fG4ZipTrackOffset[k] += fReAlignShift[k]; 
     fHasBeenAligned = true; 
@@ -312,11 +310,6 @@ namespace emph {
 //      BTMagneticField::MagneticFieldFromCentralBore(xAligned, BInKg);
 //    }
     for (size_t k=0; k != 3; k++) B[k] = BInKg[k]*1.0e-4; // from Tesla to CLHEP::kilogauss;
-    fStayedInMap = true;
-    if ((xAligned[2] > -50.) && (xAligned[2] < 210.)) { // in the region with relatively high field.. 
-       if ((std::abs(xAligned[0]) > 15.) || ((std::abs(xAligned[1]) > 15.))) fStayedInMap = false;
-    } 
-   
   }
     
   void emph::rbal::BTMagneticField::Integrate(int iOpt, int charge, double stepAlongZ,
@@ -363,8 +356,7 @@ namespace emph {
       xxMiddle[0] += slx*stepZ/2.; xxMiddle[1] += sly*stepZ/2.;
       xxStop[0] += slx*stepZ; xxStop[1] += sly*stepZ;
 //      this->MagneticField(xxMiddle, bAtZMiddle);
-      this->GetFieldValue(xxMiddle, bAtZMiddle); // For reconstruction..Same coordinate system as in G4.  We think..
-      if (!fStayedInMap) return; 
+      this->GetFieldValue(xxMiddle, bAtZMiddle); // For reconstruction..Same coordinate system as in G4.  We think..  
       if (debugIsOn) std::cerr << " At x,y,z " << pos[0] << " " << pos[1] << " " << pos[2] 
                                << " step size " << stepZ << " By  " << bAtZMiddle[1] << std::endl;
       //
@@ -455,85 +447,8 @@ namespace emph {
       return std::pair<double, double>(zAtMax, byMax);
   }
   
-  void emph::rbal::BTMagneticField::readAndBroadcast(const std::string &fName) { 
-  
-     std::ifstream fileIn;
-     int world_size;
-     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-     int myRank;
-     MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-     // Valid only for the file mfMap_TRIUMF_FNALMeas_2023_08_14-v2.txt
-     fNStepX = 13; // 1 + 30 /2.5, from -15 mm to + 15 mm 
-     fNStepY = 13;
-     fNStepZ = 320; // from - 315 to 482.5, by 2.5 + 1    
-     fXMin = -15.; fXMax = 15.;  fYMin = -15.; fYMax = 15.; fZMin = -315.; fZMax = 482.5;
-     fStepX = 2.5; fStepY=2.5; fStepZ=2.5; 
-     ffield.clear();
-     int numLines = 0; 
-     if (myRank == 0) {       
-       bFieldPoint aFBlank; aFBlank.fbx = FLT_MAX; aFBlank.fby = FLT_MAX; aFBlank.fbz = FLT_MAX; 
-       for (int k=0; k != fNStepX*fNStepY*fNStepZ; k++) ffield.push_back(aFBlank);
-       fileIn.open(fName.c_str()); 
-       if ((!fileIn.is_open()) || (!fileIn.good())) {
-         std::cerr << "BTMagneticField::readBinaryAndBroadcast, file with name " << std::string(fName) << " can not be read, bail out " << std::endl;
-	 exit(2);
-       }
-       while (fileIn.good()) {
-         char aLinecStr[1024];
-         fileIn.getline(aLinecStr, 1024);
-         std::string aLine(aLinecStr);
-         if (aLine.length() < 2) continue; // end of file suspected, or blank in the file 
-         numLines++;
-         std::istringstream aLStr(aLine);
-         double xx[3];
-         float aFieldTmp[3];
-         aLStr >> xx[0]; aLStr >> xx[1]; aLStr >> xx[2] ;  // 
-         aLStr >> aFieldTmp[0]; aLStr >> aFieldTmp[1]; aLStr >> aFieldTmp[2];
-         const size_t ii = this->indexForVector(&xx[0]);
-         if (ii > ffield.size()) {
-           std::cerr << " emph::rbal::BTMagneticField::readAndBroadcast, indexing error at line " << numLines << " index is " << ii << " Fatal " << std::endl;
-	   exit(2);
-         }
-         ffield[ii].fbx = aFieldTmp[0]; ffield[ii].fby = aFieldTmp[1]; ffield[ii].fbz = aFieldTmp[2];
-        //
-        // Checks.. fill min / max 
-        //
-//         fXMin = std::min(fXMin, xx[0]); fYMin = std::min(fYMin, xx[1]); fZMin = std::min(fZMin, xx[2]);
-//         fXMax = std::max(fXMax, xx[0]); fYMax = std::max(fYMax, xx[1]); fZMax = std::min(fZMax, xx[2]);
-       }
-       // final check.. 
-       if (numLines != (fNStepX*fNStepY*fNStepZ)) {
-         std::cerr << " emph::rbal::BTMagneticField::readAndBroadcast, unexpected number of lines " << numLines << " Fatal " << std::endl;
-	 exit(2);
-       }
-       std::cerr << "  emph::rbal::BTMagneticField::readAndBroadcast, read " << numLines << std::endl;
-       fileIn.close();
-     } // Rank 0  
-   //
-   // Broadcast the fField vecotr.  We assume the float are not necessarily contiguous only in the entire ffield array.. 
-   //
-   if (world_size == 1) return;
-   int aTag=78452; // does not matter.. debugging only..  
-   float vals[3];
-   for (size_t k = 0; k != static_cast<size_t>(fNStepX*fNStepY*fNStepZ); k++) {
-      if (myRank == 0) { 
-        vals[0] = ffield[k].fbx; vals[1] = ffield[k].fby; vals[2] = ffield[k].fbz; 
-        for (int kSlave=1; kSlave != world_size; kSlave++) {
-             MPI_Send((void*) &vals[0], 3, MPI_FLOAT, kSlave, aTag, MPI_COMM_WORLD );
-	}
-      } else {
-        MPI_Status aStatus;
-        MPI_Recv((void*) &vals[0], 3, MPI_FLOAT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &aStatus);
-	bFieldPoint aF; aF.fbx = vals[0]; aF.fby = vals[1]; aF.fbz = vals[2];
-	ffield.push_back(aF);
-    }
-    
-  }
-  
-  }
   void emph::rbal::BTMagneticField::readBinaryAndBroadcast(const std::string &fName) { 
-/*
-** Not implemented yet..   
+  
      std::ifstream fileIn;
      int world_size;
      MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -607,7 +522,7 @@ namespace emph {
     if (myRank == 0) fileIn.close();
  
   
-*/ 
+  
   }
 } // end namespace emph
 

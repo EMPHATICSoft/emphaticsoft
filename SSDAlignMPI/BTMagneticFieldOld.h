@@ -39,7 +39,6 @@
 #include <map>
 #include <cmath>
 #include <vector>
-#include <cfloat>
 #include <mpi.h>
 
 namespace emph {
@@ -50,7 +49,7 @@ namespace emph {
   };
 
   struct bFieldZipTrackPoint {
-    float t, x, y, z, fbx, fby, fbz, theta; // in kG, internally. // obsolete... 
+    float t, x, y, z, fbx, fby, fbz, theta; // in kG, internally. // For Sensis file, in Tesla. 
   };
   
   class BTMagneticField{
@@ -71,14 +70,12 @@ namespace emph {
     bool fFieldIsOff;
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
     bool fHasBeenAligned; 
-    bool fUseOnlyCentralPart; // Obsolete.. R = 15 to 24 mm no longer in the map... 
-    mutable bool fStayedInMap; // Instead, we just flag is the requested coordinate are outside the map, in the (relatively) 
-                               // region where the field is intense (close to the yoke). 
+    bool fUseOnlyCentralPart;
     double fInnerBoreRadius;
     std::vector<bFieldPoint> ffield;
     std::vector<bFieldZipTrackPoint> ffieldZipTrack; // from actual data.. 
     double xZipOne, yZipOne; // if studying one Zip track at a time.. ZipTrack data from Mike T. 
-    std::map<int, std::map<int, std::map<int, std::vector<double> > > > field; // Obsolete as well. 
+    std::map<int, std::map<int, std::map<int, std::vector<double> > > > field;
     double step;
     double start[3]; // old boundaries.. 
     double fG4ZipTrackOffset[3];
@@ -117,15 +114,13 @@ namespace emph {
    inline void setYZipOne(double y) { yZipOne = y; } 
    inline void SetFieldOn() { fFieldIsOff = false; }
    inline void SetFieldOff() { fFieldIsOff = true; }
-   inline void SetReAlignShiftX(double xx) { fReAlignShift[0] = xx; fG4ZipTrackOffset[0] += xx; } // fReAlignShift actually was not used.. Shame.. 
-   inline void SetReAlignShiftY(double yy) { fReAlignShift[1] = yy; fG4ZipTrackOffset[1] += yy; } 
-   inline void SetReAlignShiftZ(double zz) { fReAlignShift[2] = zz; fG4ZipTrackOffset[2] += zz; } 
-   inline bool didStayedInMap() { return fStayedInMap; }  
+   inline void SetReAlignShiftX(double xx) { fReAlignShift[0] = xx; } 
+   inline void SetReAlignShiftY(double yy) { fReAlignShift[1] = yy; } 
+   inline void SetReAlignShiftZ(double zz) { fReAlignShift[1] = zz; } 
    
    private:
    
-   void readBinaryAndBroadcast(const std::string &fName);  //   Not available.. 
-   void readAndBroadcast(const std::string &fName);    
+   void readBinaryAndBroadcast(const std::string &fName);    
    inline size_t indexForVector(double *xyz) const {
       double *ptr = xyz; 
 //      size_t iX = static_cast<size_t>(floor(((*ptr) - fXMin)/fStepX)); ptr++; // floor seems to fail if close to real boundary.. 
@@ -139,7 +134,7 @@ namespace emph {
     } 
     inline size_t indexForVector(size_t iX, size_t iY, size_t iZ) const {
       return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
-    }
+    } 
     
 //    void MagneticFieldFromCentralBore(const double Point[3], double BApprox[3]) const;
 

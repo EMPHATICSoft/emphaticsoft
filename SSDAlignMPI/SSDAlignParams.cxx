@@ -22,7 +22,9 @@ namespace emph {
   namespace rbal {
   
      SSDAlignParams::SSDAlignParams():
+       fIsPhase1c(false),
        myGeo(emph::rbal::BTAlignGeom::getInstance()),
+       myGeo1c(emph::rbal::BTAlignGeom1c::getInstance()),  
        fNumStations(myGeo->NumStations()), 
        fNumSensorsXorY(myGeo->NumSensorsXorY()), 
        fNumSensorsU(myGeo->NumSensorsU()), 
@@ -66,11 +68,13 @@ namespace emph {
      // Setters 
      //
      void SSDAlignParams::ReLoad() {
-       std::cerr << " SSDAlignParams::ReLoad, mode is " << fMode << std::endl;
+       std::cerr << " SSDAlignParams::ReLoad, mode is " << fMode << " NumSensor X or Y " << fNumSensorsXorY << std::endl;
        fDat.clear();
        int aMinNumber=0;
 //        const double pitchCorrLimit = 3.0*0.005; // ~ 170 mRad. 
-        const double rollCorrLimit = 0.18; // ~ 10 degrees.  Large
+//        const double rollCorrLimit = 0.18; // ~ 10 degrees.  Large
+//        const double rollCorrLimit = 0.09; // ~ 5 degrees.  More reasnable
+        const double rollCorrLimit = fLimRolls; // December 6 2023.. 
         const double pitchCorrLimit = 0.09; // ~ 5 degrees.  
 	const double rollCenterLimit= 250.; // for real data... 
 //	const double rollCenterLimit= 25.; // for testing 
@@ -79,10 +83,11 @@ namespace emph {
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
 //           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
            // Not for MC.. 
-	   SSDAlignParam aPar; 
+	   SSDAlignParam aPar;
+	   aPar.SetForPhase1c(fIsPhase1c); 
 	   aPar.SetView('Y'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 
-	   aPar.SetLimits(std::pair<double, double>(-10., 10.0));
+	   aPar.SetLimits(std::pair<double, double>(-20., 20.0)); // Phase1c... Disgusting... 
 	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) { 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); 
@@ -106,9 +111,10 @@ namespace emph {
 	 for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) {
 //           if (fStrictSt6 && ((kSe == 4) || (kSe == 6))) continue;  // We skip all the parameters for send sensor of station 4 and 6.  
 	   SSDAlignParam aPar; 
+	   aPar.SetForPhase1c(fIsPhase1c); 
 	   aPar.SetView('X'); aPar.SetSensor(kSe);
 	   aPar.SetType(emph::rbal::TRSHIFT); 
-	   aPar.SetLimits(std::pair<double, double>(-10.25, 10.25));
+	   aPar.SetLimits(std::pair<double, double>(-7.5, 7.5));
 	   aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 //	   if ((kSe > 0) && (kSe != fNumSensorsXorY-1)) { // May 20 2023: we now define the coordinate system base on a Z axis 
 //             defince by view Y, first plane in Station 0, and station 5, 2nd sensor (Y5b)
@@ -130,6 +136,7 @@ namespace emph {
 	   }
 	 }
 	 SSDAlignParam aPar2;
+	 aPar2.SetForPhase1c(fIsPhase1c); 
 	 aPar2.SetType(emph::rbal::ZMAGC); 
 	 aPar2.SetView('X'); aPar2.SetSensor(0);
 	 aPar2.SetValue(myGeo->ZCoordsMagnetCenter()); // to be refined, once we align from data from Phase1b 
@@ -149,6 +156,7 @@ namespace emph {
 	     // May 20 2023:  Nop, we define the reference frame by fixing the roll of Y0 to zero. 
 	     if ((kV == 1) && (kSe == 0)) continue;
 	     SSDAlignParam aPar; 
+	     aPar.SetForPhase1c(fIsPhase1c); 
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
 	     aPar.SetType(emph::rbal::ROLL); 
 	     aPar.SetLimits(std::pair<double, double>(-rollCorrLimit, rollCorrLimit));
@@ -166,13 +174,14 @@ namespace emph {
 	 for (size_t kV = 2; kV !=4; kV++) { 
  	   for (size_t kSe=0; kSe != nums[kV-2]; kSe++) {
 	     SSDAlignParam aPar; 
+	     aPar.SetForPhase1c(fIsPhase1c); 
 	     aPar.SetType(emph::rbal::TRSHIFT);
 	     aPar.SetView(views[kV]); aPar.SetSensor(kSe);
 	     // for MC.. To study for data.. (sign convention problem.. ) 
 //	     if (kV == 3) aPar.SetLimits(std::pair<double, double>(-15., 15.)); // Not clear what the offsets are.. Tuning V views 
 //	     if ((kV == 3) && (kSe == 3))  aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Not clear what the offsets are.. Tuning V views 
 //	     if (kV == 2) aPar.SetLimits(std::pair<double, double>(-15., 15.0)); // Checked U , offsets are indeed small. 
-             aPar.SetLimits(std::pair<double, double>(-8., 8.0)); 
+             aPar.SetLimits(std::pair<double, double>(-20., 20.0)); 
 	     aPar.SetValue(0.); // to be refined, once we align from data from Phase1b 
 	     aPar.CheckAndComposeName(); aPar.SetMinuitNumber(aMinNumber); aMinNumber++; fDat.push_back(aPar); // deep copy.. I hope.. 
 	     if (!fMoveLongByStation) {
@@ -234,7 +243,20 @@ namespace emph {
 	          << token << " filename is "  << fNameStr << std::endl;
         std::ifstream fIn(fNameStr.c_str());
         if (!fIn.is_open()) {
-           std::cerr << "SSDAlignParams::LoadValueFromPreviousRun , failed to open " << fNameStr << " fatal, quit here.. " << std::endl; exit(2);
+           std::cerr << "SSDAlignParams::LoadValueFromPreviousRun , failed to open " << fNameStr << " Not fatal, Use the NotOK file " << std::endl; 
+           std::ostringstream fNameStrStr2;
+	   if (isSimple) {  
+             fNameStrStr2 << "./MinValues_Simplex_NotOK_" << token.substr(0, token.length()-1) << aPrevIterNum << ".txt";
+	   } else { // old code, when I thought Migrad was better.. 
+             fNameStrStr2 << "./MinValues_Migrad_NotOK_" << token.substr(0, token.length()-1) << aPrevIterNum << ".txt";
+	   }
+           std::string fNameStr2(fNameStrStr2.str());
+           std::ifstream fIn2(fNameStr2.c_str());
+           if (!fIn2.is_open()) {
+             std::cerr << "SSDAlignParams::LoadValueFromPreviousRun , failed to open " << fNameStr << " Not even NotOK, fatal quit here " << std::endl; exit(2);
+	   }
+	   fIn2.close();
+	   fIn.open(fNameStr2.c_str());
 	}
 	std::vector<SSDAlignParam>::iterator it=fDat.begin();
 	char aLine[1024]; size_t nLines=0;
@@ -245,7 +267,8 @@ namespace emph {
 	   std::string aName; double aVal; double aErr; 
 	   aLStrStr >> aName >> aVal >> aErr; 
 	   // exception for TransShift_Y_7, which we introduce to do consistent 3D in art.. 
-	   if (aName.find("TransShift_Y_7") != std::string::npos) continue;
+	   if ((!fIsPhase1c) && aName.find("TransShift_Y_7") != std::string::npos) continue; // Reference frame fixing, no such paramter.. 
+	   if ((fIsPhase1c) && aName.find("TransShift_Y_8") != std::string::npos) continue;
 	   if ((aName.find(it->Name()) == std::string::npos) && (it->Name().find(aName) == std::string::npos)) {
 	     std::cerr << "SSDAlignParams::LoadValueFromPreviousRun, out of order param " << aName 
 	               << " already loaded " << it->Name() << " fatal, quit here and now " << std::endl; exit(2);
@@ -334,8 +357,9 @@ namespace emph {
 	    const double range = fact * std::abs(it->UpLimit() - it->DownLimit());
 	    int i1 = std::rand(); int i2 = std::rand(); 
 	    const double aSign = (i1 < RAND_MAX/2) ? -1.0 : 1.0; 
-	    const double newV = aSign * range * static_cast<double>(i2)/static_cast<double>(RAND_MAX);
-	    it->SetValue(newV);
+	    const double newVDelta = aSign * range * static_cast<double>(i2)/static_cast<double>(RAND_MAX);
+	    const double aPrevVal = it->Value(); 
+	    it->SetValue(newVDelta+aPrevVal);
 	  }
 	  default: { continue; } 
 	}
@@ -560,7 +584,80 @@ namespace emph {
 	}
       }  
     }
-    
+    void SSDAlignParams::FixParamsForViewLastStation(const char aView, bool isTrue) {
+      if ((aView == 'A') && (!fIsPhase1c)) return; 
+      if (!isTrue) return; // That argument is not really usefull, as we do not plan to revert the decision along the way..  
+      if (aView == 'A') {
+        for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	  if (it->Name().find ("_X_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	  if (it->Name().find ("_X_8") != std::string::npos) it->SetFixedInMinuit(true); 
+  	  if (it->Name().find ("_Y_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	  if (it->Name().find ("_Y_8") != std::string::npos) it->SetFixedInMinuit(true); 
+   	  if (it->Name().find ("_V_2") != std::string::npos) it->SetFixedInMinuit(true); 
+   	  if (it->Name().find ("_V_3") != std::string::npos) it->SetFixedInMinuit(true);
+        }
+      } else {
+        for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+           if (it->isFixedInMinuit()) continue;
+	   if (it->View() != aView) continue;
+	   if (it->SensorI() < 2) continue; // Valid for both Phase1b and Phase1c 
+	   if (it->Type() == emph::rbal::ZMAGC) continue;
+	   if (it->Type() == emph::rbal:: KICKMAGN) continue;
+	   it->SetFixedInMinuit(true);
+        }
+      } // All views..   
+    } // FixParamsForViewLastStation
+    void SSDAlignParams::FixParamsForAllViewsAtStation(const int kSt, bool isTrue) {
+      if (!fIsPhase1c) return; 
+      if (!isTrue) return; // That argument is not really usefull, as we do not plan to revert the decision along the way..  
+      switch (kSt) { 
+       case 6: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_X_8") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_8") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find ("_V_2") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find ("_V_3") != std::string::npos) it->SetFixedInMinuit(true);
+          }
+	  break;
+       }
+       case 5: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_X_6") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_6") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find ("_V_0") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find ("_V_1") != std::string::npos) it->SetFixedInMinuit(true);
+          }
+	  break;
+       }
+       case 4: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_4") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_4") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+	  break;
+       }
+       case 3: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_3") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_3") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_U_1") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+	  break;
+       }
+       case 2: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_2") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_2") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_U_0") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+       }
+       default: break;   
+      } // Switch kSt   
+    } // FixParamsForAllViewsAtStation
    } // namespace 
 }  // namespace   
      
