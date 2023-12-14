@@ -54,7 +54,6 @@
 	 <!-- ABOVE IS FOR T0 -->
 	 <!-- BELOW IS FOR TARGET -->
 
-	 <quantity name="target_thick" value="20.0" unit="mm"/>
 	 <quantity name="target_width" value="100.0" unit="mm"/>
 	 <quantity name="target_height" value="50.0" unit="mm"/>
 
@@ -2009,9 +2008,14 @@ values="202.14067278287462 12.054573032169143
      <composite n="1" ref="Iron"/>
    </material>
    
-   <material formula="graphite" name="Graphite">
+   <material formula="C" name="Graphite">
      <D value="1.83"/>
      <fraction n="1" ref="Carbon"/>
+   </material>
+ 
+   <material formula="Be" name="BeTarget">
+     <D value="1.85"/>
+     <fraction n="1" ref="Beryllium"/>
    </material>
    
    <material formula="CFRP" name="CarbonFiber">
@@ -2093,7 +2097,8 @@ values="202.14067278287462 12.054573032169143
 
 	 <!-- BELOW IS FOR TARGET -->
 
-	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
+	 <box name="target_box" x="target_width" y="target_height" z="20" />
+
 
 	 <!-- ABOVE IS FOR TARGET -->
 
