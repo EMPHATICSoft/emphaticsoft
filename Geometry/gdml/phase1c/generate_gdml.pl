@@ -54,7 +54,8 @@ $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
-@target_matt = ("Graphite", "CH2");
+@target_matt = ("Graphite", "BeTarget", "CH2");
+@target_length = (20, 20, 1000); #target length in mm, not accurate
 $target_v = 0;
 
 # constants for MAGNET
@@ -122,12 +123,13 @@ if ( defined $target)
 	if($target == 0){
 		$target_switch = 0;
 	}
-	elsif($target < 0 || $target > 2){
+	elsif($target < 0 || $target > 3){
 		print "wrong target parameter\n";
 	}
 	else{
 		$target_v = $target - 1;
 	}
+	$suffix = "-" . $target_matt[$target_v] . $suffix;
 }
 
 # run the sub routines that generate the fragments
@@ -154,7 +156,7 @@ sub usage()
 {
 	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-t|--target <target number>] [-m|--magnet <0 or 1>] [-s|--suffix <string>]\n";
 	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
-	print "       -t 0 is no target, 1 is graphite, 2 is CH2; Default is graphite\n";
+	print "       -t 0 is no target, 1 is graphite, 2 is beryllium, 3 is CH2; Default is graphite\n";
 	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -h prints this message, then quits\n";
@@ -226,7 +228,6 @@ EOF
 		print DEF <<EOF;
 	 <!-- BELOW IS FOR TARGET -->
 
-	 <quantity name="target_thick" value="20.0" unit="mm"/>
 	 <quantity name="target_width" value="100.0" unit="mm"/>
 	 <quantity name="target_height" value="50.0" unit="mm"/>
 
@@ -629,7 +630,8 @@ EOF
 
 	 <!-- BELOW IS FOR TARGET -->
 
-	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
+	 <box name="target_box" x="target_width" y="target_height" z="@{[ $target_length[$target_v] ]}" />
+
 
 	 <!-- ABOVE IS FOR TARGET -->
 EOF
