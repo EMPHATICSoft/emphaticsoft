@@ -1,3 +1,4 @@
+#include "Services.fcl"
 #include "MagneticField.fcl"
 #include "BeamGen.fcl"
 #include "G4Gen.fcl"
