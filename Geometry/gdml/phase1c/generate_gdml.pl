@@ -55,7 +55,7 @@ $n_acrylic = 20;
 # constants for TARGET
 $target_switch = 1;
 @target_matt = ("Graphite", "BeTarget", "CH2");
-@target_length = (20, 20, 1000); #target length in mm, not accurate
+@target_length = (20, 20, 100); #target length in mm, not accurate
 $target_v = 0;
 
 # constants for MAGNET
@@ -69,7 +69,7 @@ $nstation_type = 4; # types of station
 @station_type = ("single", "rotate", "double3pl", "double2pl"); # yx, wyx, xxyyww, xxyy 
 @SSD_lay = (2, 3, 3, 2); # num. of SSD layer in a station
 @SSD_par = (1, 1, 2, 2); # num. of SSD in a layer
-@SSD_side = (0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1); # angle from measuring Y
+@SSD_side = (0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1); # 1 means electronics (brown bar) facing the beam
 #Due to the coordination system, this is equivalent to @SSD_angle = (0, 90, 0, 90, 45, 0, 90, 45, 0, 90, 270, 90, 0, 180, 135, 315, 90, 270, 0, 180, 10, 315); # angle from measuring Y
 # Visualization of SSDs can be found at DocDB 1260
 @SSD_mount= (1, 2, 2, 1); # num. of mount in a station
@@ -79,7 +79,8 @@ $nSSD_station = 8; # num. of stations
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
 @SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); 
 @SSD_mount_shift = (0, 0, 0, 10, 0, 10, 0, 0, 10, 0, 10, 0); 
-@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23]); # shift (x, y)
+@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
+#@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23]); # shift (x, y)
 #@SSD_mount_rotation = ([0, 0], [0, 0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_mount_rotation = ([-0.44, -2.02], [0.24, -1.26], [0,0], [0,0], [0,0], [0,0], [-0.06, -1.49], [0.36, 0.31], [0.36, 0.31], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_angle = (0, 90, 0, 90, 315, 0, 90, 315, 0, 90, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
@@ -275,6 +276,8 @@ EOF
 
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
+	 
+	 <quantity name="ssdD0_overlap" value="2.0" unit="mm"/>
 
 	 <quantity name="ssd_bkpln_thick" value=".300" unit="mm"/>
 
@@ -314,16 +317,16 @@ EOF
 				for($k = 0; $k < $SSD_par[ $SSD_station[ $i ] ]; ++$k){
 					if($j < 2){
 						print DEF <<EOF;
-						<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick"/>
+						<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($j+$k-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j+$k-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($j+$k)*ssdD0_thick+($j-0.5)*mount_thick+($j+$k-0.5)*ssd_bkpln_thick"/>
 					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
 EOF
 						$isensor++;
 					}
 					else{
 						 print DEF <<EOF;
-                   <position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
+                   <position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($k+0.5)*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($k+0.5)*ssd_bkpln_thick+0.5*mount_thick"/>
 					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
 EOF
 						$isensor++;
@@ -1185,10 +1188,10 @@ EOF
 					++$ilayer;
 				}
 				print DET <<EOF;
-		 <physvol name="ssd_mount_@{[ $i ]}_@{[ $j ]}_phys">
+		 <!--physvol name="ssd_mount_@{[ $i ]}_@{[ $j ]}_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_@{[ $i ]}_@{[ $j ]}_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 EOF
 			}

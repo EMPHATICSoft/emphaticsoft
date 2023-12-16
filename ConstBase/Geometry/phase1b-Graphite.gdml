@@ -61942,10 +61942,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_0_1_0_pos"/>
 			<rotationref ref="ssdsensor_0_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_0_0_phys">
+		 <!--physvol name="ssd_mount_0_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_0_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_1_0_vol">
 		<materialref ref="Air"/>
@@ -61972,10 +61972,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_1_1_0_pos"/>
 			<rotationref ref="ssdsensor_1_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_1_0_phys">
+		 <!--physvol name="ssd_mount_1_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_1_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_2_0_vol">
 		<materialref ref="Air"/>
@@ -62002,10 +62002,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_2_1_0_pos"/>
 			<rotationref ref="ssdsensor_2_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_2_0_phys">
+		 <!--physvol name="ssd_mount_2_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_2_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_2_1_vol">
 		<materialref ref="Air"/>
@@ -62021,10 +62021,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_2_2_0_pos"/>
 			<rotationref ref="ssdsensor_2_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_2_1_phys">
+		 <!--physvol name="ssd_mount_2_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_2_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_3_0_vol">
 		<materialref ref="Air"/>
@@ -62051,10 +62051,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_3_1_0_pos"/>
 			<rotationref ref="ssdsensor_3_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_3_0_phys">
+		 <!--physvol name="ssd_mount_3_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_3_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_3_1_vol">
 		<materialref ref="Air"/>
@@ -62070,10 +62070,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_3_2_0_pos"/>
 			<rotationref ref="ssdsensor_3_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_3_1_phys">
+		 <!--physvol name="ssd_mount_3_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_3_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_4_0_vol">
 		<materialref ref="Air"/>
@@ -62122,10 +62122,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_4_1_1_pos"/>
 			<rotationref ref="ssdsensor_4_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_4_0_phys">
+		 <!--physvol name="ssd_mount_4_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_4_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_4_1_vol">
 		<materialref ref="Air"/>
@@ -62152,10 +62152,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_4_2_1_pos"/>
 			<rotationref ref="ssdsensor_4_2_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_4_1_phys">
+		 <!--physvol name="ssd_mount_4_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_4_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_5_0_vol">
 		<materialref ref="Air"/>
@@ -62204,10 +62204,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_5_1_1_pos"/>
 			<rotationref ref="ssdsensor_5_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_5_0_phys">
+		 <!--physvol name="ssd_mount_5_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_5_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_5_1_vol">
 		<materialref ref="Air"/>
@@ -62234,10 +62234,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_5_2_1_pos"/>
 			<rotationref ref="ssdsensor_5_2_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_5_1_phys">
+		 <!--physvol name="ssd_mount_5_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_5_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	  <volume name="ssdStationsingle0_vol">
 		 <materialref ref="Air"/>

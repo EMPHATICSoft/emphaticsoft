@@ -55,7 +55,7 @@ $n_acrylic = 20;
 # constants for TARGET
 $target_switch = 1;
 @target_matt = ("Graphite", "BeTarget", "CH2");
-@target_length = (20, 20, 1000); #target length in mm, not accurate
+@target_length = (20, 20, 100); #target length in mm, not accurate
 $target_v = 0;
 
 # constants for MAGNET
@@ -1192,10 +1192,10 @@ EOF
 					++$ilayer;
 				}
 				print DET <<EOF;
-		 <physvol name="ssd_mount_@{[ $i ]}_@{[ $j ]}_phys">
+		 <!--physvol name="ssd_mount_@{[ $i ]}_@{[ $j ]}_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_@{[ $i ]}_@{[ $j ]}_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 EOF
 			}
