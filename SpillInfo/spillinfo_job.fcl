@@ -1,10 +1,12 @@
 #include "SpillInfo.fcl"
+#include "RunHistory.fcl"
 
 process_name: SpillInfo
 
 services:
 {
   TFileService: { fileName: "spillinfo_hist_r%r_s%04s.root" closeFileFast: false }
+  RunHistoryService: @local::standard_runhistory
   IFBeam:{}
 }
 
