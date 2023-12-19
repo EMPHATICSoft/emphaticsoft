@@ -11,3 +11,4 @@
 #include "RecoBase/ADC.h"
 #include "RecoBase/TrigToT0.h"
 #include "RecoBase/CaloHit.h"
+#include "RecoBase/Track.h"

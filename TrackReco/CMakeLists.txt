@@ -26,18 +26,17 @@ include_directories($ENV{ART_ROOT_IO_INC})
 
 cet_build_plugin(MakeSingleTracks art::module
   LIBRARIES PRIVATE
-    ToFUtil
     RawData
     RecoBase
     ChannelMapService_service
     Geometry_service
+    DetGeoMapService_service    
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Core
     ROOT::Hist
     ROOT::Spectrum
     ROOT::Tree
-    DetGeoMap
 )
 
 install_source()

@@ -5,6 +5,8 @@
  
 <lcgdict>
 
+  <class name="std::vector<TVector3>"  />
+
   <class name="rb::SSDHit"    ClassVersion="12">
    <version ClassVersion="12" checksum="4189656060"/>
    <version ClassVersion="11" checksum="2728825684"/>
@@ -31,7 +33,8 @@
   <class name="std::vector<rb::SSDCluster>"        />
   <class name="art::Wrapper< std::vector<rb::SSDCluster>    >"/>
 
-  <class name="rb::TrackSegment"    ClassVersion="11">
+  <class name="rb::TrackSegment"    ClassVersion="12">
+   <version ClassVersion="12" checksum="4148609753"/>
    <version ClassVersion="11" checksum="4133908667"/>
     <version ClassVersion="10" checksum="2"/>
   </class>
@@ -111,5 +114,12 @@
    </class>
   <class name="std::vector<rb::CaloHit>"        />
   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
+
+  <class name="rb::Track"    ClassVersion="11">
+   <version ClassVersion="11" checksum="4183331231"/>
+     <version ClassVersion="10" checksum="1"/>
+   </class>
+  <class name="std::vector<rb::Track>"        />
+  <class name="art::Wrapper< std::vector<rb::Track>    >"/>
 
  </lcgdict>

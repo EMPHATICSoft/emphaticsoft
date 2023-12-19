@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_align:
+{
+  AbortIfFileNotFound: true
+}
+
+END_PROLOG

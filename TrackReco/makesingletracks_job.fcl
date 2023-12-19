@@ -4,6 +4,7 @@
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
 #include "DetGeoMap.fcl"
+#include "Align.fcl"
 
 process_name: MakeSingleTracks
 
@@ -13,6 +14,8 @@ services:
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
+  DetGeoMapService: @local::standard_detgeomap
+  AlignService: @local::standard_align
 }
 
 source:
