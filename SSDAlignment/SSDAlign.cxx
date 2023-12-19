@@ -15,95 +15,57 @@ namespace emph {
 
   //----------------------------------------------------------------------
   SSDAlign::SSDAlign() :   
-    _isflip(0), _angle(0.), _strip(0.), _pitch(0.06), _height(0.), _station(0.), _plane(0.), _sensor(0.), _axisindex(0.), _shift(0.), _view(emph::geo::X_VIEW), _x(0.), _y(0.), _z(0.), _u(0.), _v(0.), _event(0.)
+     _pitch(0.06), _station(0.), _plane(0.), _sensor(0.), _axisindex(0.), _shift(0.), _view(emph::geo::X_VIEW), _x(0.), _y(0.), _z(0.), _u(0.), _v(0.), _event(0.)
   {
-
+  }
+  //------------------------------------------------------------
+  SSDAlign::SSDAlign(const emph::geo::Detector &sd, const emph::geo::SSDStation &st)
+  {
+      _view = sd.View();
+	  _z = sd.Pos()[2] + st.Pos()[2];
   }
   
   //------------------------------------------------------------
-  SSDAlign::SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt)
+  SSDAlign::SSDAlign(const rb::SSDCluster &clust, int evt)
   {
-      _isflip = sd.IsFlip();
-	  _angle = sd.Rot();
-	  _strip = clust.AvgStrip();
-      if (_isflip) _strip = 639 - _strip; //flip strip number if sensor is flipped
 	  _pitch = 0.06;
-	  _height = sd.Pos()[0];
 	  _station = clust.Station();
       _plane = clust.Plane();
 	  _sensor = clust.Sensor();
       _axisindex = -999; //needs to be set in program since it is geometry dependent
       _shift = 0;
-      _view = sd.View();
-	  _x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
-	  _y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
-	  _z = sd.Pos()[2] + st.Pos()[2];
+      _view = clust.View();
+      //std::cout<<"new:  x = "<<_x<<"   y = "<<_y<<"   z = "<<_z<<std::endl;
+      //std::cout<<"old:  x = "<<(this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]<<"   y = "<<(this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]<<"   z = "<<sd.Pos()[2] + st.Pos()[2]<<std::endl;
+      _x = 0;
+      _y = 0;
+      _z = 0;
+	  //_x = (this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]; 
+	  //_y = (this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]; 
+	  //_z = sd.Pos()[2] + st.Pos()[2];
 	  _u = (sqrt(2)/2)*(this->X()-this->Y());	
 	  _v = (sqrt(2)/2)*(this->X()+this->Y());	
 	  _event = evt;
   }
 
   //------------------------------------------------------------
-  std::vector<int> SSDAlign::SSDInfo()
-  {
-	  //This function returns a vector in the form (0/1/2,index)
-	  //The first entry denotes whether the ssd measures x(0), y(1), u(2), or v(3)
-	  //Second is the index of the ssd used for alignment later (order they appear in beamline
-	  std::vector<int> ssd_info;
+  void SSDAlign::SetPos(rb::LineSegment ls){
+      double x0[3];
+      double x1[3];
+      double xavg[3];
 
-	  int station = this->Station();
-	  int sensor = this->Sensor();
+      for (int i=0; i<3; ++i){
+        x0[i] = ls.X0()[i];
+        x1[i] = ls.X1()[i];
+        xavg[i] = (x0[i]+x1[i])/2.;
+      }
 
-	  if (station == 0 && sensor == 0) ssd_info = {1,0};
-	  else if (station == 0 && sensor == 1) ssd_info = {0,0};
-	  else if (station == 1 && sensor == 0) ssd_info = {1,1};
-	  else if (station == 1 && sensor == 1) ssd_info = {0,1};
-	  else if (station == 2 && sensor == 1) ssd_info = {1,2};
-	  else if (station == 2 && sensor == 2) ssd_info = {0,2};
-	  else if (station == 3 && sensor == 1) ssd_info = {1,3};
-	  else if (station == 3 && sensor == 2) ssd_info = {0,3};
-	  else if (station == 2 && sensor == 0) ssd_info = {2,2};
-	  else if (station == 3 && sensor == 0) ssd_info = {2,3};
-	  else if (station == 4 && sensor == 0) ssd_info = {0,4};
-	  else if (station == 4 && sensor == 1) ssd_info = {0,5};
-	  else if (station == 4 && sensor == 2) ssd_info = {1,4};
-	  else if (station == 4 && sensor == 3) ssd_info = {1,5};
-	  else if (station == 4 && sensor == 4) ssd_info = {3,4};
-	  else if (station == 4 && sensor == 5) ssd_info = {3,5};
-	  else if (station == 5 && sensor == 0) ssd_info = {0,6};
-	  else if (station == 5 && sensor == 1) ssd_info = {0,7};
-	  else if (station == 5 && sensor == 2) ssd_info = {1,6};
-	  else if (station == 5 && sensor == 3) ssd_info = {1,7};
-	  else if (station == 5 && sensor == 4) ssd_info = {3,6};
-	  else if (station == 5 && sensor == 5) ssd_info = {3,7};
-
-	  else{ssd_info = {-1,-1}; std::cout<<"station and mod "<< station<< " "<<sensor<<std::endl;}
-
-	  return ssd_info;
-  }
-
-  //------------------------------------------------------------
-  void SSDAlign::SSDHitPosition(std::vector<std::vector<double>>& xpos, std::vector<std::vector<double>>& ypos,std::vector<std::vector<double>>& upos, std::vector<std::vector<double>>& vpos)
-  {
-  	  std::vector<int> ssd_info = this->SSDInfo();
-
-	  if(ssd_info[0]==0){
-		double x = this->X();
-		xpos[ssd_info[1]].push_back(x);	
-	  }
-	  if(ssd_info[0]==1){
-		double y = this->Y();
-		ypos[ssd_info[1]].push_back(y);	
-	  }
-	  if(ssd_info[0]==2){
-	  	double u = this->U();
-	        upos[ssd_info[1]].push_back(u);	
-	  }
-	  if(ssd_info[0]==3){
-	  	double v = this->V();
-	        vpos[ssd_info[1]].push_back(v);	
-	  }
-	  
+      SetX(xavg[0]);
+      SetY(xavg[1]);
+      SetZ(xavg[2]);
+  
+      SetU((sqrt(2)/2)*(xavg[0]-xavg[1]));
+      SetV((sqrt(2)/2)*(xavg[0]+xavg[1]));
   }
 
   //------------------------------------------------------------
@@ -125,7 +87,7 @@ namespace emph {
 
     //Possible operation to filter noisy channels
 
-    //Returns true if there is only 1 hit recorded
+    //Returns true if tt rb::SSDCluster &cluster is only 1 hit recorded
     if (hits.size()==1) return true;
     else return false;
   }
@@ -160,25 +122,30 @@ namespace emph {
   //------------------------------------------------------------
   bool SSDAlign::IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& evt,const int& nstations)
   {
-    int flag=0;
     std::vector<int> stations_hit;
     //std::cout<<"Number of stations: "<< nstations<< "     hits: "<<evt.size()<<std::endl;
-    //Require equal number of hits to stations
-    if (evt.size()!=static_cast<size_t>(nstations)){
+    //Not an alignment event if there are more hits than stations or fewer than 3 hits
+    if (evt.size()>static_cast<size_t>(nstations) || evt.size()<3){
         return false;
     }
+    //Throw away events with multiple hits per station
     else{
         for (size_t i=0; i<evt.size(); ++i){
             stations_hit.push_back(evt[i].Station());
         }
         std::sort(stations_hit.begin(),stations_hit.end());
-        for (int i=0; i<nstations; ++i){
-            if (stations_hit[i]!=i) flag+=1;
-        }
-    }
+        //after sorting stations hit, if there exist hits in the same station then it is not good for alignment
+        bool s = std::adjacent_find(stations_hit.begin(), stations_hit.end()) != stations_hit.end();
+        //if (evt[0].Event()==46) {
+        //    for (size_t i=0; i<stations_hit.size(); ++i){
+        //        std::cout<<stations_hit[i]<<"  ";
+        //    }
+        //    std::cout<<std::endl;
+        //}
 
-    if(flag==0) return true;
-    else return false;
+        if(s) return false;
+        else return true;
+    }
   }
 
   //------------------------------------------------------------
@@ -199,7 +166,9 @@ namespace emph {
     const bool s = std::adjacent_find(stations_hit.begin(), stations_hit.end()) != stations_hit.end();
     const bool sx = std::adjacent_find(xstations_hit.begin(), xstations_hit.end()) != xstations_hit.end();
     const bool sy = std::adjacent_find(ystations_hit.begin(), ystations_hit.end()) != ystations_hit.end();
-
+    
+    //reject any event with multiple hits in tilted axis
+    //if (s) return false;
     std::vector<emph::al::SSDAlign> new_holder;
 
     //reject any event that contains multiple hits per axis and station
@@ -231,13 +200,6 @@ namespace emph {
     //Reformatting event to hold relevent x/y SSDAlign objects
     evt.clear();
     evt = new_holder;
-
-    //std::cout<<"views : "<<std::endl;
-    //for (size_t i =0; i<evt.size(); ++i){
-    //    std::cout<<evt[i].View()<<"  ";
-    //}
-    //std::cout<<"      stations hitsize: "<<stations_hit.size()<<"   first station hit: "<<stations_hit[0];
-    //std::cout<<std::endl;
 
     if (stations_hit.size()==0) return false;
     else return true;
@@ -408,9 +370,7 @@ namespace emph {
   std::ostream& operator<< (std::ostream& o, const SSDAlign& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-    o << " SSD Strip = "     << std::setw(5) << std::right << h.Strip()
-      << " Angle = "     << std::setw(5) << std::right << h.Angle()
-      << " Pitch = "        << std::setw(5) << std::right << h.Pitch()     
+    o << " Pitch = "        << std::setw(5) << std::right << h.Pitch()     
       << " Event Number  = "        << std::setw(5) << std::right << h.Event();
     return o;
   }

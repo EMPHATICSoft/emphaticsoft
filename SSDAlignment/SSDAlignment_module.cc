@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to create alignment constants for SSD
+/// \brief   Analyzer module to create alignment constants for SSD
 ///          alignment
 /// \author  $Author: jmirabit@bu.edu and wanly@bu.edu$
 ////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 #include "TF1.h"
 
 // Framework includes
-#include "art/Framework/Core/EDProducer.h"
+#include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -37,40 +37,44 @@
 #include "Geometry/DetectorDefs.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/service/GeometryService.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 #include "RawData/TRB3RawDigit.h"
 #include "SSDAlignment/SSDAlign.h"
 #include "RecoBase/SSDCluster.h"
 
-using namespace emph;
+//using namespace emph;
 
-///package to illustrate how to write modules
 namespace emph {
 
     ///
-    class SSDAlignment : public art::EDProducer {
+    class SSDAlignment : public art::EDAnalyzer {
         public:
             explicit SSDAlignment(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
             ~SSDAlignment();
 
             // Optional, read/write access to event
-            void produce(art::Event& evt);
+            void analyze(const art::Event& evt);
 
             // Optional if you want to be able to configure from event display, for example
-            void reconfigure(const fhicl::ParameterSet& pset);
+            //void reconfigure(const fhicl::ParameterSet& pset);
 
             // Optional use if you have histograms, ntuples, etc you want around for every event
             void beginJob();
-            void beginRun(art::Run& run);
-            //      void endSubRun(art::SubRun const&);
             void endJob();
-            void Fit();
+            void Initialize();
+            void SSDFit();
 
         private:
 
             art::ServiceHandle<emph::geo::GeometryService> geom;
             art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+            art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
 
-            int fEvtNum;
+            int nxsensors=0;
+            int nysensors=0;
+            int nusensors=0;
+            int nvsensors=0;
+            std::vector<rb::SSDCluster> clusters;
             std::vector<emph::al::SSDAlign> ssdvec;
             std::vector<emph::al::SSDAlign> evt_holder;
             std::vector<emph::al::SSDAlign> xevt_holder;
@@ -89,15 +93,13 @@ namespace emph {
             std::vector<TH1F*> fY_Residual_Fin;
             std::vector<TH1F*> fU_Residual_Fin;
             std::vector<TH1F*> fV_Residual_Fin;
+            std::array<TH1F*,4> fInit_Chi2;
+            std::array<TH1F*,4> fFin_Chi2;
             TGraph* evt_line;
             TGraph** evt_disp;
             TGraph** evt_disp_adj;
             TF1* fit;
             art::ServiceHandle<art::TFileService> tfs;
-            std::vector<double> xzpos;
-            std::vector<double> yzpos;
-            std::vector<double> uzpos;
-            std::vector<double> vzpos;
             int nstations;
             int nssds;
             int max_sensors=0;
@@ -109,12 +111,11 @@ namespace emph {
     //.......................................................................
 
     SSDAlignment::SSDAlignment(fhicl::ParameterSet const& pset)
-        : EDProducer(pset)
+        : EDAnalyzer(pset)
     {
         //this->reconfigure(pset);
         evt_disp = new TGraph*[10];
         evt_disp_adj = new TGraph*[10];
-        fEvtNum = 0;
     }
 
     //......................................................................
@@ -136,179 +137,170 @@ namespace emph {
 
     void SSDAlignment::beginJob()
     {
-
     }
 
     //......................................................................
 
-    void SSDAlignment::beginRun(art::Run& run)
+    void SSDAlignment::Initialize()
     {
-        if(first_run){
-            // initialize channel map
-            auto fChannelMap = cmap->CMap();
-            auto emgeo = geom->Geo();
+        // initialize channel map
+        auto fChannelMap = cmap->CMap();
+        auto emgeo = geom->Geo();
 
-            nstations = emgeo->NSSDStations();
-            nssds = emgeo->NSSDs();
-            xzpos.resize(nssds); yzpos.resize(nssds); uzpos.resize(nssds); vzpos.resize(nssds);
+        nstations = emgeo->NSSDStations();
+        nssds = emgeo->NSSDs();
 
-            //resizing to fill with z positions
-            int tempxindex=0;
-            int tempyindex=0;
-            int tempuindex=0;
-            int tempvindex=0;
+        //resizing to fill with z positions
+        std::cout<<"SSD Stations and Axis Indices Below:"<<std::endl;
+        std::array<std::string,5> sensorviews = {"init","x","y","u","w"};
+        for (int fer=0; fer<10; ++fer){
+            for (int mod=0; mod<6; ++mod){
+                emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
+                if (!fChannelMap->IsValidEChan(echan)) continue;
+                emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 
-            std::cout<<"SSD Stations and Axis Indices Below:"<<std::endl;
-            std::array<std::string,5> sensorviews = {"init","x","y","u","w"};
-            for (int fer=0; fer<10; ++fer){
-                for (int mod=0; mod<6; ++mod){
-                    emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
-                    if (!fChannelMap->IsValidEChan(echan)) continue;
-                    emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+                const emph::geo::SSDStation *st = emgeo->GetSSDStation(dchan.Station());
+                const emph::geo::Plane      *pln = st->GetPlane(dchan.Plane());
+                const emph::geo::Detector   *sd = pln->SSD(dchan.HiLo());
 
-                    const emph::geo::SSDStation *st = emgeo->GetSSDStation(dchan.Station());
-                    const emph::geo::Plane      *pln = st->GetPlane(dchan.Plane());
-                    const emph::geo::Detector   *sd = pln->SSD(dchan.HiLo());
+                //rb::SSDCluster null_clust;
+                //emph::al::SSDAlign sensor_info(null_clust,*sd,*st,0);
+                emph::al::SSDAlign sensor_info(*sd,*st);
+                std::vector<int> sps = {dchan.Station(),dchan.Plane(),dchan.HiLo()};
 
-                    rb::SSDCluster null_clust;
-                    emph::al::SSDAlign sensor_info(null_clust,*sd,*st,0);
-                    std::vector<int> sps = {dchan.Station(),dchan.Plane(),dchan.HiLo()};
-
-                    if(sensor_info.View()==emph::geo::X_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,tempxindex));
-                        xzpos[tempxindex] = sensor_info.Z();
-                        tempxindex+=1;
-                    }
-                    if(sensor_info.View()==emph::geo::Y_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,tempyindex));
-                        yzpos[tempyindex] = sensor_info.Z();
-                        tempyindex+=1;
-                    }
-                    if(sensor_info.View()==emph::geo::U_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,tempuindex));
-                        uzpos[tempuindex] = sensor_info.Z();
-                        tempuindex+=1;
-                    }
-                    if(sensor_info.View()==emph::geo::W_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,tempvindex));
-                        vzpos[tempvindex] = sensor_info.Z();
-                        tempvindex+=1;
-                    }
-                    std::cout<<"***** Testing map index: "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"    Flipped = " << sensor_info.IsFlip()<<"   view: "<<sensorviews[sensor_info.View()]<<"  angle: "<<sensor_info.Angle()<<std::endl;
+                if(sensor_info.View()==emph::geo::X_VIEW){
+                    spsindex.insert(std::pair<std::vector<int>,int>(sps,nxsensors));
+                    nxsensors+=1;
                 }
+                if(sensor_info.View()==emph::geo::Y_VIEW){
+                    spsindex.insert(std::pair<std::vector<int>,int>(sps,nysensors));
+                    nysensors+=1;
+                }
+                if(sensor_info.View()==emph::geo::U_VIEW){
+                    spsindex.insert(std::pair<std::vector<int>,int>(sps,nusensors));
+                    nusensors+=1;
+                }
+                if(sensor_info.View()==emph::geo::W_VIEW){
+                    spsindex.insert(std::pair<std::vector<int>,int>(sps,nvsensors));
+                    nvsensors+=1;
+                }
+                if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
+                std::cout<<"***** Testing map index: "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"   view: "<<sensorviews[sensor_info.View()]<<"   rotation = "<<sd->Rot()<<"  "<<sd->Rot()*180/3.1415<<std::endl;
             }
-            //Remove duplicate members
-            xzpos.erase( unique( xzpos.begin(), xzpos.end() ), xzpos.end() );
-            yzpos.erase( unique( yzpos.begin(), yzpos.end() ), yzpos.end() );
-            uzpos.erase( unique( uzpos.begin(), uzpos.end() ), uzpos.end() );
-            vzpos.erase( unique( vzpos.begin(), vzpos.end() ), vzpos.end() );
-
-            xzpos.resize(tempxindex); yzpos.resize(tempyindex); uzpos.resize(tempuindex); vzpos.resize(tempvindex);
-            std::vector<double>::iterator max_result;
-            max_result = std::max_element(xzpos.begin(), xzpos.end());
-
-            max_z = static_cast<int>(*max_result+50);
-            std::cout<<"Maximum z value for fit: "<<max_z<<" mm"<<std::endl;
-
-            fSSD_Profile.resize(nstations); fadj_SSD_Profile.resize(nstations);
-            fXSSD_Profile.resize(nstations); fYSSD_Profile.resize(nstations);
-            fUSSD_Profile.resize(nstations);
-            fVSSD_Profile.resize(nstations);
-            fX_Residual_Init.resize(tempxindex); fY_Residual_Init.resize(tempyindex);
-            fX_Residual_Fin.resize(tempxindex); fY_Residual_Fin.resize(tempyindex);
-            fU_Residual_Fin.resize(tempxindex); fV_Residual_Fin.resize(tempyindex);
-            char hname[64];
-            for (int i=0; i<nstations; ++i) {
-                sprintf(hname,"SSDProfile_%d",i);
-                fSSD_Profile[i] = tfs->make<TH2F>(hname,Form("Station %i",i),160,-40,40,160,-40,40);
-                fSSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
-                fSSD_Profile[i]->GetYaxis()->SetTitle("Y Position (mm)");
-                //fSSD_Profile[i]->SetBit(TH1::kNoStats);
-            }
-
-            for (int i=0; i<nstations; ++i) {
-                sprintf(hname,"adj_SSDProfile_%d",i);
-                fadj_SSD_Profile[i] = tfs->make<TH2F>(hname,Form("Station %i",i),160,-40,40,160,-40,40);
-                fadj_SSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
-                fadj_SSD_Profile[i]->GetYaxis()->SetTitle("Y Position (mm)");
-                //fadj_SSD_Profile[i]->SetBit(TH1::kNoStats);
-            }
-
-            for (int i=0; i<nstations; ++i) {
-                sprintf(hname,"x_SSDProfile_%d",i);
-                fXSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Station %i",i),160,-40,40);
-                fXSSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
-            }
-            for (int i=0; i<nstations; ++i) {
-                sprintf(hname,"y_SSDProfile_%d",i);
-                fYSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Station %i",i),160,-40,40);
-
-            }
-            for (int i=0; i<nstations; ++i) {
-                sprintf(hname,"u_SSDProfile_%d",i);
-                fUSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Station %i",i),160,-40,40);
-                fUSSD_Profile[i]->GetXaxis()->SetTitle("U Position (mm)");
-            }
-            for (int i=0; i<nstations; ++i) {
-                sprintf(hname,"v_SSDProfile_%d",i);
-                fVSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Station %i",i),160,-40,40);
-                fVSSD_Profile[i]->GetXaxis()->SetTitle("U Position (mm)");
-            }
-
-            for (int i=0; i<tempxindex; ++i) {
-                sprintf(hname,"XInit_Resid_%d",i);
-                fX_Residual_Init[i] = tfs->make<TH1F>(hname,Form("Initial X Residuals - SSD %i",i),200,-5,5);
-                fX_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
-                fX_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
-            }
-            for (int i=0; i<tempyindex; ++i) {
-                sprintf(hname,"YInit_Resid_%d",i);
-                fY_Residual_Init[i] = tfs->make<TH1F>(hname,Form("Initial Y Residuals - SSD %i",i),200,-10,10);
-                fY_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
-                fY_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
-            }
-            for (int i=0; i<tempxindex; ++i) {
-                sprintf(hname,"XFin_Resid_%d",i);
-                fX_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final X Residuals - SSD %i",i),200,-5,5);
-                fX_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
-                fX_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
-            }
-            for (int i=0; i<tempyindex; ++i) {
-                sprintf(hname,"YFin_Resid_%d",i);
-                fY_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final Y Residuals - SSD %i",i),200,-10,10);
-                fY_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
-                fY_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
-            }
-            for (int i=0; i<tempuindex; ++i) {
-                sprintf(hname,"UFin_Resid_%d",i);
-                fU_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final U Residuals - SSD %i",i),200,-10,10);
-                fU_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
-                fU_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
-            }
-            for (int i=0; i<tempvindex; ++i) {
-                sprintf(hname,"VFin_Resid_%d",i);
-                fV_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final V Residuals - SSD %i",i),200,-10,10);
-                fV_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
-                fV_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
-            }
-            first_run=0;
         }
+        //Remove duplicate members
+        fSSD_Profile.resize(nstations); fadj_SSD_Profile.resize(nstations);
+        fXSSD_Profile.resize(nstations); fYSSD_Profile.resize(nstations);
+        fUSSD_Profile.resize(nstations);
+        fVSSD_Profile.resize(nstations);
+        fX_Residual_Init.resize(nxsensors); fY_Residual_Init.resize(nysensors);
+        fX_Residual_Fin.resize(nxsensors); fY_Residual_Fin.resize(nysensors);
+        fU_Residual_Fin.resize(nxsensors); fV_Residual_Fin.resize(nysensors);
+        std::array<const char*,4> pos_strings = {"x","y","u","v"};
+        char hname[64];
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"SSDProfile_%d",i);
+            fSSD_Profile[i] = tfs->make<TH2F>(hname,Form("Station %i",i),160,-40,40,160,-40,40);
+            fSSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
+            fSSD_Profile[i]->GetYaxis()->SetTitle("Y Position (mm)");
+            //fSSD_Profile[i]->SetBit(TH1::kNoStats);
+        }
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"adj_SSDProfile_%d",i);
+            fadj_SSD_Profile[i] = tfs->make<TH2F>(hname,Form("Station %i",i),160,-40,40,160,-40,40);
+            fadj_SSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
+            fadj_SSD_Profile[i]->GetYaxis()->SetTitle("Y Position (mm)");
+            //fadj_SSD_Profile[i]->SetBit(TH1::kNoStats);
+        }
+
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"x_SSDProfile_%d",i);
+            fXSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Sensor %i",i),160,-40,40);
+            fXSSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
+        }
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"y_SSDProfile_%d",i);
+            fYSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Sensor %i",i),160,-40,40);
+            fYSSD_Profile[i]->GetXaxis()->SetTitle("Y Position (mm)");
+        }
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"u_SSDProfile_%d",i);
+            fUSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Sensor %i",i),160,-40,40);
+            fUSSD_Profile[i]->GetXaxis()->SetTitle("U Position (mm)");
+        }
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"v_SSDProfile_%d",i);
+            fVSSD_Profile[i] = tfs->make<TH1F>(hname,Form("Sensor %i",i),160,-40,40);
+            fVSSD_Profile[i]->GetXaxis()->SetTitle("V Position (mm)");
+        }
+
+        for (int i=0; i<nxsensors; ++i) {
+            sprintf(hname,"XInit_Resid_%d",i);
+            fX_Residual_Init[i] = tfs->make<TH1F>(hname,Form("Initial X Residuals - SSD %i",i),400,-40,40);
+            fX_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
+            fX_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<nysensors; ++i) {
+            sprintf(hname,"YInit_Resid_%d",i);
+            fY_Residual_Init[i] = tfs->make<TH1F>(hname,Form("Initial Y Residuals - SSD %i",i),400,-40,40);
+            fY_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
+            fY_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<nxsensors; ++i) {
+            sprintf(hname,"XFin_Resid_%d",i);
+            fX_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final X Residuals - SSD %i",i),400,-40,40);
+            fX_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
+            fX_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<nysensors; ++i) {
+            sprintf(hname,"YFin_Resid_%d",i);
+            fY_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final Y Residuals - SSD %i",i),400,-40,40);
+            fY_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
+            fY_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<nusensors; ++i) {
+            sprintf(hname,"UFin_Resid_%d",i);
+            fU_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final U Residuals - SSD %i",i),400,-40,40);
+            fU_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
+            fU_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<nvsensors; ++i) {
+            sprintf(hname,"VFin_Resid_%d",i);
+            fV_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final V Residuals - SSD %i",i),400,-40,40);
+            fV_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
+            fV_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<4; ++i) {
+            sprintf(hname,"%sInit_Chi2",pos_strings[i]);
+            fInit_Chi2[i] = tfs->make<TH1F>(hname,Form("Initial Chi2 - %s",pos_strings[i]),200,0,40);
+            fInit_Chi2[i]->GetXaxis()->SetTitle("Chi^2");
+            fInit_Chi2[i]->GetYaxis()->SetTitle("Counts");
+        }
+        for (int i=0; i<4; ++i) {
+            sprintf(hname,"%sFin_Chi2",pos_strings[i]);
+            fFin_Chi2[i] = tfs->make<TH1F>(hname,Form("Final Chi2 - %s",pos_strings[i]),200,0,40);
+            fFin_Chi2[i]->GetXaxis()->SetTitle("Chi^2");
+            fFin_Chi2[i]->GetYaxis()->SetTitle("Counts");
+        }
+        first_run=0;
     }
 
     //......................................................................
 
     void SSDAlignment::endJob()
     {
-        Fit();
+        SSDFit();
         //Then output the alignment constants to ConstBase/SSDAlignment.dat
     }
 
     //......................................................................
 
-    void SSDAlignment::Fit()
+    void SSDAlignment::SSDFit()
     {
-        //Fit the ssdvectors and obtain x, y shifts
+        //First we need to initialize SSD configuration and plots based on the geometry
+        if (first_run) Initialize();
 
+        //Fit the ssdvectors and obtain x, y shifts
         std::cout<<"*******************************************"<<std::endl;
         std::cout<<"Main code"<<std::endl;
 
@@ -317,11 +309,12 @@ namespace emph {
         std::vector<std::vector<emph::al::SSDAlign>> y_cal;
         std::vector<std::vector<emph::al::SSDAlign>> u_cal;
         std::vector<std::vector<emph::al::SSDAlign>> v_cal;
-        
+
 
         //Position uncertainty of SSDs
         std::cout<<"ssdvec size is  "<<ssdvec.size()<<std::endl;
-        double sigma = ssdvec[0].Pitch()/(sqrt(12));
+        double sigma = 0.06/(sqrt(12)); // pitch=0.06
+        //double sigma = 1;
         int nevt = ssdvec[0].Event(); //Variable to keep track of event number
 
         //Looping over all SSD hits
@@ -368,71 +361,59 @@ namespace emph {
             evt_holder.push_back(ssdvec[i]);
         }
 
-        //Aligning SSDs below
-        std::cout<<"Z positions of X SSDs:   ";
-        for (size_t i=0; i<xzpos.size(); ++i){
-            std::cout<<xzpos[i]<<", ";
-        }
-        std::cout<<std::endl;
-        std::cout<<"Z positions of Y SSDs:   ";
-        for (size_t i=0; i<yzpos.size(); ++i){
-            std::cout<<yzpos[i]<<", ";
-        }
-        std::cout<<std::endl;	
-        std::cout<<"Z positions of U SSDs:   ";
-        for (size_t i=0; i<uzpos.size(); ++i){
-            std::cout<<uzpos[i]<<", ";
-        }
-        std::cout<<std::endl;	
-        std::cout<<"Z positions of V SSDs:   ";
-        for (size_t i=0; i<vzpos.size(); ++i){
-            std::cout<<vzpos[i]<<", ";
-        }
-        std::cout<<std::endl;	
-
         //Residual Method of Alignment
-        int loops=100;
+        int loops=2;
         size_t dim = nstations; //number of position measurements
         art::ServiceHandle<art::TFileService> tfs;
         std::cout<<"Dimension: "<<dim<<std::endl;
 
         //Linear Fit function
         TF1* fit = new TF1("fit","[0] +[1]*x",0,max_z);
-        std::vector<double> x_shifts(xzpos.size(),0);
-        std::vector<double> y_shifts(yzpos.size(),0);
-        std::vector<double> u_shifts(uzpos.size(),0);
-        std::vector<double> v_shifts(vzpos.size(),0);
+        std::vector<double> x_shifts(nxsensors,0);
+        std::vector<double> y_shifts(nysensors,0);
+        std::vector<double> u_shifts(nusensors,0);
+        std::vector<double> v_shifts(nvsensors,0);
 
         int bindex = 0;
-        std::cout<<"Number of X Alignment Events: "<<x_cal.size()<<std::endl;
         for (int i=0; i<loops; ++i){
             std::cout<<"Beginning Loop "<<i<<std::endl;
-            std::vector<std::vector<double>> xres_array(nssds);
-            std::vector<double> x_adj(nstations);
-            std::vector<int> x_ind(nstations);
-
+            std::vector<std::vector<double>> xres_array(nxsensors);
+            
             //Looping through alignment events and calculating x-residuals
             for (size_t j=0; j<x_cal.size(); ++j){
-                //if(i==0 && j<10)std::cout<<"*** new event ***     event size = "<<x_cal[j].size()<<std::endl;
-                std::vector<emph::al::SSDAlign> x_evt = x_cal[j];
-                for (size_t k=0; k<dim; ++k){
+                size_t event_hits = x_cal[j].size(); //number of SSD sensors hit in event
+                std::vector<emph::al::SSDAlign*> x_evt(event_hits);
+                for (size_t k=0; k<x_cal[j].size(); ++k) x_evt[k] = &x_cal[j][k]; 
+                std::vector<double> x_adj(event_hits);
+                std::vector<double> xzpos(event_hits);
+                std::vector<int> x_ind(event_hits);
+
+                for (size_t k=0; k<event_hits; ++k){
                     //Set Shift (will be 0 for first loop)
-                    x_evt[k].SetShift(x_shifts[x_evt[k].AxisIndex()]);
-                    x_adj[k] = x_evt[k].X() - x_evt[k].Shift();
+                    x_evt[k]->SetShift(x_shifts[x_evt[k]->AxisIndex()]);
+                    x_adj[k] = x_evt[k]->X() - x_evt[k]->Shift();
+                    xzpos[k] = x_evt[k]->Z();
                     //if(i==0 && j<10)std::cout<<"x measured = "<<x_adj[k]<<"   x raw ="<< x_evt[k].X()<<"    index = "<<x_evt[k].AxisIndex()<<"   k = "<<k<<std::endl;
-                    x_ind[k] = x_evt[k].AxisIndex();
+                    x_ind[k] = x_evt[k]->AxisIndex();
                 }
 
-                TGraph* evt_line = new TGraph(dim, &xzpos[0], &x_adj[0]);
+                TGraph* evt_line = new TGraph(event_hits, &xzpos[0], &x_adj[0]);
                 evt_line->Fit(fit,"Q0");
 
                 //Checking Residual for each point
-                for(size_t k=0; k<dim; ++k){
-                    double res = x_adj[k] - fit->Eval(xzpos[k],0,0);
+                for(size_t k=0; k<event_hits; ++k){
+                    double res = x_adj[k] - fit->Eval(xzpos[k]);
+                    double chi2 = (res*res)/(sigma*sigma);
 
                     //Filling residual plots using correct index of SSD
-                    if(i==0) fX_Residual_Init[x_ind[k]]->Fill(res/sigma);
-                    if(i==loops-1) fX_Residual_Fin[x_ind[k]]->Fill(res/sigma);
+                    if(i==1){
+                        fX_Residual_Init[x_ind[k]]->Fill(res/sigma);
+                        fInit_Chi2[0]->Fill(chi2);
+                    }
+                    if(i==loops-1){
+                        fX_Residual_Fin[x_ind[k]]->Fill(res/sigma);
+                        fFin_Chi2[0]->Fill(chi2);
+                    }
                     xres_array[x_ind[k]].push_back(res);
 
                     //Removing events that have very poor alignment
@@ -443,9 +424,9 @@ namespace emph {
                 }
                 delete evt_line;
                 //Store first 10 events (unaligned) to look at
-                int event_holder = x_evt[0].Event();
+                int event_holder = x_evt[0]->Event();
                 if (j<10 && i==0){
-                    evt_disp[j] = tfs->makeAndRegister<TGraph>(Form("event_%i",event_holder),"Unaligned Event",dim, &xzpos[0], &x_adj[0]);
+                    evt_disp[j] = tfs->makeAndRegister<TGraph>(Form("event_%i",event_holder),"Unaligned Event",event_hits, &xzpos[0], &x_adj[0]);
                     evt_disp[j]->Fit(fit,"Q");
                     evt_disp[j]->SetMarkerStyle(21);
                     evt_disp[j]->SetTitle(Form("Unaligned Event %i",event_holder));
@@ -454,11 +435,11 @@ namespace emph {
                     evt_disp[j]->GetYaxis()->SetTitle("x pos (mm)");
                     evt_disp[j]->GetYaxis()->SetRangeUser(-40,40);
                 }	
-                //if (bindex<10 && i==loops-1 && x_ind[5]==6){
+                //if (bindex<10 && i==loops-1 && x_ind[5]==6)
                 if (j<10 && i==loops-1){
                     bindex+=1;
-                    std::cout<<"x_ind[5]=="<<x_ind[5]<<std::endl;
-                    evt_disp_adj[bindex] = tfs->makeAndRegister<TGraph>(Form("adj_event_%i",event_holder),"Aligned Event",dim, &xzpos[0], &x_adj[0]);
+                    //std::cout<<"x_ind[5]=="<<x_ind[5]<<std::endl;
+                    evt_disp_adj[bindex] = tfs->makeAndRegister<TGraph>(Form("adj_event_%i",event_holder),"Aligned Event",event_hits, &xzpos[0], &x_adj[0]);
                     evt_disp_adj[bindex]->Fit(fit,"Q");
                     evt_disp_adj[bindex]->SetMarkerStyle(21);
                     evt_disp_adj[bindex]->SetTitle(Form("Aligned Event %i",event_holder));
@@ -467,39 +448,55 @@ namespace emph {
                     evt_disp_adj[bindex]->GetYaxis()->SetTitle("x pos (mm)");
                     evt_disp_adj[bindex]->GetYaxis()->SetRangeUser(-40,40);
                 }
+                //Clear vectors that are redefined at top 
+                x_evt.clear(); x_adj.clear(); xzpos.clear(); x_ind.clear();
             }
 
             //Repeat Process for Y
-            std::vector<std::vector<double>> yres_array(nssds);
-            std::vector<double> y_adj(nstations);
-            std::vector<int> y_ind(nstations);
-
+            std::vector<std::vector<double>> yres_array(nysensors);
+            
             //Looping through alignment events and calculating y-residuals
             for (size_t j=0; j<y_cal.size(); ++j){
-                std::vector<emph::al::SSDAlign> y_evt = y_cal[j];
-                for (size_t k=0; k<dim; ++k){
-                    y_evt[k].SetShift(y_shifts[y_evt[k].AxisIndex()]);
-                    y_adj[k] = y_evt[k].Y() - y_evt[k].Shift();
-                    y_ind[k] = y_evt[k].AxisIndex();
+                size_t event_hits = y_cal[j].size();
+                std::vector<emph::al::SSDAlign*> y_evt(event_hits);
+                for (size_t k=0; k<y_cal[j].size(); ++k) y_evt[k] = &y_cal[j][k]; 
+                std::vector<double> y_adj(event_hits);
+                std::vector<double> yzpos(event_hits);
+                std::vector<int> y_ind(event_hits);
+                for (size_t k=0; k<event_hits; ++k){
+                    y_evt[k]->SetShift(y_shifts[y_evt[k]->AxisIndex()]);
+                    y_adj[k] = y_evt[k]->Y() - y_evt[k]->Shift();
+                    yzpos[k] = y_evt[k]->Z();
+                    y_ind[k] = y_evt[k]->AxisIndex();
                 }
-                TGraph* evt_line = new TGraph(dim, &yzpos[0], &y_adj[0]);
+                TGraph* evt_line = new TGraph(event_hits, &yzpos[0], &y_adj[0]);
                 evt_line->Fit(fit,"Q0");
 
                 //Checking Residual for each point
-                for(size_t k=0; k<dim; ++k){
+                for(size_t k=0; k<event_hits; ++k){
                     double res = y_adj[k] - fit->Eval(yzpos[k],0,0);
+                    double chi2 = (res*res)/(sigma*sigma);
 
                     //Filling residual plots using correct index of SSD
-                    if(i==0) fY_Residual_Init[y_ind[k]]->Fill(res/sigma);
-                    if(i==loops-1) fY_Residual_Fin[y_ind[k]]->Fill(res/sigma);
+                    if(i==1){
+                        fY_Residual_Init[y_ind[k]]->Fill(res/sigma);
+                        fInit_Chi2[1]->Fill(chi2);
+                    }
+                    if(i==loops-1){
+                        fY_Residual_Fin[y_ind[k]]->Fill(res/sigma);
+                        fFin_Chi2[1]->Fill(chi2);
+                    }
                     yres_array[y_ind[k]].push_back(res);
                 }
                 delete evt_line;
+                //Clear vectors that are redefined at top 
+                y_evt.clear(); y_adj.clear(); yzpos.clear(); y_ind.clear();
             }
 
             //Repeat Process for U
-            std::vector<std::vector<double>> ures_array(nssds);
+            std::vector<std::vector<double>> ures_array(nusensors);
             std::vector<double> u_adj(nstations);
+            std::vector<double> uzpos(nstations);
             std::vector<int> u_ind(nstations);
 
             //Looping through alignment events and calculating u-residuals
@@ -512,6 +509,7 @@ namespace emph {
                     if(u_evt[evt_index].View()==emph::geo::U_VIEW){
                         u_evt[evt_index].SetShift(u_shifts[u_evt[evt_index].AxisIndex()]);
                         u_adj[k] = u_evt[evt_index].U() - u_evt[evt_index].Shift();
+                        uzpos[k] = u_evt[k].U();
                         //if(i==1 && j<10)std::cout<<"u measured = "<<u_adj[k]<<"   u raw ="<< u_evt[evt_index].U()<<"    index = "<<u_evt[evt_index].AxisIndex()<<"   k = "<<k<<std::endl;
                         u_ind[k] = u_evt[evt_index].AxisIndex();
                         evt_index+=1;
@@ -524,6 +522,7 @@ namespace emph {
                         temp_yval = u_evt[evt_index].Y() - u_evt[evt_index].Shift();
                         evt_index+=1;
                         u_adj[k] = (sqrt(2)/2)*(temp_xval-temp_yval);
+                        uzpos[k] = u_evt[evt_index].Z();
                         //std::cout<<"is this working?   "<<u_adj[k]<<"   index"<<k<<std::endl;
                     }
                 }
@@ -533,17 +532,27 @@ namespace emph {
                 //Checking Residual for each point
                 for(size_t k=0; k<dim; ++k){
                     double res = u_adj[k] - fit->Eval(uzpos[k],0,0);
+                    double chi2 = (res*res)/(sigma*sigma);
 
                     //Filling residual plots using correct index of SSD
-                    if(i==loops-1) fU_Residual_Fin[u_ind[k]]->Fill(res/sigma);
+                    if(i==1){
+                        fInit_Chi2[2]->Fill(chi2);
+                    }
+                    if(i==loops-1){
+                        fU_Residual_Fin[u_ind[k]]->Fill(res/sigma);
+                        fFin_Chi2[2]->Fill(chi2);
+                    }
                     ures_array[u_ind[k]].push_back(res);
                 }
                 delete evt_line;
+                //Clear vectors that are redefined at top 
+                u_evt.clear(); u_adj.clear(); uzpos.clear(); u_ind.clear();
             }
 
             //Repeat Process for V
-            std::vector<std::vector<double>> vres_array(nssds);
+            std::vector<std::vector<double>> vres_array(nvsensors);
             std::vector<double> v_adj(nstations);
+            std::vector<double> vzpos(nstations);
             std::vector<int> v_ind(nstations);
 
             for (size_t j=0; j<v_cal.size(); ++j){
@@ -554,6 +563,7 @@ namespace emph {
                     if(v_evt[evt_index].View()==emph::geo::W_VIEW){
                         v_evt[evt_index].SetShift(v_shifts[v_evt[evt_index].AxisIndex()]);
                         v_adj[k] = v_evt[evt_index].V() - v_evt[evt_index].Shift();
+                        vzpos[k] = v_evt[k].Z();
                         //if(i==loops-1 && j<10)std::cout<<"v measured = "<<v_adj[k]<<"   v raw ="<< v_evt[evt_index].V()<<"    index = "<<v_evt[evt_index].AxisIndex()<<"   k = "<<k<<std::endl;
                         v_ind[k] = v_evt[evt_index].AxisIndex();
                         evt_index+=1;
@@ -565,6 +575,7 @@ namespace emph {
                         temp_yval = v_evt[evt_index].Y() - v_evt[evt_index].Shift();
                         evt_index+=1;
                         v_adj[k] = (sqrt(2)/2)*(temp_xval+temp_yval);
+                        vzpos[k] = v_evt[evt_index].Z();
                     }
                 }
 
@@ -574,12 +585,21 @@ namespace emph {
                 //Checking Residual for each point
                 for(size_t k=0; k<dim; ++k){
                     double res = v_adj[k] - fit->Eval(vzpos[k],0,0);
+                    double chi2 = (res*res)/(sigma*sigma);
 
                     //Filling residual plots using correct index of SSD
-                    if(i==loops-1) fV_Residual_Fin[v_ind[k]]->Fill(res/sigma);
+                    if(i==1){
+                        fInit_Chi2[3]->Fill(chi2);
+                    }
+                    if(i==loops-1){
+                        fV_Residual_Fin[v_ind[k]]->Fill(res/sigma);
+                        fFin_Chi2[3]->Fill(chi2);
+                    }
                     vres_array[v_ind[k]].push_back(res);
                 }
                 delete evt_line;
+                //Clear vectors that are redefined at top 
+                v_evt.clear(); v_adj.clear(); vzpos.clear(); v_ind.clear();
             }
             
 
@@ -595,8 +615,8 @@ namespace emph {
                 double mean = sum / xres_array[j].size();
                 x_shifts[j] += mean;
                 //Fixing first X SSD at x=0 (shift all SSDs in X by x_shift[0])
-                if(j==0) x_ref = x_shifts[0];	
-                x_shifts[j]=x_shifts[j]-x_ref;
+                //if(j==0) x_ref = x_shifts[0];	
+                //x_shifts[j]=x_shifts[j]-x_ref;
                 std::cout<<x_shifts[j]<<", ";
             }
             std::cout<<std::endl;
@@ -611,8 +631,8 @@ namespace emph {
                 double mean = sum / yres_array[j].size();
                 y_shifts[j] += mean;
                 //Fixing first Y SSD at y=0 (shift all SSDs in Y by y_shift[0])
-                if(j==0) y_ref = y_shifts[0];
-                y_shifts[j]=y_shifts[j]-y_ref;
+                //if(j==0) y_ref = y_shifts[0];
+                //y_shifts[j]=y_shifts[j]-y_ref;
                 std::cout<<y_shifts[j]<<", ";
             }
             std::cout<<std::endl;
@@ -627,7 +647,7 @@ namespace emph {
                 double mean = sum / ures_array[j].size();
                 u_shifts[j] += mean;
                 //Fixing first X/Y SSD at (0,0) (shift all u SSDs accordingly)
-                u_shifts[j]=u_shifts[j]-(sqrt(2)/2)*(x_ref-y_ref);
+                //u_shifts[j]=u_shifts[j]-(sqrt(2)/2)*(x_ref-y_ref);
                 std::cout<<u_shifts[j]<<", ";
             }
             std::cout<<std::endl;
@@ -642,11 +662,16 @@ namespace emph {
                 double mean = sum / vres_array[j].size();
                 v_shifts[j] += mean;
                 //Fixing first X/Y SSD at (0,0) (shift all v SSDs accordingly)
-                v_shifts[j]=v_shifts[j]-(sqrt(2)/2)*(x_ref+y_ref);
+                //v_shifts[j]=v_shifts[j]-(sqrt(2)/2)*(x_ref+y_ref);
                 std::cout<<v_shifts[j]<<", ";
             }
             std::cout<<std::endl;
+
+            //Clear residual arrays
+            xres_array.clear();  yres_array.clear(); ures_array.clear(); vres_array.clear();
         }
+        //Delete fit function
+        delete fit;
         std::cout<<"Number of X Alignment Events: "<<x_cal.size()<<std::endl;
         std::cout<<"Number of Y Alignment Events: "<<y_cal.size()<<std::endl;
         std::cout<<"Number of U Alignment Events: "<<u_cal.size()<<std::endl;
@@ -774,7 +799,7 @@ namespace emph {
 
 
     //......................................................................
-    void SSDAlignment::produce(art::Event& evt)
+    void SSDAlignment::analyze(const art::Event& evt)
     { 
         std::string fClusterLabel = "clust";
 
@@ -786,16 +811,22 @@ namespace emph {
             if (!clustH->empty()) {	
                 for (size_t idx=0; idx < clustH->size(); ++idx) {
                     const rb::SSDCluster& clust = (*clustH)[idx];
-
-                    const emph::geo::SSDStation *st = geo->GetSSDStation(clust.Station());
-                    const emph::geo::Plane      *pln = st->GetPlane(clust.Plane());
-                    const emph::geo::Detector *sd = pln->SSD(clust.Sensor());
+                    //rb::SSDCluster clusterobj = rb::SSDCluster((*clustH)[idx]);
+                    //clusters.push_back(clusterobj);
+                    //std::cout<<clusterobj.AvgStrip()<<std::endl;
+                    //
+                    //Fill x,y,z of ssdalign object using detgeomap
+                    rb::LineSegment ls;
+                    //std::cout<<"strip = "<<clusters[i].AvgStrip()<<std::endl;
+                    dgm->Map()->SSDClusterToLineSegment(clust, ls);
 
                     int event = evt.event();
-                    emph::al::SSDAlign hit(clust, *sd, *st, event);
+
+                    emph::al::SSDAlign hit(clust,event);
                     ssdvec.push_back(hit);
+                    ssdvec.back().SetPos(ls);
+                    //std::cout<<"xyz = "<<ssdvec.back().X()<<"  "<<ssdvec.back().Y()<<"  "<<ssdvec.back().Z()<<std::endl;
                 }
-                fEvtNum++;
             }
         }
         catch(...) {

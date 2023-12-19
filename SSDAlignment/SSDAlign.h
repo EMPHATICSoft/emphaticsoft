@@ -9,11 +9,13 @@
 #include <vector>
 #include <stdint.h>
 #include <iostream>
+#include "TVector3.h"
 
 #include "RawData/RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "Geometry/Geometry.h"
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
 
 namespace emph{
   namespace al{
@@ -22,16 +24,13 @@ namespace emph{
   class SSDAlign {
   public:
     SSDAlign(); // Default constructor
-    SSDAlign(const rb::SSDCluster &clust, const emph::geo::Detector &sd, const emph::geo::SSDStation &st, int evt); // Default constructor
+    SSDAlign(const emph::geo::Detector &sd, const emph::geo::SSDStation &st); // Default constructor
+    SSDAlign(const rb::SSDCluster &clust, int evt); // Default constructor
     virtual ~SSDAlign() {}; //Destructor
     
   private:
 
-    bool _isflip;
-    double _angle; // rotation angle about the vertical y-axis
-    double _strip;  // avg. strip position
     double _pitch;
-    double _height;
     int _station;
     int _plane;
     int _sensor;
@@ -43,11 +42,7 @@ namespace emph{
 
   public:
     // Getters
-    bool IsFlip() const { return _isflip; }
-    double Angle() const { return _angle; }
-    double Strip() const { return _strip; }
     double Pitch() const { return _pitch; }
-    double Height() const { return _height; }
     int Station() const { return _station; }
     int Plane() const { return _plane; }
     int Sensor() const { return _sensor; }
@@ -62,17 +57,14 @@ namespace emph{
     int Event() const { return _event; }
 
     // Setters
-    void SetIsFlip(double isflip) { _isflip = isflip; }
-    void SetAngle(double ang) { _angle = ang; }
-    void SetStrip(double strip) { _strip = strip; }
     void SetPitch(double pitch) { _pitch = pitch; }
-    void SetHeight(double height) { _height = height; }
     void SetStation(int station) { _station = station; }
     void SetPlane(int plane) { _plane = plane; }
     void SetSensor(int sensor) { _sensor = sensor; }
     void SetAxisIndex(int axisindex) { _axisindex = axisindex; }
     void SetShift(double shift) { _shift = shift; }
     void SetView(emph::geo::sensorView view) { _view = view; }
+    void SetPos(rb::LineSegment ls);
     void SetX(double x) { _x = x; }
     void SetY(double y) { _y = y; }
     void SetZ(double z) { _z = z; }

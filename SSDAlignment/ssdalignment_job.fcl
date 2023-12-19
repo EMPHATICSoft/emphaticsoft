@@ -3,6 +3,8 @@
 #include "MakeSSDClusters.fcl"
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
+#include "DetGeoMap.fcl"
+#include "Align.fcl"
 #include "FillDataQuality.fcl"
 #include "RunHistory.fcl"
 
@@ -14,6 +16,8 @@ services:
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
+  DetGeoMapService: @local::standard_detgeomap
+  AlignService: @local::standard_align
 }
 
 source:
@@ -43,15 +47,17 @@ physics:
  {
 	dataqual:     @local::standard_dataqual
 	clust:        @local::standard_ssdclust
-	ssdalignment: @local::standard_ssdalignment
  }	
 
- reco: [ dataqual, clust, ssdalignment ]
+ analyzers:
+ {
+	ssdalignment: @local::standard_ssdalignment
+ }
+
+ p1: [ dataqual, clust ]
+ e1: [ ssdalignment, out1 ]
 	
- analyzers:{}
-
- trigger_paths: [ reco ]
-
- stream1: [ out1 ]
+ trigger_paths: [ p1 ]
+ end_paths: [ e1 ]
 
 }
