@@ -489,7 +489,7 @@ void hist2()
   int TotalADCClustersData = 0;
 
   int ndigits;
-  double TotADC;c
+  double TotADC;
 
   // Loop over our tree and each time we call GetEntries, the data in the tree is copied to recData
   for (int i = 0; i < datachain->GetEntries(); ++i)

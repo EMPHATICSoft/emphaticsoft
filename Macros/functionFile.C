@@ -132,7 +132,7 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
   newHistogram->Draw();
   newHistogram->SetTitle("DE vs ADC");
   c1->Draw();
-  //  c1->WaitPrimitive();
+  c1->WaitPrimitive();
 
   TString sensorName = TString(mappedHistogramFile).ReplaceAll("_mappedHistogram.root", "");
 
@@ -152,5 +152,5 @@ void Function(const char* mappedHistogramFile, const char* barGraphFile)
 
 void functionFile()
 {
-  Function("sensor0_mappedHistogram.root", "sensor0_barGraph.root");
+  Function("Total_mappedHistogram.root", "Total_barGraph.root");
 }

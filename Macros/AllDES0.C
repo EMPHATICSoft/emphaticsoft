@@ -8,7 +8,7 @@
 // graph for each sensor (and total) in a different macro.                 //
 //  Using phase 1c geometry.                                               //
 //                                                                         //
-//Date: November 13, 2023                                                  //
+//Date: November 16, 2023                                                  //
 //Author: D.A.H.                                                           //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -28,11 +28,11 @@
 
 std::vector<std::tuple<double, double, int>> GetDEGetXsensor;
 
-std::vector<std::tuple<double, double, int>> RandomHit()
+std::vector<std::tuple<double, double, int>> AllHits()
 {
   //Create a TChains  
   TChain *MCchain = new TChain("recTree");
-
+  
   //add files to MCchain                                     
   MCchain->Add("emphmc_r2098_s1_dig.caf.root");
   MCchain->Add("emphmc_r2098_s2_dig.caf.root");
@@ -49,7 +49,7 @@ std::vector<std::tuple<double, double, int>> RandomHit()
   MCchain->Add("emphmc_r2098_s13_dig.caf.root");
   MCchain->Add("emphmc_r2098_s14_dig.caf.root");
   MCchain->Add("emphmc_r2098_s15_dig.caf.root");
-
+  
   MCchain->Add("emphmc_r2099_s1_dig.caf.root");
   MCchain->Add("emphmc_r2099_s2_dig.caf.root");
   MCchain->Add("emphmc_r2099_s3_dig.caf.root");
@@ -59,6 +59,10 @@ std::vector<std::tuple<double, double, int>> RandomHit()
   MCchain->Add("emphmc_r2099_s7_dig.caf.root");
   MCchain->Add("emphmc_r2099_s8_dig.caf.root");
   MCchain->Add("emphmc_r2099_s9_dig.caf.root");
+  
+  /*
+  MCchain->Add("emphmc_r2070_s1_dig.caf.root");
+  */
 
   // Create StandardRecord objects and set the branch address using our tree
   caf::StandardRecord* recMC = 0;
@@ -98,47 +102,51 @@ std::vector<std::tuple<double, double, int>> RandomHit()
       bool good_MC_event = true;
       for (int b = 0; b < 18; b++)
         {
-          if (ntruehits_plane[b] != 1) good_MC_event = false;
+          if (ntruehits_plane[b] != 1)
+	    good_MC_event = false;
           //conditional to check if each plane has exactly one hit
         }
 
-      // Check if the event is in sensors 0-23
+      // Check if the event is in sensor 0
       if (good_MC_event)
 	{
 	  TotalDEClustersMC += ntruehits;
 	  n_good_MC_events++;
 	  
-	  // Choose a random truehit index from the good events
-	  int randomIndex = std::rand() % ntruehits;
-	  
-	  // Access the random truehit
-	  GetX = recMC->truth.truehits.truehits[randomIndex].GetX;
-	  GetDE = recMC->truth.truehits.truehits[randomIndex].GetDE;
-	  sensor = recMC->truth.truehits.truehits[randomIndex].GetSensor;
-	  
-	  while (!(sensor >= 0 && sensor <= 23))
-	    {
-	      //if the random hit is not in one of the sensors it can be in, choose another
-	      randomIndex = std::rand() % ntruehits;
-	      GetX = recMC->truth.truehits.truehits[randomIndex].GetX;
-	      GetDE = recMC->truth.truehits.truehits[randomIndex].GetDE;
-	      sensor = recMC->truth.truehits.truehits[randomIndex].GetSensor;
-            }
-	  //store the first valid hit info
-	  GetDEGetXsensor.push_back(std::make_tuple(GetDE, GetX, sensor));
-	  break;
+	  // Loop over true hits and store information for hits in sensor 0
+	  for (int idx = 0; idx < ntruehits; ++idx)
+            {
+	      int current_sensor = recMC->truth.truehits.truehits[idx].GetSensor;
+
+	      // Check if it's a hit in sensor 0
+	      if (current_sensor == 0 &&  recMC->truth.truehits.truehits[idx].GetDE > 0.0000001)
+		{
+		  // Access the random truehit
+		  GetX = recMC->truth.truehits.truehits[idx].GetX;
+		  GetDE = recMC->truth.truehits.truehits[idx].GetDE;
+		  sensor = recMC->truth.truehits.truehits[idx].GetSensor;
+		  
+		  //store the valid hit info
+		  GetDEGetXsensor.push_back(std::make_tuple(GetDE, GetX, sensor));
+		  break;
+		}
+	    }
 	}
     } // end loop over MC entries
-  /*  
-  std::cout << "Random TrueHit:" << std::endl;
-  std::cout << "GetX: " << GetX << std::endl;
-  std::cout << "GetDE: " << GetDE << std::endl;
-  std::cout << "Sensor: " << sensor << std::endl;
-  */
+ 
+  // Print the contents of the vector 
+  for (int idx = 0; idx < GetDEGetXsensor.size(); ++idx)
+    {
+      std::cout << "GetDE: " << std::get<0>(GetDEGetXsensor[idx]) << ", GetX: " << std::get<1>(GetDEGetXsensor[idx]) << ", Sensor: " << std::get<2>(GetDEGetXsensor[idx]) << std::endl;
+    }
+
+  // Print the number of values in GetDEGetXsensor
+  std::cout << "Number of values in GetDEGetXsensor vector: " << GetDEGetXsensor.size() << std::endl;
+  
 
   return GetDEGetXsensor;
 }
-void Sim()
+void AllDES0()
 {
-  GetDEGetXsensor = RandomHit();
+  GetDEGetXsensor = AllHits();
 }

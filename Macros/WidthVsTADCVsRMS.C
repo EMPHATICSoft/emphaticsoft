@@ -84,7 +84,7 @@ void WidthVsTADCVsRMS()
 
   // Initalize histograms 
   Dir->cd();
-  TFile* TotalFile = new TFile("Total.root", "RECREATE");
+  TFile* TotalFile = new TFile("total.root", "RECREATE");
   TH1D *clustRMS = new TH1D ("RMS", "RMS; RMS; clusters per bin", 100, -0.5, 5);
   TH1D *width = new TH1D ("width", "Width; width; clusters per bin", 36, 0.5, 18.5);
   TH3D *WidthVsTADCVsRMS = new TH3D("WidthVsTADCVsRMS", "Width Vs TotADC Vs RMS", 18, 0.5, 18.5, 809, 41, 850, 50, 0, 5);
