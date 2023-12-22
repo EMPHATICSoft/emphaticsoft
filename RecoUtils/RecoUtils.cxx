@@ -1,0 +1,276 @@
+////////////////////////////////////////////////////////////////////////
+/// \brief   Class for reconstruction functions
+/// \author  Robert Chirco
+/// \date    10/30/23
+/// \song    High speed calm air tonight by ML Buch
+////////////////////////////////////////////////////////////////////////
+
+#include "RecoUtils/RecoUtils.h"
+#include "Simulation/SSDHit.h"
+
+#include <vector>
+#include <iomanip>
+#include <iostream>
+#include <cassert>
+#include <cmath>
+
+#include "TVector3.h"
+#include "TMatrixD.h"
+#include "TMatrixDSymEigen.h"
+#include "TVectorD.h"
+
+namespace ru {
+  
+  //----------------------------------------------------------------------
+  
+  RecoUtils::RecoUtils() :
+     fEvtNum(-1)
+  {
+  //std::cout<<"hey"<<std::endl;
+  }
+  
+  //------------------------------------------------------------
+
+  RecoUtils::RecoUtils(int num)
+  {
+     fEvtNum = num;
+  }
+
+  //------------------------------------------------------------
+
+  void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3]){
+
+        double r12 = (B(0) - A(0))*(B(0) - A(0)) + (B(1) - A(1))*(B(1) - A(1)) + (B(2) - A(2))*(B(2) - A(2));
+        double r22 = (D(0) - C(0))*(D(0) - C(0)) + (D(1) - C(1))*(D(1) - C(1)) + (D(2) - C(2))*(D(2) - C(2));
+
+        double d4321 = (D(0) - C(0))*(B(0) - A(0)) + (D(1) - C(1))*(B(1) - A(1)) + (D(2) - C(2))*(B(2) - A(2));
+        double d3121 = (C(0) - A(0))*(B(0) - A(0)) + (C(1) - A(1))*(B(1) - A(1)) + (C(2) - A(2))*(B(2) - A(2));
+        double d4331 = (D(0) - C(0))*(C(0) - A(0)) + (D(1) - C(1))*(C(1) - A(1)) + (D(2) - C(2))*(C(2) - A(2));
+
+        double s = (-d4321*d4331 + d3121*r22) / (r12*r22 - d4321*d4321);
+        double t = (d4321*d3121 - d4331*r12) / (r12*r22 - d4321*d4321);
+
+        double L1[3]; double L2[3];
+        if ( s >= 0 && s <= 1 && t >=0 && t <= 1){
+           //std::cout<<"Closest approach all good :)"<<std::endl;
+           for (int i=0; i<3; i++){
+               L1[i] = A(i) + s*(B(i) - A(i));
+               L2[i] = C(i) + t*(D(i) - C(i));
+               F[i] = (L1[i] + L2[i])/2.;
+               l1[i] = L1[i];
+               l2[i] = L2[i];
+           }
+        //std::cout<<"CA CHECK (L1)...x: "<<L1[0]<<"   y: "<<L1[1]<<"   z: "<<L1[2]<<std::endl;
+        //std::cout<<"CA CHECK (L2)...x: "<<L2[0]<<"   y: "<<L2[1]<<"   z: "<<L2[2]<<std::endl;
+        }
+        else{
+           //this should be very rare
+           std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
+           std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
+           std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
+           std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
+           std::cout<<"D: ("<<D(0)<<","<<D(1)<<","<<D(2)<<")"<<std::endl;
+           std::cout<<"How do line segments AB and CD look if you draw them in the beam view (i.e. the same plane)?"<<std::endl;
+           std::cout<<"And don't worry! A hit is still created, but the line segments (probably) come close to intersecting...but don't"<<std::endl;
+           //std::cout<<"s: "<<s<<std::endl;
+           //std::cout<<"t: "<<t<<std::endl;
+
+	   std::clamp(s,0.,1.);
+           std::clamp(t,0.,1.);
+
+           TVector3 l1p3;
+           TVector3 l1p4;
+           TVector3 l2p1;
+           TVector3 l2p2;
+	
+	   double d4121 = (D(0) - A(0))*(B(0) - A(0)) + (D(1) - A(1))*(B(1) - A(1)) + (D(2) - A(2))*(B(2) - A(2));
+           double d4332 = (D(0) - C(0))*(C(0) - B(0)) + (D(1) - C(1))*(C(1) - B(1)) + (D(2) - C(2))*(C(2) - B(2));
+
+           double s_l1p3 = d3121/r12;
+           double s_l1p4 = d4121/r12;
+           double t_l2p1 = -d4331/r22;
+           double t_l2p2 = -d4332/r22;
+
+           double d_l1p3;
+           double d_l1p4;
+           double d_l2p1;
+           double d_l2p2;
+
+           for (int i=0; i<3; i++){
+               l1p3(i) = A(i) + s_l1p3*(B(i) - A(i));
+               l1p4(i) = A(i) + s_l1p4*(B(i) - A(i));
+               l2p1(i) = C(i) + t_l2p1*(D(i) - C(i));
+               l2p2(i) = C(i) + t_l2p2*(D(i) - C(i));
+
+           }
+           d_l1p3 = C.Dot(l1p3);
+           d_l1p4 = D.Dot(l1p4);
+           d_l2p1 = A.Dot(l2p1);
+           d_l2p2 = B.Dot(l2p2);
+
+           if (d_l1p3 < d_l1p4){
+              for (int i=0; i<3; i++) { L1[i] = l1p3(i); l1[i] = L1[i]; }
+           }
+           else{
+              for (int i=0; i<3; i++) { L1[i] = l1p4(i); l1[i] = L1[i]; }
+           }
+	   if (d_l2p1 < d_l2p2){
+              for (int i=0; i<3; i++) { L2[i] = l2p1(i); l2[i] = L2[i]; }
+           }
+           else{
+              for (int i=0; i<3; i++) { L2[i] = l2p2(i); l2[i] = L2[i]; }
+           }
+           for (int i=0; i<3; i++){
+                F[i] = (L1[i] + L2[i])/2.;
+           }
+        }
+  }
+
+  //------------------------------------------------------------
+
+  void RecoUtils::findLine(std::vector<std::vector<double>> v, double lfirst[3], double llast[3])
+  {
+          //a line can be parameterized by L = A + tN
+          //A is a point that lies on the line
+          //N is a normalized direction vector
+          //t is a real number
+
+	  int N = v.size();
+
+          double mean[3] = {0., 0., 0.};
+          double corr[3][3] = {0.};
+          for(auto p : v)
+          {
+             //construct A which is the mean value of all points
+             mean[0] += p[0];
+             mean[1] += p[1];
+             mean[2] += p[2];
+             //construct correlation matrix
+             for(int i = 0; i < 3; i++){
+                for(int j = i; j < 3; j++){
+                   corr[i][j] += p[i] * p[j];
+                }
+             }
+          }
+          for (int i = 0; i < 3; i++){
+              mean[i] /= N;
+              for(int j = i; j < 3; j++){
+                 corr[i][j] /= N;
+              }
+          }
+          //construct covariance matrix
+          double cov_arr[] = { corr[0][0] - mean[0] * mean[0], corr[0][1] - mean[0] * mean[1], corr[0][2] - mean[0] * mean[2],
+                               corr[0][1] - mean[0] * mean[1], corr[1][1] - mean[1] * mean[1], corr[1][2] - mean[1] * mean[2],
+                               corr[0][2] - mean[0] * mean[2], corr[1][2] - mean[2] * mean[1], corr[2][2] - mean[2] * mean[2] };
+          TMatrixDSym cov(3,cov_arr);
+          TMatrixDSymEigen cov_e(cov);
+          //find N by solving the eigenproblem for the covariance matrix
+          TVectorD eig = cov_e.GetEigenValues();
+          TMatrixD eigv = cov_e.GetEigenVectors();
+
+          //take the eigenvector corresponding to the largest eigenvalue,
+          //corresponding to the solution N
+          double eig_max;
+          eig_max = std::max(eig[0], std::max(eig[1], eig[2]));
+
+          //std::cout<<"eig"<<std::endl;
+          //eig.Print();
+          //std::cout<<"eigmax: "<<eig_max<<std::endl;
+
+          int el;
+          for (int i = 0; i < 3; i++){
+             if (eig[i] == eig_max){ el = i; break; }
+          }
+
+          double n[3];
+          n[0] = eigv[0][el];
+          n[1] = eigv[1][el];
+          n[2] = eigv[2][el];
+
+          //we can create any point L on the line by varying t
+
+          //create endpoints at first and last station z-position
+          //find t where z = v[0][2] then z = [v.size()-1][2]
+          double tfirst; double tlast;
+
+          tfirst = (v[0][2] - mean[2])/n[2];
+          tlast  = (v[v.size()-1][2] - mean[2])/n[2];
+
+          lfirst[0] = mean[0] + tfirst*n[0];
+          lfirst[1] = mean[1] + tfirst*n[1];
+          lfirst[2] = v[0][2];
+
+          llast[0] = mean[0] + tlast*n[0];
+          llast[1] = mean[1] + tlast*n[1];
+          llast[2] = v[v.size()-1][2];
+
+  } 
+  
+  //------------------------------------------------------------
+
+  double RecoUtils::findRecoAngle(double p1[3], double p2[3], double p3[3], double p4[3])
+  {
+     //create line in cartesian coordinates
+     double a1 = p2[0] - p1[0]; double a2 = p4[0] - p3[0];
+     double b1 = p2[1] - p1[1]; double b2 = p4[1] - p3[1];
+     double c1 = p2[2] - p1[2]; double c2 = p4[2] - p3[2];
+
+     TVector3 m1(a1,b1,c1);
+     TVector3 m2(a2,b2,c2);
+
+     double theta_rad = m1.Angle(m2);
+
+     return theta_rad;
+  }
+
+  //------------------------------------------------------------
+
+  double RecoUtils::findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f){
+     double p_ix=0.; double p_iy=0.; double p_iz=0.;
+     double p_fx=0.; double p_fy=0.; double p_fz=0.;
+
+     for (auto i : sim_i){
+         p_ix += i.GetPx();
+         p_iy += i.GetPy();
+         p_iz += i.GetPz();
+     }
+     p_ix /= sim_i.size();
+     p_iy /= sim_i.size();
+     p_iz /= sim_i.size();
+
+     for (auto f : sim_f){
+         p_fx += f.GetPx();
+         p_fy += f.GetPy();
+         p_fz += f.GetPz();
+     }
+     p_fx /= sim_f.size();
+     p_fy /= sim_f.size();
+     p_fz /= sim_f.size();
+
+     TVector3 p_i(p_ix,p_iy,p_iz);
+     TVector3 p_f(p_fx,p_fy,p_fz);
+
+     double theta_rad = p_i.Angle(p_f);
+
+     return theta_rad;
+
+  }
+
+  //------------------------------------------------------------
+
+  std::ostream& operator<< (std::ostream& o, const RecoUtils& h)
+  {
+    o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
+    //o << " Channel = "     << std::setw(5) << std::right << h.Channel();
+    //o << " Time = "        << std::setw(5) << std::right << h.Time();
+    //o << " Integrated Charge = " << std::setw(5) << std::right << h.IntCharge();
+    o << "What even goes here" ;
+
+    return o;
+  }
+
+  //------------------------------------------------------------
+
+ 
+} // end namespace ru
+//////////////////////////////////////////////////////////////////////////////

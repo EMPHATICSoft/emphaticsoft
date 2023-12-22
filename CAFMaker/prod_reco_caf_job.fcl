@@ -54,7 +54,7 @@ physics:
   {
     spillinfo: @local::standard_spillinfo
     arichreco:  @local::standard_arichreco
-    ssdclusts:  @local::standard_ssdclust
+    clust:  @local::standard_ssdclust
     adcreco:    @local::standard_adcreco
     backovreco: @local::standard_backovhitreco
     gasckovreco: @local::standard_gasckovhitreco
@@ -64,9 +64,11 @@ physics:
 
   analyzers:{}
 
-  makecaf:   [ spillinfo, arichreco, ssdclusts, makesingletracks, adcreco, backovreco, gasckovreco, cafmaker ]
+  makecaf:   [ spillinfo, arichreco, clust, makesingletracks, adcreco, backovreco, gasckovreco, cafmaker ]
 
 }
-physics.producers.ssdclusts.FillTTree: false
-physics.producers.ssdclusts.CheckDQ: false
+physics.producers.clust.FillTTree: false
+physics.producers.clust.CheckDQ: false
+physics.producers.clust.SSDRawLabel: "ssddig:SSD"
+//physics.producers.ssdclusts.SSDRawLabel: "ssddig:SSD"
 //physics.producers.cafmaker.GetMCTruth: false //include when producing MC CAF's 
