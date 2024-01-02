@@ -8,6 +8,7 @@ namespace caf
     truth(),	 
     hits(),
     cluster(),
+    lineseg(),
     backov(),
     spcpts(),
     sgmnts(),
