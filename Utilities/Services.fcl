@@ -1,0 +1,24 @@
+#include "Align.fcl"
+#include "ChannelMap.fcl"
+#include "DetGeoMap.fcl"
+#include "Geometry.fcl"
+#include "RunHistory.fcl"
+
+BEGIN_PROLOG
+
+core_services:
+{
+  AlignService:      @local::standard_align
+  ChannelMapService: @local::standard_channelmap
+  DetGeoMapService:  @local::standard_detgeomap
+  Geometry:          @local::standard_geometry
+  RunHistoryService: @local::standard_runhistory
+}
+
+
+standard_services:
+{
+  @table::core_services
+}
+
+END_PROLOG

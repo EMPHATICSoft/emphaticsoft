@@ -1,7 +1,5 @@
+#include "Services.fcl"
 #include "BACkovHitReco.fcl"
-
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
 #include "ADCReco.fcl"
 
 process_name: BACkovHitReco
@@ -9,8 +7,7 @@ process_name: BACkovHitReco
 services:
 {
   TFileService: { fileName: "backovhitreco_hist_r%r_s%04s.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
+  @table::standard_services
 }
 
 source:
