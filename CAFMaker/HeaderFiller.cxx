@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "CAFMaker/HeaderFiller.h"
+#include "DataQuality/SpillQuality.h"
 #include "RecoBase/Spill.h"
 
 namespace caf
@@ -42,6 +43,14 @@ namespace caf
       std::cout << "No spill info object found!  That's ok if this is MC" 
 		<< std::endl;
     }
+
+    art::Handle<emph::dq::SpillQuality> spillqual;
+    sr.getByLabel(fDQLabel.c_str(), spillqual);
+
+    if(!fDQLabel.empty() && spillqual.failedToGet())
+      return;
+
+    hdr.spillstatus = spillqual->goodRunStatus;
 
   }
 
