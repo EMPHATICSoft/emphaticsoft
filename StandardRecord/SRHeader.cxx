@@ -19,7 +19,7 @@ namespace caf
     gcp6(0.), gcp6iFix(0.),
     tbccdi(0.), tbccdo(0.),
     mt6ca1(0.), mt6ca2(0.), mt6ca3(0.),
-    spillstatus(std::numeric_limits<int>::signaling_NaN())
+    spillstatus(-5)
   {
   }
 
