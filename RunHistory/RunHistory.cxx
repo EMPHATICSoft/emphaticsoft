@@ -147,6 +147,7 @@ namespace runhist{
     else if(_runNumber > 605 && _runNumber <= 1386){
       _geoFile=file_path+"Geometry/phase1b.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
+      _ssdAlignFile=file_path+"Align/SSDAlign_1b.txt";
       _calibVer=2;
     }
     else if(_runNumber >= 2000){
