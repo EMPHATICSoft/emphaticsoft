@@ -1,6 +1,7 @@
 <lcgdict>
 
- <class name="caf::StandardRecord" ClassVersion="20" >
+ <class name="caf::StandardRecord" ClassVersion="21" >
+  <version ClassVersion="21" checksum="3831128355"/>
   <version ClassVersion="20" checksum="3285374549"/>
   <version ClassVersion="19" checksum="1300734215"/>
   <version ClassVersion="18" checksum="4256355535"/>
@@ -29,6 +30,10 @@
 
  <class name="caf::SRARingBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="1710063260"/>
+ </class>
+
+ <class name="caf::SREventQual" ClassVersion="10" >
+  <version ClassVersion="10" checksum="608250607"/>
  </class>
 
  <class name="caf::SRSSDHits" ClassVersion="11" >
