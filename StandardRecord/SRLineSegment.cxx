@@ -10,7 +10,7 @@ namespace caf
 {
   SRLineSegment::SRLineSegment()
  { 
-   this->setDefault();
+     this->setDefault();
  }
   //--------------------------------------------------------------------
   SRLineSegment::~SRLineSegment()
@@ -20,10 +20,12 @@ namespace caf
   //--------------------------------------------------------------------
   void SRLineSegment::setDefault()
   {
-    for (unsigned int i=0; i<3; ++i) {
-      x0[i] = std::numeric_limits<double>::signaling_NaN();
-      x1[i] = std::numeric_limits<double>::signaling_NaN();
-    }
+    x0.SetXYZ(std::numeric_limits<double>::signaling_NaN(),
+	      std::numeric_limits<double>::signaling_NaN(),
+	      std::numeric_limits<double>::signaling_NaN());
+    x1.SetXYZ(std::numeric_limits<double>::signaling_NaN(),
+	      std::numeric_limits<double>::signaling_NaN(),
+	      std::numeric_limits<double>::signaling_NaN());
   }
 
 } // end namespace

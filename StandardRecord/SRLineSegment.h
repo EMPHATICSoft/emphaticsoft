@@ -4,6 +4,8 @@
 #ifndef SRLINESEGMENT_H
 #define SRLINESEGMENT_H
 
+#include "StandardRecord/SRVector3D.h"
+
 namespace caf
 {
   /// An SRLineSegment is a simple descriptor for a LineSegment.
@@ -13,8 +15,8 @@ namespace caf
     SRLineSegment();
     virtual ~SRLineSegment();
 
-    double x0[3]; // end of line closesr to origin
-    double x1[3]; // end of line farther from origin
+    SRVector3D x0; // end of line closesr to origin
+    SRVector3D x1; // end of line farther from origin
     virtual void setDefault();
   };
 
