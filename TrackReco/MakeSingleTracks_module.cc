@@ -321,22 +321,27 @@ namespace emph {
   {
        std::cout<<"Number of clusters with one cluster per sensor: "<<goodclust<<std::endl;
        std::cout<<"Number of available clusters: "<<badclust+goodclust<<std::endl;
+
+       // Don't seg fault if there are no tracks in the subrun(s).
+       if (hScattering) {
 	
-       int bmin_s = hScattering->FindFirstBinAbove();
-       int bmax_s = hScattering->FindLastBinAbove();
-       hScattering->GetXaxis()->SetRange(bmin_s,bmax_s);
+	 int bmin_s = hScattering->FindFirstBinAbove();
+	 int bmax_s = hScattering->FindLastBinAbove();
+	 hScattering->GetXaxis()->SetRange(bmin_s,bmax_s);
 
-       int bmin_sr = hScatteringRes->FindFirstBinAbove();
-       int bmax_sr = hScatteringRes->FindLastBinAbove();
-       hScatteringRes->GetXaxis()->SetRange(bmin_sr,bmax_sr);
+	 int bmin_sr = hScatteringRes->FindFirstBinAbove();
+	 int bmax_sr = hScatteringRes->FindLastBinAbove();
+	 hScatteringRes->GetXaxis()->SetRange(bmin_sr,bmax_sr);
 
-       int bmin_b = hBending->FindFirstBinAbove();
-       int bmax_b = hBending->FindLastBinAbove();
-       hBending->GetXaxis()->SetRange(bmin_b,bmax_b);
+	 int bmin_b = hBending->FindFirstBinAbove();
+	 int bmax_b = hBending->FindLastBinAbove();
+	 hBending->GetXaxis()->SetRange(bmin_b,bmax_b);
 
-       int bmin_br = hBendingRes->FindFirstBinAbove();
-       int bmax_br = hBendingRes->FindLastBinAbove();
-       hBendingRes->GetXaxis()->SetRange(bmin_br,bmax_br);
+	 int bmin_br = hBendingRes->FindFirstBinAbove();
+	 int bmax_br = hBendingRes->FindLastBinAbove();
+	 hBendingRes->GetXaxis()->SetRange(bmin_br,bmax_br);
+
+       }
   }
 
   //......................................................................

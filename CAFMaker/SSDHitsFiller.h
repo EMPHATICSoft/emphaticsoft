@@ -2,8 +2,8 @@
 // \file     SSDHitsFiller.h
 // \note    Class to fill CAF  SSDHits info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  SSDHitsFILLER_H
-#define  SSDHitsFILLER_H
+#ifndef  SSDHITSFILLER_H
+#define  SSDHITSFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif //  SSDHitsFILLER_H
+#endif //  SSDHITSFILLER_H
