@@ -9,7 +9,7 @@
 
 namespace caf
 {
-  /// Reconstructed ssd clusters found by various algorithms
+  /// Reconstructed line segments from ssd clusters
     class SRLineSegmentBranch
     {
     public:

@@ -163,7 +163,6 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   // loop over digits on sensor
   for (auto & dig : sensDigits) {
     curRow = dig->Row();
-    //std::cout<<*dig<<std::endl;
     // if gap too big, push cluster and clear it
     if ( curRow-prevRow > (fRowGap) ) {
       ssdClust.SetStation(station);
@@ -186,10 +185,6 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   ssdClust.SetView(view);
   ssdClust.SetPlane(plane);
   sensClusters->push_back(ssdClust);
-  
-  // std::cout << "Formed cluster of size " << sensClusters->size() 
-  // 	    << " at (station,plane,sensor) = (" << station << "," 
-  // 	    << plane << "," << sensor << ")" << std::endl;
   
 }
 
@@ -269,7 +264,6 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	    if (clusters[i].AvgStrip() > 640){
 	      std::cout<<"Skipping nonsense"<<std::endl;
 	      continue; }
-	    //std::cout<<clusters[i]<<std::endl;
 	    rb::LineSegment lineseg_tmp = rb::LineSegment();
 	    if (dgm->Map()->SSDClusterToLineSegment(clusters[i], lineseg_tmp))
 	      linesegv->push_back(lineseg_tmp);
