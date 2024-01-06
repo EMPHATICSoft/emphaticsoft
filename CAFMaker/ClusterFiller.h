@@ -2,8 +2,8 @@
 // \file    ClusterFiller.h
 // \note    Class to fill CAF Cluster info
 ////////////////////////////////////////////////////////////////////////
-#ifndef ClusterFILLER_H
-#define ClusterFILLER_H
+#ifndef CLUSTERFILLER_H
+#define CLUSTERFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif // ClusterFILLER_H
+#endif // CLUSTERFILLER_H

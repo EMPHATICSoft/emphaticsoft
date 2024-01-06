@@ -42,15 +42,17 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
-#include "RawData/SSDRawDigit.h"
-#include "RecoBase/ARing.h"
-#include "RecoBase/SSDCluster.h"
-#include "RecoBase/BACkovHit.h"
-#include "RecoBase/GasCkovHit.h"
-#include "Simulation/SSDHit.h"
 #include "ChannelMap/service/ChannelMapService.h"
+#include "DataQuality/EventQuality.h"
+#include "DataQuality/SpillQuality.h"
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
+#include "RawData/SSDRawDigit.h"
+#include "RecoBase/ARing.h"
+#include "RecoBase/BACkovHit.h"
+#include "RecoBase/GasCkovHit.h"
+#include "RecoBase/SSDCluster.h"
+#include "Simulation/SSDHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -58,14 +60,15 @@
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
-#include "CAFMaker/SSDHitsFiller.h"
-#include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/BACkovFiller.h"
+#include "CAFMaker/EventQualFiller.h"
 #include "CAFMaker/GasCkovFiller.h"
-#include "CAFMaker/SRTruthFiller.h"
 #include "CAFMaker/SpacePointFiller.h"
-#include "CAFMaker/TrackSegmentFiller.h"
+#include "CAFMaker/ClusterFiller.h"
+#include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/TrackFiller.h"
+#include "CAFMaker/TrackSegmentFiller.h"
+#include "CAFMaker/SRTruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -184,6 +187,7 @@ namespace caf {
 
   void CAFMaker::beginSubRun(art::SubRun& sr) noexcept {
     HeaderFiller hf;
+    hf.fDQLabel = fParams.DataQualLabel();
     hf.Fill(sr, fHeader);
   }
 
@@ -222,21 +226,25 @@ namespace caf {
       srtruthf.Fill(evt,rec);
     } // end if statement
     
-    // Get SSDClust info from SSDReco
-    ClusterFiller clustf; ///arich -> cluster
-    clustf.fLabel = fParams.SSDClustLabel();
-    clustf.Fill(evt,rec);
-
     // Get BACkov info from BACovHitReco
     BACkovFiller backovf; 
     backovf.fLabel = fParams.BACkovHitLabel();
     backovf.Fill(evt,rec);
 
+    // Get EventQuality info from DataQual
+    EventQualFiller evtqualf; 
+    evtqualf.fLabel = fParams.DataQualLabel();
+    evtqualf.Fill(evt,rec);
+    
     // Get GasCkov info from GasCovHitReco
     GasCkovFiller gasckovf; 
     gasckovf.fLabel = fParams.GasCkovHitLabel();
     gasckovf.Fill(evt,rec);
 
+    // Get SSDClust info from SSDReco
+    ClusterFiller clustf; ///arich -> cluster
+    clustf.fLabel = fParams.SSDClustLabel();
+    clustf.Fill(evt,rec);
     
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;

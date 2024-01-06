@@ -16,7 +16,7 @@ process_name: CAF
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "reco_cafmaker_hist.root" closeFileFast: false }
+  TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
   scheduler: { wantSummary: false }
   TimeTracker: {}
   @table::standard_services
@@ -29,16 +29,6 @@ source:
 {
   module_type: RootInput
   maxEvents:   -1
-}
-
-outputs:
-{
-  out1:
-  {
-    module_type: RootOutput
-    fileName:    "reco_cafmaker.root"
-    fastCloning: false
-  }
 }
 
 physics:
@@ -66,5 +56,4 @@ physics:
 
 }
 physics.producers.ssdclusts.FillTTree: false
-physics.producers.cafmaker.SSDClustLabel: "ssdclusts"
 physics.producers.cafmaker.GetMCTruth: false #include when producing MC CAF's

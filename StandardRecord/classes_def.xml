@@ -1,7 +1,7 @@
 <lcgdict>
 
  <class name="caf::StandardRecord" ClassVersion="21" >
-  <version ClassVersion="21" checksum="2526476492"/>
+  <version ClassVersion="21" checksum="2417312348"/>
   <version ClassVersion="20" checksum="3285374549"/>
   <version ClassVersion="19" checksum="1300734215"/>
   <version ClassVersion="18" checksum="4256355535"/>
@@ -15,7 +15,8 @@
   <version ClassVersion="10" checksum="3065678388"/>
  </class>
 
- <class name="caf::SRHeader" ClassVersion="13" >
+ <class name="caf::SRHeader" ClassVersion="14" >
+  <version ClassVersion="14" checksum="263303564"/>
   <version ClassVersion="13" checksum="2119411727"/>
   <version ClassVersion="12" checksum="1938231633"/>
   <version ClassVersion="10" checksum="3811607721"/>
@@ -29,6 +30,10 @@
 
  <class name="caf::SRARingBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="1710063260"/>
+ </class>
+
+ <class name="caf::SREventQual" ClassVersion="10" >
+  <version ClassVersion="10" checksum="608250607"/>
  </class>
 
  <class name="caf::SRSSDHits" ClassVersion="11" >
@@ -72,7 +77,7 @@
  </class>
 
  <class name="caf::SRLineSegment" ClassVersion="10" >
-  <version ClassVersion="10" checksum="2481757767"/>
+  <version ClassVersion="10" checksum="1129822811"/>
  </class>
  <class name="std::vector<caf::SRLineSegment>" />
 
