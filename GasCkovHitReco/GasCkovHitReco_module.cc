@@ -84,8 +84,7 @@ namespace emph {
   //.......................................................................
   
   GasCkovHitReco::GasCkovHitReco(fhicl::ParameterSet const& pset)
-    : EDProducer(pset),
-      mom (pset.get<int>("momentum",0))
+    : EDProducer(pset)
   {
 
     this->produces< std::vector<rb::GasCkovHit>>();
@@ -127,6 +126,7 @@ namespace emph {
       try {
           sr.getByLabel("spillinfo",spillHandle);
 
+          mom = spillHandle->Momentum();
           pressure5a = spillHandle->MT5CPR();
           pressure5b = spillHandle->MT5CP2();
           pressure6a = spillHandle->MT6CPR();
