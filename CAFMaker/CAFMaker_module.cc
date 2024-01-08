@@ -135,6 +135,7 @@ namespace caf {
       char *temp = new char[fb.fileName().size() + 1];
       std::strcpy(temp, fb.fileName().c_str());
       fCAFFilename = basename(temp);
+      // Expects filename to end with .XXXX e.g., '.root'
       const size_t dotpos = fCAFFilename.find_last_of('.',fCAFFilename.length()-6);
       assert(dotpos != std::string::npos);  // Must have a dot, surely?
       fCAFFilename.resize(dotpos);
