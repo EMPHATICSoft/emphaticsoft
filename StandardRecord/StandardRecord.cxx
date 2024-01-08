@@ -8,6 +8,7 @@ namespace caf
     backov(),
     evtqual(),
     gasckov(),
+    lineseg(),
     spcpts(),
     cluster(),
     hits(),

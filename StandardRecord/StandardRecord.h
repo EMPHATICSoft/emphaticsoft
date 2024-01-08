@@ -16,6 +16,7 @@
 #include "StandardRecord/SRBACkovBranch.h"
 #include "StandardRecord/SREventQual.h"
 #include "StandardRecord/SRGasCkovBranch.h"
+#include "StandardRecord/SRLineSegmentBranch.h"
 #include "StandardRecord/SRSpacePointBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
 #include "StandardRecord/SRSSDHitsBranch.h"
@@ -42,6 +43,7 @@ namespace caf
       SRBACkovBranch       backov;  ///< BACkov PMT charge and PID
       SREventQual          evtqual; ///< Event quality metrics
       SRGasCkovBranch      gasckov; ///< GasCkov PMT charge and PID
+      SRLineSegmentBranch  lineseg; ///< Line Segment branch: x0, x1
       SRSpacePointBranch   spcpts;  ///< Reco space points branch.
       SRSSDClustBranch     cluster; ///< SSD Cluster Branch: avgadc, avgstrip, etc
       SRSSDHitsBranch      hits;    ///< SSD Hits branch:
