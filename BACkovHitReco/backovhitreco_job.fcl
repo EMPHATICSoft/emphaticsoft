@@ -1,5 +1,6 @@
 #include "Services.fcl"
 #include "BACkovHitReco.fcl"
+#include "SpillInfo.fcl"
 #include "ADCReco.fcl"
 
 process_name: BACkovHitReco
@@ -8,6 +9,7 @@ services:
 {
   TFileService: { fileName: "backovhitreco_hist_r%r_s%04s.root" closeFileFast: false }
   @table::standard_services
+  IFBeam:{}
 }
 
 source:
@@ -35,11 +37,12 @@ physics:
 
  producers:
  {
+    spillinfo:     @local::standard_spillinfo
     adcreco:       @local::standard_adcreco
-	backovhitreco: @local::standard_backovhitreco
+	  backovhitreco: @local::standard_backovhitreco
  }	
 
- reco: [ adcreco, backovhitreco ]
+ reco: [ spillinfo, adcreco, backovhitreco ]
 	
  filters:{}
 
