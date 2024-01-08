@@ -1,13 +1,9 @@
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "DetGeoMap.fcl"
+#include "Services.fcl"
 #include "MagneticField.fcl"
 #include "BeamGen.fcl"
 #include "G4Gen.fcl"
 #include "SSDDigitizer.fcl"
 #include "MakeSSDClusters.fcl"
-#include "Align.fcl"
 
 process_name: mcprod
 
@@ -15,11 +11,7 @@ services:
 {
   TFileService: { fileName: "emphmc_r%r_s%s_prod_hist.root" closeFileFast: false }
   MagneticField: @local::standard_magfield
-  RunHistoryService: @local::standard_runhistory
-  Geometry: @local::standard_geometry
-  ChannelMapService: @local::standard_channelmap
-  DetGeoMapService: @local::standard_detgeomap
-  AlignService: @local::standard_align  
+  @table::standard_services
   RandomNumberGenerator: {} #ART native random number generator
 
 }

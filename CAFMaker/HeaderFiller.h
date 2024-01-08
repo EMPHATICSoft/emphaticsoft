@@ -19,6 +19,8 @@ namespace caf
 
     void Fill(art::SubRun&, caf::SRHeader&);
 
+    std::string fDQLabel;
+
   };
 
 } // end namespace

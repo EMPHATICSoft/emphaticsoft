@@ -1,16 +1,13 @@
+#include "Services"
 #include "MakeSSDClusters.fcl"
 #include "StudyOneSSDClusters.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
 
 process_name: MakeSSDClust
 
 services:
 {
   TFileService: { fileName: "clust_r%r_s%04s_hist.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
-  RunHistoryService: {}
+  @table::standard_services
 }
 
 source:

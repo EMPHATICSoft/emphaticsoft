@@ -22,6 +22,7 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
                             RecoBase
 			    Simulation
 			    ChannelMapService_service
+			    DataQuality
 			    Geometry
 			    Geometry_service
 			    RunHistoryService_service
@@ -57,6 +58,7 @@ simple_plugin ( CAFMaker "module"
 		Simulation
 		ChannelMap
 		ChannelMapService_service
+		DataQuality
 		Geometry
 		Geometry_service
 		RunHistoryService_service
