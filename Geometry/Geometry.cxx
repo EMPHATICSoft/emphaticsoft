@@ -78,18 +78,21 @@ namespace emph {
 
     sensorView Detector::View() const
     {
-      float pi = 3.14159;
+      float pi  = 3.14159;
+      // Flipped sensors have a Rot angle π/2 out-of-phase so we need
+      // to take the flip into account when finding the angle
+      float ang = this->Rot() + pi/2*this->IsFlip();
       // x-view: π/2, 3π/2
-      if (abs(fmod(this->Rot()-pi/2,pi)) < 0.2)
+      if (abs(fmod(ang-pi/2,pi)) < 0.2)
 	return X_VIEW;
       // y-view: 0,π
-      else if (abs(fmod(this->Rot(),pi)) < 0.2)
+      else if (abs(fmod(ang,pi)) < 0.2)
 	return Y_VIEW;
       // u-view: 3π/4, 7π/4
-      else if (abs(fmod(this->Rot()-3*pi/4,pi)) < 0.2)
+      else if (abs(fmod(ang-3*pi/4,pi)) < 0.2)
 	return U_VIEW;
       // w-view: π/4, 5π/4
-      else if (abs(fmod(this->Rot()-pi/4,pi)) < 0.2)
+      else if (abs(fmod(ang-pi/4,pi)) < 0.2)
 	return W_VIEW;
       return INIT;
     }
