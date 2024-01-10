@@ -29,8 +29,8 @@ namespace emph {
        fPitch(0.06),
        fWaferWidth(static_cast<int>(fNumStrips)*fPitch),
        fHalfWaferWidth(0.5*fWaferWidth),  
-       fZNomPosX{0.75, 121.25, 363.15, 484.15, 985.75, 985.75, 1211.95, 1211.95, DBL_MAX, DBL_MAX}, 
-       fZNomPosY{0.15, 120.65, 360.75, 481.75, 986.35, 986.35, 1212.55, 1212.55, DBL_MAX, DBL_MAX},
+       fZNomPosX{0.75, 121.25, 363.15, 484.15, 985.75, 985.75, 1211.95, 1211.95, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}, 
+       fZNomPosY{0.15, 120.65, 360.75, 481.75, 986.35, 986.35, 1212.55, 1212.55, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX},
 //       fZNomPosSt4and5{360.15,  481.15}, fZNomPosSt2and3{988.75, 988.75, 1214.95, 1214.95},
        fZNomPosSt2and3{360.15,  481.15, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}, 
        fZNomPosSt4and5{988.75, 988.75, 1214.95, 1214.95, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX},    // Change of convention Aug. Sept 2023 
@@ -204,10 +204,9 @@ namespace emph {
 // Did upload them for Phase1c.  See above.. 
 //     
       if (fIsPhase1c) { 
+        std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom.. Updating Transverse positions.. " << std::endl;
         // Add Station 4, single sensor, X and Y view..  The fTrNomPosX and fTrPosX will be oversized, 
 	// A bit ugly, but harmless (a few times 64 bit of wasted memory.. 
-	std::cerr << " Check the fTrNomPosX..size " << fTrNomPosX.size() << " Before inserting  "; 
-	for(size_t k=0; k != fTrNomPosX.size(); k++) { std::cerr << " " << fTrNomPosX[k]; }  std::cerr << std::endl;
 	fTrPosX.insert(fTrPosX.begin() + 4, fHalfWaferWidth); fTrNomPosX.insert(fTrNomPosX.begin() + 4, fHalfWaferWidth);
 	fTrPosY.insert(fTrPosY.begin() + 4, -fHalfWaferWidth); fTrNomPosY.insert(fTrNomPosY.begin() + 4, -fHalfWaferWidth);
 	std::cerr << " Check the fTrNomPosX.. "; 
@@ -215,6 +214,14 @@ namespace emph {
 	std::cerr << std::endl;
 	std::cerr << " Check, fNumSensorsXorY " << fNumSensorsXorY 
 	          << " Size fTrNomPosX " << fTrNomPosX.size() << " Size fTrPosX " << fTrPosX.size() << std::endl;
+	//
+	// January 2 2024, correct again, based on the SSDAlignMPI latest fits 
+	for(size_t k=5; k != 9; k++) {	 fTrNomPosX[k] = 0.;  fTrNomPosY[k] = 0.;  }
+	// January 4 : If using _7s alignment data, must shift the last Y Plane by -1 mm.
+	fTrNomPosY[8] = -1.0;
+	std::cerr << " Check the fTrNomPosX..size " << fTrNomPosX.size() << " Before inserting  "; 
+	for(size_t k=0; k != fTrNomPosX.size(); k++) { std::cerr << " " << fTrNomPosX[k]; }  std::cerr << std::endl;
+	for(size_t k=0; k != 4; k++) { fTrNomPos1cSt5and6W[k] = 0.; }
 	fTrNomPosX[9] = fTrNomPosX[7]; fTrNomPosX[10] = fTrNomPosX[8];  // Station 7, although it is empty.. 
         for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosX[kSe] = fTrNomPosX[kSe]; } 
 	std::cerr << " Check, fNumSensorsXorY " << fNumSensorsXorY 
@@ -224,7 +231,7 @@ namespace emph {
 	     " sizes  " << fTrPos1cSt2and3U.size() <<  " and nominal " << fTrNomPos1cSt2and3U.size() << std::endl;  
         for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPos1cSt2and3U[kSe] = fTrNomPos1cSt2and3U[kSe]; }
 	std::cerr << " Check, fNumSensorsW, " << fNumSensorsW << 
-	  " sizes  " << fTrPos1cSt5and6W.size() <<  " and nominal " << fTrNomPos1cSt5and6W.size() << std::endl;  
+	  " sizes  " << fTrPos1cSt5and6W.size() <<  " and nominal " << fTrNomPos1cSt5and6W.size() << " check last " << fTrNomPos1cSt5and6W[3] << std::endl;  
          for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fTrPos1cSt5and6W[kSe] = fTrNomPos1cSt5and6W[kSe]; } 
       }
 //      std::cerr << " And... And .. quit for now !!! " << std::endl; exit(2);
@@ -341,7 +348,8 @@ namespace emph {
 	
         switch (view) {
      	   case emph::geo::X_VIEW : {
-	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break;  
+	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break; 
+	     std::cerr << " VolatileAlignmentParams::SetDeltaTr, Phase1c .... kSe " << kSe << " fTrPosX[kSe] " << fTrPosX[kSe] << std::endl; 
 	    } 
 	   case emph::geo::Y_VIEW :  { 
 	      fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;
@@ -351,7 +359,7 @@ namespace emph {
 	     break;
 	   } 
 	   case emph::geo::W_VIEW : { 
-	     fTrDeltaPos1cSt5and6W[kSe-2] = v; fTrPos1cSt5and6W[kSe-2] = fTrNomPos1cSt5and6W[kSe-2] + v;
+	     fTrDeltaPos1cSt5and6W[kSe] = v; fTrPos1cSt5and6W[kSe] = fTrNomPos1cSt5and6W[kSe] + v;
 	     break;
 	   }
 	   default : { 
@@ -405,7 +413,7 @@ namespace emph {
 	       fRoll1cSt2and3U[kSe] = v;  break;
 	    } 
 	    case emph::geo::W_VIEW : { 
-	      fRoll1cSt5and6W[kSe-2] = v; 
+	      fRoll1cSt5and6W[kSe] = v; 
 	      break;
 	    }
 	    default : { 
@@ -440,7 +448,7 @@ namespace emph {
 	       fRoll1cSt2and3UC[kSe] = v;  break;
 	    } 
 	    case emph::geo::W_VIEW : { 
-	      fRoll1cSt5and6WC[kSe-2] = v; 
+	      fRoll1cSt5and6WC[kSe] = v; 
 	      break;
 	    }
 	    default : { 
@@ -556,10 +564,6 @@ namespace emph {
 	}    
      }
      void VolatileAlignmentParams::SetGeomFromSSDAlign(const std::string &fileName) {
-       if (fIsPhase1c) {
-         std::cerr << " VolatileAlignmentParams::SetGeomFromSSDAlign, not ready for prime time for Phase1c.. Fatal " << std::endl;
-	 exit(2); 
-       }
        std::ifstream fIn(fileName.c_str());
        if (!fIn.is_open()) {
            std::cerr << "VolatileAlignmentParams::SetGeomFromSSDAlign , failed to open " << fileName << " fatal, quit here.. " << std::endl; exit(2);
@@ -609,6 +613,7 @@ namespace emph {
 	 }
 	 
        }
+       fIn.close();
      } 
    } // namespace 
 }  // namespace   

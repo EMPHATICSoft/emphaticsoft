@@ -177,7 +177,7 @@ namespace emph {
        fMultScatUncert120[3] =  0.0092;   
        fMultScatUncert120[4] =  0.0212;   
        fMultScatUncert120[5] =  0.0264; 
-       
+       if (fMultScatUncert120.size() > 5) fMultScatUncert120[6] =  0.04; //  
        for (size_t kSt=0; kSt != fMultScatUncert120.size(); kSt++) fMultScatUncert[kSt] = fMultScatUncert120[kSt];
        fIsReadyToGo = true;
         
@@ -256,13 +256,13 @@ namespace emph {
 	  tMeas =  ( -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
 	  if ((kSt == 2) || (kSt == 3)) tMeas =  -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); // Same as above!. ? 
 	  if (kSt > 4) {
-	    if ((kSe % 2) == 0) tMeas =  strip*pitch; 
-	    else  tMeas =  -1.0*strip*pitch; 
+	    if ((kSe % 2) == 0) tMeas =  strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); 
+	    else  tMeas =  -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); 
 	  }
 	} else if (aView == emph::geo::Y_VIEW) {
 	  tMeas = (kS < 5) ? ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)) :
-			     ( strip*pitch); // Corrected, Sept 9, token NoTgt31Gev_ClSept_A1e_1o1_c10 ???? Suspicious!!!!????  
-	  if (((kSt > 4) && ((kSe % 2)) == 0)) tMeas *=  -1.0; // Corrected, December 7 
+			     ( strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe)); // Corrected, again, Jan 2 
+	  if (((kSt > 4) && ((kSe % 2)) == 0)) tMeas *= -1.0; 
 	} else if ((aView == emph::geo::U_VIEW) || (aView == emph::geo::W_VIEW))  { // V is a.k.a. W 
 	  if (kSt < 4) { // Sept 1- Sep5  attempt at sorting out orientations.. 
 	    tMeas = (strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe));
@@ -270,10 +270,10 @@ namespace emph {
 	                              << strip << " TrShift, again " << fEmVolAlP->TrPos(aView, kSt, kSe) << std::endl;
 	  } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
 	    // Assume W view, double sensor.  Opposite convention as X or Y  Dec. 1 2025.. 
-	    if ((kSe % 2) == 0) tMeas =  strip*pitch; 
+	    if ((kSe % 2) == 0) tMeas =  -1.0*strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); 
 	    // Temporary kludge to study why Station 6 has bad 3pt Station chisq... 
 //	    if ((kSt == 6) && (kSe % 2) == 1) tMeas +=  -0.4; // by eye, on 4 bad events..
-	    else  tMeas =  -1.0*strip*pitch; 
+	    else  tMeas =  strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); 
 	    	  
 	  }
 	}

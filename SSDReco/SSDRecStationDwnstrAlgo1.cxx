@@ -296,8 +296,11 @@ namespace emph {
 	   }
 	   const double angleRollY = fEmVolAlP->Roll(emph::geo::Y_VIEW, kSt, kSeY);
 	   const double angleRollCenterY = fEmVolAlP->RollCenter(emph::geo::Y_VIEW, kSt, kSeY);
-	   const double xValCorr = xDat.first - (yDat.first - angleRollCenterX) * angleRollX; // sign change with respect to the fit.. we want the model value. 
-	   const double yValCorr = yDat.first - (xDat.first - angleRollCenterY) * angleRollY;
+	   const double rollCorrX = (yDat.first - angleRollCenterX) * angleRollX;
+	   const double xValCorr = xDat.first - rollCorrX; // sign change with respect to the fit.. we want the model value. 
+	   const double rollCorrY = (xDat.first - angleRollCenterY) * angleRollY;
+	   const double yValCorr = yDat.first - rollCorrY;
+//	   std::cerr << " ... ... rollCorrX " << rollCorrX << " rollCorrY " << rollCorrY << " .. so, x now " << xValCorr << " y " << yValCorr << std::endl;
 //	   const double xValCorr = xDat.first + (yDat.first - angleRollCenterX) * angleRollX; 
 //	   const double yValCorr = yDat.first + (xDat.first - angleRollCenterY) * angleRollY;
 //   Now presumably correct.  Sept 8 2023. token job Run_1274_NoTgt31Gev_ClSept_A1e_1o1, or _c7
@@ -312,7 +315,6 @@ namespace emph {
 //   Wrong, swap U and W, October 27, token job  
 //	   const double vPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
 //	   const double uPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
-
            size_t kuu = 0;
 	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
@@ -340,8 +342,13 @@ namespace emph {
 	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(itClUorV->View(), kSt, kSeU); 
 	     double uorvPred = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
 	                                         uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ; // December 6, but wrong for station 6.. 
-	     if (kSt == 6)  {  // Very, very messy!1 
-	         uorvPred = -1.0 * (uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV) ; // Partial improvement... 
+	     if (fRunNum > 1999)  {  // Very, very messy
+	         uorvPred =  (uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV) ; // All stereo angle are U type... 
+		 // Note the sign for the correction... 
+//		 std::cerr << " .. Roll correction for U " << (vPred  - angleRollCenterUorV) * angleRollUorV << std::endl;
+// 
+//    December 2023 
+//	         uorvPred = -1.0 * (uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV) ; // Partial improvement... 
 //	         if ((xValCorr > 0. ) && (yValCorr < 0.) && (uorvPred < 0.)) uorvPred *= -1.0; // big diff.. Not it. 
 //	         if ((xValCorr < 0. ) && (yValCorr > 0.) && (uorvPred < 0.)) uorvPred *= -1.0;
 //	         if ((xValCorr > 0. ) && (yValCorr < 0.) && (uorvPred < 0.)) uorvPred *= vPred + ( uPred - angleRollCenterUorV) * angleRollUorV ; // big diff.. Not it. 
@@ -435,12 +442,14 @@ namespace emph {
 	   const std::pair<double, double> yDat = fCoordConvert.getTrCoord(itClY, fPrelimMomentum);
 	   const double angleRollY = fEmVolAlP->Roll(emph::geo::Y_VIEW, kSt, kSeY);
 	   const double angleRollCenterY = fEmVolAlP->RollCenter(emph::geo::Y_VIEW, kSt, kSeY);
-	   const double xValCorr = xDat.first + (yDat.first - angleRollCenterX) * angleRollX; 
-	   const double yValCorr = yDat.first + (xDat.first - angleRollCenterY) * angleRollY;
+	   const double xValCorr = xDat.first - (yDat.first - angleRollCenterX) * angleRollX; 
+	   const double yValCorr = yDat.first - (xDat.first - angleRollCenterY) * angleRollY;
 	   if (fDebugIsOn) {
-	     std::cerr << " At cluster on Y view, station " << itClY->Station() << " Sensor  " 
+	     std::cerr << " ...  At cluster on Y view, station " << itClY->Station() << " Sensor  " 
 	             << kSeY << " weighted strip " 
 		     << itClY->WgtAvgStrip() << " RMS " << itClY->WgtRmsStrip() << " ydat " << yDat.first  << std::endl;
+	     std::cerr << " ... angleRollX " <<  angleRollX  << " angleRollY " <<  angleRollY 
+	               << "  xValCorr " <<  xValCorr << " yValCorr " << yValCorr << std::endl;
 	   }
 	   if (std::abs(yDat.first - fYWindowCenter) > fYWindowWidth) {
 	     if (fDebugIsOn) std::cerr << " Skip, out side the search window in Projected Y location  " 
@@ -510,10 +519,13 @@ namespace emph {
 	   yPred = (kSt > (kStMaxW-1)) ?  (-fSqrt2 * uorvDat.first + xDat.first) : (fSqrt2 * uorvDat.first - xDat.first);
 	   uPred = fOneOverSqrt2 * ( xDat.first + yPred);
 	    vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
-	   const double uorvValCorr = (kSt > (kStMaxW-1)) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
+	   double uorvValCorr = (kSt > (kStMaxW-1)) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
 	                                          uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
+	   if (fRunNum > 1999) 	uorvValCorr = uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;				  
 	   const double xValCorr = xDat.first + (yPred - angleRollCenterX) * angleRollX; 
-	   const double yValCorr = (kSt > 3) ?  (-fSqrt2 * uorvValCorr + xDat.first) : (fSqrt2 * uorvValCorr - xDat.first);
+	   double yValCorr = (kSt > 3) ?  (-fSqrt2 * uorvValCorr + xDat.first) : (fSqrt2 * uorvValCorr - xDat.first);
+	   // December found the hard way that all stereo-angle views are U type, by reaching semi decent alignment results. 
+	   if (fRunNum > 1999) yValCorr = (fSqrt2 * uorvValCorr - xDat.first); 
            fClUsages[kux] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
@@ -577,10 +589,12 @@ namespace emph {
 	   const double   xPred = (kSt > (kStMaxW-1)) ?  (fSqrt2 * uorvDat.first + yDat.first) : (fSqrt2 * uorvDat.first - yDat.first);
 	   const double  uPred = fOneOverSqrt2 * ( yDat.first + xPred);
 	   const double vPred = -1.0*fOneOverSqrt2 * ( yDat.first - xPred);
-	   const double uorvValCorr = (kSt > (kStMaxW-1)) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
+	   double uorvValCorr = (kSt > (kStMaxW-1)) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
 	                                          uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
+	   if (fRunNum > 1999) 	uorvValCorr = uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;				  
 	   const double yValCorr = yDat.first + (xPred - angleRollCenterY) * angleRollY; 
-	   const double  xValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr + yDat.first) : (fSqrt2 * uorvValCorr - yDat.first);
+	   double  xValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr + yDat.first) : (fSqrt2 * uorvValCorr - yDat.first);
+	   if (fRunNum > 1999) xValCorr = (fSqrt2 * uorvValCorr - yDat.first);
            fClUsages[kuy] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
@@ -801,7 +815,8 @@ namespace emph {
 	       const double x2 = itPt2->X(); const double x2Err = itPt2->XErr(); const double w2 = 1.0/(x2Err*x2Err); 
 	       const double sumW = w1 + w2; 
 	       const double xx = (x1*w1 + x2*w2)/sumW;
-	       const double xxErr = std::sqrt(1.0/sumW);
+//	       const double xxErr = std::sqrt(1.0/sumW);  IIn doing so, we artificially, and wrongly, subtract multiple scattering error. 
+	       const double xxErr = std::min(x1Err, x2Err);  
 	       itPt1->SetX(xx, xxErr); 
 	       std::vector<myItCl> itCls2; itPt2->fillItClusters(itCls2);
                for(size_t k2 = 0; k2 != itCls2.size(); k2++) {
@@ -825,7 +840,8 @@ namespace emph {
 	       const double y2 = itPt2->Y(); const double y2Err = itPt2->YErr(); const double w2 = 1.0/(y2Err*y2Err); 
 	       const double sumW = w1 + w2; 
 	       const double yy = (y1*w1 + y2*w2)/sumW;
-	       const double yyErr = std::sqrt(1.0/sumW);
+//	       const double yyErr = std::sqrt(1.0/sumW);
+	       const double yyErr = std::min(y1Err, y2Err); 
 	       itPt1->SetY(yy, yyErr); 
 	       std::vector<myItCl> itCls2; itPt2->fillItClusters(itCls2);
                for(size_t k2 = 0; k2 != itCls2.size(); k2++) {

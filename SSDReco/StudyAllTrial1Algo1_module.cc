@@ -148,7 +148,7 @@ namespace emph {
 //
 // CSV tuple output..
 // 
-      std::ofstream fFOutMultSum, fFOutVertices, fFOutVertDwn;
+      std::ofstream fFOutMultSum, fFOutVertices, fFOutVertDwn, fOutScattAngle;
       
 //
 // access to input data..   
@@ -163,6 +163,8 @@ namespace emph {
       
       void openOutputCsvFiles();
       void dumpSummaryMultiplicities(); 
+      
+      void studyPrelimScattAngle(const art::Event& evt);
             
     }; 
     
@@ -180,7 +182,8 @@ namespace emph {
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fUpStreamBeamTrRec(), 
     fXPencil120(-3.8), fYPencil120(4.5), // Obtained in the analysis of 120 GeV runs 1043 and 1055.  Phase1b
 //    fMeanUpstreamXSlope(0.0004851102), fMeanUpstreamYSlope(0.002182192), // Only for run 1066, 1067... (31 GeV). 
-    fMeanUpstreamXSlope(0.000811), fMeanUpstreamYSlope(0.002182192), // Only for run 1274 (31 GeV). After retuning TransShift_X_1 from 0.72 to 2.0  
+//    fMeanUpstreamXSlope(0.000811), fMeanUpstreamYSlope(0.002182192), // Only for run 1274 (31 GeV). After retuning TransShift_X_1 from 0.72 to 2.0  
+    fMeanUpstreamXSlope(-0.00306), fMeanUpstreamYSlope(0.008883417), // Only for run 2113, aligment 7s1* 
     fNumClUpstr(0), fNumClDwnstr(0), fNumBeamTracks(0), fNumVertices(0), fNumVertDwn(0), fStationsRecMult(4, 0)
     {
        std::cerr << " Constructing StudyAllTrial1Algo1 " << std::endl;
@@ -192,7 +195,7 @@ namespace emph {
     {
       std::cerr << " emph::StudyAllTrial1Algo1::reconfigure ... " <<std::endl;
       fSSDClsLabel = pset.get<std::string>("SSDClsLabel");   
-      fSSDAlignmentResult = pset.get<std::string>("SSDAlignmentResult", "none");   
+      fSSDAlignmentResult = pset.get<std::string>("SSDAlignmentResult", "none");   // Will be optionally overwritten, see below.. 
       std::cerr << "  ... fSSDClsLabel " << fSSDClsLabel << std::endl;   
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
       fMaxUpstreamSlopeX = pset.get<double>("maxUpstreamSlopeX", 0.005);
@@ -207,7 +210,7 @@ namespace emph {
       fDoUseDownstrKalmanTracks = pset.get<bool>("doUseDownstrKalmanTracks", false);
       fConfirmBrickChiSqCut = pset.get<double>("confirmBrickChiSqCut", 500.);
       fPrelimMomentumSecondaries = pset.get<double>("prelimMomentum", 5.);
-      fDwnstrChiSqCut = pset.get<double>("dwnstrChiSqCut", 10.);
+      fDwnstrChiSqCut = pset.get<double>("dwnstrChiSqCut", 25.);
       fDwnstrChiSqCutPreArb = pset.get<double>("dwnstrChiSqCutPreArb", 500.);
       fDwnstrVertChiSqCut = pset.get<double>("dwnstrVertChiSqCutPreArb", 3.);
       fChiSqCutXYUVStAlgo1 = pset.get<double>("chiSqCutXYUVStAlgo1", 1000.);
@@ -227,9 +230,7 @@ namespace emph {
       const std::string alignParamsStr = pset.get<std::string>("alignParamFileName");
       const char *pathHere = std::getenv("CETPKG_BUILD");
       const std::string ffName(pathHere + std::string("/") + alignParamsStr) ;
-      std::cerr << " StudyAllTrial1Algo1::reconfigure, uploading alignment data from file " << ffName << std::endl;
-      if (ffName.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(ffName); 
-           
+      fSSDAlignmentResult = ffName;     
       std::cerr << " .... O.K. done with reconfigure,  keep going ....  " << std::endl; 
     }
     void emph::StudyAllTrial1Algo1::beginRun(art::Run const &run)
@@ -276,8 +277,8 @@ namespace emph {
         fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
         for(size_t kSt=2; kSt != maxKst; kSt++)  {
           fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // it is done...  
-          if (kSt == 6) fDwnstrTrRec.SetChiSqCutRecStation(kSt, 1.0e6); // Understanding Station 6 V view ??? 
-// Fixed, December 8... 
+//          if (kSt == 6) fDwnstrTrRec.SetChiSqCutRecStation(kSt, 1.0e6); // Understanding Station 6 V view ??? 
+// Fixed, January 4 2024 
        }
 	std::cerr << " Finished setting up Downstream Tracker.. " << std::endl;
       } else { 
@@ -290,7 +291,9 @@ namespace emph {
         }
        }
        fEmVolAlP->SetPhase1X(fRun);
-       fEmVolAlP->UpdateNominalFromStandardGeom(fEmgeo);
+       std::cerr << " StudyAllTrial1Algo1::beginRun, uploading alignment data from file " << fSSDAlignmentResult << std::endl;
+        fEmVolAlP->UpdateNominalFromStandardGeom(fEmgeo);
+       if (fSSDAlignmentResult.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(fSSDAlignmentResult); 
        	
        std::cerr  << std::endl << " ------------- End of StudyAllTrial1Algo1::beginRun ------------------" << std::endl << std::endl;
     }
@@ -341,7 +344,7 @@ namespace emph {
 	if (!fDoIronBrick) {
 	   fFOutMultSum << " " << fDwnstrTrRec.Size() << " " << fNumVertices <<  " " << fNumVertDwn << std::endl;
 	} else {
-	   fFOutMultSum << " " << fBrickTrRec.Size() << " 0 0 " << std::endl;
+	   fFOutMultSum << " " << fBrickTrRec.Size() << " " << fNumVertices <<  " 0 "  << std::endl;
 	}   
     }
     
@@ -379,11 +382,12 @@ namespace emph {
 //      bool debugIsOn = ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)); // Bad event Root 300 error, Nov 25 2023. 
 // This is no longer needed, after the Minuit2 exception handle upgrade, late November 2023.. 
 //      
-      bool debugIsOn = ((fRun == 2098) && (fSubRun == 7) && (fEvtNum == 1730));
+//      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && (fEvtNum == 2977));
+      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && (fEvtNum == 5));
 //      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && 
 //                        ((fEvtNum == 1) || (fEvtNum == 2 ) || (fEvtNum == 4 )|| (fEvtNum == 5 ) || (fEvtNum == 9 ) || (fEvtNum == 10 )));
 //      if (fEvtNum > 25) { std::cerr << " ... ... only first few event, quit now.. " << std::endl; exit(2); }
-      if (!debugIsOn) return ; // skip, got for the first clean event.. 
+//      if (!debugIsOn) return ; // skip, got for the first clean event.. 
       if ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)) return ; // Skip fit fails..       
       if ((fRun == 1274) && (fSubRun == 31) && (fEvtNum == 10320)) return ; // Skip fit fails..       
 //      if ((fRun == 1274) && (fSubRun == 3) && (fEvtNum == 10298)) return ; // Skip fit fails..       
@@ -453,7 +457,8 @@ namespace emph {
 	   itUpTr != fUpStreamBeamTrRec.CEnd(); itUpTr++, kTr++) {
           const double deltaX120 = itUpTr->XOffset() - fXPencil120; const double deltaY120 = itUpTr->YOffset() - fYPencil120;
 	  const double dist120 = std::sqrt(deltaX120*deltaX120 + deltaY120*deltaY120);
-	  if (debugIsOn) std::cerr << " .... Distance from 120 GeV Beam center " << dist120 << " Track slopes " << itUpTr->XSlope() 
+	  if (debugIsOn) std::cerr << " .... X0 " << itUpTr->XOffset() << " Y0 " << itUpTr->YOffset() 
+	                           << "  Distance from 120 GeV Beam center " << dist120 << " Track slopes " << itUpTr->XSlope() 
 	          << " , " << itUpTr->YSlope() << std::endl;
 	  if (dist120 > fMaxDistFrom120Beam) { if (debugIsOn) std::cerr << " ... rejected, too far from beam center " << std::endl; continue; }
 	  if ((std::abs(itUpTr->XSlope() - fMeanUpstreamXSlope) > fMaxUpstreamSlopeX) || 
@@ -529,14 +534,16 @@ namespace emph {
 
       
       fDwnstrTrRec.dumpStInfoForR();
-      bool gotBeamOrScatter = fDwnstrTrRec.doUpDwn3DClFitAndStore();
-      if ( gotBeamOrScatter ) fDwnstrTrRec.dumpBeamTracksCmp(true);
+      // To be re-implemented, if need be... 
+//      bool gotBeamOrScatter = fDwnstrTrRec.doUpDwn3DClFitAndStore();
+      bool gotBeamOrScatter = (fDwnstrTrRec.Size() == 1);
+      if ( gotBeamOrScatter && (!fDoUseDownstrKalmanTracks)) fDwnstrTrRec.dumpBeamTracksCmp(false);
       // 
       // Kalman filter results, if any.. 
       //
       fDwnstrTrRec.dumpBeamTracksCmpKlm();
       if (fDoUseDownstrKalmanTracks) {
-         if ( gotBeamOrScatter ) fDwnstrTrRec.dumpBeamTracksCmp(false);
+         fDwnstrTrRec.dumpBeamTracksCmp(false);
       }
       
       //
@@ -549,7 +556,7 @@ namespace emph {
       
       if (fUpStreamBeamTrRec.Size() > 0) fUpStreamBeamTrRec.dumpXYInforR(1);
       fDwnstrTrRec.dumpInfoForR();
-      if (debugIsOn) std::cerr << " Check evt number.. after dumping Dwn tracks   " << fEvtNum << std::endl;
+      if (debugIsOn) std::cerr << " Check evt number.. after dumping Dwn tracks, evtNum =   " << fEvtNum << std::endl;
       //
       // Temporary stop 
       //
@@ -562,9 +569,13 @@ namespace emph {
         if (fDoUseDownstrKalmanTracks) fDwnstrTrRec.transferKlmToClFit();
         fRecVert.SetDebugOn(debugIsOn);
 	fRecVert.SetTokenJob(fTokenJob);
+	fRecVert.SetChiSqCut(fDwnstrChiSqCut);
 	std::vector<rb::BeamTrackAlgo1>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();
+	if (debugIsOn) std::cerr << " .... Ready for Vertex analysis,  one upstream track, " << fDwnstrTrRec.Size() << " downstream tracks " << std::endl;
         fRecVert.RecAndFitIt(evt, itUp, fDwnstrTrRec);
+	fNumVertices = 1;
 	fRecVert.dumpInfoForR();
+//	std::cerr << " ... ... And after vertexing gove up, stop cold here and now " << std::endl; exit(2);
       }
       // Limit the multiplicities.. 
       this->dumpSummaryMultiplicities();  
@@ -591,5 +602,10 @@ namespace emph {
 //                 << " py1 " << py1 <<  " py2 " << py2 <<  " pz1 " << pz1 << " pz2 " << pz2 << std::endl;
        return std::sqrt(deltaPx*deltaPx + deltaPy*deltaPy + deltaPz*deltaPz); 
        				      
-    }				      
+    }
+    void emph::StudyAllTrial1Algo1::studyPrelimScattAngle(const art::Event& evt) {
+      
+    
+    }
+    				      
 DEFINE_ART_MODULE(emph::StudyAllTrial1Algo1)

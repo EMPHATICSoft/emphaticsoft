@@ -265,8 +265,17 @@ namespace emph {
 	      break;
 	    }
 	    case emph::geo::W_VIEW : {
-	      tPred = vPred ; 
-	      tPred += (uPred - angleRollCenter) * angleRoll;
+//	      tPred = vPred ; 
+//	      tPred += (uPred - angleRollCenter) * angleRoll;
+//	      if (fRunNum < 2000) {
+//	        tPred = vPred ; 
+//	        tPred += (uPred - angleRollCenter) * angleRoll;
+//	      } else {
+// Only Phase1c at this point !!!! 
+//
+	        tPred = uPred ; 
+	        tPred += (vPred - angleRollCenter) * angleRoll;
+//	      }
 	      break;
 	    }
 	    default : { continue; }

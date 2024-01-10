@@ -210,7 +210,7 @@ namespace emph{
           switch (view) {
 	    case emph::geo::X_VIEW : {
 	     size_t kS =  (kSt > 4) ? (5 + (kSt-5)*2 + kSe % 2) : kSt;
-//	     std::cerr << " VolatileAlignmentParams::TrPos, X,  kSt " << kSt << " kSe " << kSe << " kS " 
+//	     std::cerr << " VolatileAlignmentParams::TrPos1c, X,  kSt " << kSt << " kSe " << kSe << " kS " 
 //	               << kS <<  " X nom " << fTrNomPosX[kS] << " delta " << fTrDeltaPosX[kS] <<  " pos " << fTrPosX[kS] << std::endl;
 	     return fTrPosX[kS];  
 	    } 
@@ -220,7 +220,7 @@ namespace emph{
 	     // Carefull.. if we swap the U vs W definition of Station 2&3 vs Station 4& 5 Sept 4 2023. 
 	    case emph::geo::U_VIEW :  { return (fTrPos1cSt2and3U[kSt-2]); } 
 	    case emph::geo::W_VIEW :  {
-	      return (fTrPos1cSt5and6W[(kSt-4)*2 + kSe % 2]); 
+	      return (fTrPos1cSt5and6W[(kSt-5)*2 + kSe % 2]); 
 	    }
 	    default : { 
 	      std::cerr << " VolatileAlignmentParams::TrPos, unknown view " << view << " fatal, quit " << std::endl; 

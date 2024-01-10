@@ -51,9 +51,13 @@ namespace emph {
 	exit(2); 
       }
       if (fEmgeo == nullptr) fEmgeo = fGeoService->Geo();
+      if (fRunNum < 2000) {
+        std::cerr << " Using now th Phase1c geometry, so, this code is no longer valid for Phase1b data.. sorry, Fatal..  " << std::endl;
+	exit(2);
+      }
 
-//      const bool debugIsOn = ((fEvtNum == 5) && (fSubRunNum == 10)); 
-      const bool debugIsOn = ((fEvtNum == 1199) && (fSubRunNum == 10)); 
+      const bool debugIsOn = ((fEvtNum == 5) && (fSubRunNum == 10)); 
+//      const bool debugIsOn = ((fEvtNum == 1199) && (fSubRunNum == 10)); 
       fConvertCoord.SetDebugOn(debugIsOn); 
       if (debugIsOn) std::cerr << " SSDRecUpstreamTgtAlgo1::recoXY, spill " << fSubRunNum << " evt " << fEvtNum << std::endl;
       fTrXYs.clear();
@@ -105,8 +109,8 @@ namespace emph {
 	std::vector<rb::SSDCluster>::const_iterator itClX0 = *ittClX0;  
 	const double stripX0 = itClX0->WgtAvgStrip();
         const double rmsStrNX0 = std::max(0.1, itClX0->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
-	const double stripX0ErrSq = (1.0/rmsStrNX0*rmsStrNX0)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
-	const double X0Raw = fConvertCoord.getTrCoord(itClX0, fNominalMomentum).first;
+	const double stripX0ErrSq = pitchX0 * pitchX0 *(1.0/rmsStrNX0*rmsStrNX0)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
+	const double X0Raw = fConvertCoord.getTrCoord1c(itClX0, fNominalMomentum).first;
 	const double X0RawR = fConvertCoord.getTrCoordRoot(itClX0);
 	if (debugIsOn) {
 	    std::cerr << " .. At station 0, X view strip0 " << stripX0 << "  X0 Raw " << X0Raw << " X0-GeoMap " << X0RawR 
@@ -119,8 +123,8 @@ namespace emph {
 	  std::vector<rb::SSDCluster>::const_iterator itClY0 = *ittClY0;  
 	  const double stripY0 = itClY0->WgtAvgStrip();
           const double rmsStrNY0 = std::max(0.1, itClY0->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
-	  const double stripY0ErrSq = (1.0/rmsStrNY0*rmsStrNY0)/12.; 
-	  const double Y0Raw = fConvertCoord.getTrCoord(itClY0, fNominalMomentum).first; 
+	  const double stripY0ErrSq = pitchX0 * pitchX0 *(1.0/rmsStrNY0*rmsStrNY0)/12.; 
+	  const double Y0Raw = fConvertCoord.getTrCoord1c(itClY0, fNominalMomentum).first; 
 	  const double Y0RawR = fConvertCoord.getTrCoordRoot(itClY0); 
 	  const double X0 = X0Raw - (Y0Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 0, 0);
 	  const double Y0 = Y0Raw - (X0Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 0, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 0, 0);
@@ -131,8 +135,8 @@ namespace emph {
 	    std::vector<rb::SSDCluster>::const_iterator itClX1 = *ittClX1;  
 	    const double stripX1 = itClX1->WgtAvgStrip();
             const double rmsStrNX1 = std::max(0.1, itClX1->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
-	    const double stripX1ErrSq = (1.0/rmsStrNX1*rmsStrNX1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
-	    const double X1Raw = fConvertCoord.getTrCoord(itClX1, fNominalMomentum).first; 
+	    const double stripX1ErrSq =pitchX0 * pitchX0 * (1.0/rmsStrNX1*rmsStrNX1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
+	    const double X1Raw = fConvertCoord.getTrCoord1c(itClX1, fNominalMomentum).first; 
 	    const double X1RawR = fConvertCoord.getTrCoordRoot(itClX1);
 	    if (debugIsOn) std::cerr << " .. At station 1, X view strip1 " << stripX1 
 	                             << "  X1 Raw " << X1Raw << " X1-GeoMap " <<  X1RawR << std::endl;
@@ -141,8 +145,8 @@ namespace emph {
 	      std::vector<rb::SSDCluster>::const_iterator itClY1 = *ittClY1;  
 	      const double stripY1 = itClY1->WgtAvgStrip();
               const double rmsStrNY1 = std::max(0.1, itClY1->WgtRmsStrip())/fOneOSqrt12; // protect against some zero values for the RMS 
-	      const double stripY1ErrSq = (1.0/rmsStrNY1*rmsStrNY1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
-	      const double Y1Raw = fConvertCoord.getTrCoord(itClY1, fNominalMomentum).first; 
+	      const double stripY1ErrSq = pitchX0 * pitchX0 *(1.0/rmsStrNY1*rmsStrNY1)/12.; // Too convoluted..  just a guess!!!  Suspicious.. 
+	      const double Y1Raw = fConvertCoord.getTrCoord1c(itClY1, fNominalMomentum).first; 
 	      const double Y1RawR = fConvertCoord.getTrCoordRoot(itClY1); 
 	      const double X1 = X1Raw - (Y1Raw - fEmVolAlP->RollCenter(emph::geo::X_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::X_VIEW, 1, 0);
 	      const double Y1 = Y1Raw - (X1Raw - fEmVolAlP->RollCenter(emph::geo::Y_VIEW, 1, 0))*fEmVolAlP->Roll(emph::geo::Y_VIEW, 1, 0);
@@ -159,6 +163,9 @@ namespace emph {
 	      const double YSlopeErrSq = ( stripY0ErrSq + stripY1ErrSq + errMultScatStation1Sq ) / (deltaZY * deltaZY) +
 	                                   ( dZErrRel * dZErrRel); 
 	      
+	     if (debugIsOn) std::cerr << " .. Storing the track, check errs err Mult Scat  " << std::sqrt(errMultScatStation1Sq) 
+	                              << " Err Strip0 " << std::sqrt(stripX0ErrSq) << " X Slope err  " <<
+	                                std::sqrt(XSlopeErrSq) << std::endl; 
 	      rb::BeamTrackAlgo1 aTr;
 	      aTr.SetType(rb::tBeamTrType::XYONLY);
 	      aTr.SetTrParams(X0, Y0,  XSlope, YSlope);

@@ -49,14 +49,18 @@ namespace emph {
        fFitterFCN.ResetInput();
        fFitterFCN.SetInputUpstrTr(itBeam);
        int numOKDwnTr = 0;
+       if (fDebugIsOn) {
+         std::cerr << " SSDRecVertexAlgo1::RecAndFitIt, start, Num Downstream Tracks submitted = " <<  dwnstr.Size() << std::endl;
+       }
        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
+         if (fDebugIsOn) std::cerr << " ... For track " << it->ID() << " chiSq " << it->ChiSq() << " chiSq cut " << fChiSqCut << std::endl;
          if (it->ChiSq() > fChiSqCut) continue;
 	 // Other slope cuts ? 
 	 fFitterFCN.AddInputDwn(it); numOKDwnTr++;
        }
        fFitterFCN.SetDebugOn(fDebugIsOn);
        if (fDebugIsOn) {
-         std::cerr << " SSDRecVertexAlgo1::RecAndFitIt, start, Num Downstream Tracks = " << numOKDwnTr  << std::endl;
+         std::cerr << " .... , Num Downstream Tracks accepted = " << numOKDwnTr  << std::endl;
        }
        ROOT::Minuit2::MnUserParameters uPars;
        uPars.Add(std::string("XV"), itBeam->XOffset(), 0.2, -50., 50.);  
@@ -65,41 +69,44 @@ namespace emph {
        ROOT::Minuit2::MnMigrad migrad(fFitterFCN, uPars);
        if (fDebugIsOn) std::cerr << " ..... About to call migrad... " << std::endl;
        //
-       ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
-       if (fDebugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
+       bool isMigradValid = false;
+       try {
+         ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
+         if (fDebugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
        //
-       const bool isMigradValid = min.IsValid(); 
-       if (isMigradValid) {
-         fChiFinal = min.Fval();
-	 fVert.SetID(0);
-         std::vector<double> parsOutErr = min.UserParameters().Errors();
- 	 std::vector<double> parsOut = min.UserParameters().Params();
-	 fVert.SetPosition(parsOut[0], parsOut[1], parsOut[2]);
-	 fVert.SetPositionErr(parsOutErr[0], parsOutErr[1], parsOutErr[2]);
-	 fVert.SetChiSq(fChiFinal);
-         if (min.HasCovariance()) {
-           for (size_t i=0; i != 3; i++) {
-             for (size_t j=0; j != 3; j++) {
+         isMigradValid = min.IsValid(); 
+         if (isMigradValid) {
+           fChiFinal = min.Fval();
+	   fVert.SetID(0);
+           std::vector<double> parsOutErr = min.UserParameters().Errors();
+ 	   std::vector<double> parsOut = min.UserParameters().Params();
+	   fVert.SetPosition(parsOut[0], parsOut[1], parsOut[2]);
+	   fVert.SetPositionErr(parsOutErr[0], parsOutErr[1], parsOutErr[2]);
+	   fVert.SetChiSq(fChiFinal);
+           if (min.HasCovariance()) {
+             for (size_t i=0; i != 3; i++) {
+               for (size_t j=0; j != 3; j++) {
 	       const double cc = min.UserCovariance()(i,j);
                fVert.SetCovarianceMatrix((i*3 + j), cc);
+	       }
 	     }
-	   }
-         }
-         for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
-           if (it->ChiSq() > fChiSqCut) continue;
+           }
+           for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
+             if (it->ChiSq() > fChiSqCut) continue;
 	 // Other slope cuts ? 
-	   fVert.AddTrackUID(it->ID());
-         }
+	     fVert.AddTrackUID(it->ID());
+           }
 	 
-         if (fDebugIsOn) {
-	 std::cerr << " Vertex fit valid, Position X = " << parsOut[0] << " +- " << parsOutErr[0] 
+           if (fDebugIsOn) {
+	     std::cerr << " Vertex fit valid, Position X = " << parsOut[0] << " +- " << parsOutErr[0] 
 	            << " Y " << parsOut[1] << " +- " << parsOutErr[1] 
 		    << " Z " << parsOut[2] << " +- " << parsOutErr[2] << " ChiSq " << fChiFinal << std::endl;
-	 }
-       } else { 
-	  if (fDebugIsOn) std::cerr << " No valid Minimum... " << std::endl;
+	   }
+         } else { 
+	    if (fDebugIsOn) std::cerr << " No valid Minimum... " << std::endl;
 	  // Could do arbitration here, removing one track at a time 
-       }
+         }
+	} catch (...) { return false; }
        return isMigradValid;
     }
     // 

@@ -28,10 +28,12 @@ namespace emph {
     // 
   
     bool SSDRecDwnstrTracksAlgo1::doUpDwn3DClFitAndStore( double pStart) {
-      if (fRunNum > 1999) return false; // not ready yet.. 
+      if (fRunNum < 2000) return false; // Disable Phase1b . 
+      std::cerr << " ... SSDRecDwnstrTracksAlgo1::doUpDwn3DClFitAndStore Need to be re-comissioned... Fatal...  " << std::endl; exit(2); 
       fUpStrDwnStrTrack.Reset();
-      bool isOKMult  = ((fInputSt2Pts.Size() == 1) && (fInputSt3Pts.Size() == 1) && (fInputSt4Pts.Size() == 1) 
-			    && (fInputSt5Pts.Size() == 1) );  //  NoTgt31Gev_ClSept_A2e_6a   
+      bool isOKMult  = ((fInputSt2Pts.Size() == 1) && (fInputSt3Pts.Size() == 1) && (fInputSt4Pts.Size() < 5 ) 
+			    && ((fInputSt5Pts.Size() == 1) || fInputSt5Pts.Size() < 3 )  
+			    && ((fInputSt6Pts.Size() == 1) || fInputSt6Pts.Size() < 3 ));  //  NoTgt31Gev_ClSept_A2e_6a   
 
       if ((!isOKMult) || (!fDoUseUpstreamTrack)) return false;
       
@@ -41,7 +43,7 @@ namespace emph {
       if (fInputSt2Pts.NumTriplets() != 1) return false;
       if (fInputSt3Pts.NumTriplets() != 1) return false;
       // We skip St4, because of the three dead readout chips.. 
-      if (fInputSt5Pts.NumTriplets() != 1) return false;
+//      if (fInputSt5Pts.NumTriplets() != 1) return false;
 
       std::vector<myItCl> dataIn; 
       dataIn.push_back(fItUpstrTr->ItClX0()); // assume the iterator is valid. 
@@ -163,16 +165,17 @@ namespace emph {
       }  catch (...) { return false; }
     }
     void SSDRecDwnstrTracksAlgo1::dumpBeamTracksCmp(bool useKlmTrack) const {
-        
+//       if (fDebugIsOn) 
+//        { std::cerr << " SSDRecDwnstrTracksAlgo1::dumpBeamTracksCmp, num Dwn tracks " << fTrs.size() << " And quit noe ! " << std::endl; exit(2); } 
        if ((!useKlmTrack) && (fTrs.size() == 0)) return;
        if ((useKlmTrack) && (fTrsKlm.size() == 0)) return;
        if (!fFOutCmpBeamTracks.is_open()) { 
          std::ostringstream aFOutTmpStrStr; 
-         aFOutTmpStrStr << "./BeamTrack3Ways_" << fRunNum  << "_" << fTokenJob << "_V1.txt";
+         aFOutTmpStrStr << "./BeamTrack2Ways_" << fRunNum  << "_" << fTokenJob << "_V1.txt";
          std::string aFOutTmpStr(aFOutTmpStrStr.str());
          fFOutCmpBeamTracks.open(aFOutTmpStr.c_str());
-         fFOutCmpBeamTracks << " spill evt useKlm x0 y0 slx0 slx0Err sly0 sly0Err slx0BTH slx0BTHErr sly0BTH sly0BTHErr pBTH pErrBTH chiSqBTH " << 
-                   "x2 xsl2 xsl2Err y2  y2sl y2slErr p pErr chiSq thetaX thetaXErr thetaY thetaYErr theta thetaErr t tErr " << std::endl;
+         fFOutCmpBeamTracks << " spill evt useKlm x0 y0 slx0 slx0Err sly0 sly0Err " << 
+                   "x2 xsl2 xsl2Err y2  y2sl y2slErr p pErr chiSq thetaX thetaXErr thetaY thetaYErr theta thetaErr t tErr phiDwn phiScat " << std::endl;
        }
        fFOutCmpBeamTracks << " " << fSubRunNum << " " << fEvtNum;
        if (useKlmTrack) fFOutCmpBeamTracks << " " << 1; 
@@ -180,10 +183,6 @@ namespace emph {
        fFOutCmpBeamTracks << " " << fItUpstrTr->XOffset() << " " << fItUpstrTr->YOffset() 
         		  << " " << fItUpstrTr->XSlope() << " " << fItUpstrTr->XSlopeErr() 
         		  << " " << fItUpstrTr->YSlope() << " " << fItUpstrTr->YSlopeErr(); 
-       fFOutCmpBeamTracks << " " << fUpStrDwnStrTrack.XSlope() << " " << fUpStrDwnStrTrack.XSlopeErr() 
-	                   << " " << fUpStrDwnStrTrack.YSlope() << " " << fUpStrDwnStrTrack.YSlopeErr() 
-			   << " " << fUpStrDwnStrTrack.Momentum() << " " << fUpStrDwnStrTrack.MomentumErr()
-			   << " " << fUpStrDwnStrTrack.XChiSq(); // X and Y chiSq, no difference.. see above. 
 			   
        std::vector<rb::DwnstrTrackAlgo1>::const_iterator itSel = useKlmTrack ? fTrsKlm.cbegin(): fTrs.cbegin(); 
        // Take the one with the smalled chi-Sq.  Should not happen as we have one Space Point in each of the downstream stations.. 
@@ -210,20 +209,27 @@ namespace emph {
 	const double thetaXErrSq = itSel->XSlopeErr() * itSel->XSlopeErr()  +  fItUpstrTr->XSlopeErr() * fItUpstrTr->XSlopeErr(); 		  
 	const double thetaYErrSq = itSel->YSlopeErr() * itSel->YSlopeErr()  +  fItUpstrTr->YSlopeErr() * fItUpstrTr->YSlopeErr();
 	const double thetaSq = thetaX*thetaX + thetaY*thetaY;
-	const double thetaSqErrSq = 4.0*(thetaX*thetaX*thetaXErrSq + thetaY*thetaY*thetaYErrSq);
+	const double thetaErrSq =(thetaXErrSq + thetaYErrSq);
 	const double t = itSel->Momentum()*itSel->Momentum()*thetaSq; 
 	const double tErr = itSel->Momentum()* std::sqrt(4.0*itSel->MomentumErr()*itSel->MomentumErr()*thetaSq*thetaSq
-	                               + itSel->Momentum()*itSel->Momentum()*thetaSqErrSq); 
+	                               + itSel->Momentum()*itSel->Momentum()*thetaErrSq); 
+				       
 	fFOutCmpBeamTracks << " " << thetaX << " " << std::sqrt(std::abs(thetaXErrSq))
 	                   << " " << thetaY << " " << std::sqrt(std::abs(thetaYErrSq));
-	fFOutCmpBeamTracks << " " << std::sqrt(thetaSq) << " " << std::pow(thetaSqErrSq, 0.25) << " " << t << " " << tErr << std::endl;		   		  
+	fFOutCmpBeamTracks << " " << std::sqrt(thetaSq) << " " << std::sqrt(thetaErrSq) << " " << t << " " << tErr; 
+	fFOutCmpBeamTracks << " " << std::atan2(fItUpstrTr->YSlope(), fItUpstrTr->XSlope()) << " " << std::atan2(thetaY, thetaX) <<   std::endl;		   		  
    }			   
     
    bool SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore(const std::vector<myItStPt> &dataIn,   double pStartTmp) {
    
+      bool isOKMult  = ((fInputSt2Pts.Size() == 1) && (fInputSt3Pts.Size() == 1) && (fInputSt4Pts.Size() < 5 ) 
+			    && ((fInputSt5Pts.Size() == 1) || fInputSt5Pts.Size() < 3 )  
+			    && ((fInputSt6Pts.Size() == 1) || fInputSt6Pts.Size() < 3 ));  //  NoTgt31Gev_ClSept_A2e_6a   
+
        if (fDebugIsOn) {
          std::cerr << " SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, spill " << fSubRunNum << " evt " 
                                  << fEvtNum <<  " Number of SSDClusters  " << dataIn.size() << std::endl;
+	if (!isOKMult) std::cerr << " ... multiplicity count not quite good enough, skip.. " << std::endl;			 
         for (size_t k = 0; k != dataIn.size(); k++) {
 	   std::cerr << " ...  " <<  *(dataIn[k]) << std::endl;
          }

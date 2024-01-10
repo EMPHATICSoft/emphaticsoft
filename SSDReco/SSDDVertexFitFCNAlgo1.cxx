@@ -120,10 +120,10 @@ namespace emph {
 	                                << fDataDwn[k]->YOffsetErr() << " x' = " << fDataDwn[k]->YSlope() 
 					<< " +- " << fDataDwn[k]->YSlopeErr() << std::endl;
         if (fDataDwn[k]->CovMatrix(0, 0) != DBL_MAX) {
-	  std::cerr << " ....  Covariance Matrix " << std::endl;
-	  for (size_t i=0; i!=5; i++) {
+	  std::cerr << " ....  Covariance Matrix, numParams  " <<  fDataDwn[k]->NumParams() << std::endl;
+	  for (size_t i=0; i != fDataDwn[k]->NumParams(); i++) {
 	    std::cerr << " .... .............. " ; 
-	    for (size_t j=0; j!=5; j++)  std::cerr << " " << fDataDwn[k]->CovMatrix(i,j);
+	    for (size_t j=0; j != fDataDwn[k]->NumParams(); j++)  std::cerr << " " << fDataDwn[k]->CovMatrix(i,j);
 	    std::cerr << std::endl;
 	  }
 	}
