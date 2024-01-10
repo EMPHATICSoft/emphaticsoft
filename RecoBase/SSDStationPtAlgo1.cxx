@@ -66,15 +66,18 @@ namespace rb {
    }
    void SSDStationPtAlgo1::ReScaleMultUncert(double multScatt120, double pOld, double pNew) const {  
      // pseudo const, we don't change the position, just the uncertainty. 
+//	  if (fStationNum == 5)
+//	   std::cerr << " SSDStationPtAlgo1::ReScaleMultUncert, Station 5 multScatt120 " << multScatt120  
+//	             << " xErr " << fXErr << std::endl;
 	  const double ratioPOld120Sq = (120./pOld)*(120./pOld);
 	  const double ratioPNew120Sq = (120./pNew)*(120./pNew);
 	  const double xErrSQOther = fXErr*fXErr - multScatt120*multScatt120*ratioPOld120Sq;
-	  const double fXErrOld = fXErr; 
+	  const double aXErrOld = fXErr; 
 	  if (xErrSQOther < 0.) {
 	    std::cerr << " ReScaleMultUncert::SSDStationPtAlgo1, Station " << fStationNum<< " pOld " << pOld 
 	             << " pNew " << pNew << " ratioPOldSq " << ratioPOld120Sq << " new " 
 		     << ratioPNew120Sq << " xErrSQOther " << xErrSQOther << " mulScatt120 " <<  multScatt120
-		     << " OlXErr " << fXErrOld << std::endl;
+		     << " OlXErr " << aXErrOld << std::endl;
 	    std::cerr << " SSDStationPtAlgo1::ReScaleMultUncert Problem, multScatt too large for X view !!! pOld = " 
 	              << pOld << " X Err " << fXErr << " Fatal, quit now.. " << std::endl; 
 	    exit(2); 
