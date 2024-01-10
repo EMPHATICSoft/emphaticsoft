@@ -94,6 +94,7 @@ namespace emph{
           switch (view) {
 	    case 'X' : {
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
+//             std::cerr << "  BTAlignGeom1c::ZPos, View X, kSe, " << kSe << " Z " << fZPosX[kSe] << std::endl;
 	     return (fZPosX[kSe]);  
 	    } 
 	    case 'Y' :  { return (fZPosY[kSe]); } 
@@ -225,6 +226,7 @@ namespace emph{
 	// Moving the stations.... Study the longitudinal shifts. 
 	//
 	void MoveZPosOfXUVByY();
+	void SetUnknownUncertForStations(const std::vector<int> listofStations);
     };
   } // rbal 
 } // emph

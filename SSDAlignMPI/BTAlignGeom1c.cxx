@@ -26,10 +26,11 @@ namespace emph {
        fPitch(0.06),
        fWaferWidth(static_cast<int>(fNumStrips)*fPitch),
        fHalfWaferWidth(0.5*fWaferWidth), fIntegrationStepSize(0.),  
-       fZNomPosX{0.45, 281.45, 501.75, 615.75, 846.45, 1139.88, 1139.88, 1465.32, 1465.32},  // revised Sept  2023, by LinYan, picked up from the gdml file 
+//       fZNomPosX{0.45, 281.45, 501.75, 615.75, 846.45, 1139.88, 1139.88, 1465.32, 1465.32},  // revised Sept  2023, by LinYan, picked up from the gdml file 
+       fZNomPosX{0.45, 281.45, 501.75, 615.75, 846.45, 1200., 1200., 1465.32, 1465.32},  // Station 5 invesigation, Dec 14 2023 run 7o61
        fZNomPosY{-6.5, 274.5, 501.45, 615.45, 839.5, 1146.83, 1146.83, 1472.27, 1472.27}, 
        fZNomPosSt2and3{494.5, 608.5},
-       fZNomPosSt4and5{1147.13, 1147.13, 1472.57, 1472.57},
+       fZNomPosSt4and5{1147.13, 1147.13, 1472.57, 1472.57}, // actually 5 and 6 in Phase1c
        fZDeltaPosX(fNumSensorsXorY, 0.),  fZDeltaPosY(fNumSensorsXorY, 0.), 
        fZDeltaPosSt2and3(fNumSensorsU, 0.), fZDeltaPosSt4and5(fNumSensorsW, 0.),
        fTrNomPosX{fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth,
@@ -85,7 +86,7 @@ namespace emph {
        switch (view) {
      	 case 'X' : {
 //	     if (sensor >= fZNomPosX.size()) { std::cerr .... No checks!. 
-	     fZDeltaPosX[kSe] =  fZPosX[kSe] = fZNomPosX[kSe] + v;  break;  
+	     fZDeltaPosX[kSe] = v; fZPosX[kSe] = fZNomPosX[kSe] + v;  break;  
 	    } 
 	 case 'Y' :  { fZDeltaPosY[kSe] = v; fZPosY[kSe] = fZNomPosY[kSe] + v; break;} 
 	 case 'U' : { fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v; break;} 
@@ -99,41 +100,40 @@ namespace emph {
      void BTAlignGeom1c::SetDeltaZStation(char view,  size_t kSt, double v) {
        switch (view) {
      	 case 'X' : {
-	     if (kSt < 4) { 
+	     if (kSt < 5) { 
 	       fZDeltaPosX[kSt] =  v; fZPosX[kSt] = fZNomPosX[kSt] + v; 
-	     } else if (kSt == 4) {
-	       for (size_t kSe=4; kSe != 6; kSe++) {
+	     } else if (kSt == 5) {
+	       for (size_t kSe=5; kSe != 7; kSe++) {
 	          fZDeltaPosX[kSe] =  v; fZPosX[kSe] = fZNomPosX[kSe] + v; 
 	       }
-	     }  else if (kSt == 5) {
-	       for (size_t kSe=6; kSe != 8; kSe++) {
+	     }  else if (kSt == 6) {
+	       for (size_t kSe=7; kSe != 9; kSe++) {
 	          fZDeltaPosX[kSe] =  v; fZPosX[kSe] = fZNomPosX[kSe] + v; 
 	       }  
 	    }
 	    break;
 	 }
      	 case 'Y' : {
-	   if (kSt < 4) { 
+	   if (kSt < 5) { 
 	     fZDeltaPosY[kSt] =  v; fZPosY[kSt] = fZNomPosY[kSt] + v; 
-	   } else if (kSt == 4) {
-	     for (size_t kSe=4; kSe != 6; kSe++) {
+	   } else if (kSt == 5) {
+	     for (size_t kSe=5; kSe != 7; kSe++) {
 	  	fZDeltaPosY[kSe] =  v; fZPosY[kSe] = fZNomPosY[kSe] + v; 
 	     }
-	   }  else if (kSt == 5) {
-	     for (size_t kSe=6; kSe != 8; kSe++) {
+	   }  else if (kSt == 6) {
+	     for (size_t kSe=7; kSe != 9; kSe++) {
 	  	fZDeltaPosY[kSe] =  v; fZPosY[kSe] = fZNomPosY[kSe] + v; 
 	     }  
 	   }
 	   break;
 	 }	  
 	 case 'U' :  { 
-	    for (size_t kSe=0; kSe != 2; kSe++) { 
-	      fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v;
-	    }
+	    fZDeltaPosSt2and3[kSt-2] = v; fZPosSt2and3[kSt-2] = fZNomPosSt2and3[kSt-2] + v;
 	  break;
 	 } 
 	 case 'V' : case 'W' : { 
-	     for (size_t kSe=0; kSe != 4; kSe++) { 
+	     for (size_t kkSe=0; kkSe != 2; kkSe++) { 
+	       size_t kSe = kSt -5 +kkSe;
 	       fZDeltaPosSt4and5[kSe] = v; fZPosSt4and5[kSe] = fZNomPosSt4and5[kSe] + v;
 	     }
 	 }
@@ -279,8 +279,47 @@ namespace emph {
          const double theZDeltaPosY = fZDeltaPosY[kSt]; 
 	 // Phase1b : At station 4, we get the first double sensors at index 4, and the 5th sensor is at the same Z. 
 	 this->SetDeltaZStation('X', kSt, theZDeltaPosY); 
-	 if (kSt == 4) this->SetDeltaZStation('U', 4, theZDeltaPosY); 
+	 if ((kSt == 2) || (kSt == 3)) this->SetDeltaZStation('U', kSt, theZDeltaPosY); 
+	 if ((kSt == 5) || (kSt == 6)) this->SetDeltaZStation('V', kSt, theZDeltaPosY); 
        }
+     }
+     void BTAlignGeom1c::SetUnknownUncertForStations(const std::vector<int> sts) {
+       for (size_t k=0; k != sts.size(); k++) {
+         switch (sts[k]) {
+	   case 2: 
+	   case 3: 
+	   {
+             this->SetUnknownUncert('X', static_cast<size_t>( sts[k]), 5000.);
+             this->SetUnknownUncert('Y', static_cast<size_t>( sts[k]), 5000.);
+             this->SetUnknownUncert('U', static_cast<size_t>( sts[k]-2), 5000.);
+	     break;
+	   }
+	   
+	   case 4: 
+	   {
+	      this->SetUnknownUncert('X', 4, 5000.);
+              this->SetUnknownUncert('Y', 4, 5000.);
+ 	      break;
+           }
+	   case 5: 
+	   {
+              this->SetUnknownUncert('V', 0, 5000.); this->SetUnknownUncert('V', 1, 5000.);
+              this->SetUnknownUncert('X', 5, 5000.); this->SetUnknownUncert('X', 6, 5000.);
+              this->SetUnknownUncert('Y', 5, 5000.); this->SetUnknownUncert('Y', 6, 5000.);
+ 	      break;
+            }
+	   case 6: 
+	   {
+              this->SetUnknownUncert('V', 2, 5000.); this->SetUnknownUncert('V', 3, 5000.);
+              this->SetUnknownUncert('X', 7, 5000.); this->SetUnknownUncert('X', 8, 5000.);
+              this->SetUnknownUncert('Y', 7, 5000.); this->SetUnknownUncert('Y', 8, 5000.);
+ 	      break;
+            }
+	 
+	   default: break;
+	 }
+       }
+     
      }
    } // namespace 
 }  // namespace   
