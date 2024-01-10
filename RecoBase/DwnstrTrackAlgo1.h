@@ -17,6 +17,7 @@ namespace rb {
 
     typedef enum tDwnstrTrType { TRDWNNONE = 0, // unspecified. 
                                  FOURSTATION = 1, // Best case
+                                 FIVESTATION = 11, //Phase1c, downstream of target
 				 STATION234 = 2,
 				 STATION235 = 3, 
                                  SIXSTATION = 10 // Best case, when we have no magnet, target in fron ot Station 0
@@ -47,6 +48,12 @@ namespace rb {
    inline void Reset() { // Set everyting to NONE or DBL_MAX, to be refilled again.  
      fTrXOffset =  DBL_MAX; fTrYOffset = DBL_MAX; fId = INT_MAX;
      fTrXSlope = DBL_MAX; fTrYSlope = DBL_MAX; fTrMom = 120.0;
+     fChiSq = -1.; for (size_t k=0; k!= fCovXY.size(); k++) fCovXY[k] = DBL_MAX;
+   }
+   inline void Reset(bool NoMagnet) { // Set everyting to NONE or DBL_MAX, to be refilled again.  
+     fTrXOffset =  DBL_MAX; fTrYOffset = DBL_MAX; fId = INT_MAX;
+     fTrXSlope = DBL_MAX; fTrYSlope = DBL_MAX; fTrMom = 120.0;
+     if (NoMagnet) fCovXY.resize(16);
      fChiSq = -1.; for (size_t k=0; k!= fCovXY.size(); k++) fCovXY[k] = DBL_MAX;
    }
    inline void SetType(DwnstrTrType t)  { fTrType = t; } 
@@ -81,6 +88,7 @@ namespace rb {
     inline double YSlope() const { return fTrYSlope; } 
     inline double YOffsetErr() const { return fTrYOffsetErr; } 
     inline double YSlopeErr() const { return fTrYSlopeErr; } 
+    inline size_t NumParams() const { return  ( (fCovXY.size() == 25) ? 5 : 4); } 
     inline double Momentum() const { return fTrMom; } 
     inline double MomentumErr() const { return fTrMomErr; } 
     inline int UserFlag() const { return fUserFlag; }
