@@ -26,8 +26,8 @@ extern emph::rbal::BTMagneticField* emph::rbal::BTMagneticField::instancePtr;
 namespace emph {
   namespace rbal {
   
-    BeamTrack3DFCN::inDatafDebug::inDatafDebug(int kSt, char aView, int aSensor, double aStrip, double tM, double aPred) :
-        fStation(kSt), fView(aView), fSensor(aSensor), fStrip(aStrip), fTMeas(tM),  fTPred(aPred) { ; }  
+    BeamTrack3DFCN::inDatafDebug::inDatafDebug(int kSt, char aView, int aSensor, double aStrip, double rollCorr,  double tM, double aPred) :
+        fStation(kSt), fView(aView), fSensor(aSensor), fStrip(aStrip), fRollCorr(rollCorr), fTMeas(tM),  fTPred(aPred) { ; }  
  
     
     
@@ -39,7 +39,8 @@ namespace emph {
     fNumSensorsTotal(2*myGeo->NumSensorsXorY() + myGeo->NumSensorsU() + myGeo->NumSensorsV()),
     FCNBase(),
     fItCl(NULL), fErrorDef(1.), fOneOverSqrt2(1.0/std::sqrt(2.)), fNominalMomentum(120.),
-    fOneOSqrt12(std::sqrt(1.0/12.)), fNCalls(0), fResids(fNumSensorsTotal, DBL_MAX), fMagField(nullptr) { 
+    fOneOSqrt12(std::sqrt(1.0/12.)), fMaxAngleLin(0.015), 
+    fNCalls(0), fResids(fNumSensorsTotal, DBL_MAX), fMagField(nullptr) { 
       ;  
     }  
       
@@ -270,7 +271,7 @@ namespace emph {
 	}  
 	if (debugIsOn) std::cerr << " .... At View " << aView << " numS " << numS << std::endl;
         for (size_t kSe = 0; kSe != numS; kSe++) {
-	  BeamTrack3DFCN::inDatafDebug aInDbgR(0., 0., 0, 9999., 9999., 9999.);
+	  BeamTrack3DFCN::inDatafDebug aInDbgR(0., 0., 0, 9999., 0., 9999., 9999.);
 	  fResids[kSeT] = DBL_MAX;
           const double rmsStr = std::max(0.1, fItCl->TheRmsStrip(aView, kSe)); // some very small RMS reappaered.. To be investigated. 
 	  if (debugIsOn) std::cerr << " .... At Sensor " << kSe << " Strip " << fItCl->TheAvStrip(aView, kSe) << " RMS " << rmsStr << std::endl;
@@ -291,30 +292,49 @@ namespace emph {
 	  double tPred = 0.; double tMeas = 0.; double uPred, vPred;
 	  const double angleRoll = (fIsPhase1c) ? myGeo1c->Roll(aView, kSe) : myGeo->Roll(aView, kSe);
 	  const double angleRollCenter = (fIsPhase1c) ? myGeo1c->RollCenter(aView, kSe) : myGeo->RollCenter(aView, kSe);
-	  
+	  double rollCorr = 0.;
 	  if (aView == 'X') {
-	    tPred = xPredAtSt[kSe]; 
-	    tPred += (yPredAtSt[kSe] - angleRollCenter) * angleRoll;
+	    tPred = xPredAtSt[kSe]; rollCorr = (yPredAtSt[kSe] - angleRollCenter) * angleRoll;
+	    tPred += rollCorr;
 	    if (debugIsOn) std::cerr << " ... XView roll correction " << (yPredAtSt[kSe] - angleRollCenter) * angleRoll 
-	                             << " angleRollCenter " << angleRollCenter << " angleRoll " << angleRoll << std::endl;
+	                             << " angleRollCenter " << angleRollCenter << " angleRoll " << angleRoll << " so tPred = " << tPred << std::endl;
+	    if (std::abs(angleRoll) > fMaxAngleLin) {
+	       tPred = this->exactXPred(xPredAtSt[kSe], yPredAtSt[kSe], angleRoll, angleRollCenter);
+	       if (debugIsOn) std::cerr << " ... XView roll correction, exact trig function, tPred is now " << tPred << std::endl;
+	    } 			     
 	  } else if (aView == 'Y') {
-	    tPred = yPredAtSt[kSe]; 
-	    tPred += (xPredAtSt[kSe] - angleRollCenter) * angleRoll;
-	    if (debugIsOn) std::cerr << " ... YView roll correction " << (xPredAtSt[kSe] - angleRollCenter) * angleRoll << std::endl;
+	    tPred = yPredAtSt[kSe]; rollCorr = (xPredAtSt[kSe] - angleRollCenter) * angleRoll;
+	    tPred += rollCorr;
+	    if (debugIsOn) std::cerr << " ... YView roll correction " 
+	                             << (xPredAtSt[kSe] - angleRollCenter) * angleRoll <<  " so tPred = " << tPred <<std::endl;
+	    if (std::abs(angleRoll) > fMaxAngleLin) {
+	       tPred = this->exactYPred(xPredAtSt[kSe], yPredAtSt[kSe], angleRoll, angleRollCenter);
+	       if (debugIsOn) std::cerr << " ... YView roll correction, exact trig function, tPred is now " << tPred << std::endl;
+	    } 			     
 	  } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
 	    size_t kSxy = 0; // very clumsy.. Phase 1b only, 
-	    if (aView == 'V') { // Station 4 and 5, kSe = 0 though 3, kSxy, points to the X or Y position, ranging from 0 to 7 (Sept 19..) 
-	    // predicted position at kSxy = 4 is the same as kSxy = 5 (same Z); same for 6 and 7. 
-	      kSxy = (kSe < 2) ? 4 : 6;
-	    } else {
-	      kSxy = (kSe == 0) ? 2 : 3;
+	    if (!fIsPhase1c) {
+	      if (aView == 'V') { // Station 4 and 5, kSe = 0 though 3, kSxy, points to the X or Y position, ranging from 0 to 7 (Sept 19..) 
+	      // predicted position at kSxy = 4 is the same as kSxy = 5 (same Z); same for 6 and 7. 
+	        kSxy = (kSe < 2) ? 4 : 6;
+	      } else {
+	        kSxy = (kSe == 0) ? 2 : 3;
+	      }
+	    } else { 
+	      if (aView == 'V') { // Station 4 and 5, kSe = 0 though 3, kSxy, points to the X or Y position, ranging from 0 to 7 (Sept 19..) 
+	      // predicted position at kSxy = 4 is the same as kSxy = 5 (same Z); same for 6 and 7. 
+	        kSxy = (kSe < 2) ? 5 : 7;
+	      } else {
+	        kSxy = (kSe == 0) ? 2 : 3;
+	      }
 	    }
 	    uPred = fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]); // Sept 19, declared correct, but negated by Linyan, Sept 22. Try3D_R1274_3b2_1, Try3D_R1274_3b2_1
 //	    uPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]); // False, I suspect.. Not sure, let us try, Try3D_R1274_3b3_1 
 	    vPred = -1.0*fOneOverSqrt2 * ( -xPredAtSt[kSxy] + yPredAtSt[kSxy]); // presumed correct 
 //	    vPred = 1.0*fOneOverSqrt2 * ( xPredAtSt[kSxy] + yPredAtSt[kSxy]); // False, I suspect.. Not sure, let us try, Try3D_R1274_3b3_1 
-	    tPred = (aView == 'U') ? uPred + ( vPred - angleRollCenter) * angleRoll :  
-	                             vPred + ( uPred  - angleRollCenter) * angleRoll ;
+            rollCorr =  (aView == 'U') ? ( vPred - angleRollCenter) * angleRoll : ( uPred  - angleRollCenter) * angleRoll; 
+	    tPred = (aView == 'U') ? uPred + rollCorr :  vPred + rollCorr;
+	    if (fDebugIsOn) std::cerr << " ... U or W view, kSxy " << kSxy << " check uPred " << uPred << " and vPred " << vPred << std::endl;
 	    // Station 6 fix, from run 2113 studies, December 8 2013. U and W mixed up, and a change of sign.. Go figure.. 
 //	    if (fIsPhase1c && (aView == 'V') && (kSe > 1)) tPred = -1.0*(uPred + ( vPred - angleRollCenter) * angleRoll);  			     
 	  }
@@ -325,7 +345,7 @@ namespace emph {
 	      if (debugIsOn) {
 	        int kSt = kSe; if (kSe == 4 || kSe == 5) kSt = 4; if (kSe == 6 || kSe == 7) kSt = 5;
 	        int aSensor = 0; if (kSe == 4 || kSe == 5) aSensor = kSe - 4; if (kSe == 6 || kSe == 7) aSensor = kSe - 6; 
-	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr,  tMeas, tPred);
 	        aInDbgR = aInDbg; // clumsy.. 
 	      }
 	    } else if (aView == 'Y') {
@@ -335,7 +355,7 @@ namespace emph {
 	      if (debugIsOn) {
 	        int kSt = kSe; if (kSe == 4 || kSe == 5) kSt = 4; if (kSe == 6 || kSe == 7) kSt = 5;
 	        int aSensor = 0; if (kSe == 4 || kSe == 5) aSensor = kSe - 4; if (kSe == 6 || kSe == 7) aSensor = kSe - 6; 
-	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	        aInDbgR = aInDbg; // clumsy.. 
 	      }
 	    } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
@@ -346,7 +366,7 @@ namespace emph {
 	        if (debugIsOn) {
 	          int kSt = kSe + 2; 
 	          int aSensor = 0;
-	          BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	          BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	          aInDbgR = aInDbg; // clumsy.. 
 	        }
 	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
@@ -360,7 +380,7 @@ namespace emph {
 	        if (debugIsOn) {
 	          int kSt = kSe/2 + 4; 
 	          int aSensor = kSe % 2;  
-	          BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	          BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	          aInDbgR = aInDbg; // clumsy.. 
 	        }
 	      }
@@ -401,7 +421,7 @@ namespace emph {
 	      if (debugIsOn) {
 	        int kSt = kSe; if (kSe == 5 || kSe == 6) kSt = 5; if (kSe == 7 || kSe == 8) kSt = 6;
 	        int aSensor = 0; if (kSe == 5 || kSe == 6) aSensor = kSe - 5; if (kSe == 7 || kSe == 8) aSensor = kSe - 7; 
-	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	        aInDbgR = aInDbg; // clumsy.. 
 	      }
 	    } else if (aView == 'Y') {
@@ -413,29 +433,46 @@ namespace emph {
 	        std::cerr << " .... ... Check Y View kSe " << kSe << " kSeSXY " << kSeSXY << " TrSfhift " << myGeo1c->TrPos(aView, kSe) << " tMeas " << tMeas << std::endl;
 	        int kSt = kSe; if (kSe == 5 || kSe == 6) kSt = 5; if (kSe == 7 || kSe == 8) kSt = 6;
 	        int aSensor = 0; if (kSe == 5 || kSe == 6) aSensor = kSe - 5; if (kSe == 7 || kSe == 8) aSensor = kSe - 7; 
-	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	        BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	        aInDbgR = aInDbg; // clumsy.. 
 	      }
 	    } else if ((aView == 'U') || (aView == 'V'))  { // V is a.k.a. W 
 	       tPred = (aView == 'U') ? uPred + (vPred - angleRollCenter) * angleRoll :  
 	  			     vPred + (uPred - angleRollCenter) * angleRoll ;
+	       if (debugIsOn) {
+	          std::cerr << " ... Before trigonometric correction, uPred = " << uPred << " vPred " << vPred << " tPred " << tPred << std::endl;
+		  std::cerr << " ... ... .. Roll correction (for uPred ) = " << (vPred - angleRollCenter) * angleRoll << std::endl;
+	       }
 	       if (aView == 'U') { // Sept 1- Sep5  attempt at sorting out orientations.. 
+                  if (std::abs(angleRoll) > fMaxAngleLin) {
+		    tPred = this->exactUPred(xPredAtSt[kSe], yPredAtSt[kSe], angleRoll, angleRollCenter);
+	            if (debugIsOn) std::cerr << " ... After trig correction, tPred " << tPred << std::endl;
+		  }
 	          tMeas = (strip*pitch + myGeo1c->TrPos(aView, kSe));
 		  if (debugIsOn) { 
 	            int kSt = kSe + 2; 
 	            int aSensor = 0;
-	            BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	            BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	            aInDbgR = aInDbg; // clumsy.. 
 		  }
 	       } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
 	    // Assume W view, double sensor.  Opposite convention as X or Y  Dec. 1 2025.. 
-	         if ((kSe % 2) == 1) { 
+//   Switch U and V ????? 
+                 rollCorr = (vPred - angleRollCenter) * angleRoll;
+                 tPred = uPred + rollCorr; // Dec 18, run 7p67, 
+                  if (std::abs(angleRoll) > fMaxAngleLin) {
+		    tPred = this->exactUPred(xPredAtSt[kSe], yPredAtSt[kSe], angleRoll, angleRollCenter);
+	            if (debugIsOn) std::cerr << " ... !! Using U orientation for the Station 5 After trig correction, tPred " << tPred << std::endl;\
+		 }  
+//	         if ((kSe % 2) == 1) { // 7p65_ and lower... December 17 - 18.  
+//	         if ((kSe % 2) == 0) { // Trying 7p66_  December 18.  Also run   7p67_
+	         if ((kSe % 2) == 1) { // Trying 7p68_  December 18.  With U assumption... 
 		   tMeas =  strip*pitch + myGeo1c->TrPos(aView, kSe); 
 	         } else   { tMeas =  -1.0*strip*pitch + myGeo1c->TrPos(aView, kSe); }
 	         if (debugIsOn) {
 	           int kSt = kSe/2 + 5; 
 	           int aSensor = kSe % 2;  
-	           BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, tMeas, tPred);
+	           BeamTrack3DFCN::inDatafDebug aInDbg(kSt, aView, aSensor, strip, rollCorr, tMeas, tPred);
 	           aInDbgR = aInDbg; // clumsy.. 
 	         }
 	       } // Single sensor ( Station 2 or 3 ) vs double sensor, station 5 or 6 
@@ -474,8 +511,8 @@ namespace emph {
     void BeamTrack3DFCN::DumpfInDataDbg(bool byStation) const {
     
       std::ofstream fOut("./DumpfInDataDbg_V1.txt");
-      fOut << " Station View Sensor strip tMeas tMeasErr tPred deltaChiSq " << std::endl;
       if (byStation) { 
+        fOut << " Station View Sensor strip tMeas tMeasErr tPred deltaChiSq " << std::endl;
         for (int kSt = 0; kSt != 6; kSt++) {
         // X 
           for (std::vector<inDatafDebug>::const_iterator itIn = fInDataDbg.cbegin(); itIn != fInDataDbg.cend(); itIn++) {
@@ -498,11 +535,12 @@ namespace emph {
 	  }
         }
       } else {
+         fOut << " Station View Sensor strip rollCorr tMeas tMeasErr tPred deltaChiSq " << std::endl;
          std::vector<char> views{'X', 'Y', 'U', 'V'}; 
           for (int iView = 0; iView != 4; iView++) {	  
             for (std::vector<inDatafDebug>::const_iterator itIn = fInDataDbg.cbegin(); itIn != fInDataDbg.cend(); itIn++) {
                if (itIn->fView != views[iView]) continue;           
-	       fOut << " " << itIn->fStation << " " << itIn->fView << " " << itIn->fSensor << " " << itIn->fStrip 
+	       fOut << " " << itIn->fStation << " " << itIn->fView << " " << itIn->fSensor << " " << itIn->fStrip << " " <<  itIn->fRollCorr 
 	       << " " << itIn->fTMeas << " " << itIn->fTMeasErr << " " << itIn->fTPred << " " << itIn->fDeltaChi << std::endl; 
 	    } 
           }

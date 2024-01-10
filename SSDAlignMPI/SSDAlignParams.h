@@ -239,7 +239,10 @@ namespace emph{
 	void FixParamsForView(const char aView, bool isFixed=true, const std::string &paramName=std::string ("")); 
 	void FixParamsForViewLastStation(const char aView, bool isFixed=true); 
 	void FixParamsForAllViewsAtStation(const int kSt, bool isFixed=true); 
-	
+	void FixRollAndRollCenterForStation(const int kSt); 
+	void FixParamsUpstreamMagnet(); 
+        void FixParamsForViewAtStation(const size_t kSt, const char aView); // is Fixed implied	
+        void FixAllButStationView(const size_t kSt, const char aView); // is Fixed implied	
 	private:
 	  
 	inline std::vector<SSDAlignParam>::iterator It(paramType t, char view, size_t sensor) {

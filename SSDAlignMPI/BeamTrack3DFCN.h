@@ -11,7 +11,7 @@
 #include <vector>
 #include <stdint.h>
 #include <iostream>
-
+#include <cmath>
 #include "BeamTrackCluster.h" 
 #include "BTAlignGeom.h"
 #include "BTAlignGeom1c.h"
@@ -30,11 +30,11 @@ namespace emph{
     
     class inDatafDebug {  // Input data and prediction, for a given event. Checking things.. 
       public: 
-        explicit inDatafDebug(int kSt, char aView, int aSensor, double aStrip, double aTm, double aPred); 
+        explicit inDatafDebug(int kSt, char aView, int aSensor, double aStrip, double rollCorr, double aTm, double aPred); 
         int fStation; 
         char fView;
         int fSensor;
-        double fStrip, fTMeas, fTMeasErr, fTPred, fDeltaChi; 
+        double fStrip, fRollCorr, fTMeas, fTMeasErr, fTPred, fDeltaChi; 
         void SetDeltaChiSq(double v) {fDeltaChi = v;}
         void SetMeasErr(double v) {fTMeasErr = v;}
     };
@@ -54,6 +54,7 @@ namespace emph{
       size_t fNumSensorsTotal;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
       double fErrorDef, fOneOverSqrt2, fOneOSqrt12; // for Minuit. 
+      double fMaxAngleLin; // Maximum rotation angle to trigger the use of exact trig function. 
       double fNominalMomentum, fNominalMomentumDisp;
       mutable double fx5, fy5, fx6, fy6; // 5 for Phase1b, 6 for Phase1c 
       mutable int fNCalls;
@@ -96,6 +97,30 @@ namespace emph{
      
       void DumpfInDataDbg(bool byStation=true) const; 
       
+      // Correcting over-linearization, go back to trig function.. 
+      
+      inline double exactXPred(double xPred, double yPred, double rollAngle, double rollAngleCenter) const {
+        const double x =std::cos(rollAngle)*xPred + (yPred-rollAngleCenter)*std::sin(rollAngle); 
+        return x; 
+      } 
+       inline double exactYPred(double xPred, double yPred, double rollAngle, double rollAngleCenter) const {
+        const double y =std::cos(rollAngle)*yPred + (xPred-rollAngleCenter)*std::sin(rollAngle); 
+        return y; 
+      } 
+       inline double exactUPred(double xPred, double yPred, double rollAngle, double rollAngleCenter) const {
+       // To be consistent with linearized algorithm, we do in fact two rotations. 
+        const double uu =fOneOverSqrt2 * (xPred + yPred);
+        const double vv =fOneOverSqrt2 * (xPred - yPred);
+	const double  u = uu*std::cos(rollAngle) + (vv-rollAngleCenter)*std::sin(rollAngle); 
+        return u; 
+      } 
+       inline double exactVPred(double xPred, double yPred, double rollAngle, double rollAngleCenter) const  {
+        const double uu =fOneOverSqrt2 * (xPred + yPred);
+        const double vv =fOneOverSqrt2 * (xPred - yPred);
+	const double  v = vv*std::cos(rollAngle) + (uu-rollAngleCenter)*std::sin(rollAngle); 
+        return v; 
+      } 
+     
      };
    }
 }

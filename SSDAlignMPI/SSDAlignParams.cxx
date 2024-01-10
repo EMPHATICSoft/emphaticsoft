@@ -607,6 +607,59 @@ namespace emph {
         }
       } // All views..   
     } // FixParamsForViewLastStation
+    void SSDAlignParams::FixParamsForViewAtStation(const size_t kSt, const char aView) {
+      if  (!fIsPhase1c) return; 
+      if (kSt < 5) { std::cerr << " SSDAlignParams::FixParamsForViewAtStation not yet implemented...Fatal  " << std::endl; exit(2); } 
+      for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+        if (it->isFixedInMinuit()) continue;
+        if (it->View() != aView) continue;
+	switch (kSt) {
+           case 5: {
+	    if (it->Name().find ("_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_6") != std::string::npos) it->SetFixedInMinuit(true); 
+            if ((aView == 'V') && (it->Name().find("V_0") != std::string::npos))  it->SetFixedInMinuit(true); 
+            if ((aView == 'V') && (it->Name().find("V_1") != std::string::npos))  it->SetFixedInMinuit(true); 
+	    break;
+	  }
+           case 6: {
+	    if (it->Name().find ("_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_8") != std::string::npos) it->SetFixedInMinuit(true); 
+            if ((aView == 'V') && (it->Name().find("V_2") != std::string::npos))  it->SetFixedInMinuit(true); 
+            if ((aView == 'V') && (it->Name().find("V_3") != std::string::npos))  it->SetFixedInMinuit(true);
+	    break; 
+	  }
+	  
+	}
+      } 
+    }
+    void SSDAlignParams::FixAllButStationView(const size_t kSt, const char aView) {
+      if  (!fIsPhase1c) return;
+      if (kSt < 5) { std::cerr << " SSDAlignParams::FixAllButStationView not yet implemented...Fatal  " << std::endl; exit(2); } 
+      for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+        if (it->isFixedInMinuit()) continue;
+	it->SetFixedInMinuit(true);
+      } 
+      for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+        if (it->View() != aView )  continue;
+	if (it->Name().find("Tilt") != std::string::npos) continue;
+	switch (kSt) {
+           case 5: {
+	    if (it->Name().find ("_5") != std::string::npos) it->SetFixedInMinuit(false); 
+  	    if (it->Name().find ("_6") != std::string::npos) it->SetFixedInMinuit(false); 
+            if ((aView == 'V') && (it->Name().find("V_0") != std::string::npos))  it->SetFixedInMinuit(false); 
+            if ((aView == 'V') && (it->Name().find("V_1") != std::string::npos))  it->SetFixedInMinuit(false); 
+	    break;
+	   }
+           case 6: {
+	    if (it->Name().find ("_7") != std::string::npos) it->SetFixedInMinuit(false); 
+  	    if (it->Name().find ("_8") != std::string::npos) it->SetFixedInMinuit(false); 
+            if ((aView == 'V') && (it->Name().find("V_2") != std::string::npos))  it->SetFixedInMinuit(false); 
+            if ((aView == 'V') && (it->Name().find("V_3") != std::string::npos))  it->SetFixedInMinuit(false); 
+	    break;
+	   }
+	}
+      } 
+    }
     void SSDAlignParams::FixParamsForAllViewsAtStation(const int kSt, bool isTrue) {
       if (!fIsPhase1c) return; 
       if (!isTrue) return; // That argument is not really usefull, as we do not plan to revert the decision along the way..  
@@ -654,10 +707,115 @@ namespace emph {
   	    if (it->Name().find ("_Y_2") != std::string::npos) it->SetFixedInMinuit(true); 
   	    if (it->Name().find ("_U_0") != std::string::npos) it->SetFixedInMinuit(true); 
           }
+	  break;
+       }
+       case 1: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_1") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_1") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+	  break;
+       }
+       case 0: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find ("_X_0") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find ("_Y_0") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+	  break;
        }
        default: break;   
       } // Switch kSt   
     } // FixParamsForAllViewsAtStation
+    void SSDAlignParams::FixRollAndRollCenterForStation(const int kSt) {
+      if (!fIsPhase1c) return; 
+      switch (kSt) { 
+       case 6: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_X_8") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_8") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRoll_V_2") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRoll_V_3") != std::string::npos) it->SetFixedInMinuit(true);
+ 	    if (it->Name().find("DeltaRollCenter_X_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_X_8") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_7") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_8") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRollCenter_V_2") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRollCenter_V_3") != std::string::npos) it->SetFixedInMinuit(true);
+          }
+	  break;
+       }
+       case 5: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_X_6") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_6") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRoll_V_0") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRoll_V_1") != std::string::npos) it->SetFixedInMinuit(true);
+ 	    if (it->Name().find("DeltaRollCenter_X_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_X_6") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_5") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_6") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRollCenter_V_0") != std::string::npos) it->SetFixedInMinuit(true); 
+   	    if (it->Name().find("DeltaRollCenter_V_1") != std::string::npos) it->SetFixedInMinuit(true);
+          }
+	  break;
+       }
+       case 4: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_4") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_4") != std::string::npos) it->SetFixedInMinuit(true); 
+ 	    if (it->Name().find("DeltaRollCenter_X_4") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_4") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+	  break;
+       }
+       case 3: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_3") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_3") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_U_1") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_X_3") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_3") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_U_1") != std::string::npos) it->SetFixedInMinuit(true); 
+         }
+	  break;
+       }
+       case 2: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_2") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_2") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_U_0") != std::string::npos) it->SetFixedInMinuit(true); 
+ 	    if (it->Name().find("DeltaRollCenter_X_2") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_2") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_U_0") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+       }
+       case 1: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_1") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRoll_Y_1") != std::string::npos) it->SetFixedInMinuit(true); 
+ 	    if (it->Name().find("DeltaRollCenter_X_1") != std::string::npos) it->SetFixedInMinuit(true); 
+  	    if (it->Name().find("DeltaRollCenter_Y_1") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+       }
+       case 0: {
+          for (std::vector<SSDAlignParam>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+ 	    if (it->Name().find("DeltaRoll_X_0") != std::string::npos) it->SetFixedInMinuit(true); 
+ 	    if (it->Name().find("DeltaRollCenter_X_0") != std::string::npos) it->SetFixedInMinuit(true); 
+          }
+       }
+       default: break;   
+      } // Switch kSt   
+    } // FixParamsForAllViewsAtStation
+    void SSDAlignParams::FixParamsUpstreamMagnet() {
+      if (!fIsPhase1c) return;
+      for (size_t kSt=0; kSt !=5; kSt++) {
+         this->FixParamsForAllViewsAtStation(kSt);
+      }
+    }
    } // namespace 
 }  // namespace   
      

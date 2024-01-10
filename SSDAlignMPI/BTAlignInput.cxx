@@ -21,7 +21,7 @@
 namespace emph {
   namespace rbal {
   
-     BTAlignInput::BTAlignInput() : fIsPhase1c(false),  fKey(687400) { ; }
+     BTAlignInput::BTAlignInput() : fIsPhase1c(false),  fDoRejectMultIn(true), fKey(687400) { ; }
        
      size_t BTAlignInput::FillItFromFile(int nEvtExpected, const char *fName, int selSpill) {
        std::ifstream fIn(fName, std::ios::in | std::ios::binary);
@@ -84,6 +84,7 @@ namespace emph {
 	 }
 	 if ((selSpill != INT_MAX) && (spill != selSpill)) continue;
 	 BeamTrackCluster aBT(spill + spillIncrement, evt, trId,  XViewData, YViewData, UViewData, VViewData);
+	 //
 	 fDat.push_back(aBT);
 	 nEvtRead++;
 	 if (nEvtRead == nEvtExpected) {
@@ -92,8 +93,23 @@ namespace emph {
            break;
 	 }
        } // reading.. 
+       //
+       // reject multiple track events.. 
+       //
+       int numRejected=0;
+       if (fDoRejectMultIn) { 
+         for (std::vector<BeamTrackCluster>::iterator it=fDat.begin(); it != fDat.end(); it++) {
+           if (!it->Keep()) continue; 
+           std::vector<BeamTrackCluster>::iterator itNext = it; itNext++;
+	   if (itNext == fDat.end()) break;
+           while (itNext != fDat.end()) {
+	     if ((it->Spill() != itNext->Spill()) || (it->EvtNum() != itNext->EvtNum())) break;
+	       it->DoNotUse(); itNext->DoNotUse(); itNext++; numRejected += 2;
+	   } 
+         }
+       }
        fIn.close();
-       std::cerr << " ... Done, " << fDat.size() << " events accepted " << std::endl;
+       std::cerr << " ... Done, " << fDat.size() << " events In container " << " Rejected " <<  numRejected << std::endl;
        return fDat.size();
      }
      
@@ -110,12 +126,14 @@ namespace emph {
        int spill = static_cast<int>(*ptr); ptr++;
        int evt = static_cast<int>(*ptr); ptr++;
        int aTrId = static_cast<int>(*ptr); ptr++;
+       int aKeep = static_cast<int>(*ptr); ptr++;
        std::vector<double> XViewData, YViewData, UViewData, VViewData;
        for (int k=0; k != 2*(kStMaxXY); k++) { XViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 2*(kStMaxXY); k++) { YViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 4; k++) { UViewData.push_back(*ptr); ptr++; } 
        for (int k=0; k != 8; k++) { VViewData.push_back(*ptr); ptr++; }
        BeamTrackCluster aBT(spill, evt, aTrId,  XViewData, YViewData, UViewData, VViewData);
+       if (aKeep == 0) aBT.DoNotUse();
        fDat.push_back(aBT);
      }
      
@@ -126,7 +144,8 @@ namespace emph {
        evtRaw.push_back(static_cast<double>(it->Spill()));
        evtRaw.push_back(static_cast<double>(it->EvtNum()));
        evtRaw.push_back(static_cast<double>(it->TrId()));
-       size_t nW = 3;// We do not include fKeep, no point, it is used only in the context of MPI
+       evtRaw.push_back(static_cast<double>(static_cast<int>(it->Keep())));
+       size_t nW = 4;// We do include fKeep, it is set (optinally) in the rejection of multiple track events. 
        const int kStMaxXY = (fIsPhase1c) ? 9 : 8; 
        for (int k=0; k != kStMaxXY; k++) { 
          evtRaw.push_back(it->TheAvStrip('X', k));

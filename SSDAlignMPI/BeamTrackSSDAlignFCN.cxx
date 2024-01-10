@@ -106,7 +106,7 @@ namespace emph {
       }
       
       if (fDoAllowLongShiftByStation) {
-         if (!fIsPhase1c) myGeo1c->MoveZPosOfXUVByY();
+         if (fIsPhase1c) myGeo1c->MoveZPosOfXUVByY();
 	 else myGeo->MoveZPosOfXUVByY();
       }  
       double chiSoftLim = 0.;

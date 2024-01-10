@@ -106,8 +106,15 @@ int main(int argc, char **argv) {
    std::string G4EMPHDescrToken("none");
    int numMaxFCNCalls = 5000;
    bool doRejectVViews=false; bool doRejectSt6=false;
+   bool doReject5XView=false; bool doReject5YView=false; bool doReject5VView=false; 
+   bool doReject6XView=false; bool doReject6YView=false; bool doReject6VView=false; 
+   bool arbInput = true; // no command line, done on Dec 29 2023.. Sequence 7r on run 2113 
    int RejectedStation = -1; 
+   int FixedRollStation = -1; 
    double VertY8Offset = 0.;
+   std::vector<int> rejectedStationsIndices;
+   int FittedStationNum = -1;
+   char FittedViewChar = 'Z';
      
     MPI_Init(NULL, NULL);
 
@@ -272,13 +279,13 @@ int main(int argc, char **argv) {
 	  applyEmittanceConstraint = (iS == 1);
           if ((myRank == 0) && applyEmittanceConstraint)  std::cerr << "We will use apply beam emittance constraint, assuming 120 GeV    " << std::endl;
           if ((myRank == 0) && (!applyEmittanceConstraint))  std::cerr << "We will NOT use beam emittance constrain (default)   " << std::endl;
-         } else if (parStr.find("rejectVViews") != std::string::npos) {
+         } else if (parStr == std::string("rejectVViews")) {
           int iS;
           valStrStr >> iS;
 	  doRejectVViews = (iS == 1);
           if ((myRank == 0) && doRejectVViews)  std::cerr << "We will not use the V views in Station 5  (or 6, if Phase1c)   " << std::endl;
           if ((myRank == 0) && (!doRejectVViews))  std::cerr << "We will use relevant V views (default)   " << std::endl;
-         } else if (parStr.find("rejectedStation") != std::string::npos) {
+         } else if (parStr == std::string("rejectedStation")) {
           valStrStr >> RejectedStation;
           if ((myRank == 0) && (RejectedStation > 1) && (RejectedStation < 7))  
 	       std::cerr << "We will not use Station " << RejectedStation   << std::endl;
@@ -286,6 +293,28 @@ int main(int argc, char **argv) {
           if ((myRank == 0) && (RejectedStation < 2) ) { std::cerr << " Do we really want o reject Station 0 or 1 from the fit ? "  << std::endl; exit(2); }
           if ((myRank == 0) && ((RejectedStation > 6) && (RejectedStation != 56)) ) { std::cerr << " Illegal  rejected Station " << RejectedStation   << std::endl; exit(2); }
 	  if ((RejectedStation == 6) || (RejectedStation == 56)) doRejectSt6 = true;
+         } else if (parStr == std::string("rejectedStations") ) {
+	  int listOfStation; 
+          valStrStr >> listOfStation;
+	  int ii1 = listOfStation/1000;
+	  if (ii1 != 0) rejectedStationsIndices.push_back(ii1); 
+	  int ii2 = (listOfStation - ii1*1000)/100;
+	  if (ii2 != 0) rejectedStationsIndices.push_back(ii2); 
+	  int ii3 = (listOfStation - ii1*1000 - ii2*100)/10;
+	  if (ii3 != 0) rejectedStationsIndices.push_back(ii3); 
+	  int ii4 =  (listOfStation - ii1*1000 - ii2*100 - ii3*10);
+	  if (ii4 != 0) rejectedStationsIndices.push_back(ii4); 
+	  for (size_t k=0; k!= rejectedStationsIndices.size(); k++)  { if (rejectedStationsIndices[k] == 6) doRejectSt6 = true; }
+          if ((myRank == 0) && (rejectedStationsIndices.size() > 0)) { 
+	    std::cerr << "We will not use Station ";
+	    for (size_t k=0; k!= rejectedStationsIndices.size(); k++) std::cerr << rejectedStationsIndices[k] << ", ";
+	    std::cerr << std::endl;
+	   }
+         } else if (parStr.find("fixedRollStation") != std::string::npos) {
+          valStrStr >> FixedRollStation;
+          if ((myRank == 0) && (FixedRollStation >= 0) && (FixedRollStation < 7))  
+	       std::cerr << "We fix the roll angle and roll center to zero for station  " <<  FixedRollStation  << std::endl;
+          if ((myRank == 0) && (FixedRollStation == -1) )  std::cerr << "Only Station 0 Y view roll angle is fixed to zero  " <<  FixedRollStation  << std::endl; 
         } else if (parStr.find("rejectSt6") != std::string::npos) { // Obsolete now... see just above..
           int iS;
           valStrStr >> iS;
@@ -293,7 +322,35 @@ int main(int argc, char **argv) {
           if ((myRank == 0) && doRejectSt6)  std::cerr << "We will not use the station 6 (Applicable only to Phase1)    " << std::endl;
           if ((myRank == 0) && (!doRejectSt6))  std::cerr << "We will use relevantSt6 (default)   " << std::endl;
 	  if (doRejectSt6) RejectedStation = 6;
-        } else if (parStr == std::string("nomMom")) {
+        } else if (parStr == std::string("rejectSt5X")) { // simple but repeated.. 
+          int iS;
+          valStrStr >> iS;
+	  doReject5XView = (iS == 1);
+        } else if (parStr == std::string("rejectSt5Y")) { 
+          int iS;
+          valStrStr >> iS;
+	  doReject5YView = (iS == 1);
+        } else if (parStr == std::string("rejectSt5V")) {  
+          int iS;
+          valStrStr >> iS;
+	  doReject5VView = (iS == 1);
+         } else if (parStr == std::string("rejectSt6X")) { 
+          int iS;
+          valStrStr >> iS;
+	  doReject6XView = (iS == 1);
+        } else if (parStr == std::string("rejectSt6Y")) { 
+          int iS;
+          valStrStr >> iS;
+	  doReject6YView = (iS == 1);
+        } else if (parStr == std::string("rejectSt6V")) { 
+          int iS;
+          valStrStr >> iS;
+	  doReject6VView = (iS == 1);
+        } else if (parStr == std::string("fitStationView")) { 
+	  char stChar = valStr[0]; FittedStationNum = stChar - '0';
+	  FittedViewChar = valStr[1];
+	  if (myRank == 0) std::cerr << " We will fit only the view " << FittedViewChar << " on Station " << FittedStationNum << std::endl;
+       } else if (parStr == std::string("nomMom")) {
           valStrStr >> nominalMomentum;
           if (myRank == 0) std::cerr << " The nominal momentum is      "  << nominalMomentum << std::endl;	
          } else if (parStr == std::string("nomMomDisp")) {
@@ -472,6 +529,7 @@ int main(int argc, char **argv) {
 	      
      emph::rbal::BTAlignInput myBTIn;
      myBTIn.SetForPhase1c(IsPhase1c); 
+     myBTIn.RejectMultTracks(arbInput); 
      
      int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
      if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
@@ -549,8 +607,8 @@ int main(int argc, char **argv) {
       myGeo1c->SetIntegrationStepSize(integrationStepSize);
     } 
     emph::rbal::SSDAlignParams *myParams = emph::rbal::SSDAlignParams::getInstance(); 
-    myParams->SetMaximumRolls(limRolls);  
     myParams->SetForPhase1c(IsPhase1c); 
+    myParams->SetMaximumRolls(limRolls);  
 
     myParams->SetStrictSt6(strictSt6X || strictSt6Y); 
     //
@@ -572,18 +630,36 @@ int main(int argc, char **argv) {
    // Only for the last station!!!  
    if(doRejectVViews) (IsPhase1c) ? myGeo1c->SetUnknownUncert('V', 2, 5000.) : myGeo->SetUnknownUncert('V', 2, 5000.);
    if(doRejectVViews) (IsPhase1c) ? myGeo1c->SetUnknownUncert('V', 3, 5000.) : myGeo->SetUnknownUncert('V', 3, 5000.);
+   if(doReject5XView && IsPhase1c) {
+          myGeo1c->SetUnknownUncert('X', 5, 5000.) ; myGeo1c->SetUnknownUncert('X', 6, 5000.);
+   }	  
+   if(doReject5YView && IsPhase1c) {
+      myGeo1c->SetUnknownUncert('Y', 5, 5000.) ; myGeo1c->SetUnknownUncert('Y', 6, 5000.);
+   }
+   if(doReject5VView && IsPhase1c) {
+      myGeo1c->SetUnknownUncert('V', 0, 5000.) ; myGeo1c->SetUnknownUncert('V', 1, 5000.);
+   }
+   if(doReject6XView && IsPhase1c) {
+          myGeo1c->SetUnknownUncert('X', 7, 5000.) ; myGeo1c->SetUnknownUncert('X', 8, 5000.);
+   }	  
+   if(doReject6YView && IsPhase1c) {
+      myGeo1c->SetUnknownUncert('Y', 7, 5000.) ; myGeo1c->SetUnknownUncert('X', 8, 5000.);
+   }
+   if(doReject6VView && IsPhase1c) {
+      myGeo1c->SetUnknownUncert('V', 2, 5000.) ; myGeo1c->SetUnknownUncert('V', 3, 5000.);
+   }
    if (IsPhase1c && doRejectSt6) {
       myGeo1c->SetUnknownUncert('V', 2, 5000.); myGeo1c->SetUnknownUncert('V', 3, 5000.);
       myGeo1c->SetUnknownUncert('X', 7, 5000.); myGeo1c->SetUnknownUncert('X', 8, 5000.);
       myGeo1c->SetUnknownUncert('Y', 7, 5000.); myGeo1c->SetUnknownUncert('Y', 8, 5000.);
    }
    if (IsPhase1c && (RejectedStation == 5)) {
-      myGeo1c->SetUnknownUncert('V', 0, 5000.); myGeo1c->SetUnknownUncert('V', 0, 5000.);
+      myGeo1c->SetUnknownUncert('V', 0, 5000.); myGeo1c->SetUnknownUncert('V', 1, 5000.);
       myGeo1c->SetUnknownUncert('X', 5, 5000.); myGeo1c->SetUnknownUncert('X', 6, 5000.);
       myGeo1c->SetUnknownUncert('Y', 5, 5000.); myGeo1c->SetUnknownUncert('Y', 6, 5000.);
    }
    if (IsPhase1c && (RejectedStation == 56)) {
-      myGeo1c->SetUnknownUncert('V', 0, 5000.); myGeo1c->SetUnknownUncert('V', 0, 5000.);
+      myGeo1c->SetUnknownUncert('V', 0, 5000.); myGeo1c->SetUnknownUncert('V', 1, 5000.);
       myGeo1c->SetUnknownUncert('X', 5, 5000.); myGeo1c->SetUnknownUncert('X', 6, 5000.);
       myGeo1c->SetUnknownUncert('Y', 5, 5000.); myGeo1c->SetUnknownUncert('Y', 6, 5000.);
       myGeo1c->SetUnknownUncert('V', 2, 5000.); myGeo1c->SetUnknownUncert('V', 3, 5000.);
@@ -597,9 +673,12 @@ int main(int argc, char **argv) {
    if (IsPhase1c && ((RejectedStation == 3) || ((RejectedStation == 2)))) {
         myGeo1c->SetUnknownUncert('X', static_cast<size_t>( RejectedStation), 5000.);
         myGeo1c->SetUnknownUncert('Y', static_cast<size_t>( RejectedStation), 5000.);
-        myGeo1c->SetUnknownUncert('V', static_cast<size_t>( RejectedStation-2), 5000.);
+        myGeo1c->SetUnknownUncert('U', static_cast<size_t>( RejectedStation-2), 5000.);
    }
+   // a more general way... Above needs clean up.. 
    //
+   if (IsPhase1c && (rejectedStationsIndices.size() != 0)) 
+       myGeo1c->SetUnknownUncertForStations(rejectedStationsIndices); 
     // New method, reload from a file... 
     //
     if (doLoadParamsFromPreviousRun) {
@@ -722,14 +801,52 @@ int main(int argc, char **argv) {
     if ((!doPencilBeam120) && (!doAntiPencilBeam120)) myParams->SetMinuitParamFixes(fitSubType, 0);
     if (doPencilBeam120) myParams->SetMinuitParamFixes(fitSubType, 1);
     if (doAntiPencilBeam120) myParams->SetMinuitParamFixes(fitSubType, -1);
-    if (doRejectVViews) myParams->FixParamsForViewLastStation('V');
+    if (doRejectVViews) myParams->FixParamsForView('V'); // we will also fix station 6 !!! 
+    if (doReject5XView) {
+      myParams->FixParamsForViewAtStation(5, 'X'); // we will also fix station 6 !!! 
+//      myParams->FixParamsUpstreamMagnet(); // Remove, for series 7p61
+    } 
+    if (doReject5YView) {
+      myParams->FixParamsForViewAtStation(5, 'Y'); // we will also fix station 6 !!!
+//      myParams->FixParamsUpstreamMagnet(); 
+    } 
+    if (doReject5VView) {
+      myParams->FixParamsForViewAtStation(5, 'V'); // we will also fix station 6 !!! 
+//      myParams->FixParamsUpstreamMagnet(); 
+    }
+    if (doReject6YView) {
+      myParams->FixParamsForViewAtStation(6, 'Y'); // we will also fix station 6 !!! 
+//      myParams->FixParamsUpstreamMagnet(); 
+    }
+    if (doReject6XView) {
+      myParams->FixParamsForViewAtStation(6, 'X'); // we will also fix station 6 !!! 
+//      myParams->FixParamsUpstreamMagnet(); 
+    }
+    if (doReject6VView) {
+      myParams->FixParamsForViewAtStation(6, 'V'); // we will also fix station 6 !!! 
+//      myParams->FixParamsUpstreamMagnet(); 
+    }
+    if (token.find("7o61") != std::string::npos) { // Investigate Phase1c Station 5 on run 2113 ... Not a Z shift...angles are too small.. 
+       theFCN.SetAllowLongShiftByStation(true);
+       myParams->FixParamsForView('Y', false, std::string("LongShift_Y_5"));  // not a typo!!! we move by station... 
+       myParams->FixParamsForView('Y', false, std::string("LongShift_Y_6"));
+    }
     if (IsPhase1c && doRejectSt6) myParams->FixParamsForViewLastStation('A'); // A stand for all of them.. 
     if (IsPhase1c && (RejectedStation > 1) && (RejectedStation != 56)) myParams->FixParamsForAllViewsAtStation(RejectedStation); // All sensor for this station.. 
+    if (IsPhase1c && (rejectedStationsIndices.size()  != 0)) {
+      for (size_t k=0; k != rejectedStationsIndices.size(); k++) 
+        myParams->FixParamsForAllViewsAtStation(rejectedStationsIndices[k]); // All sensor for this station.. 
+    }
     if (IsPhase1c && (RejectedStation == 56)) {
        myParams->FixParamsForAllViewsAtStation(5); 
        myParams->FixParamsForAllViewsAtStation(6); 
     }
-        
+    if (IsPhase1c && ((FixedRollStation != -1) && (FixedRollStation < 7))) {
+       myParams->FixRollAndRollCenterForStation(FixedRollStation); 
+    }
+    if (IsPhase1c && (FittedStationNum != -1)) {
+       myParams->FixAllButStationView(static_cast<size_t>(FittedStationNum), FittedViewChar); 
+    }    
    if (doAntiPencilBeam120OnlyV && doAntiPencilBeam120) {
        myParams->FixParamsForView('X');
        myParams->FixParamsForView('Y');

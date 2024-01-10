@@ -132,11 +132,12 @@ namespace emph {
 //       fDebugIsOn = ((rmsV4b < 100.) && (fEvtNum > 42)); 
 //       if (fDebugIsOn) 
 //         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
-        fDebugIsOn = false;
-        fDebugIsOn = ((fEvtNum == 1730)  && (fSpill == 7));
+//        fDebugIsOn = false;
+        fDebugIsOn = ((fEvtNum == 5)  && (fSpill == 10));
+//        fDebugIsOn = ((fEvtNum == 9)  && (fSpill == 10));
 	 if (fDebugIsOn)  std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
-       fFcn3D.SetDebugOn(fDebugIsOn);
-//       fFcn3D.SetDebugOn(false);
+//       fFcn3D.SetDebugOn(fDebugIsOn);
+       fFcn3D.SetDebugOn(false);
        // 
        fType = std::string("3D");
        fFcn3D.SetClusterPtr(it);
@@ -202,7 +203,7 @@ namespace emph {
        //
         ROOT::Minuit2::FunctionMinimum min = migrad(1000, 0.1);
 	 if (!min.IsValid() && (numPars == 5) && (!fNoMagnet)) { //  try again, flipping the sign of slopes, whatever they are in this first minimization. 
-           if (fDebugIsOn) std::cerr << " Migrad minimum, first  " << min << std::endl; 
+           if (fDebugIsOn) std::cerr << " Migrad minimum, first, bad fit   " << min << std::endl; 
 	   // No limits, this around.. 
 	   const double ax0 = min.UserState().Value(nameT0X);
 	   const double ay0 = min.UserState().Value(nameT0Y);
@@ -217,7 +218,7 @@ namespace emph {
 	   if ((!fNoMagnet) && fAlignMode) migrad2nd.Fix("PMom");
  	   min = migrad2nd(1000, 0.1);
 	 }
-         if (fDebugIsOn) std::cerr << " Migrad minimum, 2nd of good first " << min << std::endl; 
+         if (fDebugIsOn) std::cerr << " Migrad minimum, goof first fit trial " << min << std::endl; 
        
 //         ROOT::Minuit2::MnMinos minos(fFcn3D, min);
        
@@ -279,7 +280,23 @@ namespace emph {
 	   else std::cerr << " Simplex Fit is invalid " << std::endl;
 	   std::cerr << min << std::endl;
 	 }
+	 //
+	 // Debugging after the track fit... 
+	 //
+	 if (fDebugIsOn) {
+	  std::cerr << " ... Track fit done, keep debugging.. " << std::endl;
+          fFcn3D.SetDebugOn(true);
+	  double tmpChi = fFcn3D(finalParams); 
+	  std::cerr << " And, after full debugging,  quit for now.. " << std::endl; exit(2);
+	 }
        } 
+//       if ((fEvtNum == 1777)  && (fSpill == 24)) {
+//	    std::cerr << " Special debugging, this time after the fit, for spill " << fSpill << " evt " << fEvtNum << std::endl;
+//           fFcn3D.SetDebugOn(true);
+//            const double chiFinalCheck = fFcn3D(finalParams);
+//	    std::cerr << " And quit here... " << std::endl; exit(2);
+//	    
+//       }
        double finalChi = fFcn3D(finalParams);
        if (!fIsPhase1c) { 
          fx5 = fFcn3D.GetXAtStation5();
@@ -305,8 +322,14 @@ namespace emph {
           if (fDebugIsOn) std::cerr << " Detecting funky x0 or y0 value " << fx0 << " fy0 " << fy0 << " reject this track " << std::endl; 
           fchiSq *=- 1.0;
        }
-       if (fDebugIsOn) std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 
-       if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
+       if (fDebugIsOn) {
+          std::cerr << " BeamTrack::doFit3D done, finalChi.. " << fchiSq << std::endl; 
+	  std::cerr << " ... Track fit done, keep debugging.. " << std::endl;
+          fFcn3D.SetDebugOn(true);
+	  double tmpChi = fFcn3D(finalParams); 
+	  std::cerr << " And, after full debugging,  quit for now.. " << std::endl; exit(2);
+          if (fDebugIsOn) { std::cerr << " ................ After a 3D fit, that's enough  " << std::endl; exit(2); }
+	}
        return fchiSq;
      }
      
