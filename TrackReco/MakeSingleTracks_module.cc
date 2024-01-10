@@ -424,6 +424,9 @@ namespace emph {
 
       std::string fG4Label = "geantgen";
       art::Handle< std::vector<sim::SSDHit> > ssdHitH;
+ 
+      //std::string fLineSegLabel = "";
+      // art::Handle< std::vector<rb::LineSegment> > lsH;
 
       try {
 	evt.getByLabel(fG4Label,ssdHitH);
@@ -443,6 +446,12 @@ namespace emph {
 	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
 	    clusters.push_back(&clust); 
 	  }
+	  //line segments
+	  //evt.getByLabel(fLineSegLabel, lsH);
+	  //for (size_t idx=0; idx < lsH->size(); ++idx) {
+	  //  const rb::LineSegment& lineseg = (*lsH)[idx];
+	  //  linesegments.push_back(&lineseg);
+	  //}
 
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
@@ -494,6 +503,9 @@ namespace emph {
 	      int plane = clusters[i]->Plane();
 	      int station = clusters[i]->Station();
 	      ls_group[station][plane].push_back(&stripv[i]);
+	      //ls_group[station][plane].push_back(&linesegments[i]);
+	      //this assumes they are ordered the same? could loop over clusters or line segments?
+	      //does it matter?
 	    }
 	    //make reconstructed hits
 	    MakeHits();

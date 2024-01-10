@@ -8,6 +8,7 @@
 
 void angDiff(std::vector<caf::SRTrueSSDHits> truthv, caf::SRVector3D& p, double ang[2]);
 void findDistFixedZ(std::vector<caf::SRTrueSSDHits> truthv, caf::SRTrackSegment& seg);
+void getPosFromSeg(caf::SRTrackSegment& seg,double t);
 TH1F* hAngDiffx[8];
 TH1F* hAngDiffy[8];
 TH1F* hFixedZ_DX[8][3];
@@ -151,6 +152,18 @@ void caf_singleTrkPlots(std::string fname)
   std::vector<double> ytruth;
   std::vector<double> ztruth;
 
+  TH2F* hBendVsTrueRAt4 = new TH2F("hBendVsTrueRAt4","hBendVsTrueRAt4",60,0,30,200,0.,0.05);
+  TH2F* hBendVsTrueRAt5 = new TH2F("hBendVsTrueRAt5","hBendVsTrueRAt5",60,0,30,200,0.,0.05);
+
+  TH2F* hBendVsRecoRAt4 = new TH2F("hBendVsRecoRAt4","hBendVsRecoRAt4",60,0,30,200,0.,0.05);
+  TH2F* hBendVsRecoRAt5 = new TH2F("hBendVsRecoRAt5","hBendVsRecoRAt5",60,0,30,200,0.,0.05);
+
+  TH2F* hBendVsTrueOmegaAt4 = new TH2F("hBendVsTrueOmegaAt4","hBendVsTrueOmegaAt4",100,0,0.01,200,0.03,0.04);
+  TH2F* hBendVsTrueOmegaAt5 = new TH2F("hBendVsTrueOmegaAt5","hBendVsTrueOmegaAt5",200,0.025,0.045,200,0.03,0.04);
+
+  TH2F* hBendVsRecoOmegaAt4 = new TH2F("hBendVsRecoOmegaAt4","hBendVsRecoOmegaAt4",100,0,0.01,200,0.03,0.04);
+  TH2F* hBendVsRecoOmegaAt5 = new TH2F("hBendVsRecoOmegaAt5","hBendVsRecoOmegaAt5",200,0.025,0.045,200,0.03,0.04); 
+
   int ncl = 0;
 
   // Loop over our tree and each time we call GetEntries, the data
@@ -182,6 +195,8 @@ void caf_singleTrkPlots(std::string fname)
           zreco[s.station] = s.x[2];
         }
       }
+      bool good4 = false;
+      bool good5 = false;
       if (goodEvent){
         for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
           caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
@@ -191,9 +206,14 @@ void caf_singleTrkPlots(std::string fname)
           if (h.GetZ > targetpos && h.GetZ < magnetusz) truthhit_track2.push_back(h);
           if (h.GetZ > magnetdsz) truthhit_track3.push_back(h);
 
-          if (h.GetStation == 4){
-            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) goodHit = true;
+          if (h.GetStation == 4 && h.GetPlane == 1){
+            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) good4 = true;
           }
+	  if (h.GetStation == 5 && h.GetPlane == 0){
+            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) good5 = true;
+          }
+	  if (good4 && good5) goodHit = true;
+          //goodHit = true;
 
 	  //xtruth.push_back(h.GetX);
 	  //ytruth.push_back(h.GetY);
@@ -273,8 +293,48 @@ void caf_singleTrkPlots(std::string fname)
 	}
 	for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
           caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
-          if (h.GetStation == 4 && h.GetPlane == 1) hBendingXYat4->Fill(h.GetX,h.GetY,trueAngle);
+	  //double rho = sqrt(h.GetX*h.GetX + h.GetY*h.GetY);
+          if (h.GetStation == 4 && h.GetPlane == 1){
+	    hBendingXYat4->Fill(h.GetX,h.GetY,trueAngle);
+	    double r = sqrt(h.GetX*h.GetX + h.GetY*h.GetY);
+	    //double omega = TMath::ATan2(sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy),h.GetPz);
+	    double omega = sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy)/h.GetPz;
+
+	    hBendVsTrueRAt4->Fill(r,trueAngle);
+            hBendVsTrueOmegaAt4->Fill(omega,trueAngle);
+	  }
+          if (h.GetStation == 5 && h.GetPlane == 0){
+            double r = sqrt(h.GetX*h.GetX + h.GetY*h.GetY);
+            double omega = sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy)/h.GetPz;
+
+            hBendVsTrueRAt5->Fill(r,trueAngle);
+            hBendVsTrueOmegaAt5->Fill(omega,trueAngle);
+	  }
+          //if (h.GetZ == magnetdsz) hBendVsTrueRhoDownstream->Fill(trueAngle,rho);
 	}
+	// bendvsreco stuff
+	// get track xyz at 4 and 5
+	double t4 = (zreco[4] - rec->sgmnts.seg[1].vtx[2])/rec->sgmnts.seg[1].mom.z;
+        double x4 = rec->sgmnts.seg[1].vtx[0]+t4*rec->sgmnts.seg[1].mom.x;
+        double y4 = rec->sgmnts.seg[1].vtx[1]+t4*rec->sgmnts.seg[1].mom.y;
+	double r4 = sqrt(x4*x4 + y4*y4);
+	double omega4 = sqrt(rec->sgmnts.seg[1].mom.x*rec->sgmnts.seg[1].mom.x+rec->sgmnts.seg[1].mom.y*rec->sgmnts.seg[1].mom.y)/rec->sgmnts.seg[1].mom.z;
+	hBendVsRecoRAt4->Fill(r4,recoAngle);
+	hBendVsRecoOmegaAt4->Fill(omega4,recoAngle);
+
+	double t5 = (zreco[5] - rec->sgmnts.seg[2].vtx[2])/rec->sgmnts.seg[2].mom.z;
+        double x5 = rec->sgmnts.seg[2].vtx[0]+t5*rec->sgmnts.seg[2].mom.x;
+        double y5 = rec->sgmnts.seg[2].vtx[1]+t5*rec->sgmnts.seg[2].mom.y;
+        double r5 = sqrt(x5*x5 + y5*y5);
+        double omega5 = sqrt(rec->sgmnts.seg[2].mom.x*rec->sgmnts.seg[2].mom.x+rec->sgmnts.seg[2].mom.y*rec->sgmnts.seg[2].mom.y)/rec->sgmnts.seg[2].mom.z;
+        hBendVsRecoRAt5->Fill(r5,recoAngle);
+        hBendVsRecoOmegaAt5->Fill(omega5,recoAngle);
+
+	//double r_at4 = sqrt( xreco[4]*xreco[4] + yreco[4]*yreco[4] );
+	//double r_at5 = sqrt( xreco[5]*xreco[5] + yreco[5]*yreco[5] );
+	//hBendVsRecoRAt4->Fill(r_at4,recoAngle);
+	//hBendVsRecoRAt5->Fill(r_at5,recoAngle);
+
 	double err = 0.06/std::sqrt(12.);
 	double chi2 = 0;
         // findDist
@@ -610,6 +670,15 @@ void caf_singleTrkPlots(std::string fname)
   hBendingXYat4->Write();
   hBending->Write();
   hScattering->Write();
+
+  hBendVsTrueRAt4->Write();
+  hBendVsTrueRAt5->Write();
+  hBendVsRecoRAt4->Write();
+  hBendVsRecoRAt5->Write();
+  hBendVsTrueOmegaAt4->Write();
+  hBendVsTrueOmegaAt5->Write();
+  hBendVsRecoOmegaAt4->Write();
+  hBendVsRecoOmegaAt5->Write();
 
   //for (int i=0; i<100; i++){
   //  if (gHits_xz[i]->GetListOfGraphs()) std::cout<<"true"<<std::endl; //gHits_xz[i]->Write();
