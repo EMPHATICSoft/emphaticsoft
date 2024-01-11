@@ -67,9 +67,34 @@ namespace emph {
        uPars.Add(std::string("YV"), itBeam->YOffset(), 0.2, -50., 50.);  
        uPars.Add(std::string("ZV"), 150., 2., 0., 600.); 
        ROOT::Minuit2::MnMigrad migrad(fFitterFCN, uPars);
-       if (fDebugIsOn) std::cerr << " ..... About to call migrad... " << std::endl;
+       if (fDebugIsOn) std::cerr << " ..... About to call migrad... But, before, we arbitrate... " << std::endl;
        //
        bool isMigradValid = false;
+       // arbitrate first, require distinct slope. 
+       for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
+       bool noChange = false;
+       while (!noChange) {
+         noChange = true; // temporarely 
+         for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
+           if (it->UserFlag() != 0) continue;
+           const double slxi = it->XSlope();
+           const double slyi = it->YSlope();
+           for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator jt = dwnstr.CBegin(); jt != dwnstr.CEnd(); jt++ ) {
+	     if (it == jt) continue;
+             if (jt->UserFlag() != 0) continue;
+             const double slxj = jt->XSlope();
+             const double slyj = jt->YSlope();
+	     const double dsl = std::sqrt((slxj - slxi)*(slxj - slxi) + (slyj - slyi)*(slyj - slyi));
+	     if (fDebugIsOn) std::cerr << " Atbitrating track ID " << it->ID() << " against " << jt->ID() << " dsl " << dsl << std::endl;
+	     if (dsl < 5.0e-4) { //same track, pick the best chi-sq. 
+	       if (fDebugIsOn) std::cerr << " .... same track ! , chisq  " << it->ChiSq() << " and " << jt->ChiSq() << std::endl;
+	       if (it->ChiSq() > jt->ChiSq()) it->SetUserFlag(-1);
+	       else jt->SetUserFlag(-1);
+	       noChange = false;
+	     }
+	   }  
+         }
+       }
        try {
          ROOT::Minuit2::FunctionMinimum min = migrad(2000, 0.1);
          if (fDebugIsOn) std::cerr << " Migrad minimum " << min << std::endl; 
@@ -92,8 +117,8 @@ namespace emph {
 	     }
            }
            for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
-             if (it->ChiSq() > fChiSqCut) continue;
-	 // Other slope cuts ? 
+             if (it->ChiSq() > fChiSqCut) continue; // Other slope cuts ? 
+             if (it->UserFlag() != 0) continue;	 
 	     fVert.AddTrackUID(it->ID());
            }
 	 
@@ -106,7 +131,11 @@ namespace emph {
 	    if (fDebugIsOn) std::cerr << " No valid Minimum... " << std::endl;
 	  // Could do arbitration here, removing one track at a time 
          }
-	} catch (...) { return false; }
+         for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
+	} catch (...) { 
+           for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
+	   return false; 
+        }
        return isMigradValid;
     }
     // 
@@ -116,7 +145,7 @@ namespace emph {
        //
        
        std::ostringstream fNameStrStr;
-       fNameStrStr << "SSDRecVertexAlgo1_Run_" << fRunNum << "_" << fTokenJob << "_V2.txt";
+       fNameStrStr << "SSDRecVertexAlgo1_Run_" << fRunNum << "_" << fTokenJob << "_V3.txt";
        std::string fNameStr(fNameStrStr.str());
        fFOutVert.open(fNameStr.c_str());
        fFOutVert << " spill evt nDwntr X XErr Y YErr Z ZErr chiSq " << std::endl;
