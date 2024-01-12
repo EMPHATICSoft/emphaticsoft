@@ -213,11 +213,38 @@ namespace caf {
     // TML: Why are we printing this out for every single event?
     //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
-    // Get ARing info from ARichReco
-    ARICHFiller arichf;
-    arichf.fLabel = fParams.ARingLabel();
-    arichf.Fill(evt,rec);
+    if (!fParams.SSDOnly()) {
+      // Get ARing info from ARichReco
+      ARICHFiller arichf;
+      arichf.fLabel = fParams.ARingLabel();
+      arichf.Fill(evt,rec);
     
+      // Get BACkov info from BACovHitReco
+      BACkovFiller backovf; 
+      backovf.fLabel = fParams.BACkovHitLabel();
+      backovf.Fill(evt,rec);
+
+      // Get GasCkov info from GasCovHitReco
+      GasCkovFiller gasckovf; 
+      gasckovf.fLabel = fParams.GasCkovHitLabel();
+      gasckovf.Fill(evt,rec);
+
+      // Get SpacePoints
+      SpacePointFiller spcptf;
+      spcptf.fLabel = fParams.SpacePointLabel();
+      spcptf.Fill(evt,rec);
+
+      // Get TrackSegments
+      TrackSegmentFiller trksegf;
+      trksegf.fLabel = fParams.TrackSegmentLabel();
+      trksegf.Fill(evt,rec);
+
+      // Get Tracks
+      TrackFiller trkf;
+      trkf.fLabel = fParams.TrackLabel();
+      trkf.Fill(evt,rec);
+    }
+
     // Get SRTruth  
     if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
@@ -227,21 +254,11 @@ namespace caf {
       srtruthf.Fill(evt,rec);
     } // end if statement
     
-    // Get BACkov info from BACovHitReco
-    BACkovFiller backovf; 
-    backovf.fLabel = fParams.BACkovHitLabel();
-    backovf.Fill(evt,rec);
-
     // Get EventQuality info from DataQual
     EventQualFiller evtqualf; 
     evtqualf.fLabel = fParams.DataQualLabel();
     evtqualf.Fill(evt,rec);
     
-    // Get GasCkov info from GasCovHitReco
-    GasCkovFiller gasckovf; 
-    gasckovf.fLabel = fParams.GasCkovHitLabel();
-    gasckovf.Fill(evt,rec);
-
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
@@ -251,21 +268,6 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-
-    // Get SpacePoints
-    SpacePointFiller spcptf;
-    spcptf.fLabel = fParams.SpacePointLabel();
-    spcptf.Fill(evt,rec);
-
-    // Get TrackSegments
-    TrackSegmentFiller trksegf;
-    trksegf.fLabel = fParams.TrackSegmentLabel();
-    trksegf.Fill(evt,rec);
-
-    // Get Tracks
-    TrackFiller trkf;
-    trkf.fLabel = fParams.TrackLabel();
-    trkf.Fill(evt,rec);
 
     fRecTree->Fill();
     srcol->push_back(rec);

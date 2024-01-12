@@ -37,6 +37,7 @@ namespace caf
     Atom<string> TrackSegmentLabel {Name("TrackSegmentLabel")};
     Atom<bool>   GetMCTruth        {Name("GetMCTruth")};
     Atom<bool>   GetMCHits         {Name("GetMCHits")};
+    Atom<bool>   SSDOnly           {Name("SSDOnly")};
 
   }; // end struct
 } // end namespace
