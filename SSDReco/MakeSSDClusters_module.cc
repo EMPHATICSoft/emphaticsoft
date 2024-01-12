@@ -126,7 +126,7 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
   auto emgeo = geo->Geo();
   NPlanes = emgeo->NSSDPlanes();
   ncluster.resize(NPlanes);
-  
+
 }
 
 //--------------------------------------------------
@@ -222,6 +222,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
       art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
+      if (!cmap->CMap()->IsValidEChan(echan))
+	continue;
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
       digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssdDig);
     }
