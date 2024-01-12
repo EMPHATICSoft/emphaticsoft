@@ -24,9 +24,8 @@ standard_cafmaker:{
     SSDOnly:       false # only fill Header, DataQuality, and SSD information
 }
 
-ssdonly_cafmaker:{
-    FileExtension: ".ssdonly-caf.root"
-    SSDOnly:       true
-}
+ssdonly_cafmaker: @local::standard_cafmaker
+ssdonly_cafmaker.FileExtension: ".ssdonly-caf.root"
+ssdonly_cafmaker.SSDOnly:       true
 
 END_PROLOG
