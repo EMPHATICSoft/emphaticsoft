@@ -124,6 +124,7 @@ namespace emph
 
       //Note that the momentum is currently using RunHistory (user input information)
       momentum = rhs->RunHist()->BeamMom();
+      fSpill->SetMomentum(momentum);
 
       bfp->GetNamedData(recordTime,"F:MT6SC1",&intensity);
       bfp->GetNamedData(recordTime,"F:MT5CPR,F:MT6CPR,F:MT5CP2,F:MT6CP2",&mt5cpr,&mt6cpr,&mt5cp2,&mt6cp2);
@@ -131,7 +132,6 @@ namespace emph
       bfp->GetNamedData(recordTime,"F:MT6CA1,F:MT6CA2,F:MT6CA3",&mt6ca1,&mt6ca2,&mt6ca3);
       
       fSpill->SetIntensity(intensity);
-      fSpill->SetMomentum(momentum);
       fSpill->SetMT5CPR(mt5cpr);
       fSpill->SetMT6CPR(mt6cpr);
       fSpill->SetMT5CP2(mt5cp2);
@@ -145,7 +145,7 @@ namespace emph
       std::cout << "%%%%% IFBeam query results: %%%%%" << std::endl;
       std::cout << "Time: spillTime+fOffset = " << uint64_t(spillTime+fOffset) << std::endl;
       std::cout << "Intensity: " << intensity << std::endl;
-      //      std::cout << "Momentum: " << momentum << std::endl;
+      std::cout << "Momentum: " << momentum << std::endl;
       std::cout << "CkovMT5 Pressure: " << mt5cpr << std::endl;
       std::cout << "CkovMT6 Pressure: " << mt6cpr << std::endl;
 
