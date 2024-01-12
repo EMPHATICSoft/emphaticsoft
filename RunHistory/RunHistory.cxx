@@ -170,7 +170,7 @@ namespace runhist{
   {
     if (_QEURL.empty()) return false;
 
-    QueryEngine<int,double,std::string,std::string> runquery(_QEURL,"emphatic_prd","emph","runs","nsubruns","momentum","target","magnet_in");
+    QueryEngine<std::string,double,std::string,std::string> runquery(_QEURL,"emphatic_prd","emph","runs","nsubruns","momentum","target","magnet_in");
     runquery.where("run","eq",_runNumber);
 
     auto result = runquery.get();
@@ -180,7 +180,10 @@ namespace runhist{
 
     for (auto& row : result) {
       //      std::cout << "(" << column<0>(row) << "," << column<1>(row) << "," << column<2>(row) << ")" << std::endl;
-      _nSubrun = column<0>(row);
+      if (!strcmp(column<0>(row).c_str(),"None"))
+	_nSubrun = -1;
+      else
+	_nSubrun = stoi(column<0>(row));
       _beamMom = column<1>(row);
       _target = column<2>(row);
       magStr = column<3>(row);
