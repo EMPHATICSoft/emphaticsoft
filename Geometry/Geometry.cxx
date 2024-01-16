@@ -79,9 +79,7 @@ namespace emph {
     sensorView Detector::View() const
     {
       auto pi = TMath::Pi();
-      // Flipped sensors have a Rot angle π/2 out-of-phase so we need
-      // to take the flip into account when finding the angle
-      float ang = this->Rot() + pi/2*this->IsFlip();
+      float ang = this->Rot();
 
       // x-view: π/2, 3π/2
       if ( abs(sin(ang-pi/2)) < 0.2)
@@ -89,8 +87,13 @@ namespace emph {
       // y-view: 0,π
       else if (abs(sin(ang)) < 0.2)
 	return Y_VIEW;
+
+      // Flipped diagonal sensors have a Rot angle π/2 out-of-phase
+      // so we needto take the flip into account when finding the angle
+      // Adding earlier messes up x,y double sensor planes.
+      ang += pi/2*this->IsFlip();
       // u-view: 3π/4, 7π/4
-      else if (abs(sin(ang-3*pi/4)) < 0.2)
+      if (abs(sin(ang-3*pi/4)) < 0.2)
 	return U_VIEW;
       // w-view: π/4, 5π/4
       else if (abs(sin(ang-pi/4)) < 0.2)
