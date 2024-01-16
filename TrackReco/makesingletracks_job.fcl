@@ -1,21 +1,12 @@
+#include "Services.fcl"
 #include "MakeSingleTracks.fcl"
-
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "DetGeoMap.fcl"
-#include "Align.fcl"
 
 process_name: MakeSingleTracks
 
 services:
 {
   TFileService: { fileName: "%ifb_singletracks_hist.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
-  RunHistoryService: @local::standard_runhistory
-  DetGeoMapService: @local::standard_detgeomap
-  AlignService: @local::standard_align
+  @table::standard_services
 }
 
 source:

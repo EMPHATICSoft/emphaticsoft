@@ -5,14 +5,16 @@ namespace caf
   StandardRecord::StandardRecord() :
     hdr(),
     ring(),
-    truth(),	 
-    hits(),
-    cluster(),
     backov(),
+    evtqual(),
+    gasckov(),
+    lineseg(),
     spcpts(),
-    sgmnts(),
+    cluster(),
+    hits(),
     trks(),
-    gasckov()
+    sgmnts(),
+    truth()
   {
   }
   

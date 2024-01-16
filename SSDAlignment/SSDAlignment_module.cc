@@ -362,7 +362,7 @@ namespace emph {
         }
 
         //Residual Method of Alignment
-        int loops=2;
+        int loops=40;
         size_t dim = nstations; //number of position measurements
         art::ServiceHandle<art::TFileService> tfs;
         std::cout<<"Dimension: "<<dim<<std::endl;

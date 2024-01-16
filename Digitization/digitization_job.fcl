@@ -1,16 +1,12 @@
+#include "Services.fcl"
 #include "SSDDigitizer.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "RunHistory.fcl"
 
 process_name: Digitizer
 
 services:
 {
   TFileService: { fileName: "%ifb_dig_hist.root" closeFileFast: false }
-  RunHistoryService: @local::standard_runhistory
-  Geometry:   @local::standard_geometry
-  ChannelMapService: @local::standard_channelmap
+  @table::standard_services
 }
 
 source:

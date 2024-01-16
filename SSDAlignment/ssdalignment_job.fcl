@@ -1,3 +1,4 @@
+#include "Services.fcl"
 #include "SSDAlignment.fcl"
 
 #include "MakeSSDClusters.fcl"
@@ -6,18 +7,18 @@
 #include "DetGeoMap.fcl"
 #include "Align.fcl"
 #include "FillDataQuality.fcl"
-#include "RunHistory.fcl"
 
 process_name: SSDAlignment
 
 services:
 {
-  TFileService: { fileName: "ssd_align_hist_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "ssd_align_hist_r%r_s%04s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
   Geometry:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
   DetGeoMapService: @local::standard_detgeomap
   AlignService: @local::standard_align
+  @table::standard_services
 }
 
 source:
@@ -28,13 +29,7 @@ source:
 
 outputs:
 {
- out1:
-  {
-   module_type: RootOutput
-   fileName:    "ssd_align_hist_r%r_s%s.root"
-   fastCloning: false
-   
-  }
+ 
 }
 
 # Define and configure some modules to do work on each event.
@@ -55,7 +50,7 @@ physics:
  }
 
  p1: [ dataqual, clust ]
- e1: [ ssdalignment, out1 ]
+ e1: [ ssdalignment ]
 	
  trigger_paths: [ p1 ]
  end_paths: [ e1 ]

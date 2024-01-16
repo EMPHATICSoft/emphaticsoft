@@ -1,16 +1,16 @@
 ////////////////////////////////////////////////////////////////////////
-// \file     TrackFiller.h
-// \note    Class to fill CAF  Track info
+// \file    EventQualFiller.h
+// \note    Class to fill event-level data quality metrics
 ////////////////////////////////////////////////////////////////////////
-#ifndef  TRACKFILLER_H
-#define  TRACKFILLER_H
+#ifndef EVENTQUALFILLER_H
+#define EVENTQUALFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
 namespace caf
 {
   /// Class to fill header information
-  class TrackFiller : public FillerBase
+  class EventQualFiller : public FillerBase
   {
   public:
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif //  TRACKFILLER_H
+#endif // EVENTQUALFILLER_H

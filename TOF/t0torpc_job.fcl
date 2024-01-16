@@ -1,12 +1,10 @@
-#include "ChannelMap.fcl"
-#include "RunHistory.fcl"
+#include "Services.fcl"
 
 process_name: T0toRPC
 
 services:
 {
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
+  @table::standard_services
 }
 
 source:

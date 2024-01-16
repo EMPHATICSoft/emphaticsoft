@@ -1,7 +1,6 @@
+#include "Services.fcl"
 #include "SpillInfo.fcl"
 #include "GasCkovAna.fcl"
-#include "ChannelMap.fcl"
-#include "RunHistory.fcl"
 
 process_name: GasCkovAna
 
@@ -15,8 +14,7 @@ services:
 {
   TFileService: { fileName: "gasckovana_r%r_s%04s.root" closeFileFast: false }
   IFBeam: {}
-  RunHistoryService: @local::standard_runhistory
-  ChannelMapService: @local::standard_channelmap
+  @table::standard_services
 }
 
 outputs:
