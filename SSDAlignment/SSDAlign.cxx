@@ -35,6 +35,7 @@ namespace emph {
       _axisindex = -999; //needs to be set in program since it is geometry dependent
       _shift = 0;
       _view = clust.View();
+      _width = clust.Width();
       //std::cout<<"new:  x = "<<_x<<"   y = "<<_y<<"   z = "<<_z<<std::endl;
       //std::cout<<"old:  x = "<<(this->Strip()*this->Pitch()-sd.Height()/2)*sin(sd.Rot())+sd.Pos()[0]<<"   y = "<<(this->Strip()*this->Pitch()-sd.Height()/2)*cos(sd.Rot())+sd.Pos()[1]<<"   z = "<<sd.Pos()[2] + st.Pos()[2]<<std::endl;
       _x = 0;
@@ -93,9 +94,24 @@ namespace emph {
   }
 
   //------------------------------------------------------------
-  void SSDAlign::FillEvtHolder(const std::vector<emph::al::SSDAlign>& evt, std::vector<emph::al::SSDAlign>& xevt, std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& uevt,std::vector<emph::al::SSDAlign>& vevt)
+  void SSDAlign::FillEvtHolder(std::vector<emph::al::SSDAlign>& evt, std::vector<emph::al::SSDAlign>& xevt, std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& uevt,std::vector<emph::al::SSDAlign>& vevt)
   {
-    for (size_t i=0; i<evt.size(); ++i){
+      //First loop through events to check if any have Width>2 (keep track of sensors where this is the case using ssp)
+      std::vector<std::array<int,3>> wide_hits;
+      for (size_t i=0; i<evt.size(); ++i){
+          if (evt[i].Width()>2) wide_hits.push_back({evt[i].Station(),evt[i].Sensor(),evt[i].Plane()});
+      }
+      //Loop through again to remove all events from these sensors
+      for (size_t i=0; i<evt.size(); ++i){
+          int station = evt[i].Station();
+          int sensor = evt[i].Sensor();
+          int plane = evt[i].Plane();
+          for (size_t j=0; j<wide_hits.size(); ++j){
+              if (station == wide_hits[j][0] && sensor == wide_hits[j][1] && plane == wide_hits[j][2]) evt.erase(evt.begin()+int(i));
+          }
+      }
+      for (size_t i=0; i<evt.size(); ++i){
+        //skip event if the width of the cluster is greater than 2 strips
         if(evt[i].View()==emph::geo::X_VIEW) xevt.push_back(evt[i]);
         if(evt[i].View()==emph::geo::Y_VIEW) yevt.push_back(evt[i]);
         if(evt[i].View()==emph::geo::U_VIEW) uevt.push_back(evt[i]);
@@ -122,6 +138,8 @@ namespace emph {
   //------------------------------------------------------------
   bool SSDAlign::IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& evt,const int& nstations)
   {
+    
+
     std::vector<int> stations_hit;
     //std::cout<<"Number of stations: "<< nstations<< "     hits: "<<evt.size()<<std::endl;
     //Not an alignment event if there are more hits than stations or fewer than 3 hits
@@ -136,12 +154,6 @@ namespace emph {
         std::sort(stations_hit.begin(),stations_hit.end());
         //after sorting stations hit, if there exist hits in the same station then it is not good for alignment
         bool s = std::adjacent_find(stations_hit.begin(), stations_hit.end()) != stations_hit.end();
-        //if (evt[0].Event()==46) {
-        //    for (size_t i=0; i<stations_hit.size(); ++i){
-        //        std::cout<<stations_hit[i]<<"  ";
-        //    }
-        //    std::cout<<std::endl;
-        //}
 
         if(s) return false;
         else return true;

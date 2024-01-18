@@ -103,9 +103,17 @@ namespace emph {
             int nstations;
             int nssds;
             int max_sensors=0;
-            int max_z = 0;
+            double max_z = 0;
             bool first_run=1;
             std::map<std::vector<int>, int> spsindex;
+            double magnetpos;
+            double x0z=-1; double x1z=-1; double y0z=-1; double y1z=-1;
+            size_t x_fixedstationindex;
+            size_t y_fixedstationindex;
+            std::vector<double> zpos_x;
+            std::vector<double> zpos_y;
+            std::vector<double> zpos_u;
+            std::vector<double> zpos_v;
     };
 
     //.......................................................................
@@ -149,6 +157,7 @@ namespace emph {
 
         nstations = emgeo->NSSDStations();
         nssds = emgeo->NSSDs();
+        magnetpos = emgeo->MagnetDSZPos();
 
         //resizing to fill with z positions
         std::cout<<"SSD Stations and Axis Indices Below:"<<std::endl;
@@ -170,18 +179,32 @@ namespace emph {
 
                 if(sensor_info.View()==emph::geo::X_VIEW){
                     spsindex.insert(std::pair<std::vector<int>,int>(sps,nxsensors));
+                    zpos_x.push_back(sensor_info.Z());
+                    if (x0z==-1 && dchan.Station()==0) x0z = sensor_info.Z();
+                    if (x1z==-1 && sensor_info.Z()>magnetpos){
+                        x1z = sensor_info.Z();
+                        x_fixedstationindex = spsindex[sps];
+                    }
                     nxsensors+=1;
                 }
                 if(sensor_info.View()==emph::geo::Y_VIEW){
                     spsindex.insert(std::pair<std::vector<int>,int>(sps,nysensors));
+                    zpos_y.push_back(sensor_info.Z());
+                    if (y0z==-1 && dchan.Station()==0) y0z = sensor_info.Z();
+                    if (y1z==-1 && sensor_info.Z()>magnetpos){
+                        y1z = sensor_info.Z();
+                        y_fixedstationindex = spsindex[sps];
+                    }
                     nysensors+=1;
                 }
                 if(sensor_info.View()==emph::geo::U_VIEW){
                     spsindex.insert(std::pair<std::vector<int>,int>(sps,nusensors));
+                    zpos_u.push_back(sensor_info.Z());
                     nusensors+=1;
                 }
                 if(sensor_info.View()==emph::geo::W_VIEW){
                     spsindex.insert(std::pair<std::vector<int>,int>(sps,nvsensors));
+                    zpos_v.push_back(sensor_info.Z());
                     nvsensors+=1;
                 }
                 if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
@@ -272,13 +295,13 @@ namespace emph {
         }
         for (int i=0; i<4; ++i) {
             sprintf(hname,"%sInit_Chi2",pos_strings[i]);
-            fInit_Chi2[i] = tfs->make<TH1F>(hname,Form("Initial Chi2 - %s",pos_strings[i]),200,0,40);
+            fInit_Chi2[i] = tfs->make<TH1F>(hname,Form("Initial Chi2 - %s",pos_strings[i]),100,0,10);
             fInit_Chi2[i]->GetXaxis()->SetTitle("Chi^2");
             fInit_Chi2[i]->GetYaxis()->SetTitle("Counts");
         }
         for (int i=0; i<4; ++i) {
             sprintf(hname,"%sFin_Chi2",pos_strings[i]);
-            fFin_Chi2[i] = tfs->make<TH1F>(hname,Form("Final Chi2 - %s",pos_strings[i]),200,0,40);
+            fFin_Chi2[i] = tfs->make<TH1F>(hname,Form("Final Chi2 - %s",pos_strings[i]),100,0,10);
             fFin_Chi2[i]->GetXaxis()->SetTitle("Chi^2");
             fFin_Chi2[i]->GetYaxis()->SetTitle("Counts");
         }
@@ -603,7 +626,8 @@ namespace emph {
             }
             
 
-            //variables to fix first x/y ssd station
+            //variables to fix first x/y ssd station and x/y station after magnet
+            size_t x_station=0; size_t y_station; 
             double x_ref=0, y_ref=0;
             std::cout<<"X Shifts are:    ";
             for(size_t j=0; j<x_shifts.size(); ++j){
@@ -614,9 +638,13 @@ namespace emph {
                 }
                 double mean = sum / xres_array[j].size();
                 x_shifts[j] += mean;
-                //Fixing first X SSD at x=0 (shift all SSDs in X by x_shift[0])
-                //if(j==0) x_ref = x_shifts[0];	
-                //x_shifts[j]=x_shifts[j]-x_ref;
+                if (j==0) x_ref = x_shifts[0];
+                if (j==x_fixedstationindex) x1z = zpos_x[j];
+            }
+            //Fixing first X SSD after magnet to be x=0 (shift all SSDs in X by x_shift[0])
+            double xslope = (x_shifts[x_fixedstationindex]-x_shifts[0])/(x1z-x0z);
+            for(size_t j=0; j<x_shifts.size(); ++j){
+                x_shifts[j] = x_shifts[j]-x_ref - xslope*(zpos_x[j]-zpos_x[0]);
                 std::cout<<x_shifts[j]<<", ";
             }
             std::cout<<std::endl;
@@ -630,10 +658,14 @@ namespace emph {
                 }
                 double mean = sum / yres_array[j].size();
                 y_shifts[j] += mean;
-                //Fixing first Y SSD at y=0 (shift all SSDs in Y by y_shift[0])
-                //if(j==0) y_ref = y_shifts[0];
-                //y_shifts[j]=y_shifts[j]-y_ref;
-                std::cout<<y_shifts[j]<<", ";
+                if (j==0) y_ref = y_shifts[0];
+                if (j==y_fixedstationindex) y1z = zpos_y[j];
+            }
+            //Fixing first Y SSD after magnet to be y=0 (shift all SSDs in Y by y_shift[0])
+            double yslope = (y_shifts[y_fixedstationindex]-y_shifts[0])/(y1z-y0z);
+            for(size_t j=0; j<y_shifts.size(); ++j){
+                y_shifts[j] = y_shifts[j]-y_ref - yslope*(zpos_y[j]-zpos_y[0]);
+                std::cout<<x_shifts[j]<<", ";
             }
             std::cout<<std::endl;
 
@@ -652,6 +684,7 @@ namespace emph {
             }
             std::cout<<std::endl;
 
+            if (v_shifts.size()!=0){
             std::cout<<"V Shifts are:    ";
             for(size_t j=0; j<v_shifts.size(); ++j){
                 double sum=0;
@@ -666,6 +699,7 @@ namespace emph {
                 std::cout<<v_shifts[j]<<", ";
             }
             std::cout<<std::endl;
+            }
 
             //Clear residual arrays
             xres_array.clear();  yres_array.clear(); ures_array.clear(); vres_array.clear();
@@ -818,6 +852,10 @@ namespace emph {
                     //Fill x,y,z of ssdalign object using detgeomap
                     rb::LineSegment ls;
                     //std::cout<<"strip = "<<clusters[i].AvgStrip()<<std::endl;
+                    if (clust.AvgStrip() > 640){
+                        std::cout<<"Skipping nonsense SSD Hit"<<std::endl;
+                        continue;
+                    }
                     dgm->Map()->SSDClusterToLineSegment(clust, ls);
 
                     int event = evt.event();

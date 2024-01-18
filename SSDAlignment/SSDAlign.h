@@ -37,6 +37,7 @@ namespace emph{
     int _axisindex;
     double _shift;
     emph::geo::sensorView _view;
+    int _width;
 	double _x, _y, _z, _u, _v;
     int _event;
 
@@ -47,6 +48,7 @@ namespace emph{
     int Plane() const { return _plane; }
     int Sensor() const { return _sensor; }
     double Shift() const { return _shift;}
+    int Width() const { return _width; }
     int AxisIndex() const { return _axisindex; }
     emph::geo::sensorView View() const { return _view; }
     double X() const { return _x; }
@@ -62,6 +64,7 @@ namespace emph{
     void SetPlane(int plane) { _plane = plane; }
     void SetSensor(int sensor) { _sensor = sensor; }
     void SetAxisIndex(int axisindex) { _axisindex = axisindex; }
+    void SetWidth(int width) { _width = width; }
     void SetShift(double shift) { _shift = shift; }
     void SetView(emph::geo::sensorView view) { _view = view; }
     void SetPos(rb::LineSegment ls);
@@ -77,7 +80,7 @@ namespace emph{
     void SSDHitPosition(std::vector<std::vector<double>>& xpos, std::vector<std::vector<double>>& ypos,std::vector<std::vector<double>>& upos, std::vector<std::vector<double>>& vpos);
     bool IsSingleHit(std::vector<double>& hits);
     bool IsAlignmentEvent(std::vector<std::vector<double>> pos);
-    void FillEvtHolder(const std::vector<emph::al::SSDAlign>& evt, std::vector<emph::al::SSDAlign>& xevt, std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& uevt,std::vector<emph::al::SSDAlign>& vevt);
+    void FillEvtHolder(std::vector<emph::al::SSDAlign>& evt, std::vector<emph::al::SSDAlign>& xevt, std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& uevt,std::vector<emph::al::SSDAlign>& vevt);
     bool IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& evt,const int& nstations);
     bool IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& xevt,const std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& evt,const int& nstations);
     bool IsAlignmentEvent(std::vector<std::vector<double>> xpos,std::vector<std::vector<double>> ypos,std::vector<std::vector<double>>& pos);
