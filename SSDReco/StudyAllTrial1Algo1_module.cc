@@ -115,6 +115,7 @@ namespace emph {
      bool fDoIronBrick;
      bool fDoFirstAndLastStrips;
      bool fDoUseDownstrKalmanTracks; 
+     double fXCoeffAlignUncert, fYCoeffAlignUncert;
 //
 //   Downstream of the target. 
 //
@@ -214,6 +215,8 @@ namespace emph {
       fDwnstrChiSqCutPreArb = pset.get<double>("dwnstrChiSqCutPreArb", 500.);
       fDwnstrVertChiSqCut = pset.get<double>("dwnstrVertChiSqCutPreArb", 3.);
       fChiSqCutXYUVStAlgo1 = pset.get<double>("chiSqCutXYUVStAlgo1", 1000.);
+      fXCoeffAlignUncert = pset.get<double>("XCoeffAlignUncert", 0.05);
+      fYCoeffAlignUncert = pset.get<double>("YCoeffAlignUncert", 0.025);
       // 
       // Transfering this info to algorithms.. 
       //
@@ -279,7 +282,11 @@ namespace emph {
           fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // it is done...  
 //          if (kSt == 6) fDwnstrTrRec.SetChiSqCutRecStation(kSt, 1.0e6); // Understanding Station 6 V view ??? 
 // Fixed, January 4 2024 
-       }
+        }
+// January 16, study systematic uncertainties due to misalignment
+        fUpStreamBeamTrRec.SetCoeffsAlignUncert(fXCoeffAlignUncert, fYCoeffAlignUncert);
+        fDwnstrTrRec.SetCoeffsAlignUncert(fXCoeffAlignUncert, fYCoeffAlignUncert);
+	std::cerr << " .... SetCoeffsAlignUncert, fXCoeffAlignUncert " << fXCoeffAlignUncert << std::endl;
 	std::cerr << " Finished setting up Downstream Tracker.. " << std::endl;
       } else { 
       // Not applicable for Phase1c.. 
@@ -383,7 +390,8 @@ namespace emph {
 // This is no longer needed, after the Minuit2 exception handle upgrade, late November 2023.. 
 //      
 //      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && (fEvtNum == 2977));
-      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && (fEvtNum == 5));
+      bool debugIsOn = ((fRun == 2144) && (fSubRun == 10) && (fEvtNum == 113));
+//      bool debugIsOn = true;
 //      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && 
 //                        ((fEvtNum == 1) || (fEvtNum == 2 ) || (fEvtNum == 4 )|| (fEvtNum == 5 ) || (fEvtNum == 9 ) || (fEvtNum == 10 )));
 //      if (fEvtNum > 25) { std::cerr << " ... ... only first few event, quit now.. " << std::endl; exit(2); }
@@ -443,7 +451,8 @@ namespace emph {
       fNumBeamTracks = 0;
       std::vector<rb::BeamTrackAlgo1>::const_iterator itUpTrSel; 
       if (!fDoIronBrick) { 
-        fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum); 
+        fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum);
+	if (debugIsOn) std::cerr << " about to call fUpStreamBeamTrRec.recoXY... " << std::endl;
         fUpStreamBeamTrRec.recoXY(fSSDClsPtr);
 //	if ((fNEvents < 25000) && (fNumClUpstr < 6) ) fUpStreamBeamTrRec.dumpXYInforR(INT_MAX);
         //

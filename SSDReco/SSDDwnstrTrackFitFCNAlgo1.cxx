@@ -135,7 +135,7 @@ namespace emph {
 	    yPredAtSt[1] += ddZXY*sly1;  
             if (fDebugIsOn) 
 	      std::cerr << " ..... After the Usptream X and Y Integrated predictions for  for Station 3, xPred " 
-	     << xPredAtSt[1] << " yPred " <<  yPredAtSt[1] << " X Slope " << slx1 <<  std::endl; 
+	     << xPredAtSt[1] << " yPred " <<  yPredAtSt[1] << " X Slope " << 1000.0*slx1 <<  "mrad" << std::endl; 
 	  } else {
 	     slx1 = slx0; sly1 = sly0;
 	  }
@@ -163,7 +163,7 @@ namespace emph {
           if (fDebugIsOn) 
 	     std::cerr << " ..... After the magnet X and Y Integrated predictions at station 4, xPred " 
 	               << xPredAtSt[2] << " yPred " <<  yPredAtSt[2] 
-		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl; 
+		      << " X Slope " << 1000.*slx2 << " mrad, Y Slope " << 1000.*sly2 << " mrad" <<  std::endl; 
 	  //
 	  // Downstream of the magnet 
 	  //
@@ -189,13 +189,13 @@ namespace emph {
 	    yPredAtSt[3] +=  ddZXYE*sly3;
             if (fDebugIsOn) 
 	       std::cerr << " ..... After the Downstream fringe field, xPred " << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] 
-		      << " X Slope " << slx3 << " Y Slope " << sly3 <<  std::endl; 
+		      << " X Slope " << 1000.*slx3 << " Y Slope " << 1000.0*sly3 <<  std::endl; 
 	 } else {
 	   xPredAtSt[3] = xPredAtSt[2] + slx2*(fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 4)); 
 	   yPredAtSt[3] = yPredAtSt[2] + sly2*(fEmVolAlP->ZPos(emph::geo::Y_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::Y_VIEW, 4)); 
            if (fDebugIsOn) {
 	       std::cerr << " .....Negecting downstream fringe field,  after the magnet, xPred " << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] 
-		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl; 		      
+		      << " X Slope " << 1000.0*slx2 << " Y Slope " << 1000.0*sly2 <<  std::endl; 		      
            }
 	 }
        } else { // simple kick.. 
@@ -224,8 +224,8 @@ namespace emph {
 	fResids[kStD+4] = dy;
         chi2 += dy*dy / (yErr*yErr);
        }  
-      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
-//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we stop here...  " << std::endl; exit(2);}
+//      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we keep going....  " << std::endl; }
+      if (fDebugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And we stop here...  " << std::endl; exit(2);}
       fLastChi2 = chi2;
       return chi2;
     }

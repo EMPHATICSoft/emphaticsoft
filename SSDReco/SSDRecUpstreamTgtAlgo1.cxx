@@ -56,7 +56,7 @@ namespace emph {
 	exit(2);
       }
 
-      const bool debugIsOn = ((fEvtNum == 5) && (fSubRunNum == 10)); 
+      const bool debugIsOn = ((fEvtNum == 99) && (fSubRunNum == 10)); 
 //      const bool debugIsOn = ((fEvtNum == 1199) && (fSubRunNum == 10)); 
       fConvertCoord.SetDebugOn(debugIsOn); 
       if (debugIsOn) std::cerr << " SSDRecUpstreamTgtAlgo1::recoXY, spill " << fSubRunNum << " evt " << fEvtNum << std::endl;

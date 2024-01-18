@@ -75,6 +75,10 @@ namespace emph {
 	 inline void SetNominalMomentum(double p = 120.) { fNominalMomentum = p; }
 	 inline void ResetInputData() { fDataForXYRec.clear(); }
 	 inline void Reset() { fTrXYs.clear(); } 
+	 inline void SetCoeffsAlignUncert(double x, double y) {
+//	   std::cerr << " ... SSDRecUpstreamTgtAlgo1::SetCoeffsAlignUncert, x " << x << " y " << y << std::endl;
+	   fConvertCoord.SetCoeffsAlignUncert(x, y); // We clearly should make this a singleton class.. or move it to a service. 
+	 }
 	 //
 	 // Getter, only one output, the reconstructed track.. 
 	 // 

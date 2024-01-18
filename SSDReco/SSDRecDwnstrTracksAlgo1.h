@@ -118,6 +118,15 @@ namespace emph {
 	   fInputSt4Pts.SetForMC(v); 
 	   fInputSt5Pts.SetForMC(v); 
 	   fInputSt6Pts.SetForMC(v); 
+	 }
+	 inline void SetCoeffsAlignUncert(double x, double y) {
+//	   std::cerr << " ... SSDRecDwnstrTracksAlgo1::SetCoeffsAlignUncert, x " << x << " y " << y << std::endl;
+	   fCoordConvert.SetCoeffsAlignUncert(x, y); // We clearly should make this a singleton class.. or move it to a service. 
+	   fInputSt2Pts.SetCoeffsAlignUncert(x,  y); 
+	   fInputSt3Pts.SetCoeffsAlignUncert(x,  y); 
+	   fInputSt4Pts.SetCoeffsAlignUncert(x,  y); 
+	   fInputSt5Pts.SetCoeffsAlignUncert(x,  y); 
+	   fInputSt6Pts.SetCoeffsAlignUncert(x,  y); 
 	 } 
 	 inline void SetTokenJob(const std::string &aT) { 
 	   fTokenJob = aT; fInputSt2Pts.SetTokenJob(aT); 

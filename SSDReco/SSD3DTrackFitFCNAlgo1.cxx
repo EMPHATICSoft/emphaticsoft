@@ -52,8 +52,8 @@ namespace emph {
     double SSD3DTrackFitFCNAlgo1::operator()(const std::vector<double> &pars) const {
     
       if (fDebugIsOn) std::cerr << "SSD3DTrackFitFCNAlgo1::operator, Start, number of track parameters " 
-                                << pars.size() << " Number of data pts " << fData.size() << std::endl;  
-      if (fDebugIsOn && fNoMagnet) std::cerr << "  .....   The Magnet has been removed.. " << std::endl;
+                                << pars.size() << " Number of data pts " << fData.size() << std::endl; 
+     if (fDebugIsOn && fNoMagnet) std::cerr << "  .....   The Magnet has been removed.. " << std::endl;
       if (fData.size() <  6) return 2.0e10; // require at lease 6 planes, one dgree of freedom if so... 
       if ((!fNoMagnet) && (std::abs(pars[4]) < 0.5)) return 5.0e10; 
        // if Mininuit attemps to change the sign of momentum, or jumps too far, assign  a very large chi-square. 
@@ -125,7 +125,7 @@ namespace emph {
 	    double ddZXY = fEmVolAlP->ZPos(emph::geo::Y_VIEW, 3) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 3); yPredAtSt[3] += ddZXY*sly1;  
             if (fDebugIsOn) 
 	      std::cerr << " ..... After the Usptream X and Y Integrated predictions for  for Station 3, xPred " 
-	     << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] << " X Slope " << slx1 <<  std::endl; 
+	     << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] << " X Slope " << 1000.*slx1 <<  "mrad " << std::endl; 
 	  } else {
 	     slx1 = slx0; sly1 = sly0;
 	  }
@@ -153,7 +153,7 @@ namespace emph {
           if (fDebugIsOn) 
 	     std::cerr << " ..... After the magnet X and Y Integrated predictions at station 4, xPred " 
 	               << xPredAtSt[4] << " yPred " <<  yPredAtSt[4] 
-		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl; 
+		      << " X Slope " << 1000.0*slx2 << " mrad Y Slope " << 1000.*sly2 << "mrad" <<  std::endl; 
 	  //
 	  // Downstream of the magnet 
 	  //
@@ -179,7 +179,7 @@ namespace emph {
 	    yPredAtSt[5] +=  ddZXYE*sly3;
             if (fDebugIsOn) 
 	       std::cerr << " ..... After the Downstream fringe field, xPred " << xPredAtSt[5] << " yPred " <<  yPredAtSt[5] 
-		      << " X Slope " << slx3 << " Y Slope " << sly3 <<  std::endl << std::endl;
+		      << " X Slope " << 1000.*slx3 << " mrad Y Slope " << 1000.*sly3 <<  std::endl << std::endl;
 	 } else {
 	   xPredAtSt[5] = xPredAtSt[4] + slx2*(fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 4)); 
 	   yPredAtSt[5] = yPredAtSt[4] + sly2*(fEmVolAlP->ZPos(emph::geo::Y_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::Y_VIEW, 4)); 

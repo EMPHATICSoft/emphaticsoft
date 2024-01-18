@@ -32,14 +32,18 @@ namespace emph {
      ConvertDigitToWCoordAlgo1::ConvertDigitToWCoordAlgo1(char aView) : 
        fDetGeoMapService(art::ServiceHandle<emph::dgmap::DetGeoMapService>()), fDetGeoMap(fDetGeoMapService->Map()),        
        fGeoService(art::ServiceHandle<emph::geo::GeometryService>()), fEmgeo(fGeoService->Geo()),        
-       fIsMC(false), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
+       fIsMC(false), fAddAlignUncert(true), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
        fMomentumIsSet(false), fEffMomentum(120.), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
+       fXBeamSpot(5.096333), fYBeamSpot(-9.179789), fSlXBeamSpot(-0.003039212), fSlYBeamSpot(0.009157169),
+       // Mean values from alignment run 2113, run 7s1104_5. 
+       fXCoeffAlignUncert(0.05), fYCoeffAlignUncert(0.025),
        fZCoords(fNumStations+4, 0.), fZLocShifts(fNumStations+4, 0.), 
        fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fNominalOffsets(fNumStations, 0.), fDownstreamGaps(2, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0),
        fMultScatUncert120( fNumStations, 0.), fMultScatUncert(fNumStations, 0.), fOtherUncert(fNumStations, 0.),
        fPitchOrYawAngles(fNumStations, 0.),
-       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
+       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
+       fLastXEncountered(0.), fLastYEncountered(0.) 
      { 
          if (aView == 'W') aView = 'V';
          if ((aView != 'X') && (aView != 'Y') && (aView != 'U') && (aView != 'V') && (aView != 'A')) {
@@ -50,14 +54,16 @@ namespace emph {
      ConvertDigitToWCoordAlgo1::ConvertDigitToWCoordAlgo1(int aRunNum, char aView) : 
        fDetGeoMapService(art::ServiceHandle<emph::dgmap::DetGeoMapService>()), fDetGeoMap(fDetGeoMapService->Map()),        
        fGeoService(art::ServiceHandle<emph::geo::GeometryService>()), fEmgeo(fGeoService->Geo()),        
-       fIsMC(false), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
+       fIsMC(false), fAddAlignUncert(true), fIsReadyToGo(false), fView(aView), fDebugIsOn(false), 
        fMomentumIsSet(false), fEffMomentum(120.), fPitch(0.06), fHalfWaferHeight(0.5*static_cast<int>(fNumStrips)*fPitch), 
+       fXBeamSpot(5.096333), fYBeamSpot(-9.179789), fSlXBeamSpot(-0.003039212), fSlYBeamSpot(0.009157169),
        fZCoords(fNumStations+4, 0.), fZLocShifts(fNumStations+4, 0.), 
        fZCoordsMagnetCenter(757.7), fMagnetKick120GeV(-0.612e-3), 
        fNominalOffsets(fNumStations, 0.), fDownstreamGaps(2, 0.), fResiduals(fNumStations, 0.), fMeanResiduals(fNumStations, 0),
        fMultScatUncert120( fNumStations, 0.), fMultScatUncert(fNumStations, 0.), fOtherUncert(fNumStations, 0.),
        fPitchOrYawAngles(fNumStations, 0.),
-       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()) 
+       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), 
+       fLastXEncountered(0.), fLastYEncountered(0.) 
      {
          fIsPhase1c =  (aRunNum > 1999);  
          if (aView == 'W') aView = 'V';
@@ -242,7 +248,7 @@ namespace emph {
         const double pitch = fEmVolAlP->Pitch(aView, kSt, kSe);	
 	double tMeas = DBL_MAX; 
 	const double multScatErr = fMultScatUncert[kSt]*120./pMomMultScatErr;
-	const double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr;
+	double tMeasErrSq = pitch*pitch*stripErrSq + multScatErr*multScatErr;
 	// The Alignment parameters are organized by view, 
 	                 // with indics ranging from 0 to 7 (X & Y views) , 0 an1 (U) and 0-3 for W views. 
 			 // Clone code.. This should belong to the converter.. 
@@ -276,6 +282,18 @@ namespace emph {
 	    else  tMeas =  strip*pitch + fEmVolAlP->TrPos(aView, kSt, kSe); 
 	    	  
 	  }
+	}
+	if (fAddAlignUncert) {
+	 if (aView == emph::geo::X_VIEW) { 
+	   const double tSys = this->getTrXAlignUncert(fZCoords[kSt], tMeas);
+	   tMeasErrSq += tSys*tSys; fLastXEncountered = tMeas;
+	 } else if (aView == emph::geo::X_VIEW) { 
+	   const double tSys = this->getTrYAlignUncert(fZCoords[kSt], tMeas);
+	   tMeasErrSq += tSys*tSys; fLastYEncountered = tMeas;
+	 } else {
+	   const double tSys = this->getTrUAlignUncert(fZCoords[kSt], fLastXEncountered, fLastYEncountered); // Very, very sloppy
+	   tMeasErrSq += tSys*tSys;
+	 }
 	}
 	return std::pair<double, double>(tMeas, tMeasErrSq);
      } 

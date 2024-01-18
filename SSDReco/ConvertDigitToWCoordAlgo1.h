@@ -46,6 +46,7 @@ namespace emph {
 
 	  bool fIsPhase1c; // by default, phase1b.   
 	  bool fIsMC; // Ugly!. But Obsolete.. we hope... Stereo angle use in GeoDetMap  
+	  bool fAddAlignUncert; // adding, estimated linearly, added in quadrature to the multiple and position uncertainties.   
 	  bool fIsReadyToGo; // Can't fully initialize everything in the constructor.. This should be amn ar service!!! 
 	  char fView;
 	  bool fDebugIsOn;
@@ -53,9 +54,12 @@ namespace emph {
 	  double fEffMomentum;      
 	  double fPitch;
 	  double fHalfWaferHeight;
-	  // This is mostly obsolete... need clean-up
+	  double fXBeamSpot, fYBeamSpot, fSlXBeamSpot, fSlYBeamSpot; // Beam has small divergence, but noticeable angle.
+	  // especially the Y axis. See run 2113 alignment. 
+	  double fXCoeffAlignUncert, fYCoeffAlignUncert; 
+	  
 	  std::vector<double> fZCoords;
-	  std::vector<double> fZLocShifts;
+	  std::vector<double> fZLocShifts; // This is not used.. Unclear if we have the survey data. 
 	  double fZCoordsMagnetCenter, fMagnetKick120GeV; 
 	  std::vector<double> fNominalOffsets; // for station 4 and 5, Y View Sensor 3, if run 1055
 	  // if MC, or other lower momentum runs, we need 
@@ -73,6 +77,11 @@ namespace emph {
 // This was the old version (Winter 2023..) now.... 
 //
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
+	  
+//
+// sloppy, but effective, the way the space points are reconstructed... 
+//
+        mutable double 	fLastXEncountered, fLastYEncountered;  
 
 	  
 	public:
@@ -89,6 +98,11 @@ namespace emph {
 	 inline void SetTransientResiduals(std::vector<double> v) { fResiduals = v;} // Actually, not used yet.. 
 	 inline void SetMultScatUncert(std::vector<double> v) {fMultScatUncert = v;} 
 	 inline void SetMagnetKick120GeV(double v) { fMagnetKick120GeV = v; }
+	 inline void SetBeamSpotCenter(double x, double y) { fXBeamSpot = x; fYBeamSpot = y; }
+	 inline void SetCoeffsAlignUncert(double x, double y) { 
+	    std::cerr << " ... ConvertToDigitWCoordAlgo1::SetCoeffsAlignUncert, x " << x << " y " << y << std::endl;
+	    fXCoeffAlignUncert = x;  fYCoeffAlignUncert = y; 
+	 }
 	 inline void SetDownstreamGap(size_t aStation, double v) { 
 	   if ((aStation != 4) && (aStation != 5)) {
 	     std::cerr << " ConvertDigitToWCoordAlgo1, Station  " << aStation << " has no double sensor, fatal, quit here " << std::endl; 
@@ -221,7 +235,23 @@ namespace emph {
 	 // Checked on for Phase1b, and actually found it problematic, Oct-Nov 2023 
 	
       private: 
-        void SetForPhase1X(); // Place holder.. 	
+        void SetForPhase1X(); // Place holder.. 
+	
+	inline double getTrXAlignUncert(double z, double x) const {
+	  const double xb = fXBeamSpot + fSlXBeamSpot*z;
+	  return (fXCoeffAlignUncert * std::abs(x-xb));
+	}	
+	inline double getTrYAlignUncert(double z, double y) const {
+	  const double yb = fYBeamSpot + fSlYBeamSpot*z;
+	  return (fYCoeffAlignUncert * std::abs(y-yb));
+	}	
+	inline double getTrUAlignUncert(double z, double x, double y) const {
+	  const double xb = fXBeamSpot + fSlXBeamSpot*z;
+	  const double yb = fYBeamSpot + fSlYBeamSpot*z;
+	  const double ddx = fXCoeffAlignUncert * std::abs(x-xb);
+	  const double ddy = fYCoeffAlignUncert * std::abs(y-yb);
+	  return 0.5*std::sqrt(ddx*ddx + ddy*ddy);
+	}	
 
 	 
     }; // this class 

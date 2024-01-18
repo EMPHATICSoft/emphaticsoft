@@ -489,7 +489,8 @@ namespace emph {
     bool SSDRecDwnstrTracksAlgo1::doPrelimFit(rb::DwnstrTrType type, double xStart, double yStart, double xSlopeStart, double ySlopeStart) {
        fNoMagnet = fEmgeo->MagnetUSZPos() < 0.;
        if ((fRunNum == 2113) || (fRunNum == 2098)) fNoMagnet = true;
-       fFitterFCN->SetNoMagnet(fNoMagnet);
+       else  fNoMagnet = false;
+      fFitterFCN->SetNoMagnet(fNoMagnet);
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsOut, parsOutErr;
 //       fFitterFCN->SetDebugOn(fDebugIsOn);

@@ -44,7 +44,7 @@ namespace emph {
       fInterchangeStXandWStation6(false), fInterchangeStYandWStation6(false), 
       fChiSqCut(5.0), fChiSqCutPreArb(DBL_MAX),// for XYU (or XYW) cut. 
       fXWindowWidth(40.), fYWindowWidth(40.0), fXWindowCenter(0.), fYWindowCenter(0.),
-      fPrelimMomentum(5.0),
+      fPrelimMomentum(5.0), fXCoeffAlignUncert(0.05), fYCoeffAlignUncert(0.025),
       fTokenJob("undef"), fStPoints(), fFOutSt(nullptr), fFOutStYFirst(nullptr), fFOutStYLast(nullptr), 
       fClUsages(), fNxCls(0), fNyCls(0), fNuCls(0), fInViewOverlapCut(30.) {
       // Overlap cut A bit oversized.. Need to study this a bit later, for multiple track or noise...

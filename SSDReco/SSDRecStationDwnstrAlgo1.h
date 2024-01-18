@@ -57,6 +57,9 @@ namespace emph {
 	  double fChiSqCut, fChiSqCutPreArb;
 	  mutable double fXWindowWidth, fYWindowWidth, fXWindowCenter, fYWindowCenter;
 	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
+	  double fXCoeffAlignUncert, fYCoeffAlignUncert; // to study systematic uncertainty, to be transfered to the conversion, measurement to position 
+	  // with uncertainty 
+
 	  std::string fTokenJob;
 	  //
           std::vector<rb::SSDStationPtAlgo1> fStPoints; // the stuff this routine produces. 
@@ -86,6 +89,11 @@ namespace emph {
 	 inline void SetPreliminaryMomentum(double p) { fPrelimMomentum = p; } 
 	 inline void SetTokenJob(const std::string &aT) { fTokenJob = aT; }
 	 inline void Clear() { fStPoints.clear(); }
+	 inline void SetCoeffsAlignUncert(double x, double y) {
+//	    std::cerr << " ... SSDRecStationDwnstrAlgo1::SetCoeffsAlignUncert, x " << x << " y " << y << " for station " << fStationNum << std::endl;
+	    fXCoeffAlignUncert = x;  fYCoeffAlignUncert = y; 
+	    fCoordConvert.SetCoeffsAlignUncert(x, y);
+	 }
 	 bool HasUniqueYW(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) const; 
 	    // Only relevant for Phase1b, station 4, where we had 3 dead readout chip (3*128 missing channel in the X view.. 
 	 //

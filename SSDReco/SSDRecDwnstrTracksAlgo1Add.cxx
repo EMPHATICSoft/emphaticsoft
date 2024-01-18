@@ -222,6 +222,11 @@ namespace emph {
     
    bool SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore(const std::vector<myItStPt> &dataIn,   double pStartTmp) {
    
+      if (fEvtNum > 0) {
+        if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, skip this for, not commissioned yet.. " << std::endl;
+	return false;
+      }
+   
       bool isOKMult  = ((fInputSt2Pts.Size() == 1) && (fInputSt3Pts.Size() == 1) && (fInputSt4Pts.Size() < 5 ) 
 			    && ((fInputSt5Pts.Size() == 1) || fInputSt5Pts.Size() < 3 )  
 			    && ((fInputSt6Pts.Size() == 1) || fInputSt6Pts.Size() < 3 ));  //  NoTgt31Gev_ClSept_A2e_6a   
