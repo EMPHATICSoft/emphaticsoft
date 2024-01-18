@@ -106,3 +106,4 @@ export LIBGL_ALWAYS_INDIRECT=1
 # Additional setup
 setup ninja
 setup art_cpp_db_interfaces v1_4_0
+setup gdb v12_1
