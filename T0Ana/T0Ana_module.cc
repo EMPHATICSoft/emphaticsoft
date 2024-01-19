@@ -64,6 +64,7 @@ namespace emph {
     static const int n_ch_trig = 1; // Number of channels of Trigger
     static const int n_ch_gc = 3; // Number of channels of GCkov
     static const int n_ch_bac = 6; // Number of channels of BACkov
+    static const int n_ch_lg = 9; // Number of channels of lg
 
     static const int n_seg_t0 = 10; // Number of segments of T0
     static const int n_ch_det_t0 = 20; // Number of leading channels for T0
@@ -171,7 +172,8 @@ namespace emph {
 		     art::Handle< std::vector<rawdata::TRB3RawDigit> > &); // RPCtrb3
     void FillTreeADC(art::Handle< std::vector<rawdata::WaveForm> > &, // TRIGwvfm
 		     art::Handle< std::vector<rawdata::WaveForm> > &, // GCwvfm
-		     art::Handle< std::vector<rawdata::WaveForm> > &); // BACwvfm
+		     art::Handle< std::vector<rawdata::WaveForm> > &, // BACwvfm
+		     art::Handle< std::vector<rawdata::WaveForm> > &); // LGwvfm
     void FillTreeSSD(art::Handle< std::vector<rawdata::SSDRawDigit> > &); //SSD raw data
 
     void GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
@@ -210,14 +212,17 @@ namespace emph {
     TTree *tree;
     double TRIG_t; // Pulse time of Trigger signal
     double TRIG_hgt; // Pulse height of Trigger signal
+    double TRIG_base; // Baseline of Trigger signal
     double TRIG_blw; // Baseline width of Trigger signal
 
     std::array<double, n_ch_gc> GC_t; // Pulse time of GasCkov signals
     std::array<double, n_ch_gc> GC_hgt; // Pulse height of GasCkov signals
+    std::array<double, n_ch_gc> GC_base; // Baseline of GasCkov signals
     std::array<double, n_ch_gc> GC_blw; // Baseline width of GasCkov signals
 
     std::array<double, n_ch_bac> BAC_t; // Pulse time of BACkov signals
     std::array<double, n_ch_bac> BAC_hgt; // Pulse height of BACkov signals
+    std::array<double, n_ch_bac> BAC_base; // Baseline of BACkov signals
     std::array<double, n_ch_bac> BAC_blw; // Baseline width of BACkov signals
 
     std::array<int,    n_seg_t0>  T0_seg;  // Segment of T0
@@ -243,8 +248,10 @@ namespace emph {
     std::array<double, n_seg_t0> ADC_bot_t; // Pulse time of bottom signals
     std::array<double, n_seg_t0> ADC_top_hgt; // Pulse height of top signals
     std::array<double, n_seg_t0> ADC_bot_hgt; // Pulse height of bottom signals
-    std::array<double, n_seg_t0> ADC_top_blw; // Baseline of top signals
-    std::array<double, n_seg_t0> ADC_bot_blw; // Baseline of bottom signals
+    std::array<double, n_seg_t0> ADC_top_base; // Baseline of top signals
+    std::array<double, n_seg_t0> ADC_bot_base; // Baseline of bottom signals
+    std::array<double, n_seg_t0> ADC_top_blw; // Baseline width of top signals
+    std::array<double, n_seg_t0> ADC_bot_blw; // Baseline width of bottom signals
 
     std::array<int,    n_seg_rpc> RPC_seg; // Segment of RPC
     double RPC_trg_t; // Time of triger signals for T0 TDC
@@ -267,6 +274,11 @@ namespace emph {
     std::vector<double> SSD_ch;
     std::vector<double> SSD_t;
     std::vector<double> SSD_adc;
+
+    std::array<double, n_ch_bac> LG_t; // Pulse time of LGCalo signals
+    std::array<double, n_ch_bac> LG_hgt; // Pulse height of LGCalo signals
+    std::array<double, n_ch_bac> LG_base; // Baseline of LGCalo signals
+    std::array<double, n_ch_bac> LG_blw; // Baseline width of LGCalo signals
 
   };
 
@@ -361,16 +373,19 @@ namespace emph {
     // Branchse for Trigger
     tree->Branch("TRIG_t", &TRIG_t);
     tree->Branch("TRIG_hgt", &TRIG_hgt);
+    tree->Branch("TRIG_base", &TRIG_base);
     tree->Branch("TRIG_blw", &TRIG_blw);
 
     // Branchse for GasCkov
     tree->Branch("GC_t", &GC_t);
     tree->Branch("GC_hgt", &GC_hgt);
+    tree->Branch("GC_base", &GC_base);
     tree->Branch("GC_blw", &GC_blw);
 
     // Branchse for BACkov
     tree->Branch("BAC_t", &BAC_t);
     tree->Branch("BAC_hgt", &BAC_hgt);
+    tree->Branch("BAC_base", &BAC_base);
     tree->Branch("BAC_blw", &BAC_blw);
 
     // Branchse for T0
@@ -390,10 +405,12 @@ namespace emph {
     tree->Branch("ADC_top_ts", &ADC_top_ts);
     tree->Branch("ADC_top_t", &ADC_top_t);
     tree->Branch("ADC_top_hgt", &ADC_top_hgt);
+    tree->Branch("ADC_top_base", &ADC_top_base);
     tree->Branch("ADC_top_blw", &ADC_top_blw);
     tree->Branch("ADC_bot_ts", &ADC_bot_ts);
     tree->Branch("ADC_bot_t", &ADC_bot_t);
     tree->Branch("ADC_bot_hgt", &ADC_bot_hgt);
+    tree->Branch("ADC_bot_base", &ADC_bot_base);
     tree->Branch("ADC_bot_blw", &ADC_bot_blw);
 
     // Branches for RPC
@@ -415,6 +432,12 @@ namespace emph {
     tree->Branch("SSD_ch", &SSD_ch);
     tree->Branch("SSD_t", &SSD_t);
     tree->Branch("SSD_adc", &SSD_adc);
+
+    // Branchse for LGCalo
+    tree->Branch("LG_t", &LG_t);
+    tree->Branch("LG_hgt", &LG_hgt);
+    tree->Branch("LG_base", &LG_base);
+    tree->Branch("LG_blw", &LG_blw);
 
     // Branches for TDC fine parameters
     tree->Branch("TDC_top_lead_fine",  &TDC_top_lead_fine);
@@ -770,6 +793,8 @@ namespace emph {
       ADC_bot_t[i] = -9999.0;
       ADC_top_hgt[i] = -9999.0;
       ADC_bot_hgt[i] = -9999.0;
+      ADC_top_base[i] = -9999.0;
+      ADC_bot_base[i] = -9999.0;
       ADC_top_blw[i] = -1.0;
       ADC_bot_blw[i] = -1.0;
     }//for(i:n_seg_t0)
@@ -792,11 +817,13 @@ namespace emph {
 	  ADC_bot_ts[detchan - 1] = static_cast<double>(wvfm.FragmentTime());
 	  ADC_bot_t[detchan - 1] = wvfm.PeakTDC();
 	  ADC_bot_hgt[detchan - 1] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADC_bot_base[detchan - 1] = wvfm.Baseline();
 	  ADC_bot_blw[detchan - 1] = wvfm.BLWidth();
 	}else if(detchan > n_seg_t0 && detchan <= n_ch_det_t0){
 	  ADC_top_ts[detchan%(n_seg_t0 + 1)] = static_cast<double>(wvfm.FragmentTime());
 	  ADC_top_t[detchan%(n_seg_t0 + 1)] = wvfm.PeakTDC();
 	  ADC_top_hgt[detchan%(n_seg_t0 + 1)] = wvfm.Baseline()-wvfm.PeakADC();
+	  ADC_top_base[detchan%(n_seg_t0 + 1)] = wvfm.Baseline();
 	  ADC_top_blw[detchan%(n_seg_t0 + 1)] = wvfm.BLWidth();
 	}
       } // end loop over T0 ADC channels
@@ -819,11 +846,12 @@ namespace emph {
 
   //......................................................................
 
-  void T0Ana::FillTreeADC(art::Handle< std::vector<emph::rawdata::WaveForm> > & TRIGwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & GCwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & BACwvfm)
+  void T0Ana::FillTreeADC(art::Handle< std::vector<emph::rawdata::WaveForm> > & TRIGwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & GCwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & BACwvfm, art::Handle< std::vector<emph::rawdata::WaveForm> > & LGwvfm)
   {
 
     TRIG_t = -9999.0;
     TRIG_hgt = -9999.0;
+    TRIG_base = -9999.0;
     TRIG_blw = -1.0;
 
     // get ADC info for TRIG
@@ -842,6 +870,7 @@ namespace emph {
 	// int detchan = dchan.Channel();
 	TRIG_t = wvfm.PeakTDC();
 	TRIG_hgt = wvfm.Baseline()-wvfm.PeakADC();
+	TRIG_base = wvfm.Baseline();
 	TRIG_blw = wvfm.BLWidth();
       } // end loop over TRIG ADC channels
     }
@@ -849,6 +878,7 @@ namespace emph {
     for(int i = 0; i < n_ch_gc; i++){
       GC_t[i] = -9999.0;
       GC_hgt[i] = -9999.0;
+      GC_base[i] = -9999.0;
       GC_blw[i] = -1.0;
     }
 
@@ -868,6 +898,7 @@ namespace emph {
 	int detchan = dchan.Channel();
 	GC_t[detchan] = wvfm.PeakTDC();
 	GC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
+	GC_base[detchan] = wvfm.Baseline();
 	GC_blw[detchan] = wvfm.BLWidth();
       } // end loop over GCkov ADC channels
     }
@@ -875,6 +906,7 @@ namespace emph {
     for(int i = 0; i < n_ch_bac; i++){
       BAC_t[i] = -9999.0;
       BAC_hgt[i] = -9999.0;
+      BAC_base[i] = -9999.0;
       BAC_blw[i] = -1.0;
     }
 
@@ -894,8 +926,37 @@ namespace emph {
 	int detchan = dchan.Channel();
 	BAC_t[detchan] = wvfm.PeakTDC();
 	BAC_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
+	BAC_base[detchan] = wvfm.Baseline();
 	BAC_blw[detchan] = wvfm.BLWidth();
       } // end loop over BACkov ADC channels
+    }
+
+    for(int i = 0; i < n_ch_lg; i++){
+      LG_t[i] = -9999.0;
+      LG_hgt[i] = -9999.0;
+      LG_base[i] = -9999.0;
+      LG_blw[i] = -1.0;
+    }
+
+    // get ADC info for LG
+    if(!LGwvfm->empty()) {
+      emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+      emph::cmap::EChannel LGechan;
+      LGechan.SetBoardType(boardType);
+      // loop over ADC channels
+      for (size_t idx=0; idx < LGwvfm->size(); ++idx){
+	const rawdata::WaveForm& wvfm = (*LGwvfm)[idx];
+	int chan = wvfm.Channel();
+	int board = wvfm.Board();
+	LGechan.SetBoard(board);
+	LGechan.SetChannel(chan);
+	emph::cmap::DChannel dchan = cmap->DetChan(LGechan);
+	int detchan = dchan.Channel();
+	LG_t[detchan] = wvfm.PeakTDC();
+	LG_hgt[detchan] = wvfm.Baseline()-wvfm.PeakADC();
+	LG_base[detchan] = wvfm.Baseline();
+	LG_blw[detchan] = wvfm.BLWidth();
+      } // end loop over LGCalo ADC channels
     }
   }
 
@@ -916,7 +977,7 @@ namespace emph {
 	SSDechan.SetChannel(ssd.Module());
 	emph::cmap::DChannel dchan = cmap->DetChan(SSDechan);
 	int detst = dchan.Station();
-	int detch =dchan.Channel();
+	int detch = dchan.Channel();
 	SSD_st.push_back(detst);
 	SSD_ch.push_back(detch);
 	SSD_t.push_back(ssd.Time());
@@ -924,13 +985,14 @@ namespace emph {
       } // end loop over SSDRawDigit
     }
   }
+
   //......................................................................
   void T0Ana::analyze(const art::Event& evt)
   {
     ++fNEvents;
     fRun = evt.run();
     fSubrun = evt.subRun();
-    std::string labelStrTRIG, labelStrGC, labelStrBAC, labelStrT0, labelStrRPC, labelStrSSD;
+    std::string labelStrTRIG, labelStrGC, labelStrBAC, labelStrT0, labelStrRPC, labelStrSSD, labelStrLG;
 
     // get Raw Data
     int i_trig = emph::geo::Trigger;
@@ -958,6 +1020,10 @@ namespace emph {
     labelStrSSD = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i_ssd));
     art::Handle< std::vector<emph::rawdata::SSDRawDigit> > HandleSSDdigit;
 
+    int i_lg = emph::geo::LGCalo;
+    labelStrLG = "raw:" + emph::geo::DetInfo::Name(emph::geo::DetectorType(i_lg));
+    art::Handle< std::vector<emph::rawdata::WaveForm> > HandleLGwvfm;
+
     try {
       evt.getByLabel(labelStrTRIG, HandleTRIGwvfm);
       evt.getByLabel(labelStrGC, HandleGCwvfm);
@@ -966,10 +1032,11 @@ namespace emph {
       evt.getByLabel(labelStrT0, HandleT0trb3);
       evt.getByLabel(labelStrRPC, HandleRPCtrb3);
       evt.getByLabel(labelStrSSD, HandleSSDdigit);
+      evt.getByLabel(labelStrLG, HandleLGwvfm);
 
       if (!HandleT0trb3->empty()) {
 	FillTreeTOF(HandleT0wvfm, HandleT0trb3, HandleRPCtrb3);
-	FillTreeADC(HandleTRIGwvfm, HandleGCwvfm, HandleBACwvfm);
+	FillTreeADC(HandleTRIGwvfm, HandleGCwvfm, HandleBACwvfm, HandleLGwvfm);
 	FillTreeSSD(HandleSSDdigit);
       }
 
