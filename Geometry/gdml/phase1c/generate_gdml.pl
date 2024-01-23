@@ -448,29 +448,30 @@ EOF
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
+	 <quantity name="RPC_volume_thick" value="200" unit="mm" />
 	 <quantity name="RPC0_shift" value="3953.38" unit="mm" />
 	 <quantity name="RPC1_shift" value="4050.39" unit="mm" />
+	 <quantity name="RPC_shift" value="4028.89" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
-
 	 <quantity name="RPC_PCB_thick" value="1" unit="mm" />
 	 <quantity name="RPC_acrylic_thick" value="1" unit="mm" />
 	 <quantity name="RPC_gas_width" value="960.5" unit="mm" />
 	 <quantity name="RPC_gas_height" value="250.5" unit="mm" />
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
+	 <position name="RPC_pos" z="RPC_shift" unit="mm" />
 EOF
 		for($i = 0; $i < $n_RPC; ++$i){
 			print DEF <<EOF;
-	 <position name="RPC@{[ $i ]}_pos" z="RPC@{[ $i ]}_shift+0.5*RPC_thick"/>
+	 <position name="RPC@{[ $i ]}_pos" z="RPC@{[ $i ]}_shift+0.5*RPC_thick-RPC_shift"/>
 EOF
-		}
-
-		for($i = 0; $i < $n_cover; ++$i){
-			print DEF <<EOF;
-	 <position name="RPC_Al@{[ $i ]}_pos" z="RPC_thick*($i-($n_cover-1)*0.5)"/>
+			for($j = 0; $j < $n_cover; ++$j){
+				print DEF <<EOF;
+	 <position name="RPC@{[ $i ]}_Al@{[ $j ]}_pos" z="RPC_thick*($j-($n_cover-1)*0.5)+RPC@{[ $i ]}_shift+0.5*RPC_thick-RPC_shift"/>
 EOF
+			}
 		}
 		print DEF <<EOF;
 
@@ -770,7 +771,7 @@ EOF
 
 	 <!-- BELOW IS FOR RPC -->
 
-	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_thick"/>
+	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_volume_thick"/>
 
 	 <box name="RPC_Al_box" x="RPC_width" y="RPC_height" z="RPC_Al_thick"/>
 	 <box name="RPC_comb_box" x="RPC_width" y="RPC_height" z="RPC_comb_thick"/>
@@ -1289,13 +1290,15 @@ EOF
 	 <materialref ref="Air"/>
 	 <solidref ref="RPC_box"/>
 EOF
-		for($i = 0; $i < $n_cover; ++$i){
-			print DET <<EOF;
-	 <physvol name="RPC_Al@{[ $i ]}_phys">
+		for($i = 0; $i < $n_RPC; ++$i){
+			for($j = 0; $j < $n_cover; ++$j){
+				print DET <<EOF;
+	 <physvol name="RPC@{[ $i ]}_Al@{[ $j ]}_phys">
 		<volumeref ref="RPC_Al_vol"/>
-		<positionref ref="RPC_Al@{[ $i ]}_pos"/>
+		<positionref ref="RPC@{[ $i ]}_Al@{[ $j ]}_pos"/>
 	 </physvol>
 EOF
+			}
 		}
 		print DET <<EOF;
   </volume>
@@ -1464,17 +1467,11 @@ EOF
 
   <!-- BELOW IS FOR RPC -->
 
-EOF
-		for($i = 0; $i < $n_RPC; ++$i){
-			print WORLD <<EOF;
-
-  <physvol name="RPC@{[ $i ]}_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC@{[ $i ]}_pos"/>
+	 <positionref ref="RPC_pos"/>
   </physvol>
-EOF
-		}
-		print WORLD <<EOF;
+
   <!-- ABOVE IS FOR RPC -->
 
 EOF

@@ -1524,22 +1524,26 @@
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
+	 <quantity name="RPC_volume_thick" value="200" unit="mm" />
 	 <quantity name="RPC0_shift" value="3953.38" unit="mm" />
 	 <quantity name="RPC1_shift" value="4050.39" unit="mm" />
+	 <quantity name="RPC_shift" value="4028.89" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
-
 	 <quantity name="RPC_PCB_thick" value="1" unit="mm" />
 	 <quantity name="RPC_acrylic_thick" value="1" unit="mm" />
 	 <quantity name="RPC_gas_width" value="960.5" unit="mm" />
 	 <quantity name="RPC_gas_height" value="250.5" unit="mm" />
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
-	 <position name="RPC0_pos" z="RPC0_shift+0.5*RPC_thick"/>
-	 <position name="RPC1_pos" z="RPC1_shift+0.5*RPC_thick"/>
-	 <position name="RPC_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)"/>
-	 <position name="RPC_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)"/>
+	 <position name="RPC_pos" z="RPC_shift" unit="mm" />
+	 <position name="RPC0_pos" z="RPC0_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC0_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)+RPC0_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC0_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)+RPC0_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC1_pos" z="RPC1_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC1_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)+RPC1_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC1_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)+RPC1_shift+0.5*RPC_thick-RPC_shift"/>
 
 	 <!-- ABOVE IS FOR RPC -->
 
@@ -2773,7 +2777,7 @@ values="202.14067278287462 12.054573032169143
 
 	 <!-- BELOW IS FOR RPC -->
 
-	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_thick"/>
+	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_volume_thick"/>
 
 	 <box name="RPC_Al_box" x="RPC_width" y="RPC_height" z="RPC_Al_thick"/>
 	 <box name="RPC_comb_box" x="RPC_width" y="RPC_height" z="RPC_comb_thick"/>
@@ -80253,13 +80257,21 @@ values="202.14067278287462 12.054573032169143
   <volume name="RPC_vol">
 	 <materialref ref="Air"/>
 	 <solidref ref="RPC_box"/>
-	 <physvol name="RPC_Al0_phys">
+	 <physvol name="RPC0_Al0_phys">
 		<volumeref ref="RPC_Al_vol"/>
-		<positionref ref="RPC_Al0_pos"/>
+		<positionref ref="RPC0_Al0_pos"/>
 	 </physvol>
-	 <physvol name="RPC_Al1_phys">
+	 <physvol name="RPC0_Al1_phys">
 		<volumeref ref="RPC_Al_vol"/>
-		<positionref ref="RPC_Al1_pos"/>
+		<positionref ref="RPC0_Al1_pos"/>
+	 </physvol>
+	 <physvol name="RPC1_Al0_phys">
+		<volumeref ref="RPC_Al_vol"/>
+		<positionref ref="RPC1_Al0_pos"/>
+	 </physvol>
+	 <physvol name="RPC1_Al1_phys">
+		<volumeref ref="RPC_Al_vol"/>
+		<positionref ref="RPC1_Al1_pos"/>
 	 </physvol>
   </volume>
 
@@ -80414,16 +80426,11 @@ values="202.14067278287462 12.054573032169143
 
   <!-- BELOW IS FOR RPC -->
 
-
-  <physvol name="RPC0_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC0_pos"/>
+	 <positionref ref="RPC_pos"/>
   </physvol>
 
-  <physvol name="RPC1_phys">
-	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC1_pos"/>
-  </physvol>
   <!-- ABOVE IS FOR RPC -->
 
 
