@@ -263,10 +263,11 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 
 	    // find line segment for each cluster
 	    // check first for reasonable cluster (hack for now, need better checks earlier on)
+	    rb::LineSegment lineseg_tmp = rb::LineSegment();
 	    if (clusters[i].AvgStrip() > 640){
 	      std::cout<<"Skipping nonsense"<<std::endl;
+	      linesegv->push_back(lineseg_tmp);
 	      continue; }
-	    rb::LineSegment lineseg_tmp = rb::LineSegment();
 	    if (dgm->Map()->SSDClusterToLineSegment(clusters[i], lineseg_tmp))
 	      linesegv->push_back(lineseg_tmp);
 	    else
