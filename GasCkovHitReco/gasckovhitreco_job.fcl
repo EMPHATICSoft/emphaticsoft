@@ -1,7 +1,6 @@
+#include "Services.fcl"
 #include "GasCkovHitReco.fcl"
 
-#include "ChannelMap.fcl"
-#include "RunHistory.fcl"
 #include "SpillInfo.fcl"
 #include "ADCReco.fcl"
 
@@ -10,8 +9,7 @@ process_name: GasCkovHitReco
 services:
 {
   TFileService: { fileName: "gasckovhitreco_hist_r%r_s%04s.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
+  @table::standard_services
   IFBeam:{}
 }
 

@@ -2,8 +2,8 @@
 // \file     TrackFiller.h
 // \note    Class to fill CAF  Track info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  TrackFILLER_H
-#define  TrackFILLER_H
+#ifndef  TRACKFILLER_H
+#define  TRACKFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif //  TrackFILLER_H
+#endif //  TRACKFILLER_H

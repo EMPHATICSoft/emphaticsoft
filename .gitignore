@@ -3,5 +3,6 @@ auto
 .*
 *.png
 *.pdf
+\#*
 
 docs/Doxyout/

@@ -5,19 +5,27 @@ standard_cafmaker:{
     module_type:   CAFMaker
     CAFFilename:   "" # Provide a string to override the automatic filename
     FileExtension: ".caf.root"
-    ARingLabel:    "arichreco"
-    SSDRawLabel:  "raw:SSD"
-    SSDClustLabel: "clust"
-    BACkovHitLabel: "backovreco"
-    GasCkovHitLabel: "gasckovreco"
-    GetMCTruth:    true //use for creating MC CAF's
-//    GetMCTruth:    false //use for creating data CAF's
-    GetMCHits:     true
-    SSDHitLabel: "geantgen" //dah
-    SpacePointLabel: "makesingletracks"
-    TrackSegmentLabel: "makesingletracks"
-    TrackLabel: "makesingletracks"
 
+    ARingLabel:        "arichreco"
+    BACkovHitLabel:    "backovreco"
+    DataQualLabel:     "dataqual"
+    GasCkovHitLabel:   "gasckovreco"
+    SpacePointLabel:   "makesingletracks"
+    SSDClustLabel:     "ssdclusts"
+    SSDHitLabel:       "geantgen" #dah
+    SSDRawLabel:       "raw:SSD"
+    TrackLabel:        "makesingletracks"
+    TrackSegmentLabel: "makesingletracks"
+
+    GetMCTruth:    true #use for creating MC CAF's
+#    GetMCTruth:    false #use for creating data CAF's
+    GetMCHits:     true
+
+    SSDOnly:       false # only fill Header, DataQuality, and SSD information
 }
+
+ssdonly_cafmaker: @local::standard_cafmaker
+ssdonly_cafmaker.FileExtension: ".ssdonly-caf.root"
+ssdonly_cafmaker.SSDOnly:       true
 
 END_PROLOG

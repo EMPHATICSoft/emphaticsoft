@@ -1,14 +1,12 @@
+#include "Services.fcl"
 #include "ReadoutWaveform.fcl"
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
 
 process_name: ReadoutWaveform
 
 services:
 {
   TFileService: { fileName: "V1720boards_r%r_s%04s.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
+  @table::standard_services
 }
 
 source:

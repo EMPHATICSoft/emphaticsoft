@@ -3,7 +3,7 @@
 // \note    Class to fill CAF GasCkov info
 ////////////////////////////////////////////////////////////////////////
 #ifndef GASCKOVFILLER_H
-#define GasCkovFILLER_H
+#define GASCKOVFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif // GasCkovFILLER_H
+#endif // GASCKOVFILLER_H

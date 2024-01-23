@@ -47,7 +47,7 @@ namespace emph {
       // Required functions.
       void produce(art::Event& evt) override;
 
-      void endSubRun(art::SubRun& sr);
+      void beginSubRun(art::SubRun& sr);
 
     private:
       SpillQuality::spillState CheckGoodRunsList(int run, int subrun);
@@ -72,7 +72,7 @@ namespace emph {
     }
 
     //.......................................................................
-    void FillDataQuality::endSubRun(art::SubRun& sr)
+    void FillDataQuality::beginSubRun(art::SubRun& sr)
     {
       std::unique_ptr<dq::SpillQuality> spillqual(new dq::SpillQuality);
       // call function to check good runs list here.
