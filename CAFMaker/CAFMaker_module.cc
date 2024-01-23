@@ -42,15 +42,17 @@
 #include "ifdh_art/IFDHService/IFDH_service.h"
 
 // emphaticsoft includes
-#include "RawData/SSDRawDigit.h"
-#include "RecoBase/ARing.h"
-#include "RecoBase/SSDCluster.h"
-#include "RecoBase/BACkovHit.h"
-#include "RecoBase/GasCkovHit.h"
-#include "Simulation/SSDHit.h"
 #include "ChannelMap/service/ChannelMapService.h"
+#include "DataQuality/EventQuality.h"
+#include "DataQuality/SpillQuality.h"
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
+#include "RawData/SSDRawDigit.h"
+#include "RecoBase/ARing.h"
+#include "RecoBase/BACkovHit.h"
+#include "RecoBase/GasCkovHit.h"
+#include "RecoBase/SSDCluster.h"
+#include "Simulation/SSDHit.h"
 
 // StandardRecord
 #include "StandardRecord/StandardRecord.h"
@@ -58,14 +60,15 @@
 // CAF filler includes
 #include "CAFMaker/HeaderFiller.h"
 #include "CAFMaker/ARICHFiller.h"
-#include "CAFMaker/SSDHitsFiller.h"
-#include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/BACkovFiller.h"
+#include "CAFMaker/EventQualFiller.h"
 #include "CAFMaker/GasCkovFiller.h"
-#include "CAFMaker/SRTruthFiller.h"
 #include "CAFMaker/SpacePointFiller.h"
-#include "CAFMaker/TrackSegmentFiller.h"
+#include "CAFMaker/ClusterFiller.h"
+#include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/TrackFiller.h"
+#include "CAFMaker/TrackSegmentFiller.h"
+#include "CAFMaker/SRTruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -132,7 +135,8 @@ namespace caf {
       char *temp = new char[fb.fileName().size() + 1];
       std::strcpy(temp, fb.fileName().c_str());
       fCAFFilename = basename(temp);
-      const size_t dotpos = fCAFFilename.find('.');
+      // Expects filename to end with .XXXX e.g., '.root'
+      const size_t dotpos = fCAFFilename.find_last_of('.',fCAFFilename.length()-6);
       assert(dotpos != std::string::npos);  // Must have a dot, surely?
       fCAFFilename.resize(dotpos);
       fCAFFilename += fParams.FileExtension();
@@ -184,6 +188,7 @@ namespace caf {
 
   void CAFMaker::beginSubRun(art::SubRun& sr) noexcept {
     HeaderFiller hf;
+    hf.fDQLabel = fParams.DataQualLabel();
     hf.Fill(sr, fHeader);
   }
 
@@ -208,11 +213,38 @@ namespace caf {
     // TML: Why are we printing this out for every single event?
     //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
-    // Get ARing info from ARichReco
-    ARICHFiller arichf;
-    arichf.fLabel = fParams.ARingLabel();
-    arichf.Fill(evt,rec);
+    if (!fParams.SSDOnly()) {
+      // Get ARing info from ARichReco
+      ARICHFiller arichf;
+      arichf.fLabel = fParams.ARingLabel();
+      arichf.Fill(evt,rec);
     
+      // Get BACkov info from BACovHitReco
+      BACkovFiller backovf; 
+      backovf.fLabel = fParams.BACkovHitLabel();
+      backovf.Fill(evt,rec);
+
+      // Get GasCkov info from GasCovHitReco
+      GasCkovFiller gasckovf; 
+      gasckovf.fLabel = fParams.GasCkovHitLabel();
+      gasckovf.Fill(evt,rec);
+
+      // Get SpacePoints
+      SpacePointFiller spcptf;
+      spcptf.fLabel = fParams.SpacePointLabel();
+      spcptf.Fill(evt,rec);
+
+      // Get TrackSegments
+      TrackSegmentFiller trksegf;
+      trksegf.fLabel = fParams.TrackSegmentLabel();
+      trksegf.Fill(evt,rec);
+
+      // Get Tracks
+      TrackFiller trkf;
+      trkf.fLabel = fParams.TrackLabel();
+      trkf.Fill(evt,rec);
+    }
+
     // Get SRTruth  
     if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
@@ -222,41 +254,20 @@ namespace caf {
       srtruthf.Fill(evt,rec);
     } // end if statement
     
+    // Get EventQuality info from DataQual
+    EventQualFiller evtqualf; 
+    evtqualf.fLabel = fParams.DataQualLabel();
+    evtqualf.Fill(evt,rec);
+    
     // Get SSDClust info from SSDReco
     ClusterFiller clustf; ///arich -> cluster
     clustf.fLabel = fParams.SSDClustLabel();
     clustf.Fill(evt,rec);
-
-    // Get BACkov info from BACovHitReco
-    BACkovFiller backovf; 
-    backovf.fLabel = fParams.BACkovHitLabel();
-    backovf.Fill(evt,rec);
-
-    // Get GasCkov info from GasCovHitReco
-    GasCkovFiller gasckovf; 
-    gasckovf.fLabel = fParams.GasCkovHitLabel();
-    gasckovf.Fill(evt,rec);
-
     
     // Get SSDHits from RawDigits
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-
-    // Get SpacePoints
-    SpacePointFiller spcptf;
-    spcptf.fLabel = fParams.SpacePointLabel();
-    spcptf.Fill(evt,rec);
-
-    // Get TrackSegments
-    TrackSegmentFiller trksegf;
-    trksegf.fLabel = fParams.TrackSegmentLabel();
-    trksegf.Fill(evt,rec);
-
-    // Get Tracks
-    TrackFiller trkf;
-    trkf.fLabel = fParams.TrackLabel();
-    trkf.Fill(evt,rec);
 
     fRecTree->Fill();
     srcol->push_back(rec);

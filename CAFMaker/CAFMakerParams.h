@@ -26,16 +26,18 @@ namespace caf
 
     Atom<string> FileExtension     {Name("FileExtension")};
     Atom<string> ARingLabel        {Name("ARingLabel")};
+    Atom<string> BACkovHitLabel    {Name("BACkovHitLabel")};
+    Atom<string> DataQualLabel     {Name("DataQualLabel")};
+    Atom<string> GasCkovHitLabel   {Name("GasCkovHitLabel")};
+    Atom<string> SpacePointLabel   {Name("SpacePointLabel")}; 
+    Atom<string> SSDClustLabel     {Name("SSDClustLabel")};
+    Atom<string> SSDHitLabel       {Name("SSDHitLabel")}; 
+    Atom<string> SSDRawLabel       {Name("SSDRawLabel")};
+    Atom<string> TrackLabel        {Name("TrackLabel")}; 
+    Atom<string> TrackSegmentLabel {Name("TrackSegmentLabel")};
     Atom<bool>   GetMCTruth        {Name("GetMCTruth")};
     Atom<bool>   GetMCHits         {Name("GetMCHits")};
-    Atom<string> SSDRawLabel       {Name("SSDRawLabel")};
-    Atom<string> SSDClustLabel     {Name("SSDClustLabel")};
-    Atom<string> BACkovHitLabel    {Name("BACkovHitLabel")};
-    Atom<string> GasCkovHitLabel {Name("GasCkovHitLabel")};
-    Atom<string> SSDHitLabel       {Name("SSDHitLabel")}; 
-    Atom<string> SpacePointLabel   {Name("SpacePointLabel")}; 
-    Atom<string> TrackSegmentLabel {Name("TrackSegmentLabel")};
-    Atom<string> TrackLabel        {Name("TrackLabel")}; 
+    Atom<bool>   SSDOnly           {Name("SSDOnly")};
 
   }; // end struct
 } // end namespace

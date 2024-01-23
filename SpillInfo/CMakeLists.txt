@@ -4,6 +4,8 @@ cet_build_plugin(SpillInfo art::module
   art::Framework_Principal
   art::Framework_Services_Registry
   art::Persistency_Common
+  RunHistory
+  RunHistoryService_service
   RecoBase
   ifbeam::ifbeam
   ifdh_art::IFBeam_service

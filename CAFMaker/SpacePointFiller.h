@@ -2,8 +2,8 @@
 // \file     SpacePointFiller.h
 // \note    Class to fill CAF  SpacePoint info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  SpacePointFILLER_H
-#define  SpacePointFILLER_H
+#ifndef  SPACEPOINTFILLER_H
+#define  SPACEPOINTFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif //  SpacePointFILLER_H
+#endif //  SPACEPOINTFILLER_H
