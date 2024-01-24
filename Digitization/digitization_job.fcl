@@ -20,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "%ifb_dig.root"
+   fileName:    "%ifb.dig.root"
    fastCloning: false
    
   }
