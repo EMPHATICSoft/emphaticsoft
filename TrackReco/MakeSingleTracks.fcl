@@ -4,6 +4,8 @@ standard_makesingletracks:
 {
   module_type: MakeSingleTracks
   CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
+  #SSDRawLabel: "raw:SSD"
+  ClusterLabel: "ssdclusts"
 }
 
 END_PROLOG

@@ -98,6 +98,7 @@ namespace emph {
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
+    std::string fClusterLabel;
 
     //histograms and graphs for hits
     TH2F* hSPDist0;
@@ -126,7 +127,8 @@ namespace emph {
   
   emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-    fCheckClusters     (pset.get< bool >("CheckClusters")) 
+    fCheckClusters     (pset.get< bool >("CheckClusters")), 
+    fClusterLabel (pset.get< std::string >("ClusterLabel"))
     {
       this->produces< std::vector<rb::SpacePoint> >();
       this->produces< std::vector<rb::TrackSegment> >();
@@ -441,7 +443,7 @@ namespace emph {
 	}
       }
 
-      std::string fClusterLabel = "clust";
+      //std::string fClusterLabel = "clust";
       art::Handle< std::vector<rb::SSDCluster> > clustH;
 
       std::string fG4Label = "geantgen";
