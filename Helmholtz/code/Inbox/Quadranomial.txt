@@ -1,0 +1,196 @@
+      PROGRAM BIASERR
+C     To calculate the error on the bias introduced in the tau to lepton
+C     branching ratio, using quadranomial statistics.
+C
+C     The inputs are : TT - number of MC taus to start with
+C                      DT - number of MC taus after selection criteria
+C                      TL - number of MC taus that have leptonic decay
+C                      DL - number of selected taus with leptonic decay
+C
+C                               TL/TT
+C     The correction factor is  -----, and the error is from the 
+C                               DL/DT
+C
+C     quadronomial distribution 
+C
+C                       (Na+Nb+Nc+Nd)!
+C     P(Na,Nb,Nc,Nd) = --------------- (Ta**Na)(Tb**Nb)(Tc**Nc)(Td**Nd)
+C                      Na! Nb! Nc! Nd!
+C
+C     Where the probabilities Ta + Tb + Tc + Td = 1.0
+C
+C     There are 3 degrees of freedom, which are Na = DL, Nb = TL-DL,
+C     and Nc = DT-DL.  This code has the chi-squared function in it
+C     [REAL FUNCTION CHISQ(ETA)] and finds the place wehere it rises
+C     min(CHISQ) + 3.67, that being the 70% CL for 3 D.O.F., and 70%
+C     being close to a 1 sigma on a gaussian.  ETA is a 3-d array;
+C     the chi-squared comes from the inverse of the covariance matrix
+C
+C             +--                                    --+
+C             |  Ta - Ta**2     -TaTb        -TaTc     |
+C             |                                        |
+C             |    -TaTb      Tb - Tb**2     -TbTc     |
+C             |                                        |
+C             |    -TaTc        -TbTc      Tc - Tc**2  |
+C             +--                                    --+
+C
+C     Finally, the error is found on the correction factor by simple
+C     propagation of uncorrollated errors (the factor is re-written
+C     first to be a function of Na, Nb, and Nc.
+C
+C
+      INTEGER I, J, K1, K2
+      INTEGER TT, DT, TL, DL, IERR
+      REAL T(3), POS(3), NEG(3), ETA(3)
+      REAL COV(3,3), N(3)
+      COMMON /RAMA/ COV, TT, N
+      REAL TOTERR, ERR, CHISQ, DF, QUADD
+      LOGICAL FIRST
+      COMMON /FOIST/ FIRST
+
+
+      DO WHILE (.TRUE.)
+          FIRST = .TRUE.
+          CALL GETINT('number of MC taus to start with',TT,TT)
+          CALL GETINT('number that passed selection',   DT,DT)
+          CALL GETINT('number of MC taus to lepton',    TL,TL)
+          CALL GETINT('number that passed selection',   DL,DL)
+          TOTERR = 0.0
+
+C         Convert into 3 independent quantities
+          N(1) = DL
+          N(2) = TL - DL 
+          N(3) = DT - DL
+
+C         Use these observations to estimate the probabilities of the
+C         mulitinomial distribution.
+          T(1) = N(1)/FLOAT(TT)
+          T(2) = N(2)/FLOAT(TT)
+          T(3) = N(3)/FLOAT(TT)
+
+C         Compute the covariance matrix
+          DO I = 1, 3
+              DO J = 1, 3
+                  IF (I.EQ.J) THEN
+                      COV(I,I) =   T(I) * (1.0-T(I)) * TT
+                  ELSE
+                      COV(I,J) = - T(I) * T(J) * TT
+                  ENDIF
+              ENDDO
+          ENDDO
+
+C         Invert it via CERNLIB
+          K1 = 3
+          K2 = 3
+          CALL RSINV(K1,COV,K2,IERR)
+          IF (IERR.LT.0) THEN
+              PRINT *, ' COVARIANCE MATRIX NOT INVERTIBLE'
+              STOP
+          ENDIF
+C         Scan in ETA(I) to find points where CHISQ reaches 3.67
+C         that being the chisq for 3 DOF which has a 70% C.L., and
+C         the 70% C.L. being pretty close to a one-sigma level.
+          DO I = 1, 3
+              DO J = 1, 3
+                  ETA(J) = N(J)
+              ENDDO
+
+   10         IF (CHISQ(ETA).GT.3.67) THEN
+                  PRINT *,'POSITIVE LIMIT FOR N(',I,'):'
+                  PRINT *,ETA(I)
+                  POS(I) = ETA(I)
+              ELSE
+                  ETA(I) = ETA(I) + N(I)/10.0**5
+                  IF (ETA(I)-N(I).GT. N(I)) THEN
+                      PRINT *,' NO POSITVE LIMIT FOUND FOR N(',I,')'
+                      STOP
+                  ENDIF
+                  GOTO 10
+              ENDIF
+
+              ETA(I) = N(I)
+   20         IF (CHISQ(ETA).GT.3.67) THEN
+                  PRINT *,'NEGATIVE LIMIT FOR N(',I,'):'
+                  PRINT *,ETA(I)
+                  NEG(I) = ETA(I)
+              ELSE
+                  ETA(I) = ETA(I) - N(I)/10.0**5
+                  IF (N(I)-ETA(I).GT. N(I)) THEN
+                      PRINT *,' NO NEGATVE LIMIT FOUND FOR N(',I,')'
+                      STOP
+                  ENDIF
+                  GOTO 20
+              ENDIF
+
+C             Blithely average positive and negative errs
+              POS(I) = (POS(I) - NEG(I))/2.0
+
+C             Figure the error for this category of the mulitinomial
+              ERR = POS(I) * DF(I)
+              PRINT *,' CONTRIBUTION TO TOTAL :', ERR
+              TOTERR = QUADD(TOTERR, ERR)
+          ENDDO
+
+          PRINT *,' '
+          PRINT *,' TOTAL ERROR :', TOTERR
+      ENDDO          
+      STOP
+      END
+
+
+C=======================================================================
+      REAL FUNCTION CHISQ(ETA)
+      REAL ETA(3)
+      INTEGER II, JJ, TT
+      REAL COV(3,3), N(3)
+      COMMON /RAMA/ COV, TT, N
+
+      CHISQ = 0.0
+      DO II = 1, 3
+          DO JJ =1, 3
+              CHISQ = (ETA(II)-N(II)) * COV(II,JJ) * (ETA(JJ)-N(JJ))
+     >                + CHISQ
+          ENDDO
+      ENDDO
+      RETURN
+      END
+
+
+C=======================================================================
+      REAL FUNCTION DF(VAR)
+C     The partial derivatives of F = with respect to N(I)
+      INTEGER VAR, TT
+      REAL COV(3,3), N(3)
+      COMMON /RAMA/ COV, TT, N
+      REAL F, A, B, C
+      LOGICAL FIRST
+      DATA FIRST /.TRUE./
+      COMMON /FOIST/ FIRST
+
+C     A little debug here: is F what you think it should be?
+      IF (FIRST) THEN
+          FIRST = .FALSE.
+          A = N(1) + N(2)
+          B = N(1) + N(3)
+          C = N(1)
+          F = (A*B)/(C*TT)
+          PRINT *,' '
+          PRINT *,' CORRECTION FACTOR: ',F
+          PRINT *,' '
+      ENDIF
+
+      A = (N(1)+N(2)) / (TT*N(1))
+      B = (N(1)+N(3)) / (TT*N(1))
+      C = (N(1)+N(2)) * (N(1)+N(3)) / (TT*N(1)*N(1))
+      IF     (VAR.EQ.1) THEN
+          DF = B + A - C
+      ELSEIF (VAR.EQ.2) THEN
+          DF = B
+      ELSEIF (VAR.EQ.3) THEN
+          DF = A
+      ELSE
+          PRINT *,' DF CONFUSED.'
+          STOP
+      ENDIF
+      RETURN
+      END
