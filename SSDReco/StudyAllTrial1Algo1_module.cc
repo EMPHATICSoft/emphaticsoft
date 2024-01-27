@@ -107,7 +107,11 @@ namespace emph {
 //
      double fChiSqCutXYUVStAlgo1;
      double fMaxUpstreamSlopeX, fMaxUpstreamSlopeY; 
-     double fMaxDistFrom120Beam; 
+     double fMaxDistFrom120Beam;
+     int fRunSel; // for debugging 
+     int fEvtSel; // for debugging 
+     int fSpillSel; 
+     int fMaxDwnstrStation; 
      int fMaxNumBeamTracks;
      int fMinNumDwnstrTracks;
      int fMaxNumDwnstrTracks;
@@ -144,7 +148,7 @@ namespace emph {
 // 
     double fMeanUpstreamXSlope, fMeanUpstreamYSlope;
      // where the SSD alignment could be considered valid. 
-     int fNumClUpstr, fNumClDwnstr, fNumBeamTracks, fNumVertices, fNumVertDwn;
+     int fNumClUpstr, fNumClDwnstr, fNumBeamTracks, fNumVertices, fNumVertDwn, fNumDwnsTrkOK;
      std::vector<int> fStationsRecMult;
 //
 // CSV tuple output..
@@ -176,8 +180,9 @@ namespace emph {
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0), 
     fSetMCRMomentum(30.), fPrelimMomentumSecondaries(5.0), fChiSqCutXYUVStAlgo1(20.), 
     fMaxUpstreamSlopeX(0.005), fMaxUpstreamSlopeY(0.005), fMaxDistFrom120Beam(100.),
+    fRunSel(INT_MAX), fEvtSel(INT_MAX), fSpillSel(INT_MAX), fMaxDwnstrStation(6),
     fMaxNumBeamTracks(10), fMinNumDwnstrTracks(1), fMaxNumDwnstrTracks(20), fDoAntiSt2(false),
-    fDwnstrChiSqCut(10.), fDwnstrChiSqCutPreArb(20.), fDwnstrVertChiSqCut(3.0), 
+    fDwnstrChiSqCut(10.), fDwnstrChiSqCutPreArb(1000.), fDwnstrVertChiSqCut(3.0), 
     fConfirmBrickChiSqCut(500),   
     fRunHistory(nullptr), fEmgeo(nullptr), 
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fUpStreamBeamTrRec(), 
@@ -185,7 +190,8 @@ namespace emph {
 //    fMeanUpstreamXSlope(0.0004851102), fMeanUpstreamYSlope(0.002182192), // Only for run 1066, 1067... (31 GeV). 
 //    fMeanUpstreamXSlope(0.000811), fMeanUpstreamYSlope(0.002182192), // Only for run 1274 (31 GeV). After retuning TransShift_X_1 from 0.72 to 2.0  
     fMeanUpstreamXSlope(-0.00306), fMeanUpstreamYSlope(0.008883417), // Only for run 2113, aligment 7s1* 
-    fNumClUpstr(0), fNumClDwnstr(0), fNumBeamTracks(0), fNumVertices(0), fNumVertDwn(0), fStationsRecMult(4, 0)
+    fNumClUpstr(0), fNumClDwnstr(0), fNumBeamTracks(0), fNumVertices(0), fNumVertDwn(0),
+    fNumDwnsTrkOK(0), fStationsRecMult(6, 0) // Downstream station 
     {
        std::cerr << " Constructing StudyAllTrial1Algo1 " << std::endl;
        this->reconfigure(pset);
@@ -199,6 +205,10 @@ namespace emph {
       fSSDAlignmentResult = pset.get<std::string>("SSDAlignmentResult", "none");   // Will be optionally overwritten, see below.. 
       std::cerr << "  ... fSSDClsLabel " << fSSDClsLabel << std::endl;   
       fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
+      fEvtSel = pset.get<int>("EventSelected", INT_MAX);
+      fSpillSel = pset.get<int>("SpillSelected", INT_MAX);
+      fRunSel = pset.get<int>("RunSelected", INT_MAX);
+      fMaxDwnstrStation = pset.get<int>("MaxDwnstrStation", 6);
       fMaxUpstreamSlopeX = pset.get<double>("maxUpstreamSlopeX", 0.005);
       fMaxUpstreamSlopeY = pset.get<double>("maxUpstreamSlopeY", 0.005);
       fMaxDistFrom120Beam = pset.get<double>("maxDistFrom120Beam", 100.);
@@ -212,9 +222,9 @@ namespace emph {
       fConfirmBrickChiSqCut = pset.get<double>("confirmBrickChiSqCut", 500.);
       fPrelimMomentumSecondaries = pset.get<double>("prelimMomentum", 5.);
       fDwnstrChiSqCut = pset.get<double>("dwnstrChiSqCut", 25.);
-      fDwnstrChiSqCutPreArb = pset.get<double>("dwnstrChiSqCutPreArb", 500.);
+      fDwnstrChiSqCutPreArb = pset.get<double>("dwnstrChiSqCutPreArb", 1000.);
       fDwnstrVertChiSqCut = pset.get<double>("dwnstrVertChiSqCutPreArb", 3.);
-      fChiSqCutXYUVStAlgo1 = pset.get<double>("chiSqCutXYUVStAlgo1", 1000.);
+      fChiSqCutXYUVStAlgo1 = pset.get<double>("chiSqCutXYUVStAlgo1", 20.);
       fXCoeffAlignUncert = pset.get<double>("XCoeffAlignUncert", 0.05);
       fYCoeffAlignUncert = pset.get<double>("YCoeffAlignUncert", 0.025);
       // 
@@ -224,6 +234,7 @@ namespace emph {
       if (!fDoIronBrick) {
         fDwnstrTrRec.SetTokenJob(fTokenJob);
 	fDwnstrTrRec.SetChiSqCutPreArb(fDwnstrChiSqCutPreArb);
+	fDwnstrTrRec.SetChiSqCut(fDwnstrChiSqCut);
       } else { 
         fBrickTrRec.SetTokenJob(fTokenJob);
 	fBrickTrRec.SetDistFromBeamCenterCut(fMaxDistFrom120Beam);
@@ -278,6 +289,7 @@ namespace emph {
         if (fRun == 1274) fUpStreamBeamTrRec.SetNominalMomentum(31.);
         fDwnstrTrRec.SetRun(fRun);
         fDwnstrTrRec.SetPreliminaryMomentum(fPrelimMomentumSecondaries);
+	fDwnstrTrRec.SetMaxDwnstrStation(fMaxDwnstrStation);
         for(size_t kSt=2; kSt != maxKst; kSt++)  {
           fDwnstrTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // it is done...  
 //          if (kSt == 6) fDwnstrTrRec.SetChiSqCutRecStation(kSt, 1.0e6); // Understanding Station 6 V view ??? 
@@ -318,7 +330,7 @@ namespace emph {
       std::ostringstream fNameMultStrStr; fNameMultStrStr << "./StudyAllTrial1Algo1_Mult_" << fRun << "_" << fTokenJob << "_V1.txt";
       std::string fNameMultStr(fNameMultStrStr.str());
       fFOutMultSum.open(fNameMultStr.c_str());
-      fFOutMultSum << " spill evt numClUp nClDwnstr nUpstrTr nBeamTr nStPt2 nStPt3 nStPt4 nStPt5 nTrsDwn nVert nVertDwn " << std::endl;
+      fFOutMultSum << " spill evt numClUp nClDwnstr nUpstrTr nBeamTr nStPt2 nStPt3 nStPt4 nStPt5 nStPt6 nTrsDwn nVert nVertDwn " << std::endl;
       //
       std::ostringstream fNameVertStrStr; fNameVertStrStr << "./StudyAllTrial1Algo1_Vertices_" << fRun << "_" << fTokenJob << "_V1.txt";
       std::string fNameVertStr(fNameVertStrStr.str());
@@ -342,14 +354,15 @@ namespace emph {
 //        fFOutMultSum << " subRun evt numClUp nClD nUpstrTr nStPt2  nStPt3 nStPt4 nStPt5 nStPt2 nTrsDwn " << std::endl;
         fFOutMultSum << " " << fSubRun << " " << fEvtNum << " " << fNumClUpstr << " " << fNumClDwnstr;
 	if ((!fDoIronBrick) && (fUpStreamBeamTrRec.Size() == 0)) {
-	  fFOutMultSum << " 0 0 0 0 0 0 0 0 0 " << std::endl;
+	  for (int k=0; k!= 10; k++) fFOutMultSum << " 0"; 
+	  fFOutMultSum << std::endl;
 	  return;
 	} else {
 	  fFOutMultSum << " " << fUpStreamBeamTrRec.Size() << " " << fNumBeamTracks;  
 	}
-	for (size_t k = 0; k != fStationsRecMult.size(); k++) fFOutMultSum << " " << fStationsRecMult[k]; 
+	for (size_t k = 0; k != 5; k++) fFOutMultSum << " " << fStationsRecMult[k]; 
 	if (!fDoIronBrick) {
-	   fFOutMultSum << " " << fDwnstrTrRec.Size() << " " << fNumVertices <<  " " << fNumVertDwn << std::endl;
+	   fFOutMultSum << " " << fNumDwnsTrkOK << " " << fNumVertices <<  " " << fNumVertDwn << std::endl;
 	} else {
 	   fFOutMultSum << " " << fBrickTrRec.Size() << " " << fNumVertices <<  " 0 "  << std::endl;
 	}   
@@ -390,8 +403,9 @@ namespace emph {
 // This is no longer needed, after the Minuit2 exception handle upgrade, late November 2023.. 
 //      
 //      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && (fEvtNum == 2977));
-      bool debugIsOn = ((fRun == 2144) && (fSubRun == 10) && (fEvtNum == 113));
-//      bool debugIsOn = true;
+      bool debugIsOn = ((static_cast<int>(fRun) == fRunSel) && (static_cast<int>(fSubRun) == fSpillSel) && (static_cast<int>(fEvtNum) == fEvtSel));
+//      bool debugIsOn = false;
+//        bool debugIsOn = ((fRun == 2142) && (fEvtNum < 20));	
 //      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && 
 //                        ((fEvtNum == 1) || (fEvtNum == 2 ) || (fEvtNum == 4 )|| (fEvtNum == 5 ) || (fEvtNum == 9 ) || (fEvtNum == 10 )));
 //      if (fEvtNum > 25) { std::cerr << " ... ... only first few event, quit now.. " << std::endl; exit(2); }
@@ -415,8 +429,14 @@ namespace emph {
                                << "  spill " << fSubRun << " event " <<  fEvtNum << "  on " 
                                << fSSDclPtrs.size() <<  " clusters " <<   std::endl;
 			       
-//      if (fEvtNum > 100) { std::cerr << " 100 evt is enough, quit here and now " << std::endl; exit(2); }		       
-			        
+      fNumBeamTracks = 0; fNumVertices = 0; fNumVertDwn = 0; fNumDwnsTrkOK=0;
+      for (size_t k=0; k != fStationsRecMult.size(); k++) fStationsRecMult[k] = 0;
+      
+//      if (fEvtNum > 10) { std::cerr << " 10 evt is enough, quit here and now " << std::endl; exit(2); }
+// Only 20000 events, should see some interaction in the target.. 		       
+//	if (fEvtNum > 20000) return;
+      if ((fSpillSel < 1000) && (!debugIsOn)) return;	
+	
       fUpStreamBeamTrRec.Reset();
       
       //
@@ -448,7 +468,6 @@ namespace emph {
       //
       // Beam Tracks 
       //
-      fNumBeamTracks = 0;
       std::vector<rb::BeamTrackAlgo1>::const_iterator itUpTrSel; 
       if (!fDoIronBrick) { 
         fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum);
@@ -495,18 +514,29 @@ namespace emph {
       //
       bool isCleanSingleTrack = (fNumClUpstr < 5); // hopefully, clean Station 1 and 0 
       if (!fDoIronBrick) {
-        fDwnstrTrRec.SetItUpstreamTrack(itUpTrSel); 
+        fDwnstrTrRec.SetItUpstreamTrack(itUpTrSel);
+        if ((fRun == 2113) || (fRun == 2098)) fDwnstrTrRec.SetDoUseUpstreamTrack(); 
+	  // Only for checking alignment run, if search for multi track evts, open the search to all possibilities.  
         fDwnstrTrRec.SetDebugOn(debugIsOn);
 	size_t numStsDwnstrMax = (fRun < 2000) ? 6 : 7;
 	if (fRun > 1999) 
         for(size_t kSt=2; kSt != numStsDwnstrMax; kSt++)  {
 	  fStationsRecMult[kSt-2] = fDwnstrTrRec.RecStation(kSt, evt, fSSDClsPtr);
+	  if (debugIsOn) std::cerr << std::endl << " Station " << kSt << " done, with " << fStationsRecMult[kSt-2] 
+	                           << " reconstructed space points "  << std::endl << std::endl;
 	  if ((kSt == 3)  &&  (fDwnstrTrRec.NumTripletsSt2and3() == 0)) {
 	    if (debugIsOn) std::cerr << " Neither Station 2 not 3 have a triplet.. Suspicious event, abandon.. " << std::endl;
+            fDwnstrTrRec.dumpStInfoForR();
 	    this->dumpSummaryMultiplicities();  
 	    return; 
 	  }
         }
+	if (fDwnstrTrRec.NumTripletsSt5and6() == 0) {
+	    if (debugIsOn) std::cerr << " Neither Station 5 not 6 have a triplet.. junk event, abandon.. " << std::endl;
+            fDwnstrTrRec.dumpStInfoForR();
+	    this->dumpSummaryMultiplicities();  
+	    return; 
+	}
       } else {
         fBrickTrRec.SetDebugOn(debugIsOn); 
         for(size_t kSt=2; kSt != 6; kSt++)  {
@@ -531,18 +561,19 @@ namespace emph {
 //        if (fEvtNum > 20) { std::cerr << " Event " << fEvtNum << " done , quit here and now .. " << std::endl; exit(2); }
         return ; 
       } 
-      
       fDwnstrTrRec.RecAndFitIt(evt);
+      fNumDwnsTrkOK = fDwnstrTrRec.SizeOK(); 
       // 
       // Saving for alignment ? 
       //
-       if (fDwnstrTrRec.IsPerfectForAlignment()) {
+       if (((fRun == 2113) ||(fRun == 2098)) && fDwnstrTrRec.IsPerfectForAlignment()) {
       	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
            fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
        }
-
       
+      if (debugIsOn) std::cerr << std::endl<<  " ... ... Back to art analyze... After dumpCompactEvt " << std::endl;
       fDwnstrTrRec.dumpStInfoForR();
+      if (debugIsOn) std::cerr << std::endl<<  " ... ... Back to art analyze... After dumpStInfoForR " << std::endl;
       // To be re-implemented, if need be... 
 //      bool gotBeamOrScatter = fDwnstrTrRec.doUpDwn3DClFitAndStore();
       bool gotBeamOrScatter = (fDwnstrTrRec.Size() == 1);
@@ -550,6 +581,7 @@ namespace emph {
       // 
       // Kalman filter results, if any.. 
       //
+      if (debugIsOn) std::cerr << std::endl<<  " ... ... Back to art analyze... Before dumpBeamTracksCmpKlm  " << std::endl;
       fDwnstrTrRec.dumpBeamTracksCmpKlm();
       if (fDoUseDownstrKalmanTracks) {
          fDwnstrTrRec.dumpBeamTracksCmp(false);
