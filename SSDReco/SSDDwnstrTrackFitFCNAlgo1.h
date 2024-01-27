@@ -39,9 +39,11 @@ namespace emph{
       emph::geo::Geometry *fEmgeo;
       emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
       emph::MagneticField *fMagField;
+      bool fPhase1c;
       bool fIsMC; // Ugly, we are still working on the sign convention and rotation angles signs.. But... nasty correction done in reconstruction space points,
       //  So, this is obsolete. I hope.. 
       bool fDebugIsOn;
+      int fMaxDwnstrStation;
       double fIntegrationStep;
       double fStartingMomentum; 
       size_t fNumSensorsTotal;
@@ -68,11 +70,13 @@ namespace emph{
       inline void ResetZpos() { fZPos.clear(); fZLocUpstreamMagnet = DBL_MAX; fZLocDownstrMagnet = DBL_MAX; }
       inline void SetErrorDef(double e) { fErrorDef = e; }
       inline void SetMCFlag(bool v) { fIsMC = v; }
+      inline void SetPhase1x(int aRun) { fPhase1c = (aRun > 1999) ? true : false; }
       inline void SetNoMagnet(bool v=true) { fNoMagnet = v; }
       inline void SetMagnetShift(std::vector<double> v) { fMagShift = v; } 
       inline void SetStartingMomentum(double v) { fStartingMomentum = v; } 
       inline void SetDebugOn(bool v = true) { fDebugIsOn = v; }
       inline void SetIntegrationStep(double s) { fIntegrationStep = s; }
+      inline void SetMaxDwnstrStation(int i) { fMaxDwnstrStation = i; } 
       inline double Resid(size_t kSe) const {
         if (kSe < fResids.size()) return fResids[kSe];
 	return DBL_MAX;

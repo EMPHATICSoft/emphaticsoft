@@ -220,24 +220,19 @@ namespace emph {
 	fFOutCmpBeamTracks << " " << std::atan2(fItUpstrTr->YSlope(), fItUpstrTr->XSlope()) << " " << std::atan2(thetaY, thetaX) <<   std::endl;		   		  
    }			   
     
-   bool SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore(const std::vector<myItStPt> &dataIn,   double pStartTmp) {
+   bool SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore(int trID, const std::vector<myItStPt> &dataIn,   double pStartTmp) {
    
-      if (fEvtNum > 0) {
-        if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, skip this for, not commissioned yet.. " << std::endl;
-	return false;
-      }
-   
-      bool isOKMult  = ((fInputSt2Pts.Size() == 1) && (fInputSt3Pts.Size() == 1) && (fInputSt4Pts.Size() < 5 ) 
-			    && ((fInputSt5Pts.Size() == 1) || fInputSt5Pts.Size() < 3 )  
-			    && ((fInputSt6Pts.Size() == 1) || fInputSt6Pts.Size() < 3 ));  //  NoTgt31Gev_ClSept_A2e_6a   
+      bool isOKMult  = ((fInputSt2Pts.Size() > 0) && (fInputSt3Pts.Size() > 0) 
+			    && (fInputSt5Pts.Size() > 0));   
 
        if (fDebugIsOn) {
-         std::cerr << " SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, spill " << fSubRunNum << " evt " 
-                                 << fEvtNum <<  " Number of SSDClusters  " << dataIn.size() << std::endl;
+         std::cerr << std::endl <<  " SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore, spill " << fSubRunNum << " evt " 
+                   << fEvtNum <<  " Dwnstr Track Id " << trID << " Number of SSDClusters  " << dataIn.size() << " pStartTmp " << pStartTmp << std::endl;
 	if (!isOKMult) std::cerr << " ... multiplicity count not quite good enough, skip.. " << std::endl;			 
         for (size_t k = 0; k != dataIn.size(); k++) {
 	   std::cerr << " ...  " <<  *(dataIn[k]) << std::endl;
          }
+//	 if (fDebugIsOn)  { std::cerr << " .... And quit now... " << std::endl; exit(2); } 
 	 std::cerr << " ----------------- " << std::endl;  std::cerr << std::endl;
        }
        if (fNoMagnet) { 
@@ -249,22 +244,24 @@ namespace emph {
          fFitterKlmFCN  = new SSD3DTrackKlmFitFCNAlgo1(fRunNum);
 //	 fFitterKlmFCN->SetMagnetShift(fMagShift);  // To be defined in this class, for later.. 
        }
-       const bool DoMigrad = false;
+       const bool DoMigrad = true;
        double pStart = pStartTmp;
        if ((std::abs(pStartTmp) > 55.) && (pStartTmp > 0.)) pStart = 55.; // Needs retuning...
        //  Watch for VariableMetricBuilder Initial matrix not pos.def
        if ((std::abs(pStartTmp) > 55.) && (pStartTmp < 0.)) pStart = -55.;
        fFitterKlmFCN->SetDebugOn(fDebugIsOn);
        fFitterKlmFCN->SetInputClusters(dataIn);
+       const double aChiSts = fFitterKlmFCN->SumChiSqSts();
 //       fFitterKlmFCN->SetExpectedMomentum(pStart);  
 // Be conservative, assume 30 GeV/c beam 
        fFitterKlmFCN->SetExpectedMomentum(30.0);  
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsInCold, parsOut, parsOutErr;
        unsigned int nPars = 1; 
-       const double pMin = (pStart > 0.) ? 0.01*pStart : -1.0*std::min(-5.0*pStart, 125.);
-       const double pMax = (pStart > 0.) ? std::min(5.0*pStart, 125.) : 0.01*pStart;
+       const double pMin = (pStart > 0.) ? 0.5*pStart : -1.0*std::max(-2.0*pStart, -125.);
+       const double pMax = (pStart > 0.) ? std::min(2.0*pStart, 125.) : 0.5*pStart;
        uPars.Add(std::string("Mom"), pStart, 0.05*std::abs(pStart), pMin, pMax); 
+       uPars.SetLimits(0,  pMin, pMax); // Should not have to do this... 
        parsInCold.push_back(pStart); 
        if (fDebugIsOn) std::cerr << " ..... Adding momentum parameter , start val " << pStart << " Limits " << pMin << ", " << pMax << std::endl;
        // run test, to make sure we have a valid chiSq to start with. 
@@ -278,7 +275,7 @@ namespace emph {
          try {
            ROOT::Minuit2::FunctionMinimum min = migrad(200, 0.1);
            isMinValid = min.IsValid(); 
-           if (fDebugIsOn) std::cerr << " Function  minimum " << min << std::endl; 
+           if (fDebugIsOn) std::cerr << " Function  minimum, from Migrad... " << min << std::endl; 
        //
            parsOutErr = min.UserParameters().Errors();
            parsOut = min.UserParameters().Params();
@@ -290,7 +287,7 @@ namespace emph {
            if (fDebugIsOn) std::cerr << " ..... About to call Simple Minimizer... " << std::endl;
 //	   fFitterKlmFCN->SetDebugOn(true);
 	   ROOT::Minuit2::FunctionMinimum minS = theMinimizer.Minimize((*fFitterKlmFCN), initValsV, initValsE);
-           if (fDebugIsOn) std::cerr << " Function  minimum " << minS << std::endl; 
+           if (fDebugIsOn) std::cerr << " Function  minimum from Simple Minimizer..." << minS << std::endl; 
  	   parsOutErr = minS.UserParameters().Errors();
  	   parsOut = minS.UserParameters().Params();
            isMinValid = minS.IsValid();
@@ -303,9 +300,9 @@ namespace emph {
        }  
        const double finalChiSq = (*fFitterKlmFCN)(parsOut);
        rb::DwnstrTrackAlgo1 aTr;
+       aTr.SetID(trID);
        aTr.SetType(rb::FOURSTATION);
        aTr.SetChiSq(finalChiSq);
-       const double aChiSts = fFitterKlmFCN->SumChiSqSts();
        aTr.SetChiSqKlmInfo(aChiSts, fFitterKlmFCN->ChiSqXView(), fFitterKlmFCN->ChiSqYView());
        const std::pair<double, double> xSt = fFitterKlmFCN->XStart(); 
        const std::pair<double, double> ySt = fFitterKlmFCN->YStart(); 
@@ -314,7 +311,7 @@ namespace emph {
        aTr.SetTrParams(xSt.first, SlxSt.first, ySt.first, SlySt.first, parsOut[0]);
        aTr.SetTrParamsErrs(xSt.second, SlxSt.second, ySt.second, SlySt.second, parsOutErr[0]);
        fTrsKlm.push_back(aTr);
-//       if (fDebugIsOn) { std::cerr << " ... and quit for now... " << std::endl; exit(2); }
+//       if (fDebugIsOn) { std::cerr << " ...SSDRecDwnstrTracksAlgo1::doDwn3DKlmFitAndStore ... and quit for now... " << std::endl; exit(2); }
        return true;
        //
     } 
@@ -340,12 +337,7 @@ namespace emph {
 	 std::vector<rb::DwnstrTrackAlgo1>::const_iterator itkSel=fTrsKlm.cbegin();
 	 double rrSqMin = DBL_MAX; int itkNum = 0; int itkNumSel = -1;		  
 	 for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator itk=fTrsKlm.cbegin();  itk!=fTrsKlm.cend(); itk++, itkNum++) {
-	   double rrSq = (it->XOffset() - itk->XOffset())*(it->XOffset() - itk->XOffset()) + 
-	                 (it->YOffset() - itk->YOffset())*(it->YOffset() - itk->YOffset());
-	   if (rrSq < rrSqMin) {
-	     itkSel = itk; itkNumSel=itkNum;
-	     rrSqMin = rrSq;
-	   }
+	   if (it->ID() == itk->ID()) { itkSel= itk; itkNumSel = itk->ID(); break; }
 	 }
 	 fFOutCmpKlmTracks << " " << fTrsKlm.size() << " " << itkNumSel ;
 	 if (itkNumSel < 0) {

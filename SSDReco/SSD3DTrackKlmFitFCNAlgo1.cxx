@@ -33,7 +33,8 @@ namespace emph {
     fGeoService(),  
     fEmgeo(fGeoService->Geo()),
     fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fMyConvert('A'),  
-    fMagField(nullptr), fDebugIsOn(false), fIntegrationStep(3.0), // last parameter might need some tuning.. This is the value at 31 GeV.
+    fMagField(nullptr), fPhase1c(true), 
+    fDebugIsOn(false), fIntegrationStep(3.0), fMaxDwnstrStation(5), // last parameter might need some tuning.. This is the value at 31 GeV.
     fNumMaxPropIter(5), fDeltaXSlopeMinChange(1.0e-6), 
     fDataSts(), fNoMagnet(false), fMagShift(3, 0.),
     fErrorDef(1.), fOneOverSqrt2(1.0/std::sqrt(2.)), 
@@ -46,9 +47,10 @@ namespace emph {
        fMagField = bField->Field();
        art::ServiceHandle<emph::geo::GeometryService> geo;
        fNoMagnet = geo->Geo()->MagnetUSZPos() < 0.;
-       fnSts = fRunNum < 2000 ? 4 : 6;   // Getting ready for Phase1c (reluctantly... ) 
+       fnSts = fRunNum < 2000 ? 4 : 5;   // Getting ready for Phase1c (reluctantly... ) 
        fXSts.clear();  fSlXSts.clear(); fYSts.clear(); fSlYSts.clear(); 
        fExpectedMomentum = 50.0;
+       fPhase1c = (runNum > 1999) ? true : false;
        for (size_t k=0; k != static_cast<size_t>(fnSts); k++) {
           std::pair<double,double> blankVal(DBL_MAX, DBL_MAX);
           fXSts.push_back(blankVal); fSlXSts.push_back(blankVal);
@@ -61,17 +63,20 @@ namespace emph {
     double SSD3DTrackKlmFitFCNAlgo1::operator()(const std::vector<double> &pars) const {
     
       if (fDebugIsOn) std::cerr << "SSD3DTrackKlmFitFCNAlgo1::operator, Start, number of track parameters " 
-                                << pars.size() << " Number of data pts " << fDataSts.size() << std::endl;  
+                                << pars.size() << " Number of data pts " << fDataSts.size() << std::endl; 
       for (size_t kSt = 0; kSt!= static_cast<size_t>(fnSts); kSt++) {
-        if (!this->setInitSt(kSt+2)) return 5.0e5;
+        if (!this->setInitSt(kSt)) return 5.0e5;
       }
       fChiSqX = 0.; fChiSqY = 0.; 
       double chiSq = 0.;
       for (size_t kSt = 0; kSt != static_cast<size_t>(fnSts) - 1; kSt++) {
-        chiSq += fChiSqSts[kSt];
-        chiSq += this->propagateStsNext(kSt, kSt+1, pars[0]);
+        if (fDataSts[kSt]->NumClusters() == 3) chiSq += fChiSqSts[kSt]; // If we have missing SSD cluster, got no Space point chiSq 
+	if (fDataSts[kSt]->Station() > (fMaxDwnstrStation-1)) continue; 
+        const double chiSqProp = this->propagateStsNext(kSt, kSt+1, pars[0]);
+	chiSq += chiSqProp;
+//	if (fDebugIsOn)  std::cerr << " ... Checking in operator of FCN... Prop chiSq " << chiSqProp << " Current total chiSq " << chiSq << std::endl;
       }			
-      chiSq += fChiSqSts[static_cast<size_t>(fnSts) - 1];
+//      chiSq += fChiSqSts[static_cast<size_t>(fnSts) - 1]; // Why doing this? 
 //      if (fDebugIsOn) { std::cerr << " And.. the total chiSq is " << chiSq << " Quit here and now .. " << std::endl; exit(2); }
       if (fDebugIsOn) { std::cerr << " And.. the total chiSq is " << chiSq << " and keep going .. .. " << std::endl; }
       return chiSq;
@@ -79,11 +84,12 @@ namespace emph {
     
     
     bool SSD3DTrackKlmFitFCNAlgo1::setInitSt(size_t kStation) const {
-      const size_t kSt = kStation - 2; // There is always  two stations infront of the target. 
-      if (fDebugIsOn) std::cerr << " ....SSD3DTrackKlmFitFCNAlgo1::setInitSt for kSt " << kSt << std::endl; 
-      fXSts[kSt].first = fDataSts[kSt]->X(); fXSts[kSt].second = fDataSts[kSt]->XErr();
-      fYSts[kSt].first = fDataSts[kSt]->Y(); fYSts[kSt].second = fDataSts[kSt]->YErr();
-      fChiSqSts[kSt] = fDataSts[kSt]->ChiSq(); 
+      const size_t kSt = kStation; // In case we need to shift indices.. There is always  two stations infront of the target. 
+      if (fDebugIsOn) std::cerr << " ....SSD3DTrackKlmFitFCNAlgo1::setInitSt for kStation " << kStation+2 << " kSt (in this method) " << kSt << std::endl; 
+      if (kStation >= fDataSts.size()) return false;
+      fXSts[kSt].first = fDataSts[kStation]->X(); fXSts[kSt].second = fDataSts[kStation]->XErr();
+      fYSts[kSt].first = fDataSts[kStation]->Y(); fYSts[kSt].second = fDataSts[kStation]->YErr();
+      fChiSqSts[kSt] = fDataSts[kStation]->ChiSq(); 
       if (fDebugIsOn) std::cerr << " ....X = " << fXSts[kSt].first << " +- " << fXSts[kSt].second 
                                << "  and Y = " << fYSts[kSt].first << " +- " << fYSts[kSt].second << std::endl; 
       return true;
@@ -107,7 +113,8 @@ namespace emph {
                                       fSlYSts[kStStart].first;
       const double slxInit = slx;  const double slyInit = sly;			      
       if (fDebugIsOn) std::cerr << "....  Tracing through  " <<  zLocUpstreamMagnet 
-				<< " Downstream " << zLocDownstrMagnet << " slx " << slx << " sly " << sly << std::endl;
+				<< " Downstream " << zLocDownstrMagnet << " slx " << 1.0e3*slx 
+				<< " sly " << 1.0e3*sly << " (mrad) " << " delta Z " << deltaZ << std::endl;
       double deltaXSl = 0.; 
       const int Q = (p > 0.) ? 1 : -1 ;  // hopefully correct.. 
       const double stepAlongZ = fIntegrationStep; // such we don't introduce suspicious correlations.. 
@@ -133,7 +140,7 @@ namespace emph {
 	// Back shift.. 
        endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
        const double slxNew = endMag[3]/p; sly = endMag[4]/p;
-       deltaXSl = std::abs(slxNew - slx); slx = slxNew; 
+       deltaXSl = slxNew - slx; slx = slxNew; 
        const double xPredStNext = endMag[0];  double yPredStNext = endMag[1];
        // correction for the small difference of X and Y planes. 
        double ddZXY = fEmVolAlP->ZPos(emph::geo::Y_VIEW, kStEnd+2) - fEmVolAlP->ZPos(emph::geo::X_VIEW, kStEnd+2); 
@@ -141,8 +148,8 @@ namespace emph {
        if (fDebugIsOn) 
 	  std::cerr << " ..... After the Usptream X and Y Integrated predictions from Station "  
 		   << kStStart+2 << " to Station " << kStEnd+2 << ", xPred " 
-	 << xPredStNext << " yPred " <<  yPredStNext << " X Slope " << slx << " Y slope " << sly 
-	 << " deltaXSl " << deltaXSl << std::endl;
+	 << xPredStNext << " yPred " <<  yPredStNext << " X Slope " << 1.0e3*slx << " Y slope " << 1.0e3*sly 
+	 << " deltaXSl " << 1.0e3*deltaXSl << " ( mrad ) " << std::endl;
 	 nIter++; 
  	 //
 	 
@@ -151,16 +158,17 @@ namespace emph {
        double errMagAlignmentSq = 0.; 
        if (((fRunNum < 2000) && (kStStart == 3)) ||
            ((fRunNum > 1999) && (kStStart == 4))) errMagAlignmentSq = fPropMagnetErrSq;  			
-       const double errPosXaSq = fXSts[kStStart].second * fXSts[kStStart].second + errMultSq + errMagAlignmentSq; 
-       const double errPosYaSq = fXSts[kStStart].second * fXSts[kStStart].second + errMultSq + errMagAlignmentSq; 
-       const double errPosXbSq = fXSts[kStEnd].second * fXSts[kStEnd].second;  
-       const double errPosYbSq =  fYSts[kStEnd].second * fYSts[kStEnd].second; 
+       const double errPosXaSq = fXSts[kStStart].second * fXSts[kStStart].second + errMagAlignmentSq; 
+       const double errPosYaSq = fXSts[kStStart].second * fXSts[kStStart].second + errMagAlignmentSq; 
+       const double errPosXbSq = fXSts[kStEnd].second * fXSts[kStEnd].second + errMultSq ;  
+       const double errPosYbSq =  fYSts[kStEnd].second * fYSts[kStEnd].second + errMultSq ; 
        double weightPosXa = (1.0/errPosXaSq); double weightPosXb = 1.0/errPosXbSq;
        const double sumWX = weightPosXa + weightPosXb; weightPosXa /= sumWX;  weightPosXb /= sumWX;
        double weightPosYa = (1.0/errPosYaSq); double weightPosYb = 1.0/errPosYbSq;
        const double sumWY = weightPosYa + weightPosYb; weightPosYa /= sumWY;  weightPosYb /= sumWY;
-       const double chiSqX = ((xPredStNext - fXSts[kStEnd].first) * (xPredStNext - fXSts[kStEnd].first))*sumWX;
-       const double chiSqY = ((yPredStNext - fYSts[kStEnd].first) * (yPredStNext - fYSts[kStEnd].first))*sumWY;
+       const double errPosXT = errPosXaSq + errPosXbSq; const double errPosYT = errPosYaSq + errPosYbSq;
+       const double chiSqX = ((xPredStNext - fXSts[kStEnd].first) * (xPredStNext - fXSts[kStEnd].first))/errPosXT;
+       const double chiSqY = ((yPredStNext - fYSts[kStEnd].first) * (yPredStNext - fYSts[kStEnd].first))/errPosYT;
        fChiSqX += chiSqX; fChiSqY += chiSqY; 
        chiSq = chiSqX + chiSqY; fNDGF += 2;
        fXSts[kStEnd].first = xPredStNext*weightPosXa + weightPosXb*fXSts[kStEnd].first;
@@ -169,8 +177,18 @@ namespace emph {
 //       fYSts[kStEnd].second = std::sqrt((1.0/sumWY)/2.); // approximate 
        fXSts[kStEnd].second += errMultSq + errMagAlignmentSq; // adding the multiple scattering contribution. 
        fYSts[kStEnd].second += errMultSq + errMagAlignmentSq; // still approximate 
-       fSlXSts[kStEnd].first = slx; // Obvious;; 	 
-       fSlYSts[kStEnd].first = sly;
+       fSlXSts[kStEnd].first = slx; // Obvious;;
+       // The Y slope is badly biased between station 2 and 3.. So, we keep retuning it.  For alignment 7s_1104_5 at least.. 
+       // Assume no deflection in the vertical plane for now..
+       if (kStStart != 0) {
+         const double deltaZEndfr0 = fEmVolAlP->ZPos(emph::geo::Y_VIEW, kStEnd+2) - fEmVolAlP->ZPos(emph::geo::Y_VIEW, 2);
+         fSlYSts[0].first = (fYSts[kStEnd].first - fYSts[0].first)/deltaZEndfr0 ;
+         fSlYSts[kStEnd].first =  fSlYSts[0].first; // Keep the same slope, but refined.. 
+         if (fDebugIsOn) std::cerr << " retuning Y slope ... Y slope from prop " << 1.0e3*sly << " new slope " 
+	           << 1.0e3*fSlYSts[0].first << " on delta Z " << deltaZEndfr0 << std::endl;
+       } else { 
+         fSlYSts[kStEnd].first = sly;
+       }
        fSlXSts[kStStart].second = 
          std::sqrt(fXSts[kStStart].second * fXSts[kStStart].second + fXSts[kStEnd].second * fXSts[kStEnd].second)/deltaZ;
        fSlYSts[kStStart].second = 
@@ -191,14 +209,15 @@ namespace emph {
 	 fSlXSts[kStEnd].second = std::sqrt(1.0/sumWX)/deltaZ; // Obvious, but neglect uncertainty in Z...  	 
 	 fSlYSts[kStEnd].second = std::sqrt(1.0/sumWY)/deltaZ;
          if (fDebugIsOn) 
-           std::cerr << "  ... At Station 2, Redefining SlX = " << fSlXSts[kStStart].first << " +- " << fSlXSts[kStStart].second 
-	           << " Y = " << fSlYSts[kStStart].first << " +- " << fSlYSts[kStStart].second << std::endl;
+           std::cerr << "  ... At Station 2, Redefining SlX = " << 1.0e3*fSlXSts[kStStart].first << " +- " << 1.0e3*fSlXSts[kStStart].second 
+	           << " Y = " << 1.0e3*fSlYSts[kStStart].first << " +- " << 1.0e3*fSlYSts[kStStart].second << " (mrad ) " << std::endl;
        }
        if (fDebugIsOn) {
          std::cerr << "  .... At the end, X = " << fXSts[kStEnd].first << " +- " << fXSts[kStEnd].second 
 	           << " Y = " << fYSts[kStEnd].first << " +- " << fYSts[kStEnd].second << std::endl;
-         std::cerr << "  ... SlX = " << fSlXSts[kStEnd].first << " +- " << fSlXSts[kStEnd].second 
-	           << " Y = " << fSlYSts[kStEnd].first << " +- " << fSlYSts[kStEnd].second << " return chiSq " << chiSq << std::endl;
+         std::cerr << "  ... SlX = " << 1.0e3*fSlXSts[kStEnd].first << " +- " << 1.0e3*fSlXSts[kStEnd].second 
+	           << " Y = " << 1.0e3*fSlYSts[kStEnd].first << " +- " << 1.0e3*fSlYSts[kStEnd].second << " return chiSq " << chiSq << std::endl;
+//	 std::cerr << " And quit after such a tour de force .. " << std::endl; exit(2);
        }  
        return chiSq; 
     }

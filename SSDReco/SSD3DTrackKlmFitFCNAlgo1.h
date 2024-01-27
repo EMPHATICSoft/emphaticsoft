@@ -45,8 +45,10 @@ namespace emph{
       emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
       emph::ssdr::ConvertDigitToWCoordAlgo1 fMyConvert;
       emph::MagneticField *fMagField;
+      bool fPhase1c;
       bool fDebugIsOn;
       double fIntegrationStep;
+      int fMaxDwnstrStation; // We can skip Station 6 (as we do for the default track fitter, it turns out.. ) 
       int fNumMaxPropIter; // maximum number of iteration, to get a stable projection. 
       double fDeltaXSlopeMinChange; // if the x slope extimate change by mote than that, we keep iterating.   
       std::vector<myItStPt> fDataSts;
@@ -83,7 +85,8 @@ namespace emph{
       inline void SetIntegrationStep(double s) { fIntegrationStep = s; }
       inline void SetMultScatterErr(double s) { fMultScatterOneStationSq = s*s; }
       inline void SetNumMaxPropIter (int n) { fNumMaxPropIter = n; } 
-      inline void SetDeltaXSlopeMinChange (double d) {fDeltaXSlopeMinChange = d; }  
+      inline void SetDeltaXSlopeMinChange (double d) {fDeltaXSlopeMinChange = d; }
+      inline void SetMaxDwnstrStation(int i) { fMaxDwnstrStation = i; }  
       // 
       // Getting the track parameters.. 
       //
@@ -106,7 +109,15 @@ namespace emph{
       // Additional info 
       inline double SumChiSqSts () const {
          double sum = 0.; 
-	 for (size_t k=0; k != fChiSqSts.size(); k++) sum += fChiSqSts[k]; 
+//	 if (fDebugIsOn) std::cerr << " .... SSD3DTrackKlmFitFCNAlgo1::SumChiSqSts, numSts " << fDataSts.size() << std::endl; 
+	 for (size_t k=0; k != fDataSts.size(); k++) {
+//	   if (fDebugIsOn) std::cerr << " .... ....  for Station " 
+//	                             << fDataSts[k]->Station() << " Type " << fDataSts[k]->Type() << std::endl;  
+	   if (fDataSts[k]->NumClusters() != 3) continue;
+	   if (fDataSts[k]->Station() > fMaxDwnstrStation) continue;
+	   sum += fDataSts[k]->ChiSq(); 
+//	   if (fDebugIsOn) std::cerr << " .... ....  ...  current adding  " << fDataSts[k]->ChiSq() << std::endl;  
+	 }
 	 return sum;
       }
       inline double ChiSqXView() const { return fChiSqX; } 

@@ -51,11 +51,19 @@ namespace emph {
        int numOKDwnTr = 0;
        if (fDebugIsOn) {
          std::cerr << " SSDRecVertexAlgo1::RecAndFitIt, start, Num Downstream Tracks submitted = " <<  dwnstr.Size() << std::endl;
+	 const double zTgt = 380.; // Phase1c... Yak.. 
+	 const double xTgt = itBeam->XOffset() + zTgt*itBeam->XSlope(); 
+	 const double yTgt = itBeam->YOffset() + zTgt*itBeam->YSlope(); 
+         std::cerr << " Upstream Beam track params, at Target, x =   " << xTgt << " Y " << yTgt << 
+	                " at Station 2, X " <<  itBeam->XOffset() + z2*itBeam->XSlope() << " Y " 
+			<< itBeam->YOffset() + z2*itBeam->YSlope()  << std::endl;
        }
        for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
          if (fDebugIsOn) std::cerr << " ... For track " << it->ID() << " chiSq " << it->ChiSq() << " chiSq cut " << fChiSqCut << std::endl;
          if (it->ChiSq() > fChiSqCut) continue;
-	 // Other slope cuts ? 
+	 // Other slope cuts ?
+	  if (fDebugIsOn) std::cerr << " ... Chek track Params " << it->ID() << " X offset " 
+	                             << it->XOffset() << " Slope " << 1000.*it->XOffset() << " mrad " << std::endl; 
 	 fFitterFCN.AddInputDwn(it); numOKDwnTr++;
        }
        fFitterFCN.SetDebugOn(fDebugIsOn);

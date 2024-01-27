@@ -50,6 +50,7 @@ namespace emph {
 	  int fSubRunNum;
 	  int fEvtNum;
 	  int fNEvents; // Incremental events count for a given job. 
+	  int fMaxDwnstrStation; // In the track fit, incorporate or not the last downstream station. 
 	  bool fDebugIsOn;
 	  bool fIsMC; // The usual Ugly flag.. 
 	  bool fIsGoodForAlignment, fIsPerfectForAlignment;  
@@ -78,7 +79,7 @@ namespace emph {
 	  mutable std::ofstream fFOutCompactInfo; 
 	  mutable std::ofstream fFOutCmpBeamTracks; 
 	  mutable std::ofstream fFOutCmpKlmTracks; 
-	  // Internal stuff.. ???
+	  // Internal stuff.. Simplt transfer information between the fit driver and the pattern recognition bit. 
 	  double fPrelimFitMom;
 	  double fPrelimFitChiSq;
 	  mutable std::vector<rb::BeamTrackAlgo1>::const_iterator fItUpstrTr; // a set of Dangling pointer.  
@@ -99,8 +100,12 @@ namespace emph {
 	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
 	 inline void SetChiSqCutKlm (double v) { fChiSqCutKlm = v; }
 	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
-	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fDoUseUpstreamTrack = true; fItUpstrTr = it; }
+	 inline void SetMaxDwnstrStation(int i) {fMaxDwnstrStation = i; } 
+	 
+//	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fDoUseUpstreamTrack = true; fItUpstrTr = it; }
+	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrackAlgo1>::const_iterator it) { fItUpstrTr = it; }
 	 inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
+	 inline void SetDoUseUpstreamTrack() { fDoUseUpstreamTrack = true; }
 	 inline void SetPreliminaryMomentum(double p) { // For multiple scattering uncertainties.. 
 	   fPrelimMomentum = p; 
 	   fCoordConvert.SetForMomentum(p);
@@ -137,9 +142,9 @@ namespace emph {
 	   switch (kSt) {
 	    case 2 : { fInputSt2Pts.SetChiSqCut(c); return; } 
 	    case 3 : { fInputSt3Pts.SetChiSqCut(c); return; } 
-	    case 4 : { fInputSt4Pts.SetChiSqCut(1.5*c); return; } // We increase the cut a bit, alignment uncertainties are larger.. 
-	    case 5 : { fInputSt5Pts.SetChiSqCut(2.0*c); return; }
-	    case 6 : { fInputSt6Pts.SetChiSqCut(2.0*c); return; }
+	    case 4 : { fInputSt4Pts.SetChiSqCut(c); return; }  
+	    case 5 : { fInputSt5Pts.SetChiSqCut(c); return; }
+	    case 6 : { fInputSt6Pts.SetChiSqCut(c); return; }
 	    default : { return; }  
 	   }
 	 }
@@ -151,6 +156,15 @@ namespace emph {
 	 inline int EvtNum() const { return fEvtNum; }
 	 inline rb::DwnstrTrackAlgo1 GetTr(std::vector<rb::DwnstrTrackAlgo1>::const_iterator it) const { return *it; } // Deep copy, but small struct.. 
 	 inline size_t Size() const {return fTrs.size(); }
+	 inline size_t SizeOK() const {
+	   size_t n=0;
+	   if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::SizeOK, on " << fTrs.size() << std::endl;
+	   for (std::vector<rb::DwnstrTrackAlgo1>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++) {
+//	     std::cerr << " ......   Type " << it->Type() << "  chiSq " << it->ChiSq() << " chiSq cut " << fChiSqCut << std::endl;
+	     if (((it->Type() == 17) || (it->Type() == 12)) && (!isnan(it->ChiSq())) &&  (it->ChiSq() < fChiSqCut)) n++; 
+	   }
+	   return n;
+	  }
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CBegin() const { return fTrs.cbegin(); } 
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CEnd() const { return fTrs.cend(); } 
 	 inline bool IsGoodForAlignment() const { return fIsGoodForAlignment; } 
@@ -170,21 +184,27 @@ namespace emph {
 	 inline int NumTripletsSt2and3() const {
 	   return  (fInputSt2Pts.NumTriplets() + fInputSt3Pts.NumTriplets());
 	 }
+	 inline int NumTripletsSt5and6() const {
+	   return  (fInputSt5Pts.NumTriplets() + fInputSt6Pts.NumTriplets());
+	 }
 	 
 	 void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
 	 void dumpBeamTracksCmp(bool useKlm = false) const; // Compare the beam track parameters estimates.. 	 
 	 void dumpBeamTracksCmpKlm() const; // Compare the beam track parameters estimates.. 	 
 	 bool doUpDwn3DClFitAndStore( double pStart = 50.);
-	 bool doDwn3DKlmFitAndStore(const std::vector<myItStPt> &dataIn,  double pStart = 50.);
+	 bool doDwn3DKlmFitAndStore(int TrId, const std::vector<myItStPt> &dataIn,  double pStart = 50.);
 	 void transferKlmToClFit(); 
 	 
        private:
 	 
 	 size_t RecAndFitAll4Stations();
 	 
-	 size_t RecAndFitStation234();
-	 size_t RecAndFitStation235();
-	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart, double pStart = 50.);
+	 size_t RecAndFitStation234(); // for Phase1b, currently disabled. 
+	 size_t RecAndFitStation235(); // for Phase1b, currently disabled. 
+	 size_t RecAndFitStation2356(); // for Phase1c, 
+	 size_t RecAndFitStation2345(); // for Phase1c, 
+	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart, 
+	                     double pStart = 50., bool skipStore = true);
 	 bool doPrelimFit(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
 	 bool IsAlreadyFound(const rb::DwnstrTrackAlgo1 &aTr) const;	 
 	 void openOutputCsvFiles() const;

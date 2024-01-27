@@ -30,7 +30,7 @@ namespace emph {
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
       fNEvents(0), fDebugIsOn(false), fIsMC(false), fIsGoodForAlignment(false), 
       fDoMigrad(true), fNoMagnet(false), fChiSqCut(5.0), 
-      fPrelimMomentum(50.0), fChiSqCutPreArb(100.), 
+      fPrelimMomentum(50.0), fChiSqCutPreArb(1000.), 
       fDoUseUpstreamTrack(false), 
       fTokenJob("undef"), fFitterFCN(nullptr), fUpDownFitterFCN(nullptr), fFitterKlmFCN(nullptr), 
       fInputSt2Pts(2), fInputSt3Pts(3), fInputSt4Pts(4), fInputSt5Pts(5), fInputSt6Pts(6), fDataItClForFits(),
@@ -103,9 +103,8 @@ namespace emph {
 	  case 2 : { 
 	   
 	     fInputSt2Pts.SetDebugOn(fDebugIsOn);
-	     if (fDoUseUpstreamTrack) {
-	       if (fDoUseUpstreamTrack) fInputSt2Pts.SetXYWindowCenter( xAtStation, yAtStation);
-	      return fInputSt2Pts.RecIt(evt, aSSDClsPtr); }
+	     if (fDoUseUpstreamTrack) fInputSt2Pts.SetXYWindowCenter( xAtStation, yAtStation);
+	     return fInputSt2Pts.RecIt(evt, aSSDClsPtr); 
 	    }
 	  case 3 : { 
 	     fInputSt3Pts.SetDebugOn(fDebugIsOn);
@@ -182,13 +181,15 @@ namespace emph {
 	}
 //	return 0;  
       }
-           
+      if (fRunNum < 2000) return 0; // If need be, we will restore Phase1b. At a later stage..     
 
       // One need a fitter. 
       if (fFitterFCN == nullptr) {
         fFitterFCN = new SSDDwnstrTrackFitFCNAlgo1(fRunNum);
         fFitterKlmFCN = new SSD3DTrackKlmFitFCNAlgo1(fRunNum);
 	fFitterFCN->SetMCFlag(fIsMC);
+	fFitterFCN->SetMaxDwnstrStation(fMaxDwnstrStation);
+	fFitterKlmFCN->SetMaxDwnstrStation(fMaxDwnstrStation);
       } else {
         if (fFitterFCN->RunNumber() != fRunNum) {
 	  delete fFitterFCN;
@@ -209,29 +210,30 @@ namespace emph {
 	return 0; 
       }
       fInputSt2Pts.ResetUsage(); fInputSt3Pts.ResetUsage(); fInputSt4Pts.ResetUsage();  fInputSt5Pts.ResetUsage(); fInputSt6Pts.ResetUsage(); 
-      if ((fInputSt4Pts.Size() > 0) && (fInputSt5Pts.Size() > 0) ) {
-         size_t n2345 = this->RecAndFitAll4Stations(); 
-	 size_t n234 =  this->RecAndFitStation234();
-	 if (fDebugIsOn) std:: cerr << " Back to SSDRecStationDwnstrAlgo1::RecIt, final number of tracks " << fTrs.size() << std::endl;
+      if ((fInputSt4Pts.Size() > 0) && (fInputSt5Pts.Size() > 0) && (fInputSt6Pts.Size() > 0) ) {
+         size_t n23456 = this->RecAndFitAll4Stations(); // misnomer for Phase1c, this is in fact a five station (allowing one missing hit for station with 3 views
+	 if (fDebugIsOn) std:: cerr << " Back to SSDRecStationDwnstrAlgo1::RecIt, 5-station number of tracks " << fTrs.size() << std::endl;
       }
        
-      if (fInputSt4Pts.Size() == 0) {
-//        std::cerr << " Encountered spill/event " << fSubRunNum << "/" << fEvtNum << " with no Space Points in Station 4 " << std::endl;
-        if (fInputSt5Pts.Size() > 0) {
-	   return this->RecAndFitStation235();
-	} else {
-	   if (fDebugIsOn) std::cerr << " ...  No data from station 4 and 5, so, no tracks.. " << std::endl;
-	   return 0; 
-	}
-      } 
-      if (fInputSt5Pts.Size()) {
+      size_t n2356 = this->RecAndFitStation2356();
+      if (fDebugIsOn) std:: cerr << " Back to SSDRecStationDwnstrAlgo1::RecIt, num  2356 " << n2356 << " total " << fTrs.size() << std::endl;
+      size_t n2345 = this->RecAndFitStation2345();
+      if (fDebugIsOn) std:: cerr << " Back to SSDRecStationDwnstrAlgo1::RecIt, num  2345 " << n2345 << " total " << fTrs.size() << std::endl;
+//
+// Obsolete, phase1b  
+//
+      if (fRunNum < 2000) {   
+        if (fInputSt5Pts.Size()) {
 //        std::cerr << " Encountered spill/event " << fSubRunNum << "/" << fEvtNum << " with no Space Points in Station 5 " << std::endl;
-        if (fInputSt4Pts.Size() > 0) {
-	   return this->RecAndFitStation234();
-	} else {
-	   if (fDebugIsOn) std::cerr << " ...  No data from station 4 and 5, so, no tracks.. " << std::endl;
-	   return 0; 
-	}
+          if (fInputSt4Pts.Size() > 0) {
+	     return this->RecAndFitStation234();
+	  } else {
+	     if (fDebugIsOn) std::cerr << " ...  No data from station 4 and 5, so, no tracks.. " << std::endl;
+	     return 0; 
+	  }
+        }
+      } else {
+        return fTrs.size(); 
       }
       if (fDebugIsOn) std::cerr << " ... Confusing case, check logic, meanwhile, no tracks.. " << std::endl;  
       return 0; // Should not reach here.. 
@@ -250,7 +252,8 @@ namespace emph {
          std::cerr << " " <<  std::endl 
 	          <<  " Starting on RecAndFitAll4Stations, evt " << fEvtNum << " dz26 = " << dz26 << " with " 
                                << fInputSt2Pts.Size() << " St2 Pts,  " << fInputSt3Pts.Size() << " St3 Pts, "  
-			       << fInputSt4Pts.Size() << " St4 Pts,  " << fInputSt5Pts.Size() << " St5 Pts " << std::endl;
+			       << fInputSt4Pts.Size() << " St4 Pts,  " << fInputSt5Pts.Size() << " St5 Pts, " 
+			       << fInputSt6Pts.Size() << " St6 Pts " << std::endl;
 	 std::cerr << " Dump of XY position for Station 2 " << std::endl;
          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++)  
 	   std::cerr << " ID " << itSt2->ID() << " X = " << itSt2->X() << " Y " << itSt2->Y() << " ChiSq " << itSt2->ChiSq() << std::endl;
@@ -267,7 +270,9 @@ namespace emph {
          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt6 = fInputSt6Pts.CBegin(); itSt6 != fInputSt6Pts.CEnd(); itSt6++)  
 	   std::cerr << " ID " << itSt6->ID() << " X = " << itSt6->X() << " Y " << itSt6->Y() << " ChiSq " << itSt6->ChiSq() << std::endl;
 	 std::cerr << " Start Looping .. " << std::endl;  		       
-      }	       
+      }
+      std::vector<myItStPt> dataInKlm;
+      int nComb = 0;	       
       for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
         const double x2Start = itSt2->X(); 
         const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
@@ -286,6 +291,12 @@ namespace emph {
   	      if (fDebugIsOn) std::cerr << " ... ... ... ... At station 5, at x = " << itSt5->X() << " Y " << itSt5->Y() << std::endl; 
 	      
               for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt6 = fInputSt6Pts.CBegin(); itSt6 != fInputSt6Pts.CEnd(); itSt6++) {
+	        nComb++;
+		if (nComb > 10000) {
+		  std::cerr << " Starting on RecAndFitAll4Stations, evt " << fEvtNum <<  " spill " << fSubRunNum 
+		            << " humongous combinatiroc, gave up " << std::endl;
+		  fTrs.clear(); return 0;
+		}
                 if (itSt5->UserFlag() != 0) continue;
   	        if (fDebugIsOn) std::cerr << " ... ... ... ... ... At station 6, at x = " << itSt6->X() << " Y " << itSt6->Y() << std::endl; 
                 const double x6End = itSt6->X();
@@ -297,9 +308,30 @@ namespace emph {
 	        fFitterFCN->AddInputPt(itSt4);
 	        fFitterFCN->AddInputPt(itSt5);
 	        fFitterFCN->AddInputPt(itSt6);
-	        if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
-	          if (fPrelimFitChiSq > 500.) continue; // To be tuned for real data, O.K. for MC. Bogus track.. 
-		  if (std::abs(fPrelimFitMom) < 1.0) continue; // For now!!!   We are interested in low momentum tracks.. 
+//	        if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+                const double fPrelimFitMomPlus = std::abs(fPrelimMomentum); const double fPrelimFitMomMinus = -1.0*std::abs(fPrelimMomentum);
+                if (fDebugIsOn) std::cerr << " ... ... ... ... ... Now doing prelim fit assuming positive momentum of " << fPrelimFitMomPlus << std::endl;
+                bool goodPrelimPlus = 
+	           this->doFitAndStore(rb::FIVESTATIONDWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMomPlus, false);
+                if (fDebugIsOn && (!goodPrelimPlus)) std::cerr << " ... ... ... ... ... .. This Prelim fit failed "  << std::endl;
+                if (fDebugIsOn && (goodPrelimPlus)) std::cerr << " ... ... ... ... ... .. This Prelim fit suceeded, p "  << fPrelimFitMom << std::endl;
+		const double  prelimFitMomPlus  = std::max(fPrelimFitMom, 2.0); // The multiple diverges..  
+		const double prelimChiSqPlus = fPrelimFitChiSq;
+                if (fDebugIsOn) std::cerr << " ... ... ... ... ... Now doing prelim fit assuming negative momentum of " << fPrelimFitMomMinus << std::endl;
+                bool goodPrelimMinus = 
+	           this->doFitAndStore(rb::FIVESTATIONDWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMomMinus, false); 
+                if (fDebugIsOn && (!goodPrelimMinus)) std::cerr << " ... ... ... ... ... .. This Prelim fit failed "  << std::endl;
+                if (fDebugIsOn && (goodPrelimMinus)) std::cerr << " ... ... ... ... ... .. This Prelim fit suceeded, p "  << fPrelimFitMom << std::endl;
+		const double  prelimFitMomMinus  = -1.0*std::max(std::abs(fPrelimFitMom), 3.0); 
+		const double prelimChiSqMinus = fPrelimFitChiSq;
+		if (goodPrelimPlus || goodPrelimMinus) {
+		  if (goodPrelimPlus && (!goodPrelimMinus)) fPrelimFitMom = prelimFitMomPlus;
+		  if ((!goodPrelimPlus) && goodPrelimMinus) fPrelimFitMom = prelimFitMomMinus;
+		  if (goodPrelimPlus && goodPrelimMinus) {
+		    if (prelimChiSqPlus < prelimChiSqMinus) { fPrelimFitMom = prelimFitMomPlus; } 
+		    else { fPrelimFitMom = prelimFitMomMinus; }
+		  }
+		  if (std::abs(fPrelimFitMom) < 0.5) continue; // For now!!!   We are not interested in low momentum tracks.. 
                   fFitterFCN->ResetInputPts();
 	          itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimMomentum, fPrelimFitMom); 
 		  itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimMomentum, fPrelimFitMom);
@@ -313,7 +345,8 @@ namespace emph {
 	          } 
 	          fFitterFCN->AddInputPt(itSt2); fFitterFCN->AddInputPt(itSt3); // copy again.. 
 	          fFitterFCN->AddInputPt(itSt4); fFitterFCN->AddInputPt(itSt5); fFitterFCN->AddInputPt(itSt6);
-	          if (this->doFitAndStore(rb::FIVESTATION, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMom)) {
+                  if (fDebugIsOn) std::cerr << " ... ... ... ... ... Now doing final fit with starting momentum  " << fPrelimFitMom << std::endl;
+ 	          if (this->doFitAndStore(rb::FIVESTATIONDWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMom, true)) {
 		    if (fTrs.rbegin()->ChiSq() < fChiSqCutPreArb) { 
 	              int kTrCnt = static_cast<int>(fTrs.size());
   	              if (fDebugIsOn) std::cerr << " ... ... ... ...  ... Setting Used flags on Space Point, kTrCnt " <<  kTrCnt 
@@ -323,25 +356,26 @@ namespace emph {
 		      itSt4->SetUserFlag(kTrCnt); itSt5->SetUserFlag(kTrCnt); // no chi-square arbitration for now.. 
 		      itSt6->SetUserFlag(kTrCnt);
 	            }
+	           //
+	           // Do the Klm Fits.. 
+	           //
+		    std::vector<rb::DwnstrTrackAlgo1>::reverse_iterator itLast = fTrs.rbegin(); 
+		    dataInKlm.clear();
+		    dataInKlm.push_back(itSt2);  
+		    dataInKlm.push_back(itSt3);  
+		    dataInKlm.push_back(itSt4);  
+		    dataInKlm.push_back(itSt5);  
+		    dataInKlm.push_back(itSt6);  
+//	            if (fDebugIsOn) { std::cerr << " ... About to call doDwn3DKlmFitAndStore, but I chicken out.. " << std::endl; exit(2); }
+	            this->doDwn3DKlmFitAndStore(itLast->ID(), dataInKlm, itLast->Momentum());
+		  
 		  } //  Good refit...+ storage.
-	         //
-	         // Do the Klm Fits.. 
-	         //
-	          std::vector<myItStPt> dataInKlm;
-		  dataInKlm.push_back(itSt2);  
-		  dataInKlm.push_back(itSt3);  
-		  dataInKlm.push_back(itSt4);  
-		  dataInKlm.push_back(itSt5);  
-		  dataInKlm.push_back(itSt6);  
-//	          if (fDebugIsOn) { std::cerr << " ... About to call doDwn3DKlmFitAndStore, but I chicken out.. " << std::endl; exit(2); }
-	          this->doDwn3DKlmFitAndStore(dataInKlm, fPrelimFitMom);
 		// One must restore the uncertainties... The whole thing is ugly.. 
 	          itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimFitMom, fPrelimMomentum); 
 		  itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimFitMom, fPrelimMomentum);
 	          itSt4->ReScaleMultUncert(multScattErrStation4, fPrelimFitMom, fPrelimMomentum); 
 		  itSt5->ReScaleMultUncert(multScattErrStation5, fPrelimFitMom, fPrelimMomentum);
 		  itSt6->ReScaleMultUncert(multScattErrStation6, fPrelimFitMom, fPrelimMomentum);
-		  
                 } // Preliminary Fit successfull.. 
               } // on Space Points in Station 6 
             } // on Space Points in Station 5 
@@ -349,6 +383,240 @@ namespace emph {
         } // on Space Points in Station 3 
       } // on Space Points in Station 2
       if (fDebugIsOn) std::cerr << " End of SSDRecDwnstrTracksAlgo1::RecAndFitAll4Stations, num Tracks " << fTrs.size() << std::endl;;
+      return fTrs.size(); 
+    }
+    size_t SSDRecDwnstrTracksAlgo1::RecAndFitStation2356() {
+    
+      const double multScattErrStation2 = fCoordConvert.GetMultScatUncert120(2);
+      const double multScattErrStation3 = fCoordConvert.GetMultScatUncert120(3);
+      const double multScattErrStation5 = fCoordConvert.GetMultScatUncert120(5);
+      const double multScattErrStation6 = fCoordConvert.GetMultScatUncert120(6);
+    
+      const double dz26 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 6) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
+      if (fDebugIsOn) {
+         std::cerr << " " <<  std::endl 
+	          <<  " Starting on RecAndFitStation2356, evt " << fEvtNum << " dz26 = " << dz26 << " with " 
+                               << fInputSt2Pts.Size() << " St2 Pts,  " << fInputSt3Pts.Size() << " St3 Pts, "  
+			       << fInputSt4Pts.Size() << " St4 Pts,  " << fInputSt5Pts.Size() << " St5 Pts, " 
+			       << fInputSt6Pts.Size() << " St6 Pts " << std::endl;
+	 std::cerr << " Dump of XY position for Station 2 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++)  
+	   std::cerr << " ID " << itSt2->ID() << " X = " << itSt2->X() << " Y " << itSt2->Y() << " ChiSq " << itSt2->ChiSq() << std::endl;
+	 std::cerr << " Dump of XY position for Station 3 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++)  
+	   std::cerr << " ID " << itSt3->ID() << " X = " << itSt3->X() << " Y " << itSt3->Y() << " ChiSq " << itSt3->ChiSq() << std::endl;
+	 std::cerr << " Dump of XY position for Station 5 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++)  
+	   std::cerr << " ID " << itSt5->ID() << " X = " << itSt5->X() << " Y " << itSt5->Y() << " ChiSq " << itSt5->ChiSq() << std::endl;
+	 std::cerr << " Dump of XY position for Station 6 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt6 = fInputSt6Pts.CBegin(); itSt6 != fInputSt6Pts.CEnd(); itSt6++)  
+	   std::cerr << " ID " << itSt6->ID() << " X = " << itSt6->X() << " Y " << itSt6->Y() << " ChiSq " << itSt6->ChiSq() << std::endl;
+	 std::cerr << " Start Looping .. " << std::endl;  		       
+      }
+      int nComb = 0;	       
+      for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
+        const double x2Start = itSt2->X(); 
+        const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
+        if (itSt2->UserFlag() != 0) continue;
+	if (fDebugIsOn) std::cerr << " ... At station 2, at x = " << itSt2->X() << " Y " << itSt2->Y() << std::endl; 
+        for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++) { 
+          if (itSt3->UserFlag() != 0) continue;
+ 	  if (fDebugIsOn) std::cerr << " ... ... At station 3, at x = " << itSt3->X() << " Y " << itSt3->Y() << std::endl; 
+          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++) {
+            if (itSt5->UserFlag() != 0) continue;
+  	    if (fDebugIsOn) std::cerr << " ... ... ... ... At station 5, at x = " << itSt5->X() << " Y " << itSt5->Y() << std::endl; 
+            for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt6 = fInputSt6Pts.CBegin(); itSt6 != fInputSt6Pts.CEnd(); itSt6++) {
+	      nComb++;
+	      if (nComb > 10000) {
+	        std::cerr << " Starting on RecAndFitStation2356, evt " << fEvtNum <<  " spill " << fSubRunNum 
+	        	  << " humongous combinatiroc, gave up " << std::endl;
+	        fTrs.clear(); return 0;
+	      }
+              if (itSt5->UserFlag() != 0) continue;
+  	      if (fDebugIsOn) std::cerr << " ... ... ... ... ... At station 6, at x = " << itSt6->X() << " Y " << itSt6->Y() << std::endl; 
+              const double x6End = itSt6->X();
+              const double y6End = itSt6->Y();// To estimate starting value for the track param fit.
+	      const double xSlopeStart =  (x6End - x2Start)/dz26; const double ySlopeStart =  (y6End - y2Start)/dz26;
+              fFitterFCN->ResetInputPts();
+	      fFitterFCN->AddInputPt(itSt2); // Deep copy in inner loop.. Oh well... 
+	      fFitterFCN->AddInputPt(itSt3);
+	      fFitterFCN->AddInputPt(itSt5);
+	      fFitterFCN->AddInputPt(itSt6);
+//	      if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+              const double fPrelimFitMomPlus = std::abs(fPrelimMomentum); const double fPrelimFitMomMinus = -1.0*std::abs(fPrelimMomentum);
+              bool goodPrelimPlus = 
+	  	 this->doFitAndStore(rb::STATION2356DWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMomPlus, false);
+	      const double  prelimFitMomPlus  = fPrelimFitMom; 
+	      const double prelimChiSqPlus = fPrelimFitChiSq;
+              bool goodPrelimMinus = 
+	  	 this->doFitAndStore(rb::STATION2356DWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMomMinus, false); 
+	      const double  prelimFitMomMinus  = fPrelimFitMom; 
+	      const double prelimChiSqMinus = fPrelimFitChiSq;
+	      if (goodPrelimPlus || goodPrelimMinus) {
+	        if (goodPrelimPlus && (!goodPrelimMinus)) fPrelimFitMom = prelimChiSqPlus;
+	        if ((!goodPrelimPlus) && goodPrelimMinus) fPrelimFitMom = prelimChiSqMinus;
+	        if (goodPrelimPlus && goodPrelimMinus) {
+	          if (prelimChiSqPlus < prelimChiSqMinus) { fPrelimFitMom = prelimChiSqPlus; } 
+	          else { fPrelimFitMom = prelimChiSqMinus; }
+	        }
+	        if (std::abs(fPrelimFitMom) < 0.5){  // For now!!!   We are not interested in low momentum tracks.. 
+		    if (fDebugIsOn) std::cerr << " ... ... ... ... ... Momentum too low.... skip that one " << std::endl;
+		    continue;
+		}
+          	fFitterFCN->ResetInputPts();
+	  	itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimMomentum, fPrelimFitMom); 
+	        itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimMomentum, fPrelimFitMom);
+	        itSt5->ReScaleMultUncert(multScattErrStation5, fPrelimMomentum, fPrelimFitMom);
+	        itSt6->ReScaleMultUncert(multScattErrStation6, fPrelimMomentum, fPrelimFitMom);
+  	  	if (fDebugIsOn) {
+	  	  std::cerr << " ... ... ... At station 6, after Prelim fit, fPrelimMomentum " 
+	  	       << fPrelimMomentum << " fPrelimFitMom " << fPrelimFitMom << " XErr " 
+	               << itSt5->XErr() << " YErr " << itSt5->YErr() << std::endl;
+	  	} 
+	  	fFitterFCN->AddInputPt(itSt2); fFitterFCN->AddInputPt(itSt3); // copy again.. 
+	  	fFitterFCN->AddInputPt(itSt5); fFitterFCN->AddInputPt(itSt6);
+	  	if (this->doFitAndStore(rb::STATION2356DWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMom, true)) {
+	          if (fTrs.rbegin()->ChiSq() < fChiSqCutPreArb) { 
+	  	    int kTrCnt = static_cast<int>(fTrs.size());
+  	  	    if (fDebugIsOn) std::cerr << " ... ... ... ...  ... Setting Used flags on Space Point, kTrCnt " <<  kTrCnt 
+	            << " St2 ID " << itSt2->ID() << " St3 " <<  itSt3->ID() <<  " St5 " <<  itSt5->ID() <<  " St6 " <<  itSt6->ID()  << std::endl; 
+	            itSt2->SetUserFlag(kTrCnt); itSt3->SetUserFlag(kTrCnt); 
+	            itSt5->SetUserFlag(kTrCnt); // no chi-square arbitration for now.. 
+	            itSt6->SetUserFlag(kTrCnt);
+	  	  }
+	        } //  Good refit...+ storage.
+	       //
+	       // Do the Klm Fits.. 
+	       //
+	      // One must restore the uncertainties... The whole thing is ugly.. 
+	  	itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimFitMom, fPrelimMomentum); 
+	        itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimFitMom, fPrelimMomentum);
+	        itSt5->ReScaleMultUncert(multScattErrStation5, fPrelimFitMom, fPrelimMomentum);
+	        itSt6->ReScaleMultUncert(multScattErrStation6, fPrelimFitMom, fPrelimMomentum);
+	        
+              } // Preliminary Fit successfull.. 
+            } // on Space Points in Station 6 
+          } // on Space Points in Station 5 
+        } // on Space Points in Station 3 
+      } // on Space Points in Station 2
+      if (fDebugIsOn) std::cerr << " End of SSDRecDwnstrTracksAlgo1::RecAndFitStation2356, num Tracks " << fTrs.size() << std::endl;;
+      return fTrs.size(); 
+    }
+    size_t SSDRecDwnstrTracksAlgo1::RecAndFitStation2345() {
+    
+      const double multScattErrStation2 = fCoordConvert.GetMultScatUncert120(2);
+      const double multScattErrStation3 = fCoordConvert.GetMultScatUncert120(3);
+      const double multScattErrStation4 = fCoordConvert.GetMultScatUncert120(4);
+      const double multScattErrStation5 = fCoordConvert.GetMultScatUncert120(5);
+    
+      const double dz25 = fEmVolAlP->ZPos(emph::geo::X_VIEW, 5) - fEmVolAlP->ZPos(emph::geo::X_VIEW, 2);
+      if (fDebugIsOn) {
+         std::cerr << " " <<  std::endl 
+	          <<  " Starting on RecAndFitStation2345, evt " << fEvtNum << " dz25 = " << dz25 << " with " 
+                               << fInputSt2Pts.Size() << " St2 Pts,  " << fInputSt3Pts.Size() << " St3 Pts, "  
+			       << fInputSt4Pts.Size() << " St4 Pts,  " << fInputSt5Pts.Size() << " St5 Pts, " 
+			       << fInputSt6Pts.Size() << " St6 Pts " << std::endl;
+	 std::cerr << " Dump of XY position for Station 2 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++)  
+	   std::cerr << " ID " << itSt2->ID() << " X = " << itSt2->X() << " Y " << itSt2->Y() << " ChiSq " << itSt2->ChiSq() << std::endl;
+	 std::cerr << " Dump of XY position for Station 3 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++)  
+	   std::cerr << " ID " << itSt3->ID() << " X = " << itSt3->X() << " Y " << itSt3->Y() << " ChiSq " << itSt3->ChiSq() << std::endl;
+	 std::cerr << " Dump of XY position for Station 4 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt4 = fInputSt4Pts.CBegin(); itSt4 != fInputSt4Pts.CEnd(); itSt4++)  
+	   std::cerr << " ID " << itSt4->ID() << " X = " << itSt4->X() << " Y " << itSt4->Y() << " ChiSq " << itSt4->ChiSq() << std::endl;
+	 std::cerr << " Dump of XY position for Station 5 " << std::endl;
+         for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++)  
+	   std::cerr << " ID " << itSt5->ID() << " X = " << itSt5->X() << " Y " << itSt5->Y() << " ChiSq " << itSt5->ChiSq() << std::endl;
+	 std::cerr << " Start Looping .. " << std::endl;  		       
+      }
+      int nComb = 0;	       
+      for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt2 = fInputSt2Pts.CBegin(); itSt2 != fInputSt2Pts.CEnd(); itSt2++) { 
+        const double x2Start = itSt2->X(); 
+        const double y2Start = itSt2->Y(); // To estimate starting value for the track param fit. 
+        if (itSt2->UserFlag() != 0) continue;
+	if (fDebugIsOn) std::cerr << " ... At station 2, at x = " << itSt2->X() << " Y " << itSt2->Y() << std::endl; 
+        for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt3 = fInputSt3Pts.CBegin(); itSt3 != fInputSt3Pts.CEnd(); itSt3++) { 
+          if (itSt3->UserFlag() != 0) continue;
+ 	  if (fDebugIsOn) std::cerr << " ... ... At station 3, at x = " << itSt3->X() << " Y " << itSt3->Y() << std::endl; 
+          for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt4 = fInputSt4Pts.CBegin(); itSt4 != fInputSt4Pts.CEnd(); itSt4++) {
+            if (itSt4->UserFlag() != 0) continue;
+  	    if (fDebugIsOn) std::cerr << " ... ... ... ... At station 4, at x = " << itSt4->X() << " Y " << itSt4->Y() << std::endl; 
+            for (std::vector<rb::SSDStationPtAlgo1>::const_iterator itSt5 = fInputSt5Pts.CBegin(); itSt5 != fInputSt5Pts.CEnd(); itSt5++) {
+	      nComb++;
+	      if (nComb > 10000) {
+	        std::cerr << " Starting on RecAndFitStation2345, evt " << fEvtNum <<  " spill " << fSubRunNum 
+	        	  << " humongous combinatiroc, gave up " << std::endl;
+	        fTrs.clear(); return 0;
+	      }
+              if (itSt5->UserFlag() != 0) continue;
+  	      if (fDebugIsOn) std::cerr << " ... ... ... ... ... At station 5, at x = " << itSt5->X() << " Y " << itSt5->Y() << std::endl; 
+              const double x5End = itSt5->X();
+              const double y5End = itSt5->Y();// To estimate starting value for the track param fit.
+	      const double xSlopeStart =  (x5End - x2Start)/dz25; const double ySlopeStart =  (y5End - y2Start)/dz25;
+              fFitterFCN->ResetInputPts();
+	      fFitterFCN->AddInputPt(itSt2); // Deep copy in inner loop.. Oh well... 
+	      fFitterFCN->AddInputPt(itSt3);
+	      fFitterFCN->AddInputPt(itSt4);
+	      fFitterFCN->AddInputPt(itSt5);
+//	      if (this->doPrelimFit(rb::FOURSTATION, x2Start, y2Start, xSlopeStart, ySlopeStart)) {
+              const double fPrelimFitMomPlus = std::abs(fPrelimFitMom); const double fPrelimFitMomMinus = -1.0*std::abs(fPrelimFitMom);
+              bool goodPrelimPlus = 
+	  	 this->doFitAndStore(rb::STATION2345DWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMomPlus, false);
+	      const double  prelimFitMomPlus  = fPrelimFitMom; 
+	      const double prelimChiSqPlus = fPrelimFitChiSq;
+              bool goodPrelimMinus = 
+	  	 this->doFitAndStore(rb::STATION2345DWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMomMinus, false); 
+	      const double  prelimFitMomMinus  = fPrelimFitMom; 
+	      const double prelimChiSqMinus = fPrelimFitChiSq;
+	      if (goodPrelimPlus || goodPrelimMinus) {
+	        if (goodPrelimPlus && (!goodPrelimMinus)) fPrelimFitMom = prelimFitMomPlus;
+	        if ((!goodPrelimPlus) && goodPrelimMinus) fPrelimFitMom = prelimFitMomMinus;
+	        if (goodPrelimPlus && goodPrelimMinus) {
+	          if (prelimChiSqPlus < prelimChiSqMinus) { fPrelimFitMom = prelimFitMomPlus; } 
+	          else { fPrelimFitMom = prelimFitMomMinus; }
+	        }
+	        if (std::abs(fPrelimFitMom) < 0.5) {
+		    if (fDebugIsOn) std::cerr << " ... ... ... ... ... Momentum too low.... skip that one " << std::endl;
+		    continue; // For now!!!   We are not interested in low momentum tracks.. 
+		}
+          	fFitterFCN->ResetInputPts();
+	  	itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimMomentum, fPrelimFitMom); 
+	        itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimMomentum, fPrelimFitMom);
+	        itSt4->ReScaleMultUncert(multScattErrStation4, fPrelimMomentum, fPrelimFitMom);
+	        itSt5->ReScaleMultUncert(multScattErrStation5, fPrelimMomentum, fPrelimFitMom);
+  	  	if (fDebugIsOn) {
+	  	  std::cerr << " ... ... ... At station 5, after Prelim fit, fPrelimMomentum " 
+	  	       << fPrelimMomentum << " fPrelimFitMom " << fPrelimFitMom << " XErr " 
+	               << itSt5->XErr() << " YErr " << itSt5->YErr() << std::endl;
+	  	} 
+	  	fFitterFCN->AddInputPt(itSt2); fFitterFCN->AddInputPt(itSt3); // copy again.. 
+	  	fFitterFCN->AddInputPt(itSt5); fFitterFCN->AddInputPt(itSt5);
+	  	if (this->doFitAndStore(rb::STATION2345DWN, x2Start, y2Start, xSlopeStart, ySlopeStart, fPrelimFitMom, true)) {
+	          if (fTrs.rbegin()->ChiSq() < fChiSqCutPreArb) { 
+	  	    int kTrCnt = static_cast<int>(fTrs.size());
+  	  	    if (fDebugIsOn) std::cerr << " ... ... ... ...  ... Setting Used flags on Space Point, kTrCnt " <<  kTrCnt 
+	            << " St2 ID " << itSt2->ID() << " St3 " <<  itSt3->ID() << " St4 " 
+	            <<  itSt4->ID() << " St5 " <<  itSt5->ID() <<  " St5 " <<  itSt5->ID()  << std::endl; 
+	            itSt2->SetUserFlag(kTrCnt); itSt3->SetUserFlag(kTrCnt); 
+	            itSt5->SetUserFlag(kTrCnt); // no chi-square arbitration for now.. 
+	            itSt5->SetUserFlag(kTrCnt);
+	  	  }
+	        } //  Good refit...+ storage.
+	       //
+	       //
+	      // One must restore the uncertainties... The whole thing is ugly.. 
+	  	itSt2->ReScaleMultUncert(multScattErrStation2, fPrelimFitMom, fPrelimMomentum); 
+	        itSt3->ReScaleMultUncert(multScattErrStation3, fPrelimFitMom, fPrelimMomentum);
+	        itSt4->ReScaleMultUncert(multScattErrStation4, fPrelimFitMom, fPrelimMomentum);
+	        itSt5->ReScaleMultUncert(multScattErrStation5, fPrelimFitMom, fPrelimMomentum);
+	        
+              } // Preliminary Fit successfull.. 
+            } // on Space Points in Station 5 
+          } // on Space Points in Station 4 
+        } // on Space Points in Station 3 
+      } // on Space Points in Station 2
+      if (fDebugIsOn) std::cerr << " End of SSDRecDwnstrTracksAlgo1::RecAndFitStation2345, num Tracks " << fTrs.size() << std::endl;;
       return fTrs.size(); 
     }
     //
@@ -599,11 +867,12 @@ namespace emph {
        return true;
     } // doPrelimFitFit
     //
-    bool SSDRecDwnstrTracksAlgo1::doFitAndStore(rb::DwnstrTrType type, double xStart, double yStart, double xSlopeStart, double ySlopeStart, double pStart) {
+    bool SSDRecDwnstrTracksAlgo1::doFitAndStore(rb::DwnstrTrType type, double xStart, double yStart, 
+                                                 double xSlopeStart, double ySlopeStart, double pStart, bool storeIt) {
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsOut, parsOutErr;
 //       fFitterFCN->SetDebugOn(fDebugIsOn);
-//       fFitterFCN->SetDebugOn((fEvtNum == 3));
+//       fFitterFCN->SetDebugOn((fEvtNum == 17));
        fFitterFCN->SetDebugOn(false);
        if (fDebugIsOn) {
          std::cerr << " SSDRecDwnstrTracksAlgo1::doFitAndStore, start, X2 = " <<  xStart << " Y2 " << yStart 
@@ -646,8 +915,10 @@ namespace emph {
          bool isSimplexValid = false;
          flagValid = 0;  
          if (!isMigradValid) {
+	   if (fDebugIsOn) std::cerr << " ... Trying Simplex... " << std::endl;
            ROOT::Minuit2::VariableMetricMinimizer theMinimizer;
 	   ROOT::Minuit2::FunctionMinimum minS = theMinimizer.Minimize((*fFitterFCN), initValsV, initValsE);
+	   if (fDebugIsOn) std::cerr << " Simplex minimum " << min << std::endl;
  	   parsOutErr = minS.UserParameters().Errors();
  	   parsOut = minS.UserParameters().Params();
            isSimplexValid = minS.IsValid();
@@ -655,12 +926,9 @@ namespace emph {
 	   if (isSimplexValid) flagValid = 2;
          } else {
 	   chiSq = min.Fval();
+           fFitterFCN->SetDebugOn(false);
  	   parsOutErr = min.UserParameters().Errors();
  	   parsOut = min.UserParameters().Params();
-	   //
-	   // if the momentum is negative, flip the sign of the slopes. 
-	   //
-	   if (parsOut[4] < 0.) { parsOut[1] *= -1.; parsOut[3] *= -1.; }
 	   flagValid = 1;
          }
          if (flagValid == 0) {
@@ -669,10 +937,25 @@ namespace emph {
          }
          if (fDebugIsOn && (flagValid == 1)) std::cerr <<  " Migrad fit succeeded, chiSq " << chiSq << std::endl;
          if (fDebugIsOn && (flagValid == 2)) std::cerr <<  " Simplex fit succeeded, chiSq " << chiSq << std::endl;
+         if (fDebugIsOn) {
+	     std::cerr << " ..... Setting debug on in the FCN function dump of the fit prediction/measurements.... . " << std::endl;
+             fFitterFCN->SetDebugOn(true);
+	     const double chiCheck = (*fFitterFCN)(parsOut);
+             fFitterFCN->SetDebugOn(false);
+	 }
+	 if (!storeIt) {
+	  fPrelimFitChiSq = chiSq; 
+	  fPrelimFitMom = 1.0/parsOut[4];
+	  return true;
+	 }   
          rb::DwnstrTrackAlgo1 aTr; 
          aTr.SetType(type); 
          aTr.SetID(static_cast<int>(fTrs.size()));
-         if (parsOut.size() == 5) { 
+         if (parsOut.size() == 5) {
+	   //
+	   // if the momentum is negative, flip the sign of the slopes. 
+	   //
+	   if (parsOut[4] < 0.) { parsOut[1] *= -1.; parsOut[3] *= -1.; }
            aTr.SetTrParams(parsOut[0], parsOut[1], parsOut[2], parsOut[3], 1.0/parsOut[4]);
            aTr.SetTrParamsErrs(parsOutErr[0], parsOutErr[1], parsOutErr[2], parsOutErr[3], parsOutErr[4]/(parsOut[4]*parsOut[4]));
          } else {
@@ -1107,20 +1390,23 @@ namespace emph {
 	     } // on Station 5 space points 
 	    } // on Station 4 space points 
 	  } // on Station 3 space points      
-        } // on Station 2 space points  
+        } // on Station 2 space points 
+	if (fDebugIsOn) std::cerr << "  End  of Phase1c " << std::endl;
       } //Phase1b vs Phase1c     
      // Dump the info..  
      if (iTr != static_cast<int>(infoPtSts.size())) {
          std::cerr << " SSDRecDwnstrTracksAlgo1::dumpCompactEvt, inconsistent number of info " << infoPtSts.size() 
 	           << " vs  numlines " << iTr << " fatal, exit here and now " <<  std::endl; exit(2);
      }      
+     if (fDebugIsOn) std::cerr << "  After check on consistency of infoPtSts... iTr " << iTr << std::endl;
      std::ostringstream infoHeaderStrStr;
      infoHeaderStrStr << " " << fSubRunNum << " " << fEvtNum << " " << iTr; 
      std::string infoHeader(infoHeaderStrStr.str());
      for (int il=0; il != iTr; il++) {
          fFOutCompactInfo << infoHeader << " " << il << " " << fItUpstrTr->XOffset() << " " << fItUpstrTr->YOffset() 
 	                  << " " <<  fItUpstrTr->XSlope() << " " << fItUpstrTr->YSlope() << infoPtSts[il] << std::endl;
-      } 
+      }
+      if (fDebugIsOn) std::cerr << " ... End of dumpCompactEvt ... " << std::endl; 
    } // end of dumpCompactEvt
   } // namespace ssdr
 } // namespace emph

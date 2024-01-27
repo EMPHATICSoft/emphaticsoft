@@ -51,6 +51,7 @@ namespace emph {
     }  
     double SSD3DTrackFitFCNAlgo1::operator()(const std::vector<double> &pars) const {
     
+      std::cerr << " Not Ready for Phase1c, quit here and now ... " << std::endl; exit(2);
       if (fDebugIsOn) std::cerr << "SSD3DTrackFitFCNAlgo1::operator, Start, number of track parameters " 
                                 << pars.size() << " Number of data pts " << fData.size() << std::endl; 
      if (fDebugIsOn && fNoMagnet) std::cerr << "  .....   The Magnet has been removed.. " << std::endl;
