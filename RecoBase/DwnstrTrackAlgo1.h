@@ -16,11 +16,17 @@
 namespace rb {
 
     typedef enum tDwnstrTrType { TRDWNNONE = 0, // unspecified. 
-                                 FOURSTATION = 1, // Best case
-                                 FIVESTATION = 11, //Phase1c, downstream of target
+                                 FOURSTATION = 1, // Best case, Phase1b
+                                 FIVESTATION = 11, //Phase1b, obsolete
 				 STATION234 = 2,
 				 STATION235 = 3, 
-                                 SIXSTATION = 10 // Best case, when we have no magnet, target in fron ot Station 0
+                                 SIXSTATION = 10, // Best case, when we have no magnet, Not yet supported in Phase1c
+                                 FIVESTATIONDWN = 12, // Best case, Phase1c, Downstream tracks. 
+                                 STATION2356DWN = 14, // Phase1c, Downstream tracks, station 4 missing 
+                                 STATION2456DWN = 15, // Phase1c, Downstream tracks, station 3 missing 
+                                 STATION3456DWN = 16, // Phase1c, Downstream tracks, station 2 missing 
+                                 STATION2345DWN = 17, // Phase1c, Downstream tracks, station 6 missing 
+                                 STATION2346DWN = 18 // Phase1c, Downstream tracks, station 5 missing 
 			} DwnstrTrType;
 				
   
