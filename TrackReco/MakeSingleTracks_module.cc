@@ -515,29 +515,16 @@ namespace emph {
               else {badclust++;}
 	    }
             else badclust++;
+
+	    // debug
 	    //if (goodEvent && clusters.size()<nPlanes){
 	      //std::cout<<"# clusters: "<<clusters.size()<<std::endl;
 	      //for (auto i : clustMap){
 	      //  std::cout<<"Cluster: "<<i.first.first<<","<<i.first.second<<std::endl;
 	      //}
 	    //}
-	  } 
-/*	  if (clusters.size()<=nPlanes){
-            std::cout<<"# clusters: "<<clusters.size()<<std::endl;
-	    for (auto i : clustMapAtLeastOne){
-		for (auto j : i.second){
-                   std::cout<<"("<<i.first<<",("<<j.first.first<<","<<j.first.second<<"),"<<j.second<<")"<<std::endl;
-	           if (j.second == 2 || j.second == 3) {
-			okayEvent = true; 
-			break;} 
-	           else okayEvent = false;
-	        }
-		if (okayEvent==false) break;
-	    }
-	    if (okayEvent==true) {okayclust++;}
-          }
-	  //if (okayEvent) std::cout<<"# clusters: "<<clusters.size()<<std::endl;
-*/
+	  }
+ 
           cl_group.resize(nStations);
           ls_group.resize(nStations);
 
