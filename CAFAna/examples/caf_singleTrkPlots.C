@@ -191,6 +191,7 @@ void caf_singleTrkPlots(std::string fname)
       bool goodEvent = false;
       bool goodHit = false;
       if (nspcpts > 0) {goodCluster = true; ncl++;}
+      //std::cout<<"truth hits: "<<rec->truth.truehits.truehits.size()<<std::endl;
       if (goodCluster && rec->truth.truehits.truehits.size() == 20) goodEvent = true;
       if (goodCluster){
         for (size_t i=0; i<nspcpts; i++){

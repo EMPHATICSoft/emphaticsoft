@@ -81,13 +81,14 @@ namespace emph {
     int         fEvtNum;
 
     std::vector<const rb::SSDCluster*> clusters;
-    std::vector<rb::LineSegment> stripv;
+    std::vector<const rb::LineSegment*> linesegments;
     std::vector<rb::SpacePoint> spv;
     std::vector<rb::TrackSegment> tsv;
     std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
     std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group;
 
     std::map<std::pair<int, int>, int> clustMap;
+    std::map<int, std::map<std::pair<int, int>, int>> clustMapAtLeastOne;
 
     bool        fMakePlots;
     int 	goodclust = 0;
@@ -99,6 +100,8 @@ namespace emph {
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
     std::string fClusterLabel;
+    std::string fG4Label;
+    std::string fClusterCut;
 
     //histograms and graphs for hits
     TH2F* hSPDist0;
@@ -128,7 +131,9 @@ namespace emph {
   emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
-    fClusterLabel (pset.get< std::string >("ClusterLabel"))
+    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
+    fG4Label           (pset.get< std::string >("G4Label")),
+    fClusterCut        (pset.get< std::string >("ClusterCut"))
     {
       this->produces< std::vector<rb::SpacePoint> >();
       this->produces< std::vector<rb::TrackSegment> >();
@@ -189,8 +194,10 @@ namespace emph {
   
   void emph::MakeSingleTracks::endJob()
   {
-       std::cout<<"Number of clusters with one cluster per sensor: "<<goodclust<<std::endl;
+       if (fClusterCut == "strict") std::cout<<"Number of events with one cluster per sensor: "<<goodclust<<std::endl;
+       if (fClusterCut == "lessstrict") std::cout<<"Number of events with at least two clusters per station: "<<goodclust<<std::endl;
        std::cout<<"Number of available clusters: "<<badclust+goodclust<<std::endl;
+	
 /*
        // Don't seg fault if there are no tracks in the subrun(s).
        if (hScattering) {
@@ -228,7 +235,7 @@ namespace emph {
 
   void emph::MakeSingleTracks::MakeHits()
   {
-    rb::SpacePoint sp;
+     rb::SpacePoint sp;
 
      art::ServiceHandle<emph::geo::GeometryService> geo;
      auto emgeo = geo->Geo();
@@ -236,7 +243,11 @@ namespace emph {
      ru::RecoUtils recoFcn = ru::RecoUtils(fEvtNum);
 
      for (size_t i=0; i<nStations; i++){
-         int nssds = emgeo->GetSSDStation(i)->NPlanes();
+	 int nssds = 0;
+         for (size_t j=0; j<cl_group[i].size(); j++){
+           nssds += cl_group[i][j].size();
+	 }
+         //int nssds = emgeo->GetSSDStation(i)->NPlanes();
          for (size_t j=0; j<nPlanes; j++){
              if (nssds == 2){ //station 0,1,4,7
                 for (size_t k=0; k<ls_group[i][j].size(); k++){
@@ -436,7 +447,7 @@ namespace emph {
     if(fMakePlots){ 
 
       if (fCheckClusters){
-	auto hasclusters = evt.getHandle<rb::SSDCluster>("clust");
+	auto hasclusters = evt.getHandle<rb::SSDCluster>("ssdclusts");
 	if (!hasclusters){
 	  mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
 	  abort();
@@ -444,14 +455,11 @@ namespace emph {
       }
 
       //std::string fClusterLabel = "clust";
+      //std::string fLineSegLabel = "ssdclusts";
       art::Handle< std::vector<rb::SSDCluster> > clustH;
-
-      std::string fG4Label = "geantgen";
+      art::Handle< std::vector<rb::LineSegment> > lsH;
       art::Handle< std::vector<sim::SSDHit> > ssdHitH;
  
-      //std::string fLineSegLabel = "";
-      // art::Handle< std::vector<rb::LineSegment> > lsH;
-
       try {
 	evt.getByLabel(fG4Label,ssdHitH);
       } 
@@ -460,7 +468,6 @@ namespace emph {
       }
 
       bool goodEvent = false;
-      bool goodHit = false;
       
       try {
 	evt.getByLabel(fClusterLabel, clustH);
@@ -468,27 +475,69 @@ namespace emph {
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
 	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
+	    ++clustMapAtLeastOne[clust.Station()][std::pair<int,int>(clust.Station(),clust.Plane())];
 	    clusters.push_back(&clust); 
 	  }
 	  //line segments
-	  //evt.getByLabel(fLineSegLabel, lsH);
-	  //for (size_t idx=0; idx < lsH->size(); ++idx) {
-	  //  const rb::LineSegment& lineseg = (*lsH)[idx];
-	  //  linesegments.push_back(&lineseg);
-	  //}
+	  evt.getByLabel(fClusterLabel, lsH);
+	  for (size_t idx=0; idx < lsH->size(); ++idx) {
+	    const rb::LineSegment& lineseg = (*lsH)[idx];
+	    linesegments.push_back(&lineseg);
+	  }
 
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
-	  if (clusters.size()==nPlanes){
-	    for (auto i : clustMap){
-	      if (i.second != 1){goodEvent = false; break;} 
-	      else goodEvent = true;
+	  if (fClusterCut == "strict"){
+	    if (clusters.size()==nPlanes){
+	      for (auto i : clustMap){
+	        if (i.second != 1){goodEvent = false; break;} 
+	        else goodEvent = true;
+	      }
+	      if (goodEvent==true) {goodclust++;} 
+	      else {badclust++;}
+            }
+	    else badclust++;
+	  }
+
+	  //AT LEAST TWO CLUSTERS PER STATION
+	  if (fClusterCut == "lessstrict"){
+	    if (clusters.size()<=nPlanes){
+	      int sum[8] = {0};
+	      for (auto i : clustMap){
+                if (i.second != 1){goodEvent = false; break;}
+	        sum[i.first.first] += i.second;
+	      }
+	      for (size_t i=0; i<nStations; i++){
+	        if (sum[i] == 2 || sum[i] ==3) goodEvent = true;
+	        else {goodEvent = false; break;}
+	      }
+	      if (goodEvent==true) {goodclust++;}
+              else {badclust++;}
 	    }
-	    if (goodEvent==true) {goodclust++;} 
-	    else {badclust++;}
+            else badclust++;
+	    //if (goodEvent && clusters.size()<nPlanes){
+	      //std::cout<<"# clusters: "<<clusters.size()<<std::endl;
+	      //for (auto i : clustMap){
+	      //  std::cout<<"Cluster: "<<i.first.first<<","<<i.first.second<<std::endl;
+	      //}
+	    //}
+	  } 
+/*	  if (clusters.size()<=nPlanes){
+            std::cout<<"# clusters: "<<clusters.size()<<std::endl;
+	    for (auto i : clustMapAtLeastOne){
+		for (auto j : i.second){
+                   std::cout<<"("<<i.first<<",("<<j.first.first<<","<<j.first.second<<"),"<<j.second<<")"<<std::endl;
+	           if (j.second == 2 || j.second == 3) {
+			okayEvent = true; 
+			break;} 
+	           else okayEvent = false;
+	        }
+		if (okayEvent==false) break;
+	    }
+	    if (okayEvent==true) {okayclust++;}
           }
-	  else badclust++;
-	  
+	  //if (okayEvent) std::cout<<"# clusters: "<<clusters.size()<<std::endl;
+*/
           cl_group.resize(nStations);
           ls_group.resize(nStations);
 
@@ -512,25 +561,15 @@ namespace emph {
 	    if (cl_group[i].size() == 0){ goodEvent = false; break; }
 	    }
           */
-
-	  rb::LineSegment strip;
-          if (goodEvent == true && clusters.size() > 0){
-	    for (size_t i=0; i<clusters.size(); i++){
-	      stripv.push_back(strip);
-	      MakeSegment(*clusters[i],stripv[i]);
-		
-	    }
-          }
-
-	  if (goodEvent == true && stripv.size() > 0){
+ 
+	  //grab line segments from SSDCluster handle
+	  if (goodEvent == true){
 	    for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
-	      int station = clusters[i]->Station();
-	      ls_group[station][plane].push_back(&stripv[i]);
-	      //ls_group[station][plane].push_back(&linesegments[i]);
-	      //this assumes they are ordered the same? could loop over clusters or line segments?
-	      //does it matter?
+              int station = clusters[i]->Station();
+	      ls_group[station][plane].push_back(linesegments[i]);
 	    }
+
 	    //make reconstructed hits
 	    MakeHits();
 	    for (auto sp : spv)
@@ -539,42 +578,27 @@ namespace emph {
 
           ls_group.clear();
           cl_group.clear();
-	  stripv.clear();
+          linesegments.clear();
 	  clusters.clear();
           clustMap.clear();
+	  clustMapAtLeastOne.clear();
 
-          //get truth info
+          //reconstructed hits
           if (goodEvent && spv.size() > 0 && ssdHitH->size() == nPlanes){
-	    for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
-	      const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
+	    for (size_t i=0; i<spv.size(); i++){
+	      std::vector<double> x = {spv[i].Pos()[0],spv[i].Pos()[1],spv[i].Pos()[2]};	
 
-	      // if you use the magnetic field survey
-              //if (ssdhit.GetStation() == 4){
-              //   if (abs(ssdhit.GetX()) < 15 && abs(ssdhit.GetY()) < 15) goodHit = true;
-              //   else std::cout<<"SSDHit outside magnetic field map bounds."<<std::endl;
-              //}
+	      if (emgeo->GetTarget()){
+                if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(x);
+                if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(x);
+                if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(x);
+              }
+	    }
 
-              // if not
-	      goodHit = true;
-	    }	
-
-	    if (goodHit){
-	      for (size_t i=0; i<spv.size(); i++){
-	        std::vector<double> x = {spv[i].Pos()[0],spv[i].Pos()[1],spv[i].Pos()[2]};	
-
-	        //reconstructed hits
-	        if (emgeo->GetTarget()){
-                  if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(x);
-                  if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(x);
-                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(x);
-                }
-	      }
-
-	      //form lines and fill plots
-	      MakeLines();
-	      for (auto ts : tsv) {
-	        tracksegmentv->push_back(ts);	     
-	      }
+            //form lines and fill plots
+            MakeLines();
+	    for (auto ts : tsv) {
+	      tracksegmentv->push_back(ts);	     
 	    }
 	  }
           sp1.clear();
