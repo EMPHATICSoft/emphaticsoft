@@ -275,10 +275,10 @@ namespace emph {
     std::vector<double> SSD_t;
     std::vector<double> SSD_adc;
 
-    std::array<double, n_ch_bac> LG_t; // Pulse time of LGCalo signals
-    std::array<double, n_ch_bac> LG_hgt; // Pulse height of LGCalo signals
-    std::array<double, n_ch_bac> LG_base; // Baseline of LGCalo signals
-    std::array<double, n_ch_bac> LG_blw; // Baseline width of LGCalo signals
+    std::array<double, n_ch_lg> LG_t; // Pulse time of LGCalo signals
+    std::array<double, n_ch_lg> LG_hgt; // Pulse height of LGCalo signals
+    std::array<double, n_ch_lg> LG_base; // Baseline of LGCalo signals
+    std::array<double, n_ch_lg> LG_blw; // Baseline width of LGCalo signals
 
   };
 
