@@ -2,7 +2,7 @@ Name,Title,Category,Type,nx,x1,x2,ny,y1,y2,Option,Detector,Reset,Look back,Capti
 NRawObjectsHisto,Number of Raw Objects Per Detector;Detector;Number,All Detectors,TH2F,9,0,9,100,0,100,colz:logz:detlbl:autozoomz,emph,subrun,1,Distribution of the number of raw data objects per detector per event.
 NTriggerVsDet,Number of Triggers Seen by Each Detector;Detector;Number,All Detectors,TH1F,9,0,9,0,0,0,detlbl:hist:autozoomy,emph,subrun,1,Shows number of triggers seen by each detector.
 TriggerVsSubrun,Number of triggers per subrun seen by each detector.;Subrun;Detector,All Detectors,TH2F,600,0,600,9,0,9,colz:autozoomz:special:zoomsr,emph,run,1,Number of triggers per subrun recorded by each detector.
-HitEffPerChannel,Hit Efficiency per Channel seen by each detector.;Detector;Channel,All Detectors,TH2F,39,0,39,64,0,64,colz:autozoomz:special:zoomsr,emph,subrun,1,Hit efficiency vs. (Detector,Channel).
+HitEffPerChannel,Hit Efficiency per Channel seen by each detector.;Detector;Channel,All Detectors,TH2F,45,0,45,64,0,64,colz:autozoomz:special:zoomsr,emph,subrun,1,Hit efficiency vs. (Detector,Channel).
 TRB3NHitsPerChannel,TRB3 hits per electronic channels;Channel;FPGA,All Detectors,TH2F,65,0,65,20,0,20,colz,emph,run,1,TRB3 number of hits per electronic channels.
 T0ADC*,T0 ADC Distribution;ADC,T0,TH1F,512,0,4095,0,0,0,,emph,subrun,1,Shows ADC distribution for T0 channels.
 T0NTDC*,Number of T0 Hits Per Event;TDC,T0,TH1F,50,0,50,0,0,0,,emph,subrun,1,Shows number of T0 hits seen in each event on a given channel.

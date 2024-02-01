@@ -28,11 +28,12 @@
 
 #include "RecoBase/Spill.h"
 
-//IFDB includes
+//IFDB include
 #include "ifbeam.h" 
 //#include "Munits.h"
 //#include "IFBeam_service.h"
 #include "ifdh_art/IFBeamService/IFBeam_service.h"
+#include "RunHistory/service/RunHistoryService.h"
 
 /// Information about the IFDB
 namespace emph
@@ -44,11 +45,13 @@ namespace emph
     virtual ~SpillInfo();                        
     
     void produce(art::Event& evt);
+    void beginRun(art::Run& run);
     void beginSubRun(art::SubRun &sr);
     //    void endSubRun(art::SubRun &sr);
 
   private:
 
+    art::ServiceHandle<runhist::RunHistoryService> rhs;
     std::unique_ptr<rb::Spill> fSpill;
     double fOffset;
 
@@ -83,6 +86,11 @@ namespace emph
   SpillInfo::~SpillInfo()
   {
   }
+
+  //......................................................................
+  void SpillInfo::beginRun(art::Run& run) //run) 
+  {
+  }
   
   //......................................................................
   void SpillInfo::beginSubRun(art::SubRun& sr)
@@ -90,7 +98,6 @@ namespace emph
     std::cout << "%%%%% Subrun time: " << sr.beginTime().timeHigh() << std::endl;
     fSpill.reset(new rb::Spill());
     fSpill->SetTimestamp(sr.beginTime().timeHigh());
-    
     // Query the database to get post-spill sample device info. 
     // We are querying $36, so an offset is added to the event time 
     // to match the db time. Epsilon for the beam folder is large enough
@@ -100,7 +107,7 @@ namespace emph
       double recordTime = spillTime + fOffset;
       
       double intensity;
-      //      double momentum;
+      double momentum;
       double mt5cpr;
       double mt6cpr;
       double mt5cp2;
@@ -115,6 +122,9 @@ namespace emph
       // right now what to do about this.  Skipping momentum info for now.
       //      bfp->GetNamedData(recordTime,"S:MTNRG",&momentum);
 
+      //Note that the momentum is currently using RunHistory (user input information)
+      momentum = rhs->RunHist()->BeamMom();
+      fSpill->SetMomentum(momentum);
 
       bfp->GetNamedData(recordTime,"F:MT6SC1",&intensity);
       bfp->GetNamedData(recordTime,"F:MT5CPR,F:MT6CPR,F:MT5CP2,F:MT6CP2",&mt5cpr,&mt6cpr,&mt5cp2,&mt6cp2);
@@ -122,7 +132,6 @@ namespace emph
       bfp->GetNamedData(recordTime,"F:MT6CA1,F:MT6CA2,F:MT6CA3",&mt6ca1,&mt6ca2,&mt6ca3);
       
       fSpill->SetIntensity(intensity);
-      //      fSpill->SetMomentum(momentum);
       fSpill->SetMT5CPR(mt5cpr);
       fSpill->SetMT6CPR(mt6cpr);
       fSpill->SetMT5CP2(mt5cp2);
@@ -136,7 +145,7 @@ namespace emph
       std::cout << "%%%%% IFBeam query results: %%%%%" << std::endl;
       std::cout << "Time: spillTime+fOffset = " << uint64_t(spillTime+fOffset) << std::endl;
       std::cout << "Intensity: " << intensity << std::endl;
-      //      std::cout << "Momentum: " << momentum << std::endl;
+      std::cout << "Momentum: " << momentum << std::endl;
       std::cout << "CkovMT5 Pressure: " << mt5cpr << std::endl;
       std::cout << "CkovMT6 Pressure: " << mt6cpr << std::endl;
 

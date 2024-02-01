@@ -1,3 +1,4 @@
+#include "RunHistory.fcl"
 BEGIN_PROLOG
 
 #   This file defines the configuration for the job module "SpillInfo"

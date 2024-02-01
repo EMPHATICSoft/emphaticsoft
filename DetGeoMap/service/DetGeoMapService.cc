@@ -1,11 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////
-/// \brief  Simple service to provide a channel map configured to the right 
+/// \brief  Simple service to provide a detector channel-to-position map 
 /// \author jpaley@fnal.gov
 //////////////////////////////////////////////////////////////////////////
 
 // EMPHATIC includes
-#include "ChannelMap/service/ChannelMapService.h"
-#include "RunHistory/service/RunHistoryService.h"
+#include "Geometry/service/GeometryService.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 
 // Framework includes
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
@@ -15,42 +15,38 @@
 
 namespace emph
 {
-  namespace cmap
+  namespace dgmap
   {
     
     //------------------------------------------------------------
-    ChannelMapService::ChannelMapService(const fhicl::ParameterSet& pset,
-					 art::ActivityRegistry & reg)
+    DetGeoMapService::DetGeoMapService(const fhicl::ParameterSet& pset,
+				       art::ActivityRegistry & reg):
+      fUseGeometry (pset.get<bool>("UseGeometry"))
     {
-      reconfigure(pset);
-      
-      art::ServiceHandle<runhist::RunHistoryService> rhs;
+      art::ServiceHandle<emph::AlignService> align;
 
-      fChannelMap = new ChannelMap();
+      fDetGeoMap = new DetGeoMap();
+      fDetGeoMap->SetUseGeometry(fUseGeometry);
 
-      reg.sPreBeginRun.watch(this, &ChannelMapService::preBeginRun);
+      reg.sPreBeginRun.watch(this, &DetGeoMapService::preBeginRun);
 
     }
     
     //----------------------------------------------------------
     
-    ChannelMapService::~ChannelMapService()
+    DetGeoMapService::~DetGeoMapService()
     {
-    }
-    
-    //-----------------------------------------------------------
-    void ChannelMapService::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fAbortIfFileNotFound = pset.get<bool>("AbortIfFileNotFound");
     }
     
     //----------------------------------------------------------
-    void ChannelMapService::preBeginRun(const art::Run& )
+    void DetGeoMapService::preBeginRun(const art::Run& run)
     {
-      fChannelMap->SetAbortIfFileNotFound(fAbortIfFileNotFound);      
-      art::ServiceHandle<runhist::RunHistoryService> rhs;
+      art::ServiceHandle<emph::geo::GeometryService> geo;
+      art::ServiceHandle<emph::AlignService> align;
 
-      fChannelMap->LoadMap(rhs->RunHist()->ChanFile());
+      fDetGeoMap->SetRun(run.run());
+      fDetGeoMap->SetGeometry(geo->Geo());
+      fDetGeoMap->SetAlign(align->GetAlign());
     }
     
   }

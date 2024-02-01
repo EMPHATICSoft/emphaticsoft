@@ -48,6 +48,28 @@ namespace emph {
 
     //----------------------------------------------------------------------
 
+    void ChannelMap::PrintE2D()
+    {
+      std::map<emph::cmap::EChannel,emph::cmap::DChannel>::iterator itr=fEChanMap.begin();
+      
+      for (; itr != fEChanMap.end(); ++itr) {
+	std::cout << itr->first << "-->" << itr->second << std::endl;
+      }
+    }
+
+    //----------------------------------------------------------------------
+
+    void ChannelMap::PrintD2E()
+    {
+      std::map<emph::cmap::DChannel,emph::cmap::EChannel>::iterator itr=fDChanMap.begin();
+      
+      for (; itr != fDChanMap.end(); ++itr) {
+	std::cout << itr->first << "-->" << itr->second << std::endl;
+      }
+    }
+
+    //----------------------------------------------------------------------
+
     bool ChannelMap::LoadMap(std::string fname)
     {
       
@@ -69,18 +91,20 @@ namespace emph {
       int dChannel;
       short dHiLo;
       int dStation;
+      int dPlane;
       std::string comment;
       
       while (getline(mapFile,line)) {
 	std::stringstream lineStr(line);
-	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> dStation >> comment;
+	lineStr >> boardType >> board >> eChannel >> det >> dChannel >> dHiLo >> dStation >> dPlane >> comment;
 	if (boardType[0] == '#') continue;
 	
 	emph::cmap::FEBoardType iBoardType = emph::cmap::Board::Id(boardType);
 	emph::geo::DetectorType iDet = emph::geo::DetInfo::Id(det);
 	DChannel dchan(iDet,dChannel,dStation,dHiLo);
 	EChannel echan(iBoardType,board,eChannel);
-	//	std::cout << dchan << " <--> " << echan << std::endl;
+	if (dchan.DetId() == emph::geo::SSD)
+	  dchan.SetPlane(dPlane);
 	fEChanMap[echan] = dchan;
 	fDChanMap[dchan] = echan;
 	

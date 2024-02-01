@@ -37,6 +37,8 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "RecoBase/ADC.h"
+#include "SignalTime/SignalTime.h"
+#include "ADCUtils/ADCUtils.h"
 
 
 using namespace emph;
@@ -65,9 +67,6 @@ namespace emph {
 
       // Optional, read/write access to event
       void analyze(const art::Event& evt);
-
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
@@ -102,6 +101,7 @@ namespace emph {
       void HandleRequestsThread();
 
       art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+      emph::st::SignalTime stmap;
 
       OnMonProdIPC* fIPC;         ///< Communicates with viewer
       std::string   fSHMname;     ///< Shared memory for communication
@@ -131,7 +131,7 @@ namespace emph {
       static const unsigned int kT0Offset = 0;
       static const unsigned int kRPCOffset = 1;
       static const unsigned int kSSDOffset = 1;
-      static const unsigned int kARICHOffset = kSSDOffset+22;
+      static const unsigned int kARICHOffset = kSSDOffset+28;
       static const unsigned int kLGCaloOffset = kARICHOffset+9;
       // define histograms
 
@@ -199,37 +199,21 @@ namespace emph {
 
     //.......................................................................
     OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
-      : EDAnalyzer(pset)
+      : EDAnalyzer(pset),
+	fSHMname           (pset.get<std::string>("SHMHandle")),
+	fuseSHM            (pset.get<bool>("useSHM")),
+	fTickerOn          (pset.get<bool>("TickerOn")),
+	fMakeWaveFormPlots (pset.get<bool>("makeWaveFormPlots",true)),
+	fMakeTRB3Plots     (pset.get<bool>("makeTRB3Plots",true)),
+	fMakeSSDPlots      (pset.get<bool>("makeSSDPlots",false))
     {
 
-      this->reconfigure(pset);
       HistoTable::Instance(Settings::Instance().fCSVFile.c_str(),
 		       Settings::Instance().fDet);
-
-    }
-
-    //......................................................................
-    OnMonPlotter::~OnMonPlotter()
-    {
-      //======================================================================
-      // Clean up any memory allocated by your module
-      //======================================================================
-    }
-
-    //......................................................................
-    void OnMonPlotter::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fSHMname = pset.get<std::string>("SHMHandle");
-      fuseSHM = pset.get<bool>("useSHM");
-      fTickerOn = pset.get<bool>("TickerOn");
 
       //if (fIPC) delete fIPC;
       if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
       else fIPC = nullptr;
-
-      fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
-      fMakeTRB3Plots = pset.get<bool>("makeTRB3Plots",true);
-      fMakeSSDPlots = pset.get<bool>("makeSSDPlots",false);
       
       // try to find the correct path to the .csv file.
       std::string filename = pset.get< std::string > ("CSVFile");
@@ -251,6 +235,15 @@ namespace emph {
       } // loop on directory attempts
 
       Settings::Instance().fDet = kEMPH;
+
+    }
+
+    //......................................................................
+    OnMonPlotter::~OnMonPlotter()
+    {
+      //======================================================================
+      // Clean up any memory allocated by your module
+      //======================================================================
     }
 
     //......................................................................
@@ -672,8 +665,7 @@ namespace emph {
 	if (!wvfmH->empty()) {
 	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
 	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-	    const rawdata::WaveForm* wvfm_ptr = &wvfm;
-	    const rb::ADC wvr; 
+        const emph::adcu::ADCUtils ADCUtil(wvfm,stmap,10,15);
 	    int chan = wvfm.Channel();
 	    int board = wvfm.Board();
 	    echan.SetBoard(board);
@@ -684,7 +676,7 @@ namespace emph {
 	      // now fill ADC dist plot
 	      float adc = wvfm.Baseline()-wvfm.PeakADC();
 	      float blw = wvfm.BLWidth();
-	      float q = wvr.Charge(wvfm_ptr);
+	      float q = ADCUtil.Charge();
 	      fBACkovQDist[detchan]->Fill(q);
 	      if (adc > 5*blw) {
 		// now fill waveform plot
@@ -811,19 +803,9 @@ namespace emph {
 	    int station = ssd.FER();
 	    int module = ssd.Module();
 	    int row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
-	    int sensor=-1;
-	    if (station == 0)
-	      sensor = module;
-	    else {
-	      if (station == 1) 
-		sensor = module+4;
-	      else {
-		if (station == 2)
-		  sensor = module+10;
-		else 
-		  sensor = module+16;
-	      }
-	    }
+	    emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,station,module);
+	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
+	    int sensor=dchan.HiLo();
 
 	    if (station >= 0) {
 	      fSSDProf[sensor]->Fill(row);
@@ -1152,6 +1134,7 @@ namespace emph {
       ++fNEvents;
       fRun = evt.run();
       fSubrun = evt.subRun();     
+      if(!stmap.IsTimeMapLoaded()) stmap.LoadMap(fRun);
       std::string labelStr;
       std::string labelStr2;
 

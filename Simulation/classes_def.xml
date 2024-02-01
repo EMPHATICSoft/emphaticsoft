@@ -4,7 +4,9 @@
 <!--  lines and for all objects that are data members of those objects.-->
  
 <lcgdict>
-  <class name="sim::SSDHit"    ClassVersion="11" >
+  <class name="sim::SSDHit"    ClassVersion="13" >
+   <version ClassVersion="13" checksum="2678768509"/>
+   <version ClassVersion="12" checksum="1"/>
    <version ClassVersion="11" checksum="1038206630"/>
     <version ClassVersion="10" checksum="995705853"/>
   </class>
@@ -12,7 +14,9 @@
   <class name="std::vector<std::vector<sim::SSDHit> >"        />
   <class name="art::Wrapper< std::vector<sim::SSDHit>    >"/>
   <class name="art::Wrapper< std::vector<std::vector<sim::SSDHit> >   >"/>
-  <class name="sim::Particle"    ClassVersion="11" >
+  <class name="sim::Particle"    ClassVersion="13" >
+   <version ClassVersion="13" checksum="1602216966"/>
+   <version ClassVersion="12" checksum="1278158748"/>
    <version ClassVersion="11" checksum="1551138086"/>
     <version ClassVersion="10" checksum="995705853"/>
   </class>

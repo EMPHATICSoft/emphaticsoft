@@ -55,9 +55,6 @@ namespace emph {
       
   // Plugins should not be copied or assigned.
 
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
-
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
       void endJob();
@@ -122,21 +119,21 @@ namespace emph {
     //.......................................................................
     LGCaloPrelimStudy::LGCaloPrelimStudy(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
-      fFilesAreOpen(false),
-      fTokenJob("none"),
-      fRun(0), fSubRun(0), fEvtNum(0), fNEvents(0), 
-      fBeamTrackLabel("beamTrackA"), fTrigToT0Label("trigT0A"),
-      fZMagnet(757.7), fZLG(2886.4),  fMagnetKick120GeV(-0.612e-3), // Should be replace by proper acces to the geometry.. 
-      fEffBeamMomentum(18.), // Set for run 1293, nominal P = 12 GeV, but magnet kick probably overestimated. 
-      fAmplTriggerCut{0., 5000.}, fAmplT0Cut{0., 250.}, 
-      fLGsAmpl(nChanLG+2, 0.), fLGA4IsSaturated(false)
+	fFilesAreOpen(false),
+	fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+	fRun(0), fSubRun(0), fEvtNum(0), fNEvents(0), 
+	fBeamTrackLabel (pset.get<std::string>("BeamTrackLabel", "beamTrackA")),
+	fTrigToT0Label (pset.get<std::string>("TrigToT0Label", "trigT0A")),
+	fZMagnet(757.7), fZLG(2886.4),  fMagnetKick120GeV(-0.612e-3), // Should be replace by proper acces to the geometry.. 
+	fEffBeamMomentum (pset.get<double>("EffBeamMomentum", 18.)),
+	fAmplTriggerCut (pset.get<std::vector<double> >("AmplTriggerCut", std::vector<double> {0., 500000.})),
+	fAmplT0Cut (pset.get<std::vector<double> >("AmplT0Cut", std::vector<double> {0., 25000.} )),
+        fLGsAmpl(nChanLG+2, 0.), fLGA4IsSaturated(false)
     {
     
       fAmplTriggerCut[1] = 5000.;
       fAmplT0Cut[1] = 250.;
       
-      this->reconfigure(pset);
-
     }
     
     //......................................................................
@@ -148,17 +145,6 @@ namespace emph {
       //======================================================================
       // Clean up any memory allocated by your module
       //======================================================================
-    }
-
-    //......................................................................
-    void LGCaloPrelimStudy::reconfigure(const fhicl::ParameterSet& pset)
-    {
-      fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fBeamTrackLabel = pset.get<std::string>("BeamTrackLabel", "beamTrackA");
-      fTrigToT0Label = pset.get<std::string>("TrigToT0Label", "trigT0A");
-      fEffBeamMomentum = pset.get<double>("EffBeamMomentum", 18.);
-      fAmplTriggerCut = pset.get<std::vector<double> >("AmplTriggerCut", std::vector<double> {0., 500000.});
-      fAmplT0Cut = pset.get<std::vector<double> >("AmplT0Cut", std::vector<double> {0., 25000.} );
     }
 
     //......................................................................

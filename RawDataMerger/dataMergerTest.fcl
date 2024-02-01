@@ -2,7 +2,7 @@ process_name: TestRawDataMerger
 
 source : {
     module_type : RootInput
-    fileNames : [ "/emph/app/users/twester/art_test/emdaq_otsdaq_rootOutput_r69_20220118T190629.art" ]
+    fileNames : [ "/exp/emph/app/users/twester/art_test/emdaq_otsdaq_rootOutput_r69_20220118T190629.art" ]
     maxEvents : 20
 }
 
@@ -10,7 +10,7 @@ physics: {
   producers: {
     TestRawDataMerger: {
       module_type: RawDataMerger
-      ssd_filename: "/emph/app/users/twester/emphaticsoft/RawDataMerger/example_ssd_rawdata.dat"
+      ssd_filename: "/exp/emph/app/users/twester/emphaticsoft/RawDataMerger/example_ssd_rawdata.dat"
     }
   }
   t1 : [ TestRawDataMerger ]

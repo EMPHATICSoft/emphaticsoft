@@ -24,7 +24,7 @@ source:
 {
   module_type: EmptyEvent
   maxEvents: 10000
-  firstRun:  1293
+  firstRun:  2293
   firstSubRun: 1
 
 }
@@ -33,7 +33,7 @@ physics:
 {
   producers:
   {
-	generator: @local::piplus_beamgen
+	generator: @local::proton4
 	geantgen:  @local::standard_geant4
   }
 

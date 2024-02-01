@@ -11,7 +11,7 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/TOPAZLGHit.h"
 #include "Simulation/ARICHHit.h"
-//#include "Simulation/Particle.h"
+#include "Simulation/Particle.h"
 #include "Simulation/Track.h"
 #include "Simulation/Simulation.h"
 #include "SimulationBase/MCTruth.h"
@@ -90,7 +90,7 @@ namespace emph {
     produces< std::vector<sim::SSDHit> > ();
     produces< std::vector<sim::TOPAZLGHit> > ();
     produces< std::vector<sim::ARICHHit> > ();
-//    produces< std::vector<sim::Particle>     	         >();
+    produces< std::vector<sim::Particle>     	         >();
     produces< std::vector<sim::Track>     	         >();
     //    produces< art::Assns<sim::Particle, simb::MCTruth>   >();
 
@@ -133,7 +133,7 @@ namespace emph {
     std::unique_ptr<std::vector<sim::SSDHit> >  ssdhlcol(new std::vector<sim::SSDHit>  );
     std::unique_ptr<std::vector<sim::TOPAZLGHit> >  lghlcol(new std::vector<sim::TOPAZLGHit>  );
     std::unique_ptr<std::vector<sim::ARICHHit> >  arichhlcol(new std::vector<sim::ARICHHit>  );
-//    std::unique_ptr<std::vector<sim::Particle>     >            pcol    (new std::vector<sim::Particle>    );
+    std::unique_ptr<std::vector<sim::Particle>     >            pcal    (new std::vector<sim::Particle>    );
     std::unique_ptr<std::vector<sim::Track>     >            pcol    (new std::vector<sim::Track>    );
     //    std::unique_ptr< art::Assns<sim::Particle, simb::MCTruth> > tpassn  (new art::Assns<sim::Particle, simb::MCTruth>);
     
@@ -149,9 +149,11 @@ namespace emph {
     simb::MCTruth mctru;
     mctru.SetBeam(b);
 
+    /*
     auto beamPos = b.Position();
-//    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
-//      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," 
+	      << beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+    */
 
     // the next steps are a little clunky.  Make a vector of art::Ptr<MCTruth> 
     // objects to use when making the associations and another of just
@@ -172,15 +174,19 @@ namespace emph {
 //    std::cout << "******************** HERE 1 ********************" 
 //	      << std::endl;
 //    fG4Alg->RunGeant(mct, *ssdhlcol, *pcol, trackIDToMCTruthIndex);
-    fG4Alg->RunGeant(mct, *ssdhlcol, *lghlcol,  *arichhlcol, *pcol, trackIDToMCTruthIndex); // trackIDToMCTruthIndex will be left empty... Could be cleaned up.. 
+    fG4Alg->RunGeant(mct, *ssdhlcol, *lghlcol,  *arichhlcol, *pcol, *pcal, trackIDToMCTruthIndex); // trackIDToMCTruthIndex will be left empty... Could be cleaned up.. 
 //    std::cout << "******************** HERE 2 ********************" 
 //	      << std::endl;
+/*
     if (evt.id().event() < 10 ) { 
-      std::cerr << "####################### The Particle List Action Size: " << pcol->size() << std::endl;
+      std::cerr << "####################### The Particle List Action Size: " << pcal->size() << std::endl;
+      std::cerr << "####################### The Track List Action Size: " << pcol->size() << std::endl;
       std::cerr << "####################### The SSD Hit List Size: " << ssdhlcol->size() << std::endl;
       std::cerr << "####################### The TOPAZLG Hit List Size: " << lghlcol->size() << std::endl;
       std::cerr << "####################### The ARICH Hit List Size: " << arichhlcol->size() << std::endl;
     }
+*/
+
     // print the number of particles and ssd hits!
 
     // make associations for the particles and MCTruth objects
@@ -208,6 +214,7 @@ namespace emph {
     evt.put(std::move(ssdhlcol));
     evt.put(std::move(lghlcol));
     evt.put(std::move(arichhlcol));
+    evt.put(std::move(pcal)); 
     evt.put(std::move(pcol));
     //    evt.put(std::move(tpassn));
     

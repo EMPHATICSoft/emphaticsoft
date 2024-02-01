@@ -5,7 +5,7 @@ process_name: RawConvert
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
+  TFileService: { fileName: "daq2root_%r_%04s.root" closeFileFast: false }
 }
 
 #Start each new event with an empty event.
@@ -31,7 +31,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName:    "emphdata_r%r_s%s.root" #default file name, can override from command line with -o or --output
+    fileName:    "emphdata_r%r_s%04s.root" #default file name, can override from command line with -o or --output
   }
   out2:
   {

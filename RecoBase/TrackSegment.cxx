@@ -16,38 +16,52 @@ namespace rb {
   TrackSegment::TrackSegment() 
   {
     for (int i=0; i<3; ++i) {
-      _x0[i] = -999999.;
+      _vtx[i] = -999999.;
       _p[i] = 0.;
     }
-  }
-  
-  //----------------------------------------------------------------------
-  
-  TrackSegment::TrackSegment(const art::PtrVector<rb::SSDHit>& hits) 
-  {
-    for (int i=0; i<3; ++i) {
-      _x0[i] = -999999.;
-      _p[i] = 0.;
-    }
-    for(size_t j=0; j<hits.size(); ++j)
-      _hit.push_back(hits[j]);
   }
   
   //------------------------------------------------------------
 
-  art::Ptr<rb::SSDHit> TrackSegment::Hit(int i) const
-  {
-    assert(((i>0) && (i < int(_hit.size()))));
-
-    return _hit[i];
+  const rb::SSDCluster* TrackSegment::GetSSDCluster(int i) const
+  {    
+    assert(((i>0) && (i < int(_clust.size()))));
+    
+    return &_clust[i];
   }
-
+  
+  
+  //------------------------------------------------------------
+  
+  const rb::SpacePoint* TrackSegment::GetSpacePoint(int i) const
+  {
+    assert(((i>0) && (i < int(_spcpt.size()))));
+    
+    return &_spcpt[i];
+  }
+  
+  //------------------------------------------------------------
+  
+  void TrackSegment::Add(const rb::SpacePoint& sp) 
+  {
+    assert(_clust.empty());
+    _spcpt.push_back(sp);
+  }
+  
+  //------------------------------------------------------------
+  
+  void TrackSegment::Add(const rb::SSDCluster& cl) 
+  {
+    assert(_spcpt.empty());
+    _clust.push_back(cl);
+  }
+  
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const TrackSegment& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    o << " Track Segment --> x0(" << h._x0[0] << "," << h._x0[1] << "," 
-      << h._x0[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
+    o << " Track Segment --> x0(" << h._vtx[0] << "," << h._vtx[1] << "," 
+      << h._vtx[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
       << h._p[2] << ")"; 
     return o;
   }

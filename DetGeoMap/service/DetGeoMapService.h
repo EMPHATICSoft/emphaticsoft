@@ -1,15 +1,17 @@
 ///////////////////////////////////////////////////////////////////////////
-/// \brief  Simple service to provide a channel map configured to the right 
+/// \brief  Simple service to provide a map between detector Geometry and 
+///         detector channels.
 /// \author jpaley@fnal.gov
 //////////////////////////////////////////////////////////////////////////
 
-#ifndef CHANNELMAPSERVICE_H
-#define CHANNELMAPSERVICE_H
+#ifndef DETGEOMAPSERVICE_H
+#define DETGEOMAPSERVICE_H
 
-#include "ChannelMap/ChannelMap.h"
+#include "DetGeoMap/DetGeoMap.h"
 
 //Framework includes
 #include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
+#include "art/Framework/Principal/Run.h"
 
 namespace art {
   class ActivityRegistry;
@@ -22,34 +24,32 @@ namespace fhicl {
 
 namespace emph
 {
-  namespace cmap
+  namespace dgmap
   {
     
-    class ChannelMapService 
+    class DetGeoMapService 
     {
     public:
-      // Get a ChannelMapService instance here
-      ChannelMapService(const fhicl::ParameterSet& pset,
+      // Get a DetGeoMapService instance here
+      DetGeoMapService(const fhicl::ParameterSet& pset,
 			art::ActivityRegistry& reg);
-      virtual ~ChannelMapService();
+      virtual ~DetGeoMapService();
       
       void reconfigure(const fhicl::ParameterSet& pset);
     
       void preBeginRun(const art::Run& run);
 
-      DChannel DetChan(EChannel echan) { return fChannelMap->DetChan(echan); }
+      DetGeoMap* Map() const {return fDetGeoMap; }
       
-      EChannel ElectChan(DChannel dchan) { return fChannelMap->ElectChan(dchan); }
-
     private:
-      bool fAbortIfFileNotFound;
-      ChannelMap* fChannelMap;
-
+      DetGeoMap* fDetGeoMap;
+      bool fUseGeometry;
+      
     };
     
   }
 }
 
-DECLARE_ART_SERVICE(emph::cmap::ChannelMapService, SHARED)
+DECLARE_ART_SERVICE(emph::dgmap::DetGeoMapService, SHARED)
 
 #endif

@@ -7,6 +7,7 @@ Base repository for art-based code
 
 [Running art](#run) <br>
 [Generating documentation](#docs) <br>
+[Developing EMPHATICSoft Code](#develop) <br>
 
 ---
 <a name="gpvm"></a>
@@ -50,12 +51,12 @@ export KRB5CCNAME=FILE:/tmp/krb5cc_`id -u`
 ```
 You should add that export command to your bash login so you don't have to do it or remember it every time. 
 
-2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
+2.  After logging in, if it doesn't already exist, create the directory /exp/emph/app/users/[username]:
 
 ```
-mkdir /emph/app/users/[username]
+mkdir /exp/emph/app/users/[username]
 ```
-3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username]), or a directory of your choosing.
+3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/exp/emph/app/users/[username]), or a directory of your choosing.
 
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
@@ -65,16 +66,16 @@ You will prompted to enter your github username and a password.  The password sh
 3. Then execute:
 
 ```
-source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
-cd /emph/app/users/[username]/<directory-you-chose>/
+source /exp/emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
+cd /exp/emph/app/users/[username]/<directory-you-chose>/
 mkdir build
 ```
 
 4. execute:
 
 ```
-cd /emph/app/users/[username]/<directory-you-chose>/build
-source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
+cd /exp/emph/app/users/[username]/<directory-you-chose>/build
+source /exp/emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
 ```
 
 5. To compile the code (must be in the "build" directory!):
@@ -145,18 +146,18 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
  
    For instance, for the username lebrun, one has:    
    ```
-   -bash-4.2$ cd /emph/app/users/lebrun/build
+   -bash-4.2$ cd /exp/emph/app/users/lebrun/build
    -bash-4.2$ source ../emphaticsoft/setup/setup_emphatic.sh 
        Setting up emphatic UPS area... /cvmfs/emphatic.opensciencegrid.org/products/
      -bash-4.2$ source ../emphaticsoft/ups/setup_for_development -p
 
-     The working build directory is /emph/app/users/lebrun/build
-     The source code directory is /emph/app/users/lebrun/emphaticsoft
+     The working build directory is /exp/emph/app/users/lebrun/build
+     The source code directory is /exp/emph/app/users/lebrun/emphaticsoft
 
      ---------------------- check this block for errors ---------------------
      ------------------------------------------------------------------------
 
-     To inspect build variable settings, execute /emph/app/users/lebrun/build/cetpkg_info.sh
+     To inspect build variable settings, execute /exp/emph/app/users/lebrun/build/cetpkg_info.sh
 
     Please use "buildtool" to configure and build emphaticsoft, e.g.:
 
@@ -166,11 +167,11 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
     (full help) for more details.
    ```
     * The FHICL_FILE_PATH is an environmental variable which holds multipath, the first one being the one 
-      /emph/app/users/lebrun/build/fcl, where our fcl files do reside.
+      /exp/emph/app/users/lebrun/build/fcl, where our fcl files do reside.
        Then, art will find the top level (the one in the Unix command you invoke), and all the subsequent ones. 
        Such that the command: 
    ```
-     -bash-4.2$ art -c onmonprod_job.fcl /emph/app/users/lebrun/data/emphdata_r466_s1.root
+     -bash-4.2$ art -c onmonprod_job.fcl /exp/emph/app/users/lebrun/data/emphdata_r466_s1.root
    ```
      
      will work.. 
@@ -179,6 +180,7 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
 ## Generating documentation
 Refer to [docs](https://github.com/EMPHATICSoft/emphaticsoft/tree/main/docs)
 
+<a name="develop"></a>
 ## How to Develop EMPHATIC Code
 
 In order to make changes to EMPHATIC software, you will need to create your own git Branch.  After you have pulled the emphaticsoft repository, you can create a new branch and switch to it by executing:
@@ -201,6 +203,70 @@ git push origin <your_branch_name>
 ```
 
 Once your changes are thoroughly tested and your are ready for them to go into the main branch, you should execute a pull request.  To do this, first make sure your branch is up to date with changes from the main branch (see above), then go to the https://github.com/EMPHATICSoft/emphaticsoft/branches, find your branch, click the "new pull request" button next to your branch, and follow the resulting instructions to create a new pull request.  You should then ask another EMPHATICsoft developer to review your changes.  Contact Laura Fields, Jon Paley, and Gavin Davies if you aren't sure who should review it.  Once that person has signed off on your code, you should then merge the pull request and delete your branch.  Instructions here:  https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/merging-a-pull-request. 
+
+
+## Working with Git 
+
+**This section explains how to:**
+
+1. Make a branch in your home directory
+2. Clone main into it
+3. Check differences between the two branches 
+4. Push changes into your local branch 
+5. Add files from your branch to the main branch 
+6.  Push changes into the main branch
+7. Merge your branch with the main branch  
+
+
+* Go to your user directory (ex: `/exp/emph/app/users/dhuerta/`)  
+* Make a new directory (ex: `git_practice`)
+* go into the new directory  
+* Run: `git clone https://github.com/EmphaticSoft/emphaticsoft`   
+	 * This clones the main branch into the directory we just made
+* Go into the `emphaticsoft` directory  
+* Run: `git checkout -b <new_branch_name>`  
+	* This makes a new branch and switches into it
+   * You can run: `git branch` to see what branch we are in (* on side) and the other branches in that directory listed below  
+	* Run: `git checkout <branch_name>`  to change between branches
+* Make necessary changes in **your branch**  
+* Run `git add <1st_file_name> <2nd_file_name> ....` to add as many new files to the main branch as you want 
+   * Files in green are the ones we are going to commit
+	* Files in red where not added, therefore are being ignored for now
+* Push your new branch, by runnning: `git push -u origin <branch_name>`  
+	* Every time after that just use `git push` 
+	* You can run: `git status` to see the differences between the branch you are in and main at any point   
+* Go back to your  directory 
+* Make a new build directory using: `mkdir build`
+* Run : `source /exp/emph/app/users/<your_username>/git_practice/emphaticsoft/setup/setup_emphatic.sh`
+* Go into the build directory (`cd /exp/emph/app/users/<your_username>/git_practice/build` ) 
+* Run: `source /exp/emph/app/users/<your_username>/git_practice/emphaticsoft/ups/setup_for_development -p` 
+* Compile (use `buildtool --generator=ninja`  the first time and just `ninja`  any time after that)  
+	* Might get build error, run ninja and if you still have errors, fix now
+* If all of your changes are made and you are ready to commit them into your branch, go to: `/exp/emph/app/users/<your_username>/git_practice/emphaticsoft`  
+* Run: `git push`  
+	- Use your GitHub username and your token as your password 
+* Go to GitHub **online** 
+* Click on view pull request 
+* Request a reviewer and have them accept your changes 
+* Once they have approved it the changes should be made to your branch, **not main**
+
+**To merge your branch into main:**
+* Run `git checkout main` to switch into the main branch 
+* Run: `git merge <branch_name>` 
+* GitHub may ask you to correct any overlaps or issues at this time 
+* Once all problems have been resolved run: `git add <file_to_merge>` 
+* Run `git push` to make changes to the main branch
+*
+
+**To merge main into your branch:**
+* Run `git checkout main` to switch into the main branch
+* Run `git pull`
+* Run `git checkout <branch_name>`
+* Run `git merge main`
+* GitHub may ask you to correct any overlaps or issues at this time 
+* Once all problems have been resolved run: `git add <file_to_merge>` 
+* Run `git push` to make changes to your branch
+* 
 
 ## Copyright and Licensing
 

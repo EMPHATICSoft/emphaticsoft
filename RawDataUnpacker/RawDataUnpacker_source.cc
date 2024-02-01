@@ -27,6 +27,7 @@
 #include "RawData/SSDRawDigit.h"
 
 #include "RawDataUnpacker/Unpacker.h"
+#include "RawDataUnpacker/SSDUnpacker.h"
 #include "RawDataUnpacker/RawDataUnpacker_source.h"
 
 //#include "ChannelMap/ChannelMapService.h"
@@ -171,11 +172,11 @@ namespace rawdata {
     }
     //    std::vector<std::pair<uint64_t, std::vector<emph::rawdata::SSDRawDigit> > > ssdDigvec;    
     //      fSSDRawDigits.push_back(ssdDigvec);
-    auto ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile,true);
+    auto ssdDigs = SSDUnpack::readSSDHitsFromFileStream(ssdFile,true);
     fSSDRawDigits.push_back(ssdDigs);
     fSSDT0 = ssdDigs.first; // get time of first event
     while (!ssdFile.eof()) {
-      ssdDigs = Unpack::readSSDHitsFromFileStream(ssdFile,false);
+      ssdDigs = SSDUnpack::readSSDHitsFromFileStream(ssdFile,false);
       fSSDRawDigits.push_back(ssdDigs);
     }
     if (fSSDRawDigits.size() > 1) {

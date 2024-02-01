@@ -42,9 +42,6 @@ namespace emph {
     // Optional, read/write access to event
     void analyze(const art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     void beginSubRun(const art::SubRun& sr);
@@ -77,7 +74,7 @@ namespace emph {
     float pressure6a;
     float pressure6b;
     float efficiency;
-    float adcThresh[3];
+    std::vector<float> adcThresh;
 
     // define histograms and tree
     TH1F* fGasCkovADCDist[nChanGasCkov];
@@ -86,11 +83,9 @@ namespace emph {
   };  
   //.......................................................................
   GasCkovAna::GasCkovAna(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset)
+    : EDAnalyzer(pset),
+      adcThresh (pset.get< std::vector<float> >("ADCThresh"))
   {
-
-    this->reconfigure(pset);
-
   }
 
   //......................................................................
@@ -99,15 +94,6 @@ namespace emph {
     //======================================================================
     // Clean up any memory allocated by your module
     //======================================================================
-  }
-
-  //......................................................................
-  void GasCkovAna::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    adcThresh[0] = pset.get<double>("ADCThresh0",0.);
-    adcThresh[1] = pset.get<double>("ADCThresh1",0.);
-    adcThresh[2] = pset.get<double>("ADCThresh2",0.);
-
   }
 
   //......................................................................
@@ -205,7 +191,7 @@ namespace emph {
 	if (detchan >= 0 && detchan < nchan) {
 	  float adc = wvfm.Baseline()-wvfm.PeakADC();
 	  float blw = wvfm.BLWidth();
-	  if ((adc > 5*blw) && (adc > adcThresh[detchan])){
+	  if ((adc > 5*blw) && (adc > adcThresh.at(detchan))){
 	    if (detchan == 0) pmtadc1 = adc;
 	    if (detchan == 1) pmtadc2 = adc;
 	    if (detchan == 2) pmtadc3 = adc;

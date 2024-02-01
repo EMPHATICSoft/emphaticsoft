@@ -30,6 +30,7 @@
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
+#include "RecoBase/Spill.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/ADC.h"
 
@@ -47,21 +48,17 @@ namespace emph {
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    //void endRun(art::Run const&);
-    //      void endSubRun(art::SubRun const&);
+    void beginSubRun(art::SubRun &sr);
     void endJob();
     
   private:
-    void GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
+    void GetBACkovHit(art::Handle< std::vector<rb::ADC> > &,std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     
-    int mom;
+    int mom; // This should really be pulled from SpillInfo instead of set in the fcl.
     std::vector<std::vector<int>> BACkov_signal;
     std::vector<std::vector<int>> PID_table; //in the form {e,mu,pi,k,p} w/ {1,1,0,0,0} being e/mu are possible particles
     int pid_num;
@@ -70,6 +67,7 @@ namespace emph {
     unsigned int fNEvents;
     int event;
     TH1F*       fBACkovChargeHist[6];
+    TH2F*       fBACkovChargeTimeHist[6];
 
   };
 
@@ -81,8 +79,6 @@ namespace emph {
 
     this->produces< std::vector<rb::BACkovHit>>();
 
-    this->reconfigure(pset);
-
   }
 
   //......................................................................
@@ -93,16 +89,7 @@ namespace emph {
     // Clean up any memory allocated by your module
     //======================================================================
   }
-
   //......................................................................
-
-  void BACkovHitReco::reconfigure(const fhicl::ParameterSet& pset)
-  {
-    mom = pset.get<int>("momentum",0);
-  }
-
-  //......................................................................
-
   void BACkovHitReco::beginJob()
   {
     fNEvents=0;
@@ -110,12 +97,37 @@ namespace emph {
     art::ServiceHandle<art::TFileService> tfs;
     char hname[64];
     for (int i=0; i<=5; ++i) {
-      sprintf(hname,"BACkovQ_%d",i);
-      if(i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),260,-1,25);
-      else fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),410,-2,80);
-      fBACkovChargeHist[i]->GetXaxis()->SetTitle("Charge (pC)");
-      fBACkovChargeHist[i]->GetYaxis()->SetTitle("Number of Events"); 
+        sprintf(hname,"BACkovQ_%d",i);
+        if(i!=3 && i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),100,-1,10);
+        else if (i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),150,-1,25);
+        else fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),400,-2,80);
+        fBACkovChargeHist[i]->GetXaxis()->SetTitle("Charge (pC)");
+        fBACkovChargeHist[i]->GetYaxis()->SetTitle("Number of Events"); 
     }
+    for (int i=0; i<=5; ++i) {
+        sprintf(hname,"BACkovQT_%d",i);
+        if(i!=3 && i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,100,-1,10);
+        else if (i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,150,-1,25);
+        else fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,400,-2,80);
+        fBACkovChargeTimeHist[i]->GetXaxis()->SetTitle("Time (ns)");
+        fBACkovChargeTimeHist[i]->GetYaxis()->SetTitle("Charge (pC)");
+    }
+  }
+
+  //......................................................................
+
+  void BACkovHitReco::beginSubRun(art::SubRun& sr)
+  {
+      art::Handle<rb::Spill> spillHandle;
+      try {
+          sr.getByLabel("spillinfo",spillHandle);
+
+          mom = spillHandle->Momentum();
+      }
+      catch(...) {
+          std::cout << "No spill info object found!  Aborting..." << std::endl;
+          std::abort();
+      }
 
     std::cout<<"**************************************************"<<std::endl;
     std::cout<< "Beam Configuration: "<<mom<<" GeV/c"<<std::endl;
@@ -123,22 +135,22 @@ namespace emph {
 
     //Initialize truth table for checking BACkov signals
     
-    if(mom==4){
+    if(abs(mom)==4){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1},{1,0,0},{0,0,0}}); // {e/mu/pi,k,p}
       PID_table.insert(PID_table.end(),{{1,1,1,0,0},{0,0,1,0,0},{0,0,0,0,1}}); // {e/mu/pi,k,p}
       pid_num=3;
     }
-    else if(mom==8){
+    else if(abs(mom)==8){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1},{1,0,0}}); // {e/mu/pi/k,p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,0},{0,0,0,0,1}}); // {e/mu/pi/k,p}
       pid_num=2;
     }
-    else if(mom==12){
+    else if(abs(mom)==12){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1},{1,1,0}}); // {e/mu/pi/k,p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,0},{0,0,0,0,1}}); // {e/mu/pi/k,p}
       pid_num=2;
     }
-    else if(mom==120){
+    else if(abs(mom)==120){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1}}); // {e/mu/pi/k/p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,1}}); // {e/mu/pi/k/p}
       pid_num=1;
@@ -154,30 +166,34 @@ namespace emph {
   
     //......................................................................
   
-  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<emph::rawdata::WaveForm> > & wvfmH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
+  void BACkovHitReco::GetBACkovHit(art::Handle< std::vector<rb::ADC> > & adcH, std::unique_ptr<std::vector<rb::BACkovHit>> & BACkovHits)
   {
-    //Create empty vectors to hold charge values
+    //Create empty vectors to hold charge and time values
     float Qvec[6];
+    float Tvec[6];
 
     //int BACnchan = emph::geo::DetInfo::NChannel(emph::geo::BACkov);
     emph::cmap::FEBoardType boardType = emph::cmap::V1720;
     emph::cmap::EChannel echan;
     echan.SetBoardType(boardType);
     event = fNEvents;
-    if (!wvfmH->empty()) {
-	  for (size_t idx=0; idx < wvfmH->size(); ++idx) {
-	    const rawdata::WaveForm wvfm = (*wvfmH)[idx];
-            const rawdata::WaveForm* wvfm_ptr = &wvfm;
-	    const rb::ADC wvr;
-	    int chan = wvfm.Channel();
-	    int board = wvfm.Board();
-            echan.SetBoard(board);
-            echan.SetChannel(chan);
-            emph::cmap::DChannel dchan = cmap->DetChan(echan);
-            int detchan = dchan.Channel();
-            float Q = wvr.BACkovCharge(wvfm_ptr);
-            fBACkovChargeHist[detchan]->Fill(Q);
-            Qvec[detchan]=Q;
+    if (!adcH->empty()) {
+	  for (size_t idx=0; idx < adcH->size(); ++idx) {
+	    const rb::ADC& ADC = (*adcH)[idx];
+	    int chan = ADC.Chan();
+        int board = ADC.Board();
+        echan.SetBoard(board);
+        echan.SetChannel(chan);
+        emph::cmap::DChannel dchan = cmap->DetChan(echan);
+        int detchan = dchan.Channel();
+        //if (detchan!=5) wvr.CalcFitCharge(wvfm);
+
+        float q = ADC.Charge();
+        float t = ADC.Time();
+        fBACkovChargeHist[detchan]->Fill(q);
+        fBACkovChargeTimeHist[detchan]->Fill(t,q);
+        Qvec[detchan]=q;
+        Tvec[detchan]=t;
 	  }  
     }
     float low_q = Qvec[0]+Qvec[1]+Qvec[2];
@@ -190,11 +206,11 @@ namespace emph {
     bool PID_prob[5]={0,0,0,0,0};
 
 
-    if (high_q>1) BACkov_Result.push_back(1);
+    if (high_q>4) BACkov_Result.push_back(1);
     else BACkov_Result.push_back(0);
-    if (mid_q>1) BACkov_Result.push_back(1);
+    if (mid_q>2) BACkov_Result.push_back(1);
     else BACkov_Result.push_back(0);
-    if (low_q>1) BACkov_Result.push_back(1);
+    if (low_q>2) BACkov_Result.push_back(1);
     else BACkov_Result.push_back(0);
 
     for (int k=0; k<pid_num; ++k){
@@ -210,6 +226,7 @@ namespace emph {
     //Create object and store BACkov Charge and PID results
     rb::BACkovHit BACkovHit;
     BACkovHit.SetCharge(Qvec);
+    BACkovHit.SetTime(Tvec);
     BACkovHit.SetPID(PID_prob);
     BACkovHits->push_back(BACkovHit);
   }
@@ -221,22 +238,23 @@ namespace emph {
     fRun = evt.run();
     fSubrun = evt.subRun();
 
-    std::string labelStr = "raw:BACkov";
-    art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
+    //std::string labelStr = "ADC:BACkov";
+    std::string labelStr = "adcreco:BACkov";
+    art::Handle< std::vector<rb::ADC> > ADCHandle;
 
     std::unique_ptr<std::vector<rb::BACkovHit> > BACkovHitv(new std::vector<rb::BACkovHit>);
 
     try {
-	evt.getByLabel(labelStr, wfHandle);
+	evt.getByLabel(labelStr, ADCHandle);
 
-	if (!wfHandle->empty()) {
-	  GetBACkovHit(wfHandle,  BACkovHitv);
+	if (!ADCHandle->empty()) {
+	  GetBACkovHit(ADCHandle,  BACkovHitv);
 	}
-      }
-      catch(...) {
+    }
+    catch(...) {
 
-      }
-      evt.put(std::move(BACkovHitv));
+    }
+    evt.put(std::move(BACkovHitv));
   }
 
   } // end namespace emph

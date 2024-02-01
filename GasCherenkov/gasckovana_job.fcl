@@ -1,7 +1,6 @@
+#include "Services.fcl"
 #include "SpillInfo.fcl"
 #include "GasCkovAna.fcl"
-#include "ChannelMap.fcl"
-#include "RunHistory.fcl"
 
 process_name: GasCkovAna
 
@@ -13,10 +12,9 @@ source:
 
 services:
 {
-  TFileService: { fileName: "gasckovana_r%r_s%s.root" closeFileFast: false }
+  TFileService: { fileName: "gasckovana_r%r_s%04s.root" closeFileFast: false }
   IFBeam: {}
-  RunHistoryService: @local::standard_runhistory
-  ChannelMapService: @local::standard_channelmap
+  @table::standard_services
 }
 
 outputs:
@@ -24,7 +22,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "gasckov_r%r_s%s.root"
+   fileName:    "gasckov_r%r_s%04s.root"
    fastCloning: false
    
   }

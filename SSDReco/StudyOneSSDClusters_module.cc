@@ -70,7 +70,7 @@ namespace emph {
 
 
       // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
+      void setupAlignAlgs(const fhicl::ParameterSet& pset);
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob();
@@ -159,51 +159,44 @@ namespace emph {
     
 // .....................................................................................
     emph::StudyOneSSDClusters::StudyOneSSDClusters(fhicl::ParameterSet const& pset) : 
-    EDAnalyzer(pset), 
-    fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"),
-    fDumpClusters(false), fSelectHotChannels(false), fSelectHotChannelsFromHits(false),     
-    fDoAlignX(false), fDoAlignY(false), fDoAlignUV(false), fDoGenCompact(false),
-    fDoAlignXAlt45(false), fDoAlignYAlt45(false), fDoAlignYAlt5(false), 
-     fDoSkipDeadOrHotStrips(true), fDoLastIs4AlignAlgo1(false),
-    fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
-    fNumMaxIterAlignAlgo1(10), fChiSqCutAlignAlgo1(20.), fSetMCRMomentum(120.),
-     fRunHistory(nullptr), fEmgeo(nullptr), 
-     fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
+      EDAnalyzer(pset), 
+      fFilesAreOpen(false),
+      fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+      fSSDClsLabel (pset.get<std::string>("SSDClsLabel")),
+      fDumpClusters (pset.get<bool>("dumpClusters", false)),
+      fSelectHotChannels (pset.get<bool>("selectHotChannels", false)),
+      fSelectHotChannelsFromHits (pset.get<bool>("selectHotChannelsFromHits", false)),
+      fDoAlignX (pset.get<bool>("alignX", false)),
+      fDoAlignY (pset.get<bool>("alignY", false)),
+      fDoAlignUV (pset.get<bool>("alignUV", false)),
+      fDoGenCompact (pset.get<bool>("genCompactEvts", false)),
+      fDoAlignXAlt45 (pset.get<bool>("alignXAlt45", false)),
+      fDoAlignYAlt45 (pset.get<bool>("alignYAlt45", false)),
+      fDoAlignYAlt5 (pset.get<bool>("alignYAlt5", false)),
+      fDoSkipDeadOrHotStrips (pset.get<bool>("skipDeadOrHotStrips", false)),
+      fDoLastIs4AlignAlgo1 (pset.get<bool>("LastIs4AlignAlgo1", false)),
+      fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
+      fNumMaxIterAlignAlgo1 (pset.get<int>("NumMaxIterAlignAlgo1", 1000)),
+      fChiSqCutAlignAlgo1 (pset.get<double>("ChiSqCutAlignAlgo1", 1000.)),
+      fSetMCRMomentum (pset.get<double>("SetMCRMomentum", 120.)),
+      fRunHistory(nullptr), fEmgeo(nullptr), 
+      fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
     {
        std::cerr << " Constructing StudyOneSSDClusters " << std::endl;
-       this->reconfigure(pset);
+       this->setupAlignAlgs(pset);
        fFilesAreOpen = false;
 //       fSSDClsPtr = nullptr;
        fAlignX.SetTheView('X'); fAlignY.SetTheView('Y');
        fRMSClusterCuts = std::vector<double>{-1.0, 5.};
     }
     
-    void emph::StudyOneSSDClusters::reconfigure(const fhicl::ParameterSet& pset)
+    void emph::StudyOneSSDClusters::setupAlignAlgs(const fhicl::ParameterSet& pset)
     {
-      std::cerr << " emph::StudyOneSSDClusters::reconfigure ... " <<std::endl;
-      fSSDClsLabel = pset.get<std::string>("SSDClsLabel");   
-      std::cerr << "  ... fSSDClsLabel " << fSSDClsLabel << std::endl;   
-      fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-      fDumpClusters = pset.get<bool>("dumpClusters", false);
-      fSelectHotChannels = pset.get<bool>("selectHotChannels", false);
-      fSelectHotChannelsFromHits = pset.get<bool>("selectHotChannelsFromHits", false);
       std::string fNameHCFH = pset.get<std::string>("NameFileHCFH", "./SSDCalibHotChanSummary_none_1055.txt");
       std::string fNameDCFH = pset.get<std::string>("NameFileHCFH", "./SSDCalibDeadChanSummary_none_1055.txt");
-      fDoAlignX = pset.get<bool>("alignX", false);
-      fDoAlignY = pset.get<bool>("alignY", false);
-      fDoAlignUV = pset.get<bool>("alignUV", false);
-      fDoGenCompact = pset.get<bool>("genCompactEvts", false);
-      fDoAlignXAlt45 = pset.get<bool>("alignXAlt45", false);
-      fDoAlignYAlt45 = pset.get<bool>("alignYAlt45", false);
-      fDoAlignYAlt5 = pset.get<bool>("alignYAlt5", false);
-      fDoSkipDeadOrHotStrips = pset.get<bool>("skipDeadOrHotStrips", false);
-      fDoLastIs4AlignAlgo1 = pset.get<bool>("LastIs4AlignAlgo1", false);
-      fNumMaxIterAlignAlgo1 = pset.get<int>("NumMaxIterAlignAlgo1", 1000);
-      fChiSqCutAlignAlgo1 = pset.get<double>("ChiSqCutAlignAlgo1", 1000.);
       double aChiSqCut3DUVXY = pset.get<double>("ChiSqCutAlign3DUVXY", 100.);
       double aChiSqCut3DUVUV = pset.get<double>("ChiSqCutAlign3DUVUV", 100.);
       const double aMagnetiKick = pset.get<double>("MagnetKick", -6.12e-4); 
-      fSetMCRMomentum = pset.get<double>("SetMCRMomentum", 120.);
       // default value for transverse (X) kick is for 120 GeV, assuming COMSOL file is correct. based on G4EMPH 
       std::vector<double> aZLocShifts = pset.get<std::vector<double> >("ZLocShifts", std::vector<double>(6, 0.));
       std::vector<double> aPitchAngles =  pset.get<std::vector<double> >("PitchAngles", std::vector<double>(6, 0.));
@@ -280,46 +273,49 @@ namespace emph {
       std::vector<double> XRotXPlanes, YRotYPlanes; // labeled by view 
       std::vector<double> XRotUPlanes, XRotVPlanes; // labeled by view 
       for (int k=0; k != fEmgeo->NSSDStations(); k++) {
-        emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
-        TVector3 posSt = aStation.Pos();
-	std::cerr << " .... For Station by index " <<  k  << " Stations name is " << aStation.Name() 
-	          << " Number of planes " << aStation.NSSDs() << std::endl;
-        for (int kk=0; kk != aStation.NSSDs(); kk++) {
-          emph::geo::Detector aPlane = aStation.GetSSD(kk);
-	  char viewChar = '?';
-	  if ((std::abs(aPlane.Rot() - 270.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 90.*M_PI/180.) < 0.1) || 
-	     (std::abs(aPlane.Rot() + 270.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 90.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocXPlanes.push_back(pos[2] + posSt[2]);
-	    XlocXPlanes.push_back(pos[0] + posSt[0]);
-	    XRotXPlanes.push_back(aPlane.Rot());
-	    viewChar = 'X'; // Measuring the X cooredinate of the track. See convention is SSDCalibration module. 
-	  }
-	  if ((std::abs(aPlane.Rot()) < 0.1) || (std::abs(aPlane.Rot() - 180.*M_PI/180.) < 0.1)) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocYPlanes.push_back(pos[2] + posSt[2]);
-	    YlocYPlanes.push_back(pos[1] + posSt[1]);
-	    YRotYPlanes.push_back(aPlane.Rot());
-	    viewChar = 'Y';
-	  }
-	  if ((std::abs(aPlane.Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 45.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    if (fZlocUPlanes.size() < 2) { // From what I have been told.. 
-	      fZlocUPlanes.push_back(pos[2] + posSt[2]);
-	      XRotUPlanes.push_back(aPlane.Rot());
+        const emph::geo::SSDStation* aStation = fEmgeo->GetSSDStation(k);
+        TVector3 posSt = aStation->Pos();
+	std::cerr << " .... For Station by index " <<  k  << " Stations name is " << aStation->Name() 
+	          << " Number of planes " << aStation->NPlanes() << std::endl;
+	for (int jj=0; jj < aStation->NPlanes(); ++jj) {
+	  const emph::geo::Plane* sPlane = aStation->GetPlane(jj);
+	  for (int kk=0; kk != sPlane->NSSDs(); kk++) {
+	    const emph::geo::Detector* aPlane = sPlane->SSD(kk);
+	    char viewChar = '?';
+	    if ((std::abs(aPlane->Rot() - 270.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() - 90.*M_PI/180.) < 0.1) || 
+		(std::abs(aPlane->Rot() + 270.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() + 90.*M_PI/180.) < 0.1) ) {
+	      TVector3 pos = aPlane->Pos();
+	      fZlocXPlanes.push_back(pos[2] + posSt[2]);
+	      XlocXPlanes.push_back(pos[0] + posSt[0]);
+	      XRotXPlanes.push_back(aPlane->Rot());
+	      viewChar = 'X'; // Measuring the X cooredinate of the track. See convention is SSDCalibration module. 
 	    }
-	    viewChar = 'U';
-	  }
-	  if ((std::abs(aPlane.Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 45.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos(); 
-	    fZlocVPlanes.push_back(pos[2] + posSt[2]);
-	    XRotVPlanes.push_back(aPlane.Rot());
-	    viewChar = 'V';
-	  }
-	  fXYUVLabels.at(10*k + kk) = viewChar;
-	  std::cerr << " .... .... For Sensor by index " <<  kk  << " Sensor name is " << aPlane.Name() 
-	            << " view " << viewChar << "  view, check  " << fXYUVLabels.at(10*k +kk) << std::endl;
-        } // on SS Detector planes of segment of a plane.   
+	    if ((std::abs(aPlane->Rot()) < 0.1) || (std::abs(aPlane->Rot() - 180.*M_PI/180.) < 0.1)) {
+	      TVector3 pos = aPlane->Pos();
+	      fZlocYPlanes.push_back(pos[2] + posSt[2]);
+	      YlocYPlanes.push_back(pos[1] + posSt[1]);
+	      YRotYPlanes.push_back(aPlane->Rot());
+	      viewChar = 'Y';
+	    }
+	    if ((std::abs(aPlane->Rot() - 225.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() + 45.*M_PI/180.) < 0.1) ) {
+	      TVector3 pos = aPlane->Pos();
+	      if (fZlocUPlanes.size() < 2) { // From what I have been told.. 
+		fZlocUPlanes.push_back(pos[2] + posSt[2]);
+		XRotUPlanes.push_back(aPlane->Rot());
+	      }
+	      viewChar = 'U';
+	    }
+	    if ((std::abs(aPlane->Rot() - 315.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() - 45.*M_PI/180.) < 0.1) ) {
+	      TVector3 pos = aPlane->Pos(); 
+	      fZlocVPlanes.push_back(pos[2] + posSt[2]);
+	      XRotVPlanes.push_back(aPlane->Rot());
+	      viewChar = 'V';
+	    }
+	    fXYUVLabels.at(10*k + kk) = viewChar;
+	    std::cerr << " .... .... For Sensor by index " <<  kk  << " Sensor name is " << aPlane->Name() 
+		      << " view " << viewChar << "  view, check  " << fXYUVLabels.at(10*k +kk) << std::endl;
+	  } // on SS Detector planes of segment of a plane.   
+	}
       } // on index k, SSD Stations.
       if (fZlocXPlanes.size() < 5)  { std::cerr << " Not enough X planes to do this study, quit here and now " << std::endl; exit(2); }
       std::cerr << " Number of SSD X planes (vertical strips) " << fZlocXPlanes.size() << std::endl; 

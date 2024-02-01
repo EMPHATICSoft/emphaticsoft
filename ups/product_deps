@@ -248,27 +248,19 @@ perllib	product_dir
 #
 ####################################
 product		version		qual  flags		<table_format=2>
-#art		v3_09_02	-
 art		v3_12_00	-
-#art_root_io	v1_08_02	-
 art_root_io	v1_11_00	-
 artdaq          v3_12_01        -
-#artdaq_core     v3_07_05        -
 artdaq_core     v3_09_03        -
 caencomm        v1_2a           -     only_for_build
 caendigitizer   v2_12_0         -     only_for_build
 caenvme         v2_50           -     only_for_build
-#cetmodules	v2_20_00	-     only_for_build
 cetmodules	v3_20_00	-     only_for_build
-##geant4          v4_10_7_p01c    -
-#geant4          v4_10_6_p01d    - 
 geant4          v4_11_0_p02b    - 
-#ifbeam          v2_5_1          -
-ifbeam          v2_5_14          -
-#nucondb         v2_5_1
+ifbeam          v2_5_14         -
 nucondb         v2_5_14
-#ifdh_art        v2_12_03        -
 ifdh_art        v2_15_00        -
+srproxy         v00.43          -
 end_product_list
 ####################################
 
@@ -323,13 +315,13 @@ end_product_list
 #   case it is optional.
 #
 ####################################
-qualifier  art	      art_root_io  artdaq          artdaq_core     geant4      ifbeam           ifdh_art     nucondb         notes
+qualifier  art	      art_root_io  artdaq          artdaq_core     geant4      ifbeam           ifdh_art     nucondb          srproxy   notes
 c7:debug   c7:debug   c7:debug     -               -               c7:debug    c7:p392:debug    c7:prof      c7:prof
 c7:prof	   c7:prof    c7:prof      -               -               c7:prof     c7:p392:debug    c7:prof      c7:prof
 e19:debug  e19:debug  e19:debug    e19:debug:s111  e19:debug:s111  e19:debug   e19:p392:debug   e19:debug    e19:p392:debug
 e19:prof   e19:prof   e19:prof     e19:prof:s111   e19:prof:s111   e19:prof    e19:p392:prof    e19:prof     e19:p392:prof
-e20:debug  e20:debug  e20:debug    e20:debug:s118  e20:debug:s118  e20:debug   e20:p3913:debug  e20:debug    e20:p3913:debug
-e20:prof   e20:prof   e20:prof     e20:prof:s118   e20:prof:s118   e20:prof    e20:p3913:prof   e20:prof     e20:p3913:prof
+e20:debug  e20:debug  e20:debug    e20:debug:s118  e20:prof:s118   e20:debug   e20:p3913:debug  e20:debug    e20:p3913:debug  py3913
+e20:prof   e20:prof   e20:prof     e20:prof:s118   e20:prof:s118   e20:prof    e20:p3913:prof   e20:prof     e20:p3913:prof   py3913
 end_qualifier_list
 ####################################
 

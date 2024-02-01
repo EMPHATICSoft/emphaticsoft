@@ -18,16 +18,6 @@
 namespace runhist{
    
   //----------------------------------------------------------------------
-  /*  
-  RunHistory::RunHistory() :   
-    _isLoaded(false), _isConfig(false), _runNumber(0), _nSubrun(0), _beamMom(0.), _geoFile(""), _chanFile(""), _calibVer(0), _nTrig(0), _QEURL("")
-  {
-    _det.clear();
-
-  }
-  */
-
-  //----------------------------------------------------------------------
   
   RunHistory::RunHistory(int run) :
     _isLoaded(false),
@@ -104,6 +94,15 @@ namespace runhist{
 
   //----------------------------------------------------------------------
   
+  std::string RunHistory::SSDAlignFile()
+  {
+    if (!_isConfig) LoadConfig();
+    return _ssdAlignFile;
+
+  }
+
+  //----------------------------------------------------------------------
+  
   int RunHistory::CalibVer()
   {
     if (!_isConfig) LoadConfig();
@@ -137,7 +136,9 @@ namespace runhist{
     std::string file_path;
     file_path = getenv ("CETPKG_SOURCE");
     file_path = file_path + "/ConstBase/" ;
-    
+
+    _ssdAlignFile = "";
+
     if(_runNumber >= 436 && _runNumber <= 605){
       _geoFile=file_path+"Geometry/phase1a.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Jan22_Run436.txt";
@@ -146,11 +147,13 @@ namespace runhist{
     else if(_runNumber > 605 && _runNumber <= 1386){
       _geoFile=file_path+"Geometry/phase1b.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
+      _ssdAlignFile=file_path+"Align/SSDAlign_1b.txt";
       _calibVer=2;
     }
     else if(_runNumber >= 2000){
       _geoFile=file_path+"Geometry/phase1c.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Mar23.txt";
+      _ssdAlignFile=file_path+"Align/SSDAlign_1c.txt";
       _calibVer=2;
     }
     else{
@@ -167,7 +170,7 @@ namespace runhist{
   {
     if (_QEURL.empty()) return false;
 
-    QueryEngine<int,double,std::string,std::string> runquery(_QEURL,"emphatic_prd","emph","runs","nsubruns","momentum","target","magnet_in");
+    QueryEngine<std::string,double,std::string,std::string> runquery(_QEURL,"emphatic_prd","emph","runs","nsubruns","momentum","target","magnet_in");
     runquery.where("run","eq",_runNumber);
 
     auto result = runquery.get();
@@ -177,7 +180,10 @@ namespace runhist{
 
     for (auto& row : result) {
       //      std::cout << "(" << column<0>(row) << "," << column<1>(row) << "," << column<2>(row) << ")" << std::endl;
-      _nSubrun = column<0>(row);
+      if (!strcmp(column<0>(row).c_str(),"None"))
+	_nSubrun = -1;
+      else
+	_nSubrun = stoi(column<0>(row));
       _beamMom = column<1>(row);
       _target = column<2>(row);
       magStr = column<3>(row);

@@ -30,15 +30,14 @@ namespace emph
 			art::ActivityRegistry& reg);
       virtual ~GeometryService();
       
-      void reconfigure(const fhicl::ParameterSet& pset);
-    
       void preBeginRun(const art::Run& run);
 
       emph::geo::Geometry* Geo() const { return fGeometry.get(); }
 
     private:
       std::unique_ptr<emph::geo::Geometry> fGeometry;
-
+      unsigned int fRunNumber;
+      std::string  fLoadedGeoFile;
     };
     
   }
