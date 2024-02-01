@@ -270,10 +270,16 @@ namespace emph {
     std::vector<std::vector<double>> RPC_rgt_trail_fine; // Finetime of trailing signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_tot; // TOT of right signals
 
-    std::vector<double> SSD_st;
-    std::vector<double> SSD_ch;
+    // std::vector<double> SSD_st;
+    // std::vector<double> SSD_ch;
+    std::vector<double> SSD_fer;
+    std::vector<double> SSD_mod;
+    std::vector<double> SSD_row;
     std::vector<double> SSD_t;
     std::vector<double> SSD_adc;
+    std::vector<double> SSD_chip;
+    std::vector<double> SSD_set;
+    std::vector<double> SSD_strip;
 
     std::array<double, n_ch_lg> LG_t; // Pulse time of LGCalo signals
     std::array<double, n_ch_lg> LG_hgt; // Pulse height of LGCalo signals
@@ -428,10 +434,16 @@ namespace emph {
     tree->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
 
     // Branches for SSD
-    tree->Branch("SSD_st", &SSD_st);
-    tree->Branch("SSD_ch", &SSD_ch);
+    // tree->Branch("SSD_st", &SSD_st);
+    // tree->Branch("SSD_ch", &SSD_ch);
+    tree->Branch("SSD_fer", &SSD_fer);
+    tree->Branch("SSD_mod", &SSD_mod);
+    tree->Branch("SSD_row", &SSD_row);
     tree->Branch("SSD_t", &SSD_t);
     tree->Branch("SSD_adc", &SSD_adc);
+    tree->Branch("SSD_chip", &SSD_chip);
+    tree->Branch("SSD_set", &SSD_set);
+    tree->Branch("SSD_strip", &SSD_strip);
 
     // Branchse for LGCalo
     tree->Branch("LG_t", &LG_t);
@@ -962,26 +974,39 @@ namespace emph {
 
   void T0Ana::FillTreeSSD(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & SSDdigit)
   {
-    SSD_st.clear();
-    SSD_ch.clear();
+    // SSD_st.clear();
+    // SSD_ch.clear();
+    SSD_fer.clear();
+    SSD_mod.clear();
+    SSD_row.clear();
     SSD_t.clear();
     SSD_adc.clear();
+    SSD_chip.clear();
+    SSD_set.clear();
+    SSD_strip.clear();
 
     // get SSD info
     if(!SSDdigit->empty()){
       // emph::cmap::FEBoardType boardType = emph::cmap::SSD;
-      emph::cmap::EChannel SSDechan;
+      // emph::cmap::EChannel SSDechan;
       for(size_t idx=0; idx < SSDdigit->size(); ++idx){
 	const rawdata::SSDRawDigit& ssd = (*SSDdigit)[idx];
-	SSDechan.SetBoard(ssd.FER());
-	SSDechan.SetChannel(ssd.Module());
-	emph::cmap::DChannel dchan = cmap->DetChan(SSDechan);
-	int detst = dchan.Station();
-	int detch = dchan.Channel();
-	SSD_st.push_back(detst);
-	SSD_ch.push_back(detch);
+	// SSDechan.SetBoard(ssd.FER());
+	// SSDechan.SetChannel(ssd.Module());
+	// emph::cmap::DChannel dchan = cmap->DetChan(SSDechan);
+	// int detst = dchan.Station();
+	// int detch = dchan.Channel();
+
+	// SSD_st.push_back(detst);
+	// SSD_ch.push_back(detch);
+	SSD_fer.push_back(ssd.FER());
+	SSD_mod.push_back(ssd.Module());
+	SSD_row.push_back(ssd.Row());
 	SSD_t.push_back(ssd.Time());
 	SSD_adc.push_back(ssd.ADC());
+	SSD_chip.push_back(ssd.Chip());
+	SSD_set.push_back(ssd.Set());
+	SSD_strip.push_back(ssd.Strip());
       } // end loop over SSDRawDigit
     }
   }
