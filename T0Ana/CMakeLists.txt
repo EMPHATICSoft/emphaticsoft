@@ -11,8 +11,11 @@ include_directories($ENV{ART_ROOT_IO_INC})
 build_plugin(T0Ana "module"
   LIBRARIES PRIVATE
     RawData
+    RecoBase
     ChannelMap
     ChannelMapService_service
+    Geometry
+    Geometry_service
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
