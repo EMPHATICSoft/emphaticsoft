@@ -107,7 +107,9 @@ namespace emph {
           int sensor = evt[i].Sensor();
           int plane = evt[i].Plane();
           for (size_t j=0; j<wide_hits.size(); ++j){
-              if (station == wide_hits[j][0] && sensor == wide_hits[j][1] && plane == wide_hits[j][2]) evt.erase(evt.begin()+int(i));
+              if (station == wide_hits[j][0] && sensor == wide_hits[j][1] && plane == wide_hits[j][2]){
+                  //evt.erase(evt.begin()+int(i));
+              }
           }
       }
       for (size_t i=0; i<evt.size(); ++i){

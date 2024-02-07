@@ -93,8 +93,10 @@ namespace emph {
             std::vector<TH1F*> fY_Residual_Fin;
             std::vector<TH1F*> fU_Residual_Fin;
             std::vector<TH1F*> fV_Residual_Fin;
-            std::array<TH1F*,4> fInit_Chi2;
-            std::array<TH1F*,4> fFin_Chi2;
+            TGraph** fxChi2;
+            TGraph** fyChi2;
+            TGraph** fuChi2;
+            TGraph** fvChi2;
             TGraph* evt_line;
             TGraph** evt_disp;
             TGraph** evt_disp_adj;
@@ -122,6 +124,10 @@ namespace emph {
         : EDAnalyzer(pset)
     {
         //this->reconfigure(pset);
+        fxChi2 = new TGraph*[10];
+        fyChi2 = new TGraph*[10];
+        fuChi2 = new TGraph*[10];
+        fvChi2 = new TGraph*[10];
         evt_disp = new TGraph*[10];
         evt_disp_adj = new TGraph*[10];
     }
@@ -262,12 +268,29 @@ namespace emph {
             fX_Residual_Init[i] = tfs->make<TH1F>(hname,Form("Initial X Residuals - SSD %i",i),400,-40,40);
             fX_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
             fX_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
+
+            fxChi2[i] = tfs->makeAndRegister<TGraph>(Form("Chi2x_%i",i),Form("Chi2 - SSD %i",i));
+            fxChi2[i]->SetMarkerStyle(21);
+            fxChi2[i]->SetTitle(Form("Chi2 X - SSD %i",i));
+            fxChi2[i]->GetXaxis()->SetTitle("x shift (mm)");
+            fxChi2[i]->GetXaxis()->SetLimits(-10,10);
+            fxChi2[i]->GetYaxis()->SetTitle("Avg Chi2");
+            fxChi2[i]->GetYaxis()->SetRangeUser(0,40);
+
         }
         for (int i=0; i<nysensors; ++i) {
             sprintf(hname,"YInit_Resid_%d",i);
             fY_Residual_Init[i] = tfs->make<TH1F>(hname,Form("Initial Y Residuals - SSD %i",i),400,-40,40);
             fY_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
             fY_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
+
+            fyChi2[i] = tfs->makeAndRegister<TGraph>(Form("Chi2y_%i",i),Form("Chi2 - SSD %i",i));
+            fyChi2[i]->SetMarkerStyle(21);
+            fyChi2[i]->SetTitle(Form("Chi2 Y - SSD %i",i));
+            fyChi2[i]->GetXaxis()->SetTitle("y shift (mm)");
+            fyChi2[i]->GetXaxis()->SetLimits(-10,10);
+            fyChi2[i]->GetYaxis()->SetTitle("Avg Chi2");
+            fyChi2[i]->GetYaxis()->SetRangeUser(0,40);
         }
         for (int i=0; i<nxsensors; ++i) {
             sprintf(hname,"XFin_Resid_%d",i);
@@ -292,18 +315,6 @@ namespace emph {
             fV_Residual_Fin[i] = tfs->make<TH1F>(hname,Form("Final V Residuals - SSD %i",i),400,-40,40);
             fV_Residual_Fin[i]->GetXaxis()->SetTitle("Residual");
             fV_Residual_Fin[i]->GetYaxis()->SetTitle("Counts");
-        }
-        for (int i=0; i<4; ++i) {
-            sprintf(hname,"%sInit_Chi2",pos_strings[i]);
-            fInit_Chi2[i] = tfs->make<TH1F>(hname,Form("Initial Chi2 - %s",pos_strings[i]),100,0,10);
-            fInit_Chi2[i]->GetXaxis()->SetTitle("Chi^2");
-            fInit_Chi2[i]->GetYaxis()->SetTitle("Counts");
-        }
-        for (int i=0; i<4; ++i) {
-            sprintf(hname,"%sFin_Chi2",pos_strings[i]);
-            fFin_Chi2[i] = tfs->make<TH1F>(hname,Form("Final Chi2 - %s",pos_strings[i]),100,0,10);
-            fFin_Chi2[i]->GetXaxis()->SetTitle("Chi^2");
-            fFin_Chi2[i]->GetYaxis()->SetTitle("Counts");
         }
         first_run=0;
     }
@@ -343,6 +354,7 @@ namespace emph {
         //Looping over all SSD hits
         for (size_t i=0; i<ssdvec.size(); ++i){
             //if statement to indicate end of event, events are filtered and pushed to finalized arrays for alignment, then cleared for next event
+            //std::cout<<"Here "<< i <<"   ssdvec sensor (x,y,z) =  "<<ssdvec[i].X()<<"  " <<ssdvec[i].Y()<<"  "<<ssdvec[i].Z()<<std::endl;
             if (ssdvec[i].Event()!=nevt){
                 //Fill each axis event holder
                 evt_holder[i].FillEvtHolder(evt_holder,xevt_holder,yevt_holder,uevt_holder,vevt_holder);
@@ -385,7 +397,7 @@ namespace emph {
         }
 
         //Residual Method of Alignment
-        int loops=40;
+        int loops=50;
         size_t dim = nstations; //number of position measurements
         art::ServiceHandle<art::TFileService> tfs;
         std::cout<<"Dimension: "<<dim<<std::endl;
@@ -401,10 +413,13 @@ namespace emph {
         for (int i=0; i<loops; ++i){
             std::cout<<"Beginning Loop "<<i<<std::endl;
             std::vector<std::vector<double>> xres_array(nxsensors);
+            std::vector<double> xchi2(nxsensors,0);
             
             //Looping through alignment events and calculating x-residuals
             for (size_t j=0; j<x_cal.size(); ++j){
                 size_t event_hits = x_cal[j].size(); //number of SSD sensors hit in event
+                //if (i!=0 && i%5 == 0 && event_hits < (dim-2)) continue; //every 5th loop, only align events with all stations hit
+                if (event_hits < (dim-1)) continue; //every 5th loop, only align events with all stations hit
                 std::vector<emph::al::SSDAlign*> x_evt(event_hits);
                 for (size_t k=0; k<x_cal[j].size(); ++k) x_evt[k] = &x_cal[j][k]; 
                 std::vector<double> x_adj(event_hits);
@@ -431,19 +446,18 @@ namespace emph {
                     //Filling residual plots using correct index of SSD
                     if(i==1){
                         fX_Residual_Init[x_ind[k]]->Fill(res/sigma);
-                        fInit_Chi2[0]->Fill(chi2);
                     }
                     if(i==loops-1){
                         fX_Residual_Fin[x_ind[k]]->Fill(res/sigma);
-                        fFin_Chi2[0]->Fill(chi2);
                     }
                     xres_array[x_ind[k]].push_back(res);
+                    xchi2[x_ind[k]]+=chi2;
 
                     //Removing events that have very poor alignment
-                    //if (i%10==0 && i!=0){
-                    //    auto iterator = x_cal.begin()+j;
-                    //    if (res/sigma > 4) x_cal.erase(iterator);
-                    //}
+                    if (i%10==0 && i!=0){
+                        auto iterator = x_cal.begin()+j;
+                        if (abs(res/sigma) > 10) x_cal.erase(iterator);
+                    }
                 }
                 delete evt_line;
                 //Store first 10 events (unaligned) to look at
@@ -477,11 +491,14 @@ namespace emph {
 
             //Repeat Process for Y
             std::vector<std::vector<double>> yres_array(nysensors);
+            std::vector<double> ychi2(nxsensors,0);
             
             //Looping through alignment events and calculating y-residuals
             for (size_t j=0; j<y_cal.size(); ++j){
                 size_t event_hits = y_cal[j].size();
                 std::vector<emph::al::SSDAlign*> y_evt(event_hits);
+                //if (i!=0 && i%5 == 0 && event_hits < (dim-2)) continue; //every 5th loop, only align events with all stations hit
+                if (event_hits < (dim-1)) continue; //every 5th loop, only align events with all stations hit
                 for (size_t k=0; k<y_cal[j].size(); ++k) y_evt[k] = &y_cal[j][k]; 
                 std::vector<double> y_adj(event_hits);
                 std::vector<double> yzpos(event_hits);
@@ -503,14 +520,19 @@ namespace emph {
                     //Filling residual plots using correct index of SSD
                     if(i==1){
                         fY_Residual_Init[y_ind[k]]->Fill(res/sigma);
-                        fInit_Chi2[1]->Fill(chi2);
                     }
                     if(i==loops-1){
                         fY_Residual_Fin[y_ind[k]]->Fill(res/sigma);
-                        fFin_Chi2[1]->Fill(chi2);
                     }
                     yres_array[y_ind[k]].push_back(res);
+                    ychi2[y_ind[k]]+=chi2;
+                    //Removing events that have very poor alignment
+                    if (i%10==0 && i!=0){
+                        auto iterator = y_cal.begin()+j;
+                        if (abs(res/sigma) > 10) y_cal.erase(iterator);
+                    }
                 }
+                
                 delete evt_line;
                 //Clear vectors that are redefined at top 
                 y_evt.clear(); y_adj.clear(); yzpos.clear(); y_ind.clear();
@@ -524,7 +546,6 @@ namespace emph {
 
             //Looping through alignment events and calculating u-residuals
             for (size_t j=0; j<u_cal.size(); ++j){
-                //if(i==0 && j<10)std::cout<<"*** new event ***     event size = "<<u_cal[j].size()<<std::endl;
                 std::vector<emph::al::SSDAlign> u_evt = u_cal[j];
                 int evt_index=0;
                 for (size_t k=0; k<dim; ++k){
@@ -546,7 +567,6 @@ namespace emph {
                         evt_index+=1;
                         u_adj[k] = (sqrt(2)/2)*(temp_xval-temp_yval);
                         uzpos[k] = u_evt[evt_index].Z();
-                        //std::cout<<"is this working?   "<<u_adj[k]<<"   index"<<k<<std::endl;
                     }
                 }
                 TGraph* evt_line = new TGraph(dim, &uzpos[0], &u_adj[0]);
@@ -559,11 +579,9 @@ namespace emph {
 
                     //Filling residual plots using correct index of SSD
                     if(i==1){
-                        fInit_Chi2[2]->Fill(chi2);
                     }
                     if(i==loops-1){
                         fU_Residual_Fin[u_ind[k]]->Fill(res/sigma);
-                        fFin_Chi2[2]->Fill(chi2);
                     }
                     ures_array[u_ind[k]].push_back(res);
                 }
@@ -612,11 +630,9 @@ namespace emph {
 
                     //Filling residual plots using correct index of SSD
                     if(i==1){
-                        fInit_Chi2[3]->Fill(chi2);
                     }
                     if(i==loops-1){
                         fV_Residual_Fin[v_ind[k]]->Fill(res/sigma);
-                        fFin_Chi2[3]->Fill(chi2);
                     }
                     vres_array[v_ind[k]].push_back(res);
                 }
@@ -631,13 +647,16 @@ namespace emph {
             double x_ref=0, y_ref=0;
             std::cout<<"X Shifts are:    ";
             for(size_t j=0; j<x_shifts.size(); ++j){
-                double sum=0;
-                //Calculating average residual
-                for(size_t k=0; k<xres_array[j].size(); ++k){
-                    sum +=xres_array[j][k];
+                if(xres_array[j].size()!=0){
+                    double sum=0;
+                    //Calculating average residual
+                    for(size_t k=0; k<xres_array[j].size(); ++k){
+                        sum +=xres_array[j][k];
+                    }
+                    double mean = sum / xres_array[j].size();
+                    xchi2[j] = xchi2[j]/xres_array[j].size();
+                    x_shifts[j] += mean;
                 }
-                double mean = sum / xres_array[j].size();
-                x_shifts[j] += mean;
                 if (j==0) x_ref = x_shifts[0];
                 if (j==x_fixedstationindex) x1z = zpos_x[j];
             }
@@ -646,18 +665,22 @@ namespace emph {
             for(size_t j=0; j<x_shifts.size(); ++j){
                 x_shifts[j] = x_shifts[j]-x_ref - xslope*(zpos_x[j]-zpos_x[0]);
                 std::cout<<x_shifts[j]<<", ";
+                fxChi2[j]->SetPoint(fxChi2[j]->GetN(), x_shifts[j],xchi2[j]);
             }
             std::cout<<std::endl;
 
             std::cout<<"Y Shifts are:    ";
             for(size_t j=0; j<y_shifts.size(); ++j){
-                double sum=0;
-                //Calculating average residual
-                for(size_t k=0; k<yres_array[j].size(); ++k){
-                    sum +=yres_array[j][k];
+                if(yres_array[j].size()!=0){
+                    double sum=0;
+                    //Calculating average residual
+                    for(size_t k=0; k<yres_array[j].size(); ++k){
+                        sum +=yres_array[j][k];
+                    }
+                    double mean = sum / yres_array[j].size();
+                    ychi2[j] = ychi2[j]/yres_array[j].size();
+                    y_shifts[j] += mean;
                 }
-                double mean = sum / yres_array[j].size();
-                y_shifts[j] += mean;
                 if (j==0) y_ref = y_shifts[0];
                 if (j==y_fixedstationindex) y1z = zpos_y[j];
             }
@@ -665,7 +688,8 @@ namespace emph {
             double yslope = (y_shifts[y_fixedstationindex]-y_shifts[0])/(y1z-y0z);
             for(size_t j=0; j<y_shifts.size(); ++j){
                 y_shifts[j] = y_shifts[j]-y_ref - yslope*(zpos_y[j]-zpos_y[0]);
-                std::cout<<x_shifts[j]<<", ";
+                std::cout<<y_shifts[j]<<", ";
+                fyChi2[j]->SetPoint(fyChi2[j]->GetN(), y_shifts[j],ychi2[j]);
             }
             std::cout<<std::endl;
 
