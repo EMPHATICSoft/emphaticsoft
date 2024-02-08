@@ -182,7 +182,7 @@ namespace emph {
     void GetRPCTot(void);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    // art::ServiceHandle<emph::geo::GeometryService> geo;
+    art::ServiceHandle<emph::geo::GeometryService> geo;
     // emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;
     unsigned int fRun;
@@ -282,9 +282,9 @@ namespace emph {
     std::vector<double> SSD_st;
     std::vector<double> SSD_pln;
     std::vector<double> SSD_hl;
-    // std::vector<double> SSD_x;
-    // std::vector<double> SSD_y;
-    // std::vector<double> SSD_z;
+    std::vector<double> SSD_x;
+    std::vector<double> SSD_y;
+    std::vector<double> SSD_z;
 
     std::array<double, n_ch_lg> LG_t; // Pulse time of LGCalo signals
     std::array<double, n_ch_lg> LG_hgt; // Pulse height of LGCalo signals
@@ -450,9 +450,9 @@ namespace emph {
     tree->Branch("SSD_st", &SSD_st);
     tree->Branch("SSD_pln", &SSD_pln);
     tree->Branch("SSD_hl", &SSD_hl);
-    // tree->Branch("SSD_x", &SSD_x);
-    // tree->Branch("SSD_y", &SSD_y);
-    // tree->Branch("SSD_z", &SSD_z);
+    tree->Branch("SSD_x", &SSD_x);
+    tree->Branch("SSD_y", &SSD_y);
+    tree->Branch("SSD_z", &SSD_z);
 
     // Branchse for LGCalo
     tree->Branch("LG_t", &LG_t);
@@ -996,17 +996,18 @@ namespace emph {
     SSD_pln.clear();
     SSD_hl.clear();
 
-    // SSD_x.clear();
-    // SSD_y.clear();
-    // SSD_z.clear();
+    SSD_x.clear();
+    SSD_y.clear();
+    SSD_z.clear();
 
 
-    // auto emgeo = geo->Geo();
+    auto emgeo = geo->Geo();
 
     // get SSD info
     if(!SSDdigit->empty()){
-      // emph::cmap::FEBoardType boardType = emph::cmap::SSD;
+      emph::cmap::FEBoardType boardType = emph::cmap::SSD;
       emph::cmap::EChannel SSDechan;
+      SSDechan.SetBoardType(boardType);
       for(size_t idx=0; idx < SSDdigit->size(); ++idx){
 	const rawdata::SSDRawDigit& ssd = (*SSDdigit)[idx];
 	SSDechan.SetBoard(ssd.FER());
@@ -1016,13 +1017,13 @@ namespace emph {
 	int detpln = dchan.Plane();
 	int dethl = dchan.HiLo();
 
-	// const emph::geo::SSDStation *st = emgeo->GetSSDStation(detst);
-	// const emph::geo::Plane *pln = st->GetPlane(detpln);
-	// const emph::geo::Detector *sd = pln->SSD(dethl);
-	// rb::SSDHit hit(ssd, *sd);
-	// double det_x = (ssd.Row()*hit.Pitch()-sd->Height()/2)*sin(sd->Rot())+sd->Pos()[0];
-	// double det_y = (ssd.Row()*hit.Pitch()-sd->Height()/2)*cos(sd->Rot())+sd->Pos()[1];
-	// double det_z = st->Pos()[2] + sd->Pos()[2];
+	const emph::geo::SSDStation *st = emgeo->GetSSDStation(detst);
+	const emph::geo::Plane *pln = st->GetPlane(detpln);
+	const emph::geo::Detector *sd = pln->SSD(dethl);
+	rb::SSDHit hit(ssd, *sd);
+	double det_x = (ssd.Row()*hit.Pitch()-sd->Height()/2)*sin(sd->Rot())+sd->Pos()[0];
+	double det_y = (ssd.Row()*hit.Pitch()-sd->Height()/2)*cos(sd->Rot())+sd->Pos()[1];
+	double det_z = st->Pos()[2] + sd->Pos()[2];
 
 
 	SSD_fer.push_back(ssd.FER());
@@ -1038,9 +1039,9 @@ namespace emph {
 	SSD_pln.push_back(detpln);
 	SSD_hl.push_back(dethl);
 
-	// SSD_x.push_back(det_x);
-	// SSD_y.push_back(det_y);
-	// SSD_z.push_back(det_z);
+	SSD_x.push_back(det_x);
+	SSD_y.push_back(det_y);
+	SSD_z.push_back(det_z);
       } // end loop over SSDRawDigit
     }
   }
