@@ -1,6 +1,7 @@
 #include "Services.fcl"
 #include "MomReco.fcl"
 
+#include "SpillInfo.fcl"
 #include "MakeSSDClusters.fcl"
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
@@ -20,6 +21,7 @@ services:
   DetGeoMapService: @local::standard_detgeomap
   AlignService: @local::standard_align
   @table::standard_services
+  IFBeam:{}
 }
 
 source:
@@ -48,11 +50,12 @@ physics:
  producers:
  {
 	dataqual:     @local::standard_dataqual
+    spillinfo:      @local::standard_spillinfo
 	clust:        @local::standard_ssdclust
 	momreco:      @local::standard_momreco
  }	
 
- reco: [ dataqual, clust, momreco ]
+ reco: [ dataqual, spillinfo, clust, momreco ]
 	
  analyzers:{}
 

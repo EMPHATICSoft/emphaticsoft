@@ -419,7 +419,7 @@ namespace emph {
             for (size_t j=0; j<x_cal.size(); ++j){
                 size_t event_hits = x_cal[j].size(); //number of SSD sensors hit in event
                 //if (i!=0 && i%5 == 0 && event_hits < (dim-2)) continue; //every 5th loop, only align events with all stations hit
-                if (event_hits < (dim-1)) continue; //every 5th loop, only align events with all stations hit
+                if (event_hits < (dim-1)) continue; //only align events with all but one stations hit (last station was not working initially)
                 std::vector<emph::al::SSDAlign*> x_evt(event_hits);
                 for (size_t k=0; k<x_cal[j].size(); ++k) x_evt[k] = &x_cal[j][k]; 
                 std::vector<double> x_adj(event_hits);
