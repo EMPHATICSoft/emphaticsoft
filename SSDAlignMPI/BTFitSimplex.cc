@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
    int runNum = 1055; // For data... 
    double integrationStepSize = 0.;
    double EdmMaxTolerance = 0.5;
-   double magnetShiftX = 0.; double magnetShiftY = 0.; double magnetShiftZ = 0.;
+   double magnetShiftX = 0.; double magnetShiftY = 0.; double magnetShiftZ = 0.; double magnetRotXY = 0.;
    bool magnetIsRemoved = false;  
    bool doPencilBeam120 = false; 
    bool doAntiPencilBeam120 = false; 
@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
    std::vector<int> rejectedStationsIndices;
    int FittedStationNum = -1;
    char FittedViewChar = 'Z';
+   int iOptEulerVsRK4 = 0; // Euler is the default option. 
      
     MPI_Init(NULL, NULL);
 
@@ -386,6 +387,9 @@ int main(int argc, char **argv) {
 	     else if (std::abs(integrationStepSize) < 1.0e-6)		     
 	       std::cerr << " Simple kick approximation will be used.   "  << std::endl;
 	  }
+        } else if (parStr.find("IntegrationEulerVsRK4") != std::string::npos) {
+          valStrStr >> iOptEulerVsRK4;
+          if (myRank == 0)  std::cerr << " IntegrationEulerVsRK4  flag "  << iOptEulerVsRK4 << std::endl;
         } else if (parStr.find("RemoveMagnet") != std::string::npos) {
 	  int iii = 0;
           valStrStr >> iii;
@@ -404,6 +408,10 @@ int main(int argc, char **argv) {
           valStrStr >> magnetShiftZ;
           if (myRank == 0) std::cerr << " The Magnetic Field map will be shifted along the Z axis by  "  
 	                             << magnetShiftZ << std::endl;
+        } else if (parStr.find("MagRotXY") != std::string::npos) {
+          valStrStr >> magnetRotXY;
+          if (myRank == 0) std::cerr << " The Magnetic Field map will be rotate around the Z axis by   "  
+	                             << magnetRotXY << std::endl;
         } else if (parStr == std::string("FixMomentum")) {
 	  int iii = 0;
           valStrStr >> iii;
@@ -516,6 +524,11 @@ int main(int argc, char **argv) {
     if ((runNum == 2098) && (token.find("Try3D_R2098_7") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
     if ((runNum == 2113) && (token.find("Try3D_R2113_7") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
                             // Against my best whishes, Nov. Dec 2023.  
+    if ((runNum == 2144) && (token.find("Try3D_R2144_8") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_V2a.dat"); 
+    if ((runNum == 2144) && (token.find("Try3D_R2144_9") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_to9s0001_V2a.dat"); 
+    if ((runNum == 2144) && (token.find("Try3D_R2144_10") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_to9s0001_V2a.dat"); 
+    if ((runNum == 2144) && (token.find("Try3D_R2144_11") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_to9s0001_V2a.dat"); 
+    if ((runNum == 2144) && (token.find("Try3D_R2144_11") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
    aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -603,6 +616,7 @@ int main(int argc, char **argv) {
       if (std::abs(magnetShiftX) > 1.0e-3) myMagField->SetReAlignShiftX(magnetShiftX);
       if (std::abs(magnetShiftY) > 1.0e-3) myMagField->SetReAlignShiftY(magnetShiftY);
       if (std::abs(magnetShiftZ) > 1.0e-3) myMagField->SetReAlignShiftZ(magnetShiftZ);
+      if (std::abs(magnetRotXY) > 1.0e-3) myMagField->SetReAlignRotXY(magnetRotXY);
       myGeo->SetIntegrationStepSize(integrationStepSize);
       myGeo1c->SetIntegrationStepSize(integrationStepSize);
     } 
@@ -693,6 +707,18 @@ int main(int argc, char **argv) {
 //    if (myRank == 0) std::cerr << " Booby trap, stop now " << std::endl;
 //    MPI_Finalize();
 //    exit(2);
+//
+// Feb 2024 : optimization of the Magnetic field integrator.. 
+//
+    emph::rbal::BTMagneticField *myMagField = emph::rbal::BTMagneticField::getInstance();
+    myMagField->SetIntegratorSteps(integrationStepSize);
+//    if (myRank == 0) std::cerr << " Booby trap, after setting the Integrator step size.. stop now " << std::endl;
+//    MPI_Finalize();
+//    exit(2);
+//    myMagField->StuKick1(iOptEulerVsRK4);
+//    if (myRank == 0) std::cerr << " Booby trap, after studying magnetic kick .. stop now " << std::endl;
+//    MPI_Finalize();
+//    exit(2);
 
     ROOT::Minuit2::MnUserParameters uPars;
     for (size_t kPar=0; kPar != myParams->size();  kPar++) { 
@@ -713,6 +739,7 @@ int main(int argc, char **argv) {
     
     emph::rbal::BeamTrackSSDAlignFCN theFCN(fitType, &myBTIn);
     theFCN.SetForPhase1c(IsPhase1c);
+    theFCN.SetEulervsRK4(iOptEulerVsRK4);
     theFCN.SetMCFlag(G4EMPHDescrToken != std::string("none"));
     if (magnetIsRemoved) theFCN.SetNoMagnet(true);
     theFCN.SetSoftLimits(doSoftLimits);
@@ -1004,8 +1031,5 @@ int main(int argc, char **argv) {
       double chiSol = theFCN(parsSol);
       theFCN.SetDumpBeamTracksForR(false);
       if (myRank == 0) std::cerr << " Bailing out after simplex... " << std::endl;
-      MPI_Finalize();
-      exit(2); 
-      std::cerr << " Done, calling MPI_Finalze from " << myRank << std::endl;
       MPI_Finalize();
 }

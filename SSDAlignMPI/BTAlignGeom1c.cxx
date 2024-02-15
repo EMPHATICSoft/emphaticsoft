@@ -22,12 +22,12 @@ namespace emph {
   namespace rbal {
   
      BTAlignGeom1c::BTAlignGeom1c():
-       fZCoordsMagnetCenter(987.645), fMagnetKick120GeV(-0.612e-3),
+       fZCoordsMagnetCenter(987.645), fMagnetKick120GeV(-0.570e-3),
        fPitch(0.06),
        fWaferWidth(static_cast<int>(fNumStrips)*fPitch),
        fHalfWaferWidth(0.5*fWaferWidth), fIntegrationStepSize(0.),  
 //       fZNomPosX{0.45, 281.45, 501.75, 615.75, 846.45, 1139.88, 1139.88, 1465.32, 1465.32},  // revised Sept  2023, by LinYan, picked up from the gdml file 
-       fZNomPosX{0.45, 281.45, 501.75, 615.75, 846.45, 1200., 1200., 1465.32, 1465.32},  // Station 5 invesigation, Dec 14 2023 run 7o61
+       fZNomPosX{0.45, 281.45, 501.75, 615.75, 846.45, 1143.51, 1143.51, 1465.32, 1465.32},  // Station 5 invesigation, Dec 14 2023 run 7o61
        fZNomPosY{-6.5, 274.5, 501.45, 615.45, 839.5, 1146.83, 1146.83, 1472.27, 1472.27}, 
        fZNomPosSt2and3{494.5, 608.5},
        fZNomPosSt4and5{1147.13, 1147.13, 1472.57, 1472.57}, // actually 5 and 6 in Phase1c

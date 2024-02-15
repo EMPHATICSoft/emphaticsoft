@@ -35,7 +35,7 @@ namespace emph {
     myGeo(emph::rbal::BTAlignGeom::getInstance()), 
     myGeo1c(emph::rbal::BTAlignGeom1c::getInstance()),
     fIsPhase1c(false), 
-    fIsMC(true), fNoMagnet(false), fDebugIsOn(false), fSelectedView('A'),
+    fIsMC(true), fNoMagnet(false), fDebugIsOn(false), fSelectedView('A'), fIoptEulerVsRK4(0),
     fNumSensorsTotal(2*myGeo->NumSensorsXorY() + myGeo->NumSensorsU() + myGeo->NumSensorsV()),
     FCNBase(),
     fItCl(NULL), fErrorDef(1.), fOneOverSqrt2(1.0/std::sqrt(2.)), fNominalMomentum(120.),
@@ -66,7 +66,7 @@ namespace emph {
          std::cerr << "BeamTrack3DFCN::operator, number of track parameters " << pars.size() << std::endl; 
 	 fInDataDbg.clear();
       } 
-      const double integrationStepSize = myGeo->IntegrationStepSize();
+      const double integrationStepSize = (fIsPhase1c) ? myGeo1c->IntegrationStepSize() : myGeo->IntegrationStepSize();
       if (!fNoMagnet) {
         // If we bother to integrate the field for a given 4D phase space space at station 0, might as well fit the momentum
 	// hence, we must have 5 parameters.  
@@ -76,15 +76,15 @@ namespace emph {
         assert(pars.size() == 4);
       }
 //       std::cerr << " BeamTrack3DFCN::operator(), begin, x0 " << pars[0] << std::endl;
-      const double zMag = myGeo->ZCoordsMagnetCenter();
-      const double kick = (pars.size() == 4) ? myGeo->MagnetKick120GeV() : myGeo->MagnetKick120GeV()*120.0/fNominalMomentum;
+      const double zMag = (fIsPhase1c) ? myGeo1c->ZCoordsMagnetCenter() : myGeo->ZCoordsMagnetCenter();
+      const double kick = (pars.size() == 4) ? myGeo1c->MagnetKick120GeV() : myGeo1c->MagnetKick120GeV()*120.0/fNominalMomentum; // Same, Phase1b and Phase1c 
       double chi2 = 0.;
       const double x0 = pars[0]; 
       const double slx0 = pars[1];
       const double y0 = pars[2]; 
       const double sly0 = pars[3];
       if (debugIsOn) {
-         std::cerr << "... x0 " << x0 << " slx0 " << slx0 << " y0 " << y0 << " sly0 " << sly0;
+         std::cerr << "... x0 " << x0 << " slx0 " << 1.0e3*slx0 << " y0 " << y0 << " sly0 " << 1.0e3*sly0 << " mrad" << std::endl;
 	 if (pars.size() == 5) std::cerr << " pMom " << pars[4]; 
 	 if (!fIsPhase1c) { std::cerr << " ... ... Expecting Phase1c.. Not the case.. If so, stop here and now.. " << std::endl; exit(2); }
          std::cerr  << std::endl; 
@@ -107,8 +107,8 @@ namespace emph {
 	  	      << " xPred " << xPredAtSt[kSt] << " yPred " <<  yPredAtSt[kSt] 
 		      << " ZYKst " << myGeo1c->ZPos('Y', kSt) << " ZXKst " << myGeo1c->ZPos('X', kSt) << std::endl; 
         } else {
-          xPredAtSt[kSt] = x0 + slx0*(myGeo1c->ZPos('X', kSt) - myGeo1c->ZPos('X', 0));
-          yPredAtSt[kSt] = y0 + sly0*(myGeo1c->ZPos('Y', kSt) - myGeo1c->ZPos('Y', 0));
+          xPredAtSt[kSt] = x0 + slx0*(myGeo->ZPos('X', kSt) - myGeo->ZPos('X', 0));
+          yPredAtSt[kSt] = y0 + sly0*(myGeo->ZPos('Y', kSt) - myGeo->ZPos('Y', 0));
           if (debugIsOn) 
 	    std::cerr << " ..... Before the magnet, X and Y predictions for  kSe " << kSt 
 	  	      << " xPred " << xPredAtSt[kSt] << " yPred " <<  yPredAtSt[kSt] 
@@ -117,7 +117,8 @@ namespace emph {
       }
       if (!fNoMagnet) { 	
         if (integrationStepSize > 1.0e-6) {
-	  if (fIsPhase1c) { std::cerr << " Not available for Phase1c... " << std::endl; exit(2); }
+//	  if (fIsPhase1c) { std::cerr << " Not available for Phase1c... " << std::endl; exit(2); }
+	  if (!fIsPhase1c) { std::cerr << " No longer  available for Phase1b... " << std::endl; exit(2); }
          // Compute the expected kick, define intercepts and slopes downstream of the magnet, based on the Magneticfield integrator class. 
 	 // Take into account the effect of the fringe field.. 
 	  if (fMagField == nullptr) fMagField = emph::rbal::BTMagneticField::getInstance();
@@ -127,8 +128,8 @@ namespace emph {
 //         const double stepAlongZ = integrationStepSize * (std::abs(pars[4])/120.);
           const double stepAlongZ = integrationStepSize; // such we don't introduce suspicious correlations.. 
           std::vector<double> startMag(6, 0.); std::vector<double> endMag(6, 0.); 
-	  double zLocUpstreamMagnet = myGeo->ZPos('X', 2);
-	  double zLocDownstrMagnet = myGeo->ZPos('X', 3); double slx1, sly1;
+	  double zLocUpstreamMagnet = myGeo1c->ZPos('X', 3); // only for Phase1c... 
+	  double zLocDownstrMagnet = myGeo1c->ZPos('X', 4); double slx1, sly1;
 	  if (!neglectFringeFieldUp) { 
 	    if (debugIsOn) std::cerr << "Upstream Fringe Field zLocUpstreamMagnet " <<  zLocUpstreamMagnet 
 	                            << " Downstream " << zLocDownstrMagnet << std::endl;
@@ -139,24 +140,29 @@ namespace emph {
             startMag[4] = sly0*pars[4]; // assume small slope, sin(theta) = theta.. 
             startMag[5] = std::abs(pars[4]) * std::sqrt(1.0 - slx0*slx0 - sly0*sly0); 
             endMag[2] = zLocDownstrMagnet; 
-            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
-	    if (!fMagField->didStayedInMap()) return 3.0e9;
+//            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+            fMagField->IntegrateSt3toSt4(fIoptEulerVsRK4, Q, startMag, endMag, debugIsOn);
             slx1 = endMag[3]/pars[4]; sly1 = endMag[4]/pars[4]; 
             xPredAtSt[3] = endMag[0]; yPredAtSt[3] = endMag[1];
 	   // correction for the small difference of X and Y planes. 
 	    double ddZXY = myGeo->ZPos('Y', 3) - myGeo->ZPos('X', 3); yPredAtSt[3] += ddZXY*sly1;  
             if (debugIsOn) 
-	      std::cerr << " ..... After the Usptream X and Y Integrated predictions for  for Station 3, xPred " 
-	      << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] << " X Slope " << slx1 <<  std::endl; 
+	      std::cerr << " ..... After the Usptream of magnet X and Y Integrated predictions, xPred " 
+	      << xPredAtSt[3] << " yPred " <<  yPredAtSt[3] << " X Slope " << 1.0e3*slx1 <<  std::endl; 
 	  } else {
 	    slx1 = slx0; sly1 = sly0;
 	  }
 	  //
-	  // The Magnet itself, between station 3 and station 4. 
+	  // The Magnet itself, between station 3 and station 4. (Phase1b), 4 and 4 for Phase1c.
 	  //
-	  zLocUpstreamMagnet = myGeo->ZPos('X', 3);
-	  zLocDownstrMagnet = myGeo->ZPos('X', 4);
-	  if (debugIsOn) std::cerr << " Magnet itself zLocUpstreamMagnet " <<  zLocUpstreamMagnet << " Downstream " << zLocDownstrMagnet << std::endl;
+	  zLocUpstreamMagnet = myGeo1c->ZPos('X', 4);
+	  zLocDownstrMagnet = myGeo1c->ZPos('X', 5);
+	  if (debugIsOn) {
+//	    std::cerr << " ..Checking Z Positions.. " << std::endl;
+//	    for (size_t kk=0; kk != 9; kk++) std::cerr << " kSe " << kk << " Z " << myGeo->ZPos('X', kk) << std::endl;
+	    std::cerr << " Magnet itself zLocUpstreamMagnet " <<  zLocUpstreamMagnet << " Downstream " << zLocDownstrMagnet << std::endl;
+//	    std::cerr << " ............. and quit now, that is it " << std::endl; exit(2);
+	  }
           startMag[0] = xPredAtSt[3]; // restart, from station  
           startMag[1] = yPredAtSt[3]; // assume station 0 is the origin. 
           startMag[2] = zLocUpstreamMagnet; 
@@ -164,23 +170,24 @@ namespace emph {
           startMag[4] = sly1*pars[4];; // assume small slope, sin(theta) = theta.. 
           startMag[5] = std::abs(pars[4]) * std::sqrt(1.0 - slx1*slx1 - sly1*sly1);
 	  endMag[2] = zLocDownstrMagnet; 
-          fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
-	  if (!fMagField->didStayedInMap()) return 3.0e9;
+//          fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag); // Old, obsolete.. 
+          if (!fMagField->IntegrateSt4toSt5(fIoptEulerVsRK4, Q, startMag, endMag, debugIsOn)) return 3.0e9; ; // RK4
+//	  if (!fMagField->didStayedInMap()) return 3.0e9; // No longer needed.. 
            double slx2 = endMag[3]/pars[4]; double sly2 = endMag[4]/pars[4]; 
           xPredAtSt[4] = endMag[0]; yPredAtSt[4] = endMag[1]; xPredAtSt[5] = endMag[0]; yPredAtSt[5] = endMag[1];
 	  // correction for the small difference of X and Y planes. 
 	  const double ddZXYC = myGeo->ZPos('Y', 4) - myGeo->ZPos('X', 4); yPredAtSt[4] +=  ddZXYC*sly2; yPredAtSt[5] +=  ddZXYC*sly2;
           if (debugIsOn) 
-	     std::cerr << " ..... After the magnet X and Y Integrated predictions at station 4, xPred " 
+	     std::cerr << " ..... After the magnet X and Y Integrated predictions , xPred " 
 	               << xPredAtSt[4] << " yPred " <<  yPredAtSt[4] 
-		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl; 
+		      << " X Slope " << 1.0e3*slx2 << " Y Slope " << 1.0e3*sly2 <<  " mrad " << std::endl; 
 	  //
 	  // Downstream of the magnet 
 	  //
 	  if (!neglectFringeFieldDown) { 
 	    	      
-	    zLocUpstreamMagnet = myGeo->ZPos('X', 4);
-	    zLocDownstrMagnet = myGeo->ZPos('X', 6);
+	    zLocUpstreamMagnet = myGeo1c->ZPos('X', 5);
+	    zLocDownstrMagnet = myGeo1c->ZPos('X', 7);
 	    if (debugIsOn) std::cerr << " Downstream fringe  zLocUpstreamMagnet " <<  zLocUpstreamMagnet << " Downstream " << zLocDownstrMagnet << std::endl;
             startMag[0] = xPredAtSt[4]; // assume station 0 is the origin. 
             startMag[1] = yPredAtSt[4]; // assume station 0 is the origin. 
@@ -189,7 +196,8 @@ namespace emph {
             startMag[4] = sly2*pars[4];; // assume small slope, sin(theta) = theta.. 
             startMag[5] = std::abs(pars[4]) * std::sqrt(1.0 - slx2*slx2 - sly2*sly2);
 	    endMag[2] = zLocDownstrMagnet; 
-            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+ //           fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag); Obsolete.. 
+            fMagField->IntegrateSt5toSt6(fIoptEulerVsRK4, Q, startMag, endMag, debugIsOn);  
 	    if (!fMagField->didStayedInMap()) return 3.0e9;
             double slx3 = endMag[3]/pars[4]; double sly3 = endMag[4]/pars[4];
             xPredAtSt[6] = endMag[0]; yPredAtSt[6] = endMag[1]; xPredAtSt[7] = endMag[0]; yPredAtSt[7] = endMag[1];
@@ -197,26 +205,39 @@ namespace emph {
 	    const double ddZXYE = myGeo->ZPos('Y', 6) - myGeo->ZPos('X', 6); yPredAtSt[6] +=  ddZXYE*sly3; yPredAtSt[7] +=  ddZXYE*sly3;
             if (debugIsOn) 
 	       std::cerr << " ..... After the Downstream fringe field, xPred " << xPredAtSt[6] << " yPred " <<  yPredAtSt[6] 
-		      << " X Slope " << slx3 << " Y Slope " << sly3 <<  std::endl; 
+		      << " X Slope " << 1.0e3*slx3 << " Y Slope " << 1.0e3*sly3 <<  " mrad" << std::endl; 
 	 } else {
 	   xPredAtSt[6] = xPredAtSt[4] + slx2*(myGeo->ZPos('X', 6) - myGeo->ZPos('X', 4)); xPredAtSt[7] = xPredAtSt[6];
 	   yPredAtSt[6] = yPredAtSt[4] + sly2*(myGeo->ZPos('Y', 6) - myGeo->ZPos('Y', 4)); yPredAtSt[7] = yPredAtSt[6];
            if (debugIsOn) 
 	       std::cerr << " ..... After the magnet, xPred " << xPredAtSt[6] << " yPred " <<  yPredAtSt[6] 
-		      << " X Slope " << slx2 << " Y Slope " << sly2 <<  std::endl; 
+		      << " X Slope " << 1.0e3*slx2 << " Y Slope " << 1.0e3*sly2 <<  std::endl; 
 	 }
        } else { // simple kick..
-         const size_t nnXYDwnMagnet = (fIsPhase1c) ? 4 : 5; 
-         for (size_t kSe=nnXYDwnMagnet; kSe != nnXYTmp; kSe++) {
-	   const double slx1 =  slx0 + kick;
-	   const double xx = x0 + slx0*(zMag - myGeo->ZPos('X', 0));
-           xPredAtSt[kSe] = xx + slx1*( myGeo->ZPos('X', kSe) - zMag);
-           yPredAtSt[kSe] = y0 + sly0*(myGeo->ZPos('Y', kSe) - myGeo->ZPos('Y', 0));
-          if (debugIsOn) 
-	     std::cerr << " ..... After the magnet X and Y predictions, simple kick for  kSe " << kSe 
+         if (!fIsPhase1c) { 
+           for (size_t kSe=4; kSe != nnXYTmp; kSe++) {
+	     const double slx1 =  slx0 + kick;
+	     const double xx = x0 + slx0*(zMag - myGeo->ZPos('X', 0));
+             xPredAtSt[kSe] = xx + slx1*( myGeo->ZPos('X', kSe) - zMag);
+             yPredAtSt[kSe] = y0 + sly0*(myGeo->ZPos('Y', kSe) - myGeo->ZPos('Y', 0));
+             if (debugIsOn) 
+	       std::cerr << " ..... After the magnet X and Y predictions, simple kick for  kSe " << kSe 
 	  	      << " kick " << kick << " xPred " << xPredAtSt[kSe] << " yPred " <<  yPredAtSt[kSe] << std::endl; 
-          }	
-        }
+            }
+	  } else { 
+           for (size_t kSe=5; kSe != nnXYTmp; kSe++) {
+	     const double slx1 =  slx0 + kick;
+	     const double xx = x0 + slx0*(zMag - myGeo1c->ZPos('X', 0));
+             xPredAtSt[kSe] = xx + slx1*( myGeo1c->ZPos('X', kSe) - zMag);
+             yPredAtSt[kSe] = y0 + sly0*(myGeo1c->ZPos('Y', kSe) - myGeo->ZPos('Y', 0));
+             if (debugIsOn) 
+	       std::cerr << " ..... After the magnet X and Y predictions, simple kick for  kSe " << kSe 
+	  	      << " kick " << kick << " xPred " << xPredAtSt[kSe] << " yPred " <<  yPredAtSt[kSe] << " slx1 " << 1000.*slx1 << " mrad" <<  std::endl; 
+            }
+	  
+	  }
+	  	
+        }  // Simple Kick vs numerical Integration. 
       } // NoMagnet 
       if (fIsPhase1c) { fx6 = xPredAtSt[myGeo1c->NumSensorsXorY()-1]; fy6 = yPredAtSt[myGeo1c->NumSensorsXorY()-1]; } 
       else { fx5 = xPredAtSt[myGeo->NumSensorsXorY()-1]; fy5 = xPredAtSt[myGeo->NumSensorsXorY()-1]; }
@@ -504,7 +525,7 @@ namespace emph {
       } // on the views 
       if (std::isnan(chi2)) return 2.5e9; // Should not need this protection.. 
       if (debugIsOn) std::cerr << " BeamTrack3DFCN::operator(), Selected View " << fSelectedView << " done chiSq " << chi2 << std::endl;
-      if (debugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; this->DumpfInDataDbg(false); exit(2); }
+//      if (debugIsOn) { std::cerr << " ......Chi Sq is " << chi2 << " And enough work for now " << std::endl; this->DumpfInDataDbg(false); exit(2); }
       return chi2;
     }
      

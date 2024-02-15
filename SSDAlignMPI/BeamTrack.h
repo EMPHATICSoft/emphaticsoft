@@ -40,6 +40,7 @@ namespace emph{
       bool fAlignMode;
       bool fNoMagnet;
       char fSelectedView;
+      int fIoptEulerVsRK4; 
       size_t fNumSensorsXorY = 8; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2  // should be const..but then I can't remove tracks..  
       size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each 
       size_t fNumSensorsV = 4; // Station 2 and 3, one sensor each 
@@ -69,6 +70,7 @@ namespace emph{
           fNumSensorsXorY = 8;
 	}
       }
+      inline void SetEulervsRK4(int iOpt) { fIoptEulerVsRK4 = iOpt; }
       inline bool IsPhase1c() const { return fIsPhase1c; } 
       inline void SetSpill(int aSpill) { fSpill = aSpill; }
       inline void SetEvtNum(int a) { fEvtNum = a; }

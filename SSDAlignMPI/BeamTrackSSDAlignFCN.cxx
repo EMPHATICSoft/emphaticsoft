@@ -33,7 +33,8 @@ namespace emph {
     myParams(emph::rbal::SSDAlignParams::getInstance()),
     myBTIn(DataIn), 
     fFitType(aFitType), fIsMC(false), fNoMagnet(false),
-    fStrictSt6(true), fBeamConstraint(false), fAlignMode(true), fDoAntiPencilBeam(false), fSelectedView('A'), 
+    fStrictSt6(true), fBeamConstraint(false), fAlignMode(true), fDoAntiPencilBeam(false), 
+    fIoptEulerVsRK4(0), fSelectedView('A'), 
     fDoAllowLongShiftByStation(false),
     fAssumedSlopeSigma(1.0),  
     fBeamBetaFunctionY(1357.), fBeamBetaFunctionX(377.), // in cm 
@@ -140,6 +141,7 @@ namespace emph {
        if ((!flagTracks) && (kk < fIsOK.size()) && (!fIsOK[kk])) continue;
        aTr.SetMCFlag(fIsMC);
        aTr.SetNoMagnet(fNoMagnet);
+       aTr.SetEulervsRK4(fIoptEulerVsRK4);
        aTr.SetDoMigrad(false); // Minuit Minimize will do .. 
        aTr.SetAlignMode(fAlignMode); 
        aTr.SetNominalMomentum(fNominalMomentum);

@@ -87,8 +87,17 @@ namespace emph {
     double fStepX, fStepY, fStepZ; 
     int fInterpolateOption;
     int fVerbosity;
+    double fRotAngleXY; // a rotation angle Bx ->  ~= Bx * (1.0 - rot^2/2) - By*(rot) - and By = By * (1-rot^2) + Bx * rot
     std::vector<double> fReAlignShift;
-    
+//
+//  Feb. 2024, Optimizatiopn of the Euler or RK4 stepsize
+//
+    double fZXViewSt3, fZXViewSt4, fZXViewSt5, fZXViewSt6, fZStartField, fZEndField;
+    double fdZStartField,  fdZEndField; // to go in straight line, field is zero.    
+    std::vector<double> fStepsIntSt3toSt4, fStepsIntSt4toSt5, fStepsIntSt5toSt6;
+//
+// define and use as a singleton class, so 
+//    
     static BTMagneticField* instancePtr;
     
    public:
@@ -112,6 +121,19 @@ namespace emph {
    //
    // June 2022 : start analysis of ZipTrack data from Mike T. 
    //
+   // Feb 2024:  Improve the performance of the Euler & RK4 integrator, by pre-ordaining the steps
+   //
+   void SetIntegratorSteps(double minStep);
+   // 
+   // assuming the above has been called.. Return false if we fall outside the 15 X 15 map inside the magnet. 
+   //
+   bool IntegrateSt3toSt4(int iOpt, int charge,  
+                    std::vector<double> &start, std::vector<double> &end, bool debugIsOn = false) const; 
+   bool IntegrateSt4toSt5(int iOpt, int charge,  
+                    std::vector<double> &start, std::vector<double> &end, bool debugIsOn = false) const; 
+   bool IntegrateSt5toSt6(int iOpt, int charge,  
+                    std::vector<double> &start, std::vector<double> &end, bool debugIsOn = false) const; 
+   
    inline void setUseOnlyTheCentralPart(bool  t=true) {  fUseOnlyCentralPart = t; } 
    inline void setXZipOne(double x) { xZipOne = x; } 
    inline void setYZipOne(double y) { yZipOne = y; } 
@@ -120,6 +142,7 @@ namespace emph {
    inline void SetReAlignShiftX(double xx) { fReAlignShift[0] = xx; fG4ZipTrackOffset[0] += xx; } // fReAlignShift actually was not used.. Shame.. 
    inline void SetReAlignShiftY(double yy) { fReAlignShift[1] = yy; fG4ZipTrackOffset[1] += yy; } 
    inline void SetReAlignShiftZ(double zz) { fReAlignShift[2] = zz; fG4ZipTrackOffset[2] += zz; } 
+   inline void SetReAlignRotXY(double r) { fRotAngleXY =  r; } 
    inline bool didStayedInMap() { return fStayedInMap; }  
    
    private:
@@ -142,8 +165,9 @@ namespace emph {
     }
     
 //    void MagneticFieldFromCentralBore(const double Point[3], double BApprox[3]) const;
-
-    
+   public:
+     void testField1() const ;
+     void StuKick1(int iOptEulervsRK4) const ;
   };
  } // end of name space rbal  
 } // end namespace emph

@@ -51,6 +51,7 @@ namespace emph{
       bool fNoMagnet; // to align on 120 GeV. 
       bool fDebugIsOn;
       char fSelectedView;
+      int fIoptEulerVsRK4; 
       size_t fNumSensorsTotal;
       std::vector<BeamTrackCluster>::const_iterator fItCl;
       double fErrorDef, fOneOverSqrt2, fOneOSqrt12; // for Minuit. 
@@ -76,6 +77,7 @@ namespace emph{
 	    fResids.resize(fNumSensorsTotal);
 	}
       }
+      inline void SetEulervsRK4(int iOpt) { fIoptEulerVsRK4 = iOpt; }
       inline void SetClusterPtr(std::vector<BeamTrackCluster>::const_iterator it) { fItCl = it; } 
       inline void SetErrorDef(double e) { fErrorDef = e; }
       inline void SetNoMagnet(bool v=true) { fNoMagnet = v; }

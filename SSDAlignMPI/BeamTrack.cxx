@@ -32,7 +32,7 @@ namespace emph {
       fIsPhase1c(false),
       myGeo(emph::rbal::BTAlignGeom::getInstance()),
       myGeo1c(emph::rbal::BTAlignGeom::getInstance()),
-      fDebugIsOn(false), fDoMigrad(false), fAlignMode(true), fNoMagnet(false), fSelectedView('A'), 
+      fDebugIsOn(false), fDoMigrad(false), fAlignMode(true), fNoMagnet(false), fSelectedView('A'), fIoptEulerVsRK4(0),
       fNumSensorsXorY(myGeo->NumSensorsXorY()),
       fNumSensorsU(myGeo->NumSensorsU()),
       fNumSensorsV(myGeo->NumSensorsV()),
@@ -124,6 +124,7 @@ namespace emph {
      double BeamTrack::doFit3D(std::vector<BeamTrackCluster>::const_iterator it) {
        fSpill = it->Spill();   fEvtNum = it->EvtNum();
        fFcn3D.SetForPhase1c(fIsPhase1c);
+       fFcn3D.SetEulervsRK4(fIoptEulerVsRK4);
 //       std::cerr <<  " BeamTrack::doFit3D, at event " << fEvtNum << std::endl;
 //       fDebugIsOn = fEvtNum > 63;
 // Debug missing low statistics on V4b, V5b views.. 
@@ -133,7 +134,7 @@ namespace emph {
 //       if (fDebugIsOn) 
 //         std::cerr << " BeamTrack::doFit3D evt " << fEvtNum << " V4b info, strip number " << it->TheAvStrip('V', 1) << " rms " << rmsV4b << std::endl;
 //        fDebugIsOn = false;
-        fDebugIsOn = ((fEvtNum == 5)  && (fSpill == 10));
+        fDebugIsOn = ((fEvtNum == 6036000)  && (fSpill == 10000));
 //        fDebugIsOn = ((fEvtNum == 9)  && (fSpill == 10));
 	 if (fDebugIsOn)  std::cerr << " BeamTrack::doFit3D, debugging evt " << fEvtNum<< " Real run xxxx, spill  " << fSpill << std::endl;
 //       fFcn3D.SetDebugOn(fDebugIsOn);

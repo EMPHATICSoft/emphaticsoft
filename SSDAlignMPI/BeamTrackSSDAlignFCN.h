@@ -40,7 +40,8 @@ namespace emph{
       bool fBeamConstraint;
       bool fAlignMode;
       bool fDoAllowLongShiftByStation;
-      bool fDoAntiPencilBeam; 
+      bool fDoAntiPencilBeam;
+      int fIoptEulerVsRK4; // New integration flag, Feb 12 2024.        
       char fSelectedView;
       double fAssumedSlopeSigma;
       double fBeamBetaFunctionY, fBeamBetaFunctionX;
@@ -84,6 +85,7 @@ namespace emph{
       void SetBeamConstraint(bool v) { fBeamConstraint = v; } 
       void SetAlignMode(bool v=true) { fAlignMode = v; } 
       void SetAntiPencilBeam(bool v=true) {fDoAntiPencilBeam = v;}
+      inline void SetEulervsRK4(int iOpt) { fIoptEulerVsRK4 = iOpt; }
       void SetAllowLongShiftByStation(bool v=true) { fDoAllowLongShiftByStation = true; } 
       void SetNoMagnet(bool v=true) {fNoMagnet = v;}
       void SetAssumedEpsilY(double a) {fExpectedEpsilY = a; fBeamConstraint=true;  }
