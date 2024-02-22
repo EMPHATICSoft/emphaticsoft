@@ -1,4 +1,4 @@
-//Macro4: Identify good events (exactly one cluster per plane) and plot total cluster ADC separately for each sensor. 
+//Macro4: Identifies good events (exactly one cluster per plane) and plot total cluster ADC separately for each sensor. 
 //Date: Feb 22, 2024
 
 void macro4()
