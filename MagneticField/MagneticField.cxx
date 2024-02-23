@@ -32,8 +32,9 @@ namespace emph {
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), 
     fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
-    fInterpolateOption(0), fVerbosity(0)
+    fInterpolateOption(1), fVerbosity(1)
     {
+    
 /*<<<<<<< HEAD
 #ifdef debug
       fVerbosity = 1;
@@ -128,6 +129,8 @@ namespace emph {
     double zPrev = z; 
 =======
 >>>>>>> main
+
+
 */
     }
     
@@ -150,9 +153,9 @@ namespace emph {
       fG4ZipTrackOffset[0] = -geo->MagnetUSXPos();
       fG4ZipTrackOffset[1] = -geo->MagnetUSYPos();
     */
-
-    if (fVerbosity)
-      std::cerr << " MagneticField::AlignWithGeom G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
+    fVerbosity = 0; // overwrite what the service decided to do.. 
+    if (fVerbosity > 1)
+      std::cerr << " MagneticField::AlignWithGeom MagneticField::AlignWithGeom G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
 
     if (fVerbosity > 1) {
       //
@@ -168,8 +171,20 @@ namespace emph {
       std::cerr << " .......... again, 30mm inside " << BTest2[1] << std::endl;
       for (size_t k=0; k != 3; k++) xTest[k] -= fG4ZipTrackOffset[k];
       BTest[1] = 0.;
+      xTest[2] = 987.645; // Magnet center
       this->GetFieldValue(xTest, BTest);
-      std::cerr << " MagneticField::AlignWithGeom, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;      
+      std::cerr << " MagneticField::AlignWithGeom, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;
+      std::cerr << " And quit now!!! " << std::endl; exit(2);      
+      //
+      // Wrong if we use Measured Map Back to the guessing game!!!! 
+      //
+      std::ofstream fOutTmp("./TestMagMeas.txt");
+      fOutTmp << " z By " << std::endl;
+      for (int iZ=0; iZ != 1700; iZ++) {
+       xTest[0] = 0.25; xTest[1] = -0.25;  xTest[2] = 1.0*iZ;
+       this->GetFieldValue(xTest, BTest);
+       fOutTmp << " " << xTest[2] << " " << BTest[1] << std::endl;
+      } 
     }
   }
   
@@ -181,7 +196,6 @@ namespace emph {
       std::cerr << "Magnetic Field file name is not set, aborting..." << std::endl;
       abort();
     }
-
     double numbers[6];
     std::ifstream fileIn(fFieldFileName.c_str());
     if (!fileIn.is_open()) {
@@ -385,7 +399,7 @@ namespace emph {
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
     B[2] = 0.; 
-    if (fVerbosity) std::cerr << " MagneticField::MagneticField, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
+    if (fVerbosity) std::cerr << " MagneticField::Field, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
     if (fStorageIsStlVector) 
       CalcFieldFromVector(x,B);
     else
@@ -707,7 +721,7 @@ namespace emph {
       xxMiddle[0] += slx*stepZ/2.; xxMiddle[1] += sly*stepZ/2.;
       xxStop[0] += slx*stepZ; xxStop[1] += sly*stepZ;
       if (fVerbosity) std::cerr << " At x,y,z " << pos[0] << " " << pos[1] << " " << pos[2] << " step size " << stepZ << std::endl;
-      this->Field(xxMiddle, bAtZMiddle);
+      this->GetFieldValue(xxMiddle, bAtZMiddle); for(size_t k=0; k !=3; k++) bAtZMiddle[k] *= 1.0e4; // Unit conversion.. 
       if (!fStayedInMap) return;
       //
       // Change of slope along the X-axis (dominant component).

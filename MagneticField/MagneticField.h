@@ -56,6 +56,19 @@ namespace emph {
 		   std::vector<double> &start, std::vector<double> &end); 
     //    inline void setUseOnlyTheCentralPart(bool  t=true) {  fUseOnlyCentralPart = t; }    
    inline bool didStayedInMap() { return fStayedInMap; }  // While integrating.. 
+   //
+   // Feb 2024:  Improve the performance of the Euler & RK4 integrator, by pre-ordaining the steps
+   void SetIntegratorSteps(double minStep);
+   //
+   // assuming the above has been called.. Return false if we fall outside the 15 X 15 map inside the magnet. 
+   //
+   bool IntegrateSt3toSt4(int iOpt, int charge,  
+                    std::vector<double> &start, std::vector<double> &end, bool debugIsOn = false); 
+   bool IntegrateSt4toSt5(int iOpt, int charge,  
+                    std::vector<double> &start, std::vector<double> &end, bool debugIsOn = false); 
+   bool IntegrateSt5toSt6(int iOpt, int charge,  
+                    std::vector<double> &start, std::vector<double> &end, bool debugIsOn = false); 
+   
   private:
     void uploadFromTextFile();
     void AlignWithGeom();
@@ -74,6 +87,13 @@ namespace emph {
     inline size_t indexForVector(size_t iX, size_t iY, size_t iZ) const {
       return (static_cast<size_t>(fNStepZ*fNStepY) * iX + static_cast<size_t>(fNStepZ) * iY + iZ);
     } 
+//
+//  Feb. 2024, Optimizatiopn of the Euler or RK4 stepsize
+//
+    double fZXViewSt3, fZXViewSt4, fZXViewSt5, fZXViewSt6, fZStartField, fZEndField;
+    double fdZStartField,  fdZEndField; // to go in straight line, field is zero.    
+    std::vector<double> fStepsIntSt3toSt4, fStepsIntSt4toSt5, fStepsIntSt5toSt6;
+//
 
   };
   
