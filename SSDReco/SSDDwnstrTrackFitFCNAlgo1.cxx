@@ -45,7 +45,7 @@ namespace emph {
        fMagField = bField->Field();
        art::ServiceHandle<emph::geo::GeometryService> geo;
        fNoMagnet = geo->Geo()->MagnetUSZPos() < 0.;
-       std::cerr << " SSDDwnstrTrackFitFCNAlgo1::SSDDwnstrTrackFitFCNAlgo1, Magnet MagnetUSZPos() " <<  geo->Geo()->MagnetUSZPos() << std::endl; 
+       std::cerr << " SSDDwnstrTrackFitFCNAlgo1::SSDDwnstrTrackFitFCNAlgo1, Magnet MagnetUSZPos() " <<  geo->Geo()->MagnetUSZPos() << std::endl;
        fPhase1c = (runNum > 1999) ? true : false;
 //
     }
@@ -134,7 +134,8 @@ namespace emph {
 	    // 
 	    // Implement Magnet misalignment.. 
 	    startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
-            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+//            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+            fMagField->IntegrateSt3toSt4(0, Q, startMag, endMag);
 	    //
 	    // Back shift.. 
 	    endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
@@ -177,7 +178,8 @@ namespace emph {
           startMag[5] = std::abs(pMomTmp) * std::sqrt(1.0 - slx1*slx1 - sly1*sly1);
 	  endMag[2] = zLocDownstrMagnet; 
  	  startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
-          fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+//          fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+          fMagField->IntegrateSt4toSt5(0, Q, startMag, endMag);
 	  endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
           double slx2 = endMag[3]/pMomTmp; double sly2 = endMag[4]/pMomTmp; 
 	  
@@ -219,7 +221,8 @@ namespace emph {
             startMag[5] = std::abs(pMomTmp) * std::sqrt(1.0 - slx2*slx2 - sly2*sly2);
 	    endMag[2] = zLocDownstrMagnet; 
  	    startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
-            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+//            fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
+            fMagField->IntegrateSt5toSt6(0, Q, startMag, endMag);
 	    endMag[0] += fMagShift[0]; endMag[1] += fMagShift[1]; 
             double slx3 = endMag[3]/pMomTmp; double sly3 = endMag[4]/pMomTmp;
             xPredAtSt[iiLast] = endMag[0]; yPredAtSt[iiLast] = endMag[1];

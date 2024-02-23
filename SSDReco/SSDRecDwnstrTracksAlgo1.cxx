@@ -28,7 +28,7 @@ namespace emph {
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fCoordConvert('A'),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
-      fNEvents(0), fDebugIsOn(false), fIsMC(false), fIsGoodForAlignment(false), 
+      fNEvents(0), fDebugIsOn(false), fIsMC(false), fIsGoodForAlignment(false),
       fDoMigrad(true), fNoMagnet(false), fChiSqCut(5.0), 
       fPrelimMomentum(50.0), fChiSqCutPreArb(1000.), 
       fDoUseUpstreamTrack(false), 
@@ -51,7 +51,7 @@ namespace emph {
     size_t SSDRecDwnstrTracksAlgo1::RecStation(size_t kSt, const art::Event &evt, 
                                 const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr) {
        fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
-       if (kSt == 2) { fIsGoodForAlignment = false; fIsPerfectForAlignment = false; }
+       if (kSt == 2) { fIsGoodForAlignment = false; fIsPerfectForAlignment = false;}
        if (kSt == 4) fHasUniqueYWSt4 = false;
        if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAlgo1::RecStation, spill " << fSubRunNum << " evt " << fEvtNum << " Station " << kSt << std::endl;
        if (fEmgeo == nullptr) {

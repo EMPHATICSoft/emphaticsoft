@@ -193,6 +193,7 @@ namespace emph {
       int kTr=0;  
       for (std::vector<rb::BeamTrackAlgo1>::const_iterator  it = fTrXYs.cbegin();  it != fTrXYs.cend(); it++, kTr++ ) {
         if ((uFlag != INT_MAX) && (it->UserFlag() != uFlag )) continue;
+	if (kTr > 10) break; // To limit the size of output file... 
         fFOut3D << headerStrStr.str() << " " << kTr << " " << it->XOffset() << " " << it->XOffsetErr();
 	fFOut3D <<  " " << it->YOffset() << " " << it->YOffsetErr() << " " << it->XSlope() << " " << it->XSlopeErr();
 	fFOut3D <<  " " << it->YSlope() << " " << it->YSlopeErr() << std::endl;

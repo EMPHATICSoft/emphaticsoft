@@ -360,6 +360,24 @@ namespace emph {
        fTrs.push_back(*it); 
      }
    }			   
-  }
-}
 //
+   bool SSDRecDwnstrTracksAlgo1::HasGoodHighPForAlignment(double pMin, double chiSqMax) const {
+     if (fTrs.size() != 1) return false; 
+     if (fTrs[0].Momentum() < pMin) return false;    
+     if (fTrs[0].ChiSq() > chiSqMax) return false;    
+     if (fTrs[0].Type() != 12) return false;    
+//     if ((std::abs(fTrs[0].XOffset()) + 0.0) > 8.0) return false; //  8s0001 Too broad, diverge to two distinct dsamples.  
+     if ((std::abs(fTrs[0].XOffset()) + 1.0) > 2.0) return false;  // 9s0001  
+     if (std::abs(fTrs[0].YOffset()) > 8.0) return false; // No typo, accidental centering for Station 2, for run 2144 8s0001 Too broad  
+     if (std::abs(fTrs[0].YOffset()) > 4.0) return false; // No 9s0001
+     const bool atLeastSt2or3 = (((fInputSt2Pts.Size() > 0) && (fInputSt2Pts.NumTriplets() < 2)) || 
+                                  ((fInputSt3Pts.Size() > 0) && (fInputSt3Pts.NumTriplets() < 2)));
+     const bool atLeastSt4or5 = (((fInputSt4Pts.Size() > 0) && (fInputSt4Pts.NumTriplets() < 2)) || 
+                                  ((fInputSt5Pts.Size() > 0) && (fInputSt5Pts.NumTriplets() < 2)));
+     const bool atLeastSt5or6 = (((fInputSt5Pts.Size() > 0) && (fInputSt5Pts.NumTriplets() < 2)) || 
+                                  ((fInputSt6Pts.Size() > 0) && (fInputSt6Pts.NumTriplets() < 2)));
+				   
+     return (atLeastSt2or3 && atLeastSt5or6 && (fInputSt4Pts.Size() < 2)); 
+  }
+} 
+}

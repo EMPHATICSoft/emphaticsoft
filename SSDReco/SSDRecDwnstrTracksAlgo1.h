@@ -169,6 +169,7 @@ namespace emph {
 	 inline std::vector<rb::DwnstrTrackAlgo1>::const_iterator CEnd() const { return fTrs.cend(); } 
 	 inline bool IsGoodForAlignment() const { return fIsGoodForAlignment; } 
 	 inline bool IsPerfectForAlignment() const { return fIsPerfectForAlignment; } 
+	 bool HasGoodHighPForAlignment(double pMin, double chiSqMax=1000. ) const;
 	 
 	 size_t RecStation(size_t kSt, const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 
