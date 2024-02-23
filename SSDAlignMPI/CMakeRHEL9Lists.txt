@@ -42,7 +42,8 @@ link_directories(/home/lebrun/Minuit2/Minuit2-master/lib)
 
 # Create shared library 
 add_library(${PROJECT_NAME} SHARED BeamTrackCluster.cxx BTAlignInput.cxx myMPIUtils.cxx BTAlignGeom.cxx BeamTrackSSDAlignFCN.cxx
-                 BeamTrack.cxx BeamTracks.cxx BeamTrack2DFCN.cxx BeamTrack3DFCN.cxx SSDAlignParam.cxx SSDAlignParams.cxx)
+                 BeamTrack.cxx BeamTracks.cxx BeamTrack2DFCN.cxx BeamTrack3DFCN.cxx SSDAlignParam.cxx 
+		 SSDAlignParams.cxx BTMagneticField.cxx BTMagneticFieldAdd.cxx )
 
 # link library
 target_link_libraries(${PROJECT_NAME}  mpi_cxx mpi Minuit2 Minuit2Math GaussSim)

@@ -222,7 +222,7 @@ namespace emph {
       fOut.close();
     } 
 //    
-    void SSDAlignParams::LoadValueFromPreviousRun(const std::string token, bool isSimple) {
+    void SSDAlignParams::LoadValueFromPreviousRun(const std::string token, bool isSimple, bool isBasetoken) {
       // Get the rank of the process
       int myRank;
       MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
@@ -233,8 +233,12 @@ namespace emph {
         std::string cIterNum = token.substr(token.length()-1, 1);
         int aPrevIterNum = std::atoi(cIterNum.c_str()) - 1;
         std::ostringstream fNameStrStr;
-	if (isSimple) {  
-          fNameStrStr << "./MinValues_Simplex_OK_" << token.substr(0, token.length()-1) << aPrevIterNum << ".txt";
+	if (isSimple) {
+	  if (isBasetoken) {
+	    fNameStrStr << "./MinValues_Simplex_OK_" << token << ".txt"; 
+	  } else {
+            fNameStrStr << "./MinValues_Simplex_OK_" << token.substr(0, token.length()-1) << aPrevIterNum << ".txt";
+	  } 
 	} else { // old code, when I thought Migrad was better.. 
           fNameStrStr << "./MinValues_Migrad_OK_" << token.substr(0, token.length()-1) << aPrevIterNum << ".txt";
 	}

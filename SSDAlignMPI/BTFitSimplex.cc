@@ -69,8 +69,10 @@ int main(int argc, char **argv) {
    double trShift = 0.;
    int selectedSpill = INT_MAX;
    std::string token("none");
+   std::string tokenPrevBase("none");
    bool doCallFCNOnce = false; // for debugging purpose.. One cll to FCCN and that is it. 
    bool doLoadParamsFromPreviousRun = false;
+   int iOptStartFromPrev = 0;
    bool doLoadParamsFromPreviousFCNHist = false;
    int requestFCNCallNumber = INT_MAX;
    unsigned int  contourP1Index = INT_MAX;
@@ -229,9 +231,11 @@ int main(int argc, char **argv) {
        } else if (parStr == std::string("startFromPrev")) {
           int iTmpPrev;
           valStrStr >> iTmpPrev;
-	  doLoadParamsFromPreviousRun = (iTmpPrev == 1);
-          if ((myRank == 0) && doLoadParamsFromPreviousRun)  std::cerr << "We will restart from previous, same seq major tag  " << std::endl;
-        } else if (parStr == std::string("startFromPrevHist")) {
+	  doLoadParamsFromPreviousRun = (iTmpPrev != 0);
+	  iOptStartFromPrev = iTmpPrev;
+          if ((myRank == 0) && doLoadParamsFromPreviousRun)  std::cerr << "We will restart from a previous set of alignment Params  " << std::endl;
+          if ((myRank == 0) && (iOptStartFromPrev == 2))  std::cerr << "We will restart from the base token, decent resids.   " << std::endl;
+       } else if (parStr == std::string("startFromPrevHist")) {
           int iTmpPrev;
           valStrStr >> iTmpPrev;
 	  doLoadParamsFromPreviousFCNHist = (iTmpPrev == 1);
@@ -429,9 +433,12 @@ int main(int argc, char **argv) {
 	    exit(2);
 	  } 
           if (myRank == 0) std::cerr << " The random roll factor    "  << aRandomRollFactor << std::endl;
-        } else if (parStr.find("token") != std::string::npos) {
+        } else if (parStr == std::string("token")) {
           token = valStr;
           if (myRank == 0) std::cerr << " Token will be   "  << token << std::endl;
+        } else if (parStr == std::string("PrevBaseToken")) {
+          tokenPrevBase = valStr;
+          if (myRank == 0) std::cerr << " The token for the seed MinValue Alignment will be    "  << tokenPrevBase << std::endl;
         } else if (parStr == std::string("limRolls")) {
           valStrStr >> limRolls;
           if (myRank == 0) std::cerr << " The maximum roll angle will be   "  << limRolls << std::endl;
@@ -529,6 +536,7 @@ int main(int argc, char **argv) {
     if ((runNum == 2144) && (token.find("Try3D_R2144_10") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_to9s0001_V2a.dat"); 
     if ((runNum == 2144) && (token.find("Try3D_R2144_11") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_to9s0001_V2a.dat"); 
     if ((runNum == 2144) && (token.find("Try3D_R2144_11") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
+    if ((runNum == 2113) && (token.find("Try3D_R2113_11") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
    aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -696,7 +704,16 @@ int main(int argc, char **argv) {
     // New method, reload from a file... 
     //
     if (doLoadParamsFromPreviousRun) {
-      myParams->LoadValueFromPreviousRun(token, true); 
+      if (iOptStartFromPrev == 2) {
+        if (tokenPrevBase == std::string("none")) {
+          if (myRank == 0) std::cerr << " Requesting an other Previous Alignment Params set, but no tokenPrevBase given... Fatal " << std::endl;
+	  MPI_Finalize();
+	  exit(2);
+        }
+	myParams->LoadValueFromPreviousRun(tokenPrevBase, true, true); 
+      } else { 
+        myParams->LoadValueFromPreviousRun(token, true, false); 
+      }
     }
     if (doLoadParamsFromPreviousFCNHist) {
       myParams->LoadValueFromPreviousFCNHistory(token, requestFCNCallNumber); // in case the previous is stuck in a Minuit inf loop (ill-posed problem ).  
@@ -711,7 +728,7 @@ int main(int argc, char **argv) {
 // Feb 2024 : optimization of the Magnetic field integrator.. 
 //
     emph::rbal::BTMagneticField *myMagField = emph::rbal::BTMagneticField::getInstance();
-    myMagField->SetIntegratorSteps(integrationStepSize);
+    if (integrationStepSize > 0.5) myMagField->SetIntegratorSteps(integrationStepSize);
 //    if (myRank == 0) std::cerr << " Booby trap, after setting the Integrator step size.. stop now " << std::endl;
 //    MPI_Finalize();
 //    exit(2);

@@ -233,7 +233,7 @@ namespace emph{
 	void SetParamsForG4EMPHRun6h();
 	
 	
-	void LoadValueFromPreviousRun(const std::string token, bool isSimplex=false); 
+	void LoadValueFromPreviousRun(const std::string token, bool isSimplex=true, bool isBaseToken=false); 
 	void LoadValueFromPreviousFCNHistory(const std::string token, int requestedNCallNumber = INT_MAX); 
 	void RandomizeRollsAndRollCenters(double rollW = 0.33333, double rollCW = 0.33333); 
 	void FixParamsForView(const char aView, bool isFixed=true, const std::string &paramName=std::string ("")); 
