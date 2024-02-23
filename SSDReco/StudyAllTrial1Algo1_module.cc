@@ -372,6 +372,11 @@ namespace emph {
     //
     // Intro.. 
     //
+      if (fNEvents == 0) {
+        art::ServiceHandle<emph::MagneticFieldService> bField;
+        emph::MagneticField *aMagField = bField->Field();
+        aMagField->SetIntegratorSteps(3.0);
+      }
       ++fNEvents;
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();
@@ -478,6 +483,7 @@ namespace emph {
         // Cuts on beam track here. 
         //
         if (fUpStreamBeamTrRec.Size() == 0) { this->dumpSummaryMultiplicities();  return; }
+        fUpStreamBeamTrRec.dumpXYInforR(INT_MAX);
         if (debugIsOn) std::cerr << " ... Back to Analyze, got " << fUpStreamBeamTrRec.Size() << " upstream track(s) " << std::endl;
         size_t kTr=0; 
         itUpTrSel = fUpStreamBeamTrRec.CEnd(); 
@@ -570,6 +576,10 @@ namespace emph {
       	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
            fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
        }
+       if ((fRun == 2144) && fDwnstrTrRec.HasGoodHighPForAlignment(50.)) {
+      	    if (debugIsOn)  std::cerr << " Saving compact format for alignment..... " << std::endl;
+           fDwnstrTrRec.dumpCompactEvt(fSSDClsPtr);
+       }
       
       if (debugIsOn) std::cerr << std::endl<<  " ... ... Back to art analyze... After dumpCompactEvt " << std::endl;
       fDwnstrTrRec.dumpStInfoForR();
@@ -595,7 +605,6 @@ namespace emph {
       if(fDwnstrTrRec.Size() > static_cast<size_t>(fMaxNumDwnstrTracks)) { this->dumpSummaryMultiplicities();  return; }
       if (debugIsOn) std::cerr << " .... O.K., Number of downstream tracks...  " << fDwnstrTrRec.Size() << std::endl;
       
-      if (fUpStreamBeamTrRec.Size() > 0) fUpStreamBeamTrRec.dumpXYInforR(1);
       fDwnstrTrRec.dumpInfoForR();
       if (debugIsOn) std::cerr << " Check evt number.. after dumping Dwn tracks, evtNum =   " << fEvtNum << std::endl;
       //
