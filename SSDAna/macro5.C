@@ -54,7 +54,8 @@ void macro5()
 	int sensor = rec->cluster.clust[icluster].sens;
 	int avgadc = rec->cluster.clust[icluster].avgadc;
 	int hitCount = rec->cluster.clust[icluster].ndigits;
-	adcHists[station][sensor]->Fill(avgadc * hitCount); //Plotting total ADC
+	int totADC = hitCount * avgadc;
+	adcHists[station][sensor]->Fill(totADC); //Plotting total ADC
       }
     }
   }		
