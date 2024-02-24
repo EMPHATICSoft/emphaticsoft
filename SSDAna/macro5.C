@@ -59,7 +59,7 @@ void macro5()
       }
     }
   }		
-/*
+
   //Probability distribution normalization
   for (int station = 0; station < adcHists.size(); ++station) {
     for (int sensor = 0; sensor < adcHists[station].size(); ++sensor) {
@@ -70,7 +70,6 @@ void macro5()
       }
     }	
   }
-*/
 
   //Drawing histograms
   for (int station = 0; station < adcHists.size(); ++station) {
