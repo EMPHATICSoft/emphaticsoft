@@ -160,9 +160,11 @@ namespace emph {
     simb::MCTruth mctru;
     mctru.SetBeam(b);
 
+    /*
     auto beamPos = b.Position();
-//    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," <<
-//      beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+    std::cout << "%%%%% Beam Position = (" << beamPos[0] << "," 
+	      << beamPos[1] << "," << beamPos[2] << ")" << std::endl;
+    */
 
     // the next steps are a little clunky.  Make a vector of art::Ptr<MCTruth> 
     // objects to use when making the associations and another of just
@@ -186,6 +188,7 @@ namespace emph {
     fG4Alg->RunGeant(mct, *ssdhlcol, *lghlcol,  *arichhlcol, *pcol, *pcal, trackIDToMCTruthIndex); // trackIDToMCTruthIndex will be left empty... Could be cleaned up.. 
 //    std::cout << "******************** HERE 2 ********************" 
 //	      << std::endl;
+/*
     if (evt.id().event() < 10 ) { 
       std::cerr << "####################### The Particle List Action Size: " << pcal->size() << std::endl;
       std::cerr << "####################### The Track List Action Size: " << pcol->size() << std::endl;
@@ -193,6 +196,8 @@ namespace emph {
       std::cerr << "####################### The TOPAZLG Hit List Size: " << lghlcol->size() << std::endl;
       std::cerr << "####################### The ARICH Hit List Size: " << arichhlcol->size() << std::endl;
     }
+*/
+
     // print the number of particles and ssd hits!
 
     // make associations for the particles and MCTruth objects

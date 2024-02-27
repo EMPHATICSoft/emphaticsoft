@@ -13,9 +13,15 @@
 
 #include "StandardRecord/SRHeader.h"
 #include "StandardRecord/SRARingBranch.h"
-#include "StandardRecord/SRSSDHitsBranch.h"
-#include "StandardRecord/SRSSDClustBranch.h"
 #include "StandardRecord/SRBACkovBranch.h"
+#include "StandardRecord/SREventQual.h"
+#include "StandardRecord/SRGasCkovBranch.h"
+#include "StandardRecord/SRLineSegmentBranch.h"
+#include "StandardRecord/SRSpacePointBranch.h"
+#include "StandardRecord/SRSSDClustBranch.h"
+#include "StandardRecord/SRSSDHitsBranch.h"
+#include "StandardRecord/SRTrackBranch.h"
+#include "StandardRecord/SRTrackSegmentBranch.h"
 #include "StandardRecord/SRTruth.h"
 
 /// Common Analysis Files
@@ -32,12 +38,18 @@ namespace caf
       StandardRecord();
       ~StandardRecord();
 
-      SRHeader       hdr;   ///< Header branch: run, subrun, etc.
-      SRARingBranch  ring; ///< ARICH ring branch: nhit, radius, etc.
-      SRTruth	     truth; ///< Simulation truth momenta, position, ID, etc.
-      SRSSDHitsBranch hits; ///< SSD Hits branch:
-      SRSSDClustBranch cluster; ///SSD Cluster Branch: avgadc, avgstrip, etc
-      SRBACkovBranch   backov; ///< BACkov PMT charge and PID
+      SRHeader             hdr;     ///< Header branch: run, subrun, etc.
+      SRARingBranch        ring;    ///< ARICH ring branch: nhit, radius, etc.
+      SRBACkovBranch       backov;  ///< BACkov PMT charge and PID
+      SREventQual          evtqual; ///< Event quality metrics
+      SRGasCkovBranch      gasckov; ///< GasCkov PMT charge and PID
+      SRLineSegmentBranch  lineseg; ///< Line Segment branch: x0, x1
+      SRSpacePointBranch   spcpts;  ///< Reco space points branch.
+      SRSSDClustBranch     cluster; ///< SSD Cluster Branch: avgadc, avgstrip, etc
+      SRSSDHitsBranch      hits;    ///< SSD Hits branch:
+      SRTrackBranch        trks;    ///< Reco space points branch.
+      SRTrackSegmentBranch sgmnts;  ///< Reco track segments branch
+      SRTruth	           truth;   ///< Simulation truth momenta, position, ID, etc.
 
     }; // end class
 

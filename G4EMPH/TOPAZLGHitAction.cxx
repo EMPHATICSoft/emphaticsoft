@@ -18,11 +18,6 @@
 #include <vector>
 #include <map>
 
-// ROOT includes
-#include "TGeoMaterial.h"
-#include <TGeoManager.h>
-#include "TH2D.h"
-
 // G4 includes
 #include "Geant4/G4Event.hh"
 #include "Geant4/G4Track.hh"
@@ -37,8 +32,6 @@
 // ART includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
-//#include "art_root_io/TFileService.h"
-//#include "art_root_io/TFileDirectory.h"
 
 #include "G4Base/UserActionFactory.h"
 USERACTIONREG3(emph, TOPAZLGHitAction, emph::TOPAZLGHitAction)

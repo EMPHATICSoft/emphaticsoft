@@ -1,7 +1,4 @@
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "DetGeoMap.fcl"
+#include "Services.fcl"
 #include "MagneticField.fcl"
 #include "BeamGen.fcl"
 #include "G4Gen.fcl"
@@ -14,11 +11,7 @@ services:
 {
   TFileService: { fileName: "emphmc_r%r_s%s_prod_hist.root" closeFileFast: false }
   MagneticField: @local::standard_magfield
-  RunHistoryService: @local::standard_runhistory
-  Geometry: @local::standard_geometry
-  ChannelMapService: @local::standard_channelmap
-  DetGeoMapService: @local::standard_detgeomap
-  
+  @table::standard_services
   RandomNumberGenerator: {} #ART native random number generator
 
 }
@@ -47,13 +40,13 @@ physics:
 {
   producers:
   {
-	generator: @local::proton_beamgen
+	generator: @local::proton4
 	geantgen:  @local::standard_geant4
 	ssddig:    @local::standard_ssddigitizer
 	ssdclust:  @local::standard_ssdclust
   }
 
-  simulate: [ generator , geantgen , ssddig , ssdclust]
+  simulate: [ generator , geantgen , ssddig , ssdclust ]
 
   trigger_paths: [ simulate ]
 
@@ -63,4 +56,5 @@ physics:
 
 }
 
+physics.producers.ssdclust.SSDRawLabel: "ssddig:SSD"
 physics.producers.ssdclust.CheckDQ: false

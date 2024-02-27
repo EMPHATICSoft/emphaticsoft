@@ -9,7 +9,7 @@
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
+  /// Reconstructed ssd clusters found by various algorithms
     class SRSSDClustBranch
     {
     public:

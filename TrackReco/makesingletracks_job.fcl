@@ -1,18 +1,12 @@
-#include "MakeHits.fcl"
+#include "Services.fcl"
+#include "MakeSingleTracks.fcl"
 
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "DetGeoMap.fcl"
-
-process_name: MakeHits
+process_name: MakeSingleTracks
 
 services:
 {
-  TFileService: { fileName: "hits_r%r_s%s.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
-  RunHistoryService: @local::standard_runhistory
+  TFileService: { fileName: "%ifb_singletracks_hist.root" closeFileFast: false }
+  @table::standard_services
 }
 
 source:
@@ -26,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-hits_r%r_s%s.root"
+   fileName:    "%ifb_singletracks.root"
    fastCloning: false
 
   }
@@ -42,10 +36,10 @@ physics:
    #     dataqual:     @local::standard_dataqual
    #     clust:        @local::standard_ssdclust
    #     momreco:      @local::standard_momreco
-   makehits: @local::standard_makehits
+   makesingletracks: @local::standard_makesingletracks
  }
 
- reco: [ makehits ]
+ reco: [ makesingletracks ]
 
  analyzers:{}
 

@@ -1,9 +1,7 @@
 #
 # Run the 3D event display
 #
-#include "Geometry.fcl"
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
+#include "Services.fcl"
 
 process_name : eventDisplay01
 
@@ -14,11 +12,7 @@ source : {
 }
 
 services : {
-
-  # From toyExperiment
-  Geometry   : @local::standard_geometry
-  ChannelMapService : @local::standard_channelmap
-  RunHistoryService : @local::standard_runhistory
+  @table::standard_services
   # From art-workbook
   EvtDisplayService : {}
 

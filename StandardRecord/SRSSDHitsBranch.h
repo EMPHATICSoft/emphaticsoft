@@ -9,7 +9,7 @@
 
 namespace caf
 {
-  /// Reconstructed rings found by various algorithms
+  /// SSD hits branch
     class SRSSDHitsBranch
     {
     public:

@@ -39,7 +39,7 @@ namespace emph
     
       void preBeginRun(const art::Run& run);
 
-      DetGeoMap* Map() {return fDetGeoMap; }
+      DetGeoMap* Map() const {return fDetGeoMap; }
       
     private:
       DetGeoMap* fDetGeoMap;
