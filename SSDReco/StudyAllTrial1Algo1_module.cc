@@ -372,6 +372,9 @@ namespace emph {
     //
     // Intro.. 
     //
+      fSubRun = evt.subRun(); 
+      fEvtNum = evt.id().event();
+      if (fEvtNum > 14460) std::cerr << " emph::StudyAllTrial1Algo1::analyze, at event " << fEvtNum << " spill " << fSubRun << std::endl; 
       if (fNEvents == 0) {
         art::ServiceHandle<emph::MagneticFieldService> bField;
         emph::MagneticField *aMagField = bField->Field();
@@ -380,8 +383,6 @@ namespace emph {
       ++fNEvents;
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();
-      fSubRun = evt.subRun(); 
-      fEvtNum = evt.id().event();
 //      const bool debugIsOn = ((fSubRun == 100) && (fEvtNum == 700)) ; // Real data, for Iron Brick run 
 //      const bool debugIsOn = ((fEvtNum == 51) || (fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
 //      const bool debugIsOn = ((fEvtNum == 106) || (fEvtNum == 226) || (fEvtNum == 736)); // Multi track events, MC run 
