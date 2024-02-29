@@ -118,7 +118,7 @@ namespace emph {
 
       const Detector* SSD(int i) const { return &fSSD[i];}
       int  NSSDs() const { return int(fSSD.size()); }
-      sensorView View() { if (fSSD.empty()) return INIT; return fSSD[0].View(); }
+      sensorView View() const { if (fSSD.empty()) return INIT; return fSSD[0].View(); }
 
       void AddSSD(Detector ssd) { fSSD.push_back(ssd); }
 
