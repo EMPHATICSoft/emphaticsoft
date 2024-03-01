@@ -2,7 +2,7 @@
 #-m: 0: w/o magnet; 1: w/ magnet
 #-t: 0: w/o target; 1: graphite; 2: Be; 3: CH2
 
-$(dirname $0)/generate_gdml.pl -o phase1b.$$.gdml -m 1 -t 3
+$(dirname $0)/generate_gdml.pl -o phase1b.$$.gdml -m 1 -t 1
 #ls
 
 # Specify the input wildcard pattern
