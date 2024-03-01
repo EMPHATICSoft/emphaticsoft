@@ -1,0 +1,160 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf600
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 	Operator precedence and associativity\
+\
+Two operator characteristics determine how operands group with operators: precedence and associativity.  Precedence is the priority for grouping different types of operators with their operands. Associativity is the left-to-right or right-to-left order for grouping operands to operators that have the same precedence.  An operator's precedence is meaningful only if other operators with higher or lower precedence are present.  Expressions with higher-precedence operators are evaluated first.  For example, in the following statements, the value of 
+\f1 5
+\f0  is assigned to both 
+\f1 a
+\f0  and 
+\f1 b
+\f0  because of the right-to-left associativity of the 
+\f1 =
+\f0  operator. The value of 
+\f1 c
+\f0  is assigned to 
+\f1 b
+\f0  first, and then the value of 
+\f1 b
+\f0  is assigned to 
+\f1 a
+\f0 .  Perforce, a language can not have both left and right (binary) associative operators at the same priority.\
+\
+
+\f1 				b = 9;\
+				c = 5;\
+				a = b = c;\
+
+\f0 \
+Because the order of subexpression evaluation is not specified, you can explicitly force the grouping of operands with operators by using parentheses.  In the expression 
+\f1 a + b * c / d
+\f0  the 
+\f1 *
+\f0  and 
+\f1 /
+\f0  operations are performed before 
+\f1 +
+\f0  because of precedence.  
+\f1 b
+\f0  is multiplied by 
+\f1 c
+\f0  before it is divided by 
+\f1 d
+\f0  because of associativity.\
+\
+Operator grouping is not the same as evaluation order; the latter is a runtime issue.  Only the &&, ||, comma, and ternary operators guarantee a specific evaluation order.  That order can not be retained if these operators are overloaded; in executing a call to an overloaded operator, the right hand argument has to be evaluated to appear in the argument list for the overloaded function.\
+\
+The following tables list the C and C++ language operators in order of precedence and show the direction of associativity for each operator.  Operators that have the same rank have the same precedence.\
+\
+\
+Table 22. Precedence and associativity of postfix operators\
+\
+
+\f1\fs22 Rank		Right			Operator function		  	  Usage\
+		associative?\
+\
+1		yes				global scope resolution	  ::name_or_qualified name\
+1		yes(?)			class or namespace scope    class_or_namespace::member\
+						resolution\
+2		no				member selection			  object.member\
+2		no				member selection			  pointer -> member\
+2		no				subscripting				  pointer[expr]\
+2		no				function call			  expr(expr_list)\
+2		no				value construction		  type(expr_list)\
+2		no				return then increment	  	  lvalue++\
+2		no				return then decrement		  lvalue--\
+2		yes				type identification		  typeid(type)\
+2		yes				type identification at	  typeid(expr)\
+						  run time\
+2		yes				conversion checked at	  	  static_cast<type>(expr)\
+						  compile time\
+2		yes				conversion checked at	  	  dynamic_cast<type>(expr)\page 						  run time\
+2		yes				unchecked conversion		  reinterpret_cast<type>(expr)\
+2		yes				const conversion			  const_cast<type>(expr)\
+
+\f0\fs24 \
+\
+Table 23. Precedence and associativity of unary operators\
+\
+
+\f1\fs22 Rank		Right			Operator function		  	  Usage\
+		associative?\
+\
+3		yes				size of object in bytes	  sizeof expr\
+3		yes				size of type in bytes	  	  sizeof(type)\
+3		yes				increment then return		  ++lvalue\
+3		yes				decrement then return		  --lvalue\
+3		yes				bitwise negation			  ~expr\
+3		yes				not						  !expr\
+3		yes				unary minus				  -expr\
+3		yes				unary plus				  +expr\
+3		yes				address of				  &lvalue\
+3		yes				indirection or			  *expr\
+						  dereference\
+3		yes				create (allocate memory)    new type\
+3		yes				create (allocate and		  new type (expr_list) type\
+						  initialize memory)\
+3		yes				create (placement)		  new type (expr_list) type (expr_list)\
+3		yes				destroy (deallocate		  delete pointer\
+						  memory)\
+3		yes				destroy array			  delete [ ] pointer\
+3		yes				type conversion (cast)	  (type) expr\
+
+\f0\fs24 \
+\
+Table 24. Precedence and associativity of binary and ternary operators\
+\
+
+\f1\fs22 Rank		Right			Operator function		  	  Usage\
+		associative?\
+\
+4		no				member selection			  object.*ptr_to_member\
+4		no				member selection			  object->*ptr_to_member\
+5		no				multiplication			  expr * expr\
+5		no				division					  expr / expr\
+5		no				modulo (remainder)		  expr % expr\
+6		no				binary addition			  expr + expr\
+6		no				binary subtraction		  expr - expr\
+7		no				bitwise shift left		  expr << expr\
+7		no				bitwise shift right		  expr >> expr\
+8		no				less than				  expr < expr\
+8		no				less than or equal to	  	  expr <= expr\
+8		no				greater than				  expr > expr\
+8		no				greater than or equal to	  expr >= expr\
+9		no				equal					  expr == expr\
+9		no				not equal				  expr != expr\
+10		no				bitwise AND				  expr & expr\
+11		no				bitwise exclusive OR		  expr ^ expr\
+12		no				bitwise inclusive OR		  expr | expr\
+13		no				logical AND				  expr && expr\
+14		no				logical inclusive OR		  expr || expr\
+						If left hand side of && or || are sufficient to\
+						evaluate the expression, the right hand side will\
+						not be evaluated.\
+15		no				conditional expression	  expr ? expr : expr\
+						The expr to the left of ? will be evaluated before\
+						either of the 2 expressions to the right are\
+						evaluated.\
+16		yes				simple assignment		  	  lvalue = expr\
+16		yes				multiply and assign		  lvalue *= expr\
+16		yes				divide and assign		  	  lvalue /= expr\
+16		yes				modulo and assign		  	  lvalue %= expr\
+16		yes				add and assign			  lvalue += expr\
+16		yes				subtract and assign		  lvalue -= expr\
+16		yes				shift left and assign	  	  lvalue <<= expr\
+16		yes				shift right and assign	  lvalue >>= expr\
+16		yes				bitwise AND and assign	  lvalue &= expr\
+16		yes				bitwise exclusive OR		  lvalue ^= expr\
+						  and assign\
+16		yes				bitwise inclusive OR		  lvalue |= expr\
+						  and assign\
+17		yes				throw expression			  throw expr\
+18		no				comma (evaluation sequencing)\
+												  expr,expr\
+
+\f0\fs24 \page }
