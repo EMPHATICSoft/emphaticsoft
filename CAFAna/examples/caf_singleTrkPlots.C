@@ -10,12 +10,15 @@
 void angDiff(std::vector<caf::SRTrueSSDHits> truthv, caf::SRVector3D& p, double ang[2]);
 void findDistFixedZ(std::vector<caf::SRTrueSSDHits> truthv, caf::SRTrackSegment& seg);
 void getPosFromSeg(caf::SRTrackSegment& seg,double t);
+void findTrackIntersection(caf::SRTrackSegment trk1, caf::SRTrackSegment trk2);
 TH1F* hAngDiffx[8];
 TH1F* hAngDiffy[8];
 TH1F* hFixedZ_DX[8][3];
 TH1F* hFixedZ_DY[8][3];
 TH2F* hRecoMinusTrueVsTrueX[8][3];
 TH2F* hRecoMinusTrueVsTrueY[8][3];
+TH1F* hTargetZ;
+TH1F* hRecoMomRes;
 
 void caf_singleTrkPlots(std::string fname)
 {
@@ -100,8 +103,11 @@ void caf_singleTrkPlots(std::string fname)
   }
   TH2F* hBendingXYat4 = new TH2F("hBendingXYat4","hBendingXYat4",40,-20,20,40,-20,20); 
   
-  TH1F* hBending = new TH1F("hBending","hBending",200,0.,0.05);
+  TH1F* hBending = new TH1F("hBending","hBending",500,0.,0.05);
   TH1F* hScattering = new TH1F("hScattering","hScattering",200,0.,0.03);
+
+  hTargetZ = new TH1F("hTargetZ","hTargetZ",200,0.,1000.);
+  hRecoMomRes = new TH1F("hRecoMomRes","hRecoMomRes",100,-0.5,0.5);
 
   TGraph* gRecoHits_xz[100];
   TGraph* gRecoHits_yz[100];
@@ -153,20 +159,33 @@ void caf_singleTrkPlots(std::string fname)
   std::vector<double> ytruth;
   std::vector<double> ztruth;
 
-  TH2F* hBendVsTrueRAt4 = new TH2F("hBendVsTrueRAt4","hBendVsTrueRAt4",60,0,30,1000,0.03,0.04); //1000,0.03,0.04); //200,0.,0.05);
+  TH2F* hBendVsTrueRAt4 = new TH2F("hBendVsTrueRAt4","hBendVsTrueRAt4",60,0,30,200,0.0025,0.0045); //1000,0.03,0.04); //200,0.,0.05);
   //TH2F* hBendVsTrueRAt5 = new TH2F("hBendVsTrueRAt5","hBendVsTrueRAt5",60,0,30,200,0.,0.05);
 
-  TH2F* hBendVsRecoRAt4 = new TH2F("hBendVsRecoRAt4","hBendVsRecoRAt4",60,0,30,1000,0.03,0.04); //1000,0.03,0.04); //200,0.,0.05);
+  TH2F* hBendVsRecoRAt4 = new TH2F("hBendVsRecoRAt4","hBendVsRecoRAt4",60,0,30,200,0.0025,0.0045); //1000,0.03,0.04); //200,0.,0.05);
   //TH2F* hBendVsRecoRAt5 = new TH2F("hBendVsRecoRAt5","hBendVsRecoRAt5",60,0,30,200,0.,0.05);
 
-  //2 GeV  1000,0,0.01,1000,0.03,0.04);
-  //6 GeV  300,0,0.003,500,0.01,0.015); 
-  //12 GeV 200,0,0.002,200,0.005,0.007);
-  //20 GeV 100,0,0.001,200,0.0025,0.0045); 
-  TH2F* hBendVsTrueOmegaAt4 = new TH2F("hBendVsTrueOmegaAt4","hBendVsTrueOmegaAt4",100,0,0.01,1000,0.03,0.04); //,100,0,0.01,100,0,0.03); //100,0,0.01,200,0.03,0.04);
+  //new magnets: 100,0,0.01,500,0.03,0.04);
+  //1   GeV  ............500,0.05,0.1); ~0.07
+  //1.5 GeV  ............500,0.02,0.07); ~ 0.05
+  //2   GeV  1000,0,0.01,1000,0.03,0.04); ~0.037
+  //2.5 GeV  ............500,0.02,0.04); ~0.028
+  //3   GeV  ............500,0.025,0.04); ~0.023
+  //4   GeV  ............500,0.,0.02); ~0.017 
+  //5   GeV  ............500,0.,0.02); ~0.015
+  //6   GeV  300,0,0.003,500,0.01,0.015);
+  //8   GeV  ............500,0.,0.02); ~0.009
+  //10  GeV  ............500,0.,0.02);
+  //12  GeV 200,0,0.002,200,0.005,0.007);
+  //16
+  //20  GeV 100,0,0.001,200,0.0025,0.0045); 
+  //30  GeV .............500,0.,0.01); ~0.0025
+  //60  GeV .............500,0.,0.01); ~0.001
+  //120 GeV .............500,0.,0.005); 
+  TH2F* hBendVsTrueOmegaAt4 = new TH2F("hBendVsTrueOmegaAt4","hBendVsTrueOmegaAt4",100,0,0.001,200,0.0025,0.0045); //,100,0,0.01,100,0,0.03); //100,0,0.01,200,0.03,0.04);
   //TH2F* hBendVsTrueOmegaAt5 = new TH2F("hBendVsTrueOmegaAt5","hBendVsTrueOmegaAt5",200,0,0.5,200,0,0.5);//200,0.025,0.045,200,0.03,0.04);
 
-  TH2F* hBendVsRecoOmegaAt4 = new TH2F("hBendVsRecoOmegaAt4","hBendVsRecoOmegaAt4",100,0,0.01,1000,0.03,0.04); //100,0,0.01,100,0,0.03);//100,0,0.01,200,0.03,0.04);
+  TH2F* hBendVsRecoOmegaAt4 = new TH2F("hBendVsRecoOmegaAt4","hBendVsRecoOmegaAt4",100,0,0.001,200,0.0025,0.0045); //100,0,0.01,100,0,0.03);//100,0,0.01,200,0.03,0.04);
   //TH2F* hBendVsRecoOmegaAt5 = new TH2F("hBendVsRecoOmegaAt5","hBendVsRecoOmegaAt5",200,0,0.1,200,0,0.5);//200,0.025,0.045,200,0.03,0.04); 
 
   int ncl = 0;
@@ -409,6 +428,15 @@ void caf_singleTrkPlots(std::string fname)
         findDistFixedZ(truthhit_track1,rec->sgmnts.seg[0]);
         findDistFixedZ(truthhit_track2,rec->sgmnts.seg[1]);
         findDistFixedZ(truthhit_track3,rec->sgmnts.seg[2]);
+
+	// intersection of track segments 0 and 1
+	findTrackIntersection(rec->sgmnts.seg[0],rec->sgmnts.seg[1]);
+
+	// residual of reco mom - true mom
+	double recop = rec->trks.trk[1].mom.Mag();
+	double recopz = rec->trks.trk[1].mom.Z();
+	hRecoMomRes->Fill(recop - 2.5);	
+
       } //goodHit
     } //goodEvent
     if (goodCluster && goodEvent){
@@ -717,6 +745,9 @@ void caf_singleTrkPlots(std::string fname)
   hBendVsRecoOmegaAt4->Write();
   //hBendVsRecoOmegaAt5->Write();
 
+  hTargetZ->Write();
+  hRecoMomRes->Write();
+
   //for (int i=0; i<100; i++){
   //  if (gHits_xz[i]->GetListOfGraphs()) std::cout<<"true"<<std::endl; //gHits_xz[i]->Write();
   //}
@@ -770,4 +801,25 @@ void findDistFixedZ(std::vector<caf::SRTrueSSDHits> truthv, caf::SRTrackSegment&
      hRecoMinusTrueVsTrueX[i.GetStation][i.GetPlane]->Fill(i.GetX,x-i.GetX);
      hRecoMinusTrueVsTrueY[i.GetStation][i.GetPlane]->Fill(i.GetY,y-i.GetY);
    }
+}
+void findTrackIntersection(caf::SRTrackSegment trk1, caf::SRTrackSegment trk2){  
+   caf::SRVector3D a = trk1.mom.Cross(trk2.mom);
+   double dot = a.Dot(a);
+
+   if (dot == 0) std::cout<<"Parallel"<<std::endl;
+
+   caf::SRVector3D ab(trk2.vtx[0]-trk1.vtx[0],trk2.vtx[1]-trk1.vtx[1],trk2.vtx[2]-trk1.vtx[2]);
+
+   caf::SRVector3D b = ab.Cross(trk2.mom);
+
+   double t = b.Dot(a) / dot;
+
+   caf::SRVector3D point;
+   point.SetX(trk1.vtx[0] + (t*trk1.mom.x));
+   point.SetY(trk1.vtx[1] + (t*trk1.mom.y));
+   point.SetZ(trk1.vtx[2] + (t*trk1.mom.z));
+
+   //plot x,y,z
+   hTargetZ->Fill(point.Z());
+
 }

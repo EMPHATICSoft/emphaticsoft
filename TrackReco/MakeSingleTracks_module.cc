@@ -9,6 +9,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <numeric>
 
 // ROOT includes
 #include "TH1F.h"
@@ -86,6 +87,8 @@ namespace emph {
     std::vector<rb::TrackSegment> tsv;
     std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
     std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group;
+    double sectrkp[3];
+    double sectrkvtx[3];
 
     std::map<std::pair<int, int>, int> clustMap;
     std::map<int, std::map<std::pair<int, int>, int>> clustMapAtLeastOne;
@@ -115,6 +118,11 @@ namespace emph {
 
     TH2F* hDist_xz;
     TH2F* hDist_yz;
+
+    TH1F* hRecoPz;
+    TH1F* hDOCA;
+    TH1F* hCAz;
+    TH1F* hIntz;
 
     //reco info for lines
     std::vector<std::vector<double>> sp1;
@@ -188,6 +196,10 @@ namespace emph {
     hDist_xz = tfs->make<TH2F>("hDist_xz","hDist_xz",2050,-50.,2000.,1000,-50.,50.); 
     hDist_yz = tfs->make<TH2F>("hDist_yz","hDist_yz",2050,-50.,2000.,1000,-50.,50.);
 
+    hRecoPz = tfs->make<TH1F>("hRecoPz","hRecoPz",1000,0.,30.);
+    hDOCA = tfs->make<TH1F>("hDOCA","hDOCA",200,0.,1.);
+    hCAz = tfs->make<TH1F>("hCAz","hCAz",200,0.,1000.);
+    hIntz = tfs->make<TH1F>("hIntz","hIntz",200,0.,1000.);
   }
  
   //......................................................................
@@ -260,7 +272,7 @@ namespace emph {
 
                         double x[3];
                         double l1[3]; double l2[3];
-                        recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2);
+                        recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD");
 
                         //set SpacePoint object
                         sp.SetX(x);
@@ -293,7 +305,7 @@ namespace emph {
 
                             double x01[3];
                             double l1_01[3]; double l2_01[3];
-                            recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01);
+                            recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD");
 
 			    TVector3 fA02( ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] );
 			    TVector3 fB02( ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] );
@@ -302,7 +314,7 @@ namespace emph {
 
                             double x02[3];
                             double l1_02[3]; double l2_02[3];
-                            recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02);
+                            recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD");
 
 			    TVector3 fA12( ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] );
 			    TVector3 fB12( ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] );
@@ -311,7 +323,7 @@ namespace emph {
 
                             double x12[3];
                             double l1_12[3]; double l2_12[3];
-                            recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12);
+                            recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD");
         
                             //average of three points (center of mass)
                             double x[3];
@@ -417,6 +429,39 @@ namespace emph {
 	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts3.SetP(p);
 	 tsv.push_back(ts3);
+
+	 //may need to define outside of function
+	 double ts2_dot_ts3 = ts2.P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
+	 double ts2_mag = sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
+         double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
+	 double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
+	 double recop = recoFcn2.getMomentum(recoBendAngle);
+	 double recopz = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1);
+	 double recopx = sqrt((recop*recop/(recopz*recopz) - 1. - ts2.P()[1]*ts2.P()[1])*(llast2[2]-lfirst2[2]));
+	 double recopy = sqrt(recop*recop - recopz*recopz - recopx*recopx);
+
+	 sectrkp[0] = recopx;
+	 sectrkp[1] = recopy;
+	 sectrkp[2] = recopz; 
+	 hRecoPz->Fill(recopz);
+
+	 TVector3 a(lfirst1[0],lfirst1[1],lfirst1[2]);
+	 TVector3 b(llast1[0],llast1[1],llast1[2]); 
+	 TVector3 c(lfirst2[0],lfirst2[1],lfirst2[2]);
+	 TVector3 d(llast2[0],llast2[1],llast2[2]);
+	 double l0t[3];
+	 double l1t[3];
+	 recoFcn2.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment");
+
+	 double doca = sqrt( (l0t[0]-l1t[0])*(l0t[0]-l1t[0]) + (l0t[1]-l1t[1])*(l0t[1]-l1t[1]) + (l0t[2]-l1t[2])*(l0t[2]-l1t[2]) );
+
+	 hDOCA->Fill(doca);
+	 hCAz->Fill(sectrkvtx[2]);
+
+	 double point[3];
+	 recoFcn2.findTrackIntersection(ts1,ts2,point);
+	 hIntz->Fill(point[2]);
+
   }
 
   //......................................................................
@@ -616,8 +661,10 @@ namespace emph {
       rb::Track sectrk;
       sectrk.Add(tsv[1]);
       sectrk.Add(tsv[2]);
-      sectrk.SetP(tsv[1].P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
-      sectrk.SetVtx(tsv[1].Vtx()); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+      sectrk.SetP(sectrkp);
+      sectrk.SetVtx(sectrkvtx);
+      //sectrk.SetP(tsv[1].P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
+      //sectrk.SetVtx(tsv[1].Vtx()); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
       trackv->push_back(sectrk);
     }
 
