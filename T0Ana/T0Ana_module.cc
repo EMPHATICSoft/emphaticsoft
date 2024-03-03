@@ -19,6 +19,8 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Principal/Run.h"
+#include "art/Framework/Principal/SubRun.h"
 #include "art_root_io/TFileService.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
@@ -28,9 +30,13 @@
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
+#include "DataQuality/EventQuality.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 #include "Geometry/service/GeometryService.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RecoBase/LineSegment.h"
+#include "RecoBase/SSDCluster.h"
 #include "RecoBase/SSDHit.h"
 
 // Define parameters of detectors
@@ -161,6 +167,15 @@ namespace emph {
       477.0
 	};
 
+
+    //  Parameters for SSD clustering
+    int NPlanes = 0;
+    static const int NStations = 8;
+    static const int MaxPlnsPerSta = 3;
+    static const int MaxSensPerPln = 2;
+    int fRowGap = 1;//< Maximum allowed gap between strips for forming clusters
+
+
     int  FindTopT0(int);
     int  FindLeadT0(int);
     int  FindLftRPC(int);
@@ -175,6 +190,14 @@ namespace emph {
 		     art::Handle< std::vector<rawdata::WaveForm> > &, // BACwvfm
 		     art::Handle< std::vector<rawdata::WaveForm> > &); // LGwvfm
     void FillTreeSSD(art::Handle< std::vector<rawdata::SSDRawDigit> > &); //SSD raw data
+
+    static bool CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
+			     const art::Ptr<emph::rawdata::SSDRawDigit>& b);
+    void SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>& dl);
+    void FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
+		      std::vector<rb::SSDCluster>* sensClusters,
+		      int station, int plane, int sensor);
+
 
     void GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
     void GetRPCTdc(const std::vector<rawdata::TRB3RawDigit>&);
@@ -282,9 +305,19 @@ namespace emph {
     std::vector<double> SSD_st;
     std::vector<double> SSD_pln;
     std::vector<double> SSD_hl;
-    std::vector<double> SSD_x;
-    std::vector<double> SSD_y;
-    std::vector<double> SSD_z;
+
+    std::vector<double> SSD_cl_station;
+    std::vector<double> SSD_cl_plane;
+    std::vector<double> SSD_cl_sens;
+    std::vector<double> SSD_cl_view;
+    std::vector<double> SSD_cl_ndigits;
+    std::vector<double> SSD_cl_width;
+    std::vector<double> SSD_cl_timerange;
+    std::vector<double> SSD_cl_avgadc;
+    std::vector<double> SSD_cl_avgstrip;
+    std::vector<double> SSD_cl_wgtavgstrip;
+    std::vector<double> SSD_cl_wgtrmsstrip;
+    std::vector<double> SSD_cl_ncluster;
 
     std::array<double, n_ch_lg> LG_t; // Pulse time of LGCalo signals
     std::array<double, n_ch_lg> LG_hgt; // Pulse height of LGCalo signals
@@ -375,6 +408,12 @@ namespace emph {
     RPC_rgt_trail_fine.resize(n_seg_t0);
     RPC_rgt_tot.resize(n_seg_t0);
 
+    auto emgeo = geo->Geo();
+    // NPlanes = emgeo->NSSDPlanes();
+    NPlanes = 6;
+
+    SSD_cl_ncluster.resize(NPlanes);
+
     // create TTree for TRB3RawDigits
     art::ServiceHandle<art::TFileService> tfs;
 
@@ -450,9 +489,19 @@ namespace emph {
     tree->Branch("SSD_st", &SSD_st);
     tree->Branch("SSD_pln", &SSD_pln);
     tree->Branch("SSD_hl", &SSD_hl);
-    tree->Branch("SSD_x", &SSD_x);
-    tree->Branch("SSD_y", &SSD_y);
-    tree->Branch("SSD_z", &SSD_z);
+
+    tree->Branch("SSD_cl_station", &SSD_cl_station);
+    tree->Branch("SSD_cl_plane", &SSD_cl_plane);
+    tree->Branch("SSD_cl_sens", &SSD_cl_sens);
+    tree->Branch("SSD_cl_view", &SSD_cl_view);
+    tree->Branch("SSD_cl_ndigits", &SSD_cl_ndigits);
+    tree->Branch("SSD_cl_width", &SSD_cl_width);
+    tree->Branch("SSD_cl_timerange", &SSD_cl_timerange);
+    tree->Branch("SSD_cl_avgadc", &SSD_cl_avgadc);
+    tree->Branch("SSD_cl_avgstrip", &SSD_cl_avgstrip);
+    tree->Branch("SSD_cl_wgtavgstrip", &SSD_cl_wgtavgstrip);
+    tree->Branch("SSD_cl_wgtrmsstrip", &SSD_cl_wgtrmsstrip);
+    tree->Branch("SSD_cl_ncluster", &SSD_cl_ncluster);
 
     // Branchse for LGCalo
     tree->Branch("LG_t", &LG_t);
@@ -470,6 +519,7 @@ namespace emph {
     tree->Branch("RPC_lft_trail_fine",  &RPC_lft_trail_fine);
     tree->Branch("RPC_rgt_lead_fine",  &RPC_rgt_lead_fine);
     tree->Branch("RPC_rgt_trail_fine",  &RPC_rgt_trail_fine);
+
   }
 
   //......................................................................
@@ -981,6 +1031,64 @@ namespace emph {
     }
   }
 
+  //......................................................................
+  bool T0Ana::CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
+			   const art::Ptr<emph::rawdata::SSDRawDigit>& b)
+  {
+    return a->Row() < b->Row();
+  }
+
+  //......................................................................
+  void T0Ana::SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>& dl)
+  {
+    std::stable_sort(dl.begin(), dl.end(), CompareByRow);
+  }
+
+  //......................................................................
+  void T0Ana::FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
+			   std::vector<rb::SSDCluster>* sensClusters,
+			   int station, int plane, int sensor)
+  { 
+    auto emgeo = geo->Geo();
+  
+    auto gSt = emgeo->GetSSDStation(station);
+    auto gPl = gSt->GetPlane(plane);
+    auto gD = gPl->SSD(sensor);
+  
+    geo::sensorView view = gD->View();
+
+    int prevRow=sensDigits[0]->Row();
+    int curRow;
+    rb::SSDCluster ssdClust;
+    int i=0;
+
+    // loop over digits on sensor
+    for (auto & dig : sensDigits) {
+      curRow = dig->Row();
+      // if gap too big, push cluster and clear it
+      if ( curRow-prevRow > (fRowGap) ) {
+	ssdClust.SetStation(station);
+	ssdClust.SetSensor(sensor);
+	ssdClust.SetPlane(plane);
+	ssdClust.SetView(view);
+	ssdClust.SetPlane(plane);
+	sensClusters->push_back(ssdClust);
+	ssdClust = rb::SSDCluster();
+      }
+      // add current digit to cluster
+      ssdClust.Add(dig);
+      prevRow=curRow;
+    }
+
+    // push last cluster
+    ssdClust.SetStation(station);
+    ssdClust.SetSensor(sensor);
+    ssdClust.SetPlane(plane);
+    ssdClust.SetView(view);
+    ssdClust.SetPlane(plane);
+    sensClusters->push_back(ssdClust);
+  }
+
   void T0Ana::FillTreeSSD(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & SSDdigit)
   {
     SSD_fer.clear();
@@ -996,12 +1104,21 @@ namespace emph {
     SSD_pln.clear();
     SSD_hl.clear();
 
-    SSD_x.clear();
-    SSD_y.clear();
-    SSD_z.clear();
+    SSD_cl_station.clear();
+    SSD_cl_plane.clear();
+    SSD_cl_sens.clear();
+    SSD_cl_view.clear();
+    SSD_cl_ndigits.clear();
+    SSD_cl_width.clear();
+    SSD_cl_timerange.clear();
+    SSD_cl_avgadc.clear();
+    SSD_cl_avgstrip.clear();
+    SSD_cl_wgtavgstrip.clear();
+    SSD_cl_wgtrmsstrip.clear();
+    std::fill_n(SSD_cl_ncluster.begin(),SSD_cl_ncluster.size(),0);
 
 
-    auto emgeo = geo->Geo();
+    art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxPlnsPerSta][MaxSensPerPln];
 
     // get SSD info
     if(!SSDdigit->empty()){
@@ -1009,40 +1126,81 @@ namespace emph {
       emph::cmap::EChannel SSDechan;
       SSDechan.SetBoardType(boardType);
       for(size_t idx=0; idx < SSDdigit->size(); ++idx){
-	const rawdata::SSDRawDigit& ssd = (*SSDdigit)[idx];
-	SSDechan.SetBoard(ssd.FER());
-	SSDechan.SetChannel(ssd.Module());
+	art::Ptr<emph::rawdata::SSDRawDigit> ssd(SSDdigit, idx);
+	SSDechan.SetBoard(ssd->FER());
+	SSDechan.SetChannel(ssd->Module());
 	emph::cmap::DChannel dchan = cmap->DetChan(SSDechan);
 	int detst = dchan.Station();
 	int detpln = dchan.Plane();
 	int dethl = dchan.HiLo();
 
-	const emph::geo::SSDStation *st = emgeo->GetSSDStation(detst);
-	const emph::geo::Plane *pln = st->GetPlane(detpln);
-	const emph::geo::Detector *sd = pln->SSD(dethl);
-	rb::SSDHit hit(ssd, *sd);
-	double det_x = (ssd.Row()*hit.Pitch()-sd->Height()/2)*sin(sd->Rot())+sd->Pos()[0];
-	double det_y = (ssd.Row()*hit.Pitch()-sd->Height()/2)*cos(sd->Rot())+sd->Pos()[1];
-	double det_z = st->Pos()[2] + sd->Pos()[2];
-
-
-	SSD_fer.push_back(ssd.FER());
-	SSD_mod.push_back(ssd.Module());
-	SSD_row.push_back(ssd.Row());
-	SSD_t.push_back(ssd.Time());
-	SSD_adc.push_back(ssd.ADC());
-	SSD_chip.push_back(ssd.Chip());
-	SSD_set.push_back(ssd.Set());
-	SSD_strip.push_back(ssd.Strip());
+	SSD_fer.push_back(ssd->FER());
+	SSD_mod.push_back(ssd->Module());
+	SSD_row.push_back(ssd->Row());
+	SSD_t.push_back(ssd->Time());
+	SSD_adc.push_back(ssd->ADC());
+	SSD_chip.push_back(ssd->Chip());
+	SSD_set.push_back(ssd->Set());
+	SSD_strip.push_back(ssd->Strip());
 
 	SSD_st.push_back(detst);
 	SSD_pln.push_back(detpln);
 	SSD_hl.push_back(dethl);
 
-	SSD_x.push_back(det_x);
-	SSD_y.push_back(det_y);
-	SSD_z.push_back(det_z);
+	digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssd);
       } // end loop over SSDRawDigit
+
+
+      std::vector<rb::SSDCluster> clusters;
+      // Should really pull counts of these from geometry somehow
+      for (int sta=0; sta<NStations; ++sta){
+	for (int pln=0; pln<MaxPlnsPerSta; ++pln){
+	  for (int sensor=0; sensor<MaxSensPerPln; ++sensor){
+	    clusters.clear();
+	    // Don't bother to cluster if we didn't have any raw digits
+	    if (digitList[sta][pln][sensor].size()==0)
+	      continue;
+	    // FormClusters() assumes digits are ordered by row
+	    this->SortByRow(digitList[sta][pln][sensor]);
+	    this->FormClusters(digitList[sta][pln][sensor],
+			       &clusters, sta, pln, sensor);
+
+
+	    for (int i=0; i<(int)clusters.size(); i++){
+	      // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
+	      SSD_cl_station.push_back(clusters[i].Station());
+	      SSD_cl_plane.push_back(clusters[i].Plane());
+	      SSD_cl_sens.push_back(clusters[i].Sensor());
+	      SSD_cl_view.push_back(clusters[i].View());
+	      SSD_cl_ndigits.push_back(clusters[i].NDigits());
+	      SSD_cl_width.push_back(clusters[i].Width());
+	      SSD_cl_timerange.push_back(clusters[i].TimeRange());
+	      SSD_cl_avgadc.push_back(clusters[i].AvgADC());
+	      SSD_cl_avgstrip.push_back(clusters[i].AvgStrip());
+	      SSD_cl_wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+	      SSD_cl_wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
+	      int plane = clusters[i].Plane();
+	      SSD_cl_ncluster[plane]++;
+	      // clusters[i].SetID(i);
+	      // clusterv->push_back(clusters[i]);
+
+	      // // find line segment for each cluster
+	      // // check first for reasonable cluster (hack for now, need better checks earlier on)
+	      // rb::LineSegment lineseg_tmp = rb::LineSegment();
+	      // if (clusters[i].AvgStrip() > 640){
+	      // 	std::cout<<"Skipping nonsense"<<std::endl;
+	      // 	linesegv->push_back(lineseg_tmp);
+	      // 	continue; }
+	      // if (dgm->Map()->SSDClusterToLineSegment(clusters[i], lineseg_tmp)){
+	      // 	linesegv->push_back(lineseg_tmp);
+	      // }else{
+	      // 	std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl;
+	      // }//if(SSDClusterToLineSegment)
+	    }//for(i:cluster.size())
+	  }//for(sensor:MaxSensPerPln)
+	}//for(pln:MaxPlnsPerSta)
+      }//for(sta<NStations)
+
     }
   }
 

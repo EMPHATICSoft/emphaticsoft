@@ -14,6 +14,10 @@ build_plugin(T0Ana "module"
     RecoBase
     ChannelMap
     ChannelMapService_service
+    DetGeoMap
+    DetGeoMapService_service
+    RunHistory
+    RunHistoryService_service
     Geometry
     Geometry_service
     art_root_io::TFileService_service

@@ -3,6 +3,7 @@
 #include "RunHistory.fcl"
 #include "ChannelMap.fcl"
 #include "Geometry.fcl"
+#include "Services.fcl"
 
 process_name: T0Ana
 
