@@ -40,6 +40,13 @@ namespace caf
       float Mag2() const {return x*x+y*y+z*z;}
       float Mag() const {return sqrt(Mag2());}
       float Dot(const SRVector3D& v) const {return x*v.x + y*v.y + z*v.z;}
+      SRVector3D Cross(const SRVector3D& v){
+	 float cx = y*v.z - z*v.y;
+	 float cy = -(x*v.z - z*v.x);
+	 float cz = x*v.y - y*v.x;
+	 SRVector3D c(cx,cy,cz);
+	 return c;
+      }
       SRVector3D Unit() const
       {
 	const float m = Mag();
