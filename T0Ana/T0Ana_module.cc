@@ -39,15 +39,8 @@
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/SSDHit.h"
 
-// Define parameters of detectors
-#define N_SEG_T0 10
-#define N_CH_T0 41
-#define N_CH_DET_T0 20
-#define N_SEG_RPC 8
-#define N_CH_RPC 33
-#define N_CH_DET_RPC 16
-
 using namespace emph;
+
 
 ///package to illustrate how to write modules
 namespace emph {
@@ -175,7 +168,6 @@ namespace emph {
     static const int MaxSensPerPln = 2;
     int fRowGap = 1;//< Maximum allowed gap between strips for forming clusters
 
-
     int  FindTopT0(int);
     int  FindLeadT0(int);
     int  FindLftRPC(int);
@@ -205,6 +197,7 @@ namespace emph {
     void GetRPCTot(void);
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    // art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
     art::ServiceHandle<emph::geo::GeometryService> geo;
     // emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;
@@ -318,6 +311,13 @@ namespace emph {
     std::vector<double> SSD_cl_wgtavgstrip;
     std::vector<double> SSD_cl_wgtrmsstrip;
     std::vector<double> SSD_cl_ncluster;
+
+    std::vector<double> SSD_ls_x0_x;
+    std::vector<double> SSD_ls_x0_y;
+    std::vector<double> SSD_ls_x0_z;
+    std::vector<double> SSD_ls_x1_x;
+    std::vector<double> SSD_ls_x1_y;
+    std::vector<double> SSD_ls_x1_z;
 
     std::array<double, n_ch_lg> LG_t; // Pulse time of LGCalo signals
     std::array<double, n_ch_lg> LG_hgt; // Pulse height of LGCalo signals
@@ -502,6 +502,13 @@ namespace emph {
     tree->Branch("SSD_cl_wgtavgstrip", &SSD_cl_wgtavgstrip);
     tree->Branch("SSD_cl_wgtrmsstrip", &SSD_cl_wgtrmsstrip);
     tree->Branch("SSD_cl_ncluster", &SSD_cl_ncluster);
+
+    tree->Branch("SSD_ls_x0_x", &SSD_ls_x0_x);
+    tree->Branch("SSD_ls_x0_y", &SSD_ls_x0_y);
+    tree->Branch("SSD_ls_x0_z", &SSD_ls_x0_z);
+    tree->Branch("SSD_ls_x1_x", &SSD_ls_x1_x);
+    tree->Branch("SSD_ls_x1_y", &SSD_ls_x1_y);
+    tree->Branch("SSD_ls_x1_z", &SSD_ls_x1_z);
 
     // Branchse for LGCalo
     tree->Branch("LG_t", &LG_t);
@@ -1117,6 +1124,12 @@ namespace emph {
     SSD_cl_wgtrmsstrip.clear();
     std::fill_n(SSD_cl_ncluster.begin(),SSD_cl_ncluster.size(),0);
 
+    SSD_ls_x0_x.clear();
+    SSD_ls_x0_y.clear();
+    SSD_ls_x0_z.clear();
+    SSD_ls_x1_x.clear();
+    SSD_ls_x1_y.clear();
+    SSD_ls_x1_z.clear();
 
     art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxPlnsPerSta][MaxSensPerPln];
 
@@ -1184,17 +1197,43 @@ namespace emph {
 	      // clusters[i].SetID(i);
 	      // clusterv->push_back(clusters[i]);
 
-	      // // find line segment for each cluster
-	      // // check first for reasonable cluster (hack for now, need better checks earlier on)
-	      // rb::LineSegment lineseg_tmp = rb::LineSegment();
+	      // find line segment for each cluster
+	      // check first for reasonable cluster (hack for now, need better checks earlier on)
+	      rb::LineSegment lineseg_tmp = rb::LineSegment();
+
 	      // if (clusters[i].AvgStrip() > 640){
 	      // 	std::cout<<"Skipping nonsense"<<std::endl;
-	      // 	linesegv->push_back(lineseg_tmp);
-	      // 	continue; }
-	      // if (dgm->Map()->SSDClusterToLineSegment(clusters[i], lineseg_tmp)){
-	      // 	linesegv->push_back(lineseg_tmp);
+
+		// linesegv->push_back(lineseg_tmp);
+		SSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		SSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		SSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		SSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		SSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		SSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+
+	      // 	continue;
+	      // }//if(AveStrip > 640)
+
+	      // if(dgm->Map()->SSDClusterToLineSegment(clusters[i], lineseg_tmp)){
+	      // 	// linesegv->push_back(lineseg_tmp);
+	      // 	SSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+	      // 	SSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+	      // 	SSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+	      // 	SSD_ls_x1_x.push_back(lineseg_tmp.X0()[0]);
+	      // 	SSD_ls_x1_y.push_back(lineseg_tmp.X0()[1]);
+	      // 	SSD_ls_x1_z.push_back(lineseg_tmp.X0()[2]);
 	      // }else{
 	      // 	std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl;
+
+	      // 	lineseg_tmp = rb::LineSegment();//Regenerate blank LineSegment
+
+	      // 	SSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+	      // 	SSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+	      // 	SSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+	      // 	SSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+	      // 	SSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+	      // 	SSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
 	      // }//if(SSDClusterToLineSegment)
 	    }//for(i:cluster.size())
 	  }//for(sensor:MaxSensPerPln)

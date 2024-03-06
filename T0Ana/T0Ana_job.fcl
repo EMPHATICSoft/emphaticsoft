@@ -13,6 +13,7 @@ services:
   ChannelMapService: @local::standard_channelmap
   RunHistoryService: @local::standard_runhistory
   Geometry: @local::standard_geometry
+  @table::standard_services
 }
 
 source:
