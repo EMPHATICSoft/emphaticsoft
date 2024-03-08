@@ -161,7 +161,10 @@ namespace emph {
 	};
 
 
-    //  Parameters for SSD clustering
+    //  Parameters for SSD
+    const int N_bSSD = 2;// Number of SSD station before target (Station 0, 1)
+    const int N_sSSD1 = 3;// Number of SSD station between target and magnet (Station 2 - 4)
+
     int NPlanes = 0;
     static const int NStations = 8;
     static const int MaxPlnsPerSta = 3;
@@ -287,37 +290,107 @@ namespace emph {
     std::vector<std::vector<double>> RPC_rgt_trail_fine; // Finetime of trailing signals of rgt channel
     std::vector<std::vector<double>> RPC_rgt_tot; // TOT of right signals
 
-    std::vector<double> SSD_fer;
-    std::vector<double> SSD_mod;
-    std::vector<double> SSD_row;
-    std::vector<double> SSD_t;
-    std::vector<double> SSD_adc;
-    std::vector<double> SSD_chip;
-    std::vector<double> SSD_set;
-    std::vector<double> SSD_strip;
-    std::vector<double> SSD_st;
-    std::vector<double> SSD_pln;
-    std::vector<double> SSD_hl;
+    // SSD parameters before target(SSD station 0, 1)
+    std::vector<double> bSSD_fer;
+    std::vector<double> bSSD_mod;
+    std::vector<double> bSSD_row;
+    std::vector<double> bSSD_t;
+    std::vector<double> bSSD_adc;
+    std::vector<double> bSSD_chip;
+    std::vector<double> bSSD_set;
+    std::vector<double> bSSD_strip;
+    std::vector<double> bSSD_st;
+    std::vector<double> bSSD_pln;
+    std::vector<double> bSSD_hl;
 
-    std::vector<double> SSD_cl_station;
-    std::vector<double> SSD_cl_plane;
-    std::vector<double> SSD_cl_sens;
-    std::vector<double> SSD_cl_view;
-    std::vector<double> SSD_cl_ndigits;
-    std::vector<double> SSD_cl_width;
-    std::vector<double> SSD_cl_timerange;
-    std::vector<double> SSD_cl_avgadc;
-    std::vector<double> SSD_cl_avgstrip;
-    std::vector<double> SSD_cl_wgtavgstrip;
-    std::vector<double> SSD_cl_wgtrmsstrip;
-    std::vector<double> SSD_cl_ncluster;
+    std::vector<double> bSSD_cl_station;
+    std::vector<double> bSSD_cl_plane;
+    std::vector<double> bSSD_cl_sens;
+    std::vector<double> bSSD_cl_view;
+    std::vector<double> bSSD_cl_ndigits;
+    std::vector<double> bSSD_cl_width;
+    std::vector<double> bSSD_cl_timerange;
+    std::vector<double> bSSD_cl_avgadc;
+    std::vector<double> bSSD_cl_avgstrip;
+    std::vector<double> bSSD_cl_wgtavgstrip;
+    std::vector<double> bSSD_cl_wgtrmsstrip;
+    std::vector<double> bSSD_cl_ncluster;
 
-    std::vector<double> SSD_ls_x0_x;
-    std::vector<double> SSD_ls_x0_y;
-    std::vector<double> SSD_ls_x0_z;
-    std::vector<double> SSD_ls_x1_x;
-    std::vector<double> SSD_ls_x1_y;
-    std::vector<double> SSD_ls_x1_z;
+    std::vector<double> bSSD_ls_x0_x;
+    std::vector<double> bSSD_ls_x0_y;
+    std::vector<double> bSSD_ls_x0_z;
+    std::vector<double> bSSD_ls_x1_x;
+    std::vector<double> bSSD_ls_x1_y;
+    std::vector<double> bSSD_ls_x1_z;
+
+
+    // SSD parameters between target and magnet(SSD station 2 - 4)
+    std::vector<double> sSSD1_fer;
+    std::vector<double> sSSD1_mod;
+    std::vector<double> sSSD1_row;
+    std::vector<double> sSSD1_t;
+    std::vector<double> sSSD1_adc;
+    std::vector<double> sSSD1_chip;
+    std::vector<double> sSSD1_set;
+    std::vector<double> sSSD1_strip;
+    std::vector<double> sSSD1_st;
+    std::vector<double> sSSD1_pln;
+    std::vector<double> sSSD1_hl;
+
+    std::vector<double> sSSD1_cl_station;
+    std::vector<double> sSSD1_cl_plane;
+    std::vector<double> sSSD1_cl_sens;
+    std::vector<double> sSSD1_cl_view;
+    std::vector<double> sSSD1_cl_ndigits;
+    std::vector<double> sSSD1_cl_width;
+    std::vector<double> sSSD1_cl_timerange;
+    std::vector<double> sSSD1_cl_avgadc;
+    std::vector<double> sSSD1_cl_avgstrip;
+    std::vector<double> sSSD1_cl_wgtavgstrip;
+    std::vector<double> sSSD1_cl_wgtrmsstrip;
+    std::vector<double> sSSD1_cl_ncluster;
+
+    std::vector<double> sSSD1_ls_x0_x;
+    std::vector<double> sSSD1_ls_x0_y;
+    std::vector<double> sSSD1_ls_x0_z;
+    std::vector<double> sSSD1_ls_x1_x;
+    std::vector<double> sSSD1_ls_x1_y;
+    std::vector<double> sSSD1_ls_x1_z;
+
+
+    // SSD parameters after magnet(SSD station 5 - 7)
+    std::vector<double> sSSD2_fer;
+    std::vector<double> sSSD2_mod;
+    std::vector<double> sSSD2_row;
+    std::vector<double> sSSD2_t;
+    std::vector<double> sSSD2_adc;
+    std::vector<double> sSSD2_chip;
+    std::vector<double> sSSD2_set;
+    std::vector<double> sSSD2_strip;
+    std::vector<double> sSSD2_st;
+    std::vector<double> sSSD2_pln;
+    std::vector<double> sSSD2_hl;
+
+    std::vector<double> sSSD2_cl_station;
+    std::vector<double> sSSD2_cl_plane;
+    std::vector<double> sSSD2_cl_sens;
+    std::vector<double> sSSD2_cl_view;
+    std::vector<double> sSSD2_cl_ndigits;
+    std::vector<double> sSSD2_cl_width;
+    std::vector<double> sSSD2_cl_timerange;
+    std::vector<double> sSSD2_cl_avgadc;
+    std::vector<double> sSSD2_cl_avgstrip;
+    std::vector<double> sSSD2_cl_wgtavgstrip;
+    std::vector<double> sSSD2_cl_wgtrmsstrip;
+    std::vector<double> sSSD2_cl_ncluster;
+
+    std::vector<double> sSSD2_ls_x0_x;
+    std::vector<double> sSSD2_ls_x0_y;
+    std::vector<double> sSSD2_ls_x0_z;
+    std::vector<double> sSSD2_ls_x1_x;
+    std::vector<double> sSSD2_ls_x1_y;
+    std::vector<double> sSSD2_ls_x1_z;
+
 
     std::array<double, n_ch_lg> LG_t; // Pulse time of LGCalo signals
     std::array<double, n_ch_lg> LG_hgt; // Pulse height of LGCalo signals
@@ -412,7 +485,9 @@ namespace emph {
     // NPlanes = emgeo->NSSDPlanes();
     NPlanes = 6;
 
-    SSD_cl_ncluster.resize(NPlanes);
+    bSSD_cl_ncluster.resize(NPlanes);
+    sSSD1_cl_ncluster.resize(NPlanes);
+    sSSD2_cl_ncluster.resize(NPlanes);
 
     // create TTree for TRB3RawDigits
     art::ServiceHandle<art::TFileService> tfs;
@@ -477,38 +552,104 @@ namespace emph {
     tree->Branch("RPC_rgt_trail",  &RPC_rgt_trail);
     tree->Branch("RPC_rgt_tot",  &RPC_rgt_tot);
 
-    // Branches for SSD
-    tree->Branch("SSD_fer", &SSD_fer);
-    tree->Branch("SSD_mod", &SSD_mod);
-    tree->Branch("SSD_row", &SSD_row);
-    tree->Branch("SSD_t", &SSD_t);
-    tree->Branch("SSD_adc", &SSD_adc);
-    tree->Branch("SSD_chip", &SSD_chip);
-    tree->Branch("SSD_set", &SSD_set);
-    tree->Branch("SSD_strip", &SSD_strip);
-    tree->Branch("SSD_st", &SSD_st);
-    tree->Branch("SSD_pln", &SSD_pln);
-    tree->Branch("SSD_hl", &SSD_hl);
+    // Branches for bSSD
+    tree->Branch("bSSD_fer", &bSSD_fer);
+    tree->Branch("bSSD_mod", &bSSD_mod);
+    tree->Branch("bSSD_row", &bSSD_row);
+    tree->Branch("bSSD_t", &bSSD_t);
+    tree->Branch("bSSD_adc", &bSSD_adc);
+    tree->Branch("bSSD_chip", &bSSD_chip);
+    tree->Branch("bSSD_set", &bSSD_set);
+    tree->Branch("bSSD_strip", &bSSD_strip);
+    tree->Branch("bSSD_st", &bSSD_st);
+    tree->Branch("bSSD_pln", &bSSD_pln);
+    tree->Branch("bSSD_hl", &bSSD_hl);
 
-    tree->Branch("SSD_cl_station", &SSD_cl_station);
-    tree->Branch("SSD_cl_plane", &SSD_cl_plane);
-    tree->Branch("SSD_cl_sens", &SSD_cl_sens);
-    tree->Branch("SSD_cl_view", &SSD_cl_view);
-    tree->Branch("SSD_cl_ndigits", &SSD_cl_ndigits);
-    tree->Branch("SSD_cl_width", &SSD_cl_width);
-    tree->Branch("SSD_cl_timerange", &SSD_cl_timerange);
-    tree->Branch("SSD_cl_avgadc", &SSD_cl_avgadc);
-    tree->Branch("SSD_cl_avgstrip", &SSD_cl_avgstrip);
-    tree->Branch("SSD_cl_wgtavgstrip", &SSD_cl_wgtavgstrip);
-    tree->Branch("SSD_cl_wgtrmsstrip", &SSD_cl_wgtrmsstrip);
-    tree->Branch("SSD_cl_ncluster", &SSD_cl_ncluster);
+    tree->Branch("bSSD_cl_station", &bSSD_cl_station);
+    tree->Branch("bSSD_cl_plane", &bSSD_cl_plane);
+    tree->Branch("bSSD_cl_sens", &bSSD_cl_sens);
+    tree->Branch("bSSD_cl_view", &bSSD_cl_view);
+    tree->Branch("bSSD_cl_ndigits", &bSSD_cl_ndigits);
+    tree->Branch("bSSD_cl_width", &bSSD_cl_width);
+    tree->Branch("bSSD_cl_timerange", &bSSD_cl_timerange);
+    tree->Branch("bSSD_cl_avgadc", &bSSD_cl_avgadc);
+    tree->Branch("bSSD_cl_avgstrip", &bSSD_cl_avgstrip);
+    tree->Branch("bSSD_cl_wgtavgstrip", &bSSD_cl_wgtavgstrip);
+    tree->Branch("bSSD_cl_wgtrmsstrip", &bSSD_cl_wgtrmsstrip);
+    tree->Branch("bSSD_cl_ncluster", &bSSD_cl_ncluster);
 
-    tree->Branch("SSD_ls_x0_x", &SSD_ls_x0_x);
-    tree->Branch("SSD_ls_x0_y", &SSD_ls_x0_y);
-    tree->Branch("SSD_ls_x0_z", &SSD_ls_x0_z);
-    tree->Branch("SSD_ls_x1_x", &SSD_ls_x1_x);
-    tree->Branch("SSD_ls_x1_y", &SSD_ls_x1_y);
-    tree->Branch("SSD_ls_x1_z", &SSD_ls_x1_z);
+    tree->Branch("bSSD_ls_x0_x", &bSSD_ls_x0_x);
+    tree->Branch("bSSD_ls_x0_y", &bSSD_ls_x0_y);
+    tree->Branch("bSSD_ls_x0_z", &bSSD_ls_x0_z);
+    tree->Branch("bSSD_ls_x1_x", &bSSD_ls_x1_x);
+    tree->Branch("bSSD_ls_x1_y", &bSSD_ls_x1_y);
+    tree->Branch("bSSD_ls_x1_z", &bSSD_ls_x1_z);
+
+    // Branches for sSSD1
+    tree->Branch("sSSD1_fer", &sSSD1_fer);
+    tree->Branch("sSSD1_mod", &sSSD1_mod);
+    tree->Branch("sSSD1_row", &sSSD1_row);
+    tree->Branch("sSSD1_t", &sSSD1_t);
+    tree->Branch("sSSD1_adc", &sSSD1_adc);
+    tree->Branch("sSSD1_chip", &sSSD1_chip);
+    tree->Branch("sSSD1_set", &sSSD1_set);
+    tree->Branch("sSSD1_strip", &sSSD1_strip);
+    tree->Branch("sSSD1_st", &sSSD1_st);
+    tree->Branch("sSSD1_pln", &sSSD1_pln);
+    tree->Branch("sSSD1_hl", &sSSD1_hl);
+
+    tree->Branch("sSSD1_cl_station", &sSSD1_cl_station);
+    tree->Branch("sSSD1_cl_plane", &sSSD1_cl_plane);
+    tree->Branch("sSSD1_cl_sens", &sSSD1_cl_sens);
+    tree->Branch("sSSD1_cl_view", &sSSD1_cl_view);
+    tree->Branch("sSSD1_cl_ndigits", &sSSD1_cl_ndigits);
+    tree->Branch("sSSD1_cl_width", &sSSD1_cl_width);
+    tree->Branch("sSSD1_cl_timerange", &sSSD1_cl_timerange);
+    tree->Branch("sSSD1_cl_avgadc", &sSSD1_cl_avgadc);
+    tree->Branch("sSSD1_cl_avgstrip", &sSSD1_cl_avgstrip);
+    tree->Branch("sSSD1_cl_wgtavgstrip", &sSSD1_cl_wgtavgstrip);
+    tree->Branch("sSSD1_cl_wgtrmsstrip", &sSSD1_cl_wgtrmsstrip);
+    tree->Branch("sSSD1_cl_ncluster", &sSSD1_cl_ncluster);
+
+    tree->Branch("sSSD1_ls_x0_x", &sSSD1_ls_x0_x);
+    tree->Branch("sSSD1_ls_x0_y", &sSSD1_ls_x0_y);
+    tree->Branch("sSSD1_ls_x0_z", &sSSD1_ls_x0_z);
+    tree->Branch("sSSD1_ls_x1_x", &sSSD1_ls_x1_x);
+    tree->Branch("sSSD1_ls_x1_y", &sSSD1_ls_x1_y);
+    tree->Branch("sSSD1_ls_x1_z", &sSSD1_ls_x1_z);
+
+    // Branches for sSSD2
+    tree->Branch("sSSD2_fer", &sSSD2_fer);
+    tree->Branch("sSSD2_mod", &sSSD2_mod);
+    tree->Branch("sSSD2_row", &sSSD2_row);
+    tree->Branch("sSSD2_t", &sSSD2_t);
+    tree->Branch("sSSD2_adc", &sSSD2_adc);
+    tree->Branch("sSSD2_chip", &sSSD2_chip);
+    tree->Branch("sSSD2_set", &sSSD2_set);
+    tree->Branch("sSSD2_strip", &sSSD2_strip);
+    tree->Branch("sSSD2_st", &sSSD2_st);
+    tree->Branch("sSSD2_pln", &sSSD2_pln);
+    tree->Branch("sSSD2_hl", &sSSD2_hl);
+
+    tree->Branch("sSSD2_cl_station", &sSSD2_cl_station);
+    tree->Branch("sSSD2_cl_plane", &sSSD2_cl_plane);
+    tree->Branch("sSSD2_cl_sens", &sSSD2_cl_sens);
+    tree->Branch("sSSD2_cl_view", &sSSD2_cl_view);
+    tree->Branch("sSSD2_cl_ndigits", &sSSD2_cl_ndigits);
+    tree->Branch("sSSD2_cl_width", &sSSD2_cl_width);
+    tree->Branch("sSSD2_cl_timerange", &sSSD2_cl_timerange);
+    tree->Branch("sSSD2_cl_avgadc", &sSSD2_cl_avgadc);
+    tree->Branch("sSSD2_cl_avgstrip", &sSSD2_cl_avgstrip);
+    tree->Branch("sSSD2_cl_wgtavgstrip", &sSSD2_cl_wgtavgstrip);
+    tree->Branch("sSSD2_cl_wgtrmsstrip", &sSSD2_cl_wgtrmsstrip);
+    tree->Branch("sSSD2_cl_ncluster", &sSSD2_cl_ncluster);
+
+    tree->Branch("sSSD2_ls_x0_x", &sSSD2_ls_x0_x);
+    tree->Branch("sSSD2_ls_x0_y", &sSSD2_ls_x0_y);
+    tree->Branch("sSSD2_ls_x0_z", &sSSD2_ls_x0_z);
+    tree->Branch("sSSD2_ls_x1_x", &sSSD2_ls_x1_x);
+    tree->Branch("sSSD2_ls_x1_y", &sSSD2_ls_x1_y);
+    tree->Branch("sSSD2_ls_x1_z", &sSSD2_ls_x1_z);
 
     // Branchse for LGCalo
     tree->Branch("LG_t", &LG_t);
@@ -1098,38 +1239,108 @@ namespace emph {
 
   void T0Ana::FillTreeSSD(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & SSDdigit)
   {
-    SSD_fer.clear();
-    SSD_mod.clear();
-    SSD_row.clear();
-    SSD_t.clear();
-    SSD_adc.clear();
-    SSD_chip.clear();
-    SSD_set.clear();
-    SSD_strip.clear();
+    // Clear bSSD
+    bSSD_fer.clear();
+    bSSD_mod.clear();
+    bSSD_row.clear();
+    bSSD_t.clear();
+    bSSD_adc.clear();
+    bSSD_chip.clear();
+    bSSD_set.clear();
+    bSSD_strip.clear();
 
-    SSD_st.clear();
-    SSD_pln.clear();
-    SSD_hl.clear();
+    bSSD_st.clear();
+    bSSD_pln.clear();
+    bSSD_hl.clear();
 
-    SSD_cl_station.clear();
-    SSD_cl_plane.clear();
-    SSD_cl_sens.clear();
-    SSD_cl_view.clear();
-    SSD_cl_ndigits.clear();
-    SSD_cl_width.clear();
-    SSD_cl_timerange.clear();
-    SSD_cl_avgadc.clear();
-    SSD_cl_avgstrip.clear();
-    SSD_cl_wgtavgstrip.clear();
-    SSD_cl_wgtrmsstrip.clear();
-    std::fill_n(SSD_cl_ncluster.begin(),SSD_cl_ncluster.size(),0);
+    bSSD_cl_station.clear();
+    bSSD_cl_plane.clear();
+    bSSD_cl_sens.clear();
+    bSSD_cl_view.clear();
+    bSSD_cl_ndigits.clear();
+    bSSD_cl_width.clear();
+    bSSD_cl_timerange.clear();
+    bSSD_cl_avgadc.clear();
+    bSSD_cl_avgstrip.clear();
+    bSSD_cl_wgtavgstrip.clear();
+    bSSD_cl_wgtrmsstrip.clear();
+    std::fill_n(bSSD_cl_ncluster.begin(),bSSD_cl_ncluster.size(),0);
 
-    SSD_ls_x0_x.clear();
-    SSD_ls_x0_y.clear();
-    SSD_ls_x0_z.clear();
-    SSD_ls_x1_x.clear();
-    SSD_ls_x1_y.clear();
-    SSD_ls_x1_z.clear();
+    bSSD_ls_x0_x.clear();
+    bSSD_ls_x0_y.clear();
+    bSSD_ls_x0_z.clear();
+    bSSD_ls_x1_x.clear();
+    bSSD_ls_x1_y.clear();
+    bSSD_ls_x1_z.clear();
+
+    // Clear sSSD1
+    sSSD1_fer.clear();
+    sSSD1_mod.clear();
+    sSSD1_row.clear();
+    sSSD1_t.clear();
+    sSSD1_adc.clear();
+    sSSD1_chip.clear();
+    sSSD1_set.clear();
+    sSSD1_strip.clear();
+
+    sSSD1_st.clear();
+    sSSD1_pln.clear();
+    sSSD1_hl.clear();
+
+    sSSD1_cl_station.clear();
+    sSSD1_cl_plane.clear();
+    sSSD1_cl_sens.clear();
+    sSSD1_cl_view.clear();
+    sSSD1_cl_ndigits.clear();
+    sSSD1_cl_width.clear();
+    sSSD1_cl_timerange.clear();
+    sSSD1_cl_avgadc.clear();
+    sSSD1_cl_avgstrip.clear();
+    sSSD1_cl_wgtavgstrip.clear();
+    sSSD1_cl_wgtrmsstrip.clear();
+    std::fill_n(sSSD1_cl_ncluster.begin(),sSSD1_cl_ncluster.size(),0);
+
+    sSSD1_ls_x0_x.clear();
+    sSSD1_ls_x0_y.clear();
+    sSSD1_ls_x0_z.clear();
+    sSSD1_ls_x1_x.clear();
+    sSSD1_ls_x1_y.clear();
+    sSSD1_ls_x1_z.clear();
+
+    // Clear sSSD2
+    sSSD2_fer.clear();
+    sSSD2_mod.clear();
+    sSSD2_row.clear();
+    sSSD2_t.clear();
+    sSSD2_adc.clear();
+    sSSD2_chip.clear();
+    sSSD2_set.clear();
+    sSSD2_strip.clear();
+
+    sSSD2_st.clear();
+    sSSD2_pln.clear();
+    sSSD2_hl.clear();
+
+    sSSD2_cl_station.clear();
+    sSSD2_cl_plane.clear();
+    sSSD2_cl_sens.clear();
+    sSSD2_cl_view.clear();
+    sSSD2_cl_ndigits.clear();
+    sSSD2_cl_width.clear();
+    sSSD2_cl_timerange.clear();
+    sSSD2_cl_avgadc.clear();
+    sSSD2_cl_avgstrip.clear();
+    sSSD2_cl_wgtavgstrip.clear();
+    sSSD2_cl_wgtrmsstrip.clear();
+    std::fill_n(sSSD2_cl_ncluster.begin(),sSSD2_cl_ncluster.size(),0);
+
+    sSSD2_ls_x0_x.clear();
+    sSSD2_ls_x0_y.clear();
+    sSSD2_ls_x0_z.clear();
+    sSSD2_ls_x1_x.clear();
+    sSSD2_ls_x1_y.clear();
+    sSSD2_ls_x1_z.clear();
+
 
     art::PtrVector<emph::rawdata::SSDRawDigit> digitList[NStations][MaxPlnsPerSta][MaxSensPerPln];
 
@@ -1147,18 +1358,46 @@ namespace emph {
 	int detpln = dchan.Plane();
 	int dethl = dchan.HiLo();
 
-	SSD_fer.push_back(ssd->FER());
-	SSD_mod.push_back(ssd->Module());
-	SSD_row.push_back(ssd->Row());
-	SSD_t.push_back(ssd->Time());
-	SSD_adc.push_back(ssd->ADC());
-	SSD_chip.push_back(ssd->Chip());
-	SSD_set.push_back(ssd->Set());
-	SSD_strip.push_back(ssd->Strip());
+	if(detst < N_bSSD){
+	  bSSD_fer.push_back(ssd->FER());
+	  bSSD_mod.push_back(ssd->Module());
+	  bSSD_row.push_back(ssd->Row());
+	  bSSD_t.push_back(ssd->Time());
+	  bSSD_adc.push_back(ssd->ADC());
+	  bSSD_chip.push_back(ssd->Chip());
+	  bSSD_set.push_back(ssd->Set());
+	  bSSD_strip.push_back(ssd->Strip());
 
-	SSD_st.push_back(detst);
-	SSD_pln.push_back(detpln);
-	SSD_hl.push_back(dethl);
+	  bSSD_st.push_back(detst);
+	  bSSD_pln.push_back(detpln);
+	  bSSD_hl.push_back(dethl);
+	}else if(detst < N_bSSD + N_sSSD1){
+	  sSSD1_fer.push_back(ssd->FER());
+	  sSSD1_mod.push_back(ssd->Module());
+	  sSSD1_row.push_back(ssd->Row());
+	  sSSD1_t.push_back(ssd->Time());
+	  sSSD1_adc.push_back(ssd->ADC());
+	  sSSD1_chip.push_back(ssd->Chip());
+	  sSSD1_set.push_back(ssd->Set());
+	  sSSD1_strip.push_back(ssd->Strip());
+
+	  sSSD1_st.push_back(detst);
+	  sSSD1_pln.push_back(detpln);
+	  sSSD1_hl.push_back(dethl);
+	}else{
+	  sSSD2_fer.push_back(ssd->FER());
+	  sSSD2_mod.push_back(ssd->Module());
+	  sSSD2_row.push_back(ssd->Row());
+	  sSSD2_t.push_back(ssd->Time());
+	  sSSD2_adc.push_back(ssd->ADC());
+	  sSSD2_chip.push_back(ssd->Chip());
+	  sSSD2_set.push_back(ssd->Set());
+	  sSSD2_strip.push_back(ssd->Strip());
+
+	  sSSD2_st.push_back(detst);
+	  sSSD2_pln.push_back(detpln);
+	  sSSD2_hl.push_back(dethl);
+	}//if(detst region)
 
 	digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssd);
       } // end loop over SSDRawDigit
@@ -1181,19 +1420,49 @@ namespace emph {
 
 	    for (int i=0; i<(int)clusters.size(); i++){
 	      // fill vectors for optimizing algorithm. This part of module should be removed once it's more finalized.
-	      SSD_cl_station.push_back(clusters[i].Station());
-	      SSD_cl_plane.push_back(clusters[i].Plane());
-	      SSD_cl_sens.push_back(clusters[i].Sensor());
-	      SSD_cl_view.push_back(clusters[i].View());
-	      SSD_cl_ndigits.push_back(clusters[i].NDigits());
-	      SSD_cl_width.push_back(clusters[i].Width());
-	      SSD_cl_timerange.push_back(clusters[i].TimeRange());
-	      SSD_cl_avgadc.push_back(clusters[i].AvgADC());
-	      SSD_cl_avgstrip.push_back(clusters[i].AvgStrip());
-	      SSD_cl_wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
-	      SSD_cl_wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
-	      int plane = clusters[i].Plane();
-	      SSD_cl_ncluster[plane]++;
+	      if(clusters[i].Station() < N_bSSD){
+		bSSD_cl_station.push_back(clusters[i].Station());
+		bSSD_cl_plane.push_back(clusters[i].Plane());
+		bSSD_cl_sens.push_back(clusters[i].Sensor());
+		bSSD_cl_view.push_back(clusters[i].View());
+		bSSD_cl_ndigits.push_back(clusters[i].NDigits());
+		bSSD_cl_width.push_back(clusters[i].Width());
+		bSSD_cl_timerange.push_back(clusters[i].TimeRange());
+		bSSD_cl_avgadc.push_back(clusters[i].AvgADC());
+		bSSD_cl_avgstrip.push_back(clusters[i].AvgStrip());
+		bSSD_cl_wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+		bSSD_cl_wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
+		int plane = clusters[i].Plane();
+		bSSD_cl_ncluster[plane]++;
+	      }else if(clusters[i].Station() < N_bSSD + N_sSSD1){
+		sSSD1_cl_station.push_back(clusters[i].Station());
+		sSSD1_cl_plane.push_back(clusters[i].Plane());
+		sSSD1_cl_sens.push_back(clusters[i].Sensor());
+		sSSD1_cl_view.push_back(clusters[i].View());
+		sSSD1_cl_ndigits.push_back(clusters[i].NDigits());
+		sSSD1_cl_width.push_back(clusters[i].Width());
+		sSSD1_cl_timerange.push_back(clusters[i].TimeRange());
+		sSSD1_cl_avgadc.push_back(clusters[i].AvgADC());
+		sSSD1_cl_avgstrip.push_back(clusters[i].AvgStrip());
+		sSSD1_cl_wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+		sSSD1_cl_wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
+		int plane = clusters[i].Plane();
+		sSSD1_cl_ncluster[plane]++;
+	      }else{
+		sSSD2_cl_station.push_back(clusters[i].Station());
+		sSSD2_cl_plane.push_back(clusters[i].Plane());
+		sSSD2_cl_sens.push_back(clusters[i].Sensor());
+		sSSD2_cl_view.push_back(clusters[i].View());
+		sSSD2_cl_ndigits.push_back(clusters[i].NDigits());
+		sSSD2_cl_width.push_back(clusters[i].Width());
+		sSSD2_cl_timerange.push_back(clusters[i].TimeRange());
+		sSSD2_cl_avgadc.push_back(clusters[i].AvgADC());
+		sSSD2_cl_avgstrip.push_back(clusters[i].AvgStrip());
+		sSSD2_cl_wgtavgstrip.push_back(clusters[i].WgtAvgStrip());
+		sSSD2_cl_wgtrmsstrip.push_back(clusters[i].WgtRmsStrip());
+		int plane = clusters[i].Plane();
+		sSSD2_cl_ncluster[plane]++;
+	      }//if(clusters[i].Station() region)
 	      // clusters[i].SetID(i);
 	      // clusterv->push_back(clusters[i]);
 
@@ -1205,12 +1474,28 @@ namespace emph {
 	      // 	std::cout<<"Skipping nonsense"<<std::endl;
 
 		// linesegv->push_back(lineseg_tmp);
-		SSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
-		SSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
-		SSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
-		SSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
-		SSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
-		SSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+	      if(clusters[i].Station() < N_bSSD){
+		bSSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		bSSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		bSSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		bSSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		bSSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		bSSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+	      }else if(clusters[i].Station() < N_bSSD + N_sSSD1){
+		sSSD1_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		sSSD1_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		sSSD1_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		sSSD1_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		sSSD1_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		sSSD1_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+	      }else{
+		sSSD2_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		sSSD2_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		sSSD2_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		sSSD2_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		sSSD2_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		sSSD2_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+	      }//if(clusters[i].Station() region)
 
 	      // 	continue;
 	      // }//if(AveStrip > 640)
