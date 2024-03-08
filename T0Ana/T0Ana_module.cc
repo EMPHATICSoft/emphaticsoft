@@ -13,6 +13,7 @@
 // ROOT includes
 #include "TFile.h"
 #include "TTree.h"
+#include "TGeoMatrix.h"
 
 // Framework includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -28,10 +29,11 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
+#include "Align/service/AlignService.h"
 #include "ChannelMap/service/ChannelMapService.h"
-#include "Geometry/DetectorDefs.h"
 #include "DataQuality/EventQuality.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
+#include "Geometry/DetectorDefs.h"
 #include "Geometry/service/GeometryService.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
@@ -192,6 +194,7 @@ namespace emph {
     void FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
 		      std::vector<rb::SSDCluster>* sensClusters,
 		      int station, int plane, int sensor);
+    bool SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls);
 
 
     void GetT0Tdc(const std::vector<rawdata::TRB3RawDigit>&);
@@ -199,10 +202,10 @@ namespace emph {
     void GetT0Tot(void);
     void GetRPCTot(void);
 
+    art::ServiceHandle<emph::AlignService> align;
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     // art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
     art::ServiceHandle<emph::geo::GeometryService> geo;
-    // emph::cmap::ChannelMap* fChannelMap;
     std::string fChanMapFileName;
     unsigned int fRun;
     unsigned int fSubrun;
@@ -1237,6 +1240,56 @@ namespace emph {
     sensClusters->push_back(ssdClust);
   }
 
+  //......................................................................
+  bool T0Ana::SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
+  {
+    // Get SSDCluster information
+    int station = cl.Station();
+    int sensor = cl.Sensor();
+    int plane  = cl.Plane();
+    double dstrip = cl.WgtAvgStrip();
+    int istrip = floor(dstrip);
+    double delta_strip = dstrip-istrip;
+
+    // Make geometry object
+    auto emgeo = geo->Geo();
+    auto st = emgeo->GetSSDStation(station);
+    auto pln = st->GetPlane(plane);
+    auto sd = pln->SSD(sensor);
+    auto sp = sd->GetStrip(istrip);
+    double pitch = 0.06;
+
+    double x0[3];
+    double x1[3];
+    double tx0[3];
+    double tx1[3];
+
+    x0[1] = x1[1] = delta_strip*pitch;
+    x0[2] = x1[2] = 0.;
+    x0[0] = -sd->Width()/2;
+    x1[0] = sd->Width()/2;
+
+    auto fAlign = align->GetAlign();
+    auto T = fAlign->SSDMatrix(station,plane,sensor);
+      
+    sp->LocalToMother(x0,tx0);
+    sd->LocalToMother(tx0,tx1);
+    st->LocalToMother(tx1,tx0);
+    T->LocalToMaster(tx0,x0);
+
+    sp->LocalToMother(x1,tx0);
+    sd->LocalToMother(tx0,tx1);
+    st->LocalToMother(tx1,tx0);
+    T->LocalToMaster(tx0,x1);
+
+    ls.SetX0(x0);
+    ls.SetX1(x1);	  
+      
+    return true;
+      
+  }
+
+  //......................................................................
   void T0Ana::FillTreeSSD(art::Handle< std::vector<emph::rawdata::SSDRawDigit> > & SSDdigit)
   {
     // Clear bSSD
@@ -1470,62 +1523,93 @@ namespace emph {
 	      // check first for reasonable cluster (hack for now, need better checks earlier on)
 	      rb::LineSegment lineseg_tmp = rb::LineSegment();
 
-	      // if (clusters[i].AvgStrip() > 640){
-	      // 	std::cout<<"Skipping nonsense"<<std::endl;
+	      if (clusters[i].AvgStrip() > 640){
+	      	std::cout<<"Skipping nonsense"<<std::endl;
 
 		// linesegv->push_back(lineseg_tmp);
-	      if(clusters[i].Station() < N_bSSD){
-		bSSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
-		bSSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
-		bSSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
-		bSSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
-		bSSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
-		bSSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
-	      }else if(clusters[i].Station() < N_bSSD + N_sSSD1){
-		sSSD1_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
-		sSSD1_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
-		sSSD1_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
-		sSSD1_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
-		sSSD1_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
-		sSSD1_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		if(clusters[i].Station() < N_bSSD){
+		  bSSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  bSSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  bSSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  bSSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  bSSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  bSSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}else if(clusters[i].Station() < N_bSSD + N_sSSD1){
+		  sSSD1_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  sSSD1_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  sSSD1_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  sSSD1_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  sSSD1_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  sSSD1_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}else{
+		  sSSD2_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  sSSD2_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  sSSD2_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  sSSD2_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  sSSD2_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  sSSD2_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}//if(clusters[i].Station() region)
+
+	      	continue;
+	      }//if(AveStrip > 640)
+
+	      if(this->SSDClusterToLineSegment(clusters[i], lineseg_tmp)){
+	      	// linesegv->push_back(lineseg_tmp);
+		if(clusters[i].Station() < N_bSSD){
+		  bSSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  bSSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  bSSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  bSSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  bSSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  bSSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}else if(clusters[i].Station() < N_bSSD + N_sSSD1){
+		  sSSD1_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  sSSD1_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  sSSD1_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  sSSD1_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  sSSD1_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  sSSD1_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}else{
+		  sSSD2_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  sSSD2_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  sSSD2_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  sSSD2_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  sSSD2_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  sSSD2_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}//if(clusters[i].Station() region)
 	      }else{
-		sSSD2_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
-		sSSD2_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
-		sSSD2_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
-		sSSD2_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
-		sSSD2_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
-		sSSD2_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
-	      }//if(clusters[i].Station() region)
+	      	std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl;
 
-	      // 	continue;
-	      // }//if(AveStrip > 640)
-
-	      // if(dgm->Map()->SSDClusterToLineSegment(clusters[i], lineseg_tmp)){
-	      // 	// linesegv->push_back(lineseg_tmp);
-	      // 	SSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
-	      // 	SSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
-	      // 	SSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
-	      // 	SSD_ls_x1_x.push_back(lineseg_tmp.X0()[0]);
-	      // 	SSD_ls_x1_y.push_back(lineseg_tmp.X0()[1]);
-	      // 	SSD_ls_x1_z.push_back(lineseg_tmp.X0()[2]);
-	      // }else{
-	      // 	std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl;
-
-	      // 	lineseg_tmp = rb::LineSegment();//Regenerate blank LineSegment
-
-	      // 	SSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
-	      // 	SSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
-	      // 	SSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
-	      // 	SSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
-	      // 	SSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
-	      // 	SSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
-	      // }//if(SSDClusterToLineSegment)
+	      	lineseg_tmp = rb::LineSegment();//Regenerate blank LineSegment
+		if(clusters[i].Station() < N_bSSD){
+		  bSSD_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  bSSD_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  bSSD_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  bSSD_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  bSSD_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  bSSD_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}else if(clusters[i].Station() < N_bSSD + N_sSSD1){
+		  sSSD1_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  sSSD1_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  sSSD1_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  sSSD1_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  sSSD1_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  sSSD1_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}else{
+		  sSSD2_ls_x0_x.push_back(lineseg_tmp.X0()[0]);
+		  sSSD2_ls_x0_y.push_back(lineseg_tmp.X0()[1]);
+		  sSSD2_ls_x0_z.push_back(lineseg_tmp.X0()[2]);
+		  sSSD2_ls_x1_x.push_back(lineseg_tmp.X1()[0]);
+		  sSSD2_ls_x1_y.push_back(lineseg_tmp.X1()[1]);
+		  sSSD2_ls_x1_z.push_back(lineseg_tmp.X1()[2]);
+		}//if(clusters[i].Station() region)
+	      }//if(SSDClusterToLineSegment)
 	    }//for(i:cluster.size())
 	  }//for(sensor:MaxSensPerPln)
 	}//for(pln:MaxPlnsPerSta)
       }//for(sta<NStations)
 
-    }
+    }//if(!SSD empty)
   }
 
   //......................................................................

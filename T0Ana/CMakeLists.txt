@@ -12,6 +12,8 @@ build_plugin(T0Ana "module"
   LIBRARIES PRIVATE
     RawData
     RecoBase
+    Align
+    AlignService_service
     ChannelMap
     ChannelMapService_service
     DetGeoMap

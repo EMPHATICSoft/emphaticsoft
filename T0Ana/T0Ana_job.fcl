@@ -1,19 +1,21 @@
 #include "T0Ana.fcl"
 
-#include "RunHistory.fcl"
+#include "Align.fcl"
 #include "ChannelMap.fcl"
+#include "DetGeoMap.fcl"
 #include "Geometry.fcl"
-#include "Services.fcl"
+#include "RunHistory.fcl"
 
 process_name: T0Ana
 
 services:
 {
   TFileService: { fileName: "T0Ana_r%r_s%s.root" closeFileFast: false}
+  AlignService:      @local::standard_align
   ChannelMapService: @local::standard_channelmap
+  DetGeoMapService:  @local::standard_detgeomap
+  Geometry:          @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
-  Geometry: @local::standard_geometry
-  @table::standard_services
 }
 
 source:
