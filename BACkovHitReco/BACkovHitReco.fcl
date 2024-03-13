@@ -3,8 +3,6 @@ BEGIN_PROLOG
 standard_backovhitreco:
 {
   module_type: BACkovHitReco
-
-  momentum: 12
 }
 
 END_PROLOG

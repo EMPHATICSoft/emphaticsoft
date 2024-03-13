@@ -3,7 +3,7 @@
 // \note    Class to fill CAF BACkov info
 ////////////////////////////////////////////////////////////////////////
 #ifndef BACKOVFILLER_H
-#define BACkovFILLER_H
+#define BACKOVFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif // BACKovFILLER_H
+#endif // BACKOVFILLER_H

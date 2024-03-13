@@ -16,6 +16,8 @@ art_make_library(
 		LIBRARIES #PRIVATE
 		Geometry
 		Geometry_service
+		Align
+		AlignService_service
 		RecoBase
 		RawData
 #		Simulation

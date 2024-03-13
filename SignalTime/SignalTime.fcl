@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_signaltime:
+{
+  module_type: SignalTime
+}
+
+END_PROLOG

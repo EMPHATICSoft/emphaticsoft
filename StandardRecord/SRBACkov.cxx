@@ -10,17 +10,8 @@
 namespace caf
 {
   SRBACkov::SRBACkov() :
-    charge{std::numeric_limits<float>::signaling_NaN(),
-            std::numeric_limits<float>::signaling_NaN(),
-            std::numeric_limits<float>::signaling_NaN(),
-            std::numeric_limits<float>::signaling_NaN(),
-            std::numeric_limits<float>::signaling_NaN(),
-            std::numeric_limits<float>::signaling_NaN()},
-    PID{std::numeric_limits<bool>::signaling_NaN(),
-            std::numeric_limits<bool>::signaling_NaN(),
-            std::numeric_limits<bool>::signaling_NaN(),
-            std::numeric_limits<bool>::signaling_NaN(),
-            std::numeric_limits<bool>::signaling_NaN()}
+    charge(std::numeric_limits<float>::signaling_NaN()),
+    time(std::numeric_limits<float>::signaling_NaN())
   {
   }
 
@@ -32,8 +23,8 @@ namespace caf
   //--------------------------------------------------------------------
   void SRBACkov::setDefault()
   {
-    memset(charge, 0, sizeof(charge));
-    memset(PID, 0, sizeof(PID));
+    charge = -999;
+    time = -1;
   }
 
 } // end namespace

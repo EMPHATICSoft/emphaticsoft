@@ -116,23 +116,25 @@ namespace emph {
      fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());     
 //
      for (int k=0; k != fEmgeo->NSSDStations(); k++) {
-       emph::geo::SSDStation aStation = fEmgeo->GetSSDStation(k);
-       TVector3 posSt = aStation.Pos();
+       const emph::geo::SSDStation* aStation = fEmgeo->GetSSDStation(k);
+       TVector3 posSt = aStation->Pos();
        fZlocXStations.push_back(posSt[2]);
        fZlocYStations.push_back(posSt[2]);
-       for (int kk=0; kk != aStation.NSSDs(); kk++) {
-         emph::geo::Detector aPlane = aStation.GetSSD(kk);
-	 if ((std::abs(aPlane.Rot() - 270.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() - 90.*M_PI/180.) < 0.1) || 
-	     (std::abs(aPlane.Rot() + 270.*M_PI/180.) < 0.1) || (std::abs(aPlane.Rot() + 90.*M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocXPlanes.push_back(pos[2] + posSt[2]);
+       for (int jj=0; jj < aStation->NPlanes(); ++jj) {
+	 const emph::geo::Plane* sPlane = aStation->GetPlane(jj);
+	 for (int kk=0; kk != sPlane->NSSDs(); kk++) {
+	   const emph::geo::Detector* aPlane = sPlane->SSD(kk);
+	   if ((std::abs(aPlane->Rot() - 270.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() - 90.*M_PI/180.) < 0.1) || 
+	       (std::abs(aPlane->Rot() + 270.*M_PI/180.) < 0.1) || (std::abs(aPlane->Rot() + 90.*M_PI/180.) < 0.1) ) {
+	     TVector3 pos = aPlane->Pos();
+	     fZlocXPlanes.push_back(pos[2] + posSt[2]);
+	   }
+	   if ((std::abs(aPlane->Rot())  < 0.1) || (std::abs(aPlane->Rot() - M_PI/180.) < 0.1) || 
+	       (std::abs(aPlane->Rot() + M_PI/180.) < 0.1) ) {
+	     TVector3 pos = aPlane->Pos();
+	     fZlocYPlanes.push_back(pos[2] + posSt[2]);
+	   }
 	 }
-	 if ((std::abs(aPlane.Rot())  < 0.1) || (std::abs(aPlane.Rot() - M_PI/180.) < 0.1) || 
-	       (std::abs(aPlane.Rot() + M_PI/180.) < 0.1) ) {
-	    TVector3 pos = aPlane.Pos();
-	    fZlocYPlanes.push_back(pos[2] + posSt[2]);
-	 }
-	 
        } // on SS Detector planes of segment of a plane.   
      } // on index k, SSD Stations.
      if (fZlocXPlanes.size() < 5)  { std::cerr << " Not enough X planes to do this study, quit here and now " << std::endl; exit(2); }

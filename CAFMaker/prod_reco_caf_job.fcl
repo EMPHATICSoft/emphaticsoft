@@ -1,24 +1,26 @@
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
+#include "Services.fcl"
+
 #include "CAFMaker.fcl"
 
+#include "FillDataQuality.fcl"
 #include "SpillInfo.fcl"
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
+#include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
+#include "GasCkovHitReco.fcl"
+#include "MakeSingleTracks.fcl"
 
 process_name: CAF
 
 services:
 {
   # Load the service that manages root files for histograms.
-  TFileService: { fileName: "reco_cafmaker_hist.root" closeFileFast: false }
+  TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
   scheduler: { wantSummary: false }
   TimeTracker: {}
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
-  Geometry: @local::standard_geometry
+  @table::standard_services
+
   IFBeam:{}
 }
 
@@ -29,31 +31,37 @@ source:
   maxEvents:   -1
 }
 
-outputs:
-{
-  out1:
-  {
-    module_type: RootOutput
-    fileName:    "reco_cafmaker.root"
-    fastCloning: false
-  }
-}
-
 physics:
 {
   producers:
   {
-    spillinfo: @local::standard_spillinfo
-    arichreco:  @local::standard_arichreco
-    ssdclusts:  @local::standard_ssdclust
-    backovreco: @local::standard_backovhitreco
-    cafmaker:   @local::standard_cafmaker
+    //spillinfo: @local::standard_spillinfo
+    //arichreco:  @local::standard_arichreco
+    //clust:  @local::standard_ssdclust
+    //adcreco:    @local::standard_adcreco
+    //backovreco: @local::standard_backovhitreco
+    //gasckovreco: @local::standard_gasckovhitreco
+    //cafmaker:   @local::standard_cafmaker
+    dataqual:         @local::standard_dataqual
+    spillinfo:        @local::standard_spillinfo
+    arichreco:        @local::standard_arichreco
+    ssdclusts:        @local::standard_ssdclust
+    adcreco:          @local::standard_adcreco
+    backovreco:       @local::standard_backovhitreco
+    gasckovreco:      @local::standard_gasckovhitreco
+    cafmaker:         @local::standard_cafmaker
+
+    makesingletracks: @local::standard_makesingletracks
   }
 
   analyzers:{}
 
-  makecaf:   [ spillinfo, arichreco, ssdclusts,backovreco, cafmaker ]
+  makecaf:   [
+               dataqual, spillinfo, arichreco, ssdclusts,
+               makesingletracks, adcreco, backovreco, gasckovreco,
+               cafmaker
+             ]
 
 }
 physics.producers.ssdclusts.FillTTree: false
-physics.producers.ssdclusts.CheckDQ: false
+physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's

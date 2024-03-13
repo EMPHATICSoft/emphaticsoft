@@ -1,8 +1,7 @@
 #
 # Run the 3D event display
 #
-#include "Geometry.fcl"
-#include "RunHistory.fcl"
+#include "Services.fcl"
 
 process_name : eventDisplay01
 
@@ -13,10 +12,7 @@ source : {
 }
 
 services : {
-
-  # From toyExperiment
-  Geometry   : @local::standard_geometry
-  RunHistoryService : @local::standard_runhistory
+  @table::standard_services
   # From art-workbook
   EvtDisplayService : {}
 
@@ -30,7 +26,9 @@ physics :{
       camRotateCenterV : -2.0
       camDollyDelta    : 500.
       DrawMCTruth      : true
-      MCTruthLabel     : "g4gen"
+      DrawTrueSSDHits  : true
+      MCTruthLabel     : "geantgen"
+      DrawSSDDigits    : true
       DrawSSDClusters  : true
       SSDClustLabel    : "clust"
       DrawTracks       : true
@@ -38,6 +36,8 @@ physics :{
       DrawVertices     : true
       VerticesLabel    : "vtxreco"
       VisLevel         : 4
+      SSDStripVis      : false
+      TrueEnergyThresh : 50. #MeV
     }
   }
 

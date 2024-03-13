@@ -1,10 +1,8 @@
 BEGIN_PROLOG
 
-standard_backovhitreco:
+standard_gasckovhitreco:
 {
   module_type: GasCkovHitReco
-
-  momentum: 12
 }
 
 END_PROLOG

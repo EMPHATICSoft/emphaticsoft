@@ -1,3 +1,4 @@
+#include "Services.fcl"
 #include "CAFMaker.fcl"
 
 process_name: CAFmaker
@@ -7,7 +8,8 @@ services:
   # Load the service that manages root files for histograms.
   scheduler: { wantSummary: false }
   TimeTracker: {}
-  #@table::standard_services
+  @table::standard_services
+
 }
 
 #Start each new event with an empty event.

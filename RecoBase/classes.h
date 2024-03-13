@@ -1,6 +1,7 @@
 #include "canvas/Persistency/Common/Wrapper.h"
 #include "RecoBase/SSDHit.h"
 #include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/BeamTrackAlgo1.h"
 #include "RecoBase/SpacePoint.h"
@@ -10,4 +11,5 @@
 #include "RecoBase/GasCkovHit.h"
 #include "RecoBase/ADC.h"
 #include "RecoBase/TrigToT0.h"
-
+#include "RecoBase/CaloHit.h"
+#include "RecoBase/Track.h"

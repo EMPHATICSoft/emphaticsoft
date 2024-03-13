@@ -30,7 +30,6 @@
 #include "Geometry/DetectorDefs.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
-//#include "DetGeoMap/service/DetGeoMapService.h"
 #include "ChannelMap/service/ChannelMapService.h"
 
 using namespace emph;
@@ -139,7 +138,7 @@ namespace emph {
     if (!ssdHitH->empty()) {
 
       int station, row, t, adc, trig;
-      int sensor;
+      int sensor, plane;
       t = 0;
       trig = 0;
 
@@ -158,18 +157,23 @@ namespace emph {
 	
 	station = ssdhit.GetStation();
 	sensor = ssdhit.GetSensor(); // need to convert this from 0-27 range to 0-5
+	plane = ssdhit.GetPlane();
+	//	std::cout << "station = " << station << ", plane = " << plane 
+	//		  << ", sensor = " << sensor << std::endl;
+
 	row = ssdhit.GetStrip();
 	adc = ssdhit.GetDE()/8; // this needs attention!
 
 	dchan.SetStation(station);
+	dchan.SetPlane(plane);
 	dchan.SetHiLo(sensor);
-	dchan.SetChannel(fSensorMap[sensor]);
+	dchan.SetChannel(sensor);
 	echan = cmap->ElectChan(dchan);
 
 	// NOTE: charge-sharing across strips needs to be implemented!  For now we just assume one strip per G4 hit...
 	dig = new rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row,
 				       t, adc, trig);
-	//	std::cout << "(" << station << "," << sensor << "," << fSensorMap[sensor] << ") --> (" << echan.Board() << "," << echan.Channel() << ")" << std::endl;
+	//	std::cout << "(" << station << "," << plane << "," << sensor << ") --> (" << echan.Board() << "," << echan.Channel() << ")" << std::endl;
 	ssdRawD->push_back(rawdata::SSDRawDigit(*dig));
 	delete dig;
 	

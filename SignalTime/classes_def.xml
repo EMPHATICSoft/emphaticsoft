@@ -1,0 +1,6 @@
+
+<lcgdict>
+  <class name="emph::st::SignalTime"  ClassVersion="13">
+  </class>
+  <class name="art::Wrapper< std::vector<emph::st::SignalTime>    >"/>
+</lcgdict>

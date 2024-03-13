@@ -6,17 +6,6 @@ services:
 {
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "daq2root_%r_%04s.root" closeFileFast: false }
-#  Load the channel map service
-#  ChannelMapService: @local::standard_channelmap
-  
-#  scheduler:    { wantSummary: true }
-#  TimeTracker:  {}
-#  RandomNumberGenerator: {} #ART native random number generator
-#  message:      { debugModules: ["*"] destinations: { debugmsg:{type: "cout" threshold: "WARNING"} } }
-
-#  Geometry:     @local::standard_geo
-#  IFDH:         { IFDH_BASE_URI:  "http://samweb.fnal.gov:8480/sam/nova/api"}
-#  Detector:     @local::standard_detector
 }
 
 #Start each new event with an empty event.
@@ -34,7 +23,7 @@ source:
   verbosity: 0
   channelMapFileName: "ChannelMap_Jun22.txt"
   SSDFilePrefix: "/emph/data/data/June2022/SSD/Merged/"
-  readSSDData: false
+  readSSDData:  true
   readTRB3Data: true
   readCAENData: true
   firstSubRunHasExtraTrigger: true
@@ -45,7 +34,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName:    "emphdata_r%r_s%04s.root" #default file name, can override from command line with -o or --output
+    fileName:    "emphdata_r%r_s%04s.artdaq.root" #default file name, can override from command line with -o or --output
   }
 }
 

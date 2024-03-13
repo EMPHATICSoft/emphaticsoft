@@ -1,17 +1,12 @@
+#include "Services.fcl"
 #include "MakeSSDClusters.fcl"
-
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "RunHistory.fcl"
 
 process_name: MakeSSDClust
 
 services:
 {
-  TFileService: { fileName: "clust_r%r_s%04s_hist.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
-  RunHistoryService: @local::standard_runhistory
+  TFileService: { fileName: "%ifb_ssdclust_hist.root" closeFileFast: false }
+  @table::standard_services
 }
 
 source:
@@ -25,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "emphdata-ssdclust_r%r_s%04s.root"
+   fileName:    "%ifb_ssdclust.root"
    fastCloning: false
    
   }

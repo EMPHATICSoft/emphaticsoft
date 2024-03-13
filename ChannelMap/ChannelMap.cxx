@@ -48,6 +48,28 @@ namespace emph {
 
     //----------------------------------------------------------------------
 
+    void ChannelMap::PrintE2D()
+    {
+      std::map<emph::cmap::EChannel,emph::cmap::DChannel>::iterator itr=fEChanMap.begin();
+      
+      for (; itr != fEChanMap.end(); ++itr) {
+	std::cout << itr->first << "-->" << itr->second << std::endl;
+      }
+    }
+
+    //----------------------------------------------------------------------
+
+    void ChannelMap::PrintD2E()
+    {
+      std::map<emph::cmap::DChannel,emph::cmap::EChannel>::iterator itr=fDChanMap.begin();
+      
+      for (; itr != fDChanMap.end(); ++itr) {
+	std::cout << itr->first << "-->" << itr->second << std::endl;
+      }
+    }
+
+    //----------------------------------------------------------------------
+
     bool ChannelMap::LoadMap(std::string fname)
     {
       
@@ -83,7 +105,6 @@ namespace emph {
 	EChannel echan(iBoardType,board,eChannel);
 	if (dchan.DetId() == emph::geo::SSD)
 	  dchan.SetPlane(dPlane);
-	//	std::cout << dchan << " <--> " << echan << std::endl;
 	fEChanMap[echan] = dchan;
 	fDChanMap[dchan] = echan;
 	

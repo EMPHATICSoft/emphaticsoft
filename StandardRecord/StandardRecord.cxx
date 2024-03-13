@@ -6,8 +6,15 @@ namespace caf
     hdr(),
     ring(),
     backov(),
-    truth(),	 
-    hits()
+    evtqual(),
+    gasckov(),
+    lineseg(),
+    spcpts(),
+    cluster(),
+    hits(),
+    trks(),
+    sgmnts(),
+    truth()
   {
   }
   

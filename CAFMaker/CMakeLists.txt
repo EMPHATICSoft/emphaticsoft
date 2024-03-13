@@ -20,6 +20,12 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
 		  LIBRARIES StandardRecord
                             RawData
                             RecoBase
+			    Simulation
+			    ChannelMapService_service
+			    DataQuality
+			    Geometry
+			    Geometry_service
+			    RunHistoryService_service
 		  	    art::Framework_Core
 			    art::Persistency_Common
 			    canvas::canvas
@@ -49,6 +55,13 @@ simple_plugin ( CAFMaker "module"
 	      	StandardRecord
                 RawData
                 RecoBase
+		Simulation
+		ChannelMap
+		ChannelMapService_service
+		DataQuality
+		Geometry
+		Geometry_service
+		RunHistoryService_service
                 art::Framework_Core
 		art::Framework_Principal
 		art::Framework_Services_Registry

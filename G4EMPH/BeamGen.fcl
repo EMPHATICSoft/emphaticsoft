@@ -11,87 +11,122 @@ standard_beamgen:
   pxyHistFile:		     ""
   pxyHistName:		     ""
 
-  Xmax:			     0.
-  Xmin:			     0.
-  Ymax:			     0.
+#Note: units are cm, GeV.  "Px" = px/pz, "Py" = py/pz.
+
+  ZStart:                    -200.
+# parameters for flat spatial distribution
+  Xmax:			     0. 
+  Xmin:			     0. 
+  Ymax:			     0. 
   Ymin:			     0.
 
+# parameters for Gaussian spatial distribution
   Xmean: 		     0.
   Xsigma:		     0.5
   Ymean:		     0.
   Ysigma:		     0.5
 
+# parameters for Gaussian total momentum distribution (the only option for now)
   PMean:		     120.
   Psigma:		     1.e-3
+
+# parameters for flat distributions of beam slopes
   PXmax:		     0.1
   PXmin:		     -0.1
   PYmax:		     0.1
   PYmin:		     -0.1
+
+# parameters for Gaussian distributions of beam slopes
   PXmean:		     0.
   PXsigma:		     10.e-6
   PYmean:		     0.
   PYsigma:		     10.e-6
 }
 
-proton_beamgen: @local::standard_beamgen
-proton_beamgen.particleType: "proton"
-proton_beamgen.PMean: 120.
-proton_beamgen.XMean: 0. 
-proton_beamgen.YMean: 0. 
-proton_beamgen.Xsigma: 0.5e-8 
-proton_beamgen.Ysigma: 0.5e-8 
-proton_beamgen.PXsigma: 1.e-8
-proton_beamgen.PYsigma: 1.e-8
-proton_beamgen.Zstart: -2.0
+proton120: @local::standard_beamgen
+proton120.particleType: "proton"
+proton120.xyDistSource: "flatxy"
+proton120.pxyDistSource: "flatpxy"
+proton120.Xmax: 2.
+proton120.Xmin: -2. 
+proton120.Ymax: 2.
+proton120.Ymin: -2. 
+proton120.PXmax: 1.e-5
+proton120.PXmin: -1.e-5 
+proton120.PYmax: 1.e-5
+proton120.PYmin: -1.e-5 
 
-piplus_beamgen: @local::standard_beamgen
-piplus_beamgen.particleType: "pion"
-piplus_beamgen.PMean: 31.
-piplus_beamgen.Xsigma: 2.5 
-piplus_beamgen.Ysigma: 2.5 
+proton4: @local::standard_beamgen
+proton4.particleType: "proton"
+proton4.PMean: 4
+proton4.Psigma: 0.2
+proton4.xyDistSource: "flatxy"
+proton4.pxyDistSource: "flatpxy"
+proton4.Xmax: 2.
+proton4.Xmin: -2. 
+proton4.Ymax: 2.
+proton4.Ymin: -2. 
+proton4.PXmax: 1.e-4
+proton4.PXmin: -1.e-4 
+proton4.PYmax: 1.e-4
+proton4.PYmin: -1.e-4 
 
-piminus_beamgen: @local::standard_beamgen
-piminus_beamgen.particleType: "pion"
-piminus_beamgen.PMean: -8.
-piminus_beamgen.XMean: 20. 
-piminus_beamgen.YMean: 0. 
-piminus_beamgen.Xsigma: 0.5 
-piminus_beamgen.Ysigma: 0.5 
+piplusP31: @local::standard_beamgen
+piplusP31.particleType: "pion"
+piplusP31.PMean: 31.
+piplusP31.Xsigma: 2.5 
+piplusP31.Ysigma: 2.5 
 
-kaonplus_beamgen: @local::standard_beamgen
-kaonplus_beamgen.particleType: "kaon"
-kaonplus_beamgen.PMean: 31.
+piminusM8: @local::standard_beamgen
+piminusM8.particleType: "pion"
+piminusM8.PMean: -8.
+piminusM8.XMean: 20. 
+piminusM8.YMean: 0. 
+piminusM8.Xsigma: 0.5 
+piminusM8.Ysigma: 0.5 
 
-kaonminus_beamgen: @local::standard_beamgen
-kaonminus_beamgen.particleType: "kaon"
-kaonminus_beamgen.PMean: -31.
+piplusP4: @local::standard_beamgen
+piplusP4.particleType: "pion"
+piplusP4.PMean: 4.
+piplusP4.XMean: 0. 
+piplusP4.YMean: 0. 
+piplusP4.Xsigma: 5. 
+piplusP4.Ysigma: 5. 
 
-electron_beamgen: @local::standard_beamgen
-electron_beamgen.particleType: "electron"
-electron_beamgen.PMean: 8. # The PDG charge is already negative, for pID = 11
-electron_beamgen.Xmean: 20.  #  anticipated deflection due to the magnet. 
-electron_beamgen.Xsigma: 0.5
-electron_beamgen.Ymean: 0.0
-electron_beamgen.Ysigma: 0.5
+kaonplus: @local::standard_beamgen
+kaonplus.particleType: "kaon"
+kaonplus.PMean: 4.
 
-muon_beamgen: @local::standard_beamgen
-muon_beamgen.particleType: "muon"
-muon_beamgen.PMean: 8.
-muon_beamgen.Xmean: 20.  #  anticipated deflection due to the magnet. 
-muon_beamgen.Xsigma: 0.5
-muon_beamgen.Ymean: 0.0
-muon_beamgen.Ysigma: 0.5
+kaonminus: @local::standard_beamgen
+kaonminus.particleType: "kaon"
+kaonminus.PMean: -4.
+
+electron8: @local::standard_beamgen
+electron8.particleType: "electron"
+electron8.PMean: 8. # The PDG charge is already negative, for pID = 11
+electron8.Xmean: 20.  #  anticipated deflection due to the magnet. 
+electron8.Xsigma: 0.5
+electron8.Ymean: 0.0
+electron8.Ysigma: 0.5
+
+muon8: @local::standard_beamgen
+muon8.particleType: "muon"
+muon8.PMean: 8.
+muon8.Xmean: 20.  #  anticipated deflection due to the magnet. 
+muon8.Xsigma: 0.5
+muon8.Ymean: 0.0
+muon8.Ysigma: 0.5
 
 
-geantino_beamgen: @local::standard_beamgen
-geantino_beamgen.particleType: "geantino"
-geantino_beamgen.Xmean: 0.
-geantino_beamgen.Xsigma: 75.0
-geantino_beamgen.Ymean: 0.0
-geantino_beamgen.Ysigma: 75.0
-geantino_beamgen.PMean: 1.0
-geantino_beamgen.PXmean: 1.8e-9
-geantino_beamgen.PYmean: -3.1e-9
+geantino: @local::standard_beamgen
+geantino.particleType: "geantino"
+geantino.Xmean: 0.
+geantino.Xsigma: 75.0
+geantino.Ymean: 0.0
+geantino.Ysigma: 75.0
+geantino.PMean: 1.0
+geantino.PXmean: 1.8e-9
+geantino.PYmean: -3.1e-9
 
 
 

@@ -90,9 +90,13 @@ namespace emph {
       void SetPlane(int plane) { fPlane = plane; }
 
       inline bool operator==(const DChannel& dchan) const {
-	return ((dchan.fId == fId)&&(dchan.fStation == fStation)&&
-		(((dchan.fHiLo == fHiLo) && fHiLo>=0) || 
-		 ((dchan.fChannel == fChannel) && fChannel>=0))); }
+	if (fId == emph::geo::SSD)
+	  return ((dchan.fId == fId)&&(dchan.fStation == fStation)&&
+		  (dchan.fChannel == fChannel)&&(dchan.fPlane == fPlane)); 
+	else
+	  return ((dchan.fId == fId)&&(dchan.fChannel == fChannel)&&
+		  (dchan.fHiLo == fHiLo)); 
+      }
       
       inline bool operator<(const DChannel& dchan) const {
 	if (fId < dchan.fId) return true;
@@ -100,8 +104,10 @@ namespace emph {
 	  if (fId == emph::geo::SSD) {
 	    if (fStation < dchan.fStation) return true;
 	    if (fStation == dchan.fStation) {
-	      if ((fChannel>=0) && (fChannel < dchan.fChannel)) return true;
-	      if ((fHiLo>=0) && (fHiLo < dchan.fHiLo)) return true;
+	      if (fPlane < dchan.fPlane) return true;
+	      if (fPlane == dchan.fPlane)
+		if (fChannel < dchan.fChannel) return true;
+	      //	      if ((fHiLo>=0) && (fHiLo < dchan.fHiLo)) return true;
 	    }
 	  }
 	  else {
@@ -120,8 +126,9 @@ namespace emph {
 	  if (fId == emph::geo::SSD) {
 	    if (fStation > dchan.fStation) return true;
 	    if (fStation == dchan.fStation) {
-	      if ((fChannel>=0) && (fChannel > dchan.fChannel)) return true;
-	      if ((fHiLo>=0) && (fHiLo > dchan.fHiLo)) return true;
+	      if (fPlane > dchan.fPlane) return true;
+	      if (fPlane == dchan.fPlane) 
+		if (fChannel > dchan.fChannel) return true;
 	    }
 	  }
 	  else {
@@ -135,7 +142,11 @@ namespace emph {
       }
 
       inline friend std::ostream& operator<<(std::ostream& os, const DChannel& dchan) {
-	os << "DetectorChannel: (" << emph::geo::DetInfo::Name(dchan.fId) << "," << dchan.fChannel << ")";
+	if (dchan.fId != emph::geo::SSD)
+	  os << "DetectorChannel: (" << emph::geo::DetInfo::Name(dchan.fId) << "," << dchan.fChannel << ")";
+	else 
+	  os << "DetectorChannel: (" << emph::geo::DetInfo::Name(dchan.fId) << "," << dchan.fStation << "," 
+	     << dchan.fPlane << ", " << dchan.fChannel << ")";
 	return os;
       }
 
@@ -165,6 +176,9 @@ namespace emph {
       
       std::map<emph::cmap::EChannel,emph::cmap::DChannel> EChanMap() { return fEChanMap; }
       std::map<emph::cmap::DChannel,emph::cmap::EChannel> DChanMap() { return fDChanMap; }
+
+      void PrintE2D(); // print out map, echan -> dchan
+      void PrintD2E(); // print out map, dchan -> echan;
 
     private:
 

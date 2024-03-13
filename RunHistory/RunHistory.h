@@ -30,6 +30,7 @@ namespace runhist {
     double _beamMom;
     std::string  _geoFile;
     std::string  _chanFile;
+    std::string  _ssdAlignFile;
     std::string  _target;
     int  _calibVer;
     std::vector<std::string> _det;
@@ -48,6 +49,7 @@ namespace runhist {
     std::string Target();
     std::string GeoFile();
     std::string ChanFile();
+    std::string SSDAlignFile();
     int        CalibVer();
     std::vector<std::string> DetectorList();
     int        NTriggers();
@@ -58,6 +60,7 @@ namespace runhist {
     void       SetChan(std::string chanFile) { _chanFile = chanFile; }
     void       SetCalib(int calibVer) { _calibVer = calibVer; }
     void       SetQEURL(std::string uri) { _QEURL = uri; }
+    void       SetSSDAlign(std::string ssdFile) { _ssdAlignFile = ssdFile; }
   };
   
 }
