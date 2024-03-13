@@ -52,17 +52,12 @@ namespace ru {
      double s = (-d4321*d4331 + d3121*r22) / (r12*r22 - d4321*d4321);
      double t = (d4321*d3121 - d4331*r12) / (r12*r22 - d4321*d4321);
 
-     double L1[3]; double L2[3];
-
      if (strcmp(type,"SSD") == 0){
        if ( s >= 0 && s <= 1 && t >=0 && t <= 1){
          //std::cout<<"Closest approach all good :)"<<std::endl;
          for (int i=0; i<3; i++){
-           L1[i] = A(i) + s*(B(i) - A(i));
-           L2[i] = C(i) + t*(D(i) - C(i));
-           F[i] = (L1[i] + L2[i])/2.;
-           l1[i] = L1[i];
-           l2[i] = L2[i];
+           l1[i] = A(i) + s*(B(i) - A(i));
+           l2[i] = C(i) + t*(D(i) - C(i));
          }
          //std::cout<<"CA CHECK (L1)...x: "<<L1[0]<<"   y: "<<L1[1]<<"   z: "<<L1[2]<<std::endl;
          //std::cout<<"CA CHECK (L2)...x: "<<L2[0]<<"   y: "<<L2[1]<<"   z: "<<L2[2]<<std::endl;
@@ -79,66 +74,99 @@ namespace ru {
          //std::cout<<"s: "<<s<<std::endl;
          //std::cout<<"t: "<<t<<std::endl;
 
-         TVector3 l1p3;
-         TVector3 l1p4;
-         TVector3 l2p1;
-         TVector3 l2p2;
-	
-	 double d4121 = (D(0) - A(0))*(B(0) - A(0)) + (D(1) - A(1))*(B(1) - A(1)) + (D(2) - A(2))*(B(2) - A(2));
-         double d4332 = (D(0) - C(0))*(C(0) - B(0)) + (D(1) - C(1))*(C(1) - B(1)) + (D(2) - C(2))*(C(2) - B(2));
+         double sbound[2] = {0.,1.};
+	 double tbound[2] = {0.,1.};
 
-         double s_l1p3 = d3121/r12;
-         double s_l1p4 = d4121/r12;
-         double t_l2p1 = -d4331/r22;
-         double t_l2p2 = -d4332/r22;
-
-         s_l1p3 = std::clamp(s_l1p3,0.,1.);
-         s_l1p4 = std::clamp(s_l1p4,0.,1.);
-         t_l2p1 = std::clamp(t_l2p1,0.,1.);
-	 t_l2p2 = std::clamp(t_l2p2,0.,1.);
-
-         double d_l1p3;
-         double d_l1p4;
-         double d_l2p1;
-         double d_l2p2;
-
-         for (int i=0; i<3; i++){
-           l1p3(i) = A(i) + s_l1p3*(B(i) - A(i));
-           l1p4(i) = A(i) + s_l1p4*(B(i) - A(i));
-           l2p1(i) = C(i) + t_l2p1*(D(i) - C(i));
-           l2p2(i) = C(i) + t_l2p2*(D(i) - C(i));
-         }
-
-         d_l1p3 = (C-l1p3).Dot(C-l1p3);
-         d_l1p4 = (D-l1p4).Dot(D-l1p4);
-         d_l2p1 = (A-l2p1).Dot(A-l2p1);
-	 d_l2p2 = (B-l2p2).Dot(B-l2p2);
-
-         if (d_l1p3 < d_l1p4){
-           for (int i=0; i<3; i++) { L1[i] = l1p3(i); l1[i] = L1[i]; }
-         }
-         else{
-           for (int i=0; i<3; i++) { L1[i] = l1p4(i); l1[i] = L1[i]; }
-         }
-         if (d_l2p1 < d_l2p2){
-           for (int i=0; i<3; i++) { L2[i] = l2p1(i); l2[i] = L2[i]; }
-         }
-         else{
-           for (int i=0; i<3; i++) { L2[i] = l2p2(i); l2[i] = L2[i]; }
-         }
-         for (int i=0; i<3; i++){
-           F[i] = (L1[i] + L2[i])/2.;
-         }
+         ClampedApproach(A,B,C,D,l1,l2,sbound,tbound);
        }
      }
-     else{
-       for (int i=0; i<3; i++){
-         L1[i] = A(i) + s*(B(i) - A(i));
-         L2[i] = C(i) + t*(D(i) - C(i));
-         F[i] = (L1[i] + L2[i])/2.;
-         l1[i] = L1[i];
-         l2[i] = L2[i];
+     else{ //i.e. "TrackSegment"
+       double sl1 = (C(2) - A(2))/(B(2) - A(2));
+       double tl2 = (B(2) - D(2))/(D(2) - C(2));
+
+	std::cout<<"sl1: "<<sl1<<std::endl;
+	std::cout<<"tl2: "<<tl2<<std::endl;
+
+       if ( s >= 0 && s <= sl1 && t >=tl2 && t <= 1){
+         std::cout<<"Normal"<<std::endl;
+         for (int i=0; i<3; i++){
+           l1[i] = A(i) + s*(B(i) - A(i));
+           l2[i] = C(i) + t*(D(i) - C(i));
+         }
        }
+       else{
+         double sbound[2] = {0.,sl1};  
+         double tbound[2] = {tl2,1.};
+
+	 std::cout<<"Clamped"<<std::endl;
+	 ClampedApproach(A,B,C,D,l1,l2,sbound,tbound);
+
+       }
+     }
+
+     //set point of closest approach
+     for (int i=0; i<3; i++){
+       F[i] = (l1[i] + l2[i])/2.;
+     }
+
+  }
+
+  //------------------------------------------------------------
+
+  void RecoUtils::ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2]){
+
+     double r12 = (B(0) - A(0))*(B(0) - A(0)) + (B(1) - A(1))*(B(1) - A(1)) + (B(2) - A(2))*(B(2) - A(2));
+     double r22 = (D(0) - C(0))*(D(0) - C(0)) + (D(1) - C(1))*(D(1) - C(1)) + (D(2) - C(2))*(D(2) - C(2));
+
+     double d3121 = (C(0) - A(0))*(B(0) - A(0)) + (C(1) - A(1))*(B(1) - A(1)) + (C(2) - A(2))*(B(2) - A(2));
+     double d4331 = (D(0) - C(0))*(C(0) - A(0)) + (D(1) - C(1))*(C(1) - A(1)) + (D(2) - C(2))*(C(2) - A(2));
+
+     TVector3 l1p3;
+     TVector3 l1p4;
+     TVector3 l2p1;
+     TVector3 l2p2;
+
+     double d4121 = (D(0) - A(0))*(B(0) - A(0)) + (D(1) - A(1))*(B(1) - A(1)) + (D(2) - A(2))*(B(2) - A(2));
+     double d4332 = (D(0) - C(0))*(C(0) - B(0)) + (D(1) - C(1))*(C(1) - B(1)) + (D(2) - C(2))*(C(2) - B(2));
+
+     double s_l1p3 = d3121/r12;
+     double s_l1p4 = d4121/r12;
+     double t_l2p1 = -d4331/r22;
+     double t_l2p2 = -d4332/r22;
+
+     s_l1p3 = std::clamp(s_l1p3,sbound[0],sbound[1]);
+     s_l1p4 = std::clamp(s_l1p4,sbound[0],sbound[1]);
+     t_l2p1 = std::clamp(t_l2p1,tbound[0],tbound[1]);
+     t_l2p2 = std::clamp(t_l2p2,tbound[0],tbound[1]);
+
+     double d_l1p3;
+     double d_l1p4;
+     double d_l2p1;
+     double d_l2p2;
+
+     for (int i=0; i<3; i++){
+       l1p3(i) = A(i) + s_l1p3*(B(i) - A(i));
+       l1p4(i) = A(i) + s_l1p4*(B(i) - A(i));
+       l2p1(i) = C(i) + t_l2p1*(D(i) - C(i));
+       l2p2(i) = C(i) + t_l2p2*(D(i) - C(i));
+     }
+
+     d_l1p3 = (C-l1p3).Dot(C-l1p3);
+     d_l1p4 = (D-l1p4).Dot(D-l1p4);
+     d_l2p1 = (A-l2p1).Dot(A-l2p1);
+     d_l2p2 = (B-l2p2).Dot(B-l2p2);
+
+     if (d_l1p3 < d_l1p4){
+       for (int i=0; i<3; i++) { l1[i] = l1p3(i); }
+     }
+     else{
+       for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
+     }
+     if (d_l2p1 < d_l2p2){
+       for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
+     }
+     else{
+       for (int i=0; i<3; i++) { l2[i] = l2p2(i); }
      }
   }
 

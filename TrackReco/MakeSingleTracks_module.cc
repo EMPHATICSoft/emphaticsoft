@@ -197,7 +197,7 @@ namespace emph {
     hDist_yz = tfs->make<TH2F>("hDist_yz","hDist_yz",2050,-50.,2000.,1000,-50.,50.);
 
     hRecoPz = tfs->make<TH1F>("hRecoPz","hRecoPz",1000,0.,30.);
-    hDOCA = tfs->make<TH1F>("hDOCA","hDOCA",200,0.,1.);
+    hDOCA = tfs->make<TH1F>("hDOCA","hDOCA",1000,0.,500.);
     hCAz = tfs->make<TH1F>("hCAz","hCAz",200,0.,1000.);
     hIntz = tfs->make<TH1F>("hIntz","hIntz",200,0.,1000.);
   }
@@ -436,9 +436,12 @@ namespace emph {
          double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
 	 double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
 	 double recop = recoFcn2.getMomentum(recoBendAngle);
-	 double recopz = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1);
-	 double recopx = sqrt((recop*recop/(recopz*recopz) - 1. - ts2.P()[1]*ts2.P()[1])*(llast2[2]-lfirst2[2]));
+	 double recopz = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1.);
+	 double recopx = sqrt(recop*recop/(recopz*recopz) - 1. - ts2.P()[1]*ts2.P()[1])*recopz;
 	 double recopy = sqrt(recop*recop - recopz*recopz - recopx*recopx);
+         //std::cout<<"Recopx: "<<recopx<<std::endl;
+         //std::cout<<"Recopy: "<<recopy<<std::endl;
+         //std::cout<<"Recopz: "<<recopz<<std::endl;	
 
 	 sectrkp[0] = recopx;
 	 sectrkp[1] = recopy;
@@ -456,7 +459,7 @@ namespace emph {
 	 double doca = sqrt( (l0t[0]-l1t[0])*(l0t[0]-l1t[0]) + (l0t[1]-l1t[1])*(l0t[1]-l1t[1]) + (l0t[2]-l1t[2])*(l0t[2]-l1t[2]) );
 
 	 hDOCA->Fill(doca);
-	 hCAz->Fill(sectrkvtx[2]);
+	 if (doca < 5) hCAz->Fill(sectrkvtx[2]);
 
 	 double point[3];
 	 recoFcn2.findTrackIntersection(ts1,ts2,point);

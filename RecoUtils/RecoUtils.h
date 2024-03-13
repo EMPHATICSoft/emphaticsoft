@@ -32,6 +32,7 @@ namespace ru {
 
   public:
     void    ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type);
+    void    ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2]);
     void    findLine(std::vector<std::vector<double> > v, double lfirst[3], double llast[3]);
     double  findRecoAngle(double p1[3], double p2[3], double p3[3], double p4[3]);
     double  findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f);

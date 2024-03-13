@@ -6,6 +6,8 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TProfile.h"
+#include "TGraph.h"
+#include "TMultiGraph.h"
 
 void angDiff(std::vector<caf::SRTrueSSDHits> truthv, caf::SRVector3D& p, double ang[2]);
 void findDistFixedZ(std::vector<caf::SRTrueSSDHits> truthv, caf::SRTrackSegment& seg);
@@ -107,7 +109,7 @@ void caf_singleTrkPlots(std::string fname)
   TH1F* hScattering = new TH1F("hScattering","hScattering",200,0.,0.03);
 
   hTargetZ = new TH1F("hTargetZ","hTargetZ",200,0.,1000.);
-  hRecoMomRes = new TH1F("hRecoMomRes","hRecoMomRes",100,-0.5,0.5);
+  hRecoMomRes = new TH1F("hRecoMomRes","hRecoMomRes",500,-5.,5.);
 
   TGraph* gRecoHits_xz[100];
   TGraph* gRecoHits_yz[100];
@@ -164,6 +166,9 @@ void caf_singleTrkPlots(std::string fname)
 
   TH2F* hBendVsRecoRAt4 = new TH2F("hBendVsRecoRAt4","hBendVsRecoRAt4",60,0,30,200,0.0025,0.0045); //1000,0.03,0.04); //200,0.,0.05);
   //TH2F* hBendVsRecoRAt5 = new TH2F("hBendVsRecoRAt5","hBendVsRecoRAt5",60,0,30,200,0.,0.05);
+
+  TH2F* hRecoBendXY = new TH2F("hRecoBendXY","hRecoBendXY",80,-16,16,80,-16,16);
+  TProfile2D* pRecoBendXY = new TProfile2D("pRecoBendXY","pRecoBendXY",80,-16,16,80,-16,16);
 
   //new magnets: 100,0,0.01,500,0.03,0.04);
   //1   GeV  ............500,0.05,0.1); ~0.07
@@ -346,6 +351,8 @@ void caf_singleTrkPlots(std::string fname)
 	double omega4 = sqrt(rec->sgmnts.seg[1].mom.x*rec->sgmnts.seg[1].mom.x+rec->sgmnts.seg[1].mom.y*rec->sgmnts.seg[1].mom.y)/rec->sgmnts.seg[1].mom.z;
 	hBendVsRecoRAt4->Fill(r4,recoAngle);
 	hBendVsRecoOmegaAt4->Fill(omega4,recoAngle);
+	//hRecoBendXY->Fill(x4,y4,recoAngle);
+        pRecoBendXY->Fill(x4,y4,recoAngle);
 
 	double t5 = (zreco[5] - rec->sgmnts.seg[2].vtx[2])/rec->sgmnts.seg[2].mom.z;
         double x5 = rec->sgmnts.seg[2].vtx[0]+t5*rec->sgmnts.seg[2].mom.x;
@@ -433,10 +440,26 @@ void caf_singleTrkPlots(std::string fname)
 	findTrackIntersection(rec->sgmnts.seg[0],rec->sgmnts.seg[1]);
 
 	// residual of reco mom - true mom
-	double recop = rec->trks.trk[1].mom.Mag();
+        int ntrks = int(rec->trks.trk.size());
+        if (ntrks == 2) {
+	//double recop = rec->trks.trk[1].mom.Mag(); //doesn't work?
+        double recopx = rec->trks.trk[1].mom.X();
+        double recopy = rec->trks.trk[1].mom.Y();
 	double recopz = rec->trks.trk[1].mom.Z();
-	hRecoMomRes->Fill(recop - 2.5);	
+	double recop = sqrt(recopx*recopx+recopy*recopy+recopz*recopz);
 
+        //std::cout<<"Recopx: "<<recopx<<std::endl;
+        //std::cout<<"Recopy: "<<recopy<<std::endl;
+        //std::cout<<"Recopz: "<<recopz<<std::endl;
+	for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
+          caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
+          if (h.GetStation >= 2 && h.GetPlane == 0){ //not sure if this is right? include trck segment 3 too?
+	    double truep = sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy+h.GetPz*h.GetPz);
+	    hRecoMomRes->Fill(recop - truep);	
+          }
+        }
+        //std::cout<<"Recop: "<<recop<<std::endl;
+	}
       } //goodHit
     } //goodEvent
     if (goodCluster && goodEvent){
@@ -718,8 +741,20 @@ void caf_singleTrkPlots(std::string fname)
   xprof_bvr->SetMarkerStyle(20);
   xprof_ovr->SetMarkerStyle(20);
 
+  //std::cout<<"Nbins: "<<pRecoBendXY->GetNumberOfBins()<<std::endl;
+  
+  for (int i=0; i<pRecoBendXY->GetNbinsX(); i++){
+    for (int j=0; j<pRecoBendXY->GetNbinsY(); j++){
+       int n = pRecoBendXY->GetBin(i,j);
+       double z = pRecoBendXY->GetBinContent(n);
+       int w = pRecoBendXY->GetBinEntries(n);
+       hRecoBendXY->SetBinContent(i,j,z/w);
+    }
+  }
+
   hBendVsRecoRAt4->SetStats(0);
   hBendVsRecoOmegaAt4->SetStats(0);
+  hRecoBendXY->SetStats(0);
 
   hBendVsRecoRAt4->GetXaxis()->SetTitle("Radius [mm]");
   hBendVsRecoRAt4->GetYaxis()->SetTitle("Bend Angle [rad]");
@@ -736,6 +771,11 @@ void caf_singleTrkPlots(std::string fname)
   xprof_ovr->Draw("same");
   c1->Print("hovr.png");
 
+  TCanvas *c2 = new TCanvas("c2","c2",1400,800);
+
+  hRecoBendXY->Draw("colz");
+  c2->Print("hxvyvb.png");
+
   hBendVsTrueRAt4->Write();
   //hBendVsTrueRAt5->Write();
   hBendVsRecoRAt4->Write();
@@ -744,7 +784,8 @@ void caf_singleTrkPlots(std::string fname)
   //hBendVsTrueOmegaAt5->Write();
   hBendVsRecoOmegaAt4->Write();
   //hBendVsRecoOmegaAt5->Write();
-
+  hRecoBendXY->Write();
+ 
   hTargetZ->Write();
   hRecoMomRes->Write();
 
