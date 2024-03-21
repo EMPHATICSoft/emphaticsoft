@@ -35,6 +35,13 @@ physics:
 {
   producers:
   {
+    //spillinfo: @local::standard_spillinfo
+    //arichreco:  @local::standard_arichreco
+    //clust:  @local::standard_ssdclust
+    //adcreco:    @local::standard_adcreco
+    //backovreco: @local::standard_backovhitreco
+    //gasckovreco: @local::standard_gasckovhitreco
+    //cafmaker:   @local::standard_cafmaker
     dataqual:         @local::standard_dataqual
     spillinfo:        @local::standard_spillinfo
     arichreco:        @local::standard_arichreco
@@ -43,6 +50,7 @@ physics:
     backovreco:       @local::standard_backovhitreco
     gasckovreco:      @local::standard_gasckovhitreco
     cafmaker:         @local::standard_cafmaker
+
     makesingletracks: @local::standard_makesingletracks
   }
 
@@ -56,4 +64,4 @@ physics:
 
 }
 physics.producers.ssdclusts.FillTTree: false
-physics.producers.cafmaker.GetMCTruth: false #include when producing MC CAF's
+physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's
