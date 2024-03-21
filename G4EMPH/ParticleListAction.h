@@ -60,6 +60,8 @@ namespace emph {
     std::vector<sim::Particle> GetList()                  const;
     std::map<int, size_t>      TrackIDToMCTruthIndexMap() const;
 
+    void           SetMinTrajPtDist(G4double d) {fMinTrajPtDist = d; }
+    
   private:
     int                   GetParentage(int trackid) const;
 
@@ -81,6 +83,7 @@ namespace emph {
                                                     ///< set to eve ID 
     static int              fTrackIDOffset;         ///< offset added to track ids when running over
 
+    G4double    fMinTrajPtDist;
   };
 
 } // namespace g4n
