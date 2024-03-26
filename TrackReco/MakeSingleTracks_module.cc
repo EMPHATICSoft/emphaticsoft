@@ -197,8 +197,8 @@ namespace emph {
     hDist_yz = tfs->make<TH2F>("hDist_yz","hDist_yz",2050,-50.,2000.,1000,-50.,50.);
 
     hRecoPz = tfs->make<TH1F>("hRecoPz","hRecoPz",1000,0.,30.);
-    hDOCA = tfs->make<TH1F>("hDOCA","hDOCA",1000,0.,500.);
-    hCAz = tfs->make<TH1F>("hCAz","hCAz",200,0.,1000.);
+    hDOCA = tfs->make<TH1F>("hDOCA","hDOCA",100,0.,0.3);
+    hCAz = tfs->make<TH1F>("hCAz","hCAz",204,-20.,1000.);
     hIntz = tfs->make<TH1F>("hIntz","hIntz",200,0.,1000.);
   }
  
@@ -454,12 +454,15 @@ namespace emph {
 	 TVector3 d(llast2[0],llast2[1],llast2[2]);
 	 double l0t[3];
 	 double l1t[3];
+	 std::cout<<"Event: "<<fEvtNum<<std::endl;
 	 recoFcn2.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment");
 
 	 double doca = sqrt( (l0t[0]-l1t[0])*(l0t[0]-l1t[0]) + (l0t[1]-l1t[1])*(l0t[1]-l1t[1]) + (l0t[2]-l1t[2])*(l0t[2]-l1t[2]) );
+	 std::cout<<"DOCA: "<<doca<<std::endl;
 
 	 hDOCA->Fill(doca);
-	 if (doca < 5) hCAz->Fill(sectrkvtx[2]);
+	 //if (l0t != b && l1t != c) hCAz->Fill(sectrkvtx[2]);
+	 hCAz->Fill(sectrkvtx[2]);
 
 	 double point[3];
 	 recoFcn2.findTrackIntersection(ts1,ts2,point);
