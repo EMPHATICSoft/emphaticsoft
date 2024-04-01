@@ -28,6 +28,7 @@ cet_build_plugin(MakeSingleTracks art::module
   LIBRARIES PRIVATE
     RawData
     RecoBase
+    RecoUtils
     ChannelMapService_service
     Geometry_service
     DetGeoMapService_service    
