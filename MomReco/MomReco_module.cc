@@ -143,6 +143,7 @@ namespace emph {
         if(first_run){
             art::Handle<rb::Spill> spillHandle;
             //mom = spillHandle->Momentum();
+            mom = -8;
 
             auto fChannelMap = cmap->CMap();
             auto emgeo = geom->Geo();
@@ -316,8 +317,8 @@ namespace emph {
         std::cout<<"Number of Events to analyze = "<<angles_x.size()<<std::endl;
         const double p_to_GeV = 1/(5.36e-19);
         const double e = 1.6e-19;
-        //hSSDmom = tfs->make<TH1D>("SSDMom",Form("%i GeV/c pion: Reconstructed Momentum",mom),600,-30,30);
-        hSSDmom = tfs->make<TH1D>("SSDMom","-20 GeV/c pion: Reconstructed Momentum",600,-30,30);
+        hSSDmom = tfs->make<TH1D>("SSDMom",Form("%i GeV/c pion: Reconstructed Momentum",mom),200,mom-5,mom+5);
+        //hSSDmom = tfs->make<TH1D>("SSDMom","-20 GeV/c pion: Reconstructed Momentum",600,-30,30);
         hSSDmom->GetXaxis()->SetTitle("p (GeV/c)");
         for (size_t i=0; i<10; ++i){
             //std::cout<<"x-Angle (degrees) = "<<angles_x[i]*(180/M_PI)<<std::endl;
@@ -339,7 +340,7 @@ namespace emph {
             }
         }
         std::cout<<"Magnet Pos = "<<magnetpos<<" mm"<<std::endl;
-        std::cout<<"Momentum of Run = "<<" GeV/c"<<std::endl;
+        std::cout<<"Momentum of Run = "<<mom<<" GeV/c"<<std::endl;
 
     }
     //......................................................................

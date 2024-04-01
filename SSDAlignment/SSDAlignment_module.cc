@@ -93,10 +93,10 @@ namespace emph {
             std::vector<TH1F*> fY_Residual_Fin;
             std::vector<TH1F*> fU_Residual_Fin;
             std::vector<TH1F*> fV_Residual_Fin;
-            TGraph** fxChi2;
-            TGraph** fyChi2;
-            TGraph** fuChi2;
-            TGraph** fvChi2;
+            TGraph** fxShifts;
+            TGraph** fyShifts;
+            TGraph** fuShifts;
+            TGraph** fvShifts;
             TGraph* evt_line;
             TGraph** evt_disp;
             TGraph** evt_disp_adj;
@@ -116,6 +116,7 @@ namespace emph {
             std::vector<double> zpos_y;
             std::vector<double> zpos_u;
             std::vector<double> zpos_v;
+            int loops=50;
     };
 
     //.......................................................................
@@ -124,10 +125,10 @@ namespace emph {
         : EDAnalyzer(pset)
     {
         //this->reconfigure(pset);
-        fxChi2 = new TGraph*[10];
-        fyChi2 = new TGraph*[10];
-        fuChi2 = new TGraph*[10];
-        fvChi2 = new TGraph*[10];
+        fxShifts = new TGraph*[10];
+        fyShifts = new TGraph*[10];
+        fuShifts = new TGraph*[10];
+        fvShifts = new TGraph*[10];
         evt_disp = new TGraph*[10];
         evt_disp_adj = new TGraph*[10];
     }
@@ -214,7 +215,7 @@ namespace emph {
                     nvsensors+=1;
                 }
                 if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
-                std::cout<<"***** Testing map index: "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"   view: "<<sensorviews[sensor_info.View()]<<"   rotation = "<<sd->Rot()<<"  "<<sd->Rot()*180/3.1415<<std::endl;
+                //std::cout<<"Channel ="<<sensor_info.Channel()<<"  "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"   view: "<<sensorviews[sensor_info.View()]<<"   rotation = "<<sd->Rot()<<"  "<<sd->Rot()*180/3.1415<<std::endl;
             }
         }
         //Remove duplicate members
@@ -269,13 +270,13 @@ namespace emph {
             fX_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
             fX_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
 
-            fxChi2[i] = tfs->makeAndRegister<TGraph>(Form("Chi2x_%i",i),Form("Chi2 - SSD %i",i));
-            fxChi2[i]->SetMarkerStyle(21);
-            fxChi2[i]->SetTitle(Form("Chi2 X - SSD %i",i));
-            fxChi2[i]->GetXaxis()->SetTitle("x shift (mm)");
-            fxChi2[i]->GetXaxis()->SetLimits(-10,10);
-            fxChi2[i]->GetYaxis()->SetTitle("Avg Chi2");
-            fxChi2[i]->GetYaxis()->SetRangeUser(0,40);
+            fxShifts[i] = tfs->makeAndRegister<TGraph>(Form("Shiftsx_%i",i),Form("Shifts - SSD %i",i));
+            fxShifts[i]->SetMarkerStyle(21);
+            fxShifts[i]->SetTitle(Form("Shifts X - SSD %i",i));
+            fxShifts[i]->GetXaxis()->SetTitle("Loop Iteration");
+            fxShifts[i]->GetXaxis()->SetLimits(0,loops+1);
+            fxShifts[i]->GetYaxis()->SetTitle("x shift (mm)");
+            fxShifts[i]->GetYaxis()->SetRangeUser(-5,5);
 
         }
         for (int i=0; i<nysensors; ++i) {
@@ -284,13 +285,13 @@ namespace emph {
             fY_Residual_Init[i]->GetXaxis()->SetTitle("Residual");
             fY_Residual_Init[i]->GetYaxis()->SetTitle("Counts");
 
-            fyChi2[i] = tfs->makeAndRegister<TGraph>(Form("Chi2y_%i",i),Form("Chi2 - SSD %i",i));
-            fyChi2[i]->SetMarkerStyle(21);
-            fyChi2[i]->SetTitle(Form("Chi2 Y - SSD %i",i));
-            fyChi2[i]->GetXaxis()->SetTitle("y shift (mm)");
-            fyChi2[i]->GetXaxis()->SetLimits(-10,10);
-            fyChi2[i]->GetYaxis()->SetTitle("Avg Chi2");
-            fyChi2[i]->GetYaxis()->SetRangeUser(0,40);
+            fyShifts[i] = tfs->makeAndRegister<TGraph>(Form("Shiftsy_%i",i),Form("Shifts - SSD %i",i));
+            fyShifts[i]->SetMarkerStyle(21);
+            fyShifts[i]->SetTitle(Form("Shifts Y - SSD %i",i));
+            fyShifts[i]->GetXaxis()->SetTitle("Loop Iteration");
+            fyShifts[i]->GetXaxis()->SetLimits(0,loops+1);
+            fyShifts[i]->GetYaxis()->SetTitle("y shift (mm)");
+            fyShifts[i]->GetYaxis()->SetRangeUser(-5,5);
         }
         for (int i=0; i<nxsensors; ++i) {
             sprintf(hname,"XFin_Resid_%d",i);
@@ -397,7 +398,6 @@ namespace emph {
         }
 
         //Residual Method of Alignment
-        int loops=50;
         size_t dim = nstations; //number of position measurements
         art::ServiceHandle<art::TFileService> tfs;
         std::cout<<"Dimension: "<<dim<<std::endl;
@@ -454,10 +454,10 @@ namespace emph {
                     xchi2[x_ind[k]]+=chi2;
 
                     //Removing events that have very poor alignment
-                    if (i%10==0 && i!=0){
-                        auto iterator = x_cal.begin()+j;
-                        if (abs(res/sigma) > 10) x_cal.erase(iterator);
-                    }
+                    //if (i%10==0 && i!=0){
+                    //    auto iterator = x_cal.begin()+j;
+                    //    if (abs(res/sigma) > 10) x_cal.erase(iterator);
+                    //}
                 }
                 delete evt_line;
                 //Store first 10 events (unaligned) to look at
@@ -527,10 +527,10 @@ namespace emph {
                     yres_array[y_ind[k]].push_back(res);
                     ychi2[y_ind[k]]+=chi2;
                     //Removing events that have very poor alignment
-                    if (i%10==0 && i!=0){
-                        auto iterator = y_cal.begin()+j;
-                        if (abs(res/sigma) > 10) y_cal.erase(iterator);
-                    }
+                    //if (i%10==0 && i!=0){
+                    //    auto iterator = y_cal.begin()+j;
+                    //    if (abs(res/sigma) > 10) y_cal.erase(iterator);
+                    //}
                 }
                 
                 delete evt_line;
@@ -665,7 +665,7 @@ namespace emph {
             for(size_t j=0; j<x_shifts.size(); ++j){
                 x_shifts[j] = x_shifts[j]-x_ref - xslope*(zpos_x[j]-zpos_x[0]);
                 std::cout<<x_shifts[j]<<", ";
-                fxChi2[j]->SetPoint(fxChi2[j]->GetN(), x_shifts[j],xchi2[j]);
+                fxShifts[j]->SetPoint(fxShifts[j]->GetN(),i+1,x_shifts[j]);
             }
             std::cout<<std::endl;
 
@@ -689,7 +689,7 @@ namespace emph {
             for(size_t j=0; j<y_shifts.size(); ++j){
                 y_shifts[j] = y_shifts[j]-y_ref - yslope*(zpos_y[j]-zpos_y[0]);
                 std::cout<<y_shifts[j]<<", ";
-                fyChi2[j]->SetPoint(fyChi2[j]->GetN(), y_shifts[j],ychi2[j]);
+                fyShifts[j]->SetPoint(fyShifts[j]->GetN(), i+1,y_shifts[j]);
             }
             std::cout<<std::endl;
 
