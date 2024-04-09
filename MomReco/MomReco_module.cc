@@ -142,8 +142,15 @@ namespace emph {
     {
         if(first_run){
             art::Handle<rb::Spill> spillHandle;
-            //mom = spillHandle->Momentum();
-            mom = -8;
+            try {
+                sr.getByLabel("spillinfo",spillHandle);
+                mom = spillHandle->Momentum();
+            }
+            catch(...) {
+                std::cout << "No spill info object found!  Aborting..." << std::endl;
+                std::abort();
+            }
+            //mom = 8;
 
             auto fChannelMap = cmap->CMap();
             auto emgeo = geom->Geo();

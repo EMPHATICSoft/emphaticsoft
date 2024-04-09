@@ -150,12 +150,11 @@ namespace emph {
       PID_table.insert(PID_table.end(),{{1,1,1,1,0},{0,0,0,0,1}}); // {e/mu/pi/k,p}
       pid_num=2;
     }
-    else if(abs(mom)==120){
+    else{
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1}}); // {e/mu/pi/k/p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,1}}); // {e/mu/pi/k/p}
       pid_num=1;
     }
-    else {std::cout<<"Error: Invalid Beam Momentum for BACkov signals"<<std::endl; exit(0);}
   }
 
   //......................................................................
