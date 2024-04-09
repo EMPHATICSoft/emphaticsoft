@@ -116,7 +116,7 @@ namespace emph {
             std::vector<double> zpos_y;
             std::vector<double> zpos_u;
             std::vector<double> zpos_v;
-            int loops=50;
+            int loops=25;
     };
 
     //.......................................................................
@@ -215,7 +215,7 @@ namespace emph {
                     nvsensors+=1;
                 }
                 if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
-                //std::cout<<"Channel ="<<sensor_info.Channel()<<"  "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"   view: "<<sensorviews[sensor_info.View()]<<"   rotation = "<<sd->Rot()<<"  "<<sd->Rot()*180/3.1415<<std::endl;
+                //std::cout<<"  "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"   view: "<<sensorviews[sensor_info.View()]<<"   rotation = "<<sd->Rot()<<"  "<<sd->Rot()*180/3.1415<<std::endl;
             }
         }
         //Remove duplicate members
@@ -821,37 +821,44 @@ namespace emph {
 
         //Writing out shift constants to ConstBase/Alignment
         std::ofstream shift_file;
-        shift_file.open ("SSDAlignment.dat");
-        shift_file << "#Identifier x0 ... x21"<<std::endl;
-        shift_file << "#Identifier y0 ... y21"<<std::endl;
-        shift_file << "#Identifier r0 ... r21"<<std::endl;
-        shift_file << "#Comment: #0 is the default alignment constant set."<<std::endl;
-
-        shift_file << "0 X ";
-        for (size_t i=0; i<x_shifts.size(); ++i){
-            shift_file<<x_shifts[i]<<" ";
-        }
+        shift_file.open ("SSDAlign_1c.txt");
+        shift_file << "#station    plane   sensor  dx  dy  dz  dphi    detheta dpsi"<<std::endl;
         shift_file << std::endl;
+        auto fChannelMap = cmap->CMap();
+        auto emgeo = geom->Geo();
+        for (int fer=0; fer<10; ++fer){
+            for (int mod=0; mod<6; ++mod){
+                emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,fer,mod);
+                if (!fChannelMap->IsValidEChan(echan)) continue;
+                emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
 
-        shift_file << "0 Y ";
-        for (size_t i=0; i<y_shifts.size(); ++i){
-            shift_file<<y_shifts[i]<<" ";
+                const emph::geo::SSDStation *st = emgeo->GetSSDStation(dchan.Station());
+                const emph::geo::Plane      *pln = st->GetPlane(dchan.Plane());
+                const emph::geo::Detector   *sd = pln->SSD(dchan.HiLo());
+
+                emph::al::SSDAlign sensor_info(*sd,*st);
+                std::vector<int> sps = {dchan.Station(),dchan.Plane(),dchan.HiLo()};
+                double zero = 0.;
+
+                shift_file<<sps[0]<<"    "<<sps[1]<<"    "<<sps[2]<<"  ";
+                shift_file<<std::setprecision(6);
+                //shifts are multiplied by -1 to be treated correctly by DetGeoMap
+                if(sensor_info.View()==emph::geo::X_VIEW){
+                    shift_file<<"  "<<(-1.)*x_shifts[spsindex[sps]]<<"    0  "<<"  0   ";
+                }
+                if(sensor_info.View()==emph::geo::Y_VIEW){
+                    shift_file<<"  0  "<<(-1.)*y_shifts[spsindex[sps]]<<"    0  ";
+                }
+                if(sensor_info.View()==emph::geo::U_VIEW){
+                    shift_file<<"  "<<"  0  "<<"    0  "<<"  0  ";
+                }
+                if(sensor_info.View()==emph::geo::W_VIEW){
+                    shift_file<<"  "<<"  0  "<<"    0  "<<"  0  ";
+                }
+                if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
+                shift_file<<"  0  "<<"  0  "<<"  0  "<<std::endl;
+            }
         }
-        shift_file << std::endl;
-
-        shift_file << "0 U ";
-        for (size_t i=0; i<u_shifts.size(); ++i){
-            shift_file<<u_shifts[i]<<" ";
-        }
-        shift_file << std::endl;
-
-        shift_file << "0 V ";
-        for (size_t i=0; i<v_shifts.size(); ++i){
-            shift_file<<v_shifts[i]<<" ";
-        }
-        shift_file << std::endl;
-        shift_file << "#Comment: #1 is the alignment constant set using Run xxxx..."<<std::endl;
-
         shift_file.close();
     }
 

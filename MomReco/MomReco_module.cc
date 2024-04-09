@@ -150,46 +150,13 @@ namespace emph {
                 std::cout << "No spill info object found!  Aborting..." << std::endl;
                 std::abort();
             }
-            //mom = 8;
 
             auto fChannelMap = cmap->CMap();
             auto emgeo = geom->Geo();
             nstations = emgeo->NSSDStations();
             targetpos = emgeo->TargetUSZPos();
             magnetpos = emgeo->MagnetUSZPos();
-
-            // initialize alignment constants
-            emph::al::SSDAlign* fAlignmentFile = new emph::al::SSDAlign();
-            fAlignmentFile->LoadShifts("/exp/emph/app/users/jmirabit/build/SSDAlignment.dat",x_shifts,y_shifts,u_shifts,v_shifts);
-            bool use_shifts = 1;
-            if (!use_shifts){
-                for (size_t i=0; i<x_shifts.size(); ++i){
-                    x_shifts[i]=0;    
-                    y_shifts[i]=0;    
-                    u_shifts[i]=0;    
-                    v_shifts[i]=0;    
-                }
-            }
-            std::cout<<"*************************************************************"<<std::endl;
-            std::cout<<"X shifts: ";
-            for (size_t i=0; i<x_shifts.size(); ++i){
-                std::cout<<x_shifts[i]<<" ";
-            }
-            std::cout<<std::endl<<"Y shifts: ";
-            for (size_t i=0; i<y_shifts.size(); ++i){
-                std::cout<<y_shifts[i]<<" ";
-            }
-            std::cout<<std::endl<<"U shifts: ";
-            for (size_t i=0; i<u_shifts.size(); ++i){
-                std::cout<<u_shifts[i]<<" ";
-            }
-            std::cout<<std::endl<<"V shifts: ";
-            for (size_t i=0; i<v_shifts.size(); ++i){
-                std::cout<<v_shifts[i]<<" ";
-            }
-            std::cout<<std::endl;
             evt_line = new TGraph*[10];
-
 
             for (int fer=0; fer<10; ++fer){
                 for (int mod=0; mod<6; ++mod){
@@ -203,31 +170,11 @@ namespace emph {
 
                     emph::al::SSDAlign sensor_info(*sd,*st);
                     std::vector<int> sps = {dchan.Station(),dchan.Plane(),dchan.HiLo()};
-
-                    if(sensor_info.View()==emph::geo::X_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,nxsensors));
-                        nxsensors+=1;
-                    }
-                    if(sensor_info.View()==emph::geo::Y_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,nysensors));
-                        nysensors+=1;
-                    }
-                    if(sensor_info.View()==emph::geo::U_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,nusensors));
-                        nusensors+=1;
-                    }
-                    if(sensor_info.View()==emph::geo::W_VIEW){
-                        spsindex.insert(std::pair<std::vector<int>,int>(sps,nvsensors));
-                        nvsensors+=1;
-                    }
                     if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
-                    std::cout<<"***** Testing map index: "<<sps[0]<<"  "<<sps[1]<<"  "<<sps[2]<<"   index value = "<<spsindex[sps]<<"   view: "<<"   rotation = "<<sd->Rot()<<"  "<<sd->Rot()*180/3.1415<<std::endl;
                 }
             }
-
         }
         first_run=0;
-
     }
 
     //......................................................................
@@ -300,6 +247,7 @@ namespace emph {
             angles_x.push_back(theta_x);
             //if(evt_disp_counter<10 && theta_x<0){
             if(evt_disp_counter<10){
+                std::cout<<"here "<<zpos[0]<<" "<<xpos[0]<<std::endl;
                 evt_line[evt_disp_counter] = tfs->makeAndRegister<TGraph>(Form("EvtDisp%i",evt_disp_counter),Form("Event %i",fEvtNum));
                 for (size_t j=0; j<zpos.size(); ++j){
                     evt_line[evt_disp_counter]->SetPoint(j,zpos[j],xpos[j]);
@@ -377,20 +325,12 @@ namespace emph {
                     dgm->Map()->SSDClusterToLineSegment(clust, ls);
                     hit.SetPos(ls);
 
-                    std::vector<int> sps = {hit.Station(),hit.Plane(), hit.Sensor()};
-                    hit.SetAxisIndex(spsindex[sps]);
-
                     //Only push back x events for now, ignore the rest
                     if(hit.View()==emph::geo::X_VIEW) {
-                        hit.SetShift(x_shifts[hit.AxisIndex()]);
-                        //std::cout<<"Hit = "<<hit.X();
-                        hit.SetX(hit.X()-hit.Shift());
-                        //std::cout<<"  after shift = "<<hit.X()<<"   using shift = "<<hit.Shift()<<" from "<<x_shifts[hit.AxisIndex()]<<std::endl;
                         ssdhits.push_back(hit);
                     }
                     if(hit.View()==emph::geo::Y_VIEW) {
-                        hit.SetShift(y_shifts[hit.AxisIndex()]);
-                        //hit.SetY(hit.Y()-hit.Shift());
+                        continue;
                     }
                     //Skip u,w for now
                     if(hit.View()==emph::geo::U_VIEW) {
@@ -399,7 +339,6 @@ namespace emph {
                     if(hit.View()==emph::geo::W_VIEW) {
                         continue;
                     }
-
                 }
                 //If there are more clusters than sensors, skip event
                 if (ssdhits.size()<99){
