@@ -38,7 +38,7 @@ namespace emph{
     double _shift;
     emph::geo::sensorView _view;
     int _width;
-	double _x, _y, _z, _u, _v;
+	double _x, _y, _z, _u, _w;
     int _event;
 
   public:
@@ -55,7 +55,7 @@ namespace emph{
     double Y() const { return _y; }
     double Z() const { return _z; }
     double U() const { return _u; }
-    double V() const { return _v; }
+    double W() const { return _w; }
     int Event() const { return _event; }
 
     // Setters
@@ -72,24 +72,15 @@ namespace emph{
     void SetY(double y) { _y = y; }
     void SetZ(double z) { _z = z; }
     void SetU(double u) { _u = u; }
-    void SetV(double v) { _v = v; }
+    void SetW(double w) { _w = w; }
     void SetEvent(int event) { _event = event; }
 
     
     std::vector<int> SSDInfo();
     void SSDHitPosition(std::vector<std::vector<double>>& xpos, std::vector<std::vector<double>>& ypos,std::vector<std::vector<double>>& upos, std::vector<std::vector<double>>& vpos);
-    bool IsSingleHit(std::vector<double>& hits);
-    bool IsAlignmentEvent(std::vector<std::vector<double>> pos);
     void FillEvtHolder(std::vector<emph::al::SSDAlign>& evt, std::vector<emph::al::SSDAlign>& xevt, std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& uevt,std::vector<emph::al::SSDAlign>& vevt);
-    bool IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& evt,const int& nstations);
-    bool IsAlignmentEvent2(const std::vector<emph::al::SSDAlign>& xevt,const std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& evt,const int& nstations);
-    bool IsAlignmentEvent(std::vector<std::vector<double>> xpos,std::vector<std::vector<double>> ypos,std::vector<std::vector<double>>& pos);
-    std::vector<double> PositionAtStations(std::vector<std::vector<double>> pos);
-    std::vector<double> PositionAtStations(std::vector<std::vector<double>> xpos,std::vector<std::vector<double>> ypos, std::vector<std::vector<double>> pos);
-    std::vector<int> IndexAtStations(std::vector<std::vector<double>> pos);
-    std::vector<double> StationZpos();
-    void LoadShifts(std::string fname, std::vector<double> &x, std::vector<double> &y, std::vector<double> &u, std::vector<double> &v);
-    void CalibrateXYZ(double *cal); 
+    bool IsAlignmentEvent(const std::vector<emph::al::SSDAlign>& evt,const int& nstations);
+    bool IsAlignmentEvent(const std::vector<emph::al::SSDAlign>& xevt,const std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& evt,const int& nstations);
     
     friend std::ostream& operator << (std::ostream& o, const SSDAlign& h);
   };

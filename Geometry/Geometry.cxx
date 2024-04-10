@@ -93,10 +93,10 @@ namespace emph {
      ang += pi/2*this->IsFlip();
      // u-view: 3π/4, 7π/4
      if (abs(sin(ang-3*pi/4)) < 0.2)
-         return U_VIEW;
+         return W_VIEW;
      // w-view: π/4, 5π/4
      else if (abs(sin(ang-pi/4)) < 0.2)
-         return W_VIEW;
+         return U_VIEW;
      return INIT;
     }
 

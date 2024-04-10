@@ -193,7 +193,7 @@ namespace emph {
         std::vector<double> zpos;
 
         //For each station check if there is a single hit in x
-        bool s1 = ssdhits[0].IsAlignmentEvent2(ssdhits,nstations);
+        bool s1 = ssdhits[0].IsAlignmentEvent(ssdhits,nstations);
         if (s1){
             for (size_t i=0; i<ssdhits.size(); ++i){
                 xpos.push_back(ssdhits[i].X());
