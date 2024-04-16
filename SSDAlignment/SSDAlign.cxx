@@ -39,8 +39,8 @@ namespace emph {
       _x = 0;
       _y = 0;
       _z = 0;
-	  _u = (sqrt(2)/2)*(this->X()-this->Y());	
-	  _w = (sqrt(2)/2)*(this->X()+this->Y());	
+	  _u = (sqrt(2)/2)*(this->X()+this->Y());	
+	  _w = (sqrt(2)/2)*((-1.)*this->X()+this->Y());	
 	  _event = evt;
   }
 
@@ -60,8 +60,8 @@ namespace emph {
       SetY(xavg[1]);
       SetZ(xavg[2]);
   
-      SetU((sqrt(2)/2)*(xavg[0]-xavg[1]));
-      SetW((sqrt(2)/2)*(xavg[0]+xavg[1]));
+      SetU((sqrt(2)/2)*(xavg[0]+xavg[1]));
+      SetW((sqrt(2)/2)*((-1.)*xavg[0]+xavg[1]));
   }
 
   //------------------------------------------------------------
@@ -117,57 +117,52 @@ namespace emph {
   //------------------------------------------------------------
   bool SSDAlign::IsAlignmentEvent(const std::vector<emph::al::SSDAlign>& xevt,const std::vector<emph::al::SSDAlign>& yevt,std::vector<emph::al::SSDAlign>& evt,const int& nstations)
   {
-    std::vector<int> stations_hit;
-    std::vector<int> xstations_hit;
-    std::vector<int> ystations_hit;
-
-    for (size_t i=0; i<evt.size(); ++i) stations_hit.push_back(evt[i].Station()); 
-    for (size_t i=0; i<xevt.size(); ++i) xstations_hit.push_back(yevt[i].Station()); 
-    for (size_t i=0; i<yevt.size(); ++i) ystations_hit.push_back(yevt[i].Station()); 
-
-    std::sort(stations_hit.begin(),stations_hit.end());
-    std::sort(xstations_hit.begin(),xstations_hit.end());
-    std::sort(ystations_hit.begin(),ystations_hit.end());
-
-    const bool s = std::adjacent_find(stations_hit.begin(), stations_hit.end()) != stations_hit.end();
-    const bool sx = std::adjacent_find(xstations_hit.begin(), xstations_hit.end()) != xstations_hit.end();
-    const bool sy = std::adjacent_find(ystations_hit.begin(), ystations_hit.end()) != ystations_hit.end();
-    
-    //reject any event with multiple hits in tilted axis
-    //if (s) return false;
+    //Loop through all stations, if station has exactly one rotated sensor hit, add it
+    //If station has no rotated sensor hit, add x/y hits if there are exactly one of each
+    //Replace "evt"  with these events stored in "new_holder"
     std::vector<emph::al::SSDAlign> new_holder;
+    bool rotated_events=0;
+    for (int i=0; i<nstations; ++i){
+        int n=0; int nx=0; int ny=0;
+        int nind=-1; int nxind=-1; int nyind=-1;
+        for (size_t j=0; j<evt.size(); ++j) {
+            if (evt[j].Station()==i){
+                n+=1;
+                nind=j;
+            }
+        }
+        for (size_t j=0; j<xevt.size(); ++j) {
+            if (xevt[j].Station()==i){
+                nx+=1;
+                nxind=j;
+            }
+        }
+        for (size_t j=0; j<yevt.size(); ++j) {
+            if (yevt[j].Station()==i){
+                ny+=1;
+                nyind=j;
+            }
+        }
 
-    //reject any event that contains multiple hits per axis and station
-    if (s || sx || sy){
-        return false;
-    }
-    else {
-        int rotevt_index=0;
-        int xevt_index=0;
-        int yevt_index=0;
-        std::vector<bool> rot_stations (nstations,0);
-        for (size_t i=0; i<stations_hit.size(); ++i){
-            rot_stations[stations_hit[i]]=1;
+        if (n==1){
+            new_holder.push_back(evt[nind]);
+            rotated_events=1;
         }
-        for (int i=0; i<nstations; ++i){
-            if(rot_stations[i]){
-                new_holder.push_back(evt[rotevt_index]);
-                rotevt_index+=1;
-            }
-            else if (std::find(std::begin(xstations_hit), std::end(xstations_hit), i) != std::end(xstations_hit) && std::find(std::begin(ystations_hit), std::end(ystations_hit), i) != std::end(ystations_hit)){
-                new_holder.push_back(xevt[xevt_index]);
-                new_holder.push_back(yevt[yevt_index]);
-                xevt_index+=1;
-                yevt_index+=1;
-            }
-            else return false;
+        else if (nx==1 && ny==1) {
+            new_holder.push_back(xevt[nxind]);
+            new_holder.push_back(yevt[nyind]);
         }
     }
+
     //Reformatting event to hold relevent x/y SSDAlign objects
     evt.clear();
     evt = new_holder;
 
-    if (stations_hit.size()==0) return false;
+    //if there are no rotated events do not do alignment
+    if (!rotated_events) return false;
+    //if there are fewer than 5 events do not align (1 rotated 2x/y or 2 rotated 1 x/y)
+    else if (evt.size()<5) return false;
+
     else return true;
   }
 
