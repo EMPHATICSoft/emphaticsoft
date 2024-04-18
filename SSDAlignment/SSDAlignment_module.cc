@@ -116,7 +116,7 @@ namespace emph {
             std::vector<double> zpos_y;
             std::vector<double> zpos_u;
             std::vector<double> zpos_v;
-            int loops=30;
+            int loops=50;
     };
 
     //.......................................................................
@@ -907,10 +907,10 @@ namespace emph {
                     shift_file<<"  0  "<<(-1.)*y_shifts[spsindex[sps]]<<"    0  ";
                 }
                 if(sensor_info.View()==emph::geo::U_VIEW){
-                    shift_file<<"  "<<((-1.)*sqrt(1)/2.)*u_shifts[spsindex[sps]]<<"  "<<((-1.)*sqrt(1)/2.)*u_shifts[spsindex[sps]]<<"  0  ";
+                    shift_file<<"  "<<(-1.)*sqrt(1/2.)*u_shifts[spsindex[sps]]<<"  "<<(-1.)*sqrt(1/2.)*u_shifts[spsindex[sps]]<<"  0  ";
                 }
                 if(sensor_info.View()==emph::geo::W_VIEW){
-                    shift_file<<"  "<<(sqrt(1)/2.)*w_shifts[spsindex[sps]]<<"  "<<((-1.)*sqrt(1)/2.)*w_shifts[spsindex[sps]]<<"  0  ";
+                    shift_file<<"  "<<sqrt(1/2.)*w_shifts[spsindex[sps]]<<"  "<<(-1.)*sqrt(1/2.)*w_shifts[spsindex[sps]]<<"  0  ";
                 }
                 if (sensor_info.Z()>max_z) max_z=sensor_info.Z();
                 shift_file<<"  0  "<<"  0  "<<"  0  "<<std::endl;
