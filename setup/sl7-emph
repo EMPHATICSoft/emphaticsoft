@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+
+import argparse
+import tempfile
+import subprocess
+
+FNAL_DEV_SL7 = "/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-dev-sl7:latest"
+SETUP_EMPH = "/cvmfs/emphatic.opensciencegrid.org/emphaticsoft/setup/setup_emphatic.sh"
+
+if __name__ == "__main__":
+
+    # parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="enable verbose output")
+    parser.add_argument("-i", "--image", type=str, default=FNAL_DEV_SL7,
+                        help="apptainer image to start container from")
+    parser.add_argument("-b", "--bind", type=str, default=[], action="append",
+                        help="directories to bind mount into container")
+    parser.add_argument("command", nargs="*", metavar="-- command",
+                        help=("command to execute in container "
+                              "(leave blank for interactive shell)"))
+    args = parser.parse_args()
+
+    # assemble apptainer command
+    cmd = ["apptainer", "exec", "-B", "/run", "-B", "/cvmfs", "-B", "/exp",
+           "-B", "/pnfs"]
+    for b in args.bind:
+        cmd += ["-B", b]
+    cmd += [args.image,"/bin/bash"]
+
+    commands = [] # list of commands to execute in container
+    if args.command:
+        commands += [" ".join(args.command)]
+
+    # generate temporary setup file to be sourced inside the container
+    setup = tempfile.NamedTemporaryFile(mode="r+", dir="/tmp",
+                                        prefix="setup-sl7-emph-")
+    
+    for c in commands:
+        setup.write(f"{c}\n")
+    setup.seek(0) # reset to start of file
+
+    if not commands: # interactive shell
+        cmd += ["--init-file"]
+    cmd += [setup.name]
+
+    if args.verbose:
+        print(f"\nRunning apptainer command:\n\n{' '.join(cmd)}\n")
+
+    subprocess.run(cmd, check=True)
