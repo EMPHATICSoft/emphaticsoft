@@ -88,14 +88,10 @@ set_defaults () {
 # soon to be obsolte
 setup_ups () {}
     # Set up ups for EMPHATIC external produccts
-    for dir in $CVMFS_EMPHATIC_PRODUCTS_DIR;
-    do
-      if [[ -f $dir/setup ]]; then
-        echo "Setting up emphatic UPS area... ${dir}"
-        source $dir/setup
-        break
-      fi
-    done
+    if [[ -f $CVMFS_EMPHATIC_PRODUCTS_DIR/setup ]]; then
+      echo "Setting up emphatic UPS area... $CVMFS_EMPHATIC_PRODUCTS_DIR"
+      source $CVMFS_EMPHATIC_PRODUCTS_DIR/setup
+    fi
     # need also the common db in $PRODUCTS
     export PRODUCTS=${PRODUCTS}:${CVMFS_FERMILAB_DIR}
 
