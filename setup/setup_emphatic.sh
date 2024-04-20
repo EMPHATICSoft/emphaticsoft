@@ -54,14 +54,30 @@ fi
 
 # Source this file to set the basic configuration needed by EMPHATICSoft 
 
-# current location of emphaticsoft in CVMFS
-FERMIOSG_EMPHATICSOFT_DIR="/cvmfs/emphatic.opensciencegrid.org/products"
+# Location of EMPHATICSOFT
+CVMFS_EMPHATICSOFT_DIR="/cvmfs/emphatic.opensciencegrid.org/emphaticsoft"
+
+if [[ "$os" == "al9" ]]; then
+    al9bin=${CVMFS_EMPHATICSOFT_DIR}/setup
+    if [[ ! "$PATH" =~ "$al9bin" ]]; then
+        export PATH=$al9bin:$PATH
+    fi
+    echo
+    echo -e "         \033[1;34m\033[4mWELCOME TO ALMA LINUX 9\033[0m     "
+    echo
+    echo -e "\e[00;95m Use sl7-emph command to start containerized Scientific Linux 7.\033[0m"
+    echo -e "% \033[1;32msl7-emph -h;\033[m for additional information."
+    echo
+    return 0
+fi
+# current location of emphaticsoft external products in CVMFS
+CVMFS_EMPHATIC_PRODUCTS_DIR="/cvmfs/emphatic.opensciencegrid.org/products"
 
 # fermilab common products
-FERMIOSG_DIR="/cvmfs/fermilab.opensciencegrid.org/products/common/db"
+CVMFS_FERMILAB_DIR="/cvmfs/fermilab.opensciencegrid.org/products/common/db"
 
-# Set up ups for EMPHATIC
-for dir in $FERMIOSG_EMPHATICSOFT_DIR;
+# Set up ups for EMPHATIC external produccts
+for dir in $CVMFS_EMPHATIC_PRODUCTS_DIR;
 do
   if [[ -f $dir/setup ]]; then
     echo "Setting up emphatic UPS area... ${dir}"
@@ -71,7 +87,7 @@ do
 done
 
 # need also the common db in $PRODUCTS
-export PRODUCTS=${PRODUCTS}:${FERMIOSG_DIR}
+export PRODUCTS=${PRODUCTS}:${CVMFS_FERMILAB_DIR}
 
 # Add current working directory (".") to FW_SEARCH_PATH
 if [[ -n "${FW_SEARCH_PATH}" ]]; then
