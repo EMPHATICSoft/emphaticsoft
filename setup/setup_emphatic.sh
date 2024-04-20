@@ -74,12 +74,19 @@ process_os () {
 
 # Set up the default environment for emphaticsoft
 set_defaults () {
-    # current location of emphaticsoft external products in CVMFS
+    # Location of emphaticsoft in cvmfs
+    CVMFS_EMPHATICSOFT_DIR="/cvmfs/emphatic.opensciencegrid.org/emphaticsoft"
+    # Location of emphaticsoft external products in cvmfs
     CVMFS_EMPHATIC_PRODUCTS_DIR="/cvmfs/emphatic.opensciencegrid.org/products"
-
     # fermilab common products
     CVMFS_FERMILAB_DIR="/cvmfs/fermilab.opensciencegrid.org/products/common/db"
+    # default OS
+    os=sl7
+}
 
+# Set up the ups environment for emphaticsoft
+# soon to be obsolte
+setup_ups () {}
     # Set up ups for EMPHATIC external produccts
     for dir in $CVMFS_EMPHATIC_PRODUCTS_DIR;
     do
@@ -130,14 +137,12 @@ set_defaults () {
 
 # Main function
 main () {
+    set_defaults
     process_os
     if [[ $? -ne 0 ]]; then
         return 1
     fi
-    
-    # Location of EMPHATICSOFT
-    CVMFS_EMPHATICSOFT_DIR="/cvmfs/emphatic.opensciencegrid.org/emphaticsoft"
-    
+  
     # If we're on AL9, just add the SL7 container executable to the PATH.
     # In the longer term we'll set up a native AL9 ecosystem with Spack.
     if [[ "$os" == "al9" ]]; then
