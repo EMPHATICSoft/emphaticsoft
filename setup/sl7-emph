@@ -49,3 +49,4 @@ if __name__ == "__main__":
         print(f"\nRunning apptainer command:\n\n{' '.join(cmd)}\n")
 
     subprocess.run(cmd, check=True)
+    
