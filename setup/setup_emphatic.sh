@@ -86,7 +86,7 @@ set_defaults () {
 
 # Set up the ups environment for emphaticsoft
 # soon to be obsolte
-setup_ups () {}
+setup_ups () {
     # Set up ups for EMPHATIC external produccts
     if [[ -f $CVMFS_EMPHATIC_PRODUCTS_DIR/setup ]]; then
       echo "Setting up emphatic UPS area... $CVMFS_EMPHATIC_PRODUCTS_DIR"
@@ -102,7 +102,12 @@ setup_ups () {}
     else
       export FW_SEARCH_PATH=.
     fi
+}
 
+# Set up the basic tools needed for emphaticsoft, e.g. git
+# additionally set up ninja, art_cpp_db_interfaces, gdb
+# and define some environment variables needed for the grid 
+setup_tools () {
     # Set up the basic tools that will be needed
     if [ `uname` != Darwin ]; then
 
@@ -157,6 +162,8 @@ main () {
 
     process_obsolete
     set_defaults
+    setup_ups
+    setup_tools
 
     return 0
 }
