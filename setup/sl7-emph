@@ -36,7 +36,9 @@ if __name__ == "__main__":
     # generate temporary setup file to be sourced inside the container
     setup = tempfile.NamedTemporaryFile(mode="r+", dir="/tmp",
                                         prefix="setup-sl7-emph-")
-    
+    # source emphatic setup script
+    setup.write(f"source {SETUP_EMPH}\n")
+
     for c in commands:
         setup.write(f"{c}\n")
     setup.seek(0) # reset to start of file
