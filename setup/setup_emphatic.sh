@@ -155,7 +155,8 @@ main () {
         echo -e "         \033[1;34m\033[4mWELCOME TO ALMA LINUX 9\033[0m     "
         echo
         echo -e "\e[00;95m Use sl7-emph command to start containerized Scientific Linux 7.\033[0m"
-        echo -e "% \033[1;32msl7-emph -h;\033[m for additional information."
+        echo
+        echo -e " % \033[1;32msl7-emph -h;\033[m #for additional information."
         echo
         return 0
     fi
