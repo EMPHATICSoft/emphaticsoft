@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_spacepointreco:
+{
+  module_type: SpacePointReco
+}
+
+END_PROLOG

@@ -1,0 +1,51 @@
+#include "Services.fcl"
+#include "SpacePointReco.fcl"
+#include "MakeSSDClusters.fcl"
+
+process_name: SpacePointReco
+
+services:
+{
+  TFileService: { fileName: "spacepointreco_hist_r%r_s%04s.root" closeFileFast: false }
+  @table::standard_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+ {
+ module_type: RootOutput
+ fileName:    "spacepoint_reco_r%rs%04s.root"
+ fastCloning: false
+ }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	dataqual:     @local::standard_dataqual
+	clust:        @local::standard_ssdclust
+	spacepointreco: @local::standard_spacepointreco
+ }	
+
+ analyzers:
+ {
+ }
+
+ reco: [ dataqual, clust, spacepointreco ]
+	
+ trigger_paths: [ reco ]
+ end_paths: [ e1 ]
+
+}
