@@ -2,10 +2,6 @@
 #include "SSDAlignment.fcl"
 
 #include "MakeSSDClusters.fcl"
-#include "ChannelMap.fcl"
-#include "Geometry.fcl"
-#include "DetGeoMap.fcl"
-#include "Align.fcl"
 #include "FillDataQuality.fcl"
 
 process_name: SSDAlignment
@@ -13,11 +9,6 @@ process_name: SSDAlignment
 services:
 {
   TFileService: { fileName: "ssd_align_hist_r%r_s%04s.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
-  RunHistoryService: @local::standard_runhistory
-  DetGeoMapService: @local::standard_detgeomap
-  AlignService: @local::standard_align
   @table::standard_services
 }
 
