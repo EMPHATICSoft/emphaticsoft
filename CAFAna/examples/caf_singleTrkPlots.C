@@ -20,7 +20,9 @@ TH1F* hFixedZ_DY[8][3];
 TH2F* hRecoMinusTrueVsTrueX[8][3];
 TH2F* hRecoMinusTrueVsTrueY[8][3];
 TH1F* hTargetZ;
-TH1F* hRecoMomRes;
+TH1F* hRecoMomTotRes;
+TH1F* hRecoMomTransRes;
+TH1F* hRecoMomLongRes;
 
 void caf_singleTrkPlots(std::string fname)
 {
@@ -37,7 +39,7 @@ void caf_singleTrkPlots(std::string fname)
 
   // Initalize a simple histogram
   TH1I* hNTrkSeg = new TH1I("nTrkSeg", "", 20,0,20);
-  TH1D* hScattAngleRes = new TH1D("hScattAngleRes","Scattering Angle Resolution;#theta_{reco}-#theta_{true} ", 100,-0.005,0.005);
+  TH1D* hScattAngleRes = new TH1D("hScattAngleRes","Scattering Angle Resolution;#theta_{reco}-#theta_{true} ", 101,-0.005-0.00005,0.005+0.00005);
   TH1D* hBendAngleRes = new TH1D("hBendAngleRes","Bending Angle Resolution;#theta_{reco}-#theta_{true}", 100,-0.0025,0.0025);
   TH2F* hSSDHit[8][3];
 
@@ -109,7 +111,9 @@ void caf_singleTrkPlots(std::string fname)
   TH1F* hScattering = new TH1F("hScattering","hScattering",200,0.,0.03);
 
   hTargetZ = new TH1F("hTargetZ","hTargetZ",200,0.,1000.);
-  hRecoMomRes = new TH1F("hRecoMomRes","hRecoMomRes",500,-5.,5.);
+  hRecoMomTotRes = new TH1F("hRecoMomTotRes","hRecoMomTotRes",500,-1.,1.);
+  hRecoMomTransRes = new TH1F("hRecoMomTransRes","hRecoMomTransRes",500,-1.,1.);
+  hRecoMomLongRes = new TH1F("hRecoMomLongRes","hRecoMomLongRes",500,-1.,1.);
 
   TGraph* gRecoHits_xz[100];
   TGraph* gRecoHits_yz[100];
@@ -161,14 +165,14 @@ void caf_singleTrkPlots(std::string fname)
   std::vector<double> ytruth;
   std::vector<double> ztruth;
 
-  TH2F* hBendVsTrueRAt4 = new TH2F("hBendVsTrueRAt4","hBendVsTrueRAt4",60,0,30,200,0.0025,0.0045); //1000,0.03,0.04); //200,0.,0.05);
+  TH2F* hBendVsTrueRAt4 = new TH2F("hBendVsTrueRAt4","hBendVsTrueRAt4",60,0,30,500,0.03,0.04); //1000,0.03,0.04); //200,0.,0.05);
   //TH2F* hBendVsTrueRAt5 = new TH2F("hBendVsTrueRAt5","hBendVsTrueRAt5",60,0,30,200,0.,0.05);
 
-  TH2F* hBendVsRecoRAt4 = new TH2F("hBendVsRecoRAt4","hBendVsRecoRAt4",60,0,30,200,0.0025,0.0045); //1000,0.03,0.04); //200,0.,0.05);
+  TH2F* hBendVsRecoRAt4 = new TH2F("hBendVsRecoRAt4","hBendVsRecoRAt4",60,0,30,500,0.03,0.04); //1000,0.03,0.04); //200,0.,0.05);
   //TH2F* hBendVsRecoRAt5 = new TH2F("hBendVsRecoRAt5","hBendVsRecoRAt5",60,0,30,200,0.,0.05);
 
-  TH2F* hRecoBendXY = new TH2F("hRecoBendXY","hRecoBendXY",80,-16,16,80,-16,16);
-  TProfile2D* pRecoBendXY = new TProfile2D("pRecoBendXY","pRecoBendXY",80,-16,16,80,-16,16);
+  TH2F* hRecoBendXY = new TH2F("hRecoBendXY","hRecoBendXY",20,-25,25,20,-25,25);
+  TProfile2D* pRecoBendXY = new TProfile2D("pRecoBendXY","pRecoBendXY",20,-25,25,20,-25,25);
 
   //new magnets: 100,0,0.01,500,0.03,0.04);
   //1   GeV  ............500,0.05,0.1); ~0.07
@@ -187,10 +191,10 @@ void caf_singleTrkPlots(std::string fname)
   //30  GeV .............500,0.,0.01); ~0.0025
   //60  GeV .............500,0.,0.01); ~0.001
   //120 GeV .............500,0.,0.005); 
-  TH2F* hBendVsTrueOmegaAt4 = new TH2F("hBendVsTrueOmegaAt4","hBendVsTrueOmegaAt4",100,0,0.001,200,0.0025,0.0045); //,100,0,0.01,100,0,0.03); //100,0,0.01,200,0.03,0.04);
+  TH2F* hBendVsTrueOmegaAt4 = new TH2F("hBendVsTrueOmegaAt4","hBendVsTrueOmegaAt4",100,0,0.01,500,0.03,0.04); //,100,0,0.01,100,0,0.03); //100,0,0.01,200,0.03,0.04);
   //TH2F* hBendVsTrueOmegaAt5 = new TH2F("hBendVsTrueOmegaAt5","hBendVsTrueOmegaAt5",200,0,0.5,200,0,0.5);//200,0.025,0.045,200,0.03,0.04);
 
-  TH2F* hBendVsRecoOmegaAt4 = new TH2F("hBendVsRecoOmegaAt4","hBendVsRecoOmegaAt4",100,0,0.001,200,0.0025,0.0045); //100,0,0.01,100,0,0.03);//100,0,0.01,200,0.03,0.04);
+  TH2F* hBendVsRecoOmegaAt4 = new TH2F("hBendVsRecoOmegaAt4","hBendVsRecoOmegaAt4",100,0,0.01,500,0.03,0.04); //100,0,0.01,100,0,0.03);//100,0,0.01,200,0.03,0.04);
   //TH2F* hBendVsRecoOmegaAt5 = new TH2F("hBendVsRecoOmegaAt5","hBendVsRecoOmegaAt5",200,0,0.1,200,0,0.5);//200,0.025,0.045,200,0.03,0.04); 
 
   int ncl = 0;
@@ -237,10 +241,10 @@ void caf_singleTrkPlots(std::string fname)
           if (h.GetZ > magnetdsz) truthhit_track3.push_back(h);
 
           if (h.GetStation == 4 && h.GetPlane == 1){
-            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) good4 = true;
+            if (abs(h.GetX) < 17.5 && abs(h.GetY) < 17.5) good4 = true;
           }
 	  if (h.GetStation == 5 && h.GetPlane == 0){
-            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) good5 = true;
+            if (abs(h.GetX) < 17.5 && abs(h.GetY) < 17.5) good5 = true;
           }
 	  if (good4 && good5) goodHit = true;
           //goodHit = true;
@@ -446,7 +450,8 @@ void caf_singleTrkPlots(std::string fname)
         double recopx = rec->trks.trk[1].mom.X();
         double recopy = rec->trks.trk[1].mom.Y();
 	double recopz = rec->trks.trk[1].mom.Z();
-	double recop = sqrt(recopx*recopx+recopy*recopy+recopz*recopz);
+	double recopt = sqrt(recopx*recopx+recopy*recopy);
+	double recop = sqrt(recopt*recopt+recopz*recopz);
 
         //std::cout<<"Recopx: "<<recopx<<std::endl;
         //std::cout<<"Recopy: "<<recopy<<std::endl;
@@ -454,8 +459,12 @@ void caf_singleTrkPlots(std::string fname)
 	for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
           caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
           if (h.GetStation >= 2 && h.GetPlane == 0){ //not sure if this is right? include trck segment 3 too?
-	    double truep = sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy+h.GetPz*h.GetPz);
-	    hRecoMomRes->Fill(recop - truep);	
+	    double truept = sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy);
+	    double truepz = sqrt(h.GetPz*h.GetPz);
+	    double truep = sqrt(truept*truept+h.GetPz*h.GetPz);
+	    hRecoMomTotRes->Fill(recop - truep);	
+	    hRecoMomTransRes->Fill(recopt - truept);
+	    hRecoMomLongRes->Fill(recopz - truepz);
           }
         }
         //std::cout<<"Recop: "<<recop<<std::endl;
@@ -749,6 +758,7 @@ void caf_singleTrkPlots(std::string fname)
        double z = pRecoBendXY->GetBinContent(n);
        int w = pRecoBendXY->GetBinEntries(n);
        hRecoBendXY->SetBinContent(i,j,z/w);
+       std::cout<<"z/w: "<<z/w<<std::endl;
     }
   }
 
@@ -760,8 +770,23 @@ void caf_singleTrkPlots(std::string fname)
   hBendVsRecoRAt4->GetYaxis()->SetTitle("Bend Angle [rad]");
   hBendVsRecoOmegaAt4->GetXaxis()->SetTitle("#omega [rad]");
   hBendVsRecoOmegaAt4->GetYaxis()->SetTitle("Bend Angle [rad]");
-  hBendVsRecoRAt4->GetYaxis()->SetTitleOffset(1.6);
-  hBendVsRecoOmegaAt4->GetYaxis()->SetTitleOffset(1.6);
+  hBendVsRecoRAt4->GetYaxis()->SetTitleOffset(1.4);
+  hBendVsRecoOmegaAt4->GetYaxis()->SetTitleOffset(1.4);
+
+  hBendVsRecoRAt4->GetXaxis()->SetLabelSize(0.05);
+  hBendVsRecoRAt4->GetYaxis()->SetLabelSize(0.05);
+  hBendVsRecoRAt4->GetXaxis()->SetTitleSize(0.05);
+  hBendVsRecoRAt4->GetYaxis()->SetTitleSize(0.05);
+  hBendVsRecoOmegaAt4->GetXaxis()->SetLabelSize(0.05);
+  hBendVsRecoOmegaAt4->GetYaxis()->SetLabelSize(0.05);
+  hBendVsRecoOmegaAt4->GetXaxis()->SetTitleSize(0.05);
+  hBendVsRecoOmegaAt4->GetYaxis()->SetTitleSize(0.05);
+  hBendVsRecoOmegaAt4->GetXaxis()->SetNdivisions(5);
+
+  c1->SetLeftMargin(0.15);
+
+  hBendVsRecoRAt4->SetTitle("Bend Angle vs Radial Position");
+  hBendVsRecoOmegaAt4->SetTitle("Bend Angle vs Entry Angle");
 
   hBendVsRecoRAt4->Draw("colz");
   xprof_bvr->Draw("same");
@@ -787,12 +812,59 @@ void caf_singleTrkPlots(std::string fname)
   hRecoBendXY->Write();
  
   hTargetZ->Write();
-  hRecoMomRes->Write();
+  hRecoMomTotRes->Write();
+  hRecoMomTransRes->Write();
+  hRecoMomLongRes->Write();
 
   //for (int i=0; i<100; i++){
   //  if (gHits_xz[i]->GetListOfGraphs()) std::cout<<"true"<<std::endl; //gHits_xz[i]->Write();
   //}
   for (size_t i=0; i<gHits_xz_pass.size(); i++){
+      gHits_xz_pass[i]->GetXaxis()->SetLabelSize(0.05);
+      gHits_xz_pass[i]->GetYaxis()->SetLabelSize(0.05);
+      gHits_yz_pass[i]->GetXaxis()->SetLabelSize(0.05);
+      gHits_yz_pass[i]->GetYaxis()->SetLabelSize(0.05);
+      gLines_xz_pass[i]->GetXaxis()->SetLabelSize(0.05);
+      gLines_xz_pass[i]->GetYaxis()->SetLabelSize(0.05);
+      gLines_yz_pass[i]->GetXaxis()->SetLabelSize(0.05);
+      gLines_yz_pass[i]->GetYaxis()->SetLabelSize(0.05);
+
+      gHits_xz_pass[i]->GetXaxis()->SetTitleSize(0.05);
+      gHits_xz_pass[i]->GetYaxis()->SetTitleSize(0.05);
+      gHits_yz_pass[i]->GetXaxis()->SetTitleSize(0.05);
+      gHits_yz_pass[i]->GetYaxis()->SetTitleSize(0.05);
+      gLines_xz_pass[i]->GetXaxis()->SetTitleSize(0.05);
+      gLines_xz_pass[i]->GetYaxis()->SetTitleSize(0.05);
+      gLines_yz_pass[i]->GetXaxis()->SetTitleSize(0.05);
+      gLines_yz_pass[i]->GetYaxis()->SetTitleSize(0.05);
+
+      gHits_xz_pass[i]->GetXaxis()->SetTitle("z [mm]");
+      gHits_xz_pass[i]->GetYaxis()->SetTitle("x [mm]");
+      gHits_yz_pass[i]->GetXaxis()->SetTitle("z [mm]");
+      gHits_yz_pass[i]->GetYaxis()->SetTitle("y [mm]");
+      gLines_xz_pass[i]->GetXaxis()->SetTitle("z [mm]");
+      gLines_xz_pass[i]->GetYaxis()->SetTitle("x [mm]");
+      gLines_yz_pass[i]->GetXaxis()->SetTitle("z [mm]");
+      gLines_yz_pass[i]->GetYaxis()->SetTitle("y [mm]");
+
+      gHits_xz_pass[i]->GetXaxis()->SetTitleOffset(1);
+      gHits_xz_pass[i]->GetYaxis()->SetTitleOffset(0.8);
+      gHits_yz_pass[i]->GetXaxis()->SetTitleOffset(1);
+      gHits_yz_pass[i]->GetYaxis()->SetTitleOffset(0.8);
+      gLines_xz_pass[i]->GetXaxis()->SetTitleOffset(1);
+      gLines_xz_pass[i]->GetYaxis()->SetTitleOffset(0.8);
+      gLines_yz_pass[i]->GetXaxis()->SetTitleOffset(1);
+      gLines_yz_pass[i]->GetYaxis()->SetTitleOffset(0.8);
+
+      gHits_xz_pass[i]->GetHistogram()->SetTitle("Reconstructed 3D Space Points");
+      gHits_yz_pass[i]->GetHistogram()->SetTitle("Reconstructed 3D Space Points");
+      gLines_xz_pass[i]->GetHistogram()->SetTitle("Reconstructed Track Segments");
+      gLines_yz_pass[i]->GetHistogram()->SetTitle("Reconstructed Track Segments");
+      //gHits_xz_pass[i]->GetHistogram()->SetTitleOffset(-0.2);
+      //gHits_yz_pass[i]->GetHistogram()->SetTitleOffset(-0.2);
+      //gLines_xz_pass[i]->GetHistogram()->SetTitleOffset(-0.2);
+      //gLines_yz_pass[i]->GetHistogram()->SetTitleOffset(-0.2);
+
       gHits_xz_pass[i]->Write();
       gHits_yz_pass[i]->Write();
       gLines_xz_pass[i]->Write();
