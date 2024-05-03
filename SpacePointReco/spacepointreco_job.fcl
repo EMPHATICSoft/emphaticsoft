@@ -1,5 +1,6 @@
 #include "Services.fcl"
 #include "SpacePointReco.fcl"
+#include "FillDataQuality.fcl"
 #include "MakeSSDClusters.fcl"
 
 process_name: SpacePointReco
@@ -46,6 +47,6 @@ physics:
  reco: [ dataqual, clust, spacepointreco ]
 	
  trigger_paths: [ reco ]
- end_paths: [ e1 ]
+ end_paths: [  ]
 
 }

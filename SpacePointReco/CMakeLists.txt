@@ -1,7 +1,6 @@
 include(ArtDictionary)
 include(ArtMake)
 FILE( GLOB src_files *.cc )
-FILE( GLOB src_files *.cxx )
 
 find_package(messagefacility REQUIRED)
 find_package(ROOT REQUIRED)
@@ -29,7 +28,7 @@ art_make_library ( SOURCE ${src_files}
 cet_build_plugin(SpacePointReco art::module
   LIBRARIES PRIVATE
     RawData
-    SpacePointReco
+    RecoBase
     ChannelMap
     ChannelMapService_service
 	 RunHistory
