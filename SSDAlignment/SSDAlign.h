@@ -9,7 +9,6 @@
 #include <vector>
 #include <stdint.h>
 #include <iostream>
-#include "TVector3.h"
 
 #include "RawData/RawDigit.h"
 #include "RawData/SSDRawDigit.h"
