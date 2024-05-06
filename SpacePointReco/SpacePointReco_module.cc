@@ -79,6 +79,8 @@ namespace emph {
             int nusensors=0;
             int nwsensors=0;
             std::vector<TH2F*> fSSD_Profile;
+            std::vector<TH2F*> fSSD_Profile_notilt;
+            std::vector<TH2F*> fSSD_Profile_onlytilt;
             art::ServiceHandle<art::TFileService> tfs;
             int nstations;
             int nssds;
@@ -127,6 +129,8 @@ namespace emph {
 
         //Remove duplicate members
         fSSD_Profile.resize(nstations);
+        fSSD_Profile_notilt.resize(nstations);
+        fSSD_Profile_onlytilt.resize(nstations);
         std::array<const char*,4> pos_strings = {"x","y","u","v"};
         char hname[64];
         for (int i=0; i<nstations; ++i) {
@@ -134,9 +138,19 @@ namespace emph {
             fSSD_Profile[i] = tfs->make<TH2F>(hname,Form("Station %i",i),160,-40,40,160,-40,40);
             fSSD_Profile[i]->GetXaxis()->SetTitle("X Position (mm)");
             fSSD_Profile[i]->GetYaxis()->SetTitle("Y Position (mm)");
-            //fSSD_Profile[i]->SetBit(TH1::kNoStats);
         }
-        
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"SSDProfile_notilt_%d",i);
+            fSSD_Profile_notilt[i] = tfs->make<TH2F>(hname,Form("Station %i (Only X/Y spacepoints)",i),160,-40,40,160,-40,40);
+            fSSD_Profile_notilt[i]->GetXaxis()->SetTitle("X Position (mm)");
+            fSSD_Profile_notilt[i]->GetYaxis()->SetTitle("Y Position (mm)");
+        }
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"SSDProfile_onlytilt_%d",i);
+            fSSD_Profile_onlytilt[i] = tfs->make<TH2F>(hname,Form("Station %i (Only X/Y/W spacepoints)",i),160,-40,40,160,-40,40);
+            fSSD_Profile_onlytilt[i]->GetXaxis()->SetTitle("X Position (mm)");
+            fSSD_Profile_onlytilt[i]->GetYaxis()->SetTitle("Y Position (mm)");
+        }
         first_run=0;
     }
 
@@ -187,7 +201,7 @@ namespace emph {
                 y_hits[clust.Station()].push_back({xavg[1],xavg[2]});
             }
             if (clust.View()==emph::geo::U_VIEW){
-            std::cout<<"***** UHIT"<<std::endl;
+            std::cout<<"***** UHIT: SHOULD NOT SEE FOR RUN 1c"<<std::endl;
                 double u = (sqrt(2)/2)*(xavg[0]+xavg[1]);
                 u_hits[clust.Station()].push_back({u,xavg[2]});
             }
@@ -202,7 +216,6 @@ namespace emph {
 
         //Loop through all stations
         for (int i=0; i<nstations; ++i){
-            if(i!=3) continue;
             //Create Spacepoint if there are no u/w constraints
             if (u_hits[i].size()==0 && w_hits[i].size()==0){
                 for (size_t j=0; j<x_hits[i].size(); ++j){
@@ -218,45 +231,81 @@ namespace emph {
                         sp.SetX(pos);
                         sp.SetStation(i);
                         SpacePoints->push_back(sp);
+                        fSSD_Profile[i]->Fill(pos[0],pos[1]);
+                        fSSD_Profile_notilt[i]->Fill(pos[0],pos[1]);
                     }
                 }
             }
-            else if (u_hits.size()!=0){
-                for (size_t it=0; it<u_hits.size(); ++it){
-                    std::cout<<"debug 0"<<std::endl;
+            else{
+                bool u_or_w; //0 for U sensors, 1 for W sensors
+                std::vector<std::array<double,2>> tilt_hits;
+                size_t nhits=0;
+                if (u_hits[i].size()!=0){
+                    u_or_w=0;
+                    for (size_t iu=0; iu<u_hits.size(); ++iu){
+                        tilt_hits.push_back({u_hits[i][iu][0],u_hits[i][iu][1]});
+                    }
+                    nhits=u_hits[i].size();
+                }
+                else if (w_hits[i].size()!=0){
+                    u_or_w=1;
+                    for (size_t iw=0; iw<w_hits.size(); ++iw){
+                        tilt_hits.push_back({w_hits[i][iw][0],w_hits[i][iw][1]});
+                    }
+                    nhits=w_hits[i].size();
+                }
+                else{
+                    std::cout<<"Attemping to use U/W sensors when there are no U/W hits"<<std::endl;
+                    exit(1);
+                }
+                //std::cout<<"nhits = "<<nhits<<std::endl;
+                //std::cout<<"xhits = "<<x_hits[i].size()<<std::endl;
+                //std::cout<<"yhits = "<<y_hits[i].size()<<std::endl;
+
+                for (size_t it=0; it<nhits; ++it){
                     size_t x_index; size_t y_index;
                     double final_x=-999; double final_y=-999; double final_z=-999;
-                    std::cout<<"debug 0.5"<<std::endl;
-                    double u = u_hits[i][it][0];
-                    double u_diff = 999;
+                    double tilt = tilt_hits[it][0];
+                    double tilt_diff = 999;
+                    bool valid_space_point=0;
+                    //if(x_hits[i].size()<nhits || y_hits[i].size()<nhits) continue;
                     for (size_t j=0; j<x_hits[i].size(); ++j){
-                    std::cout<<"debug 1"<<std::endl;
                         for (size_t k=0; k<y_hits[i].size(); ++k){
                             double x = x_hits[i][j][0];
                             double y = y_hits[i][k][0];
-                            double u_xy = (sqrt(2)/2)*(x+y);
+                            double tilt_xy;
+                            if (u_or_w) tilt_xy = (sqrt(2)/2)*(x+y);
+                            else tilt_xy = (sqrt(2)/2)*((-1.)*x+y);
 
-                            double diff = u_xy-u;
+                            double diff = tilt_xy-tilt;
                             //**** Add extra constraint here to ensure that the wrong x,y points are not being associated with a u hit
-                            if (abs(diff)<u_diff){
-                                u_diff=diff;
-                                final_x = x-diff/sqrt(2.);
-                                final_y = y-diff/sqrt(2.);
-                                final_z = (1/3.)*(x_hits[i][j][1]+y_hits[i][k][1]+u_hits[i][it][1]);
+                            if (abs(diff)<tilt_diff){
+                                std::cout<<"Diff = "<<diff<<std::endl;
+                                tilt_diff=diff;
+                                //final_x = x-diff/sqrt(2.);
+                                final_x = x;
+                                //final_y = y-diff/sqrt(2.);
+                                final_y = y;
+                                final_z = (1/3.)*(x_hits[i][j][1]+y_hits[i][k][1]+tilt_hits[it][1]);
                                 x_index = j;
                                 y_index = k;
+                                valid_space_point=1;
                             }
                         }
                     }
-                    double pos[3];
-                    pos[0]=final_x; pos[1]=final_y; pos[2]=final_z;
-                    rb::SpacePoint sp;
-                    sp.SetX(pos);
-                    sp.SetStation(i);
-                    SpacePoints->push_back(sp);
-                    x_hits[i].erase(x_hits[i].begin()+x_index);
-                    y_hits[i].erase(y_hits[i].begin()+y_index);
-                    std::cout<<"Spacepoint (Event "<<event<<") at station "<<i<<": "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
+                    if (valid_space_point){
+                        double pos[3];
+                        pos[0]=final_x; pos[1]=final_y; pos[2]=final_z;
+                        rb::SpacePoint sp;
+                        sp.SetX(pos);
+                        sp.SetStation(i);
+                        SpacePoints->push_back(sp);
+                        fSSD_Profile[i]->Fill(pos[0],pos[1]);
+                        fSSD_Profile_onlytilt[i]->Fill(pos[0],pos[1]);
+                        x_hits[i].erase(x_hits[i].begin()+x_index);
+                        y_hits[i].erase(y_hits[i].begin()+y_index);
+                        //std::cout<<"Spacepoint (Event "<<event<<") at station "<<i<<": "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
+                    }
                 }
             }
         }

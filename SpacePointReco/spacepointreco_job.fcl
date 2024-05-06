@@ -47,6 +47,6 @@ physics:
  reco: [ dataqual, clust, spacepointreco ]
 	
  trigger_paths: [ reco ]
- end_paths: [  ]
+ stream1: [ out1 ]
 
 }
