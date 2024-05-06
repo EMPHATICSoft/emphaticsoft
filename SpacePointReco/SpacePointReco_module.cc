@@ -187,7 +187,7 @@ namespace emph {
                 y_hits[clust.Station()].push_back({xavg[1],xavg[2]});
             }
             if (clust.View()==emph::geo::U_VIEW){
-            std::cout<<"***** UHIT"<<std::endl;
+            std::cout<<"***** UHIT: SHOULD NOT SEE FOR RUN 1c"<<std::endl;
                 double u = (sqrt(2)/2)*(xavg[0]+xavg[1]);
                 u_hits[clust.Station()].push_back({u,xavg[2]});
             }
@@ -221,25 +221,47 @@ namespace emph {
                     }
                 }
             }
-            else if (u_hits.size()!=0){
-                for (size_t it=0; it<u_hits.size(); ++it){
-                    std::cout<<"debug 0"<<std::endl;
+            else{
+                bool u_or_w; //0 for U sensors, 1 for W sensors
+                std::vector<std::array<double,2>> tilt_hits;
+                if (u_hits[i].size()!=0){
+                    u_or_w=0;
+                    tilt_hits.resize(u_hits[i].size());
+                    for (size_t iu=0; iu<u_hits.size(); ++iu){
+                        tilt_hits[iu][0]=u_hits[i][iu][0];
+                        tilt_hits[iu][1]=u_hits[i][iu][1];
+                    }
+                }
+                else if (w_hits[i].size()!=0){
+                    u_or_w=1;
+                    tilt_hits.resize(u_hits[i].size());
+                    for (size_t iw=0; iw<u_hits.size(); ++iw){
+                        tilt_hits[iw][0]=u_hits[i][iw][0];
+                        tilt_hits[iw][1]=u_hits[i][iw][1];
+                    }
+                }
+                else{
+                    std::cout<<"Attemping to use U/W sensors when there are no U/W hits"<<std::endl;
+                    exit(1);
+                }
+
+                for (size_t it=0; it<tilt_hits.size(); ++it){
                     size_t x_index; size_t y_index;
                     double final_x=-999; double final_y=-999; double final_z=-999;
-                    std::cout<<"debug 0.5"<<std::endl;
-                    double u = u_hits[i][it][0];
-                    double u_diff = 999;
+                    double tilt = tilt_hits[it][0];
+                    double tilt_diff = 999;
                     for (size_t j=0; j<x_hits[i].size(); ++j){
-                    std::cout<<"debug 1"<<std::endl;
                         for (size_t k=0; k<y_hits[i].size(); ++k){
                             double x = x_hits[i][j][0];
                             double y = y_hits[i][k][0];
-                            double u_xy = (sqrt(2)/2)*(x+y);
+                            double tilt_xy;
+                            if (u_or_w) tilt_xy = (sqrt(2)/2)*(x+y);
+                            else tilt_xy = (sqrt(2)/2)*((-1.)*x+y);
 
-                            double diff = u_xy-u;
+                            double diff = tilt_xy-tilt;
                             //**** Add extra constraint here to ensure that the wrong x,y points are not being associated with a u hit
-                            if (abs(diff)<u_diff){
-                                u_diff=diff;
+                            if (abs(diff)<tilt_diff){
+                                tilt_diff=diff;
                                 final_x = x-diff/sqrt(2.);
                                 final_y = y-diff/sqrt(2.);
                                 final_z = (1/3.)*(x_hits[i][j][1]+y_hits[i][k][1]+u_hits[i][it][1]);
