@@ -81,6 +81,7 @@ namespace emph {
             std::vector<TH2F*> fSSD_Profile_notilt;
             std::vector<TH2F*> fSSD_Profile_onlytilt;
             std::vector<TH1F*> h_diff;
+            std::vector<TH1F*> h_sp;
             art::ServiceHandle<art::TFileService> tfs;
             int nstations;
             int nssds;
@@ -132,6 +133,7 @@ namespace emph {
         fSSD_Profile_notilt.resize(nstations);
         fSSD_Profile_onlytilt.resize(nstations);
         h_diff.resize(nstations);
+        h_sp.resize(nstations);
         std::array<const char*,4> pos_strings = {"x","y","u","v"};
         char hname[64];
         for (int i=0; i<nstations; ++i) {
@@ -156,6 +158,11 @@ namespace emph {
             sprintf(hname,"h_diff_%d",i);
             h_diff[i] = tfs->make<TH1F>(hname,Form("Station %i (W)",i),200,-2,2);
             h_diff[i]->GetXaxis()->SetTitle("Difference in W (mm)");
+        }
+        for (int i=0; i<nstations; ++i) {
+            sprintf(hname,"h_sp_%d",i);
+            h_sp[i] = tfs->make<TH1F>(hname,Form("Station %i",i),20,0,20);
+            h_sp[i]->GetXaxis()->SetTitle("Number of Spacepoints");
         }
         first_run=0;
     }
@@ -222,6 +229,7 @@ namespace emph {
 
         //Loop through all stations
         for (int i=0; i<nstations; ++i){
+            int n_sp=0;
             //Create Spacepoint if there are no u/w constraints
             if (u_hits[i].size()==0 && w_hits[i].size()==0){
                 for (size_t j=0; j<x_hits[i].size(); ++j){
@@ -239,6 +247,7 @@ namespace emph {
                         SpacePoints->push_back(sp);
                         fSSD_Profile[i]->Fill(pos[0],pos[1]);
                         fSSD_Profile_notilt[i]->Fill(pos[0],pos[1]);
+                        n_sp+=1;
                     }
                 }
             }
@@ -286,15 +295,15 @@ namespace emph {
                             tilt_xy = (sqrt(2)/2)*((-1.)*x+y);
                             double diff = tilt_xy-tilt;
                             //**** Add extra constraint here to ensure that the wrong x,y points are not being associated with a u hit
-                            if (abs(diff)<abs(tilt_diff)){
+                            if (abs(diff)<abs(tilt_diff) && abs(diff)<2.){
                                 //std::cout<<"Event: "<<event<<"  Station:"<<i<<"  Diff = "<<diff<<std::endl;
                                 tilt_diff=diff;
                                 //final_x = x-diff/sqrt(2.);
                                 final_x = x;
                                 //final_y = y-diff/sqrt(2.);
+                                final_y = y;
                                 double check_w = (sqrt(2)/2)*((-1.)*final_x+final_y);
                                 //std::cout<<"w_xy = "<<tilt_xy<<"  w = "<<tilt<<"  check_w = "<<check_w<<"  diff= "<<diff<<std::endl;
-                                final_y = y;
                                 final_z = (1/3.)*(x_hits[i][j][1]+y_hits[i][k][1]+tilt_hits[it][1]);
                                 x_index = j;
                                 y_index = k;
@@ -315,10 +324,12 @@ namespace emph {
                         h_diff[i]->Fill(final_diff);
                         x_hits[i].erase(x_hits[i].begin()+x_index);
                         y_hits[i].erase(y_hits[i].begin()+y_index);
+                        n_sp+=1;
                         //std::cout<<"Spacepoint (Event "<<event<<") at station "<<i<<": "<<pos[0]<<" "<<pos[1]<<" "<<pos[2]<<std::endl;
                     }
                 }
             }
+            h_sp[i]->Fill(n_sp);
         }
     }
 
