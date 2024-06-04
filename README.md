@@ -67,7 +67,7 @@ You will prompted to enter your github username and a password.  The password sh
 
 ```
 source /exp/emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
-s17-emph
+sl7-emph
 cd /exp/emph/app/users/[username]/<directory-you-chose>/
 mkdir build
 ```
