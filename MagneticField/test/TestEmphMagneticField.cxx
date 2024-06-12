@@ -175,18 +175,24 @@ namespace emph {
       std::vector<double> stop(6);
       std::cerr << " TestEmphMagneticField::test2 setting interpolation 3D radial " << std::endl;
       fBField->setInterpolatingOption(0); 
-      double p = 10.0;
-      start[0] = 4.0; start[1] = 11.0; start[2] = - 15.0; stop[2] = 450.; 
+      double p = 31.0;
+//      start[0] = 1.0; start[1] = 1.0; start[2] = 250.; stop[2] = 1220.; 
+      start[0] = -7.54811; start[1] = 2.26492; start[2] = 988.75; stop[2] = 1220.; 
       double DeltaZ = stop[2] - start[2];
-      double slx =0.1e-3; double sly = -0.2e-3; double slz = std::sqrt( 1.0 - slx*slx - sly*sly); 
+      double slx =-0.00168554; double sly = 0.000190417; double slz = std::sqrt( 1.0 - slx*slx - sly*sly); 
       start[3] = p*slx; start[4] = p*sly;  start[5] = slz*p;
     
-      fBField->Integrate(10, 1, 15.0, start, stop);
+      fBField->Integrate(0, 1, 3.0, start, stop);
       double slxFinal = stop[3]/p;      double slyFinal = stop[4]/p;
-      std::cerr << " .. Euler, Bx = Bz = 0., Position x,y, " << stop[0] << ",  " 
-                << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl; 
+      std::cerr << " .. As in SSDAlign, , start " << start[0] << " / " << start[1] << " / " << start[2] << " Position x,y, " << stop[0] << ",  " 
+                << stop[1] << " Deflection in X " << (slxFinal - slx) << " rad and in Y "  << (slyFinal - sly) << std::endl; 
+      return; 
+/*
       stop[2] = 450.; 	  
-      fBField->Integrate(0, 1, 15.0, start, stop); 
+      fBField->Integrate(0, 1, 15.0, start, stop);
+      std::cerr << "  TestEmphMagneticField::test2, stop here.. " << std::endl; exit(2);
+      
+      
       slxFinal = stop[3]/p;   slyFinal = stop[4]/p;
       std::cerr << " ..Euler, Bz = 0.,  Position x,y, " << stop[0] << ",  " 
                 << stop[1] << " Deflection in X " << (slxFinal - slx)*DeltaZ << " mm in Y "  << (slyFinal - sly)*DeltaZ << std::endl;   
@@ -245,7 +251,8 @@ namespace emph {
 	}
       }
       fOutForR.close();
-    }  
+  */ 
+    } 
   void TestEmphMagneticField::test3() {
     //
     // Assuming a beam spot size of 1 cm, Gaussian, 

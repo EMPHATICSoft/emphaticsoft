@@ -67,6 +67,9 @@ namespace g4b {
     // extra control over how GDML is parsed
     inline void SetOverlapCheck(bool check);
     inline void SetValidateGDMLSchema(bool validate);
+    inline void SetMisalignModNum(int m);
+    inline void SetMisalignDoubleSSDGap(double d); 
+    inline void SetMisalignSeed(unsigned int s);
 
     // have to call this before InitPhysics if you want to control
     // when the detector is constructed, useful if you need to 
@@ -110,6 +113,9 @@ namespace g4b {
     std::string           	           fG4PhysListName;     ///< Name of physics list to use
     std::string                        fGDMLFile;           ///< Name of the gdml file containing the detector Geometry
     bool                               fCheckOverlaps;      ///< Have G4GDML check for overlaps?
+    int                                fMisalignModNum;  ///<  We will modify the gdml struct, optionally.
+    double                             fMisalignDoubleSSDGap;  ///<  We need to implement the gap between double SSD sensors. 
+    unsigned int                       fMisalignSeed;  ///<  The seed for native srand. 
     bool                               fValidateGDMLSchema; ///< Have G4GDML validate geometry schema?
     bool                               fUseStepLimits;      ///< Set in SetVolumeStepLimit
 
@@ -126,6 +132,9 @@ namespace g4b {
 #ifndef __GCCXML__
 inline void g4b::G4Helper::SetOverlapCheck(bool check)          { fCheckOverlaps      = check;    }
 inline void g4b::G4Helper::SetValidateGDMLSchema(bool validate) { fValidateGDMLSchema = validate; }
+inline void g4b::G4Helper::SetMisalignModNum(int m) {fMisalignModNum = m; }  
+inline void g4b::G4Helper::SetMisalignDoubleSSDGap(double d) {fMisalignDoubleSSDGap = d; }  
+inline void g4b::G4Helper::SetMisalignSeed(unsigned int s) {fMisalignSeed = s; }  
 #endif
 
 
