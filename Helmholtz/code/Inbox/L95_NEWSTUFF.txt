@@ -1,0 +1,85 @@
+C===============================================================================
+C===============================================================================
+C	Things I never implemented.
+C===============================================================================
+C===============================================================================
++DECK,CLOSAP.
+      LOGICAL FUNCTION CLOSAP( P1, P2, V1, V2, DMIN, VERTEX, T1, T2)
+C
+C  FUNCTION TO FIND THE CLOSEST APPROACH OF TWO LINES
+C  (CALLS FUNCTION DOT)
+C
+C  INPUT: P1,P2     A POINT ANYWHERE ON THE LINE
+C         V1,V2     A VECTOR ALONG THE LINE (NOT NECESSARILY
+C                                                   NORMALIZED)
+C  OUTPUT: DMIN     DISTANCE BETWEEN LINES AT CLOSEST APPROACH
+C          VERTEX   A POINT HALFWAY BETWEEN THE LINES AT THE
+C                   CLOSEST APPROACH
+C
+C  FUNCTION VALUE:  NORMALLY TRUE BUT IF LINES ARE PARALLEL
+C                   CLOSAP IS FALSE AND DMIN IS -1
+C
+      REAL P1(3), P2(3), V1(3), V2(3), VERTEX(3)
+      REAL R12(3)
+C
+      DO 10 I = 1,3
+        R12(I) = P1(I) - P2(I)
+   10 CONTINUE
+C
+      A = DOT( V1, V1)
+      B = DOT( V2, V2)
+      C = DOT( V1, V2)
+      D = DOT( R12, V1)
+      E = DOT( R12, V2)
+C
+      DET = C*C - A*B
+      CLOSAP = DET .NE. 0.
+      DMIN = -1.
+C
+      IF (CLOSAP) THEN
+C
+        T1 = (B*D - C*E) / DET
+        T2 = (C*D - A*E) / DET
+C
+        DO 20 I = 1,3
+          Q1 = P1(I) + T1*V1(I)
+          Q2 = P2(I) + T2*V2(I)
+          VERTEX(I) = (Q1 + Q2) / 2.
+          R12(I) = Q1 - Q2
+   20   CONTINUE
+        DMIN = SQRT( DOT(R12,R12) )
+C
+      ENDIF
+C
+      RETURN
+      END
+
+
+      REAL FUNCTION DOT( X, Y)
+      REAL X(3), Y(3)
+      DOT = X(1)*Y(1) + X(2)*Y(2) + X(3)*Y(3)
+      RETURN
+      END
+
+
+c=====================================================================
++DECK,GENSPH.
+      SUBROUTINE GENSPH(VEC)
+C--------------------------------------------------------C
+C GENERATES AN UNIT-LENGTH VECTOR UNIFORMLY IN 4PI.      C
+C USES 1 SQRT AND NO SIN,COS'S. HITOSHI OCT-86           C
+C--------------------------------------------------------C
+      REAL VEC(3)
+C
+    1 U1=2.*RANF()-1.
+      U2=2.*RANF()-1.
+      S=U1*U1+U2*U2
+      IF(S.GE.1.) GOTO 1
+C
+      CO2=2.*SQRT(1.-S)
+      VEC(1)=U1*CO2
+      VEC(2)=U2*CO2
+      VEC(3)=1.-2.*S
+C
+      RETURN
+      END

@@ -1,0 +1,825 @@
+C===============================================================================
+C===============================================================================
+C	HEP Physics stuff here.
+C===============================================================================
+C===============================================================================
+      REAL*8 FUNCTION LAMBDA(A,B,C)
+C     The lambda function commonly used in relativistic kinematics
+C     With simple-minded attempt to prevent round-off err.
+      IMPLICIT NONE
+      REAL*8 A,B,C, TMP(2)
+      TMP(1) = A**2 +B**2 +C**2
+      TMP(2) = 2.0d0*(A*B +B*C +A*C)
+      LAMBDA = TMP(1) -TMP(2)
+      RETURN
+      END
+
+
+C=======================================================================
+      REAL FUNCTION PHIDIFF(MA,PA,MB,PB,MC,PC,MD,PD)
+C     This function finds the angle between the planes (1) containing
+C     the particle of mass and momentum MA,PA and the particle of mass
+C     and momentum MB,PB, and (2) containing the particle of mass and
+C     momentum MC,PC, and the particle of mass and momentum MD,PD.
+C     as defined in the center of mass of the entire four particle
+C     system.  The value returned is between -PI/2 and PI/2, and depends
+C     on the order of the particles, which may not be well-defined for
+C     final states containing identical particles.  If this angle is
+C     undefined, or if any other error happens, returned value is -2.0
+C
+C     INPUTS:
+C	  MA, PA(3),  = Mass and momentum of initial particles
+C	  MB, PB(3),    in double precision
+C	  MC, PC(3),
+C	  MD, PD(3)
+
+      IMPLICIT NONE
+      INTEGER I,IERR
+      DOUBLE PRECISION MA,PA(3),MB,PB(3),MC,PC(3),MD,PD(3)
+      DOUBLE PRECISION P1(0:3),P2(0:3),Q1(0:3),Q2(0:3)
+      DOUBLE PRECISION DOTP4,COSCM,ASYMM4,P(0:3),Q(0:3),S(0:3)
+      DOUBLE PRECISION MSSQ,MPSQ,MQSQ,PSSQ,PPSQ,PQSQ
+      DOUBLE PRECISION MP1SQ,MP2SQ,MQ1SQ,MQ2SQ,DENOM
+      DOUBLE PRECISION COSP,COSQ,SINPQ,SINQQ,SINDFF
+      PHIDIFF = 2.0
+
+
+C     Put the inputs into internal 4-vectors
+      DO I = 1, 3
+	  P1(I) = PA(I)
+	  P2(I) = PB(I)
+	  Q1(I) = PC(I)
+	  Q2(I) = PD(I)
+      ENDDO
+      P1(0) = DSQRT(MA*MA +PA(1)*PA(1) +PA(2)*PA(2) +PA(3)*PA(3))
+      P2(0) = DSQRT(MB*MB +PB(1)*PB(1) +PB(2)*PB(2) +PB(3)*PB(3))
+      Q1(0) = DSQRT(MC*MC +PC(1)*PC(1) +PC(2)*PC(2) +PC(3)*PC(3))
+      Q2(0) = DSQRT(MD*MD +PD(1)*PD(1) +PD(2)*PD(2) +PD(3)*PD(3))
+
+
+C     P is sum of particles A and B, Q is sum of C and D, and S
+C     the sum of all four.  Also get the mass-squared of all the
+C     relevant quantities.
+      DO I=0,3
+	  P(I) = P1(I) + P2(I)
+	  Q(I) = Q1(I) + Q2(I)
+	  S(I) = P(I)  + Q(I)
+      ENDDO
+
+      MP1SQ = DOTP4(P1,P1)
+      MP2SQ = DOTP4(P2,P2)
+      MQ1SQ = DOTP4(Q1,Q1)
+      MQ2SQ = DOTP4(Q2,Q2)
+      MPSQ  = DOTP4(P,P)
+      MQSQ  = DOTP4(Q,Q)
+      MSSQ  = DOTP4(S,S)
+
+C     I think it is all Hitoshi-code from here on out.
+      PPSQ = 0.25*(MPSQ - 2.0*(MP1SQ + MP2SQ)
+     >                      + (MP1SQ - MP2SQ)*(MP1SQ - MP2SQ)/MPSQ)
+      PQSQ = 0.25*(MQSQ - 2.0*(MQ1SQ + MQ2SQ)
+     >                      + (MQ1SQ - MQ2SQ)*(MQ1SQ - MQ2SQ)/MQSQ)
+      PSSQ = 0.25*(MSSQ - 2.0*(MPSQ + MQSQ)
+     >                      + (MPSQ - MQSQ)  *(MPSQ - MQSQ)  /MSSQ)
+      COSP = COSCM(P1,Q,P,IERR)
+      IF (IERR.NE.0) RETURN
+      COSQ = COSCM(Q1,P,Q,IERR)
+      IF (IERR.NE.0) RETURN
+      SINPQ = 1.0 - COSP*COSP
+      SINQQ = 1.0 - COSQ*COSQ
+      DENOM = SINPQ*SINQQ*PPSQ*PQSQ*PSSQ*MSSQ
+      IF (DENOM.LE.0.) RETURN
+
+      SINDFF = ASYMM4(P1,P2,Q1,Q2)/SQRT(DENOM)
+      IF     (SINDFF.GE.1.0D0) THEN
+	  PHIDIFF = +1.5707963
+      ELSEIF (SINDFF.LE.-1.0D0) THEN
+	  PHIDIFF = -1.5707963
+      ELSE
+	  PHIDIFF = SNGL(ASIN(SINDFF))
+      ENDIF
+      RETURN
+      END
+
+
+      DOUBLE PRECISION FUNCTION COSCM(P1,P2,PTOT,IERR)
+C     Returns the cosine of the angle between the 3-vector parts
+C     of P1 and P2, measured in the center-of-mass frame of the
+C     system whose four-momentum is PTOT in the same frame as that
+C     in which the components of P1 and P2 are given. If either
+C     vector has zero momentum in the frame given by PTOT, returns
+C     non-zero IERR.
+      IMPLICIT NONE
+      INTEGER  IERR
+      DOUBLE PRECISION P1(0:3),P2(0:3),PTOT(0:3),DOTCM,MAG1,MAG2
+      MAG1 = DOTCM(P1,P1,PTOT)
+      MAG2 = DOTCM(P2,P2,PTOT)
+      IERR = -1
+      COSCM= -2.0
+      IF ((MAG1.LE.0.0D0).OR.(MAG2.LE.0.0D0)) RETURN
+      IERR = 0
+      COSCM = DOTCM(P1,P2,PTOT)/SQRT(MAG1*MAG2)
+      RETURN
+      END
+
+
+      DOUBLE PRECISION FUNCTION DOTCM(P1,P2,PTOT)
+C     Returns the dot product of the spatial parts of 4-vectors P1
+C     and P2, as it would be measured in the center-of-mass frame of
+C     a system whose four-momentum is PTOT in the same frame as that
+C     in which the components of P1 and P2 are given.
+      IMPLICIT NONE
+      DOUBLE PRECISION P1(0:3),P2(0:3),PTOT(0:3),DOTP4
+      DOTCM =  DOTP4(P1,PTOT)*DOTP4(P2,PTOT)/DOTP4(PTOT,PTOT)
+     >        -DOTP4(P1,P2)
+      RETURN
+      END
+
+
+      DOUBLE PRECISION FUNCTION DOTP4(P1,P2)
+      IMPLICIT NONE
+      DOUBLE PRECISION P1(0:3),P2(0:3)
+      DOTP4 =  P1(0)*P2(0) -P1(1)*P2(1) -P1(2)*P2(2) -P1(3)*P2(3)
+      RETURN
+      END
+
+
+      DOUBLE PRECISION FUNCTION ASYMM4(PA,PB,PC,PD)
+C     Calculates the totally antisymmetric invariant resulting
+C     from the contraction of the four 4-vector arguments with
+C     the epsilon tensor.
+      IMPLICIT NONE
+      DOUBLE PRECISION PA(0:3),PB(0:3),PC(0:3),PD(0:3),SIGNX
+      INTEGER INDICES(0:3,24),IPERM
+      DATA INDICES /0,1,2,3,  0,1,3,2,  0,3,1,2,  0,3,2,1,
+     >              0,2,3,1,  0,2,1,3,  1,2,0,3,  1,0,2,3,
+     >              1,0,3,2,  1,2,3,0,  1,3,2,0,  1,3,0,2,
+     >              2,3,0,1,  2,0,3,1,  2,0,1,3,  2,1,0,3,
+     >              2,1,3,0,  2,3,1,0,  3,2,1,0,  3,0,1,2,
+     >              3,0,2,1,  3,1,2,0,  3,1,0,2,  3,2,0,1/
+      ASYMM4 = 0.0D0
+      SIGNX  = 1.0D0
+      DO IPERM=1,24
+	  ASYMM4 =  ASYMM4  + SIGNX*PA(INDICES(0,IPERM))
+     >                             *PB(INDICES(1,IPERM))
+     >                             *PC(INDICES(2,IPERM))
+     >                             *PD(INDICES(3,IPERM))
+	  SIGNX  = -SIGNX
+      ENDDO
+      RETURN
+      END
+
+
+C=======================================================================
+      SUBROUTINE DKLN3D(XB,SB,XV,SV,TI,DL,SDL,IERR)
+C     Least squares decay length in 3-D
+C     Created by Robert P. Johnson     27-JUL-1988
+C     Must be linked to CERNlib
+C
+C     Inputs : XB(3)            Beam position
+C              SB(3,3)          Beam covariance matrix
+C              XV(3)            Measured vertex position
+C              SV(3,3)          Vertex covariance matrix
+C              TI(3)            Direction of flight 
+C     Outputs: DL               Decay length estimate
+C              SDL              Error on DL (not including any
+C                               contribution from error on T)
+C              IERR             0 means OK.
+
+      DIMENSION XB(3),XV(3),T(3),TI(3),SB(3,3),SV(3,3)
+      DIMENSION WB(3,3),WV(3,3),A(4,4),B(4)
+
+      IERR = 0
+C     Normalize T in case the user forgot
+      DIST = SQRT(TI(1)**2 +TI(2)**2 +TI(3)**2)
+      DO I = 1, 3
+         T(I) = TI(I)/DIST
+      ENDDO
+
+C     Invert the error matrices to get the weight matrices
+C     Is it possible to just sum the covariances and then invert?
+      DO I=1,3
+         DO J=1,I
+            WB(I,J)=SB(I,J)
+            WV(I,J)=SV(I,J)
+         ENDDO
+      ENDDO
+      CALL RSINV(3,WB,3,IERR)
+      IF (IERR.NE.0) GOTO 999
+      CALL RSINV(3,WV,3,IERR)
+      IF (IERR.NE.0) GOTO 999
+
+C     Form the linear equations from derivatives of log-likelihood
+      DO I=1,4
+         B(I)=0.
+         DO J=1,4
+            A(I,J)=0.
+         ENDDO
+      ENDDO
+
+      DO I=1,3
+         DO J=1,3
+            A(1,1)     = A(1,1)   + T(I)*WB(I,J)*T(J)
+            A(I+1,1)   = A(I+1,1) - WB(I,J)*T(J)
+            A(I+1,J+1) = WB(I,J)  + WV(I,J)
+            B(1)       = B(1)     - T(I)*WB(I,J)*XB(J)
+            B(I+1)     = B(I+1)   + WB(I,J)*XB(J)    + WV(I,J)*XV(J)
+         ENDDO
+      ENDDO
+
+C     Solve for the best decay length and vertex position
+      CALL RSFACT(4,A,4,IERR,DET,IERR)
+      IF (IERR.NE.0) GOTO 999
+      CALL RSFEQN(4,A,4,1,B)
+      CALL RSFINV(4,A,4)
+
+      DL=B(1)
+      SDL=SQRT(A(1,1))
+
+  999 RETURN
+      END
+
+
+c=======================================================================
+      SUBROUTINE IMPACT(TPAR,TCOV,IP,ICOV,DMIN,DSIG,IERR)
+C     Finds the point of closest approach between a helix and a point
+C     in three dimensions, with full propagation of variances.
+C     Basic search algorithm isn't that good... should try a quadratic
+C     fit with initial span +/- pi first.  Example of this is below.
+C
+C     Inputs:
+C        TPAR(5)   REAL    5-parameter helix description; see
+C                          NIM A337 (1993) 66-94 for details.
+C        TCOV(5,5) REAL    Covariance matrix for TPAR
+C        IP(3)     REAL    (Interaction) point in (x,y,z)
+C        ICOV(3,3) REAL    Covariance matrix for IP
+C
+C     Outputs:
+C        DMIN      REAL    Distance between track and IP at closest
+C                          approach
+C        DSIG      REAL    Uncertainty on DMIN.  Error condition is
+C                          negative DSIG = err code from ROTATE
+C        IERR      INTEGER Zero for happy ending.  DMIN is OK for
+C                          all non-negative IERR values, DSIG = -1.0
+C                          if any error.
+
+
+c-----------------------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER I,J, IERR
+      REAL    QUADD, DEL(2)
+      REAL    TPAR(5),TCOV(5,5),IP(3),ICOV(3,3),DMIN,DSIG
+      REAL    PSI, CONVERGED
+      REAL*8  IR,TANL,PHI0,D0,Z0, COSL,COSP0,SINP0, XI, T0(3),T1(3)
+      REAL*8  DSDIST,DMIN2, sT0(3,3), TOTALSTEPS
+      REAL*8  dXdR,dXdF,dXdD,dYdR,dYdF,dYdD,dZdR,dZdT
+      REAL    VECTOR(3),DUM1(3),DUM2(3),DUM3(3),ERRPNT(6),ROTERR(6)
+      REAL*8  P2I8
+      DATA    P2I8 /6.283185307179587d0/
+
+
+c-----------------------------------------------------------------------
+      IERR = 0
+c     Unpack the track parameters
+      IR    = TPAR(1)              ! Signed + for counter clockwise bend
+      TANL  = TPAR(2)
+      COSL  = 1.0/SQRT(1.0+TANL*TANL)
+      PHI0  = TPAR(3)
+      COSP0 = COS(PHI0)
+      SINP0 = SIN(PHI0)
+      D0    = TPAR(4)       ! Signed like angular momentum at this point
+      Z0    = TPAR(5)
+
+c     Iterate a linear approximation to the helix; T0 is point on track
+c     that is closest (initially) to origin, and (later) to IP; T1 is
+c     direction unit vector there.  Convergence criteria is step along
+c     arc smaller than the IP, or accumulated steps equal to one-half
+c     a circumference
+      CONVERGED = 1.0e9
+      DO I = 1, 3
+         DO J = I, 3
+            IF (ABS(ICOV(I,J)).LT.CONVERGED) CONVERGED = ABS(ICOV(I,J))
+         ENDDO
+      ENDDO
+      CONVERGED = SQRT(CONVERGED)/2.0
+      IF (CONVERGED.le.0.0) THEN
+         WRITE (*,'("IMPACT: Covariance of IP zero; forced to 10^-6")')
+         CONVERGED = 1.0e-6
+      ENDIF
+
+      TOTALSTEPS = 0.0d0
+      XI    = PHI0
+100      T0(1) =  SINP0*(D0-1.0/IR) + SIN(XI) /IR
+         T0(2) = -COSP0*(D0-1.0/IR) - COS(XI) /IR
+         T0(3) =  Z0 + (XI-PHI0)*TANL/IR
+
+         T1(1) =  COSL*COS(XI)
+         T1(2) =  COSL*SIN(XI)
+         T1(3) =  COSL*TANL
+
+c        Go along the helix how much?  Not too far!
+         DSDIST = 0.0d0
+         DO J = 1,3
+            DSDIST    = DSDIST +(IP(J)-T0(J))*T1(J)
+         ENDDO
+         DSDIST = DSDIST / 2.0   (?)
+         IF (ABS(DSDIST*IR).GT.0.1) THEN
+            IF (DSDIST.LT.0.0) THEN
+               DSDIST = -ABS(0.1/IR)
+            ELSE
+               DSDIST = +ABS(0.1/IR)
+            ENDIF
+         ENDIF
+         XI    =  XI +ATAN(DSDIST*IR)
+         TOTALSTEPS = TOTALSTEPS +ABS(ATAN(DSDIST*IR))
+      IF ((ABS(DSDIST).GT.CONVERGED).and.(TOTALSTEPS.LT.P2I8)) GOTO 100
+      PSI = SNGL(XI-PHI0)
+      IF (TOTALSTEPS.GE.P2I8) THEN
+         WRITE (*,'("IMPACT: Did not converge along helix")')
+         DMIN = -1.0
+         DSIG = -1.0
+         IERR = 3
+         RETURN
+      ENDIF
+
+c     Propagate uncertainties through.  Find covariance for T0,
+c     which is later rotated into the direction from T0 to the IP.
+c     Variable name conventions: dXdR is partial of x coordinate of
+c     T0 w.r.t. IR; dXdF, w.r.t. PHI0; dYdD is the partial derivative of
+c     the Y coordinate of T0 w.r.t. D0; dZdT is partial w.r.t. TANL.
+c
+c     Basic formulas for propagating covariances in (u,v) through to
+c     (f,g) are:
+c
+c     COV(ff) = (df/fu)**2 COV(uu)      +  (df/fv)**2 COV(vv)
+c                                       + 2(df/du)(df/dv) COV(uv)
+c
+c     COV(fg) = (df/du)(dg/du) COV(uu)  + (df/dv)(dg/dv) COV(vv)
+c               +[(df/du)(dg/dv) + (df/dv)(dg/du)] COV(uv)
+c
+c     Golly Mr Peabody, are you sure all these derivatives are right?
+c
+      dXdR =  (SINP0 -SIN(XI)) / (IR*IR)
+      dYdR = -(COSP0 -COS(XI)) / (IR*IR)
+      dXdF =  (D0-1.0d0/IR)*COSP0 + COS(XI)/IR
+      dYdF =  (D0-1.0d0/IR)*SINP0 + SIN(XI)/IR
+      dXdD =   SINP0
+      dYdD =  -COSP0
+      dZdR =  -TANL*PSI/(IR*IR)
+      dZdT =   PSI/IR
+
+
+      sT0(1,1) =     TCOV(1,1)*dXdR*dXdR
+     &              +TCOV(3,3)*dXdF*dXdF
+     &              +TCOV(4,4)*dXdD*dXdD
+     &          +2.0*TCOV(1,3)*dXdR*dXdF
+     &          +2.0*TCOV(1,4)*dXdR*dXdD
+     &          +2.0*TCOV(3,4)*dXdF*dXdD
+
+      sT0(2,2) =     TCOV(1,1)*dYdR*dYdR
+     &              +TCOV(3,3)*dYdF*dYdF
+     &              +TCOV(4,4)*dYdD*dYdD
+     &          +2.0*TCOV(1,3)*dYdR*dYdF
+     &          +2.0*TCOV(1,4)*dYdR*dYdD
+     &          +2.0*TCOV(3,4)*dYdF*dYdD
+
+      sT0(3,3) =     TCOV(1,1)*dZdR*dZdR
+     &              +TCOV(2,2)*dZdT*dZdT
+     &              +TCOV(5,5)*1.00*1.00
+     &          +2.0*TCOV(1,2)*dZdR*dZdT
+     &          +2.0*TCOV(1,5)*dZdR*1.00
+     &          +2.0*TCOV(2,5)*dZdT*1.00
+
+      sT0(1,2) =     TCOV(1,1)*dXdR*dYdR
+     &              +TCOV(3,3)*dXdF*dYdF
+     &              +TCOV(4,4)*dXdD*dYdD
+     &              +TCOV(1,3)*(dXdR*dYdF+dXdF*dYdR)
+     &              +TCOV(1,4)*(dXdR*dYdD+dXdD*dYdR)
+     &              +TCOV(3,4)*(dXdF*dYdD+dXdD*dYdF)
+
+      sT0(1,3) =     TCOV(1,1)*dXdR*dZdR
+     &              +TCOV(1,2)*dXdR*dZdT
+     &              +TCOV(1,3)*dXdF*dZdR
+     &              +TCOV(1,4)*dXdD*dZdR
+     &              +TCOV(1,5)*dXdR*1.00
+     &              +TCOV(2,3)*dXdF*dZdT
+     &              +TCOV(2,4)*dXdD*dZdT
+     &              +TCOV(3,5)*dXdF*1.00
+     &              +TCOV(4,5)*dXdD*1.00
+
+      sT0(2,3) =     TCOV(1,1)*dYdR*dZdR
+     &              +TCOV(1,2)*dYdR*dZdT
+     &              +TCOV(1,3)*dYdF*dZdR
+     &              +TCOV(1,4)*dYdD*dZdR
+     &              +TCOV(1,5)*dYdR*1.00
+     &              +TCOV(2,3)*dYdF*dZdT
+     &              +TCOV(2,4)*dYdD*dZdT
+     &              +TCOV(3,5)*dYdF*1.00
+     &              +TCOV(4,5)*dYdD*1.00
+
+      DO I = 1, 3
+         DO J = 1, I-1
+            sT0(I,J) = sT0(J,I)
+         ENDDO
+      ENDDO
+
+c     Certainly, Sherman.
+c     Solve for the distance between the track and the IP, and draw
+c     VECTOR from the IP to the track.  Calculate VECTOR, and hence
+c     DMIN2, to single precision, but correctly!
+      DMIN2  = 0.0
+      DO I = 1,3
+         VECTOR(I) = SNGL(T0(I)) - IP(I)
+         DMIN2     = DMIN2   +DPROD(VECTOR(I),VECTOR(I))
+      ENDDO
+      IF (DMIN2.LT.0.0d0) THEN
+         WRITE (*,'("IMPACT: Impact parameter squared < 0")')
+         DMIN = -1.0
+         DSIG = -1.0
+         IERR = 1
+         RETURN
+      ENDIF
+      DMIN = SNGL(DSQRT(DMIN2))
+
+c     Rotate the covariance of the track onto VECTOR
+      ERRPNT(1) = SNGL(sT0(1,1))
+      ERRPNT(2) = SNGL(sT0(1,2))
+      ERRPNT(3) = SNGL(sT0(2,2))
+      ERRPNT(4) = SNGL(sT0(1,3))
+      ERRPNT(5) = SNGL(sT0(2,3))
+      ERRPNT(6) = SNGL(sT0(3,3))
+
+      CALL ROTATE (3, DUM1,DUM2, VECTOR, ERRPNT, DUM3, ROTERR, I)
+      IF (I.ne.0) THEN
+         WRITE (*,'("IMPACT: Track covariance not rotateable")')
+         DSIG = -1.0
+         IERR = -1
+         RETURN
+      ENDIF
+      DEL(1) = ROTERR(6)
+
+
+      ERRPNT(1) = ICOV(1,1)
+      ERRPNT(2) = ICOV(1,2)
+      ERRPNT(3) = ICOV(2,2)
+      ERRPNT(4) = ICOV(1,3)
+      ERRPNT(5) = ICOV(2,3)
+      ERRPNT(6) = ICOV(3,3)
+
+      CALL ROTATE (3, DUM1,DUM2, VECTOR, ERRPNT, DUM3, ROTERR, I)
+      IF (I.ne.0) THEN
+         WRITE (*,'("IMPACT: IP covariance not rotateable")')
+         DSIG = -1.0
+         IERR = -3
+         RETURN
+      ENDIF
+      DEL(2) = ROTERR(6)
+
+      DSIG = QUADD(DEL(1),DEL(2))
+
+      RETURN
+      END
+
+
+c=======================================================================
+    impact version 2 - from GArSoft.  Parameterization is 
+     (y0, z0, ρ, ϕ0, λ; x); (x, y0, z0) are a point on the helix (not a 
+     center as determined at drift position x) and are in cm; ρ is curvature 
+     of the track at that point in cm⁻¹, ϕ0 is the parameterizing angle at 
+     (x, y0, z0) as seen in the transverse plane w.r.t. the z axis, oriented 
+     to be 0 for a track in the z direction and +π/2 for a track in the y 
+     direction in the transverse plane, and λ is the angle of the track with 
+     respect to the transverse plane (equivalently, the angle with respect 
+     to the HV membrane).  The x parameter is a separate variable not in the 
+     track parameters, but is a parametizing variable isomorphic to phi.
+    
+    int TrackPropagator::DistXYZ(const float* trackpar, const float* Xpoint, const float *xyz, 
+                                 float* retDist) {
+
+        *retDist = 0;
+    
+        // just to make formulas more readable.  (xt,yt,zt) = test point.
+        float xt = xyz[0];
+        float yt = xyz[1];
+        float zt = xyz[2];
+
+        float x0 = Xpoint[0];
+        float y0 = trackpar[0];
+        float z0 = trackpar[1];
+        float curv = trackpar[2];
+        float phi0 = trackpar[3];
+
+        float s  = TMath::Tan(trackpar[4]);
+        if (s != 0) { s = 1.0/s;
+        } else      { s = 1E9;  }
+
+        float sinphi0 = TMath::Sin(phi0);
+        float cosphi0 = TMath::Cos(phi0);
+        float zc = trackpar[1] - sinphi0 / curv;
+        float yc = trackpar[0] + cosphi0 / curv;
+
+        if (curv == 0) {
+            // distance from a point to a line -- use the norm of the cross product of the
+            // unit vector along the line and the displacement between the test point and
+            // a point on the line
+
+            float h   = TMath::Sqrt(1.0 + s*s);
+            float xhc = s*(yt-y0)*(cosphi0/h) - s*(sinphi0/h)*(zt-z0);
+            float yhc = (zt-z0)/h             - s*(xt-x0)*(cosphi0/h);
+            float zhc = s*(xt-x0)*(sinphi0/h) - (yt-y0)/h;
+
+            *retDist = TMath::Sqrt( xhc*xhc + yhc*yhc + zhc*zhc );
+            return 1;
+        }
+
+        if (s == 0) {
+            // zero slope.  The track is another line, this time along the x axis
+
+            *retDist = TMath::Sqrt( TMath::Sq(yt-y0) + TMath::Sq(zt-z0) );
+            return 2;
+        }
+
+        // general case -- need to compute distance from a point to a helix
+        float r = 1.0/curv;
+        float span = TMath::Pi();
+        float gold = 1.61803398875;
+
+        // First guess is phi for this xt; but try also +/- a half turn as
+        // that could easily be closer
+        float phicent = (s*curv)*(xt-x0) +phi0;
+        float d2cent  = d2(xt,yt,zt, x0,yc,zc, r,s, phicent, phi0);
+        float philow  = phicent -span;
+        float d2low   = d2(xt,yt,zt, x0,yc,zc, r,s, philow,  phi0);
+        float phihi   = phicent +span;
+        float d2hi    = d2(xt,yt,zt, x0,yc,zc, r,s, phihi,   phi0);
+        if ( d2low<d2cent ) {
+            // In fact, d2low==d2high at this point.  Pick one solution,
+            // somewhat arbitrarily; go for the one closest to phi0.
+            if ( fabs(philow -phi0)<fabs(phihi -phi0) ) {
+                phicent = philow;
+            } else {
+                phicent = phihi;
+            }
+            philow = phicent -span;
+            phihi  = phicent +span;
+        }
+
+
+        // solve for phi of the closest point using quadratic fit; 18 iters gives
+        // phi to 1mrad accuracy
+        for (addr iter=0; iter<17; ++iter) {
+
+            // 2 coefficients of the quadratic; requires (phihi -phicent) == (phicent -philow)
+            float B  = (d2hi -d2low) / (2*span);
+            float A  = (d2hi +d2low -2*d2cent) / ( 2*span*span );
+            if ( A == 0 ) break;    // d2hi, d2low & d2cent all pretty close- just quit
+            phicent += -B / (2*A);
+            span    /= gold;
+            philow   = phicent -span;
+            phihi    = phicent +span;
+            d2cent = d2(xt,yt,zt, x0,yc,zc, r,s, phicent, phi0);
+            d2low  = d2(xt,yt,zt, x0,yc,zc, r,s, philow,  phi0);
+            d2hi   = d2(xt,yt,zt, x0,yc,zc, r,s, phihi,   phi0);
+        }
+
+        float xp = x0 + r*(phicent -phi0)/s;
+        float yp = yc - r*TMath::Cos(phicent);
+        float zp = zc + r*TMath::Sin(phicent);
+        *retDist = TMath::Sqrt( TMath::Sq(xt-xp) + TMath::Sq(yt-yp) + TMath::Sq(zt-zp) );
+
+        return 0;
+    }
+
+    float TrackPropagator::d2(float xt, float yt, float zt, float x0, float yc, float zc,
+                              float r, float s, float phi, float phi0) {
+        float dx = (xt -x0) - (r/s)*(phi -phi0);
+        float dy = (yt -yc) + r*TMath::Cos(phi);
+        float dz = (zt -zc) - r*TMath::Sin(phi);
+        return dx*dx + dy*dy + dz*dz;
+    }
+    
+
+C=======================================================================
+      SUBROUTINE ROTATE (NDIM, ORIGIN, POINT, VECTOR, ERRPNT,
+     >                                 ROTPNT,        ROTERR, IERR)
+C     Given a vector, a point, and a covariance matrix for some vertex
+C     this routine rotates the point, the vector and the tensor about
+C     an arbitrary point so that the vector is aligned with the Z axis. 
+C     Then of course the (zz) element of the matrix is the error from 
+C     the initial covariance matrix in the direction of the initial 
+C     vector.  The rotation is done as follows:  Taking the coordinate
+C     system to be fixed, the matrix and (POINT-ORIGIN) are rotated 
+C     about the z axis until VECTOR has a positive x component and
+C     zero y component.  If NDIM is 3, the matrix and (POINT-ORIGIN)
+C     are subsequently rotated about the y axis until VECTOR
+C     points along the z axis.
+C     
+C     From a routine of the same name by Fred Weber.
+C
+C     Must be linked to CERNLIBs
+C
+C     Inputs : NDIM        2 = 2-dimensional (x-y) rotation
+C                          3 = 3-dimensional rotation
+C                          all other values give error return
+C              ORIGIN(3)   rotation to be performed around this
+C                              point
+C              POINT (3)   three-d point
+C              VECTOR(3)   three-d vector
+C              ERRPNT(6)   covariance matrix in packed format:
+C                                     x   y   z
+C                                  x  1
+C                                  y  2   3
+C                                  z  4   5   6
+C
+C     Outputs: ROTPNT(3)   Rotated POINT-ORIGIN; if NDIM=2, 3rd value =0
+C              ROTERR(6)   Rotated error ellipse
+C              IERR        Failure flag:
+C                                  1 = bad NDIM
+C                                  2 = singular covariance matrix
+C                                  3 = bad rotated cov matrix
+
+      INTEGER NDIM, IERR
+      REAL    ORIGIN(3), POINT(3), VECTOR(3), ERRPNT(6),
+     >        ROTPNT(3), ROTERR(6)
+      INTEGER IBAD, JBAD, IR, IC, I
+      DOUBLE PRECISION VCOV(3,3), WORK(100), PHIROT, COSPHR,
+     >        SINPHR, ROTRPH(3,3), VMAT(3,3), SIGPRM(3,3),
+     >        THEROT, COSTHR, SINTHR, VTEST(3,3), DET, LSTPNT(3)
+      REAL XYPROJ, VECLEN
+
+      IF (NDIM.GT.3.OR.NDIM.LT.2) THEN
+         IERR = 1
+         RETURN
+      ELSE
+	 IERR = 0
+      ENDIF
+
+C     Initialize output variables:
+      DO I = 1, 3
+         ROTPNT(I) = 0.0
+      ENDDO
+      DO I = 1, 6
+         ROTERR(I) = 0.0
+      ENDDO
+
+C     Initialize the 3X3 x,y,z error matrix
+      VCOV(1,1) = ERRPNT(1)
+      VCOV(1,2) = ERRPNT(2)
+      VCOV(2,2) = ERRPNT(3)
+      VCOV(1,3) = ERRPNT(4)
+      VCOV(2,3) = ERRPNT(5)
+      VCOV(3,3) = ERRPNT(6)
+      VCOV(2,1) = VCOV(1,2)
+      VCOV(3,1) = VCOV(1,3)
+      VCOV(3,2) = VCOV(2,3)
+
+C     Check covariance matrix for singular or negative determinant 
+C     w/CERNLIB function DFACT (F011):
+      DO IR = 1, NDIM
+         DO IC = 1, NDIM
+            VTEST(IR,IC) = VCOV(IR,IC)
+         ENDDO
+      ENDDO
+      IF (NDIM.EQ.2) THEN
+         CALL DFACT(2,VTEST,3,WORK,IBAD,DET,JBAD)
+      ELSE
+         CALL DFACT(3,VTEST,3,WORK,IBAD,DET,JBAD)
+      ENDIF
+      IF (IBAD.NE.0 .OR. JBAD.NE.0 .OR. DET.LE.0.0) THEN
+         IERR = 2
+         RETURN
+      ENDIF
+
+C     Do the rotation in 2 dimensions first; start with obtaining
+C     the rotation angle:
+      IF (VECTOR(1).EQ.0.0) THEN
+         IF (VECTOR(2).GT.0.0) THEN
+            PHIROT =  3.141592653589D0/2.D0
+         ELSE
+            PHIROT = -3.141592653589D0/2.D0
+         ENDIF
+      ELSE
+         PHIROT = DBLE(ATAN2(VECTOR(2), VECTOR(1)))
+      ENDIF
+
+C     Build rotation matrix:
+      COSPHR = DCOS(PHIROT)
+      SINPHR = DSIN(PHIROT)
+      ROTRPH(1,1) =  COSPHR
+      ROTRPH(1,2) =  SINPHR
+      ROTRPH(2,1) = -SINPHR
+      ROTRPH(2,2) =  COSPHR
+      ROTRPH(1,3) = 0.D0
+      ROTRPH(2,3) = 0.D0
+      ROTRPH(3,1) = 0.D0
+      ROTRPH(3,2) = 0.D0
+      ROTRPH(3,3) = 1.D0
+
+C     Calculate the rotated error matrix:
+C                                                     T
+C            COV(xprime,yprime) = ROTRPH  VCOV  ROTRPH
+      DO IR = 1, 3
+         DO IC = 1, 3
+            VMAT(IR,IC) = VCOV(IR,1)*ROTRPH(IC,1) +
+     >                    VCOV(IR,2)*ROTRPH(IC,2) +
+     >                    VCOV(IR,3)*ROTRPH(IC,3)
+         ENDDO
+      ENDDO
+      DO IR = 1, 3
+         DO IC = 1, 3
+            SIGPRM(IR,IC) = ROTRPH(IR,1)*VMAT(1,IC) +
+     >                      ROTRPH(IR,2)*VMAT(2,IC) +
+     >                      ROTRPH(IR,3)*VMAT(3,IC)
+         ENDDO
+      ENDDO
+
+C     Check for consistency of rotated error matrix
+      IF ((SIGPRM(1,1).LE.0.D0) .OR. (SIGPRM(2,2).LE.0.D0) .OR.
+     >    (NDIM.EQ.3.AND.SIGPRM(3,3).LE.0.D0) ) THEN
+         IERR = 3
+         RETURN
+      ENDIF
+
+C     Perform rotation on POINT-ORIGIN:
+      LSTPNT(1) =  COSPHR*DBLE(POINT(1)-ORIGIN(1)) +
+     >             SINPHR*DBLE(POINT(2)-ORIGIN(2))
+      LSTPNT(2) = -SINPHR*DBLE(POINT(1)-ORIGIN(1)) +
+     >             COSPHR*DBLE(POINT(2)-ORIGIN(2))
+      LSTPNT(3) =  DBLE(POINT(3)-ORIGIN(3))
+      ROTPNT(1) =  SNGL(LSTPNT(1))
+      ROTPNT(2) =  SNGL(LSTPNT(2))
+      ROTPNT(3) =  SNGL(LSTPNT(3))
+
+      IF (NDIM.EQ.2) THEN
+C        Load output matrix and quit!
+         ROTERR(1) = SNGL(SIGPRM(1,1))
+         ROTERR(2) = SNGL(SIGPRM(1,2))
+         ROTERR(3) = SNGL(SIGPRM(2,2))
+         RETURN
+      ENDIF
+
+C     For 3-d, compute rotation angle to lay z axis onto 3D vector:
+      XYPROJ = SQRT( VECTOR(1)**2 + VECTOR(2)**2 )
+      VECLEN = SQRT( XYPROJ**2 + VECTOR(3)**2 )
+      IF (XYPROJ.NE.0.0) THEN
+C        Build rotation matrix:
+         THEROT = DBLE(ACOS(VECTOR(3)/VECLEN))
+         COSTHR = DCOS(THEROT)
+         SINTHR = DSIN(THEROT)
+         ROTRPH(1,1) =  COSTHR
+         ROTRPH(1,3) = -SINTHR
+         ROTRPH(3,1) =  SINTHR
+         ROTRPH(3,3) =  COSTHR
+         ROTRPH(2,2) = 1.D0
+         ROTRPH(1,2) = 0.D0
+         ROTRPH(3,2) = 0.D0
+         ROTRPH(2,1) = 0.D0
+         ROTRPH(2,3) = 0.D0
+
+C        Load the 3X3 x,y,z error matrix from the PREVIOUS rotation:
+         DO IR = 1, 3
+            DO IC = 1, 3
+               VCOV(IR,IC) = SIGPRM(IR,IC)
+            ENDDO
+         ENDDO
+
+C        And calculate the NEW rotated error matrix:
+         DO IR = 1, 3
+            DO IC = 1, 3
+               VMAT(IR,IC) = VCOV(IR,1)*ROTRPH(IC,1) +
+     >                       VCOV(IR,2)*ROTRPH(IC,2) +
+     >                       VCOV(IR,3)*ROTRPH(IC,3)
+            ENDDO
+         ENDDO
+         DO IR = 1, 3
+            DO IC = 1, 3
+               SIGPRM(IR,IC) = ROTRPH(IR,1)*VMAT(1,IC) +
+     >                         ROTRPH(IR,2)*VMAT(2,IC) +
+     >                         ROTRPH(IR,3)*VMAT(3,IC)
+            ENDDO
+         ENDDO
+
+C        Check for consistency of rotated error matrix
+         IF (SIGPRM(1,1).LE.0.D0.OR.SIGPRM(2,2).LE.0.D0.OR.
+     >       SIGPRM(3,3).LE.0.D0 ) THEN
+            IERR = 4
+            RETURN
+         ENDIF
+
+C        Perform rotation on ROTPNT (Note that I've already taken out
+C        ORIGIN above; mustn't do it again here!):
+         ROTPNT(1) =  SNGL( COSTHR*LSTPNT(1) - SINTHR*LSTPNT(3) )
+         ROTPNT(2) =  SNGL( LSTPNT(2) )
+         ROTPNT(3) =  SNGL( SINTHR*LSTPNT(1) + COSTHR*LSTPNT(3) )
+      ENDIF
+
+C     Load output matrix and quit!
+      ROTERR(1) = SNGL(SIGPRM(1,1))
+      ROTERR(2) = SNGL(SIGPRM(1,2))
+      ROTERR(3) = SNGL(SIGPRM(2,2))
+      ROTERR(4) = SNGL(SIGPRM(1,3))
+      ROTERR(5) = SNGL(SIGPRM(2,3))
+      ROTERR(6) = SNGL(SIGPRM(3,3))
+
+      RETURN
+      END
