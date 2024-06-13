@@ -3,6 +3,8 @@ BEGIN_PROLOG
 standard_beamgen:
 {
   module_type:	             BeamGen
+  useLongTargetFile:         true
+  longTargetFile:            /full/path/to/file/name.root
   particleType:		     "proton"
   xyDistSource:		     "Gauss"
   xyHistFile:		     ""

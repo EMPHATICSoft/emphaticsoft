@@ -32,6 +32,7 @@
 #include "CLHEP/Units/SystemOfUnits.h"
 
 #include "TFile.h"
+#include "TTree.h"
 #include "TRandom3.h"
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
@@ -54,11 +55,21 @@ namespace emph {
 
       void  configure(fhicl::ParameterSet const& ps);
 
+      void  beginJob();
+      void  endJob();
+
     private:
 
       void        GetXYHist();
       void        GetPXYHist();
       void        GetPID();
+
+      bool        fUseLongTargetFile;
+      std::string fLongTargetFileName;  
+      TFile*      fLongTargetFile;
+      TTree*      fLongTargetInputTree;
+      unit64_t    fLongTargetEvent;
+
 
       int         fPID;
       uint64_t    fEvtCount;
@@ -105,13 +116,16 @@ namespace emph {
   {
     //    fIsFirst      = true;
     fEvtCount     = 0;
-    
+    fLongTargetEvent = 0;
+
     produces<std::vector<simb::MCParticle> >();
     
     configure(ps);
-    GetXYHist();
-    GetPXYHist();
-    GetPID();
+    if (!fUseLongTargetFile) {
+      GetXYHist();
+      GetPXYHist();
+      GetPID();
+    }
     
   }
   
@@ -122,12 +136,36 @@ namespace emph {
   }
 
   /***************************************************************************/
+  void BeamGen::beginJob()
+  {
+    if (fUseLongTarget) {
+      assert(! fLongTargetFileName.empty());
+      fLongTargetFile = new TFile(fLongTargetFileName.c_str());
+      assert (fLongTargetFile);
+      // now "read in" the TTree, code should look something like what is commented out below
+      /*
+	fLongTargetInputTree = (TTree*)fLongTargetFile->Get("/path/to/tree");
+	fLongTargetInputTree->SetBranchAddress(...)
+       */
+	
+    }
+  }
+
+  /***************************************************************************/
+  void BeamGen::endJob()
+  {
+    if (fLongTargetFile) fLongTargetFile->Close();
+  }
+
+  /***************************************************************************/
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
     //    fNEvents       = ps.get<uint64_t>("NEvents",100);
     
     //    fRun           = ps.get<int>("runNum",1000000);
     //    fSubrun        = ps.get<int>("subrunNum",0);
+    fUseLongTarget = ps.get<bool>("useLongTargetFile",false);
+    fLongTargetFileName = ps.get<std::string>("longTargetFile","");
     fZstart        = ps.get<double>("Zstart", -200.); // in cm.  may not reach the Trigger counter, which is not in the geometry, in any case.. 
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
@@ -271,63 +309,83 @@ namespace emph {
         
     TRandom3 *rand = new TRandom3(0);
     gRandom = rand;
-    
+
+    std::unique_ptr<std::vector<simb::MCParticle> > beam(new std::vector<simb::MCParticle>);
+          
     // now get beam particle position
     TLorentzVector pos;
-    
-    pos[2] = fZstart; // units are mm for this
 
-    if (fXYHist) { // get random position from histogram
-      fXYHist->GetRandom2(pos[0],pos[1]);
-    }
-    else { // get random position from flat or Gaussian distribution
-      if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
-	  fXYDistSource == "flatxy") {
-	pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin))/CLHEP::cm;
-        pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin))/CLHEP::cm;
-      }
-      else { // default is Gauss
-//	std::cout << "here 1234" << std::endl;
-	pos[0] = rand->Gaus(fXmean,fXsigma)/CLHEP::cm;
-        pos[1] = rand->Gaus(fYmean,fYsigma)/CLHEP::cm;
-      }
-    }
-    pos[3] = 0.; // set time to zero
+    if (fUseLongTargetFile) {
+      // assume that the "next" entry in the TTree is from a new proton-on-target
+      fLongTargetInputTree->GetEntry(fLongTargetEventCount);
+      int currentLTevent = 0; //[get this from the TTree, do not leave set to 0!];
+      int nextLTevent = currentLTevent;
+      while (nextLTevent == currentLTevent) {
+	fLongTargetInputTree->GetEntry(fLongTargetEventCount++);
+	pos[2] = fZstart;	
+	// pos[0], pos[1] and mom vector should come from the TTree
+	TLorentzVector mom(0,0,0,0); // placeholder
+	// "pid" should also come from the TTree
+	simb::MCParticle mcp(-1,fPID, "");
+	mcp.AddTrajectoryPoint(pos, mom);
+	beam->push_back(mcp);
 
-    // now get beam particle momentum
-    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
-    double pb[3];
-    double pxpz,pypz;
-    
-    if (fPXYHist) {
-      fPXYHist->GetRandom2(pxpz,pypz);
+	// get the event number of the next entry in the tree...
+	fLongTargetInputTree->GetEntry(fLongTargetEventCount);
     }
-    else { // get random position from flat or Gaussian distribution
-      if (fPXYDistSource == "FlatPXY" || fPXYDistSource == "flatPXY" ||
-	  fPXYDistSource == "flatpxy") {
-	pxpz = fPXmin + rand->Uniform()*(fPXmax - fPXmin);
-	pypz = fPYmin + rand->Uniform()*(fPYmax - fPYmin);
+    else {
+      pos[2] = fZstart; // units are mm for this
+      
+      if (fXYHist) { // get random position from histogram
+	fXYHist->GetRandom2(pos[0],pos[1]);
       }
-      else { // default is Gauss
-	pxpz = rand->Gaus(fPXmean,fPXsigma);
-	pypz = rand->Gaus(fPYmean,fPYsigma);
+      else { // get random position from flat or Gaussian distribution
+	if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
+	    fXYDistSource == "flatxy") {
+	  pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin))/CLHEP::cm;
+	  pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin))/CLHEP::cm;
+	}
+	else { // default is Gauss
+	  //	std::cout << "here 1234" << std::endl;
+	  pos[0] = rand->Gaus(fXmean,fXsigma)/CLHEP::cm;
+	  pos[1] = rand->Gaus(fYmean,fYsigma)/CLHEP::cm;
+	}
       }
+      pos[3] = 0.; // set time to zero
+      
+      // now get beam particle momentum
+      double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+      double pb[3];
+      double pxpz,pypz;
+      
+      if (fPXYHist) {
+	fPXYHist->GetRandom2(pxpz,pypz);
+      }
+      else { // get random position from flat or Gaussian distribution
+	if (fPXYDistSource == "FlatPXY" || fPXYDistSource == "flatPXY" ||
+	    fPXYDistSource == "flatpxy") {
+	  pxpz = fPXmin + rand->Uniform()*(fPXmax - fPXmin);
+	  pypz = fPYmin + rand->Uniform()*(fPYmax - fPYmin);
+	}
+	else { // default is Gauss
+	  pxpz = rand->Gaus(fPXmean,fPXsigma);
+	  pypz = rand->Gaus(fPYmean,fPYsigma);
+	}
+      }
+      
+      pb[2] = pmag/TMath::Sqrt(1. + pxpz*pxpz + pypz*pypz);
+      pb[0] = pxpz*pb[2];
+      pb[1] = pypz*pb[2];
+      
+      double energy = TMath::Sqrt(pmag*pmag + fMass*fMass);
+      TLorentzVector mom(pb[0],pb[1],pb[2],energy);
+      
+      // get beam information
+      simb::MCParticle mcp(-1,fPID, "");
+      mcp.AddTrajectoryPoint(pos, mom);
+      beam->push_back(mcp);
     }
 
-    pb[2] = pmag/TMath::Sqrt(1. + pxpz*pxpz + pypz*pypz);
-    pb[0] = pxpz*pb[2];
-    pb[1] = pypz*pb[2];
-
-    double energy = TMath::Sqrt(pmag*pmag + fMass*fMass);
-    TLorentzVector mom(pb[0],pb[1],pb[2],energy);
-    
-    std::unique_ptr<std::vector<simb::MCParticle> > beam(new std::vector<simb::MCParticle>);
-    
-    // get beam information
-    simb::MCParticle mcp(-1,fPID, "");
-    mcp.AddTrajectoryPoint(pos, mom);
-    beam->push_back(mcp);
-    
     // now add beam to the event    
     evt.put(std::move(beam));
     /*
