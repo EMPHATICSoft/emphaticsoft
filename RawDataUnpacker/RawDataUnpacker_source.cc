@@ -86,6 +86,8 @@ namespace rawdata {
     fReadSSDData = ps.get<bool>("readSSDData",false);
     fReadCAENData = ps.get<bool>("readCAENData",false);
     fReadTRB3Data = ps.get<bool>("readTRB3Data",false);
+    fNFER = ps.get<int>("NFER",0);
+    fBCOx = ps.get<double>("BCOx",151.1515152);
     fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
     fMakeTimeWalkHistos = ps.get<bool>("makeTimeWalkHistos",false);
 
@@ -175,8 +177,8 @@ namespace rawdata {
       fSSDRawDigits.push_back(ssdDigs);
     }
     if (fSSDRawDigits.size() > 1) {
-      fSSDT0 = fSSDRawDigits[0].first; 
-      fSSDEvtIdx = 0;
+      fSSDT0 = fSSDRawDigits[1].first; 
+      fSSDEvtIdx = 1;
     }
     
     std::cout <<  "Found " << fSSDRawDigits.size() << " SSD events"
@@ -370,12 +372,15 @@ namespace rawdata {
 
   void Unpacker::calcTimeWalkCorr()
   {
+    std::cout << "Entering \"calcTimeWalkCorr\"" << std::endl;
+
     if (! fdTvsT.empty()) return; // note, this should _never_ happen...
 
     art::ServiceHandle<art::TFileService> tfs;
     art::TFileDirectory tdir3 = tfs->mkdir("TimeWalk","");	  
     char hname[256];
     char htitle[256];    
+    // create histograms for CAEN and TRB3 boards
     for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
       auto fragId = fFragId[ifrag];
       sprintf(hname,"tBoard_%d",fragId);
@@ -390,13 +395,26 @@ namespace rawdata {
 	      fragId, fragId);
       fTvsFrag[fragId] = tdir3.make<TH2D>(hname,htitle,500,0.,float(fFragTimestamps[fragId].size()), 500,0.,5.);
     }
-
+    // now create histograms for SSDs
+    sprintf(hname,"tSSD");
+    sprintf(htitle,";SSD Timestamp;Num. Fragments");
+    fSSDTHist = tdir3.make<TH1D>(hname,htitle,500,0.,5.);
+    sprintf(hname,"twSSD");
+    sprintf(htitle,"Event Time Walk SSD; Board 0 Timestamp (s); SSD (ns)");
+    fSSDdTvsT = tdir3.make<TH2D>(hname,htitle,250,0.,5.,2000,-10000.,10000.);
+    sprintf(hname,"tVsSSDFrag");
+    sprintf(htitle,"; SSD Frag. Num.; SSD Timestamp");
+    fSSDTvsFrag = tdir3.make<TH2D>(hname,htitle,500,0.,float(fSSDRawDigits.size()), 500,0.,5.);
+    sprintf(hname,"tSSDdT");
+    sprintf(htitle,"; t (Fragment); t (SSD)");
+    fSSDdTHist = tdir3.make<TH2D>(hname,htitle,1000,0.,5.,1000,0.,5.);
+    
     double tB;
 
     for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
       auto fragId = fFragId[ifrag];
       for (size_t i=fFragCounter[fragId]; i<fFragTimestamps[fragId].size(); ++i) {
-	tB = double(fFragTimestamps[fragId][i] - fT0[fragId]);	
+	tB = double(fFragTimestamps[fragId][i] - fT0[fragId]);
 	fTHist[fragId]->Fill(tB*1.e-9);
 	fTvsFrag[fragId]->Fill(float(i),fFragTimestamps[fragId][i]*1.e-9);
 	/*
@@ -408,14 +426,39 @@ namespace rawdata {
       }
     }
 
+    int nBadFER=0;
+    for (size_t issdEvt=1; issdEvt<fSSDRawDigits.size(); ++issdEvt) {
+      auto & digvec = fSSDRawDigits[issdEvt].second; 
+      tB = double(fSSDRawDigits[issdEvt].first)-fSSDT0;
+      //      std::cout << "tB(ssd) = " << tB*150 << std::endl;
+      fSSDTHist->Fill(tB*fBCOx*1.e-9);
+      fSSDTvsFrag->Fill(float(issdEvt),tB*fBCOx*1.e-9);
+    }
+
     // fill time walk histos. 
     // first, loop over fragment times of Board 0
     double tB0;
     double dtB;
     size_t nneigh = 500;
 
-    for (size_t i=fFragCounter[0]; i<fFragTimestamps[0].size(); ++i) {
-      tB0 = double(fFragTimestamps[0][i] - fT0[0]);	
+    double tssd;
+    double tfrag;
+    auto fragId = fFragId[0];
+    std::cout << "Using Fragment " << fragId << std::endl;
+
+    for (size_t i=fFragCounter[fragId]; i<fFragTimestamps[fragId].size(); ++i) {
+      tfrag = (fFragTimestamps[fragId][i] - fT0[fragId])*1.e-9;      
+      for (size_t j=0; j<fSSDRawDigits.size(); ++j) {	
+	tssd = (fSSDRawDigits[j].first - fSSDT0)*fBCOx*1.e-9;
+	//	std::cout << i << "," << j << ":" << tfrag << ", " << tssd << std::endl;
+	fSSDdTHist->Fill(tfrag,tssd,1./(1+fabs(tfrag-tssd)));
+      }
+    }
+
+    //    for (size_t i=fFragCounter[0]; i<fFragTimestamps[0].size(); ++i) {
+    for (size_t i=nneigh; i<fFragTimestamps[fragId].size(); ++i) {
+      tB0 = double(fFragTimestamps[fragId][i] - fT0[fragId]);	
+      //      std::cout << "tB0 = " << tB0 << std::endl;
 
       // now loop over Boards
       for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
@@ -424,23 +467,59 @@ namespace rawdata {
 
 	// find fragment times that are within 10 us
 	//	double dtmin=1.e9;
-	tB = fFragTimestamps[fragId][i] - fT0[fragId];
-	dtB = tB - tB0;
-	if (abs(dtB) < 10000) 
-	  fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
-	
-	for (size_t j=1; j<nneigh; ++j) {	  
-	  if ((i+j) == fFragTimestamps[fragId].size()) break;
-	  tB = fFragTimestamps[fragId][i+j] - fT0[fragId];
+	if (i<fFragTimestamps[fragId].size()) {
+	  tB = fFragTimestamps[fragId][i] - fT0[fragId];
 	  dtB = tB - tB0;
 	  if (abs(dtB) < 10000) 
 	    fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
 	  
-	  tB = fFragTimestamps[fragId][i-j] - fT0[fragId];
-	  dtB = tB - tB0;
-	  if (abs(dtB) < 10000) 
-	    fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
+	  for (size_t j=1; j<nneigh; ++j) {	  
+	    if ((i+j) == fFragTimestamps[fragId].size()) break;
+	    tB = fFragTimestamps[fragId][i+j] - fT0[fragId];
+	    dtB = tB - tB0;
+	    if (abs(dtB) < 10000) 
+	      fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
+	    
+	    tB = fFragTimestamps[fragId][i-j] - fT0[fragId];
+	    dtB = tB - tB0;
+	    if (abs(dtB) < 10000) 
+	      fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
+	  }
 	}
+      }
+
+      // do the same for the SSDs
+      if (i<fSSDRawDigits.size()) {
+	tB = double(fSSDRawDigits[i].first - fSSDT0);
+	tB *= fBCOx;
+	dtB = tB - tB0;
+	double mindtB = abs(dtB);
+	//	std::cout << "tB0 = " << tB0 << ", tB = " << tB << ", dtB = " << dtB << std::endl;
+	if (abs(dtB) < 10000)
+	  fSSDdTvsT->Fill(tB0*1.e-9,dtB);
+	
+	for (size_t j=1; j<nneigh; ++j) {	  
+	  if ((i+j) == fSSDRawDigits.size()) break;
+	  tB = double(fSSDRawDigits[i+j].first - fSSDT0);
+	  tB *= fBCOx;
+	  dtB = tB - tB0;
+	  if (abs(dtB) < mindtB) mindtB = abs(dtB);
+	  //	  std::cout << "tB0 = " << tB0 << ", tB = " << tB << ", dtB = " << dtB << std::endl;
+	  if (abs(dtB) < 10000) 
+	    fSSDdTvsT->Fill(tB0*1.e-9,dtB);
+	  
+	  tB = double(fSSDRawDigits[i-j].first - fSSDT0);
+	  tB *= fBCOx;
+	  dtB = tB - tB0;
+	  if (abs(dtB) < mindtB) mindtB = abs(dtB);
+	  //	  std::cout << "tB0 = " << tB0 << ", tB = " << tB << ", dtB = " << dtB << std::endl;
+	  if (abs(dtB) < 10000) 
+	    fSSDdTvsT->Fill(tB0*1.e-9,dtB);
+	}
+	
+	//	std::cout << "tB0 = " << tB0 << ", min. dtB = " << mindtB << std::endl;
+      }
+    
 	//	std::cout << "Frag. " << fragId << " nearest ts is " << nndist << " fragments away, dt = " << dtmin << std::endl;
 	/*
 	if (!nfill) {
@@ -459,7 +538,6 @@ namespace rawdata {
       }
 	*/
 	
-      }
     }
 
     for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
@@ -505,12 +583,14 @@ namespace rawdata {
       }
     }
 
-    // low find offset indices for each board relative to board 0 so that dt's line up across all boards.  
+    // low find offset indices for each board relative to board 0 so that dt's line up across all CAEN boards.  
     bool linedUp = true;
     double dt;
     for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
       auto fragId = fFragId[ifrag];
+      iboff[fragId] = 20;
       if (fragId == 0) continue;
+      if (fragId > 10) continue;
       size_t ioff = 0;
       for ( ; ioff<2*iboff[0]; ++ioff) {	
 	//      int64_t dtsum=0;
@@ -530,8 +610,13 @@ namespace rawdata {
 	}
       }
     }
-    if (!linedUp) return false;
+    
+    if (!linedUp) {
+      std::cout << "Unable to find where CAEN boards line up..." << std::endl;
+      return false;
+    }
 
+    //    std::cout << "here" << std::endl;
     // we should now try to find a smaller "offset" than 20, but that can wait 
     // for when I have more time, for now we eat the loss of 20ish events
     for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
@@ -560,6 +645,7 @@ namespace rawdata {
       
       }
     */
+    std::cout << "Done finding T0s" << std::endl;
     return true;
   }
   
@@ -644,6 +730,7 @@ namespace rawdata {
       fIsFirst = false;
     }
 
+    return true;
     //    art::ServiceHandle<emph::cmap::ChannelMapService> fChannelMap;
 
     auto tB0ns = fFragTimestamps[0][fFragCounter[0]] - fT0[0];
