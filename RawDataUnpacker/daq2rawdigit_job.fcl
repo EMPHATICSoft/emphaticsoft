@@ -21,12 +21,14 @@ source:
   timeWindow: 50000
   nEvents: 0
   verbosity: 0
-  channelMapFileName: "ChannelMap_Jun22.txt"
-  SSDFilePrefix: "/emph/data/data/June2022/SSD/Merged/"
+  channelMapFileName: "ChannelMap_Mar23.txt"
+  SSDFilePrefix: "/emph/data/users/lackey32/unpack1c/ssdMerged/"
   readSSDData:  true
   readTRB3Data: true
   readCAENData: true
   firstSubRunHasExtraTrigger: true
+  NFER: 5
+  BCOx: 150 #150.659 #(8/53.1MHz)^9 
 }
 
 outputs:

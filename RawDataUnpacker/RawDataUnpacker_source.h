@@ -72,11 +72,14 @@ namespace emph {
       int     fNumWaveFormPlots;
       int     fRun;
       int     fSubrun;
+      int     fNFER;
       uint64_t fNEvents;
       uint64_t fEvtCount;
       uint64_t fTimeOffset;
       uint64_t fTimeWindow;
       uint64_t fPrevTS;
+      double   fBCOx;
+
       art::Timestamp fSpillTime;
 
       emph::cmap::ChannelMap* fChannelMap;
@@ -110,6 +113,10 @@ namespace emph {
       std::unordered_map<artdaq::Fragment::fragment_id_t,TH2D*> fdTvsT;
       std::unordered_map<artdaq::Fragment::fragment_id_t,TH2D*> fTvsFrag;
       std::unordered_map<artdaq::Fragment::fragment_id_t,TH1D*> fTHist;
+      TH2D* fSSDdTvsT;
+      TH2D* fSSDTvsFrag;
+      TH1D* fSSDTHist;
+      TH2D* fSSDdTHist;
 
       TTree* fTRB3Tree;
       std::vector<uint32_t> fTRB3_HeaderWord;
