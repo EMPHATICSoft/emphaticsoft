@@ -68,7 +68,7 @@ namespace emph {
       std::string fLongTargetFileName;  
       TFile*      fLongTargetFile;
       TTree*      fLongTargetInputTree;
-      unit64_t    fLongTargetEvent;
+      uint64_t    fLongTargetEvent;
 
 
       int         fPID;
@@ -116,7 +116,7 @@ namespace emph {
   {
     //    fIsFirst      = true;
     fEvtCount     = 0;
-    fLongTargetEvent = 0;
+    fLongTargetFile = 0;
 
     produces<std::vector<simb::MCParticle> >();
     
@@ -138,7 +138,7 @@ namespace emph {
   /***************************************************************************/
   void BeamGen::beginJob()
   {
-    if (fUseLongTarget) {
+    if (fUseLongTargetFile) {
       assert(! fLongTargetFileName.empty());
       fLongTargetFile = new TFile(fLongTargetFileName.c_str());
       assert (fLongTargetFile);
@@ -164,7 +164,7 @@ namespace emph {
     
     //    fRun           = ps.get<int>("runNum",1000000);
     //    fSubrun        = ps.get<int>("subrunNum",0);
-    fUseLongTarget = ps.get<bool>("useLongTargetFile",false);
+    fUseLongTargetFile = ps.get<bool>("useLongTargetFile",false);
     fLongTargetFileName = ps.get<std::string>("longTargetFile","");
     fZstart        = ps.get<double>("Zstart", -200.); // in cm.  may not reach the Trigger counter, which is not in the geometry, in any case.. 
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
@@ -317,11 +317,11 @@ namespace emph {
 
     if (fUseLongTargetFile) {
       // assume that the "next" entry in the TTree is from a new proton-on-target
-      fLongTargetInputTree->GetEntry(fLongTargetEventCount);
+      fLongTargetInputTree->GetEntry(fLongTargetEvent);
       int currentLTevent = 0; //[get this from the TTree, do not leave set to 0!];
       int nextLTevent = currentLTevent;
       while (nextLTevent == currentLTevent) {
-	fLongTargetInputTree->GetEntry(fLongTargetEventCount++);
+	fLongTargetInputTree->GetEntry(fLongTargetEvent);
 	pos[2] = fZstart;	
 	// pos[0], pos[1] and mom vector should come from the TTree
 	TLorentzVector mom(0,0,0,0); // placeholder
@@ -331,7 +331,8 @@ namespace emph {
 	beam->push_back(mcp);
 
 	// get the event number of the next entry in the tree...
-	fLongTargetInputTree->GetEntry(fLongTargetEventCount);
+	fLongTargetInputTree->GetEntry(fLongTargetEvent);
+    	}
     }
     else {
       pos[2] = fZstart; // units are mm for this
