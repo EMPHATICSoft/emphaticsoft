@@ -23,6 +23,9 @@ TH1F* hTargetZ;
 TH1F* hRecoMomTotRes;
 TH1F* hRecoMomTransRes;
 TH1F* hRecoMomLongRes;
+TH2F* hRecoVsTruePt;
+TH2F* hRecoVsTruePx;
+TH2F* hRecoVsTruePy;
 
 void caf_singleTrkPlots(std::string fname)
 {
@@ -114,6 +117,9 @@ void caf_singleTrkPlots(std::string fname)
   hRecoMomTotRes = new TH1F("hRecoMomTotRes","hRecoMomTotRes",500,-1.,1.);
   hRecoMomTransRes = new TH1F("hRecoMomTransRes","hRecoMomTransRes",500,-1.,1.);
   hRecoMomLongRes = new TH1F("hRecoMomLongRes","hRecoMomLongRes",500,-1.,1.);
+  hRecoVsTruePt = new TH2F("hRecoVsTruePt","hRecoVsTruePt",100,0.,0.1,100,0.,0.1);
+  hRecoVsTruePx = new TH2F("hRecoVsTruePx","hRecoVsTruePx",100,0.,0.1,100,0.,0.1);
+  hRecoVsTruePy = new TH2F("hRecoVsTruePy","hRecoVsTruePy",100,0.,0.1,100,0.,0.1);
 
   TGraph* gRecoHits_xz[100];
   TGraph* gRecoHits_yz[100];
@@ -241,10 +247,10 @@ void caf_singleTrkPlots(std::string fname)
           if (h.GetZ > magnetdsz) truthhit_track3.push_back(h);
 
           if (h.GetStation == 4 && h.GetPlane == 1){
-            if (abs(h.GetX) < 17.5 && abs(h.GetY) < 17.5) good4 = true;
+            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) good4 = true;
           }
 	  if (h.GetStation == 5 && h.GetPlane == 0){
-            if (abs(h.GetX) < 17.5 && abs(h.GetY) < 17.5) good5 = true;
+            if (abs(h.GetX) < 15 && abs(h.GetY) < 15) good5 = true;
           }
 	  if (good4 && good5) goodHit = true;
           //goodHit = true;
@@ -357,6 +363,7 @@ void caf_singleTrkPlots(std::string fname)
 	hBendVsRecoOmegaAt4->Fill(omega4,recoAngle);
 	//hRecoBendXY->Fill(x4,y4,recoAngle);
         pRecoBendXY->Fill(x4,y4,recoAngle);
+	//std::cout<<"recoAngle: "<<recoAngle<<std::endl;
 
 	double t5 = (zreco[5] - rec->sgmnts.seg[2].vtx[2])/rec->sgmnts.seg[2].mom.z;
         double x5 = rec->sgmnts.seg[2].vtx[0]+t5*rec->sgmnts.seg[2].mom.x;
@@ -447,24 +454,33 @@ void caf_singleTrkPlots(std::string fname)
         int ntrks = int(rec->trks.trk.size());
         if (ntrks == 2) {
 	//double recop = rec->trks.trk[1].mom.Mag(); //doesn't work?
-        double recopx = rec->trks.trk[1].mom.X();
-        double recopy = rec->trks.trk[1].mom.Y();
-	double recopz = rec->trks.trk[1].mom.Z();
+        //double recopx = rec->trks.trk[1].mom.X();
+        //double recopy = rec->trks.trk[1].mom.Y();
+	//double recopz = rec->trks.trk[1].mom.Z();
+	double recopx = rec->sgmnts.seg[2].mom.X();
+        double recopy = rec->sgmnts.seg[2].mom.Y();
+        double recopz = rec->sgmnts.seg[2].mom.Z();
+
 	double recopt = sqrt(recopx*recopx+recopy*recopy);
 	double recop = sqrt(recopt*recopt+recopz*recopz);
+	std::cout<<"recopz: "<<recopz<<std::endl;
 
         //std::cout<<"Recopx: "<<recopx<<std::endl;
         //std::cout<<"Recopy: "<<recopy<<std::endl;
         //std::cout<<"Recopz: "<<recopz<<std::endl;
 	for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
           caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
-          if (h.GetStation >= 2 && h.GetPlane == 0){ //not sure if this is right? include trck segment 3 too?
+          if (h.GetStation >= 5){ // && !isnan(recopy)){ // && h.GetPlane == 0){ //not sure if this is right? include trck segment 3 too?
 	    double truept = sqrt(h.GetPx*h.GetPx+h.GetPy*h.GetPy);
 	    double truepz = sqrt(h.GetPz*h.GetPz);
 	    double truep = sqrt(truept*truept+h.GetPz*h.GetPz);
 	    hRecoMomTotRes->Fill(recop - truep);	
 	    hRecoMomTransRes->Fill(recopt - truept);
 	    hRecoMomLongRes->Fill(recopz - truepz);
+	    hRecoVsTruePt->Fill(truept,recopt);
+	    hRecoVsTruePx->Fill(h.GetPx,recopx);
+	    hRecoVsTruePy->Fill(h.GetPy,recopy);
+	    if (truept > 0.05) std::cout<<"recopx = "<<recopx<<", recopy = "<<recopy<<std::endl;
           }
         }
         //std::cout<<"Recop: "<<recop<<std::endl;
@@ -757,8 +773,9 @@ void caf_singleTrkPlots(std::string fname)
        int n = pRecoBendXY->GetBin(i,j);
        double z = pRecoBendXY->GetBinContent(n);
        int w = pRecoBendXY->GetBinEntries(n);
-       hRecoBendXY->SetBinContent(i,j,z/w);
-       std::cout<<"z/w: "<<z/w<<std::endl;
+       hRecoBendXY->SetBinContent(i,j,z); ///w);
+       //std::cout<<"z/w: "<<z/w<<std::endl;
+       //std::cout<<"z: "<<z<<"...w: "<<w<<std::endl;
     }
   }
 
@@ -815,6 +832,9 @@ void caf_singleTrkPlots(std::string fname)
   hRecoMomTotRes->Write();
   hRecoMomTransRes->Write();
   hRecoMomLongRes->Write();
+  hRecoVsTruePt->Write();
+  hRecoVsTruePx->Write();
+  hRecoVsTruePy->Write();
 
   //for (int i=0; i<100; i++){
   //  if (gHits_xz[i]->GetListOfGraphs()) std::cout<<"true"<<std::endl; //gHits_xz[i]->Write();
