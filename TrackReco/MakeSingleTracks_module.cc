@@ -48,6 +48,7 @@
 #include "RecoUtils/RecoUtils.h"
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
+#include "TrackReco/SingleTrackAlgo.h"
 
 using namespace emph;
 
@@ -398,7 +399,7 @@ namespace emph {
 	 p[1] = dy/dz;
 	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts1.SetP(p);
-	 tsv.push_back(ts1);
+	 //tsv.push_back(ts1);
 
 	 rb::TrackSegment ts2 = rb::TrackSegment();
 	 for (auto p : spv)
@@ -413,7 +414,7 @@ namespace emph {
 	 p[1] = dy/dz;
 	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts2.SetP(p);
-	 tsv.push_back(ts2);
+	 //tsv.push_back(ts2);
 
 	 rb::TrackSegment ts3 = rb::TrackSegment();
 	 for (auto p : spv)
@@ -428,7 +429,7 @@ namespace emph {
 	 p[1] = dy/dz;
 	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 	 ts3.SetP(p);
-	 tsv.push_back(ts3);
+	 //tsv.push_back(ts3);
 
 	 //may need to define outside of function
 	 double ts2_dot_ts3 = ts2.P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
@@ -436,9 +437,56 @@ namespace emph {
          double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
 	 double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
 	 double recop = recoFcn2.getMomentum(recoBendAngle);
-	 double recopz = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1.);
-	 double recopx = sqrt(recop*recop/(recopz*recopz) - 1. - ts2.P()[1]*ts2.P()[1])*recopz;
-	 double recopy = sqrt(recop*recop - recopz*recopz - recopx*recopx);
+         //double recopztest = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1.);
+	 //double recopz = recop*ts2.P()[2];
+
+	 //change track segments
+	 double realp1[3];
+	 realp1[2] = recop*ts1.P()[2];
+         realp1[0] = ts1.P()[0]*realp1[2];
+         realp1[1] = ts1.P()[1]*realp1[2];
+	 ts1.SetP(realp1);
+	 tsv.push_back(ts1);
+
+         double realp2[3];
+         realp2[2] = recop*ts2.P()[2];
+         realp2[0] = ts2.P()[0]*realp2[2];
+         realp2[1] = ts2.P()[1]*realp2[2];
+         ts2.SetP(realp2);
+         tsv.push_back(ts2);
+
+         double realp3[3];
+         realp3[2] = recop*ts3.P()[2];
+         realp3[0] = ts3.P()[0]*realp3[2];
+         realp3[1] = ts3.P()[1]*realp3[2];
+         ts3.SetP(realp3);
+         tsv.push_back(ts3);
+/*
+	 std::vector<rb::TrackSegment> tsvtemp = {ts1,ts2,ts3}; 
+	 for (size_t i=0; i<tsvtemp.size(); i++){
+	   double realp[3];
+	   //realp[2] = tsv[i].P()[2]*recop;
+	   realp[2] = recopztest;
+	   realp[0] = tsvtemp[i].P()[0]*realp[2];
+	   realp[1] = tsvtemp[i].P()[1]*realp[2];
+	   //  pz --> pz*p
+	   //  px --> px*pz
+	   //  py --> py*pz
+           tsvtemp[i].SetP(realp);
+	   tsv.push_back(tsvtemp[i]);
+	 }
+*/	 
+	 //is this correct?
+	 //now pz resolution looks weird?
+	 //check pz?
+	 //double recopz = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1.);
+	 double recopz = ts2.P()[2];
+	 //double recopx = sqrt(recop*recop/(recopz*recopz) - 1. - ts2.P()[1]*ts2.P()[1])*recopz;
+	 //double recopy = sqrt(recop*recop - recopz*recopz - recopx*recopx);
+	 double recopx = ts2.P()[0];
+	 double recopy = ts2.P()[1];
+	 //something is wrong...
+
          //std::cout<<"Recopx: "<<recopx<<std::endl;
          //std::cout<<"Recopy: "<<recopy<<std::endl;
          //std::cout<<"Recopz: "<<recopz<<std::endl;	
@@ -523,6 +571,15 @@ namespace emph {
       try {
 	evt.getByLabel(fClusterLabel, clustH);
 	if (!clustH->empty()){
+
+	  //emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(nStations,nPlanes);
+	  //SingleTrackAlgo algo = SingleTrackAlgo(fEvtNum,nStations,nPlanes,fG4Label,fClusterLabel,fClusterCut); 
+/*
+	  if (algo.MakeSelection(evt,fClustercut)){
+	    spv = algo.MakeHits(;
+	    if (algo.MakeRegions(spv)){
+	      tsv = algo.MakeLines();
+*/
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
 	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
@@ -599,6 +656,9 @@ namespace emph {
 	    if (cl_group[i].size() == 0){ goodEvent = false; break; }
 	    }
           */
+
+         //instance of single track algorithm
+         emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(nStations,nPlanes);
  
 	  //grab line segments from SSDCluster handle
 	  if (goodEvent == true){
@@ -609,7 +669,8 @@ namespace emph {
 	    }
 
 	    //make reconstructed hits
-	    MakeHits();
+	    //MakeHits();
+	    spv = algo.MakeHits(cl_group,ls_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
 	  }
@@ -634,9 +695,14 @@ namespace emph {
 	    }
 
             //form lines and fill plots
-            MakeLines();
+            //MakeLines();
+            tsv = algo.MakeLines(sp1,sp2,sp3);
 	    for (auto ts : tsv) {
 	      tracksegmentv->push_back(ts);	     
+	    }
+	    for (int i=0; i<3; ++i) {
+	      sectrkp[i] = algo.GetSecTrkP()[i];
+	      sectrkvtx[i] = algo.GetSecTrkVtx()[i];
 	    }
 	  }
           sp1.clear();
