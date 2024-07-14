@@ -20,13 +20,7 @@ source:
 
 outputs:
 {
- out1:
-  {
-   module_type: RootOutput
-   fileName:    "ssd_align_hist_r%r_s%04s.root"
-   fastCloning: false
-   
-  }
+ 
 }
 
 # Define and configure some modules to do work on each event.
@@ -39,15 +33,17 @@ physics:
  {
 	dataqual:     @local::standard_dataqual
 	clust:        @local::standard_ssdclust
-	ssdalignment: @local::standard_ssdalignment
  }	
 
- reco: [ dataqual, clust, ssdalignment ]
+ analyzers:
+ {
+	ssdalignment: @local::standard_ssdalignment
+ }
+
+ p1: [ dataqual, clust ]
+ e1: [ ssdalignment ]
 	
- analyzers:{}
-
- trigger_paths: [ reco ]
-
- stream1: [ out1 ]
+ trigger_paths: [ p1 ]
+ end_paths: [ e1 ]
 
 }

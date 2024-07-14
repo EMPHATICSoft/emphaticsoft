@@ -528,13 +528,13 @@ namespace emph {
 
     // make sure to set the fTrackIDOffset with the highest G4 track id + 100
     // the 100 gives some cushion between lists
-    int highestID = 0;
+    //    int highestID = 0;
     for(sim::ParticleNavigator::iterator itr = fParticleNav->begin(); itr != fParticleNav->end(); ++itr){
       plist.push_back(*((*itr).second));
-      if((*itr).first > highestID) highestID = (*itr).first;
+      //      if((*itr).first > highestID) highestID = (*itr).first;
     }
 
-    fTrackIDOffset = highestID + 100;
+    //    fTrackIDOffset = highestID + 100;
 
     MF_LOG_DEBUG("ParticleListAction") << *fParticleNav << "\ntrack id offset is now " << fTrackIDOffset;
 
