@@ -72,10 +72,6 @@ namespace emph {
     void beginJob();
     void endJob();
 
-    void    MakeSegment(const rb::SSDCluster& cl, rb::LineSegment& ls);
-    void    MakeHits();
-    void    MakeLines();
-
   private:
   
     TTree*      spacepoint;
@@ -83,7 +79,7 @@ namespace emph {
     int         fEvtNum;
 
     std::vector<const rb::SSDCluster*> clusters;
-    std::vector<const rb::LineSegment*> linesegments;
+    std::vector<rb::LineSegment> linesegments;
     std::vector<rb::SpacePoint> spv;
     std::vector<rb::TrackSegment> tsv;
     std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
@@ -99,7 +95,6 @@ namespace emph {
     int         badclust = 0; 
     size_t      nPlanes;
     size_t      nStations;
-    int         st;
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
@@ -107,31 +102,10 @@ namespace emph {
     std::string fG4Label;
     std::string fClusterCut;
 
-    //histograms and graphs for hits
-    TH2F* hSPDist0;
-    TH2F* hSPDist1;
-    TH2F* hSPDist2;
-    TH2F* hSPDist3;
-    TH2F* hSPDist4;
-    TH2F* hSPDist5;
-    TH2F* hSPDist6;
-    TH2F* hSPDist7;
-
-    TH2F* hDist_xz;
-    TH2F* hDist_yz;
-
-    TH1F* hRecoPz;
-    TH1F* hDOCA;
-    TH1F* hCAz;
-    TH1F* hIntz;
-
     //reco info for lines
     std::vector<std::vector<double>> sp1;
     std::vector<std::vector<double>> sp2;
     std::vector<std::vector<double>> sp3;
-    std::vector<rb::SpacePoint> ts1;
-    std::vector<rb::SpacePoint> ts2;
-    std::vector<rb::SpacePoint> ts3;
 
   };
 
@@ -144,6 +118,7 @@ namespace emph {
     fG4Label           (pset.get< std::string >("G4Label")),
     fClusterCut        (pset.get< std::string >("ClusterCut"))
     {
+      this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
       this->produces< std::vector<rb::TrackSegment> >();
       this->produces< std::vector<rb::Track> >();
@@ -183,24 +158,7 @@ namespace emph {
     spacepoint = tfs->make<TTree>("spacepoint","");
     spacepoint->Branch("run",&run,"run/I");
     spacepoint->Branch("subrun",&subrun,"subrun/I");
-    spacepoint->Branch("event",&event,"event/I");
-   
-    hSPDist0 = tfs->make<TH2F>("hSPDist0","hSPDist0",1000,-50.,50.,1000,-50.,50.); 
-    hSPDist1 = tfs->make<TH2F>("hSPDist1","hSPDist1",1000,-50.,50.,1000,-50.,50.);
-    hSPDist2 = tfs->make<TH2F>("hSPDist2","hSPDist2",1000,-50.,50.,1000,-50.,50.);
-    hSPDist3 = tfs->make<TH2F>("hSPDist3","hSPDist3",1000,-50.,50.,1000,-50.,50.);
-    hSPDist4 = tfs->make<TH2F>("hSPDist4","hSPDist4",1000,-50.,50.,1000,-50.,50.);
-    hSPDist5 = tfs->make<TH2F>("hSPDist5","hSPDist5",1000,-50.,50.,1000,-50.,50.);
-    hSPDist6 = tfs->make<TH2F>("hSPDist6","hSPDist6",1000,-50.,50.,1000,-50.,50.);
-    hSPDist7 = tfs->make<TH2F>("hSPDist7","hSPDist7",1000,-50.,50.,1000,-50.,50.);
-
-    hDist_xz = tfs->make<TH2F>("hDist_xz","hDist_xz",2050,-50.,2000.,1000,-50.,50.); 
-    hDist_yz = tfs->make<TH2F>("hDist_yz","hDist_yz",2050,-50.,2000.,1000,-50.,50.);
-
-    hRecoPz = tfs->make<TH1F>("hRecoPz","hRecoPz",1000,0.,30.);
-    hDOCA = tfs->make<TH1F>("hDOCA","hDOCA",100,0.,0.3);
-    hCAz = tfs->make<TH1F>("hCAz","hCAz",204,-20.,1000.);
-    hIntz = tfs->make<TH1F>("hIntz","hIntz",200,0.,1000.);
+    spacepoint->Branch("event",&event,"event/I");  
   }
  
   //......................................................................
@@ -210,312 +168,6 @@ namespace emph {
        if (fClusterCut == "strict") std::cout<<"Number of events with one cluster per sensor: "<<goodclust<<std::endl;
        if (fClusterCut == "lessstrict") std::cout<<"Number of events with at least two clusters per station: "<<goodclust<<std::endl;
        std::cout<<"Number of available clusters: "<<badclust+goodclust<<std::endl;
-	
-/*
-       // Don't seg fault if there are no tracks in the subrun(s).
-       if (hScattering) {
-	
-	 int bmin_s = hScattering->FindFirstBinAbove();
-	 int bmax_s = hScattering->FindLastBinAbove();
-	 hScattering->GetXaxis()->SetRange(bmin_s,bmax_s);
-
-	 int bmin_sr = hScatteringRes->FindFirstBinAbove();
-	 int bmax_sr = hScatteringRes->FindLastBinAbove();
-	 hScatteringRes->GetXaxis()->SetRange(bmin_sr,bmax_sr);
-
-	 int bmin_b = hBending->FindFirstBinAbove();
-	 int bmax_b = hBending->FindLastBinAbove();
-	 hBending->GetXaxis()->SetRange(bmin_b,bmax_b);
-
-	 int bmin_br = hBendingRes->FindFirstBinAbove();
-	 int bmax_br = hBendingRes->FindLastBinAbove();
-	 hBendingRes->GetXaxis()->SetRange(bmin_br,bmax_br);
-
-       }
-*/
-  }
-
-  //......................................................................
-
-  void emph::MakeSingleTracks::MakeSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
-  {
-    art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
-
-    dgm->Map()->SSDClusterToLineSegment(cl, ls);
-  }
-  
-  //......................................................................
-
-  void emph::MakeSingleTracks::MakeHits()
-  {
-     rb::SpacePoint sp;
-
-     art::ServiceHandle<emph::geo::GeometryService> geo;
-     auto emgeo = geo->Geo();
-
-     ru::RecoUtils recoFcn = ru::RecoUtils(fEvtNum);
-
-     for (size_t i=0; i<nStations; i++){
-	 int nssds = 0;
-         for (size_t j=0; j<cl_group[i].size(); j++){
-           nssds += cl_group[i][j].size();
-	 }
-         //int nssds = emgeo->GetSSDStation(i)->NPlanes();
-         for (size_t j=0; j<nPlanes; j++){
-             if (nssds == 2){ //station 0,1,4,7
-                for (size_t k=0; k<ls_group[i][j].size(); k++){
-                    st = cl_group[i][j][k]->Station();
-                    for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-			TVector3 fA( ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] );
-			TVector3 fB( ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] );
-		        TVector3 fC( ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] );
-			TVector3 fD( ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] );
-
-                        double x[3];
-                        double l1[3]; double l2[3];
-                        recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD");
-
-                        //set SpacePoint object
-                        sp.SetX(x);
-
-                        //check stations
-                        if (cl_group[i][j+1][l]->Station() == st){}
-                        else std::cout<<"XY: Stations do not match..."<<std::endl;
-
-                        sp.SetStation(st);
-                        spv.push_back(sp);
-
-                        if (st==0) hSPDist0->Fill(x[0],x[1]);
-                        if (st==1) hSPDist1->Fill(x[0],x[1]);
-                        if (st==4) hSPDist4->Fill(x[0],x[1]);
-                        if (st==7) hSPDist7->Fill(x[0],x[1]);
-                        hDist_xz->Fill(x[2],x[0]);
-                        hDist_yz->Fill(x[2],x[1]);
-                    }
-                }
-             }
-             if (nssds == 3){ //station 2,3,5,6
-                for (size_t k=0; k<ls_group[i][j].size(); k++){
-                    st = cl_group[i][j][k]->Station();
-                    for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-                        for (size_t m=0; m<ls_group[i][j+2].size(); m++){
-			    TVector3 fA01( ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] );
-			    TVector3 fB01( ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] );
-			    TVector3 fC01( ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] );
-			    TVector3 fD01( ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] );
-
-                            double x01[3];
-                            double l1_01[3]; double l2_01[3];
-                            recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD");
-
-			    TVector3 fA02( ls_group[i][j][k]->X0()[0], ls_group[i][j][k]->X0()[1], ls_group[i][j][k]->X0()[2] );
-			    TVector3 fB02( ls_group[i][j][k]->X1()[0], ls_group[i][j][k]->X1()[1], ls_group[i][j][k]->X1()[2] );
-			    TVector3 fC02( ls_group[i][j+2][m]->X0()[0], ls_group[i][j+2][m]->X0()[1], ls_group[i][j+2][m]->X0()[2] );
-			    TVector3 fD02( ls_group[i][j+2][m]->X1()[0], ls_group[i][j+2][m]->X1()[1], ls_group[i][j+2][m]->X1()[2] );
-
-                            double x02[3];
-                            double l1_02[3]; double l2_02[3];
-                            recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD");
-
-			    TVector3 fA12( ls_group[i][j+1][l]->X0()[0], ls_group[i][j+1][l]->X0()[1], ls_group[i][j+1][l]->X0()[2] );
-			    TVector3 fB12( ls_group[i][j+1][l]->X1()[0], ls_group[i][j+1][l]->X1()[1], ls_group[i][j+1][l]->X1()[2] );
-			    TVector3 fC12( ls_group[i][j+2][m]->X0()[0], ls_group[i][j+2][m]->X0()[1], ls_group[i][j+2][m]->X0()[2] );
-			    TVector3 fD12( ls_group[i][j+2][m]->X1()[0], ls_group[i][j+2][m]->X1()[1], ls_group[i][j+2][m]->X1()[2] );
-
-                            double x12[3];
-                            double l1_12[3]; double l2_12[3];
-                            recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD");
-        
-                            //average of three points (center of mass)
-                            double x[3];
-                            for (int i=0; i<3; i++){
-                                x[i] = (x01[i]+x02[i]+x12[i])/3.;
-                            }
-
-                            //set SpacePoint object
-                            sp.SetX(x);
-
-			    //check stations
-                            if (cl_group[i][j+1][l]->Station() == st && cl_group[i][j+2][m]->Station() == st){}
-                            else std::cout<<"XYU: Stations do not match..."<<std::endl;
-
-                            sp.SetStation(st);
-                            spv.push_back(sp);
-
-			    if (st==2) hSPDist2->Fill(x[0],x[1]);
-                            if (st==3) hSPDist3->Fill(x[0],x[1]);
-                            if (st==5) hSPDist5->Fill(x[0],x[1]);
-                            if (st==6) hSPDist6->Fill(x[0],x[1]);
-                            hDist_xz->Fill(x[2],x[0]);
-                            hDist_yz->Fill(x[2],x[1]);
-                        }
-                    }
-                }
-             }
-         }
-     }
-  }
- 
-  //......................................................................
-
-  void emph::MakeSingleTracks::MakeLines() {
-         ru::RecoUtils recoFcn2 = ru::RecoUtils(fEvtNum);
-
-         //segment 1 -> don't need to fit anything, just connect two points
-         double lfirst1[3]; double llast1[3];
-         lfirst1[0] = sp1[0][0];
-         lfirst1[1] = sp1[0][1];
-         lfirst1[2] = sp1[0][2];
-
-         llast1[0] = sp1[1][0];
-         llast1[1] = sp1[1][1];
-         llast1[2] = sp1[1][2];
-	 
-         //segment 2
-         double lfirst2[3]; double llast2[3];
-         recoFcn2.findLine(sp2,lfirst2,llast2);
-
-         //segment 3
-         double lfirst3[3]; double llast3[3];
-         recoFcn2.findLine(sp3,lfirst3,llast3);
-	 
-         //assign to track vector
-         rb::LineSegment track1 = rb::LineSegment(lfirst1,llast1);
-         rb::LineSegment track2 = rb::LineSegment(lfirst2,llast2);
-         rb::LineSegment track3 = rb::LineSegment(lfirst3,llast3);
- 
-	 // create rb::TrackSegments and insert them into the vector
-	 rb::TrackSegment ts1 = rb::TrackSegment();
-	 for (auto p : spv)
-	   if (p.Station() == 0 || p.Station() == 1)
-	     ts1.Add(p);
-	 ts1.SetVtx(lfirst1);
-	 double p[3];
-	 double dx = llast1[0]-lfirst1[0];
-	 double dy = llast1[1]-lfirst1[1];
-	 double dz = llast1[2]-lfirst1[2];	 
-
-	 p[0] = dx/dz;
-	 p[1] = dy/dz;
-	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-	 ts1.SetP(p);
-	 //tsv.push_back(ts1);
-
-	 rb::TrackSegment ts2 = rb::TrackSegment();
-	 for (auto p : spv)
-	   if (p.Station() == 2 || p.Station() == 3 || p.Station() == 4)
-	     ts2.Add(p);
-	 ts2.SetVtx(lfirst2);
-	 dx = llast2[0]-lfirst2[0];
-	 dy = llast2[1]-lfirst2[1];
-	 dz = llast2[2]-lfirst2[2];	 
-
-	 p[0] = dx/dz;
-	 p[1] = dy/dz;
-	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-	 ts2.SetP(p);
-	 //tsv.push_back(ts2);
-
-	 rb::TrackSegment ts3 = rb::TrackSegment();
-	 for (auto p : spv)
-	   if (p.Station() == 5 || p.Station() == 6 || p.Station() == 7)
-	     ts3.Add(p);
-	 ts3.SetVtx(lfirst3);
-	 dx = llast3[0]-lfirst3[0];
-	 dy = llast3[1]-lfirst3[1];
-	 dz = llast3[2]-lfirst3[2];	 
-
-	 p[0] = dx/dz;
-	 p[1] = dy/dz;
-	 p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-	 ts3.SetP(p);
-	 //tsv.push_back(ts3);
-
-	 //may need to define outside of function
-	 double ts2_dot_ts3 = ts2.P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
-	 double ts2_mag = sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
-         double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
-	 double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
-	 double recop = recoFcn2.getMomentum(recoBendAngle);
-         //double recopztest = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1.);
-	 //double recopz = recop*ts2.P()[2];
-
-	 //change track segments
-	 double realp1[3];
-	 realp1[2] = recop*ts1.P()[2];
-         realp1[0] = ts1.P()[0]*realp1[2];
-         realp1[1] = ts1.P()[1]*realp1[2];
-	 ts1.SetP(realp1);
-	 tsv.push_back(ts1);
-
-         double realp2[3];
-         realp2[2] = recop*ts2.P()[2];
-         realp2[0] = ts2.P()[0]*realp2[2];
-         realp2[1] = ts2.P()[1]*realp2[2];
-         ts2.SetP(realp2);
-         tsv.push_back(ts2);
-
-         double realp3[3];
-         realp3[2] = recop*ts3.P()[2];
-         realp3[0] = ts3.P()[0]*realp3[2];
-         realp3[1] = ts3.P()[1]*realp3[2];
-         ts3.SetP(realp3);
-         tsv.push_back(ts3);
-/*
-	 std::vector<rb::TrackSegment> tsvtemp = {ts1,ts2,ts3}; 
-	 for (size_t i=0; i<tsvtemp.size(); i++){
-	   double realp[3];
-	   //realp[2] = tsv[i].P()[2]*recop;
-	   realp[2] = recopztest;
-	   realp[0] = tsvtemp[i].P()[0]*realp[2];
-	   realp[1] = tsvtemp[i].P()[1]*realp[2];
-	   //  pz --> pz*p
-	   //  px --> px*pz
-	   //  py --> py*pz
-           tsvtemp[i].SetP(realp);
-	   tsv.push_back(tsvtemp[i]);
-	 }
-*/	 
-	 //is this correct?
-	 //now pz resolution looks weird?
-	 //check pz?
-	 //double recopz = recop/sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+1.);
-	 double recopz = ts2.P()[2];
-	 //double recopx = sqrt(recop*recop/(recopz*recopz) - 1. - ts2.P()[1]*ts2.P()[1])*recopz;
-	 //double recopy = sqrt(recop*recop - recopz*recopz - recopx*recopx);
-	 double recopx = ts2.P()[0];
-	 double recopy = ts2.P()[1];
-	 //something is wrong...
-
-         //std::cout<<"Recopx: "<<recopx<<std::endl;
-         //std::cout<<"Recopy: "<<recopy<<std::endl;
-         //std::cout<<"Recopz: "<<recopz<<std::endl;	
-
-	 sectrkp[0] = recopx;
-	 sectrkp[1] = recopy;
-	 sectrkp[2] = recopz; 
-	 hRecoPz->Fill(recopz);
-
-	 TVector3 a(lfirst1[0],lfirst1[1],lfirst1[2]);
-	 TVector3 b(llast1[0],llast1[1],llast1[2]); 
-	 TVector3 c(lfirst2[0],lfirst2[1],lfirst2[2]);
-	 TVector3 d(llast2[0],llast2[1],llast2[2]);
-	 double l0t[3];
-	 double l1t[3];
-	 std::cout<<"Event: "<<fEvtNum<<std::endl;
-	 recoFcn2.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment");
-
-	 double doca = sqrt( (l0t[0]-l1t[0])*(l0t[0]-l1t[0]) + (l0t[1]-l1t[1])*(l0t[1]-l1t[1]) + (l0t[2]-l1t[2])*(l0t[2]-l1t[2]) );
-	 std::cout<<"DOCA: "<<doca<<std::endl;
-
-	 hDOCA->Fill(doca);
-	 //if (l0t != b && l1t != c) hCAz->Fill(sectrkvtx[2]);
-	 hCAz->Fill(sectrkvtx[2]);
-
-	 double point[3];
-	 recoFcn2.findTrackIntersection(ts1,ts2,point);
-	 hIntz->Fill(point[2]);
-
   }
 
   //......................................................................
@@ -525,6 +177,7 @@ namespace emph {
     tsv.clear();
     spv.clear();
 
+    std::unique_ptr< std::vector<rb::LineSegment> > linesegv(new std::vector<rb::LineSegment>);
     std::unique_ptr< std::vector<rb::SpacePoint> > spacepointv(new std::vector<rb::SpacePoint>);
     std::unique_ptr< std::vector<rb::TrackSegment> > tracksegmentv(new std::vector<rb::TrackSegment>);
     std::unique_ptr< std::vector<rb::Track> > trackv(new std::vector<rb::Track>);
@@ -540,6 +193,7 @@ namespace emph {
 
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
+    art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
 
     fMakePlots = true;
 
@@ -553,10 +207,7 @@ namespace emph {
 	}
       }
 
-      //std::string fClusterLabel = "clust";
-      //std::string fLineSegLabel = "ssdclusts";
       art::Handle< std::vector<rb::SSDCluster> > clustH;
-      art::Handle< std::vector<rb::LineSegment> > lsH;
       art::Handle< std::vector<sim::SSDHit> > ssdHitH;
  
       try {
@@ -571,26 +222,23 @@ namespace emph {
       try {
 	evt.getByLabel(fClusterLabel, clustH);
 	if (!clustH->empty()){
-
-	  //emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(nStations,nPlanes);
-	  //SingleTrackAlgo algo = SingleTrackAlgo(fEvtNum,nStations,nPlanes,fG4Label,fClusterLabel,fClusterCut); 
-/*
-	  if (algo.MakeSelection(evt,fClustercut)){
-	    spv = algo.MakeHits(;
-	    if (algo.MakeRegions(spv)){
-	      tsv = algo.MakeLines();
-*/
+          rb::LineSegment lineseg_tmp  = rb::LineSegment();
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
 	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
 	    ++clustMapAtLeastOne[clust.Station()][std::pair<int,int>(clust.Station(),clust.Plane())];
-	    clusters.push_back(&clust); 
-	  }
-	  //line segments
-	  evt.getByLabel(fClusterLabel, lsH);
-	  for (size_t idx=0; idx < lsH->size(); ++idx) {
-	    const rb::LineSegment& lineseg = (*lsH)[idx];
-	    linesegments.push_back(&lineseg);
+	    clusters.push_back(&clust);
+
+            linesegments.push_back(lineseg_tmp);
+            if (clust.AvgStrip() > 640){
+              std::cout<<"Skipping nonsense"<<std::endl;
+              linesegv->push_back(lineseg_tmp);
+              continue; }
+            if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments[idx])){
+              linesegv->push_back(lineseg_tmp);
+	    }
+            else
+              std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
 	  }
 
           //ONE CLUSTER PER PLANE
@@ -657,20 +305,19 @@ namespace emph {
 	    }
           */
 
-         //instance of single track algorithm
-         emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(nStations,nPlanes);
+          //instance of single track algorithm
+          emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
  
-	  //grab line segments from SSDCluster handle
+	  //group linesegments
 	  if (goodEvent == true){
 	    for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
               int station = clusters[i]->Station();
-	      ls_group[station][plane].push_back(linesegments[i]);
+	      ls_group[station][plane].push_back(&linesegments[i]);
 	    }
 
-	    //make reconstructed hits
-	    //MakeHits();
-	    spv = algo.MakeHits(cl_group,ls_group);
+            //make reconstructed hits
+            spv = algo.MakeHits(ls_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
 	  }
@@ -695,7 +342,6 @@ namespace emph {
 	    }
 
             //form lines and fill plots
-            //MakeLines();
             tsv = algo.MakeLines(sp1,sp2,sp3);
 	    for (auto ts : tsv) {
 	      tracksegmentv->push_back(ts);	     
@@ -733,13 +379,12 @@ namespace emph {
       rb::Track sectrk;
       sectrk.Add(tsv[1]);
       sectrk.Add(tsv[2]);
-      sectrk.SetP(sectrkp);
-      sectrk.SetVtx(sectrkvtx);
-      //sectrk.SetP(tsv[1].P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
-      //sectrk.SetVtx(tsv[1].Vtx()); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+      sectrk.SetP(sectrkp); // this should come from an analysis of the bend angle between track segments 1 and 2.
+      sectrk.SetVtx(sectrkvtx); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
       trackv->push_back(sectrk);
     }
 
+    evt.put(std::move(linesegv));
     evt.put(std::move(spacepointv));
     evt.put(std::move(tracksegmentv));
     evt.put(std::move(trackv));

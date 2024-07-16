@@ -40,6 +40,7 @@ namespace ru {
     void    findTrackIntersection(rb::TrackSegment trk1, rb::TrackSegment trk2, double point[3]);
 
     void    SetEvtNum(int num){ fEvtNum = num; }   
+    int     GetEvtNum() const { return fEvtNum; }
 
     friend std::ostream& operator << (std::ostream& o, const RecoUtils& h);
   };

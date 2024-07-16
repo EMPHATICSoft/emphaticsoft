@@ -57,12 +57,12 @@ namespace caf
       stdrec.lineseg.lineseg.push_back(SRLineSegment());
       SRLineSegment& srLineSeg = stdrec.lineseg.lineseg.back();
 
-      srLineSeg.x0.SetXYZ(linesegs[clusterId].X0()[0],
-			  linesegs[clusterId].X0()[1],
-			  linesegs[clusterId].X0()[2]);
-      srLineSeg.x1.SetXYZ(linesegs[clusterId].X1()[0],
-			  linesegs[clusterId].X1()[1],
-			  linesegs[clusterId].X1()[2]);
+      srLineSeg.x0.SetXYZ(linesegs[clusterId].X0().X(),
+                          linesegs[clusterId].X0().Y(),
+                          linesegs[clusterId].X0().Z());
+      srLineSeg.x1.SetXYZ(linesegs[clusterId].X1().X(),
+                          linesegs[clusterId].X1().Y(),
+                          linesegs[clusterId].X1().Z());
 
     } // end for clusterId
 

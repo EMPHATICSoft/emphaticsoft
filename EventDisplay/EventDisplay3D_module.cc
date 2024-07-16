@@ -500,8 +500,8 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
     
     TEveLine* l = new TEveLine();
     
-    l->SetNextPoint(ls.X0()[0], ls.X0()[1], ls.X0()[2]);
-    l->SetNextPoint(ls.X1()[0], ls.X1()[1], ls.X1()[2]);
+    l->SetNextPoint(ls.X0().X(), ls.X0().Y(), ls.X0().Z());
+    l->SetNextPoint(ls.X1().X(), ls.X1().Y(), ls.X1().Z());
     l->SetLineColor(mColor);
     l->SetMarkerSize(mSize);
     fSSDClustsList->AddElement(l);
