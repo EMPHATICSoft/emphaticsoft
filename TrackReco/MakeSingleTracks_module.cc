@@ -232,10 +232,10 @@ namespace emph {
             linesegments.push_back(lineseg_tmp);
             if (clust.AvgStrip() > 640){
               std::cout<<"Skipping nonsense"<<std::endl;
-              linesegv->push_back(lineseg_tmp);
+              linesegv->push_back(linesegments[idx]); //lineseg_tmp);
               continue; }
             if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments[idx])){
-              linesegv->push_back(lineseg_tmp);
+              linesegv->push_back(linesegments[idx]); //lineseg_tmp);
 	    }
             else
               std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
