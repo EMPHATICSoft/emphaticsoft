@@ -93,6 +93,9 @@ namespace emph {
       double      fPXsigma;
       double      fPYmean;
       double      fPYsigma;
+
+      double numi_tpx, numi_tpy, numi_tpz, numi_energy, mass, numi_tptype;	//-sfoess
+      int numi_event_num, old_event_num, new_event_num, fLongTargetEntryNum;
       
       std::string fXYDistSource;
       std::string fXYHistFile;
@@ -142,12 +145,16 @@ namespace emph {
       assert(! fLongTargetFileName.empty());
       fLongTargetFile = new TFile(fLongTargetFileName.c_str());
       assert (fLongTargetFile);
-      // now "read in" the TTree, code should look something like what is commented out below
-      /*
-	fLongTargetInputTree = (TTree*)fLongTargetFile->Get("/path/to/tree");
-	fLongTargetInputTree->SetBranchAddress(...)
-       */
-	
+      // now "read in" the TTree
+
+      fLongTargetInputTree = (TTree*)fLongTargetFile->Get("/exp/emph/app/users/sgfoess/NDREU24/simulation/hadd_result_final_50.root");
+      fLongTargetInputTree->SetBranchAddress("tpx", &numi_tpx);      //-sfoess
+      fLongTargetInputTree->SetBranchAddress("tpy", &numi_tpy);
+      fLongTargetInputTree->SetBranchAddress("tpz", &numi_tpz);
+      fLongTargetInputTree->SetBranchAddress("tptype", &numi_tptype);
+      fLongTargetInputTree->SetBranchAddress("evtno", &numi_event_num);
+
+      fLongTargetInputTree->GetEntry(fLongTargetEntryNum);
     }
   }
 
@@ -302,6 +309,10 @@ namespace emph {
 
   /***************************************************************************/
 
+// insert a function here which declares a mass based on the numi_tptype???? -sfoess
+
+  /***************************************************************************/
+
   void BeamGen::produce(art::Event& evt)
   {
     if ((++fEvtCount)%1000 == 0)
@@ -316,23 +327,61 @@ namespace emph {
     TLorentzVector pos;
 
     if (fUseLongTargetFile) {
-      // assume that the "next" entry in the TTree is from a new proton-on-target
-      fLongTargetInputTree->GetEntry(fLongTargetEvent);
-      int currentLTevent = 0; //[get this from the TTree, do not leave set to 0!];
-      int nextLTevent = currentLTevent;
-      while (nextLTevent == currentLTevent) {
-	fLongTargetInputTree->GetEntry(fLongTargetEvent);
+
+      bool next_event = false;
+
+      while (!next_event) {
+
 	pos[2] = fZstart;	
-	// pos[0], pos[1] and mom vector should come from the TTree
-	TLorentzVector mom(0,0,0,0); // placeholder
-	// "pid" should also come from the TTree
-	simb::MCParticle mcp(-1,fPID, "");
+	
+	simb::MCParticle mcp(-1, numi_tptype, "");
+
+	//hard coding based on several known particles..
+	//a later project could be extending this to read in mass based on numi_tptype from TParticlePDG class
+	
+	if (numi_tptype == 2212) {
+		mass = 938.3; //proton
+	}
+	else if (numi_tptype == 11) {
+		mass = 0.511; //electron
+	}
+	else if (numi_tptype == 2112) {
+		mass = 939.6; //neutron
+	}
+	else if (numi_tptype == 211) {
+		mass = 139.6;  //charged pion
+	}
+	else if (numi_tptype == 111) {
+		mass = 135.0;  //neutral pion
+	}
+	else if (numi_tptype == 321) {
+		mass = 493.7;  //charged kaon
+	}
+	else if (numi_tptype == 311) {
+		mass = 497.6;  //neutral kaon
+	}
+
+	mass = mass / 1000;	//numi_tpz etc are in GeV, conversion of mass to GeV from MeV
+
+	numi_energy = TMath::Sqrt(mass*mass + numi_tpx*numi_tpx + numi_tpy*numi_tpy + numi_tpz*numi_tpz);  //-sfoess
+
+        TLorentzVector mom;
+        mom.SetXYZM(numi_tpx, numi_tpy, numi_tpz, numi_energy); 	//-sfoess
+
+	int pid = numi_tptype;			//unclear if this is used?
+
 	mcp.AddTrajectoryPoint(pos, mom);
 	beam->push_back(mcp);
 
-	// get the event number of the next entry in the tree...
-	fLongTargetInputTree->GetEntry(fLongTargetEvent);
+	old_event_num = numi_event_num;
+	fLongTargetEntryNum++;
+									//-sfoess
+	fLongTargetInputTree->GetEntry(fLongTargetEntryNum);
+	new_event_num = numi_event_num;
+	next_event = (old_event_num != new_event_num);
+
     	}
+
     }
     else {
       pos[2] = fZstart; // units are mm for this

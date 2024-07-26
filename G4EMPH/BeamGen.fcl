@@ -4,7 +4,7 @@ standard_beamgen:
 {
   module_type:	             BeamGen
   useLongTargetFile:         true
-  longTargetFile:            /full/path/to/file/name.root
+  longTargetFile:            "/exp/emph/app/users/sgfoess/NDREU24/simulation/hadd_result_final_50.root"
   particleType:		     "proton"
   xyDistSource:		     "Gauss"
   xyHistFile:		     ""
