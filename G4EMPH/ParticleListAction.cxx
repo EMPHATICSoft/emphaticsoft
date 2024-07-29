@@ -55,6 +55,7 @@ namespace emph {
     // Create the particle list that we'll (re-)use during the course
     // of the Geant4 simulation.
     fParticleNav  = new sim::ParticleNavigator();
+    fMinTrajPtDist = 0.;
   }
 
   //-------------------------------------------------------------
@@ -70,6 +71,8 @@ namespace emph {
   {
     fEnergyCut              = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     fManyParticles          = pset.get< bool   >("ManyParticles");
+
+    fMinTrajPtDist          = pset.get< double >("MinTrajPtDist",0.); 
   }
 
   //-------------------------------------------------------------
@@ -497,27 +500,33 @@ namespace emph {
       // Add the first point in the trajectory.
       fParticle->AddTrajectoryPoint( fourPos, fourMom );
     }
-    
+
+    int iprev = fParticle->NumberTrajectoryPoints()-1;
+    double zprev = fParticle->Position(iprev).Z();
+
     // Get the post-step information from the G4Step.
     const G4StepPoint* postStepPoint = step->GetPostStepPoint();
     
     const G4ThreeVector position = postStepPoint->GetPosition();
-    G4double time = postStepPoint->GetGlobalTime();
-    
-    // Remember that LArSoft uses cm, ns, GeV.
-    TLorentzVector fourPos(position.x() / CLHEP::mm,
-                           position.y() / CLHEP::mm,
-                           position.z() / CLHEP::mm,
-                           time / CLHEP::ns );
-    
-    const G4ThreeVector momentum = postStepPoint->GetMomentum();
-    const G4double energy = postStepPoint->GetTotalEnergy();
-    TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
-                           momentum.y() / CLHEP::GeV,
-                           momentum.z() / CLHEP::GeV,
-                           energy / CLHEP::GeV );
-    
-    fParticle->AddTrajectoryPoint( fourPos, fourMom );
+
+    if ((position.z()/CLHEP::mm - zprev) > fMinTrajPtDist) {
+      G4double time = postStepPoint->GetGlobalTime();
+      
+      // Remember that LArSoft uses cm, ns, GeV.
+      TLorentzVector fourPos(position.x() / CLHEP::mm,
+			     position.y() / CLHEP::mm,
+			     position.z() / CLHEP::mm,
+			     time / CLHEP::ns );
+      
+      const G4ThreeVector momentum = postStepPoint->GetMomentum();
+      const G4double energy = postStepPoint->GetTotalEnergy();
+      TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
+			     momentum.y() / CLHEP::GeV,
+			     momentum.z() / CLHEP::GeV,
+			     energy / CLHEP::GeV );
+      
+      fParticle->AddTrajectoryPoint( fourPos, fourMom );
+    }
   }
 
   //-------------------------------------------------------------
