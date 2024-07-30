@@ -138,7 +138,7 @@ namespace emph {
       void StudyCheck1 (uint32_t FER, uint32_t module, size_t station, size_t plane,
                           rawdata::SSDRawDigit &aDigit); 
 			  
-      void testChannelMapBackConverter(); // And quit there, and now.. 
+//      void testChannelMapBackConverter(); // Obsolete testing... 
     }; 
     
  // .....................................................................................
@@ -299,7 +299,6 @@ namespace emph {
         for(size_t kSe = 0; kSe != numSensors[kSt]; kSe++) {
 	  for (size_t k=0; k != adcVals.size(); k++) adcVals[k] = 0;
 	  emph::cmap::DChannel dchan(emph::geo::SSD, kSe, kSt, 0);
-          int aPlane = fCmap->GetDetectorPlaneFromStationSensorForPhase1b(dchan); dchan.SetPlane(aPlane); 
 	  emph::cmap::EChannel echan = fCmap->ElectChan(dchan);
 	  int32_t aFERBoard = echan.Board(); int32_t aChanModule = echan.Channel();
 	  if (debugIsOn) std::cerr << " .... At station " << kSt << " Sensor " << kSe << " Board " 
@@ -402,7 +401,7 @@ namespace emph {
 	fFOutA1 << " " << fEvtNum << " " << aFER << " " << aModule << " " << station << " " << plane 
 	       << " " << digit.Row() << " " << digit.ADC() << std::endl;
    }
-    
+/*    
   void SimSSDToRawDataSSD::testChannelMapBackConverter() {
     
     std::cerr << 
@@ -430,6 +429,6 @@ namespace emph {
      }
      std::cerr << " And.... Quit for now after this very simple test... " << std::endl; exit(2);
   }
-   
+*/   
 } // name space emph       
 DEFINE_ART_MODULE(emph::SimSSDToRawDataSSD)
