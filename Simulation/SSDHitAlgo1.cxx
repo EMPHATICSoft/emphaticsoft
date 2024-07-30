@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   A single unit of energy deposition in a SSD plane
-///           With added information to generate a set of radSSDDigit. 
+///           With added information to generate a set of rawSSDDigit. 
 /// \author  lebrun@fnal.gov, jpaley@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
