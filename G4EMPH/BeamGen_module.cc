@@ -155,6 +155,8 @@ namespace emph {
       fLongTargetInputTree->SetBranchAddress("evtno", &numi_event_num);
 
       fLongTargetInputTree->GetEntry(fLongTargetEntryNum);
+
+      printf("beginJob() complete");
     }
   }
 
@@ -381,6 +383,8 @@ namespace emph {
 	next_event = (old_event_num != new_event_num);
 
     	}
+	
+	printf("sucessfully ran through LongTarget");
 
     }
     else {
