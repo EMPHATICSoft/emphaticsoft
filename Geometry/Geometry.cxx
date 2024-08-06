@@ -210,7 +210,7 @@ Plane::Plane() :
       fGeoManager->LockDefaultUnits(0);
       fGeoManager->SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
       fGeoManager->LockDefaultUnits(1);
-      fGeoManager->Import(fGDMLFile.c_str());
+      fGeoManager = fGeoManager->Import(fGDMLFile.c_str());
 
       //      fGeoManager->Import(fname.c_str());
       /*
