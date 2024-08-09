@@ -1,0 +1,62 @@
+include(ArtDictionary)
+include(ArtMake)
+
+find_package(art REQUIRED)
+find_package(art_root_io REQUIRED)
+find_package(artdaq REQUIRED)
+find_package(messagefacility REQUIRED)
+find_package(ROOT COMPONENTS Tree Gui REQUIRED PUBLIC)
+find_package(ROOT COMPONENTS Core Graf Graf3d Rint REQUIRED)
+
+include(CetRootCint)
+
+include_directories($ENV{ARTDAQ_CORE_INC})
+include_directories($ENV{ARTDAQ_INC})
+include_directories($ENV{ART_INC})
+include_directories($ENV{ART_ROOT_IO_INC})
+include_directories($ENV{CETLIB_EXCEPT_INC})
+include_directories($ENV{ROOT_INC})
+
+include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
+
+set( PACKAGE WebDisplay )
+
+set( CET_DICT_FUNCTIONS TRUE)
+
+#cet_rootcint( ${PACKAGE} )
+
+cet_build_plugin(WebDisplay art::module
+  LIBRARIES REG
+  ChannelMap
+  ChannelMapService_service
+  Geometry
+  Geometry_service
+  RawData
+  RecoBase
+  DetGeoMap
+  DetGeoMapService_service
+  Simulation
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common  
+  art::Utilities 
+  art_root_io::RootInput_source
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  ROOT::Geom
+  ROOT::X3d
+  ROOT::Eve
+  ROOT::EG
+  ROOT::RGL
+  ROOT::Gui
+  BASENAME_ONLY
+)
+
+install_headers()
+install_fhicl()
+install_source()
+
+install(FILES header.html footer.html DESTINATION etc)

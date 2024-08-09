@@ -1,0 +1,114 @@
+
+      const canvas = document.querySelector('#Hello');
+      const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+    
+      //Camera setup
+      const fov = 75;
+      const aspect = 2;
+      const near = 0.1;
+      const far = 5;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      camera.position.z = 2;
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      //Light setup
+      const lightColor = 0xFFFFFF;
+      const intensity = 3;
+      const light = new THREE.DirectionalLight(lightColor, intensity);
+      light.position.set(-1, 2, 4);
+    
+      //Set up things to draw
+      const scene = new THREE.Scene();
+      const myFirstGeometry = new THREE.BoxGeometry(1, 1, 1);
+      //const material = new THREE.MeshPhongMaterial({color: 0x44aa88});
+    
+      /*const myFirstCube = new THREE.Mesh(myFirstGeometry, material);
+      scene.add(myFirstCube);*/
+
+      function makeInstance(geometry, color, xPosition)
+      {
+        const material = new THREE.MeshPhongMaterial({color});
+
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        cube.position.x = xPosition;
+
+        return cube;
+      }
+
+      const cubes = [];
+      for(const xPosition of cubeXPositions)
+      {
+        cubes.push(makeInstance(myFirstGeometry, 0x44aa88, xPosition));
+      }
+
+      scene.add(light);
+    
+      function resizeRendererToDisplaySize(renderer)
+      {
+        const canvas = renderer.domElement;
+        const pixelRatio = window.devicePixelRatio;
+        const width = Math.floor(canvas.clientWidth * pixelRatio);
+        const height = Math.floor(canvas.clientHeight * pixelRatio);
+        const needsResize = canvas.width != width || canvas.height != height;
+        if(needsResize) {
+          renderer.setSize(width, height, false);
+        }
+
+        return needsResize;
+      }
+
+      //Start rendering!
+      //Rotate cubes
+      /*function gameLoop(time) {
+        time *= 0.001; //Convert from ms to seconds
+
+        if(resizeRendererToDisplaySize(renderer))
+        {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth/canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        cubes.forEach((cube, index) => {
+          const speed = 1 + index * 0.1;
+          const rot = time * speed;
+          cube.rotation.x = rot;
+          cube.rotation.y = rot;
+        });
+
+        renderer.render(scene, camera);
+
+        requestAnimationFrame(gameLoop);
+      }*/
+
+      //Just display static cubes
+      function render() {
+        if(resizeRendererToDisplaySize(renderer))
+        {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth/canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      //Use only when rotating cubes
+      //requestAnimationFrame(gameLoop);
+      render();
+
+      controls.addEventListener('change', render);
+      window.addEventListener('resize', render);
+    }
+    
+    main();
+
+    </script>
+    <!-- Can I print any text here? -->
+  </body>
+</html>

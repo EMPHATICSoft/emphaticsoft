@@ -1,0 +1,30 @@
+#
+# Run the web-based event display on an art file
+#
+
+#include "Services.fcl"
+
+process_name : webDisplay
+
+source : {
+  module_type : RootInput
+  fileNames   : [ "emphdata_r1384_s2.root" ]
+  maxEvents   : -1
+}
+
+services : {
+  TFileService  : { fileName : "webDisplay01.root" }
+  @table::standard_services
+}
+
+physics :{
+  analyzers: {
+    webDisplay : {
+      module_type     : WebDisplay
+    }
+  }
+
+  e1        : [ webDisplay ]
+  end_paths : [ e1 ]
+
+}
