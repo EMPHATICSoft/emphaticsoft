@@ -20,6 +20,10 @@
 //    if you need a different platform one day.  Or better yet, use a
 //    real web server.
 
+//emphaticsoft includes
+#include "RecoBase/LineSegment.h"
+
+//ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -29,6 +33,9 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+
+//ROOT includes
+#include "TVector3.h"
 
 //POSIX includes for sockets
 #include <string.h> //memset
@@ -59,6 +66,7 @@ public:
     using Name=fhicl::Name;
     using Comment=fhicl::Comment;
     fhicl::Atom<int> portNumber{Name("portNumber"), Comment("Port forwarded to web broswer"), 3490};
+    fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
   };
 
   typedef art::EDAnalyzer::Table<Config> Parameters;
@@ -98,8 +106,7 @@ private:
 evd::WebDisplay::WebDisplay(Parameters const& p)
   : EDAnalyzer{p}, fConfig(p()), fPortNumber(p().portNumber()), fMessageSocket(-1)
 {
-  // Call appropriate consumes<>() for any products to be retrieved by this module.
-  //consumes<recob::SSDLineSegment>();
+  consumes<std::vector<rb::LineSegment>>(p().lineSegLabel());
 }
 
 //Set up socket for web communication with a browser.  This will block
@@ -124,6 +131,7 @@ void evd::WebDisplay::beginJob()
   //getaddrinfo() returns lots of addresses that may or may not work in a linked list.
   //Pick the first one that can be used.
   int listenSocket = -1;
+  constexpr int yes = 1;
   for(;myAddress != nullptr; myAddress = myAddress->ai_next)
   {
     listenSocket = socket(myAddress->ai_family, myAddress->ai_socktype, myAddress->ai_protocol);
@@ -132,6 +140,11 @@ void evd::WebDisplay::beginJob()
     //My prototype reset the status of this socket here.  I left that out
     //so users on the same GPVM don't stomp on each other.
     //TODO: Pick another port number if this socket is already in use.
+    //Reuse this socket if there's another process already using it
+    if(setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
+    {
+      mf::LogError("PortSetup") << "setsockopt: " << strerror(errno);
+    }
 
     if(bind(listenSocket, myAddress->ai_addr, myAddress->ai_addrlen) < 0)
     {
@@ -187,13 +200,37 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
 {
   const int eventNumber = e.id().event();
 
-  //TODO: Dummy event setup just to show that this works.  Replace with real SSD LineSegment positions.
-  //Generate source code for variables that set up the cubes to draw
-  std::string cubeSetup = "const cubeXPositions = [\n";
-  for(int whichEvent = 0; whichEvent < eventNumber; ++whichEvent) cubeSetup += std::to_string(whichEvent*2) + ",\n";
-  cubeSetup += "0];\n";
+  const auto lineSegs = e.getValidHandle<std::vector<rb::LineSegment>>(fConfig.lineSegLabel());
 
-  const int contentLength = 630 + cubeSetup.size() + 3215; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
+  //TODO: Convert rb::LineSegments into the width, height, depth, and center that three.js needs
+  std::string cubeSetup;
+  for(const auto& line: *lineSegs)
+  {
+    TVector3 x0 = line.X0(),
+             x1 = line.X1();
+    //TODO: This isn't going to work for u and w planes.  Start from the center, find the box length, calculate a rotation, and place it correctly.
+    auto span = (x1 - x0)*0.5*0.1;
+    const double ssdWidth = 0.1;
+    if(fabs(span.X()) < 0.1) span.SetX(ssdWidth);
+    if(fabs(span.Y()) < 0.1) span.SetY(ssdWidth);
+    if(fabs(span.Z()) < 0.1) span.SetZ(ssdWidth);
+
+    const auto center = (x0 + x1)*0.5*0.1;
+    //TODO: Replace these string concatenation operators with stringstream or something better
+    cubeSetup += "{\n";
+    cubeSetup += "  const ssdGeom = new THREE.BoxGeometry(" + std::to_string(span.X()) + ", " + std::to_string(span.Y()) + ", " + std::to_string(span.Z()) + ");\n";
+    cubeSetup += "  const ssdBox = new THREE.Mesh(ssdGeom, ssdMaterial);\n";
+    cubeSetup += "  ssdBox.position.x = " + std::to_string(center.X()) + ";\n";
+    cubeSetup += "  ssdBox.position.y = " + std::to_string(center.Y()) + ";\n";
+    cubeSetup += "  ssdBox.position.z = " + std::to_string(center.Z()) + ";\n";
+    cubeSetup += "  scene.add(ssdBox);\n";
+    cubeSetup += "}";
+    //TODO: Make boxes wider so they're more visible?
+    //TODO: Change box colors here
+  }
+  mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
+
+  const int contentLength = 784 + cubeSetup.size() + 2574; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
   //const std::string simpleTestSource = "<!DOCTYPE html>\n<h1>Hello, world!</h1>";
   //const int contentLength = simpleTestSource.size();
   const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";

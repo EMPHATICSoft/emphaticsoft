@@ -1,3 +1,21 @@
+    }
+
+    function setupReferenceGeometry(scene) {
+      const referenceMaterial = new THREE.MeshPhongMaterial({color:0xff0000});
+
+      const magnetGeom = new THREE.CylinderGeometry(10, 10, 20, 12);
+      const magnetCylinder = new THREE.Mesh(magnetGeom, referenceMaterial);
+      magnetCylinder.position.set(0, 0, 100);
+      magnetCylinder.rotation.x = 3.1415926535897932384626433832/2; //TODO: Remember the Javascript name for pi
+      scene.add(magnetCylinder);
+
+      const targetGeom = new THREE.BoxGeometry(5, 5, 1);
+      const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);
+      targetBox.position.set(0, 0, 20);
+      scene.add(targetBox);
+    }
+
+    function main() {
 
       const canvas = document.querySelector('#Hello');
       const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
@@ -6,9 +24,9 @@
       const fov = 75;
       const aspect = 2;
       const near = 0.1;
-      const far = 5;
+      const far = 1000;
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-      camera.position.z = 2;
+      camera.position.set(0, 30, -40);
 
       const controls = new OrbitControls(camera, canvas);
       controls.target.set(0, 0, 0);
@@ -18,33 +36,13 @@
       const lightColor = 0xFFFFFF;
       const intensity = 3;
       const light = new THREE.DirectionalLight(lightColor, intensity);
-      light.position.set(-1, 2, 4);
+      light.position.set(-1, 2, -10);
     
       //Set up things to draw
       const scene = new THREE.Scene();
-      const myFirstGeometry = new THREE.BoxGeometry(1, 1, 1);
-      //const material = new THREE.MeshPhongMaterial({color: 0x44aa88});
-    
-      /*const myFirstCube = new THREE.Mesh(myFirstGeometry, material);
-      scene.add(myFirstCube);*/
 
-      function makeInstance(geometry, color, xPosition)
-      {
-        const material = new THREE.MeshPhongMaterial({color});
-
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
-
-        cube.position.x = xPosition;
-
-        return cube;
-      }
-
-      const cubes = [];
-      for(const xPosition of cubeXPositions)
-      {
-        cubes.push(makeInstance(myFirstGeometry, 0x44aa88, xPosition));
-      }
+      setupSSDBoxes(scene);
+      setupReferenceGeometry(scene);
 
       scene.add(light);
     
@@ -63,30 +61,6 @@
       }
 
       //Start rendering!
-      //Rotate cubes
-      /*function gameLoop(time) {
-        time *= 0.001; //Convert from ms to seconds
-
-        if(resizeRendererToDisplaySize(renderer))
-        {
-          const canvas = renderer.domElement;
-          camera.aspect = canvas.clientWidth/canvas.clientHeight;
-          camera.updateProjectionMatrix();
-        }
-
-        cubes.forEach((cube, index) => {
-          const speed = 1 + index * 0.1;
-          const rot = time * speed;
-          cube.rotation.x = rot;
-          cube.rotation.y = rot;
-        });
-
-        renderer.render(scene, camera);
-
-        requestAnimationFrame(gameLoop);
-      }*/
-
-      //Just display static cubes
       function render() {
         if(resizeRendererToDisplaySize(renderer))
         {
@@ -98,8 +72,6 @@
         renderer.render(scene, camera);
       }
 
-      //Use only when rotating cubes
-      //requestAnimationFrame(gameLoop);
       render();
 
       controls.addEventListener('change', render);

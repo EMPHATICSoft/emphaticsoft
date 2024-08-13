@@ -29,5 +29,7 @@
     <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; //'controls';
-    
-    function main() {
+
+    function setupSSDBoxes(scene) {
+      const ssdMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
+      //c++ code generates the rest of this function!

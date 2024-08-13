@@ -1,0 +1,52 @@
+#include "Services.fcl"
+#include "SSDDigitizer.fcl"
+#include "FillDataQuality.fcl"
+#include "SpillInfo.fcl"
+#include "MakeSSDClusters.fcl"
+
+process_name: CAF
+
+services:
+{
+  # Load the service that manages root files for histograms.
+    #TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
+  scheduler: { wantSummary: false }
+  TimeTracker: {}
+  @table::standard_services
+
+  IFBeam:{}
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type: RootInput
+  maxEvents:   -1
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName: "ssdReco.root"
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    raw:              @local::standard_ssddigitizer
+    dataqual:         @local::standard_dataqual
+    spillinfo:        @local::standard_spillinfo
+    ssdclusts:        @local::standard_ssdclust
+  }
+
+  stream1: [out1]
+  reco: [raw, dataqual, spillinfo, ssdclusts]
+  trigger_paths: [reco]
+  end_paths: [stream1]
+}
+
+physics.producers.ssdclusts.FillTTree: false
