@@ -276,11 +276,17 @@ int evd::WebDisplay::sendString(const std::string& toSend) const
 
 int evd::WebDisplay::sendFile(const char* fileName) const
 {
+  //First, find the file by looking at the source code directory
+  //TODO: I don't think this will work if we install on /cvmfs.  How do we look in the install directory instead?
+  const char* fileLoc = getenv ("CETPKG_SOURCE");
+  if(fileLoc == nullptr) mf::LogError("sendFile") << "Failed to find " << fileName << " at CETPKG_SOURCE (source directory) because CETPKG_SOURCE is not set!";
+  std::string fileFullPath = fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
+
   std::cout << "Sending file named " << fileName << "...\n";
   constexpr int fileChunkSize = 512;
   char fileData[fileChunkSize];
 
-  FILE* file = fopen(fileName, "rb");
+  FILE* file = fopen(fileFullPath.c_str(), "rb");
 
   int bytesRead = 0;
   int bytesSent = 0;
