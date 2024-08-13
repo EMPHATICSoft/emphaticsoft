@@ -208,29 +208,26 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   {
     TVector3 x0 = line.X0(),
              x1 = line.X1();
-    //TODO: This isn't going to work for u and w planes.  Start from the center, find the box length, calculate a rotation, and place it correctly.
-    auto span = (x1 - x0)*0.5*0.1;
+    const auto diff = x1 - x0;
+    const double length = diff.Mag();
     const double ssdWidth = 0.1;
-    if(fabs(span.X()) < 0.1) span.SetX(ssdWidth);
-    if(fabs(span.Y()) < 0.1) span.SetY(ssdWidth);
-    if(fabs(span.Z()) < 0.1) span.SetZ(ssdWidth);
-
     const auto center = (x0 + x1)*0.5*0.1;
+    //const double theta = diff.Theta();
+    const double phi = diff.Phi(); 
+
     //TODO: Replace these string concatenation operators with stringstream or something better
     cubeSetup += "{\n";
-    cubeSetup += "  const ssdGeom = new THREE.BoxGeometry(" + std::to_string(span.X()) + ", " + std::to_string(span.Y()) + ", " + std::to_string(span.Z()) + ");\n";
+    cubeSetup += "  const ssdGeom = new THREE.BoxGeometry(ssdWidth, " + std::to_string(length) + ", ssdWidth);\n";
     cubeSetup += "  const ssdBox = new THREE.Mesh(ssdGeom, ssdMaterial);\n";
-    cubeSetup += "  ssdBox.position.x = " + std::to_string(center.X()) + ";\n";
-    cubeSetup += "  ssdBox.position.y = " + std::to_string(center.Y()) + ";\n";
-    cubeSetup += "  ssdBox.position.z = " + std::to_string(center.Z()) + ";\n";
+    cubeSetup += "  ssdBox.position.set("+ std::to_string(center.X()) +", "+ std::to_string(center.Y()) +", "+ std::to_string(center.Z()) +");\n";
+    cubeSetup += "  ssdBox.rotation.z =" + std::to_string(-phi) + "\n;"; //Angle convention seems to be opposite between ROOT and Three.js based on run 1c data
     cubeSetup += "  scene.add(ssdBox);\n";
-    cubeSetup += "}";
-    //TODO: Make boxes wider so they're more visible?
+    cubeSetup += "}\n";
     //TODO: Change box colors here
   }
   mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
 
-  const int contentLength = 784 + cubeSetup.size() + 2574; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
+  const int contentLength = 910 + cubeSetup.size() + 2574; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
   //const std::string simpleTestSource = "<!DOCTYPE html>\n<h1>Hello, world!</h1>";
   //const int contentLength = simpleTestSource.size();
   const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";
