@@ -48,6 +48,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 namespace evd {
   class WebDisplay;
@@ -197,6 +198,15 @@ void evd::WebDisplay::analyze(art::Event const& e)
   memset(fBuffer, '\0', bufferSize);
 }
 
+std::string getFullPath(const std::string& fileName)
+{
+  //Find the file by looking at the source code directory
+  //TODO: I don't think this will work if we install on /cvmfs.  How do we look in the install directory instead?
+  const char* fileLoc = getenv ("CETPKG_SOURCE");
+  if(fileLoc == nullptr) mf::LogError("sendFile") << "Failed to find " << fileName << " at CETPKG_SOURCE (source directory) because CETPKG_SOURCE is not set!";
+  return fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
+}
+
 int evd::WebDisplay::sendEvent(const art::Event& e) const
 {
   const int eventNumber = e.id().event();
@@ -283,12 +293,16 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
 
   mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
 
-  const int contentLength = 910 + cubeSetup.size() + 1902; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
-  //const std::string simpleTestSource = "<!DOCTYPE html>\n<h1>Hello, world!</h1>";
-  //const int contentLength = simpleTestSource.size();
+  //Use the POSIX stat() API to get file sizes.  Since we're using socket() anyway, I can assume a POSIX operating system.
+  int contentLength = cubeSetup.size();
+  struct stat fileInfo;
+  stat(getFullPath("header.html").c_str(), &fileInfo);
+  contentLength += fileInfo.st_size;
+  
+  stat(getFullPath("footer.html").c_str(), &fileInfo);
+  contentLength += fileInfo.st_size;
+
   const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";
-  //sendString(requestHeader);
-  //return sendString(simpleTestSource); //TODO: Remove this simple test after I get it working
 
   //First, send the beginning of an HTML response
   int returnCode = sendString(requestHeader);
@@ -332,11 +346,7 @@ int evd::WebDisplay::sendString(const std::string& toSend) const
 
 int evd::WebDisplay::sendFile(const char* fileName) const
 {
-  //First, find the file by looking at the source code directory
-  //TODO: I don't think this will work if we install on /cvmfs.  How do we look in the install directory instead?
-  const char* fileLoc = getenv ("CETPKG_SOURCE");
-  if(fileLoc == nullptr) mf::LogError("sendFile") << "Failed to find " << fileName << " at CETPKG_SOURCE (source directory) because CETPKG_SOURCE is not set!";
-  std::string fileFullPath = fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
+  const std::string fileFullPath = getFullPath(fileName);
 
   std::cout << "Sending file named " << fileName << "...\n";
   constexpr int fileChunkSize = 512;
