@@ -1,20 +1,3 @@
-    }
-
-    function setupReferenceGeometry(scene) {
-      const referenceMaterial = new THREE.MeshPhongMaterial({color:0xff0000});
-
-      const magnetGeom = new THREE.CylinderGeometry(10, 10, 20, 12);
-      const magnetCylinder = new THREE.Mesh(magnetGeom, referenceMaterial);
-      magnetCylinder.position.set(0, 0, 100);
-      magnetCylinder.rotation.x = 3.1415926535897932384626433832/2; //TODO: Remember the Javascript name for pi
-      scene.add(magnetCylinder);
-
-      const targetGeom = new THREE.BoxGeometry(5, 5, 1);
-      const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);
-      targetBox.position.set(0, 0, 20);
-      scene.add(targetBox);
-    }
-
     function main() {
 
       const canvas = document.querySelector('#Hello');

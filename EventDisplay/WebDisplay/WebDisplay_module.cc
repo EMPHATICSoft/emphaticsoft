@@ -22,6 +22,7 @@
 
 //emphaticsoft includes
 #include "RecoBase/LineSegment.h"
+#include "Geometry/service/GeometryService.h"
 
 //ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -216,18 +217,40 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     const double phi = diff.Phi(); 
 
     //TODO: Replace these string concatenation operators with stringstream or something better
-    cubeSetup += "{\n";
-    cubeSetup += "  const ssdGeom = new THREE.BoxGeometry(ssdWidth, " + std::to_string(length) + ", ssdWidth);\n";
-    cubeSetup += "  const ssdBox = new THREE.Mesh(ssdGeom, ssdMaterial);\n";
-    cubeSetup += "  ssdBox.position.set("+ std::to_string(center.X()) +", "+ std::to_string(center.Y()) +", "+ std::to_string(center.Z()) +");\n";
-    cubeSetup += "  ssdBox.rotation.z =" + std::to_string(-phi) + "\n;"; //Angle convention seems to be opposite between ROOT and Three.js based on run 1c data
-    cubeSetup += "  scene.add(ssdBox);\n";
-    cubeSetup += "}\n";
+    cubeSetup += "  {\n";
+    cubeSetup += "    const ssdGeom = new THREE.BoxGeometry(ssdWidth, " + std::to_string(length) + ", ssdWidth);\n";
+    cubeSetup += "    const ssdBox = new THREE.Mesh(ssdGeom, ssdMaterial);\n";
+    cubeSetup += "    ssdBox.position.set("+ std::to_string(center.X()) +", "+ std::to_string(center.Y()) +", "+ std::to_string(center.Z()) +");\n";
+    cubeSetup += "    ssdBox.rotation.z =" + std::to_string(-phi) + "\n;"; //Angle convention seems to be opposite between ROOT and Three.js based on run 1c data
+    cubeSetup += "    scene.add(ssdBox);\n";
+    cubeSetup += "  }\n";
     //TODO: Change box colors here
   }
+  cubeSetup += "}\n";
+
+  //TODO: Add magnet and target positions
+  art::ServiceHandle<emph::geo::GeometryService> geom;
+  cubeSetup += "  function setupReferenceGeometry(scene) {\n";
+  cubeSetup += "    const referenceMaterial = new THREE.MeshPhongMaterial({color:0xff0000});\n\n"; //TODO: Make material transparent?
+  if(geom->Geo()->MagnetLoad()) //Only show the magnet if MagnetLoad() is true
+  {
+    cubeSetup += "    const magnetGeom = new THREE.CylinderGeometry(10, 10, " + std::to_string((geom->Geo()->MagnetDSZPos() - geom->Geo()->MagnetUSZPos())/10.) + ", 12);\n"; //Converting from mm to cm for graphics reasons
+    cubeSetup += "    const magnetCylinder = new THREE.Mesh(magnetGeom, referenceMaterial);\n";
+    cubeSetup += "    magnetCylinder.position.set(0, 0, " + std::to_string((geom->Geo()->MagnetUSZPos() + geom->Geo()->MagnetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
+    cubeSetup += "    magnetCylinder.rotation.x = 3.1415926535897932384626433832/2; //TODO: Remember the Javascript name for pi\n";
+    cubeSetup += "    scene.add(magnetCylinder);\n";
+  }
+  cubeSetup += "    const targetGeom = new THREE.BoxGeometry(5, 5, " + std::to_string((geom->Geo()->TargetDSZPos() - geom->Geo()->TargetUSZPos())/10.) + ");\n"; //Converting from mm to cm for graphics reasons
+  cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
+  cubeSetup += "    targetBox.position.set(0, 0, " + std::to_string((geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
+  cubeSetup += "    scene.add(targetBox);\n";
+  cubeSetup += "  }\n";
+
+  //TODO: Add transparent boxes for SSD positions.  Don't show SSDs that aren't loaded for this run.
+
   mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
 
-  const int contentLength = 910 + cubeSetup.size() + 2574; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
+  const int contentLength = 910 + cubeSetup.size() + 1902; //TODO: hard-coded script sizes from wc -c.  Replace with c++ check of file size.  I'm already assuming a POSIX platform by using send() and recv(), so stat() should do the job.
   //const std::string simpleTestSource = "<!DOCTYPE html>\n<h1>Hello, world!</h1>";
   //const int contentLength = simpleTestSource.size();
   const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";
