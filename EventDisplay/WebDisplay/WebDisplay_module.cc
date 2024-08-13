@@ -210,9 +210,9 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     TVector3 x0 = line.X0(),
              x1 = line.X1();
     const auto diff = x1 - x0;
-    const double length = diff.Mag();
+    const double length = diff.Mag()/10.; //Convert mm to cm for graphics reasons
     const double ssdWidth = 0.1;
-    const auto center = (x0 + x1)*0.5*0.1;
+    const auto center = (x0 + x1)*0.5*0.1; //Convert mm to cm for graphics reasons
     //const double theta = diff.Theta();
     const double phi = diff.Phi(); 
 
@@ -228,10 +228,16 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   }
   cubeSetup += "}\n";
 
-  //TODO: Add magnet and target positions
+  //Add magnet and target positions
   art::ServiceHandle<emph::geo::GeometryService> geom;
   cubeSetup += "  function setupReferenceGeometry(scene) {\n";
-  cubeSetup += "    const referenceMaterial = new THREE.MeshPhongMaterial({color:0xff0000});\n\n"; //TODO: Make material transparent?
+  cubeSetup += "    const referenceMaterial = new THREE.MeshPhongMaterial({\n";
+  cubeSetup += "      color: 0xff0000,\n";
+  cubeSetup += "      opacity: 0.2,\n";
+  cubeSetup += "      transparent: true,\n";
+  cubeSetup += "      side: THREE.DoubleSide,\n";  //There's more transparency details that I'm omitting.  See https://threejs.org/manual/#en/transparency
+  cubeSetup += "    });\n";
+
   if(geom->Geo()->MagnetLoad()) //Only show the magnet if MagnetLoad() is true
   {
     cubeSetup += "    const magnetGeom = new THREE.CylinderGeometry(10, 10, " + std::to_string((geom->Geo()->MagnetDSZPos() - geom->Geo()->MagnetUSZPos())/10.) + ", 12);\n"; //Converting from mm to cm for graphics reasons
@@ -244,9 +250,36 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
   cubeSetup += "    targetBox.position.set(0, 0, " + std::to_string((geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
   cubeSetup += "    scene.add(targetBox);\n";
-  cubeSetup += "  }\n";
 
-  //TODO: Add transparent boxes for SSD positions.  Don't show SSDs that aren't loaded for this run.
+  //Add transparent boxes for SSD positions.  Don't show SSDs that aren't loaded for this run.
+  //TODO: These aren't visible right now because the geometry is returning 0s for their parameters
+  cubeSetup += "  const ssdReferenceMaterial = new THREE.MeshPhongMaterial({\n";
+  cubeSetup += "    color: 0x0000ff,\n";
+  cubeSetup += "    opacity: 0.2,\n";
+  cubeSetup += "    transparent: true,\n";
+  cubeSetup += "    side: THREE.DoubleSide,\n";  //There's more transparency details that I'm omitting.  See https://threejs.org/manual/#en/transparency
+  cubeSetup += "  });\n";
+  for(int whichStation = 0; whichStation < geom->Geo()->NSSDStations(); ++whichStation)
+  {
+    const auto station = geom->Geo()->GetSSDStation(whichStation);
+    for(int whichPlane = 0; whichPlane < station->NPlanes(); ++whichPlane)
+    {
+      const auto plane = station->GetPlane(whichPlane);
+      for(int whichSensor = 0; whichSensor < plane->NSSDs(); ++whichSensor)
+      {
+        const auto sensor = plane->SSD(whichSensor); //geom->Geo()->GetSSDSensor(whichSensor);
+        cubeSetup += "  {\n";
+        cubeSetup += "    const sensorGeom = new THREE.BoxGeometry(" + std::to_string(sensor->Width()/10.) + ", " + std::to_string(sensor->Height()/10.) + ", " + std::to_string(sensor->Dz()/10.) + ");\n"; //Converting mm to cm for graphics reasons
+        cubeSetup += "    const sensorBox = new THREE.Mesh(sensorGeom, ssdReferenceMaterial);\n";
+        cubeSetup += "    sensorBox.position.set(" + std::to_string(sensor->Pos().X()/10.) + ", " + std::to_string(sensor->Pos().Y()/10.) + ", " + std::to_string((sensor->Pos().Z() + station->Pos().Z())/10.) + ");\n";
+        cubeSetup += "    sensorBox.rotation.z = " + std::to_string(-sensor->Rot()) + ";\n";
+        cubeSetup += "    scene.add(sensorBox);\n";
+        cubeSetup += "  }\n";
+      }
+    }
+  }  
+
+  cubeSetup += "  }\n";
 
   mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
 
