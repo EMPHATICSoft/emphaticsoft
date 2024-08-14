@@ -55,6 +55,10 @@
         renderer.render(scene, camera);
       }
 
+      //Set up buttons for the user: a Graphical User Interface
+      const gui = new GUI();
+      gui.add(location, 'reload').name('Next Event');
+
       render();
 
       controls.addEventListener('change', render);
