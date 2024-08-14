@@ -177,7 +177,21 @@ void evd::WebDisplay::beginJob()
   mf::LogInfo("PortSetup") << "Got a connection!";
   close(listenSocket);
   //TODO: Clean up addrinfo structs
-  //TODO: Send a "waiting" screen here, possibly with a logo
+
+  //Send a "waiting" screen while things like the geometry load
+  //TODO: Add a logo?
+  std::string welcomeScreen = "<!DOCTYPE html>\n";
+  welcomeScreen += "<html>\n";
+  welcomeScreen += "  <head>\n";
+  welcomeScreen += "    <title> Loading... </title>\n";
+  welcomeScreen += "  </head>\n";
+  welcomeScreen += "  <body>\n";
+  welcomeScreen += "    <text> Loading geometry and first event... </text>\n";
+  welcomeScreen += "  </body>\n";
+  welcomeScreen += "  <meta http-equiv=\"refresh\" content=\"1\">\n";
+  welcomeScreen += "</html>";
+  welcomeScreen.insert(0, "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(welcomeScreen.length()) + "\n\n");
+  sendString(welcomeScreen);
 }
 
 void evd::WebDisplay::analyze(art::Event const& e)

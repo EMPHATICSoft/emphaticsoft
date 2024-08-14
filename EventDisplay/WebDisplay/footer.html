@@ -36,7 +36,7 @@
                                        });
 
           //Draw a label next to this object
-          const canvas = document.querySelector('#Hello');
+          const canvas = document.querySelector('#Display');
           const tempV = new THREE.Vector3();
           this.labelElem.textContent = this.pickedObject.name;
           this.labelContainerElem.appendChild(this.labelElem);
@@ -55,7 +55,7 @@
 
     function main() {
 
-      const canvas = document.querySelector('#Hello');
+      const canvas = document.querySelector('#Display');
       const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
     
       //Camera setup
