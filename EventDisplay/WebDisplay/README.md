@@ -40,10 +40,6 @@ Might be useful in case you need to debug something
 - Before next release:
   - Does this work on MacOS + Safari?  It worked for Aayush on MacOS + Chrome.
 - Before next collaboration meeting:
-  - MC information: trajectories and perhaps hits
-    - All of our MC trajectory information is basically stored in SRParticles right now.  The other headers all point to that one.
-    - We do have step-by-step trajectories with particle information, etc.
-    - three.js is supposed to support drawing lines.  That should cover everything I need.
   - Better default camera positions and buttons to switch between them!
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
   - Do we have reconstructed SSD tracks?
@@ -62,6 +58,7 @@ Might be useful in case you need to debug something
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
+  - Get MC presentation exactly right.  I want neutral particles to get dashed lines, and I want a color code for photons
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui

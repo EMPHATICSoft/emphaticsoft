@@ -256,11 +256,20 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   //Render simulation
   cubeSetup += "function setupMCTrajectories(scene) {\n";
 
-  //TODO: Set up table of materials based on PDG code
-  cubeSetup += "  const mcTrajMaterial = new THREE.LineBasicMaterial({\n";
-  cubeSetup += "    color: 0x00ff00,\n";
-  cubeSetup += "    linewidth: 32,\n";
-  cubeSetup += "  });\n";
+  //Set up table of materials based on PDG code
+  //Solid lines for charged particles
+  //TODO: Dashed lines for neutral particles and unknowns
+  cubeSetup += "  const mcLineWidth = 32;\n";
+  cubeSetup += "  const pdgToMaterialMap = new Map();\n";
+  cubeSetup += "  pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: mcLineWidth }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(2112, new THREE.LineBasicMaterial({ color: 0x808080, linewidth: mcLineWidth }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(211, new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: mcLineWidth }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(111, new THREE.LineDashedMaterial({ color: 0xff0000, linewidth: mcLineWidth, dashSize: 3, gapSize: 3 }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(321, new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: mcLineWidth }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0xffff00, linewidth: mcLineWidth, dashSize: 3, gapSize: 3 }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: mcLineWidth }));\n";
+  cubeSetup += "  pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0xff00ff, linewidth: mcLineWidth }));\n";
+  cubeSetup += "  const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 128, gapSize: 128 });\n";
 
   art::Handle<std::vector<sim::Particle>> mcParts;
   e.getByLabel(fConfig.mcPartLabel(), mcParts);
@@ -277,7 +286,9 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
         cubeSetup += "    points.push(new THREE.Vector3(" + std::to_string(pos.X()/10.) + ", " + std::to_string(pos.Y()/10.) + ", " + std::to_string(pos.Z()/10.) + "));\n"; //Convert mm to cm
       }
       cubeSetup += "    const geometry = new THREE.BufferGeometry().setFromPoints(points);\n";
-      cubeSetup += "    const line  = new THREE.Line(geometry, mcTrajMaterial);\n";
+      cubeSetup += "    let pdgMaterial = pdgToMaterialMap.get(" + std::to_string(part.fpdgCode) + ");\n";
+      cubeSetup += "    if(!pdgMaterial) { pdgMaterial = unknownPDGMaterial; }\n";
+      cubeSetup += "    const line  = new THREE.Line(geometry, pdgMaterial);\n";
       cubeSetup += "    line.name = \"" + std::to_string(part.ftrajectory.Momentum(0).Vect().Mag()/1000.) + " GeV/c " + part.fpdgCode + "\";\n"; //TODO: Get name from PDG code and confirm momentum units
       cubeSetup += "    scene.add(line);\n";
       cubeSetup += "  }\n";

@@ -36,6 +36,7 @@ cet_build_plugin(WebDisplay art::module
   DetGeoMap
   DetGeoMapService_service
   Simulation
+  StandardRecord
   art::Framework_Core
   art::Framework_Principal
   art::Persistency_Common  
