@@ -315,6 +315,11 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
 
   cubeSetup += "return [referenceMaterial, ssdReferenceMaterial];\n";
   cubeSetup += "  }\n";
+  cubeSetup += "var eventID = {\n";
+  cubeSetup += "                run: " + std::to_string(e.id().run()) + ",\n";
+  cubeSetup += "                subrun: " + std::to_string(e.id().subRun()) + ",\n";
+  cubeSetup += "                event: " +  std::to_string(e.id().event()) + "\n";
+  cubeSetup += "              }\n";
 
   mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
 

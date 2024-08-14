@@ -40,7 +40,6 @@ Might be useful in case you need to debug something
 - Before next release:
   - Does this work on MacOS + Safari?  It worked for Aayush on MacOS + Chrome.
 - Before next collaboration meeting:
-  - Display run, subrun, event number
   - MC information: trajectories and perhaps hits
   - Better default camera positions and buttons to switch between them!
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
@@ -58,7 +57,7 @@ Might be useful in case you need to debug something
     - https://developer.mozilla.org/en-US/docs/Learn/Forms/Sending_forms_through_JavaScript
     - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
   - Add a screenshot button.  three.js has a tutorial for this.
-  - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?
+  - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
 
 ## Helpful links
