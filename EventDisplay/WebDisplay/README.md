@@ -1,7 +1,7 @@
-#EMPHATIC Web Display
+# EMPHATIC Web Display
 A browser-based event display for the EMPHATIC experiment.
 
-##Usage
+## Usage
 1. Log in to an emphaticgpvm with a **special ssh flag**: `ssh -L 3490:localhost:3490 emphaticgpvm03.fnal.gov`
 2. Set up to develop emphaticsoft normally.  You'll forward port 3490 through the SL7 container since you're already on this branch.
 3. Find a file you want to read.  It must have **SSD LineSegments** from the MakeSSDClusters module since that's all the event display shows.
@@ -17,7 +17,7 @@ A browser-based event display for the EMPHATIC experiment.
   - Scroll to zoom in or out
   - Reload the page to go to the next event
 
-##Supported Platforms
+## Supported Platforms
 - Your laptop (client side):
   - Firefox (TODO: version.  Mine is pretty recent)
   - Chrome (TODO: version.  Mine is very old)
@@ -25,7 +25,7 @@ A browser-based event display for the EMPHATIC experiment.
 - Server side:
   - Any POSIX OS on which you can compile emphaticsoft
 
-##Details
+## Details
 Might be useful in case you need to debug something
 
 - The event display just draws LineSegments right now.  No MC information and no tracks, hits, or Cherenkov information (yet!).  The magnet and target positions are from the Geometry service, but **the magnet size is not accurate** right now.
@@ -35,7 +35,7 @@ Might be useful in case you need to debug something
 - The GPVM "web server" is just a code generator that fills in some Javascript based on the LineSegments in the display and the Geometry service.
 - We require a POSIX OS (i.e. not Windows) for 2 reasons that I know of: the sockets API, and the stat() API.  stat() is easy to replace with ROOT shenanigans that I don't like from TSystem.  ROOT and Boost may have more robust socket implementations.  The only reason I didn't use a portable socket implementation was to save myself work on the demonstration.
 
-##TODOs
+## TODOs
 - Before next release:
   - Pick object to display a "tooltip" that explains what they are briefly
   - Does this work on MacOS + Safari?
