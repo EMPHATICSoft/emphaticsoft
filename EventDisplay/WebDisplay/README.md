@@ -41,6 +41,9 @@ Might be useful in case you need to debug something
   - Does this work on MacOS + Safari?  It worked for Aayush on MacOS + Chrome.
 - Before next collaboration meeting:
   - MC information: trajectories and perhaps hits
+    - All of our MC trajectory information is basically stored in SRParticles right now.  The other headers all point to that one.
+    - We do have step-by-step trajectories with particle information, etc.
+    - three.js is supposed to support drawing lines.  That should cover everything I need.
   - Better default camera positions and buttons to switch between them!
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
   - Do we have reconstructed SSD tracks?

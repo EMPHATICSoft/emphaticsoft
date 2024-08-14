@@ -28,15 +28,22 @@
           this.pickedObject = intersectedObjects[0].object;
           this.pickedObjectOldMaterial = this.pickedObject.material;
           //Make this object light up as long as the mouse hovers over it
-          this.pickedObject.material = new THREE.MeshPhongMaterial({
-                                         color: 0xffff00,
-                                         transparent: true,
-                                         opacity: 1,
-                                         side: THREE.DoubleSide
-                                       });
+          if(this.pickedObject.material.type == "LineBasicMaterial") {
+            this.pickedObject.material = new THREE.LineBasicMaterial({
+                                           color: 0xffff00,
+                                           linewidth: 32
+                                         });
+          }
+          else {
+            this.pickedObject.material = new THREE.MeshPhongMaterial({
+                                           color: 0xffff00,
+                                           transparent: true,
+                                           opacity: 1,
+                                           side: THREE.DoubleSide
+                                         });
+          }
 
           //Draw a label next to this object
-          //const canvas = document.querySelector('#Display');
           const tempV = new THREE.Vector3();
           this.labelElem.textContent = this.pickedObject.name;
           this.labelContainerElem.appendChild(this.labelElem);
@@ -81,6 +88,8 @@
 
       setupSSDBoxes(scene);
       var [geomMaterial, ssdMaterial] = setupReferenceGeometry(scene);
+
+      setupMCTrajectories(scene);
 
       scene.add(light);
     

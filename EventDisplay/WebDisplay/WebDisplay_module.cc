@@ -23,6 +23,7 @@
 //emphaticsoft includes
 #include "RecoBase/LineSegment.h"
 #include "Geometry/service/GeometryService.h"
+#include "Simulation/Particle.h"
 
 //ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -69,6 +70,7 @@ public:
     using Comment=fhicl::Comment;
     fhicl::Atom<int> portNumber{Name("portNumber"), Comment("Port forwarded to web broswer"), 3490};
     fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
+    fhicl::Atom<art::InputTag> mcPartLabel{Name("mcPartLabel"), Comment("Name of the module that produced sim::Particles.  Usually the GEANT simulation."), "geantgen"};
   };
 
   typedef art::EDAnalyzer::Table<Config> Parameters;
@@ -223,11 +225,9 @@ std::string getFullPath(const std::string& fileName)
 
 int evd::WebDisplay::sendEvent(const art::Event& e) const
 {
-  const int eventNumber = e.id().event();
-
+  //Render reconstruction
   const auto lineSegs = e.getValidHandle<std::vector<rb::LineSegment>>(fConfig.lineSegLabel());
 
-  //TODO: Convert rb::LineSegments into the width, height, depth, and center that three.js needs
   std::string cubeSetup;
   for(const auto& line: *lineSegs)
   {
@@ -253,7 +253,40 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   }
   cubeSetup += "}\n";
 
-  //Add magnet and target positions
+  //Render simulation
+  cubeSetup += "function setupMCTrajectories(scene) {\n";
+
+  //TODO: Set up table of materials based on PDG code
+  cubeSetup += "  const mcTrajMaterial = new THREE.LineBasicMaterial({\n";
+  cubeSetup += "    color: 0x00ff00,\n";
+  cubeSetup += "    linewidth: 32,\n";
+  cubeSetup += "  });\n";
+
+  art::Handle<std::vector<sim::Particle>> mcParts;
+  e.getByLabel(fConfig.mcPartLabel(), mcParts);
+  if(mcParts.isValid()) //A simple way to skip this step for data and recover gracefully for simulation configuration problems
+  {
+    mf::LogInfo("MC Drawing") << "Drawing " << mcParts->size() << " MC trajectories.";
+    for(const auto& part: *mcParts)
+    {
+      cubeSetup += "  {\n";
+      cubeSetup += "    const points = [];\n";
+      for(size_t whichTrajPoint = 0; whichTrajPoint < part.ftrajectory.size(); ++whichTrajPoint)
+      {
+        const auto& pos = part.ftrajectory.Position(whichTrajPoint);
+        cubeSetup += "    points.push(new THREE.Vector3(" + std::to_string(pos.X()/10.) + ", " + std::to_string(pos.Y()/10.) + ", " + std::to_string(pos.Z()/10.) + "));\n"; //Convert mm to cm
+      }
+      cubeSetup += "    const geometry = new THREE.BufferGeometry().setFromPoints(points);\n";
+      cubeSetup += "    const line  = new THREE.Line(geometry, mcTrajMaterial);\n";
+      cubeSetup += "    line.name = \"" + std::to_string(part.ftrajectory.Momentum(0).Vect().Mag()/1000.) + " GeV/c " + part.fpdgCode + "\";\n"; //TODO: Get name from PDG code and confirm momentum units
+      cubeSetup += "    scene.add(line);\n";
+      cubeSetup += "  }\n";
+    }
+  }
+  else mf::LogInfo("MC Drawing") << "No sim::Particles to draw.";
+  cubeSetup += "}\n";
+
+  //Render static geometry
   art::ServiceHandle<emph::geo::GeometryService> geom;
   cubeSetup += "  function setupReferenceGeometry(scene) {\n";
   cubeSetup += "    const referenceMaterial = new THREE.MeshPhongMaterial({\n";
