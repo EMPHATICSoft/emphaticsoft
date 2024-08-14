@@ -13,7 +13,6 @@ source : {
 }
 
 services : {
-  TFileService  : { fileName : "webDisplay01.root" }
   @table::standard_services
 }
 

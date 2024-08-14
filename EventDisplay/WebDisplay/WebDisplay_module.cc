@@ -275,7 +275,13 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   cubeSetup += "    const targetGeom = new THREE.BoxGeometry(5, 5, " + std::to_string((geom->Geo()->TargetDSZPos() - geom->Geo()->TargetUSZPos())/10.) + ");\n"; //Converting from mm to cm for graphics reasons
   cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
   cubeSetup += "    targetBox.position.set(0, 0, " + std::to_string((geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
-  cubeSetup += "    targetBox.name = \"target\";\n"; //TODO: Put material in target name
+  std::string totalTargetName = "`target\\n";
+  const auto target = geom->Geo()->GetTarget();
+  for(int whichElem = 0; whichElem < target->NEl(); ++whichElem)
+  {
+    totalTargetName += target->El(whichElem) + " : " + std::to_string(target->Frac(whichElem)) + "\\n";
+  }
+  cubeSetup += "    targetBox.name = " + totalTargetName + "`;\n";
   cubeSetup += "    scene.add(targetBox);\n";
 
   //Add transparent boxes for SSD positions.  Don't show SSDs that aren't loaded for this run.
