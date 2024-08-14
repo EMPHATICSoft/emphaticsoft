@@ -1,29 +1,3 @@
-    //Mostly copied from https://threejs.org/manual/#en/canvas-textures
-    function makeLabelCanvas(size, text) {
-      const borderSize = 2;
-      const ctx = document.createElement('canvas').getContext('2d');
-      const font = `${size}px bold sans-serif`;
-      ctx.font = font;
-
-      //measure how long the text will be
-      const doubleBorderSize = borderSize * 2;
-      const width = ctx.measureText(text).width + doubleBorderSize; 
-      const height = size + doubleBorderSize;
-      ctx.canvas.width = width;
-      ctx.canvas.height = height;
-
-      //Need to set the font again after resizing canvas per the tutorial
-      ctx.font = font;
-      ctx.textBaseline = 'top';
-
-      ctx.fillStyle = '#e7c9a9'; //"manilla", aiming to look like ROOT's tooltips
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = 'black';
-      ctx.fillText(text, borderSize, borderSize);
-
-      return ctx.canvas;
-    }
-
     //Design of this class heavily influenced by https://threejs.org/manual/#en/picking
     //TODO: We might want color-based picking instead of a raycaster one day.  three.js supports that too.  It would solve performance problems if we have lots of objects like GEANT hits.
     class PickHelper {
@@ -36,14 +10,15 @@
                                          opacity: 1,
                                          side: THREE.DoubleSide
                                        });
-        this.labelObject = null;
+        this.labelContainerElem = document.querySelector('#labels');
+        this.labelElem = document.createElement('div');
       }
 
       pick(normalizedPosition, scene, camera) {
         if(this.pickedObject) {
           this.pickedObject.material = this.pickedObjectOldMaterial;
-          this.pickedObject.remove(this.labelObject);
           this.pickedObject = undefined;
+          this.labelContainerElem.removeChild(this.labelElem);
         }
 
         //Cast a ray through the camera lens.  three.js calls this the frustrum which is technically correct but always confuses me. 
@@ -61,25 +36,19 @@
                                        });
 
           //Draw a label next to this object
-          const canvas = makeLabelCanvas(32, this.pickedObject.name);
-          const texture = new THREE.CanvasTexture(canvas);
-          texture.minFilter = THREE.LinearFilter;
-          texture.wrapS = THREE.ClampToEdgeWrapping;
-          texture.wrapT = THREE.ClampToEdgeWrapping;
+          const canvas = document.querySelector('#Hello');
+          const tempV = new THREE.Vector3();
+          this.labelElem.textContent = this.pickedObject.name;
+          this.labelContainerElem.appendChild(this.labelElem);
 
-          const labelMaterial = new THREE.SpriteMaterial({
-            map: texture,
-            transparent: true,
-            depthTest: false //Learned to do this from https://stackoverflow.com/questions/25070533/three-js-render-an-object-always-on-top
-          });
+          //TODO: Positioning the label on top of the picked object messes up further picking.  Figure out why, then restore this code.
+          /*this.pickedObject.updateWorldMatrix(true, false);
+          this.pickedObject.getWorldPosition(tempV);
 
-          this.labelObject = new THREE.Sprite(labelMaterial);
-          this.pickedObject.add(this.labelObject);
-          this.labelObject.position.z = -0.5;
-
-          const labelBaseScale = 0.01;
-          this.labelObject.scale.x = canvas.width * labelBaseScale;
-          this.labelObject.scale.y = canvas.width * labelBaseScale;
+          tempV.project(camera);
+          const x = (tempV.x *  .5 + .5) * canvas.clientWidth;
+          const y = (tempV.y * -.5 + .5) * canvas.clientHeight;
+          this.labelElem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;*/
         }
       }
     }

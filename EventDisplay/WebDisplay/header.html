@@ -21,10 +21,42 @@
       height: 100%;
       display: block;
     }
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #labels {
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: white;
+    }
+    #labels>div {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: large;
+      user-select: none;
+      white-space: nowrap;
+      text-shadow:
+        -1px -1px 0 #000,
+        0    -1px 0 #000,
+        1px  -1px 0 #000,
+        1px   0   0 #000,
+        1px   1px 0 #000,
+        0     1px 0 #000,
+       -1px   1px 0 #000,
+       -1px   0   0 #000;
+    }
   </style>
 
   <body>
-    <canvas id="Hello"></canvas>
+    <div id="container">
+      <canvas id="Hello"></canvas>
+      <div id="labels"></div>
+    </div>
 
     <script type="module">
     import * as THREE from 'three';

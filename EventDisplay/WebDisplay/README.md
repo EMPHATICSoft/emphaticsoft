@@ -19,8 +19,9 @@ A browser-based event display for the EMPHATIC experiment.
 
 ## Supported Platforms
 - Your laptop (client side):
-  - Firefox (TODO: version.  Mine is pretty recent)
-  - Chrome (TODO: version.  Mine is very old)
+  - Firefox on Ubuntu (TODO: version.  Mine is pretty recent)
+  - Chrome on Ubuntu (TODO: version.  Mine is very old)
+  - Chrome on OS X
   - TODO: Safari on OS X?
 - Server side:
   - Any POSIX OS on which you can compile emphaticsoft
@@ -37,14 +38,7 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - Pick object to display a "tooltip" that explains what they are briefly
-    - Got picking working where it highlights the object.  Next step is to label objects.
-    - I should be able to create simple labels by combining https://threejs.org/manual/#en/billboards with https://threejs.org/manual/#en/canvas-textures
-    - I'm stuck on how to get unique names and other metadata into objects.  I don't want to refer back to ART to get this information just yet.
-    - Object3D also has a name member.  Perfect!
-    - Object3D has a userData member: https://threejs.org/docs/#api/en/core/Object3D
-    - I'd ideally like to store a function for each object, but three.js specficially says not to do that.  What about an object like a MagnetEditor?  I could even imagine popping up a window to show the field map or a 2D view of an SSD eventually.
-  - Does this work on MacOS + Safari?
+  - Does this work on MacOS + Safari?  It worked for Aayush on MacOS + Chrome.
 - Before next collaboration meeting:
   - Display run, subrun, event number
   - MC information: trajectories and perhaps hits
@@ -66,7 +60,7 @@ Might be useful in case you need to debug something
     - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?
-  - Why doesn't the label for the magnet work?
+  - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui
