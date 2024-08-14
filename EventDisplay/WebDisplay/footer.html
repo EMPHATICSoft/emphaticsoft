@@ -1,3 +1,40 @@
+    //Design of this class heavily influenced by https://threejs.org/manual/#en/picking
+    //TODO: We might want color-based picking instead of a raycaster one day.  three.js supports that too.  It would solve performance problems if we have lots of objects like GEANT hits.
+    class PickHelper {
+      constructor() {
+        this.raycaster = new THREE.Raycaster();
+        this.pickedObject = null;
+        this.pickedObjectOldMaterial = new THREE.MeshPhongMaterial({
+                                         color: 0xffff00,
+                                         transparent: true,
+                                         opacity: 1,
+                                         side: THREE.DoubleSide
+                                       });
+      }
+
+      pick(normalizedPosition, scene, camera) {
+        if(this.pickedObject) {
+          this.pickedObject.material = this.pickedObjectOldMaterial;
+          this.pickedObject = undefined;
+        }
+
+        //Cast a ray through the camera lens.  three.js calls this the frustrum which is technically correct but always confuses me. 
+        this.raycaster.setFromCamera(normalizedPosition, camera);
+        const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+        if(intersectedObjects.length) {
+          this.pickedObject = intersectedObjects[0].object;
+          this.pickedObjectOldMaterial = this.pickedObject.material;
+          //Make this object flash as long as the mouse hovers over it
+          this.pickedObject.material = new THREE.MeshPhongMaterial({
+                                         color: 0xffff00,
+                                         transparent: true,
+                                         opacity: 1,
+                                         side: THREE.DoubleSide
+                                       });
+        }
+      }
+    }
+
     function main() {
 
       const canvas = document.querySelector('#Hello');
@@ -43,6 +80,19 @@
         return needsResize;
       }
 
+      //Set up object picking
+      const pickPosition = {x: 0, y: 0};
+
+      function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (event.clientX - rect.left) * canvas.width / rect.width,
+          y: (event.clientY - rect.top) * canvas.height / rect.height
+        };
+      }
+
+      const pickHelper = new PickHelper();
+
       //Start rendering!
       function render() {
         if(resizeRendererToDisplaySize(renderer))
@@ -52,8 +102,40 @@
           camera.updateProjectionMatrix();
         }
 
+        pickHelper.pick(pickPosition, scene, camera);
+
         renderer.render(scene, camera);
       }
+
+      function clearPickPosition() {
+        pickPosition.x = -100000;
+        pickPosition.y = -100000;
+        render();
+      }
+      clearPickPosition();
+
+      function setPickPosition(event) {
+        const pos = getCanvasRelativePosition(event);
+        pickPosition.x = (pos.x / canvas.width) * 2 - 1;
+        pickPosition.y = (pos.y / canvas.height) * -2 + 1;
+        render();
+      }
+
+      window.addEventListener('mouseout', clearPickPosition);
+      window.addEventListener('mouseleave', clearPickPosition);
+      window.addEventListener('mousemove', setPickPosition);
+
+      //Support mobile devices too
+      window.addEventListener('touchstart', (event) => {
+        event.preventDefault()
+        setPickPosition(event.touches[0]);
+      }, {passive: false});
+
+      window.addEventListener('touchmove', (event) => {
+        setPickPosition(event.touches[0]);
+      });
+
+      window.addEventListener('touchend', clearPickPosition);
 
       //Set up buttons for the user: a Graphical User Interface
       const gui = new GUI();
