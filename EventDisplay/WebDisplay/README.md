@@ -38,6 +38,12 @@ Might be useful in case you need to debug something
 ## TODOs
 - Before next release:
   - Pick object to display a "tooltip" that explains what they are briefly
+    - Got picking working where it highlights the object.  Next step is to label objects.
+    - I should be able to create simple labels by combining https://threejs.org/manual/#en/billboards with https://threejs.org/manual/#en/canvas-textures
+    - I'm stuck on how to get unique names and other metadata into objects.  I don't want to refer back to ART to get this information just yet.
+    - Object3D also has a name member.  Perfect!
+    - Object3D has a userData member: https://threejs.org/docs/#api/en/core/Object3D
+    - I'd ideally like to store a function for each object, but three.js specficially says not to do that.  What about an object like a MagnetEditor?  I could even imagine popping up a window to show the field map or a 2D view of an SSD eventually.
   - Does this work on MacOS + Safari?
 - Before next collaboration meeting:
   - Display run, subrun, event number
@@ -46,10 +52,22 @@ Might be useful in case you need to debug something
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
   - Do we have reconstructed SSD tracks?
   - Add a list tree GUI?  It might help the MC make more sense, but I've always found them to be clutter to the majority of use cases.
+  - Why are the downstream SSDs in weird positions?  Is something wrong with their units again, or is there a problem on the Javascript side?
 - Before next run:
 - Later...
+  - Why does loading the first event take so long?  Can I speed it up somehow?
   - Port this to a real webserver running e.g. at Notre Dame?  That would be nice for outreach!  But then someone has to understand and maintain a web server application.  The webserver I'm imagining would produce a web page that looks like Nathaniel Tagg's Arachne event display for MINERvA.  We could make an ART job act like a "CGI script" by reading requests on STDIN and replying on STDOUT.  It even sounds like we could leave the ART job running between serving events with Apache.  When I searched for ideas using Google, I saw recommendations that we might as well write an Apache module if we're forced to use C.  I'm not sure how to do that, and it sounds like more dependencies to me.
   - Display accurate magnet geometry from GDML file.  Andrew has code that turns a TGeoShape into a list of vertices that THREE.js can use.  I still have to figure out how I want to stream them.  As a .obj (Wavefront) file?  Directly as an HTTP blob?  Using a socket directly in Javascript?
   - Persist camera settings across events.  I could either cache them somehow or do a massive redesign of the Javascript so that I only send positions and rotations for each event but keep the rendering code.  The latter probably makes us more robust in the long run, but that's a lot of work!  And a lot of things I don't yet know how to do in Javascript.
   - How often do we have to update the Javascript side of this application?  How often does the THREE.js API change?  Not work with certain browsers?  As a Javascript newcomer, I don't have easy answers to these questions.  CMS made it work somehow, so I have some hope this won't be too bad...
-  - Random access to events
+  - Random access to events.  I might end up sending and parsing web forms.  Some good resources to get me started:
+    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+    - https://developer.mozilla.org/en-US/docs/Learn/Forms/Sending_forms_through_JavaScript
+    - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+  - Add a screenshot button.  three.js has a tutorial for this.
+  - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?
+  - Why doesn't the label for the magnet work?
+
+## Helpful links
+- GUI example: https://github.com/georgealways/lil-gui
+- three.js manual: https://threejs.org/manual/#en/fundamentals

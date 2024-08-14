@@ -232,6 +232,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     cubeSetup += "    const ssdBox = new THREE.Mesh(ssdGeom, ssdMaterial);\n";
     cubeSetup += "    ssdBox.position.set("+ std::to_string(center.X()) +", "+ std::to_string(center.Y()) +", "+ std::to_string(center.Z()) +");\n";
     cubeSetup += "    ssdBox.rotation.z =" + std::to_string(-phi) + "\n;"; //Angle convention seems to be opposite between ROOT and Three.js based on run 1c data
+    cubeSetup += "    ssdBox.name = \"LineSegment\";\n";
     cubeSetup += "    scene.add(ssdBox);\n";
     cubeSetup += "  }\n";
     //TODO: Change box colors here
@@ -254,11 +255,13 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     cubeSetup += "    const magnetCylinder = new THREE.Mesh(magnetGeom, referenceMaterial);\n";
     cubeSetup += "    magnetCylinder.position.set(0, 0, " + std::to_string((geom->Geo()->MagnetUSZPos() + geom->Geo()->MagnetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
     cubeSetup += "    magnetCylinder.rotation.x = 3.1415926535897932384626433832/2; //TODO: Remember the Javascript name for pi\n";
+    cubeSetup += "    magnetCylinder.name = \"magnet\";\n";
     cubeSetup += "    scene.add(magnetCylinder);\n";
   }
   cubeSetup += "    const targetGeom = new THREE.BoxGeometry(5, 5, " + std::to_string((geom->Geo()->TargetDSZPos() - geom->Geo()->TargetUSZPos())/10.) + ");\n"; //Converting from mm to cm for graphics reasons
   cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
   cubeSetup += "    targetBox.position.set(0, 0, " + std::to_string((geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
+  cubeSetup += "    targetBox.name = \"target\";\n"; //TODO: Put material in target name
   cubeSetup += "    scene.add(targetBox);\n";
 
   //Add transparent boxes for SSD positions.  Don't show SSDs that aren't loaded for this run.
@@ -283,6 +286,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
         cubeSetup += "    const sensorBox = new THREE.Mesh(sensorGeom, ssdReferenceMaterial);\n";
         cubeSetup += "    sensorBox.position.set(" + std::to_string(sensor->Pos().X()/10.) + ", " + std::to_string(sensor->Pos().Y()/10.) + ", " + std::to_string((sensor->Pos().Z() + station->Pos().Z())/10.) + ");\n";
         cubeSetup += "    sensorBox.rotation.z = " + std::to_string(-sensor->Rot()) + ";\n";
+        cubeSetup += "    sensorBox.name = \"station " + std::to_string(whichStation) + " plane " + std::to_string(whichPlane) + " sensor " + std::to_string(whichSensor) + "\";\n";
         cubeSetup += "    scene.add(sensorBox);\n";
         cubeSetup += "  }\n";
       }
