@@ -37,11 +37,10 @@ Might be useful in case you need to debug something
 
 ##TODOs
 - Before next release:
-  - Button to go to next event
-  - Slider to make the geometry more transparent
   - Pick object to display a "tooltip" that explains what they are briefly
   - Does this work on MacOS + Safari?
 - Before next collaboration meeting:
+  - Display run, subrun, event number
   - MC information: trajectories and perhaps hits
   - Better default camera positions and buttons to switch between them!
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
@@ -53,3 +52,4 @@ Might be useful in case you need to debug something
   - Display accurate magnet geometry from GDML file.  Andrew has code that turns a TGeoShape into a list of vertices that THREE.js can use.  I still have to figure out how I want to stream them.  As a .obj (Wavefront) file?  Directly as an HTTP blob?  Using a socket directly in Javascript?
   - Persist camera settings across events.  I could either cache them somehow or do a massive redesign of the Javascript so that I only send positions and rotations for each event but keep the rendering code.  The latter probably makes us more robust in the long run, but that's a lot of work!  And a lot of things I don't yet know how to do in Javascript.
   - How often do we have to update the Javascript side of this application?  How often does the THREE.js API change?  Not work with certain browsers?  As a Javascript newcomer, I don't have easy answers to these questions.  CMS made it work somehow, so I have some hope this won't be too bad...
+  - Random access to events

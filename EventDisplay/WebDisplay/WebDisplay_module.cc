@@ -289,6 +289,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     }
   }  
 
+  cubeSetup += "return [referenceMaterial, ssdReferenceMaterial];\n";
   cubeSetup += "  }\n";
 
   mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;

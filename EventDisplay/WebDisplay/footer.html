@@ -25,7 +25,7 @@
       const scene = new THREE.Scene();
 
       setupSSDBoxes(scene);
-      setupReferenceGeometry(scene);
+      var [geomMaterial, ssdMaterial] = setupReferenceGeometry(scene);
 
       scene.add(light);
     
@@ -57,7 +57,9 @@
 
       //Set up buttons for the user: a Graphical User Interface
       const gui = new GUI();
-      gui.add(location, 'reload').name('Next Event');
+      gui.add(location, 'reload').name('Next Event'); //Reload the page to go to the next event.  This is just how the ART process backend works.
+      gui.add(geomMaterial, "opacity", 0, 1, 0.1).name("Geom Opacity").onChange(render);
+      gui.add(ssdMaterial, "opacity", 0, 1, 0.1).name("SSD Opacity").onChange(render);
 
       render();
 
