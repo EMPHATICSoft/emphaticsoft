@@ -57,7 +57,7 @@ namespace evd {
 
 namespace
 {
-  constexpr int bufferSize = 1024; //Size of HTML chunks read into memory.
+  constexpr int bufferSize = 2048; //Size of HTML chunks read into memory.
                                    //Make it large compared to anything
                                    //we'll reasonably encounter.
 }
@@ -142,7 +142,7 @@ void evd::WebDisplay::beginJob()
     if(listenSocket < 0) continue; //Try the next address
 
     //My prototype reset the status of this socket here.  I left that out
-    //so users on the same GPVM don't stomp on each other.
+    //so users on the same GPVM don't stomp on each other.  Try https://threejs.org/examples/webgl_lines_fat.html.
     //TODO: Pick another port number if this socket is already in use.
     //Reuse this socket if there's another process already using it
     if(setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
@@ -184,6 +184,7 @@ void evd::WebDisplay::beginJob()
   //TODO: Add a logo?
   std::string welcomeScreen = "<!DOCTYPE html>\n";
   welcomeScreen += "<html>\n";
+  welcomeScreen += "<link rel=\"shortcut icon\" href=\"data:image/x-icon;,\" type=\"image/x-icon\">\n"; //Needed to skip sending Chrome a favicon per https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
   welcomeScreen += "  <head>\n";
   welcomeScreen += "    <title> Loading... </title>\n";
   welcomeScreen += "  </head>\n";
@@ -259,7 +260,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   //Set up table of materials based on PDG code
   //Solid lines for charged particles
   //TODO: Dashed lines for neutral particles and unknowns
-  cubeSetup += "  const mcLineWidth = 32;\n";
+  cubeSetup += "  const mcLineWidth = 3;\n"; //This is supposed to always be stuck at 1 on most browsers.  Try https://threejs.org/examples/webgl_lines_fat.html
   cubeSetup += "  const pdgToMaterialMap = new Map();\n";
   cubeSetup += "  pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: mcLineWidth }));\n";
   cubeSetup += "  pdgToMaterialMap.set(2112, new THREE.LineBasicMaterial({ color: 0x808080, linewidth: mcLineWidth }));\n";
@@ -365,7 +366,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   cubeSetup += "                event: " +  std::to_string(e.id().event()) + "\n";
   cubeSetup += "              }\n";
 
-  mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
+  //mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
 
   //Use the POSIX stat() API to get file sizes.  Since we're using socket() anyway, I can assume a POSIX operating system.
   int contentLength = cubeSetup.size();
