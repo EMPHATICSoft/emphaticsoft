@@ -262,16 +262,16 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   //Dashed lines for neutral particles and unknowns
   cubeSetup += "  const mcLineWidth = 3;\n"; //This is supposed to always be stuck at 1 on most browsers.  For portable wide lines, try https://threejs.org/examples/webgl_lines_fat.html
   cubeSetup += "  const pdgToMaterialMap = new Map();\n";
-  cubeSetup += "  pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: mcLineWidth }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(2112, new THREE.LineDashedMaterial({ color: 0x808080, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(211, new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: mcLineWidth }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(111, new THREE.LineDashedMaterial({ color: 0xff0000, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(321, new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: mcLineWidth }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0xffff00, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: mcLineWidth }));\n";
-  cubeSetup += "  pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0xff00ff, linewidth: mcLineWidth }));\n";
-  //TODO: Photon
-  cubeSetup += "  const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 });\n";
+  cubeSetup += "  pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0xe69f00, linewidth: mcLineWidth }));\n"; //proton
+  cubeSetup += "  pdgToMaterialMap.set(2112, new THREE.LineDashedMaterial({ color: 0xe69f00, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //neutron
+  cubeSetup += "  pdgToMaterialMap.set(211, new THREE.LineBasicMaterial({ color: 0x56b4e9, linewidth: mcLineWidth }));\n"; //charged pion
+  cubeSetup += "  pdgToMaterialMap.set(111, new THREE.LineDashedMaterial({ color: 0x56b4e9, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //pi0
+  cubeSetup += "  pdgToMaterialMap.set(321, new THREE.LineBasicMaterial({ color: 0x009e73, linewidth: mcLineWidth }));\n"; //charged kaon
+  cubeSetup += "  pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0x009e73, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //K0
+  cubeSetup += "  pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0xf0e442, linewidth: mcLineWidth }));\n"; //muon
+  cubeSetup += "  pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0x0072b2, linewidth: mcLineWidth }));\n"; //electron
+  cubeSetup += "  pdgToMaterialMap.set(22, new THREE.LineDashedMaterial({ color: 0xcc79a7, lineWidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //photon
+  cubeSetup += "  const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 });\n"; //All others
 
   art::Handle<std::vector<sim::Particle>> mcParts;
   e.getByLabel(fConfig.mcPartLabel(), mcParts);
@@ -288,7 +288,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
         cubeSetup += "    points.push(new THREE.Vector3(" + std::to_string(pos.X()/10.) + ", " + std::to_string(pos.Y()/10.) + ", " + std::to_string(pos.Z()/10.) + "));\n"; //Convert mm to cm
       }
       cubeSetup += "    const geometry = new THREE.BufferGeometry().setFromPoints(points);\n";
-      cubeSetup += "    let pdgMaterial = pdgToMaterialMap.get(" + std::to_string(part.fpdgCode) + ");\n";
+      cubeSetup += "    let pdgMaterial = pdgToMaterialMap.get(Math.abs(" + std::to_string(part.fpdgCode) + "));\n";
       cubeSetup += "    if(!pdgMaterial) { pdgMaterial = unknownPDGMaterial; }\n";
       cubeSetup += "    const line  = new THREE.Line(geometry, pdgMaterial);\n";
       cubeSetup += "    line.computeLineDistances();\n"; //Necessary for dashed lines to work

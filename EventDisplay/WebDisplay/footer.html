@@ -31,7 +31,15 @@
           if(this.pickedObject.material.type == "LineBasicMaterial") {
             this.pickedObject.material = new THREE.LineBasicMaterial({
                                            color: 0xffff00,
-                                           linewidth: 32
+                                           linewidth: 3
+                                         });
+          }
+          else if(this.pickedObject.material.type == "LineDashedMaterial") {
+                        this.pickedObject.material = new THREE.LineBasicMaterial({
+                                           color: 0xffff00,
+                                           linewidth: 3,
+                                           dashSize: 1,
+                                           gapSize: 2
                                          });
           }
           else {

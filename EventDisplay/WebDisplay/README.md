@@ -29,7 +29,7 @@ A browser-based event display for the EMPHATIC experiment.
 ## Details
 Might be useful in case you need to debug something
 
-- The event display just draws LineSegments right now.  No MC information and no tracks, hits, or Cherenkov information (yet!).  The magnet and target positions are from the Geometry service, but **the magnet size is not accurate** right now.
+- The event display just draws LineSegments and MC trajectories right now.  No tracks, hits, or Cherenkov information (yet!).  The magnet and target positions are from the Geometry service, but **the magnet size is not accurate** right now.
 - The WebDisplay is acting as a trivial "web server" that sends and receives HTTP over a port
 - You have to get port 3490 from the ART job to your web browser on your device.  In these instructions, it is forwarded by ssh which should even encrypt traffic over the port and requires you to authenticate using kerberos to use it effectively.  Not so friendly to non-collaborators, but hopefully overly safe since I'm a web neophyte.
 - The 3D display is run client-side (on your computer, not the GPVM) using a Javascript library called three.js.  I got the idea to use this library from CMS's outreach event display.
@@ -58,7 +58,6 @@ Might be useful in case you need to debug something
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
-  - Get MC presentation exactly right.  I want neutral particles to get dashed lines, and I want a color code for photons
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui
