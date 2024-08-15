@@ -24,6 +24,8 @@
 #include "RecoBase/LineSegment.h"
 #include "Geometry/service/GeometryService.h"
 #include "Simulation/Particle.h"
+#include "TGeoToObjFile.h"
+#include "TGeoToObjFile.cpp" //TODO: Don't include .cpp files.  How can I include this in the module binary without building a separate library using cet_modules?
 
 //ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -38,6 +40,7 @@
 
 //ROOT includes
 #include "TVector3.h"
+#include "TGeoManager.h"
 
 //POSIX includes for sockets
 #include <string.h> //memset
@@ -50,6 +53,9 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+
+//c++ includes
+#include <sstream>
 
 namespace evd {
   class WebDisplay;
@@ -204,7 +210,6 @@ void evd::WebDisplay::analyze(art::Event const& e)
   int bytesRead = 0;
   mf::LogInfo("Server") << "Waiting for request from browser...";
   bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-  //TODO: recv() doesn't block sometimes.  I get empty messages when this happends.  Am I connecting the browser too early?  Is this a container problem?  Am I triggering some redundancy behavior in HTML?
   if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
   mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
   if(bytesRead == 0)
@@ -212,6 +217,28 @@ void evd::WebDisplay::analyze(art::Event const& e)
     mf::LogError("Server") << "Browser disconnected.";
   }
   sendEvent(e);
+
+  //Now send the magnet geometry
+  //To render exactly what the Geometry service sees: GetWorldNode -> GetNode("magnet_phys") -> loop child nodes
+  //TODO: Check that this next message is a GET request for file /magnet.obj.
+  //      Really, I should keep checking for these GET requests until the client is done loading models.
+  //      But then I'd be writing my own simple web server.
+  bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
+  if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
+  mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+  if(bytesRead == 0)
+  {
+    mf::LogError("Server") << "Browser disconnected.";
+  }
+
+  std::stringstream magnetParts;
+  art::ServiceHandle<emph::geo::GeometryService> geom;
+  TGeoToObjFile(*geom->Geo()->ROOTGeoManager()->GetVolume("magnetSide_vol0")->GetShape(), magnetParts, 10.); //TODO: Error handling!
+  mf::LogInfo("Magnet") << "Sending this magnet file:\n" << magnetParts.str();
+  const std::string magnetObjFile = magnetParts.str();
+  sendString("HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(magnetObjFile.length()) + "\n\n");
+  sendString(magnetObjFile);
+
   memset(fBuffer, '\0', bufferSize);
 }
 
@@ -270,7 +297,7 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
   cubeSetup += "  pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0x009e73, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //K0
   cubeSetup += "  pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0xf0e442, linewidth: mcLineWidth }));\n"; //muon
   cubeSetup += "  pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0x0072b2, linewidth: mcLineWidth }));\n"; //electron
-  cubeSetup += "  pdgToMaterialMap.set(22, new THREE.LineDashedMaterial({ color: 0xcc79a7, lineWidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //photon
+  cubeSetup += "  pdgToMaterialMap.set(22, new THREE.LineDashedMaterial({ color: 0xcc79a7, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //photon
   cubeSetup += "  const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 });\n"; //All others
 
   art::Handle<std::vector<sim::Particle>> mcParts;
@@ -318,6 +345,21 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     cubeSetup += "    magnetCylinder.rotation.x = 3.1415926535897932384626433832/2; //TODO: Remember the Javascript name for pi\n";
     cubeSetup += "    magnetCylinder.name = \"magnet\";\n";
     cubeSetup += "    scene.add(magnetCylinder);\n";
+    //Load the full magnet geometry on the side and replace it when it's ready!
+    cubeSetup += "\n";
+    cubeSetup += "const loader = new OBJLoader();\n";
+    cubeSetup += "loader.load('magnet.obj',\n";
+    cubeSetup += "  function (betterMagnet) {\n";
+    cubeSetup += "    scene.remove(magnetCylinder);\n";
+    cubeSetup += "    betterMagnet.position.set(0, 0, " + std::to_string((geom->Geo()->MagnetUSZPos() + geom->Geo()->MagnetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
+    //https://discourse.threejs.org/t/how-can-i-use-three-js-materials-on-loaded-models/18146
+    cubeSetup += "    betterMagnet.traverse((mesh) => {\n";
+    cubeSetup += "      mesh.material = referenceMaterial;\n";
+    cubeSetup += "    });\n";
+    cubeSetup += "    betterMagnet.name = \"magnet\";\n";
+    cubeSetup += "    scene.add(betterMagnet);\n";
+    //cubeSetup += "    render();\n";
+    cubeSetup += "  });\n";
   }
   cubeSetup += "    const targetGeom = new THREE.BoxGeometry(5, 5, " + std::to_string((geom->Geo()->TargetDSZPos() - geom->Geo()->TargetUSZPos())/10.) + ");\n"; //Converting from mm to cm for graphics reasons
   cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
@@ -411,7 +453,7 @@ int evd::WebDisplay::sendString(const std::string& toSend) const
     bytesSent = send(fMessageSocket, toSend.c_str() + offset, toSend.size() - offset, 0);
     if(bytesSent < 0)
     {
-      std::cerr << "send: " << strerror(errno) << "\n";
+      mf::LogError("WebServer") << "send: " << strerror(errno);
       return 2;
     }
     offset += bytesSent;
