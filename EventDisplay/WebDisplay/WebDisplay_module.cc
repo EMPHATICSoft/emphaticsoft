@@ -41,6 +41,7 @@
 //ROOT includes
 #include "TVector3.h"
 #include "TGeoManager.h"
+#include "TGeoBBox.h"
 
 //POSIX includes for sockets
 #include <string.h> //memset
@@ -106,11 +107,13 @@ private:
                    //Can be configured by a FHICL parameter.
   int fMessageSocket; //File descriptor HTTP response socket
 
-  int sendEvent(const art::Event& e) const;
+  int sendEvent(const art::Event& e, const std::vector<TGeoShape*>& magnetShapes) const;
   int sendFile(const char* fileName) const;
   int sendString(const std::string& toSend) const;
 
   char fBuffer[bufferSize];
+
+  std::vector<TGeoShape*> getMagnetShapes();
 };
 
 evd::WebDisplay::WebDisplay(Parameters const& p)
@@ -216,30 +219,34 @@ void evd::WebDisplay::analyze(art::Event const& e)
   {
     mf::LogError("Server") << "Browser disconnected.";
   }
-  sendEvent(e);
+  const auto magnetShapes = getMagnetShapes();
+  sendEvent(e, magnetShapes);
+  memset(fBuffer, '\0', bufferSize);
 
   //Now send the magnet geometry
   //To render exactly what the Geometry service sees: GetWorldNode -> GetNode("magnet_phys") -> loop child nodes
-  //TODO: Check that this next message is a GET request for file /magnet.obj.
+  //TODO: Check that this next message is a GET request for file with the name of each magnet shape.
   //      Really, I should keep checking for these GET requests until the client is done loading models.
   //      But then I'd be writing my own simple web server.
-  bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-  if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-  mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
-  if(bytesRead == 0)
+  for(const auto shape: magnetShapes)
   {
-    mf::LogError("Server") << "Browser disconnected.";
+    bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
+    if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
+    mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+    if(bytesRead == 0)
+    {
+      mf::LogError("Server") << "Browser disconnected.";
+    }
+
+    std::stringstream magnetParts;
+    TGeoToObjFile(*shape, magnetParts, 10.);
+    //mf::LogInfo("Magnet") << "Sending this magnet file:\n" << magnetParts.str();
+    const std::string magnetObjFile = magnetParts.str();
+    sendString("HTTP/1.1 200 OK\nContent-Type:text/obj\nContent-Length:" + std::to_string(magnetObjFile.length()) + "\n\n");
+    sendString(magnetObjFile);
+
+    memset(fBuffer, '\0', bufferSize);
   }
-
-  std::stringstream magnetParts;
-  art::ServiceHandle<emph::geo::GeometryService> geom;
-  TGeoToObjFile(*geom->Geo()->ROOTGeoManager()->GetVolume("magnetSide_vol0")->GetShape(), magnetParts, 10.); //TODO: Error handling!
-  mf::LogInfo("Magnet") << "Sending this magnet file:\n" << magnetParts.str();
-  const std::string magnetObjFile = magnetParts.str();
-  sendString("HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(magnetObjFile.length()) + "\n\n");
-  sendString(magnetObjFile);
-
-  memset(fBuffer, '\0', bufferSize);
 }
 
 std::string getFullPath(const std::string& fileName)
@@ -251,7 +258,7 @@ std::string getFullPath(const std::string& fileName)
   return fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
 }
 
-int evd::WebDisplay::sendEvent(const art::Event& e) const
+int evd::WebDisplay::sendEvent(const art::Event& e, const std::vector<TGeoShape*>& magnetShapes) const
 {
   //Render reconstruction
   const auto lineSegs = e.getValidHandle<std::vector<rb::LineSegment>>(fConfig.lineSegLabel());
@@ -348,18 +355,56 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
     //Load the full magnet geometry on the side and replace it when it's ready!
     cubeSetup += "\n";
     cubeSetup += "const loader = new OBJLoader();\n";
-    cubeSetup += "loader.load('magnet.obj',\n";
-    cubeSetup += "  function (betterMagnet) {\n";
-    cubeSetup += "    scene.remove(magnetCylinder);\n";
-    cubeSetup += "    betterMagnet.position.set(0, 0, " + std::to_string((geom->Geo()->MagnetUSZPos() + geom->Geo()->MagnetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
-    //https://discourse.threejs.org/t/how-can-i-use-three-js-materials-on-loaded-models/18146
-    cubeSetup += "    betterMagnet.traverse((mesh) => {\n";
-    cubeSetup += "      mesh.material = referenceMaterial;\n";
-    cubeSetup += "    });\n";
-    cubeSetup += "    betterMagnet.name = \"magnet\";\n";
-    cubeSetup += "    scene.add(betterMagnet);\n";
+    double nextMagnetBeginZ = geom->Geo()->MagnetUSZPos()/10.;
+
+    cubeSetup += "    const objectsToLoad = [\n";
+    for(const auto shape: magnetShapes) cubeSetup += "    \"" + std::string(shape->GetName()) + ".obj\",\n";
+    cubeSetup += "    ]\n";
+    cubeSetup += "    const zPositions = [\n";
+    for(const auto shape: magnetShapes)
+    {
+      const double magnetHalfLength = static_cast<TGeoBBox*>(shape)->GetDZ()/10.;
+      cubeSetup += "      " + std::to_string(nextMagnetBeginZ + magnetHalfLength) + ",\n";
+      nextMagnetBeginZ += magnetHalfLength;
+    }
+    cubeSetup += "    ];\n";
+    cubeSetup += "    let nextObject = 0;\n";
+    cubeSetup += "    function loadNextObject() {\n";
+    cubeSetup += "      if(nextObject > objectsToLoad.length - 1) {\n";
+    cubeSetup += "        scene.remove(magnetCylinder);\n";
+    cubeSetup += "        return;\n";
+    cubeSetup += "      }\n";
+    cubeSetup += "      loader.load(objectsToLoad[nextObject], function(object) {\n";
+    cubeSetup += "        object.position.set(0, 0, zPositions[nextObject]);\n"; //Converting from mm to cm for graphics reasons
+    cubeSetup += "        object.traverse((mesh) => {\n";
+    cubeSetup += "          mesh.material = referenceMaterial;\n";
+    cubeSetup += "          mesh.name = \"magnet\";\n";
+    cubeSetup += "        });\n";
+    cubeSetup += "        scene.add(object);\n";
+    cubeSetup += "        nextObject = nextObject + 1;\n";
+    cubeSetup += "        loadNextObject();\n";
+    cubeSetup += "      });\n";
+    cubeSetup += "    }\n";
+    cubeSetup += "    loadNextObject();\n\n";
+
+    /*for(const auto shape: magnetShapes)
+    {
+      const double magnetHalfLength = static_cast<TGeoBBox*>(shape)->GetDZ()/10.; //All TGeoShapes have a bounding box through ROOT's somewhat weird inheritance tree
+      cubeSetup += "loader.load('" + std::string(shape->GetName()) + ".obj',\n";
+      cubeSetup += "  function (betterMagnet) {\n";
+      cubeSetup += "    scene.remove(magnetCylinder);\n"; //TODO: Reorganize code so this only happens once
+      cubeSetup += "    betterMagnet.position.set(0, 0, " + std::to_string(nextMagnetBeginZ + magnetHalfLength) + ");\n"; //Converting from mm to cm for graphics reasons
+      //https://discourse.threejs.org/t/how-can-i-use-three-js-materials-on-loaded-models/18146
+      cubeSetup += "    betterMagnet.traverse((mesh) => {\n";
+      cubeSetup += "      mesh.material = referenceMaterial;\n";
+      cubeSetup += "      mesh.name = \"magnet\";\n";
+      cubeSetup += "    });\n";
+      cubeSetup += "    scene.add(betterMagnet);\n";
+      cubeSetup += "  });\n";
+      nextMagnetBeginZ += magnetHalfLength*2.;
+    }*/
+    assert(abs(nextMagnetBeginZ - geom->Geo()->MagnetDSZPos()/10.) < 0.001);
     //cubeSetup += "    render();\n";
-    cubeSetup += "  });\n";
   }
   cubeSetup += "    const targetGeom = new THREE.BoxGeometry(5, 5, " + std::to_string((geom->Geo()->TargetDSZPos() - geom->Geo()->TargetUSZPos())/10.) + ");\n"; //Converting from mm to cm for graphics reasons
   cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
@@ -499,6 +544,32 @@ int evd::WebDisplay::sendFile(const char* fileName) const
   std::cout << "Done sending " << fileName << ".\n";
 
   return 0;
+}
+
+//Find all TGeoShapes to draw for the magnet
+//I insist on doing this once per event, or least once per subrun,
+//because I think the geometry service can update the geometry
+//file at any time between events.
+std::vector<TGeoShape*> evd::WebDisplay::getMagnetShapes()
+{
+  //Current algorithm:
+  //- find the magnet mother volume the same way the geometry service does
+  //- Find its children
+  //- Draw all children at that level of the hierarchy
+  art::ServiceHandle<emph::geo::GeometryService> geom;
+  const TGeoNode* world = geom->Geo()->ROOTGeoManager()->GetTopNode();
+  if(!world) throw cet::exception("MagnetGeometry") << "Failed to find the geometry world volume!";
+
+  const TGeoNode* magnetTopVol = world->GetVolume()->GetNode("magnet_phys");
+  if(!magnetTopVol) throw cet::exception("MagnetGeometry") << "Failed to find magnet_phys node in the geometry!";
+
+  std::vector<TGeoShape*> result;
+  for(const auto node: *magnetTopVol->GetNodes())
+  {
+    result.push_back(static_cast<TGeoNode*>(node)->GetVolume()->GetShape());
+  }
+
+  return result;
 }
 
 DEFINE_ART_MODULE(evd::WebDisplay)

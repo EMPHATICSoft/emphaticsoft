@@ -170,7 +170,7 @@ std::ostream& TGeoToObjFile(const TGeoShape& shape, std::ostream& dest, const do
       auto second = first+1;
       const auto firstDir = normalize(ptsVec[*first]-center);
       //std::cout << "firstDir is " << firstDir << "\n";
-      const auto secondDir = normalize(ptsVec[*second]-center);
+      //const auto secondDir = normalize(ptsVec[*second]-center);
       //std::cout << "secondDir is " << secondDir << "\n";
       const float projFromCenter = dot(cross(prevDir, firstDir), out);
       //std::cout << "projFromCenter is " << projFromCenter << "\n";
