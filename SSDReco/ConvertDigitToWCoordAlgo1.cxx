@@ -243,7 +243,8 @@ namespace emph {
 	const double rmsStrN = rmsStr/fOneOverSqrt12;
 	const double stripErrSq = (1.0/rmsStrN*rmsStrN)/12.; // just a guess!!!  Suspicious.. 
 	const size_t kSt = static_cast<size_t>(itCl->Station());
-	const emph::geo::sensorView aView = itCl->View();
+        emph::geo::sensorView aView = itCl->View();
+	if (aView == emph::geo::U_VIEW) aView = emph::geo::W_VIEW; //  February 2024..after discussing with Teresa.. 
 	const size_t kSe = static_cast<size_t> (itCl->Sensor()); // local to the station.  
         const double pitch = fEmVolAlP->Pitch(aView, kSt, kSe);	
 	double tMeas = DBL_MAX; 

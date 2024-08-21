@@ -309,6 +309,7 @@ namespace emph {
           fBrickTrRec.SetChiSqCutRecStation(kSt, fChiSqCutXYUVStAlgo1); // should be done 
         }
        }
+       std::cerr << " StudyAllTrial1Algo1::beginRun, before SetPhase1X, fRun " << fRun << std::endl;
        fEmVolAlP->SetPhase1X(fRun);
        std::cerr << " StudyAllTrial1Algo1::beginRun, uploading alignment data from file " << fSSDAlignmentResult << std::endl;
         fEmVolAlP->UpdateNominalFromStandardGeom(fEmgeo);

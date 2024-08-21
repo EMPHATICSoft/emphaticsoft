@@ -34,11 +34,11 @@ namespace emph {
 //       fZNomPosSt4and5{360.15,  481.15}, fZNomPosSt2and3{988.75, 988.75, 1214.95, 1214.95},
        fZNomPosSt2and3{360.15,  481.15, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}, 
        fZNomPosSt4and5{988.75, 988.75, 1214.95, 1214.95, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX},    // Change of convention Aug. Sept 2023 
-       fZNomPos1cSt2and3U(fNumSensorsU, DBL_MAX), 
+       fZNomPos1cSt2and3W(fNumSensorsW, DBL_MAX), 
        fZNomPos1cSt5and6W(fNumSensorsW, DBL_MAX), //Phase1c. for Stereo angle views.  
        fZDeltaPosX(fNumSensorsXorY, 0.),  fZDeltaPosY(fNumSensorsXorY, 0.), 
        fZDeltaPosSt2and3(fNumSensorsU, 0.), fZDeltaPosSt4and5(fNumSensorsV, 0.),
-       fZDeltaPos1cSt2and3U(fNumSensorsU, 0.), fZDeltaPos1cSt5and6W(fNumSensorsV, 0.),
+       fZDeltaPos1cSt2and3W(fNumSensorsU, 0.), fZDeltaPos1cSt5and6W(fNumSensorsV, 0.),
        fTrNomPosX{fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, fHalfWaferWidth, 
                   fWaferWidth, fWaferWidth, fWaferWidth, fWaferWidth, DBL_MAX, DBL_MAX, DBL_MAX},
 //       fTrNomPosY{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 
@@ -62,24 +62,24 @@ namespace emph {
 // December 1 Set for Phase1b.  See update method.. Extra dimensioned for Phase1b, definitly.. 
        fTrNomPosSt4and5{-fWaferWidth, -fWaferWidth,-fWaferWidth, -fWaferWidth, 0., 0., 0., 0.}, 
        fTrNomPosSt2and3{-fHalfWaferWidth, -fHalfWaferWidth}, //  give shifts of -15. ? Investigating..
-       fTrNomPos1cSt2and3U(fNumSensorsU, -fHalfWaferWidth),  
+       fTrNomPos1cSt2and3W(fNumSensorsW, -fHalfWaferWidth),  
        fTrNomPos1cSt5and6W(fNumSensorsV, -fWaferWidth), 
 //            Sept 2 2023, flip the sign for Y4a, Y5a.. Following the GDML data. 		      
 //       fTrNomPosSt4and5{-fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, -fHalfWaferWidth, 0., 0.},  // Weird...!... MC bug ???? 
 //       fTrNomPosSt2and3{-fWaferWidth, -fWaferWidth,-fWaferWidth, -fWaferWidth, 0., 0., 0., 0., 0., 0.}, //  give shits of -15. ? Investigating..
        fTrDeltaPosX(fNumSensorsXorY, 0.), fTrDeltaPosY(fNumSensorsXorY, 0.),  
        fTrDeltaPosSt2and3(fNumSensorsV, 0.), fTrDeltaPosSt4and5(fNumSensorsU, 0.), 
-       fTrDeltaPos1cSt2and3U(fNumSensorsU, 0.), 
+       fTrDeltaPos1cSt2and3W(fNumSensorsW, 0.), 
        fTrDeltaPos1cSt5and6W(fNumSensorsW, 0.), 
        fTrDeltaPitchX(fNumSensorsXorY, 0.), fTrDeltaPitchY(fNumSensorsXorY, 0.),  
        fTrDeltaPitchSt2and3(fNumSensorsV, 0.), fTrDeltaPitchSt4and5(fNumSensorsU, 0.), 
        // Delta Pitch not implemented for Phase1c. 
        fRollX(fNumSensorsXorY, 0.), fRollY(fNumSensorsXorY, 0.),  
        fRollSt2and3(fNumSensorsV, 0.), fRollSt4and5(fNumSensorsU, 0.),
-       fRoll1cSt2and3U(fNumSensorsU, 0.), fRoll1cSt5and6W(fNumSensorsW, 0.),
+       fRoll1cSt2and3W(fNumSensorsW, 0.), fRoll1cSt5and6W(fNumSensorsW, 0.),
        fRollXC(fNumSensorsXorY, 0.), fRollYC(fNumSensorsXorY, 0.),  
        fRollSt2and3C(fNumSensorsV, 0.), fRollSt4and5C(fNumSensorsU, 0.),
-       fRoll1cSt2and3UC(fNumSensorsU, 0.), fRoll1cSt5and6WC(fNumSensorsW, 0.),
+       fRoll1cSt2and3WC(fNumSensorsW, 0.), fRoll1cSt5and6WC(fNumSensorsW, 0.),
 //       fMultScatUncertXorY{0., 0.003830147, 0.01371613, 0.01947578, 0.05067243, 0.05067243, 0.06630287, 0.06630287},
 //       fMultScatUncertSt2and3{0.05067243, 0.05067243}, // Probably too big, to be revisited 
 //       fMultScatUncertSt4and5{0.05067243, 0.05067243, 0.06630287, 0.06630287}, 
@@ -94,10 +94,10 @@ namespace emph {
        fUnknownUncertXorY(fNumSensorsXorY, 2.5e-8), fUnknownUncertSt2and3(fNumSensorsV, 2.5e-8), fUnknownUncertSt4and5(fNumSensorsU, 2.5e-8),
        fZPosX(fNumSensorsXorY, 0.),  fZPosY(fNumSensorsXorY, 0.), 
        fZPosSt4and5(fNumSensorsV, 0.),fZPosSt2and3(fNumSensorsU, 0.),
-       fZPos1cSt5and6W(fNumSensorsV, 0.),fZPos1cSt2and3U(fNumSensorsU, 0.),
+       fZPos1cSt5and6W(fNumSensorsV, 0.),fZPos1cSt2and3W(fNumSensorsV, 0.),
        fTrPosX(fNumSensorsXorY, 0.),  fTrPosY(fNumSensorsXorY, 0.), 
        fTrPosSt4and5(fNumSensorsV, 0.), fTrPosSt2and3(fNumSensorsU, 0.),
-       fTrPos1cSt5and6W(fNumSensorsV, 0.), fTrPos1cSt2and3U(fNumSensorsU, 0.)
+       fTrPos1cSt5and6W(fNumSensorsV, 0.), fTrPos1cSt2and3W(fNumSensorsU, 0.)
      { 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fZPosX[kSe] = fZNomPosX[kSe]; } 
        for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fZPosY[kSe] = fZNomPosY[kSe]; } 
@@ -124,8 +124,8 @@ namespace emph {
        std::vector<double> zPosSensorsW; std::vector<double> zPosSensorsU;
        if (fIsPhase1c) {
          fZNomPosX.clear(); fZPosX.clear(); fZNomPosY.clear(); fZPosY.clear();
-         fZPos1cSt2and3U.clear();  fZPos1cSt5and6W.clear();
-         fZNomPos1cSt2and3U.clear();  fZNomPos1cSt5and6W.clear();
+         fZPos1cSt2and3W.clear();  fZPos1cSt5and6W.clear();
+         fZNomPos1cSt2and3W.clear();  fZNomPos1cSt5and6W.clear();
        }
        for (int kSt=0; kSt != theGeo->NSSDStations(); kSt++) { 
          const emph::geo::SSDStation *aSt = theGeo->GetSSDStation(kSt);
@@ -153,21 +153,24 @@ namespace emph {
 	        if (!fIsPhase1c) zPosSensorsU.push_back(aSePos.Z() + aStPos.Z());
 	        iSensU++; 
 	        if (fIsPhase1c) { 
-		   if ((kSt == 2) || (kSt == 3)) {  
-		     fZNomPos1cSt2and3U.push_back(aSePos.Z() + aStPos.Z());  
-		     fZPos1cSt2and3U.push_back(aSePos.Z() + aStPos.Z()); 
-		   } else {
-		     std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom, unpected station for U view " << kSt << std::endl;
-		     std::cerr << "  ............... Fatal..quit here and now ....  " << std::endl; exit(2);
-		   } 
+		     std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom, unexpected station for U kst " << kSt << std::endl;
+		     std::cerr << "  ...............Agreed, it is now a Wview, we keep going..   " << std::endl; 
+		     fZNomPos1cSt2and3W.push_back(aSePos.Z() + aStPos.Z());  
+		     fZPos1cSt2and3W.push_back(aSePos.Z() + aStPos.Z()); 
 		} 
 	     }
              if (aSensor->View() == emph::geo::W_VIEW) {
 	       iSensV++; 
 	       if (!fIsPhase1c) zPosSensorsW.push_back(aSePos.Z() + aStPos.Z());
 	       if (fIsPhase1c) { // No check on station number.... this time... Assume I have it right.. Dec. 1 2023
+	           // Cleanup upgrade, Feb 2024... 
+		  if (kSt < 4) {
+		   fZNomPos1cSt2and3W.push_back(aSePos.Z() + aStPos.Z());  
+		   fZPos1cSt2and3W.push_back(aSePos.Z() + aStPos.Z()); 
+		  } else { 
 		   fZNomPos1cSt5and6W.push_back(aSePos.Z() + aStPos.Z());  
 		   fZPos1cSt5and6W.push_back(aSePos.Z() + aStPos.Z()); 
+		  }
 	       }
 	      }
 	    } // on sensor, signle vs double.. 
@@ -188,10 +191,13 @@ namespace emph {
          for (std::vector<double>::const_iterator it=zPosSensorsW.cbegin(); it != zPosSensorsW.cend(); it++) std::cerr << " " << *it << ",";
          std::cerr << std::endl << std::endl;
        } else { 
-         std::cerr << " Z position Views U, phase1c ";
-         for (std::vector<double>::const_iterator it=fZPos1cSt2and3U.cbegin(); it != fZPos1cSt2and3U.cend(); it++) 
+         std::cerr << " Z position Views U (which, in my book is a W view), is , phase1c ";
+         for (std::vector<double>::const_iterator it=fZPos1cSt2and3W.cbegin(); it != fZPos1cSt2and3W.cend(); it++) 
 	        { std::cerr << " " << *it << ","; } 
          std::cerr << std::endl << std::endl;
+	 // so, fill now the lst two stations.. 
+	 for (size_t k=2; k!=fZPos1cSt2and3W.size(); k++ ) fZPos1cSt5and6W.push_back(fZPos1cSt2and3W[k]);
+
          std::cerr << " Z position Views W, phase1c  ";
          for (std::vector<double>::const_iterator it=fZPos1cSt5and6W.cbegin(); it != fZPos1cSt5and6W.cend(); it++) 
 	  { std::cerr << " " << *it << ","; } 
@@ -228,8 +234,8 @@ namespace emph {
 	          << " Size fTrNomPosY " << fTrNomPosY.size() << " Size fTrPosY " << fTrPosY.size() << std::endl;
         for (size_t kSe=0; kSe != fNumSensorsXorY; kSe++) { fTrPosY[kSe] = fTrNomPosY[kSe]; } 
 	std::cerr << " Check, fNumSensorsU, " << fNumSensorsU << 
-	     " sizes  " << fTrPos1cSt2and3U.size() <<  " and nominal " << fTrNomPos1cSt2and3U.size() << std::endl;  
-        for (size_t kSe=0; kSe != fNumSensorsU; kSe++) { fTrPos1cSt2and3U[kSe] = fTrNomPos1cSt2and3U[kSe]; }
+	     " sizes  " << fTrPos1cSt2and3W.size() <<  " and nominal " << fTrNomPos1cSt2and3W.size() << std::endl;  
+        for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fTrPos1cSt2and3W[kSe] = fTrNomPos1cSt2and3W[kSe]; }
 	std::cerr << " Check, fNumSensorsW, " << fNumSensorsW << 
 	  " sizes  " << fTrPos1cSt5and6W.size() <<  " and nominal " << fTrNomPos1cSt5and6W.size() << " check last " << fTrNomPos1cSt5and6W[3] << std::endl;  
          for (size_t kSe=0; kSe != fNumSensorsW; kSe++) { fTrPos1cSt5and6W[kSe] = fTrNomPos1cSt5and6W[kSe]; } 
@@ -252,7 +258,8 @@ namespace emph {
 	     if (!fIsPhase1c) {
 	        fZDeltaPosSt2and3[kSe] = v; fZPosSt2and3[kSe] = fZNomPosSt2and3[kSe] + v;
 	     } else  {
-	        fZDeltaPos1cSt2and3U[kSe] = v; fZPos1cSt2and3U[kSe] = fZNomPos1cSt2and3U[kSe] + v;
+	        std::cerr << " VolatileAlignmentParams::SetDeltaZ: Confusing views, to be reviewed.. " << std::endl; exit(2); 
+	        fZDeltaPos1cSt2and3W[kSe] = v; fZPos1cSt2and3W[kSe] = fZNomPos1cSt2and3W[kSe] + v;
 	     } 
 	     break;
            } 
@@ -345,20 +352,22 @@ namespace emph {
 	      exit(2);  } 
 	  }
 	} else { // Phase1c 
-	
         switch (view) {
      	   case emph::geo::X_VIEW : {
-	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v;  break; 
-	     std::cerr << " VolatileAlignmentParams::SetDeltaTr, Phase1c .... kSe " << kSe << " fTrPosX[kSe] " << fTrPosX[kSe] << std::endl; 
+	     fTrDeltaPosX[kSe] = v;  fTrPosX[kSe] = fTrNomPosX[kSe] + v; 
+	     std::cerr << " VolatileAlignmentParams::SetDeltaTr, Phase1c .... kSe " << kSe << " fTrPosX[kSe] " << fTrPosX[kSe] << std::endl;
+	      break; 
 	    } 
 	   case emph::geo::Y_VIEW :  { 
 	      fTrDeltaPosY[kSe] = v; fTrPosY[kSe] = fTrNomPosY[kSe] + v; break;
 	   } 
-	   case emph::geo::U_VIEW :  { 
-	     fTrDeltaPos1cSt2and3U[kSe] = v; fTrPos1cSt2and3U[kSe] = fTrNomPos1cSt2and3U[kSe] + v; 
+	   case emph::geo::U_VIEW :  { // No typo, using the old mnemonic, prior to Feb 2024 upgrade of the main branch.. 
+	     std::cerr << " VolatileAlignmentParams::SetDeltaTr , U View, kSe "<< kSe << " value " << v << std::endl;
+	     fTrDeltaPos1cSt2and3W[kSe] = v; fTrPos1cSt2and3W[kSe] = fTrNomPos1cSt2and3W[kSe] + v; 
 	     break;
 	   } 
 	   case emph::geo::W_VIEW : { 
+	     std::cerr << " VolatileAlignmentParams::SetDeltaTr , W View, kSe "<< kSe << " value " << v << std::endl;
 	     fTrDeltaPos1cSt5and6W[kSe] = v; fTrPos1cSt5and6W[kSe] = fTrNomPos1cSt5and6W[kSe] + v;
 	     break;
 	   }
@@ -409,8 +418,8 @@ namespace emph {
 	     fRollX[kSe] = v;   break;  
 	    } 
 	    case emph::geo::Y_VIEW :  { fRollY[kSe] = v;  break;} 
-	    case emph::geo::U_VIEW :  { 
-	       fRoll1cSt2and3U[kSe] = v;  break;
+	    case emph::geo::U_VIEW :  {  // again, not a typo, unless we change the SSDAlign package.. 
+	       fRoll1cSt2and3W[kSe] = v;  break;
 	    } 
 	    case emph::geo::W_VIEW : { 
 	      fRoll1cSt5and6W[kSe] = v; 
@@ -445,7 +454,7 @@ namespace emph {
 	    } 
 	    case emph::geo::Y_VIEW :  { fRollYC[kSe] = v;  break;} 
 	    case emph::geo::U_VIEW :  { 
-	       fRoll1cSt2and3UC[kSe] = v;  break;
+	       fRoll1cSt2and3WC[kSe] = v;  break;
 	    } 
 	    case emph::geo::W_VIEW : { 
 	      fRoll1cSt5and6WC[kSe] = v; 
@@ -590,6 +599,9 @@ namespace emph {
 	   std::cerr << ".... Uploading TransShift, name " <<  aName << ", sensor " <<  aSens << " value " << aVal << std::endl;
 	   if (aName.find("_X") != std::string::npos) this->SetDeltaTr(emph::geo::X_VIEW, aSens, aVal);
 	   if (aName.find("_Y") != std::string::npos) this->SetDeltaTr(emph::geo::Y_VIEW, aSens, aVal);
+	   // We keep the old notation (wrong), since I did not want to rewrite the SSDAlign Package.. At this point in time.. 
+	   // THe file SSDALign output having the wrong nomenclature... So be it.  
+	   // Valid for 1c only.. 
 	   if (aName.find("_U") != std::string::npos) this->SetDeltaTr(emph::geo::U_VIEW, aSens, aVal);
 	   if (aName.find("_V") != std::string::npos) this->SetDeltaTr(emph::geo::W_VIEW, aSens, aVal);
 	 }
@@ -614,6 +626,12 @@ namespace emph {
 	 
        }
        fIn.close();
+       std::cerr << " Check again the fTrNomPosX.. "; 
+	for(size_t k=0; k != fTrNomPosX.size(); k++) { std::cerr << " " << fTrPosX[k]; }
+	std::cerr << std::endl;
+      
+       
+       
      } 
    } // namespace 
 }  // namespace   

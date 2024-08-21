@@ -318,28 +318,34 @@ namespace emph {
            size_t kuu = 0;
 	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
+	     // Feb 2024, change of view definition for station 2 and 3 U -> W (by my book) 
+	     emph::geo::sensorView theView = itClUorV->View(); 
+	     if ((fRunNum > 1999) && (theView == emph::geo::U_VIEW)) {
+	        theView =  emph::geo::W_VIEW;
+		if (fDebugIsOn) std::cerr << " ... ... ... Redefining the view to W " << std::endl;
+	     }
              if (fClUsages[kuu] != 0) continue;
              if (itClUorV->Station() != fStationNum) continue;
-	     if (itClUorV->View() ==  emph::geo::INIT) continue;
+	     if (theView ==  emph::geo::INIT) continue;
 	     if (((!fInterchangeStYandWStation6) && (!fInterchangeStYandWStation6)) || (fStationNum != 6)) { 
-	       if ((itClUorV->View() ==  emph::geo::X_VIEW) ||(itClUorV->View() ==  emph::geo::Y_VIEW)) continue;
+	       if ((theView ==  emph::geo::X_VIEW) ||(theView ==  emph::geo::Y_VIEW)) continue;
 	     } else { 
-	       if (fInterchangeStXandWStation6 && (itClUorV->View() != emph::geo::X_VIEW)) continue;
-	       if (fInterchangeStYandWStation6 && (itClUorV->View() != emph::geo::Y_VIEW)) continue;
+	       if (fInterchangeStXandWStation6 && (theView != emph::geo::X_VIEW)) continue;
+	       if (fInterchangeStYandWStation6 && (theView != emph::geo::Y_VIEW)) continue;
 	     }
 	     // To leave some flexibility on what we call U or W.. No X or Y !  
-//	     if ((kSt < 4) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
-//	     if ((kSt > 3) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
+//	     if ((kSt < 4) && (theView != emph::geo::W_VIEW)) continue;
+//	     if ((kSt > 3) && (theView != emph::geo::U_VIEW)) continue;
 	     size_t kSeU = static_cast<size_t>(itClUorV->Sensor()); // dropping the suffix"orV". 
 	     if (fDebugIsOn) {
 	       std::cerr << " ... ... At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
-	             << kSeU << " View " <<  itClUorV->View() << " weighted strip " << itClUorV->WgtAvgStrip() 
+	             << kSeU << " View " <<  theView << " weighted strip " << itClUorV->WgtAvgStrip() 
 		     << " RMS " << itClUorV->WgtRmsStrip() << " ClID " << itClUorV->ID() << std::endl;
 	     }
 	     const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
 	     const double uorvDatGeoMap =  (itClUorV->WgtAvgStrip() < 639.) ? fCoordConvert.getTrCoordRoot(itClX) : -9999.; // bug protect, DetGeomMap screws up is 
-	     const double angleRollUorV = fEmVolAlP->Roll(itClUorV->View(), kSt, kSeU);  
-	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(itClUorV->View(), kSt, kSeU); 
+	     const double angleRollUorV = fEmVolAlP->Roll(theView, kSt, kSeU);  
+	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(theView, kSt, kSeU); 
 	     double uorvPred = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
 	                                         uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ; // December 6, but wrong for station 6.. 
 	     if (fRunNum > 1999)  {  // Very, very messy
@@ -359,7 +365,7 @@ namespace emph {
 	                               << " Data " << uorvDat.first << " Diff " << deltaXYU << " check geodata " << uorvDatGeoMap << std::endl;
 	     const double uPredErrSq = 0.5 * (xDat.second + yDat.second);
 	     // Blow-up the erro for the V view, given the lack of accuracy in the alignment Assume 1 mm to 1 nanometer, to test.  
-	     const double deltaErrSq = (itClUorV->View() == emph::geo::W_VIEW) ? (1.0e-9 +  uPredErrSq + uorvDat.second) : 
+	     const double deltaErrSq = (theView == emph::geo::W_VIEW) ? (1.0e-9 +  uPredErrSq + uorvDat.second) : 
 	                                                                          (uPredErrSq + uorvDat.second);
 	     const double aChiSq = (deltaXYU * deltaXYU)/deltaErrSq;
 	     if (fDebugIsOn) std::cerr << " .... uDat " << uorvDat.first << " +- " << std::sqrt(uorvDat.second) 
@@ -502,30 +508,28 @@ namespace emph {
          for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
            if (fClUsages[kuu] != 0) continue;
            if (itClUorV->Station() != fStationNum) continue;
-	   if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
-	   if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	   emph::geo::sensorView theView = itClUorV->View(); 
+	   if ((fRunNum > 1999) && (theView == emph::geo::U_VIEW)) {
+	      theView =  emph::geo::W_VIEW;
+              if (fDebugIsOn) std::cerr << " ... ... ... Redefining the view to W " << std::endl;
+	   }
+	   if (theView != emph::geo::W_VIEW) continue;
 	   size_t kSeUorV = static_cast<size_t>(itClUorV->Sensor());
 	   const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
-	   const double angleRollUorV = (kSt < kStMaxW) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
-	                                        fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);  
-	   const double angleRollCenterUorV = (kSt < kStMaxW) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeUorV) : 
-	                                              fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);
+	   const double angleRollUorV =  fEmVolAlP->Roll(theView, kSt, kSeUorV); 
+	   const double angleRollCenterUorV = fEmVolAlP->RollCenter(theView, kSt, kSeUorV);
 	   double yPred, uPred, vPred;
 	   if (fDebugIsOn) {
 	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
 	             << kSeUorV << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
 	   }
 	   // To be checked, depends on Delta Roll definition Sept 5 2023. 
-	   yPred = (kSt > (kStMaxW-1)) ?  (-fSqrt2 * uorvDat.first + xDat.first) : (fSqrt2 * uorvDat.first - xDat.first);
+	   yPred = -fSqrt2 * uorvDat.first + xDat.first; // Phase1c only
 	   uPred = fOneOverSqrt2 * ( xDat.first + yPred);
-	    vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
-	   double uorvValCorr = (kSt > (kStMaxW-1)) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
-	                                          uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
-	   if (fRunNum > 1999) 	uorvValCorr = uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;				  
+	   vPred = -1.0*fOneOverSqrt2 * ( -xDat.first + yPred);
+	   double uorvValCorr =  vPred + ( uPred - angleRollCenterUorV) * angleRollUorV; // Phase1c only
 	   const double xValCorr = xDat.first + (yPred - angleRollCenterX) * angleRollX; 
-	   double yValCorr = (kSt > 3) ?  (-fSqrt2 * uorvValCorr + xDat.first) : (fSqrt2 * uorvValCorr - xDat.first);
-	   // December found the hard way that all stereo-angle views are U type, by reaching semi decent alignment results. 
-	   if (fRunNum > 1999) yValCorr = (fSqrt2 * uorvValCorr - xDat.first); 
+	   double yValCorr = (-fSqrt2 * uorvValCorr + xDat.first);// Phase1c only
            fClUsages[kux] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
@@ -574,27 +578,27 @@ namespace emph {
          for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
            if (fClUsages[kuu] != 0) continue;
            if (itClUorV->Station() != fStationNum) continue;
-	   if ((kSt < 4) && (itClUorV->View() != emph::geo::U_VIEW)) continue;
-	   if ((kSt > 3) && (itClUorV->View() != emph::geo::W_VIEW)) continue;
+	   emph::geo::sensorView theView = itClUorV->View(); 
+	   if ((fRunNum > 1999) && (theView == emph::geo::U_VIEW)) {
+	      theView =  emph::geo::W_VIEW;
+              if (fDebugIsOn) std::cerr << " ... ... ... Redefining the view to W " << std::endl;
+	   }
+	   if (theView != emph::geo::W_VIEW) continue;
 	   size_t kSeUorV = static_cast<size_t>(itClUorV->Sensor());
 	   if (fDebugIsOn) {
 	       std::cerr << " At cluster on UorV view, station " << itClUorV->Station() << " Sensor  " 
 	             << kSeUorV << " weighted strip " << itClUorV->WgtAvgStrip() << " RMS " << itClUorV->WgtRmsStrip() << std::endl;
 	   }
 	   const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
-	   const double angleRollUorV = (kSt < kStMaxW) ? fEmVolAlP->Roll(emph::geo::U_VIEW, kSt, kSeUorV) : 
-	                                        fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);  
-	   const double angleRollCenterUorV = (kSt < kStMaxW) ? fEmVolAlP->RollCenter(emph::geo::U_VIEW, kSt, kSeUorV) : 
-	                                              fEmVolAlP->Roll(emph::geo::W_VIEW, kSt, kSeUorV);
-	   const double   xPred = (kSt > (kStMaxW-1)) ?  (fSqrt2 * uorvDat.first + yDat.first) : (fSqrt2 * uorvDat.first - yDat.first);
+	   const double angleRollUorV = fEmVolAlP->Roll(theView, kSt, kSeUorV); 
+	   const double angleRollCenterUorV = fEmVolAlP->RollCenter(theView, kSt, kSeUorV);
+	   const double  xPred =  (fSqrt2 * uorvDat.first + yDat.first); // Phase1c only...
 	   const double  uPred = fOneOverSqrt2 * ( yDat.first + xPred);
 	   const double vPred = -1.0*fOneOverSqrt2 * ( yDat.first - xPred);
-	   double uorvValCorr = (kSt > (kStMaxW-1)) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
-	                                          uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;
+	   double uorvValCorr = vPred + ( uPred - angleRollCenterUorV) * angleRollUorV ; // Phase1c Only
 	   if (fRunNum > 1999) 	uorvValCorr = uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ;				  
 	   const double yValCorr = yDat.first + (xPred - angleRollCenterY) * angleRollY; 
-	   double  xValCorr = (kSt > 3) ?  (fSqrt2 * uorvValCorr + yDat.first) : (fSqrt2 * uorvValCorr - yDat.first);
-	   if (fRunNum > 1999) xValCorr = (fSqrt2 * uorvValCorr - yDat.first);
+	   double  xValCorr = (fSqrt2 * uorvValCorr + yDat.first);// Phase1c Only
            fClUsages[kuy] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
 	   rb:: SSDStationPtAlgo1 aStPt;
