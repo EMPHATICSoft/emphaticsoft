@@ -75,7 +75,7 @@ namespace emph {
   };
        
   void SSDDigitizer::beginJob() {
-    std::string plot3D= "singleRMSplot.root"; //3D distribution plot from data; hits vs totADC vs RMS
+    std::string plot3D= "Hits_totADC_RMS_3D.root"; //3D distribution plot from data; hits vs totADC vs RMS
     TFile *Plot3Dhist; 
 
     if (!cet::file_exists(plot3D)) {
