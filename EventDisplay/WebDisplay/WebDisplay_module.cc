@@ -196,19 +196,9 @@ void evd::WebDisplay::beginJob()
   close(listenSocket);
   //TODO: Clean up addrinfo structs
 
-  //Wait for the browser to request the main webpage
-  //TODO: Check that browser is actually requesting "/" with a GET.  Maybe even add "GET /" as a case in main recv() loop below in case the browser does things I don't expect?
-  const int bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-  if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-  mf::LogInfo("Server") << "Got initial message from browser with size of " << bytesRead << ":\n" << fBuffer;
-  memset(fBuffer, '\0', bufferSize); //Clear the buffer so that it doesn't contain this message anymore!
-
-  //Now, send the main display code itself.  This should trigger some requests from the browser.
-  sendFile("webDisplay_v2.html");
-
   //Send a "waiting" screen while things like the geometry load
   //TODO: Add a logo?
-  /*std::string welcomeScreen = "<!DOCTYPE html>\n";
+  std::string welcomeScreen = "<!DOCTYPE html>\n";
   welcomeScreen += "<html>\n";
   welcomeScreen += "<link rel=\"shortcut icon\" href=\"data:image/x-icon;,\" type=\"image/x-icon\">\n"; //Needed to skip sending Chrome a favicon per https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
   welcomeScreen += "  <head>\n";
@@ -219,8 +209,7 @@ void evd::WebDisplay::beginJob()
   welcomeScreen += "  </body>\n";
   welcomeScreen += "  <meta http-equiv=\"refresh\" content=\"1\">\n";
   welcomeScreen += "</html>";
-  welcomeScreen.insert(0, "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(welcomeScreen.length()) + "\n\n");
-  sendString(welcomeScreen);*/
+  sendString(welcomeScreen);
 }
 
 //Summarize detectors to draw as a JSON list
@@ -260,7 +249,7 @@ std::string evd::WebDisplay::writeGeometryList() const
         geometryList << "  {\n"
                      << "    \"name\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol\",\n"
                      << "    \"isDetector\": true,\n"
-                     << "    \"position\": [" << sensor->Pos().X()/10. << ", " << sensor->Pos().Y()/10. << ", " << sensor->Pos().Z()/10. << "],\n"
+                     << "    \"position\": [" << sensor->Pos().X()/10. << ", " << sensor->Pos().Y()/10. << ", " << (sensor->Pos().Z() + station->Pos().Z())/10. << "],\n"
                      << "    \"phi\": " << -sensor->Rot() << "\n"
                      << "  },\n";
       }
@@ -315,7 +304,7 @@ std::string evd::WebDisplay::writeMCTrajList(const std::vector<sim::Particle>& t
   auto writeTraj = [&trajList](const auto& traj)
   {
     trajList << "{\n"
-             << "  \"name\": \"" << traj.ftrajectory.Momentum(0).Vect().Mag()/1000. << "GeV/c" << traj.fpdgCode << "\",\n" //TODO: convert PDG code to LaTeX name using TDatabasePDG
+             << "  \"name\": \"" << traj.ftrajectory.Momentum(0).Vect().Mag()/1000. << " GeV/c " << traj.fpdgCode << "\",\n" //TODO: convert PDG code to LaTeX name using TDatabasePDG
              << "  \"pdgCode\": " << traj.fpdgCode << ",\n"
              << "  \"points\": [\n";
     for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size()-1; ++whichTrajPoint)
@@ -469,6 +458,10 @@ void evd::WebDisplay::analyze(art::Event const& e)
           sendString(writeMCTrajList(*mcParts), "application/json");
         }
         else sendBadRequest(); //The frontend can ignore this request and keep going without showing MC trajectories.  Handling this is important for viewing data!
+      }
+      else if(request.uri == "/")
+      {
+        sendFile("webDisplay_v2.html");
       }
       else
       {

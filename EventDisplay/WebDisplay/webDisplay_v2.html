@@ -94,49 +94,47 @@
 
         //Cast a ray through the camera lens.  three.js calls this the frustrum which is technically correct but always confuses me. 
         this.raycaster.setFromCamera(normalizedPosition, camera);
-        if(scene.children && scene.children.length) { //TODO: Does this mean that render() is being called before the scene is set up?
-          const intersectedObjects = this.raycaster.intersectObjects(scene.children);
-          if(intersectedObjects.length) {
-            this.pickedObject = intersectedObjects[0].object;
-            this.pickedObjectOldMaterial = this.pickedObject.material;
-            //Make this object light up as long as the mouse hovers over it
-            if(this.pickedObject.material.type == "LineBasicMaterial") {
-              this.pickedObject.material = new THREE.LineBasicMaterial({
-                                             color: 0xffff00,
-                                             linewidth: 3
-                                           });
-            }
-            else if(this.pickedObject.material.type == "LineDashedMaterial") {
-                          this.pickedObject.material = new THREE.LineBasicMaterial({
-                                             color: 0xffff00,
-                                             linewidth: 3,
-                                             dashSize: 1,
-                                             gapSize: 2
-                                           });
-            }
-            else {
-              this.pickedObject.material = new THREE.MeshPhongMaterial({
-                                             color: 0xffff00,
-                                             transparent: true,
-                                             opacity: 1,
-                                             side: THREE.DoubleSide
-                                           });
-            }
-
-            //Draw a label next to this object
-            const tempV = new THREE.Vector3();
-            this.labelElem.textContent = this.pickedObject.name;
-            this.labelContainerElem.appendChild(this.labelElem);
-
-            //TODO: Positioning the label on top of the picked object messes up further picking.  Figure out why, then restore this code.
-            /*this.pickedObject.updateWorldMatrix(true, false);
-            this.pickedObject.getWorldPosition(tempV);
-
-            tempV.project(camera);
-            const x = (tempV.x *  .5 + .5) * canvas.clientWidth;
-            const y = (tempV.y * -.5 + .5) * canvas.clientHeight;
-            this.labelElem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;*/
+        const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+        if(intersectedObjects.length) {
+          this.pickedObject = intersectedObjects[0].object;
+          this.pickedObjectOldMaterial = this.pickedObject.material;
+          //Make this object light up as long as the mouse hovers over it
+          if(this.pickedObject.material.type == "LineBasicMaterial") {
+            this.pickedObject.material = new THREE.LineBasicMaterial({
+                                           color: 0xffff00,
+                                           linewidth: 3
+                                         });
           }
+          else if(this.pickedObject.material.type == "LineDashedMaterial") {
+                        this.pickedObject.material = new THREE.LineBasicMaterial({
+                                           color: 0xffff00,
+                                           linewidth: 3,
+                                           dashSize: 1,
+                                           gapSize: 2
+                                         });
+          }
+          else {
+            this.pickedObject.material = new THREE.MeshPhongMaterial({
+                                           color: 0xffff00,
+                                           transparent: true,
+                                           opacity: 1,
+                                           side: THREE.DoubleSide
+                                         });
+          }
+
+          //Draw a label next to this object
+          const tempV = new THREE.Vector3();
+          this.labelElem.textContent = this.pickedObject.name;
+          this.labelContainerElem.appendChild(this.labelElem);
+
+          //TODO: Positioning the label on top of the picked object messes up further picking.  Figure out why, then restore this code.
+          /*this.pickedObject.updateWorldMatrix(true, false);
+          this.pickedObject.getWorldPosition(tempV);
+
+          tempV.project(camera);
+          const x = (tempV.x *  .5 + .5) * canvas.clientWidth;
+          const y = (tempV.y * -.5 + .5) * canvas.clientHeight;
+          this.labelElem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;*/
         }
       }
     }
@@ -155,18 +153,6 @@
         this.recoMaterial = recoMaterial;
       }
 
-      configureScene() {
-        let scene = new THREE.Scene();
-
-        //Light setup
-        const lightColor = 0xFFFFFF;
-        const intensity = 3;
-        const light = new THREE.DirectionalLight(lightColor, intensity);
-        light.position.set(-1, 2, -10);
-
-        return scene;
-      }
-
       //Request a new geometry hierarchy from the backend.
       //Returns a Future that's ready when backend has responded and scene has been updated.
       //Backend must respond to geometry/index.json with a list of JSON objects of format:
@@ -182,9 +168,14 @@
 
         return fetch("geometry/index.json").then(function (response) {
           response.json().then(function (objsToLoad) {
-            const geomLoader = new OBJLoader();
-            for(const geomEntry of objsToLoad) {
-              geomLoader.loadAsync("geometry/".concat(geomEntry.name)).then( (geomObject) => {
+            if(objsToLoad.length) {
+              const geomLoader = new OBJLoader();
+
+              //Force OBJLoader to load one .obj file at a time because my backend can't handle parallel file requests
+              //TODO: Replace with a chain of Promises?  Not sure how to construct function chains in a loop like that.
+              let nextObjIndex = 0;
+              function loadNextObj(geomObject) {
+                const geomEntry = objsToLoad[nextObjIndex];
                 geomObject.traverse((mesh) => {
                   if(geomEntry.isDetector) {
                     mesh.material = localDetMaterial;
@@ -192,12 +183,19 @@
                   else {
                     mesh.material = localPassiveMaterial;
                   }
-                  mesh.name = geomObject.name;
+                  mesh.name = geomEntry.name;
                 });
-                geomObject.position.set(geomEntry.position);
+                geomObject.position.set(geomEntry.position[0], geomEntry.position[1], geomEntry.position[2]);
+                geomObject.rotation.z = -geomEntry.phi;
                 //TODO: Get rotations from JSON
                 nextScene.add(geomObject);
-              });
+
+                nextObjIndex += 1;
+                if(nextObjIndex < objsToLoad.length) {
+                  geomLoader.load("/geometry/".concat(objsToLoad[nextObjIndex].name), loadNextObj);
+                }
+              };
+              geomLoader.load("/geometry/".concat(objsToLoad[nextObjIndex].name), loadNextObj);
             }
           });
         });
@@ -228,7 +226,12 @@
         return fetch("MC/trajs.json").then(function (response) {
           return response.json().then(function (listOfTrajs) {
             for(const traj of listOfTrajs) {
-              const trajGeom = new THREE.BufferGeometry().setFromPoints(traj.points);
+              const convertedPoints = [];
+              for(const point of traj.points) {
+                convertedPoints.push(new THREE.Vector3(point[0], point[1], point[2]));
+              }
+
+              const trajGeom = new THREE.BufferGeometry().setFromPoints(convertedPoints);
               let pdgMaterial = pdgToMaterialMap.get(Math.abs(traj.pdgCode));
               if(!pdgMaterial) { pdgMaterial = unknownPDGMaterial; }
               const trajLine = new THREE.Line(trajGeom, pdgMaterial);
@@ -256,7 +259,7 @@
             for(const seg of listOfLineSegs) {
               const segGeom = new THREE.BoxGeometry(ssdWidth, seg.length, ssdWidth);
               const segBox = new THREE.Mesh(segGeom, localRecoMaterial);
-              segBox.position.set(seg.center);
+              segBox.position.set(seg.center[0], seg.center[1], seg.center[2]);
               segBox.rotation.z = -seg.phi;
               segBox.name = "LineSegment";
               nextScene.add(segBox);
@@ -270,7 +273,7 @@
       //The backend must reply with either status code 200 (OK) or an error message (e.g. event not in this file or random access not allowed).  Response content is currently ignored.
       //Returns a Future that is ready when nextScene is ready for viewing.
       requestNewEvent(nextScene) {
-        nextScene.clear(); //TODO: Add light?
+        nextScene.clear();
 
         const lightColor = 0xFFFFFF;
         const intensity = 3;
@@ -278,8 +281,6 @@
         light.position.set(-1, 2, -10);
 
         nextScene.add(light);
-
-        //let nextScene = this.configureScene();
 
         const localRun = this.run;
         const localSubrun = this.subrun;
@@ -334,7 +335,7 @@
                                       });
       const recoMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
-      const nextEvent = new EventLoader(scene, geomDetMaterial, geomPassiveMaterial, recoMaterial);
+      const nextEvent = new EventLoader(geomDetMaterial, geomPassiveMaterial, recoMaterial);
 
       scene.add(light);
     
