@@ -29,8 +29,8 @@ A browser-based event display for the EMPHATIC experiment.
 ## Details
 Might be useful in case you need to debug something
 
-- The event display just draws LineSegments and MC trajectories right now.  No tracks, hits, or Cherenkov information (yet!).  The magnet and target positions are from the Geometry service, but **the magnet size is not accurate** right now.
-- The WebDisplay is acting as a trivial "web server" that sends and receives HTTP over a port
+- The event display just draws LineSegments and MC trajectories right now.  No tracks, hits, or Cherenkov information (yet!).  The magnet and target positions are from the Geometry service.  The magnet geometry is the only geometry component loaded directly from the GDML file right now.  Ask if you want more volumes like this.  I'm trying to limit detailed geometry to keep the focus on the physics.
+- The WebDisplay is acting as a trivial "web server" that sends and receives HTTP over a port.  It now figures out when to go to the next event by counting requests.  I get 1 request per magnet segment + 1 request to go to the new event.  You'll get a bunch of numbers on your screen if it gets out of sync somehow.  Please tell me if that happens so I can fix it!
 - You have to get port 3490 from the ART job to your web browser on your device.  In these instructions, it is forwarded by ssh which should even encrypt traffic over the port and requires you to authenticate using kerberos to use it effectively.  Not so friendly to non-collaborators, but hopefully overly safe since I'm a web neophyte.
 - The 3D display is run client-side (on your computer, not the GPVM) using a Javascript library called three.js.  I got the idea to use this library from CMS's outreach event display.
 - The GPVM "web server" is just a code generator that fills in some Javascript based on the LineSegments in the display and the Geometry service.
@@ -48,12 +48,7 @@ Might be useful in case you need to debug something
 - Before next run:
 - Later...
   - Port this to a real web server running e.g. at Notre Dame?  That would be nice for outreach!  But then someone has to understand and maintain a web server application.  The webserver I'm imagining would produce a web page that looks like Nathaniel Tagg's Arachne event display for MINERvA.  We could make an ART job act like a "CGI script" by reading requests on STDIN and replying on STDOUT.  It even sounds like we could leave the ART job running between serving events with Apache.  When I searched for ideas using Google, I saw recommendations that we might as well write an Apache module if we're forced to use C.  I'm not sure how to do that, and it sounds like more dependencies to me.
-  - Display accurate magnet geometry from GDML file.  Andrew has code that turns a TGeoShape into a list of vertices that THREE.js can use.  I still have to figure out how I want to stream them.  As a .obj (Wavefront) file?  Directly as an HTTP blob?  Using a socket directly in Javascript?  CMS appears to make Wavefront objects from their GDML file using a (paid?) product called Sketchup.  I like the simplicity of that approach, but I dislike having multiple sources of truth.  In my opinion, we have the technology to make a list of vertices for the magnet on the fly, and we should use it!
-    - Magnet is probably most important geometry to match the GDML because we might want to see whether tracks and simulated particles make it through the magnet bore or scrape the edge
-    - Wavefront .obj files are a good format for us because .obj is widely supported, they're relatively simple to write and edit, and THREE.js already knows what to do with them.
-    - My instinct is to only convert volumes we really need.  I think fewer detector geometry details means our eyes are more easily drawn to physics.  It might be useful to have an optional "full GDML" mode for someone debugging the simulation.  But I think we'll do better with a mock-up of the geometry like we have now the vast majority of the time.
-    - For the SSDs and other aligned components, we should at least apply alignment constants somehow.  The event display doesn't know about rotations to any objects right now because I need to convert from polar coordinates to Euler angles for THREE.js.
-    - Code that converts a GDML volume into something THREE.js can use would be very powerful for other experiments.
+  - For the SSDs and other aligned components, we should at least apply alignment constants somehow.  The event display doesn't know about rotations to any objects right now because I need to convert from polar coordinates to Euler angles for THREE.js.
   - Persist camera settings across events.  I could either cache them somehow or do a massive redesign of the Javascript so that I only send positions and rotations for each event but keep the rendering code.  The latter probably makes us more robust in the long run, but that's a lot of work!  And a lot of things I don't yet know how to do in Javascript.
   - How often do we have to update the Javascript side of this application?  How often does the THREE.js API change?  Not work with certain browsers?  As a Javascript newcomer, I don't have easy answers to these questions.  CMS made it work somehow, so I have some hope this won't be too bad...
   - Random access to events.  I might end up sending and parsing web forms.  Some good resources to get me started:
@@ -63,8 +58,28 @@ Might be useful in case you need to debug something
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
+  - Do we want any other volumes rendered directly from the GDML?  It should "just work" with a few changes to the magnet loading code.
+  - Use/write a real web server/framework.  Then I wouldn't have to load magnet components 1 at a time and in order.  A real web framework probably has threads or forked processes that do this.  Then again, we're not exactly suffering from the latency.
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui
 - three.js manual: https://threejs.org/manual/#en/fundamentals
-- Wavefront file format that I'm thinking about using to import TGeoShapes: https://en.wikipedia.org/wiki/Wavefront_.obj_file
+- Wavefront file format that I'm using TGeoShapes: https://en.wikipedia.org/wiki/Wavefront_.obj_file
+
+## Version 2?
+So far, the web-based event display client-side code, the front end, is rewritten by a code generator for each event.  I want to refactor it into a standalone front end and back end.  The front end will be a fuly functional Javascrpt program embedded in an HTML file.  The backend will send information about objects to draw by responding to GET calls.  The back end will also know to switch to a new event when responding to a POST call.
+
+### Advantages
+- Easier to debug the front end
+- Can change out back end for a real web server more easily
+- Easier to share front end with other small experiments
+
+### Implementation Plan
+- Use something like fetch() to request files.  That seems to be what THREE.OBJLoader is doing.
+- Geometry transported as .obj files.  Physics objects transported as something like JSON or XML files.  I prefer JSON over a .txt or .obj file so I can embed metadata like particle name and energy
+- Back end generates data files as the front end requests them
+- Back end needs functions to parse GET and POST requests
+- TODO: How does client "discover" what geometry volumes to request?  Same for what data types are available.
+  - GET geometry/index.html to figure out list of geometry to draw?
+  - try-catch around fetch()es that can fail to determine what physics data is available
+  - **Instead**, use browser reply to POST request for new event.  Include URLs to request in response body.

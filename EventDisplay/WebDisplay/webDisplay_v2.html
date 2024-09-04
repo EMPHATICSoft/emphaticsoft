@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+  <script type="importmap"> {
+    "imports": {
+      "three": "https://threejs.org/build/three.module.js",
+      "three/addons/": "https://threejs.org/examples/jsm/"
+    }
+  }</script>
+
+  <!-- Ignore favicon requests so Chrome still works -->
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+
+  <head>
+    <title>EMPHATIC Web Display</title>
+  </head>
+
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%
+      height: 100%
+    }
+    #Display {
+      width :100%;
+      height: 100%;
+      display: block;
+    }
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #labels {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: pre-line;
+      color: white;
+    }
+    #labels>div {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: large;
+      user-select: none;
+      white-space: pre-line;
+      text-shadow:
+        -1px -1px 0 #000,
+        0    -1px 0 #000,
+        1px  -1px 0 #000,
+        1px   0   0 #000,
+        1px   1px 0 #000,
+        0     1px 0 #000,
+       -1px   1px 0 #000,
+       -1px   0   0 #000;
+    }
+  </style>
+
+  <body>
+    <div id="container">
+      <canvas id="Display"></canvas>
+      <div id="labels"></div>
+    </div>
+
+    <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; //'controls';
+    import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+
+    //Design of this class heavily influenced by https://threejs.org/manual/#en/picking
+    class PickHelper {
+       constructor(scene, run, subrun, event) {
+        this.raycaster = new THREE.Raycaster();
+        this.pickedObject = null;
+        this.pickedObjectOldMaterial = new THREE.MeshPhongMaterial({
+                                         color: 0xffff00,
+                                         transparent: true,
+                                         opacity: 1,
+                                         side: THREE.DoubleSide
+                                       });
+        this.labelContainerElem = document.querySelector('#labels');
+        this.labelElem = document.createElement('div');
+      }
+
+      //TODO: We might want color-based picking instead of a raycaster one day.  three.js supports that too.  It would solve performance problems if we have lots of objects like GEANT hits.
+      pick(normalizedPosition, scene, camera) {
+        if(this.pickedObject) {
+          this.pickedObject.material = this.pickedObjectOldMaterial;
+          this.pickedObject = undefined;
+          this.labelContainerElem.removeChild(this.labelElem);
+        }
+
+        //Cast a ray through the camera lens.  three.js calls this the frustrum which is technically correct but always confuses me. 
+        this.raycaster.setFromCamera(normalizedPosition, camera);
+        if(scene.children && scene.children.length) { //TODO: Does this mean that render() is being called before the scene is set up?
+          const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+          if(intersectedObjects.length) {
+            this.pickedObject = intersectedObjects[0].object;
+            this.pickedObjectOldMaterial = this.pickedObject.material;
+            //Make this object light up as long as the mouse hovers over it
+            if(this.pickedObject.material.type == "LineBasicMaterial") {
+              this.pickedObject.material = new THREE.LineBasicMaterial({
+                                             color: 0xffff00,
+                                             linewidth: 3
+                                           });
+            }
+            else if(this.pickedObject.material.type == "LineDashedMaterial") {
+                          this.pickedObject.material = new THREE.LineBasicMaterial({
+                                             color: 0xffff00,
+                                             linewidth: 3,
+                                             dashSize: 1,
+                                             gapSize: 2
+                                           });
+            }
+            else {
+              this.pickedObject.material = new THREE.MeshPhongMaterial({
+                                             color: 0xffff00,
+                                             transparent: true,
+                                             opacity: 1,
+                                             side: THREE.DoubleSide
+                                           });
+            }
+
+            //Draw a label next to this object
+            const tempV = new THREE.Vector3();
+            this.labelElem.textContent = this.pickedObject.name;
+            this.labelContainerElem.appendChild(this.labelElem);
+
+            //TODO: Positioning the label on top of the picked object messes up further picking.  Figure out why, then restore this code.
+            /*this.pickedObject.updateWorldMatrix(true, false);
+            this.pickedObject.getWorldPosition(tempV);
+
+            tempV.project(camera);
+            const x = (tempV.x *  .5 + .5) * canvas.clientWidth;
+            const y = (tempV.y * -.5 + .5) * canvas.clientHeight;
+            this.labelElem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;*/
+          }
+        }
+      }
+    }
+
+    //An EventLoader manages requests to the backend for new geometry information, reconstructed information, and MC information.
+    //Its purpose in life is to return a Future when loadNewEvent() is called.  That Future holds a new Scene that can be swapped for the current Scene.
+    //This needs to be a class because lilgui needs a class whose method it calls.
+    class EventLoader {
+      constructor(geomDetMaterial, geomPassiveMaterial, recoMaterial) {
+        this.run = 0;
+        this.subrun = 0;
+        this.event = 0;
+
+        this.geomDetMaterial = geomDetMaterial;
+        this.geomPassiveMaterial = geomPassiveMaterial;
+        this.recoMaterial = recoMaterial;
+      }
+
+      configureScene() {
+        let scene = new THREE.Scene();
+
+        //Light setup
+        const lightColor = 0xFFFFFF;
+        const intensity = 3;
+        const light = new THREE.DirectionalLight(lightColor, intensity);
+        light.position.set(-1, 2, -10);
+
+        return scene;
+      }
+
+      //Request a new geometry hierarchy from the backend.
+      //Returns a Future that's ready when backend has responded and scene has been updated.
+      //Backend must respond to geometry/index.json with a list of JSON objects of format:
+      //{
+      //  name,
+      //  isDetector,
+      //  position[]
+      //}
+      //and geometry/<name of GDML physvol> with a .obj file
+      async loadGeometry(nextScene) {
+        const localDetMaterial = this.geomDetMaterial;
+        const localPassiveMaterial = this.geomPassiveMaterial;
+
+        return fetch("geometry/index.json").then(function (response) {
+          response.json().then(function (objsToLoad) {
+            const geomLoader = new OBJLoader();
+            for(const geomEntry of objsToLoad) {
+              geomLoader.loadAsync("geometry/".concat(geomEntry.name)).then( (geomObject) => {
+                geomObject.traverse((mesh) => {
+                  if(geomEntry.isDetector) {
+                    mesh.material = localDetMaterial;
+                  }
+                  else {
+                    mesh.material = localPassiveMaterial;
+                  }
+                  mesh.name = geomObject.name;
+                });
+                geomObject.position.set(geomEntry.position);
+                //TODO: Get rotations from JSON
+                nextScene.add(geomObject);
+              });
+            }
+          });
+        });
+      }
+
+      //Request a new list of sim::MCTrajectory from the backend.
+      //Returns a Future that's ready when the backend has responded and scene has been updated.
+      //Backend must respond to MC/trajs.json with a list of JSON objects of format:
+      //{
+      //  name,
+      //  pdgCode,
+      //  points[[]]
+      //}
+      loadMCTrajs(nextScene) {
+        const mcLineWidth = 3;
+        const pdgToMaterialMap = new Map();
+        pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0xe69f00, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(2112, new THREE.LineDashedMaterial({ color: 0xe69f00, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        pdgToMaterialMap.set(211, new THREE.LineBasicMaterial({ color: 0x56b4e9, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(111, new THREE.LineDashedMaterial({ color: 0x56b4e9, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        pdgToMaterialMap.set(321, new THREE.LineBasicMaterial({ color: 0x009e73, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0x009e73, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0xf0e442, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0x0072b2, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(22, new THREE.LineDashedMaterial({ color: 0xcc79a7, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 });
+  
+        return fetch("MC/trajs.json").then(function (response) {
+          return response.json().then(function (listOfTrajs) {
+            for(const traj of listOfTrajs) {
+              const trajGeom = new THREE.BufferGeometry().setFromPoints(traj.points);
+              let pdgMaterial = pdgToMaterialMap.get(Math.abs(traj.pdgCode));
+              if(!pdgMaterial) { pdgMaterial = unknownPDGMaterial; }
+              const trajLine = new THREE.Line(trajGeom, pdgMaterial);
+              trajLine.computeLineDistances(); //Necessary for dashed lines to work
+              trajLine.name = traj.name;
+              nextScene.add(trajLine);
+            }
+          });
+        });
+      }
+
+      //Request new rec::LineSegs from the backend.
+      //Returns a Future that's ready when backend has responded and scene has been updated.
+      //Backend must respond to reco/LineSegs.json with a list of JSON objects of format:
+      //{
+      //  center,
+      //  length,
+      //  phi
+      //}
+      loadRecoLineSegs(nextScene) {
+        const ssdWidth = 0.3;
+        const localRecoMaterial = this.recoMaterial;
+        return fetch("reco/LineSegs.json").then(function (response) {
+          return response.json().then(function (listOfLineSegs) {
+            for(const seg of listOfLineSegs) {
+              const segGeom = new THREE.BoxGeometry(ssdWidth, seg.length, ssdWidth);
+              const segBox = new THREE.Mesh(segGeom, localRecoMaterial);
+              segBox.position.set(seg.center);
+              segBox.rotation.z = -seg.phi;
+              segBox.name = "LineSegment";
+              nextScene.add(segBox);
+            }
+          });
+        });
+      }
+
+      //Request a new event from the backend.
+      //Sends the backend a POST request for newEvent with run, subrun, and event.
+      //The backend must reply with either status code 200 (OK) or an error message (e.g. event not in this file or random access not allowed).  Response content is currently ignored.
+      //Returns a Future that is ready when nextScene is ready for viewing.
+      requestNewEvent(nextScene) {
+        nextScene.clear(); //TODO: Add light?
+
+        const lightColor = 0xFFFFFF;
+        const intensity = 3;
+        const light = new THREE.DirectionalLight(lightColor, intensity);
+        light.position.set(-1, 2, -10);
+
+        nextScene.add(light);
+
+        //let nextScene = this.configureScene();
+
+        const localRun = this.run;
+        const localSubrun = this.subrun;
+        const localEvent = this.event;
+
+        return fetch("newEvent", { method: "POST", body: JSON.stringify({ run: localRun, subrun: localSubrun, event: localEvent }) })
+               .then(this.loadGeometry(nextScene)) //Loading the new event on the backend must succeed
+               .then(this.loadMCTrajs(nextScene)) //Loading the geometry must succeed
+               .finally(this.loadRecoLineSegs(nextScene)) //Loading the MC is OPTIONAL.  It might not work for e.g. data files.  Keep going anyway!
+               .finally(function () { return nextScene; }); //Loading reco is OPTIONAL.  It might not work for e.g. raw MC files.  Keep going anyway!
+      }
+
+    }
+
+    function main() {
+
+      const canvas = document.querySelector('#Display');
+      const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+    
+      //Camera setup
+      const fov = 75;
+      const aspect = 2;
+      const near = 0.1;
+      const far = 1000;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      camera.position.set(0, 30, -40);
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      //Light setup
+      const lightColor = 0xFFFFFF;
+      const intensity = 3;
+      const light = new THREE.DirectionalLight(lightColor, intensity);
+      light.position.set(-1, 2, -10);
+    
+      //Set up things to draw
+      let scene = new THREE.Scene();
+
+      const geomDetMaterial = new THREE.MeshPhongMaterial({
+                                    color: 0xff0000,
+                                    opacity: 0.2,
+                                    transparent: true,
+                                    side: THREE.DoubleSide
+                                  });
+      const geomPassiveMaterial = new THREE.MeshPhongMaterial({
+                                        color: 0x0000ff,
+                                        opacity: 0.2,
+                                        transparent: true,
+                                        side: THREE.DoubleSide
+                                      });
+      const recoMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
+
+      const nextEvent = new EventLoader(scene, geomDetMaterial, geomPassiveMaterial, recoMaterial);
+
+      scene.add(light);
+    
+      function resizeRendererToDisplaySize(renderer)
+      {
+        const canvas = renderer.domElement;
+        const pixelRatio = window.devicePixelRatio;
+        const width = Math.floor(canvas.clientWidth * pixelRatio);
+        const height = Math.floor(canvas.clientHeight * pixelRatio);
+        const needsResize = canvas.width != width || canvas.height != height;
+        if(needsResize) {
+          renderer.setSize(width, height, false);
+        }
+
+        return needsResize;
+      }
+
+      //Set up object picking
+      const pickPosition = {x: 0, y: 0};
+
+      function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (event.clientX - rect.left) * canvas.width / rect.width,
+          y: (event.clientY - rect.top) * canvas.height / rect.height
+        };
+      }
+
+      const pickHelper = new PickHelper();
+
+      //Start rendering!
+      function render() {
+        if(resizeRendererToDisplaySize(renderer))
+        {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth/canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        pickHelper.pick(pickPosition, scene, camera);
+
+        renderer.render(scene, camera);
+      }
+
+      function clearPickPosition() {
+        pickPosition.x = -100000;
+        pickPosition.y = -100000;
+        render();
+      }
+
+      function setPickPosition(event) {
+        const pos = getCanvasRelativePosition(event);
+        pickPosition.x = (pos.x / canvas.width) * 2 - 1;
+        pickPosition.y = (pos.y / canvas.height) * -2 + 1;
+        render();
+      }
+
+      //Set up buttons for the user: a Graphical User Interface
+      const gui = new GUI();
+      gui.add({ func () {
+                  nextEvent.event += 1;
+                  nextEvent.requestNewEvent(scene).then(function (newScene) {
+                    //scene = newScene;
+                    render();
+                  });
+                }
+              }, 'func').name('Next Event'); //Requests information from the backend while the client's application keeps working.  Updates the visible scene only when all requests have received responses.
+      gui.add(geomPassiveMaterial, "opacity", 0, 1, 0.1).name("Geometry Opacity").onChange(render);
+      gui.add(geomDetMaterial, "opacity", 0, 1, 0.1).name("SSD Opacity").onChange(render);
+      gui.add(nextEvent, 'run');
+      gui.add(nextEvent, 'subrun');
+      gui.add(nextEvent, 'event');
+      gui.add({ func () {
+                  nextEvent.requestNewEvent(scene).then(function (newScene) {
+                    //scene = newScene;
+                    render();
+                  });
+                }
+              }, "func").name('Go to');
+
+      nextEvent.requestNewEvent(scene).then((newScene) => {
+        //scene = newScene;
+        clearPickPosition(); //Also calls render()
+
+        window.addEventListener('mouseout', clearPickPosition);
+        window.addEventListener('mouseleave', clearPickPosition);
+        window.addEventListener('mousemove', setPickPosition);
+
+        //Support mobile devices too
+        window.addEventListener('touchstart', (event) => {
+          event.preventDefault()
+          setPickPosition(event.touches[0]);
+        }, {passive: false});
+
+        window.addEventListener('touchmove', (event) => {
+          setPickPosition(event.touches[0]);
+        });
+
+        window.addEventListener('touchend', clearPickPosition);
+
+        controls.addEventListener('change', render);
+        window.addEventListener('resize', render);
+      });
+    }
+    
+    main();
+
+    </script>
+  </body>
+</html>
