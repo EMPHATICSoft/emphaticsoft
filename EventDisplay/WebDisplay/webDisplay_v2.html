@@ -162,7 +162,7 @@
       //  position[]
       //}
       //and geometry/<name of GDML physvol> with a .obj file
-      async loadGeometry(nextScene) {
+      loadGeometry(nextScene) {
         const localDetMaterial = this.geomDetMaterial;
         const localPassiveMaterial = this.geomPassiveMaterial;
 
@@ -282,11 +282,15 @@
 
         nextScene.add(light);
 
-        const localRun = this.run;
-        const localSubrun = this.subrun;
-        const localEvent = this.event;
-
-        return fetch("newEvent", { method: "POST", body: JSON.stringify({ run: localRun, subrun: localSubrun, event: localEvent }) })
+        return fetch("newEvent", { method: "POST", body: JSON.stringify({ run: this.run, subrun: this.subrun, event: this.event }) })
+               .then((response) => {
+                 return response.json();
+               })
+               .then((json) => {
+                 this.run = json.run;
+                 this.subrun = json.subrun;
+                 this.event = json.event;
+               })
                .then(this.loadGeometry(nextScene)) //Loading the new event on the backend must succeed
                .then(this.loadMCTrajs(nextScene)) //Loading the geometry must succeed
                .finally(this.loadRecoLineSegs(nextScene)) //Loading the MC is OPTIONAL.  It might not work for e.g. data files.  Keep going anyway!
@@ -335,7 +339,7 @@
                                       });
       const recoMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
-      const nextEvent = new EventLoader(geomDetMaterial, geomPassiveMaterial, recoMaterial);
+      let nextEvent = new EventLoader(geomDetMaterial, geomPassiveMaterial, recoMaterial);
 
       scene.add(light);
     
@@ -398,26 +402,23 @@
       gui.add({ func () {
                   nextEvent.event += 1;
                   nextEvent.requestNewEvent(scene).then(function (newScene) {
-                    //scene = newScene;
                     render();
                   });
                 }
               }, 'func').name('Next Event'); //Requests information from the backend while the client's application keeps working.  Updates the visible scene only when all requests have received responses.
       gui.add(geomPassiveMaterial, "opacity", 0, 1, 0.1).name("Geometry Opacity").onChange(render);
       gui.add(geomDetMaterial, "opacity", 0, 1, 0.1).name("SSD Opacity").onChange(render);
-      gui.add(nextEvent, 'run');
-      gui.add(nextEvent, 'subrun');
-      gui.add(nextEvent, 'event');
+      gui.add(nextEvent, 'run').listen(); //listen() makes lilgui listen for changes to the property it's displaying.  Doesn't sound very efficient, but gets the job done.
+      gui.add(nextEvent, 'subrun').listen();
+      gui.add(nextEvent, 'event').listen();
       gui.add({ func () {
                   nextEvent.requestNewEvent(scene).then(function (newScene) {
-                    //scene = newScene;
                     render();
                   });
                 }
               }, "func").name('Go to');
 
       nextEvent.requestNewEvent(scene).then((newScene) => {
-        //scene = newScene;
         clearPickPosition(); //Also calls render()
 
         window.addEventListener('mouseout', clearPickPosition);

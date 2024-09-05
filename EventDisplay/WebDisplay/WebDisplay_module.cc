@@ -43,6 +43,7 @@
 #include "TVector3.h"
 #include "TGeoManager.h"
 #include "TGeoBBox.h"
+#include "TDatabasePDG.h"
 
 //POSIX includes for sockets
 #include <string.h> //memset
@@ -109,7 +110,7 @@ private:
   int fMessageSocket; //File descriptor HTTP response socket
 
   int sendFile(const char* fileName) const;
-  int sendString(std::string toSend, const std::string contentType = "text") const; //Adds an appropriate header for a stand-alone message
+  int sendString(std::string toSend, const std::string contentType = "text", const int responseCode = 200) const; //Adds an appropriate header for a stand-alone message
   int sendRawString(const std::string& toSend) const; //Requires you to write your own header.  Used to implement sendFile() and sendString()
   int sendBadRequest() const;
 
@@ -299,12 +300,17 @@ std::string evd::WebDisplay::writeGeometryList() const
 
 std::string evd::WebDisplay::writeMCTrajList(const std::vector<sim::Particle>& trajs) const
 {
+  TDatabasePDG& pdgDB = *TDatabasePDG::Instance();
+
   std::stringstream trajList;
   trajList << "[\n";
-  auto writeTraj = [&trajList](const auto& traj)
+  auto writeTraj = [&pdgDB, &trajList](const auto& traj)
   {
+    std::string partName = std::to_string(traj.fpdgCode);
+    const auto partData = pdgDB.GetParticle(traj.fpdgCode);
+    if(partData) partName = partData->GetName(); //This should almost always happen
     trajList << "{\n"
-             << "  \"name\": \"" << traj.ftrajectory.Momentum(0).Vect().Mag()/1000. << " GeV/c " << traj.fpdgCode << "\",\n" //TODO: convert PDG code to LaTeX name using TDatabasePDG
+             << "  \"name\": \"" << traj.ftrajectory.Momentum(0).Vect().Mag()/1000. << "GeV/c " << partName << "\",\n"
              << "  \"pdgCode\": " << traj.fpdgCode << ",\n"
              << "  \"points\": [\n";
     for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size()-1; ++whichTrajPoint)
@@ -419,10 +425,13 @@ void evd::WebDisplay::analyze(art::Event const& e)
     const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
     if(request.method == HTTPRequest::Method::POST)
     {
-      //TODO: Seek to requested event first.  Possibly send HTTP response with "failed" status if not possible.
-      //sendBadRequest();
-      //sendString("");
-      sendRawString("HTTP/1.1 201 Created\nContent-Type:text/html\nContent-Length:0\n\n");
+      std::stringstream postResponse;
+      postResponse << "{\n"
+                   << "\"run\": " << e.id().run() << ",\n"
+                   << "\"subrun\": " << e.id().subRun() << ",\n"
+                   << "\"event\": " << e.id().event() << "\n"
+                   << "}\n";
+      sendString(postResponse.str(), "application/json", 201);
       break; //TODO: Can I rewrite the logic of this loop to remove break?
     }
     else if(request.method == HTTPRequest::Method::GET)
@@ -500,10 +509,10 @@ void evd::WebDisplay::endJob()
   close(fMessageSocket);
 }
 
-int evd::WebDisplay::sendString(std::string toSend, const std::string contentType) const
+int evd::WebDisplay::sendString(std::string toSend, const std::string contentType, const int responseCode) const
 {
   //Add an HTTP header
-  toSend.insert(0, "HTTP/1.1 200 OK\nContent-Type:" + contentType + "\nContent-Length:" + std::to_string(toSend.length()) + "\n\n");
+  toSend.insert(0, "HTTP/1.1 " + std::to_string(responseCode) + " OK\nContent-Type:" + contentType + "\nContent-Length:" + std::to_string(toSend.length()) + "\n\n");
   return sendRawString(toSend);
 }
 

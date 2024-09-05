@@ -38,8 +38,13 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - Does this work on MacOS + Safari?  It worked for Aayush on MacOS + Chrome.
+  - Make sure render() happens when loading the next event is complete.  Can I also make sure it doesn't happen before loading is complete?
+  - Random access to events
+  - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
 - Before next collaboration meeting:
+  - Include SSD Tracks and TrackSegments.  Robert has these working now!
+  - Include the ARICH.  Draw boxes for the ARICH hits?  Paste the 2D histogram on the front of the box as a texture?
+  - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
   - Better default camera positions and buttons to switch between them!
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
   - Do we have reconstructed SSD tracks?
@@ -47,6 +52,13 @@ Might be useful in case you need to debug something
   - Why are the downstream SSDs in weird positions?  Is something wrong with their units again, or is there a problem on the Javascript side?
 - Before next run:
 - Later...
+  - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
+    - Medium difficulty: evd::Metadata data products associated with any data product the event display consumes.  Has color and name overrides.
+    - Harder difficulty: ART Tools that can send arbitrary cubes that frontend knows how to render.
+  - Display context about selected objects.  We could query the ART job like it's a database!  The backend just has to send back HTML.  Some awesome things I want to do:
+    - Show ART provenance information for any data product.  Maybe as a context menu?  How do I even do context menus in THREE.js?
+    - Show histograms of the SSDs when their volumes are selected
+    - Talk about what magnetic field, alignment constants, and beam conditions are loaded.  Selecting geometry objects is an opportunity to make "ergonomic" controls!
   - Port this to a real web server running e.g. at Notre Dame?  That would be nice for outreach!  But then someone has to understand and maintain a web server application.  The webserver I'm imagining would produce a web page that looks like Nathaniel Tagg's Arachne event display for MINERvA.  We could make an ART job act like a "CGI script" by reading requests on STDIN and replying on STDOUT.  It even sounds like we could leave the ART job running between serving events with Apache.  When I searched for ideas using Google, I saw recommendations that we might as well write an Apache module if we're forced to use C.  I'm not sure how to do that, and it sounds like more dependencies to me.
   - For the SSDs and other aligned components, we should at least apply alignment constants somehow.  The event display doesn't know about rotations to any objects right now because I need to convert from polar coordinates to Euler angles for THREE.js.
   - Persist camera settings across events.  I could either cache them somehow or do a massive redesign of the Javascript so that I only send positions and rotations for each event but keep the rendering code.  The latter probably makes us more robust in the long run, but that's a lot of work!  And a lot of things I don't yet know how to do in Javascript.
