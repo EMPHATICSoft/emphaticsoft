@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # assemble apptainer command
     cmd = ["apptainer", "exec", "-B", "/run", "-B", "/cvmfs", "-B", "/exp",
-           "-B", "/pnfs"]
+           "-B", "/pnfs", "--network-args", "\"portmap=3490:3490/tcp\""]
     for b in args.bind:
         cmd += ["-B", b]
     cmd += [args.image,"/bin/bash"]
