@@ -191,7 +191,6 @@
                 geomObject.rotation.z = -geomEntry.phi;
                 //TODO: Get rotations from JSON
                 nextScene.push(geomObject);
-                console.log("Done loading " + geomEntry.name);
 
                 whichEntry++;
                 if(whichEntry < objsToLoad.length) loadNextGeom();

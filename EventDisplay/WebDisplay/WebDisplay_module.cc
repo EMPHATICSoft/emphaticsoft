@@ -200,6 +200,10 @@ void evd::WebDisplay::beginJob()
 
   //Send a "waiting" screen while things like the geometry load
   //TODO: Add a logo?
+  const int bytesRead = recv(fMessageSockets[0], fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
+  if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
+  memset(fBuffer, '\0', bufferSize);
+
   std::string welcomeScreen = "<!DOCTYPE html>\n";
   welcomeScreen += "<html>\n";
   welcomeScreen += "<link rel=\"shortcut icon\" href=\"data:image/x-icon;,\" type=\"image/x-icon\">\n"; //Needed to skip sending Chrome a favicon per https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
@@ -212,6 +216,12 @@ void evd::WebDisplay::beginJob()
   welcomeScreen += "  <meta http-equiv=\"refresh\" content=\"1\">\n";
   welcomeScreen += "</html>";
   sendString(welcomeScreen, fMessageSockets[0]);
+
+  //The next request will always ask for this file
+  const int firstBytesRead = recv(fMessageSockets[0], fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
+  if(firstBytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
+  memset(fBuffer, '\0', bufferSize);
+  sendFile("webDisplay_v2.html", fMessageSockets[0]);
 }
 
 //Summarize detectors to draw as a JSON list
@@ -409,6 +419,16 @@ TGeoShape* evd::WebDisplay::getShape(const std::string& shapeName) const
 
 void evd::WebDisplay::analyze(art::Event const& e)
 {
+  //This event was requested by some POST request.  So respond with the actual event number loaded first.
+  std::stringstream postResponse;
+  postResponse << "{\n"
+               << "\"run\": " << e.id().run() << ",\n"
+               << "\"subrun\": " << e.id().subRun() << ",\n"
+               << "\"event\": " << e.id().event() << "\n"
+               << "}\n";
+  //TODO: I'm assuming that the first message socket ever set up is the one that requested this event
+  sendString(postResponse.str(), fMessageSockets[0], "application/json", 201);
+
   //Respond to two types of requests from browser: POST and GET
   //First, wait for a POST request with the new event number.  Return either code 200 or some failure code based on whether or not this module can load that event.
   //Then, continue responding to GET requests for different resources:
@@ -475,17 +495,10 @@ void evd::WebDisplay::analyze(art::Event const& e)
             }
             else
             {
-              std::stringstream postResponse;
-              postResponse << "{\n"
-                           << "\"run\": " << e.id().run() << ",\n"
-                           << "\"subrun\": " << e.id().subRun() << ",\n"
-                           << "\"event\": " << e.id().event() << "\n"
-                           << "}\n";
-              sendString(postResponse.str(), messageSocket, "application/json", 201);
+              //Response to this request will be send at the beginning of the next analyze() function
+              //so that it can report the event number actually loaded.
               memset(fBuffer, '\0', bufferSize);
-
               navigator->setTarget(targetRun, targetSubrun, targetEvent);
-
               return;
             }
           }
