@@ -227,7 +227,8 @@ std::string evd::WebDisplay::writeGeometryList() const
   const auto magnetNode = getNode("magnet_phys");
   for(const auto node: *magnetNode->GetNodes())
   {
-    const double magnetHalfLength = static_cast<TGeoBBox*>(static_cast<TGeoNode*>(node)->GetVolume()->GetShape())->GetDZ()/10.;
+    //TODO: I think we technically need to add dZ from both this magnet segment and the previous one to get the right answer.  Right now, we're just getting lucky that the magnet segments are all the same length.
+    const double magnetHalfLength = static_cast<TGeoBBox*>(static_cast<TGeoNode*>(node)->GetVolume()->GetShape())->GetDZ()*2./10.;
     geometryList << "  {\n"
                  << "    \"name\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << "\",\n"
                  << "    \"isDetector\": false,\n"

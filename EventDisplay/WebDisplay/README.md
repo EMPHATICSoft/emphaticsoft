@@ -38,7 +38,7 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - Make sure render() happens when loading the next event is complete.  Can I also make sure it doesn't happen before loading is complete?
+  - Make sure render() happens when loading the next event is complete.  Can I also make sure it doesn't happen before loading is complete?  I think I'll have to put all Object3Ds from the next event into my own array, then call scene.clear() and add() them after all objects are loaded.  Go back to the old version of the geometry loading procedure because it doesn't fail and is less confusing.
   - Random access to events
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
 - Before next collaboration meeting:
