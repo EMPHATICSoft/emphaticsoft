@@ -162,7 +162,11 @@
       //  position[]
       //}
       //and geometry/<name of GDML physvol> with a .obj file
-      async loadGeometry(nextScene) {
+
+      //TODO: Understand why THREE.OBJLoader.loadAsync() returns BEFORE it finishes loading an asset.
+      //      Since I can't use loadAsync(), I'm forced to rely on mixing Promises and callbacks.
+      //      This doesn't break the application but does make it harder to read and maintain.
+      async loadGeometry(nextScene, nextCallback) {
         const localDetMaterial = this.geomDetMaterial;
         const localPassiveMaterial = this.geomPassiveMaterial;
 
@@ -170,11 +174,10 @@
           response.json().then(function (objsToLoad) {
             const geomLoader = new OBJLoader();
 
-            //TODO: loadAsync() just creates a Promise() that returns a function calliing load().  load() itself just queues a fetch().
-            //      I want to wait on that fetch()'s then() function, not queuing the fetch().
-            //      How can I take advantage of the load() function's callback?  Can I create a Promise() that fullfills when it returns?
-            async function loadGeomObject(geomEntry) {
-              return geomLoader.loadAsync("/geometry/".concat(geomEntry.name)).then((geomObject) => {
+            let whichEntry = 0;
+            async function loadNextGeom() {
+              geomLoader.load("/geometry/".concat(objsToLoad[whichEntry].name), (geomObject) => {
+                const geomEntry = objsToLoad[whichEntry];
                 geomObject.traverse((mesh) => {
                   if(geomEntry.isDetector) {
                     mesh.material = localDetMaterial;
@@ -188,42 +191,15 @@
                 geomObject.rotation.z = -geomEntry.phi;
                 //TODO: Get rotations from JSON
                 nextScene.push(geomObject);
+                console.log("Done loading " + geomEntry.name);
 
-                return nextScene;
+                whichEntry++;
+                if(whichEntry < objsToLoad.length) loadNextGeom();
+                else nextCallback(nextScene);
               });
             }
 
-            if(objsToLoad.length) {
-              let nextPromise = loadGeomObject(objsToLoad[0]);
-              for(let whichGeomEntry = 1; whichGeomEntry < objsToLoad.length; ++whichGeomEntry) {
-                nextPromise = nextPromise.then(loadGeomObject(objsToLoad[whichGeomEntry]));
-              }
-
-              return nextPromise;
-            }
-
-            //Almost works, but multiple Promises fire at the same time requesting multiple "channels".  I still can't figure out what "channels" are, so avoiding that for now.
-            /*let allPromises = [];
-
-            for(const geomEntry of objsToLoad) {
-              allPromises.push(geomLoader.loadAsync("/geometry/".concat(geomEntry.name)).then((geomObject) => {
-                geomObject.traverse((mesh) => {
-                  if(geomEntry.isDetector) {
-                    mesh.material = localDetMaterial;
-                  }
-                  else {
-                    mesh.material = localPassiveMaterial;
-                  }
-                  mesh.name = geomEntry.name;
-                });
-                geomObject.position.set(geomEntry.position[0], geomEntry.position[1], geomEntry.position[2]);
-                geomObject.rotation.z = -geomEntry.phi;
-                //TODO: Get rotations from JSON
-                nextScene.push(geomObject);
-              }));
-            }
-
-            return Promise.all(allPromises);*/
+            return loadNextGeom();
           });
         });
       }
@@ -298,8 +274,9 @@
       //Request a new event from the backend.
       //Sends the backend a POST request for newEvent with run, subrun, and event.
       //The backend must reply with either status code 200 (OK) or an error message (e.g. event not in this file or random access not allowed).  Response content is currently ignored.
-      //Returns a Future that is ready when nextScene is ready for viewing.
-      async requestNewEvent(nextScene) {
+      //TODO: I'm forced to mix Promises/await with a horrible callback chain because OBJLoader.loadAsync() seems to fullfill its Futures before it actually loads an object.
+      //      The only consequence is that this code is very hard to read.
+      async requestNewEvent(nextScene, callback) {
         //To avoid a black screen upon clicking "Next Event", we need a place to put the Object3Ds for the next event while the geometry, etc. load.
         //We can't copy the Scene or reassign its members for reasons I don't understand.  So make a vecto whose members we'll manually copy.
         //Be very careful not to call Scene.clear() until objsToLoad is ready!
@@ -314,22 +291,25 @@
           this.subrun = json.subrun;
           this.event = json.event;
         }).then(async () => {
-          await this.loadGeometry(nextEventObjects);
-          await this.loadMCTrajs(nextEventObjects);
-          await this.loadRecoLineSegs(nextEventObjects);
+          this.loadGeometry(nextEventObjects, async () => {
+            await this.loadMCTrajs(nextEventObjects);
+            await this.loadRecoLineSegs(nextEventObjects);
 
-          nextScene.clear();
+            nextScene.clear();
 
-          const lightColor = 0xFFFFFF;
-          const intensity = 3;
-          const light = new THREE.DirectionalLight(lightColor, intensity);
-          light.position.set(-1, 2, -10);
+            const lightColor = 0xFFFFFF;
+            const intensity = 3;
+            const light = new THREE.DirectionalLight(lightColor, intensity);
+            light.position.set(-1, 2, -10);
 
-          nextScene.add(light);
+            nextScene.add(light);
 
-          for(const obj of nextEventObjects) {
-            nextScene.add(obj);
-          }
+            for(const obj of nextEventObjects) {
+              nextScene.add(obj);
+            }
+
+            callback();
+          });
         });
       }
     }
@@ -436,7 +416,7 @@
       const gui = new GUI();
       gui.add({ async func () {
                   nextEvent.event += 1;
-                  await nextEvent.requestNewEvent(scene).then(function (newScene) {
+                  await nextEvent.requestNewEvent(scene, () => {
                     render();
                   });
                 }
@@ -447,13 +427,13 @@
       gui.add(nextEvent, 'subrun').listen();
       gui.add(nextEvent, 'event').listen();
       gui.add({ async func () {
-                  await nextEvent.requestNewEvent(scene).then(function (newScene) {
+                  await nextEvent.requestNewEvent(scene, () => {
                     render();
                   });
                 }
               }, "func").name('Go to');
 
-      nextEvent.requestNewEvent(scene).then((newScene) => {
+      nextEvent.requestNewEvent(scene, () => {
         clearPickPosition(); //Also calls render()
 
         window.addEventListener('mouseout', clearPickPosition);

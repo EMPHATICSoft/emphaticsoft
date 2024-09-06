@@ -438,25 +438,6 @@ void evd::WebDisplay::analyze(art::Event const& e)
     const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
     if(nEvents > 0)
     {
-      //Listen for new connections.  Turns out that a single web browser is requesting multiple connections at once!  This seems to be related to parallel fetch() requests.
-      if(pollFDs[0].revents & POLLIN)
-      {
-        mf::LogWarning("PortSetup") << "Got a new port request!";
-        struct sockaddr_storage their_addr;
-        socklen_t their_addr_size = sizeof(their_addr);
-        const int newConnection = accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
-        if(newConnection < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
-        else
-        {
-          fMessageSockets.push_back(newConnection); 
-
-          struct pollfd messageEntry;
-          messageEntry.fd = newConnection;
-          messageEntry.events = POLLIN;
-          pollFDs.push_back(messageEntry);
-        }
-      }
-
       for(size_t whichSocket = 1; whichSocket < pollFDs.size(); ++whichSocket)
       {
         if(pollFDs[whichSocket].revents & POLLIN)
@@ -464,7 +445,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
           const int messageSocket = pollFDs[whichSocket].fd;
           bytesRead = recv(messageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
           if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-          mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+          //mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
 
           const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
           if(request.method == HTTPRequest::Method::POST)
@@ -529,6 +510,25 @@ void evd::WebDisplay::analyze(art::Event const& e)
           memset(fBuffer, '\0', bufferSize); //Clear the buffer so that it doesn't contain this message anymore!
         } //If this socket has a new message
       } //For each messageSocket
+
+      //Listen for new connections.  Turns out that a single web browser is requesting multiple connections at once!  This seems to be related to parallel fetch() requests.
+      if(pollFDs[0].revents & POLLIN)
+      {
+        mf::LogWarning("PortSetup") << "Got a new port request!";
+        struct sockaddr_storage their_addr;
+        socklen_t their_addr_size = sizeof(their_addr);
+        const int newConnection = accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
+        if(newConnection < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
+        else
+        {
+          fMessageSockets.push_back(newConnection);
+
+          struct pollfd messageEntry;
+          messageEntry.fd = newConnection;
+          messageEntry.events = POLLIN;
+          pollFDs.push_back(messageEntry);
+        }
+      } //If there's a new connection request
     } //If poll() found events
   } while(bytesRead > 0);
   if(bytesRead == 0)
