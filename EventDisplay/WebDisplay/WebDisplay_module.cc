@@ -27,6 +27,7 @@
 #include "TGeoToObjFile.h"
 #include "TGeoToObjFile.cpp" //TODO: Don't include .cpp files.  How can I include this in the module binary without building a separate library using cet_modules?
 #include "parseHTTP.cpp" //TODO: Don't include .cpp files.  How do I explain to ART that I want to build the object file from compiling this file into the same libraryas this module?
+#include "EvtDisplayNavigatorService.h"
 
 //ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -433,6 +434,8 @@ void evd::WebDisplay::analyze(art::Event const& e)
     pollFDs.push_back(messageEntry);
   }
 
+  art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
+
   do
   {
     const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
@@ -450,15 +453,41 @@ void evd::WebDisplay::analyze(art::Event const& e)
           const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
           if(request.method == HTTPRequest::Method::POST)
           {
-            std::stringstream postResponse;
-            postResponse << "{\n"
-                         << "\"run\": " << e.id().run() << ",\n"
-                         << "\"subrun\": " << e.id().subRun() << ",\n"
-                         << "\"event\": " << e.id().event() << "\n"
-                         << "}\n";
-            sendString(postResponse.str(), messageSocket, "application/json", 201);
-            memset(fBuffer, '\0', bufferSize);
-            return;
+            //Parse message body
+            const std::string runTag = "\"run\":";
+            const size_t runPos = request.body.find(runTag);
+            const int targetRun = std::stoi(request.body.substr(runPos+runTag.length(), request.body.find_first_of(",}", runPos)));
+
+            const std::string subrunTag = "\"subrun\":";
+            const size_t subrunPos = request.body.find(subrunTag);
+            int targetSubrun = std::stoi(request.body.substr(subrunPos+subrunTag.length(), request.body.find_first_of(",}", subrunPos)));
+
+            const std::string eventTag = "\"event\":";
+            const size_t eventPos = request.body.find(eventTag);
+            int targetEvent = std::stoi(request.body.substr(eventPos+eventTag.length(), request.body.find_first_of(",}", eventPos)));
+
+            if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
+            {
+              mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
+                                        << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
+                                        << "\nMessage from browser was:\n" << request.body;
+              sendBadRequest(messageSocket);
+            }
+            else
+            {
+              std::stringstream postResponse;
+              postResponse << "{\n"
+                           << "\"run\": " << e.id().run() << ",\n"
+                           << "\"subrun\": " << e.id().subRun() << ",\n"
+                           << "\"event\": " << e.id().event() << "\n"
+                           << "}\n";
+              sendString(postResponse.str(), messageSocket, "application/json", 201);
+              memset(fBuffer, '\0', bufferSize);
+
+              navigator->setTarget(targetRun, targetSubrun, targetEvent);
+
+              return;
+            }
           }
           else if(request.method == HTTPRequest::Method::GET)
           {

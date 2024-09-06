@@ -14,6 +14,7 @@ source : {
 
 services : {
   @table::standard_services
+  EvtDisplayNavigatorService: {}
 }
 
 physics :{

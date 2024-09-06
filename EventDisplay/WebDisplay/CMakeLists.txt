@@ -25,8 +25,20 @@ set( CET_DICT_FUNCTIONS TRUE)
 
 #cet_rootcint( ${PACKAGE} )
 
+cet_build_plugin(EvtDisplayNavigatorService art::service
+  IMPL_SOURCE EvtDisplayNavigatorService_service.cc
+  LIBRARIES
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common
+  art::Framework_Services_Registry
+  art_root_io::RootInput_source
+  BASENAME_ONLY
+)
+
 cet_build_plugin(WebDisplay art::module
   LIBRARIES REG
+  EvtDisplayNavigatorService_service
   ChannelMap
   ChannelMapService_service
   Geometry
@@ -48,11 +60,8 @@ cet_build_plugin(WebDisplay art::module
   cetlib::cetlib
   cetlib_except::cetlib_except
   ROOT::Geom
-  ROOT::X3d
-  ROOT::Eve
   ROOT::EG
   ROOT::RGL
-  ROOT::Gui
   BASENAME_ONLY
 )
 
