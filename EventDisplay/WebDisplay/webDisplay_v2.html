@@ -162,20 +162,19 @@
       //  position[]
       //}
       //and geometry/<name of GDML physvol> with a .obj file
-      loadGeometry(nextScene) {
+      async loadGeometry(nextScene) {
         const localDetMaterial = this.geomDetMaterial;
         const localPassiveMaterial = this.geomPassiveMaterial;
 
-        return fetch("geometry/index.json").then(function (response) {
+        return fetch("geometry/index.json").then(async function (response) {
           response.json().then(function (objsToLoad) {
-            if(objsToLoad.length) {
-              const geomLoader = new OBJLoader();
+            const geomLoader = new OBJLoader();
 
-              //Force OBJLoader to load one .obj file at a time because my backend can't handle parallel file requests
-              //TODO: Replace with a chain of Promises?  Not sure how to construct function chains in a loop like that.
-              let nextObjIndex = 0;
-              function loadNextObj(geomObject) {
-                const geomEntry = objsToLoad[nextObjIndex];
+            //TODO: loadAsync() just creates a Promise() that returns a function calliing load().  load() itself just queues a fetch().
+            //      I want to wait on that fetch()'s then() function, not queuing the fetch().
+            //      How can I take advantage of the load() function's callback?  Can I create a Promise() that fullfills when it returns?
+            async function loadGeomObject(geomEntry) {
+              return geomLoader.loadAsync("/geometry/".concat(geomEntry.name)).then((geomObject) => {
                 geomObject.traverse((mesh) => {
                   if(geomEntry.isDetector) {
                     mesh.material = localDetMaterial;
@@ -188,15 +187,43 @@
                 geomObject.position.set(geomEntry.position[0], geomEntry.position[1], geomEntry.position[2]);
                 geomObject.rotation.z = -geomEntry.phi;
                 //TODO: Get rotations from JSON
-                nextScene.add(geomObject);
+                nextScene.push(geomObject);
 
-                nextObjIndex += 1;
-                if(nextObjIndex < objsToLoad.length) {
-                  geomLoader.load("/geometry/".concat(objsToLoad[nextObjIndex].name), loadNextObj);
-                }
-              };
-              geomLoader.load("/geometry/".concat(objsToLoad[nextObjIndex].name), loadNextObj);
+                return nextScene;
+              });
             }
+
+            if(objsToLoad.length) {
+              let nextPromise = loadGeomObject(objsToLoad[0]);
+              for(let whichGeomEntry = 1; whichGeomEntry < objsToLoad.length; ++whichGeomEntry) {
+                nextPromise = nextPromise.then(loadGeomObject(objsToLoad[whichGeomEntry]));
+              }
+
+              return nextPromise;
+            }
+
+            //Almost works, but multiple Promises fire at the same time requesting multiple "channels".  I still can't figure out what "channels" are, so avoiding that for now.
+            /*let allPromises = [];
+
+            for(const geomEntry of objsToLoad) {
+              allPromises.push(geomLoader.loadAsync("/geometry/".concat(geomEntry.name)).then((geomObject) => {
+                geomObject.traverse((mesh) => {
+                  if(geomEntry.isDetector) {
+                    mesh.material = localDetMaterial;
+                  }
+                  else {
+                    mesh.material = localPassiveMaterial;
+                  }
+                  mesh.name = geomEntry.name;
+                });
+                geomObject.position.set(geomEntry.position[0], geomEntry.position[1], geomEntry.position[2]);
+                geomObject.rotation.z = -geomEntry.phi;
+                //TODO: Get rotations from JSON
+                nextScene.push(geomObject);
+              }));
+            }
+
+            return Promise.all(allPromises);*/
           });
         });
       }
@@ -209,7 +236,7 @@
       //  pdgCode,
       //  points[[]]
       //}
-      loadMCTrajs(nextScene) {
+      async loadMCTrajs(nextScene) {
         const mcLineWidth = 3;
         const pdgToMaterialMap = new Map();
         pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0xe69f00, linewidth: mcLineWidth }));
@@ -237,7 +264,7 @@
               const trajLine = new THREE.Line(trajGeom, pdgMaterial);
               trajLine.computeLineDistances(); //Necessary for dashed lines to work
               trajLine.name = traj.name;
-              nextScene.add(trajLine);
+              nextScene.push(trajLine);
             }
           });
         });
@@ -251,7 +278,7 @@
       //  length,
       //  phi
       //}
-      loadRecoLineSegs(nextScene) {
+      async loadRecoLineSegs(nextScene) {
         const ssdWidth = 0.3;
         const localRecoMaterial = this.recoMaterial;
         return fetch("reco/LineSegs.json").then(function (response) {
@@ -262,7 +289,7 @@
               segBox.position.set(seg.center[0], seg.center[1], seg.center[2]);
               segBox.rotation.z = -seg.phi;
               segBox.name = "LineSegment";
-              nextScene.add(segBox);
+              nextScene.push(segBox);
             }
           });
         });
@@ -272,31 +299,39 @@
       //Sends the backend a POST request for newEvent with run, subrun, and event.
       //The backend must reply with either status code 200 (OK) or an error message (e.g. event not in this file or random access not allowed).  Response content is currently ignored.
       //Returns a Future that is ready when nextScene is ready for viewing.
-      requestNewEvent(nextScene) {
-        nextScene.clear();
-
-        const lightColor = 0xFFFFFF;
-        const intensity = 3;
-        const light = new THREE.DirectionalLight(lightColor, intensity);
-        light.position.set(-1, 2, -10);
-
-        nextScene.add(light);
+      async requestNewEvent(nextScene) {
+        //To avoid a black screen upon clicking "Next Event", we need a place to put the Object3Ds for the next event while the geometry, etc. load.
+        //We can't copy the Scene or reassign its members for reasons I don't understand.  So make a vecto whose members we'll manually copy.
+        //Be very careful not to call Scene.clear() until objsToLoad is ready!
+        let nextEventObjects = [];
 
         return fetch("newEvent", { method: "POST", body: JSON.stringify({ run: this.run, subrun: this.subrun, event: this.event }) })
-               .then((response) => {
-                 return response.json();
-               })
-               .then((json) => {
-                 this.run = json.run;
-                 this.subrun = json.subrun;
-                 this.event = json.event;
-               })
-               .then(this.loadGeometry(nextScene)) //Loading the new event on the backend must succeed
-               .then(this.loadMCTrajs(nextScene)) //Loading the geometry must succeed
-               .finally(this.loadRecoLineSegs(nextScene)) //Loading the MC is OPTIONAL.  It might not work for e.g. data files.  Keep going anyway!
-               .finally(function () { return nextScene; }); //Loading reco is OPTIONAL.  It might not work for e.g. raw MC files.  Keep going anyway!
-      }
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          this.run = json.run;
+          this.subrun = json.subrun;
+          this.event = json.event;
+        }).then(async () => {
+          await this.loadGeometry(nextEventObjects);
+          await this.loadMCTrajs(nextEventObjects);
+          await this.loadRecoLineSegs(nextEventObjects);
 
+          nextScene.clear();
+
+          const lightColor = 0xFFFFFF;
+          const intensity = 3;
+          const light = new THREE.DirectionalLight(lightColor, intensity);
+          light.position.set(-1, 2, -10);
+
+          nextScene.add(light);
+
+          for(const obj of nextEventObjects) {
+            nextScene.add(obj);
+          }
+        });
+      }
     }
 
     function main() {
@@ -399,9 +434,9 @@
 
       //Set up buttons for the user: a Graphical User Interface
       const gui = new GUI();
-      gui.add({ func () {
+      gui.add({ async func () {
                   nextEvent.event += 1;
-                  nextEvent.requestNewEvent(scene).then(function (newScene) {
+                  await nextEvent.requestNewEvent(scene).then(function (newScene) {
                     render();
                   });
                 }
@@ -411,8 +446,8 @@
       gui.add(nextEvent, 'run').listen(); //listen() makes lilgui listen for changes to the property it's displaying.  Doesn't sound very efficient, but gets the job done.
       gui.add(nextEvent, 'subrun').listen();
       gui.add(nextEvent, 'event').listen();
-      gui.add({ func () {
-                  nextEvent.requestNewEvent(scene).then(function (newScene) {
+      gui.add({ async func () {
+                  await nextEvent.requestNewEvent(scene).then(function (newScene) {
                     render();
                   });
                 }

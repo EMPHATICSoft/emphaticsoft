@@ -107,12 +107,13 @@ private:
   Config fConfig;
   int fPortNumber; //Port you need to forward and point your browser to!
                    //Can be configured by a FHICL parameter.
-  int fMessageSocket; //File descriptor HTTP response socket
+  std::vector<int> fMessageSockets; //File descriptors for HTTP responses
+  int fListenSocket; //File descriptor for accepting new TCP requests
 
-  int sendFile(const char* fileName) const;
-  int sendString(std::string toSend, const std::string contentType = "text", const int responseCode = 200) const; //Adds an appropriate header for a stand-alone message
-  int sendRawString(const std::string& toSend) const; //Requires you to write your own header.  Used to implement sendFile() and sendString()
-  int sendBadRequest() const;
+  int sendFile(const char* fileName, const int messageSocket) const;
+  int sendString(std::string toSend, const int messageSocket, const std::string contentType = "text", const int responseCode = 200) const; //Adds an appropriate header for a stand-alone message
+  int sendRawString(const std::string& toSend, const int messageSocket) const; //Requires you to write your own header.  Used to implement sendFile() and sendString()
+  int sendBadRequest(const int messageSocket) const;
 
   std::string writeGeometryList() const;
   std::string writeMCTrajList(const std::vector<sim::Particle>& trajs) const;
@@ -125,7 +126,7 @@ private:
 };
 
 evd::WebDisplay::WebDisplay(Parameters const& p)
-  : EDAnalyzer{p}, fConfig(p()), fPortNumber(p().portNumber()), fMessageSocket(-1)
+  : EDAnalyzer{p}, fConfig(p()), fPortNumber(p().portNumber()), fMessageSockets()
 {
   consumes<std::vector<rb::LineSegment>>(p().lineSegLabel());
 }
@@ -151,25 +152,25 @@ void evd::WebDisplay::beginJob()
 
   //getaddrinfo() returns lots of addresses that may or may not work in a linked list.
   //Pick the first one that can be used.
-  int listenSocket = -1;
+  fListenSocket = -1;
   constexpr int yes = 1;
   for(;myAddress != nullptr; myAddress = myAddress->ai_next)
   {
-    listenSocket = socket(myAddress->ai_family, myAddress->ai_socktype, myAddress->ai_protocol);
-    if(listenSocket < 0) continue; //Try the next address
+    fListenSocket = socket(myAddress->ai_family, myAddress->ai_socktype, myAddress->ai_protocol);
+    if(fListenSocket < 0) continue; //Try the next address
 
     //My prototype reset the status of this socket here.  I left that out
     //so users on the same GPVM don't stomp on each other.  Try https://threejs.org/examples/webgl_lines_fat.html.
     //TODO: Pick another port number if this socket is already in use.
     //Reuse this socket if there's another process already using it
-    if(setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
+    if(setsockopt(fListenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
     {
       mf::LogError("PortSetup") << "setsockopt: " << strerror(errno);
     }
 
-    if(bind(listenSocket, myAddress->ai_addr, myAddress->ai_addrlen) < 0)
+    if(bind(fListenSocket, myAddress->ai_addr, myAddress->ai_addrlen) < 0)
     {
-      close(listenSocket);
+      close(fListenSocket);
       mf::LogWarning("PortSetup") << "bind: " << strerror(errno);
       continue; //Try another address
     }
@@ -183,18 +184,17 @@ void evd::WebDisplay::beginJob()
   }
 
   //Wait for a web browser to contact this process over fPortNumber, then accept() the connection
-  if(listen(listenSocket, 10) < 0)
+  if(listen(fListenSocket, 10) < 0)
   {
     mf::LogError("PortSetup") << "listen: " << strerror(errno);
   }
 
   struct sockaddr_storage their_addr;
   socklen_t their_addr_size = sizeof(their_addr);
-  fMessageSocket = accept(listenSocket, (sockaddr*)&their_addr, &their_addr_size);
-  if(fMessageSocket < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
+  fMessageSockets.push_back(accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size));
+  if(fMessageSockets[0] < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
 
   mf::LogInfo("PortSetup") << "Got a connection!";
-  close(listenSocket);
   //TODO: Clean up addrinfo structs
 
   //Send a "waiting" screen while things like the geometry load
@@ -210,7 +210,7 @@ void evd::WebDisplay::beginJob()
   welcomeScreen += "  </body>\n";
   welcomeScreen += "  <meta http-equiv=\"refresh\" content=\"1\">\n";
   welcomeScreen += "</html>";
-  sendString(welcomeScreen);
+  sendString(welcomeScreen, fMessageSockets[0]);
 }
 
 //Summarize detectors to draw as a JSON list
@@ -417,72 +417,119 @@ void evd::WebDisplay::analyze(art::Event const& e)
   //reco/LineSegs.json: list of line segments
   int bytesRead = 0;
   mf::LogInfo("Server") << "Waiting for request from browser...";
+
+  std::vector<struct pollfd> pollFDs;
+  {
+    struct pollfd listenEntry;
+    listenEntry.fd = fListenSocket;
+    listenEntry.events = POLLIN;
+    pollFDs.push_back(listenEntry);
+  }
+  for(const int socket: fMessageSockets)
+  {
+    struct pollfd messageEntry;
+    messageEntry.fd = socket;
+    messageEntry.events = POLLIN;
+    pollFDs.push_back(messageEntry);
+  }
+
   do
   {
-    bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-    if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-    mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+    const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
+    if(nEvents > 0)
+    {
+      //Listen for new connections.  Turns out that a single web browser is requesting multiple connections at once!  This seems to be related to parallel fetch() requests.
+      if(pollFDs[0].revents & POLLIN)
+      {
+        mf::LogWarning("PortSetup") << "Got a new port request!";
+        struct sockaddr_storage their_addr;
+        socklen_t their_addr_size = sizeof(their_addr);
+        const int newConnection = accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
+        if(newConnection < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
+        else
+        {
+          fMessageSockets.push_back(newConnection); 
 
-    const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
-    if(request.method == HTTPRequest::Method::POST)
-    {
-      std::stringstream postResponse;
-      postResponse << "{\n"
-                   << "\"run\": " << e.id().run() << ",\n"
-                   << "\"subrun\": " << e.id().subRun() << ",\n"
-                   << "\"event\": " << e.id().event() << "\n"
-                   << "}\n";
-      sendString(postResponse.str(), "application/json", 201);
-      break; //TODO: Can I rewrite the logic of this loop to remove break?
-    }
-    else if(request.method == HTTPRequest::Method::GET)
-    {
-      if(request.uri == "/geometry/index.json")
-      {
-        sendString(writeGeometryList(), "application/json");
-      }
-      else if(request.uri.find("geometry") != std::string::npos)
-      {
-        std::stringstream geomObjFile;
-        const std::string geometryStem = "/geometry/";
-        const TGeoShape* shape = getShape(request.uri.substr(request.uri.find(geometryStem) + geometryStem.length(), request.uri.find(".obj")));
-        TGeoToObjFile(*shape, geomObjFile, 10.);
-        sendString(geomObjFile.str(), "text/obj");
-      }
-      else if(request.uri.find("/LineSegs.json") != std::string::npos)
-      {
-        art::Handle<std::vector<rb::LineSegment>> segs;
-        e.getByLabel(fConfig.lineSegLabel(), segs);
-        if(segs)
-        {
-          sendString(writeLineSegList(*segs), "application/json");
+          struct pollfd messageEntry;
+          messageEntry.fd = newConnection;
+          messageEntry.events = POLLIN;
+          pollFDs.push_back(messageEntry);
         }
-        else sendBadRequest(); //The frontend can ignore this request and keep going without showing LineSegments
       }
-      else if(!strcmp(request.uri.c_str(), "/MC/trajs.json"))
+
+      for(size_t whichSocket = 1; whichSocket < pollFDs.size(); ++whichSocket)
       {
-        art::Handle<std::vector<sim::Particle>> mcParts;
-        e.getByLabel(fConfig.mcPartLabel(), mcParts);
-        if(mcParts)
+        if(pollFDs[whichSocket].revents & POLLIN)
         {
-          sendString(writeMCTrajList(*mcParts), "application/json");
-        }
-        else sendBadRequest(); //The frontend can ignore this request and keep going without showing MC trajectories.  Handling this is important for viewing data!
-      }
-      else if(request.uri == "/")
-      {
-        sendFile("webDisplay_v2.html");
-      }
-      else
-      {
-        sendBadRequest();
-      }
-    }
-    else //if(request.method == HTTPRequest::Method::UNSUPPORTED)
-    {
-      sendBadRequest();
-    }
-    memset(fBuffer, '\0', bufferSize); //Clear the buffer so that it doesn't contain this message anymore!
+          const int messageSocket = pollFDs[whichSocket].fd;
+          bytesRead = recv(messageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
+          if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
+          mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+
+          const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
+          if(request.method == HTTPRequest::Method::POST)
+          {
+            std::stringstream postResponse;
+            postResponse << "{\n"
+                         << "\"run\": " << e.id().run() << ",\n"
+                         << "\"subrun\": " << e.id().subRun() << ",\n"
+                         << "\"event\": " << e.id().event() << "\n"
+                         << "}\n";
+            sendString(postResponse.str(), messageSocket, "application/json", 201);
+            memset(fBuffer, '\0', bufferSize);
+            return;
+          }
+          else if(request.method == HTTPRequest::Method::GET)
+          {
+            if(request.uri == "/geometry/index.json")
+            {
+              sendString(writeGeometryList(), messageSocket, "application/json");
+            }
+            else if(request.uri.find("geometry") != std::string::npos)
+            {
+              std::stringstream geomObjFile;
+              const std::string geometryStem = "/geometry/";
+              const TGeoShape* shape = getShape(request.uri.substr(request.uri.find(geometryStem) + geometryStem.length(), request.uri.find(".obj")));
+              TGeoToObjFile(*shape, geomObjFile, 10.);
+              sendString(geomObjFile.str(), messageSocket, "text/plain");
+            }
+            else if(request.uri.find("/LineSegs.json") != std::string::npos)
+            {
+              art::Handle<std::vector<rb::LineSegment>> segs;
+              e.getByLabel(fConfig.lineSegLabel(), segs);
+              if(segs)
+              {
+                sendString(writeLineSegList(*segs), messageSocket, "application/json");
+              }
+              else sendBadRequest(messageSocket); //The frontend can ignore this request and keep going without showing LineSegments
+            }
+            else if(!strcmp(request.uri.c_str(), "/MC/trajs.json"))
+            {
+              art::Handle<std::vector<sim::Particle>> mcParts;
+              e.getByLabel(fConfig.mcPartLabel(), mcParts);
+              if(mcParts)
+              {
+                sendString(writeMCTrajList(*mcParts), messageSocket, "application/json");
+              }
+              else sendBadRequest(messageSocket); //The frontend can ignore this request and keep going without showing MC trajectories.  Handling this is important for viewing data!
+            }
+            else if(request.uri == "/")
+            {
+              sendFile("webDisplay_v2.html", messageSocket);
+            }
+            else
+            {
+              sendBadRequest(messageSocket);
+            }
+          }
+          else //if(request.method == HTTPRequest::Method::UNSUPPORTED)
+          {
+            sendBadRequest(messageSocket);
+          }
+          memset(fBuffer, '\0', bufferSize); //Clear the buffer so that it doesn't contain this message anymore!
+        } //If this socket has a new message
+      } //For each messageSocket
+    } //If poll() found events
   } while(bytesRead > 0);
   if(bytesRead == 0)
   {
@@ -500,33 +547,34 @@ std::string getFullPath(const std::string& fileName)
   return fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
 }
 
-int evd::WebDisplay::sendBadRequest() const
+int evd::WebDisplay::sendBadRequest(const int messageSocket) const
 {
-  return sendRawString("HTTP/1.1 404 Not found\n\n"); //Is it appropriate to include more information in the response body for debugging?
+  return sendRawString("HTTP/1.1 404 Not found\n\n", messageSocket); //Is it appropriate to include more information in the response body for debugging?
 }
 
 void evd::WebDisplay::endJob()
 {
-  close(fMessageSocket);
+  close(fListenSocket);
+  for(const int socket: fMessageSockets) close(socket);
 }
 
-int evd::WebDisplay::sendString(std::string toSend, const std::string contentType, const int responseCode) const
+int evd::WebDisplay::sendString(std::string toSend, const int messageSocket, const std::string contentType, const int responseCode) const
 {
   //Add an HTTP header
   toSend.insert(0, "HTTP/1.1 " + std::to_string(responseCode) + " OK\nContent-Type:" + contentType + "\nContent-Length:" + std::to_string(toSend.length()) + "\n\n");
-  return sendRawString(toSend);
+  return sendRawString(toSend, messageSocket);
 }
 
 
-int evd::WebDisplay::sendRawString(const std::string& toSend) const
+int evd::WebDisplay::sendRawString(const std::string& toSend, const int messageSocket) const
 {
-  mf::LogWarning("HTTP Sent") << "Sending HTTP request:\n" << toSend;
+  //mf::LogWarning("HTTP Sent") << "Sending HTTP request:\n" << toSend;
 
   int bytesSent = 0;
   int offset = 0;
   do
   {
-    bytesSent = send(fMessageSocket, toSend.c_str() + offset, toSend.length() - offset, 0);
+    bytesSent = send(messageSocket, toSend.c_str() + offset, toSend.length() - offset, 0);
     if(bytesSent < 0)
     {
       mf::LogError("WebServer") << "send: " << strerror(errno);
@@ -539,7 +587,7 @@ int evd::WebDisplay::sendRawString(const std::string& toSend) const
   return 0;
 }
 
-int evd::WebDisplay::sendFile(const char* fileName) const
+int evd::WebDisplay::sendFile(const char* fileName, const int messageSocket) const
 {
   const std::string fileFullPath = getFullPath(fileName);
 
@@ -548,9 +596,9 @@ int evd::WebDisplay::sendFile(const char* fileName) const
   const int contentLength = fileInfo.st_size;
 
   const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";
-  sendRawString(requestHeader);
+  sendRawString(requestHeader, messageSocket);
 
-  std::cout << "Sending file named " << fileName << "...\n";
+  //std::cout << "Sending file named " << fileName << "...\n";
   constexpr int fileChunkSize = 512;
   char fileData[fileChunkSize];
 
@@ -567,7 +615,7 @@ int evd::WebDisplay::sendFile(const char* fileName) const
     do
     {
       std::cout << "Keep sending.  offset is " << offset << "...\n";
-      bytesSent = send(fMessageSocket, fileData + offset, bytesRead, 0);
+      bytesSent = send(messageSocket, fileData + offset, bytesRead, 0);
       if(bytesSent < 0)
       {
         std::cerr << "send: " << strerror(errno) << "\n";
