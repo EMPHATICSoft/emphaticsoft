@@ -55,12 +55,28 @@
        -1px   1px 0 #000,
        -1px   0   0 #000;
     }
+    #loading {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: pre-line;
+      color: white;
+    }
+    #loading>div {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: large;
+      user-select: none;
+      white-space: pre-line;
+    }
   </style>
 
   <body>
     <div id="container">
       <canvas id="Display"></canvas>
       <div id="labels"></div>
+      <div id="loading"></div>
     </div>
 
     <script type="module">
@@ -339,19 +355,35 @@
       //Set up things to draw
       let scene = new THREE.Scene();
 
-      const geomDetMaterial = new THREE.MeshPhongMaterial({
+      const geomPassiveMaterial = new THREE.MeshPhongMaterial({
                                     color: 0xff0000,
                                     opacity: 0.2,
                                     transparent: true,
                                     side: THREE.DoubleSide
                                   });
-      const geomPassiveMaterial = new THREE.MeshPhongMaterial({
+      const geomDetMaterial = new THREE.MeshPhongMaterial({
                                         color: 0x0000ff,
                                         opacity: 0.2,
                                         transparent: true,
                                         side: THREE.DoubleSide
                                       });
       const recoMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
+
+      //Display the text "Loading" while the geometry files are loading.
+      const loadingContainer = document.querySelector("#loading");
+      const loadingText = document.createElement('div');
+      loadingText.textContent = "Loading...";
+      loadingContainer.appendChild(loadingText); //Also display "Loading" before the first attempt to load geometry files.
+                                                 //There's a complicated reason why I can't just use this for "newEvent".
+                                                 //I'd have to give up on using POST basically which is doable but outside the scope of the problem I'm solving today.
+
+      THREE.DefaultLoadingManager.onStart = () => {
+        loadingContainer.appendChild(loadingText);
+      };
+
+      THREE.DefaultLoadingManager.onLoad = () => {
+        loadingContainer.removeChild(loadingText);
+      };
 
       let nextEvent = new EventLoader(geomDetMaterial, geomPassiveMaterial, recoMaterial);
 
@@ -456,6 +488,7 @@
         }
       }, 'func').name('Y-Z View');
 
+      render(); //Just display black screen so "Loading" text is visible in color I'll use later
       nextEvent.requestNewEvent(scene, () => {
         clearPickPosition(); //Also calls render()
 

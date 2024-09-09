@@ -38,23 +38,13 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - Get the loading screen back, or at least add updating text to the event display while loading.  Remember that the initial long load is really the backend loading the geometry service.
   - Clean up geometry volume names
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
-  - Make it easy and obvious how to add new objects to the event display
-    - Put extension interface high in the ART module code.  Move web sockets code as close to the bottom as possible.
-    - Put extension interface high in the **Javascript** code.  Remove need for understanding `await` and `Future`.  Or can I remove the need to edit Javascript entirely?
-    - Think a little about how MC trajectories will be distinguished from reconstructed tracks.  Should I change the style of MC trajectories to make more options available for the reconstruction?
-      - Make MC trajectories dots and dashes only?
-      - Button to turn off MC and/or reco?
-      - Provide a roadmap for 1-2 other collaborators to add Tracks and the ARICH to the event display.  Pay attention to where they get stuck and smooth that over for the future when I don't work no EMPHATIC anymore!
-  - Why does the camera seem sluggish in Firefox?  Do I have an optimization problem now?
 - Before next collaboration meeting:
   - Hand these off to someone else to test maintainability!
     - Include SSD Tracks and TrackSegments.  Robert has these working now!
     - Include the ARICH.  Draw boxes for the ARICH hits?  Paste the 2D histogram on the front of the box as a texture?
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
-  - Better default camera positions and buttons to switch between them!
 - Before next run:
 - Later...
   - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
@@ -80,6 +70,14 @@ Might be useful in case you need to debug something
 ater.
     - Things I want to improve about the current camera controls:
       - It's hard to focus on a point that's partway down the detector.  Rotating the camera about that point breaks as soon as a zoom.
+  - How to get parameter set that produced an arbitary product in ART!
+    - Event is a ProductRetriever: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/Event.h
+    - ProductRetriever can get Provenance by a ProductID: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/ProductRetriever.h
+    - Provenance provides all of the goodies like the ParameterSet that produced an object and its parents' ProductIDs
+    - ProductID is just a number, and I can even get that number directly as an integer!  https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Provenance/ProductID.h
+    - Save ProductID in either `Object3D.userData` or make it the object ID somehow.  Then, *I can make a query for the ParameterSet of an arbitrary object*!  Write a function that formats this as simple HTML.  Seems like a very powerful debugging tool to me!
+    - Also note that `art::Assns<>` provide access to an `art::Ptr<>` that can provide a `ProductID`.  So I could in principle extract a map of ProductIDs that are associated and have Javascript build a scene graph from that!  See https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Ptr.h and https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Assns.h
+  - I wonder whether I could use `THREE.DefaultLoadingManager.onLoad` to remove the need for Promises and related async functionality.  If that works, I could use `THREE.FileLoader` instead of `fetch()`.  See https://threejs.org/docs/#api/en/loaders/FileLoader`
 
 
 ## Helpful links

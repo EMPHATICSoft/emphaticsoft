@@ -198,26 +198,7 @@ void evd::WebDisplay::beginJob()
   mf::LogInfo("PortSetup") << "Got a connection!";
   //TODO: Clean up addrinfo structs
 
-  //Send a "waiting" screen while things like the geometry load
-  //TODO: Add a logo?
-  const int bytesRead = recv(fMessageSockets[0], fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-  if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-  memset(fBuffer, '\0', bufferSize);
-
-  std::string welcomeScreen = "<!DOCTYPE html>\n";
-  welcomeScreen += "<html>\n";
-  welcomeScreen += "<link rel=\"shortcut icon\" href=\"data:image/x-icon;,\" type=\"image/x-icon\">\n"; //Needed to skip sending Chrome a favicon per https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
-  welcomeScreen += "  <head>\n";
-  welcomeScreen += "    <title> Loading... </title>\n";
-  welcomeScreen += "  </head>\n";
-  welcomeScreen += "  <body>\n";
-  welcomeScreen += "    <text> Loading geometry and first event... </text>\n";
-  welcomeScreen += "  </body>\n";
-  welcomeScreen += "  <meta http-equiv=\"refresh\" content=\"1\">\n";
-  welcomeScreen += "</html>";
-  sendString(welcomeScreen, fMessageSockets[0]);
-
-  //The next request will always ask for this file
+  //Send the main event display application which will always display "Loading..." the first time it shows up
   const int firstBytesRead = recv(fMessageSockets[0], fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
   if(firstBytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
   memset(fBuffer, '\0', bufferSize);
