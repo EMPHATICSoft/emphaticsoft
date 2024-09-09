@@ -432,6 +432,30 @@
                 }
               }, "func").name('Go to');
 
+      //Pre-set "2D" camera angles
+      //TODO: Figure out e.g. the x position that lets the Y-Z view see the whole detector given the camera field of view
+      gui.add({ func() {
+          camera.position.set(0, camera.position.y, camera.position.z);
+          controls.target.set(camera.position.x, 0, camera.position.z);
+          controls.update();
+          render();
+        }
+      }, 'func').name('X-Z View');
+      gui.add({ func() {
+          camera.position.set(0, 0, camera.position.z);
+          controls.target.set(camera.position.x, camera.position.y, 0);
+          controls.update();
+          render();
+        }
+      }, 'func').name('X-Y View');
+      gui.add({ func() {
+          camera.position.set(40, 0, camera.position.z); //The 40 here just gets the camera off the z axis
+          controls.target.set(0, camera.position.y, camera.position.z);
+          controls.update();
+          render();
+        }
+      }, 'func').name('Y-Z View');
+
       nextEvent.requestNewEvent(scene, () => {
         clearPickPosition(); //Also calls render()
 

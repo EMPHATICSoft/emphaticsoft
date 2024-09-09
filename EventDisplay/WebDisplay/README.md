@@ -38,14 +38,23 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
+  - Get the loading screen back, or at least add updating text to the event display while loading.  Remember that the initial long load is really the backend loading the geometry service.
   - Clean up geometry volume names
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
+  - Make it easy and obvious how to add new objects to the event display
+    - Put extension interface high in the ART module code.  Move web sockets code as close to the bottom as possible.
+    - Put extension interface high in the **Javascript** code.  Remove need for understanding `await` and `Future`.  Or can I remove the need to edit Javascript entirely?
+    - Think a little about how MC trajectories will be distinguished from reconstructed tracks.  Should I change the style of MC trajectories to make more options available for the reconstruction?
+      - Make MC trajectories dots and dashes only?
+      - Button to turn off MC and/or reco?
+      - Provide a roadmap for 1-2 other collaborators to add Tracks and the ARICH to the event display.  Pay attention to where they get stuck and smooth that over for the future when I don't work no EMPHATIC anymore!
+  - Why does the camera seem sluggish in Firefox?  Do I have an optimization problem now?
 - Before next collaboration meeting:
-  - Include SSD Tracks and TrackSegments.  Robert has these working now!
-  - Include the ARICH.  Draw boxes for the ARICH hits?  Paste the 2D histogram on the front of the box as a texture?
+  - Hand these off to someone else to test maintainability!
+    - Include SSD Tracks and TrackSegments.  Robert has these working now!
+    - Include the ARICH.  Draw boxes for the ARICH hits?  Paste the 2D histogram on the front of the box as a texture?
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
   - Better default camera positions and buttons to switch between them!
-  - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
 - Before next run:
 - Later...
   - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
@@ -66,6 +75,12 @@ Might be useful in case you need to debug something
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
+  - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
+    - My first instinct is that I want FPS video game controls.  But I can't get the FPS camera options in THREE.js to focus on the scene.  Someone should debug this l
+ater.
+    - Things I want to improve about the current camera controls:
+      - It's hard to focus on a point that's partway down the detector.  Rotating the camera about that point breaks as soon as a zoom.
+
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui
