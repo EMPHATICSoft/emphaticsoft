@@ -38,6 +38,7 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
+  - Clean up geometry volume names
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
 - Before next collaboration meeting:
   - Include SSD Tracks and TrackSegments.  Robert has these working now!
@@ -45,51 +46,28 @@ Might be useful in case you need to debug something
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
   - Better default camera positions and buttons to switch between them!
   - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
-  - Do we have reconstructed SSD tracks?
-  - Add a list tree GUI?  It might help the MC make more sense, but I've always found them to be clutter to the majority of use cases.
-  - Why are the downstream SSDs in weird positions?  Is something wrong with their units again, or is there a problem on the Javascript side?
 - Before next run:
 - Later...
   - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
+    - Easy difficulty: FHICL interface to add arbitrary volumes from the GDML.  The only big thing I'm missing is calculating positions from TGeoManager.  One way I've done that before is to go recursively up the TGeoNode hierarchy until I find the volume I'm looking for and accumulate matrices along the way.  It would solve the general problem, but it's not easy to get right!
     - Medium difficulty: evd::Metadata data products associated with any data product the event display consumes.  Has color and name overrides.
     - Harder difficulty: ART Tools that can send arbitrary cubes that frontend knows how to render.
   - Display context about selected objects.  We could query the ART job like it's a database!  The backend just has to send back HTML.  Some awesome things I want to do:
     - Show ART provenance information for any data product.  Maybe as a context menu?  How do I even do context menus in THREE.js?
     - Show histograms of the SSDs when their volumes are selected
     - Talk about what magnetic field, alignment constants, and beam conditions are loaded.  Selecting geometry objects is an opportunity to make "ergonomic" controls!
-  - Port this to a real web server running e.g. at Notre Dame?  That would be nice for outreach!  But then someone has to understand and maintain a web server application.  The webserver I'm imagining would produce a web page that looks like Nathaniel Tagg's Arachne event display for MINERvA.  We could make an ART job act like a "CGI script" by reading requests on STDIN and replying on STDOUT.  It even sounds like we could leave the ART job running between serving events with Apache.  When I searched for ideas using Google, I saw recommendations that we might as well write an Apache module if we're forced to use C.  I'm not sure how to do that, and it sounds like more dependencies to me.
-  - For the SSDs and other aligned components, we should at least apply alignment constants somehow.  The event display doesn't know about rotations to any objects right now because I need to convert from polar coordinates to Euler angles for THREE.js.
-  - Persist camera settings across events.  I could either cache them somehow or do a massive redesign of the Javascript so that I only send positions and rotations for each event but keep the rendering code.  The latter probably makes us more robust in the long run, but that's a lot of work!  And a lot of things I don't yet know how to do in Javascript.
+  - Port this to a real web server running e.g. at Notre Dame?
+    - That would be nice for outreach!
+    - But then someone has to understand and maintain a web server application.
+    - The webserver I'm imagining would produce a web page that looks like Nathaniel Tagg's Arachne event display for MINERvA.  We could make an ART job act like a "CGI script" by reading requests on STDIN and replying on STDOUT.  It even sounds like we could leave the ART job running between serving events with Apache.  When I searched for ideas using Google, I saw recommendations that we might as well write an Apache module if we're forced to use C.  I'm not sure how to do that, and it sounds like more dependencies to me.
+    - Better yet, deliver a container that runs this thing through a web server.  Then we could deploy it anywhere we need to as a backup plan, and I could test it easiy.
+  - Rotations from alignment constants.  The geometry positions all go through the Geometry service right now which could in principle apply alignment constants.  I'm going to have to convert angles from the alignment procedure into either Euler angles or 4x4 rotation matrices (it's a computer graphics thing; NOT Lorentz boost!).
   - How often do we have to update the Javascript side of this application?  How often does the THREE.js API change?  Not work with certain browsers?  As a Javascript newcomer, I don't have easy answers to these questions.  CMS made it work somehow, so I have some hope this won't be too bad...
-  - Random access to events.  I might end up sending and parsing web forms.  Some good resources to get me started:
-    - https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-    - https://developer.mozilla.org/en-US/docs/Learn/Forms/Sending_forms_through_JavaScript
-    - https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
-  - Do we want any other volumes rendered directly from the GDML?  It should "just work" with a few changes to the magnet loading code.
-  - Use/write a real web server/framework.  Then I wouldn't have to load magnet components 1 at a time and in order.  A real web framework probably has threads or forked processes that do this.  Then again, we're not exactly suffering from the latency.
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui
 - three.js manual: https://threejs.org/manual/#en/fundamentals
 - Wavefront file format that I'm using TGeoShapes: https://en.wikipedia.org/wiki/Wavefront_.obj_file
-
-## Version 2?
-So far, the web-based event display client-side code, the front end, is rewritten by a code generator for each event.  I want to refactor it into a standalone front end and back end.  The front end will be a fuly functional Javascrpt program embedded in an HTML file.  The backend will send information about objects to draw by responding to GET calls.  The back end will also know to switch to a new event when responding to a POST call.
-
-### Advantages
-- Easier to debug the front end
-- Can change out back end for a real web server more easily
-- Easier to share front end with other small experiments
-
-### Implementation Plan
-- Use something like fetch() to request files.  That seems to be what THREE.OBJLoader is doing.
-- Geometry transported as .obj files.  Physics objects transported as something like JSON or XML files.  I prefer JSON over a .txt or .obj file so I can embed metadata like particle name and energy
-- Back end generates data files as the front end requests them
-- Back end needs functions to parse GET and POST requests
-- TODO: How does client "discover" what geometry volumes to request?  Same for what data types are available.
-  - GET geometry/index.html to figure out list of geometry to draw?
-  - try-catch around fetch()es that can fail to determine what physics data is available
-  - **Instead**, use browser reply to POST request for new event.  Include URLs to request in response body.

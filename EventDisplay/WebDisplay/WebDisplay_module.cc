@@ -436,7 +436,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
   //geometry/<name of physvol>.obj: Convert TGeoShape to a .obj file and send it
   //MC/trajs.json: list of MC trajectories
   //reco/LineSegs.json: list of line segments
-  int bytesRead = 0;
+  int bytesRead = 1;
   mf::LogInfo("Server") << "Waiting for request from browser...";
 
   std::vector<struct pollfd> pollFDs;
@@ -455,6 +455,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
   }
 
   art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
+  std::vector<int> socketsToRemove;
 
   do
   {
@@ -468,7 +469,14 @@ void evd::WebDisplay::analyze(art::Event const& e)
           const int messageSocket = pollFDs[whichSocket].fd;
           bytesRead = recv(messageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
           if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-          //mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+          mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+
+          //TODO: Don't necessarily quit the loop if bytesRead is 0.  That might just mean that an ephemeral socket has closed.
+          //      Is this necessary for talking to Chrome?
+          if(bytesRead == 0)
+          {
+            socketsToRemove.push_back(whichSocket);
+          }
 
           const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
           if(request.method == HTTPRequest::Method::POST)
@@ -572,8 +580,29 @@ void evd::WebDisplay::analyze(art::Event const& e)
         }
       } //If there's a new connection request
     } //If poll() found events
-  } while(bytesRead > 0);
-  if(bytesRead == 0)
+
+    for(const int whichSocket: socketsToRemove)
+    {
+      fMessageSockets.erase(fMessageSockets.begin()+whichSocket-1);
+    }
+
+    pollFDs.clear();
+    struct pollfd listenFD;
+    listenFD.fd = fListenSocket;
+    listenFD.events = POLLIN;
+    pollFDs.push_back(listenFD);
+
+    for(const int fd: fMessageSockets)
+    {
+      struct pollfd messageFD;
+      messageFD.fd = fd;
+      messageFD.events = POLLIN;
+      pollFDs.push_back(messageFD);
+    }
+
+    socketsToRemove.clear();
+  } while(!fMessageSockets.empty());
+  if(fMessageSockets.empty())
   {
     mf::LogError("Server") << "Browser disconnected.";
   }
