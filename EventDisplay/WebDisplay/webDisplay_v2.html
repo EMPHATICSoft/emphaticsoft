@@ -55,20 +55,13 @@
        -1px   1px 0 #000,
        -1px   0   0 #000;
     }
-    #loading {
+    #info {
       position: absolute;
-      left: 0;
-      top: 0;
-      white-space: pre-line;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       color: white;
-    }
-    #loading>div {
-      position: absolute;
-      left: 0;
-      top: 0;
-      font-size: large;
-      user-select: none;
-      white-space: pre-line;
+      font-size: xxx-large;
     }
   </style>
 
@@ -76,7 +69,7 @@
     <div id="container">
       <canvas id="Display"></canvas>
       <div id="labels"></div>
-      <div id="loading"></div>
+      <div id="info"></div>
     </div>
 
     <script type="module">
@@ -370,7 +363,7 @@
       const recoMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
       //Display the text "Loading" while the geometry files are loading.
-      const loadingContainer = document.querySelector("#loading");
+      const loadingContainer = document.querySelector("#info");
       const loadingText = document.createElement('div');
       loadingText.textContent = "Loading...";
       loadingContainer.appendChild(loadingText); //Also display "Loading" before the first attempt to load geometry files.

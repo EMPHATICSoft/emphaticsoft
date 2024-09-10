@@ -47,6 +47,7 @@ Might be useful in case you need to debug something
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
 - Before next run:
 - Later...
+  - Click on an object to set the camera target?  I also envision this showing the ParameterSet that created or configured that object.
   - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
     - Easy difficulty: FHICL interface to add arbitrary volumes from the GDML.  The only big thing I'm missing is calculating positions from TGeoManager.  One way I've done that before is to go recursively up the TGeoNode hierarchy until I find the volume I'm looking for and accumulate matrices along the way.  It would solve the general problem, but it's not easy to get right!
     - Medium difficulty: evd::Metadata data products associated with any data product the event display consumes.  Has color and name overrides.
@@ -77,8 +78,9 @@ ater.
     - ProductID is just a number, and I can even get that number directly as an integer!  https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Provenance/ProductID.h
     - Save ProductID in either `Object3D.userData` or make it the object ID somehow.  Then, *I can make a query for the ParameterSet of an arbitrary object*!  Write a function that formats this as simple HTML.  Seems like a very powerful debugging tool to me!
     - Also note that `art::Assns<>` provide access to an `art::Ptr<>` that can provide a `ProductID`.  So I could in principle extract a map of ProductIDs that are associated and have Javascript build a scene graph from that!  See https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Ptr.h and https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Assns.h
-  - I wonder whether I could use `THREE.DefaultLoadingManager.onLoad` to remove the need for Promises and related async functionality.  If that works, I could use `THREE.FileLoader` instead of `fetch()`.  See https://threejs.org/docs/#api/en/loaders/FileLoader`
-
+  - Could I refactor EventLoader to use `THREE.DefaultLoadingManager` to trigger `render()`?
+    - Main advantage: No more `await` and `Promise`!  Just add your function call to the main `requestNewEvent()` function.  Order doesn't matter anymore.  Much simpler to maitain.
+    - Problem: All `fetch()`es have to go through `THREE.FileLoader`.  That means I *can't use POST* anymore.  I'd have to refactor my "web server" a bit.  Can I even provide a body in GET requests?
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui
