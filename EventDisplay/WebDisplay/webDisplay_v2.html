@@ -144,6 +144,8 @@
           const x = (tempV.x *  .5 + .5) * canvas.clientWidth;
           const y = (tempV.y * -.5 + .5) * canvas.clientHeight;
           this.labelElem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;*/
+
+          return intersectedObjects[0].point;
         }
       }
     }
@@ -308,10 +310,13 @@
 
             const lightColor = 0xFFFFFF;
             const intensity = 3;
-            const light = new THREE.DirectionalLight(lightColor, intensity);
-            light.position.set(-1, 2, -10);
+            const upstreamLight = new THREE.DirectionalLight(lightColor, intensity);
+            upstreamLight.position.set(-1, 2, -10);
+            nextScene.add(upstreamLight);
 
-            nextScene.add(light);
+            const downstreamLight = new THREE.DirectionalLight(lightColor, intensity);
+            downstreamLight.position.set(-1, 2, 150);
+            nextScene.add(downstreamLight);
 
             for(const obj of nextEventObjects) {
               nextScene.add(obj);
@@ -334,6 +339,7 @@
       const near = 0.1;
       const far = 1000;
       const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      const cameraDistanceFromTarget = 30;
       camera.position.set(0, 30, -40);
 
       const controls = new OrbitControls(camera, canvas);
@@ -419,9 +425,10 @@
           camera.updateProjectionMatrix();
         }
 
-        pickHelper.pick(pickPosition, scene, camera);
+        const pickPos = pickHelper.pick(pickPosition, scene, camera);
 
         renderer.render(scene, camera);
+        return pickPos;
       }
 
       function clearPickPosition() {
@@ -434,7 +441,7 @@
         const pos = getCanvasRelativePosition(event);
         pickPosition.x = (pos.x / canvas.width) * 2 - 1;
         pickPosition.y = (pos.y / canvas.height) * -2 + 1;
-        render();
+        return render();
       }
 
       //Set up buttons for the user: a Graphical User Interface
@@ -459,24 +466,25 @@
               }, "func").name('Go to');
 
       //Pre-set "2D" camera angles
-      //TODO: Figure out e.g. the x position that lets the Y-Z view see the whole detector given the camera field of view
       gui.add({ func() {
-          camera.position.set(0, camera.position.y, camera.position.z);
-          controls.target.set(camera.position.x, 0, camera.position.z);
+          const geometryCenter = 80; //TODO: Get this programatically so e.g. phase 2 doesn't break it
+          camera.position.set(0, cameraDistanceFromTarget*5, geometryCenter-1);
+          controls.target.set(0, 0, geometryCenter);
           controls.update();
           render();
         }
       }, 'func').name('X-Z View');
       gui.add({ func() {
-          camera.position.set(0, 0, camera.position.z);
-          controls.target.set(camera.position.x, camera.position.y, 0);
+          camera.position.set(0, 0, -40);
+          controls.target.set(0, 0, 0);
           controls.update();
           render();
         }
       }, 'func').name('X-Y View');
       gui.add({ func() {
-          camera.position.set(40, 0, camera.position.z); //The 40 here just gets the camera off the z axis
-          controls.target.set(0, camera.position.y, camera.position.z);
+          const geometryCenter = 80; //TODO: Get this programatically so e.g. phase 2 doesn't break it
+          camera.position.set(cameraDistanceFromTarget*5, 0, geometryCenter-1);
+          controls.target.set(0, 0, geometryCenter);
           controls.update();
           render();
         }
@@ -504,6 +512,20 @@
 
         controls.addEventListener('change', render);
         window.addEventListener('resize', render);
+
+        window.addEventListener('dblclick', (event) => {
+          const pickPos = setPickPosition(event);
+          if(pickPos) {
+            const sqrtTwoOverTwo = 0.707;
+            controls.target.set(pickPos.x, pickPos.y, pickPos.z);
+            camera.position.set(pickPos.x + sqrtTwoOverTwo * cameraDistanceFromTarget,
+                                pickPos.y,
+                                pickPos.z - sqrtTwoOverTwo * cameraDistanceFromTarget); //Make sure the new camera position is upstream of the target so it is still lit by the default light at the origin
+            controls.update();
+            render();
+            //TODO: Request ParameterSet from backend to display on the left side!
+          }
+        });
       });
     }
     

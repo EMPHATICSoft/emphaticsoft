@@ -16,6 +16,8 @@ A browser-based event display for the EMPHATIC experiment.
   - Right click and drag to change your viewing position in the plane you're viewing from
   - Scroll to zoom in or out
   - Reload the page to go to the next event
+  - Double click to "focus" the camera on an object
+  - Reload the web page to reset the camera
 
 ## Supported Platforms
 - Your laptop (client side):
@@ -46,7 +48,7 @@ Might be useful in case you need to debug something
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
 - Before next run:
 - Later...
-  - Click on an object to set the camera target?  I also envision this showing the ParameterSet that created or configured that object.
+  - "Error" text on the screen when the Javascript gets stuck
   - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
     - Easy difficulty: FHICL interface to add arbitrary volumes from the GDML.  The only big thing I'm missing is calculating positions from TGeoManager.  One way I've done that before is to go recursively up the TGeoNode hierarchy until I find the volume I'm looking for and accumulate matrices along the way.  It would solve the general problem, but it's not easy to get right!
     - Medium difficulty: evd::Metadata data products associated with any data product the event display consumes.  Has color and name overrides.
@@ -65,11 +67,6 @@ Might be useful in case you need to debug something
   - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
   - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
-  - Better camera controls?  What do collaborators think of these OrbitControls?  Would others like arrow key navigation, or is the camera good enough as is?
-    - My first instinct is that I want FPS video game controls.  But I can't get the FPS camera options in THREE.js to focus on the scene.  Someone should debug this l
-ater.
-    - Things I want to improve about the current camera controls:
-      - It's hard to focus on a point that's partway down the detector.  Rotating the camera about that point breaks as soon as a zoom.
   - How to get parameter set that produced an arbitary product in ART!
     - Event is a ProductRetriever: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/Event.h
     - ProductRetriever can get Provenance by a ProductID: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/ProductRetriever.h
