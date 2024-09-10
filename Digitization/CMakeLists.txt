@@ -17,6 +17,8 @@ art_make_library ( SOURCE ${src_files}
 		RawData
 		ChannelMap
 		ChannelMapService_service
+    DetGeoMap
+    DetGeoMapService_service
 		art_root_io::TFileService_service
 		)
 
@@ -27,6 +29,8 @@ cet_build_plugin(SSDDigitizer art::module
     Simulation
     Geometry
     RawData
+    DetGeoMap
+    DetGeoMapService_service
     ChannelMap
     ChannelMapService_service
     art_root_io::TFileService_service
