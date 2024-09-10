@@ -81,6 +81,7 @@ public:
     fhicl::Atom<int> portNumber{Name("portNumber"), Comment("Port forwarded to web broswer"), 3490};
     fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
     fhicl::Atom<art::InputTag> mcPartLabel{Name("mcPartLabel"), Comment("Name of the module that produced sim::Particles.  Usually the GEANT simulation."), "geantgen"};
+    fhicl::Sequence<std::string> extraGeometryNodes{Name("extraGeometryNodes"), Comment("Node names of extra geometry objcts to draw from the GDML."), std::vector<std::string>()};
   };
 
   typedef art::EDAnalyzer::Table<Config> Parameters;
@@ -249,6 +250,28 @@ std::string evd::WebDisplay::writeGeometryList() const
                      << "    \"phi\": " << -sensor->Rot() << "\n"
                      << "  },\n";
       }
+    }
+  }
+
+  //Walk the GDML hierarchy looking for Nodes in fConfig.extraGeometryNodes.
+  //Accumulate the world transformation matrix along the way.  This is the
+  //only way to get the full transformation matrix because ROOT doesn't
+  //provide a way to find a TGeoNode's mother!
+  if(!fConfig.extraGeometryNodes().empty())
+  {
+    const auto nodesAndMatrices = searchGeometryTree(*geom->Geo()->ROOTGeoManager(), fConfig.extraGeometryNodes());
+
+    for(const auto& nodeAndMatrix: nodesAndMatrices)
+    {
+      const auto node = nodeAndMatrix.first;
+      const auto matrix = nodeAndMatrix.second;
+      geometryList << "  {\n"
+                   << "    \"name\": \"" << node->GetName() << "\",\n"
+                   << "    \"volumeName\": \"" << node->GetVolume()->GetName() << "\",\n"
+                   << "    \"isDetector\": false,\n"
+                   << "    \"position\": [" << matrix->GetTranslation()[0]/10. << ", " << matrix->GetTranslation()[1]/10. << ", " << matrix->GetTranslation()[2]/10. << "],\n"
+                   << "    \"phi\": 0\n" //TODO: Overhaul all geometry drawing to support arbitrary rotations by uploading 4x4 matrices.  They can be uploaded a JSON arrays.  See https://threejs.org/docs/#api/en/math/Matrix4
+                   << "  },\n";
     }
   }
 

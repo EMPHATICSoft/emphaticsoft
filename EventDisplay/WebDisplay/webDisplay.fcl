@@ -21,6 +21,7 @@ physics :{
   analyzers: {
     webDisplay : {
       module_type     : WebDisplay
+      extraGeometryNodes: ["ARICH_phys"]
     }
   }
 

@@ -40,12 +40,19 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
+  - Extensibility
+    - Draw arbitrary geometry volumes by name.  Get their positions and rotations from the GDML.  This might help with developing phase 2 simulations for example.
+    - Override object colors with ART Assns to a special data product.
+  - Display parameter sets for double clicked objects on demand.  This also lays the groundwork for a full scene-graph by uploading ProductIDs to the front-end.  I'll leave the scene-graph and how to display it as a potential future upgrade.
+  - Add a screenshot button.  three.js has a tutorial for this.  Also add a watermark with event number, timestamp, data/MC, etc.  Should I hide the "goto" controls if I do that?
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
 - Before next collaboration meeting:
   - Hand these off to someone else to test maintainability!
     - Include SSD Tracks and TrackSegments.  Robert has these working now!
     - Include the ARICH.  Draw boxes for the ARICH hits?  Paste the 2D histogram on the front of the box as a texture?
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
+  - Test on just data and just MC
+  - Run under valgrind
 - Before next run:
 - Later...
   - "Error" text on the screen when the Javascript gets stuck
@@ -54,8 +61,8 @@ Might be useful in case you need to debug something
     - Medium difficulty: evd::Metadata data products associated with any data product the event display consumes.  Has color and name overrides.
     - Harder difficulty: ART Tools that can send arbitrary cubes that frontend knows how to render.
   - Display context about selected objects.  We could query the ART job like it's a database!  The backend just has to send back HTML.  Some awesome things I want to do:
-    - Show ART provenance information for any data product.  Maybe as a context menu?  How do I even do context menus in THREE.js?
-    - Show histograms of the SSDs when their volumes are selected
+    - Show ART provenance information for any data product.  Do this on double click?  Or perhaps double right click?
+    - Show histograms of the SSDs when their volumes are selected.  Do this on mouse-over?
     - Talk about what magnetic field, alignment constants, and beam conditions are loaded.  Selecting geometry objects is an opportunity to make "ergonomic" controls!
   - Port this to a real web server running e.g. at Notre Dame?
     - That would be nice for outreach!
@@ -64,9 +71,7 @@ Might be useful in case you need to debug something
     - Better yet, deliver a container that runs this thing through a web server.  Then we could deploy it anywhere we need to as a backup plan, and I could test it easiy.
   - Rotations from alignment constants.  The geometry positions all go through the Geometry service right now which could in principle apply alignment constants.  I'm going to have to convert angles from the alignment procedure into either Euler angles or 4x4 rotation matrices (it's a computer graphics thing; NOT Lorentz boost!).
   - How often do we have to update the Javascript side of this application?  How often does the THREE.js API change?  Not work with certain browsers?  As a Javascript newcomer, I don't have easy answers to these questions.  CMS made it work somehow, so I have some hope this won't be too bad...
-  - Add a screenshot button.  three.js has a tutorial for this.
   - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
-  - Use Object3D.userData to display a window of information about hovered objects.  The magnet could display the magnetic field, or the SSDs could show a 2D view.
   - How to get parameter set that produced an arbitary product in ART!
     - Event is a ProductRetriever: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/Event.h
     - ProductRetriever can get Provenance by a ProductID: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/ProductRetriever.h

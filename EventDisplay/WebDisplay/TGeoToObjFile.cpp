@@ -20,6 +20,9 @@
 
 #include "TGeoShape.h"
 #include "TBuffer3D.h"
+#include "TGeoMatrix.h"
+#include "TGeoManager.h"
+#include "TClass.h"
 
 #include <vector>
 #include <unordered_map>
@@ -297,6 +300,38 @@ std::ostream& TGeoToObjFile(const TGeoShape& shape, std::ostream& dest, const do
   }
 
   return dest;
+}
+
+//Helper functions for searchGeometryTree()
+void appendChildren(const std::vector<std::string>& searchNames, std::vector<std::pair<TGeoNode*, TGeoMatrix*>>& toDraw, TGeoNode* parentNode, TGeoMatrix* parentMatrix);
+
+void appendNode(const std::vector<std::string>& searchNames, std::vector<std::pair<TGeoNode*, TGeoMatrix*>>& toDraw, TGeoNode* node, TGeoMatrix* parentMatrix)
+{
+  auto localMatrix = new TGeoHMatrix(*node->GetMatrix());
+  localMatrix->Multiply(parentMatrix); //TODO: Do I need to left-multiply or right-multiply in ROOT?
+  if(strcmp(node->GetVolume()->GetShape()->IsA()->GetName(), "TGeoCompositeShape")  //Skip TGeoCompositeShapes because asking ROOT to triangulate them causes an invalid memory access!
+     && std::find(searchNames.begin(), searchNames.end(), node->GetName()) != searchNames.end())
+  {
+    toDraw.emplace_back(node, localMatrix);
+  }
+
+  appendChildren(searchNames, toDraw, node, localMatrix);
+}
+
+void appendChildren(const std::vector<std::string>& searchNames, std::vector<std::pair<TGeoNode*, TGeoMatrix*>>& toDraw, TGeoNode* parentNode, TGeoMatrix* parentMatrix)
+{
+  auto children = parentNode->GetNodes();
+  if(children)
+  {
+    for(auto child: *children) appendNode(searchNames, toDraw, static_cast<TGeoNode*>(child), parentMatrix);
+  }
+}
+
+std::vector<std::pair<TGeoNode*, TGeoMatrix*>> searchGeometryTree(TGeoManager& man, const std::vector<std::string>& nodeNames)
+{
+  std::vector<std::pair<TGeoNode*, TGeoMatrix*>> result;
+  appendNode(nodeNames, result, man.GetTopNode(), gGeoIdentity);
+  return result;
 }
 
 #endif //TGEOTOOBJFILE_CPP

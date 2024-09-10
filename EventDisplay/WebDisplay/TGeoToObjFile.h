@@ -6,12 +6,19 @@
 //       files or any texture data.
 //Author: Andrew Olivier andrew@djoinc.com
 #include <iostream>
+#include <vector>
+#include <string>
 
 #ifndef TGEOTOOBJFILE_H
 #define TGEOTOOBJFILE_H
 
 class TGeoShape;
+class TGeoNode;
+class TGeoMatrix;
+class TGeoManager;
 
 std::ostream& TGeoToObjFile(const TGeoShape& shape, std::ostream& dest, const double unitConversion = 1.);
+
+std::vector<std::pair<TGeoNode*, TGeoMatrix*>> searchGeometryTree(TGeoManager& man, const std::vector<std::string>& nodeNames);
 
 #endif //TGEOTOOBJFILE_H
