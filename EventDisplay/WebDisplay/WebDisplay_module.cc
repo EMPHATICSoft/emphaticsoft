@@ -222,7 +222,8 @@ std::string evd::WebDisplay::writeGeometryList() const
     //TODO: I think we technically need to add dZ from both this magnet segment and the previous one to get the right answer.  Right now, we're just getting lucky that the magnet segments are all the same length.
     const double magnetHalfLength = static_cast<TGeoBBox*>(static_cast<TGeoNode*>(node)->GetVolume()->GetShape())->GetDZ()*2./10.;
     geometryList << "  {\n"
-                 << "    \"name\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << "\",\n"
+                 << "    \"name\": \"magnet\",\n"
+                 << "    \"volumeName\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << "\",\n"
                  << "    \"isDetector\": false,\n"
                  << "    \"position\": [0, 0, " << nextMagnetBeginZ + magnetHalfLength << "],\n"
                  << "    \"phi\": 0\n"
@@ -241,7 +242,8 @@ std::string evd::WebDisplay::writeGeometryList() const
       {
         const auto sensor = plane->SSD(whichSensor);
         geometryList << "  {\n"
-                     << "    \"name\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol\",\n"
+                     << "    \"name\": \"station " << whichStation << " sensor " << whichSensor << " plane " << whichPlane << "\",\n"
+                     << "    \"volumeName\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol\",\n"
                      << "    \"isDetector\": true,\n"
                      << "    \"position\": [" << sensor->Pos().X()/10. << ", " << sensor->Pos().Y()/10. << ", " << (sensor->Pos().Z() + station->Pos().Z())/10. << "],\n"
                      << "    \"phi\": " << -sensor->Rot() << "\n"
@@ -254,7 +256,8 @@ std::string evd::WebDisplay::writeGeometryList() const
   //      I'd rather be able to give them useful names than whatever the shape is called in GDML
   //Target
   geometryList << "  {\n"
-               << "    \"name\": \"target_vol\",\n"
+               << "    \"name\": \"target\",\n"
+               << "    \"volumeName\": \"target_vol\",\n"
                << "    \"isDetector\": false,\n"
                << "    \"position\": [0, 0, " << (geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10. << "],\n"
                << "    \"phi\": 0\n"

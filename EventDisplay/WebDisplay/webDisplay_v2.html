@@ -42,7 +42,7 @@
       position: absolute;
       left: 0;
       top: 0;
-      font-size: large;
+      font-size: xx-large;
       user-select: none;
       white-space: pre-line;
       text-shadow:
@@ -167,6 +167,7 @@
       //Backend must respond to geometry/index.json with a list of JSON objects of format:
       //{
       //  name,
+      //  volumeName,
       //  isDetector,
       //  position[]
       //}
@@ -185,7 +186,7 @@
 
             let whichEntry = 0;
             async function loadNextGeom() {
-              geomLoader.load("/geometry/".concat(objsToLoad[whichEntry].name), (geomObject) => {
+              geomLoader.load("/geometry/".concat(objsToLoad[whichEntry].volumeName), (geomObject) => {
                 const geomEntry = objsToLoad[whichEntry];
                 geomObject.traverse((mesh) => {
                   if(geomEntry.isDetector) {

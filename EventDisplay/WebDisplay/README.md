@@ -38,7 +38,6 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - Clean up geometry volume names
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
 - Before next collaboration meeting:
   - Hand these off to someone else to test maintainability!
