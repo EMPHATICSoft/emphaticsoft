@@ -60,6 +60,7 @@
 
 //c++ includes
 #include <sstream>
+#include <array>
 
 namespace evd {
   class WebDisplay;
@@ -279,21 +280,27 @@ std::string evd::WebDisplay::writeGeometryList() const
       const auto node = nodeAndMatrix.first;
       auto matrix = nodeAndMatrix.second;
 
-      double hMatrix[16];
-      matrix->GetHomogenousMatrix(hMatrix);
+      std::array<double, 16> hMatrix;
+      matrix->GetHomogenousMatrix(hMatrix.data());
 
       //Transform mm from GDML into cm for event display.  See https://root.cern.ch/doc/master/classTGeoMatrix.html
       hMatrix[12] /= 10.;
       hMatrix[13] /= 10.;
       hMatrix[14] /= 10.;
 
+      std::array<double, 16> transposed = hMatrix;
+      for(int col = 0; col < 3; ++col)
+      {
+        for(int row = 0; row < 3; ++row) transposed[row + col*4] = hMatrix[col + row*4];
+      }
+
       geometryList << "  {\n"
                    << "    \"name\": \"" << node->GetName() << "\",\n"
                    << "    \"volumeName\": \"" << node->GetVolume()->GetName() << "\",\n"
                    << "    \"isDetector\": false,\n"
                    << "    \"matrix\": [";
-      for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
-      geometryList << hMatrix[15] << "]\n"
+      for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << transposed[whichElem] << ", ";
+      geometryList << transposed[15] << "]\n"
                    << "  },\n";
 
       //Clean up memory so this doesn't leak slowly over many events.

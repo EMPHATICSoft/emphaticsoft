@@ -308,7 +308,16 @@ void appendChildren(const std::vector<std::string>& searchNames, std::vector<std
 void appendNode(const std::vector<std::string>& searchNames, std::vector<std::pair<TGeoNode*, TGeoMatrix*>>& toDraw, TGeoNode* node, TGeoMatrix* parentMatrix)
 {
   auto localMatrix = new TGeoHMatrix(*node->GetMatrix());
-  localMatrix->Multiply(parentMatrix); //TODO: Do I need to left-multiply or right-multiply in ROOT?
+
+  const double* translation = localMatrix->GetTranslation();
+  std::cout << "Got node " << node->GetName() << " at (" << translation[0] << ", " << translation[1] << ", " << translation[2] << ")\n";
+
+  //TODO: Something is still wrong about how rotations and translations interact on this line.  The lead-glass calorimeter has this problem.
+  localMatrix->MultiplyLeft(parentMatrix); //TODO: Do I need to left-multiply or right-multiply in ROOT?
+
+  translation = localMatrix->GetTranslation();
+  std::cout << "World position of " << node->GetName() << " is (" << translation[0] << ", " << translation[1] << ", " << translation[2] << ")\n";
+
   if(strcmp(node->GetVolume()->GetShape()->IsA()->GetName(), "TGeoCompositeShape")  //Skip TGeoCompositeShapes because asking ROOT to triangulate them causes an invalid memory access!
      && std::find(searchNames.begin(), searchNames.end(), node->GetName()) != searchNames.end())
   {
