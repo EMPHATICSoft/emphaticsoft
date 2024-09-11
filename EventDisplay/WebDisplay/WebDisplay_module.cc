@@ -222,12 +222,16 @@ std::string evd::WebDisplay::writeGeometryList() const
   {
     //TODO: I think we technically need to add dZ from both this magnet segment and the previous one to get the right answer.  Right now, we're just getting lucky that the magnet segments are all the same length.
     const double magnetHalfLength = static_cast<TGeoBBox*>(static_cast<TGeoNode*>(node)->GetVolume()->GetShape())->GetDZ()*2./10.;
+    TGeoTranslation magnetMatrix(0, 0, nextMagnetBeginZ + magnetHalfLength);
+    double hMatrix[16];
+    magnetMatrix.GetHomogenousMatrix(hMatrix);
     geometryList << "  {\n"
                  << "    \"name\": \"magnet\",\n"
                  << "    \"volumeName\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << "\",\n"
                  << "    \"isDetector\": false,\n"
-                 << "    \"position\": [0, 0, " << nextMagnetBeginZ + magnetHalfLength << "],\n"
-                 << "    \"phi\": 0\n"
+                 << "    \"matrix\": [";
+    for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+    geometryList << hMatrix[15] << "]\n"
                  << "  },\n";
     nextMagnetBeginZ += magnetHalfLength;
   }
@@ -242,12 +246,21 @@ std::string evd::WebDisplay::writeGeometryList() const
       for(int whichSensor = 0; whichSensor < plane->NSSDs(); ++whichSensor)
       {
         const auto sensor = plane->SSD(whichSensor);
+        double angleDeg = sensor->Rot()*180./M_PI;
+        if(sensor->IsFlip()) angleDeg = -angleDeg;
+        TGeoRotation ssdRot("ssdRotation", angleDeg, 0., 0.);
+        TGeoTranslation ssdPos(sensor->Pos().X()/10., sensor->Pos().Y()/10., (sensor->Pos().Z() + station->Pos().Z())/10.);
+        TGeoCombiTrans ssdMatrix(ssdPos, ssdRot);
+        double hMatrix[16];
+        ssdMatrix.GetHomogenousMatrix(hMatrix);
+
         geometryList << "  {\n"
                      << "    \"name\": \"station " << whichStation << " sensor " << whichSensor << " plane " << whichPlane << "\",\n"
                      << "    \"volumeName\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol\",\n"
                      << "    \"isDetector\": true,\n"
-                     << "    \"position\": [" << sensor->Pos().X()/10. << ", " << sensor->Pos().Y()/10. << ", " << (sensor->Pos().Z() + station->Pos().Z())/10. << "],\n"
-                     << "    \"phi\": " << -sensor->Rot() << "\n"
+                     << "    \"matrix\": [";
+        for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+        geometryList << hMatrix[15] << "]\n"
                      << "  },\n";
       }
     }
@@ -264,53 +277,47 @@ std::string evd::WebDisplay::writeGeometryList() const
     for(const auto& nodeAndMatrix: nodesAndMatrices)
     {
       const auto node = nodeAndMatrix.first;
-      const auto matrix = nodeAndMatrix.second;
+      auto matrix = nodeAndMatrix.second;
+
+      double hMatrix[16];
+      matrix->GetHomogenousMatrix(hMatrix);
+
+      //Transform mm from GDML into cm for event display.  See https://root.cern.ch/doc/master/classTGeoMatrix.html
+      hMatrix[12] /= 10.;
+      hMatrix[13] /= 10.;
+      hMatrix[14] /= 10.;
+
       geometryList << "  {\n"
                    << "    \"name\": \"" << node->GetName() << "\",\n"
                    << "    \"volumeName\": \"" << node->GetVolume()->GetName() << "\",\n"
                    << "    \"isDetector\": false,\n"
-                   << "    \"position\": [" << matrix->GetTranslation()[0]/10. << ", " << matrix->GetTranslation()[1]/10. << ", " << matrix->GetTranslation()[2]/10. << "],\n"
-                   << "    \"phi\": 0\n" //TODO: Overhaul all geometry drawing to support arbitrary rotations by uploading 4x4 matrices.  They can be uploaded a JSON arrays.  See https://threejs.org/docs/#api/en/math/Matrix4
+                   << "    \"matrix\": [";
+      for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+      geometryList << hMatrix[15] << "]\n"
                    << "  },\n";
+
+      //Clean up memory so this doesn't leak slowly over many events.
+      //I think I'm forced to allocated on the heap because I need to use TGeoHMatrix
+      //to apply translations in searchGeometryTree(), but I need to return a TGeoMatrix.
+      //If I allocated TGeoHMatrix on the stack, putting it into the vector would slice
+      //off some member data.
+      delete matrix;
+      matrix = nullptr;
     }
   }
 
-  //TODO: Names of target and SSD sensors must match some volume in the GDML file.  Go look up the names of their GDML volumes.
-  //      I'd rather be able to give them useful names than whatever the shape is called in GDML
   //Target
+  double hMatrix[16];
+  TGeoTranslation targetMatrix(0, 0, (geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.);
+  targetMatrix.GetHomogenousMatrix(hMatrix);
   geometryList << "  {\n"
                << "    \"name\": \"target\",\n"
                << "    \"volumeName\": \"target_vol\",\n"
                << "    \"isDetector\": false,\n"
-               << "    \"position\": [0, 0, " << (geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10. << "],\n"
-               << "    \"phi\": 0\n"
+               << "    \"matrix\": ["; 
+  for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+  geometryList << hMatrix[15] << "]\n"
                << "  }\n"; //TODO: Making sure there's not a comma after this last entry is tricky and important!  It will be a bigger problem when I generate the full list of geometry shapes.
-
-  /*for(const auto& detName: fGeoDetNames)
-  {
-    const TGeoNode* node = getNode(detName);
-    //TODO: How to get full translation and rotation matrix from geometry hierarchy?
-    //      I can GetMotherVolume() repeatedly, but that never gives me the mother node's matrix
-    //      Go all the way up the hierarchy until I get to the world volume?  Doesn't it have some non-trivial center too, or is its center assumed to be the origin?
-    //      Maybe I had better cache these?
-    //      How do I handle volumes like the SSDs that have alignment data?
-    geometryList << "{\n"
-                 << "  \"name\": " << detName << ",\n"
-                 << "  \"isDetector\": true,\n"
-                 << "  \"position\": [" << << ", " << << ", " << << "]\n"
-                 //TODO: Add support for rotations
-                 << "}\n";
-  }
-
-  for(const auto& passiveName: fGeoPassiveNames)
-  {
-    const TGeoNode* node = getNode(detName);
-    geometryList << "{\n"
-                 << "  \"name\": " << detName << ",\n"
-                 << "  \"isDetector\": false,\n"
-                 << "  \"position\": [" << << ", " << << ", " << << "\n"
-                 << "}\n";
-  }*/
 
   geometryList << "]\n";
 

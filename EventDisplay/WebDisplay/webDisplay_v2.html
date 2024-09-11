@@ -171,7 +171,7 @@
       //  name,
       //  volumeName,
       //  isDetector,
-      //  position[]
+      //  matrix[] //4x4 matrix in column-major order that combines translation, rotation, and scale
       //}
       //and geometry/<name of GDML physvol> with a .obj file
 
@@ -199,9 +199,8 @@
                   }
                   mesh.name = geomEntry.name;
                 });
-                geomObject.position.set(geomEntry.position[0], geomEntry.position[1], geomEntry.position[2]);
-                geomObject.rotation.z = -geomEntry.phi;
-                //TODO: Get rotations from JSON
+                geomObject.matrixAutoUpdate = false;
+                geomObject.matrix.fromArray(geomEntry.matrix);
                 nextScene.push(geomObject);
 
                 whichEntry++;
