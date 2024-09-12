@@ -65,12 +65,22 @@
     }
     #logo {
       position: absolute;
-      top: 95%;
-      left: 12%;
+      top: 73%;
+      left: 0%;
       height: 50px;
       width: 200px;
-      transform: translate(-80%, -60%);
+      transform: translate(0%, 50%);
       z-index: 100;
+      user-select: none;
+    }
+    #eventInfo {
+      position: absolute;
+      top: 80%;
+      left: 0%;
+      transform: translate(0%, 50%);
+      color: white;
+      font-size: x-large;
+      user-select: none; //TODO: Remove this if we want to copy timestamps
     }
   </style>
 
@@ -80,6 +90,7 @@
       <div id="labels"></div>
       <div id="info"></div>
       <img id="logo" src="EMPHATICLogo.png" alt="EMPHATIC logo"/>
+      <div id="eventInfo"></div>
     </div>
 
     <script type="module">
@@ -172,6 +183,14 @@
         this.geomDetMaterial = geomDetMaterial;
         this.geomPassiveMaterial = geomPassiveMaterial;
         this.recoMaterial = recoMaterial;
+
+        const eventInfoContainer = document.querySelector("#eventInfo");
+        this.dataOrSimText = document.createElement('div');
+        eventInfoContainer.appendChild(this.dataOrSimText);
+        this.timestampText = document.createElement('div');
+        eventInfoContainer.appendChild(this.timestampText);
+        this.eventNumberText = document.createElement('div');
+        eventInfoContainer.appendChild(this.eventNumberText);
       }
 
       //Request a new geometry hierarchy from the backend.
@@ -310,6 +329,10 @@
           this.run = json.run;
           this.subrun = json.subrun;
           this.event = json.event;
+
+          //Display basic information below the logo
+          this.dataOrSimText.textContent = json.isRealData;
+          this.timestampText.textContent = json.timestamp;
         }).then(async () => {
           this.loadGeometry(nextEventObjects, async () => {
             await this.loadMCTrajs(nextEventObjects);

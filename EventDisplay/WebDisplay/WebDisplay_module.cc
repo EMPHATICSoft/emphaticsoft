@@ -57,6 +57,7 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <time.h>
 
 //c++ includes
 #include <sstream>
@@ -571,10 +572,16 @@ void evd::WebDisplay::analyze(art::Event const& e)
 {
   //This event was requested by some POST request.  So respond with the actual event number loaded first.
   std::stringstream postResponse;
+  char timeBuffer[128];
+  const long int timestamp = e.time().value();
+  const struct tm* calendarTime = localtime(&timestamp); //TODO: Is this a UNIX timestamp, or do I need to take the upper 32 bits?  art::Timestamp has a function for that.
+  strftime(timeBuffer, 128, "%c", calendarTime);
   postResponse << "{\n"
                << "\"run\": " << e.id().run() << ",\n"
                << "\"subrun\": " << e.id().subRun() << ",\n"
-               << "\"event\": " << e.id().event() << "\n"
+               << "\"event\": " << e.id().event() << ",\n"
+               << "\"timestamp\": \"" << timeBuffer << "\",\n"
+               << "\"isRealData\": \"" << (e.isRealData()?"Data":"Simulation") << "\"\n"
                << "}\n";
   sendString(postResponse.str(), fNextEventSocket, "application/json", 201);
 
