@@ -40,11 +40,14 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - Extensibility
-    - Draw arbitrary geometry volumes by name.  Get their positions and rotations from the GDML.  This might help with developing phase 2 simulations for example.
-    - Override object colors with ART Assns to a special data product.
-  - Display parameter sets for double clicked objects on demand.  This also lays the groundwork for a full scene-graph by uploading ProductIDs to the front-end.  I'll leave the scene-graph and how to display it as a potential future upgrade.
-  - Add a screenshot button.  three.js has a tutorial for this.  Also add a watermark with event number, timestamp, data/MC, etc.  Should I hide the "goto" controls if I do that?
+  - New data product to override object colors with ART Assns to that product
+    - New data product, evd::Metadata
+    - To detect Assns without skipping unassociated products, do I put everything into a map and then loop over Assns<> to override?  I could also do some Assns magic that Jon put in AssnsUtils.
+    - Demonstration: Write a module that tags e.g. some LineSegments but not others.  Point out that this could be done **in a Producer module** and that evd::Metadata products could be dropped for production from the FHICL file.
+  - text and a logo in the background to state things like run number and timestamp
+    - Run, subrun, event
+    - "EMPHATIC data/simulation"
+    - timestamp
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
 - Before next collaboration meeting:
   - Hand these off to someone else to test maintainability!
@@ -56,32 +59,35 @@ Might be useful in case you need to debug something
 - Before next run:
 - Later...
   - "Error" text on the screen when the Javascript gets stuck
-  - Extensibility: Goal is for ordinary analyzers to add information to display without writing graphics code.  Better if they don't have to modify event display code at all.
-    - Easy difficulty: FHICL interface to add arbitrary volumes from the GDML.  The only big thing I'm missing is calculating positions from TGeoManager.  One way I've done that before is to go recursively up the TGeoNode hierarchy until I find the volume I'm looking for and accumulate matrices along the way.  It would solve the general problem, but it's not easy to get right!
-    - Medium difficulty: evd::Metadata data products associated with any data product the event display consumes.  Has color and name overrides.
-    - Harder difficulty: ART Tools that can send arbitrary cubes that frontend knows how to render.
-  - Display context about selected objects.  We could query the ART job like it's a database!  The backend just has to send back HTML.  Some awesome things I want to do:
-    - Show ART provenance information for any data product.  Do this on double click?  Or perhaps double right click?
-    - Show histograms of the SSDs when their volumes are selected.  Do this on mouse-over?
-    - Talk about what magnetic field, alignment constants, and beam conditions are loaded.  Selecting geometry objects is an opportunity to make "ergonomic" controls!
   - Port this to a real web server running e.g. at Notre Dame?
     - That would be nice for outreach!
     - But then someone has to understand and maintain a web server application.
     - The webserver I'm imagining would produce a web page that looks like Nathaniel Tagg's Arachne event display for MINERvA.  We could make an ART job act like a "CGI script" by reading requests on STDIN and replying on STDOUT.  It even sounds like we could leave the ART job running between serving events with Apache.  When I searched for ideas using Google, I saw recommendations that we might as well write an Apache module if we're forced to use C.  I'm not sure how to do that, and it sounds like more dependencies to me.
     - Better yet, deliver a container that runs this thing through a web server.  Then we could deploy it anywhere we need to as a backup plan, and I could test it easiy.
-  - Rotations from alignment constants.  The geometry positions all go through the Geometry service right now which could in principle apply alignment constants.  I'm going to have to convert angles from the alignment procedure into either Euler angles or 4x4 rotation matrices (it's a computer graphics thing; NOT Lorentz boost!).
+  - Make sure rotations from alignment procedure eventually make it into the event display.  Someone will have to translate measured rotation angles into a 4x4 "homogenous matrix"
   - How often do we have to update the Javascript side of this application?  How often does the THREE.js API change?  Not work with certain browsers?  As a Javascript newcomer, I don't have easy answers to these questions.  CMS made it work somehow, so I have some hope this won't be too bad...
-  - Represent Assns<> between objects somehow.  Maybe highlight parents and children a different color?  Turns out we're not creating any Assns<> on EMPHATIC anyway.
-  - How to get parameter set that produced an arbitary product in ART!
-    - Event is a ProductRetriever: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/Event.h
-    - ProductRetriever can get Provenance by a ProductID: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/ProductRetriever.h
-    - Provenance provides all of the goodies like the ParameterSet that produced an object and its parents' ProductIDs
-    - ProductID is just a number, and I can even get that number directly as an integer!  https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Provenance/ProductID.h
-    - Save ProductID in either `Object3D.userData` or make it the object ID somehow.  Then, *I can make a query for the ParameterSet of an arbitrary object*!  Write a function that formats this as simple HTML.  Seems like a very powerful debugging tool to me!
-    - Also note that `art::Assns<>` provide access to an `art::Ptr<>` that can provide a `ProductID`.  So I could in principle extract a map of ProductIDs that are associated and have Javascript build a scene graph from that!  See https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Ptr.h and https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Assns.h
   - Could I refactor EventLoader to use `THREE.DefaultLoadingManager` to trigger `render()`?
     - Main advantage: No more `await` and `Promise`!  Just add your function call to the main `requestNewEvent()` function.  Order doesn't matter anymore.  Much simpler to maitain.
     - Problem: All `fetch()`es have to go through `THREE.FileLoader`.  That means I *can't use POST* anymore.  I'd have to refactor my "web server" a bit.  Can I even provide a body in GET requests?
+
+## v3
+- Display parameter sets for double clicked objects on demand.  This also lays the groundwork for displaying Assns<> relationships by uploading ProductIDs to the front-end.
+  - How to get parameter set that produced an arbitary product in ART!
+  - Event is a ProductRetriever: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/Event.h
+  - ProductRetriever can get Provenance by a ProductID: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/ProductRetriever.h
+  - Provenance provides all of the goodies like the ParameterSet that produced an object and its parents' ProductIDs
+  - ProductID is just a number, and I can even get that number directly as an integer!  https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Provenance/ProductID.h
+
+- Display Assns<> relationships between objects
+  - Key is that Assns<> give two Ptr<>s which both contain ProductIDs
+  - User interface: blobs connected by arrows in a separate HTML inset.  Click on a blob to highlight its children and see its ParameterSet.  I don't know what library to use for this yet.
+  - Save ProductID in either `Object3D.userData` or make it the object ID somehow.  Then, *I can make a query for the ParameterSet of an arbitrary object*!  Write a function that formats this as simple HTML.  Seems like a very powerful debugging tool to me!
+  - Also note that `art::Assns<>` provide access to an `art::Ptr<>` that can provide a `ProductID`.  So I could in principle extract a map of ProductIDs that are associated and have Javascript build a scene graph from that!  See https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Ptr.h and https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Common/Assns.h
+- Display context about selected objects.  We could query the ART job like it's a database!  The backend just has to send back HTML.  Some awesome things I want to do:
+  - Show ART provenance information for any data product.  Do this on double click?  Or perhaps double right click?
+  - Show histograms of the SSDs when their volumes are selected.  Do this on mouse-over?
+  - Talk about what magnetic field, alignment constants, and beam conditions are loaded.  Selecting geometry objects is an opportunity to make "ergonomic" controls!
+- Advanced extensibility: ART Tools that can send arbitrary cubes that frontend knows how to render.
 
 ## Helpful links
 - GUI example: https://github.com/georgealways/lil-gui

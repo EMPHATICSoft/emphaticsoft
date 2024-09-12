@@ -111,9 +111,10 @@ private:
   int fPortNumber; //Port you need to forward and point your browser to!
                    //Can be configured by a FHICL parameter.
   std::vector<int> fMessageSockets; //File descriptors for HTTP responses
+  int fNextEventSocket; //The specific one of fMessageSockets that asked for "newEvent".  Think of this like a non-owning pointer.
   int fListenSocket; //File descriptor for accepting new TCP requests
 
-  int sendFile(const char* fileName, const int messageSocket) const;
+  int sendFile(const char* fileName, const int messageSocket, const std::string contentType = "text") const;
   int sendString(std::string toSend, const int messageSocket, const std::string contentType = "text", const int responseCode = 200) const; //Adds an appropriate header for a stand-alone message
   int sendRawString(const std::string& toSend, const int messageSocket) const; //Requires you to write your own header.  Used to implement sendFile() and sendString()
   int sendBadRequest(const int messageSocket) const;
@@ -200,11 +201,139 @@ void evd::WebDisplay::beginJob()
   mf::LogInfo("PortSetup") << "Got a connection!";
   //TODO: Clean up addrinfo structs
 
-  //Send the main event display application which will always display "Loading..." the first time it shows up
-  const int firstBytesRead = recv(fMessageSockets[0], fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-  if(firstBytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-  memset(fBuffer, '\0', bufferSize);
-  sendFile("webDisplay_v2.html", fMessageSockets[0]);
+  //Chrome insists on opening ephemeral ports sometimes to download things like the logo.
+  //So I need to listen() on both fListenSocket and fMessageSockets.  Thus, I'm adding a
+  //small version of the main webserver loop here that runs until newEvent is requested
+  //the first time.
+  std::vector<struct pollfd> pollFDs;
+  {
+    struct pollfd listenEntry;
+    listenEntry.fd = fListenSocket;
+    listenEntry.events = POLLIN;
+    pollFDs.push_back(listenEntry);
+  }
+  for(const int socket: fMessageSockets)
+  {
+    struct pollfd messageEntry;
+    messageEntry.fd = socket;
+    messageEntry.events = POLLIN;
+    pollFDs.push_back(messageEntry);
+  }
+
+  art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
+  std::vector<int> socketsToRemove;
+  do
+  {
+    const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
+    if(nEvents > 0)
+    {
+      for(size_t whichSocket = 1; whichSocket < pollFDs.size(); ++whichSocket)
+      {
+        if(pollFDs[whichSocket].revents & POLLIN)
+        {
+          const int messageSocket = pollFDs[whichSocket].fd;
+          const int bytesRead = recv(messageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
+          if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
+          mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
+
+          //TODO: Don't necessarily quit the loop if bytesRead is 0.  That might just mean that an ephemeral socket has closed.
+          //      Is this necessary for talking to Chrome?
+          if(bytesRead == 0)
+          {
+            socketsToRemove.push_back(whichSocket);
+          }
+
+          const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
+          if(request.method == HTTPRequest::Method::POST)
+          {
+            //Parse message body
+            const std::string runTag = "\"run\":";
+            const size_t runPos = request.body.find(runTag);
+            const int targetRun = std::stoi(request.body.substr(runPos+runTag.length(), request.body.find_first_of(",}", runPos)));
+
+            const std::string subrunTag = "\"subrun\":";
+            const size_t subrunPos = request.body.find(subrunTag);
+            int targetSubrun = std::stoi(request.body.substr(subrunPos+subrunTag.length(), request.body.find_first_of(",}", subrunPos)));
+
+            const std::string eventTag = "\"event\":";
+            const size_t eventPos = request.body.find(eventTag);
+            int targetEvent = std::stoi(request.body.substr(eventPos+eventTag.length(), request.body.find_first_of(",}", eventPos)));
+
+            if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
+            {
+              mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
+                                        << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
+                                        << "\nMessage from browser was:\n" << request.body;
+              sendBadRequest(messageSocket);
+            }
+            else
+            {
+              //Response to this request will be send at the beginning of the next analyze() function
+              //so that it can report the event number actually loaded.
+              memset(fBuffer, '\0', bufferSize);
+              navigator->setTarget(targetRun, targetSubrun, targetEvent);
+              fNextEventSocket = messageSocket;
+              return;
+            }
+          } //If request is of type POST
+          else if(request.method == HTTPRequest::Method::GET)
+          {
+            //TODO: Also handle Javascript imports and other image files here
+            if(request.uri == "/")
+            {
+              sendFile("webDisplay_v2.html", messageSocket);
+            }
+            else if(request.uri == "/EMPHATICLogo.png")
+            {
+              sendFile("EMPHATICLogo.png", messageSocket, "image/png");
+            }
+            else sendBadRequest(messageSocket);
+          }
+          else sendBadRequest(messageSocket);
+          memset(fBuffer, '\0', bufferSize);
+        } //If socket has input
+      } //loop over sockets
+      if(pollFDs[0].revents & POLLIN)
+      {
+        mf::LogWarning("PortSetup") << "Got a new port request!";
+        struct sockaddr_storage their_addr;
+        socklen_t their_addr_size = sizeof(their_addr);
+        const int newConnection = accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
+        if(newConnection < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
+        else
+        {
+          fMessageSockets.push_back(newConnection);
+
+          struct pollfd messageEntry;
+          messageEntry.fd = newConnection;
+          messageEntry.events = POLLIN;
+          pollFDs.push_back(messageEntry);
+        }
+      } //If the listen socket has an event
+    } //If there were socket events
+
+    for(const int whichSocket: socketsToRemove)
+    {
+      fMessageSockets.erase(fMessageSockets.begin()+whichSocket-1);
+    }
+
+    pollFDs.clear();
+    struct pollfd listenFD;
+    listenFD.fd = fListenSocket;
+    listenFD.events = POLLIN;
+    pollFDs.push_back(listenFD);
+
+    for(const int fd: fMessageSockets)
+    {
+      struct pollfd messageFD;
+      messageFD.fd = fd;
+      messageFD.events = POLLIN;
+      pollFDs.push_back(messageFD);
+    }
+
+    socketsToRemove.clear();
+  }
+  while(!fMessageSockets.empty());
 }
 
 //Summarize detectors to draw as a JSON list
@@ -447,8 +576,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
                << "\"subrun\": " << e.id().subRun() << ",\n"
                << "\"event\": " << e.id().event() << "\n"
                << "}\n";
-  //TODO: I'm assuming that the first message socket ever set up is the one that requested this event
-  sendString(postResponse.str(), fMessageSockets[0], "application/json", 201);
+  sendString(postResponse.str(), fNextEventSocket, "application/json", 201);
 
   //Respond to two types of requests from browser: POST and GET
   //First, wait for a POST request with the new event number.  Return either code 200 or some failure code based on whether or not this module can load that event.
@@ -528,6 +656,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
               //so that it can report the event number actually loaded.
               memset(fBuffer, '\0', bufferSize);
               navigator->setTarget(targetRun, targetSubrun, targetEvent);
+              fNextEventSocket = messageSocket;
               return;
             }
           }
@@ -568,6 +697,10 @@ void evd::WebDisplay::analyze(art::Event const& e)
             else if(request.uri == "/")
             {
               sendFile("webDisplay_v2.html", messageSocket);
+            }
+            else if(request.uri == "/EMPHATICLogo.png")
+            {
+              sendFile("EMPHATICLogo.png", messageSocket, "image/png");
             }
             else
             {
@@ -679,7 +812,7 @@ int evd::WebDisplay::sendRawString(const std::string& toSend, const int messageS
   return 0;
 }
 
-int evd::WebDisplay::sendFile(const char* fileName, const int messageSocket) const
+int evd::WebDisplay::sendFile(const char* fileName, const int messageSocket, const std::string contentType) const
 {
   const std::string fileFullPath = getFullPath(fileName);
 
@@ -687,7 +820,7 @@ int evd::WebDisplay::sendFile(const char* fileName, const int messageSocket) con
   stat(fileFullPath.c_str(), &fileInfo);
   const int contentLength = fileInfo.st_size;
 
-  const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";
+  const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:" + contentType + "\nContent-Length:" + std::to_string(contentLength) + "\n\n";
   sendRawString(requestHeader, messageSocket);
 
   //std::cout << "Sending file named " << fileName << "...\n";
