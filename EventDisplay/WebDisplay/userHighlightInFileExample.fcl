@@ -1,0 +1,41 @@
+#
+# Save custom event display colors and comments to a file
+#
+
+#include "Services.fcl"
+
+process_name : userHighlightExample
+
+source : {
+  module_type : RootInput
+  fileNames   : [ "emphdata_r1384_s2.root" ]
+  maxEvents   : -1
+}
+
+services : {
+  @table::standard_services
+}
+
+physics :{
+  producers: {
+    highlightMCParticles : {
+      module_type     : UserHighlightExample
+    }
+  }
+
+  stream1 : [out1]
+  e1        : [ highlightMCParticles ]
+  trigger_paths : [ e1 ]
+  end_paths : [stream1]
+
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "emphmc_r%r_s%s.root" #default file name, can override from command line with -o or --output
+#    SelectEvents: [ simulate ]
+  }
+}

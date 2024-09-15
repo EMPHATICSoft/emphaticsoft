@@ -44,20 +44,17 @@ Might be useful in case you need to debug something
     - New data product, evd::Metadata
     - To detect Assns without skipping unassociated products, do I put everything into a map and then loop over Assns<> to override?  I could also do some Assns magic that Jon put in AssnsUtils.
     - Demonstration: Write a module that tags e.g. some LineSegments but not others.  Point out that this could be done **in a Producer module** and that evd::Metadata products could be dropped for production from the FHICL file.
-  - text and a logo in the background to state things like run number and timestamp
-    - Run, subrun, event
-    - "EMPHATIC data/simulation"
-    - timestamp
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
+  - Test on just data and just MC
 - Before next collaboration meeting:
   - Hand these off to someone else to test maintainability!
     - Include SSD Tracks and TrackSegments.  Robert has these working now!
     - Include the ARICH.  Draw boxes for the ARICH hits?  Paste the 2D histogram on the front of the box as a texture?
   - How do we manage port numbers with many users on the same GPVM?  Right now, they see each other's event displays!
-  - Test on just data and just MC
   - Run under valgrind
-- Before next run:
 - Later...
+  - "Light mode" background for creating slides
+  - Add points where MC particles scattered?
   - "Error" text on the screen when the Javascript gets stuck
   - Port this to a real web server running e.g. at Notre Dame?
     - That would be nice for outreach!
@@ -77,7 +74,6 @@ Might be useful in case you need to debug something
   - ProductRetriever can get Provenance by a ProductID: https://github.com/art-framework-suite/art/blob/develop/art/Framework/Principal/ProductRetriever.h
   - Provenance provides all of the goodies like the ParameterSet that produced an object and its parents' ProductIDs
   - ProductID is just a number, and I can even get that number directly as an integer!  https://github.com/art-framework-suite/canvas/blob/develop/canvas/Persistency/Provenance/ProductID.h
-
 - Display Assns<> relationships between objects
   - Key is that Assns<> give two Ptr<>s which both contain ProductIDs
   - User interface: blobs connected by arrows in a separate HTML inset.  Click on a blob to highlight its children and see its ParameterSet.  I don't know what library to use for this yet.

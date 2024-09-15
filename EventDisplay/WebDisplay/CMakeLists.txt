@@ -65,8 +65,33 @@ cet_build_plugin(WebDisplay art::module
   BASENAME_ONLY
 )
 
+FILE( GLOB data_product_src_files *.cxx )
+art_make_library(
+  SOURCE ${data_product_src_files}
+)
+
+cet_build_plugin(UserHighlightExample art::module
+  LIBRARIES REG
+  emphaticsoft::EventDisplay_WebDisplay
+  Simulation
+  StandardRecord
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common
+  art::Utilities
+  art_root_io::RootInput_source
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  BASENAME_ONLY
+)
+
 install_headers()
 install_fhicl()
 install_source()
 
 install(FILES header.html footer.html DESTINATION etc)
+
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::EventDisplay_WebDisplay)
