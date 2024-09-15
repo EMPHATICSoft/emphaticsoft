@@ -83,13 +83,13 @@ void evd::UserHighlightExample::produce(art::Event& e)
   art::PtrMaker<sim::Particle> makePartPtr(e, particles.id());
   art::PtrMaker<evd::UserHighlight> makeHighlightPtr(e);
 
-  const int brightBlue = 0x0096ffff;
+  const uint32_t brightBlue = 0x0096ffff;
   for(size_t whichPart = 0; whichPart < particles->size(); ++whichPart)
   {
     const auto& part = (*particles)[whichPart];
     if(part.fmother != 0)
     {
-      highlightCol->emplace_back(brightBlue, "foo"); //part.fprocess);
+      highlightCol->emplace_back(brightBlue, part.fprocess);
       partToHighlight->addSingle(makeHighlightPtr(highlightCol->size()-1), makePartPtr(whichPart));
     }
   }

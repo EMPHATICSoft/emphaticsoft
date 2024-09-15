@@ -5,7 +5,8 @@
  
 <lcgdict>
 
-  <class name="evd::UserHighlight" ClassVersion="10">
+  <class name="evd::UserHighlight" ClassVersion="11">
+   <version ClassVersion="11" checksum="623206402"/>
    <version ClassVersion="10" checksum="360201530"/>
   </class>
   <class name="std::vector<evd::UserHighlight>"/>

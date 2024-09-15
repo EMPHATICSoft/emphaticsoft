@@ -14,7 +14,7 @@ namespace evd
   {
   }
 
-  UserHighlight::UserHighlight(const short int hexColor, const std::string& comment): fHexColor(hexColor), fComment(comment)
+  UserHighlight::UserHighlight(const uint32_t hexColor, const std::string& comment): fHexColor(hexColor), fComment(comment)
   {
   }
 
@@ -23,7 +23,7 @@ namespace evd
     return fComment;
   }
 
-  const short int UserHighlight::Color() const
+  const uint32_t UserHighlight::Color() const
   {
     return fHexColor;
   }
@@ -33,7 +33,7 @@ namespace evd
     fComment = comment;
   }
 
-  void UserHighlight::SetColor(const short int color)
+  void UserHighlight::SetColor(const uint32_t color)
   {
     fHexColor = color;
   }

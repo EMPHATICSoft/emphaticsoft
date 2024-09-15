@@ -136,7 +136,7 @@
                                          });
           }
           else if(this.pickedObject.material.type == "LineDashedMaterial") {
-                        this.pickedObject.material = new THREE.LineBasicMaterial({
+                        this.pickedObject.material = new THREE.LineDashedMaterial({
                                            color: 0xffff00,
                                            linewidth: 3,
                                            dashSize: 1,
@@ -279,6 +279,8 @@
               const trajLine = new THREE.Line(trajGeom, pdgMaterial);
               trajLine.computeLineDistances(); //Necessary for dashed lines to work
               trajLine.name = traj.name;
+              trajLine.userData.ProductID = traj.Ptr.id;
+              trajLine.userData.key = traj.Ptr.key;
               nextScene.push(trajLine);
             }
           });
@@ -304,6 +306,8 @@
               segBox.position.set(seg.center[0], seg.center[1], seg.center[2]);
               segBox.rotation.z = -seg.phi;
               segBox.name = "LineSegment";
+              segBox.userData.ProductID = seg.Ptr.id;
+              segBox.userData.key = seg.Ptr.key;
               nextScene.push(segBox);
             }
           });
@@ -337,6 +341,7 @@
           this.loadGeometry(nextEventObjects, async () => {
             await this.loadMCTrajs(nextEventObjects);
             await this.loadRecoLineSegs(nextEventObjects);
+            const assnsMap = await fetch("assnsMap.json").then((response) => { return response.json(); });
 
             nextScene.clear();
 
@@ -352,6 +357,34 @@
 
             for(const obj of nextEventObjects) {
               nextScene.add(obj);
+
+              if(obj.userData && assnsMap[obj.userData.ProductID] && assnsMap[obj.userData.ProductID][obj.userData.key]) {
+                const userOverride = assnsMap[obj.userData.ProductID][obj.userData.key];
+                obj.name = userOverride.name;
+
+                if(obj.material.type == "LineBasicMaterial") {
+                  obj.material = new THREE.LineBasicMaterial({
+                    color: userOverride.color,
+                    linewidth: 3
+                  });
+                }
+                else if(obj.material.type == "LineDashedMaterial") {
+                  obj.material = new THREE.LineDashedMaterial({
+                    color: userOverride.color,
+                    linewidth: 3,
+                    dashSize: 1,
+                    gapSize: 2
+                  });
+                }
+                else {
+                  obj.material = new THREE.MeshPhongMaterial({
+                    color: userOverride.color,
+                    transparent: true,
+                    opacity: 1,
+                    side: THREE.DoubleSide
+                  });
+                }
+              }
             }
 
             callback();

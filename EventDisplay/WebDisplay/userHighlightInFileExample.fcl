@@ -35,7 +35,7 @@ outputs:
   out1:
   {
     module_type: RootOutput
-    fileName:    "emphmc_r%r_s%s.root" #default file name, can override from command line with -o or --output
+    fileName:    "mcWithLineSegsAndMCAssns.root"
 #    SelectEvents: [ simulate ]
   }
 }

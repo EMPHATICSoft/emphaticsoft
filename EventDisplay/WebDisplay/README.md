@@ -40,10 +40,6 @@ Might be useful in case you need to debug something
 
 ## TODOs
 - Before next release:
-  - New data product to override object colors with ART Assns to that product
-    - New data product, evd::Metadata
-    - To detect Assns without skipping unassociated products, do I put everything into a map and then loop over Assns<> to override?  I could also do some Assns magic that Jon put in AssnsUtils.
-    - Demonstration: Write a module that tags e.g. some LineSegments but not others.  Point out that this could be done **in a Producer module** and that evd::Metadata products could be dropped for production from the FHICL file.
   - Why doesn't this work on Safari?  Is it some security setting?  Should we disable the setting or change how the application works?
   - Test on just data and just MC
 - Before next collaboration meeting:

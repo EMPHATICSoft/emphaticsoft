@@ -17,19 +17,19 @@ namespace evd
   {
     public:
       UserHighlight();
-      UserHighlight(const short int hexColor, const std::string& comment);
+      UserHighlight(const uint32_t hexColor, const std::string& comment);
       virtual ~UserHighlight() = default;
 
       // Getters
       const std::string& Comment() const;
-      const short int Color() const;
+      const uint32_t Color() const;
 
       // Setters
       void SetComment(const std::string& comment);
-      void SetColor(const short int color);
+      void SetColor(const uint32_t color);
 
     private:
-      short int fHexColor; //32-bit "web color".  Last 4 bits represent transparency
+      uint32_t fHexColor; //32-bit "web color".  Last 4 bits represent transparency
       std::string fComment; //Text that the event display will show when object is highlighted with the mouse
   };
 }

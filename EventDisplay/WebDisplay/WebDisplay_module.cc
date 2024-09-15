@@ -24,6 +24,7 @@
 #include "RecoBase/LineSegment.h"
 #include "Geometry/service/GeometryService.h"
 #include "Simulation/Particle.h"
+#include "EventDisplay/WebDisplay/UserHighlight.h"
 #include "TGeoToObjFile.h"
 #include "TGeoToObjFile.cpp" //TODO: Don't include .cpp files.  How can I include this in the module binary without building a separate library using cet_modules?
 #include "parseHTTP.cpp" //TODO: Don't include .cpp files.  How do I explain to ART that I want to build the object file from compiling this file into the same libraryas this module?
@@ -39,6 +40,9 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Persistency/Common/PtrMaker.h"
+#include "canvas/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/Ptr.h"
 
 //ROOT includes
 #include "TVector3.h"
@@ -83,6 +87,8 @@ public:
     fhicl::Atom<int> portNumber{Name("portNumber"), Comment("Port forwarded to web broswer"), 3490};
     fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
     fhicl::Atom<art::InputTag> mcPartLabel{Name("mcPartLabel"), Comment("Name of the module that produced sim::Particles.  Usually the GEANT simulation."), "geantgen"};
+    fhicl::Atom<art::InputTag> lineSegAssnsLabel{Name("lineSegAssnsLabel"), Comment("Name of the module that produced UserHighlights for rb::LineSegs."), "ssdclusters"};
+    fhicl::Atom<art::InputTag> mcPartAssnsLabel{Name("mcPartAssnsLabel"), Comment("Name of the module that produced UserHighlights for sim::Particles."), "geantgen"};
     fhicl::Sequence<std::string> extraGeometryNodes{Name("extraGeometryNodes"), Comment("Node names of extra geometry objcts to draw from the GDML."), std::vector<std::string>()};
   };
 
@@ -121,8 +127,11 @@ private:
   int sendBadRequest(const int messageSocket) const;
 
   std::string writeGeometryList() const;
-  std::string writeMCTrajList(const std::vector<sim::Particle>& trajs) const;
-  std::string writeLineSegList(const std::vector<rb::LineSegment>& segs) const;
+  std::string writeMCTrajList(const art::Event& e, const art::Handle<std::vector<sim::Particle>>& trajs) const;
+  std::string writeLineSegList(const art::Event& e, const art::Handle<std::vector<rb::LineSegment>>& segs) const;
+
+  template <class PROD>
+  std::ostream& writeUserColors(std::ostream& assnsMap, const art::Event& e, const art::InputTag& label) const;
 
   TGeoShape* getShape(const std::string& shapeName) const;
   TGeoNode* getNode(const std::string& shapeName) const;
@@ -134,12 +143,11 @@ evd::WebDisplay::WebDisplay(Parameters const& p)
   : EDAnalyzer{p}, fConfig(p()), fPortNumber(p().portNumber()), fMessageSockets()
 {
   consumes<std::vector<rb::LineSegment>>(p().lineSegLabel());
+  consumes<std::vector<sim::Particle>>(p().mcPartLabel());
 }
 
 //Set up socket for web communication with a browser.  This will block
 //until a browser connects.
-//TODO: Move the blocking part into analyze() so reconstruction could
-//      in principle run while I'm setting up the web browser.
 void evd::WebDisplay::beginJob()
 {
   struct addrinfo hints, *myAddress;
@@ -461,19 +469,26 @@ std::string evd::WebDisplay::writeGeometryList() const
   return geometryList.str();
 }
 
-std::string evd::WebDisplay::writeMCTrajList(const std::vector<sim::Particle>& trajs) const
+std::string evd::WebDisplay::writeMCTrajList(const art::Event& e, const art::Handle<std::vector<sim::Particle>>& trajs) const
 {
   TDatabasePDG& pdgDB = *TDatabasePDG::Instance();
+  art::PtrMaker<sim::Particle> makePtr(e, trajs.id());
 
   std::stringstream trajList;
   trajList << "[\n";
-  auto writeTraj = [&pdgDB, &trajList](const auto& traj)
+  auto writeTraj = [&pdgDB, &trajList, &trajs, &makePtr](const size_t whichTraj)
   {
+    const auto& traj = (*trajs)[whichTraj];
+
     std::string partName = std::to_string(traj.fpdgCode);
     const auto partData = pdgDB.GetParticle(traj.fpdgCode);
     if(partData) partName = partData->GetName(); //This should almost always happen
     trajList << "{\n"
              << "  \"name\": \"" << traj.ftrajectory.Momentum(0).Vect().Mag()/1000. << "GeV/c " << partName << "\",\n"
+             << "  \"Ptr\": {\n"
+             << "    \"id\": " << makePtr(whichTraj).id().value() << ",\n"
+             << "    \"key\": " << makePtr(whichTraj).key() << "\n"
+             << "  },\n"
              << "  \"pdgCode\": " << traj.fpdgCode << ",\n"
              << "  \"points\": [\n";
     for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size()-1; ++whichTrajPoint)
@@ -490,14 +505,14 @@ std::string evd::WebDisplay::writeMCTrajList(const std::vector<sim::Particle>& t
              << "}";
   };
 
-  if(!trajs.empty())
+  if(!trajs->empty())
   {
-    for(auto whichTraj = trajs.begin(); whichTraj < std::prev(trajs.end()); ++whichTraj)
+    for(size_t whichTraj = 0; whichTraj < trajs->size()-1; ++whichTraj)
     {
-      writeTraj(*whichTraj);
+      writeTraj(whichTraj);
       trajList << ",\n";
     }
-    writeTraj(*std::prev(trajs.end()));
+    writeTraj(trajs->size()-1);
     trajList << "\n"; //Don't put a comma on end of last trajectory!  Very important for JSON apparently.
   }
 
@@ -505,13 +520,17 @@ std::string evd::WebDisplay::writeMCTrajList(const std::vector<sim::Particle>& t
   return trajList.str();
 }
 
-std::string evd::WebDisplay::writeLineSegList(const std::vector<rb::LineSegment>& segs) const
+std::string evd::WebDisplay::writeLineSegList(const art::Event& e, const art::Handle<std::vector<rb::LineSegment>>& segs) const
 {
+  art::PtrMaker<rb::LineSegment> makePtr(e, segs.id());
+
   std::stringstream segList;
   segList << "[\n";
 
-  auto writeSeg = [&segList](const auto& seg)
+  auto writeSeg = [&segList, &segs, &makePtr](const size_t whichSeg)
   {
+    const auto& seg = (*segs)[whichSeg];
+
     TVector3 x0 = seg.X0(),
              x1 = seg.X1();
     const auto diff = x1 - x0;
@@ -522,25 +541,82 @@ std::string evd::WebDisplay::writeLineSegList(const std::vector<rb::LineSegment>
     const double phi = diff.Phi();
 
     segList << "{\n"
+            << "  \"Ptr\": {\n"
+            << "    \"id\": " << makePtr(whichSeg).id().value() << ",\n"
+            << "    \"key\": " << makePtr(whichSeg).key() << "\n"
+            << "  },\n"
             << "  \"center\": [" << center.X() << ", " << center.Y() << ", " << center.Z() << "],\n"
             << "  \"length\": " << length << ",\n"
             << "  \"phi\": " << phi << "\n"
             << "}";
   };
 
-  if(!segs.empty())
+  if(!segs->empty())
   {
-    for(auto whichSeg = segs.begin(); whichSeg != std::prev(segs.end()); ++whichSeg)
+    for(size_t whichSeg = 0; whichSeg < segs->size()-1; ++whichSeg)
     {
-      writeSeg(*whichSeg);
+      writeSeg(whichSeg);
       segList << ",\n";
     }
-    writeSeg(*std::prev(segs.end()));
+    writeSeg(segs->size()-1);
     segList << "\n";
   }
 
   segList << "]\n";
   return segList.str();
+}
+
+//Color and name overrides for objects selected in a different module.
+//Use this feature to debug your new reconstruction technique by creating
+//a UserHighlight for each object that doesn't work quite right!
+
+//Under the hood, this creates an entry in a nested map for Javascript that looks like:
+//{
+//  123456789: {
+//    0: {
+//      color: 0xdeadbeef,
+//      name: "someName"
+//    },
+//    1: {
+//      ...
+//    },
+//  },
+//  ...
+//  314592653: {
+//    ...
+//  }
+//}
+
+//TLDR: Just call it like the examples and don't try to change it unless you REALLY have to.
+template <class PROD>
+std::ostream& evd::WebDisplay::writeUserColors(std::ostream& assnsMap, const art::Event& e, const art::InputTag& label) const
+{
+  art::Handle<art::Assns<PROD, evd::UserHighlight>> assns;
+  e.getByLabel(label, assns);
+  if(assns && assns->size() > 0)
+  {
+    assnsMap << "\"" << (*assns)[0].first.id().value() << "\": {\n"; //TODO: Make sure there aren't Assns<> to PRODs from multiple different modules
+
+    auto serializeAssn = [&assns, &assnsMap](const size_t whichAssn) -> std::ostream&
+    {
+      const auto userData = (*assns)[whichAssn].second;
+      assnsMap << "  \"" << (*assns)[whichAssn].first.key() << "\": {\n"
+               << "    \"color\": " << userData->Color() << ",\n"
+               << "    \"name\": \"" << userData->Comment() << "\"\n"
+               << "  }";
+      return assnsMap;
+    };
+
+    for(size_t whichAssn = 0; whichAssn < assns->size()-1; ++whichAssn)
+    {
+      serializeAssn(whichAssn) << ",\n";
+    }
+    serializeAssn(assns->size()-1) << "\n";
+
+    assnsMap << "}\n";
+  }
+
+  return assnsMap;
 }
 
 TGeoNode* evd::WebDisplay::getNode(const std::string& shapeName) const
@@ -681,13 +757,13 @@ void evd::WebDisplay::analyze(art::Event const& e)
               TGeoToObjFile(*shape, geomObjFile, 10.);
               sendString(geomObjFile.str(), messageSocket, "text/plain");
             }
-            else if(request.uri.find("/LineSegs.json") != std::string::npos)
+            else if(!strcmp(request.uri.c_str(), "/reco/LineSegs.json"))
             {
               art::Handle<std::vector<rb::LineSegment>> segs;
               e.getByLabel(fConfig.lineSegLabel(), segs);
               if(segs)
               {
-                sendString(writeLineSegList(*segs), messageSocket, "application/json");
+                sendString(writeLineSegList(e, segs), messageSocket, "application/json");
               }
               else sendBadRequest(messageSocket); //The frontend can ignore this request and keep going without showing LineSegments
             }
@@ -697,9 +773,20 @@ void evd::WebDisplay::analyze(art::Event const& e)
               e.getByLabel(fConfig.mcPartLabel(), mcParts);
               if(mcParts)
               {
-                sendString(writeMCTrajList(*mcParts), messageSocket, "application/json");
+                sendString(writeMCTrajList(e, mcParts), messageSocket, "application/json");
               }
               else sendBadRequest(messageSocket); //The frontend can ignore this request and keep going without showing MC trajectories.  Handling this is important for viewing data!
+            }
+            else if(!strcmp(request.uri.c_str(), "/assnsMap.json"))
+            {
+              std::stringstream assnsMap;
+              assnsMap << "{\n";
+              writeUserColors<sim::Particle>(assnsMap, e, fConfig.mcPartAssnsLabel());
+              writeUserColors<rb::LineSegment>(assnsMap, e, fConfig.lineSegAssnsLabel());
+              //TODO: Add new products here
+              assnsMap << "}\n";
+
+              sendString(assnsMap.str(), messageSocket, "application/json");
             }
             else if(request.uri == "/")
             {

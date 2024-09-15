@@ -36,9 +36,15 @@ cet_build_plugin(EvtDisplayNavigatorService art::service
   BASENAME_ONLY
 )
 
+FILE( GLOB data_product_src_files *.cxx )
+art_make_library(
+  SOURCE ${data_product_src_files}
+)
+
 cet_build_plugin(WebDisplay art::module
   LIBRARIES REG
   EvtDisplayNavigatorService_service
+  emphaticsoft::EventDisplay_WebDisplay
   ChannelMap
   ChannelMapService_service
   Geometry
@@ -63,11 +69,6 @@ cet_build_plugin(WebDisplay art::module
   ROOT::EG
   ROOT::RGL
   BASENAME_ONLY
-)
-
-FILE( GLOB data_product_src_files *.cxx )
-art_make_library(
-  SOURCE ${data_product_src_files}
 )
 
 cet_build_plugin(UserHighlightExample art::module
