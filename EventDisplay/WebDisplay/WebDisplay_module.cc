@@ -27,8 +27,13 @@
 #include "EventDisplay/WebDisplay/UserHighlight.h"
 #include "TGeoToObjFile.h"
 #include "TGeoToObjFile.cpp" //TODO: Don't include .cpp files.  How can I include this in the module binary without building a separate library using cet_modules?
-#include "parseHTTP.cpp" //TODO: Don't include .cpp files.  How do I explain to ART that I want to build the object file from compiling this file into the same libraryas this module?
 #include "EvtDisplayNavigatorService.h"
+
+#include "EventDisplay/WebDisplay/web/Connection.h"
+#include "EventDisplay/WebDisplay/web/App.h"
+#include "EventDisplay/WebDisplay/web/Response.h"
+
+#include "nlohmann/json.hpp"
 
 //ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -115,32 +120,21 @@ private:
 
   // Declare member data here.
   Config fConfig;
-  int fPortNumber; //Port you need to forward and point your browser to!
-                   //Can be configured by a FHICL parameter.
-  std::vector<int> fMessageSockets; //File descriptors for HTTP responses
-  int fNextEventSocket; //The specific one of fMessageSockets that asked for "newEvent".  Think of this like a non-owning pointer.
-  int fListenSocket; //File descriptor for accepting new TCP requests
 
-  int sendFile(const char* fileName, const int messageSocket, const std::string contentType = "text") const;
-  int sendString(std::string toSend, const int messageSocket, const std::string contentType = "text", const int responseCode = 200) const; //Adds an appropriate header for a stand-alone message
-  int sendRawString(const std::string& toSend, const int messageSocket) const; //Requires you to write your own header.  Used to implement sendFile() and sendString()
-  int sendBadRequest(const int messageSocket) const;
+  web::Connection fBrowserConnection;
 
+  //TODO: Refactor these into lambda functions in emph::WebDisplay::analyze()
   std::string writeGeometryList() const;
-  std::string writeMCTrajList(const art::Event& e, const art::Handle<std::vector<sim::Particle>>& trajs) const;
-  std::string writeLineSegList(const art::Event& e, const art::Handle<std::vector<rb::LineSegment>>& segs) const;
 
   template <class PROD>
   std::ostream& writeUserColors(std::ostream& assnsMap, const art::Event& e, const art::InputTag& label) const;
 
   TGeoShape* getShape(const std::string& shapeName) const;
   TGeoNode* getNode(const std::string& shapeName) const;
-
-  char fBuffer[bufferSize];
 };
 
 evd::WebDisplay::WebDisplay(Parameters const& p)
-  : EDAnalyzer{p}, fConfig(p()), fPortNumber(p().portNumber()), fMessageSockets()
+  : EDAnalyzer{p}, fConfig(p()), fBrowserConnection(std::to_string(p().portNumber()).c_str())
 {
   consumes<std::vector<rb::LineSegment>>(p().lineSegLabel());
   consumes<std::vector<sim::Particle>>(p().mcPartLabel());
@@ -150,199 +144,44 @@ evd::WebDisplay::WebDisplay(Parameters const& p)
 //until a browser connects.
 void evd::WebDisplay::beginJob()
 {
-  struct addrinfo hints, *myAddress;
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM; //TCP-IP like the internet as opposed to UDP
-  hints.ai_flags = AI_PASSIVE; //Fill in with my own IP address
-
-  int status;
-  const auto portString = std::to_string(fPortNumber);
-  if((status = getaddrinfo(nullptr, portString.c_str(), &hints, &myAddress)))
-  {
-    mf::LogError("PortSetup") << "getaddrinfo: " << gai_strerror(status);
-  }
-
-  //getaddrinfo() returns lots of addresses that may or may not work in a linked list.
-  //Pick the first one that can be used.
-  fListenSocket = -1;
-  constexpr int yes = 1;
-  for(;myAddress != nullptr; myAddress = myAddress->ai_next)
-  {
-    fListenSocket = socket(myAddress->ai_family, myAddress->ai_socktype, myAddress->ai_protocol);
-    if(fListenSocket < 0) continue; //Try the next address
-
-    //My prototype reset the status of this socket here.  I left that out
-    //so users on the same GPVM don't stomp on each other.  Try https://threejs.org/examples/webgl_lines_fat.html.
-    //TODO: Pick another port number if this socket is already in use.
-    //Reuse this socket if there's another process already using it
-    if(setsockopt(fListenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
-    {
-      mf::LogError("PortSetup") << "setsockopt: " << strerror(errno);
-    }
-
-    if(bind(fListenSocket, myAddress->ai_addr, myAddress->ai_addrlen) < 0)
-    {
-      close(fListenSocket);
-      mf::LogWarning("PortSetup") << "bind: " << strerror(errno);
-      continue; //Try another address
-    }
-
-    //If I got this far, then this address works!  Use it.
-    break;
-  }
-  if(myAddress == nullptr) //If the loop never got to "break"
-  {
-    mf::LogError("PortSetup") << "Failed to get my own address info.";
-  }
-
-  //Wait for a web browser to contact this process over fPortNumber, then accept() the connection
-  if(listen(fListenSocket, 10) < 0)
-  {
-    mf::LogError("PortSetup") << "listen: " << strerror(errno);
-  }
-
-  struct sockaddr_storage their_addr;
-  socklen_t their_addr_size = sizeof(their_addr);
-  fMessageSockets.push_back(accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size));
-  if(fMessageSockets[0] < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
-
-  mf::LogInfo("PortSetup") << "Got a connection!";
-  //TODO: Clean up addrinfo structs
-
-  //Chrome insists on opening ephemeral ports sometimes to download things like the logo.
-  //So I need to listen() on both fListenSocket and fMessageSockets.  Thus, I'm adding a
-  //small version of the main webserver loop here that runs until newEvent is requested
-  //the first time.
-  std::vector<struct pollfd> pollFDs;
-  {
-    struct pollfd listenEntry;
-    listenEntry.fd = fListenSocket;
-    listenEntry.events = POLLIN;
-    pollFDs.push_back(listenEntry);
-  }
-  for(const int socket: fMessageSockets)
-  {
-    struct pollfd messageEntry;
-    messageEntry.fd = socket;
-    messageEntry.events = POLLIN;
-    pollFDs.push_back(messageEntry);
-  }
-
   art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
-  std::vector<int> socketsToRemove;
-  do
+
+  web::App<> evdApp(&fBrowserConnection);
+  evdApp.add("/newEvent", web::Request::Method::POST, [&navigator](const std::smatch& matches, const web::Request& request) -> web::Response*
   {
-    const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
-    if(nEvents > 0)
+    //Parse message body
+    nlohmann::json body = nlohmann::json::parse(request.body);
+    const int targetRun = body["run"];
+    const int targetSubrun = body["subrun"];
+    const int targetEvent = body["event"];
+
+    if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
     {
-      for(size_t whichSocket = 1; whichSocket < pollFDs.size(); ++whichSocket)
-      {
-        if(pollFDs[whichSocket].revents & POLLIN)
-        {
-          const int messageSocket = pollFDs[whichSocket].fd;
-          const int bytesRead = recv(messageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-          if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-          mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
-
-          //TODO: Don't necessarily quit the loop if bytesRead is 0.  That might just mean that an ephemeral socket has closed.
-          //      Is this necessary for talking to Chrome?
-          if(bytesRead == 0)
-          {
-            socketsToRemove.push_back(whichSocket);
-          }
-
-          const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
-          if(request.method == HTTPRequest::Method::POST)
-          {
-            //Parse message body
-            const std::string runTag = "\"run\":";
-            const size_t runPos = request.body.find(runTag);
-            const int targetRun = std::stoi(request.body.substr(runPos+runTag.length(), request.body.find_first_of(",}", runPos)));
-
-            const std::string subrunTag = "\"subrun\":";
-            const size_t subrunPos = request.body.find(subrunTag);
-            int targetSubrun = std::stoi(request.body.substr(subrunPos+subrunTag.length(), request.body.find_first_of(",}", subrunPos)));
-
-            const std::string eventTag = "\"event\":";
-            const size_t eventPos = request.body.find(eventTag);
-            int targetEvent = std::stoi(request.body.substr(eventPos+eventTag.length(), request.body.find_first_of(",}", eventPos)));
-
-            if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
-            {
-              mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
-                                        << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
-                                        << "\nMessage from browser was:\n" << request.body;
-              sendBadRequest(messageSocket);
-            }
-            else
-            {
-              //Response to this request will be send at the beginning of the next analyze() function
-              //so that it can report the event number actually loaded.
-              memset(fBuffer, '\0', bufferSize);
-              navigator->setTarget(targetRun, targetSubrun, targetEvent);
-              fNextEventSocket = messageSocket;
-              return;
-            }
-          } //If request is of type POST
-          else if(request.method == HTTPRequest::Method::GET)
-          {
-            //TODO: Also handle Javascript imports and other image files here
-            if(request.uri == "/")
-            {
-              sendFile("webDisplay_v2.html", messageSocket);
-            }
-            else if(request.uri == "/EMPHATICLogo.png")
-            {
-              sendFile("EMPHATICLogo.png", messageSocket, "image/png");
-            }
-            else sendBadRequest(messageSocket);
-          }
-          else sendBadRequest(messageSocket);
-          memset(fBuffer, '\0', bufferSize);
-        } //If socket has input
-      } //loop over sockets
-      if(pollFDs[0].revents & POLLIN)
-      {
-        mf::LogWarning("PortSetup") << "Got a new port request!";
-        struct sockaddr_storage their_addr;
-        socklen_t their_addr_size = sizeof(their_addr);
-        const int newConnection = accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
-        if(newConnection < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
-        else
-        {
-          fMessageSockets.push_back(newConnection);
-
-          struct pollfd messageEntry;
-          messageEntry.fd = newConnection;
-          messageEntry.events = POLLIN;
-          pollFDs.push_back(messageEntry);
-        }
-      } //If the listen socket has an event
-    } //If there were socket events
-
-    for(const int whichSocket: socketsToRemove)
-    {
-      fMessageSockets.erase(fMessageSockets.begin()+whichSocket-1);
+      mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
+                                << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
+                                << "\nMessage from browser was:\n" << request.body;
+      return new web::BadRequestResponse();
     }
-
-    pollFDs.clear();
-    struct pollfd listenFD;
-    listenFD.fd = fListenSocket;
-    listenFD.events = POLLIN;
-    pollFDs.push_back(listenFD);
-
-    for(const int fd: fMessageSockets)
+    else
     {
-      struct pollfd messageFD;
-      messageFD.fd = fd;
-      messageFD.events = POLLIN;
-      pollFDs.push_back(messageFD);
+      //Response to this request will be send at the beginning of the next analyze() function
+      //so that it can report the event number actually loaded.
+      navigator->setTarget(targetRun, targetSubrun, targetEvent);
+      return new web::EndAppResponse();
     }
+  });
 
-    socketsToRemove.clear();
-  }
-  while(!fMessageSockets.empty());
+  evdApp.add("/", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request)
+  {
+    return new web::FileResponse("webDisplay_v2.html", "text/html");
+  });
+
+  evdApp.add("/EMPHATICLogo.png", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request)
+  {
+    return new web::FileResponse("EMPHATICLogo.png", "image/png");
+  });
+
+  evdApp.run();
 }
 
 //Summarize detectors to draw as a JSON list
@@ -366,7 +205,7 @@ std::string evd::WebDisplay::writeGeometryList() const
     magnetMatrix.GetHomogenousMatrix(hMatrix);
     geometryList << "  {\n"
                  << "    \"name\": \"magnet\",\n"
-                 << "    \"volumeName\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << "\",\n"
+                 << "    \"volumeName\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << ".obj\",\n"
                  << "    \"isDetector\": false,\n"
                  << "    \"matrix\": [";
     for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
@@ -395,7 +234,7 @@ std::string evd::WebDisplay::writeGeometryList() const
 
         geometryList << "  {\n"
                      << "    \"name\": \"station " << whichStation << " sensor " << whichSensor << " plane " << whichPlane << "\",\n"
-                     << "    \"volumeName\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol\",\n"
+                     << "    \"volumeName\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol.obj\",\n"
                      << "    \"isDetector\": true,\n"
                      << "    \"matrix\": [";
         for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
@@ -434,7 +273,7 @@ std::string evd::WebDisplay::writeGeometryList() const
 
       geometryList << "  {\n"
                    << "    \"name\": \"" << node->GetName() << "\",\n"
-                   << "    \"volumeName\": \"" << node->GetVolume()->GetName() << "\",\n"
+                   << "    \"volumeName\": \"" << node->GetVolume()->GetName() << ".obj\",\n"
                    << "    \"isDetector\": false,\n"
                    << "    \"matrix\": [";
       for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << transposed[whichElem] << ", ";
@@ -457,7 +296,7 @@ std::string evd::WebDisplay::writeGeometryList() const
   targetMatrix.GetHomogenousMatrix(hMatrix);
   geometryList << "  {\n"
                << "    \"name\": \"target\",\n"
-               << "    \"volumeName\": \"target_vol\",\n"
+               << "    \"volumeName\": \"target_vol.obj\",\n"
                << "    \"isDetector\": false,\n"
                << "    \"matrix\": ["; 
   for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
@@ -467,103 +306,6 @@ std::string evd::WebDisplay::writeGeometryList() const
   geometryList << "]\n";
 
   return geometryList.str();
-}
-
-std::string evd::WebDisplay::writeMCTrajList(const art::Event& e, const art::Handle<std::vector<sim::Particle>>& trajs) const
-{
-  TDatabasePDG& pdgDB = *TDatabasePDG::Instance();
-  art::PtrMaker<sim::Particle> makePtr(e, trajs.id());
-
-  std::stringstream trajList;
-  trajList << "[\n";
-  auto writeTraj = [&pdgDB, &trajList, &trajs, &makePtr](const size_t whichTraj)
-  {
-    const auto& traj = (*trajs)[whichTraj];
-
-    std::string partName = std::to_string(traj.fpdgCode);
-    const auto partData = pdgDB.GetParticle(traj.fpdgCode);
-    if(partData) partName = partData->GetName(); //This should almost always happen
-    trajList << "{\n"
-             << "  \"name\": \"" << traj.ftrajectory.Momentum(0).Vect().Mag()/1000. << "GeV/c " << partName << "\",\n"
-             << "  \"Ptr\": {\n"
-             << "    \"id\": " << makePtr(whichTraj).id().value() << ",\n"
-             << "    \"key\": " << makePtr(whichTraj).key() << "\n"
-             << "  },\n"
-             << "  \"pdgCode\": " << traj.fpdgCode << ",\n"
-             << "  \"points\": [\n";
-    for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size()-1; ++whichTrajPoint)
-    {
-      const auto& point = traj.ftrajectory.Position(whichTrajPoint);
-      trajList << "[" << point.X()/10. << ", " << point.Y()/10. << ", " << point.Z()/10. << "],\n"; //Convert mm to cm
-    }
-    if(!traj.ftrajectory.empty())
-    {
-      const auto& lastPoint = traj.ftrajectory.Position(traj.ftrajectory.size()-1);
-      trajList << "[" << lastPoint.X()/10. << ", " << lastPoint.Y()/10. << ", " << lastPoint.Z()/10. << "]\n";
-    }
-    trajList << "          ]\n"
-             << "}";
-  };
-
-  if(!trajs->empty())
-  {
-    for(size_t whichTraj = 0; whichTraj < trajs->size()-1; ++whichTraj)
-    {
-      writeTraj(whichTraj);
-      trajList << ",\n";
-    }
-    writeTraj(trajs->size()-1);
-    trajList << "\n"; //Don't put a comma on end of last trajectory!  Very important for JSON apparently.
-  }
-
-  trajList << "]\n";
-  return trajList.str();
-}
-
-std::string evd::WebDisplay::writeLineSegList(const art::Event& e, const art::Handle<std::vector<rb::LineSegment>>& segs) const
-{
-  art::PtrMaker<rb::LineSegment> makePtr(e, segs.id());
-
-  std::stringstream segList;
-  segList << "[\n";
-
-  auto writeSeg = [&segList, &segs, &makePtr](const size_t whichSeg)
-  {
-    const auto& seg = (*segs)[whichSeg];
-
-    TVector3 x0 = seg.X0(),
-             x1 = seg.X1();
-    const auto diff = x1 - x0;
-    const double length = diff.Mag()/10.; //Convert mm to cm for graphics reasons
-    const double ssdWidth = 0.1;
-    const auto center = (x0 + x1)*0.5*0.1; //Convert mm to cm for graphics reasons
-    //const double theta = diff.Theta();
-    const double phi = diff.Phi();
-
-    segList << "{\n"
-            << "  \"Ptr\": {\n"
-            << "    \"id\": " << makePtr(whichSeg).id().value() << ",\n"
-            << "    \"key\": " << makePtr(whichSeg).key() << "\n"
-            << "  },\n"
-            << "  \"center\": [" << center.X() << ", " << center.Y() << ", " << center.Z() << "],\n"
-            << "  \"length\": " << length << ",\n"
-            << "  \"phi\": " << phi << "\n"
-            << "}";
-  };
-
-  if(!segs->empty())
-  {
-    for(size_t whichSeg = 0; whichSeg < segs->size()-1; ++whichSeg)
-    {
-      writeSeg(whichSeg);
-      segList << ",\n";
-    }
-    writeSeg(segs->size()-1);
-    segList << "\n";
-  }
-
-  segList << "]\n";
-  return segList.str();
 }
 
 //Color and name overrides for objects selected in a different module.
@@ -644,311 +386,187 @@ TGeoShape* evd::WebDisplay::getShape(const std::string& shapeName) const
   return found->GetShape();
 }
 
+//A WebHelper adapts functions like
+//  nlohmann::json writeLineSegs(const std::vector<rb::LineSeg>&)
+//to work with evd::App<const art::Event&>.  It's a
+//web::App<const art::Event&>::handler_t that retrieves information from ART and
+//adds ProductID information to your web::Repsonse.
+template <class PROD>
+class WebHelper
+{
+  public:
+    WebHelper(std::function<nlohmann::json(const std::vector<PROD>&)> func, art::InputTag label): fFunc(func), fLabel(label) {}
+
+    web::Response* operator ()(const std::smatch& matches, const web::Request& req, const art::Event& e)
+    {
+      art::Handle<std::vector<PROD>> handle;
+      e.getByLabel(fLabel, handle);
+
+      if(handle)
+      {
+        nlohmann::json respBody = fFunc(*handle);
+
+        art::PtrMaker<PROD> makePtr(e, handle.id());
+        for(size_t whichProd = 0; whichProd < handle->size(); ++whichProd)
+        {
+          const auto ptr = makePtr(whichProd);
+          respBody[whichProd]["Ptr"]["id"] = ptr.id().value();
+          respBody[whichProd]["Ptr"]["key"] = ptr.key();
+        }
+
+        return new web::StringResponse(respBody.dump());
+      }
+      else return new web::BadRequestResponse();
+    }
+
+  private:
+    std::function<nlohmann::json(const std::vector<PROD>&)> fFunc;
+    art::InputTag fLabel;
+};
+
 void evd::WebDisplay::analyze(art::Event const& e)
 {
   //This event was requested by some POST request.  So respond with the actual event number loaded first.
-  std::stringstream postResponse;
-  char timeBuffer[128];
-  const long int timestamp = e.time().value();
-  const struct tm* calendarTime = localtime(&timestamp); //TODO: Is this a UNIX timestamp, or do I need to take the upper 32 bits?  art::Timestamp has a function for that.
-  strftime(timeBuffer, 128, "%c", calendarTime);
-  postResponse << "{\n"
-               << "\"run\": " << e.id().run() << ",\n"
-               << "\"subrun\": " << e.id().subRun() << ",\n"
-               << "\"event\": " << e.id().event() << ",\n"
-               << "\"timestamp\": \"" << timeBuffer << "\",\n"
-               << "\"isRealData\": \"" << (e.isRealData()?"Data":"Simulation") << "\"\n"
-               << "}\n";
-  sendString(postResponse.str(), fNextEventSocket, "application/json", 201);
-
-  //Respond to two types of requests from browser: POST and GET
-  //First, wait for a POST request with the new event number.  Return either code 200 or some failure code based on whether or not this module can load that event.
-  //Then, continue responding to GET requests for different resources:
-  //geometry/index.json: list of geometry volumes to draw
-  //geometry/<name of physvol>.obj: Convert TGeoShape to a .obj file and send it
-  //MC/trajs.json: list of MC trajectories
-  //reco/LineSegs.json: list of line segments
-  int bytesRead = 1;
-  mf::LogInfo("Server") << "Waiting for request from browser...";
-
-  std::vector<struct pollfd> pollFDs;
   {
-    struct pollfd listenEntry;
-    listenEntry.fd = fListenSocket;
-    listenEntry.events = POLLIN;
-    pollFDs.push_back(listenEntry);
-  }
-  for(const int socket: fMessageSockets)
-  {
-    struct pollfd messageEntry;
-    messageEntry.fd = socket;
-    messageEntry.events = POLLIN;
-    pollFDs.push_back(messageEntry);
+    nlohmann::json postResponse;
+    char timeBuffer[128];
+    const long int timestamp = e.time().value();
+    const struct tm* calendarTime = localtime(&timestamp); //TODO: Is this a UNIX timestamp, or do I need to take the upper 32 bits?  art::Timestamp has a function for that.
+    strftime(timeBuffer, 128, "%c", calendarTime);
+
+    postResponse["run"] = e.id().run();
+    postResponse["subrun"] = e.id().subRun();
+    postResponse["event"] = e.id().event();
+    postResponse["timestamp"] = timeBuffer;
+    postResponse["isRealData"] = (e.isRealData()?"Data":"Simulation");
+
+    web::StringResponse newEventResp(postResponse.dump(), "application/json", 201);
+    newEventResp.resolve(fBrowserConnection, fBrowserConnection.fNextEventSocket);
   }
 
+  web::App<const art::Event&> evdApp(&fBrowserConnection);
   art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
-  std::vector<int> socketsToRemove;
 
-  do
+  evdApp.add("/newEvent", web::Request::Method::POST, [&navigator](const std::smatch& matches, const web::Request& request, const art::Event& e) -> web::Response*
   {
-    const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
-    if(nEvents > 0)
+    //Parse message body
+    nlohmann::json body = nlohmann::json::parse(request.body);
+    const int targetRun = body["run"];
+    const int targetSubrun = body["subrun"];
+    const int targetEvent = body["event"];
+
+    if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
     {
-      for(size_t whichSocket = 1; whichSocket < pollFDs.size(); ++whichSocket)
-      {
-        if(pollFDs[whichSocket].revents & POLLIN)
-        {
-          const int messageSocket = pollFDs[whichSocket].fd;
-          bytesRead = recv(messageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-          if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-          mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
-
-          //TODO: Don't necessarily quit the loop if bytesRead is 0.  That might just mean that an ephemeral socket has closed.
-          //      Is this necessary for talking to Chrome?
-          if(bytesRead == 0)
-          {
-            socketsToRemove.push_back(whichSocket);
-          }
-
-          const HTTPRequest request = parseHTTP(fBuffer); //TODO: Check for EAGAIN in case body is incomplete?
-          if(request.method == HTTPRequest::Method::POST)
-          {
-            //Parse message body
-            const std::string runTag = "\"run\":";
-            const size_t runPos = request.body.find(runTag);
-            const int targetRun = std::stoi(request.body.substr(runPos+runTag.length(), request.body.find_first_of(",}", runPos)));
-
-            const std::string subrunTag = "\"subrun\":";
-            const size_t subrunPos = request.body.find(subrunTag);
-            int targetSubrun = std::stoi(request.body.substr(subrunPos+subrunTag.length(), request.body.find_first_of(",}", subrunPos)));
-
-            const std::string eventTag = "\"event\":";
-            const size_t eventPos = request.body.find(eventTag);
-            int targetEvent = std::stoi(request.body.substr(eventPos+eventTag.length(), request.body.find_first_of(",}", eventPos)));
-
-            if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
-            {
-              mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
-                                        << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
-                                        << "\nMessage from browser was:\n" << request.body;
-              sendBadRequest(messageSocket);
-            }
-            else
-            {
-              //Response to this request will be send at the beginning of the next analyze() function
-              //so that it can report the event number actually loaded.
-              memset(fBuffer, '\0', bufferSize);
-              navigator->setTarget(targetRun, targetSubrun, targetEvent);
-              fNextEventSocket = messageSocket;
-              return;
-            }
-          }
-          else if(request.method == HTTPRequest::Method::GET)
-          {
-            if(request.uri == "/geometry/index.json")
-            {
-              sendString(writeGeometryList(), messageSocket, "application/json");
-            }
-            else if(request.uri.find("geometry") != std::string::npos)
-            {
-              std::stringstream geomObjFile;
-              const std::string geometryStem = "/geometry/";
-              const TGeoShape* shape = getShape(request.uri.substr(request.uri.find(geometryStem) + geometryStem.length(), request.uri.find(".obj")));
-              TGeoToObjFile(*shape, geomObjFile, 10.);
-              sendString(geomObjFile.str(), messageSocket, "text/plain");
-            }
-            else if(!strcmp(request.uri.c_str(), "/reco/LineSegs.json"))
-            {
-              art::Handle<std::vector<rb::LineSegment>> segs;
-              e.getByLabel(fConfig.lineSegLabel(), segs);
-              if(segs)
-              {
-                sendString(writeLineSegList(e, segs), messageSocket, "application/json");
-              }
-              else sendBadRequest(messageSocket); //The frontend can ignore this request and keep going without showing LineSegments
-            }
-            else if(!strcmp(request.uri.c_str(), "/MC/trajs.json"))
-            {
-              art::Handle<std::vector<sim::Particle>> mcParts;
-              e.getByLabel(fConfig.mcPartLabel(), mcParts);
-              if(mcParts)
-              {
-                sendString(writeMCTrajList(e, mcParts), messageSocket, "application/json");
-              }
-              else sendBadRequest(messageSocket); //The frontend can ignore this request and keep going without showing MC trajectories.  Handling this is important for viewing data!
-            }
-            else if(!strcmp(request.uri.c_str(), "/assnsMap.json"))
-            {
-              std::stringstream assnsMap;
-              assnsMap << "{\n";
-              writeUserColors<sim::Particle>(assnsMap, e, fConfig.mcPartAssnsLabel());
-              writeUserColors<rb::LineSegment>(assnsMap, e, fConfig.lineSegAssnsLabel());
-              //TODO: Add new products here
-              assnsMap << "}\n";
-
-              sendString(assnsMap.str(), messageSocket, "application/json");
-            }
-            else if(request.uri == "/")
-            {
-              sendFile("webDisplay_v2.html", messageSocket);
-            }
-            else if(request.uri == "/EMPHATICLogo.png")
-            {
-              sendFile("EMPHATICLogo.png", messageSocket, "image/png");
-            }
-            else
-            {
-              sendBadRequest(messageSocket);
-            }
-          }
-          else //if(request.method == HTTPRequest::Method::UNSUPPORTED)
-          {
-            sendBadRequest(messageSocket);
-          }
-          memset(fBuffer, '\0', bufferSize); //Clear the buffer so that it doesn't contain this message anymore!
-        } //If this socket has a new message
-      } //For each messageSocket
-
-      //Listen for new connections.  Turns out that a single web browser is requesting multiple connections at once!  This seems to be related to parallel fetch() requests.
-      if(pollFDs[0].revents & POLLIN)
-      {
-        mf::LogWarning("PortSetup") << "Got a new port request!";
-        struct sockaddr_storage their_addr;
-        socklen_t their_addr_size = sizeof(their_addr);
-        const int newConnection = accept(fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
-        if(newConnection < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
-        else
-        {
-          fMessageSockets.push_back(newConnection);
-
-          struct pollfd messageEntry;
-          messageEntry.fd = newConnection;
-          messageEntry.events = POLLIN;
-          pollFDs.push_back(messageEntry);
-        }
-      } //If there's a new connection request
-    } //If poll() found events
-
-    for(const int whichSocket: socketsToRemove)
+      mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
+                                << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
+                                << "\nMessage from browser was:\n" << request.body;
+      return new web::BadRequestResponse();
+    }
+    else
     {
-      fMessageSockets.erase(fMessageSockets.begin()+whichSocket-1);
+      //Response to this request will be send at the beginning of the next analyze() function
+      //so that it can report the event number actually loaded.
+      navigator->setTarget(targetRun, targetSubrun, targetEvent);
+      return new web::EndAppResponse();
+    }
+  });
+
+  evdApp.add("/", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request, const art::Event& e)
+  {
+    return new web::FileResponse("webDisplay_v2.html", "text/html");
+  });
+
+  evdApp.add("/EMPHATICLogo.png", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request, const art::Event& e)
+  {
+    return new web::FileResponse("EMPHATICLogo.png", "image/png");
+  });
+
+  //Geometry
+  evdApp.add("/geometry/index.json", web::Request::Method::GET, [this](const std::smatch& matches, const web::Request& req, const art::Event& e)
+  {
+    return new web::StringResponse(this->writeGeometryList(), "text/plain"); //TODO: Move this code directly into analyze()
+  });
+
+  evdApp.add("/geometry/(.*)\\.obj", web::Request::Method::GET, [this](const std::smatch& matches, const web::Request& req, const art::Event& e)
+  {
+    std::stringstream geomObjFile;
+    assert(matches.size() == 2);
+    const TGeoShape* shape = this->getShape(matches[1]);
+    TGeoToObjFile(*shape, geomObjFile, 10.);
+    return new web::StringResponse(geomObjFile.str(), "text/plain", 200);
+  });
+
+  //Simulation
+  evdApp.add("/MC/trajs.json", web::Request::Method::GET, WebHelper<sim::Particle>([](const std::vector<sim::Particle>& simParts)
+  {
+    TDatabasePDG& pdgDB = *TDatabasePDG::Instance();
+  
+    nlohmann::json trajList;
+    for(const auto& traj: simParts)
+    {
+      std::string partName = std::to_string(traj.fpdgCode);
+      const auto partData = pdgDB.GetParticle(traj.fpdgCode);
+      if(partData) partName = partData->GetName(); //This should almost always happen
+
+      nlohmann::json entry;
+      entry["name"] = std::to_string(traj.ftrajectory.Momentum(0).Vect().Mag()/1000.) + "GeV/c " + partName;
+      entry["pdgCode"] = traj.fpdgCode;
+      auto& points = entry["points"];
+      for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size()-1; ++whichTrajPoint)
+      {
+        const auto& point = traj.ftrajectory.Position(whichTrajPoint);
+        points.push_back({point.X()/10., point.Y()/10., point.Z()/10.});
+      }
+
+      trajList.push_back(entry);
     }
 
-    pollFDs.clear();
-    struct pollfd listenFD;
-    listenFD.fd = fListenSocket;
-    listenFD.events = POLLIN;
-    pollFDs.push_back(listenFD);
+    return trajList;
+  }, fConfig.mcPartLabel()));
+  
+  //Reconstruction
+  evdApp.add("/reco/LineSegs.json", web::Request::Method::GET, WebHelper<rb::LineSegment>([](const std::vector<rb::LineSegment>& segs)
+  {
+    nlohmann::json result;
 
-    for(const int fd: fMessageSockets)
+    for(const auto& seg: segs)
     {
-      struct pollfd messageFD;
-      messageFD.fd = fd;
-      messageFD.events = POLLIN;
-      pollFDs.push_back(messageFD);
+      nlohmann::json entry;
+      TVector3 x0 = seg.X0(),
+               x1 = seg.X1();
+      const auto diff = x1 - x0;
+      const double length = diff.Mag()/10.; //Convert mm to cm for graphics reasons
+      const double ssdWidth = 0.1;
+      const auto center = (x0 + x1)*0.5*0.1; //Convert mm to cm for graphics reasons
+      const double phi = diff.Phi();
+
+      entry["center"] = {center.X(), center.Y(), center.Z()};
+      entry["length"] = length;
+      entry["phi"] = phi;
+
+      result.push_back(entry);
     }
 
-    socketsToRemove.clear();
-  } while(!fMessageSockets.empty());
-  if(fMessageSockets.empty())
-  {
-    mf::LogError("Server") << "Browser disconnected.";
-  }
-  memset(fBuffer, '\0', bufferSize); //Clear the buffer so that it doesn't contain this message anymore!
-}
+    return result;
+  }, fConfig.lineSegLabel()));
 
-std::string getFullPath(const std::string& fileName)
-{
-  //Find the file by looking at the source code directory
-  //TODO: I don't think this will work if we install on /cvmfs.  How do we look in the install directory instead?
-  const char* fileLoc = getenv ("CETPKG_SOURCE");
-  if(fileLoc == nullptr) mf::LogError("sendFile") << "Failed to find " << fileName << " at CETPKG_SOURCE (source directory) because CETPKG_SOURCE is not set!";
-  return fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
-}
+  //TODO: Convert writeUserColors to use nlohmann::json.
+  //      Can I also make it automatic when a new WebHelper is add()ed?
+  evdApp.add("/assnsMap.json", web::Request::Method::GET, [this](const std::smatch& match, const web::Request& req, const art::Event& e){
+    std::stringstream assnsMap;
+    assnsMap << "{\n";
+    writeUserColors<sim::Particle>(assnsMap, e, this->fConfig.mcPartAssnsLabel());
+    writeUserColors<rb::LineSegment>(assnsMap, e, this->fConfig.lineSegAssnsLabel());
+    assnsMap << "}\n";
 
-int evd::WebDisplay::sendBadRequest(const int messageSocket) const
-{
-  return sendRawString("HTTP/1.1 404 Not found\n\n", messageSocket); //Is it appropriate to include more information in the response body for debugging?
+    return new web::StringResponse(assnsMap.str());
+  });
+
+  evdApp.run(e);
 }
 
 void evd::WebDisplay::endJob()
 {
-  close(fListenSocket);
-  for(const int socket: fMessageSockets) close(socket);
-}
-
-int evd::WebDisplay::sendString(std::string toSend, const int messageSocket, const std::string contentType, const int responseCode) const
-{
-  //Add an HTTP header
-  toSend.insert(0, "HTTP/1.1 " + std::to_string(responseCode) + " OK\nContent-Type:" + contentType + "\nContent-Length:" + std::to_string(toSend.length()) + "\n\n");
-  return sendRawString(toSend, messageSocket);
-}
-
-
-int evd::WebDisplay::sendRawString(const std::string& toSend, const int messageSocket) const
-{
-  //mf::LogWarning("HTTP Sent") << "Sending HTTP request:\n" << toSend;
-
-  int bytesSent = 0;
-  int offset = 0;
-  do
-  {
-    bytesSent = send(messageSocket, toSend.c_str() + offset, toSend.length() - offset, 0);
-    if(bytesSent < 0)
-    {
-      mf::LogError("WebServer") << "send: " << strerror(errno);
-      return 2;
-    }
-    offset += bytesSent;
-  }
-  while(bytesSent > 0);
-
-  return 0;
-}
-
-int evd::WebDisplay::sendFile(const char* fileName, const int messageSocket, const std::string contentType) const
-{
-  const std::string fileFullPath = getFullPath(fileName);
-
-  struct stat fileInfo;
-  stat(fileFullPath.c_str(), &fileInfo);
-  const int contentLength = fileInfo.st_size;
-
-  const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:" + contentType + "\nContent-Length:" + std::to_string(contentLength) + "\n\n";
-  sendRawString(requestHeader, messageSocket);
-
-  //std::cout << "Sending file named " << fileName << "...\n";
-  constexpr int fileChunkSize = 512;
-  char fileData[fileChunkSize];
-
-  FILE* file = fopen(fileFullPath.c_str(), "rb");
-
-  int bytesRead = 0;
-  int bytesSent = 0;
-  do
-  {
-    std::cout << "Keep reading...\n";
-    bytesRead = fread(fileData, sizeof(char), fileChunkSize, file);
-    int bytesLeftThisChunk = bytesRead;
-    int offset = 0;
-    do
-    {
-      std::cout << "Keep sending.  offset is " << offset << "...\n";
-      bytesSent = send(messageSocket, fileData + offset, bytesRead, 0);
-      if(bytesSent < 0)
-      {
-        std::cerr << "send: " << strerror(errno) << "\n";
-        return 1;
-      }
-
-      offset += bytesSent;
-      bytesLeftThisChunk -= bytesSent;
-    }
-    while(bytesLeftThisChunk > 0);
-  } while(bytesRead > 0);
-  std::cout << "Done sending " << fileName << ".\n";
-
-  return 0;
 }
 
 DEFINE_ART_MODULE(evd::WebDisplay)

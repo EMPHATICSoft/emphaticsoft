@@ -23,7 +23,7 @@ set( PACKAGE WebDisplay )
 
 set( CET_DICT_FUNCTIONS TRUE)
 
-#cet_rootcint( ${PACKAGE} )
+add_subdirectory(web)
 
 cet_build_plugin(EvtDisplayNavigatorService art::service
   IMPL_SOURCE EvtDisplayNavigatorService_service.cc
@@ -44,6 +44,7 @@ art_make_library(
 cet_build_plugin(WebDisplay art::module
   LIBRARIES REG
   EvtDisplayNavigatorService_service
+  emphaticsoft::EventDisplay_WebDisplay_web
   emphaticsoft::EventDisplay_WebDisplay
   ChannelMap
   ChannelMapService_service
