@@ -93,7 +93,7 @@ namespace web
   template <class ...ARGS>
   int App<ARGS...>::run(ARGS... args)
   {
-    std::cout << "Starting web::App::run()\n";
+    //std::cout << "Starting web::App::run()\n";
     std::vector<struct pollfd> pollFDs;
     {
       struct pollfd listenEntry;
@@ -109,7 +109,7 @@ namespace web
       pollFDs.push_back(messageEntry);
     }
 
-    std::cout << "Before starting poll() loop, pollFDs.size() is " << pollFDs.size() << "\n";
+    //std::cout << "Before starting poll() loop, pollFDs.size() is " << pollFDs.size() << "\n";
 
     std::vector<int> socketsToRemove;
     do
@@ -117,7 +117,7 @@ namespace web
       const int nEvents = poll(pollFDs.data(), pollFDs.size(), 100); //100ms polling interval
       if(nEvents > 0)
       {
-        std::cout << "Got a non-listen event!\n";
+        //std::cout << "Got a non-listen event!\n";
         for(size_t whichSocket = 1; whichSocket < pollFDs.size(); ++whichSocket)
         {
           if(pollFDs[whichSocket].revents & POLLIN)
@@ -158,7 +158,7 @@ namespace web
         //Handle "ephemeral ports" that web browsers open to load resources in parallel
         if(pollFDs[0].revents & POLLIN)
         {
-          std::cout << "Got a new port request!\n";
+          //std::cout << "Got a new port request!\n";
           struct sockaddr_storage their_addr;
           socklen_t their_addr_size = sizeof(their_addr);
           const int newConnection = accept(fParent->fListenSocket, (sockaddr*)&their_addr, &their_addr_size);
