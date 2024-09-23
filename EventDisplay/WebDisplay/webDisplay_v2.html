@@ -98,6 +98,7 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; //'controls';
     import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
     import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 
     //Design of this class heavily influenced by https://threejs.org/manual/#en/picking
     class PickHelper {
@@ -391,6 +392,31 @@
           });
         });
       }
+
+      showReferencePerson(nextScene, callback)
+      {
+        //Add a built-in person model to put the size of the detector in perspective
+        const mtlLoader = new MTLLoader();
+        mtlLoader.load("https://threejs.org/examples/models/obj/male02/male02.mtl",
+        (materials) => {
+          materials.preload();
+
+          const objLoader = new OBJLoader();
+          objLoader.setMaterials(materials);
+          objLoader.load("https://threejs.org/examples/models/obj/male02/male02.obj",
+          (object) => {
+            object.position.x = 50;
+            object.position.y = -95;
+
+            object.traverse((mesh) => {
+              mesh.name = "Reference Person";
+            });
+
+            nextScene.add(object);
+            callback();
+          });
+        });
+      }
     }
 
     function main() {
@@ -554,6 +580,10 @@
           render();
         }
       }, 'func').name('Y-Z View');
+      gui.add({ func() {
+                  nextEvent.showReferencePerson(scene, () => { render(); });
+                }
+              }, 'func').name('Reference Person');
 
       render(); //Just display black screen so "Loading" text is visible in color I'll use later
       nextEvent.requestNewEvent(scene, () => {
