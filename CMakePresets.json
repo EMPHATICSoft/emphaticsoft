@@ -4,7 +4,7 @@
          "cacheVariables" : {
             "CMAKE_BUILD_TYPE" : {
                "type" : "STRING",
-               "value" : "RelWithDebInfo"
+               "value" : "Debug"
             },
             "CMAKE_CXX_EXTENSIONS" : {
                "type" : "BOOL",
