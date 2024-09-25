@@ -416,7 +416,7 @@ class WebHelper
 
         return new web::StringResponse(respBody.dump());
       }
-      else return new web::BadRequestResponse();
+      else return new web::StringResponse("[]");
     }
 
   private:
@@ -430,7 +430,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
   {
     nlohmann::json postResponse;
     char timeBuffer[128];
-    const long int timestamp = e.time().value();
+    const long int timestamp = e.time().timeHigh();
     const struct tm* calendarTime = localtime(&timestamp); //TODO: Is this a UNIX timestamp, or do I need to take the upper 32 bits?  art::Timestamp has a function for that.
     strftime(timeBuffer, 128, "%c", calendarTime);
 
@@ -501,7 +501,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
   {
     TDatabasePDG& pdgDB = *TDatabasePDG::Instance();
   
-    nlohmann::json trajList;
+    nlohmann::json trajList = nlohmann::json::array(); //Makes the event display skip sim::Particles instead of crashing when there is space for sim::Particles in the event but no actual sim::Particles.
     for(const auto& traj: simParts)
     {
       std::string partName = std::to_string(traj.fpdgCode);
@@ -527,7 +527,7 @@ void evd::WebDisplay::analyze(art::Event const& e)
   //Reconstruction
   evdApp.add("/reco/LineSegs.json", web::Request::Method::GET, WebHelper<rb::LineSegment>([](const std::vector<rb::LineSegment>& segs)
   {
-    nlohmann::json result;
+    nlohmann::json result = nlohmann::json::array(); //Makes the event display skip LineSegments instead of crashing when there is space for LineSegments in the event but no actual LineSegments.
 
     for(const auto& seg: segs)
     {
