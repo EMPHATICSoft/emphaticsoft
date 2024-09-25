@@ -90,6 +90,22 @@ cet_build_plugin(UserHighlightExample art::module
   BASENAME_ONLY
 )
 
+cet_build_plugin(HasSSDLineSegs art::module
+  LIBRARIES REG
+  RecoBase
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common
+  art::Utilities
+  art_root_io::RootInput_source
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  BASENAME_ONLY
+)
+
 install_headers()
 install_fhicl()
 install_source()
