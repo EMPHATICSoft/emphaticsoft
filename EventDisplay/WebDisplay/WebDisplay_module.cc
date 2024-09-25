@@ -511,11 +511,11 @@ void evd::WebDisplay::analyze(art::Event const& e)
       nlohmann::json entry;
       entry["name"] = std::to_string(traj.ftrajectory.Momentum(0).Vect().Mag()/1000.) + "GeV/c " + partName;
       entry["pdgCode"] = traj.fpdgCode;
-      auto& points = entry["points"];
-      for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size()-1; ++whichTrajPoint)
+      entry["points"] = nlohmann::json::array();
+      for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size(); ++whichTrajPoint)
       {
         const auto& point = traj.ftrajectory.Position(whichTrajPoint);
-        points.push_back({point.X()/10., point.Y()/10., point.Z()/10.});
+        entry["points"].push_back({point.X()/10., point.Y()/10., point.Z()/10.});
       }
 
       trajList.push_back(entry);

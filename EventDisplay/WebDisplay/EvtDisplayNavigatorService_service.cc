@@ -59,9 +59,9 @@ namespace emph
     }
 
     // Figure out where to go in the input stream from here
-    if(fChangeEventFlow && (fTargetRun != evt.id().run() || fTargetSubrun != evt.id().subRun() || fTargetEvent != evt.id().event()+1))
+    if(fChangeEventFlow && (fTargetRun != evt.id().run() || fTargetSubrun != evt.id().subRun() || fTargetEvent != evt.id().event()))
     {
-      if(fTargetRun < 1 || fTargetSubrun < 1 || fTargetEvent < 1)
+      if(fTargetRun < 1 || fTargetSubrun < 1 || fTargetEvent < 0)
       {
         mf::LogWarning("EvtDisplayNavigator") << "Requested bad event ID: run " << fTargetRun << " subrun " << fTargetSubrun << " event " << fTargetEvent;
         rootInput->seekToEvent(evt.id());
