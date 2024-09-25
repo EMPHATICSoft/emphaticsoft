@@ -305,7 +305,7 @@
               const segGeom = new THREE.BoxGeometry(ssdWidth, seg.length, ssdWidth);
               const segBox = new THREE.Mesh(segGeom, localRecoMaterial);
               segBox.position.set(seg.center[0], seg.center[1], seg.center[2]);
-              segBox.rotation.z = -seg.phi;
+              segBox.rotation.z = seg.phi + Math.PI/2;
               segBox.name = "LineSegment";
               segBox.userData.ProductID = seg.Ptr.id;
               segBox.userData.key = seg.Ptr.key;
