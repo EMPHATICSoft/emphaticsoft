@@ -136,9 +136,9 @@ namespace emph {
 	  if (diff/sigFinal < signif) continue; // O.K.  
 	  fHotChannels.push_back(k+3);
 	} // last channel, who knows.. 
+        std::cerr << " SSDHotChannelList::tallyIt, for Station " << fStation << " " << fSensor << " num Hot " << fHotChannels.size() << std::endl;
+        std::cerr << " And enough work, quit for now.. " << std::endl;
         return static_cast<int>(fHotChannels.size());
-	std::cerr << " SSDHotChannelList::tallyIt, for Station " << fStation << " " << fSensor << " num Hot " << fHotChannels.size() << std::endl; 
-	std::cerr << " And enough work, quit for now.. " << std::endl;
       }
       
       

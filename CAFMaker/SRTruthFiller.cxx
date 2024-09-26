@@ -24,7 +24,7 @@ namespace caf
       std::vector<sim::Particle> particles;
       if(!pcal.failedToGet()){particles = *pcal;}
       
-        
+      assert(!particles.empty() && "Got an event with no primary particle.  Rebuild your code with develop and check your generator job!");        
       auto beam_temp = SRParticle(particles[0]);// grab the first beam particle, do an upcast and then a downcast from
       SRTrueParticle beam = SRTrueParticle(beam_temp);// sim::Particle to caf::SRParticle and then from caf::SRParticle to caf:: SRTP
       /*
