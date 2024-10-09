@@ -39,7 +39,7 @@ namespace ru {
 
   //------------------------------------------------------------
 
-  void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type){
+  void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose){
 
      double r12 = (B-A).Dot(B-A);
      double r22 = (D-C).Dot(D-C);
@@ -66,25 +66,26 @@ namespace ru {
        }
        else{
          //this should be very rare
-         std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
-         std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
-         std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
-         std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
-         std::cout<<"D: ("<<D(0)<<","<<D(1)<<","<<D(2)<<")"<<std::endl;
-         std::cout<<"How do line segments AB and CD look if you draw them in the beam view (i.e. the same plane)?"<<std::endl;
-         std::cout<<"And don't worry! A hit is still created, but the line segments (probably) come close to intersecting...but don't"<<std::endl;
+         if (verbose){
+           std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
+           std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
+           std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
+           std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
+           std::cout<<"D: ("<<D(0)<<","<<D(1)<<","<<D(2)<<")"<<std::endl;
+           std::cout<<"How do line segments AB and CD look if you draw them in the beam view (i.e. the same plane)?"<<std::endl;
+           std::cout<<"And don't worry! A hit is still created, but the line segments (probably) come close to intersecting...but don't"<<std::endl;
+	 }
 
          double sbound[2] = {0.,1.};
 	 double tbound[2] = {0.,1.};
 
-         ClampedApproach(A,B,C,D,l1,l2,sbound,tbound,type);
+         ClampedApproach(A,B,C,D,l1,l2,sbound,tbound,type,verbose);
        }
      }
      else{ //i.e. "TrackSegment"
 
        double sl1 = (D(2) + 10. - A(2))/(B(2) - A(2));
        double tl2 = (A(2) - 10. - C(2))/(D(2) - C(2));
-
 
        if ( s >= 0 && s <= sl1 && t >=tl2 && t <= 1){
          //std::cout<<"Normal"<<std::endl;
@@ -105,8 +106,7 @@ namespace ru {
 	   Aext(i) = C(i) + tl2*(D(i) - C(i));
 	 }	
 	 //std::cout<<"Clamped"<<std::endl;
-	 ClampedApproach(Aext,B,C,Dext,l1,l2,sbound,tbound,type);
-
+	 ClampedApproach(Aext,B,C,Dext,l1,l2,sbound,tbound,type,verbose);
        }
      }
 
@@ -119,7 +119,7 @@ namespace ru {
 
   //------------------------------------------------------------
 
-  void RecoUtils::ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type){
+  void RecoUtils::ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose){
 
      double r12 = (B-A).Dot(B-A);
      double r22 = (D-C).Dot(D-C);
@@ -182,11 +182,11 @@ namespace ru {
        // beause p2 and p3 are the points closest to the "intersection"
        if (d_l1p4 < d_l2p1){
          for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
-	 for (int i=0; i<3; i++) { l2[i] = D(i); std::cout<<"CLAMPED EXCEPTION D @ "<<D(2)<<std::endl; }
+	 for (int i=0; i<3; i++) { l2[i] = D(i); if (verbose) std::cout<<"CLAMPED EXCEPTION D @ "<<D(2)<<std::endl; }
        }
        else{
          for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
-         for (int i=0; i<3; i++) { l1[i] = A(i); std::cout<<"CLAMPED EXCEPTION A @ "<<A(2)<<std::endl;}
+         for (int i=0; i<3; i++) { l1[i] = A(i); if (verbose) std::cout<<"CLAMPED EXCEPTION A @ "<<A(2)<<std::endl;}
        }
      }
   }
@@ -328,7 +328,8 @@ namespace ru {
      //convert from rad to mrad
      theta = theta*1000.;
 
-     double pz = 69.2004/theta - 2.8854/theta/theta;
+     double pz = 64.649/theta; 
+     //double pz = 69.2004/theta - 2.8854/theta/theta;
      return pz;	
   }
 

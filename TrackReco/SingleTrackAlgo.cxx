@@ -78,7 +78,7 @@ namespace emph {
 
                         double x[3];
                         double l1[3]; double l2[3];
-                        recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD");
+                        recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD",false);
 
                         //set SpacePoint object
                         sp.SetX(x);
@@ -99,7 +99,7 @@ namespace emph {
 
                             double x01[3];
                             double l1_01[3]; double l2_01[3];
-                            recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD");
+                            recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD",false);
 
                             TVector3 fA02( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
                             TVector3 fB02( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
@@ -108,7 +108,7 @@ namespace emph {
 
                             double x02[3];
                             double l1_02[3]; double l2_02[3];
-                            recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD");
+                            recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD",false);
 
                             TVector3 fA12( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
                             TVector3 fB12( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
@@ -117,7 +117,7 @@ namespace emph {
 
                             double x12[3];
                             double l1_12[3]; double l2_12[3];
-                            recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD");
+                            recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD",false);
 
                             //average of three points (center of mass)
                             double x[3];
@@ -176,6 +176,8 @@ namespace emph {
       if (p.Station() == 0 || p.Station() == 1)
         ts1.Add(p);
     ts1.SetVtx(lfirst1);
+    ts1.SetA(lfirst1);
+    ts1.SetB(llast1);
     double p[3];
     double dx = llast1[0]-lfirst1[0];
     double dy = llast1[1]-lfirst1[1];
@@ -191,6 +193,8 @@ namespace emph {
       if (p.Station() == 2 || p.Station() == 3 || p.Station() == 4)
         ts2.Add(p);
     ts2.SetVtx(lfirst2);
+    ts2.SetA(lfirst2);
+    ts2.SetB(llast2);
     dx = llast2[0]-lfirst2[0];
     dy = llast2[1]-lfirst2[1];
     dz = llast2[2]-lfirst2[2];
@@ -205,6 +209,8 @@ namespace emph {
       if (p.Station() == 5 || p.Station() == 6 || p.Station() == 7)
         ts3.Add(p);
     ts3.SetVtx(lfirst3);
+    ts3.SetA(lfirst3);
+    ts3.SetB(llast3);
     dx = llast3[0]-lfirst3[0];
     dy = llast3[1]-lfirst3[1];
     dz = llast3[2]-lfirst3[2];
@@ -256,7 +262,7 @@ namespace emph {
     TVector3 d(llast2[0],llast2[1],llast2[2]);
     double l0t[3];
     double l1t[3];
-    recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment");
+    recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
 
     return tsv;
 

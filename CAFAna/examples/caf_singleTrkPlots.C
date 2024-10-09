@@ -115,11 +115,11 @@ void caf_singleTrkPlots(std::string fname)
 
   hTargetZ = new TH1F("hTargetZ","hTargetZ",200,0.,1000.);
   hRecoMomTotRes = new TH1F("hRecoMomTotRes","hRecoMomTotRes",500,-1.,1.);
-  hRecoMomTransRes = new TH1F("hRecoMomTransRes","hRecoMomTransRes",500,-1.,1.);
+  hRecoMomTransRes = new TH1F("hRecoMomTransRes","hRecoMomTransRes",500,-0.05,0.05);
   hRecoMomLongRes = new TH1F("hRecoMomLongRes","hRecoMomLongRes",500,-1.,1.);
   hRecoVsTruePt = new TH2F("hRecoVsTruePt","hRecoVsTruePt",100,0.,0.1,100,0.,0.1);
-  hRecoVsTruePx = new TH2F("hRecoVsTruePx","hRecoVsTruePx",100,0.,0.1,100,0.,0.1);
-  hRecoVsTruePy = new TH2F("hRecoVsTruePy","hRecoVsTruePy",100,0.,0.1,100,0.,0.1);
+  hRecoVsTruePx = new TH2F("hRecoVsTruePx","hRecoVsTruePx",100,-1.,1,100,1.,1);
+  hRecoVsTruePy = new TH2F("hRecoVsTruePy","hRecoVsTruePy",100,-0.1,0.1,100,-0.1,0.1);
 
   TGraph* gRecoHits_xz[100];
   TGraph* gRecoHits_yz[100];

@@ -10,6 +10,7 @@
 #include "BACkovHitReco.fcl"
 #include "GasCkovHitReco.fcl"
 #include "MakeSingleTracks.fcl"
+#include "SingleTrackAlignment.fcl"
 
 process_name: CAF
 
@@ -52,13 +53,14 @@ physics:
     cafmaker:         @local::standard_cafmaker
 
     makesingletracks: @local::standard_makesingletracks
+    singletrackalignment: @local::standard_singletrackalignment
   }
 
   analyzers:{}
 
   makecaf:   [
                dataqual, spillinfo, arichreco, ssdclusts,
-               makesingletracks, adcreco, backovreco, gasckovreco,
+               makesingletracks, singletrackalignment, adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 

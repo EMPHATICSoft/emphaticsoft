@@ -22,12 +22,6 @@ namespace rb {
   LineSegment::LineSegment(double _x0[3], double _x1[3]) : caf::SRLineSegment()  {
     x0.SetXYZ(_x0[0],_x0[1],_x0[2]);
     x1.SetXYZ(_x1[0],_x1[1],_x1[2]);
-    //x0.SetX(_x0[0]);
-    //x0.SetY(_x0[1]);
-    //x0.SetZ(_x0[2]);
-    //x1.SetX(_x1[0]);
-    //x1.SetY(_x1[1]);
-    //x1.SetZ(_x1[2]);
   }
     
   //------------------------------------------------------------
