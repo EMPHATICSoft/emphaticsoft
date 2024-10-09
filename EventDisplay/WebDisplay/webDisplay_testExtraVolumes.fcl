@@ -21,7 +21,7 @@ physics :{
   analyzers: {
     webDisplay : {
       module_type     : WebDisplay
-      mcPartAssnsLabel : highlightMCParticles
+      extraGeometryNodes: ["ARICH_phys", "ssdsensor_2_0_0_phys", "LG_glass00_phys", "LG_glass01_phys", "LG_glass02_phys", "LG_glass10_phys", "LG_glass11_phys", "LG_glass12_phys", "LG_glass20_phys", "LG_glass21_phys", "LG_glass22_phys", "LG_PMT01_phys", "LG_PMT00_phys", "LG_PMT02_phys", "LG_PMT10_phys", "LG_PMT11_phys", "LG_PMT12_phys", "LG_PMT20_phys", "LG_PMT21_phys", "LG_PMT22_phys"]
     }
   }
 

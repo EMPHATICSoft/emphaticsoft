@@ -1,0 +1,22 @@
+<!--  Include art::Wrapper lines for objects that we would like to put  -->
+<!--  into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
+<!--  lines and for all objects that are data members of those objects.-->
+ 
+<lcgdict>
+
+  <class name="evd::UserHighlight" ClassVersion="11">
+   <version ClassVersion="11" checksum="623206402"/>
+   <version ClassVersion="10" checksum="360201530"/>
+  </class>
+  <class name="std::vector<evd::UserHighlight>"/>
+  <class name="art::Wrapper<std::vector<evd::UserHighlight>>"/>
+  <class name="art::Ptr<evd::UserHighlight>"/>
+
+  <!-- Associations between evd::UserHighlight and all other data products. -->
+  <class name="art::Assns<evd::UserHighlight, sim::Particle, void>"/>
+  <class name="art::Assns<sim::Particle, evd::UserHighlight, void>"/>
+  <class name="art::Wrapper<art::Assns<evd::UserHighlight,sim::Particle,void>>"/>
+  <class name="art::Wrapper<art::Assns<sim::Particle,evd::UserHighlight,void>>"/>
+
+</lcgdict>

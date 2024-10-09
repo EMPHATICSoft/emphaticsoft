@@ -23,10 +23,29 @@ set( PACKAGE WebDisplay )
 
 set( CET_DICT_FUNCTIONS TRUE)
 
-#cet_rootcint( ${PACKAGE} )
+add_subdirectory(web)
+
+cet_build_plugin(EvtDisplayNavigatorService art::service
+  IMPL_SOURCE EvtDisplayNavigatorService_service.cc
+  LIBRARIES
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common
+  art::Framework_Services_Registry
+  art_root_io::RootInput_source
+  BASENAME_ONLY
+)
+
+FILE( GLOB data_product_src_files *.cxx )
+art_make_library(
+  SOURCE ${data_product_src_files}
+)
 
 cet_build_plugin(WebDisplay art::module
   LIBRARIES REG
+  EvtDisplayNavigatorService_service
+  emphaticsoft::EventDisplay_WebDisplay_web
+  emphaticsoft::EventDisplay_WebDisplay
   ChannelMap
   ChannelMapService_service
   Geometry
@@ -48,11 +67,42 @@ cet_build_plugin(WebDisplay art::module
   cetlib::cetlib
   cetlib_except::cetlib_except
   ROOT::Geom
-  ROOT::X3d
-  ROOT::Eve
   ROOT::EG
   ROOT::RGL
-  ROOT::Gui
+  BASENAME_ONLY
+)
+
+cet_build_plugin(UserHighlightExample art::module
+  LIBRARIES REG
+  emphaticsoft::EventDisplay_WebDisplay
+  Simulation
+  StandardRecord
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common
+  art::Utilities
+  art_root_io::RootInput_source
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  BASENAME_ONLY
+)
+
+cet_build_plugin(HasSSDLineSegs art::module
+  LIBRARIES REG
+  RecoBase
+  art::Framework_Core
+  art::Framework_Principal
+  art::Persistency_Common
+  art::Utilities
+  art_root_io::RootInput_source
+  canvas::canvas
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
   BASENAME_ONLY
 )
 
@@ -61,3 +111,5 @@ install_fhicl()
 install_source()
 
 install(FILES header.html footer.html DESTINATION etc)
+
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::EventDisplay_WebDisplay)
