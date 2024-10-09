@@ -41,11 +41,10 @@
 
 using namespace emph;
 
+
 ///package to illustrate how to write modules
 namespace emph {
 
-  void getHitsAndRMS(double adc, double &hit, double &rms, TH3D* hist3D);
-  float adcRange(float value);
 
   class SSDDigitizer : public art::EDProducer
   {
@@ -54,6 +53,8 @@ namespace emph {
     ~SSDDigitizer();
     
     void produce(art::Event& evt);
+    void getHitsAndRMS(double adc, double &hit, double &rms, TH3D* hist3D);
+    float adcRange(float value);
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
         void beginJob();
@@ -184,7 +185,7 @@ namespace emph {
   } // SSDDigitizer::analyze()
  
   // Function to round of calculated ADC to nearest allowed ADCs 
-  float adcRange(float value) {
+  float SSDDigitizer::adcRange(float value) {
     std::vector<float> allowedADC = {41, 58, 73, 88, 103, 118, 133, 140};
     int nearestIndex = 0;
 
@@ -216,7 +217,7 @@ namespace emph {
 */        
   
   // Function to generate hit and rms for given ADC
-  void getHitsAndRMS(double adc, double &hit, double &rms, TH3D* hist3D)
+  void SSDDigitizer::getHitsAndRMS(double adc, double &hit, double &rms, TH3D* hist3D)
   {
     double adcBin = hist3D->GetYaxis()->FindBin(adc); // Bin that corresponds to ADC
     hist3D->GetYaxis()->SetRange(adcBin, adcBin); // Range for only this bin in Y-axis 
@@ -418,6 +419,8 @@ namespace emph {
 
     return returnValue; //returns empty vector
   }
-}  // end namespace emph
 
+}  // end namespace emph
 DEFINE_ART_MODULE(emph::SSDDigitizer)
+
+

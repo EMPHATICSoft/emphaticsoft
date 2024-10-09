@@ -1816,7 +1816,12 @@
 
 
 <!-- Dark noise rate (Hz). -->
+<!-- From datasheet 1 nA -> 400 Hz with 1.5e6 gain, or arxiv1506.04302 gets one pixel with 1.4 kHz, most <0.050 kHz -->
+<!-- if u wanna use MHz, need to change the PMT::GetDarkRate() to appropriate convert to P per ns, the constant would be 10^{-3} -->
 <constant name="PMT_H12700_DarkNoise" value="416.7"/>
+
+<!-- Cross talk [arxiv1506.04302] -->
+<constant name="PMT_H12700_CrossTalk" value="0.07"/>
 
 <matrix 
 name="PMT_H12700_QE" 

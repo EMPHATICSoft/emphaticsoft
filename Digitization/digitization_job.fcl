@@ -1,5 +1,6 @@
 #include "Services.fcl"
 #include "SSDDigitizer.fcl"
+#include "ARICHDigitizer.fcl"
 
 process_name: Digitizer
 
@@ -30,10 +31,11 @@ physics:
 {
   producers:
   {
-    raw:        @local::standard_ssddigitizer
+    rawSSD:        @local::standard_ssddigitizer
+    rawARICH:        @local::standard_arichdigitizer
   }
 
-  digitizer: [ raw ]
+  digitizer: [ rawSSD, rawARICH ]
 
   trigger_paths: [ digitizer ]
   stream1: [ out1 ]

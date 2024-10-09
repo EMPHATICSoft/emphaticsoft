@@ -99,12 +99,14 @@ namespace emph
 		  double l = h_Planck*c_light/e;//mm
 		  //std::cout<<"wavelength "<<l<<" mm"<<std::endl;
 
-		  if(mpmt.ifDet(l)){
+//		  if(mpmt.ifDet(l)){  moved to Digitization  
 
 			  sim::ARICHHit arichHit;
 			  arichHit.SetBlockNumber(mpmt.PMTnum());
 			  arichHit.AddToAncestorTrack(aTrack->GetParentID());
 			  arichHit.SetTime(step->GetPreStepPoint()->GetGlobalTime()/CLHEP::second);
+			  arichHit.SetWavelength(l*1e6);
+			  arichHit.SetEnergyDepo(e); 
 
 			  fARICHHits.push_back(arichHit);
 			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
@@ -113,7 +115,7 @@ namespace emph
 			  fFOutStudy1 << " " << arichHit.GetTime() << std::endl;
 
 
-		  }
+		 // }
 	  }
 
 
