@@ -99,6 +99,7 @@ namespace web
     char fileData[fileChunkSize];
   
     FILE* file = fopen(fileFullPath.c_str(), "rb");
+    if(!file)  throw std::runtime_error("No such file or directory: " + fileFullPath);
   
     int bytesRead = 0;
     int bytesSent = 0;
