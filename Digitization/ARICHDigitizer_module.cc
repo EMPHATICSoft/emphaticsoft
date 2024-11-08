@@ -82,8 +82,8 @@ namespace emph{
 	     bool fFillTree;
 	
 	     TTree *fTest;
-             std::vector<int> PDG,TID,BLOCK, GRANPAPDG;
-             std::vector<double> MOM,TIME;
+             std::vector<int> pdg,track_id,blocks;
+             std::vector<double> mom,time;
              std::vector<double> dirX,dirY,PosX,PosY;
 		
 	};
@@ -115,23 +115,22 @@ void ARICHDigitizer::beginJob()
   if(fFillTree){
    art::ServiceHandle<art::TFileService const> tfs;
    fTest = tfs->make<TTree>("events","Events in ARICH");
-   fTest->Branch("BLOCK", &BLOCK);
-   fTest->Branch("PDG", &PDG);
-   fTest->Branch("MOM", &MOM);
-   fTest->Branch("TrackID", &TID);
-   fTest->Branch("HitTime",&TIME);
+   fTest->Branch("blocks", &blocks);
+   fTest->Branch("pdg", &pdg);
+   fTest->Branch("mom", &mom);
+   fTest->Branch("TrackID", &track_id);
+   fTest->Branch("HitTime",&time);
    fTest->Branch("DirX",&dirX);
    fTest->Branch("DirY",&dirY);
    fTest->Branch("PosX",&PosX);
    fTest->Branch("PosY",&PosY);  
-//  fTest->Branch("GrandPaPDG",&GRANPAPDG);
     }
 }
 //.....................................................................
 void ARICHDigitizer::clean()
 {
-	PDG.clear(); TID.clear(); BLOCK.clear();
-        MOM.clear(); TIME.clear();
+	pdg.clear(); track_id.clear(); blocks.clear();
+        mom.clear(); time.clear();
         dirX.clear(); dirY.clear(); PosX.clear(); PosY.clear();
 
 }
@@ -255,11 +254,11 @@ void ARICHDigitizer::produce(art::Event& evt)
 	if(!mpmt.ifDet(wavelength))continue;			
 
 	 if(fFillTree){
-          BLOCK.push_back(blockID);
-          PDG.push_back(arichhit.GetAncestorPDG());
-          MOM.push_back(arichhit.GetAncestorMom());
-          TID.push_back(arichhit.GetAncestorTrackNum());
-          TIME.push_back(arichhit.GetTime());
+          blocks.push_back(blockID);
+          pdg.push_back(arichhit.GetAncestorPDG());
+          mom.push_back(arichhit.GetAncestorMom());
+          track_id.push_back(arichhit.GetAncestorTrackNum());
+          time.push_back(arichhit.GetTime());
           dirX.push_back(arichhit.GetDirx());
           dirY.push_back(arichhit.GetDiry());
           PosX.push_back(arichhit.GetPosx());
