@@ -60,7 +60,7 @@ namespace emph{
   	    void produce(art::Event& evt);
 	    void ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits);    
 	    void FillSensorMap();
- 
+ 	    void clean();
 	    uint32_t GetFPGABroadHex(int fpga_board_id);
 
   // Optional use if you have histograms, ntuples, etc you want around for every event
@@ -79,14 +79,21 @@ namespace emph{
   	     std::unordered_map<int,int> fSensorMap;
 	     float fCalibration;    //to be fixed later 
 	     bool fIncludeNoise;	 
-
+	     bool fFillTree;
+	
+	     TTree *fTest;
+             std::vector<int> PDG,TID,BLOCK, GRANPAPDG;
+             std::vector<double> MOM,TIME;
+             std::vector<double> dirX,dirY,PosX,PosY;
+		
 	};
   
 //.......................................................................
 ARICHDigitizer::ARICHDigitizer(fhicl::ParameterSet const& pset)
   : EDProducer(pset),
     fG4Label (pset.get<std::string>("G4Label")),
-    fIncludeNoise(pset.get<bool>("IncludeNoise"))
+    fIncludeNoise(pset.get<bool>("IncludeNoise")),
+    fFillTree(pset.get<bool>("FillTree"))
 {
   //    fEvent = 0;
   fSensorMap.clear(); 
@@ -105,7 +112,7 @@ ARICHDigitizer::~ARICHDigitizer()
 
 void ARICHDigitizer::beginJob()
 {
-  /*
+  if(fFillTree){
    art::ServiceHandle<art::TFileService const> tfs;
    fTest = tfs->make<TTree>("events","Events in ARICH");
    fTest->Branch("BLOCK", &BLOCK);
@@ -116,12 +123,19 @@ void ARICHDigitizer::beginJob()
    fTest->Branch("DirX",&dirX);
    fTest->Branch("DirY",&dirY);
    fTest->Branch("PosX",&PosX);
-   fTest->Branch("PosY",&PosY);
-   */
+   fTest->Branch("PosY",&PosY);  
 //  fTest->Branch("GrandPaPDG",&GRANPAPDG);
+    }
+}
+//.....................................................................
+void ARICHDigitizer::clean()
+{
+	PDG.clear(); TID.clear(); BLOCK.clear();
+        MOM.clear(); TIME.clear();
+        dirX.clear(); dirY.clear(); PosX.clear(); PosY.clear();
 
 }
-
+//.....................................................................
 void ARICHDigitizer::FillSensorMap()
   {
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
@@ -238,22 +252,34 @@ void ARICHDigitizer::produce(art::Event& evt)
 	emph::arich_util::PMT mpmt= fGeo->Geo()->FindPMTByBlockNumber(blockID);
 		
 	double wavelength =  arichhit.GetWavelength()/1e6;  // in mm 	
-	if(!mpmt.ifDet(wavelength))continue;		
+	if(!mpmt.ifDet(wavelength))continue;			
+
+	 if(fFillTree){
+          BLOCK.push_back(blockID);
+          PDG.push_back(arichhit.GetAncestorPDG());
+          MOM.push_back(arichhit.GetAncestorMom());
+          TID.push_back(arichhit.GetAncestorTrackNum());
+          TIME.push_back(arichhit.GetTime());
+          dirX.push_back(arichhit.GetDirx());
+          dirY.push_back(arichhit.GetDiry());
+          PosX.push_back(arichhit.GetPosx());
+          PosY.push_back(arichhit.GetPosy());
+          }
 	  
 	int t = arichhit.GetTime() * 1e9; // in ns    
  
 	  // Could be added a tunable smaring function here time_smeared = time + smear 
 
-	  int HiLo = arichhit.GetHiLo();  
-	  int channel = arichhit.GetChannel();
-          dchan.SetHiLo(HiLo);
-	  dchan.SetChannel(channel);
- 	  echan = cmap->ElectChan(dchan);
+	int HiLo = arichhit.GetHiLo();  
+	int channel = arichhit.GetChannel();
+        dchan.SetHiLo(HiLo);
+	dchan.SetChannel(channel);
+ 	echan = cmap->ElectChan(dchan);
         
-	  dig = new rawdata::TRB3RawDigit(GetFPGABroadHex(echan.Board()),echan.Channel(),t, false);
-	  ArichRawD->push_back(rawdata::TRB3RawDigit(*dig));
-	  delete dig;
-    	} 
+	dig = new rawdata::TRB3RawDigit(GetFPGABroadHex(echan.Board()),echan.Channel(),t, false);
+	ArichRawD->push_back(rawdata::TRB3RawDigit(*dig));
+	delete dig;
+      } 
      } 
   else{
 
@@ -280,7 +306,7 @@ void ARICHDigitizer::produce(art::Event& evt)
     }
    
    evt.put(std::move(ArichRawD),"ARICH");
-   
+   if(fFillTree){fTest->Fill(),clean();}
 
    } //end ARICHDigitizer::produce()
 
