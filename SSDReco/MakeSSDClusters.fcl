@@ -3,7 +3,7 @@ BEGIN_PROLOG
 standard_ssdclust:
 {
   module_type: MakeSSDClusters
-  SSDRawLabel: "raw:SSD"
+  SSDRawLabel: "rawSSD:SSD"
   FillTTree:   false           # Make TTree for development/debugging?
   RowGap:      1              # If gap between RawDigits is larger than this, form a new cluster
   CheckDQ:     true           # Check data quality for event (requires running FillDataQual first)
