@@ -48,6 +48,9 @@ namespace g4b{
   // Constructor
   G4Helper::G4Helper()
   : fCheckOverlaps     (false  )
+  , fMisalignModNum (0)
+  , fMisalignDoubleSSDGap (3.0) 
+  , fMisalignSeed (1234)
   , fValidateGDMLSchema(false  )
   , fUseStepLimits     (false  )
   , fUIManager         (nullptr)
@@ -66,6 +69,9 @@ namespace g4b{
   , fG4PhysListName    (g4physicslist)
   , fGDMLFile          (gdmlFile     )
   , fCheckOverlaps     (false        )
+  , fMisalignModNum    (0)
+  , fMisalignDoubleSSDGap (3.0) 
+  , fMisalignSeed      (1234)
   , fValidateGDMLSchema(true         )
   , fUseStepLimits     (false        )
   , fUIManager         (nullptr      )
@@ -343,7 +349,7 @@ namespace g4b{
     bool validateGDMLSchema = fValidateGDMLSchema;
     fDetector = new DetectorConstruction(gdmlFile,
                                          checkOverlaps,
-                                         validateGDMLSchema);
+                                         validateGDMLSchema, fMisalignModNum, fMisalignSeed, fMisalignDoubleSSDGap);
 
     return;
   }
@@ -377,6 +383,8 @@ namespace g4b{
   /// Initialization for the Geant4 Monte Carlo.
   void G4Helper::InitPhysics()
   {
+  
+    std::cerr << " G4Helper::InitPhysics,  fMisalignModNum " << fMisalignModNum << std::endl;
     if(!fDetector) this->ConstructDetector(fGDMLFile);
 
     for(auto pWorld : fParallelWorlds)
