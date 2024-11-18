@@ -1,0 +1,9 @@
+% Model:              Derived from data taken by AP-STD
+% Version:            Helmholtz decomposition file.  See EMPHATIC DocDB 1835
+% Date:               dd mmm yyyy, hh:mm Chicago time
+% Dimension:          3
+% Nodes:              xxxxx
+% Expressions:        3
+% Description:        Magnetic flux density, x component, Magnetic flux density, y component, Magnetic flux density, z component
+% Length unit:        mm
+% X                       Y                        Z                        mfnc.Bx (kG)             mfnc.By (kG)             mfnc.Bz (kG)
