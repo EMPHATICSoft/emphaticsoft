@@ -86,6 +86,10 @@
   <version ClassVersion="10" checksum="3758140000"/>
  </class>
 
+ <class name="caf::SRArichID"/>
+ 
+ <class name="caf::SRPID"/> 
+
  <class name="caf::SRVector3D" ClassVersion="10" >
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
@@ -136,7 +140,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrack" ClassVersion="11" >
+ <class name="caf::SRTrack" ClassVersion="12" >
+  <version ClassVersion="12" checksum="2842738991"/>
   <version ClassVersion="11" checksum="3996263664"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

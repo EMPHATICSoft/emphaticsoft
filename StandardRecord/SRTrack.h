@@ -5,6 +5,7 @@
 #define SRTRACK_H
 
 #include "StandardRecord/SRVector3D.h"
+#include "StandardRecord/SRArichID.h"
 
 namespace caf
 {
@@ -16,8 +17,10 @@ namespace caf
     virtual ~SRTrack();
 
     double vtx[3];  // (x,y,z)
-    SRVector3D mom; // momentum vector 
-
+    SRVector3D mom; // momentum vector   
+    SRArichID arLL;
+    SRArichID arML; 
+   
     virtual void setDefault();
   };
 
