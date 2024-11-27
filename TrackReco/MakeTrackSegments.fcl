@@ -1,13 +1,12 @@
 BEGIN_PROLOG
 
-standard_makesingletracks:
+standard_maketracksegments:
 {
-  module_type: MakeSingleTracks
+  module_type: MakeTrackSegments
   CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
   ClusterLabel:      "ssdclusts"
   G4Label:           "geantgen"
-  ClusterCut:        "strict"    # "strict" for only one cluster per plane
-  TrkSegLabel:       "maketracksegments" 
+  ClusterCut:        "lessstrict"    # "strict" for only one cluster per plane
 }
 
 END_PROLOG

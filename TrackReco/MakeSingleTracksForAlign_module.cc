@@ -55,10 +55,10 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
   ///
-  class MakeSingleTracks : public art::EDProducer {
+  class MakeSingleTracksForAlign : public art::EDProducer {
   public:
-    explicit MakeSingleTracks(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-    ~MakeSingleTracks() {};
+    explicit MakeSingleTracksForAlign(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    ~MakeSingleTracksForAlign() {};
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
@@ -78,10 +78,6 @@ namespace emph {
     int         run,subrun,event;
     int         fEvtNum;
 
-
-    std::vector<const rb::TrackSegment*> trksegs1;
-    std::vector<const rb::TrackSegment*> trksegs2;
-    std::vector<const rb::TrackSegment*> trksegs3;
     std::vector<const sim::Particle*> particles;
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
@@ -106,7 +102,6 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     std::string fClusterCut;
-    std::string fTrkSegLabel;
 
     //reco info for lines
     std::vector<std::vector<double>> sp1;
@@ -121,13 +116,12 @@ namespace emph {
 
   //.......................................................................
   
-  emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
+  emph::MakeSingleTracksForAlign::MakeSingleTracksForAlign(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
-    fClusterCut        (pset.get< std::string >("ClusterCut")),
-    fTrkSegLabel       (pset.get< std::string >("TrkSegLabel"))
+    fClusterCut        (pset.get< std::string >("ClusterCut"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -153,7 +147,7 @@ namespace emph {
 
   //......................................................................
   
-  void MakeSingleTracks::beginRun(art::Run& run)
+  void MakeSingleTracksForAlign::beginRun(art::Run& run)
   {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
@@ -163,7 +157,7 @@ namespace emph {
 
   //......................................................................
    
-  void emph::MakeSingleTracks::beginJob()
+  void emph::MakeSingleTracksForAlign::beginJob()
   {
     art::ServiceHandle<art::TFileService> tfs;
     spacepoint = tfs->make<TTree>("spacepoint","");
@@ -174,7 +168,7 @@ namespace emph {
  
   //......................................................................
   
-  void emph::MakeSingleTracks::endJob()
+  void emph::MakeSingleTracksForAlign::endJob()
   {
        if (fClusterCut == "strict") std::cout<<"Number of events with one cluster per sensor: "<<goodclust<<std::endl;
        if (fClusterCut == "lessstrict") std::cout<<"Number of events with at least two clusters per station: "<<goodclust<<std::endl;
@@ -183,7 +177,7 @@ namespace emph {
 
   //......................................................................
 
-  void emph::MakeSingleTracks::produce(art::Event& evt)
+  void emph::MakeSingleTracksForAlign::produce(art::Event& evt)
   {
     tsv.clear();
     spv.clear();
@@ -218,7 +212,6 @@ namespace emph {
 	}
       }
 
-      art::Handle< std::vector<rb::TrackSegment> > trksegH;
       art::Handle< std::vector<sim::Particle> > particleH;
       art::Handle< std::vector<rb::SSDCluster> > clustH;
       art::Handle< std::vector<sim::SSDHit> > ssdHitH;
@@ -233,19 +226,6 @@ namespace emph {
       bool goodEvent = false;
       
       try {
-	evt.getByLabel(fTrkSegLabel, trksegH);
-        trksegs1.clear();
-        trksegs2.clear();
-        trksegs3.clear();
-        if (!trksegH->empty()){
-          for (size_t idx=0; idx < trksegH->size(); ++idx) {
-	    const rb::TrackSegment& ts = (*trksegH)[idx];
-            if (ts.Label() == 1) trksegs1.push_back(&ts);
-	    else if (ts.Label() == 2) trksegs2.push_back(&ts);
-            else if (ts.Label() == 3) trksegs3.push_back(&ts);		
-	    else std::cout<<"Track segments not properly labeled."<<std::endl;
-          }
-	}
         evt.getByLabel(fG4Label, particleH);
         particles.clear();
         if (!particleH->empty()){
@@ -482,4 +462,4 @@ namespace emph {
 
 } // end namespace emph
 
-DEFINE_ART_MODULE(emph::MakeSingleTracks)
+DEFINE_ART_MODULE(emph::MakeSingleTracksForAlign)

@@ -122,6 +122,7 @@ namespace emph {
     Mille* m;
     std::vector<int> label;
     std::vector<float> derLc;
+    std::vector<std::vector<std::vector<float> > > derlctest;
 
     double targetz;
     double magnetusz;
@@ -210,7 +211,7 @@ namespace emph {
     aligntree->Branch("subrun",&subrun,"subrun/I");
     aligntree->Branch("event",&event,"event/I");   
 */
-    m = new Mille("m120.bin",true,true);
+    m = new Mille("m002.bin",true,true);
 
     //for (int i=1; i<113; i++) label.push_back(i);
 
@@ -292,6 +293,13 @@ std::cout<<"view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<st
           TVector3 x0(ls_group[ii][jj][kk]->X0().X(),ls_group[ii][jj][kk]->X0().Y(),ls_group[ii][jj][kk]->X0().Z());
           TVector3 x1(ls_group[ii][jj][kk]->X1().X(),ls_group[ii][jj][kk]->X1().Y(),ls_group[ii][jj][kk]->X1().Z());
 
+	  int sens = cl_group[ii][jj][kk]->Sensor();
+
+          std::cout<<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View()<<std::endl;
+	  auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
+	  double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad i think
+          // rad or degree?
+	  std::cout<<"phi_m: "<<phim<<std::endl;
           for (auto ts : tracksegv) {
             double tsz = ts.Vtx()[2];
 	    TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
@@ -299,6 +307,7 @@ std::cout<<"view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<st
 
 	  // pull = doca between s and ts
             double sensorz = x0(2); //s[2];
+            if (x0(2) != x1(2)) std::cout<<"Rotated line segment --> using x0 for now"<<std::endl;
 
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
@@ -307,13 +316,93 @@ std::cout<<"view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<st
               r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");   
               float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
 
+	      // @ sensorz what is ts xy 
+	      // find signed distance from sensor xy to ts xy 
+	      // find t where sensor z is
+	      double t = ( sensorz - a(2) )/( b(2) - a(2) );
+	      double tsx = a(0) + (b(0)-a(0))*t;
+	      double tsy = a(1) + (b(1)-a(1))*t;
+	      //std::cout<<"tsx,tsy = "<<tsx<<","<<tsy<<std::endl;
+	      // signed distance from point to a line 
+              // find slope of line segment
+              /*
+              double dx = b(0) - a(0);
+	      double dy = b(1) - a(1);
+	      if (dx == 0){
+	        la = 1;
+		lb = 0;
+	        lc = a(0);
+	      }
+	      else{
+                double m = dy/dx;
+		lc = a(1) - m*a(0);
+		la = m;
+		lb = 1;
+	      }
+	      */
+	      double la = x1(1) - x0(1);
+	      double lb = x0(0) - x1(0);
+	      double lc = x0(1)*(x1(0)-x0(0)) - (x1(1)-x0(1))*x0(0);	  
+	      float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
+
               //std::cout<<"Pull: "<<pull<<std::endl;
-	      pullsorted[ii][jj].push_back(pull);
+	      //pullsorted[ii][jj].push_back(pull);
+	      pullsorted[ii][jj].push_back(dsign);
+
+	      float lcd_x0 = -1.*TMath::Sin(phim);
+	      float lcd_pxpz = -sensorz*TMath::Sin(phim);
+	      float lcd_y0 = 1.*TMath::Cos(phim);
+	      float lcd_pypz = sensorz*TMath::Cos(phim);
+
+	      std::cout<<"..........."<<std::endl;
+	      std::cout<<"pull = "<<pull<<std::endl;
+	      std::cout<<"dsign = "<<dsign<<std::endl;
+	      std::cout<<"sensorz = "<<sensorz<<std::endl;
+
+              float gld_x; float gld_y; float gld_z;
+	      if (sview == 1){ // X-VIEW
+	        gld_x = -1.*TMath::Sin(phim);
+		gld_y = 0.;
+		gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim);
+	      }
+	      else if (sview == 2){ // Y-VIEW
+                gld_x = 0;
+                gld_y = 1.*TMath::Cos(phim);
+                gld_z = ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
+              }
+	      else if (sview == 4){ // U-VIEW
+                gld_x = -1.*TMath::Sin(phim);;
+                gld_y = 1.*TMath::Cos(phim);
+                gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim) + ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
+              }
+              else{
+		gld_x = 0.;
+		gld_y = 0.;
+		gld_z = 0.;
+              }
+       	
+	      //float gld_x = 1.*TMath::Cos(phim);
+	      //float gld_xz = ts.P()[0]/ts.P()[2]*TMath::Cos(phim);
+	      //float gld_y = 1.*TMath::Sin(phim);
+	      //float gld_yz = ts.P()[1]/ts.P()[2]*TMath::Sin(phim);
+
+	      //std::cout<<"px = "<<ts.P()[0]<<std::endl;
+	      //std::cout<<"py = "<<ts.P()[1]<<std::endl;
+              //std::cout<<"pz = "<<ts.P()[2]<<std::endl;
+	      //std::cout<<"px/pz = "<<gld_xz<<std::endl;
+	      //std::cout<<"py/pz = "<<gld_yz<<std::endl;
+
+	      float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
+	      float mdergl[3] = {gld_x,gld_y,gld_z};
+
+	      int ltmp[4] = {ii*1000 + jj*100 + kk*10 + 1,ii*1000 + jj*100 + kk*10 + 2, ii*1000 + jj*100 + kk*10 + 3}; //, ii*1000 + jj*100 + kk*10 + 4};
+              m->mille(4,mderlc,3,mdergl,ltmp,dsign,0.0173);
 	    }
 	  }
 	}
       }
     }
+    m->end();
   }
 
   //......................................................................
@@ -348,7 +437,7 @@ std::cout<<"view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<st
 	      for (size_t i=0; i<3; i++){
                 n[i] = ts.P()[i]/pmag;
 	        //std::cout<<"n: "<<n[i]<<std::endl;
-                if (wantN) derLc.push_back(n[i]);
+                if (wantN) {derLc.push_back(n[i]); derlctest[ii][jj].push_back(n[i]); }
               }
               // dx/dz, dy/dz, 1 ?
 
@@ -382,7 +471,8 @@ std::cout<<"view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<st
 
   void emph::SingleTrackAlignment::produce(art::Event& evt)
   {
-    std::vector<float> derGl;
+    std::vector<float> derGl(112, 0.0);
+    std::vector<std::vector<std::vector<float> > > dergltest;
 
     derLc.clear();
     nomsorted.clear();
@@ -453,12 +543,17 @@ std::cout<<"view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<st
       ls_group.resize(nStations);
       nomsorted.resize(nStations);
       pullsorted.resize(nStations);
+      derlctest.resize(nStations);
+      dergltest.resize(nStations);
+      //derGl.resize(28);
 
       for (size_t i=0; i<nStations; i++){
         cl_group[i].resize(nPlanes);
         ls_group[i].resize(nPlanes);
 	nomsorted[i].resize(nPlanes);
         pullsorted[i].resize(nPlanes);
+	derlctest[i].resize(nPlanes);
+        dergltest[i].resize(nPlanes);
       }
 
       for (size_t i=0; i<clusters.size(); i++){
@@ -516,10 +611,10 @@ std::vector<double> nomr;
 
         // Get pulls
         Pulls(tsvnom);
-
+	//m->end();
         // Get nominal rotations at each station
         //auto nomr = SSDRot();
-
+/*
         int nsens = 0;
         for (int i=0; i<(int)nStations; i++){
         //for (int i=0; i<(int)ls_group.size(); i++){
@@ -577,14 +672,14 @@ std::vector<double> nomr;
                 int np = static_cast<int>(nPlanes);
                 emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
 
-                const rb::LineSegment* ls_true = ls_group[i][j][k]; //*****
+                const rb::LineSegment* ls_true = ls_group[i][j][k]; ///////
 
 	        rb::LineSegment* ls_tmp = new rb::LineSegment();
 
 	        // Make shifted LineSegments with DetGeoMap
-		auto cl = cl_group[i][j][k]; //*****
+		auto cl = cl_group[i][j][k]; //////////
 
-	        if (dgm->Map()->SSDClusterToLineSegment(*cl,*ls_tmp)) ls_group[i][j][k] = ls_tmp; //*****	
+	        if (dgm->Map()->SSDClusterToLineSegment(*cl,*ls_tmp)) ls_group[i][j][k] = ls_tmp; ///////	
                 spv = algo.MakeHits(ls_group);
 
 		sp1.clear();
@@ -627,27 +722,30 @@ std::vector<double> nomr;
 
                 // Calculate numerical derivative
                 // df/dh = ( f(x+h) - f(x) ) / h
-	        derGl.clear();
-                for (size_t i=0; i<nom.size(); i++){
-                  for (size_t j=0; j<shift.size(); j++){
-                    if (i==j){
-                      double dfdh_x = (shift[j](0) - nom[i](0))/(epsilon);
-                      double dfdh_y = (shift[j](1) - nom[i](1))/(epsilon);
-                      double dfdh_z = (shift[j](2) - nom[i](2))/(epsilon);
+	        //derGl.clear();
+                for (size_t aa=0; aa<nom.size(); aa++){
+                  for (size_t bb=0; bb<shift.size(); bb++){
+                    if (aa==bb){
+                      double dfdh_x = (shift[bb](0) - nom[aa](0))/(epsilon);
+                      double dfdh_y = (shift[bb](1) - nom[aa](1))/(epsilon);
+                      double dfdh_z = (shift[bb](2) - nom[aa](2))/(epsilon);
 
                       // Store in vector
 		      std::vector<double> der = {dfdh_x,dfdh_y,dfdh_z};
 
                       // Add to global derivatives vector
-                      derGl.push_back((float)dfdh_x);
-                      derGl.push_back((float)dfdh_y);
-                      derGl.push_back((float)dfdh_z);
-
+                      //derGl.push_back((float)dfdh_x);
+                      //derGl.push_back((float)dfdh_y);
+                      //derGl.push_back((float)dfdh_z);
+		      derGl[aa*4] += dfdh_x;
+                      derGl[aa*4+1] += dfdh_y;
+                      derGl[aa*4+2] += dfdh_z;
 		      //std::cout<<"dfdh_(xyz): "<<dfdh_x<<","<<dfdh_y<<","<<dfdh_z<<std::endl;
 
 		      // Rotations
-		      double dfdh_r = (shiftr[j] - nomr[i])/(0.1); //*TMath::Pi()/180.);
-                      derGl.push_back((float)dfdh_r);
+		      double dfdh_r = (shiftr[bb] - nomr[aa])/(0.1); ///TMath::Pi()/180.);
+                      //derGl.push_back((float)dfdh_r);
+                      derGl[aa*4+3] += dfdh_r;
 		      //std::cout<<"dfdh_r: "<<dfdh_r<<std::endl;
 	              //std::cout<<"nomr: "<<nomr[i]<<", shiftr: "<<shiftr[j]<<std::endl;
 
@@ -663,16 +761,16 @@ std::vector<double> nomr;
 		  // Unsure if this is right --> do I loop through dimensions again?
 		  // rMeas should be nominal x,y,z, or angle position
 		  //float rMeas = nomsorted[i][j][k](d);
-		  float rMeas = pullsorted[i][j][k]; //sens]; //k]; *****
-		  std::cout<<"rMeas: "<<rMeas<<std::endl;
+//		  float rMeas = pullsorted[i][j][k]; //sens]; //k]; *****
+		  //std::cout<<"rMeas: "<<rMeas<<std::endl;
 	          //std::cout<<"rMeas: "<<nomsorted[i][j][k](d)<<std::endl;
 	          //std::cout<<"derLc size: "<<derLc.size()<<std::endl;
                   //std::cout<<"derGl size: "<<derGl.size()<<std::endl;
-                  m->mille(84,derLc.data(),112,derGl.data(),label.data(),rMeas,0.0173);
+//                  m->mille(84,derLc.data(),112,derGl.data(),label.data(),rMeas,0.0173);
 		  //m->mille(84,derLc.data(),84,derGl.data(),label.data(),rMeas,17.3);		
 
 		  // Write to binary file
-                  m->end();
+                  //m->end();
 	        //} // d
  
 		// Undo line segment defintion
@@ -683,9 +781,71 @@ std::vector<double> nomr;
 	        align->SetSSDRotation(i,j,sens,ur);
 		//if (dim==-1) align->AddSSDRotation(i,j,sens,ur2);
 	      } // dim
+	      //m->end();
             } // sensor
           } // plane
         } //station
+*/
+/*
+        for (int i=0; i<(int)derGl.size(); i++){
+	  derGl[i] /= derGl.size();
+        }
+
+	std::vector<float> dlc12;
+	std::vector<float> dgl12;	
+	std::vector<int> l12;
+	for (int s=0; s<54; s++){
+	  dlc12.push_back(derLc[s]);
+	}
+        for (int s=0; s<72; s++){
+          dgl12.push_back(derGl[s]);
+          l12.push_back(label[s]);
+        }
+*/
+/*
+        std::vector<float> derlctmp;
+        std::vector<float> dergltmp;
+        std::vector<int> ltmp;
+        int n=0;
+        for (int i=0; i<(int)nStations; i++){	
+          for (int j=0; j<emgeo->GetSSDStation(i)->NPlanes(); j++){
+            for (int k=0; k<(int)ls_group[i][j].size(); k++){              
+              int sens = k;
+              if (cl_group[i][j][k]->Sensor()!=k) {sens = cl_group[i][j][k]->Sensor();}
+	      derlctmp.push_back(derLc[n*3]);
+	      derlctmp.push_back(derLc[n*3+1]);
+              derlctmp.push_back(derLc[n*3+2]);
+              dergltmp.push_back(derGl[n*4]);
+              dergltmp.push_back(derGl[n*4+1]);
+              dergltmp.push_back(derGl[n*4+2]);
+	      dergltmp.push_back(derGl[n*4+3]);
+              ltmp.push_back(label[n*4]);
+              ltmp.push_back(label[n*4+1]);
+              ltmp.push_back(label[n*4+2]);
+              ltmp.push_back(label[n*4+3]);
+	      n++;
+            }
+          }
+        }
+	std::cout<<"N="<<n<<std::endl;
+        for (int i=0; i<(int)nStations; i++){
+          for (int j=0; j<emgeo->GetSSDStation(i)->NPlanes(); j++){
+            for (int k=0; k<(int)ls_group[i][j].size(); k++){
+//        for (int i=0; i<6; i++){
+//          for (int j=0; j<emgeo->GetSSDStation(i)->NPlanes(); j++){
+//            for (int k=0; k<(int)ls_group[i][j].size(); k++){
+	      float rMeas = pullsorted[i][j][k];
+//              m->mille(54,dlc12.data(),72,dgl12.data(),l12.data(),rMeas,0.0173);
+              //m->mille(84,derLc.data(),112,derGl.data(),label.data(),rMeas,0.0173);
+	      m->mille(3,derlctmp.data(),4,dergltmp.data(),ltmp.data(),rMeas,0.0173);
+	    }
+	  }
+	}
+        m->end();
+	derlctmp.clear();
+	dergltmp.clear();
+	ltmp.clear();
+*/
       } //if
     } // try	
     catch(...) {

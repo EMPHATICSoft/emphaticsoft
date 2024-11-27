@@ -63,6 +63,38 @@ cet_build_plugin(MakeSingleTracks art::module
     ROOT::Spectrum
     ROOT::Tree
 )
+cet_build_plugin(MakeSingleTracksForAlign art::module
+  LIBRARIES PRIVATE
+    RawData
+    RecoBase
+    RecoUtils
+    SingleTrackAlgo
+    ChannelMapService_service
+    Geometry_service
+    DetGeoMapService_service
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Core
+    ROOT::Hist
+    ROOT::Spectrum
+    ROOT::Tree
+)
+cet_build_plugin(MakeTrackSegments art::module
+  LIBRARIES PRIVATE
+    RawData
+    RecoBase
+    RecoUtils
+    SingleTrackAlgo
+    ChannelMapService_service
+    Geometry_service
+    DetGeoMapService_service
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Core
+    ROOT::Hist
+    ROOT::Spectrum
+    ROOT::Tree
+)
 
 install_source()
 install_fhicl()

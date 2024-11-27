@@ -15,6 +15,8 @@
 #include "RecoBase/TrackSegment.h"
 #include "RecoUtils/RecoUtils.h"
 
+#include "Geometry/service/GeometryService.h"
+
 #include <vector>
 #include <iomanip>
 #include <iostream>
@@ -32,6 +34,8 @@ namespace emph {
     nPlanes(-1)
   {
     for (int i=0; i<3; ++i) {
+      beamtrkvtx[i] = -999999.;
+      beamtrkp[i] = -999999.;
       sectrkvtx[i] = -999999.;
       sectrkp[i] = -999999.;
     }
@@ -45,6 +49,8 @@ namespace emph {
     nPlanes(nplanes)
   {
     for (int i=0; i<3; ++i) {
+      beamtrkvtx[i] = -999999.;
+      beamtrkp[i] = -999999.;
       sectrkvtx[i] = -999999.;
       sectrkp[i] = -999999.;
     }
@@ -56,8 +62,9 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group) 
+  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHitsOrig(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group)
 {
+
      rb::SpacePoint sp;
 
      //ru::RecoUtils recoFcn = ru::RecoUtils(fEvtNum);
@@ -143,6 +150,118 @@ namespace emph {
 
   //------------------------------------------------------------
 
+  void SingleTrackAlgo::doTwoPlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, double x[3]){
+
+    TVector3 fA( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
+    TVector3 fB( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
+    TVector3 fC( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
+    TVector3 fD( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
+
+    double l1[3]; double l2[3];
+    recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD",false);   
+
+  }
+
+  //------------------------------------------------------------
+
+  void SingleTrackAlgo::doThreePlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, const rb::LineSegment* ls3, double x[3]){
+
+    TVector3 fA01( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
+    TVector3 fB01( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
+    TVector3 fC01( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
+    TVector3 fD01( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
+
+    double x01[3];
+    double l1_01[3]; double l2_01[3];
+    recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD",false);
+
+    TVector3 fA02( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
+    TVector3 fB02( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
+    TVector3 fC02( ls3->X0().X(), ls3->X0().Y(), ls3->X0().Z() );
+    TVector3 fD02( ls3->X1().X(), ls3->X1().Y(), ls3->X1().Z() );
+
+    double x02[3];
+    double l1_02[3]; double l2_02[3];
+    recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD",false);
+
+    TVector3 fA12( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
+    TVector3 fB12( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
+    TVector3 fC12( ls3->X0().X(), ls3->X0().Y(), ls3->X0().Z() );
+    TVector3 fD12( ls3->X1().X(), ls3->X1().Y(), ls3->X1().Z() );
+
+    double x12[3];
+    double l1_12[3]; double l2_12[3];
+    recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD",false);   
+
+    for (int i=0; i<3; i++){
+      x[i] = (x01[i]+x02[i]+x12[i])/3.;
+    }
+
+  }
+
+  //------------------------------------------------------------
+
+  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group) 
+  {
+    rb::SpacePoint sp;
+
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto emgeo = geo->Geo();
+
+    for (size_t i=0; i<nStations; i++){
+      int nUnique = 0;
+      for (size_t j=0; j<ls_group[i].size(); j++){
+        if (ls_group[i][j].size() != 0) nUnique++;
+      }
+      int nPlanesGeo = emgeo->GetSSDStation(i)->NPlanes();
+
+      for (size_t j=0; j<ls_group[i].size(); j++){
+        if (nPlanesGeo == 2){ //station 0,1,4,7
+          for (size_t k=0; k<ls_group[i][j].size(); k++){
+            for (size_t l=0; l<ls_group[i][j+1].size(); l++){
+	      double x[3];
+              doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x);
+
+              sp.SetX(x);
+              sp.SetStation(i);
+              spv.push_back(sp);
+
+            }
+          }
+        }
+        else if (nPlanesGeo == 3){ //station 2,3,5,6
+          for (size_t k=0; k<ls_group[i][j].size(); k++){
+            for (size_t l=0; l<ls_group[i][j+1].size(); l++){
+	      if (nUnique < nPlanesGeo){
+                double x[3];
+                doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x); 
+			
+                sp.SetX(x);
+		sp.SetStation(i);
+                spv.push_back(sp);
+              }
+              else{
+                for (size_t m=0; m<ls_group[i][j+2].size(); m++){
+                  double x[3];
+                  doThreePlanes(ls_group[i][j][k],ls_group[i][j+1][l],ls_group[i][j+2][m],x);
+			  
+                  sp.SetX(x);
+                  sp.SetStation(i);
+                  spv.push_back(sp);
+	        }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return spv;
+
+  }
+
+  //------------------------------------------------------------
+
   std::vector<rb::TrackSegment> SingleTrackAlgo::MakeLines(std::vector<std::vector<double>> sp1, std::vector<std::vector<double>> sp2, std::vector<std::vector<double>> sp3) 
   {
     //ru::RecoUtils recoFcn2 = ru::RecoUtils(fEvtNum);
@@ -156,6 +275,20 @@ namespace emph {
     llast1[0] = sp1[1][0];
     llast1[1] = sp1[1][1];
     llast1[2] = sp1[1][2];
+
+    //test
+    double lfirst1t[3]; double llast1t[3];
+    recoFcn.findLine(sp1,lfirst1t,llast1t);
+    //std::cout<<"Before (lfirst): "<<lfirst1[0]<<", "<<lfirst1[1]<<", "<<lfirst1[2]<<std::endl;
+    //std::cout<<"After  (lfirst): "<<lfirst1t[0]<<", "<<lfirst1t[1]<<", "<<lfirst1t[2]<<std::endl;
+    //std::cout<<"Before  (llast): "<<llast1[0]<<", "<<llast1[1]<<", "<<llast1[2]<<std::endl;
+    //std::cout<<"After   (llast): "<<llast1t[0]<<", "<<llast1t[1]<<", "<<llast1t[2]<<std::endl;
+    //std::cout<<"....................."<<std::endl;
+
+    for (int i=0; i<3; i++){
+      if (std::fabs(lfirst1[i] - lfirst1t[i]) > 1E-3) std::cout<<"BAD LF @ "<<i<<std::endl;
+      if (std::fabs(llast1[i] - llast1t[i]) > 1E-3) std::cout<<"BAD LL @ "<<i<<std::endl; 
+    }
 
     //segment 2  
     double lfirst2[3]; double llast2[3];
@@ -226,6 +359,8 @@ namespace emph {
     double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
     double recop = recoFcn.getMomentum(recoBendAngle);
 
+    //std::cout<<"recop: "<<recop<<std::endl; 
+
     //change track segments
     double realp1[3];
     realp1[2] = recop*ts1.P()[2];
@@ -266,6 +401,290 @@ namespace emph {
 
     return tsv;
 
+  }
+
+  //------------------------------------------------------------
+
+void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> matrix, int row, std::vector<rb::SpacePoint> combination, std::vector<std::vector<rb::SpacePoint>> result,int stop) {
+    // Base case: reached the end of the matrix
+    //if (row == (int)matrix.size()) {
+//std::cout<<"Starting getCombinations"<<std::endl;
+    if ((int)combination.size() == stop){
+      result.push_back(combination);
+      for (auto val : combination) {
+        std::cout << val.Station() << " ";
+      }
+      std::cout << std::endl;
+      return;
+    }
+
+    if (row == (int)matrix.size()) {
+        return;
+    }
+
+    for (int col = 0; col < (int)matrix[row].size(); col++) {
+      combination.push_back(matrix[row][col]);
+      getCombinations(matrix, row + 1, combination,result,stop);
+      combination.pop_back();
+    }
+
+  }
+
+
+  std::vector<rb::TrackSegment> SingleTrackAlgo::MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints)
+  {
+    // Reorganize input
+    std::vector<std::vector<rb::SpacePoint>> spmatrix;
+    spmatrix.resize(nStations);
+    std::vector<rb::TrackSegment> alltrackcombos;
+
+std::cout<<"Spacepoints.Size() = "<<spacepoints.size()<<std::endl;
+    for (size_t i=0; i<spacepoints.size(); i++){
+      int station = spacepoints[i].Station();
+      spmatrix[station].push_back(spacepoints[i]);
+      std::cout<<"MakeTrackSeg: Station = "<<station<<std::endl;
+    }
+
+    // Make all combinations of space points
+    //std::vector<std::vector<rb::SpacePoint>> sptmp;
+    int combos = 1;
+    for (size_t i=0; i<spmatrix.size(); i++){
+      for (size_t j=0; j<spmatrix[i].size(); j++){ 
+        if (spmatrix[i].size() == 0) combos *= 1;
+        else combos *= (int)spmatrix[i].size();
+      }
+    }
+//    std::cout<<"Combos =" <<combos<<std::endl;
+/*
+    sptmp.resize(combos);
+    for (int a=0; a<combos; a++){
+      for (size_t i=0; i<spmatrix.size(); i++){
+        for (size_t j=0; j<spmatrix[i].size(); j++){  
+	  for (size_t k=0; k<spmatrix[i+1].size(); k++){
+            sptmp[a].push_back(spmatrix[i][j]);
+            sptmp[a].push_back(spmatrix[k][j]);
+	}
+        } //not sure if this is right...
+      }
+    }  
+*/
+    std::vector<std::vector<rb::SpacePoint>> sptmp;
+    std::vector<rb::SpacePoint> combination;
+
+    int r=0;
+    for (auto row : spmatrix){
+      if (row.size() != 0){ 
+        r = row[0].Station();
+        break;
+      }
+    }
+std::cout<<"r: "<<r<<std::endl;
+    getCombinations(spmatrix, r, combination, sptmp,2);
+    getCombinations(spmatrix, r, combination, sptmp,3);
+
+   //for (auto val : combination) {
+   //std::cout << val.Station() << " " << std::endl;
+  // }
+
+    // Print the combinations
+
+//    for (const auto& comb : result) {
+//        for (auto val : comb) {
+ //           std::cout << val.Station() << " ";
+   //     }
+     //   std::cout << std::endl;
+  //  }
+
+    // Check that first two planes in a track have hits
+/*
+    for (size_t a=0; a<sptmp.size(); a++){
+      //for (size_t k=0; k<sptmp[a].size(); k++){
+	int stp0 = sptmp[a][0].Station();
+	int stp1 = sptmp[a][0+1].Station();
+        int ch[2] = {stp0, stp1};
+	if (ch == {0,1} || ch == {2,3} || ch == {5,6}) good
+//	int stp2 = sptmp[a][k+2]->Station();
+//	if (stp1 && stp2) good
+//	if (stp1 && !stp2) good
+//	if (stp1 && 
+	
+    //  check that smptmp[a][k] includes stations 01 23 56 how to generalize?
+    //  size >= 2
+    //  [a][k].Station is
+
+    //  iterate through stations? start with [a][k]->Station(), add +1, see if that's there, do again
+    //  2...+1 cool
+    //  3...+1 
+    //  4... then check if 4+1 exists
+    //  if not, yay
+    //  if stating at like 3
+    //  3+1 cool
+    //  4 +1 not there
+    //  reject track/can't make it
+    // if 2+1 but not 3+1, that's fine
+    // 2+1, 3+1, but not 4+1, THAT'S FINE
+    // 3+1, but not 4+1 or 5+1 THATS bad
+*/
+
+    // Now that check the first two stations are included
+    std::vector<std::vector<rb::SpacePoint>> validcombos;
+
+    // Define the organizer and sptmp matrices
+    std::vector<std::vector<int>> organizer{ 
+        {0, 1}, 
+        {2, 3, 4},
+        {5, 6, 7}
+    };
+
+    for (size_t a = 0; a < sptmp.size(); a++) {
+      if (sptmp[a].size() > 2) {
+        validcombos.push_back(sptmp[a]);
+        continue; // Skip if the combination is not of size 2, if size 3 you can just add it to validcombos
+      }
+
+      int first = sptmp[a][0].Station();
+      int second = sptmp[a][1].Station();
+
+      for (const auto& row : organizer) {
+        // The first element of the pair should match the first element of the row
+        if (row.front() == first) {
+          // Ensure that the next element exists in the row and matches the second element
+          auto it = std::find(row.begin(), row.end(), first);
+          size_t index = std::distance(row.begin(), it);
+          // Check that the next element in the row matches the second element
+          if (index + 1 < row.size() && row[index + 1] == second) {
+            // If both elements are found adjacently, push the pair into validcombos
+            validcombos.push_back(sptmp[a]);
+            break; // We found a match, no need to check further rows
+          }
+        }
+      }
+    }
+
+    for (size_t a=0; a<validcombos.size(); a++){
+      // Find line of best fit and return endpoints
+      double lfirst[3]; double llast[3];
+
+      std::vector<std::vector<double>> sppos;
+      for (size_t k=0; k<sptmp[a].size(); k++){
+        std::vector<double> x = {validcombos[a][k].Pos()[0],validcombos[a][k].Pos()[1],validcombos[a][k].Pos()[2]};
+        sppos.push_back(x);
+      }
+      recoFcn.findLine(sppos,lfirst,llast);
+
+      // Create rb::TrackSegments and insert them into the vector
+      rb::TrackSegment ts = rb::TrackSegment();
+      for (auto p : validcombos[a])
+          ts.Add(p);
+      ts.SetVtx(lfirst);
+      ts.SetA(lfirst);
+      ts.SetB(llast);
+
+      double p0[3] = {0.,0.,0.};
+      ts.SetP(p0);
+/*
+      double p[3];
+      double dx = llast[0]-lfirst[0];
+      double dy = llast[1]-lfirst[1];
+      double dz = llast[2]-lfirst[2];
+
+      p[0] = dx/dz;
+      p[1] = dy/dz;
+      p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
+      ts.SetP(p);
+*/
+      alltrackcombos.push_back(ts);
+      
+    }
+    //tsv.push_back(ts);
+    
+    // Choose best track segment metric? Or too early
+
+    combination.clear();
+    sptmp.clear();
+    validcombos.clear();
+
+    return alltrackcombos;
+  }
+
+  //------------------------------------------------------------
+
+  void SingleTrackAlgo::SetBeamTrk(rb::TrackSegment ts1, double pbeam)
+  {
+    SetPtmp(ts1);  
+
+    double p[3];
+    p[2] = pbeam * ts1.P()[2];
+    p[0] = p[2] * ts1.P()[0];
+    p[1] = p[2] * ts1.P()[1];
+
+    ts1.SetP(p);  
+
+    for (int i=0; i<3; i++){
+      beamtrkp[i] = p[i]; 
+      beamtrkvtx[i] = ts1.A()[i];
+    }
+  }
+
+  //------------------------------------------------------------
+
+  void SingleTrackAlgo::SetPtmp(rb::TrackSegment ts)
+  {
+    double dx = ts.B()[0]-ts.A()[0];
+    double dy = ts.B()[1]-ts.A()[1];
+    double dz = ts.B()[2]-ts.A()[2];
+
+    double pxpz = dx/dz;
+    double pypz = dy/dz;
+    double pzpmag = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
+
+    double ptmp[3] = {pxpz,pypz,pzpmag};
+    ts.SetP(ptmp);
+  }
+
+  //------------------------------------------------------------
+
+  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment ts2, rb::TrackSegment ts3)
+  {
+    SetPtmp(ts2);
+    SetPtmp(ts3);
+
+    double ts2_dot_ts3 = ts2.P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
+    double ts2_mag = sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
+    double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
+    double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
+    double recop = recoFcn.getMomentum(recoBendAngle);
+
+    //change track segments
+    double realp2[3];
+    realp2[2] = recop*ts2.P()[2];
+    realp2[0] = ts2.P()[0]*realp2[2];
+    realp2[1] = ts2.P()[1]*realp2[2];
+    ts2.SetP(realp2);
+
+    double realp3[3];
+    realp3[2] = recop*ts3.P()[2];
+    realp3[0] = ts3.P()[0]*realp3[2];
+    realp3[1] = ts3.P()[1]*realp3[2];
+    ts3.SetP(realp3);
+
+//here or outside function (in module?)
+    double recopz = ts2.P()[2];
+    double recopx = ts2.P()[0];
+    double recopy = ts2.P()[1];
+
+    sectrkp[0] = recopx;
+    sectrkp[1] = recopy;
+    sectrkp[2] = recopz;
+
+    //not sure if i like this
+    TVector3 a(tsv[0].A()[0],tsv[0].A()[1],tsv[0].A()[2]);
+    TVector3 b(tsv[0].B()[0],tsv[0].B()[1],tsv[0].B()[2]);
+    TVector3 c(tsv[1].A()[0],tsv[1].A()[1],tsv[1].A()[2]);
+    TVector3 d(tsv[1].B()[0],tsv[1].B()[1],tsv[1].B()[2]);
+    double l0t[3];
+    double l1t[3];
+    recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
   }
 
   //------------------------------------------------------------

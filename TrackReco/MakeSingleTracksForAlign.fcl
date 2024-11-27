@@ -1,8 +1,8 @@
 BEGIN_PROLOG
 
-standard_makesingletracks:
+standard_makesingletracksforalign:
 {
-  module_type: MakeSingleTracks
+  module_type: MakeSingleTracksForAlign
   CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
   ClusterLabel:      "ssdclusts"
   G4Label:           "geantgen"

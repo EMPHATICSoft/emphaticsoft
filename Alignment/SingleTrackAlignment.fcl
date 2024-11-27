@@ -4,9 +4,9 @@ standard_singletrackalignment:
 {
   module_type: SingleTrackAlignment
   CheckLineSeg:       false
-  LineSegLabel:       "makesingletracks"
+  LineSegLabel:       "makesingletracksforalign"
   ClusterLabel:       "ssdclusts"
-  TrackSegLabel:      "makesingletracks"
+  TrackSegLabel:      "makesingletracksforalign"
 }
 
 END_PROLOG

@@ -55,10 +55,10 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
   ///
-  class MakeSingleTracks : public art::EDProducer {
+  class MakeTrackSegments : public art::EDProducer {
   public:
-    explicit MakeSingleTracks(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-    ~MakeSingleTracks() {};
+    explicit MakeTrackSegments(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    ~MakeTrackSegments() {};
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
@@ -78,10 +78,6 @@ namespace emph {
     int         run,subrun,event;
     int         fEvtNum;
 
-
-    std::vector<const rb::TrackSegment*> trksegs1;
-    std::vector<const rb::TrackSegment*> trksegs2;
-    std::vector<const rb::TrackSegment*> trksegs3;
     std::vector<const sim::Particle*> particles;
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
@@ -106,39 +102,32 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     std::string fClusterCut;
-    std::string fTrkSegLabel;
 
     //reco info for lines
-    std::vector<std::vector<double>> sp1;
-    std::vector<std::vector<double>> sp2;
-    std::vector<std::vector<double>> sp3;
-    //std::vector<rb::SpacePoint> sp1;
-    //std::vector<rb::SpacePoint> sp2;
-    //std::vector<rb::SpacePoint> sp3;
+    std::vector<rb::SpacePoint> sp1;
+    std::vector<rb::SpacePoint> sp2;
+    std::vector<rb::SpacePoint> sp3;
     double pbeam[3];
 
   };
 
   //.......................................................................
   
-  emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
+  emph::MakeTrackSegments::MakeTrackSegments(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
-    fClusterCut        (pset.get< std::string >("ClusterCut")),
-    fTrkSegLabel       (pset.get< std::string >("TrkSegLabel"))
+    fClusterCut        (pset.get< std::string >("ClusterCut"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
       this->produces< std::vector<rb::TrackSegment> >();
-      this->produces< std::vector<rb::Track> >();
-      
     }
   
   //......................................................................
   
-//  MakeSingleTracks::~MakeSingleTracks()
+//  MakeTrackSegments::~MakeTrackSegments()
 //  {
     //======================================================================
     // Clean up any memory allocated by your module
@@ -147,13 +136,13 @@ namespace emph {
 
   //......................................................................
 
-  // void MakeSingleTracks::reconfigure(const fhicl::ParameterSet& pset)
+  // void MakeTrackSegments::reconfigure(const fhicl::ParameterSet& pset)
   // {    
   // }
 
   //......................................................................
   
-  void MakeSingleTracks::beginRun(art::Run& run)
+  void MakeTrackSegments::beginRun(art::Run& run)
   {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
@@ -163,7 +152,7 @@ namespace emph {
 
   //......................................................................
    
-  void emph::MakeSingleTracks::beginJob()
+  void emph::MakeTrackSegments::beginJob()
   {
     art::ServiceHandle<art::TFileService> tfs;
     spacepoint = tfs->make<TTree>("spacepoint","");
@@ -174,7 +163,7 @@ namespace emph {
  
   //......................................................................
   
-  void emph::MakeSingleTracks::endJob()
+  void emph::MakeTrackSegments::endJob()
   {
        if (fClusterCut == "strict") std::cout<<"Number of events with one cluster per sensor: "<<goodclust<<std::endl;
        if (fClusterCut == "lessstrict") std::cout<<"Number of events with at least two clusters per station: "<<goodclust<<std::endl;
@@ -183,7 +172,7 @@ namespace emph {
 
   //......................................................................
 
-  void emph::MakeSingleTracks::produce(art::Event& evt)
+  void emph::MakeTrackSegments::produce(art::Event& evt)
   {
     tsv.clear();
     spv.clear();
@@ -191,7 +180,6 @@ namespace emph {
     std::unique_ptr< std::vector<rb::LineSegment> > linesegv(new std::vector<rb::LineSegment>);
     std::unique_ptr< std::vector<rb::SpacePoint> > spacepointv(new std::vector<rb::SpacePoint>);
     std::unique_ptr< std::vector<rb::TrackSegment> > tracksegmentv(new std::vector<rb::TrackSegment>);
-    std::unique_ptr< std::vector<rb::Track> > trackv(new std::vector<rb::Track>);
 
     run = evt.run();
     subrun = evt.subRun();
@@ -218,7 +206,6 @@ namespace emph {
 	}
       }
 
-      art::Handle< std::vector<rb::TrackSegment> > trksegH;
       art::Handle< std::vector<sim::Particle> > particleH;
       art::Handle< std::vector<rb::SSDCluster> > clustH;
       art::Handle< std::vector<sim::SSDHit> > ssdHitH;
@@ -233,19 +220,6 @@ namespace emph {
       bool goodEvent = false;
       
       try {
-	evt.getByLabel(fTrkSegLabel, trksegH);
-        trksegs1.clear();
-        trksegs2.clear();
-        trksegs3.clear();
-        if (!trksegH->empty()){
-          for (size_t idx=0; idx < trksegH->size(); ++idx) {
-	    const rb::TrackSegment& ts = (*trksegH)[idx];
-            if (ts.Label() == 1) trksegs1.push_back(&ts);
-	    else if (ts.Label() == 2) trksegs2.push_back(&ts);
-            else if (ts.Label() == 3) trksegs3.push_back(&ts);		
-	    else std::cout<<"Track segments not properly labeled."<<std::endl;
-          }
-	}
         evt.getByLabel(fG4Label, particleH);
         particles.clear();
         if (!particleH->empty()){
@@ -262,6 +236,7 @@ namespace emph {
           //std::cout<<"Incident pbeam[1]: "<<pbeam[1]<<std::endl;
           //std::cout<<"Incident pbeam[2]: "<<pbeam[2]<<std::endl;
         }
+	//std::cout<<"After particle"<<std::endl;
 	evt.getByLabel(fClusterLabel, clustH);
 	if (!clustH->empty()){
           rb::LineSegment lineseg_tmp  = rb::LineSegment();
@@ -297,48 +272,46 @@ namespace emph {
 	    else badclust++;
 	  }
 
+          //remove this loop?
+	  int count=0;
+	  for (auto i : clustMapAtLeastOne){
+            std::cout<<"i.first: "<<i.first<<std::endl; //"..."<<"i.second.first: "<<i.second.first<<std::endl;
+	    for (auto j : i.second){
+	      count++;
+	      std::cout<<"... "<<j.second<<std::endl;
+	    }
+            std::cout<<"count = "<<count<<std::endl;
+            count = 0;
+	  }
+	  std::cout<<"nclusters: "<<clusters.size()<<std::endl;
+
+	  fClusterCut == "lessstrict";
 	  //AT LEAST TWO CLUSTERS PER STATION
 	  if (fClusterCut == "lessstrict"){
-	    if (clusters.size()<=nPlanes){
-	      int sum[8] = {0};
-	      for (auto i : clustMap){
-                if (i.second != 1){goodEvent = false; break;}
-	        sum[i.first.first] += i.second;
-	      }
-	      for (size_t i=0; i<nStations; i++){
-	        if (sum[i] == 2 || sum[i] ==3) goodEvent = true;
-	        else {goodEvent = false; break;}
-	      }
-	      if (goodEvent==true) {goodclust++;}
-              else {badclust++;}
+            int count=0; int countSt = 0;
+            for (auto i : clustMapAtLeastOne){
+              for (auto j : i.second){
+                count++;
+              }
+	      countSt++;
+	      // make sure every station has at least two unique clusters
+	      if (count < 2) { goodEvent = false; break; }
+	      else { goodEvent = true; count = 0; }
 	    }
-            else badclust++;
+	    // make sure every station is populated
+	    if (countSt != (int)nStations) goodEvent = false;
+	    if (goodEvent==true) {goodclust++;}
+            else {badclust++;}
 
-	    // debug
-	    //if (goodEvent && clusters.size()<nPlanes){
-	      //std::cout<<"# clusters: "<<clusters.size()<<std::endl;
-	      //for (auto i : clustMap){
-	      //  std::cout<<"Cluster: "<<i.first.first<<","<<i.first.second<<std::endl;
-	      //}
-	    //}
+            std::cout<<"Number of clusters: "<<clusters.size()<<" and goodEvent = "<<goodEvent<<std::endl;
 	  }
 
-          //ALL CLUSTERS
-/*
-	  fClusterCut = "notstrict"; //hardcode
-          if (fClusterCut == "notstrict"){
-            goodEvent = true;
-            for (size_t i=0; i<nPlanes; i++){
-              if (cl_group[i].size() == 0){ goodEvent = false; break; }
-            }
-          }
-*/ 
           cl_group.resize(nStations);
           ls_group.resize(nStations);
 
 	  for (size_t i=0; i<nStations; i++){
-	    cl_group[i].resize(nPlanes);
-	    ls_group[i].resize(nPlanes);
+	    cl_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
+	    ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	  }
 
           for (size_t i=0; i<clusters.size(); i++){
@@ -350,13 +323,6 @@ namespace emph {
 	    cl_group[station][plane].push_back(clusters[i]);
 	  }
 	 
-	  //ANY CLUSTER
-          /*bool goodEvent = true;
-	    for (size_t i=0; i<nPlanes; i++){
-	    if (cl_group[i].size() == 0){ goodEvent = false; break; }
-	    }
-          */
-
           //instance of single track algorithm
           emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
  
@@ -369,32 +335,20 @@ namespace emph {
 	    }
 
             //make reconstructed hits
-            spv = algo.MakeHitsOrig(ls_group);
+            spv = algo.MakeHits(ls_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
 	  }
-
+	  
           ls_group.clear();
           cl_group.clear();
           linesegments.clear();
-	  //particles.clear();
 	  clusters.clear();
           clustMap.clear();
 	  clustMapAtLeastOne.clear();
 
           //reconstructed hits
-          if (goodEvent && spv.size() > 0 && ssdHitH->size() == nPlanes){
-
-	    for (size_t i=0; i<spv.size(); i++){
-	      std::vector<double> x = {spv[i].Pos()[0],spv[i].Pos()[1],spv[i].Pos()[2]};	
-
-	      if (emgeo->GetTarget()){
-                if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(x);
-                if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(x);
-                if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(x);
-              }
-	    }
-/*
+          if (goodEvent && spv.size() > 0){ // && ssdHitH->size() == nPlanes){
             for (size_t i=0; i<spv.size(); i++){
               if (emgeo->GetTarget()){
                 if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(spv[i]);
@@ -402,44 +356,30 @@ namespace emph {
                 if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
               }
             }
-*/
             //form lines and fill plots
-            tsv = algo.MakeLines(sp1,sp2,sp3);
-/*
-            std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-	    for (auto i : tstmp1){
-	      algo.SetBeamTrk(i,pbeam);
-	      tsv.push_back(i);
-            }
-            std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);   
-            std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
-	    for (auto i : tstmp2){
-	      for (auto j : tstmp3){
-		algo.SetRecoTrk(i,j);		
-	      }
-	    }
-	    for (auto i : tstmp2) tsv.push_back(i);
-            for (auto i : tstmp3) tsv.push_back(i);
-*/
-	    //for (auto i : {sp1,sp2,sp3}){//three vectors
-	      //std::vector<rb::TrackSegment> tstmp = algo.MakeTrackSeg(i);
-	      //if i is sp1, then do SetBeamTrk(something,pbeam)
-	      //for now,
 
-	      //how to do SetRecoTrk with multiple track options...?
-	      //for (auto t : tstmp)
-		//tsv.push_back(t);
-	    //}
-	    //algo.MakeTrackSeg(sp1);
-	    //algo.MakeTrackSeg(sp2);
-	    //algo.MakeTrackSeg(sp3);
-	    for (auto ts : tsv) {
-	      tracksegmentv->push_back(ts);	     
-	    }
-	    for (int i=0; i<3; ++i) {
-	      sectrkp[i] = algo.GetSecTrkP()[i];
-	      sectrkvtx[i] = algo.GetSecTrkVtx()[i];
-	    }
+std::cout<<"Checking sp1"<<std::endl;
+for (auto i : sp1){
+std::cout<<"Station = "<<i.Station()<<std::endl;
+}
+std::cout<<"Checking sp2"<<std::endl;
+for (auto i : sp2){
+std::cout<<"Station = "<<i.Station()<<std::endl;
+}
+std::cout<<"Checking sp3"<<std::endl;
+for (auto i : sp3){
+std::cout<<"Station = "<<i.Station()<<std::endl;
+}
+std::cout<<"Now sp1"<<std::endl;
+
+            std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
+	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
+	
+            std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
+            for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
+
+            std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
+            for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
 	  }
           sp1.clear();
           sp2.clear();
@@ -454,32 +394,11 @@ namespace emph {
 
     } //want plots
   
-    // now create tracks from tracksegments.  Note, this is a placeholder 
-    // for now.  The beam track needs to get the momentum from the SpillInfo, 
-    // and the secondary track needs to get the momentum from the bend angle
- 
-    trackv->clear();
-    if (tracksegmentv->size() == 3) {
-      rb::Track beamtrk;
-      beamtrk.Add(tsv[0]);
-      beamtrk.SetP(tsv[0].P());
-      beamtrk.SetVtx(tsv[0].Vtx());
-      trackv->push_back(beamtrk);
-
-      rb::Track sectrk;
-      sectrk.Add(tsv[1]);
-      sectrk.Add(tsv[2]);
-      sectrk.SetP(sectrkp); // this should come from an analysis of the bend angle between track segments 1 and 2.
-      sectrk.SetVtx(sectrkvtx); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
-      trackv->push_back(sectrk);
-    }
-
     evt.put(std::move(linesegv));
     evt.put(std::move(spacepointv));
     evt.put(std::move(tracksegmentv));
-    evt.put(std::move(trackv));
   }
 
 } // end namespace emph
 
-DEFINE_ART_MODULE(emph::MakeSingleTracks)
+DEFINE_ART_MODULE(emph::MakeTrackSegments)
