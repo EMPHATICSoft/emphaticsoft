@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html>
+  <script type="importmap"> {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    }
+  }</script>
+
+  <!-- Ignore favicon requests so Chrome still works -->
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+
+  <head>
+    <title>EMPHATIC Web Display</title>
+  </head>
+
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%
+      height: 100%
+    }
+    #Display {
+      width :100%;
+      height: 100%;
+      display: block;
+    }
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #labels {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: pre-line;
+      color: white;
+    }
+    #labels>div {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: xx-large;
+      user-select: none;
+      white-space: pre-line;
+      text-shadow:
+        -1px -1px 0 #000,
+        0    -1px 0 #000,
+        1px  -1px 0 #000,
+        1px   0   0 #000,
+        1px   1px 0 #000,
+        0     1px 0 #000,
+       -1px   1px 0 #000,
+       -1px   0   0 #000;
+    }
+    #info {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: xxx-large;
+    }
+    #logo {
+      position: absolute;
+      top: 73%;
+      left: 0%;
+      height: 50px;
+      width: 200px;
+      transform: translate(0%, 50%);
+      z-index: 100;
+      user-select: none;
+    }
+    #eventInfo {
+      position: absolute;
+      top: 80%;
+      left: 0%;
+      transform: translate(0%, 50%);
+      color: white;
+      font-size: x-large;
+      user-select: none; //TODO: Remove this if we want to copy timestamps
+    }
+  </style>
+
+  <body>
+    <div id="container">
+      <canvas id="Display"></canvas>
+      <div id="labels"></div>
+      <div id="info"></div>
+      <img id="logo" src="EMPHATICLogo.png" alt="EMPHATIC logo"/>
+      <div id="eventInfo"></div>
+    </div>
+
+    <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js'; //'controls';
+    import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+
+    //Design of this class heavily influenced by https://threejs.org/manual/#en/picking
+    class PickHelper {
+       constructor(scene, run, subrun, event) {
+        this.raycaster = new THREE.Raycaster();
+        this.pickedObject = null;
+        this.pickedObjectOldMaterial = new THREE.MeshPhongMaterial({
+                                         color: 0xffff00,
+                                         transparent: true,
+                                         opacity: 1,
+                                         side: THREE.DoubleSide
+                                       });
+        this.labelContainerElem = document.querySelector('#labels');
+        this.labelElem = document.createElement('div');
+      }
+
+      //TODO: We might want color-based picking instead of a raycaster one day.  three.js supports that too.  It would solve performance problems if we have lots of objects like GEANT hits.
+      pick(normalizedPosition, scene, camera) {
+        if(this.pickedObject) {
+          this.pickedObject.material = this.pickedObjectOldMaterial;
+          this.pickedObject = undefined;
+          this.labelContainerElem.removeChild(this.labelElem);
+        }
+
+        //Cast a ray through the camera lens.  three.js calls this the frustrum which is technically correct but always confuses me. 
+        this.raycaster.setFromCamera(normalizedPosition, camera);
+        const intersectedObjects = this.raycaster.intersectObjects(scene.children);
+        if(intersectedObjects.length) {
+          this.pickedObject = intersectedObjects[0].object;
+          this.pickedObjectOldMaterial = this.pickedObject.material;
+          //Make this object light up as long as the mouse hovers over it
+          if(this.pickedObject.material.type == "LineBasicMaterial") {
+            this.pickedObject.material = new THREE.LineBasicMaterial({
+                                           color: 0xffff00,
+                                           linewidth: 3
+                                         });
+          }
+          else if(this.pickedObject.material.type == "LineDashedMaterial") {
+                        this.pickedObject.material = new THREE.LineDashedMaterial({
+                                           color: 0xffff00,
+                                           linewidth: 3,
+                                           dashSize: 1,
+                                           gapSize: 2
+                                         });
+          }
+          else {
+            this.pickedObject.material = new THREE.MeshPhongMaterial({
+                                           color: 0xffff00,
+                                           transparent: true,
+                                           opacity: 1,
+                                           side: THREE.DoubleSide
+                                         });
+          }
+
+          //Draw a label next to this object
+          const tempV = new THREE.Vector3();
+          this.labelElem.textContent = this.pickedObject.name;
+          this.labelContainerElem.appendChild(this.labelElem);
+
+          //TODO: Positioning the label on top of the picked object messes up further picking.  Figure out why, then restore this code.
+          /*this.pickedObject.updateWorldMatrix(true, false);
+          this.pickedObject.getWorldPosition(tempV);
+
+          tempV.project(camera);
+          const x = (tempV.x *  .5 + .5) * canvas.clientWidth;
+          const y = (tempV.y * -.5 + .5) * canvas.clientHeight;
+          this.labelElem.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;*/
+
+          return intersectedObjects[0].point;
+        }
+      }
+    }
+
+    //An EventLoader manages requests to the backend for new geometry information, reconstructed information, and MC information.
+    //Its purpose in life is to return a Future when loadNewEvent() is called.  That Future holds a new Scene that can be swapped for the current Scene.
+    //This needs to be a class because lilgui needs a class whose method it calls.
+    class EventLoader {
+      constructor(geomDetMaterial, geomPassiveMaterial, recoMaterial) {
+        this.run = 0;
+        this.subrun = 0;
+        this.event = 0;
+
+        this.geomDetMaterial = geomDetMaterial;
+        this.geomPassiveMaterial = geomPassiveMaterial;
+        this.recoMaterial = recoMaterial;
+
+        const eventInfoContainer = document.querySelector("#eventInfo");
+        this.dataOrSimText = document.createElement('div');
+        eventInfoContainer.appendChild(this.dataOrSimText);
+        this.timestampText = document.createElement('div');
+        eventInfoContainer.appendChild(this.timestampText);
+        this.eventNumberText = document.createElement('div');
+        eventInfoContainer.appendChild(this.eventNumberText);
+      }
+
+      //Request a new geometry hierarchy from the backend.
+      //Returns a Future that's ready when backend has responded and scene has been updated.
+      //Backend must respond to geometry/index.json with a list of JSON objects of format:
+      //{
+      //  name,
+      //  volumeName,
+      //  isDetector,
+      //  matrix[] //4x4 matrix in column-major order that combines translation, rotation, and scale
+      //}
+      //and geometry/<name of GDML physvol> with a .obj file
+
+      //TODO: Understand why THREE.OBJLoader.loadAsync() returns BEFORE it finishes loading an asset.
+      //      Since I can't use loadAsync(), I'm forced to rely on mixing Promises and callbacks.
+      //      This doesn't break the application but does make it harder to read and maintain.
+      async loadGeometry(nextScene, nextCallback) {
+        const localDetMaterial = this.geomDetMaterial;
+        const localPassiveMaterial = this.geomPassiveMaterial;
+
+        return fetch("geometry/index.json").then(async function (response) {
+          response.json().then(function (objsToLoad) {
+            const geomLoader = new OBJLoader();
+
+            let whichEntry = 0;
+            async function loadNextGeom() {
+              geomLoader.load("/geometry/".concat(objsToLoad[whichEntry].volumeName), (geomObject) => {
+                const geomEntry = objsToLoad[whichEntry];
+                geomObject.traverse((mesh) => {
+                  if(geomEntry.isDetector) {
+                    mesh.material = localDetMaterial;
+                  }
+                  else {
+                    mesh.material = localPassiveMaterial;
+                  }
+                  mesh.name = geomEntry.name;
+                });
+                geomObject.matrixAutoUpdate = false;
+                geomObject.matrix.fromArray(geomEntry.matrix);
+                nextScene.push(geomObject);
+
+                whichEntry++;
+                if(whichEntry < objsToLoad.length) loadNextGeom();
+                else nextCallback(nextScene);
+              });
+            }
+
+            return loadNextGeom();
+          });
+        });
+      }
+
+      //Request a new list of sim::MCTrajectory from the backend.
+      //Returns a Future that's ready when the backend has responded and scene has been updated.
+      //Backend must respond to MC/trajs.json with a list of JSON objects of format:
+      //{
+      //  name,
+      //  pdgCode,
+      //  points[[]]
+      //}
+      async loadMCTrajs(nextScene) {
+        const mcLineWidth = 3;
+        const pdgToMaterialMap = new Map();
+        pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0xe69f00, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(2112, new THREE.LineDashedMaterial({ color: 0xe69f00, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        pdgToMaterialMap.set(211, new THREE.LineBasicMaterial({ color: 0x56b4e9, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(111, new THREE.LineDashedMaterial({ color: 0x56b4e9, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        pdgToMaterialMap.set(321, new THREE.LineBasicMaterial({ color: 0x009e73, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0x009e73, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0xf0e442, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0x0072b2, linewidth: mcLineWidth }));
+        pdgToMaterialMap.set(22, new THREE.LineDashedMaterial({ color: 0xcc79a7, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));
+        const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 });
+  
+        return fetch("MC/trajs.json").then(function (response) {
+          return response.json().then(function (listOfTrajs) {
+            for(const traj of listOfTrajs) {
+              const convertedPoints = [];
+              for(const point of traj.points) {
+                convertedPoints.push(new THREE.Vector3(point[0], point[1], point[2]));
+              }
+
+              const trajGeom = new THREE.BufferGeometry().setFromPoints(convertedPoints);
+              let pdgMaterial = pdgToMaterialMap.get(Math.abs(traj.pdgCode));
+              if(!pdgMaterial) { pdgMaterial = unknownPDGMaterial; }
+              const trajLine = new THREE.Line(trajGeom, pdgMaterial);
+              trajLine.computeLineDistances(); //Necessary for dashed lines to work
+              trajLine.name = traj.name;
+              trajLine.userData.ProductID = traj.Ptr.id;
+              trajLine.userData.key = traj.Ptr.key;
+              nextScene.push(trajLine);
+            }
+          });
+        });
+      }
+
+      //Request new rec::LineSegs from the backend.
+      //Returns a Future that's ready when backend has responded and scene has been updated.
+      //Backend must respond to reco/LineSegs.json with a list of JSON objects of format:
+      //{
+      //  center,
+      //  length,
+      //  phi
+      //}
+      async loadRecoLineSegs(nextScene) {
+        const ssdWidth = 0.3;
+        const localRecoMaterial = this.recoMaterial;
+        return fetch("reco/LineSegs.json").then(function (response) {
+          return response.json().then(function (listOfLineSegs) {
+            for(const seg of listOfLineSegs) {
+              const segGeom = new THREE.BoxGeometry(ssdWidth, seg.length, ssdWidth);
+              const segBox = new THREE.Mesh(segGeom, localRecoMaterial);
+              segBox.position.set(seg.center[0], seg.center[1], seg.center[2]);
+              segBox.rotation.z = seg.phi + Math.PI/2;
+              segBox.name = "LineSegment";
+              segBox.userData.ProductID = seg.Ptr.id;
+              segBox.userData.key = seg.Ptr.key;
+              nextScene.push(segBox);
+            }
+          });
+        });
+      }
+
+      //Request a new event from the backend.
+      //Sends the backend a POST request for newEvent with run, subrun, and event.
+      //The backend must reply with either status code 200 (OK) or an error message (e.g. event not in this file or random access not allowed).  Response content is currently ignored.
+      //TODO: I'm forced to mix Promises/await with a horrible callback chain because OBJLoader.loadAsync() seems to fullfill its Futures before it actually loads an object.
+      //      The only consequence is that this code is very hard to read.
+      async requestNewEvent(nextScene, callback) {
+        //To avoid a black screen upon clicking "Next Event", we need a place to put the Object3Ds for the next event while the geometry, etc. load.
+        //We can't copy the Scene or reassign its members for reasons I don't understand.  So make a vecto whose members we'll manually copy.
+        //Be very careful not to call Scene.clear() until objsToLoad is ready!
+        let nextEventObjects = [];
+
+        return fetch("newEvent", { method: "POST", body: JSON.stringify({ run: this.run, subrun: this.subrun, event: this.event }) })
+        .then((response) => {
+          return response.json();
+        })
+        .then((json) => {
+          this.run = json.run;
+          this.subrun = json.subrun;
+          this.event = json.event;
+
+          //Display basic information below the logo
+          this.dataOrSimText.textContent = json.isRealData;
+          this.timestampText.textContent = json.timestamp;
+        }).then(async () => {
+          this.loadGeometry(nextEventObjects, async () => {
+            await this.loadMCTrajs(nextEventObjects);
+            await this.loadRecoLineSegs(nextEventObjects);
+            const assnsMap = await fetch("assnsMap.json").then((response) => { return response.json(); });
+
+            nextScene.clear();
+
+            const lightColor = 0xFFFFFF;
+            const intensity = 3;
+            const upstreamLight = new THREE.DirectionalLight(lightColor, intensity);
+            upstreamLight.position.set(-1, 2, -10);
+            nextScene.add(upstreamLight);
+
+            const downstreamLight = new THREE.DirectionalLight(lightColor, intensity);
+            downstreamLight.position.set(-1, 2, 150);
+            nextScene.add(downstreamLight);
+
+            for(const obj of nextEventObjects) {
+              nextScene.add(obj);
+
+              if(obj.userData && assnsMap[obj.userData.ProductID] && assnsMap[obj.userData.ProductID][obj.userData.key]) {
+                const userOverride = assnsMap[obj.userData.ProductID][obj.userData.key];
+                obj.name = userOverride.name;
+
+                if(obj.material.type == "LineBasicMaterial") {
+                  obj.material = new THREE.LineBasicMaterial({
+                    color: userOverride.color,
+                    linewidth: 3
+                  });
+                }
+                else if(obj.material.type == "LineDashedMaterial") {
+                  obj.material = new THREE.LineDashedMaterial({
+                    color: userOverride.color,
+                    linewidth: 3,
+                    dashSize: 1,
+                    gapSize: 2
+                  });
+                }
+                else {
+                  obj.material = new THREE.MeshPhongMaterial({
+                    color: userOverride.color,
+                    transparent: true,
+                    opacity: 1,
+                    side: THREE.DoubleSide
+                  });
+                }
+              }
+            }
+
+            callback();
+          });
+        });
+      }
+
+      showReferencePerson(nextScene, callback)
+      {
+        //Add a built-in person model to put the size of the detector in perspective
+        const mtlLoader = new MTLLoader();
+        mtlLoader.load("https://threejs.org/examples/models/obj/male02/male02.mtl",
+        (materials) => {
+          materials.preload();
+
+          const objLoader = new OBJLoader();
+          objLoader.setMaterials(materials);
+          objLoader.load("https://threejs.org/examples/models/obj/male02/male02.obj",
+          (object) => {
+            object.position.x = 50;
+            object.position.y = -95;
+
+            object.traverse((mesh) => {
+              mesh.name = "Reference Person";
+            });
+
+            nextScene.add(object);
+            callback();
+          });
+        });
+      }
+    }
+
+    function main() {
+
+      const canvas = document.querySelector('#Display');
+      const renderer = new THREE.WebGLRenderer({antialias: true, canvas});
+    
+      //Camera setup
+      const fov = 75;
+      const aspect = 2;
+      const near = 0.1;
+      const far = 1000;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      const cameraDistanceFromTarget = 30;
+      camera.position.set(0, 30, -40);
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.target.set(0, 0, 0);
+      controls.update();
+
+      //Light setup
+      const lightColor = 0xFFFFFF;
+      const intensity = 3;
+      const light = new THREE.DirectionalLight(lightColor, intensity);
+      light.position.set(-1, 2, -10);
+    
+      //Set up things to draw
+      let scene = new THREE.Scene();
+
+      const geomPassiveMaterial = new THREE.MeshPhongMaterial({
+                                    color: 0xff0000,
+                                    opacity: 0.2,
+                                    transparent: true,
+                                    side: THREE.DoubleSide
+                                  });
+      const geomDetMaterial = new THREE.MeshPhongMaterial({
+                                        color: 0x0000ff,
+                                        opacity: 0.2,
+                                        transparent: true,
+                                        side: THREE.DoubleSide
+                                      });
+      const recoMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
+
+      //Display the text "Loading" while the geometry files are loading.
+      const loadingContainer = document.querySelector("#info");
+      const loadingText = document.createElement('div');
+      loadingText.textContent = "Loading...";
+      loadingContainer.appendChild(loadingText); //Also display "Loading" before the first attempt to load geometry files.
+                                                 //There's a complicated reason why I can't just use this for "newEvent".
+                                                 //I'd have to give up on using POST basically which is doable but outside the scope of the problem I'm solving today.
+
+      THREE.DefaultLoadingManager.onStart = () => {
+        loadingContainer.appendChild(loadingText);
+      };
+
+      THREE.DefaultLoadingManager.onLoad = () => {
+        loadingContainer.removeChild(loadingText);
+      };
+
+      let nextEvent = new EventLoader(geomDetMaterial, geomPassiveMaterial, recoMaterial);
+
+      scene.add(light);
+    
+      function resizeRendererToDisplaySize(renderer)
+      {
+        const canvas = renderer.domElement;
+        const pixelRatio = window.devicePixelRatio;
+        const width = Math.floor(canvas.clientWidth * pixelRatio);
+        const height = Math.floor(canvas.clientHeight * pixelRatio);
+        const needsResize = canvas.width != width || canvas.height != height;
+        if(needsResize) {
+          renderer.setSize(width, height, false);
+        }
+
+        return needsResize;
+      }
+
+      //Set up object picking
+      const pickPosition = {x: 0, y: 0};
+
+      function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (event.clientX - rect.left) * canvas.width / rect.width,
+          y: (event.clientY - rect.top) * canvas.height / rect.height
+        };
+      }
+
+      const pickHelper = new PickHelper();
+
+      //Start rendering!
+      function render() {
+        if(resizeRendererToDisplaySize(renderer))
+        {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth/canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        const pickPos = pickHelper.pick(pickPosition, scene, camera);
+
+        renderer.render(scene, camera);
+        return pickPos;
+      }
+
+      function clearPickPosition() {
+        pickPosition.x = -100000;
+        pickPosition.y = -100000;
+        render();
+      }
+
+      function setPickPosition(event) {
+        const pos = getCanvasRelativePosition(event);
+        pickPosition.x = (pos.x / canvas.width) * 2 - 1;
+        pickPosition.y = (pos.y / canvas.height) * -2 + 1;
+        return render();
+      }
+
+      //Set up buttons for the user: a Graphical User Interface
+      const gui = new GUI();
+      gui.add({ async func () {
+                  nextEvent.event += 1;
+                  await nextEvent.requestNewEvent(scene, () => {
+                    render();
+                  });
+                }
+              }, 'func').name('Next Event'); //Requests information from the backend while the client's application keeps working.  Updates the visible scene only when all requests have received responses.
+      gui.add(geomPassiveMaterial, "opacity", 0, 1, 0.1).name("Geometry Opacity").onChange(render);
+      gui.add(geomDetMaterial, "opacity", 0, 1, 0.1).name("SSD Opacity").onChange(render);
+      gui.add(nextEvent, 'run').listen(); //listen() makes lilgui listen for changes to the property it's displaying.  Doesn't sound very efficient, but gets the job done.
+      gui.add(nextEvent, 'subrun').listen();
+      gui.add(nextEvent, 'event').listen();
+      gui.add({ async func () {
+                  await nextEvent.requestNewEvent(scene, () => {
+                    render();
+                  });
+                }
+              }, "func").name('Go to');
+
+      //Pre-set "2D" camera angles
+      gui.add({ func() {
+          const geometryCenter = 80; //TODO: Get this programatically so e.g. phase 2 doesn't break it
+          camera.position.set(0, cameraDistanceFromTarget*5, geometryCenter-1);
+          controls.target.set(0, 0, geometryCenter);
+          controls.update();
+          render();
+        }
+      }, 'func').name('X-Z View');
+      gui.add({ func() {
+          camera.position.set(0, 0, -40);
+          controls.target.set(0, 0, 0);
+          controls.update();
+          render();
+        }
+      }, 'func').name('X-Y View');
+      gui.add({ func() {
+          const geometryCenter = 80; //TODO: Get this programatically so e.g. phase 2 doesn't break it
+          camera.position.set(cameraDistanceFromTarget*5, 0, geometryCenter-1);
+          controls.target.set(0, 0, geometryCenter);
+          controls.update();
+          render();
+        }
+      }, 'func').name('Y-Z View');
+      gui.add({ func() {
+                  nextEvent.showReferencePerson(scene, () => { render(); });
+                }
+              }, 'func').name('Reference Person');
+
+      render(); //Just display black screen so "Loading" text is visible in color I'll use later
+      nextEvent.requestNewEvent(scene, () => {
+        clearPickPosition(); //Also calls render()
+
+        window.addEventListener('mouseout', clearPickPosition);
+        window.addEventListener('mouseleave', clearPickPosition);
+        window.addEventListener('mousemove', setPickPosition);
+
+        //Support mobile devices too
+        window.addEventListener('touchstart', (event) => {
+          event.preventDefault()
+          setPickPosition(event.touches[0]);
+        }, {passive: false});
+
+        window.addEventListener('touchmove', (event) => {
+          setPickPosition(event.touches[0]);
+        });
+
+        window.addEventListener('touchend', clearPickPosition);
+
+        controls.addEventListener('change', render);
+        window.addEventListener('resize', render);
+
+        window.addEventListener('dblclick', (event) => {
+          const pickPos = setPickPosition(event);
+          if(pickPos) {
+            const sqrtTwoOverTwo = 0.707;
+            controls.target.set(pickPos.x, pickPos.y, pickPos.z);
+            camera.position.set(pickPos.x + sqrtTwoOverTwo * cameraDistanceFromTarget,
+                                pickPos.y,
+                                pickPos.z - sqrtTwoOverTwo * cameraDistanceFromTarget); //Make sure the new camera position is upstream of the target so it is still lit by the default light at the origin
+            controls.update();
+            render();
+            //TODO: Request ParameterSet from backend to display on the left side!
+          }
+        });
+      });
+    }
+    
+    main();
+
+    </script>
+  </body>
+</html>

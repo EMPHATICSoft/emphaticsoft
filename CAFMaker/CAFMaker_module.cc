@@ -142,6 +142,7 @@ namespace caf {
       fCAFFilename.resize(dotpos);
       fCAFFilename += fParams.FileExtension();
 
+      std::cout << fCAFFilename << std::endl;
       InitializeOutfile();
     }
   }

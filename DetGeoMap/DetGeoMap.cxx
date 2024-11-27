@@ -29,13 +29,9 @@ namespace emph {
   
     //----------------------------------------------------------------------
     
-    bool DetGeoMap::SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
-    {
-      
-      int station = cl.Station();
-      int sensor = cl.Sensor();
-      int plane  = cl.Plane();
-      double dstrip = cl.WgtAvgStrip();
+    
+    bool DetGeoMap::StationSensorPlaneToLineSegment (int station, int sensor, int plane, rb::LineSegment& ls, double dstrip) {
+  
       int istrip = floor(dstrip);
       double delta_strip = dstrip-istrip;
 
@@ -74,6 +70,14 @@ namespace emph {
       
     }
 
+    bool DetGeoMap::SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
+    {
+      int station = cl.Station();
+      int sensor = cl.Sensor();
+      int plane  = cl.Plane();
+      double dstrip = cl.WgtAvgStrip();
+      return StationSensorPlaneToLineSegment(station, sensor, plane, ls, dstrip);
+    }  
     //----------------------------------------------------------------------
 
   } // end namespace dgmap

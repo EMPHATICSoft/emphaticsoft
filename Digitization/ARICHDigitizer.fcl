@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_arichdigitizer:
+{    
+  module_type: ARICHDigitizer
+  G4Label: "geantgen"
+  IncludeNoise: true	# bool to evaluate the dark hits
+  FillTree: 	false
+}
+
+END_PROLOG

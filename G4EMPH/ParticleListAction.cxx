@@ -55,6 +55,7 @@ namespace emph {
     // Create the particle list that we'll (re-)use during the course
     // of the Geant4 simulation.
     fParticleNav  = new sim::ParticleNavigator();
+    fMinTrajPtDist = 0.;
   }
 
   //-------------------------------------------------------------
@@ -70,6 +71,8 @@ namespace emph {
   {
     fEnergyCut              = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     fManyParticles          = pset.get< bool   >("ManyParticles");
+
+    fMinTrajPtDist          = pset.get< double >("MinTrajPtDist",0.); 
   }
 
   //-------------------------------------------------------------
@@ -139,12 +142,6 @@ namespace emph {
 	const G4double energy = track->GetKineticEnergy();		// get the kinetic energy
 //		std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
 
-	if (energy < fEnergyCut){   			// if the particle is below the energy cut, we should not add it to the list, and skip it
-//	                  std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
-                fParticle = 0;          		// we do not want to step this particle, so setting fParticle to 0 is ?needed?
-                return;
-        }
-
 	const G4int trackID = track->GetTrackID() + fTrackIDOffset;	// get the track ID for this particle
 	fCurrentTrackID = trackID;					// set the fCurrentTrackID to the actual, real, current particle
 	// size_t mcTruthIndex = 0;					// set the index of this particle in the truth record to 0
@@ -153,6 +150,13 @@ namespace emph {
 	const G4int                      pdg = partdef->GetPDGEncoding();       // get the particle type
 	const G4DynamicParticle*         dp = track->GetDynamicParticle();      //
 	const G4PrimaryParticle*         pp = dp->GetPrimaryParticle();         // its a surprise tool that'll help us later...
+
+        if (energy < fEnergyCut){                       // if the particle is below the energy cut, we should not add it to the list, and skip it
+          if(pp) throw cet::exception("ParticleListAction") << "Primary particle with energy " << energy << " MeV was below ParticleListAction::fEnergyCut = " << fEnergyCut << " MeV and would have been thrown out.  But this crashes CAFMaker!  Your generator .fcl has a bug!";
+//                        std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
+                fParticle = 0;                          // we do not want to step this particle, so setting fParticle to 0 is ?needed?
+                return;
+        }
     
 	//std::cerr << "%%%%% New Particle: trackID = " << trackID << " PDG: " << pdg <<" %%%%%" << std::endl;	
 	
@@ -497,27 +501,33 @@ namespace emph {
       // Add the first point in the trajectory.
       fParticle->AddTrajectoryPoint( fourPos, fourMom );
     }
-    
+
+    int iprev = fParticle->NumberTrajectoryPoints()-1;
+    double zprev = fParticle->Position(iprev).Z();
+
     // Get the post-step information from the G4Step.
     const G4StepPoint* postStepPoint = step->GetPostStepPoint();
     
     const G4ThreeVector position = postStepPoint->GetPosition();
-    G4double time = postStepPoint->GetGlobalTime();
-    
-    // Remember that LArSoft uses cm, ns, GeV.
-    TLorentzVector fourPos(position.x() / CLHEP::mm,
-                           position.y() / CLHEP::mm,
-                           position.z() / CLHEP::mm,
-                           time / CLHEP::ns );
-    
-    const G4ThreeVector momentum = postStepPoint->GetMomentum();
-    const G4double energy = postStepPoint->GetTotalEnergy();
-    TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
-                           momentum.y() / CLHEP::GeV,
-                           momentum.z() / CLHEP::GeV,
-                           energy / CLHEP::GeV );
-    
-    fParticle->AddTrajectoryPoint( fourPos, fourMom );
+
+    if ((position.z()/CLHEP::mm - zprev) > fMinTrajPtDist) {
+      G4double time = postStepPoint->GetGlobalTime();
+      
+      // Remember that LArSoft uses cm, ns, GeV.
+      TLorentzVector fourPos(position.x() / CLHEP::mm,
+			     position.y() / CLHEP::mm,
+			     position.z() / CLHEP::mm,
+			     time / CLHEP::ns );
+      
+      const G4ThreeVector momentum = postStepPoint->GetMomentum();
+      const G4double energy = postStepPoint->GetTotalEnergy();
+      TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
+			     momentum.y() / CLHEP::GeV,
+			     momentum.z() / CLHEP::GeV,
+			     energy / CLHEP::GeV );
+      
+      fParticle->AddTrajectoryPoint( fourPos, fourMom );
+    }
   }
 
   //-------------------------------------------------------------
