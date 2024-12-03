@@ -1,0 +1,186 @@
+.\"Modified from man(1) of FreeBSD, the NetBSD mdoc.template, and mdoc.samples.
+.\"See Also:
+.\"man mdoc.samples for a complete listing of options
+.\"man mdoc for the short list of editing options
+.\"/usr/share/misc/mdoc.template
+.\"To decipher, try
+.\"groff -m mandoc -T ascii L++.1 | less
+.Dd 1/11/07		\" DATE 
+.Dt L++ 1		\" Program name and manual section number 
+.Os Max OS X - Darwin
+.Sh NAME		\" Section Header - required - don't modify 
+.Nm L++
+.Nd Leo Bellantoni's Private Library
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm (Build and run in Xcode)
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+is an Xcode bundle using the FreeBSD functionality of Darwin.  It is written
+in C++ but does not use the Carbon API, so as to facilitate porting to Linux.
+It consists of:
+.Bl -bullet
+.Pp
+.It
+.Ar main.cpp
+The entry point code.  Typically, one copies the
+.Nm
+bundle, modifies the
+.Ar main.cpp
+file to create and manipulate the objects of the
+.Nm
+library, and then builds and runs the copy in Xcode.  The default version of
+.Ar main.cpp
+contains examples of usage of the
+.Nm
+classes and some notes about good-vs-bad C++ usage.
+.Pp
+.It
+Links to libLAPACK.dylib and libBLAS.dylib; you will have to find
+these libraries for yourself on each system.
+.Nm
+also links to libLHAPDF.dylib
+for parton density functions and libxml2.tbd for xml operations.  These two
+you need to bring onto this machine.
+.Pp
+.It
+An 'Inbox' of various old routines, generally in FORTRAN, which have not been
+translated yet into C++.
+.Pp
+.It
+Documentation.  Some, anyway.
+.Pp
+.It
+.Nm
+itself
+.El
+.Pp
+.Pp
+The folder "Brilliant" contains
+.Ar main.cpp
+, two header files,
+.Ar FittingFuncs.h
+and
+.Ar Inputs.h
+as well as the file
+.Ar stdout.rtf.
+.Ar FittingFuncs.h
+is a list of functions which can be fit to with the
+.Ar fitter
+class; other functions can be added here for that purpose.
+.Ar Inputs.h
+is a convenient place to define what the input data files might be, or to set
+global parameters or #defines to specify program execution options.  The file
+.Ar stdout.rtf
+is a copy of the output that is sent to stdout when main is run; along with
+the displayed plots, this is a minimal check on the functionality of the
+package.
+
+Within
+.Nm
+itself (as seen in Xcode as subfolders of the
+.Nm
+folder) there are the following:
+.Bl -tag
+.It C--
+Code to remedy shortcomings in C++, of which there are a surprising number,
+given how feature-laden the language is.
+.It general
+Header files which are used through out the package.
+.It problems
+Two classes for handling exceptions, warnings, or informational messages.
+.It io
+A class and 3 header files to simplify text, file or keyboard driven I/O.
+.It when?
+A class for handling times, and a class for handling dates.
+.It ra
+A template to implement fast-access fixed size multidimension arrays, with
+slicing capabilities using raALL, the single member of the oneval class.
+Also, classes that implement fairly high-level complex matrices and vectors
+and operations such as inversion, determinants, eigen-stuff, etc.
+.It functions
+No point in asking why Kernighan and Ritchie didn't realize that C would benefit
+immensely by pirating a few simple algorithms and functions that existed in
+every FORTRAN compiler of their era.  Also, code to handle the ubiquitous
+sum and difference in quadrature operations that prevent the now oft-forgotten
+round-off issues of these tasks, using algorithms developed decades ago.
+.Ar permuter
+is a class to handle index permutations;
+.Ar polyQint
+and
+.Ar polyMint
+Polynomial interpolation using LaGrange's method.  Version Q should be a
+little faster and provides a not-very-useful error estimate; M will work for
+up to 4 dimensions.
+.Ar Bessel
+Bessel functions of the 1st and 2nd kind, plain and modified.
+.It functionals
+.Ar plotter1d
+and
+.Ar plotter2d
+are classes that make quick plots of functions of 1 or 2 doubles.
+A quick and pretty-good numeric
+integration in one dimension is implemented as a class template in
+.Ar integrator.h ;
+a similarly useful if unsophisticated root finder for a function of a single
+variable is in
+.Ar solver.h .
+Fitting is done in the
+.Ar fitter
+class, which has simplex, gradient, and minimum of quadratic algorithms.
+Finally, while fast Fourier transforms are ubiquitous, slow ones are handy to confirm
+the FFT code you just wrote, and also to handle cases where the dataset to be
+transformed is not an integral power of 2 in length.  Hence, the
+.Ar SFT
+class.
+.Ar VEGAS
+LePage's famed numerical integrator.  A version which multithreads the function
+evaluation, using a thread pool so as to avoid the overhead of thread creation,
+is in development.  It will be called... wait for it... LAS_VEGAS.
+.It random
+Classes to create pseudo-random number sequences.  The underlying generator, in
+.Ar ranunl.cpp
+is fairly simple, although not very bad.
+.It lies
+Statistical calculations, some of which are specific to particle physics.  The
+.Ar stats
+class has functions that commonly appear in statistics, including setting
+uncertainties.
+Also here is a nice log-likelyhood minimization quantity.
+.Ar fullim
+,
+.Ar poiprob
+and
+.Ar BLUE
+are answers to common simple small-stats particle physics problems;
+.Ar meansig
+,
+.Ar meancorrel
+and
+.Ar poisum
+are answers to other common simple stats problems.
+.It particles
+Classes or code specifically related to particle physics, including a 4-vector
+class, a port of the RAMBO algorithm into C++, and a class that provides an
+lightweight interface to the LHAPDF package.
+.It histograms
+Here are classes to implement ntuples, histograms, profiles and datasets for
+fitting or plotting.  The .cpp files are in a subdirectory.  Actually the
+Ltuple class is really suboptimal, even in comparison to the rest of the code
+here.  The classes in this folder contain and manipulate the data.  For
+plotting, you need . . .
+.It GUI
+These are classes which form a C++ interface to a pipe into gnuplot for drawing
+those histograms & such on the screen.
+.El
+.Pp
+The default bundle contains breakpoints for less-well tested parts of the code,
+as well as for catching exceptions as the pitcher is in his windup.
+.Sh COPYRIGHT
+Most of the code here was taken from other packages or from textbooks and
+modified for my particular personal use.
+.Sy Copyrights for general or widespread usage or distribution do not exist!
+.Sh FILES                \" File used or created by the topic of the man page
+See above.
+.Sh BUGS              \" Document known, unremedied bugs
+Naaahh!
+.\" .Sh HISTORY           \" Document history if command behaves in a unique manner

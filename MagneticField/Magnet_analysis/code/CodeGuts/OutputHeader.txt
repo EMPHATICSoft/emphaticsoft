@@ -1,0 +1,9 @@
+% Model:              Derived from data taken by AP-STD
+% Version:            Stitched-together map.  See EMPHATIC DocDB 1643
+% Date:               dd mmm 2024, hh:mm
+% Dimension:          3
+% Nodes:              yyyyy
+% Expressions:        3
+% Description:        Magnetic flux density, x component, Magnetic flux density, y component, Magnetic flux density, z component
+% Length unit:        mm
+% X                       Y                        Z                        mfnc.Bx (kG)             mfnc.By (kG)             mfnc.Bz (kG)
