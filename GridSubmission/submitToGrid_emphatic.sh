@@ -3,7 +3,7 @@
 USAGE="submitToGrid.sh configFile.fcl /path/to/playlist [/path/to/morePlaylists]..."
 
 #Submit art event loops to run on the FermiGrid in parallel.
-#Assumes all code is in ${PLOTUTILSROOT}/..
+#Assumes all code is in ${CETPKG_BUILD}
 #Copies output files back to current working directory, so run it from /pnfs!
 #Exit codes:
 #0: success!
@@ -112,20 +112,22 @@ mv ${safeScratchDir}/playlists.txt ${outdir}/
 tmpWrapperFile="${safeScratchDir}/${wrapperFileName}"
 echo "#!/usr/bin/bash" > ${tmpWrapperFile}
 #TODO: Set up EMPHATIC software instead of MINERvA ROOT version
-echo "source /cvmfs/emphatic.opensciencegrid.org/emphatic/hep_hpc_products/setups" >> ${tmpWrapperFile}
-echo "setup cmake v3_7_1" >> ${tmpWrapperFile}
-echo "setup root v6_10_04d -q e14:prof" >> ${tmpWrapperFile}
+#echo "source /cvmfs/emphatic.opensciencegrid.org/emphatic/hep_hpc_products/setups" >> ${tmpWrapperFile}
+#echo "setup cmake v3_7_1" >> ${tmpWrapperFile}
+#echo "setup root v6_10_04d -q e14:prof" >> ${tmpWrapperFile}
 #End software setup
 echo "ls -lathr" >> ${tmpWrapperFile} #Debugging
 echo "ls -lathr \$INPUT_TAR_DIR_LOCAL" >> ${tmpWrapperFile} #Debugging
-echo "export MINERVA_PREFIX=\${INPUT_TAR_DIR_LOCAL}/opt" >> ${tmpWrapperFile}
-echo "echo \${MINERVA_PREFIX}" >> ${tmpWrapperFile}
-echo "source \${INPUT_TAR_DIR_LOCAL}/opt/bin/setup.sh" >> ${tmpWrapperFile}
+echo "cd \${INPUT_TAR_DIR_LOCAL}/build" >> ${tmpWrapperFile}
+echo "source ../emphaticsoft/setup/setup_emphatic.sh" >> ${tmpWrapperFile}
+echo "sl7-emph" >> ${tmpWrapperFile}
+echo "source ../emphaticsoft/ups/setup_for_development -p" >> ${tmpWrapperFile}
+echo "cd ../.." >> ${tmpWrapperFile}
 echo "echo \${CONDOR_DIR_INPUT}" >> ${tmpWrapperFile} #Debugging
 #echo "cd \${CONDOR_DIR_INPUT}" >> ${tmpWrapperFile}
 #echo "ls -lathr" >> ${tmpWrapperFile} #Debugging
 #echo "tar -xf $(basename ${tarFileName} .tar.gz)" >> ${tmpWrapperFile} #--tar_file_name seems to untar the file for me
-echo "echo \${PLOTUTILSROOT}" >> ${tmpWrapperFile} #Debugging
+echo "echo \${FHICL_FILE_PATH}" >> ${tmpWrapperFile} #Debugging
 echo "echo \${PATH}" >> ${tmpWrapperFile} #Debugging
 echo "echo \${LD_LIBRARY_PATH}" >> ${tmpWrapperFile} #Debugging
 echo "" >> ${tmpWrapperFile}

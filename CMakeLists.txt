@@ -82,8 +82,12 @@ add_subdirectory(SSD_FERMerger)
 add_subdirectory(TrackReco)
 add_subdirectory(TOF)
 add_subdirectory(Utilities)
+add_subdirectory(setup)
 
 # ups - table and config files
-#add_subdirectory(ups)
+add_subdirectory(ups)
 
 cet_cmake_config()
+
+#TODO: Update this version manually?!  This seems very bad.
+install(FILES CMakeLists.txt DESTINATION ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/v2_00_00) #Needed for ups/setup_for_development to work?!

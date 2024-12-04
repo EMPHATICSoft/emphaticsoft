@@ -110,6 +110,6 @@ install_headers()
 install_fhicl()
 install_source()
 
-install(FILES header.html footer.html DESTINATION etc)
+install(FILES webDisplay_v2.html DESTINATION etc)
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::EventDisplay_WebDisplay)
