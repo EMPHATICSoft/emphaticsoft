@@ -23,8 +23,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # assemble apptainer command
-    cmd = ["apptainer", "exec", "-B", "/run", "-B", "/cvmfs"] #, "-B", "/exp",
-           #"-B", "/pnfs", "--network-args", "\"portmap=3490:3490/tcp\""]
+    cmd = ["apptainer", "exec", "-B", "/run", "-B", "/cvmfs", "-B", "/exp",
+           "-B", "/pnfs", "--network-args", "\"portmap=3490:3490/tcp\""]
     for b in args.bind:
         cmd += ["-B", b]
     cmd += [args.image,"/bin/bash"]
@@ -42,9 +42,6 @@ if __name__ == "__main__":
     for c in commands:
         setup.write(f"{c}\n")
     setup.seek(0) # reset to start of file
-
-    if args.verbose:
-      cmd += ["--verbose"]
 
     if not commands: # interactive shell
         cmd += ["--init-file"]
