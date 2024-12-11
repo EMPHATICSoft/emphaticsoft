@@ -19,14 +19,15 @@ nJobs=$3
 #Figure out where code comes from and where to put temporary files
 outFileName="testSimulation.root"
 gridScriptName="basicSimulation.sh"
+hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testSimulation" #TODO: Set this based on the user's environment with a fallback in case it's not on /pnfs
 codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment" #TODO: Get this from CETPKG_SOURCE once I have this working from SL7 container
 
 #Prepare files needed for grid submission
 source $codeDir/emphaticsoft/GridSubmission/gridSubFunctions.sh
-makeOutputDirectory
-makeTarball $codeDir
+makeOutputDirectory $hostOutDir
+makeTarball $codeDir $hostOutDir
 makeWrapperBoilerplate $codeDir > ${gridScriptName} #Overwrite grid script if it already exists from a previous job submission
-jobsubArgs=$(getBasicJobsubArgs)
+jobsubArgs=$(getBasicJobsubArgs $hostOutDir)
 
 #Add generator-specific lines to wrapper
 echo "bash \${CONDOR_DIR_INPUT}/$(basename ${generatorScript}) \${CONDOR_DIR_INPUT}/$(basename ${templateConfig}) > config_\${PROCESS}.fcl || exit 2" >> ${gridScriptName}

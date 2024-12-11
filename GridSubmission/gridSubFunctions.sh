@@ -3,13 +3,14 @@
 
 #Environment variables used by multiple functions
 outDirTag="ROOT_OUTPUT"
-hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testSimulation" #TODO: Set this based on the user's environment with a fallback in case it's not on /pnfs
 tarFileName="myEmphaticsoft.tar.gz"
 safeScratchDir="/exp/emph/app/users/${USER}"
 
 #Make output directory.  It must not exist yet because overwriting files on /pnfs can take down /pnfs!
 makeOutputDirectory()
 {
+  hostOutDir=$1
+
   if [[ -e ${hostOutDir} ]]; then
     echo "${hostOutDir} already exists.  You must delete it before you can send grid output there." >&2
     exit 1
@@ -23,6 +24,7 @@ makeOutputDirectory()
 makeTarball()
 {
   codeDir=$1
+  hostOutDir=$2
 
   #Try to update tarball if it already exists
   #TODO: Get tar --update working
@@ -72,5 +74,7 @@ makeWrapperBoilerplate()
 #Arguments to jobsub_submit for getting emphatic user code to the grid and running in SL7
 getBasicJobsubArgs()
 {
-echo "-d ${outDirTag} ${hostOutDir} -l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\"' --tar_file_name dropbox://${hostOutDir}/${tarFileName} --use-cvmfs-dropbox"
+  hostOutDir=$1
+
+  echo "-d ${outDirTag} ${hostOutDir} -l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\"' --tar_file_name dropbox://${hostOutDir}/${tarFileName} --use-cvmfs-dropbox"
 }
