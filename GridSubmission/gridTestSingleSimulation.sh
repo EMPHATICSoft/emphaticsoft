@@ -5,7 +5,7 @@ hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testSimulation"
 safeScratchDir="/exp/emph/app/users/${USER}" #TODO: Does EMPHATIC need /pnfs/emphatic/resilient?
 tarFileName="myEmphaticsoft.tar.gz"
 codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment" #TODO
-#nJobs=${1} #TODO: Submit multiple jobs at once.  Give them distinct PRNG seeds through ART.
+nJobs=10 #TODO: Submit multiple jobs at once.  Give them distinct PRNG seeds through ART.
 
 #Make output directory.  It must not exist yet because overwriting files on /pnfs can take down /pnfs!
 if [[ -e ${hostOutDir} ]]; then
@@ -35,9 +35,11 @@ echo "source \${INPUT_TAR_DIR_LOCAL}/$(basename ${codeDir})/emphaticsoft/setup/s
 echo "echo \"***** finished setup_for_grid.sh *****\"" >> ${gridScriptName}
 echo "source setup_emphaticsoft" >> ${gridScriptName}
 echo "cd \${CONDOR_DIR_${outDirTag}}" >> ${gridScriptName}
+echo "mkdir job_\${PROCESS}" >> ${gridScriptName}
+echo "cd job_\${PROCESS}" >> ${gridScriptName}
 echo "art -c g4gen_job.fcl -n 10 -o ${outFileName}" >> ${gridScriptName}
 echo "exit" >> ${gridScriptName}
 
 #TODO: I could submit from a regular emphatic working environment (e.g. SL7) by starting an AL9 container for the jobsub job.  This might let me use environment vairables to figure out ${codeDir}.
 
-jobsub_submit -d ${outDirTag} ${hostOutDir} -l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\"' --tar_file_name dropbox://${hostOutDir}/${tarFileName} --use-cvmfs-dropbox file://$(pwd)/${gridScriptName}
+jobsub_submit -N ${nJobs} -d ${outDirTag} ${hostOutDir} -l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\"' --tar_file_name dropbox://${hostOutDir}/${tarFileName} --use-cvmfs-dropbox file://$(pwd)/${gridScriptName}
