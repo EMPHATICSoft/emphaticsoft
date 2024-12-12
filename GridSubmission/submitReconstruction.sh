@@ -32,7 +32,10 @@ sed -i 's/^\/pnfs\/emphatic\/\(.*\)\.root/root:\/\/fndca1.fnal.gov:1094\/\/\/pnf
 outFileName="testReconstruction.root"
 gridScriptName="basicReconstruction.sh"
 hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testReconstruction" #TODO: Set this based on the user's environment with a fallback in case it's not on /pnfs
-codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment" #TODO: Get this from CETPKG_SOURCE once I have this working from SL7 container
+#codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment"
+cd $(dirname $BASH_SOURCE)/../..
+codeDir=$(pwd)
+cd -
 
 #Prepare files needed for grid submission
 source $codeDir/emphaticsoft/GridSubmission/gridSubFunctions.sh

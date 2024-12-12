@@ -20,7 +20,10 @@ nJobs=$3
 outFileName="testSimulation.root"
 gridScriptName="basicSimulation.sh"
 hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testSimulation" #TODO: Set this based on the user's environment with a fallback in case it's not on /pnfs
-codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment" #TODO: Get this from CETPKG_SOURCE once I have this working from SL7 container
+#codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment"
+cd $(dirname $BASH_SOURCE)/../..
+codeDir=$(pwd)
+cd -
 
 #Prepare files needed for grid submission
 source $codeDir/emphaticsoft/GridSubmission/gridSubFunctions.sh
