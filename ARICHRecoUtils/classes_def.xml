@@ -1,0 +1,17 @@
+<lcgdict>
+
+<class name="ARICHRECO::ARICH_UTILS"/>
+<class name="ARICHRECO::Arich"/>
+<class name="ARICHRECO::Aerogel"/>
+<class name="ARICHRECO::Beam"/>
+<class name="ARICHRECO::Detector"/>
+<class name="ARICHRECO::Particle"/>
+<class name="ARICHRECO::Photon"/>
+<class name="ARICHRECO::HoughFitter"/>
+
+
+<class name="std::vector<double>" />
+<class name="std::vector<std::vector<double>>" />
+<class name="art::Wrapper<std::vector<std::vector<double>>>"/>
+
+</lcgdict>
