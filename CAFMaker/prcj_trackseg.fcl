@@ -25,7 +25,16 @@ services:
 
   IFBeam:{}
 }
-
+#outputs:
+#{
+# out1:
+#  {
+#   module_type: RootOutput
+#   fileName:    "%ifb_prcj.root"
+#   fastCloning: false
+#
+#  }
+#}
 #Start each new event with an empty event.
 source:
 {
@@ -47,7 +56,7 @@ physics:
     dataqual:         @local::standard_dataqual
     spillinfo:        @local::standard_spillinfo
     arichreco:        @local::standard_arichreco
-    ssdclusts:        @local::standard_ssdclust
+    clust:        @local::standard_ssdclust
     adcreco:          @local::standard_adcreco
     backovreco:       @local::standard_backovhitreco
     gasckovreco:      @local::standard_gasckovhitreco
@@ -61,11 +70,12 @@ physics:
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichreco, ssdclusts,
+               dataqual, spillinfo, arichreco, clust,
+               #maketracksegments, adcreco, backovreco, gasckovreco
                maketracksegments, adcreco, backovreco, gasckovreco,
                cafmaker
              ]
-
+  #stream1: [ out1 ]
 }
-physics.producers.ssdclusts.FillTTree: false
+physics.producers.clust.FillTTree: false
 physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's

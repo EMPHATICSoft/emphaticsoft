@@ -405,12 +405,13 @@ namespace emph {
 
   //------------------------------------------------------------
 
-void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> matrix, int row, std::vector<rb::SpacePoint> combination, std::vector<std::vector<rb::SpacePoint>> result,int stop) {
+void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop) {
     // Base case: reached the end of the matrix
     //if (row == (int)matrix.size()) {
 //std::cout<<"Starting getCombinations"<<std::endl;
     if ((int)combination.size() == stop){
       result.push_back(combination);
+std::cout<<"result size = "<<result.size()<<std::endl;
       for (auto val : combination) {
         std::cout << val.Station() << " ";
       }
@@ -479,6 +480,7 @@ std::cout<<"Spacepoints.Size() = "<<spacepoints.size()<<std::endl;
       }
     }
 std::cout<<"r: "<<r<<std::endl;
+
     getCombinations(spmatrix, r, combination, sptmp,2);
     getCombinations(spmatrix, r, combination, sptmp,3);
 
@@ -558,6 +560,8 @@ std::cout<<"r: "<<r<<std::endl;
             break; // We found a match, no need to check further rows
           }
         }
+	//else return; // if TrackSegment does not include the first station of the organizer, we can still make a track in another region
+	               // if we return, we do not
       }
     }
 
@@ -574,8 +578,10 @@ std::cout<<"r: "<<r<<std::endl;
 
       // Create rb::TrackSegments and insert them into the vector
       rb::TrackSegment ts = rb::TrackSegment();
-      for (auto p : validcombos[a])
+      for (auto p : validcombos[a]){
+std::cout<<"count"<<std::endl;
           ts.Add(p);
+}
       ts.SetVtx(lfirst);
       ts.SetA(lfirst);
       ts.SetB(llast);
@@ -597,13 +603,14 @@ std::cout<<"r: "<<r<<std::endl;
       
     }
     //tsv.push_back(ts);
-    
+    std::cout<<"alltrackcombos size "<<alltrackcombos.size()<<std::endl;
     // Choose best track segment metric? Or too early
 
     combination.clear();
     sptmp.clear();
     validcombos.clear();
 
+std::cout<<"Gonna return all track combos"<<std::endl;
     return alltrackcombos;
   }
 

@@ -174,6 +174,8 @@ namespace emph {
 
   void emph::MakeTrackSegments::produce(art::Event& evt)
   {
+    std::cout<<"Starting MakeTrackSegments"<<std::endl;
+
     tsv.clear();
     spv.clear();
 
@@ -199,7 +201,9 @@ namespace emph {
     if(fMakePlots){ 
 
       if (fCheckClusters){
-	auto hasclusters = evt.getHandle<rb::SSDCluster>("ssdclusts");
+	//auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>("clust"); //fClusterLabel); //"ssdclusts");
+        //auto hasclusters = evt.getHandle<rb::SSDCluster>(fClusterLabel);
+	auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
 	if (!hasclusters){
 	  mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
 	  abort();
@@ -228,7 +232,7 @@ namespace emph {
             particles.push_back(&part);
           }
         
-          //std::cout<<"Number of particles: "<<particles.size()<<std::endl;
+          std::cout<<"Number of particles: "<<particles.size()<<std::endl;
           pbeam[0] = particles[0]->Px();
           pbeam[1] = particles[0]->Py();
  	  pbeam[2] = particles[0]->Pz();
@@ -236,9 +240,13 @@ namespace emph {
           //std::cout<<"Incident pbeam[1]: "<<pbeam[1]<<std::endl;
           //std::cout<<"Incident pbeam[2]: "<<pbeam[2]<<std::endl;
         }
-	//std::cout<<"After particle"<<std::endl;
+	std::cout<<"After particle"<<std::endl;
+	//fClusterLabel = "clust";
 	evt.getByLabel(fClusterLabel, clustH);
+        if (clustH->empty()) std::cout<<"EMPTY"<<std::endl;
 	if (!clustH->empty()){
+
+	std::cout<<"Clust not empty"<<std::endl;
           rb::LineSegment lineseg_tmp  = rb::LineSegment();
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
@@ -374,12 +382,19 @@ std::cout<<"Now sp1"<<std::endl;
 
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
 	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
+	std::cout<<"MODULE tsv size: "<<tsv.size()<<std::endl;
 	
             std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
             for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
+        std::cout<<"MODULE tsv size: "<<tsv.size()<<std::endl;
 
             std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
             for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
+        std::cout<<"MODULE tsv size: "<<tsv.size()<<std::endl;
+	  
+            for (auto ts : tsv) {
+              tracksegmentv->push_back(ts);
+            }
 	  }
           sp1.clear();
           sp2.clear();

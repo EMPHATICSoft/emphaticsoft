@@ -55,7 +55,7 @@ namespace emph {
     void SetBeamTrk(rb::TrackSegment ts1, double pbeam);
     void SetRecoTrk(rb::TrackSegment ts2, rb::TrackSegment ts3);
     void SetPtmp(rb::TrackSegment ts);
-void getCombinations(std::vector<std::vector<rb::SpacePoint>> matrix, int row, std::vector<rb::SpacePoint> combination, std::vector<std::vector<rb::SpacePoint>> result, int stop);
+void getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result, int stop);
     void doTwoPlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, double x[3]);
     void doThreePlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, const rb::LineSegment* ls3, double x[3]);
     std::vector<rb::SpacePoint> MakeHitsOrig(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group);
