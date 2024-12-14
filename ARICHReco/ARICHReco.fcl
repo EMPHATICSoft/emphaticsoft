@@ -2,7 +2,24 @@ BEGIN_PROLOG
 
 standard_arichreco:
 {
-  module_type: ARICHReco
+  module_type: 	  ARICHReco
+  PD_file:        "/ARICHReco/PMTDet.root"
+  LabelHits:      "rawARICH:ARICH"
+  LabelTracks:    "geantgen"			#using sim::Tracks untill got rb::Tracks 
+  FillTree:       true
+  FitCircle:      false
+
+  # PARAMS OF ARICH, AEROGELS
+  RefractiveIndex_UpstreamAerogel: 1.026
+  Position_UpstreamAerogel: 0.			#cm
+  Thinkness_UpstreamAerogel: 1.89		#cm
+  RefractiveIndex_DownstreamAerogel: 1.030
+  Position_DownstreamAerogel: 1.89 		#cm
+  Thickness_DownstreamAerogel: 2.04		#cm
+  PD_Darkrate: 406 				#Hz
+  Trigger_window: 5				#ns
+  PD_FillFactor: 1			
+  PD_Position: 21.82				#cm
 }
 
 END_PROLOG
