@@ -3,8 +3,8 @@
 
 #Help text
 if [[ $1 == "-h" || $1 == "--help" ]]; then
-  echo "Usage: submitReconstruction.sh template.fcl input.root [moreInput.root...]"
-  echo "Usage: submitReconstruction.sh template.fcl #Reads file list from stdin"
+  echo "Usage: submitReconstruction.sh template.fcl outputDir input.root [moreInput.root...]"
+  echo "Usage: submitReconstruction.sh template.fcl [outputDir] #Reads file list from stdin"
   exit 1
 fi
 
@@ -31,7 +31,8 @@ sed -i 's/^\/pnfs\/emphatic\/\(.*\)\.root/root:\/\/fndca1.fnal.gov:1094\/\/\/pnf
 #Figure out where code comes from and where to put temporary files
 outFileName="testReconstruction.root"
 gridScriptName="basicReconstruction.sh"
-hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testReconstruction" #TODO: Set this based on the user's environment with a fallback in case it's not on /pnfs
+hostOutDir="${2:-/pnfs/emphatic/persistent/users/${USER}/testReconstruction}"
+
 #codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment"
 cd $(dirname $BASH_SOURCE)/../..
 codeDir=$(pwd)
@@ -39,6 +40,7 @@ cd -
 
 #Prepare files needed for grid submission
 source $codeDir/emphaticsoft/GridSubmission/gridSubFunctions.sh
+checkOutputDir $hostOutDir
 makeOutputDirectory $hostOutDir
 makeTarball $codeDir $hostOutDir
 makeWrapperBoilerplate $codeDir > ${gridScriptName} #Overwrite grid script if it already exists from a previous job submission

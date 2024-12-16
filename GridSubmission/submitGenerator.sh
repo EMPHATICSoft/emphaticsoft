@@ -3,13 +3,14 @@
 
 #Help text
 if [[ $1 == "-h" || $1 == "--help" || $# < 2 ]]; then
-  echo "Usage: submitGenerator.sh template.fcl generator.sh nJobs"
+  echo "Usage: submitGenerator.sh template.fcl generator.sh nJobs [output directory]"
   echo "- generator.sh takes template.fcl as an input, updates things like"
   echo "run number and random seed based on the grid environment, and"
   echo "prints the result to stdout."
   echo "- nJobs is an integer number of jobs to run in parallel."
   exit 1
 fi
+#TODO: Validate that arguments have the right format here and print usage with explanation if not.
 
 #Get arguments from the command line
 templateConfig=$1
@@ -19,14 +20,15 @@ nJobs=$3
 #Figure out where code comes from and where to put temporary files
 outFileName="testSimulation.root"
 gridScriptName="basicSimulation.sh"
-hostOutDir="/pnfs/emphatic/persistent/users/${USER}/testSimulation" #TODO: Set this based on the user's environment with a fallback in case it's not on /pnfs
-#codeDir="/exp/emph/app/users/aolivier/batchSubmissionDevelopment"
+hostOutDir="${4:-/pnfs/emphatic/persistent/users/${USER}/testSimulation}"
+
 cd $(dirname $BASH_SOURCE)/../..
 codeDir=$(pwd)
 cd -
 
 #Prepare files needed for grid submission
 source $codeDir/emphaticsoft/GridSubmission/gridSubFunctions.sh
+checkOutputDir $hostOutDir
 makeOutputDirectory $hostOutDir
 makeTarball $codeDir $hostOutDir
 makeWrapperBoilerplate $codeDir > ${gridScriptName} #Overwrite grid script if it already exists from a previous job submission

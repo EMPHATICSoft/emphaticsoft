@@ -78,3 +78,15 @@ getBasicJobsubArgs()
 
   echo "-d ${outDirTag} ${hostOutDir} -l '+SingularityImage=\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\"' --tar_file_name dropbox://${hostOutDir}/${tarFileName} --use-cvmfs-dropbox"
 }
+
+#Check that output directory is on /pnfs
+checkOutputDir()
+{
+  hostOutDir=$1
+  if [[ ! $hostOutDir =~ /pnfs/emphatic/persistent ]]
+  then
+    echo "Output directory must be on /pnfs/emphatic/persistent, but it's currently set to $hostOutDir"
+    echo "Try running submitGenerator.sh/submitReconstruction.sh from the directory where you want output to go."
+    exit 1
+  fi
+}
