@@ -22,7 +22,17 @@ fileList="fileList.txt"
 #  echo $fileName >> fileList.txt
 #done < /dev/stdin
 
-cat - > $fileList
+if [[ $# -gt 3 ]]
+then
+  rm $fileList
+  for fileName in ${@:3}
+  do
+    echo $fileName >> $fileList
+  done
+else
+  cat - > $fileList
+fi
+
 nJobs=$(wc -l $fileList | sed -E 's/([[:digit:]]+) (.*)/\1/g')
 
 #Convert file names to xrootd paths
