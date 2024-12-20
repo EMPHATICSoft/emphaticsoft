@@ -33,7 +33,7 @@ physics:
 {
   producers:
   {
-	generator: @local::proton4
+	generator: @local::protonwide
 	geantgen:  @local::standard_geant4
   }
 

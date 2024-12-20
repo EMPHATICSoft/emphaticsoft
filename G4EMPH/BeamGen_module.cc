@@ -82,7 +82,9 @@ namespace emph {
       double      fPXsigma;
       double      fPYmean;
       double      fPYsigma;
-      
+      double      fPmin; //new
+      double      fPmax; //new
+
       std::string fXYDistSource;
       std::string fXYHistFile;
       std::string fXYHistName;
@@ -90,7 +92,7 @@ namespace emph {
       std::string fPXYHistFile;
       std::string fPXYHistName;
       std::string fParticleType;
-
+      std::string fMomentumDistType;
       TH2D*       fXYHist;  
       TH2D*       fPXYHist;
     
@@ -156,6 +158,10 @@ namespace emph {
     fPYmean         = ps.get<double>("PYmean",999999.);
     fPYsigma        = ps.get<double>("PYsigma",0.);
 
+    fPmin = ps.get<double>("PMin", 3.6);  
+    fPmax = ps.get<double>("PMax", 4.4);  
+
+    fMomentumDistType = ps.get<std::string>("momentumDistType", "Gauss"); // Default: Gauss
     fParticleType = ps.get<std::string>("particleType","unknown");
   }
 
@@ -295,7 +301,14 @@ namespace emph {
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
-    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    double pmag;
+    if (fMomentumDistType == "Uniform") {
+      pmag = rand->Uniform(fPmin, fPmax);  // Flat momentum distribution
+    } else {
+      pmag = TMath::Abs(rand->Gaus(fPmean, fPsigma));  // Default to Gaussian distribution
+}
+
+   // double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
     double pb[3];
     double pxpz,pypz;
     

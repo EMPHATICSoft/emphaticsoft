@@ -41,6 +41,11 @@ standard_beamgen:
   PXsigma:		     10.e-6
   PYmean:		     0.
   PYsigma:		     10.e-6
+
+# New parameters for momentum distribution
+  momentumDistType:   "Uniform"   # "Gauss" or "Uniform" 
+  PMin:   3.5                       
+  PMax:   4.5                     
 }
 
 proton120: @local::standard_beamgen
@@ -70,6 +75,23 @@ proton4.PXmax: 1.e-4
 proton4.PXmin: -1.e-4 
 proton4.PYmax: 1.e-4
 proton4.PYmin: -1.e-4 
+
+protonwide: @local::standard_beamgen
+protonwide.particleType: "proton"
+protonwide.PMean: 4 
+protonwide.PSigma: 0.8
+protonwide.xyDistSource: "flatxy"
+protonwide.pxyDistSource: "flatpxy"
+protonwide.Xmax: 2.
+protonwide.Xmin: -2.
+protonwide.Ymax: 2.
+protonwide.Ymin: -2.
+protonwide.PXmax: 10.e-3
+protonwide.PXmin: -10.e-3
+protonwide.PYmax: 10.e-3
+protonwide.PYmin: -10.e-3
+
+
 
 piplusP31: @local::standard_beamgen
 piplusP31.particleType: "pion"
