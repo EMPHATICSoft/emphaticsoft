@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_singletrackalignment:
+{
+  module_type: SingleTrackAlignment
+  CheckLineSeg:       false
+  LineSegLabel:       "makesingletracksforalign"
+  ClusterLabel:       "ssdclusts"
+  TrackSegLabel:      "makesingletracksforalign"
+}
+
+END_PROLOG

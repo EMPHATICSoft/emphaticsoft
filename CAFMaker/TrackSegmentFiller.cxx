@@ -26,9 +26,10 @@ namespace caf
       for (int i=0; i<3; ++i) 
 	sp.vtx[i] = p.Vtx()[i];
       sp.mom.SetXYZ(p.P()[0],p.P()[1],p.P()[2]);
-      
-      stdrec.sgmnts.seg.push_back(sp);      
+ 
+      sp.label = p.Label();
+      sp.nspacepoints = p.NSpacePoints();
+      stdrec.sgmnts.seg.push_back(sp);    
     } // end of loop over track segments
-
   }  
 } // end namespace caf

@@ -136,7 +136,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrack" ClassVersion="11" >
+ <class name="caf::SRTrack" ClassVersion="12" >
+  <version ClassVersion="12" checksum="2586407891"/>
   <version ClassVersion="11" checksum="3996263664"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
@@ -146,7 +147,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="11" >
+ <class name="caf::SRTrackSegment" ClassVersion="12" >
+  <version ClassVersion="12" checksum="3697610154"/>
   <version ClassVersion="11" checksum="2984398867"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

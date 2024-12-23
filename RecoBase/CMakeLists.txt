@@ -11,6 +11,7 @@ art_make_library(
     Geometry
     ROOT::Physics
     ROOT::Geom
+    StandardRecord
   )
 
 install_headers()

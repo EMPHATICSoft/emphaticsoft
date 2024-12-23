@@ -1,0 +1,50 @@
+#include "Services.fcl"
+#include "MakeTrackSegments.fcl"
+
+process_name: MakeTrackSegments
+
+services:
+{
+  TFileService: { fileName: "%ifb_tracksegments_hist.root" closeFileFast: false }
+  @table::standard_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "%ifb_tracksegments.root"
+   fastCloning: false
+
+  }
+}
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+   #     dataqual:     @local::standard_dataqual
+   #     clust:        @local::standard_ssdclust
+   #     momreco:      @local::standard_momreco
+   maketracksegments: @local::standard_maketracksegments
+ }
+
+ reco: [ maketracksegments ]
+
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+
+}

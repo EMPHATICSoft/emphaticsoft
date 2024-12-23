@@ -37,9 +37,26 @@ find_package( ifdh_art       2.15.00 REQUIRED)
 include(ArtDictionary)
 include(ArtMake)
 include(BuildPlugins)
+#i#nclude(ExternalProject)
+
+##ExternalProject_Add(millepede
+#  GIT_REPOSITORY https://gitlab.desy.de/claus.kleinwort/millepede-ii.git
+#  SOURCE_DIR ""
+##  SOURCE_DIR "/exp/emph/app/users/rchirco/emph_12.4.23/mp/target"
+##  DOWNLOAD_COMMAND ""
+##  CONFIGURE_COMMAND ""
+##  BUILD_COMMAND make
+##  BUILD_IN_SOURCE true
+##  INSTALL_COMMAND make install
+##)
+##ExternalProject_Get_Property(millepede SOURCE_DIR) #GIT_REPOSITORY) #SOURCE_DIR)
+#message("+++++" ${SOURCE_DIR})
+#add_executable(${PROJECT_NAME} pede readMilleBinary)
+#target_link_libraries(${PROJECT_NAME} ${SOURCE_DIR}/mille.o)
 
 # source
 add_subdirectory(Align)
+add_subdirectory(Alignment)
 add_subdirectory(ADCReco)
 add_subdirectory(ADCUtils)
 add_subdirectory(ARICHReco)

@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+standard_makesingletracksforalign:
+{
+  module_type: MakeSingleTracksForAlign
+  CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
+  ClusterLabel:      "ssdclusts"
+  G4Label:           "geantgen"
+  ClusterCut:        "strict"    # "strict" for only one cluster per plane
+  TrkSegLabel:       "maketracksegments" 
+}
+
+END_PROLOG
