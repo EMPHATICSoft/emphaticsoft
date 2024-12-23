@@ -264,8 +264,6 @@ namespace emph {
 
   std::vector<rb::TrackSegment> SingleTrackAlgo::MakeLines(std::vector<std::vector<double>> sp1, std::vector<std::vector<double>> sp2, std::vector<std::vector<double>> sp3) 
   {
-    //ru::RecoUtils recoFcn2 = ru::RecoUtils(fEvtNum);
-
     //segment 1 -> don't need to fit anything, just connect two points
     double lfirst1[3]; double llast1[3];
     lfirst1[0] = sp1[0][0];
@@ -359,8 +357,6 @@ namespace emph {
     double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
     double recop = recoFcn.getMomentum(recoBendAngle);
 
-    //std::cout<<"recop: "<<recop<<std::endl; 
-
     //change track segments
     double realp1[3];
     realp1[2] = recop*ts1.P()[2];
@@ -405,17 +401,10 @@ namespace emph {
 
   //------------------------------------------------------------
 
-void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop) {
-    // Base case: reached the end of the matrix
-    //if (row == (int)matrix.size()) {
-//std::cout<<"Starting getCombinations"<<std::endl;
+  void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop) {
     if ((int)combination.size() == stop){
       result.push_back(combination);
-std::cout<<"result size = "<<result.size()<<std::endl;
-      for (auto val : combination) {
-        std::cout << val.Station() << " ";
-      }
-      std::cout << std::endl;
+
       return;
     }
 
@@ -431,6 +420,7 @@ std::cout<<"result size = "<<result.size()<<std::endl;
 
   }
 
+  //------------------------------------------------------------
 
   std::vector<rb::TrackSegment> SingleTrackAlgo::MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints)
   {
@@ -439,15 +429,12 @@ std::cout<<"result size = "<<result.size()<<std::endl;
     spmatrix.resize(nStations);
     std::vector<rb::TrackSegment> alltrackcombos;
 
-std::cout<<"Spacepoints.Size() = "<<spacepoints.size()<<std::endl;
     for (size_t i=0; i<spacepoints.size(); i++){
       int station = spacepoints[i].Station();
       spmatrix[station].push_back(spacepoints[i]);
-      std::cout<<"MakeTrackSeg: Station = "<<station<<std::endl;
     }
 
     // Make all combinations of space points
-    //std::vector<std::vector<rb::SpacePoint>> sptmp;
     int combos = 1;
     for (size_t i=0; i<spmatrix.size(); i++){
       for (size_t j=0; j<spmatrix[i].size(); j++){ 
@@ -455,20 +442,7 @@ std::cout<<"Spacepoints.Size() = "<<spacepoints.size()<<std::endl;
         else combos *= (int)spmatrix[i].size();
       }
     }
-//    std::cout<<"Combos =" <<combos<<std::endl;
-/*
-    sptmp.resize(combos);
-    for (int a=0; a<combos; a++){
-      for (size_t i=0; i<spmatrix.size(); i++){
-        for (size_t j=0; j<spmatrix[i].size(); j++){  
-	  for (size_t k=0; k<spmatrix[i+1].size(); k++){
-            sptmp[a].push_back(spmatrix[i][j]);
-            sptmp[a].push_back(spmatrix[k][j]);
-	}
-        } //not sure if this is right...
-      }
-    }  
-*/
+
     std::vector<std::vector<rb::SpacePoint>> sptmp;
     std::vector<rb::SpacePoint> combination;
 
@@ -479,59 +453,19 @@ std::cout<<"Spacepoints.Size() = "<<spacepoints.size()<<std::endl;
         break;
       }
     }
-std::cout<<"r: "<<r<<std::endl;
 
     getCombinations(spmatrix, r, combination, sptmp,2);
     getCombinations(spmatrix, r, combination, sptmp,3);
 
-   //for (auto val : combination) {
-   //std::cout << val.Station() << " " << std::endl;
-  // }
 
-    // Print the combinations
+    // If you care about requiring the first two stations
+    // to be present in a TrackSegment
 
-//    for (const auto& comb : result) {
-//        for (auto val : comb) {
- //           std::cout << val.Station() << " ";
-   //     }
-     //   std::cout << std::endl;
-  //  }
-
-    // Check that first two planes in a track have hits
-/*
-    for (size_t a=0; a<sptmp.size(); a++){
-      //for (size_t k=0; k<sptmp[a].size(); k++){
-	int stp0 = sptmp[a][0].Station();
-	int stp1 = sptmp[a][0+1].Station();
-        int ch[2] = {stp0, stp1};
-	if (ch == {0,1} || ch == {2,3} || ch == {5,6}) good
-//	int stp2 = sptmp[a][k+2]->Station();
-//	if (stp1 && stp2) good
-//	if (stp1 && !stp2) good
-//	if (stp1 && 
-	
-    //  check that smptmp[a][k] includes stations 01 23 56 how to generalize?
-    //  size >= 2
-    //  [a][k].Station is
-
-    //  iterate through stations? start with [a][k]->Station(), add +1, see if that's there, do again
-    //  2...+1 cool
-    //  3...+1 
-    //  4... then check if 4+1 exists
-    //  if not, yay
-    //  if stating at like 3
-    //  3+1 cool
-    //  4 +1 not there
-    //  reject track/can't make it
-    // if 2+1 but not 3+1, that's fine
-    // 2+1, 3+1, but not 4+1, THAT'S FINE
-    // 3+1, but not 4+1 or 5+1 THATS bad
-*/
-
+    /*
     // Now that check the first two stations are included
     std::vector<std::vector<rb::SpacePoint>> validcombos;
 
-    // Define the organizer and sptmp matrices
+    // Define the organizer (what groups of stations do you want in a TrackSegment?)
     std::vector<std::vector<int>> organizer{ 
         {0, 1}, 
         {2, 3, 4},
@@ -555,7 +489,7 @@ std::cout<<"r: "<<r<<std::endl;
           size_t index = std::distance(row.begin(), it);
           // Check that the next element in the row matches the second element
           if (index + 1 < row.size() && row[index + 1] == second) {
-            // If both elements are found adjacently, push the pair into validcombos
+            // If both elements are found next to each other, push the pair into validcombos
             validcombos.push_back(sptmp[a]);
             break; // We found a match, no need to check further rows
           }
@@ -564,59 +498,51 @@ std::cout<<"r: "<<r<<std::endl;
 	               // if we return, we do not
       }
     }
+    // Below, you would need to replace sptmp with validcombos
 
-    for (size_t a=0; a<validcombos.size(); a++){
+    */
+
+    //for (size_t a=0; a<validcombos.size(); a++){
+    for (size_t a=0; a<sptmp.size(); a++){
       // Find line of best fit and return endpoints
       double lfirst[3]; double llast[3];
 
       std::vector<std::vector<double>> sppos;
       for (size_t k=0; k<sptmp[a].size(); k++){
-        std::vector<double> x = {validcombos[a][k].Pos()[0],validcombos[a][k].Pos()[1],validcombos[a][k].Pos()[2]};
+        //std::vector<double> x = {validcombos[a][k].Pos()[0],validcombos[a][k].Pos()[1],validcombos[a][k].Pos()[2]};
+        std::vector<double> x = {sptmp[a][k].Pos()[0],sptmp[a][k].Pos()[1],sptmp[a][k].Pos()[2]};
         sppos.push_back(x);
       }
       recoFcn.findLine(sppos,lfirst,llast);
 
       // Create rb::TrackSegments and insert them into the vector
       rb::TrackSegment ts = rb::TrackSegment();
-      for (auto p : validcombos[a]){
-std::cout<<"count"<<std::endl;
-          ts.Add(p);
-}
+      //for (auto p : validcombos[a]){
+      for (auto p : sptmp[a]){
+        ts.Add(p);
+      }
       ts.SetVtx(lfirst);
       ts.SetA(lfirst);
       ts.SetB(llast);
 
+      // Set null momentum
       double p0[3] = {0.,0.,0.};
       ts.SetP(p0);
-/*
-      double p[3];
-      double dx = llast[0]-lfirst[0];
-      double dy = llast[1]-lfirst[1];
-      double dz = llast[2]-lfirst[2];
 
-      p[0] = dx/dz;
-      p[1] = dy/dz;
-      p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-      ts.SetP(p);
-*/
       alltrackcombos.push_back(ts);
       
     }
-    //tsv.push_back(ts);
-    std::cout<<"alltrackcombos size "<<alltrackcombos.size()<<std::endl;
-    // Choose best track segment metric? Or too early
 
     combination.clear();
     sptmp.clear();
-    validcombos.clear();
+    //validcombos.clear();
 
-std::cout<<"Gonna return all track combos"<<std::endl;
     return alltrackcombos;
   }
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::SetBeamTrk(rb::TrackSegment ts1, double pbeam)
+  void SingleTrackAlgo::SetBeamTrk(rb::TrackSegment &ts1, double pbeam)
   {
     SetPtmp(ts1);  
 
@@ -635,7 +561,7 @@ std::cout<<"Gonna return all track combos"<<std::endl;
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::SetPtmp(rb::TrackSegment ts)
+  void SingleTrackAlgo::SetPtmp(rb::TrackSegment &ts)
   {
     double dx = ts.B()[0]-ts.A()[0];
     double dy = ts.B()[1]-ts.A()[1];
@@ -651,7 +577,7 @@ std::cout<<"Gonna return all track combos"<<std::endl;
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment ts2, rb::TrackSegment ts3)
+  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3)
   {
     SetPtmp(ts2);
     SetPtmp(ts3);
@@ -662,7 +588,7 @@ std::cout<<"Gonna return all track combos"<<std::endl;
     double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
     double recop = recoFcn.getMomentum(recoBendAngle);
 
-    //change track segments
+    // Change TrackSegments
     double realp2[3];
     realp2[2] = recop*ts2.P()[2];
     realp2[0] = ts2.P()[0]*realp2[2];
@@ -674,24 +600,21 @@ std::cout<<"Gonna return all track combos"<<std::endl;
     realp3[0] = ts3.P()[0]*realp3[2];
     realp3[1] = ts3.P()[1]*realp3[2];
     ts3.SetP(realp3);
+  }
 
-//here or outside function (in module?)
-    double recopz = ts2.P()[2];
-    double recopx = ts2.P()[0];
-    double recopy = ts2.P()[1];
+  //------------------------------------------------------------
 
-    sectrkp[0] = recopx;
-    sectrkp[1] = recopy;
-    sectrkp[2] = recopz;
-
-    //not sure if i like this
-    TVector3 a(tsv[0].A()[0],tsv[0].A()[1],tsv[0].A()[2]);
-    TVector3 b(tsv[0].B()[0],tsv[0].B()[1],tsv[0].B()[2]);
-    TVector3 c(tsv[1].A()[0],tsv[1].A()[1],tsv[1].A()[2]);
-    TVector3 d(tsv[1].B()[0],tsv[1].B()[1],tsv[1].B()[2]);
+  double* SingleTrackAlgo::SetTrackInfo(rb::TrackSegment &ts1, rb::TrackSegment &ts2)
+  {
+    TVector3 a(ts1.A()[0],ts1.A()[1],ts1.A()[2]);
+    TVector3 b(ts1.B()[0],ts1.B()[1],ts1.B()[2]);
+    TVector3 c(ts2.A()[0],ts2.A()[1],ts2.A()[2]);
+    TVector3 d(ts2.B()[0],ts2.B()[1],ts2.B()[2]);
     double l0t[3];
     double l1t[3];
     recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
+
+    return sectrkvtx;
   }
 
   //------------------------------------------------------------

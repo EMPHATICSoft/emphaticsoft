@@ -237,6 +237,21 @@ void caf_singleTrkPlots(std::string fname)
       }
       bool good4 = false;
       bool good5 = false;
+
+      std::vector<caf::SRTrackSegment> tsvcut;
+      //for (auto t : rec->sgmnts.seg){
+      for (auto t : rec->trks.trk){
+	for (size_t i=0; i<t._sgmnt.size(); i++){ //need to be able to grab tracksegments 
+          if (t._sgmnt[i].label == 1) tsvcut.push_back(t._sgmnt[i]);
+          else if (t._sgmnt[i].nspacepoints == 3) tsvcut.push_back(t._sgmnt[i]);
+        }
+      }
+      bool goodTrack = false;
+      if (tsvcut.size() == 3){
+	goodTrack = true;
+      }
+	
+if (goodTrack){
       if (goodEvent){
         for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
           caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
@@ -287,8 +302,12 @@ void caf_singleTrkPlots(std::string fname)
         // only look at events with three track segments
         //if (ntrkseg == 3) {
         // first fill scattering angle resolution plot
-	caf::SRVector3D& p0 = rec->sgmnts.seg[0].mom;
-	caf::SRVector3D& p1 = rec->sgmnts.seg[1].mom;
+	//caf::SRVector3D& p0 = rec->sgmnts.seg[0].mom;
+	//caf::SRVector3D& p1 = rec->sgmnts.seg[1].mom;
+        caf::SRVector3D& p0 = rec->trks.trk[0]._sgmnt[0].mom;
+        caf::SRVector3D& p1 = rec->trks.trk[1]._sgmnt[0].mom;
+        //std::cout<<"p0: "<<p0.X()<<", "<<p0.Y()<<", "<<p0.Z()<<std::endl;
+        //std::cout<<"p1: "<<p1.X()<<", "<<p1.Y()<<", "<<p1.Z()<<std::endl;
 	recoAngle = TMath::ACos(p0.Dot(p1)/(p0.Mag()*p1.Mag()));
 	hScattering->Fill(recoAngle);
 
@@ -311,7 +330,8 @@ void caf_singleTrkPlots(std::string fname)
 	}
 
 	// now fill bending angle resolution plot
-	caf::SRVector3D& p2 = rec->sgmnts.seg[2].mom;
+	//caf::SRVector3D& p2 = rec->sgmnts.seg[2].mom;
+        caf::SRVector3D& p2 = rec->trks.trk[1]._sgmnt[1].mom;
 	recoAngle = TMath::ACos(p1.Dot(p2)/(p1.Mag()*p2.Mag()));
         hBending->Fill(recoAngle);
 
@@ -354,22 +374,22 @@ void caf_singleTrkPlots(std::string fname)
 	}
 	// bendvsreco stuff
 	// get track xyz at 4 and 5
-	double t4 = (zreco[4] - rec->sgmnts.seg[1].vtx[2])/rec->sgmnts.seg[1].mom.z;
-        double x4 = rec->sgmnts.seg[1].vtx[0]+t4*rec->sgmnts.seg[1].mom.x;
-        double y4 = rec->sgmnts.seg[1].vtx[1]+t4*rec->sgmnts.seg[1].mom.y;
+	double t4 = (zreco[4] - rec->trks.trk[1]._sgmnt[0].vtx[2])/rec->trks.trk[1]._sgmnt[0].mom.z;
+        double x4 = rec->trks.trk[1]._sgmnt[0].vtx[0]+t4*rec->trks.trk[1]._sgmnt[0].mom.x;
+        double y4 = rec->trks.trk[1]._sgmnt[0].vtx[1]+t4*rec->trks.trk[1]._sgmnt[0].mom.y;
 	double r4 = sqrt(x4*x4 + y4*y4);
-	double omega4 = sqrt(rec->sgmnts.seg[1].mom.x*rec->sgmnts.seg[1].mom.x+rec->sgmnts.seg[1].mom.y*rec->sgmnts.seg[1].mom.y)/rec->sgmnts.seg[1].mom.z;
+	double omega4 = sqrt(rec->trks.trk[1]._sgmnt[0].mom.x*rec->trks.trk[1]._sgmnt[0].mom.x+rec->trks.trk[1]._sgmnt[0].mom.y*rec->trks.trk[1]._sgmnt[0].mom.y)/rec->trks.trk[1]._sgmnt[0].mom.z;
 	hBendVsRecoRAt4->Fill(r4,recoAngle);
 	hBendVsRecoOmegaAt4->Fill(omega4,recoAngle);
 	//hRecoBendXY->Fill(x4,y4,recoAngle);
         pRecoBendXY->Fill(x4,y4,recoAngle);
 	//std::cout<<"recoAngle: "<<recoAngle<<std::endl;
 
-	double t5 = (zreco[5] - rec->sgmnts.seg[2].vtx[2])/rec->sgmnts.seg[2].mom.z;
-        double x5 = rec->sgmnts.seg[2].vtx[0]+t5*rec->sgmnts.seg[2].mom.x;
-        double y5 = rec->sgmnts.seg[2].vtx[1]+t5*rec->sgmnts.seg[2].mom.y;
+	double t5 = (zreco[5] - rec->trks.trk[1]._sgmnt[1].vtx[2])/rec->trks.trk[1]._sgmnt[1].mom.z;
+        double x5 = rec->trks.trk[1]._sgmnt[1].vtx[0]+t5*rec->trks.trk[1]._sgmnt[1].mom.x;
+        double y5 = rec->trks.trk[1]._sgmnt[1].vtx[1]+t5*rec->trks.trk[1]._sgmnt[1].mom.y;
         double r5 = sqrt(x5*x5 + y5*y5);
-        double omega5 = sqrt(rec->sgmnts.seg[2].mom.x*rec->sgmnts.seg[2].mom.x+rec->sgmnts.seg[2].mom.y*rec->sgmnts.seg[2].mom.y)/rec->sgmnts.seg[2].mom.z;
+        double omega5 = sqrt(rec->trks.trk[1]._sgmnt[1].mom.x*rec->trks.trk[1]._sgmnt[1].mom.x+rec->trks.trk[1]._sgmnt[1].mom.y*rec->trks.trk[1]._sgmnt[1].mom.y)/rec->trks.trk[1]._sgmnt[1].mom.z;
         //hBendVsRecoRAt5->Fill(r5,recoAngle);
         //hBendVsRecoOmegaAt5->Fill(omega5,recoAngle);
 
@@ -382,11 +402,11 @@ void caf_singleTrkPlots(std::string fname)
 	double chi2 = 0;
         // findDist
         for (auto i : truthhit_track1) {
-          caf::SRVector3D m = rec->sgmnts.seg[0].mom;
+          caf::SRVector3D m = rec->trks.trk[0]._sgmnt[0].mom;
 	  caf::SRVector3D p(i.GetX,i.GetY,i.GetZ); 
           caf::SRVector3D ap;
           for (int j=0; j<3; j++){
-            double a = rec->sgmnts.seg[0].vtx[j];
+            double a = rec->trks.trk[0]._sgmnt[0].vtx[j];
             if (j==0) ap.SetX(-1*(p.X()-a));
             if (j==1) ap.SetY(-1*(p.Y()-a));
 	    if (j==2) ap.SetZ(-1*(p.Z()-a));
@@ -399,11 +419,11 @@ void caf_singleTrkPlots(std::string fname)
 	hChi2_seg1->Fill(chi2);
 	chi2 = 0;
 	for (auto i : truthhit_track2) {
-          caf::SRVector3D m = rec->sgmnts.seg[1].mom;
+          caf::SRVector3D m = rec->trks.trk[1]._sgmnt[0].mom;
           caf::SRVector3D p(i.GetX,i.GetY,i.GetZ);
           caf::SRVector3D ap;
           for (int j=0; j<3; j++){
-            double a = rec->sgmnts.seg[1].vtx[j];
+            double a = rec->trks.trk[1]._sgmnt[0].vtx[j];
             if (j==0) ap.SetX(-1*(p.X()-a));
             if (j==1) ap.SetY(-1*(p.Y()-a));
             if (j==2) ap.SetZ(-1*(p.Z()-a));
@@ -416,11 +436,11 @@ void caf_singleTrkPlots(std::string fname)
         hChi2_seg2->Fill(chi2);
         chi2 = 0;
 	for (auto i : truthhit_track3) {
-          caf::SRVector3D m = rec->sgmnts.seg[2].mom;
+          caf::SRVector3D m = rec->trks.trk[1]._sgmnt[1].mom;
           caf::SRVector3D p(i.GetX,i.GetY,i.GetZ);
           caf::SRVector3D ap;
           for (int j=0; j<3; j++){
-            double a = rec->sgmnts.seg[2].vtx[j];
+            double a = rec->trks.trk[1]._sgmnt[1].vtx[j];
             if (j==0) ap.SetX(p.X()-a);
             if (j==1) ap.SetY(p.Y()-a);
             if (j==2) ap.SetZ(p.Z()-a);
@@ -443,27 +463,28 @@ void caf_singleTrkPlots(std::string fname)
         hAngDiffx_seg3->Fill(ad3[0]); hAngDiffy_seg3->Fill(ad3[1]);
 
         // findDistFixedZ
-        findDistFixedZ(truthhit_track1,rec->sgmnts.seg[0]);
-        findDistFixedZ(truthhit_track2,rec->sgmnts.seg[1]);
-        findDistFixedZ(truthhit_track3,rec->sgmnts.seg[2]);
+        findDistFixedZ(truthhit_track1,rec->trks.trk[0]._sgmnt[0]);
+        findDistFixedZ(truthhit_track2,rec->trks.trk[1]._sgmnt[0]);
+        findDistFixedZ(truthhit_track3,rec->trks.trk[1]._sgmnt[1]);
 
 	// intersection of track segments 0 and 1
-	findTrackIntersection(rec->sgmnts.seg[0],rec->sgmnts.seg[1]);
+//	findTrackIntersection(rec->sgmnts.seg[0],rec->sgmnts.seg[1]);
+	 findTrackIntersection(tsvcut[0],tsvcut[1]);
 
 	// residual of reco mom - true mom
         int ntrks = int(rec->trks.trk.size());
         if (ntrks == 2) {
 	//double recop = rec->trks.trk[1].mom.Mag(); //doesn't work?
-        //double recopx = rec->trks.trk[1].mom.X();
-        //double recopy = rec->trks.trk[1].mom.Y();
-	//double recopz = rec->trks.trk[1].mom.Z();
-	double recopx = rec->sgmnts.seg[2].mom.X();
-        double recopy = rec->sgmnts.seg[2].mom.Y();
-        double recopz = rec->sgmnts.seg[2].mom.Z();
+        double recopx = rec->trks.trk[1]._sgmnt[1].mom.X();
+        double recopy = rec->trks.trk[1]._sgmnt[1].mom.Y();
+	double recopz = rec->trks.trk[1]._sgmnt[1].mom.Z();
+	//double recopx = rec->sgmnts.seg[2].mom.X();
+        //double recopy = rec->sgmnts.seg[2].mom.Y();
+        //double recopz = rec->sgmnts.seg[2].mom.Z();
 
 	double recopt = sqrt(recopx*recopx+recopy*recopy);
 	double recop = sqrt(recopt*recopt+recopz*recopz);
-	std::cout<<"recopz: "<<recopz<<std::endl;
+	//std::cout<<"recopz: "<<recopz<<std::endl;
 
         //std::cout<<"Recopx: "<<recopx<<std::endl;
         //std::cout<<"Recopy: "<<recopy<<std::endl;
@@ -480,7 +501,7 @@ void caf_singleTrkPlots(std::string fname)
 	    hRecoVsTruePt->Fill(truept,recopt);
 	    hRecoVsTruePx->Fill(h.GetPx,recopx);
 	    hRecoVsTruePy->Fill(h.GetPy,recopy);
-	    if (truept > 0.05) std::cout<<"recopx = "<<recopx<<", recopy = "<<recopy<<std::endl;
+	    //if (truept > 0.05) std::cout<<"recopx = "<<recopx<<", recopy = "<<recopy<<std::endl;
           }
         }
         //std::cout<<"Recop: "<<recop<<std::endl;
@@ -557,14 +578,23 @@ void caf_singleTrkPlots(std::string fname)
         sprintf(Gyz,"gLines_yz_e%d",i);
 
 	// seg 1
+/*
 	double t1 = (zreco[1] - rec->sgmnts.seg[0].vtx[2])/rec->sgmnts.seg[0].mom.z;
         double end1x = rec->sgmnts.seg[0].vtx[0]+t1*rec->sgmnts.seg[0].mom.x;
         double end1y = rec->sgmnts.seg[0].vtx[1]+t1*rec->sgmnts.seg[0].mom.y;
 	double l1x[2] = {rec->sgmnts.seg[0].vtx[0],end1x};
 	double l1y[2] = {rec->sgmnts.seg[0].vtx[1],end1y};
 	double l1z[2] = {rec->sgmnts.seg[0].vtx[2],zreco[1]};
+*/
+        double t1 = (zreco[1] - rec->trks.trk[0]._sgmnt[0].vtx[2])/rec->trks.trk[0]._sgmnt[0].mom.z;
+        double end1x = rec->trks.trk[0]._sgmnt[0].vtx[0]+t1*rec->trks.trk[0]._sgmnt[0].mom.x;
+        double end1y = rec->trks.trk[0]._sgmnt[0].vtx[1]+t1*rec->trks.trk[0]._sgmnt[0].mom.y;
+        double l1x[2] = {rec->trks.trk[0]._sgmnt[0].vtx[0],end1x};
+        double l1y[2] = {rec->trks.trk[0]._sgmnt[0].vtx[1],end1y};
+        double l1z[2] = {rec->trks.trk[0]._sgmnt[0].vtx[2],zreco[1]};
 
         // seg 2
+/*
         double t2 = (zreco[4] - rec->sgmnts.seg[1].vtx[2])/rec->sgmnts.seg[1].mom.z;
         double end2x = rec->sgmnts.seg[1].vtx[0]+t2*rec->sgmnts.seg[1].mom.x;
         double end2y = rec->sgmnts.seg[1].vtx[1]+t2*rec->sgmnts.seg[1].mom.y;
@@ -572,14 +602,28 @@ void caf_singleTrkPlots(std::string fname)
         double l2y[2] = {rec->sgmnts.seg[1].vtx[1],end2y};
         double l2z[2] = {rec->sgmnts.seg[1].vtx[2],zreco[4]};
 
+*/
+        double t2 = (zreco[4] - rec->trks.trk[1]._sgmnt[0].vtx[2])/rec->trks.trk[1]._sgmnt[0].mom.z;
+        double end2x = rec->trks.trk[1]._sgmnt[0].vtx[0]+t2*rec->trks.trk[1]._sgmnt[0].mom.x;
+        double end2y = rec->trks.trk[1]._sgmnt[0].vtx[1]+t2*rec->trks.trk[1]._sgmnt[0].mom.y;
+        double l2x[2] = {rec->trks.trk[1]._sgmnt[0].vtx[0],end2x};
+        double l2y[2] = {rec->trks.trk[1]._sgmnt[0].vtx[1],end2y};
+        double l2z[2] = {rec->trks.trk[1]._sgmnt[0].vtx[2],zreco[4]};
         // seg 3
+/*
         double t3 = (zreco[7] - rec->sgmnts.seg[2].vtx[2])/rec->sgmnts.seg[2].mom.z;
         double end3x = rec->sgmnts.seg[2].vtx[0]+t3*rec->sgmnts.seg[2].mom.x;
         double end3y = rec->sgmnts.seg[2].vtx[1]+t3*rec->sgmnts.seg[2].mom.y;
         double l3x[2] = {rec->sgmnts.seg[2].vtx[0],end3x};
         double l3y[2] = {rec->sgmnts.seg[2].vtx[1],end3y};
         double l3z[2] = {rec->sgmnts.seg[2].vtx[2],zreco[7]};
-
+*/
+        double t3 = (zreco[7] - rec->trks.trk[1]._sgmnt[1].vtx[2])/rec->trks.trk[1]._sgmnt[1].mom.z;
+        double end3x = rec->trks.trk[1]._sgmnt[1].vtx[0]+t3*rec->trks.trk[1]._sgmnt[1].mom.x;
+        double end3y = rec->trks.trk[1]._sgmnt[1].vtx[1]+t3*rec->trks.trk[1]._sgmnt[1].mom.y;
+        double l3x[2] = {rec->trks.trk[1]._sgmnt[1].vtx[0],end3x};
+        double l3y[2] = {rec->trks.trk[1]._sgmnt[1].vtx[1],end3y};
+        double l3z[2] = {rec->trks.trk[1]._sgmnt[1].vtx[2],zreco[7]};
 	gLines_xz[i] = new TMultiGraph(Gxz,Gxz);
         gLines_yz[i] = new TMultiGraph(Gyz,Gyz);
 
@@ -685,9 +729,10 @@ void caf_singleTrkPlots(std::string fname)
     ytruth.clear();
     ztruth.clear();
   //} //3 track segments
+  }//goodTrack
   } // end loop over entries
 
-  std::cout<<"n good clusters: "<<ncl<<std::endl; 
+  //std::cout<<"n good clusters: "<<ncl<<std::endl; 
  
   // Make canvases and draw histograms on them
   // Easier to manipulate how we want things too look
@@ -936,6 +981,7 @@ void findDistFixedZ(std::vector<caf::SRTrueSSDHits> truthv, caf::SRTrackSegment&
    }
 }
 void findTrackIntersection(caf::SRTrackSegment trk1, caf::SRTrackSegment trk2){  
+
    caf::SRVector3D a = trk1.mom.Cross(trk2.mom);
    double dot = a.Dot(a);
 

@@ -10,16 +10,13 @@ standard_cafmaker:{
     BACkovHitLabel:    "backovreco"
     DataQualLabel:     "dataqual"
     GasCkovHitLabel:   "gasckovreco"
-    #LineSegLabel:      "makesingletracksforalign"
-    #SpacePointLabel:   "makesingletracksforalign"
     LineSegLabel:      "maketracksegments"
     SpacePointLabel:   "maketracksegments"
     SSDClustLabel:     "clust"
     SSDHitLabel:       "geantgen" #dah
-    SSDRawLabel:       "raw:SSD"
-    #TrackLabel:        "makesingletracksforalign"
-    #TrackSegmentLabel: "makesingletracksforalign"
-    TrackLabel:        "maketracksegments"
+    #SSDRawLabel:       "raw:SSD"
+    SSDRawLabel:       "rawSSD:SSD"
+    TrackLabel:        "makesingletracks"
     TrackSegmentLabel: "maketracksegments"
 
     GetMCTruth:    true #use for creating MC CAF's

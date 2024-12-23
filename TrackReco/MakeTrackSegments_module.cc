@@ -174,8 +174,6 @@ namespace emph {
 
   void emph::MakeTrackSegments::produce(art::Event& evt)
   {
-    std::cout<<"Starting MakeTrackSegments"<<std::endl;
-
     tsv.clear();
     spv.clear();
 
@@ -201,8 +199,6 @@ namespace emph {
     if(fMakePlots){ 
 
       if (fCheckClusters){
-	//auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>("clust"); //fClusterLabel); //"ssdclusts");
-        //auto hasclusters = evt.getHandle<rb::SSDCluster>(fClusterLabel);
 	auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
 	if (!hasclusters){
 	  mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
@@ -210,7 +206,6 @@ namespace emph {
 	}
       }
 
-      art::Handle< std::vector<sim::Particle> > particleH;
       art::Handle< std::vector<rb::SSDCluster> > clustH;
       art::Handle< std::vector<sim::SSDHit> > ssdHitH;
  
@@ -224,29 +219,8 @@ namespace emph {
       bool goodEvent = false;
       
       try {
-        evt.getByLabel(fG4Label, particleH);
-        particles.clear();
-        if (!particleH->empty()){
-          for (size_t idx=0; idx < particleH->size(); ++idx) {
-            const sim::Particle& part = (*particleH)[idx];
-            particles.push_back(&part);
-          }
-        
-          std::cout<<"Number of particles: "<<particles.size()<<std::endl;
-          pbeam[0] = particles[0]->Px();
-          pbeam[1] = particles[0]->Py();
- 	  pbeam[2] = particles[0]->Pz();
-          //std::cout<<"Incident pbeam[0]: "<<pbeam[0]<<std::endl;
-          //std::cout<<"Incident pbeam[1]: "<<pbeam[1]<<std::endl;
-          //std::cout<<"Incident pbeam[2]: "<<pbeam[2]<<std::endl;
-        }
-	std::cout<<"After particle"<<std::endl;
-	//fClusterLabel = "clust";
 	evt.getByLabel(fClusterLabel, clustH);
-        if (clustH->empty()) std::cout<<"EMPTY"<<std::endl;
 	if (!clustH->empty()){
-
-	std::cout<<"Clust not empty"<<std::endl;
           rb::LineSegment lineseg_tmp  = rb::LineSegment();
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
@@ -257,10 +231,10 @@ namespace emph {
             linesegments.push_back(lineseg_tmp);
             if (clust.AvgStrip() > 640){
               std::cout<<"Skipping nonsense"<<std::endl;
-              linesegv->push_back(linesegments[idx]); //lineseg_tmp);
+              linesegv->push_back(linesegments[idx]);
               continue; }
             if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments[idx])){
-              linesegv->push_back(linesegments[idx]); //lineseg_tmp);
+              linesegv->push_back(linesegments[idx]); 
 	    }
             else
               std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
@@ -280,25 +254,12 @@ namespace emph {
 	    else badclust++;
 	  }
 
-          //remove this loop?
-	  int count=0;
-	  for (auto i : clustMapAtLeastOne){
-            std::cout<<"i.first: "<<i.first<<std::endl; //"..."<<"i.second.first: "<<i.second.first<<std::endl;
-	    for (auto j : i.second){
-	      count++;
-	      std::cout<<"... "<<j.second<<std::endl;
-	    }
-            std::cout<<"count = "<<count<<std::endl;
-            count = 0;
-	  }
-	  std::cout<<"nclusters: "<<clusters.size()<<std::endl;
-
-	  fClusterCut == "lessstrict";
 	  //AT LEAST TWO CLUSTERS PER STATION
 	  if (fClusterCut == "lessstrict"){
             int count=0; int countSt = 0;
             for (auto i : clustMapAtLeastOne){
               for (auto j : i.second){
+		int doesntmatter = j.second; //if we don't use j, we'll get a warning 
                 count++;
               }
 	      countSt++;
@@ -311,7 +272,7 @@ namespace emph {
 	    if (goodEvent==true) {goodclust++;}
             else {badclust++;}
 
-            std::cout<<"Number of clusters: "<<clusters.size()<<" and goodEvent = "<<goodEvent<<std::endl;
+            //std::cout<<"Number of clusters: "<<clusters.size()<<" and goodEvent = "<<goodEvent<<std::endl;
 	  }
 
           cl_group.resize(nStations);
@@ -364,33 +325,16 @@ namespace emph {
                 if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
               }
             }
+
             //form lines and fill plots
-
-std::cout<<"Checking sp1"<<std::endl;
-for (auto i : sp1){
-std::cout<<"Station = "<<i.Station()<<std::endl;
-}
-std::cout<<"Checking sp2"<<std::endl;
-for (auto i : sp2){
-std::cout<<"Station = "<<i.Station()<<std::endl;
-}
-std::cout<<"Checking sp3"<<std::endl;
-for (auto i : sp3){
-std::cout<<"Station = "<<i.Station()<<std::endl;
-}
-std::cout<<"Now sp1"<<std::endl;
-
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
 	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
-	std::cout<<"MODULE tsv size: "<<tsv.size()<<std::endl;
 	
             std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
             for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
-        std::cout<<"MODULE tsv size: "<<tsv.size()<<std::endl;
 
             std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
             for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
-        std::cout<<"MODULE tsv size: "<<tsv.size()<<std::endl;
 	  
             for (auto ts : tsv) {
               tracksegmentv->push_back(ts);

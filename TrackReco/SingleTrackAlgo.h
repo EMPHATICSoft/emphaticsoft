@@ -52,10 +52,10 @@ namespace emph {
     std::vector<rb::SpacePoint> MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group);
     std::vector<rb::TrackSegment> MakeLines(std::vector<std::vector<double>> sp1, std::vector<std::vector<double>> sp2, std::vector<std::vector<double>> sp3);
     std::vector<rb::TrackSegment> MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints);
-    void SetBeamTrk(rb::TrackSegment ts1, double pbeam);
-    void SetRecoTrk(rb::TrackSegment ts2, rb::TrackSegment ts3);
-    void SetPtmp(rb::TrackSegment ts);
-void getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result, int stop);
+    void SetBeamTrk(rb::TrackSegment &ts1, double pbeam);
+    void SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3);
+    void SetPtmp(rb::TrackSegment& ts);
+    void getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result, int stop);
     void doTwoPlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, double x[3]);
     void doThreePlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, const rb::LineSegment* ls3, double x[3]);
     std::vector<rb::SpacePoint> MakeHitsOrig(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group);
@@ -70,6 +70,7 @@ void getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, 
     void SetSecTrkVtx(const double* x0) { for (int i=0; i<3; ++i) sectrkvtx[i] = x0[i]; };
     const double* GetSecTrkP() const { return sectrkp; }
     const double* GetSecTrkVtx() const { return sectrkvtx; }
+    double* SetTrackInfo(rb::TrackSegment &ts1, rb::TrackSegment &ts2);
 
     int GetEvtNum() const { return fEvtNum; }
     size_t NStations() const { return nStations; }
