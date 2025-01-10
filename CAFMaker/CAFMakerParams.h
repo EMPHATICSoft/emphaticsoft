@@ -29,6 +29,7 @@ namespace caf
     Atom<string> BACkovHitLabel    {Name("BACkovHitLabel")};
     Atom<string> DataQualLabel     {Name("DataQualLabel")};
     Atom<string> GasCkovHitLabel   {Name("GasCkovHitLabel")};
+    Atom<string> LineSegLabel      {Name("LineSegLabel")};    
     Atom<string> SpacePointLabel   {Name("SpacePointLabel")}; 
     Atom<string> SSDClustLabel     {Name("SSDClustLabel")};
     Atom<string> SSDHitLabel       {Name("SSDHitLabel")}; 
