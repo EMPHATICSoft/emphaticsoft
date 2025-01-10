@@ -46,7 +46,6 @@
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
 #include "RecoUtils/RecoUtils.h"
-#include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
 
@@ -78,7 +77,6 @@ namespace emph {
     int         run,subrun,event;
     int         fEvtNum;
 
-    std::vector<const sim::Particle*> particles;
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
     std::vector<rb::SpacePoint> spv;
@@ -88,7 +86,6 @@ namespace emph {
     double sectrkp[3];
     double sectrkvtx[3];
 
-    std::map<std::pair<int, int>, int> clustMap;
     std::map<int, std::map<std::pair<int, int>, int>> clustMapAtLeastOne;
 
     bool        fMakePlots;
@@ -101,7 +98,6 @@ namespace emph {
     bool        fCheckClusters;     //Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
-    std::string fClusterCut;
 
     //reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -117,8 +113,7 @@ namespace emph {
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label")),
-    fClusterCut        (pset.get< std::string >("ClusterCut"))
+    fG4Label           (pset.get< std::string >("G4Label"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -154,6 +149,8 @@ namespace emph {
    
   void emph::MakeTrackSegments::beginJob()
   {
+    std::cerr<<"Starting MakeTrackSegments"<<std::endl;
+
     art::ServiceHandle<art::TFileService> tfs;
     spacepoint = tfs->make<TTree>("spacepoint","");
     spacepoint->Branch("run",&run,"run/I");
@@ -165,9 +162,8 @@ namespace emph {
   
   void emph::MakeTrackSegments::endJob()
   {
-       if (fClusterCut == "strict") std::cout<<"Number of events with one cluster per sensor: "<<goodclust<<std::endl;
-       if (fClusterCut == "lessstrict") std::cout<<"Number of events with at least two clusters per station: "<<goodclust<<std::endl;
-       std::cout<<"Number of available clusters: "<<badclust+goodclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with at least two clusters per station: "<<goodclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of available clusters: "<<badclust+goodclust<<std::endl;
   }
 
   //......................................................................
@@ -199,7 +195,7 @@ namespace emph {
     if(fMakePlots){ 
 
       if (fCheckClusters){
-	auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
+	auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster> >(fClusterLabel);
 	if (!hasclusters){
 	  mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
 	  abort();
@@ -207,16 +203,8 @@ namespace emph {
       }
 
       art::Handle< std::vector<rb::SSDCluster> > clustH;
-      art::Handle< std::vector<sim::SSDHit> > ssdHitH;
  
-      try {
-	evt.getByLabel(fG4Label,ssdHitH);
-      } 
-      catch(...) {
-	std::cout << "WARNING: No SSDHits found!" << std::endl;
-      }
-
-      bool goodEvent = false;
+      bool goodStation = false;
       
       try {
 	evt.getByLabel(fClusterLabel, clustH);
@@ -224,15 +212,18 @@ namespace emph {
           rb::LineSegment lineseg_tmp  = rb::LineSegment();
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
-	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
 	    ++clustMapAtLeastOne[clust.Station()][std::pair<int,int>(clust.Station(),clust.Plane())];
 	    clusters.push_back(&clust);
 
             linesegments.push_back(lineseg_tmp);
             if (clust.AvgStrip() > 640){
-              std::cout<<"Skipping nonsense"<<std::endl;
-              linesegv->push_back(linesegments[idx]);
-              continue; }
+              throw art::Exception(art::errors::InvalidNumber)
+              << "Skipping nonsense: cluster strip number > 640 "
+              << ".\n";
+	      abort(); }
+              //std::cout<<"Skipping nonsense"<<std::endl;
+              //linesegv->push_back(linesegments[idx]);
+              //continue; }
             if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments[idx])){
               linesegv->push_back(linesegments[idx]); 
 	    }
@@ -240,40 +231,22 @@ namespace emph {
               std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
 	  }
 
-          //ONE CLUSTER PER PLANE
-          //If there are more clusters than sensors, skip event
-	  if (fClusterCut == "strict"){
-	    if (clusters.size()==nPlanes){
-	      for (auto i : clustMap){
-	        if (i.second != 1){goodEvent = false; break;} 
-	        else goodEvent = true;
-	      }
-	      if (goodEvent==true) {goodclust++;} 
-	      else {badclust++;}
-            }
-	    else badclust++;
-	  }
-
 	  //AT LEAST TWO CLUSTERS PER STATION
-	  if (fClusterCut == "lessstrict"){
-            int count=0; int countSt = 0;
-            for (auto i : clustMapAtLeastOne){
-              for (auto j : i.second){
-		int doesntmatter = j.second; //if we don't use j, we'll get a warning 
-                count++;
-              }
-	      countSt++;
-	      // make sure every station has at least two unique clusters
-	      if (count < 2) { goodEvent = false; break; }
-	      else { goodEvent = true; count = 0; }
-	    }
-	    // make sure every station is populated
-	    if (countSt != (int)nStations) goodEvent = false;
-	    if (goodEvent==true) {goodclust++;}
-            else {badclust++;}
-
-            //std::cout<<"Number of clusters: "<<clusters.size()<<" and goodEvent = "<<goodEvent<<std::endl;
-	  }
+          int count=0; int countSt = 0;
+          for (auto i : clustMapAtLeastOne){
+            for (auto j : i.second){
+	      int doesntmatter = j.second; //if we don't use j, we'll get a warning 
+              count++;
+            }
+	    countSt++;
+            // make sure every station has at least two unique clusters
+            if (count < 2) { goodStation = false; break; }
+            else { goodStation = true; count = 0; }
+          }
+          // make sure every station is populated
+	  if (countSt != (int)nStations) goodStation = false;
+	  if (goodStation==true) {goodclust++;}
+          else {badclust++;}
 
           cl_group.resize(nStations);
           ls_group.resize(nStations);
@@ -296,7 +269,7 @@ namespace emph {
           emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
  
 	  //group linesegments
-	  if (goodEvent == true){
+	  if (goodStation == true){
 	    for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
               int station = clusters[i]->Station();
@@ -313,11 +286,10 @@ namespace emph {
           cl_group.clear();
           linesegments.clear();
 	  clusters.clear();
-          clustMap.clear();
 	  clustMapAtLeastOne.clear();
 
           //reconstructed hits
-          if (goodEvent && spv.size() > 0){ // && ssdHitH->size() == nPlanes){
+          if (goodStation && spv.size() > 0){
             for (size_t i=0; i<spv.size(); i++){
               if (emgeo->GetTarget()){
                 if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(spv[i]);

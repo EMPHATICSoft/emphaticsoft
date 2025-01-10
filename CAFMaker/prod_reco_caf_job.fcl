@@ -63,6 +63,7 @@ physics:
   makecaf:   [
                dataqual, spillinfo, arichreco, clust,
                maketracksegments, makesingletracks, singletrackalignment, adcreco, backovreco, gasckovreco,
+               #adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 

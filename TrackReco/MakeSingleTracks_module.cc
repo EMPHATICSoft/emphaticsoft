@@ -96,9 +96,9 @@ namespace emph {
 
     //fcl parameters
     bool        fCheckClusters;     //Check clusters for event 
+    bool        fCheckTrackSeg;
     std::string fClusterLabel;
     std::string fG4Label;
-    std::string fClusterCut;
     std::string fTrkSegLabel;
     int         fPBeamTmp;
 
@@ -109,9 +109,9 @@ namespace emph {
   emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
+    fCheckTrackSeg     (pset.get< bool >("CheckTrackSeg")),
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
-    fClusterCut        (pset.get< std::string >("ClusterCut")),
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
     fPBeamTmp          (pset.get< int >("PBeamTmp"))
     {
@@ -148,6 +148,8 @@ namespace emph {
    
   void emph::MakeSingleTracks::beginJob()
   {
+    std::cerr<<"Starting MakeSingleTracks"<<std::endl;
+
     art::ServiceHandle<art::TFileService> tfs;
     spacepoint = tfs->make<TTree>("spacepoint","");
     spacepoint->Branch("run",&run,"run/I");
@@ -159,9 +161,8 @@ namespace emph {
   
   void emph::MakeSingleTracks::endJob()
   {
-       if (fClusterCut == "strict") std::cout<<"Number of events with one cluster per sensor: "<<goodclust<<std::endl;
-       if (fClusterCut == "lessstrict") std::cout<<"Number of events with at least two clusters per station: "<<goodclust<<std::endl;
-       std::cout<<"Number of available clusters: "<<badclust+goodclust<<std::endl;
+       std::cout<<"MakeSingleTracks: Number of events with one cluster per sensor: "<<goodclust<<std::endl;
+       std::cout<<"MakeSingleTracks: Number of available clusters: "<<badclust+goodclust<<std::endl;
   }
 
   //......................................................................
@@ -187,11 +188,19 @@ namespace emph {
     if(fMakePlots){ 
 
       if (fCheckClusters){
-	auto hasclusters = evt.getHandle<rb::SSDCluster>(fClusterCut);
+	auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster> >(fClusterLabel);
 	if (!hasclusters){
 	  mf::LogError("HasSSDClusters")<<"No clusters found in event but CheckClusters set to true!";
 	  abort();
 	}
+      }
+
+      if (fCheckTrackSeg){
+        auto hastrackseg = evt.getHandle<std::vector<rb::TrackSegment> >(fTrkSegLabel);
+        if (!hastrackseg){
+          mf::LogError("HasTrackSeg")<<"No track segments found in event but CheckTrackSeg set to true!";
+          abort();
+        }
       }
 
       art::Handle< std::vector<rb::TrackSegment> > trksegH;
@@ -214,13 +223,14 @@ namespace emph {
         trksegs2.clear();
         trksegs3.clear();
         if (!trksegH->empty()){
-          for (size_t idx=0; idx < trksegH->size(); ++idx) {
+         for (size_t idx=0; idx < trksegH->size(); ++idx) {
 	    const rb::TrackSegment& ts = (*trksegH)[idx];
 	    trksegs.push_back(&ts);
             if (ts.Label() == 1) trksegs1.push_back(&ts);
 	    else if (ts.Label() == 2) trksegs2.push_back(&ts);
             else if (ts.Label() == 3) trksegs3.push_back(&ts);		
 	    else std::cout<<"Track segments not properly labeled."<<std::endl;
+
           }
 	}
 	evt.getByLabel(fClusterLabel, clustH);
@@ -233,35 +243,15 @@ namespace emph {
 
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
-	  if (fClusterCut == "strict"){
-	    if (clusters.size()==nPlanes){
-	      for (auto i : clustMap){
-	        if (i.second != 1){goodEvent = false; break;} 
-	        else goodEvent = true;
-	      }
-	      if (goodEvent==true) {goodclust++;} 
-	      else {badclust++;}
+	  if (clusters.size()==nPlanes){
+	    for (auto i : clustMap){
+              if (i.second != 1){goodEvent = false; break;} 
+              else goodEvent = true;
             }
-	    else badclust++;
-	  }
-
-	  //AT LEAST TWO CLUSTERS PER STATION
-	  if (fClusterCut == "lessstrict"){
-	    if (clusters.size()<=nPlanes){
-	      int sum[8] = {0};
-	      for (auto i : clustMap){
-                if (i.second != 1){goodEvent = false; break;}
-	        sum[i.first.first] += i.second;
-	      }
-	      for (size_t i=0; i<nStations; i++){
-	        if (sum[i] == 2 || sum[i] ==3) goodEvent = true;
-	        else {goodEvent = false; break;}
-	      }
-	      if (goodEvent==true) {goodclust++;}
-              else {badclust++;}
-	    }
-            else badclust++;
-	  }
+            if (goodEvent==true) {goodclust++;} 
+            else {badclust++;}
+          }
+	  else badclust++;
 
           // Instance of single track algorithm
           emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
@@ -271,13 +261,11 @@ namespace emph {
 
           // Reconstructed hits
           // Choose track segments 2 and 3 with 3 space points
-          if (goodEvent && ssdHitH->size() == nPlanes){
-            if ( fClusterCut == "strict"){
-              for (auto t : trksegs){
-                if (t->Label() == 1) tsvcut.push_back(t);
-                else if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-              }  
-            }
+          if (goodEvent){
+            for (auto t : trksegs){
+              if (t->Label() == 1) tsvcut.push_back(t);
+              else if (t->NSpacePoints() == 3) tsvcut.push_back(t);
+            }  
 
             // Now make tracks
             // Eventually beamtrk should be fixed later with SpillInfo
