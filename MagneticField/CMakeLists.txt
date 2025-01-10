@@ -25,9 +25,4 @@ install_source()
 install_fhicl()
 
 add_subdirectory(service)
-<<<<<<< HEAD
-add_subdirectory(field_map_tools)
 add_subdirectory(test)
-=======
-add_subdirectory(test)
->>>>>>> main
