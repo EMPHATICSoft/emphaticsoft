@@ -104,6 +104,7 @@ namespace emph {
       emph::st::SignalTime stmap;
 
       OnMonProdIPC* fIPC;         ///< Communicates with viewer
+      std::string   fCSVFile;     ///< Name of csv file that defines histograms to make/view
       std::string   fSHMname;     ///< Shared memory for communication
       bool          fuseSHM;      ///< Use SHM to communicate with a viewer?
       std::atomic<bool> fSHMThreadRunning;
@@ -200,6 +201,7 @@ namespace emph {
     //.......................................................................
     OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
       : EDAnalyzer(pset),
+	fCSVFile           (pset.get<std::string>("CSVFile")),
 	fSHMname           (pset.get<std::string>("SHMHandle")),
 	fuseSHM            (pset.get<bool>("useSHM")),
 	fTickerOn          (pset.get<bool>("TickerOn")),
@@ -208,15 +210,11 @@ namespace emph {
 	fMakeSSDPlots      (pset.get<bool>("makeSSDPlots",false))
     {
 
-      HistoTable::Instance(Settings::Instance().fCSVFile.c_str(),
-		       Settings::Instance().fDet);
-
       //if (fIPC) delete fIPC;
       if (fuseSHM) fIPC = new OnMonProdIPC(kIPC_SERVER, fSHMname.c_str());
       else fIPC = nullptr;
       
       // try to find the correct path to the .csv file.
-      std::string filename = pset.get< std::string > ("CSVFile");
       std::string csvpath;
       for (int itry=0; itry<3; ++itry) {
          switch (itry) {
@@ -227,7 +225,7 @@ namespace emph {
           csvpath += "/OnlineMonitoring/util/";
           break;
          }
-         csvpath += filename;
+         csvpath += fCSVFile;
          if (access(csvpath.c_str(), F_OK)!=-1) {
           Settings::Instance().fCSVFile = csvpath;
           break;
@@ -235,6 +233,9 @@ namespace emph {
       } // loop on directory attempts
 
       Settings::Instance().fDet = kEMPH;
+
+      HistoTable::Instance(Settings::Instance().fCSVFile.c_str(),
+		       Settings::Instance().fDet);
 
     }
 
