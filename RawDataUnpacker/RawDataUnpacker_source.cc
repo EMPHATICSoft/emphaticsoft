@@ -45,6 +45,9 @@
 #include <iostream>
 #include <fstream>
 
+#include "TVirtualFFT.h"
+
+
 namespace {
   // Read product for given type T
   template <typename T>
@@ -573,6 +576,9 @@ namespace rawdata {
 
     std::cout << "In findT0s()" << std::endl;
 
+	// FFT method <@@>
+	 int N=10;
+	 TVirtualFFT* fftr2c = TVirtualFFT::FFT(1,&N,"R2C");
 
     // get first 100 dt's for each board
     for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
@@ -599,24 +605,25 @@ namespace rawdata {
 		if (fragId == 0) continue;
 		//if (fragId > 10) continue;
 		size_t ioff = 0;
+		std::cout << "Testing fragID" << fragId << std::endl;
 		for ( ; ioff<2*iboff[0]; ++ioff) {
-		//      int64_t dtsum=0;
-		linedUp = true;
-		for (size_t j=0; j<4; ++j) {
-			dt = dtVec[fragId][ioff+j] - dtVec[0][iboff[0]+j];
-			if (abs(dt) > 100.) {
-				linedUp = false;
-				break;
+			//      int64_t dtsum=0;
+			linedUp = true;
+			for (size_t j=0; j<4; ++j) {
+				dt = dtVec[fragId][ioff+j] - dtVec[0][iboff[0]+j];
+				if (abs(dt) > 100.) {
+					linedUp = false;
+					break;
+				}
+				if (linedUp) {
+				  std::cout << "Fragment " << fragId << " lines up at offset "
+						 << ioff << "(dt = " << dt << ")" << std::endl;
+				  iboff[fragId] = ioff;
+				  break;
+				}
 			}
 		}
-			if (linedUp) {
-			  std::cout << "Fragment " << fragId << " lines up at offset "
-					 << ioff << "(dt = " << dt << ")" << std::endl;
-			  iboff[fragId] = ioff;
-			  break;
-			}
-		}
-	 }
+	}
 
 	// Do the same for the SSDs
 	size_t iboff_SSD = 20;
