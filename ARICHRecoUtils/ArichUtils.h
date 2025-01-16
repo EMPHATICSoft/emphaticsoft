@@ -13,13 +13,13 @@
 #include "Geometry/service/GeometryService.h"
 #include "ARICHRecoUtils/Detector.h"
 #include "ARICHRecoUtils/Arich.h"
-#include "HoughFitter.h"
+#include "ARICHRecoUtils/HoughFitter.h"
 #include "TFile.h"
 #include "Geometry/Geometry.h"
 
 #include "TVector3.h"
 #include <map>
-namespace ARICHRECO{
+namespace arichreco{
 
     class ARICH_UTILS {
 
@@ -37,7 +37,7 @@ namespace ARICHRECO{
 
 	std::vector<double> IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 
-	std::vector<std::vector<TH2D*>> GetPDFs(int np, std::vector<double> mom,  std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
+	std::vector<std::vector<TH2D>> GetPDFs(int np, std::vector<double> mom,  std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 
 	double calcBeta(int particlei, double mom);
 	
@@ -60,11 +60,12 @@ namespace ARICHRECO{
 	double down_thick;
 	
 	std::vector<double>  fLogLike;
-	ARICHRECO::Detector *Detector;	
-        ARICHRECO::Arich    *Arich;	
+	arichreco::Detector *Detector;	
+        arichreco::Arich    *Arich;	
+	arichreco::particleInfoStruct hypothesis;
 
 	 std::map<std::string, double> Particle_LogLike;
     };
 
-} //end ARICHRECO
+} //end arichreco
 #endif

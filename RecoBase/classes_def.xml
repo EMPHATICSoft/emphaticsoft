@@ -64,7 +64,8 @@
   <class name="art::Wrapper< rb::Spill>"        />
   <class name="art::Wrapper< std::vector<rb::Spill>    >"/>
 
-  <class name="rb::ARing"    ClassVersion="11">
+  <class name="rb::ARing"    ClassVersion="12">
+   <version ClassVersion="12" checksum="1990956413"/>
    <version ClassVersion="11" checksum="2715429707"/>
     <version ClassVersion="10" checksum="4"/>
   </class>
@@ -120,6 +121,8 @@
    </class>
   <class name="std::vector<rb::CaloHit>"        />
   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
+
+  <class name="rb::ArichPID"/>
 
   <class name="rb::Track"    ClassVersion="11">
    <version ClassVersion="11" checksum="4183331231"/>

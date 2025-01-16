@@ -1,11 +1,10 @@
-#include "HoughFitter.h"
+#include "ARICHRecoUtils/HoughFitter.h"
 
 using namespace std;
 
-namespace ARICHRECO{
+namespace arichreco{
 
 HoughFitter::HoughFitter(TH2Poly* event){
-    std::cout << "I see a man of culture " << std::endl;
 }
 
 HoughFitter::~HoughFitter(){
@@ -280,4 +279,4 @@ TH2Poly* HoughFitter::PlotAccumulator(std::vector<std::vector<int>> & accumulato
 
 
 
-}//end namespace ARICHRECO
+}//end namespace arichreco

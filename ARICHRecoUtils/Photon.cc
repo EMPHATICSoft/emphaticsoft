@@ -5,11 +5,11 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-#include "Photon.h"
+#include "ARICHRecoUtils/Photon.h"
 
-namespace ARICHRECO{
+namespace arichreco{
 
-        Photon::Photon(TVector3 pos, TVector3 dir, double wavelength) : ARICHRECO::Particle(pos, dir, 1.) {
+        Photon::Photon(TVector3 pos, TVector3 dir, double wavelength) : arichreco::Particle(pos, dir, 1.) {
           this->pos0 = pos;
           this->dir0 = dir;
           this->pos = pos;

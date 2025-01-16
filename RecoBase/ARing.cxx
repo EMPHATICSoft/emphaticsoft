@@ -13,11 +13,13 @@ namespace rb {
   
   //----------------------------------------------------------------------
   
-  ARing::ARing()    
+  ARing::ARing():
+    _radius(0),
+    _nhits(0)
   {
-    for (int i=0; i<3; ++i) { _center[i] = -9999.; }
-    _radius = -1.;
-    _nhits = 0;
+    for (int i=0; i<3; ++i) { _center[i] = -9999.;LogLikelihood.push_back(0.);}
+//    _radius = -1.;
+//    _nhits = 0;
   }
   
   //------------------------------------------------------------

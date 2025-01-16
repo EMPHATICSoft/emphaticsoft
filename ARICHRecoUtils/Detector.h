@@ -12,14 +12,13 @@
 #include "TMath.h"
 #include "TGraph.h"
 #include "TH2D.h"
-#include "TH2Poly.h"
 #include "TH1D.h"
-#include "Beam.h"
-#include "Photon.h"
-#include "Particle.h"
-#include "Utility.h"
+#include "ARICHRecoUtils/Beam.h"
+#include "ARICHRecoUtils/Photon.h"
+#include "ARICHRecoUtils/Particle.h"
+#include "ARICHRecoUtils/Utility.h"
 
-    namespace ARICHRECO{
+namespace arichreco{
 
         class Detector {
         private:
@@ -47,7 +46,7 @@
           double getWin();
           double getFillFactor();
           double getDist()const { return zPos;};
-          void projectPhotons(TH2D*,  std::vector<ARICHRECO::Photon*>, TH1D* rHist = nullptr);
+          void projectPhotons(TH2D*,  std::vector<arichreco::Photon*>, TH1D* rHist = nullptr);
 
         };
 }

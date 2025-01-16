@@ -14,10 +14,10 @@
 
 #include "Geometry/service/GeometryService.h"
 #include "ARICHRecoUtils/ArichUtils.h"
-#include "Particle.h"
+#include "ARICHRecoUtils/Particle.h"
 #include <map>
 
-namespace ARICHRECO{
+namespace arichreco{
 
 const int NUMPARTICLES = 3;
 const double MASSES[NUMPARTICLES] = {0.1395701, 0.493677, 0.938272};
@@ -37,14 +37,14 @@ ARICH_UTILS::~ARICH_UTILS()
 void ARICH_UTILS::SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos,TString file)
    { 
 	PDfile = file;
-	Detector = new ARICHRECO::Detector(true, PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile);
+	Detector = new arichreco::Detector(true, PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile);
    } 
 
 //.......................................................................
 
 void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double down_pos, double up_thick, double down_thick)
   {
-	Arich = new ARICHRECO::Arich(Detector, up_n, down_n, up_pos, down_pos, up_thick, down_thick);
+	Arich = new arichreco::Arich(Detector, up_n, down_n, up_pos, down_pos, up_thick, down_thick);
   }
 //.......................................................................
 
@@ -66,7 +66,7 @@ TH2D* ARICH_UTILS::DigsToHist(std::vector<int>& blocks)
         pos.clear();
     }
 	return htemp;
-  }
+   }
 //.......................................................................
 	
 double ARICH_UTILS::computeLogLikelihood(TH2D* event, TH2D* distribution)
@@ -106,25 +106,25 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 	 std::vector<TVector3> pos0s,std::vector<TVector3> dir0s) 
     {
 
-	std::vector<std::vector<TH2D*>> calculatedPdfs;
+	std::vector<std::vector<TH2D>> calculatedPdfs;
 	std::vector<double> LogLike;
+	TH2D calculatedPdf;
+
 	for (int i = 0; i < np; i++) {
-		std::vector<TH2D*> particleiCalculatedPdfs;
-		ARICHRECO::particleInfoStruct hypothesis;
+		std::vector<TH2D> particleiCalculatedPdfs;
 		hypothesis.pos = pos0s[i];
 		hypothesis.dir = dir0s[i];
 		
-		//std::cout << "hypo pos " << hypothesis.pos[0] << " " << hypothesis.pos[1] << " " << hypothesis.pos[2] << std::endl;
+		for (int p = 0; p < NUMPARTICLES; p++) { //NUMPARTICLES = number of possible particles for now = 3	
+		  hypothesis.beta =  calcBeta(p, mom[i]);
+		  hypothesis.name = PNAMES[p];
 		
-		for (int p = 0; p < NUMPARTICLES; p++) { //NUMPARTICLES = number of possible particles for now = 3
-			
-			hypothesis.beta =  calcBeta(p, mom[i]);
-			hypothesis.name = PNAMES[p];
-		        
-			TH2D *calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
-			particleiCalculatedPdfs.push_back(calculatedPdf);
-                	}
+		  calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
+		  particleiCalculatedPdfs.push_back(calculatedPdf);
+		  }
+		
 		calculatedPdfs.push_back(particleiCalculatedPdfs);
+		particleiCalculatedPdfs.clear();
 	 }
 
 	int numCombinations = TMath::Power(NUMPARTICLES, np);
@@ -142,29 +142,30 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 			index = index / NUMPARTICLES;
 			combination[k] = p;
                		stackedTitle = Form("%s_%s", stackedTitle, PNAMES[p]);
-			if(k==np-1) {hs=(TH2D*)calculatedPdfs[k][p]->Clone();}
+			if(k==np-1) {hs=(TH2D*)calculatedPdfs[k][p].Clone();}
 			
-                	else for(int j=1;j<=calculatedPdfs[k][p]->GetNcells();j++)
-                	{hs->SetBinContent(j,hs->GetBinContent(j)+ calculatedPdfs[k][p]->GetBinContent(j));}
+                	else for(int j=1;j<=calculatedPdfs[k][p].GetNcells();j++)
+                	{hs->SetBinContent(j,hs->GetBinContent(j)+ calculatedPdfs[k][p].GetBinContent(j));}
 		
 		}
 		//hs->SetTitle(stackedTitle);
 		double logLikelihood = computeLogLikelihood(hist, hs);
 		LogLike.push_back(logLikelihood);
 	}
+	delete hs;
+	calculatedPdfs.clear();
 	return LogLike;		
-	delete hs; 
    
     } //end IdentifyMultiParticle
 //.......................................................................
-std::vector<std::vector<TH2D*>> ARICH_UTILS::GetPDFs(int np, std::vector<double> mom,
+std::vector<std::vector<TH2D>> ARICH_UTILS::GetPDFs(int np, std::vector<double> mom,
          std::vector<TVector3> pos0s,std::vector<TVector3> dir0s)
     {
-        std::vector<std::vector<TH2D*>> calculatedPdfs;
+        std::vector<std::vector<TH2D>> calculatedPdfs;
         std::vector<double> LogLike;
         for (int i = 0; i < np; i++) {
-                std::vector<TH2D*> particleiCalculatedPdfs;
-                ARICHRECO::particleInfoStruct hypothesis;
+                std::vector<TH2D> particleiCalculatedPdfs;
+                arichreco::particleInfoStruct hypothesis;
                 hypothesis.pos = pos0s[i];
                 hypothesis.dir = dir0s[i];
 
@@ -173,7 +174,7 @@ std::vector<std::vector<TH2D*>> ARICH_UTILS::GetPDFs(int np, std::vector<double>
                         hypothesis.beta =  calcBeta(p, mom[i]);
                         hypothesis.name = PNAMES[p];
 
-                        TH2D* calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
+                        TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
                         particleiCalculatedPdfs.push_back(calculatedPdf);
                         }
                 calculatedPdfs.push_back(particleiCalculatedPdfs);

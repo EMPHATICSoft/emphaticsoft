@@ -7,9 +7,9 @@
 
 
 #include <iostream>
-#include "Detector.h"
+#include "ARICHRecoUtils/Detector.h"
 
-    namespace ARICHRECO{
+namespace arichreco{
 
 
 
@@ -41,6 +41,7 @@
 	  htemp->SetName(name);
           htemp->SetTitle(title);
           return htemp;
+	  delete htemp;
         }
 
         double Detector::getDarkRate(){ return darkrate; }
@@ -52,14 +53,14 @@
           return quantumEff->Eval(wav);
         }
 
-        void Detector::projectPhotons(TH2D* photonHist, std::vector<ARICHRECO::Photon*> photons, TH1D* rHist){
+void Detector::projectPhotons(TH2D* photonHist, std::vector<arichreco::Photon*> photons, TH1D* rHist){
           /*
           Project photons onto histogram representing detector plane
           Optional mirror on edges of detector plane
           Optional 1-D histogram representing the distance of each photon to the center of the plane
           */
           for(int j = 0; (unsigned) j < photons.size(); j++){
-              ARICHRECO::Photon* ph = photons[j];
+              arichreco::Photon* ph = photons[j];
             // Get distance to each wall in direction of travel
             double xDist = (TMath::Sign(xmax, ph->dir[0]) - ph->pos[0]) / ph->dir[0];
             double yDist = (TMath::Sign(ymax, ph->dir[1]) - ph->pos[1]) / ph->dir[1];
@@ -89,11 +90,9 @@
             }
             if(minDistDimension == 2){
             	photonHist->Fill(ph->pos[0]*10, ph->pos[1]*10);
-              //std::cout << "zdist = " << zDist << ", posz = " << ph->pos[2] << std::endl;
               if(rHist) rHist->Fill(ph->dir[2]*10);
               //if(rHist) rHist->Fill(sqrt((ph->pos[0]-5.4)*(ph->pos[0]-5.4) + (ph->pos[1]-5.4)*(ph->pos[1]-5.4)));
             }
           }
-        }
-    
-}
+        } 
+ }

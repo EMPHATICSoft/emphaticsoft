@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-#include "Beam.h"
+#include "ARICHRecoUtils/Beam.h"
 
-namespace ARICHRECO{
+namespace arichreco{
 
         Beam::Beam(TVector3 pos0, TVector3 dir0, double beta) {
           this->pos0 = pos0;
@@ -18,7 +18,7 @@ namespace ARICHRECO{
           randomGenerate->SetSeed(0);
         }
 
-         ARICHRECO::Particle* Beam::generateParticle() {
+         arichreco::Particle* Beam::generateParticle() {
           /*
           Return a particle with a randomly thrown direction and position
           */
@@ -30,6 +30,6 @@ namespace ARICHRECO{
           double paDirZ =  sqrt(1 - paDirX*paDirX - paDirY*paDirY);
           TVector3 dir = TVector3(paDirX, paDirY, paDirZ);
 
-          return new ARICHRECO::Particle(pos, dir, beta);
+          return new arichreco::Particle(pos, dir, beta);
         }
     }

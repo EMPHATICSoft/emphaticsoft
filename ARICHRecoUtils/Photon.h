@@ -8,10 +8,11 @@
 #ifndef PHOTON_INCLUDE
 #define PHOTON_INCLUDE
 
-#include "Particle.h"
-    namespace ARICHRECO{
+#include "ARICHRecoUtils/Particle.h"
 
-        class Photon : public ARICHRECO::Particle {
+namespace arichreco{
+
+        class Photon : public arichreco::Particle {
         public:
           Photon(TVector3, TVector3, double);
           double wav;

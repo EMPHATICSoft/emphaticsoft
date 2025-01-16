@@ -14,13 +14,13 @@
 #include "TMath.h"
 #include "TF1.h"
 #include "TRandom3.h"
-#include "Beam.h"
-#include "Photon.h"
-#include "Particle.h"
-#include "Detector.h"
+#include "ARICHRecoUtils/Beam.h"
+#include "ARICHRecoUtils/Photon.h"
+#include "ARICHRecoUtils/Particle.h"
+#include "ARICHRecoUtils/Detector.h"
 
 
-    namespace ARICHRECO{
+namespace arichreco{
 
         class Aerogel {
         private:
@@ -42,8 +42,8 @@
           double calcdNdX(double beta);
           double getRandomWav();
           double getRandomScatAngle();
-          void refractPhoton(ARICHRECO::Photon*);
-          void applyPhotonScatter(ARICHRECO::Photon*);
+          void refractPhoton(arichreco::Photon*);
+          void applyPhotonScatter(arichreco::Photon*);
           double getIntLengthForWav(double wav);
           double getRandomIntDistance(double wav);
 
@@ -58,11 +58,11 @@
 
           int calcNumPhotons(double particleDist, double beta);
           void exitAerogel(Photon* ph,  bool refract = true, double n2 = 1.0);
-          void exitAerogel(std::vector<ARICHRECO::Photon*> ph, bool refract = true, double n2 = 1.0);
+          void exitAerogel(std::vector<arichreco::Photon*> ph, bool refract = true, double n2 = 1.0);
           bool isInAerogel(TVector3);
-          void applyPhotonScatters(std::vector<ARICHRECO::Photon*>);
-          std::vector<Photon*> generatePhotons(ARICHRECO::Particle*, ARICHRECO::Detector*);
-          double getDistInGel(ARICHRECO::Particle*);
+          void applyPhotonScatters(std::vector<arichreco::Photon*>);
+          std::vector<Photon*> generatePhotons(arichreco::Particle*, arichreco::Detector*);
+          double getDistInGel(arichreco::Particle*);
 
         };
     }

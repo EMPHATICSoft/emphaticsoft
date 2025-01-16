@@ -13,7 +13,7 @@
 #include "TCutG.h"
 #include "TEllipse.h"
 
-    namespace ARICHRECO{
+namespace arichreco{
 
 
         inline TMatrixD makeRotationMatrix(TVector3 dir) {

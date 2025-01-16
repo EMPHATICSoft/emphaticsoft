@@ -6,24 +6,14 @@
 #include <TROOT.h>
 #include <TStyle.h>
 #include "TMath.h"
-#include "TH1D.h"
-#include "TH2D.h"
-#include "TH3D.h"
 #include "TFile.h"
 #include "TTree.h"
-#include "TTreeReader.h"
-#include "TTreeReaderArray.h"
-#include "TCanvas.h"
 #include "TRandom3.h"
 #include "TVector3.h"
-#include "TMatrixD.h"
-#include "TMatrixT.h"
-#include "TVector3.h"
-#include "TEllipse.h"
-#include "TCutG.h"
 #include "TH2Poly.h"
+#include "TGraph.h"
 
-namespace ARICHRECO{
+namespace arichreco{
  
  class HoughFitter{
     

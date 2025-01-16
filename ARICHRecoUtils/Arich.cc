@@ -6,38 +6,36 @@
 //////////////////////////////////////////////////////////////////////////
 
 
-#include "Arich.h"
+#include "ARICHRecoUtils/Arich.h"
 
 
 using namespace std;
 
+namespace arichreco{
 
-    
-    namespace ARICHRECO{
+     Arich::Arich(arichreco::Detector* detector, double refr1, double refr2, double aeroP1, double aeroP2, double thick1, double thick2){
 
-            Arich::Arich(ARICHRECO::Detector* detector, double refr1, double refr2, double aeroP1, double aeroP2, double thick1, double thick2){
+     thickness1=thick1;
+     thickness2=thick2;
+     aeroPos1=aeroP1;
+     aeroPos2=aeroP2;
 
-              thickness1=thick1;
-              thickness2=thick2;
-              aeroPos1=aeroP1;
-              aeroPos2=aeroP2;
+     this->aerogel1 = new arichreco::Aerogel(refr1, thickness1, aeroPos1);
+     this->aerogel2 = new arichreco::Aerogel(refr2, thickness2, aeroPos2);
+     this->detector = detector;
 
-              this->aerogel1 = new ARICHRECO::Aerogel(refr1, thickness1, aeroPos1);
-              this->aerogel2 = new ARICHRECO::Aerogel(refr2, thickness2, aeroPos2);
-              this->detector = detector;
+     detectorDist = detector->getDist();
+     aerogel1->setDownIndex(refr2);
+     aerogel2->setUpIndex(refr1);
+     }
 
-              detectorDist = detector->getDist();
-              aerogel1->setDownIndex(refr2);
-              aerogel2->setUpIndex(refr1);
-            }
+     Arich::~Arich(){
+     delete detector;
+     delete aerogel1;
+     delete aerogel2;
+     }
 
-            Arich::~Arich(){
-                delete detector;
-                delete aerogel1;
-                delete aerogel2;
-            }
-
-/*            double Arich::integrateAndDrawEllipse(ARICHRECO::particleInfoStruct params, TH2Poly* photonHist, TPad* pad){
+/*            double Arich::integrateAndDrawEllipse(arichreco::particleInfoStruct params, TH2Poly* photonHist, TPad* pad){
               
               //  Draw an ellipse over a photonhist showing where particles are expected to go
               //  Return number of photon hits found in this ring
@@ -93,66 +91,68 @@ using namespace std;
               return outerCut->IntegralHist(photonHist) - innerCut->IntegralHist(photonHist);
             }
 */
-            TH2D* Arich::calculatePdf(ARICHRECO::particleInfoStruct params, char* histName){
-              /*
-              Calculate mean distribution of photons over detector for given beta
-              */
-              // Number of events to simulate
+TH2D Arich::calculatePdf(arichreco::particleInfoStruct params, char* histName){
+        /*
+        Calculate mean distribution of photons over detector for given beta
+        */
+        // Number of events to simulate
               
-
-	      bool SCAT = true;
-              int nEvents = 1000;
-                ARICHRECO::Beam* beam = new ARICHRECO::Beam(params.pos, params.dir, params.beta);  // Creates a beam object with pos, dir, beta
+	bool SCAT = true;
+        int nEvents = 1000;
+        arichreco::Beam* beam = new arichreco::Beam(params.pos, params.dir, params.beta);  // Creates a beam object with pos, dir, beta
               // Get hist ready
-              TH2D *photonHist = detector->makeDetectorHist(histName, histName); //Initiates the detector hist
-              // Make events and loop over them
-	       for(int i = 0; i < nEvents; i++){
-                ARICHRECO::Particle *pa = beam->generateParticle(); //Generates a particle in the beam (normally distributed)
+        TH2D* tempphotonHist = detector->makeDetectorHist(histName, histName); //Initiates the detector hist
+        TH2D photonHist;
+        // Make events and loop over them	
+	for(int i = 0; i < nEvents; i++){
+          arichreco::Particle *pa = beam->generateParticle(); //Generates a particle in the beam (normally distributed)
 		// Make photons in first aerogel
-                std::vector<ARICHRECO::Photon*> photons = aerogel1->generatePhotons(pa, detector); // Creates cherenkov photons based on the particle params	
+           std::vector<arichreco::Photon*> photons = aerogel1->generatePhotons(pa, detector); // Creates cherenkov photons based on the particle params	
 		// Scatter photons in first aerogel, move them forwards out of aerogel
-                if(SCAT)aerogel1->applyPhotonScatters(photons); //while looped inside the function, scatter + reflection
-		aerogel1->exitAerogel(photons, true, aerogel2->getRefractiveIndex());
+           if(SCAT)aerogel1->applyPhotonScatters(photons); //while looped inside the function, scatter + reflection
+ 	   aerogel1->exitAerogel(photons, true, aerogel2->getRefractiveIndex());
                 // Advance particle forward to next aerogel and generate photons
-                pa->travelZDist(aeroPos2 - aeroPos1);
-	        std::vector<ARICHRECO::Photon*> photons2 = aerogel2->generatePhotons(pa, detector);
+           pa->travelZDist(aeroPos2 - aeroPos1);
+	   std::vector<arichreco::Photon*> photons2 = aerogel2->generatePhotons(pa, detector);
 		// Combine photons from both aerogels
-                photons.insert(photons.end(), photons2.begin(), photons2.end());
+           photons.insert(photons.end(), photons2.begin(), photons2.end());
                 // Include scattering in second aerogel
-                if(SCAT)aerogel2->applyPhotonScatters(photons);
-                aerogel2->exitAerogel(photons, true, 1.0);
+           if(SCAT)aerogel2->applyPhotonScatters(photons);
+           aerogel2->exitAerogel(photons, true, 1.0);
                 // Project photons onto 00 and plot distribution
-                detector->projectPhotons(photonHist, photons);
-                // delete
-		for(int j = 0; (unsigned) j < photons.size(); j++){
-                 Photon* ph = photons[j];
-                 delete ph;
-                }
-                delete pa;
-              }
-              // Scale photon histogram to the number of iterations and fill factor of detector
-              photonHist->Scale(detector->getFillFactor() / nEvents);  // avaraged weighted hit count
-	      delete beam;
-              return photonHist;
+	  detector->projectPhotons(tempphotonHist, photons);
+	   // delete
+	   for(int j = 0; (unsigned) j < photons.size(); j++){
+            Photon* ph = photons[j];
+            delete ph;
             }
+           delete pa;
+          }
+          // Scale photon histogram to the number of iterations and fill factor of detector
+          tempphotonHist->Scale(detector->getFillFactor() / nEvents);  // avaraged weighted hit count
+	  photonHist = *tempphotonHist;
+	  delete tempphotonHist;
+	  delete beam;
+          return photonHist;
+    	}
 
-//     TH2Poly* Arich::generateEvent(ARICHRECO::particleInfoStruct params, bool save, std::string histName, std::string outputDir){
+//     TH2Poly* Arich::generateEvent(arichreco::particleInfoStruct params, bool save, std::string histName, std::string outputDir){
 //           
      //Simulate a photon distribution resulting from a single particle
           /*    
               bool DEBUG = false;
               bool SCAT = true;
               bool refract = true;
-              ARICHRECO::Beam *beam = new ARICHRECO::Beam(params.pos, params.dir, params.beta);
-              ARICHRECO::Particle *pa = beam->generateParticle();
+              arichreco::Beam *beam = new arichreco::Beam(params.pos, params.dir, params.beta);
+              arichreco::Particle *pa = beam->generateParticle();
               // Make photons in first aerogel
-              std::vector<ARICHRECO::Photon*> photons = aerogel1->generatePhotons(pa, detector);
+              std::vector<arichreco::Photon*> photons = aerogel1->generatePhotons(pa, detector);
               if(DEBUG)cout<<"First aerogel: "<<photons.size()<<endl;
               if(SCAT)aerogel1->applyPhotonScatters(photons);
               aerogel1->exitAerogel(photons, refract, aerogel2->getRefractiveIndex());
               // Advance particle forward to next aerogel and generate photons
               pa->travelZDist(aeroPos2 - aeroPos1);
-              std::vector<ARICHRECO::Photon*> photons2 = aerogel2->generatePhotons(pa, detector);
+              std::vector<arichreco::Photon*> photons2 = aerogel2->generatePhotons(pa, detector);
               if(DEBUG)cout<<"Second aerogel: "<<photons2.size()<<endl;
               // Combine photons from both aerogels
               photons.insert(photons.end(), photons2.begin(), photons2.end());
@@ -184,14 +184,14 @@ using namespace std;
             }
 */
 /*
-            TH2Poly* Arich::simulateBeam(ARICHRECO::particleInfoStruct params, std::string outputDir){
+            TH2Poly* Arich::simulateBeam(arichreco::particleInfoStruct params, std::string outputDir){
               
            //   Plot and save info into some output directory
            //   Including TTree holding photon and particle info, and final photon distribution
               
               double nEvents = 10000;
               // Make beam
-                ARICHRECO::Beam *beam = new ARICHRECO::Beam(params.pos, params.dir, params.beta);
+                arichreco::Beam *beam = new arichreco::Beam(params.pos, params.dir, params.beta);
               // Get plots ready
               TH2Poly *photonHist = detector->makeDetectorHist((char*) "photonHist", (char*) "photonHist");
               photonHist->SetXTitle("x [cm]");
@@ -210,7 +210,7 @@ using namespace std;
               // Make events and loop over them
               double count = 0;
               for(int i = 0; i < nEvents; i++){
-                  ARICHRECO::Particle *pa = beam->generateParticle();
+                  arichreco::Particle *pa = beam->generateParticle();
                 // paStruct.dirx = pa->dir0[0];
                 // paStruct.diry = pa->dir0[1];
                 // paStruct.dirz = pa->dir0[2];
@@ -220,10 +220,10 @@ using namespace std;
                 // paStruct.id = i;
 
                 // Make photons in first aerogel
-                std::vector<ARICHRECO::Photon*> photons = aerogel1->generatePhotons(pa, detector);
+                std::vector<arichreco::Photon*> photons = aerogel1->generatePhotons(pa, detector);
                 // Advance particle forward to next aerogel and generate photons
                 pa->travelZDist(aeroPos2 - aeroPos1);
-                std::vector<ARICHRECO::Photon*> photons2 = aerogel2->generatePhotons(pa, detector);
+                std::vector<arichreco::Photon*> photons2 = aerogel2->generatePhotons(pa, detector);
                 // Scatter photons in first aerogel, move them forwards out of aerogel
                 bool refract = true;
                 //aerogel1->applyPhotonScatters(photons);

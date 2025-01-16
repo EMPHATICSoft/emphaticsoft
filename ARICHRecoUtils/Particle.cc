@@ -6,9 +6,9 @@
 
 
 
-#include "Particle.h"
+#include "ARICHRecoUtils/Particle.h"
 
-    namespace ARICHRECO{
+namespace arichreco{
     
 
         Particle::Particle(TVector3 pos, TVector3 dir, double beta) {

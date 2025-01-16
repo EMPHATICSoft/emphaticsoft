@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-#include "Aerogel.h"
+#include "ARICHRecoUtils/Aerogel.h"
 #include "TF1.h"
 using namespace std;
 
@@ -14,9 +14,9 @@ const double lowWav = 282E-9;
 const double highWav = 892E-9;
 const double fineStructConst = 1./137;
 
-namespace ARICHRECO{
+namespace arichreco{
 
-        Aerogel::Aerogel(double refractiveIndex, double thickness,  double zPos) {
+          Aerogel::Aerogel(double refractiveIndex, double thickness,  double zPos) {
           randomGenerate=std::make_shared<TRandom3>();
           randomGenerate->SetSeed(0);
           this->thickness = thickness;
@@ -131,14 +131,14 @@ namespace ARICHRECO{
                   && ((pos[2] - zPos) >= 0);
         }
 
-        double Aerogel::getDistInGel(ARICHRECO::Particle* pa) {
+        double Aerogel::getDistInGel(arichreco::Particle* pa) {
           /*
           Calculate how far a particle has remaining in the gel
           */
           return abs((zPos + thickness - pa->pos[2]) / pa->dir[2]);
         }
 
-        void Aerogel::exitAerogel(ARICHRECO::Photon* ph, bool refract, double n2) {
+        void Aerogel::exitAerogel(arichreco::Photon* ph, bool refract, double n2) {
           /*
           Advance photon to closest edge of aerogel in direction of travel and refract
           */
@@ -169,7 +169,7 @@ namespace ARICHRECO{
           }
         }
 
-        void Aerogel::exitAerogel(std::vector<ARICHRECO::Photon*> photons, bool refract, double n2) {
+        void Aerogel::exitAerogel(std::vector<arichreco::Photon*> photons, bool refract, double n2) {
           /*
           Exit and refract all photons that are still in the aerogel
           */
@@ -217,7 +217,7 @@ namespace ARICHRECO{
           return scatAngleFunc->GetRandom();
         }
 
-        void Aerogel::applyPhotonScatter(ARICHRECO::Photon* photon) {
+        void Aerogel::applyPhotonScatter(arichreco::Photon* photon) {
           /*
           Continuously scatter photon while the "distance travelled before interacting"
           is less than the distance to exit the aerogel - update position and direction
@@ -247,12 +247,12 @@ namespace ARICHRECO{
 	    }
         }
 
-        void Aerogel::applyPhotonScatters(std::vector<ARICHRECO::Photon*> photons) {
+        void Aerogel::applyPhotonScatters(std::vector<arichreco::Photon*> photons) {
           /*
           Scatter all photons in the aerogel
           */
           for(int i = 0; (unsigned) i < photons.size(); i++) {
-              ARICHRECO::Photon* photon = photons[i];
+              arichreco::Photon* photon = photons[i];
             if (isInAerogel(photon->pos)) {
               // Scatter the photon
               applyPhotonScatter(photon);
@@ -260,7 +260,7 @@ namespace ARICHRECO{
           }
         }
 
-        std::vector<Photon*> Aerogel::generatePhotons(ARICHRECO::Particle* pa, ARICHRECO::Detector* detector) {
+        std::vector<Photon*> Aerogel::generatePhotons(arichreco::Particle* pa, arichreco::Detector* detector) {
           /*
           Create Cherenkov photons as the particle passes through the gel.
           Hacky, but requires detector to immediately reject based off detector efficiency,
@@ -269,7 +269,7 @@ namespace ARICHRECO{
           double beta = pa->beta;
           double paDist = getDistInGel(pa);
           double chAngle = calcChAngle(beta);
-          std::vector<ARICHRECO::Photon*> photons;
+          std::vector<arichreco::Photon*> photons;
           if (refracIndex * beta < 1) return photons; // Enforce Cherenkov threshold
           int nPhotons = calcNumPhotons(paDist, beta);
           if(nPhotons < 0) nPhotons = 0;
@@ -290,7 +290,7 @@ namespace ARICHRECO{
                                         cos(chAngle));
               // Rotate onto particle direction
               dirCR.RotateUz(pa->dir);
-                ARICHRECO::Photon* photon = new ARICHRECO::Photon(phPos, dirCR, wav);
+              arichreco::Photon* photon = new arichreco::Photon(phPos, dirCR, wav);
               photons.push_back(photon);
             }
           }

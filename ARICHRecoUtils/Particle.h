@@ -13,7 +13,7 @@
 
 
 
-namespace ARICHRECO{
+namespace arichreco{
 
         class Particle {
         public:

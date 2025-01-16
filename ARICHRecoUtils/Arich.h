@@ -14,39 +14,34 @@
 #include <TROOT.h>
 #include <TStyle.h>
 #include "TMath.h"
-#include "TH1D.h"
 #include "TH2D.h"
-#include "TH3D.h"
 #include "TFile.h"
-#include "TTree.h"
-#include "TTreeReader.h"
-#include "TTreeReaderArray.h"
-#include "TCanvas.h"
 #include "TRandom3.h"
 #include "TVector3.h"
-#include "TMatrixD.h"
-#include "TMatrixT.h"
-#include "TVector3.h"
-#include "TEllipse.h"
-#include "TCutG.h"
 
-#include "Beam.h"
-#include "Aerogel.h"
-#include "Particle.h"
-#include "Photon.h"
-#include "Detector.h"
-#include "Utility.h"
+#include "ARICHRecoUtils/Beam.h"
+#include "ARICHRecoUtils/Aerogel.h"
+#include "ARICHRecoUtils/Particle.h"
+#include "ARICHRecoUtils/Photon.h"
+#include "ARICHRecoUtils/Detector.h"
+#include "ARICHRecoUtils/Utility.h"
 
 
 
-    namespace ARICHRECO{
-          struct particleInfoStruct {
+namespace arichreco{
+    
+    struct particleInfoStruct {
             // Input parameters to a simple fast simulation
             TVector3 pos;
             TVector3 dir;
             double beta;
 	    std::string name;	
-          };
+	
+	    void reset(){
+	    pos.Clear(); dir.Clear(); beta = 0; name = "None"; 	
+	    }     
+      
+	};
 
           struct photonStruct {
             // Initial direction and position
@@ -98,18 +93,18 @@
           double aeroPos1;
           double aeroPos2;
 
-          ARICHRECO::Aerogel* aerogel1;
-          ARICHRECO::Aerogel* aerogel2;
-          ARICHRECO::Detector* detector;
+          arichreco::Aerogel* aerogel1;
+          arichreco::Aerogel* aerogel2;
+          arichreco::Detector* detector;
 
-         // double integrateAndDrawEllipse(ARICHRECO::particleInfoStruct params, TH2Poly* photonHist, TPad* pad);
+         // double integrateAndDrawEllipse(arichreco::particleInfoStruct params, TH2Poly* photonHist, TPad* pad);
 
         public:
-          Arich(ARICHRECO::Detector* detector, double refr1, double refr2, double aeroP1, double aeroP2, double thick1, double thick2);
+          Arich(arichreco::Detector* detector, double refr1, double refr2, double aeroP1, double aeroP2, double thick1, double thick2);
           virtual ~Arich();
-          TH2D* calculatePdf(ARICHRECO::particleInfoStruct params, char* histName= (char*) "photonHist");
-          //TH2Poly* generateEvent(ARICHRECO::particleInfoStruct params, bool save=true, std::string histName="generatedEvent", std::string outputDir="./output");
-          //TH2Poly* simulateBeam(ARICHRECO::particleInfoStruct params, std::string outputDir="simulatedBeam");
+          TH2D calculatePdf(arichreco::particleInfoStruct params, char* histName= (char*) "photonHist");
+          //TH2Poly* generateEvent(arichreco::particleInfoStruct params, bool save=true, std::string histName="generatedEvent", std::string outputDir="./output");
+          //TH2Poly* simulateBeam(arichreco::particleInfoStruct params, std::string outputDir="simulatedBeam");
         };
 
     }

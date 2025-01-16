@@ -10,10 +10,10 @@
 
 #include "TRandom3.h"
 #include "TVector3.h"
-#include "Particle.h"
+#include "ARICHRecoUtils/Particle.h"
 
 
-    namespace ARICHRECO{
+namespace arichreco{
 
         class Beam {
         private:
@@ -28,7 +28,7 @@
 
         public:
           Beam(TVector3 pos0, TVector3 dir0, double beta);
-          ARICHRECO::Particle* generateParticle();
+          arichreco::Particle* generateParticle();
         };
     }
 #endif
