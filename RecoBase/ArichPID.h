@@ -9,7 +9,7 @@ namespace rb {
 
   public:
 	ArichPID();
-	ArichPID(float *scores[5]);
+	//ArichPID(float *scores[5]);
 	ArichPID(std::vector<double> scores);
 	~ArichPID();
 

@@ -18,13 +18,13 @@ namespace caf
       virtual ~SRPID();
 	
 	
-	SRPID(float scores[5]);	
+	//SRPID(float scores[5]);	
 	SRPID(std::vector<double> scores_);
 	void Reset();
 	
-	float scores[5];
+	//float scores[5];
 	std::vector<double> scores_vec;
-	float operator [](int n){return scores[n];};
+	float operator [](int n){return scores_vec[n];};
 
 };
 

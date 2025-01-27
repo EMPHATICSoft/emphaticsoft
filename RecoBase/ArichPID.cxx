@@ -7,10 +7,10 @@ namespace rb {
 	this->setdefault();	
    }
 
-  ArichPID::ArichPID(float* scores[5]){
+ /* ArichPID::ArichPID(float* scores[5]){
        pid = caf::SRPID(scores[5]);
    }
-
+ */
   ArichPID::ArichPID(std::vector<double> scores){
        pid = caf::SRPID(scores);
    }
