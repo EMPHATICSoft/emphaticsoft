@@ -32,108 +32,18 @@ namespace emph {
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), 
     fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
-    fInterpolateOption(0), fVerbosity(0)
+    fInterpolateOption(0), fVerbosity(0),
+    fUsingRootHistos(false), fBx3DHisto(NULL), fBy3DHisto(NULL),
+    fBz3DHisto(NULL)
     {
-/*<<<<<<< HEAD
-#ifdef debug
-      fVerbosity = 1;
-#else
-      fVerbosity = 0;
-#endif
-      //    this->NoteOnDoubleFromASCIIFromCOMSOL(); 
-      //    std::cerr <<  " EMPHATICMagneticField::EMPHATICMagneticField...  And quit for now... " << std::endl; exit(2);
-      if (filename.find(".root") != std::string::npos) this->uploadFromRootFile(filename);
-      else this->uploadFromTextFile(filename);
-      // These tests do something, comment out for sake of saving time for production use. 
-      //    this->test1();
-      //    this->test2();
-      //    this->test3();
-      //      this->studyZipTrackData1();
-    }
-    
-  void EMPHATICMagneticField::G4GeomAlignIt(const emph::geo::Geometry *theEMPhGeometry) {
-  
-    fG4ZipTrackOffset[2] = -150. -theEMPhGeometry->MagnetUSZPos(); //82.5; // rough guess! 
-    //fG4ZipTrackOffset[2] = -theEMPhGeometry->MagnetUSZPos() + 82.5; //82.5; // rough guess!
-    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
-    fHasBeenAligned = true; 
-//
-// Testing... at COMSOL coordinate of z = -82.5 mm, By ~ 7.5 Kg, 1/2  field 
-//     
-    double xTest[3], xTest2[3], BTest[3], BTest2[3]; 
-    xTest[0] = 0.; xTest[1] = 0.; xTest[2] = -150.; //-82.5;  
-    xTest2[0] = 0.01; xTest2[1] = 0.004; xTest2[2] = -52.5; // in mm 
-//    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k]; // The equation in the GetFieldValue. 
-    this->MagneticField(xTest, BTest);
-    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, internal Variables  " 
-              << BTest[1] <<  " kG "  << std::endl;
-    this->MagneticField(xTest2, BTest2);
-    std::cerr << " .......... again, 20mm inward " << BTest2[1] << std::endl;
-    for (size_t k=0; k != 3; k++) xTest[k] -= fG4ZipTrackOffset[k];
-    BTest[1] = 0.;
-    this->GetFieldValue(xTest, BTest);
-    std::cerr << " EMPHATICMagneticField::G4GeomAlignIt, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;
-   
-  }
-  
-  void EMPHATICMagneticField::uploadFromRootFile(const G4String &fName) {
-  
-    fStorageIsStlVector = false; // Could up grade later.. 
-    std::cerr << " EMPHATICMagneticField::uploadFromRootFile, currently disable does not provide stable answers with current compilers... " << std::endl;
-    std::cerr << " Fatal error, quit here and now " << std::endl; exit(2);
-  
-    //for(int i = 0; i < 250; i++){
-    //  for(int j = 0; j < 250; j++){
-    //  for(int k = 0; k < 250; k++){
-    //  std::vector<double> temp(3, 0);
-    //  field[i][j][k] = temp;
-    //  }		
-    //  }	
-    //  }
-    
-    TFile mfFile(fName.c_str(), "READ");
-    std::cout << " ==> Opening file " << fName << " to read magnetic field..."
-	   << G4endl;
-    
-    if (mfFile.IsZombie()) {
-      std::cerr << "Error opening file" << G4endl;
-      exit(-1);
-    }	
-    TTree *tree = (TTree*) mfFile.Get("magField");
-    
-    double x;
-    double y;
-    double z;
-    double Bx;
-    double By;
-    double Bz;
-    
-    std::ofstream fOutForR;
-    if (fVerbosity)  {
-      fOutForR.open("./EmphMagField_v1.txt");
-      fOutForR << " x y z dx dy dz bx by bz " << std::endl;
-    }
-    tree->SetBranchAddress("x", &x);
-    tree->SetBranchAddress("y", &y);
-    tree->SetBranchAddress("z", &z);
-    tree->SetBranchAddress("Bx", &Bx);
-    tree->SetBranchAddress("By", &By);
-    tree->SetBranchAddress("Bz", &Bz);
-    
-    int nEntries = tree->GetEntries();
-    
-    tree->GetEntry(0);
-    double xPrev = x; 
-    double yPrev = y; 
-    double zPrev = z; 
-=======
->>>>>>> main
-*/
+
     }
     
   //----------------------------------------------------------------------
   
-  MagneticField::~MagneticField() {
+  MagneticField::~MagneticField() 
+  {
+
   }
 
   //----------------------------------------------------------------------
@@ -388,9 +298,11 @@ namespace emph {
     if (fVerbosity) std::cerr << " MagneticField::MagneticField, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
     if (fStorageIsStlVector) 
       CalcFieldFromVector(x,B);
+    else if (fUsingRootHistos)
+      CalcFieldFromRootHistos(x,B);
     else
       CalcFieldFromMap(x,B);
-
+  
     // convert to proper units
     for (int i=0; i<3; ++i) B[i] *= CLHEP::kilogauss;
 
@@ -403,6 +315,45 @@ namespace emph {
     return;
   }
   
+  //----------------------------------------------------------------------
+  
+  void MagneticField::LoadRootHistos()
+  {
+    if (!fUsingRootHistos)
+      abort();
+    if (fFieldFileName.empty())
+      abort();
+    TFile* fin = new TFile(fFieldFileName.c_str());
+    TH3F* hT = (TH3F*)fin->Get("hBx");
+    fBx3DHisto = (TH3F*)hT->Clone("hBx3DHist");
+    hT = (TH3F*)fin->Get("hBy");
+    fBy3DHisto = (TH3F*)hT->Clone("hBy3DHist");
+    hT = (TH3F*)fin->Get("hBz");
+    fBz3DHisto = (TH3F*)hT->Clone("hBz3DHist");
+    fin->Close();
+    fFieldLoaded = true;
+  }
+
+  //----------------------------------------------------------------------
+
+  void MagneticField::CalcFieldFromRootHistos(const double x[3], double B[3]) 
+  {
+    if (!fFieldLoaded) {
+      if (!fUsingRootHistos) {
+	std::cerr << "UseRootHistos not set to true when calling "
+		  << "MagneticField::CalcFieldFromRootHistos.  Aborting..."
+		  << std::endl;
+	abort();
+      }
+      this->LoadRootHistos();
+    }
+    
+    B[0] = 1.e5* (fBx3DHisto->Interpolate(x[0],x[1],x[2]));
+    B[1] = 1.e5* (fBy3DHisto->Interpolate(x[0],x[1],x[2]));
+    B[2] = 1.e5* (fBz3DHisto->Interpolate(x[0],x[1],x[2]));
+
+  }
+
   //----------------------------------------------------------------------
 
   void MagneticField::CalcFieldFromVector(const double x[3], double B[3]) 

@@ -16,7 +16,7 @@ namespace emph {
       tdc_header_word(0),
       tdc_epoch_word(0),
       tdc_measurement_word(0),
-      event_index(0), fragmentTimestamp(0), fdetChan(-1),  fHitTime(0), fIsNoise(false)
+      event_index(0), fragmentTimestamp(0), fdetChan(-1),  fIsNoise(false), fHitTime(0) 
     {
     }
    
