@@ -20,7 +20,6 @@
 #include "TH2D.h"
 #include "TVector3.h"
 #include "TTree.h"
-#include "TH2Poly.h"
 
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
@@ -70,7 +69,7 @@ namespace emph {
 
   private:
 
-    ARICHRECO::ARICH_UTILS* ArichUtils;	    
+    arichreco::ARICH_UTILS* ArichUtils;	    
     TTree* 	fARICHTree;    
  
     int         fEvtNum;
@@ -95,15 +94,18 @@ namespace emph {
     bool fFitCircle;
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    cmap::FEBoardType boardType; 
- 
+    cmap::FEBoardType boardType = cmap::TRB3;    
+
+
     std::vector<double> momenta;
     std::vector<TVector3> dir;
     std::vector<TVector3> pos;
-
+    std::vector<double> LLs;
    
-    std::vector<double> LL_PION,LL_KAON, LL_PROT; //, vals_pdf_pion, vals_pdf_kaon, vals_pdf_prot;
-    //std::vector<int> bins, bins_pdf_pion,bins_pdf_kaon,bins_pdf_prot, vals; 
+    std::vector<double> LL_PION,LL_KAON, LL_PROT;//, vals_pdf_pion, vals_pdf_kaon, vals_pdf_prot;
+    std::vector<int> bins,vals;
+
+   // bins_pdf_pion,bins_pdf_kaon,bins_pdf_prot, vals; 
     
     std::vector<int> blocks,MCT_PDG,unique_ids;
     int pdg_event;
@@ -114,7 +116,7 @@ namespace emph {
   
   ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
     : EDProducer(pset)
-  {
+ { 
 
     this->produces<std::vector<rb::Track>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
@@ -122,7 +124,6 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     fFitCircle = bool(pset.get<bool>("FitCircle"));
  
-    cmap::FEBoardType boardType = cmap::TRB3;
 
     //ARICH RECO UTILS STUFF
     PDfile  =  std::string(pset.get< std::string >("PD_file"));
@@ -138,7 +139,7 @@ namespace emph {
     PDzpos = double(pset.get<double>("PD_Position"));
     fEvtNum = 0;
     
-    ArichUtils = new ARICHRECO::ARICH_UTILS();
+    ArichUtils = new arichreco::ARICH_UTILS();
     std::string source_path = getenv("CETPKG_SOURCE");
     TString PDfile_path = source_path + PDfile;
     ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
@@ -160,12 +161,14 @@ namespace emph {
     art::ServiceHandle<art::TFileService const> tfs;
     fARICHTree = tfs->make<TTree>("ARICHRECO","event");
     fARICHTree->Branch("TruthPDG", &MCT_PDG);
+    fARICHTree->Branch("Blocks", &blocks);
+    fARICHTree->Branch("Momenta", &momenta);
     fARICHTree->Branch("LL_pion", &LL_PION);
     fARICHTree->Branch("LL_kaon", &LL_KAON);
     fARICHTree->Branch("LL_prot", &LL_PROT);
-/*  fARICHTree->Branch("BINS", &bins);
+    fARICHTree->Branch("BINS", &bins);
     fARICHTree->Branch("VALS", &vals);
-    fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
+  /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
     fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
     fARICHTree->Branch("BINS_PDF_kaon", &bins_pdf_kaon);
     fARICHTree->Branch("VALS_PDF_kaon", &vals_pdf_kaon);
@@ -177,7 +180,7 @@ namespace emph {
  //.......................................................................
   void ARICHReco::beginRun(art::Run &run)
   {
-  } 
+ } 
     
 //......................................................................
 
@@ -217,7 +220,7 @@ void ARICHReco::produce(art::Event& evt)
 	 
      // std::cout << std::endl;
 
-	float posx, posy, posz;
+//	float posx, posy, posz;
 
       //if(RecoTracksH->size() != 0 ){
 
@@ -244,21 +247,26 @@ void ARICHReco::produce(art::Event& evt)
     if(arichH->size()!=0){ 
         
 	 for (size_t idx=0; idx< arichH->size(); ++idx){
-	//	std::cout << ArichDigs[idx] << std::endl;
-		cmap::EChannel* echan = new cmap::EChannel();
+ 		cmap::EChannel* echan = new cmap::EChannel();
 		echan->SetBoardType(boardType);
 		echan->SetBoard((*arichH)[idx].GetBoardId());	
 	 	echan->SetChannel((*arichH)[idx].GetDetChan());
+
 		cmap::DChannel dchan = cmap->DetChan(*echan);
-		delete echan;
 		blocks.push_back(dchan.Station());
-	 } 
-	 
+		delete echan; 
+	} 
 	 TH2D* event_hist = ArichUtils->DigsToHist(blocks);	
-	 blocks.clear();
-	// if(fFitCircle){ ARICHRECO::HoughFitter* fitter = new ARICHRECO::HoughFitter(event_hist);}
+
+/*	for(int k = 0; k < event_hist->GetNcells(); k++){
+	  if(event_hist->GetBinContent(k) == 0)continue;
+	  std::cout << k << " " << event_hist->GetBinContent(k) <<std::endl;
+	  bins.push_back(k);
+	  vals.push_back(event_hist->GetBinContent(k)); 
+	}
+*/
+	// if(fFitCircle){ arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);}
 	// BLOCKS WILL BE USED FOR CIRCLE FITTING
-	
 	
 	// TO BE CHANGED TO USE RECO TRACKS //
 
@@ -276,7 +284,6 @@ void ARICHReco::produce(art::Event& evt)
 		pdg_event = (*TracksH)[l].GetPId();	 	
 		MCT_PDG.push_back(pdg_event);
 		TVector3 dir_((*TracksH)[l].GetPx()/mom,(*TracksH)[l].GetPy()/mom,(*TracksH)[l].GetPz()/mom);
-
                 TVector3 pos_((*TracksH)[l].GetX()/10,(*TracksH)[l].GetY()/10,0.);  //in cm
                 momenta.push_back(mom/1000);   //Tracks[p].mom use GeV not MeV
 		dir.push_back(dir_);      //Tracks[p].dir);     
@@ -302,39 +309,45 @@ void ARICHReco::produce(art::Event& evt)
 
 	if(np == 1){  //for now single tracks
 
-  	  std::vector<double> mid = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir);		
-	  //std::cout << mid[0] << " " << mid[2] << std::endl;    
-	  
+  	  LLs = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir);		
+	 
+	  //for(double val : LLs)std::cout << val << " ";
+	  //std::cout << std::endl; 
 	  // IF WE WANT THE PDFs -> std::vector<std::vector<TH2Poly*>> pdfs = ArichUtils->GetPDFs(np, momenta, pos, dir);
 	
 	  // for sum_scaled LL
 	  //double sum =  std::accumulate(mid.begin(),mid.end(),0.0);
   	  //std::transform(mid.begin(),mid.end(),mid.begin(),[sum](double value){return value/sum;});
 
-	  rb::ArichPID* arich_pid = new rb::ArichPID(mid);	
+	  rb::ArichPID* arich_pid = new rb::ArichPID(LLs);	
 	  rb::Track* arich_track = new rb::Track(*arich_pid);  
 
 	  ARICH_TRACK->push_back(*arich_track);	  
 	  delete arich_pid;
 	  delete arich_track;
 
-	  if(fFillTree){ LL_PION.push_back(mid[0]); LL_KAON.push_back(mid[1]); LL_PROT.push_back(mid[2]);}
-	  mid.clear();
-	 } // end if 1 track 
-	 momenta.clear(); pos.clear(); dir.clear();
-     
-        }//end some TRB3 hits 
+	  if(fFillTree){ LL_PION.push_back(LLs[0]); LL_KAON.push_back(LLs[1]); LL_PROT.push_back(LLs[2]);}
+	  LLs.clear();
+ 
+	} // end if 1 track
+	
+	delete event_hist; 
+	//momenta.clear(); pos.clear(); dir.clear();
+	
+       } //end some TRB3 hits 
 
-	 if(fFillTree){
+        if(fFillTree){
 	   fARICHTree->Fill();
-	    LL_PION.clear();LL_KAON.clear();LL_PROT.clear();MCT_PDG.clear();
-	    // bins.clear(); ;vals.clear();
-	    // bins_pdf_pion.clear(); vals_pdf_pion.clear();
-	    // bins_pdf_kaon.clear(); vals_pdf_kaon.clear();
-            // bins_pdf_prot.clear(); vals_pdf_prot.clear();	
+	   LL_PION.clear();LL_KAON.clear();LL_PROT.clear();MCT_PDG.clear();
+	     bins.clear(); vals.clear();
+	//    bins_pdf_pion.clear(); vals_pdf_pion.clear();
+	//    bins_pdf_kaon.clear(); vals_pdf_kaon.clear();
+        //    bins_pdf_prot.clear(); vals_pdf_prot.clear();	
         }
-     
-        evt.put(std::move(ARICH_TRACK));	   
+	momenta.clear(); pos.clear(); dir.clear();
+        blocks.clear();
+      
+	 evt.put(std::move(ARICH_TRACK));	   
     
      } // end produce 
 

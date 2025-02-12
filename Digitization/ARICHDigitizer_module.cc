@@ -19,8 +19,8 @@
 
 // ROOT includes
 #include "TFile.h"
-#include "TH1F.h"
-#include "TH2F.h"
+//#include "TH1F.h"
+//#include "TH2F.h"
 #include "TTree.h"
 
 // Framework includes
@@ -59,8 +59,7 @@ namespace emph{
     
   	    void produce(art::Event& evt);
 	    void ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits);    
-	    void FillSensorMap();
- 	    void clean();
+//	    void FillSensorMap();
 	    uint32_t GetFPGABroadHex(int fpga_board_id);
 
   // Optional use if you have histograms, ntuples, etc you want around for every event
@@ -73,10 +72,10 @@ namespace emph{
     
 	 private:
   	     std::string fG4Label;
-	     art::ServiceHandle<emph::geo::GeometryService> fGeo;	
+	     art::ServiceHandle<geo::GeometryService> fGeo;	
 	     std::vector<int> HitPixels;
 	     std::vector<double> HitTime;
-  	     std::unordered_map<int,int> fSensorMap;
+  	     //std::unordered_map<int,int> fSensorMap;
 	     float fCalibration;    //to be fixed later 
 	     bool fIncludeNoise;	 
 	     bool fFillTree;
@@ -96,7 +95,7 @@ ARICHDigitizer::ARICHDigitizer(fhicl::ParameterSet const& pset)
     fFillTree(pset.get<bool>("FillTree"))
 {
   //    fEvent = 0;
-  fSensorMap.clear(); 
+ // fSensorMap.clear(); 
   produces<std::vector<rawdata::TRB3RawDigit> >("ARICH");
 }
 
@@ -114,53 +113,42 @@ void ARICHDigitizer::beginJob()
 {
   if(fFillTree){
    art::ServiceHandle<art::TFileService const> tfs;
-   fTest = tfs->make<TTree>("events","Events in ARICH");
+   fTest = tfs->make<TTree>("events","events");
    fTest->Branch("blocks", &blocks);
    fTest->Branch("pdg", &pdg);
    fTest->Branch("mom", &mom);
-   fTest->Branch("TrackID", &track_id);
-   fTest->Branch("HitTime",&time);
-   fTest->Branch("DirX",&dirX);
-   fTest->Branch("DirY",&dirY);
-   fTest->Branch("PosX",&PosX);
-   fTest->Branch("PosY",&PosY);  
+//   fTest->Branch("TrackID", &track_id);
+//   fTest->Branch("HitTime",&time);
+//   fTest->Branch("DirX",&dirX);
+//   fTest->Branch("DirY",&dirY);
+//   fTest->Branch("PosX",&PosX);
+//   fTest->Branch("PosY",&PosY);  
     }
 }
 //.....................................................................
-void ARICHDigitizer::clean()
-{
-	pdg.clear(); track_id.clear(); blocks.clear();
-        mom.clear(); time.clear();
-        dirX.clear(); dirY.clear(); PosX.clear(); PosY.clear();
-
-}
-//.....................................................................
-void ARICHDigitizer::FillSensorMap()
+/* void ARICHDigitizer::FillSensorMap()
   {
-    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    art::ServiceHandle<cmap::ChannelMapService> cmap;
  
     auto echanMap = cmap->EMap();
     for (auto it=echanMap.begin(); it != echanMap.end(); ++it) {
       auto dchan = it->second;
-      if (dchan.DetId() == emph::geo::SSD) {
+      if (dchan.DetId() == geo::SSD) {
 	fSensorMap[dchan.HiLo()] = dchan.Channel();
 	//std::cout << dchan.HiLo() << "," << dchan.Channel() << std::endl;
 	}	 
      }
     	
   }
-
+*/
 //......................................................................
 
 void ARICHDigitizer::ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits){
 
-    HitPixels.clear();
-    HitTime.clear();
-
     for(size_t k=0;k<MCHits.size(); k++)  // copies the simulated hits and checks if detectable using QE
 	{
-	  std::vector<int>::iterator it;
-	  emph::arich_util::PMT pmt= fGeo->Geo()->FindPMTByBlockNumber(MCHits[k].GetBlockNumber());
+	  int block = MCHits[k].GetBlockNumber(); 
+	  arich_util::PMT pmt= fGeo->Geo()->FindPMTByBlockNumber(block); //since all pmt have the same QE, we can use the 0
 	  double e = MCHits[k].GetEnergyDepo();
 	  double wavelenght = h_Planck*c_light/e; // in mm         
 	
@@ -172,8 +160,8 @@ void ARICHDigitizer::ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits){
     int nPMT= fGeo->Geo()->NPMTs();
     double window, hittime;
     for(int i=0;i<nPMT;i++)      //evaluates the dark noise over all the PMT anodes 
-    {				
-      emph::arich_util::PMT pmt= fGeo->Geo()->GetPMT(i);
+    {
+      arich_util::PMT pmt= fGeo->Geo()->GetPMT(i);
       if(!pmt.IsOn())continue;
       window=pmt.GetTriggerWin();
       for(int j=-int(window)-1;j<int(window)+1;j++){ // per ns
@@ -181,8 +169,7 @@ void ARICHDigitizer::ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits){
 	if(hittime<0)continue;
         hittime+=j;
 	if(abs(hittime)>window)continue;
-        std::vector<int>::iterator it;
-        it = find(HitPixels.begin(), HitPixels.end(), pmt.PMTnum());
+        std::vector<int>::iterator it = find(HitPixels.begin(), HitPixels.end(), pmt.PMTnum());
         if(it!= HitPixels.end())
  	{
 	  if(HitTime[it-HitPixels.begin()]>hittime) HitTime[it-HitPixels.begin()]=hittime;
@@ -192,7 +179,7 @@ void ARICHDigitizer::ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits){
 	  HitTime.push_back(hittime);
 	}
       } 
-    } 
+    }
 }
 
 //......................................................................
@@ -216,97 +203,102 @@ uint32_t ARICHDigitizer::GetFPGABroadHex(int fpga_board_id)
 
 void ARICHDigitizer::produce(art::Event& evt)
   { 
-  
 
-  art::Handle< std::vector<sim::ARICHHit> > arichHits;
-  art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    art::Handle< std::vector<sim::ARICHHit> > arichHits;
+    art::ServiceHandle<cmap::ChannelMapService> cmap;
 
-
-  try {
+   try {
     evt.getByLabel(fG4Label,arichHits);
    }  
    catch(...) {
     std::cout << "WARNING: No ARICHHits found!" << std::endl;
   }
- 
-    std::vector<sim::ARICHHit> ARICH_Hits(*arichHits);
-
+    
+	
     std::unique_ptr<std::vector<rawdata::TRB3RawDigit> > ArichRawD(new std::vector<rawdata::TRB3RawDigit>); 
 
-    if(fIncludeNoise) ApplyDarkNoise(*arichHits);
-   
-    fCalibration = 2.5; 
+    if(arichHits->size()!= 0){
 
-    emph::cmap::EChannel echan;
-    emph::cmap::DChannel dchan;
-    echan.SetBoardType(emph::cmap::TRB3);
-    dchan.SetDetId(emph::geo::ARICH);
+      fCalibration = 2.5; 
+
+      cmap::EChannel echan;
+      cmap::DChannel dchan;
+      echan.SetBoardType(cmap::TRB3);
+      dchan.SetDetId(geo::ARICH);
  
-    if(!fIncludeNoise){ 
-	for(size_t i = 0; i < ARICH_Hits.size(); i++){	
+      if(!fIncludeNoise){ 
+	 for(size_t i = 0; i < arichHits->size(); i++){	
 	
-	sim::ARICHHit arichhit = ARICH_Hits[i];
-	rawdata::TRB3RawDigit* dig =0;
-	int blockID = arichhit.GetBlockNumber();	
-	emph::arich_util::PMT mpmt= fGeo->Geo()->FindPMTByBlockNumber(blockID);
+	 sim::ARICHHit arichhit = (*arichHits)[i];
+	 int blockID = arichhit.GetBlockNumber();	
+	 arich_util::PMT mpmt= fGeo->Geo()->FindPMTByBlockNumber(blockID);
 		
-	double wavelength =  arichhit.GetWavelength()/1e6;  // in mm 	
-	if(!mpmt.ifDet(wavelength))continue;			
-
+	 double wavelength =  arichhit.GetWavelength()/1e6;  // in mm 	
+	 if(!mpmt.ifDet(wavelength))continue;			
+	 
 	 if(fFillTree){
-          blocks.push_back(blockID);
-          pdg.push_back(arichhit.GetAncestorPDG());
-          mom.push_back(arichhit.GetAncestorMom());
-          track_id.push_back(arichhit.GetAncestorTrackNum());
-          time.push_back(arichhit.GetTime());
-          dirX.push_back(arichhit.GetDirx());
-          dirY.push_back(arichhit.GetDiry());
-          PosX.push_back(arichhit.GetPosx());
-          PosY.push_back(arichhit.GetPosy());
+           blocks.push_back(blockID);
+           pdg.push_back(arichhit.GetAncestorPDG());
+           mom.push_back(arichhit.GetAncestorMom());
+          // track_id.push_back(arichhit.GetAncestorTrackNum());
+          // time.push_back(arichhit.GetTime());
+          // dirX.push_back(arichhit.GetDirx());
+          // dirY.push_back(arichhit.GetDiry());
+          // PosX.push_back(arichhit.GetPosx());
+          // PosY.push_back(arichhit.GetPosy());
           }
 	  
-	int t = arichhit.GetTime() * 1e9; // in ns    
+	 int t = arichhit.GetTime() * 1e9; // in ns    
  
 	  // Could be added a tunable smaring function here time_smeared = time + smear 
 
-	int HiLo = arichhit.GetHiLo();  
-	int channel = arichhit.GetChannel();
-        dchan.SetHiLo(HiLo);
-	dchan.SetChannel(channel);
- 	echan = cmap->ElectChan(dchan);
-        
-	dig = new rawdata::TRB3RawDigit(GetFPGABroadHex(echan.Board()),echan.Channel(),t, false);
-	ArichRawD->push_back(rawdata::TRB3RawDigit(*dig));
-	delete dig;
-      } 
-     } 
-  else{
-
-	for(size_t i = 0; i < HitPixels.size(); i++){
-
-	rawdata::TRB3RawDigit* dig =0;	
-	sim::ARICHHit *temp_hit = new sim::ARICHHit();
-	temp_hit->SetBlockNumber(HitPixels[i]);
-	
-
-	 int HiLo = temp_hit->GetHiLo();
-         int channel = temp_hit->GetChannel();
+	 int HiLo = arichhit.GetHiLo();  
+	 int channel = arichhit.GetChannel();
          dchan.SetHiLo(HiLo);
-         dchan.SetChannel(channel);
-         echan = cmap->ElectChan(dchan);
+	 dchan.SetChannel(channel);
+ 	 echan = cmap->ElectChan(dchan);
+        
+	 rawdata::TRB3RawDigit* dig = new rawdata::TRB3RawDigit(GetFPGABroadHex(echan.Board()),echan.Channel(),t, false);
+//	std::cout << *dig << std::endl; 
+	ArichRawD->push_back(rawdata::TRB3RawDigit(*dig));
+	 delete dig;
+        } 
+      } 
+    else{
+
+ 	 ApplyDarkNoise(*arichHits);
+
+	 for(size_t i = 0; i < HitPixels.size(); i++){
+
+	   sim::ARICHHit *temp_hit = new sim::ARICHHit();
+	   temp_hit->SetBlockNumber(HitPixels[i]);
 	
-  	  int t = HitTime[i];
 
-          dig = new rawdata::TRB3RawDigit(GetFPGABroadHex(echan.Board()),echan.Channel(),t, true);	
-	  ArichRawD->push_back(rawdata::TRB3RawDigit(*dig));	
-	delete dig;
-	} 
+	   int HiLo = temp_hit->GetHiLo();
+           int channel = temp_hit->GetChannel();
+           delete temp_hit;
+	   dchan.SetHiLo(HiLo);
+           dchan.SetChannel(channel);
+           echan = cmap->ElectChan(dchan);
+	
+   	   int t = HitTime[i];
 
-    }
+           rawdata::TRB3RawDigit* dig = new rawdata::TRB3RawDigit(GetFPGABroadHex(echan.Board()),echan.Channel(),t, true);	
+	   ArichRawD->push_back(rawdata::TRB3RawDigit(*dig));	
+	   delete dig;
+	 } 
+     } // end else
+	HitPixels.clear();
+        HitTime.clear();
+   } //end if arich hits 
    
-   evt.put(std::move(ArichRawD),"ARICH");
-   if(fFillTree){fTest->Fill(),clean();}
-
+    evt.put(std::move(ArichRawD),"ARICH");
+   
+    if(fFillTree){fTest->Fill();
+	pdg.clear(); track_id.clear(); blocks.clear();
+        mom.clear(); time.clear();
+        dirX.clear(); dirY.clear(); PosX.clear(); PosY.clear();}
+   
    } //end ARICHDigitizer::produce()
 
 } // end namespace emph

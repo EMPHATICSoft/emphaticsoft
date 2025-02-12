@@ -46,7 +46,7 @@ namespace emph {
     public:
 
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS, bool IsNoise);
-       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
+      TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
       TRB3RawDigit(uint32_t fpga, uint32_t detChan, uint32_t fHitTime, bool IsNoise);
 
       /// Is this the leading edge measurement?
@@ -72,9 +72,6 @@ namespace emph {
 
       void SetDetChannel(int ichan) {fdetChan = ichan; }
 
-      uint32_t GetDetChannel() const {
-	return fdetChan;
-      }
 
       /// Get the TDC measurement
       uint32_t GetMeasurement() const {
