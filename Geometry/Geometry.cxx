@@ -138,8 +138,10 @@ Plane::Plane() :
       fTarget = 0;
       fGeoManager = 0;
       fSSDSensorMap.clear();
-      fMagnetUSZPos = -1e6;
-      fMagnetDSZPos = -1e6;
+      for (int i=0; i<3; ++i) {
+	fMagnetUSPos[i] = -1e6;
+	fMagnetDSPos[i] = -1e6;
+      }
       fTargetUSZPos = -1e7;
       fTargetDSZPos = -1e7;
       fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
@@ -369,21 +371,24 @@ Plane::Plane() :
 			mf::LogWarning("LoadNewGeometry") 
 				<< " magnet not found in gdml. \n"
 				<< "check your spelling. \n";
-			fMagnetUSZPos = -1e6;
-			fMagnetDSZPos = -1e6;
-
 			return;
 		}
 
       TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
       TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
 
+      double xcenter = magnet_n->GetMatrix()->GetTranslation()[0];
+      double ycenter = magnet_n->GetMatrix()->GetTranslation()[1];
       double zcenter = magnet_n->GetMatrix()->GetTranslation()[2];
       double dz = magnet_box->GetDZ();
 
-      fMagnetUSZPos = zcenter-dz;
-      fMagnetDSZPos = zcenter+dz;
-		fMagnetLoad = true;
+      fMagnetUSPos[2] = zcenter-dz;
+      fMagnetDSPos[2] = zcenter+dz;
+      fMagnetUSPos[0] = xcenter;
+      fMagnetDSPos[0] = xcenter;
+      fMagnetUSPos[1] = ycenter;
+      fMagnetDSPos[1] = ycenter;
+      fMagnetLoad = true;
 
     }
 
