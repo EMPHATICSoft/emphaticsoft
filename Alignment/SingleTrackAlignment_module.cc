@@ -79,7 +79,7 @@ namespace emph {
     void endJob();
     std::vector<double> SSDRot();
     std::vector<TVector3> SSDPos(std::vector<rb::TrackSegment> tracksegv, bool wantN = false);
-    void Pulls(std::vector<rb::TrackSegment> tracksegv);
+    void Pulls(std::vector<rb::TrackSegment> trksegv);
 
   private:
   
@@ -131,6 +131,7 @@ namespace emph {
 
     Align* align = new Align();
 
+    int re = 1;
   };
 
   //.......................................................................
@@ -208,7 +209,7 @@ namespace emph {
   {
     std::cerr<<"Starting SingleTrackAlignment"<<std::endl;
 
-    m = new Mille("m002.bin",true,true);
+    m = new Mille("m004.bin",true,true);
   }
  
   //......................................................................
@@ -246,7 +247,7 @@ namespace emph {
 
   //......................................................................
 
-  void emph::SingleTrackAlignment::Pulls(std::vector<rb::TrackSegment> tracksegv)
+  void emph::SingleTrackAlignment::Pulls(std::vector<rb::TrackSegment> trksegv)
   {
     auto emgeo = geo->Geo();
     ru::RecoUtils r = ru::RecoUtils(fEvtNum);
@@ -259,12 +260,15 @@ namespace emph {
 
 	  int sens = cl_group[ii][jj][kk]->Sensor();
 
+          //std::cout<<"Width: "<<cl_group[ii][jj][kk]->Width()<<std::endl;
+	  //std::cout<<"Width: "<<cl_group[ii][jj][kk]->WgtRmsStrip()*0.06<<std::endl;
+	  float uncer = cl_group[ii][jj][kk]->WgtRmsStrip()*0.06;
           //std::cout<<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View()<<std::endl;
 	  auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
 	  double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad i think
           // rad or degree?
 	  //std::cout<<"phi_m: "<<phim<<std::endl;
-          for (auto ts : tracksegv) {
+          for (auto ts : trksegv) {
             double tsz = ts.Vtx()[2];
 	    TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
             TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);	    
@@ -286,6 +290,12 @@ namespace emph {
 	      double t = ( sensorz - a(2) )/( b(2) - a(2) );
 	      double tsx = a(0) + (b(0)-a(0))*t;
 	      double tsy = a(1) + (b(1)-a(1))*t;
+
+	      //std::cout<<".........."<<std::endl;
+              //std::cout<<"tsx = "<<tsx<<std::endl;
+	      double xz = a(0) + ts.P()[0]/ts.P()[2]*sensorz;
+	      double yz = a(1) + ts.P()[1]/ts.P()[2]*sensorz;
+	      //std::cout<<"x(z) = "<<xz<<std::endl;
 	      // signed distance from point to a line 
               // find slope of line segment
               /*
@@ -315,12 +325,14 @@ namespace emph {
 	      float lcd_y0 = 1.*TMath::Cos(phim);
 	      float lcd_pypz = sensorz*TMath::Cos(phim);
 
-	      std::cout<<"..........."<<std::endl;
-	      std::cout<<"pull = "<<pull<<std::endl;
-	      std::cout<<"dsign = "<<dsign<<std::endl;
-	      std::cout<<"sensorz = "<<sensorz<<std::endl;
+	      //std::cout<<"..........."<<std::endl;
+	      //std::cout<<"pull = "<<pull<<std::endl;
+	      //std::cout<<"dsign = "<<dsign<<std::endl;
+	      //std::cout<<"sensorz = "<<sensorz<<std::endl;
 
               float gld_x; float gld_y; float gld_z;
+	      float gld_phim;
+/*
 	      if (sview == 1){ // X-VIEW
 	        gld_x = -1.*TMath::Sin(phim);
 		gld_y = 0.;
@@ -336,10 +348,19 @@ namespace emph {
                 gld_y = 1.*TMath::Cos(phim);
                 gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim) + ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
               }
+*/
+	      if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
+                gld_x = -1.*TMath::Sin(phim);
+                gld_y = 1.*TMath::Cos(phim);
+                gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim) + ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
+		//gld_phim = -1.*TMath::Cos(phim) * xz - 1.*TMath::Sin(phim) * yz;
+                gld_phim = -1.*TMath::Cos(phim) * tsx - 1.*TMath::Sin(phim) * tsy;
+              }
               else{
 		gld_x = 0.;
 		gld_y = 0.;
 		gld_z = 0.;
+		gld_phim =  0.;
               }
        	
 	      //std::cout<<"px = "<<ts.P()[0]<<std::endl;
@@ -348,16 +369,21 @@ namespace emph {
 	      //std::cout<<"px/pz = "<<gld_xz<<std::endl;
 	      //std::cout<<"py/pz = "<<gld_yz<<std::endl;
 
-	      float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
-	      float mdergl[3] = {gld_x,gld_y,gld_z};
+	      //std::cout<<"gld_phim = "<<gld_phim<<std::endl;
 
-	      int ltmp[4] = {ii*1000 + jj*100 + kk*10 + 1,ii*1000 + jj*100 + kk*10 + 2, ii*1000 + jj*100 + kk*10 + 3}; //, ii*1000 + jj*100 + kk*10 + 4};
-              m->mille(4,mderlc,3,mdergl,ltmp,dsign,0.0173);
+	      float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
+	      //float mdergl[3] = {gld_x,gld_y,gld_z};
+	      float mdergl[4] = {gld_x,gld_y,gld_z,gld_phim};
+
+	      int ltmp[4] = {ii*1000 + jj*100 + kk*10 + 1,ii*1000 + jj*100 + kk*10 + 2, ii*1000 + jj*100 + kk*10 + 3, ii*1000 + jj*100 + kk*10 + 4};
+              m->mille(4,mderlc,4,mdergl,ltmp,dsign,uncer); //0.0346); //0.0173);
 	    }
 	  }
 	}
       }
     }
+    re++;
+    std::cout<<"^ Record "<<re<<std::endl;
     m->end();
   }
 
@@ -376,15 +402,27 @@ namespace emph {
             auto sd = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk);
             auto st = emgeo->GetSSDStation(ii);
             auto T = align->SSDMatrix(ii,jj,kk);
-            double sl[3] = {sd->Pos()[0],sd->Pos()[1],sd->Pos()[2]};
+            double sl[3] = {0.,0.,0.};
+            //double sl[3] = {sd->Pos()[0],sd->Pos()[1],sd->Pos()[2]};
+
+            //std::cout<<"station pos "<<ii*1000 + jj*100 + kk*10<<": "<<st->Pos()[0]<<","<<st->Pos()[1]<<","<<st->Pos()[2]<<std::endl;
+            std::cout<<ii*1000 + jj*100 + kk*10<<" (x,y,z) for sl = "<<sl[0]<<","<<sl[1]<<","<<sl[2]<<std::endl;
+
             double sm[3];
             double s[3];
             sd->LocalToMother(sl,sm);
-            st->LocalToMother(sm,sl);
-            T->LocalToMaster(sl,s);
 
-            double sensorz = s[2];
-            if ((tsz < targetz && sensorz < targetz)
+            std::cout<<ii*1000 + jj*100 + kk*10<<" (x,y,z) for sm  = "<<sm[0]<<","<<sm[1]<<","<<sm[2]<<std::endl;
+            st->LocalToMother(sm,sl);
+
+            std::cout<<ii*1000 + jj*100 + kk*10<<" (x,y,z) for st = "<<sl[0]<<","<<sl[1]<<","<<sl[2]<<std::endl;
+            //T->LocalToMaster(sl,s);
+
+            double sensorz = sl[2]; //s[2];
+
+            //std::cout<<ii*1000 + jj*100 + kk*10<<" "<<sensorz<<std::endl;
+	    //std::cout<<"Station "<<ii<<", z = "<<sensorz<<std::endl;
+	    if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
 	      double n[3];
@@ -428,6 +466,8 @@ namespace emph {
     tsvnom.clear();
 
     auto emgeo = geo->Geo();
+    std::cout<<"Mag Pos USZ: "<<emgeo->MagnetUSZPos()<<std::endl;
+    std::cout<<"Mag Pos DSZ: "<<emgeo->MagnetDSZPos()<<std::endl;
 
     run = evt.run();
     subrun = evt.subRun();
