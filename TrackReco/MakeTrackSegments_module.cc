@@ -248,6 +248,12 @@ namespace emph {
 	  if (goodStation==true) {goodclust++;}
           else {badclust++;}
 
+	  for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
+            for (auto j : clustMapAtLeastOne[i]){
+              std::cout<<"Station "<<i<<": "<<j.second<<std::endl;
+	    }
+  	  }
+
           cl_group.resize(nStations);
           ls_group.resize(nStations);
 
@@ -255,6 +261,19 @@ namespace emph {
 	    cl_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	    ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	  }
+
+          std::cout<<"Good station = "<<goodStation<<std::endl; 
+          for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
+	    if (!goodStation) break;
+	    for (auto j : clustMapAtLeastOne[i]){
+	      std::cout<<"Station "<<i<<": "<<j.second<<std::endl;
+//	      if (j.second > 10){
+//		goodStation = false;
+//	     	break;
+//              }
+	    }
+          }
+	  
 
           for (size_t i=0; i<clusters.size(); i++){
 	    int plane = clusters[i]->Plane();
@@ -269,7 +288,7 @@ namespace emph {
           emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
  
 	  //group linesegments
-	  if (goodStation == true){
+	  if (goodStation == true && clusters.size() < 50){
 	    for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
               int station = clusters[i]->Station();
@@ -277,7 +296,8 @@ namespace emph {
 	    }
 
             //make reconstructed hits
-            spv = algo.MakeHits(ls_group);
+            //if (clusters.size() < 50) spv = algo.MakeHits(ls_group);
+	    spv = algo.MakeHits(ls_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
 	  }
@@ -296,7 +316,16 @@ namespace emph {
                 if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
                 if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
               }
+	      else{
+                if (spv[i].Pos()[2] < 380.5) sp1.push_back(spv[i]);
+                if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
+                if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
+              }
             }
+
+	    //std::cout<<"sp1 size = "<<sp1.size()<<std::endl;
+	    //std::cout<<"sp2 size = "<<sp2.size()<<std::endl;
+            //std::cout<<"sp3 size = "<<sp3.size()<<std::endl;
 
             //form lines and fill plots
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);

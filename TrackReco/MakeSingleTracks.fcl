@@ -8,7 +8,7 @@ standard_makesingletracks:
   G4Label:           "geantgen"
   CheckTrackSeg:     true
   TrkSegLabel:       "maketracksegments" 
-  PBeamTmp:          2               # Change beam momentum here --> make more sophisticated later
+  PBeamTmp:          120               # Change beam momentum here --> make more sophisticated later
 				     # SpillInfo for data, RunHistory if application
 }
 

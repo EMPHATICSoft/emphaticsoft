@@ -170,7 +170,9 @@ namespace emph {
     nStations = emgeo->NSSDStations();
     nPlanes = emgeo->NSSDPlanes();
 
-    targetz = emgeo->GetTarget()->Pos()(2);
+    if (emgeo->GetTarget()) targetz = emgeo->GetTarget()->Pos()(2);
+    else targetz = 380.5;    
+
     magnetusz = emgeo->MagnetUSZPos();
     magnetdsz = emgeo->MagnetDSZPos();
 
@@ -466,8 +468,8 @@ namespace emph {
     tsvnom.clear();
 
     auto emgeo = geo->Geo();
-    std::cout<<"Mag Pos USZ: "<<emgeo->MagnetUSZPos()<<std::endl;
-    std::cout<<"Mag Pos DSZ: "<<emgeo->MagnetDSZPos()<<std::endl;
+    //std::cout<<"Mag Pos USZ: "<<emgeo->MagnetUSZPos()<<std::endl;
+    //std::cout<<"Mag Pos DSZ: "<<emgeo->MagnetDSZPos()<<std::endl;
 
     run = evt.run();
     subrun = evt.subRun();
