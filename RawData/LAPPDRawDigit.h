@@ -29,7 +29,7 @@ namespace emph {
       void     SetTime320(uint64_t t) { fTime320 = t; }
       void     SetTimeWR(uint64_t t) { fTimeWR = t; }
       void     SetAlighnHeader(uint64_t h) { fAlignHeader = h; }
-      void     SetData(uint64_t* d) { memcpy(fData,d,1440*16); }
+      void     SetData(uint64_t* d) { memcpy(fData,d,1440*sizeof(uint64_t)); }
 
     private:
       /// Found fields to hold the header, measurement error words.

@@ -15,7 +15,7 @@ namespace emph {
       fACCHeader(0), fACDCHeader(0), fTime320(0), fTimeWR(0), 
       fAlignHeader(0), fIsNoise(false)    
     {
-      memset(fData,0,1440*16);
+      memset(fData,0,1440*sizeof(uint64_t));
     }
    
     //----------------------------------------------------------------------
@@ -27,7 +27,7 @@ namespace emph {
       fTime320 = block[2];
       fTimeWR = block[3]; 
       fAlignHeader = block[4];
-      memcpy(fData,&block[5],1440*16);
+      memcpy(fData,&block[5],1440*sizeof(uint64_t));
     }
 
     //----------------------------------------------------------------------
