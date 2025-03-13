@@ -12,6 +12,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include "TH3F.h"
 
 class G4FieldManager;
 
@@ -48,8 +49,13 @@ namespace emph {
     double fStepX, fStepY, fStepZ; 
     int fInterpolateOption;
     int fVerbosity;
+    bool  fUsingRootHistos;
+    TH3F* fBx3DHisto;
+    TH3F* fBy3DHisto;
+    TH3F* fBz3DHisto;
 
   public: 
+    void SetUsingRootHistos(bool flag=false) { fUsingRootHistos=flag; }
     void SetUseStlVector(bool useVec) { fStorageIsStlVector = useVec; }
     inline void setInterpolatingOption(int iOpt) { fInterpolateOption = iOpt; } // iOpt = 0 => 3D radial average , 1 linearized along axes of the 3D grid. 
     void Integrate(int iOpt, int charge, double stepAlongZ,  
@@ -71,10 +77,12 @@ namespace emph {
    
   private:
     void uploadFromTextFile();
+    void LoadRootHistos();
     void AlignWithGeom();
     void CalcFieldFromVector(const double Point[3], double* Bfield);
     void CalcFieldFromMap(const double Point[3], double* Bfield);
-    inline size_t indexForVector(double *xyz) const {
+    void CalcFieldFromRootHistos(const double Point[3], double* Bfield);
+   inline size_t indexForVector(double *xyz) const {
       double *ptr = xyz; 
       // floor seems to fail if close to real boundary, so add a tiny offset
       // see NoteOnDoubleFromASCII

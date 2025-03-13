@@ -10,6 +10,7 @@
 
 #include "CLHEP/Units/SystemOfUnits.h"
 #include "MagneticField/MagneticField.h"
+#include "MagneticField/test/TestEmphMagneticField.h"
 
 #include "Geometry/DetectorDefs.h"
 #include "Geometry/Geometry.h"
@@ -18,8 +19,6 @@
 #include "TTree.h"
 #include "math.h"
 
-// For testing purposes. 
-//#include "Geant4/Randomize.hh"
 
 namespace emph {
   
@@ -32,9 +31,14 @@ namespace emph {
     fXMin(6.0e23),  fYMin(6.0e23), fZMin(6.0e23), 
     fXMax(-6.0e23), fYMax(-6.0e23), fZMax(-6.0e23),
     fStepX(0.), fStepY(0.), fStepZ(0.),
-    fInterpolateOption(1), fVerbosity(1)
-    {
-    
+    fInterpolateOption(1), fVerbosity(1), 
+    fUsingRootHistos(false), fBx3DHisto(NULL), fBy3DHisto(NULL),
+    fBz3DHisto(NULL)
+   {
+      std::cerr << " Magnetic Field Constructor, start ... " << std::endl;
+      
+      // March 2025:  overwrite the default value for fUsingRootHistos since Jon propose to use the latest Prachi map. 
+      fUsingRootHistos = true;
 /*<<<<<<< HEAD
 #ifdef debug
       fVerbosity = 1;
@@ -142,11 +146,13 @@ namespace emph {
   //----------------------------------------------------------------------
 
   void MagneticField::AlignWithGeom() {
+    std::cerr << " MagneticField::AlignWithGeom  Start .. " << std::endl;
     // by convention, the field map's local coordinate system has it's orgin at the center of the upstream face of the magnet
     art::ServiceHandle<emph::geo::GeometryService> geomService;
     const emph::geo::Geometry* geo = geomService->Geo();
 
     fG4ZipTrackOffset[2] = -geo->MagnetUSZPos();
+    std::cerr << " MagneticField::AlignWithGeom  ... Setting fG4ZipTrackOffset[2]  " << fG4ZipTrackOffset[2] << std::endl;
 
     /*
       Need to add some functionality to the Geometry class to provide these
@@ -154,6 +160,7 @@ namespace emph {
       fG4ZipTrackOffset[1] = -geo->MagnetUSYPos();
     */
     fVerbosity = 0; // overwrite what the service decided to do.. 
+//    fVerbosity = 0; // For now, testing on AL9, old file.... 
     if (fVerbosity > 1)
       std::cerr << " MagneticField::AlignWithGeom MagneticField::AlignWithGeom G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
 
@@ -173,22 +180,46 @@ namespace emph {
       BTest[1] = 0.;
       xTest[2] = 987.645; // Magnet center
       this->GetFieldValue(xTest, BTest);
-      std::cerr << " MagneticField::AlignWithGeom, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;
+      std::cerr << " MagneticField::AlignWithGeom, BField at ????? , G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;
       std::cerr << " And quit now!!! " << std::endl; exit(2);      
-      //
-      // Wrong if we use Measured Map Back to the guessing game!!!! 
-      //
-      std::ofstream fOutTmp("./TestMagMeas.txt");
-      fOutTmp << " z By " << std::endl;
-      for (int iZ=0; iZ != 1700; iZ++) {
-       xTest[0] = 0.25; xTest[1] = -0.25;  xTest[2] = 1.0*iZ;
-       this->GetFieldValue(xTest, BTest);
-       fOutTmp << " " << xTest[2] << " " << BTest[1] << std::endl;
-      } 
-    }
+    } // Verbosity 
+    //
+    // We test... 
+    //
+/*
+    emph::TestEmphMagneticField tM(this);
+    std::string fNameTest0 = (fUsingRootHistos) ? std::string("./test0_Prachi_3DZip.txt") : 
+                                  std::string("./test0_3DZip_2023_08_14-v2.txt"); 
+    if (fFieldFileName.find("mfMapCorrected0.txt") != std::string::npos) fNameTest0 =std::string("./test0_3DZip_mfMapCorrected0.txt"); 				  
+// The later uses what I believe (suspect? ) was the map I used in Dec 2023.  See ./fcl/studyAllT_120GeV_ClDec_1.fcl dated August 2024. 
+// New    see ./fcl/studyAllT_120GeV_R2113_March2025_2023Map_7s1104.fcl
+    tM.test0(fNameTest0); 
+    std::cerr << " MagneticField::AlignWithGeom  Done ... And quit  .. " << std::endl; exit(2);
+*/
   }
-  
+    
   //----------------------------------------------------------------------
+  //
+  void MagneticField::LoadRootHistos() // Code picked from Main Branch 
+  {
+    if (!fUsingRootHistos)
+      abort();
+    if (fFieldFileName.empty())
+      abort();
+    TFile* fin = new TFile(fFieldFileName.c_str());
+    fBx3DHisto = (TH3F*)fin->Get("hBx");
+    fBx3DHisto->SetDirectory(0);
+    fBy3DHisto = (TH3F*)fin->Get("hBy");
+    fBy3DHisto->SetDirectory(0);
+    fBz3DHisto = (TH3F*)fin->Get("hBz");
+    fBz3DHisto->SetDirectory(0);
+
+    fin->Close();
+    fFieldLoaded = true;
+    std::cerr << " MagneticField::LoadRootHistos, proceed to alignment... " << std::endl;
+    this->AlignWithGeom();
+  }
+
 
   void MagneticField::uploadFromTextFile() 
   {
@@ -204,6 +235,7 @@ namespace emph {
       //      std::cerr << " Please copy the file  " << fName << " from emphaticgpvm02.fnal.gov:/emph/data/users/lebrun/" << std::endl; 
       exit(2);
     }
+    std::cerr << " MagneticField::uploadFromTextFile , check filename " << fFieldFileName << " And keep going " <<  std::endl;
     std::string line;
     char aLinecStr[1024];
     int numLines = 0;
@@ -221,6 +253,7 @@ namespace emph {
       if (aLine.find("%") != std::string::npos) continue; // Comment line from COMSOL. 
       //	  if (numLines > 8254) std::cerr << " aLine " << aLine << std::endl;
       numLines++;
+      if ((numLines % 100000) == 2) std::cerr << " At line " << numLines << std::endl;
       std::istringstream aLStr(aLine);
       aLStr >> xC; aLStr >> yC; aLStr >> zC;  // We skip the reading of the BField .. 
       if (isnan(xC) || isnan(yC) || isnan(zC)) {
@@ -383,7 +416,7 @@ namespace emph {
       }
     }
     if (numNanInTable > 0) { std::cerr << " .. Requiring Swiss precision, Fatal, quit now " << std::endl; exit(2); }   
-    //	std::cerr << " And quit after filling from COMSOL text  file " << std::endl; exit(2);
+//   	std::cerr << " And quit after filling from COMSOL text  file " << std::endl; exit(2);
     
     fFieldLoaded = true;
 
@@ -402,6 +435,8 @@ namespace emph {
     if (fVerbosity) std::cerr << " MagneticField::Field, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
     if (fStorageIsStlVector) 
       CalcFieldFromVector(x,B);
+    else if (fUsingRootHistos)
+      CalcFieldFromRootHistos(x,B);
     else
       CalcFieldFromMap(x,B);
 
@@ -416,6 +451,46 @@ namespace emph {
 
     return;
   }
+  
+  void MagneticField::CalcFieldFromRootHistos(const double x[3], double B[3]) 
+  {
+    if (!fFieldLoaded) {
+      if (!fUsingRootHistos) {
+	std::cerr << "UseRootHistos not set to true when calling "
+		  << "MagneticField::CalcFieldFromRootHistos.  Aborting..."
+		  << std::endl;
+	abort();
+      }
+      this->LoadRootHistos();
+    }
+
+    //    std::cout << "***** (x,y,z) = (" << x[0] << "," << x[1] << "," << x[2]
+    //	      << ")" << std::endl;
+
+    double xbw = fBy3DHisto->GetXaxis()->GetBinWidth(1);
+    double ybw = fBy3DHisto->GetYaxis()->GetBinWidth(1);
+    double zbw = fBy3DHisto->GetZaxis()->GetBinWidth(1);
+
+    if (x[0] > (fBy3DHisto->GetXaxis()->GetXmin()+xbw) &&
+	x[0] < (fBy3DHisto->GetXaxis()->GetXmax()-xbw) &&
+	x[1] > (fBy3DHisto->GetYaxis()->GetXmin()+ybw) &&
+	x[1] < (fBy3DHisto->GetYaxis()->GetXmax()-ybw) &&
+	x[2] > (fBy3DHisto->GetZaxis()->GetXmin()+zbw) &&
+	x[2] < (fBy3DHisto->GetZaxis()->GetXmax()-zbw)) {
+      
+      //      std::cout << "***** (x,y,z) = (" << x[0] << "," << x[1] << "," << x[2]
+      //		<< ")" << std::endl;
+      
+      // factor of 10 to convert Tesla to kGauss
+      B[0] = 10. * fBx3DHisto->Interpolate(x[0],x[1],x[2]);
+      B[1] = 10. * fBy3DHisto->Interpolate(x[0],x[1],x[2]);
+      B[2] = 10. * fBz3DHisto->Interpolate(x[0],x[1],x[2]);
+    }
+    else {
+      B[0] = B[1] = B[2] = 0.;
+    }
+  }
+
   
   //----------------------------------------------------------------------
 

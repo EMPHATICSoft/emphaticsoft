@@ -6,7 +6,7 @@ include_directories( $ENV{ROOT_INC} )
 
 art_make_library(
   SOURCE
-    MagneticField.cxx MagneticFieldAdd.cxx
+    MagneticField.cxx MagneticFieldAdd.cxx test/TestEmphMagneticField.cxx
   LIBRARIES
     RunHistory
     Geometry
