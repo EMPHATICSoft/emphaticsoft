@@ -35,7 +35,7 @@ namespace emph {
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()), fCoordConvert('A'),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
-      fNEvents(0), fNumCompactSaved(0), fDebugIsOn(false), fDoMigrad(true), fNoMagnet(false), 
+      fNumCompactSaved(0), fDebugIsOn(false), fNoMagnet(false), 
       fDistFromBeamCenterCut(10.), fBeamCenterX(-3.5), fBeamCenterY(4.5),  fTrackSlopeCut(0.050), 
       fChiSqCut(1000.0), fAssumedMomentum(5.0), fMaxNumTrComb(50000), fMaxNumSpacePts(25),
       fDeltaZX(6, DBL_MAX), fDeltaZY(6, DBL_MAX), // Phase1b only. 
@@ -55,6 +55,7 @@ namespace emph {
       if (fFOutCompact.is_open()) fFOutCompact.close();
       std::cerr << " SSDRecBrickTracksAlgo1 destructor, number of saved Compact events for alignment " << fNumCompactSaved << std::endl;
       delete fFitterFCN;
+      std::cerr << " SSDRecBrickTracksAlgo1 destructor, and done !  " << std::endl;
     }
     //
     size_t SSDRecBrickTracksAlgo1::RecStation(size_t kSt, const art::Event &evt, 

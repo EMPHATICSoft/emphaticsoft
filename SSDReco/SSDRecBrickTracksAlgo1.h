@@ -52,10 +52,8 @@ namespace emph {
 	  int fRunNum;  // The usual Ids for a art::event 
 	  int fSubRunNum;
 	  int fEvtNum;
-	  int fNEvents; // Incremental events count for a given job. 
 	  int fNumCompactSaved;
 	  bool fDebugIsOn; 
-	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
 	  bool fNoMagnet; // set once we know the geometry.. 
 	  double fDistFromBeamCenterCut, fBeamCenterX, fBeamCenterY;
 	  double fTrackSlopeCut;

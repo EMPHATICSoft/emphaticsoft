@@ -64,10 +64,10 @@ namespace emph {
       void setupAlignAlgs(const fhicl::ParameterSet& pset);
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
-      void beginJob();
+      void beginJob() override;
       //
-      void beginRun(art::Run &run);
-      void endJob();
+      void beginRun(art::Run &run) override;
+      void endJob() override;
 
    private:
 //

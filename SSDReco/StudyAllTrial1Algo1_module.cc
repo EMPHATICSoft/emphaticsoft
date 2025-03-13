@@ -99,7 +99,7 @@ namespace emph {
       unsigned int fSubRun;
       unsigned int fEvtNum;
       unsigned int fNEvents;
-      double fSetMCRMomentum; // The momentum for a given run..
+//      double fSetMCRMomentum; // The momentum for a given run..No longer used, March 2025.. 
       double fPrelimMomentumSecondaries; // for estimate of the multiple scattering uncertainties, pre-fit.  
 // Cuts
 //
@@ -123,7 +123,7 @@ namespace emph {
 //
 //   Downstream of the target. 
 //
-     double fDwnstrChiSqCut, fDwnstrChiSqCutPreArb, fRecStationChiSqCut, fDwnstrVertChiSqCut; 
+     double fDwnstrChiSqCut, fDwnstrChiSqCutPreArb, fDwnstrVertChiSqCut; 
      double fConfirmBrickChiSqCut; 
 //
 // access to the geometry.   
@@ -178,7 +178,8 @@ namespace emph {
     EDAnalyzer(pset), 
     fFilesAreOpen(false), fTokenJob("undef"), fSSDClsLabel("?"), fSSDAlignmentResult("none"),
     fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0), 
-    fSetMCRMomentum(30.), fPrelimMomentumSecondaries(5.0), fChiSqCutXYUVStAlgo1(20.), 
+//    fSetMCRMomentum(30.), 
+    fPrelimMomentumSecondaries(5.0), fChiSqCutXYUVStAlgo1(20.), 
     fMaxUpstreamSlopeX(0.005), fMaxUpstreamSlopeY(0.005), fMaxDistFrom120Beam(100.),
     fRunSel(INT_MAX), fEvtSel(INT_MAX), fSpillSel(INT_MAX), fMaxDwnstrStation(6),
     fMaxNumBeamTracks(10), fMinNumDwnstrTracks(1), fMaxNumDwnstrTracks(20), fDoAntiSt2(false),
