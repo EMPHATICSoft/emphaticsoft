@@ -118,6 +118,7 @@ namespace emph {
     std::string fClusterLabel;
     std::string fTrackSegLabel;
     std::string fTrackLabel;
+    bool        fSevenOn;
   
     //Millepede stuff
     Mille* m;
@@ -132,7 +133,10 @@ namespace emph {
     Align* align = new Align();
 
     int re = 1;
-  };
+
+    //int totalEvents = 0; 
+    int usingEvent = 0;
+ };
 
   //.......................................................................
   
@@ -142,7 +146,8 @@ namespace emph {
     fLineSegLabel      (pset.get< std::string >("LineSegLabel")),
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
-    fTrackLabel        (pset.get< std::string >("TrackLabel"))
+    fTrackLabel        (pset.get< std::string >("TrackLabel")),
+    fSevenOn           (pset.get< bool >("SevenOn"))
     {
       //this->produces< std::vector<rb::Track> >();
     }
@@ -169,6 +174,10 @@ namespace emph {
     auto emgeo = geo->Geo();
     nStations = emgeo->NSSDStations();
     nPlanes = emgeo->NSSDPlanes();
+    if (!fSevenOn){
+      nStations = nStations - 1;
+      nPlanes = nPlanes - 2;
+    }
 
     if (emgeo->GetTarget()) targetz = emgeo->GetTarget()->Pos()(2);
     else targetz = 380.5;    
@@ -227,6 +236,9 @@ namespace emph {
     } 
 
     delete m;
+
+    //std::cout<<"SingleTrackAlignment: Number of events with track segments  = "<<totalEvents<<std::endl;
+    std::cout<<"SingleTrackAlignment: Number of events used = "<<usingEvent<<std::endl;
   }
 
   //......................................................................
@@ -379,6 +391,7 @@ namespace emph {
 
 	      int ltmp[4] = {ii*1000 + jj*100 + kk*10 + 1,ii*1000 + jj*100 + kk*10 + 2, ii*1000 + jj*100 + kk*10 + 3, ii*1000 + jj*100 + kk*10 + 4};
               m->mille(4,mderlc,4,mdergl,ltmp,dsign,uncer); //0.0346); //0.0173);
+	      std::cout<<"uncer = "<<uncer<<std::endl;
 	    }
 	  }
 	}
@@ -476,6 +489,16 @@ namespace emph {
     event = evt.event();
     fEvtNum = evt.id().event();
 
+    // if data fcl
+    std::string digitStr = std::to_string(event);
+    bool useEvent = false;
+    if (digitStr.back() == '1'){
+      useEvent = true;
+//      usingEvent++;
+    }
+                                                  
+    //std::cout<<"Event "<<event<<", "<<useEvent<<std::endl;
+
     if (fCheckLineSeg){
       auto haslineseg = evt.getHandle<std::vector<rb::LineSegment>>(fTrackSegLabel);
       if (!haslineseg){
@@ -489,6 +512,7 @@ namespace emph {
     art::Handle< std::vector<rb::TrackSegment> > tsH;
     art::Handle< std::vector<rb::Track> > trackH;
 
+if (useEvent){
     // Get line segments and make map
     try {
       evt.getByLabel(fLineSegLabel, lsH);
@@ -553,6 +577,8 @@ namespace emph {
       }
 
       if (tsvnom.size()==3){
+usingEvent++;
+
         double epsilon = 0.06; //60 micron
         TGeoTranslation* h = new TGeoTranslation();
         TGeoTranslation* u = new TGeoTranslation(0,0,0);
@@ -590,6 +616,7 @@ namespace emph {
     catch(...) {
 
     }
+} //useEvent
   }
 } // end namespace emph
 

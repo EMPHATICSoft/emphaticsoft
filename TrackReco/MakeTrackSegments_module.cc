@@ -91,6 +91,7 @@ namespace emph {
     bool        fMakePlots;
     int 	goodclust = 0;
     int         badclust = 0; 
+    int         usableclust = 0;
     size_t      nPlanes;
     size_t      nStations;
 
@@ -98,6 +99,7 @@ namespace emph {
     bool        fCheckClusters;     //Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
+    bool        fSevenOn;
 
     //reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -113,7 +115,8 @@ namespace emph {
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label"))
+    fG4Label           (pset.get< std::string >("G4Label")),
+    fSevenOn           (pset.get< bool >("SevenOn"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -143,6 +146,12 @@ namespace emph {
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
+
+    // Optionally exclude Station 7 (added later in data)
+    if (!fSevenOn){
+      nPlanes = nPlanes - 2;
+      nStations = nStations - 1;
+    }
   }
 
   //......................................................................
@@ -162,8 +171,9 @@ namespace emph {
   
   void emph::MakeTrackSegments::endJob()
   {
+       std::cout<<"MakeTrackSegments: Number of events available: "<<badclust+goodclust<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with at least two clusters per station: "<<goodclust<<std::endl;
-       std::cout<<"MakeTrackSegments: Number of available clusters: "<<badclust+goodclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with less than 50 clusters: "<<usableclust<<std::endl;
   }
 
   //......................................................................
@@ -239,6 +249,11 @@ namespace emph {
               count++;
             }
 	    countSt++;
+
+	   //std::cout<<"countSt = "<<countSt<<std::endl;
+	    // Optionally skip Station 7
+            //if (!fSevenOn && countSt == (int)nStations) continue;
+	
             // make sure every station has at least two unique clusters
             if (count < 2) { goodStation = false; break; }
             else { goodStation = true; count = 0; }
@@ -247,12 +262,14 @@ namespace emph {
 	  if (countSt != (int)nStations) goodStation = false;
 	  if (goodStation==true) {goodclust++;}
           else {badclust++;}
-
+ 
+/*
 	  for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
             for (auto j : clustMapAtLeastOne[i]){
               std::cout<<"Station "<<i<<": "<<j.second<<std::endl;
 	    }
   	  }
+*/
 
           cl_group.resize(nStations);
           ls_group.resize(nStations);
@@ -262,6 +279,7 @@ namespace emph {
 	    ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	  }
 
+	  std::cout<<"..............."<<std::endl;
           std::cout<<"Good station = "<<goodStation<<std::endl; 
           for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
 	    if (!goodStation) break;
@@ -273,7 +291,7 @@ namespace emph {
 //              }
 	    }
           }
-	  
+          std::cout<<"..............."<<std::endl;	  
 
           for (size_t i=0; i<clusters.size(); i++){
 	    int plane = clusters[i]->Plane();
@@ -300,7 +318,9 @@ namespace emph {
 	    spv = algo.MakeHits(ls_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
+  	    usableclust++;
 	  }
+	  //else toomanyclusters++;
 	  
           ls_group.clear();
           cl_group.clear();
@@ -323,18 +343,20 @@ namespace emph {
               }
             }
 
-	    //std::cout<<"sp1 size = "<<sp1.size()<<std::endl;
-	    //std::cout<<"sp2 size = "<<sp2.size()<<std::endl;
-            //std::cout<<"sp3 size = "<<sp3.size()<<std::endl;
+	    std::cout<<"sp1 size = "<<sp1.size()<<std::endl;
+	    std::cout<<"sp2 size = "<<sp2.size()<<std::endl;
+            std::cout<<"sp3 size = "<<sp3.size()<<std::endl;
 
             //form lines and fill plots
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
 	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
 	
             std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
+            std::cout<<"tstmp2 size = "<<tstmp2.size()<<std::endl;
             for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
 
             std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
+            std::cout<<"tstmp3 size = "<<tstmp3.size()<<std::endl;
             for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
 	  
             for (auto ts : tsv) {

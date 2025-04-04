@@ -53,7 +53,7 @@ namespace emph {
     std::vector<rb::TrackSegment> MakeLines(std::vector<std::vector<double>> sp1, std::vector<std::vector<double>> sp2, std::vector<std::vector<double>> sp3);
     std::vector<rb::TrackSegment> MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints);
     void SetBeamTrk(rb::TrackSegment &ts1, double pbeam);
-    void SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3);
+    void SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3, int pm);
     void SetPtmp(rb::TrackSegment& ts);
     void getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result, int stop);
     void doTwoPlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, double x[3]);
