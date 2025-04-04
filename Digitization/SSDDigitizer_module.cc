@@ -159,10 +159,8 @@ namespace emph {
 
     if (!ssdHitH->empty()) {
 
-      int station, row, t, adc, trig;
+      int station, row, adc;
       int sensor, plane;
-      t = 0;
-      trig = 0;
 
       emph::cmap::EChannel echan;
       emph::cmap::DChannel dchan;

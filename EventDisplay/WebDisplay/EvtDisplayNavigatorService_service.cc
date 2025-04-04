@@ -59,7 +59,7 @@ namespace emph
     }
 
     // Figure out where to go in the input stream from here
-    if(fChangeEventFlow && (fTargetRun != evt.id().run() || fTargetSubrun != evt.id().subRun() || fTargetEvent != evt.id().event()))
+    if(fChangeEventFlow && (fTargetRun != int(evt.id().run()) || fTargetSubrun != int(evt.id().subRun()) || fTargetEvent != int(evt.id().event())) )
     {
       if(fTargetRun < 1 || fTargetSubrun < 1 || fTargetEvent < 0)
       {
