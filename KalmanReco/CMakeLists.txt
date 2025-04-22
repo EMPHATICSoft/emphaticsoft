@@ -9,21 +9,10 @@ find_package(ROOT REQUIRED)
 include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
-#art_make_library(
-#  SOURCE
-#    SingleTrackAlgo.cxx
 art_make_library ( SOURCE ${src_files}
         LIBRARY_NAME  KalmanReco
  		   LIBRARIES
-                   RunHistory
-    	           Geometry
-                   Geometry_service
                    RecoBase
-                   RecoUtils
-                   DetGeoMapService_service
-                   art::Framework_Core
-                   art::Persistency_Common
-                   canvas::canvas
                    fhiclcpp::fhiclcpp
                    ROOT::Core
                    ROOT::Geom
@@ -31,71 +20,20 @@ art_make_library ( SOURCE ${src_files}
 		   ROOT::Matrix
 )
 
-#art_make_library ( SOURCE ${src_files}
-#                   LIBRARY_NAME  TrackReco
-#                   LIBRARIES
-#		   ToFUtil
-#		   RawData
-#		   RecoBase
-#		   ChannelMap
-#			RunHistory
-#		   art_root_io::TFileService_service
-#		   messagefacility::MF_MessageLogger
-#		   ROOT::Core
-#                   ROOT::Hist
-#	           ROOT::Spectrum
-#		   ROOT::Tree
-#)
-
-#cet_build_plugin(MakeSingleTracks art::module
-#  LIBRARIES PRIVATE
-#    RawData
-#    RecoBase
-#    RecoUtils
-#    SingleTrackAlgo
-    #SingleTrackAlgo.cxx
-#    ChannelMapService_service
-#    Geometry_service
-#    DetGeoMapService_service    
-#    art_root_io::TFileService_service
-#    messagefacility::MF_MessageLogger
-#    ROOT::Core
-#    ROOT::Hist
-#    ROOT::Spectrum
-#    ROOT::Tree
-#)
-
-#cet_build_plugin(MakeSingleTracksForAlign art::module
-#  LIBRARIES PRIVATE
-#    RawData
-#    RecoBase
-#    RecoUtils
-#    SingleTrackAlgo
-#    ChannelMapService_service
-#    Geometry_service
-#    DetGeoMapService_service
-#    art_root_io::TFileService_service
-#    ROOT::Core
-#    ROOT::Hist
-#    ROOT::Spectrum
-#    ROOT::Tree
-#)
-#cet_build_plugin(MakeTrackSegments art::module
-#  LIBRARIES PRIVATE
-#    RawData
-#    RecoBase
-#    RecoUtils
-#    SingleTrackAlgo
-#    ChannelMapService_service
-#    Geometry_service
-#    DetGeoMapService_service
-#    art_root_io::TFileService_service
-#    messagefacility::MF_MessageLogger
-#    ROOT::Core
-#    ROOT::Hist
-#    ROOT::Spectrum
-#    ROOT::Tree
-#)
+cet_build_plugin(SingleTrackKalmanReco art::module
+  LIBRARIES PRIVATE
+  RecoBase
+  KalmanReco
+  Geometry_service
+  MagneticField_service    
+  messagefacility::MF_MessageLogger
+  ROOT::Core
+  ROOT::Geom
+  ROOT::Physics
+  ROOT::Matrix
+  ROOT::Hist
+  ROOT::Tree
+)
 
 install_source()
 install_fhicl()
