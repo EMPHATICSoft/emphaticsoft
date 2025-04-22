@@ -17,6 +17,7 @@ namespace caf
 
     SRVector3D x0; ///< end of line closesr to origin
     SRVector3D x1; ///< end of line farther from origin
+    double sigma;
     virtual void setDefault();
   };
 

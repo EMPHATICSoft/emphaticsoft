@@ -75,6 +75,19 @@ namespace emph {
     }
 
     //--------------------------------------------------------------------------------
+
+    void Detector::MotherToLocal(double x1[3], double x2[3]) const
+    {
+      double tx[3];
+      if (fName.find("ssd") != std::string::npos) { // include mount position if this is a SSD
+	fGeoMatrixMount->MasterToLocal(x1,tx);
+	fGeoMatrix->MasterToLocal(tx,x2);
+      }
+      else
+	fGeoMatrix->MasterToLocal(x1,x2);
+    }
+
+    //--------------------------------------------------------------------------------
     sensorView Detector::View() const
     {
      auto pi = TMath::Pi();

@@ -46,7 +46,10 @@ namespace emph {
       std::string Name() const { return fName;}
       TVector3 Pos() const { return fPos;}
       double Dw() const { return fDw;}
-      void LocalToMother(double x1[3], double x2[3]) const { fGeoMatrix->LocalToMaster(x1,x2); }
+      void LocalToMother(double x1[3], double x2[3]) const 
+      { fGeoMatrix->LocalToMaster(x1,x2); }
+      void MotherToLocal(double x1[3], double x2[3]) const 
+      { fGeoMatrix->MasterToLocal(x1,x2); }
       //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
       void SetName(std::string n) {fName = n; }
@@ -96,6 +99,7 @@ namespace emph {
       int NStrips() const {return (int)fStrip.size(); };
       const Strip* GetStrip(int i) const {return &fStrip[i]; }
       void LocalToMother(double x1[3], double x2[3]) const;
+      void MotherToLocal(double x1[3], double x2[3]) const;
 
     private:    
       int   fId;
@@ -151,6 +155,8 @@ namespace emph {
       double Height() const {return fHeight; }
       void LocalToMother(double x1[3], double x2[3]) const
       {fGeoMatrix->LocalToMaster(x1,x2);}
+      void MotherToLocal(double x1[3], double x2[3]) const
+      {fGeoMatrix->MasterToLocal(x1,x2);}
       //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
     private:

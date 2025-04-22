@@ -11,6 +11,7 @@ namespace caf
   SRLineSegment::SRLineSegment()
  { 
      this->setDefault();
+     sigma = 0.;
  }
   //--------------------------------------------------------------------
   SRLineSegment::~SRLineSegment()
@@ -26,6 +27,7 @@ namespace caf
     x1.SetXYZ(std::numeric_limits<double>::signaling_NaN(),
 	      std::numeric_limits<double>::signaling_NaN(),
 	      std::numeric_limits<double>::signaling_NaN());
+    sigma=0.;
   }
 
 } // end namespace

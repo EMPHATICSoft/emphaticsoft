@@ -24,12 +24,30 @@ namespace rb {
     // Getters
     caf::SRVector3D X0() const { return x0; }
     caf::SRVector3D X1() const { return x1; }
+    double Sigma() const { return sigma;}
+    int SSDStation() const { return fSSDStation; }
+    int SSDPlane() const { return fSSDPlane; }
+    int SSDSensor() const { return fSSDSensor; }
 
     // Setters
     void SetX0(double* _x0) { x0.SetX(_x0[0]); x0.SetY(_x0[1]); x0.SetZ(_x0[2]); }
     void SetX1(double* _x1) { x1.SetX(_x1[0]); x1.SetY(_x1[1]); x1.SetZ(_x1[2]); }
+    void SetSigma(double s) { sigma = s; }
+    void SetSSDStation(int s) { fSSDStation = s; }
+    void SetSSDPlane(int p) { fSSDPlane = p; }
+    void SetSSDSensor(int s) { fSSDSensor = s; }
+
+    double DistanceToPoint(double x, double y, double z) const;
+    double DistanceToPoint(double x, double y) const;
 
     friend std::ostream& operator << (std::ostream& o, const LineSegment& h);
+
+  private:
+
+    int fSSDStation;
+    int fSSDPlane;
+    int fSSDSensor;
+    
   };
   
 }

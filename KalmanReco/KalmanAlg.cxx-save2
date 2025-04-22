@@ -1,0 +1,128 @@
+#include <iostream> 
+#include <cmath> 
+#include <algorithm> 
+
+#include "KalmanAlg.h"
+
+namespace kalman {
+
+  KalmanAlg::KalmanAlg() : fGeo(NULL), fBfield(NULL)
+  {
+
+  }
+
+  //-----------------------------------------------------------------
+
+  KalmanAlg::KalmanAlg(const emph::geo::Geometry* g,
+		       const emph::MagneticField* b) : fGeo(g), fBfield(b)
+  {
+
+  }
+
+  //-----------------------------------------------------------------
+
+  rb::Track KalmanAlg::Fit(std::vector<rb::LineSegment>& linesegv) 
+  {
+
+    if (fGeo == NULL) {
+      std::cerr << "AHHH!  NULL pointer to Geometry!  You forgot to set it..." << std::endl;
+      abort();
+    }
+    if (fBfield == NULL) {
+      std::cerr << "WARNING: NULL pointer to MagneticField!  Continuing assuming no magnet..." << std::endl;
+    }
+
+    // first make sure that the line segments are sorted in "z"
+    bool isSorted = true;
+    for (size_t i=0; i<linesegv.size()-1; ++i) {
+      if (linesegv[i+1].X0().Z() < linesegv[i].X0().Z()) {
+	isSorted = false;
+	break;
+      }
+    }
+    if (!isSorted) abort(); // add a sort function later 
+
+    // loop over linesegments 
+
+    KPar par;
+    K5x5 parCov;
+    par[0] = 0.;
+    par[1] = 0.;
+    par[2] = 0.;
+    par[3] = 0.;
+    par[4] = 0.2; // 5 GeV/c
+    parCov[0][0] = 100.;
+    parCov[1][1] = 100.;
+    parCov[2][2] = 1.;
+    parCov[3][3] = 1.;
+    parCov[4][4] = 10000.;
+    kalman::State state1(-1000.,par,parCov);
+
+    kalman::Measurement meas;
+    KMeas m;
+    KMeasCov mCov;
+    KHMatrix mH;
+    KHMatrixTranspose mHT;
+    //    typedef ROOT::Math::SVector<double,1> KMeas;
+    //    typedef ROOT::Math::SMatrix<double,1,1> KMeasCov;
+    //    typedef ROOT::Math::SMatrix<double,1,5> KHMatrix;
+    kalman::Propagator prop;
+    //    State Extrapolate(State sstart, double step, double B[3]);
+    double B[3] = {0.,0.,0.};
+    // double alpha, beta;
+    double gamma;
+    double dx, dy, dz;
+
+    for (auto & ls : linesegv) {
+      
+      double avgz = (ls.X0().Z()+ls.X1().Z())/2.;
+      
+      // to-do:
+      // 1. determine if particle is in the magnetic field
+      // 2. calculate the amount of material the particle traverse to the next position
+
+      kalman::State state2 = prop.Extrapolate(state1,avgz-state1.GetZ(),B);
+
+      dx = ls.X1()[0] - ls.X0()[0];
+      dy = ls.X1()[1] - ls.X0()[1];
+      dz = ls.X1()[2] - ls.X0()[2];
+      
+      //      alpha = atan2(dy,dz); // rotation about the x-axis
+      //      beta = atan2(dx,dz); // rotation about the y-axis
+      gamma = atan2(dy,dx); // rotation about the z-axis
+      double cos_g = cos(gamma);
+      double sin_g = sin(gamma);
+
+      // for now, deal only with rotations about the z-axis, as this is the biggest effect
+      mH[0][0] = cos_g;
+      mH[0][1] = sin_g;
+      mH[0][2] = 0;
+      mH[0][3] = 0;
+      mH[0][4] = 0;
+      mHT = ROOT::Math::Transpose(mH);
+      
+      mCov[0][0] = ls.Sigma();
+      /*      mHT[0][0] = mH[0][0];
+      mHT[1][0] = mH[0][1];
+      mHT[2][0] = mH[0][2];
+      mHT[3][0] = mH[0][3];
+      mHT[4][0] = mH[0][4];
+      */
+
+      // compute Kalman gain
+      parCov &= state2.GetCov();
+      K5x5 tCov = mH*parCov*mHT + mCov;;      
+      K5x5 KG = mCov*mHT*tCov.Invert();
+
+      // compute "measurement" (distance of projected state to the measured line segment)
+      m[0] = ls.DistanceToPoint(state2.GetPar(0),state2.GetPar(1));
+
+      // get updated state and its cov. matrix
+      state = state2 + KG*m;
+      state.SetCov(parCov - KG*mH*parCov);
+      
+    }
+	
+  }
+
+} // end namespace kalman

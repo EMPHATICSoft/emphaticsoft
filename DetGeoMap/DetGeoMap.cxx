@@ -65,7 +65,10 @@ namespace emph {
 
       ls.SetX0(x0);
       ls.SetX1(x1);	  
-      
+      ls.SetSSDStation(station);
+      ls.SetSSDPlane(plane);
+      ls.SetSSDSensor(sensor);
+
       return true;
       
     }
@@ -76,6 +79,8 @@ namespace emph {
       int sensor = cl.Sensor();
       int plane  = cl.Plane();
       double dstrip = cl.WgtAvgStrip();
+      ls.SetSigma(cl.WgtRmsStrip()*0.06); // hard-coding the 60 um strip width for now... this should eventually done based on the sensor
+
       return StationSensorPlaneToLineSegment(station, sensor, plane, ls, dstrip);
     }  
     //----------------------------------------------------------------------
