@@ -18,7 +18,6 @@ namespace kalman {
   class Measurement {
   public:
     Measurement();
-    Measurement(KMeas& meas);
     Measurement(KMeas& meas, KMeasCov& cov);
     Measurement(KMeas& meas, KMeasCov& cov, KHMatrix& h);
     ~Measurement() {};
@@ -34,7 +33,9 @@ namespace kalman {
     void SetMeasCov(KMeasCov& cov) { fCov = cov; }
     void SetHMatrix(KHMatrix& h) { fHMatrix = h; }
     void SetZ(double z) { fZ = z;}
-    void Print();
+
+    friend std::ostream& operator << (std::ostream& o, const Measurement& s);
+
   private:
     
     double fZ;

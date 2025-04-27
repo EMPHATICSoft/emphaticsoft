@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_singletrackKalman:
+{
+  module_type: SingleTrackKalmanReco
+  LineSegmentLabel:  "maketracksegments"
+}
+
+END_PROLOG

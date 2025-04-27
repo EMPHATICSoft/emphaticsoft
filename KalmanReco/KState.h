@@ -30,7 +30,9 @@ namespace kalman {
     void SetPar(KPar& p) { fPar = p; }
     void SetCov(K5x5& cov) { fCov = cov; }
     void SetZ(double val){fZ = val;}
-    void Print();
+
+    friend std::ostream& operator << (std::ostream& o, const State& s);
+
   private:
     
     double fZ;

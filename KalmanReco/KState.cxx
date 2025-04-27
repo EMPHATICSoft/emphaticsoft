@@ -47,24 +47,12 @@ namespace kalman {
 
   //*******************************************************************
 
-   void State::Print(){
-    
-    cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-    cout << "z = " << fZ << endl;
-    cout << "*****************************TRACK PARAMETERS*****************************" << endl;
-    for(int i = 0; i < 5; i++){
-      cout << "p" << i+1 << " = " << fPar(i) << endl;
-    }
-    cout << "*****************************COVARIANCE MATRIX*****************************" << endl;
-    int ind1 = 0;
-    //int ind2 = 0;
-    for(int i = 0; i < 5; i++){
-      for(int j = 0; j < 5; j++){
-	cout << fCov(i,j) << "       ";
-      }
-      cout << endl;
-    }	
-    cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+  std::ostream& operator << (std::ostream& o, const State& s)
+  {  
+    o << "z = " << s.fZ << std::endl;;
+    o << "par = " << s.fPar << std::endl;
+    o << "cov = " << s.fCov << std::endl;
+    return o;
    }
 }
 

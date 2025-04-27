@@ -83,6 +83,13 @@ namespace kalman {
     double dty2dty = 0.;
     double dty3dtx = 0.;
     double dty3dty = 0.;
+
+    K5x5 J;
+    for (int i=0; i<5; ++i) {
+      for (int j=0; j<5; ++j)
+	J[i][j] = 0.;
+      J[i][i] = 1.;
+    }
     
     if (IsInField) {
       dtx1dtx = ty*Bx - 2*tx*By;
@@ -107,34 +114,29 @@ namespace kalman {
 	- 9*ty*(5*tx2+1)*By*By*By - (45*tx2-10*ty2+9)*By*By*Bz + 11*ty*By*Bz*Bz + Bz*Bz*Bz;
       dty3dty = -12*ty*(5*ty2+3)*Bx*Bx*Bx - 27*tx*(5*ty2+1)*Bx*Bx*By - 40*txy*Bx*Bx*Bz + 18*ty*(5*tx2+1)*Bx*By*By + 2*(20*tx2-15*ty2+1)*Bx*By*Bz
 	- 14*ty*Bx*Bz*Bz - 3*tx*(5*tx2+3)*By*By*By + 20*txy*By*By*Bz + 11*By*Bz*Bz;
-    }	
     
-    // calculate Jacobian to account for change coordinate system (change in tx and ty)
-    K5x5 J;
-    for (int i=0; i<5; ++i)
-      for (int j=0; j<5; ++j)
-	J[i][j] = 0.;
+      // calculate Jacobian to account for change coordinate system (change in tx and ty)
     
-    J[0][0] = 1;
-    J[0][0] = st + h*dtx1dtx*st*st/2. + dC*tx*dtx1*st*st/2./h + h*h*dtx2dtx*st*st*st/6. + dC*tx*dtx2*st*st*st/3.
-      + h*h*h*dtx3dtx*st*st*st*st/24. + dC*tx*h*dtx3*st*st*st*st/12.;
-    J[0][3] = h*dtx1dty*st*st/2. + dC*ty*dtx1*st*st/2./h + h*h*dtx2dty*st*st*st/6. + dC*ty*dtx2*st*st*st/3. + h*h*h*dtx3dty*st*st*st*st/24. + dC*ty*h*dtx3*st*st*st*st/12.;
-    J[0][4] = h*dtx1*st*st/(2.*qdp) + h*h*dtx2*st*st*st/(3.*qdp) + h*h*h*dtx3*st*st*st*st/(8.*qdp);
+      J[0][0] = 1;
+      J[0][0] = st + h*dtx1dtx*st*st/2. + dC*tx*dtx1*st*st/2./h + h*h*dtx2dtx*st*st*st/6. + dC*tx*dtx2*st*st*st/3.
+	+ h*h*h*dtx3dtx*st*st*st*st/24. + dC*tx*h*dtx3*st*st*st*st/12.;
+      J[0][3] = h*dtx1dty*st*st/2. + dC*ty*dtx1*st*st/2./h + h*h*dtx2dty*st*st*st/6. + dC*ty*dtx2*st*st*st/3. + h*h*h*dtx3dty*st*st*st*st/24. + dC*ty*h*dtx3*st*st*st*st/12.;
+      J[0][4] = h*dtx1*st*st/(2.*qdp) + h*h*dtx2*st*st*st/(3.*qdp) + h*h*h*dtx3*st*st*st*st/(8.*qdp);
     
-    J[1][1] = 1;
-    J[1][2] = h*dty1dtx*st*st/2. + dC*tx*dty1*st*st/2./h + h*h*dty2dtx*st*st*st/6. + dC*tx*dty2*st*st*st/3. + h*h*h*dty3dtx*st*st*st*st/24. + dC*tx*h*dty3*st*st*st*st/12.;
-    J[1][3] = st + h*dty1dty*st*st/2. + dC*ty*dty1*st*st/2./h + h*h*dty2dty*st*st*st/6. + dC*ty*dty2*st*st*st/3. + h*h*h*dty3dty*st*st*st*st/24. + dC*ty*h*dty3*st*st*st*st/12.;
-    J[1][4] = h*dty1*st*st/(2.*qdp) + h*h*dty2*st*st*st/(3.*qdp) + h*h*h*dty3*st*st*st*st/(8.*qdp);
+      J[1][1] = 1;
+      J[1][2] = h*dty1dtx*st*st/2. + dC*tx*dty1*st*st/2./h + h*h*dty2dtx*st*st*st/6. + dC*tx*dty2*st*st*st/3. + h*h*h*dty3dtx*st*st*st*st/24. + dC*tx*h*dty3*st*st*st*st/12.;
+      J[1][3] = st + h*dty1dty*st*st/2. + dC*ty*dty1*st*st/2./h + h*h*dty2dty*st*st*st/6. + dC*ty*dty2*st*st*st/3. + h*h*h*dty3dty*st*st*st*st/24. + dC*ty*h*dty3*st*st*st*st/12.;
+      J[1][4] = h*dty1*st*st/(2.*qdp) + h*h*dty2*st*st*st/(3.*qdp) + h*h*h*dty3*st*st*st*st/(8.*qdp);
     
-    J[2][2] = 1 + h*dtx1dtx*st + dC*tx*dtx1*st/h + h*h*dtx2dtx*st*st/2. + dC*tx*dtx2*st*st + h*h*h*dtx3dtx*st*st*st/6. + dC*tx*h*dtx3*st*st*st/2.;
-    J[2][3] = h*dtx1dty*st + dC*ty*dtx1*st/h + h*h*dtx2dty*st*st/2. + dC*ty*dtx2*st*st + h*h*h*dtx3dty*st*st*st/6. + dC*ty*h*dtx3*st*st*st/2.;
-    J[2][4] = h*dtx1*st/qdp + h*h*dtx2*st*st/qdp + h*h*h*dtx3*st*st*st/(2.*qdp);	
+      J[2][2] = 1 + h*dtx1dtx*st + dC*tx*dtx1*st/h + h*h*dtx2dtx*st*st/2. + dC*tx*dtx2*st*st + h*h*h*dtx3dtx*st*st*st/6. + dC*tx*h*dtx3*st*st*st/2.;
+      J[2][3] = h*dtx1dty*st + dC*ty*dtx1*st/h + h*h*dtx2dty*st*st/2. + dC*ty*dtx2*st*st + h*h*h*dtx3dty*st*st*st/6. + dC*ty*h*dtx3*st*st*st/2.;
+      J[2][4] = h*dtx1*st/qdp + h*h*dtx2*st*st/qdp + h*h*h*dtx3*st*st*st/(2.*qdp);	
     
-    J[3][2] = h*dty1dtx*st + dC*tx*dty1*st/h + h*h*dty2dtx*st*st/2. + dC*tx*dty2*st*st + h*h*h*dty3dtx*st*st*st/6. + dC*tx*h*dty3*st*st*st/2.;
-    J[3][3] = 1 + h*dty1dty*st + dC*ty*dty1*st/h + h*h*dty2dty*st*st/2. + dC*ty*dty2*st*st + h*h*h*dty3dty*st*st*st/6. + dC*ty*h*dty3*st*st*st/2.;
-    J[3][4] = h*dty1*st/qdp + h*h*dty2*st*st/qdp + h*h*h*dty3*st*st*st/(2.*qdp);		    
-    J[4][4] = 1;
-    
+      J[3][2] = h*dty1dtx*st + dC*tx*dty1*st/h + h*h*dty2dtx*st*st/2. + dC*tx*dty2*st*st + h*h*h*dty3dtx*st*st*st/6. + dC*tx*h*dty3*st*st*st/2.;
+      J[3][3] = 1 + h*dty1dty*st + dC*ty*dty1*st/h + h*h*dty2dty*st*st/2. + dC*ty*dty2*st*st + h*h*h*dty3dty*st*st*st/6. + dC*ty*h*dty3*st*st*st/2.;
+      J[3][4] = h*dty1*st/qdp + h*h*dty2*st*st/qdp + h*h*h*dty3*st*st*st/(2.*qdp);		    
+      J[4][4] = 1;
+    }     
     // update covariance
     K5x5 JT = Transpose(J);
     K5x5 C2 = J * sstart.GetCov() * JT;

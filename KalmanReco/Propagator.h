@@ -16,7 +16,7 @@ namespace kalman {
     Propagator();
     ~Propagator() {};
 
-    State Extrapolate(State sstart, double step, double B[3]);
+    State Extrapolate(State sstart, double z, double B[3]);
 
     static double GetKappa(){return fKappa;}
     void AddNoise(State &tstate, double ds, double X, double radLength);

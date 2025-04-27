@@ -33,7 +33,9 @@
   <class name="std::vector<rb::SSDCluster>"        />
   <class name="art::Wrapper< std::vector<rb::SSDCluster>    >"/>
 
-  <class name="rb::LineSegment"    ClassVersion="11">
+  <class name="rb::LineSegment"    ClassVersion="13">
+   <version ClassVersion="13" checksum="2174880097"/>
+   <version ClassVersion="12" checksum="731409969"/>
    <version ClassVersion="11" checksum="1010336084"/>
    <version ClassVersion="10" checksum="3991137880"/>
   </class>

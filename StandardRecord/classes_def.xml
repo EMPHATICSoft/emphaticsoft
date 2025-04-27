@@ -77,7 +77,8 @@
   <version ClassVersion="10" checksum="2585169092"/>
  </class>
 
- <class name="caf::SRLineSegment" ClassVersion="10" >
+ <class name="caf::SRLineSegment" ClassVersion="11" >
+  <version ClassVersion="11" checksum="3550353899"/>
   <version ClassVersion="10" checksum="1129822811"/>
  </class>
  <class name="std::vector<caf::SRLineSegment>" />
