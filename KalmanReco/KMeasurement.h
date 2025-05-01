@@ -10,8 +10,12 @@ using namespace std;
 
 typedef ROOT::Math::SVector<double,1> KMeas;
 typedef ROOT::Math::SMatrix<double,1,1> KMeasCov;
+typedef ROOT::Math::SVector<double,2> KMeas2;
+typedef ROOT::Math::SMatrix<double,2,2> KMeasCov2;
 typedef ROOT::Math::SMatrix<double,1,5> KHMatrix;
 typedef ROOT::Math::SMatrix<double,5,1> KHMatrixTranspose;
+typedef ROOT::Math::SMatrix<double,2,5> KHMatrix2;
+typedef ROOT::Math::SMatrix<double,5,2> KHMatrixTranspose2;
 
 namespace kalman {
   

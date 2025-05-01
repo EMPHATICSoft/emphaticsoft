@@ -150,15 +150,12 @@ namespace kalman {
 
   // ------------------------------------------------------------
 
-  void Propagator::AddNoise(State &tstate, double ds, double X, 
-			    double fRadLength){
-
-    //return;
-    if(fRadLength == 0) return;
-	
-    double len = X/fRadLength;
+  void Propagator::AddNoise(State &tstate, double dz, double len)
+  {
+    
     double SigTheta = 0.0136*fabs(tstate.GetPar(4) * sqrt(len) * (1.+0.038*log(len)));
-	
+    std::cout << "len = " << len << ", SigTheta x 1e6 = " << SigTheta*1.e6 << std::endl;
+
     double p3 = tstate.GetPar(2);
     double p4 = tstate.GetPar(3);	
   	
@@ -167,16 +164,22 @@ namespace kalman {
     double Covtxty = SigTheta*SigTheta * p3*p4       * (1 + p3*p3 + p4*p4);
 
     K5x5 C2 = tstate.GetCov();
-    C2[0][0] += ds*ds*Vartx;
-    C2[0][1] += ds*ds*Covtxty;
-    C2[0][2] -= -ds*Vartx;
-    C2[0][3] -= ds*Covtxty;
-    C2[1][1] += ds*ds*Varty;
-    C2[1][2] -= ds*Covtxty;
-    C2[1][3] -= ds*Varty;
-    C2[2][2] = Vartx;
-    C2[2][3] = Covtxty;
-    C2[3][3] = Varty;
+    C2[0][0] += dz*dz*Vartx;
+    C2[0][1] += dz*dz*Covtxty;
+    C2[0][2] -= -dz*Vartx;
+    C2[0][3] -= dz*Covtxty;
+    C2[1][0] += dz*dz*Vartx;
+    C2[1][1] += dz*dz*Varty;
+    C2[1][2] -= dz*Covtxty;
+    C2[1][3] -= dz*Varty;
+    C2[2][0] -= dz*Covtxty;
+    C2[2][1] -= dz*Covtxty;
+    C2[2][2] += Vartx;
+    C2[2][3] += Covtxty;
+    C2[3][0] -= dz*Covtxty; 
+    C2[3][1] -= dz*Varty;
+    C2[3][2] += Covtxty;
+    C2[3][3] += Varty;
 
     tstate.SetCov(C2);
   		

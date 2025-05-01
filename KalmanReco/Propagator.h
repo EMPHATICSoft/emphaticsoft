@@ -19,7 +19,7 @@ namespace kalman {
     State Extrapolate(State sstart, double z, double B[3]);
 
     static double GetKappa(){return fKappa;}
-    void AddNoise(State &tstate, double ds, double X, double radLength);
+    void AddNoise(State &tstate, double ds, double radLength);
     
   private:
     

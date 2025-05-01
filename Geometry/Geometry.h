@@ -234,6 +234,7 @@ namespace emph {
       const SSDStation* GetSSDStation(int i) const {return &fSSDStation[i]; }
       const Detector* GetSSDSensor(int i) {return fSSDSensorMap[i]; }
       int GetSSDId(int station, int plane, int sensor) const;
+      double GetRadLength(int) const;
 
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
@@ -259,6 +260,7 @@ namespace emph {
       void ExtractMagnetInfo(const TGeoVolume* v);
       void ExtractSSDInfo(const TGeoNode* n);
       void ExtractTargetInfo(const TGeoVolume* v);
+      void CalcRadLengths();
 
       bool fIsLoaded;
 
@@ -282,6 +284,7 @@ namespace emph {
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
       std::unordered_map<int, const Detector*> fSSDSensorMap;
+      std::unordered_map<int, double> fRadLength;
       Target* fTarget;
 
       TGeoManager* fGeoManager;

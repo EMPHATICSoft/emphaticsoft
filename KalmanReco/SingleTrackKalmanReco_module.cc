@@ -213,8 +213,8 @@ namespace emph {
 	par[4] = 0.2; // 5 GeV/c
 	parCov[0][0] = 16.;
 	parCov[1][1] = 16.;
-	parCov[2][2] = 0.09;
-	parCov[3][3] = 0.09;
+	parCov[2][2] = 0.01;
+	parCov[3][3] = 0.01;
 	parCov[4][4] = 0.0001;	
 	art::ServiceHandle<emph::geo::GeometryService> geo;
 
@@ -238,10 +238,10 @@ namespace emph {
 		dz = tP[2] - startz;
 		par[0] = tP[0] - dz*par[2];
 		par[1] = tP[1] - dz*par[3];
-		parCov[0][0] = 0.5;
-		parCov[1][1] = 0.5;
-		parCov[2][2] = 0.01;
-		parCov[3][3] = 0.01;
+		parCov[0][0] = 0.25;
+		parCov[1][1] = 0.25;
+		parCov[2][2] = 0.001;
+		parCov[3][3] = 0.001;
 	      }
 	    }
 	  }
