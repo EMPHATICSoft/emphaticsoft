@@ -8,13 +8,11 @@
 
 namespace caf
 {
-  SRARing::SRARing() :
-    nhit(0),
-    center(std::numeric_limits<float>::signaling_NaN(),
-	   std::numeric_limits<float>::signaling_NaN(),
-	   std::numeric_limits<float>::signaling_NaN()),
-    radius(std::numeric_limits<float>::signaling_NaN())
+  SRARing::SRARing()
   {
+  	center[0] = 0;
+	center [1] = 0;
+	radius = -1;
   }
 
   //--------------------------------------------------------------------
@@ -25,8 +23,11 @@ namespace caf
   //--------------------------------------------------------------------
   void SRARing::setDefault()
   {
-    center.SetXYZ(0,0,0);
-    radius = -5;
+        center[0] = 0;  
+        center [1] = 0;
+	radius = -1;
+	
   }
+ 
 
 } // end namespace

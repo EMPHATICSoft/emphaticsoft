@@ -11,9 +11,7 @@ namespace caf{
 	SRArichID();
 	~SRArichID();
 
-	int Track_ID;
-	int ARing_ID;
-	SRPID pid;
+	int nhit;
 	virtual void setdefault();
 
    };

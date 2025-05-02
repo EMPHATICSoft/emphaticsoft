@@ -10,12 +10,10 @@ namespace rb {
   public:
 	ArichPID();
 	//ArichPID(float *scores[5]);
-	ArichPID(std::vector<double> scores);
 	~ArichPID();
 
 	int Track_ID;
 	int ARing_ID;
-	caf::SRPID pid;
 
 	virtual void setdefault();
 	friend std::ostream& operator << (std::ostream& o, const ArichPID& h);

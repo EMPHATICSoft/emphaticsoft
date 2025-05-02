@@ -11,9 +11,6 @@ namespace caf{
 
    void SRArichID::setdefault(){
 	
-        Track_ID = -1;
-        ARing_ID = -1;
-	pid.Reset();	
    }
 
 }

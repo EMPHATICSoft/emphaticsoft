@@ -13,6 +13,7 @@
 #include "CLHEP/Random/Randomize.h"
 
 #include "Geometry/service/GeometryService.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "ARICHRecoUtils/ArichUtils.h"
 #include "ARICHRecoUtils/Particle.h"
 #include <map>
@@ -22,6 +23,8 @@ namespace arichreco{
 const int NUMPARTICLES = 3;
 const double MASSES[NUMPARTICLES] = {0.1395701, 0.493677, 0.938272};
 const char* PNAMES[NUMPARTICLES] = {"Pion", "Kaon", "Proton"}; 
+const  std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
+
 
 ARICH_UTILS::ARICH_UTILS()
    {
@@ -48,24 +51,39 @@ void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double d
   }
 //.......................................................................
 
-TH2D* ARICH_UTILS::DigsToHist(std::vector<int>& blocks)
+TH2D* ARICH_UTILS::DigsToHist(std::vector<std::tuple<float, int, int, int>> cluster)
    {
 //     TFile* fdet = new TFile(PDfile, "read");
      //TH2Poly* hDet = (TH2Poly*) fdet->Get("hDet");
 //     TH2Poly* htemp = (TH2Poly*)fdet->Get("hDet")->Clone();
-    TH2D* htemp = new TH2D("","",26,-75.7,75.7,26,-75.7,75.7); 
+	TH2D *fARICHNHitsPxl = new TH2D();        
+	fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
+        fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
+        fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
     //htemp->SetTitle(Form("event_%i",event_number));
      
-    std::vector<float> pos;	
-    for(size_t i =0; i < blocks.size(); i++)
+    for(size_t i =0; i < cluster.size(); i++)
     {
-	emph::arich_util::PMT* mpmt = 0;
-        pos = mpmt->GetPosfromBlockNumber(blocks[i]);
-	delete mpmt;
-	htemp->Fill(pos[0],pos[1]);
-        pos.clear();
+     	int board = std::get<1>(cluster[i]);
+	int channel = std::get<2>(cluster[i]); 
+	emph::cmap::EChannel echan(emph::cmap::TRB3,board,channel);
+
+	emph::cmap::DChannel dchan = cmap->DetChan(echan);
+	int pmt = dchan.HiLo();
+	int dch = dchan.Channel();
+
+	int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
+        int pxlybin0 = (pmt/3)*9;
+        int pmtrow = dch/8;
+        int pmtcol = dch-pmtrow*8;
+        int pxlxbin = pxlxbin0-pmtcol;
+        int pxlybin = pxlybin0+pmtrow;
+        int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
+        int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
+        fARICHNHitsPxl->Fill(pxlx,pxly);
+			
     }
-	return htemp;
+	return fARICHNHitsPxl;
    }
 //.......................................................................
 	

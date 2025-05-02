@@ -11,6 +11,8 @@ art_make_library(
   Geometry
   Geometry_service
   Simulation
+  ChannelMap
+  ChannelMapService_service
   art::Framework_Core
   art::Persistency_Common
   ROOT::Core

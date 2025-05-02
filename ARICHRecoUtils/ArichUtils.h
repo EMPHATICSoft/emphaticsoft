@@ -11,6 +11,8 @@
 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "Geometry/service/GeometryService.h"
+#include "ChannelMap/service/ChannelMapService.h"
+
 #include "ARICHRecoUtils/Detector.h"
 #include "ARICHRecoUtils/Arich.h"
 #include "ARICHRecoUtils/HoughFitter.h"
@@ -33,7 +35,7 @@ namespace arichreco{
 	
 	double computeLogLikelihood(TH2D* event, TH2D* distribution);
 	std::vector<double> recoCherenkov(TH2Poly* eventHist, int nDetected, std::vector<TVector3> pos0s, std::vector<TVector3> dir0s);	
-	TH2D* DigsToHist(std::vector<int>& blocks);
+	TH2D* DigsToHist(std::vector<std::tuple<float, int, int, int>> cluster);
 
 	std::vector<double> IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 
@@ -64,7 +66,8 @@ namespace arichreco{
         arichreco::Arich    *Arich;	
 	arichreco::particleInfoStruct hypothesis;
 
-	 std::map<std::string, double> Particle_LogLike;
+	art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+	std::map<std::string, double> Particle_LogLike;
     };
 
 } //end arichreco

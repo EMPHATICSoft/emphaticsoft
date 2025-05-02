@@ -15,11 +15,9 @@ namespace caf
    public:
 	
 	SRPID();
-      virtual ~SRPID();
-	
-	
+        virtual ~SRPID();	
+	int track_id;
 	//SRPID(float scores[5]);	
-	SRPID(std::vector<double> scores_);
 	void Reset();
 	
 	//float scores[5];
