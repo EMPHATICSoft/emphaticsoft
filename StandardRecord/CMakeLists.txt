@@ -19,9 +19,11 @@ FILE( GLOB src_files *.cxx )
 
 cet_make_library( LIBRARY_NAME StandardRecord
                   SOURCE       ${src_files}
-		  LIBRARIES    ${ROOT_BASIC_LIB_LIST}
-		  	       ${ROOT_CORE}
-			       ${ROOT_LIBRARIES}
+		  LIBRARIES    #${ROOT_BASIC_LIB_LIST}
+		  	       #${ROOT_CORE}
+			       #${ROOT_LIBRARIES}
+                               ROOT::Core
+                               ROOT::Tree
 			       ROOT::EG
 		)
 

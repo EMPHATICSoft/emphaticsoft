@@ -109,11 +109,11 @@ namespace emph
 			  arichHit.SetEnergyDepo(e); 
 
 			  fARICHHits.push_back(arichHit);
-			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
+/*			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
 			  fFOutStudy1 << " " << aTrack->GetParentID();
 			  fFOutStudy1 << " " << arichHit.GetBlockNumber();
 			  fFOutStudy1 << " " << arichHit.GetTime() << std::endl;
-
+*/
 
 		 // }
 	  }
@@ -123,8 +123,30 @@ namespace emph
   
   //-------------------------------------------------------------
   // With every step, add to the particle's trajectory.
-  void ARICHHitAction::SteppingAction(const G4Step* )
-  {
+  void ARICHHitAction::SteppingAction(const G4Step* step)
+  {	
+	G4Track *aTrack = step->GetTrack(); 
+	G4VPhysicalVolume* postvolume = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();	
+	if(abs(aTrack->GetParticleDefinition()->GetPDGCharge()) != 1 || !postvolume)return;
+	 std::string pVolName = postvolume->GetName();	
+	if(pVolName.find("PMT_phys") == std::string::npos)return;
+	if(G4StrUtil::contains(aTrack->GetParticleDefinition()->GetParticleName(), "e"))return; 
+	
+	emph::arich_util::PMT mpmt = fGeo->Geo()->FindPMTByName(pVolName);      
+
+        double e = step->GetTotalEnergyDeposit();
+        double l = 0;
+	
+	sim::ARICHHit arichHit;
+        arichHit.SetBlockNumber(mpmt.PMTnum());
+        arichHit.AddToAncestorTrack(aTrack->GetParentID());
+        arichHit.SetTime(step->GetPreStepPoint()->GetGlobalTime()/CLHEP::second);
+        arichHit.SetWavelength(l*1e6);
+        arichHit.SetEnergyDepo(e);
+	 fARICHHits.push_back(arichHit);
+//	std::cout << aTrack->GetParticleDefinition()->GetParticleName() << " parent id " <<  aTrack->GetParentID() << " e depo " << step->GetTotalEnergyDeposit() << " " << postvolume->GetName() << std::endl;		  
+
+
 		  
   }// end of ARICHHitAction::SteppingAction
 

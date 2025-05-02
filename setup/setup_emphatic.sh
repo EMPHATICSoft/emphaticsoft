@@ -120,7 +120,7 @@ setup_tools () {
     setup gitflow # do we need this?
 
     # Define environment variables that store the standard experiment name.
-    export JOBSUB_GROUP=emph
+    export JOBSUB_GROUP=emphatic
     export EXPERIMENT=emph     # Used by ifdhc
     export SAM_EXPERIMENT=emph
 

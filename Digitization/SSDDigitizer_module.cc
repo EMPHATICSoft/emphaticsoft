@@ -159,10 +159,8 @@ namespace emph {
 
     if (!ssdHitH->empty()) {
 
-      int station, row, t, adc, trig;
+      int station, row, adc;
       int sensor, plane;
-      t = 0;
-      trig = 0;
 
       emph::cmap::EChannel echan;
       emph::cmap::DChannel dchan;
@@ -294,12 +292,12 @@ namespace emph {
         emph::dgmap::DetGeoMap* dgMap = dgMapService->Map();
         dgMap->StationSensorPlaneToLineSegment(ssdhit.GetStation(), ssdhit.GetSensor(), ssdhit.GetPlane(), lineseg, ssdhit.GetStrip());
 
-        float x0 = lineseg.X0()[0];
-        float y0 = lineseg.X0()[1];
-        float z0 = lineseg.X0()[2];
-        float x1 = lineseg.X1()[0]; 
-        float y1 = lineseg.X1()[1];
-        float z1 = lineseg.X1()[2]; 
+        float x0 = lineseg.X0().X();
+        float y0 = lineseg.X0().Y();
+        float z0 = lineseg.X0().Z();
+        float x1 = lineseg.X1().X(); 
+        float y1 = lineseg.X1().Y();
+        float z1 = lineseg.X1().Z(); 
 
         float w0 = (sqrt(2) / 2) * (-x0 + y0);
         float w1 = (sqrt(2) / 2) * (-x1 + y1);

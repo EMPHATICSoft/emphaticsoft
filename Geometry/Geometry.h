@@ -210,8 +210,12 @@ namespace emph {
       double TargetUSZPos() const {return fTargetUSZPos; }
       double TargetDSZPos() const {return fTargetDSZPos; }
 
-      double MagnetUSZPos() const {return fMagnetUSZPos; }
-      double MagnetDSZPos() const {return fMagnetDSZPos; }
+      double MagnetUSZPos() const {return fMagnetUSPos[2]; }
+      double MagnetDSZPos() const {return fMagnetDSPos[2]; }
+      double MagnetUSXPos() const {return fMagnetUSPos[0]; }
+      double MagnetDSXPos() const {return fMagnetDSPos[0]; }
+      double MagnetUSYPos() const {return fMagnetUSPos[1]; }
+      double MagnetDSYPos() const {return fMagnetDSPos[1]; }
       bool MagnetLoad() const {return fMagnetLoad; }
 
       double DetectorUSZPos(int i) const {return fDetectorUSZPos[i]; }
@@ -260,8 +264,8 @@ namespace emph {
       double fWorldWidth;
       double fWorldHeight;
       double fWorldLength;
-      double fMagnetUSZPos;
-      double fMagnetDSZPos;
+      double fMagnetUSPos[3];
+      double fMagnetDSPos[3];
       double fTargetUSZPos;
       double fTargetDSZPos;
       bool   fMagnetLoad;

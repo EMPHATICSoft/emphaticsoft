@@ -50,9 +50,17 @@ namespace emph {
       double x1[3];
       double xavg[3];
 
+      x0[0] = ls.X0().X();
+      x0[1] = ls.X0().Y();
+      x0[2] = ls.X0().Z();
+      
+      x1[0] = ls.X1().X();
+      x1[1] = ls.X1().Y();
+      x1[2] = ls.X1().Z();
+
       for (int i=0; i<3; ++i){
-        x0[i] = ls.X0()[i];
-        x1[i] = ls.X1()[i];
+        //x0[i] = ls.X0()[i];
+        //x1[i] = ls.X1()[i];
         xavg[i] = (x0[i]+x1[i])/2.;
       }
 

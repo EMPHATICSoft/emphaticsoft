@@ -9,7 +9,9 @@
 #include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
 #include "GasCkovHitReco.fcl"
+#include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
+#include "SingleTrackAlignment.fcl"
 
 process_name: CAF
 
@@ -45,23 +47,26 @@ physics:
     dataqual:         @local::standard_dataqual
     spillinfo:        @local::standard_spillinfo
     arichreco:        @local::standard_arichreco
-    ssdclusts:        @local::standard_ssdclust
+    clust:            @local::standard_ssdclust
     adcreco:          @local::standard_adcreco
     backovreco:       @local::standard_backovhitreco
     gasckovreco:      @local::standard_gasckovhitreco
     cafmaker:         @local::standard_cafmaker
 
+    maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
+    singletrackalignment: @local::standard_singletrackalignment
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichreco, ssdclusts,
-               makesingletracks, adcreco, backovreco, gasckovreco,
+               dataqual, spillinfo, arichreco, clust,
+               maketracksegments, makesingletracks, singletrackalignment, adcreco, backovreco, gasckovreco,
+               #adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
 }
-physics.producers.ssdclusts.FillTTree: false
+physics.producers.clust.FillTTree: false
 physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's

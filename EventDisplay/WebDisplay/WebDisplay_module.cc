@@ -24,6 +24,16 @@
 #include "RecoBase/LineSegment.h"
 #include "Geometry/service/GeometryService.h"
 #include "Simulation/Particle.h"
+#include "EventDisplay/WebDisplay/UserHighlight.h"
+#include "TGeoToObjFile.h"
+#include "TGeoToObjFile.cpp" //TODO: Don't include .cpp files.  How can I include this in the module binary without building a separate library using cet_modules?
+#include "EvtDisplayNavigatorService.h"
+
+#include "EventDisplay/WebDisplay/web/Connection.h"
+#include "EventDisplay/WebDisplay/web/App.h"
+#include "EventDisplay/WebDisplay/web/Response.h"
+
+#include "nlohmann/json.hpp"
 
 //ART includes
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -35,9 +45,15 @@
 #include "canvas/Utilities/InputTag.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "art/Persistency/Common/PtrMaker.h"
+#include "canvas/Persistency/Common/Assns.h"
+#include "canvas/Persistency/Common/Ptr.h"
 
 //ROOT includes
 #include "TVector3.h"
+#include "TGeoManager.h"
+#include "TGeoBBox.h"
+#include "TDatabasePDG.h"
 
 //POSIX includes for sockets
 #include <string.h> //memset
@@ -50,6 +66,11 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <time.h>
+
+//c++ includes
+#include <sstream>
+#include <array>
 
 namespace evd {
   class WebDisplay;
@@ -71,6 +92,9 @@ public:
     fhicl::Atom<int> portNumber{Name("portNumber"), Comment("Port forwarded to web broswer"), 3490};
     fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
     fhicl::Atom<art::InputTag> mcPartLabel{Name("mcPartLabel"), Comment("Name of the module that produced sim::Particles.  Usually the GEANT simulation."), "geantgen"};
+    fhicl::Atom<art::InputTag> lineSegAssnsLabel{Name("lineSegAssnsLabel"), Comment("Name of the module that produced UserHighlights for rb::LineSegs."), "ssdclusters"};
+    fhicl::Atom<art::InputTag> mcPartAssnsLabel{Name("mcPartAssnsLabel"), Comment("Name of the module that produced UserHighlights for sim::Particles."), "geantgen"};
+    fhicl::Sequence<std::string> extraGeometryNodes{Name("extraGeometryNodes"), Comment("Node names of extra geometry objcts to draw from the GDML."), std::vector<std::string>()};
   };
 
   typedef art::EDAnalyzer::Table<Config> Parameters;
@@ -96,249 +120,101 @@ private:
 
   // Declare member data here.
   Config fConfig;
-  int fPortNumber; //Port you need to forward and point your browser to!
-                   //Can be configured by a FHICL parameter.
-  int fMessageSocket; //File descriptor HTTP response socket
 
-  int sendEvent(const art::Event& e) const;
-  int sendFile(const char* fileName) const;
-  int sendString(const std::string& toSend) const;
+  web::Connection fBrowserConnection;
 
-  char fBuffer[bufferSize];
+  //TODO: Refactor these into lambda functions in emph::WebDisplay::analyze()
+  std::string writeGeometryList() const;
+
+  template <class PROD>
+  std::ostream& writeUserColors(std::ostream& assnsMap, const art::Event& e, const art::InputTag& label) const;
+
+  TGeoShape* getShape(const std::string& shapeName) const;
+  TGeoNode* getNode(const std::string& shapeName) const;
 };
 
 evd::WebDisplay::WebDisplay(Parameters const& p)
-  : EDAnalyzer{p}, fConfig(p()), fPortNumber(p().portNumber()), fMessageSocket(-1)
+  : EDAnalyzer{p}, fConfig(p()), fBrowserConnection(std::to_string(p().portNumber()).c_str())
 {
   consumes<std::vector<rb::LineSegment>>(p().lineSegLabel());
+  consumes<std::vector<sim::Particle>>(p().mcPartLabel());
 }
 
 //Set up socket for web communication with a browser.  This will block
 //until a browser connects.
-//TODO: Move the blocking part into analyze() so reconstruction could
-//      in principle run while I'm setting up the web browser.
 void evd::WebDisplay::beginJob()
 {
-  struct addrinfo hints, *myAddress;
-  memset(&hints, 0, sizeof(hints));
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_STREAM; //TCP-IP like the internet as opposed to UDP
-  hints.ai_flags = AI_PASSIVE; //Fill in with my own IP address
+  art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
 
-  int status;
-  const auto portString = std::to_string(fPortNumber);
-  if((status = getaddrinfo(nullptr, portString.c_str(), &hints, &myAddress)))
+  web::App<> evdApp(&fBrowserConnection);
+  evdApp.add("/newEvent", web::Request::Method::POST, [&navigator](const std::smatch& matches, const web::Request& request) -> web::Response*
   {
-    mf::LogError("PortSetup") << "getaddrinfo: " << gai_strerror(status);
-  }
+    //Parse message body
+    nlohmann::json body = nlohmann::json::parse(request.body);
+    const int targetRun = body["run"];
+    const int targetSubrun = body["subrun"];
+    const int targetEvent = body["event"];
 
-  //getaddrinfo() returns lots of addresses that may or may not work in a linked list.
-  //Pick the first one that can be used.
-  int listenSocket = -1;
-  constexpr int yes = 1;
-  for(;myAddress != nullptr; myAddress = myAddress->ai_next)
-  {
-    listenSocket = socket(myAddress->ai_family, myAddress->ai_socktype, myAddress->ai_protocol);
-    if(listenSocket < 0) continue; //Try the next address
-
-    //My prototype reset the status of this socket here.  I left that out
-    //so users on the same GPVM don't stomp on each other.  Try https://threejs.org/examples/webgl_lines_fat.html.
-    //TODO: Pick another port number if this socket is already in use.
-    //Reuse this socket if there's another process already using it
-    if(setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0)
+    if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
     {
-      mf::LogError("PortSetup") << "setsockopt: " << strerror(errno);
+      mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
+                                << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
+                                << "\nMessage from browser was:\n" << request.body;
+      return new web::BadRequestResponse();
     }
-
-    if(bind(listenSocket, myAddress->ai_addr, myAddress->ai_addrlen) < 0)
+    else
     {
-      close(listenSocket);
-      mf::LogWarning("PortSetup") << "bind: " << strerror(errno);
-      continue; //Try another address
+      //Response to this request will be send at the beginning of the next analyze() function
+      //so that it can report the event number actually loaded.
+      navigator->setTarget(targetRun, targetSubrun, targetEvent);
+      return new web::EndAppResponse();
     }
+  });
 
-    //If I got this far, then this address works!  Use it.
-    break;
-  }
-  if(myAddress == nullptr) //If the loop never got to "break"
+  evdApp.add("/", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request)
   {
-    mf::LogError("PortSetup") << "Failed to get my own address info.";
-  }
+    return new web::FileResponse("webDisplay_v2.html", "text/html");
+  });
 
-  //Wait for a web browser to contact this process over fPortNumber, then accept() the connection
-  if(listen(listenSocket, 10) < 0)
+  evdApp.add("/EMPHATICLogo.png", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request)
   {
-    mf::LogError("PortSetup") << "listen: " << strerror(errno);
-  }
+    return new web::FileResponse("EMPHATICLogo.png", "image/png");
+  });
 
-  struct sockaddr_storage their_addr;
-  socklen_t their_addr_size = sizeof(their_addr);
-  fMessageSocket = accept(listenSocket, (sockaddr*)&their_addr, &their_addr_size);
-  if(fMessageSocket < 0) mf::LogError("PortSetup") << "accept: " << strerror(errno);
-
-  mf::LogInfo("PortSetup") << "Got a connection!";
-  close(listenSocket);
-  //TODO: Clean up addrinfo structs
-
-  //Send a "waiting" screen while things like the geometry load
-  //TODO: Add a logo?
-  std::string welcomeScreen = "<!DOCTYPE html>\n";
-  welcomeScreen += "<html>\n";
-  welcomeScreen += "<link rel=\"shortcut icon\" href=\"data:image/x-icon;,\" type=\"image/x-icon\">\n"; //Needed to skip sending Chrome a favicon per https://stackoverflow.com/questions/1321878/how-to-prevent-favicon-ico-requests
-  welcomeScreen += "  <head>\n";
-  welcomeScreen += "    <title> Loading... </title>\n";
-  welcomeScreen += "  </head>\n";
-  welcomeScreen += "  <body>\n";
-  welcomeScreen += "    <text> Loading geometry and first event... </text>\n";
-  welcomeScreen += "  </body>\n";
-  welcomeScreen += "  <meta http-equiv=\"refresh\" content=\"1\">\n";
-  welcomeScreen += "</html>";
-  welcomeScreen.insert(0, "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(welcomeScreen.length()) + "\n\n");
-  sendString(welcomeScreen);
+  evdApp.run();
 }
 
-void evd::WebDisplay::analyze(art::Event const& e)
+//Summarize detectors to draw as a JSON list
+std::string evd::WebDisplay::writeGeometryList() const
 {
-  //Serve this event, then wait for the web browser to send
-  //ANY request before moving on to the next event.
-  int bytesRead = 0;
-  mf::LogInfo("Server") << "Waiting for request from browser...";
-  bytesRead = recv(fMessageSocket, fBuffer, bufferSize, 0); //Blocks until receives a request from the browser
-  //TODO: recv() doesn't block sometimes.  I get empty messages when this happends.  Am I connecting the browser too early?  Is this a container problem?  Am I triggering some redundancy behavior in HTML?
-  if(bytesRead < 0) mf::LogError("Server") << "recv: " << strerror(errno);
-  mf::LogInfo("Server") << "Got a message from browser with size of " << bytesRead << ":\n" << fBuffer;
-  if(bytesRead == 0)
-  {
-    mf::LogError("Server") << "Browser disconnected.";
-  }
-  sendEvent(e);
-  memset(fBuffer, '\0', bufferSize);
-}
+  //TODO: Only support a fixed list of volumes for now to get this thing working.  I already know how to get positions for the magnet, target, and SSDs
 
-std::string getFullPath(const std::string& fileName)
-{
-  //Find the file by looking at the source code directory
-  //TODO: I don't think this will work if we install on /cvmfs.  How do we look in the install directory instead?
-  const char* fileLoc = getenv ("CETPKG_SOURCE");
-  if(fileLoc == nullptr) mf::LogError("sendFile") << "Failed to find " << fileName << " at CETPKG_SOURCE (source directory) because CETPKG_SOURCE is not set!";
-  return fileLoc + std::string("/EventDisplay/WebDisplay/") + fileName;
-}
-
-int evd::WebDisplay::sendEvent(const art::Event& e) const
-{
-  //Render reconstruction
-  const auto lineSegs = e.getValidHandle<std::vector<rb::LineSegment>>(fConfig.lineSegLabel());
-
-  std::string cubeSetup;
-  for(const auto& line: *lineSegs)
-  {
-    TVector3 x0 = line.X0(),
-             x1 = line.X1();
-    const auto diff = x1 - x0;
-    const double length = diff.Mag()/10.; //Convert mm to cm for graphics reasons
-    const double ssdWidth = 0.1;
-    const auto center = (x0 + x1)*0.5*0.1; //Convert mm to cm for graphics reasons
-    //const double theta = diff.Theta();
-    const double phi = diff.Phi(); 
-
-    //TODO: Replace these string concatenation operators with stringstream or something better
-    cubeSetup += "  {\n";
-    cubeSetup += "    const ssdGeom = new THREE.BoxGeometry(ssdWidth, " + std::to_string(length) + ", ssdWidth);\n";
-    cubeSetup += "    const ssdBox = new THREE.Mesh(ssdGeom, ssdMaterial);\n";
-    cubeSetup += "    ssdBox.position.set("+ std::to_string(center.X()) +", "+ std::to_string(center.Y()) +", "+ std::to_string(center.Z()) +");\n";
-    cubeSetup += "    ssdBox.rotation.z =" + std::to_string(-phi) + "\n;"; //Angle convention seems to be opposite between ROOT and Three.js based on run 1c data
-    cubeSetup += "    ssdBox.name = \"LineSegment\";\n";
-    cubeSetup += "    scene.add(ssdBox);\n";
-    cubeSetup += "  }\n";
-    //TODO: Change box colors here
-  }
-  cubeSetup += "}\n";
-
-  //Render simulation
-  cubeSetup += "function setupMCTrajectories(scene) {\n";
-
-  //Set up table of materials based on PDG code
-  //Solid lines for charged particles
-  //Dashed lines for neutral particles and unknowns
-  cubeSetup += "  const mcLineWidth = 3;\n"; //This is supposed to always be stuck at 1 on most browsers.  For portable wide lines, try https://threejs.org/examples/webgl_lines_fat.html
-  cubeSetup += "  const pdgToMaterialMap = new Map();\n";
-  cubeSetup += "  pdgToMaterialMap.set(2212, new THREE.LineBasicMaterial({ color: 0xe69f00, linewidth: mcLineWidth }));\n"; //proton
-  cubeSetup += "  pdgToMaterialMap.set(2112, new THREE.LineDashedMaterial({ color: 0xe69f00, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //neutron
-  cubeSetup += "  pdgToMaterialMap.set(211, new THREE.LineBasicMaterial({ color: 0x56b4e9, linewidth: mcLineWidth }));\n"; //charged pion
-  cubeSetup += "  pdgToMaterialMap.set(111, new THREE.LineDashedMaterial({ color: 0x56b4e9, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //pi0
-  cubeSetup += "  pdgToMaterialMap.set(321, new THREE.LineBasicMaterial({ color: 0x009e73, linewidth: mcLineWidth }));\n"; //charged kaon
-  cubeSetup += "  pdgToMaterialMap.set(311, new THREE.LineDashedMaterial({ color: 0x009e73, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //K0
-  cubeSetup += "  pdgToMaterialMap.set(13, new THREE.LineBasicMaterial({ color: 0xf0e442, linewidth: mcLineWidth }));\n"; //muon
-  cubeSetup += "  pdgToMaterialMap.set(11, new THREE.LineBasicMaterial({ color: 0x0072b2, linewidth: mcLineWidth }));\n"; //electron
-  cubeSetup += "  pdgToMaterialMap.set(22, new THREE.LineDashedMaterial({ color: 0xcc79a7, lineWidth: mcLineWidth, dashSize: 1, gapSize: 2 }));\n"; //photon
-  cubeSetup += "  const unknownPDGMaterial = new THREE.LineDashedMaterial({ color: 0xffffff, linewidth: mcLineWidth, dashSize: 1, gapSize: 2 });\n"; //All others
-
-  art::Handle<std::vector<sim::Particle>> mcParts;
-  e.getByLabel(fConfig.mcPartLabel(), mcParts);
-  if(mcParts.isValid()) //A simple way to skip this step for data and recover gracefully for simulation configuration problems
-  {
-    mf::LogInfo("MC Drawing") << "Drawing " << mcParts->size() << " MC trajectories.";
-    for(const auto& part: *mcParts)
-    {
-      cubeSetup += "  {\n";
-      cubeSetup += "    const points = [];\n";
-      for(size_t whichTrajPoint = 0; whichTrajPoint < part.ftrajectory.size(); ++whichTrajPoint)
-      {
-        const auto& pos = part.ftrajectory.Position(whichTrajPoint);
-        cubeSetup += "    points.push(new THREE.Vector3(" + std::to_string(pos.X()/10.) + ", " + std::to_string(pos.Y()/10.) + ", " + std::to_string(pos.Z()/10.) + "));\n"; //Convert mm to cm
-      }
-      cubeSetup += "    const geometry = new THREE.BufferGeometry().setFromPoints(points);\n";
-      cubeSetup += "    let pdgMaterial = pdgToMaterialMap.get(Math.abs(" + std::to_string(part.fpdgCode) + "));\n";
-      cubeSetup += "    if(!pdgMaterial) { pdgMaterial = unknownPDGMaterial; }\n";
-      cubeSetup += "    const line  = new THREE.Line(geometry, pdgMaterial);\n";
-      cubeSetup += "    line.computeLineDistances();\n"; //Necessary for dashed lines to work
-      cubeSetup += "    line.name = \"" + std::to_string(part.ftrajectory.Momentum(0).Vect().Mag()/1000.) + " GeV/c " + part.fpdgCode + "\";\n"; //TODO: Get name from PDG code and confirm momentum units
-      cubeSetup += "    scene.add(line);\n";
-      cubeSetup += "  }\n";
-    }
-  }
-  else mf::LogInfo("MC Drawing") << "No sim::Particles to draw.";
-  cubeSetup += "}\n";
-
-  //Render static geometry
+  std::stringstream geometryList;
+  geometryList << "[\n";
+  
+  //Magnet
   art::ServiceHandle<emph::geo::GeometryService> geom;
-  cubeSetup += "  function setupReferenceGeometry(scene) {\n";
-  cubeSetup += "    const referenceMaterial = new THREE.MeshPhongMaterial({\n";
-  cubeSetup += "      color: 0xff0000,\n";
-  cubeSetup += "      opacity: 0.2,\n";
-  cubeSetup += "      transparent: true,\n";
-  cubeSetup += "      side: THREE.DoubleSide,\n";  //There's more transparency details that I'm omitting.  See https://threejs.org/manual/#en/transparency
-  cubeSetup += "    });\n";
-
-  if(geom->Geo()->MagnetLoad()) //Only show the magnet if MagnetLoad() is true
+  double nextMagnetBeginZ = geom->Geo()->MagnetUSZPos()/10.;
+  const auto magnetNode = getNode("magnet_phys");
+  for(const auto node: *magnetNode->GetNodes())
   {
-    cubeSetup += "    const magnetGeom = new THREE.CylinderGeometry(10, 10, " + std::to_string((geom->Geo()->MagnetDSZPos() - geom->Geo()->MagnetUSZPos())/10.) + ", 12);\n"; //Converting from mm to cm for graphics reasons
-    cubeSetup += "    const magnetCylinder = new THREE.Mesh(magnetGeom, referenceMaterial);\n";
-    cubeSetup += "    magnetCylinder.position.set(0, 0, " + std::to_string((geom->Geo()->MagnetUSZPos() + geom->Geo()->MagnetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
-    cubeSetup += "    magnetCylinder.rotation.x = 3.1415926535897932384626433832/2; //TODO: Remember the Javascript name for pi\n";
-    cubeSetup += "    magnetCylinder.name = \"magnet\";\n";
-    cubeSetup += "    scene.add(magnetCylinder);\n";
+    //TODO: I think we technically need to add dZ from both this magnet segment and the previous one to get the right answer.  Right now, we're just getting lucky that the magnet segments are all the same length.
+    const double magnetHalfLength = static_cast<TGeoBBox*>(static_cast<TGeoNode*>(node)->GetVolume()->GetShape())->GetDZ()*2./10.;
+    TGeoTranslation magnetMatrix(0, 0, nextMagnetBeginZ + magnetHalfLength);
+    double hMatrix[16];
+    magnetMatrix.GetHomogenousMatrix(hMatrix);
+    geometryList << "  {\n"
+                 << "    \"name\": \"magnet\",\n"
+                 << "    \"volumeName\": \"" << static_cast<TGeoNode*>(node)->GetVolume()->GetName() << ".obj\",\n"
+                 << "    \"isDetector\": false,\n"
+                 << "    \"matrix\": [";
+    for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+    geometryList << hMatrix[15] << "]\n"
+                 << "  },\n";
+    nextMagnetBeginZ += magnetHalfLength;
   }
-  cubeSetup += "    const targetGeom = new THREE.BoxGeometry(5, 5, " + std::to_string((geom->Geo()->TargetDSZPos() - geom->Geo()->TargetUSZPos())/10.) + ");\n"; //Converting from mm to cm for graphics reasons
-  cubeSetup += "    const targetBox = new THREE.Mesh(targetGeom, referenceMaterial);\n";
-  cubeSetup += "    targetBox.position.set(0, 0, " + std::to_string((geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.) + ");\n"; //Converting from mm to cm for graphics reasons
-  std::string totalTargetName = "`target\\n";
-  const auto target = geom->Geo()->GetTarget();
-  for(int whichElem = 0; whichElem < target->NEl(); ++whichElem)
-  {
-    totalTargetName += target->El(whichElem) + " : " + std::to_string(target->Frac(whichElem)) + "\\n";
-  }
-  cubeSetup += "    targetBox.name = " + totalTargetName + "`;\n";
-  cubeSetup += "    scene.add(targetBox);\n";
 
-  //Add transparent boxes for SSD positions.  Don't show SSDs that aren't loaded for this run.
-  //TODO: These aren't visible right now because the geometry is returning 0s for their parameters
-  cubeSetup += "  const ssdReferenceMaterial = new THREE.MeshPhongMaterial({\n";
-  cubeSetup += "    color: 0x0000ff,\n";
-  cubeSetup += "    opacity: 0.2,\n";
-  cubeSetup += "    transparent: true,\n";
-  cubeSetup += "    side: THREE.DoubleSide,\n";  //There's more transparency details that I'm omitting.  See https://threejs.org/manual/#en/transparency
-  cubeSetup += "  });\n";
+  //Outlines of SSDs
   for(int whichStation = 0; whichStation < geom->Geo()->NSSDStations(); ++whichStation)
   {
     const auto station = geom->Geo()->GetSSDStation(whichStation);
@@ -347,116 +223,350 @@ int evd::WebDisplay::sendEvent(const art::Event& e) const
       const auto plane = station->GetPlane(whichPlane);
       for(int whichSensor = 0; whichSensor < plane->NSSDs(); ++whichSensor)
       {
-        const auto sensor = plane->SSD(whichSensor); //geom->Geo()->GetSSDSensor(whichSensor);
-        cubeSetup += "  {\n";
-        cubeSetup += "    const sensorGeom = new THREE.BoxGeometry(" + std::to_string(sensor->Width()/10.) + ", " + std::to_string(sensor->Height()/10.) + ", " + std::to_string(sensor->Dz()/10.) + ");\n"; //Converting mm to cm for graphics reasons
-        cubeSetup += "    const sensorBox = new THREE.Mesh(sensorGeom, ssdReferenceMaterial);\n";
-        cubeSetup += "    sensorBox.position.set(" + std::to_string(sensor->Pos().X()/10.) + ", " + std::to_string(sensor->Pos().Y()/10.) + ", " + std::to_string((sensor->Pos().Z() + station->Pos().Z())/10.) + ");\n";
-        cubeSetup += "    sensorBox.rotation.z = " + std::to_string(-sensor->Rot()) + ";\n";
-        cubeSetup += "    sensorBox.name = \"station " + std::to_string(whichStation) + " plane " + std::to_string(whichPlane) + " sensor " + std::to_string(whichSensor) + "\";\n";
-        cubeSetup += "    scene.add(sensorBox);\n";
-        cubeSetup += "  }\n";
+        const auto sensor = plane->SSD(whichSensor);
+        double angleDeg = sensor->Rot()*180./M_PI;
+        if(sensor->IsFlip()) angleDeg = -angleDeg;
+        TGeoRotation ssdRot("ssdRotation", angleDeg, 0., 0.);
+        TGeoTranslation ssdPos(sensor->Pos().X()/10., sensor->Pos().Y()/10., (sensor->Pos().Z() + station->Pos().Z())/10.);
+        TGeoCombiTrans ssdMatrix(ssdPos, ssdRot);
+        double hMatrix[16];
+        ssdMatrix.GetHomogenousMatrix(hMatrix);
+
+        geometryList << "  {\n"
+                     << "    \"name\": \"station " << whichStation << " sensor " << whichSensor << " plane " << whichPlane << "\",\n"
+                     << "    \"volumeName\": \"ssdsensor_" << whichStation << "_" << whichPlane << "_" << whichSensor << "_vol.obj\",\n"
+                     << "    \"isDetector\": true,\n"
+                     << "    \"matrix\": [";
+        for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+        geometryList << hMatrix[15] << "]\n"
+                     << "  },\n";
       }
     }
-  }  
+  }
 
-  cubeSetup += "return [referenceMaterial, ssdReferenceMaterial];\n";
-  cubeSetup += "  }\n";
-  cubeSetup += "var eventID = {\n";
-  cubeSetup += "                run: " + std::to_string(e.id().run()) + ",\n";
-  cubeSetup += "                subrun: " + std::to_string(e.id().subRun()) + ",\n";
-  cubeSetup += "                event: " +  std::to_string(e.id().event()) + "\n";
-  cubeSetup += "              }\n";
+  //Walk the GDML hierarchy looking for Nodes in fConfig.extraGeometryNodes.
+  //Accumulate the world transformation matrix along the way.  This is the
+  //only way to get the full transformation matrix because ROOT doesn't
+  //provide a way to find a TGeoNode's mother!
+  if(!fConfig.extraGeometryNodes().empty())
+  {
+    const auto nodesAndMatrices = searchGeometryTree(*geom->Geo()->ROOTGeoManager(), fConfig.extraGeometryNodes());
 
-  //mf::LogInfo("WebDisplay") << "cubeSetup:\n" << cubeSetup;
+    for(const auto& nodeAndMatrix: nodesAndMatrices)
+    {
+      const auto node = nodeAndMatrix.first;
+      auto matrix = nodeAndMatrix.second;
 
-  //Use the POSIX stat() API to get file sizes.  Since we're using socket() anyway, I can assume a POSIX operating system.
-  int contentLength = cubeSetup.size();
-  struct stat fileInfo;
-  stat(getFullPath("header.html").c_str(), &fileInfo);
-  contentLength += fileInfo.st_size;
+      std::array<double, 16> hMatrix;
+      matrix->GetHomogenousMatrix(hMatrix.data());
+
+      //Transform mm from GDML into cm for event display.  See https://root.cern.ch/doc/master/classTGeoMatrix.html
+      hMatrix[12] /= 10.;
+      hMatrix[13] /= 10.;
+      hMatrix[14] /= 10.;
+
+      std::array<double, 16> transposed = hMatrix;
+      for(int col = 0; col < 3; ++col)
+      {
+        for(int row = 0; row < 3; ++row) transposed[row + col*4] = hMatrix[col + row*4];
+      }
+
+      geometryList << "  {\n"
+                   << "    \"name\": \"" << node->GetName() << "\",\n"
+                   << "    \"volumeName\": \"" << node->GetVolume()->GetName() << ".obj\",\n"
+                   << "    \"isDetector\": false,\n"
+                   << "    \"matrix\": [";
+      for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << transposed[whichElem] << ", ";
+      geometryList << transposed[15] << "]\n"
+                   << "  },\n";
+
+      //Clean up memory so this doesn't leak slowly over many events.
+      //I think I'm forced to allocated on the heap because I need to use TGeoHMatrix
+      //to apply translations in searchGeometryTree(), but I need to return a TGeoMatrix.
+      //If I allocated TGeoHMatrix on the stack, putting it into the vector would slice
+      //off some member data.
+      delete matrix;
+      matrix = nullptr;
+    }
+  }
+
+  //Target
+  double hMatrix[16];
+  TGeoTranslation targetMatrix(0, 0, (geom->Geo()->TargetUSZPos() + geom->Geo()->TargetDSZPos())/2./10.);
+  targetMatrix.GetHomogenousMatrix(hMatrix);
+  geometryList << "  {\n"
+               << "    \"name\": \"target\",\n"
+               << "    \"volumeName\": \"target_vol.obj\",\n"
+               << "    \"isDetector\": false,\n"
+               << "    \"matrix\": ["; 
+  for(int whichElem = 0; whichElem < 15; ++whichElem) geometryList << hMatrix[whichElem] << ", ";
+  geometryList << hMatrix[15] << "]\n"
+               << "  }\n"; //TODO: Making sure there's not a comma after this last entry is tricky and important!  It will be a bigger problem when I generate the full list of geometry shapes.
+
+  geometryList << "]\n";
+
+  return geometryList.str();
+}
+
+//Color and name overrides for objects selected in a different module.
+//Use this feature to debug your new reconstruction technique by creating
+//a UserHighlight for each object that doesn't work quite right!
+
+//Under the hood, this creates an entry in a nested map for Javascript that looks like:
+//{
+//  123456789: {
+//    0: {
+//      color: 0xdeadbeef,
+//      name: "someName"
+//    },
+//    1: {
+//      ...
+//    },
+//  },
+//  ...
+//  314592653: {
+//    ...
+//  }
+//}
+
+//TLDR: Just call it like the examples and don't try to change it unless you REALLY have to.
+template <class PROD>
+std::ostream& evd::WebDisplay::writeUserColors(std::ostream& assnsMap, const art::Event& e, const art::InputTag& label) const
+{
+  art::Handle<art::Assns<PROD, evd::UserHighlight>> assns;
+  e.getByLabel(label, assns);
+  if(assns && assns->size() > 0)
+  {
+    assnsMap << "\"" << (*assns)[0].first.id().value() << "\": {\n"; //TODO: Make sure there aren't Assns<> to PRODs from multiple different modules
+
+    auto serializeAssn = [&assns, &assnsMap](const size_t whichAssn) -> std::ostream&
+    {
+      const auto userData = (*assns)[whichAssn].second;
+      assnsMap << "  \"" << (*assns)[whichAssn].first.key() << "\": {\n"
+               << "    \"color\": " << userData->Color() << ",\n"
+               << "    \"name\": \"" << userData->Comment() << "\"\n"
+               << "  }";
+      return assnsMap;
+    };
+
+    for(size_t whichAssn = 0; whichAssn < assns->size()-1; ++whichAssn)
+    {
+      serializeAssn(whichAssn) << ",\n";
+    }
+    serializeAssn(assns->size()-1) << "\n";
+
+    assnsMap << "}\n";
+  }
+
+  return assnsMap;
+}
+
+TGeoNode* evd::WebDisplay::getNode(const std::string& shapeName) const
+{
+  art::ServiceHandle<emph::geo::GeometryService> geom;
+  const TGeoNode* world = geom->Geo()->ROOTGeoManager()->GetTopNode();
+  if(!world) throw cet::exception("RequestedGeometry") << "Failed to find the geometry world volume!";
+
+  TGeoNode* targetVol = world->GetVolume()->GetNode(shapeName.c_str());
+
+  return targetVol;
+}
+
+TGeoShape* evd::WebDisplay::getShape(const std::string& shapeName) const
+{
+  //TODO: getNode() only searches the world node.  Replace or get rid of it.
+  /*const auto node = getNode(shapeName);
+  if(!node) throw cet::exception("RequestedGeometry") << "Failed to find " << shapeName << " node in the geometry!";
+
+  return static_cast<TGeoNode*>(node)->GetVolume()->GetShape();*/
   
-  stat(getFullPath("footer.html").c_str(), &fileInfo);
-  contentLength += fileInfo.st_size;
+  art::ServiceHandle<emph::geo::GeometryService> geom;
+  const auto found = geom->Geo()->ROOTGeoManager()->FindVolumeFast(shapeName.c_str());
+  if(!found) throw cet::exception("Requested Geometry") << "Failed to find " << shapeName << " volume in the geometry!";
+  return found->GetShape();
+}
 
-  const std::string requestHeader = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:" + std::to_string(contentLength) + "\n\n";
+//A WebHelper adapts functions like
+//  nlohmann::json writeLineSegs(const std::vector<rb::LineSeg>&)
+//to work with evd::App<const art::Event&>.  It's a
+//web::App<const art::Event&>::handler_t that retrieves information from ART and
+//adds ProductID information to your web::Repsonse.
+template <class PROD>
+class WebHelper
+{
+  public:
+    WebHelper(std::function<nlohmann::json(const std::vector<PROD>&)> func, art::InputTag label): fFunc(func), fLabel(label) {}
 
-  //First, send the beginning of an HTML response
-  int returnCode = sendString(requestHeader);
-  if(returnCode != 0) return returnCode;
+    web::Response* operator ()(const std::smatch& matches, const web::Request& req, const art::Event& e)
+    {
+      art::Handle<std::vector<PROD>> handle;
+      e.getByLabel(fLabel, handle);
 
-  //Next, send beginning of file
-  returnCode = sendFile("header.html");
-  if(returnCode != 0) return returnCode;
+      if(handle)
+      {
+        nlohmann::json respBody = fFunc(*handle);
 
-  //Next, send cube positions
-  returnCode = sendString(cubeSetup);
-  if(returnCode != 0) return returnCode;
+        art::PtrMaker<PROD> makePtr(e, handle.id());
+        for(size_t whichProd = 0; whichProd < handle->size(); ++whichProd)
+        {
+          const auto ptr = makePtr(whichProd);
+          respBody[whichProd]["Ptr"]["id"] = ptr.id().value();
+          respBody[whichProd]["Ptr"]["key"] = ptr.key();
+        }
 
-  //Last, send the script that draws the cubes
-  return sendFile("footer.html");
+        return new web::StringResponse(respBody.dump());
+      }
+      else return new web::StringResponse("[]");
+    }
+
+  private:
+    std::function<nlohmann::json(const std::vector<PROD>&)> fFunc;
+    art::InputTag fLabel;
+};
+
+void evd::WebDisplay::analyze(art::Event const& e)
+{
+  //This event was requested by some POST request.  So respond with the actual event number loaded first.
+  {
+    nlohmann::json postResponse;
+    char timeBuffer[128];
+    const long int timestamp = e.time().timeHigh();
+    const struct tm* calendarTime = localtime(&timestamp); //TODO: Is this a UNIX timestamp, or do I need to take the upper 32 bits?  art::Timestamp has a function for that.
+    strftime(timeBuffer, 128, "%c", calendarTime);
+
+    postResponse["run"] = e.id().run();
+    postResponse["subrun"] = e.id().subRun();
+    postResponse["event"] = e.id().event();
+    postResponse["timestamp"] = timeBuffer;
+    postResponse["isRealData"] = (e.isRealData()?"Data":"Simulation");
+
+    web::StringResponse newEventResp(postResponse.dump(), "application/json", 201);
+    newEventResp.resolve(fBrowserConnection, fBrowserConnection.fNextEventSocket);
+  }
+
+  web::App<const art::Event&> evdApp(&fBrowserConnection);
+  art::ServiceHandle<emph::EvtDisplayNavigatorService> navigator;
+
+  evdApp.add("/newEvent", web::Request::Method::POST, [&navigator](const std::smatch& matches, const web::Request& request, const art::Event& e) -> web::Response*
+  {
+    //Parse message body
+    nlohmann::json body = nlohmann::json::parse(request.body);
+    const int targetRun = body["run"];
+    const int targetSubrun = body["subrun"];
+    const int targetEvent = body["event"];
+
+    if(targetRun < 0 || targetSubrun < 0 || targetEvent < 0)
+    {
+      mf::LogError("GoToEvent") << "Got invalid event number from Javascript: run = "
+                                << targetRun << " targetSubrun = " << targetSubrun << " targetEvent = " << targetEvent
+                                << "\nMessage from browser was:\n" << request.body;
+      return new web::BadRequestResponse();
+    }
+    else
+    {
+      //Response to this request will be send at the beginning of the next analyze() function
+      //so that it can report the event number actually loaded.
+      navigator->setTarget(targetRun, targetSubrun, targetEvent);
+      return new web::EndAppResponse();
+    }
+  });
+
+  evdApp.add("/", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request, const art::Event& e)
+  {
+    return new web::FileResponse("webDisplay_v2.html", "text/html");
+  });
+
+  evdApp.add("/EMPHATICLogo.png", web::Request::Method::GET, [](const std::smatch& matches, const web::Request& request, const art::Event& e)
+  {
+    return new web::FileResponse("EMPHATICLogo.png", "image/png");
+  });
+
+  //Geometry
+  evdApp.add("/geometry/index.json", web::Request::Method::GET, [this](const std::smatch& matches, const web::Request& req, const art::Event& e)
+  {
+    return new web::StringResponse(this->writeGeometryList(), "text/plain"); //TODO: Move this code directly into analyze()
+  });
+
+  evdApp.add("/geometry/(.*)\\.obj", web::Request::Method::GET, [this](const std::smatch& matches, const web::Request& req, const art::Event& e)
+  {
+    std::stringstream geomObjFile;
+    assert(matches.size() == 2);
+    const TGeoShape* shape = this->getShape(matches[1]);
+    TGeoToObjFile(*shape, geomObjFile, 10.);
+    return new web::StringResponse(geomObjFile.str(), "text/plain", 200);
+  });
+
+  //Simulation
+  evdApp.add("/MC/trajs.json", web::Request::Method::GET, WebHelper<sim::Particle>([](const std::vector<sim::Particle>& simParts)
+  {
+    TDatabasePDG& pdgDB = *TDatabasePDG::Instance();
+  
+    nlohmann::json trajList = nlohmann::json::array(); //Makes the event display skip sim::Particles instead of crashing when there is space for sim::Particles in the event but no actual sim::Particles.
+    for(const auto& traj: simParts)
+    {
+      std::string partName = std::to_string(traj.fpdgCode);
+      const auto partData = pdgDB.GetParticle(traj.fpdgCode);
+      if(partData) partName = partData->GetName(); //This should almost always happen
+
+      nlohmann::json entry;
+      entry["name"] = std::to_string(traj.ftrajectory.Momentum(0).Vect().Mag()/1000.) + "GeV/c " + partName;
+      entry["pdgCode"] = traj.fpdgCode;
+      entry["points"] = nlohmann::json::array();
+      for(size_t whichTrajPoint = 0; whichTrajPoint < traj.ftrajectory.size(); ++whichTrajPoint)
+      {
+        const auto& point = traj.ftrajectory.Position(whichTrajPoint);
+        entry["points"].push_back({point.X()/10., point.Y()/10., point.Z()/10.});
+      }
+
+      trajList.push_back(entry);
+    }
+
+    return trajList;
+  }, fConfig.mcPartLabel()));
+  
+  //Reconstruction
+  evdApp.add("/reco/LineSegs.json", web::Request::Method::GET, WebHelper<rb::LineSegment>([](const std::vector<rb::LineSegment>& segs)
+  {
+    nlohmann::json result = nlohmann::json::array(); //Makes the event display skip LineSegments instead of crashing when there is space for LineSegments in the event but no actual LineSegments.
+
+    for(const auto& seg: segs)
+    {
+      nlohmann::json entry;
+      TVector3 x0 = seg.X0(),
+               x1 = seg.X1();
+      const auto diff = x1 - x0;
+      const double length = diff.Mag()/10.; //Convert mm to cm for graphics reasons
+      const double ssdWidth = 0.1;
+      const auto center = (x0 + x1)*0.5*0.1; //Convert mm to cm for graphics reasons
+      const double phi = diff.Phi();
+
+      entry["center"] = {center.X(), center.Y(), center.Z()};
+      entry["length"] = length;
+      entry["phi"] = phi;
+
+      result.push_back(entry);
+    }
+
+    return result;
+  }, fConfig.lineSegLabel()));
+
+  //TODO: Convert writeUserColors to use nlohmann::json.
+  //      Can I also make it automatic when a new WebHelper is add()ed?
+  evdApp.add("/assnsMap.json", web::Request::Method::GET, [this](const std::smatch& match, const web::Request& req, const art::Event& e){
+    std::stringstream assnsMap;
+    assnsMap << "{\n";
+    writeUserColors<sim::Particle>(assnsMap, e, this->fConfig.mcPartAssnsLabel());
+    writeUserColors<rb::LineSegment>(assnsMap, e, this->fConfig.lineSegAssnsLabel());
+    assnsMap << "}\n";
+
+    return new web::StringResponse(assnsMap.str());
+  });
+
+  evdApp.run(e);
 }
 
 void evd::WebDisplay::endJob()
 {
-  close(fMessageSocket);
-}
-
-int evd::WebDisplay::sendString(const std::string& toSend) const
-{
-  int bytesSent = 0;
-  int offset = 0;
-  do
-  {
-    bytesSent = send(fMessageSocket, toSend.c_str() + offset, toSend.size() - offset, 0);
-    if(bytesSent < 0)
-    {
-      std::cerr << "send: " << strerror(errno) << "\n";
-      return 2;
-    }
-    offset += bytesSent;
-  }
-  while(bytesSent > 0);
-
-  return 0;
-}
-
-int evd::WebDisplay::sendFile(const char* fileName) const
-{
-  const std::string fileFullPath = getFullPath(fileName);
-
-  std::cout << "Sending file named " << fileName << "...\n";
-  constexpr int fileChunkSize = 512;
-  char fileData[fileChunkSize];
-
-  FILE* file = fopen(fileFullPath.c_str(), "rb");
-
-  int bytesRead = 0;
-  int bytesSent = 0;
-  do
-  {
-    std::cout << "Keep reading...\n";
-    bytesRead = fread(fileData, sizeof(char), fileChunkSize, file);
-    int bytesLeftThisChunk = bytesRead;
-    int offset = 0;
-    do
-    {
-      std::cout << "Keep sending.  offset is " << offset << "...\n";
-      bytesSent = send(fMessageSocket, fileData + offset, bytesRead, 0);
-      if(bytesSent < 0)
-      {
-        std::cerr << "send: " << strerror(errno) << "\n";
-        return 1;
-      }
-
-      offset += bytesSent;
-      bytesLeftThisChunk -= bytesSent;
-    }
-    while(bytesLeftThisChunk > 0);
-  } while(bytesRead > 0);
-  std::cout << "Done sending " << fileName << ".\n";
-
-  return 0;
 }
 
 DEFINE_ART_MODULE(evd::WebDisplay)

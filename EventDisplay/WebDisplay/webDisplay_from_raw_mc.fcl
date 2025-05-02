@@ -1,0 +1,49 @@
+#
+# Run the web-based event display on a raw art data file, reconstructing the SSDs as it goes
+#
+
+#include "Services.fcl"
+#include "FillDataQuality.fcl"
+#include "SpillInfo.fcl"
+#include "MakeSSDClusters.fcl"
+
+process_name : webDisplay
+
+source : {
+  module_type : RootInput
+  fileNames   : [ "emphdata_r1384_s2.root" ]
+  maxEvents   : -1
+}
+
+services : {
+  @table::standard_services
+  EvtDisplayNavigatorService: {}
+  scheduler: { wantSummary: false }
+  TimeTracker: {}
+  IFBeam:{}
+}
+
+physics:
+{
+  analyzers:
+  {
+    webDisplay:
+    {
+      module_type: WebDisplay
+      mcPartAssnsLabel: highlightMCParticles
+    }
+  }
+
+  producers:
+  {
+    dataqual:         @local::standard_dataqual
+    spillinfo:        @local::standard_spillinfo
+    ssdclusts:        @local::standard_ssdclust
+  }
+
+  reco: [ dataqual, spillinfo, ssdclusts]
+  display: [ webDisplay ]
+
+  trigger_paths: [ reco ]
+  end_paths: [ display ]
+}

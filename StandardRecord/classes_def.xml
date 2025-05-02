@@ -144,9 +144,14 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
+<<<<<<< HEAD
  <class name="caf::SRTrack" ClassVersion="13" >
   <version ClassVersion="13" checksum="2826463250"/>
   <version ClassVersion="12" checksum="2842738991"/>
+=======
+ <class name="caf::SRTrack" ClassVersion="12" >
+  <version ClassVersion="12" checksum="2586407891"/>
+>>>>>>> main
   <version ClassVersion="11" checksum="3996263664"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
@@ -156,7 +161,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="11" >
+ <class name="caf::SRTrackSegment" ClassVersion="12" >
+  <version ClassVersion="12" checksum="3697610154"/>
   <version ClassVersion="11" checksum="2984398867"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

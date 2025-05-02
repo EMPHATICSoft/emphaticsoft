@@ -22,6 +22,7 @@ namespace emph
     fMagneticField = new emph::MagneticField();
 
     fMagneticField->SetFieldFileName(pset.get< std::string >("FieldFileName"));
+    fMagneticField->SetUsingRootHistos(pset.get< bool >("UsingRootHistos"));
     fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
     fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
 

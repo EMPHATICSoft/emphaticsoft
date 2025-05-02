@@ -167,7 +167,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
   fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
   fDrawSSDDigits    ( pset.get<bool>       ("DrawSSDDigits",true) ),
-  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","raw:SSD") ),
+  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","rawSSD:SSD") ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
   fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
@@ -500,8 +500,8 @@ void emph::EventDisplay3D::drawSSDClust(Int_t mColor, Int_t mSize,
     
     TEveLine* l = new TEveLine();
     
-    l->SetNextPoint(ls.X0()[0], ls.X0()[1], ls.X0()[2]);
-    l->SetNextPoint(ls.X1()[0], ls.X1()[1], ls.X1()[2]);
+    l->SetNextPoint(ls.X0().X(), ls.X0().Y(), ls.X0().Z());
+    l->SetNextPoint(ls.X1().X(), ls.X1().Y(), ls.X1().Z());
     l->SetLineColor(mColor);
     l->SetMarkerSize(mSize);
     fSSDClustsList->AddElement(l);

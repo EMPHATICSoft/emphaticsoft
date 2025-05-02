@@ -4,7 +4,7 @@ standard_dataqual:
 {
   module_type:  FillDataQuality
   TriggerLabel: "raw:Trigger"
-  SSDDataLabel: "raw:SSD"
+  SSDDataLabel: "rawSSD:SSD"
 }
 
 END_PROLOG

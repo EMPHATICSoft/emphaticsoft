@@ -22,7 +22,9 @@ namespace emph {
       SSD = 5,
       ARICH = 6,
       LGCalo = 7,
-      NDetectors = 8	
+      USLAPPD = 8,
+      DSLAPPD = 9,
+      NDetectors = 10	
     } DetectorType;
 
     class DetInfo {
@@ -45,6 +47,10 @@ namespace emph {
 	  return std::string("ARICH");
 	case DetectorType::LGCalo:
 	  return std::string("LGCalo");
+	case DetectorType::USLAPPD:
+	  return std::string("USLAPPD");
+	case DetectorType::DSLAPPD:
+	  return std::string("DSLAPPD");
 	case DetectorType::NDetectors:
 	default:
 	  return std::string("Unknown");
@@ -61,6 +67,8 @@ namespace emph {
 	if (d == "SSD") return DetectorType::SSD;
 	if (d == "ARICH") return DetectorType::ARICH;
 	if (d == "LGCalo") return DetectorType::LGCalo;
+	if (d == "USLAPPD") return DetectorType::USLAPPD;
+	if (d == "DSLAPPD") return DetectorType::DSLAPPD;
 	return DetectorType::NDetectors;
       }
 
@@ -82,6 +90,10 @@ namespace emph {
 	  return 576;
 	case DetectorType::LGCalo:
 	  return 9;
+	case DetectorType::USLAPPD:
+	  return 30;
+	case DetectorType::DSLAPPD:
+	  return 30;
 	default:
 	  return -1;
 	}
