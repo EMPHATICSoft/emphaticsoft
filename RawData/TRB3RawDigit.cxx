@@ -44,24 +44,8 @@ namespace emph {
     {
 	fIsNoise = false;
         fHitTime = this->GetFinalTime();
-<<<<<<< HEAD
-    }
   
-=======
-    } 
-
-    TRB3RawDigit::TRB3RawDigit(uint32_t FPGA, uint32_t detChan, uint32_t t_smear, bool IsNoise):
-   	fpga_header_word(FPGA), 
-	tdc_header_word(0), 
-	tdc_epoch_word(0),
-	tdc_measurement_word(0),
-	event_index(0), fragmentTimestamp(0), fdetChan(detChan), 
-	fIsNoise(IsNoise), fadc(0), fHitTime(t_smear)
-    {
-
     }
-
->>>>>>> main
 
     //----------------------------------------------------------------------
 

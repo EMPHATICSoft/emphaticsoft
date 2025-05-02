@@ -4,7 +4,8 @@ using namespace std;
 
 namespace arichreco{
 
-HoughFitter::HoughFitter(TH2Poly* event){
+HoughFitter::HoughFitter(TH2D* event_histo){
+	fevent_histo = event_histo;
 }
 
 HoughFitter::~HoughFitter(){
@@ -23,24 +24,26 @@ std::vector<double> HoughFitter::linspace(double minRadius, double maxRadius, in
 }
 
 
-std::vector<std::pair<double, double>> HoughFitter::EdgePoints(TH2Poly* event){
+std::vector<std::pair<double, double>> HoughFitter::EdgePoints(){
     
+
     std::vector<std::pair<double, double>> edgePoints;
-    TList* listBins = event->GetBins();
+
     
-    for (int i = 0; i <= event->GetNumberOfBins(); i++) {
-            double content = event->GetBinContent(i);
+    for (int i = 0; i <= fevent_histo->GetNbinsX(); i++){
+	 for (int j = 0; j <= fevent_histo->GetNbinsY(); j++){
+
+            double content = fevent_histo->GetBinContent(i,j);
         
+	    
             if (content > 0) { // Consider bins with hits (content = 1)
-                
-                TH2PolyBin* th2Bins = (TH2PolyBin*)listBins->At(i);
-                double xmin = th2Bins->GetXMin();
-                double xmax = th2Bins->GetXMax();
-                double ymin = th2Bins->GetYMin();
-                double ymax = th2Bins->GetYMax();
-                edgePoints.push_back({(xmin+xmax)/2 - 6, (ymin+ymax)/2}); // Store bin center as an edge point
+               
+		float center_bin_x = fevent_histo->GetXaxis()->GetBinCenter(i);
+		float center_bin_y = fevent_histo->GetYaxis()->GetBinCenter(j); 
+                edgePoints.push_back({center_bin_x,center_bin_y}); // Store bin center as an edge point
             }
         }
+    }
     return edgePoints;
 }
 
@@ -132,7 +135,7 @@ std::vector<std::tuple<int, double>> HoughFitter::findBestCircle(const std::vect
 
        // Iterate through the accumulator to find the max number of votes
        for (int bin = 0; bin < Nbins; bin++) {
-           for (int idr = 0; idr < Radii.size(); idr++) {
+           for (int idr = 0; idr < (int)Radii.size(); idr++) {
                if (accumulator[bin][idr] > best_score) {
                    if(bin != SSD_center_bin)continue;
                    best_score = accumulator[bin][idr];
@@ -141,14 +144,14 @@ std::vector<std::tuple<int, double>> HoughFitter::findBestCircle(const std::vect
                else{
                    circles.insert(circles.end(),std::make_tuple(bin, Radii[idr]));
                }
-               if(circles.size() > to_find){circles.pop_back();}
+               if((int)circles.size() > to_find){circles.pop_back();}
            }
        }
 
     // Return the best-fitting circle (center_x, center_y, radius)
     return circles;
 }
-std::vector<std::tuple<int, int, double>> HoughFitter::findBestCircle(const std::vector<std::vector<std::vector<int>>>& accumulator, std::vector<double> Radii, int to_find, int SSD_center_bin) {
+std::vector<std::tuple<int, int, double>> HoughFitter::findBestCircle(const std::vector<std::vector<std::vector<int>>>& accumulator, std::vector<double> Radii, int to_find) {
   
    int best_score = 0;
    std::vector<std::tuple<int, int, double>> circles;
@@ -168,7 +171,7 @@ std::vector<std::tuple<int, int, double>> HoughFitter::findBestCircle(const std:
                    circles.insert(circles.end(),std::make_tuple(x-80, y-80, Radii[idr]));
                }
 
-               if(circles.size() > to_find){circles.pop_back();}
+               if((int)circles.size() > to_find){circles.pop_back();}
            }
        }
    }
@@ -277,6 +280,15 @@ TH2Poly* HoughFitter::PlotAccumulator(std::vector<std::vector<int>> & accumulato
     return accumulator_graph;
 }
 
+std::vector<std::tuple<int,int, double>> HoughFitter::GetCirclesCenters(int to_find)
+{
 
+	edges =  this->EdgePoints();
+	radii = this->linspace(minRadius,maxRadius,nRadii);
+	this->HoughCircleTransform(edges, radii, nRadii, cols, rows, accumulator);
+	return this->findBestCircle(accumulator, radii,to_find);
 
+}//end GetCirclesCenters
+
+	
 }//end namespace arichreco

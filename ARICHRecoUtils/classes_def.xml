@@ -28,7 +28,8 @@
  <version ClassVersion="11" checksum="4003558340"/>
  <version ClassVersion="10" checksum="3441090788"/>
 </class>
-<class name="arichreco::HoughFitter" ClassVersion="11">
+<class name="arichreco::HoughFitter" ClassVersion="12">
+ <version ClassVersion="12" checksum="1568882325"/>
  <version ClassVersion="11" checksum="2427338869"/>
  <version ClassVersion="10" checksum="616094997"/>
 </class>
