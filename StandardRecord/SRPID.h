@@ -21,8 +21,8 @@ namespace caf
 	void Reset();
 	
 	//float scores[5];
-	std::vector<double> scores_vec;
-	float operator [](int n){return scores_vec[n];};
+	std::vector<double> scores;
+	float operator [](int n){return scores[n];};
 
 };
 

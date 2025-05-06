@@ -7,7 +7,15 @@
 
 namespace caf{
 
-      SRPID::SRPID(){}
+
+      SRPID::SRPID()
+     {
+	track_id = -1;
+	for(int t=0; t < 5;t++)scores.push_back(-1);
+	}
+	
+
+
       SRPID::~SRPID(){}
 
       //SRPID::SRPID(float _scores[5]){
@@ -15,6 +23,6 @@ namespace caf{
       //}
 	
       void SRPID::Reset(){
-	scores_vec.clear();
+	scores.clear();
 	}
 }

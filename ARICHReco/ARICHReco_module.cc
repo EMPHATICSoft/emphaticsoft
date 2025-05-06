@@ -40,11 +40,11 @@
 #include "ChannelMap/service/ChannelMapService.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RecoBase/ARICHCluster.h"
+#include "RecoBase/ArichID.h"
 #include "Utilities/PMT.h"
 
 // ARICHRECO
 #include "ARICHRecoUtils/ArichUtils.h"
-#include "ARICHRecoUtils/HoughFitter.h"
 
 
 namespace emph {  
@@ -113,7 +113,7 @@ namespace emph {
     : EDProducer(pset)
  { 
 
-    this->produces<std::vector<double>>();
+    this->produces<std::vector<rb::ArichID>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fFillTree   = bool(pset.get<bool>("FillTree"));
     fFitCircle = bool(pset.get<bool>("FitCircle"));
@@ -196,7 +196,7 @@ namespace emph {
 
 void ARICHReco::produce(art::Event& evt)
   { 
-      std::unique_ptr<std::vector<double>> ARICH_LL(new std::vector<double>);
+      std::unique_ptr<std::vector<rb::ArichID>> ARICH_LL(new std::vector<rb::ArichID>);
 
       //int eventID = evt.id().event();;
       art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
@@ -253,16 +253,9 @@ void ARICHReco::produce(art::Event& evt)
 			
               TH2D* event_hist = ArichUtils->DigsToHist(digs);	
 
-//		arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
+//	       LLs = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir); 
 	
-//		int to_find = 1;
-//		std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(1); 
-	    TCanvas *c1 = new TCanvas();
 
-	    event_hist->Draw("colz");
-	   c1->SaveAs(Form("histos/event_%i_cluster_%i.png",evt.event(),u));
-	   delete c1;
-	
 	 delete event_hist;
 	}
 

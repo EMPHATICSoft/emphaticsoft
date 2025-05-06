@@ -13,7 +13,8 @@ namespace caf
   	center[0] = 0;
 	center [1] = 0;
 	radius = -1;
-  }
+	nhit = -1; 
+ }
 
   //--------------------------------------------------------------------
   SRARing::~SRARing()
@@ -26,7 +27,7 @@ namespace caf
         center[0] = 0;  
         center [1] = 0;
 	radius = -1;
-	
+	nhit = -1;	
   }
  
 

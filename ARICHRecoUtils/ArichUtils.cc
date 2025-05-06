@@ -121,6 +121,14 @@ double ARICH_UTILS::calcBeta(int particlei, double mom)
  } //end calcBeta
 //.......................................................................
 
+double ARICH_UTILS::calcP(double mass, double beta)
+ {
+   return sqrt( mass*mass / (pow(beta,-2) - 1 ));
+ } //end calcP
+
+//.......................................................................
+
+
 std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, 
 	 std::vector<TVector3> pos0s,std::vector<TVector3> dir0s) 
     {

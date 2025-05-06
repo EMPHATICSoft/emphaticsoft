@@ -247,17 +247,30 @@ void MakeRing::produce(art::Event& evt)
 
 	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
 	
-	      int to_find = 1; // number of rings to find, should be = n tracks 
+	       int to_find = 1; // number of rings to find, should be = n tracks 
+	      if(arich_clusters->at(u).NDigits() > 30) to_find = 2;
+ 
 	      std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(to_find); 
 
 	      for(int j =0; j < (int)circles.size();j++ ){
 		
 	       rb::ARing ring;		
 	
-	       ring.radius = std::get<2>(circles[j]);
-	       ring.center[0] = std::get<0>(circles[j]);
-	       ring.center[1] = std::get<1>(circles[j]);	
-	 
+	       ring.SetRadius(std::get<2>(circles[j]));
+		float center[3] = {std::get<0>(circles[j]),std::get<1>(circles[j]),0};
+		ring.SetCenter(center);
+	       //ring.center[0] = std::get<0>(circles[j]);
+	       //ring.center[1] = std::get<1>(circles[j]);	
+
+
+	/*	std::cout << "	radius " << ring.Radius() << std::endl;
+		double theta = atan(ring.Radius()/178.9); //mm
+	 	std::cout << "	thetaC " << theta << " rad " << std::endl;
+		double beta = 1/(1.028*cos(theta)); 
+		std::cout << "	beta " << beta << std::endl;
+		std::cout << "Prot p " << ArichUtils->calcP(0.9383,beta) << std::endl;
+		std::cout << "Pion p " << ArichUtils->calcP(0.1395,beta) << std::endl;	
+	*/
 		ARICH_RINGS->push_back(ring); 
 	    
 	     } 				

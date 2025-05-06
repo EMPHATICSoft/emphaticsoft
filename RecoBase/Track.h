@@ -17,7 +17,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
-#include "RecoBase/ArichPID.h"
+#include "RecoBase/ArichID.h"
 #include "StandardRecord/SRPID.h"
 #include "TVector3.h"
 

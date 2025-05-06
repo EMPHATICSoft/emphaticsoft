@@ -1,16 +1,16 @@
-#ifndef ARICHPID_H
-#define ARICHPID_H
+#ifndef PID_H
+#define PID_H
 
 #include "StandardRecord/SRPID.h"
 
 namespace rb {
 
-  class ArichPID: public caf::SRPID{
+  class PID: public caf::SRPID{
 
   public:
-	ArichPID();
+	PID();
 	//ArichPID(float *scores[5]);
-	~ArichPID();
+	~PID();
 
 	int nhits;
 	virtual void setdefault();

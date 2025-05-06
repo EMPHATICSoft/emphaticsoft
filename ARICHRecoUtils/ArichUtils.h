@@ -43,6 +43,7 @@ namespace arichreco{
 	std::vector<std::vector<TH2D>> GetPDFs(int np, std::vector<double> mom,  std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 
 	double calcBeta(int particlei, double mom);
+	double calcP(double mass, double beta);
 	
 	std::map<std::string, double> GetMap() const {return Particle_LogLike;};
 	TString GetFile() const{return PDfile;};

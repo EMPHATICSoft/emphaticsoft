@@ -1,9 +1,9 @@
 #include "StandardRecord/SRPID.h"
-#include "RecoBase/ArichPID.h"
+#include "RecoBase/PID.h"
 
 namespace rb {
 
-   ArichPID::ArichPID(){
+   PID::PID(){
 	this->setdefault();	
    }
 
@@ -12,9 +12,9 @@ namespace rb {
    }
  */
 
-   ArichPID::~ArichPID(){}
+   PID::~PID(){}
 
-   void ArichPID::setdefault(){
+   void PID::setdefault(){
       nhits =-1; 
   }
   

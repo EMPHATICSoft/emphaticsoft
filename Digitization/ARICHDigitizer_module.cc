@@ -112,7 +112,7 @@ ARICHDigitizer::ARICHDigitizer(fhicl::ParameterSet const& pset)
  //    fEvent = 0;
  // fSensorMap.clear(); 
  rand_gen = new TRandom3(0); 
- produces<std::vector<rawdata::TRB3RawDigit> >("ARICH");
+ this->produces<std::vector<rawdata::TRB3RawDigit> >("ARICH");
 }
 
 //......................................................................

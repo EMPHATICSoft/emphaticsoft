@@ -64,7 +64,7 @@ private:
 
     int minRadius = 30;
     int maxRadius = 100;
-    int nRadii = 281;
+    int nRadii = 700;
     int nPoints = 360;
     
     int rows = 350;

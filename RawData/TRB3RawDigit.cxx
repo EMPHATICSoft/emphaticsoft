@@ -16,33 +16,20 @@ namespace emph {
       tdc_header_word(0),
       tdc_epoch_word(0),
       tdc_measurement_word(0),
-      event_index(0), fragmentTimestamp(0), fdetChan(-1),  fIsNoise(false),
+      event_index(0), fragmentTimestamp(0), fdetChan(-1),
       fadc(0), fHitTime(0)
     {
     }
    
     //----------------------------------------------------------------------
-
-    TRB3RawDigit::TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS, bool IsNoise):
-      fpga_header_word(fpga),
-      tdc_header_word(header),
-      tdc_epoch_word(epoch),
-      tdc_measurement_word(measurement),
-      event_index(0), fragmentTimestamp(fragTS), fdetChan(-1), 
-      fIsNoise(IsNoise), fadc(0)
-    {
-	fHitTime = this->GetFinalTime(); 	
-    }
- 
     TRB3RawDigit::TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS):
       fpga_header_word(fpga),
       tdc_header_word(header),
       tdc_epoch_word(epoch),
       tdc_measurement_word(measurement),
       event_index(0), fragmentTimestamp(fragTS), fdetChan(-1), 
-      fIsNoise(false), fadc(0)
+      fadc(0)
     {
-	fIsNoise = false;
         fHitTime = this->GetFinalTime();
   
     }

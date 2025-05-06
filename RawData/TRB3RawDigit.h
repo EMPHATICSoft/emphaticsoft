@@ -38,14 +38,12 @@ namespace emph {
       int event_index;
       uint64_t fragmentTimestamp;
       uint32_t fdetChan;
-      bool fIsNoise;    
       uint32_t fadc;
       uint32_t  fHitTime;
        
 
     public:
 
-      TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS, bool IsNoise);
       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?
@@ -91,7 +89,7 @@ namespace emph {
  
       inline friend std::ostream& operator<<(std::ostream& os, const TRB3RawDigit& RawDig)
       {
-	os << "Raw dig: (" << RawDig.GetBoardId() << ", " << RawDig.fdetChan  << ", " <<  RawDig.fHitTime << ", " <<  RawDig.fIsNoise << ")" << std::endl; 
+	os << "Raw dig: (" << RawDig.GetBoardId() << ", " << RawDig.fdetChan  << ", " <<  RawDig.fHitTime << ")" << std::endl; 
 	return os;
 	}
 

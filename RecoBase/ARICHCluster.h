@@ -29,21 +29,25 @@ namespace rb {
   public:
 
     void Add(const std::pair<int,int> echan);
-    
+    void Add(const float time);    
+
+
     void SetID(int id) { fID = id; }
     int ID() const {return fID; }
 
     std::pair<int,int> Digit(unsigned int idx);
+    float  Time(unsigned int idx);
     unsigned int NDigits() const { return fHits.size(); }
     bool empty() const {return this->NDigits() == 0;}
    
     std::vector<std::pair<int,int>> Digits() const {return fHits;}
-
+    std::vector<float> Times() const {return fTimes;}
 
     
   private:
 
     std::vector<std::pair<int,int>> fHits;   
+    std::vector<float> fTimes;
     int fID;
   };
   

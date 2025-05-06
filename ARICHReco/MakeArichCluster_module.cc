@@ -59,7 +59,7 @@ namespace emph {
     void endRun(art::Run &run);
     void endJob();
     std::map<int,double> GetRefenceTimes(std::vector<rawdata::TRB3RawDigit> hits);
-    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> splitVector( std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold);
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> Cluster_FixedWindow(std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold);
 
     int threshold =15;
 	
@@ -151,8 +151,9 @@ std::map<int,double> emph::MakeArichCluster::GetRefenceTimes(std::vector<rawdata
    return refTime;
 
 }
+//......................................................................
 
-std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeArichCluster::splitVector( std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold) {
+std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeArichCluster::Cluster_FixedWindow(std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold) {
     
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters;
     size_t i = 0;   
@@ -173,7 +174,6 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeAric
     return clusters;
 }
 //......................................................................
-
 void emph::MakeArichCluster::produce(art::Event& evt)
   { 
       std::unique_ptr<std::vector<rb::ARICHCluster>> ARICH_CLUSTERS(new std::vector<rb::ARICHCluster>);
@@ -252,23 +252,22 @@ void emph::MakeArichCluster::produce(art::Event& evt)
     //Now the vector hits contains all the necessary info to cluster the hits in time and feed the clusters to the reco code
 	
     stable_sort(hits.begin(), hits.end());
-
-    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = splitVector(hits, threshold);	
+	
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = Cluster_FixedWindow(hits, threshold);	
 
     //add density based clustering 
 
 	for(int u = 0; u < (int)clusters.size(); u++){
     
-            //std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
-	
+            std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
+		
 	    rb::ARICHCluster cluster;
 
 	    for(int k=0; k < (int)clusters[u].size(); k++){
 	     
 		emph::cmap::EChannel echan = std::get<1>(clusters[u][k]);
-	
 		cluster.Add(std::make_pair(echan.Board(), echan.Channel()));
-
+	//	cluster.Add(std::get<0>(clusters[u][k]));
 	  } 
 	ARICH_CLUSTERS->push_back(cluster);	
 	     
