@@ -4,7 +4,7 @@ standard_arichreco:
 {
   module_type: 	  ARICHReco
   PD_file:        "/ARICHReco/PMTDet.root"
-  LabelHits:      "rawARICH:ARICH"
+  LabelHits:      "arichcluster"
   LabelTracks:    "geantgen"			#using sim::Tracks untill got rb::Tracks 
   FillTree:       true
   FitCircle:      false

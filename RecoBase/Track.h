@@ -26,7 +26,6 @@ namespace rb {
   class Track {
   public:
     Track(); // Default constructor
-    Track(rb::ArichPID);
     virtual ~Track() {}; //Destructor
     
   private:
@@ -40,9 +39,8 @@ namespace rb {
     // the creator of the track is responsible for adding the points
  
     std::vector<TVector3> _pos; // vector of predicted positions
-    rb::ArichPID 	   _arichPID; 	//LL values under different particle hypothesis 
-
-  public:
+  
+public:
     // Getters
     const double* Vtx() const { return _vtx; }
     const double* P() const { return _p; }
@@ -60,7 +58,6 @@ namespace rb {
     void Add(const rb::TrackSegment& ts);
     void Add(const rb::SpacePoint& sp);
     void AddPos(TVector3 &x);
-    void Add(const rb::ArichPID& aPID);
     
     void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }

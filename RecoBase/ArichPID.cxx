@@ -15,13 +15,9 @@ namespace rb {
    ArichPID::~ArichPID(){}
 
    void ArichPID::setdefault(){
-        Track_ID = -1;
-        ARing_ID = -1;
-   }
-  
-  std::ostream& operator << (std::ostream& o, const ArichPID& h){
-  return o; 	
+      nhits =-1; 
   }
+  
 
 }
 

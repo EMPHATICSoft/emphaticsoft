@@ -1,11 +1,11 @@
 #include "Services.fcl"
-#include "ARICHReco.fcl"
+#include "MakeArichCluster.fcl" 
 
-process_name: ARICHReco
+process_name: MakeArichCluster
 
 services:
 {
-  TFileService: { fileName: "%ifb.arichreco_hist.root" closeFileFast: false }
+  TFileService: { fileName: "%ifb.arichcluster_hist.root" closeFileFast: false }
   @table::standard_services
 }
 
@@ -20,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "%ifb.arichreco.root"
+   fileName:    "%ifb.arichcluster.root"
    fastCloning: false
    
   }
@@ -34,10 +34,10 @@ physics:
 
  producers:
  {
-	arichreco: @local::standard_arichreco
+	arichcluster: @local::standard_arich_cluster
  }	
 
- reco: [ arichreco ]
+ reco: [ arichcluster ]
 	
  filters:{}
 

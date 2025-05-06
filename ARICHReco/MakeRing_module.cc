@@ -40,6 +40,7 @@
 #include "ChannelMap/service/ChannelMapService.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RecoBase/ARICHCluster.h"
+#include "RecoBase/ARing.h"
 #include "Utilities/PMT.h"
 
 // ARICHRECO
@@ -49,10 +50,10 @@
 
 namespace emph {  
 
-  class ARICHReco : public art::EDProducer {
+  class MakeRing : public art::EDProducer {
   public:
-    explicit ARICHReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-    ~ARICHReco();
+    explicit MakeRing(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    ~MakeRing();
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
@@ -69,7 +70,6 @@ namespace emph {
  
     int         fEvtNum;
     std::string fARICHLabel;  
-    std::string fTrackLabel;  //for now using sim::Tracks
     
    // Aerogel parameters
     double up_n;
@@ -86,7 +86,6 @@ namespace emph {
     double PDzpos;
     TString PDfile;
     bool fFillTree;
-    bool fFitCircle;
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::cmap::FEBoardType boardType = cmap::TRB3;    
@@ -94,9 +93,7 @@ namespace emph {
     std::vector<double> momenta;
     std::vector<TVector3> dir;
     std::vector<TVector3> pos;
-    std::vector<double> LLs;
    
-    std::vector<double> LL_PION,LL_KAON, LL_PROT;//, vals_pdf_pion, vals_pdf_kaon, vals_pdf_prot;
     std::vector<int> bins,vals;
 
 
@@ -109,14 +106,13 @@ namespace emph {
 
   //.......................................................................
   
-  emph::ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
+  emph::MakeRing::MakeRing(fhicl::ParameterSet const& pset)
     : EDProducer(pset)
  { 
 
-    this->produces<std::vector<double>>();
+    this->produces<std::vector<rb::ARing>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fFillTree   = bool(pset.get<bool>("FillTree"));
-    fFitCircle = bool(pset.get<bool>("FitCircle"));
  
 
     //ARICH RECO UTILS STUFF
@@ -136,7 +132,7 @@ namespace emph {
   }	
   //......................................................................
  
-  emph::ARICHReco::~ARICHReco()
+  emph::MakeRing::~MakeRing()
   {
     //======================================================================
     // Clean up any memory allocated by your module
@@ -145,16 +141,13 @@ namespace emph {
 
   //......................................................................
 
-  void emph::ARICHReco::beginJob()
+  void emph::MakeRing::beginJob()
   {    
     art::ServiceHandle<art::TFileService const> tfs;
     fARICHTree = tfs->make<TTree>("ARICHRECO","event");
     fARICHTree->Branch("TruthPDG", &MCT_PDG);
     fARICHTree->Branch("Blocks", &blocks);
     fARICHTree->Branch("Momenta", &momenta);
-    fARICHTree->Branch("LL_pion", &LL_PION);
-    fARICHTree->Branch("LL_kaon", &LL_KAON);
-    fARICHTree->Branch("LL_prot", &LL_PROT);
     fARICHTree->Branch("BINS", &bins);
     fARICHTree->Branch("VALS", &vals);
 	
@@ -176,27 +169,27 @@ namespace emph {
 }
 
  //.......................................................................
-  void emph::ARICHReco::beginRun(art::Run &run)
+  void emph::MakeRing::beginRun(art::Run &run)
   {
  } 
     
 //......................................................................
 
- void emph::ARICHReco::endJob()
+ void emph::MakeRing::endJob()
   {
   }
   
 //......................................................................
 
- void emph::ARICHReco::endRun(art::Run &run)
+ void emph::MakeRing::endRun(art::Run &run)
   {
   }
 
 //......................................................................
 
-void ARICHReco::produce(art::Event& evt)
+void MakeRing::produce(art::Event& evt)
   { 
-      std::unique_ptr<std::vector<double>> ARICH_LL(new std::vector<double>);
+      std::unique_ptr<std::vector<rb::ARing>> ARICH_RINGS(new std::vector<rb::ARing>);
 
       //int eventID = evt.id().event();;
       art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
@@ -245,103 +238,49 @@ void ARICHReco::produce(art::Event& evt)
             
             std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
 	
-
 	     if(arich_clusters->at(u).NDigits() < 4)continue;            
-	    
+	
+    
 	      std::vector<std::pair<int,int>> digs = arich_clusters->at(u).Digits();  	
 
-			
-              TH2D* event_hist = ArichUtils->DigsToHist(digs);	
+	      TH2D* event_hist = ArichUtils->DigsToHist(digs);	
 
-//		arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
+	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
 	
-//		int to_find = 1;
-//		std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(1); 
+	      int to_find = 1; // number of rings to find, should be = n tracks 
+	      std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(to_find); 
+
+	      for(int j =0; j < (int)circles.size();j++ ){
+		
+	       rb::ARing ring;		
+	
+	       ring.radius = std::get<2>(circles[j]);
+	       ring.center[0] = std::get<0>(circles[j]);
+	       ring.center[1] = std::get<1>(circles[j]);	
+	 
+		ARICH_RINGS->push_back(ring); 
+	    
+	     } 				
+ 
+	     std::vector<TGraph*> circleGraphs =  fitter->createCircleGraph(circles,360);
+	
+
 	    TCanvas *c1 = new TCanvas();
 
 	    event_hist->Draw("colz");
+	    for(int i = 0; i < to_find; i++){
+             circleGraphs[i]->SetLineWidth(3);
+	     circleGraphs[i]->Draw("L SAME");
+           }
 	   c1->SaveAs(Form("histos/event_%i_cluster_%i.png",evt.event(),u));
-	   delete c1;
+	   delete c1;		
 	
-	 delete event_hist;
+	      delete event_hist;
 	}
 
-	
-	// TO BE CHANGED TO USE RECO TRACKS //
-/*
-	for(size_t l =0 ; l < (*TracksH).size(); l++){
-	double track_z = (*TracksH)[l].GetZ();
-	int track_id = (*TracksH)[l].GetTrackID();	
-	  	
-	if (1920. < track_z && track_z < 1940. ){  // aerogel positions in phase1C 
-	  
-	  float mom = sqrt(pow((*TracksH)[l].GetPx(),2) + pow((*TracksH)[l].GetPy(),2) + pow((*TracksH)[l].GetPz(),2));
-		 
-	    if(std::find(unique_ids.begin(), unique_ids.end(), track_id) == unique_ids.end()){  
-
-		//std::cout << "track id: " << track_id << " pos: " << (*TracksH)[l].GetX()/10 << ", " << (*TracksH)[l].GetY()/10 << std::endl;	
-		pdg_event = (*TracksH)[l].GetPId();	 	
-		MCT_PDG.push_back(pdg_event);
-		TVector3 dir_((*TracksH)[l].GetPx()/mom,(*TracksH)[l].GetPy()/mom,(*TracksH)[l].GetPz()/mom);
-                TVector3 pos_((*TracksH)[l].GetX()/10,(*TracksH)[l].GetY()/10,0.);  //in cm
-                momenta.push_back(mom/1000);   //Tracks[p].mom use GeV not MeV
-		dir.push_back(dir_);      //Tracks[p].dir);     
-                pos.push_back(pos_);      //Tracks[p].pos);
-	    	dir_.Clear(); pos_.Clear();
-		unique_ids.push_back(track_id); 	 
-	     }
-	   }
-	}
-*/
-	// THINGS WITH TRACK INFO	
-	// well probably need to consider the case when we have rb::Tracks and when we don't
-	//
-	// WITH TRACKS: LL with PDF based on dir and momentum [assuming it reconstructs the tracks well]
-	// NO TRACKS: LL? HOUGH FITTER? ML NRings?
-
-	
-	int np = unique_ids.size();   //Tracks.size() 
-	//-> Number of tracks == number of particles to find (check with direction if the particle crosses the aerogel, it may not) 
-	unique_ids.clear();
-	
-	//std::cout << "Unique particles found " << np << std::endl;	
-
-	if(np == 1){  //for now single tracks
-
-  	 // LLs = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir);		
-	 
-	  //for(double val : LLs)std::cout << val << " ";
-	  //std::cout << std::endl; 
-	  // IF WE WANT THE PDFs -> std::vector<std::vector<TH2Poly*>> pdfs = ArichUtils->GetPDFs(np, momenta, pos, dir);
-	
-	  // for sum_scaled LL
-	  //double sum =  std::accumulate(mid.begin(),mid.end(),0.0);
-  	  //std::transform(mid.begin(),mid.end(),mid.begin(),[sum](double value){return value/sum;});
-
-
-
-	  if(fFillTree){ LL_PION.push_back(LLs[0]); LL_KAON.push_back(LLs[1]); LL_PROT.push_back(LLs[2]);}
-	  LLs.clear();
- 
-	} // end if 1 track
-	
-	//delete event_hist; 
-	//momenta.clear(); pos.clear(); dir.clear();
-	
-/*
-        if(fFillTree){
-	   fARICHTree->Fill();
-	   LL_PION.clear();LL_KAON.clear();LL_PROT.clear();MCT_PDG.clear();
-	     bins.clear(); vals.clear();
-	//    bins_pdf_pion.clear(); vals_pdf_pion.clear();
-	//    bins_pdf_kaon.clear(); vals_pdf_kaon.clear();
-        //    bins_pdf_prot.clear(); vals_pdf_prot.clear();	
-        }
-	//momenta.clear(); pos.clear(); dir.clear();
-        //blocks.clear();
-*/	evt.put(std::move(ARICH_LL));	   
+	evt.put(std::move(ARICH_RINGS));	   
     
      } // end produce 
 
 }
-DEFINE_ART_MODULE(emph::ARICHReco)
+DEFINE_ART_MODULE(emph::MakeRing)

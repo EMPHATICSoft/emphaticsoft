@@ -32,10 +32,11 @@ namespace arichreco{
 	void SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos,TString PDfile);
 	void SetUpArich(double up_n, double down_n, double up_pos, double down_pos, double up_thick, double down_thick);
 	~ARICH_UTILS();
-	
+
 	double computeLogLikelihood(TH2D* event, TH2D* distribution);
+
 	std::vector<double> recoCherenkov(TH2Poly* eventHist, int nDetected, std::vector<TVector3> pos0s, std::vector<TVector3> dir0s);	
-	TH2D* DigsToHist(std::vector<std::tuple<float, int, int, int>> cluster);
+	TH2D* DigsToHist(std::vector<std::pair<int,int>> cluster);
 
 	std::vector<double> IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 

@@ -1,11 +1,11 @@
 #include "Services.fcl"
-#include "ARICHReco.fcl"
+#include "MakeRing.fcl" 
 
-process_name: ARICHReco
+process_name: MakeRing
 
 services:
 {
-  TFileService: { fileName: "%ifb.arichreco_hist.root" closeFileFast: false }
+  TFileService: { fileName: "%ifb.arichring_hist.root" closeFileFast: false }
   @table::standard_services
 }
 
@@ -20,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "%ifb.arichreco.root"
+   fileName: 	"%ifb.arichring.root" 
    fastCloning: false
    
   }
@@ -34,10 +34,10 @@ physics:
 
  producers:
  {
-	arichreco: @local::standard_arichreco
+	arichring: @local::standard_arich_ring
  }	
 
- reco: [ arichreco ]
+ reco: [ arichring ]
 	
  filters:{}
 

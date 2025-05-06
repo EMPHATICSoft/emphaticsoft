@@ -66,7 +66,8 @@
   <class name="art::Wrapper< rb::Spill>"        />
   <class name="art::Wrapper< std::vector<rb::Spill>    >"/>
 
-  <class name="rb::ARing"    ClassVersion="12">
+  <class name="rb::ARing"    ClassVersion="13">
+   <version ClassVersion="13" checksum="2715429707"/>
    <version ClassVersion="12" checksum="1990956413"/>
    <version ClassVersion="11" checksum="2715429707"/>
     <version ClassVersion="10" checksum="4"/>
@@ -126,12 +127,18 @@
 
   <class name="rb::ArichPID"/>
 
-  <class name="rb::Track"    ClassVersion="12">
+  <class name="rb::Track"    ClassVersion="13">
+   <version ClassVersion="13" checksum="4183331231"/>
    <version ClassVersion="12" checksum="2052194624"/>
    <version ClassVersion="11" checksum="4183331231"/>
      <version ClassVersion="10" checksum="1"/>
    </class>
   <class name="std::vector<rb::Track>"        />
   <class name="art::Wrapper< std::vector<rb::Track>    >"/>
+
+ <class name = "rb::ARICHCluster"/>
+ <class name="std::vector<rb::ARICHCluster>"        />
+  <class name="art::Wrapper< std::vector<rb::ARICHCluster>    >"/>
+
 
  </lcgdict>

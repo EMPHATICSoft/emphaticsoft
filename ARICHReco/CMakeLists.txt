@@ -9,31 +9,33 @@ include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
 message(${src_files})
-art_make_library ( SOURCE ${src_files}
-                   LIBRARY_NAME  ARICHReco
-                   LIBRARIES
-		   Simulation
-		   StandardRecord
-		   Geometry_service
-		   Geometry
-		   DetGeoMap
-	           DetGeoMapService_service
-		   ARICHRecoUtils
-		   RawData
-		   RecoBase
-		   ChannelMap
-		   ChannelMapService_service
-		   RunHistory
-		   art_root_io::TFileService_service
-		   messagefacility::MF_MessageLogger
-                   ROOT::Hist
-		   ROOT::Core
-		   ROOT::Geom
-		   ROOT::Tree
-)
+# art_make_library ( SOURCE ${src_files}
+#                   LIBRARY_NAME  ARICHRecoLib
+#                   LIBRARIES
+#		   Simulation
+#		   StandardRecord
+#		   Geometry_service
+#		   Geometry
+#		   DetGeoMap
+#	           DetGeoMapService_service
+#		   ARICHRecoUtils
+#		   RawData
+#		   RecoBase
+#		   ChannelMap
+#		   ChannelMapService_service
+#		   RunHistory
+#		   art_root_io::TFileService_service
+#		   art::Framework_Core
+#	 	   art::Persistency_Common
+#		   messagefacility::MF_MessageLogger
+#                   ROOT::Hist
+#		   ROOT::Core
+#		   ROOT::Geom
+#		   ROOT::Tree
+#)
 
 cet_build_plugin(ARICHReco art::module
-  LIBRARIES 
+  LIBRARIES PRIVATE
     RawData
     StandardRecord
     RecoBase
@@ -53,6 +55,54 @@ cet_build_plugin(ARICHReco art::module
     ROOT::Geom 
     ROOT::Tree
 )
+
+
+cet_build_plugin(MakeArichCluster art::module
+  LIBRARIES PRIVATE
+    RawData
+    StandardRecord
+    RecoBase
+    DetGeoMap
+    DetGeoMapService_service
+    ChannelMap
+    ChannelMapService_service
+    Geometry_service
+    Geometry
+    RunHistory
+    Simulation
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Hist
+    ROOT::Core
+    ROOT::Geom 
+    ROOT::Tree
+)
+
+cet_build_plugin( MakeRing art::module
+  LIBRARIES PRIVATE
+    RawData
+    StandardRecord
+    RecoBase
+    DetGeoMap
+    DetGeoMapService_service
+    ChannelMap
+    ChannelMapService_service
+    Geometry_service
+    Geometry
+    RunHistory
+    Simulation
+    ARICHRecoUtils
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Hist
+    ROOT::Core
+    ROOT::Geom 
+    ROOT::Tree
+)
+
+
+
+
 
 install_source()
 install_fhicl()

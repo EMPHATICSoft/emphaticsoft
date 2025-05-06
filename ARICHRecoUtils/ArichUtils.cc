@@ -49,9 +49,9 @@ void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double d
   {
 	Arich = new arichreco::Arich(Detector, up_n, down_n, up_pos, down_pos, up_thick, down_thick);
   }
+   
 //.......................................................................
-
-TH2D* ARICH_UTILS::DigsToHist(std::vector<std::tuple<float, int, int, int>> cluster)
+TH2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int,int>> cluster)
    {
 //     TFile* fdet = new TFile(PDfile, "read");
      //TH2Poly* hDet = (TH2Poly*) fdet->Get("hDet");
@@ -64,14 +64,15 @@ TH2D* ARICH_UTILS::DigsToHist(std::vector<std::tuple<float, int, int, int>> clus
      
     for(size_t i =0; i < cluster.size(); i++)
     {
-     	int board = std::get<1>(cluster[i]);
-	int channel = std::get<2>(cluster[i]); 
+	int board = cluster[i].first;
+	int channel = cluster[i].second; 
 	emph::cmap::EChannel echan(emph::cmap::TRB3,board,channel);
-
+	
 	emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	int pmt = dchan.HiLo();
 	int dch = dchan.Channel();
-
+	
+		
 	int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
         int pxlybin0 = (pmt/3)*9;
         int pmtrow = dch/8;

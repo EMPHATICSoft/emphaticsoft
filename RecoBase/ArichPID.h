@@ -12,11 +12,8 @@ namespace rb {
 	//ArichPID(float *scores[5]);
 	~ArichPID();
 
-	int Track_ID;
-	int ARing_ID;
-
+	int nhits;
 	virtual void setdefault();
-	friend std::ostream& operator << (std::ostream& o, const ArichPID& h);
    };
   
 }

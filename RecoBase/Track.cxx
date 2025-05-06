@@ -19,31 +19,12 @@ namespace rb {
     _clust.clear();
     _sgmnt.clear();
     _spcpt.clear();
-    _arichPID.setdefault();
 
     for (int i=0; i<3; ++i) {
       _vtx[i] = -999999.;
       _p[i] = 0.;
     }
   }
-  
-  //----------------------------------------------------------------------  
-  Track::Track(rb::ArichPID a_pid)
-  {
-    _pos.clear();
-    _clust.clear();
-    _sgmnt.clear();
-    _spcpt.clear();
-    _arichPID = a_pid;
-
-    for (int i=0; i<3; ++i) {
-      _vtx[i] = -999999.;
-      _p[i] = 0.;
-    }
-  }
-
-
-
   //------------------------------------------------------------
 
   void Track::Add(const rb::SSDCluster& cl) 
@@ -68,12 +49,6 @@ namespace rb {
     _spcpt.push_back(rb::SpacePoint(sp));
   }
   
-  //------------------------------------------------------------
-
-  void Track::Add(const rb::ArichPID& aPID)
-  {
-     _arichPID = aPID;
-  }
 
   //------------------------------------------------------------
 
