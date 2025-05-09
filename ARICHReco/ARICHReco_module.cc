@@ -58,9 +58,6 @@ namespace emph {
     void produce(art::Event& evt);
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    void beginRun(art::Run &run);
-    void endRun(art::Run &run);
-    void endJob();
 
   private:
 
@@ -86,7 +83,6 @@ namespace emph {
     double PDzpos;
     TString PDfile;
     bool fFillTree;
-    bool fFitCircle;
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::cmap::FEBoardType boardType = cmap::TRB3;    
@@ -116,7 +112,6 @@ namespace emph {
     this->produces<std::vector<rb::ArichID>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fFillTree   = bool(pset.get<bool>("FillTree"));
-    fFitCircle = bool(pset.get<bool>("FitCircle"));
  
 
     //ARICH RECO UTILS STUFF
@@ -174,23 +169,6 @@ namespace emph {
     fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
 */
 }
-
- //.......................................................................
-  void emph::ARICHReco::beginRun(art::Run &run)
-  {
- } 
-    
-//......................................................................
-
- void emph::ARICHReco::endJob()
-  {
-  }
-  
-//......................................................................
-
- void emph::ARICHReco::endRun(art::Run &run)
-  {
-  }
 
 //......................................................................
 

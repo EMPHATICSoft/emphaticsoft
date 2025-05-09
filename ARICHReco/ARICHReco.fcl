@@ -5,9 +5,8 @@ standard_arichreco:
   module_type: 	  ARICHReco
   PD_file:        "/ARICHReco/PMTDet.root"
   LabelHits:      "arichcluster"
-  LabelTracks:    "geantgen"			#using sim::Tracks untill got rb::Tracks 
+  LabelTracks:    "geantgen"			#using sim::Tracks until got rb::Tracks 
   FillTree:       true
-  FitCircle:      false
 
   # PARAMS OF ARICH, AEROGELS
   RefractiveIndex_UpstreamAerogel: 1.026

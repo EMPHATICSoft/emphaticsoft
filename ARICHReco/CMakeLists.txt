@@ -9,30 +9,6 @@ include_directories( $ENV{ROOT_INC} )
 include_directories($ENV{ART_ROOT_IO_INC})
 
 message(${src_files})
-# art_make_library ( SOURCE ${src_files}
-#                   LIBRARY_NAME  ARICHRecoLib
-#                   LIBRARIES
-#		   Simulation
-#		   StandardRecord
-#		   Geometry_service
-#		   Geometry
-#		   DetGeoMap
-#	           DetGeoMapService_service
-#		   ARICHRecoUtils
-#		   RawData
-#		   RecoBase
-#		   ChannelMap
-#		   ChannelMapService_service
-#		   RunHistory
-#		   art_root_io::TFileService_service
-#		   art::Framework_Core
-#	 	   art::Persistency_Common
-#		   messagefacility::MF_MessageLogger
-#                   ROOT::Hist
-#		   ROOT::Core
-#		   ROOT::Geom
-#		   ROOT::Tree
-#)
 
 cet_build_plugin(ARICHReco art::module
   LIBRARIES PRIVATE
