@@ -56,7 +56,7 @@ namespace emph {
     void EndOfEventAction(const G4Event*);
     void PreTrackingAction(const G4Track*);
     void PostTrackingAction(const G4Track*);
-    void SteppingAction(const G4Step*);
+    void SteppingAction(const G4Step* step);
 
     //  Returns the current hit being saved in the list of
     //  hits.  

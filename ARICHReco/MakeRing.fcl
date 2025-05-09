@@ -1,0 +1,25 @@
+BEGIN_PROLOG
+
+standard_arich_ring:
+{
+  module_type: 	  MakeRing
+  LabelHits:      "arichcluster"
+  LabelTracks:    "geantgen"			#using sim::Tracks untill got rb::Tracks 
+  FillTree:       true
+ 
+  # PARAMS OF ARICH, AEROGELS
+  PD_file:        "/ARICHReco/PMTDet.root"
+  RefractiveIndex_UpstreamAerogel: 1.026
+  Position_UpstreamAerogel: 0.                  #cm
+  Thinkness_UpstreamAerogel: 1.89               #cm
+  RefractiveIndex_DownstreamAerogel: 1.030
+  Position_DownstreamAerogel: 1.89              #cm
+  Thickness_DownstreamAerogel: 2.04             #cm
+  PD_Darkrate: 406                              #Hz
+  Trigger_window: 5                             #ns
+  PD_FillFactor: 1
+  PD_Position: 21.82                            #cm
+
+}
+
+END_PROLOG
