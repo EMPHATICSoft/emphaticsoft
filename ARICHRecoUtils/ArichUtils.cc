@@ -177,6 +177,7 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 		}
 		//hs->SetTitle(stackedTitle);
 		double logLikelihood = computeLogLikelihood(hist, hs);
+		std::cout << logLikelihood << std::endl;
 		LogLike.push_back(logLikelihood);
 	}
 	delete hs;

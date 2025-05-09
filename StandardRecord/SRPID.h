@@ -16,12 +16,12 @@ namespace caf
 	
 	SRPID();
         virtual ~SRPID();	
+	
 	int track_id;
-	//SRPID(float scores[5]);	
+	std::vector<double> scores;
+
 	void Reset();
 	
-	//float scores[5];
-	std::vector<double> scores;
 	float operator [](int n){return scores[n];};
 
 };

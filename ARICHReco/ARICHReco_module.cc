@@ -42,6 +42,7 @@
 #include "RecoBase/ARICHCluster.h"
 #include "RecoBase/ArichID.h"
 #include "Utilities/PMT.h"
+#include "Simulation/Track.h"
 
 // ARICHRECO
 #include "ARICHRecoUtils/ArichUtils.h"
@@ -111,8 +112,9 @@ namespace emph {
 
     this->produces<std::vector<rb::ArichID>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
+    fTrackLabel =  std::string(pset.get<std::string>("LabelTracks"));
     fFillTree   = bool(pset.get<bool>("FillTree"));
- 
+    
 
     //ARICH RECO UTILS STUFF
     PDfile  =  std::string(pset.get< std::string >("PD_file"));
@@ -178,12 +180,12 @@ void ARICHReco::produce(art::Event& evt)
 
       //int eventID = evt.id().event();;
       art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
- //     art::Handle<std::vector<sim::Track>> TracksH;
+      art::Handle<std::vector<sim::Track>> TracksH;
 
       evt.getByLabel(fARICHLabel,arich_clusters);
       //std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
 
-      //evt.getByLabel(fTrackLabel,TracksH);      
+      evt.getByLabel(fTrackLabel,TracksH);      
 
 //      art::Handle<std::vector<rb::Track>> RecoTracksH;
 //      evt.getByLabel("makesingletracks", RecoTracksH);
@@ -214,56 +216,62 @@ void ARICHReco::produce(art::Event& evt)
 	  float finaly = posy + (192.0 - posz) * track.P()[1]/mom; 	
 	  
           std::cout << "Final pos: " << finalx << ", " << finaly << std::endl;
-*/
-//	}
+*/ //}
+
+	std::cout << (*TracksH).size() << std::endl;
+	for(size_t l =0 ; l < (*TracksH).size(); l++){
+        double track_z = (*TracksH)[l].GetZ();
+        int track_id = (*TracksH)[l].GetTrackID();      
+      
+        if (1920. < track_z && track_z < 1940. ){  // aerogel positions in phase1C 
+                
+          float mom = sqrt(pow((*TracksH)[l].GetPx(),2) + pow((*TracksH)[l].GetPy(),2) + pow((*TracksH)[l].GetPz(),2));
+        
+		std::cout << mom << std::endl;         
+            if(std::find(unique_ids.begin(), unique_ids.end(), track_id) == unique_ids.end()){  
+       	        pdg_event = (*TracksH)[l].GetPId();             
+                std::cout << pdg_event << std::endl;
+		 MCT_PDG.push_back(pdg_event);
+                TVector3 dir_((*TracksH)[l].GetPx()/mom,(*TracksH)[l].GetPy()/mom,(*TracksH)[l].GetPz()/mom);
+                TVector3 pos_((*TracksH)[l].GetX()/10,(*TracksH)[l].GetY()/10,0.);  //in cm
+                momenta.push_back(mom/1000);   //Tracks[p].mom use GeV not MeV
+                dir.push_back(dir_);      //Tracks[p].dir);     
+                pos.push_back(pos_);      //Tracks[p].pos);
+                dir_.Clear(); pos_.Clear();
+                unique_ids.push_back(track_id);          
+             }
+           }
+        }
 
 	
 
 	for(int u = 0; u < (int)arich_clusters->size(); u++){
             
-            std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
+	     rb::ArichID arichID;
 	
+            std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
 
 	     if(arich_clusters->at(u).NDigits() < 4)continue;            
 	    
 	      std::vector<std::pair<int,int>> digs = arich_clusters->at(u).Digits();  	
-
 			
               TH2D* event_hist = ArichUtils->DigsToHist(digs);	
-
-//	       LLs = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir); 
 	
-
+	      int np = unique_ids.size(); 
+	
+	      if(np !=0 && np ==1) {
+	
+		LLs = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir); 
+	
+		arichID.scores = LLs;
+		for(double val : LLs)std::cout << val << " ";	
+	
+		std::cout << std::endl;			
+		}
+	 ARICH_LL->push_back(arichID);
 	 delete event_hist;
 	}
 
-	
-	// TO BE CHANGED TO USE RECO TRACKS //
-/*
-	for(size_t l =0 ; l < (*TracksH).size(); l++){
-	double track_z = (*TracksH)[l].GetZ();
-	int track_id = (*TracksH)[l].GetTrackID();	
-	  	
-	if (1920. < track_z && track_z < 1940. ){  // aerogel positions in phase1C 
-	  
-	  float mom = sqrt(pow((*TracksH)[l].GetPx(),2) + pow((*TracksH)[l].GetPy(),2) + pow((*TracksH)[l].GetPz(),2));
-		 
-	    if(std::find(unique_ids.begin(), unique_ids.end(), track_id) == unique_ids.end()){  
-
-		//std::cout << "track id: " << track_id << " pos: " << (*TracksH)[l].GetX()/10 << ", " << (*TracksH)[l].GetY()/10 << std::endl;	
-		pdg_event = (*TracksH)[l].GetPId();	 	
-		MCT_PDG.push_back(pdg_event);
-		TVector3 dir_((*TracksH)[l].GetPx()/mom,(*TracksH)[l].GetPy()/mom,(*TracksH)[l].GetPz()/mom);
-                TVector3 pos_((*TracksH)[l].GetX()/10,(*TracksH)[l].GetY()/10,0.);  //in cm
-                momenta.push_back(mom/1000);   //Tracks[p].mom use GeV not MeV
-		dir.push_back(dir_);      //Tracks[p].dir);     
-                pos.push_back(pos_);      //Tracks[p].pos);
-	    	dir_.Clear(); pos_.Clear();
-		unique_ids.push_back(track_id); 	 
-	     }
-	   }
-	}
-*/
 	// THINGS WITH TRACK INFO	
 	// well probably need to consider the case when we have rb::Tracks and when we don't
 	//
@@ -271,30 +279,12 @@ void ARICHReco::produce(art::Event& evt)
 	// NO TRACKS: LL? HOUGH FITTER? ML NRings?
 
 	
-	int np = unique_ids.size();   //Tracks.size() 
-	//-> Number of tracks == number of particles to find (check with direction if the particle crosses the aerogel, it may not) 
-	unique_ids.clear();
-	
-	//std::cout << "Unique particles found " << np << std::endl;	
-
-	if(np == 1){  //for now single tracks
-
-  	 // LLs = ArichUtils->IdentifyMultiParticle(event_hist, np, momenta, pos, dir);		
-	 
-	  //for(double val : LLs)std::cout << val << " ";
-	  //std::cout << std::endl; 
 	  // IF WE WANT THE PDFs -> std::vector<std::vector<TH2Poly*>> pdfs = ArichUtils->GetPDFs(np, momenta, pos, dir);
 	
 	  // for sum_scaled LL
 	  //double sum =  std::accumulate(mid.begin(),mid.end(),0.0);
   	  //std::transform(mid.begin(),mid.end(),mid.begin(),[sum](double value){return value/sum;});
-
-
-
-	  if(fFillTree){ LL_PION.push_back(LLs[0]); LL_KAON.push_back(LLs[1]); LL_PROT.push_back(LLs[2]);}
-	  LLs.clear();
  
-	} // end if 1 track
 	
 	//delete event_hist; 
 	//momenta.clear(); pos.clear(); dir.clear();

@@ -9,7 +9,7 @@ namespace caf{
 
   public:
 	SRArichID();
-	~SRArichID();
+	virtual	~SRArichID();
 
 	int nhit;
 	virtual void setdefault();
