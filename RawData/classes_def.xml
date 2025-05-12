@@ -21,7 +21,8 @@
    <version ClassVersion="12" checksum="1710862163"/>
    <version ClassVersion="11" checksum="4069590048"/>
   </class>
-  <class name="emph::rawdata::TRB3RawDigit"    ClassVersion="17" >
+  <class name="emph::rawdata::TRB3RawDigit"    ClassVersion="18" >
+   <version ClassVersion="18" checksum="2488616664"/>
    <version ClassVersion="17" checksum="1455924076"/>
    <version ClassVersion="16" checksum="1039826831"/>
    <version ClassVersion="15" checksum="1560633629"/>
