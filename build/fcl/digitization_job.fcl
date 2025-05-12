@@ -1,0 +1,41 @@
+#include "Services.fcl"
+#include "SSDDigitizer.fcl"
+
+process_name: Digitizer
+
+services:
+{
+  TFileService: { fileName: "%ifb_dig_hist.root" closeFileFast: false }
+  @table::standard_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "%ifb.dig.root"
+   fastCloning: false
+   
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    raw:        @local::standard_ssddigitizer
+  }
+
+  digitizer: [ raw ]
+
+  trigger_paths: [ digitizer ]
+  stream1: [ out1 ]
+  end_paths: [ stream1 ]
+}

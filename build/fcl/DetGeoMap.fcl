@@ -1,0 +1,8 @@
+BEGIN_PROLOG
+
+standard_detgeomap:
+{
+  UseGeometry: true
+}
+
+END_PROLOG
