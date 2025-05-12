@@ -1,8 +1,0 @@
-BEGIN_PROLOG
-
-standard_arichreco:
-{
-  module_type: ARICHReco
-}
-
-END_PROLOG

@@ -1,9 +1,0 @@
-BEGIN_PROLOG
-
-standard_ssddigitizer:
-{    
-  module_type: SSDDigitizer
-  G4Label: "geantgen"
-}
-
-END_PROLOG

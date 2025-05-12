@@ -1,8 +1,0 @@
-BEGIN_PROLOG
-
-standard_backovhitreco:
-{
-  module_type: BACkovHitReco
-}
-
-END_PROLOG
