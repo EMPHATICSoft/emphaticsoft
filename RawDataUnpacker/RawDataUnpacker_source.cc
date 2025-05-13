@@ -571,7 +571,8 @@ namespace rawdata {
 #define binFactor 10
 
 	template <typename T, typename S> // this type will likely be 'double'
-	std::vector<T> calcDifferences(S timestampA, S timestampB, size_t N_compare, std::vector<size_t> skip, T scale) {
+	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
+		size_t N_compare = timestampA.size();
 		// timestamps from A and B, comparing N_compare stamps and skipping sample indices of skip[index]
 
 		std::vector<T> timeDiffs; timeDiffs.reserve(N_compare*N_compare);
@@ -613,8 +614,8 @@ namespace rawdata {
 		char hname[256];
 		char htitle[256];
 		// nbins is rounded
-		art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file <@@>
-		art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file <@@>
+		//art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file <@@>
+		//art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file <@@>
 
 		static int histIndex = 0;
       sprintf(hname,"Time_Offset_%d",histIndex);
@@ -626,7 +627,7 @@ namespace rawdata {
 		for(auto x : dt)
 			dtHist.Fill(x);
 
-		tdir2.make<TH1I>(dtHist); // this draws the histogram <@@>
+		//tdir2.make<TH1I>(dtHist); // this draws the histogram <@@>
 
 		return { dtHist.GetMaximumBin(), dtHist.GetMaximum(), dtHist.GetStdDev() };
 	}
@@ -644,20 +645,24 @@ namespace rawdata {
 			artdaq::Fragment::fragment_id_t,
 			std::vector<int64_t>
 		> dtVec;
-		std::vector<uint64_t> ssdTimeStamps; ssdTimeStamps.reserve(fSSDRawDigits.size());
+		std::vector<uint64_t> ssdTimestamps; ssdTimestamps.reserve(fSSDRawDigits.size());
 		for(size_t i = 0; i < fSSDRawDigits.size(); ++i) {
-			ssdTimeStamps.push_back(fSSDRawDigits[i].first);
+			ssdTimestamps.push_back(fSSDRawDigits[i].first);
+		}
+		for(auto& time : ssdTimestamps) {
+			time += -*ssdTimestamps.begin();
 		}
 
 		std::cout << "In findT0s()" << std::endl;
 
       std::array<artdaq::Fragment::fragment_id_t,3> fragIdGrandfather = {fFragId[0]};
 
+		size_t samplesGrandfather = UINT_MAX;
 		for(int i = 0; i < 2; ++i) { // iterate over sensor types
-			size_t samplesGrandfather = 0;
+			samplesGrandfather = UINT_MAX;
 			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
 				auto fragId = fFragId[ifrag];
-				if(fragId >= 10*i && fragId <= 10*(i+1)) continue; // this groups CAENs together and TRB3s together
+				if(fragId >= 100*i && fragId <= 100*(i+1)) continue; // this groups CAENs together and TRB3s together
 				// remove first event from each sensor <@@>
 				fFragTimestamps[fragId].erase(fFragTimestamps[fragId].begin());
 				// Zero clocks to first event
@@ -666,7 +671,7 @@ namespace rawdata {
 //				}
 // Doesn't seem to work -NTK <@@>
 				 //determine grandfather clock
-				if(fFragTimestamps[fragId].size() > samplesGrandfather) {
+				if(fFragTimestamps[fragId].size() < samplesGrandfather) {
 					fragIdGrandfather[i] = fragId;
 					samplesGrandfather = fFragTimestamps[fragId].size();
 				}
@@ -698,6 +703,8 @@ namespace rawdata {
 		size_t N_compare=200; // Number of events to compare
 		double scale = 1;
 		for(size_t set = 0; set < samplesGrandfather - 2*N_compare; set+=N_compare) {
+		//for(size_t set = 0; set < N_compare*3; set+=N_compare) {
+			std::cout << std::setw(10) << set << std::endl;
 			for(int i = 0; i < 2; ++i) { // iterate over sensor types
 				auto grandfather = fragIdGrandfather[i];
 				for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
@@ -705,44 +712,67 @@ namespace rawdata {
 					if(grandfather/10 != fragId/10) continue;
 
 					std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-					if(fragId == grandfather) { // compare SSDs if fragId is grandfather
-						dtVec[grandfather] = calcDifferences<int64_t>(fFragTimestamps[grandfather], ssdTimeStamps, N_compare, skip, scale);
-					} else {
-						dtVec[fragId] = calcDifferences<int64_t>(fFragTimestamps[grandfather], fFragTimestamps[fragId], N_compare, skip, scale);
-					}
 
+					// Set up grandfather vector for comparison
+					auto begin = fFragTimestamps[grandfather].begin()+set;
+					std::vector<int64_t> A(begin, begin + N_compare);
+					auto last = fFragTimestamps[grandfather].end();
+					if(fragId == grandfather) { // compare SSDs if fragId is grandfather
+						begin = ssdTimestamps.begin()+set;
+						last = ssdTimestamps.end();
+					} else {
+						begin = fFragTimestamps[fragId].begin()+set;
+						last = fFragTimestamps[fragId].end();
+					}
+					std::vector<int64_t> B(begin, begin + N_compare);
+					dtVec[fragId] = calcDifferences<int64_t>(A, B, skip, scale);
 					// Find offsetBin
 					// { offset, N_occurrences, standardDeviation }
 					auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragId]);
 
 					auto timeOffset = binToTime(dtVec[fragId],indexBin);
-					std::cout << "\nPair (fragId A, fragId B): ("
-						<< grandfather << ", " << ( (ifrag < fFragId.size()) ? fragId : ifrag ) << ")"
-						<< "\nOffset (bin): " << indexBin
-						<< "\nOffset (time): " << timeOffset
-						<< "\nOccurrences: " << N_occur
+
+					//std::cout << "\nPair (fragId A, fragId B): ("
+					std::cout << std::setw(15)
+						<< "(" << grandfather << ", " << ( (ifrag < fFragId.size()) ? fragId : ifrag ) << ")" << std::setw(30)
+						//<< "\tOffset (bin): " << indexBin << std::setw(20)
+						<< "\tOffset (time): " << timeOffset << std::setw(30)
+						<< "\tOccurrences: " << N_occur
 						<< std::endl;
-					// Scale back set of events by the calculated offset
-						for(auto& time : fFragTimestamps[fragId])
-							time += timeOffset;
+
+					// Scale back NEXT set of events by the calculated offset
+					std::vector<int64_t> offset(begin, last);
+//					for(auto& time : offset)
+//						time += timeOffset;
+					size_t timeSet = 0;
+
+					if(fragId == grandfather) // compare SSDs if fragId is grandfather
+						timeSet = ssdTimestamps.size() - set;
+					else
+						timeSet = fFragTimestamps[fragId].size() - set;
+
+					for(size_t time = set; time < timeSet; ++time) {
+						if(fragId == grandfather)
+							ssdTimestamps[time] += timeOffset;
+						else
+							fFragTimestamps[fragId][time] +=timeOffset;
+					}
 				 }
 			}
-
-			std::cout << "comparing the grandfathers" << std::endl;;
-			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-			dtVec[fragIdGrandfather[1]] = calcDifferences<int64_t>(fFragTimestamps[fragIdGrandfather[0]], fFragTimestamps[fragIdGrandfather[1]], N_compare, skip, scale);
-
-			// Find offsetBin
-			// { offset, N_occurrences, standardDeviation }
-			auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragIdGrandfather[1]]);
-
-			std::cout << "\nPair (fragId A, fragId B): ("
-				<< fragIdGrandfather[0] << ", " << fragIdGrandfather[1] << ")"
-				<< "\nScale : " << scale
-				<< "\nOffset (bin): " << indexBin
-				<< "\nOffset (time): " << binToTime(dtVec[fragIdGrandfather[1]],indexBin)
-				<< "\nOccurrences: " << N_occur
-				<< std::endl;
+			//std::cout << "comparing the grandfathers" << std::endl;;
+//			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
+//			dtVec[fragIdGrandfather[1]] = calcDifferences<int64_t>(fFragTimestamps[fragIdGrandfather[0]], fFragTimestamps[fragIdGrandfather[1]], skip, scale);
+//
+//			// Find offsetBin
+//			// { offset, N_occurrences, standardDeviation }
+//			auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragIdGrandfather[1]]);
+//
+//			std::cout
+//				<< "(" << fragIdGrandfather[0] << ", " << fragIdGrandfather[1] << ")"
+//				//<< "\nOffset (bin): " << indexBin
+//				<< "\tOffset (time): " << binToTime(dtVec[fragIdGrandfather[1]],indexBin)
+//				<< "\tOccurrences: " << N_occur
+//				<< std::endl;
 		}
 		return false;
 
