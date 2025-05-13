@@ -100,6 +100,7 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     bool        fSevenOn;
+    std::string fAlignPars;
 
     //reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -117,6 +118,7 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
     fSevenOn           (pset.get< bool >("SevenOn"))
+    //fAlignPars         (pset.get< std::string >("AlignPars"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -279,19 +281,16 @@ namespace emph {
 	    ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	  }
 
-	  std::cout<<"..............."<<std::endl;
-          std::cout<<"Good station = "<<goodStation<<std::endl; 
           for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
 	    if (!goodStation) break;
 	    for (auto j : clustMapAtLeastOne[i]){
-	      std::cout<<"Station "<<i<<": "<<j.second<<std::endl;
+              mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
 //	      if (j.second > 10){
 //		goodStation = false;
 //	     	break;
 //              }
 	    }
           }
-          std::cout<<"..............."<<std::endl;	  
 
           for (size_t i=0; i<clusters.size(); i++){
 	    int plane = clusters[i]->Plane();
@@ -314,13 +313,11 @@ namespace emph {
 	    }
 
             //make reconstructed hits
-            //if (clusters.size() < 50) spv = algo.MakeHits(ls_group);
 	    spv = algo.MakeHits(ls_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
   	    usableclust++;
 	  }
-	  //else toomanyclusters++;
 	  
           ls_group.clear();
           cl_group.clear();
@@ -343,20 +340,20 @@ namespace emph {
               }
             }
 
-	    std::cout<<"sp1 size = "<<sp1.size()<<std::endl;
-	    std::cout<<"sp2 size = "<<sp2.size()<<std::endl;
-            std::cout<<"sp3 size = "<<sp3.size()<<std::endl;
+       	    mf::LogDebug("MakeTrackSegments") << "sp1 size: "<< sp1.size();
+	    mf::LogDebug("MakeTrackSegments") << "sp2 size: "<< sp2.size();
+	    mf::LogDebug("MakeTrackSegments") << "sp3 size: "<< sp3.size();
 
             //form lines and fill plots
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
 	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
 	
             std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
-            std::cout<<"tstmp2 size = "<<tstmp2.size()<<std::endl;
+            mf::LogDebug("MakeTrackSegments") << "tstmp2 size = "<<tstmp2.size();
             for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
 
             std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
-            std::cout<<"tstmp3 size = "<<tstmp3.size()<<std::endl;
+            mf::LogDebug("MakeTrackSegments") << "tstmp3 size = "<<tstmp3.size();
             for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
 	  
             for (auto ts : tsv) {

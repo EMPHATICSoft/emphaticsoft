@@ -134,7 +134,6 @@ namespace emph {
 
     int re = 1;
 
-    //int totalEvents = 0; 
     int usingEvent = 0;
  };
 
@@ -206,7 +205,7 @@ namespace emph {
           for (int dd=1; dd<=4; dd++){
             l = ii*1000 + jj*100 + kk*10 + dd;
             label.push_back(l);
-            std::cout<<"l: "<<l<<"...view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<std::endl;
+            //std::cout<<"l: "<<l<<"...view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<std::endl;
           }
         }
       }
@@ -230,14 +229,13 @@ namespace emph {
     for (int i=0; i<(int)countvec.size(); i++){
       for (int j=0; j<(int)countvec[i].size(); j++){
         for (int k=0; k<(int)countvec[i][j].size(); k++){
-          std::cout<<"(i,j,k) = "<<"("<<i<<","<<j<<","<<k<<") = "<<countvec[i][j][k]<<std::endl;
+          //std::cout<<"(i,j,k) = "<<"("<<i<<","<<j<<","<<k<<") = "<<countvec[i][j][k]<<std::endl;
         }
       }
     } 
 
     delete m;
 
-    //std::cout<<"SingleTrackAlignment: Number of events with track segments  = "<<totalEvents<<std::endl;
     std::cout<<"SingleTrackAlignment: Number of events used = "<<usingEvent<<std::endl;
   }
 
@@ -274,14 +272,10 @@ namespace emph {
 
 	  int sens = cl_group[ii][jj][kk]->Sensor();
 
-          //std::cout<<"Width: "<<cl_group[ii][jj][kk]->Width()<<std::endl;
-	  //std::cout<<"Width: "<<cl_group[ii][jj][kk]->WgtRmsStrip()*0.06<<std::endl;
 	  float uncer = cl_group[ii][jj][kk]->WgtRmsStrip()*0.06;
           //std::cout<<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View()<<std::endl;
 	  auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
 	  double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad i think
-          // rad or degree?
-	  //std::cout<<"phi_m: "<<phim<<std::endl;
           for (auto ts : trksegv) {
             double tsz = ts.Vtx()[2];
 	    TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
@@ -305,28 +299,9 @@ namespace emph {
 	      double tsx = a(0) + (b(0)-a(0))*t;
 	      double tsy = a(1) + (b(1)-a(1))*t;
 
-	      //std::cout<<".........."<<std::endl;
-              //std::cout<<"tsx = "<<tsx<<std::endl;
 	      double xz = a(0) + ts.P()[0]/ts.P()[2]*sensorz;
 	      double yz = a(1) + ts.P()[1]/ts.P()[2]*sensorz;
-	      //std::cout<<"x(z) = "<<xz<<std::endl;
 	      // signed distance from point to a line 
-              // find slope of line segment
-              /*
-              double dx = b(0) - a(0);
-	      double dy = b(1) - a(1);
-	      if (dx == 0){
-	        la = 1;
-		lb = 0;
-	        lc = a(0);
-	      }
-	      else{
-                double m = dy/dx;
-		lc = a(1) - m*a(0);
-		la = m;
-		lb = 1;
-	      }
-	      */
 	      double la = x1(1) - x0(1);
 	      double lb = x0(0) - x1(0);
 	      double lc = x0(1)*(x1(0)-x0(0)) - (x1(1)-x0(1))*x0(0);	  
@@ -339,10 +314,10 @@ namespace emph {
 	      float lcd_y0 = 1.*TMath::Cos(phim);
 	      float lcd_pypz = sensorz*TMath::Cos(phim);
 
-	      //std::cout<<"..........."<<std::endl;
-	      //std::cout<<"pull = "<<pull<<std::endl;
-	      //std::cout<<"dsign = "<<dsign<<std::endl;
-	      //std::cout<<"sensorz = "<<sensorz<<std::endl;
+	      mf::LogDebug("SingleTrackAlignment") << "..........." ;
+              mf::LogDebug("SingleTrackAlignment") << "pull = " << pull ;
+              mf::LogDebug("SingleTrackAlignment") << "dsign = " << dsign ;
+              mf::LogDebug("SingleTrackAlignment") << "sensorz = " << sensorz ;
 
               float gld_x; float gld_y; float gld_z;
 	      float gld_phim;
@@ -377,28 +352,20 @@ namespace emph {
 		gld_phim =  0.;
               }
        	
-	      //std::cout<<"px = "<<ts.P()[0]<<std::endl;
-	      //std::cout<<"py = "<<ts.P()[1]<<std::endl;
-              //std::cout<<"pz = "<<ts.P()[2]<<std::endl;
-	      //std::cout<<"px/pz = "<<gld_xz<<std::endl;
-	      //std::cout<<"py/pz = "<<gld_yz<<std::endl;
-
-	      //std::cout<<"gld_phim = "<<gld_phim<<std::endl;
-
 	      float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
 	      //float mdergl[3] = {gld_x,gld_y,gld_z};
 	      float mdergl[4] = {gld_x,gld_y,gld_z,gld_phim};
 
 	      int ltmp[4] = {ii*1000 + jj*100 + kk*10 + 1,ii*1000 + jj*100 + kk*10 + 2, ii*1000 + jj*100 + kk*10 + 3, ii*1000 + jj*100 + kk*10 + 4};
-              m->mille(4,mderlc,4,mdergl,ltmp,dsign,uncer); //0.0346); //0.0173);
-	      std::cout<<"uncer = "<<uncer<<std::endl;
+              m->mille(4,mderlc,4,mdergl,ltmp,dsign,uncer);
+              mf::LogDebug("SingleTrackAlignment") << "uncer = " << uncer ;
 	    }
 	  }
 	}
       }
     }
     re++;
-    std::cout<<"^ Record "<<re<<std::endl;
+    mf::LogDebug("SingleTrackAlignment") << "^ Record " << re ;
     m->end();
   }
 
@@ -418,25 +385,14 @@ namespace emph {
             auto st = emgeo->GetSSDStation(ii);
             auto T = align->SSDMatrix(ii,jj,kk);
             double sl[3] = {0.,0.,0.};
-            //double sl[3] = {sd->Pos()[0],sd->Pos()[1],sd->Pos()[2]};
-
-            //std::cout<<"station pos "<<ii*1000 + jj*100 + kk*10<<": "<<st->Pos()[0]<<","<<st->Pos()[1]<<","<<st->Pos()[2]<<std::endl;
-            std::cout<<ii*1000 + jj*100 + kk*10<<" (x,y,z) for sl = "<<sl[0]<<","<<sl[1]<<","<<sl[2]<<std::endl;
-
             double sm[3];
             double s[3];
             sd->LocalToMother(sl,sm);
-
-            std::cout<<ii*1000 + jj*100 + kk*10<<" (x,y,z) for sm  = "<<sm[0]<<","<<sm[1]<<","<<sm[2]<<std::endl;
             st->LocalToMother(sm,sl);
-
-            std::cout<<ii*1000 + jj*100 + kk*10<<" (x,y,z) for st = "<<sl[0]<<","<<sl[1]<<","<<sl[2]<<std::endl;
             //T->LocalToMaster(sl,s);
 
             double sensorz = sl[2]; //s[2];
 
-            //std::cout<<ii*1000 + jj*100 + kk*10<<" "<<sensorz<<std::endl;
-	    //std::cout<<"Station "<<ii<<", z = "<<sensorz<<std::endl;
 	    if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
@@ -481,8 +437,6 @@ namespace emph {
     tsvnom.clear();
 
     auto emgeo = geo->Geo();
-    //std::cout<<"Mag Pos USZ: "<<emgeo->MagnetUSZPos()<<std::endl;
-    //std::cout<<"Mag Pos DSZ: "<<emgeo->MagnetDSZPos()<<std::endl;
 
     run = evt.run();
     subrun = evt.subRun();
@@ -494,11 +448,8 @@ namespace emph {
     bool useEvent = false;
     if (digitStr.back() == '1'){
       useEvent = true;
-//      usingEvent++;
     }
                                                   
-    //std::cout<<"Event "<<event<<", "<<useEvent<<std::endl;
-
     if (fCheckLineSeg){
       auto haslineseg = evt.getHandle<std::vector<rb::LineSegment>>(fTrackSegLabel);
       if (!haslineseg){
@@ -577,7 +528,7 @@ if (useEvent){
       }
 
       if (tsvnom.size()==3){
-usingEvent++;
+        usingEvent++;
 
         double epsilon = 0.06; //60 micron
         TGeoTranslation* h = new TGeoTranslation();
