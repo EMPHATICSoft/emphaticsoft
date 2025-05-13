@@ -642,9 +642,9 @@ namespace rawdata {
 
 		std::unordered_map <
 			artdaq::Fragment::fragment_id_t,
-			std::vector<int>
+			std::vector<int64_t>
 		> dtVec;
-		std::vector<long unsigned int> ssdTimeStamps; ssdTimeStamps.reserve(fSSDRawDigits.size());
+		std::vector<uint64_t> ssdTimeStamps; ssdTimeStamps.reserve(fSSDRawDigits.size());
 		for(size_t i = 0; i < fSSDRawDigits.size(); ++i) {
 			ssdTimeStamps.push_back(fSSDRawDigits[i].first);
 		}
@@ -653,29 +653,25 @@ namespace rawdata {
 
       std::array<artdaq::Fragment::fragment_id_t,3> fragIdGrandfather = {fFragId[0]};
 
-		std::cout << "First SSD timestamp: " << ssdTimeStamps[0] << std::endl;
-		std::cout << "Second SSD timestamp: " << ssdTimeStamps[1] << std::endl;
 		for(int i = 0; i < 2; ++i) { // iterate over sensor types
 			size_t samplesGrandfather = 0;
 			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
 				auto fragId = fFragId[ifrag];
-				if(fragId >= 10*i && fragId <= 10*(i+1)) continue;
-				std::cout << "First timestamp: " << *fFragTimestamps[fragId].begin() << std::endl;
+				if(fragId >= 10*i && fragId <= 10*(i+1)) continue; // this groups CAENs together and TRB3s together
 				// remove first event from each sensor <@@>
 				fFragTimestamps[fragId].erase(fFragTimestamps[fragId].begin());
-				std::cout << "First timestamp after removal: " << *fFragTimestamps[fragId].begin() << std::endl;
 				// Zero clocks to first event
-				//for(auto& time : fFragTimestamps[fragId]) {
-				//	time += -*fFragTimestamps[fragId].begin();
-				//}
-				// determine grandfather clock
+//				for(auto& time : fFragTimestamps[fragId]) {
+//					time += -*fFragTimestamps[fragId].begin();
+//				}
+// Doesn't seem to work -NTK <@@>
+				 //determine grandfather clock
 				if(fFragTimestamps[fragId].size() > samplesGrandfather) {
 					fragIdGrandfather[i] = fragId;
 					samplesGrandfather = fFragTimestamps[fragId].size();
 				}
 			}
 		}
-		return false;
 
 		/*******************************************************************************************
 		// Synthetic dataset
@@ -701,53 +697,54 @@ namespace rawdata {
 		 // - NTK
 		size_t N_compare=200; // Number of events to compare
 		double scale = 1;
-		for(int i = 0; i < 2; ++i) { // iterate over sensor types
-			auto grandfather =fragIdGrandfather[i];
-			for (size_t ifrag=0; ifrag < fFragId.size()+1; ++ifrag) {
-				auto fragId = fFragId[ifrag];
-				if(fragId == grandfather) continue; // skip if comparing to grandfather clock
-				if(grandfather/10 != fragId/10) continue;
+		for(size_t set = 0; set < samplesGrandfather - 2*N_compare; set+=N_compare) {
+			for(int i = 0; i < 2; ++i) { // iterate over sensor types
+				auto grandfather = fragIdGrandfather[i];
+				for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
+					auto fragId = fFragId[ifrag];
+					if(grandfather/10 != fragId/10) continue;
 
-				std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-				if(ifrag > fFragId.size()) {
-					dtVec[fragIdGrandfather[0]] = calcDifferences<int>(fFragTimestamps[grandfather], ssdTimeStamps, N_compare, skip, scale);
-				} else {
-					dtVec[fragId] = calcDifferences<int>(fFragTimestamps[grandfather], fFragTimestamps[fragId], N_compare, skip, scale);
-				}
+					std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
+					if(fragId == grandfather) { // compare SSDs if fragId is grandfather
+						dtVec[grandfather] = calcDifferences<int64_t>(fFragTimestamps[grandfather], ssdTimeStamps, N_compare, skip, scale);
+					} else {
+						dtVec[fragId] = calcDifferences<int64_t>(fFragTimestamps[grandfather], fFragTimestamps[fragId], N_compare, skip, scale);
+					}
 
-				// Find offsetBin
-				// { offset, N_occurrences, standardDeviation }
-				auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragId]);
+					// Find offsetBin
+					// { offset, N_occurrences, standardDeviation }
+					auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragId]);
 
-				auto timeOffset = binToTime(dtVec[fragId],indexBin);
-				std::cout << "\nPair (fragId A, fragId B): ("
-					<< grandfather << ", " << fragId << ")"
-					<< "\nScale : " << scale
-					<< "\nOffset (bin): " << indexBin
-					<< "\nOffset (time): " << timeOffset
-					<< "\nOccurrences: " << N_occur
-					<< "\nStandard Deviation: " << stdDev << std::endl;
-				// Scale back set of events by the calculated offset
-					for(auto& time : fFragTimestamps[fragId])
-						time += timeOffset;
-			 }
+					auto timeOffset = binToTime(dtVec[fragId],indexBin);
+					std::cout << "\nPair (fragId A, fragId B): ("
+						<< grandfather << ", " << ( (ifrag < fFragId.size()) ? fragId : ifrag ) << ")"
+						<< "\nOffset (bin): " << indexBin
+						<< "\nOffset (time): " << timeOffset
+						<< "\nOccurrences: " << N_occur
+						<< std::endl;
+					// Scale back set of events by the calculated offset
+						for(auto& time : fFragTimestamps[fragId])
+							time += timeOffset;
+				 }
+			}
+
+			std::cout << "comparing the grandfathers" << std::endl;;
+			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
+			dtVec[fragIdGrandfather[1]] = calcDifferences<int64_t>(fFragTimestamps[fragIdGrandfather[0]], fFragTimestamps[fragIdGrandfather[1]], N_compare, skip, scale);
+
+			// Find offsetBin
+			// { offset, N_occurrences, standardDeviation }
+			auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragIdGrandfather[1]]);
+
+			std::cout << "\nPair (fragId A, fragId B): ("
+				<< fragIdGrandfather[0] << ", " << fragIdGrandfather[1] << ")"
+				<< "\nScale : " << scale
+				<< "\nOffset (bin): " << indexBin
+				<< "\nOffset (time): " << binToTime(dtVec[fragIdGrandfather[1]],indexBin)
+				<< "\nOccurrences: " << N_occur
+				<< std::endl;
 		}
-
-		std::cout << "comparing the grandfathers" << std::endl;;
-		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-		dtVec[fragIdGrandfather[1]] = calcDifferences<int>(fFragTimestamps[fragIdGrandfather[0]], fFragTimestamps[fragIdGrandfather[1]], N_compare, skip, scale);
-
-		// Find offsetBin
-		// { offset, N_occurrences, standardDeviation }
-		auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragIdGrandfather[1]]);
-
-		std::cout << "\nPair (fragId A, fragId B): ("
-			<< fragIdGrandfather[0] << ", " << fragIdGrandfather[1] << ")"
-			<< "\nScale : " << scale
-			<< "\nOffset (bin): " << indexBin
-			<< "\nOffset (time): " << binToTime(dtVec[fragIdGrandfather[1]],indexBin)
-			<< "\nOccurrences: " << N_occur
-			<< "\nStandard Deviation: " << stdDev << std::endl;
+		return false;
 
 	 /* Old stuff (dt method)
 	// Do the same for the SSDs
