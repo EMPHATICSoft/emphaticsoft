@@ -5,6 +5,7 @@
 #define SRTRACK_H
 
 #include "StandardRecord/SRVector3D.h"
+#include "StandardRecord/SRArichID.h"
 #include "StandardRecord/SRTrackSegment.h"
 
 namespace caf
@@ -17,13 +18,15 @@ namespace caf
     virtual ~SRTrack();
 
     double vtx[3];  // (x,y,z)
-    SRVector3D mom; // momentum vector 
-
-    //double ntrk;
+    SRVector3D mom; // momentum vector   
+    SRArichID arLL; // arich loglikelihooods values 
+//  SRArichID arML; // arich ML pred values 
+   
     int label;
     int nspacepoints;
     std::vector<SRTrackSegment> _sgmnt; // vector of track segments
     void Add(SRTrackSegment& ts){ _sgmnt.push_back(ts); };
+
  
     virtual void setDefault();
   };

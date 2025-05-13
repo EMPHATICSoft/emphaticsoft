@@ -5,7 +5,7 @@ process_name: ARICHReco
 
 services:
 {
-  TFileService: { fileName: "arichreco_hist_r%r_s%04s.root" closeFileFast: false }
+  TFileService: { fileName: "%ifb.arichreco_hist.root" closeFileFast: false }
   @table::standard_services
 }
 
@@ -20,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "arichreco_r%r_s%04s.root"
+   fileName:    "%ifb.arichreco.root"
    fastCloning: false
    
   }

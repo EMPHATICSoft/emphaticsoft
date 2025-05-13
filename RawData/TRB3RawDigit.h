@@ -38,16 +38,13 @@ namespace emph {
       int event_index;
       uint64_t fragmentTimestamp;
       uint32_t fdetChan;
-      bool fIsNoise;    
       uint32_t fadc;
       uint32_t  fHitTime;
        
 
     public:
 
-      TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS, bool IsNoise);
-       TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
-      TRB3RawDigit(uint32_t fpga, uint32_t detChan, uint32_t fHitTime, bool IsNoise);
+      TRB3RawDigit(uint32_t fpga, uint32_t header, uint32_t epoch, uint32_t measurement, uint64_t fragTS);
 
       /// Is this the leading edge measurement?
       bool IsLeading() const {return ((tdc_measurement_word & 0x800) >> 11) == 1;}
@@ -72,9 +69,6 @@ namespace emph {
 
       void SetDetChannel(int ichan) {fdetChan = ichan; }
 
-      uint32_t GetDetChannel() const {
-	return fdetChan;
-      }
 
       /// Get the TDC measurement
       uint32_t GetMeasurement() const {
@@ -95,7 +89,7 @@ namespace emph {
  
       inline friend std::ostream& operator<<(std::ostream& os, const TRB3RawDigit& RawDig)
       {
-	os << "Raw dig: (" << RawDig.GetBoardId() << ", " << RawDig.fdetChan  << ", " <<  RawDig.fHitTime << ", " <<  RawDig.fIsNoise << ")" << std::endl; 
+	os << "Raw dig: (" << RawDig.GetBoardId() << ", " << RawDig.fdetChan  << ", " <<  RawDig.fHitTime << ")" << std::endl; 
 	return os;
 	}
 

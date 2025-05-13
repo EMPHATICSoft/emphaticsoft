@@ -152,7 +152,7 @@ namespace emph {
     catch(...) {
       std::cout << "WARNING: No SSDHits found!" << std::endl;
     }
-    
+   
     std::unique_ptr<std::vector<rawdata::SSDRawDigit> >ssdRawD(new std::vector<rawdata::SSDRawDigit>);
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
