@@ -9,8 +9,11 @@ art_make_library(
   LIBRARIES #PRIVATE
     RawData
     Geometry
+    ChannelMap
+    ChannelMapService_service
     ROOT::Physics
     ROOT::Geom
+    StandardRecord
   )
 
 install_headers()

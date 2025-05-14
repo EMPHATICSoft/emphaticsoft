@@ -24,10 +24,17 @@ namespace caf
       std::vector<sim::Particle> particles;
       if(!pcal.failedToGet()){particles = *pcal;}
       
-        
+      assert(!particles.empty() && "Got an event with no primary particle.  Rebuild your code with develop and check your generator job!");        
       auto beam_temp = SRParticle(particles[0]);// grab the first beam particle, do an upcast and then a downcast from
       SRTrueParticle beam = SRTrueParticle(beam_temp);// sim::Particle to caf::SRParticle and then from caf::SRParticle to caf:: SRTP
-      
+      /*
+      std::cout << "beam.ftrajectory.size() = " << beam.ftrajectory.size() 
+		<< std::endl;
+      for (size_t i=0; i<beam.ftrajectory.size(); ++i) {
+	std::cout << "z[" << i << "] = " << beam.ftrajectory.Position(i).Z() << std::endl; 
+      }
+      */
+
       // if we don't want to record all the G4 steps, save the first trajectory, clear, and fill it again
       if (!GetG4Hits){
 	auto tempPos = beam.ftrajectory.Position(0); 

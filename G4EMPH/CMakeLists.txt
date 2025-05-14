@@ -73,6 +73,8 @@ art_make_library(
 cet_build_plugin(G4Gen art::module
   LIBRARIES REG 
     G4EMPH
+    RunHistory
+    RunHistoryService_service
     SimulationBase
     Simulation
     G4Base
@@ -85,6 +87,8 @@ cet_build_plugin(G4Gen art::module
 cet_build_plugin(BeamGen art::module
   LIBRARIES REG 
   G4EMPH
+  RunHistory
+  RunHistoryService_service
   SimulationBase
   Simulation
   ROOT::Core

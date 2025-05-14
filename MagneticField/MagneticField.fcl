@@ -2,9 +2,9 @@ BEGIN_PROLOG
 
 standard_magfield:
 {
-  FieldFileName: "/cvmfs/emphatic.opensciencegrid.org/magFieldMaps/mfMap_TRIUMF_COMSOL_2020_01_01_v2.txt"
-
-  StoreMapAsStlVector: true  
+  FieldFileName: "/cvmfs/emphatic.opensciencegrid.org/magFieldMaps/Phase1Fitted1mmMap.root"
+  UsingRootHistos: true
+  StoreMapAsStlVector: false
   Verbosity: 0
 }
 

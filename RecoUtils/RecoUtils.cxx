@@ -28,7 +28,6 @@ namespace ru {
   RecoUtils::RecoUtils() :
      fEvtNum(-1)
   {
-  //std::cout<<"hey"<<std::endl;
   }
   
   //------------------------------------------------------------
@@ -40,104 +39,154 @@ namespace ru {
 
   //------------------------------------------------------------
 
-  void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type){
+  void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose){
 
-     double r12 = (B(0) - A(0))*(B(0) - A(0)) + (B(1) - A(1))*(B(1) - A(1)) + (B(2) - A(2))*(B(2) - A(2));
-     double r22 = (D(0) - C(0))*(D(0) - C(0)) + (D(1) - C(1))*(D(1) - C(1)) + (D(2) - C(2))*(D(2) - C(2));
+     double r12 = (B-A).Dot(B-A);
+     double r22 = (D-C).Dot(D-C);
 
-     double d4321 = (D(0) - C(0))*(B(0) - A(0)) + (D(1) - C(1))*(B(1) - A(1)) + (D(2) - C(2))*(B(2) - A(2));
-     double d3121 = (C(0) - A(0))*(B(0) - A(0)) + (C(1) - A(1))*(B(1) - A(1)) + (C(2) - A(2))*(B(2) - A(2));
-     double d4331 = (D(0) - C(0))*(C(0) - A(0)) + (D(1) - C(1))*(C(1) - A(1)) + (D(2) - C(2))*(C(2) - A(2));
+     double d4321 = (D-C).Dot(B-A);
+     double d3121 = (C-A).Dot(B-A);
+     double d4331 = (D-C).Dot(C-A);
 
      double s = (-d4321*d4331 + d3121*r22) / (r12*r22 - d4321*d4321);
      double t = (d4321*d3121 - d4331*r12) / (r12*r22 - d4321*d4321);
 
-     double L1[3]; double L2[3];
+     //std::cout<<"s: "<<s<<std::endl;
+     //std::cout<<"t: "<<t<<std::endl;
 
      if (strcmp(type,"SSD") == 0){
        if ( s >= 0 && s <= 1 && t >=0 && t <= 1){
          //std::cout<<"Closest approach all good :)"<<std::endl;
          for (int i=0; i<3; i++){
-           L1[i] = A(i) + s*(B(i) - A(i));
-           L2[i] = C(i) + t*(D(i) - C(i));
-           F[i] = (L1[i] + L2[i])/2.;
-           l1[i] = L1[i];
-           l2[i] = L2[i];
+           l1[i] = A(i) + s*(B(i) - A(i));
+           l2[i] = C(i) + t*(D(i) - C(i));
          }
          //std::cout<<"CA CHECK (L1)...x: "<<L1[0]<<"   y: "<<L1[1]<<"   z: "<<L1[2]<<std::endl;
          //std::cout<<"CA CHECK (L2)...x: "<<L2[0]<<"   y: "<<L2[1]<<"   z: "<<L2[2]<<std::endl;
        }
        else{
          //this should be very rare
-         std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
-         std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
-         std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
-         std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
-         std::cout<<"D: ("<<D(0)<<","<<D(1)<<","<<D(2)<<")"<<std::endl;
-         std::cout<<"How do line segments AB and CD look if you draw them in the beam view (i.e. the same plane)?"<<std::endl;
-         std::cout<<"And don't worry! A hit is still created, but the line segments (probably) come close to intersecting...but don't"<<std::endl;
-         //std::cout<<"s: "<<s<<std::endl;
-         //std::cout<<"t: "<<t<<std::endl;
+         if (verbose){
+           std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
+           std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
+           std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
+           std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
+           std::cout<<"D: ("<<D(0)<<","<<D(1)<<","<<D(2)<<")"<<std::endl;
+           std::cout<<"How do line segments AB and CD look if you draw them in the beam view (i.e. the same plane)?"<<std::endl;
+           std::cout<<"And don't worry! A hit is still created, but the line segments (probably) come close to intersecting...but don't"<<std::endl;
+	 }
 
-         TVector3 l1p3;
-         TVector3 l1p4;
-         TVector3 l2p1;
-         TVector3 l2p2;
-	
-	 double d4121 = (D(0) - A(0))*(B(0) - A(0)) + (D(1) - A(1))*(B(1) - A(1)) + (D(2) - A(2))*(B(2) - A(2));
-         double d4332 = (D(0) - C(0))*(C(0) - B(0)) + (D(1) - C(1))*(C(1) - B(1)) + (D(2) - C(2))*(C(2) - B(2));
+         double sbound[2] = {0.,1.};
+	 double tbound[2] = {0.,1.};
 
-         double s_l1p3 = d3121/r12;
-         double s_l1p4 = d4121/r12;
-         double t_l2p1 = -d4331/r22;
-         double t_l2p2 = -d4332/r22;
+         ClampedApproach(A,B,C,D,l1,l2,sbound,tbound,type,verbose);
+       }
+     }
+     else{ //i.e. "TrackSegment"
 
-         s_l1p3 = std::clamp(s_l1p3,0.,1.);
-         s_l1p4 = std::clamp(s_l1p4,0.,1.);
-         t_l2p1 = std::clamp(t_l2p1,0.,1.);
-	 t_l2p2 = std::clamp(t_l2p2,0.,1.);
+       double sl1 = (D(2) + 10. - A(2))/(B(2) - A(2));
+       double tl2 = (A(2) - 10. - C(2))/(D(2) - C(2));
 
-         double d_l1p3;
-         double d_l1p4;
-         double d_l2p1;
-         double d_l2p2;
+       if ( s >= 0 && s <= sl1 && t >=tl2 && t <= 1){
+         //std::cout<<"Normal"<<std::endl;
+         for (int i=0; i<3; i++){
+           l1[i] = A(i) + s*(B(i) - A(i));
+           l2[i] = C(i) + t*(D(i) - C(i));
+         }
+       }
+       else{
+         double sbound[2] = {0.,sl1};  
+         double tbound[2] = {tl2,1.};
+
+	 TVector3 Aext;
+	 TVector3 Dext;
 
          for (int i=0; i<3; i++){
-           l1p3(i) = A(i) + s_l1p3*(B(i) - A(i));
-           l1p4(i) = A(i) + s_l1p4*(B(i) - A(i));
-           l2p1(i) = C(i) + t_l2p1*(D(i) - C(i));
-           l2p2(i) = C(i) + t_l2p2*(D(i) - C(i));
-         }
+	   Dext(i) = A(i) + sl1*(B(i) - A(i));
+	   Aext(i) = C(i) + tl2*(D(i) - C(i));
+	 }	
+	 //std::cout<<"Clamped"<<std::endl;
+	 ClampedApproach(Aext,B,C,Dext,l1,l2,sbound,tbound,type,verbose);
+       }
+     }
 
-         d_l1p3 = (C-l1p3).Dot(C-l1p3);
-         d_l1p4 = (D-l1p4).Dot(D-l1p4);
-         d_l2p1 = (A-l2p1).Dot(A-l2p1);
-	 d_l2p2 = (B-l2p2).Dot(B-l2p2);
+     //set point of closest approach
+     for (int i=0; i<3; i++){
+       F[i] = (l1[i] + l2[i])/2.;
+     }
 
-         if (d_l1p3 < d_l1p4){
-           for (int i=0; i<3; i++) { L1[i] = l1p3(i); l1[i] = L1[i]; }
-         }
-         else{
-           for (int i=0; i<3; i++) { L1[i] = l1p4(i); l1[i] = L1[i]; }
-         }
-         if (d_l2p1 < d_l2p2){
-           for (int i=0; i<3; i++) { L2[i] = l2p1(i); l2[i] = L2[i]; }
-         }
-         else{
-           for (int i=0; i<3; i++) { L2[i] = l2p2(i); l2[i] = L2[i]; }
-         }
-         for (int i=0; i<3; i++){
-           F[i] = (L1[i] + L2[i])/2.;
-         }
+  }
+
+  //------------------------------------------------------------
+
+  void RecoUtils::ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose){
+
+     double r12 = (B-A).Dot(B-A);
+     double r22 = (D-C).Dot(D-C);
+
+     double d3121 = (C-A).Dot(B-A);
+     double d4331 = (D-C).Dot(C-A);
+
+     TVector3 l1p3;
+     TVector3 l1p4;
+     TVector3 l2p1;
+     TVector3 l2p2;
+
+     double d4121 = (D-A).Dot(B-A);
+     double d4332 = (D-C).Dot(C-B);
+
+     double s_l1p3 = d3121/r12;
+     double s_l1p4 = d4121/r12;
+     double t_l2p1 = -d4331/r22;
+     double t_l2p2 = -d4332/r22;
+
+     s_l1p3 = std::clamp(s_l1p3,sbound[0],sbound[1]);
+     s_l1p4 = std::clamp(s_l1p4,sbound[0],sbound[1]);
+     t_l2p1 = std::clamp(t_l2p1,tbound[0],tbound[1]);
+     t_l2p2 = std::clamp(t_l2p2,tbound[0],tbound[1]);
+
+     double d_l1p3;
+     double d_l1p4;
+     double d_l2p1;
+     double d_l2p2;
+
+     for (int i=0; i<3; i++){
+       l1p3(i) = A(i) + s_l1p3*(B(i) - A(i));
+       l1p4(i) = A(i) + s_l1p4*(B(i) - A(i));
+       l2p1(i) = C(i) + t_l2p1*(D(i) - C(i));
+       l2p2(i) = C(i) + t_l2p2*(D(i) - C(i));
+     }
+
+     //this is squared distance
+     d_l1p3 = (C-l1p3).Dot(C-l1p3);
+     d_l1p4 = (D-l1p4).Dot(D-l1p4);
+     d_l2p1 = (A-l2p1).Dot(A-l2p1);
+     d_l2p2 = (B-l2p2).Dot(B-l2p2);
+
+     if (strcmp(type,"SSD") == 0){
+       if (d_l1p3 < d_l1p4){
+         for (int i=0; i<3; i++) { l1[i] = l1p3(i); }
+       }
+       else{
+         for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
+       }
+       if (d_l2p1 < d_l2p2){
+         for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
+       }
+       else{
+         for (int i=0; i<3; i++) { l2[i] = l2p2(i); }
        }
      }
      else{
-       for (int i=0; i<3; i++){
-         L1[i] = A(i) + s*(B(i) - A(i));
-         L2[i] = C(i) + t*(D(i) - C(i));
-         F[i] = (L1[i] + L2[i])/2.;
-         l1[i] = L1[i];
-         l2[i] = L2[i];
+       // for TrackSegment you want to compare the minimum fo l1p3 and l2p2 
+       // beause p2 and p3 are the points closest to the "intersection"
+       if (d_l1p4 < d_l2p1){
+         for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
+	 for (int i=0; i<3; i++) { l2[i] = D(i); if (verbose) std::cout<<"CLAMPED EXCEPTION D @ "<<D(2)<<std::endl; }
+       }
+       else{
+         for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
+         for (int i=0; i<3; i++) { l1[i] = A(i); if (verbose) std::cout<<"CLAMPED EXCEPTION A @ "<<A(2)<<std::endl;}
        }
      }
   }
@@ -279,7 +328,8 @@ namespace ru {
      //convert from rad to mrad
      theta = theta*1000.;
 
-     double pz = 69.2004/theta - 2.8854/theta/theta;
+     double pz = 64.649/theta; 
+     //double pz = 69.2004/theta - 2.8854/theta/theta;
      return pz;	
   }
 
@@ -310,10 +360,7 @@ namespace ru {
   std::ostream& operator<< (std::ostream& o, const RecoUtils& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-    //o << " Channel = "     << std::setw(5) << std::right << h.Channel();
-    //o << " Time = "        << std::setw(5) << std::right << h.Time();
-    //o << " Integrated Charge = " << std::setw(5) << std::right << h.IntCharge();
-    o << "What even goes here" ;
+    o << " Event Number = "     << std::setw(5) << std::right << h.GetEvtNum();
 
     return o;
   }

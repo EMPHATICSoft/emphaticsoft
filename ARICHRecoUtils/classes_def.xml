@@ -1,0 +1,43 @@
+<lcgdict>
+
+<class name="arichreco::ARICH_UTILS" ClassVersion="12">
+ <version ClassVersion="12" checksum="3115795868"/>
+ <version ClassVersion="11" checksum="2041444541"/>
+ <version ClassVersion="10" checksum="1394376492"/>
+</class>
+<class name="arichreco::Arich" ClassVersion="11">
+ <version ClassVersion="11" checksum="3343428635"/>
+ <version ClassVersion="10" checksum="2726953947"/>
+</class>
+<class name="arichreco::Aerogel" ClassVersion="11">
+ <version ClassVersion="11" checksum="102525685"/>
+ <version ClassVersion="10" checksum="2655409365"/>
+</class>
+<class name="arichreco::Beam" ClassVersion="11">
+ <version ClassVersion="11" checksum="1236420633"/>
+ <version ClassVersion="10" checksum="1672926457"/>
+</class>
+<class name="arichreco::Detector" ClassVersion="11">
+ <version ClassVersion="11" checksum="2388050081"/>
+ <version ClassVersion="10" checksum="2444234625"/>
+</class>
+<class name="arichreco::Particle" ClassVersion="11">
+ <version ClassVersion="11" checksum="2710127823"/>
+ <version ClassVersion="10" checksum="2181260719"/>
+</class>
+<class name="arichreco::Photon" ClassVersion="11">
+ <version ClassVersion="11" checksum="4003558340"/>
+ <version ClassVersion="10" checksum="3441090788"/>
+</class>
+<class name="arichreco::HoughFitter" ClassVersion="12">
+ <version ClassVersion="12" checksum="1568882325"/>
+ <version ClassVersion="11" checksum="2427338869"/>
+ <version ClassVersion="10" checksum="616094997"/>
+</class>
+
+
+<class name="std::vector<double>" />
+<class name="std::vector<std::vector<double>>" />
+<class name="art::Wrapper<std::vector<std::vector<double>>>"/>
+
+</lcgdict>

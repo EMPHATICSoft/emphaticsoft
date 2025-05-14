@@ -138,8 +138,10 @@ Plane::Plane() :
       fTarget = 0;
       fGeoManager = 0;
       fSSDSensorMap.clear();
-      fMagnetUSZPos = -1e6;
-      fMagnetDSZPos = -1e6;
+      for (int i=0; i<3; ++i) {
+	fMagnetUSPos[i] = -1e6;
+	fMagnetDSPos[i] = -1e6;
+      }
       fTargetUSZPos = -1e7;
       fTargetDSZPos = -1e7;
       fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
@@ -210,7 +212,7 @@ Plane::Plane() :
       fGeoManager->LockDefaultUnits(0);
       fGeoManager->SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
       fGeoManager->LockDefaultUnits(1);
-      fGeoManager->Import(fGDMLFile.c_str());
+      fGeoManager = fGeoManager->Import(fGDMLFile.c_str());
 
       //      fGeoManager->Import(fname.c_str());
       /*
@@ -369,21 +371,24 @@ Plane::Plane() :
 			mf::LogWarning("LoadNewGeometry") 
 				<< " magnet not found in gdml. \n"
 				<< "check your spelling. \n";
-			fMagnetUSZPos = -1e6;
-			fMagnetDSZPos = -1e6;
-
 			return;
 		}
 
       TGeoVolume* magnet_v = (TGeoVolume*)magnet_n->GetVolume();
       TGeoBBox* magnet_box = (TGeoBBox*)magnet_v->GetShape();
 
+      double xcenter = magnet_n->GetMatrix()->GetTranslation()[0];
+      double ycenter = magnet_n->GetMatrix()->GetTranslation()[1];
       double zcenter = magnet_n->GetMatrix()->GetTranslation()[2];
       double dz = magnet_box->GetDZ();
 
-      fMagnetUSZPos = zcenter-dz;
-      fMagnetDSZPos = zcenter+dz;
-		fMagnetLoad = true;
+      fMagnetUSPos[2] = zcenter-dz;
+      fMagnetDSPos[2] = zcenter+dz;
+      fMagnetUSPos[0] = xcenter;
+      fMagnetDSPos[0] = xcenter;
+      fMagnetUSPos[1] = ycenter;
+      fMagnetDSPos[1] = ycenter;
+      fMagnetLoad = true;
 
     }
 
@@ -391,7 +396,7 @@ Plane::Plane() :
 
     void Geometry::ExtractPMTInfo(const TGeoVolume* world_v)
     {
-      std::string PMT_name="PMT_H12700", QE_name="_QE", DN_name="_DarkNoise";
+      std::string PMT_name="PMT_H12700", QE_name="_QE", DN_name="_DarkNoise", CrossTalk_name = "_CrossTalk";
 
       TGDMLMatrix* qematrix = (TGDMLMatrix*)fGeoManager->GetGDMLMatrix((PMT_name+QE_name).c_str());
       if(qematrix==nullptr)std::cout<<"empty"<<std::endl;
@@ -401,6 +406,8 @@ Plane::Plane() :
       double darkr = fGeoManager->GetProperty((PMT_name+DN_name).c_str());
       mf::LogInfo("ExtractGeometry") << "PMT dark rate is " << darkr << " Hz\n";
 
+      double XTalk = fGeoManager->GetProperty((PMT_name+CrossTalk_name).c_str());
+      mf::LogInfo("ExtractGeometry") << "PMT Cross Talk is " << XTalk*100 << "%" ;
 
       TGeoNode* arich_n = (TGeoNode*)world_v->GetNode("ARICH_phys");
       TGeoVolume* arich_v = (TGeoVolume*)arich_n->GetVolume();
@@ -416,7 +423,8 @@ Plane::Plane() :
 	  mpmt.SetName(name);
 	  mpmt.SetQE(qeV);
 	  mpmt.SetDarkRate(darkr);
-
+	  mpmt.SetCrossTalk(XTalk);
+	  mpmt.SetTriggerWin(5.);   // 5 ns of trigger window  
 	  fNPMTs++;
 	  fPMT.push_back(mpmt);
 	}
@@ -565,6 +573,17 @@ Plane::Plane() :
       mf::LogWarning("LoadNewGeometry") << "Cannot Find PMT " << name << "\n" << "Using PMT No. 0 as an instance \n";
       return fPMT[0];
     }
-    
+   
+ //-----------------------------------------------------------------
+    emph::arich_util::PMT Geometry::FindPMTByBlockNumber(int number)
+   {
+    for(int i=0; i<fNPMTs; i++){
+        if(fPMT[i].PMTnum() ==number)return fPMT[i];
+    }
+    mf::LogWarning("LoadNewGeometry") << "Cannot Find PMT " << number << "\n" << "Using PMT No. 0 as an instance \n";
+    return fPMT[0];
+   }
+
+ 
   } // end namespace geo
 } // end namespace emph

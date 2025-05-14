@@ -25,7 +25,7 @@
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "Geometry/service/GeometryService.h"
 #include "RawData/SSDRawDigit.h"
-#include "RecoBase/LineSegment.h"
+//#include "RecoBase/LineSegment.h"
 #include "RecoBase/SSDCluster.h"
 
 namespace emph {
@@ -92,13 +92,12 @@ emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
   fCheckDQ     (pset.get< bool >("CheckDQ"))
 {
   this->produces< std::vector<rb::SSDCluster> >();
-  this->produces< std::vector<rb::LineSegment> >();
+  //this->produces< std::vector<rb::LineSegment> >();
 }
 
 //--------------------------------------------------
 void emph::MakeSSDClusters::beginJob()
 {
-
   if (fFillTTree) {
     art::ServiceHandle<art::TFileService> tfs;
     ssdclust = tfs->make<TTree>("clusts","");
@@ -192,7 +191,7 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
 void emph::MakeSSDClusters::produce(art::Event& evt)
 {
   std::unique_ptr< std::vector<rb::SSDCluster> >  clusterv(new std::vector<rb::SSDCluster>);
-  std::unique_ptr< std::vector<rb::LineSegment> > linesegv(new std::vector<rb::LineSegment>);
+  //std::unique_ptr< std::vector<rb::LineSegment> > linesegv(new std::vector<rb::LineSegment>);
 
   run = evt.run();
   subrun = evt.subRun();
@@ -207,7 +206,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     // if no ssd hits in event, continue
     if(!eventqual->hasSSDHits){
       evt.put(std::move(clusterv));
-      evt.put(std::move(linesegv));
+      //evt.put(std::move(linesegv));
       return;
     }
   }
@@ -222,8 +221,10 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
       art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
-      if (!cmap->CMap()->IsValidEChan(echan))
-	continue;
+      
+      if (!cmap->CMap()->IsValidEChan(echan)){
+      	continue;
+      }
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
       digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssdDig);
     }
@@ -261,6 +262,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	    clusters[i].SetID(i);
 	    clusterv->push_back(clusters[i]);
 
+/*
 	    // find line segment for each cluster
 	    // check first for reasonable cluster (hack for now, need better checks earlier on)
 	    rb::LineSegment lineseg_tmp = rb::LineSegment();
@@ -272,6 +274,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	      linesegv->push_back(lineseg_tmp);
 	    else
 	      std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl;
+*/
 	  }
 	}
       }
@@ -279,7 +282,7 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   }
   
   evt.put(std::move(clusterv));
-  evt.put(std::move(linesegv));
+  //evt.put(std::move(linesegv));
   
   if (fFillTTree) {
     ssdclust->Fill();

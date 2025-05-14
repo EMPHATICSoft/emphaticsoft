@@ -114,3 +114,5 @@ install_fhicl()
 install_source()
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::EventDisplay)
+
+add_subdirectory(WebDisplay)

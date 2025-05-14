@@ -21,6 +21,7 @@ standard_g4alg:
 
   SparseTrajectories:  true   #if true, only save necessary points in particle trajectories
   G4PhysListName:      "QGSP_BERT_HP;G4OpticalPhysics"
+  MinTrajPtDist:        5. # min. distance (mm) between consecutive G4 trajectory points.   
 # Done in code .. For now.. We will restore this functionality later, perhaps. 
 #  AddedUserActions: ["emph::SSDHitAction", "emph::TrackListAction", "emph::FastStopAction", "emph::TOPAZLGHitAction"]
 #  SSD Misalignment: MisalignModel flag 

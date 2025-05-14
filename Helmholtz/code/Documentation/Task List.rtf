@@ -1,0 +1,182 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;\f1\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red63\green110\blue116;\red255\green255\blue255;\red0\green0\blue0;
+\red38\green71\blue75;\red15\green104\blue160;}
+{\*\expandedcolortbl;;\csgenericrgb\c24700\c43100\c45600;\csgenericrgb\c100000\c100000\c100000;\csgenericrgb\c0\c0\c0;
+\csgenericrgb\c14900\c27800\c29400;\csgenericrgb\c5882\c40784\c62745;}
+\vieww9000\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ri-1796\pardirnatural\partightenfactor0
+
+\f0\fs22 \cf0 About 17,200 code lines, 12 document files at the moment... and about 1300 lines left in the Inbox.\
+\
+\
+Try to get rid of ALL pointers.  Seems to me that standard container templates, references and move semantics should make it feasible to consider them harmful.\
+\
+\
+Be great if you could multithread VEGAS.  Basic problem is that the VEGAS_state structure is, at the conceptual level, a FORTRAN COMMON block.  It could be broken up into two structures, one of which could be could be copied quickly for the threads and then merged together after the threads are finished, and the other holding info not needed for threading.  The other approach would be to give every field in VEGAS_state a setter/getter pair and use those to implement concurrency locking.\
+\
+\
+Implement consistent UPPER/lower case convention.  Revise item 9 in "Coding guidelines" once you do.  To wit:\
+	UPPERCASE for macros\
+	lowercase for indexing/loop variables with short names e.g. itr for an\
+		iterator, i, j, k for matrix indices.\
+	Indexing and looping variables with longer names follow the convention:		for (int iFile=0; iFile<nFile; ++iFile) \{file.close();\}\
+	Collections (i.e. deques, vectors, etc) have 's' at the end: e.g. \
+		deque<file> inputFiles.\
+	CamelCase starting with uppercase for classes, structs (not instances 		thereof), enum definitions (not values in the enum list) or calls to \
+		non-class methods.\
+	camelCase starting with lowercase for a variable; so a 1-word \
+		identifier is just lower case (e.g. camel).\
+	camelCase starting with lowercase for a member methods.\
+	"f" followed by camel case starting with uppercase for data\
+		methods - e.g. fFileDateAndTime\
+	"k" followed by camel case starting with uppercase for emum entries -\
+		e.g. kRed, kBlack\
+\
+\
+\
+Multiple renditions of a plot, e.g.\
+	pPLOT.show();	pPLOT.logY = true;	pPLOT.show()\
+doesn't really work.  What happens is that the canvas being spoken to is the last canvas created.  So\
+\pard\tx543\pardeftab543\pardirnatural\partightenfactor0
+\cf2 \cb3 	Lscatter\cf4  pSpendPerGDP_GDP(SpendPerGDP_GDP);
+\f1\fs24 \cf0 \
+
+\f0\fs22 \cf4 	pSpendPerGDP_GDP.\cf5 show\cf4 ();
+\f1\fs24 \cf0 \
+
+\f0\fs22 \cf2 	Lscatter\cf4  pSpendGrowth_GDPgrowth(SpendGrowth_GDPgrowth);
+\f1\fs24 \cf0 \
+
+\f0\fs22 \cf4 	pSpendGrowth_GDPgrowth.\cf5 show\cf4 ();
+\f1\fs24 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ri-1796\pardirnatural\partightenfactor0
+
+\f0\fs22 \cf0 \cb1 will correctly make 2 plots, but\
+\pard\tx543\pardeftab543\pardirnatural\partightenfactor0
+\cf2 \cb3 	Lscatter\cf4  pSpendPerGDP_GDP(SpendPerGDP_GDP);
+\f1\fs24 \cf0 \
+
+\f0\fs22 \cf2 	Lscatter\cf4  pSpendGrowth_GDPgrowth(SpendGrowth_GDPgrowth);
+\f1\fs24 \cf0 \
+
+\f0\fs22 \cf4 	pSpendPerGDP_GDP.\cf5 show\cf4 ();
+\f1\fs24 \cf0 \
+
+\f0\fs22 \cf4 	pSpendGrowth_GDPgrowth.\cf5 show\cf4 ();
+\f1\fs24 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab543\ri-1796\pardirnatural\partightenfactor0
+
+\f0\fs22 \cf0 \cb1 will incorrectly just show the last plot.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ri-1796\pardirnatural\partightenfactor0
+\cf0 \
+Move Lscatter::ScatCol into plotbase, and use it uniformly for Lscatter and Lhist1.  Additionally, make the values of these enums into -1 for black, 15 for red, 22 for blue, 3 for curve; and then see if you can put the symbols themselves into the GNUplot statements so that when they change the colors you only have to change them in 1 place.  Finally, add an argument to addText.\
+\
+Add a plot title field to plotbase; it will get used in the SetTermSize method and be consistent with other classes vis-a-vis whether or not this "info" data element is set in the constructor or is just public to use.\
+\
+There is a problem in Lfit1 in that if you exclude data from either the low or\
+the high side of the plot, set xscale[*,*] gives the wrong answer as it\
+determines the bounds from the fitted data in the plot statement of show()\
+without regard for the unfitted data.\
+\
+Need to replace Lbin::bin, now implemented as a typedef, with a real class.  I begin to think that typedef is an idea whose time has gone.  It seems that typedef is not good to future-proof code vs changes in architecture; that's what <limits> and global-search-and-replace should be for.  It only helps documentation-wise when you want to identify the type by what it represents rather than how it is implemented.  But you can put that info in the variable name, right?  E.g. int AgeAsInt; int AgeAsDouble;\
+\
+Probably should have a profile option for Lfit1, and fitting capability for Lzcol.\
+\
+\
+\
+Does fitter really need all that indirection?  And it should be upgraded to\
+allow plotting of the chi2 for 2 selected dimensions around the minimum using\
+plotter2d.  Also, plotfit.cpp should have protection against calls to\
+minum, covar, chi1, pVal when the fitter hasn't been run.  The protection now\
+in there for useVar and fixVar is also inadequate; it won't tell you that fitr\
+hasn't been created and that therefore you haven't fixed / used a variable.\
+Also, plotfit has duplicate copies of minum_ and covar_ which I think are only\
+needed because Lfit1 has to check them in the show() method to see if there\
+actually has been a fit run.  Were there a method in fitter to check which, if\
+any, fitter methods have been called, this duplicate info would not be needed.\
+\
+fitter also could have bounds checking for SIMPLEX implemented.  Right now, it only gets a warning.\
+\
+Does fitter really need <deque>?\
+\
+\
+\
+The #include structure needs analysis & perhaps re-work.  Try to use the #pragma once feature!\
+\
+The whole fabs vs abs and int / double / cmplx type thing.  The C++ standard has been changed I think; abs now is equivalent to fabs(?)\
+\
+\
+unReal needs to have sums and differences in quadrature.\
+\
+\
+stringify wants some format input argument.\
+\
+\
+Work out who throws what and put that into the declarations.\
+\
+\
+\
+A thorough const-correctness study wouldn't hurt.  The auto keyword from C++11 looks like a good idea for looping over the elements of a deque or vector, but seems counterproductive otherwise.  Do however write for (auto& i : range) rather than for (auto i : range).  The use of = delete; rather than declaring a function private(?) is probably an improvement.\
+\
+\
+The Lhist2 class could use a method that produces an Lprof, and perhaps also a method that produces a "conditional probability" plot, i.e. another Lhist2 but with each x bin normalized so that the integral over the y bins for that x bin is 1.\
+\
+Should the right-hand boundary of the highest bin in Lbins.cpp include highest_ ?\
+\
+\
+\
+Helper classes should probably be put into the private area of the classes\
+that they are there to help.  Maybe.\
+\
+\
+Should make LppError, LppGNUpipe into classical singleton pattern.  Derive them from a base class that has the singleton structure in it.\
+\
+\
+The unix time facility makes it easier than what you've got to increment the day when you add to much time... rethink the seiko, date and thyme classes in light of how the unix time facility works.  Notice the peculiar thing in \cf6 \cb3 date\cf4 ::\cf6 is_leap\cf4  though.\cf0 \cb1 \
+\
+\
+VEGAS should get a signature that works also with a functional.  Also it should be changed into a class that inherits from encapsulated_singleton, which also needs to be cleaned up enough to be moved out of the inbox.\
+\
+\
+\
+The integrator.h functional isn't really needed any more except in fullim, which would work better if it used the integrator in Accelerate.h\
+\
+\
+\
+High time to set git up on this thing, too.\
+\
+Ideally, the Xcode project ought to be able to install the man page,\
+and it should be possible to write a minimal set of tests, too.  Better make sure that the man page is up-to-date first!\
+\
+\
+\
+Ltuple has a modest shortcoming, machine dependence.  How might one remove\
+this?  One option is compile-time flags for different architectures (Intel is\
+bigendian, PowerPC is little endian); ROOT does this in base/inc/Bytes.h.  A\
+simpler test might be to put the string "12345678" as 8 ASCII bytes at the top\
+of the file and test for endian-ness, as I now test for parameters of the\
+floating point representations.  A better way to do this is the XDR library,\
+which seems to exist on many machines.  Perhaps hdf5 or NetCDF is useful or informative as well?\
+\
+The greater shortcoming of Ltuple is how to tell at run time how many chars,\
+ints, doubles etc are in the struct ple and in what order.  That is, regarding\
+an Ltuple file as an object, it does not have introspective capabilities.  Instead, create an Lbranch class, which is a lightweight rendition of TBranch.  It has a fields for the branch name, whether is is a std::vector or a scalar branch, the type of variable it is (int, addr, double, or string) and methods to read it, write it, copy constructors, and to add or remove it from a map of branches.  That map is indexed by the branch name - maybe the indexing operation should be via operator() and check that the named branch exists and is one of the two data fields of the Ltree class.  The other data field is a file, which is opened for either reading or writing.  The read/write operations of the Lbranch and Ltree class should be aware if the file is read-only or write-only.  The Lbranch class will also need then methods for reading/writing all the branches, adding a branch, deleting one, etc.  The branch I/O needs some validation.\
+\
+Also, Ltuple throws exceptions from the constructor.  The destructor is not\
+called in such cases and one has a potential memory leak; small in this case\
+though.\
+\
+In revising Ltuple, it might be good to introduce a persistence model such as\
+the D0 Object Model, D0OM, by Scott Snyder.  Or perhaps there is something useful to be done with stdlib's map?\
+\
+\
+\
+Someday, implement an interactive interface, e.g., windows with scroll bars, \
+on/off switches, list boxes, numeric entry and go-run buttons that may be tied\
+to some function, and graphs in 1 and 2 dimensions that support histograms and\
+functions and can be manipulated via a GUI.  This should probably be done with\
+Qt (http://www.trolltech.com/products/qt) for portability to Scientific Linux,\
+Windows, etc.  Possible reference points would be Paul Kunz's Hippodraw or\
+GraphBuilder from vvi.com\
+}

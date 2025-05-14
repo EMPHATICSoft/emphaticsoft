@@ -39,7 +39,6 @@ namespace emph {
       
       // March 2025:  overwrite the default value for fUsingRootHistos since Jon propose to use the latest Prachi map. 
       fUsingRootHistos = true;
-/*<<<<<<< HEAD
 #ifdef debug
       fVerbosity = 1;
 #else
@@ -131,16 +130,14 @@ namespace emph {
     double xPrev = x; 
     double yPrev = y; 
     double zPrev = z; 
-=======
->>>>>>> main
 
-
-*/
-    }
+  }
     
   //----------------------------------------------------------------------
   
-  MagneticField::~MagneticField() {
+  MagneticField::~MagneticField() 
+  {
+
   }
 
   //----------------------------------------------------------------------
@@ -148,6 +145,8 @@ namespace emph {
   void MagneticField::AlignWithGeom() {
     std::cerr << " MagneticField::AlignWithGeom  Start .. " << std::endl;
     // by convention, the field map's local coordinate system has it's orgin at the center of the upstream face of the magnet
+    fG4ZipTrackOffset[2] = 0.;
+
     art::ServiceHandle<emph::geo::GeometryService> geomService;
     const emph::geo::Geometry* geo = geomService->Geo();
 
@@ -439,7 +438,7 @@ namespace emph {
       CalcFieldFromRootHistos(x,B);
     else
       CalcFieldFromMap(x,B);
-
+  
     // convert to proper units
     for (int i=0; i<3; ++i) B[i] *= CLHEP::kilogauss;
 
@@ -492,6 +491,68 @@ namespace emph {
   }
 
   
+  //----------------------------------------------------------------------
+  
+  void MagneticField::LoadRootHistos()
+  {
+    if (!fUsingRootHistos)
+      abort();
+    if (fFieldFileName.empty())
+      abort();
+    TFile* fin = new TFile(fFieldFileName.c_str());
+    fBx3DHisto = (TH3F*)fin->Get("hBx");
+    fBx3DHisto->SetDirectory(0);
+    fBy3DHisto = (TH3F*)fin->Get("hBy");
+    fBy3DHisto->SetDirectory(0);
+    fBz3DHisto = (TH3F*)fin->Get("hBz");
+    fBz3DHisto->SetDirectory(0);
+
+    fin->Close();
+    fFieldLoaded = true;
+    this->AlignWithGeom();
+  }
+
+  //----------------------------------------------------------------------
+
+  void MagneticField::CalcFieldFromRootHistos(const double x[3], double B[3]) 
+  {
+    if (!fFieldLoaded) {
+      if (!fUsingRootHistos) {
+	std::cerr << "UseRootHistos not set to true when calling "
+		  << "MagneticField::CalcFieldFromRootHistos.  Aborting..."
+		  << std::endl;
+	abort();
+      }
+      this->LoadRootHistos();
+    }
+
+    //    std::cout << "***** (x,y,z) = (" << x[0] << "," << x[1] << "," << x[2]
+    //	      << ")" << std::endl;
+
+    double xbw = fBy3DHisto->GetXaxis()->GetBinWidth(1);
+    double ybw = fBy3DHisto->GetYaxis()->GetBinWidth(1);
+    double zbw = fBy3DHisto->GetZaxis()->GetBinWidth(1);
+
+    if (x[0] > (fBy3DHisto->GetXaxis()->GetXmin()+xbw) &&
+	x[0] < (fBy3DHisto->GetXaxis()->GetXmax()-xbw) &&
+	x[1] > (fBy3DHisto->GetYaxis()->GetXmin()+ybw) &&
+	x[1] < (fBy3DHisto->GetYaxis()->GetXmax()-ybw) &&
+	x[2] > (fBy3DHisto->GetZaxis()->GetXmin()+zbw) &&
+	x[2] < (fBy3DHisto->GetZaxis()->GetXmax()-zbw)) {
+      
+      //      std::cout << "***** (x,y,z) = (" << x[0] << "," << x[1] << "," << x[2]
+      //		<< ")" << std::endl;
+      
+      // factor of 10 to convert Tesla to kGauss
+      B[0] = 10. * fBx3DHisto->Interpolate(x[0],x[1],x[2]);
+      B[1] = 10. * fBy3DHisto->Interpolate(x[0],x[1],x[2]);
+      B[2] = 10. * fBz3DHisto->Interpolate(x[0],x[1],x[2]);
+    }
+    else {
+      B[0] = B[1] = B[2] = 0.;
+    }
+  }
+
   //----------------------------------------------------------------------
 
   void MagneticField::CalcFieldFromVector(const double x[3], double B[3]) 
@@ -731,10 +792,9 @@ namespace emph {
   void MagneticField::GetFieldValue(const double x[3], double* B) 
   {
     double xAligned[3];
-    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] + fG4ZipTrackOffset[k];
-    double BInKg[3];
-    const double rR = std::sqrt(x[0]*x[0] + x[1]*x[1]);
+    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] - fG4ZipTrackOffset[k];
     this->Field(xAligned, B);
+
     fStayedInMap = true;
     if ((xAligned[2] > -50.) && (xAligned[2] < 210.)) { // in the region with relatively high field.. 
        if ((xAligned[0] > fXMax) || (xAligned[0] <  fXMin)) fStayedInMap = false;

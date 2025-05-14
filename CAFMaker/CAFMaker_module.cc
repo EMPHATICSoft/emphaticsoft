@@ -63,6 +63,7 @@
 #include "CAFMaker/BACkovFiller.h"
 #include "CAFMaker/EventQualFiller.h"
 #include "CAFMaker/GasCkovFiller.h"
+#include "CAFMaker/LineSegmentFiller.h"
 #include "CAFMaker/SpacePointFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
@@ -141,6 +142,7 @@ namespace caf {
       fCAFFilename.resize(dotpos);
       fCAFFilename += fParams.FileExtension();
 
+      std::cout << fCAFFilename << std::endl;
       InitializeOutfile();
     }
   }
@@ -228,6 +230,11 @@ namespace caf {
       GasCkovFiller gasckovf; 
       gasckovf.fLabel = fParams.GasCkovHitLabel();
       gasckovf.Fill(evt,rec);
+
+      // Get LineSegments
+      LineSegmentFiller linesegf;
+      linesegf.fLabel = fParams.LineSegLabel();
+      linesegf.Fill(evt,rec);
 
       // Get SpacePoints
       SpacePointFiller spcptf;

@@ -40,7 +40,11 @@ namespace emph {
       //	  fMapFileName = fname; fIsLoaded=false;} }
 
       bool SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls);
-      
+     
+       
+      bool StationSensorPlaneToLineSegment(int station, int sensor, int plane, rb::LineSegment& ls, double dstrip = 0.5);
+  
+ 
     private:
       bool fUseGeometry;
       int fRun;
