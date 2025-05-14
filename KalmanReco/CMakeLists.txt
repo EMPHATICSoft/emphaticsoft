@@ -15,6 +15,7 @@ art_make_library ( SOURCE ${src_files}
 		   Geometry
 		   MagneticField
                    RecoBase
+		   messagefacility::MF_MessageLogger
                    fhiclcpp::fhiclcpp
                    ROOT::Core
                    ROOT::Geom

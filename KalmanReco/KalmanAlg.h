@@ -29,8 +29,8 @@ namespace kalman {
 
     void Update1D(State& state, double d, double sigma);
     void Update2D(State& state, double d, double sigma);
-    void LinearSmooth(State& APost1, State& APost2, State& APrior2, double d);
-    
+    void Smooth(State& APost1, State& APost2, State& APrior2, double d);
+
     emph::geo::Geometry* fGeo;
     emph::MagneticField* fBfield;
     std::vector<State> fApriorState;

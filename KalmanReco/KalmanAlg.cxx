@@ -3,6 +3,7 @@
 #include <algorithm> 
 
 #include "KalmanReco/KalmanAlg.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 namespace kalman {
 
@@ -50,7 +51,7 @@ namespace kalman {
     fFieldZmin = fBfield->FieldMinZ();
     fFieldZmax = fBfield->FieldMaxZ();
 
-    std::cout << "%%%%% (min,maz) z position of B-field: (" << fFieldZmin << "," << fFieldZmax << ")" << std::endl;
+    mf::LogInfo("KalmanAlg") << "%%%%% (min,maz) z position of B-field: (" << fFieldZmin << "," << fFieldZmax << ")";
   }
 
   //-----------------------------------------------------------------
@@ -77,11 +78,10 @@ namespace kalman {
   {
     double ds = 0;
     if (fVerbosity)
-      std::cout << "%%%%% Passing through magnetic field %%%%%" << std::endl; 
+      mf::LogInfo("KalmanAlg") << "%%%%% Passing through magnetic field %%%%%"; 
     // extrapolate through magnetic field
     int nsteps = int(fabs(totL));
     double dz = totL/(double)nsteps;
-    std::cout << "dz = " << dz << std::endl;
     double tpos[3];
     state2 = state1;
 
@@ -95,16 +95,19 @@ namespace kalman {
       for (int k=0; k<3; ++k) // convert to kG
 	B[k] *= 1.e3;      
       if (fVerbosity)
-	std::cout << "B(" << tpos[0] << "," << tpos[1] << "," << tpos[2] 
-		  << ") = (" << B[0] << "," << B[1] << "," << B[2] << ")"
-		  << std::endl;
+	mf::LogInfo("KalmanAlg") << "B(" << tpos[0] << "," << tpos[1] 
+				 << "," << tpos[2] 
+				 << ") = (" << B[0] << "," << B[1] << "," 
+				 << B[2] << ")";
       if (dz < 0)
 	for (int k=0; k<3; ++k) // going backward, flip the sign of the field
 	  B[k] *= -1.;
       
       ds += fProp.Extrapolate(state2,dz,B);
     }
-    std::cout << "State after bend magnet:\n" << state1 << std::endl;
+    if (fVerbosity)
+      mf::LogInfo("KalmanAlg") << "State after bend magnet:\n" 
+			       << state1 << std::endl;
     return ds;
   }
 
@@ -126,28 +129,29 @@ namespace kalman {
     KMeasCov S = fH*(cov2*fHT) + mCov;;      
     int ifail;
     KMeasCov SInv = S.Inverse(ifail);
-    std::cout << "S^-1 = " << SInv << std::endl;
+    if (fVerbosity)
+      mf::LogInfo("KalmanAlg") << "S^-1 = " << SInv;
     KHMatrixTranspose K = fHT*SInv;
     
     K = cov2*K;      
     
     if (fVerbosity) {
-      std::cout << "K = " << K << std::endl;
+      mf::LogInfo("KalmanAlg") << "K = " << K << std::endl;
     }
     
-    std::cout << "m = " << m << std::endl;
-    std::cout << "mCov = " << mCov << std::endl;
+    mf::LogInfo("KalmanAlg") << "m = " << m << std::endl;
+    mf::LogInfo("KalmanAlg") << "mCov = " << mCov << std::endl;
     
     if (fVerbosity) {
       KPar Km = K*m;
-      std::cout << "K x m = " << Km << std::endl;
+      mf::LogInfo("KalmanAlg") << "K x m = " << Km << std::endl;
     }
     
     // get updated state and its cov. matrix
     KPar newPar = state.GetPar() + K*m;
     state.SetPar(newPar);
     K5x5 newCov = (K * fH) * cov2;
-    std::cout << "KxH = " << K*fH << std::endl;
+    mf::LogInfo("KalmanAlg") << "KxH = " << K*fH << std::endl;
     newCov = cov2 - newCov;
     
     state.SetCov(newCov);
@@ -169,35 +173,35 @@ namespace kalman {
     mCov2D[1][1] = fSinG*fSinG*sigma*sigma;
 
     if (fVerbosity)
-      std::cout << "m = " << m2D << std::endl;
+      mf::LogInfo("KalmanAlg") << "m = " << m2D << std::endl;
         
     // compute Kalman gain
     K5x5 cov2 = state.GetCov();
     KMeasCov2D S = fH2D*(cov2*fH2DT) + mCov2D;      
     int ifail;
     KMeasCov2D SInv = S.Inverse(ifail);
-    std::cout << "S^-1 = " << SInv << std::endl;
+    mf::LogInfo("KalmanAlg") << "S^-1 = " << SInv << std::endl;
     KHMatrixTranspose2D K = fH2DT*SInv;
     
     if (fVerbosity) 
-      std::cout << "fH2DT x S^-1 = " << K << std::endl;
+      mf::LogInfo("KalmanAlg") << "fH2DT x S^-1 = " << K << std::endl;
     
     K = cov2*K;      
     
     if (fVerbosity) {
-      std::cout << "K = " << K << std::endl;
+      mf::LogInfo("KalmanAlg") << "K = " << K << std::endl;
     }
     
     if (fVerbosity) {
       KPar Km = K*m2D;
-      std::cout << "K x m = " << Km << std::endl;
+      mf::LogInfo("KalmanAlg") << "K x m = " << Km << std::endl;
     }
 	
     // get updated state and its cov. matrix
     KPar newPar = state.GetPar() + K*m2D;
     state.SetPar(newPar);
     K5x5 newCov = K * (fH2D * cov2);
-    std::cout << "KxH = " << K*fH2D << std::endl;
+    mf::LogInfo("KalmanAlg") << "KxH = " << K*fH2D << std::endl;
     newCov = cov2 - newCov;
     state.SetCov(newCov);
 
@@ -205,8 +209,8 @@ namespace kalman {
 
   //-----------------------------------------------------------------
 
-  void KalmanAlg::LinearSmooth(State& ApostState1, State& ApostState2, 
-			       State& ApriorState2, double dz)
+  void KalmanAlg::Smooth(State& ApostState1, State& ApostState2, 
+			 State& ApriorState2, double dz)
   {
     fF[0][2] = dz;
     fF[1][3] = dz;
@@ -252,7 +256,7 @@ namespace kalman {
     for (size_t i=0; i<linesegv.size()-1; ++i) {
       if (linesegv[i+1].X0().Z() < linesegv[i].X0().Z()) {
 	isSorted = false;
-	std::cout << "linesegments not sorted!" << std::endl;
+	mf::LogInfo("KalmanAlg") << "linesegments not sorted!" << std::endl;
 	break;
       }
     }
@@ -275,7 +279,7 @@ namespace kalman {
     if (fVerbosity) {
       for (size_t idx = 0; idx<linesegv.size(); ++idx) {
 	auto & ls = linesegv[idx];
-	std::cout << "linesegment at z = " << ls.X0().Z() << std::endl;
+	mf::LogInfo("KalmanAlg") << "linesegment at z = " << ls.X0().Z() << std::endl;
       }
     }
 
@@ -283,10 +287,10 @@ namespace kalman {
       auto & ls = linesegv[idx];
 
       if (fVerbosity) {
-	std::cout << "Current state: " << std::endl;
-	std::cout << std::setprecision(4) << std::scientific;
-	std::cout << state1 << std::endl;
-	std::cout << std::defaultfloat; 
+	mf::LogInfo("KalmanAlg") << "Current state: " << std::endl;
+	mf::LogInfo("KalmanAlg") << std::setprecision(4) << std::scientific;
+	mf::LogInfo("KalmanAlg") << state1 << std::endl;
+	mf::LogInfo("KalmanAlg") << std::defaultfloat; 
       }
       
       // get Predicted state
@@ -301,7 +305,7 @@ namespace kalman {
       double radLength=0.;      
       if (idx>0 && idx < linesegv.size()-1 ) {
 	if (fVerbosity)
-	  std::cout << "Adding multiple scattering noise at SSD station " << ls.SSDStation() << ", Plane " << ls.SSDPlane() << std::endl;
+	  mf::LogInfo("KalmanAlg") << "Adding multiple scattering noise at SSD station " << ls.SSDStation() << ", Plane " << ls.SSDPlane() << std::endl;
 	int ssdId;
 	ssdId = ls.SSDStation()*10 + ls.SSDPlane();
 	radLength = fGeo->GetRadLength(ssdId);
@@ -310,12 +314,12 @@ namespace kalman {
       // check to see if the next measurement is in the field
       kalman::State state2;      
       if (InsideField) {
-	std::cout << "%%%%% INSIDE FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% INSIDE FIELD %%%%%" << std::endl;
 	dz = nextz - state1.GetZ();
 	ds = ExtrapInField(state1, state2, dz);
       }
       else if (EnteringField) {
-	std::cout << "%%%%% ENTERING FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% ENTERING FIELD %%%%%" << std::endl;
 	dz = fFieldZmin - state1.GetZ();
 	ds = dz;
 	SimpleExtrap(state1, state2, dz);	
@@ -324,7 +328,7 @@ namespace kalman {
 	ds += ExtrapInField(state1, state2, dz);
       }
       else if (ExitingField) {
-	std::cout << "%%%%% EXITING FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% EXITING FIELD %%%%%" << std::endl;
 	dz = fFieldZmax - state1.GetZ();
 	ds = ExtrapInField(state1, state2, dz);
 	state1 = state2;
@@ -333,7 +337,7 @@ namespace kalman {
 	ds += dz;
       }
       else { // both current state and next meas. are outside of field region
-	std::cout << "%%%%% OUTSIDE FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% OUTSIDE FIELD %%%%%" << std::endl;
 	dz = nextz - state1.GetZ();
 	SimpleExtrap(state1, state2, dz);
 	ds = dz;
@@ -348,10 +352,10 @@ namespace kalman {
       fApriorState.push_back(state2);
       
       if (fVerbosity) {
-	std::cout << std::setprecision(4) << std::scientific;
-	std::cout << "Predicted state: ";
-	std::cout << state2 << std::endl;
-	std::cout << std::defaultfloat; 
+	mf::LogInfo("KalmanAlg") << std::setprecision(4) << std::scientific;
+	mf::LogInfo("KalmanAlg") << "Predicted state: ";
+	mf::LogInfo("KalmanAlg") << state2 << std::endl;
+	mf::LogInfo("KalmanAlg") << std::defaultfloat; 
       }
       
       // now get measurement
@@ -368,10 +372,10 @@ namespace kalman {
       fCosG = cos(gamma);
       fSinG = sin(gamma);
       if (fVerbosity) {
-	std::cout << std::setprecision(8);
-	std::cout << "cos(gamma) = " << fCosG 
+	mf::LogInfo("KalmanAlg") << std::setprecision(8);
+	mf::LogInfo("KalmanAlg") << "cos(gamma) = " << fCosG 
 		  << ", sin(gamma) = " << fSinG << std::endl;
-	std::cout << std::defaultfloat;
+	mf::LogInfo("KalmanAlg") << std::defaultfloat;
       }
 
       bool is1D = false;
@@ -397,15 +401,15 @@ namespace kalman {
 	// chi2 += ROOT::Math::Similarity(m,SInv);
 
       if (fVerbosity) {
-	std::cout << "Updated state: ";
-	std::cout << std::setprecision(4) << std::scientific;
-	std::cout << state2 << std::endl;
-	std::cout << std::defaultfloat; 
+	mf::LogInfo("KalmanAlg") << "Updated state: ";
+	mf::LogInfo("KalmanAlg") << std::setprecision(4) << std::scientific;
+	mf::LogInfo("KalmanAlg") << state2 << std::endl;
+	mf::LogInfo("KalmanAlg") << std::defaultfloat; 
       }
       
       if (fVerbosity) {
 	if (!isFirst) {
-	  std::cout << "chi^2 / dof = " << chi2/float(dof) << std::endl;
+	  mf::LogInfo("KalmanAlg") << "chi^2 / dof = " << chi2/float(dof) << std::endl;
 	}
       }
 
@@ -414,7 +418,7 @@ namespace kalman {
     } // end forward loop through measurements
     
     if (fVerbosity) 
-      std::cout << "%%%%% Now going backwards for smoothing... %%%%%" 
+      mf::LogInfo("KalmanAlg") << "%%%%% Now going backwards for smoothing... %%%%%" 
 		<< std::endl;
 
     int ifail;
@@ -424,13 +428,12 @@ namespace kalman {
       auto & ls = linesegv[idx];
 
       if (fVerbosity) {
-	std::cout << "At z = " << ls.X0().Z() << " (" << zPos[idx] 
+	mf::LogInfo("KalmanAlg") << "At z = " << ls.X0().Z() << " (" << zPos[idx] 
 		  << ")" << std::endl;
-	std::cout << "Previous state: \t" << fApostState[idx] << std::endl;
+	mf::LogInfo("KalmanAlg") << "Previous state: \t" << fApostState[idx] << std::endl;
       }
 
       double nextz = ls.X0().Z();
-      dz = nextz - state1.GetZ();
       bool InsideField   = fBfield&&((state1.GetZ() < fFieldZmax) && (nextz >= fFieldZmin));
       bool EnteringField = fBfield&&((state1.GetZ() > fFieldZmax) && (nextz < fFieldZmax));
       bool ExitingField  = fBfield&&((state1.GetZ() > fFieldZmin) && (nextz < fFieldZmin));
@@ -441,7 +444,7 @@ namespace kalman {
       double radLength=0.;      
       auto & ls2 = linesegv[idx-1];
       if (fVerbosity)
-	std::cout << "Adding multiple scattering noise at SSD station " << ls2.SSDStation() << ", Plane " << ls2.SSDPlane() << std::endl;
+	mf::LogInfo("KalmanAlg") << "Adding multiple scattering noise at SSD station " << ls2.SSDStation() << ", Plane " << ls2.SSDPlane() << std::endl;
       int ssdId;
       ssdId = ls2.SSDStation()*10 + ls2.SSDPlane();
       radLength = fGeo->GetRadLength(ssdId);
@@ -449,14 +452,12 @@ namespace kalman {
 
       kalman::State state2;      
       if (InsideField) {
-	std::cout << "%%%%% INSIDE FIELD %%%%%" << std::endl;
-	/*
-	dz = nextz - state1.GetZ();
-	ds = ExtrapInField(state1, state2, dz);
-	*/
+	mf::LogInfo("KalmanAlg") << "%%%%% INSIDE FIELD %%%%%" << std::endl;	
+	dz = nextz - fApostState[idx].GetZ();
+	ds = ExtrapInField(fApostState[idx], state2, dz);
       }
       else if (EnteringField) {
-       	std::cout << "%%%%% ENTERING FIELD %%%%%" << std::endl;
+       	mf::LogInfo("KalmanAlg") << "%%%%% ENTERING FIELD %%%%%" << std::endl;
 	/*
 	dz = fFieldZmin - state1.GetZ();
 	ds = dz;
@@ -467,7 +468,7 @@ namespace kalman {
 	*/
       }
       else if (ExitingField) {
-	std::cout << "%%%%% EXITING FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% EXITING FIELD %%%%%" << std::endl;
 	/*
 	dz = fFieldZmax - state1.GetZ();
 	ds = ExtrapInField(state1, state2, dz);
@@ -478,10 +479,10 @@ namespace kalman {
 	*/
       }
       else { // both current state and next meas. are outside of field region
-	std::cout << "%%%%% OUTSIDE FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% OUTSIDE FIELD %%%%%" << std::endl;
 	dz = nextz - state1.GetZ();
-	LinearSmooth(fApostState[idx],fApostState[idx+1],
-		     fApriorState[idx+1],dz);
+	Smooth(fApostState[idx],fApostState[idx+1],
+	       fApriorState[idx+1],dz);
       }
 
       // now add in extra noise due to multiple scattering
@@ -493,12 +494,12 @@ namespace kalman {
       //      kalman::State state2;      
       /*
       if (InsideField) {
-	std::cout << "%%%%% INSIDE FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% INSIDE FIELD %%%%%" << std::endl;
 	dz = nextz - state1.GetZ();
 	ds = ExtrapInField(state1, state2, dz);
       }
       else if (EnteringField) {
-	std::cout << "%%%%% ENTERING FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% ENTERING FIELD %%%%%" << std::endl;
 	dz = fFieldZmin - state1.GetZ();
 	ds = dz;
 	SimpleExtrap(state1, state2, dz);	
@@ -507,7 +508,7 @@ namespace kalman {
 	ds += ExtrapInField(state1, state2, dz);
       }
       else if (ExitingField) {
-	std::cout << "%%%%% EXITING FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% EXITING FIELD %%%%%" << std::endl;
 	dz = fFieldZmax - state1.GetZ();
 	ds = ExtrapInField(state1, state2, dz);
 	state1 = state2;
@@ -516,7 +517,7 @@ namespace kalman {
 	ds += dz;
       }
       else { // both current state and next meas. are outside of field region
-	std::cout << "%%%%% OUTSIDE FIELD %%%%%" << std::endl;
+	mf::LogInfo("KalmanAlg") << "%%%%% OUTSIDE FIELD %%%%%" << std::endl;
 	dz = nextz - state1.GetZ();
 	SimpleExtrap(state1, state2, dz);
 	ds = dz;
@@ -535,7 +536,7 @@ namespace kalman {
       if (ls.X0().Z() > fGeo->MagnetUSZPos() && 
 	  ls2.X0().Z() < fGeo->MagnetDSZPos()) {
 	if (fVerbosity)
-	  std::cout << "%%%%% Passing through magnetic field %%%%%" << std::endl; 
+	  mf::LogInfo("KalmanAlg") << "%%%%% Passing through magnetic field %%%%%" << std::endl; 
 	double radLength = 0.1/30390.; // ahhh!  hard coding makes me want to vomit
 	// extrapolate through magnetic field
 	int nsteps = (ls.X0().Z() - ls2.X0().Z());
@@ -548,24 +549,24 @@ namespace kalman {
 	  tpos[2] = state1.GetZ();
 	  fBfield->GetFieldValue(tpos,B);
 	  for (int j=0; j<3; ++j) B[j] *= -1.;
-	  std::cout << "B(" << tpos[0] << "," << tpos[1] << "," << tpos[2] 
+	  mf::LogInfo("KalmanAlg") << "B(" << tpos[0] << "," << tpos[1] << "," << tpos[2] 
 		    << ") = (" << B[0] << "," << B[1] << "," << B[2] << ")"
 		    << std::endl;
 	  fProp.Extrapolate(state1,dz,B);
 	  fProp.AddNoise(state1,dz,radLength);
 	}
-	std::cout << "State after bend magnet:\n" << state1 << std::endl;
+	mf::LogInfo("KalmanAlg") << "State after bend magnet:\n" << state1 << std::endl;
 	fApostState[idx] = state1;
       }
       if (fVerbosity) {
-	std::cout << std::setprecision(4) << std::scientific;
+	mf::LogInfo("KalmanAlg") << std::setprecision(4) << std::scientific;
 
-	std::cout << "Smoothed state: \n" << fApostState[idx] << std::endl;
-	std::cout << "d = " << ls.DistanceToPoint(fApostState[idx].GetPar()[0],
+	mf::LogInfo("KalmanAlg") << "Smoothed state: \n" << fApostState[idx] << std::endl;
+	mf::LogInfo("KalmanAlg") << "d = " << ls.DistanceToPoint(fApostState[idx].GetPar()[0],
 						  fApostState[idx].GetPar()[1]) 
 		  << std::endl;
-	std::cout << "-----------------" << std::endl;
-	std::cout << std::defaultfloat; 
+	mf::LogInfo("KalmanAlg") << "-----------------" << std::endl;
+	mf::LogInfo("KalmanAlg") << std::defaultfloat; 
       }
       */
     } 
