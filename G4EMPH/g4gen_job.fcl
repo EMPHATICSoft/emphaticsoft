@@ -23,8 +23,8 @@ services:
 source:
 {
   module_type: EmptyEvent
-  maxEvents: 10000
-  firstRun:  2293
+  maxEvents: 1000000
+  firstRun:  2408
   firstSubRun: 1
 
 }
