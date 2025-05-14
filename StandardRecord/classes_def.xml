@@ -24,7 +24,8 @@
   <version ClassVersion="11" checksum="3811607721"/>
  </class>
 
- <class name="caf::SRARing" ClassVersion="10" >
+ <class name="caf::SRARing" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2945504493"/>
   <version ClassVersion="10" checksum="4087695020"/>
  </class>
  <class name="std::vector<caf::SRARing>" />
@@ -87,6 +88,18 @@
   <version ClassVersion="10" checksum="3758140000"/>
  </class>
 
+ <class name="caf::SRArichID" ClassVersion="12">
+  <version ClassVersion="12" checksum="1360026226"/>
+  <version ClassVersion="11" checksum="199523920"/>
+  <version ClassVersion="10" checksum="3855119966"/>
+ </class>
+
+<class name="caf::SRPID" ClassVersion="12">
+ <version ClassVersion="12" checksum="3547227045"/>
+ <version ClassVersion="11" checksum="1925798450"/>
+ <version ClassVersion="10" checksum="4080156220"/>
+</class>
+
  <class name="caf::SRVector3D" ClassVersion="10" >
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
@@ -137,8 +150,10 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrack" ClassVersion="12" >
-  <version ClassVersion="12" checksum="2586407891"/>
+ <class name="caf::SRTrack" ClassVersion="14" >
+  <version ClassVersion="14" checksum="1919816117"/>
+  <version ClassVersion="13" checksum="2826463250"/>
+  <version ClassVersion="12" checksum="2842738991"/>
   <version ClassVersion="11" checksum="3996263664"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

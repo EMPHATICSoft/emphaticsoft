@@ -206,7 +206,7 @@ namespace kalman {
   //-----------------------------------------------------------------
 
   void KalmanAlg::LinearSmooth(State& ApostState1, State& ApostState2, 
-			       State& ApriorState2, double dz, int idx)
+			       State& ApriorState2, double dz)
   {
     fF[0][2] = dz;
     fF[1][3] = dz;
@@ -217,7 +217,8 @@ namespace kalman {
     KPar apostPar1 = ApostState2.GetPar();
     K5x5 apriorCov1 = ApriorState2.GetCov();
     KPar apriorPar1 = ApriorState2.GetPar();
-    
+    int ifail;
+
     K5x5 C = apostCov * (ROOT::Math::Transpose(fF) * apriorCov1.Inverse(ifail));
     
     apostPar = apostPar + C * (apostPar1 - apriorPar1);
@@ -436,6 +437,7 @@ namespace kalman {
       double ds = 0.;
       
       // get radLength for multiple scattering noise calculation
+      /*
       double radLength=0.;      
       auto & ls2 = linesegv[idx-1];
       if (fVerbosity)
@@ -443,6 +445,7 @@ namespace kalman {
       int ssdId;
       ssdId = ls2.SSDStation()*10 + ls2.SSDPlane();
       radLength = fGeo->GetRadLength(ssdId);
+      */
 
       kalman::State state2;      
       if (InsideField) {
@@ -487,7 +490,8 @@ namespace kalman {
       //      }
             
       // check to see if the next measurement is in the field
-      kalman::State state2;      
+      //      kalman::State state2;      
+      /*
       if (InsideField) {
 	std::cout << "%%%%% INSIDE FIELD %%%%%" << std::endl;
 	dz = nextz - state1.GetZ();
@@ -563,8 +567,9 @@ namespace kalman {
 	std::cout << "-----------------" << std::endl;
 	std::cout << std::defaultfloat; 
       }
-    }
-      
+      */
+    } 
+     
     return track;
   }
 

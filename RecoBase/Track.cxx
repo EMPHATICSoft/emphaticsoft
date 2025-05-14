@@ -25,7 +25,6 @@ namespace rb {
       _p[i] = 0.;
     }
   }
-  
   //------------------------------------------------------------
 
   void Track::Add(const rb::SSDCluster& cl) 
@@ -49,6 +48,7 @@ namespace rb {
     assert(_clust.empty() && _sgmnt.empty());
     _spcpt.push_back(rb::SpacePoint(sp));
   }
+  
 
   //------------------------------------------------------------
 

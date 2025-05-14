@@ -17,7 +17,8 @@
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
-
+#include "RecoBase/ArichID.h"
+#include "StandardRecord/SRPID.h"
 #include "TVector3.h"
 
 namespace rb {
@@ -34,13 +35,14 @@ namespace rb {
     std::vector<rb::SSDCluster> _clust; // vector of SSD clusters
     std::vector<rb::TrackSegment> _sgmnt; // vector of track segments
     std::vector<rb::SpacePoint> _spcpt; // vector 3D space points
-
     // the position of a track will be a linear interpolation between points.
     // the creator of the track is responsible for adding the points
+ 
     std::vector<TVector3> _pos; // vector of predicted positions
     std::vector<TVector3> _mom;
 
   public:
+
     // Getters
     const double* Vtx() const { return _vtx; }
     const double* P() const { return _p; }
