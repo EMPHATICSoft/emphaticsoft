@@ -568,7 +568,7 @@ namespace rawdata {
 
   /***************************************************************************/
 
-#define timeUncertainty 10 // nanoseconds
+#define timeUncertainty 100 // nanoseconds
 
 	template <typename T, typename S> // this type will likely be 'double'
 	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
@@ -644,13 +644,18 @@ namespace rawdata {
 	std::tuple<uint64_t,uint64_t> indexOfLastSync(const std::vector<T> A, const std::vector<T> B) {
 		uint64_t aIndex = 0;
 		uint64_t bIndex = 0;
-		for(size_t aEvent = A.size() - 1; aEvent >= 0; --aEvent)
-		for(size_t bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
-			if(abs(A[aEvent] - B[bEvent]) < timeUncertainty) {
-				aIndex = aEvent;
-				bIndex = bEvent;
-				break;
+		bool exitLoop = false;
+		std::cout << "Finding index of last sync" << std::endl;
+		for(size_t aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
+			for(size_t bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
+				if(abs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
+					aIndex = aEvent;
+					bIndex = bEvent;
+					exitLoop = true;
+					break;
+				}
 			}
+			if(exitLoop) break;
 		}
 		return { aIndex, bIndex };
 	}
@@ -674,20 +679,26 @@ namespace rawdata {
 		for(size_t startSample = 0; startSample < grandfather.size()-N_compare; ++startSample) {
 			auto begin = grandfather.begin() + startSample;
 			std::vector<T> father(begin, begin+N_compare);
-			std::vector<int64_t> dt = calcDifferences(father, child, skip, scale);
+			std::vector<int64_t> dt = calcDifferences<int64_t>(father, child, skip, scale);
 			auto [indexBin, N_occur, stdDev]  = findOffset(dt);
 			if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
 				index = startSample; // sets index of last synced event to the front of the last synced set
 				timeOffset = binToTime(dt, indexBin); // sets timeOffset of the data set
 				break;
+			} else {
+				std::cout << "Number of occurrences:" << std::endl;
+				std::cout << N_occur << std::endl;
 			}
 		}
 
+		std::cout << "Made it here" << std::endl;
 		for( auto &timeStamp : child ) // offsets all of the child timestamps
 			timeStamp += timeOffset;
+		std::cout << "Succeeded in stepping back" << std::endl;
 		auto begin = grandfather.begin() + index;
 		std::vector<T> father(begin, begin+N_compare);
 		auto [fIndex, cIndex] = indexOfLastSync(father, child);
+		std::cout << "Found index" << std::endl;
 		return { index+fIndex, cIndex, timeOffset };
 	}
 
@@ -755,7 +766,42 @@ namespace rawdata {
 
 		size_t N_compare=200; // Number of events to compare
 		double scale = 1;
+		std::unordered_map <
+			artdaq::Fragment::fragment_id_t,
+			size_t
+		> indexOffset;
+		// Begin by calibrating each sensor to their grandfather
+		for(int i = 0; i < 2; ++i) { // iterate over sensor types
+			auto grandfather = fragIdGrandfather[i];
+			// Set up grandfather vector for comparison
+			auto begin = fFragTimestamps[grandfather].begin();
+			//auto last = fFragTimestamps[grandfather].end();
+			std::vector<int64_t> A(begin, begin + 2*N_compare);
+			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
+				auto fragId = fFragId[ifrag];
+				if(grandfather/10 != fragId/10) continue;
+				/*
+				if(fragId == grandfather) { // compare SSDs if fragId is grandfather
+					begin = ssdTimestamps.begin()+set;
+					last = ssdTimestamps.end();
+				} else {
+					begin = fFragTimestamps[fragId].begin()+set;
+					last = fFragTimestamps[fragId].end();
+				}
+				*/
+				begin = fFragTimestamps[fragId].begin();
+				std::vector<int64_t> B(begin, begin + N_compare);
+				std::cout << "Attempting to calibrate" << std::endl;
+				auto [aIndex, bIndex, time] = calibrateXcorr(A, B, 0.25);
+				std::cout << std::setw(15)
+					<< aIndex << std::setw(15)
+					<< bIndex << std::setw(15)
+					<< time << std::endl;
+			}
+		}
+		return false;
 
+		/* Batch processing (not offsetting for missed events)
 		for(size_t set = 0; set < samplesGrandfather - 2*N_compare; set+=N_compare) {
 			std::cout << std::setw(10) << set << std::endl;
 			for(int i = 0; i < 2; ++i) { // iterate over sensor types
@@ -824,6 +870,7 @@ namespace rawdata {
 //				<< "\tOccurrences: " << N_occur
 //				<< std::endl;
 		}
+		*/
 		return false;
 
 	 /* Old stuff (dt method)
