@@ -568,7 +568,7 @@ namespace rawdata {
 
   /***************************************************************************/
 
-#define binFactor 10
+#define timeUncertainty 10 // nanoseconds
 
 	template <typename T, typename S> // this type will likely be 'double'
 	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
@@ -622,7 +622,7 @@ namespace rawdata {
       sprintf(htitle,"Fragment Time Differences for pair #%d",histIndex);
 		histIndex++;
 		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		TH1I dtHist(hname, htitle, abs(*max - *min + 1)/binFactor, *min-0.5, *max+0.5);
+		TH1I dtHist(hname, htitle, abs(*max - *min + 1)/timeUncertainty, *min-0.5, *max+0.5);
 
 		for(auto x : dt)
 			dtHist.Fill(x);
@@ -633,10 +633,62 @@ namespace rawdata {
 	}
 
 	template <typename T>
-	int binToTime(std::vector<T> dt, int bin) {
+	int64_t binToTime(std::vector<T> dt, int bin) {
 		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		int nbins = abs(*max - *min + 1) / binFactor;
+		int nbins = abs(*max - *min + 1) / timeUncertainty;
 		return  1.0 *  bin / (nbins-1) * (*max - *min) + 1.0 * *min / (nbins-1) * nbins - 1.0 * *max/(nbins-1);
+	}
+
+	// Returns the last time synchronized item
+	template <typename T>
+	std::tuple<uint64_t,uint64_t> indexOfLastSync(const std::vector<T> A, const std::vector<T> B) {
+		uint64_t aIndex = 0;
+		uint64_t bIndex = 0;
+		for(size_t aEvent = A.size() - 1; aEvent >= 0; --aEvent)
+		for(size_t bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
+			if(abs(A[aEvent] - B[bEvent]) < timeUncertainty) {
+				aIndex = aEvent;
+				bIndex = bEvent;
+				break;
+			}
+		}
+		return { aIndex, bIndex };
+	}
+
+	// Calibrate the cross correlation routine
+	template <typename T>
+	std::tuple<uint64_t, uint64_t, int64_t> calibrateXcorr(std::vector<T> grandfather, std::vector<T> child, double percentOverlap) {
+		// Outputs: { index of last synced event, timeOffset }
+		uint64_t index = 0;
+		int64_t timeOffset = 0;
+
+		size_t N_compare = child.size();
+		// Check that the child vector is smaller than the grandfather vector
+		if(child.size() > grandfather.size()) return {2*N_compare, 2*N_compare, 0};
+		// Check that percentOverlap is less than 1 and that we are checking for at least 1 overlapping sample
+		if(child.size() * percentOverlap < 1 || percentOverlap > 1) return {2*N_compare, 2*N_compare, 0};
+
+		// iterate over whole setup until we find enough overlapping events
+		double scale = 1; // not scaling anything yet; add this criterion later? <@@>
+		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
+		for(size_t startSample = 0; startSample < grandfather.size()-N_compare; ++startSample) {
+			auto begin = grandfather.begin() + startSample;
+			std::vector<T> father(begin, begin+N_compare);
+			std::vector<int64_t> dt = calcDifferences(father, child, skip, scale);
+			auto [indexBin, N_occur, stdDev]  = findOffset(dt);
+			if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
+				index = startSample; // sets index of last synced event to the front of the last synced set
+				timeOffset = binToTime(dt, indexBin); // sets timeOffset of the data set
+				break;
+			}
+		}
+
+		for( auto &timeStamp : child ) // offsets all of the child timestamps
+			timeStamp += timeOffset;
+		auto begin = grandfather.begin() + index;
+		std::vector<T> father(begin, begin+N_compare);
+		auto [fIndex, cIndex] = indexOfLastSync(father, child);
+		return { index+fIndex, cIndex, timeOffset };
 	}
 
 	bool Unpacker::findT0s()	{
@@ -649,14 +701,15 @@ namespace rawdata {
 		for(size_t i = 0; i < fSSDRawDigits.size(); ++i) {
 			ssdTimestamps.push_back(fSSDRawDigits[i].first);
 		}
-		for(auto& time : ssdTimestamps) {
-			time += -*ssdTimestamps.begin();
-		}
+//		for(auto& time : ssdTimestamps) {
+//			time += -*ssdTimestamps.begin();
+//		}
 
 		std::cout << "In findT0s()" << std::endl;
 
       std::array<artdaq::Fragment::fragment_id_t,3> fragIdGrandfather = {fFragId[0]};
 
+		// Determine the grandfathers
 		size_t samplesGrandfather = UINT_MAX;
 		for(int i = 0; i < 2; ++i) { // iterate over sensor types
 			samplesGrandfather = UINT_MAX;
@@ -698,12 +751,12 @@ namespace rawdata {
 			<< "\nStandard Deviation: " << stdDev << std::endl;
 		*******************************************************************************************/
 
-		 // ifrag == 0 is our reference
-		 // - NTK
+		// Do the xcorrelation
+
 		size_t N_compare=200; // Number of events to compare
 		double scale = 1;
+
 		for(size_t set = 0; set < samplesGrandfather - 2*N_compare; set+=N_compare) {
-		//for(size_t set = 0; set < N_compare*3; set+=N_compare) {
 			std::cout << std::setw(10) << set << std::endl;
 			for(int i = 0; i < 2; ++i) { // iterate over sensor types
 				auto grandfather = fragIdGrandfather[i];
@@ -741,15 +794,12 @@ namespace rawdata {
 						<< std::endl;
 
 					// Scale back NEXT set of events by the calculated offset
-					std::vector<int64_t> offset(begin, last);
-//					for(auto& time : offset)
-//						time += timeOffset;
 					size_t timeSet = 0;
 
 					if(fragId == grandfather) // compare SSDs if fragId is grandfather
-						timeSet = ssdTimestamps.size() - set;
+						timeSet = ssdTimestamps.size();
 					else
-						timeSet = fFragTimestamps[fragId].size() - set;
+						timeSet = fFragTimestamps[fragId].size();
 
 					for(size_t time = set; time < timeSet; ++time) {
 						if(fragId == grandfather)
@@ -759,7 +809,7 @@ namespace rawdata {
 					}
 				 }
 			}
-			//std::cout << "comparing the grandfathers" << std::endl;;
+
 //			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
 //			dtVec[fragIdGrandfather[1]] = calcDifferences<int64_t>(fFragTimestamps[fragIdGrandfather[0]], fFragTimestamps[fragIdGrandfather[1]], skip, scale);
 //
