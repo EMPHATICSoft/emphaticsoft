@@ -6,7 +6,8 @@ standard_cafmaker:{
     CAFFilename:   "out.caf.root" # Provide a string to override the automatic filename
     FileExtension: ".caf.root"
 
-    ARingLabel:        "arichreco"
+    ARingLabel:        "arichring"
+    ArichIDLabel:	"arichreco"
     BACkovHitLabel:    "backovreco"
     DataQualLabel:     "dataqual"
     GasCkovHitLabel:   "gasckovreco"
@@ -14,7 +15,6 @@ standard_cafmaker:{
     SpacePointLabel:   "maketracksegments"
     SSDClustLabel:     "clust"
     SSDHitLabel:       "geantgen" #dah
-    #SSDRawLabel:       "raw:SSD"
     SSDRawLabel:       "rawSSD:SSD"
     TrackLabel:        "makesingletracks"
     TrackSegmentLabel: "maketracksegments"

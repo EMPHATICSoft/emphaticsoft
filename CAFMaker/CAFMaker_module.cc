@@ -48,6 +48,7 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "RawData/SSDRawDigit.h"
+#include "RawData/TRB3RawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/GasCkovHit.h"
@@ -122,7 +123,8 @@ namespace caf {
     // Normally CAFMaker is run without an output ART stream, so these go
     // nowhere, but can be occasionally useful for filtering as part of an
     // ART job.
-    produces< std::vector< caf::StandardRecord > >();
+  
+   produces< std::vector< caf::StandardRecord > >();
   }
 
   //......................................................................
@@ -248,7 +250,8 @@ namespace caf {
 
       // Get Tracks
       TrackFiller trkf;
-      trkf.fLabel = fParams.TrackLabel();
+      trkf.fLabelTracks = fParams.TrackLabel();
+      trkf.fLabelArichID = fParams.ArichIDLabel();
       trkf.Fill(evt,rec);
     }
 
