@@ -12,6 +12,8 @@ include_directories($ENV{ART_ROOT_IO_INC})
 art_make_library ( SOURCE ${src_files}
         LIBRARY_NAME  KalmanReco
  		   LIBRARIES
+		   Geometry
+		   MagneticField
                    RecoBase
                    fhiclcpp::fhiclcpp
                    ROOT::Core

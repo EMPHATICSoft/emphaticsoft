@@ -197,11 +197,11 @@ namespace emph {
 	  auto & ls = (*lsH)[i];
 	  auto station = emgeo->GetSSDStation(ls.SSDStation());
 	  // check that measurements is downstream of the target
-	  if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2] &&
-	      station->Pos()[2] < emgeo->MagnetUSZPos()) {
+	  if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) // &&
+	    //	      station->Pos()[2] < emgeo->MagnetUSZPos()) {
 	    //	  std::cout << ls << std::endl;
 	    lsV.push_back(ls);
-	  }
+	  //	}
 	}
 
 	KPar par;

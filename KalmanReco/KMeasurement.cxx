@@ -45,6 +45,10 @@ namespace kalman {
       fMeas = parIn.GetMeas();
       fCov = parIn.GetMeasCov();
       fHMatrix = parIn.GetHMatrix();
+      fMeas2D = parIn.GetMeas2D();
+      fCov2D = parIn.GetMeasCov2D();
+      fHMatrix2D = parIn.GetHMatrix2D();
+      fIs1D = parIn.Is1D();
     }
     return *this;
   }
@@ -54,9 +58,16 @@ namespace kalman {
   std::ostream& operator << (std::ostream& o, const Measurement& m)
   {
     o << "z = " << m.fZ << endl;
-    o << "m = " << m.fMeas << endl;
-    o << "sigma_m = " << m.fCov << std::endl;
-    o << "H = " << m.fHMatrix << std::endl;
+    if (m.fIs1D) {
+      o << "m = " << m.fMeas << endl;
+      o << "sigma_m = " << m.fCov << std::endl;
+      o << "H = " << m.fHMatrix << std::endl;
+    }
+    else {
+      o << "m = " << m.fMeas2D << endl;
+      o << "sigma_m = " << m.fCov2D << std::endl;
+      o << "H = " << m.fHMatrix2D << std::endl;
+    }
     return o;
  }
 
