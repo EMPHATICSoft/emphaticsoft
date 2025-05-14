@@ -30,7 +30,7 @@ namespace caf
 	sp.vtx[i] = p.Vtx()[i];
       sp.mom.SetXYZ(p.P()[0],p.P()[1],p.P()[2]);
 	if(arichIDs.size() == 0)continue;
-	sp.arich.track_id = arichIDs[0].track_id; 
+	sp.arich.trackID = arichIDs[0].trackID; 
 	sp.arich.scores = arichIDs[0].scores;
       for (size_t i=0; i<p.NTrackSegments(); i++){     
         auto pts = p.GetTrackSegment(i);

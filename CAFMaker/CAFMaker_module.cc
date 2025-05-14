@@ -48,7 +48,6 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "RawData/SSDRawDigit.h"
-#include "RawData/TRB3RawDigit.h"
 #include "RecoBase/ARing.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/GasCkovHit.h"

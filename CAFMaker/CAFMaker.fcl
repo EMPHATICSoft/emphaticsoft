@@ -7,7 +7,7 @@ standard_cafmaker:{
     FileExtension: ".caf.root"
 
     ARingLabel:        "arichring"
-    ArichIDLabel:	"arichreco"
+    ArichIDLabel:      "arichreco"
     BACkovHitLabel:    "backovreco"
     DataQualLabel:     "dataqual"
     GasCkovHitLabel:   "gasckovreco"
