@@ -208,7 +208,8 @@ namespace emph {
       
       try {
 	evt.getByLabel(fClusterLabel, clustH);
-	if (!clustH->empty()){
+  if(clustH->size() > 50) throw art::Exception(art::errors::InvalidNumber);
+ 	if (!clustH->empty()){
           rb::LineSegment lineseg_tmp  = rb::LineSegment();
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];

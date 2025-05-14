@@ -5,7 +5,7 @@
 #include "FillDataQuality.fcl"
 #include "SpillInfo.fcl"
 #include "ARICHReco.fcl"
-#include "MakeArichCluster.fcl""
+#include "MakeArichCluster.fcl"
 #include "MakeSSDClusters.fcl"
 #include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
@@ -57,10 +57,11 @@ physics:
 
   makecaf:   [
                dataqual, spillinfo, arichcluster, arichreco, clust,
-               maketracksegments, makesingletracks, singletrackalignment, adcreco, backovreco, gasckovreco,
+               maketracksegments, makesingletracks, adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
 }
 physics.producers.clust.FillTTree: false
-physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's
+physics.producers.cafmaker.GetMCTruth: false #include when producing MC CAF's
+physics.producers.arichcluster.LabelHits: "raw:ARICH"

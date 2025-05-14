@@ -142,8 +142,8 @@ std::map<int,double> emph::MakeArichCluster::GetRefenceTimes(std::vector<rawdata
         refTime[fpga] = trb3.GetFinalTime();
         }
        else {
-           std::cout << "Reference time for fpga " << fpga << " already exists." << " Time difference "
-            << (trb3.GetFinalTime()-refTime[fpga])/1e3 << " (ns)" << std::endl;
+          // std::cout << "Reference time for fpga " << fpga << " already exists." << " Time difference "
+         //   << (trb3.GetFinalTime()-refTime[fpga])/1e3 << " (ns)" << std::endl;
        	    }
        }
    } 
@@ -177,13 +177,23 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeAric
 void emph::MakeArichCluster::produce(art::Event& evt)
   { 
       std::unique_ptr<std::vector<rb::ARICHCluster>> ARICH_CLUSTERS(new std::vector<rb::ARICHCluster>);
+     
+      auto arichH = evt.getHandle<std::vector<emph::rawdata::TRB3RawDigit> >(fARICHLabel);
 
-      //int eventID = evt.id().event();;
-      art::Handle<std::vector<emph::rawdata::TRB3RawDigit>> arichH;	
+      if(!arichH.isValid()) {
+      evt.put(std::move(ARICH_CLUSTERS));
+      return;
+      }
 
+      try {
       evt.getByLabel(fARICHLabel,arichH);
+      }
+      catch(...){
+      evt.put(std::move(ARICH_CLUSTERS));
+      return;
+      }
       std::vector<emph::rawdata::TRB3RawDigit> ArichDigs(*arichH);
-      //std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
+     // std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
 
 	std::map<int, double> refTime = GetRefenceTimes(ArichDigs);
 
@@ -259,7 +269,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
 	for(int u = 0; u < (int)clusters.size(); u++){
     
-            std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
+           // std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
 		
 	    rb::ARICHCluster cluster;
 
