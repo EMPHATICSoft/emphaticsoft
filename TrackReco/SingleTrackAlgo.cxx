@@ -577,7 +577,7 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3)
+  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3, int pm)
   {
     SetPtmp(ts2);
     SetPtmp(ts3);
@@ -590,13 +590,13 @@ namespace emph {
 
     // Change TrackSegments
     double realp2[3];
-    realp2[2] = recop*ts2.P()[2];
+    realp2[2] = pm*recop*ts2.P()[2];
     realp2[0] = ts2.P()[0]*realp2[2];
     realp2[1] = ts2.P()[1]*realp2[2];
     ts2.SetP(realp2);
 
     double realp3[3];
-    realp3[2] = recop*ts3.P()[2];
+    realp3[2] = pm*recop*ts3.P()[2];
     realp3[0] = ts3.P()[0]*realp3[2];
     realp3[1] = ts3.P()[1]*realp3[2];
     ts3.SetP(realp3);
