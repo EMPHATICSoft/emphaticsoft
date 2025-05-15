@@ -3,7 +3,7 @@ BEGIN_PROLOG
 #   This file defines the configuration for the job module "CAFMaker"
 standard_cafmaker:{
     module_type:   CAFMaker
-    CAFFilename:   "out.caf.root" # Provide a string to override the automatic filename
+    CAFFilename:   "" # Provide a string to override the automatic filename
     FileExtension: ".caf.root"
 
     ARingLabel:        "arichreco"
@@ -14,8 +14,7 @@ standard_cafmaker:{
     SpacePointLabel:   "maketracksegments"
     SSDClustLabel:     "clust"
     SSDHitLabel:       "geantgen" #dah
-    #SSDRawLabel:       "raw:SSD"
-    SSDRawLabel:       "rawSSD:SSD"
+    SSDRawLabel:       "raw:SSD"
     TrackLabel:        "makesingletracks"
     TrackSegmentLabel: "maketracksegments"
 

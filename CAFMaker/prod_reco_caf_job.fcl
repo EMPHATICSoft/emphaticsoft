@@ -4,6 +4,7 @@
 
 #include "FillDataQuality.fcl"
 #include "SpillInfo.fcl"
+#include "MakeArichCluster.fcl"
 #include "ARICHReco.fcl"
 #include "MakeSSDClusters.fcl"
 #include "ADCReco.fcl"
@@ -37,21 +38,15 @@ physics:
 {
   producers:
   {
-    //spillinfo: @local::standard_spillinfo
-    //arichreco:  @local::standard_arichreco
-    //clust:  @local::standard_ssdclust
-    //adcreco:    @local::standard_adcreco
-    //backovreco: @local::standard_backovhitreco
-    //gasckovreco: @local::standard_gasckovhitreco
-    //cafmaker:   @local::standard_cafmaker
-    dataqual:         @local::standard_dataqual
-    spillinfo:        @local::standard_spillinfo
-    arichreco:        @local::standard_arichreco
-    clust:            @local::standard_ssdclust
-    adcreco:          @local::standard_adcreco
-    backovreco:       @local::standard_backovhitreco
-    gasckovreco:      @local::standard_gasckovhitreco
-    cafmaker:         @local::standard_cafmaker
+    dataqual:     @local::standard_dataqual
+    spillinfo:    @local::standard_spillinfo
+    arichcluster: @local::standard_arich_cluster
+    arichreco:    @local::standard_arichreco
+    clust:        @local::standard_ssdclust
+    adcreco:      @local::standard_adcreco
+    backovreco:   @local::standard_backovhitreco
+    gasckovreco:  @local::standard_gasckovhitreco
+    cafmaker:     @local::standard_cafmaker
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
@@ -61,9 +56,9 @@ physics:
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichreco, clust,
-               maketracksegments, makesingletracks, singletrackalignment, adcreco, backovreco, gasckovreco,
-               #adcreco, backovreco, gasckovreco,
+               dataqual, spillinfo, arichcluster, arichreco, clust,
+               maketracksegments, makesingletracks, singletrackalignment,
+               adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
