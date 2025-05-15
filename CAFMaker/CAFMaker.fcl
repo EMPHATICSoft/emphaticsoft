@@ -6,7 +6,8 @@ standard_cafmaker:{
     CAFFilename:   "" # Provide a string to override the automatic filename
     FileExtension: ".caf.root"
 
-    ARingLabel:        "arichreco"
+    ARingLabel:        "arichring"
+    ArichIDLabel:      "arichreco"
     BACkovHitLabel:    "backovreco"
     DataQualLabel:     "dataqual"
     GasCkovHitLabel:   "gasckovreco"
