@@ -61,23 +61,10 @@ cet_build_plugin(ARICHDigitizer art::module
 
 cet_build_plugin(RelabelRawDigitModules art::module
   LIBRARIES PRIVATE
-        SimulationBase
-        Simulation
-        G4Base
-        Geometry
         RawData
-        ChannelMap
-        ChannelMapService_service
-        DetGeoMap
-        DetGeoMapService_service
-        art_root_io::TFileService_service
         art::Framework_Core
-	art::Framework_Principal
-	art_root_io::tfile_support ROOT::Core        
-	art::Framework_Services_Registry
         art::Persistency_Common
         messagefacility::MF_MessageLogger
-	art::Framework_IO_ProductMix
 )
 
 install_source()
