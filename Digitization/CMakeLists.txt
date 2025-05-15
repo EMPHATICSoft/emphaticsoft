@@ -59,6 +59,13 @@ cet_build_plugin(ARICHDigitizer art::module
         messagefacility::MF_MessageLogger
 )
 
+cet_build_plugin(RelabelRawDigitModules art::module
+  LIBRARIES PRIVATE
+        RawData
+        art::Framework_Core
+        art::Persistency_Common
+        messagefacility::MF_MessageLogger
+)
 
 install_source()
 install_headers()

@@ -167,7 +167,7 @@ emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
   fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
   fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
   fDrawSSDDigits    ( pset.get<bool>       ("DrawSSDDigits",true) ),
-  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","rawSSD:SSD") ),
+  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","raw:SSD") ),
   fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
   fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
   fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),

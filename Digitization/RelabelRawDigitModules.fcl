@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_digitrelabel:
+{
+  module_type:        "RelabelRawDigitModules"
+  RawDigitLabelARICH: "rawARICH:ARICH" 
+  RawDigitLabelSSD:   "rawSSD:SSD"
+  InstanceLabelARICH: "ARICH"
+  InstanceLabelSSD:   "SSD"
+}
+
+END_PROLOG
