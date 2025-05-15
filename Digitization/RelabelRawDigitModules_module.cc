@@ -58,22 +58,15 @@ namespace emph {
     art::Handle< std::vector<rawdata::SSDRawDigit> > ssdHandle;
     evt.getByLabel(fRawDigitLabelSSD, ssdHandle);
 
-    // auto ssdHandle = evt.getHandle<std::vector<emph::rawdata::SSDRawDigit> >(fRawDigitLabelSSD);
     for (unsigned int i = 0; i<ssdHandle->size(); ++i) {
       rawdata::SSDRawDigit digit ( (*ssdHandle)[i]);
       ssdDigs->push_back(digit);
     }
-    //if (!ssdHandle.failedToGet()) ssdDigs = *ssdHandle;
 
     for (unsigned int i = 0; i<arichHandle->size() ; ++i) {
       rawdata::TRB3RawDigit digit ( (*arichHandle)[i]);
       arichDigs->push_back(digit);
     }
-
-    // for (size_t i = 0; i< ssdHandle->size(); ++i) {
-    //   art::Ptr<emph::rawdata::SSDRawDigit> digit(ssdHandle,i);
-    //   ssdDigs->push_back(digit);
-    // }
 
     evt.put(std::move(arichDigs), fInstanceLabelARICH);
     evt.put(std::move(ssdDigs), fInstanceLabelSSD);    
