@@ -17,6 +17,9 @@ namespace caf
 
     evt.getByLabel(fLabel, arv);
 
+    std::vector<rb::ARing> arings;
+
+
     if(!fLabel.empty() && arv.failedToGet()) {
       return;
       //      std::cout << "CAFMaker: No product of type '"
@@ -24,15 +27,21 @@ namespace caf
       //		<< "' found under label '" << fLabel << "'. " << std::endl;
     }
       
-    std::vector<rb::ARing> arings;
     if(!arv.failedToGet()) arings = *arv;
+	
 
     for (unsigned int ringId = 0; ringId < arings.size(); ++ ringId) {
       stdrec.ring.arich.push_back(SRARing());
       SRARing& srARing = stdrec.ring.arich.back();
 
+     float center[2] = {arings[ringId].XCenter(),arings[ringId].YCenter()};
+	
+
       srARing.nhit = arings[ringId].NHits();
-    } // end for ringId
+      srARing.radius =  arings[ringId].Radius();
+      srARing.SetCenter(center);      
+
+     } // end for ringId
 
   }
 
