@@ -19,9 +19,9 @@ namespace caf
 
     double vtx[3];  // (x,y,z)
     SRVector3D mom; // momentum vector   
-    SRArichID arLL; // arich loglikelihooods values 
-//  SRArichID arML; // arich ML pred values 
-   
+    SRArichID arich; // arich loglikelihooods values 
+//  SRArichID arML; // arich ML pred values   
+ 
     int label;
     int nspacepoints;
     std::vector<SRTrackSegment> _sgmnt; // vector of track segments

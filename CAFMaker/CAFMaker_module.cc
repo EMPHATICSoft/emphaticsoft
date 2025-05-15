@@ -247,22 +247,28 @@ namespace caf {
       trksegf.fLabel = fParams.TrackSegmentLabel();
       trksegf.Fill(evt,rec);
 
+
       // Get Tracks
       TrackFiller trkf;
       trkf.fLabelTracks = fParams.TrackLabel();
       trkf.fLabelArichID = fParams.ArichIDLabel();
       trkf.Fill(evt,rec);
+    
     }
 
     // Get SRTruth  
     if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
+
+      rec.hdr.ismc = true;
+
       SRTruthFiller srtruthf;
       srtruthf.GetG4Hits = fParams.GetMCHits();
       srtruthf.fLabel = fParams.SSDHitLabel();
       srtruthf.Fill(evt,rec);
     } // end if statement
-    
+
+ 
     // Get EventQuality info from DataQual
     EventQualFiller evtqualf; 
     evtqualf.fLabel = fParams.DataQualLabel();
@@ -277,6 +283,7 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
+
 
     fRecTree->Fill();
     srcol->push_back(rec);

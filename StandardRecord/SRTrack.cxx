@@ -24,8 +24,7 @@ namespace caf
     mom.SetX(0.);
     mom.SetY(0.);
     mom.SetZ(0.);
-    arLL.setdefault();
-//    arML.setdefault();
+    arich.setdefault(); // arich loglikelihooods values 
   }
 
 } // end namespace
