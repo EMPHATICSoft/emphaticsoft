@@ -54,19 +54,23 @@ namespace emph {
     std::unique_ptr< std::vector<rawdata::SSDRawDigit> >   ssdDigs (new std::vector<rawdata::SSDRawDigit>);
 
     art::Handle< std::vector<rawdata::TRB3RawDigit> > arichHandle;
-    evt.getByLabel(fRawDigitLabelARICH, arichHandle);
+    if (arichHandle.isValid()) {
+      evt.getByLabel(fRawDigitLabelARICH, arichHandle);
+      for (unsigned int i = 0; i<arichHandle->size() ; ++i) {
+	rawdata::TRB3RawDigit digit ( (*arichHandle)[i]);
+	arichDigs->push_back(digit);
+      }
+    } // valid arich handle
+
     art::Handle< std::vector<rawdata::SSDRawDigit> > ssdHandle;
-    evt.getByLabel(fRawDigitLabelSSD, ssdHandle);
+    if (ssdHandle.isValid()) {
+      evt.getByLabel(fRawDigitLabelSSD, ssdHandle);
 
-    for (unsigned int i = 0; i<ssdHandle->size(); ++i) {
-      rawdata::SSDRawDigit digit ( (*ssdHandle)[i]);
-      ssdDigs->push_back(digit);
-    }
-
-    for (unsigned int i = 0; i<arichHandle->size() ; ++i) {
-      rawdata::TRB3RawDigit digit ( (*arichHandle)[i]);
-      arichDigs->push_back(digit);
-    }
+      for (unsigned int i = 0; i<ssdHandle->size(); ++i) {
+	rawdata::SSDRawDigit digit ( (*ssdHandle)[i]);
+	ssdDigs->push_back(digit);
+      }
+    } // valid ssd handle
 
     evt.put(std::move(arichDigs), fInstanceLabelARICH);
     evt.put(std::move(ssdDigs), fInstanceLabelSSD);    
