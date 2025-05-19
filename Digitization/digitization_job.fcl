@@ -35,13 +35,11 @@ physics:
 {
   producers:
   {
-#    raw:        @local::standard_ssddigitizer
     rawSSD:        @local::standard_ssddigitizer
     rawARICH:      @local::standard_arichdigitizer
     raw:           @local::standard_digitrelabel
   }
 
-#  digitizer: [ raw ]
   digitizer: [ rawSSD, rawARICH, raw ]
 
   trigger_paths: [ digitizer ]
