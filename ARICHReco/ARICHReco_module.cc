@@ -221,7 +221,7 @@ void ARICHReco::produce(art::Event& evt)
 
 	for(int u = 0; u < (int)arich_clusters->size(); u++){
             
-            std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
+//            std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
 	
 
 	     if(arich_clusters->at(u).NDigits() < 4)continue;            

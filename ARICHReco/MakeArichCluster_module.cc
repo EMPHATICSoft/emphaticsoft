@@ -259,7 +259,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
 	for(int u = 0; u < (int)clusters.size(); u++){
     
-            std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
+           // std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
 		
 	    rb::ARICHCluster cluster;
 

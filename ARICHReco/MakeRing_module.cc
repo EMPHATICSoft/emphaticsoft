@@ -193,50 +193,14 @@ void MakeRing::produce(art::Event& evt)
 
       //int eventID = evt.id().event();;
       art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
- //     art::Handle<std::vector<sim::Track>> TracksH;
 
       evt.getByLabel(fARICHLabel,arich_clusters);
-      //std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
+      //std::cout << "FOUND " << arich_clusters->size() << " clusters" << std::endl;
 
-      //evt.getByLabel(fTrackLabel,TracksH);      
-
-//      art::Handle<std::vector<rb::Track>> RecoTracksH;
-//      evt.getByLabel("makesingletracks", RecoTracksH);
-      //std::vector<rb::Track> RecoTracks(*RecoTracksH);
-
-     // std::cout << "FOUND " << TracksH->size() << " SIM TRACKS, ";
-     // std::cout << "FOUND " << RecoTracksH->size() << " RECO TRACKS" << std::endl;    
-	 
-     // std::cout << std::endl;
-
-//	float posx, posy, posz;
-
-      //if(RecoTracksH->size() != 0 ){
-
-/*	  rb::Track track = RecoTracksH->at(1);
-
-	  std::cout << "Momenta :" << RecoTracksH->at(1).P()[0] << ", " <<  RecoTracksH->at(1).P()[1] << ", " <<  RecoTracksH->at(1).P()[2] << std::endl;
-	
-     	  posx = track.Vtx()[0];
-	  posy = track.Vtx()[1];
-	  posz = track.Vtx()[2];
-	 
- 	  std::cout << "initial pos: " << posx << ", " << posy << ", " << posz << std::endl;
-	 
-     	  float mom = sqrt(pow(track.P()[0],2) + (track.P()[1],2) + (track.P()[2],2));
-
-	  float finalx = posx + (192.0 - posz) * track.P()[0]/mom;
-	  float finaly = posy + (192.0 - posz) * track.P()[1]/mom; 	
-	  
-          std::cout << "Final pos: " << finalx << ", " << finaly << std::endl;
-*/
-//	}
-
-	
 
 	for(int u = 0; u < (int)arich_clusters->size(); u++){
             
-            std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
+        //    std::cout << "cluster " << u << " size " << arich_clusters->at(u).NDigits() << std::endl;
 	
 	     if(arich_clusters->at(u).NDigits() < 4)continue;            
 	
@@ -248,25 +212,30 @@ void MakeRing::produce(art::Event& evt)
 	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
 	
 	       int to_find = 1; // number of rings to find, should be = n tracks 
-	      if(arich_clusters->at(u).NDigits() > 30) to_find = 2;
  
 	      std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(to_find); 
 
 	      for(int j =0; j < (int)circles.size();j++ ){
 		
 	       rb::ARing ring;		
-	
-	       ring.SetRadius(std::get<2>(circles[j]));
+
+	        ring.SetNHits(arich_clusters->at(u).NDigits());	
+	        ring.SetRadius(std::get<2>(circles[j]));
 		float center[3] = {std::get<0>(circles[j]),std::get<1>(circles[j]),0};
 		ring.SetCenter(center);
-	       //ring.center[0] = std::get<0>(circles[j]);
-	       //ring.center[1] = std::get<1>(circles[j]);	
 
 
-	/*	std::cout << "	radius " << ring.Radius() << std::endl;
-		double theta = atan(ring.Radius()/178.9); //mm
-	 	std::cout << "	thetaC " << theta << " rad " << std::endl;
-		double beta = 1/(1.028*cos(theta)); 
+	/*
+		std::cout  << " radius " << ring.Radius() << std::endl;
+		double thetaReco = atan(ring.Radius()/178.9); //distances in mm
+		double thetaMax =  acos(1/1.028); 
+
+	 	if(thetaReco > thetaMax)continue;	
+	 	//std::cout << "max theta " << acos(1/1.028) << " thetaReco " << theta << " rad " << std::endl;
+
+
+		double beta = 1/(1.028*cos(thetaReco)); 
+
 		std::cout << "	beta " << beta << std::endl;
 		std::cout << "Prot p " << ArichUtils->calcP(0.9383,beta) << std::endl;
 		std::cout << "Pion p " << ArichUtils->calcP(0.1395,beta) << std::endl;	
@@ -275,20 +244,21 @@ void MakeRing::produce(art::Event& evt)
 	    
 	     } 				
  
-	     std::vector<TGraph*> circleGraphs =  fitter->createCircleGraph(circles,360);
+//	     std::vector<TGraph*> circleGraphs =  fitter->createCircleGraph(circles,360);
 	
 
-	    TCanvas *c1 = new TCanvas();
+//	    TCanvas *c1 = new TCanvas();
 
-	    event_hist->Draw("colz");
-	    for(int i = 0; i < to_find; i++){
-             circleGraphs[i]->SetLineWidth(3);
-	     circleGraphs[i]->Draw("L SAME");
-           }
-	   c1->SaveAs(Form("histos/event_%i_cluster_%i.png",evt.event(),u));
-	   delete c1;		
+//	    event_hist->Draw("colz");
+//	    for(int i = 0; i < to_find; i++){
+//             circleGraphs[i]->SetLineWidth(3);
+//	     circleGraphs[i]->Draw("L SAME");
+//           }
+//	   c1->SaveAs(Form("histos/event_%i_cluster_%i.png",evt.event(),u));
+//	   delete c1;		
 	
 	      delete event_hist;
+  	      delete fitter;
 	}
 
 	evt.put(std::move(ARICH_RINGS));	   
