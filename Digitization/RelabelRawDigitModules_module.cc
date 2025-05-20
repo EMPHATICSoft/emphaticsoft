@@ -54,8 +54,7 @@ namespace emph {
     std::unique_ptr< std::vector<rawdata::SSDRawDigit> >   ssdDigs (new std::vector<rawdata::SSDRawDigit>);
 
     art::Handle< std::vector<rawdata::TRB3RawDigit> > arichHandle;
-    if (arichHandle.isValid()) {
-      evt.getByLabel(fRawDigitLabelARICH, arichHandle);
+    if (evt.getByLabel(fRawDigitLabelARICH, arichHandle)) {      
       for (unsigned int i = 0; i<arichHandle->size() ; ++i) {
 	rawdata::TRB3RawDigit digit ( (*arichHandle)[i]);
 	arichDigs->push_back(digit);
@@ -63,9 +62,7 @@ namespace emph {
     } // valid arich handle
 
     art::Handle< std::vector<rawdata::SSDRawDigit> > ssdHandle;
-    if (ssdHandle.isValid()) {
-      evt.getByLabel(fRawDigitLabelSSD, ssdHandle);
-
+    if (evt.getByLabel(fRawDigitLabelSSD, ssdHandle)) {
       for (unsigned int i = 0; i<ssdHandle->size(); ++i) {
 	rawdata::SSDRawDigit digit ( (*ssdHandle)[i]);
 	ssdDigs->push_back(digit);
