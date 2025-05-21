@@ -100,6 +100,7 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     std::string fTrkSegLabel;
+    bool        fSevenOn;
     int         fPBeamTmp;
 
   };
@@ -113,6 +114,7 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
+    fSevenOn           (pset.get< bool >("SevenOn")),
     fPBeamTmp          (pset.get< int >("PBeamTmp"))
     {
       this->produces< std::vector<rb::Track> >();
@@ -142,6 +144,12 @@ namespace emph {
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
+
+    // Optionally exclude Station 7 (added later in data)
+    if (!fSevenOn){ 
+      nPlanes = nPlanes - 2;
+      nStations = nStations - 1;
+    }
   }
 
   //......................................................................
@@ -161,8 +169,8 @@ namespace emph {
   
   void emph::MakeSingleTracks::endJob()
   {
-       std::cout<<"MakeSingleTracks: Number of events with one cluster per sensor: "<<goodclust<<std::endl;
-       std::cout<<"MakeSingleTracks: Number of available clusters: "<<badclust+goodclust<<std::endl;
+       std::cout<<"MakeSingleTracks: Number of events with one cluster per plane: "<<goodclust<<std::endl;
+       std::cout<<"MakeSingleTracks: Number of events available: "<<badclust+goodclust<<std::endl;
   }
 
   //......................................................................
@@ -241,6 +249,8 @@ namespace emph {
 	    clusters.push_back(&clust);
 	  }
 
+	  //std::cout<<"clusters = "<<clusters.size()<<"..."<<"nPlanes = "<<nPlanes<<std::endl;
+
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
 	  if (clusters.size()==nPlanes){
@@ -265,8 +275,9 @@ namespace emph {
             for (auto t : trksegs){
               if (t->Label() == 1) tsvcut.push_back(t);
               else if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-            }  
-
+	      else if (!fSevenOn && t->Label() == 3) tsvcut.push_back(t);
+            }
+  
             // Now make tracks
             // Eventually beamtrk should be fixed later with SpillInfo
             trackv->clear();
@@ -285,8 +296,11 @@ namespace emph {
 	    auto t2 = *tsvcut[1]; 
             auto t3 = *tsvcut[2];
 	    tsvec.push_back(t2);
-	    tsvec.push_back(t3);	
-            algo.SetRecoTrk(t2,t3);		
+	    tsvec.push_back(t3);
+	    int pm;
+	    if (fPBeamTmp > 0) pm = 1;
+	    else pm = -1;	
+            algo.SetRecoTrk(t2,t3,pm);		
             sectrk.Add(t2);
             sectrk.Add(t3);
             sectrk.SetP(t2.P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
