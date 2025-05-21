@@ -568,7 +568,7 @@ namespace rawdata {
 
   /***************************************************************************/
 
-#define timeUncertainty 100 // nanoseconds
+#define timeUncertainty 5 // nanoseconds
 
 	template <typename T, typename S> // this type will likely be 'double'
 	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
@@ -608,7 +608,7 @@ namespace rawdata {
 	}
 
 	template <typename T>
-	std::tuple<int,int,double> findOffset(std::vector<T> dt) {
+	std::tuple<uint64_t,uint64_t,double> findOffset(std::vector<T> dt) {
 		// returns <offsetBin, N_occurrences, standardDeviation>
 		// - NTK
 		char hname[256];
@@ -633,7 +633,7 @@ namespace rawdata {
 	}
 
 	template <typename T>
-	int64_t binToTime(std::vector<T> dt, int bin) {
+	int64_t binToTime(std::vector<T> dt, uint64_t bin) {
 		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
 		int nbins = abs(*max - *min + 1) / timeUncertainty;
 		return  1.0 *  bin / (nbins-1) * (*max - *min) + 1.0 * *min / (nbins-1) * nbins - 1.0 * *max/(nbins-1);
@@ -646,8 +646,8 @@ namespace rawdata {
 		uint64_t bIndex = 0;
 		bool exitLoop = false;
 		std::cout << "Finding index of last sync" << std::endl;
-		for(size_t aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
-			for(size_t bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
+		for(int aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
+			for(int bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
 				if(abs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
 					aIndex = aEvent;
 					bIndex = bEvent;
@@ -674,31 +674,35 @@ namespace rawdata {
 		if(child.size() * percentOverlap < 1 || percentOverlap > 1) return {2*N_compare, 2*N_compare, 0};
 
 		// iterate over whole setup until we find enough overlapping events
-		double scale = 1; // not scaling anything yet; add this criterion later? <@@>
-		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-		for(size_t startSample = 0; startSample < grandfather.size()-N_compare; ++startSample) {
-			auto begin = grandfather.begin() + startSample;
-			std::vector<T> father(begin, begin+N_compare);
-			std::vector<int64_t> dt = calcDifferences<int64_t>(father, child, skip, scale);
-			auto [indexBin, N_occur, stdDev]  = findOffset(dt);
-			if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
-				index = startSample; // sets index of last synced event to the front of the last synced set
-				timeOffset = binToTime(dt, indexBin); // sets timeOffset of the data set
-				break;
-			} else {
-				std::cout << "Number of occurrences:" << std::endl;
-				std::cout << N_occur << std::endl;
+
+		{ uint64_t maxOccur = 0;
+
+			double scale = 1; // not scaling anything yet; add this criterion later? <@@>
+			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
+			for(size_t startSample = 0; startSample < grandfather.size()-N_compare; ++startSample) {
+				auto begin = grandfather.begin() + startSample;
+				std::vector<T> father(begin, begin+N_compare);
+				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child, skip, scale);
+				auto [indexBin, N_occur, stdDev]  = findOffset(dt);
+				if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
+					maxOccur = N_occur;
+					index = startSample; // sets index of last synced event to the front of the last synced set
+					timeOffset = binToTime(dt, indexBin); // sets timeOffset of the data set
+					break;
+				} else {
+					if(maxOccur < N_occur) { // tries to get highest number of occurrences
+						maxOccur = N_occur;
+						index = startSample;
+						timeOffset = binToTime(dt, indexBin);
+					}
+				}
 			}
 		}
-
-		std::cout << "Made it here" << std::endl;
 		for( auto &timeStamp : child ) // offsets all of the child timestamps
 			timeStamp += timeOffset;
-		std::cout << "Succeeded in stepping back" << std::endl;
 		auto begin = grandfather.begin() + index;
 		std::vector<T> father(begin, begin+N_compare);
 		auto [fIndex, cIndex] = indexOfLastSync(father, child);
-		std::cout << "Found index" << std::endl;
 		return { index+fIndex, cIndex, timeOffset };
 	}
 
@@ -770,6 +774,7 @@ namespace rawdata {
 			artdaq::Fragment::fragment_id_t,
 			size_t
 		> indexOffset;
+
 		// Begin by calibrating each sensor to their grandfather
 		for(int i = 0; i < 2; ++i) { // iterate over sensor types
 			auto grandfather = fragIdGrandfather[i];
@@ -789,8 +794,7 @@ namespace rawdata {
 					last = fFragTimestamps[fragId].end();
 				}
 				*/
-				begin = fFragTimestamps[fragId].begin();
-				std::vector<int64_t> B(begin, begin + N_compare);
+				begin = fFragTimestamps[fragId].begin(); std::vector<int64_t> B(begin, begin + N_compare);
 				std::cout << "Attempting to calibrate" << std::endl;
 				auto [aIndex, bIndex, time] = calibrateXcorr(A, B, 0.25);
 				std::cout << std::setw(15)
@@ -799,6 +803,7 @@ namespace rawdata {
 					<< time << std::endl;
 			}
 		}
+
 		return false;
 
 		/* Batch processing (not offsetting for missed events)
