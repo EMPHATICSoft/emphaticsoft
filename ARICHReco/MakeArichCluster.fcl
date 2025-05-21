@@ -4,9 +4,7 @@ standard_arich_cluster:
 {
   module_type: 	  MakeArichCluster 
   LabelHits:      "raw:ARICH"
-  LabelTracks:    "geantgen"			#using sim::Tracks untill got rb::Tracks 
-  FillTree:       true
-  FitCircle:      false
+  FillTree:       false
 
 }
 

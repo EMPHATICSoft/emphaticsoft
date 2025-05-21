@@ -64,11 +64,11 @@ private:
 
     int minRadius = 30;
     int maxRadius = 100;
-    int nRadii = 700;
+    int nRadii = 140;
     int nPoints = 360;
     
-    int rows = 350;
-    int cols = 350;
+    int rows = 100;
+    int cols = 100;
     TH2D* fevent_histo;
 
     std::vector<std::pair<double, double>> edges;
