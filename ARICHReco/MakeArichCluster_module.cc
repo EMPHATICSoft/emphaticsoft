@@ -53,11 +53,8 @@ namespace emph {
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
-    // Optional use if you have histograms, ntuples, etc you want around for every event
-    void beginJob();
-    void beginRun(art::Run &run);
-    void endRun(art::Run &run);
-    void endJob();
+    void beginJob(); 
+   // Optional use if you have histograms, ntuples, etc you want around for every event
     std::map<int,double> GetRefenceTimes(std::vector<rawdata::TRB3RawDigit> hits);
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> Cluster_FixedWindow(std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold);
 
@@ -67,7 +64,6 @@ namespace emph {
 
     TTree* 	fARICHTree;    
     bool	fFillTree;
-    bool	fFitCircle;
  
     int         fEvtNum;
  
@@ -86,8 +82,6 @@ namespace emph {
     this->produces<std::vector<rb::ARICHCluster>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fFillTree   = bool(pset.get<bool>("FillTree"));
-    fFitCircle = bool(pset.get<bool>("FitCircle"));
- 
 
     fEvtNum = 0;
     
@@ -104,28 +98,12 @@ namespace emph {
   //......................................................................
 
   void emph::MakeArichCluster::beginJob()
-  {    
+  { 
+   if(fFillTree){   
     art::ServiceHandle<art::TFileService const> tfs;
     fARICHTree = tfs->make<TTree>("ARICHRECO","event");
-	
+   }
 }
-
- //.......................................................................
-  void emph::MakeArichCluster::beginRun(art::Run &run)
-  {
- } 
-    
-//......................................................................
-
- void emph::MakeArichCluster::endJob()
-  {
-  }
-  
-//......................................................................
-
- void emph::MakeArichCluster::endRun(art::Run &run)
-  {
-  }
 
 //......................................................................
 
@@ -178,10 +156,23 @@ void emph::MakeArichCluster::produce(art::Event& evt)
   { 
       std::unique_ptr<std::vector<rb::ARICHCluster>> ARICH_CLUSTERS(new std::vector<rb::ARICHCluster>);
 
-      //int eventID = evt.id().event();;
-      art::Handle<std::vector<emph::rawdata::TRB3RawDigit>> arichH;	
+       auto arichH = evt.getHandle<std::vector<emph::rawdata::TRB3RawDigit> >(fARICHLabel); 
+      
+      if(!arichH.isValid()) {
+	evt.put(std::move(ARICH_CLUSTERS)); 
+	return;
+	}
 
+      try{
       evt.getByLabel(fARICHLabel,arichH);
+	}
+	catch(...){
+	evt.put(std::move(ARICH_CLUSTERS));
+	return;
+	} 
+
+
+
       std::vector<emph::rawdata::TRB3RawDigit> ArichDigs(*arichH);
       //std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
 
@@ -259,7 +250,6 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
 	for(int u = 0; u < (int)clusters.size(); u++){
     
-            std::cout << "cluster " << u << " size " << clusters[u].size() << std::endl;
 		
 	    rb::ARICHCluster cluster;
 

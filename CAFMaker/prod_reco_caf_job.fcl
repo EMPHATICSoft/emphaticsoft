@@ -6,6 +6,7 @@
 #include "SpillInfo.fcl"
 #include "MakeArichCluster.fcl"
 #include "ARICHReco.fcl"
+#include "MakeRing.fcl"
 #include "MakeSSDClusters.fcl"
 #include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
@@ -42,6 +43,7 @@ physics:
     spillinfo:    @local::standard_spillinfo
     arichcluster: @local::standard_arich_cluster
     arichreco:    @local::standard_arichreco
+    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
     adcreco:      @local::standard_adcreco
     backovreco:   @local::standard_backovhitreco
@@ -56,9 +58,9 @@ physics:
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, arichreco, clust,
-               maketracksegments, makesingletracks, singletrackalignment,
-               adcreco, backovreco, gasckovreco,
+               dataqual, spillinfo, arichcluster, clust,
+               maketracksegments, makesingletracks, arichring, arichreco, #singletrackalignment,
+              # adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
