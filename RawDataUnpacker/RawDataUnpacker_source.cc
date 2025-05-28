@@ -607,6 +607,13 @@ namespace rawdata {
 		return timeDiffs;
 	}
 
+	template <typename T, typename S> // this type will likely be 'double'
+	std::vector<T> calcDifferences(S timestampA, S timestampB) {
+		std::vector<size_t> skip;
+		T scale = 1;
+		return calcDifferences(timestampA, timestampB, skip, scale);
+	}
+
 	template <typename T>
 	int64_t binToTime(std::vector<T> dt, uint64_t bin) {
 		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
@@ -663,6 +670,13 @@ namespace rawdata {
 		return { aIndex, bIndex };
 	}
 
+	template <typename T>
+	std::tuple<uint64_t, int64_t> xcorr(std::vector<T> father, std::vector<T> child) {
+		std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
+		auto [indexBin, N_occur, offset]  = findOffset(dt);
+		return { N_occur, offset };
+	}
+
 	// Calibrate the cross correlation routine
 	template <typename T>
 	std::tuple<uint64_t, uint64_t, uint64_t, int64_t> calibrateXcorr(std::vector<T> grandfather, std::vector<T> child, double percentOverlap) {
@@ -681,12 +695,10 @@ namespace rawdata {
 
 		{ uint64_t maxOccur = 0;
 
-			double scale = 1; // not scaling anything yet; add this criterion later? <@@>
-			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
 			for(size_t startSample = 0; startSample < grandfather.size()-N_compare; ++startSample) {
 				auto begin = grandfather.begin() + startSample;
 				std::vector<T> father(begin, begin+N_compare);
-				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child, skip, scale);
+				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
 				auto [indexBin, N_occur, offset]  = findOffset(dt);
 				if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
 					maxOccur = N_occur;
@@ -730,8 +742,8 @@ namespace rawdata {
       std::array<artdaq::Fragment::fragment_id_t,3> fragIdGrandfather = {fFragId[0]};
 
 		// Determine the grandfathers
-		//size_t samplesGrandfather = UINT_MAX;
-		size_t samplesGrandfather = 0;
+		size_t samplesGrandfather = UINT_MAX;
+		//size_t samplesGrandfather = 0;
 		for(int i = 0; i < 2; ++i) { // iterate over sensor types
 			samplesGrandfather = UINT_MAX;
 			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
@@ -745,7 +757,7 @@ namespace rawdata {
 //				}
 // Doesn't seem to work -NTK <@@>
 				 //determine grandfather clock
-				if(fFragTimestamps[fragId].size() > samplesGrandfather) {
+				if(fFragTimestamps[fragId].size() < samplesGrandfather) {
 					fragIdGrandfather[i] = fragId;
 					samplesGrandfather = fFragTimestamps[fragId].size();
 				}
