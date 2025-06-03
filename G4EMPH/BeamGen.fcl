@@ -5,7 +5,10 @@ standard_beamgen:
   module_type:	             BeamGen
   particleType:		     "proton"
 # xyDistSource options: Gauss of flatxy
-  xyDistSource:		     "flatxy"
+# xyDistSource:              "flatxy"
+  UseRunHistory:             true
+  xyDistSource:		     "Gauss"
+
   xyHistFile:		     ""
   xyHistName:		     ""
 # pxyDistSource options: Gauss or flatpxy

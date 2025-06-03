@@ -9,8 +9,6 @@
 #include <climits>
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
-//#include "art/Framework/IO/Sources/SourceHelper.h"
-//#include "art/Framework/IO/Sources/SourceTraits.h"
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
@@ -28,8 +26,7 @@
 
 #include "Simulation/Particle.h"
 #include "SimulationBase/MCParticle.h"
-
-#include "CLHEP/Units/SystemOfUnits.h"
+#include "RunHistory/service/RunHistoryService.h"
 
 #include "TFile.h"
 #include "TRandom3.h"
@@ -47,52 +44,53 @@ namespace emph {
   class BeamGen : public art::EDProducer {
   public:
 
-      explicit BeamGen(fhicl::ParameterSet const& ps);
-      virtual ~BeamGen();
+    explicit BeamGen(fhicl::ParameterSet const& ps);
+    virtual ~BeamGen();
 
-      void produce (art::Event& evt);
+    void produce (art::Event& evt);
+    void beginRun(art::Run& run);
+    void  configure(fhicl::ParameterSet const& ps);
 
-      void  configure(fhicl::ParameterSet const& ps);
+  private:
 
-    private:
+    void        GetXYHist();
+    void        GetPXYHist();
+    void        GetPID();
 
-      void        GetXYHist();
-      void        GetPXYHist();
-      void        GetPID();
-
-      int         fPID;
-      uint64_t    fEvtCount;
-      double      fZstart;
-      double      fMass;
-      double      fXmax;
-      double      fXmin;
-      double      fYmax;
-      double      fYmin;
-      double      fXmean;
-      double      fXsigma;
-      double      fYmean;
-      double      fYsigma;
-      double      fPmean;
-      double      fPsigma;
-      double      fPXmax;
-      double      fPXmin;
-      double      fPYmax;
-      double      fPYmin;
-      double      fPXmean;
-      double      fPXsigma;
-      double      fPYmean;
-      double      fPYsigma;
+    bool        fUseRunHistory;
+    int         fPID;
+    uint64_t    fEvtCount;
+    double      fZstart;
+    double      fMass;
+    double      fXmax;
+    double      fXmin;
+    double      fYmax;
+    double      fYmin;
+    double      fXmean;
+    double      fXsigma;
+    double      fYmean;
+    double      fYsigma;
+    double      fPmean;
+    double      fPsigma;
+    double      fPXmax;
+    double      fPXmin;
+    double      fPYmax;
+    double      fPYmin;
+    double      fPXmean;
+    double      fPXsigma;
+    double      fPYmean;
+    double      fPYsigma;
       
-      std::string fXYDistSource;
-      std::string fXYHistFile;
-      std::string fXYHistName;
-      std::string fPXYDistSource;
-      std::string fPXYHistFile;
-      std::string fPXYHistName;
-      std::string fParticleType;
+    std::string fXYDistSource;
+    std::string fXYHistFile;
+    std::string fXYHistName;
+    std::string fPXYDistSource;
+    std::string fPXYHistFile;
+    std::string fPXYHistName;
+    std::string fParticleType;
 
-      TH2D*       fXYHist;  
-      TH2D*       fPXYHist;
+    TH2D*       fXYHist;  
+    TH2D*       fPXYHist;
     
   };
   
@@ -100,10 +98,7 @@ namespace emph {
   
   BeamGen::BeamGen(fhicl::ParameterSet const& ps)
     : art::EDProducer(ps)
-      //, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
-      //    fSourceHelper(pm)
   {
-    //    fIsFirst      = true;
     fEvtCount     = 0;
     
     produces<std::vector<simb::MCParticle> >();
@@ -124,31 +119,32 @@ namespace emph {
   /***************************************************************************/
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
-    //    fNEvents       = ps.get<uint64_t>("NEvents",100);
-    
-    //    fRun           = ps.get<int>("runNum",1000000);
-    //    fSubrun        = ps.get<int>("subrunNum",0);
-    fZstart        = ps.get<double>("Zstart", -200.); // in cm.  may not reach the Trigger counter, which is not in the geometry, in any case.. 
+    fUseRunHistory = ps.get<bool>("UseRunHistory","false");
+    fZstart        = ps.get<double>("Zstart", -200.); // mm
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
     fPXYDistSource = ps.get<std::string>("pxyDistSource","Gauss");
     fPXYHistFile   = ps.get<std::string>("pxyHistFile","");
     fPXYHistName   = ps.get<std::string>("pxyHistName","BeamXYDist");
-    fPmean         = ps.get<double>("PMean",0.);
+
+    // NOTE: These are in units of GeV/c
+    fPmean         = ps.get<double>("PMean",0.); 
     fPsigma        = ps.get<double>("PSigma",0.);
     
-    fXmax          = ps.get<double>("Xmax",-999999.);
-    fXmin          = ps.get<double>("Xmin",999999.);
+    // NOTE: These are all in units of ??
+    fXmax          = ps.get<double>("Xmax",-999999.); 
+    fXmin          = ps.get<double>("Xmin",999999.); 
     fYmax          = ps.get<double>("Ymax",-999999.);
-    fYmin          = ps.get<double>("Ymin",999999.);
+    fYmin          = ps.get<double>("Ymin",999999.); 
     fXmean         = ps.get<double>("Xmean",999999.);
-    fXsigma        = ps.get<double>("Xsigma",0.);
+    fXsigma        = ps.get<double>("Xsigma",0.); 
     fYmean         = ps.get<double>("Ymean",999999.);
-    fYsigma        = ps.get<double>("Ysigma",0.);
+    fYsigma        = ps.get<double>("Ysigma",0.); 
 
+    // NOTE: These are all slopes, eg, "px" = px/pz
     fPXmax          = ps.get<double>("PXmax",-999999.);
-    fPXmin          = ps.get<double>("PXmin",999999.);
+    fPXmin          = ps.get<double>("PXmin",999999.); 
     fPYmax          = ps.get<double>("PYmax",-999999.);
     fPYmin          = ps.get<double>("PYmin",999999.);
     fPXmean         = ps.get<double>("PXmean",999999.);
@@ -157,6 +153,27 @@ namespace emph {
     fPYsigma        = ps.get<double>("PYsigma",0.);
 
     fParticleType = ps.get<std::string>("particleType","unknown");
+  }
+
+  /***************************************************************************/
+
+  void BeamGen::beginRun(art::Run& )
+  {
+    if (fUseRunHistory) {
+      art::ServiceHandle<runhist::RunHistoryService> rhs;
+      fPmean = rhs->RunHist()->BeamMom();
+      // ensure that 120 GeV/c particles are always protons.
+      if (fabs(fPmean-120.)<5) {
+	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	fPsigma = 0.01*fPmean;
+	fXYHist = 0;
+	fPXYHist = 0;
+	fXYDistSource = "";
+	fPXYDistSource = "";
+	fPID = kProton;
+	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+      }
+    }
   }
 
   /***************************************************************************/
@@ -271,12 +288,16 @@ namespace emph {
         
     TRandom3 *rand = new TRandom3(0);
     gRandom = rand;
-    
-    // now get beam particle position
     TLorentzVector pos;
-    
-    pos[2] = fZstart; // units are mm for this
+    pos[2] = fZstart; // units are mm for this      
+    pos[3] = 0.; // set time to zero
+      
+    // now get beam particle momentum
+    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    double pb[3];
+    double pxpz,pypz;
 
+    // now get beam particle position      
     if (fXYHist) { // get random position from histogram
       fXYHist->GetRandom2(pos[0],pos[1]);
     }
@@ -284,22 +305,14 @@ namespace emph {
       if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
 	  fXYDistSource == "flatxy") {
 	pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin));
-        pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin)); 
+	pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin));
       }
       else { // default is Gauss
-//	std::cout << "here 1234" << std::endl;
-	pos[0] = rand->Gaus(fXmean,fXsigma); 
-        pos[1] = rand->Gaus(fYmean,fYsigma); 
-	std::cout<<"pos[0] = "<<pos[0]<<std::endl;
-        std::cout<<"pos[1] = "<<pos[1]<<std::endl;
+	//	std::cout << "here 1234" << std::endl;
+	pos[0] = rand->Gaus(fXmean,fXsigma);
+	pos[1] = rand->Gaus(fYmean,fYsigma);
       }
     }
-    pos[3] = 0.; // set time to zero
-
-    // now get beam particle momentum
-    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
-    double pb[3];
-    double pxpz,pypz;
     
     if (fPXYHist) {
       fPXYHist->GetRandom2(pxpz,pypz);
@@ -327,17 +340,17 @@ namespace emph {
     
     // get beam information
     simb::MCParticle mcp(-1,fPID, "");
+    /*
+    mf::LogInfo("BeamGen") << pos[0] << "," << pos[1] << "," << pos[2] 
+			   << "\t" << mom[0] << "," << mom[1] << "," 
+			   << mom[2] << std::endl;
+    */
+
     mcp.AddTrajectoryPoint(pos, mom);
     beam->push_back(mcp);
     
     // now add beam to the event    
     evt.put(std::move(beam));
-    /*
-    std::cout << "Created beam particle with mom(" << pb[0]
-	      << "," << pb[1] << "," << pb[2] << ") \n\tat pos(" 
-	      << pos[0] << "," << pos[1] << "," << pos[2] << ")"
-	      << std::endl;
-    */
 
   }
 

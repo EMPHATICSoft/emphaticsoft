@@ -16,7 +16,7 @@ namespace caf
 	
 	SRPID();
         virtual ~SRPID();	
-	int track_id;
+	int trackID;
 	//SRPID(float scores[5]);	
 	void Reset();
 	
