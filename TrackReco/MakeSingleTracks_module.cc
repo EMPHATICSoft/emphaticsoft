@@ -42,6 +42,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
@@ -49,6 +50,7 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
+#include "StandardRecord/SRTrackSegment.h"
 
 using namespace emph;
 
@@ -234,9 +236,9 @@ namespace emph {
          for (size_t idx=0; idx < trksegH->size(); ++idx) {
 	    const rb::TrackSegment& ts = (*trksegH)[idx];
 	    trksegs.push_back(&ts);
-            if (ts.Label() == 1) trksegs1.push_back(&ts);
-	    else if (ts.Label() == 2) trksegs2.push_back(&ts);
-            else if (ts.Label() == 3) trksegs3.push_back(&ts);		
+            if (ts.RegLabel() == rb::Region::kRegion1) trksegs1.push_back(&ts);
+	    else if (ts.RegLabel() == rb::Region::kRegion2) trksegs2.push_back(&ts);
+            else if (ts.RegLabel() == rb::Region::kRegion3) trksegs3.push_back(&ts);		
 	    else std::cout<<"Track segments not properly labeled."<<std::endl;
 
           }
@@ -273,9 +275,9 @@ namespace emph {
           // Choose track segments 2 and 3 with 3 space points
           if (goodEvent){
             for (auto t : trksegs){
-              if (t->Label() == 1) tsvcut.push_back(t);
+              if (t->RegLabel() == rb::Region::kRegion1) tsvcut.push_back(t);
               else if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-	      else if (!fSevenOn && t->Label() == 3) tsvcut.push_back(t);
+	      else if (!fSevenOn && t->RegLabel() == rb::Region::kRegion3) tsvcut.push_back(t);
             }
   
             // Now make tracks
@@ -290,6 +292,7 @@ namespace emph {
             beamtrk.Add(t1);
             beamtrk.SetP(t1.P());
             beamtrk.SetVtx(t1.Vtx());
+	    beamtrk.SetChi2(t1.Chi2());
             trackv->push_back(beamtrk);
 
             rb::Track sectrk;
@@ -306,6 +309,7 @@ namespace emph {
             sectrk.SetP(t2.P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
 	    auto v = algo.SetTrackInfo(tsvec[0],tsvec[1]);
             sectrk.SetVtx(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+	    sectrk.SetChi2(t2.Chi2()+t3.Chi2());
             trackv->push_back(sectrk);
 	  }
 	} //clust not empty

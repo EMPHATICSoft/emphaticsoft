@@ -283,13 +283,15 @@ namespace emph {
     else { // get random position from flat or Gaussian distribution
       if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
 	  fXYDistSource == "flatxy") {
-	pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin))/CLHEP::cm;
-        pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin))/CLHEP::cm;
+	pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin));
+        pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin)); 
       }
       else { // default is Gauss
 //	std::cout << "here 1234" << std::endl;
-	pos[0] = rand->Gaus(fXmean,fXsigma)/CLHEP::cm;
-        pos[1] = rand->Gaus(fYmean,fYsigma)/CLHEP::cm;
+	pos[0] = rand->Gaus(fXmean,fXsigma); 
+        pos[1] = rand->Gaus(fYmean,fYsigma); 
+	std::cout<<"pos[0] = "<<pos[0]<<std::endl;
+        std::cout<<"pos[1] = "<<pos[1]<<std::endl;
       }
     }
     pos[3] = 0.; // set time to zero

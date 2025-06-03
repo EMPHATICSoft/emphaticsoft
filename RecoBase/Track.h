@@ -39,6 +39,7 @@ namespace rb {
     // the creator of the track is responsible for adding the points
  
     std::vector<TVector3> _pos; // vector of predicted positions
+    double _chi2;
   
 public:
     // Getters
@@ -52,6 +53,7 @@ public:
     const rb::SpacePoint* GetSpacePoint(int i) const;
 
     TVector3 Pos(double z) const;
+    const double Chi2() const { return _chi2; }
 
     // Setters
     void Add(const rb::SSDCluster& cl); 
@@ -61,6 +63,7 @@ public:
     
     void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
+    void SetChi2(double chi2) { _chi2 = chi2; }
     
     friend std::ostream& operator << (std::ostream& o, const Track& h);
   };

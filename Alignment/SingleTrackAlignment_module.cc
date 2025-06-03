@@ -119,7 +119,8 @@ namespace emph {
     std::string fTrackSegLabel;
     std::string fTrackLabel;
     bool        fSevenOn;
-  
+    bool        fUpstream; 
+ 
     //Millepede stuff
     Mille* m;
     std::vector<int> label;
@@ -146,7 +147,8 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
     fTrackLabel        (pset.get< std::string >("TrackLabel")),
-    fSevenOn           (pset.get< bool >("SevenOn"))
+    fSevenOn           (pset.get< bool >("SevenOn")),
+    fUpstream          (pset.get< bool >("Upstream"))
     {
       //this->produces< std::vector<rb::Track> >();
     }
@@ -271,6 +273,10 @@ namespace emph {
           TVector3 x1(ls_group[ii][jj][kk]->X1().X(),ls_group[ii][jj][kk]->X1().Y(),ls_group[ii][jj][kk]->X1().Z());
 
 	  int sens = cl_group[ii][jj][kk]->Sensor();
+
+	  if (fUpstream){
+	    if (cl_group[ii][jj][kk]->Station() > 4) continue;
+          }       
 
 	  float uncer = cl_group[ii][jj][kk]->WgtRmsStrip()*0.06;
           //std::cout<<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View()<<std::endl;

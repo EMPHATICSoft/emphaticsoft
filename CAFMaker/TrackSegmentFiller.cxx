@@ -9,6 +9,7 @@
 #include "CAFMaker/TrackSegmentFiller.h"
 #include "StandardRecord/SRTrackSegment.h"
 #include "RecoBase/TrackSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
 
 namespace caf
 {
@@ -27,7 +28,7 @@ namespace caf
 	sp.vtx[i] = p.Vtx()[i];
       sp.mom.SetXYZ(p.P()[0],p.P()[1],p.P()[2]);
  
-      sp.label = p.Label();
+      sp.region = p.RegLabel();
       sp.nspacepoints = p.NSpacePoints();
       stdrec.sgmnts.seg.push_back(sp);    
     } // end of loop over track segments

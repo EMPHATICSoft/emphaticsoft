@@ -21,7 +21,41 @@ namespace rb {
     }
     fStation = -1; 
   }
+
+  //----------------------------------------------------------------------
+
+  const rb::LineSegment* SpacePoint::GetLineSegment(int i) const
+  {
+    assert(((i>0) && (i < int(_lineseg.size()))));
+
+    return &_lineseg[i];
+  }
+
+  //----------------------------------------------------------------------
   
+  const rb::SSDCluster* SpacePoint::GetSSDCluster(int i) const
+  {
+    assert(((i>0) && (i < int(_clust.size()))));
+
+    return &_clust[i];
+  }
+
+  //----------------------------------------------------------------------
+
+  void SpacePoint::Add(const rb::LineSegment& ls)
+  {
+    assert(_lineseg.empty());
+    _lineseg.push_back(ls);
+  }
+
+  //----------------------------------------------------------------------
+
+  void SpacePoint::Add(const rb::SSDCluster& cl)
+  {
+    assert(_clust.empty());
+    _clust.push_back(cl);
+  }
+ 
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const SpacePoint& h)
   {

@@ -45,6 +45,7 @@ void caf_singleTrkPlots(std::string fname)
   TH1D* hScattAngleRes = new TH1D("hScattAngleRes","Scattering Angle Resolution;#theta_{reco}-#theta_{true} ", 101,-0.005-0.00005,0.005+0.00005);
   TH1D* hBendAngleRes = new TH1D("hBendAngleRes","Bending Angle Resolution;#theta_{reco}-#theta_{true}", 100,-0.0025,0.0025);
   TH2F* hSSDHit[8][3];
+  TH2F* hTrueSSDHit[8][3];
 
   TH1F* hRes_x[8];
   TH1F* hRes_y[8];;
@@ -57,10 +58,13 @@ void caf_singleTrkPlots(std::string fname)
     hRes_y[i] = new TH1F(hresy,hresy,100,-0.1,0.1);
   }
   char *htruth = new char[12];
+  char *htruth2 = new char[16];
   for (int i=0; i<8; i++){
     for (int j=0; j<3; j++){
       sprintf(htruth,"hSSDHit_%d_%d",i,j);
       hSSDHit[i][j] = new TH2F(htruth,htruth,1000,-50.,50.,1000,-50.,50.);
+      sprintf(htruth2,"hTrueSSDHit_%d_%d",i,j);
+      hTrueSSDHit[i][j] = new TH2F(htruth2,htruth2,1000,-50.,50.,1000,-50.,50.);
     }
   }
   TH1F* hPulls[8];
@@ -219,6 +223,11 @@ void caf_singleTrkPlots(std::string fname)
 
       int nspcpts = int(rec->spcpts.sp.size());
       int nclusters = int(rec->cluster.clust.size());
+
+        for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
+          caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
+          hTrueSSDHit[h.GetStation][h.GetPlane]->Fill(h.GetX,h.GetY);
+	}
 
       //criteria
       bool goodCluster = false;
@@ -758,6 +767,7 @@ if (goodTrack){
   for (int i=0; i<8; i++){
     for (int j=0; j<3; j++){
       hSSDHit[i][j]->Write();
+hTrueSSDHit[i][j]->Write();
     }
   }
   for (int i=0; i<8; i++){

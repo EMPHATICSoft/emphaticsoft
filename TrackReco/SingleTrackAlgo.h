@@ -49,7 +49,7 @@ namespace emph {
 
   public:
     // Define functions here
-    std::vector<rb::SpacePoint> MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group);
+    std::vector<rb::SpacePoint> MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group, std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group);
     std::vector<rb::TrackSegment> MakeLines(std::vector<std::vector<double>> sp1, std::vector<std::vector<double>> sp2, std::vector<std::vector<double>> sp3);
     std::vector<rb::TrackSegment> MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints);
     void SetBeamTrk(rb::TrackSegment &ts1, double pbeam);

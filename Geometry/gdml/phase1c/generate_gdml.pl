@@ -54,7 +54,8 @@ $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
-@target_matt = ("Graphite", "BeTarget", "CH2");
+@target_matt = ("Air","Graphite", "BeTarget", "CH2");
+#@target_matt = ("Graphite", "BeTarget", "CH2");
 @target_length = (20, 20, 100); #target length in mm, not accurate
 $target_v = 0;
 
@@ -79,11 +80,14 @@ $nSSD_station = 8; # num. of stations
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
 @SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); 
 @SSD_mount_shift = (0, 0, 0, 10, 0, 10, 0, 0, 10, 0, 10, 0); 
-@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
+#@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
+@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-2, 2], [0, 0], [0, 0], [1, -1], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
 #@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23]); # shift (x, y)
 #@SSD_mount_rotation = ([0, 0], [0, 0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_mount_rotation = ([-0.44, -2.02], [0.24, -1.26], [0,0], [0,0], [0,0], [0,0], [-0.06, -1.49], [0.36, 0.31], [0.36, 0.31], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_angle = (0, 90, 0, 90, 315, 0, 90, 315, 0, 90, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
+#@SSD_roll = (-0.984485,1.12311,0.283821,1.94942,0.771519,1.14211,0.230796,1.66409,-0.120484,-0.284751,1.88656,-0.664489,0.209064,-0.0758804,0.422914,-1.78258,0.916967,0.0112487,-1.49152,1.63402,1.39493,1.13753,0.425941,0.848158,0.470838,0.83554,0.189538,0.498073);
+@SSD_roll = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 
 # constants for ARICH
 $arich_switch = 1;
@@ -122,15 +126,22 @@ if ( defined $target)
 {
 	# If the user requested help, print the usage notes and exit.
 	if($target == 0){
-		$target_switch = 0;
+                print "target material will be air\n";
+		#$target_switch = 0;
 	}
 	elsif($target < 0 || $target > 3){
 		print "wrong target parameter\n";
 	}
 	else{
-		$target_v = $target - 1;
+                $target_v = $target;
+		#$target_v = $target - 1;
 	}
-	$suffix = "-" . $target_matt[$target_v] . $suffix;
+	if ($target > 1){
+   		$suffix = "-" . $target_matt[$target_v] . $suffix;
+	}
+	else{
+		$suffix = "-NoTarget" . $suffix;
+	}
 }
 
 # run the sub routines that generate the fragments
@@ -319,7 +330,7 @@ EOF
 					print DEF <<EOF;
 						<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($k-0.5)*ssdD0_thick+($l-0.5)*mount_thick+($k-1)*ssd_bkpln_thick"/>
 						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($k)*ssdD0_thick+($l-0.5)*mount_thick+($k-0.5)*ssd_bkpln_thick"/>
-						<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
+						<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $SSD_angle[$isensor]+$SSD_roll[$isensor] ]}" unit="deg"/>
 EOF
 					$isensor++;
 				}

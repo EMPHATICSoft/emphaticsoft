@@ -42,12 +42,14 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
 #include "RecoUtils/RecoUtils.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
+#include "StandardRecord/SRTrackSegment.h"
 
 using namespace emph;
 
@@ -76,6 +78,10 @@ namespace emph {
     TTree*      spacepoint;
     int         run,subrun,event;
     int         fEvtNum;
+    std::vector<double> chi2;
+    int chi2lessthan5_1 = 0;
+    int chi2lessthan5_2 = 0;
+    int chi2lessthan5_3 = 0;
 
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
@@ -167,6 +173,7 @@ namespace emph {
     spacepoint->Branch("run",&run,"run/I");
     spacepoint->Branch("subrun",&subrun,"subrun/I");
     spacepoint->Branch("event",&event,"event/I");  
+    spacepoint->Branch("chi2",&chi2,"chi2/I");
   }
  
   //......................................................................
@@ -176,6 +183,9 @@ namespace emph {
        std::cout<<"MakeTrackSegments: Number of events available: "<<badclust+goodclust<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with at least two clusters per station: "<<goodclust<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with less than 50 clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
   }
 
   //......................................................................
@@ -201,6 +211,9 @@ namespace emph {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
+
+    art::ServiceHandle<emph::AlignService> align;
+    auto emalign = align->GetAlign();
 
     fMakePlots = true;
 
@@ -285,6 +298,7 @@ namespace emph {
 	    if (!goodStation) break;
 	    for (auto j : clustMapAtLeastOne[i]){
               mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
+	      std::cout<< "Station "<<i<<": "<<j.second <<std::endl;
 //	      if (j.second > 10){
 //		goodStation = false;
 //	     	break;
@@ -292,7 +306,14 @@ namespace emph {
 	    }
           }
 
+	  std::cout<<"........"<<std::endl;
+
           for (size_t i=0; i<clusters.size(); i++){
+	    if (clusters[i]->WgtRmsStrip() == 0){ 
+		std::cout<<"WgtRmsStrip() = 0"<<std::endl;
+	        goodStation = false;
+	    }
+
 	    int plane = clusters[i]->Plane();
 	    int station = clusters[i]->Station();	 
   
@@ -313,7 +334,7 @@ namespace emph {
 	    }
 
             //make reconstructed hits
-	    spv = algo.MakeHits(ls_group);
+	    spv = algo.MakeHits(ls_group,cl_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
   	    usableclust++;
@@ -346,15 +367,15 @@ namespace emph {
 
             //form lines and fill plots
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
+            for (auto i : tstmp1){ i.SetRegLabel(rb::Region::kRegion1); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_1++; }
 	
             std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
             mf::LogDebug("MakeTrackSegments") << "tstmp2 size = "<<tstmp2.size();
-            for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
+            for (auto i : tstmp2) { i.SetRegLabel(rb::Region::kRegion2); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_2++; }
 
             std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
             mf::LogDebug("MakeTrackSegments") << "tstmp3 size = "<<tstmp3.size();
-            for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
+            for (auto i : tstmp3) {i.SetRegLabel(rb::Region::kRegion3); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_3++; }
 	  
             for (auto ts : tsv) {
               tracksegmentv->push_back(ts);
@@ -370,6 +391,8 @@ namespace emph {
       catch(...) {
 
       }
+      spacepoint->Fill();
+      chi2.clear();
 
     } //want plots
   

@@ -10,6 +10,7 @@
 #include "StandardRecord/SRTrack.h"
 #include "RecoBase/Track.h"
 #include "StandardRecord/SRTrackSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
 
 namespace caf
 {
@@ -34,7 +35,7 @@ namespace caf
 	for (int i=0; i<3; ++i)
           srts.vtx[i] = pts->Vtx()[i];
         srts.mom.SetXYZ(pts->P()[0],pts->P()[1],pts->P()[2]);
-        srts.label = pts->Label();
+        srts.region = pts->RegLabel();
 	srts.nspacepoints = pts->NSpacePoints();
 	
 	sp.Add(srts);
