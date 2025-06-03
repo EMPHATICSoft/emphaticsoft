@@ -1,0 +1,45 @@
+#include "Services.fcl"
+#include "GetDataML.fcl"
+
+process_name: GetDataML
+
+services:
+{
+  TFileService: { fileName: "%ifb.dataML.root" closeFileFast: false }
+  @table::standard_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName: 	"%ifb.dataML.root" 
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+  analyzers:
+ {
+	getdata: @local::standard_getdataML
+ }	
+
+ e1: [getdata]	
+ filters:{}
+ end_paths: [e1]
+
+ stream1: [ out1 ]
+
+}
