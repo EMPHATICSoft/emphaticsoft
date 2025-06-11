@@ -14,10 +14,12 @@
 
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/SpacePoint.h"
+#include "RecoBase/RecoBaseDefs.h"
 
 namespace rb {
   
   class TrackSegment {
+  //class TrackSegment : public caf::SRTrackSegment{
   public:
     TrackSegment(); // Default constructor
     virtual ~TrackSegment() {}; //Destructor
@@ -30,7 +32,8 @@ namespace rb {
     double _pointB[3];
     std::vector<rb::SSDCluster> _clust; // vector of SSD clusters
     std::vector<rb::SpacePoint> _spcpt; // vector 3D space points
-    int _label;
+    double _chi2;
+    rb::Region _region;
 
   public:
     // Getters
@@ -42,7 +45,8 @@ namespace rb {
     const rb::SpacePoint* GetSpacePoint(int i) const;
     const double* A() const { return _pointA; }
     const double* B() const { return _pointB; }
-    const int Label() const { return _label; }
+    const rb::Region RegLabel() const { return _region; }
+    const double Chi2() const { return _chi2; }
 
     // Setters
     void Add(const rb::SSDCluster& cl); 
@@ -54,8 +58,9 @@ namespace rb {
     void SetA(double* pA) { for (int i=0; i<3; ++i) _pointA[i] = pA[i]; }
     void SetB(double* pB) { for (int i=0; i<3; ++i) _pointB[i] = pB[i]; }
 
-    void SetLabel(int label) { _label = label; }
-   
+    void SetRegLabel(rb::Region region) { _region = region; }
+    void SetChi2(double chi2) { _chi2 = chi2; } 
+  
     friend std::ostream& operator << (std::ostream& o, const TrackSegment& h);
   };
   

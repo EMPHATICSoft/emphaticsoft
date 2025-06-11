@@ -42,12 +42,14 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
 #include "RecoUtils/RecoUtils.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
+#include "StandardRecord/SRTrackSegment.h"
 
 using namespace emph;
 
@@ -76,6 +78,10 @@ namespace emph {
     TTree*      spacepoint;
     int         run,subrun,event;
     int         fEvtNum;
+    std::vector<double> chi2;
+    int chi2lessthan5_1 = 0;
+    int chi2lessthan5_2 = 0;
+    int chi2lessthan5_3 = 0;
 
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
@@ -91,6 +97,7 @@ namespace emph {
     bool        fMakePlots;
     int 	goodclust = 0;
     int         badclust = 0; 
+    int         usableclust = 0;
     size_t      nPlanes;
     size_t      nStations;
 
@@ -98,6 +105,8 @@ namespace emph {
     bool        fCheckClusters;     //Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
+    bool        fSevenOn;
+    std::string fAlignPars;
 
     //reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -113,7 +122,9 @@ namespace emph {
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label"))
+    fG4Label           (pset.get< std::string >("G4Label")),
+    fSevenOn           (pset.get< bool >("SevenOn"))
+    //fAlignPars         (pset.get< std::string >("AlignPars"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -143,6 +154,12 @@ namespace emph {
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
+
+    // Optionally exclude Station 7 (added later in data)
+    if (!fSevenOn){
+      nPlanes = nPlanes - 2;
+      nStations = nStations - 1;
+    }
   }
 
   //......................................................................
@@ -156,14 +173,19 @@ namespace emph {
     spacepoint->Branch("run",&run,"run/I");
     spacepoint->Branch("subrun",&subrun,"subrun/I");
     spacepoint->Branch("event",&event,"event/I");  
+    spacepoint->Branch("chi2",&chi2,"chi2/I");
   }
  
   //......................................................................
   
   void emph::MakeTrackSegments::endJob()
   {
+       std::cout<<"MakeTrackSegments: Number of events available: "<<badclust+goodclust<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with at least two clusters per station: "<<goodclust<<std::endl;
-       std::cout<<"MakeTrackSegments: Number of available clusters: "<<badclust+goodclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with less than 50 clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
   }
 
   //......................................................................
@@ -189,6 +211,9 @@ namespace emph {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
+
+    art::ServiceHandle<emph::AlignService> align;
+    auto emalign = align->GetAlign();
 
     fMakePlots = true;
 
@@ -239,6 +264,11 @@ namespace emph {
               count++;
             }
 	    countSt++;
+
+	   //std::cout<<"countSt = "<<countSt<<std::endl;
+	    // Optionally skip Station 7
+            //if (!fSevenOn && countSt == (int)nStations) continue;
+	
             // make sure every station has at least two unique clusters
             if (count < 2) { goodStation = false; break; }
             else { goodStation = true; count = 0; }
@@ -247,6 +277,14 @@ namespace emph {
 	  if (countSt != (int)nStations) goodStation = false;
 	  if (goodStation==true) {goodclust++;}
           else {badclust++;}
+ 
+/*
+	  for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
+            for (auto j : clustMapAtLeastOne[i]){
+              std::cout<<"Station "<<i<<": "<<j.second<<std::endl;
+	    }
+  	  }
+*/
 
           cl_group.resize(nStations);
           ls_group.resize(nStations);
@@ -256,7 +294,26 @@ namespace emph {
 	    ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	  }
 
+          for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
+	    if (!goodStation) break;
+	    for (auto j : clustMapAtLeastOne[i]){
+              mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
+	      std::cout<< "Station "<<i<<": "<<j.second <<std::endl;
+//	      if (j.second > 10){
+//		goodStation = false;
+//	     	break;
+//              }
+	    }
+          }
+
+	  std::cout<<"........"<<std::endl;
+
           for (size_t i=0; i<clusters.size(); i++){
+	    if (clusters[i]->WgtRmsStrip() == 0){ 
+		std::cout<<"WgtRmsStrip() = 0"<<std::endl;
+	        goodStation = false;
+	    }
+
 	    int plane = clusters[i]->Plane();
 	    int station = clusters[i]->Station();	 
   
@@ -269,7 +326,7 @@ namespace emph {
           emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
  
 	  //group linesegments
-	  if (goodStation == true){
+	  if (goodStation == true && clusters.size() < 50){
 	    for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
               int station = clusters[i]->Station();
@@ -277,9 +334,10 @@ namespace emph {
 	    }
 
             //make reconstructed hits
-            spv = algo.MakeHits(ls_group);
+	    spv = algo.MakeHits(ls_group,cl_group);
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
+  	    usableclust++;
 	  }
 	  
           ls_group.clear();
@@ -296,17 +354,28 @@ namespace emph {
                 if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
                 if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
               }
+	      else{
+                if (spv[i].Pos()[2] < 380.5) sp1.push_back(spv[i]);
+                if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
+                if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
+              }
             }
+
+       	    mf::LogDebug("MakeTrackSegments") << "sp1 size: "<< sp1.size();
+	    mf::LogDebug("MakeTrackSegments") << "sp2 size: "<< sp2.size();
+	    mf::LogDebug("MakeTrackSegments") << "sp3 size: "<< sp3.size();
 
             //form lines and fill plots
             std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-	    for (auto i : tstmp1){ i.SetLabel(1); tsv.push_back(i); }
+            for (auto i : tstmp1){ i.SetRegLabel(rb::Region::kRegion1); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_1++; }
 	
             std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
-            for (auto i : tstmp2) { i.SetLabel(2); tsv.push_back(i); }  
+            mf::LogDebug("MakeTrackSegments") << "tstmp2 size = "<<tstmp2.size();
+            for (auto i : tstmp2) { i.SetRegLabel(rb::Region::kRegion2); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_2++; }
 
             std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
-            for (auto i : tstmp3) {i.SetLabel(3); tsv.push_back(i);}
+            mf::LogDebug("MakeTrackSegments") << "tstmp3 size = "<<tstmp3.size();
+            for (auto i : tstmp3) {i.SetRegLabel(rb::Region::kRegion3); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_3++; }
 	  
             for (auto ts : tsv) {
               tracksegmentv->push_back(ts);
@@ -322,6 +391,8 @@ namespace emph {
       catch(...) {
 
       }
+      spacepoint->Fill();
+      chi2.clear();
 
     } //want plots
   
