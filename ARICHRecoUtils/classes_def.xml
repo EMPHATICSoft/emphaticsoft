@@ -40,4 +40,8 @@
 <class name="std::vector<std::vector<TH2D>>" />
 <class name="art::Wrapper<std::vector<std::vector<TH2D>>>"/>
 
+<class name="std::vector<double>" />
+<class name="std::vector<std::vector<double>>" />
+<class name="art::Wrapper<std::vector<std::vector<double>>>"/>
+
 </lcgdict>

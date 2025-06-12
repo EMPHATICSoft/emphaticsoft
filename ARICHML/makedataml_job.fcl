@@ -1,5 +1,9 @@
 #include "Services.fcl"
 #include "GetDataML.fcl"
+#include "SSDDigitizer.fcl"
+#include "ARICHDigitizer.fcl"
+#include "RelabelRawDigitModules.fcl"
+#include "MakeArichCluster.fcl"
 
 process_name: GetDataML
 
@@ -31,15 +35,30 @@ outputs:
 # Modules are grouped by type.
 physics:
 {
+  producers:
+
+   {	
+    rawSSD:        @local::standard_ssddigitizer
+    rawARICH:      @local::standard_arichdigitizer
+    raw:           @local::standard_digitrelabel	
+ 
+    arichcluster: @local::standard_arich_cluster 
+   }
+
+
   analyzers:
  {
 	getdata: @local::standard_getdataML
  }	
 
- e1: [getdata]	
- filters:{}
- end_paths: [e1]
+  prods: [ rawSSD, rawARICH, raw, arichcluster ]
 
- stream1: [ out1 ]
+  trigger_paths: [ prods]
+ 
+  e1: [getdata]	
+  filters:{}
+  end_paths: [e1]
+
+  stream1: [ out1 ]
 
 }
