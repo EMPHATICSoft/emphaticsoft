@@ -1,0 +1,12 @@
+BEGIN_PROLOG
+
+standard_getdataML:
+{
+  module_type: 	  GetDataML 
+  LabelHits:      "arichcluster"
+  SimTrackLabel:  "geantgen"
+  FillTree:       true
+
+}
+
+END_PROLOG
