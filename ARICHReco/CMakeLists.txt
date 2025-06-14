@@ -1,17 +1,5 @@
-include(ArtDictionary)
-include(ArtMake)
-FILE( GLOB src_files *.cc )
-
-find_package(messagefacility REQUIRED)
-find_package(ROOT REQUIRED)
-
-include_directories( $ENV{ROOT_INC} )
-include_directories($ENV{ART_ROOT_IO_INC})
-
-message(${src_files})
-
 cet_build_plugin(ARICHReco art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     RawData
     StandardRecord
     RecoBase
@@ -34,7 +22,7 @@ cet_build_plugin(ARICHReco art::module
 
 
 cet_build_plugin(MakeArichCluster art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     RawData
     StandardRecord
     RecoBase
@@ -55,7 +43,7 @@ cet_build_plugin(MakeArichCluster art::module
 )
 
 cet_build_plugin( MakeRing art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     RawData
     StandardRecord
     RecoBase
@@ -83,4 +71,3 @@ cet_build_plugin( MakeRing art::module
 install_source()
 install_fhicl()
 install_headers()
-
