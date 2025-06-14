@@ -18,7 +18,7 @@ include_directories($ENV{ART_ROOT_IO_INC}) ### MIGRATE-ACTION-RECOMMENDED (migra
 #  ChannelMap
 #  ChannelMapService_service
 #  Geometry
-#  Geometry_service
+#  GeometryService_service
 #  art_root_io::TFileService_service
 #  messagefacility::MF_MessageLogger
 #  ROOT::Hist
@@ -31,7 +31,7 @@ cet_build_plugin(SSDCalibration art::module
   ChannelMap
   ChannelMapService_service
   Geometry
-  Geometry_service
+  GeometryService_service
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger
   ROOT::Hist
@@ -44,7 +44,7 @@ cet_build_plugin(SSDHotChannels art::module
   ChannelMap
   ChannelMapService_service
   Geometry
-  Geometry_service
+  GeometryService_service
   art_root_io::TFileService_service
   messagefacility::MF_MessageLogger
   ROOT::Hist

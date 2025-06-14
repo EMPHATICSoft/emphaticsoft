@@ -22,7 +22,7 @@ cet_build_plugin(MakeSSDClusters art::module
 	RunHistoryService_service
 	RawData
 	RecoBase
-	Geometry_service 
+	GeometryService_service 
 	Geometry
 	ROOT::Tree
 	art_root_io::TFileService_service

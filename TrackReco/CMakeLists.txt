@@ -17,7 +17,7 @@ art_make_library ( SOURCE ${src_files}
  		   LIBRARIES
                    RunHistory
     	           Geometry
-                   Geometry_service
+                   GeometryService_service
                    RecoBase
                    RecoUtils
                    DetGeoMapService_service
@@ -54,7 +54,7 @@ cet_build_plugin(MakeSingleTracks art::module
     SingleTrackAlgo
     #SingleTrackAlgo.cxx
     ChannelMapService_service
-    Geometry_service
+    GeometryService_service
     DetGeoMapService_service    
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
@@ -70,7 +70,7 @@ cet_build_plugin(MakeSingleTracksForAlign art::module
     RecoUtils
     SingleTrackAlgo
     ChannelMapService_service
-    Geometry_service
+    GeometryService_service
     DetGeoMapService_service
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
@@ -86,7 +86,7 @@ cet_build_plugin(MakeTrackSegments art::module
     RecoUtils
     SingleTrackAlgo
     ChannelMapService_service
-    Geometry_service
+    GeometryService_service
     DetGeoMapService_service
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger

@@ -13,7 +13,7 @@ art_make_library(
   LIBRARIES
     RunHistory
     Geometry
-    Geometry_service
+    GeometryService_service
     MagneticField
     art::Framework_Core
     art::Persistency_Common

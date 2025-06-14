@@ -7,7 +7,7 @@ cet_build_plugin(ARICHReco art::module
     DetGeoMapService_service
     ChannelMap
     ChannelMapService_service
-    Geometry_service
+    GeometryService_service
     Geometry
     RunHistory
     ARICHRecoUtils
@@ -30,7 +30,7 @@ cet_build_plugin(MakeArichCluster art::module
     DetGeoMapService_service
     ChannelMap
     ChannelMapService_service
-    Geometry_service
+    GeometryService_service
     Geometry
     RunHistory
     Simulation
@@ -51,7 +51,7 @@ cet_build_plugin( MakeRing art::module
     DetGeoMapService_service
     ChannelMap
     ChannelMapService_service
-    Geometry_service
+    GeometryService_service
     Geometry
     RunHistory
     Simulation

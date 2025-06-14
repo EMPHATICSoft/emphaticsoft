@@ -6,7 +6,7 @@ cet_make_library( SOURCE ${srcs}
 		  LIBRARY_NAME ARICHRecoUtils
 		  LIBRARIES 
 		  Geometry
-		  Geometry_service
+		  GeometryService_service
 		  Simulation
 		  ChannelMap
 		  ChannelMapService_service

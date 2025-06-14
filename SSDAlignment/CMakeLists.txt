@@ -19,7 +19,7 @@ art_make_library ( SOURCE ${src_files}
 		   RunHistory
 		   RunHistoryService_service
 		   Geometry
-           Geometry_service
+           GeometryService_service
            DetGeoMapService_service  
 		   art_root_io::TFileService_service
 		   messagefacility::MF_MessageLogger
@@ -34,7 +34,7 @@ cet_build_plugin(SSDAlignment art::module
     ChannelMapService_service
 	 RunHistory
     Geometry
-    Geometry_service
+    GeometryService_service
     DetGeoMapService_service  
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger

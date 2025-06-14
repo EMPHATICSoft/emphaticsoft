@@ -4,7 +4,7 @@ cet_build_plugin(SingleTrackAlignment art::module
 			       RecoUtils
 			       SingleTrackAlgo
 			       ChannelMapService_service
-			       Geometry_service
+			       GeometryService_service
 			       DetGeoMapService_service    
 			       art_root_io::TFileService_service
 			       messagefacility::MF_MessageLogger

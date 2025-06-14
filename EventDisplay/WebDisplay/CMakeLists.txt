@@ -49,7 +49,7 @@ cet_build_plugin(WebDisplay art::module
   ChannelMap
   ChannelMapService_service
   Geometry
-  Geometry_service
+  GeometryService_service
   RawData
   RecoBase
   DetGeoMap

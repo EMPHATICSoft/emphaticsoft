@@ -14,7 +14,7 @@ cet_make_library( LIBRARY_NAME ${PACKAGE}
 			    ChannelMapService_service
 			    DataQuality
 			    Geometry
-			    Geometry_service
+			    GeometryService_service
 			    RunHistoryService_service
 		  	    art::Framework_Core
 			    art::Persistency_Common
@@ -35,7 +35,7 @@ cet_build_plugin( CAFMaker art::module
 		  ChannelMapService_service
 		  DataQuality
 		  Geometry
-		  Geometry_service
+		  GeometryService_service
 		  RunHistoryService_service
 		  ifdh_art::IFDH_service
                   art::Framework_Core
