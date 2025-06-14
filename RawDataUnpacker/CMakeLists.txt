@@ -7,16 +7,16 @@ find_package(artdaq REQUIRED)
 find_package(messagefacility REQUIRED)
 find_package(ROOT REQUIRED)
 
-include_directories($ENV{ARTDAQ_CORE_INC})
-include_directories($ENV{ARTDAQ_INC})
-include_directories($ENV{ART_INC})
-include_directories($ENV{ART_ROOT_IO_INC})
-include_directories($ENV{CETLIB_EXCEPT_INC})
-include_directories($ENV{ROOT_INC})
+include_directories($ENV{ARTDAQ_CORE_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ARTDAQ_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ART_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ART_ROOT_IO_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{CETLIB_EXCEPT_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ROOT_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
-link_directories($ENV{ARTDAQ_CORE_LIB})
-link_directories($ENV{CETLIB_EXCEPT_LIB})
-link_directories($ENV{ART_ROOT_IO_LIB})
+link_directories($ENV{ARTDAQ_CORE_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+link_directories($ENV{CETLIB_EXCEPT_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+link_directories($ENV{ART_ROOT_IO_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
 
 art_make_library(LIBRARY_NAME RawDataUnpacker
                  SOURCE ${src_files}

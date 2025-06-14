@@ -15,7 +15,7 @@ add_custom_command(# Rebuild if anything in StandardRecord/ changes
 				       
 		   )
 
-include_directories($ENV{SRPROXY_INC})
+include_directories($ENV{SRPROXY_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 # This is a very picky error buried inside template instantiations
 #add_definitions(-Wno-int-in-bool-context)

@@ -6,17 +6,17 @@ find_package( Geant4 REQUIRED )
 find_package( art REQUIRED )
 find_package( messagefacility REQUIRED )
 
-include_directories( $ENV{GEANT4_FQ_DIR}/include )
-include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 )
-include_directories( $ENV{ROOT_INC} )
-include_directories( $ENV{XERCES_C_INC} )
-include_directories( $ENV{CLHEP_INC} )
-include_directories( $ENV{ART_INC} )
-include_directories( $ENV{ART_ROOT_IO_INC} )
-include_directories( $ENV{CETLIB_EXCEPT_INC} )
+include_directories( $ENV{GEANT4_FQ_DIR}/include ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{ROOT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{XERCES_C_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{CLHEP_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{ART_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{ART_ROOT_IO_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{CETLIB_EXCEPT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
-link_directories( $ENV{ART_ROOT_IO_LIB} )
-link_directories( $ENV{CETLIB_EXCEPT_LIB} )
+link_directories( $ENV{ART_ROOT_IO_LIB} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+link_directories( $ENV{CETLIB_EXCEPT_LIB} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
 
 FILE( GLOB src_files *.cxx )
 

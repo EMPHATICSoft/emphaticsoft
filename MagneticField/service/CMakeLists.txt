@@ -5,7 +5,7 @@ find_package(ROOT REQUIRED)
 #find_package(Geant4 REQUIRED PUBLIC)
 
 #include_directories( $ENV{GEANT4_FQ_DIR}/include )
-include_directories( $ENV{ROOT_INC} )
+include_directories( $ENV{ROOT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 cet_build_plugin( MagneticField art::service
 #  IMPL_SOURCE MagneticField_service.cc

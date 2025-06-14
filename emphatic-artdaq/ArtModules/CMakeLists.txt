@@ -25,24 +25,22 @@ set(BUILD_PLUGIN_CORE_LIB_LIST
   RawData
 )
 
-cet_find_package(TRACE REQUIRED)
-
 include(ArtDictionary)
 include(ArtMake)
 include(BuildPlugins)
 
 # Yuck!
-link_directories($ENV{ARTDAQ_CORE_LIB})
-link_directories($ENV{ARTDAQ_LIB})
-link_directories($ENV{ARTDAQ_UTILITIES_LIB})
-link_directories($ENV{CETLIB_EXCEPT_LIB})
+link_directories($ENV{ARTDAQ_CORE_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+link_directories($ENV{ARTDAQ_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+link_directories($ENV{ARTDAQ_UTILITIES_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
+link_directories($ENV{CETLIB_EXCEPT_LIB}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_link_directories() whenever possible
 
-include_directories($ENV{ARTDAQ_INC})
-include_directories($ENV{ARTDAQ_UTILITIES_INC})
-include_directories($ENV{ARTDAQ_CORE_INC})
-include_directories($ENV{TRACE_INC})
+include_directories($ENV{ARTDAQ_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ARTDAQ_UTILITIES_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ARTDAQ_CORE_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{TRACE_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
-  add_definitions(-DSIMPLER_PSET_MAKE)
+  add_definitions(-DSIMPLER_PSET_MAKE) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_compile_definitions() or target_compile_features() whenever possible
 
 cet_make_library(LIBRARY_NAME emphatic-artdaq_ArtModules
   SOURCE detail/TransferWrapper.cc
@@ -58,8 +56,8 @@ cet_make_library(LIBRARY_NAME emphatic-artdaq_ArtModules
 
 build_plugin(EmphaticOMInput "source" LIBRARIES REG
 	emphatic-artdaq_ArtModules
-)
+) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - deprecated: use cet_build_plugin() with explicit plugin base types
 
-build_plugin( TRB3Dump "module" LIBRARIES REG ${BUILD_PLUGIN_CORE_LIB_LIST} )
+build_plugin( TRB3Dump "module" LIBRARIES REG ${BUILD_PLUGIN_CORE_LIB_LIST} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - deprecated: use cet_build_plugin() with explicit plugin base types
 
 install_fhicl()

@@ -1,15 +1,14 @@
 # for classes_def.xml
-#include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
+include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 #include_directories ( $ENV{FHICLCPP_INC} )
 include(ArtDictionary)
 include(ArtMake)
 
-cet_find_package( ROOT COMPONENTS Core Hist Tree REQUIRED )
 
-include_directories( $ENV{ROOT_INC} )
-include_directories( $ENV{ART_ROOT_IO_INC} )
-include_directories( $ENV{IFDH_ART_INC} )
-include_directories( $ENV{IFDHC_INC} )
+include_directories( $ENV{ROOT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{ART_ROOT_IO_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{IFDH_ART_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{IFDHC_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 
 set( PACKAGE CAFMaker )
@@ -75,7 +74,7 @@ simple_plugin ( CAFMaker "module"
 		ROOT::Tree
 #		${ROOT_BASIC_LIB_LIST}
 		BASENAME_ONLY
-	      )
+	      ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - deprecated: use cet_build_plugin() with explicit source lists and plugin base types
 
 install_headers()
 install_fhicl()

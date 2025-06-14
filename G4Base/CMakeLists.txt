@@ -4,11 +4,11 @@ include(ArtMake)
 find_package(ROOT REQUIRED)
 find_package(Geant4 REQUIRED)
 
-include_directories( $ENV{GEANT4_FQ_DIR}/include )
-include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 )
-include_directories( $ENV{ROOT_INC} )
-include_directories( $ENV{XERCES_C_INC} )
-include_directories( $ENV{CLHEP_INC} )
+include_directories( $ENV{GEANT4_FQ_DIR}/include ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{ROOT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{XERCES_C_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{CLHEP_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 FILE( GLOB src_files *.cxx )
 

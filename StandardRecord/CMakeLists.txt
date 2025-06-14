@@ -6,8 +6,8 @@ include(BasicPlugin)
 #add_subdirectory(Proxy)
 
 # for classes_def.xml!!
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( $ENV{ROOT_INC} )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories( $ENV{ROOT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 find_package( ROOT COMPONENTS Core REQUIRED )
 
