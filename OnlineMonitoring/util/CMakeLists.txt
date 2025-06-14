@@ -1,12 +1,13 @@
 set( PACKAGE OnlineMonitoringUtil )
 FILE( GLOB src_files *.cxx )
 
-find_package(ROOT REQUIRED)
-
-art_make_library( SOURCE          ${src_files}
-	  	            LIBRARY_NAME    OnlineMonitoringUtil
-	  	            LIBRARIES       ROOT::Hist
-         )
+cet_make_library( SOURCE ${src_files}
+  LIBRARY_NAME    
+    OnlineMonitoringUtil
+  LIBRARIES
+    ROOT::Hist
+  BASENAME_ONLY
+)
 
 cet_make_exec( NAME testHistoTable
                SOURCE testHistoTable.cc
