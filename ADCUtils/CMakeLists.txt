@@ -1,22 +1,15 @@
-include(ArtDictionary)
-include(ArtMake)
-FILE( GLOB src_files *.cc )
-FILE( GLOB src_files *.cxx )
+# for classes_def.xml!!
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
+art_dictionary(DICTIONARY_LIBRARIES PRIVATE ADCUtils )
 
-find_package(messagefacility REQUIRED)
-find_package(ROOT REQUIRED)
+FILE( GLOB srcs *.cxx )
 
-include_directories( $ENV{ROOT_INC} )
-include_directories($ENV{ART_ROOT_IO_INC})
-
-art_make_library ( SOURCE ${src_files}
-	LIBRARY_NAME  ADCUtils
-                   LIBRARIES
+cet_make_library ( SOURCE ${srcs}
+		   LIBRARY_NAME ADCUtils
+		   LIBRARIES
 		   RawData
 		   RecoBase
-)
-
+		   BASENAME_ONLY )
 
 install_source()
-install_fhicl()
 install_headers()

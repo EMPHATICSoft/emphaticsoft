@@ -5,6 +5,7 @@
 
 <lcgdict>
   <class name="emph::adcu::ADCUtils"  ClassVersion="13">
+   <version ClassVersion="13" checksum="3286587503"/>
   </class>
   <class name="art::Wrapper< std::vector<emph::adcu::ADCUtils>    >"/>
 </lcgdict>
