@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 find_package(cetmodules REQUIRED)
-project(emphaticsoft VERSION 2.00.00 LANGUAGES CXX C)
+project(emphaticsoft VERSION 26.00 LANGUAGES CXX C)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -12,47 +12,41 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
   EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wno-unused-variable -Wno-dev
 )
 
-#cet_enable_asserts()
+cet_enable_asserts()
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
-set(CMAKE_MODULE_PATH $ENV{NUFINDER_DIR}/Modules
-		      ${CMAKE_CURRENT_SOURCE_DIR}/Modules
-		      ${CMAKE_MODULE_PATH}
-)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules
+		      $ENV{NUFINDER_DIR}/Modules
+		      ${CMAKE_MODULE_PATH})
 
 MESSAGE(VERBOSE "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")
 
 add_definitions( -D_REENTRANT ) # needed for stan_math v4
 
 # packages pulled in by cetmodules
-find_package( libwda         2.20.1 REQUIRED )
-find_package( art REQUIRED)
-find_package( artdaq REQUIRED)
-find_package( canvas_root_io REQUIRED)
-find_package( art_root_io REQUIRED)
-find_package( ifdh_art       2.15.00 REQUIRED)
+find_package( libwda          2.20.1      REQUIRED )
+find_package( art 	     	       	  REQUIRED EXPORT)
+find_package( artdaq 		       	  REQUIRED EXPORT)
+find_package( canvas_root_io 	       	  REQUIRED EXPORT)
+find_package( art_root_io 	       	  REQUIRED EXPORT)
+find_package( fhiclcpp 	     	       	  REQUIRED EXPORT)
+find_package( cetlib                      REQUIRED EXPORT)
+find_package( cetlib_except               REQUIRED EXPORT)
+find_package( ifdh_art        2.15.00  	  REQUIRED )
+find_package( messagefacility 2.08.04  	  REQUIRED )
+find_package( ROOT            6.22.08d    REQUIRED COMPONENTS Core EG Eve Geom Gdml Gpad Graf Graf3d Gui Hist Matrix MathCore MathMore Minuit Minuit2 Net Physics RIO Spectrum TMVA Thread Tree TreePlayer X3d XMLIO )
+find_package( Geant4          4.11.0.p03b REQUIRED )
+
+find_package( python         3.9.15    	  REQUIRED )
+set( PYTHON_EXECUTABLE $ENV{PYTHONHOME}/bin/python )
+
+find_package( srproxy        v00.40    	  REQUIRED )
 
 # macros for artdaq_dictionary and cet_build_plugin
 include(ArtDictionary)
 include(ArtMake)
 include(BuildPlugins)
-#i#nclude(ExternalProject)
-
-##ExternalProject_Add(millepede
-#  GIT_REPOSITORY https://gitlab.desy.de/claus.kleinwort/millepede-ii.git
-#  SOURCE_DIR ""
-##  SOURCE_DIR "/exp/emph/app/users/rchirco/emph_12.4.23/mp/target"
-##  DOWNLOAD_COMMAND ""
-##  CONFIGURE_COMMAND ""
-##  BUILD_COMMAND make
-##  BUILD_IN_SOURCE true
-##  INSTALL_COMMAND make install
-##)
-##ExternalProject_Get_Property(millepede SOURCE_DIR) #GIT_REPOSITORY) #SOURCE_DIR)
-#message("+++++" ${SOURCE_DIR})
-#add_executable(${PROJECT_NAME} pede readMilleBinary)
-#target_link_libraries(${PROJECT_NAME} ${SOURCE_DIR}/mille.o)
 
 # source
 add_subdirectory(Align)
@@ -102,6 +96,5 @@ add_subdirectory(TOF)
 add_subdirectory(Utilities)
 
 # ups - table and config files
-#add_subdirectory(ups)
 
 cet_cmake_config()
