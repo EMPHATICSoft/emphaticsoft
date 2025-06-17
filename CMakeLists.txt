@@ -46,8 +46,6 @@ cmake_policy(POP)
 find_package( python         3.9.15    	  REQUIRED )
 set( PYTHON_EXECUTABLE $ENV{PYTHONHOME}/bin/python )
 
-find_package( srproxy        v00.40    	  REQUIRED )
-
 # macros for artdaq_dictionary and cet_build_plugin
 include(ArtDictionary)
 include(ArtMake)
