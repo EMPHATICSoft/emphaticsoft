@@ -242,11 +242,16 @@ namespace ru {
           //eig.Print();
           //std::cout<<"eigmax: "<<eig_max<<std::endl;
 
-          int el;
+          int el = -1;
+          
           for (int i = 0; i < 3; i++){
              if (eig[i] == eig_max){ el = i; break; }
           }
-
+          if (el == -1) {
+            MF_LOG_ERROR("RecoUtils") << "Error: eig_max not found in eig array!";
+            return;  // or throw an exception or handle this case appropriately
+          }
+      
           double n[3];
           n[0] = eigv[0][el];
           n[1] = eigv[1][el];
