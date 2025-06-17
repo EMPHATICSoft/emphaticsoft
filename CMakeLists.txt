@@ -17,6 +17,7 @@ cet_enable_asserts()
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules
+		      $ENV{ARTDAQ_DIR}/Modules
 		      $ENV{NUFINDER_DIR}/Modules
 		      ${CMAKE_MODULE_PATH})
 
@@ -28,16 +29,20 @@ add_definitions( -D_REENTRANT ) # needed for stan_math v4
 find_package( libwda          2.20.1      REQUIRED )
 find_package( art 	     	       	  REQUIRED EXPORT)
 find_package( artdaq 		       	  REQUIRED EXPORT)
+find_package( artdaq_core 		  REQUIRED EXPORT)
 find_package( canvas_root_io 	       	  REQUIRED EXPORT)
 find_package( art_root_io 	       	  REQUIRED EXPORT)
 find_package( fhiclcpp 	     	       	  REQUIRED EXPORT)
 find_package( cetlib                      REQUIRED EXPORT)
 find_package( cetlib_except               REQUIRED EXPORT)
+find_package( TRACE                       REQUIRED )
 find_package( ifdh_art        2.15.00  	  REQUIRED )
 find_package( messagefacility 2.08.04  	  REQUIRED )
 find_package( ROOT            6.22.08d    REQUIRED COMPONENTS Core EG Eve Geom Gdml Gpad Graf Graf3d Gui Hist Matrix MathCore MathMore Minuit Minuit2 Net Physics RIO Spectrum TMVA Thread Tree TreePlayer X3d XMLIO )
+cmake_policy(PUSH)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE BOOL "Suppress dev warnings")
 find_package( Geant4          4.11.0.p03b REQUIRED )
-
+cmake_policy(POP)
 find_package( python         3.9.15    	  REQUIRED )
 set( PYTHON_EXECUTABLE $ENV{PYTHONHOME}/bin/python )
 
