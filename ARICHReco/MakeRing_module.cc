@@ -168,7 +168,7 @@ void MakeRing::produce(art::Event& evt)
 	       rb::ARing ring;		
 	
 	       ring.SetRadius(std::get<2>(circles[j]));
-		float center[3] = {std::get<0>(circles[j]),std::get<1>(circles[j]),0};
+		float center[3] = {static_cast<float>std::get<0>(circles[j]), static_cast<float>std::get<1>(circles[j]),0};
 		ring.SetCenter(center);
 		ring.SetNHits(arich_clusters->at(u).NDigits()); 
 		
