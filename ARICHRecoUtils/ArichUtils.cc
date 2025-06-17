@@ -154,14 +154,14 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 
 	int numCombinations = TMath::Power(NUMPARTICLES, np);
 	double minLoglikelihood = 1E10;
-	int bestCombination[np];
+	std::vector<int> bestCombination(np);
 	TH2D *hs;
         
 	for (int i = 0; i < numCombinations; i++) {
 		int index = i;
 		if (i > 0) delete hs;
 		char* stackedTitle = Form("PDF%i", i);
-		int combination[np];
+		std::vector<int> combination(np);
 		for (int k=np-1; k>=0; k--) { 
 			int p = index % NUMPARTICLES;
 			index = index / NUMPARTICLES;
