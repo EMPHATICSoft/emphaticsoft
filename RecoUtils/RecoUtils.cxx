@@ -21,6 +21,8 @@
 #include "TMatrixDSymEigen.h"
 #include "TVectorD.h"
 
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
 namespace ru {
   
   //----------------------------------------------------------------------
