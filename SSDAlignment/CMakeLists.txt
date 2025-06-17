@@ -1,44 +1,35 @@
-include(ArtDictionary)
-include(ArtMake)
-FILE( GLOB src_files *.cc )
-FILE( GLOB src_files *.cxx )
-
-find_package(messagefacility REQUIRED)
-find_package(ROOT REQUIRED)
-
-include_directories( $ENV{ROOT_INC} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
-include_directories($ENV{ART_ROOT_IO_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
-
-art_make_library ( SOURCE ${src_files}
-	LIBRARY_NAME  SSDAlignment
-                   LIBRARIES
-		   RawData
-		   RecoBase
-		   ChannelMap
-		   ChannelMapService_service
-		   RunHistory
-		   RunHistoryService_service
-		   Geometry
-           GeometryService_service
-           DetGeoMapService_service  
-		   art_root_io::TFileService_service
-		   messagefacility::MF_MessageLogger
-                   ROOT::Hist
+cet_make_library (SOURCE SSDAlign.cxx
+  LIBRARY_NAME  SSDAlignment
+  LIBRARIES
+    RawData
+    RecoBase
+    ChannelMap
+    ChannelMapService_service
+    RunHistory
+    RunHistoryService_service
+    Geometry
+    GeometryService_service
+    DetGeoMapService_service
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Hist
+  BASENAME_ONLY
 )
 
 cet_build_plugin(SSDAlignment art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     RawData
     SSDAlignment
     ChannelMap
     ChannelMapService_service
-	 RunHistory
+    RunHistory
     Geometry
     GeometryService_service
     DetGeoMapService_service  
     art_root_io::TFileService_service
     messagefacility::MF_MessageLogger
     ROOT::Hist
+  BASENAME_ONLY
 )
 
 install_source()
