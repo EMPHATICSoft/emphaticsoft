@@ -1,12 +1,7 @@
-include(CetRootCint)
 include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 set( PACKAGE EventDisplay )
 FILE( GLOB src_files *.cxx )
-
-cet_rootcint( ${PACKAGE} )
-
-#set( CET_DICT_FUNCTIONS TRUE)
 
 cet_make_library( LIBRARY_NAME ${PACKAGE}
   		  SOURCE ${src_files}
@@ -94,5 +89,12 @@ install_fhicl()
 install_source()
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE EventDisplay)
+
+build_dictionary(EventDisplay_dict
+  REFLEX
+  LIB_TARGET ${PACKAGE}
+  GENERATED_SOURCE ${PACKAGE}_dict.cc
+  SOURCE classes.h classes_def.xml
+)
 
 add_subdirectory(WebDisplay)
