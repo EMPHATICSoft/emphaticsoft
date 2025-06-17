@@ -5,6 +5,7 @@
 #define SRLINESEGMENTBRANCH_H
 #include "StandardRecord/SRLineSegment.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace caf

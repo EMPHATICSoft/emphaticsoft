@@ -14,6 +14,7 @@
 #ifndef SRTRAJECTORY_H
 #define SRTRAJECTORY_H
 
+#include <cstddef>
 #include <vector>
 #include <iostream>
 #include <TLorentzVector.h>

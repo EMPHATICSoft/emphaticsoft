@@ -5,6 +5,7 @@
 #define SRTRACKBRANCH_H
 #include "StandardRecord/SRTrack.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace caf

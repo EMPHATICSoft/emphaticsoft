@@ -5,6 +5,7 @@
 #define SRSSDHitsBRANCH_H
 #include "StandardRecord/SRSSDHits.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace caf

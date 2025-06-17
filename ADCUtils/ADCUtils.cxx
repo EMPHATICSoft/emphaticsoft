@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <algorithm>
 
 namespace emph{

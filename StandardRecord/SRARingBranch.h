@@ -5,6 +5,7 @@
 #define SRARINGBRANCH_H
 #include "StandardRecord/SRARing.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace caf
