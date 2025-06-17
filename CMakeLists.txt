@@ -9,7 +9,7 @@ cet_cmake_env()
 cet_set_compiler_flags(DIAGS CAUTIOUS
   #WERROR
   NO_UNDEFINED
-  EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wno-unused-variable -Wno-dev
+  EXTRA_FLAGS -pedantic -Wno-unused-parameter -Wno-unused-variable
 )
 
 cet_enable_asserts()
