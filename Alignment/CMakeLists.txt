@@ -8,8 +8,10 @@ find_package(messagefacility REQUIRED)
 find_package(ROOT REQUIRED)
 
 include_directories( $ENV{ROOT_INC} )
-include_directories($ENV{ART_ROOT_IO_INC})
+include_directories( $ENV{ART_ROOT_IO_INC} )
+include_directories( $ENV{MILLEPEDE_INC} )
 
+link_directories( $ENV{MILLEPEDE_LIB} )
 
 cet_build_plugin(SingleTrackAlignment art::module
   LIBRARIES PRIVATE
@@ -26,6 +28,7 @@ cet_build_plugin(SingleTrackAlignment art::module
     ROOT::Hist
     ROOT::Spectrum
     ROOT::Tree
+    mille
 )
 
 install_source()
