@@ -17,6 +17,7 @@
 #include "ARICHRecoUtils/ArichUtils.h"
 #include "ARICHRecoUtils/Particle.h"
 #include <map>
+#include <unordered_map>
 
 namespace arichreco{
 

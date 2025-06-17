@@ -66,6 +66,7 @@
 
 //#include <sstream>
 #include <map>
+#include <unordered_map>
 
 // ... Anonymous namespace for helpers.
 namespace {
