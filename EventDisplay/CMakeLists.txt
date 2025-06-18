@@ -90,11 +90,4 @@ install_source()
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE EventDisplay)
 
-build_dictionary(EventDisplay_dict
-  REFLEX
-  LIB_TARGET ${PACKAGE}
-  GENERATED_SOURCE ${PACKAGE}_dict.cc
-  SOURCE classes.h classes_def.xml
-)
-
-add_subdirectory(WebDisplay)
+#add_subdirectory(WebDisplay)
