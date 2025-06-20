@@ -42,6 +42,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
@@ -49,6 +50,7 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
+#include "StandardRecord/SRTrackSegment.h"
 
 using namespace emph;
 
@@ -100,6 +102,7 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     std::string fTrkSegLabel;
+    bool        fSevenOn;
     int         fPBeamTmp;
 
   };
@@ -113,6 +116,7 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
+    fSevenOn           (pset.get< bool >("SevenOn")),
     fPBeamTmp          (pset.get< int >("PBeamTmp"))
     {
       this->produces< std::vector<rb::Track> >();
@@ -142,6 +146,12 @@ namespace emph {
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
+
+    // Optionally exclude Station 7 (added later in data)
+    if (!fSevenOn){ 
+      nPlanes = nPlanes - 2;
+      nStations = nStations - 1;
+    }
   }
 
   //......................................................................
@@ -161,8 +171,8 @@ namespace emph {
   
   void emph::MakeSingleTracks::endJob()
   {
-       std::cout<<"MakeSingleTracks: Number of events with one cluster per sensor: "<<goodclust<<std::endl;
-       std::cout<<"MakeSingleTracks: Number of available clusters: "<<badclust+goodclust<<std::endl;
+       std::cout<<"MakeSingleTracks: Number of events with one cluster per plane: "<<goodclust<<std::endl;
+       std::cout<<"MakeSingleTracks: Number of events available: "<<badclust+goodclust<<std::endl;
   }
 
   //......................................................................
@@ -226,9 +236,9 @@ namespace emph {
          for (size_t idx=0; idx < trksegH->size(); ++idx) {
 	    const rb::TrackSegment& ts = (*trksegH)[idx];
 	    trksegs.push_back(&ts);
-            if (ts.Label() == 1) trksegs1.push_back(&ts);
-	    else if (ts.Label() == 2) trksegs2.push_back(&ts);
-            else if (ts.Label() == 3) trksegs3.push_back(&ts);		
+            if (ts.RegLabel() == rb::Region::kRegion1) trksegs1.push_back(&ts);
+	    else if (ts.RegLabel() == rb::Region::kRegion2) trksegs2.push_back(&ts);
+            else if (ts.RegLabel() == rb::Region::kRegion3) trksegs3.push_back(&ts);		
 	    else std::cout<<"Track segments not properly labeled."<<std::endl;
 
           }
@@ -240,6 +250,8 @@ namespace emph {
 	    ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
 	    clusters.push_back(&clust);
 	  }
+
+	  //std::cout<<"clusters = "<<clusters.size()<<"..."<<"nPlanes = "<<nPlanes<<std::endl;
 
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
@@ -263,10 +275,11 @@ namespace emph {
           // Choose track segments 2 and 3 with 3 space points
           if (goodEvent){
             for (auto t : trksegs){
-              if (t->Label() == 1) tsvcut.push_back(t);
+              if (t->RegLabel() == rb::Region::kRegion1) tsvcut.push_back(t);
               else if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-            }  
-
+	      else if (!fSevenOn && t->RegLabel() == rb::Region::kRegion3) tsvcut.push_back(t);
+            }
+  
             // Now make tracks
             // Eventually beamtrk should be fixed later with SpillInfo
             trackv->clear();
@@ -279,19 +292,24 @@ namespace emph {
             beamtrk.Add(t1);
             beamtrk.SetP(t1.P());
             beamtrk.SetVtx(t1.Vtx());
+	    beamtrk.SetChi2(t1.Chi2());
             trackv->push_back(beamtrk);
 
             rb::Track sectrk;
 	    auto t2 = *tsvcut[1]; 
             auto t3 = *tsvcut[2];
 	    tsvec.push_back(t2);
-	    tsvec.push_back(t3);	
-            algo.SetRecoTrk(t2,t3);		
+	    tsvec.push_back(t3);
+	    int pm;
+	    if (fPBeamTmp > 0) pm = 1;
+	    else pm = -1;	
+            algo.SetRecoTrk(t2,t3,pm);		
             sectrk.Add(t2);
             sectrk.Add(t3);
             sectrk.SetP(t2.P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
 	    auto v = algo.SetTrackInfo(tsvec[0],tsvec[1]);
             sectrk.SetVtx(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+	    sectrk.SetChi2(t2.Chi2()+t3.Chi2());
             trackv->push_back(sectrk);
 	  }
 	} //clust not empty
