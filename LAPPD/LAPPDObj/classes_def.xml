@@ -1,0 +1,28 @@
+<!--  Include art::Wrapper lines for objects that we would like to put  -->
+<!--  into the event -->
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
+<!--  lines and for all objects that are data members of those objects.-->
+ 
+<lcgdict>
+  <class name="std::vector<int16_t>"                  />
+  <class name="std::vector<int32_t>"                  />
+  <class name="std::vector<int64_t>"                  />
+  <class name="std::vector<uint64_t>"                  />
+
+  <class name="lappd::LAPPDReadoutChannelRawDigit"    ClassVersion="10" >
+   <version ClassVersion="10" checksum="2682844921"/>
+  </class>
+
+
+  <class name="lappd::LAPPDRawDigit"    ClassVersion="10" >
+   <version ClassVersion="10" checksum="2434306901"/>
+  </class>
+  
+  <class name="std::vector<LAPPDReadoutChannelRawDigit>"        />
+  <class name="art::PtrVector<LAPPDReadoutChannelRawDigit>"/>
+  <class name="art::Wrapper< std::vector<LAPPDReadoutChannelRawDigit>    >"/>
+
+  <class name="std::vector<lappd::LAPPDRawDigit>"        />
+  <class name="art::PtrVector<lappd::LAPPDRawDigit>"/>
+  <class name="art::Wrapper< std::vector<lappd::LAPPDRawDigit>    >"/>
+ </lcgdict>

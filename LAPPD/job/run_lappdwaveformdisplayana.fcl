@@ -1,0 +1,26 @@
+#include "lappdwaveofrmdisplayana_config.fcl"
+#include "Services.fcl"
+
+process_name: LAPPDEventGen
+
+services:
+{
+  TFileService: { fileName: "lappdeventwaveformana_r%r_s%04s.root" closeFileFast: false }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+
+physics:
+{
+  analyzers: {
+    wfAna: @local::lappdWvfAna
+  }
+
+  stream1:  [ wfAna ]
+  end_paths:     [stream1]  
+}

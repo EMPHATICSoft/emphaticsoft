@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+lappdEventGen: {
+  module_type: LAPPDEventGen
+  Verbosity: 1
+  NEvents: -1
+}
+
+END_PROLOG

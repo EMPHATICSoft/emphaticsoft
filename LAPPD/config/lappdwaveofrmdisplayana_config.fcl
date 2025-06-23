@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+lappdWvfAna: {
+  module_type: LAPPDWaveformDisplayAna
+  InputLabel: "raw:LAPPD"
+  Verbosity: 1
+}
+
+END_PROLOG

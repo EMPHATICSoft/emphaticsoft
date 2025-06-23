@@ -1,0 +1,26 @@
+#include "lappdeventgen_config.fcl"
+
+process_name: LAPPDEventGen
+
+services:
+{
+  TFileService: { fileName: "lappdevent_hist_r%r_s%04s.root" closeFileFast: false }
+}
+
+source: @local::lappdEventGen
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "lappdeventgen_r%r_s%04s.root" #default file name, can override from command line with -o or --output
+  }
+}
+
+
+physics:
+{
+  stream1:  [ out1 ]
+  end_paths:     [stream1]  
+}
