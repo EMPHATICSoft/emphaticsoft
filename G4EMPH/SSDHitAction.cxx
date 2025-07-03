@@ -81,14 +81,14 @@ namespace emph
     //    std::vector<sim::SSDHit> ssdVec;
     //    fSSDHits.push_back(ssdVec);
 
-    //    MF_LOG_DEBUG("SSDHitAction") << "pretracking step with track id: "
+    //    mf::LogDebug("SSDHitAction") << "pretracking step with track id: "
     //				 << ParticleListAction::GetCurrentTrackID();
   }
 
   //-------------------------------------------------------------
   void SSDHitAction::PostTrackingAction( const G4Track* /*track*/) 
   {
-    //    MF_LOG_DEBUG("SSDHitAction") 
+    //    mf::LogDebug("SSDHitAction") 
     //      << "done tracking for this g4 track, recorded "
     //      << fSSDHits[fSSDHits.size()-1].size() << " SSD hits";
   }
@@ -118,7 +118,7 @@ namespace emph
     const CLHEP::Hep3Vector &pos  = track->GetPosition();                   // End of the step
     const CLHEP::Hep3Vector &mom  = track->GetMomentum();
 
-    MF_LOG_DEBUG("SSDHitAction") 
+    mf::LogDebug("SSDHitAction") 
       << " momentum = "
       << mom.x() << " " << mom.y() << " " 
       << mom.z() << " " << mom.mag() 

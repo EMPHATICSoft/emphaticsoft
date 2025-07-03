@@ -86,7 +86,7 @@ namespace emph
   // Create our initial sim::SSDHit vector and add it to the vector of vectors
   void FastStopAction::PreTrackingAction(const G4Track* ) //track)
   {
-    //    MF_LOG_DEBUG("FastStopAction") << "pretracking step with track id: "
+    //    mf::LogDebug("FastStopAction") << "pretracking step with track id: "
     //				 << ParticleListAction::GetCurrentTrackID();
   }
 
