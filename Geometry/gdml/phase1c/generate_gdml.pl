@@ -25,7 +25,8 @@ GetOptions( "help|h" => \$help,
 	"suffix|s:s" => \$suffix,
 	"output|o:s" => \$output,
 	"target|t:i" => \$target,
-	"magnet|m:i" => \$magnet);
+	"magnet|m:i" => \$magnet,
+        "align|a:i"  => \$align);
 
 if ( defined $help )
 {
@@ -54,7 +55,7 @@ $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
-@target_matt = ("Graphite", "CH2");
+@target_matt = ("Graphite", "CH2", "Beryllium", "Air");
 $target_v = 0;
 
 # constants for MAGNET
@@ -82,6 +83,10 @@ $nSSD_station = 8; # num. of stations
 #@SSD_mount_rotation = ([0, 0], [0, 0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_mount_rotation = ([-0.44, -2.02], [0.24, -1.26], [0,0], [0,0], [0,0], [0,0], [-0.06, -1.49], [0.36, 0.31], [0.36, 0.31], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_angle = (0, 90, 0, 90, 315, 0, 270, 315, 0, 270, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
+%SSD_alignx = (0 => 0);
+%SSD_aligny = (0 => 0);
+%SSD_alignz = (0 => 0);
+%SSD_alignphi = (0 => 0);
 
 # constants for ARICH
 $arich_switch = 1;
@@ -119,15 +124,36 @@ if ( defined $magnet )
 if ( defined $target)
 {
 	# If the user requested help, print the usage notes and exit.
-	if($target == 0){
-		$target_switch = 0;
+    if($target < 0 || $target > 3){
+	print "wrong target parameter\n";
+    }
+    else{
+	$target_v = $target;
+    }
+}
+
+if ( defined $align)
+{
+    if($align < 0 || $align > 100){
+	print ("invalid alignment universe; must be 0-99\n");
+	exit(0);
+    }
+    else {
+	my $alignFN = "MisalignConsts/MisalignConst_" . $align . ".txt";
+	print ("Reading in ", $alignFN,"\n");
+	open(my $alignFH,'<', $alignFN) or die("Could not open file $alignFN");
+	while (my $line = <$alignFH>) {
+	    print ($line);
+	    chomp $line;
+	    my @vals = split /\s+/, $line;
+	    my $idx = $vals[0]*100 + $vals[1]*10 + $vals[2];
+	    $SSD_alignx{idx} = $vals[3];
+	    $SSD_aligny{idx} = $vals[4];
+	    $SSD_alignz{idx} = $vals[5];
+	    $SSD_alignphi{idx} = $vals[6];
 	}
-	elsif($target < 0 || $target > 2){
-		print "wrong target parameter\n";
-	}
-	else{
-		$target_v = $target - 1;
-	}
+	close($alignFH);
+    }
 }
 
 # run the sub routines that generate the fragments
@@ -154,8 +180,9 @@ sub usage()
 {
 	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-t|--target <target number>] [-m|--magnet <0 or 1>] [-s|--suffix <string>]\n";
 	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
-	print "       -t 0 is no target, 1 is graphite, 2 is CH2; Default is graphite\n";
+	print "       -t 0 is graphite (default), 1 is CH2, 2 is beryllium, 3 is air (eg, empty target); Default is graphite\n";
 	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
+	print "       -a apply alignment constants for universe [0-99]\n; Default is perfect alignment";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -h prints this message, then quits\n";
 }
