@@ -299,15 +299,24 @@ namespace emph {
       std::string labelStr;
       int i=0;
       for (; i<emph::geo::NDetectors; ++i) {
+        int j=i;
+        if (i > emph::geo::T0)
+          j=i+1;
 	labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
 	if (i == emph::geo::T0) labelStr += "ADC";
-	fNTriggerVsDet->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
-	fNRawObjectsHisto->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
+	fNTriggerVsDet->GetXaxis()->SetBinLabel(j+1,labelStr.c_str());
+	fNRawObjectsHisto->GetXaxis()->SetBinLabel(j+1,labelStr.c_str());
+        fNTriggerVsDet->GetXaxis()->LabelsOption("h");
+        fNRawObjectsHisto->GetXaxis()->LabelsOption("h");
+        if (i == emph::geo::USLAPPD || i == emph::geo::DSLAPPD) {
+          fNTriggerVsDet->GetXaxis()->ChangeLabel(j+1,350,-1,0,-1,-1,labelStr.c_str());
+          fNRawObjectsHisto->GetXaxis()->ChangeLabel(j+1,350,-1,0,-1,-1,labelStr.c_str());
+        }
       }
       // now add T0TDC
       labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
-      fNTriggerVsDet->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
-      fNRawObjectsHisto->GetXaxis()->SetBinLabel(i+1,labelStr.c_str());
+      fNTriggerVsDet->GetXaxis()->SetBinLabel(emph::geo::T0+2,labelStr.c_str());
+      fNRawObjectsHisto->GetXaxis()->SetBinLabel(emph::geo::T0+2,labelStr.c_str());
       
       //label x-axis for HitEff plot.
       i=0;
@@ -350,6 +359,11 @@ namespace emph {
 	  labelStr += " ADC";
 	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
 	}
+      }
+      for (int bin=1; bin < fHitEffPerChannel->GetNbinsX()+1; bin++) {
+        fHitEffPerChannel->GetXaxis()
+          ->ChangeLabel(bin,270,-1,2,-1,-1,
+                        fHitEffPerChannel->GetXaxis()->GetBinLabel(bin));
       }
     
       MakeGasCkovPlots();
@@ -1173,17 +1187,19 @@ namespace emph {
 	art::Handle< std::vector<emph::rawdata::WaveForm> > wfHandle;
 	try {
 	  evt.getByLabel(labelStr, wfHandle);
-
 	  if (!wfHandle->empty()) {
-	    fNRawObjectsHisto->Fill(i,wfHandle->size());
-	    fNTriggerVsDet->Fill(i);
-	    fTriggerVsSubrun->Fill(fSubrun,i);
+            int j=i;
+            if (i > emph::geo::T0)
+              j=i+1;
+	    fNRawObjectsHisto->Fill(j,wfHandle->size());
+	    fNTriggerVsDet->Fill(j);
+	    fTriggerVsSubrun->Fill(fSubrun,j);
 	    if (i == emph::geo::Trigger) FillTrigPlots(wfHandle);
 	    if (i == emph::geo::GasCkov) FillGasCkovPlots(wfHandle);
 	    if (i == emph::geo::BACkov)  FillBACkovPlots(wfHandle);
 	    if (i == emph::geo::LGCalo)  FillLGCaloPlots(wfHandle);
 	    if (i == emph::geo::T0) {
-	      int j = emph::geo::NDetectors;
+	      j = emph::geo::T0+1;
 	      labelStr = "raw:T0";
 	      art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbHandle;
 	      try {
@@ -1216,9 +1232,12 @@ namespace emph {
       try {
 	evt.getByLabel(labelStr, trbHandle);
 	if (!trbHandle->empty()) {
-	  fNRawObjectsHisto->Fill(i,trbHandle->size());
-	  fNTriggerVsDet->Fill(i);
-	  fTriggerVsSubrun->Fill(fSubrun,i);
+          int j=1;
+          if (i > emph::geo::T0)
+            j=i+1;
+	  fNRawObjectsHisto->Fill(j,trbHandle->size());
+	  fNTriggerVsDet->Fill(j);
+	  fTriggerVsSubrun->Fill(fSubrun,j);
 	  FillRPCPlots(trbHandle);
 	}
       }
@@ -1231,9 +1250,12 @@ namespace emph {
       try {
 	evt.getByLabel(labelStr, trbHandle);
 	if (!trbHandle->empty()) {
-	  fNRawObjectsHisto->Fill(i,trbHandle->size());
-	  fNTriggerVsDet->Fill(i);
-	  fTriggerVsSubrun->Fill(fSubrun,i);
+          int j=1;
+          if (i > emph::geo::T0)
+            j=i+1;
+	  fNRawObjectsHisto->Fill(j,trbHandle->size());
+	  fNTriggerVsDet->Fill(j);
+	  fTriggerVsSubrun->Fill(fSubrun,j);
 	  FillARICHPlots(trbHandle);
 	}
       }
@@ -1248,9 +1270,12 @@ namespace emph {
 	evt.getByLabel(labelStr, ssdHandle);
 
 	if (!ssdHandle->empty()) {
-	  fNRawObjectsHisto->Fill(i,ssdHandle->size());
-	  fNTriggerVsDet->Fill(i);
-	  fTriggerVsSubrun->Fill(fSubrun,i);
+          int j=1;
+          if (i > emph::geo::T0)
+            j=i+1;
+	  fNRawObjectsHisto->Fill(j,ssdHandle->size());
+	  fNTriggerVsDet->Fill(j);
+	  fTriggerVsSubrun->Fill(fSubrun,j);
 	  FillSSDPlots(ssdHandle);
 	}
       }
