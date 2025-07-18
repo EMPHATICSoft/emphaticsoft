@@ -9,14 +9,14 @@ void MakeMisalignConsts(int nFiles = 100)
 
   double xoff = 3; // mm for x-position offset width
   double yoff = 3; // mm for y-position offset width
-  double zoff = 0.5; // mm for z-position offset width
-  double phioff = 0.03491; // 2 degrees for rotation about the z-axis
+  double zoff = 0.; // mm for z-position offset width
+  double phioff = 2.; // degrees for rotation about the z-axis
   int nStations = 8;
   int nPlanes = 3;
   int nSensors = 2;
   std::streamsize originalPrecision = std::cout.precision();
 
-  for (int iFile = 0; iFile<nFiles; ++iFile) {
+  for (int iFile = 1; iFile<=nFiles; ++iFile) {
 
     std::stringstream fname;
     fname << "MisalignConst_" << iFile << ".txt";

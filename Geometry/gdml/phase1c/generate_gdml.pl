@@ -83,10 +83,10 @@ $nSSD_station = 8; # num. of stations
 #@SSD_mount_rotation = ([0, 0], [0, 0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_mount_rotation = ([-0.44, -2.02], [0.24, -1.26], [0,0], [0,0], [0,0], [0,0], [-0.06, -1.49], [0.36, 0.31], [0.36, 0.31], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_angle = (0, 90, 0, 90, 315, 0, 270, 315, 0, 270, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
-%SSD_alignx = (0 => 0);
-%SSD_aligny = (0 => 0);
-%SSD_alignz = (0 => 0);
-%SSD_alignphi = (0 => 0);
+%SSD_alignx;
+%SSD_aligny;
+%SSD_alignz;
+%SSD_alignphi;
 
 # constants for ARICH
 $arich_switch = 1;
@@ -143,15 +143,15 @@ if ( defined $align)
 	print ("Reading in ", $alignFN,"\n");
 	open(my $alignFH,'<', $alignFN) or die("Could not open file $alignFN");
 	while (my $line = <$alignFH>) {
-	    print ($line);
 	    chomp $line;
 	    my @vals = split /\s+/, $line;
 	    my $idx = $vals[0]*100 + $vals[1]*10 + $vals[2];
-	    $SSD_alignx{idx} = $vals[3];
-	    $SSD_aligny{idx} = $vals[4];
-	    $SSD_alignz{idx} = $vals[5];
-	    $SSD_alignphi{idx} = $vals[6];
+	    $SSD_alignx{$idx} = $vals[3];
+	    $SSD_aligny{$idx} = $vals[4];
+	    $SSD_alignz{$idx} = $vals[5];
+	    $SSD_alignphi{$idx} = $vals[6];
 	}
+#	print "$_ $SSD_alignx{$_}\n" for (keys %SSD_alignx);
 	close($alignFH);
     }
 }
@@ -199,7 +199,7 @@ sub gen_Define()
 	# Create the <define> fragment file name, 
 	# add file to list of fragments,
 	# and open it
-	$DEF = "phase1_Def" . $suffix . ".gdml";
+	$DEF = "tmp_Def" . $suffix . ".gdml";
 	push (@gdmlFiles, $DEF);
 	$DEF = ">" . $DEF;
 	open(DEF) or die("Could not open file $DEF for writing");
@@ -338,19 +338,24 @@ EOF
 					$imount++;
 				}
 				for($k = 0; $k < $SSD_par[ $SSD_station[ $i ] ]; ++$k){
-					if($j < 2){
-						print DEF <<EOF;
-						<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
+				    my $idx = $i*100 + $j*10 + $k;
+				    my $txs = $SSD_shift[ $isensor][0]+$SSD_alignx{$idx};
+				    my $tys = $SSD_shift[ $isensor][1]+$SSD_aligny{$idx};
+				    my $tzrot = @{[$SSD_angle[$isensor] ]}+$SSD_alignphi{$idx};
+				    if($j < 2){
+					print DEF <<EOF;
+					<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)\
+*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick+$SSD_alignz{$idx}"/>
+					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="$tzrot" unit="deg"/>
 EOF
 						$isensor++;
 					}
 					else{
-						 print DEF <<EOF;
-                   <position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$SSD_shift[ $isensor][0]" y="$SSD_shift[ $isensor][1]" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $SSD_angle[$isensor] ]}" unit="deg"/>
+					    print DEF <<EOF;
+					    <position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="tys" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}"/>
+						<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}"/>
+					 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="$tzrot" unit="deg"/>
 EOF
 						$isensor++;
 					}
@@ -567,7 +572,7 @@ sub gen_Materials()
 	# Create the <materials> fragment file name,
 	# add file to list of output GDML fragments,
 	# and open it
-	$MAT = "phase1_Materials" . $suffix . ".gdml";
+	$MAT = "tmp_Materials" . $suffix . ".gdml";
 	push (@gdmlFiles, $MAT);
 	$MAT = ">" . $MAT;
 	open(MAT) or die("Could not open file $MAT for writing");
@@ -593,7 +598,7 @@ sub gen_PMTs()
 	# Create the <PMT> fragment file name,
 	# add file to list of output GDML fragments,
 	# and open it
-	$MAT = "phase1_PMTs" . $suffix . ".gdml";
+	$MAT = "tmp_PMTs" . $suffix . ".gdml";
 	push (@gdmlFiles, $MAT);
 	$MAT = ">" . $MAT;
 	open(MAT) or die("Could not open file $MAT for writing");
@@ -620,7 +625,7 @@ sub gen_Solids()
 	# Create the <solids> fragment file name,
 	# add file to list of output GDML fragments,
 	# and open it
-	$SOL = "phase1_Solids" . $suffix . ".gdml";
+	$SOL = "tmp_Solids" . $suffix . ".gdml";
 	push (@gdmlFiles, $SOL);
 	$SOL = ">" . $SOL;
 	open(SOL) or die("Could not open file $SOL for writing");
@@ -840,7 +845,7 @@ sub gen_Modules()
 	# Create the Modules
 	# add file to list of output GDML fragments,
 	# and open it
-	$MOD = "phase1_Modules" . $suffix . ".gdml";
+	$MOD = "tmp_Modules" . $suffix . ".gdml";
 	push (@gdmlFiles, $MOD);
 	$MOD = ">" . $MOD;
 	open(MOD) or die("Could not open file $MOD for writing");
@@ -1111,7 +1116,7 @@ sub gen_DetEnclosure()
 	# Create the DetEnclosure
 	# add file to list of output GDML fragments,
 	# and open it
-	$DET = "phase1_DetEnclosure" . $suffix . ".gdml";
+	$DET = "tmp_DetEnclosure" . $suffix . ".gdml";
 	push (@gdmlFiles, $DET);
 	$DET = ">" . $DET;
 	open(DET) or die("Could not open file $DET for writing");
@@ -1375,7 +1380,7 @@ sub gen_World()
 	# Create the WORLD fragment file name,
 	# add file to list of output GDML fragments,
 	# and open it
-	$WORLD = "phase1_World" . $suffix . ".gdml";
+	$WORLD = "tmp_World" . $suffix . ".gdml";
 	push (@gdmlFiles, $WORLD);
 	$WORLD = ">" . $WORLD;
 	open(WORLD) or die("Could not open file $WORLD for writing");

@@ -44,5 +44,5 @@ $(dirname $0)/generate_gdml.pl $@
 /bin/mkdir tmpgdml
 /bin/mv $OUTNAME tmpgdml/.
 $(dirname $0)/../make_gdml.pl -i "tmpgdml/${OUTNAME}" -o $OUTNAME
-/bin/rm -f tmp_*.gdml
+/bin/rm -f $OUTNAME tmp_*.gdml
 /bin/rm -fr tmpgdml
