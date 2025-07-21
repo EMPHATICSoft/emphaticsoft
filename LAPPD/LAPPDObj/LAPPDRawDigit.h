@@ -22,25 +22,16 @@
 #ifndef LAPPDRAWDIGIT_H
 #define LAPPDRAWDIGIT_H
 
-#include <cstdint>
-#include <sys/types.h>
-#include <vector>
-#include <iostream>
-#include <inttypes.h>
 #include <cstring>
-#include <fstream>
-#include <bitset>
+#include <iostream>
 
-
+#include "LAPPD/LAPPDObj/LAPPD_format.h"
 
 namespace lappd {
 
   const short unsigned int kN64BitHeaderWords = 5; // Number of 64-bit header words
   const short unsigned int kN64BitDataWords = 1440; // Number of 64-bit words in the data section
   const short unsigned int kN64BitTotalWords = kN64BitHeaderWords + kN64BitDataWords; // Total number of 64-bit words in the event
-
-  const short unsigned int kNChannels = 30; // Number of channels in the ACDC
-  const short unsigned int kNTicks = 256; // Number of time ticks per channel
 
   class LAPPDReadoutChannelRawDigit {
   public:
@@ -63,12 +54,19 @@ namespace lappd {
 
   class LAPPDRawDigit {
   public:
-    LAPPDRawDigit(); // Default constructor
-    LAPPDRawDigit(uint64_t* block);
-    LAPPDRawDigit(uint64_t accH, uint64_t acdcH, uint64_t t320, uint64_t twr, uint64_t aH, uint64_t* data);
-    virtual ~LAPPDRawDigit() {}; // Destructor
+    // Default constructor
+    LAPPDRawDigit();
 
-    // Getter functions - to access raw data
+    // Constructor with one 64b chain block
+    LAPPDRawDigit(uint64_t* block);
+
+    // Constructor with individual 64b words
+    LAPPDRawDigit(uint64_t accH, uint64_t acdcH, uint64_t t320, uint64_t twr, uint64_t aH, uint64_t* data);
+
+    // Destructor
+    virtual ~LAPPDRawDigit() {};
+
+    // Getter functions - to access raw data !!!! To be removed
     uint64_t GetACCHeader() const {return fACCHeader; }
     uint64_t GetACDCHeader() const {return fACDCHeader; }
     uint64_t GetTime320() const {return fTime320; }
@@ -85,7 +83,6 @@ namespace lappd {
     LAPPDReadoutChannelRawDigit GetChannel(int i) const;
     int GetNChannels() const { return kNChannels; } // Get number of channels
 
-
     bool IsNoise() const {return fIsNoise; }
 
     // Setters
@@ -98,7 +95,7 @@ namespace lappd {
 
   private:
     
-    // 64b raw words - to be dropped eventually
+    // 64b raw words - !!!!to be dropped eventually
     uint64_t fACCHeader; // 0x123456789abcde + ACDC number(8 bit)
     uint64_t fACDCHeader; // Fixed alignment pattern 0xac9c + event number (32 bit) + 8 bit padding (all 0)
     uint64_t fTime320; // 320 MHz counter

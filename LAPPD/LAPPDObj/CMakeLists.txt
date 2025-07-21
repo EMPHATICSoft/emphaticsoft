@@ -1,5 +1,3 @@
-include(ArtDictionary)
-include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
 find_package(artdaq_core REQUIRED)

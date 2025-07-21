@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 
-#include "LAPPD/LAPPDEventGen_source.hh"
+#include "LAPPD/LAPPDArtModules/LAPPDEventGen_source.hh"
 
 
 namespace emph {

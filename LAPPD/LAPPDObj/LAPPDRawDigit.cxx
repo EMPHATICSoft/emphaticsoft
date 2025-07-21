@@ -4,9 +4,6 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "LAPPD/LAPPDObj/LAPPDRawDigit.h"
-#include "LAPPDRawDigit.h"
-#include <cstdint>
-#include <iostream>
 
 namespace lappd{
 

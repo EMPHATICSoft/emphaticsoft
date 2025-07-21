@@ -1,0 +1,39 @@
+#include "lappdsignalprocessing_config.fcl"
+#include "Services.fcl"
+
+process_name: LAPPDSP
+
+services:
+{
+  TFileService: { fileName: "hist_lappdsignalprocessing_r%r_s%04s.root" closeFileFast: false }
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb_signalprocessing.root" #default file name, can override from command line with -o or --output
+  }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+
+physics:
+{
+  producers: {
+    lappdSP: @local::lappdSignalProcessing
+  }
+
+  reco:  [ lappdSP ]
+  stream1:  [ out1 ]
+
+  trigger_paths: [ reco ]
+
+  end_paths: [stream1]
+}

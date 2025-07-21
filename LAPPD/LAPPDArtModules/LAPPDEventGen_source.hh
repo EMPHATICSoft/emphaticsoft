@@ -34,8 +34,6 @@
 #include "LAPPD/LAPPDObj/LAPPDRawDigit.h"
 #include "LAPPD/LAPPDUnpacker/LAPPDBinaryUnpacker.h"
 
-
-
 namespace emph {
   namespace rawdata {
 

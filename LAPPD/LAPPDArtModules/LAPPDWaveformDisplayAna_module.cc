@@ -28,7 +28,6 @@
 // EMPHATICSoft includes
 #include "LAPPD/LAPPDObj/LAPPDRawDigit.h"
 
-///package to illustrate how to write modules
 namespace emph {
   
   namespace lappdana {
@@ -37,7 +36,6 @@ namespace emph {
 
     public:
       explicit LAPPDWaveformDisplayAna(fhicl::ParameterSet const& pset);
-        // Required! explicit tag tells the compiler this is not a copy constructor
       
       void analyze(const art::Event& evt);
       void beginJob();
@@ -135,20 +133,23 @@ void emph::lappdana::LAPPDWaveformDisplayAna::analyze(const art::Event& evt)
                                            << fEventId << " in Run: " << fRunId
                                            << ", SubRun: " << fSubRunId;
 
+    int lappdCounter = 0;
     for( const auto& lappdDigit : *lappdHandle) {
       mf::LogInfo("LAPPDWaveformDisplayAna") << "LAPPD raw digit with ACDC number: " 
                                              << lappdDigit.GetACDCNumber() 
                                              << ", event number: " << lappdDigit.GetEventNumber()
                                              << ", timestamp: " << lappdDigit.GetTimeStamp();
-
+      lappdCounter++;
       // Loop over channels
       for (int channel = 0; channel < lappdDigit.GetNChannels(); ++channel) {
         const lappd::LAPPDReadoutChannelRawDigit& channelData = lappdDigit.GetChannel(channel);
         mf::LogInfo("LAPPDWaveformDisplayAna") << "  Channel " << channel;
         
         // Create a histogram for this channel
-        TH1F* hWaveform = dir.make<TH1F>( ("hADCCh_" + std::to_string(channel)).c_str(), 
-                                          ("Channel " + std::to_string(channel) + " ADC Waveform; Tick; ADC Value").c_str(),
+        TH1F* hWaveform = dir.make<TH1F>( ( "histLAPPD-"+std::to_string(lappdCounter) +
+                                            "_ADCCh-" + std::to_string(channel)).c_str(), 
+                                          ( "LAPPD " + std::to_string(lappdCounter) +
+                                            "Channel " + std::to_string(channel) + " ADC Waveform; Tick; ADC Value").c_str(),
                                           channelData.NADCs(), 0, channelData.NADCs() );
         hWaveform->SetStats(0); // Disable stats box for cleaner display
       

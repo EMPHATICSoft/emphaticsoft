@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+lappdRawMerger: {
+  module_type: LAPPDRawMerger
+  LAPPDBinaryFiles: ["/exp/emph/app/users/fnicolas/persistent/Raw_noiseData_20250328_141239_b1.txt"]
+  Verbosity: 1
+}
+
+END_PROLOG

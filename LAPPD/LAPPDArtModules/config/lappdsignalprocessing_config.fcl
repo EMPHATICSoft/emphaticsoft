@@ -1,0 +1,19 @@
+BEGIN_PROLOG
+
+lappdSignalProcessor: {
+  DoBaselineSubtraction:   true
+  DoClockShiftCorrection:  true
+  DoSmoothing:             true
+  DoZeroFrequencyRemoval:  true
+  DoDeconvolution:         false
+  Verbosity:               1
+}
+
+lappdSignalProcessing: {
+  module_type: LAPPDSignalProcessing
+  LAPPDRawLabel: "raw:LAPPD"
+  Verbosity: 1
+  SignalProcessorConfig: @local::lappdSignalProcessor
+}
+
+END_PROLOG

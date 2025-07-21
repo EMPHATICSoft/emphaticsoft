@@ -1,0 +1,34 @@
+#include "lappdrawmerger_config.fcl"
+
+process_name: LAPPDRawMerger
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb_lappdrawmerger.root"
+  }
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+physics:
+{
+
+  producers: {
+    lappdRM: @local::lappdRawMerger
+  }
+
+  reco:  [ lappdRM ]
+  stream1:  [ out1 ]
+
+  trigger_paths: [ reco ]
+
+  end_paths: [stream1]
+
+}

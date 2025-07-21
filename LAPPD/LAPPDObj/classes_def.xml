@@ -9,20 +9,39 @@
   <class name="std::vector<int64_t>"                  />
   <class name="std::vector<uint64_t>"                  />
 
+  <!--  Define classes for raw digits  -->
   <class name="lappd::LAPPDReadoutChannelRawDigit"    ClassVersion="10" >
    <version ClassVersion="10" checksum="2682844921"/>
   </class>
-
 
   <class name="lappd::LAPPDRawDigit"    ClassVersion="10" >
    <version ClassVersion="10" checksum="2434306901"/>
   </class>
   
-  <class name="std::vector<LAPPDReadoutChannelRawDigit>"        />
+  <class name="std::vector<LAPPDReadoutChannelRawDigit>"/>
   <class name="art::PtrVector<LAPPDReadoutChannelRawDigit>"/>
-  <class name="art::Wrapper< std::vector<LAPPDReadoutChannelRawDigit>    >"/>
+  <class name="art::Wrapper< std::vector<LAPPDReadoutChannelRawDigit> >"/>
 
-  <class name="std::vector<lappd::LAPPDRawDigit>"        />
+  <class name="std::vector<lappd::LAPPDRawDigit>"/>
   <class name="art::PtrVector<lappd::LAPPDRawDigit>"/>
-  <class name="art::Wrapper< std::vector<lappd::LAPPDRawDigit>    >"/>
+  <class name="art::Wrapper< std::vector<lappd::LAPPDRawDigit> >"/>
+
+
+  <!--  Define classes for ADC reco -->
+  <class name="lappd::LAPPDADCWaveform"    ClassVersion="10" >
+   <version ClassVersion="10" checksum="325081273"/>
+  </class>
+
+  <class name="lappd::LAPPDADCReco"    ClassVersion="10" >
+   <version ClassVersion="10" checksum="1117399538"/>
+  </class>
+
+  <class name="std::vector<lappd::LAPPDADCWaveform>"/>
+  <class name="art::PtrVector<lappd::LAPPDADCWaveform>"/>
+  <class name="art::Wrapper< std::vector<lappd::LAPPDADCWaveform> >"/>
+
+  <class name="std::vector<lappd::LAPPDADCReco>"/>
+  <class name="art::PtrVector<lappd::LAPPDADCReco>"/>
+  <class name="art::Wrapper< std::vector<lappd::LAPPDADCReco> >"/>
+
  </lcgdict>
