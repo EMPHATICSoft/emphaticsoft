@@ -11,7 +11,9 @@ services:
   MagneticField: @local::standard_magfield
   RunHistoryService: @local::standard_runhistory
   Geometry: @local::standard_geometry
-  
+
+  # uncomment for debug messages
+#  message: { debugModules: ["*"] destinations: { debugmsg:{type: "cout" threshold: "DEBUG"} } }  
   # Load the service that manages root files for histograms.
 #  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
   
@@ -23,8 +25,8 @@ services:
 source:
 {
   module_type: EmptyEvent
-  maxEvents: 10000
-  firstRun:  2293
+  maxEvents: 1000000
+  firstRun:  2408
   firstSubRun: 1
 
 }

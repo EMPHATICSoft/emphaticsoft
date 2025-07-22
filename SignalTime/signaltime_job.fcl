@@ -1,13 +1,11 @@
+#include "Services.fcl"
 #include "SignalTime.fcl"
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
 
 process_name: SignalTime
 
 services:
 {
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
+  @table::standard_services
 }
 
 source:

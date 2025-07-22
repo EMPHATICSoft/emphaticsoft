@@ -25,7 +25,6 @@ namespace rb {
       _p[i] = 0.;
     }
   }
-  
   //------------------------------------------------------------
 
   void Track::Add(const rb::SSDCluster& cl) 
@@ -38,7 +37,7 @@ namespace rb {
 
   void Track::Add(const rb::TrackSegment& ts)
   {
-    assert(_clust.empyt() && _spcpt.empty());
+    assert(_clust.empty() && _spcpt.empty());
     _sgmnt.push_back(rb::TrackSegment(ts));
   }
 
@@ -46,9 +45,10 @@ namespace rb {
 
   void Track::Add(const rb::SpacePoint& sp)
   {
-    assert(_clust.empyt() && _sgmnt.empty());
+    assert(_clust.empty() && _sgmnt.empty());
     _spcpt.push_back(rb::SpacePoint(sp));
   }
+  
 
   //------------------------------------------------------------
 
@@ -92,7 +92,7 @@ namespace rb {
     double x = -9999.;
     double y = -9999.;
 
-    assert(_pos.size>= 2);
+    assert(_pos.size()>= 2);
 
     if (z >= _vtx[2]) {
       size_t i=0; 

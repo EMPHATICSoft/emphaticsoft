@@ -51,12 +51,12 @@ export KRB5CCNAME=FILE:/tmp/krb5cc_`id -u`
 ```
 You should add that export command to your bash login so you don't have to do it or remember it every time. 
 
-2.  After logging in, if it doesn't already exist, create the directory /emph/app/users/[username]:
+2.  After logging in, if it doesn't already exist, create the directory /exp/emph/app/users/[username]:
 
 ```
-mkdir /emph/app/users/[username]
+mkdir /exp/emph/app/users/[username]
 ```
-3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/emph/app/users/[username]), or a directory of your choosing.
+3.  If you haven't already done so, clone the git repository for EMPHATICSOFT/emphaticsoft in this same directory (/exp/emph/app/users/[username]), or a directory of your choosing.
 
 ```
 git clone https://github.com/EmphaticSoft/emphaticsoft
@@ -66,16 +66,19 @@ You will prompted to enter your github username and a password.  The password sh
 3. Then execute:
 
 ```
-source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
-cd /emph/app/users/[username]/<directory-you-chose>/
+source /exp/emph/app/users/[username]/<directory-you-chose>/emphaticsoft/setup/setup_emphatic.sh
+sl7-emph
+cd /exp/emph/app/users/[username]/<directory-you-chose>/
 mkdir build
 ```
 
 4. execute:
 
 ```
-cd /emph/app/users/[username]/<directory-you-chose>/build
-source /emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
+cd /exp/emph/app/users/[username]/<directory-you-chose>/build
+source /exp/emph/app/users/[username]/<directory-you-chose>/emphaticsoft/ups/setup_for_development -p
+
+Note: You must run this "source" command within the build directory
 ```
 
 5. To compile the code (must be in the "build" directory!):
@@ -146,18 +149,18 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
  
    For instance, for the username lebrun, one has:    
    ```
-   -bash-4.2$ cd /emph/app/users/lebrun/build
+   -bash-4.2$ cd /exp/emph/app/users/lebrun/build
    -bash-4.2$ source ../emphaticsoft/setup/setup_emphatic.sh 
        Setting up emphatic UPS area... /cvmfs/emphatic.opensciencegrid.org/products/
      -bash-4.2$ source ../emphaticsoft/ups/setup_for_development -p
 
-     The working build directory is /emph/app/users/lebrun/build
-     The source code directory is /emph/app/users/lebrun/emphaticsoft
+     The working build directory is /exp/emph/app/users/lebrun/build
+     The source code directory is /exp/emph/app/users/lebrun/emphaticsoft
 
      ---------------------- check this block for errors ---------------------
      ------------------------------------------------------------------------
 
-     To inspect build variable settings, execute /emph/app/users/lebrun/build/cetpkg_info.sh
+     To inspect build variable settings, execute /exp/emph/app/users/lebrun/build/cetpkg_info.sh
 
     Please use "buildtool" to configure and build emphaticsoft, e.g.:
 
@@ -167,11 +170,11 @@ Docker is a commercial software (free for now) that allows EMPHATIC to release t
     (full help) for more details.
    ```
     * The FHICL_FILE_PATH is an environmental variable which holds multipath, the first one being the one 
-      /emph/app/users/lebrun/build/fcl, where our fcl files do reside.
+      /exp/emph/app/users/lebrun/build/fcl, where our fcl files do reside.
        Then, art will find the top level (the one in the Unix command you invoke), and all the subsequent ones. 
        Such that the command: 
    ```
-     -bash-4.2$ art -c onmonprod_job.fcl /emph/app/users/lebrun/data/emphdata_r466_s1.root
+     -bash-4.2$ art -c onmonprod_job.fcl /exp/emph/app/users/lebrun/data/emphdata_r466_s1.root
    ```
      
      will work.. 
@@ -218,7 +221,7 @@ Once your changes are thoroughly tested and your are ready for them to go into t
 7. Merge your branch with the main branch  
 
 
-* Go to your user directory (ex: `/emph/app/users/dhuerta/`)  
+* Go to your user directory (ex: `/exp/emph/app/users/dhuerta/`)  
 * Make a new directory (ex: `git_practice`)
 * go into the new directory  
 * Run: `git clone https://github.com/EmphaticSoft/emphaticsoft`   
@@ -237,12 +240,12 @@ Once your changes are thoroughly tested and your are ready for them to go into t
 	* You can run: `git status` to see the differences between the branch you are in and main at any point   
 * Go back to your  directory 
 * Make a new build directory using: `mkdir build`
-* Run : `source /emph/app/users/<your_username>/git_practice/emphaticsoft/setup/setup_emphatic.sh`
-* Go into the build directory (`cd /emph/app/users/<your_username>/git_practice/build` ) 
-* Run: `source /emph/app/users/<your_username>/git_practice/emphaticsoft/ups/setup_for_development -p` 
+* Run : `source /exp/emph/app/users/<your_username>/git_practice/emphaticsoft/setup/setup_emphatic.sh`
+* Go into the build directory (`cd /exp/emph/app/users/<your_username>/git_practice/build` ) 
+* Run: `source /exp/emph/app/users/<your_username>/git_practice/emphaticsoft/ups/setup_for_development -p` 
 * Compile (use `buildtool --generator=ninja`  the first time and just `ninja`  any time after that)  
 	* Might get build error, run ninja and if you still have errors, fix now
-* If all of your changes are made and you are ready to commit them into your branch, go to: `/emph/app/users/<your_username>/git_practice/emphaticsoft`  
+* If all of your changes are made and you are ready to commit them into your branch, go to: `/exp/emph/app/users/<your_username>/git_practice/emphaticsoft`  
 * Run: `git push`  
 	- Use your GitHub username and your token as your password 
 * Go to GitHub **online** 

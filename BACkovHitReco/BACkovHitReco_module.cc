@@ -30,6 +30,7 @@
 #include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/DetectorDefs.h"
 #include "RawData/WaveForm.h"
+#include "RecoBase/Spill.h"
 #include "RecoBase/BACkovHit.h"
 #include "RecoBase/ADC.h"
 
@@ -49,8 +50,7 @@ namespace emph {
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    //void endRun(art::Run const&);
-    //      void endSubRun(art::SubRun const&);
+    void beginSubRun(art::SubRun &sr);
     void endJob();
     
   private:
@@ -74,8 +74,7 @@ namespace emph {
   //.......................................................................
   
   BACkovHitReco::BACkovHitReco(fhicl::ParameterSet const& pset)
-    : EDProducer(pset),
-      mom (pset.get<int>("momentum",0))
+    : EDProducer(pset)
   {
 
     this->produces< std::vector<rb::BACkovHit>>();
@@ -90,9 +89,7 @@ namespace emph {
     // Clean up any memory allocated by your module
     //======================================================================
   }
-
   //......................................................................
-
   void BACkovHitReco::beginJob()
   {
     fNEvents=0;
@@ -100,22 +97,37 @@ namespace emph {
     art::ServiceHandle<art::TFileService> tfs;
     char hname[64];
     for (int i=0; i<=5; ++i) {
-      sprintf(hname,"BACkovQ_%d",i);
-      if(i!=3 && i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),100,-1,10);
-      else if (i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),150,-1,25);
-      else fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),400,-2,80);
-      fBACkovChargeHist[i]->GetXaxis()->SetTitle("Charge (pC)");
-      fBACkovChargeHist[i]->GetYaxis()->SetTitle("Number of Events"); 
+        sprintf(hname,"BACkovQ_%d",i);
+        if(i!=3 && i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),100,-1,10);
+        else if (i!=5) fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),150,-1,25);
+        else fBACkovChargeHist[i] = tfs->make<TH1F>(hname,Form("Charge BACkov Channel %i",i),400,-2,80);
+        fBACkovChargeHist[i]->GetXaxis()->SetTitle("Charge (pC)");
+        fBACkovChargeHist[i]->GetYaxis()->SetTitle("Number of Events"); 
     }
     for (int i=0; i<=5; ++i) {
-      sprintf(hname,"BACkovQT_%d",i);
-      if(i!=3 && i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,100,-1,10);
-      else if (i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,150,-1,25);
-      else fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,400,-2,80);
-      fBACkovChargeTimeHist[i]->GetXaxis()->SetTitle("Time (ns)");
-      fBACkovChargeTimeHist[i]->GetYaxis()->SetTitle("Charge (pC)");
+        sprintf(hname,"BACkovQT_%d",i);
+        if(i!=3 && i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,100,-1,10);
+        else if (i!=5) fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,150,-1,25);
+        else fBACkovChargeTimeHist[i] = tfs->make<TH2F>(hname,Form("Charge vs. Time BACkov Channel %i",i),108,0,432,400,-2,80);
+        fBACkovChargeTimeHist[i]->GetXaxis()->SetTitle("Time (ns)");
+        fBACkovChargeTimeHist[i]->GetYaxis()->SetTitle("Charge (pC)");
     }
+  }
 
+  //......................................................................
+
+  void BACkovHitReco::beginSubRun(art::SubRun& sr)
+  {
+      art::Handle<rb::Spill> spillHandle;
+      try {
+          sr.getByLabel("spillinfo",spillHandle);
+
+          mom = spillHandle->Momentum();
+      }
+      catch(...) {
+          std::cout << "No spill info object found!  Aborting..." << std::endl;
+          std::abort();
+      }
 
     std::cout<<"**************************************************"<<std::endl;
     std::cout<< "Beam Configuration: "<<mom<<" GeV/c"<<std::endl;
@@ -123,27 +135,26 @@ namespace emph {
 
     //Initialize truth table for checking BACkov signals
     
-    if(mom==4){
+    if(abs(mom)==4){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1},{1,0,0},{0,0,0}}); // {e/mu/pi,k,p}
       PID_table.insert(PID_table.end(),{{1,1,1,0,0},{0,0,1,0,0},{0,0,0,0,1}}); // {e/mu/pi,k,p}
       pid_num=3;
     }
-    else if(mom==8){
+    else if(abs(mom)==8){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1},{1,0,0}}); // {e/mu/pi/k,p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,0},{0,0,0,0,1}}); // {e/mu/pi/k,p}
       pid_num=2;
     }
-    else if(mom==12){
+    else if(abs(mom)==12){
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1},{1,1,0}}); // {e/mu/pi/k,p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,0},{0,0,0,0,1}}); // {e/mu/pi/k,p}
       pid_num=2;
     }
-    else if(mom==120){
+    else{
       BACkov_signal.insert(BACkov_signal.end(),{{1,1,1}}); // {e/mu/pi/k/p}
       PID_table.insert(PID_table.end(),{{1,1,1,1,1}}); // {e/mu/pi/k/p}
       pid_num=1;
     }
-    else {std::cout<<"Error: Invalid Beam Momentum for BACkov signals"<<std::endl; exit(0);}
   }
 
   //......................................................................

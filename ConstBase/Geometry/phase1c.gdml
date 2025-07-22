@@ -54,7 +54,6 @@
 	 <!-- ABOVE IS FOR T0 -->
 	 <!-- BELOW IS FOR TARGET -->
 
-	 <quantity name="target_thick" value="20.0" unit="mm"/>
 	 <quantity name="target_width" value="100.0" unit="mm"/>
 	 <quantity name="target_height" value="50.0" unit="mm"/>
 
@@ -88,6 +87,8 @@
 
 	 <quantity name="ssdD0_chanwidth" value="0.059999" unit="mm"/>
 	 <quantity name="ssdD0_changap" value="0.000001" unit="mm"/>
+	 
+	 <quantity name="ssdD0_overlap" value="2.0" unit="mm"/>
 
 	 <quantity name="ssd_bkpln_thick" value=".300" unit="mm"/>
 
@@ -114,96 +115,96 @@
 
 		<position name="ssdStation0_pos" x="0" y="0" z="ssdStation0_shift+ssdD0_thick-0.5*mount_thick"/>
 						<position name="ssdsensor_0_0_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_0_0_0_pos" x="0" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_0_0_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
-						<position name="ssdsensor_0_1_0_pos" x="0" y="0" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_0_1_0_pos" x="0" y="0" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_0_1_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
+						<position name="ssd_bkpln_0_0_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_0_0_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_0_1_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_0_1_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_0_1_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
 		<position name="ssdStation1_pos" x="0" y="0" z="ssdStation1_shift+ssdD0_thick-0.5*mount_thick"/>
 						<position name="ssdsensor_1_0_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_1_0_0_pos" x="0" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_1_0_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
-						<position name="ssdsensor_1_1_0_pos" x="0" y="0" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_1_1_0_pos" x="0" y="0" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_1_1_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
+						<position name="ssd_bkpln_1_0_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_1_0_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_1_1_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_1_1_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_1_1_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
 		<position name="ssdStation2_pos" x="0" y="0" z="ssdStation2_shift+ssdD0_thick-0.5*mount_thick"/>
 						<position name="ssdsensor_2_0_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_2_0_0_pos" x="0" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_2_0_0_rot" x="180.0*0" y="0" z="315" unit="deg"/>
-						<position name="ssdsensor_2_1_0_pos" x="0" y="0" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_2_1_0_pos" x="0" y="0" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_2_1_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
-                   <position name="ssdsensor_2_2_0_pos" x="0" y="0" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_2_2_0_pos" x="0" y="0" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_2_2_0_rot" x="180.0*1" y="0" z="270" unit="deg"/>
+						<position name="ssd_bkpln_2_0_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_2_0_0_rot" x="180.0*0" y="0" z="315" unit="deg"/>
+						<position name="ssdsensor_2_1_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_2_1_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_2_1_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_2_2_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_2_2_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_2_2_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
 		<position name="ssdStation3_pos" x="0" y="0" z="ssdStation3_shift+ssdD0_thick-0.5*mount_thick"/>
 						<position name="ssdsensor_3_0_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_3_0_0_pos" x="0" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_3_0_0_rot" x="180.0*0" y="0" z="315" unit="deg"/>
-						<position name="ssdsensor_3_1_0_pos" x="0" y="0" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_3_1_0_pos" x="0" y="0" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_3_1_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
-                   <position name="ssdsensor_3_2_0_pos" x="0" y="0" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_3_2_0_pos" x="0" y="0" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_3_2_0_rot" x="180.0*1" y="0" z="270" unit="deg"/>
+						<position name="ssd_bkpln_3_0_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_3_0_0_rot" x="180.0*0" y="0" z="315" unit="deg"/>
+						<position name="ssdsensor_3_1_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_3_1_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_3_1_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_3_2_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_3_2_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_3_2_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
 		<position name="ssdStation4_pos" x="0" y="0" z="ssdStation4_shift+ssdD0_thick-0.5*mount_thick"/>
 						<position name="ssdsensor_4_0_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_4_0_0_pos" x="0" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_4_0_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
-						<position name="ssdsensor_4_1_0_pos" x="0" y="0" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_4_1_0_pos" x="0" y="0" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_4_1_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
+						<position name="ssd_bkpln_4_0_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_4_0_0_rot" x="180.0*0" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_4_1_0_pos" x="0" y="0" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_4_1_0_pos" x="0" y="0" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_4_1_0_rot" x="180.0*1" y="0" z="90" unit="deg"/>
 		<position name="ssdStation5_pos" x="0" y="0" z="ssdStation5_shift+ssdD0_thick-0.5*mount_thick"/>
-						<position name="ssdsensor_5_0_0_pos" x="19.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_5_0_0_pos" x="19.23" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_5_0_0_rot" x="180.0*0" y="0" z="270" unit="deg"/>
-						<position name="ssdsensor_5_0_1_pos" x="-19.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_5_0_1_pos" x="-19.23" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_5_0_1_rot" x="180.0*0" y="0" z="90" unit="deg"/>
-						<position name="ssdsensor_5_1_0_pos" x="0" y="-19.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_5_1_0_pos" x="0" y="-19.23" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_5_1_0_rot" x="180.0*1" y="0" z="0" unit="deg"/>
-						<position name="ssdsensor_5_1_1_pos" x="0" y="19.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_5_1_1_pos" x="0" y="19.23" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_5_1_1_rot" x="180.0*1" y="0" z="180" unit="deg"/>
-                   <position name="ssdsensor_5_2_0_pos" x="13.62" y="-13.62" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_5_2_0_pos" x="13.62" y="-13.62" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_5_2_0_rot" x="180.0*1" y="0" z="45" unit="deg"/>
-                   <position name="ssdsensor_5_2_1_pos" x="-13.62" y="13.62" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_5_2_1_pos" x="-13.62" y="13.62" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_5_2_1_rot" x="180.0*1" y="0" z="225" unit="deg"/>
+						<position name="ssdsensor_5_0_0_pos" x="-18.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_5_0_0_pos" x="-18.23" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_5_0_0_rot" x="180.0*0" y="0" z="270" unit="deg"/>
+						<position name="ssdsensor_5_0_1_pos" x="18.23" y="0" z="(1-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_5_0_1_pos" x="18.23" y="0" z="(1)*ssdD0_thick+(0-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_5_0_1_rot" x="180.0*0" y="0" z="90" unit="deg"/>
+						<position name="ssdsensor_5_1_0_pos" x="0" y="-18.23" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_5_1_0_pos" x="0" y="-18.23" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_5_1_0_rot" x="180.0*1" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_5_1_1_pos" x="0" y="18.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_5_1_1_pos" x="0" y="18.23" z="(1)*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_5_1_1_rot" x="180.0*1" y="0" z="180" unit="deg"/>
+						<position name="ssdsensor_5_2_0_pos" x="12.92" y="-12.92" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_5_2_0_pos" x="12.92" y="-12.92" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_5_2_0_rot" x="180.0*1" y="0" z="45" unit="deg"/>
+						<position name="ssdsensor_5_2_1_pos" x="-12.92" y="12.92" z="(1-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_5_2_1_pos" x="-12.92" y="12.92" z="(1)*ssdD0_thick+(0-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_5_2_1_rot" x="180.0*1" y="0" z="225" unit="deg"/>
 		<position name="ssdStation6_pos" x="0" y="0" z="ssdStation6_shift+ssdD0_thick-0.5*mount_thick"/>
-						<position name="ssdsensor_6_0_0_pos" x="19.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_6_0_0_pos" x="19.23" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_6_0_0_rot" x="180.0*0" y="0" z="270" unit="deg"/>
-						<position name="ssdsensor_6_0_1_pos" x="-19.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_6_0_1_pos" x="-19.23" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_6_0_1_rot" x="180.0*0" y="0" z="90" unit="deg"/>
-						<position name="ssdsensor_6_1_0_pos" x="0" y="-19.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_6_1_0_pos" x="0" y="-19.23" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_6_1_0_rot" x="180.0*1" y="0" z="0" unit="deg"/>
-						<position name="ssdsensor_6_1_1_pos" x="0" y="19.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_6_1_1_pos" x="0" y="19.23" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_6_1_1_rot" x="180.0*1" y="0" z="180" unit="deg"/>
-                   <position name="ssdsensor_6_2_0_pos" x="13.62" y="-13.62" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_6_2_0_pos" x="13.62" y="-13.62" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_6_2_0_rot" x="180.0*1" y="0" z="45" unit="deg"/>
-                   <position name="ssdsensor_6_2_1_pos" x="-13.62" y="13.62" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick"/>
-						<position name="ssd_bkpln_6_2_1_pos" x="-13.62" y="13.62" z="0.5*ssd_bkpln_thick+0.5*mount_thick"/>
-					 	<rotation name="ssdsensor_6_2_1_rot" x="180.0*1" y="0" z="225" unit="deg"/>
+						<position name="ssdsensor_6_0_0_pos" x="-18.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_6_0_0_pos" x="-18.23" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_6_0_0_rot" x="180.0*0" y="0" z="270" unit="deg"/>
+						<position name="ssdsensor_6_0_1_pos" x="18.23" y="0" z="(1-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_6_0_1_pos" x="18.23" y="0" z="(1)*ssdD0_thick+(0-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_6_0_1_rot" x="180.0*0" y="0" z="90" unit="deg"/>
+						<position name="ssdsensor_6_1_0_pos" x="0" y="-18.23" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_6_1_0_pos" x="0" y="-18.23" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_6_1_0_rot" x="180.0*1" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_6_1_1_pos" x="0" y="18.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_6_1_1_pos" x="0" y="18.23" z="(1)*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_6_1_1_rot" x="180.0*1" y="0" z="180" unit="deg"/>
+						<position name="ssdsensor_6_2_0_pos" x="12.92" y="-12.92" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_6_2_0_pos" x="12.92" y="-12.92" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_6_2_0_rot" x="180.0*1" y="0" z="45" unit="deg"/>
+						<position name="ssdsensor_6_2_1_pos" x="-12.92" y="12.92" z="(1-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_6_2_1_pos" x="-12.92" y="12.92" z="(1)*ssdD0_thick+(0-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_6_2_1_rot" x="180.0*1" y="0" z="225" unit="deg"/>
 		<position name="ssdStation7_pos" x="0" y="0" z="ssdStation7_shift+ssdD0_thick-0.5*mount_thick"/>
-						<position name="ssdsensor_7_0_0_pos" x="19.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_7_0_0_pos" x="19.23" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_7_0_0_rot" x="180.0*0" y="0" z="270" unit="deg"/>
-						<position name="ssdsensor_7_0_1_pos" x="-19.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_7_0_1_pos" x="-19.23" y="0" z="0*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_7_0_1_rot" x="180.0*0" y="0" z="90" unit="deg"/>
-						<position name="ssdsensor_7_1_0_pos" x="0" y="-19.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_7_1_0_pos" x="0" y="-19.23" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_7_1_0_rot" x="180.0*1" y="0" z="0" unit="deg"/>
+						<position name="ssdsensor_7_0_0_pos" x="-18.23" y="0" z="(0-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_7_0_0_pos" x="-18.23" y="0" z="(0)*ssdD0_thick+(0-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_7_0_0_rot" x="180.0*0" y="0" z="270" unit="deg"/>
+						<position name="ssdsensor_7_0_1_pos" x="18.23" y="0" z="(1-0.5)*ssdD0_thick+(0-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_7_0_1_pos" x="18.23" y="0" z="(1)*ssdD0_thick+(0-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_7_0_1_rot" x="180.0*0" y="0" z="90" unit="deg"/>
+						<position name="ssdsensor_7_1_0_pos" x="0" y="-18.23" z="(0-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(0-1)*ssd_bkpln_thick"/>
+						<position name="ssd_bkpln_7_1_0_pos" x="0" y="-18.23" z="(0)*ssdD0_thick+(1-0.5)*mount_thick+(0-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_7_1_0_rot" x="180.0*1" y="0" z="0" unit="deg"/>
 						<position name="ssdsensor_7_1_1_pos" x="0" y="19.23" z="(1-0.5)*ssdD0_thick+(1-0.5)*mount_thick+(1-1)*ssd_bkpln_thick"/>
-						<position name="ssd_bkpln_7_1_1_pos" x="0" y="19.23" z="1*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
-					 	<rotation name="ssdsensor_7_1_1_rot" x="180.0*1" y="0" z="180" unit="deg"/>
+						<position name="ssd_bkpln_7_1_1_pos" x="0" y="19.23" z="(1)*ssdD0_thick+(1-0.5)*mount_thick+(1-0.5)*ssd_bkpln_thick"/>
+						<rotation name="ssdsensor_7_1_1_rot" x="180.0*1" y="0" z="180" unit="deg"/>
 				<position name="ssdmount_local_0_0_pos" x="0" y="0" z="0"/>
 				<position name="ssdmount_0_0_pos" x="0" y="0" z="0+0.5*mount_thick"/>
 				<rotation name="ssdmount_0_0_rot" x="-0.44" y="-2.02" unit="deg"/>
@@ -241,8 +242,8 @@
 				<position name="ssdmount_7_0_pos" x="0" y="0" z="0+0.5*mount_thick"/>
 				<rotation name="ssdmount_7_0_rot" x="0.36" y="0.31" unit="deg"/>
 
-	 <position name="ssd_USMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
-	 <position name="ssd_DSMylarWindow_pos" x="0" y="0" z="-1.*Mylar_shift"/>
+	 <position name="ssd_USMylarWindow_pos" x="0" y="0" z="-1*Mylar_shift"/>
+	 <position name="ssd_DSMylarWindow_pos" x="0" y="0" z="Mylar_shift"/>
 
 
 		<position name="ssd_mount_u1_pos" x="70" y="0" z="0"/>
@@ -253,8 +254,8 @@
 		<position name="ssd_mount_u4_pos" x="80.1" y="-80.4"/>
 		<rotation name="ssd_mount_u4_rot" y="-90" z="135" unit="deg"/>
 
-	 <position name="ssd_mount_out_pos1" z="0.5*mount_thick+0.5*ssdD0_thick+0.5*ssd_bkpln_thick" unit="mm" />
-	 <position name="ssd_mount_out_pos2" z="-0.5*mount_thick-0.5*ssdD0_thick-0.5*ssd_bkpln_thick" unit="mm" />
+	 <position name="ssd_mount_out_pos1" z="0.5*mount_thick" unit="mm" />
+	 <position name="ssd_mount_out_pos2" z="-0.5*mount_thick" unit="mm" />
 
 	 <quantity name="ssdStationrotateLength" value="50" unit="mm" />
 	 <quantity name="ssdStationrotateWidth" value="300" unit="mm" />
@@ -1523,22 +1524,26 @@
 	 <quantity name="RPC_thick" value="54" unit="mm" />
 	 <quantity name="RPC_width" value="1066" unit="mm" />
 	 <quantity name="RPC_height" value="252" unit="mm" />
+	 <quantity name="RPC_volume_thick" value="200" unit="mm" />
 	 <quantity name="RPC0_shift" value="3953.38" unit="mm" />
 	 <quantity name="RPC1_shift" value="4050.39" unit="mm" />
+	 <quantity name="RPC_shift" value="4028.89" unit="mm" />
 
 	 <quantity name="RPC_Al_thick" value="1" unit="mm" />
 	 <quantity name="RPC_comb_thick" value="17" unit="mm" />
-
 	 <quantity name="RPC_PCB_thick" value="1" unit="mm" />
 	 <quantity name="RPC_acrylic_thick" value="1" unit="mm" />
 	 <quantity name="RPC_gas_width" value="960.5" unit="mm" />
 	 <quantity name="RPC_gas_height" value="250.5" unit="mm" />
 	 <quantity name="RPC_gas_thick" value="6" unit="mm" />
 
-	 <position name="RPC0_pos" z="RPC0_shift+0.5*RPC_thick"/>
-	 <position name="RPC1_pos" z="RPC1_shift+0.5*RPC_thick"/>
-	 <position name="RPC_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)"/>
-	 <position name="RPC_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)"/>
+	 <position name="RPC_pos" z="RPC_shift" unit="mm" />
+	 <position name="RPC0_pos" z="RPC0_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC0_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)+RPC0_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC0_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)+RPC0_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC1_pos" z="RPC1_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC1_Al0_pos" z="RPC_thick*(0-(2-1)*0.5)+RPC1_shift+0.5*RPC_thick-RPC_shift"/>
+	 <position name="RPC1_Al1_pos" z="RPC_thick*(1-(2-1)*0.5)+RPC1_shift+0.5*RPC_thick-RPC_shift"/>
 
 	 <!-- ABOVE IS FOR RPC -->
 
@@ -1811,7 +1816,12 @@
 
 
 <!-- Dark noise rate (Hz). -->
+<!-- From datasheet 1 nA -> 400 Hz with 1.5e6 gain, or arxiv1506.04302 gets one pixel with 1.4 kHz, most <0.050 kHz -->
+<!-- if u wanna use MHz, need to change the PMT::GetDarkRate() to appropriate convert to P per ns, the constant would be 10^{-3} -->
 <constant name="PMT_H12700_DarkNoise" value="416.7"/>
+
+<!-- Cross talk [arxiv1506.04302] -->
+<constant name="PMT_H12700_CrossTalk" value="0.07"/>
 
 <matrix 
 name="PMT_H12700_QE" 
@@ -2009,9 +2019,14 @@ values="202.14067278287462 12.054573032169143
      <composite n="1" ref="Iron"/>
    </material>
    
-   <material formula="graphite" name="Graphite">
+   <material formula="C" name="Graphite">
      <D value="1.83"/>
      <fraction n="1" ref="Carbon"/>
+   </material>
+ 
+   <material formula="Be" name="BeTarget">
+     <D value="1.85"/>
+     <fraction n="1" ref="Beryllium"/>
    </material>
    
    <material formula="CFRP" name="CarbonFiber">
@@ -2093,7 +2108,8 @@ values="202.14067278287462 12.054573032169143
 
 	 <!-- BELOW IS FOR TARGET -->
 
-	 <box name="target_box" x="target_width" y="target_height" z="target_thick" />
+	 <box name="target_box" x="target_width" y="target_height" z="20" />
+
 
 	 <!-- ABOVE IS FOR TARGET -->
 
@@ -2149,7 +2165,7 @@ values="202.14067278287462 12.054573032169143
 		<second ref="ssd_mount_box2"/>
 	 </subtraction>
 
-	 <box name="ssd_mount_out_box" x="1.2*mount_width" y="1.2*mount_width" z="ssdD0_thick+ssd_bkpln_thick" />
+	 <box name="ssd_mount_out_box" x="1.2*mount_width" y="1.2*mount_width" z="2*ssdD0_thick+2*ssd_bkpln_thick" />
 	 <union name="ssd_mount_enclosure_u1">
 	   <first ref="ssd_mount_box"/>
 		<second ref="ssd_mount_out_box"/>
@@ -2766,7 +2782,7 @@ values="202.14067278287462 12.054573032169143
 
 	 <!-- BELOW IS FOR RPC -->
 
-	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_thick"/>
+	 <box name="RPC_box" x="Tolerance_space+RPC_width" y="Tolerance_space+RPC_height" z="Tolerance_space+RPC_volume_thick"/>
 
 	 <box name="RPC_Al_box" x="RPC_width" y="RPC_height" z="RPC_Al_thick"/>
 	 <box name="RPC_comb_box" x="RPC_width" y="RPC_height" z="RPC_comb_thick"/>
@@ -77370,10 +77386,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_0_1_0_pos"/>
 			<rotationref ref="ssdsensor_0_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_0_0_phys">
+		 <!--physvol name="ssd_mount_0_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_0_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_1_0_vol">
 		<materialref ref="Air"/>
@@ -77400,10 +77416,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_1_1_0_pos"/>
 			<rotationref ref="ssdsensor_1_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_1_0_phys">
+		 <!--physvol name="ssd_mount_1_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_1_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_2_0_vol">
 		<materialref ref="Air"/>
@@ -77430,10 +77446,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_2_1_0_pos"/>
 			<rotationref ref="ssdsensor_2_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_2_0_phys">
+		 <!--physvol name="ssd_mount_2_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_2_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_2_1_vol">
 		<materialref ref="Air"/>
@@ -77449,10 +77465,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_2_2_0_pos"/>
 			<rotationref ref="ssdsensor_2_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_2_1_phys">
+		 <!--physvol name="ssd_mount_2_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_2_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_3_0_vol">
 		<materialref ref="Air"/>
@@ -77479,10 +77495,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_3_1_0_pos"/>
 			<rotationref ref="ssdsensor_3_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_3_0_phys">
+		 <!--physvol name="ssd_mount_3_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_3_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_3_1_vol">
 		<materialref ref="Air"/>
@@ -77498,10 +77514,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_3_2_0_pos"/>
 			<rotationref ref="ssdsensor_3_2_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_3_1_phys">
+		 <!--physvol name="ssd_mount_3_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_3_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_4_0_vol">
 		<materialref ref="Air"/>
@@ -77528,10 +77544,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_4_1_0_pos"/>
 			<rotationref ref="ssdsensor_4_1_0_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_4_0_phys">
+		 <!--physvol name="ssd_mount_4_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_4_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_5_0_vol">
 		<materialref ref="Air"/>
@@ -77580,10 +77596,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_5_1_1_pos"/>
 			<rotationref ref="ssdsensor_5_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_5_0_phys">
+		 <!--physvol name="ssd_mount_5_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_5_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_5_1_vol">
 		<materialref ref="Air"/>
@@ -77610,10 +77626,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_5_2_1_pos"/>
 			<rotationref ref="ssdsensor_5_2_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_5_1_phys">
+		 <!--physvol name="ssd_mount_5_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_5_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_6_0_vol">
 		<materialref ref="Air"/>
@@ -77662,10 +77678,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_6_1_1_pos"/>
 			<rotationref ref="ssdsensor_6_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_6_0_phys">
+		 <!--physvol name="ssd_mount_6_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_6_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_6_1_vol">
 		<materialref ref="Air"/>
@@ -77692,10 +77708,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_6_2_1_pos"/>
 			<rotationref ref="ssdsensor_6_2_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_6_1_phys">
+		 <!--physvol name="ssd_mount_6_1_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_6_1_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	<volume name="ssd_mount_enclosure_7_0_vol">
 		<materialref ref="Air"/>
@@ -77744,10 +77760,10 @@ values="202.14067278287462 12.054573032169143
 			<positionref ref="ssd_bkpln_7_1_1_pos"/>
 			<rotationref ref="ssdsensor_7_1_1_rot"/>
 		 </physvol>
-		 <physvol name="ssd_mount_7_0_phys">
+		 <!--physvol name="ssd_mount_7_0_phys">
 			<volumeref ref="ssd_mount_vol"/>
 			<positionref ref="ssdmount_local_7_0_pos"/>
-		 </physvol>
+		 </physvol-->
 	 </volume>
 	  <volume name="ssdStationsingle0_vol">
 		 <materialref ref="Air"/>
@@ -80246,13 +80262,21 @@ values="202.14067278287462 12.054573032169143
   <volume name="RPC_vol">
 	 <materialref ref="Air"/>
 	 <solidref ref="RPC_box"/>
-	 <physvol name="RPC_Al0_phys">
+	 <physvol name="RPC0_Al0_phys">
 		<volumeref ref="RPC_Al_vol"/>
-		<positionref ref="RPC_Al0_pos"/>
+		<positionref ref="RPC0_Al0_pos"/>
 	 </physvol>
-	 <physvol name="RPC_Al1_phys">
+	 <physvol name="RPC0_Al1_phys">
 		<volumeref ref="RPC_Al_vol"/>
-		<positionref ref="RPC_Al1_pos"/>
+		<positionref ref="RPC0_Al1_pos"/>
+	 </physvol>
+	 <physvol name="RPC1_Al0_phys">
+		<volumeref ref="RPC_Al_vol"/>
+		<positionref ref="RPC1_Al0_pos"/>
+	 </physvol>
+	 <physvol name="RPC1_Al1_phys">
+		<volumeref ref="RPC_Al_vol"/>
+		<positionref ref="RPC1_Al1_pos"/>
 	 </physvol>
   </volume>
 
@@ -80407,16 +80431,11 @@ values="202.14067278287462 12.054573032169143
 
   <!-- BELOW IS FOR RPC -->
 
-
-  <physvol name="RPC0_phys">
+  <physvol name="RPC_phys">
 	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC0_pos"/>
+	 <positionref ref="RPC_pos"/>
   </physvol>
 
-  <physvol name="RPC1_phys">
-	 <volumeref ref="RPC_vol"/>
-	 <positionref ref="RPC1_pos"/>
-  </physvol>
   <!-- ABOVE IS FOR RPC -->
 
 

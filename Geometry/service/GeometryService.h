@@ -10,10 +10,10 @@
 
 //Framework includes
 #include "fhiclcpp/ParameterSet.h"
+#include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 
@@ -36,6 +36,7 @@ namespace emph
 
     private:
       std::unique_ptr<emph::geo::Geometry> fGeometry;
+      unsigned int fRunNumber;
       bool fGetGDMLFromRunHistory;
       std::string fGDMLFile;
     };

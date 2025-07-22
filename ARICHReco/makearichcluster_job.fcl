@@ -1,0 +1,50 @@
+#include "Services.fcl"
+#include "MakeArichCluster.fcl" 
+
+process_name: MakeArichCluster
+
+services:
+{
+  TFileService: { fileName: "%ifb.arichcluster_hist.root" closeFileFast: false }
+  @table::standard_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "%ifb.arichcluster.root"
+   fastCloning: false
+   
+  }
+}
+
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+	arichcluster: @local::standard_arich_cluster
+ }	
+
+ reco: [ arichcluster ]
+	
+ filters:{}
+
+ analyzers:{}
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+
+}

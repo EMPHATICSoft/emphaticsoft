@@ -22,6 +22,7 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
                             RecoBase
 			    Simulation
 			    ChannelMapService_service
+			    DataQuality
 			    Geometry
 			    Geometry_service
 			    RunHistoryService_service
@@ -31,10 +32,10 @@ art_make_library( LIBRARY_NAME ${PACKAGE}
 			    messagefacility::MF_MessageLogger
 			    fhiclcpp::fhiclcpp
 			    cetlib::cetlib cetlib_except::cetlib_except
-			    ${ROOT_CORE}
-			    ${ROOT_EVE_LIB_LIST}
-			    ${ROOT_X3d}
-			    ${ROOT_LIBRARIES}
+			    #${ROOT_CORE}
+			    #${ROOT_EVE_LIB_LIST}
+			    #${ROOT_X3d}
+			    #${ROOT_LIBRARIES}
 		)
 
 build_dictionary( CAFMaker
@@ -57,6 +58,7 @@ simple_plugin ( CAFMaker "module"
 		Simulation
 		ChannelMap
 		ChannelMapService_service
+		DataQuality
 		Geometry
 		Geometry_service
 		RunHistoryService_service
@@ -71,7 +73,7 @@ simple_plugin ( CAFMaker "module"
 		ROOT::Core
 		ROOT::Hist
 		ROOT::Tree
-		${ROOT_BASIC_LIB_LIST}
+#		${ROOT_BASIC_LIB_LIST}
 		BASENAME_ONLY
 	      )
 

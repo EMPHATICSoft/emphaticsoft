@@ -55,6 +55,7 @@ namespace emph {
     // Create the particle list that we'll (re-)use during the course
     // of the Geant4 simulation.
     fParticleNav  = new sim::ParticleNavigator();
+    fMinTrajPtDist = 0.;
   }
 
   //-------------------------------------------------------------
@@ -70,6 +71,8 @@ namespace emph {
   {
     fEnergyCut              = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     fManyParticles          = pset.get< bool   >("ManyParticles");
+
+    fMinTrajPtDist          = pset.get< double >("MinTrajPtDist",0.); 
   }
 
   //-------------------------------------------------------------
@@ -111,7 +114,7 @@ namespace emph {
 	int nIterations = 0;
 	 while( itr != fParentIDMap.end() ){
 		 //std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
-     		 MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
+     		 mf::LogDebug("ParticleListAction") << "parentage for " << trackid
 					 << " " << (*itr).second;
       		 // set the parentid to the current parent ID, when the loop ends
       		 // this id will be the first EM particle
@@ -127,7 +130,7 @@ namespace emph {
 
 
 
-	 MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
+	 mf::LogDebug("ParticleListAction") << "final parent ID " << parentid;
 
 	 return parentid;
  }
@@ -139,12 +142,6 @@ namespace emph {
 	const G4double energy = track->GetKineticEnergy();		// get the kinetic energy
 //		std::cerr << "fEnergyCut = " << fEnergyCut << std::endl;
 
-	if (energy < fEnergyCut){   			// if the particle is below the energy cut, we should not add it to the list, and skip it
-//	                  std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
-                fParticle = 0;          		// we do not want to step this particle, so setting fParticle to 0 is ?needed?
-                return;
-        }
-
 	const G4int trackID = track->GetTrackID() + fTrackIDOffset;	// get the track ID for this particle
 	fCurrentTrackID = trackID;					// set the fCurrentTrackID to the actual, real, current particle
 	// size_t mcTruthIndex = 0;					// set the index of this particle in the truth record to 0
@@ -153,6 +150,13 @@ namespace emph {
 	const G4int                      pdg = partdef->GetPDGEncoding();       // get the particle type
 	const G4DynamicParticle*         dp = track->GetDynamicParticle();      //
 	const G4PrimaryParticle*         pp = dp->GetPrimaryParticle();         // its a surprise tool that'll help us later...
+
+        if (energy < fEnergyCut){                       // if the particle is below the energy cut, we should not add it to the list, and skip it
+          if(pp) throw cet::exception("ParticleListAction") << "Primary particle with energy " << energy << " MeV was below ParticleListAction::fEnergyCut = " << fEnergyCut << " MeV and would have been thrown out.  But this crashes CAFMaker!  Your generator .fcl has a bug!";
+//                        std::cerr << "Particle is below energy cut... halt tracking..." << std::endl;
+                fParticle = 0;                          // we do not want to step this particle, so setting fParticle to 0 is ?needed?
+                return;
+        }
     
 	//std::cerr << "%%%%% New Particle: trackID = " << trackID << " PDG: " << pdg <<" %%%%%" << std::endl;	
 	
@@ -259,13 +263,13 @@ namespace emph {
 
     std::cerr << "Getting Stuff" << std::endl;
 
-    // was MF_LOG_DEBUG
-    MF_LOG_INFO("ParticleListAction") << "preparing to track " << fCurrentTrackID
+    // was mf::LogDebug
+    mf::LogInfo("ParticleListAction") << "preparing to track " << fCurrentTrackID
 				       << " pdg " << pdg
 				       << " with parent " << parentID;
 
     auto trackPos = track->GetPosition();
-    MF_LOG_INFO("ParticleListAction") << "Track has start position = (" <<
+    mf::LogInfo("ParticleListAction") << "Track has start position = (" <<
       trackPos[0] << "," << trackPos[1] << "," << trackPos[2] << ")" << 
       std::endl;
     
@@ -329,7 +333,7 @@ namespace emph {
 	
         std::cerr << "Got Parent" << fCurrentTrackID << std::endl;
 
-	MF_LOG_DEBUG("ParticleListAction") << "current track ID " << fCurrentTrackID;
+	mf::LogDebug("ParticleListAction") << "current track ID " << fCurrentTrackID;
 	
 	// check that fCurrentTrackID is in the particle list - it is possible
 	// that this particle's parent is a particle that did not get tracked.
@@ -346,7 +350,7 @@ namespace emph {
 	  // and adding trajectory points to it
 	  fParticle = 0;
 	  
-	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << trackID << " bc EM daughter, "
+	  mf::LogDebug("ParticleListAction") << "killing TrackID: " << trackID << " bc EM daughter, "
 	 				     << process_name << " " << pdg
 	 				     << ", use track id " << fCurrentTrackID;
 	  
@@ -362,7 +366,7 @@ namespace emph {
 	if ( energy < fEnergyCut ){
           std::cerr << "Particle is lower than the threshold..." << std::endl;
 	  fParticle = 0;
-	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
+	  mf::LogDebug("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
 	  
 	  // do add the particle to the parent id map though
 	  // and set the current track id to be it's ultimate parent
@@ -438,7 +442,7 @@ namespace emph {
       fParticleNav->Add(fParticle);
       
       if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0)
-	MF_LOG_WARNING("ParticleListAction") << "attempting to put " << fCurrentTrackID
+	mf::LogWarning("ParticleListAction") << "attempting to put " << fCurrentTrackID
 					     << " into fTrackIDToMCTruthIndex map "
 					     << " particle is\n" << *fParticle;
       
@@ -497,27 +501,33 @@ namespace emph {
       // Add the first point in the trajectory.
       fParticle->AddTrajectoryPoint( fourPos, fourMom );
     }
-    
+
+    int iprev = fParticle->NumberTrajectoryPoints()-1;
+    double zprev = fParticle->Position(iprev).Z();
+
     // Get the post-step information from the G4Step.
     const G4StepPoint* postStepPoint = step->GetPostStepPoint();
     
     const G4ThreeVector position = postStepPoint->GetPosition();
-    G4double time = postStepPoint->GetGlobalTime();
-    
-    // Remember that LArSoft uses cm, ns, GeV.
-    TLorentzVector fourPos(position.x() / CLHEP::mm,
-                           position.y() / CLHEP::mm,
-                           position.z() / CLHEP::mm,
-                           time / CLHEP::ns );
-    
-    const G4ThreeVector momentum = postStepPoint->GetMomentum();
-    const G4double energy = postStepPoint->GetTotalEnergy();
-    TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
-                           momentum.y() / CLHEP::GeV,
-                           momentum.z() / CLHEP::GeV,
-                           energy / CLHEP::GeV );
-    
-    fParticle->AddTrajectoryPoint( fourPos, fourMom );
+
+    if ((position.z()/CLHEP::mm - zprev) > fMinTrajPtDist) {
+      G4double time = postStepPoint->GetGlobalTime();
+      
+      // Remember that LArSoft uses cm, ns, GeV.
+      TLorentzVector fourPos(position.x() / CLHEP::mm,
+			     position.y() / CLHEP::mm,
+			     position.z() / CLHEP::mm,
+			     time / CLHEP::ns );
+      
+      const G4ThreeVector momentum = postStepPoint->GetMomentum();
+      const G4double energy = postStepPoint->GetTotalEnergy();
+      TLorentzVector fourMom(momentum.x() / CLHEP::GeV,
+			     momentum.y() / CLHEP::GeV,
+			     momentum.z() / CLHEP::GeV,
+			     energy / CLHEP::GeV );
+      
+      fParticle->AddTrajectoryPoint( fourPos, fourMom );
+    }
   }
 
   //-------------------------------------------------------------
@@ -528,15 +538,15 @@ namespace emph {
 
     // make sure to set the fTrackIDOffset with the highest G4 track id + 100
     // the 100 gives some cushion between lists
-    int highestID = 0;
+    //    int highestID = 0;
     for(sim::ParticleNavigator::iterator itr = fParticleNav->begin(); itr != fParticleNav->end(); ++itr){
       plist.push_back(*((*itr).second));
-      if((*itr).first > highestID) highestID = (*itr).first;
+      //      if((*itr).first > highestID) highestID = (*itr).first;
     }
 
-    fTrackIDOffset = highestID + 100;
+    //    fTrackIDOffset = highestID + 100;
 
-    MF_LOG_DEBUG("ParticleListAction") << *fParticleNav << "\ntrack id offset is now " << fTrackIDOffset;
+    mf::LogDebug("ParticleListAction") << "track id offset is now " << fTrackIDOffset;
 
     return plist;
   }
@@ -615,7 +625,7 @@ namespace emph {
 		  fParticleNav->end(), 
 		  updateDaughterInformation);
     
-    MF_LOG_DEBUG("ParticleListAction") << *fParticleNav;
+    mf::LogDebug("ParticleListAction") << *fParticleNav;
   }
 
 } // end namespace

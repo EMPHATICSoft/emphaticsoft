@@ -4,22 +4,19 @@
 #ifndef SRARING_H
 #define SRARING_H
 
-#include "StandardRecord/SRVector3D.h"
-
 namespace caf
 {
   /// An SRAring is a simple descriptor for an ARing.
-  class SRARing
-  {
+  class SRARing{
   public:
     SRARing();
-    virtual ~SRARing();
-
-    unsigned short nhit;    ///< number of hits
-    SRVector3D     center;  ///< center position of aring [cm?]
-    float          radius;  ///< aring radius
-
+    virtual  ~SRARing(); 
+    float     center[2];  ///< center position of aring [cm?]
+    float     radius;  ///< aring radius
+    int 	nhit;	
     virtual void setDefault();
+
+    void SetCenter(float _center[2]){for(int p=0;p < 2;p++) this->center[p] = _center[p];}
   };
 
 } // end namespace

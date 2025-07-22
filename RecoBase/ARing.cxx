@@ -13,9 +13,9 @@ namespace rb {
   
   //----------------------------------------------------------------------
   
-  ARing::ARing()    
+  ARing::ARing()
   {
-    for (int i=0; i<3; ++i) { _center[i] = -9999.; }
+     for (int i=0; i<3; ++i) _center[i] = -9999.;
     _radius = -1.;
     _nhits = 0;
   }

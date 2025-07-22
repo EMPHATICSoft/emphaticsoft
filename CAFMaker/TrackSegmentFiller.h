@@ -2,8 +2,8 @@
 // \file     TrackSegmentFiller.h
 // \note    Class to fill CAF  TrackSegment info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  TrackSegmentFILLER_H
-#define  TrackSegmentFILLER_H
+#ifndef  TRACKSEGMENTFILLER_H
+#define  TRACKSEGMENTFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -22,4 +22,4 @@ namespace caf
 
 } // end namespace
 
-#endif //  TrackSegmentFILLER_H
+#endif //  TRACKSEGMENTFILLER_H

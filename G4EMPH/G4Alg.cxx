@@ -265,12 +265,12 @@ namespace emph {
         // ooops, factory failed ... let someone know
         
         const std::vector<std::string>& availActions = uafactory.AvailableUserActions();
-        MF_LOG_VERBATIM("G4Alg") << "emph::G4Alg requested UserAction \"" << uaname << "\" from "
+        mf::LogVerbatim("G4Alg") << "emph::G4Alg requested UserAction \"" << uaname << "\" from "
                               << "g4b::UserActionFactory" << std::endl
                               << "but it only knows about: ";
         for(size_t k=0; k<availActions.size(); ++k)
-          MF_LOG_VERBATIM("G4Alg") << "   " << availActions[k];
-        MF_LOG_VERBATIM("G4Alg") << "proceeding without this action";
+          mf::LogVerbatim("G4Alg") << "   " << availActions[k];
+        mf::LogVerbatim("G4Alg") << "proceeding without this action";
       }
     }
   }
@@ -391,7 +391,7 @@ namespace emph {
     g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
     dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
 
-    MF_LOG_DEBUG("G4Alg") << *mctruth;
+    mf::LogDebug("G4Alg") << *mctruth;
 
     if(trackIDOffset > 0){
       dynamic_cast<ParticleListAction *>(uam->GetAction(fPlaIndex))->ResetTrackIDOffset(trackIDOffset);

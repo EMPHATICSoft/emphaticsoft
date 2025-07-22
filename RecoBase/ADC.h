@@ -41,7 +41,7 @@ namespace rb {
     // Setters
     void SetBoard(int i) { _board = i; }
     void SetChan(int i) { _chan = i; }
-    void SetBaseline(int bl) { _baseline = bl; }
+    void SetBaseline(float bl) { _baseline = bl; }
     void SetTime(float t) { _time = t; }
     void SetCharge(float q) { _charge = q; }
 

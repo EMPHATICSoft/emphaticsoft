@@ -6,6 +6,8 @@
 <lcgdict>
   <class name="std::vector<int16_t>"                  />
   <class name="std::vector<int32_t>"                  />
+  <class name="std::vector<int64_t>"                  />
+  <class name="std::vector<uint64_t>"                  />
   <class name="emph::rawdata::SSDRawDigit"    ClassVersion="16" >
    <version ClassVersion="16" checksum="1665043972"/>
    <version ClassVersion="15" checksum="10"/>
@@ -19,13 +21,19 @@
    <version ClassVersion="12" checksum="1710862163"/>
    <version ClassVersion="11" checksum="4069590048"/>
   </class>
-  <class name="emph::rawdata::TRB3RawDigit"    ClassVersion="16" >
+  <class name="emph::rawdata::TRB3RawDigit"    ClassVersion="18" >
+   <version ClassVersion="18" checksum="2488616664"/>
+   <version ClassVersion="17" checksum="1455924076"/>
    <version ClassVersion="16" checksum="1039826831"/>
    <version ClassVersion="15" checksum="1560633629"/>
    <version ClassVersion="14" checksum="1039318767"/>
    <version ClassVersion="13" checksum="1560633629"/>
    <version ClassVersion="12" checksum="441560763"/>
    <version ClassVersion="11" checksum="441560763"/>
+  </class>
+  <class name="emph::rawdata::LAPPDRawDigit"    ClassVersion="11" >
+   <version ClassVersion="11" checksum="317678520"/>
+   <version ClassVersion="10" checksum="1455924076"/>
   </class>
   <class name="emph::rawdata::SpillData"    ClassVersion="11" >
    <version ClassVersion="11" checksum="2427833335"/>
@@ -40,6 +48,8 @@
   <class name="art::Wrapper< std::vector<emph::rawdata::WaveForm>    >"/>
   <class name="std::vector<emph::rawdata::TRB3RawDigit>"        />
   <class name="art::Wrapper< std::vector<emph::rawdata::TRB3RawDigit>    >"/>
+  <class name="std::vector<emph::rawdata::LAPPDRawDigit>"        />
+  <class name="art::Wrapper< std::vector<emph::rawdata::LAPPDRawDigit>    >"/>
   <class name="std::vector<emph::rawdata::SpillData>"        />
   <class name="art::Wrapper< std::vector<emph::rawdata::SpillData>    >"/>
  </lcgdict>

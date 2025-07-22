@@ -4,4 +4,5 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "RawData/TRB3RawDigit.h"
+#include "RawData/LAPPDRawDigit.h"
 #include "RawData/SpillData.h"

@@ -20,11 +20,12 @@ namespace caf
 		<< abi::__cxa_demangle(typeid(*clusterv).name(), 0, 0, 0)
 		<< "' found under label '" << fLabel << "'. " << std::endl; //fLabel -> fParams.SSDClusterLabel()?
     }
-      
-    std::vector<rb::SSDCluster> ssdclusters;
+
+    std::vector<rb::SSDCluster>  ssdclusters;
     if(!clusterv.failedToGet()) ssdclusters = *clusterv;
 
     for (unsigned int clusterId = 0; clusterId < ssdclusters.size(); ++ clusterId) {
+      // clusters
       stdrec.cluster.clust.push_back(SRSSDClust());
       SRSSDClust& srSSDClust = stdrec.cluster.clust.back(); //stdrec new tree name?
 

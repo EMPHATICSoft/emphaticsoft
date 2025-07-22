@@ -2,8 +2,8 @@
 // \file     TrackFiller.h
 // \note    Class to fill CAF  Track info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  TrackFILLER_H
-#define  TrackFILLER_H
+#ifndef  TRACKFILLER_H
+#define  TRACKFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
@@ -15,11 +15,11 @@ namespace caf
   public:
 
     void Fill(art::Event&, caf::StandardRecord&);
-
-    std::string fLabel;
-
+    //void Fill(art::Event&, caf::StandardRecord& sr1,  caf::StandardRecord& sr2);
+    std::string fLabelTracks;
+    std::string fLabelArichID;
   };
 
 } // end namespace
 
-#endif //  TrackFILLER_H
+#endif //  TRACKFILLER_H

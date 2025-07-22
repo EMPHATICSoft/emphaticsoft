@@ -362,9 +362,14 @@
      <composite n="1" ref="Iron"/>
    </material>
    
-   <material formula="graphite" name="Graphite">
+   <material formula="C" name="Graphite">
      <D value="1.83"/>
      <fraction n="1" ref="Carbon"/>
+   </material>
+ 
+   <material formula="Be" name="BeTarget">
+     <D value="1.85"/>
+     <fraction n="1" ref="Beryllium"/>
    </material>
    
    <material formula="CFRP" name="CarbonFiber">

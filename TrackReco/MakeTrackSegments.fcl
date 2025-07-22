@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_maketracksegments:
+{
+  module_type: MakeTrackSegments
+  CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
+  ClusterLabel:      "clust"
+  G4Label:           "geantgen"
+}
+
+END_PROLOG

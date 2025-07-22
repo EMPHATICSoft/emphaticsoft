@@ -1,15 +1,12 @@
+#include "Services.fcl"
 #include "ARICHReco.fcl"
-
-#include "RunHistory.fcl"
-#include "ChannelMap.fcl"
 
 process_name: ARICHReco
 
 services:
 {
-  TFileService: { fileName: "arichreco_hist_r%r_s%04s.root" closeFileFast: false }
-  ChannelMapService: @local::standard_channelmap
-  RunHistoryService: @local::standard_runhistory
+  TFileService: { fileName: "%ifb.arichreco_hist.root" closeFileFast: false }
+  @table::standard_services
 }
 
 source:
@@ -23,7 +20,7 @@ outputs:
  out1:
   {
    module_type: RootOutput
-   fileName:    "arichreco_r%r_s%04s.root"
+   fileName:    "%ifb.arichreco.root"
    fastCloning: false
    
   }

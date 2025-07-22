@@ -142,7 +142,7 @@ namespace emph {
     evt.getByLabel(fGeneratorLabel, beam);
     
     // make sure there is only one beam particle
-    assert(beam.size() == 1);
+    assert(beam->size() == 1);
     simb::MCParticle b = beam->at(0);
     //
     // now create MCTruth

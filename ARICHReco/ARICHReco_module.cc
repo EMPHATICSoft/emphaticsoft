@@ -1,22 +1,29 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to create ARing objects from raw data and 
+/// \brief   Producer module to create reco vectors from raw digits and 
 ///          store them in the art output file
-/// \author  $Author: jpaley $
+/// \author  $Author: mdallolio $
 ////////////////////////////////////////////////////////////////////////
+
 // C/C++ includes
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <vector>
-
+#include "stdlib.h"
+#include <map>
+#include <numeric> 
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
-#include "TH2F.h"
-
+#include "TH2D.h"
+#include "TVector3.h"
+#include "TTree.h"
+#include "TCanvas.h"
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
+
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Run.h"
@@ -26,19 +33,22 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "Geometry/service/GeometryService.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
-#include "Geometry/DetectorDefs.h"
-#include "RawData/TRB3RawDigit.h"
-#include "RecoBase/ARing.h"
+#include "RecoBase/ARICHCluster.h"
+#include "RecoBase/ArichID.h"
+#include "RecoBase/Track.h"
+#include "Utilities/PMT.h"
 
-using namespace emph;
+// ARICHRECO
+#include "ARICHRecoUtils/ArichUtils.h"
 
-///package to illustrate how to write modules
-namespace emph {
-  
-  ///
+
+namespace emph {  
+
   class ARICHReco : public art::EDProducer {
   public:
     explicit ARICHReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
@@ -46,38 +56,83 @@ namespace emph {
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
-        
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-    //void endRun(art::Run const&);
-    //      void endSubRun(art::SubRun const&);
-    void endJob();
-    
+
   private:
-    void GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > &, std::unique_ptr<std::vector<rb::ARing>> &);
 
-    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    
-    TH2F*       fARICH2DHist[201];
+    arichreco::ARICH_UTILS* ArichUtils;
+    TTree* 	fARICHTree;    
+ 
     int         fEvtNum;
+    std::string fARICHLabel;  
+    std::string fTrackLabel;  //for now using sim::Tracks
+    
+   // Aerogel parameters
+    double up_n;
+    double up_pos;
+    double up_thick;
+    double down_n;
+    double down_pos;
+    double down_thick;
 
-  };
+    // Photodetector parameters
+    double PDdarkrate;
+    double PDwin;
+    double PDfillfactor;
+    double PDzpos;
+    TString PDfile;
+    bool fFillTree;
+    
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    emph::cmap::FEBoardType boardType = cmap::TRB3;    
+
+    std::vector<double> momenta;
+    std::vector<TVector3> dir;
+    std::vector<TVector3> pos;
+    std::vector<double> LLs;
+   
+    std::vector<double> LL_PION,LL_KAON, LL_PROT;//, vals_pdf_pion, vals_pdf_kaon, vals_pdf_prot;
+    std::vector<int> bins,vals;
+
+
+   // bins_pdf_pion,bins_pdf_kaon,bins_pdf_prot, vals; 
+    
+    std::vector<int> blocks,MCT_PDG,unique_ids;
+    int pdg_event;
+	
+};
 
   //.......................................................................
   
-  ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
+  emph::ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
     : EDProducer(pset)
-  {
+ { 
 
-    this->produces< std::vector<rb::ARing>>();
+    this->produces<std::vector<rb::ArichID>>();
+    fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
+    fFillTree   = bool(pset.get<bool>("FillTree"));
+    fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
+ 
 
+    //ARICH RECO UTILS STUFF
+    PDfile  =  std::string(pset.get< std::string >("PD_file"));
+    up_n = double(pset.get<double>("RefractiveIndex_UpstreamAerogel"));
+    up_pos = double(pset.get<double>("Position_UpstreamAerogel"));
+    up_thick = double(pset.get<double>("Thinkness_UpstreamAerogel"));
+    down_n = double(pset.get<double>("RefractiveIndex_DownstreamAerogel"));
+    down_pos = double(pset.get<double>("Position_DownstreamAerogel"));
+    down_thick = double(pset.get<double>("Thickness_DownstreamAerogel"));
+    PDdarkrate = double(pset.get<double>("PD_Darkrate"));
+    PDwin = double(pset.get<double>("Trigger_window"));
+    PDfillfactor = double(pset.get<double>("PD_FillFactor"));
+    PDzpos = double(pset.get<double>("PD_Position"));
     fEvtNum = 0;
-
-  }
-
+    
+  }	
   //......................................................................
-  
-  ARICHReco::~ARICHReco()
+ 
+  emph::ARICHReco::~ARICHReco()
   {
     //======================================================================
     // Clean up any memory allocated by your module
@@ -86,164 +141,98 @@ namespace emph {
 
   //......................................................................
 
-  void ARICHReco::beginJob()
-  {
-    art::ServiceHandle<art::TFileService> tfs;
-    char hname[64];
-    for (int i=0; i<=200; ++i) {
-      sprintf(hname,"ARICH2DHist_%d",i);
-      fARICH2DHist[i] = tfs->make<TH2F>(hname,"",24,0,24,24,0,24);
+  void emph::ARICHReco::beginJob()
+  {    
+   if(fFillTree){
+    art::ServiceHandle<art::TFileService const> tfs;
+    fARICHTree = tfs->make<TTree>("ARICHRECO","event");
+    fARICHTree->Branch("TruthPDG", &MCT_PDG);
+    fARICHTree->Branch("Blocks", &blocks);
+    fARICHTree->Branch("Momenta", &momenta);
+    fARICHTree->Branch("LL_pion", &LL_PION);
+    fARICHTree->Branch("LL_kaon", &LL_KAON);
+    fARICHTree->Branch("LL_prot", &LL_PROT);
+    fARICHTree->Branch("BINS", &bins);
+    fARICHTree->Branch("VALS", &vals);
     }
-  }
 
-    
-  //......................................................................
-  
-  void ARICHReco::endJob()
-  {
-  }
-  
-    //......................................................................
-  
-  void ARICHReco::GetARings(art::Handle< std::vector<rawdata::TRB3RawDigit> > & trb3H, std::unique_ptr<std::vector<rb::ARing>> & rings)
-  {
-//    fARICH2DHist[0]->Reset();
+    ArichUtils = new arichreco::ARICH_UTILS();
+    std::string source_path = getenv("CETPKG_SOURCE");
+    TString PDfile_path = source_path + PDfile;
+    ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
+    ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
 
-    // find reference time for each fpga
-    std::map<int,double> refTime;
-    for (size_t idx=0; idx < trb3H->size(); ++idx) {
-      
-      const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
-      
-      if (trb3.GetChannel()==0) {
-	int fpga = trb3.GetBoardId();
-	if (refTime.find(fpga)==refTime.end()) {
-	  refTime[fpga] = trb3.GetFinalTime();
-	}
-	else {
-	  std::cout << "Reference time for fpga " << fpga
-		    << " already exists."
-		    << " Time difference "
-		    << (trb3.GetFinalTime()-refTime[fpga])/1e3 << " (ns)" << std::endl;
-	}
-      }
-    }
-    
-    // separate leading and trailing times per channel
-    std::map<emph::cmap::EChannel,std::vector<double>> leadTimesCh;
-    std::map<emph::cmap::EChannel,std::vector<double>> trailTimesCh;
-    
-    for (size_t idx=0; idx < trb3H->size(); ++idx) {
-      
-      const rawdata::TRB3RawDigit& trb3 = (*trb3H)[idx];
-      
-      // skip timing channel
-      if (trb3.GetChannel()==0) continue;
-      
-      int fpga = trb3.GetBoardId();
-      int ech = trb3.GetChannel();
-      emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);
-      
-      double time = (trb3.GetFinalTime()-refTime[fpga])/1e3;//ns
-      
-      if (trb3.IsLeading())  leadTimesCh[echan].push_back(time);
-      if (trb3.IsTrailing()) trailTimesCh[echan].push_back(time);
-      
-    }
-    
-    // loop over channel with leading times
-    for (auto lCh=leadTimesCh.begin();lCh!=leadTimesCh.end();lCh++) {
-      
-      // check if channel has trailing times
-      // and skip channel if not
-      auto tCh = trailTimesCh.find(lCh->first);
-      if (tCh==trailTimesCh.end()) continue;
-      
-      // sort leading and trailing times in ascendent order
-      std::vector<double> leadTimes  = lCh->second;;
-      std::vector<double> trailTimes = tCh->second;
-      
-      std::sort(leadTimes.begin(),leadTimes.end());
-      std::sort(trailTimes.begin(),trailTimes.end());
-      
-      // get all trailing times between 2 consecutive leading times
-      for (unsigned int l=0;l<leadTimes.size();l++) {
-	
-	double lead  = leadTimes[l];
-	double lead_next  = l<leadTimes.size()-1 ? leadTimes[l+1] : 1000;
-	std::vector<double> trail_found;
-	for (unsigned int t=0;t<trailTimes.size();t++) {
-	  if (trailTimes[t]>lead && trailTimes[t]<lead_next ) {
-	    trail_found.push_back(trailTimes[t]);
-	  }
-	}
-	
-	// make hit with a leading time
-	// and at least a trailing time found
-	if (trail_found.size()>0) {
-	  
-	  emph::cmap::EChannel echan = lCh->first;
-	  emph::cmap::DChannel dchan = cmap->DetChan(echan);
-	  if (dchan.DetId()!=emph::geo::ARICH) {
-	    std::cout << echan;
-	    std::cout << " doesn't belong to the ARICH" << std::endl;
-	    continue;
-	  }
-	  int pmt = dchan.HiLo();
-	  int dch = dchan.Channel();
-	  
-	  // fill pixel position plot
-	  // the arich consist of 3x3 pmts
-	  // and there are 8x8 pixels in each pmt
-	  // pmt 0 and pixel 0  is on the bottom right
-	  // pmt 8 and pixel 63 is on the top left
-	  // there is a gap of 1 bin size between pmts
-	  int pxlxbin0 = 25-pmt*9+(pmt/3)*27;
-	  int pxlybin0 = (pmt/3)*9;
-	  int pmtrow = dch/8;
-	  int pmtcol = dch-pmtrow*8;
-	  int pxlxbin = pxlxbin0-pmtcol;
-	  int pxlybin = pxlybin0+pmtrow;
-	  int pxlx = fARICH2DHist[0]->GetXaxis()->GetBinCenter(pxlxbin+1);
-	  int pxly = fARICH2DHist[0]->GetYaxis()->GetBinCenter(pxlybin+1);
-	  fARICH2DHist[0]->Fill(pxlx,pxly);
-	  if (fEvtNum < 200)
-	    fARICH2DHist[fEvtNum+1]->Fill(pxlx,pxly);
-	}//if trailing time found
-	
-      }//leading time loop
-      
-    }//leading time channel map loop
-    
-    rb::ARing ring;
-    ring.SetNHits(fARICH2DHist[0]->GetEntries());
-    
-    rings->push_back(ring);
-    
-  }
-  
-  //......................................................................
-  void ARICHReco::produce(art::Event& evt)
+
+ /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
+    fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
+    fARICHTree->Branch("BINS_PDF_kaon", &bins_pdf_kaon);
+    fARICHTree->Branch("VALS_PDF_kaon", &vals_pdf_kaon);
+    fARICHTree->Branch("BINS_PDF_prot", &bins_pdf_prot);
+    fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
+*/
+}
+
+//......................................................................
+
+void ARICHReco::produce(art::Event& evt)
   { 
-    std::string labelstr = "raw:ARICH";
-    // get arich trb3digits
-    std::unique_ptr<std::vector<rb::ARing> > aringv(new std::vector<rb::ARing>);
+      std::unique_ptr<std::vector<rb::ArichID>> ARICH_LL(new std::vector<rb::ArichID>);
+
+      art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
+      art::Handle<std::vector<rb::Track>> TracksH;
+
+      evt.getByLabel(fARICHLabel,arich_clusters);
+
+      evt.getByLabel(fTrackLabel,TracksH);  
+
+      if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
+
+	for(int i = 0; i < (int)TracksH->size(); i++){
+	 
+	  rb::Track track = TracksH->at(i);
+
+ 	 double posx = track.Vtx()[0];
+	  double posy = track.Vtx()[1];
+	  double posz = track.Vtx()[2];
+	 
+ 	  double px = track.P()[0]; 
+	  double py = track.P()[1];
+	  double pz = track.P()[2]; 
+
+
+	
+     	  float mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
+
+	  float finalx = posx + (192.0 - posz) * track.P()[0]/mom;
+	  float finaly = posy + (192.0 - posz) * track.P()[1]/mom; 
+
+	 TVector3 dir_(px/mom,py/mom,pz/mom);
+         TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
+         
+	   for(int k = 0; k < (int)arich_clusters->size(); k++){ 
+	  	if(arich_clusters->at(k).NDigits() < 3)continue;
+	
+        	 std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
+	         TH2D* event_hist = ArichUtils->DigsToHist(digs);
+        	 std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_); 
+		 delete event_hist;
+
+	 	rb::ArichID arich_id;
+         	arich_id.scores = LL;
+         	arich_id.trackID = i;
+         	arich_id.nhit = digs.size();
+
+         	ARICH_LL->push_back(arich_id);
+	  }
+	} //end track loop
+    } // end if clusters     	 
+
+	momenta.clear();
+	dir.clear();
+	pos.clear();	
+	evt.put(std::move(ARICH_LL));	   
     
-    art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > trbhandle;
-    try {
-      evt.getByLabel(labelstr, trbhandle);
-      if (!trbhandle->empty()) {	
-	GetARings(trbhandle,aringv);
-	fEvtNum++;
-      }
-    }
-    catch(...) {
-      
-    }
-    evt.put(std::move(aringv));
+     } // end produce 
 
-  }
-
-  } // end namespace emph
-
+}
 DEFINE_ART_MODULE(emph::ARICHReco)

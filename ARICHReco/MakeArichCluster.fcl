@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_arich_cluster:
+{
+  module_type: 	  MakeArichCluster 
+  LabelHits:      "raw:ARICH"
+  FillTree:       false
+
+}
+
+END_PROLOG

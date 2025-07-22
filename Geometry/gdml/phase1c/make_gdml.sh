@@ -1,7 +1,4 @@
 #!/bin/bash
-
-# #-m: 0: w/o magnet; 1: w/ magnet
-# #-t: 0: w/o target; 1: graphite; 2: CH2
 # #-h: help
 
 MAGOPT=1

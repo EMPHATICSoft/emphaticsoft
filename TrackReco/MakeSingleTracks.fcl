@@ -3,7 +3,13 @@ BEGIN_PROLOG
 standard_makesingletracks:
 {
   module_type: MakeSingleTracks
-  CheckClusters:     false           # Check clusters for event (requires running MakeSSDClusters first)
+  CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
+  ClusterLabel:      "clust"
+  G4Label:           "geantgen"
+  CheckTrackSeg:     true
+  TrkSegLabel:       "maketracksegments" 
+  PBeamTmp:          2               # Change beam momentum here --> make more sophisticated later
+				     # SpillInfo for data, RunHistory if application
 }
 
 END_PROLOG
