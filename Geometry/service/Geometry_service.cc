@@ -24,8 +24,22 @@ namespace emph
       TGeoManager::LockDefaultUnits(0);
       TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kRootUnits);
       TGeoManager::LockDefaultUnits(1);
-
+      
       art::ServiceHandle<runhist::RunHistoryService> rhs;
+      fGetGDMLFromRunHistory = pset.get< bool >("GetGDMLFromRunHistory");
+      fGDMLFile = pset.get< std::string >("GDMLFile");
+
+      if (fGetGDMLFromRunHistory && !fGDMLFile.empty()) {
+	MF_LOG_ERROR("GeometryService") 
+	  << "Cannot use geometry both from RunHistory and a defined file.  Check your fhicl configuration for the Geometry service.!";
+	abort();
+      }
+
+      if (!fGetGDMLFromRunHistory && fGDMLFile.empty()) {
+	MF_LOG_ERROR("GeometryService") 
+	  << "GDML file undefined in Geometry service fhicl!";
+	abort();
+      }
 
       reg.sPreBeginRun.watch(this, &GeometryService::preBeginRun);
     }
@@ -42,13 +56,15 @@ namespace emph
     //----------------------------------------------------------
     void GeometryService::preBeginRun(const art::Run& )
     {
-      std::cout << "GeometryService::preBeginRun" << std::endl;
-      art::ServiceHandle<runhist::RunHistoryService> rhs;
-      
-      fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );
-      
+      if (fGetGDMLFromRunHistory) {
+	std::cout << "GeometryService::preBeginRun" << std::endl;
+	art::ServiceHandle<runhist::RunHistoryService> rhs;	
+	fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );
+      }
+      else
+	fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
     }
-    
+
   }
 }
 

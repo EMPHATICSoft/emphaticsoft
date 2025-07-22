@@ -23,10 +23,10 @@ Math::BigFloat->precision(-10);
 
 GetOptions( "help|h" => \$help,
 	"suffix|s:s" => \$suffix,
-	"output|o:s" => \$output,
-	"target|t:i" => \$target,
-	"magnet|m:i" => \$magnet,
-        "align|a:i"  => \$align);
+	"output|o=s" => \$output,
+	"target|t=s" => \$target,
+	"magnet|m=i" => \$magnet,
+        "align|a=i"  => \$align);
 
 if ( defined $help )
 {
@@ -48,6 +48,57 @@ else
 	$suffix = "-" . $suffix;
 }
 
+if ( defined $magnet )
+{
+	# If the user requested help, print the usage notes and exit.
+	if($magnet == 0){
+		$magnet_switch = 0;
+	}
+	elsif($magnet == 1){
+		$magnet_switch = 1;
+	}
+	else{
+		print "wrong magnet parameter\n";
+	}
+}
+
+if ( ! defined $target )
+{
+    $target = "Graphite";
+	# If the user requested help, print the usage notes and exit.
+#    if($target < 0 || $target > 3){
+#	print "wrong target parameter\n";
+#    }
+#    else{
+#	$target_v = $target;
+#    }
+}
+
+if ( ! defined $align  )
+{
+    $align = 0;
+}
+
+if($align < 0 ){
+    print ("invalid alignment universe; must be > 0\n");
+    exit(0);
+}
+else {
+    my $alignFN = "MisalignConsts/MisalignConst_" . $align . ".txt";
+    print ("Reading in ", $alignFN,"\n");
+    open(my $alignFH,'<', $alignFN) or die("Could not open file $alignFN");
+    while (my $line = <$alignFH>) {
+	chomp $line;
+	my @vals = split /\s+/, $line;
+	my $idx = $vals[0]*100 + $vals[1]*10 + $vals[2];
+	$SSD_alignx{$idx} = $vals[3];
+	$SSD_aligny{$idx} = $vals[4];
+	$SSD_alignz{$idx} = $vals[5];
+	$SSD_alignphi{$idx} = $vals[6];
+    }
+#	print "$_ $SSD_alignx{$_}\n" for (keys %SSD_alignx);
+    close($alignFH);
+}
 
 # constants for T0
 $T0_switch = 1;
@@ -55,8 +106,15 @@ $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
-@target_matt = ("Graphite", "CH2", "Beryllium", "Air");
-$target_v = 0;
+@target_matt = ("Graphite", "CH2", "Beryllium", "Aluminum", "Iron", "Water", "Air");
+if ( defined $target) {
+    if (! grep { $_ eq $target } @target_matt) {
+	print ("invalid target string, must be one of the following: \n");
+	$, = " ";          # Set separator to a space
+	print @target_matt; 
+	exit(0);
+    }
+}
 
 # constants for MAGNET
 $magnet_switch = 1;
@@ -106,55 +164,6 @@ $n_cover = 2;
 $LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
-
-if ( defined $magnet )
-{
-	# If the user requested help, print the usage notes and exit.
-	if($magnet == 0){
-		$magnet_switch = 0;
-	}
-	elsif($magnet == 1){
-		$magnet_switch = 1;
-	}
-	else{
-		print "wrong magnet parameter\n";
-	}
-}
-
-if ( defined $target)
-{
-	# If the user requested help, print the usage notes and exit.
-    if($target < 0 || $target > 3){
-	print "wrong target parameter\n";
-    }
-    else{
-	$target_v = $target;
-    }
-}
-
-if ( defined $align)
-{
-    if($align < 0 || $align > 100){
-	print ("invalid alignment universe; must be 0-99\n");
-	exit(0);
-    }
-    else {
-	my $alignFN = "MisalignConsts/MisalignConst_" . $align . ".txt";
-	print ("Reading in ", $alignFN,"\n");
-	open(my $alignFH,'<', $alignFN) or die("Could not open file $alignFN");
-	while (my $line = <$alignFH>) {
-	    chomp $line;
-	    my @vals = split /\s+/, $line;
-	    my $idx = $vals[0]*100 + $vals[1]*10 + $vals[2];
-	    $SSD_alignx{$idx} = $vals[3];
-	    $SSD_aligny{$idx} = $vals[4];
-	    $SSD_alignz{$idx} = $vals[5];
-	    $SSD_alignphi{$idx} = $vals[6];
-	}
-#	print "$_ $SSD_alignx{$_}\n" for (keys %SSD_alignx);
-	close($alignFH);
-    }
-}
 
 # run the sub routines that generate the fragments
 
@@ -875,7 +884,7 @@ EOF
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-	 <materialref ref="@{[ $target_matt[$target_v] ]}"/>
+	 <materialref ref="@{[ $target ]}"/>
 	 <solidref ref="target_box"/>
   </volume>
 

@@ -16,7 +16,7 @@ void MakeMisalignConsts(int nFiles = 100)
   int nSensors = 2;
   std::streamsize originalPrecision = std::cout.precision();
 
-  for (int iFile = 1; iFile<=nFiles; ++iFile) {
+  for (int iFile = 0; iFile<=nFiles; ++iFile) {
 
     std::stringstream fname;
     fname << "MisalignConst_" << iFile << ".txt";
@@ -26,14 +26,24 @@ void MakeMisalignConsts(int nFiles = 100)
     for (int iStation = 0; iStation<nStations; ++iStation) {
       for (int iPlane = 0; iPlane<nPlanes; ++iPlane) {
 	for (int iSensor = 0; iSensor<nSensors; ++iSensor) {
-	  fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
-	       << std::setprecision(4)
-	       << myRand.Gaus(0,xoff) << "  "
-	       << myRand.Gaus(0,yoff) << "  "
-	       << myRand.Gaus(0,zoff) << "  "
-	       << myRand.Gaus(0,phioff) << "  "
-	       << myRand.Gaus(0,phioff) << "  "
-	       << myRand.Gaus(0,phioff) << std::endl;
+	  if (iFile>0) 
+	    fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
+		 << std::setprecision(4)
+		 << myRand.Gaus(0,xoff) << "  "
+		 << myRand.Gaus(0,yoff) << "  "
+		 << myRand.Gaus(0,zoff) << "  "
+		 << myRand.Gaus(0,phioff) << "  "
+		 << myRand.Gaus(0,phioff) << "  "
+		 << myRand.Gaus(0,phioff) << std::endl;
+	  else
+	    fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
+		 << std::setprecision(4)
+		 << 0 << "  "
+		 << 0 << "  "
+		 << 0 << "  "
+		 << 0 << "  "
+		 << 0 << "  "
+		 << 0 << std::endl;
 	}
       }
     }
