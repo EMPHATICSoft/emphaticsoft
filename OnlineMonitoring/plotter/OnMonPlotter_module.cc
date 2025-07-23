@@ -132,8 +132,8 @@ namespace emph {
       static const unsigned int kT0Offset = 0;
       static const unsigned int kRPCOffset = 1;
       static const unsigned int kSSDOffset = 1;
-      static const unsigned int kARICHOffset = kSSDOffset+28;
-      static const unsigned int kLGCaloOffset = kARICHOffset+9;
+      static const unsigned int kARICHOffset = kSSDOffset+27;
+      static const unsigned int kLGCaloOffset = kARICHOffset+8;
       // define histograms
 
       TH2F* fNRawObjectsHisto;  
@@ -359,6 +359,9 @@ namespace emph {
 	  labelStr += " ADC";
 	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
 	}
+	else if (i == emph::geo::USLAPPD || i == emph::geo::DSLAPPD) {
+	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
+        } 
       }
       for (int bin=1; bin < fHitEffPerChannel->GetNbinsX()+1; bin++) {
         fHitEffPerChannel->GetXaxis()
@@ -818,14 +821,15 @@ namespace emph {
 	    int station = ssd.FER();
 	    int module = ssd.Module();
 	    int row = ssd.getSensorRow(ssd.Chip(), ssd.Set(), ssd.Strip());
+
 	    emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,station,module);
 	    emph::cmap::DChannel dchan = cmap->DetChan(echan);
-	    int sensor=dchan.HiLo();
+            int sensor = dchan.Channel();
 
 	    if (station >= 0) {
 	      fSSDProf[sensor]->Fill(row);
 	      fHitEffPerChannel->Fill(emph::geo::SSD+kSSDOffset+sensor,
-				      row%10);
+				      row%64);
 	      nhits[sensor]++;
 	    }
 	  }
