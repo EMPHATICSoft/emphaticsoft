@@ -51,7 +51,6 @@ namespace emph {
       bool fAutoZoomY;     ///< Auto zoom the vertical scale
       bool fAutoZoomZ;     ///< Auto zoom the z scale
       bool fAlert;         ///< Draw histo in "alert" mode
-      bool fDetlbl;        ///< Add detector labels to x-axis
       bool fSpecial;       ///< Draw a special case histo label
 
       ///

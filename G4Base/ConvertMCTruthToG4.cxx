@@ -178,7 +178,7 @@ namespace g4b{
 	  particleDefinition = fParticleTable->FindParticle(pdgCode);
 
 	if ( pdgCode > 1000000000) { // If the particle is a nucleus
-	  MF_LOG_DEBUG("ConvertPrimaryToGeant4") << ": %%% Nuclear PDG code = " << pdgCode
+	  mf::LogDebug("ConvertPrimaryToGeant4") << ": %%% Nuclear PDG code = " << pdgCode
 					      << " (x,y,z,t)=(" << x
 					      << "," << y
 					      << "," << z
@@ -197,7 +197,7 @@ namespace g4b{
 	// What if the PDG code is unknown?  This has been a known
 	// issue with GENIE.
 	if ( particleDefinition == 0 ){
-	  MF_LOG_DEBUG("ConvertPrimaryToGeant4") << ": %%% Code not found = " << pdgCode;
+	  mf::LogDebug("ConvertPrimaryToGeant4") << ": %%% Code not found = " << pdgCode;
 	  fUnknownPDG[ pdgCode ] += 1;
 	  continue;
 	}
@@ -229,7 +229,7 @@ namespace g4b{
 	// G4PrimaryParticle for access during tracking.
 	g4particle->SetUserInformation( primaryParticleInfo );
 
-	MF_LOG_DEBUG("ConvertPrimaryToGeant4") << ": %%% primary PDG=" << pdgCode
+	mf::LogDebug("ConvertPrimaryToGeant4") << ": %%% primary PDG=" << pdgCode
 					    << ", (x,y,z,t)=(" << x
 					    << "," << y
 					    << "," << z
