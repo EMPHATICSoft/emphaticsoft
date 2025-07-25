@@ -58,8 +58,6 @@ lappd::LAPPDRawDigit lappd::LAPPDBinaryUnpacker::readNextEvent() {
 		throw std::out_of_range("No more events to read");
 	}
 
-	std::cout << "Current position of the get pointer: " 
-		<< fFileHandle.tellg() << " bytes." << std::endl;
 	// Read the next event from the file
 	uint64_t block[kN64BitTotalWords];
 	fFileHandle.read(reinterpret_cast<char*>(block), sizeof(block));

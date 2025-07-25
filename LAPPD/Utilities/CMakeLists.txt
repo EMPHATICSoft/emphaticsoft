@@ -1,0 +1,5 @@
+## Build the LAPPDBaselineCalibrator macro
+add_executable(MacroLAPPDBaselineCalibration MacroLAPPDBaselineCalibration.cc )
+target_include_directories(MacroLAPPDBaselineCalibration PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/LAPPDUnpacker ${CMAKE_CURRENT_SOURCE_DIR}/LAPPDObj)
+target_link_libraries(MacroLAPPDBaselineCalibration PUBLIC lappd_unpacker lappd_obj)
+

@@ -45,4 +45,43 @@ namespace lappd{
   }
 
 
+  //----------------------------------------------------------------------
+  LAPPDADCWaveform LAPPDADCReco::GetChannel(int channel) const
+  {
+    if (channel < 0 || channel >= kNChannels) {
+      std::cerr << "Error: Invalid channel number " << channel << ". Must be between 0 and " 
+                << kNChannels - 1 << "." << std::endl;
+      return LAPPDADCWaveform(); // Return an empty waveform
+    }
+    return fChannels[channel];
+  }
+
+  //----------------------------------------------------------------------
+  LAPPDADCWaveform& LAPPDADCReco::GetChannel(int channel)
+  {
+    if (channel < 0 || channel >= kNChannels) {
+      std::cerr << "Error: Invalid channel number " << channel << ". Must be between 0 and " 
+                << kNChannels - 1 << "." << std::endl;
+      throw std::out_of_range("Invalid channel number");
+    }
+    return fChannels[channel];
+  }
+
+  //----------------------------------------------------------------------
+  void LAPPDADCReco::SetADCValue(int channel, int tick, float value)
+  {
+    if (channel < 0 || channel >= kNChannels) {
+      std::cerr << "Error: Invalid channel number " << channel << ". Must be between 0 and " 
+                << kNChannels - 1 << "." << std::endl;
+      return;
+    }
+    if (tick < 0 || tick >= kNTicks) {
+      std::cerr << "Error: Invalid tick number " << tick << ". Must be between 0 and " 
+                << kNTicks - 1 << "." << std::endl;
+      return;
+    }
+    fChannels[channel].fData[tick] = value; // Set the ADC value for the specified channel and tick
+  }
+
+
 }

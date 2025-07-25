@@ -6,6 +6,7 @@ lappdSignalProcessor: {
   DoSmoothing:             true
   DoZeroFrequencyRemoval:  true
   DoDeconvolution:         false
+  BaselineFile:            "/exp/emph/app/users/fnicolas/LAPPDCalibFiles/baseline_calibration.txt"
   Verbosity:               1
 }
 

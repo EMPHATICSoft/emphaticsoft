@@ -25,6 +25,7 @@ emph::lappdreco::LAPPDSignalProcessing::LAPPDSignalProcessing(fhicl::ParameterSe
     signalProcessorFhiclConfig.get<bool>("DoSmoothing"),
     signalProcessorFhiclConfig.get<bool>("DoZeroFrequencyRemoval"),
     signalProcessorFhiclConfig.get<bool>("DoDeconvolution"),
+    signalProcessorFhiclConfig.get<std::string>("BaselineFile", ""), // Default empty string if not provided
     signalProcessorFhiclConfig.get<int>("Verbosity", 0) // Default verbosity level is 0
   );
   fSignalProcessor = new lappd::LAPPDSignalProcessor(config);

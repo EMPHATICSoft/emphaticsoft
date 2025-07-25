@@ -5,7 +5,7 @@ process_name: LAPPDEventGen
 
 services:
 {
-  TFileService: { fileName: "lappdeventwaveformana_r%r_s%04s.root" closeFileFast: false }
+  TFileService: { fileName: "AnaLAPPD_r%r_s%04s.root" closeFileFast: false }
 }
 
 source:

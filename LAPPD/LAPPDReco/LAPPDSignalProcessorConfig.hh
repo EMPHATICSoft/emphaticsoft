@@ -16,6 +16,7 @@ namespace lappd {
     bool doSmoothing; // Enable waveform smoothing
     bool doZeroFrequencyRemoval; // Enable zero-frequency removal
     bool doDeconvolution; // Enable waveform deconvolution
+    std::string baselineFile; // File containing pre-calibrated baseline values
     int verbosity; // Verbosity level for logging
 
     // Default constructor
@@ -28,12 +29,14 @@ namespace lappd {
                                 bool _smoothing,
                                 bool _zeroFrequencyRemoval,
                                 bool _deconvolution,
+                                std::string _baselineFile = "",
                                 int _verbosity = 0)
       : doBaselineSubtraction(_baselineSubtraction),
         doClockShiftCorrection(_clockShiftCorrection),
         doSmoothing(_smoothing),
         doZeroFrequencyRemoval(_zeroFrequencyRemoval),
         doDeconvolution(_deconvolution),
+        baselineFile(_baselineFile),
         verbosity(_verbosity) {}
   }; // struct LAPPDSignalProcessorConfig
 

@@ -25,8 +25,9 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-// EMPHATICSoft includes
+// LAPPD includes
 #include "LAPPD/LAPPDObj/LAPPDRawDigit.h"
+#include "LAPPD/LAPPDObj/LAPPDADCReco.h"
 
 namespace emph {
   
@@ -43,7 +44,8 @@ namespace emph {
       
     private:
       // Input parameters
-      std::string fInputLabel; ///< Input label for LAPPD raw digits
+      std::string fRawInputLabel; ///< Input label for LAPPD raw digits
+      std::string fSPInputLabel; ///< Input label for LAPPD signal processing
       int fVerbosity; ///< Verbosity level for logging
 
       // Event information
@@ -55,6 +57,8 @@ namespace emph {
       TTree* fTree; ///< Tree to store event information
       std::vector<int> fChannelNumbers; ///< Vector to store channel numbers
       std::vector< std::vector<unsigned int> > fWaveforms; ///< Vector to store waveforms for each channel
+      std::vector<int> fChannelNumbersSP; ///< Vector to store channel numbers
+      std::vector< std::vector<double> > fWaveformsSP; ///< Vector to store waveforms for each channel in signal processing
     };
 
   } // end namespace lappdana
@@ -65,7 +69,8 @@ namespace emph {
 //.......................................................................  
 emph::lappdana::LAPPDWaveformDisplayAna::LAPPDWaveformDisplayAna(fhicl::ParameterSet const& pset):
   EDAnalyzer(pset)
-  , fInputLabel(pset.get<std::string>("InputLabel"))
+  , fRawInputLabel(pset.get<std::string>("RawInputLabel"))
+  , fSPInputLabel(pset.get<std::string>("SPInputLabel", ""))
   , fVerbosity(pset.get<int>("Verbosity", 0))
 {
 }
@@ -92,6 +97,8 @@ void emph::lappdana::LAPPDWaveformDisplayAna::beginJob()
   fTree->Branch("EventId", &fEventId, "EventId/I");
   fTree->Branch("ChannelNumbers", &fChannelNumbers);
   fTree->Branch("Waveforms", &fWaveforms);
+  fTree->Branch("ChannelNumbersSP", &fChannelNumbersSP);
+  fTree->Branch("WaveformsSP", &fWaveformsSP);
 }
 
 
@@ -114,13 +121,9 @@ void emph::lappdana::LAPPDWaveformDisplayAna::analyze(const art::Event& evt)
   std::string dirName = "Run_" + std::to_string(fRunId) + "_SubRun_" + std::to_string(fSubRunId) + "_Event_" + std::to_string(fEventId);
   art::TFileDirectory dir = tfs->mkdir(dirName);
 
-  // Reset channel numbers and waveforms for this event
-  fChannelNumbers.clear();
-  fWaveforms.clear();
-  
   // Get the LAPPD raw digits from the event
   art::Handle< std::vector<lappd::LAPPDRawDigit> > lappdHandle;
-  evt.getByLabel(fInputLabel, lappdHandle);
+  evt.getByLabel(fRawInputLabel, lappdHandle);
   if (!lappdHandle.isValid()) {
     mf::LogError("LAPPDWaveformDisplayAna") << "No LAPPD raw digits found in event " << fEventId
                                              << " in Run: " << fRunId
@@ -128,10 +131,15 @@ void emph::lappdana::LAPPDWaveformDisplayAna::analyze(const art::Event& evt)
     return;
   }
   else{
+    
     // Printout with number of LAPPD raw digits
     mf::LogInfo("LAPPDWaveformDisplayAna") << "Found " << lappdHandle->size() << " LAPPD raw digits in event "
                                            << fEventId << " in Run: " << fRunId
                                            << ", SubRun: " << fSubRunId;
+
+    // Reset channel numbers and waveforms for raw digits// Reset channel numbers and waveforms for this event
+    fChannelNumbers.clear();
+    fWaveforms.clear();                                        
 
     int lappdCounter = 0;
     for( const auto& lappdDigit : *lappdHandle) {
@@ -175,7 +183,70 @@ void emph::lappdana::LAPPDWaveformDisplayAna::analyze(const art::Event& evt)
       }
     }                                       
   }
-  
+
+
+  // Get the LAPPD signal processing data from the event
+  art::Handle< std::vector<lappd::LAPPDADCReco> > lappdSPHandle;
+  evt.getByLabel(fSPInputLabel, lappdSPHandle);
+  if (!lappdSPHandle.isValid()) {
+    mf::LogError("LAPPDWaveformDisplayAna") << "No LAPPD signal processing data found in event " << fEventId
+                                             << " in Run: " << fRunId
+                                             << ", SubRun: " << fSubRunId;
+  }
+  else {
+
+    // Printout with number of LAPPD signal processing data
+    mf::LogInfo("LAPPDWaveformDisplayAna") << "Found " << lappdSPHandle->size() << " LAPPD signal processing data in event "
+                                           << fEventId << " in Run: " << fRunId
+                                           << ", SubRun: " << fSubRunId;
+
+    // Reset channel numbers and waveforms for signal processing
+    fChannelNumbersSP.clear();
+    fWaveformsSP.clear();                                      
+
+    int lappdSPCounter = 0;
+    for (const auto& lappdSP : *lappdSPHandle) {
+      lappdSPCounter++;
+      mf::LogInfo("LAPPDWaveformDisplayAna") << "LAPPD signal processing with ACDC number: "
+                                             << lappdSP.GetACDCNumber()
+                                             << ", event number: " << lappdSP.GetEventNumber()
+                                             << ", timestamp: " << lappdSP.GetTimeStamp();
+      
+      // Loop over channels
+      for (int channel = 0; channel < lappdSP.GetNChannels(); ++channel) {
+        const lappd::LAPPDADCWaveform& channelData = lappdSP.GetChannel(channel);
+        mf::LogInfo("LAPPDWaveformDisplayAna") << "  Channel " << channel;
+
+        // Create a histogram for this channel
+        TH1F* hWaveformSP = dir.make<TH1F>( ( "histLAPPDSP-"+std::to_string(lappdSPCounter) +
+                                              "_ADCCh-" + std::to_string(channel)).c_str(),
+                                            ( "LAPPD SP " + std::to_string(lappdSPCounter) +
+                                              " Channel " + std::to_string(channel) + " ADC Waveform; Tick; ADC Value").c_str(),
+                                            channelData.NADCs(), 0, channelData.NADCs() );
+        hWaveformSP->SetStats(0); // Disable stats box for cleaner display
+
+        fWaveformsSP.push_back(std::vector<double>(channelData.NADCs()));
+        fChannelNumbersSP.push_back(channel);
+
+        // Print ADC values for this channel
+        if (fVerbosity > 1) {
+          // Fill the histogram with ADC values
+          std::cout << "  ADC values: ";
+          for (int tick = 0; tick < channelData.NADCs(); ++tick) {
+            std::cout << channelData.ADC(tick) << " ";
+          }
+          std::cout << std::endl;
+        }
+
+        // Fill the histogram with ADC values
+        for (int tick = 0; tick < channelData.NADCs(); ++tick) {
+          hWaveformSP->SetBinContent(tick, channelData.ADC(tick));
+          fWaveformsSP.back()[tick] = channelData.ADC(tick); // Store ADC value in waveforms vector
+        }
+
+      }
+    }
+  }
 
   // Fill the TTree with event information
   fTree->Fill();

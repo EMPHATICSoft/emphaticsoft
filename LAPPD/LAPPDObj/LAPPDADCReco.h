@@ -48,6 +48,19 @@ namespace lappd {
     // Destructor
     virtual ~LAPPDADCReco() {};
 
+    // Getters
+    uint8_t GetACDCNumber() const { return fACDCNumber; } // Get ACDC number
+    uint32_t GetEventNumber() const { return fEventNumber; } // Get event number
+    uint64_t GetTimeStamp() const { return fTimeStamp; } // Get timestamp
+    uint32_t GetWRTimePPS() const { return fWRTimePPS; } // Get White Rabbit time PPS counter
+    uint32_t GetWRTime250MHz() const { return fWRTime250MHz; } // Get White Rabbit time 250 MHz counter
+    LAPPDADCWaveform GetChannel(int channel) const; // Get waveform for a specific channel
+    LAPPDADCWaveform& GetChannel(int channel); // Get waveform for a specific channel (non-const)
+    int GetNChannels() const { return kNChannels; } // Get number of channels
+
+    // ADC setters (for calibration or processing)
+    void SetADCValue(int channel, int tick, float value);
+
   private:
     
     // Decoded data

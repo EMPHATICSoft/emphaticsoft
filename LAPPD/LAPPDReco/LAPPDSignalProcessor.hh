@@ -27,6 +27,7 @@
 #include "LAPPD/LAPPDObj/LAPPDRawDigit.h"
 #include "LAPPD/LAPPDObj/LAPPDADCReco.h"
 #include "LAPPD/LAPPDReco/LAPPDSignalProcessorConfig.hh"
+#include "LAPPD/LAPPDReco/Alg/LAPPDBaselineCalibrator.hh"
 
 namespace lappd {
 
@@ -44,6 +45,9 @@ namespace lappd {
   
     // Configuration parameters
     lappd::LAPPDSignalProcessorConfig fConfig;
+
+    // Baseline calibrator
+    lappd::LAPPDBaselineCalibrator fBaselineCalibrator;
     
   };
 

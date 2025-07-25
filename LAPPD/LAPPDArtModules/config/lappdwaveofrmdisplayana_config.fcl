@@ -2,8 +2,9 @@ BEGIN_PROLOG
 
 lappdWvfAna: {
   module_type: LAPPDWaveformDisplayAna
-  InputLabel: "raw:LAPPD"
-  Verbosity: 1
+  RawInputLabel: "raw:LAPPD"
+  SPInputLabel:  "lappdSP"
+  Verbosity: 2
 }
 
 END_PROLOG

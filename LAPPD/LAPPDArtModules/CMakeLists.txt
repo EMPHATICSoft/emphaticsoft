@@ -1,3 +1,13 @@
+# Using/not using art processing framework
+if(DEFINED ENV{ART_VERSION})
+    message(status " Building within art framework" )
+    add_definitions(-DLAPPDFRAME_ART=1)
+else()
+    message(status " Building outside art framework" )
+    add_definitions(-DLAPPDFRAME_ART=0)
+endif()
+
+
 FILE( GLOB src_files *.cc )
 
 cet_build_plugin(LAPPDEventGen art::source SOURCE 

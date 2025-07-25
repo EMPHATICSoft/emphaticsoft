@@ -4,7 +4,7 @@ process_name: LAPPDEventGen
 
 services:
 {
-  TFileService: { fileName: "lappdevent_hist_r%r_s%04s.root" closeFileFast: false }
+  TFileService: { fileName: "hist_lappdeventgen_r%r_s%04s.root" closeFileFast: false }
 }
 
 source: @local::lappdEventGen
