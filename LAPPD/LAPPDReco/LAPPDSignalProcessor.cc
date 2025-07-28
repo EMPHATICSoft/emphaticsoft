@@ -10,7 +10,8 @@
 // ------- Constructor ---------------------------------------------------
 lappd::LAPPDSignalProcessor::LAPPDSignalProcessor( const lappd::LAPPDSignalProcessorConfig& config ) :
   fConfig(config),
-  fBaselineCalibrator(config.baselineFile)
+  fBaselineCalibrator(config.baselineCalibratorConfig)
+  , fCircularBufferShifter(config.circularBufferConfig)
 {
   if(config.verbosity > 0) {
     std::cout << "LAPPDSignalProcessor constructor called with parameters: "
@@ -19,12 +20,9 @@ lappd::LAPPDSignalProcessor::LAPPDSignalProcessor( const lappd::LAPPDSignalProce
               << ", DoSmoothing: " << config.doSmoothing
               << ", DoZeroFrequencyRemoval: " << config.doZeroFrequencyRemoval
               << ", DoDeconvolution: " << config.doDeconvolution
-              << ", BaselineFile: " << config.baselineFile
               << ", Verbosity: " << config.verbosity
               << std::endl;   
   }
-
-
 
 }
 
@@ -44,6 +42,8 @@ lappd::LAPPDADCReco lappd::LAPPDSignalProcessor::ProcessLAPPDRawDigits(const lap
   // --- Apply clock shift correction if enabled
   if(fConfig.doClockShiftCorrection){
     std::cout << "Applying clock shift correction..." << std::endl;
+    fCircularBufferShifter.UpdateBestShift(rawDigit);
+    adcReco = fCircularBufferShifter.ShiftWaveforms(adcReco);
   }
 
   return adcReco; // Return the processed ADC waveform

@@ -28,6 +28,7 @@
 #include "LAPPD/LAPPDObj/LAPPDADCReco.h"
 #include "LAPPD/LAPPDReco/LAPPDSignalProcessorConfig.hh"
 #include "LAPPD/LAPPDReco/Alg/LAPPDBaselineCalibrator.hh"
+#include "LAPPD/LAPPDReco/Alg/LAPPDCircularBufferShifter.hh"
 
 namespace lappd {
 
@@ -48,6 +49,9 @@ namespace lappd {
 
     // Baseline calibrator
     lappd::LAPPDBaselineCalibrator fBaselineCalibrator;
+
+    // Circular buffer shifter
+    lappd::LAPPDCircularBufferShifter fCircularBufferShifter;
     
   };
 

@@ -19,13 +19,32 @@ emph::lappdreco::LAPPDSignalProcessing::LAPPDSignalProcessing(fhicl::ParameterSe
 
   // --- Initialize the signal processor with configuration parameters
   fhicl::ParameterSet signalProcessorFhiclConfig = pset.get<fhicl::ParameterSet>("SignalProcessorConfig");
+
+  // Baseline calibrator config
+  fhicl::ParameterSet baselineCalibratorFhiclConfig = signalProcessorFhiclConfig.get<fhicl::ParameterSet>("BaselineCalibratorConfig");
+  const lappd::LAPPDBaselineCalibratorConfig baselineConfig(
+    baselineCalibratorFhiclConfig.get<std::string>("BaselineFile"), // Default empty string if not provided
+    baselineCalibratorFhiclConfig.get<int>("Verbosity", 0) // Default verbosity level is 0
+  );
+
+  // Circular buffer shifter config
+  fhicl::ParameterSet circularBufferShifterFhiclConfig = signalProcessorFhiclConfig.get<fhicl::ParameterSet>("CircularBufferShifterConfig");
+  const lappd::LAPPDCircularBufferShifterConfig circularBufferConfig(
+    circularBufferShifterFhiclConfig.get<int>("ClockOffset"), // Default clock offset is 0
+    circularBufferShifterFhiclConfig.get<unsigned int>("ClockChannel"), // Default clock channel is 0
+    circularBufferShifterFhiclConfig.get<unsigned int>("NClockCycles"), // Default number of clock cycles is 0
+    circularBufferShifterFhiclConfig.get<int>("Verbosity", 0) // Default verbosity level is 0
+  );
+  
+  // Signal processor config
   const lappd::LAPPDSignalProcessorConfig config(
     signalProcessorFhiclConfig.get<bool>("DoBaselineSubtraction"),
     signalProcessorFhiclConfig.get<bool>("DoClockShiftCorrection"),
     signalProcessorFhiclConfig.get<bool>("DoSmoothing"),
     signalProcessorFhiclConfig.get<bool>("DoZeroFrequencyRemoval"),
     signalProcessorFhiclConfig.get<bool>("DoDeconvolution"),
-    signalProcessorFhiclConfig.get<std::string>("BaselineFile", ""), // Default empty string if not provided
+    baselineConfig,
+    circularBufferConfig,
     signalProcessorFhiclConfig.get<int>("Verbosity", 0) // Default verbosity level is 0
   );
   fSignalProcessor = new lappd::LAPPDSignalProcessor(config);

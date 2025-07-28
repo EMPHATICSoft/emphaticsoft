@@ -2,9 +2,10 @@ FILE( GLOB src_files *.cc )
 
 art_make_library(LIBRARY_NAME lappd_sp_alg
                 SOURCE ${src_files}
-                LIBRARIES PRIVATE
+                LIBRARIES
                         ROOT::Core
-                        ROOT::Minuit
+                        ROOT::Hist
+                        ROOT::Gui
                         lappd_obj
 )
 

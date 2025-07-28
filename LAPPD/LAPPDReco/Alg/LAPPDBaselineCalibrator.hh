@@ -28,6 +28,7 @@
 #include "LAPPD/LAPPDObj/LAPPDRawDigit.h"
 #include "LAPPD/LAPPDObj/LAPPDADCReco.h"
 #include "LAPPD/LAPPDObj/LAPPD_format.h"
+#include "LAPPD/LAPPDReco/LAPPDSignalProcessorConfig.hh"
 
 namespace lappd {
 
@@ -35,7 +36,7 @@ namespace lappd {
   public:
 
     // Constructor
-    LAPPDBaselineCalibrator( std::string baselineFile);
+    LAPPDBaselineCalibrator(lappd::LAPPDBaselineCalibratorConfig config);
 
     // Destructor
     ~LAPPDBaselineCalibrator() = default;
@@ -55,6 +56,7 @@ namespace lappd {
 
     // Input parameters
     std::string fBaselineFile; // File containing pre-calibrated baseline values
+    int fVerbosity; // Verbosity level for logging
     
     // Pre-stored baseline values
     float fBaselineValues[lappd::kNChannels][lappd::kNTicks];

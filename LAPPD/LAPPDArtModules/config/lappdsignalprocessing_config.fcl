@@ -1,12 +1,25 @@
 BEGIN_PROLOG
 
+lappdBaselineCalibratorConfig: {
+  BaselineFile:            "/exp/emph/app/users/fnicolas/LAPPDCalibFiles/baseline_calibration.txt"
+  Verbosity:               0
+}
+
+lappdCircularBufferShifterConfig: {
+  ClockOffset: 3
+  ClockChannel: 5
+  NClockCycles: 8 
+  Verbosity: 1
+}
+
 lappdSignalProcessor: {
   DoBaselineSubtraction:   true
   DoClockShiftCorrection:  true
   DoSmoothing:             true
   DoZeroFrequencyRemoval:  true
   DoDeconvolution:         false
-  BaselineFile:            "/exp/emph/app/users/fnicolas/LAPPDCalibFiles/baseline_calibration.txt"
+  BaselineCalibratorConfig: @local::lappdBaselineCalibratorConfig
+  CircularBufferShifterConfig: @local::lappdCircularBufferShifterConfig
   Verbosity:               1
 }
 

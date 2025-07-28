@@ -7,8 +7,9 @@
 #include "LAPPD/LAPPDReco/Alg/LAPPDBaselineCalibrator.hh"
 
 // ------ Constructor ------
-lappd::LAPPDBaselineCalibrator::LAPPDBaselineCalibrator( std::string baselineFile )
-    : fBaselineFile( baselineFile )
+lappd::LAPPDBaselineCalibrator::LAPPDBaselineCalibrator(lappd::LAPPDBaselineCalibratorConfig config)
+    : fBaselineFile(config.baselineFile)
+    , fVerbosity(config.verbosity)
 {
 
     // Open the baseline file
@@ -63,12 +64,15 @@ lappd::LAPPDBaselineCalibrator::LAPPDBaselineCalibrator( std::string baselineFil
     file.close();
     std::cout << "LAPPDBaselineCalibrator: Finished reading baseline values." << std::endl;
 
-    for ( unsigned int ch = 0; ch < lappd::kNChannels; ++ch ) {
-        std::cout << "Channel " << ch << " baseline values: ";
-        for ( unsigned int bin = 0; bin < lappd::kNTicks; ++bin ) {
-            std::cout << fBaselineValues[ch][bin] << " ";
+    // Print the baseline values for each channel
+    if ( fVerbosity > 0 ) {    
+        for ( unsigned int ch = 0; ch < lappd::kNChannels; ++ch ) {
+            std::cout << "Channel " << ch << " baseline values: ";
+            for ( unsigned int bin = 0; bin < lappd::kNTicks; ++bin ) {
+                std::cout << fBaselineValues[ch][bin] << " ";
+            }
+            std::cout << std::endl;
         }
-        std::cout << std::endl;
     }
 }
 
