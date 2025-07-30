@@ -27,6 +27,8 @@ TH2F* hRecoVsTruePt;
 TH2F* hRecoVsTruePx;
 TH2F* hRecoVsTruePy;
 
+bool fSevenOn = false;
+
 void caf_singleTrkPlots(std::string fname)
 {
   // Define input caf file here
@@ -149,9 +151,29 @@ void caf_singleTrkPlots(std::string fname)
   double zsim[8] = {999,999,999,999,999,999,999,999};
 
   //reconstructed hits
-  double xreco[8] = {999,999,999,999,999,999,999,999};
-  double yreco[8] = {999,999,999,999,999,999,999,999};
-  double zreco[8] = {999,999,999,999,999,999,999,999};
+  //double xreco[8] = {999,999,999,999,999,999,999,999};
+  //double yreco[8] = {999,999,999,999,999,999,999,999};
+  //double zreco[8] = {999,999,999,999,999,999,999,999};
+
+  //if (rec->hdr.run >= 2179){
+  //   fSevenOn = true;
+  //  std::cout<<"Seven On"<<std::endl;
+  //}
+  fSevenOn = true;
+  std::vector<double> xreco, yreco, zreco;
+  if (fSevenOn){
+    xreco.resize(8); 
+    yreco.resize(8); 
+    zreco.resize(8);
+  }
+  else {
+    xreco.resize(7);
+    yreco.resize(7);
+    zreco.resize(7);
+  }
+  for (size_t i=0; i< xreco.size(); i++) xreco[i] = 999;
+  for (size_t i=0; i< yreco.size(); i++) yreco[i] = 999;
+  for (size_t i=0; i< zreco.size(); i++) zreco[i] = 999;
 
   //truth info for lines
   std::vector<caf::SRTrueSSDHits> truthhit_track1;
@@ -216,6 +238,8 @@ void caf_singleTrkPlots(std::string fname)
       tree->GetEntry(i);
       // Spit out Run number for the first entry only
       if(i == 0) std::cout << "Run #:" << rec->hdr.run << std::endl;
+      
+      //if (rec->hdr.run >= 2179) fSevenOn = true;
             
       // Find how many track segments there are
       int ntrkseg = int(rec->sgmnts.seg.size());
@@ -235,33 +259,59 @@ void caf_singleTrkPlots(std::string fname)
       bool goodHit = false;
       if (nspcpts > 0) {goodCluster = true; ncl++;}
       //std::cout<<"truth hits: "<<rec->truth.truehits.truehits.size()<<std::endl;
-      if (goodCluster && rec->truth.truehits.truehits.size() == 20) goodEvent = true;
+//SIM      if (goodCluster && rec->truth.truehits.truehits.size() == 20) goodEvent = true;
+      if (goodCluster) goodEvent = true;
       if (goodCluster){
         for (size_t i=0; i<nspcpts; i++){
           caf::SRSpacePoint& s = rec->spcpts.sp[i];
           xreco[s.station] = s.x[0];
           yreco[s.station] = s.x[1];
           zreco[s.station] = s.x[2];
+	  //std::cout<<"pos = "<<s.x[0]<<", "<<s.x[1]<<", "<<s.x[2]<<std::endl;
         }
       }
       bool good4 = false;
       bool good5 = false;
 
+      int ntrks = int(rec->trks.trk.size());
+      //if (ntrks == 2) std::cout<<"two"<<ntrks<<std::endl;
+
       std::vector<caf::SRTrackSegment> tsvcut;
       //for (auto t : rec->sgmnts.seg){
       for (auto t : rec->trks.trk){
 	for (size_t i=0; i<t._sgmnt.size(); i++){ //need to be able to grab tracksegments 
-          if (t._sgmnt[i].label == 1) tsvcut.push_back(t._sgmnt[i]);
-          else if (t._sgmnt[i].nspacepoints == 3) tsvcut.push_back(t._sgmnt[i]);
+          //if (t._sgmnt[i].label == 1) tsvcut.push_back(t._sgmnt[i]);
+          //else if (t._sgmnt[i].nspacepoints == 3) tsvcut.push_back(t._sgmnt[i]);
+
+	  tsvcut.push_back(t._sgmnt[i]);
+/*
+          bool shortTrackSeg = true;
+          if (t._sgmnt[i].region == rb::Region::kRegion1) tsvcut.push_back(t._sgmnt[i]);
+          if (t._sgmnt[i].region == rb::Region::kRegion2){
+            for (size_t j=0; j<t._sgmnt[i].nspacepoints; j++){
+              if (t._sgmnt[i].GetSpacePoint(j)->Station() == 4) shortTrackSeg = false;
+            }
+            if (shortTrackSeg) tsvcut.push_back(t._sgmnt[i]);
+          }
+          if (t._sgmnt[i].region == rb::Region::kRegion3){
+            if (!fSevenOn) tsvcut.push_back(t._sgmnt[i]);
+            else{
+              if (t._sgmnt[i].nspacepoints == 3) tsvcut.push_back(t._sgmnt[i]);
+            }
+          }
+*/
         }
       }
+      //std::cout<<"tsvcut size = "<<tsvcut.size()<<std::endl;
       bool goodTrack = false;
       if (tsvcut.size() == 3){
 	goodTrack = true;
       }
 	
 if (goodTrack){
+//std::cout<<"good track"<<std::endl;
       if (goodEvent){
+//std::cout<<"good event"<<std::endl;
         for (size_t j=0; j<rec->truth.truehits.truehits.size(); ++j) {
           caf::SRTrueSSDHits& h = rec->truth.truehits.truehits[j];
           hSSDHit[h.GetStation][h.GetPlane]->Fill(h.GetX,h.GetY);
@@ -524,26 +574,36 @@ if (goodTrack){
         if (ysim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
         if (zsim[i] == 999) std::cout<<"A hit is missing in station "<<i<<std::endl;
       }
-      for (size_t i=0; i<8; i++){
+      for (size_t i=0; i<xreco.size(); i++){
+      //for (size_t i=0; i<8; i++){
         xres = xreco[i] - xsim[i];
         yres = yreco[i] - ysim[i];
         hRes_x[i]->Fill(xres);
         hRes_y[i]->Fill(yres);
       }
     }
-    if (goodEvent && goodHit){
+//SIM    if (goodEvent && goodHit){
+    if (goodEvent){
+//std::cout<<"good = "<<i<<std::endl;
       // draw hits
-      if (i < 100){
+      if (i >= 500 && i < 600){
         char *Ghevt = new char[16];
         char *Gxzsim = new char[12];
         char *Gyzsim = new char[12];
+	//for (size_t i=0; i<8; i++) std::cout<<"xreco "<<i<<": "<<xreco[i]<<std::endl;
+int nn;
+if (fSevenOn) nn = 8;
+else nn = 7;
         if ( std::find(std::begin(xreco), std::end(xreco), 999) == std::end(xreco)){
+
+//std::cout<<"all good"<<std::endl;
+
           sprintf(Ghevt,"gRecoHits_xz_e%d",i);
           sprintf(Gxzsim,"gHits_xz_e%d",i);
 
           gHits_xz[i] = new TMultiGraph(Gxzsim,Gxzsim);
-	  gSimHits_xz[i] = new TGraph(8,&zsim[0],&xsim[0]);
-	  gRecoHits_xz[i] = new TGraph(8,zreco,xreco);
+	  gSimHits_xz[i] = new TGraph(nn,&zsim[0],&xsim[0]);
+	  gRecoHits_xz[i] = new TGraph(nn,zreco.data(),xreco.data());
 	  gHits_xz[i]->Add(gRecoHits_xz[i]);
           gHits_xz[i]->Add(gSimHits_xz[i]);
 	
@@ -564,8 +624,8 @@ if (goodTrack){
           sprintf(Gyzsim,"gHits_yz_e%d",i);
 
           gHits_yz[i] = new TMultiGraph(Gyzsim,Gxzsim);
-          gSimHits_yz[i] = new TGraph(8,&zsim[0],&ysim[0]);
-          gRecoHits_yz[i] = new TGraph(8,zreco,yreco);
+          gSimHits_yz[i] = new TGraph(nn,&zsim[0],&ysim[0]);
+          gRecoHits_yz[i] = new TGraph(nn,zreco.data(),yreco.data());
           gHits_yz[i]->Add(gRecoHits_yz[i]);
           gHits_yz[i]->Add(gSimHits_yz[i]);
 
@@ -627,12 +687,15 @@ if (goodTrack){
         double l3y[2] = {rec->sgmnts.seg[2].vtx[1],end3y};
         double l3z[2] = {rec->sgmnts.seg[2].vtx[2],zreco[7]};
 */
-        double t3 = (zreco[7] - rec->trks.trk[1]._sgmnt[1].vtx[2])/rec->trks.trk[1]._sgmnt[1].mom.z;
+	double t3last; 
+	if (fSevenOn) t3last = zreco[7];
+	else t3last = zreco[6];
+        double t3 = (t3last - rec->trks.trk[1]._sgmnt[1].vtx[2])/rec->trks.trk[1]._sgmnt[1].mom.z;
         double end3x = rec->trks.trk[1]._sgmnt[1].vtx[0]+t3*rec->trks.trk[1]._sgmnt[1].mom.x;
         double end3y = rec->trks.trk[1]._sgmnt[1].vtx[1]+t3*rec->trks.trk[1]._sgmnt[1].mom.y;
         double l3x[2] = {rec->trks.trk[1]._sgmnt[1].vtx[0],end3x};
         double l3y[2] = {rec->trks.trk[1]._sgmnt[1].vtx[1],end3y};
-        double l3z[2] = {rec->trks.trk[1]._sgmnt[1].vtx[2],zreco[7]};
+        double l3z[2] = {rec->trks.trk[1]._sgmnt[1].vtx[2],t3last};
 	gLines_xz[i] = new TMultiGraph(Gxz,Gxz);
         gLines_yz[i] = new TMultiGraph(Gyz,Gyz);
 
@@ -643,8 +706,8 @@ if (goodTrack){
         gLine_yz2[i] = new TGraph(2,&l2z[0],&l2y[0]);
         gLine_yz3[i] = new TGraph(2,&l3z[0],&l3y[0]);
 
-        gRecoHits_xz[i] = new TGraph(8,zreco,xreco);
-        gRecoHits_yz[i] = new TGraph(8,zreco,yreco);
+        gRecoHits_xz[i] = new TGraph(nn,zreco.data(),xreco.data());
+        gRecoHits_yz[i] = new TGraph(nn,zreco.data(),yreco.data());
 
         gTruthHits_xz[i] = new TGraph(20,&ztruth[0],&xtruth[0]);
         gTruthHits_yz[i] = new TGraph(20,&ztruth[0],&ytruth[0]);
@@ -725,7 +788,7 @@ if (goodTrack){
         gLines_yz_pass.push_back(gLines_yz[i]);
       }
     }
-    for (size_t i=0; i<8; i++){
+    for (size_t i=0; i<xreco.size(); i++){
       xreco[i] = 999; xsim[i] = 999;
       yreco[i] = 999; ysim[i] = 999;
       zreco[i] = 999; zsim[i] = 999;

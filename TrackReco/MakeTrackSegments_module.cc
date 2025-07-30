@@ -192,6 +192,7 @@ namespace emph {
 
   void emph::MakeTrackSegments::produce(art::Event& evt)
   {
+
     tsv.clear();
     spv.clear();
 
@@ -298,15 +299,10 @@ namespace emph {
 	    if (!goodStation) break;
 	    for (auto j : clustMapAtLeastOne[i]){
               mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
-	      std::cout<< "Station "<<i<<": "<<j.second <<std::endl;
-//	      if (j.second > 10){
-//		goodStation = false;
-//	     	break;
-//              }
 	    }
           }
 
-	  std::cout<<"........"<<std::endl;
+	  mf::LogDebug("MakeTrackSegments") <<"........" ;
 
           for (size_t i=0; i<clusters.size(); i++){
 	    if (clusters[i]->WgtRmsStrip() == 0){ 

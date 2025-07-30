@@ -103,6 +103,7 @@ namespace emph {
     std::string fG4Label;
     std::string fTrkSegLabel;
     bool        fSevenOn;
+    bool        fShortOn;
     int         fPBeamTmp;
 
   };
@@ -117,6 +118,7 @@ namespace emph {
     fG4Label           (pset.get< std::string >("G4Label")),
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
     fSevenOn           (pset.get< bool >("SevenOn")),
+    fShortOn           (pset.get< bool >("ShortOn")),
     fPBeamTmp          (pset.get< int >("PBeamTmp"))
     {
       this->produces< std::vector<rb::Track> >();
@@ -179,6 +181,7 @@ namespace emph {
 
   void emph::MakeSingleTracks::produce(art::Event& evt)
   {
+
     tsvcut.clear();
     tsv.clear();
 
@@ -251,8 +254,6 @@ namespace emph {
 	    clusters.push_back(&clust);
 	  }
 
-	  //std::cout<<"clusters = "<<clusters.size()<<"..."<<"nPlanes = "<<nPlanes<<std::endl;
-
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
 	  if (clusters.size()==nPlanes){
@@ -275,11 +276,29 @@ namespace emph {
           // Choose track segments 2 and 3 with 3 space points
           if (goodEvent){
             for (auto t : trksegs){
+	      bool shortTrackSeg = true;
+
               if (t->RegLabel() == rb::Region::kRegion1) tsvcut.push_back(t);
-              else if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-	      else if (!fSevenOn && t->RegLabel() == rb::Region::kRegion3) tsvcut.push_back(t);
+	      if (t->RegLabel() == rb::Region::kRegion2){
+		if (fShortOn){
+                  for (size_t i=0; i<t->NSpacePoints(); i++){
+                    if (t->GetSpacePoint(i)->Station() == 4) shortTrackSeg = false;
+                  }
+		  if (shortTrackSeg) tsvcut.push_back(t);
+	        }
+		else{ 
+		  if (t->NSpacePoints() == 3) tsvcut.push_back(t);
+		}
+              }
+	      
+	      if (t->RegLabel() == rb::Region::kRegion3){
+		if (!fSevenOn) tsvcut.push_back(t);
+		else{
+		  if (t->NSpacePoints() == 3) tsvcut.push_back(t);
+		}
+	      }
             }
-  
+
             // Now make tracks
             // Eventually beamtrk should be fixed later with SpillInfo
             trackv->clear();
@@ -303,6 +322,7 @@ namespace emph {
 	    int pm;
 	    if (fPBeamTmp > 0) pm = 1;
 	    else pm = -1;	
+
             algo.SetRecoTrk(t2,t3,pm);		
             sectrk.Add(t2);
             sectrk.Add(t3);

@@ -9,7 +9,8 @@ standard_makesingletracks:
   CheckTrackSeg:     true
   TrkSegLabel:       "maketracksegments" 
   SevenOn:           false
-  PBeamTmp:          4               # Change beam momentum here --> make more sophisticated later
+  ShortOn:           true
+  PBeamTmp:          120               # Change beam momentum here --> make more sophisticated later
 				     # SpillInfo for data, RunHistory if application
 }
 

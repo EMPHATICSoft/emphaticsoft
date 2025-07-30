@@ -33,7 +33,7 @@ public:
   {
     using Name=fhicl::Name;
     using Comment=fhicl::Comment;
-    fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
+    fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "maketracksegments"};
   };
 
   typedef art::EDFilter::Table<Config> Parameters;

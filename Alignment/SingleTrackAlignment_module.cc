@@ -77,8 +77,6 @@ namespace emph {
     //      void endSubRun(art::SubRun const&);
     void beginJob();
     void endJob();
-    std::vector<double> SSDRot();
-    std::vector<TVector3> SSDPos(std::vector<rb::TrackSegment> tracksegv, bool wantN = false);
     void Pulls(std::vector<rb::TrackSegment> trksegv);
 
   private:
@@ -99,7 +97,6 @@ namespace emph {
     std::vector<const rb::LineSegment*> linesegments;
     std::vector<const rb::TrackSegment*> tracksegments;
     std::vector<const rb::Track*> tracks;
-    std::vector<std::vector<std::vector<TVector3> > > nomsorted;
     std::vector<std::vector<std::vector<float> > > pullsorted;
 
     std::vector<rb::SpacePoint> spv;
@@ -109,8 +106,6 @@ namespace emph {
     std::vector<std::vector<double>> sp1;
     std::vector<std::vector<double>> sp2;
     std::vector<std::vector<double>> sp3;
-
-    std::vector<std::vector<std::vector<int> > > countvec;
 
     //fcl parameters
     bool        fCheckLineSeg;    
@@ -124,14 +119,13 @@ namespace emph {
     //Millepede stuff
     Mille* m;
     std::vector<int> label;
-    std::vector<float> derLc;
-    std::vector<std::vector<std::vector<float> > > derlctest;
 
     double targetz;
     double magnetusz;
     double magnetdsz;
 
-    Align* align = new Align();
+    art::ServiceHandle<emph::AlignService> emalign;
+    Align* align0 = emalign->GetAlign();
 
     int re = 1;
 
@@ -175,6 +169,7 @@ namespace emph {
     auto emgeo = geo->Geo();
     nStations = emgeo->NSSDStations();
     nPlanes = emgeo->NSSDPlanes();
+
     if (!fSevenOn){
       nStations = nStations - 1;
       nPlanes = nPlanes - 2;
@@ -186,20 +181,6 @@ namespace emph {
     magnetusz = emgeo->MagnetUSZPos();
     magnetdsz = emgeo->MagnetDSZPos();
 
-    countvec.resize(nStations);
-    for (size_t i=0; i<nStations; i++){
-      countvec[i].resize(nPlanes);
-      for (int j=0; j<emgeo->GetSSDStation(i)->NPlanes(); j++){
-        countvec[i][j].resize(emgeo->GetSSDStation(i)->GetPlane(j)->NSSDs()-1);
-      }
-    }
-
-    for (int i=0; i<(int)nStations; i++){
-      for (int j=0; j<emgeo->GetSSDStation(i)->NPlanes(); j++){
-        countvec[i][j].push_back(0);
-      }
-    }
-
     int l=0;
     for (int ii=0; ii<(int)nStations; ii++){
       for (int jj=0; jj<emgeo->GetSSDStation(ii)->NPlanes(); jj++){
@@ -207,7 +188,6 @@ namespace emph {
           for (int dd=1; dd<=4; dd++){
             l = ii*1000 + jj*100 + kk*10 + dd;
             label.push_back(l);
-            //std::cout<<"l: "<<l<<"...view: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->View()<<std::endl;
           }
         }
       }
@@ -228,35 +208,9 @@ namespace emph {
   
   void emph::SingleTrackAlignment::endJob()
   {
-    for (int i=0; i<(int)countvec.size(); i++){
-      for (int j=0; j<(int)countvec[i].size(); j++){
-        for (int k=0; k<(int)countvec[i][j].size(); k++){
-          //std::cout<<"(i,j,k) = "<<"("<<i<<","<<j<<","<<k<<") = "<<countvec[i][j][k]<<std::endl;
-        }
-      }
-    } 
-
     delete m;
 
     std::cout<<"SingleTrackAlignment: Number of events used = "<<usingEvent<<std::endl;
-  }
-
-  //......................................................................
-
-  std::vector<double> emph::SingleTrackAlignment::SSDRot()
-  {
-    std::vector<double> rolls;
-    auto emgeo = geo->Geo(); 
-
-    for (int ii=0; ii<(int)nStations; ii++){
-      for (int jj=0; jj<emgeo->GetSSDStation(ii)->NPlanes(); jj++){
-        for (int kk=0; kk<emgeo->GetSSDStation(ii)->GetPlane(jj)->NSSDs(); kk++){
-          double roll = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk)->Rot();
-	  rolls.push_back(roll);
-        }
-      }
-    }
-    return rolls;
   }
 
   //......................................................................
@@ -265,6 +219,10 @@ namespace emph {
   {
     auto emgeo = geo->Geo();
     ru::RecoUtils r = ru::RecoUtils(fEvtNum);
+
+    TVector3 a2(0.,0.,0.);
+    TVector3 b2(0.,0.,0.);
+    TVector3 ts2(0.,0.,0.);
 
     for (int ii=0; ii<(int)ls_group.size(); ii++){
       for (int jj=0; jj<(int)ls_group[ii].size(); jj++){
@@ -279,13 +237,28 @@ namespace emph {
           }       
 
 	  float uncer = cl_group[ii][jj][kk]->WgtRmsStrip()*0.06;
-          //std::cout<<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View()<<std::endl;
+          mf::LogDebug("SingleTrackAlignment") <<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View() ;
 	  auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
-	  double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad i think
+	  //double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad
+
+          x0(0) = -1*x0(0);
+          x1(0) = -1*x1(0);
+
+          TVector3 vec = x0 - x1;
+          TVector3 posx(1.,0.,0.);
+          Double_t ta = TMath::ATan2(posx.Y(),posx.X());
+          Double_t tb = TMath::ATan2(vec.Y(),vec.X());
+          Double_t tt = tb - ta;
+          Double_t phim = 0.;
+          if (tt < 0) phim = tt + 2.*TMath::Pi();
+          else phim = tt;
+
           for (auto ts : trksegv) {
             double tsz = ts.Vtx()[2];
+
 	    TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
             TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);	    
+            if (ts.RegLabel() == rb::Region::kRegion2){ a2 = a; b2 = b; ts2 = ts.P(); }
 
 	  // pull = doca between s and ts
             double sensorz = x0(2); //s[2];
@@ -294,6 +267,11 @@ namespace emph {
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
+	      if (ts.RegLabel() == rb::Region::kRegion3){ 
+	        a = a2; 
+                b = b2;
+	      } 
+
               double f1[3]; double f2[3]; double f3[3];
               r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");   
               float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
@@ -301,12 +279,15 @@ namespace emph {
 	      // @ sensorz what is ts xy 
 	      // find signed distance from sensor xy to ts xy 
 	      // find t where sensor z is
+
 	      double t = ( sensorz - a(2) )/( b(2) - a(2) );
 	      double tsx = a(0) + (b(0)-a(0))*t;
 	      double tsy = a(1) + (b(1)-a(1))*t;
 
-	      double xz = a(0) + ts.P()[0]/ts.P()[2]*sensorz;
-	      double yz = a(1) + ts.P()[1]/ts.P()[2]*sensorz;
+              a(0) = -1*a(0);
+              b(0) = -1*b(0);
+              tsx = -1*tsx;
+
 	      // signed distance from point to a line 
 	      double la = x1(1) - x0(1);
 	      double lb = x0(0) - x1(0);
@@ -327,28 +308,14 @@ namespace emph {
 
               float gld_x; float gld_y; float gld_z;
 	      float gld_phim;
-/*
-	      if (sview == 1){ // X-VIEW
-	        gld_x = -1.*TMath::Sin(phim);
-		gld_y = 0.;
-		gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim);
-	      }
-	      else if (sview == 2){ // Y-VIEW
-                gld_x = 0;
-                gld_y = 1.*TMath::Cos(phim);
-                gld_z = ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
-              }
-	      else if (sview == 4){ // U-VIEW
-                gld_x = -1.*TMath::Sin(phim);
-                gld_y = 1.*TMath::Cos(phim);
-                gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim) + ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
-              }
-*/
+
 	      if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
                 gld_x = -1.*TMath::Sin(phim);
                 gld_y = 1.*TMath::Cos(phim);
                 gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim) + ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
-		//gld_phim = -1.*TMath::Cos(phim) * xz - 1.*TMath::Sin(phim) * yz;
+	        if (ts.RegLabel() == rb::Region::kRegion3){
+		  gld_z = -1.*ts2(0)/ts2(2)*TMath::Sin(phim) + ts2(1)/ts2(2)*TMath::Cos(phim); 
+		}
                 gld_phim = -1.*TMath::Cos(phim) * tsx - 1.*TMath::Sin(phim) * tsy;
               }
               else{
@@ -359,10 +326,9 @@ namespace emph {
               }
        	
 	      float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
-	      //float mdergl[3] = {gld_x,gld_y,gld_z};
 	      float mdergl[4] = {gld_x,gld_y,gld_z,gld_phim};
 
-	      int ltmp[4] = {ii*1000 + jj*100 + kk*10 + 1,ii*1000 + jj*100 + kk*10 + 2, ii*1000 + jj*100 + kk*10 + 3, ii*1000 + jj*100 + kk*10 + 4};
+	      int ltmp[4] = {ii*1000 + jj*100 + sens*10 + 1,ii*1000 + jj*100 + sens*10 + 2, ii*1000 + jj*100 + sens*10 + 3, ii*1000 + jj*100 + sens*10 + 4};
               m->mille(4,mderlc,4,mdergl,ltmp,dsign,uncer);
               mf::LogDebug("SingleTrackAlignment") << "uncer = " << uncer ;
 	    }
@@ -377,62 +343,8 @@ namespace emph {
 
   //......................................................................
 
-  std::vector<TVector3> emph::SingleTrackAlignment::SSDPos(std::vector<rb::TrackSegment> tracksegv, bool wantN)
-  {
-    std::vector<TVector3> ssdv;
-    auto emgeo = geo->Geo();
-
-    for (int ii=0; ii<(int)nStations; ii++){
-      for (int jj=0; jj<emgeo->GetSSDStation(ii)->NPlanes(); jj++){
-        for (int kk=0; kk<emgeo->GetSSDStation(ii)->GetPlane(jj)->NSSDs(); kk++){
-          for (auto ts : tracksegv) {
-            double tsz = ts.Vtx()[2];
-            auto sd = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(kk);
-            auto st = emgeo->GetSSDStation(ii);
-            auto T = align->SSDMatrix(ii,jj,kk);
-            double sl[3] = {0.,0.,0.};
-            double sm[3];
-            double s[3];
-            sd->LocalToMother(sl,sm);
-            st->LocalToMother(sm,sl);
-            //T->LocalToMaster(sl,s);
-
-            double sensorz = sl[2]; //s[2];
-
-	    if ((tsz < targetz && sensorz < targetz)
-            || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
-            || (tsz > magnetdsz && sensorz > magnetdsz)){
-	      double n[3];
-	      double pmag = sqrt(ts.P()[0]*ts.P()[0]+ts.P()[1]*ts.P()[1]+ts.P()[2]*ts.P()[2]);
-
-	      for (size_t i=0; i<3; i++){
-                n[i] = ts.P()[i]/pmag;
-                if (wantN) {derLc.push_back(n[i]); derlctest[ii][jj].push_back(n[i]); }
-              }
-
-	      double t = (sensorz- ts.A()[2])/n[2];
-              double sensorx = ts.Vtx()[0] + t*n[0];
-              double sensory = ts.Vtx()[1] + t*n[1]; 
-              TVector3 x(sensorx,sensory,sensorz);
-              ssdv.push_back(x);
-	      if (wantN) nomsorted[ii][jj].push_back(x);
-            }
-          }
-        }
-      }
-    }
-    return ssdv;
-  }
-
-  //......................................................................
-
   void emph::SingleTrackAlignment::produce(art::Event& evt)
   {
-    std::vector<float> derGl(112, 0.0);
-    std::vector<std::vector<std::vector<float> > > dergltest;
-
-    derLc.clear();
-    nomsorted.clear();
     pullsorted.clear();
     cl_group.clear();
     ls_group.clear();
@@ -452,7 +364,7 @@ namespace emph {
     // if data fcl
     std::string digitStr = std::to_string(event);
     bool useEvent = false;
-    if (digitStr.back() == '1'){
+    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
       useEvent = true;
     }
                                                   
@@ -469,111 +381,75 @@ namespace emph {
     art::Handle< std::vector<rb::TrackSegment> > tsH;
     art::Handle< std::vector<rb::Track> > trackH;
 
-if (useEvent){
-    // Get line segments and make map
-    try {
-      evt.getByLabel(fLineSegLabel, lsH);
-      if (!lsH->empty()){
-        for (size_t idx=0; idx < lsH->size(); ++idx) {
-          const rb::LineSegment& lineseg = (*lsH)[idx];
-          linesegments.push_back(&lineseg);
-        }
-      }
-      evt.getByLabel(fClusterLabel, clustH);
-      if (!clustH->empty()){
-        for (size_t idx=0; idx < clustH->size(); ++idx) {
-          const rb::SSDCluster& clust = (*clustH)[idx];
-          ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
-          clusters.push_back(&clust);
-        }
-      }
-      evt.getByLabel(fTrackSegLabel, tsH);
-      if (!tsH->empty()){
-        for (size_t idx=0; idx < tsH->size(); ++idx) {
-          const rb::TrackSegment& trackseg = (*tsH)[idx];
-	  rb::TrackSegment trksg(*&trackseg);
-          tracksegments.push_back(&trackseg);
-          //tsvnom.push_back(trksg);
-        }
-      }
-      evt.getByLabel(fTrackLabel, trackH);
-      if (!trackH->empty()){
-        for (size_t idx=0; idx < trackH->size(); ++idx) {
-          const rb::Track& track = (*trackH)[idx];
-          rb::Track trk(*&track);
-          tracks.push_back(&track);
-          for (size_t i=0; i<trk.NTrackSegments(); i++){
-            rb::TrackSegment tseg = *trk.GetTrackSegment(i);
-	    tsvnom.push_back(tseg);
+    if (useEvent){
+      // Get line segments and make map
+      try {
+        evt.getByLabel(fLineSegLabel, lsH);
+        if (!lsH->empty()){
+          for (size_t idx=0; idx < lsH->size(); ++idx) {
+            const rb::LineSegment& lineseg = (*lsH)[idx];
+            linesegments.push_back(&lineseg);
           }
         }
-      }
-
-      cl_group.resize(nStations);	
-      ls_group.resize(nStations);
-      nomsorted.resize(nStations);
-      pullsorted.resize(nStations);
-      derlctest.resize(nStations);
-      dergltest.resize(nStations);
-      //derGl.resize(28);
-
-      for (size_t i=0; i<nStations; i++){
-        cl_group[i].resize(nPlanes);
-        ls_group[i].resize(nPlanes);
-	nomsorted[i].resize(nPlanes);
-        pullsorted[i].resize(nPlanes);
-	derlctest[i].resize(nPlanes);
-        dergltest[i].resize(nPlanes);
-      }
-
-      for (size_t i=0; i<clusters.size(); i++){
-        int plane = clusters[i]->Plane();
-        int station = clusters[i]->Station();
-        cl_group[station][plane].push_back(clusters[i]);
-        ls_group[station][plane].push_back(linesegments[i]);
-      }
-
-      if (tsvnom.size()==3){
-        usingEvent++;
-
-        double epsilon = 0.06; //60 micron
-        TGeoTranslation* h = new TGeoTranslation();
-        TGeoTranslation* u = new TGeoTranslation(0,0,0);
-	TGeoRotation* hr = new TGeoRotation("hr",0.1,0,0);
-        TGeoRotation* ur = new TGeoRotation("ur",0,0,0);
-        //TGeoRotation* ur2 = new TGeoRotation("ur2",0.1,0,0);
-
-        std::vector<double> nomr;
-        for (int i=0; i<(int)nStations; i++){
-          for (int j=0; j<emgeo->GetSSDStation(i)->NPlanes(); j++){
-            for (int k=0; k<emgeo->GetSSDStation(i)->GetPlane(j)->NSSDs(); k++){
-              align->SetSSDTranslation(i,j,k,u);
-	      align->SetSSDRotation(i,j,k,ur);
-
-              TGeoCombiTrans* ssdm = align->SSDMatrix(i,j,k);
-              auto frm = ssdm->GetRotationMatrix();
-	      //std::cout<<"rotation matrix: "<<frm[0]<<"  "<<frm[1]<<"  "<<frm[2]<<std::endl;
-	      //std::cout<<"                 "<<frm[3]<<"  "<<frm[4]<<"  "<<frm[5]<<std::endl;
-	      //std::cout<<"                 "<<frm[6]<<"  "<<frm[7]<<"  "<<frm[8]<<std::endl;
-              //std::cout<<"translation: "<<translation[0]<<","<<translation[1]<<","<<translation[2]<<std::endl;
-	      Double_t phi = TMath::ACos(frm[0])*180./TMath::Pi();
-              nomr.push_back(phi);
+        evt.getByLabel(fClusterLabel, clustH);
+        if (!clustH->empty()){
+          for (size_t idx=0; idx < clustH->size(); ++idx) {
+            const rb::SSDCluster& clust = (*clustH)[idx];
+            ++clustMap[std::pair<int,int>(clust.Station(),clust.Plane())];
+            clusters.push_back(&clust);
+          }
+        }
+        evt.getByLabel(fTrackSegLabel, tsH);
+        if (!tsH->empty()){
+          for (size_t idx=0; idx < tsH->size(); ++idx) {
+            const rb::TrackSegment& trackseg = (*tsH)[idx];
+	    rb::TrackSegment trksg(*&trackseg);
+            tracksegments.push_back(&trackseg);
+          }
+        }
+        evt.getByLabel(fTrackLabel, trackH);
+        if (!trackH->empty()){
+          for (size_t idx=0; idx < trackH->size(); ++idx) {
+            const rb::Track& track = (*trackH)[idx];
+            rb::Track trk(*&track);
+            tracks.push_back(&track);
+            for (size_t i=0; i<trk.NTrackSegments(); i++){
+              rb::TrackSegment tseg = *trk.GetTrackSegment(i);
+	      tsvnom.push_back(tseg);
             }
           }
         }
-        dgm->Map()->SetAlign(align);
 
-        // Get nominal positions at each station
-        auto nom = SSDPos(tsvnom,true);
+        cl_group.resize(nStations);	
+        ls_group.resize(nStations);
+        pullsorted.resize(nStations);
 
-        // Get pulls
-        Pulls(tsvnom);
-      } //if
-    } // try	
-    catch(...) {
+        for (size_t i=0; i<nStations; i++){
+          cl_group[i].resize(nPlanes);
+          ls_group[i].resize(nPlanes);
+          pullsorted[i].resize(nPlanes);
+        }
 
-    }
-} //useEvent
+        for (size_t i=0; i<clusters.size(); i++){
+          int plane = clusters[i]->Plane();
+          int station = clusters[i]->Station();
+          cl_group[station][plane].push_back(clusters[i]);
+          ls_group[station][plane].push_back(linesegments[i]);
+        }
+
+        if (tsvnom.size()==3){
+          usingEvent++;
+
+          dgm->Map()->SetAlign(align0);
+
+          // Get pulls
+          Pulls(tsvnom);
+        } //if
+      } // try	
+      catch(...) {
+
+      }
+    } //useEvent
   }
 } // end namespace emph
 
