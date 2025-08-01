@@ -1,27 +1,45 @@
 #!/bin/bash
-#-m: 0: w/o magnet; 1: w/ magnet
-#-t: 0: w/o target; 1: graphite; 2: Be; 3: CH2
+# #-h: help
 
-$(dirname $0)/generate_gdml.pl -o phase1c.$$.gdml -m 1 -t 1
-#ls
+MAGOPT=1
+TARGET=1
+ALIGN=0
+OUTNAMESET=0
 
-# Specify the input wildcard pattern
-input_pattern="phase1_*.gdml"
-
-# Process each input file
-find .. -name 'phase1_*.gdml' -print0 | while IFS= read -r -d '' input_file; do
-	echo $input_file
-	# Extract version tag from input filename using sed
-	version_tag=$(echo "$input_file" | sed 's/.*-\([[:alnum:]]*\)\.gdml/\1/')
-	echo $version_tag
-	
-	output_file="phase1c-${version_tag}.gdml"
-	echo $output_file
-	
-	$(dirname $0)/../make_gdml.pl -i phase1c.$$.gdml -o $output_file
-	
-	break
+while getopts "o:t:m:a:h" opt; do
+    case $opt in
+	h) 
+	    $(dirname $0)/generate_gdml.pl --help
+	    exit 0
+	    ;;
+	o) 
+	    OUTNAME=$OPTARG
+	    OUTNAMESET=1
+	    ;;
+	t) 
+	    TARGET=$OPTARG
+	    ;;
+	a)
+	    ALIGN=$OPTARG
+	    ;;
+	m)
+	    MAGOPT=$OPTARG
+	    ;;
+	\?)
+	    echo "Invalid option: -$OPTARG" >& 2
+	    exit 1
+	    ;;
+    esac
 done
 
-/bin/rm -f phase1c.$$.gdml phase1_*.gdml
+if [[ "$OUTNAMESET" == 0 ]]; then
+    echo "output file name (-o option) missing"
+    exit 1
+fi
 
+$(dirname $0)/generate_gdml.pl $@
+/bin/mkdir tmpgdml
+/bin/mv $OUTNAME tmpgdml/.
+$(dirname $0)/../make_gdml.pl -i "tmpgdml/${OUTNAME}" -o $OUTNAME
+/bin/rm -f tmp_*.gdml
+/bin/rm -fr tmpgdml

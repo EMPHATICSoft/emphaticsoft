@@ -26,7 +26,7 @@ namespace caf
     mom.SetX(std::numeric_limits<float>::signaling_NaN());
     mom.SetY(std::numeric_limits<float>::signaling_NaN());
     mom.SetZ(std::numeric_limits<float>::signaling_NaN());
-    label = -1;
+    region = rb::Region::kRegionNull;
     nspacepoints = -1;
   }
 

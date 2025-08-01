@@ -90,9 +90,9 @@ public:
     using Name=fhicl::Name;
     using Comment=fhicl::Comment;
     fhicl::Atom<int> portNumber{Name("portNumber"), Comment("Port forwarded to web broswer"), 3490};
-    fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "ssdclusts"};
+    fhicl::Atom<art::InputTag> lineSegLabel{Name("lineSegLabel"), Comment("Name of the module that produced SSD LineSegments.  Usually the cluster module."), "maketracksegments"};
     fhicl::Atom<art::InputTag> mcPartLabel{Name("mcPartLabel"), Comment("Name of the module that produced sim::Particles.  Usually the GEANT simulation."), "geantgen"};
-    fhicl::Atom<art::InputTag> lineSegAssnsLabel{Name("lineSegAssnsLabel"), Comment("Name of the module that produced UserHighlights for rb::LineSegs."), "ssdclusters"};
+    fhicl::Atom<art::InputTag> lineSegAssnsLabel{Name("lineSegAssnsLabel"), Comment("Name of the module that produced UserHighlights for rb::LineSegs."), "maketracksegments"};
     fhicl::Atom<art::InputTag> mcPartAssnsLabel{Name("mcPartAssnsLabel"), Comment("Name of the module that produced UserHighlights for sim::Particles."), "geantgen"};
     fhicl::Sequence<std::string> extraGeometryNodes{Name("extraGeometryNodes"), Comment("Node names of extra geometry objcts to draw from the GDML."), std::vector<std::string>()};
   };

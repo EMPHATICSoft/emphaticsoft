@@ -9,8 +9,6 @@
 #ifndef ARICH_UTILS_H
 #define ARICH_UTILS_H
 
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "Geometry/service/GeometryService.h"
 #include "ChannelMap/service/ChannelMapService.h"
 
 #include "ARICHRecoUtils/Detector.h"
@@ -69,7 +67,6 @@ namespace arichreco{
         arichreco::Arich    *Arich;	
 	arichreco::particleInfoStruct hypothesis;
 
-	art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
 	std::map<std::string, double> Particle_LogLike;
     };
 
