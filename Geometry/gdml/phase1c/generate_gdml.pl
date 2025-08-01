@@ -25,7 +25,8 @@ GetOptions( "help|h" => \$help,
 	"suffix|s:s" => \$suffix,
 	"output|o:s" => \$output,
 	"target|t:i" => \$target,
-	"magnet|m:i" => \$magnet);
+	"magnet|m:i" => \$magnet,
+	"ssd7out|7:i" => \$ssd7out);
 
 if ( defined $help )
 {
@@ -107,6 +108,14 @@ $n_cover = 2;
 $LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
+
+if ( defined $ssd7out )
+{
+	# turn off the 7th SSD station 
+	if($ssd7out == 1){
+		$nSSD_station = 7; # num. of stations
+	}
+}
 
 if ( defined $magnet )
 {
