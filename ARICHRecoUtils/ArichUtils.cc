@@ -53,17 +53,18 @@ void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double d
 //.......................................................................
 TH2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int,int>> cluster)
    {
-	TH2D *fARICHNHitsPxl = new TH2D();        
-	fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
-        fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
-        fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
-    //htemp->SetTitle(Form("event_%i",event_number));
+     TH2D *fARICHNHitsPxl = new TH2D();        
+     fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
+     fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
+     fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
+     //htemp->SetTitle(Form("event_%i",event_number));
      
-    for(size_t i =0; i < cluster.size(); i++)
-    {
-	int board = cluster[i].first;
-	int channel = cluster[i].second; 
-	emph::cmap::EChannel echan(emph::cmap::TRB3,board,channel);
+     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+     for(size_t i =0; i < cluster.size(); i++)
+       {
+	 int board = cluster[i].first;
+	 int channel = cluster[i].second; 
+	 emph::cmap::EChannel echan(emph::cmap::TRB3,board,channel);
 	
 	emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	int pmt = dchan.HiLo();
@@ -153,14 +154,15 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 
 	int numCombinations = TMath::Power(NUMPARTICLES, np);
 	double minLoglikelihood = 1E10;
-	int bestCombination[np];
-	TH2D *hs;
+	//	int bestCombination[np];
+	TH2D *hs=0;
         
 	for (int i = 0; i < numCombinations; i++) {
 		int index = i;
 		if (i > 0) delete hs;
 		char* stackedTitle = Form("PDF%i", i);
-		int combination[np];
+		std::vector<int> combination; 
+		combination.resize(np);
 		for (int k=np-1; k>=0; k--) { 
 			int p = index % NUMPARTICLES;
 			index = index / NUMPARTICLES;
@@ -176,7 +178,7 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 		double logLikelihood = computeLogLikelihood(hist, hs);
 		LogLike.push_back(logLikelihood);
 	}
-	delete hs;
+	if (hs) delete hs;
 	calculatedPdfs.clear();
 	return LogLike;		
    
@@ -230,10 +232,13 @@ std::vector<double> ARICH_UTILS::recoCherenkov(TH2Poly* eventHist, int nDetected
   {
    
     TVector3 hiti, diri;
-    std::vector<double> theta_bin[nDetected], thetasC;
+    std::vector< std::vector<double> > theta_bin;
+    theta_bin.resize(nDetected);
+    std::vector<double> thetasC;
     double thetai, thetaC = 0;
 
-    TH1D* hChe[nDetected];
+    std::vector<TH1D*> hChe;
+    hChe.resize(nDetected);
     TList *binlist=eventHist->GetBins();
     TH2PolyBin *thisBin;
 

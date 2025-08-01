@@ -2,7 +2,8 @@ BEGIN_PROLOG
 
 standard_geometry:
 {
-  GeoFileName: "gdml/phase1b.gdml"
+  GetGDMLFromRunHistory: true
+  GDMLFile: ""
 }
 
 END_PROLOG
