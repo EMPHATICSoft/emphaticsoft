@@ -152,7 +152,11 @@ namespace runhist{
       _calibVer=2;
     }
     else if(_runNumber >= 2000){
-      _geoFile=file_path+"Geometry/phase1c.gdml";
+      _geoFile=file_path+"Geometry/phase1c_"+this->Target();
+      if (!_magnetIn) 
+	_geoFile += "_nomag.gdml";
+      else 
+	_geoFile += ".gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Mar23.txt";
       if (_useFixedAlignFile) {
 	if (_ssdAlignFile.empty())
