@@ -120,7 +120,7 @@ namespace g4b{
       delete fRunManager;
     }
     else{
-      MF_LOG_ERROR("G4Helper")
+      mf::LogError("G4Helper")
       << "G4Helper never initialized; probably because there were no input primary events";
     }
 
@@ -193,10 +193,10 @@ namespace g4b{
         factory.PrintAvailablePhysLists();
 /* #else
             std::vector<G4String> list = factory.AvailablePhysLists();
-            MF_LOG_VERBATIM("G4Helper")
+            mf::LogVerbatim("G4Helper")
             << "For reference: PhysicsLists in G4PhysListFactory are: ";
             for (size_t indx=0; indx < list.size(); ++indx ) {
-              MF_LOG_VERBATIM("G4Helper")
+              mf::LogVerbatim("G4Helper")
               << " [" << std::setw(2) << indx << "] "
               << "\"" << list[indx] << "\"";
             }
@@ -204,7 +204,7 @@ namespace g4b{
       }
 
       if ( ! physics ) {
-        MF_LOG_ERROR("G4Helper")
+        mf::LogError("G4Helper")
           << bywhom << "  could not construct \""
           << phListName
           << "\","
@@ -215,7 +215,7 @@ namespace g4b{
         phListName = "<none>"; // "QGSP_BERT";
 
       } else {
-        MF_LOG_VERBATIM("G4Helper")
+        mf::LogDebug("G4Helper")
         << bywhom
         << " constructed G4VUserPhysicsList \""
         << phListName
@@ -249,7 +249,7 @@ namespace g4b{
 
       if ( ! pcRegistry->IsKnownPhysicsConstructor(physProcName) ) {
 
-        MF_LOG_VERBATIM("G4Helper")
+        mf::LogVerbatim("G4Helper")
         << "G4PhysicsProcessFactorySingleton could not "
         << "construct a \""
         << physProcName
@@ -259,16 +259,16 @@ namespace g4b{
         // make sure we only do this once
         list_known_ctors = false;
         std::vector<G4String> list = pcRegistry->AvailablePhysicsConstructors();
-        MF_LOG_VERBATIM("G4Helper")
+        mf::LogVerbatim("G4Helper")
         << "For reference: PhysicsProcesses in "
         << "G4PhysicsProcessFactorySingleton are: ";
 
         if ( list.empty() )
-          MF_LOG_VERBATIM("G4Helper")
+          mf::LogVerbatim("G4Helper")
           << " ... no registered processes";
         else {
           for (size_t indx=0; indx < list.size(); ++indx ) {
-            MF_LOG_VERBATIM("G4Helper")
+            mf::LogVerbatim("G4Helper")
             << " [" << std::setw(2) << indx << "] "
             << "\"" << list[indx] << "\"";
           }
@@ -276,7 +276,7 @@ namespace g4b{
         continue;
       }
 
-      MF_LOG_VERBATIM("G4Helper")
+      mf::LogVerbatim("G4Helper")
       << "Adding \""
       << physProcName
       << "\" physics process to \""
@@ -289,8 +289,8 @@ namespace g4b{
 
 
       G4VModularPhysicsList* mpl = dynamic_cast<G4VModularPhysicsList*>(physics);
-      if      ( ! pctor ) MF_LOG_VERBATIM("G4Helper") << " ... failed with null pointer";
-      else if ( ! mpl )   MF_LOG_VERBATIM("G4Helper") << " ... failed, physics list wasn't a G4VModularPhysicsList";
+      if      ( ! pctor ) mf::LogVerbatim("G4Helper") << " ... failed with null pointer";
+      else if ( ! mpl )   mf::LogVerbatim("G4Helper") << " ... failed, physics list wasn't a G4VModularPhysicsList";
       else                mpl->RegisterPhysics(pctor);
 
       // Handle associated UI commands
@@ -299,7 +299,7 @@ namespace g4b{
 
       for ( unsigned int i=1; i < physProcParts.size(); ++i ) {
         if ( physProcParts[i] == "" ) continue;
-        MF_LOG_VERBATIM("G4Helper")
+        mf::LogVerbatim("G4Helper")
         << physProcParts[i];
 
         fUIManager->ApplyCommand(physProcParts[i]);
@@ -313,7 +313,7 @@ namespace g4b{
       auto mpl = dynamic_cast<G4VModularPhysicsList*>(physics);
       if(mpl) mpl->RegisterPhysics(new G4StepLimiterPhysics());
       else
-        MF_LOG_WARNING("G4Helper")
+        mf::LogWarning("G4Helper")
         << "Step limits requested, but unable to register G4StepLimiterPhysics"
         << "\n NO STEP LIMITS WILL BE APPLIED";
     }
@@ -328,7 +328,7 @@ namespace g4b{
   void G4Helper::SetParallelWorlds(std::vector<G4VUserParallelWorld*> pworlds)
   {
     for(auto const& pw : pworlds){
-      MF_LOG_DEBUG("G4Helper") << pw->GetName();
+      mf::LogDebug("G4Helper") << pw->GetName();
       fParallelWorlds.push_back(pw);
     }
 
@@ -363,7 +363,7 @@ namespace g4b{
       fUseStepLimits = true;
     }
     else{
-      MF_LOG_WARNING("G4Helper")
+      mf::LogWarning("G4Helper")
       << "Unable to find volume "
       << volumeName
       << " and set step size limit";

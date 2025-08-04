@@ -3,10 +3,8 @@ BEGIN_PROLOG
 standard_arich_cluster:
 {
   module_type: 	  MakeArichCluster 
-  LabelHits:      "rawARICH:ARICH"
-  LabelTracks:    "geantgen"			#using sim::Tracks untill got rb::Tracks 
-  FillTree:       true
-  FitCircle:      false
+  LabelHits:      "raw:ARICH"
+  FillTree:       false
 
 }
 

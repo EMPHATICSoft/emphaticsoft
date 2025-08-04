@@ -53,9 +53,6 @@ void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double d
 //.......................................................................
 TH2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int,int>> cluster)
    {
-//     TFile* fdet = new TFile(PDfile, "read");
-     //TH2Poly* hDet = (TH2Poly*) fdet->Get("hDet");
-//     TH2Poly* htemp = (TH2Poly*)fdet->Get("hDet")->Clone();
 	TH2D *fARICHNHitsPxl = new TH2D();        
 	fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
         fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
@@ -185,6 +182,23 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
    
     } //end IdentifyMultiParticle
 //.......................................................................
+std::vector<double> ARICH_UTILS::identifyParticle(TH2D* eventHist, float particleMom, TVector3 pos0, TVector3 dir0){
+
+  std::vector<double> loglikes;
+  particleInfoStruct hypothesis;
+  hypothesis.pos = pos0;
+  hypothesis.dir = dir0;
+  for(int particleId = 0; particleId < NUMPARTICLES; particleId++){
+     char* particleName = (char*) PNAMES[particleId];
+     double betaGuess = calcBeta(particleId, particleMom);
+     hypothesis.beta = betaGuess;
+     TH2D calculatedPdf = Arich->calculatePdf(hypothesis, particleName);
+     double logLikelihood = computeLogLikelihood(eventHist, &calculatedPdf);
+     loglikes.push_back(logLikelihood);
+   }
+   return loglikes;
+}
+//.......................................................................
 std::vector<std::vector<TH2D>> ARICH_UTILS::GetPDFs(int np, std::vector<double> mom,
          std::vector<TVector3> pos0s,std::vector<TVector3> dir0s)
     {
@@ -202,7 +216,8 @@ std::vector<std::vector<TH2D>> ARICH_UTILS::GetPDFs(int np, std::vector<double> 
                         hypothesis.name = PNAMES[p];
 
                         TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
-                        particleiCalculatedPdfs.push_back(calculatedPdf);
+
+		        particleiCalculatedPdfs.push_back(calculatedPdf);
                         }
                 calculatedPdfs.push_back(particleiCalculatedPdfs);
          }

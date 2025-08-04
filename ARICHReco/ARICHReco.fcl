@@ -5,7 +5,7 @@ standard_arichreco:
   module_type: 	  ARICHReco
   PD_file:        "/ARICHReco/PMTDet.root"
   LabelHits:      "arichcluster"
-  LabelTracks:    "geantgen"			#using sim::Tracks until got rb::Tracks 
+  LabelTracks:     "makesingletracks"
   FillTree:       true
 
   # PARAMS OF ARICH, AEROGELS

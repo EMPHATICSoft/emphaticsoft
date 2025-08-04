@@ -27,6 +27,7 @@ namespace caf
     float  mt6ca1, mt6ca2, mt6ca3;
 
     int    spillstatus;       ///< Was spill marked good, bad, questions, etc.? See SpillQuality.h for enumeration 
+    bool   ismc;
 
     void setDefault();
   };
