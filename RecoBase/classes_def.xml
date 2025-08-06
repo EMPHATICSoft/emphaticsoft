@@ -140,13 +140,12 @@
   <class name="std::vector<rb::Track>"        />
   <class name="art::Wrapper< std::vector<rb::Track>    >"/>
 
- <class name = "rb::ARICHCluster"/>
- <class name="std::vector<rb::ARICHCluster>"        />
+  <class name="rb::ARICHCluster"/>
+  <class name="std::vector<rb::ARICHCluster>"        />
   <class name="art::Wrapper< std::vector<rb::ARICHCluster>    >"/>
 
-<class name = "rb::ArichID"/>
-<class name= "std::vector<rb::ArichID>"        />
-<class name="art::Wrapper< std::vector<rb::ArichID>    >"/>
+  <class name="rb::ArichID"/>
+  <class name="std::vector<rb::ArichID>"        />
+  <class name="art::Wrapper< std::vector<rb::ArichID>    >"/>
 
-
- </lcgdict>
+</lcgdict>
