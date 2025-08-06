@@ -690,7 +690,7 @@ namespace emph {
 	         << " " << it->X() << " " << it->XErr() << " " << it->Y() << " " << it->YErr() 
 		 << " " << it->UorWPred() << " "  << it->UorWObsRaw() << " " << it->UorWObsCorr() << " " << it->ChiSq();
          rb::LineSegment ls = it->LineStripUorV();
-         (*fFOutSt) << " " << ls.X0()[0] << " " << ls.X1()[0] << " " << ls.X0()[1] << " " << ls.X1()[1] << std::endl; 
+         (*fFOutSt) << " " << ls.X0().X() << " " << ls.X1().X() << " " << ls.X0().Y() << " " << ls.X1().Y() << std::endl; 
 		 
        } // On Space Points
      }

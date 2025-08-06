@@ -130,8 +130,8 @@ namespace emph {
       // Implement Magnet misalignment.. 
       startMag[0] -= fMagShift[0]; startMag[1] -= fMagShift[1]; startMag[2] -= fMagShift[2];
       fMagField->Integrate(0, Q, stepAlongZ, startMag, endMag);
-      if (((fRunNum < 2000) && (kStStart == 3) && (!fMagField->didStayedInMap())) ||
-          ((fRunNum > 1999) && (kStStart == 4) && (!fMagField->didStayedInMap()))) {
+      if (((fRunNum < 2000) && (kStStart == 3)) ||
+          ((fRunNum > 1999) && (kStStart == 4))) {
         std::cerr << " ...  SSD3DTrackKlmFitFCNAlgo1::propagateStsNext , p = " << p << std::endl 
         	  << " ............ Inside the magnet, track swerved outside the magnet.. return bad ChiSq " << std::endl;
         return 1.0e6; 

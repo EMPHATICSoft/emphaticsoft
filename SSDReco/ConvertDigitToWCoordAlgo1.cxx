@@ -21,8 +21,6 @@
 #include "RecoBase/SSDCluster.h" 
 #include "SSDReco/ConvertDigitToWCoordAlgo1.h" 
 
- using namespace emph;
-
 namespace emph {
   namespace ssdr {
   
@@ -312,33 +310,33 @@ namespace emph {
         fDetGeoMap->SSDClusterToLineSegment(*itCl, ls);
 	if (fDebugIsOn) std::cerr << " ConvertDigitToWCoordAlgo1::getTrCoordRoot line is " << ls << std::endl;
 	switch (aView) {
-	case emph::geo::X_VIEW : { return ls.X0()[0]; }  
-	case emph::geo::Y_VIEW :  { return ls.X0()[1] ; }  
+	case emph::geo::X_VIEW : { return ls.X0().X(); }  
+	case emph::geo::Y_VIEW :  { return ls.X0().Y() ; }  
 	case emph::geo::U_VIEW : { 
-	     const double xx0 = ls.X0()[0]; const double yy0 = ls.X0()[1];
-	     const double xx1 = ls.X1()[0];  const double yy1 = ls.X1()[1];;
-	     const double x0 = fOneOverSqrt2 * ( xx0 - yy0); 
-	     const double y0 = fOneOverSqrt2 * ( xx0 + yy0); 
-	     const double x1 = fOneOverSqrt2 * ( xx1 - yy1); 
-	     const double y1 = fOneOverSqrt2 * ( xx1 + yy1); 
-	     if (fDebugIsOn) std::cerr << " ....  Rotate by -45 degrees ..pt 0  " << x0 << ", y0 " << y0 
-	                              << " pt1 " << x1 << ", y1 " << y1 << std::endl;
-	     return 0.5*(x1+x0);		      
+	  const double xx0 = ls.X0().X(); const double yy0 = ls.X0().Y();
+	  const double xx1 = ls.X1().X();  const double yy1 = ls.X1().Y();
+	  const double x0 = fOneOverSqrt2 * ( xx0 - yy0); 
+	  const double y0 = fOneOverSqrt2 * ( xx0 + yy0); 
+	  const double x1 = fOneOverSqrt2 * ( xx1 - yy1); 
+	  const double y1 = fOneOverSqrt2 * ( xx1 + yy1); 
+	  if (fDebugIsOn) std::cerr << " ....  Rotate by -45 degrees ..pt 0  " << x0 << ", y0 " << y0 
+				    << " pt1 " << x1 << ", y1 " << y1 << std::endl;
+	  return 0.5*(x1+x0);		      
 	}  
 	case emph::geo::W_VIEW : { 
-	     const double xx0 = ls.X0()[0]; const double yy0 = ls.X0()[1];
-	     const double xx1 = ls.X1()[0];  const double yy1 = ls.X1()[1];;
-	     const double x0 = fOneOverSqrt2 * ( xx0 + yy0); 
-	     const double y0 = fOneOverSqrt2 * ( -xx0 + yy0); 
-	     const double x1 = fOneOverSqrt2 * ( xx1 + yy1); 
-	     const double y1 = fOneOverSqrt2 * ( -xx1 + yy1); 
-	     if (fDebugIsOn) std::cerr << " ....  Rotate by +45 degrees ..pt 0  " << x0 << ", y0 " << y0 
-	                              << " pt1 " << x1 << ", y1 " << y1 << std::endl;
-	     return 0.5*(x1+x0);		      
+	  const double xx0 = ls.X0().X(); const double yy0 = ls.X0().Y();
+	  const double xx1 = ls.X1().X();  const double yy1 = ls.X1().Y();
+	  const double x0 = fOneOverSqrt2 * ( xx0 + yy0); 
+	  const double y0 = fOneOverSqrt2 * ( -xx0 + yy0); 
+	  const double x1 = fOneOverSqrt2 * ( xx1 + yy1); 
+	  const double y1 = fOneOverSqrt2 * ( -xx1 + yy1); 
+	  if (fDebugIsOn) std::cerr << " ....  Rotate by +45 degrees ..pt 0  " << x0 << ", y0 " << y0 
+				    << " pt1 " << x1 << ", y1 " << y1 << std::endl;
+	  return 0.5*(x1+x0);		      
 	}  
 	default :  { return emph::geo::INIT; } 
-     } //On Views..  
-     
-   } 
+	} //On Views..  
+	
+     } 
   } // ssdr
 } // emph

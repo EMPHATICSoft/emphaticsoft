@@ -377,11 +377,7 @@ namespace emph {
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
       if (fEvtNum > 14460) std::cerr << " emph::StudyAllTrial1Algo1::analyze, at event " << fEvtNum << " spill " << fSubRun << std::endl; 
-      if (fNEvents == 0) {
-        art::ServiceHandle<emph::MagneticFieldService> bField;
-        emph::MagneticField *aMagField = bField->Field();
-        aMagField->SetIntegratorSteps(3.0);
-      }
+      
       ++fNEvents;
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();
