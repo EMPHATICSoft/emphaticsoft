@@ -184,18 +184,18 @@ namespace emph {
         		  << " " << fItUpstrTr->XSlope() << " " << fItUpstrTr->XSlopeErr() 
         		  << " " << fItUpstrTr->YSlope() << " " << fItUpstrTr->YSlopeErr(); 
 			   
-       std::vector<rb::DwnstrTrackAutre>::const_iterator itSel = useKlmTrack ? fTrsKlm.cbegin(): fTrs.cbegin(); 
+       std::vector<rbex::DwnstrTrack>::const_iterator itSel = useKlmTrack ? fTrsKlm.cbegin(): fTrs.cbegin(); 
        // Take the one with the smalled chi-Sq.  Should not happen as we have one Space Point in each of the downstream stations.. 
        double minChiSq = DBL_MAX;
        if (useKlmTrack) { 
          if (fTrsKlm.size() > 1) {
-           for (std::vector<rb::DwnstrTrackAutre>::const_iterator it=fTrsKlm.cbegin();  it!=fTrsKlm.cend(); it++) { 
+           for (std::vector<rbex::DwnstrTrack>::const_iterator it=fTrsKlm.cbegin();  it!=fTrsKlm.cend(); it++) { 
 	     if (it->ChiSq() < minChiSq) { itSel = it; minChiSq = it->ChiSq(); }
            }
          }
        } else { 
          if (fTrs.size() > 1) {
-           for (std::vector<rb::DwnstrTrackAutre>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++) { 
+           for (std::vector<rbex::DwnstrTrack>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++) { 
 	     if (it->ChiSq() < minChiSq) { itSel = it; minChiSq = it->ChiSq(); }
            }
          }
@@ -299,9 +299,9 @@ namespace emph {
 	  return false;
        }  
        const double finalChiSq = (*fFitterKlmFCN)(parsOut);
-       rb::DwnstrTrackAutre aTr;
+       rbex::DwnstrTrack aTr;
        aTr.SetID(trID);
-       aTr.SetType(rb::FOURSTATION);
+       aTr.SetType(rbex::FOURSTATION);
        aTr.SetChiSq(finalChiSq);
        aTr.SetChiSqKlmInfo(aChiSts, fFitterKlmFCN->ChiSqXView(), fFitterKlmFCN->ChiSqYView());
        const std::pair<double, double> xSt = fFitterKlmFCN->XStart(); 
@@ -329,14 +329,14 @@ namespace emph {
 			   << " chiSqk chiSqkSts chiSqkX chiSqkY" << std::endl;
        }
        int itNum = 0;
-       for (std::vector<rb::DwnstrTrackAutre>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++, itNum++) { 
+       for (std::vector<rbex::DwnstrTrack>::const_iterator it=fTrs.cbegin();  it!=fTrs.cend(); it++, itNum++) { 
          fFOutCmpKlmTracks << " " << fSubRunNum << " " << fEvtNum << " " << fTrs.size() << " " << itNum;
          fFOutCmpKlmTracks << " " << it->XOffset()  << " " << it->XOffsetErr()  << " " << it->XSlope() << " " << it->XSlopeErr() 
                           << " " << it->YOffset()  << " " << it->YOffsetErr()  << " " << it->YSlope() << " " << it->YSlopeErr() 
 			  << " " << it->Momentum() << " " << it->MomentumErr() <<  " " << it->ChiSq();
-	 std::vector<rb::DwnstrTrackAutre>::const_iterator itkSel=fTrsKlm.cbegin();
+	 std::vector<rbex::DwnstrTrack>::const_iterator itkSel=fTrsKlm.cbegin();
 	 double rrSqMin = DBL_MAX; int itkNum = 0; int itkNumSel = -1;		  
-	 for (std::vector<rb::DwnstrTrackAutre>::const_iterator itk=fTrsKlm.cbegin();  itk!=fTrsKlm.cend(); itk++, itkNum++) {
+	 for (std::vector<rbex::DwnstrTrack>::const_iterator itk=fTrsKlm.cbegin();  itk!=fTrsKlm.cend(); itk++, itkNum++) {
 	   if (it->ID() == itk->ID()) { itkSel= itk; itkNumSel = itk->ID(); break; }
 	 }
 	 fFOutCmpKlmTracks << " " << fTrsKlm.size() << " " << itkNumSel ;

@@ -24,13 +24,13 @@
 #include "RecoBase/SSDCluster.h" 
 #include "SSDReco/VolatileAlignmentParams.h" 
 #include "SSDReco/ConvertDigitToWCoordAutre.h" 
-#include "RecoBase/SSDStationPtAutre.h" 
+#include "RecoBase/SSDStationPt.h" 
 
 namespace emph{ 
   namespace ssdr {
 
     typedef std::vector<rb::SSDCluster>::const_iterator myItCl; 
-    typedef std::vector<rb::SSDStationPtAutre>::const_iterator myItStPt; 
+    typedef std::vector<rbex::SSDStationPt>::const_iterator myItStPt; 
     
     class SSD3DTrackKlmFitFCNAutre : public ROOT::Minuit2::FCNBase {
     

@@ -29,7 +29,6 @@ namespace emph {
       fTrId(itId), fIdClX0(ix0), fIdClY0(iy0), fIdClX1(ix1), fIdClY1(iy1),
       fIdSt2(i2), fIdSt3(i3), fIdSt4(i4), fIdSt5(i5) { ; }  
 					       
-						       
 
     SSDRecBrickTracksAutre::SSDRecBrickTracksAutre() :
       fEmgeo(nullptr),
@@ -203,7 +202,7 @@ namespace emph {
 	  if (distToBeamCenter > fDistFromBeamCenterCut) continue;
 	 // On to Station 5. 
           size_t kSt5=0;
-          for (std::vector<rb::SSDStationPtAutre>::const_iterator itSt5 = fInputStPts[3].CBegin(); 
+          for (std::vector<rbex::SSDStationPt>::const_iterator itSt5 = fInputStPts[3].CBegin(); 
 	      itSt5 != fInputStPts[3].CEnd(); itSt5++, kSt5++) {
 	   
 	    // Station point X and Y are already expressec in global coord, Rolls corrected.
@@ -253,7 +252,7 @@ namespace emph {
 	        const double ySt2Pred = yVal0Corr + ySlope * fDeltaZY[2];
 	        const double xSt2PredErrSq = itX0->second*itX0->second + xSlopeErrSq	* fDeltaZSqX[2]; // no correlation taken into account. 
 	        const double ySt2PredErrSq = itY0->second*itY0->second + ySlopeErrSq	* fDeltaZSqY[2]; // no correlation taken into account. 
-                for (std::vector<rb::SSDStationPtAutre>::const_iterator itSt2 = fInputStPts[0].CBegin(); 
+                for (std::vector<rbex::SSDStationPt>::const_iterator itSt2 = fInputStPts[0].CBegin(); 
 	                   itSt2 != fInputStPts[0].CEnd(); itSt2++, kSt2++) { 
 	          if (fDebugIsOn) std::cerr << " ... At station 2, at x = " << itSt2->X() << " Y " << itSt2->Y() << std::endl; 
                   const double xVal2Corr = itSt2->X(); // Already corrected for rotation.. 
@@ -270,7 +269,7 @@ namespace emph {
 	          const double ySt3Pred = yVal0Corr + ySlope * fDeltaZY[3];
 	          const double xSt3PredErrSq = itX0->second*itX0->second + xSlopeErrSq	* fDeltaZSqX[3]; // no correlation taken into account. 
 	          const double ySt3PredErrSq = itY0->second*itY0->second + ySlopeErrSq	* fDeltaZSqY[3]; // no correlation taken into account. 
-                  for (std::vector<rb::SSDStationPtAutre>::const_iterator itSt3 = fInputStPts[1].CBegin(); 
+                  for (std::vector<rbex::SSDStationPt>::const_iterator itSt3 = fInputStPts[1].CBegin(); 
 	                   itSt3 != fInputStPts[1].CEnd(); itSt3++, kSt3++) { 
  	            if (fDebugIsOn) std::cerr << " ... ... At station 3, at x = " << itSt3->X() << " Y " << itSt3->Y() << std::endl; 
                     const double xVal3Corr = itSt3->X(); // Already corrected for rotation.. 
@@ -288,7 +287,7 @@ namespace emph {
 	            const double ySt4Pred = yVal0Corr + ySlope * fDeltaZY[4];
 	            const double xSt4PredErrSq = itX0->second*itX0->second + xSlopeErrSq	* fDeltaZSqX[4]; // no correlation taken into account. 
 	            const double ySt4PredErrSq = itY0->second*itY0->second + ySlopeErrSq	* fDeltaZSqY[4]; // no correlation taken into account. 
-                    for (std::vector<rb::SSDStationPtAutre>::const_iterator itSt4 = fInputStPts[2].CBegin(); 
+                    for (std::vector<rbex::SSDStationPt>::const_iterator itSt4 = fInputStPts[2].CBegin(); 
 	          	  itSt4 != fInputStPts[2].CEnd(); itSt4++, kSt4++) { 
   	              if (fDebugIsOn) std::cerr << " ... ... ... At station 4, at x = " << itSt4->X() << " Y " << itSt4->Y() << std::endl; 
                       const double xVal4Corr = itSt4->X(); // Already corrected for rotation.. 
@@ -309,11 +308,11 @@ namespace emph {
 	              fFitterFCN->AddInputPt(itSt3);
 	              fFitterFCN->AddInputPt(itSt4);
 	              fFitterFCN->AddInputPt(itSt5);
-	              if (this->doFitAndStore(rb::SIXSTATION, xVal0Corr, yVal0Corr, xSlope, ySlope)) {
+	              if (this->doFitAndStore(rbex::SIXSTATION, xVal0Corr, yVal0Corr, xSlope, ySlope)) {
 		    //  Good track.. Might be a duplicate, to b sorted out later. 
 		        if (fDebugIsOn) std::cerr << " Got a track, numTrack now " << fTrs.size() << std::endl;
 	                int kTrCnt = static_cast<int>(fTrs.size());
-			std::vector<rb::DwnstrTrackAutre>::reverse_iterator itNewTr= fTrs.rbegin(); itNewTr->SetID(kTrCnt);
+			std::vector<rbex::DwnstrTrack>::reverse_iterator itNewTr= fTrs.rbegin(); itNewTr->SetID(kTrCnt);
 			int uFlagInc = 1000 * (kTrCnt-1);
 		        itSt2->SetUserFlag(uFlagInc + itSt2->UserFlag()); itSt3->SetUserFlag(uFlagInc + itSt3->UserFlag()); 
 		        itSt4->SetUserFlag(uFlagInc + itSt4->UserFlag()); itSt5->SetUserFlag(uFlagInc + itSt5->UserFlag()); 
@@ -348,7 +347,7 @@ namespace emph {
       return fTrs.size(); 
     }
     //
-    bool SSDRecBrickTracksAutre::doFitAndStore(rb::DwnstrTrType type, double xStart, double yStart, 
+    bool SSDRecBrickTracksAutre::doFitAndStore(rbex::DwnstrTrType type, double xStart, double yStart, 
                                double xSlopeStart, double ySlopeStart) {
        ROOT::Minuit2::MnUserParameters uPars;
        std::vector<double> parsOut, parsOutErr;
@@ -406,7 +405,7 @@ namespace emph {
        }
        if (fDebugIsOn && (flagValid == 1)) std::cerr <<  " Migrad fit succeeded, chiSq " << chiSq << std::endl;
        if (fDebugIsOn && (flagValid == 2)) std::cerr <<  " Simplex fit succeeded, chiSq " << chiSq << std::endl;
-       rb::DwnstrTrackAutre aTr; 
+       rbex::DwnstrTrack aTr; 
        aTr.SetType(type); 
        if (parsOut.size() == 5) { 
          aTr.SetTrParams(parsOut[0], parsOut[1], parsOut[2], parsOut[3], 1.0/parsOut[4]);
@@ -429,9 +428,9 @@ namespace emph {
        return false;
     } // doFitAndStore
     //
-    bool SSDRecBrickTracksAutre::IsAlreadyFound(const rb::DwnstrTrackAutre &aTr) const {  // this needs tuning.. 
+    bool SSDRecBrickTracksAutre::IsAlreadyFound(const rbex::DwnstrTrack &aTr) const {  // this needs tuning.. 
       if (fTrs.size() == 0) return false;
-      for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it ++) {
+      for (std::vector<rbex::DwnstrTrack>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it ++) {
         if ((std::abs(aTr.XSlope() - it->XSlope()) < 1.0e-5) && 
 	    (std::abs(aTr.YSlope() - it->YSlope()) < 1.0e-5)) return true;   
       }
@@ -455,7 +454,7 @@ namespace emph {
         if (fDebugIsOn) std::cerr << " .... nItrBigLoop " << nItrBigLoop << std::endl;
         bool hasChanged = false;
 	for (size_t kArbA = 0; kArbA != fTrsForArb.size() - 1; kArbA++) {
-	  std::vector<rb::DwnstrTrackAutre>::iterator itA = this->GetTrackPtr(fTrsForArb[kArbA].fTrId); 
+	  std::vector<rbex::DwnstrTrack>::iterator itA = this->GetTrackPtr(fTrsForArb[kArbA].fTrId); 
 	  if (itA == fTrs.end()) {
             std::cerr << " SSDRecBrickTracksAutre::Arbitrate Logic error, unknown trackid " 
 	             << fTrsForArb[kArbA].fTrId << std::endl;
@@ -465,7 +464,7 @@ namespace emph {
 	  const double x5A = itA->XOffset() + fDeltaZX[5]*itA->XSlope();
 	  const double y5A = itA->YOffset() + fDeltaZY[5]*itA->YSlope();
 	  for (size_t kArbB = kArbA+1; kArbB != fTrsForArb.size(); kArbB++) { 
-	    std::vector<rb::DwnstrTrackAutre>::iterator itB = this->GetTrackPtr(fTrsForArb[kArbB].fTrId); 
+	    std::vector<rbex::DwnstrTrack>::iterator itB = this->GetTrackPtr(fTrsForArb[kArbB].fTrId); 
 	    if (itB == fTrs.end()) {
               std::cerr << " SSDRecBrickTracksAutre::Arbitrate Logic error, 2nd loop, unknown trackid " 
 	             << fTrsForArb[kArbB].fTrId << std::endl;
@@ -508,7 +507,7 @@ namespace emph {
         if (!hasChanged) break;
 	nItrBigLoop++;
 	if (nItrBigLoop > 100) { // kill this event.. too messy... 
-	  for (std::vector<rb::DwnstrTrackAutre>::iterator it=fTrs.begin(); it != fTrs.end(); it++) it->SetChiSq(DBL_MAX);
+	  for (std::vector<rbex::DwnstrTrack>::iterator it=fTrs.begin(); it != fTrs.end(); it++) it->SetChiSq(DBL_MAX);
 	  std::cerr << " SSDRecBrickTracksAutre::Arbitrate, spill " << fSubRunNum << " evt " 
 	            << fEvtNum << " too messy, reject this event.. " << std::endl;
 	  return 0;
@@ -539,11 +538,11 @@ namespace emph {
        headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fTrs.size(); 
        std::string headerStr(headerStrStr.str());
        int nTrOK = 0; 
-       for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++)  
+       for (std::vector<rbex::DwnstrTrack>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++)  
          if (it->ChiSq() < DBL_MAX) nTrOK++;
 
        size_t k=0;
-       for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++, k++) { 
+       for (std::vector<rbex::DwnstrTrack>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++, k++) { 
          if (it->ChiSq() >= DBL_MAX) continue;
          fFOutTrs << headerStr << " " << nTrOK << " " << it->ID() << " " << it->Type()  
 	         << " " << it->XOffset() << " " << it->XOffsetErr() << " " << it->XSlope() << " " << it->XSlopeErr()
@@ -566,7 +565,7 @@ namespace emph {
        // Version 1g:  Consider only the single track events.. And wide angle.. 
        int numOKTracks = 0;
         for (std::vector<SSDTrPreArbitrationAutre>::const_iterator itTArb = fTrsForArb.cbegin(); itTArb != fTrsForArb.cend(); itTArb++) { 
-         std::vector<rb::DwnstrTrackAutre>::const_iterator itTr = GetTrackPtrConst(itTArb->fTrId);
+         std::vector<rbex::DwnstrTrack>::const_iterator itTr = GetTrackPtrConst(itTArb->fTrId);
 	 if (itTr == fTrs.cend()) continue; // Should not happen.. 
 	 if (itTr->ChiSq() > 1.0e9) continue; // Could happen, duplicated or really bad track.
 	 const double scatAngle = std::sqrt(itTr->XSlope() * itTr->XSlope() +  itTr->YSlope() * itTr->YSlope());
@@ -578,7 +577,7 @@ namespace emph {
        int numClReal = 0;
        const double stripAvNone = 0.; const double stripRmsNone = 1.0e9; 
        for (std::vector<SSDTrPreArbitrationAutre>::const_iterator itTArb = fTrsForArb.cbegin(); itTArb != fTrsForArb.cend(); itTArb++) { 
-         std::vector<rb::DwnstrTrackAutre>::const_iterator itTr = GetTrackPtrConst(itTArb->fTrId);
+         std::vector<rbex::DwnstrTrack>::const_iterator itTr = GetTrackPtrConst(itTArb->fTrId);
 	 if (itTr == fTrs.cend()) continue; // Should not happen.. 
 	 if (itTr->ChiSq() > 1.0e9) continue; // Could happen, duplicated or really bad track.
 	 const double scatAngle = std::sqrt(itTr->XSlope() * itTr->XSlope() +  itTr->YSlope() * itTr->YSlope());
@@ -630,7 +629,7 @@ namespace emph {
 	                 << kSt << " fatal " << std::endl; exit(2); 
 	     }  
 	   }
-	   std::vector<rb::SSDStationPtAutre>::const_iterator itSt = fInputStPts[kkSt].GetStationPointPtr(idStPt); 
+	   std::vector<rbex::SSDStationPt>::const_iterator itSt = fInputStPts[kkSt].GetStationPointPtr(idStPt); 
 	   if (itSt == fInputStPts[kkSt].CEnd()) continue; // Should not happen.. 
 	   size_t numClInSpSt = itSt->NumClusters();
 	   if (itSt->Station() != static_cast<int>(kSt)) {

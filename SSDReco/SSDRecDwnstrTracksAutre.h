@@ -4,8 +4,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef SSDRECDWNSTRTRACKSALGO1_H
-#define SSDRECDWNSTRTRACKSALGO1_H
+#ifndef SSDRECDWNSTRTRACKSAUTRE_H
+#define SSDRECDWNSTRTRACKSAUTRE_H
 #include <vector>
 #include <stdint.h>
 #include <iostream>
@@ -17,9 +17,9 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/VolatileAlignmentParams.h"
-#include "RecoBase/SSDStationPtAutre.h" 
+#include "RecoBase/SSDStationPt.h" 
 #include "RecoBase/BeamTrack.h" 
-#include "RecoBase/DwnstrTrackAutre.h" 
+#include "RecoBase/DwnstrTrack.h" 
 #include "SSDReco/SSD3DTrackFitFCNAutre.h"
 #include "SSDReco/SSDDwnstrTrackFitFCNAutre.h"
 #include "SSDReco/SSD3DTrackKlmFitFCNAutre.h"
@@ -30,187 +30,193 @@
 namespace emph { 
   namespace ssdr {
   
-    typedef std::vector<rb::SSDStationPtAutre>::const_iterator myItStPt; 
+    typedef std::vector<rbex::SSDStationPt>::const_iterator myItStPt; 
  				
-    class SSDRecDwnstrTracksAutre {
-    
-       public:
-      
-	SSDRecDwnstrTracksAutre(); // No args .. for now.. 
+    class SSDRecDwnstrTracksAutre 
+    {
+      public:
+        SSDRecDwnstrTracksAutre(); // No args .. for now.. 
         ~SSDRecDwnstrTracksAutre();
 	
         private:
-	  static const double fSqrt2, fOneOverSqrt2;
+          static const double fSqrt2, fOneOverSqrt2;
           art::ServiceHandle<emph::geo::GeometryService> fGeoService;
           emph::geo::Geometry *fEmgeo;
           emph::ssdr::VolatileAlignmentParams *fEmVolAlP;
-	  ssdr::ConvertDigitToWCoordAutre fCoordConvert;   
-	    //  This is also invoked in SSDRecStationPoints.. Along the volatile Alignment Params, should be an art service.  
-	  int fRunNum;  // The usual Ids for a art::event 
-	  int fSubRunNum;
-	  int fEvtNum;
-	  int fNEvents; // Incremental events count for a given job. 
-	  int fMaxDwnstrStation; // In the track fit, incorporate or not the last downstream station. 
-	  bool fDebugIsOn;
-	  bool fIsMC; // The usual Ugly flag.. 
-	  bool fIsGoodForAlignment, fIsPerfectForAlignment;  
-	  bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
-	  bool fNoMagnet; // set once we know the geometry.. 
-	  double fChiSqCut, fChiSqCutKlm;
-	  double fPrelimMomentum; // to compute multiple scattering uncertainty. 
-	  double fChiSqCutPreArb;
-	  bool fDoUseUpstreamTrack; 
-	  bool fHasUniqueYWSt4; // Special case for station 4.. missing read out chip. 
-	  std::string fTokenJob;
-	  ssdr::SSDDwnstrTrackFitFCNAutre *fFitterFCN;
-	  ssdr::SSD3DTrackFitFCNAutre *fUpDownFitterFCN;
-	  ssdr::SSD3DTrackKlmFitFCNAutre *fFitterKlmFCN;
-	  //
+	        ssdr::ConvertDigitToWCoordAutre fCoordConvert;   
+	        //  This is also invoked in SSDRecStationPoints.. Along the volatile Alignment Params, should be an art service.  
+          int fRunNum;  // The usual Ids for a art::event 
+          int fSubRunNum;
+          int fEvtNum;
+          int fNEvents; // Incremental events count for a given job. 
+          int fMaxDwnstrStation; // In the track fit, incorporate or not the last downstream station. 
+          bool fDebugIsOn;
+          bool fIsMC; // The usual Ugly flag.. 
+          bool fIsGoodForAlignment, fIsPerfectForAlignment;  
+          bool fDoMigrad; // set to true, unless we are really begging for CPU cycles.. or Migrad fails too often. 
+          bool fNoMagnet; // set once we know the geometry.. 
+          double fChiSqCut, fChiSqCutKlm;
+          double fPrelimMomentum; // to compute multiple scattering uncertainty. 
+          double fChiSqCutPreArb;
+          bool fDoUseUpstreamTrack; 
+          bool fHasUniqueYWSt4; // Special case for station 4.. missing read out chip. 
+          std::string fTokenJob;
+          ssdr::SSDDwnstrTrackFitFCNAutre *fFitterFCN;
+          ssdr::SSD3DTrackFitFCNAutre *fUpDownFitterFCN;
+          ssdr::SSD3DTrackKlmFitFCNAutre *fFitterKlmFCN;
           ssdr::SSDRecStationDwnstrAutre fInputSt2Pts, fInputSt3Pts, fInputSt4Pts, fInputSt5Pts, fInputSt6Pts ;
-	  // Station 7 appear to be empty on run 2098, 2113..  
+          // Station 7 appear to be empty on run 2098, 2113..  
+          
+          std::vector<myItCl> fDataItClForFits; // for UpDown 3D fits.. 
+          
+          std::vector<rbex::DwnstrTrack> fTrs; // the tracks, produced here..  
+          std::vector<rbex::DwnstrTrack> fTrsKlm; // the tracks, produced here, with the Kalman filter (with one param, the momentum).   
+          
+          mutable std::ofstream fFOutTrs;
+          mutable std::ofstream fFOutCompact; 
+          mutable std::ofstream fFOutCompactInfo; 
+          mutable std::ofstream fFOutCmpBeamTracks; 
+          mutable std::ofstream fFOutCmpKlmTracks; 
+          // Internal stuff.. Simplt transfer information between the fit driver and the pattern recognition bit. 
+          double fPrelimFitMom;
+          double fPrelimFitChiSq;
+          mutable std::vector<rb::BeamTrack>::const_iterator fItUpstrTr; // a set of Dangling pointer.  
+	        // Use with caution. access protected by above boolean.
+	        rb::BeamTrack fUpStrDwnStrTrack; // global fit, to compare accuracy or biases. 
 	  
-	  std::vector<myItCl> fDataItClForFits; // for UpDown 3D fits.. 
-	   
-	  std::vector<rb::DwnstrTrackAutre> fTrs; // the tracks, produced here..  
-	  std::vector<rb::DwnstrTrackAutre> fTrsKlm; // the tracks, produced here, with the Kalman filter (with one param, the momentum).   
-	   
-	  mutable std::ofstream fFOutTrs;
-	  mutable std::ofstream fFOutCompact; 
-	  mutable std::ofstream fFOutCompactInfo; 
-	  mutable std::ofstream fFOutCmpBeamTracks; 
-	  mutable std::ofstream fFOutCmpKlmTracks; 
-	  // Internal stuff.. Simplt transfer information between the fit driver and the pattern recognition bit. 
-	  double fPrelimFitMom;
-	  double fPrelimFitChiSq;
-	  mutable std::vector<rb::BeamTrack>::const_iterator fItUpstrTr; // a set of Dangling pointer.  
-	    // Use with caution. access protected by above boolean.
-	  rb::BeamTrack fUpStrDwnStrTrack; // global fit, to compare accuracy or biases. 
-	  
-	public:
-	 inline void SetDebugOn(bool v = true) { 
-	   fDebugIsOn = v; fInputSt2Pts.SetDebugOn(v); 
-	   fInputSt3Pts.SetDebugOn(v); fInputSt4Pts.SetDebugOn(v); fInputSt5Pts.SetDebugOn(v); fInputSt6Pts.SetDebugOn(v);
-	 }
-         inline void SetRun(int aRunNum) { 
-	   fRunNum = aRunNum; fInputSt2Pts.SetRun(aRunNum);
-	   fInputSt3Pts.SetRun(aRunNum); fInputSt4Pts.SetRun(aRunNum);fInputSt5Pts.SetRun(aRunNum); fInputSt6Pts.SetRun(aRunNum);
-	 } 
-         inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
-	 inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
-	 inline void SetChiSqCut (double v) { fChiSqCut = v; }
-	 inline void SetChiSqCutKlm (double v) { fChiSqCutKlm = v; }
-	 inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
-	 inline void SetMaxDwnstrStation(int i) {fMaxDwnstrStation = i; } 
+      public:
+        inline void SetDebugOn(bool v = true) 
+        { 
+          fDebugIsOn = v; fInputSt2Pts.SetDebugOn(v); 
+          fInputSt3Pts.SetDebugOn(v); fInputSt4Pts.SetDebugOn(v); fInputSt5Pts.SetDebugOn(v); fInputSt6Pts.SetDebugOn(v);
+        }
+        inline void SetRun(int aRunNum) 
+        { 
+          fRunNum = aRunNum; fInputSt2Pts.SetRun(aRunNum);
+          fInputSt3Pts.SetRun(aRunNum); fInputSt4Pts.SetRun(aRunNum);fInputSt5Pts.SetRun(aRunNum); fInputSt6Pts.SetRun(aRunNum);
+        } 
+        inline void SetSubRun(int aSubR) { fSubRunNum = aSubR; } 
+        inline void SetEvtNum(int aEvt) { fEvtNum = aEvt; } 
+        inline void SetChiSqCut (double v) { fChiSqCut = v; }
+        inline void SetChiSqCutKlm (double v) { fChiSqCutKlm = v; }
+        inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
+        inline void SetMaxDwnstrStation(int i) {fMaxDwnstrStation = i; } 
+	
+        inline void SetItUpstreamTrack(std::vector<rb::BeamTrack>::const_iterator it) { fItUpstrTr = it; }
+        inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
+        inline void SetDoUseUpstreamTrack() { fDoUseUpstreamTrack = true; }
+        inline void SetPreliminaryMomentum(double p) 
+        { // For multiple scattering uncertainties.. 
+          fPrelimMomentum = p; 
+          fCoordConvert.SetForMomentum(p);
+          fInputSt2Pts.SetPreliminaryMomentum(p); 
+          fInputSt3Pts.SetPreliminaryMomentum(p); 
+          fInputSt4Pts.SetPreliminaryMomentum(p); 
+          fInputSt5Pts.SetPreliminaryMomentum(p); 
+          fInputSt6Pts.SetPreliminaryMomentum(p); 
+	      } 
+	      inline void SetForMC(bool v=true) 
+        { // For multiple scattering uncertainties.. // Obsolete..
+          fIsMC = v;
+          fCoordConvert.SetForMC(v);
+          fInputSt2Pts.SetForMC(v); 
+          fInputSt3Pts.SetForMC(v); 
+          fInputSt4Pts.SetForMC(v); 
+          fInputSt5Pts.SetForMC(v); 
+          fInputSt6Pts.SetForMC(v); 
+	      }
+	      inline void SetCoeffsAlignUncert(double x, double y) 
+        {
+          fCoordConvert.SetCoeffsAlignUncert(x, y); // We clearly should make this a singleton class.. or move it to a service. 
+          fInputSt2Pts.SetCoeffsAlignUncert(x,  y); 
+          fInputSt3Pts.SetCoeffsAlignUncert(x,  y); 
+          fInputSt4Pts.SetCoeffsAlignUncert(x,  y); 
+          fInputSt5Pts.SetCoeffsAlignUncert(x,  y); 
+          fInputSt6Pts.SetCoeffsAlignUncert(x,  y); 
+	      } 
+	      inline void SetTokenJob(const std::string &aT) 
+        { 
+          fTokenJob = aT; fInputSt2Pts.SetTokenJob(aT); 
+          fInputSt3Pts.SetTokenJob(aT); fInputSt4Pts.SetTokenJob(aT); fInputSt5Pts.SetTokenJob(aT); fInputSt6Pts.SetTokenJob(aT);
+	      }
+        inline void Clear() { fTrs.clear(); fTrsKlm.clear();}
+        inline void SetChiSqCutRecStation(size_t kSt, double c) 
+        { 
+          switch (kSt) 
+          {
+            case 2 : { fInputSt2Pts.SetChiSqCut(c); return; } 
+            case 3 : { fInputSt3Pts.SetChiSqCut(c); return; } 
+            case 4 : { fInputSt4Pts.SetChiSqCut(c); return; }  
+            case 5 : { fInputSt5Pts.SetChiSqCut(c); return; }
+            case 6 : { fInputSt6Pts.SetChiSqCut(c); return; }
+            default : { return; }  
+          }
+        }
+        //
+        // Getter, only one output, the reconstructed track.. 
+        //
+        inline int RunNum() const { return fRunNum; }
+        inline int SubRunNum() const { return fSubRunNum; }
+        inline int EvtNum() const { return fEvtNum; }
+        inline rbex::DwnstrTrack GetTr(std::vector<rbex::DwnstrTrack>::const_iterator it) const { return *it; } // Deep copy, but small struct.. 
+        inline size_t Size() const {return fTrs.size(); }
+        inline size_t SizeOK() const 
+        {
+          size_t n=0;
+          if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAutre::SizeOK, on " << fTrs.size() << std::endl;
+          for (std::vector<rbex::DwnstrTrack>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++) {
+      //	     std::cerr << " ......   Type " << it->Type() << "  chiSq " << it->ChiSq() << " chiSq cut " << fChiSqCut << std::endl;
+            if (((it->Type() == 17) || (it->Type() == 12)) && (!isnan(it->ChiSq())) &&  (it->ChiSq() < fChiSqCut)) n++; 
+          }
+          return n;
+	      }
+        inline std::vector<rbex::DwnstrTrack>::const_iterator CBegin() const { return fTrs.cbegin(); } 
+        inline std::vector<rbex::DwnstrTrack>::const_iterator CEnd() const { return fTrs.cend(); } 
+        inline bool IsGoodForAlignment() const { return fIsGoodForAlignment; } 
+        inline bool IsPerfectForAlignment() const { return fIsPerfectForAlignment; } 
+        bool HasGoodHighPForAlignment(double pMin, double chiSqMax=1000. ) const;
+        
+        size_t RecStation(size_t kSt, const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
 	 
-//	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrack>::const_iterator it) { fDoUseUpstreamTrack = true; fItUpstrTr = it; }
-	 inline void SetItUpstreamTrack(std::vector<rb::BeamTrack>::const_iterator it) { fItUpstrTr = it; }
-	 inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
-	 inline void SetDoUseUpstreamTrack() { fDoUseUpstreamTrack = true; }
-	 inline void SetPreliminaryMomentum(double p) { // For multiple scattering uncertainties.. 
-	   fPrelimMomentum = p; 
-	   fCoordConvert.SetForMomentum(p);
-	   fInputSt2Pts.SetPreliminaryMomentum(p); 
-	   fInputSt3Pts.SetPreliminaryMomentum(p); 
-	   fInputSt4Pts.SetPreliminaryMomentum(p); 
-	   fInputSt5Pts.SetPreliminaryMomentum(p); 
-	   fInputSt6Pts.SetPreliminaryMomentum(p); 
-	 } 
-	 inline void SetForMC(bool v=true) { // For multiple scattering uncertainties.. // Obsolete..
-	   fIsMC = v;
-	   fCoordConvert.SetForMC(v);
-	   fInputSt2Pts.SetForMC(v); 
-	   fInputSt3Pts.SetForMC(v); 
-	   fInputSt4Pts.SetForMC(v); 
-	   fInputSt5Pts.SetForMC(v); 
-	   fInputSt6Pts.SetForMC(v); 
-	 }
-	 inline void SetCoeffsAlignUncert(double x, double y) {
-//	   std::cerr << " ... SSDRecDwnstrTracksAutre::SetCoeffsAlignUncert, x " << x << " y " << y << std::endl;
-	   fCoordConvert.SetCoeffsAlignUncert(x, y); // We clearly should make this a singleton class.. or move it to a service. 
-	   fInputSt2Pts.SetCoeffsAlignUncert(x,  y); 
-	   fInputSt3Pts.SetCoeffsAlignUncert(x,  y); 
-	   fInputSt4Pts.SetCoeffsAlignUncert(x,  y); 
-	   fInputSt5Pts.SetCoeffsAlignUncert(x,  y); 
-	   fInputSt6Pts.SetCoeffsAlignUncert(x,  y); 
-	 } 
-	 inline void SetTokenJob(const std::string &aT) { 
-	   fTokenJob = aT; fInputSt2Pts.SetTokenJob(aT); 
-	   fInputSt3Pts.SetTokenJob(aT); fInputSt4Pts.SetTokenJob(aT); fInputSt5Pts.SetTokenJob(aT); fInputSt6Pts.SetTokenJob(aT);
-	 }
-	 inline void Clear() { fTrs.clear(); fTrsKlm.clear();}
-	 inline void SetChiSqCutRecStation(size_t kSt, double c) { 
-	   switch (kSt) {
-	    case 2 : { fInputSt2Pts.SetChiSqCut(c); return; } 
-	    case 3 : { fInputSt3Pts.SetChiSqCut(c); return; } 
-	    case 4 : { fInputSt4Pts.SetChiSqCut(c); return; }  
-	    case 5 : { fInputSt5Pts.SetChiSqCut(c); return; }
-	    case 6 : { fInputSt6Pts.SetChiSqCut(c); return; }
-	    default : { return; }  
-	   }
-	 }
-	 //
-	 // Getter, only one output, the reconstructed track.. 
-	 //
-	 inline int RunNum() const { return fRunNum; }
-	 inline int SubRunNum() const { return fSubRunNum; }
-	 inline int EvtNum() const { return fEvtNum; }
-	 inline rb::DwnstrTrackAutre GetTr(std::vector<rb::DwnstrTrackAutre>::const_iterator it) const { return *it; } // Deep copy, but small struct.. 
-	 inline size_t Size() const {return fTrs.size(); }
-	 inline size_t SizeOK() const {
-	   size_t n=0;
-	   if (fDebugIsOn) std::cerr << " SSDRecDwnstrTracksAutre::SizeOK, on " << fTrs.size() << std::endl;
-	   for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = fTrs.cbegin(); it != fTrs.cend(); it++) {
-//	     std::cerr << " ......   Type " << it->Type() << "  chiSq " << it->ChiSq() << " chiSq cut " << fChiSqCut << std::endl;
-	     if (((it->Type() == 17) || (it->Type() == 12)) && (!isnan(it->ChiSq())) &&  (it->ChiSq() < fChiSqCut)) n++; 
-	   }
-	   return n;
-	  }
-	 inline std::vector<rb::DwnstrTrackAutre>::const_iterator CBegin() const { return fTrs.cbegin(); } 
-	 inline std::vector<rb::DwnstrTrackAutre>::const_iterator CEnd() const { return fTrs.cend(); } 
-	 inline bool IsGoodForAlignment() const { return fIsGoodForAlignment; } 
-	 inline bool IsPerfectForAlignment() const { return fIsPerfectForAlignment; } 
-	 bool HasGoodHighPForAlignment(double pMin, double chiSqMax=1000. ) const;
+        size_t RecAndFitIt(const art::Event &evt); 
+        void dumpInfoForR() const;
+        inline void dumpStInfoForR() const {
+          if (fInputSt2Pts.Size() > 0) fInputSt2Pts.dumpInfoForR(); 
+          if (fInputSt3Pts.Size() > 0) fInputSt3Pts.dumpInfoForR(); 
+          if (fInputSt4Pts.Size() > 0) fInputSt4Pts.dumpInfoForR(); 
+          if (fInputSt5Pts.Size() > 0) fInputSt5Pts.dumpInfoForR();
+          if (fInputSt6Pts.Size() > 0) fInputSt6Pts.dumpInfoForR();
+        }
+        inline int NumTripletsSt2and3() const {
+          return  (fInputSt2Pts.NumTriplets() + fInputSt3Pts.NumTriplets());
+        }
+        inline int NumTripletsSt5and6() const {
+          return  (fInputSt5Pts.NumTriplets() + fInputSt6Pts.NumTriplets());
+        }
 	 
-	 size_t RecStation(size_t kSt, const art::Event &evt, const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr);
+        void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
+        void dumpBeamTracksCmp(bool useKlm = false) const; // Compare the beam track parameters estimates.. 	 
+        void dumpBeamTracksCmpKlm() const; // Compare the beam track parameters estimates.. 	 
+        bool doUpDwn3DClFitAndStore( double pStart = 50.);
+        bool doDwn3DKlmFitAndStore(int TrId, const std::vector<myItStPt> &dataIn,  double pStart = 50.);
+        void transferKlmToClFit(); 
 	 
-	 size_t RecAndFitIt(const art::Event &evt); 
-	 void dumpInfoForR() const;
-	 inline void dumpStInfoForR() const {
-	   if (fInputSt2Pts.Size() > 0) fInputSt2Pts.dumpInfoForR(); 
-	   if (fInputSt3Pts.Size() > 0) fInputSt3Pts.dumpInfoForR(); 
-	   if (fInputSt4Pts.Size() > 0) fInputSt4Pts.dumpInfoForR(); 
-	   if (fInputSt5Pts.Size() > 0) fInputSt5Pts.dumpInfoForR();
-	   if (fInputSt6Pts.Size() > 0) fInputSt6Pts.dumpInfoForR();
-	 }
-	 inline int NumTripletsSt2and3() const {
-	   return  (fInputSt2Pts.NumTriplets() + fInputSt3Pts.NumTriplets());
-	 }
-	 inline int NumTripletsSt5and6() const {
-	   return  (fInputSt5Pts.NumTriplets() + fInputSt6Pts.NumTriplets());
-	 }
+      private:
 	 
-	 void dumpCompactEvt(const art::Handle<std::vector<rb::SSDCluster> > aSSDClsPtr ); 
-	 void dumpBeamTracksCmp(bool useKlm = false) const; // Compare the beam track parameters estimates.. 	 
-	 void dumpBeamTracksCmpKlm() const; // Compare the beam track parameters estimates.. 	 
-	 bool doUpDwn3DClFitAndStore( double pStart = 50.);
-	 bool doDwn3DKlmFitAndStore(int TrId, const std::vector<myItStPt> &dataIn,  double pStart = 50.);
-	 void transferKlmToClFit(); 
-	 
-       private:
-	 
-	 size_t RecAndFitAll4Stations();
-	 
-	 size_t RecAndFitStation234(); // for Phase1b, currently disabled. 
-	 size_t RecAndFitStation235(); // for Phase1b, currently disabled. 
-	 size_t RecAndFitStation2356(); // for Phase1c, 
-	 size_t RecAndFitStation2345(); // for Phase1c, 
-	 bool doFitAndStore(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart, 
-	                     double pStart = 50., bool skipStore = true);
-	 bool doPrelimFit(rb::DwnstrTrType aType, double xStart, double yStart, double xSlopeStart, double ySlopeStart);
-	 bool IsAlreadyFound(const rb::DwnstrTrackAutre &aTr) const;	 
-	 void openOutputCsvFiles() const;
+        size_t RecAndFitAll4Stations();
+        
+        size_t RecAndFitStation234(); // for Phase1b, currently disabled. 
+        size_t RecAndFitStation235(); // for Phase1b, currently disabled. 
+        size_t RecAndFitStation2356(); // for Phase1c, 
+        size_t RecAndFitStation2345(); // for Phase1c, 
+        bool doFitAndStore(rbex::DwnstrTrType aType, double xStart, double yStart, 
+                           double xSlopeStart, double ySlopeStart, double pStart = 50., 
+                           bool skipStore = true);
+        bool doPrelimFit(rbex::DwnstrTrType aType, double xStart, double yStart, 
+                          double xSlopeStart, double ySlopeStart);
+        bool IsAlreadyFound(const rbex::DwnstrTrack &aTr) const;	 
+        void openOutputCsvFiles() const;
     };
-  
   } // namespace ssdr
 }// namespace emph
 

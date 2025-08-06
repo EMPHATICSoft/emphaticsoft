@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   3D non-linear fit FCN function for Beam Track alignment, downstream of the target. 
 ///          Depends on the magnetic field map.
-///          Input data is a vector of  rb::SSDStationPtAutre 
+///          Input data is a vector of  rbex::SSDStationPt 
 ///          Requires Minuit2 
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef SSDVERTEXFITFCNALGO1_H
-#define SSDVERTEXFITFCNALGO1_H
+#ifndef SSDVERTEXFITFCNAUTRE_H
+#define SSDVERTEXFITFCNAUTRE_H
 
 #include <vector>
 #include <stdint.h>
@@ -18,13 +18,13 @@
 
 #include "Minuit2/FCNBase.h"
 #include "RecoBase/BeamTrack.h" 
-#include "RecoBase/DwnstrTrackAutre.h" 
+#include "RecoBase/DwnstrTrack.h" 
 
 namespace emph{ 
   namespace ssdr {
     
     typedef std::vector<rb::BeamTrack>::const_iterator myBeamTrPtr;  
-    typedef std::vector<rb::DwnstrTrackAutre>::const_iterator myDwnTrPtr;  
+    typedef std::vector<rbex::DwnstrTrack>::const_iterator myDwnTrPtr;  
 
     class SSDVertexFitFCNAutre : public ROOT::Minuit2::FCNBase {
     
@@ -49,7 +49,7 @@ namespace emph{
      
       // Adding  upstream or Beam track. 
       inline void SetInputUpstrTr(myBeamTrPtr itBeam) { fDataUpstr = itBeam; }
-      inline void AddInputDwn(std::vector<rb::DwnstrTrackAutre>::const_iterator it) { fDataDwn.push_back(it); }  
+      inline void AddInputDwn(std::vector<rbex::DwnstrTrack>::const_iterator it) { fDataDwn.push_back(it); }  
       inline void ResetInput() { 
         fDataDwn.clear();
        //   fDataUpstr = nullptr; proper value of dangling iterator..?? 

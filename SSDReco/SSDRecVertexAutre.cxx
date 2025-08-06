@@ -12,7 +12,7 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
-#include "RecoBase/VertexAutre.h"
+#include "RecoBase/Vertex.h"
 #include "SSDReco/SSDRecVertexAutre.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserParameterState.h"
@@ -58,7 +58,7 @@ namespace emph {
 	                " at Station 2, X " <<  itBeam->XOffset() + z2*itBeam->XSlope() << " Y " 
 			<< itBeam->YOffset() + z2*itBeam->YSlope()  << std::endl;
        }
-       for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
+       for (std::vector<rbex::DwnstrTrack>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
          if (fDebugIsOn) std::cerr << " ... For track " << it->ID() << " chiSq " << it->ChiSq() << " chiSq cut " << fChiSqCut << std::endl;
          if (it->ChiSq() > fChiSqCut) continue;
 	 // Other slope cuts ?
@@ -79,15 +79,15 @@ namespace emph {
        //
        bool isMigradValid = false;
        // arbitrate first, require distinct slope. 
-       for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
+       for (std::vector<rbex::DwnstrTrack>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
        bool noChange = false;
        while (!noChange) {
          noChange = true; // temporarely 
-         for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
+         for (std::vector<rbex::DwnstrTrack>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
            if (it->UserFlag() != 0) continue;
            const double slxi = it->XSlope();
            const double slyi = it->YSlope();
-           for (std::vector<rb::DwnstrTrackAutre>::const_iterator jt = dwnstr.CBegin(); jt != dwnstr.CEnd(); jt++ ) {
+           for (std::vector<rbex::DwnstrTrack>::const_iterator jt = dwnstr.CBegin(); jt != dwnstr.CEnd(); jt++ ) {
 	     if (it == jt) continue;
              if (jt->UserFlag() != 0) continue;
              const double slxj = jt->XSlope();
@@ -124,7 +124,7 @@ namespace emph {
 	       }
 	     }
            }
-           for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
+           for (std::vector<rbex::DwnstrTrack>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) {
              if (it->ChiSq() > fChiSqCut) continue; // Other slope cuts ? 
              if (it->UserFlag() != 0) continue;	 
 	     fVert.AddTrackUID(it->ID());
@@ -139,9 +139,9 @@ namespace emph {
 	    if (fDebugIsOn) std::cerr << " No valid Minimum... " << std::endl;
 	  // Could do arbitration here, removing one track at a time 
          }
-         for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
+         for (std::vector<rbex::DwnstrTrack>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
 	} catch (...) { 
-           for (std::vector<rb::DwnstrTrackAutre>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
+           for (std::vector<rbex::DwnstrTrack>::const_iterator it = dwnstr.CBegin(); it != dwnstr.CEnd(); it++ ) it->SetUserFlag(0);
 	   return false; 
         }
        return isMigradValid;

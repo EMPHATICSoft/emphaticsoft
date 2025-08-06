@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   3D non-linear fit FCN function for Beam Track alignment, downstream of the target. 
 ///          Depends on the magnetic field map.
-///          Input data is a vector of  rb::SSDStationPtAutre 
+///          Input data is a vector of  rbex::SSDStationPt 
 ///          Requires Minuit2 
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef SSDDWNSTRTRACKFITFCNALGO1_H
-#define SSDDWNSTRTRACKFITFCNALGO1_H
+#ifndef SSDDWNSTRTRACKFITFCNAUTRE_H
+#define SSDDWNSTRTRACKFITFCNAUTRE_H
 
 #include <vector>
 #include <stdint.h>
@@ -19,7 +19,7 @@
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
 #include "MagneticField/MagneticField.h"
-#include "RecoBase/SSDStationPtAutre.h" 
+#include "RecoBase/SSDStationPt.h" 
 #include "SSDReco/VolatileAlignmentParams.h" 
 
 namespace emph{ 
@@ -47,7 +47,7 @@ namespace emph{
       double fIntegrationStep;
       double fStartingMomentum; 
       size_t fNumSensorsTotal;
-      std::vector<rb::SSDStationPtAutre> fData; // Deep copy required here.. 
+      std::vector<rbex::SSDStationPt> fData; // Deep copy required here.. 
       bool fNoMagnet; 
       mutable std::vector<double> fZPos;
       mutable std::vector<double> fMagShift;
@@ -64,8 +64,8 @@ namespace emph{
       virtual double Up() const {return fErrorDef;}
       virtual double operator()(const std::vector<double>&) const; // argument is the parameter vector. (x,x', y, y' and momentum in our case.)
      
-      inline void SetInputPts(std::vector<rb::SSDStationPtAutre> &data) { fData = data; } // Deep Copy  
-      inline void AddInputPt(std::vector<rb::SSDStationPtAutre>::const_iterator it) { fData.push_back(*it); } // again..   
+      inline void SetInputPts(std::vector<rbex::SSDStationPt> &data) { fData = data; } // Deep Copy  
+      inline void AddInputPt(std::vector<rbex::SSDStationPt>::const_iterator it) { fData.push_back(*it); } // again..   
       inline void ResetInputPts() { fData.clear();  }
       inline void ResetZpos() { fZPos.clear(); fZLocUpstreamMagnet = DBL_MAX; fZLocDownstrMagnet = DBL_MAX; }
       inline void SetErrorDef(double e) { fErrorDef = e; }

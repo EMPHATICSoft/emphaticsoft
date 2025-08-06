@@ -3,8 +3,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef SSDRECVERTEXALGO1_H
-#define SSDRECVERTEXALGO1_H
+#ifndef SSDRECVERTEXAUTRE_H
+#define SSDRECVERTEXAUTRE_H
 #include <vector>
 #include <stdint.h>
 #include <iostream>
@@ -19,8 +19,8 @@
 #include "SSDReco/VolatileAlignmentParams.h"
 #include "RecoBase/BeamTrack.h" 
 #include "SSDReco/SSDRecDwnstrTracksAutre.h"
-#include "RecoBase/DwnstrTrackAutre.h" 
-#include "RecoBase/VertexAutre.h" 
+#include "RecoBase/DwnstrTrack.h" 
+#include "RecoBase/Vertex.h" 
 #include "SSDReco/SSDVertexFitFCNAutre.h"
 
 
@@ -51,7 +51,7 @@ namespace emph {
 	  // so intantiate this in the constructor. 
 	  // And the result..
 	  double fChiFinal;
-	  rb::VertexAutre fVert;
+	  rbex::Vertex fVert;
 	   
 	  mutable std::ofstream fFOutVert;
 	  // Internal stuff.. ???
@@ -89,4 +89,4 @@ namespace emph {
   } // namespace ssdr
 }// namespace emph
 
-#endif // SSDRECVERTEXALGO1
+#endif // SSDRECVERTEXAUTRE

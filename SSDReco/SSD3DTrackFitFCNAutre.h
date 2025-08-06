@@ -5,8 +5,8 @@
 /// \date
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef SSD3DTRACKFITFCNALGO1_H
-#define SSD3DTRACKFITFCNALGO1_H
+#ifndef SSD3DTRACKFITFCNAUTRE_H
+#define SSD3DTRACKFITFCNAUTRE_H
 
 #include <vector>
 #include <stdint.h>

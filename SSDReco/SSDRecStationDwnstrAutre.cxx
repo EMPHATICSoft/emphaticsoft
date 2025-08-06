@@ -21,7 +21,7 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
-#include "RecoBase/SSDStationPtAutre.h" 
+#include "RecoBase/SSDStationPt.h" 
 #include "SSDReco/VolatileAlignmentParams.h" // Our real geometry for now.. 
 
  using namespace emph;
@@ -380,7 +380,7 @@ namespace emph {
 	     if (hasXOverlaps) { fClUsagesDbl[kuu] = 1;  fClUsagesDbl[kuy] = 1; }
 	     if (hasYOverlaps) { fClUsagesDbl[kuu] = 1;  fClUsagesDbl[kux] = 1; }
 	     if (hasWOverlaps) { fClUsagesDbl[kux] = 1;  fClUsagesDbl[kuy] = 1; }
-	     rb:: SSDStationPtAutre aStPt;
+	     rbex::SSDStationPt aStPt;
 	     const double errX = std::sqrt(std::abs(xDat.second));  const double errY = std::sqrt(std::abs(yDat.second)); 
 	     aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
 	     aStPt.SetID(fIdStPtNow);
@@ -464,7 +464,7 @@ namespace emph {
 	   }
            fClUsages[kux] = 1; fClUsages[kuy] = 1;
 	   // constraints, store.. 
-	   rb:: SSDStationPtAutre aStPt;
+	   rbex::SSDStationPt aStPt;
 	   const double errX = std::sqrt(std::abs(xDat.second));  const double errY = std::sqrt(std::abs(yDat.second)); 
 	   aStPt.SetID(fIdStPtNow);
 	   aStPt.SetX(xValCorr, errX);  // we could do a fit.. Note the 3D Downstream track will use measurement data. 
@@ -532,7 +532,7 @@ namespace emph {
 	   double yValCorr = (-fSqrt2 * uorvValCorr + xDat.first);// Phase1c only
            fClUsages[kux] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
-	   rb:: SSDStationPtAutre aStPt;
+	   rbex::SSDStationPt aStPt;
 	   const double errX = std::sqrt(std::abs(xDat.second));  
 	   const double errY = fSqrt2*(std::sqrt(std::abs(uorvDat.second) + xDat.second)); 
 	   // assume uncorrelated errors.. Not quite true, aligmnment.  	   
@@ -601,7 +601,7 @@ namespace emph {
 	   double  xValCorr = (fSqrt2 * uorvValCorr + yDat.first);// Phase1c Only
            fClUsages[kuy] = 1; fClUsages[kuu] = 1;
 	   // constraints, store.. 
-	   rb:: SSDStationPtAutre aStPt;
+	   rbex::SSDStationPt aStPt;
 	   const double errY = std::sqrt(std::abs(yDat.second));  
 	   const double errX = fSqrt2*(std::sqrt(std::abs(uorvDat.second) + yDat.second)); 
 	   aStPt.SetID(fIdStPtNow);
@@ -670,7 +670,7 @@ namespace emph {
        headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fStPoints.size(); 
        std::string headerStr(headerStrStr.str());
        size_t k=0;
-       for (std::vector<rb::SSDStationPtAutre>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
+       for (std::vector<rbex::SSDStationPt>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
        	 size_t numClInSpSt = it->NumClusters();
 	 int sIdX=9999;  int sIdY=9999;  int sIdUorV=9999;
 	 for (size_t kCl=0; kCl != numClInSpSt; kCl++) {
@@ -704,7 +704,7 @@ namespace emph {
        headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fStPoints.size(); 
        std::string headerStr(headerStrStr.str());
        size_t k=0;
-       for (std::vector<rb::SSDStationPtAutre>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
+       for (std::vector<rbex::SSDStationPt>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
        	 size_t numClInSpSt = it->NumClusters();
 	 if ((it->Type() != 4) && (it->Type() != 7)) continue; 
 	 for (size_t kCl=0; kCl != numClInSpSt; kCl++) {
@@ -740,7 +740,7 @@ namespace emph {
        headerStrStr << " " << fSubRunNum << " " << fEvtNum << " " << fStPoints.size(); 
        std::string headerStr(headerStrStr.str());
        size_t k=0;
-       for (std::vector<rb::SSDStationPtAutre>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
+       for (std::vector<rbex::SSDStationPt>::const_iterator it = fStPoints.cbegin(); it != fStPoints.cend(); it++, k++) { 
        	 size_t numClInSpSt = it->NumClusters();
 	 if ((it->Type() != 4) && (it->Type() != 7)) continue; 
 	 for (size_t kCl=0; kCl != numClInSpSt; kCl++) {
@@ -771,8 +771,8 @@ namespace emph {
      
      bool ssdr::SSDRecStationDwnstrAutre::flagDuplicateOverlapping (
                                         emph::geo::sensorView aView, 
-                                        std::vector<rb::SSDStationPtAutre>::iterator itPt1, 
-	                                std::vector<rb::SSDStationPtAutre>::iterator itPt2,
+                                        std::vector<rbex::SSDStationPt>::iterator itPt1, 
+	                                std::vector<rbex::SSDStationPt>::iterator itPt2,
 	                                  double inViewCut){ // argument is the difference in average strip numbers. 
 	std::vector<myItCl> itCls1; std::vector<myItCl> itCls2; 
 	itPt1->fillItClusters(itCls1); 	itPt2->fillItClusters(itCls2);
@@ -806,10 +806,10 @@ namespace emph {
        size_t numClCurrent = 0; 
        while (numClCurrent != fStPoints.size()) {
          numClCurrent =  fStPoints.size();      
-         for (std::vector<rb::SSDStationPtAutre>::iterator itPt1 = fStPoints.begin(); itPt1 != fStPoints.end(); itPt1++) { 
-	   std::vector<rb::SSDStationPtAutre>::iterator itPt2Start = itPt1;  itPt2Start++;
+         for (std::vector<rbex::SSDStationPt>::iterator itPt1 = fStPoints.begin(); itPt1 != fStPoints.end(); itPt1++) { 
+	   std::vector<rbex::SSDStationPt>::iterator itPt2Start = itPt1;  itPt2Start++;
 	   bool didInnerChanged= false; 
-	   for (std::vector<rb::SSDStationPtAutre>::iterator itPt2 = itPt2Start; itPt2 != fStPoints.end(); itPt2++) {
+	   for (std::vector<rbex::SSDStationPt>::iterator itPt2 = itPt2Start; itPt2 != fStPoints.end(); itPt2++) {
 	     // 
 	     // Check each view.. A bit of a waste in transfering pointers in flagDuplicateOverlapping, but a bit cleaner (may be) 
 	     //

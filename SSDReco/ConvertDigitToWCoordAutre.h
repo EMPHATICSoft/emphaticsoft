@@ -6,8 +6,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef CONVERTDIGITTOWCOORDALGO1_H
-#define CONVERTDIGITTOWCOORDALGO1_H
+#ifndef CONVERTDIGITTOWCOORDAUTRE_H
+#define CONVERTDIGITTOWCOORDAUTRE_H
 
 #include <vector>
 #include <stdint.h>

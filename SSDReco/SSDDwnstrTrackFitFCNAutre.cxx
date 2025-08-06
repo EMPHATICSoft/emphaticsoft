@@ -53,7 +53,7 @@ namespace emph {
       if (fFOutResids.is_open()) fFOutResids.close();
     } 
     void SSDDwnstrTrackFitFCNAutre::AddInputUpstreamStation(size_t kSt, double xVal, double xValErr, double yVal, double yValErr) {
-      rb::SSDStationPtAutre aPt;
+      rbex::SSDStationPt aPt;
       aPt.SetStationNum(static_cast<int>(kSt)); 
       aPt.SetID(9999); aPt.SetX(xVal, xValErr); aPt.SetY(yVal, yValErr);
       fData.push_back(aPt);
@@ -257,7 +257,7 @@ namespace emph {
       } // With or without the magnet..  
       for (size_t kSe=0; kSe != fResids.size(); kSe++) fResids[kSe] = DBL_MAX;  
       size_t kD = 0;
-      for (std::vector<rb::SSDStationPtAutre>::const_iterator itPt = fData.cbegin(); itPt != fData.cend(); itPt++, kD++) {
+      for (std::vector<rbex::SSDStationPt>::const_iterator itPt = fData.cbegin(); itPt != fData.cend(); itPt++, kD++) {
         if ((itPt->Station() < 2) || (itPt->Station() > fMaxDwnstrStation)) continue; // January 22 
         size_t kStD = itPt->Station()-2; 
         const double xMeas = itPt->X(); const double xErr = itPt->XErr();
@@ -294,7 +294,7 @@ namespace emph {
     }
     void SSDDwnstrTrackFitFCNAutre::printInputData() const { 
       std::cerr << " SSDDwnstrTrackFitFCNAutre::printInputData, number of data points " << fData.size() << std::endl;
-      for (std::vector<rb::SSDStationPtAutre>::const_iterator itPt = fData.cbegin(); itPt != fData.cend(); itPt++) {
+      for (std::vector<rbex::SSDStationPt>::const_iterator itPt = fData.cbegin(); itPt != fData.cend(); itPt++) {
         std::cerr << " Station " << itPt->Station() << " X = " << itPt->X() << " +- " 
 	                                            << itPt->XErr() << " Y = " << itPt->Y() << " +- " << itPt->YErr() << std::endl; 
       }

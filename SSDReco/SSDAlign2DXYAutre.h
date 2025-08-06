@@ -6,8 +6,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef SSDALIGN2DXYALGO1_H
-#define SSDALIGN2DXYALGO1_H
+#ifndef SSDALIGN2DXYAUTRE_H
+#define SSDALIGN2DXYAUTRE_H
 
 #include <vector>
 #include <stdint.h>

@@ -5,8 +5,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef SSDRECUSTREAMTGTALGO1_H
-#define SSDRECUSTREAMTGTALGO1_H
+#ifndef SSDRECUSTREAMTGTAUTRE_H
+#define SSDRECUSTREAMTGTAUTRE_H
 
 #include <vector>
 #include <stdint.h>

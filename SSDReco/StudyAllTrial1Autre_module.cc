@@ -162,8 +162,8 @@ namespace emph {
       std::vector<rb::SSDCluster> fSSDcls; // we will do a deep copy, as my first attempt at using the above vector failed.. lower case c
       art::Handle<std::vector<rb::SSDCluster> > fSSDClsPtr; // This works, but use the deprecated art interface.. Upper case C
       
-      double InvariantMass(std::vector<rb::DwnstrTrackAutre>::const_iterator it1, 
-                           std::vector<rb::DwnstrTrackAutre>::const_iterator it2) const;
+      double InvariantMass(std::vector<rbex::DwnstrTrack>::const_iterator it1, 
+                           std::vector<rbex::DwnstrTrack>::const_iterator it2) const;
           // assumeing negligible rest mass particle associted with Downstream tracks. 
       
       void openOutputCsvFiles();
@@ -636,8 +636,8 @@ namespace emph {
       return;
 	
     } // end of Analyze, event by events.  
-    double emph::StudyAllTrial1Autre::InvariantMass(std::vector<rb::DwnstrTrackAutre>::const_iterator it1, 
-                                              std::vector<rb::DwnstrTrackAutre>::const_iterator it2) const {
+    double emph::StudyAllTrial1Autre::InvariantMass(std::vector<rbex::DwnstrTrack>::const_iterator it1, 
+                                              std::vector<rbex::DwnstrTrack>::const_iterator it2) const {
 					      
 					      
        const double px1 = it1->XSlope()*std::abs(it1->Momentum()); 
