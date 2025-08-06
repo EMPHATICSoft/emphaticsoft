@@ -48,6 +48,7 @@ namespace g4b{
   // Constructor
   G4Helper::G4Helper()
   : fCheckOverlaps     (false  )
+  , fUseMisalign       (false  )
   , fMisalignModNum (0)
   , fMisalignDoubleSSDGap (3.0) 
   , fMisalignSeed (1234)
@@ -69,6 +70,7 @@ namespace g4b{
   , fG4PhysListName    (g4physicslist)
   , fGDMLFile          (gdmlFile     )
   , fCheckOverlaps     (false        )
+  , fUseMisalign       (false        )
   , fMisalignModNum    (0)
   , fMisalignDoubleSSDGap (3.0) 
   , fMisalignSeed      (1234)
@@ -347,9 +349,20 @@ namespace g4b{
     // Build the Geant4 detector description.
     bool checkOverlaps      = fCheckOverlaps;
     bool validateGDMLSchema = fValidateGDMLSchema;
-    fDetector = new DetectorConstruction(gdmlFile,
-                                         checkOverlaps,
-                                         validateGDMLSchema, fMisalignModNum, fMisalignSeed, fMisalignDoubleSSDGap);
+
+    // Use switch to control misalignment usage
+    if (!fUseMisalign) {
+        fDetector = new DetectorConstruction(gdmlFile,
+                                            checkOverlaps,
+                                            validateGDMLSchema);
+    } else {
+        fDetector = new DetectorConstruction(gdmlFile,
+                                            checkOverlaps,
+                                            validateGDMLSchema,
+                                            fMisalignModNum,
+                                            fMisalignSeed,
+                                            fMisalignDoubleSSDGap);
+    }
 
     return;
   }
