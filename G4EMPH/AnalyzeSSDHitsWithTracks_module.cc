@@ -34,7 +34,7 @@
 #include "RunHistory/RunHistory.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
-#include "Simulation/SSDHitAlgo1.h"
+#include "Simulation/SSDHit.h"
 #include "Simulation/Track.h"
 //
 using namespace emph;
@@ -73,13 +73,13 @@ namespace emph {
 //
       runhist::RunHistory *fRunHistory;
       emph::geo::Geometry *fEmgeo;
-      sim::SSDHitAlgo1 *fEmSSDHits;
+      sim::SSDHit *fEmSSDHits;
       sim::Track *fEmTracks;
       std::vector<double> fZlocXPlanes;
       std::vector<double> fZlocXStations;
       std::vector<double> fZlocYPlanes;
       std::vector<double> fZlocYStations;
-      std::vector<sim::SSDHitAlgo1> fSSDVec;
+      std::vector<sim::SSDHit> fSSDVec;
       std::vector<sim::Track> fTrackVec;
 //
 // CSV tuple output..
@@ -87,8 +87,8 @@ namespace emph {
       std::ofstream fFOutA1, fFOutMult2;
       void openOutputCsvFiles();
       
-      void StudyPResol1 (const std::vector<sim::SSDHitAlgo1> &theSSDHits, const std::vector<sim::Track> &theTracks) ; 
-      void StudyMult2 (const std::vector<sim::SSDHitAlgo1> &theSSDHits, const std::vector<sim::Track> &theTracks) ; 
+      void StudyPResol1 (const std::vector<sim::SSDHit> &theSSDHits, const std::vector<sim::Track> &theTracks) ; 
+      void StudyMult2 (const std::vector<sim::SSDHit> &theSSDHits, const std::vector<sim::Track> &theTracks) ; 
       
     }; 
     
@@ -193,20 +193,16 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      
-//      std::cerr << " AnalyzeSSDHitsWithTracks::analyze , event " << fEvtNum << " and do not much  " <<   std::endl; 
-      
-//      auto tokenForTrack = evt.getProductTokens<std::vector<sim::Track>(); 
-      
+
     //
     // Get the data. 
-      art::Handle<std::vector<sim::SSDHitAlgo1> > theSSDHits;
+      art::Handle<std::vector<sim::SSDHit> > theSSDHits;
       evt.getByLabel (fSSDHitLabel, theSSDHits);
-      std::vector<sim::SSDHitAlgo1> mySSDHits(*theSSDHits); // a deep copy that should not be here.. Conveninece for mulyiple analyssis.
+      std::vector<sim::SSDHit> mySSDHits(*theSSDHits); // a deep copy that should not be here.. Convenience for multiple analysis.
 //
       art::Handle<std::vector<sim::Track> > theTracks;
       evt.getByLabel(fTrackLabel, theTracks );
-      std::vector<sim::Track> myTracks(*theTracks); // a deep copy that should not be here.. Conveninece for mulyiple analyssis.
+      std::vector<sim::Track> myTracks(*theTracks); // a deep copy that should not be here.. Convenience for multiple analysis.
 //      std::cerr << " Number of tracks : " << myTracks.size() << std::endl;
       
      if (fDoPResol1Stu) this->StudyPResol1(mySSDHits, myTracks);
@@ -216,7 +212,7 @@ namespace emph {
     //
     // simple Xslope measurement 
     //
-    void AnalyzeSSDHitsWithTracks::StudyPResol1 (const std::vector<sim::SSDHitAlgo1> &theSSDHits, 
+    void AnalyzeSSDHitsWithTracks::StudyPResol1 (const std::vector<sim::SSDHit> &theSSDHits, 
                                                  const std::vector<sim::Track> &theTracks) {
      const double arbitraryChannelOffset = 50000.;
       const int discretShift = static_cast<int>(arbitraryChannelOffset/fPitch);
@@ -238,7 +234,7 @@ namespace emph {
 	std::vector<double> xi = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX };
 	std::vector<double> xiD(xi);
 	for (size_t kH = 0; kH != theSSDHits.size(); kH++) {
-	  sim::SSDHitAlgo1 aHit = theSSDHits[kH];
+	  sim::SSDHit aHit = theSSDHits[kH];
 	  if (aHit.GetTrackID() != iTrack->GetTrackID()) continue;  // first big cheat..
 	  for (size_t kPl = 0; kPl != xi.size(); kPl++) {
 	    if ( std::abs(fZlocXStations[kPl] - aHit.GetZ()) < 2.0 )  {
@@ -272,7 +268,7 @@ namespace emph {
    //
    // Multiple scattering study, for assign proper uncertainties for alignment.. 
    // 
-    void AnalyzeSSDHitsWithTracks::StudyMult2 (const std::vector<sim::SSDHitAlgo1> &theSSDHits, const std::vector<sim::Track> &theTracks) {
+    void AnalyzeSSDHitsWithTracks::StudyMult2 (const std::vector<sim::SSDHit> &theSSDHits, const std::vector<sim::Track> &theTracks) {
       std::ostringstream prologStrStr;
       prologStrStr << " " << fSubRun << " " << fEvtNum << " " << theTracks.size();
       int nTr1G = 0;
@@ -287,7 +283,7 @@ namespace emph {
 	const double pMom = std::sqrt(iTrack->GetPx()*iTrack->GetPx() +  iTrack->GetPy()*iTrack->GetPy() + iTrack->GetPz()*iTrack->GetPz());
         if (pMom < 100.) continue; // skip the low energy tracks.. We have them tally above. 
 	for (size_t kH = 0; kH != theSSDHits.size(); kH++) {
-	  sim::SSDHitAlgo1 aHit = theSSDHits[kH];
+	  sim::SSDHit aHit = theSSDHits[kH];
 	  if (aHit.GetTrackID() != iTrack->GetTrackID()) continue;  // first big cheat..
 	  for (size_t kPl = 0; kPl != yPosHits.size(); kPl++) {
 	    if ( std::abs(fZlocYPlanes[kPl] - aHit.GetZ()) < 1.0 )  {
