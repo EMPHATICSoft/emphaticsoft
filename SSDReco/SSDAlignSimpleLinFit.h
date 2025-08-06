@@ -42,6 +42,8 @@ namespace emph {
 	  inline void SetZCoords(std::vector<double> v) { fZCoords = v; } 
 	  
           void  fitLin(bool align0to4, const std::vector<double> &t, const std::vector<double> &sigT) ; 
+	  double GetTrOffInit(const std::vector<double> &t);
+	  double GetTrSlInit(const std::vector<double> &t);
     
       };
    }

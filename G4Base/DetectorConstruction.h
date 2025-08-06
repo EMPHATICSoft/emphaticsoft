@@ -19,10 +19,19 @@ namespace g4b {
   class DetectorConstruction : public G4VUserDetectorConstruction {
 
   public:
-    /// Standard constructor and destructor.
+    /// Constructor without misalignment fields
     explicit DetectorConstruction(std::string const& gdmlFile,
-                                  bool        const& overlapCheck   = false,
-                                  bool        const& validateSchema = true);
+                                  bool        const& overlapCheck,
+                                  bool        const& validateSchema);
+
+    /// Constructor with misalignment fields
+    explicit DetectorConstruction(std::string const& gdmlFile,
+                                  bool        const& overlapCheck,
+                                  bool        const& validateSchema,
+                                  int         misalignModel,
+                                  unsigned int misalignSeed,
+                                  double      gapDoubleSSD);
+
     virtual ~DetectorConstruction();
 
     /// The key method in this class; returns the Geant4 version of

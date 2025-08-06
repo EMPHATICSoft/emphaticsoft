@@ -1,6 +1,7 @@
 <lcgdict>
 
-<class name="arichreco::ARICH_UTILS" ClassVersion="12">
+<class name="arichreco::ARICH_UTILS" ClassVersion="13">
+ <version ClassVersion="13" checksum="2041444541"/>
  <version ClassVersion="12" checksum="3115795868"/>
  <version ClassVersion="11" checksum="2041444541"/>
  <version ClassVersion="10" checksum="1394376492"/>
@@ -35,6 +36,10 @@
  <version ClassVersion="10" checksum="616094997"/>
 </class>
 
+
+<class name="std::vector<TH2D>" />
+<class name="std::vector<std::vector<TH2D>>" />
+<class name="art::Wrapper<std::vector<std::vector<TH2D>>>"/>
 
 <class name="std::vector<double>" />
 <class name="std::vector<std::vector<double>>" />

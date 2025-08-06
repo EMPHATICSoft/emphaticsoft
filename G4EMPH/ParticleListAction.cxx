@@ -114,7 +114,7 @@ namespace emph {
 	int nIterations = 0;
 	 while( itr != fParentIDMap.end() ){
 		 //std::cerr << "Iterating" << " Track ID: " << trackid << "itr: " << (*itr).second << std::endl;
-     		 MF_LOG_DEBUG("ParticleListAction") << "parentage for " << trackid
+     		 mf::LogDebug("ParticleListAction") << "parentage for " << trackid
 					 << " " << (*itr).second;
       		 // set the parentid to the current parent ID, when the loop ends
       		 // this id will be the first EM particle
@@ -130,7 +130,7 @@ namespace emph {
 
 
 
-	 MF_LOG_DEBUG("ParticleListAction") << "final parent ID " << parentid;
+	 mf::LogDebug("ParticleListAction") << "final parent ID " << parentid;
 
 	 return parentid;
  }
@@ -263,13 +263,13 @@ namespace emph {
 
     std::cerr << "Getting Stuff" << std::endl;
 
-    // was MF_LOG_DEBUG
-    MF_LOG_INFO("ParticleListAction") << "preparing to track " << fCurrentTrackID
+    // was mf::LogDebug
+    mf::LogInfo("ParticleListAction") << "preparing to track " << fCurrentTrackID
 				       << " pdg " << pdg
 				       << " with parent " << parentID;
 
     auto trackPos = track->GetPosition();
-    MF_LOG_INFO("ParticleListAction") << "Track has start position = (" <<
+    mf::LogInfo("ParticleListAction") << "Track has start position = (" <<
       trackPos[0] << "," << trackPos[1] << "," << trackPos[2] << ")" << 
       std::endl;
     
@@ -333,7 +333,7 @@ namespace emph {
 	
         std::cerr << "Got Parent" << fCurrentTrackID << std::endl;
 
-	MF_LOG_DEBUG("ParticleListAction") << "current track ID " << fCurrentTrackID;
+	mf::LogDebug("ParticleListAction") << "current track ID " << fCurrentTrackID;
 	
 	// check that fCurrentTrackID is in the particle list - it is possible
 	// that this particle's parent is a particle that did not get tracked.
@@ -350,7 +350,7 @@ namespace emph {
 	  // and adding trajectory points to it
 	  fParticle = 0;
 	  
-	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << trackID << " bc EM daughter, "
+	  mf::LogDebug("ParticleListAction") << "killing TrackID: " << trackID << " bc EM daughter, "
 	 				     << process_name << " " << pdg
 	 				     << ", use track id " << fCurrentTrackID;
 	  
@@ -366,7 +366,7 @@ namespace emph {
 	if ( energy < fEnergyCut ){
           std::cerr << "Particle is lower than the threshold..." << std::endl;
 	  fParticle = 0;
-	  MF_LOG_DEBUG("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
+	  mf::LogDebug("ParticleListAction") << "killing TrackID: " << fCurrentTrackID << " energy/fEnergyCut";
 	  
 	  // do add the particle to the parent id map though
 	  // and set the current track id to be it's ultimate parent
@@ -442,7 +442,7 @@ namespace emph {
       fParticleNav->Add(fParticle);
       
       if(fTrackIDToMCTruthIndex.count(fCurrentTrackID) > 0)
-	MF_LOG_WARNING("ParticleListAction") << "attempting to put " << fCurrentTrackID
+	mf::LogWarning("ParticleListAction") << "attempting to put " << fCurrentTrackID
 					     << " into fTrackIDToMCTruthIndex map "
 					     << " particle is\n" << *fParticle;
       
@@ -546,7 +546,7 @@ namespace emph {
 
     //    fTrackIDOffset = highestID + 100;
 
-    MF_LOG_DEBUG("ParticleListAction") << *fParticleNav << "\ntrack id offset is now " << fTrackIDOffset;
+    mf::LogDebug("ParticleListAction") << "track id offset is now " << fTrackIDOffset;
 
     return plist;
   }
@@ -633,7 +633,7 @@ namespace emph {
 		  fParticleNav->end(), 
 		  updateDaughterInformation);
     
-    MF_LOG_DEBUG("ParticleListAction") << *fParticleNav;
+    mf::LogDebug("ParticleListAction") << *fParticleNav;
   }
 
 } // end namespace

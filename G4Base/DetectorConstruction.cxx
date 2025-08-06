@@ -10,6 +10,7 @@
 #include "cetlib_except/exception.h"
 
 #include "G4Base/DetectorConstruction.h"
+#include "G4Base/Misaligner.h"
 #include "G4Base/GlobalMagneticField.h"
 #include "MagneticField/service/MagneticFieldService.h"
 #include "Geometry/service/GeometryService.h"
@@ -36,14 +37,14 @@ namespace g4b{
   G4FieldManager*    DetectorConstruction::fFieldMgr = nullptr;
 
   //---------------------------------------------------
-  // Constructor
+  // Constructor without misalignment fields
   DetectorConstruction::DetectorConstruction(std::string const& gdmlFile,
                                              bool        const& overlapCheck,
                                              bool        const& validateSchema)
   {
     if ( gdmlFile.empty() ) {
       throw cet::exception("DetectorConstruction") << "Supplied GDML filename is empty\n"
-						   << __FILE__ << ":" << __LINE__ << "\n";
+                                                   << __FILE__ << ":" << __LINE__ << "\n";
     }
     // Get the path to the GDML file from the Geometry interface.
     const G4String GDMLfile = static_cast<const G4String>( gdmlFile );
@@ -57,8 +58,41 @@ namespace g4b{
     // the entire detector, not just the outline of the experimental
     // hall.
     fWorld = parser.GetWorldVolume();
-    
   }
+
+  //---------------------------------------------------
+  // Constructor with misalignment fields
+  DetectorConstruction::DetectorConstruction(std::string const& gdmlFile,
+                                             bool        const& overlapCheck,
+                                             bool        const& validateSchema,
+                                             int         misalignModelNum,
+                                             unsigned int misAlignSeed,
+                                             double      misalignDoubleSSDGap)
+  {
+    if ( gdmlFile.empty() ) {
+      throw cet::exception("DetectorConstruction") << "Supplied GDML filename is empty\n"
+                                                   << __FILE__ << ":" << __LINE__ << "\n";
+    }
+    mf::LogInfo("DetectorConstruction") << "begin with gdmlFile "
+              << gdmlFile << ".... with misalignModelNum " << misalignModelNum << " DGap " << misalignDoubleSSDGap;
+    const G4String GDMLfile = static_cast<const G4String>( gdmlFile );
+
+    G4GDMLParser parser;
+    parser.SetOverlapCheck(overlapCheck);
+    if (overlapCheck) mf::LogInfo("DetectorConstruction") << " ... We will check for eventual volumes overlaps.. Good ";
+    else mf::LogWarning("DetectorConstruction") << " ... We will NOT check for eventual volumes overlaps.. Results will be suspicious ";
+    std::string effGDMLFile(gdmlFile); // effective geometry file name.
+    if ((misalignModelNum != 0)  || (std::abs(misalignDoubleSSDGap) < 1.0e-3)) {
+      mf::LogInfo("DetectorConstruction") << " We will modify the G4 Geometry to implement quasi-realistic misalignments, model number " << misalignModelNum;
+
+      g4b::Misaligner myMis(std::string(""), misAlignSeed);
+      myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
+      effGDMLFile = myMis.runIt(std::string("Tr1"));
+    }
+    parser.Read(effGDMLFile,validateSchema);
+    fWorld = parser.GetWorldVolume();
+  }
+
   
   //---------------------------------------------------
   // Destructor.

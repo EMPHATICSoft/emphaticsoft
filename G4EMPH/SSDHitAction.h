@@ -28,9 +28,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 
 #include "Geant4/globals.hh"
-
 #include "Simulation/SSDHit.h"
-
 // Forward declarations.
 class G4Event;
 class G4Track;
@@ -58,32 +56,25 @@ namespace emph {
     void SteppingAction(const G4Step*);
     //    bool ParticleProjection(G4Track*);
 
-    //  Returns the current hit being saved in the list of
-    //  hits.  
-    //  std::vector<sim::SSDHit> GetSSDHits(size_t i) { return fSSDHits[i]; } pbsoloete..
-    // gets specific ssdhit.
+    //  Returns the current hit being saved in the list of hits.  
     sim::SSDHit GetSSDHit(size_t i) const { return fSSDHits[i]; }
-    std::vector <sim::SSDHit> GetAllHits() const { return fSSDHits; }
-    // gets all the ssdhits
+    std::vector <sim::SSDHit> GetAllHits() const { return fSSDHits; } ///< gets all the ssdhits
 
   private:
 
   private:
-    std::vector<sim::SSDHit>  fSSDHits;                 ///< The information for SSD hits.
-    G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       
-    ///< be included in the list.                          
-    bool                         fIsParticleInsideDetectorBigBox;///< Is the particle inside the Big Box?
-    bool fPerformFOutStudy;
+    std::vector<sim::SSDHit>  fSSDHits;       ///< The information for SSD hits.
+    std::vector<sim::SSDHit>  fSSDHitsAutre;  ///< The information for SSD hits.
+    G4double                  fEnergyCut;     ///< The minimum energy in GeV for a particle to
+                                              ///< be included in the list.                          
+    bool                      fIsParticleInsideDetectorBigBox; ///< Is the particle inside the Big Box?
+    bool                      fPerformFOutStudy;
 
     art::ServiceHandle<emph::geo::GeometryService> fGeo;
     
-    //
     // Convenient way to get information for within event debugging.. 
-    //
     G4RunManager *fRunManager;
-    
     std::ofstream fFOutStudy1;
-
   };
 
-} // namespace g4n
+} // namespace emph

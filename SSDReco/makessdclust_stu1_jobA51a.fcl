@@ -54,10 +54,10 @@ physics.analyzers.onestu.selectHotChannelsFromHits: true
 physics.analyzers.onestu.alignY: false
 physics.analyzers.onestu.alignX: false
 physics.analyzers.onestu.alignUV: true
-physics.analyzers.onestu.ChiSqCutAlignAlgo1: 2000.
+physics.analyzers.onestu.ChiSqCutAlignAutre: 2000.
 physics.analyzers.onestu.ChiSqCutAlign3DUVXY: 400.
-physics.analyzers.onestu.NumMaxIterAlignAlgo1: 500
-physics.analyzers.onestu.LastIs4AlignAlgo1: false
+physics.analyzers.onestu.NumMaxIterAlignAutre: 500
+physics.analyzers.onestu.LastIs4AlignAutre: false
 physics.analyzers.onestu.TransPosUncert: [0.2, 0.2, 0.2, 0.2, 0.3, 0.3]
 physics.analyzers.onestu.ZLocShifts: [0., 0., 0., 0., 0.0001, 0.00001]
 #physics.analyzers.onestu.MeanResidualsX: [0, 1.6543, 1.8946, 3.2653, -1.540, 0. ]

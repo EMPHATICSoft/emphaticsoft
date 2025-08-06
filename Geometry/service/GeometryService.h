@@ -36,7 +36,8 @@ namespace emph
     private:
       std::unique_ptr<emph::geo::Geometry> fGeometry;
       unsigned int fRunNumber;
-      std::string  fLoadedGeoFile;
+      bool fGetGDMLFromRunHistory;
+      std::string fGDMLFile;
     };
     
   }

@@ -55,17 +55,18 @@ void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double d
 //.......................................................................
 TH2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int,int>> cluster)
    {
-	TH2D *fARICHNHitsPxl = new TH2D();        
-	fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
-        fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
-        fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
-    //htemp->SetTitle(Form("event_%i",event_number));
+     TH2D *fARICHNHitsPxl = new TH2D();        
+     fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
+     fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
+     fARICHNHitsPxl->SetBins(ARICHBins.size()-1,ARICHBins.data(),ARICHBins.size()-1,ARICHBins.data());
+     //htemp->SetTitle(Form("event_%i",event_number));
      
-    for(size_t i =0; i < cluster.size(); i++)
-    {
-	int board = cluster[i].first;
-	int channel = cluster[i].second; 
-	emph::cmap::EChannel echan(emph::cmap::TRB3,board,channel);
+     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+     for(size_t i =0; i < cluster.size(); i++)
+       {
+	 int board = cluster[i].first;
+	 int channel = cluster[i].second; 
+	 emph::cmap::EChannel echan(emph::cmap::TRB3,board,channel);
 	
 	emph::cmap::DChannel dchan = cmap->DetChan(echan);
 	int pmt = dchan.HiLo();
@@ -155,8 +156,7 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 
 	int numCombinations = TMath::Power(NUMPARTICLES, np);
 	double minLoglikelihood = 1E10;
-	std::vector<int> bestCombination(np);
-	TH2D *hs = nullptr;
+	TH2D *hs = nullptr=0;
 		
 	for (int i = 0; i < numCombinations; i++) {
 		int index = i;

@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_recobeamtracksalgo1:
+{
+  module_type: RecoBeamTracksAutre
+  SSDClsLabel: "clust"
+}
+
+END_PROLOG

@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <limits>
 #include <vector>
+#include <cstddef>
 
 namespace caf
 {
@@ -19,7 +20,7 @@ namespace caf
       ~SRBACkovBranch();
 
       std::vector<SRBACkov>  backovhits;  ///< BACkovhits produced by BACkovHitReco
-      size_t                 nbackovhits; ///< number of backovhits 
+      std::size_t                 nbackovhits; ///< number of backovhits 
       bool                   PID[5];      ///< probability (0 or 1) of being {e,mu,pi,K,p}
 
       void fillSizes();

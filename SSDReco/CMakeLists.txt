@@ -29,38 +29,11 @@ cet_build_plugin(MakeSSDClusters art::module
   BASENAME_ONLY
 )
 
-cet_build_plugin(StudyOneSSDClusters art::module
-  LIBRARIES REG
-    SSDRecoUtil
-    ChannelMap
-    ChannelMapService_service
-    RunHistory
-    RunHistoryService_service
-    RawData
-    RecoBase
-    Geometry
-    ROOT::Core
-    ROOT::Physics
-    art_root_io::TFileService_service
-  BASENAME_ONLY
-)
-
-cet_build_plugin(RecoBeamTracksAlgo1 art::module
-  LIBRARIES REG
-    SSDRecoUtil
-    ChannelMap
-    ChannelMapService_service
-    RunHistory
-    RunHistoryService_service
-    RawData
-    RecoBase
-    Geometry
-    ROOT::Core
-    ROOT::Physics
-    art_root_io::TFileService_service
-  BASENAME_ONLY
-)
-
 install_headers()
 install_source()
 install_fhicl()
+
+option(BUILD_SSDRECO_EXPERIMENTAL "Build experimental SSDReco modules" ON)
+if(BUILD_SSDRECO_EXPERIMENTAL)
+  add_subdirectory(experimental)
+endif()
