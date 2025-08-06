@@ -18,7 +18,7 @@
 #include <cfloat>
 #include <cassert>
 
-#include "SSDReco/SSDVertexFitFCNAutre.h"
+#include "SSDReco/experimental/SSDVertexFitFCNAutre.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "MagneticField/service/MagneticFieldService.h"
 #include "Geometry/service/GeometryService.h"

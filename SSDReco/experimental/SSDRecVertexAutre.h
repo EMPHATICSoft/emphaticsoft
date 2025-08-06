@@ -16,12 +16,12 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
-#include "SSDReco/VolatileAlignmentParams.h"
+#include "SSDReco/experimental/VolatileAlignmentParams.h"
 #include "RecoBase/BeamTrack.h" 
-#include "SSDReco/SSDRecDwnstrTracksAutre.h"
+#include "SSDReco/experimental/SSDRecDwnstrTracksAutre.h"
 #include "RecoBase/DwnstrTrack.h" 
 #include "RecoBase/Vertex.h" 
-#include "SSDReco/SSDVertexFitFCNAutre.h"
+#include "SSDReco/experimental/SSDVertexFitFCNAutre.h"
 
 
 namespace emph { 

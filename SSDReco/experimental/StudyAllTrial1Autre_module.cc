@@ -48,11 +48,11 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "MagneticField/service/MagneticFieldService.h"
 #include "MagneticField/test/TestEmphMagneticField.h"
 #include "Geometry/service/GeometryService.h"
-#include "SSDReco/SSDRecUpstreamTgtAutre.h"
-#include "SSDReco/SSDRecStationDwnstrAutre.h"
-#include "SSDReco/SSDRecDwnstrTracksAutre.h" 
-#include "SSDReco/SSDRecBrickTracksAutre.h"
-#include "SSDReco/SSDRecVertexAutre.h" 
+#include "SSDReco/experimental/SSDRecUpstreamTgtAutre.h"
+#include "SSDReco/experimental/SSDRecStationDwnstrAutre.h"
+#include "SSDReco/experimental/SSDRecDwnstrTracksAutre.h"
+#include "SSDReco/experimental/SSDRecBrickTracksAutre.h"
+#include "SSDReco/experimental/SSDRecVertexAutre.h"
 //
 
 

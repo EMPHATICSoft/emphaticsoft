@@ -22,8 +22,8 @@
 #include "Geometry/DetectorDefs.h"
 #include "MagneticField/MagneticField.h"
 #include "RecoBase/SSDCluster.h" 
-#include "SSDReco/VolatileAlignmentParams.h" 
-#include "SSDReco/ConvertDigitToWCoordAutre.h" 
+#include "SSDReco/experimental/VolatileAlignmentParams.h" 
+#include "SSDReco/experimental/ConvertDigitToWCoordAutre.h" 
 #include "RecoBase/SSDStationPt.h" 
 
 namespace emph{ 

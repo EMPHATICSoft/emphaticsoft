@@ -19,7 +19,7 @@
 
 #include "SSDReco/SSDHotChannelList.h" 
 #include "RecoBase/SSDCluster.h" 
-#include "SSDReco/ConvertDigitToWCoordAutre.h" 
+#include "SSDReco/experimental/ConvertDigitToWCoordAutre.h" 
 
 namespace emph {
   namespace ssdr {

@@ -18,12 +18,12 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
-#include "SSDReco/VolatileAlignmentParams.h"
+#include "SSDReco/experimental/VolatileAlignmentParams.h"
 #include "RecoBase/SSDStationPt.h" 
 #include "RecoBase/DwnstrTrack.h" 
-#include "SSDReco/SSDDwnstrTrackFitFCNAutre.h"
-#include "SSDReco/SSDRecStationDwnstrAutre.h"
-#include "SSDReco/ConvertDigitToWCoordAutre.h"
+#include "SSDReco/experimental/SSDDwnstrTrackFitFCNAutre.h"
+#include "SSDReco/experimental/SSDRecStationDwnstrAutre.h"
+#include "SSDReco/experimental/ConvertDigitToWCoordAutre.h"
 
 namespace emph { 
   namespace ssdr {

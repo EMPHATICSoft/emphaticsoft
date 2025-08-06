@@ -39,7 +39,7 @@
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/BeamTrack.h"
-#include "SSDReco/SSDAlign3DUVAutre.h"
+#include "SSDReco/experimental/SSDAlign3DUVAutre.h"
 #include "SSDReco/SSDHotChannelList.h" 
 //
 

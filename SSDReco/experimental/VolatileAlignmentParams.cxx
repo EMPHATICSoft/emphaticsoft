@@ -16,7 +16,7 @@
 #include <climits>
 #include <cfloat>
 
-#include "VolatileAlignmentParams.h"
+#include "SSDReco/experimental/VolatileAlignmentParams.h"
 
 namespace emph {
   namespace ssdr {

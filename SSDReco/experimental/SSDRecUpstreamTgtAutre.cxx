@@ -19,7 +19,7 @@
 
 #include "SSDReco/SSDHotChannelList.h" 
 #include "RecoBase/SSDCluster.h" 
-#include "SSDReco/SSDRecUpstreamTgtAutre.h" 
+#include "SSDReco/experimental/SSDRecUpstreamTgtAutre.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"

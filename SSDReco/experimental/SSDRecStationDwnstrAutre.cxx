@@ -17,12 +17,12 @@
 #include "RunHistory/RunHistory.h"
 #include "SSDReco/SSDHotChannelList.h" // for futur rejection of spurious hits. 
 #include "RecoBase/SSDCluster.h" 
-#include "SSDReco/SSDRecStationDwnstrAutre.h" 
+#include "SSDReco/experimental/SSDRecStationDwnstrAutre.h" 
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDStationPt.h" 
-#include "SSDReco/VolatileAlignmentParams.h" // Our real geometry for now.. 
+#include "SSDReco/experimental/VolatileAlignmentParams.h" // Our real geometry for now.. 
 
  using namespace emph;
 

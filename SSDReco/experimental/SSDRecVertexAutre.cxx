@@ -13,7 +13,7 @@
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/Vertex.h"
-#include "SSDReco/SSDRecVertexAutre.h"
+#include "SSDReco/experimental/SSDRecVertexAutre.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"

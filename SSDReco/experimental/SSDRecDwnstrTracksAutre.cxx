@@ -11,7 +11,7 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
-#include "SSDReco/SSDRecDwnstrTracksAutre.h"
+#include "SSDReco/experimental/SSDRecDwnstrTracksAutre.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"

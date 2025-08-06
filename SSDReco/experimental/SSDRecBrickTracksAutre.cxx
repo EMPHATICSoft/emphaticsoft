@@ -12,7 +12,7 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
-#include "SSDReco/SSDRecBrickTracksAutre.h"
+#include "SSDReco/experimental/SSDRecBrickTracksAutre.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"

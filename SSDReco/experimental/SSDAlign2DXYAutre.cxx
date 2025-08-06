@@ -19,7 +19,7 @@
 
 #include "SSDReco/SSDHotChannelList.h" 
 #include "RecoBase/SSDCluster.h" 
-#include "SSDReco/SSDAlign2DXYAutre.h" 
+#include "SSDReco/experimental/SSDAlign2DXYAutre.h" 
 
  using namespace emph;
 

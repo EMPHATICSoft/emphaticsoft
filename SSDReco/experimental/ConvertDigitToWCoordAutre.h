@@ -2,7 +2,7 @@
 /// \brief   Convertion of a SSDCluster strip average and RMS to a coordinate.  
 ///          Algorithm one.  Could beong to SSDCalibration... 
 ///          The first version uses its private 2D alignment based figures. 
-///          The most recent version uses the volaltile 
+///          The most recent version uses the volatile
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 #include <iostream>
 
 #include "RecoBase/SSDCluster.h"
-#include "SSDReco/VolatileAlignmentParams.h"
+#include "SSDReco/experimental/VolatileAlignmentParams.h"
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "DetGeoMap/service/DetGeoMapService.h"

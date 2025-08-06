@@ -16,7 +16,7 @@
 
 #include "SSDReco/SSDHotChannelList.h" 
 #include "RecoBase/SSDCluster.h" 
-#include "SSDReco/SSDAlign3DUVAutre.h" 
+#include "SSDReco/experimental/SSDAlign3DUVAutre.h" 
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnMigrad.h"
 #include "Minuit2/FunctionMinimum.h"

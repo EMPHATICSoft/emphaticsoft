@@ -17,7 +17,7 @@
 #include <cfloat>
 #include <cassert>
 
-#include "SSDReco/SSDDwnstrTrackFitFCNAutre.h"
+#include "SSDReco/experimental/SSDDwnstrTrackFitFCNAutre.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "MagneticField/service/MagneticFieldService.h"
 #include "Geometry/service/GeometryService.h"

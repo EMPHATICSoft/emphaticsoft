@@ -21,9 +21,9 @@
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
 #include "RecoBase/BeamTrack.h" 
-#include "SSDReco/ConvertDigitToWCoordAutre.h"
-#include "SSDReco/SSD3DTrackFitFCNAutre.h"
-#include "SSDReco/VolatileAlignmentParams.h"
+#include "SSDReco/experimental/ConvertDigitToWCoordAutre.h"
+#include "SSDReco/experimental/SSD3DTrackFitFCNAutre.h"
+#include "SSDReco/experimental/VolatileAlignmentParams.h"
 
 namespace emph { 
   namespace ssdr {
