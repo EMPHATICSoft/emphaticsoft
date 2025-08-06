@@ -53,7 +53,7 @@ namespace emph {
          ws[k] = 1.0/(sigTs[k]*sigTs[k]);
          sx += fZCoords[k]*ws[k]; sy += ts[k]*ws[k]; ss += ws[k];
        }
-//       std::cerr << " SSDAlign2DXYAlgo1::fitLin...  Sum of the weights " << ss << " sx " << sx << " sy " << sy << std::endl; 
+//       std::cerr << " SSDAlign2DXYAutre::fitLin...  Sum of the weights " << ss << " sx " << sx << " sy " << sy << std::endl; 
        const double sxoss = sx/ss;
        double b = 0.; double st2 = 0.;
        for (size_t k=0; k != ts.size(); k++) {
@@ -61,7 +61,7 @@ namespace emph {
          st2 += tmpT*tmpT;
          b += tmpT*ts[k];
        }
-//       std::cerr << " SSDAlign2DXYAlgo1::fitLin...  Sum of the weights " << ss << " st2 " << st2 << " b " << b << std::endl; 
+//       std::cerr << " SSDAlign2DXYAutre::fitLin...  Sum of the weights " << ss << " st2 " << st2 << " b " << b << std::endl; 
        this->slope = b/st2;
        this->offset = (sy - sx*this->slope)/ss;
        this->sigmaOffset = std::sqrt((1. + (sx*sx)/(ss*st2))/ss);   
@@ -73,7 +73,7 @@ namespace emph {
          this->chiSq += (this->resids[k]*this->resids[k])*ws[k];
        }
      
-//       std::cerr << " SSDAlign2DXYAlgo1::fitLin, done, offset " << this->offset << " +- " 
+//       std::cerr << " SSDAlign2DXYAutre::fitLin, done, offset " << this->offset << " +- " 
 //                 <<  this->sigmaOffset << " chiSq " <<  this->chiSq << std::endl; 
      } // end of fitLin..
      double SSDAlignSimpleLinFit::GetTrOffInit(const std::vector<double> &ts) {

@@ -66,7 +66,7 @@ cet_build_plugin(StudyOneSSDClusters art::module
         art_root_io::TFileService_service
 )
 
-cet_build_plugin(RecoBeamTracksAlgo1 art::module
+cet_build_plugin(RecoBeamTracksAutre art::module
 	LIBRARIES PRIVATE
 	SSDRecoUtil
 	ChannelMap
@@ -90,7 +90,7 @@ cet_build_plugin(RecoBeamTracksAlgo1 art::module
         art_root_io::TFileService_service
 )
 
-cet_build_plugin(StudyAllTrial1Algo1 art::module
+cet_build_plugin(StudyAllTrial1Autre art::module
 	LIBRARIES PRIVATE
 	SSDRecoUtil
 	ChannelMap

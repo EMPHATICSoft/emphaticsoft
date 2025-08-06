@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
     std::string topDirAll("/home/lebrun/EMPHATIC/DataLaptop/");
     std::string myHostName(std::getenv("HOSTNAME"));
     if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/");
-    std::string aFName(topDirAll);  aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    std::string aFName(topDirAll);  aFName += std::string("CompactAutreData_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
      
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     	      << " option " << token <<  " starting at " << dateNow << std::endl;
 	      
      emph::rbal::BTAlignInput myBTIn;
-     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
+     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Autre on run 1055. 
      if (myRank == 0)  {
          myBTIn.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
 	 std::cerr << " .... this analysis will be based on " << myBTIn.GetNumEvts() << std::endl;

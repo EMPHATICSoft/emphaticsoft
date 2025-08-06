@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief  The Geometry, SSD only, data for the SSD aligner 
-///          Used by main SSD Aligner Algo1 package.   
+///          Used by main SSD Aligner Autre package.   
 ///          This is a singleton class. 
 ///          Units are mm, as default G4 units.  Angle in radians. 
 ///           Upgrade for Phase1c yeah.. Cloning is bad.. but... 
@@ -22,7 +22,7 @@ namespace emph{
         BTAlignGeom1c();
         const size_t fNumStations = 7; // For Phase1b 
         const size_t fNumSensorsXorY = 9; // Station 4 and 5 have 2 sensors, so, 4*1 + 2*2 
-        const size_t fNumSensorsW = 4; // a.k.a V view.. Following notation in SSDReco/SSDRecStationDwnstrAlgo1 Station 4 and 5, one sensor each 
+        const size_t fNumSensorsW = 4; // a.k.a V view.. Following notation in SSDReco/SSDRecStationDwnstrAutre Station 4 and 5, one sensor each 
         const size_t fNumSensorsU = 2; // Station 2 and 3, one sensor each   
 	const size_t fNumStrips = 640; // a bit more correct.. 
 	//

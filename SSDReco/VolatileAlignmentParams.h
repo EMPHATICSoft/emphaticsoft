@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief  a DELTA Geometry, SSD only, data for the SSD aligner 
-///          Used temporarely Algo1 package.   
+///          Used temporarely Autre package.   
 ///          This is a singleton class, could be, if need be part of the art services.  
 ///          Units are mm, as default G4 units.  Angle in radians. 
 ///          This only work for Phase1b, for now.. Number of Stations and Sensors are hard-coded. 

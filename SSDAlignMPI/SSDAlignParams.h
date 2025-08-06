@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief  The Geometry, SSD only, data for the SSD aligner 
-///          Used by main SSD Aligner Algo1 package.   
+///          Used by main SSD Aligner Autre package.   
 ///          This is a singleton class. 
 ///          Units are mm, as default G4 units.  Angle in radians. 
 /// \author  lebrun@fnal.gov

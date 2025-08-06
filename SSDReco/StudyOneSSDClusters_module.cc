@@ -48,8 +48,8 @@ Either way, if you're only looking at individual detectors they should be okay
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDHotChannelList.h"
-#include "SSDReco/SSDAlign2DXYAlgo1.h"
-#include "SSDReco/SSDAlign3DUVAlgo1.h"
+#include "SSDReco/SSDAlign2DXYAutre.h"
+#include "SSDReco/SSDAlign3DUVAutre.h"
 //
 
 namespace emph {
@@ -100,14 +100,14 @@ namespace emph {
       bool fDoAlignYAlt45;  
       bool fDoAlignYAlt5;  
       bool fDoSkipDeadOrHotStrips;  
-      bool fDoLastIs4AlignAlgo1; 
+      bool fDoLastIs4AlignAutre; 
       unsigned int fRun;
       unsigned int fSubRun;
       unsigned int fEvtNum;
       unsigned int fNEvents;
       double fPitch;
-      int fNumMaxIterAlignAlgo1;
-      double fChiSqCutAlignAlgo1;
+      int fNumMaxIterAlignAutre;
+      double fChiSqCutAlignAutre;
       double fSetMCRMomentum; // The momentum for a given run.. 
 //
 // access to the geometry.   
@@ -137,8 +137,8 @@ namespace emph {
 //
 // The 5 station X and Y aligners (with option of doing only 0 to 4 )
 //
-      emph::ssdr::SSDAlign2DXYAlgo1 fAlignX, fAlignY;
-      emph::ssdr::SSDAlign3DUVAlgo1 fAlignUV;           
+      emph::ssdr::SSDAlign2DXYAutre fAlignX, fAlignY;
+      emph::ssdr::SSDAlign3DUVAutre fAlignUV;           
 //
 // CSV tuple output..
 // 
@@ -179,10 +179,10 @@ namespace emph {
       fDoAlignYAlt45 (pset.get<bool>("alignYAlt45", false)),
       fDoAlignYAlt5 (pset.get<bool>("alignYAlt5", false)),
       fDoSkipDeadOrHotStrips (pset.get<bool>("skipDeadOrHotStrips", false)),
-      fDoLastIs4AlignAlgo1 (pset.get<bool>("LastIs4AlignAlgo1", false)),
+      fDoLastIs4AlignAutre (pset.get<bool>("LastIs4AlignAutre", false)),
       fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
-      fNumMaxIterAlignAlgo1 (pset.get<int>("NumMaxIterAlignAlgo1", 1000)),
-      fChiSqCutAlignAlgo1 (pset.get<double>("ChiSqCutAlignAlgo1", 1000.)),
+      fNumMaxIterAlignAutre (pset.get<int>("NumMaxIterAlignAutre", 1000)),
+      fChiSqCutAlignAutre (pset.get<double>("ChiSqCutAlignAutre", 1000.)),
       fSetMCRMomentum (pset.get<double>("SetMCRMomentum", 120.)),
       fGeoService(), fEmgeo(nullptr), fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
       fZlocXPlanes(0), fZlocYPlanes(0), fZlocUPlanes(0), fZlocVPlanes(0)
@@ -233,8 +233,8 @@ namespace emph {
       }
       fAlignX.SetTokenJob(fTokenJob);
       fAlignY.SetTokenJob(fTokenJob);
-      fAlignX.SetDoAling0to4(fDoLastIs4AlignAlgo1);
-      fAlignY.SetDoAling0to4(fDoLastIs4AlignAlgo1);
+      fAlignX.SetDoAling0to4(fDoLastIs4AlignAutre);
+      fAlignY.SetDoAling0to4(fDoLastIs4AlignAutre);
       fAlignX.SetZLocShifts(aZLocShifts);
       fAlignY.SetZLocShifts(aZLocShifts);
       fAlignX.SetOtherUncert(aTransUncert);
@@ -263,7 +263,7 @@ namespace emph {
       const std::string alignParamsStr = pset.get<std::string>("alignParamFileName");
       const char *pathHere = std::getenv("CETPKG_BUILD");
       const std::string ffName(pathHere + std::string("/") + alignParamsStr) ;
-      std::cerr << " StudyAllTrial1Algo1::reconfigure, uploading alignment data from file " << ffName << std::endl;
+      std::cerr << " StudyAllTrial1Autre::reconfigure, uploading alignment data from file " << ffName << std::endl;
       if (ffName.find("none") == std::string::npos) fEmVolAlP->SetGeomFromSSDAlign(ffName); 
       std::cerr << " .... O.K. keep going ....  " << std::endl; 
     }
@@ -354,10 +354,10 @@ namespace emph {
       for (size_t i=0; i != XRotVPlanes.size(); i++) std::cerr << " " << XRotVPlanes[i] << ",";
       std::cerr << std::endl << "------------------------------------" << std::endl; 
       // Load the zCoords to the X Y aligner 
-      fAlignX.InitializeCoords(fDoLastIs4AlignAlgo1, fZlocXPlanes); 
-      fAlignX.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignX.SetNumIterMax(fNumMaxIterAlignAlgo1);
-      fAlignY.InitializeCoords(fDoLastIs4AlignAlgo1, fZlocYPlanes); 
-      fAlignY.SetChiSqCut1(fChiSqCutAlignAlgo1); fAlignY.SetNumIterMax(fNumMaxIterAlignAlgo1);
+      fAlignX.InitializeCoords(fDoLastIs4AlignAutre, fZlocXPlanes); 
+      fAlignX.SetChiSqCut1(fChiSqCutAlignAutre); fAlignX.SetNumIterMax(fNumMaxIterAlignAutre);
+      fAlignY.InitializeCoords(fDoLastIs4AlignAutre, fZlocYPlanes); 
+      fAlignY.SetChiSqCut1(fChiSqCutAlignAutre); fAlignY.SetNumIterMax(fNumMaxIterAlignAutre);
       fAlignUV.InitializeCoords(false, fZlocXPlanes, fZlocYPlanes, fZlocUPlanes, fZlocVPlanes); 
       
       std::cerr << " End of ZCoordinates Setting ... " << std::endl << std::endl; 

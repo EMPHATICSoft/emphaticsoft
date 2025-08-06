@@ -158,7 +158,7 @@ namespace g4b{
 //           << fRollsRaw[kP] << std::endl;
 //    }
 // 
-//  For easy comparison of the result of the Algo1 SSDAlign MPI fits.. 
+//  For easy comparison of the result of the Autre SSDAlign MPI fits.. 
 //  Skip the Tilts, a Yaw or Pitch causes G4 volume overlap, not a good idea.. 
 //
     const double oneOverSqrt2 = 1.0 /std::sqrt(2);

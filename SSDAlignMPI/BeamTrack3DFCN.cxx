@@ -391,7 +391,7 @@ namespace emph {
 	          aInDbgR = aInDbg; // clumsy.. 
 	        }
 	      } else { // We do not know the correct formula for first V (a.k.a. W) Sensor 0 (in Station 4) no 120 GeV Proton statistics. 
-	      // September 23 - 25 2023, aligning with SSDReco/SSDRecStationDwnstrAlgo1 
+	      // September 23 - 25 2023, aligning with SSDReco/SSDRecStationDwnstrAutre 
 	      // November-December.. Settled.. 
 	        if (kSe == 0) tMeas = (-strip*pitch - myGeo->TrPos(aView, kSe)); // Tested, on run 1274, June 5  
 	        else if (kSe == 1) tMeas = (strip*pitch + myGeo->TrPos(aView, kSe));

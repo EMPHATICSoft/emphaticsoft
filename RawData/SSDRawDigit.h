@@ -37,7 +37,7 @@ namespace rawdata {
     // For Simulation:  We seemingly don't have a map for converting a row number, as given by a 
     // coordinate on the sensor plane, in the simulation, to a set, chip and strip number. The reciprocal
     // of the function getSensorRow is not uniquely determined.
-    // So, in the converter of a Sim::SSDHit (original, or Algo1), we need a more direct way to set the
+    // So, in the converter of a Sim::SSDHit (original, or Autre), we need a more direct way to set the
     // Row number, as the chip, set and strip number are not used in the reconstruction code.
     // Paul Lebrun March 20 2023
     inline void SetRow(uint32_t aRow) { fRow = aRow; }   

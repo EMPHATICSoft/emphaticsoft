@@ -42,8 +42,8 @@
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDHotChannelList.h"
-#include "SSDReco/SSDAlign2DXYAlgo1.h"
-#include "SSDReco/SSDAlign3DUVAlgo1.h"
+#include "SSDReco/SSDAlign2DXYAutre.h"
+#include "SSDReco/SSDAlign3DUVAutre.h"
 //
 
 namespace emph {

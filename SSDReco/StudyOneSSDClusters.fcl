@@ -10,9 +10,9 @@ standard_study1ssdcl:
   alignX: false
   alignY: false
   skipDeadOrHotStrips: true # file name for this info is an issue.. 
-  LastIs4AlignAlgo1: false 
-  NumMaxIterAlignAlgo1: 50
-  ChiSqCutAlignAlgo1: 20
+  LastIs4AlignAutre: false 
+  NumMaxIterAlignAutre: 50
+  ChiSqCutAlignAutre: 20
 }
 
 END_PROLOG

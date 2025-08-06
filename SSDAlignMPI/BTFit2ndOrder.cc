@@ -305,7 +305,7 @@ int main(int argc, char **argv) {
 	 }
       } 
     } 
-    aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
+    aFName += std::string("CompactAutreData_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
     gettimeofday(&tvStart,NULL);
@@ -318,7 +318,7 @@ int main(int argc, char **argv) {
 	      
      emph::rbal::BTAlignInput myBTIn;
      
-     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
+     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Autre on run 1055. 
      if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
      if ((strictSt6X)  && (!strictSt6Y)) { numExpected = 49651; myBTIn.SetKey(687402); }
      if ((strictSt6X)  && (strictSt6Y)) { 

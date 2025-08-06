@@ -537,7 +537,7 @@ int main(int argc, char **argv) {
     if ((runNum == 2144) && (token.find("Try3D_R2144_11") != std::string::npos))  aFileDescr = std::string("_NoTgt120Gev_ClJan_A2i_7a_7s1104_5_MSt6_to9s0001_V2a.dat"); 
     if ((runNum == 2144) && (token.find("Try3D_R2144_11") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
     if ((runNum == 2113) && (token.find("Try3D_R2113_11") != std::string::npos))  aFileDescr = std::string("_NoTgt31Gev_ClSept_A2e_7a_7a1_9_V2a.dat"); 
-   aFName += std::string("CompactAlgo1Data_") + runNumStr + aFileDescr;
+   aFName += std::string("CompactAutreData_") + runNumStr + aFileDescr;
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
     gettimeofday(&tvStart,NULL);
@@ -552,7 +552,7 @@ int main(int argc, char **argv) {
      myBTIn.SetForPhase1c(IsPhase1c); 
      myBTIn.RejectMultTracks(arbInput); 
      
-     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. 
+     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Autre on run 1055. 
      if ((strictSt6Y) && (!strictSt6X))  { numExpected = 52842; myBTIn.SetKey(687401); }
      if ((strictSt6X)  && (!strictSt6Y)) { numExpected = 49651; myBTIn.SetKey(687402); }
      if ((strictSt6X)  && (strictSt6Y)) { 

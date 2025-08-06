@@ -64,7 +64,7 @@ namespace emph {
 
   private:
     std::vector<sim::SSDHit>  fSSDHits;       ///< The information for SSD hits.
-    std::vector<sim::SSDHit>  fSSDHitsAlgo1;  ///< The information for SSD hits.
+    std::vector<sim::SSDHit>  fSSDHitsAutre;  ///< The information for SSD hits.
     G4double                  fEnergyCut;     ///< The minimum energy in GeV for a particle to
                                               ///< be included in the list.                          
     bool                      fIsParticleInsideDetectorBigBox; ///< Is the particle inside the Big Box?

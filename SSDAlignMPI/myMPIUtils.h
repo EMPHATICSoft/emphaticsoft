@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief  Some MPI high level utilities in the context of a simple Mastr <-> np-1 workers node. 
-///          Used by main SSD Aligner Algo1 package.   
+///          Used by main SSD Aligner Autre package.   
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////

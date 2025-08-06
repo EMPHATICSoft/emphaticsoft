@@ -97,8 +97,8 @@ int main(int argc, char **argv) {
     if (myHostName.find("fnal") != std::string::npos) topDirAll = std::string("/work1/next/lebrun/EMPHATIC/Data/");
 
     std::string aFName(topDirAll);  
-    if (!strictSt6) aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
-    else aFName += std::string("CompactAlgo1Data_1055_5St_try9_AlignUV_GenCompactA5_V1e.dat");
+    if (!strictSt6) aFName += std::string("CompactAutreData_1055_5St_try9_AlignUV_GenCompactA1_V1b.dat");
+    else aFName += std::string("CompactAutreData_1055_5St_try9_AlignUV_GenCompactA5_V1e.dat");
      
     struct timeval tvStart, tvStop, tvEnd;
     char tmbuf[64];
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 	      
      emph::rbal::BTAlignInput myBT;
      
-     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Algo1 on run 1055. if strictSt6 = false
+     int numExpected = 67272; // I know this number from running SSDAlign Stu1 Autre on run 1055. if strictSt6 = false
      if (strictSt6) { numExpected = 41321; myBT.SetKey(687403); }
      
      if (myRank == 0) myBT.FillItFromFile(numExpected, aFName.c_str(), selectedSpill);
