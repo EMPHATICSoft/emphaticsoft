@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to Convert sim::SSDHit (was previouslu Algo1) to rawdata::SSDRawDigit
-////            Also a small CSV ASCII file to check the result.  
+/// \brief   Producer module to Convert sim::SSDHit to rawdata::SSDRawDigit
+////         Also a small CSV ASCII file to check the result.  
 /// \author  $Author: lebrun $
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
@@ -92,7 +92,7 @@ namespace emph {
 
     private:
       bool fFilesAreOpen;
-      bool fCheck1Stu; 
+      bool fCreateCSV; 
       std::string fTokenJob;    
       std::string fSSDHitLabel;
       unsigned int fRun;
@@ -191,7 +191,7 @@ namespace emph {
   // .....................................................................................
   SimSSDToRawDataSSD::SimSSDToRawDataSSD(fhicl::ParameterSet const& pset) : 
     EDProducer(pset), 
-    fFilesAreOpen(false), fCheck1Stu(false), fTokenJob("undef"), fSSDHitLabel("?"),
+    fFilesAreOpen(false), fCreateCSV(false), fTokenJob("undef"), fSSDHitLabel("?"),
     fRun(0), fEvtNum(INT_MAX), fNEvents(0), 
     fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(80.), fFracChargeSharing(0.3),
     fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), fHalfHeight(0.5*fSensorHeight),
@@ -209,8 +209,8 @@ namespace emph {
     
   void SimSSDToRawDataSSD::reconfigure(const fhicl::ParameterSet& pset) 
   {
-    fTokenJob = pset.get<std::string>("tokenJob", "UnDef");
-    fCheck1Stu = pset.get<bool>("doCheck11Stu", false);
+    fTokenJob = pset.get<std::string>("TokenJob", "UnDef");
+    fCreateCSV = pset.get<bool>("CreateCSV", false);
     fSSDHitLabel = pset.get<std::string>("SSDHitLabel");
     fConvertDedxToADCbits = pset.get<double>("ConvertDedxToADCbits", 80.);
     fFracChargeSharing =  pset.get<double>("FracChargeSharing", 0.3);
@@ -234,7 +234,7 @@ namespace emph {
       std::cerr << " SimSSDToRawDataSSD::openOutputCsvFiles, run number not yet defined, something faulty in overall flow, quit here and now " << std::endl;
       exit(2);
     }
-    if (fCheck1Stu) { 
+    if (fCreateCSV) { 
       std::ostringstream fNamePCheck11StrStr; fNamePCheck11StrStr << "./ConvertSimSSDToRawData_V1_" 
                                           << fRun << "_" << fTokenJob << ".txt";
       std::string fNamePCheck1Str(fNamePCheck11StrStr.str());
@@ -250,7 +250,7 @@ namespace emph {
     std::cerr << " SimSSDToRawDataSSD::endJob , for run " << fRun << std::endl;
     std::cerr << " Number of events " <<  fNEvents << std::endl;
     
-    if (fCheck1Stu) fFOutA1.close(); 
+    if (fCreateCSV) fFOutA1.close(); 
   }
     
   void SimSSDToRawDataSSD::produce(art::Event& evt) 
@@ -314,7 +314,7 @@ namespace emph {
           rawdata::SSDRawDigit digit(aFERBoard, (uint32_t) aChanModule, 0, 0, static_cast<uint32_t>(kStr), 
                                     0, finalValAdc, 0) ;
           digit.SetRow(static_cast<uint32_t>(kStr)); //Should not be needed.. 		 
-          if (fCheck1Stu) this->StudyCheck1(aFERBoard, aChanModule, kSt, kSe, digit);
+          if (fCreateCSV) this->StudyCheck1(aFERBoard, aChanModule, kSt, kSe, digit);
           ssdhlcol->push_back(digit);
         }
       } // on Sensors
