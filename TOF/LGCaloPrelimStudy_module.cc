@@ -30,7 +30,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "TOF/PeakInWaveForm.h"
-#include "RecoBase/BeamTrackAlgo1.h"
+#include "RecoBase/BeamTrack.h"
 #include "RecoBase/TrigToT0.h"
 
 using namespace emph;
@@ -84,7 +84,7 @@ namespace emph {
       std::vector<double> fAmplTriggerCut; // Cutting on the sum of the 4 PMT signals. 
       std::vector<double> fAmplT0Cut;
       
-      art::Handle<std::vector<rb::BeamTrackAlgo1> > fBeamTrsPtr; // This works, but use the deprecated art interface.. Upper case C
+      art::Handle<std::vector<rb::BeamTrack> > fBeamTrsPtr; // This works, but use the deprecated art interface.. Upper case C
       art::Handle<rb::TrigToT0>  fTrigToT0Ptr; // This works, but use the deprecated art interface.. Upper case C
       art::Handle< std::vector<emph::rawdata::WaveForm> > fWfHandle;
       

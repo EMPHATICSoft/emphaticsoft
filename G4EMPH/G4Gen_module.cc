@@ -41,6 +41,7 @@
 #include "cetlib/search_path.h"
 
 #include "art/Framework/Core/ModuleMacros.h"
+#include "Geant4/Randomize.hh"
 
 namespace emph {
 
@@ -82,8 +83,13 @@ namespace emph {
     unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
     // setup the random number service for Geant4, the "G4Engine" label is a 
     // special tag setting up a global engine for use by Geant4/CLHEP
-    createEngine(seed, "G4Engine");
+    std::cerr << " G4Gen::G4Gen, the random number seed is " << seed << std::endl;
 
+    createEngine(seed, "G4Engine");
+    
+     std::cerr << " A uniform throw... " << G4UniformRand() << std::endl;
+   //
+    std::cerr << " G4Gen::G4Gen Constructor.. after create engine " << std::endl;
     // Start counting the time
     fStopwatch.Start();
 
@@ -92,7 +98,6 @@ namespace emph {
     produces< std::vector<sim::ARICHHit> > ();
     produces< std::vector<sim::Particle>     	         >();
     produces< std::vector<sim::Track>     	         >();
-    //    produces< art::Assns<sim::Particle, simb::MCTruth>   >();
 
   }// end of constructor
 

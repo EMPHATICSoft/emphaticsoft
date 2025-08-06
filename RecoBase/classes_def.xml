@@ -108,11 +108,14 @@
   <class name="std::vector<rb::ADC>"        />
   <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
   
-  <class name="rb::BeamTrackAlgo1"    ClassVersion="10">
+  <class name="rb::BeamTrack" oldname="rb::BeamTrackAlgo1" ClassVersion="13">
+   <version ClassVersion="13" checksum="1196033901"/>
+   <version ClassVersion="12" checksum="1003995919"/>
+   <version ClassVersion="11" checksum="1738528824"/>
    <version ClassVersion="10" checksum="3643844846"/>
   </class>
-  <class name="std::vector<rb::BeamTrackAlgo1>"        />
-  <class name="art::Wrapper< std::vector<rb::BeamTrackAlgo1>    >"/>
+  <class name="std::vector<rb::BeamTrack>"        />
+  <class name="art::Wrapper< std::vector<rb::BeamTrack>    >"/>
   
   <class name="rb::TrigToT0"    ClassVersion="11">
    <version ClassVersion="11" checksum="3408702871"/>
@@ -137,13 +140,12 @@
   <class name="std::vector<rb::Track>"        />
   <class name="art::Wrapper< std::vector<rb::Track>    >"/>
 
- <class name = "rb::ARICHCluster"/>
- <class name="std::vector<rb::ARICHCluster>"        />
+  <class name="rb::ARICHCluster"/>
+  <class name="std::vector<rb::ARICHCluster>"        />
   <class name="art::Wrapper< std::vector<rb::ARICHCluster>    >"/>
 
-<class name = "rb::ArichID"/>
-<class name= "std::vector<rb::ArichID>"        />
-<class name="art::Wrapper< std::vector<rb::ArichID>    >"/>
+  <class name="rb::ArichID"/>
+  <class name="std::vector<rb::ArichID>"        />
+  <class name="art::Wrapper< std::vector<rb::ArichID>    >"/>
 
-
- </lcgdict>
+</lcgdict>

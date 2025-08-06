@@ -103,6 +103,7 @@ namespace emph {
     const bool dfltSchema  = true;
     bool overlapCheck       = pset.get< bool >("G4OverlapCheck",dfltOverlap);
     bool validateGDMLSchema = pset.get< bool >("G4ValidateGDMLSchema",dfltSchema);
+    bool useMisalign        = pset.get< bool >("G4UseMisalign",false);
     if ( dfltOverlap != overlapCheck || dfltSchema != validateGDMLSchema ) {
       mf::LogInfo("G4Alg") << "non-standard GDML processing: "
                            << std::boolalpha
@@ -114,6 +115,7 @@ namespace emph {
     }
     fG4Help->SetOverlapCheck(overlapCheck);
     fG4Help->SetValidateGDMLSchema(validateGDMLSchema);
+    fG4Help->SetUseMisalign(useMisalign);
 
     // Initialize the helper (physics stage)
     fG4Help->InitPhysics();

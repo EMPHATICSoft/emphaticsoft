@@ -1,6 +1,6 @@
 #include "Services.fcl"
 #include "MakeSSDClusters.fcl"
-#include "RecoBeamTracksAlgo1.fcl"
+#include "RecoBeamTracksAutre.fcl"
 #include "TrigToT0Prod.fcl"
 #include "LGCaloPrelimStudy.fcl"
 
@@ -56,11 +56,11 @@ physics.producers.recoBTrC.dumpClusters: false
 physics.producers.recoBTrC.selectHotChannels: false
 physics.producers.recoBTrC.selectHotChannelsFromHits: true
 physics.producers.recoBTrC.alignUV: true
-physics.producers.recoBTrC.ChiSqCutAlignAlgo1: 2000.
+physics.producers.recoBTrC.ChiSqCutAlignAutre: 2000.
 physics.producers.recoBTrC.ChiSqCutAlign3DUVXY: 400.
 physics.producers.recoBTrC.ChiSqCutAlign3DUVUV: 1.0e9
-physics.producers.recoBTrC.NumMaxIterAlignAlgo1: 500
-physics.producers.recoBTrC.LastIs4AlignAlgo1: false
+physics.producers.recoBTrC.NumMaxIterAlignAutre: 500
+physics.producers.recoBTrC.LastIs4AlignAutre: false
 physics.producers.recoBTrC.SetMCRMomentum: 18.0
 physics.producers.recoBTrC.TransPosUncert: [0.2, 0.2, 0.2, 0.2, 0.3, 0.3]
 physics.producers.recoBTrC.ZLocShifts: [0., 0., 0., 0., 0.0001, 0.00001]
