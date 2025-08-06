@@ -10,7 +10,7 @@
 #include "cetlib_except/exception.h"
 
 #include "G4Base/DetectorConstruction.h"
-#include "G4Base/EmphMisaligner.h"
+#include "G4Base/Misaligner.h"
 #include "G4Base/GlobalMagneticField.h"
 #include "MagneticField/service/MagneticFieldService.h"
 #include "Geometry/service/GeometryService.h"
@@ -85,7 +85,7 @@ namespace g4b{
     if ((misalignModelNum != 0)  || (std::abs(misalignDoubleSSDGap) < 1.0e-3)) {
       mf::LogInfo("DetectorConstruction") << " We will modify the G4 Geometry to implement quasi-realistic misalignments, model number " << misalignModelNum;
 
-      g4b::EmphMisaligner myMis(std::string(""), misAlignSeed);
+      g4b::Misaligner myMis(std::string(""), misAlignSeed);
       myMis.doIt(misalignModelNum, misalignDoubleSSDGap);
       effGDMLFile = myMis.runIt(std::string("Tr1"));
     }

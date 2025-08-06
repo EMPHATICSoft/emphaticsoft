@@ -1,17 +1,17 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  EmphMisaligner.h
+/// \file  Misaligner.h
 /// \brief Generate a misaligned gdml file to simulate the loss of acceptance & momentum resolution due to 
 ///        misalignements and/or survey uncertainties... 
 ///
-/// \version $Id: EmphMisaligner.h,v 1.15 2012-12-03 23:29:50 rhatcher Exp $
+/// \version $Id: Misaligner.h,v 1.15 2012-12-03 23:29:50 rhatcher Exp $
 /// \author  lebrun@fnal.gov
 ///  August 1 2023:  Upgrade the geometry, support rolls of stations.. 
 ////////////////////////////////////////////////////////////////////////
 
 ///
 
-#ifndef G4BASE_EMPHMISALIGNER_H
-#define G4BASE_EMPHMISALIGNER_H
+#ifndef G4BASE_Misaligner_H
+#define G4BASE_Misaligner_H
 
 #include <vector>
 #include <string> 
@@ -22,12 +22,12 @@
 // August 5 2023 : modify now the perl script, not the gdml file. 
 namespace g4b {  
 
-  class EmphMisaligner {
+  class Misaligner {
 
   public:
 
     /// Standard constructor and destructor for an FMWK module.
-    explicit EmphMisaligner(const std::string &fNameIn, unsigned int aSeed); 
+    explicit Misaligner(const std::string &fNameIn, unsigned int aSeed); 
       // First argument can be empty string , take the standart generate_gdml.pl, from Phase1b. 
       // if Phase1c declare, well, do this Phase1c.   
 
@@ -79,4 +79,4 @@ namespace g4b {
 
 } // namespace g4b
 
-#endif // G4BASE_EMPHMISALIGNER_H
+#endif // G4BASE_Misaligner_H
