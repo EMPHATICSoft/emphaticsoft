@@ -108,7 +108,8 @@
   <class name="std::vector<rb::ADC>"        />
   <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
   
-  <class name="rb::BeamTrackAlgo1"    ClassVersion="11">
+  <class name="rb::BeamTrackAlgo1"    ClassVersion="12">
+   <version ClassVersion="12" checksum="1003995919"/>
    <version ClassVersion="11" checksum="1738528824"/>
    <version ClassVersion="10" checksum="3643844846"/>
   </class>

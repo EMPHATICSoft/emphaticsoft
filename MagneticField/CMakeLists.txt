@@ -6,7 +6,7 @@ include_directories( $ENV{ROOT_INC} )
 
 art_make_library(
   SOURCE
-    MagneticField.cxx MagneticFieldAdd.cxx test/TestEmphMagneticField.cxx
+    MagneticField.cxx 
   LIBRARIES
     RunHistory
     Geometry
@@ -25,5 +25,4 @@ install_source()
 install_fhicl()
 
 add_subdirectory(service)
-add_subdirectory(field_map_tools)
 add_subdirectory(test)
