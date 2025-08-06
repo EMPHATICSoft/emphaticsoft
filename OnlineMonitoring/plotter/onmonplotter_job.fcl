@@ -1,7 +1,7 @@
 #include "OnMonPlotter.fcl"
 
-#include "RunHistory.fcl"
 #include "ChannelMap.fcl"
+#include "RunHistory.fcl"
 
 process_name: OnMon
 
@@ -40,10 +40,9 @@ physics:
 
  analyzers:
  {
-	onmon: @local::standard_onmon
+     onmon: @local::standard_onmon
  }
 
- # stream1:  [ out1 ] #could have multiple paths
  ana: [ onmon ] 
 
  end_paths:     [ana]  #end_path are things that do not modify art::Event, includes analyzers and output modules. all items here can be run simultaneously

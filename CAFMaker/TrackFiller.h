@@ -15,9 +15,9 @@ namespace caf
   public:
 
     void Fill(art::Event&, caf::StandardRecord&);
-
-    std::string fLabel;
-
+    //void Fill(art::Event&, caf::StandardRecord& sr1,  caf::StandardRecord& sr2);
+    std::string fLabelTracks;
+    std::string fLabelArichID;
   };
 
 } // end namespace

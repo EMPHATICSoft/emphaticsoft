@@ -54,7 +54,6 @@ void PlotOptions::Reset()
   fLogz           = false;
   fGridx          = false;
   fGridy          = false;
-  fDetlbl         = false;
   fSpecial        = false;
   fHaveXscale     = false;
   fXlo            = 0;
@@ -151,7 +150,6 @@ void PlotOptions::Set(const std::vector<std::string>& opt)
     else if (opt[i]=="logz")      { fLogz      = true; }
     else if (opt[i]=="gridx")     { fGridx     = true; }
     else if (opt[i]=="gridy")     { fGridy     = true; }
-    else if (opt[i]=="detlbl")    { fDetlbl    = true; }
     else if (opt[i]=="special")   { fSpecial   = true; }
     else if (xscale)              { this->ParseXscale(opt[i].c_str()); }
     else if (yscale)              { this->ParseYscale(opt[i].c_str()); }
@@ -181,23 +179,16 @@ void PlotOptions::SetPad(TPad* p)
 
 void PlotOptions::MakeLabels(TH1* h, const HistoData* hd __attribute__((unused)))
 {
-  fDetText->Clear();
-  if (fDetlbl) {
-    // Super hacky. Would be nice to do this with bin labelling, but then you can't interact with the plot properly.
-    // Trying to pull detector names logically doesn't get correct spacing.
-    fDetText->AddText(" Trigger   GasCkov   BACkov   T0ADC       RPC         SSD       ARICH     LGCalo    T0TDC");
-    fDetText->Draw();
-  }
-
   fSLText->Clear();
+  fLabelText->Clear();
   if (fSpecial) {
     this->MakeSpecialLabel(h);
     fSLText->Draw();
   }
-
-  fLabelText->Clear();
-  this->MakeLabelText(h);
-  fLabelText->Draw();
+  else {
+    this->MakeLabelText(h);
+    fLabelText->Draw();
+  }
 
 }
 
@@ -454,13 +445,18 @@ void PlotOptions::MakeSpecialLabel(TH1* h)
     h->GetYaxis()->SetLabelSize(0);
 
     std::string labelStr;
-    fSLText->AddText("");
-    labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
-    fSLText->AddText(labelStr.c_str());
     int i;
     for (i=emph::geo::NDetectors-1; i>-1; --i) {
       labelStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(i));
-      if (i == emph::geo::T0) labelStr += "ADC";
+      if (i == emph::geo::T0) {
+        labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "ADC";
+        fSLText->AddText("");
+        fSLText->AddText(labelStr.c_str());
+        labelStr = emph::geo::DetInfo::Name(emph::geo::T0) + "TDC";
+        fSLText->AddText("");
+        fSLText->AddText(labelStr.c_str());
+        continue;
+      }
       fSLText->AddText("");
       fSLText->AddText(labelStr.c_str());
     }

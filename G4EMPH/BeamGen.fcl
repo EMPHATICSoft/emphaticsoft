@@ -30,7 +30,7 @@ standard_beamgen:
 
 # parameters for Gaussian total momentum distribution (the only option for now)
   PMean:		     120.
-  Psigma:		     1.e-3
+  PSigma:		     1.e-3
 
 # parameters for flat distributions of beam slopes
   PXmax:		     0.1
@@ -61,7 +61,7 @@ proton120.PYmin: -1.e-5
 proton4: @local::standard_beamgen
 proton4.particleType: "proton"
 proton4.PMean: 4
-proton4.Psigma: 0.2
+proton4.PSigma: 0.2
 proton4.xyDistSource: "flatxy"
 proton4.pxyDistSource: "flatpxy"
 proton4.Xmax: 2.

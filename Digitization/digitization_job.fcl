@@ -1,6 +1,7 @@
 #include "Services.fcl"
 #include "SSDDigitizer.fcl"
 #include "ARICHDigitizer.fcl"
+#include "RelabelRawDigitModules.fcl"
 
 process_name: Digitizer
 
@@ -23,6 +24,9 @@ outputs:
    module_type: RootOutput
    fileName:    "%ifb.dig.root"
    fastCloning: false
+   outputCommands: [ "keep *",
+                     "drop *_rawARICH_*_*",
+                     "drop *_rawSSD_*_*" ]
    
   }
 }
@@ -31,13 +35,12 @@ physics:
 {
   producers:
   {
-#    raw:        @local::standard_ssddigitizer
     rawSSD:        @local::standard_ssddigitizer
-    rawARICH:        @local::standard_arichdigitizer
+    rawARICH:      @local::standard_arichdigitizer
+    raw:           @local::standard_digitrelabel
   }
 
-#  digitizer: [ raw ]
-  digitizer: [ rawSSD, rawARICH ]
+  digitizer: [ rawSSD, rawARICH, raw ]
 
   trigger_paths: [ digitizer ]
   stream1: [ out1 ]

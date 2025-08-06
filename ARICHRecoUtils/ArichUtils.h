@@ -9,8 +9,6 @@
 #ifndef ARICH_UTILS_H
 #define ARICH_UTILS_H
 
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "Geometry/service/GeometryService.h"
 #include "ChannelMap/service/ChannelMapService.h"
 
 #include "ARICHRecoUtils/Detector.h"
@@ -39,7 +37,8 @@ namespace arichreco{
 	TH2D* DigsToHist(std::vector<std::pair<int,int>> cluster);
 
 	std::vector<double> IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
-
+	
+	std::vector<double> identifyParticle(TH2D* eventHist, float  particleMom, TVector3 pos0, TVector3 dir0);
 	std::vector<std::vector<TH2D>> GetPDFs(int np, std::vector<double> mom,  std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 
 	double calcBeta(int particlei, double mom);
@@ -68,7 +67,6 @@ namespace arichreco{
         arichreco::Arich    *Arich;	
 	arichreco::particleInfoStruct hypothesis;
 
-	art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
 	std::map<std::string, double> Particle_LogLike;
     };
 
