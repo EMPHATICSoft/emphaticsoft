@@ -3,7 +3,7 @@
 /// \author  jpaley@fnal.gov, lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#include "RecoBase/DwnstrTrackAutre.h"
+#include "RecoBase/DwnstrTrack.h"
 
 #include <iomanip>
 #include <iostream>
@@ -11,22 +11,22 @@
 #include <climits>
 #include <cfloat>
 
-namespace rb {
+namespace rbex {
   
   //----------------------------------------------------------------------
   
-  DwnstrTrackAutre::DwnstrTrackAutre() : 
-    fTrType (rb::TRDWNNONE), fId(INT_MAX), fUserFlag(INT_MAX), 
-   fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), fTrMom(120.),  
-   fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX),
-   fTrMomErr(DBL_MAX),
-   fCovXY(25, DBL_MAX), fChiSq(DBL_MAX), fChiSqSts(DBL_MAX), fChiSqKlmX(DBL_MAX), fChiSqKlmY(DBL_MAX) 
+  DwnstrTrack::DwnstrTrack() : 
+    fTrType (rbex::TRDWNNONE), fId(INT_MAX), fUserFlag(INT_MAX), 
+    fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX), fTrMom(120.),  
+    fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX),
+    fTrMomErr(DBL_MAX),
+    fCovXY(25, DBL_MAX), fChiSq(DBL_MAX), fChiSqSts(DBL_MAX), fChiSqKlmX(DBL_MAX), fChiSqKlmY(DBL_MAX) 
   {
    ;
   }
   //----------------------------------------------------------------------
   
-  std::ostream& operator<< (std::ostream& o, const DwnstrTrackAutre& h)
+  std::ostream& operator<< (std::ostream& o, const DwnstrTrack& h)
   {
     auto aPrec = o.precision();
     auto aFlags = o.flags();
@@ -40,5 +40,5 @@ namespace rb {
     return o;
   }
   
-} // end namespace rawdata
+} // end namespace rbex
 //////////////////////////////////////////////////////////////////////////////

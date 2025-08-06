@@ -1,9 +1,9 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   The final stage of the reconstruction: The point of interaction. 
-/// \author  jpaley@fnal.gov
+/// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#include "RecoBase/VertexAutre.h"
+#include "RecoBase/Vertex.h"
 
 #include <iomanip>
 #include <iostream>
@@ -11,11 +11,11 @@
 #include <climits>
 #include <cfloat>
 
-namespace rb {
+namespace rbex {
   
   //----------------------------------------------------------------------
   
-  VertexAutre::VertexAutre() : 
+  Vertex::Vertex() : 
    fId(INT_MAX), fX(DBL_MAX), fY(DBL_MAX), fZ(DBL_MAX), 
    fXErr(DBL_MAX), fYErr(DBL_MAX), fZErr(DBL_MAX), 
    fCovXYZ(9, DBL_MAX), fChiSq(DBL_MAX)
@@ -24,7 +24,7 @@ namespace rb {
   }
   //----------------------------------------------------------------------
   
-  std::ostream& operator<< (std::ostream& o, const VertexAutre& h)
+  std::ostream& operator<< (std::ostream& o, const Vertex& h)
   {
     auto aPrec = o.precision();
     auto aFlags = o.flags();
@@ -36,5 +36,5 @@ namespace rb {
     return o;
   }
   
-} // end namespace rawdata
+} // end namespace rbex
 //////////////////////////////////////////////////////////////////////////////

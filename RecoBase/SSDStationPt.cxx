@@ -8,28 +8,28 @@
 #include <iostream>
 #include <climits>
 #include <cfloat>
-#include "RecoBase/SSDStationPtAutre.h"
+#include "RecoBase/SSDStationPt.h"
 
 //
-namespace rb {
+namespace rbex {
   
   //----------------------------------------------------------------------
   
-  SSDStationPtAutre::SSDStationPtAutre() :
-     fType(rb::STNONE), fId(INT_MAX), fStationNum(INT_MAX), fUserFlag(INT_MAX), fX(DBL_MAX),  
+  SSDStationPt::SSDStationPt() :
+     fType(rbex::STNONE), fId(INT_MAX), fStationNum(INT_MAX), fUserFlag(INT_MAX), fX(DBL_MAX),  
      fY(DBL_MAX), fXErr(DBL_MAX), fYErr(DBL_MAX),
      fChiSq(DBL_MAX), fUorVPred(DBL_MAX), fUorVObsRaw(DBL_MAX), fUorVObsCorr(DBL_MAX),
      fHasXOverlap(false), fHasYOverlap(false), fHasUorVOverlap(false)
      { ; } 
 
-  void SSDStationPtAutre::Add(std::vector<rb::SSDCluster>::const_iterator itCl, double aClCorrectedMean, double aClErr) {
+  void SSDStationPt::Add(std::vector<rb::SSDCluster>::const_iterator itCl, double aClCorrectedMean, double aClErr) {
 	  if (itCl->Station() != fStationNum) {
 	    if (fStationNum == INT_MAX) {
 	      std::cerr << 
-	        " SSDStationPtAutre::Add, undefined station, please set the station number first, fatal error for now " << std::endl;
+	        " SSDStationPt::Add, undefined station, please set the station number first, fatal error for now " << std::endl;
 	      exit(2);
 	    }
-	    std::cerr << " SSDStationPtAutre::Add, inconsistent station number, currently " 
+	    std::cerr << " SSDStationPt::Add, inconsistent station number, currently " 
 	              << fStationNum << " from SSDCluster ptr " <<  itCl->Station() << " fatal.. " << std::endl;
 	    exit(2);
 	  }
@@ -40,52 +40,52 @@ namespace rb {
 	//
 	  if (fClViews.size() == 2) {
 	    if (fClViews[0] == fClViews[1]) {
-	      std::cerr << " SSDStationPtAutre::Add, inconsistent set of views, both being  " << fClViews[1] 
+	      std::cerr << " SSDStationPt::Add, inconsistent set of views, both being  " << fClViews[1] 
 	              << " fatal.. " << std::endl; exit(2);
 	    }
 	    if (((fClViews[0] == emph::geo::X_VIEW) && (fClViews[1] == emph::geo::Y_VIEW)) || 
-	        ((fClViews[0] == emph::geo::Y_VIEW) && (fClViews[1] == emph::geo::X_VIEW))) fType = rb::STXYONLY; 
+	        ((fClViews[0] == emph::geo::Y_VIEW) && (fClViews[1] == emph::geo::X_VIEW))) fType = rbex::STXYONLY; 
 	    if (((fClViews[0] == emph::geo::X_VIEW) && (fClViews[1] == emph::geo::U_VIEW)) || 
-	        ((fClViews[0] == emph::geo::U_VIEW) && (fClViews[1] == emph::geo::X_VIEW))) fType = rb::STXUONLY; 
+	        ((fClViews[0] == emph::geo::U_VIEW) && (fClViews[1] == emph::geo::X_VIEW))) fType = rbex::STXUONLY; 
 	    if (((fClViews[0] == emph::geo::X_VIEW) && (fClViews[1] == emph::geo::W_VIEW)) || 
-	        ((fClViews[0] == emph::geo::W_VIEW) && (fClViews[1] == emph::geo::X_VIEW))) fType = rb::STXWONLY; 
+	        ((fClViews[0] == emph::geo::W_VIEW) && (fClViews[1] == emph::geo::X_VIEW))) fType = rbex::STXWONLY; 
 	    if (((fClViews[0] == emph::geo::Y_VIEW) && (fClViews[1] == emph::geo::U_VIEW)) || 
-	        ((fClViews[0] == emph::geo::U_VIEW) && (fClViews[1] == emph::geo::Y_VIEW))) fType = rb::STYUONLY; 
+	        ((fClViews[0] == emph::geo::U_VIEW) && (fClViews[1] == emph::geo::Y_VIEW))) fType = rbex::STYUONLY; 
 	    if (((fClViews[0] == emph::geo::Y_VIEW) && (fClViews[1] == emph::geo::W_VIEW)) || 
-	        ((fClViews[0] == emph::geo::W_VIEW) && (fClViews[1] == emph::geo::Y_VIEW))) fType = rb::STYWONLY; 
+	        ((fClViews[0] == emph::geo::W_VIEW) && (fClViews[1] == emph::geo::Y_VIEW))) fType = rbex::STYWONLY; 
 	 } else if (fClViews.size() == 3) {
 	    if ((fClViews[0] == fClViews[2]) || (fClViews[1] == fClViews[2]))  {
-	      std::cerr << " SSDStationPtAutre::Add, inconsistent set of views, adding   " << fClViews[2] 
+	      std::cerr << " SSDStationPt::Add, inconsistent set of views, adding   " << fClViews[2] 
 	              << " to " << fClViews[0] << " and " << fClViews[1] << " fatal.. " << std::endl; exit(2);
 	    }
 	    if ((fClViews[0] == emph::geo::U_VIEW) || (fClViews[1] == emph::geo::U_VIEW) 
-	        || (fClViews[2] == emph::geo::U_VIEW)) fType = rb::STXYU; 
+	        || (fClViews[2] == emph::geo::U_VIEW)) fType = rbex::STXYU; 
 	    if ((fClViews[0] == emph::geo::W_VIEW) || (fClViews[1] == emph::geo::W_VIEW) 
-	        || (fClViews[2] == emph::geo::W_VIEW)) fType = rb::STXYW; 
+	        || (fClViews[2] == emph::geo::W_VIEW)) fType = rbex::STXYW; 
 	 }
    }
-   void SSDStationPtAutre::ReScaleMultUncert(double multScatt120, double pOld, double pNew) const {  
+   void SSDStationPt::ReScaleMultUncert(double multScatt120, double pOld, double pNew) const {  
      // pseudo const, we don't change the position, just the uncertainty. 
 //	  if (fStationNum == 5)
-//	   std::cerr << " SSDStationPtAutre::ReScaleMultUncert, Station 5 multScatt120 " << multScatt120  
+//	   std::cerr << " SSDStationPt::ReScaleMultUncert, Station 5 multScatt120 " << multScatt120  
 //	             << " xErr " << fXErr << std::endl;
 	  const double ratioPOld120Sq = (120./pOld)*(120./pOld);
 	  const double ratioPNew120Sq = (120./pNew)*(120./pNew);
 	  const double xErrSQOther = fXErr*fXErr - multScatt120*multScatt120*ratioPOld120Sq;
 	  const double aXErrOld = fXErr; 
 	  if (xErrSQOther < 0.) {
-	    std::cerr << " ReScaleMultUncert::SSDStationPtAutre, Station " << fStationNum<< " pOld " << pOld 
+	    std::cerr << " ReScaleMultUncert::SSDStationPt, Station " << fStationNum<< " pOld " << pOld 
 	             << " pNew " << pNew << " ratioPOldSq " << ratioPOld120Sq << " new " 
 		     << ratioPNew120Sq << " xErrSQOther " << xErrSQOther << " mulScatt120 " <<  multScatt120
 		     << " OlXErr " << aXErrOld << std::endl;
-	    std::cerr << " SSDStationPtAutre::ReScaleMultUncert Problem, multScatt too large for X view !!! pOld = " 
+	    std::cerr << " SSDStationPt::ReScaleMultUncert Problem, multScatt too large for X view !!! pOld = " 
 	              << pOld << " X Err " << fXErr << " Fatal, quit now.. " << std::endl; 
 	    exit(2); 
 	  }
 	  fXErr  = std::sqrt(xErrSQOther + multScatt120*multScatt120*ratioPNew120Sq); 
 	  const double yErrSQOther = fYErr*fYErr - multScatt120*multScatt120*ratioPOld120Sq;
 	  if (yErrSQOther < 0.) {
-	    std::cerr << " SSDStationPtAutre::ReScaleMultUncert Problem, multScatt too large for Y view !!! pOld = " 
+	    std::cerr << " SSDStationPt::ReScaleMultUncert Problem, multScatt too large for Y view !!! pOld = " 
 	              << pOld << " Y Err " << fYErr << " Fatal, quit now.. " << std::endl; 
 	    exit(2); 
 	  }
@@ -93,17 +93,17 @@ namespace rb {
    } 
    //
    //     
-   std::ostream& operator<< (std::ostream& o, const rb::SSDStationPtAutre& h) {
+   std::ostream& operator<< (std::ostream& o, const rbex::SSDStationPt& h) {
      o << "SSD Station Point, Autre for Station  "<< h.Station() << ", type is ";
      switch (h.Type()) {
-       case rb::STNONE : { o <<" undefined "; break; } 
-       case rb::STXYU: { o << " 3 Clusters, X, Y, and U "; break; } 
-       case rb::STXYW: { o << " 3 Clusters, X, Y, and W "; break; } 
-       case rb::STXYONLY: { o << " 2 Clusters,  X and Y "; break; } 
-       case rb::STXUONLY: { o << " 2 Clusters,  X and U "; break; } 
-       case rb::STYUONLY: { o << " 2 Clusters,  Y and U "; break; } 
-       case rb::STXWONLY: { o << " 2 Clusters,  X and W "; break; } 
-       case rb::STYWONLY: { o << " 2 Clusters,  Y and W "; break; } 
+       case rbex::STNONE : { o <<" undefined "; break; } 
+       case rbex::STXYU: { o << " 3 Clusters, X, Y, and U "; break; } 
+       case rbex::STXYW: { o << " 3 Clusters, X, Y, and W "; break; } 
+       case rbex::STXYONLY: { o << " 2 Clusters,  X and Y "; break; } 
+       case rbex::STXUONLY: { o << " 2 Clusters,  X and U "; break; } 
+       case rbex::STYUONLY: { o << " 2 Clusters,  Y and U "; break; } 
+       case rbex::STXWONLY: { o << " 2 Clusters,  X and W "; break; } 
+       case rbex::STYWONLY: { o << " 2 Clusters,  Y and W "; break; } 
      } 
      o << std::endl;
      o <<  " X = " << h.X() << " +- " << h.XErr() << " Y = " << h.Y() << " +- " <<  h.YErr();
@@ -118,5 +118,5 @@ namespace rb {
      o << std::endl;
      return o;
   }
-}  // end namespace rawdata
+}  // end namespace rbex
 //////////////////////////////////////////////////////////////////////////////

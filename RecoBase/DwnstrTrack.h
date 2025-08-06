@@ -4,8 +4,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef DWNSTRTRACKALGO1_H
-#define DWNSTRTRACKALGO1_H
+#ifndef DWNSTRTRACK_H
+#define DWNSTRTRACK_H
 
 #include <vector>
 #include <stdint.h>
@@ -13,27 +13,29 @@
 #include <climits>
 #include <cfloat>
 
-namespace rb {
+namespace rbex {
 
-    typedef enum tDwnstrTrType { TRDWNNONE = 0, // unspecified. 
-                                 FOURSTATION = 1, // Best case, Phase1b
-                                 FIVESTATION = 11, //Phase1b, obsolete
-				 STATION234 = 2,
-				 STATION235 = 3, 
-                                 SIXSTATION = 10, // Best case, when we have no magnet, Not yet supported in Phase1c
-                                 FIVESTATIONDWN = 12, // Best case, Phase1c, Downstream tracks. 
-                                 STATION2356DWN = 14, // Phase1c, Downstream tracks, station 4 missing 
-                                 STATION2456DWN = 15, // Phase1c, Downstream tracks, station 3 missing 
-                                 STATION3456DWN = 16, // Phase1c, Downstream tracks, station 2 missing 
-                                 STATION2345DWN = 17, // Phase1c, Downstream tracks, station 6 missing 
-                                 STATION2346DWN = 18 // Phase1c, Downstream tracks, station 5 missing 
-			} DwnstrTrType;
-				
+  typedef enum tDwnstrTrType 
+  {
+    TRDWNNONE = 0, // unspecified. 
+    FOURSTATION = 1, // Best case, Phase1b
+    FIVESTATION = 11, //Phase1b, obsolete
+    STATION234 = 2,
+    STATION235 = 3, 
+    SIXSTATION = 10, // Best case, when we have no magnet, Not yet supported in Phase1c
+    FIVESTATIONDWN = 12, // Best case, Phase1c, Downstream tracks. 
+    STATION2356DWN = 14, // Phase1c, Downstream tracks, station 4 missing 
+    STATION2456DWN = 15, // Phase1c, Downstream tracks, station 3 missing 
+    STATION3456DWN = 16, // Phase1c, Downstream tracks, station 2 missing 
+    STATION2345DWN = 17, // Phase1c, Downstream tracks, station 6 missing 
+    STATION2346DWN = 18 // Phase1c, Downstream tracks, station 5 missing 
+  } DwnstrTrType;
+        
   
-  class DwnstrTrackAutre {
+  class DwnstrTrack {
   public:
-    DwnstrTrackAutre(); // Default constructor
-    virtual ~DwnstrTrackAutre() {}; //Destructor
+    DwnstrTrack(); // Default constructor
+    virtual ~DwnstrTrack() {}; //Destructor
     
   private:
 
@@ -48,7 +50,7 @@ namespace rb {
      double fChiSq; // Note: if  atrack is abritrated away, it's chi-Square will be set to DBL_MAX, at some point. 
 //     std::vector<int> fNHitsXView, fNHitsYView;  not sure if relevant, limited use.. 
      double fChiSqSts, fChiSqKlmX, fChiSqKlmY; // Addition info to quantify fits vs Kalman fits. 
-	  
+    
   public:
    // Setters 
    inline void Reset() { // Set everyting to NONE or DBL_MAX, to be refilled again.  
@@ -77,7 +79,7 @@ namespace rb {
    inline void SetUserFlag(int v) const {fUserFlag = v;} 
 
     // Getters
-    inline rb::DwnstrTrType Type() const { return fTrType; }
+    inline DwnstrTrType Type() const { return fTrType; }
     inline int ID() const { return fId; } 
     inline double XOffset() const { return fTrXOffset; } 
     inline double XSlope() const { return fTrXSlope; } 
@@ -102,9 +104,9 @@ namespace rb {
     inline std::vector<double> CovMatrix() const {return fCovXY;}
     inline double CovMatrix(size_t i, size_t j) const {return fCovXY[5*i +j];} // No checks.. 
     
-    friend std::ostream& operator << (std::ostream& o, const DwnstrTrackAutre& h);
+    friend std::ostream& operator << (std::ostream& o, const DwnstrTrack& h);
   };
   
 }
 
-#endif // DWNSTRTRACKALGO1_H
+#endif // DWNSTRTRACK_H
