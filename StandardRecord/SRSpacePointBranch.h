@@ -5,6 +5,7 @@
 #define SRSPACEPOINTBRANCH_H
 #include "StandardRecord/SRSpacePoint.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace caf

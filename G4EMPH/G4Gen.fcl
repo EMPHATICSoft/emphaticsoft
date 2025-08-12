@@ -22,9 +22,23 @@ standard_g4alg:
   SparseTrajectories:  true   #if true, only save necessary points in particle trajectories
   G4PhysListName:      "QGSP_BERT_HP;G4OpticalPhysics"
   MinTrajPtDist:        5. # min. distance (mm) between consecutive G4 trajectory points.   
+}
+
+misalign_g4alg: @local::standard_g4alg
+misliang_g4alg.G4UseMisAlign: false
 # Done in code .. For now.. We will restore this functionality later, perhaps. 
 #  AddedUserActions: ["emph::SSDHitAction", "emph::TrackListAction", "emph::FastStopAction", "emph::TOPAZLGHitAction"]
-}
+#  SSD Misalignment: MisalignModel flag 
+#  No misalignment : value 0 
+#  MisalignModel: RRYYZZTT 
+#   .. This is a long int.. Each of these 4 field values are expressed in decimal 
+#  MisalignModel: RR : 10x the maximum rolls, in degree   
+#  MisalignModel: YY : 10x the maximum Yaw and Pitch, in degree   
+#  MisalignModel: ZZ : Maximum Shift in Z position of the station, in mm   
+#  MisalignModel: TT : 10x tims the transverse shifts of the sensors, in mm
+  MisalignModel: 0 
+  MisalignDoubleSSGap: 2.97 # Irrelevant if no misalignment model, gap between contiguous sensor on station 4 & 5 are 0. 
+  MisalignSeed: 2981 # irrelevant if no SSD misalignment 
 
 manyparticles_g4alg:               @local::standard_g4alg
 manyparticles_g4alg.ManyParticles: true

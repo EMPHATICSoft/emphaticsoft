@@ -6,6 +6,7 @@
 #include "StandardRecord/SRSSDHits.h"
 
 #include <vector>
+#include <cstddef>
 
 namespace caf
 {

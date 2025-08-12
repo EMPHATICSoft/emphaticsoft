@@ -7,6 +7,7 @@
 
 #include <limits>
 #include <vector>
+#include <cstddef>
 
 namespace caf
 {
@@ -18,7 +19,7 @@ namespace caf
       ~SRGasCkovBranch();
 
       std::vector<SRGasCkov>  gasckovhits;  ///< GasCkovhits produced by GasCkovHitReco
-      size_t                 ngasckovhits; ///< number of gasckovhits
+      std::size_t                 ngasckovhits; ///< number of gasckovhits
       bool                   PID[5];      ///< probability (0 or 1) of being {e,mu,pi,K,p}
 
       void fillSizes();
