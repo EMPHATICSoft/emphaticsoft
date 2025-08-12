@@ -219,15 +219,15 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
   if (ssdHandle.isValid()) {
     for (size_t idx=0; idx<ssdHandle->size(); ++idx){
       art::Ptr<emph::rawdata::SSDRawDigit> ssdDig(ssdHandle,idx);
-      std::cout << "(FER,Module) = (" << ssdDig->FER() << "," << ssdDig->Module() << ")" << std::endl;
+      //      std::cout << "(FER,Module) = (" << ssdDig->FER() << "," << ssdDig->Module() << ")" << std::endl;
       emph::cmap::EChannel echan = emph::cmap::EChannel(emph::cmap::SSD,ssdDig->FER(),ssdDig->Module());
       
       if (!cmap->CMap()->IsValidEChan(echan)){
       	continue;
       }
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
-      std::cout << "(station,plane,sensor) = (" << dchan.Station() << "," 
-		<< dchan.Plane() << "," << dchan.HiLo() << ")" << std::endl;
+      //      std::cout << "(station,plane,sensor) = (" << dchan.Station() << "," 
+      //	<< dchan.Plane() << "," << dchan.HiLo() << ")" << std::endl;
       digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssdDig);
     }
 

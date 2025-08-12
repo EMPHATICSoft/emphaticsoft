@@ -74,7 +74,7 @@ namespace emph {
     class DChannel {
     public:
       DChannel();
-      DChannel(emph::geo::DetectorType detId, int channel, int station, short hilo) { fId = detId; fChannel = channel; fStation = station; fHiLo = hilo; };
+      DChannel(emph::geo::DetectorType detId, int channel, int station, short hilo, short plane=0) { fId = detId; fChannel = channel; fStation = station; fHiLo = hilo; fPlane = plane; };
       virtual ~DChannel() {};
 
       emph::geo::DetectorType DetId() { return fId; }
