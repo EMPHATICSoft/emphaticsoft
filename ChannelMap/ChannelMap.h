@@ -92,7 +92,7 @@ namespace emph {
       inline bool operator==(const DChannel& dchan) const {
 	if (fId == emph::geo::SSD)
 	  return ((dchan.fId == fId)&&(dchan.fStation == fStation)&&
-		  (dchan.fChannel == fChannel)&&(dchan.fPlane == fPlane)); 
+		  (dchan.fHiLo == fHiLo)&&(dchan.fPlane == fPlane)); 
 	else
 	  return ((dchan.fId == fId)&&(dchan.fChannel == fChannel)&&
 		  (dchan.fHiLo == fHiLo)); 
@@ -106,7 +106,7 @@ namespace emph {
 	    if (fStation == dchan.fStation) {
 	      if (fPlane < dchan.fPlane) return true;
 	      if (fPlane == dchan.fPlane)
-		if (fChannel < dchan.fChannel) return true;
+		if (fHiLo < dchan.fHiLo) return true;
 	      //	      if ((fHiLo>=0) && (fHiLo < dchan.fHiLo)) return true;
 	    }
 	  }
@@ -128,7 +128,7 @@ namespace emph {
 	    if (fStation == dchan.fStation) {
 	      if (fPlane > dchan.fPlane) return true;
 	      if (fPlane == dchan.fPlane) 
-		if (fChannel > dchan.fChannel) return true;
+		if (fHiLo > dchan.fHiLo) return true;
 	    }
 	  }
 	  else {
