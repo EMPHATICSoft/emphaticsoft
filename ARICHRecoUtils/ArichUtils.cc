@@ -153,18 +153,19 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 
 	int numCombinations = TMath::Power(NUMPARTICLES, np);
 	double minLoglikelihood = 1E10;
-	int bestCombination[np];
-	TH2D *hs;
+	//	std::vector<int> bestCombination;
+	//	bestCombination.resize(np);
+	TH2D *hs=0;
         
 	for (int i = 0; i < numCombinations; i++) {
 		int index = i;
-		if (i > 0) delete hs;
+		if (i > 0 && hs != 0) delete hs;
 		char* stackedTitle = Form("PDF%i", i);
-		int combination[np];
+		//		int combination[np];
 		for (int k=np-1; k>=0; k--) { 
 			int p = index % NUMPARTICLES;
 			index = index / NUMPARTICLES;
-			combination[k] = p;
+			//	combination[k] = p;
                		stackedTitle = Form("%s_%s", stackedTitle, PNAMES[p]);
 			if(k==np-1) {hs=(TH2D*)calculatedPdfs[k][p].Clone();}
 			
@@ -230,10 +231,13 @@ std::vector<double> ARICH_UTILS::recoCherenkov(TH2Poly* eventHist, int nDetected
   {
    
     TVector3 hiti, diri;
-    std::vector<double> theta_bin[nDetected], thetasC;
+    std::vector<std::vector<double> >theta_bin;
+    theta_bin.resize(nDetected);
+    std::vector<double> thetasC;
     double thetai, thetaC = 0;
 
-    TH1D* hChe[nDetected];
+    //    std::vector<TH1D*> hChe;
+    //    hChe.resize(nDetected);
     TList *binlist=eventHist->GetBins();
     TH2PolyBin *thisBin;
 
