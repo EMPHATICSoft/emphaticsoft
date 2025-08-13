@@ -161,17 +161,19 @@ namespace emph {
   {
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
-      fPmean = rhs->RunHist()->BeamMom();
-      // ensure that 120 GeV/c particles are always protons.
-      if (fabs(fPmean-120.)<5) {
-	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	fPsigma = 0.01*fPmean;
-	fXYHist = 0;
-	fPXYHist = 0;
-	fXYDistSource = "";
-	fPXYDistSource = "";
-	fPID = kProton;
-	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+      if (fabs(rhs->RunHist()->BeamMom()) > 0) {
+	fPmean = rhs->RunHist()->BeamMom();
+	// ensure that 120 GeV/c particles are always protons.
+	if (fabs(fPmean-120.)<5) {
+	  mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	  fPsigma = 0.01*fPmean;
+	  fXYHist = 0;
+	  fPXYHist = 0;
+	  fXYDistSource = "";
+	  fPXYDistSource = "";
+	  fPID = kProton;
+	  fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+	}
       }
     }
   }

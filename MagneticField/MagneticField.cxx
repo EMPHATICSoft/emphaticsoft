@@ -24,7 +24,7 @@
 namespace emph {
   
   MagneticField::MagneticField() :
-    fFieldFileName(""), fFieldLoaded(false), 
+    fFieldFileName(""), fIsAlignedWithGeom(false),fFieldLoaded(false), 
     fStorageIsStlVector(true), 
     step(0), start{-16., -16., -20.},
     fG4ZipTrackOffset{ 0., 0., 0.},
@@ -59,28 +59,79 @@ namespace emph {
     fG4ZipTrackOffset[0] = geo->MagnetUSXPos();
     fG4ZipTrackOffset[1] = geo->MagnetUSYPos();
 
+    fIsAlignedWithGeom = true;
+
     if (fVerbosity)
       std::cerr << " MagneticField::AlignWithGeom G4ZipTrack Z Offset set to " << fG4ZipTrackOffset[2] << std::endl;
 
-    if (fVerbosity > 1) {
-      //
-      // Testing... at COMSOL coordinate of z = -82.5 mm, By ~ 7.5 Kg, 1/2  field 
-      //     
-      double xTest[3], xTest2[3], BTest[3], BTest2[3]; 
-      xTest[0] = 0.; xTest[1] = 0.; xTest[2] = -geo->MagnetUSZPos();  
-      xTest2[0] = 0.01; xTest2[1] = 0.004; xTest2[2] = 30.; // in mm 
-      this->Field(xTest, BTest);
-      std::cerr << " MagneticField::AlignWithGeom, BField at Upstream plate, internal Variables  " 
-		<< BTest[1] <<  " kG "  << std::endl;
-      this->Field(xTest2, BTest2);
-      std::cerr << " .......... again, 30mm inside " << BTest2[1] << std::endl;
-      for (size_t k=0; k != 3; k++) xTest[k] -= fG4ZipTrackOffset[k];
-      BTest[1] = 0.;
-      this->GetFieldValue(xTest, BTest);
-      std::cerr << " MagneticField::AlignWithGeom, BField at Upstream plate, G4 Coordinates   " << BTest[1] <<  " kG " << std::endl;      
-    }
   }
   
+  //----------------------------------------------------------------------
+
+  double MagneticField::FieldMinZ()
+  {
+    if (!fIsAlignedWithGeom) {
+      this->AlignWithGeom();
+    }
+
+    if (!fFieldLoaded) {
+      if (!fUsingRootHistos) {
+	std::cerr << "UseRootHistos not set to true when calling "
+		  << "MagneticField::FieldMinZ.  Aborting..."
+		  << std::endl;
+	abort();
+      }
+      this->LoadRootHistos();
+    }
+
+    //    std::cout << "Xmin = " << fBy3DHisto->GetZaxis()->GetXmin() << ", z-offset = " << fG4ZipTrackOffset[2] << std::endl;
+
+    double minz = fBy3DHisto->GetZaxis()->GetXmin() + fBy3DHisto->GetZaxis()->GetBinWidth(1);
+
+    return fG4ZipTrackOffset[2] + minz;
+
+  }
+
+  //----------------------------------------------------------------------
+
+  double MagneticField::FieldMaxZ()
+  {
+    if (!fIsAlignedWithGeom) {
+      this->AlignWithGeom();
+    }
+
+    if (!fFieldLoaded) {
+      if (!fUsingRootHistos) {
+	std::cerr << "UseRootHistos not set to true when calling "
+		  << "MagneticField::FieldMinZ.  Aborting..."
+		  << std::endl;
+	abort();
+      }
+      this->LoadRootHistos();
+    }
+
+    double maxz = fBy3DHisto->GetZaxis()->GetXmax() - fBy3DHisto->GetZaxis()->GetBinWidth(1);
+
+    return fG4ZipTrackOffset[2] + maxz;
+
+  }
+
+  //----------------------------------------------------------------------
+
+  bool MagneticField::IsInField(const double x[3]) 
+  {
+    if (!fIsAlignedWithGeom) {
+      this->AlignWithGeom();
+    }
+
+    double B[3];
+    double xAligned[3];
+    for (size_t k=0; k != 3; k++) xAligned[k] = x[k] - fG4ZipTrackOffset[k];
+    this->Field(xAligned, B);
+    return (B[0] != 0 || B[1] != 0 || B[2] != 0);
+
+  }
+
   //----------------------------------------------------------------------
 
   void MagneticField::uploadFromTextFile() 
@@ -281,7 +332,6 @@ namespace emph {
     
     fFieldLoaded = true;
 
-    this->AlignWithGeom();
   }
   
   //----------------------------------------------------------------------
@@ -293,7 +343,7 @@ namespace emph {
     B[0] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner 
     B[1] = 0.;
     B[2] = 0.; 
-    if (fVerbosity) std::cerr << " MagneticField::MagneticField, at x,y,z " << x[0] << ", " << x[1] << ", " << x[2] << std::endl; 
+
     if (fStorageIsStlVector) 
       CalcFieldFromVector(x,B);
     else if (fUsingRootHistos)
@@ -331,7 +381,6 @@ namespace emph {
 
     fin->Close();
     fFieldLoaded = true;
-    this->AlignWithGeom();
   }
 
   //----------------------------------------------------------------------
@@ -347,9 +396,6 @@ namespace emph {
       }
       this->LoadRootHistos();
     }
-
-    //    std::cout << "***** (x,y,z) = (" << x[0] << "," << x[1] << "," << x[2]
-    //	      << ")" << std::endl;
 
     double xbw = fBy3DHisto->GetXaxis()->GetBinWidth(1);
     double ybw = fBy3DHisto->GetYaxis()->GetBinWidth(1);
@@ -613,15 +659,13 @@ namespace emph {
   // Assume the magnetic field map is in units of kilogauss
   void MagneticField::GetFieldValue(const double x[3], double* B) 
   {
+    if (!fIsAlignedWithGeom) {
+      this->AlignWithGeom();
+    }
+
     double xAligned[3];
     for (size_t k=0; k != 3; k++) xAligned[k] = x[k] - fG4ZipTrackOffset[k];
     this->Field(xAligned, B);
-    //    if (fabs(B[1])>0.) { 
-    //     std::cout << "at (" << x[0] << "," << x[1] << "," << x[2] << "), B(" 
-    //		<< xAligned[0] << "," << xAligned[1] << "," 
-    //		<< xAligned[2] << ") = (" << B[0] << "," << B[1] << "," << B[2]
-    //		<< ")" << std::endl;
-    //    }
   }
 
   //----------------------------------------------------------------------

@@ -24,6 +24,11 @@ namespace emph
     art::ServiceHandle<emph::geo::GeometryService> geo;
 
     fAlign = new Align();
+    if (pset.get<bool>("IsDisabled"))
+      fAlign->Disable();
+    else
+      fAlign->Enable();
+
     reg.sPreBeginRun.watch(this, &AlignService::preBeginRun);
 
   }

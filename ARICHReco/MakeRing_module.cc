@@ -165,10 +165,11 @@ void MakeRing::produce(art::Event& evt)
 
 	      for(int j =0; j < (int)circles.size();j++ ){
 		
-	       rb::ARing ring;		
-	
-	       ring.SetRadius(std::get<2>(circles[j]));
-	       float center[3] = {float(std::get<0>(circles[j])),float(std::get<1>(circles[j])),0};
+		rb::ARing ring;		
+		
+		ring.SetRadius(std::get<2>(circles[j]));
+		float center[3] = {float(std::get<0>(circles[j])),float(std::get<1>(circles[j])),0};
+
 		ring.SetCenter(center);
 		ring.SetNHits(arich_clusters->at(u).NDigits()); 
 		
