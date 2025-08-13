@@ -17,7 +17,7 @@ namespace caf
       ~SRARingBranch();
 
       std::vector<SRARing>  arich;  ///< ARings produced by ARichReco
-      size_t                narich; ///< number of arings 
+      std::size_t                narich; ///< number of arings 
 
       void fillSizes();
       

@@ -16,6 +16,7 @@ namespace emph {
   Align::Align() 
   {
     fSSDMatrix.clear();
+    fIsDisabled = false;
   }
 
   //----------------------------------------------------------------------    
@@ -169,9 +170,15 @@ namespace emph {
       if (fSSDMatrix.find(id) != fSSDMatrix.end()) delete fSSDMatrix[id];
 
       fSSDMatrix[id] = new TGeoCombiTrans();
-      fSSDMatrix[id]->SetTranslation(dx,dy,dz);
+      if (fIsDisabled)
+	fSSDMatrix[id]->SetTranslation(0.,0.,0.);
+      else
+	fSSDMatrix[id]->SetTranslation(dx,dy,dz);
       TGeoRotation rot;
-      rot.SetAngles(phi,theta,psi);
+      if (fIsDisabled)
+	rot.SetAngles(0.,0.,0.);
+      else
+	rot.SetAngles(phi,theta,psi);
       fSSDMatrix[id]->SetRotation(rot);
 
       std::cout<<"Align constants: "<<lineStr.str()<<std::endl;     

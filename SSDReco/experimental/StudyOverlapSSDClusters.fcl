@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+standard_studyoverlap:
+{
+  module_type: StudyOverlapSSDClusters
+  SSDClsLabel: "clust"
+  tokenJob: "undef"
+  dumpClusters: false
+}
+
+END_PROLOG

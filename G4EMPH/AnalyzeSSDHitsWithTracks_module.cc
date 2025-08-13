@@ -193,20 +193,16 @@ namespace emph {
       if (!fFilesAreOpen) this->openOutputCsvFiles();
       fSubRun = evt.subRun(); 
       fEvtNum = evt.id().event();
-      
-//      std::cerr << " AnalyzeSSDHitsWithTracks::analyze , event " << fEvtNum << " and do not much  " <<   std::endl; 
-      
-//      auto tokenForTrack = evt.getProductTokens<std::vector<sim::Track>(); 
-      
+
     //
     // Get the data. 
       art::Handle<std::vector<sim::SSDHit> > theSSDHits;
       evt.getByLabel (fSSDHitLabel, theSSDHits);
-      std::vector<sim::SSDHit> mySSDHits(*theSSDHits); // a deep copy that should not be here.. Conveninece for mulyiple analyssis.
+      std::vector<sim::SSDHit> mySSDHits(*theSSDHits); // a deep copy that should not be here.. Convenience for multiple analysis.
 //
       art::Handle<std::vector<sim::Track> > theTracks;
       evt.getByLabel(fTrackLabel, theTracks );
-      std::vector<sim::Track> myTracks(*theTracks); // a deep copy that should not be here.. Conveninece for mulyiple analyssis.
+      std::vector<sim::Track> myTracks(*theTracks); // a deep copy that should not be here.. Convenience for multiple analysis.
 //      std::cerr << " Number of tracks : " << myTracks.size() << std::endl;
       
      if (fDoPResol1Stu) this->StudyPResol1(mySSDHits, myTracks);
@@ -216,7 +212,8 @@ namespace emph {
     //
     // simple Xslope measurement 
     //
-    void AnalyzeSSDHitsWithTracks::StudyPResol1 (const std::vector<sim::SSDHit> &theSSDHits, const std::vector<sim::Track> &theTracks) {
+    void AnalyzeSSDHitsWithTracks::StudyPResol1 (const std::vector<sim::SSDHit> &theSSDHits, 
+                                                 const std::vector<sim::Track> &theTracks) {
      const double arbitraryChannelOffset = 50000.;
       const int discretShift = static_cast<int>(arbitraryChannelOffset/fPitch);
       // we could put systematic biases here.. 

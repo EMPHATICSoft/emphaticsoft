@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_beamgen:
 {
   module_type:	             BeamGen
+  RandomSeed:                0
   particleType:		     "proton"
 # xyDistSource options: Gauss of flatxy
 # xyDistSource:              "flatxy"
@@ -105,14 +106,14 @@ proton4.PMean: 4
 proton4.PSigma: 0.2
 proton4.xyDistSource: "flatxy"
 proton4.pxyDistSource: "flatpxy"
-proton4.Xmax: 20.
-proton4.Xmin: -20. 
-proton4.Ymax: 20.
-proton4.Ymin: -20. 
-proton4.PXmax: 1.e-4
-proton4.PXmin: -1.e-4 
-proton4.PYmax: 1.e-4
-proton4.PYmin: -1.e-4 
+proton4.Xmax: 1.5
+proton4.Xmin: -1.5 
+proton4.Ymax: 1.5
+proton4.Ymin: -1.5 
+proton4.PXmax: 1.e-5
+proton4.PXmin: -1.e-5 
+proton4.PYmax: 1.e-5
+proton4.PYmin: -1.e-5 
 
 piplusP31: @local::standard_beamgen
 piplusP31.particleType: "pion"

@@ -15,7 +15,7 @@
 
 namespace emph {
 
-  namespace rawdata{
+  namespace rawdata {
   
   //----------------------------------------------------------------------
   
@@ -86,6 +86,6 @@ namespace emph {
       return getSensorRow(fChip, fSet, fStrip);
   }
   
-} // end namespace rawdata
+  } // end namespace rawdata
 } // end namespace emph
 //////////////////////////////////////////////////////////////////////////////

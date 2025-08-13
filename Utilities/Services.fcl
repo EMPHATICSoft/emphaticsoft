@@ -3,6 +3,7 @@
 #include "DetGeoMap.fcl"
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
+#include "MagneticField.fcl"
 
 BEGIN_PROLOG
 
@@ -13,8 +14,8 @@ core_services:
   DetGeoMapService:  @local::standard_detgeomap
   Geometry:          @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
+  MagneticField:     @local::standard_magfield
 }
-
 
 standard_services:
 {

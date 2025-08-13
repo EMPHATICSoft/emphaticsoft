@@ -52,8 +52,8 @@ physics.analyzers.onestu.dumpClusters: false
 physics.analyzers.onestu.selectHotChannels: false
 physics.analyzers.onestu.selectHotChannelsFromHits: true
 physics.analyzers.onestu.alignY: true
-physics.analyzers.onestu.ChiSqCutAlignAlgo1: 50.
-physics.analyzers.onestu.LastIs4AlignAlgo1: true
+physics.analyzers.onestu.ChiSqCutAlignAutre: 50.
+physics.analyzers.onestu.LastIs4AlignAutre: true
 physics.analyzers.onestu.TransPosUncert: [1.0e-3, 0.05, 0.1, 0.1, 0.2, 0.2]
 physics.analyzers.onestu.ZLocShifts: [0., 0., 0., 0., 0.0001, 0.00001]
 physics.producers.clustA.CheckDQ: false

@@ -75,6 +75,19 @@ namespace emph {
     }
 
     //--------------------------------------------------------------------------------
+
+    void Detector::MotherToLocal(double x1[3], double x2[3]) const
+    {
+      double tx[3];
+      if (fName.find("ssd") != std::string::npos) { // include mount position if this is a SSD
+	fGeoMatrixMount->MasterToLocal(x1,tx);
+	fGeoMatrix->MasterToLocal(tx,x2);
+      }
+      else
+	fGeoMatrix->MasterToLocal(x1,x2);
+    }
+
+    //--------------------------------------------------------------------------------
     sensorView Detector::View() const
     {
      auto pi = TMath::Pi();
@@ -511,7 +524,12 @@ Plane::Plane() :
 	      sensor.SetDz(sensor_box->GetDZ());
 	      sensor.SetGeoMatrix(sensor_n->GetMatrix());
 	      sensor.SetGeoMatrixMount(mount_n->GetMatrix());
-	      sensor.SetPos(sensor_n->GetMatrix()->GetTranslation());
+	      double x0[3] = {0.,0.,0.};
+	      double x1[3];
+	      double tx[3];
+	      sensor.LocalToMother(x0,tx);
+	      st.LocalToMother(tx,x1);
+	      sensor.SetPos(x1);
 	      angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
 	      if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
 	      sensor.SetRot(angle);
@@ -553,7 +571,57 @@ Plane::Plane() :
 
 	fSSDStation[st.Id()] = st;
       }
-      
+
+      fRadLength.clear();
+      CalcRadLengths();      
+
+    }
+
+    //------------------------------------------------------------
+    // Function to calculation the radiation lengths between SSD planes.
+    // Note: we only calculate this in the forward (downstream) direction.
+    // Here we assume that the carbon fiber backplane and silicon wafer are
+    // both 0.3 mm thick
+    void Geometry::CalcRadLengths()
+    {
+      double air = 30390.; // cm
+      double CFiber = 42.7/1.55; // 42.7 g/cm^2 / 1.8 g/cm^3
+      double Si = 21.82/2.3; // 21.82 g/cm^2 / 2.3 g/cm^3
+
+      // loop over stations
+      int planeId;
+      double radL;
+
+      for (int i=0; i<fNSSDStations; ++i) {
+	auto station = this->GetSSDStation(i);
+	for (int j=0; j<station->NPlanes(); ++j) {
+	  // check that we're not at the very last plane
+	  if (i == fNSSDStations-1 && j == station->NPlanes()-1) continue;
+
+	  double dz = 0;
+	  // if we are at the last plane of the station, go to next station to get next plane position
+	  if (j == station->NPlanes()-1) { // 
+	    auto station2 = this->GetSSDStation(i+1);
+	    dz = station2->GetPlane(0)->SSD(0)->Pos()[2];
+	  } 
+	  else {
+	    dz = station->GetPlane(j+1)->SSD(0)->Pos()[2];
+	  }
+	  dz -= station->GetPlane(j)->SSD(0)->Pos()[2];
+	  dz /= 10.; // convert mm to cm
+	  planeId = i*10+j;
+	  radL = 0.03/Si + 0.03/CFiber + (dz-0.06)/air;
+	  fRadLength[planeId] = radL;
+	}
+      }
+    }
+
+    //------------------------------------------------------------
+
+    double Geometry::GetRadLength(int ssdId) const
+    {
+      auto iter = fRadLength.find(ssdId);
+      return (iter != fRadLength.end()) ? iter->second : 0.;
     }
 
     //------------------------------------------------------------

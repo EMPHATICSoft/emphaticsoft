@@ -308,7 +308,7 @@ namespace emph {
 	fNRawObjectsHisto->GetXaxis()->SetBinLabel(j+1,labelStr.c_str());
         fNTriggerVsDet->GetXaxis()->LabelsOption("h");
         fNRawObjectsHisto->GetXaxis()->LabelsOption("h");
-        if (i == emph::geo::USLAPPD || i == emph::geo::DSLAPPD) {
+        if (i == emph::geo::LAPPD) {
           fNTriggerVsDet->GetXaxis()->ChangeLabel(j+1,350,-1,0,-1,-1,labelStr.c_str());
           fNRawObjectsHisto->GetXaxis()->ChangeLabel(j+1,350,-1,0,-1,-1,labelStr.c_str());
         }
@@ -359,7 +359,7 @@ namespace emph {
 	  labelStr += " ADC";
 	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
 	}
-	else if (i == emph::geo::USLAPPD || i == emph::geo::DSLAPPD) {
+	else if (i == emph::geo::LAPPD) {
 	  fHitEffPerChannel->GetXaxis()->SetBinLabel(j++,labelStr.c_str());
         } 
       }

@@ -6,6 +6,7 @@
 #include "StandardRecord/SRTrueSSDHits.h"
 
 #include <vector>
+#include <cstddef>
 
 namespace caf
 {

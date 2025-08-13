@@ -6,6 +6,7 @@
 #include "StandardRecord/SRSSDClust.h"
 
 #include <vector>
+#include <cstddef>
 
 namespace caf
 {

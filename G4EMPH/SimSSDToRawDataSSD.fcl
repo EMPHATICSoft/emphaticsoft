@@ -1,0 +1,13 @@
+BEGIN_PROLOG
+
+standard_simssdtorawssd:
+{
+  module_type: SimSSDToRawDataSSD
+  CreateCSV: true # Produce a CSV for checking with R 
+  TokenJob: "Test"
+  SSDHitLabel: "geantgen" # Depends on your overall fcl job. 
+  ConvertDedxToADCbits: 60. # Scale factor to convert an integrated dedx to a ADC value associated to the digit. 
+  FracChargeSharing: 0.3 # If the residual of the position is greater than this amount, put some ADC count in the neighboring strip.
+}
+
+END_PROLOG

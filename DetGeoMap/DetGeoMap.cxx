@@ -65,7 +65,11 @@ namespace emph {
 
       ls.SetX0(x0);
       ls.SetX1(x1);	  
-      
+      ls.SetSSDStation(station);
+      ls.SetSSDPlane(plane);
+      ls.SetSSDSensor(sensor);
+
+      //      std::cout << ls << std::endl;
       return true;
       
     }
@@ -76,6 +80,11 @@ namespace emph {
       int sensor = cl.Sensor();
       int plane  = cl.Plane();
       double dstrip = cl.WgtAvgStrip();
+      double pitch = 0.06; // hard-coding the 60 um strip width for now... this should ideally be done based on the sensor info in Geometry
+      if (cl.NDigits() == 1)
+	ls.SetSigma(pitch/sqrt(12));
+      else
+	ls.SetSigma(cl.WgtRmsStrip()*pitch); 
       return StationSensorPlaneToLineSegment(station, sensor, plane, ls, dstrip);
     }  
     //----------------------------------------------------------------------

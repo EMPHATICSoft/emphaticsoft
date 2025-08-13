@@ -64,18 +64,37 @@ namespace emph {
     //    void endJob();
     
   private:
+    bool fFillAnaTree;
+
     TH1D *fADCvsDEHist;
     TH3D *fhist3D;
+    TTree* fAnaTree;
+    int fEvent;
+    int fStation, fPlane, fSensor, fStrip;
+    int fADC;
+    float fdE;
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
 
-    std::unordered_map<int,int> fSensorMap;
+    //    std::unordered_map<int,int> fSensorMap;
 
-    void FillSensorMap();
+    //    void FillSensorMap();
   };
        
   void SSDDigitizer::beginJob() {
+    if (fFillAnaTree) {
+      art::ServiceHandle<art::TFileService> tfs;
+      fAnaTree = tfs->make<TTree>("ssddigTree","");
+      fAnaTree->Branch("event",&fEvent,"event/I");
+      fAnaTree->Branch("station",&fStation,"station/I");
+      fAnaTree->Branch("plane",&fPlane,"plane/I");
+      fAnaTree->Branch("sensor",&fSensor,"sensor/I");
+      fAnaTree->Branch("strip",&fStrip,"strip/I");
+      fAnaTree->Branch("adc",&fADC,"adc/I");
+      fAnaTree->Branch("dE",&fdE,"dE/F");
+    }
+
     std::string plot3D= "Hits_totADC_RMS_3D.root"; //3D distribution plot from data; hits vs totADC vs RMS
     TFile *Plot3Dhist; 
 
@@ -109,9 +128,11 @@ namespace emph {
  
   SSDDigitizer::SSDDigitizer(fhicl::ParameterSet const& pset)
     : EDProducer(pset),
+      fFillAnaTree (pset.get<bool>("FillAnaTree")),
       fG4Label (pset.get<std::string>("G4Label"))
   {
-    fSensorMap.clear();
+    //    fSensorMap.clear();
+    fAnaTree = 0;
 
     produces<std::vector<rawdata::SSDRawDigit> >("SSD");
 
@@ -127,7 +148,7 @@ namespace emph {
   }
 
   //......................................................................
-
+  /*
   void SSDDigitizer::FillSensorMap()
   {
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
@@ -140,11 +161,12 @@ namespace emph {
       }
     }
   }
-  
+  */
   //......................................................................
 
   void SSDDigitizer::produce(art::Event& evt)
   { 
+    fEvent = evt.event();
     art::Handle< std::vector<sim::SSDHit> > ssdHitH;
     try {
       evt.getByLabel(fG4Label,ssdHitH);
@@ -168,7 +190,7 @@ namespace emph {
       dchan.SetDetId(emph::geo::SSD);
       dchan.SetChannel(-1);
 
-      if (fSensorMap.empty()) FillSensorMap();
+      //      if (fSensorMap.empty()) FillSensorMap();
 
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
         const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
@@ -234,9 +256,9 @@ namespace emph {
   std::vector<emph::rawdata::SSDRawDigit> SSDDigitizer::SimulateChargeSharing(const sim::SSDHit& ssdhit) {
 
     float dEnergy = ssdhit.GetDE(); 
-
+    fdE = dEnergy;
     std::vector<emph::rawdata::SSDRawDigit> returnValue;
-
+    
     //Selecting threshold
     if (dEnergy > 0.000000005) { //GeV
       
@@ -259,24 +281,34 @@ namespace emph {
       getHitsAndRMS(adc, hit, rms, fhist3D);
       int hits = std::lround(hit);
               	
+      fStation = ssdhit.GetStation();
+      fSensor = ssdhit.GetSensor(); 
+      fPlane = ssdhit.GetPlane();
+      fStrip = ssdhit.GetStrip(); 
+
+      emph::cmap::EChannel echan;
+      echan.SetBoardType(emph::cmap::SSD);
+      emph::cmap::DChannel dchan;
+      dchan.SetDetId(emph::geo::SSD);
+      
       if (hits == 1) {
         float calADC  = adcRange(adc);
+	fADC = int(calADC);
         art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-        int station = ssdhit.GetStation();
-        int sensor = ssdhit.GetSensor(); 
-        int plane = ssdhit.GetPlane();
-        int row = ssdhit.GetStrip(); 
-        emph::cmap::EChannel echan;
-        echan.SetBoardType(emph::cmap::SSD);
-        emph::cmap::DChannel dchan;
-        dchan.SetDetId(emph::geo::SSD);
-        dchan.SetStation(station);
-        dchan.SetPlane(plane);
-        dchan.SetHiLo(sensor);
-        dchan.SetChannel(sensor);
+        dchan.SetStation(fStation);
+        dchan.SetPlane(fPlane);
+        dchan.SetHiLo(fSensor);
+        dchan.SetChannel(fSensor);
         echan = cmap->ElectChan(dchan);
-        returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row, t, calADC, trig));
-      	
+	/*	std::cout << "(Station,Plane,Sensor,Strip) = (" << fStation 
+		  << "," << fPlane << "," << fSensor << "," << fStrip << ")"
+		  << std::endl;
+
+	std::cout << "(Board,Channel,Strip) = (" << echan.Board() << "," 
+		  << echan.Channel() << "," << fStrip << ")" << std::endl;
+	*/
+        returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), fStrip, t, calADC, trig));
+	fAnaTree->Fill();
         return returnValue;
       }
 //.............................................................................................................//
@@ -290,7 +322,7 @@ namespace emph {
         rb::LineSegment lineseg; 
         art::ServiceHandle<emph::dgmap::DetGeoMapService> dgMapService;
         emph::dgmap::DetGeoMap* dgMap = dgMapService->Map();
-        dgMap->StationSensorPlaneToLineSegment(ssdhit.GetStation(), ssdhit.GetSensor(), ssdhit.GetPlane(), lineseg, ssdhit.GetStrip());
+        dgMap->StationSensorPlaneToLineSegment(fStation, fSensor, fPlane, lineseg, fStrip);
 
         float x0 = lineseg.X0().X();
         float y0 = lineseg.X0().Y();
@@ -386,28 +418,27 @@ namespace emph {
           integral += adjustment;
           if (otherRow > 0) {  // Avoiding end of the detector
 
+	    fdE = integral;
             integral = adcRange(integral);
+	    fADC = int(integral);
 
             art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-            int station = ssdhit.GetStation();
-            int sensor = ssdhit.GetSensor(); 
-            int plane = ssdhit.GetPlane();
-	
             int row = otherRow; 
-
+	    fStrip = row;
             emph::cmap::EChannel echan;
             echan.SetBoardType(emph::cmap::SSD);
             emph::cmap::DChannel dchan;
             dchan.SetDetId(emph::geo::SSD);
-            dchan.SetStation(station);
-            dchan.SetPlane(plane);
-            dchan.SetHiLo(sensor);
-            dchan.SetChannel(sensor);
+            dchan.SetStation(fStation);
+            dchan.SetPlane(fPlane);
+            dchan.SetHiLo(fSensor);
+            dchan.SetChannel(fSensor);
             echan = cmap->ElectChan(dchan);
 
             returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row, t, integral, trig));
+	    fAnaTree->Fill();
           }   
-          i++;
+          i++;	  
         }
 
         delete func;
