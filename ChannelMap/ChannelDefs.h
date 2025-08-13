@@ -18,7 +18,8 @@ namespace emph {
       TRB3     = 1,
       AliVATA  = 2,
       SSD      = 3,
-      NBoards  = 4
+      LAPPD    = 4,
+      NBoards  = 5
     } FEBoardType;
     
     class Board {
@@ -33,6 +34,8 @@ namespace emph {
 	  return std::string("AliVATA");
 	case FEBoardType::SSD:
 	  return std::string("SSD");	  
+	case FEBoardType::LAPPD:
+	  return std::string("LAPPD");	  
 	case FEBoardType::NBoards:
 	default:
 	  return std::string("Unknown");
@@ -44,6 +47,7 @@ namespace emph {
 	if (b == "TRB3") return FEBoardType::TRB3;
 	if (b == "AliVATA") return FEBoardType::AliVATA;
 	if (b == "SSD") return FEBoardType::SSD;
+	if (b == "LAPPD") return FEBoardType::LAPPD;
 	return FEBoardType::NBoards;
       }
     };

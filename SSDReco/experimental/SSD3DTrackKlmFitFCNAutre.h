@@ -64,8 +64,9 @@ namespace emph{
         // first is the coordinate, second is the uncertainty. We do not propagate the full covariance matrix.. 
       // Volatile data, to avoid repeating mantra.. See fillVolatileCl
       mutable double fExpectedMomentum; // 
-      mutable int fkStV, fkSeV; 
-      mutable double fzV, ftMeasV, ftMeasErrV; 
+      // Commented out, Aug 11 2025, apparently no longer used.. 
+//      mutable int fkStV, fkSeV; 
+//      mutable double fzV, ftMeasV, ftMeasErrV; 
       mutable std::vector<double> fChiSqSts; // on stations.. 
       
       

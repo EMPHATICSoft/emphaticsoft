@@ -27,7 +27,7 @@ namespace emph {
       fEmgeo(nullptr),
       fEmVolAlP(emph::ssdr::VolatileAlignmentParams::getInstance()),
       fRunNum(0),  fSubRunNum(INT_MAX), fEvtNum(0),
-      fNEvents(0), fDebugIsOn(false), fChiSqCut(5.0), 
+      fDebugIsOn(false), fChiSqCut(5.0), 
       fTokenJob("undef")
       {
       ;
