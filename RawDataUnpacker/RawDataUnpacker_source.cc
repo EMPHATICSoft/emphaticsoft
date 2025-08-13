@@ -643,8 +643,8 @@ namespace rawdata {
 
 		//tdir2.make<TH1I>(dtHist); // this draws the histogram <@@>
 		auto indexBin = dtHist.GetMaximumBin();
-
-		return { indexBin, dtHist.GetMaximum(), binToTime(dt, indexBin) };
+		auto N_occur = dtHist.GetMaximum();
+		return { indexBin, N_occur, binToTime(dt, indexBin) };
 	}
 	// Returns the last time synchronized item
 	template <typename T>
@@ -699,13 +699,13 @@ namespace rawdata {
 				auto begin = grandfather.begin() + startSample;
 				std::vector<T> father(begin, begin+N_compare);
 				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
+
 				auto [indexBin, N_occur, offset]  = findOffset(dt);
 				if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
 					maxOccur = N_occur;
 					timeOffset = offset;
 					index = startSample; // sets index of last synced event to the front of the last synced set
 					break;
-				} else {
 					if(maxOccur < N_occur) { // tries to get highest number of occurrences
 						maxOccur = N_occur;
 						timeOffset = offset;
@@ -763,6 +763,16 @@ namespace rawdata {
 				}
 			}
 		}
+// print output timestamps for debugging <@@>
+//		for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
+//			auto fragId = fFragId[ifrag];
+//			if(fragId == 3 || fragId == 2) {
+//				for(auto &ts : fFragTimestamps[fragId])
+//					std::cout << ts << std::endl;
+//				std::cout << std::endl;
+//			}
+//		}
+//		return false;
 
 		/*******************************************************************************************
 		// Synthetic dataset
@@ -786,14 +796,15 @@ namespace rawdata {
 
 		// Do the xcorrelation
 
-		size_t N_compare=30; // Number of events to compare
+		size_t N_compare=50; // Number of events to compare
 		double scale = 1;
-		double percentOverlap = 0.95;
+		double percentOverlap = 0.99;
 		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
 		std::unordered_map <
 			artdaq::Fragment::fragment_id_t,
 			size_t
 		> indexOffset;
+
 		for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
 			auto fragId = fFragId[ifrag];
 			// Sets grandfather to the appropriate value for syncing
@@ -802,7 +813,7 @@ namespace rawdata {
 			std::cout << "(" << grandfather << ", " << fragId << ")" << std::endl;
 
 			auto begin = fFragTimestamps[grandfather].begin();
-			std::vector<int64_t> grandCalibrate(begin, begin + 4*N_compare);
+			std::vector<int64_t> grandCalibrate(begin, begin + 2*N_compare);
 
 			// initial calibration
 			if(fragId == grandfather) // compare SSDs if fragId is grandfather
@@ -812,13 +823,13 @@ namespace rawdata {
 
 			std::vector<int64_t> childCalibrate(begin, begin + N_compare);
 
-			std::cout << "Attempting to calibrate";
+			std::cout << "Attempting to calibrate" << std::endl;
 			auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap);
-			std::cout << "\rCalibration completed" << std::endl;
+			std::cout << "Calibration completed" << std::endl;
 			std::cout << "(" << aIndex << ", " << bIndex << ", "  << calibrateOccur << ", "<< calibrateOffset << ")" << std::endl;
 
 			// offset the child samples by the time determined by calibrateXcorr
-			for(size_t isync = 0; isync < fFragTimestamps.size(); ++isync)
+			for(size_t isync = 0; isync < fFragTimestamps[fragId].size(); ++isync)
 				fFragTimestamps[fragId][isync] += calibrateOffset;
 
 			auto grandfatherSamples = fFragTimestamps[grandfather].size();
@@ -838,29 +849,58 @@ namespace rawdata {
 
 				std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync, skip, scale);
 				auto [indexBin, N_occur, timeOffset]  = findOffset(dt);
-				//if(N_occur > percentOverlap * N_compare) {
-				if(true) {
+				auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync);
+				aIndex+=fIndex + 1;
+				bIndex+=cIndex + 1;
+				if(N_occur > percentOverlap * N_compare) {
+				//if(true) {
 					for(size_t isync = bIndex; isync < fFragTimestamps[fragId].size(); ++isync)
 						fFragTimestamps[fragId][isync] += timeOffset;
 					// increment indices of the two datasets
-					auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync);
-					aIndex+=fIndex;
-					bIndex+=cIndex;
 					std::cout << "\r[  Sync completed  ]" << std::endl;
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
-				} else {
-					// recalibrate if failed to get N_occur high enough
-					begin = fFragTimestamps[grandfather].begin() + aIndex;
-					std::vector<int64_t> grandResync(begin, begin + 4*N_compare);
+				} else { // recalibrate if failed to get N_occur high enough
 					std::cout << "\r[  Sync failed  ][ recalibrating ]" << std::endl;
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
+					{char x; std::cin >> x;} //<@@>
+
+					// Swap grandfather role for calibration depending on who's timestamp is further ahead
+					// set up new grandfather
+					if(fFragTimestamps[grandfather][aIndex] < fFragTimestamps[fragId][bIndex]) {
+						begin = fFragTimestamps[grandfather].begin() + aIndex;
+					} else { // Swap child and grandfather
+						if(fragId == grandfather) // compare SSDs if fragId is grandfather
+							begin = ssdTimestamps.begin() + bIndex;
+						else
+							begin = fFragTimestamps[fragId].begin() + bIndex;
+					}
+					std::vector<int64_t> grandResync(begin, begin + 100*N_compare);
+
+					// set up new child
+					if(fFragTimestamps[grandfather][aIndex] < fFragTimestamps[fragId][bIndex]) {
+						if(fragId == grandfather) // compare SSDs if fragId is grandfather
+							begin = ssdTimestamps.begin() + bIndex;
+						else
+							begin = fFragTimestamps[fragId].begin() + bIndex;
+					} else {
+						begin = fFragTimestamps[grandfather].begin() + aIndex;
+					}
+					std::vector<int64_t> childSync(begin, begin + N_compare);
 					auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap);
 
 					for(size_t isync = bIndex; isync < fFragTimestamps[fragId].size(); ++isync)
 						fFragTimestamps[fragId][isync] += recalibrationOffset;
-					aIndex+=fIndex;
-					bIndex+=cIndex;
+					if(fFragTimestamps[grandfather][aIndex] < fFragTimestamps[fragId][bIndex]) {
+						aIndex+=fIndex + 1;
+						bIndex+=cIndex + 1;
+					} else {
+						aIndex+=cIndex + 1;
+						bIndex+=fIndex + 1;
+					}
+
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << recalibrationOffset << ")" << std::endl;
+
+					{char x; std::cin >> x;} // <@@>
 				}
 			}
 		}
