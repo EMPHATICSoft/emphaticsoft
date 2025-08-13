@@ -5,22 +5,26 @@ standard_beamgen:
   module_type:	             BeamGen
   RandomSeed:                0
   particleType:		     "proton"
+# xyDistSource options: Gauss of flatxy
+# xyDistSource:              "flatxy"
   UseRunHistory:             true
   xyDistSource:		     "Gauss"
+
   xyHistFile:		     ""
   xyHistName:		     ""
-  pxyDistSource:	     "Gauss"
+# pxyDistSource options: Gauss or flatpxy
+  pxyDistSource:	     "flatpxy"
   pxyHistFile:		     ""
   pxyHistName:		     ""
 
-#Note: units are cm, GeV.  "Px" = px/pz, "Py" = py/pz.
+#Note: units are mm, GeV.  "Px" = px/pz, "Py" = py/pz.
 
   ZStart:                    -200.
 # parameters for flat spatial distribution
-  Xmax:			     0. 
-  Xmin:			     0. 
-  Ymax:			     0. 
-  Ymin:			     0.
+  Xmax:			     20. 
+  Xmin:			     -20. 
+  Ymax:			     20. 
+  Ymin:			     -20.
 
 # parameters for Gaussian spatial distribution
   Xmean: 		     0.
@@ -33,10 +37,10 @@ standard_beamgen:
   PSigma:		     1.e-3
 
 # parameters for flat distributions of beam slopes
-  PXmax:		     0.1
-  PXmin:		     -0.1
-  PYmax:		     0.1
-  PYmin:		     -0.1
+  PXmax:		     1.e-4
+  PXmin:		     -1.e-4
+  PYmax:		     1.e-4
+  PYmin:		     -1.e-4
 
 # parameters for Gaussian distributions of beam slopes
   PXmean:		     0.
@@ -45,18 +49,56 @@ standard_beamgen:
   PYsigma:		     10.e-6
 }
 
+proton120f: @local::standard_beamgen
+proton120f.particleType: "proton"
+proton120f.xyDistSource: "flatxy"
+proton120f.pxyDistSource: "flatpxy"
+proton120f.Xmax: 2.
+proton120f.Xmin: -2.
+proton120f.Ymax: 2.
+proton120f.Ymin: -2.
+proton120f.PXmax: 1.e-5
+proton120f.PXmin: -1.e-5
+proton120f.PYmax: 1.e-5
+proton120f.PYmin: -1.e-5
+
 proton120: @local::standard_beamgen
 proton120.particleType: "proton"
-proton120.xyDistSource: "flatxy"
-proton120.pxyDistSource: "flatpxy"
-proton120.Xmax: 2.
-proton120.Xmin: -2. 
-proton120.Ymax: 2.
-proton120.Ymin: -2. 
-proton120.PXmax: 1.e-5
-proton120.PXmin: -1.e-5 
-proton120.PYmax: 1.e-5
-proton120.PYmin: -1.e-5 
+proton120.xyDistSource: "Gauss"
+proton120.pxyDistSource: "Gauss"
+#proton120.Xmax: 2.
+#proton120.Xmin: -2. 
+#proton120.Ymax: 2.
+#proton120.Ymin: -2. 
+#proton120.PXmax: 1.e-5
+#proton120.PXmin: -1.e-5 
+#proton120.PYmax: 1.e-5
+#proton120.PYmin: -1.e-5 
+proton120.PMean: 120
+proton120.Psigma: 0.01
+proton120.Xmean:                     0.
+proton120.Xsigma:                    0.5
+proton120.Ymean:                     0.
+proton120.Ysigma:                    0.5
+proton120.PXmean:                    0.
+proton120.PXsigma:                   10.e-6
+proton120.PYmean:                    0.
+proton120.PYsigma:                   10.e-6
+
+proton120_6mm: @local::standard_beamgen
+proton120_6mm.particleType: "proton"
+proton120_6mm.xyDistSource: "Gauss"
+proton120_6mm.pxyDistSource: "Gauss"
+proton120_6mm.PMean: 120
+proton120_6mm.Psigma: 0.02
+proton120_6mm.Xmean:                     0.
+proton120_6mm.Xsigma:                    0.6
+proton120_6mm.Ymean:                     0.
+proton120_6mm.Ysigma:                    0.6
+proton120_6mm.PXmean:                    0.
+proton120_6mm.PXsigma:                   10.e-6
+proton120_6mm.PYmean:                    0.
+proton120_6mm.PYsigma:                   10.e-6
 
 proton4: @local::standard_beamgen
 proton4.particleType: "proton"
@@ -82,16 +124,16 @@ piplusP31.Ysigma: 2.5
 piminusM8: @local::standard_beamgen
 piminusM8.particleType: "pion"
 piminusM8.PMean: -8.
-piminusM8.XMean: 20. 
-piminusM8.YMean: 0. 
+piminusM8.Xmean: 20. 
+piminusM8.Ymean: 0. 
 piminusM8.Xsigma: 0.5 
 piminusM8.Ysigma: 0.5 
 
 piplusP4: @local::standard_beamgen
 piplusP4.particleType: "pion"
 piplusP4.PMean: 4.
-piplusP4.XMean: 0. 
-piplusP4.YMean: 0. 
+piplusP4.Xmean: 0. 
+piplusP4.Ymean: 0. 
 piplusP4.Xsigma: 5. 
 piplusP4.Ysigma: 5. 
 
@@ -130,6 +172,59 @@ geantino.PMean: 1.0
 geantino.PXmean: 1.8e-9
 geantino.PYmean: -3.1e-9
 
+proton8g_2mm: @local::standard_beamgen
+proton8g_2mm.particleType: "proton"
+proton8g_2mm.PMean: 8.
+proton8g_2mm.Psigma: 0.2
+proton8g_2mm.xyDistSource: "Gauss"
+proton8g_2mm.pxyDistSource: "Gauss"
+proton8g_2mm.Xmean: 0.
+proton8g_2mm.Xsigma: 2.
+proton8g_2mm.Ymean: 0.
+proton8g_2mm.Ysigma: 2.
 
+proton8g_6mm: @local::standard_beamgen
+proton8g_6mm.particleType: "proton"
+proton8g_6mm.PMean: 8.
+proton8g_6mm.Psigma: 0.2
+proton8g_6mm.xyDistSource: "Gauss"
+proton8g_6mm.pxyDistSource: "Gauss"
+proton8g_6mm.Xmean: 0.
+proton8g_6mm.Xsigma: 6.
+proton8g_6mm.Ymean: 0.
+proton8g_6mm.Ysigma: 6.
+
+proton8g_1mm: @local::standard_beamgen
+proton8g_1mm.particleType: "proton"
+proton8g_1mm.PMean: 8.
+proton8g_1mm.Psigma: 0.2
+proton8g_1mm.xyDistSource: "Gauss"
+proton8g_1mm.pxyDistSource: "Gauss"
+proton8g_1mm.Xmean: 0.
+proton8g_1mm.Xsigma: 1.
+proton8g_1mm.Ymean: 0.
+proton8g_1mm.Ysigma: 1.
+
+proton8g_10mm: @local::standard_beamgen
+proton8g_10mm.particleType: "proton"
+proton8g_10mm.PMean: 8.
+proton8g_10mm.Psigma: 0.2
+proton8g_10mm.xyDistSource: "Gauss"
+proton8g_10mm.pxyDistSource: "Gauss"
+proton8g_10mm.Xmean: 0.
+proton8g_10mm.Xsigma: 10.
+proton8g_10mm.Ymean: 0.
+proton8g_10mm.Ysigma: 10.
+
+proton8g_12mm: @local::standard_beamgen
+proton8g_12mm.particleType: "proton"
+proton8g_12mm.PMean: 8.
+proton8g_12mm.Psigma: 0.2
+proton8g_12mm.xyDistSource: "Gauss"
+proton8g_12mm.pxyDistSource: "Gauss"
+proton8g_12mm.Xmean: 0.
+proton8g_12mm.Xsigma: 12.
+proton8g_12mm.Ymean: 0.
+proton8g_12mm.Ysigma: 12.
 
 END_PROLOG

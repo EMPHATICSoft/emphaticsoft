@@ -1,0 +1,196 @@
+! Millipede-II Steering File Overview
+!
+! This file is used for the alignment of the detector setup by defining constraints and parameters 
+! that guide the Millipede-II algorithm in fitting and adjusting the positions of sensors.
+!
+! The file is structured into several sections:
+! 1. **Global Parameters (parameter):** 
+!    - These lines fix certain degrees of freedom to avoid weak modes (rigid body translations and rotations of the whole detector).
+!    - The format is: `parameter <number> 0. -1.`
+!      - `<number>`: A unique identifier for the alignment parameter associated with a specific sensor and coordinate.
+!      - `0.`: The starting value of the parameter (usually 0).
+!      - `-1.`: Indicates that this parameter is fixed (not allowed to vary during alignment).
+!    - Coordinates are specific to each sensor:
+!      - Y and Z refer to the traditional orthogonal coordinates.
+!      - U and W refer to coordinates measured at ??45 degrees relative to the YZ plane.
+!
+! 2. **Constraint Blocks (Constraint):**
+!    - These sections enforce relationships between different alignment parameters, such as maintaining the relative positions or orientations of sensors within the same station.
+!    - The format is: `Constraint 0. <id1> -1. <id2> 1.`
+!      - This sets a linear constraint between two parameters (identified by `id1` and `id2`).
+
+Cfiles
+m2408downstream_ex.bin
+
+entries 5 5 ! min. number of entries
+method inversion 3 0.1  ! Use method 3 (likely SVD) for matrix inversion with a regularization parameter of 0.1
+chiscut 30. 6.  ! Cut off tracks with a chi-square value greater than 30.0 and apply additional chi-square threshold of 6.0
+printcounts  ! Print counts of fitting results
+monitorresiduals ! get median and RMS(MAD) of residuals
+scaleerrors 9 ! inflate errors
+
+! * the whole tracker can move or rotate (as rigid body) in space without changing the track Chi2 ('weak modes')
+!   therefore need to fix six degrees of freedom (global parameters) - users choice
+! * the whole tracker could shear in both measurement directions (keeping the planes still parallel)
+!   therefore fix two more (related) degrees of freedom (global parameters) - users choice
+! * more internal degrees of freedom may be needed to be fixed - users choice
+!
+! "conservative" choice: fix all planes in first and last station
+
+! Fix all sensors upstream since we already aligned them
+parameter
+   1  0.  -1 ! station 0, plane 0
+   2  0.  -1 ! station 0, plane 0
+   3  0.  -1 ! station 0, plane 0
+   4  0.  -1 ! station 0, plane 0
+ 101  0.  -1 ! station 0, plane 1
+ 102  0.  -1 ! station 0, plane 1
+ 103  0.  -1 ! station 0, plane 1
+ 104  0.  -1.
+ 1001  0.  -1.
+ 1002  0.  -1.
+ 1003  0.  -1.
+ 1004  0.  -1.
+ 1101  0.  -1.
+ 1102  0.  -1.
+ 1103  0.  -1.
+ 1104  0.  -1.
+ 2001  0   -1.
+ 2002  0   -1.
+ 2003  0   -1.
+ 2004  0   -1.
+ 2101  0   -1.
+ 2102  0   -1.
+ 2103  0   -1.
+ 2104  0   -1.
+ 2201  0   -1.
+ 2202  0   -1.
+ 2203  0   -1.
+ 2204  0   -1.
+ 3001  0   -1.
+ 3002  0   -1.
+ 3003  0   -1.
+ 3004  0   -1.
+ 3101  0   -1.
+ 3102  0   -1.
+ 3103  0   -1.
+ 3104  0   -1.
+ 3201  0   -1.
+ 3202  0   -1.
+ 3203  0   -1.
+ 3204  0   -1.
+ 4001  0   -1.
+ 4002  0   -1.
+ 4003  0   -1.
+ 4004  0   -1.
+ 4101  0   -1.
+ 4102  0   -1.
+ 4103  0   -1.
+ 4104  0   -1.
+
+! Fix z 
+ 5003  0   -1.
+ 5013  0   -1.
+ 5103  0   -1.
+ 5113  0   -1.
+ 5203  0   -1.
+ 5213  0   -1.
+ 6003  0   -1.
+ 6013  0   -1.
+ 6103  0   -1.
+ 6113  0   -1.
+ 6203  0   -1.
+ 6213  0   -1.
+ 7003  0   -1.
+ 7013  0   -1.
+ 7103  0   -1.
+ 7113  0   -1.
+
+! from "det.getMP2Constraints()":
+! Alignment with MillePede-II requires for 1D measuremnts:
+!Constraint 0. ! fix unmeasured direction in plane_0_0_Y
+!  1 -1.0
+!Constraint 0. ! fix unmeasured direction in plane_0_1_X
+!  102 1.0
+!Constraint 0. ! fix unmeasured direction in plane_1_0_Y
+!  1001 -1.0
+!Constraint 0. ! fix unmeasured direction in plane_1_1_X
+!  1102 1.0
+!Constraint 0. ! fix unmeasured direction in plane_2_0_U
+!  2001 0.7071067811865476
+!  2002 -0.7071067811865475
+!Constraint 0. ! fix unmeasured direction in plane_2_1_Y
+!  2101 -1.0
+!Constraint 0. ! fix unmeasured direction in plane_2_2_X
+!  2202 1.0
+!Constraint 0. ! fix unmeasured direction in plane_3_0_U
+!  3001 0.7071067811865476
+!  3002 -0.7071067811865475
+!Constraint 0. ! fix unmeasured direction in plane_3_1_Y
+!  3101 -1.0
+!Constraint 0. ! fix unmeasured direction in plane_3_2_X
+!  3202 1.0
+!Constraint 0. ! fix unmeasured direction in plane_4_0_Y
+!  4001 -1.0
+!Constraint 0. ! fix unmeasured direction in plane_4_1_X
+!  4102 1.0
+Constraint 0. ! fix unmeasured direction in plane_5_0_X
+  5002 1.0
+Constraint 0. ! fix unmeasured direction in plane_5_0_X
+  5012 1.0
+Constraint 0. ! fix unmeasured direction in plane_5_1_Y
+  5101 -1.0
+Constraint 0. ! fix unmeasured direction in plane_5_1_Y
+  5111 -1.0
+Constraint 0. ! fix unmeasured direction in plane_5_2_U
+  5201 0.7071067811865476
+  5202 -0.7071067811865475
+Constraint 0. ! fix unmeasured direction in plane_5_2_U
+  5211 0.7071067811865476
+  5212 -0.7071067811865475
+Constraint 0. ! fix unmeasured direction in plane_6_0_X
+  6002 1.0
+Constraint 0. ! fix unmeasured direction in plane_6_0_X
+  6012 1.0
+Constraint 0. ! fix unmeasured direction in plane_6_1_Y
+  6101 -1.0
+Constraint 0. ! fix unmeasured direction in plane_6_1_Y
+  6111 -1.0
+Constraint 0. ! fix unmeasured direction in plane_6_2_U
+  6201 0.7071067811865476
+  6202 -0.7071067811865475  
+Constraint 0. ! fix unmeasured direction in plane_6_2_U
+  6211 0.7071067811865476
+  6212 -0.7071067811865475
+Constraint 0. ! fix unmeasured direction in plane_7_0_X
+  7002 1.0
+Constraint 0. ! fix unmeasured direction in plane_7_0_X
+  7012 1.0
+Constraint 0. ! fix unmeasured direction in plane_7_1_Y
+  7101 -1.0
+Constraint 0. ! fix unmeasured direction in plane_7_1_Y
+  7111 -1.0
+! resolveredundancycons ! may be helpful
+! End of lines to be added to MillePede-II steering file
+
+! Optionally fix offset in Z
+!parameter
+! 1003  0.  -1.
+! 1103  0.  -1.
+! 2003  0   -1.
+! 2103  0   -1.
+! 2203  0   -1.
+! 3003  0   -1.   
+! 3103  0   -1.
+! 3203  0   -1.
+! 4003  0   -1.
+! 4103  0   -1.
+! 5003  0   -1.
+! 5103  0   -1.
+! 5203  0   -1.
+! 6003  0   -1.
+! 6103  0   -1.
+! 6203  0   -1.
+
+skipemptycons ! Skip all empty (no variable parameters) constraints
+resolveredundancycons ! Replace redundant constraints by fixing parameters
