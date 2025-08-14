@@ -1,6 +1,6 @@
 BEGIN_PROLOG
 
-standard_studyalltrial1algo1:
+standard_studyalltrial1autre:
 {
   module_type: StudyAllTrial1Autre
   SSDClsLabel: "clust"
