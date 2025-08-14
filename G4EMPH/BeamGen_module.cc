@@ -81,6 +81,7 @@ namespace emph {
     double      fPYmean;
     double      fPYsigma;
       
+    std::string fPZDist;
     std::string fXYDistSource;
     std::string fXYHistFile;
     std::string fXYHistName;
@@ -91,7 +92,9 @@ namespace emph {
 
     TH2D*       fXYHist;  
     TH2D*       fPXYHist;
-    
+   
+    TRandom3*   rand;
+ 
   };
   
   /***************************************************************************/
@@ -103,6 +106,8 @@ namespace emph {
     
     produces<std::vector<simb::MCParticle> >();
     
+    rand = new TRandom3(0);
+ 
     configure(ps);
     GetXYHist();
     GetPXYHist();
@@ -121,6 +126,7 @@ namespace emph {
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
     fZstart        = ps.get<double>("Zstart", -200.); // mm
+    fPZDist	   = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
@@ -285,15 +291,17 @@ namespace emph {
   {
     if ((++fEvtCount)%1000 == 0)
       std::cout << "Event " << fEvtCount << std::endl;
-        
-    TRandom3 *rand = new TRandom3(0);
-    gRandom = rand;
-    TLorentzVector pos;
+    
+    TLorentzVector pos;    
     pos[2] = fZstart; // units are mm for this      
     pos[3] = 0.; // set time to zero
       
     // now get beam particle momentum
-    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    double pmag;
+    if(fPZDist == "Gauss")pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    else pmag = TMath::Abs(rand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
+    //std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+
     double pb[3];
     double pxpz,pypz;
 

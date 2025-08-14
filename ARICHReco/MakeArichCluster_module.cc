@@ -58,7 +58,7 @@ namespace emph {
     std::map<int,double> GetRefenceTimes(std::vector<rawdata::TRB3RawDigit> hits);
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> Cluster_FixedWindow(std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold);
 
-    int threshold =15;
+    int threshold =20;
 	
   private:
 

@@ -5,6 +5,7 @@ standard_beamgen:
   module_type:	             BeamGen
   particleType:		     "proton"
   UseRunHistory:             true
+  pzDist:		     "Gauss"
   xyDistSource:		     "Gauss"
   xyHistFile:		     ""
   xyHistName:		     ""

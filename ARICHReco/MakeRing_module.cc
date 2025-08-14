@@ -116,22 +116,9 @@ namespace emph {
     if (fFillTree){
     art::ServiceHandle<art::TFileService const> tfs;
     fARICHTree = tfs->make<TTree>("ARICHRECO","event");
-    fARICHTree->Branch("TruthPDG", &MCT_PDG);
-    fARICHTree->Branch("Blocks", &blocks);
     fARICHTree->Branch("Momenta", &momenta);
-    fARICHTree->Branch("BINS", &bins);
-    fARICHTree->Branch("VALS", &vals);
     }
     ArichUtils = new arichreco::ARICH_UTILS();
-
-
- /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
-    fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
-    fARICHTree->Branch("BINS_PDF_kaon", &bins_pdf_kaon);
-    fARICHTree->Branch("VALS_PDF_kaon", &vals_pdf_kaon);
-    fARICHTree->Branch("BINS_PDF_prot", &bins_pdf_prot);
-    fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
-*/
 }
     
 //......................................................................

@@ -46,6 +46,8 @@
 // ARICHRECO
 #include "ARICHRecoUtils/ArichUtils.h"
 
+//TORCH
+//#include <torch/torch.h>
 
 namespace emph {  
 
@@ -184,6 +186,8 @@ void ARICHReco::produce(art::Event& evt)
       evt.getByLabel(fARICHLabel,arich_clusters);
 
       evt.getByLabel(fTrackLabel,TracksH);  
+ 
+//	std::cout << "Tracks found " << (int)TracksH->size() << std::endl;
 
       if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
 
@@ -191,15 +195,13 @@ void ARICHReco::produce(art::Event& evt)
 	 
 	  rb::Track track = TracksH->at(i);
 
- 	 double posx = track.Vtx()[0];
+ 	  double posx = track.Vtx()[0];
 	  double posy = track.Vtx()[1];
 	  double posz = track.Vtx()[2];
 	 
  	  double px = track.P()[0]; 
 	  double py = track.P()[1];
 	  double pz = track.P()[2]; 
-
-
 	
      	  float mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
 
@@ -208,14 +210,15 @@ void ARICHReco::produce(art::Event& evt)
 
 	 TVector3 dir_(px/mom,py/mom,pz/mom);
          TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
-         
+          
 	   for(int k = 0; k < (int)arich_clusters->size(); k++){ 
 	  	if(arich_clusters->at(k).NDigits() < 3)continue;
 	
         	 std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
 	         TH2D* event_hist = ArichUtils->DigsToHist(digs);
         	 std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_); 
-		 delete event_hist;
+		 //std::cout << Form("Momenta %f LLs: pion %f, kaon %f, proton %f", mom, LL[0],LL[1],LL[2]) << std::endl; 
+		delete event_hist;
 
 	 	rb::ArichID arich_id;
          	arich_id.scores = LL;
