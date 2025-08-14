@@ -86,7 +86,7 @@ namespace rb {
   
   //------------------------------------------------------------
   
-  TVector3 Track::Pos(double z) const
+  TVector3 Track::PosAt(double z) const
   {
     TVector3 pos;
     double x = -9999.;
@@ -114,6 +114,38 @@ namespace rb {
     pos.SetZ(z);
     
     return pos;
+  }
+
+  //------------------------------------------------------------
+
+  TVector3 Track::MomAt(double z) const
+  {
+    TVector3 mom;
+    double px = -9999.;
+    double py = -9999.;
+
+    assert(_mom.size()>= 2);
+
+    if (z >= _vtx[2]) {
+      size_t i=0; 
+      for (; i<_pos.size()-1; ++i) {
+	if ((z>_pos[i].Z()) && (z<_pos[i+1].Z())) {
+ 	  double dz = _pos[i+1].Z() - _pos[i].Z();
+	  double dpx = _mom[i+1].X() - _mom[i].X();
+	  double dpy = _mom[i+1].Y() - _mom[i].Y();
+	  px = _mom[i].X() + z*(dpx/dz);
+	  py = _mom[i].Y() + z*(dpy/dz);	  
+	  break;
+	}
+      }
+      assert(i <= _pos.size());
+    }
+    
+    mom.SetX(px);
+    mom.SetY(py);
+    mom.SetZ(sqrt(_p[0]*_p[0] + _p[1]*_p[1] + _p[2]*_p[2] - px*px - py*py));
+    
+    return mom;
   }
 
   //------------------------------------------------------------

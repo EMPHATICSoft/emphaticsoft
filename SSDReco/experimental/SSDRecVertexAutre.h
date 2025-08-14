@@ -43,7 +43,7 @@ namespace emph {
 	  int fRunNum;  // The usual Ids for a art::event 
 	  int fSubRunNum;
 	  int fEvtNum;
-	  int fNEvents; // Incremental events count for a given job. 
+//	  int fNEvents; // Incremental events count for a given job. No longer used.. Use art framework to get event id. 
 	  bool fDebugIsOn;
 	  double fChiSqCut; // on the downstream tracks. 
 	  std::string fTokenJob;

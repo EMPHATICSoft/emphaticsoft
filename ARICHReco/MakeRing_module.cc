@@ -141,47 +141,49 @@ namespace emph
 
     evt.getByLabel(fARICHLabel, arich_clusters);
 
-    for (int u = 0; u < (int)arich_clusters->size(); u++){
 
-      if (arich_clusters->at(u).NDigits() < 4)
-        continue;
+	for(int u = 0; u < (int)arich_clusters->size(); u++){
+            
+	
+	     if(arich_clusters->at(u).NDigits() < 4)continue;            
+	
+    
+	      std::vector<std::pair<int,int>> digs = arich_clusters->at(u).Digits();  	
 
-      std::vector<std::pair<int, int>> digs = arich_clusters->at(u).Digits();
+	      TH2D* event_hist = ArichUtils->DigsToHist(digs);	
 
-      TH2D *event_hist = ArichUtils->DigsToHist(digs);
+	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
+	
+	      int to_find = 1; // number of rings to find, should be = n tracks 
+	
+	      std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(to_find); 
+ 
 
-      arichreco::HoughFitter *fitter = new arichreco::HoughFitter(event_hist);
 
-      int to_find = 1; // number of rings to find, should be = n tracks
+	      for(int j =0; j < (int)circles.size();j++ ){
+		
+		rb::ARing ring;		
+		
+		ring.SetRadius(std::get<2>(circles[j]));
+		float center[3] = {float(std::get<0>(circles[j])),float(std::get<1>(circles[j])),0};
 
-      std::vector<std::tuple<int, int, double>> circles = fitter->GetCirclesCenters(to_find);
-
-      for (int j = 0; j < (int)circles.size(); j++){
-
-        rb::ARing ring;
-
-        ring.SetRadius(std::get<2>(circles[j]));
-        float center[3] = {
-            static_cast<float>(std::get<0>(circles[j])),
-            static_cast<float>(std::get<1>(circles[j])),
-            0};
-        ring.SetCenter(center);
-        ring.SetNHits(arich_clusters->at(u).NDigits());
-
-        /*	std::cout << "	radius " << ring.Radius() << std::endl;
-          double theta = atan(ring.Radius()/178.9); //mm
-          std::cout << "	thetaC " << theta << " rad " << std::endl;
-          double beta = 1/(1.028*cos(theta));
-          std::cout << "	beta " << beta << std::endl;
-          std::cout << "Prot p " << ArichUtils->calcP(0.9383,beta) << std::endl;
-          std::cout << "Pion p " << ArichUtils->calcP(0.1395,beta) << std::endl;
-        */
-        ARICH_RINGS->push_back(ring);
-      }
-
-      delete event_hist;
-      delete fitter;
-    }
+		ring.SetCenter(center);
+		ring.SetNHits(arich_clusters->at(u).NDigits()); 
+		
+	/*	std::cout << "	radius " << ring.Radius() << std::endl;
+		double theta = atan(ring.Radius()/178.9); //mm
+	 	std::cout << "	thetaC " << theta << " rad " << std::endl;
+		double beta = 1/(1.028*cos(theta)); 
+		std::cout << "	beta " << beta << std::endl;
+		std::cout << "Prot p " << ArichUtils->calcP(0.9383,beta) << std::endl;
+		std::cout << "Pion p " << ArichUtils->calcP(0.1395,beta) << std::endl;	
+	*/
+		ARICH_RINGS->push_back(ring); 
+	    
+	     } 				
+	
+	     delete event_hist; delete fitter;
+	}
 
     evt.put(std::move(ARICH_RINGS));
 

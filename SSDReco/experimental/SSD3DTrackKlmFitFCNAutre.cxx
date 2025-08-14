@@ -98,7 +98,7 @@ namespace emph {
 //  
     double SSD3DTrackKlmFitFCNAutre::propagateStsNext(size_t kStStart, size_t kStEnd, double p) const {
       // Note: in this context, kStStart = 0 refers to station 2. 
-      int nIter = 0;
+//      int nIter = 0; in case we want to restore counting some iteration ..
       double chiSq = DBL_MAX;
       // Compute the slopes at station 3, linear propagation. 
       if (fDebugIsOn) std::cerr << " .... SSD3DTrackKlmFitFCNAutre::propagateStsNext, kStStart  " 
@@ -150,7 +150,7 @@ namespace emph {
 		   << kStStart+2 << " to Station " << kStEnd+2 << ", xPred " 
 	 << xPredStNext << " yPred " <<  yPredStNext << " X Slope " << 1.0e3*slx << " Y slope " << 1.0e3*sly 
 	 << " deltaXSl " << 1.0e3*deltaXSl << " ( mrad ) " << std::endl;
-	 nIter++; 
+//	 nIter++; 
  	 //
 	 
        const double errMultSq = fMultScatterOneStationSq*(120./fExpectedMomentum)*(120./fExpectedMomentum)

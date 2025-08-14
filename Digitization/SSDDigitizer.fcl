@@ -4,6 +4,7 @@ standard_ssddigitizer:
 {    
   module_type: SSDDigitizer
   G4Label: "geantgen"
+  FillAnaTree: true
 }
 
 END_PROLOG

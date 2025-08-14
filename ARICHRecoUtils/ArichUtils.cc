@@ -160,14 +160,14 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 		
 	for (int i = 0; i < numCombinations; i++) {
 		int index = i;
-		if (i > 0 && hs != nullptr) { delete hs; hs = nullptr; }
+		if (i > 0 && hs != 0 && hs != nullptr) { delete hs; hs = nullptr; }
 		char* stackedTitle = Form("PDF%i", i);
-		std::vector<int> combination(np);
+		//		int combination[np];
 		for (int k=np-1; k>=0; k--) { 
 			int p = index % NUMPARTICLES;
 			index = index / NUMPARTICLES;
-			combination[k] = p;
-					stackedTitle = Form("%s_%s", stackedTitle, PNAMES[p]);
+			//	combination[k] = p;
+               		stackedTitle = Form("%s_%s", stackedTitle, PNAMES[p]);
 			if(k==np-1) {hs=(TH2D*)calculatedPdfs[k][p].Clone();}
 			
 					else for(int j=1;j<=calculatedPdfs[k][p].GetNcells();j++)

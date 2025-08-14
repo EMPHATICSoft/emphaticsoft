@@ -33,11 +33,14 @@ namespace emph {
     void AddSSDRotation(int station, int plane, int sensor, TGeoRotation*);
 
     void Reset() { fSSDMatrix.clear(); }
+    void Disable() { fIsDisabled = true; }
+    void Enable() { fIsDisabled = false; }
 
   private:
     int Hash(int station, int plane, int sensor) const;
     void Unhash(int id, int& station, int& plane, int& sensor) const;
     std::unordered_map<int,TGeoCombiTrans*> fSSDMatrix;
+    bool fIsDisabled;
 
   };
 }

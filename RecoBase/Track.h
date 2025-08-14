@@ -39,8 +39,10 @@ namespace rb {
     // the creator of the track is responsible for adding the points
  
     std::vector<TVector3> _pos; // vector of predicted positions
-  
-public:
+    std::vector<TVector3> _mom;
+
+  public:
+
     // Getters
     const double* Vtx() const { return _vtx; }
     const double* P() const { return _p; }
@@ -51,14 +53,20 @@ public:
     size_t NSpacePoints() const { return _spcpt.size(); }
     const rb::SpacePoint* GetSpacePoint(int i) const;
 
-    TVector3 Pos(double z) const;
+    TVector3 PosAt(double z) const;
+    TVector3 MomAt(double z) const;
+    size_t NPos() const { return _pos.size(); }
+    size_t NMom() const { return _mom.size(); }
+    TVector3 Pos(size_t i) const { return _pos[i]; }
+    TVector3 Mom(size_t i) const { return _mom[i]; }
 
     // Setters
     void Add(const rb::SSDCluster& cl); 
     void Add(const rb::TrackSegment& ts);
     void Add(const rb::SpacePoint& sp);
     void AddPos(TVector3 &x);
-    
+    void AddMom(TVector3 &p);
+
     void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
     

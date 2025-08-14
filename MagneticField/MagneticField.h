@@ -30,15 +30,18 @@ namespace emph {
     ~MagneticField();  
     
     // Access functions
-    void Field(const double Point[3], double Bfield[3]);
-    
     void GetFieldValue(const double Point[3], double* Bfield); // units are mm, return values in kilogauss
     void SetFieldFileName(std::string fileName) { fFieldFileName = fileName; }
     void SetVerbosity(int v) { fVerbosity = v; }
     void SetUsingRootHistos(bool flag=false) { fUsingRootHistos=flag; }
+    bool IsInField(const double Point[3]);
+    double FieldMinZ();
+    double FieldMaxZ();
 
   private:
+    void Field(const double Point[3], double Bfield[3]);    
     std::string fFieldFileName;
+    bool fIsAlignedWithGeom;
     bool  fFieldLoaded;
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 
     std::vector<bFieldPoint> fBfield;
