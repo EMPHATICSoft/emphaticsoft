@@ -12,6 +12,7 @@ cet_make_library( SOURCE ${srcs}
 		  ChannelMapService_service
 		  art::Framework_Core
 		  art::Persistency_Common
+		  messagefacility::MF_MessageLogger
 		  ROOT::Core
 		  ROOT::Physics
 		  ROOT::Hist
