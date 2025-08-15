@@ -56,7 +56,7 @@
 	    
 	    <quantity name="target_width" value="100.0" unit="mm"/>
 	    <quantity name="target_height" value="50.0" unit="mm"/>
-	    <quantity name="target_depth" value="20" unit="mm"/>
+	    <quantity name="target_depth" value="100" unit="mm"/>
 	    
 	    <position name="target_pos" x="0" y="0" z="380.5"/>
 
@@ -3391,7 +3391,7 @@ values="202.14067278287462 12.054573032169143
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-	 <materialref ref="Graphite"/>
+	 <materialref ref="Air"/>
 	 <solidref ref="target_box"/>
   </volume>
 
