@@ -152,6 +152,7 @@ namespace runhist{
     }
     else if(_runNumber >= 2000){
       _geoFile=file_path+"Geometry/phase1c_"+this->Target();
+      if (_runNumber < 2179) _geoFile += "_7S";
       if (!_magnetIn) 
 	_geoFile += "_nomag.gdml";
       else 
