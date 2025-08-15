@@ -13,6 +13,7 @@ cet_build_plugin(SSDDigitizer art::module
     art::Framework_Core
     art::Persistency_Common
     messagefacility::MF_MessageLogger
+    ROOT::Tree
   BASENAME_ONLY
 )
 
