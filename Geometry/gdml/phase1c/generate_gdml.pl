@@ -27,7 +27,7 @@ GetOptions( "help|h" => \$help,
 	    "target|t=s" => \$target,
 	    "magnet|m=i" => \$magnet,
 	    "align|a=i"  => \$align,
-	    "ssd7out|7:i" => \$ssd7out);
+	    "nstation|n=i" => \$nstation);
 
 if ( defined $help )
   {
@@ -49,19 +49,6 @@ else
     $suffix = "-" . $suffix;
   }
 
-if ( defined $magnet )
-  {
-    # If the user requested help, print the usage notes and exit.
-    if($magnet == 0){
-      $magnet_switch = 0;
-    }
-    elsif($magnet == 1){
-      $magnet_switch = 1;
-    }
-    else{
-      print "wrong magnet parameter\n";
-    }
-  }
 
 if ( ! defined $target )
   {
@@ -127,6 +114,19 @@ if ( defined $target) {
 # constants for MAGNET
 $magnet_switch = 1;
 $magnet_layer = 3;
+if ( defined $magnet )
+  {
+    # If the user requested help, print the usage notes and exit.
+    if($magnet == 0){
+      $magnet_switch = 0;
+    }
+    elsif($magnet == 1){
+      $magnet_switch = 1;
+    }
+    else{
+      print "wrong magnet parameter\n";
+    }
+  }
 
 # constants for SSD
 # Check DocDB 1662 for details.
@@ -142,11 +142,14 @@ $nstation_type = 4; # types of station
 @SSD_mod = ("D0", "D0", "D0", "D0"); # SSD type in a station
 $nD0chan = 640; # number of channels per sensor
 $nSSD_station = 8; # num. of stations
+if ( defined $nstation )
+  {
+    $nSSD_station = $nstation;
+  }
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
 @SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); 
 @SSD_mount_shift = (0, 0, 0, 10, 0, 10, 0, 0, 10, 0, 10, 0); 
-#@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
-@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-2, 2], [0, 0], [0, 0], [1, -1], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
+@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 18.23], [12.92, -12.92], [-12.92, 12.92], [-18.23, 0], [18.23, 0], [0, -18.23], [0, 19.23]); # shift (x, y)
 #@SSD_shift = ([0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23], [13.62, -13.62], [-13.62, 13.62], [-19.23, 0], [19.23, 0], [0, -19.23], [0, 19.23]); # shift (x, y)
 #@SSD_mount_rotation = ([0, 0], [0, 0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
 @SSD_mount_rotation = ([-0.44, -2.02], [0.24, -1.26], [0,0], [0,0], [0,0], [0,0], [-0.06, -1.49], [0.36, 0.31], [0.36, 0.31], [0,0], [0,0], [0,0]); #pitch (x), yaw(y); measured by survey; for only 4 stations, #0, #1, #4, #5, in degrees
@@ -155,8 +158,6 @@ $nSSD_station = 8; # num. of stations
 %SSD_alignz;
 %SSD_alignphi;
 @SSD_angle = (0, 90, 0, 90, 315, 0, 90, 315, 0, 90, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
-#@SSD_roll = (-0.984485,1.12311,0.283821,1.94942,0.771519,1.14211,0.230796,1.66409,-0.120484,-0.284751,1.88656,-0.664489,0.209064,-0.0758804,0.422914,-1.78258,0.916967,0.0112487,-1.49152,1.63402,1.39493,1.13753,0.425941,0.848158,0.470838,0.83554,0.189538,0.498073);
-@SSD_roll = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 
 # constants for ARICH
 $arich_switch = 1;
@@ -176,14 +177,6 @@ $n_cover = 2;
 $LG_switch = 1;
 $n_LG = 3; # horizontal
 $m_LG = 3; # vertical
-
-if ( defined $ssd7out )
-{
-	# turn off the 7th SSD station 
-	if($ssd7out == 1){
-		$nSSD_station = 7; # num. of stations
-	}
-}
 
 # run the sub routines that generate the fragments
 
@@ -213,6 +206,7 @@ sub usage()
 	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
 	print "       -a apply alignment constants for universe [0-99]\n; Default is perfect alignment";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
+	print "       -n [2..8], the number of SSD stations; Default is 8\n";
 	print "       -h prints this message, then quits\n";
 }
 
@@ -364,7 +358,7 @@ EOF
 		 		my $idx = $i*100 + $j*10 + $k;
 		  	    my $txs = $SSD_shift[ $isensor][0]+$SSD_alignx{$idx};
 		  	    my $tys = $SSD_shift[ $isensor][1]+$SSD_aligny{$idx};
-		  	    my $tzrot = @{[$SSD_angle[$isensor] ]}+$SSD_alignphi{$idx};
+		  	    my $tzrot = $SSD_angle[$isensor] + $SSD_alignphi{$idx};
 		  	    if($j < 2) {
 print DEF <<EOF;
 	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}"/>
@@ -517,6 +511,7 @@ EOF
   if($arich_switch){
 	  gen_ARICH_Define(\*DEF);
 	}
+	
 	if($RPC_switch){
 print DEF <<EOF;
 
