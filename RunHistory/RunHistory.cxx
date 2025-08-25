@@ -194,7 +194,7 @@ namespace runhist{
 	std::cout << "Using " << _ssdAlignFile << " for SSD alignment." << std::endl;
       }	
       _calibVer=2;
-      std::cout << "%%%%% SSD alignment file = " << _ssdAlignFile << std::endl;
+      //      std::cout << "%%%%% SSD alignment file = " << _ssdAlignFile << std::endl;
     }
     else{
       std::cout << "Run " << _runNumber << " is not in the database." << std::endl;

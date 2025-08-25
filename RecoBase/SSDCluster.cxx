@@ -105,7 +105,16 @@ namespace rb {
       rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
       totalADC+=adcMap[fDigitVec[i]->ADC()];
     }
-    return sqrt(rmssum/totalADC);
+    double retval = sqrt(rmssum/totalADC);
+    if (retval == 0) {
+      std::cout << "WgtRmsStrip() = 0" << std::endl;
+      std::cout << "WgtAvgStrip() = " << WgtAvgStrip() << std::endl;
+      for (size_t i=0; i<NDigits(); ++i) {
+	std::cout << "Row = " << fDigitVec[i]->Row() << ", ADC = " 
+		  << adcMap[fDigitVec[i]->ADC()] << std::endl;
+      }
+    }
+    return retval;
 
   }
 

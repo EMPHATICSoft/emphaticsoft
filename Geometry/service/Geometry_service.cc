@@ -59,6 +59,8 @@ namespace emph
     //----------------------------------------------------------
     void GeometryService::preBeginRun(const art::Run& run)
     {
+      if (fRunNumber == run.run()) return;
+
       fRunNumber = run.run();
 
       if (fGetGDMLFromRunHistory) {

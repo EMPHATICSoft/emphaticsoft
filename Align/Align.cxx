@@ -181,7 +181,7 @@ namespace emph {
 	rot.SetAngles(phi,theta,psi);
       fSSDMatrix[id]->SetRotation(rot);
 
-      std::cout<<"Align constants: "<<lineStr.str()<<std::endl;     
+      //      std::cout<<"Align constants: "<<lineStr.str()<<std::endl;     
     }
     
     ifile.close();
