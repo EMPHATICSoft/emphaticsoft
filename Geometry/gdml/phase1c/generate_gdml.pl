@@ -141,9 +141,10 @@ $nstation_type = 4; # types of station
 @SSD_mount= (1, 2, 2, 1); # num. of mount in a station
 @SSD_mod = ("D0", "D0", "D0", "D0"); # SSD type in a station
 $nD0chan = 640; # number of channels per sensor
-if ( ! defined $nstation )
+$nSSD_station = 8; # num. of stations
+if ( defined $nstation )
   {
-    $nstation = 8; # num. of stations
+    $nSSD_station = $nstation;
   }
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
 @SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); 
@@ -319,7 +320,7 @@ print DEF <<EOF;
 	<quantity name="ssd_bkpln_thick" value=".300" unit="mm"/>
 	
 EOF
-	for($i = 0; $i < $nstation; ++$i) {
+	for($i = 0; $i < $nSSD_station; ++$i) {
 print DEF <<EOF;
 	<quantity name="ssdStation@{[ $i ]}_shift" value="@{[ $SSD_station_shift[$i] ]}" unit="mm"/>
 EOF
@@ -342,7 +343,7 @@ EOF
 	    
 	$imount = 0;
 	$isensor = 0;
-	for($i = 0; $i < $nstation; ++$i) {
+	for($i = 0; $i < $nSSD_station; ++$i) {
 print DEF <<EOF;
 	<position name="ssdStation@{[ $i ]}_pos" x="0" y="0" z="ssdStation@{[ $i ]}_shift+ssdD0_thick-0.5*mount_thick"/>
 
@@ -380,7 +381,7 @@ EOF
 	}
 
     $imount = 0;
-	for($i = 0; $i < $nstation; ++$i){
+	for($i = 0; $i < $nSSD_station; ++$i){
 		for($j = 0; $j < $SSD_mount[ $SSD_station[ $i ] ]; ++$j){
 print DEF <<EOF;
 	<position name="ssdmount_local_@{[ $i ]}_@{[ $j ]}_pos" x="0" y="0" z="0"/>
@@ -957,7 +958,7 @@ EOF
 EOF
 		$lay=0;
 		$sen=0;
-		for($i = 0; $i < $nstation; ++$i){
+		for($i = 0; $i < $nSSD_station; ++$i){
 			for($j = 0; $j < $SSD_lay[$SSD_station[$i]]; ++$j){
 				for($k = 0; $k < $SSD_par[$SSD_station[$i]]; ++$k){
 					print MOD <<EOF;
@@ -1221,7 +1222,7 @@ EOF
 
 EOF
 		$imount = 0;
-		for($i = 0; $i < $nstation; ++$i){
+		for($i = 0; $i < $nSSD_station; ++$i){
 			$ilayer = 0;
 			for($j = 0; $j < $SSD_mount[ $SSD_station[ $i ] ]; ++$j){
 				print DET <<EOF;
@@ -1263,7 +1264,7 @@ EOF
 			}
 		}
 
-		for($i = 0; $i < $nstation; ++$i){
+		for($i = 0; $i < $nSSD_station; ++$i){
 			print DET <<EOF;
 	  <volume name="ssdStation@{[ $station_type[$SSD_station[$i]] ]}@{[ $i ]}_vol">
 		 <materialref ref="Air"/>
@@ -1494,7 +1495,7 @@ EOF
 EOF
 
 		$station = 0;
-		for($i = 0; $i < $nstation; ++$i){
+		for($i = 0; $i < $nSSD_station; ++$i){
 
 					print WORLD <<EOF;
 
