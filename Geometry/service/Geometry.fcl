@@ -3,7 +3,7 @@ BEGIN_PROLOG
 standard_geometry:
 {
   GetGDMLFromRunHistory: true
-  GDMLFile: ""
+  GDMLFile: ""  # must be full path
 }
 
 END_PROLOG
