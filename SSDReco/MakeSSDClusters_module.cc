@@ -171,10 +171,6 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
       sensClusters->push_back(ssdClust);
       ssdClust = rb::SSDCluster();
     }
-    // Deal with the rare case where we have multiple hits on the same row.  
-    // Most of the time, the ADC values are identical and/or no other rows 
-    // were hit.
-    if ( curRow == prevRow) continue;
     // add current digit to cluster
     ssdClust.Add(dig);
     prevRow=curRow;

@@ -97,25 +97,25 @@ namespace rb {
   {
     if (fDigitVec.empty()) return -9999.;
     // set to 1/sqrt(12) if single strip cluster
-    if (NDigits()==1) return 1/sqrt(12);
+    double retval = 1/sqrt(12);
 
-    double rmssum=0.;
-    double totalADC=0.;
-    for (size_t i=0; i<NDigits(); ++i) {
-      rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
-      totalADC+=adcMap[fDigitVec[i]->ADC()];
-    }
-    double retval = sqrt(rmssum/totalADC);
-    if (retval == 0) {
-      std::cout << "WgtRmsStrip() = 0" << std::endl;
-      std::cout << "WgtAvgStrip() = " << WgtAvgStrip() << std::endl;
+    if (NDigits() > 1) {
+      //    if (NDigits()==1) return 1/sqrt(12);
+
+      double rmssum=0.;
+      double totalADC=0.;
       for (size_t i=0; i<NDigits(); ++i) {
-	std::cout << "Row = " << fDigitVec[i]->Row() << ", ADC = " 
-		  << adcMap[fDigitVec[i]->ADC()] << std::endl;
+	rmssum += pow(fDigitVec[i]->Row()-WgtAvgStrip(),2)*adcMap[fDigitVec[i]->ADC()];
+	totalADC+=adcMap[fDigitVec[i]->ADC()];
       }
+      // if rmssum == 0, this likely means we have multiple hits at different 
+      // times on the same row (strip), in which case we treat it as a 
+      // single-hit cluster.  Only calculate the rms if this is not the case.
+      if (rmssum > 0) 
+	retval = sqrt(rmssum/totalADC);
     }
     return retval;
-
+    
   }
 
   //------------------------------------------------------------
