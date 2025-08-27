@@ -572,39 +572,35 @@ namespace rawdata {
 
 	template <typename T, typename S> // this type will likely be 'double'
 	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
-		size_t N_compare = timestampA.size();
-		// timestamps from A and B, comparing N_compare stamps and skipping sample indices of skip[index]
+	// timestamps from A and B, skipping B sample indices of skip[index]
 
-		std::vector<T> timeDiffs; timeDiffs.reserve(N_compare*N_compare);
+	std::vector<T> timeDiffs; timeDiffs.reserve(timestampA.size() * timestampB.size());
 
-		// sort by descending order so we can sequentially pop off skipped sample's indices
-		sort(skip.begin(), skip.end(), std::greater<>());
+	// sort by descending order so we can sequentially pop off skipped sample's indices
+	sort(skip.begin(), skip.end(), std::greater<>());
 
-		size_t _N_compare = N_compare; // local copy of _N_compare to adjust with a given N_skipped samples
+	size_t skipMe = timestampB.size() + 1;
+	if(!skip.empty()) {
+		skipMe = skip.back();
+		skip.pop_back();
+	}
 
-		size_t skipMe = N_compare + 1;
-		if(!skip.empty()) {
-			skipMe = skip.back();
-			skip.pop_back();
-		}
-
-		for (size_t i=0; i<N_compare; ++i) {
-			for (size_t j=0; j<_N_compare; ++j) {
-				if(j == skipMe) {
-					++_N_compare; // examine more entries
-					if(!skip.empty()) {
-						skipMe = skip.back();
-						skip.pop_back();
-					}
-					continue;
+	for (size_t i=0; i<timestampA.size(); ++i) {
+		for (size_t j=0; j<timestampB.size(); ++j) {
+			if(j == skipMe) {
+				if(!skip.empty()) {
+					skipMe = skip.back();
+					skip.pop_back();
 				}
-				T dt = timestampA[i] - timestampB[j];
-				if(scale != 1)
-					dt = timestampA[i] - timestampB[j]*scale;
-				timeDiffs.push_back(dt);
+				continue;
 			}
+			T dt = timestampA[i] - timestampB[j];
+			if(scale != 1)
+				dt = timestampA[i] - timestampB[j]*scale;
+			timeDiffs.push_back(dt);
 		}
-		return timeDiffs;
+	}
+	return timeDiffs;
 	}
 
 	template <typename T, typename S> // this type will likely be 'double'
@@ -644,6 +640,11 @@ namespace rawdata {
 		//tdir2.make<TH1I>(dtHist); // this draws the histogram <@@>
 		auto indexBin = dtHist.GetMaximumBin();
 		auto N_occur = dtHist.GetMaximum();
+	//	NTK: add bins around maximum within CAEN resolution
+		for(auto resolution = indexBin - 16; resolution <= indexBin + 16; ++resolution) {
+			if(resolution == indexBin) continue;
+			N_occur += dtHist.GetBinContent(resolution);
+		}
 		return { indexBin, N_occur, binToTime(dt, indexBin) };
 	}
 	// Returns the last time synchronized item
@@ -656,7 +657,7 @@ namespace rawdata {
 			bool exitLoop = false;
 			for(int aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
 				for(int bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
-					if(abs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
+					if(abs(A[aEvent] - B[bEvent]) <= 16) {
 						aIndex = aEvent;
 						bIndex = bEvent;
 						exitLoop = true;
@@ -695,13 +696,15 @@ namespace rawdata {
 
 		{ uint64_t maxOccur = 0;
 
-			for(size_t startSample = 0; startSample < grandfather.size()-N_compare; ++startSample) {
+			//for(size_t startSample = 0; startSample < grandfather.size()-N_compare; startSample++) {
+			for(size_t startSample = 0; startSample < grandfather.size()-2*N_compare; startSample+=N_compare) {
 				auto begin = grandfather.begin() + startSample;
-				std::vector<T> father(begin, begin+N_compare);
+				std::vector<T> father(begin, begin+2*N_compare);
 				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
 
 				auto [indexBin, N_occur, offset]  = findOffset(dt);
-				if(N_occur > percentOverlap * N_compare) { // found enough overlapping events!
+
+				if(N_occur >= percentOverlap * N_compare) { // found enough overlapping events!
 					maxOccur = N_occur;
 					timeOffset = offset;
 					index = startSample; // sets index of last synced event to the front of the last synced set
@@ -715,11 +718,14 @@ namespace rawdata {
 			}
 			N_occur = maxOccur;
 		}
+
 		for( auto &timeStamp : child ) // offsets all of the child timestamps
 			timeStamp += timeOffset;
+
 		auto begin = grandfather.begin() + index;
-		std::vector<T> father(begin, begin+N_compare);
+		std::vector<T> father(begin, begin+2*N_compare);
 		auto [fIndex, cIndex] = indexOfLastSync(father, child);
+
 		return { index+fIndex, cIndex, N_occur, timeOffset };
 	}
 
@@ -733,8 +739,11 @@ namespace rawdata {
 		for(size_t i = 0; i < fSSDRawDigits.size(); ++i) {
 			ssdTimestamps.push_back(fSSDRawDigits[i].first);
 		}
-//		for(auto& time : ssdTimestamps) {
-//			time += -*ssdTimestamps.begin();
+//		{
+//			auto start = *ssdTimestamps.begin();
+//			for(auto& time : ssdTimestamps) {
+//				time += -start;
+//			}
 //		}
 
 		std::cout << "In findT0s()" << std::endl;
@@ -742,22 +751,24 @@ namespace rawdata {
       std::array<artdaq::Fragment::fragment_id_t,3> fragIdGrandfather = {fFragId[0]};
 
 		// Determine the grandfathers
-		size_t samplesGrandfather = UINT_MAX;
+		size_t samplesGrandfather = 0;
 		//size_t samplesGrandfather = 0;
 		for(int i = 0; i < 2; ++i) { // iterate over sensor types
-			samplesGrandfather = UINT_MAX;
+			samplesGrandfather = 0;
 			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
 				auto fragId = fFragId[ifrag];
 				if(fragId >= 100*i && fragId <= 100*(i+1)) continue; // this groups CAENs together and TRB3s together
 				// remove first event from each sensor <@@>
 				fFragTimestamps[fragId].erase(fFragTimestamps[fragId].begin());
 				// Zero clocks to first event
-//				for(auto& time : fFragTimestamps[fragId]) {
-//					time += -*fFragTimestamps[fragId].begin();
+//				{
+//					auto start = *fFragTimestamps[fragId].begin();
+//					for(auto& time : fFragTimestamps[fragId]) {
+//						time += -start;
+//					}
 //				}
-// Doesn't seem to work -NTK <@@>
-				 //determine grandfather clock
-				if(fFragTimestamps[fragId].size() < samplesGrandfather) {
+				// determine grandfather clock
+				if(fFragTimestamps[fragId].size() > samplesGrandfather) {
 					fragIdGrandfather[i] = fragId;
 					samplesGrandfather = fFragTimestamps[fragId].size();
 				}
@@ -774,31 +785,10 @@ namespace rawdata {
 //		}
 //		return false;
 
-		/*******************************************************************************************
-		// Synthetic dataset
-		dtVec[1].push_back(-100);
-		dtVec[1].push_back(100);
-		for(int i = 0; i < 50; ++i){
-			//dtVec[0].push_back(i);
-			//dtVec[2].push_back(i);
-			dtVec[1].push_back(0);
-		}
-		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-		//dtVec[1] = calcDifferences<double>(dtVec[0], dtVec[2], 50, skip);
-
-		auto minmax = normalizeData(dtVec[1]);
-		const auto [bin, N_occur, stdDev] = findOffset(dtVec[1]);
-		std::cout << "\nOffset (bin): " << bin
-			<< "\nOffset (time): " << binToTime(bin, minmax)
-			<< "\nOccurences: " << N_occur
-			<< "\nStandard Deviation: " << stdDev << std::endl;
-		*******************************************************************************************/
-
 		// Do the xcorrelation
 
-		size_t N_compare=50; // Number of events to compare
+		size_t N_compare=10; // Number of events to compare
 		double scale = 1;
-		double percentOverlap = 0.99;
 		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
 		std::unordered_map <
 			artdaq::Fragment::fragment_id_t,
@@ -809,11 +799,25 @@ namespace rawdata {
 			auto fragId = fFragId[ifrag];
 			// Sets grandfather to the appropriate value for syncing
 			auto grandfather = (fragId/10 == fragIdGrandfather[0]/10) ? fragIdGrandfather[0] : fragIdGrandfather[1];
+			double percentOverlap = 1.0*fFragTimestamps[fragId].size()/fFragTimestamps[grandfather].size();
+
+			//if(fragId < 10 || fragId == grandfather) continue;
+			if(fragId == grandfather) {
+				// if fragId is the grandfather, then let's set fragId to the opposite grandfather for comparison
+				fragId = (grandfather == fragIdGrandfather[0]) ? fragIdGrandfather[1] : fragIdGrandfather[0];
+				// Since this comparison could be done in reverse, let's do the SSDs for the other set
+				if(fFragTimestamps[grandfather].size() < fFragTimestamps[fragId].size()) {
+					// synchronize with SSD
+					grandfather = fragId;
+					fragId = grandfather;
+					continue; // skip SSD for now
+				}
+			}
 
 			std::cout << "(" << grandfather << ", " << fragId << ")" << std::endl;
 
 			auto begin = fFragTimestamps[grandfather].begin();
-			std::vector<int64_t> grandCalibrate(begin, begin + 2*N_compare);
+			std::vector<int64_t> grandCalibrate(begin, begin + 100*N_compare);
 
 			// initial calibration
 			if(fragId == grandfather) // compare SSDs if fragId is grandfather
@@ -835,7 +839,7 @@ namespace rawdata {
 			auto grandfatherSamples = fFragTimestamps[grandfather].size();
 			auto childSamples = fFragTimestamps[fragId].size();
 			// begin primary syncs
-			while(aIndex < grandfatherSamples - N_compare && bIndex < childSamples - N_compare) {
+			while(aIndex < grandfatherSamples - 100*N_compare && bIndex < childSamples - 100*N_compare) {
 				auto begin = fFragTimestamps[grandfather].begin() + aIndex;
 				std::vector<int64_t> grandSync(begin, begin + N_compare);
 
@@ -850,19 +854,30 @@ namespace rawdata {
 				std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync, skip, scale);
 				auto [indexBin, N_occur, timeOffset]  = findOffset(dt);
 				auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync);
-				aIndex+=fIndex + 1;
-				bIndex+=cIndex + 1;
-				if(N_occur > percentOverlap * N_compare) {
-				//if(true) {
+				if(N_occur >= percentOverlap * N_compare) {
 					for(size_t isync = bIndex; isync < fFragTimestamps[fragId].size(); ++isync)
 						fFragTimestamps[fragId][isync] += timeOffset;
 					// increment indices of the two datasets
-					std::cout << "\r[  Sync completed  ]" << std::endl;
+					aIndex+=fIndex + 1;
+					bIndex+=cIndex + 1;
+					std::cout << "\n[  Sync completed  ]" << std::endl;
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
+					// Auto-synchronize Routine
+					{
+						// Continue through synchronization until events aren't capable of aligning
+						std::cout << "[Auto-synchronization]\n";
+						while(std::llabs(fFragTimestamps[grandfather][aIndex] - fFragTimestamps[fragId][bIndex]) <= 16) {
+							if(aIndex >= grandfatherSamples - N_compare && bIndex >= childSamples - N_compare) break;
+							aIndex++; bIndex++;
+						}
+					}
 				} else { // recalibrate if failed to get N_occur high enough
-					std::cout << "\r[  Sync failed  ][ recalibrating ]" << std::endl;
+
+					std::cout << "\n[  Sync failed  ][ recalibrating ]" << std::endl;
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
-					{char x; std::cin >> x;} //<@@>
+
+					//std::cout << "Begin recalibration; press any key to continue" << std::endl;
+					//{char x; std::cin >> x;} //<@@>
 
 					// Swap grandfather role for calibration depending on who's timestamp is further ahead
 					// set up new grandfather
@@ -885,8 +900,8 @@ namespace rawdata {
 					} else {
 						begin = fFragTimestamps[grandfather].begin() + aIndex;
 					}
-					std::vector<int64_t> childSync(begin, begin + N_compare);
-					auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap);
+					std::vector<int64_t> childSync(begin, begin + 10*N_compare);
+					auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, 0.1*percentOverlap);
 
 					for(size_t isync = bIndex; isync < fFragTimestamps[fragId].size(); ++isync)
 						fFragTimestamps[fragId][isync] += recalibrationOffset;
@@ -900,209 +915,18 @@ namespace rawdata {
 
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << recalibrationOffset << ")" << std::endl;
 
-					{char x; std::cin >> x;} // <@@>
+				//	std::cout << "Finished recalibration; press any key to continue" << std::endl;
+				//	{char x; std::cin >> x;} //<@@>
 				}
 			}
+			std::cout << "Finished this pair; press any key to continue" << std::endl;
+			{char x; std::cin >> x;} //<@@>
 		}
-
-		// Begin by calibrating each sensor to their grandfather
-//		for(int i = 0; i < 2; ++i) { // iterate over sensor types
-//			auto grandfather = fragIdGrandfather[i];
-//			// Set up grandfather vector for comparison
-//			auto begin = fFragTimestamps[grandfather].begin();
-//			//auto last = fFragTimestamps[grandfather].end();
-//			std::vector<int64_t> A(begin, begin + 2*N_compare);
-//			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
-//				auto fragId = fFragId[ifrag];
-//				if(grandfather/10 != fragId/10) continue;
-//				/*
-//				if(fragId == grandfather) { // compare SSDs if fragId is grandfather
-//					begin = ssdTimestamps.begin()+set;
-//					last = ssdTimestamps.end();
-//				} else {
-//					begin = fFragTimestamps[fragId].begin()+set;
-//					last = fFragTimestamps[fragId].end();
-//				}
-//				*/
-//				begin = fFragTimestamps[fragId].begin(); std::vector<int64_t> B(begin, begin + N_compare);
-//				std::cout << "Attempting to calibrate" << std::endl;
-//				auto [aIndex, bIndex, time] = calibrateXcorr(A, B, 0.25);
-//				std::cout << std::setw(15)
-//					<< aIndex << std::setw(15)
-//					<< bIndex << std::setw(15)
-//					<< time << std::endl;
-//			}
-//		}
 
 		return false;
-
-		/* Batch processing (not offsetting for missed events)
-		for(size_t set = 0; set < samplesGrandfather - 2*N_compare; set+=N_compare) {
-			std::cout << std::setw(10) << set << std::endl;
-			for(int i = 0; i < 2; ++i) { // iterate over sensor types
-				auto grandfather = fragIdGrandfather[i];
-				for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
-					auto fragId = fFragId[ifrag];
-					if(grandfather/10 != fragId/10) continue;
-
-					std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-
-					// Set up grandfather vector for comparison
-					auto begin = fFragTimestamps[grandfather].begin()+set;
-					std::vector<int64_t> A(begin, begin + N_compare);
-					auto last = fFragTimestamps[grandfather].end();
-					if(fragId == grandfather) { // compare SSDs if fragId is grandfather
-						begin = ssdTimestamps.begin()+set;
-						last = ssdTimestamps.end();
-					} else {
-						begin = fFragTimestamps[fragId].begin()+set;
-						last = fFragTimestamps[fragId].end();
-					}
-					std::vector<int64_t> B(begin, begin + N_compare);
-					dtVec[fragId] = calcDifferences<int64_t>(A, B, skip, scale);
-					// Find offsetBin
-					// { offset, N_occurrences, standardDeviation }
-					auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragId]);
-
-					auto timeOffset = binToTime(dtVec[fragId],indexBin);
-
-					//std::cout << "\nPair (fragId A, fragId B): ("
-					std::cout << std::setw(15)
-						<< "(" << grandfather << ", " << ( (ifrag < fFragId.size()) ? fragId : ifrag ) << ")" << std::setw(30)
-						//<< "\tOffset (bin): " << indexBin << std::setw(20)
-						<< "\tOffset (time): " << timeOffset << std::setw(30)
-						<< "\tOccurrences: " << N_occur
-						<< std::endl;
-
-					// Scale back NEXT set of events by the calculated offset
-					size_t timeSet = 0;
-
-					if(fragId == grandfather) // compare SSDs if fragId is grandfather
-						timeSet = ssdTimestamps.size();
-					else
-						timeSet = fFragTimestamps[fragId].size();
-
-					for(size_t time = set; time < timeSet; ++time) {
-						if(fragId == grandfather)
-							ssdTimestamps[time] += timeOffset;
-						else
-							fFragTimestamps[fragId][time] +=timeOffset;
-					}
-				 }
-			}
-
-//			std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-//			dtVec[fragIdGrandfather[1]] = calcDifferences<int64_t>(fFragTimestamps[fragIdGrandfather[0]], fFragTimestamps[fragIdGrandfather[1]], skip, scale);
-//
-//			// Find offsetBin
-//			// { offset, N_occurrences, standardDeviation }
-//			auto [indexBin, N_occur, stdDev]  = findOffset(dtVec[fragIdGrandfather[1]]);
-//
-//			std::cout
-//				<< "(" << fragIdGrandfather[0] << ", " << fragIdGrandfather[1] << ")"
-//				//<< "\nOffset (bin): " << indexBin
-//				<< "\tOffset (time): " << binToTime(dtVec[fragIdGrandfather[1]],indexBin)
-//				<< "\tOccurrences: " << N_occur
-//				<< std::endl;
-		}
-		*/
-		return false;
-
-	 /* Old stuff (dt method)
-	// Do the same for the SSDs
-	std::vector<double> dtVec_SSD;
-	for (size_t i=0; i<100; ++i) {
-		double dt = fSSDRawDigits[i+1].first-fSSDRawDigits[i].first;
-		dtVec_SSD.push_back(dt);
+		std::cout << "Done finding T0s" << std::endl;
+		return true;
 	}
-
-    // low find offset indices for each board relative to board 0 so that dt's line up across all CAEN boards.
-	bool linedUp = true;
-	double dt;
-	for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-		auto fragId = fFragId[ifrag];
-		iboff[fragId] = 20;
-		if (fragId == 0) continue;
-		//if (fragId > 10) continue;
-		size_t ioff = 0;
-		std::cout << "Testing fragID" << fragId << std::endl;
-		for ( ; ioff<2*iboff[0]; ++ioff) {
-			//      int64_t dtsum=0;
-			linedUp = true;
-			for (size_t j=0; j<4; ++j) {
-				dt = dtVec[fragId][ioff+j] - dtVec[0][iboff[0]+j];
-				if (abs(dt) > 100.) {
-					linedUp = false;
-					break;
-				}
-				if (linedUp) {
-				  std::cout << "Fragment " << fragId << " lines up at offset "
-						 << ioff << "(dt = " << dt << ")" << std::endl;
-				  iboff[fragId] = ioff;
-				  break;
-				}
-			}
-		}
-	}
-
-	// Do the same for the SSDs
-	size_t iboff_SSD = 20;
-	for (size_t ioff=0; ioff<2*iboff[0]; ++ioff) {
-		//      int64_t dtsum=0;
-		linedUp = true;
-		for (size_t j=0; j<4; ++j) {
-			dt = dtVec_SSD[ioff+j] - dtVec[0][iboff[0]+j];
-			if (abs(dt) > 100.) {
-				linedUp = false;
-				break;
-			}
-		}
-		if (linedUp) {
-		  std::cout << "SSD " << " lines up at offset "
-				 << ioff << "(dt = " << dt << ")" << std::endl;
-		  iboff_SSD = ioff;
-		  break;
-		}
-	}
-
-	 if (!linedUp) {
-		std::cout << "Unable to find where SSD board lines up..." << std::endl;
-		return false;
-	 }
-
-	 //    std::cout << "here" << std::endl;
-	 // we should now try to find a smaller "offset" than 20, but that can wait
-	 // for when I have more time, for now we eat the loss of 20ish events
-	 for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-		auto fragId = fFragId[ifrag];
-		fT0[fragId] = fFragTimestamps[fragId][iboff[fragId]];
-		fFragCounter[fragId] = iboff[fragId];
-	 }
-	 */
-
-	 // this is what we used to do:
-	 /*
-	 for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-		auto fragId = fFragId[ifrag];
-		fT0[fragId] = fFragTimestamps[fragId][0];
-
-		if (fVerbosity)
-	std::cout << "T0[" << fragId << "] = " << fT0[fragId] << std::endl;
-
-		if (fFirstSubRunHasExtraTrigger) {
-	if (fSubrun == 1) { // skip these extra fragments
-	  if ((fragId <= 5) || fragId == 104) {
-		 fT0[fragId] = fFragTimestamps[fragId][1];
-		 fFragCounter[fragId] += 1;
-	  }
-	}
-		}
-
-		}
-	 */
-	 std::cout << "Done finding T0s" << std::endl;
-	 return true;
-  }
 
   /***************************************************************************/
 
