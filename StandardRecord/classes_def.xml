@@ -168,7 +168,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="14" >
+ <class name="caf::SRTrackSegment" ClassVersion="15" >
+  <version ClassVersion="15" checksum="980261979"/>
   <version ClassVersion="14" checksum="2487066300"/>
   <version ClassVersion="13" checksum="1227458893"/>
   <version ClassVersion="12" checksum="3697610154"/>
