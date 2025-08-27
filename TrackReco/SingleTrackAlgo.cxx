@@ -215,6 +215,8 @@ namespace emph {
       }
       int nPlanesGeo = emgeo->GetSSDStation(i)->NPlanes();
 
+      if (nUnique < 2) continue; // can't make a space point
+
       for (size_t j=0; j<ls_group[i].size(); j++){
         if (nPlanesGeo == 2){ //station 0,1,4,7
           for (size_t k=0; k<ls_group[i][j].size(); k++){

@@ -20,6 +20,8 @@ namespace caf
     SRVector3D mom; // momentum vector 
     int nspacepoints;
     rb::Region region;
+    double pointA[3];
+    double pointB[3];
 
     virtual void setDefault();
   };

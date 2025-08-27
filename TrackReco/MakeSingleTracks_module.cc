@@ -105,6 +105,7 @@ namespace emph {
     bool        fSevenOn;
     bool        fShortOn;
     int         fPBeamTmp;
+    bool        fLessStrict;
 
   };
 
@@ -119,7 +120,8 @@ namespace emph {
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
     fSevenOn           (pset.get< bool >("SevenOn")),
     fShortOn           (pset.get< bool >("ShortOn")),
-    fPBeamTmp          (pset.get< int >("PBeamTmp"))
+    fPBeamTmp          (pset.get< int >("PBeamTmp")),
+    fLessStrict        (pset.get< bool >("LessStrict"))
     {
       this->produces< std::vector<rb::Track> >();
       
@@ -173,7 +175,8 @@ namespace emph {
   
   void emph::MakeSingleTracks::endJob()
   {
-       std::cout<<"MakeSingleTracks: Number of events with one cluster per plane: "<<goodclust<<std::endl;
+       if (fLessStrict) std::cout<<"MakeSingleTracks: Number of events with one track segment per region: "<<goodclust<<std::endl;
+       else std::cout<<"MakeSingleTracks: Number of events with one cluster per plane: "<<goodclust<<std::endl;
        std::cout<<"MakeSingleTracks: Number of events available: "<<badclust+goodclust<<std::endl;
   }
 
@@ -254,8 +257,10 @@ namespace emph {
 	    clusters.push_back(&clust);
 	  }
 
+	  /*
           //ONE CLUSTER PER PLANE
           //If there are more clusters than sensors, skip event
+          
 	  if (clusters.size()==nPlanes){
 	    for (auto i : clustMap){
               if (i.second != 1){goodEvent = false; break;} 
@@ -265,6 +270,37 @@ namespace emph {
             else {badclust++;}
           }
 	  else badclust++;
+	  */
+	
+	  // Check for three good track segments
+	  int nts1=0; int nts2=0; int nts3=0;
+	  if (fLessStrict){
+	    for (auto t : trksegs){
+	      if (t->RegLabel() == rb::Region::kRegion1) nts1++;
+	      if (t->RegLabel() == rb::Region::kRegion2){
+	        if (t->NSpacePoints() == 3) nts2++;	 
+	      }
+	      if (t->RegLabel() == rb::Region::kRegion3){
+	        if (t->NSpacePoints() == 3) nts3++;	
+	      }
+            }
+            if (nts1 == 1 && nts2 == 1 && nts3 == 1) goodEvent = true;	  
+	    if (goodEvent==true) {goodclust++;}
+            else {badclust++;}
+	  }
+	  else { // for SingelTrackAlignment
+	    //ONE CLUSTER PER PLANE
+            //If there are more clusters than sensors, skip event		  
+            if (clusters.size()==nPlanes){
+              for (auto i : clustMap){
+                if (i.second != 1){goodEvent = false; break;}
+                else goodEvent = true;
+              }
+              if (goodEvent==true) {goodclust++;}
+              else {badclust++;}
+            }
+            else badclust++;
+          }
 
           // Instance of single track algorithm
           emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);

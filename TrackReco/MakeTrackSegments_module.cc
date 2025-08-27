@@ -95,9 +95,10 @@ namespace emph {
     std::map<int, std::map<std::pair<int, int>, int>> clustMapAtLeastOne;
 
     bool        fMakePlots;
-    int 	goodclust = 0;
-    int         badclust = 0; 
+    int         evts = 0;
+    int         hasclusters = 0;
     int         usableclust = 0;
+    int         sps = 0;
     size_t      nPlanes;
     size_t      nStations;
 
@@ -180,9 +181,10 @@ namespace emph {
   
   void emph::MakeTrackSegments::endJob()
   {
-       std::cout<<"MakeTrackSegments: Number of events available: "<<badclust+goodclust<<std::endl;
-       std::cout<<"MakeTrackSegments: Number of events with at least two clusters per station: "<<goodclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events: "<<evts<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with clusters "<<hasclusters<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with less than 50 clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with space points: "<<sps<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
@@ -230,12 +232,13 @@ namespace emph {
 
       art::Handle< std::vector<rb::SSDCluster> > clustH;
  
-      bool goodStation = false;
-      
       try {
 	evt.getByLabel(fClusterLabel, clustH);
+	evts++;
 	if (!clustH->empty()){
+	  hasclusters++;
           rb::LineSegment lineseg_tmp  = rb::LineSegment();
+
 	  for (size_t idx=0; idx < clustH->size(); ++idx) {
 	    const rb::SSDCluster& clust = (*clustH)[idx];
 	    ++clustMapAtLeastOne[clust.Station()][std::pair<int,int>(clust.Station(),clust.Plane())];
@@ -247,82 +250,44 @@ namespace emph {
               << "Skipping nonsense: cluster strip number > 640 "
               << ".\n";
 	      abort(); }
-              //std::cout<<"Skipping nonsense"<<std::endl;
-              //linesegv->push_back(linesegments[idx]);
-              //continue; }
             if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments[idx])){
               linesegv->push_back(linesegments[idx]); 
 	    }
             else
               std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
 	  }
+          if (clusters.size() < 50){
+            usableclust++;
+ 
+            cl_group.resize(nStations);
+            ls_group.resize(nStations);
 
-	  //AT LEAST TWO CLUSTERS PER STATION
-          int count=0; int countSt = 0;
-          for (auto i : clustMapAtLeastOne){
-            for (auto j : i.second){
-	      int doesntmatter = j.second; //if we don't use j, we'll get a warning 
-              count++;
+	    for (size_t i=0; i<nStations; i++){
+	      cl_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
+	      ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
+	    }
+
+            for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
+	      for (auto j : clustMapAtLeastOne[i]){
+                mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
+	      }
             }
-	    countSt++;
 
-	   //std::cout<<"countSt = "<<countSt<<std::endl;
-	    // Optionally skip Station 7
-            //if (!fSevenOn && countSt == (int)nStations) continue;
-	
-            // make sure every station has at least two unique clusters
-            if (count < 2) { goodStation = false; break; }
-            else { goodStation = true; count = 0; }
-          }
-          // make sure every station is populated
-	  if (countSt != (int)nStations) goodStation = false;
-	  if (goodStation==true) {goodclust++;}
-          else {badclust++;}
- 
-/*
-	  for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
-            for (auto j : clustMapAtLeastOne[i]){
-              std::cout<<"Station "<<i<<": "<<j.second<<std::endl;
-	    }
-  	  }
-*/
+	    mf::LogDebug("MakeTrackSegments") <<"........" ;
 
-          cl_group.resize(nStations);
-          ls_group.resize(nStations);
-
-	  for (size_t i=0; i<nStations; i++){
-	    cl_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
-	    ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
-	  }
-
-          for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
-	    if (!goodStation) break;
-	    for (auto j : clustMapAtLeastOne[i]){
-              mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
-	    }
-          }
-
-	  mf::LogDebug("MakeTrackSegments") <<"........" ;
-
-          for (size_t i=0; i<clusters.size(); i++){
-	    if (clusters[i]->WgtRmsStrip() == 0){ 
-		std::cout<<"WgtRmsStrip() = 0"<<std::endl;
-	        goodStation = false;
-	    }
-
-	    int plane = clusters[i]->Plane();
-	    int station = clusters[i]->Station();	 
+            for (size_t i=0; i<clusters.size(); i++){
+	      int plane = clusters[i]->Plane();
+	      int station = clusters[i]->Station();	 
   
-	    //group clusters according to plane
-	    //within each station, do every combination
-	    cl_group[station][plane].push_back(clusters[i]);
-	  }
-	 
-          //instance of single track algorithm
-          emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
+	      //group clusters according to plane
+	      //within each station, do every combination
+	      cl_group[station][plane].push_back(clusters[i]);
+	    }
+
+            //instance of single track algorithm
+            emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum,nStations,nPlanes);
  
-	  //group linesegments
-	  if (goodStation == true && clusters.size() < 50){
+	    //group linesegments
 	    for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
               int station = clusters[i]->Station();
@@ -331,55 +296,56 @@ namespace emph {
 
             //make reconstructed hits
 	    spv = algo.MakeHits(ls_group,cl_group);
+
 	    for (auto sp : spv)
 	      spacepointv->push_back(sp);
-  	    usableclust++;
-	  }
+
+            //reconstructed hits
+	    if (spv.size() > 0){
+	      sps++;
+              for (size_t i=0; i<spv.size(); i++){
+                if (emgeo->GetTarget()){
+                  if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
+                }
+	        else{
+                  if (spv[i].Pos()[2] < 380.5) sp1.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
+                }
+              }
+
+       	      mf::LogDebug("MakeTrackSegments") << "sp1 size: "<< sp1.size();
+	      mf::LogDebug("MakeTrackSegments") << "sp2 size: "<< sp2.size();
+	      mf::LogDebug("MakeTrackSegments") << "sp3 size: "<< sp3.size();
+
+              //form lines and fill plots
+              std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
+              for (auto i : tstmp1){ i.SetRegLabel(rb::Region::kRegion1); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_1++; }
+	
+              std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
+              mf::LogDebug("MakeTrackSegments") << "tstmp2 size = "<<tstmp2.size();
+              for (auto i : tstmp2) { i.SetRegLabel(rb::Region::kRegion2); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_2++; }
+
+              std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
+              mf::LogDebug("MakeTrackSegments") << "tstmp3 size = "<<tstmp3.size();
+              for (auto i : tstmp3) {i.SetRegLabel(rb::Region::kRegion3); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_3++; }
 	  
+              for (auto ts : tsv) {
+                tracksegmentv->push_back(ts);
+              }
+	    }
+            sp1.clear();
+            sp2.clear();
+            sp3.clear();
+
+          } //clust < 50
           ls_group.clear();
           cl_group.clear();
           linesegments.clear();
-	  clusters.clear();
-	  clustMapAtLeastOne.clear();
-
-          //reconstructed hits
-          if (goodStation && spv.size() > 0){
-            for (size_t i=0; i<spv.size(); i++){
-              if (emgeo->GetTarget()){
-                if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(spv[i]);
-                if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
-                if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
-              }
-	      else{
-                if (spv[i].Pos()[2] < 380.5) sp1.push_back(spv[i]);
-                if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
-                if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
-              }
-            }
-
-       	    mf::LogDebug("MakeTrackSegments") << "sp1 size: "<< sp1.size();
-	    mf::LogDebug("MakeTrackSegments") << "sp2 size: "<< sp2.size();
-	    mf::LogDebug("MakeTrackSegments") << "sp3 size: "<< sp3.size();
-
-            //form lines and fill plots
-            std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-            for (auto i : tstmp1){ i.SetRegLabel(rb::Region::kRegion1); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_1++; }
-	
-            std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2); 
-            mf::LogDebug("MakeTrackSegments") << "tstmp2 size = "<<tstmp2.size();
-            for (auto i : tstmp2) { i.SetRegLabel(rb::Region::kRegion2); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_2++; }
-
-            std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);    
-            mf::LogDebug("MakeTrackSegments") << "tstmp3 size = "<<tstmp3.size();
-            for (auto i : tstmp3) {i.SetRegLabel(rb::Region::kRegion3); tsv.push_back(i); chi2.push_back(i.Chi2()); if (i.Chi2() < 5) chi2lessthan5_3++; }
-	  
-            for (auto ts : tsv) {
-              tracksegmentv->push_back(ts);
-            }
-	  }
-          sp1.clear();
-          sp2.clear();
-          sp3.clear();
+          clusters.clear();
+          clustMapAtLeastOne.clear();
 
 	} //clust not empty
 
