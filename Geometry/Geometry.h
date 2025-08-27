@@ -234,14 +234,14 @@ namespace emph {
       int NSSDPlanes() const { return fNSSDPlanes; }
       int NSSDs() const { return fNSSDs; }
       const SSDStation* GetSSDStation(int i) const {return &fSSDStation[i]; }
-      const Detector* GetSSDSensor(int i) {return fSSDSensorMap[i]; }
+      const Detector* GetSSDSensor(int i) { return fSSDSensorMap[i].get(); }
       int GetSSDId(int station, int plane, int sensor) const;
       double GetRadLength(int) const;
 
       int NPMTs() const { return fNPMTs; }
-      emph::arich_util::PMT GetPMT(int i){return fPMT[i]; }
-      emph::arich_util::PMT FindPMTByName(std::string name);
-      emph::arich_util::PMT FindPMTByBlockNumber(int number);
+      emph::arich_util::PMT& GetPMT(int i){return fPMT[i]; }
+      const emph::arich_util::PMT& FindPMTByName(const std::string& name) const;
+      const emph::arich_util::PMT& FindPMTByBlockNumber(int number) const;
       const Target* GetTarget() { return fTarget; }
       
       //    TGeoMaterial* Material(double x, double y, double z) const;
@@ -285,7 +285,7 @@ namespace emph {
       bool   fDetectorLoad[NDetectors];
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
-      std::unordered_map<int, const Detector*> fSSDSensorMap;
+      std::unordered_map<int, std::unique_ptr<Detector>> fSSDSensorMap;
       std::unordered_map<int, double> fRadLength;
       Target* fTarget;
 
