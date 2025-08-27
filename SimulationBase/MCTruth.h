@@ -10,6 +10,8 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+
 #include "SimulationBase/MCGeneratorInfo.h"
 #include "SimulationBase/MCParticle.h"
 //#include "SimulationBase/MCBeamInfo.h"

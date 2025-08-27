@@ -1,11 +1,5 @@
-include(ArtDictionary)
-include(ArtMake)
-
-find_package(libwda REQUIRED EXPORT)
-
-art_make_library(SOURCE RunHistory.cxx
-  LIBRARIES
-  PRIVATE
+cet_make_library(SOURCE RunHistory.cxx
+  LIBRARIES PRIVATE
   wda::wda
 )
 

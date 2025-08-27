@@ -9,6 +9,7 @@
 #define ARICH_PMT_H
 
 #include <utility>
+#include <memory>
 #include <vector>
 #include "TRandom3.h"
 
@@ -21,7 +22,9 @@ namespace emph {
     public:
       PMT();
       PMT(int n, std::string name, double dark, double qecor, double fxtalk, std::vector<std::pair<double, double> > qe);
-      ~PMT() {};
+      ~PMT();
+      PMT(const PMT& other);
+      PMT& operator=(const PMT& other);
 
       int PMTnum() const { return fPMTnum;} 
       std::string Name() const { return fName;} 
@@ -30,7 +33,7 @@ namespace emph {
       std::vector<std::pair<double, double> > QE() const {return fQE;}
 				
       void SetCrossTalk(double t0) {fXTalk = t0;}
-      double GetCharge();
+      double GetCharge() const;
 			
       void SetTriggerWin(int TriggerWin){fTriggerWin = TriggerWin;}
       void SetTransitTime(double t0) {fTransitTime = t0;}
@@ -40,8 +43,8 @@ namespace emph {
       void SetDarkRate(double dark) {fDarkRate = dark;}
       void SetQEcor(double qecor) {fQECorrection = qecor;}
       void SetQE(std::vector<std::pair<double, double> > qe) {fQE = qe;}
-      double GetDarkRate();
-      bool ifDet(double wavelength);
+      double GetDarkRate() const;
+      bool ifDet(double wavelength) const;
       int findBlockNumberFromName(std::string name);
       std::vector<float> GetPosfromBlockNumber(int block_number);
       void SetPhysicalVolume(G4VPhysicalVolume* vol){fPhysVolName = vol;}
@@ -66,7 +69,7 @@ namespace emph {
       double fTransitTime;
       double fTriggerWin;
       std::vector<float> fPos;
-      TRandom3 *rand_gen;				
+      TRandom3* rand_gen;
     };
 
   }  // end namespace geo

@@ -23,6 +23,7 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <unordered_map>
 
 #include "ChannelMap/ChannelMap.h"
 #include "RunHistory/RunHistory.h"

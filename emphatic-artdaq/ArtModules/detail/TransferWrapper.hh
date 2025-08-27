@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "artdaq-core/Data/RawEvent.hh"
 #include "artdaq/TransferPlugins/TransferInterface.hh"

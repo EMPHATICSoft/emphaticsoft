@@ -6,7 +6,8 @@
  <version ClassVersion="11" checksum="2041444541"/>
  <version ClassVersion="10" checksum="1394376492"/>
 </class>
-<class name="arichreco::Arich" ClassVersion="11">
+<class name="arichreco::Arich" ClassVersion="12">
+ <version ClassVersion="12" checksum="210719347"/>
  <version ClassVersion="11" checksum="3343428635"/>
  <version ClassVersion="10" checksum="2726953947"/>
 </class>

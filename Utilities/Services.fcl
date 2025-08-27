@@ -9,12 +9,12 @@ BEGIN_PROLOG
 
 core_services:
 {
-  AlignService:      @local::standard_align
-  ChannelMapService: @local::standard_channelmap
-  DetGeoMapService:  @local::standard_detgeomap
-  Geometry:          @local::standard_geometry
-  RunHistoryService: @local::standard_runhistory
-  MagneticField:     @local::standard_magfield
+  AlignService:      	@local::standard_align
+  ChannelMapService: 	@local::standard_channelmap
+  DetGeoMapService:  	@local::standard_detgeomap
+  GeometryService:   	@local::standard_geometry
+  RunHistoryService: 	@local::standard_runhistory
+  MagneticFieldService: @local::standard_magfield
 }
 
 standard_services:

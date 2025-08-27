@@ -9,6 +9,8 @@
 #include "Simulation/Particle.h"
 #include "Simulation/SSDHit.h"
 #include "art/Framework/Principal/Handle.h"
+
+#include <cstddef>
 #include <cxxabi.h>
 #include <typeinfo>
 

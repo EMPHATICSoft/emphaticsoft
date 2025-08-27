@@ -5,6 +5,7 @@
 #define SRSSDCLUSTBRANCH_H
 #include "StandardRecord/SRSSDClust.h"
 
+#include <cstddef>
 #include <vector>
 #include <cstddef>
 

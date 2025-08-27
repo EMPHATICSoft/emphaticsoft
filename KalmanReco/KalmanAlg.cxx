@@ -440,13 +440,13 @@ namespace kalman {
 	bool ExitingField  = fBfield&&((state1.GetZ() > fFieldZmin) && (nextz < fFieldZmin));
 
 	// get radLength for multiple scattering noise calculation
-	double radLength=0.;      
+	// double radLength=0.;      
 	auto & ls2 = linesegv[idx-1];
 	if (fVerbosity)
 	  mf::LogInfo("KalmanAlg") << "Adding multiple scattering noise at SSD station " << ls2.SSDStation() << ", Plane " << ls2.SSDPlane() << std::endl;
-	int ssdId;
-	ssdId = ls2.SSDStation()*10 + ls2.SSDPlane();
-	radLength = fGeo->GetRadLength(ssdId);
+	// int ssdId;
+	// ssdId = ls2.SSDStation()*10 + ls2.SSDPlane(); // unused variable removed
+	// radLength = fGeo->GetRadLength(ssdId); // unused variable removed
 
 	double ds = 0.;
       

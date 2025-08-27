@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to create reco vectors from raw digits and 
+/// \brief   Producer module to create reco vectors from raw digits and
 ///          store them in the art output file
 /// \author  $Author: mdallolio $
 ////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@
 #include <vector>
 #include "stdlib.h"
 #include <map>
-#include <numeric> 
+#include <numeric>
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
@@ -47,61 +47,58 @@
 #include "ARICHRecoUtils/ArichUtils.h"
 #include "ARICHRecoUtils/HoughFitter.h"
 
+namespace emph
+{
 
-namespace emph {  
-
-  class MakeRing : public art::EDProducer {
+  class MakeRing : public art::EDProducer
+  {
   public:
-    explicit MakeRing(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    explicit MakeRing(fhicl::ParameterSet const &pset); // Required! explicit tag tells the compiler this is not a copy constructor
     ~MakeRing();
-    
+
     // Optional, read/write access to event
-    void produce(art::Event& evt);
+    void produce(art::Event &evt);
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
 
   private:
+    arichreco::ARICH_UTILS *ArichUtils;
+    TTree *fARICHTree;
 
-    arichreco::ARICH_UTILS* ArichUtils;
-    TTree* 	fARICHTree;    
- 
-    int         fEvtNum;
-    std::string fARICHLabel;  
-    
+    int fEvtNum;
+    std::string fARICHLabel;
+
     bool fFillTree;
-    
+
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    emph::cmap::FEBoardType boardType = cmap::TRB3;    
+    emph::cmap::FEBoardType boardType = cmap::TRB3;
 
     std::vector<double> momenta;
     std::vector<TVector3> dir;
     std::vector<TVector3> pos;
-   
-    std::vector<int> bins,vals;
 
+    std::vector<int> bins, vals;
 
-   // bins_pdf_pion,bins_pdf_kaon,bins_pdf_prot, vals; 
-    
-    std::vector<int> blocks,MCT_PDG,unique_ids;
+    // bins_pdf_pion,bins_pdf_kaon,bins_pdf_prot, vals;
+
+    std::vector<int> blocks, MCT_PDG, unique_ids;
     int pdg_event;
-	
-};
+  };
 
   //.......................................................................
-  
-  emph::MakeRing::MakeRing(fhicl::ParameterSet const& pset)
-    : EDProducer(pset)
- { 
+
+  emph::MakeRing::MakeRing(fhicl::ParameterSet const &pset)
+      : EDProducer(pset)
+  {
 
     this->produces<std::vector<rb::ARing>>();
-    fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
-    fFillTree   = bool(pset.get<bool>("FillTree"));
-    //ARICH RECO UTILS STUFF
+    fARICHLabel = std::string(pset.get<std::string>("LabelHits"));
+    fFillTree = bool(pset.get<bool>("FillTree"));
+    // ARICH RECO UTILS STUFF
     fEvtNum = 0;
-    
-  }	
+  }
   //......................................................................
- 
+
   emph::MakeRing::~MakeRing()
   {
     //======================================================================
@@ -112,37 +109,37 @@ namespace emph {
   //......................................................................
 
   void emph::MakeRing::beginJob()
-  {    
-    if (fFillTree){
-    art::ServiceHandle<art::TFileService const> tfs;
-    fARICHTree = tfs->make<TTree>("ARICHRECO","event");
-    fARICHTree->Branch("TruthPDG", &MCT_PDG);
-    fARICHTree->Branch("Blocks", &blocks);
-    fARICHTree->Branch("Momenta", &momenta);
-    fARICHTree->Branch("BINS", &bins);
-    fARICHTree->Branch("VALS", &vals);
+  {
+    if (fFillTree)
+    {
+      art::ServiceHandle<art::TFileService const> tfs;
+      fARICHTree = tfs->make<TTree>("ARICHRECO", "event");
+      fARICHTree->Branch("TruthPDG", &MCT_PDG);
+      fARICHTree->Branch("Blocks", &blocks);
+      fARICHTree->Branch("Momenta", &momenta);
+      fARICHTree->Branch("BINS", &bins);
+      fARICHTree->Branch("VALS", &vals);
     }
     ArichUtils = new arichreco::ARICH_UTILS();
 
+    /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
+       fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
+       fARICHTree->Branch("BINS_PDF_kaon", &bins_pdf_kaon);
+       fARICHTree->Branch("VALS_PDF_kaon", &vals_pdf_kaon);
+       fARICHTree->Branch("BINS_PDF_prot", &bins_pdf_prot);
+       fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
+   */
+  }
 
- /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
-    fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
-    fARICHTree->Branch("BINS_PDF_kaon", &bins_pdf_kaon);
-    fARICHTree->Branch("VALS_PDF_kaon", &vals_pdf_kaon);
-    fARICHTree->Branch("BINS_PDF_prot", &bins_pdf_prot);
-    fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
-*/
-}
-    
-//......................................................................
+  //......................................................................
 
-void MakeRing::produce(art::Event& evt)
-  { 
-      std::unique_ptr<std::vector<rb::ARing>> ARICH_RINGS(new std::vector<rb::ARing>);
+  void MakeRing::produce(art::Event &evt)
+  {
+    std::unique_ptr<std::vector<rb::ARing>> ARICH_RINGS(new std::vector<rb::ARing>);
 
-      art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
+    art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;
 
-      evt.getByLabel(fARICHLabel,arich_clusters);
+    evt.getByLabel(fARICHLabel, arich_clusters);
 
 
 	for(int u = 0; u < (int)arich_clusters->size(); u++){
@@ -188,9 +185,9 @@ void MakeRing::produce(art::Event& evt)
 	     delete event_hist; delete fitter;
 	}
 
-	evt.put(std::move(ARICH_RINGS));	   
-    
-     } // end produce 
+    evt.put(std::move(ARICH_RINGS));
+
+  } // end produce
 
 }
 DEFINE_ART_MODULE(emph::MakeRing)

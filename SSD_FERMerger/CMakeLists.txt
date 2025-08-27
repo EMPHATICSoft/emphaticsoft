@@ -1,11 +1,9 @@
 set( PACKAGE SSD_FERMerger )
 FILE( GLOB src_files *.cpp )
-#include(CetRootCint)
-#cet_rootcint( ${PACKAGE} )
 
 cet_make_library( SOURCE ${src_files} 
   LIBRARY_NAME SSD_FERMerger
-  )
+)
 
 cet_make_exec( NAME Splitter
   SOURCE Splitter.cc

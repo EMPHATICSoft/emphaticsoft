@@ -3,14 +3,14 @@
 ///// \author  mdallolio
 ///// \date
 //////////////////////////////////////////////////////////////////////////
-
-
 #ifndef ARICH_INCLUDE
 #define ARICH_INCLUDE
 
 #include "stdlib.h"
 #include <iostream>
 #include <chrono>
+#include <memory>
+
 #include <TROOT.h>
 #include <TStyle.h>
 #include "TMath.h"
@@ -26,22 +26,30 @@
 #include "ARICHRecoUtils/Detector.h"
 #include "ARICHRecoUtils/Utility.h"
 
-
-
 namespace arichreco{
     
-struct particleInfoStruct {
-        // Input parameters to a simple fast simulation
-        TVector3 pos;
-        TVector3 dir;
-        double beta;
+  struct particleInfoStruct {
+    // Input parameters to a simple fast simulation
+    TVector3 pos;
+    TVector3 dir;
+    double beta;
     std::string name;
 
-    void reset(){
-    pos.Clear(); dir.Clear(); beta = 0; name = "None";
+    // Default constructor: initializes everything to safe defaults
+    particleInfoStruct()
+      : pos(0,0,0), dir(0,0,1), beta(0), name("None") {}
+
+    // Parameterized constructor for convenience
+    particleInfoStruct(const TVector3& p, const TVector3& d, double b, const std::string& n)
+      : pos(p), dir(d), beta(b), name(n) {}
+
+    void reset() {
+      pos.SetXYZ(0,0,0);
+      dir.SetXYZ(0,0,1);
+      beta = 0;
+      name = "None";
     }
-  
-};
+  };
 
   struct photonStruct {
     // Initial direction and position
@@ -76,8 +84,8 @@ struct particleInfoStruct {
     double beta;
     int id;
   };
-
- class Arich {
+  
+  class Arich {
 
     private:
       // static constexpr double aeroPos1 = 0.; // positions of upstream edges of aerogel layers
@@ -93,11 +101,11 @@ struct particleInfoStruct {
       double aeroPos1;
       double aeroPos2;
 
-      arichreco::Aerogel* aerogel1;
-      arichreco::Aerogel* aerogel2;
+      std::unique_ptr<arichreco::Aerogel> aerogel1;
+      std::unique_ptr<arichreco::Aerogel> aerogel2;
       arichreco::Detector* detector;
 
-     // double integrateAndDrawEllipse(arichreco::particleInfoStruct params, TH2Poly* photonHist, TPad* pad);
+      // double integrateAndDrawEllipse(arichreco::particleInfoStruct params, TH2Poly* photonHist, TPad* pad);
 
     public:
       Arich(arichreco::Detector* detector, double refr1, double refr2, double aeroP1, double aeroP2, double thick1, double thick2);
@@ -105,7 +113,6 @@ struct particleInfoStruct {
       TH2D calculatePdf(arichreco::particleInfoStruct params, char* histName= (char*) "photonHist");
       //TH2Poly* generateEvent(arichreco::particleInfoStruct params, bool save=true, std::string histName="generatedEvent", std::string outputDir="./output");
       //TH2Poly* simulateBeam(arichreco::particleInfoStruct params, std::string outputDir="simulatedBeam");
-};
-
-}
+  };
+} // namespace arichreco
 #endif

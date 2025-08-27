@@ -14,7 +14,9 @@
   <class name="std::vector<std::vector<sim::SSDHit> >"        />
   <class name="art::Wrapper< std::vector<sim::SSDHit>    >"/>
   <class name="art::Wrapper< std::vector<std::vector<sim::SSDHit> >   >"/>
-  <class name="sim::Particle"    ClassVersion="15" >
+  <class name="sim::Particle"    ClassVersion="17" >
+   <version ClassVersion="17" checksum="1602216966"/>
+   <version ClassVersion="16" checksum="3688335777"/>
    <version ClassVersion="15" checksum="1602216966"/>
    <version ClassVersion="14" checksum="3688335777"/>
    <version ClassVersion="13" checksum="1602216966"/>

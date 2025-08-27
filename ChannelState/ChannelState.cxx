@@ -12,6 +12,7 @@
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
 
+#include <array>
 #include <iomanip>
 #include <iostream>
 #include <fstream>

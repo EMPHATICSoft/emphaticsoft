@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <thread>

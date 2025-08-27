@@ -1,9 +1,5 @@
-include(ArtDictionary)
-include(ArtMake)
-FILE( GLOB src_files *.cxx )
-
-art_make_library( #LIBRARY_NAME RecoUtils
-  SOURCE ${src_files}
+cet_make_library( 
+  SOURCE RecoUtils.cxx
   LIBRARIES PRIVATE
     RecoBase
     Geometry
@@ -11,10 +7,8 @@ art_make_library( #LIBRARY_NAME RecoUtils
     art::Persistency_Common
     canvas::canvas
     fhiclcpp::fhiclcpp
-  )
+  BASENAME_ONLY
+)
 
 install_headers()
 install_source()
-install_fhicl()
-
-#art_dictionary(DICTIONARY_LIBRARIES PRIVATE emphaticsoft::RecoUtils)

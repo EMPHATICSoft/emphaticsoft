@@ -10,7 +10,7 @@
 #include <ostream> 
 #include <iostream>
 #include "TRandom3.h"
-#include "PMT.h"
+#include "Utilities/PMT.h"
 #include "TMath.h"
 #include "CLHEP/Random/Randomize.h"
 
@@ -21,23 +21,41 @@ namespace emph {
 
     PMT::PMT() :
       fPMTnum(-1), fName(""), fXTalk(0.01), fDarkRate(0), fQECorrection(1), 
-      fON(true), fTriggerWin(20)    //need to implement thes from GDML file
+      fON(true), fTriggerWin(20), rand_gen(new TRandom3(0)) //need to implement these from GDML file
     {
-      rand_gen = new TRandom3(0);	
     }
 
     //--------------------------------------------------------------------------------
-
     PMT::PMT(int n, std::string name, double dark, double qecor, double fxtalk, std::vector<std::pair<double, double> > qe) :
       fPMTnum(n), fName(name), fXTalk(fxtalk), fDarkRate(dark), 
-      fQECorrection(qecor), fQE(qe)
+      fQECorrection(qecor), fQE(qe), rand_gen(new TRandom3(0))
     {
-      rand_gen = new TRandom3(0);
     }
 
+    PMT::~PMT() 
+    {
+      delete rand_gen;
+    }
 
-    void PMT::PrintInfo(){
+    PMT::PMT(const PMT& other) : 
+      fPMTnum(other.fPMTnum),
+      fPhysVolName(other.fPhysVolName),
+      fName(other.fName),
+      fXTalk(other.fXTalk),
+      fDarkRate(other.fDarkRate),
+      fQECorrection(other.fQECorrection),
+      fQE(other.fQE),
+      fON(other.fON),
+      fTransitTimeSpread(other.fTransitTimeSpread),
+      fTransitTime(other.fTransitTime),
+      fTriggerWin(other.fTriggerWin),
+      fPos(other.fPos),
+      rand_gen(new TRandom3(*other.rand_gen))
+    {
+    }
 
+    void PMT::PrintInfo()
+    {
       std::cout<<"PMT_"<< fPMTnum <<":"<<std::endl;
       std::cout<<"Dark noise rate: "<<fDarkRate<<" Hz"<<std::endl;
       std::cout<<"QE correction: "<<fQECorrection<<std::endl;
@@ -45,11 +63,10 @@ namespace emph {
       std::cout<<"Cross Talk: "<< fXTalk <<std::endl;
       std::cout<<"Postion: ( "<<fPos[0] <<"mm, "<<fPos[1] <<"mm, "<<fPos[2] <<"mm )"<<std::endl;
       std::cout<<std::endl;
-
     }
 
 
-    bool PMT::ifDet(double wavelength)
+    bool PMT::ifDet(double wavelength) const
     {
       //return true;
       std::vector<std::pair<double, double> >::const_iterator iter = fQE.begin();
@@ -57,29 +74,29 @@ namespace emph {
       iter1--;
 
       if(wavelength<=iter->first || wavelength>=iter1->first)
-	return false;
+	      return false;
       else
-	{
-	  while(wavelength>(iter->first))
 	    {
-	      iter1 = iter;
-	      iter++;
-	    }
-	  double w1 = iter1->first;
-	  double w2 = iter->first;
-	  double q1 = iter1->second;
-	  double q2 = iter->second;
-	  double eff1 = q1+(q2-q1)/(w2-w1)*(wavelength-w1);
-	  double eff = eff1*fQECorrection;
+	      while(wavelength>(iter->first))
+        {
+          iter1 = iter;
+          iter++;
+        }
+        double w1 = iter1->first;
+        double w2 = iter->first;
+        double q1 = iter1->second;
+        double q2 = iter->second;
+        double eff1 = q1+(q2-q1)/(w2-w1)*(wavelength-w1);
+        double eff = eff1*fQECorrection;
 
-	  if( rand_gen->Uniform() <= eff ) return true;
-	  else return false;
-	}
+        if( rand_gen->Uniform() <= eff ) return true;
+        else return false;
+      }
 
       return false;
     }
 
-    double PMT::GetDarkRate()
+    double PMT::GetDarkRate() const
     {
       double DarkProb=fDarkRate*1e-9;// 1/ns  [P = rate * time] for Hz the conversion is 10^-9
       double val = rand_gen->Uniform();
@@ -88,31 +105,30 @@ namespace emph {
     }		
 
 		
-    double PMT::GetCharge()
+    double PMT::GetCharge() const
     {
       double charge=1;
       while(rand_gen->Uniform() < fXTalk){
-	charge++;
+	      charge++;
       }
       return charge*fQECorrection;
     }
 	
 			
-
     int PMT::findBlockNumberFromName(std::string name)
     {
       int x, y, ax, ay;
       std::string blockNumStr;
       if (name.find("mPMT") == 0 ) {
-	blockNumStr = name.substr(9, 1);
-	y = atoi(blockNumStr.c_str());
-	blockNumStr = name.substr(11, 1);
-	x = atoi(blockNumStr.c_str());
-	blockNumStr = name.substr(18, 1);
-	ay = atoi(blockNumStr.c_str());
-	blockNumStr = name.substr(20, 1);
-	ax = atoi(blockNumStr.c_str());
-	return y*1000+x*100+ay*10+ax;
+        blockNumStr = name.substr(9, 1);
+        y = atoi(blockNumStr.c_str());
+        blockNumStr = name.substr(11, 1);
+        x = atoi(blockNumStr.c_str());
+        blockNumStr = name.substr(18, 1);
+        ay = atoi(blockNumStr.c_str());
+        blockNumStr = name.substr(20, 1);
+        ax = atoi(blockNumStr.c_str());
+        return y*1000+x*100+ay*10+ax;
       }
       return -1;
     }
@@ -133,10 +149,11 @@ namespace emph {
       double x, y, z;
 
       for(auto& Integer: number){	
-	vnumber.push_back(static_cast<int>(Integer - '0'));
+	      vnumber.push_back(static_cast<int>(Integer - '0'));
       }
       while(vnumber.size() < 4){
-	vnumber.insert(vnumber.begin(),0); }
+	      vnumber.insert(vnumber.begin(),0); 
+      }
 
       // vnumber is now [y_0,x_0,ay_0,ax_0] -> use the positional indeces to compute x,y,z position
       // x = (-1+x_0)*(mPMT_size+mPMT_gap)+(-3.5+ax_0)*manode_size 

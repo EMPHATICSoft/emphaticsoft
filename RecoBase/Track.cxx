@@ -61,7 +61,7 @@ namespace rb {
 
   const rb::SSDCluster* Track::GetSSDCluster(int i) const
   {    
-    assert(((i>0) && (i < int(_clust.size()))));
+    assert(((i>=0) && (i < int(_clust.size()))));
     
     return &_clust[i];
   }
@@ -70,7 +70,7 @@ namespace rb {
 
   const rb::TrackSegment* Track::GetTrackSegment(int i) const
   {
-    assert(((i>0) && (i < int(_sgmnt.size()))));
+    assert(((i>=0) && (i < int(_sgmnt.size()))));
     
     return &_sgmnt[i];
   }
@@ -79,7 +79,7 @@ namespace rb {
 
   const rb::SpacePoint* Track::GetSpacePoint(int i) const
   {
-    assert(((i>0) && (i < int(_spcpt.size()))));
+    assert(((i>=0) && (i < int(_spcpt.size()))));
     
     return &_spcpt[i];
   }

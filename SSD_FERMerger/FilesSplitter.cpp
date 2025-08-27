@@ -238,7 +238,7 @@ namespace ssd {
 	      //cout << __PRETTY_FUNCTION__ << "Data length: " << dataLength << endl;
 	      file.read(charBuffer, dataLength);
 	      stationBuffer.append(charBuffer, dataLength);
-	      delete charBuffer;
+	      delete[] charBuffer;
 	      file.close();
 	    }
 	  stationBuffers_[stationNames_[station]] = stationBuffer;

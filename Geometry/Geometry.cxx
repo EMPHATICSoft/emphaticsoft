@@ -427,26 +427,25 @@ Plane::Plane() :
 
       int nsub = arich_n->GetNodes()->GetEntries();
       for( int j=0; j<nsub; ++j){
-	std::string name = arich_v->GetNode(j)->GetName();
-	if (name.find("PMT_phys") != std::string::npos){
-	  emph::arich_util::PMT mpmt;
-	  int num = mpmt.findBlockNumberFromName(name);
-	  if(num<0)continue;
-	  mpmt.SetPMTnum(num);
-	  mpmt.SetName(name);
-	  mpmt.SetQE(qeV);
-	  mpmt.SetDarkRate(darkr);
-	  mpmt.SetCrossTalk(XTalk);
-	  mpmt.SetTriggerWin(5.);   // 5 ns of trigger window  
-	  fNPMTs++;
-	  fPMT.push_back(mpmt);
-	}
+        std::string name = arich_v->GetNode(j)->GetName();
+        if (name.find("PMT_phys") != std::string::npos){
+          emph::arich_util::PMT mpmt;
+          int num = mpmt.findBlockNumberFromName(name);
+          if(num<0)continue;
+          mpmt.SetPMTnum(num);
+          mpmt.SetName(name);
+          mpmt.SetQE(qeV);
+          mpmt.SetDarkRate(darkr);
+          mpmt.SetCrossTalk(XTalk);
+          mpmt.SetTriggerWin(5.);   // 5 ns of trigger window  
+          fNPMTs++;
+          fPMT.push_back(std::move(mpmt));
+        }
       }
 
     }
 
     //--------------------------------------------------------------------------------
-
     void Geometry::ExtractSSDInfo(const TGeoNode* world_n)
     {
       int nnodes = world_n->GetNodes()->GetEntries();
@@ -460,121 +459,113 @@ Plane::Plane() :
       std::string schanString = "ssd_chan";
 
       for (int i=0; i<nnodes; ++i) {
-	std::string name = world_v->GetNode(i)->GetName();
-	if (name.find(sString) != std::string::npos)
-	  nodeName.push_back(name);
+        std::string name = world_v->GetNode(i)->GetName();
+        if (name.find(sString) != std::string::npos)
+	      nodeName.push_back(name);
       }
 
       fNSSDStations = (int)nodeName.size();
       fSSDStation.resize(nodeName.size());
       fNSSDPlanes = 0;
-      fNSSDs = 0;
-
       double angle;
       bool flip;
 
       for (auto name : nodeName) {
+        SSDStation st;
+        TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
+        TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
+        TGeoBBox* st_box = (TGeoBBox*)st_v->GetShape();
 
-	SSDStation st;
-	TGeoNode* st_n = (TGeoNode*)world_v->GetNode(name.c_str());
-	TGeoVolume* st_v = (TGeoVolume*)st_n->GetVolume();
-	TGeoBBox* st_box = (TGeoBBox*)st_v->GetShape();
+        // get the right sensor id
+        int stId;
+        sscanf(name.c_str(),"ssdStation%d",&stId);
+        // first add basic info about the SSD station
+        st.SetName(name);
+        st.SetId(stId);
+        st.SetDz(st_box->GetDZ());
+        st.SetPos(st_n->GetMatrix()->GetTranslation());
+        st.SetWidth(2*st_box->GetDX());
+        st.SetHeight(2*st_box->GetDY());
+        st.SetGeoMatrix(st_n->GetMatrix());
 
-	// get the right sensor id
-	int stId;
-	sscanf(name.c_str(),"ssdStation%d",&stId);
-	
-	// first add basic info about the SSD station
-	st.SetName(name);
-	st.SetId(stId);
-	st.SetDz(st_box->GetDZ());
-	st.SetPos(st_n->GetMatrix()->GetTranslation());
-	st.SetWidth(2*st_box->GetDX());
-	st.SetHeight(2*st_box->GetDY());
-	st.SetGeoMatrix(st_n->GetMatrix());
+        // now add individual SSDs to the station
+        // loop over SSD mounts and sensors to create planes
+        int nmounts = st_n->GetNodes()->GetEntries();
+        int iSt, iPl, iSe;
+        int nplanes=0;
+        Plane plane;
+        for( int j=0; j<nmounts; ++j){
+          std::string mountname = st_v->GetNode(j)->GetName();
+          if (mountname.find(smountString) == std::string::npos) continue;
+          TGeoNode* mount_n = (TGeoNode*)st_v->GetNode(mountname.c_str());
+          TGeoVolume* mount_v = (TGeoVolume*)mount_n->GetVolume();
+          int nsensors = mount_n->GetNodes()->GetEntries();
+          for (int kk=0; kk<nsensors; ++kk) {
+            std::string sname = mount_v->GetNode(kk)->GetName();
+            if (sname.find(ssubString) != std::string::npos){  
+              sscanf(sname.c_str(),"ssdsensor_%d_%d_%d_phys",&iSt,&iPl,&iSe);
+              if (nplanes < iPl) { // new plane
+                st.AddPlane(plane);
+                plane = Plane();
+                fNSSDPlanes++;
+                nplanes++;
+              }
+              auto sensor = std::make_unique<Detector>();
+              TGeoNode* sensor_n = (TGeoNode*)mount_v->GetNode(sname.c_str());
+              TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
+              TGeoBBox* sensor_box = (TGeoBBox*)sensor_v->GetShape();
+              sensor->SetName(sname);
+              sensor->SetDz(sensor_box->GetDZ());
+              sensor->SetGeoMatrix(sensor_n->GetMatrix());
+              sensor->SetGeoMatrixMount(mount_n->GetMatrix());
+              double x0[3] = {0.,0.,0.};
+              double x1[3];
+              double tx[3];
+              sensor->LocalToMother(x0,tx);
+              st.LocalToMother(tx,x1);
+              sensor->SetPos(x1);
+              angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
+              if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
+              sensor->SetRot(angle);
+              const Double_t* rotation_matrix = sensor_n->GetMatrix()->GetRotationMatrix();
+              if(*(rotation_matrix+8)>0)flip=false;
+              else flip=true;
+              sensor->SetFlip(flip);
+              sensor->SetWidth(2*sensor_box->GetDX());
+              sensor->SetHeight(2*sensor_box->GetDY());
 
-	// now add individual SSDs to the station
-	// loop over SSD mounts and sensors to create planes
-	int nmounts = st_n->GetNodes()->GetEntries();
-	int iSt, iPl, iSe;
-	int nplanes=0;
-	Plane* plane = new Plane();
-	for( int j=0; j<nmounts; ++j){
-	  std::string mountname = st_v->GetNode(j)->GetName();
-	  if (mountname.find(smountString) == std::string::npos) continue;
-	  TGeoNode* mount_n = (TGeoNode*)st_v->GetNode(mountname.c_str());
-	  TGeoVolume* mount_v = (TGeoVolume*)mount_n->GetVolume();
-	  int nsensors = mount_n->GetNodes()->GetEntries();
-	  for (int kk=0; kk<nsensors; ++kk) {
-	    std::string sname = mount_v->GetNode(kk)->GetName();
-	    if (sname.find(ssubString) != std::string::npos){	
-	      sscanf(sname.c_str(),"ssdsensor_%d_%d_%d_phys",&iSt,&iPl,&iSe);
-	      if (nplanes < iPl) { // new plane
-		st.AddPlane(Plane(*plane));
-		plane = new Plane();
-		fNSSDPlanes++;
-		nplanes++;
-	      }
-	      Detector sensor;
-	      TGeoNode* sensor_n = (TGeoNode*)mount_v->GetNode(sname.c_str());
-	      TGeoVolume* sensor_v = (TGeoVolume*)sensor_n->GetVolume();
-	      TGeoBBox* sensor_box = (TGeoBBox*)sensor_v->GetShape();
-	      
-	      sensor.SetName(sname);
-	      sensor.SetDz(sensor_box->GetDZ());
-	      sensor.SetGeoMatrix(sensor_n->GetMatrix());
-	      sensor.SetGeoMatrixMount(mount_n->GetMatrix());
-	      double x0[3] = {0.,0.,0.};
-	      double x1[3];
-	      double tx[3];
-	      sensor.LocalToMother(x0,tx);
-	      st.LocalToMother(tx,x1);
-	      sensor.SetPos(x1);
-	      angle = acos(sensor_n->GetMatrix()->GetRotationMatrix()[0]);
-	      if(sensor_n->GetMatrix()->GetRotationMatrix()[1]<-0.1)angle = 2*TMath::Pi()-angle;
-	      sensor.SetRot(angle);
-	      const Double_t* rotation_matrix = sensor_n->GetMatrix()->GetRotationMatrix();
-	      if(*(rotation_matrix+8)>0)flip=false;
-	      else flip=true;
-	      sensor.SetFlip(flip);
-	      sensor.SetWidth(2*sensor_box->GetDX());
-	      sensor.SetHeight(2*sensor_box->GetDY());
+              // now add channels to each SSD sensor
+              if(sensor_n->GetNodes()!=NULL){
+                int nchan = sensor_n->GetNodes()->GetEntries();
+                for( int k=0; k<nchan; ++k){
+                  std::string namestr = sensor_v->GetNode(k)->GetName();
+                  if(namestr.find(schanString) != std::string::npos){
+                    Strip strip;
+                    TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(namestr.c_str());
+                    TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
+                    TGeoBBox* strip_box = (TGeoBBox*)strip_v->GetShape();
+                    strip.SetName(namestr);
+                    strip.SetDw(2*strip_box->GetDY());
+                    strip.SetPos(strip_n->GetMatrix()->GetTranslation());
+                    strip.SetGeoMatrix(strip_n->GetMatrix());
+                    sensor->AddStrip(strip);
+                  }
+                }
+              }
+              plane.AddSSD(*sensor);
+              fSSDSensorMap[fNSSDs] = std::move(sensor);
+              fNSSDs++;
+            }
+          }
+        }
+        // don't forget to add the last plane!
+        st.AddPlane(plane);
+        fNSSDPlanes++;
 
-	      // now add channels to each SSD sensor
-	      if(sensor_n->GetNodes()!=NULL){
-		int nchan = sensor_n->GetNodes()->GetEntries();
-		for( int k=0; k<nchan; ++k){
-		  std::string namestr = sensor_v->GetNode(k)->GetName();
-		  if(namestr.find(schanString) != std::string::npos){
-		    Strip strip;
-		    TGeoNode* strip_n = (TGeoNode*)sensor_v->GetNode(namestr.c_str());
-		    TGeoVolume* strip_v = (TGeoVolume*)strip_n->GetVolume();
-		    TGeoBBox* strip_box = (TGeoBBox*)strip_v->GetShape();
-		    
-		    strip.SetName(namestr);
-		    strip.SetDw(2*strip_box->GetDY());
-		    strip.SetPos(strip_n->GetMatrix()->GetTranslation());
-		    strip.SetGeoMatrix(strip_n->GetMatrix());
-		    sensor.AddStrip(strip);
-		  }
-		}
-	      }
-	      plane->AddSSD(sensor);
-	      fSSDSensorMap[fNSSDs] = &sensor;
-	      fNSSDs++;	    
-	    }
-	  }
-	}
-	// don't forget to add the last plane!
-	st.AddPlane(Plane(*plane));
-	fNSSDPlanes++;
-
-	fSSDStation[st.Id()] = st;
+        fSSDStation[st.Id()] = st;
       }
-
       fRadLength.clear();
-      CalcRadLengths();      
-
+      CalcRadLengths();
     }
 
     //------------------------------------------------------------
@@ -633,24 +624,24 @@ Plane::Plane() :
     
     //------------------------------------------------------------
 
-    emph::arich_util::PMT Geometry::FindPMTByName(std::string name)
+    const emph::arich_util::PMT& Geometry::FindPMTByName(const std::string& name) const
     {
       for(int i=0; i<fNPMTs; i++){
-	if(fPMT[i].Name()==name)return fPMT[i];
+        if(fPMT[i].Name()==name) return fPMT[i];
       }
       mf::LogWarning("LoadNewGeometry") << "Cannot Find PMT " << name << "\n" << "Using PMT No. 0 as an instance \n";
       return fPMT[0];
     }
    
  //-----------------------------------------------------------------
-    emph::arich_util::PMT Geometry::FindPMTByBlockNumber(int number)
-   {
-    for(int i=0; i<fNPMTs; i++){
-        if(fPMT[i].PMTnum() ==number)return fPMT[i];
+    const emph::arich_util::PMT& Geometry::FindPMTByBlockNumber(int number) const
+    {
+      for(int i=0; i<fNPMTs; i++){
+        if(fPMT[i].PMTnum() == number) return fPMT[i];
+      }
+      mf::LogWarning("LoadNewGeometry") << "Cannot Find PMT " << number << "\n" << "Using PMT No. 0 as an instance \n";
+      return fPMT[0];
     }
-    mf::LogWarning("LoadNewGeometry") << "Cannot Find PMT " << number << "\n" << "Using PMT No. 0 as an instance \n";
-    return fPMT[0];
-   }
 
  
   } // end namespace geo

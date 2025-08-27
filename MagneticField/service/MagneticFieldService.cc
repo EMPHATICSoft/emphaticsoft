@@ -46,5 +46,3 @@ namespace emph
   }
   
 }
-
-DEFINE_ART_SERVICE(emph::MagneticFieldService)

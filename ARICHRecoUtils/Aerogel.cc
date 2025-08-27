@@ -6,6 +6,7 @@
 
 
 #include "ARICHRecoUtils/Aerogel.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "TF1.h"
 using namespace std;
 
@@ -67,25 +68,41 @@ namespace arichreco{
          minI = i;
             }
     }
-   // Get the corresponding file of interaction lengths
-   std::string fileName = "../emphaticsoft/ARICHRecoUtils/data/" + files[minI] + "IntLength.csv";
-        
+   // Get the corresponding file of interaction lengths using an environment variable
+   // currently: ARICHRecoUtils/data/
+   const char* dataDir = getenv("ARICH_DATA_DIR");
+   if (!dataDir) {
+     mf::LogError("Aerogel") << "Environment variable ARICH_DATA_DIR is not set!";
+     assert(false && "Aerogel: ARICH_DATA_DIR environment variable not set");
+   }
+   std::string fileName = std::string(dataDir) + "/" + files[minI] + "IntLength.csv";
    std::ifstream intLengthFile(fileName);
 
    std::vector<double> wavs;
    std::vector<double> intLengths;
    std::string line;
 
+   if (!intLengthFile.is_open()) {
+     mf::LogError("Aerogel") << "Failed to open interaction length file: " << fileName;
+     assert(false && "Aerogel: Failed to open interaction length file");
+   }
+
+   int lineCount = 0;
    while(std::getline(intLengthFile,line, '\n')) {
      std::string wavString = line.substr(0, line.find(' '));
      std::string intLengthString = line.substr(line.find(' ')+1, -1);
 
      wavs.push_back(atof(wavString.c_str()));
      intLengths.push_back(atof(intLengthString.c_str()));
-          }
+     ++lineCount;
+   }
 
-    return intLengths;
-    }
+   if (lineCount == 0) {
+     mf::LogError("Aerogel") << "Interaction length file was opened but no data was read: " << fileName;
+   }
+
+   return intLengths;
+   }
 
    double Aerogel::getRandomWav() {
           /*
@@ -166,13 +183,37 @@ namespace arichreco{
     }
 
   double Aerogel::getIntLengthForWav(double wav) {
-      // Get index of nearest wavelengths
-      double maxWav = 800.;
-      double deltaWav = 0.5;
-      wav = wav*1E9; // convert to nm
-      int index = floor((maxWav - wav)/deltaWav);
-    return interactionLengths[index];
+    // Get index of nearest wavelengths
+    double maxWav = 800.;
+    double minWav = 282.; // needs checking, just a placeholder
+    double deltaWav = 0.5;
+    wav = wav*1E9; // convert to nm
+    // Clamp wav to supported range and warn
+    if (wav < minWav) {
+      mf::LogWarning("Aerogel") << "Wavelength " << wav << " is below supported range. Clamping to " << minWav;
+      wav = minWav;
     }
+    if (wav > maxWav) {
+      mf::LogWarning("Aerogel") << "Wavelength " << wav << " is above supported range. Clamping to " << maxWav;
+      wav = maxWav;
+    }
+    int index = floor((maxWav - wav)/deltaWav);
+    // Check for empty vector
+    if (interactionLengths.empty()) {
+      mf::LogError("Aerogel") << "interactionLengths vector is empty! Returning 0.";
+      return 0.0;
+    }
+    // Clamp index to valid range
+    if (index < 0) {
+      mf::LogWarning("Aerogel") << "Index " << index << " below 0. Clamping to 0.";
+      index = 0;
+    }
+    if (index >= static_cast<int>(interactionLengths.size())) {
+      mf::LogWarning("Aerogel") << "Index " << index << " exceeds interactionLengths size " << interactionLengths.size() << ". Clamping to last element.";
+      index = interactionLengths.size() - 1;
+    }
+    return interactionLengths[index];
+  }
 
   double Aerogel::getRandomIntDistance(double wav) {
       /*
