@@ -413,7 +413,9 @@ namespace emph {
 //      bool debugIsOn = ((fRun == 2113) && (fSubRun == 10) && 
 //                        ((fEvtNum == 1) || (fEvtNum == 2 ) || (fEvtNum == 4 )|| (fEvtNum == 5 ) || (fEvtNum == 9 ) || (fEvtNum == 10 )));
 //      if (fEvtNum > 25) { std::cerr << " ... ... only first few event, quit now.. " << std::endl; exit(2); }
+
 //      if (!debugIsOn) return ; // skip, got for the first clean event.. 
+      if (debugIsOn) std::cerr << " emph::StudyAllTrial1Autre::analyze Debugging is On !!!! " << std::endl;
       if ((fRun == 1274) && (fSubRun == 36) && (fEvtNum == 3539)) return ; // Skip fit fails..       
       if ((fRun == 1274) && (fSubRun == 31) && (fEvtNum == 10320)) return ; // Skip fit fails..       
 //      if ((fRun == 1274) && (fSubRun == 3) && (fEvtNum == 10298)) return ; // Skip fit fails..       
@@ -540,6 +542,7 @@ namespace emph {
 	    if (debugIsOn) std::cerr << " Neither Station 5 not 6 have a triplet.. junk event, abandon.. " << std::endl;
             fDwnstrTrRec.dumpStInfoForR();
 	    this->dumpSummaryMultiplicities();  
+//            std::cerr << "  ... Temporary stop, let us debug the missing triplets on Station 5 & 6 " << std::endl; exit(2);
 	    return; 
 	}
       } else {

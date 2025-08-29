@@ -161,8 +161,9 @@ namespace emph {
 	     }
              if (aSensor->View() == emph::geo::W_VIEW) {
 	       iSensV++; 
-	       if (!fIsPhase1c) zPosSensorsW.push_back(aSePos.Z() + aStPos.Z());
+	       if (!fIsPhase1c) zPosSensorsW.push_back(aSePos.Z() + aStPos.Z()); // no clue if this is correct. 
 	       if (fIsPhase1c) { // No check on station number.... this time... Assume I have it right.. Dec. 1 2023
+		     std::cerr << " VolatileAlignmentParams::UpdateNominalFromStandardGeom, Ak who knows, found a W view..  " << kSt << std::endl;
 	           // Cleanup upgrade, Feb 2024... 
 		  if (kSt < 4) {
 		   fZNomPos1cSt2and3W.push_back(aSePos.Z() + aStPos.Z());  
@@ -191,7 +192,8 @@ namespace emph {
          for (std::vector<double>::const_iterator it=zPosSensorsW.cbegin(); it != zPosSensorsW.cend(); it++) std::cerr << " " << *it << ",";
          std::cerr << std::endl << std::endl;
        } else { 
-         std::cerr << " Z position Views U (which, in my book is a W view), is , phase1c ";
+         std::cerr << " Z position Views U (which, in my book is a W view), is , phase1c, size off ZPos1cSt2and3W " 
+	           << fZPos1cSt2and3W.size() << std::endl;
          for (std::vector<double>::const_iterator it=fZPos1cSt2and3W.cbegin(); it != fZPos1cSt2and3W.cend(); it++) 
 	        { std::cerr << " " << *it << ","; } 
          std::cerr << std::endl << std::endl;

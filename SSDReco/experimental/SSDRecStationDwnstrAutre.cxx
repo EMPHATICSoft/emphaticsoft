@@ -316,7 +316,10 @@ namespace emph {
 //	   const double vPred = fOneOverSqrt2 * ( xValCorr + yValCorr);
 //	   const double uPred = -1.0*fOneOverSqrt2 * ( -xValCorr + yValCorr);
            size_t kuu = 0;
-	   if (fDebugIsOn) std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
+	   if (fDebugIsOn) {
+	      std::cerr << " ....  xValCorr " << xValCorr << " yValCorr " << yValCorr << std::endl;
+	      std::cerr << " ... uPred " << uPred << " vPred " << vPred << std::endl; 
+	   }
            for(std::vector<rb::SSDCluster>::const_iterator itClUorV = aSSDClsPtr->cbegin(); itClUorV != aSSDClsPtr->cend(); itClUorV++, kuu++) {
 	     // Feb 2024, change of view definition for station 2 and 3 U -> W (by my book) 
 	     emph::geo::sensorView theView = itClUorV->View(); 
@@ -345,11 +348,18 @@ namespace emph {
 	     const std::pair<double, double> uorvDat = fCoordConvert.getTrCoord(itClUorV, fPrelimMomentum);
 	     const double uorvDatGeoMap =  (itClUorV->WgtAvgStrip() < 639.) ? fCoordConvert.getTrCoordRoot(itClX) : -9999.; // bug protect, DetGeomMap screws up is 
 	     const double angleRollUorV = fEmVolAlP->Roll(theView, kSt, kSeU);  
-	     const double angleRollCenterUorV = fEmVolAlP->RollCenter(theView, kSt, kSeU); 
+	     double angleRollCenterUorV = fEmVolAlP->RollCenter(theView, kSt, kSeU); 
 	     double uorvPred = (kSt > 3) ? vPred + ( uPred - angleRollCenterUorV) * angleRollUorV :  
 	                                         uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV ; // December 6, but wrong for station 6.. 
 	     if (fRunNum > 1999)  {  // Very, very messy
+	     // August 29 2025, different convention for this U or V plane, angleRollCenterUorV seems to close to zero. 
+	     // Based on a few events from run 2113 spill 10 (see below), set it to 
 	         uorvPred =  (uPred + ( vPred  - angleRollCenterUorV) * angleRollUorV) ; // All stereo angle are U type... 
+	         if (kSt == 5) {
+		    // Is it???? Empirically ..See below,  
+		    angleRollCenterUorV = 1.8; 
+	            uorvPred =  -1.0 * (uPred +  vPred  - angleRollCenterUorV)  ; // All stereo angle are U type...
+		 } 
 		 // Note the sign for the correction... 
 //		 std::cerr << " .. Roll correction for U " << (vPred  - angleRollCenterUorV) * angleRollUorV << std::endl;
 // 
@@ -359,6 +369,65 @@ namespace emph {
 //	         if ((xValCorr < 0. ) && (yValCorr > 0.) && (uorvPred < 0.)) uorvPred *= -1.0;
 //	         if ((xValCorr > 0. ) && (yValCorr < 0.) && (uorvPred < 0.)) uorvPred *= vPred + ( uPred - angleRollCenterUorV) * angleRollUorV ; // big diff.. Not it. 
 //	         if ((xValCorr < 0. ) && (yValCorr > 0.) && (uorvPred < 0.)) uorvPred *= vPred + ( uPred - angleRollCenterUorV) * angleRollUorV ;
+// August 28 2025 
+// 
+// Not so fast... Station 5 has very few triplets on run 2113, while Station features a decent chi-square distribution. 
+//
+                  if (fDebugIsOn && (kSt == 5))  {
+		    std::cerr << " Debugging St5 U or V convention .. Assuming the roll angle is zero.Planes is centered..angleRollUorV " 
+		              << angleRollUorV << " angleRollCenterUorV " << angleRollCenterUorV << std::endl;
+		    double uorvPredNoAlingnU1 =  (uPred + vPred + angleRollCenterUorV); 
+		    double uorvPredNoAlingnU2 =  -1 * (uPred + vPred + angleRollCenterUorV); 
+		    double uorvPredNoAlingnU3 =  (uPred - vPred  + angleRollCenterUorV);
+		    double uorvPredNoAlingnU4 =  -1. *(uPred - vPred +  angleRollCenterUorV);
+		    double deltaXYU1 = uorvPredNoAlingnU1 - uorvDat.first;
+		    double deltaXYU2 = uorvPredNoAlingnU2 - uorvDat.first;
+		    double deltaXYU3 = uorvPredNoAlingnU3 - uorvDat.first;
+		    double deltaXYU4 = uorvPredNoAlingnU4 - uorvDat.first;
+		    std::cerr << " ... Checking 4 uorVPred  " << uorvPredNoAlingnU1 << " , " 
+		              << deltaXYU2 << " deltaXYU3 " << deltaXYU3 << ", U4 " << deltaXYU4 << std::endl;
+		    std::cerr << " ... Checking 4 combination deltas are " << deltaXYU1 << " , " 
+		              << deltaXYU2 << " deltaXYU3 " << deltaXYU3 << ", U4 " << deltaXYU4 << std::endl;
+		    std::cerr << " Flipping the sing of   angleRollCenterUorV... " << std::endl;    
+		    uorvPredNoAlingnU1 =  (uPred + vPred - angleRollCenterUorV); 
+		    uorvPredNoAlingnU2 =  -1 * (uPred + vPred - angleRollCenterUorV); 
+		    uorvPredNoAlingnU3 =  (uPred - vPred  - angleRollCenterUorV);
+		    uorvPredNoAlingnU4 =  -1. *(uPred - vPred -  angleRollCenterUorV);
+		    deltaXYU1 = uorvPredNoAlingnU1 - uorvDat.first;
+		    deltaXYU2 = uorvPredNoAlingnU2 - uorvDat.first;
+		    deltaXYU3 = uorvPredNoAlingnU3 - uorvDat.first;
+		    deltaXYU4 = uorvPredNoAlingnU4 - uorvDat.first;
+		    std::cerr << " ... Checking 4 uorVPred  " << uorvPredNoAlingnU1 << " , " 
+		              << deltaXYU2 << " deltaXYU3 " << deltaXYU3 << ", U4 " << deltaXYU4 << std::endl;
+		    std::cerr << " ... Checking 4 combination deltas are " << deltaXYU1 << " , " 
+		              << deltaXYU2 << " deltaXYU3 " << deltaXYU3 << ", U4 " << deltaXYU4 << std::endl;
+		    std::cerr << " Seeting   angleRollCenterUorV to zero.. almost zero, doing alignment by hand over few evts  " << std::endl;
+//		    const double angleRollCenterUorVEff =   1.086;    
+//		    std::cerr << " evt 4, spill 10, run 2113  angleRollCenterUorV =  " << angleRollCenterUorVEff << std::endl;    
+//		    const double angleRollCenterUorVEff =   2.398;    
+//		    std::cerr << " evt 5, spill 10, run 2113  angleRollCenterUorV =  " << angleRollCenterUorVEff << std::endl;    
+//		    const double angleRollCenterUorVEff =   0;    
+//		    std::cerr << " evt 7, spill 10, run 2113  angleRollCenterUorV =  " << angleRollCenterUorVEff << std::endl;    
+//		    const double angleRollCenterUorVEff =   1.093;    
+//		    std::cerr << " evt 10, spill 10, run 2113  angleRollCenterUorV =  " << angleRollCenterUorVEff << std::endl;    
+//		    const double angleRollCenterUorVEff =   3.7201;    
+//		    std::cerr << " evt 12, spill 10, run 2113  angleRollCenterUorV =  " << angleRollCenterUorVEff << std::endl;    
+		    const double angleRollCenterUorVEff =   0.9155;    
+		    std::cerr << " evt 15, spill 10, run 2113  angleRollCenterUorV =  " << angleRollCenterUorVEff << std::endl;    
+		    uorvPredNoAlingnU1 =  (uPred + vPred - angleRollCenterUorVEff); 
+		    uorvPredNoAlingnU2 =  -1 * (uPred + vPred - angleRollCenterUorVEff); 
+		    uorvPredNoAlingnU3 =  (uPred - vPred - angleRollCenterUorVEff);
+		    uorvPredNoAlingnU4 =  -1. *(uPred - vPred - angleRollCenterUorVEff );
+		    deltaXYU1 = uorvPredNoAlingnU1 - uorvDat.first;
+		    deltaXYU2 = uorvPredNoAlingnU2 - uorvDat.first;
+		    deltaXYU3 = uorvPredNoAlingnU3 - uorvDat.first;
+		    deltaXYU4 = uorvPredNoAlingnU4 - uorvDat.first;
+		    std::cerr << " ... Checking 4 uorVPred  " << uorvPredNoAlingnU1 << " , " 
+		              << deltaXYU2 << " deltaXYU3 " << deltaXYU3 << ", U4 " << deltaXYU4 << std::endl;
+		    std::cerr << " ... Checking 4 combination deltas are " << deltaXYU1 << " , " 
+		              << deltaXYU2 << " deltaXYU3 " << deltaXYU3 << ", U4 " << deltaXYU4 << std::endl;
+		    	      
+		  }  
 	     }				 
 	     const double deltaXYU = uorvPred - uorvDat.first;
 	     if (fDebugIsOn) std::cerr << " .... After correction for Rolls, uorvPred " << uorvPred  
