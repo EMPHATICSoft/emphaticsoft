@@ -48,6 +48,10 @@ cmake_policy(POP)
 find_package( python         3.9.15    	  REQUIRED )
 set( PYTHON_EXECUTABLE $ENV{PYTHONHOME}/bin/python )
 
+list(APPEND CMAKE_PREFIX_PATH "/cvmfs/emphatic.opensciencegrid.org/products/libtorch/v2_1_1b/Linux64bit+3.10-2.17-e26")
+list (APPEND CMAKE_PREFIX_PATH "/cvmfs/emphatic.opensciencegrid.org/products/protobuf/v3_21_12a/Linux64bit+3.10-2.17-e26")
+find_package(Torch REQUIRED)
+
 # macros for artdaq_dictionary and cet_build_plugin
 include(ArtDictionary)
 include(ArtMake)
@@ -99,9 +103,9 @@ add_subdirectory(SSDAlignment)
 add_subdirectory(SSDReco)
 add_subdirectory(SSD_FERMerger)
 add_subdirectory(TrackReco)
+add_subdirectory(TorchML)
 add_subdirectory(TOF)
 add_subdirectory(Utilities)
 
 # ups - table and config files
-
 cet_cmake_config()

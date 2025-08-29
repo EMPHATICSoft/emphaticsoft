@@ -8,6 +8,10 @@ standard_arichreco:
   LabelTracks:     "makesingletracks"
   FillTree:       true
 
+  #TORCH MODEL
+  ModelPath: 	   "/TorchML/arich_model.pt"
+
+
   # PARAMS OF ARICH, AEROGELS
   RefractiveIndex_UpstreamAerogel: 1.026
   Position_UpstreamAerogel: 0.			#cm
