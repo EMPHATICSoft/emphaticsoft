@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <iostream>
 #include <cassert>
+#include <filesystem>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -27,7 +28,7 @@ namespace runhist{
     _QEURL = "";
     _beamMom = 0.;
     _target = "Unknown";
-
+    _useFixedAlignFile = false;
   }
   
   //----------------------------------------------------------------------
@@ -137,7 +138,7 @@ namespace runhist{
     file_path = getenv ("CETPKG_SOURCE");
     file_path = file_path + "/ConstBase/" ;
 
-    _ssdAlignFile = "";
+    //    _ssdAlignFile = "";
 
     if(_runNumber >= 436 && _runNumber <= 605){
       _geoFile=file_path+"Geometry/phase1a.gdml";
@@ -158,8 +159,42 @@ namespace runhist{
       else 
 	_geoFile += ".gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Mar23.txt";
-      _ssdAlignFile=file_path+"Align/SSDAlign_1c.txt";
+      if (_useFixedAlignFile) {
+	if (_ssdAlignFile.empty())
+	  _ssdAlignFile=file_path+"Align/SSDAlign_1c.txt";
+      }
+      else {
+	// find alignment file with nearest run number
+	std::string alignPath = file_path+"Align/";
+	std::string tfilename;
+	std::vector<std::string> alignFile;
+	std::vector<int> runs;
+	std::string fnamePrefix="SSDAlign_1c_";
+	for (const auto& entry : std::filesystem::directory_iterator(alignPath))
+	  {
+	    // Check if the entry is a regular file
+	    if (std::filesystem::is_regular_file(entry.status())) {
+	      tfilename = entry.path().filename().string();
+	      if (tfilename.find(fnamePrefix) != std::string::npos) {
+		try {
+		  runs.push_back(std::stoi(tfilename.substr(fnamePrefix.length(),4)));
+		  alignFile.push_back(tfilename);
+		} 
+		catch (const std::invalid_argument& e) {}
+		catch (const std::out_of_range& e) {}	     
+	      }
+	      
+	    }	    
+	  }
+	std::sort(alignFile.begin(),alignFile.end());
+	std::sort(runs.begin(),runs.end());
+	for (size_t ir=0; ir<runs.size() && runs[ir]<=_runNumber; ++ir) {
+	  _ssdAlignFile=file_path+"Align/"+alignFile[ir];
+	}
+	std::cout << "Using " << _ssdAlignFile << " for SSD alignment." << std::endl;
+      }	
       _calibVer=2;
+      //      std::cout << "%%%%% SSD alignment file = " << _ssdAlignFile << std::endl;
     }
     else{
       std::cout << "Run " << _runNumber << " is not in the database." << std::endl;

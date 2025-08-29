@@ -201,7 +201,7 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group) 
+  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group, std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group) 
   {
     rb::SpacePoint sp;
 
@@ -215,6 +215,8 @@ namespace emph {
       }
       int nPlanesGeo = emgeo->GetSSDStation(i)->NPlanes();
 
+      if (nUnique < 2) continue; // can't make a space point
+
       for (size_t j=0; j<ls_group[i].size(); j++){
         if (nPlanesGeo == 2){ //station 0,1,4,7
           for (size_t k=0; k<ls_group[i][j].size(); k++){
@@ -222,10 +224,15 @@ namespace emph {
 	      double x[3];
               doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x);
 
+	      //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
+              //std::cout<<"cl_group[i][j+1][k] = "<<cl_group[i][j+1][k]->WgtRmsStrip()<<std::endl;
               sp.SetX(x);
               sp.SetStation(i);
               spv.push_back(sp);
-
+	      spv.back().Add(*ls_group[i][j][k]);
+	      spv.back().Add(*ls_group[i][j+1][l]);
+	      spv.back().Add(*cl_group[i][j][k]);
+	      spv.back().Add(*cl_group[i][j+1][l]);
             }
           }
         }
@@ -235,19 +242,34 @@ namespace emph {
 	      if (nUnique < nPlanesGeo){
                 double x[3];
                 doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x); 
-			
+
+                //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
+                //std::cout<<"cl_group[i][j+1][l] = "<<cl_group[i][j+1][l]->WgtRmsStrip()<<std::endl;		
                 sp.SetX(x);
 		sp.SetStation(i);
                 spv.push_back(sp);
+                spv.back().Add(*ls_group[i][j][k]);
+                spv.back().Add(*ls_group[i][j+1][l]);
+                spv.back().Add(*cl_group[i][j][k]);
+                spv.back().Add(*cl_group[i][j+1][l]);
               }
               else{
                 for (size_t m=0; m<ls_group[i][j+2].size(); m++){
                   double x[3];
                   doThreePlanes(ls_group[i][j][k],ls_group[i][j+1][l],ls_group[i][j+2][m],x);
-			  
+
+                  //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;	
+                  //std::cout<<"cl_group[i][j+1][l] = "<<cl_group[i][j+1][l]->WgtRmsStrip()<<std::endl;
+                  //std::cout<<"cl_group[i][j+2][m] = "<<cl_group[i][j+2][m]->WgtRmsStrip()<<std::endl;
                   sp.SetX(x);
                   sp.SetStation(i);
                   spv.push_back(sp);
+                  spv.back().Add(*ls_group[i][j][k]);
+                  spv.back().Add(*ls_group[i][j+1][l]);
+                  spv.back().Add(*ls_group[i][j+2][m]);
+                  spv.back().Add(*cl_group[i][j][k]);
+                  spv.back().Add(*cl_group[i][j+1][l]);
+                  spv.back().Add(*cl_group[i][j+2][m]);
 	        }
               }
             }
@@ -424,6 +446,7 @@ namespace emph {
 
   std::vector<rb::TrackSegment> SingleTrackAlgo::MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints)
   {
+
     // Reorganize input
     std::vector<std::vector<rb::SpacePoint>> spmatrix;
     spmatrix.resize(nStations);
@@ -529,6 +552,50 @@ namespace emph {
       double p0[3] = {0.,0.,0.};
       ts.SetP(p0);
 
+      float chi2tot = 0.;
+      for (auto p : sptmp[a]){
+	for (size_t i=0; i<p.NLineSegments(); i++){
+ 
+ 	  TVector3 x0(p.GetLineSegment(i)->X0().X(),p.GetLineSegment(i)->X0().Y(),p.GetLineSegment(i)->X0().Z());
+          TVector3 x1(p.GetLineSegment(i)->X1().X(),p.GetLineSegment(i)->X1().Y(),p.GetLineSegment(i)->X1().Z());
+
+          TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
+          TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);
+          double f1[3]; double f2[3]; double f3[3];
+          recoFcn.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false);
+          float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
+
+          double sensorz = x0(2); //s[2];
+
+          double t = ( sensorz - a(2) )/( b(2) - a(2) );
+          double tsx = a(0) + (b(0)-a(0))*t;
+          double tsy = a(1) + (b(1)-a(1))*t;
+
+          double xz = a(0) + ts.P()[0]/ts.P()[2]*sensorz;
+          double yz = a(1) + ts.P()[1]/ts.P()[2]*sensorz;
+          // signed distance from point to a line
+          double la = x1(1) - x0(1);
+          double lb = x0(0) - x1(0);
+          double lc = x0(1)*(x1(0)-x0(0)) - (x1(1)-x0(1))*x0(0);
+          float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
+	  
+          float sigma = p.GetSSDCluster(i)->WgtRmsStrip()*0.06;
+	  float rms = p.GetSSDCluster(i)->WgtAvgStrip()*0.06;
+	  //if (sigma == 0) std::cout<<"sig0, avg: "<<p.GetSSDCluster(i)->WgtAvgStrip()<<" and rms = "<<p.GetSSDCluster(i)->WgtRmsStrip()<<std::endl;
+	  if (sigma == 0) std::cout<<"ndigits = "<<p.GetSSDCluster(i)->NDigits()<<std::endl;
+	  if (sigma == 0) std::cout<<"Station, Plane, Sensor = "<<p.GetSSDCluster(i)->Station()<<", "<<p.GetSSDCluster(i)->Plane()<<", "<<p.GetSSDCluster(i)->Sensor()<<std::endl;
+	  if (sigma == 0) std::cout<<"width = "<<p.GetSSDCluster(i)->Width()<<std::endl;
+	  float chi2 = dsign*dsign/sigma/sigma;
+
+	  //std::cout<<"dsign = "<<dsign<<" and sigma = "<<sigma<<std::endl;
+
+	  chi2tot += chi2;
+
+	}
+      }
+      //std::cout<<"chi2 = "<<chi2tot<<std::endl;
+      ts.SetChi2(chi2tot);
+      //std::cout<<"......"<<std::endl;
       alltrackcombos.push_back(ts);
       
     }
@@ -577,7 +644,7 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3)
+  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3, int pm)
   {
     SetPtmp(ts2);
     SetPtmp(ts3);
@@ -590,13 +657,13 @@ namespace emph {
 
     // Change TrackSegments
     double realp2[3];
-    realp2[2] = recop*ts2.P()[2];
+    realp2[2] = pm*recop*ts2.P()[2];
     realp2[0] = ts2.P()[0]*realp2[2];
     realp2[1] = ts2.P()[1]*realp2[2];
     ts2.SetP(realp2);
 
     double realp3[3];
-    realp3[2] = recop*ts3.P()[2];
+    realp3[2] = pm*recop*ts3.P()[2];
     realp3[0] = ts3.P()[0]*realp3[2];
     realp3[1] = ts3.P()[1]*realp3[2];
     ts3.SetP(realp3);

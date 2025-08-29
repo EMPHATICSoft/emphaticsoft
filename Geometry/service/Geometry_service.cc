@@ -59,16 +59,17 @@ namespace emph
     //----------------------------------------------------------
     void GeometryService::preBeginRun(const art::Run& run)
     {
+      if (fRunNumber == run.run()) return;
+
       fRunNumber = run.run();
 
       if (fGetGDMLFromRunHistory) {
 	std::cout << "GeometryService::preBeginRun" << std::endl;
 	art::ServiceHandle<runhist::RunHistoryService> rhs;	
 	fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );
-      }
-
-      //      else
-      //	fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
+      }      
+      else
+     	fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
       /*
       std::cout << "GeometryService::preBeginRun" << std::endl;
       // Check if geo has already been loaded for this run
