@@ -32,14 +32,14 @@ physics:
   {
     dataqual:         @local::standard_dataqual
     spillinfo:        @local::standard_spillinfo
-    ssdclusts:        @local::standard_ssdclust
+    clust:            @local::standard_ssdclust
     cafmaker:         @local::ssdonly_cafmaker
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, ssdclusts,
+               dataqual, spillinfo, clust,
                cafmaker
              ]
 
