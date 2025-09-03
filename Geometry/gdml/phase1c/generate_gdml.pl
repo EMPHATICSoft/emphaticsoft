@@ -503,6 +503,8 @@ EOF
  <!-- ABOVE IS FOR MAGNET -->
 
 EOF
+
+  }
   
   if($SSD_switch) {
 	  gen_SSD_Define(\*DEF);
@@ -1646,5 +1648,4 @@ EOF
 EOF
 
 	close(OUTPUT);
-}
 }
