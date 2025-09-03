@@ -825,12 +825,15 @@ namespace rawdata {
 			else
 				begin = fFragTimestamps[fragId].begin();
 
-			std::vector<int64_t> childCalibrate(begin, begin + N_compare);
+			std::vector<int64_t> childCalibrate(begin, begin + 10*N_compare);
 
 			std::cout << "Attempting to calibrate" << std::endl;
-			auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap);
+			auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap/10);
 			std::cout << "Calibration completed" << std::endl;
 			std::cout << "(" << aIndex << ", " << bIndex << ", "  << calibrateOccur << ", "<< calibrateOffset << ")" << std::endl;
+
+double accumulatedOffset = 0; //<@@> REMOVE later
+int nOffsets = 0; //<@@> REMOVE Later
 
 			// offset the child samples by the time determined by calibrateXcorr
 			for(size_t isync = 0; isync < fFragTimestamps[fragId].size(); ++isync)
@@ -862,6 +865,8 @@ namespace rawdata {
 					bIndex+=cIndex + 1;
 					std::cout << "\n[  Sync completed  ]" << std::endl;
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
+					accumulatedOffset += timeOffset; //<@@> REMOVE later
+					nOffsets += 1.0; //<@@> REMOVE Later
 					// Auto-synchronize Routine
 					{
 						// Continue through synchronization until events aren't capable of aligning
@@ -915,10 +920,15 @@ namespace rawdata {
 
 					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << recalibrationOffset << ")" << std::endl;
 
+					accumulatedOffset += recalibrationOffset; //<@@> REMOVE later
+					nOffsets += 1.0; //<@@> REMOVE Later
+
 				//	std::cout << "Finished recalibration; press any key to continue" << std::endl;
 				//	{char x; std::cin >> x;} //<@@>
 				}
 			}
+			std::cout << "Accumulated offset: " << accumulatedOffset << std::endl; //<@@> REMOVE later
+			std::cout << "Average offset: " << accumulatedOffset/nOffsets << std::endl; //<@@> REMOVE later
 			std::cout << "Finished this pair; press any key to continue" << std::endl;
 			{char x; std::cin >> x;} //<@@>
 		}

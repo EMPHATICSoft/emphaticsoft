@@ -14,7 +14,9 @@ source:
   module_type:               RawDataUnpacker
   #fileNames:                 ["/emph/data/data/Jan2022/emdaq_otsdaq_rootOutput_r430_s1_20220131T232556_1.art"]
   #fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2098_s0001_20230328T211357_1.art"]
-  fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2408_s0001_20230404T132939_1.art"]
+  #fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2408_s0001_20230404T132939_1.art"]
+  fileNames:                 ["/exp/emph/data/raw/June2022/OutputData/emdaq_otsdaq_rootOutput_r1078_s3_20220703T093157_1.art"]
+
   daqLabel:        "daq"
   createArtEvents:   true
   makeTDiffHistos:   true
@@ -26,7 +28,7 @@ source:
   channelMapFileName: "ChannelMap_Mar23.txt"
   #SSDFilePrefix: "/emph/data/users/lackey32/unpack1c/ssdMerged/"
   #SSDFilePrefix: "/exp/emph/data/users/lackey32/unpack1c/ssdMerged/"
-  SSDFilePrefix: "/exp/emph/data/raw/Mar2023/SSD/Merged/"
+  SSDFilePrefix: "/exp/emph/data/raw/June2022/SSD/Merged/"
   readSSDData:  true
   readTRB3Data: true
   readCAENData: true
