@@ -188,6 +188,8 @@ namespace runhist{
 	  }
 	std::sort(alignFile.begin(),alignFile.end());
 	std::sort(runs.begin(),runs.end());
+        // set to 2113 file for runs before 2113
+        _ssdAlignFile=file_path+"Align/SSDAlign_1c_2113.txt";
 	for (size_t ir=0; ir<runs.size() && runs[ir]<=_runNumber; ++ir) {
 	  _ssdAlignFile=file_path+"Align/"+alignFile[ir];
 	}
