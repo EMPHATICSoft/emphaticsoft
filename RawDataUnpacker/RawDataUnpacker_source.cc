@@ -568,7 +568,7 @@ namespace rawdata {
 
   /***************************************************************************/
 
-#define timeUncertainty 1 // nanoseconds
+#define timeUncertainty 100 // nanoseconds
 
 	template <typename T, typename S> // this type will likely be 'double'
 	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
@@ -613,7 +613,7 @@ namespace rawdata {
 	template <typename T>
 	int64_t binToTime(std::vector<T> dt, uint64_t bin) {
 		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		int nbins = abs(*max - *min + 1) / timeUncertainty;
+		int nbins = abs(*max - *min + 1);
 		return  1.0 *  bin / (nbins-1) * (*max - *min) + 1.0 * *min / (nbins-1) * nbins - 1.0 * *max/(nbins-1);
 	}
 
@@ -632,7 +632,7 @@ namespace rawdata {
       sprintf(htitle,"Fragment Time Differences for pair #%d",histIndex);
 		histIndex++;
 		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		TH1I dtHist(hname, htitle, abs(*max - *min + 1)/timeUncertainty, *min-0.5, *max+0.5);
+		TH1I dtHist(hname, htitle, abs(*max - *min + 1), *min-0.5, *max+0.5);
 
 		for(auto x : dt)
 			dtHist.Fill(x);
@@ -641,7 +641,7 @@ namespace rawdata {
 		auto indexBin = dtHist.GetMaximumBin();
 		auto N_occur = dtHist.GetMaximum();
 	//	NTK: add bins around maximum within CAEN resolution
-		for(auto resolution = indexBin - 16; resolution <= indexBin + 16; ++resolution) {
+		for(auto resolution = indexBin - timeUncertainty; resolution <= indexBin + timeUncertainty; ++resolution) {
 			if(resolution == indexBin) continue;
 			N_occur += dtHist.GetBinContent(resolution);
 		}
@@ -657,7 +657,7 @@ namespace rawdata {
 			bool exitLoop = false;
 			for(int aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
 				for(int bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
-					if(abs(A[aEvent] - B[bEvent]) <= 16) {
+					if(abs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
 						aIndex = aEvent;
 						bIndex = bEvent;
 						exitLoop = true;
@@ -737,8 +737,12 @@ namespace rawdata {
 		> dtVec;
 		std::vector<uint64_t> ssdTimestamps; ssdTimestamps.reserve(fSSDRawDigits.size());
 		for(size_t i = 0; i < fSSDRawDigits.size(); ++i) {
-			ssdTimestamps.push_back(fSSDRawDigits[i].first);
+			ssdTimestamps.push_back(fBCOx*fSSDRawDigits[i].first);
 		}
+
+		// remove first event from each sensor <@@>
+		ssdTimestamps.erase(ssdTimestamps.begin());
+		// Zero clocks to first event
 //		{
 //			auto start = *ssdTimestamps.begin();
 //			for(auto& time : ssdTimestamps) {
@@ -808,11 +812,22 @@ namespace rawdata {
 				// Since this comparison could be done in reverse, let's do the SSDs for the other set
 				if(fFragTimestamps[grandfather].size() < fFragTimestamps[fragId].size()) {
 					// synchronize with SSD
-					grandfather = fragId;
 					fragId = grandfather;
-					continue; // skip SSD for now
+					grandfather = fragId;
+					std::cout << "SSD Comparison" << std::endl;
+					//continue;
 				}
 			}
+			fragId = grandfather;
+			grandfather = fragId;
+			// Testing SSDs (Delete these lines later) <@@> NTK
+			for(auto& t : fFragTimestamps[grandfather])
+				std::cout << t << "\t";
+			std::cout << std::endl;
+			for(auto& t : ssdTimestamps) {
+				std::cout << t << "\t";
+			}
+			std::cout << std::endl;
 
 			std::cout << "(" << grandfather << ", " << fragId << ")" << std::endl;
 
@@ -871,7 +886,7 @@ int nOffsets = 0; //<@@> REMOVE Later
 					{
 						// Continue through synchronization until events aren't capable of aligning
 						std::cout << "[Auto-synchronization]\n";
-						while(std::llabs(fFragTimestamps[grandfather][aIndex] - fFragTimestamps[fragId][bIndex]) <= 16) {
+						while(std::llabs(fFragTimestamps[grandfather][aIndex] - fFragTimestamps[fragId][bIndex]) <= timeUncertainty) {
 							if(aIndex >= grandfatherSamples - N_compare && bIndex >= childSamples - N_compare) break;
 							aIndex++; bIndex++;
 						}
