@@ -195,6 +195,8 @@ namespace emph {
     event = evt.event();
     fEvtNum = evt.id().event();
 
+//std::cout<<"begin MakeSingleTracks: "<<fEvtNum<<std::endl;
+
     //debug
     //if(fEvtNum==1080) fMakePlots = true;
     //else fMakePlots = false;

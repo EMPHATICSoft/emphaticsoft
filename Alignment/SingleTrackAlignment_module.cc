@@ -360,6 +360,8 @@ namespace emph {
     event = evt.event();
     fEvtNum = evt.id().event();
 
+//std::cout<<"begin SingleTrackAlignment: "<<fEvtNum<<std::endl;
+
     // if data fcl
     std::string digitStr = std::to_string(event);
     bool useEvent = false;
