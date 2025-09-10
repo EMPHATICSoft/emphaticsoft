@@ -1,27 +1,7 @@
-include(ArtDictionary)
-include(ArtMake)
-
-find_package( ROOT REQUIRED )
-find_package( Geant4 REQUIRED )
-find_package( art REQUIRED )
-find_package( messagefacility REQUIRED )
-
-include_directories( $ENV{GEANT4_FQ_DIR}/include )
-include_directories( $ENV{GEANT4_FQ_DIR}/include/Geant4 )
-include_directories( $ENV{ROOT_INC} )
-include_directories( $ENV{XERCES_C_INC} )
-include_directories( $ENV{CLHEP_INC} )
-include_directories( $ENV{ART_INC} )
-include_directories( $ENV{ART_ROOT_IO_INC} )
-include_directories( $ENV{CETLIB_EXCEPT_INC} )
-
-link_directories( $ENV{ART_ROOT_IO_LIB} )
-link_directories( $ENV{CETLIB_EXCEPT_LIB} )
-
 FILE( GLOB src_files *.cxx )
 
-art_make_library(
-  SOURCE ${src_files}
+cet_make_library(SOURCE ${src_files}
+	LIBRARY_NAME G4EMPH
   LIBRARIES 
     art::Framework_Core
     art::Persistency_Common
@@ -36,16 +16,13 @@ art_make_library(
     RunHistory
     RunHistoryService_service
     Geometry
-    Geometry_service
+    GeometryService_service
     MagneticField
-    MagneticField_service
+    MagneticFieldService_service
     Geant4::G4analysis
- #   Geant4::G4digits_hits
     Geant4::G4error_propagation
     Geant4::G4event
-#    Geant4::G4FR
     Geant4::G4geometry
-#    Geant4::G4gl2ps
     Geant4::G4global
     Geant4::G4GMocren
     Geant4::G4intercoms
@@ -65,10 +42,9 @@ art_make_library(
     Geant4::G4Tree
     Geant4::G4visHepRep
     Geant4::G4vis_management
-#    Geant4::G4visXXX
     Geant4::G4VRML
-    Geant4::G4zlib 
-    )
+    Geant4::G4zlib
+)
 
 cet_build_plugin(G4Gen art::module
   LIBRARIES REG 
@@ -79,32 +55,16 @@ cet_build_plugin(G4Gen art::module
     Simulation
     G4Base
     Geometry
-    Geometry_service
+    GeometryService_service
     MagneticField
-    MagneticField_service
+    MagneticFieldService_service
 )
 
 cet_build_plugin(BeamGen art::module
   LIBRARIES REG 
-  G4EMPH
-  RunHistory
-  RunHistoryService_service
-  SimulationBase
-  Simulation
-  ROOT::Core
-  ROOT::Tree
-  ROOT::Hist
-  ROOT::EG
-  art_root_io::TFileService_service
-  art::Framework_Core
-  art::Persistency_Common
-  messagefacility::MF_MessageLogger
-  canvas::canvas
-  fhiclcpp::fhiclcpp
-)
-
-cet_build_plugin(AnalyzeSSDHitsWithTracks art::module
-  LIBRARIES REG 
+    G4EMPH
+    RunHistory
+    RunHistoryService_service
     SimulationBase
     Simulation
     ROOT::Core
@@ -114,11 +74,27 @@ cet_build_plugin(AnalyzeSSDHitsWithTracks art::module
     art_root_io::TFileService_service
     art::Framework_Core
     art::Persistency_Common
-    RunHistory
-    Geometry
     messagefacility::MF_MessageLogger
     canvas::canvas
     fhiclcpp::fhiclcpp
+)
+
+cet_build_plugin(AnalyzeSSDHitsWithTracks art::module
+  LIBRARIES REG 
+      SimulationBase
+      Simulation
+      ROOT::Core
+      ROOT::Tree
+      ROOT::Hist
+      ROOT::EG
+      art_root_io::TFileService_service
+      art::Framework_Core
+      art::Persistency_Common
+      RunHistory
+      Geometry
+      messagefacility::MF_MessageLogger
+      canvas::canvas
+      fhiclcpp::fhiclcpp
 )
 
 cet_build_plugin(SimSSDToRawDataSSD art::module
@@ -142,8 +118,6 @@ cet_build_plugin(SimSSDToRawDataSSD art::module
     fhiclcpp::fhiclcpp
 )
 
-
 install_headers()
 install_source()
 install_fhicl()
-

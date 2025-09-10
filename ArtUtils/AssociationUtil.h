@@ -10,6 +10,8 @@
 #ifndef ASSOCIATIONUTIL_H
 #define ASSOCIATIONUTIL_H
 
+#include <cstddef>
+
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "canvas/Persistency/Common/Assns.h"

@@ -5,6 +5,7 @@
 #define SRTrueSSDHitsBRANCH_H
 #include "StandardRecord/SRTrueSSDHits.h"
 
+#include <cstddef>
 #include <vector>
 #include <cstddef>
 

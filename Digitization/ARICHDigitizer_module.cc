@@ -44,9 +44,6 @@
 #include "Utilities/PMT.h"
 #include "Geant4/G4PhysicalConstants.hh"
 
-
-
-using namespace emph;
 ///package to illustrate how to write modules
 ///
 /// A class for communication with the viewer via shared memory segment
@@ -290,41 +287,40 @@ void ARICHDigitizer::FillNeighborMap()
 
 void ARICHDigitizer::ApplyDarkNoise(std::vector<sim::ARICHHit> MCHits){
 
-    for(size_t k=0;k<MCHits.size(); k++)  // copies the simulated hits and checks if detectable using QE
-	{
-	  int block = MCHits[k].GetBlockNumber(); 
-	  arich_util::PMT pmt= fGeo->Geo()->FindPMTByBlockNumber(block); //since all pmt have the same QE, we can use the 0
-	  double e = MCHits[k].GetEnergyDepo();
-	  double wavelenght = h_Planck*c_light/e; // in mm         
-	
-	  if(!pmt.ifDet(wavelenght))continue;
-	  HitPixels.push_back(MCHits[k].GetBlockNumber());
-	  HitTime.push_back(MCHits[k].GetTime()*1e9); // in ns	
-	}
+
+  for(size_t k=0;k<MCHits.size(); k++)  // copies the simulated hits and checks if detectable using QE
+  {
+    int block = MCHits[k].GetBlockNumber(); 
+    const arich_util::PMT& pmt = fGeo->Geo()->FindPMTByBlockNumber(block); //since all pmt have the same QE, we can use the 0
+    double e = MCHits[k].GetEnergyDepo();
+    double wavelength = h_Planck*c_light/e; // in mm
+
+    if(!pmt.ifDet(wavelength)) continue;
+    HitPixels.push_back(MCHits[k].GetBlockNumber());
+    HitTime.push_back(MCHits[k].GetTime()*1e9); // in ns	
+  }
 		
-    int nPMT= fGeo->Geo()->NPMTs();
-    double window, hittime;
-    for(int i=0;i<nPMT;i++)      //evaluates the dark noise over all the PMT anodes 
-    {
-      arich_util::PMT pmt= fGeo->Geo()->GetPMT(i);
-      if(!pmt.IsOn())continue;
-      window=pmt.GetTriggerWin();
-      for(int j=-int(window)-1;j<int(window)+1;j++){ // per ns
-        hittime=pmt.GetDarkRate();
-	if(hittime<0)continue;
-        hittime+=j;
-	if(abs(hittime)>window)continue;
-        std::vector<int>::iterator it = find(HitPixels.begin(), HitPixels.end(), pmt.PMTnum());
-        if(it!= HitPixels.end())
- 	{
-	  if(HitTime[it-HitPixels.begin()]>hittime) HitTime[it-HitPixels.begin()]=hittime;
-	 }
-	 else{
-	  HitPixels.push_back(pmt.PMTnum());
-	  HitTime.push_back(hittime);
-	}
-      } 
+  int nPMT= fGeo->Geo()->NPMTs();
+  double window, hittime;
+  for(int i=0;i<nPMT;i++)      //evaluates the dark noise over all the PMT anodes 
+  {
+    const arich_util::PMT& pmt = fGeo->Geo()->GetPMT(i);
+    if(!pmt.IsOn()) continue;
+    window = pmt.GetTriggerWin();
+    for(int j=-int(window)-1; j < int(window)+1; j++) { // per ns
+      hittime = pmt.GetDarkRate();
+      if(hittime < 0) continue;
+      hittime += j;
+      if(abs(hittime) > window) continue;
+      std::vector<int>::iterator it = find(HitPixels.begin(), HitPixels.end(), pmt.PMTnum());
+      if(it != HitPixels.end()) {
+        if(HitTime[it - HitPixels.begin()] > hittime) HitTime[it - HitPixels.begin()] = hittime;
+      } else {
+        HitPixels.push_back(pmt.PMTnum());
+        HitTime.push_back(hittime);
+      }
     }
+  }
 }
 
 //......................................................................
@@ -440,7 +436,7 @@ void ARICHDigitizer::produce(art::Event& evt)
 	
 	 sim::ARICHHit arichhit = (*arichHits)[i];
 	 int blockID = arichhit.GetBlockNumber();	
-	 arich_util::PMT mpmt= fGeo->Geo()->FindPMTByBlockNumber(blockID);
+	 const arich_util::PMT& mpmt= fGeo->Geo()->FindPMTByBlockNumber(blockID);
 		
 	 double wavelength =  arichhit.GetWavelength()/1e6;  // in mm 	
 	 
@@ -589,5 +585,3 @@ ArichRawD->push_back(NoMatch_dig);
 } // end namespace emph
 
 DEFINE_ART_MODULE(emph::ARICHDigitizer)
-
-

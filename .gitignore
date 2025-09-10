@@ -4,5 +4,16 @@ auto
 *.png
 *.pdf
 \#*
+*.save
+
+# VSCode specific files
+.vscode/
+*.code-workspace
+.history/
+.ionide/
+.vs/
+
+# Build output
+out/
 
 docs/Doxyout/

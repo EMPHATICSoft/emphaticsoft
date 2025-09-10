@@ -5,19 +5,19 @@ find_package(art REQUIRED)
 find_package(art_root_io REQUIRED)
 find_package(artdaq REQUIRED)
 find_package(messagefacility REQUIRED)
-find_package(ROOT COMPONENTS Tree Gui REQUIRED PUBLIC)
+find_package(ROOT COMPONENTS Tree Gui REQUIRED EXPORT) ### MIGRATE-CHANGED (migrate-3.20.00) - replaced obsolete keyword with EXPORT: PUBLIC
 find_package(ROOT COMPONENTS Core Graf Graf3d Rint REQUIRED)
 
 include(CetRootCint)
 
-include_directories($ENV{ARTDAQ_CORE_INC})
-include_directories($ENV{ARTDAQ_INC})
-include_directories($ENV{ART_INC})
-include_directories($ENV{ART_ROOT_IO_INC})
-include_directories($ENV{CETLIB_EXCEPT_INC})
-include_directories($ENV{ROOT_INC})
+include_directories($ENV{ARTDAQ_CORE_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ARTDAQ_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ART_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ART_ROOT_IO_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{CETLIB_EXCEPT_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
+include_directories($ENV{ROOT_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
-include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
+include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 set( PACKAGE WebDisplay )
 
@@ -49,7 +49,7 @@ cet_build_plugin(WebDisplay art::module
   ChannelMap
   ChannelMapService_service
   Geometry
-  Geometry_service
+  GeometryService_service
   RawData
   RecoBase
   DetGeoMap

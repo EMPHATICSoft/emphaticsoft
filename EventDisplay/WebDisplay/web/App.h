@@ -36,6 +36,7 @@
 #include "web/Response.h"
 
 #include <regex>
+#include <unordered_map>
 
 #include <sys/types.h>
 #include <sys/socket.h>

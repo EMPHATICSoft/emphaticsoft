@@ -9,6 +9,7 @@
 #include <thread>
 #include <vector>
 #include <numeric>
+#include <unordered_map>
 
 // ROOT includes
 #include "TFile.h"

@@ -560,15 +560,23 @@ namespace emph {
   //-------------------------------------------------------------
   /// Utility class for the EndOfEventAction method: update the
   /// daughter relationships in the particle list.
-  class UpdateDaughterInformation : public std::unary_function<sim::ParticleNavigator::value_type, void>
+  class UpdateDaughterInformation
   {
   public:
     UpdateDaughterInformation()
-      : particleNav(0)
+      : particleNav(nullptr)  // Initialize the particleNav pointer to nullptr.
     {}
     void SetParticleNav( sim::ParticleNavigator* p ) { particleNav = p; }
     void operator()( sim::ParticleNavigator::value_type& particleNavEntry )
     {
+      // If the particleNav pointer is not set, we can't do anything.
+      if ( !particleNav ) {
+        MF_LOG_ERROR("ParticleListAction") << "UpdateDaughterInformation called without a particle"
+                                           << " navigator pointer set.";
+        return;
+      }
+      // If the particleNavEntry is not valid, we can't do anything.
+
       // We're looking at this Particle in the list.
       sim::Particle* particle = particleNavEntry.second;
 

@@ -6,6 +6,7 @@
 // C/C++ includes
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cxxabi.h>
 #include <iomanip>
 #include <iostream>
