@@ -26,7 +26,8 @@ GetOptions( "help|h" => \$help,
 	    "output|o=s" => \$output,
 	    "target|t=s" => \$target,
 	    "magnet|m=i" => \$magnet,
-	    "align|a=i"  => \$align);
+	    "align|a=i"  => \$align,
+	    "nstation|n=i" => \$nstation);
 
 if ( defined $help )
   {
@@ -48,19 +49,6 @@ else
     $suffix = "-" . $suffix;
   }
 
-if ( defined $magnet )
-  {
-    # If the user requested help, print the usage notes and exit.
-    if($magnet == 0){
-      $magnet_switch = 0;
-    }
-    elsif($magnet == 1){
-      $magnet_switch = 1;
-    }
-    else{
-      print "wrong magnet parameter\n";
-    }
-  }
 
 if ( ! defined $target )
   {
@@ -126,6 +114,19 @@ if ( defined $target) {
 # constants for MAGNET
 $magnet_switch = 1;
 $magnet_layer = 3;
+if ( defined $magnet )
+  {
+    # If the user requested help, print the usage notes and exit.
+    if($magnet == 0){
+      $magnet_switch = 0;
+    }
+    elsif($magnet == 1){
+      $magnet_switch = 1;
+    }
+    else{
+      print "wrong magnet parameter\n";
+    }
+  }
 
 # constants for SSD
 # Check DocDB 1662 for details.
@@ -141,6 +142,10 @@ $nstation_type = 4; # types of station
 @SSD_mod = ("D0", "D0", "D0", "D0"); # SSD type in a station
 $nD0chan = 640; # number of channels per sensor
 $nSSD_station = 8; # num. of stations
+if ( defined $nstation )
+  {
+    $nSSD_station = $nstation;
+  }
 @SSD_station = (0, 0, 1, 1, 0, 2, 2, 3); # type of stations
 @SSD_station_shift = (0, 281, 501, 615, 846, 1146.38, 1471.82, 1744.82); 
 @SSD_mount_shift = (0, 0, 0, 10, 0, 10, 0, 0, 10, 0, 10, 0); 
@@ -201,6 +206,7 @@ sub usage()
 	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
 	print "       -a apply alignment constants for universe [0-99]\n; Default is perfect alignment";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
+	print "       -n [2..8], the number of SSD stations; Default is 8\n";
 	print "       -h prints this message, then quits\n";
 }
 
@@ -352,7 +358,7 @@ EOF
 		 		my $idx = $i*100 + $j*10 + $k;
 		  	    my $txs = $SSD_shift[ $isensor][0]+$SSD_alignx{$idx};
 		  	    my $tys = $SSD_shift[ $isensor][1]+$SSD_aligny{$idx};
-		  	    my $tzrot = @{[$SSD_angle[$isensor] ]}+$SSD_alignphi{$idx};
+		  	    my $tzrot = $SSD_angle[$isensor] + $SSD_alignphi{$idx};
 		  	    if($j < 2) {
 print DEF <<EOF;
 	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}"/>
@@ -497,6 +503,8 @@ EOF
  <!-- ABOVE IS FOR MAGNET -->
 
 EOF
+
+  }
   
   if($SSD_switch) {
 	  gen_SSD_Define(\*DEF);
@@ -1640,5 +1648,4 @@ EOF
 EOF
 
 	close(OUTPUT);
-}
 }

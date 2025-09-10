@@ -5,6 +5,7 @@
 #define SRTRACKSEGMENT_H
 
 #include "StandardRecord/SRVector3D.h"
+#include "RecoBase/RecoBaseDefs.h"
 
 namespace caf
 {
@@ -17,8 +18,10 @@ namespace caf
 
     double vtx[3];  // (x,y,z)
     SRVector3D mom; // momentum vector 
-    int label;
     int nspacepoints;
+    rb::Region region;
+    double pointA[3];
+    double pointB[3];
 
     virtual void setDefault();
   };

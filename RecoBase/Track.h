@@ -39,6 +39,7 @@ namespace rb {
     // the creator of the track is responsible for adding the points
  
     std::vector<TVector3> _pos; // vector of predicted positions
+    double _chi2;
     std::vector<TVector3> _mom;
 
   public:
@@ -53,6 +54,7 @@ namespace rb {
     size_t NSpacePoints() const { return _spcpt.size(); }
     const rb::SpacePoint* GetSpacePoint(int i) const;
 
+    const double Chi2() const { return _chi2; }
     TVector3 PosAt(double z) const;
     TVector3 MomAt(double z) const;
     size_t NPos() const { return _pos.size(); }
@@ -69,6 +71,7 @@ namespace rb {
 
     void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
+    void SetChi2(double chi2) { _chi2 = chi2; }
     
     friend std::ostream& operator << (std::ostream& o, const Track& h);
   };

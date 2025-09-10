@@ -5,8 +5,9 @@ MAGOPT=1
 TARGET=1
 ALIGN=0
 OUTNAMESET=0
+NSTATION=8
 
-while getopts "o:t:m:a:h" opt; do
+while getopts "o:t:m:a:n:h" opt; do
     case $opt in
 	h) 
 	    $(dirname $0)/generate_gdml.pl --help
@@ -24,6 +25,9 @@ while getopts "o:t:m:a:h" opt; do
 	    ;;
 	m)
 	    MAGOPT=$OPTARG
+	    ;;
+	n) 
+	    NSTATION=$OPTARG
 	    ;;
 	\?)
 	    echo "Invalid option: -$OPTARG" >& 2

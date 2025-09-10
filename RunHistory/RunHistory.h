@@ -25,6 +25,7 @@ namespace runhist {
     bool _isLoaded;
     bool _isConfig;
     bool _magnetIn;
+    bool _useFixedAlignFile;
     int _runNumber;
     int _nSubrun;
     double _beamMom;
@@ -60,6 +61,7 @@ namespace runhist {
     void       SetChan(std::string chanFile) { _chanFile = chanFile; }
     void       SetCalib(int calibVer) { _calibVer = calibVer; }
     void       SetQEURL(std::string uri) { _QEURL = uri; }
+    void       SetUseFixedAlign(bool v) { _useFixedAlignFile = v; }
     void       SetSSDAlign(std::string ssdFile) { _ssdAlignFile = ssdFile; }
   };
   
