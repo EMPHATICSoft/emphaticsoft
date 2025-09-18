@@ -19,7 +19,7 @@ else(${GIT_DESCRIBE_RESULT})
   set(version_with_git $ENV{CETPKG_VERSION})
 endif()
 
-include_directories($ENV{ARTDAQ_CORE_INC})
+include_directories($ENV{ARTDAQ_CORE_INC}) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.20.00) - avoid directory-scope functions: use target_link_libraries() with target semantics or target_include_directories() whenever possible
 
 configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/GetPackageBuildInfo.cc.in
                  ${CMAKE_CURRENT_BINARY_DIR}/GetPackageBuildInfo.cc @ONLY )

@@ -92,7 +92,7 @@ namespace emph
 	  if (aTrack->GetTrackStatus()==fStopAndKill && aTrack->GetParticleDefinition()->GetParticleName() =="opticalphoton" && postvolume){
 		  std::string pVolName = postvolume->GetName();
 		  if(pVolName.find("PMT_phys") == std::string::npos)return;
-		  emph::arich_util::PMT mpmt = fGeo->Geo()->FindPMTByName(pVolName);
+		  const emph::arich_util::PMT& mpmt = fGeo->Geo()->FindPMTByName(pVolName);
 
 		  double e = step->GetPreStepPoint()->GetTotalEnergy();
 		  //		  std::cout<<"e "<<e<<std::endl;
@@ -132,18 +132,18 @@ namespace emph
 	if(pVolName.find("PMT_phys") == std::string::npos)return;
 	if(G4StrUtil::contains(aTrack->GetParticleDefinition()->GetParticleName(), "e"))return; 
 	
-	emph::arich_util::PMT mpmt = fGeo->Geo()->FindPMTByName(pVolName);      
+	const emph::arich_util::PMT& mpmt = fGeo->Geo()->FindPMTByName(pVolName);      
 
-        double e = step->GetTotalEnergyDeposit();
-        double l = 0;
-	
-	sim::ARICHHit arichHit;
-        arichHit.SetBlockNumber(mpmt.PMTnum());
-        arichHit.AddToAncestorTrack(aTrack->GetParentID());
-        arichHit.SetTime(step->GetPreStepPoint()->GetGlobalTime()/CLHEP::second);
-        arichHit.SetWavelength(l*1e6);
-        arichHit.SetEnergyDepo(e);
-	 fARICHHits.push_back(arichHit);
+  double e = step->GetTotalEnergyDeposit();
+  double l = 0;
+
+  sim::ARICHHit arichHit;
+  arichHit.SetBlockNumber(mpmt.PMTnum());
+  arichHit.AddToAncestorTrack(aTrack->GetParentID());
+  arichHit.SetTime(step->GetPreStepPoint()->GetGlobalTime()/CLHEP::second);
+  arichHit.SetWavelength(l*1e6);
+  arichHit.SetEnergyDepo(e);
+  fARICHHits.push_back(arichHit);
 //	std::cout << aTrack->GetParticleDefinition()->GetParticleName() << " parent id " <<  aTrack->GetParentID() << " e depo " << step->GetTotalEnergyDeposit() << " " << postvolume->GetName() << std::endl;		  
 
 

@@ -1,47 +1,32 @@
-include(ArtDictionary)
-include(ArtMake)
 FILE( GLOB src_files *.cxx )
 
-art_make_library(LIBRARY_NAME SSDRecoUtil
-                SOURCE ${src_files}
-                LIBRARIES PRIVATE
-		            RecoBase
-                ChannelMap
-                ChannelMapService_service
-                DetGeoMap
-                DetGeoMapService_service
-                RunHistory
-                RunHistoryService_service
-                RawData
-                RecoBase
-                Geometry_service 
-                Geometry
-                MagneticField
-                MagneticField_service
-                art::Framework_Core
-                art::Persistency_Common
-                canvas::canvas
-                canvas::canvas
-                ROOT::Physics
-                ROOT::MathCore
-                ROOT::Minuit2
-                art_root_io::TFileService_service
+cet_make_library(SOURCE ${src_files}
+  LIBRARY_NAME SSDRecoUtil
+  LIBRARIES
+  PRIVATE
+    RecoBase
+    art::Framework_Core
+    art::Persistency_Common
+    canvas::canvas
+    ROOT::Physics
+  BASENAME_ONLY
 )
 
 cet_build_plugin(MakeSSDClusters art::module
-	LIBRARIES PRIVATE
-	ChannelMap
-	ChannelMapService_service
-	DetGeoMap
-	DetGeoMapService_service
-	RunHistory
-	RunHistoryService_service
-	RawData
-	RecoBase
-	Geometry_service 
-	Geometry
-  art_root_io::TFileService_service
-	ROOT::Tree
+  LIBRARIES REG
+    ChannelMap
+    ChannelMapService_service
+    DetGeoMap
+    DetGeoMapService_service
+    RunHistory
+    RunHistoryService_service
+    RawData
+    RecoBase
+    GeometryService_service 
+    Geometry
+    ROOT::Tree
+    art_root_io::TFileService_service
+  BASENAME_ONLY
 )
 
 install_headers()
