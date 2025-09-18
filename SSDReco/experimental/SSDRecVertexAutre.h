@@ -51,7 +51,7 @@ namespace emph {
 	  // so intantiate this in the constructor. 
 	  // And the result..
 	  double fChiFinal;
-	  rbex::Vertex fVert;
+	  rb::Vertex fVert;
 	   
 	  mutable std::ofstream fFOutVert;
 	  // Internal stuff.. ???

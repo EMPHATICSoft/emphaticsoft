@@ -67,7 +67,7 @@
 #include "CAFMaker/SpacePointFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
-#include "CAFMaker/TrackFiller.h"
+#include "CAFMaker/VertexFiller.h"
 #include "CAFMaker/TrackSegmentFiller.h"
 #include "CAFMaker/SRTruthFiller.h"
 
@@ -249,10 +249,11 @@ namespace caf {
 
 
       // Get Tracks
-      TrackFiller trkf;
-      trkf.fLabelTracks = fParams.TrackLabel();
-      trkf.fLabelArichID = fParams.ArichIDLabel();
-      trkf.Fill(evt,rec);
+      VertexFiller vtxf;
+      vtxf.fLabelVertices = fParams.VertexLabel();
+      vtxf.fLabelTracks = fParams.TrackLabel();
+      vtxf.fLabelArichID = fParams.ArichIDLabel();
+      vtxf.Fill(evt,rec);
     
     }
 

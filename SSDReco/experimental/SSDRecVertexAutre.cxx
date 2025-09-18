@@ -119,8 +119,7 @@ namespace emph {
            if (min.HasCovariance()) {
              for (size_t i=0; i != 3; i++) {
                for (size_t j=0; j != 3; j++) {
-	       const double cc = min.UserCovariance()(i,j);
-               fVert.SetCovarianceMatrix((i*3 + j), cc);
+		 fVert.SetCovarianceMatrix(i,j,min.UserCovariance()(i,j));
 	       }
 	     }
            }

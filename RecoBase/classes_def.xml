@@ -148,6 +148,13 @@
   <class name="std::vector<rb::Track>"        />
   <class name="art::Wrapper< std::vector<rb::Track>    >"/>
 
+  <class name="rb::Vertex"    ClassVersion="11">
+   <version ClassVersion="11" checksum="3105907562"/>
+    <version ClassVersion="10" checksum="1"/>
+  </class>
+  <class name="std::vector<rb::Vertex>"        />
+  <class name="art::Wrapper< std::vector<rb::Vertex>    >"/>
+
   <class name="rb::ARICHCluster"/>
   <class name="std::vector<rb::ARICHCluster>"        />
   <class name="art::Wrapper< std::vector<rb::ARICHCluster>    >"/>

@@ -209,7 +209,7 @@ namespace emph {
   {
     delete m;
 
-    std::cout<<"SingleTrackAlignment: Number of events used = "<<usingEvent<<std::endl;
+    mf::LogDebug("SingleTrackAlignment") << "SingleTrackAlignment: Number of events used = " << usingEvent;
   }
 
   //......................................................................
@@ -261,7 +261,8 @@ namespace emph {
 
 	  // pull = doca between s and ts
             double sensorz = x0(2); //s[2];
-            if (x0(2) != x1(2)) std::cout<<"Rotated line segment --> using x0 for now"<<std::endl;
+            if (x0(2) != x1(2)) 
+	      mf::LogDebug("SingleTrackAlignment") << "Rotated line segment --> using x0 for now";
 
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))

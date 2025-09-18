@@ -1,6 +1,8 @@
 <lcgdict>
 
- <class name="caf::StandardRecord" ClassVersion="22" >
+ <class name="caf::StandardRecord" ClassVersion="24" >
+  <version ClassVersion="24" checksum="3628156442"/>
+  <version ClassVersion="23" checksum="4189675226"/>
   <version ClassVersion="22" checksum="2417312348"/>
   <version ClassVersion="21" checksum="3831128355"/>
   <version ClassVersion="20" checksum="3285374549"/>
@@ -163,9 +165,20 @@
   <version ClassVersion="10" checksum="1"/>
  </class>
 
- <class name="caf::SRTrackBranch" ClassVersion="11" >
+ <!--- class name="caf::SRTrackBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="2711109648"/>
   <version ClassVersion="10" checksum="3550546688"/>
+ </class> -->
+
+ <class name="caf::SRVertex" ClassVersion="12" >
+  <version ClassVersion="12" checksum="3585192615"/>
+  <version ClassVersion="11" checksum="2951360745"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+
+ <class name="caf::SRVertexBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1927031340"/>
+  <version ClassVersion="10" checksum="1"/>
  </class>
 
  <class name="caf::SRTrackSegment" ClassVersion="15" >

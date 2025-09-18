@@ -11,16 +11,18 @@
 #include <climits>
 #include <cfloat>
 
-namespace rbex {
+namespace rb {
   
   //----------------------------------------------------------------------
   
   Vertex::Vertex() : 
    fId(INT_MAX), fX(DBL_MAX), fY(DBL_MAX), fZ(DBL_MAX), 
    fXErr(DBL_MAX), fYErr(DBL_MAX), fZErr(DBL_MAX), 
-   fCovXYZ(9, DBL_MAX), fChiSq(DBL_MAX)
+   fChiSq(DBL_MAX)
   {
-   ;
+    for (int i=0; i<3; ++i)
+      for (int j=0; j<3; ++j)
+	fCovXYZ[i][j] = DBL_MAX;
   }
   //----------------------------------------------------------------------
   

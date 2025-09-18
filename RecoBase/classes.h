@@ -16,3 +16,4 @@
 #include "RecoBase/ArichID.h"
 #include "RecoBase/PID.h"
 #include "RecoBase/Track.h"
+#include "RecoBase/Vertex.h"

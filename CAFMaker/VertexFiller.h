@@ -1,25 +1,26 @@
 ////////////////////////////////////////////////////////////////////////
-// \file     TrackFiller.h
-// \note    Class to fill CAF  Track info
+// \file     VertexFiller.h
+// \note    Class to fill CAF  Vertex info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  TRACKFILLER_H
-#define  TRACKFILLER_H
+#ifndef  VERTEXFILLER_H
+#define  VERTEXFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
 namespace caf
 {
   /// Class to fill header information
-  class TrackFiller : public FillerBase
+  class VertexFiller : public FillerBase
   {
   public:
 
     void Fill(art::Event&, caf::StandardRecord&);
     //void Fill(art::Event&, caf::StandardRecord& sr1,  caf::StandardRecord& sr2);
+    std::string fLabelVertices;
     std::string fLabelTracks;
     std::string fLabelArichID;
   };
 
 } // end namespace
 
-#endif //  TRACKFILLER_H
+#endif //  VERTEXFILLER_H
