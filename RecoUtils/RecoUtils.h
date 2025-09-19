@@ -24,25 +24,16 @@ namespace ru {
   class RecoUtils {
   public:
     RecoUtils(); // Default constructor
-    RecoUtils(int num);
     virtual ~RecoUtils() {}; //Destructor
     
-  private:
-    int fEvtNum;
-
   public:
     void    ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose);
     void    ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose);
     void    findLine(std::vector<std::vector<double> > v, double lfirst[3], double llast[3]);
     double  findRecoAngle(double p1[3], double p2[3], double p3[3], double p4[3]);
-    double  findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f);
     double  getMomentum(double theta);
     void    findTrackIntersection(rb::TrackSegment trk1, rb::TrackSegment trk2, double point[3]);
 
-    void    SetEvtNum(int num){ fEvtNum = num; }   
-    int     GetEvtNum() const { return fEvtNum; }
-
-    friend std::ostream& operator << (std::ostream& o, const RecoUtils& h);
   };
   
 }

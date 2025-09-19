@@ -1,11 +1,9 @@
 cet_make_library( 
-  SOURCE RecoUtils.cxx
+  SOURCE MCUtils.cxx
   LIBRARIES PRIVATE
-    RecoBase
-    art::Framework_Core
-    art::Persistency_Common
-    canvas::canvas
-    fhiclcpp::fhiclcpp
+    Simulation
+    ROOT::Core
+    ROOT::Physics
     messagefacility::MF_MessageLogger
   BASENAME_ONLY
 )

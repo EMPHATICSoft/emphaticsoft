@@ -27,18 +27,10 @@ namespace ru {
   
   //----------------------------------------------------------------------
   
-  RecoUtils::RecoUtils() :
-     fEvtNum(-1)
+  RecoUtils::RecoUtils()
   {
   }
   
-  //------------------------------------------------------------
-
-  RecoUtils::RecoUtils(int num)
-  {
-     fEvtNum = num;
-  }
-
   //------------------------------------------------------------
 
   void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose){
@@ -84,7 +76,7 @@ namespace ru {
        else{
          //this should be very rare
          if (verbose){
-           std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
+           std::cout<<"Closest approach calculation exception "<<std::endl;
            std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
            std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
            std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
@@ -324,44 +316,6 @@ namespace ru {
   }
 
   //------------------------------------------------------------
-
-  double RecoUtils::findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f){
-     double p_ix=0.; double p_iy=0.; double p_iz=0.;
-     double p_fx=0.; double p_fy=0.; double p_fz=0.;
-
-     if (sim_i.empty() || sim_f.empty()) {
-       mf::LogError("RecoUtils") << "findTruthAngle: Input hit vectors are empty.";
-       return 0.0;
-     }
-
-     for (auto i : sim_i){
-         p_ix += i.GetPx();
-         p_iy += i.GetPy();
-         p_iz += i.GetPz();
-     }
-     p_ix /= sim_i.size();
-     p_iy /= sim_i.size();
-     p_iz /= sim_i.size();
-
-     for (auto f : sim_f){
-         p_fx += f.GetPx();
-         p_fy += f.GetPy();
-         p_fz += f.GetPz();
-     }
-     p_fx /= sim_f.size();
-     p_fy /= sim_f.size();
-     p_fz /= sim_f.size();
-
-     TVector3 p_i(p_ix,p_iy,p_iz);
-     TVector3 p_f(p_fx,p_fy,p_fz);
-
-     double theta_rad = p_i.Angle(p_f);
-
-     return theta_rad;
-
-  }
-
-  //------------------------------------------------------------
   
   double RecoUtils::getMomentum(double theta){
 
@@ -399,16 +353,6 @@ namespace ru {
      point[0] = trk1.Vtx()[0] + (t*p1(0));
      point[1] = trk1.Vtx()[1] + (t*p1(1));
      point[2] = trk1.Vtx()[2] + (t*p1(2));
-  }
-
-  //------------------------------------------------------------
-
-  std::ostream& operator<< (std::ostream& o, const RecoUtils& h)
-  {
-    o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-    o << " Event Number = "     << std::setw(5) << std::right << h.GetEvtNum();
-
-    return o;
   }
 
   //------------------------------------------------------------

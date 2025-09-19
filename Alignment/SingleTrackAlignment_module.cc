@@ -218,7 +218,7 @@ namespace emph {
   void emph::SingleTrackAlignment::Pulls(std::vector<rb::TrackSegment> trksegv)
   {
     auto emgeo = geo->Geo();
-    ru::RecoUtils r = ru::RecoUtils(fEvtNum);
+    ru::RecoUtils r;
 
     TVector3 a2(0.,0.,0.);
     TVector3 b2(0.,0.,0.);
