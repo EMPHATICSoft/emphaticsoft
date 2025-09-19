@@ -1,16 +1,13 @@
 #include "Services.fcl"
-#include "MagneticField.fcl"
 #include "BeamGen.fcl"
 #include "G4Gen.fcl"
 #include "SSDDigitizer.fcl"
-#include "MakeSSDClusters.fcl"
 
 process_name: mcprod
 
 services:
 {
   TFileService: { fileName: "emphmc_r%r_s%s_prod_hist.root" closeFileFast: false }
-  MagneticField: @local::standard_magfield
   @table::standard_services
   RandomNumberGenerator: {} #ART native random number generator
 
@@ -21,7 +18,7 @@ source:
 {
   module_type: EmptyEvent
   maxEvents: 10000
-  firstRun:  2293
+  firstRun:  2408
   firstSubRun: 1
 
 }
@@ -40,13 +37,12 @@ physics:
 {
   producers:
   {
-	generator: @local::proton4
+	generator: @local::standard_beamgen
 	geantgen:  @local::standard_geant4
 	ssddig:    @local::standard_ssddigitizer
-	ssdclust:  @local::standard_ssdclust
   }
 
-  simulate: [ generator , geantgen , ssddig , ssdclust ]
+  simulate: [ generator , geantgen , ssddig ]
 
   trigger_paths: [ simulate ]
 
@@ -56,5 +52,5 @@ physics:
 
 }
 
-physics.producers.ssdclust.SSDRawLabel: "ssddig:SSD"
-physics.producers.ssdclust.CheckDQ: false
+#physics.producers.ssdclust.SSDRawLabel: "ssddig:SSD"
+#physics.producers.ssdclust.CheckDQ: false

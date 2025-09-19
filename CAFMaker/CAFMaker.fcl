@@ -18,6 +18,7 @@ standard_cafmaker:{
     SSDRawLabel:       "raw:SSD"
     TrackLabel:        "makesingletracks"
     TrackSegmentLabel: "maketracksegments"
+    VertexLabel:       "vtxreco"
 
     GetMCTruth:    true #use for creating MC CAF's
 #    GetMCTruth:    false #use for creating data CAF's
