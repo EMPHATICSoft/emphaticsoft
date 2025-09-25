@@ -102,6 +102,7 @@ add_subdirectory(SSD_FERMerger)
 add_subdirectory(TrackReco)
 add_subdirectory(TOF)
 add_subdirectory(Utilities)
+add_subdirectory(VertexReco)
 
 # ups - table and config files
 
