@@ -37,6 +37,7 @@
 #include "TTree.h"
 #include "TString.h"
 #include "TF1.h"
+#include "TGraph.h"
 
 #include <iostream>
 #include <fstream>
@@ -45,7 +46,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <bits/stdc++.h>
+#include "TimeSync.h"
 // std::minmax_element of a vector
 // - NTK
 
@@ -374,585 +375,156 @@ namespace rawdata {
 
   /***************************************************************************/
 
-  void Unpacker::calcTimeWalkCorr()
-  {
-	  return; // tmp to avoid -NTK (remove later)<@@>
-    std::cout << "Entering \"calcTimeWalkCorr\"" << std::endl;
+  // NTK's version<@@>
+	void Unpacker::calcTimeWalkCorr() {
+		std::cout << "Entering \"calcTimeWalkCorr\"" << std::endl;
+		if(!fTvsT.empty()) return;
 
-    if (! fdTvsT.empty()) return; // note, this should _never_ happen...
-
-    art::ServiceHandle<art::TFileService> tfs;
-    art::TFileDirectory tdir3 = tfs->mkdir("TimeWalk","");
-    char hname[256];
-    char htitle[256];
-    // create histograms for CAEN and TRB3 boards
-    for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-      auto fragId = fFragId[ifrag];
-      sprintf(hname,"tBoard_%d",fragId);
-      sprintf(htitle,";Board %d Timestamp;Num. Fragments",fragId);
-      fTHist[fragId] = tdir3.make<TH1D>(hname,htitle,500,0.,5.);
-      sprintf(hname,"tw_%d",fragId);
-      sprintf(htitle,"Event Time Walk, Board %d; Board 0 Timestamp (s); Board %d-Board 0 (ns)",
-	      fragId, fragId);
-      fdTvsT[fragId] = tdir3.make<TH2D>(hname,htitle,250,0.,5.,2000,-10000.,10000.);
-      sprintf(hname,"tVsFrag_%d",fragId);
-      sprintf(htitle,"; Board %d Frag. Num.; Board %d Timestamp",
-	      fragId, fragId);
-      fTvsFrag[fragId] = tdir3.make<TH2D>(hname,htitle,500,0.,float(fFragTimestamps[fragId].size()), 500,0.,5.);
-    }
-    // now create histograms for SSDs
-    sprintf(hname,"tSSD");
-    sprintf(htitle,";SSD Timestamp;Num. Fragments");
-    fSSDTHist = tdir3.make<TH1D>(hname,htitle,500,0.,5.);
-    sprintf(hname,"twSSD");
-    sprintf(htitle,"Event Time Walk SSD; Board 0 Timestamp (s); SSD (ns)");
-    fSSDdTvsT = tdir3.make<TH2D>(hname,htitle,250,0.,5.,2000,-10000.,10000.);
-    sprintf(hname,"tVsSSDFrag");
-    sprintf(htitle,"; SSD Frag. Num.; SSD Timestamp");
-    fSSDTvsFrag = tdir3.make<TH2D>(hname,htitle,500,0.,float(fSSDRawDigits.size()), 500,0.,5.);
-    sprintf(hname,"tSSDdT");
-    sprintf(htitle,"; t (Fragment); t (SSD)");
-    fSSDdTHist = tdir3.make<TH2D>(hname,htitle,1000,0.,5.,1000,0.,5.);
-
-    double tB;
-
-    for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-      auto fragId = fFragId[ifrag];
-      for (size_t i=fFragCounter[fragId]; i<fFragTimestamps[fragId].size(); ++i) {
-	tB = double(fFragTimestamps[fragId][i] - fT0[fragId]);
-	fTHist[fragId]->Fill(tB*1.e-9);
-	fTvsFrag[fragId]->Fill(float(i),fFragTimestamps[fragId][i]*1.e-9);
-	/*
-	  if ((i-fFragCounter[fragId])<20) {
-	  std::cout << "Board " << (int)fragId << ", frag " << i << ", t = "
-	  << tB << std::endl;
-	  }
-	*/
-      }
-    }
-
-    int nBadFER=0;
-    for (size_t issdEvt=1; issdEvt<fSSDRawDigits.size(); ++issdEvt) {
-      auto & digvec = fSSDRawDigits[issdEvt].second;
-      tB = double(fSSDRawDigits[issdEvt].first)-fSSDT0;
-      //      std::cout << "tB(ssd) = " << tB*150 << std::endl;
-      fSSDTHist->Fill(tB*fBCOx*1.e-9);
-      fSSDTvsFrag->Fill(float(issdEvt),tB*fBCOx*1.e-9);
-    }
-
-    // fill time walk histos.
-    // first, loop over fragment times of Board 0
-    double tB0;
-    double dtB;
-    size_t nneigh = 500;
-
-    double tssd;
-    double tfrag;
-    auto fragId = fFragId[0];
-    std::cout << "Using Fragment " << fragId << std::endl;
-
-    for (size_t i=fFragCounter[fragId]; i<fFragTimestamps[fragId].size(); ++i) {
-      tfrag = (fFragTimestamps[fragId][i] - fT0[fragId])*1.e-9;
-      for (size_t j=0; j<fSSDRawDigits.size(); ++j) {
-	tssd = (fSSDRawDigits[j].first - fSSDT0)*fBCOx*1.e-9;
-	//	std::cout << i << "," << j << ":" << tfrag << ", " << tssd << std::endl;
-	fSSDdTHist->Fill(tfrag,tssd,1./(1+fabs(tfrag-tssd)));
-      }
-    }
-
-    //    for (size_t i=fFragCounter[0]; i<fFragTimestamps[0].size(); ++i) {
-    for (size_t i=nneigh; i<fFragTimestamps[fragId].size(); ++i) {
-      tB0 = double(fFragTimestamps[fragId][i] - fT0[fragId]);
-      //      std::cout << "tB0 = " << tB0 << std::endl;
-
-      // now loop over Boards
-      for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-	auto fragId = fFragId[ifrag];
-	if (fragId == 0) continue;
-
-	// find fragment times that are within 10 us
-	//	double dtmin=1.e9;
-	if (i<fFragTimestamps[fragId].size()) {
-	  tB = fFragTimestamps[fragId][i] - fT0[fragId];
-	  dtB = tB - tB0;
-	  if (abs(dtB) < 10000)
-	    fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
-
-	  for (size_t j=1; j<nneigh; ++j) {
-	    if ((i+j) == fFragTimestamps[fragId].size()) break;
-	    tB = fFragTimestamps[fragId][i+j] - fT0[fragId];
-	    dtB = tB - tB0;
-	    if (abs(dtB) < 10000)
-	      fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
-
-	    tB = fFragTimestamps[fragId][i-j] - fT0[fragId];
-	    dtB = tB - tB0;
-	    if (abs(dtB) < 10000)
-	      fdTvsT[fragId]->Fill(tB0*1.e-9,dtB);
-	  }
-	}
-      }
-
-      // do the same for the SSDs
-      if (i<fSSDRawDigits.size()) {
-	tB = double(fSSDRawDigits[i].first - fSSDT0);
-	tB *= fBCOx;
-	dtB = tB - tB0;
-	double mindtB = abs(dtB);
-	//	std::cout << "tB0 = " << tB0 << ", tB = " << tB << ", dtB = " << dtB << std::endl;
-	if (abs(dtB) < 10000)
-	  fSSDdTvsT->Fill(tB0*1.e-9,dtB);
-
-	for (size_t j=1; j<nneigh; ++j) {
-	  if ((i+j) == fSSDRawDigits.size()) break;
-	  tB = double(fSSDRawDigits[i+j].first - fSSDT0);
-	  tB *= fBCOx;
-	  dtB = tB - tB0;
-	  if (abs(dtB) < mindtB) mindtB = abs(dtB);
-	  //	  std::cout << "tB0 = " << tB0 << ", tB = " << tB << ", dtB = " << dtB << std::endl;
-	  if (abs(dtB) < 10000)
-	    fSSDdTvsT->Fill(tB0*1.e-9,dtB);
-
-	  tB = double(fSSDRawDigits[i-j].first - fSSDT0);
-	  tB *= fBCOx;
-	  dtB = tB - tB0;
-	  if (abs(dtB) < mindtB) mindtB = abs(dtB);
-	  //	  std::cout << "tB0 = " << tB0 << ", tB = " << tB << ", dtB = " << dtB << std::endl;
-	  if (abs(dtB) < 10000)
-	    fSSDdTvsT->Fill(tB0*1.e-9,dtB);
-	}
-
-	//	std::cout << "tB0 = " << tB0 << ", min. dtB = " << mindtB << std::endl;
-      }
-
-	//	std::cout << "Frag. " << fragId << " nearest ts is " << nndist << " fragments away, dt = " << dtmin << std::endl;
-	/*
-	if (!nfill) {
-	  std::cout << "No events found nearby!" << std::endl;
-	  for (size_t j=i-nneigh; j<i+nneigh; ++j) {
-	  tB = double(fFragTimestamps[fragId][j] - fT0[fragId]);
-	  dtB = tB - tB0;
-	  if (abs(dtB) < 50000) {
-	    //	    tratio = tB/tB0;
-	    fdTvsT[fragId]->Fill(tB*1.e-9,tB0*1.e-9);
-	    ++nfill;
-	    //	    std::cout << "Frag " << fragId << " dt: " << dtB << std::endl;
-	  }
-	}
-	//	  std::cout << "tB = " << double(fFragTimestamps[fragId][i] - fT0[fragId]) << std::endl;
-      }
-	*/
-
-    }
-
-    for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-      auto fragId = fFragId[ifrag];
-      if (fragId < 100) { // CAEN boards.  We assume these are all in sync.
-	fTWCorr0[fragId] = 0.;
-	fTWCorr1[fragId] = 1.;
-      }
-      else {
-	double ymean = fdTvsT[fragId]->GetMean(2);
-	double yrms = fdTvsT[fragId]->GetRMS(2);
-	//	double xmean = twHist[i]->GetMean(1);
-	double xrms = fdTvsT[fragId]->GetRMS(1);
-	fdTvsT[fragId]->GetYaxis()->SetRangeUser(ymean-2*yrms,ymean+2*yrms);
-	fdTvsT[fragId]->Fit("pol1","","",0.,3.5*xrms);
-	TF1* f1 = (TF1*)fdTvsT[fragId]->GetFunction("pol1");
-	std::cout << "Board " << fragId << " twcorr slope = " << f1->GetParameter(1) << std::endl;
-	fTWCorr0[fragId] = f1->GetParameter(0);
-	fTWCorr1[fragId] = f1->GetParameter(1);
-      }
-    }
-  }
-
-  /***************************************************************************/
-
-#define timeUncertainty 100 // nanoseconds
-
-	template <typename T, typename S> // this type will likely be 'double'
-	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
-	// timestamps from A and B, skipping B sample indices of skip[index]
-
-	std::vector<T> timeDiffs; timeDiffs.reserve(timestampA.size() * timestampB.size());
-
-	// sort by descending order so we can sequentially pop off skipped sample's indices
-	sort(skip.begin(), skip.end(), std::greater<>());
-
-	size_t skipMe = timestampB.size() + 1;
-	if(!skip.empty()) {
-		skipMe = skip.back();
-		skip.pop_back();
-	}
-
-	for (size_t i=0; i<timestampA.size(); ++i) {
-		for (size_t j=0; j<timestampB.size(); ++j) {
-			if(j == skipMe) {
-				if(!skip.empty()) {
-					skipMe = skip.back();
-					skip.pop_back();
-				}
-				continue;
-			}
-			T dt = timestampA[i] - timestampB[j];
-			if(scale != 1)
-				dt = timestampA[i] - timestampB[j]*scale;
-			timeDiffs.push_back(dt);
-		}
-	}
-	return timeDiffs;
-	}
-
-	template <typename T, typename S> // this type will likely be 'double'
-	std::vector<T> calcDifferences(S timestampA, S timestampB) {
-		std::vector<size_t> skip;
-		T scale = 1;
-		return calcDifferences(timestampA, timestampB, skip, scale);
-	}
-
-	template <typename T>
-	int64_t binToTime(std::vector<T> dt, uint64_t bin) {
-		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		int nbins = abs(*max - *min + 1);
-		return  1.0 *  bin / (nbins-1) * (*max - *min) + 1.0 * *min / (nbins-1) * nbins - 1.0 * *max/(nbins-1);
-	}
-
-	template <typename T>
-	std::tuple<uint64_t,uint64_t,int64_t> findOffset(std::vector<T> dt) {
-		// returns <offsetBin, N_occurrences, standardDeviation>
-		// - NTK
+		// Set up names
+		art::ServiceHandle<art::TFileService> tfs;
+		art::TFileDirectory tdir3 = tfs->mkdir("TimeWalk","");
 		char hname[256];
 		char htitle[256];
-		// nbins is rounded
-		//art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file <@@>
-		//art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file <@@>
-
-		static int histIndex = 0;
-      sprintf(hname,"Time_Offset_%d",histIndex);
-      sprintf(htitle,"Fragment Time Differences for pair #%d",histIndex);
-		histIndex++;
-		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		TH1I dtHist(hname, htitle, abs(*max - *min + 1), *min-0.5, *max+0.5);
-
-		for(auto x : dt)
-			dtHist.Fill(x);
-
-		//tdir2.make<TH1I>(dtHist); // this draws the histogram <@@>
-		auto indexBin = dtHist.GetMaximumBin();
-		auto N_occur = dtHist.GetMaximum();
-	//	NTK: add bins around maximum within CAEN resolution
-		for(auto resolution = indexBin - timeUncertainty; resolution <= indexBin + timeUncertainty; ++resolution) {
-			if(resolution == indexBin) continue;
-			N_occur += dtHist.GetBinContent(resolution);
-		}
-		return { indexBin, N_occur, binToTime(dt, indexBin) };
-	}
-	// Returns the last time synchronized item
-	template <typename T>
-	std::tuple<uint64_t,uint64_t> indexOfLastSync(const std::vector<T> A, const std::vector<T> B) {
-		uint64_t aIndex = 0;
-		uint64_t bIndex = 0;
-
-		{
-			bool exitLoop = false;
-			for(int aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
-				for(int bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
-					if(abs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
-						aIndex = aEvent;
-						bIndex = bEvent;
-						exitLoop = true;
-						break;
-					}
-				}
-				if(exitLoop) break;
+		for (auto fragId : fFragId) {
+			if(fragId == fragIdGrandfather) {
+				// store SSDs graph in the grandfather part of the array
+				sprintf(hname,"twSSD");
+				sprintf(htitle,"Event Time Walk SSD; Board %d Timestamp (ns); SSD (ns)", fragIdGrandfather);
+			} else {
+				sprintf(hname,"tw_%d",fragId);
+				sprintf(htitle,"Event Time Walk, Board %d; Board %d Timestamp (ns); Board %d (ns)",
+					fragId, fragIdGrandfather, fragId);
 			}
+			//fTvsT[fragId] = tdir3.make<TH2D>(hname,htitle,250,0.,5.,2000,-10000.,10000.);
+			fTvsT[fragId] = new TGraph();
 		}
 
-		return { aIndex, bIndex };
-	}
+		if(masks.empty()) return;
 
-	template <typename T>
-	std::tuple<uint64_t, int64_t> xcorr(std::vector<T> father, std::vector<T> child) {
-		std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
-		auto [indexBin, N_occur, offset]  = findOffset(dt);
-		return { N_occur, offset };
-	}
-
-	// Calibrate the cross correlation routine
-	template <typename T>
-	std::tuple<uint64_t, uint64_t, uint64_t, int64_t> calibrateXcorr(std::vector<T> grandfather, std::vector<T> child, double percentOverlap) {
-		// Outputs: { index of last synced event, timeOffset }
-		uint64_t index = 0;
-		uint64_t N_occur = 0;
-		int64_t timeOffset = 0;
-
-		size_t N_compare = child.size();
-		// Check that the child vector is smaller than the grandfather vector
-		if(child.size() > grandfather.size()) return {2*N_compare, 2*N_compare, 0, 0};
-		// Check that percentOverlap is less than 1 and that we are checking for at least 1 overlapping sample
-		if(child.size() * percentOverlap < 1 || percentOverlap > 1) return {2*N_compare, 2*N_compare, 0, 0};
-
-		// iterate over whole setup until we find enough overlapping events
-
-		{ uint64_t maxOccur = 0;
-
-			//for(size_t startSample = 0; startSample < grandfather.size()-N_compare; startSample++) {
-			for(size_t startSample = 0; startSample < grandfather.size()-2*N_compare; startSample+=N_compare) {
-				auto begin = grandfather.begin() + startSample;
-				std::vector<T> father(begin, begin+2*N_compare);
-				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
-
-				auto [indexBin, N_occur, offset]  = findOffset(dt);
-
-				if(N_occur >= percentOverlap * N_compare) { // found enough overlapping events!
-					maxOccur = N_occur;
-					timeOffset = offset;
-					index = startSample; // sets index of last synced event to the front of the last synced set
-					break;
-					if(maxOccur < N_occur) { // tries to get highest number of occurrences
-						maxOccur = N_occur;
-						timeOffset = offset;
-						index = startSample;
-					}
+		TFile* fout = TFile::Open("out.root","RECREATE");
+		for (auto fragId : fFragId) {
+			// iG = index of grandfather
+			auto counter = 0;
+			for(size_t iG = 0; iG < fFragTimestamps[fragIdGrandfather].size(); ++iG) {
+				auto iC = masks[fragId][iG];
+				if(iC != -1) {
+					auto timeStamp = fFragTimestamps[fragId][iC];
+					if(fragId == fragIdGrandfather)
+						timeStamp = fBCOx*fSSDRawDigits[iC].first;
+					//fTvsT[fragId]->Fill(fFragTimestamps[fragIdGrandfather][iG], timeStamp);
+					fTvsT[fragId]->SetPoint(counter++, fFragTimestamps[fragIdGrandfather][iG], timeStamp);
 				}
 			}
-			N_occur = maxOccur;
+
+			char graph[256];
+			if(fragId == fragIdGrandfather) sprintf(graph,"tw_SSD");
+			else sprintf(graph,"tw_%d", fragId);
+
+			std::cout << graph << std::endl;
+			//fTvsT[fragId]->Write("graph");
+			fTvsT[fragId]->Write(graph);
+
+			fTvsT[fragId]->Fit("pol1");
+
+			// save fits
+			TF1* f1 = fTvsT[fragId]->GetFunction("pol1");
+			if(fragId == fragIdGrandfather) sprintf(graph,"tw_SSD_Fit");
+			else sprintf(graph,"tw_%d_Fit", fragId);
+			f1->Write(graph);
+
+			fTWCorr0[fragId] = f1->GetParameter(0);
+			fTWCorr1[fragId] = f1->GetParameter(1);
+			std::cout << "Board " << fragId << " twcorr intercept = " << f1->GetParameter(0) << std::endl;
+			std::cout << "Board " << fragId << " twcorr slope = " << f1->GetParameter(1) << std::endl;
 		}
-
-		for( auto &timeStamp : child ) // offsets all of the child timestamps
-			timeStamp += timeOffset;
-
-		auto begin = grandfather.begin() + index;
-		std::vector<T> father(begin, begin+2*N_compare);
-		auto [fIndex, cIndex] = indexOfLastSync(father, child);
-
-		return { index+fIndex, cIndex, N_occur, timeOffset };
+		fout->Close();
 	}
 
-	bool Unpacker::findT0s()	{
+  /***************************************************************************/
+	// adjusted routine
+	bool Unpacker::findMatches()	{
+		// masks is now a member variable
+		//std::vector<std::vector<int>> masks;
 
-		std::unordered_map <
-			artdaq::Fragment::fragment_id_t,
-			std::vector<int64_t>
-		> dtVec;
+		// Prepare ssd timestamp vector
 		std::vector<uint64_t> ssdTimestamps; ssdTimestamps.reserve(fSSDRawDigits.size());
-		for(size_t i = 0; i < fSSDRawDigits.size(); ++i) {
-			ssdTimestamps.push_back(fBCOx*fSSDRawDigits[i].first);
+		for(auto eventPair : fSSDRawDigits)
+			ssdTimestamps.push_back(fBCOx*eventPair.first);
+
+		// determine grandfather clock
+      //auto fragIdGrandfather = fFragId[0];
+      fragIdGrandfather = fFragId[0];
+		auto samplesGrandfather = fFragTimestamps[fragIdGrandfather].size();
+		for( auto fragId : fFragId ) {
+			if(fFragTimestamps[fragId].size() > samplesGrandfather) {
+				fragIdGrandfather = fragId;
+				samplesGrandfather = fFragTimestamps[fragId].size();
+			}
 		}
 
-		// remove first event from each sensor <@@>
+		// remove first event from each sensor
 		ssdTimestamps.erase(ssdTimestamps.begin());
-		// Zero clocks to first event
-//		{
+		for( auto fragId : fFragId ) {
+			fFragTimestamps[fragId].erase(fFragTimestamps[fragId].begin());
+		}
+
+//		// Zero clocks to first event
+//		{ // set scope
 //			auto start = *ssdTimestamps.begin();
 //			for(auto& time : ssdTimestamps) {
 //				time += -start;
 //			}
 //		}
-
-		std::cout << "In findT0s()" << std::endl;
-
-      std::array<artdaq::Fragment::fragment_id_t,3> fragIdGrandfather = {fFragId[0]};
-
-		// Determine the grandfathers
-		size_t samplesGrandfather = 0;
-		//size_t samplesGrandfather = 0;
-		for(int i = 0; i < 2; ++i) { // iterate over sensor types
-			samplesGrandfather = 0;
-			for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
-				auto fragId = fFragId[ifrag];
-				if(fragId >= 100*i && fragId <= 100*(i+1)) continue; // this groups CAENs together and TRB3s together
-				// remove first event from each sensor <@@>
-				fFragTimestamps[fragId].erase(fFragTimestamps[fragId].begin());
-				// Zero clocks to first event
-//				{
+//		for( auto fragId : fFragId ) {
+//				{ // set scope
 //					auto start = *fFragTimestamps[fragId].begin();
 //					for(auto& time : fFragTimestamps[fragId]) {
 //						time += -start;
 //					}
 //				}
-				// determine grandfather clock
-				if(fFragTimestamps[fragId].size() > samplesGrandfather) {
-					fragIdGrandfather[i] = fragId;
-					samplesGrandfather = fFragTimestamps[fragId].size();
-				}
-			}
-		}
-// print output timestamps for debugging <@@>
-//		for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
-//			auto fragId = fFragId[ifrag];
-//			if(fragId == 3 || fragId == 2) {
-//				for(auto &ts : fFragTimestamps[fragId])
-//					std::cout << ts << std::endl;
-//				std::cout << std::endl;
-//			}
 //		}
-//		return false;
 
-		// Do the xcorrelation
-
-		size_t N_compare=10; // Number of events to compare
-		double scale = 1;
-		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
-		std::unordered_map <
-			artdaq::Fragment::fragment_id_t,
-			size_t
-		> indexOffset;
-
-		for (size_t ifrag=0; ifrag < fFragId.size(); ++ifrag) {
-			auto fragId = fFragId[ifrag];
-			// Sets grandfather to the appropriate value for syncing
-			auto grandfather = (fragId/10 == fragIdGrandfather[0]/10) ? fragIdGrandfather[0] : fragIdGrandfather[1];
-			double percentOverlap = 1.0*fFragTimestamps[fragId].size()/fFragTimestamps[grandfather].size();
-
-			//if(fragId < 10 || fragId == grandfather) continue;
-			if(fragId == grandfather) {
-				// if fragId is the grandfather, then let's set fragId to the opposite grandfather for comparison
-				fragId = (grandfather == fragIdGrandfather[0]) ? fragIdGrandfather[1] : fragIdGrandfather[0];
-				// Since this comparison could be done in reverse, let's do the SSDs for the other set
-				if(fFragTimestamps[grandfather].size() < fFragTimestamps[fragId].size()) {
-					// synchronize with SSD
-					fragId = grandfather;
-					grandfather = fragId;
-					std::cout << "SSD Comparison" << std::endl;
-					//continue;
+		// Perform comparison to grandfather
+		for( auto fragId : fFragId ) {
+			if(fragId == fragIdGrandfather) continue; // skip grandfather
+			std::cout << "(" << fragIdGrandfather << ", " << fragId << ")" << std::endl;
+			masks[fragId] = compareGrandfather(fFragTimestamps[fragIdGrandfather], fFragTimestamps[fragId], 16);
+			for( auto index : masks[fragId] ) {
+				if(index != -1) {
+					fT0[fragId] = masks[fragId][0];
+					break;
 				}
 			}
-			fragId = grandfather;
-			grandfather = fragId;
-			// Testing SSDs (Delete these lines later) <@@> NTK
-			for(auto& t : fFragTimestamps[grandfather])
-				std::cout << t << "\t";
-			std::cout << std::endl;
-			for(auto& t : ssdTimestamps) {
-				std::cout << t << "\t";
+
+			auto count = 0;
+			for( auto index : masks[fragId] ) {
+				if(index != -1)
+					count++;
 			}
-			std::cout << std::endl;
-
-			std::cout << "(" << grandfather << ", " << fragId << ")" << std::endl;
-
-			auto begin = fFragTimestamps[grandfather].begin();
-			std::vector<int64_t> grandCalibrate(begin, begin + 100*N_compare);
-
-			// initial calibration
-			if(fragId == grandfather) // compare SSDs if fragId is grandfather
-				begin = ssdTimestamps.begin();
-			else
-				begin = fFragTimestamps[fragId].begin();
-
-			std::vector<int64_t> childCalibrate(begin, begin + 10*N_compare);
-
-			std::cout << "Attempting to calibrate" << std::endl;
-			auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap/10);
-			std::cout << "Calibration completed" << std::endl;
-			std::cout << "(" << aIndex << ", " << bIndex << ", "  << calibrateOccur << ", "<< calibrateOffset << ")" << std::endl;
-
-double accumulatedOffset = 0; //<@@> REMOVE later
-int nOffsets = 0; //<@@> REMOVE Later
-
-			// offset the child samples by the time determined by calibrateXcorr
-			for(size_t isync = 0; isync < fFragTimestamps[fragId].size(); ++isync)
-				fFragTimestamps[fragId][isync] += calibrateOffset;
-
-			auto grandfatherSamples = fFragTimestamps[grandfather].size();
-			auto childSamples = fFragTimestamps[fragId].size();
-			// begin primary syncs
-			while(aIndex < grandfatherSamples - 100*N_compare && bIndex < childSamples - 100*N_compare) {
-				auto begin = fFragTimestamps[grandfather].begin() + aIndex;
-				std::vector<int64_t> grandSync(begin, begin + N_compare);
-
-				if(fragId == grandfather) // compare SSDs if fragId is grandfather
-					begin = ssdTimestamps.begin() + bIndex;
-				else
-					begin = fFragTimestamps[fragId].begin() + bIndex;
-
-				std::vector<int64_t> childSync(begin, begin + N_compare);
-				std::cout << "[ Attempting sync ]";
-
-				std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync, skip, scale);
-				auto [indexBin, N_occur, timeOffset]  = findOffset(dt);
-				auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync);
-				if(N_occur >= percentOverlap * N_compare) {
-					for(size_t isync = bIndex; isync < fFragTimestamps[fragId].size(); ++isync)
-						fFragTimestamps[fragId][isync] += timeOffset;
-					// increment indices of the two datasets
-					aIndex+=fIndex + 1;
-					bIndex+=cIndex + 1;
-					std::cout << "\n[  Sync completed  ]" << std::endl;
-					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
-					accumulatedOffset += timeOffset; //<@@> REMOVE later
-					nOffsets += 1.0; //<@@> REMOVE Later
-					// Auto-synchronize Routine
-					{
-						// Continue through synchronization until events aren't capable of aligning
-						std::cout << "[Auto-synchronization]\n";
-						while(std::llabs(fFragTimestamps[grandfather][aIndex] - fFragTimestamps[fragId][bIndex]) <= timeUncertainty) {
-							if(aIndex >= grandfatherSamples - N_compare && bIndex >= childSamples - N_compare) break;
-							aIndex++; bIndex++;
-						}
-					}
-				} else { // recalibrate if failed to get N_occur high enough
-
-					std::cout << "\n[  Sync failed  ][ recalibrating ]" << std::endl;
-					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
-
-					//std::cout << "Begin recalibration; press any key to continue" << std::endl;
-					//{char x; std::cin >> x;} //<@@>
-
-					// Swap grandfather role for calibration depending on who's timestamp is further ahead
-					// set up new grandfather
-					if(fFragTimestamps[grandfather][aIndex] < fFragTimestamps[fragId][bIndex]) {
-						begin = fFragTimestamps[grandfather].begin() + aIndex;
-					} else { // Swap child and grandfather
-						if(fragId == grandfather) // compare SSDs if fragId is grandfather
-							begin = ssdTimestamps.begin() + bIndex;
-						else
-							begin = fFragTimestamps[fragId].begin() + bIndex;
-					}
-					std::vector<int64_t> grandResync(begin, begin + 100*N_compare);
-
-					// set up new child
-					if(fFragTimestamps[grandfather][aIndex] < fFragTimestamps[fragId][bIndex]) {
-						if(fragId == grandfather) // compare SSDs if fragId is grandfather
-							begin = ssdTimestamps.begin() + bIndex;
-						else
-							begin = fFragTimestamps[fragId].begin() + bIndex;
-					} else {
-						begin = fFragTimestamps[grandfather].begin() + aIndex;
-					}
-					std::vector<int64_t> childSync(begin, begin + 10*N_compare);
-					auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, 0.1*percentOverlap);
-
-					for(size_t isync = bIndex; isync < fFragTimestamps[fragId].size(); ++isync)
-						fFragTimestamps[fragId][isync] += recalibrationOffset;
-					if(fFragTimestamps[grandfather][aIndex] < fFragTimestamps[fragId][bIndex]) {
-						aIndex+=fIndex + 1;
-						bIndex+=cIndex + 1;
-					} else {
-						aIndex+=cIndex + 1;
-						bIndex+=fIndex + 1;
-					}
-
-					std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << recalibrationOffset << ")" << std::endl;
-
-					accumulatedOffset += recalibrationOffset; //<@@> REMOVE later
-					nOffsets += 1.0; //<@@> REMOVE Later
-
-				//	std::cout << "Finished recalibration; press any key to continue" << std::endl;
-				//	{char x; std::cin >> x;} //<@@>
-				}
-			}
-			std::cout << "Accumulated offset: " << accumulatedOffset << std::endl; //<@@> REMOVE later
-			std::cout << "Average offset: " << accumulatedOffset/nOffsets << std::endl; //<@@> REMOVE later
-			std::cout << "Finished this pair; press any key to continue" << std::endl;
-			{char x; std::cin >> x;} //<@@>
+			std::cout << "Synced " << count << " out of " << fFragTimestamps[fragId].size() << " events!" << std::endl;
+			std::cout << "Percentage " << 1.0 * count/fFragTimestamps[fragId].size() << std::endl;
 		}
-
-		return false;
-		std::cout << "Done finding T0s" << std::endl;
-		return true;
+		std::cout << "(Comparing to SSDs)"<< std::endl;
+		// Store SSD in the extra mask slot for fragIdGrandfather (no need to compare Grandfather to itself)
+		masks[fragIdGrandfather] = compareGrandfather(fFragTimestamps[fragIdGrandfather], ssdTimestamps, 100);
+		{
+			auto count = 0;
+			for( auto index : masks[fragIdGrandfather] ) {
+				if(index != -1)
+					count++;
+			}
+			std::cout << "Synced " << count << " out of " << ssdTimestamps.size() << " events!" << std::endl;
+			std::cout << "Percentage " << 1.0 * count/ssdTimestamps.size() << std::endl;
+			for( auto index : masks[fragIdGrandfather] ) {
+				if(index != -1) {
+					fSSDT0 = masks[fragIdGrandfather][0];
+					break;
+				}
+			}
+		}
+		//return masks;
+		return !masks.empty(); // returns true if masks has matches
 	}
-
   /***************************************************************************/
 
   bool Unpacker::readNext(art::RunPrincipal* const& ,//inR,
@@ -1020,7 +592,7 @@ int nOffsets = 0; //<@@> REMOVE Later
 	if (! createSSDDigits()) return false;
 
       // determine t0s for each board
-      if (!findT0s())
+      if (!findMatches())
 	abort();
 
       if (fMakeTDiffHistos)

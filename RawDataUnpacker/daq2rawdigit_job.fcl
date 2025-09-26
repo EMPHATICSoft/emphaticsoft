@@ -19,7 +19,7 @@ source:
 
   daqLabel:        "daq"
   createArtEvents:   true
-  makeTDiffHistos:   true
+  makeTDiffHistos:   false
   makeTimeWalkHistos:   true
   numWaveFormPlots:  100
   timeWindow: 50000
