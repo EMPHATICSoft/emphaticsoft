@@ -47,8 +47,6 @@
 #include <fstream>
 
 #include "TimeSync.h"
-// std::minmax_element of a vector
-// - NTK
 
 namespace {
   // Read product for given type T
@@ -375,7 +373,6 @@ namespace rawdata {
 
   /***************************************************************************/
 
-  // NTK's version<@@>
 	void Unpacker::calcTimeWalkCorr() {
 		std::cout << "Entering \"calcTimeWalkCorr\"" << std::endl;
 		if(!fTvsT.empty()) return;
@@ -502,7 +499,7 @@ namespace rawdata {
 					count++;
 			}
 			std::cout << "Synced " << count << " out of " << fFragTimestamps[fragId].size() << " events!" << std::endl;
-			std::cout << "Percentage " << 1.0 * count/fFragTimestamps[fragId].size() << std::endl;
+			std::cout << "Percentage " << 100.0 * count/fFragTimestamps[fragId].size() << "%" << std::endl;
 		}
 		std::cout << "(Comparing to SSDs)"<< std::endl;
 		// Store SSD in the extra mask slot for fragIdGrandfather (no need to compare Grandfather to itself)

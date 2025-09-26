@@ -1,9 +1,9 @@
 #ifndef TIMESYNC_H
 #define TIMESYNC_H
+//#define VERBOSE
 
 #include <bits/stdc++.h>
 // std::minmax_element of a vector
-// - NTK
 
 	template <typename T, typename S> // this type will likely be 'double'
 	std::vector<T> calcDifferences(S timestampA, S timestampB, std::vector<size_t> skip, T scale) {
@@ -59,8 +59,8 @@
 		char hname[256];
 		char htitle[256];
 		// nbins is rounded
-		//art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file <@@>
-		//art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file <@@>
+		//art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file
+		//art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file
 
 		static int histIndex = 0;
       sprintf(hname,"Time_Offset_%d",histIndex);
@@ -72,7 +72,7 @@
 		for(auto x : dt)
 			dtHist.Fill(x);
 
-		//tdir2.make<TH1I>(dtHist); // this draws the histogram <@@>
+		//tdir2.make<TH1I>(dtHist); // this draws the histogram
 		auto indexBin = dtHist.GetMaximumBin();
 		auto N_occur = dtHist.GetMaximum();
 	//	NTK: add bins around maximum within CAEN resolution
@@ -110,9 +110,6 @@
 	template <typename T>
 	std::vector<int> indexOfMatch(const std::vector<T> A, const std::vector<T> B, const int timeUncertainty) {
 		std::vector<int> mask(A.size()); std::fill(mask.begin(),mask.end(),-1);
-		// bypass <@@>
-		//std::vector<int> mask(A.size()); std::fill(mask.begin(),mask.end(),1);
-		//return mask;
 
 		uint64_t bStart = 0;
 		for(size_t aEvent = 0; aEvent < A.size(); ++aEvent) {
@@ -186,20 +183,14 @@
 		return { index+fIndex, cIndex, N_occur, timeOffset };
 	}
 /***********************************************************************************************
-  Test this function out - NTK <@@>
   Returns the indices of CHILD that synchronize with that event of GRANDFATHER
 ***********************************************************************************************/
 	std::vector<int> compareGrandfather(std::vector<uint64_t> grandfather, std::vector<uint64_t> child, int timeUncertainty) {
 		// This is the output: a mask for grandfather to indicate which events the child synchronizes with
 		std::vector<int> mask;
 
-		// bypass <@@>
-		//return indexOfMatch(grandfather, child, timeUncertainty);
-
 		// Do the xcorrelation
 		size_t N_compare=10; // Number of events to compare
-		double scale = 1;
-		std::vector<size_t> skip; // not skipping anything yet add this criterion later? <@@>
 
 		// Sets overlap percentage to the appropriate value for syncing
 		double percentOverlap = 1.0*child.size()/grandfather.size();
@@ -211,11 +202,11 @@
 		std::vector<int64_t> childCalibrate(begin, begin + 10*N_compare);
 
 		auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap/10, timeUncertainty);
-		std::cout << "Calibration completed" << std::endl;
-		std::cout << "(" << aIndex << ", " << bIndex << ", "  << calibrateOccur << ", "<< calibrateOffset << ")" << std::endl;
 
-double accumulatedOffset = 0; //<@@> REMOVE later
-int nOffsets = 0; //<@@> REMOVE Later
+#ifdef VERBOSE
+		std::cout << "[Calibration] completed\n";
+		std::cout << "(" << aIndex << ", " << bIndex << ", "  << calibrateOccur << ", "<< calibrateOffset << ")\n";
+#endif
 
 		// offset the child samples by the time determined by calibrateXcorr
 		for(size_t isync = 0; isync < child.size(); ++isync)
@@ -229,9 +220,7 @@ int nOffsets = 0; //<@@> REMOVE Later
 			begin = child.begin() + bIndex;
 
 			std::vector<int64_t> childSync(begin, begin + N_compare);
-			std::cout << "[ Attempting sync ]";
-
-			std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync, skip, scale);
+			std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync);
 			auto [indexBin, N_occur, timeOffset]  = findOffset(dt, timeUncertainty);
 			auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync, timeUncertainty);
 			if(N_occur >= percentOverlap * N_compare) {
@@ -240,26 +229,27 @@ int nOffsets = 0; //<@@> REMOVE Later
 				// increment indices of the two datasets
 				aIndex+=fIndex + 1;
 				bIndex+=cIndex + 1;
-				std::cout << "\n[  Sync completed  ]" << std::endl;
-				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
-accumulatedOffset += timeOffset; //<@@> REMOVE later
-nOffsets += 1.0; //<@@> REMOVE Later
-				// Auto-synchronize Routine
-				{
-					// Continue through synchronization until events aren't capable of aligning
+#ifdef VERBOSE
+				std::cout << "[ Synchronization ] completed\n";
+				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")\n";
+#endif
+				{ // Auto-synchronize Routine
+				// Continue through synchronization until events aren't capable of aligning
+#ifdef VERBOSE
 					std::cout << "[Auto-synchronization]\n";
+#endif
 					while(std::llabs(grandfather[aIndex] - child[bIndex]) <= timeUncertainty) {
 						if(aIndex >= grandfather.size() - N_compare || bIndex >= child.size() - N_compare) break;
 						aIndex++; bIndex++;
 					}
 				}
 			} else { // recalibrate if failed to get N_occur high enough
-
-				std::cout << "\n[  Sync failed  ][ recalibrating ]" << std::endl;
-				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")" << std::endl;
-
-				//std::cout << "Begin recalibration; press any key to continue" << std::endl;
-				//{char x; std::cin >> x;} //<@@>
+#ifdef VERBOSE
+				std::cout << "[ Synchronization ] failed; beginning Recalibration\n";
+				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")\n";
+				std::cout << "Press any key to continue" << std::endl;
+				{char x; std::cin >> x;}
+#endif
 
 				// Swap grandfather role for calibration depending on who's timestamp is further ahead
 				// set up new grandfather
@@ -293,18 +283,16 @@ nOffsets += 1.0; //<@@> REMOVE Later
 					aIndex+=cIndex + 1;
 					bIndex+=fIndex + 1;
 				}
+#ifdef VERBOSE
+				std::cout << "[ Recalibration ] completed\n";
 				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << recalibrationOffset << ")" << std::endl;
-
-accumulatedOffset += recalibrationOffset; //<@@> REMOVE later
-nOffsets += 1.0; //<@@> REMOVE Later
+#endif
 			}
 		}
-
-std::cout << "Accumulated offset: " << accumulatedOffset << std::endl; //<@@> REMOVE later
-std::cout << "Average offset: " << accumulatedOffset/nOffsets << std::endl; //<@@> REMOVE later
-																											 //
-		//std::cout << "Finished this pair; press any key to continue" << std::endl;
-		//{char x; std::cin >> x;} //<@@>
+#ifdef VERBOSE
+		std::cout << "Finished this pair; press any key to continue" << std::endl;
+		{char x; std::cin >> x;}
+#endif
 
 		mask = indexOfMatch(grandfather, child, timeUncertainty);
 		return mask;
