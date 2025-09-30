@@ -26,8 +26,7 @@ namespace rb {
 
   const rb::LineSegment* SpacePoint::GetLineSegment(int i) const
   {
-    assert(((i>0) && (i < int(_lineseg.size()))));
-
+    assert((i >= 0) && (i < int(_lineseg.size())));
     return &_lineseg[i];
   }
 
@@ -35,8 +34,7 @@ namespace rb {
   
   const rb::SSDCluster* SpacePoint::GetSSDCluster(int i) const
   {
-    assert(((i>0) && (i < int(_clust.size()))));
-
+    assert((i >= 0) && (i < int(_clust.size())));
     return &_clust[i];
   }
 
@@ -44,7 +42,8 @@ namespace rb {
 
   void SpacePoint::Add(const rb::LineSegment& ls)
   {
-    assert(_lineseg.empty());
+    // Enforce design: the assertion would mean only one LineSegment per SpacePoint
+    //assert(_lineseg.empty());
     _lineseg.push_back(ls);
   }
 
@@ -52,7 +51,8 @@ namespace rb {
 
   void SpacePoint::Add(const rb::SSDCluster& cl)
   {
-    assert(_clust.empty());
+    // Enforce design: the assertion would mean only one SSDCluster per SpacePoint
+    //assert(_clust.empty());
     _clust.push_back(cl);
   }
  

@@ -56,7 +56,7 @@ namespace caf
       srSSDHits.TrigNum = ssdhits[hitId].TrigNum();
       srSSDHits.Row = ssdhits[hitId].Row();
       srSSDHits.Station = dchan.Station();
-      srSSDHits.Sensor  = dchan.Channel();
+      srSSDHits.Sensor  = dchan.HiLo();
       srSSDHits.Plane = dchan.Plane();
    } // end for hitId
   }  

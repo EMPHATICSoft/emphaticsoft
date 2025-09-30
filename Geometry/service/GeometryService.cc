@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-/// \brief  Simple service to provide access to the Geometry
+/// \brief  Simple service to provide access to the Geometry (implementation)
 /// \author jpaley@fnal.gov
 //////////////////////////////////////////////////////////////////////////
 
@@ -95,5 +95,3 @@ namespace emph
 
   }
 }
-
-DEFINE_ART_SERVICE(emph::geo::GeometryService)

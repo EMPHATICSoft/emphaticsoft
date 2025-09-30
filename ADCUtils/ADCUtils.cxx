@@ -9,11 +9,16 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <algorithm>
 
 namespace emph{
 namespace adcu{
 
+  //----------------------------------------------------------------------
+  ADCUtils::ADCUtils() {
+    // constructor implementation
+  }
   //----------------------------------------------------------------------
   
   ADCUtils::ADCUtils(const emph::rawdata::WaveForm& wvfm, const emph::st::SignalTime& stmap, const int& tlow, const int& thigh)

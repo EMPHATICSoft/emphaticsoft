@@ -1,9 +1,7 @@
-include(ArtDictionary)
-include(ArtMake)
 FILE(GLOB experimental_src_files *.cxx)
 
-art_make_library(LIBRARY_NAME SSDRecoExperimentalUtil
-  SOURCE ${experimental_src_files}
+cet_make_library(SOURCE ${experimental_src_files}
+  LIBRARY_NAME SSDRecoExperimentalUtil
   LIBRARIES PRIVATE
     SSDRecoUtil
     ChannelMap
@@ -14,50 +12,54 @@ art_make_library(LIBRARY_NAME SSDRecoExperimentalUtil
     RunHistoryService_service
     RawData
     RecoBase
-    Geometry_service
     Geometry
+    GeometryService_service
     Align
     AlignService_service
     MagneticField
-    MagneticField_service
+    MagneticFieldService_service
     ROOT::Core
     ROOT::MathCore
     ROOT::Minuit2
     ROOT::Physics
     art_root_io::TFileService_service
+  BASENAME_ONLY
 )
 
 cet_build_plugin(StudyOneSSDClusters art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     SSDRecoExperimentalUtil
     SSDRecoUtil
-    art_root_io::TFileService_service
-    Geometry_service
-    MagneticField_service
+    GeometryService_service
+    MagneticFieldService_service
     AlignService_service
     DetGeoMapService_service
+    art_root_io::TFileService_service
+  BASENAME_ONLY
 )
 
 cet_build_plugin(RecoBeamTracksAutre art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     SSDRecoExperimentalUtil
     SSDRecoUtil
-    art_root_io::TFileService_service
-    Geometry_service
-    MagneticField_service
+    GeometryService_service
+    MagneticFieldService_service
     AlignService_service
     DetGeoMapService_service
+    art_root_io::TFileService_service
+  BASENAME_ONLY
 )
 
 cet_build_plugin(StudyAllTrial1Autre art::module
-  LIBRARIES PRIVATE
+  LIBRARIES REG
     SSDRecoExperimentalUtil
     SSDRecoUtil
-    art_root_io::TFileService_service
-    Geometry_service
-    MagneticField_service
+    GeometryService_service
+    MagneticFieldService_service
     AlignService_service
     DetGeoMapService_service
+    art_root_io::TFileService_service
+  BASENAME_ONLY
 )
 
 install_headers()

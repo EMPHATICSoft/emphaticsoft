@@ -5,6 +5,7 @@
 #define SRGASCKOVBRANCH_H
 #include "StandardRecord/SRGasCkov.h"
 
+#include <cstddef>
 #include <limits>
 #include <vector>
 #include <cstddef>
