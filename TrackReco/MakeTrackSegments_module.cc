@@ -104,11 +104,6 @@ namespace emph {
     bool fCheckClusters; // Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
-<<<<<<< HEAD
-=======
-    bool fSevenOn;
-    std::string fAlignPars;
->>>>>>> main
 
     // reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -120,7 +115,6 @@ namespace emph {
   //.......................................................................
   emph::MakeTrackSegments::MakeTrackSegments(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-<<<<<<< HEAD
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label"))
@@ -138,16 +132,6 @@ namespace emph {
     // Clean up any memory allocated by your module
     //======================================================================
 //  }
-=======
-      fCheckClusters(pset.get<bool>("CheckClusters")),
-      fClusterLabel(pset.get<std::string>("ClusterLabel")),
-      fG4Label(pset.get<std::string>("G4Label")),
-      fSevenOn(pset.get<bool>("SevenOn")) {
-    this->produces<std::vector<rb::LineSegment>>();
-    this->produces<std::vector<rb::SpacePoint>>();
-    this->produces<std::vector<rb::TrackSegment>>();
-  }
->>>>>>> main
 
   //......................................................................
   void MakeTrackSegments::beginRun(art::Run& run) {
@@ -156,14 +140,6 @@ namespace emph {
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
 
-<<<<<<< HEAD
-=======
-    // Optionally exclude Station 7 (added later in data)
-    if (!fSevenOn) {
-      nPlanes -= 2;
-      nStations -= 1;
-    }
->>>>>>> main
   }
 
   //......................................................................
@@ -171,7 +147,6 @@ namespace emph {
     std::cerr << "Starting MakeTrackSegments" << std::endl;
 
     art::ServiceHandle<art::TFileService> tfs;
-<<<<<<< HEAD
     spacepoint = tfs->make<TTree>("spacepoint","");
     spacepoint->Branch("run",&run,"run/I");
     spacepoint->Branch("subrun",&subrun,"subrun/I");
@@ -190,24 +165,6 @@ namespace emph {
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
-=======
-    spacepoint = tfs->make<TTree>("spacepoint", "");
-    spacepoint->Branch("run", &run, "run/I");
-    spacepoint->Branch("subrun", &subrun, "subrun/I");
-    spacepoint->Branch("event", &event, "event/I");
-    spacepoint->Branch("chi2", &chi2, "chi2/I");
->>>>>>> main
-  }
-
-  //......................................................................
-  void emph::MakeTrackSegments::endJob() {
-    std::cout << "MakeTrackSegments: Number of events: " << evts << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with clusters " << hasclusters << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with less than 50 clusters: " << usableclust << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with space points: " << sps << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: " << chi2lessthan5_1 << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: " << chi2lessthan5_2 << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: " << chi2lessthan5_3 << std::endl;
   }
 
   //......................................................................
@@ -380,12 +337,7 @@ namespace emph {
             sp1.clear();
             sp2.clear();
             sp3.clear();
-<<<<<<< HEAD
-
           } //clust < 45
-=======
-          }
->>>>>>> main
           ls_group.clear();
           cl_group.clear();
           linesegments.clear();
