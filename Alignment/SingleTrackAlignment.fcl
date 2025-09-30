@@ -8,6 +8,7 @@ standard_singletrackalignment:
   ClusterLabel:       "clust" #"ssdclusts"
   TrackSegLabel:      "maketracksegments" #"makesingletracksforalign"
   TrackLabel:         "makesingletracks"
+  Upstream:           false
 }
 
 END_PROLOG

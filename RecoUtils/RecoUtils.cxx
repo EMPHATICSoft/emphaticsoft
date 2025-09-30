@@ -43,15 +43,30 @@ namespace ru {
 
   void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose){
 
+
+    // Initialize output arrays to zero
+    for (int i=0; i<3; ++i) { F[i]=0; l1[i]=0; l2[i]=0; }
+
      double r12 = (B-A).Dot(B-A);
      double r22 = (D-C).Dot(D-C);
+
+    // Check for degenerate lines
+    if (r12 == 0 || r22 == 0) {
+      mf::LogError("RecoUtils") << "ClosestApproach: Zero-length segment detected.";
+      return;
+    }
 
      double d4321 = (D-C).Dot(B-A);
      double d3121 = (C-A).Dot(B-A);
      double d4331 = (D-C).Dot(C-A);
 
-     double s = (-d4321*d4331 + d3121*r22) / (r12*r22 - d4321*d4321);
-     double t = (d4321*d3121 - d4331*r12) / (r12*r22 - d4321*d4321);
+     double denom = (r12*r22 - d4321*d4321);
+     if (denom == 0) {
+       mf::LogError("RecoUtils") << "ClosestApproach: Parallel or coincident lines (denominator zero).";
+       return;
+     }
+     double s = (-d4321*d4331 + d3121*r22) / denom;
+     double t = (d4321*d3121 - d4331*r12) / denom;
 
      //std::cout<<"s: "<<s<<std::endl;
      //std::cout<<"t: "<<t<<std::endl;
@@ -123,8 +138,16 @@ namespace ru {
 
   void RecoUtils::ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose){
 
+    // Initialize output arrays to zero
+    for (int i=0; i<3; ++i) { l1[i]=0; l2[i]=0; }
+
      double r12 = (B-A).Dot(B-A);
      double r22 = (D-C).Dot(D-C);
+
+    if (r12 == 0 || r22 == 0) {
+      mf::LogError("RecoUtils") << "ClampedApproach: Zero-length segment detected.";
+      return;
+    }
 
      double d3121 = (C-A).Dot(B-A);
      double d4331 = (D-C).Dot(C-A);
@@ -202,79 +225,84 @@ namespace ru {
           //N is a normalized direction vector
           //t is a real number
 
-	  int N = v.size();
 
-          double mean[3] = {0., 0., 0.};
-          double corr[3][3] = {0.};
-          for(auto p : v)
-          {
-             //construct A which is the mean value of all points
-             mean[0] += p[0];
-             mean[1] += p[1];
-             mean[2] += p[2];
-             //construct correlation matrix
-             for(int i = 0; i < 3; i++){
-                for(int j = i; j < 3; j++){
-                   corr[i][j] += p[i] * p[j];
-                }
-             }
-          }
-          for (int i = 0; i < 3; i++){
-              mean[i] /= N;
-              for(int j = i; j < 3; j++){
-                 corr[i][j] /= N;
-              }
-          }
-          //construct covariance matrix
-          double cov_arr[] = { corr[0][0] - mean[0] * mean[0], corr[0][1] - mean[0] * mean[1], corr[0][2] - mean[0] * mean[2],
-                               corr[0][1] - mean[0] * mean[1], corr[1][1] - mean[1] * mean[1], corr[1][2] - mean[1] * mean[2],
-                               corr[0][2] - mean[0] * mean[2], corr[1][2] - mean[2] * mean[1], corr[2][2] - mean[2] * mean[2] };
-          TMatrixDSym cov(3,cov_arr);
-          TMatrixDSymEigen cov_e(cov);
-          //find N by solving the eigenproblem for the covariance matrix
-          TVectorD eig = cov_e.GetEigenValues();
-          TMatrixD eigv = cov_e.GetEigenVectors();
+  int N = v.size();
+  // Initialize outputs
+  for (int i=0; i<3; ++i) { lfirst[i]=0; llast[i]=0; }
+  if (N < 2) {
+    mf::LogError("RecoUtils") << "findLine: Input vector size < 2. Cannot fit line.";
+    return;
+  }
 
-          //take the eigenvector corresponding to the largest eigenvalue,
-          //corresponding to the solution N
-          double eig_max;
-          eig_max = std::max(eig[0], std::max(eig[1], eig[2]));
+  double mean[3] = {0., 0., 0.};
+  double corr[3][3] = {0.};
+  for(auto p : v)
+  {
+    //construct A which is the mean value of all points
+    mean[0] += p[0];
+    mean[1] += p[1];
+    mean[2] += p[2];
+    //construct correlation matrix
+    for(int i = 0; i < 3; i++){
+      for(int j = i; j < 3; j++){
+        corr[i][j] += p[i] * p[j];
+      }
+    }
+  }
+  for (int i = 0; i < 3; i++){
+    mean[i] /= N;
+    for(int j = i; j < 3; j++){
+      corr[i][j] /= N;
+    }
+  }
+  // Construct symmetric covariance matrix directly
+  TMatrixDSym cov(3);
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      double c = corr[std::min(i,j)][std::max(i,j)] - mean[i] * mean[j];
+      cov(i, j) = c;
+    }
+  }
+  TMatrixDSymEigen cov_e(cov);
+  //find N by solving the eigenproblem for the covariance matrix
+  TVectorD eig  = cov_e.GetEigenValues();
+  TMatrixD eigv = cov_e.GetEigenVectors();
 
-          //std::cout<<"eig"<<std::endl;
-          //eig.Print();
-          //std::cout<<"eigmax: "<<eig_max<<std::endl;
+  //take the eigenvector corresponding to the largest eigenvalue,
+  //corresponding to the solution N
+  double eig_max;
+  eig_max = std::max(eig[0], std::max(eig[1], eig[2]));
 
-          int el = -1;
-          
-          for (int i = 0; i < 3; i++){
-             if (eig[i] == eig_max){ el = i; break; }
-          }
-          if (el == -1) {
-            MF_LOG_ERROR("RecoUtils") << "Error: eig_max not found in eig array!";
-            return;  // or throw an exception or handle this case appropriately
-          }
-      
-          double n[3];
-          n[0] = eigv[0][el];
-          n[1] = eigv[1][el];
-          n[2] = eigv[2][el];
+  int el = -1;
+  for (int i = 0; i < 3; i++){
+    if (eig[i] == eig_max){ el = i; break; }
+  }
+  if (el == -1) {
+    mf::LogError("RecoUtils") << "Error: eig_max not found in eig array!";
+    return;  // or throw an exception or handle this case appropriately
+  }
 
-          //we can create any point L on the line by varying t
+  double n[3];
+  n[0] = eigv[0][el];
+  n[1] = eigv[1][el];
+  n[2] = eigv[2][el];
 
-          //create endpoints at first and last station z-position
-          //find t where z = v[0][2] then z = [v.size()-1][2]
-          double tfirst; double tlast;
+  //we can create any point L on the line by varying t
 
-          tfirst = (v[0][2] - mean[2])/n[2];
-          tlast  = (v[v.size()-1][2] - mean[2])/n[2];
+  //create endpoints at first and last station z-position
+  //find t where z = v[0][2] then z = [v.size()-1][2]
+  double tfirst; double tlast;
 
-          lfirst[0] = mean[0] + tfirst*n[0];
-          lfirst[1] = mean[1] + tfirst*n[1];
-          lfirst[2] = v[0][2];
+  tfirst = (v[0][2] - mean[2])/n[2];
+  tlast  = (v[v.size()-1][2] - mean[2])/n[2];
 
-          llast[0] = mean[0] + tlast*n[0];
-          llast[1] = mean[1] + tlast*n[1];
-          llast[2] = v[v.size()-1][2];
+  lfirst[0] = mean[0] + tfirst*n[0];
+  lfirst[1] = mean[1] + tfirst*n[1];
+  lfirst[2] = v[0][2];
+
+  llast[0] = mean[0] + tlast*n[0];
+  llast[1] = mean[1] + tlast*n[1];
+  llast[2] = v[v.size()-1][2];
 
   } 
   
@@ -300,6 +328,11 @@ namespace ru {
   double RecoUtils::findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f){
      double p_ix=0.; double p_iy=0.; double p_iz=0.;
      double p_fx=0.; double p_fy=0.; double p_fz=0.;
+
+     if (sim_i.empty() || sim_f.empty()) {
+       mf::LogError("RecoUtils") << "findTruthAngle: Input hit vectors are empty.";
+       return 0.0;
+     }
 
      for (auto i : sim_i){
          p_ix += i.GetPx();
@@ -344,15 +377,21 @@ namespace ru {
 
    void RecoUtils::findTrackIntersection(rb::TrackSegment trk1, rb::TrackSegment trk2, double point[3]){
 
+     // Initialize output
+     for (int i=0; i<3; ++i) point[i]=0;
+
      TVector3 p1(trk1.P()[0],trk1.P()[1],trk1.P()[2]);
      TVector3 p2(trk2.P()[0],trk2.P()[1],trk2.P()[2]);
      TVector3 a = p1.Cross(p2);
      double dot = a.Dot(a);
 
-     if (dot == 0) std::cout<<"Parallel"<<std::endl;
+     if (dot == 0) {
+       mf::LogError("RecoUtils") << "findTrackIntersection: Parallel tracks.";
+       return;
+     }
 
      TVector3 ab(trk2.Vtx()[0]-trk1.Vtx()[0],trk2.Vtx()[1]-trk1.Vtx()[1],trk2.Vtx()[2]-trk1.Vtx()[2]);
- 
+
      TVector3 b = ab.Cross(p2);
 
      double t = b.Dot(a) / dot;

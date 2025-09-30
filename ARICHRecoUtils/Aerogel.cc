@@ -8,6 +8,7 @@
 #include "ARICHRecoUtils/Aerogel.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "TF1.h"
+#include <filesystem>
 using namespace std;
 
 
@@ -68,14 +69,19 @@ namespace arichreco{
          minI = i;
             }
     }
-   // Get the corresponding file of interaction lengths using an environment variable
-   // currently: ARICHRecoUtils/data/
-   const char* dataDir = getenv("ARICH_DATA_DIR");
-   if (!dataDir) {
-     mf::LogError("Aerogel") << "Environment variable ARICH_DATA_DIR is not set!";
-     assert(false && "Aerogel: ARICH_DATA_DIR environment variable not set");
+
+   // Determine data directory: $CETPKG_SOURCE/ARICHRecoUtils/data
+   const char* cetSrc = getenv("CETPKG_SOURCE");
+   if (!cetSrc) {
+     mf::LogError("Aerogel") << "Environment variable CETPKG_SOURCE is not set; make sure it is set so we can set the ARICHRecoUtils data directory.";
+     assert(false && "Aerogel: CETPKG_SOURCE environment variable not set");
    }
-   std::string fileName = std::string(dataDir) + "/" + files[minI] + "IntLength.csv";
+   std::string baseDir = std::string(cetSrc) + "/ARICHRecoUtils/data";
+   if (!std::filesystem::exists(baseDir)) {
+     mf::LogError("Aerogel") << "ARICHRecoUtils Data directory '" << baseDir << "' does not exist.";
+     assert(false && "Aerogel: ARICHRecoUtils/data directory does not exist");
+   }
+   std::string fileName = baseDir + "/" + files[minI] + "IntLength.csv";
    std::ifstream intLengthFile(fileName);
 
    std::vector<double> wavs;

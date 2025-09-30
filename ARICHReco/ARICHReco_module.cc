@@ -108,10 +108,9 @@ namespace emph {
     std::vector<int> blocks,MCT_PDG,unique_ids;
     int pdg_event;
 	
-};
+  };
 
   //.......................................................................
-  
   emph::ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
     : EDProducer(pset)
  { 
@@ -122,45 +121,43 @@ namespace emph {
     fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
     fModelPath = std::string(pset.get<std::string>("ModelPath"));
 
-    //ARICH RECO UTILS STUFF
-    PDfile  =  std::string(pset.get< std::string >("PD_file"));
-    up_n = double(pset.get<double>("RefractiveIndex_UpstreamAerogel"));
-    up_pos = double(pset.get<double>("Position_UpstreamAerogel"));
-    up_thick = double(pset.get<double>("Thinkness_UpstreamAerogel"));
-    down_n = double(pset.get<double>("RefractiveIndex_DownstreamAerogel"));
-    down_pos = double(pset.get<double>("Position_DownstreamAerogel"));
-    down_thick = double(pset.get<double>("Thickness_DownstreamAerogel"));
-    PDdarkrate = double(pset.get<double>("PD_Darkrate"));
-    PDwin = double(pset.get<double>("Trigger_window"));
-    PDfillfactor = double(pset.get<double>("PD_FillFactor"));
-    PDzpos = double(pset.get<double>("PD_Position"));
-    fEvtNum = 0;
-    
-  }	
-  //......................................................................
+      //ARICH RECO UTILS STUFF
+      PDfile  =  std::string(pset.get< std::string >("PD_file"));
+      up_n = double(pset.get<double>("RefractiveIndex_UpstreamAerogel"));
+      up_pos = double(pset.get<double>("Position_UpstreamAerogel"));
+      up_thick = double(pset.get<double>("Thinkness_UpstreamAerogel"));
+      down_n = double(pset.get<double>("RefractiveIndex_DownstreamAerogel"));
+      down_pos = double(pset.get<double>("Position_DownstreamAerogel"));
+      down_thick = double(pset.get<double>("Thickness_DownstreamAerogel"));
+      PDdarkrate = double(pset.get<double>("PD_Darkrate"));
+      PDwin = double(pset.get<double>("Trigger_window"));
+      PDfillfactor = double(pset.get<double>("PD_FillFactor"));
+      PDzpos = double(pset.get<double>("PD_Position"));
+      fEvtNum = 0;
+    }	
+    //......................................................................
  
-  emph::ARICHReco::~ARICHReco()
-  {
-    //======================================================================
-    // Clean up any memory allocated by your module
-    //======================================================================
-  }
+    emph::ARICHReco::~ARICHReco()
+    {
+      //======================================================================
+      // Clean up any memory allocated by your module
+      //======================================================================
+    }
 
   //......................................................................
-
   void emph::ARICHReco::beginJob()
-  {    
-   if(fFillTree){
-    art::ServiceHandle<art::TFileService const> tfs;
-    fARICHTree = tfs->make<TTree>("ARICHRECO","event");
-    fARICHTree->Branch("TruthPDG", &MCT_PDG);
-    fARICHTree->Branch("Blocks", &blocks);
-    fARICHTree->Branch("Momenta", &momenta);
-    fARICHTree->Branch("LL_pion", &LL_PION);
-    fARICHTree->Branch("LL_kaon", &LL_KAON);
-    fARICHTree->Branch("LL_prot", &LL_PROT);
-    fARICHTree->Branch("BINS", &bins);
-    fARICHTree->Branch("VALS", &vals);
+  { 
+    if(fFillTree) {
+      art::ServiceHandle<art::TFileService const> tfs;
+      fARICHTree = tfs->make<TTree>("ARICHRECO","event");
+      fARICHTree->Branch("TruthPDG", &MCT_PDG);
+      fARICHTree->Branch("Blocks", &blocks);
+      fARICHTree->Branch("Momenta", &momenta);
+      fARICHTree->Branch("LL_pion", &LL_PION);
+      fARICHTree->Branch("LL_kaon", &LL_KAON);
+      fARICHTree->Branch("LL_prot", &LL_PROT);
+      fARICHTree->Branch("BINS", &bins);
+      fARICHTree->Branch("VALS", &vals);
     }
 
     ArichUtils = new arichreco::ARICH_UTILS();
@@ -180,7 +177,7 @@ namespace emph {
     fARICHTree->Branch("BINS_PDF_prot", &bins_pdf_prot);
     fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
 */
-}
+  }
 
 //......................................................................
 at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
@@ -201,77 +198,74 @@ at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
 }
 //......................................................................
 void ARICHReco::produce(art::Event& evt)
-  { 
-      std::unique_ptr<std::vector<rb::ArichID>> ARICH_LL(new std::vector<rb::ArichID>);
+{ 
+    std::unique_ptr<std::vector<rb::ArichID>> ARICH_LL(new std::vector<rb::ArichID>);
 
-      art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
-      art::Handle<std::vector<rb::Track>> TracksH;
+    art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
+    art::Handle<std::vector<rb::Track>> TracksH;
 
-      evt.getByLabel(fARICHLabel,arich_clusters);
+    evt.getByLabel(fARICHLabel,arich_clusters);
 
-      evt.getByLabel(fTrackLabel,TracksH);  
+    evt.getByLabel(fTrackLabel,TracksH);  
 
-	
-      if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
+    if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
 
-	for(int i = 0; i < (int)TracksH->size(); i++){
-	 
-	  rb::Track track = TracksH->at(i);
+      for(int i = 0; i < (int)TracksH->size(); i++){
+        rb::Track track = TracksH->at(i);
 
- 	 double posx = track.Vtx()[0];
-	  double posy = track.Vtx()[1];
-	  double posz = track.Vtx()[2];
-	 
- 	  double px = track.P()[0]; 
-	  double py = track.P()[1];
-	  double pz = track.P()[2]; 
+        double posx = track.Vtx()[0];
+        double posy = track.Vtx()[1];
+        double posz = track.Vtx()[2];
 
+        double px = track.P()[0];
+        double py = track.P()[1];
+        double pz = track.P()[2];
 
-	
-     	  float mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
+        float mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
+        if (mom == 0) {
+          mf::LogWarning("ARICHReco") << "Track " << i << " has zero momentum. Skipping.";
+          continue;
+        }
 
-	  float finalx = posx + (192.0 - posz) * track.P()[0]/mom;
-	  float finaly = posy + (192.0 - posz) * track.P()[1]/mom; 
+        float finalx = posx + (192.0 - posz) * track.P()[0]/mom;
+        float finaly = posy + (192.0 - posz) * track.P()[1]/mom;
 
-	 TVector3 dir_(px/mom,py/mom,pz/mom);
-         TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
-         
-	   for(int k = 0; k < (int)arich_clusters->size(); k++){ 
-	  	if(arich_clusters->at(k).NDigits() < 3)continue;
-	
-        	 std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
-	         TH2D* event_hist = ArichUtils->DigsToHist(digs);
-        	 std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_); 
+        TVector3 dir_(px/mom,py/mom,pz/mom);
+        TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
+        for(int k = 0; k < (int)arich_clusters->size(); k++)
+        {
+          if(arich_clusters->at(k).NDigits() < 3) continue;
+          std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
+          TH2D* event_hist = ArichUtils->DigsToHist(digs);
+          std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_);
+          delete event_hist;
 
-		 delete event_hist;
+          rb::ArichID arich_id;
+          arich_id.scores = LL;
+          arich_id.trackID = i;
+          arich_id.nhit = digs.size();
 
-	 	rb::ArichID arich_id;
-         	arich_id.scores = LL;
-         	arich_id.trackID = i;
-         	arich_id.nhit = digs.size();
+          ARICH_LL->push_back(arich_id);
+        }
+      } //end track loop
+    } // end if clusters     	 
 
-         	ARICH_LL->push_back(arich_id);
-	     }
-	   } //end track loop
-         } // end if clusters     	 
+	else if( (int)arich_clusters->size() != 0 ) {
+	  for(int k = 0; k < (int)arich_clusters->size(); k++) {
+      if(arich_clusters->at(k).NDigits() < 3) continue;
 
-	else if( (int)arich_clusters->size() != 0 ){
-	
-	for(int k = 0; k < (int)arich_clusters->size(); k++){
-                if(arich_clusters->at(k).NDigits() < 3)continue;
+      std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
+      TH2D* event_hist = ArichUtils->DigsToHist(digs);
 
-                 std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
-                 TH2D* event_hist = ArichUtils->DigsToHist(digs);
-
-                 at::Tensor tensor_event = TH2DToTensor(event_hist);
-		 at::Tensor tensor_mom = at::full({1,1}, 7., at::kFloat);
+      at::Tensor tensor_event = TH2DToTensor(event_hist);
+		  at::Tensor tensor_mom = at::full({1,1}, 7., at::kFloat);
  	
-		 std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
+		  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
 
-		 at::Tensor pred = Model->predict(inputs); 
+		  at::Tensor pred = Model->predict(inputs); 
 
-                 mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
-                 delete event_hist;
+      mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
+      delete event_hist;
 		}
 	}
 
@@ -280,7 +274,7 @@ void ARICHReco::produce(art::Event& evt)
 	pos.clear();	
 	evt.put(std::move(ARICH_LL));	   
     
-     } // end produce 
+  } // end produce 
+} // namespace emph
 
-}
 DEFINE_ART_MODULE(emph::ARICHReco)

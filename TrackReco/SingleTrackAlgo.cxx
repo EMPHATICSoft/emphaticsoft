@@ -57,99 +57,90 @@ namespace emph {
   }
 
   //----------------------------------------------------------------------
-
   // Define functions
-
   //------------------------------------------------------------
+  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHitsOrig(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group) 
+  {
+    rb::SpacePoint sp;
 
-  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHitsOrig(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group)
-{
+    for (size_t i=0; i<nStations; i++){
+      int nssds = 0;
+      for (size_t j=0; j<ls_group[i].size(); j++){
+        nssds += ls_group[i][j].size();
+      }
+      for (size_t j=0; j<nPlanes; j++){
+        if (nssds == 2){ //station 0,1,4,7
+          for (size_t k=0; k<ls_group[i][j].size(); k++) {
+            for (size_t l=0; l<ls_group[i][j+1].size(); l++) {
+              TVector3 fA( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
+              TVector3 fB( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
+              TVector3 fC( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
+              TVector3 fD( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
 
-     rb::SpacePoint sp;
+              double x[3];
+              double l1[3]; double l2[3];
+              recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD",false);
 
-     //ru::RecoUtils recoFcn = ru::RecoUtils(fEvtNum);
+              //set SpacePoint object
+              sp.SetX(x);
 
-     for (size_t i=0; i<nStations; i++){
-         int nssds = 0;
-         for (size_t j=0; j<ls_group[i].size(); j++){
-           nssds += ls_group[i][j].size();
-         }
-         for (size_t j=0; j<nPlanes; j++){
-             if (nssds == 2){ //station 0,1,4,7
-                for (size_t k=0; k<ls_group[i][j].size(); k++){
-                    for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-                        TVector3 fA( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
-                        TVector3 fB( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
-                        TVector3 fC( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
-                        TVector3 fD( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
+              sp.SetStation(i);
+              spv.push_back(sp);
+            }
+          }
+        }
+        if (nssds == 3) { //station 2,3,5,6
+          for (size_t k=0; k<ls_group[i][j].size(); k++) {
+            for (size_t l=0; l<ls_group[i][j+1].size(); l++){
+              for (size_t m=0; m<ls_group[i][j+2].size(); m++){
+                TVector3 fA01( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
+                TVector3 fB01( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
+                TVector3 fC01( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
+                TVector3 fD01( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
 
-                        double x[3];
-                        double l1[3]; double l2[3];
-                        recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD",false);
+                double x01[3];
+                double l1_01[3]; double l2_01[3];
+                recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD",false);
 
-                        //set SpacePoint object
-                        sp.SetX(x);
+                TVector3 fA02( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
+                TVector3 fB02( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
+                TVector3 fC02( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
+                TVector3 fD02( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
 
-                        sp.SetStation(i);
-                        spv.push_back(sp);
-                    }
+                double x02[3];
+                double l1_02[3]; double l2_02[3];
+                recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD",false);
+
+                TVector3 fA12( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
+                TVector3 fB12( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
+                TVector3 fC12( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
+                TVector3 fD12( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
+
+                double x12[3];
+                double l1_12[3]; double l2_12[3];
+                recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD",false);
+
+                //average of three points (center of mass)
+                double x[3];
+                for (int i=0; i<3; i++){
+                    x[i] = (x01[i]+x02[i]+x12[i])/3.;
                 }
-             }
-             if (nssds == 3){ //station 2,3,5,6
-                for (size_t k=0; k<ls_group[i][j].size(); k++){
-                    for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-                        for (size_t m=0; m<ls_group[i][j+2].size(); m++){
-                            TVector3 fA01( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
-                            TVector3 fB01( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
-                            TVector3 fC01( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
-                            TVector3 fD01( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
 
-                            double x01[3];
-                            double l1_01[3]; double l2_01[3];
-                            recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD",false);
+                //set SpacePoint object
+                sp.SetX(x);
 
-                            TVector3 fA02( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
-                            TVector3 fB02( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
-                            TVector3 fC02( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
-                            TVector3 fD02( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
-
-                            double x02[3];
-                            double l1_02[3]; double l2_02[3];
-                            recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD",false);
-
-                            TVector3 fA12( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
-                            TVector3 fB12( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
-                            TVector3 fC12( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
-                            TVector3 fD12( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
-
-                            double x12[3];
-                            double l1_12[3]; double l2_12[3];
-                            recoFcn.ClosestApproach(fA12,fB12,fC12,fD12,x12,l1_12,l2_12,"SSD",false);
-
-                            //average of three points (center of mass)
-                            double x[3];
-                            for (int i=0; i<3; i++){
-                                x[i] = (x01[i]+x02[i]+x12[i])/3.;
-                            }
-
-                            //set SpacePoint object
-                            sp.SetX(x);
-
-                            sp.SetStation(i);
-                            spv.push_back(sp);
-                        }
-                    }
-                }
-             }
-         }
-     }
-
-     return spv;
-
+                sp.SetStation(i);
+                spv.push_back(sp);
+              }
+            }
+          }
+        }
+      }
+    }
+    return spv;
   }
 
   //------------------------------------------------------------
-
   void SingleTrackAlgo::doTwoPlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, double x[3]){
 
     TVector3 fA( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
@@ -164,7 +155,7 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::doThreePlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, const rb::LineSegment* ls3, double x[3]){
+  void SingleTrackAlgo::doThreePlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, const rb::LineSegment* ls3, double x[3]) {
 
     TVector3 fA01( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
     TVector3 fB01( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
@@ -201,7 +192,7 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group) 
+  std::vector<rb::SpacePoint> SingleTrackAlgo::MakeHits(std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group, std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group) 
   {
     rb::SpacePoint sp;
 
@@ -215,40 +206,62 @@ namespace emph {
       }
       int nPlanesGeo = emgeo->GetSSDStation(i)->NPlanes();
 
+      if (nUnique < 2) continue; // can't make a space point
+
       for (size_t j=0; j<ls_group[i].size(); j++){
         if (nPlanesGeo == 2){ //station 0,1,4,7
           for (size_t k=0; k<ls_group[i][j].size(); k++){
             for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-	      double x[3];
+	            double x[3];
               doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x);
 
+	      //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
+              //std::cout<<"cl_group[i][j+1][k] = "<<cl_group[i][j+1][k]->WgtRmsStrip()<<std::endl;
               sp.SetX(x);
               sp.SetStation(i);
               spv.push_back(sp);
-
+	            spv.back().Add(*ls_group[i][j][k]);
+	            spv.back().Add(*ls_group[i][j+1][l]);
+	            spv.back().Add(*cl_group[i][j][k]);
+	            spv.back().Add(*cl_group[i][j+1][l]);
             }
           }
         }
         else if (nPlanesGeo == 3){ //station 2,3,5,6
           for (size_t k=0; k<ls_group[i][j].size(); k++){
             for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-	      if (nUnique < nPlanesGeo){
+	            if (nUnique < nPlanesGeo){
                 double x[3];
                 doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x); 
-			
+
+                //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
+                //std::cout<<"cl_group[i][j+1][l] = "<<cl_group[i][j+1][l]->WgtRmsStrip()<<std::endl;		
                 sp.SetX(x);
-		sp.SetStation(i);
+		            sp.SetStation(i);
                 spv.push_back(sp);
+                spv.back().Add(*ls_group[i][j][k]);
+                spv.back().Add(*ls_group[i][j+1][l]);
+                spv.back().Add(*cl_group[i][j][k]);
+                spv.back().Add(*cl_group[i][j+1][l]);
               }
               else{
                 for (size_t m=0; m<ls_group[i][j+2].size(); m++){
                   double x[3];
                   doThreePlanes(ls_group[i][j][k],ls_group[i][j+1][l],ls_group[i][j+2][m],x);
-			  
+
+                  //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;	
+                  //std::cout<<"cl_group[i][j+1][l] = "<<cl_group[i][j+1][l]->WgtRmsStrip()<<std::endl;
+                  //std::cout<<"cl_group[i][j+2][m] = "<<cl_group[i][j+2][m]->WgtRmsStrip()<<std::endl;
                   sp.SetX(x);
                   sp.SetStation(i);
                   spv.push_back(sp);
-	        }
+                  spv.back().Add(*ls_group[i][j][k]);
+                  spv.back().Add(*ls_group[i][j+1][l]);
+                  spv.back().Add(*ls_group[i][j+2][m]);
+                  spv.back().Add(*cl_group[i][j][k]);
+                  spv.back().Add(*cl_group[i][j+1][l]);
+                  spv.back().Add(*cl_group[i][j+2][m]);
+	              }
               }
             }
           }
@@ -401,21 +414,23 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop) {
+  void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop, int s) {
+
     if ((int)combination.size() == stop){
       result.push_back(combination);
-
+      return;
+    }
+    if (row > s) {
       return;
     }
 
-    if (row == (int)matrix.size()) {
-        return;
-    }
-
-    for (int col = 0; col < (int)matrix[row].size(); col++) {
-      combination.push_back(matrix[row][col]);
-      getCombinations(matrix, row + 1, combination,result,stop);
-      combination.pop_back();
+    for (int r = row; r <= s; ++r) {
+      if (matrix[r].empty()) continue;
+      for (auto val : matrix[r]) {
+        combination.push_back(val);
+        getCombinations(matrix, r + 1, combination, result, stop, s);
+        combination.pop_back();
+      }
     }
 
   }
@@ -424,6 +439,7 @@ namespace emph {
 
   std::vector<rb::TrackSegment> SingleTrackAlgo::MakeTrackSeg(std::vector<rb::SpacePoint> spacepoints)
   {
+
     // Reorganize input
     std::vector<std::vector<rb::SpacePoint>> spmatrix;
     spmatrix.resize(nStations);
@@ -446,6 +462,7 @@ namespace emph {
     std::vector<std::vector<rb::SpacePoint>> sptmp;
     std::vector<rb::SpacePoint> combination;
 
+    // Here, r is the starting point for getCombinations algorithm
     int r=0;
     for (auto row : spmatrix){
       if (row.size() != 0){ 
@@ -453,9 +470,15 @@ namespace emph {
         break;
       }
     }
+    int s=0;
+    for (auto row : spmatrix){
+      if (row.size() != 0){
+        s = row[0].Station();
+      }
+    }
 
-    getCombinations(spmatrix, r, combination, sptmp,2);
-    getCombinations(spmatrix, r, combination, sptmp,3);
+    getCombinations(spmatrix, r, combination, sptmp,2, s);
+    getCombinations(spmatrix, r, combination, sptmp,3, s);
 
 
     // If you care about requiring the first two stations
@@ -529,6 +552,50 @@ namespace emph {
       double p0[3] = {0.,0.,0.};
       ts.SetP(p0);
 
+      float chi2tot = 0.;
+      for (auto p : sptmp[a]){
+	for (size_t i=0; i<p.NLineSegments(); i++){
+ 
+ 	  TVector3 x0(p.GetLineSegment(i)->X0().X(),p.GetLineSegment(i)->X0().Y(),p.GetLineSegment(i)->X0().Z());
+          TVector3 x1(p.GetLineSegment(i)->X1().X(),p.GetLineSegment(i)->X1().Y(),p.GetLineSegment(i)->X1().Z());
+
+          TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
+          TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);
+          double f1[3]; double f2[3]; double f3[3];
+          recoFcn.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false);
+          float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
+
+          double sensorz = x0(2); //s[2];
+
+          double t = ( sensorz - a(2) )/( b(2) - a(2) );
+          double tsx = a(0) + (b(0)-a(0))*t;
+          double tsy = a(1) + (b(1)-a(1))*t;
+
+          double xz = a(0) + ts.P()[0]/ts.P()[2]*sensorz;
+          double yz = a(1) + ts.P()[1]/ts.P()[2]*sensorz;
+          // signed distance from point to a line
+          double la = x1(1) - x0(1);
+          double lb = x0(0) - x1(0);
+          double lc = x0(1)*(x1(0)-x0(0)) - (x1(1)-x0(1))*x0(0);
+          float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
+	  
+          float sigma = p.GetSSDCluster(i)->WgtRmsStrip()*0.06;
+	  float rms = p.GetSSDCluster(i)->WgtAvgStrip()*0.06;
+	  //if (sigma == 0) std::cout<<"sig0, avg: "<<p.GetSSDCluster(i)->WgtAvgStrip()<<" and rms = "<<p.GetSSDCluster(i)->WgtRmsStrip()<<std::endl;
+	  if (sigma == 0) std::cout<<"ndigits = "<<p.GetSSDCluster(i)->NDigits()<<std::endl;
+	  if (sigma == 0) std::cout<<"Station, Plane, Sensor = "<<p.GetSSDCluster(i)->Station()<<", "<<p.GetSSDCluster(i)->Plane()<<", "<<p.GetSSDCluster(i)->Sensor()<<std::endl;
+	  if (sigma == 0) std::cout<<"width = "<<p.GetSSDCluster(i)->Width()<<std::endl;
+	  float chi2 = dsign*dsign/sigma/sigma;
+
+	  //std::cout<<"dsign = "<<dsign<<" and sigma = "<<sigma<<std::endl;
+
+	  chi2tot += chi2;
+
+	}
+      }
+      //std::cout<<"chi2 = "<<chi2tot<<std::endl;
+      ts.SetChi2(chi2tot);
+      //std::cout<<"......"<<std::endl;
       alltrackcombos.push_back(ts);
       
     }
@@ -577,7 +644,7 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3)
+  void SingleTrackAlgo::SetRecoTrk(rb::TrackSegment &ts2, rb::TrackSegment &ts3, int pm)
   {
     SetPtmp(ts2);
     SetPtmp(ts3);
@@ -590,13 +657,13 @@ namespace emph {
 
     // Change TrackSegments
     double realp2[3];
-    realp2[2] = recop*ts2.P()[2];
+    realp2[2] = pm*recop*ts2.P()[2];
     realp2[0] = ts2.P()[0]*realp2[2];
     realp2[1] = ts2.P()[1]*realp2[2];
     ts2.SetP(realp2);
 
     double realp3[3];
-    realp3[2] = recop*ts3.P()[2];
+    realp3[2] = pm*recop*ts3.P()[2];
     realp3[0] = ts3.P()[0]*realp3[2];
     realp3[1] = ts3.P()[1]*realp3[2];
     ts3.SetP(realp3);

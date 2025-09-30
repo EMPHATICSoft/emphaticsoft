@@ -19,6 +19,8 @@ namespace runhist
   {
     if (fLoadFromDB)
       fQEURL = pset.get<std::string>("QEURL");
+    
+    fAlignFilename = pset.get<std::string>("AlignFilename");
 
     reg.sPreBeginRun.watch(this, &RunHistoryService::preBeginRun);
     
@@ -38,6 +40,10 @@ namespace runhist
     fRunHistory.reset(new runhist::RunHistory(run.run()));
     if (fLoadFromDB) {
       fRunHistory->SetQEURL(fQEURL);
+    }
+    if (!fAlignFilename.empty()) {
+      fRunHistory->SetUseFixedAlign(true);
+      fRunHistory->SetSSDAlign(fAlignFilename);
     }
   }
   
