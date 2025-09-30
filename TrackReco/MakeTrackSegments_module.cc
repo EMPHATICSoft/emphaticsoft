@@ -106,8 +106,6 @@ namespace emph {
     bool        fCheckClusters;     //Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
-    bool        fSevenOn;
-    std::string fAlignPars;
 
     //reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -123,9 +121,7 @@ namespace emph {
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label")),
-    fSevenOn           (pset.get< bool >("SevenOn"))
-    //fAlignPars         (pset.get< std::string >("AlignPars"))
+    fG4Label           (pset.get< std::string >("G4Label"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -156,11 +152,6 @@ namespace emph {
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
 
-    // Optionally exclude Station 7 (added later in data)
-    if (!fSevenOn){
-      nPlanes = nPlanes - 2;
-      nStations = nStations - 1;
-    }
   }
 
   //......................................................................
@@ -182,8 +173,8 @@ namespace emph {
   void emph::MakeTrackSegments::endJob()
   {
        std::cout<<"MakeTrackSegments: Number of events: "<<evts<<std::endl;
-       std::cout<<"MakeTrackSegments: Number of events with clusters "<<hasclusters<<std::endl;
-       std::cout<<"MakeTrackSegments: Number of events with less than 50 clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with clusters: "<<hasclusters<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with less than 45 clusters: "<<usableclust<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with space points: "<<sps<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
@@ -206,8 +197,6 @@ namespace emph {
     subrun = evt.subRun();
     event = evt.event();
     fEvtNum = evt.id().event();
-
-//std::cout<<"begin MakeTrackSegments: "<<fEvtNum<<std::endl;
 
     //debug
     //if(fEvtNum==1080) fMakePlots = true;
@@ -258,7 +247,7 @@ namespace emph {
             else
               std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
 	  }
-//          if (clusters.size() < 45){
+          if (clusters.size() < 45){
             usableclust++;
  
             cl_group.resize(nStations);
@@ -269,17 +258,13 @@ namespace emph {
 	      ls_group[i].resize(nPlanes); //emgeo->GetSSDStation(i)->NPlanes()); //nPlanes);
 	    }
 
-if (clusters.size() > 45){
             for (size_t i=0; i<clustMapAtLeastOne.size(); i++){
 	      for (auto j : clustMapAtLeastOne[i]){
                 mf::LogDebug("MakeTrackSegments") << "Station "<<i<<": "<<j.second;
-		std::cout<< "Station "<<i<<": "<<j.second<<std::endl;
 	      }
             }
 
-	   std::cout<<"........"<<std::endl;
 	    mf::LogDebug("MakeTrackSegments") <<"........" ;
-}
             for (size_t i=0; i<clusters.size(); i++){
 	      int plane = clusters[i]->Plane();
 	      int station = clusters[i]->Station();	 
@@ -298,8 +283,6 @@ if (clusters.size() > 45){
               int station = clusters[i]->Station();
 	      ls_group[station][plane].push_back(&linesegments[i]);
 	    }
-
-//std::cout<<"  clusters.size() = "<<clusters.size()<<std::endl;
 
             //make reconstructed hits
 	    spv = algo.MakeHits(ls_group,cl_group);
@@ -347,7 +330,7 @@ if (clusters.size() > 45){
             sp2.clear();
             sp3.clear();
 
-//          } //clust < 50
+          } //clust < 45
           ls_group.clear();
           cl_group.clear();
           linesegments.clear();

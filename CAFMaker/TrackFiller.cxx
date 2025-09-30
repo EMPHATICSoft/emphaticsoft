@@ -38,7 +38,11 @@ namespace caf
         srts.mom.SetXYZ(pts->P()[0],pts->P()[1],pts->P()[2]);
         srts.region = pts->RegLabel();
         srts.nspacepoints = pts->NSpacePoints();
- 	
+        for (int i=0; i<3; ++i){
+          srts.pointA[i] = pts->A()[i];
+          srts.pointB[i] = pts->B()[i];
+ 	}
+
         sp.Add(srts);
 	
       }
