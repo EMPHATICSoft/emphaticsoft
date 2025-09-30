@@ -113,7 +113,6 @@ namespace emph {
     std::string fClusterLabel;
     std::string fTrackSegLabel;
     std::string fTrackLabel;
-    bool        fSevenOn;
     bool        fUpstream; 
  
     //Millepede stuff
@@ -141,7 +140,6 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
     fTrackLabel        (pset.get< std::string >("TrackLabel")),
-    fSevenOn           (pset.get< bool >("SevenOn")),
     fUpstream          (pset.get< bool >("Upstream"))
     {
       //this->produces< std::vector<rb::Track> >();
@@ -169,11 +167,6 @@ namespace emph {
     auto emgeo = geo->Geo();
     nStations = emgeo->NSSDStations();
     nPlanes = emgeo->NSSDPlanes();
-
-    if (!fSevenOn){
-      nStations = nStations - 1;
-      nPlanes = nPlanes - 2;
-    }
 
     if (emgeo->GetTarget()) targetz = emgeo->GetTarget()->Pos()(2);
     else targetz = 380.5;    
@@ -360,6 +353,8 @@ namespace emph {
     subrun = evt.subRun();
     event = evt.event();
     fEvtNum = evt.id().event();
+
+//std::cout<<"begin SingleTrackAlignment: "<<fEvtNum<<std::endl;
 
     // if data fcl
     std::string digitStr = std::to_string(event);

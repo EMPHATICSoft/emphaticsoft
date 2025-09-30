@@ -414,21 +414,23 @@ namespace emph {
 
   //------------------------------------------------------------
 
-  void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop) {
+  void SingleTrackAlgo::getCombinations(std::vector<std::vector<rb::SpacePoint>> &matrix, int row, std::vector<rb::SpacePoint> &combination, std::vector<std::vector<rb::SpacePoint>> &result,int stop, int s) {
+
     if ((int)combination.size() == stop){
       result.push_back(combination);
-
+      return;
+    }
+    if (row > s) {
       return;
     }
 
-    if (row == (int)matrix.size()) {
-        return;
-    }
-
-    for (int col = 0; col < (int)matrix[row].size(); col++) {
-      combination.push_back(matrix[row][col]);
-      getCombinations(matrix, row + 1, combination,result,stop);
-      combination.pop_back();
+    for (int r = row; r <= s; ++r) {
+      if (matrix[r].empty()) continue;
+      for (auto val : matrix[r]) {
+        combination.push_back(val);
+        getCombinations(matrix, r + 1, combination, result, stop, s);
+        combination.pop_back();
+      }
     }
 
   }
@@ -460,6 +462,7 @@ namespace emph {
     std::vector<std::vector<rb::SpacePoint>> sptmp;
     std::vector<rb::SpacePoint> combination;
 
+    // Here, r is the starting point for getCombinations algorithm
     int r=0;
     for (auto row : spmatrix){
       if (row.size() != 0){ 
@@ -467,9 +470,15 @@ namespace emph {
         break;
       }
     }
+    int s=0;
+    for (auto row : spmatrix){
+      if (row.size() != 0){
+        s = row[0].Station();
+      }
+    }
 
-    getCombinations(spmatrix, r, combination, sptmp,2);
-    getCombinations(spmatrix, r, combination, sptmp,3);
+    getCombinations(spmatrix, r, combination, sptmp,2, s);
+    getCombinations(spmatrix, r, combination, sptmp,3, s);
 
 
     // If you care about requiring the first two stations
