@@ -6,6 +6,7 @@ standard_maketracksegments:
   CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
   ClusterLabel:      "clust"
   G4Label:           "geantgen"
+  MaxClust:          45
 }
 
 END_PROLOG

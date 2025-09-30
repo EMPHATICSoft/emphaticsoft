@@ -104,6 +104,7 @@ namespace emph {
     bool fCheckClusters; // Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
+    size_t fMaxClust;
 
     // reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -117,7 +118,8 @@ namespace emph {
     : EDProducer{pset},
     fCheckClusters     (pset.get< bool >("CheckClusters")), 
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label"))
+    fG4Label           (pset.get< std::string >("G4Label")),
+    fMaxClust          (pset.get< size_t >("MaxClust"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -160,7 +162,7 @@ namespace emph {
   {
        std::cout<<"MakeTrackSegments: Number of events: "<<evts<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with clusters: "<<hasclusters<<std::endl;
-       std::cout<<"MakeTrackSegments: Number of events with less than 45 clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with less than "<<fMaxClust<<" clusters: "<<usableclust<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with space points: "<<sps<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
        std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
@@ -225,7 +227,7 @@ namespace emph {
             else
               std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
 	  }
-          if (clusters.size() < 45){
+          if (clusters.size() < fMaxClust){
             usableclust++;
 
             cl_group.resize(nStations);
@@ -337,7 +339,7 @@ namespace emph {
             sp1.clear();
             sp2.clear();
             sp3.clear();
-          } //clust < 45
+          } //clust < fMaxClust
           ls_group.clear();
           cl_group.clear();
           linesegments.clear();
