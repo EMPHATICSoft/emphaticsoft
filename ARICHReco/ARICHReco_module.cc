@@ -258,7 +258,7 @@ void ARICHReco::produce(art::Event& evt)
       TH2D* event_hist = ArichUtils->DigsToHist(digs);
 
       at::Tensor tensor_event = TH2DToTensor(event_hist);
-		  at::Tensor tensor_mom = at::full({1,1}, 7., at::kFloat);
+		  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
  	
 		  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
 
