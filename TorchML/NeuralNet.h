@@ -16,10 +16,10 @@
 #include <string>
 #include <ATen/ATen.h> 
 
-namespace torchml{
+namespace tml {
 
-class NeuralNet{
-public:
+  class NeuralNet {
+  public:
     NeuralNet();
     ~NeuralNet();
 
@@ -27,11 +27,10 @@ public:
 
     at::Tensor predict(std::vector<at::Tensor> inputs); 
 
-
-private:
-    struct Impl;                       // forward-declare Torch implementation
+  private:
+    struct Impl; // forward-declare Torch implementation
     Impl* pimpl;
-};
+  };
 
 }
 

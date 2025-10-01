@@ -73,7 +73,7 @@ namespace emph {
  
     std::string  fModelPath;
 
-    torchml::NeuralNet* Model;
+    tml::NeuralNet* Model;
     
    // Aerogel parameters
     double up_n;
@@ -166,7 +166,7 @@ namespace emph {
     ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
     ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
     
-    Model = new torchml::NeuralNet();
+    Model = new tml::NeuralNet();
     Model->loadModel(source_path.append(fModelPath));
 //    mf::LogError("ARICH NN path") <<"model path " << source_path.append(fModelPath);    
 
