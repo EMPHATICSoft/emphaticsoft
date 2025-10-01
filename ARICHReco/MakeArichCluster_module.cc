@@ -175,8 +175,8 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
 
       std::vector<emph::rawdata::TRB3RawDigit> ArichDigs(*arichH);
-      //std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
-
+//      std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
+	
 	std::map<int, double> refTime = GetRefenceTimes(ArichDigs);
 
 	std::vector<std::tuple<float, emph::cmap::EChannel>> hits;
@@ -247,6 +247,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 	
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = Cluster_FixedWindow(hits, threshold);	
 
+	
     //add density based clustering 
 
 	for(int u = 0; u < (int)clusters.size(); u++){
@@ -261,7 +262,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 	//	cluster.Add(std::get<0>(clusters[u][k]));
 	  } 
 	ARICH_CLUSTERS->push_back(cluster);	
-	     
+//	std::cout << "MADE " << clusters.size() << " CLUSTERS" << std::endl;	     
 	}
 		
 	 evt.put(std::move(ARICH_CLUSTERS));

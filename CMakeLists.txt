@@ -27,17 +27,17 @@ add_definitions( -D_REENTRANT ) # needed for stan_math v4
 
 # packages pulled in by cetmodules
 find_package( libwda          2.20.1      REQUIRED )
-find_package( art 	     	       	  REQUIRED EXPORT)
-find_package( artdaq 		       	  REQUIRED EXPORT)
-find_package( artdaq_core 		  REQUIRED EXPORT)
-find_package( canvas_root_io 	       	  REQUIRED EXPORT)
-find_package( art_root_io 	       	  REQUIRED EXPORT)
-find_package( fhiclcpp 	     	       	  REQUIRED EXPORT)
+find_package( art 	     	       	        REQUIRED EXPORT)
+find_package( artdaq 		       	          REQUIRED EXPORT)
+find_package( artdaq_core 		            REQUIRED EXPORT)
+find_package( canvas_root_io 	       	    REQUIRED EXPORT)
+find_package( art_root_io 	       	      REQUIRED EXPORT)
+find_package( fhiclcpp 	     	       	    REQUIRED EXPORT)
 find_package( cetlib                      REQUIRED EXPORT)
 find_package( cetlib_except               REQUIRED EXPORT)
 find_package( TRACE                       REQUIRED )
-find_package( nlohmann_json		  REQUIRED )
-find_package( millepede_ii      REQUIRED )
+find_package( nlohmann_json               REQUIRED )
+find_package( millepede_ii                REQUIRED )
 find_package( ifdh_art        2.15.00  	  REQUIRED )
 find_package( messagefacility 2.08.04  	  REQUIRED )
 find_package( ROOT            6.22.08d    REQUIRED COMPONENTS Core EG Eve Geom Gdml Gpad Graf Graf3d Gui Hist Matrix MathCore MathMore Minuit Minuit2 Net Physics RIO Spectrum TMVA Thread Tree TreePlayer X3d XMLIO )
@@ -47,6 +47,10 @@ find_package( Geant4          4.11.0.p03b REQUIRED )
 cmake_policy(POP)
 find_package( python         3.9.15    	  REQUIRED )
 set( PYTHON_EXECUTABLE $ENV{PYTHONHOME}/bin/python )
+
+# packages for ML
+find_package( protobuf                    REQUIRED )
+find_package( libtorch                    REQUIRED )
 
 # macros for artdaq_dictionary and cet_build_plugin
 include(ArtDictionary)
@@ -99,9 +103,9 @@ add_subdirectory(SSDAlignment)
 add_subdirectory(SSDReco)
 add_subdirectory(SSD_FERMerger)
 add_subdirectory(TrackReco)
+add_subdirectory(TorchML)
 add_subdirectory(TOF)
 add_subdirectory(Utilities)
 
 # ups - table and config files
-
 cet_cmake_config()
