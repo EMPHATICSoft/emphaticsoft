@@ -208,6 +208,7 @@ void ARICHReco::produce(art::Event& evt)
 
     evt.getByLabel(fTrackLabel,TracksH);  
 
+
     if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
 
       for(int i = 0; i < (int)TracksH->size(); i++){
@@ -238,36 +239,26 @@ void ARICHReco::produce(art::Event& evt)
           std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
           TH2D* event_hist = ArichUtils->DigsToHist(digs);
           std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_);
-          delete event_hist;
 
           rb::ArichID arich_id;
           arich_id.scores = LL;
           arich_id.trackID = i;
           arich_id.nhit = digs.size();
 
-          ARICH_LL->push_back(arich_id);
-        }
-      } //end track loop
-    } // end if clusters     	 
-
-	else if( (int)arich_clusters->size() != 0 ) {
-	  for(int k = 0; k < (int)arich_clusters->size(); k++) {
-      if(arich_clusters->at(k).NDigits() < 3) continue;
-
-      std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
-      TH2D* event_hist = ArichUtils->DigsToHist(digs);
-
-      at::Tensor tensor_event = TH2DToTensor(event_hist);
+		  at::Tensor tensor_event = TH2DToTensor(event_hist);
 		  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
  	
 		  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
 
 		  at::Tensor pred = Model->predict(inputs); 
 
-      mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
-      delete event_hist;
-		}
-	}
+		  mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
+			
+          ARICH_LL->push_back(arich_id);
+		  delete event_hist;
+        }
+      } //end track loop
+    } // end if clusters     	 
 
 	momenta.clear();
 	dir.clear();
