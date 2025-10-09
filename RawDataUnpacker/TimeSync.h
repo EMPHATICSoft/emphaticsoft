@@ -1,6 +1,7 @@
 #ifndef TIMESYNC_H
 #define TIMESYNC_H
-//#define VERBOSE
+#define VERBOSE
+//#define INTERACTIVE
 
 #include <bits/stdc++.h>
 // std::minmax_element of a vector
@@ -247,8 +248,10 @@
 #ifdef VERBOSE
 				std::cout << "[ Synchronization ] failed; beginning Recalibration\n";
 				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")\n";
+#ifdef INTERACTIVE
 				std::cout << "Press any key to continue" << std::endl;
 				{char x; std::cin >> x;}
+#endif
 #endif
 
 				// Swap grandfather role for calibration depending on who's timestamp is further ahead
@@ -290,8 +293,11 @@
 			}
 		}
 #ifdef VERBOSE
-		std::cout << "Finished this pair; press any key to continue" << std::endl;
+		std::cout << "Finished this pair" << std::endl;
+#ifdef INTERACTIVE
+		std::cout << "Press any key to continue" << std::endl;
 		{char x; std::cin >> x;}
+#endif
 #endif
 
 		mask = indexOfMatch(grandfather, child, timeUncertainty);

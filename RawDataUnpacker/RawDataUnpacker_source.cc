@@ -431,8 +431,8 @@ namespace rawdata {
 
 			fTWCorr0[fragId] = f1->GetParameter(0);
 			fTWCorr1[fragId] = f1->GetParameter(1);
-			std::cout << "Board " << fragId << " twcorr intercept = " << f1->GetParameter(0) << std::endl;
-			std::cout << "Board " << fragId << " twcorr slope = " << f1->GetParameter(1) << std::endl;
+			printf("Board %d: twcorr intercept = %16.16f\n", fragId, f1->GetParameter(0));
+			printf("Board %d: twcorr slope = %16.16f\n", fragId, f1->GetParameter(1));
 		}
 		fout->Close();
 	}
@@ -485,7 +485,7 @@ namespace rawdata {
 		for( auto fragId : fFragId ) {
 			if(fragId == fragIdGrandfather) continue; // skip grandfather
 			std::cout << "(" << fragIdGrandfather << ", " << fragId << ")" << std::endl;
-			masks[fragId] = compareGrandfather(fFragTimestamps[fragIdGrandfather], fFragTimestamps[fragId], 16);
+			masks[fragId] = compareGrandfather(fFragTimestamps[fragIdGrandfather], fFragTimestamps[fragId], 200);
 			for( auto index : masks[fragId] ) {
 				if(index != -1) {
 					fT0[fragId] = masks[fragId][0];
@@ -503,7 +503,7 @@ namespace rawdata {
 		}
 		std::cout << "(Comparing to SSDs)"<< std::endl;
 		// Store SSD in the extra mask slot for fragIdGrandfather (no need to compare Grandfather to itself)
-		masks[fragIdGrandfather] = compareGrandfather(fFragTimestamps[fragIdGrandfather], ssdTimestamps, 100);
+		masks[fragIdGrandfather] = compareGrandfather(fFragTimestamps[fragIdGrandfather], ssdTimestamps, 200);
 		{
 			auto count = 0;
 			for( auto index : masks[fragIdGrandfather] ) {
