@@ -214,9 +214,6 @@ namespace caf {
     rec.hdr = fHeader;
     rec.hdr.evt = evt.id().event();
 
-    // TML: Why are we printing this out for every single event?
-    //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
-
     if (!fParams.SSDOnly()) {
       // Get ARing info from ARichReco
       ARICHFiller arichf;
@@ -248,27 +245,27 @@ namespace caf {
       trksegf.fLabel = fParams.TrackSegmentLabel();
       trksegf.Fill(evt,rec);
 
-
       // Get Tracks
       TrackFiller trkf;
       trkf.fLabelTracks = fParams.TrackLabel();
       trkf.fLabelArichID = fParams.ArichIDLabel();
       trkf.Fill(evt,rec);
-    
+	
     }
 
     // Get SRTruth  
     if (fParams.GetMCTruth()) {	// check for the GetMCTruth configuration parameter,
 				// set to "true" if needed
-
       rec.hdr.ismc = true;
-
       SRTruthFiller srtruthf;
       srtruthf.GetG4Hits = fParams.GetMCHits();
       srtruthf.fLabel = fParams.SSDHitLabel();
+      srtruthf.fLineSegLabel = fParams.LineSegLabel();
+      srtruthf.fTrackLabel = fParams.TrackLabel();
       srtruthf.Fill(evt,rec);
-    } // end if statement
 
+
+    } // end if statement
  
     // Get EventQuality info from DataQual
     EventQualFiller evtqualf; 
@@ -284,7 +281,6 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-
 
     fRecTree->Fill();
     srcol->push_back(rec);
@@ -306,9 +302,9 @@ namespace caf {
       mf::LogWarning("CAFMaker") << "Making an empty CAF file." << std::endl;
     }
 
+    fFile->cd();
     fFile->Write();
 
-    fFile->cd();
     hEvents->Fill(.5, fTotalEvents);
 
     hEvents->Write();

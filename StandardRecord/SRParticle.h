@@ -158,7 +158,6 @@ namespace caf {
     //Getters and setters for first and last daughter data members
     int FirstDaughter() const;
     int LastDaughter()  const;
-
     //Getters and setters for rescatter status
     void SetRescatter(int code);
     int  Rescatter() const;
@@ -238,7 +237,6 @@ inline       double          caf::SRParticle::Gvy()                    const { r
 inline       double          caf::SRParticle::Gvz()                    const { return fGvtx.Z();                          }
 inline       double          caf::SRParticle::Gvt()                    const { return fGvtx.T();                          }
 inline       int             caf::SRParticle::FirstDaughter()          const { return *(fdaughters.begin());              }
-inline       int             caf::SRParticle::LastDaughter()           const { return *(fdaughters.rbegin());             }
 inline       int             caf::SRParticle::Rescatter()              const { return frescatter;                         }
 inline const caf::SRTrajectory& caf::SRParticle::Trajectory()         const { return ftrajectory;                        }
 inline       double          caf::SRParticle::Weight()                 const { return fWeight;                            }

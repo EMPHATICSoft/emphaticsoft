@@ -8,6 +8,7 @@
 #define SIM_SSDHIT_H
 
 #include <vector>
+#include <ostream>
 
 namespace sim {
   /// A single unit of energy deposition in the liquid scintillator
@@ -44,6 +45,17 @@ namespace sim {
     void       SetSensor(int sensor) { fSensor = sensor; }
     void       SetStrip(int strip) { fStrip = strip; }
     void       SetTrackID(int trkId) { fTrackID = trkId; }
+
+    inline bool operator==(const SSDHit& ssdhit) const {
+        return ((ssdhit.GetStation() == fStation)&&(ssdhit.GetPlane() == fPlane)&&(ssdhit.GetSensor() == fSensor)&&(ssdhit.GetStrip() == fStrip));
+      }
+	
+    inline friend std::ostream& operator<<(std::ostream& os, const SSDHit& ssdhit){
+	os << "Sim SSD hit (Station " <<  ssdhit.GetStation() << ", Plane "<<  ssdhit.GetPlane() << ", Sensor " <<  ssdhit.GetSensor() << ", Strip " << ssdhit.GetStrip() << std::endl;
+        return os;
+        }
+
+	
 
   private:
     std::vector<double> fX;

@@ -199,7 +199,7 @@ at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
 //......................................................................
 void ARICHReco::produce(art::Event& evt)
 { 
-    std::unique_ptr<std::vector<rb::ArichID>> ARICH_LL(new std::vector<rb::ArichID>);
+    std::unique_ptr<std::vector<rb::ArichID>> ARICH(new std::vector<rb::ArichID>);
 
     art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
     art::Handle<std::vector<rb::Track>> TracksH;
@@ -241,21 +241,28 @@ void ARICHReco::produce(art::Event& evt)
           std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_);
 
           rb::ArichID arich_id;
-          arich_id.scores = LL;
+          arich_id.scoresLL = LL;
           arich_id.trackID = i;
           arich_id.nhit = digs.size();
 
-		  at::Tensor tensor_event = TH2DToTensor(event_hist);
-		  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
- 	
-		  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
+ 	  at::Tensor tensor_event = TH2DToTensor(event_hist);
+ 	  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
+ 	  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
+	  at::Tensor pred = Model->predict(inputs); 
 
-		  at::Tensor pred = Model->predict(inputs); 
+	  std::vector<double> temp;
+	  auto accessor = pred.accessor<float, 2>();
+	  for (int i = 0; i < accessor.size(0); ++i) {
+            for (int j = 0; j < accessor.size(1); ++j) {
+            	temp.push_back((double)accessor[i][j]);
+	     }
+	  }
 
-		  mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
-			
-          ARICH_LL->push_back(arich_id);
-		  delete event_hist;
+//	 	  mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
+          arich_id.scoresML = temp;
+	 
+	  ARICH->push_back(arich_id);	  
+	  delete event_hist;
         }
       } //end track loop
     } // end if clusters     	 
@@ -263,7 +270,7 @@ void ARICHReco::produce(art::Event& evt)
 	momenta.clear();
 	dir.clear();
 	pos.clear();	
-	evt.put(std::move(ARICH_LL));	   
+	evt.put(std::move(ARICH));	   
     
   } // end produce 
 } // namespace emph

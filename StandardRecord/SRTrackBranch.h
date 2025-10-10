@@ -4,6 +4,7 @@
 #ifndef SRTRACKBRANCH_H
 #define SRTRACKBRANCH_H
 #include "StandardRecord/SRTrack.h"
+#include "StandardRecord/SRTrueParticle.h"
 
 #include <cstddef>
 #include <vector>

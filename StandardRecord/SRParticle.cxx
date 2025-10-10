@@ -145,6 +145,11 @@ namespace caf {
     fGvtx.SetZ(z);
     fGvtx.SetT(t);
   }
+  //----------------------------------------------------------------------------
+  int SRParticle::LastDaughter() const {
+   return *(fdaughters.rbegin());               
+  }
+
 
   //------------------------------------------------------------
   std::ostream& operator<< ( std::ostream& output, const SRParticle& particle )

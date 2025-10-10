@@ -59,7 +59,7 @@ namespace rb {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
     o << " Line Segment --> x0(" << h.x0.X() << "," << h.x0.Y() << ","
       << h.x0.Z() << "), x1(" << h.x1.X() << "," << h.x1.Y() << ","
-      << h.x1.Z() << ") +- " << h.Sigma() << " from SSD(" << h.SSDStation() << "," << h.SSDPlane() << "," << h.SSDSensor() << ") "; 
+      << h.x1.Z() << ") +- " << h.Sigma() << " from SSD(" << h.SSDStation() << "," << h.SSDPlane() << "," << h.SSDSensor()<< "," << h.SSDStrip() << ") "; 
     return o;
   }
   

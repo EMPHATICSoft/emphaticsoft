@@ -235,7 +235,7 @@ namespace emph {
          for (size_t idx=0; idx < trksegH->size(); ++idx) {
 	    const rb::TrackSegment& ts = (*trksegH)[idx];
 	    trksegs.push_back(&ts);
-            if (ts.RegLabel() == rb::Region::kRegion1) trksegs1.push_back(&ts);
+	    if (ts.RegLabel() == rb::Region::kRegion1) trksegs1.push_back(&ts);
 	    else if (ts.RegLabel() == rb::Region::kRegion2) trksegs2.push_back(&ts);
             else if (ts.RegLabel() == rb::Region::kRegion3) trksegs3.push_back(&ts);		
 	    else std::cout<<"Track segments not properly labeled."<<std::endl;
@@ -367,7 +367,8 @@ namespace emph {
             tsvec.push_back(t1);
 	    algo.SetBeamTrk(t1,fPBeamTmp);
             beamtrk.Add(t1);
-            beamtrk.SetP(t1.P());
+            for(size_t i=0; i < t1.NSSDClusters(); i++)beamtrk.Add(*t1.GetSSDCluster(i));
+	    beamtrk.SetP(t1.P());
             beamtrk.SetVtx(t1.Vtx());
 	    beamtrk.SetChi2(t1.Chi2());
             trackv->push_back(beamtrk);
@@ -388,12 +389,13 @@ namespace emph {
 	    auto v = algo.SetTrackInfo(tsvec[0],tsvec[1]);
             sectrk.SetVtx(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
 	    sectrk.SetChi2(t2.Chi2()+t3.Chi2());
-            trackv->push_back(sectrk);
+            for(size_t i=0; i < t2.NSSDClusters(); i++)sectrk.Add(*t2.GetSSDCluster(i));
+	    for(size_t i=0; i < t3.NSSDClusters(); i++)sectrk.Add(*t3.GetSSDCluster(i));
+	    trackv->push_back(sectrk);
 	  }
 	} //clust not empty
       } //try
       catch(...) {
-
       }
 
     } //want plots

@@ -22,6 +22,7 @@ standard_cafmaker:{
     GetMCTruth:    true #use for creating MC CAF's
 #    GetMCTruth:    false #use for creating data CAF's
     GetMCHits:     true
+    
 
     SSDOnly:       false # only fill Header, DataQuality, and SSD information
 }

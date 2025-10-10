@@ -18,6 +18,9 @@ namespace caf
     bool GetG4Hits;
     std::string fLabel;
 
+    std::string fLineSegLabel; 
+    std::string fTrackLabel;
+
   };
 
 } // end namespace

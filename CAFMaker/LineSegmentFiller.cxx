@@ -16,7 +16,8 @@ namespace caf
   void LineSegmentFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
     auto linesegv = evt.getHandle<std::vector <rb::LineSegment> >(fLabel);
-      
+     
+     
     if(!fLabel.empty() && linesegv.failedToGet()) {
       std::cout << "CAFMaker: No product of type '"
                 << abi::__cxa_demangle(typeid(*linesegv).name(), 0, 0, 0)
@@ -32,6 +33,8 @@ namespace caf
 
       srLineSeg.x0.SetXYZ(p.X0().X(),p.X0().Y(),p.X0().Z());
       srLineSeg.x1.SetXYZ(p.X1().X(),p.X1().Y(),p.X1().Z());
+
+      //std::cout << p << std::endl;
 
    } // end for hitId
   }  
