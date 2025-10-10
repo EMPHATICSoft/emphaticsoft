@@ -7,6 +7,7 @@
 #include "StandardRecord/SRVector3D.h"
 #include "StandardRecord/SRArichID.h"
 #include "StandardRecord/SRTrackSegment.h"
+#include "StandardRecord/SRTrueParticle.h"
 
 namespace caf
 {
@@ -20,8 +21,8 @@ namespace caf
     double vtx[3];  // (x,y,z)
     SRVector3D mom; // momentum vector   
     SRArichID arich; // arich loglikelihooods values 
-//  SRArichID arML; // arich ML pred values   
- 
+    SRTrueParticle truth; 
+
     int label;
     int nspacepoints;
     std::vector<SRTrackSegment> _sgmnt; // vector of track segments

@@ -28,6 +28,7 @@ namespace rb {
     int SSDStation() const { return fSSDStation; }
     int SSDPlane() const { return fSSDPlane; }
     int SSDSensor() const { return fSSDSensor; }
+    double SSDStrip() const {return fSSDStrip; }
 
     // Setters
     void SetX0(double* _x0) { x0.SetX(_x0[0]); x0.SetY(_x0[1]); x0.SetZ(_x0[2]); }
@@ -36,6 +37,7 @@ namespace rb {
     void SetSSDStation(int s) { fSSDStation = s; }
     void SetSSDPlane(int p) { fSSDPlane = p; }
     void SetSSDSensor(int s) { fSSDSensor = s; }
+    void SetSSDStrip(double r)  { fSSDStrip = r;}
 
     double DistanceToPoint(double x, double y, double z) const;
     double DistanceToPoint(double x, double y) const;
@@ -47,8 +49,8 @@ namespace rb {
     int fSSDStation;
     int fSSDPlane;
     int fSSDSensor;
-    
-  };
+    int fSSDStrip;  
+   };
   
 }
 
