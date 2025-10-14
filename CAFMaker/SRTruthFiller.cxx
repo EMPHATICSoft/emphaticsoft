@@ -11,6 +11,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "RecoBase/LineSegment.h"
 #include "RecoBase/Track.h"
+#include "MCRecoUtils/MCUtils.h"
 #include <cstddef>
 #include <cxxabi.h>
 #include <typeinfo>
@@ -131,34 +132,32 @@ namespace caf
  */  
    	
    auto trackv = evt.getHandle<std::vector <rb::Track>>(fTrackLabel);
+   const std::vector<sim::SSDHit> &hitvec = *truehitv;
 
    for(int i=0; i < (int)trackv->size(); i++){
    
 	auto trk = trackv->at(i); //Get single rb::Track
 
-	std::cout << " truth filler 139, N clusters for track " << trk.NSSDClusters() << std::endl;
+//	std::cout << " truth filler 139, N clusters for track " << trk.NSSDClusters() << std::endl;
 		
 	std::vector<int> truth_ids;
 	for(size_t c =0; c < trk.NSSDClusters(); c++){
 	 
 	auto clust = trk.GetSSDCluster(c);
-	
-	sim::SSDHit reco_hit;
-        reco_hit.SetStation(clust->Station()); 
-        reco_hit.SetPlane(clust->Plane());
-        reco_hit.SetSensor(clust->Sensor());
-        reco_hit.SetStrip(clust->AvgStrip());  
+	auto it = util.GetTrueSSDHitIt(clust->Station(), clust->Plane(), clust->Sensor(), clust->AvgStrip(), hitvec);
 
-	  for(int idx =0; idx < (int)truehitv->size(); idx++){
-            if(reco_hit == truehitv->at(idx))truth_ids.push_back(truehitv->at(idx).GetTrackID());  
-          }       
- 	}
+	if (it != hitvec.end()){
+	  const sim::SSDHit &hit = *it;
+	  truth_ids.push_back(hit.GetTrackID());
+	 }
 
-	std::cout << "Track ID" << std::endl;
-	for(int val : truth_ids)std::cout << val << std::endl;
+	}
+
+//	std::cout << "Track ID" << std::endl;
+//	for(int val : truth_ids)std::cout << val << std::endl;
 
 	bool all_same = std::all_of(truth_ids.begin() + 1, truth_ids.end(), [&](int x) {return x == truth_ids[0];});
-	std::cout << "ALL THE SAME ? " << all_same << std::endl;   
+//	std::cout << "ALL THE SAME ? " << all_same << std::endl;   
 	
 	if(all_same){	
    	  for(auto simpar : particles){
