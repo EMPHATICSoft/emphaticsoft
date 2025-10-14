@@ -6,6 +6,7 @@
 #define SRTRUTHFILLER_H
 
 #include "CAFMaker/FillerBase.h"
+#include "MCRecoUtils/MCUtils.h"
 
 namespace caf
 {
@@ -18,6 +19,10 @@ namespace caf
     bool GetG4Hits;
     std::string fLabel;
 
+    std::string fLineSegLabel; 
+    std::string fTrackLabel;
+
+    mcu::MCUtils util; 
   };
 
 } // end namespace

@@ -17,7 +17,6 @@ namespace caf
     void Fill(art::Event&, caf::StandardRecord&);
 
     std::string fLabel;
-
   };
 
 } // end namespace
