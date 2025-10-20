@@ -130,15 +130,18 @@ namespace caf
 	}	
     }
  */  
+	
+
+  try{
    	
    auto trackv = evt.getHandle<std::vector <rb::Track>>(fTrackLabel);
    const std::vector<sim::SSDHit> &hitvec = *truehitv;
+
 
    for(int i=0; i < (int)trackv->size(); i++){
    
 	auto trk = trackv->at(i); //Get single rb::Track
 
-//	std::cout << " truth filler 139, N clusters for track " << trk.NSSDClusters() << std::endl;
 		
 	std::vector<int> truth_ids;
 	for(size_t c =0; c < trk.NSSDClusters(); c++){
@@ -146,17 +149,21 @@ namespace caf
 	auto clust = trk.GetSSDCluster(c);
 	auto it = util.GetTrueSSDHitIt(clust->Station(), clust->Plane(), clust->Sensor(), clust->AvgStrip(), hitvec);
 
+	std::cout << (it == hitvec.end()) << std::endl;
+
 	if (it != hitvec.end()){
 	  const sim::SSDHit &hit = *it;
 	  truth_ids.push_back(hit.GetTrackID());
 	 }
+	else continue;
 
 	}
-
 //	std::cout << "Track ID" << std::endl;
-//	for(int val : truth_ids)std::cout << val << std::endl;
-
-	bool all_same = std::all_of(truth_ids.begin() + 1, truth_ids.end(), [&](int x) {return x == truth_ids[0];});
+	//for(int val : truth_ids)std::cout << val << std::endl;
+	bool all_same = false;
+	if(truth_ids.size() != 0){
+	all_same = std::all_of(truth_ids.begin() + 1, truth_ids.end(), [&](int x) {return x == truth_ids[0];});
+	}
 //	std::cout << "ALL THE SAME ? " << all_same << std::endl;   
 	
 	if(all_same){	
@@ -170,6 +177,10 @@ namespace caf
         } 
    	
      }//end loop over rb::Track
+   } 
+   catch(...){
+     std::cout << "Something wrong in track truth matching " << std::endl;
+   }
    
   } //end void
 
