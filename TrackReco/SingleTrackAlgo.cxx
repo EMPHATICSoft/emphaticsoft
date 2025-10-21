@@ -587,15 +587,11 @@ namespace emph {
 	  if (sigma == 0) std::cout<<"width = "<<p.GetSSDCluster(i)->Width()<<std::endl;
 	  float chi2 = dsign*dsign/sigma/sigma;
 
-	  //std::cout<<"dsign = "<<dsign<<" and sigma = "<<sigma<<std::endl;
-
 	  chi2tot += chi2;
 
 	}
       }
-      //std::cout<<"chi2 = "<<chi2tot<<std::endl;
       ts.SetChi2(chi2tot);
-      //std::cout<<"......"<<std::endl;
       alltrackcombos.push_back(ts);
       
     }

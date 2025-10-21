@@ -22,6 +22,7 @@ namespace caf
     rb::Region region;
     double pointA[3];
     double pointB[3];
+    double chi2;
 
     virtual void setDefault();
   };

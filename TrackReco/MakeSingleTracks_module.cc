@@ -224,7 +224,7 @@ namespace emph {
       }
 
       bool goodEvent = false;
-      
+
       try {
 	evt.getByLabel(fTrkSegLabel, trksegH);
 	trksegs.clear();
@@ -269,16 +269,20 @@ namespace emph {
 	  int nts1=0; int nts2=0; int nts3=0;
           int nts2sp2=0; int nts2sp3=0;
           int nts3sp2=0; int nts3sp3=0;
+
+	  for (auto t : trksegs){
+            if (t->RegLabel() == rb::Region::kRegion1) nts1++;
+            if (t->RegLabel() == rb::Region::kRegion2) nts2++;
+            if (t->RegLabel() == rb::Region::kRegion3) nts3++;
+          }
+
 	  if (fLessStrict){
 	    for (auto t : trksegs){
-	      if (t->RegLabel() == rb::Region::kRegion1) nts1++;
 	      if (t->RegLabel() == rb::Region::kRegion2){
-		nts2++; 
 		if (t->NSpacePoints() == 2) nts2sp2++; 
 		if (t->NSpacePoints() == 3) nts2sp3++;    
 	      }
 	      if (t->RegLabel() == rb::Region::kRegion3){
-	        nts3++;
                 if (t->NSpacePoints() == 2) nts3sp2++;
                 if (t->NSpacePoints() == 3) nts3sp3++;
 	      }
@@ -292,8 +296,8 @@ namespace emph {
 	    if (nts1 == 1 &&
 	       ((nts2 == 1 || nts2 == 4) && nts2sp2 != 4) && 
 	       ((nts3 == 1 || nts3 == 4) && nts3sp2 != 4)) goodEvent = true;
-	    if (goodEvent==true) {goodclust++;}
-            else {badclust++;}
+	    if (goodEvent==true) goodclust++;
+            else badclust++;
 	  }
 	  else { // for SingelTrackAlignment
 	    //ONE CLUSTER PER PLANE
@@ -303,14 +307,7 @@ namespace emph {
                 if (i.second != 1){goodEvent = false; break;}
                 else goodEvent = true;
               }
-              if (goodEvent==true) {
-		goodclust++; 
-                for (auto t : trksegs){
-                  if (t->RegLabel() == rb::Region::kRegion1) nts1++;
-                  if (t->RegLabel() == rb::Region::kRegion2) nts2++;
-                  if (t->RegLabel() == rb::Region::kRegion3) nts3++; 
-		}
-	      }
+              if (goodEvent==true) goodclust++; 
               else {badclust++;}
             }
             else badclust++;
@@ -352,7 +349,6 @@ namespace emph {
                 if (nts3 == 1) tsvcut.push_back(t); // Only one combination
 	        else{
 		  if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-		 //}
 		}
 	      }
             }

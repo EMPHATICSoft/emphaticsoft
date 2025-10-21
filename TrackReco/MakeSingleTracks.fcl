@@ -11,7 +11,7 @@ standard_makesingletracks:
   ShortOn:           true
   PBeamTmp:          120               # Change beam momentum here --> make more sophisticated later
 				     # SpillInfo for data, RunHistory if application
-  LessStrict:        false
+  LessStrict:        true
 }
 
 END_PROLOG
