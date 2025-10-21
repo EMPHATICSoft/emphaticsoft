@@ -42,6 +42,7 @@ namespace caf
           srts.pointA[i] = pts->A()[i];
           srts.pointB[i] = pts->B()[i];
  	}
+        srts.chi2 = pts->Chi2();
 
         sp.Add(srts);
 	

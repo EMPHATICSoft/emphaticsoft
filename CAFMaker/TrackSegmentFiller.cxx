@@ -33,6 +33,7 @@ namespace caf
  
       sp.region = p.RegLabel();
       sp.nspacepoints = p.NSpacePoints();
+      sp.chi2 = p.Chi2();
       stdrec.sgmnts.seg.push_back(sp);    
     } // end of loop over track segments
   }  
