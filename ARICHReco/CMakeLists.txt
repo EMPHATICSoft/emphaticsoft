@@ -1,3 +1,4 @@
+
 cet_build_plugin(ARICHReco art::module
   LIBRARIES REG
     RawData
@@ -18,6 +19,7 @@ cet_build_plugin(ARICHReco art::module
     ROOT::Core
     ROOT::Geom 
     ROOT::Tree
+    TorchML
 )
 
 

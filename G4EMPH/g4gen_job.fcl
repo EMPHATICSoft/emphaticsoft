@@ -8,9 +8,9 @@ process_name: G4Sim
 
 services:
 {
-  MagneticField: @local::standard_magfield
+  MagneticFieldService: @local::standard_magfield
   RunHistoryService: @local::standard_runhistory
-  Geometry: @local::standard_geometry
+  GeometryService: @local::standard_geometry
 
   # uncomment for debug messages
 #  message: { debugModules: ["*"] destinations: { debugmsg:{type: "cout" threshold: "DEBUG"} } }  

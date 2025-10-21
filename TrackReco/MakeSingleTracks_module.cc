@@ -102,7 +102,6 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     std::string fTrkSegLabel;
-    bool        fSevenOn;
     bool        fShortOn;
     int         fPBeamTmp;
     bool        fLessStrict;
@@ -118,7 +117,6 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
-    fSevenOn           (pset.get< bool >("SevenOn")),
     fShortOn           (pset.get< bool >("ShortOn")),
     fPBeamTmp          (pset.get< int >("PBeamTmp")),
     fLessStrict        (pset.get< bool >("LessStrict"))
@@ -151,11 +149,6 @@ namespace emph {
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
 
-    // Optionally exclude Station 7 (added later in data)
-    if (!fSevenOn){ 
-      nPlanes = nPlanes - 2;
-      nStations = nStations - 1;
-    }
   }
 
   //......................................................................
@@ -231,7 +224,7 @@ namespace emph {
       }
 
       bool goodEvent = false;
-      
+
       try {
 	evt.getByLabel(fTrkSegLabel, trksegH);
 	trksegs.clear();
@@ -274,19 +267,37 @@ namespace emph {
 	
 	  // Check for three good track segments
 	  int nts1=0; int nts2=0; int nts3=0;
+          int nts2sp2=0; int nts2sp3=0;
+          int nts3sp2=0; int nts3sp3=0;
+
+	  for (auto t : trksegs){
+            if (t->RegLabel() == rb::Region::kRegion1) nts1++;
+            if (t->RegLabel() == rb::Region::kRegion2) nts2++;
+            if (t->RegLabel() == rb::Region::kRegion3) nts3++;
+          }
+
 	  if (fLessStrict){
 	    for (auto t : trksegs){
-	      if (t->RegLabel() == rb::Region::kRegion1) nts1++;
 	      if (t->RegLabel() == rb::Region::kRegion2){
-	        if (t->NSpacePoints() == 3) nts2++;	 
+		if (t->NSpacePoints() == 2) nts2sp2++; 
+		if (t->NSpacePoints() == 3) nts2sp3++;    
 	      }
 	      if (t->RegLabel() == rb::Region::kRegion3){
-	        if (t->NSpacePoints() == 3) nts3++;	
+                if (t->NSpacePoints() == 2) nts3sp2++;
+                if (t->NSpacePoints() == 3) nts3sp3++;
 	      }
             }
-            if (nts1 == 1 && nts2 == 1 && nts3 == 1) goodEvent = true;	  
-	    if (goodEvent==true) {goodclust++;}
-            else {badclust++;}
+	    // We want events with either nts2 (nts3)
+	    //   (1) 1 = one track segment option in each region (1 -- 1 -- 0) or (1 -- 0 -- 1) or (0 -- 1 -- 1) 
+	    //   (2) 4 = 1 (three space points) + 3 (2 space points) (1 -- 1 -- 0) and (1 -- 0 -- 1) and (0 -- 1 -- 1) and (1 -- 1 -- 1)
+	    // but not
+	    //   (1) 4 = multiple space points per station but not on every station ( 2 -- 0 -- 2) and so on
+	    //   (2) >4 track segment options, indicating a multitrack event
+	    if (nts1 == 1 &&
+	       ((nts2 == 1 || nts2 == 4) && nts2sp2 != 4) && 
+	       ((nts3 == 1 || nts3 == 4) && nts3sp2 != 4)) goodEvent = true;
+	    if (goodEvent==true) goodclust++;
+            else badclust++;
 	  }
 	  else { // for SingelTrackAlignment
 	    //ONE CLUSTER PER PLANE
@@ -296,7 +307,7 @@ namespace emph {
                 if (i.second != 1){goodEvent = false; break;}
                 else goodEvent = true;
               }
-              if (goodEvent==true) {goodclust++;}
+              if (goodEvent==true) goodclust++; 
               else {badclust++;}
             }
             else badclust++;
@@ -309,27 +320,34 @@ namespace emph {
           clustMap.clear();
 
           // Reconstructed hits
-          // Choose track segments 2 and 3 with 3 space points
           if (goodEvent){
             for (auto t : trksegs){
 	      bool shortTrackSeg = true;
 
               if (t->RegLabel() == rb::Region::kRegion1) tsvcut.push_back(t);
 	      if (t->RegLabel() == rb::Region::kRegion2){
-		if (fShortOn){
-                  for (size_t i=0; i<t->NSpacePoints(); i++){
-                    if (t->GetSpacePoint(i)->Station() == 4) shortTrackSeg = false;
-                  }
-		  if (shortTrackSeg) tsvcut.push_back(t);
-	        }
-		else{ 
-		  if (t->NSpacePoints() == 3) tsvcut.push_back(t);
-		}
-              }
-	      
+	      // If there is only one track segment, push back
+	      // If there are more, choose the one with space points in only stations 2 and 3
+	      // The space point in station 4 may be biased from the magnetic field
+		  if (nts2 == 1) tsvcut.push_back(t); // Only one combination 
+	          else{
+		    if (fShortOn){
+                      for (size_t i=0; i<t->NSpacePoints(); i++){
+                        if (t->GetSpacePoint(i)->Station() == 4) shortTrackSeg = false;
+                      }
+		      if (shortTrackSeg) tsvcut.push_back(t);
+	            }
+		    else{
+	              tsvcut.push_back(t); 
+		      if (t->NSpacePoints() == 3) tsvcut.push_back(t); // Space point in every station
+		    }
+		  }
+	      }
 	      if (t->RegLabel() == rb::Region::kRegion3){
-		if (!fSevenOn) tsvcut.push_back(t);
-		else{
+	      // If there is only one track segment, push back
+	      // If there are more, choose the one with more (3) space points
+                if (nts3 == 1) tsvcut.push_back(t); // Only one combination
+	        else{
 		  if (t->NSpacePoints() == 3) tsvcut.push_back(t);
 		}
 	      }

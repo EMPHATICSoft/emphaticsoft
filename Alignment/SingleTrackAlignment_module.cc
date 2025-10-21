@@ -99,13 +99,8 @@ namespace emph {
     std::vector<const rb::Track*> tracks;
     std::vector<std::vector<std::vector<float> > > pullsorted;
 
-    std::vector<rb::SpacePoint> spv;
     std::vector<rb::TrackSegment> tsv;
     std::vector<rb::TrackSegment> tsvnom;
-
-    std::vector<std::vector<double>> sp1;
-    std::vector<std::vector<double>> sp2;
-    std::vector<std::vector<double>> sp3;
 
     //fcl parameters
     bool        fCheckLineSeg;    
@@ -113,7 +108,6 @@ namespace emph {
     std::string fClusterLabel;
     std::string fTrackSegLabel;
     std::string fTrackLabel;
-    bool        fSevenOn;
     bool        fUpstream; 
  
     //Millepede stuff
@@ -141,7 +135,6 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
     fTrackLabel        (pset.get< std::string >("TrackLabel")),
-    fSevenOn           (pset.get< bool >("SevenOn")),
     fUpstream          (pset.get< bool >("Upstream"))
     {
       //this->produces< std::vector<rb::Track> >();
@@ -169,11 +162,6 @@ namespace emph {
     auto emgeo = geo->Geo();
     nStations = emgeo->NSSDStations();
     nPlanes = emgeo->NSSDPlanes();
-
-    if (!fSevenOn){
-      nStations = nStations - 1;
-      nPlanes = nPlanes - 2;
-    }
 
     if (emgeo->GetTarget()) targetz = emgeo->GetTarget()->Pos()(2);
     else targetz = 380.5;    
@@ -224,6 +212,10 @@ namespace emph {
     TVector3 b2(0.,0.,0.);
     TVector3 ts2(0.,0.,0.);
 
+    TVector3 a1(0.,0.,0.);
+    TVector3 b1(0.,0.,0.);
+    TVector3 ts1(0.,0.,0.);
+
     for (int ii=0; ii<(int)ls_group.size(); ii++){
       for (int jj=0; jj<(int)ls_group[ii].size(); jj++){
         for (int kk=0; kk<(int)ls_group[ii][jj].size(); kk++){
@@ -258,7 +250,7 @@ namespace emph {
 
 	    TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
             TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);	    
-            if (ts.RegLabel() == rb::Region::kRegion2){ a2 = a; b2 = b; ts2 = ts.P(); }
+	    if (ts.RegLabel() == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.P(); }
 
 	  // pull = doca between s and ts
             double sensorz = x0(2); //s[2];
@@ -268,10 +260,14 @@ namespace emph {
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
-	      if (ts.RegLabel() == rb::Region::kRegion3){ 
-	        a = a2; 
-                b = b2;
+	      //if (ts.RegLabel() == rb::Region::kRegion3){ 
+	      if (ts.RegLabel() == rb::Region::kRegion2 || ts.RegLabel() == rb::Region::kRegion3){
+         	a = a1; 
+                b = b1;
 	      } 
+
+	      double dxdz =  (b(0) - a(0)) / ( b(2) - a(2) ) ;
+	      double dydz =  (b(1) - a(1)) / ( b(2) - a(2) ) ;
 
               double f1[3]; double f2[3]; double f3[3];
               r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");   
@@ -313,10 +309,7 @@ namespace emph {
 	      if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
                 gld_x = -1.*TMath::Sin(phim);
                 gld_y = 1.*TMath::Cos(phim);
-                gld_z = -1.*ts.P()[0]/ts.P()[2]*TMath::Sin(phim) + ts.P()[1]/ts.P()[2]*TMath::Cos(phim);
-	        if (ts.RegLabel() == rb::Region::kRegion3){
-		  gld_z = -1.*ts2(0)/ts2(2)*TMath::Sin(phim) + ts2(1)/ts2(2)*TMath::Cos(phim); 
-		}
+	        gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
                 gld_phim = -1.*TMath::Cos(phim) * tsx - 1.*TMath::Sin(phim) * tsy;
               }
               else{

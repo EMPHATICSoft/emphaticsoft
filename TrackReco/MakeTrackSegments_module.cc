@@ -104,8 +104,7 @@ namespace emph {
     bool fCheckClusters; // Check clusters for event 
     std::string fClusterLabel;
     std::string fG4Label;
-    bool fSevenOn;
-    std::string fAlignPars;
+    size_t fMaxClust;
 
     // reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -117,14 +116,24 @@ namespace emph {
   //.......................................................................
   emph::MakeTrackSegments::MakeTrackSegments(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-      fCheckClusters(pset.get<bool>("CheckClusters")),
-      fClusterLabel(pset.get<std::string>("ClusterLabel")),
-      fG4Label(pset.get<std::string>("G4Label")),
-      fSevenOn(pset.get<bool>("SevenOn")) {
-    this->produces<std::vector<rb::LineSegment>>();
-    this->produces<std::vector<rb::SpacePoint>>();
-    this->produces<std::vector<rb::TrackSegment>>();
-  }
+    fCheckClusters     (pset.get< bool >("CheckClusters")), 
+    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
+    fG4Label           (pset.get< std::string >("G4Label")),
+    fMaxClust          (pset.get< size_t >("MaxClust"))
+    {
+      this->produces< std::vector<rb::LineSegment> >();
+      this->produces< std::vector<rb::SpacePoint> >();
+      this->produces< std::vector<rb::TrackSegment> >();
+    }
+  
+  //......................................................................
+  
+//  MakeTrackSegments::~MakeTrackSegments()
+//  {
+    //======================================================================
+    // Clean up any memory allocated by your module
+    //======================================================================
+//  }
 
   //......................................................................
   void MakeTrackSegments::beginRun(art::Run& run) {
@@ -133,11 +142,6 @@ namespace emph {
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
 
-    // Optionally exclude Station 7 (added later in data)
-    if (!fSevenOn) {
-      nPlanes -= 2;
-      nStations -= 1;
-    }
   }
 
   //......................................................................
@@ -145,22 +149,24 @@ namespace emph {
     std::cerr << "Starting MakeTrackSegments" << std::endl;
 
     art::ServiceHandle<art::TFileService> tfs;
-    spacepoint = tfs->make<TTree>("spacepoint", "");
-    spacepoint->Branch("run", &run, "run/I");
-    spacepoint->Branch("subrun", &subrun, "subrun/I");
-    spacepoint->Branch("event", &event, "event/I");
-    spacepoint->Branch("chi2", &chi2, "chi2/I");
+    spacepoint = tfs->make<TTree>("spacepoint","");
+    spacepoint->Branch("run",&run,"run/I");
+    spacepoint->Branch("subrun",&subrun,"subrun/I");
+    spacepoint->Branch("event",&event,"event/I");  
+    spacepoint->Branch("chi2",&chi2,"chi2/I");
   }
-
+ 
   //......................................................................
-  void emph::MakeTrackSegments::endJob() {
-    std::cout << "MakeTrackSegments: Number of events: " << evts << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with clusters " << hasclusters << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with less than 50 clusters: " << usableclust << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with space points: " << sps << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: " << chi2lessthan5_1 << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: " << chi2lessthan5_2 << std::endl;
-    std::cout << "MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: " << chi2lessthan5_3 << std::endl;
+  
+  void emph::MakeTrackSegments::endJob()
+  {
+       std::cout<<"MakeTrackSegments: Number of events: "<<evts<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with clusters: "<<hasclusters<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with less than "<<fMaxClust<<" clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with space points: "<<sps<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
+       std::cout<<"MakeTrackSegments: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
   }
 
   //......................................................................
@@ -212,17 +218,16 @@ namespace emph {
             linesegments.push_back(lineseg_tmp);
             if (clust.AvgStrip() > 640) {
               throw art::Exception(art::errors::InvalidNumber)
-                << "Skipping nonsense: cluster strip number > 640 "
-                << ".\n";
-              abort();
-            }
-            if (dgm->Map()->SSDClusterToLineSegment(clust, linesegments[idx])) {
-              linesegv->push_back(linesegments[idx]);
-            } else {
-              std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;
-            }
-          }
-          if (clusters.size() < 50) {
+              << "Skipping nonsense: cluster strip number > 640 "
+              << ".\n";
+	      abort(); }
+            if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments[idx])){
+              linesegv->push_back(linesegments[idx]); 
+	    }
+            else
+              std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
+	  }
+          if (clusters.size() < fMaxClust){
             usableclust++;
 
             cl_group.resize(nStations);
@@ -334,7 +339,7 @@ namespace emph {
             sp1.clear();
             sp2.clear();
             sp3.clear();
-          }
+          } //clust < fMaxClust
           ls_group.clear();
           cl_group.clear();
           linesegments.clear();

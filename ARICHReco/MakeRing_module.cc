@@ -157,7 +157,6 @@ namespace emph
 	      int to_find = 1; // number of rings to find, should be = n tracks 
 	
 	      std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(to_find); 
- 
 
 
 	      for(int j =0; j < (int)circles.size();j++ ){
@@ -170,6 +169,7 @@ namespace emph
 		ring.SetCenter(center);
 		ring.SetNHits(arich_clusters->at(u).NDigits()); 
 		
+
 	/*	std::cout << "	radius " << ring.Radius() << std::endl;
 		double theta = atan(ring.Radius()/178.9); //mm
 	 	std::cout << "	thetaC " << theta << " rad " << std::endl;
@@ -180,7 +180,7 @@ namespace emph
 	*/
 		ARICH_RINGS->push_back(ring); 
 	    
-	     } 				
+	     }
 	
 	     delete event_hist; delete fitter;
 	}

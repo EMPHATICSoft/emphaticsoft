@@ -257,6 +257,8 @@ ifbeam		v2_6_2		-
 ifdh_art	v2_17_07	-
 nucondb		v2_6_2		-
 millepede_ii    v04_17_05   -
+protobuf        v3_21_12a   -
+libtorch        v2_1_1b     -
 caencomm	v1_2a		-	only_for_build
 caendigitizer	v2_12_0	-	only_for_build
 caenvme		v2_50		-	only_for_build
@@ -315,11 +317,11 @@ end_product_list
 #   case it is optional.
 #
 ####################################
-qualifier	art		art_root_io	artdaq		artdaq_core	geant4		ifbeam		ifdh_art	nucondb		millepede_ii	notes
-e20:debug	e20:debug	e20:debug	e20:s118:debug	e20:s118:debug	e20:debug	e20:p3913:debug	e20:debug	e20:p3913:debug     e20
-e20:prof	e20:prof	e20:prof	e20:s118:prof	e20:s118:prof	e20:prof	e20:p3913:prof	e20:prof	e20:p3913:prof      e20
-e26:debug	e26:debug	e26:debug	e26:s131:debug	e26:s131:debug	e26:debug	e26:p3915:debug	e26:debug	e26:p3915:debug     e26
-e26:prof	e26:prof	e26:prof	e26:s131:prof	e26:s131:prof	e26:prof	e26:p3915:prof	e26:prof	e26:p3915:prof      e26
+qualifier	art		art_root_io	    artdaq		artdaq_core	    geant4		ifbeam		ifdh_art	nucondb		millepede_ii	protobuf	libtorch	notes
+e20:debug	e20:debug	e20:debug	e20:s118:debug	e20:s118:debug	e20:debug	e20:p3913:debug	e20:debug	e20:p3913:debug     e20   e20     e20  
+e20:prof	e20:prof	e20:prof	e20:s118:prof	e20:s118:prof	e20:prof	e20:p3913:prof	e20:prof	e20:p3913:prof      e20   e20     e20
+e26:debug	e26:debug	e26:debug	e26:s131:debug	e26:s131:debug	e26:debug	e26:p3915:debug	e26:debug	e26:p3915:debug     e26   e26     e26
+e26:prof	e26:prof	e26:prof	e26:s131:prof	e26:s131:prof	e26:prof	e26:p3915:prof	e26:prof	e26:p3915:prof      e26   e26     e26
 end_qualifier_list
 ####################################
 
