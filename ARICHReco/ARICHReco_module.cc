@@ -14,6 +14,8 @@
 #include "stdlib.h"
 #include <map>
 #include <numeric> 
+//TORCH
+#include <ATen/ATen.h>
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
@@ -42,7 +44,7 @@
 #include "RecoBase/ArichID.h"
 #include "RecoBase/Track.h"
 #include "Utilities/PMT.h"
-
+#include "TorchML/NeuralNet.h"
 // ARICHRECO
 #include "ARICHRecoUtils/ArichUtils.h"
 
@@ -58,6 +60,7 @@ namespace emph {
     void produce(art::Event& evt);
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
+    at::Tensor TH2DToTensor(TH2D* hist);
 
   private:
 
@@ -67,6 +70,10 @@ namespace emph {
     int         fEvtNum;
     std::string fARICHLabel;  
     std::string fTrackLabel;  //for now using sim::Tracks
+ 
+    std::string  fModelPath;
+
+    tml::NeuralNet* Model;
     
    // Aerogel parameters
     double up_n;
@@ -105,12 +112,14 @@ namespace emph {
 
   //.......................................................................
   emph::ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
-    : EDProducer(pset) { 
-      this->produces<std::vector<rb::ArichID>>();
-      fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
-      fFillTree   = bool(pset.get<bool>("FillTree"));
-      fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
- 
+    : EDProducer(pset)
+ { 
+
+    this->produces<std::vector<rb::ArichID>>();
+    fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
+    fFillTree   = bool(pset.get<bool>("FillTree"));
+    fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
+    fModelPath = std::string(pset.get<std::string>("ModelPath"));
 
       //ARICH RECO UTILS STUFF
       PDfile  =  std::string(pset.get< std::string >("PD_file"));
@@ -156,7 +165,10 @@ namespace emph {
     TString PDfile_path = source_path + PDfile;
     ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
     ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
-
+    
+    Model = new tml::NeuralNet();
+    Model->loadModel(source_path.append(fModelPath));
+//    mf::LogError("ARICH NN path") <<"model path " << source_path.append(fModelPath);    
 
  /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
     fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
@@ -167,9 +179,26 @@ namespace emph {
 */
   }
 
-  //......................................................................
-  void ARICHReco::produce(art::Event& evt) 
-  { 
+//......................................................................
+at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
+
+    int nx = hist->GetNbinsX();
+    int ny = hist->GetNbinsY();
+	   
+    at::Tensor tensor = at::empty({ny, nx}, at::kFloat);
+
+    for (int iy = 1; iy <= ny; ++iy) {
+       for (int ix = 1; ix <= nx; ++ix) {
+        double val = hist->GetBinContent(ix, iy);
+        tensor.index_put_({iy-1, ix-1}, val);
+        }
+     }
+    tensor = tensor.unsqueeze(0).unsqueeze(0);
+    return tensor;
+}
+//......................................................................
+void ARICHReco::produce(art::Event& evt)
+{ 
     std::unique_ptr<std::vector<rb::ArichID>> ARICH_LL(new std::vector<rb::ArichID>);
 
     art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
@@ -178,6 +207,7 @@ namespace emph {
     evt.getByLabel(fARICHLabel,arich_clusters);
 
     evt.getByLabel(fTrackLabel,TracksH);  
+
 
     if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
 
@@ -209,22 +239,31 @@ namespace emph {
           std::vector<std::pair<int,int>> digs = arich_clusters->at(k).Digits();
           TH2D* event_hist = ArichUtils->DigsToHist(digs);
           std::vector<double> LL = ArichUtils->identifyParticle(event_hist, mom, pos_, dir_);
-          delete event_hist;
 
           rb::ArichID arich_id;
           arich_id.scores = LL;
           arich_id.trackID = i;
           arich_id.nhit = digs.size();
 
+		  at::Tensor tensor_event = TH2DToTensor(event_hist);
+		  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
+ 	
+		  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
+
+		  at::Tensor pred = Model->predict(inputs); 
+
+		  mf::LogError("tensor pred") <<"pred " <<  pred << std::endl;
+			
           ARICH_LL->push_back(arich_id);
+		  delete event_hist;
         }
       } //end track loop
     } // end if clusters     	 
 
-    momenta.clear();
-    dir.clear();
-    pos.clear();	
-    evt.put(std::move(ARICH_LL));	   
+	momenta.clear();
+	dir.clear();
+	pos.clear();	
+	evt.put(std::move(ARICH_LL));	   
     
   } // end produce 
 } // namespace emph
