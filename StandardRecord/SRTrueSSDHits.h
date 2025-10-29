@@ -5,6 +5,7 @@
 #define  SRTrueSSDHits_H
 
 //#include "StandardRecord/SRVector3D.h" //don't think its needed for hits
+#include "Math/Vector3D.h"
 
 namespace caf
 {
@@ -15,22 +16,17 @@ namespace caf
     SRTrueSSDHits(); //Default constructor
     virtual ~ SRTrueSSDHits(); //Destructor
     
-    double GetX;
-    double GetY;
-    double GetZ;
-    
-    double GetPx;
-    double GetPy;
-    double GetPz;
+    ROOT::Math::XYZVector pos;
+    ROOT::Math::XYZVector mom;
 
-    double GetDE;
-    int GetPId;
+    double dE;
+    int pid;
     
-    int GetStation;
-    int GetPlane;
-    int GetSensor;
-    int GetStrip;
-    int GetTrackID;
+    int station;
+    int plane;
+    int sensor;
+    int strip;
+    int trackID;
 
     virtual void setDefault();
   };

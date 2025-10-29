@@ -225,8 +225,8 @@ namespace emph {
 	if (trkSegH->size() > 1) {
 	  for (size_t i=0; i<trkSegH->size(); ++i) {
 	    auto & ts = (*trkSegH)[i];
-	    if (ts.A()[2] > emgeo->GetTarget()->Pos()[2] &&
-		ts.A()[2] < emgeo->MagnetUSZPos()) {
+	    if (ts.pointA.Z() > emgeo->GetTarget()->Pos()[2] &&
+		ts.pointA.Z() < emgeo->MagnetUSZPos()) {
 	      if (ts.NSpacePoints() == 3) {
 		std::cout << ts << std::endl;
 		double dx = ts.GetSpacePoint(0)->Pos()[0] - ts.GetSpacePoint(2)->Pos()[0];

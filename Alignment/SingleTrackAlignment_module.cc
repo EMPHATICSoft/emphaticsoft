@@ -208,19 +208,19 @@ namespace emph {
     auto emgeo = geo->Geo();
     ru::RecoUtils r;
 
-    TVector3 a2(0.,0.,0.);
-    TVector3 b2(0.,0.,0.);
-    TVector3 ts2(0.,0.,0.);
+    ROOT::Math::XYZVector a2(0.,0.,0.);
+    ROOT::Math::XYZVector b2(0.,0.,0.);
+    ROOT::Math::XYZVector ts2(0.,0.,0.);
 
-    TVector3 a1(0.,0.,0.);
-    TVector3 b1(0.,0.,0.);
-    TVector3 ts1(0.,0.,0.);
+    ROOT::Math::XYZVector a1(0.,0.,0.);
+    ROOT::Math::XYZVector b1(0.,0.,0.);
+    ROOT::Math::XYZVector ts1(0.,0.,0.);
 
     for (int ii=0; ii<(int)ls_group.size(); ii++){
       for (int jj=0; jj<(int)ls_group[ii].size(); jj++){
         for (int kk=0; kk<(int)ls_group[ii][jj].size(); kk++){
-          TVector3 x0(ls_group[ii][jj][kk]->X0().X(),ls_group[ii][jj][kk]->X0().Y(),ls_group[ii][jj][kk]->X0().Z());
-          TVector3 x1(ls_group[ii][jj][kk]->X1().X(),ls_group[ii][jj][kk]->X1().Y(),ls_group[ii][jj][kk]->X1().Z());
+          ROOT::Math::XYZVector x0(ls_group[ii][jj][kk]->X0().X(),ls_group[ii][jj][kk]->X0().Y(),ls_group[ii][jj][kk]->X0().Z());
+          ROOT::Math::XYZVector x1(ls_group[ii][jj][kk]->X1().X(),ls_group[ii][jj][kk]->X1().Y(),ls_group[ii][jj][kk]->X1().Z());
 
 	  int sens = cl_group[ii][jj][kk]->Sensor();
 
@@ -233,11 +233,11 @@ namespace emph {
 	  auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
 	  //double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad
 
-          x0(0) = -1*x0(0);
-          x1(0) = -1*x1(0);
+          x0.SetX(-1*x0.X());
+          x1.SetX(-1*x0.X());
 
-          TVector3 vec = x0 - x1;
-          TVector3 posx(1.,0.,0.);
+          ROOT::Math::XYZVector vec = x0 - x1;
+          ROOT::Math::XYZVector posx(1.,0.,0.);
           Double_t ta = TMath::ATan2(posx.Y(),posx.X());
           Double_t tb = TMath::ATan2(vec.Y(),vec.X());
           Double_t tt = tb - ta;
@@ -246,28 +246,31 @@ namespace emph {
           else phim = tt;
 
           for (auto ts : trksegv) {
-            double tsz = ts.Vtx()[2];
+            double tsz = ts.vtx.Z();
 
-	    TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
-            TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);	    
-	    if (ts.RegLabel() == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.P(); }
+	    auto a = ts.pointA; //TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
+            auto b = ts.pointB; //TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);
+	    
+	    //	    if (ts.RegLabel() == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.P(); }
+	    if (ts.region == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.mom; }
 
 	  // pull = doca between s and ts
-            double sensorz = x0(2); //s[2];
-            if (x0(2) != x1(2)) 
+            double sensorz = x0.Z();//(2); //s[2];
+            if (x0.Z() != x1.Z()) 
 	      mf::LogDebug("SingleTrackAlignment") << "Rotated line segment --> using x0 for now";
 
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
 	      //if (ts.RegLabel() == rb::Region::kRegion3){ 
-	      if (ts.RegLabel() == rb::Region::kRegion2 || ts.RegLabel() == rb::Region::kRegion3){
+	      if (ts.region == rb::Region::kRegion2 || ts.region == rb::Region::kRegion3){
          	a = a1; 
                 b = b1;
 	      } 
 
-	      double dxdz =  (b(0) - a(0)) / ( b(2) - a(2) ) ;
-	      double dydz =  (b(1) - a(1)) / ( b(2) - a(2) ) ;
+	      auto dba = b-a;
+	      double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
+	      double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
 
               double f1[3]; double f2[3]; double f3[3];
               r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");   
@@ -277,18 +280,18 @@ namespace emph {
 	      // find signed distance from sensor xy to ts xy 
 	      // find t where sensor z is
 
-	      double t = ( sensorz - a(2) )/( b(2) - a(2) );
-	      double tsx = a(0) + (b(0)-a(0))*t;
-	      double tsy = a(1) + (b(1)-a(1))*t;
+	      double t = ( sensorz - a.Z() )/( b.Z() - a.Z() );
+	      double tsx = a.X() + (b.X()-a.X())*t;
+	      double tsy = a.Y() + (b.Y()-a.Y())*t;
 
-              a(0) = -1*a(0);
-              b(0) = -1*b(0);
+              a.SetX(-1*a.X());
+              b.SetX(-1*b.X());
               tsx = -1*tsx;
 
 	      // signed distance from point to a line 
-	      double la = x1(1) - x0(1);
-	      double lb = x0(0) - x1(0);
-	      double lc = x0(1)*(x1(0)-x0(0)) - (x1(1)-x0(1))*x0(0);	  
+	      double la = x1.Y() - x0.Y();
+	      double lb = x0.X() - x1.X();
+	      double lc = x0.Y()*(x1.X()-x0.X()) - (x1.Y()-x0.Y())*x0.X();	  
 	      float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
 
 	      pullsorted[ii][jj].push_back(dsign);

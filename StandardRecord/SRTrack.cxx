@@ -20,10 +20,9 @@ namespace caf
   //--------------------------------------------------------------------
   void SRTrack::setDefault()
   {
-    vtx[0] = vtx[1] = vtx[2] = -999999.;
-    mom.SetX(0.);
-    mom.SetY(0.);
-    mom.SetZ(0.);
+    vtx.SetXYZ(-999999.,-999999.,-999999.); 
+//[0] = vtx[1] = vtx[2] = -999999.;
+    mom.SetXYZ(0.,0.,0.);
     arich.setdefault(); // arich loglikelihooods values 
   }
 

@@ -13,7 +13,7 @@
 #include "GasCkovHitReco.fcl"
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
-#include "SingleTrackAlignment.fcl"
+#include "MakePrimaryVertex.fcl"
 
 process_name: CAF
 
@@ -41,33 +41,29 @@ physics:
   {
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
-#    arichcluster: @local::standard_arich_cluster
-#    arichreco:    @local::standard_arichreco
-#    arichring:    @local::standard_arich_ring
+    arichcluster: @local::standard_arich_cluster
+    arichreco:    @local::standard_arichreco
+    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
-    adcreco:      @local::standard_adcreco
-    backovreco:   @local::standard_backovhitreco
-    gasckovreco:  @local::standard_gasckovhitreco
-    cafmaker:     @local::standard_cafmaker
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
-    singletrackalignment: @local::standard_singletrackalignment
+    makeprimaryvertex: @local::standard_makeprimaryvertex
+
+    cafmaker:     @local::standard_cafmaker
+
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, clust, # arichcluster, clust,
-               maketracksegments, makesingletracks, #singletrackalignment, #arichring, arichreco, #singletrackalignment,
-               #adcreco, backovreco, gasckovreco,
-               cafmaker
+               dataqual, spillinfo, arichcluster, clust,
+               maketracksegments, makesingletracks, makeprimaryvertex,
+	       arichring, arichreco, cafmaker
              ]
 
 }
 physics.producers.clust.FillTTree: false
-physics.producers.clust.SSDRawLabel: "ssddig:SSD"
-physics.producers.clust.CheckDQ: false
 physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's
-physics.producers.maketracksegments.SevenOn: true
-physics.producers.makesingletracks.SevenOn: true
+physics.producers.clust.SSDRawLabel: "raw:SSD"
+physics.producers.clust.CheckDQ: false

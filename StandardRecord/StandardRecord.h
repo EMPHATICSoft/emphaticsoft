@@ -24,6 +24,7 @@
 #include "StandardRecord/SRTrackSegmentBranch.h"
 #include "StandardRecord/SRVertexBranch.h"
 #include "StandardRecord/SRTruth.h"
+#include "StandardRecord/SRVector3D.h"
 
 /// Common Analysis Files
 namespace caf

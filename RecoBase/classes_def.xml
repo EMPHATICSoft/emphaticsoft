@@ -136,7 +136,8 @@
   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
 
 
-  <class name="rb::Track"    ClassVersion="15">
+  <class name="rb::Track"    ClassVersion="16">
+   <version ClassVersion="16" checksum="3222335871"/>
    <version ClassVersion="15" checksum="1029338424"/>
    <version ClassVersion="15" checksum="2338935983"/>
    <version ClassVersion="14" checksum="1141459240"/>

@@ -13,17 +13,20 @@ namespace rb {
   
   //----------------------------------------------------------------------
   
-  Track::Track() 
+  Track::Track() : caf::SRTrack()
   {
     _pos.clear();
     _clust.clear();
     _sgmnt.clear();
     _spcpt.clear();
 
+    /*
     for (int i=0; i<3; ++i) {
       _vtx[i] = -999999.;
       _p[i] = 0.;
     }
+    */
+
   }
   //------------------------------------------------------------
 
@@ -52,7 +55,7 @@ namespace rb {
 
   //------------------------------------------------------------
 
-  void Track::AddPos(TVector3 &x)
+  void Track::AddPos(ROOT::Math::XYZVector &x)
   {
     _pos.push_back(x);
   }
@@ -86,15 +89,15 @@ namespace rb {
   
   //------------------------------------------------------------
   
-  TVector3 Track::PosAt(double z) const
+  ROOT::Math::XYZVector Track::PosAt(double z) const
   {
-    TVector3 pos;
+    ROOT::Math::XYZVector pos;
     double x = -9999.;
     double y = -9999.;
 
     assert(_pos.size()>= 2);
 
-    if (z >= _vtx[2]) {
+    if (z >= vtx.Z()) {
       size_t i=0; 
       for (; i<_pos.size()-1; ++i) {
 	if ((z>_pos[i].Z()) && (z<_pos[i+1].Z())) {
@@ -118,15 +121,15 @@ namespace rb {
 
   //------------------------------------------------------------
 
-  TVector3 Track::MomAt(double z) const
+  ROOT::Math::XYZVector Track::MomAt(double z) const
   {
-    TVector3 mom;
+    ROOT::Math::XYZVector tmom;
     double px = -9999.;
     double py = -9999.;
 
     assert(_mom.size()>= 2);
 
-    if (z >= _vtx[2]) {
+    if (z >= vtx.Z()) {
       size_t i=0; 
       for (; i<_pos.size()-1; ++i) {
 	if ((z>_pos[i].Z()) && (z<_pos[i+1].Z())) {
@@ -141,11 +144,11 @@ namespace rb {
       assert(i <= _pos.size());
     }
     
-    mom.SetX(px);
-    mom.SetY(py);
-    mom.SetZ(sqrt(_p[0]*_p[0] + _p[1]*_p[1] + _p[2]*_p[2] - px*px - py*py));
+    tmom.SetX(px);
+    tmom.SetY(py);
+    tmom.SetZ(sqrt(mom.Mag2() - px*px - py*py));
     
-    return mom;
+    return tmom;
   }
 
   //------------------------------------------------------------
@@ -153,9 +156,7 @@ namespace rb {
   std::ostream& operator<< (std::ostream& o, const Track& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    o << " Track Segment --> x0(" << h._vtx[0] << "," << h._vtx[1] << "," 
-      << h._vtx[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
-      << h._p[2] << ")"; 
+    o << " Track --> x0(" << h.vtx << "), p(" << h.mom << ")"; 
     return o;
   }
   

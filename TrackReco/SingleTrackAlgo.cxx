@@ -24,6 +24,8 @@
 #include <cmath>
 #include <algorithm>
 
+using namespace ROOT::Math;
+
 namespace emph {
   
   //----------------------------------------------------------------------
@@ -72,10 +74,10 @@ namespace emph {
         if (nssds == 2){ //station 0,1,4,7
           for (size_t k=0; k<ls_group[i][j].size(); k++) {
             for (size_t l=0; l<ls_group[i][j+1].size(); l++) {
-              TVector3 fA( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
-              TVector3 fB( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
-              TVector3 fC( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
-              TVector3 fD( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
+              XYZVector fA( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
+              XYZVector fB( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
+              XYZVector fC( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
+              XYZVector fD( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
 
               double x[3];
               double l1[3]; double l2[3];
@@ -93,28 +95,28 @@ namespace emph {
           for (size_t k=0; k<ls_group[i][j].size(); k++) {
             for (size_t l=0; l<ls_group[i][j+1].size(); l++){
               for (size_t m=0; m<ls_group[i][j+2].size(); m++){
-                TVector3 fA01( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
-                TVector3 fB01( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
-                TVector3 fC01( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
-                TVector3 fD01( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
+                XYZVector fA01( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
+                XYZVector fB01( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
+                XYZVector fC01( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
+                XYZVector fD01( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
 
                 double x01[3];
                 double l1_01[3]; double l2_01[3];
                 recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD",false);
 
-                TVector3 fA02( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
-                TVector3 fB02( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
-                TVector3 fC02( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
-                TVector3 fD02( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
+                XYZVector fA02( ls_group[i][j][k]->X0().X(), ls_group[i][j][k]->X0().Y(), ls_group[i][j][k]->X0().Z() );
+                XYZVector fB02( ls_group[i][j][k]->X1().X(), ls_group[i][j][k]->X1().Y(), ls_group[i][j][k]->X1().Z() );
+                XYZVector fC02( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
+                XYZVector fD02( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
 
                 double x02[3];
                 double l1_02[3]; double l2_02[3];
                 recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD",false);
 
-                TVector3 fA12( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
-                TVector3 fB12( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
-                TVector3 fC12( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
-                TVector3 fD12( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
+                XYZVector fA12( ls_group[i][j+1][l]->X0().X(), ls_group[i][j+1][l]->X0().Y(), ls_group[i][j+1][l]->X0().Z() );
+                XYZVector fB12( ls_group[i][j+1][l]->X1().X(), ls_group[i][j+1][l]->X1().Y(), ls_group[i][j+1][l]->X1().Z() );
+                XYZVector fC12( ls_group[i][j+2][m]->X0().X(), ls_group[i][j+2][m]->X0().Y(), ls_group[i][j+2][m]->X0().Z() );
+                XYZVector fD12( ls_group[i][j+2][m]->X1().X(), ls_group[i][j+2][m]->X1().Y(), ls_group[i][j+2][m]->X1().Z() );
 
                 double x12[3];
                 double l1_12[3]; double l2_12[3];
@@ -143,10 +145,10 @@ namespace emph {
   //------------------------------------------------------------
   void SingleTrackAlgo::doTwoPlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, double x[3]){
 
-    TVector3 fA( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
-    TVector3 fB( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
-    TVector3 fC( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
-    TVector3 fD( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
+    XYZVector fA( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
+    XYZVector fB( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
+    XYZVector fC( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
+    XYZVector fD( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
 
     double l1[3]; double l2[3];
     recoFcn.ClosestApproach(fA,fB,fC,fD,x,l1,l2,"SSD",false);   
@@ -157,28 +159,28 @@ namespace emph {
 
   void SingleTrackAlgo::doThreePlanes(const rb::LineSegment* ls1, const rb::LineSegment* ls2, const rb::LineSegment* ls3, double x[3]) {
 
-    TVector3 fA01( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
-    TVector3 fB01( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
-    TVector3 fC01( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
-    TVector3 fD01( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
+    XYZVector fA01( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
+    XYZVector fB01( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
+    XYZVector fC01( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
+    XYZVector fD01( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
 
     double x01[3];
     double l1_01[3]; double l2_01[3];
     recoFcn.ClosestApproach(fA01,fB01,fC01,fD01,x01,l1_01,l2_01,"SSD",false);
 
-    TVector3 fA02( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
-    TVector3 fB02( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
-    TVector3 fC02( ls3->X0().X(), ls3->X0().Y(), ls3->X0().Z() );
-    TVector3 fD02( ls3->X1().X(), ls3->X1().Y(), ls3->X1().Z() );
+    XYZVector fA02( ls1->X0().X(), ls1->X0().Y(), ls1->X0().Z() );
+    XYZVector fB02( ls1->X1().X(), ls1->X1().Y(), ls1->X1().Z() );
+    XYZVector fC02( ls3->X0().X(), ls3->X0().Y(), ls3->X0().Z() );
+    XYZVector fD02( ls3->X1().X(), ls3->X1().Y(), ls3->X1().Z() );
 
     double x02[3];
     double l1_02[3]; double l2_02[3];
     recoFcn.ClosestApproach(fA02,fB02,fC02,fD02,x02,l1_02,l2_02,"SSD",false);
 
-    TVector3 fA12( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
-    TVector3 fB12( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
-    TVector3 fC12( ls3->X0().X(), ls3->X0().Y(), ls3->X0().Z() );
-    TVector3 fD12( ls3->X1().X(), ls3->X1().Y(), ls3->X1().Z() );
+    XYZVector fA12( ls2->X0().X(), ls2->X0().Y(), ls2->X0().Z() );
+    XYZVector fB12( ls2->X1().X(), ls2->X1().Y(), ls2->X1().Z() );
+    XYZVector fC12( ls3->X0().X(), ls3->X0().Y(), ls3->X0().Z() );
+    XYZVector fD12( ls3->X1().X(), ls3->X1().Y(), ls3->X1().Z() );
 
     double x12[3];
     double l1_12[3]; double l2_12[3];
@@ -319,9 +321,9 @@ namespace emph {
     for (auto p : spv)
       if (p.Station() == 0 || p.Station() == 1)
         ts1.Add(p);
-    ts1.SetVtx(lfirst1);
-    ts1.SetA(lfirst1);
-    ts1.SetB(llast1);
+    ts1.vtx.SetCoordinates(lfirst1);
+    ts1.pointA.SetCoordinates(lfirst1);
+    ts1.pointB.SetCoordinates(llast1);
     double p[3];
     double dx = llast1[0]-lfirst1[0];
     double dy = llast1[1]-lfirst1[1];
@@ -330,15 +332,15 @@ namespace emph {
     p[0] = dx/dz;
     p[1] = dy/dz;
     p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-    ts1.SetP(p);
+    ts1.mom.SetCoordinates(p);
 
     rb::TrackSegment ts2 = rb::TrackSegment();
     for (auto p : spv)
       if (p.Station() == 2 || p.Station() == 3 || p.Station() == 4)
         ts2.Add(p);
-    ts2.SetVtx(lfirst2);
-    ts2.SetA(lfirst2);
-    ts2.SetB(llast2);
+    ts2.vtx.SetCoordinates(lfirst2);
+    ts2.pointA.SetCoordinates(lfirst2);
+    ts2.pointB.SetCoordinates(llast2);
     dx = llast2[0]-lfirst2[0];
     dy = llast2[1]-lfirst2[1];
     dz = llast2[2]-lfirst2[2];
@@ -346,15 +348,15 @@ namespace emph {
     p[0] = dx/dz;
     p[1] = dy/dz;
     p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-    ts2.SetP(p);
+    ts2.mom.SetCoordinates(p);
 
     rb::TrackSegment ts3 = rb::TrackSegment();
     for (auto p : spv)
       if (p.Station() == 5 || p.Station() == 6 || p.Station() == 7)
         ts3.Add(p);
-    ts3.SetVtx(lfirst3);
-    ts3.SetA(lfirst3);
-    ts3.SetB(llast3);
+    ts3.vtx.SetCoordinates(lfirst3);
+    ts3.pointA.SetCoordinates(lfirst3);
+    ts3.pointB.SetCoordinates(llast3);
     dx = llast3[0]-lfirst3[0];
     dy = llast3[1]-lfirst3[1];
     dz = llast3[2]-lfirst3[2];
@@ -362,48 +364,48 @@ namespace emph {
     p[0] = dx/dz;
     p[1] = dy/dz;
     p[2] = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
-    ts3.SetP(p);
+    ts3.mom.SetCoordinates(p);
 
-    double ts2_dot_ts3 = ts2.P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
-    double ts2_mag = sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
-    double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
+    double ts2_dot_ts3 = ts2.mom.Dot(ts3.mom);//P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
+    double ts2_mag = sqrt(ts2.mom.Mag2());//P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
+    double ts3_mag = sqrt(ts3.mom.Mag2());//P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
     double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
     double recop = recoFcn.getMomentum(recoBendAngle);
 
     //change track segments
     double realp1[3];
-    realp1[2] = recop*ts1.P()[2];
-    realp1[0] = ts1.P()[0]*realp1[2];
-    realp1[1] = ts1.P()[1]*realp1[2];
-    ts1.SetP(realp1);
+    realp1[2] = recop*ts1.mom.Z();
+    realp1[0] = ts1.mom.X()*realp1[2];
+    realp1[1] = ts1.mom.Y()*realp1[2];
+    ts1.mom.SetCoordinates(realp1);
     tsv.push_back(ts1);
 
     double realp2[3];
-    realp2[2] = recop*ts2.P()[2];
-    realp2[0] = ts2.P()[0]*realp2[2];
-    realp2[1] = ts2.P()[1]*realp2[2];
-    ts2.SetP(realp2);
+    realp2[2] = recop*ts2.mom.Z();
+    realp2[0] = ts2.mom.X()*realp2[2];
+    realp2[1] = ts2.mom.Y()*realp2[2];
+    ts2.mom.SetCoordinates(realp2);
     tsv.push_back(ts2);
 
     double realp3[3];
-    realp3[2] = recop*ts3.P()[2];
-    realp3[0] = ts3.P()[0]*realp3[2];
-    realp3[1] = ts3.P()[1]*realp3[2];
-    ts3.SetP(realp3);
+    realp3[2] = recop*ts3.mom.Z();
+    realp3[0] = ts3.mom.X()*realp3[2];
+    realp3[1] = ts3.mom.Y()*realp3[2];
+    ts3.mom.SetCoordinates(realp3);
     tsv.push_back(ts3);
 
-    double recopz = ts2.P()[2];
-    double recopx = ts2.P()[0];
-    double recopy = ts2.P()[1];
+    double recopz = ts2.mom.Z();
+    double recopx = ts2.mom.X();
+    double recopy = ts2.mom.Y();
 
     sectrkp[0] = recopx;
     sectrkp[1] = recopy;
     sectrkp[2] = recopz;
 
-    TVector3 a(lfirst1[0],lfirst1[1],lfirst1[2]);
-    TVector3 b(llast1[0],llast1[1],llast1[2]);
-    TVector3 c(lfirst2[0],lfirst2[1],lfirst2[2]);
-    TVector3 d(llast2[0],llast2[1],llast2[2]);
+    XYZVector a(lfirst1[0],lfirst1[1],lfirst1[2]);
+    XYZVector b(llast1[0],llast1[1],llast1[2]);
+    XYZVector c(lfirst2[0],lfirst2[1],lfirst2[2]);
+    XYZVector d(llast2[0],llast2[1],llast2[2]);
     double l0t[3];
     double l1t[3];
     recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
@@ -544,54 +546,54 @@ namespace emph {
       for (auto p : sptmp[a]){
         ts.Add(p);
       }
-      ts.SetVtx(lfirst);
-      ts.SetA(lfirst);
-      ts.SetB(llast);
+      ts.vtx.SetCoordinates(lfirst);
+      ts.pointA.SetCoordinates(lfirst);
+      ts.pointB.SetCoordinates(llast);
 
       // Set null momentum
       double p0[3] = {0.,0.,0.};
-      ts.SetP(p0);
+      ts.mom.SetCoordinates(p0);
 
       float chi2tot = 0.;
       for (auto p : sptmp[a]){
 	for (size_t i=0; i<p.NLineSegments(); i++){
  
- 	  TVector3 x0(p.GetLineSegment(i)->X0().X(),p.GetLineSegment(i)->X0().Y(),p.GetLineSegment(i)->X0().Z());
-          TVector3 x1(p.GetLineSegment(i)->X1().X(),p.GetLineSegment(i)->X1().Y(),p.GetLineSegment(i)->X1().Z());
+ 	  XYZVector x0(p.GetLineSegment(i)->X0()); //.X(),p.GetLineSegment(i)->X0().Y(),p.GetLineSegment(i)->X0().Z());
+          XYZVector x1(p.GetLineSegment(i)->X1()); //.X(),p.GetLineSegment(i)->X1().Y(),p.GetLineSegment(i)->X1().Z());
 
-          TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
-          TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);
+          XYZVector a(ts.pointA); //()[0],ts.A()[1],ts.A()[2]);
+          XYZVector b(ts.pointB); //()[0],ts.B()[1],ts.B()[2]);
           double f1[3]; double f2[3]; double f3[3];
           recoFcn.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false);
           float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
 
-          double sensorz = x0(2); //s[2];
+          double sensorz = x0.Z(); //(2); //s[2];
 
-          double t = ( sensorz - a(2) )/( b(2) - a(2) );
-          double tsx = a(0) + (b(0)-a(0))*t;
-          double tsy = a(1) + (b(1)-a(1))*t;
+          double t = ( sensorz - a.Z() )/( b.Z() - a.Z() );
+          double tsx = a.X() + (b.X()-a.X())*t;
+          double tsy = a.Y() + (b.Y()-a.Y())*t;
 
-          double xz = a(0) + ts.P()[0]/ts.P()[2]*sensorz;
-          double yz = a(1) + ts.P()[1]/ts.P()[2]*sensorz;
+          double xz = a.X() + ts.mom.X()/ts.mom.Z()*sensorz;
+          double yz = a.Y() + ts.mom.Y()/ts.mom.Z()*sensorz;
           // signed distance from point to a line
-          double la = x1(1) - x0(1);
-          double lb = x0(0) - x1(0);
-          double lc = x0(1)*(x1(0)-x0(0)) - (x1(1)-x0(1))*x0(0);
+          double la = x1.Y() - x0.Y();
+          double lb = x0.X() - x1.X();
+          double lc = x0.Y()*(x1.X()-x0.X()) - (x1.Y()-x0.Y())*x0.X();
           float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
 	  
-          float sigma = p.GetSSDCluster(i)->WgtRmsStrip()*0.06;
-	  float rms = p.GetSSDCluster(i)->WgtAvgStrip()*0.06;
+          double sigma = p.GetSSDCluster(i)->WgtRmsStrip()*0.06;
+	  double rms = p.GetSSDCluster(i)->WgtAvgStrip()*0.06;
 	  //if (sigma == 0) std::cout<<"sig0, avg: "<<p.GetSSDCluster(i)->WgtAvgStrip()<<" and rms = "<<p.GetSSDCluster(i)->WgtRmsStrip()<<std::endl;
 	  if (sigma == 0) std::cout<<"ndigits = "<<p.GetSSDCluster(i)->NDigits()<<std::endl;
 	  if (sigma == 0) std::cout<<"Station, Plane, Sensor = "<<p.GetSSDCluster(i)->Station()<<", "<<p.GetSSDCluster(i)->Plane()<<", "<<p.GetSSDCluster(i)->Sensor()<<std::endl;
 	  if (sigma == 0) std::cout<<"width = "<<p.GetSSDCluster(i)->Width()<<std::endl;
-	  float chi2 = dsign*dsign/sigma/sigma;
+	  double chi2 = dsign*dsign/sigma/sigma;
 
 	  chi2tot += chi2;
 
 	}
       }
-      ts.SetChi2(chi2tot);
+      ts.chi2 = chi2tot;
       alltrackcombos.push_back(ts);
       
     }
@@ -610,15 +612,18 @@ namespace emph {
     SetPtmp(ts1);  
 
     double p[3];
-    p[2] = pbeam * ts1.P()[2];
-    p[0] = p[2] * ts1.P()[0];
-    p[1] = p[2] * ts1.P()[1];
+    p[2] = pbeam * ts1.mom.Z();
+    p[0] = p[2] * ts1.mom.X();
+    p[1] = p[2] * ts1.mom.Y();
 
-    ts1.SetP(p);  
+    std::cout << "pbeam = (" << p[0] << "," << p[1] << "," << p[2] << ")" << std::endl;
+
+    ts1.mom.SetCoordinates(p);  
+
+    ts1.pointA.GetCoordinates(beamtrkvtx);
 
     for (int i=0; i<3; i++){
       beamtrkp[i] = p[i]; 
-      beamtrkvtx[i] = ts1.A()[i];
     }
   }
 
@@ -626,16 +631,21 @@ namespace emph {
 
   void SingleTrackAlgo::SetPtmp(rb::TrackSegment &ts)
   {
+    auto dx = ts.pointB - ts.pointA;
+    /*
     double dx = ts.B()[0]-ts.A()[0];
     double dy = ts.B()[1]-ts.A()[1];
     double dz = ts.B()[2]-ts.A()[2];
+    */
 
-    double pxpz = dx/dz;
-    double pypz = dy/dz;
-    double pzpmag = 1./sqrt(1. + (dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
+    double pxpz = dx.X()/dx.Z();
+    double pypz = dx.X()/dx.Z();
+    double pzpmag = 1./sqrt(1. + pxpz*pxpz + pypz*pypz);//(dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 
     double ptmp[3] = {pxpz,pypz,pzpmag};
-    ts.SetP(ptmp);
+    std::cout << "ptmp = (" << ptmp[0] << "," << ptmp[1] << "," << ptmp[2] << ")" << std::endl;
+
+    ts.mom.SetCoordinates(ptmp);
   }
 
   //------------------------------------------------------------
@@ -645,34 +655,36 @@ namespace emph {
     SetPtmp(ts2);
     SetPtmp(ts3);
 
-    double ts2_dot_ts3 = ts2.P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
-    double ts2_mag = sqrt(ts2.P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
-    double ts3_mag = sqrt(ts3.P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
+    double ts2_dot_ts3 = ts2.mom.Dot(ts3.mom);//P()[0]*ts3.P()[0]+ts2.P()[1]*ts3.P()[1]+ts2.P()[2]*ts3.P()[2];
+    double ts2_mag = sqrt(ts2.mom.Mag2());//P()[0]*ts2.P()[0]+ts2.P()[1]*ts2.P()[1]+ts2.P()[2]*ts2.P()[2]);
+    double ts3_mag = sqrt(ts3.mom.Mag2());//P()[0]*ts3.P()[0]+ts3.P()[1]*ts3.P()[1]+ts3.P()[2]*ts3.P()[2]);
     double recoBendAngle = TMath::ACos(ts2_dot_ts3/(ts2_mag*ts3_mag));
     double recop = recoFcn.getMomentum(recoBendAngle);
 
     // Change TrackSegments
     double realp2[3];
-    realp2[2] = pm*recop*ts2.P()[2];
-    realp2[0] = ts2.P()[0]*realp2[2];
-    realp2[1] = ts2.P()[1]*realp2[2];
-    ts2.SetP(realp2);
+    realp2[2] = pm*recop*ts2.mom.Z();
+    realp2[0] = ts2.mom.X()*realp2[2];
+    realp2[1] = ts2.mom.Y()*realp2[2];
+    std::cout << "pts2 = (" << realp2[0] << "," << realp2[1] << "," << realp2[2] << ")" << std::endl;
+    ts2.mom.SetCoordinates(realp2);
 
     double realp3[3];
-    realp3[2] = pm*recop*ts3.P()[2];
-    realp3[0] = ts3.P()[0]*realp3[2];
-    realp3[1] = ts3.P()[1]*realp3[2];
-    ts3.SetP(realp3);
+    realp3[2] = pm*recop*ts3.mom.Z();
+    realp3[0] = ts3.mom.X()*realp3[2];
+    realp3[1] = ts3.mom.Y()*realp3[2];
+    std::cout << "pts3 = (" << realp3[0] << "," << realp3[1] << "," << realp3[2] << ")" << std::endl;
+    ts3.mom.SetCoordinates(realp3);
   }
 
   //------------------------------------------------------------
 
   double* SingleTrackAlgo::SetTrackInfo(rb::TrackSegment &ts1, rb::TrackSegment &ts2)
   {
-    TVector3 a(ts1.A()[0],ts1.A()[1],ts1.A()[2]);
-    TVector3 b(ts1.B()[0],ts1.B()[1],ts1.B()[2]);
-    TVector3 c(ts2.A()[0],ts2.A()[1],ts2.A()[2]);
-    TVector3 d(ts2.B()[0],ts2.B()[1],ts2.B()[2]);
+    XYZVector a(ts1.pointA);//()[0],ts1.A()[1],ts1.A()[2]);
+    XYZVector b(ts1.pointB);//()[0],ts1.B()[1],ts1.B()[2]);
+    XYZVector c(ts2.pointA);//()[0],ts2.A()[1],ts2.A()[2]);
+    XYZVector d(ts2.pointB);//()[0],ts2.B()[1],ts2.B()[2]);
     double l0t[3];
     double l1t[3];
     recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);

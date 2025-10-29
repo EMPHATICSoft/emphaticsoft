@@ -87,22 +87,22 @@ namespace caf
       stdrec.truth.truehits.truehits.push_back(SRTrueSSDHits());
       SRTrueSSDHits& srTrueSSDHits = stdrec.truth.truehits.truehits.back();
 
-      srTrueSSDHits.GetX = ssdhits.GetX();
-      srTrueSSDHits.GetY = ssdhits.GetY();
-      srTrueSSDHits.GetZ = ssdhits.GetZ();
+      srTrueSSDHits.pos.SetX(ssdhits.GetX());
+      srTrueSSDHits.pos.SetY(ssdhits.GetY());
+      srTrueSSDHits.pos.SetZ(ssdhits.GetZ());
 
-      srTrueSSDHits.GetPx = ssdhits.GetPx();
-      srTrueSSDHits.GetPy = ssdhits.GetPy();
-      srTrueSSDHits.GetPz = ssdhits.GetPz();
+      srTrueSSDHits.mom.SetX(ssdhits.GetPx());
+      srTrueSSDHits.mom.SetY(ssdhits.GetPy());
+      srTrueSSDHits.mom.SetZ(ssdhits.GetPz());
 
-      srTrueSSDHits.GetDE = ssdhits.GetDE();
-      srTrueSSDHits.GetPId = ssdhits.GetPId();
+      srTrueSSDHits.dE = ssdhits.GetDE();
+      srTrueSSDHits.pid = ssdhits.GetPId();
 
-      srTrueSSDHits.GetStation = ssdhits.GetStation();
-      srTrueSSDHits.GetPlane = ssdhits.GetPlane();
-      srTrueSSDHits.GetSensor = ssdhits.GetSensor();
-      srTrueSSDHits.GetStrip = ssdhits.GetStrip();
-      srTrueSSDHits.GetTrackID = ssdhits.GetTrackID();
+      srTrueSSDHits.station = ssdhits.GetStation();
+      srTrueSSDHits.plane = ssdhits.GetPlane();
+      srTrueSSDHits.sensor = ssdhits.GetSensor();
+      srTrueSSDHits.strip = ssdhits.GetStrip();
+      srTrueSSDHits.trackID = ssdhits.GetTrackID();
 
     } // end for truehitId
 

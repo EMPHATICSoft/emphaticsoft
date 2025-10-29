@@ -25,7 +25,7 @@ namespace emph {
 
   public:
     // Define functions here
-    bool FindVertexDOCA(std::vector<const rb::Track*>trks, rb::Vertex& vtx);
+    bool FindVertexDOCA(std::vector<rb::Track> &trks, rb::Vertex& vtx);
 
   };
   

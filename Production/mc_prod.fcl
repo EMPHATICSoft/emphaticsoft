@@ -2,6 +2,8 @@
 #include "BeamGen.fcl"
 #include "G4Gen.fcl"
 #include "SSDDigitizer.fcl"
+#include "ARICHDigitizer.fcl"
+#include "RelabelRawDigitModules.fcl"
 
 process_name: mcprod
 
@@ -39,10 +41,12 @@ physics:
   {
 	generator: @local::standard_beamgen
 	geantgen:  @local::standard_geant4
-	ssddig:    @local::standard_ssddigitizer
+	rawSSD:    @local::standard_ssddigitizer
+	rawARICH:  @local::standard_arichdigitizer
+	raw:       @local::standard_digitrelabel
   }
 
-  simulate: [ generator , geantgen , ssddig ]
+  simulate: [ generator , geantgen , rawSSD, rawARICH, raw ]
 
   trigger_paths: [ simulate ]
 
@@ -51,6 +55,3 @@ physics:
   end_paths: [ stream1 ]
 
 }
-
-#physics.producers.ssdclust.SSDRawLabel: "ssddig:SSD"
-#physics.producers.ssdclust.CheckDQ: false

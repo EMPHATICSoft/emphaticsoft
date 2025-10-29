@@ -22,7 +22,8 @@ namespace caf
   {
     trk.clear();
     isPrimary = true;
-    pos[0] = pos[1] = pos[2] = -999999.;
+    pos.SetXYZ(-999999.,-999999.,-999999.);
+//pos[0] = pos[1] = pos[2] = -999999.;
 
   }
 

@@ -4,6 +4,7 @@
 #ifndef SRVERTEX_H
 #define SRVERTEX_H
 
+#include "Math/Vector3D.h"
 #include "StandardRecord/SRTrack.h"
 
 namespace caf
@@ -15,7 +16,7 @@ namespace caf
     SRVertex();
     virtual ~SRVertex();
 
-    double pos[3];  // (x,y,z)
+    ROOT::Math::XYZVector pos;  // (x,y,z)
 
     bool isPrimary;
     std::vector<SRTrack> trk; // vector of tracks

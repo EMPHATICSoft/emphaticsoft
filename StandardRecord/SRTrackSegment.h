@@ -4,7 +4,7 @@
 #ifndef SRTRACKSEGMENT_H
 #define SRTRACKSEGMENT_H
 
-#include "StandardRecord/SRVector3D.h"
+#include "Math/Vector3D.h"
 #include "RecoBase/RecoBaseDefs.h"
 
 namespace caf
@@ -16,12 +16,12 @@ namespace caf
     SRTrackSegment();
     virtual ~SRTrackSegment();
 
-    double vtx[3];  // (x,y,z)
-    SRVector3D mom; // momentum vector 
+    ROOT::Math::XYZVector vtx;  // (x,y,z)
+    ROOT::Math::XYZVector mom; // momentum vector 
     int nspacepoints;
     rb::Region region;
-    double pointA[3];
-    double pointB[3];
+    ROOT::Math::XYZVector pointA;
+    ROOT::Math::XYZVector pointB;
     double chi2;
 
     virtual void setDefault();

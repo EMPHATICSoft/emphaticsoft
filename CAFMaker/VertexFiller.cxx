@@ -28,29 +28,35 @@ namespace caf
 //    if(!htsv.failedToGet()) {segs = *htsv; arichIDs = *htar;}
     if ( !hv.failedToGet()) vtxs = *hv;
     if ( !ht.failedToGet()) trks = *ht;
+    std::cout << "vtxs.size() = " << vtxs.size() << std::endl;
+    std::cout << "trks.size() = " << trks.size() << std::endl;
+
     stdrec.vtxs.nvtx = vtxs.size();
 
     // loop over vertices
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
       rb::Vertex v = vtxs[iv];
       caf::SRVertex srv;
-      srv.pos[0] = v.X();
-      srv.pos[1] = v.Y();
-      srv.pos[2] = v.Z();
+      srv.pos.SetXYZ(v.X(),v.Y(),v.Z());// = v.pos; //[0] = v.X();
+      //      srv.pos[1] = v.Y();
+      //      srv.pos[2] = v.Z();
       // loop over tracks in vertex
       for (size_t it=0; it < v.NumDwnstr(); ++it) {
 	rb::Track t = trks[v.TrackUID(it)];
-	caf::SRTrack srt;
-	srt.mom.SetXYZ(t.P()[0],t.P()[1],t.P()[2]);
-	for (int j=0; j<3; ++j)
-	  srt.vtx[j] = t.Vtx()[j];
+	caf::SRTrack srt = t;
+	//	srt.mom = t.mom;//.SetXYZ(t.P()[0],t.P()[1],t.P()[2]);
+	//	srt.vtx = t.vtx; 
+	//	for (int j=0; j<3; ++j)
+	//	  srt.vtx[j] = t.Vtx()[j];
 	for (size_t i=0; i<t.NTrackSegments(); i++){     
 	  auto pts = t.GetTrackSegment(i);
-	  caf::SRTrackSegment srts;
+	  caf::SRTrackSegment srts = *pts;
+	  /*
 	  for (int i=0; i<3; ++i) srts.vtx[i] = pts->Vtx()[i];
 	  srts.mom.SetXYZ(pts->P()[0],pts->P()[1],pts->P()[2]);
-	  srts.region = pts->RegLabel();
+	  srts.region = pts->region; //RegLabel();
 	  srts.nspacepoints = pts->NSpacePoints();
+	  */
 	  srt.Add(srts);
 	}
 	srv.Add(srt);

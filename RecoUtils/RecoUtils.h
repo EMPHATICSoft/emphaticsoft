@@ -14,7 +14,7 @@
 #include "Simulation/SSDHit.h" 
 #include "RecoBase/TrackSegment.h"
 
-#include "TVector3.h"
+//#include "TVector3.h"
 #include "TMatrixD.h"
 #include "TMatrixDSymEigen.h"
 #include "TVectorD.h"
@@ -27,8 +27,8 @@ namespace ru {
     virtual ~RecoUtils() {}; //Destructor
     
   public:
-    void    ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose);
-    void    ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose);
+    void    ClosestApproach(ROOT::Math::XYZVector A,ROOT::Math::XYZVector B, ROOT::Math::XYZVector C, ROOT::Math::XYZVector D, double F[3], double l1[3], double l2[3], const char* type, bool verbose);
+    void    ClampedApproach(ROOT::Math::XYZVector A,ROOT::Math::XYZVector B, ROOT::Math::XYZVector C, ROOT::Math::XYZVector D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose);
     void    findLine(std::vector<std::vector<double> > v, double lfirst[3], double llast[3]);
     double  findRecoAngle(double p1[3], double p2[3], double p3[3], double p4[3]);
     double  getMomentum(double theta);

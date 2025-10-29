@@ -105,7 +105,7 @@ namespace emph {
     bool        fShortOn;
     int         fPBeamTmp;
     bool        fLessStrict;
-
+    double      fTrgtZ;
   };
 
   //.......................................................................
@@ -121,6 +121,7 @@ namespace emph {
     fPBeamTmp          (pset.get< int >("PBeamTmp")),
     fLessStrict        (pset.get< bool >("LessStrict"))
     {
+      fTrgtZ = -99999.;
       this->produces< std::vector<rb::Track> >();
       
     }
@@ -148,6 +149,7 @@ namespace emph {
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
+    fTrgtZ = (emgeo->TargetDSZPos()+emgeo->TargetUSZPos())/2.;
 
   }
 
@@ -235,9 +237,9 @@ namespace emph {
          for (size_t idx=0; idx < trksegH->size(); ++idx) {
 	    const rb::TrackSegment& ts = (*trksegH)[idx];
 	    trksegs.push_back(&ts);
-            if (ts.RegLabel() == rb::Region::kRegion1) trksegs1.push_back(&ts);
-	    else if (ts.RegLabel() == rb::Region::kRegion2) trksegs2.push_back(&ts);
-            else if (ts.RegLabel() == rb::Region::kRegion3) trksegs3.push_back(&ts);		
+            if (ts.region == rb::Region::kRegion1) trksegs1.push_back(&ts);
+	    else if (ts.region == rb::Region::kRegion2) trksegs2.push_back(&ts);
+            else if (ts.region == rb::Region::kRegion3) trksegs3.push_back(&ts);		
 	    else std::cout<<"Track segments not properly labeled."<<std::endl;
 
           }
@@ -271,18 +273,18 @@ namespace emph {
           int nts3sp2=0; int nts3sp3=0;
 
 	  for (auto t : trksegs){
-            if (t->RegLabel() == rb::Region::kRegion1) nts1++;
-            if (t->RegLabel() == rb::Region::kRegion2) nts2++;
-            if (t->RegLabel() == rb::Region::kRegion3) nts3++;
+            if (t->region == rb::Region::kRegion1) nts1++;
+            if (t->region == rb::Region::kRegion2) nts2++;
+            if (t->region == rb::Region::kRegion3) nts3++;
           }
 
 	  if (fLessStrict){
 	    for (auto t : trksegs){
-	      if (t->RegLabel() == rb::Region::kRegion2){
+	      if (t->region == rb::Region::kRegion2){
 		if (t->NSpacePoints() == 2) nts2sp2++; 
 		if (t->NSpacePoints() == 3) nts2sp3++;    
 	      }
-	      if (t->RegLabel() == rb::Region::kRegion3){
+	      if (t->region == rb::Region::kRegion3){
                 if (t->NSpacePoints() == 2) nts3sp2++;
                 if (t->NSpacePoints() == 3) nts3sp3++;
 	      }
@@ -324,8 +326,8 @@ namespace emph {
             for (auto t : trksegs){
 	      bool shortTrackSeg = true;
 
-              if (t->RegLabel() == rb::Region::kRegion1) tsvcut.push_back(t);
-	      if (t->RegLabel() == rb::Region::kRegion2){
+              if (t->region == rb::Region::kRegion1) tsvcut.push_back(t);
+	      if (t->region == rb::Region::kRegion2){
 	      // If there is only one track segment, push back
 	      // If there are more, choose the one with space points in only stations 2 and 3
 	      // The space point in station 4 may be biased from the magnetic field
@@ -343,7 +345,7 @@ namespace emph {
 		    }
 		  }
 	      }
-	      if (t->RegLabel() == rb::Region::kRegion3){
+	      if (t->region == rb::Region::kRegion3){
 	      // If there is only one track segment, push back
 	      // If there are more, choose the one with more (3) space points
                 if (nts3 == 1) tsvcut.push_back(t); // Only one combination
@@ -363,9 +365,20 @@ namespace emph {
             tsvec.push_back(t1);
 	    algo.SetBeamTrk(t1,fPBeamTmp);
             beamtrk.Add(t1);
-            beamtrk.SetP(t1.P());
-            beamtrk.SetVtx(t1.Vtx());
-	    beamtrk.SetChi2(t1.Chi2());
+            beamtrk.mom = t1.mom;//SetP(t1.P());
+	    std::cout << "beamtrk.P = (" << t1.mom << ")" << std::endl; 
+            beamtrk.vtx = t1.vtx; //SetVtx(t1.Vtx());
+	    beamtrk.chi2 = t1.chi2; //SetChi2(t1.Chi2());
+	    // fill position and momentum projected to the center of the target
+	    beamtrk.momTrgt = t1.mom;
+	    double posAtTrgt[3];
+	    double dz = fTrgtZ - t1.pointA.Z();
+	    posAtTrgt[2] = fTrgtZ;
+	    posAtTrgt[0] = t1.mom.X()*dz + t1.pointA.X();
+	    posAtTrgt[1] = t1.mom.Y()*dz + t1.pointA.Y();
+
+	    beamtrk.posTrgt.SetCoordinates(posAtTrgt);
+
             trackv->push_back(beamtrk);
 
             rb::Track sectrk;
@@ -380,10 +393,18 @@ namespace emph {
             algo.SetRecoTrk(t2,t3,pm);		
             sectrk.Add(t2);
             sectrk.Add(t3);
-            sectrk.SetP(t2.P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
+            sectrk.mom = t2.mom; // this should come from an analysis of the bend angle between track segments 1 and 2.
 	    auto v = algo.SetTrackInfo(tsvec[0],tsvec[1]);
-            sectrk.SetVtx(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
-	    sectrk.SetChi2(t2.Chi2()+t3.Chi2());
+            sectrk.vtx.SetCoordinates(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+
+	    // fill position and momentum projected to the center of the target
+	    sectrk.mom = t2.mom;
+	    dz = fTrgtZ - t2.pointA.Z();
+	    posAtTrgt[0] = t2.mom.X()*dz + t2.pointA.X();
+	    posAtTrgt[1] = t2.mom.Y()*dz + t2.pointA.Y();
+	    sectrk.posTrgt.SetCoordinates(posAtTrgt);
+	    
+	    sectrk.chi2 = t2.chi2+t3.chi2;
             trackv->push_back(sectrk);
 	  }
 	} //clust not empty

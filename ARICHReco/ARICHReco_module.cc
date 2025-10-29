@@ -213,24 +213,24 @@ void ARICHReco::produce(art::Event& evt)
 
       for(int i = 0; i < (int)TracksH->size(); i++){
         rb::Track track = TracksH->at(i);
+	
+        double posx = track.vtx.X();
+        double posy = track.vtx.Y();
+        double posz = track.vtx.Z();
 
-        double posx = track.Vtx()[0];
-        double posy = track.Vtx()[1];
-        double posz = track.Vtx()[2];
-
-        double px = track.P()[0];
-        double py = track.P()[1];
-        double pz = track.P()[2];
-
-        float mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2));
+        double px = track.mom.X();
+        double py = track.mom.Y();
+        double pz = track.mom.Z();
+	
+        float mom = sqrt(track.mom.Mag2());
         if (mom == 0) {
           mf::LogWarning("ARICHReco") << "Track " << i << " has zero momentum. Skipping.";
           continue;
         }
 
-        float finalx = posx + (192.0 - posz) * track.P()[0]/mom;
-        float finaly = posy + (192.0 - posz) * track.P()[1]/mom;
-
+        float finalx = posx + (192.0 - posz) * track.mom.X()/mom;
+        float finaly = posy + (192.0 - posz) * track.mom.Y()/mom;
+	
         TVector3 dir_(px/mom,py/mom,pz/mom);
         TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
         for(int k = 0; k < (int)arich_clusters->size(); k++)

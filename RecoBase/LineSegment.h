@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "StandardRecord/SRLineSegment.h"
-#include "StandardRecord/SRVector3D.h"
+//#include "StandardRecord/SRVector3D.h"
 
 namespace rb {
   
@@ -22,8 +22,8 @@ namespace rb {
     virtual ~LineSegment() {}; //Destructor
     
     // Getters
-    caf::SRVector3D X0() const { return x0; }
-    caf::SRVector3D X1() const { return x1; }
+    ROOT::Math::XYZVector X0() const { return x0; }
+    ROOT::Math::XYZVector X1() const { return x1; }
     double Sigma() const { return sigma;}
     int SSDStation() const { return fSSDStation; }
     int SSDPlane() const { return fSSDPlane; }
