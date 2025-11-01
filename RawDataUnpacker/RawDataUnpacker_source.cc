@@ -375,7 +375,7 @@ namespace rawdata {
 
 	void Unpacker::calcTimeWalkCorr() {
 		std::cout << "Entering \"calcTimeWalkCorr\"" << std::endl;
-		if(!fTvsT.empty()) return;
+		if(!fTvsT.empty()) return; // only needs to run once when time-stamping
 
 		// Set up names
 		art::ServiceHandle<art::TFileService> tfs;
@@ -392,24 +392,25 @@ namespace rawdata {
 				sprintf(htitle,"Event Time Walk, Board %d; Board %d Timestamp (ns); Board %d (ns)",
 					fragId, fragIdGrandfather, fragId);
 			}
-			//fTvsT[fragId] = tdir3.make<TH2D>(hname,htitle,250,0.,5.,2000,-10000.,10000.);
 			fTvsT[fragId] = new TGraph();
 		}
 
 		if(masks.empty()) return;
 
-		TFile* fout = TFile::Open("out.root","RECREATE");
+		//TFile* fout = TFile::Open("out.root","RECREATE");
 		for (auto fragId : fFragId) {
 			// iG = index of grandfather
 			auto counter = 0;
 			for(size_t iG = 0; iG < fFragTimestamps[fragIdGrandfather].size(); ++iG) {
+				// iC = index of child
 				auto iC = masks[fragId][iG];
 				if(iC != -1) {
 					auto timeStamp = fFragTimestamps[fragId][iC];
 					if(fragId == fragIdGrandfather)
 						timeStamp = fBCOx*fSSDRawDigits[iC].first;
-					//fTvsT[fragId]->Fill(fFragTimestamps[fragIdGrandfather][iG], timeStamp);
-					fTvsT[fragId]->SetPoint(counter++, fFragTimestamps[fragIdGrandfather][iG], timeStamp);
+					//fTvsT[fragId]->SetPoint(counter++, fFragTimestamps[fragIdGrandfather][iG], timeStamp);
+					fTvsT[fragId]->SetPoint(counter++, timeStamp, fFragTimestamps[fragIdGrandfather][iG]);
+					// Make grandfather Y-Axis to make conversion easier
 				}
 			}
 
@@ -418,8 +419,8 @@ namespace rawdata {
 			else sprintf(graph,"tw_%d", fragId);
 
 			std::cout << graph << std::endl;
-			//fTvsT[fragId]->Write("graph");
-			fTvsT[fragId]->Write(graph);
+			if(fMakeTimeWalkHistos)
+				fTvsT[fragId]->Write(graph);
 
 			fTvsT[fragId]->Fit("pol1");
 
@@ -427,7 +428,9 @@ namespace rawdata {
 			TF1* f1 = fTvsT[fragId]->GetFunction("pol1");
 			if(fragId == fragIdGrandfather) sprintf(graph,"tw_SSD_Fit");
 			else sprintf(graph,"tw_%d_Fit", fragId);
-			f1->Write(graph);
+
+			if(fMakeTimeWalkHistos)
+				f1->Write(graph);
 
 			fTWCorr0[fragId] = f1->GetParameter(0);
 			fTWCorr1[fragId] = f1->GetParameter(1);
@@ -525,264 +528,241 @@ namespace rawdata {
   /***************************************************************************/
 
   bool Unpacker::readNext(art::RunPrincipal* const& ,//inR,
-			  art::SubRunPrincipal* const& ,//inSR,
-			  art::RunPrincipal* & outR,
-			  art::SubRunPrincipal* & outSR,
-			  art::EventPrincipal* &outE)
-  {
-    if (fNEvents > 0)
-      if (fEvtCount == fNEvents)
-	return false;
+				art::SubRunPrincipal* const& ,//inSR,
+				art::RunPrincipal* & outR,
+				art::SubRunPrincipal* & outSR,
+				art::EventPrincipal* &outE)
+	{
+		//    if (!inR) std::cout << "inR is empty" << std::endl;
+		//    if (!inSR) std::cout << "inSR is empty" << std::endl;
 
-    if ((fEvtCount%1000) == 0)
-      std::cout << "Event " << fEvtCount << std::endl;
+		// this id functions as a fragID for SSDs later
+		const auto ssdID = 773;
 
-    //    if (!inR) std::cout << "inR is empty" << std::endl;
-    //    if (!inSR) std::cout << "inSR is empty" << std::endl;
-
-    if (fIsFirst) {
-      std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
-      if (!input_file) {
-	std::cerr << "Could not open file.\n" << std::endl;
-	return false;
-      }
-      std::unique_ptr<TTree> runs{input_file->Get<TTree>("Runs")};
-      if (!runs) {
-	std::cerr << "Could not find Runs tree.\n";
-	return false;
-      }
-
-      std::unique_ptr<TTree> subruns{input_file->Get<TTree>("SubRuns")};
-      if (!subruns) {
-	std::cerr << "Could not find SubRuns tree.\n";
-	return false;
-      }
-
-      art::RunAuxiliary runAux;
-      art::RunAuxiliary* runAuxPtr = &runAux;
-      art::SubRunAuxiliary subrunAux;
-      art::SubRunAuxiliary* subrunAuxPtr = &subrunAux;
-      runs->SetBranchAddress("RunAuxiliary",&runAuxPtr);
-      subruns->SetBranchAddress("SubRunAuxiliary",&subrunAuxPtr);
-      runs->GetEvent(0);
-      subruns->GetEvent(0);
-
-      // deal with creating Run and Subrun objects
-      fRun = runAux.run();
-      fSubrun = subrunAux.subRun();
-      outR = fSourceHelper.makeRunPrincipal(fRun,runAux.beginTime());
-      outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
-						subrunAux.beginTime());
-      fSpillTime = subrunAux.beginTime();
-
-      // initialize channel map
-      fChannelMap = new emph::cmap::ChannelMap();
-		fRunHistory = new runhist::RunHistory(fRun);
-      fChannelMap->LoadMap(fRunHistory->ChanFile());
-
-      // get all of the digits if this is the first event
-      // get all of the fragments out and create waveforms and digits
-      if (! createDigitsFromArtdaqEvent()) return false;
-
-      // create all of the SSD digits for this spill
-      if (fReadSSDData)
-	if (! createSSDDigits()) return false;
-
-      // determine t0s for each board
-      if (!findMatches())
-	abort();
-
-      if (fMakeTDiffHistos)
-	makeTDiffHistos();
-
-      if (fMakeTimeWalkHistos)
-	calcTimeWalkCorr();
-
-      fPrevTS = 0;
-
-      fIsFirst = false;
-    }
-
-    return true;
-    //    art::ServiceHandle<emph::cmap::ChannelMapService> fChannelMap;
-
-    auto tB0ns = fFragTimestamps[0][fFragCounter[0]] - fT0[0];
-
-    if (fCreateArtEvents) {
-      std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
-      for (int idet=0; idet<emph::geo::NDetectors; ++idet)
-	evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
-
-      std::vector<std::unique_ptr<std::vector<emph::rawdata::TRB3RawDigit> > > evtTRB3Digits;
-      for (int idet=0; idet<emph::geo::NDetectors; ++idet)
-	evtTRB3Digits.push_back(std::make_unique<std::vector<emph::rawdata::TRB3RawDigit>  >());
-
-      std::vector<emph::rawdata::SSDRawDigit> evtSSDVec;
-      auto evtSSDRawDigits = std::make_unique<std::vector<emph::rawdata::SSDRawDigit> >();
-
-      // find digits for the next event by finding nearest data w.r.t. Board 0 timestamp
-
-      //      uint64_t earliestTimestamp = 0;
-      int nObjects = 0;
-
-      artdaq::Fragment::fragment_id_t thisFragId;
-      //      uint64_t thisFragTimestamp;
-      //      bool isFirstFrag = true;
-
-      //      auto tB0ns = fFragTimestamps[0][fFragCounter[0]] - fT0[0];
-      auto tB0d = tB0ns*1.e-9;
-
-      for (size_t ifrag=0; ifrag<fFragId.size(); ++ifrag) {
-	auto fragId = fFragId[ifrag];
-
-	auto fragCnt = fFragCounter[fragId];
-	// bounds check:
-	if (fragCnt == fFragTimestamps[fragId].size()) continue;
-
-	std::cout << "fragCnt B" << fragId << " = " << fragCnt << std::endl;
-
-	double dt = 0.;
-	int icoff = 0;
-	double mindt = 1.e20;
-	if (fragId != 0) { // skip this step for Board 0 data.
-
-	  auto dtCorr = fTWCorr0[fragId] + fTWCorr1[fragId]*tB0d;
-	  std::cout << "dtCorr = " << dtCorr << std::endl;
-	  // find nearest fragment within +-200 fragments
-	  mindt = abs(fFragTimestamps[fragId][fragCnt] - fT0[fragId] - tB0ns - dtCorr);
-	  std::cout << "mindt = " << mindt << std::endl;
-	  for (size_t ioff=1; ioff<200; ++ioff) {
-	    if (fragCnt+ioff < fFragTimestamps[fragId].size()) {
-	      dt = fFragTimestamps[fragId][fragCnt+ioff] - fT0[fragId] - tB0ns - dtCorr;
-	      std::cout << "dt = " << dt << ", mindt = " << mindt << std::endl;
-	      if (abs(dt) < mindt) {
-		mindt = abs(dt);
-		icoff = ioff;
-	      }
-	    }
-	    if (fragCnt >= ioff) {
-	      dt = fFragTimestamps[fragId][fragCnt-ioff] - fT0[fragId] - tB0ns - dtCorr;
-	      std::cout << "dt = " << dt << ", mindt = " << mindt << std::endl;
-	      if (abs(dt) < mindt) {
-		mindt = abs(dt);
-		icoff = -ioff;
-	      }
-	    }
-	  }
-	}
-	std::cout << "Board " << fragId << " min dt = " << mindt
-		  << ", icoff = " << icoff << std::endl;
-	if (abs(mindt) < 100.) { // associate these data with the same event
-	  fFragCounter[fragId] += icoff;
-	  auto thisFragCount = fFragCounter[fragId];
-	  std::cout << "thisFragCount=" << thisFragCount << std::endl;
-	  if (fWaveForms.count(fragId)) {
-	    emph::cmap::FEBoardType boardType = emph::cmap::V1720;
-	    int boardNum = fragId;
-	    emph::cmap::EChannel echan;
-	    echan.SetBoardType(boardType);
-	    echan.SetBoard(boardNum);
-	    for (size_t jfrag=0;
-		 jfrag<fWaveForms[fragId][thisFragCount].size(); ++jfrag) {
-	      auto & tdig = fWaveForms[fragId][thisFragCount][jfrag];
-	      echan.SetChannel(tdig.Channel());
-	      if (! fChannelMap->IsValidEChan(echan)) continue;
-	      emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-	      tdig.SetDetChannel(dchan.Channel());
-	      //	      std::cout << echan << " maps to " << dchan << std::endl;
-	      evtWaveForms[dchan.DetId()]->push_back(tdig);
-	      ++nObjects;
-	    }
-	  }
-	  else if (fReadTRB3Data) {
-	    if (fTRB3RawDigits.count(fragId)) {
-	      emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
-	      emph::cmap::EChannel echan;
-	      echan.SetBoardType(boardType);
-	      for (size_t jfrag=0; jfrag<fTRB3RawDigits[thisFragId][thisFragCount].size(); ++jfrag) {
-		auto & tdig = fTRB3RawDigits[thisFragId][thisFragCount][jfrag];
-		int channel = tdig.GetChannel();
-		int boardNum = tdig.GetBoardId();
-		echan.SetChannel(channel);
-		echan.SetBoard(boardNum);
-		emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-		if (dchan.DetId() != emph::geo::NDetectors){
-		  tdig.SetDetChannel(dchan.Channel());
-		  evtTRB3Digits[dchan.DetId()]->push_back(tdig);
+		std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
+		if (!input_file) {
+			std::cerr << "Could not open file.\n" << std::endl;
+			return false;
 		}
-		++nObjects;
-	      }
+		std::unique_ptr<TTree> runs{input_file->Get<TTree>("Runs")};
+		if (!runs) {
+			std::cerr << "Could not find Runs tree.\n";
+			return false;
+		}
 
-	    }
-	  }
-	  fFragCounter[fragId] += 1;
-	}
-      } // end loop over artdaq fragments
+		std::unique_ptr<TTree> subruns{input_file->Get<TTree>("SubRuns")};
+		if (!subruns) {
+			std::cerr << "Could not find SubRuns tree.\n";
+			return false;
+		}
 
-      // now deal with SSDs
-      if ((fEvtCount > 0) && (fSSDEvtIdx > 0)  &&
-	  (fSSDEvtIdx < fSSDRawDigits.size()-1) && fReadSSDData) {
+		art::RunAuxiliary runAux;
+		art::RunAuxiliary* runAuxPtr = &runAux;
+		art::SubRunAuxiliary subrunAux;
+		art::SubRunAuxiliary* subrunAuxPtr = &subrunAux;
+		runs->SetBranchAddress("RunAuxiliary",&runAuxPtr);
+		subruns->SetBranchAddress("SubRunAuxiliary",&subrunAuxPtr);
+		runs->GetEvent(0);
+		subruns->GetEvent(0);
 
-	/*
-	  int64_t ssdArtDt = earliestTimestamp - fPrevTS - (fSSDRawDigits[fSSDEvtIdx].first - fSSDRawDigits[fSSDEvtIdx-1].first)*150;
+		// deal with creating Run and Subrun objects
+		fRun = runAux.run();
+		fSubrun = subrunAux.subRun();
+		outR = fSourceHelper.makeRunPrincipal(fRun,runAux.beginTime());
+		outSR = fSourceHelper.makeSubRunPrincipal(fRun, fSubrun,
+						subrunAux.beginTime());
+		fSpillTime = subrunAux.beginTime();
 
-	  //	std::cout << "dT (artdaq-ssdots) = " << ssdArtDt << std::endl;
+		// initialize channel map
+		fChannelMap = new emph::cmap::ChannelMap();
+		fRunHistory = new runhist::RunHistory(fRun);
+		fChannelMap->LoadMap(fRunHistory->ChanFile());
 
-	  if (abs(ssdArtDt) < (int64_t)fTimeWindow) {
-	*/
-	auto & ssdDigs = fSSDRawDigits[fSSDEvtIdx].second;
-	if (!ssdDigs.empty()) {
-	  //	    std::cout << "writing out " << ssdDigs.size() << " SSD digits"
-	  //		      << std::endl;
-	  for (auto ssdDig : ssdDigs) {
-	    auto tssdDig(ssdDig);
-	    //	      std::cout << tssdDig << std::endl;
-	    evtSSDRawDigits->push_back(tssdDig);
-	  }
-	}
-	++fSSDEvtIdx;
-	//	evtSSDRawDigits.reset(evtSSDVec);
-      }
+		// get all of the digits if this is the first event
+		// get all of the fragments out and create waveforms and digits
+		if (! createDigitsFromArtdaqEvent()) return false;
 
-      // check that we're at the end, if we found nothing else to write out
-      if (nObjects == 0) return false;
+		// create all of the SSD digits for this spill
+		if (fReadSSDData)
+			if (! createSSDDigits())
+				return false;
 
-      // write out waveforms and TDCs to appropriate folders
+		// determine t0s for each board
+		if (!findMatches())
+			abort();
 
-      art::Timestamp evtTime(fSpillTime.value() + tB0ns);
-      outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount++,
-					      evtTime);
+		if (fMakeTDiffHistos)
+			makeTDiffHistos();
 
-      if (fVerbosity) std::cout << "Event " << fEvtCount << ": " << std::endl;
+		//if (fMakeTimeWalkHistos)
+		calcTimeWalkCorr();
 
-      if (!evtSSDRawDigits->empty()) {
-	if (fVerbosity)
-	  std::cout << "\t" << evtSSDRawDigits->size() << " SSDRawDigits"
-		    << std::endl;
-	put_product_in_principal(std::move(evtSSDRawDigits), *outE,"raw","SSD");
-      }
 
-      for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
-	std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
-	if (!evtWaveForms[idet]->empty()) {
-	  if (fVerbosity)
-	    std::cout << "\t" << "Det " << detStr << " "
-		      << evtWaveForms[idet]->size() << " waveforms"
-		      << std::endl;
-	  put_product_in_principal(std::move(evtWaveForms[idet]), *outE,"raw",detStr);
-	}
-	if (!evtTRB3Digits[idet]->empty()) {
-	  if (fVerbosity)
-	    std::cout << "\t" << "Det " << detStr << " "
-		      << evtTRB3Digits[idet]->size() << " TRB3RawDigits"
-		      << std::endl;
-	  put_product_in_principal(std::move(evtTRB3Digits[idet]), *outE,"raw",detStr);
-}
-      }
+		// Structure:
+		//		Overall: < <time, event>, <time, event> , ... >
+		//			Event:  < <fragId, index>, <fragId, index>, ... >
+		std::vector<std::pair<uint64_t, std::vector<std::pair<uint64_t,uint64_t>>>> eventStack;
 
-      return true;
-    }
+		{// limit scope of punch card
+			std::vector<std::list<size_t>> punchCards;
+			// Set up punch card for each CAEN, TRB3, and SSD
+			for (size_t ifrag=0; ifrag <= fFragId.size(); ++ifrag) {
+				auto fragId = ssdID;
+				auto size = fSSDRawDigits.size();
+				if(ifrag < fFragId.size()) {
+					fragId = fFragId[ifrag];
+					size = fFragTimestamps[fragId].size()
+				}
+				std::list<size_t> punchCard;
+				for(size_t index = 0; index < size; ++index)
+					punchCard.push_back(index);
+				punchCards.push_back(punchCards);
+			}
 
+			// Iterate over list instead of all timestamps
+			for (size_t ifrag=0; ifrag <= fFragId.size(); ++ifrag) {
+
+				auto fragA = ssdID;
+				if(ifrag < fFragId.size())
+					fragA = fFragId[ifrag];
+				auto sizeA = punchCards[ifrag].size();
+
+				//for(size_t iA = 0; iA < sizeA; ++iA) {
+				for(auto it = punchCards[ifrag].begin(); it != punchCards[ifrag].end(); ++it) {
+					auto iA = *it; // index of time stamp to be checked
+					std::vector<std::pair<uint64_t,uint64_t>> event;
+					uint64_t tsA;
+					// Project timestamp to grandfather
+					if(fragA == ssdID) // SSD
+						tsA = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iA].first;
+					else if(fragA != fragIdGrandfather) // CAEN and TRB3 children
+						tsA = fTWCorr0[fragA] + fTWCorr1[fragA]*fFragTimestamps[fragA][iA];
+					else // grandfather
+						tsA = fFragTimestamps[fragA][iA];
+					event.push_back(std::make_pair(fragA, iA));
+					// Remove element from punch card to indicate this event has been handled
+					punchCards[ifrag].erase(it);
+
+					for (size_t jfrag=ifrag + 1; jfrag <= fFragId.size(); ++jfrag) {
+						auto fragB = ssdID;
+						auto sizeB = fSSDRawDigits.size();
+						if(jfrag < fFragId.size()) {
+							fragB = fFragId[jfrag];
+							sizeB = fFragTimestamps[fragB].size()
+						}
+
+						//for(size_t iB = 0; iB < sizeB; ++iB) {
+						for(auto jt = punchCards[jfrag].begin(); jt != punchCards[jfrag].end(); ++jt) {
+							auto iB = *it; // index of time stamp to be checked
+							// Project timestamp to grandfather
+							if(fragA == ssdID) // SSD
+								tsB = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iB].first;
+							else if(fragB != fragIdGrandfather)
+								tsB = fTWCorr0[fragB] + fTWCorr1[fragB]*fFragTimestamps[fragB][iB];
+							else
+								tsB = fFragTimestamps[fragB][iB];
+
+							// Adjust this resolution as needed <@@>
+							if(std::abs(tsA - tsB) < 100) { // FOUND YOU
+								event.push_back(std::make_pair(fragB, iB));
+								// Remove element from punch card to indicate this event has been handled
+								punchCards[jfrag].erase(jt);
+								break;
+							}
+						}
+					}
+					// After checking all other fragID's, push this event on the stack
+					//eventStack.push_back(event);
+					eventStack.push_back(std::make_pair(tsA, event));
+				}
+			}
+		}
+		// Now we have our event stack for packing events (hard part is over?)
+
+		// Possibly better to sort in reverse?
+		std::sort(eventStack.begin(), eventStack.end());
+		//std::sort(eventStack.begin(), eventStack.end(), std::greater<>());
+
+		if (fCreateArtEvents) {
+			std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
+			for (int idet=0; idet<emph::geo::NDetectors; ++idet)
+				evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
+
+			std::vector<std::unique_ptr<std::vector<emph::rawdata::TRB3RawDigit> > > evtTRB3Digits;
+			for (int idet=0; idet<emph::geo::NDetectors; ++idet)
+				evtTRB3Digits.push_back(std::make_unique<std::vector<emph::rawdata::TRB3RawDigit>  >());
+
+			std::vector<emph::rawdata::SSDRawDigit> evtSSDVec;
+			auto evtSSDRawDigits = std::make_unique<std::vector<emph::rawdata::SSDRawDigit> >();
+
+			// Now with our event stack, we can pack events
+			auto lastTime = eventStack[1].first;
+			for(size_t iEvent = 0; iEvent < eventStack.size(); ++iEvent) {
+			//for(auto event : eventStack) {
+				auto event = eventStack[iEvent];
+				art::Timestamp evtTime(event.first);
+				outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount, evtTime);
+
+				if ((fEvtCount%1000) == 0)
+					std::cout << "Event " << fEvtCount << std::endl;
+				for(auto attendee : event.second) {
+					auto fragId = attendee.first;
+					auto index = attendee.second;
+					if(fReadSSDData && fragId == 773) { // SSD
+						auto & ssdDigs = fSSDRawDigits[index].second;
+						for (auto ssdDig : ssdDigs) {
+							auto tssdDig(ssdDig);
+							evtSSDRawDigits->push_back(tssdDig);
+						}
+					} else if (fReadCAENData && fWaveForms.count(fragId)) {
+						emph::cmap::FEBoardType boardType = emph::cmap::V1720;
+						int boardNum = fragId;
+						emph::cmap::EChannel echan;
+						echan.SetBoardType(boardType);
+						echan.SetBoard(boardNum);
+						// This loop is putting the entire waveform into evtWaveForms
+						for(auto &tdig : fWaveForms[fragId][index]) {
+							echan.SetChannel(tdig.Channel());
+							if (! fChannelMap->IsValidEChan(echan)) continue;
+							emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+							tdig.SetDetChannel(dchan.Channel());
+							//	      std::cout << echan << " maps to " << dchan << std::endl;
+							evtWaveForms[dchan.DetId()]->push_back(tdig);
+						}
+					} else if (fReadTRB3Data && fTRB3RawDigits.count(fragId)) {
+						emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
+						emph::cmap::EChannel echan;
+						echan.SetBoardType(boardType);
+						for(auto &tdig : fTRB3RawDigits[fragId][index]) {
+							int channel = tdig.GetChannel();
+							int boardNum = tdig.GetBoardId();
+							echan.SetChannel(channel);
+							echan.SetBoard(boardNum);
+							emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
+							if (dchan.DetId() != emph::geo::NDetectors){
+								tdig.SetDetChannel(dchan.Channel());
+								evtTRB3Digits[dchan.DetId()]->push_back(tdig);
+							}
+						}
+					}
+				}
+				// and now we move on to the next event!
+
+				// If next event occurs within a given time, then include data by iterating the loop
+				auto nextTime = eventStack[iEvent + 1].first;
+				if(abs(nextTime - event.first) < 100) continue;
+
+				// Write out event data if next event doesn't overlap with this one
+				put_product_in_principal(std::move(evtSSDRawDigits), *outE,"raw","SSD");
+				for (int idet=0; idet < emph::geo::NDetectors; ++idet) {
+					std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
+					if (!evtWaveForms[idet]->empty())
+						put_product_in_principal(std::move(evtWaveForms[idet]), *outE,"raw",detStr);
+					if (!evtTRB3Digits[idet]->empty())
+						put_product_in_principal(std::move(evtTRB3Digits[idet]), *outE,"raw",detStr);
+				}
+			}
+		}
     return false;
   }
 

@@ -109,7 +109,7 @@ namespace emph {
       std::unordered_map<artdaq::Fragment::fragment_id_t,size_t> fFragOffset;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fFragTimestamps;
-      std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fFragTimestampsCorrected;
+      //std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fFragTimestampsCorrected;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<std::vector<emph::rawdata::WaveForm> > > fWaveForms;
 
