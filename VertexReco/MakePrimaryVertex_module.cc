@@ -90,7 +90,13 @@ namespace emph {
 		    << std::endl;
 	  trkV.push_back(trk);
 	}
-	if (trkV.size() > 1) {
+	if (trkV.size() == 2) {
+	  rb::Vertex vtx;
+	  std::cout << "beamtrk vtx = (" << trkV[0].vtx << ")" << std::endl;
+	  std::cout << "scndtrk vtx = (" << trkV[1].vtx << ")" << std::endl;
+	  vtxv->push_back(vtx);
+	}
+	else if (trkV.size() > 1) {
 	  rb::Vertex vtx;
 	  std::cout << "Finding vertex..." << std::endl;
 	  if (pvA.FindVertexDOCA(trkV,vtx))
