@@ -45,7 +45,7 @@ namespace emph
   // Destructor.
   SSDHitAction::~SSDHitAction()
   {
-    if (fPerformFOutStudy)
+    if (fPerformFOutStudy || fSaveTextFile)
       fFOutStudy1.close();
   }
 
@@ -56,8 +56,9 @@ namespace emph
     std::cerr << " SSDHitAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
 
     fPerformFOutStudy = pset.get< bool >("PerformFOutStudy",false);
+    fSaveTextFile = pset.get<bool>("SaveTextFiles",false);
 
-    if (fPerformFOutStudy) {
+    if (fPerformFOutStudy || fSaveTextFile) {
       std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
       std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHSSDTuple_V1_" << aTokenJob << ".txt";
       std::string fNameStr(fNameStrStr.str());
@@ -177,7 +178,7 @@ namespace emph
     ssdHit.SetP(mom0);
 
     fSSDHits.push_back(ssdHit);
-    if (fPerformFOutStudy) {
+    if (fPerformFOutStudy || fSaveTextFile) {
       fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
       fFOutStudy1 << " " << track->GetTrackID() << " " << track->GetDefinition()->GetPDGEncoding() << std::endl;
       fFOutStudy1 << " " << tpos0[0] << " " << tpos0[1] << " " << tpos0[2]  << std::endl;

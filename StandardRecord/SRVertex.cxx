@@ -23,7 +23,7 @@ namespace caf
     trk.clear();
     isPrimary = true;
     pos.SetXYZ(-999999.,-999999.,-999999.);
-//pos[0] = pos[1] = pos[2] = -999999.;
+    chi2 = -999999;
 
   }
 

@@ -20,7 +20,7 @@
 #include "RecoBase/BeamTrack.h" 
 #include "SSDReco/experimental/SSDRecDwnstrTracksAutre.h"
 #include "RecoBase/DwnstrTrack.h" 
-#include "RecoBase/Vertex.h" 
+#include "RecoBase/VertexAutre.h" 
 #include "SSDReco/experimental/SSDVertexFitFCNAutre.h"
 
 
@@ -51,7 +51,7 @@ namespace emph {
 	  // so intantiate this in the constructor. 
 	  // And the result..
 	  double fChiFinal;
-	  rb::Vertex fVert;
+	  rbex::Vertex fVert;
 	   
 	  mutable std::ofstream fFOutVert;
 	  // Internal stuff.. ???

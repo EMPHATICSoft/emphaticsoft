@@ -52,20 +52,25 @@ namespace emph
   // Destructor.
   ARICHHitAction::~ARICHHitAction()
   {
-   fFOutStudy1.close();
+    if  (fSaveTextFile)
+      fFOutStudy1.close();
   }
 
   //-------------------------------------------------------------
   void ARICHHitAction::Config(fhicl::ParameterSet const& pset )
   {
 //    fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
-    std::cerr << " ARICHHitAction::Config opening files, if not already done..  " << std::endl;
-    if ( fFOutStudy1.is_open()) return;
-    std::string aTokenJob = pset.get< std::string >("G4TokenARICHOut", "Undef");
-    std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHARICHHitTuple_V1_" << aTokenJob << ".txt";
-    std::string fNameStr(fNameStrStr.str());
-    fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " event parent_track mPMT_anode time " << std::endl;
+    fSaveTextFile = pset.get<bool>("SaveTextFiles");
+
+    if (fSaveTextFile) {
+      std::cerr << " ARICHHitAction::Config opening files, if not already done..  " << std::endl;
+      if ( fFOutStudy1.is_open()) return;
+      std::string aTokenJob = pset.get< std::string >("G4TokenARICHOut", "Undef");
+      std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHARICHHitTuple_V1_" << aTokenJob << ".txt";
+      std::string fNameStr(fNameStrStr.str());
+      fFOutStudy1.open(fNameStr.c_str());
+      fFOutStudy1 << " event parent_track mPMT_anode time " << std::endl;
+    }
   }
 
   //-------------------------------------------------------------
@@ -109,10 +114,13 @@ namespace emph
 			  arichHit.SetEnergyDepo(e); 
 
 			  fARICHHits.push_back(arichHit);
-/*			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
+/*			  
+			  if (fSaveTextFile) {
+			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
 			  fFOutStudy1 << " " << aTrack->GetParentID();
 			  fFOutStudy1 << " " << arichHit.GetBlockNumber();
 			  fFOutStudy1 << " " << arichHit.GetTime() << std::endl;
+}
 */
 
 		 // }

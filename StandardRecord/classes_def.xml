@@ -81,7 +81,8 @@
   <version ClassVersion="10" checksum="2585169092"/>
  </class>
 
- <class name="caf::SRLineSegment" ClassVersion="11" >
+ <class name="caf::SRLineSegment" ClassVersion="12" >
+  <version ClassVersion="12" checksum="720201835"/>
   <version ClassVersion="11" checksum="3550353899"/>
   <version ClassVersion="10" checksum="1129822811"/>
  </class>
@@ -137,7 +138,8 @@
  </class>
  <class name="std::vector<caf::SRTruth>" />
 
- <class name="caf::SRTrueSSDHits" ClassVersion="10" >
+ <class name="caf::SRTrueSSDHits" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2580746351"/>
   <version ClassVersion="10" checksum="3083444448"/>
  </class>
  <class name="std::vector<caf::SRTrueSSDHits>" /> 
@@ -156,7 +158,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrack" ClassVersion="15" >
+ <class name="caf::SRTrack" ClassVersion="16" >
+  <version ClassVersion="16" checksum="1981216120"/>
   <version ClassVersion="15" checksum="1255481665"/>
   <version ClassVersion="14" checksum="1919816117"/>
   <version ClassVersion="13" checksum="2826463250"/>
@@ -170,7 +173,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class> -->
 
- <class name="caf::SRVertex" ClassVersion="12" >
+ <class name="caf::SRVertex" ClassVersion="13" >
+  <version ClassVersion="13" checksum="1779492603"/>
   <version ClassVersion="12" checksum="3585192615"/>
   <version ClassVersion="11" checksum="2951360745"/>
   <version ClassVersion="10" checksum="1"/>
@@ -181,7 +185,8 @@
   <version ClassVersion="10" checksum="1"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="16" >
+ <class name="caf::SRTrackSegment" ClassVersion="17" >
+  <version ClassVersion="17" checksum="2809269421"/>
   <version ClassVersion="16" checksum="218284582"/>
   <version ClassVersion="15" checksum="980261979"/>
   <version ClassVersion="14" checksum="2487066300"/>

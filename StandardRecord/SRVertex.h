@@ -21,6 +21,7 @@ namespace caf
     bool isPrimary;
     std::vector<SRTrack> trk; // vector of tracks
     int ntrk;
+    double chi2;
     void Add(SRTrack& t){ trk.push_back(t); ntrk = (int)(trk.size()); }
 
  
