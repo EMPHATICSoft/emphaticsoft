@@ -197,12 +197,12 @@
 		double percentOverlap = 1.0*child.size()/grandfather.size();
 
 		auto begin = grandfather.begin();
-		std::vector<int64_t> grandCalibrate(begin, begin + 100*N_compare);
+		std::vector<int64_t> grandCalibrate(begin, grandfather.end());
 
 		begin = child.begin();
-		std::vector<int64_t> childCalibrate(begin, begin + 10*N_compare);
+		std::vector<int64_t> childCalibrate(begin, begin + 50*N_compare);
 
-		auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap/10, timeUncertainty);
+		auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap/50, timeUncertainty);
 
 #ifdef VERBOSE
 		std::cout << "[Calibration] completed\n";
@@ -256,12 +256,13 @@
 
 				// Swap grandfather role for calibration depending on who's timestamp is further ahead
 				// set up new grandfather
-				if(grandfather[aIndex] < child[bIndex]) {
+				auto begin = child.begin() + bIndex;
+				if(grandfather[aIndex] < child[bIndex])
 					begin = grandfather.begin() + aIndex;
-				} else { // Swap child and grandfather
-					begin = child.begin() + bIndex;
-				}
-				std::vector<int64_t> grandResync(begin, begin + 100*N_compare);
+				auto end = child.end();
+				if(grandfather[aIndex] < child[bIndex])
+					end = grandfather.end();
+				std::vector<int64_t> grandResync(begin, end);
 
 				// set up new child
 				if(grandfather[aIndex] < child[bIndex]) {
@@ -269,8 +270,8 @@
 				} else {
 					begin = grandfather.begin() + aIndex;
 				}
-				std::vector<int64_t> childSync(begin, begin + 10*N_compare);
-				auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap/10, timeUncertainty);
+				std::vector<int64_t> childSync(begin, begin + 50*N_compare);
+				auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap/50, timeUncertainty);
 
 				for(size_t isync = bIndex; isync < child.size(); ++isync) {
 					if(grandfather[aIndex] < child[bIndex])

@@ -15,13 +15,14 @@ source:
   #fileNames:                 ["/emph/data/data/Jan2022/emdaq_otsdaq_rootOutput_r430_s1_20220131T232556_1.art"]
   #fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2098_s0001_20230328T211357_1.art"]
   #fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2408_s0001_20230404T132939_1.art"]
-  fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2328_s0200_20230402T205742_1.art"]
+  #fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2328_s0200_20230402T205742_1.art"]
+  fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2328_s0096_20230402T191246_1.art"]
   #fileNames:                 ["/exp/emph/data/raw/June2022/OutputData/emdaq_otsdaq_rootOutput_r1078_s3_20220703T093157_1.art"]
 
   daqLabel:        "daq"
   createArtEvents:   true
   makeTDiffHistos:   false
-  makeTimeWalkHistos:   true
+  makeTimeWalkHistos:   false
   numWaveFormPlots:  100
   timeWindow: 50000
   nEvents: 0
