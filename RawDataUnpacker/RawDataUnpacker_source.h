@@ -66,6 +66,7 @@ namespace emph {
       bool    fCreateArtEvents;
       bool    fMakeTDiffHistos;
       bool    fMakeTimeWalkHistos;
+      bool    fMakeBenchmarkPlots;
       bool    fReadSSDData;
       bool    fReadTRB3Data;
       bool    fReadCAENData;

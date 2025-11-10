@@ -1,6 +1,6 @@
 #ifndef TIMESYNC_H
 #define TIMESYNC_H
-#define VERBOSE
+//#define VERBOSE
 //#define INTERACTIVE
 
 #include <bits/stdc++.h>

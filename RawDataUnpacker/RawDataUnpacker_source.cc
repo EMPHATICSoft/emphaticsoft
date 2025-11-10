@@ -38,6 +38,7 @@
 #include "TString.h"
 #include "TF1.h"
 #include "TGraph.h"
+#include "TVector.h"
 
 #include <iostream>
 #include <fstream>
@@ -93,6 +94,7 @@ namespace rawdata {
     fBCOx = ps.get<double>("BCOx",151.1515152);
     fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
     fMakeTimeWalkHistos = ps.get<bool>("makeTimeWalkHistos",false);
+    fMakeBenchmarkPlots = ps.get<bool>("makeBenchmarkPlots",false);
 
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
@@ -398,7 +400,8 @@ namespace rawdata {
 		if(masks.empty()) return;
 
 		TFile* fout;
-		if(fMakeTimeWalkHistos) fout = TFile::Open("out.root","RECREATE");
+		char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
+		if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
 
 		for (auto fragId : fFragId) {
 			// iG = index of grandfather
@@ -503,14 +506,14 @@ namespace rawdata {
 					break;
 				}
 			}
-
-			auto count = 0;
-			for(auto index : masks[fragId]) {
-				if(index != -1)
-					count++;
-			}
-			std::cout << "Synced " << count << " out of " << fragTimestamps[fragId].size() << " events!" << std::endl;
-			std::cout << "Percentage " << 100.0 * count/fragTimestamps[fragId].size() << "%" << std::endl;
+//
+//			auto count = 0;
+//			for(auto index : masks[fragId]) {
+//				if(index != -1)
+//					count++;
+//			}
+//			std::cout << "Synced " << count << " out of " << fragTimestamps[fragId].size() << " events!" << std::endl;
+//			std::cout << "Percentage " << 100.0 * count/fragTimestamps[fragId].size() << "%" << std::endl;
 		}
 		std::cout << "(Comparing to SSDs)"<< std::endl;
 		// Store SSD in the extra mask slot for fragIdGrandfather (no need to compare Grandfather to itself)
@@ -555,7 +558,7 @@ namespace rawdata {
 		//    if (!inSR) std::cout << "inSR is empty" << std::endl;
 
 		// this id functions as a fragID for SSDs later
-		const auto ssdID = 773;
+		const auto ssdId = 773;
 
 		// Structure:
 		//		Overall: < <time, event>, <time, event> , ... >
@@ -619,6 +622,12 @@ namespace rawdata {
 				makeTDiffHistos();
 
 			//if (fMakeTimeWalkHistos)
+			{
+				TFile* fout;
+				char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
+				fout = TFile::Open(outName, "RECREATE");
+				fout->Close();
+			}
 			calcTimeWalkCorr();
 
 
@@ -627,7 +636,7 @@ namespace rawdata {
 				std::vector<std::list<size_t>> punchCards;
 				// Set up punch card for each CAEN, TRB3, and SSD
 				for (size_t ifrag=0; ifrag <= fFragId.size(); ++ifrag) {
-					auto fragId = ssdID;
+					auto fragId = ssdId;
 					auto size = fSSDRawDigits.size();
 					if(ifrag < fFragId.size()) {
 						fragId = fFragId[ifrag];
@@ -643,51 +652,40 @@ namespace rawdata {
 				// Iterate over list instead of all timestamps
 				for (size_t ifrag=0; ifrag <= fFragId.size(); ++ifrag) {
 
-					auto fragA = ssdID;
+					auto fragA = ssdId;
 					if(ifrag < fFragId.size())
 						fragA = fFragId[ifrag];
-					//auto sizeA = punchCards[ifrag].size();
 
-					//for(size_t iA = 0; iA < sizeA; ++iA) {
 					for(auto it = punchCards[ifrag].begin(); it != punchCards[ifrag].end(); ++it) {
 						auto iA = *it; // index of time stamp to be checked
 						std::vector<std::pair<uint64_t,uint64_t>> event;
 						int64_t tsA;
 						// Project timestamp to grandfather
-						if(fragA == ssdID) // SSD
+						if(fragA == ssdId) // SSD
 							tsA = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fSSDRawDigits[iA].first;
-							//tsA = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iA].first;
 						else if(fragA != fragIdGrandfather) // CAEN and TRB3 children
 							tsA = fTWCorr0[fragA] + fTWCorr1[fragA]*fFragTimestamps[fragA][iA];
 						else // grandfather
 							tsA = fFragTimestamps[fragA][iA];
 						event.push_back(std::make_pair(fragA, iA));
-						// Remove element from punch card to indicate this event has been handled
-						// Note: this seg-faults because of an issue with iterating through the loop
-						//punchCards[ifrag].erase(it);
 
 						for (size_t jfrag=ifrag + 1; jfrag <= fFragId.size(); ++jfrag) {
-							auto fragB = ssdID;
-							//auto sizeB = fSSDRawDigits.size();
-							if(jfrag < fFragId.size()) {
+							auto fragB = ssdId;
+							if(jfrag < fFragId.size())
 								fragB = fFragId[jfrag];
-								//sizeB = fFragTimestamps[fragB].size();
-							}
 
-							//for(size_t iB = 0; iB < sizeB; ++iB) {
 							for(auto jt = punchCards[jfrag].begin(); jt != punchCards[jfrag].end(); ++jt) {
 								auto iB = *jt; // index of time stamp to be checked
 								int64_t tsB;
 								// Project timestamp to grandfather
-								if(fragB == ssdID) // SSD
+								if(fragB == ssdId) // SSD
 									tsB = std::round(fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fSSDRawDigits[iB].first);
-									//tsB = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iB].first;
 								else if(fragB != fragIdGrandfather)
 									tsB = fTWCorr0[fragB] + fTWCorr1[fragB]*fFragTimestamps[fragB][iB];
 								else
 									tsB = fFragTimestamps[fragB][iB];
 
-								// Adjust this resolution as needed <@@>
+								// Adjust this resolution as needed
 								if(std::llabs(tsA - tsB) <= 200) { // FOUND YOU
 									event.push_back(std::make_pair(fragB, iB));
 									// Remove element from punch card to indicate this event has been handled
@@ -696,9 +694,9 @@ namespace rawdata {
 								}
 							}
 						}
-						std::cout << "Event:\t" << eventStack.size() << "\twith these attendees:\t";
-						for(const auto& attendee : event) std::cout << attendee.first << "\t";
-						std::cout << std::endl;
+//						std::cout << "Event:\t" << eventStack.size() << "\twith these attendees:\t";
+//						for(const auto& attendee : event) std::cout << attendee.first << "\t";
+//						std::cout << std::endl;
 						// After checking all other fragID's, push this event on the stack
 						//eventStack.push_back(event);
 						eventStack.push_back(std::make_pair(tsA, event));
@@ -706,11 +704,163 @@ namespace rawdata {
 				}
 			}
 			// Now we have our event stack for packing events (hard part is over?)
+			// Plots
+			if(fMakeBenchmarkPlots) {
+				std::sort(eventStack.begin(), eventStack.end());
+				// Average time differences between post-aligned data streams per event
+				TFile* fout;
+				char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
+				fout = TFile::Open(outName, "UPDATE");
+				char hname[256];
+				char htitle[256];
+				sprintf(hname,"AvgDifference__SSD_TRB3");
+				sprintf(htitle,"Average time differences per event for run %d, subrun %d for SSD and TRB3", fRun, fSubrun);
+				TH1D averageTimeDifferencesSSD_TRB3(hname, htitle, 6000, -300, 300);
+
+				sprintf(hname,"AvgDifference__SSD_CAEN");
+				sprintf(htitle,"Average time differences per event for run %d, subrun %d for SSD and CAEN", fRun, fSubrun);
+				TH1D averageTimeDifferencesSSD_CAEN(hname, htitle, 6000, -300, 300);
+
+				sprintf(hname,"AvgDifference__CAEN_TRB3");
+				sprintf(htitle,"Average time differences per event for run %d, subrun %d for CAEN and TRB3", fRun, fSubrun);
+				TH1D averageTimeDifferencesCAEN_TRB3(hname, htitle, 6000, -300, 300);
+
+				std::vector<uint64_t> timeSSD;
+				std::vector<uint64_t> timeTRB3;
+				std::vector<uint64_t> timeCAEN;
+
+				size_t gotSSD = 0;
+				size_t gotALL = 0;
+				size_t eventCount = 0;
+
+				// stuff for looking at time difference between events
+				sprintf(hname,"TimeToNext__SSD");
+				sprintf(htitle,"Time between SSD events for run %d, subrun %d", fRun, fSubrun);
+				TH1D timeToNextSSD(hname, htitle, 10000000, 0, 1000000);
+
+				sprintf(hname,"TimeToNext_TRB3");
+				sprintf(htitle,"Time between TRB3 events for run %d, subrun %d", fRun, fSubrun);
+				TH1D timeToNextTRB3(hname, htitle, 10000000, 0, 1000000);
+
+				sprintf(hname,"TimeToNext_CAEN");
+				sprintf(htitle,"Time between CAEN events for run %d, subrun %d", fRun, fSubrun);
+				TH1D timeToNextCAEN(hname, htitle, 10000000, 0, 1000000);
+
+				// stuff for looking at time difference between events; cross detector
+				sprintf(hname,"TimeToNext__SSD_TRB3");
+				sprintf(htitle,"Time between SSD events and TRB3 events for run %d, subrun %d", fRun, fSubrun);
+				TH1D timeToNextSSD_TRB3(hname, htitle, 40000, -2000, 2000);
+
+				sprintf(hname,"TimeToNext_SSD_CAEN");
+				sprintf(htitle,"Time between SSD events and CAEN events for run %d, subrun %d", fRun, fSubrun);
+				TH1D timeToNextSSD_CAEN(hname, htitle, 40000, -2000, 2000);
+
+				sprintf(hname,"TimeToNext_CAEN_TRB3");
+				sprintf(htitle,"Time between CAEN events and TRB3 events for run %d, subrun %d", fRun, fSubrun);
+				TH1D timeToNextCAEN_TRB3(hname, htitle, 40000, -2000, 2000);
+
+
+				double lastIndividual[3] = {0,0,0}; bool isFirst = true;
+				double lastTriple[3] = {0,0,0};
+
+				for(size_t iEvent = 0; iEvent < eventStack.size(); ++iEvent) {
+					auto event = eventStack[iEvent];
+					for(auto attendee : event.second) {
+						auto fragId = attendee.first;
+						auto index = attendee.second;
+
+						int64_t time = 0;
+						if(fragId == ssdId) // SSD
+							time = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fSSDRawDigits[index].first;
+						else if(fragId != fragIdGrandfather) // CAEN and TRB3 children
+							time = fTWCorr0[fragId] + fTWCorr1[fragId]*fFragTimestamps[fragId][index];
+						else // grandfather
+							time = fFragTimestamps[fragIdGrandfather][index];
+
+						if(fragId == ssdId)
+							timeSSD.push_back(time);
+						else if(fragId > 10)
+							timeTRB3.push_back(time);
+						else
+							timeCAEN.push_back(time);
+					}
+					// and now we move on to the next event!
+
+					// If next event occurs within a given time, then include data by iterating the loop
+					auto nextTime = eventStack[iEvent + 1].first;
+					if(std::llabs(nextTime - event.first) < 100) continue;
+
+					double averageSSD = 0;
+					double averageTRB3 = 0;
+					double averageCAEN = 0;
+					for(auto time : timeSSD) averageSSD += (1.0/timeSSD.size())*time;
+					for(auto time : timeTRB3) averageTRB3 += (1.0/timeTRB3.size())*time;
+					for(auto time : timeCAEN) averageCAEN += (1.0/timeCAEN.size())*time;
+					if(!timeSSD.empty() && !timeTRB3.empty())
+						averageTimeDifferencesSSD_TRB3.Fill(averageSSD - averageTRB3);
+					if(!timeSSD.empty() && !timeCAEN.empty())
+						averageTimeDifferencesSSD_CAEN.Fill(averageSSD - averageCAEN);
+					if(!timeCAEN.empty() && !timeTRB3.empty())
+						averageTimeDifferencesCAEN_TRB3.Fill(averageCAEN - averageTRB3);
+
+					if(!timeSSD.empty()) gotSSD++;
+					if(!timeSSD.empty() && !timeTRB3.empty() && !timeCAEN.empty()) gotALL++;
+					eventCount++;
+
+
+					if(!isFirst) {
+						if(!timeSSD.empty()) timeToNextSSD.Fill(averageSSD - lastIndividual[0]);
+						if(!timeTRB3.empty()) timeToNextTRB3.Fill(averageTRB3 - lastIndividual[1]);
+						if(!timeCAEN.empty()) timeToNextCAEN.Fill(averageCAEN - lastIndividual[2]);
+
+						if(!timeSSD.empty() && !timeTRB3.empty() && !timeCAEN.empty()) {
+							timeToNextSSD_TRB3.Fill(averageSSD - lastTriple[0] - (averageTRB3 - lastTriple[1]));
+							timeToNextSSD_CAEN.Fill(averageSSD - lastTriple[0] - (averageCAEN - lastTriple[2]));
+							timeToNextCAEN_TRB3.Fill(averageCAEN - lastTriple[2] -(averageTRB3 - lastTriple[1]));
+						}
+					} else {
+						isFirst=false;
+					}
+					if(!timeSSD.empty()) lastIndividual[0] = averageSSD;
+					if(!timeTRB3.empty()) lastIndividual[1] = averageTRB3;
+					if(!timeCAEN.empty()) lastIndividual[2] = averageCAEN;
+					if(!timeSSD.empty() && !timeTRB3.empty() && !timeCAEN.empty()) {
+						lastTriple[0] = averageSSD;
+						lastTriple[1] = averageTRB3;
+						lastTriple[2] = averageCAEN;
+					}
+
+					timeSSD.clear();
+					timeTRB3.clear();
+					timeCAEN.clear();
+				}
+				averageTimeDifferencesSSD_TRB3.Write("avgTD_SSD_TRB3");
+				averageTimeDifferencesSSD_CAEN.Write("avgTD_SSD_CAEN");
+				averageTimeDifferencesCAEN_TRB3.Write("avgTD_CAEN_TRB3");
+
+				timeToNextSSD.Write("t2N_SSD");
+				timeToNextTRB3.Write("t2N_TRB3");
+				timeToNextCAEN.Write("t2N_CAEN");
+
+				timeToNextSSD_TRB3.Write("t2N_SSD_TRB3");
+				timeToNextSSD_CAEN.Write("t2N_SSD_CAEN");
+				timeToNextCAEN_TRB3.Write("t2N_CAEN_TRB3");
+
+				TVectorD evtCounts(3);
+				evtCounts[0] = gotSSD;
+				evtCounts[1] = gotALL;
+				evtCounts[2] = eventCount;
+				evtCounts.Write("Event Statistics");
+
+				fout->Close();
+				std::cout << gotSSD << " out of " << eventCount << " events with SSD event" << std::endl;
+				std::cout << gotALL << " out of " << eventCount << " events with all events" << std::endl;
+			}
 
 			std::cout << "Sorting event stack" << std::endl;
-			//std::sort(eventStack.begin(), eventStack.end());
 			// Sorting in reverse so that we can pop events off the end
 			std::sort(eventStack.begin(), eventStack.end(), std::greater<>());
+
 			fIsFirst = false;
 		}
 
@@ -747,7 +897,7 @@ namespace rawdata {
 				for(auto attendee : event.second) {
 					auto fragId = attendee.first;
 					auto index = attendee.second;
-					if(fReadSSDData && fragId == 773) { // SSD
+					if(fReadSSDData && fragId == ssdId) { // SSD
 						auto & ssdDigs = fSSDRawDigits[index].second;
 						for (auto ssdDig : ssdDigs) {
 							auto tssdDig(ssdDig);
@@ -798,74 +948,6 @@ namespace rawdata {
 					put_product_in_principal(std::move(evtTRB3Digits[idet]), *outE,"raw",detStr);
 			}
 
-// Note: This only calls readNext once, probably won't work with art framework?
-//*************************************************************************************************
-//			auto lastTime = eventStack[1].first;
-//			for(size_t iEvent = 0; iEvent < eventStack.size(); ++iEvent) {
-//			//for(auto event : eventStack) {
-//				auto event = eventStack[iEvent];
-//				art::Timestamp evtTime(event.first);
-//				outE = fSourceHelper.makeEventPrincipal(fRun, fSubrun, fEvtCount, evtTime);
-//
-//				if ((fEvtCount%1000) == 0)
-//					std::cout << "Event " << fEvtCount << std::endl;
-//				for(auto attendee : event.second) {
-//					auto fragId = attendee.first;
-//					auto index = attendee.second;
-//					if(fReadSSDData && fragId == 773) { // SSD
-//						auto & ssdDigs = fSSDRawDigits[index].second;
-//						for (auto ssdDig : ssdDigs) {
-//							auto tssdDig(ssdDig);
-//							evtSSDRawDigits->push_back(tssdDig);
-//						}
-//					} else if (fReadCAENData && fWaveForms.count(fragId)) {
-//						emph::cmap::FEBoardType boardType = emph::cmap::V1720;
-//						int boardNum = fragId;
-//						emph::cmap::EChannel echan;
-//						echan.SetBoardType(boardType);
-//						echan.SetBoard(boardNum);
-//						// This loop is putting the entire waveform into evtWaveForms
-//						for(auto &tdig : fWaveForms[fragId][index]) {
-//							echan.SetChannel(tdig.Channel());
-//							if (! fChannelMap->IsValidEChan(echan)) continue;
-//							emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-//							tdig.SetDetChannel(dchan.Channel());
-//							//	      std::cout << echan << " maps to " << dchan << std::endl;
-//							evtWaveForms[dchan.DetId()]->push_back(tdig);
-//						}
-//					} else if (fReadTRB3Data && fTRB3RawDigits.count(fragId)) {
-//						emph::cmap::FEBoardType boardType = emph::cmap::TRB3;
-//						emph::cmap::EChannel echan;
-//						echan.SetBoardType(boardType);
-//						for(auto &tdig : fTRB3RawDigits[fragId][index]) {
-//							int channel = tdig.GetChannel();
-//							int boardNum = tdig.GetBoardId();
-//							echan.SetChannel(channel);
-//							echan.SetBoard(boardNum);
-//							emph::cmap::DChannel dchan = fChannelMap->DetChan(echan);
-//							if (dchan.DetId() != emph::geo::NDetectors){
-//								tdig.SetDetChannel(dchan.Channel());
-//								evtTRB3Digits[dchan.DetId()]->push_back(tdig);
-//							}
-//						}
-//					}
-//				}
-//				// and now we move on to the next event!
-//
-//				// If next event occurs within a given time, then include data by iterating the loop
-//				auto nextTime = eventStack[iEvent + 1].first;
-//				if(abs(nextTime - event.first) < 100) continue;
-//
-//				// Write out event data if next event doesn't overlap with this one
-//				put_product_in_principal(std::move(evtSSDRawDigits), *outE,"raw","SSD");
-//				for (int idet=0; idet < emph::geo::NDetectors; ++idet) {
-//					std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
-//					if (!evtWaveForms[idet]->empty())
-//						put_product_in_principal(std::move(evtWaveForms[idet]), *outE,"raw",detStr);
-//					if (!evtTRB3Digits[idet]->empty())
-//						put_product_in_principal(std::move(evtTRB3Digits[idet]), *outE,"raw",detStr);
-//				}
-//			}
 			return true;
 		}
 		return false;
