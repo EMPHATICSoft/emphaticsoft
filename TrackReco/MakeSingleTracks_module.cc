@@ -366,19 +366,18 @@ namespace emph {
 	    algo.SetBeamTrk(t1,fPBeamTmp);
             beamtrk.Add(t1);
             beamtrk.mom = t1.mom;//SetP(t1.P());
-	    std::cout << "beamtrk.P = (" << t1.mom << ")" << std::endl; 
             beamtrk.vtx = t1.vtx; //SetVtx(t1.Vtx());
 	    beamtrk.chi2 = t1.chi2; //SetChi2(t1.Chi2());
 	    // fill position and momentum projected to the center of the target
 	    beamtrk.momTrgt = t1.mom;
 	    double posAtTrgt[3];
-	    double dz = fTrgtZ - t1.pointA.Z();
+	    // dz should be positive since we are projecting forward to the target
+	    double dz = fTrgtZ - t1.pointB.Z();
 	    posAtTrgt[2] = fTrgtZ;
-	    posAtTrgt[0] = t1.mom.X()*dz + t1.pointA.X();
-	    posAtTrgt[1] = t1.mom.Y()*dz + t1.pointA.Y();
+	    posAtTrgt[0] = (t1.mom.X()/t1.mom.Z())*dz + t1.pointB.X();
+	    posAtTrgt[1] = (t1.mom.Y()/t1.mom.Z())*dz + t1.pointB.Y();
 
 	    beamtrk.posTrgt.SetCoordinates(posAtTrgt);
-
             trackv->push_back(beamtrk);
 
             rb::Track sectrk;
@@ -399,11 +398,13 @@ namespace emph {
 
 	    // fill position and momentum projected to the center of the target
 	    sectrk.mom = t2.mom;
+	    sectrk.momTrgt = t2.mom;
+	    // dz should be negative since we're projecting back to the target
 	    dz = fTrgtZ - t2.pointA.Z();
-	    posAtTrgt[0] = t2.mom.X()*dz + t2.pointA.X();
-	    posAtTrgt[1] = t2.mom.Y()*dz + t2.pointA.Y();
+	    posAtTrgt[0] = (t2.mom.X()/t2.mom.Z())*dz + t2.pointA.X();
+	    posAtTrgt[1] = (t2.mom.Y()/t2.mom.Z())*dz + t2.pointA.Y();
+
 	    sectrk.posTrgt.SetCoordinates(posAtTrgt);
-	    
 	    sectrk.chi2 = t2.chi2+t3.chi2;
             trackv->push_back(sectrk);
 	  }

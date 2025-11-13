@@ -26,8 +26,6 @@ namespace caf
 
     if ( !hv.failedToGet()) vtxs = *hv;
     if ( !ht.failedToGet()) trks = *ht;
-    std::cout << "vtxs.size() = " << vtxs.size() << std::endl;
-    std::cout << "trks.size() = " << trks.size() << std::endl;
 
     stdrec.vtxs.nvtx = vtxs.size();
 
@@ -35,13 +33,16 @@ namespace caf
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
       rb::Vertex v = vtxs[iv];
       caf::SRVertex srv = v;
-
+      
       // loop over tracks in vertex
       for (size_t it=0; it < v.trkIdx.size(); ++it) {
 	caf::SRTrack srt = trks[v.trkIdx[it]];
 	srv.Add(srt);
       }
       stdrec.vtxs.vtx.push_back(srv);
-    } // end of loop over vertexs
-  }  
+    }
+    stdrec.vtxs.nvtx = stdrec.vtxs.vtx.size();
+    
+  } // end of loop over vertexs
+
 } // end namespace caf

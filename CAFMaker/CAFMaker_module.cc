@@ -255,7 +255,7 @@ namespace caf {
       vtxf.fLabelTracks = fParams.TrackLabel();
       vtxf.fLabelArichID = fParams.ArichIDLabel();
       vtxf.Fill(evt,rec);
-    
+
     }
 
     // Get SRTruth  
@@ -268,6 +268,7 @@ namespace caf {
       srtruthf.GetG4Hits = fParams.GetMCHits();
       srtruthf.fLabel = fParams.SSDHitLabel();
       srtruthf.Fill(evt,rec);
+      
     } // end if statement
 
  
@@ -285,7 +286,6 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-
 
     fRecTree->Fill();
     srcol->push_back(rec);

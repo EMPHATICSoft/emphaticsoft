@@ -24,7 +24,7 @@ namespace caf
     isPrimary = true;
     pos.SetXYZ(-999999.,-999999.,-999999.);
     chi2 = -999999;
-
+    ntrk = 0;
   }
 
 } // end namespace

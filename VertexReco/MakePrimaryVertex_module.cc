@@ -83,22 +83,12 @@ namespace emph {
       evt.getByLabel(fTrkLabel, trkH);
       if (!trkH->empty()){
 	std::vector<rb::Track> trkV;
-	std::cout << "trkH->size() = " << trkH->size() << std::endl;
 	for (size_t idx=0; idx < trkH->size(); ++idx) {
 	  auto trk = (*trkH)[idx];
-	  std::cout << "trk " << idx << " p = (" << trk.mom << ")" 
-		    << std::endl;
 	  trkV.push_back(trk);
 	}
-	if (trkV.size() == 2) {
+	if (trkV.size() > 1) {
 	  rb::Vertex vtx;
-	  std::cout << "beamtrk vtx = (" << trkV[0].vtx << ")" << std::endl;
-	  std::cout << "scndtrk vtx = (" << trkV[1].vtx << ")" << std::endl;
-	  vtxv->push_back(vtx);
-	}
-	else if (trkV.size() > 1) {
-	  rb::Vertex vtx;
-	  std::cout << "Finding vertex..." << std::endl;
 	  if (pvA.FindVertexDOCA(trkV,vtx))
 	    vtxv->push_back(vtx);
 	}

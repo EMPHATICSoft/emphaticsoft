@@ -616,8 +616,6 @@ namespace emph {
     p[0] = p[2] * ts1.mom.X();
     p[1] = p[2] * ts1.mom.Y();
 
-    std::cout << "pbeam = (" << p[0] << "," << p[1] << "," << p[2] << ")" << std::endl;
-
     ts1.mom.SetCoordinates(p);  
 
     ts1.pointA.GetCoordinates(beamtrkvtx);
@@ -639,11 +637,10 @@ namespace emph {
     */
 
     double pxpz = dx.X()/dx.Z();
-    double pypz = dx.X()/dx.Z();
+    double pypz = dx.Y()/dx.Z();
     double pzpmag = 1./sqrt(1. + pxpz*pxpz + pypz*pypz);//(dx*dx)/(dz*dz) + (dy*dy)/(dz*dz));
 
     double ptmp[3] = {pxpz,pypz,pzpmag};
-    std::cout << "ptmp = (" << ptmp[0] << "," << ptmp[1] << "," << ptmp[2] << ")" << std::endl;
 
     ts.mom.SetCoordinates(ptmp);
   }
@@ -666,14 +663,12 @@ namespace emph {
     realp2[2] = pm*recop*ts2.mom.Z();
     realp2[0] = ts2.mom.X()*realp2[2];
     realp2[1] = ts2.mom.Y()*realp2[2];
-    std::cout << "pts2 = (" << realp2[0] << "," << realp2[1] << "," << realp2[2] << ")" << std::endl;
     ts2.mom.SetCoordinates(realp2);
 
     double realp3[3];
     realp3[2] = pm*recop*ts3.mom.Z();
     realp3[0] = ts3.mom.X()*realp3[2];
     realp3[1] = ts3.mom.Y()*realp3[2];
-    std::cout << "pts3 = (" << realp3[0] << "," << realp3[1] << "," << realp3[2] << ")" << std::endl;
     ts3.mom.SetCoordinates(realp3);
   }
 
