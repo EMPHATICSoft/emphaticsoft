@@ -90,8 +90,8 @@ namespace rawdata {
     fReadSSDData = ps.get<bool>("readSSDData",false);
     fReadCAENData = ps.get<bool>("readCAENData",false);
     fReadTRB3Data = ps.get<bool>("readTRB3Data",false);
-    fNFER = ps.get<int>("NFER",0);
-    fBCOx = ps.get<double>("BCOx",151.1515152);
+    fNFER = ps.get<int>("NFER",0); // Number of Front End Readouts: used for merging SSD data
+    fBCOx = ps.get<double>("BCOx",151.1515152); // Scales SSD timestamps (related to clock freq of SSD)
     fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
     fMakeTimeWalkHistos = ps.get<bool>("makeTimeWalkHistos",false);
     fMakeBenchmarkPlots = ps.get<bool>("makeBenchmarkPlots",false);
@@ -413,10 +413,8 @@ namespace rawdata {
 					auto timeStamp = fFragTimestamps[fragId][iC];
 					if(fragId == fragIdGrandfather)
 						timeStamp = fSSDRawDigits[iC].first;
-						//timeStamp = fBCOx*fSSDRawDigits[iC].first;
-					//fTvsT[fragId]->SetPoint(counter++, fFragTimestamps[fragIdGrandfather][iG], timeStamp);
-					fTvsT[fragId]->SetPoint(counter++, timeStamp, fFragTimestamps[fragIdGrandfather][iG]);
 					// Make grandfather Y-Axis to make conversion easier
+					fTvsT[fragId]->SetPoint(counter++, timeStamp, fFragTimestamps[fragIdGrandfather][iG]);
 				}
 			}
 
@@ -449,9 +447,6 @@ namespace rawdata {
   /***************************************************************************/
 	// adjusted routine
 	bool Unpacker::findMatches()	{
-		// masks is now a member variable
-		//std::vector<std::vector<int>> masks;
-
 		// Prepare ssd timestamp vector
 		std::vector<uint64_t> ssdTimestamps; ssdTimestamps.reserve(fSSDRawDigits.size());
 		for(auto eventPair : fSSDRawDigits)
@@ -461,7 +456,6 @@ namespace rawdata {
 		fragTimestamps = fFragTimestamps;
 
 		// determine grandfather clock
-      //auto fragIdGrandfather = fFragId[0];
       fragIdGrandfather = fFragId[0];
 		auto samplesGrandfather = fragTimestamps[fragIdGrandfather].size();
 		for(auto fragId : fFragId) {
@@ -477,7 +471,7 @@ namespace rawdata {
 			fragTimestamps[fragId].erase(fragTimestamps[fragId].begin());
 		}
 
-//		// Zero clocks to first event
+		// Zero clocks to first event
 		{ // set scope
 			auto start = *ssdTimestamps.begin();
 			for(auto& time : ssdTimestamps) {
@@ -506,14 +500,6 @@ namespace rawdata {
 					break;
 				}
 			}
-//
-//			auto count = 0;
-//			for(auto index : masks[fragId]) {
-//				if(index != -1)
-//					count++;
-//			}
-//			std::cout << "Synced " << count << " out of " << fragTimestamps[fragId].size() << " events!" << std::endl;
-//			std::cout << "Percentage " << 100.0 * count/fragTimestamps[fragId].size() << "%" << std::endl;
 		}
 		std::cout << "(Comparing to SSDs)"<< std::endl;
 		// Store SSD in the extra mask slot for fragIdGrandfather (no need to compare Grandfather to itself)
@@ -523,13 +509,6 @@ namespace rawdata {
 			masks[fragIdGrandfather].insert(masks[fragIdGrandfather].end(), remainder.begin(), remainder.end());
 		}
 		{
-			auto count = 0;
-			for(auto index : masks[fragIdGrandfather]) {
-				if(index != -1)
-					count++;
-			}
-			std::cout << "Synced " << count << " out of " << ssdTimestamps.size() << " events!" << std::endl;
-			std::cout << "Percentage " << 1.0 * count/ssdTimestamps.size() << std::endl;
 			for(auto index : masks[fragIdGrandfather]) {
 				if(index != -1) {
 					fSSDT0 = masks[fragIdGrandfather][0];
@@ -537,13 +516,13 @@ namespace rawdata {
 				}
 			}
 		}
+		// Since we skipped the first event, we need to add 1 to each of our offsets
 		for(auto fragId: fFragId) {
 			for(auto &index : masks[fragId]) {
 				if(index != -1)
 					index+=1;
 			}
 		}
-		//return masks;
 		return !masks.empty(); // returns true if masks has matches
 	}
   /***************************************************************************/
@@ -563,7 +542,6 @@ namespace rawdata {
 		// Structure:
 		//		Overall: < <time, event>, <time, event> , ... >
 		//			Event:  < <fragId, index>, <fragId, index>, ... >
-		std::vector<std::pair<uint64_t, std::vector<std::pair<uint64_t,uint64_t>>>> eventStack;
 
 		if(fIsFirst) {
 			std::unique_ptr<TFile> input_file{TFile::Open(fCurrentFilename.c_str())};
@@ -621,8 +599,7 @@ namespace rawdata {
 			if (fMakeTDiffHistos)
 				makeTDiffHistos();
 
-			//if (fMakeTimeWalkHistos)
-			{
+			if (fMakeTimeWalkHistos || fMakeBenchmarkPlots) {
 				TFile* fout;
 				char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
 				fout = TFile::Open(outName, "RECREATE");
@@ -698,7 +675,6 @@ namespace rawdata {
 //						for(const auto& attendee : event) std::cout << attendee.first << "\t";
 //						std::cout << std::endl;
 						// After checking all other fragID's, push this event on the stack
-						//eventStack.push_back(event);
 						eventStack.push_back(std::make_pair(tsA, event));
 					}
 				}
@@ -866,7 +842,7 @@ namespace rawdata {
 
 		// Now with our event stack, we can pack events
 		if (fCreateArtEvents) {
-			std::cout << "Creating art events" << std::endl;
+			//std::cout << "Creating art events" << std::endl;
 			std::vector<std::unique_ptr<std::vector<emph::rawdata::WaveForm> > > evtWaveForms;
 			for (int idet=0; idet<emph::geo::NDetectors; ++idet)
 				evtWaveForms.push_back(std::make_unique<std::vector<emph::rawdata::WaveForm>  >());
@@ -935,6 +911,7 @@ namespace rawdata {
 						}
 					}
 				}
+				if(eventStack.empty()) break;
 				event = eventStack.back(); // look at next event!
 			}
 
