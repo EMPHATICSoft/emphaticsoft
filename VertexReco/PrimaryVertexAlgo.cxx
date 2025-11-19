@@ -28,17 +28,8 @@ typedef ROOT::Math::SVector<double,3> Vector3d;
 typedef ROOT::Math::SMatrix<double,3,3> Matrix3d;
 
 namespace emph {
- 
-  namespace math {
-    struct Line {
-      ROOT::Math::XYZVector p; // point on line
-      ROOT::Math::XYZVector d; // direction
-    };
-  }
-      
-  //----------------------------------------------------------------------
-  
-  PVAlgo::PVAlgo() {}
+       
+   PVAlgo::PVAlgo() {}
 
   //----------------------------------------------------------------------
 
@@ -67,7 +58,7 @@ namespace emph {
       auto b = ab.Cross(trks[1].momTrgt);
 
       double t = b.Dot(a) / dot;
-      vtx.pos = trks[1].posTrgt - t*trks[1].momTrgt;
+      vtx.pos = trks[1].posTrgt + t*trks[1].momTrgt;
       std::cout << "vtx.pos = " << vtx.pos << std::endl;
 
     }

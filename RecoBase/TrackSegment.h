@@ -27,27 +27,15 @@ namespace rb {
     
   private:
     
-    //    double _vtx[3]; // vertexrotation angle about the vertical y-axis
-    //    double _p[3];   // momentum three vector
-    //    double _pointA[3];
-    //    double _pointB[3];
     std::vector<rb::SSDCluster> _clust; // vector of SSD clusters
     std::vector<rb::SpacePoint> _spcpt; // vector 3D space points
-    //    double _chi2;
-    //    rb::Region _region;
 
   public:
     // Getters
-    //    const double* Vtx() const { return _vtx; }
-    //    const double* P() const { return _p; }
     size_t NSSDClusters() const { return _clust.size(); }    
     const rb::SSDCluster* GetSSDCluster(int i) const; 
     size_t NSpacePoints() const { return _spcpt.size(); }
     const rb::SpacePoint* GetSpacePoint(int i) const;
-    //    const double* A() const { return _pointA; }
-    //    const double* B() const { return _pointB; }
-    //    const rb::Region RegLabel() const { return _region; }
-    //    const double Chi2() const { return _chi2; }
 
     // Setters
     void Add(const rb::SSDCluster& cl); 
