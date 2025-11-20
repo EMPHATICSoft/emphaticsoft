@@ -543,6 +543,7 @@ namespace emph {
       //for (auto p : validcombos[a]){
       for (auto p : sptmp[a]){
         ts.Add(p);
+	for(size_t n=0; n < p.NSSDClusters();n++)ts.Add(*p.GetSSDCluster(n));
       }
       ts.SetVtx(lfirst);
       ts.SetA(lfirst);
