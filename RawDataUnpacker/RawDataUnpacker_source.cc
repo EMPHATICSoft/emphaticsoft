@@ -449,8 +449,22 @@ namespace rawdata {
 	bool Unpacker::findMatches()	{
 		// Prepare ssd timestamp vector
 		std::vector<uint64_t> ssdTimestamps; ssdTimestamps.reserve(fSSDRawDigits.size());
-		for(auto eventPair : fSSDRawDigits)
-			ssdTimestamps.push_back(fBCOx*eventPair.first);
+		// Check that clock is monotonic
+		{
+			bool isMonotonic = true;
+			for(size_t index = 0; index < fSSDRawDigits.size() - 1; ++index) {
+				if(fSSDRawDigits[index].first < fSSDRawDigits[index+1].first) continue;
+				std::cout << "SSD Clock is not monotonic" << std::endl;
+				isMonotonic = false;
+				break;
+			}
+			for(auto &eventPair : fSSDRawDigits) {
+				// 2^32 correction for integers that overflowed
+				if(!isMonotonic) eventPair.first = eventPair.first & 0xFFFFFFFF;
+				ssdTimestamps.push_back(fBCOx*eventPair.first);
+			}
+		}
+
 		// Prepare local copy of fragment timestamps
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fragTimestamps;
 		fragTimestamps = fFragTimestamps;
@@ -671,9 +685,6 @@ namespace rawdata {
 								}
 							}
 						}
-//						std::cout << "Event:\t" << eventStack.size() << "\twith these attendees:\t";
-//						for(const auto& attendee : event) std::cout << attendee.first << "\t";
-//						std::cout << std::endl;
 						// After checking all other fragID's, push this event on the stack
 						eventStack.push_back(std::make_pair(tsA, event));
 					}
@@ -836,6 +847,42 @@ namespace rawdata {
 			std::cout << "Sorting event stack" << std::endl;
 			// Sorting in reverse so that we can pop events off the end
 			std::sort(eventStack.begin(), eventStack.end(), std::greater<>());
+			{
+				size_t gotSSD = 0;
+				size_t gotALL = 0;
+				size_t eventCount = 0;
+				for(auto event : eventStack) {
+					//std::cout << "Event:\t" << event.first << "\twith these attendees:\t";
+					eventCount++;
+					bool triple[3] = {false,false,false};
+					for(const auto& attendee : event.second) {
+						//std::cout << attendee.first << "\t";
+						if(attendee.first == ssdId)
+							triple[0] = true;
+						else if(attendee.first < 10)
+							triple[1] = true;
+						else
+							triple[2] = true;
+					}
+					if(triple[0] && triple[1] && triple[2])
+						gotALL++;
+					if(triple[0])
+						gotSSD++;
+
+					//std::cout << std::endl;
+				}
+				TFile* fout;
+				char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
+				fout = TFile::Open(outName, "UPDATE");
+				TVectorD evtCounts(3);
+				evtCounts[0] = gotSSD;
+				evtCounts[1] = gotALL;
+				evtCounts[2] = eventCount;
+				evtCounts.Write("Event Statistics");
+				fout->Close();
+				std::cout << "Percentage events with SSD: " << 1.0*gotSSD/eventCount << std::endl;
+				std::cout << "Percentage events with All: " << 1.0*gotALL/eventCount << std::endl;
+			}
 
 			fIsFirst = false;
 		}

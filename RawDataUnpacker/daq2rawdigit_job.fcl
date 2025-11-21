@@ -12,11 +12,11 @@ services:
 source:
 {
   module_type:               RawDataUnpacker
-  fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2408_s0001_20230404T132939_1.art"]
+  fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2408_s0014_20230404T134242_1.art"]
   daqLabel:        "daq"
   createArtEvents:   true
   makeTDiffHistos:   false
-  makeTimeWalkHistos:   false
+  makeTimeWalkHistos:   true
   makeBenchmarkPlots:   false
   numWaveFormPlots:  100
   timeWindow: 50000

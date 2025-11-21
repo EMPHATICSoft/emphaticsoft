@@ -54,34 +54,73 @@
 	}
 
 	template <typename T>
-	std::tuple<uint64_t,uint64_t,int64_t> findOffset(std::vector<T> dt, int timeUncertainty) {
+	std::tuple<uint64_t,int64_t> findOffset(std::vector<T> dt, int timeUncertainty) {
 		// returns <offsetBin, N_occurrences, standardDeviation>
 		// - NTK
-		char hname[256];
-		char htitle[256];
+		//char hname[256];
+		//char htitle[256];
 		// nbins is rounded
 		//art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file
 		//art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file
 
-		static int histIndex = 0;
-      sprintf(hname,"Time_Offset_%d",histIndex);
-      sprintf(htitle,"Fragment Time Differences for pair #%d",histIndex);
-		histIndex++;
-		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-		TH1I dtHist(hname, htitle, abs(*max - *min + 1), *min-0.5, *max+0.5);
 
-		for(auto x : dt)
-			dtHist.Fill(x);
+		std::sort(dt.begin(), dt.end());
 
-		//tdir2.make<TH1I>(dtHist); // this draws the histogram
-		auto indexBin = dtHist.GetMaximumBin();
-		auto N_occur = dtHist.GetMaximum();
-	//	NTK: add bins around maximum within CAEN resolution
-		for(auto resolution = indexBin - timeUncertainty; resolution <= indexBin + timeUncertainty; ++resolution) {
-			if(resolution == indexBin) continue;
-			N_occur += dtHist.GetBinContent(resolution);
+		int64_t bestTimeDiff = 0;
+		size_t bestCount = 0;
+		{
+			int64_t currTimeDiff= 0;
+			size_t currCount = 0;
+			for(auto value : dt) {
+				if(value != currTimeDiff) {
+					if(currCount > bestCount) {
+						bestCount = currCount;
+						bestTimeDiff = currTimeDiff;
+					}
+					currTimeDiff = value;
+					currCount = 1;
+				} else {
+					++currCount;
+				}
+			}
+			if(currCount > bestCount) {
+				bestCount = currCount;
+				bestTimeDiff = currTimeDiff;
+			}
 		}
-		return { indexBin, N_occur, binToTime(dt, indexBin) };
+
+		bestCount = 0;
+		double meanTimeDiff = 0;
+		for(auto value : dt) {
+			if(std::abs(value - bestTimeDiff) <= timeUncertainty) {
+				meanTimeDiff = bestCount * meanTimeDiff + value;
+				++bestCount;
+				meanTimeDiff = meanTimeDiff/bestCount;
+			}
+		}
+		bestTimeDiff = std::round(meanTimeDiff);
+		return { bestCount, bestTimeDiff };
+
+
+//		static int histIndex = 0;
+//      sprintf(hname,"Time_Offset_%d",histIndex);
+//      sprintf(htitle,"Fragment Time Differences for pair #%d",histIndex);
+//		histIndex++;
+//		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
+//		TH1I dtHist(hname, htitle, abs(*max - *min + 1), *min-0.5, *max+0.5);
+//
+//		for(auto x : dt)
+//			dtHist.Fill(x);
+//
+//		//tdir2.make<TH1I>(dtHist); // this draws the histogram
+//		auto indexBin = dtHist.GetMaximumBin();
+//		auto N_occur = dtHist.GetMaximum();
+	//	NTK: add bins around maximum within CAEN resolution
+//		for(auto resolution = indexBin - timeUncertainty; resolution <= indexBin + timeUncertainty; ++resolution) {
+//			if(resolution == indexBin) continue;
+//			N_occur += dtHist.GetBinContent(resolution);
+//		}
+//		return { indexBin, N_occur, binToTime(dt, indexBin) };
 	}
 	// Returns the last time synchronized item
 	template <typename T>
@@ -129,7 +168,7 @@
 	template <typename T>
 	std::tuple<uint64_t, int64_t> xcorr(std::vector<T> father, std::vector<T> child, int timeUncertainty) {
 		std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
-		auto [indexBin, N_occur, offset]  = findOffset(dt, timeUncertainty);
+		auto [N_occur, offset]  = findOffset(dt, timeUncertainty);
 		return { N_occur, offset };
 	}
 
@@ -157,7 +196,7 @@
 				std::vector<T> father(begin, begin+2*N_compare);
 				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
 
-				auto [indexBin, N_occur, offset]  = findOffset(dt, timeUncertainty);
+				auto [N_occur, offset]  = findOffset(dt, timeUncertainty);
 
 				if(N_occur >= percentOverlap * N_compare) { // found enough overlapping events!
 					maxOccur = N_occur;
@@ -191,7 +230,7 @@
 		std::vector<int> mask;
 
 		// Do the xcorrelation
-		size_t N_compare=10; // Number of events to compare
+		size_t N_compare=20; // Number of events to compare
 
 		// Sets overlap percentage to the appropriate value for syncing
 		double percentOverlap = 1.0*child.size()/grandfather.size();
@@ -200,9 +239,9 @@
 		std::vector<int64_t> grandCalibrate(begin, grandfather.end());
 
 		begin = child.begin();
-		std::vector<int64_t> childCalibrate(begin, begin + 50*N_compare);
+		std::vector<int64_t> childCalibrate(begin, begin + 10*N_compare);
 
-		auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap/50, timeUncertainty);
+		auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap, timeUncertainty);
 
 #ifdef VERBOSE
 		std::cout << "[Calibration] completed\n";
@@ -214,7 +253,7 @@
 			child[isync] += calibrateOffset;
 
 		// begin primary syncs
-		while(aIndex < grandfather.size() - 100*N_compare && bIndex < child.size() - 100*N_compare) {
+		while(aIndex < grandfather.size() - 2*10*N_compare && bIndex < child.size() - 2*10*N_compare) {
 			auto begin = grandfather.begin() + aIndex;
 			std::vector<int64_t> grandSync(begin, begin + N_compare);
 
@@ -222,7 +261,7 @@
 
 			std::vector<int64_t> childSync(begin, begin + N_compare);
 			std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync);
-			auto [indexBin, N_occur, timeOffset]  = findOffset(dt, timeUncertainty);
+			auto [N_occur, timeOffset]  = findOffset(dt, timeUncertainty);
 			auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync, timeUncertainty);
 			if(N_occur >= percentOverlap * N_compare) {
 				for(size_t isync = bIndex; isync < child.size(); ++isync)
@@ -270,8 +309,8 @@
 				} else {
 					begin = grandfather.begin() + aIndex;
 				}
-				std::vector<int64_t> childSync(begin, begin + 50*N_compare);
-				auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap/50, timeUncertainty);
+				std::vector<int64_t> childSync(begin, begin + 10*N_compare);
+				auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap, timeUncertainty);
 
 				for(size_t isync = bIndex; isync < child.size(); ++isync) {
 					if(grandfather[aIndex] < child[bIndex])
