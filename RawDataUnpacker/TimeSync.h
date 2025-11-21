@@ -55,14 +55,8 @@
 
 	template <typename T>
 	std::tuple<uint64_t,int64_t> findOffset(std::vector<T> dt, int timeUncertainty) {
-		// returns <offsetBin, N_occurrences, standardDeviation>
+		// returns <N_occurrences, timeOffset>
 		// - NTK
-		//char hname[256];
-		//char htitle[256];
-		// nbins is rounded
-		//art::ServiceHandle<art::TFileService> tfs; // for drawing the histograms to file
-		//art::TFileDirectory tdir2 = tfs->mkdir("TimeOffsetHistograms",""); // for drawing the histograms to file
-
 
 		std::sort(dt.begin(), dt.end());
 
@@ -100,27 +94,6 @@
 		}
 		bestTimeDiff = std::round(meanTimeDiff);
 		return { bestCount, bestTimeDiff };
-
-
-//		static int histIndex = 0;
-//      sprintf(hname,"Time_Offset_%d",histIndex);
-//      sprintf(htitle,"Fragment Time Differences for pair #%d",histIndex);
-//		histIndex++;
-//		const auto [min, max] = std::minmax_element(dt.begin(), dt.end());
-//		TH1I dtHist(hname, htitle, abs(*max - *min + 1), *min-0.5, *max+0.5);
-//
-//		for(auto x : dt)
-//			dtHist.Fill(x);
-//
-//		//tdir2.make<TH1I>(dtHist); // this draws the histogram
-//		auto indexBin = dtHist.GetMaximumBin();
-//		auto N_occur = dtHist.GetMaximum();
-	//	NTK: add bins around maximum within CAEN resolution
-//		for(auto resolution = indexBin - timeUncertainty; resolution <= indexBin + timeUncertainty; ++resolution) {
-//			if(resolution == indexBin) continue;
-//			N_occur += dtHist.GetBinContent(resolution);
-//		}
-//		return { indexBin, N_occur, binToTime(dt, indexBin) };
 	}
 	// Returns the last time synchronized item
 	template <typename T>
