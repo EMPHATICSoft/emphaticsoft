@@ -16,7 +16,7 @@ source:
   daqLabel:        "daq"
   createArtEvents:   true
   makeTDiffHistos:   false
-  makeTimeWalkHistos:   true
+  makeTimeWalkHistos:   false
   makeBenchmarkPlots:   false
   numWaveFormPlots:  100
   timeWindow: 50000
