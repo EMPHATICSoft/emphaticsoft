@@ -31,6 +31,7 @@ namespace caf
     mom.SetZ(std::numeric_limits<float>::signaling_NaN());
     region = rb::Region::kRegionNull;
     nspacepoints = -1;
+    chi2 = -1;
     
   }
 
