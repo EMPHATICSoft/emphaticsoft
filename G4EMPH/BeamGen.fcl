@@ -19,7 +19,7 @@ standard_beamgen:
 
 #Note: units are mm, GeV.  "Px" = px/pz, "Py" = py/pz.
 
-  ZStart:                    -200.
+  Zstart:                    -200.
 # parameters for flat spatial distribution
   Xmax:			     20. 
   Xmin:			     -20. 
@@ -48,6 +48,27 @@ standard_beamgen:
   PYmean:		     0.
   PYsigma:		     10.e-6
 }
+
+proton120_run2408_data: @local::standard_beamgen
+proton120_run2408_data.UseRunHistory: false
+proton120_run2408_data.particleType: "proton"
+proton120_run2408_data.Zstart:  -8.0 
+proton120_run2408_data.PMean:   120.0
+proton120_run2408_data.PSigma: 0.001
+proton120_run2408_data.phaseSpaceSource: "Sliced"
+proton120_run2408_data.xHist1DFile: "/inputs/beam_x_distribution_for_slicing.root"
+proton120_run2408_data.xHist1DName: "hX_for_slicing"
+proton120_run2408_data.slicedHistsFile: "/inputs/beam_sliced_3D_hists.root"
+proton120_run2408_data.slicedHistsNamePattern: "h3D_slice_%i"
+
+# Parameter for using 2D hist: GetXYHist and GetPXYHist
+#proton120_run2408_data.xyDistSource: "XYHist"
+#proton120_run2408_data.xyHistFile:  "/inputs/beam_profile_for_sim_run2408.root"
+#proton120_run2408_data.xyHistName:  "h_beam_spot_xy"
+#proton120_run2408_data.pxyDistSource: "XYHist"
+#proton120_run2408_data.pxyHistFile: "/inputs/beam_angles_for_sim_run2408.root"
+#proton120_run2408_data.pxyHistName: "h_beam_slope_pxy"
+
 
 proton120f: @local::standard_beamgen
 proton120f.particleType: "proton"
