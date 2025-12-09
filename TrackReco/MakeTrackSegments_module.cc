@@ -307,6 +307,7 @@ namespace emph {
 
               // Form lines and fill plots
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
+
               for (auto i : tstmp1) {
                 i.SetRegLabel(rb::Region::kRegion1);
                 tsv.push_back(i);

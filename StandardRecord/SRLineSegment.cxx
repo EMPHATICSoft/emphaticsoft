@@ -11,8 +11,10 @@ namespace caf
   SRLineSegment::SRLineSegment()
  { 
      this->setDefault();
+     matched_true_ssd = -1;
      sigma = 0.;
  }
+
   //--------------------------------------------------------------------
   SRLineSegment::~SRLineSegment()
   {
@@ -28,6 +30,7 @@ namespace caf
 	      std::numeric_limits<double>::signaling_NaN(),
 	      std::numeric_limits<double>::signaling_NaN());
     sigma=0.;
+    matched_true_ssd = -1; 
   }
 
 } // end namespace

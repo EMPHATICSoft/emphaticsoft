@@ -11,6 +11,7 @@ cet_make_library( LIBRARY_NAME ${PACKAGE}
                             RawData
                             RecoBase
 			    Simulation
+			    MCRecoUtils
 			    ChannelMapService_service
 			    DataQuality
 			    Geometry
@@ -35,6 +36,7 @@ cet_build_plugin( CAFMaker art::module
 		  ChannelMapService_service
 		  DataQuality
 		  Geometry
+		  MCRecoUtils
 		  GeometryService_service
 		  RunHistoryService_service
 		  ifdh_art::IFDH_service
