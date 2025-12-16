@@ -188,7 +188,7 @@ namespace emph
 //		std::cout << "fit values " << center[0] << " " << center[1] << " " << std::get<2>(circles[0]) << std::endl;
 
 		ring.SetCenter(center);
-		ring.SetNHits(arich_clusters->at(0).NDigits()); 
+		ring.SetNHits(arich_clusters->at(max_cluster).NDigits()); 
 		
 		if(fFillTree){
 		fitX = float(std::get<0>(circles[0])); 
