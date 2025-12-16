@@ -35,7 +35,8 @@
   <version ClassVersion="10" checksum="1710063260"/>
  </class>
 
- <class name="caf::SREventQual" ClassVersion="10" >
+ <class name="caf::SREventQual" ClassVersion="11" >
+  <version ClassVersion="11" checksum="660893695"/>
   <version ClassVersion="10" checksum="608250607"/>
  </class>
 
