@@ -399,9 +399,9 @@ namespace rawdata {
 
 		if(masks.empty()) return;
 
-		TFile* fout;
 		char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
-		if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
+		TFile* fout = TFile::Open(outName,"UPDATE");
+		if(!fMakeTimeWalkHistos && fout->IsOpen()) fout->Close();
 
 		for (auto fragId : fFragId) {
 			// iG = index of grandfather
