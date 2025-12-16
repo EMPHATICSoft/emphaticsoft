@@ -548,16 +548,15 @@ namespace emph {
       ts.SetA(lfirst);
       ts.SetB(llast);
 
-      TVector3 nxz(1.,0.,0.);
-      TVector3 nyz(0.,1.,0.);
+      TVector3 n(0.,0.,1.);
 
       TVector3 tsvecxz((ts.B()[0] - ts.A()[0]), 0., (ts.B()[2] - ts.A()[2]));
       TVector3 tsvecyz(0., (ts.B()[1] - ts.A()[1]), (ts.B()[2] - ts.A()[2]));
 
-      double acosxz = tsvecxz.Dot(nxz)/(tsvecxz.Mag()*nxz.Mag());
+      double acosxz = tsvecxz.Dot(n)/(tsvecxz.Mag()*n.Mag());
       acosxz = TMath::Min(TMath::Max(acosxz, -1.), 1.);
 
-      double acosyz = tsvecyz.Dot(nyz)/(tsvecyz.Mag()*nyz.Mag());
+      double acosyz = tsvecyz.Dot(n)/(tsvecyz.Mag()*n.Mag());
       acosyz = TMath::Min(TMath::Max(acosyz, -1.), 1.);
 
       ts.SetThetaX(TMath::ACos(acosxz));
