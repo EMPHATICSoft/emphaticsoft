@@ -107,7 +107,8 @@
  <version ClassVersion="10" checksum="4080156220"/>
 </class>
 
- <class name="caf::SRVector3D" ClassVersion="10" >
+ <class name="caf::SRVector3D" ClassVersion="11" >
+  <version ClassVersion="11" checksum="54899795"/>
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
@@ -171,7 +172,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="16" >
+ <class name="caf::SRTrackSegment" ClassVersion="17" >
+  <version ClassVersion="17" checksum="4286201629"/>
   <version ClassVersion="16" checksum="218284582"/>
   <version ClassVersion="15" checksum="980261979"/>
   <version ClassVersion="14" checksum="2487066300"/>

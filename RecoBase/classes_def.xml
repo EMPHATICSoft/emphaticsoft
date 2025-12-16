@@ -42,7 +42,8 @@
   <class name="std::vector<rb::LineSegment>"       />
   <class name="art::Wrapper< std::vector<rb::LineSegment> >"/>
 
-  <class name="rb::TrackSegment"    ClassVersion="15">
+  <class name="rb::TrackSegment"    ClassVersion="16">
+   <version ClassVersion="16" checksum="3601083933"/>
    <version ClassVersion="15" checksum="3364569028"/>
    <version ClassVersion="14" checksum="3785319800"/>
    <version ClassVersion="13" checksum="3149693098"/>

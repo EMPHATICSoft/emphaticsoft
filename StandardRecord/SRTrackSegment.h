@@ -23,6 +23,8 @@ namespace caf
     double pointA[3];
     double pointB[3];
     double chi2;
+    double thetaX;
+    double thetaY;
 
     virtual void setDefault();
   };

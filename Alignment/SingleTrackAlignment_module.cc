@@ -254,7 +254,11 @@ namespace emph {
 
 	  // pull = doca between s and ts
             double sensorz = x0(2); //s[2];
-            if (x0(2) != x1(2)) std::cout<<"Rotated line segment --> using x0 for now"<<std::endl;
+            if (x0(2) != x1(2)){
+	      std::cout<<"Rotated line segment --> using x0 for now"<<std::endl;
+	      std::cout<<std::fixed << std::setprecision(15)<<"x0(2) = "<<x0(2)<<" and x1(2) = "<<x1(2)<<std::endl;
+	      std::cout<<"........."<<std::endl;
+	    }
 
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))

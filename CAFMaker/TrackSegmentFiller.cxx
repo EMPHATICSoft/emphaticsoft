@@ -34,6 +34,8 @@ namespace caf
       sp.region = p.RegLabel();
       sp.nspacepoints = p.NSpacePoints();
       sp.chi2 = p.Chi2();
+      sp.thetaX = p.ThetaX();
+      sp.thetaY = p.ThetaY();
       stdrec.sgmnts.seg.push_back(sp);    
     } // end of loop over track segments
   }  

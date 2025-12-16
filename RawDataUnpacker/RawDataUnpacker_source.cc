@@ -399,9 +399,9 @@ namespace rawdata {
 
 		if(masks.empty()) return;
 
+		TFile* fout = nullptr;
 		char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
-		TFile* fout = TFile::Open(outName,"UPDATE");
-		if(!fMakeTimeWalkHistos && fout->IsOpen()) fout->Close();
+    if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
 
 		for (auto fragId : fFragId) {
 			// iG = index of grandfather
@@ -441,7 +441,7 @@ namespace rawdata {
 			printf("Board %d: twcorr intercept = %16.16f\n", fragId, f1->GetParameter(0));
 			printf("Board %d: twcorr slope = %16.16f\n", fragId, f1->GetParameter(1));
 		}
-		if(fMakeTimeWalkHistos && fout->IsOpen()) fout->Close();
+		if(fMakeTimeWalkHistos && fout && fout->IsOpen()) fout->Close();
 	}
 
   /***************************************************************************/

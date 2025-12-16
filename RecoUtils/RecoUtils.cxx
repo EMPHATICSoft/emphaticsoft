@@ -403,6 +403,35 @@ namespace ru {
 
   //------------------------------------------------------------
 
+   void RecoUtils::findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3]){
+
+     // Initalize output
+     for (int i=0; i<3; ++i) point[i]=0;
+
+     TVector3 p1((ts1.B()[0] - ts1.A()[0]), (ts1.B()[1] - ts1.A()[1]), (ts1.B()[2] - ts1.A()[2]));
+     TVector3 p2((ts2.B()[0] - ts2.A()[0]), (ts2.B()[1] - ts2.A()[1]), (ts2.B()[2] - ts2.A()[2]));
+
+     TVector3 a = p1.Cross(p2);
+     double dot = a.Dot(a);
+
+     if (dot == 0) {
+       mf::LogError("RecoUtils") << "findTrackIntersection: Parallel tracks.";
+       return;
+     }
+
+     TVector3 ab(ts2.A()[0]-ts1.A()[0],ts2.A()[1]-ts1.A()[1],ts2.A()[2]-ts1.A()[2]);
+
+     TVector3 b = ab.Cross(p2);
+
+     double t = b.Dot(a) / dot;
+
+     point[0] = ts1.A()[0] + (t*p1(0));
+     point[1] = ts1.A()[1] + (t*p1(1));
+     point[2] = ts1.A()[2] + (t*p1(2));
+  }
+  
+  // -----------------------------------------------------------
+
   std::ostream& operator<< (std::ostream& o, const RecoUtils& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
