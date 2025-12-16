@@ -66,4 +66,4 @@ physics:
 
 }
 physics.producers.clust.FillTTree: false
-physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's
+physics.producers.cafmaker.GetMCTruth: false #include when producing MC CAF's
