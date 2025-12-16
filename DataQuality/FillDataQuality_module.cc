@@ -111,7 +111,7 @@ namespace emph {
       std::string fname = file_path + "/DataQuality/GoodRunsList.txt";
       runList.open(fname.c_str());
       if (!runList.is_open()){
-    std::cout<<"Could not open Good Runs List: "<<fname<<std::endl;
+    mf::LogError("DataQuality") << "Could not open Good Runs List: "<< fname <<std::endl;
     std::abort();
       }
 
