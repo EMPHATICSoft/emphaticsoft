@@ -24,10 +24,9 @@ namespace emph {
       bool hasARICHHits;    ///< Does the event have ARICH hits?
       bool hasRPCHits;      ///< Does the event have RPC hits?
       bool hasSSDHits;      ///< Does the event have SSD hits?
-      //int  trigCoincLevel; ///< How many trigger PMTSSDDataLabel: "raw:SSD"s had a peak above threshold?
+      int  trigCoincLevel;  ///< How many trigger PMTSSDDataLabel: "raw:SSD"s had a peak above threshold?
 
       //Add all quality metrics to overall event metric here
-      //bool isEventGood()  const { return hasSSDHits && trigCoincLevel==4;}
       bool isEventGood()  const { return hasTrigger && hasT0CAEN && hasLGCaloHits && hasBACkovHits && hasGasCkovHits && hasT0TRB3 && hasARICHHits && hasRPCHits && hasSSDHits; }
 
       friend std::ostream& operator << (std::ostream& o, const EventQuality& eq);

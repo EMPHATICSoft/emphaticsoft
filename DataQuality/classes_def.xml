@@ -1,6 +1,6 @@
 <!--  Include art::Wrapper lines for objects that we would like to put  -->
 <!--  into the event -->
-<!--  Include the non-wrapper lines for all objects on the art::Wrapper --> 
+<!--  Include the non-wrapper lines for all objects on the art::Wrapper -->
 <!--  lines and for all objects that are data members of those objects.-->
 
 <lcgdict>

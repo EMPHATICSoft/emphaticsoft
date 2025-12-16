@@ -24,6 +24,7 @@
 // emphaticsoft includes
 #include "DataQuality/EventQuality.h"
 #include "DataQuality/SpillQuality.h"
+#include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 
@@ -55,15 +56,15 @@ namespace emph {
       // Declare member data here.
       std::string fTriggerLabel;
 
-      std::string fT0CAENLabel
-      std::string fLGCaloDataLabel
-      std::string fTriggerDataLabel
-      std::string fBACkovDataLabel
-      std::string fGasCkovDataLabel
+      std::string fT0CAENLabel;
+      std::string fLGCaloDataLabel;
+      std::string fTriggerDataLabel;
+      std::string fBACkovDataLabel;
+      std::string fGasCkovDataLabel;
 
-      std::string fT0TRB3Label
-      std::string fARICHDataLabel
-      std::string fRPCDataLabel
+      std::string fT0TRB3Label;
+      std::string fARICHDataLabel;
+      std::string fRPCDataLabel;
 
       std::string fSSDDataLabel;
     };
@@ -76,11 +77,11 @@ namespace emph {
     {
       fTriggerLabel = pset.get< std::string >("TriggerLabel");
 
-      fT0CAENDataLabel = pset.get<std::string>("T0CAENDataLabel");
+      fT0CAENLabel = pset.get<std::string>("T0CAENLabel");
       fLGCaloDataLabel = pset.get<std::string>("LGCaloDataLabel");
       fBACkovDataLabel = pset.get<std::string>("BACkovDataLabel");
       fGasCkovDataLabel = pset.get<std::string>("GasCkovDataLabel");
-      fT0TRB3DataLabel = pset.get<std::string>("T0TRB3DataLabel");
+      fT0TRB3Label = pset.get<std::string>("T0TRB3Label");
       fARICHDataLabel = pset.get<std::string>("ARICHDataLabel");
       fRPCDataLabel = pset.get<std::string>("RPCDataLabel");
 
@@ -163,12 +164,10 @@ namespace emph {
       // look for CAEN hits
       try {
           art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
-          evt.getByLabel(fT0CAENDataLabel, handle);
+          evt.getByLabel(fT0CAENLabel, handle);
           if (!handle->empty()) {
               eventqual->hasT0CAEN = true;
           }
-          // Add in check on ADC of each Trigger PMT to determine coincidence level.
-          // Need to make some sort of Trigger PMT ADC class first.
       }
       catch (...) {
           eventqual->hasT0CAEN = false;
@@ -197,17 +196,17 @@ namespace emph {
           art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
           evt.getByLabel(fGasCkovDataLabel, handle);
           if (!handle->empty()) {
-              eventqual->hasGasCkovHit = true;
+              eventqual->hasGasCkovHits = true;
           }
       }
       catch (...) {
-          eventqual->hasGasCkovHit = false;
+          eventqual->hasGasCkovHits = false;
       }
 
       // look for TRB3 hits
       try {
-          art::Handle< std::vector<emph::rawdata::TRB3Digit> > handle;
-          evt.getByLabel(fT0TRB3DataLabel, handle);
+          art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > handle;
+          evt.getByLabel(fT0TRB3Label, handle);
           if (!handle->empty()) {
               eventqual->hasT0TRB3 = true;
           }
@@ -216,7 +215,7 @@ namespace emph {
           eventqual->hasT0TRB3 = false;
       }
       try {
-          art::Handle< std::vector<emph::rawdata::TRB3Digit> > handle;
+          art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > handle;
           evt.getByLabel(fARICHDataLabel, handle);
           if (!handle->empty()) {
               eventqual->hasARICHHits = true;
@@ -226,26 +225,26 @@ namespace emph {
           eventqual->hasARICHHits = false;
       }
       try {
-          art::Handle< std::vector<emph::rawdata::TRB3Digit> > handle;
+          art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > handle;
           evt.getByLabel(fRPCDataLabel, handle);
           if (!handle->empty()) {
-              eventqual->hasRPCHits; = true;
+              eventqual->hasRPCHits = true;
           }
       }
       catch (...) {
-          eventqual->hasRPCHits; = false;
+          eventqual->hasRPCHits = false;
       }
 
       // look for SSD hits
       try {
-          art::Handle< std::vector<emph::rawdata::TRB3Digit> > handle;
+          art::Handle< std::vector<emph::rawdata::SSDRawDigit> > handle;
           evt.getByLabel(fSSDDataLabel, handle);
           if (!handle->empty()) {
-              eventqual->hasSSDHits; = true;
+              eventqual->hasSSDHits = true;
           }
       }
       catch (...) {
-          eventqual->hasSSDHits; = false;
+          eventqual->hasSSDHits = false;
       }
 
       // Place EventQuality object into event

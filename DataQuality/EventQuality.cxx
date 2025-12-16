@@ -9,7 +9,6 @@ namespace emph {
 
     //----------------------------------------------------------------------
     EventQuality::EventQuality() :
-      //trigCoincLevel(0),
       hasTrigger(false),
       hasT0CAEN(false),
       hasLGCaloHits(false),
@@ -18,7 +17,8 @@ namespace emph {
       hasT0TRB3(false),
       hasARICHHits(false),
       hasRPCHits(false),
-      hasSSDHits(false)
+      hasSSDHits(false),
+      trigCoincLevel(0)
     {
     }
     //----------------------------------------------------------------------
@@ -35,7 +35,7 @@ namespace emph {
       o << "Has ARICH hits?: " << eq.hasARICHHits << std::endl;
       o << "Has RPC hits?: " << eq.hasRPCHits << std::endl;
       o << "Has SSD hits?: " << eq.hasSSDHits << std::endl;
-      //o << "Number of trigger PMTs above threshold: " << eq.trigCoincLevel << std::endl;
+      o << "Number of trigger PMTs above threshold: " << eq.trigCoincLevel << std::endl;
       o << "Event passes quality checks: " <<eq.isEventGood() <<std::endl;
       return o;
     }
