@@ -89,7 +89,8 @@
   <version ClassVersion="10" checksum="3758140000"/>
  </class>
 
- <class name="caf::SRArichID" ClassVersion="13">
+ <class name="caf::SRArichID" ClassVersion="14">
+  <version ClassVersion="14" checksum="512603529"/>
   <version ClassVersion="13" checksum="1756678077"/>
   <version ClassVersion="12" checksum="1360026226"/>
   <version ClassVersion="11" checksum="199523920"/>
@@ -97,7 +98,8 @@
  </class>
 
 
-<class name="caf::SRPID" ClassVersion="13">
+<class name="caf::SRPID" ClassVersion="14">
+ <version ClassVersion="14" checksum="2435293386"/>
  <version ClassVersion="13" checksum="2023451110"/>
  <version ClassVersion="12" checksum="3547227045"/>
  <version ClassVersion="11" checksum="1925798450"/>

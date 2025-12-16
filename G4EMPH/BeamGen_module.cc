@@ -81,6 +81,7 @@ namespace emph {
     double      fPYmean;
     double      fPYsigma;
       
+    std::string fPZDist;
     std::string fXYDistSource;
     std::string fXYHistFile;
     std::string fXYHistName;
@@ -91,7 +92,9 @@ namespace emph {
 
     TH2D*       fXYHist;  
     TH2D*       fPXYHist;
-    
+   
+    TRandom3*   rand;
+ 
   };
   
   /***************************************************************************/
@@ -103,6 +106,8 @@ namespace emph {
     
     produces<std::vector<simb::MCParticle> >();
     
+    rand = new TRandom3(0);
+ 
     configure(ps);
     GetXYHist();
     GetPXYHist();
@@ -121,6 +126,7 @@ namespace emph {
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
     fZstart        = ps.get<double>("Zstart", -200.); // mm
+    fPZDist	   = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
@@ -161,19 +167,17 @@ namespace emph {
   {
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
-      if (fabs(rhs->RunHist()->BeamMom()) > 0) {
-	fPmean = rhs->RunHist()->BeamMom();
-	// ensure that 120 GeV/c particles are always protons.
-	if (fabs(fPmean-120.)<5) {
-	  mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	  fPsigma = 0.01*fPmean;
-	  fXYHist = 0;
-	  fPXYHist = 0;
-	  fXYDistSource = "";
-	  fPXYDistSource = "";
-	  fPID = kProton;
-	  fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
-	}
+      fPmean = rhs->RunHist()->BeamMom();
+      // ensure that 120 GeV/c particles are always protons.
+      if (fabs(fPmean-120.)<5) {
+	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	fPsigma = 0.01*fPmean;
+	fXYHist = 0;
+	fPXYHist = 0;
+	fXYDistSource = "";
+	fPXYDistSource = "";
+	fPID = kProton;
+	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
   }
@@ -287,15 +291,19 @@ namespace emph {
   {
     if ((++fEvtCount)%1000 == 0)
       std::cout << "Event " << fEvtCount << std::endl;
-        
-    TRandom3 *rand = new TRandom3(0);
-    gRandom = rand;
-    TLorentzVector pos;
+    
+    TLorentzVector pos;    
     pos[2] = fZstart; // units are mm for this      
     pos[3] = 0.; // set time to zero
       
     // now get beam particle momentum
-    double pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    double pmag = 0;
+    if(fPZDist == "Gauss")pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(rand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
+    else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
+    
+    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+
     double pb[3];
     double pxpz,pypz;
 

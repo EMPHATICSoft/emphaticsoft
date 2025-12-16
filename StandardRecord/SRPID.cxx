@@ -11,7 +11,7 @@ namespace caf{
       SRPID::SRPID()
      {
 	trackID = -1;
-	for(int t=0; t < 5;t++)scores.push_back(-1);
+	for(int t=0; t < 3;t++){scoresLL.push_back(-1); scoresML.push_back(-1);}
 	}
 	
 
@@ -20,6 +20,7 @@ namespace caf{
 
 	
       void SRPID::Reset(){
-	scores.clear();
+	scoresLL.clear();
+	scoresML.clear();
 	}
 }
