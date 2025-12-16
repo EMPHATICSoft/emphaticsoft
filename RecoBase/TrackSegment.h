@@ -34,6 +34,8 @@ namespace rb {
     std::vector<rb::SpacePoint> _spcpt; // vector 3D space points
     double _chi2;
     rb::Region _region;
+    double _thetaX; // [rad]
+    double _thetaY; // [rad]
 
   public:
     // Getters
@@ -47,6 +49,8 @@ namespace rb {
     const double* B() const { return _pointB; }
     const rb::Region RegLabel() const { return _region; }
     const double Chi2() const { return _chi2; }
+    const double ThetaX() const { return _thetaX; }
+    const double ThetaY() const { return _thetaY; } 
 
     // Setters
     void Add(const rb::SSDCluster& cl); 
@@ -60,7 +64,10 @@ namespace rb {
 
     void SetRegLabel(rb::Region region) { _region = region; }
     void SetChi2(double chi2) { _chi2 = chi2; } 
-  
+ 
+    void SetThetaX(double thetaX) { _thetaX = thetaX; }
+    void SetThetaY(double thetaY) { _thetaY = thetaY; } 
+
     friend std::ostream& operator << (std::ostream& o, const TrackSegment& h);
   };
   

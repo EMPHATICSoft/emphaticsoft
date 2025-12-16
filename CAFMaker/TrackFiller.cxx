@@ -43,6 +43,8 @@ namespace caf
           srts.pointB[i] = pts->B()[i];
  	}
         srts.chi2 = pts->Chi2();
+	srts.thetaX = pts->ThetaX();
+        srts.thetaY = pts->ThetaY();
 
         sp.Add(srts);
 	

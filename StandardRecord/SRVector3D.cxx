@@ -6,14 +6,14 @@
 namespace caf
 {
   SRVector3D::SRVector3D() :
-    x(std::numeric_limits<float>::signaling_NaN()),
-    y(std::numeric_limits<float>::signaling_NaN()),
-    z(std::numeric_limits<float>::signaling_NaN())
+    x(std::numeric_limits<double>::signaling_NaN()),
+    y(std::numeric_limits<double>::signaling_NaN()),
+    z(std::numeric_limits<double>::signaling_NaN())
   {
   }
 
   //--------------------------------------------------------------------
-  SRVector3D::SRVector3D(float _x, float _y, float _z) :
+  SRVector3D::SRVector3D(double _x, double _y, double _z) :
     x(_x), y(_y), z(_z)
   {
   }
@@ -30,7 +30,7 @@ namespace caf
   }
 
   //--------------------------------------------------------------------
-  void SRVector3D::SetXYZ(float _x, float _y, float _z)
+  void SRVector3D::SetXYZ(double _x, double _y, double _z)
   {
     x = _x;
     y = _y;

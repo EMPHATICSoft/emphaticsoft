@@ -104,7 +104,8 @@
  <version ClassVersion="10" checksum="4080156220"/>
 </class>
 
- <class name="caf::SRVector3D" ClassVersion="10" >
+ <class name="caf::SRVector3D" ClassVersion="11" >
+  <version ClassVersion="11" checksum="54899795"/>
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
