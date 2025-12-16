@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 // \file    EventQualFiller.cxx
-// \brief   Class that does the work to extract event-level data quality 
+// \brief   Class that does the work to extract event-level data quality
 //          metrics from the art event and set it in the CAF
 ////////////////////////////////////////////////////////////////////////
 
@@ -18,8 +18,16 @@ namespace caf
     if(!fLabel.empty() && eventqual.failedToGet())
       return;
 
-    stdrec.evtqual.hasssdhits = eventqual->hasSSDHits;
-    stdrec.evtqual.trigcoinc  = eventqual->trigCoincLevel;
+    stdrec.evtqual.hasssdhits     = eventqual->hasSSDHits;
+    stdrec.evtqual.trigcoinc      = eventqual->trigCoincLevel;
+    stdrec.evtqual.hastrigger     = eventqual->hasTrigger;
+    stdrec.evtqual.hast0caen      = eventqual->hasT0CAEN;
+    stdrec.evtqual.haslgcalohits  = eventqual->hasLGCaloHits;
+    stdrec.evtqual.hasbackovhits  = eventqual->hasBACkovHits;
+    stdrec.evtqual.hasgasckovhits = eventqual->hasGasCkovHits;
+    stdrec.evtqual.hast0trb3      = eventqual->hasT0TRB3;
+    stdrec.evtqual.hasarichhits   = eventqual->hasARICHHits;
+    stdrec.evtqual.hasrpchits     = eventqual->hasRPCHits;
 
   }
 

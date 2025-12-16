@@ -401,7 +401,7 @@ namespace rawdata {
 
 		TFile* fout = nullptr;
 		char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
-		if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
+    if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
 
 		for (auto fragId : fFragId) {
 			// iG = index of grandfather
