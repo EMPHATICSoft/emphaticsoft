@@ -152,6 +152,7 @@
   <version ClassVersion="11" checksum="2803008954"/>
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
+ <class name="std::vector<caf::SRSpacePoint>" />
 
  <class name="caf::SRSpacePointBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="3521266362"/>
@@ -160,7 +161,8 @@
 
  <class name="std::vector<ROOT::Math::XYZVector>" />
 
- <class name="caf::SRTrack" ClassVersion="17" >
+ <class name="caf::SRTrack" ClassVersion="18" >
+  <version ClassVersion="18" checksum="2746670426"/>
   <version ClassVersion="17" checksum="1365847016"/>
   <version ClassVersion="16" checksum="1981216120"/>
   <version ClassVersion="15" checksum="1255481665"/>
@@ -177,7 +179,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class> -->
 
- <class name="caf::SRVertex" ClassVersion="13" >
+ <class name="caf::SRVertex" ClassVersion="14" >
+  <version ClassVersion="14" checksum="1823750376"/>
   <version ClassVersion="13" checksum="1779492603"/>
   <version ClassVersion="12" checksum="3585192615"/>
   <version ClassVersion="11" checksum="2951360745"/>
@@ -200,6 +203,7 @@
   <version ClassVersion="11" checksum="2984398867"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
+ <class name="std::vector<caf::SRTrackSegment>" />
 
  <class name="caf::SRTrackSegmentBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="807789704"/>

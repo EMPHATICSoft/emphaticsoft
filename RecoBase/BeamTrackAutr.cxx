@@ -3,7 +3,7 @@
 /// \author  jpaley@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#include "RecoBase/BeamTrack.h"
+#include "RecoBase/BeamTrackAutr.h"
 
 #include <iomanip>
 #include <iostream>
@@ -11,12 +11,12 @@
 #include <climits>
 #include <cfloat>
 
-namespace rb {
+namespace rbex {
   
   //----------------------------------------------------------------------
   
   BeamTrack::BeamTrack() : 
-    fTrType (rb::NONE), fUserFlag(INT_MAX), 
+    fTrType (rbex::NONE), fUserFlag(INT_MAX), 
    fTrXOffset(DBL_MAX), fTrYOffset(DBL_MAX), fTrXSlope(DBL_MAX), fTrYSlope(DBL_MAX),  
    fTrXOffsetErr(DBL_MAX), fTrYOffsetErr(DBL_MAX), fTrXSlopeErr(DBL_MAX), fTrYSlopeErr(DBL_MAX),
    fTrXCovOffSl(DBL_MAX), fTrYCovOffSl(DBL_MAX), fChiSqX(DBL_MAX), fChiSqY(DBL_MAX), fMomentum(DBL_MAX), fMomentumErr(DBL_MAX)
@@ -25,7 +25,7 @@ namespace rb {
   }
   void BeamTrack::Reset() {
     
-   fTrType = rb::NONE; 
+   fTrType = rbex::NONE; 
    fTrXOffset = DBL_MAX; fTrYOffset = DBL_MAX; fTrXSlope = DBL_MAX; fTrYSlope = DBL_MAX;  
    fTrXOffsetErr = DBL_MAX; fTrYOffsetErr = DBL_MAX; fTrXSlopeErr = DBL_MAX; fTrYSlopeErr = DBL_MAX;
    fTrXCovOffSl = DBL_MAX; fTrYCovOffSl = DBL_MAX; fChiSqX = DBL_MAX; fChiSqY = DBL_MAX;
@@ -44,5 +44,5 @@ namespace rb {
     return o;
   }
   
-} // end namespace rawdata
+} // end namespace rbex
 //////////////////////////////////////////////////////////////////////////////

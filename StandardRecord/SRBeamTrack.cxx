@@ -1,31 +1,32 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRVertex.cxx
+// \file    SRBeamTrack.cxx
 // \author  jpaley@fnal.gov
 // \brief   
 ////////////////////////////////////////////////////////////////////////
-#include "StandardRecord/SRVertex.h"
+#include "StandardRecord/SRBeamTrack.h"
 
 namespace caf
 {
-  SRVertex::SRVertex() 
+  SRBeamTrack::SRBeamTrack() 
   {
     this->setDefault();
   }
 
   //--------------------------------------------------------------------
-  SRVertex::~SRVertex()
+  SRBeamTrack::~SRBeamTrack()
   {
   }
 
   //--------------------------------------------------------------------
-  void SRVertex::setDefault()
+  SRBeamTrack::SRBeamTrack(const SRTrack& t) : SRTrack(t)
   {
-    beamtrk.setDefault();
-    sectrk.clear();
-    isPrimary = true;
-    pos.SetXYZ(-999999.,-999999.,-999999.);
-    chi2 = -999999;
-    nsectrk = 0;
+    truth.setDefault();
+  }
+
+  //--------------------------------------------------------------------
+  void SRBeamTrack::setDefault()
+  {
+    truth.setDefault();
   }
 
 } // end namespace

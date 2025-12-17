@@ -20,7 +20,7 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
-#include "RecoBase/BeamTrack.h" 
+#include "RecoBase/BeamTrackAutr.h" 
 #include "SSDReco/experimental/ConvertDigitToWCoordAutre.h"
 #include "SSDReco/experimental/SSD3DTrackFitFCNAutre.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"
@@ -59,7 +59,7 @@ namespace emph {
 //
           std::vector<myItCl> fDataForXYRec; // We store the pointer, and implictly assume that the list of SSDCluster, within an event, 
 	  // stays the same. Protect module wide by constness..  
-          std::vector<rb::BeamTrack> fTrXYs;
+          std::vector<rbex::BeamTrack> fTrXYs;
 	  
 // No fit for Phase1b.... 	   
 
@@ -82,14 +82,14 @@ namespace emph {
 	 //
 	 // Getter, only one output, the reconstructed track.. 
 	 // 
-	 inline rb::BeamTrack GetBeamTrack(size_t k) const {
+	 inline rbex::BeamTrack GetBeamTrack(size_t k) const {
 	    if (k < fTrXYs.size() )  return fTrXYs[k]; 
-	    rb::BeamTrack aTr; return aTr; // empty, type is tBeamTrType::NONE 
+	    rbex::BeamTrack aTr; return aTr; // empty, type is tBeamTrType::NONE 
 	  } // Deep copy, but small struct.. 
 	  // for const access 
 	 inline size_t Size() const { return fTrXYs.size(); } 
-	 inline std::vector<rb::BeamTrack>::const_iterator CBegin() const { return fTrXYs.cbegin(); } 
-	 inline std::vector<rb::BeamTrack>::const_iterator CEnd() const { return fTrXYs.cend(); } 
+	 inline std::vector<rbex::BeamTrack>::const_iterator CBegin() const { return fTrXYs.cbegin(); } 
+	 inline std::vector<rbex::BeamTrack>::const_iterator CEnd() const { return fTrXYs.cend(); } 
 	  
 	 inline int RunNum() const { return fRunNum; }
 	 inline int SubRunNum() const { return fSubRunNum; }

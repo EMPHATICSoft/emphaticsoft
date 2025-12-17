@@ -19,7 +19,7 @@ namespace rb {
     Vertex(); // Default constructor
     virtual ~Vertex() {}; //Destructor
     
-    std::vector<size_t> trkIdx;
+    std::vector<size_t> sectrkIdx;
     
   };
   

@@ -38,7 +38,7 @@ namespace emph {
     }
     //
     bool SSDRecVertexAutre::RecAndFitIt(const art::Event &evt, 
-	                   std::vector<rb::BeamTrack>::const_iterator itBeam,
+	                   std::vector<rbex::BeamTrack>::const_iterator itBeam,
 			   const ssdr::SSDRecDwnstrTracksAutre  &dwnstr) {
 			   
        fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();

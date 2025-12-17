@@ -68,6 +68,7 @@ namespace emph {
     fTrkLabel       (pset.get< std::string >("TrkLabel"))
     {
       this->produces< std::vector<rb::Vertex> >();      
+      
     }
   
   //......................................................................
@@ -76,22 +77,22 @@ namespace emph {
   {
 
     std::unique_ptr< std::vector<rb::Vertex> > vtxv(new std::vector<rb::Vertex>);
-
+    
     art::Handle< std::vector<rb::Track> > trkH;
     
     try {
       evt.getByLabel(fTrkLabel, trkH);
       if (!trkH->empty()){
-	std::vector<rb::Track> trkV;
-	for (size_t idx=0; idx < trkH->size(); ++idx) {
-	  auto trk = (*trkH)[idx];
-	  trkV.push_back(trk);
-	}
-	if (trkV.size() > 1) {
-	  rb::Vertex vtx;
-	  if (pvA.FindVertexDOCA(trkV,vtx))
-	    vtxv->push_back(vtx);
-	}
+	      std::vector<rb::Track> trkV;
+	      for (size_t idx=0; idx < trkH->size(); ++idx) {
+	        auto trk = (*trkH)[idx];
+      	  trkV.push_back(trk);
+      	}
+	      if (trkV.size() > 1) {
+	        rb::Vertex vtx;
+      	  if (pvA.FindVertexDOCA(trkV,vtx))
+	          vtxv->push_back(vtx);
+      	}
       }
     }
     catch(...) {

@@ -5,7 +5,8 @@
 #define SRVERTEX_H
 
 #include "Math/Vector3D.h"
-#include "StandardRecord/SRTrack.h"
+#include "StandardRecord/SRBeamTrack.h"
+#include "StandardRecord/SRSecondaryTrack.h"
 
 namespace caf
 {
@@ -19,11 +20,12 @@ namespace caf
     ROOT::Math::XYZVector pos;  // (x,y,z)
 
     bool isPrimary;
-    std::vector<SRTrack> trk; // vector of tracks
-    int ntrk;
+    SRBeamTrack beamtrk; // vector of secondary tracks
+    std::vector<SRSecondaryTrack> sectrk; // vector of secondary tracks
+    int nsectrk;
     double chi2;
-    void Add(SRTrack& t){ trk.push_back(t); ntrk = (int)(trk.size()); }
-
+    void Add(SRSecondaryTrack& t){ sectrk.push_back(t); nsectrk = (int)(sectrk.size()); }
+    void SetBeamTrack(SRBeamTrack& t){ beamtrk = t; }
  
     virtual void setDefault();
   };

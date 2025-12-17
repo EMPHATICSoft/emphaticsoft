@@ -115,14 +115,15 @@
   <class name="std::vector<rb::ADC>"        />
   <class name="art::Wrapper< std::vector<rb::ADC>    >"/>
   
-  <class name="rb::BeamTrack" oldname="rb::BeamTrackAlgo1" ClassVersion="13">
+  <class name="rbex::BeamTrack" oldname="rb::BeamTrackAlgo1" ClassVersion="14">
+   <version ClassVersion="14" checksum="3346521801"/>
    <version ClassVersion="13" checksum="1196033901"/>
    <version ClassVersion="12" checksum="1003995919"/>
    <version ClassVersion="11" checksum="1738528824"/>
    <version ClassVersion="10" checksum="3643844846"/>
   </class>
-  <class name="std::vector<rb::BeamTrack>"        />
-  <class name="art::Wrapper< std::vector<rb::BeamTrack>    >"/>
+  <class name="std::vector<rbex::BeamTrack>"        />
+  <class name="art::Wrapper< std::vector<rbex::BeamTrack>    >"/>
   
   <class name="rb::TrigToT0"    ClassVersion="11">
    <version ClassVersion="11" checksum="3408702871"/>
@@ -138,7 +139,8 @@
   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
 
 
-  <class name="rb::Track"    ClassVersion="18">
+  <class name="rb::Track"    ClassVersion="19">
+   <version ClassVersion="19" checksum="2653123716"/>
    <version ClassVersion="18" checksum="2603610386"/>
    <version ClassVersion="17" checksum="3387574946"/>
    <version ClassVersion="16" checksum="3222335871"/>
@@ -153,7 +155,8 @@
   <class name="std::vector<rb::Track>"        />
   <class name="art::Wrapper< std::vector<rb::Track>    >"/>
 
-  <class name="rb::Vertex"    ClassVersion="11">
+  <class name="rb::Vertex"    ClassVersion="12">
+   <version ClassVersion="12" checksum="2607708015"/>
    <version ClassVersion="11" checksum="1711410256"/>
     <version ClassVersion="10" checksum="1"/>
   </class>

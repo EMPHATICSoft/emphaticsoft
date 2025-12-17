@@ -17,15 +17,16 @@ using namespace emph::geo;
 int main(int argc, char* argv[]){
 
   if(argc !=2){
-    std::cerr << "Usage: UnitTest [Run-number]" <<std::endl;
+    std::cerr << "Usage: UnitTest [Geometry gdml file]" <<std::endl;
     return -1;
   }
 
-  int runNum = std::stoi(argv[1]);
-  std::cout << "This is a unit test for Run " << runNum << "." << std::endl << std::endl;
+  //  int runNum = std::stoi(argv[1]);
+  //  std::cout << "This is a unit test for Run " << runNum << "." << std::endl << std::endl;
 
-  runhist::RunHistory *fRunHistory = new runhist::RunHistory(runNum);
-  Geometry *emgeo = new Geometry(fRunHistory->GeoFile());
+  //  runhist::RunHistory *fRunHistory = new runhist::RunHistory(runNum);
+  //  std::cout << "Geometry file = " << fRunHistory->GeoFile() << std::endl;
+  Geometry *emgeo = new Geometry(argv[1]);
 
   std::string unit="";
   if(TGeoManager::GetDefaultUnits()==TGeoManager::kG4Units) unit = "mm";
@@ -49,11 +50,11 @@ int main(int argc, char* argv[]){
       int nsensor = pln->NSSDs();
       for ( int j = 0; j < nsensor; j++){
 	const Detector* sensor = pln->SSD(j);
-	std::cout << "The " << j <<"-th SSD sensor in the " << k << "-th plane of the " << i <<"-th SSD station is located at " << sensor->Pos()[0] << " " << sensor->Pos()[1] << " " << sensor->Pos()[2]+st->Pos()[2] << " "<< unit << "." << std::endl;
+	std::cout << "SSD (" << i << "," << k << "," << j <<") is located at (" << sensor->Pos()[0] << "," << sensor->Pos()[1] << "," << sensor->Pos()[2] << ") " << unit << "." << std::endl;
 	std::cout << "The rotation angle is " << sensor->Rot() << std::endl;
 	std::cout << "The SSD is flipped? " << sensor->IsFlip() << std::endl;
 	int nchan = sensor->NStrips();
-	std::cout << "The SSD has " << nchan << " strips." << std::endl;
+	std::cout << "The SSD has " << nchan << " strips.\n" << std::endl;
       }
     }
   }

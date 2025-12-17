@@ -33,11 +33,13 @@ namespace caf
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
       rb::Vertex v = vtxs[iv];
       caf::SRVertex srv = v;
-      
-      // loop over tracks in vertex
-      for (size_t it=0; it < v.trkIdx.size(); ++it) {
-	caf::SRTrack srt = trks[v.trkIdx[it]];
-	srv.Add(srt);
+      caf::SRTrack tr1 = trks[0]; // beam track is always first track
+      caf::SRBeamTrack btr(tr1);
+      srv.SetBeamTrack(btr);
+      // loop over secondary tracks in vertex
+      for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
+      	caf::SRSecondaryTrack srt = caf::SRTrack(trks[v.sectrkIdx[it]]);
+	      srv.Add(srt);
       }
       stdrec.vtxs.vtx.push_back(srv);
     }
