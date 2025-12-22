@@ -256,7 +256,7 @@ namespace emph {
   
   std::vector<emph::rawdata::SSDRawDigit> SSDDigitizer::SimulateChargeSharing(const sim::SSDHit& ssdhit) {
 
-    float dEnergy = ssdhit.GetDE(); 
+    float dEnergy = ssdhit.DE(); 
     fdE = dEnergy;
     std::vector<emph::rawdata::SSDRawDigit> returnValue;
     
@@ -282,10 +282,10 @@ namespace emph {
       getHitsAndRMS(adc, hit, rms, fhist3D);
       int hits = std::lround(hit);
               	
-      fStation = ssdhit.GetStation();
-      fSensor = ssdhit.GetSensor(); 
-      fPlane = ssdhit.GetPlane();
-      fStrip = ssdhit.GetStrip(); 
+      fStation = ssdhit.Station();
+      fSensor = ssdhit.Sensor(); 
+      fPlane = ssdhit.Plane();
+      fStrip = ssdhit.Strip(); 
 
       emph::cmap::EChannel echan;
       echan.SetBoardType(emph::cmap::SSD);
@@ -315,8 +315,8 @@ namespace emph {
 //.............................................................................................................//
 
       if (hits >= 2) {
-        xtrue = ssdhit.GetX(); 
-        ytrue = ssdhit.GetY(); 
+        xtrue = ssdhit.X(); 
+        ytrue = ssdhit.Y(); 
         //ztrue = ssdhit.GetZ(); 
         wtrue = (sqrt(2)/2) * (-xtrue + ytrue);
 
@@ -404,7 +404,7 @@ namespace emph {
         float difference = adc - sumIntervalIntegrals;
         float adjustment = difference / intervalIntegrals.size();
 
-        const int centerRow = ssdhit.GetStrip();
+        const int centerRow = ssdhit.Strip();
         int otherRow = 0; //next strip
         bool wasEven2 = (hits % 2 == 0);
 

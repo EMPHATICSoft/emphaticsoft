@@ -8,6 +8,7 @@
 #define SIM_SSDHIT_H
 
 #include <vector>
+#include <string>
 
 namespace sim {
   /// A single unit of energy deposition in the liquid scintillator
@@ -16,28 +17,28 @@ namespace sim {
     SSDHit();
     ~SSDHit() {}
     
-    double     GetX() const {return fX[0]; }
-    double     GetY() const {return fX[1]; }
-    double     GetZ() const {return fX[2]; }
+    double     X() const {return fX[0]; }
+    double     Y() const {return fX[1]; }
+    double     Z() const {return fX[2]; }
 
-    double     GetPx() const {return fP[0]; }
-    double     GetPy() const {return fP[1]; }
-    double     GetPz() const {return fP[2]; }
+    double     Px() const {return fP[0]; }
+    double     Py() const {return fP[1]; }
+    double     Pz() const {return fP[2]; }
 
-    double     GetDE() const {return fDE; }
+    double     DE() const {return fDE; }
 
-    int        GetPId() const {return fPId; } // pdg value
+    int        PId() const {return fPId; } // pdg value
 
-    int        GetStation() const { return fStation; }
-    int        GetPlane() const {return fPlane; }
-    int        GetSensor() const {return fSensor; }
-    int        GetStrip() const {return fStrip; }
-    int        GetTrackID()      const {return fTrackID;}
-
+    int        Station() const { return fStation; }
+    int        Plane() const {return fPlane; }
+    int        Sensor() const {return fSensor; }
+    int        Strip() const {return fStrip; }
+    int        TrackID()      const {return fTrackID;}
+    std::string Process() const {return fProcess; }
     void       SetX(double x[3]) {fX.clear(); for (int i=0; i<3; ++i) fX.push_back(x[i]);}
     void       SetP(double p[3]) {fP.clear(); for (int i=0; i<3; ++i) fP.push_back(p[i]);}
     void       SetDE(double de) {fDE = de; }
-
+    void       SetProcess(std::string str) {fProcess = str; }
     void       SetPId(int id) { fPId = id; }
     void       SetStation(int station) { fStation = station; }
     void       SetPlane(int plane) { fPlane = plane; }
@@ -48,6 +49,7 @@ namespace sim {
   private:
     std::vector<double> fX;
     std::vector<double> fP;
+    std::string fProcess;
     double fDE; // amount of energy deposited
     int    fPId;
 

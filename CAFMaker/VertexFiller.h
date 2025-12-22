@@ -6,6 +6,9 @@
 #define  VERTEXFILLER_H
 
 #include "CAFMaker/FillerBase.h"
+#include "Simulation/SSDHit.h"
+#include "StandardRecord/SRVertex.h"
+#include "RecoBase/Track.h"
 
 namespace caf
 {
@@ -16,9 +19,12 @@ namespace caf
 
     void Fill(art::Event&, caf::StandardRecord&);
     //void Fill(art::Event&, caf::StandardRecord& sr1,  caf::StandardRecord& sr2);
+    void GetBeamTrackTruth(caf::SRBeamTrack&, const std::vector<sim::SSDHit> &);
+    caf::SRSecondaryTrack GetSecondaryTrack(rb::Track&, const std::vector<sim::SSDHit> &);
     std::string fLabelVertices;
     std::string fLabelTracks;
     std::string fLabelArichID;
+    std::string fLabelTruth;
   };
 
 } // end namespace

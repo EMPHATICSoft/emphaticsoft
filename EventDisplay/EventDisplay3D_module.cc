@@ -576,9 +576,9 @@ void emph::EventDisplay3D::DrawTrueSSDHits(const art::Event& event)
     if  (!ssdHits->empty()) {
       for (size_t idx=0; idx<ssdHits->size(); ++idx) {
 	const sim::SSDHit& hit = (*ssdHits)[idx];
-	double x = hit.GetX();
-	double y = hit.GetY();
-	double z = hit.GetZ();
+	double x = hit.X();
+	double y = hit.Y();
+	double z = hit.Z();
 	TEveLine* lx = new TEveLine();	
 	lx->SetNextPoint(x-5.,y,z);
 	lx->SetNextPoint(x+5.,y,z);

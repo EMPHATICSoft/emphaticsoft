@@ -157,6 +157,10 @@ namespace emph
 
     ssdHit.SetPId( track->GetDefinition()->GetPDGEncoding() );
     ssdHit.SetTrackID( track->GetTrackID() );
+    if (track->GetCreatorProcess())
+      ssdHit.SetProcess( track->GetCreatorProcess()->GetProcessName() );
+    else
+      ssdHit.SetProcess("");
     const double edep = step->GetTotalEnergyDeposit()/CLHEP::GeV;
     ssdHit.SetDE(edep);
 

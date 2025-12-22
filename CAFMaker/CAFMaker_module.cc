@@ -70,7 +70,7 @@
 #include "CAFMaker/SSDHitsFiller.h"
 #include "CAFMaker/VertexFiller.h"
 #include "CAFMaker/TrackSegmentFiller.h"
-#include "CAFMaker/SRTruthFiller.h"
+#include "CAFMaker/TruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -264,7 +264,7 @@ namespace caf {
 
       rec.hdr.ismc = true;
 
-      SRTruthFiller srtruthf;
+      TruthFiller srtruthf;
       srtruthf.GetG4Hits = fParams.GetMCHits();
       srtruthf.fLabel = fParams.SSDHitLabel();
       srtruthf.Fill(evt,rec);

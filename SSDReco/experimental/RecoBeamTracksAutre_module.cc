@@ -38,7 +38,7 @@
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
 #include "RecoBase/SSDCluster.h"
-#include "RecoBase/BeamTrack.h"
+#include "RecoBase/BeamTrackAutr.h"
 #include "SSDReco/experimental/SSDAlign3DUVAutre.h"
 #include "SSDReco/SSDHotChannelList.h" 
 //
@@ -116,7 +116,7 @@ namespace emph {
       std::ofstream fFOutXY;
       void openOutputCsvFiles();
       
-      void dumpXYInfo(int nh, const rb::BeamTrack &tr);
+      void dumpXYInfo(int nh, const rbex::BeamTrack &tr);
       
       void alignFiveStations(const art::Event& evt); // event by event alignment. 
       
@@ -147,7 +147,7 @@ namespace emph {
        fFilesAreOpen = false;
 //       fSSDClsPtr = nullptr;
        fRMSClusterCuts = std::vector<double>{-1.0, 5.};
-       this->produces< std::vector<rb::BeamTrack> >();
+       this->produces< std::vector<rbex::BeamTrack> >();
     }
     
     void emph::RecoBeamTracksAutre::setupAlignAlgs(const fhicl::ParameterSet& pset)
@@ -313,7 +313,7 @@ namespace emph {
       std::cerr << " Number of events " <<  fNEvents << std::endl;
     }
     
-    void emph::RecoBeamTracksAutre::dumpXYInfo(int nHitsT, const rb::BeamTrack &fTrXY) {
+    void emph::RecoBeamTracksAutre::dumpXYInfo(int nHitsT, const rbex::BeamTrack &fTrXY) {
      
        fFOutXY << " " << fSubRun << " " << fEvtNum << " " << fTrXY.Type() << " "  << nHitsT;
        
@@ -342,7 +342,7 @@ namespace emph {
     //
     // Intro.. 
     //
-      std::unique_ptr< std::vector<rb::BeamTrack> > btracks(new std::vector<rb::BeamTrack>);
+      std::unique_ptr< std::vector<rbex::BeamTrack> > btracks(new std::vector<rbex::BeamTrack>);
       ++fNEvents;
       fRun = evt.run();
       if (!fFilesAreOpen) this->openOutputCsvFiles();
@@ -363,7 +363,7 @@ namespace emph {
       //
       // We always produce, even if the track is lousy. 
       //
-      rb::BeamTrack theTrack = fAlignUV.GetBeamTrack();
+      rbex::BeamTrack theTrack = fAlignUV.GetBeamTrack();
       this->dumpXYInfo(static_cast<int>(fSSDClsPtr->size()), theTrack);
       btracks->push_back( theTrack ); 
       

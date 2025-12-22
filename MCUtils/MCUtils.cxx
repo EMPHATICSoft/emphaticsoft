@@ -34,18 +34,18 @@ namespace mcu {
      }
 
      for (auto i : sim_i){
-         p_ix += i.GetPx();
-         p_iy += i.GetPy();
-         p_iz += i.GetPz();
+         p_ix += i.Px();
+         p_iy += i.Py();
+         p_iz += i.Pz();
      }
      p_ix /= sim_i.size();
      p_iy /= sim_i.size();
      p_iz /= sim_i.size();
 
      for (auto f : sim_f){
-         p_fx += f.GetPx();
-         p_fy += f.GetPy();
-         p_fz += f.GetPz();
+         p_fx += f.Px();
+         p_fy += f.Py();
+         p_fz += f.Pz();
      }
      p_fx /= sim_f.size();
      p_fy /= sim_f.size();

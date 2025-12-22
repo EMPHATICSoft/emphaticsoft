@@ -10,7 +10,7 @@
 namespace caf
 {
   /// Class to fill header information
-  class SRTruthFiller : public FillerBase
+  class TruthFiller : public FillerBase
   {
   public:
 
