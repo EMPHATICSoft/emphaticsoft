@@ -47,7 +47,10 @@ namespace emph {
 //      vtx.trkIdx.push_back(0);
       vtx.sectrkIdx.push_back(1);
 
-      auto a = trks[0].momTrgt.Cross(trks[1].momTrgt);
+//      auto trkMom = trks[1].momTrgt;
+//      trkMom.SetZ(-1.*trkMom.Z());
+      auto a = trks[0].momTrgt.Cross(-1*trks[1].momTrgt);
+//      auto a = trks[0].momTrgt.Cross(trkMom);
       double dot = a.Dot(a);
 
       if (dot == 0) {
@@ -60,7 +63,7 @@ namespace emph {
 
       double t = b.Dot(a) / dot;
       vtx.pos = trks[1].posTrgt + t*trks[1].momTrgt;
-      std::cout << "vtx.pos = " << vtx.pos << std::endl;
+//      std::cout << "vtx.pos = " << vtx.pos << std::endl;
 
     }
     else {

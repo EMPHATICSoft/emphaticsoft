@@ -191,7 +191,6 @@ namespace emph {
     auto emalign = align->GetAlign();
 
     fMakePlots = true;
-
     if (fMakePlots) {
       if (fCheckClusters) {
         auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);

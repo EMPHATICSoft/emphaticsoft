@@ -18,6 +18,7 @@ namespace caf
 
   void VertexFiller::GetBeamTrackTruth(caf::SRBeamTrack& br1, const std::vector<sim::SSDHit>& truehitv)
   {
+
     for (unsigned int truehitId = 0; truehitId < truehitv.size(); ++truehitId) {
 
       const sim::SSDHit& ssdhit = truehitv[truehitId];
@@ -87,26 +88,21 @@ namespace caf
 
   void VertexFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
-    auto hv = evt.getHandle<std::vector<rb::Vertex> >(fLabelVertices);
-    auto ht = evt.getHandle<std::vector<rb::Track> >(fLabelTracks);
+    stdrec.vtxs.vtx.clear();
+    stdrec.vtxs.nvtx = 0;
 
+    auto hv = evt.getHandle<std::vector<rb::Vertex> >(fVertexLabel);
+    auto ht = evt.getHandle<std::vector<rb::Track> >(fTrackLabel);
+    auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fSSDHitLabel);
     std::vector <rb::Vertex> vtxs;
     std::vector <rb::Track> trks;
+    std::vector <sim::SSDHit> ssdhits;
 
     if ( !hv.failedToGet()) vtxs = *hv;
     if ( !ht.failedToGet()) trks = *ht;
+    if ( !truehitv.failedToGet()) ssdhits = *truehitv;
 
     stdrec.vtxs.nvtx = vtxs.size();
- 
-    art::Handle< std::vector<sim::SSDHit> > truehitv;
-//    bool hasTrueHits = true;
-    try {
-      evt.getByLabel(fLabelTruth, truehitv);
-    }
-    catch(...) {
-//      hasTrueHits = false;
-//      std::cout << "WARNING: No SSDHits found!" << std::endl;
-    }
 
     // loop over vertices
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
@@ -114,11 +110,12 @@ namespace caf
       caf::SRVertex srv = v;
       caf::SRTrack tr1 = trks[0]; // beam track is always first track
       caf::SRBeamTrack btr(tr1);
-      if (!truehitv->empty()) GetBeamTrackTruth(btr,*truehitv);
+      if (!ssdhits.empty()) GetBeamTrackTruth(btr,ssdhits);
       srv.SetBeamTrack(btr);
       // loop over secondary tracks in vertex
       for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
-        caf::SRSecondaryTrack srt = GetSecondaryTrack(trks[it], *truehitv);
+        auto idx = v.sectrkIdx[it];
+        caf::SRSecondaryTrack srt = GetSecondaryTrack(trks[idx], ssdhits);
         srv.Add(srt);
       }
       stdrec.vtxs.vtx.push_back(srv);

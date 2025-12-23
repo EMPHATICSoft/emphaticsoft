@@ -155,7 +155,8 @@
   <class name="std::vector<rb::Track>"        />
   <class name="art::Wrapper< std::vector<rb::Track>    >"/>
 
-  <class name="rb::Vertex"    ClassVersion="12">
+  <class name="rb::Vertex"    ClassVersion="13">
+   <version ClassVersion="13" checksum="4129137812"/>
    <version ClassVersion="12" checksum="2607708015"/>
    <version ClassVersion="11" checksum="1711410256"/>
     <version ClassVersion="10" checksum="1"/>

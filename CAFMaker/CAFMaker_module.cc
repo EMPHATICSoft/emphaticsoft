@@ -215,7 +215,7 @@ namespace caf {
     rec.hdr.evt = evt.id().event();
 
     // TML: Why are we printing this out for every single event?
-    //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
+    // mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     if (!fParams.SSDOnly()) {
       // Get ARing info from ARichReco
@@ -248,12 +248,12 @@ namespace caf {
       trksegf.fLabel = fParams.TrackSegmentLabel();
       trksegf.Fill(evt,rec);
 
-
-      // Get Tracks
+      // Get Vertices and Tracks
       VertexFiller vtxf;
-      vtxf.fLabelVertices = fParams.VertexLabel();
-      vtxf.fLabelTracks = fParams.TrackLabel();
-      vtxf.fLabelArichID = fParams.ArichIDLabel();
+      vtxf.fVertexLabel = fParams.VertexLabel();
+      vtxf.fTrackLabel = fParams.TrackLabel();
+      vtxf.fArichIDLabel = fParams.ArichIDLabel();
+      vtxf.fSSDHitLabel = fParams.SSDHitLabel();
       vtxf.Fill(evt,rec);
 
     }

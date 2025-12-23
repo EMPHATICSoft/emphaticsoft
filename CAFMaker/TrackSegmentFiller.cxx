@@ -24,19 +24,8 @@ namespace caf
 
     for (auto p : segs) {
       caf::SRTrackSegment sp = p;
-      /*
-      for (int i=0; i<3; ++i){ 
-	sp.vtx[i] = p.Vtx()[i];
-        sp.pointA[i] = p.A()[i];
-        sp.pointB[i] = p.B()[i];
-      }
-      sp.mom.SetXYZ(p.P()[0],p.P()[1],p.P()[2]);
- 
-      sp.region = p.RegLabel();
-      sp.nspacepoints = p.NSpacePoints();
-      sp.chi2 = p.Chi2();
       stdrec.sgmnts.seg.push_back(sp);    
-      */
+
     } // end of loop over track segments
   }  
 } // end namespace caf

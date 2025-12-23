@@ -21,7 +21,7 @@ namespace caf
 
     bool isPrimary;
     SRBeamTrack beamtrk; // vector of secondary tracks
-    std::vector<SRSecondaryTrack> sectrk; // vector of secondary tracks
+    std::vector<caf::SRSecondaryTrack> sectrk; // vector of secondary tracks
     int nsectrk;
     double chi2;
     void Add(SRSecondaryTrack& t){ sectrk.push_back(t); nsectrk = (int)(sectrk.size()); }

@@ -15,7 +15,7 @@ namespace sim {
   class SSDHit {
   public:
     SSDHit();
-    ~SSDHit() {}
+    ~SSDHit() {};
     
     double     X() const {return fX[0]; }
     double     Y() const {return fX[1]; }

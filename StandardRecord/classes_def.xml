@@ -131,12 +131,19 @@
  </class>
  <class name="std::vector<caf::SRTrueParticle>" />
 
- <class name="caf::SRTruth" ClassVersion="12" >
+ <class name="caf::SRTruth" ClassVersion="13" >
+  <version ClassVersion="13" checksum="2368466381"/>
   <version ClassVersion="12" checksum="1977587420"/>
   <version ClassVersion="11" checksum="2143789429"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
  <class name="std::vector<caf::SRTruth>" />
+
+ <class name="caf::SRSimpleTruth" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1181251412"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRSimpleTruth>" />
 
  <class name="caf::SRTrueSSDHits" ClassVersion="11" >
   <version ClassVersion="11" checksum="2580746351"/>
@@ -173,6 +180,18 @@
   <version ClassVersion="10" checksum="1"/>
  </class>
  <class name="std::vector<caf::SRTrack>" />
+
+ <class name="caf::SRBeamTrack" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1245487592"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRBeamTrack>" />
+
+ <class name="caf::SRSecondaryTrack" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2112775582"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRSecondaryTrack>" />
 
  <!--- class name="caf::SRTrackBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="2711109648"/>

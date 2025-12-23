@@ -10,7 +10,7 @@
 namespace sim {
 
   SSDHit::SSDHit() :
-    fX(0), fP(0), fDE(0), fPId(0), fStation(-1), 
+    fX(0), fP(0), fProcess(""), fDE(0), fPId(0), fStation(-1), 
     fPlane(-1), fSensor(-1), fStrip(-1), fTrackID(-1)
   {
 
