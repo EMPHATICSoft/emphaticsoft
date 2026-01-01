@@ -41,6 +41,7 @@ namespace rb {
     std::vector<TVector3> _pos; // vector of predicted positions
     double _chi2;
     std::vector<TVector3> _mom;
+    double _vtx_residual; // residual between tracks at target plane [mm]
 
   public:
 
@@ -72,6 +73,8 @@ namespace rb {
     void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
     void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
     void SetChi2(double chi2) { _chi2 = chi2; }
+    void SetVtxResidual(double residual) { _vtx_residual = residual; }
+    double VtxResidual() const { return _vtx_residual; }
     
     friend std::ostream& operator << (std::ostream& o, const Track& h);
   };

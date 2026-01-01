@@ -32,6 +32,7 @@ namespace caf
       caf::SRTrack sp;	
       for (int i=0; i<3; ++i) sp.vtx[i] = p.Vtx()[i];
       sp.mom.SetXYZ(p.P()[0],p.P()[1],p.P()[2]);
+      sp.vtx_residual = p.VtxResidual();
 	for (size_t i=0; i<p.NTrackSegments(); i++){     
         auto pts = p.GetTrackSegment(i);
         caf::SRTrackSegment srts;

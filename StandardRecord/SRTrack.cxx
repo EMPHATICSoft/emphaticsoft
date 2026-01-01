@@ -25,6 +25,7 @@ namespace caf
     mom.SetY(0.);
     mom.SetZ(0.);
     arich.setdefault(); // arich loglikelihooods values 
+    vtx_residual = -1.0; // initialize to invalid value
   }
 
 } // end namespace

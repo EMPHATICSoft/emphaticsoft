@@ -24,6 +24,7 @@ namespace caf
  
     int label;
     int nspacepoints;
+    double vtx_residual; // residual between tracks at target plane [mm]
     std::vector<SRTrackSegment> _sgmnt; // vector of track segments
     void Add(SRTrackSegment& ts){ _sgmnt.push_back(ts); };
 

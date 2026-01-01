@@ -383,6 +383,7 @@ namespace emph {
             sectrk.SetP(t2.P()); // this should come from an analysis of the bend angle between track segments 1 and 2.
 	    auto v = algo.SetTrackInfo(tsvec[0],tsvec[1]);
             sectrk.SetVtx(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+            sectrk.SetVtxResidual(algo.GetSecTrkResidual());
 	    sectrk.SetChi2(t2.Chi2()+t3.Chi2());
             trackv->push_back(sectrk);
 	  }

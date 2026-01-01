@@ -24,6 +24,7 @@ namespace rb {
       _vtx[i] = -999999.;
       _p[i] = 0.;
     }
+    _vtx_residual = -1.0; // initialize to invalid value
   }
   //------------------------------------------------------------
 

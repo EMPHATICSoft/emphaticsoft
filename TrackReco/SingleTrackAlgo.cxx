@@ -39,6 +39,7 @@ namespace emph {
       sectrkvtx[i] = -999999.;
       sectrkp[i] = -999999.;
     }
+    sectrk_residual = -999999.;
   }
 
   //----------------------------------------------------------------------
@@ -691,7 +692,7 @@ namespace emph {
     double l1t[3];
     //recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
     //recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"SSD",false);
-    recoFcn.findTrackIntersectionNew(ts1,ts2,sectrkvtx);
+    recoFcn.findTrackIntersectionNew(ts1,ts2,sectrkvtx,sectrk_residual);
 
     //std::cout<<"sectrkvtx[2] = "<<sectrkvtx[2]<<std::endl;
 

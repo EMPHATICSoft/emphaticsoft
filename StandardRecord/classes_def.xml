@@ -157,7 +157,8 @@
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrack" ClassVersion="15" >
+ <class name="caf::SRTrack" ClassVersion="16" >
+  <version ClassVersion="16" checksum="3206649006"/>
   <version ClassVersion="15" checksum="1255481665"/>
   <version ClassVersion="14" checksum="1919816117"/>
   <version ClassVersion="13" checksum="2826463250"/>

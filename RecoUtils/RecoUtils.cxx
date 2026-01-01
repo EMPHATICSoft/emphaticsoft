@@ -403,31 +403,82 @@ namespace ru {
 
   //------------------------------------------------------------
 
-   void RecoUtils::findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3]){
+   void RecoUtils::findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3], double& residual){
 
-     // Initalize output
+     // Initialize output
      for (int i=0; i<3; ++i) point[i]=0;
 
+     const double target_z = 380.0; // Target position
+
+     // Debug: Print track segment endpoints
+     /*
+     std::cout << "=== Track Vertex Reconstruction @ Event " << fEvtNum << " ===" << std::endl;
+     std::cout << "TS1: A=(" << ts1.A()[0] << "," << ts1.A()[1] << "," << ts1.A()[2] << ") ";
+     std::cout << "B=(" << ts1.B()[0] << "," << ts1.B()[1] << "," << ts1.B()[2] << ")" << std::endl;
+     std::cout << "TS2: A=(" << ts2.A()[0] << "," << ts2.A()[1] << "," << ts2.A()[2] << ") ";
+     std::cout << "B=(" << ts2.B()[0] << "," << ts2.B()[1] << "," << ts2.B()[2] << ")" << std::endl;
+    */
+     // Calculate direction vectors (slopes)
      TVector3 p1((ts1.B()[0] - ts1.A()[0]), (ts1.B()[1] - ts1.A()[1]), (ts1.B()[2] - ts1.A()[2]));
      TVector3 p2((ts2.B()[0] - ts2.A()[0]), (ts2.B()[1] - ts2.A()[1]), (ts2.B()[2] - ts2.A()[2]));
+    /*
+     std::cout << "Direction vectors: p1=(" << p1(0) << "," << p1(1) << "," << p1(2) << ") ";
+     std::cout << "p2=(" << p2(0) << "," << p2(1) << "," << p2(2) << ")" << std::endl;
+    */
+     // Check for zero-length segments
+     if (p1.Mag() == 0 || p2.Mag() == 0) {
+       mf::LogError("RecoUtils") << "findTrackIntersectionNew: Zero-length segment detected.";
+       return;
+     }
 
+     // Check for zero z-component (tracks parallel to target plane)
+     if (p1(2) == 0 || p2(2) == 0) {
+       mf::LogError("RecoUtils") << "findTrackIntersectionNew: Track parallel to target plane.";
+       return;
+     }
+
+     // Find 3D intersection of extrapolated infinite lines
+     // Check if lines are parallel
      TVector3 a = p1.Cross(p2);
      double dot = a.Dot(a);
 
      if (dot == 0) {
-       mf::LogError("RecoUtils") << "findTrackIntersection: Parallel tracks.";
+       mf::LogError("RecoUtils") << "findTrackIntersectionNew: Parallel tracks.";
        return;
      }
 
-     TVector3 ab(ts2.A()[0]-ts1.A()[0],ts2.A()[1]-ts1.A()[1],ts2.A()[2]-ts1.A()[2]);
+     // Calculate intersection using standard 3D line intersection
+     TVector3 ab(ts2.A()[0]-ts1.A()[0], ts2.A()[1]-ts1.A()[1], ts2.A()[2]-ts1.A()[2]);
+     TVector3 b1 = ab.Cross(p2);
+     double t1 = b1.Dot(a) / dot;
 
-     TVector3 b = ab.Cross(p2);
+     // Calculate intersection point
+     point[0] = ts1.A()[0] + (t1 * p1(0));
+     point[1] = ts1.A()[1] + (t1 * p1(1));
+     point[2] = ts1.A()[2] + (t1 * p1(2));
+     /*
+     std::cout << "Intersection parameter t1=" << t1 << std::endl;
+     std::cout << "3D intersection point: (" << point[0] << "," << point[1] << "," << point[2] << ")" << std::endl;
+     */
+     // Also calculate where each segment would be at target_z for comparison
+     double t1_target = (target_z - ts1.A()[2]) / p1(2);
+     double x1_target = ts1.A()[0] + t1_target * p1(0);
+     double y1_target = ts1.A()[1] + t1_target * p1(1);
+     
+     double t2_target = (target_z - ts2.A()[2]) / p2(2);
+     double x2_target = ts2.A()[0] + t2_target * p2(0);
+     double y2_target = ts2.A()[1] + t2_target * p2(1);
 
-     double t = b.Dot(a) / dot;
+     double dx_at_target = x2_target - x1_target;
+     double dy_at_target = y2_target - y1_target;
+     residual = sqrt(dx_at_target*dx_at_target + dy_at_target*dy_at_target);
+  }
 
-     point[0] = ts1.A()[0] + (t*p1(0));
-     point[1] = ts1.A()[1] + (t*p1(1));
-     point[2] = ts1.A()[2] + (t*p1(2));
+  //------------------------------------------------------------
+
+   void RecoUtils::findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3]){
+     double dummy_residual;
+     findTrackIntersectionNew(ts1, ts2, point, dummy_residual);
   }
   
   // -----------------------------------------------------------

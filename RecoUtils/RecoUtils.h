@@ -38,6 +38,7 @@ namespace ru {
     double  findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f);
     double  getMomentum(double theta);
     void    findTrackIntersection(rb::TrackSegment trk1, rb::TrackSegment trk2, double point[3]);
+    void    findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3], double& residual);
     void    findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3]);
 
     void    SetEvtNum(int num){ fEvtNum = num; }   

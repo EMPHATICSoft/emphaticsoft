@@ -45,6 +45,7 @@ namespace emph {
     double beamtrkvtx[3];
     double sectrkp[3];
     double sectrkvtx[3];
+    double sectrk_residual;
     std::vector<rb::TrackSegment> tsv;
 
   public:
@@ -70,6 +71,7 @@ namespace emph {
     void SetSecTrkVtx(const double* x0) { for (int i=0; i<3; ++i) sectrkvtx[i] = x0[i]; };
     const double* GetSecTrkP() const { return sectrkp; }
     const double* GetSecTrkVtx() const { return sectrkvtx; }
+    double GetSecTrkResidual() const { return sectrk_residual; }
     double* SetTrackInfo(rb::TrackSegment &ts1, rb::TrackSegment &ts2);
 
     int GetEvtNum() const { return fEvtNum; }
