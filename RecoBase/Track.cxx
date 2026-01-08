@@ -16,7 +16,7 @@ namespace rb {
   Track::Track() : caf::SRTrack()
   {
     _pos.clear();
-    _clust.clear();
+    _lineseg.clear();
     _sgmnt.clear();
     _spcpt.clear();
 
@@ -30,17 +30,17 @@ namespace rb {
   }
   //------------------------------------------------------------
 
-  void Track::Add(const rb::SSDCluster& cl) 
+  void Track::Add(const rb::LineSegment& ls) 
   {
-    assert(_sgmnt.empty() && _spcpt.empty());
-    _clust.push_back(rb::SSDCluster(cl));
+//    assert(_sgmnt.empty() && _spcpt.empty());
+    _lineseg.push_back(rb::LineSegment(ls));
   }
   
   //------------------------------------------------------------
 
   void Track::Add(const rb::TrackSegment& ts)
   {
-    assert(_clust.empty() && _spcpt.empty());
+//    assert(_clust.empty() && _spcpt.empty());
     _sgmnt.push_back(rb::TrackSegment(ts));
   }
 
@@ -48,7 +48,7 @@ namespace rb {
 
   void Track::Add(const rb::SpacePoint& sp)
   {
-    assert(_clust.empty() && _sgmnt.empty());
+//    assert(_clust.empty() && _sgmnt.empty());
     _spcpt.push_back(rb::SpacePoint(sp));
   }
   
@@ -62,11 +62,11 @@ namespace rb {
 
   //------------------------------------------------------------
 
-  const rb::SSDCluster* Track::GetSSDCluster(int i) const
+  const rb::LineSegment* Track::GetSSDLineSegment(int i) const
   {    
-    assert(((i>=0) && (i < int(_clust.size()))));
+    assert(((i>=0) && (i < int(_lineseg.size()))));
     
-    return &_clust[i];
+    return &_lineseg[i];
   }
   
   //------------------------------------------------------------

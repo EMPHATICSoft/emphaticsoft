@@ -62,7 +62,8 @@ namespace emph {
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
-    
+    void AddSSDLineSegmentsToTrack(rb::Track& trk);
+
     // Optional if you want to be able to configure from event display, for example
     void reconfigure(const fhicl::ParameterSet& pset);
     
@@ -171,6 +172,25 @@ namespace emph {
        std::cout<<"MakeSingleTracks: Number of events available: "<<badclust+goodclust<<std::endl;
   }
 
+  //......................................................................
+
+  void emph::MakeSingleTracks::AddSSDLineSegmentsToTrack(rb::Track& trk)
+  {
+    int nTrackSegs = trk.NTrackSegments();
+    for (int its=0; its<nTrackSegs; ++its) { // loop over track segments      
+      auto ts = trk.GetTrackSegment(its);
+      int nSP = ts->NSpacePoints();
+      for (int isp=0; isp<nSP; ++isp) { // loop over spacepoints of the track segment
+        auto sp = ts->GetSpacePoint(isp);
+        int nLS = sp->NLineSegments();
+        for (int ils=0; ils<nLS; ++ils) { // loop over line segments that form the spacepoint
+          auto ls = sp->GetLineSegment(ils);
+          trk.Add(rb::LineSegment(*ls));
+        }
+      }
+    }
+
+  }
   //......................................................................
 
   void emph::MakeSingleTracks::produce(art::Event &evt)
@@ -427,6 +447,7 @@ namespace emph {
             posAtTrgt[1] = (t1.mom.Y() / t1.mom.Z()) * dz + t1.pointB.Y();
 
             beamtrk.posTrgt.SetCoordinates(posAtTrgt);
+            AddSSDLineSegmentsToTrack(beamtrk);
             trackv->push_back(beamtrk);
 
             rb::Track sectrk;
@@ -441,8 +462,11 @@ namespace emph {
               pm = -1;
 
             algo.SetRecoTrk(t2, t3, pm);
+            // add TrackSegments to the track
             sectrk.Add(t2);
             sectrk.Add(t3);
+            AddSSDLineSegmentsToTrack(beamtrk);
+            
             sectrk.mom = t2.mom; // this should come from an analysis of the bend angle between track segments 1 and 2.
             auto v = algo.SetTrackInfo(tsvec[0], tsvec[1]);
             sectrk.vtx.SetCoordinates(v); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
@@ -457,6 +481,7 @@ namespace emph {
 
             sectrk.posTrgt.SetCoordinates(posAtTrgt);
             sectrk.chi2 = t2.chi2 + t3.chi2;
+            AddSSDLineSegmentsToTrack(sectrk);
             trackv->push_back(sectrk);
           }
         } // clust not empty

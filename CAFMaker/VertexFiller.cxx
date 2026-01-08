@@ -57,28 +57,43 @@ namespace caf
         sensor = ssdhit.Sensor();
         strip = ssdhit.Strip();
         id = station*100000+plane*10000+sensor*1000+strip;
+//        std::cout << "true ssdhit at (station,plane,sensor,strip) = (" << station << "," << plane << ","
+//                  << sensor << "," << strip << ")" << std::endl;
         ssdHitMap[id] = &ssdhit;
       }
-      // now loop over all SSD hits in a track
-      for (size_t i=0; i<track.NSSDClusters(); ++i) {
-        auto clust = track.GetSSDCluster(i);
-        station = clust->Station();
-        plane = clust->Plane();
-        sensor = clust->Sensor();
-        strip = clust->MaxStrip();      
+      // now loop over all SSD linesegments in a track
+      for (size_t i=0; i<track.NSSDLineSegments(); ++i) {
+        auto lseg = track.GetSSDLineSegment(i);
+        station = lseg->SSDStation();
+        plane = lseg->SSDPlane();
+        sensor = lseg->SSDSensor();
+        strip = lseg->SSDStrip();
         id = station*100000+plane*10000+sensor*1000+strip;
-
-        if (station == 2 && plane == 0 && sensor == 0) {
-          strip = clust->MaxStrip();      
+//        std::cout << "digit at (station,plane,sensor,strip) = (" << station << "," << plane << ","
+//                  << sensor << "," << strip << ")" << std::endl;
+        if (station == 2 || station == 3) {
           id = station*100000+plane*10000+sensor*1000+strip;
           caf::SRSimpleTruth truth;
-          auto ssdhit = ssdHitMap[id];
-          truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
-          truth.mom.SetXYZ(ssdhit->Px(),ssdhit->Py(),ssdhit->Pz());       
-          truth.pdgCode = ssdhit->PId();
-          truth.G4trkId = ssdhit->TrackID();
-          truth.process = ssdhit->Process();
-          secTrk.truth.push_back(truth);
+          bool isOk = true;
+          auto ssdHitMapEnd = ssdHitMap.end();
+          if (ssdHitMap.find(id) == ssdHitMapEnd) {
+            id += 1;
+            if (ssdHitMap.find(id) == ssdHitMapEnd) {
+              id -= 2;
+              if (ssdHitMap.find(id) == ssdHitMapEnd)
+                isOk = false;
+            }
+          }
+          if (isOk) {
+            auto ssdhit = ssdHitMap[id];
+            truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
+            truth.mom.SetXYZ(ssdhit->Px(),ssdhit->Py(),ssdhit->Pz());       
+            truth.pdgCode = ssdhit->PId();
+            truth.G4trkId = ssdhit->TrackID();
+            truth.process = ssdhit->Process();
+            secTrk.truth.push_back(truth);
+            break;
+          }
         }
       }
     } 

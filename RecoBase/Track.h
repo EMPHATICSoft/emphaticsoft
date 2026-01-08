@@ -16,7 +16,7 @@
 
 #include "canvas/Persistency/Common/PtrVector.h"
 
-#include "RecoBase/SSDCluster.h"
+#include "RecoBase/LineSegment.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/ArichID.h"
@@ -34,7 +34,7 @@ namespace rb {
     
     //    double _vtx[3]; // vertexrotation angle about the vertical y-axis
     //    double _p[3];   // momentum three vector
-    std::vector<rb::SSDCluster> _clust; // vector of SSD clusters
+    std::vector<rb::LineSegment> _lineseg; // vector of SSD linesegments (from SSD clusters)
     std::vector<rb::TrackSegment> _sgmnt; // vector of track segments
     std::vector<rb::SpacePoint> _spcpt; // vector 3D space points
     // the position of a track will be a linear interpolation between points.
@@ -49,8 +49,8 @@ namespace rb {
     // Getters
     //    const double* Vtx() const { return _vtx; }
     //    const double* P() const { return _p; }
-    size_t NSSDClusters() const { return _clust.size(); }    
-    const rb::SSDCluster* GetSSDCluster(int i) const; 
+    size_t NSSDLineSegments() const { return _lineseg.size(); }    
+    const rb::LineSegment* GetSSDLineSegment(int i) const; 
     size_t NTrackSegments() const { return _sgmnt.size(); }
     const rb::TrackSegment* GetTrackSegment(int i) const;
     size_t NSpacePoints() const { return _spcpt.size(); }
@@ -67,7 +67,7 @@ namespace rb {
     //    ROOT::Math::XYZVector MomAtTrgt() const { return _momTrgt; }
 
     // Setters
-    void Add(const rb::SSDCluster& cl); 
+    void Add(const rb::LineSegment& ls); 
     void Add(const rb::TrackSegment& ts);
     void Add(const rb::SpacePoint& sp);
     void AddPos(ROOT::Math::XYZVector &x);

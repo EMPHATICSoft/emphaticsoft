@@ -213,7 +213,7 @@ namespace emph {
             const rb::SSDCluster& clust = (*clustH)[idx];
             ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
             clusters.push_back(&clust);
-
+            lineseg_tmp.SetSSDInfo(clust.Station(),clust.Plane(),clust.Sensor(),clust.MaxStrip());
             linesegments.push_back(lineseg_tmp);
             if (clust.AvgStrip() > 640) {
               throw art::Exception(art::errors::InvalidNumber)
