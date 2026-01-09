@@ -550,6 +550,20 @@ namespace emph {
       ts.pointA.SetCoordinates(lfirst);
       ts.pointB.SetCoordinates(llast);
 
+      TVector3 n(0.,0.,1.);
+
+      TVector3 tsvecxz((ts.pointB.X() - ts.pointA.X()), 0., (ts.pointB.Z() - ts.pointA.Z()));
+      TVector3 tsvecyz(0., (ts.pointB.Y() - ts.pointA.Y()), (ts.pointB.Z() - ts.pointA.Z()));
+
+      double acosxz = tsvecxz.Dot(n)/(tsvecxz.Mag()*n.Mag());
+      acosxz = TMath::Min(TMath::Max(acosxz, -1.), 1.);
+
+      double acosyz = tsvecyz.Dot(n)/(tsvecyz.Mag()*n.Mag());
+      acosyz = TMath::Min(TMath::Max(acosyz, -1.), 1.);
+
+      ts.thetaX = TMath::ACos(acosxz);
+      ts.thetaY = TMath::ACos(acosyz);
+
       // Set null momentum
       double p0[3] = {0.,0.,0.};
       ts.mom.SetCoordinates(p0);
@@ -682,7 +696,11 @@ namespace emph {
     XYZVector d(ts2.pointB);//()[0],ts2.B()[1],ts2.B()[2]);
     double l0t[3];
     double l1t[3];
-    recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
+    //recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"TrackSegment",false);
+    //recoFcn.ClosestApproach(a,b,c,d,sectrkvtx,l0t,l1t,"SSD",false);
+    recoFcn.findTrackIntersectionNew(ts1,ts2,sectrkvtx);
+
+    //std::cout<<"sectrkvtx[2] = "<<sectrkvtx[2]<<std::endl;
 
     return sectrkvtx;
   }

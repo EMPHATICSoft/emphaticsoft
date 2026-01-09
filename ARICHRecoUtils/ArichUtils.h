@@ -3,9 +3,6 @@
 ///// \author  mdallolio
 ///// \date
 //////////////////////////////////////////////////////////////////////////
-
-
-
 #ifndef ARICH_UTILS_H
 #define ARICH_UTILS_H
 
@@ -15,6 +12,7 @@
 #include "ARICHRecoUtils/Arich.h"
 #include "ARICHRecoUtils/HoughFitter.h"
 #include "TFile.h"
+#include "TGraph2D.h"
 #include "Geometry/Geometry.h"
 
 #include "TVector3.h"
@@ -34,12 +32,17 @@ namespace arichreco{
 	double computeLogLikelihood(TH2D* event, TH2D* distribution);
 
 	std::vector<double> recoCherenkov(TH2Poly* eventHist, int nDetected, std::vector<TVector3> pos0s, std::vector<TVector3> dir0s);	
+	
 	TH2D* DigsToHist(std::vector<std::pair<int,int>> cluster);
+	TGraph2D* DigsToHist(std::vector<std::pair<int,int>> cluster, std::vector<float> cluster_times);
+
+	
 
 	std::vector<double> IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
-	
 	std::vector<double> identifyParticle(TH2D* eventHist, float  particleMom, TVector3 pos0, TVector3 dir0);
+	
 	std::vector<std::vector<TH2D>> GetPDFs(int np, std::vector<double> mom,  std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
+	std::vector<TH2D> GetPDF(double mom, TVector3 pos0s, TVector3 dir0s);
 
 	double calcBeta(int particlei, double mom);
 	double calcP(double mass, double beta);
@@ -47,7 +50,6 @@ namespace arichreco{
 	std::map<std::string, double> GetMap() const {return Particle_LogLike;};
 	TString GetFile() const{return PDfile;};
 	
-
 	private:
         double PDdarkrate;
 	double PDwin;

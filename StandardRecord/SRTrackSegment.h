@@ -23,6 +23,8 @@ namespace caf
     ROOT::Math::XYZVector pointA;
     ROOT::Math::XYZVector pointB;
     double chi2;
+    double thetaX;
+    double thetaY;
 
     virtual void setDefault();
   };

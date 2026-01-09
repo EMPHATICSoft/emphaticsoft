@@ -12,3 +12,4 @@ cet_make_library(SOURCE PMT.cxx
 install_headers()
 install_source()
 install_fhicl()
+install_scripts()

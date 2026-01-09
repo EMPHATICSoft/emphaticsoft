@@ -48,6 +48,8 @@ namespace caf
     region = rb::Region::kRegionNull;
     nspacepoints = -1;
     chi2 = -1;
+    thetaX = -1;
+    thetaY = -1;
     
   }
 

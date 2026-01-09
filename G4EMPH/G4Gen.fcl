@@ -10,8 +10,8 @@ standard_g4alg:
   G4CalibTOPAZLG: 0.006
   G4AttenuationTOPAZLG : 0.9
   G4TokenTOPAZLGOut: "undef" 
-#  G4LastDetector: "none"
-  G4LastDetector: "SSDStation7"  # Lead Glass is our last detector.. 
+  G4LastDetector: "ARICH" #uses G4PhysVolume name!!
+ 
   PerformFOutStudy:  false
   
   # If true, keep individual track ids from processes like compt and brem and

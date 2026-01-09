@@ -37,7 +37,8 @@
   <version ClassVersion="10" checksum="1710063260"/>
  </class>
 
- <class name="caf::SREventQual" ClassVersion="10" >
+ <class name="caf::SREventQual" ClassVersion="11" >
+  <version ClassVersion="11" checksum="660893695"/>
   <version ClassVersion="10" checksum="608250607"/>
  </class>
 
@@ -92,7 +93,8 @@
   <version ClassVersion="10" checksum="3758140000"/>
  </class>
 
- <class name="caf::SRArichID" ClassVersion="13">
+ <class name="caf::SRArichID" ClassVersion="14">
+  <version ClassVersion="14" checksum="512603529"/>
   <version ClassVersion="13" checksum="1756678077"/>
   <version ClassVersion="12" checksum="1360026226"/>
   <version ClassVersion="11" checksum="199523920"/>
@@ -100,14 +102,16 @@
  </class>
 
 
-<class name="caf::SRPID" ClassVersion="13">
+<class name="caf::SRPID" ClassVersion="14">
+ <version ClassVersion="14" checksum="2435293386"/>
  <version ClassVersion="13" checksum="2023451110"/>
  <version ClassVersion="12" checksum="3547227045"/>
  <version ClassVersion="11" checksum="1925798450"/>
  <version ClassVersion="10" checksum="4080156220"/>
 </class>
 
- <class name="caf::SRVector3D" ClassVersion="10" >
+ <class name="caf::SRVector3D" ClassVersion="11" >
+  <version ClassVersion="11" checksum="54899795"/>
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
@@ -212,7 +216,8 @@
   <version ClassVersion="10" checksum="1"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="17" >
+ <class name="caf::SRTrackSegment" ClassVersion="18" >
+  <version ClassVersion="18" checksum="765446084"/>
   <version ClassVersion="17" checksum="2809269421"/>
   <version ClassVersion="16" checksum="218284582"/>
   <version ClassVersion="15" checksum="980261979"/>

@@ -94,7 +94,7 @@ $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
-@target_matt = ("Graphite", "CH2", "Beryllium", "Aluminum", "Iron", "Water", "Air");
+@target_matt = ("Graphite", "CH2", "Beryllium", "Aluminum", "Iron", "H2O", "Air");
 if ( defined $target) {
     if (! grep { $_ eq $target } @target_matt) {
 	print ("invalid target string, must be one of the following: \n");
@@ -108,7 +108,7 @@ if ( defined $target) {
 			  "Beryllium" => 20., 
 			  "Aluminum" => 15.,
 			  "Iron" => 40.,
-			  "Water" => 40.,
+			  "H2O" => 40.,
 			  "Air" => 100.); #target length in mm, not accurate
 
 # constants for MAGNET
@@ -202,9 +202,9 @@ sub usage()
 {
 	print "Usage: $0 [-h|--help] [-o|--output <fragments-file>] [-t|--target <target number>] [-m|--magnet <0 or 1>] [-s|--suffix <string>]\n";
 	print "       if -o is omitted, output goes to STDOUT; <fragments-file> is input to make_gdml.pl\n";
-	print "       -t [Graphite,CH2,Beryllium,Aluminum,Iron,Water,Air].  Note, Air is the same as \"empty\"; Default is Graphite\n";
+	print "       -t [Graphite,CH2,Beryllium,Aluminum,Iron,H2O,Air].  Note, Air is the same as \"empty\"; Default is Graphite\n";
 	print "       -m 0 is no magnet, 1 is the 100 mrad magnet; Default is 1\n";
-	print "       -a apply alignment constants for universe [0-99]\n; Default is perfect alignment";
+	print "       -a apply alignment constants for universe [1-100]\n; Default is perfect alignment";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -n [2..8], the number of SSD stations; Default is 8\n";
 	print "       -h prints this message, then quits\n";

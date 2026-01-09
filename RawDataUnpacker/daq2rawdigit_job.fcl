@@ -12,20 +12,26 @@ services:
 source:
 {
   module_type:               RawDataUnpacker
-  fileNames:                 ["/emph/data/data/Jan2022/emdaq_otsdaq_rootOutput_r430_s1_20220131T232556_1.art"]
+  fileNames:                 ["/exp/emph/data/raw/Mar2023/OutputData/emdaq_otsdaq_rootOutput_r2408_s0014_20230404T134242_1.art"]
   daqLabel:        "daq"
   createArtEvents:   true
-  makeTDiffHistos:   true
+  makeTDiffHistos:   false
+  makeTimeWalkHistos:   false
+  makeBenchmarkPlots:   false
   numWaveFormPlots:  100
   timeWindow: 50000
   nEvents: 0
   verbosity: 0
-  channelMapFileName: "ChannelMap_Jun22.txt"
-  SSDFilePrefix: "/emph/data/data/June2022/SSD/Merged/"
+  channelMapFileName: "ChannelMap_Mar23.txt"
+  SSDFilePrefix: "/exp/emph/data/users/lackey32/unpack1c/ssdMerged/"
   readSSDData:  true
   readTRB3Data: true
   readCAENData: true
   firstSubRunHasExtraTrigger: true
+  # Number of Front End Readouts for SSD merging
+  NFER: 5
+  # SSD clock factor
+  BCOx: 149.9963241940807 #150.659 #(8/53.1MHz)^9
 }
 
 outputs:
