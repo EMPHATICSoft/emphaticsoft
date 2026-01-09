@@ -235,11 +235,11 @@ namespace emph {
 	std::vector<double> xiD(xi);
 	for (size_t kH = 0; kH != theSSDHits.size(); kH++) {
 	  sim::SSDHit aHit = theSSDHits[kH];
-	  if (aHit.GetTrackID() != iTrack->GetTrackID()) continue;  // first big cheat..
+	  if (aHit.TrackID() != iTrack->GetTrackID()) continue;  // first big cheat..
 	  for (size_t kPl = 0; kPl != xi.size(); kPl++) {
-	    if ( std::abs(fZlocXStations[kPl] - aHit.GetZ()) < 2.0 )  {
-	       xi[kPl] = aHit.GetX();
-	       double xx = aHit.GetX() + arbitraryChannelOffset;
+	    if ( std::abs(fZlocXStations[kPl] - aHit.Z()) < 2.0 )  {
+	       xi[kPl] = aHit.X();
+	       double xx = aHit.X() + arbitraryChannelOffset;
 	       int xxI = static_cast<int>(xx/fPitch) - discretShift;// Assume 60 microns pitch
 	       xiD[kPl] = fPitch * xxI;
 	     } // got a mtach in Z  
@@ -284,10 +284,10 @@ namespace emph {
         if (pMom < 100.) continue; // skip the low energy tracks.. We have them tally above. 
 	for (size_t kH = 0; kH != theSSDHits.size(); kH++) {
 	  sim::SSDHit aHit = theSSDHits[kH];
-	  if (aHit.GetTrackID() != iTrack->GetTrackID()) continue;  // first big cheat..
+	  if (aHit.TrackID() != iTrack->GetTrackID()) continue;  // first big cheat..
 	  for (size_t kPl = 0; kPl != yPosHits.size(); kPl++) {
-	    if ( std::abs(fZlocYPlanes[kPl] - aHit.GetZ()) < 1.0 )  {
-	       yPosHits[kPl] =  aHit.GetY();
+	    if ( std::abs(fZlocYPlanes[kPl] - aHit.Z()) < 1.0 )  {
+	       yPosHits[kPl] =  aHit.Y();
 	     } // got a match in Z  
 	  } 
 	}// Over the hits..

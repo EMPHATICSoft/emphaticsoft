@@ -33,7 +33,7 @@ namespace emph {
     size_t nPlanes;
 
   private:
-    ru::RecoUtils recoFcn = ru::RecoUtils(fEvtNum);
+    ru::RecoUtils recoFcn;
 
     std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
     std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group;

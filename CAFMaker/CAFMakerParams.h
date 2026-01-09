@@ -35,6 +35,7 @@ namespace caf
     Atom<string> SSDHitLabel       {Name("SSDHitLabel")}; 
     Atom<string> SSDRawLabel       {Name("SSDRawLabel")};
     Atom<string> TrackLabel        {Name("TrackLabel")}; 
+    Atom<string> VertexLabel       {Name("VertexLabel")}; 
     Atom<string> ArichIDLabel	   {Name("ArichIDLabel")};
     Atom<string> TrackSegmentLabel {Name("TrackSegmentLabel")};
     Atom<bool>   GetMCTruth        {Name("GetMCTruth")};

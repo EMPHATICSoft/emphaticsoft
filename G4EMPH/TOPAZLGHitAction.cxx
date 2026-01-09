@@ -72,19 +72,22 @@ namespace emph
   {
 //    fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     std::cerr << " TOPAZLGHitAction::Config opening files, if not already done..  " << std::endl;
-    if ( fFOutStudy1.is_open()) return;
+    fSaveTextFile = pset.get<bool>("SaveTextFile",false);
     fKnobAttenuation = pset.get<double>("G4AttenuationTOPAZLG", 0.9); 
                  // pure number, the probability for a photon to hit the photocathode, if the photonm is emitted close to the downstream face    
     fKnobCalibration = pset.get<double>("G4CalibTOPAZLG", 1.0); // overall conversion of optical photons to GeV. 
-    std::string aTokenJob = pset.get< std::string >("G4TokenTOPAZLGOut", "Undef");
-    std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHLGHitTuple_V1_" << aTokenJob << ".txt";
-    std::string fNameStr(fNameStrStr.str());
-    fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " evt blkNum xm ym zm nSteps nPhot Edep EFrac " << std::endl;
-    std::ostringstream fNameStrStr2; fNameStrStr2 << "./G4EMPHGeantinoTuple_V1_" << aTokenJob << ".txt";
-    std::string fNameStr2(fNameStrStr2.str());
-    fGeantinoStudy1.open(fNameStr2.c_str());
-    fGeantinoStudy1 << " evt blkNum blkNumExit XSt YSt XMag YMag XLGUpstr XLGDownstr YLGUpstr YLGDownstr ZLGUpstr ZLGDownstr " << std::endl;
+    if (fSaveTextFile) {
+      if ( fFOutStudy1.is_open()) return;
+      std::string aTokenJob = pset.get< std::string >("G4TokenTOPAZLGOut", "Undef");
+      std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHLGHitTuple_V1_" << aTokenJob << ".txt";
+      std::string fNameStr(fNameStrStr.str());
+      fFOutStudy1.open(fNameStr.c_str());
+      fFOutStudy1 << " evt blkNum xm ym zm nSteps nPhot Edep EFrac " << std::endl;
+      std::ostringstream fNameStrStr2; fNameStrStr2 << "./G4EMPHGeantinoTuple_V1_" << aTokenJob << ".txt";
+      std::string fNameStr2(fNameStrStr2.str());
+      fGeantinoStudy1.open(fNameStr2.c_str());
+      fGeantinoStudy1 << " evt blkNum blkNumExit XSt YSt XMag YMag XLGUpstr XLGDownstr YLGUpstr YLGDownstr ZLGUpstr ZLGDownstr " << std::endl;
+    }
   }
 
   //-------------------------------------------------------------

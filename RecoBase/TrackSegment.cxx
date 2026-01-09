@@ -13,12 +13,15 @@ namespace rb {
   
   //----------------------------------------------------------------------
   
-  TrackSegment::TrackSegment() 
+  TrackSegment::TrackSegment() : caf::SRTrackSegment()
   {
+    /*
     for (int i=0; i<3; ++i) {
       _vtx[i] = -999999.;
       _p[i] = 0.;
     }
+    */
+
   }
   
   //------------------------------------------------------------
@@ -60,9 +63,7 @@ namespace rb {
   std::ostream& operator<< (std::ostream& o, const TrackSegment& h)
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
-    o << " Track Segment --> x0(" << h._vtx[0] << "," << h._vtx[1] << "," 
-      << h._vtx[2] << "), p(" << h._p[0] << "," << h._p[1] << "," 
-      << h._p[2] << ")"; 
+    o << " Track Segment --> x0(" << h.vtx << "), p(" << h.mom << ")"; 
     return o;
   }
   

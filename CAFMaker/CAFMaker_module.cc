@@ -68,9 +68,9 @@
 #include "CAFMaker/SpacePointFiller.h"
 #include "CAFMaker/ClusterFiller.h"
 #include "CAFMaker/SSDHitsFiller.h"
-#include "CAFMaker/TrackFiller.h"
+#include "CAFMaker/VertexFiller.h"
 #include "CAFMaker/TrackSegmentFiller.h"
-#include "CAFMaker/SRTruthFiller.h"
+#include "CAFMaker/TruthFiller.h"
 
 namespace caf {
   /// Module to create Common Analysis Files from ART files
@@ -215,7 +215,7 @@ namespace caf {
     rec.hdr.evt = evt.id().event();
 
     // TML: Why are we printing this out for every single event?
-    //mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
+    // mf::LogInfo("CAFMaker") << "Run #: " << rec.hdr.run;
 
     if (!fParams.SSDOnly()) {
       // Get ARing info from ARichReco
@@ -248,13 +248,14 @@ namespace caf {
       trksegf.fLabel = fParams.TrackSegmentLabel();
       trksegf.Fill(evt,rec);
 
+      // Get Vertices and Tracks
+      VertexFiller vtxf;
+      vtxf.fVertexLabel = fParams.VertexLabel();
+      vtxf.fTrackLabel = fParams.TrackLabel();
+      vtxf.fArichIDLabel = fParams.ArichIDLabel();
+      vtxf.fSSDHitLabel = fParams.SSDHitLabel();
+      vtxf.Fill(evt,rec);
 
-      // Get Tracks
-      TrackFiller trkf;
-      trkf.fLabelTracks = fParams.TrackLabel();
-      trkf.fLabelArichID = fParams.ArichIDLabel();
-      trkf.Fill(evt,rec);
-    
     }
 
     // Get SRTruth  
@@ -263,10 +264,11 @@ namespace caf {
 
       rec.hdr.ismc = true;
 
-      SRTruthFiller srtruthf;
+      TruthFiller srtruthf;
       srtruthf.GetG4Hits = fParams.GetMCHits();
       srtruthf.fLabel = fParams.SSDHitLabel();
       srtruthf.Fill(evt,rec);
+      
     } // end if statement
 
  
@@ -284,7 +286,6 @@ namespace caf {
     SSDHitsFiller ssdhitsf;
     ssdhitsf.fLabel = fParams.SSDRawLabel();
     ssdhitsf.Fill(evt,rec);
-
 
     fRecTree->Fill();
     srcol->push_back(rec);

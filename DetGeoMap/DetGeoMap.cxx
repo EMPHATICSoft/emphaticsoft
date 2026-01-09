@@ -63,6 +63,8 @@ namespace emph {
       st->LocalToMother(tx1,tx0);
       T->LocalToMaster(tx0,x1);
 
+//      std::cout << "SSD(" << station << "," << plane << "," << sensor << ") is at z=" << x0[2] << std::endl;
+ 
       ls.SetX0(x0);
       ls.SetX1(x1);	  
       ls.SetSSDStation(station);

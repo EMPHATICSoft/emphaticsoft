@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "StandardRecord/SRLineSegment.h"
-#include "StandardRecord/SRVector3D.h"
+//#include "StandardRecord/SRVector3D.h"
 
 namespace rb {
   
@@ -22,13 +22,13 @@ namespace rb {
     virtual ~LineSegment() {}; //Destructor
     
     // Getters
-    caf::SRVector3D X0() const { return x0; }
-    caf::SRVector3D X1() const { return x1; }
+    ROOT::Math::XYZVector X0() const { return x0; }
+    ROOT::Math::XYZVector X1() const { return x1; }
     double Sigma() const { return sigma;}
     int SSDStation() const { return fSSDStation; }
     int SSDPlane() const { return fSSDPlane; }
     int SSDSensor() const { return fSSDSensor; }
-
+    int SSDStrip() const { return fSSDStrip; }
     // Setters
     void SetX0(double* _x0) { x0.SetX(_x0[0]); x0.SetY(_x0[1]); x0.SetZ(_x0[2]); }
     void SetX1(double* _x1) { x1.SetX(_x1[0]); x1.SetY(_x1[1]); x1.SetZ(_x1[2]); }
@@ -36,7 +36,11 @@ namespace rb {
     void SetSSDStation(int s) { fSSDStation = s; }
     void SetSSDPlane(int p) { fSSDPlane = p; }
     void SetSSDSensor(int s) { fSSDSensor = s; }
-
+    void SetSSDStrip(int s) { fSSDStrip = s; }
+    void SetSSDInfo(int station, int plane, int sensor, int strip) {
+      fSSDStation = station; fSSDPlane = plane;
+      fSSDSensor = sensor; fSSDStrip = strip;
+    }
     double DistanceToPoint(double x, double y, double z) const;
     double DistanceToPoint(double x, double y) const;
 
@@ -47,6 +51,7 @@ namespace rb {
     int fSSDStation;
     int fSSDPlane;
     int fSSDSensor;
+    int fSSDStrip;
     
   };
   

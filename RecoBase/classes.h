@@ -4,7 +4,7 @@
 #include "RecoBase/ARICHCluster.h"
 #include "RecoBase/LineSegment.h"
 #include "RecoBase/TrackSegment.h"
-#include "RecoBase/BeamTrack.h"
+#include "RecoBase/BeamTrackAutr.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/Spill.h"
 #include "RecoBase/ARing.h"
@@ -16,3 +16,4 @@
 #include "RecoBase/ArichID.h"
 #include "RecoBase/PID.h"
 #include "RecoBase/Track.h"
+#include "RecoBase/Vertex.h"

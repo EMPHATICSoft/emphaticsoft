@@ -61,6 +61,7 @@ namespace emph {
     std::vector <sim::SSDHit> GetAllHits() const { return fSSDHits; } ///< gets all the ssdhits
 
   private:
+    bool  fSaveTextFile;
 
   private:
     std::vector<sim::SSDHit>  fSSDHits;       ///< The information for SSD hits.

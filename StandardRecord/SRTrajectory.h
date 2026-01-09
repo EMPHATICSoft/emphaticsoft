@@ -18,7 +18,6 @@
 #include <vector>
 #include <iostream>
 #include <TLorentzVector.h>
-#include "StandardRecord/SRVector3D.h"
 
 namespace caf {
 

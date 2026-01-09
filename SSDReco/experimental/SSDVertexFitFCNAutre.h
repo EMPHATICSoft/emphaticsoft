@@ -17,13 +17,13 @@
 #include <cfloat>
 
 #include "Minuit2/FCNBase.h"
-#include "RecoBase/BeamTrack.h" 
+#include "RecoBase/BeamTrackAutr.h" 
 #include "RecoBase/DwnstrTrack.h" 
 
 namespace emph{ 
   namespace ssdr {
     
-    typedef std::vector<rb::BeamTrack>::const_iterator myBeamTrPtr;  
+    typedef std::vector<rbex::BeamTrack>::const_iterator myBeamTrPtr;  
     typedef std::vector<rbex::DwnstrTrack>::const_iterator myDwnTrPtr;  
 
     class SSDVertexFitFCNAutre : public ROOT::Minuit2::FCNBase {

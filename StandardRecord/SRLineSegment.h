@@ -4,7 +4,8 @@
 #ifndef SRLINESEGMENT_H
 #define SRLINESEGMENT_H
 
-#include "StandardRecord/SRVector3D.h"
+#include "Math/Vector3D.h"
+//StandardRecord/SRVector3D.h"
 
 namespace caf
 {
@@ -15,8 +16,8 @@ namespace caf
     SRLineSegment();
     virtual ~SRLineSegment();
 
-    SRVector3D x0; ///< end of line closesr to origin
-    SRVector3D x1; ///< end of line farther from origin
+    ROOT::Math::XYZVector x0; ///< end of line closesr to origin
+    ROOT::Math::XYZVector x1; ///< end of line farther from origin
     double sigma;
     virtual void setDefault();
   };

@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_makeprimaryvertex:
+{
+  module_type: MakePrimaryVertex
+  TrkLabel:       "makesingletracks" 
+
+}
+
+END_PROLOG

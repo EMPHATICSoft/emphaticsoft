@@ -30,7 +30,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "TOF/PeakInWaveForm.h"
-#include "RecoBase/BeamTrack.h"
+#include "RecoBase/BeamTrackAutr.h"
 #include "RecoBase/TrigToT0.h"
 
 using namespace emph;
@@ -84,7 +84,7 @@ namespace emph {
       std::vector<double> fAmplTriggerCut; // Cutting on the sum of the 4 PMT signals. 
       std::vector<double> fAmplT0Cut;
       
-      art::Handle<std::vector<rb::BeamTrack> > fBeamTrsPtr; // This works, but use the deprecated art interface.. Upper case C
+      art::Handle<std::vector<rbex::BeamTrack> > fBeamTrsPtr; // This works, but use the deprecated art interface.. Upper case C
       art::Handle<rb::TrigToT0>  fTrigToT0Ptr; // This works, but use the deprecated art interface.. Upper case C
       art::Handle< std::vector<emph::rawdata::WaveForm> > fWfHandle;
       
@@ -402,9 +402,9 @@ namespace emph {
 	}
        auto aBeamTrIt = fBeamTrsPtr->cbegin();
        if (debugIsOn) std::cerr << " Event " << fEvtNum << " Track type "  <<  aBeamTrIt->Type() << std::endl;
-       if (aBeamTrIt->Type() == rb::NONE) { this->dumpInfoNoTr(); return; }
-       if (aBeamTrIt->Type() == rb::XONLY) { this->dumpInfoXTr(); return; }  
-       if (aBeamTrIt->Type() == rb::YONLY) { this->dumpInfoYTr(); return; }
+       if (aBeamTrIt->Type() == rbex::NONE) { this->dumpInfoNoTr(); return; }
+       if (aBeamTrIt->Type() == rbex::XONLY) { this->dumpInfoXTr(); return; }  
+       if (aBeamTrIt->Type() == rbex::YONLY) { this->dumpInfoYTr(); return; }
       } catch(...) {
       	  if (debugIsOn) std::cerr << "No valid Beam Track handle, skip  " << std::endl;
 	  return;

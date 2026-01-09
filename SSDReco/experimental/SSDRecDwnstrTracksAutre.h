@@ -18,7 +18,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"
 #include "RecoBase/SSDStationPt.h" 
-#include "RecoBase/BeamTrack.h" 
+#include "RecoBase/BeamTrackAutr.h" 
 #include "RecoBase/DwnstrTrack.h" 
 #include "SSDReco/experimental/SSD3DTrackFitFCNAutre.h"
 #include "SSDReco/experimental/SSDDwnstrTrackFitFCNAutre.h"
@@ -80,9 +80,9 @@ namespace emph {
           // Internal stuff.. Simplt transfer information between the fit driver and the pattern recognition bit. 
           double fPrelimFitMom;
           double fPrelimFitChiSq;
-          mutable std::vector<rb::BeamTrack>::const_iterator fItUpstrTr; // a set of Dangling pointer.  
+          mutable std::vector<rbex::BeamTrack>::const_iterator fItUpstrTr; // a set of Dangling pointer.  
 	        // Use with caution. access protected by above boolean.
-	        rb::BeamTrack fUpStrDwnStrTrack; // global fit, to compare accuracy or biases. 
+	        rbex::BeamTrack fUpStrDwnStrTrack; // global fit, to compare accuracy or biases. 
 	  
       public:
         inline void SetDebugOn(bool v = true) 
@@ -102,7 +102,7 @@ namespace emph {
         inline void SetChiSqCutPreArb (double v) { fChiSqCutPreArb = v; }
         inline void SetMaxDwnstrStation(int i) {fMaxDwnstrStation = i; } 
 	
-        inline void SetItUpstreamTrack(std::vector<rb::BeamTrack>::const_iterator it) { fItUpstrTr = it; }
+        inline void SetItUpstreamTrack(std::vector<rbex::BeamTrack>::const_iterator it) { fItUpstrTr = it; }
         inline void VoidItUpstreamTrack() { fDoUseUpstreamTrack = false; }
         inline void SetDoUseUpstreamTrack() { fDoUseUpstreamTrack = true; }
         inline void SetPreliminaryMomentum(double p) 

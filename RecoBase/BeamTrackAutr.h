@@ -4,8 +4,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef BEAMTRACK_H
-#define BEAMTRACK_H
+#ifndef BEAMTRACKAUTR_H
+#define BEAMTRACKAUTR_H
 
 #include <vector>
 #include <stdint.h>
@@ -14,7 +14,7 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 
-namespace rb {
+namespace rbex {
 
     typedef enum tBeamTrType { NONE = 0, // unspecified. 
                                 XYONLY = 10,
@@ -91,7 +91,7 @@ namespace rb {
    inline void SetUserFlag(int v) const {fUserFlag = v;} 
    
     // Getters
-    inline rb::BeamTrType Type() const { return fTrType; }
+    inline rbex::BeamTrType Type() const { return fTrType; }
     inline double XOffset() const { return fTrXOffset; } 
     inline double XSlope() const { return fTrXSlope; } 
     inline double XOffsetErr() const { return fTrXOffsetErr; } 

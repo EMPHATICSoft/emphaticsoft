@@ -66,6 +66,8 @@ namespace emph {
     // gets all the ARICHHits 
 
   private:
+    bool fSaveTextFile;
+
     int fBlockNum; // the Lead glass block number, if the a Geantino enters the lead glass. 
     std::vector<sim::ARICHHit>  fARICHHits;                 ///< The information for LeadGlass hits.
 

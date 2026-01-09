@@ -69,6 +69,7 @@ namespace emph {
     // gets all the tracks
     
   private:
+    bool fSaveTextFile;
 
   private:
     G4double                     fEnergyCut;      ///< The minimum energy in GeV for a particle to       

@@ -47,7 +47,8 @@ namespace emph
   // Destructor.
   TrackListAction::~TrackListAction()
   {
-   fFOutStudy1.close();
+    if (fSaveTextFile)
+      fFOutStudy1.close();
   }
 
   //-------------------------------------------------------------
@@ -56,11 +57,14 @@ namespace emph
     fEnergyCut  = pset.get< double >("G4EnergyThreshold", 0.0001)*CLHEP::GeV;
     fEnergyCutStore  = pset.get< double >("G4EnergyThresholdStore", 0.1)*CLHEP::GeV;
     std::cerr << " TrackListAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
-    std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
-    std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHTrackListTuple_V1_" << aTokenJob << ".txt";
-    std::string fNameStr(fNameStrStr.str());
-    fFOutStudy1.open(fNameStr.c_str());
-    fFOutStudy1 << " evt track parentTrack pId x y z px py pz  " << std::endl;
+    fSaveTextFile = pset.get<bool>("SaveTextFiles",false);
+    if (fSaveTextFile) {
+      std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
+      std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHTrackListTuple_V1_" << aTokenJob << ".txt";
+      std::string fNameStr(fNameStrStr.str());
+      fFOutStudy1.open(fNameStr.c_str());
+      fFOutStudy1 << " evt track parentTrack pId x y z px py pz  " << std::endl;
+    }
   }
 
   //-------------------------------------------------------------

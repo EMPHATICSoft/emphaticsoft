@@ -191,7 +191,6 @@ namespace emph {
     auto emalign = align->GetAlign();
 
     fMakePlots = true;
-
     if (fMakePlots) {
       if (fCheckClusters) {
         auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
@@ -214,7 +213,7 @@ namespace emph {
             const rb::SSDCluster& clust = (*clustH)[idx];
             ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
             clusters.push_back(&clust);
-
+            lineseg_tmp.SetSSDInfo(clust.Station(),clust.Plane(),clust.Sensor(),clust.MaxStrip());
             linesegments.push_back(lineseg_tmp);
             if (clust.AvgStrip() > 640) {
               throw art::Exception(art::errors::InvalidNumber)
@@ -308,28 +307,28 @@ namespace emph {
               // Form lines and fill plots
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
               for (auto i : tstmp1) {
-                i.SetRegLabel(rb::Region::kRegion1);
+                i.region = rb::Region::kRegion1;
                 tsv.push_back(i);
-                chi2.push_back(i.Chi2());
-                if (i.Chi2() < 5) chi2lessthan5_1++;
+                chi2.push_back(i.chi2);
+                if (i.chi2 < 5) chi2lessthan5_1++;
               }
 
               std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
               mf::LogDebug("MakeTrackSegments") << "tstmp2 size = " << tstmp2.size();
               for (auto i : tstmp2) {
-                i.SetRegLabel(rb::Region::kRegion2);
+                i.region = rb::Region::kRegion2;
                 tsv.push_back(i);
-                chi2.push_back(i.Chi2());
-                if (i.Chi2() < 5) chi2lessthan5_2++;
+                chi2.push_back(i.chi2);
+                if (i.chi2 < 5) chi2lessthan5_2++;
               }
 
               std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
               mf::LogDebug("MakeTrackSegments") << "tstmp3 size = " << tstmp3.size();
               for (auto i : tstmp3) {
-                i.SetRegLabel(rb::Region::kRegion3);
+                i.region = rb::Region::kRegion3;
                 tsv.push_back(i);
-                chi2.push_back(i.Chi2());
-                if (i.Chi2() < 5) chi2lessthan5_3++;
+                chi2.push_back(i.chi2);
+                if (i.chi2 < 5) chi2lessthan5_3++;
               }
 
               for (auto ts : tsv) {

@@ -17,10 +17,10 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"
-#include "RecoBase/BeamTrack.h" 
+#include "RecoBase/BeamTrackAutr.h" 
 #include "SSDReco/experimental/SSDRecDwnstrTracksAutre.h"
 #include "RecoBase/DwnstrTrack.h" 
-#include "RecoBase/Vertex.h" 
+#include "RecoBase/VertexAutre.h" 
 #include "SSDReco/experimental/SSDVertexFitFCNAutre.h"
 
 
@@ -76,7 +76,7 @@ namespace emph {
 	 inline int SubRunNum() const { return fSubRunNum; }
 	 inline int EvtNum() const { return fEvtNum; }
 	 bool RecAndFitIt(const art::Event &evt, 
-	                   std::vector<rb::BeamTrack>::const_iterator itBeam,
+	                   std::vector<rbex::BeamTrack>::const_iterator itBeam,
 			   const ssdr::SSDRecDwnstrTracksAutre &dwnstr);
 	 void dumpInfoForR() const;
 	 

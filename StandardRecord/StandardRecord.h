@@ -20,9 +20,11 @@
 #include "StandardRecord/SRSpacePointBranch.h"
 #include "StandardRecord/SRSSDClustBranch.h"
 #include "StandardRecord/SRSSDHitsBranch.h"
-#include "StandardRecord/SRTrackBranch.h"
+//#include "StandardRecord/SRTrackBranch.h"
 #include "StandardRecord/SRTrackSegmentBranch.h"
+#include "StandardRecord/SRVertexBranch.h"
 #include "StandardRecord/SRTruth.h"
+#include "StandardRecord/SRVector3D.h"
 
 /// Common Analysis Files
 namespace caf
@@ -47,8 +49,9 @@ namespace caf
       SRSpacePointBranch   spcpts;  ///< Reco space points branch.
       SRSSDClustBranch     cluster; ///< SSD Cluster Branch: avgadc, avgstrip, etc
       SRSSDHitsBranch      hits;    ///< SSD Hits branch:
-      SRTrackBranch        trks;    ///< Reco space points branch.
+      //      SRTrackBranch        trks;    ///< Reco space points branch.
       SRTrackSegmentBranch sgmnts;  ///< Reco track segments branch
+      SRVertexBranch       vtxs;    ///< Reco vertices
       SRTruth	           truth;   ///< Simulation truth momenta, position, ID, etc.
 
     }; // end class

@@ -1,25 +1,25 @@
 ////////////////////////////////////////////////////////////////////////
-// \file     TrackFiller.h
-// \note    Class to fill CAF  Track info
+// \file    SRTruthFiller.h
+// \note    Class to fill CAF MC particle info
 ////////////////////////////////////////////////////////////////////////
-#ifndef  TRACKFILLER_H
-#define  TRACKFILLER_H
+#ifndef SRTRUTHFILLER_H
+#define SRTRUTHFILLER_H
 
 #include "CAFMaker/FillerBase.h"
 
 namespace caf
 {
   /// Class to fill header information
-  class TrackFiller : public FillerBase
+  class TruthFiller : public FillerBase
   {
   public:
 
     void Fill(art::Event&, caf::StandardRecord&);
-    //void Fill(art::Event&, caf::StandardRecord& sr1,  caf::StandardRecord& sr2);
-    std::string fLabelTracks;
-    std::string fLabelArichID;
+    bool GetG4Hits;
+    std::string fLabel;
+
   };
 
 } // end namespace
 
-#endif //  TRACKFILLER_H
+#endif // SRTRUTHFILLER_H

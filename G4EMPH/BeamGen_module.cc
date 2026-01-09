@@ -302,7 +302,7 @@ namespace emph {
     else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(rand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
     else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
     
-    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+//    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
 
     double pb[3];
     double pxpz,pypz;

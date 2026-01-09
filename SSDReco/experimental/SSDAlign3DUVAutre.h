@@ -18,7 +18,7 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
-#include "RecoBase/BeamTrack.h" 
+#include "RecoBase/BeamTrackAutr.h" 
 #include "SSDReco/experimental/ConvertDigitToWCoordAutre.h"
 #include "SSDReco/experimental/SSD3DTrackFitFCNAutre.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"
@@ -84,7 +84,7 @@ namespace emph {
 	  std::vector<double> fOtherUncert;
 //
           std::vector<myItCl> fDataFor3DFit;
-          rb::BeamTrack fTrXY;
+          rbex::BeamTrack fTrXY;
 	  std::vector<int> fNHitsXView, fNHitsYView; 
 	  
 	  
@@ -134,7 +134,7 @@ namespace emph {
 	 //
 	 // Getter, only one output, the reconstructed track.. 
 	 // 
-	 inline rb::BeamTrack GetBeamTrack() const { return fTrXY; } // Deep copy, but small struct.. 
+	 inline rbex::BeamTrack GetBeamTrack() const { return fTrXY; } // Deep copy, but small struct.. 
 	 inline std::vector<int> GetNHitsXView () const { return fNHitsXView; }
 	 inline std::vector<int> GetNHitsYView () const { return fNHitsYView; }
 	 inline int RunNum() const { return fRunNum; }

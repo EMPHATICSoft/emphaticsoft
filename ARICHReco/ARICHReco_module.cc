@@ -210,21 +210,21 @@ void ARICHReco::produce(art::Event& evt)
 
         rb::Track track = TracksH->at(1); //beam track is [0], only interested in "second" track
 
-	std::cout << "Track segments found " << track.NTrackSegments() << std::endl;
+//	std::cout << "Track segments found " << track.NTrackSegments() << std::endl;
 	rb::TrackSegment last_seg = *track.GetTrackSegment(1); //there are 2 segments	
 
-        double posx = last_seg.Vtx()[0];
-        double posy = last_seg.Vtx()[1]; 
-        double posz = last_seg.Vtx()[2]; 
+        double posx = last_seg.vtx.X();
+        double posy = last_seg.vtx.Y(); 
+        double posz = last_seg.vtx.Z(); 
 
-        double px = last_seg.P()[0];
-        double py = last_seg.P()[1];
-        double pz = last_seg.P()[2];
+        double px = last_seg.mom.X();
+        double py = last_seg.mom.Y();
+        double pz = last_seg.mom.Z();
 
 
-        mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
+        mom = sqrt(last_seg.mom.Mag2()); //sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
 
-	std::cout << "Momenta " << mom << std::endl;
+//	std::cout << "Momenta " << mom << std::endl;
 	if (mom == 0) {
           mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
         }

@@ -166,7 +166,7 @@ namespace emph {
 	     if (debugIsOn) std::cerr << " .. Storing the track, check errs err Mult Scat  " << std::sqrt(errMultScatStation1Sq) 
 	                              << " Err Strip0 " << std::sqrt(stripX0ErrSq) << " X Slope err  " <<
 	                                std::sqrt(XSlopeErrSq) << std::endl; 
-	      rb::BeamTrack aTr;
+	      rbex::BeamTrack aTr;
 	      aTr.SetType(rb::tBeamTrType::XYONLY);
 	      aTr.SetTrParams(X0, Y0,  XSlope, YSlope);
 	      aTr.SetTrParamsErrs(std::sqrt(std::abs(stripX0ErrSq)), std::sqrt(std::abs(stripY0ErrSq)), 
@@ -191,7 +191,7 @@ namespace emph {
       std::ostringstream headerStrStr; 
       headerStrStr << " " << fSubRunNum <<  " " << fEvtNum << " " << fTrXYs.size();
       int kTr=0;  
-      for (std::vector<rb::BeamTrack>::const_iterator  it = fTrXYs.cbegin();  it != fTrXYs.cend(); it++, kTr++ ) {
+      for (std::vector<rbex::BeamTrack>::const_iterator  it = fTrXYs.cbegin();  it != fTrXYs.cend(); it++, kTr++ ) {
         if ((uFlag != INT_MAX) && (it->UserFlag() != uFlag )) continue;
 	if (kTr > 10) break; // To limit the size of output file... 
         fFOut3D << headerStrStr.str() << " " << kTr << " " << it->XOffset() << " " << it->XOffsetErr();
