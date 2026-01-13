@@ -68,7 +68,7 @@ namespace emph {
     // gets all the TOPAZLGHits 
 
   private:
-    bool fSaveTextFile;
+    bool fSaveTextFiles;
     int fPrevBlockNum;
     double fRefractionIndex; // The refraction index of the glass 
     double fCritAngleTotalInt; 

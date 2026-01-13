@@ -52,7 +52,7 @@ namespace emph
   // Destructor.
   ARICHHitAction::~ARICHHitAction()
   {
-    if  (fSaveTextFile)
+    if  (fSaveTextFiles)
       fFOutStudy1.close();
   }
 
@@ -60,9 +60,9 @@ namespace emph
   void ARICHHitAction::Config(fhicl::ParameterSet const& pset )
   {
 //    fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
-    fSaveTextFile = pset.get<bool>("SaveTextFiles");
+    fSaveTextFiles = pset.get<bool>("SaveTextFiles");
 
-    if (fSaveTextFile) {
+    if (fSaveTextFiles) {
       std::cerr << " ARICHHitAction::Config opening files, if not already done..  " << std::endl;
       if ( fFOutStudy1.is_open()) return;
       std::string aTokenJob = pset.get< std::string >("G4TokenARICHOut", "Undef");
@@ -115,7 +115,7 @@ namespace emph
 
 			  fARICHHits.push_back(arichHit);
 /*			  
-			  if (fSaveTextFile) {
+			  if (fSaveTextFiles) {
 			  fFOutStudy1 << " " << fRunManager->GetCurrentEvent()->GetEventID();
 			  fFOutStudy1 << " " << aTrack->GetParentID();
 			  fFOutStudy1 << " " << arichHit.GetBlockNumber();

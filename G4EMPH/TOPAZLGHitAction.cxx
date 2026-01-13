@@ -72,11 +72,11 @@ namespace emph
   {
 //    fEnergyCut                    = pset.get< double >("G4EnergyThreshold")*CLHEP::GeV;
     std::cerr << " TOPAZLGHitAction::Config opening files, if not already done..  " << std::endl;
-    fSaveTextFile = pset.get<bool>("SaveTextFile",false);
+    fSaveTextFiles = pset.get<bool>("SaveTextFile",false);
     fKnobAttenuation = pset.get<double>("G4AttenuationTOPAZLG", 0.9); 
                  // pure number, the probability for a photon to hit the photocathode, if the photonm is emitted close to the downstream face    
     fKnobCalibration = pset.get<double>("G4CalibTOPAZLG", 1.0); // overall conversion of optical photons to GeV. 
-    if (fSaveTextFile) {
+    if (fSaveTextFiles) {
       if ( fFOutStudy1.is_open()) return;
       std::string aTokenJob = pset.get< std::string >("G4TokenTOPAZLGOut", "Undef");
       std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHLGHitTuple_V1_" << aTokenJob << ".txt";

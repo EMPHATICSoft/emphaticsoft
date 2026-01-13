@@ -47,7 +47,7 @@ namespace emph
   // Destructor.
   TrackListAction::~TrackListAction()
   {
-    if (fSaveTextFile)
+    if (fSaveTextFiles)
       fFOutStudy1.close();
   }
 
@@ -57,8 +57,8 @@ namespace emph
     fEnergyCut  = pset.get< double >("G4EnergyThreshold", 0.0001)*CLHEP::GeV;
     fEnergyCutStore  = pset.get< double >("G4EnergyThresholdStore", 0.1)*CLHEP::GeV;
     std::cerr << " TrackListAction::Config Energy Cut " << fEnergyCut*CLHEP::GeV << " in GeV " << std::endl;
-    fSaveTextFile = pset.get<bool>("SaveTextFiles",false);
-    if (fSaveTextFile) {
+    fSaveTextFiles = pset.get<bool>("SaveTextFiles",false);
+    if (fSaveTextFiles) {
       std::string aTokenJob = pset.get< std::string >("G4TokenSSDOut", "Undef");
       std::ostringstream fNameStrStr; fNameStrStr << "./G4EMPHTrackListTuple_V1_" << aTokenJob << ".txt";
       std::string fNameStr(fNameStrStr.str());

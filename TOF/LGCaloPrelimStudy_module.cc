@@ -30,7 +30,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 #include "TOF/PeakInWaveForm.h"
-#include "RecoBase/BeamTrackAutr.h"
+#include "RecoBase/BeamTrackAutre.h"
 #include "RecoBase/TrigToT0.h"
 
 using namespace emph;

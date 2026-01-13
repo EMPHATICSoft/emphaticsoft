@@ -3,7 +3,7 @@
 /// \author  jpaley@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#include "RecoBase/BeamTrackAutr.h"
+#include "RecoBase/BeamTrackAutre.h"
 
 #include <iomanip>
 #include <iostream>
