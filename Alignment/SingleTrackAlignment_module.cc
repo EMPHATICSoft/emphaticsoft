@@ -109,6 +109,20 @@ namespace emph {
     std::string fTrackSegLabel;
     std::string fTrackLabel;
     bool        fUpstream; 
+    //
+    // P.L. studies.. Jan 2026.. We might be using a bias sample to initiate the alignment. 
+    //  Are our alignment parameters values stable against these selection criteria?  
+    //
+    const bool fDoSelectionStudies; // by default, false  // sufffix fSel for all the variables used in this study. (or prefix...) 
+    const bool fUse123; // Using the event with last digit being 1, 2,  or 3 (default) 
+    const bool fUse456; // Using the event with last digit being 4, 5 ,6  (default) 
+    const bool fUse7890; // Using the event with last digit being 7, 8, or 9 (default) 
+    const double fXCenterSel, fYCenterSel, fXWidthSel, fYWidthSel; // selection on regions, expect biases.. 
+    const std::string fToken; // for book-keeping..
+    
+    std::ofstream fAllSel; //  Some selected sample..    
+    std::ofstream fOneClSel; //     
+    std::ofstream fUseInAlingSel; //     
  
     //Millepede stuff
     Mille* m;
@@ -120,10 +134,16 @@ namespace emph {
 
     art::ServiceHandle<emph::AlignService> emalign;
     Align* align0 = emalign->GetAlign();
+    
+    
 
     int re = 1;
 
     int usingEvent = 0;
+    //
+    // 
+    void SomeSelectStudy(int stage,  art::Handle< std::vector<rb::SSDCluster> > clustH); 
+     // we will modify the state of of the ofstream, so, pseudo const.  
  };
 
   //.......................................................................
@@ -135,7 +155,17 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
     fTrackLabel        (pset.get< std::string >("TrackLabel")),
-    fUpstream          (pset.get< bool >("Upstream"))
+    fUpstream          (pset.get< bool >("Upstream")),
+    fDoSelectionStudies (pset.get< bool >("DoSelectionStudies")),
+    fUse123 (pset.get< bool >("Use123")),
+    fUse456 (pset.get< bool >("Use456")),
+    fUse7890 (pset.get< bool >("Use7890")),
+    fXCenterSel (pset.get< double >("XCenterSel")),
+    fYCenterSel (pset.get< double >("YCenterSel")),
+    fXWidthSel (pset.get< double >("XWidthSel")),
+    fYWidthSel (pset.get< double >("YWidthSel")),
+    fToken (pset.get<std::string> ("Token"))
+    
     {
       //this->produces< std::vector<rb::Track> >();
     }
@@ -180,6 +210,29 @@ namespace emph {
         }
       }
     }
+    
+    if (fDoSelectionStudies && (!fAllSel.is_open())) {
+      if (fUpstream) std::cerr << " SingleTrackAlignment::beginRun, fUpstream is True???? " << std::endl;
+      else std::cerr << " SingleTrackAlignment::beginRun, fUpstream is false, O.K. " << std::endl;
+      std::ostringstream runStrStr; runStrStr << run.run();
+      std::string fOpt123("");
+      if (fUse123) fOpt123 += std::string("_Opt123");  
+      if (fUse456) fOpt123 += std::string("_Opt456");  
+      if (fUse7890) fOpt123 += std::string("_Opt7890");  
+      std::string fNameAll("./SingleTrackAlignment_All_"); 
+      fNameAll += runStrStr.str() + fOpt123 + std::string("_") + fToken + std::string("_v1.txt");
+      fAllSel.open(fNameAll.c_str());
+      fAllSel << " spill event nX0 nY0 nX1 nY1 St0X1 St0Y1 St0X2 St0Y2 St0X3 St0Y3" << std::endl;
+      std::string fNameOneCl("./SingleTrackAlignment_OneCl_"); 
+      fNameOneCl += runStrStr.str() + fOpt123 + std::string("_") + fToken + std::string("_v1.txt");
+      fOneClSel.open(fNameOneCl.c_str());
+      fOneClSel << " spill event St0X St0Y St1X St1Y" << std::endl;
+      std::string fNameInAlignSel("./SingleTrackAlignment_UsedAlignSel_"); 
+      fNameInAlignSel += runStrStr.str() + fOpt123  + std::string("_") + fToken + std::string("_v1.txt");
+      fUseInAlingSel.open(fNameInAlignSel.c_str());
+      fUseInAlingSel << " spill event St0X St0Y St1X St1Y" << std::endl;
+    }
+
 
   }
 
@@ -190,6 +243,7 @@ namespace emph {
     std::cerr<<"Starting SingleTrackAlignment"<<std::endl;
 
     m = new Mille("m004.bin",true,true);
+    
   }
  
   //......................................................................
@@ -199,6 +253,10 @@ namespace emph {
     delete m;
 
     std::cout<<"SingleTrackAlignment: Number of events used = "<<usingEvent<<std::endl;
+    if (fDoSelectionStudies) {
+      fUseInAlingSel.close();
+      fOneClSel.close(); fAllSel.close();
+    }
   }
 
   //......................................................................
@@ -255,9 +313,9 @@ namespace emph {
 	  // pull = doca between s and ts
             double sensorz = x0(2); //s[2];
             if (x0(2) != x1(2)){
-	      std::cout<<"Rotated line segment --> using x0 for now"<<std::endl;
-	      std::cout<<std::fixed << std::setprecision(15)<<"x0(2) = "<<x0(2)<<" and x1(2) = "<<x1(2)<<std::endl;
-	      std::cout<<"........."<<std::endl;
+//	      std::cout<<"Rotated line segment --> using x0 for now"<<std::endl;
+//	      std::cout<<std::fixed << std::setprecision(15)<<"x0(2) = "<<x0(2)<<" and x1(2) = "<<x1(2)<<std::endl;
+//	      std::cout<<"........."<<std::endl;
 	    }
 
             if ((tsz < targetz && sensorz < targetz)
@@ -357,14 +415,23 @@ namespace emph {
     subrun = evt.subRun();
     event = evt.event();
     fEvtNum = evt.id().event();
-
+    
     // if data fcl
     std::string digitStr = std::to_string(event);
+    if (fEvtNum < 5) std::cerr << " SingleTrackAlignment::produce, at spill " << subrun << " event " << digitStr << std::endl;
     bool useEvent = false;
-    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
-      useEvent = true;
-    }
-                                                  
+    if (fUse123) { 
+      if ((digitStr.back() == '1') || (digitStr.back() == '2') || (digitStr.back() == '3')) useEvent = true;
+      }
+    if (fUse456) {
+      if ((digitStr.back() == '4') || (digitStr.back() == '5') || (digitStr.back() == '6')) useEvent = true;
+      }
+    if (fUse7890) {
+      if ((digitStr.back() == '7') || (digitStr.back() == '8') || (digitStr.back() == '9') || (digitStr.back() == '0')) 
+        useEvent = true;
+    } 
+    // we therefor allow to use some 30%, 60% or 100% of the sample, as these flags fUse* flags can be either true or false. 
+                                                 
     if (fCheckLineSeg){
       auto haslineseg = evt.getHandle<std::vector<rb::LineSegment>>(fTrackSegLabel);
       if (!haslineseg){
@@ -378,6 +445,9 @@ namespace emph {
     art::Handle< std::vector<rb::TrackSegment> > tsH;
     art::Handle< std::vector<rb::Track> > trackH;
 
+    evt.getByLabel(fClusterLabel, clustH);
+    if (fDoSelectionStudies) this->SomeSelectStudy(0, clustH); 
+
     if (useEvent){
       // Get line segments and make map
       try {
@@ -388,7 +458,6 @@ namespace emph {
             linesegments.push_back(&lineseg);
           }
         }
-        evt.getByLabel(fClusterLabel, clustH);
         if (!clustH->empty()){
           for (size_t idx=0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
@@ -436,6 +505,7 @@ namespace emph {
 
         if (tsvnom.size()==3){
           usingEvent++;
+          if (fDoSelectionStudies) this->SomeSelectStudy(1, clustH); 
 
           dgm->Map()->SetAlign(align0);
 
@@ -448,6 +518,56 @@ namespace emph {
       }
     } //useEvent
   }
+  //......................................................................
+
+  void emph::SingleTrackAlignment::SomeSelectStudy(int stage,  art::Handle< std::vector<rb::SSDCluster> > clustH) 
+  {
+    if (fEvtNum < 5) {
+       std::cerr << " SingleTrackAlignment::SomeSelectStudy, stage " << stage  
+                               << " evt " << fEvtNum << " spill " << subrun << std::endl;
+       if (fAllSel.is_open()) std::cerr << " .............. O.K., file fAllSel is open " ;
+       else std::cerr << " .............. ???  file fAllSel is NOT open " ;
+       std::cerr << std::endl;
+       std::cerr << " Size of clustH " << clustH->size() << std::endl;
+    }		       
+    std::ostringstream headEvt; headEvt << " " << subrun << " " << fEvtNum ;
+    int nX0 = 0; int nY0 = 0; int nX1 = 0; int nY1 = 0;
+    std::vector<double> x0s; std::vector<double> y0s; x0s.clear(); y0s.clear();
+    double x0 = 0.; double x1 = 0.;  double y0 = 0.; double  y1= 0.;
+    for (auto itC = clustH->cbegin(); itC != clustH->cend(); itC++) {
+      if (itC->Station() > 1) continue;
+      const double avs = itC->AvgStrip();
+      if (itC->Station() == 0) {
+        if (itC->View() == 1) { x0 += avs; nX0++; x0s.push_back(avs); } 
+        if (itC->View() == 2) { y0 += avs; nY0++; y0s.push_back(avs); } 
+      }
+      if (itC->Station() == 1) {
+        if (itC->View() == 1) { x1 += avs; nX1++; } 
+        if (itC->View() == 2) { y1 += avs; nY1++; } 
+      }
+    }
+    if (nX0 == 0) x0 = 699.; else x0 /=  nX0; 
+    if (nX1 == 0) x1 = 699.; else x1 /=  nX1; 
+    if (nY0 == 0) x0 = 699.; else y0 /=  nY0; 
+    if (nY1 == 0) x1 = 699.; else y1 /=  nY1; 
+    if (stage == 0) {
+//      fAllSel << " spill event nX0 nY0 nX1 nY1 St0X1 St0Y1 St0X2 St0Y2 St0X3 St0Y3" << std::endl;
+     fAllSel <<  headEvt.str() << " " << nX0 << " " << nY0 << " " << nX1 << " " << nY1; 
+     if (x0s.size() > 0 ) fAllSel << " " << x0s[0]; else fAllSel << " 699. " ;	
+     if (y0s.size() > 0 ) fAllSel << " " << y0s[0]; else fAllSel << " 699. " ;	
+     if (x0s.size() > 1 ) fAllSel << " " << x0s[1]; else fAllSel << " 699. " ;	
+     if (y0s.size() > 1 ) fAllSel << " " << y0s[1]; else fAllSel << " 699. " ;	
+     if (x0s.size() > 2 ) fAllSel << " " << x0s[2]; else fAllSel << " 699. " ;	
+     if (y0s.size() > 2 ) fAllSel << " " << y0s[2]; else fAllSel << " 699. " ;
+     fAllSel <<  std::endl;
+//     fOneClSel << " spill event St0X St0Y St1X St1Y" << std::endl;
+     if ((nX0 == 1) && (nY0 == 1) && (nX1 == 1) && (nY1 == 1))
+           fOneClSel << headEvt.str() << " " << x0 << " " << y0 << " " << x1 << " " << y1 << std::endl;
+  } else if (stage == 1) {
+//     fOneClSel << " spill event St0X St0Y St1X St1Y" << std::endl;
+     fUseInAlingSel << headEvt.str() << " " << x0 << " " << y0 << " " << x1 << " " << y1 << std::endl;
+  }
+ } 
 } // end namespace emph
 
 DEFINE_ART_MODULE(emph::SingleTrackAlignment)
