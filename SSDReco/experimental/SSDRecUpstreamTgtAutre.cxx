@@ -167,7 +167,7 @@ namespace emph {
 	                              << " Err Strip0 " << std::sqrt(stripX0ErrSq) << " X Slope err  " <<
 	                                std::sqrt(XSlopeErrSq) << std::endl; 
 	      rbex::BeamTrack aTr;
-	      aTr.SetType(rb::tBeamTrType::XYONLY);
+	      aTr.SetType(rbex::tBeamTrType::XYONLY);
 	      aTr.SetTrParams(X0, Y0,  XSlope, YSlope);
 	      aTr.SetTrParamsErrs(std::sqrt(std::abs(stripX0ErrSq)), std::sqrt(std::abs(stripY0ErrSq)), 
 	                         std::sqrt(std::abs(XSlopeErrSq)), std::sqrt(std::abs(YSlopeErrSq)), 0., 0.);

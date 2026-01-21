@@ -12,7 +12,6 @@ namespace caf
     spcpts(),
     cluster(),
     hits(),
-    //    trks(),
     sgmnts(),
     vtxs(),
     truth()

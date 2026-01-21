@@ -17,7 +17,7 @@
 #include <cfloat>
 
 #include "Minuit2/FCNBase.h"
-#include "RecoBase/BeamTrackAutr.h" 
+#include "RecoBase/BeamTrackAutre.h" 
 #include "RecoBase/DwnstrTrack.h" 
 
 namespace emph{ 

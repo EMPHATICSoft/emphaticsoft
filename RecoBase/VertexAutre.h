@@ -45,7 +45,7 @@ namespace rbex {
    }
    inline void SetID(int id ) { fId = id;}
    inline void SetChiSq(double c ) { fChiSq = c;}  
-   inline void SetCovarianceMatrix(size_t k, double v) { if (k < 9) fCovXYZ[k/3][k%3] = v;}
+   inline void SetCovarianceMatrix(size_t k, size_t l, double v) { if (k < 3 && l < 3) fCovXYZ[k][l] = v;}
    inline void AddTrackUID(int uid) { fTrackUIDs.push_back(uid); }
 
     // Getters

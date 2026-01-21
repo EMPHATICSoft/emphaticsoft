@@ -17,7 +17,7 @@
 #include <climits>
 #include <cfloat>
 
-#include "BeamTrackAutr.h"
+#include "BeamTrack.h"
 #include "BTAlignGeom.h"
 #include "Minuit2/FunctionMinimum.h"
 #include "Minuit2/MnUserParameterState.h"

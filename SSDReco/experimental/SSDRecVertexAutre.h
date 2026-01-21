@@ -17,7 +17,7 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"
-#include "RecoBase/BeamTrackAutr.h" 
+#include "RecoBase/BeamTrackAutre.h" 
 #include "SSDReco/experimental/SSDRecDwnstrTracksAutre.h"
 #include "RecoBase/DwnstrTrack.h" 
 #include "RecoBase/VertexAutre.h" 

@@ -18,7 +18,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"
 #include "RecoBase/SSDStationPt.h" 
-#include "RecoBase/BeamTrackAutr.h" 
+#include "RecoBase/BeamTrackAutre.h" 
 #include "RecoBase/DwnstrTrack.h" 
 #include "SSDReco/experimental/SSD3DTrackFitFCNAutre.h"
 #include "SSDReco/experimental/SSDDwnstrTrackFitFCNAutre.h"

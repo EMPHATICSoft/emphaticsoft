@@ -20,7 +20,7 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "RecoBase/SSDCluster.h"
 #include "SSDReco/SSDAlignSimpleLinFit.h"
-#include "RecoBase/BeamTrackAutr.h" 
+#include "RecoBase/BeamTrackAutre.h" 
 #include "SSDReco/experimental/ConvertDigitToWCoordAutre.h"
 #include "SSDReco/experimental/SSD3DTrackFitFCNAutre.h"
 #include "SSDReco/experimental/VolatileAlignmentParams.h"

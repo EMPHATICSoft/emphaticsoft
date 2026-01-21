@@ -4,8 +4,8 @@
 /// \author  lebrun@fnal.gov
 /// \date
 ////////////////////////////////////////////////////////////////////////
-#ifndef BEAMTRACKAUTR_H
-#define BEAMTRACKAUTR_H
+#ifndef BEAMTRACKAUTRE_H
+#define BEAMTRACKAUTRE_H
 
 #include <vector>
 #include <stdint.h>
@@ -119,4 +119,4 @@ namespace rbex {
   
 }
 
-#endif // BEAMTRACK_H
+#endif // BEAMTRACKAUTRE_H
