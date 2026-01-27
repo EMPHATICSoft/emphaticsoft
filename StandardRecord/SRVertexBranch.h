@@ -1,24 +1,23 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRTrackBranch.h
+// \file    SRVertexBranch.h
 ////////////////////////////////////////////////////////////////////////
-#ifndef SRTRACKBRANCH_H
-#define SRTRACKBRANCH_H
-#include "StandardRecord/SRTrack.h"
+#ifndef SRVERTEXBRANCH_H
+#define SRVERTEXBRANCH_H
+#include "StandardRecord/SRVertex.h"
 
-#include <cstddef>
 #include <vector>
 
 namespace caf
 {
   /// Reconstructed rings found by various algorithms
-    class SRTrackBranch
+    class SRVertexBranch
     {
     public:
-      SRTrackBranch();
-      ~SRTrackBranch();
+      SRVertexBranch();
+      ~SRVertexBranch();
 
-      std::vector<SRTrack> trk; 
-      size_t               ntrk;     
+      std::vector<SRVertex> vtx; 
+      size_t               nvtx;     
 
       void fillSizes();
       
@@ -26,5 +25,5 @@ namespace caf
 
 } // end namespace
 
-#endif // SRTRACKBRANCH_H
+#endif // SRVERTEXBRANCH_H
 ///////////////////////////////////////////////////////////////////////////

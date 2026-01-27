@@ -22,6 +22,7 @@ standard_g4alg:
   SparseTrajectories:  true   #if true, only save necessary points in particle trajectories
   G4PhysListName:      "QGSP_BERT_HP;G4OpticalPhysics"
   MinTrajPtDist:        5. # min. distance (mm) between consecutive G4 trajectory points.   
+  SaveTextFiles: false
 }
 
 misalign_g4alg: @local::standard_g4alg

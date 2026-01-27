@@ -472,7 +472,7 @@ namespace emph {
       //
       // Beam Tracks 
       //
-      std::vector<rb::BeamTrack>::const_iterator itUpTrSel; 
+      std::vector<rbex::BeamTrack>::const_iterator itUpTrSel; 
       if (!fDoIronBrick) { 
         fUpStreamBeamTrRec.SetSubRun(fSubRun); fUpStreamBeamTrRec.SetEvtNum(fEvtNum);
 	if (debugIsOn) std::cerr << " about to call fUpStreamBeamTrRec.recoXY... " << std::endl;
@@ -486,7 +486,7 @@ namespace emph {
         if (debugIsOn) std::cerr << " ... Back to Analyze, got " << fUpStreamBeamTrRec.Size() << " upstream track(s) " << std::endl;
         size_t kTr=0; 
         itUpTrSel = fUpStreamBeamTrRec.CEnd(); 
-        for(std::vector<rb::BeamTrack>::const_iterator itUpTr = fUpStreamBeamTrRec.CBegin();  
+        for(std::vector<rbex::BeamTrack>::const_iterator itUpTr = fUpStreamBeamTrRec.CBegin();  
 	   itUpTr != fUpStreamBeamTrRec.CEnd(); itUpTr++, kTr++) {
           const double deltaX120 = itUpTr->XOffset() - fXPencil120; const double deltaY120 = itUpTr->YOffset() - fYPencil120;
 	  const double dist120 = std::sqrt(deltaX120*deltaX120 + deltaY120*deltaY120);
@@ -619,7 +619,7 @@ namespace emph {
         fRecVert.SetDebugOn(debugIsOn);
 	fRecVert.SetTokenJob(fTokenJob);
 	fRecVert.SetChiSqCut(fDwnstrChiSqCut);
-	std::vector<rb::BeamTrack>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();
+	std::vector<rbex::BeamTrack>::const_iterator itUp =  fUpStreamBeamTrRec.CBegin();
 	if (debugIsOn) std::cerr << " .... Ready for Vertex analysis,  one upstream track, " << fDwnstrTrRec.Size() << " downstream tracks " << std::endl;
         fRecVert.RecAndFitIt(evt, itUp, fDwnstrTrRec);
 	fNumVertices = 1;

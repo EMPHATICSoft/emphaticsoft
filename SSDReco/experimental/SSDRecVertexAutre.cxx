@@ -12,7 +12,7 @@
 #include "Geometry/service/GeometryService.h"
 #include "Geometry/Geometry.h"
 #include "Geometry/DetectorDefs.h"
-#include "RecoBase/Vertex.h"
+#include "RecoBase/VertexAutre.h"
 #include "SSDReco/experimental/SSDRecVertexAutre.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserParameterState.h"
@@ -38,7 +38,7 @@ namespace emph {
     }
     //
     bool SSDRecVertexAutre::RecAndFitIt(const art::Event &evt, 
-	                   std::vector<rb::BeamTrack>::const_iterator itBeam,
+	                   std::vector<rbex::BeamTrack>::const_iterator itBeam,
 			   const ssdr::SSDRecDwnstrTracksAutre  &dwnstr) {
 			   
        fRunNum = evt.run(); fSubRunNum = evt.subRun(); fEvtNum = evt.id().event();
@@ -119,8 +119,7 @@ namespace emph {
            if (min.HasCovariance()) {
              for (size_t i=0; i != 3; i++) {
                for (size_t j=0; j != 3; j++) {
-	       const double cc = min.UserCovariance()(i,j);
-               fVert.SetCovarianceMatrix((i*3 + j), cc);
+		 fVert.SetCovarianceMatrix(i,j,min.UserCovariance()(i,j));
 	       }
 	     }
            }

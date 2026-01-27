@@ -532,10 +532,10 @@ void evd::WebDisplay::analyze(art::Event const& e)
     for(const auto& seg: segs)
     {
       nlohmann::json entry;
-      TVector3 x0 = seg.X0(),
-               x1 = seg.X1();
+      auto x0 = seg.X0();
+      auto x1 = seg.X1();
       const auto diff = x1 - x0;
-      const double length = diff.Mag()/10.; //Convert mm to cm for graphics reasons
+      const double length = sqrt(diff.Mag2())/10.; //Convert mm to cm for graphics reasons
       const double ssdWidth = 0.1;
       const auto center = (x0 + x1)*0.5*0.1; //Convert mm to cm for graphics reasons
       const double phi = diff.Phi();

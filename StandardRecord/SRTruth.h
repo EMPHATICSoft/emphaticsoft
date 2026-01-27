@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <string>
+#include "Math/Vector3D.h"
 #include "SRTrueParticle.h"
 #include "SRTrueSSDHitsBranch.h"
 
@@ -24,8 +25,12 @@ namespace caf
 	  std::string trgt;
 	  float trgt_thick;
 	  float trgt_dens;
+      ROOT::Math::XYZVector   posUSTarget; // position vector upstream of target
+      ROOT::Math::XYZVector   momUSTarget; // momentum vector upstream of target
+      std::vector<ROOT::Math::XYZVector>   posDSTarget; // position vector downstream of target
+      std::vector<ROOT::Math::XYZVector>   momDSTarget; // momentum vector downstream of target
 
-	  SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
+//	  SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
 	 
 	  SRTruth(); 			// Default constructor
 	  ~SRTruth() {};

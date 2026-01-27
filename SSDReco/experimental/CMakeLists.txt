@@ -10,15 +10,15 @@ cet_make_library(SOURCE ${experimental_src_files}
     DetGeoMapService_service
     RunHistory
     RunHistoryService_service
-    RawData
-    RecoBase
+  RawData
+  RecoBase
     Geometry
     GeometryService_service
     Align
     AlignService_service
-    MagneticField
-    MagneticFieldService_service
-    ROOT::Core
+   MagneticField
+  MagneticFieldService_service
+   ROOT::Core
     ROOT::MathCore
     ROOT::Minuit2
     ROOT::Physics

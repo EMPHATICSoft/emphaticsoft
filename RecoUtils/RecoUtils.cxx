@@ -27,23 +27,17 @@ namespace ru {
   
   //----------------------------------------------------------------------
   
-  RecoUtils::RecoUtils() :
-     fEvtNum(-1)
+  RecoUtils::RecoUtils()
   {
   }
   
   //------------------------------------------------------------
 
-  RecoUtils::RecoUtils(int num)
-  {
-     fEvtNum = num;
-  }
-
-  //------------------------------------------------------------
-
-  void RecoUtils::ClosestApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double F[3], double l1[3], double l2[3], const char* type, bool verbose){
-
-
+  void RecoUtils::ClosestApproach(ROOT::Math::XYZVector A,ROOT::Math::XYZVector B, 
+                                  ROOT::Math::XYZVector C, ROOT::Math::XYZVector D, 
+                                  double F[3], double l1[3], double l2[3], 
+                                  const char* type, bool verbose)
+  {  
     // Initialize output arrays to zero
     for (int i=0; i<3; ++i) { F[i]=0; l1[i]=0; l2[i]=0; }
 
@@ -74,21 +68,27 @@ namespace ru {
      if (strcmp(type,"SSD") == 0){
        if ( s >= 0 && s <= 1 && t >=0 && t <= 1){
          //std::cout<<"Closest approach all good :)"<<std::endl;
+         auto tl1 = A + s*(B - A);
+         auto tl2 = C + t*(D - C);
+         tl1.GetCoordinates(l1);
+         tl2.GetCoordinates(l2);
+/*
          for (int i=0; i<3; i++){
            l1[i] = A(i) + s*(B(i) - A(i));
            l2[i] = C(i) + t*(D(i) - C(i));
          }
+           */
          //std::cout<<"CA CHECK (L1)...x: "<<L1[0]<<"   y: "<<L1[1]<<"   z: "<<L1[2]<<std::endl;
          //std::cout<<"CA CHECK (L2)...x: "<<L2[0]<<"   y: "<<L2[1]<<"   z: "<<L2[2]<<std::endl;
        }
        else{
          //this should be very rare
          if (verbose){
-           std::cout<<"Closest approach calculation exception @ event "<<fEvtNum<<std::endl;
-           std::cout<<"A: ("<<A(0)<<","<<A(1)<<","<<A(2)<<")"<<std::endl;
-           std::cout<<"B: ("<<B(0)<<","<<B(1)<<","<<B(2)<<")"<<std::endl;
-           std::cout<<"C: ("<<C(0)<<","<<C(1)<<","<<C(2)<<")"<<std::endl;
-           std::cout<<"D: ("<<D(0)<<","<<D(1)<<","<<D(2)<<")"<<std::endl;
+           std::cout<<"Closest approach calculation exception "<<std::endl;
+           std::cout<<"A: ("<<A.X()<<","<<A.Y()<<","<<A.Z()<<")"<<std::endl;
+           std::cout<<"B: ("<<B.X()<<","<<B.Y()<<","<<B.Z()<<")"<<std::endl;
+           std::cout<<"C: ("<<C.X()<<","<<C.Y()<<","<<C.Z()<<")"<<std::endl;
+           std::cout<<"D: ("<<D.X()<<","<<D.Y()<<","<<D.Z()<<")"<<std::endl;
            std::cout<<"How do line segments AB and CD look if you draw them in the beam view (i.e. the same plane)?"<<std::endl;
            std::cout<<"And don't worry! A hit is still created, but the line segments (probably) come close to intersecting...but don't"<<std::endl;
 	 }
@@ -101,27 +101,35 @@ namespace ru {
      }
      else{ //i.e. "TrackSegment"
 
-       double sl1 = (D(2) + 10. - A(2))/(B(2) - A(2));
-       double tl2 = (A(2) - 10. - C(2))/(D(2) - C(2));
+       double sl1 = (D.Z() + 10. - A.Z())/(B.Z() - A.Z());
+       double tl2 = (A.Z() - 10. - C.Z())/(D.Z() - C.Z());
 
        if ( s >= 0 && s <= sl1 && t >=tl2 && t <= 1){
          //std::cout<<"Normal"<<std::endl;
+         auto t1l = A + s*(B - A);
+         auto t2l = C + t*(D - C);
+         t1l.GetCoordinates(l1);
+         t2l.GetCoordinates(l2);
+/*
          for (int i=0; i<3; i++){
            l1[i] = A(i) + s*(B(i) - A(i));
            l2[i] = C(i) + t*(D(i) - C(i));
          }
+           */
        }
        else{
          double sbound[2] = {0.,sl1};  
          double tbound[2] = {tl2,1.};
 
-	 TVector3 Aext;
-	 TVector3 Dext;
-
-         for (int i=0; i<3; i++){
+//	 TVector3 Aext;
+//	 TVector3 Dext;
+        auto Dext = A + sl1*(B - A);
+        auto Aext = C + tl2*(D - C);
+/*         for (int i=0; i<3; i++){
 	   Dext(i) = A(i) + sl1*(B(i) - A(i));
 	   Aext(i) = C(i) + tl2*(D(i) - C(i));
-	 }	
+	 }
+     */	
 	 //std::cout<<"Clamped"<<std::endl;
 	 ClampedApproach(Aext,B,C,Dext,l1,l2,sbound,tbound,type,verbose);
        }
@@ -136,8 +144,9 @@ namespace ru {
 
   //------------------------------------------------------------
 
-  void RecoUtils::ClampedApproach(TVector3 A,TVector3 B, TVector3 C, TVector3 D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose){
-
+  void RecoUtils::ClampedApproach(ROOT::Math::XYZVector A,ROOT::Math::XYZVector B, ROOT::Math::XYZVector C, ROOT::Math::XYZVector D, double l1[3], double l2[3], double sbound[2], double tbound[2], const char* type, bool verbose)  
+  {
+  
     // Initialize output arrays to zero
     for (int i=0; i<3; ++i) { l1[i]=0; l2[i]=0; }
 
@@ -151,11 +160,6 @@ namespace ru {
 
      double d3121 = (C-A).Dot(B-A);
      double d4331 = (D-C).Dot(C-A);
-
-     TVector3 l1p3;
-     TVector3 l1p4;
-     TVector3 l2p1;
-     TVector3 l2p2;
 
      double d4121 = (D-A).Dot(B-A);
      double d4332 = (D-C).Dot(C-B);
@@ -175,13 +179,17 @@ namespace ru {
      double d_l2p1;
      double d_l2p2;
 
-     for (int i=0; i<3; i++){
+     auto l1p3 = A + s_l1p3*(B - A);
+     auto l1p4 = A + s_l1p4*(B - A);
+     auto l2p1 = C + t_l2p1*(D - C);
+     auto l2p2 = C + t_l2p2*(D - C);
+/*     for (int i=0; i<3; i++){
        l1p3(i) = A(i) + s_l1p3*(B(i) - A(i));
        l1p4(i) = A(i) + s_l1p4*(B(i) - A(i));
        l2p1(i) = C(i) + t_l2p1*(D(i) - C(i));
        l2p2(i) = C(i) + t_l2p2*(D(i) - C(i));
      }
-
+*/
      //this is squared distance
      d_l1p3 = (C-l1p3).Dot(C-l1p3);
      d_l1p4 = (D-l1p4).Dot(D-l1p4);
@@ -190,32 +198,39 @@ namespace ru {
 
      if (strcmp(type,"SSD") == 0){
        if (d_l1p3 < d_l1p4){
-         for (int i=0; i<3; i++) { l1[i] = l1p3(i); }
+        l1p3.GetCoordinates(l1);
        }
        else{
-         for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
+         l1p4.GetCoordinates(l1);
        }
        if (d_l2p1 < d_l2p2){
-         for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
+         l2p1.GetCoordinates(l2);
        }
        else{
-         for (int i=0; i<3; i++) { l2[i] = l2p2(i); }
+         l2p2.GetCoordinates(l2);
        }
      }
      else{
        // for TrackSegment you want to compare the minimum fo l1p3 and l2p2 
        // beause p2 and p3 are the points closest to the "intersection"
        if (d_l1p4 < d_l2p1){
-         for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
-	 for (int i=0; i<3; i++) { l2[i] = D(i); if (verbose) std::cout<<"CLAMPED EXCEPTION D @ "<<D(2)<<std::endl; }
-       }
-       else{
-         for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
-         for (int i=0; i<3; i++) { l1[i] = A(i); if (verbose) std::cout<<"CLAMPED EXCEPTION A @ "<<A(2)<<std::endl;}
-       }
-     }
+        l1p4.GetCoordinates(l1);
+        //      for (int i=0; i<3; i++) { l1[i] = l1p4(i); }
+        D.GetCoordinates(l2);
+//        for (int i=0; i<3; i++) { l2[i] = D(i); 
+          if (verbose) std::cout<<"CLAMPED EXCEPTION D @ "<<D.Z()<<std::endl; 
+        }
+        else{
+          l2p1.GetCoordinates(l2);
+      //       for (int i=0; i<3; i++) { l2[i] = l2p1(i); }
+          A.GetCoordinates(l1);
+//      for (int i=0; i<3; i++) { l1[i] = A(i); 
+          if (verbose) std::cout<<"CLAMPED EXCEPTION A @ "<<A.Z()<<std::endl;
+//       }
+      }
+    }
   }
-
+  
   //------------------------------------------------------------
 
   void RecoUtils::findLine(std::vector<std::vector<double>> v, double lfirst[3], double llast[3])
@@ -324,44 +339,6 @@ namespace ru {
   }
 
   //------------------------------------------------------------
-
-  double RecoUtils::findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f){
-     double p_ix=0.; double p_iy=0.; double p_iz=0.;
-     double p_fx=0.; double p_fy=0.; double p_fz=0.;
-
-     if (sim_i.empty() || sim_f.empty()) {
-       mf::LogError("RecoUtils") << "findTruthAngle: Input hit vectors are empty.";
-       return 0.0;
-     }
-
-     for (auto i : sim_i){
-         p_ix += i.GetPx();
-         p_iy += i.GetPy();
-         p_iz += i.GetPz();
-     }
-     p_ix /= sim_i.size();
-     p_iy /= sim_i.size();
-     p_iz /= sim_i.size();
-
-     for (auto f : sim_f){
-         p_fx += f.GetPx();
-         p_fy += f.GetPy();
-         p_fz += f.GetPz();
-     }
-     p_fx /= sim_f.size();
-     p_fy /= sim_f.size();
-     p_fz /= sim_f.size();
-
-     TVector3 p_i(p_ix,p_iy,p_iz);
-     TVector3 p_f(p_fx,p_fy,p_fz);
-
-     double theta_rad = p_i.Angle(p_f);
-
-     return theta_rad;
-
-  }
-
-  //------------------------------------------------------------
   
   double RecoUtils::getMomentum(double theta){
 
@@ -380,9 +357,11 @@ namespace ru {
      // Initialize output
      for (int i=0; i<3; ++i) point[i]=0;
 
-     TVector3 p1(trk1.P()[0],trk1.P()[1],trk1.P()[2]);
-     TVector3 p2(trk2.P()[0],trk2.P()[1],trk2.P()[2]);
-     TVector3 a = p1.Cross(p2);
+//     TVector3 p1(trk1.P()[0],trk1.P()[1],trk1.P()[2]);
+     auto p1 = trk1.mom;
+//     TVector3 p2(trk2.P()[0],trk2.P()[1],trk2.P()[2]);
+     auto p2 = trk2.mom;
+     auto a = p1.Cross(p2);
      double dot = a.Dot(a);
 
      if (dot == 0) {
@@ -390,15 +369,19 @@ namespace ru {
        return;
      }
 
-     TVector3 ab(trk2.Vtx()[0]-trk1.Vtx()[0],trk2.Vtx()[1]-trk1.Vtx()[1],trk2.Vtx()[2]-trk1.Vtx()[2]);
-
-     TVector3 b = ab.Cross(p2);
+//     TVector3 ab(trk2.Vtx()[0]-trk1.Vtx()[0],trk2.Vtx()[1]-trk1.Vtx()[1],trk2.Vtx()[2]-trk1.Vtx()[2]);
+     auto ab = trk2.vtx - trk1.vtx;
+     auto b = ab.Cross(p2);
 
      double t = b.Dot(a) / dot;
 
+     auto tpoint = trk1.vtx + t*p1;
+     tpoint.GetCoordinates(point);
+/*
      point[0] = trk1.Vtx()[0] + (t*p1(0));
      point[1] = trk1.Vtx()[1] + (t*p1(1));
      point[2] = trk1.Vtx()[2] + (t*p1(2));
+     */
   }
 
   //------------------------------------------------------------
@@ -408,10 +391,11 @@ namespace ru {
      // Initalize output
      for (int i=0; i<3; ++i) point[i]=0;
 
-     TVector3 p1((ts1.B()[0] - ts1.A()[0]), (ts1.B()[1] - ts1.A()[1]), (ts1.B()[2] - ts1.A()[2]));
-     TVector3 p2((ts2.B()[0] - ts2.A()[0]), (ts2.B()[1] - ts2.A()[1]), (ts2.B()[2] - ts2.A()[2]));
-
-     TVector3 a = p1.Cross(p2);
+//     TVector3 p1((ts1.B()[0] - ts1.A()[0]), (ts1.B()[1] - ts1.A()[1]), (ts1.B()[2] - ts1.A()[2]));
+//     TVector3 p2((ts2.B()[0] - ts2.A()[0]), (ts2.B()[1] - ts2.A()[1]), (ts2.B()[2] - ts2.A()[2]));
+     auto p1 = ts1.pointB - ts1.pointA;
+     auto p2 = ts2.pointB - ts2.pointA;
+     auto a = p1.Cross(p2);
      double dot = a.Dot(a);
 
      if (dot == 0) {
@@ -419,27 +403,19 @@ namespace ru {
        return;
      }
 
-     TVector3 ab(ts2.A()[0]-ts1.A()[0],ts2.A()[1]-ts1.A()[1],ts2.A()[2]-ts1.A()[2]);
-
-     TVector3 b = ab.Cross(p2);
+     auto ab = ts2.pointA - ts1.pointA;
+     auto b = ab.Cross(p2);
 
      double t = b.Dot(a) / dot;
 
-     point[0] = ts1.A()[0] + (t*p1(0));
+     auto tpoint = ts1.pointA + t*p1;
+      tpoint.GetCoordinates(point);
+/*     point[0] = ts1.A()[0] + (t*p1(0));
      point[1] = ts1.A()[1] + (t*p1(1));
      point[2] = ts1.A()[2] + (t*p1(2));
+     */
   }
   
-  // -----------------------------------------------------------
-
-  std::ostream& operator<< (std::ostream& o, const RecoUtils& h)
-  {
-    o << std::setiosflags(std::ios::fixed) << std::setprecision(2);
-    o << " Event Number = "     << std::setw(5) << std::right << h.GetEvtNum();
-
-    return o;
-  }
-
   //------------------------------------------------------------
 
  

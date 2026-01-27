@@ -4,7 +4,8 @@
 <!--  lines and for all objects that are data members of those objects.-->
  
 <lcgdict>
-  <class name="sim::SSDHit"    ClassVersion="13" >
+  <class name="sim::SSDHit"    ClassVersion="14" >
+   <version ClassVersion="14" checksum="460757355"/>
    <version ClassVersion="13" checksum="2678768509"/>
    <version ClassVersion="12" checksum="1"/>
    <version ClassVersion="11" checksum="1038206630"/>

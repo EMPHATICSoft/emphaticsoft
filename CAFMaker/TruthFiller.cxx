@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRTruthFiller.cxx
+// \file    TruthFiller.cxx
 // \brief    
 //          
 ////////////////////////////////////////////////////////////////////////
 
-#include "CAFMaker/SRTruthFiller.h"
+#include "CAFMaker/TruthFiller.h"
 #include "StandardRecord/SRParticle.h"
 #include "Simulation/Particle.h"
 #include "Simulation/SSDHit.h"
@@ -16,7 +16,7 @@
 
 namespace caf
 {
-  void SRTruthFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
+  void TruthFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
     art::Handle< std::vector <sim::Particle> > pcal;
 
@@ -82,28 +82,44 @@ namespace caf
     }
     for (unsigned int truehitId = 0; truehitId < truehitv->size(); ++truehitId) {
 
-      const sim::SSDHit& ssdhits = (*truehitv)[truehitId];
+      const sim::SSDHit& ssdhit = (*truehitv)[truehitId];
 
+      int station = ssdhit.Station();
+      int plane = ssdhit.Plane();
+      int sensor = ssdhit.Sensor();
+      
+      // get particle 
+      if (station == 1 && plane == 1 && sensor == 0) {
+       stdrec.truth.posUSTarget.SetXYZ(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
+       stdrec.truth.momUSTarget.SetXYZ(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());       
+      }
+      if (station == 2 && plane == 0 && sensor == 0) {
+        ROOT::Math::XYZVector pos(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
+        ROOT::Math::XYZVector mom(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());
+        stdrec.truth.posDSTarget.push_back(pos);
+        stdrec.truth.momDSTarget.push_back(mom);        
+      }
+/*      
       stdrec.truth.truehits.truehits.push_back(SRTrueSSDHits());
       SRTrueSSDHits& srTrueSSDHits = stdrec.truth.truehits.truehits.back();
 
-      srTrueSSDHits.GetX = ssdhits.GetX();
-      srTrueSSDHits.GetY = ssdhits.GetY();
-      srTrueSSDHits.GetZ = ssdhits.GetZ();
+      srTrueSSDHits.pos.SetX(ssdhits.GetX());
+      srTrueSSDHits.pos.SetY(ssdhits.GetY());
+      srTrueSSDHits.pos.SetZ(ssdhits.GetZ());
 
-      srTrueSSDHits.GetPx = ssdhits.GetPx();
-      srTrueSSDHits.GetPy = ssdhits.GetPy();
-      srTrueSSDHits.GetPz = ssdhits.GetPz();
+      srTrueSSDHits.mom.SetX(ssdhits.GetPx());
+      srTrueSSDHits.mom.SetY(ssdhits.GetPy());
+      srTrueSSDHits.mom.SetZ(ssdhits.GetPz());
 
-      srTrueSSDHits.GetDE = ssdhits.GetDE();
-      srTrueSSDHits.GetPId = ssdhits.GetPId();
+      srTrueSSDHits.dE = ssdhits.GetDE();
+      srTrueSSDHits.pid = ssdhits.GetPId();
 
-      srTrueSSDHits.GetStation = ssdhits.GetStation();
-      srTrueSSDHits.GetPlane = ssdhits.GetPlane();
-      srTrueSSDHits.GetSensor = ssdhits.GetSensor();
-      srTrueSSDHits.GetStrip = ssdhits.GetStrip();
-      srTrueSSDHits.GetTrackID = ssdhits.GetTrackID();
-
+      srTrueSSDHits.station = ssdhits.GetStation();
+      srTrueSSDHits.plane = ssdhits.GetPlane();
+      srTrueSSDHits.sensor = ssdhits.GetSensor();
+      srTrueSSDHits.strip = ssdhits.GetStrip();
+      srTrueSSDHits.trackID = ssdhits.GetTrackID();
+*/
     } // end for truehitId
 
   }
