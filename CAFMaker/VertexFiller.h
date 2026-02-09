@@ -20,7 +20,7 @@ namespace caf
     void Fill(art::Event&, caf::StandardRecord&);
     //void Fill(art::Event&, caf::StandardRecord& sr1,  caf::StandardRecord& sr2);
     void GetBeamTrackTruth(caf::SRBeamTrack&, const std::vector<sim::SSDHit> &);
-    caf::SRSecondaryTrack GetSecondaryTrack(rb::Track&, const std::vector<sim::SSDHit> &);
+    caf::SRSecondaryTrack GetSecondaryTrack(rb::Track&, const std::vector<sim::SSDHit> &, rb::ArichID&);
     std::string fVertexLabel;
     std::string fTrackLabel;
     std::string fArichIDLabel;
