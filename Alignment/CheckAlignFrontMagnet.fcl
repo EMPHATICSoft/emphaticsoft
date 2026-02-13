@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_checkalignfrontmagnet:
+{
+  module_type: CheckAlignFrontMagnet
+  TrackSegLabel: "maketracksegments"
+  Token: "none"
+}
+
+END_PROLOG

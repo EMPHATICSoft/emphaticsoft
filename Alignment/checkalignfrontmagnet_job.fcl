@@ -1,0 +1,65 @@
+#include "Services.fcl"
+#include "FillDataQuality.fcl"
+#include "SpillInfo.fcl"
+#include "MakeSSDClusters.fcl"
+#include "SingleTrackAlignment.fcl"
+#include "MakeTrackSegments.fcl"
+#include "MakeSingleTracks.fcl"
+#include "SingleTrackAlignment.fcl"
+#include "CheckAlignFrontMagnet.fcl"
+
+process_name: MakeSingleTracksForAlign
+
+services:
+{
+  TFileService: { fileName: "%ifb_singletracks_hist.root" closeFileFast: false }
+  @table::standard_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to create
+}
+
+outputs:
+{
+ out1:
+  {
+   module_type: RootOutput
+   fileName:    "%ifb_singletracks.root"
+   fastCloning: false
+
+  }
+}
+# Define and configure some modules to do work on each event.
+# First modules are defined; they are scheduled later.
+# Modules are grouped by type.
+physics:
+{
+
+ producers:
+ {
+    clust: @local::standard_ssdclust
+    maketracksegments: @local::standard_maketracksegments
+    makesingletracks: @local::standard_makesingletracks
+ }
+ 
+ analyzers: {
+ 
+   checkalignfrontmagnet: @local::standard_checkalignfrontmagnet
+ }
+ reco: [clust, maketracksegments]
+
+ ana: [checkalignfrontmagnet]
+
+ trigger_paths: [ reco ]
+
+ stream1: [ out1 ]
+ end_paths: [ana, stream1 ]
+ 
+}
+services.AlignService.IsDisabled: false
+physics.producers.clust.CheckDQ: false
+physics.analyzers.checkalignfrontmagnet.Token: "APr5_1_1"
+physics.producers.maketracksegments.MaxClust: 25
