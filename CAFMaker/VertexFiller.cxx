@@ -11,7 +11,7 @@
 #include "RecoBase/Track.h"
 //#include "StandardRecord/SRTrackSegment.h"
 #include "RecoBase/RecoBaseDefs.h"
-//#include "RecoBase/ArichID.h"
+#include "RecoBase/ArichID.h"
 
 namespace caf
 {
@@ -98,9 +98,16 @@ namespace caf
 
   //---------------------------------
 
-  caf::SRSecondaryTrack VertexFiller::GetSecondaryTrack(rb::Track& track, const std::vector<sim::SSDHit>& truehitv)
+  caf::SRSecondaryTrack VertexFiller::GetSecondaryTrack(rb::Track& track, const std::vector<sim::SSDHit>& truehitv, rb::ArichID& arichid)
   {
     caf::SRSecondaryTrack secTrk = track;
+    
+    //Inserting ARICH informations in track 
+    secTrk.arich.trackID = arichid.trackID;
+    secTrk.arich.scoresLL = arichid.scoresLL;
+    secTrk.arich.scoresML = arichid.scoresML;
+    secTrk.arich.nhit =  arichid.nhit;
+    
 
     if (! truehitv.empty()) {
       std::unordered_map<int,const sim::SSDHit*> ssdHitMap;
@@ -174,15 +181,20 @@ namespace caf
     auto hv = evt.getHandle<std::vector<rb::Vertex> >(fVertexLabel);
     auto ht = evt.getHandle<std::vector<rb::Track> >(fTrackLabel);
     auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fSSDHitLabel);
+    auto ha = evt.getHandle<std::vector<rb::ArichID>> (fArichIDLabel);
+ 
     std::vector <rb::Vertex> vtxs;
     std::vector <rb::Track> trks;
     std::vector <sim::SSDHit> ssdhits;
+    std::vector <rb::ArichID> arichids;
 
     if ( !hv.failedToGet()) vtxs = *hv;
     if ( !ht.failedToGet()) trks = *ht;
     if ( !truehitv.failedToGet()) ssdhits = *truehitv;
+    if ( !ha.failedToGet()) arichids = *ha;
 
     stdrec.vtxs.nvtx = vtxs.size();
+
 
     // loop over vertices
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
@@ -212,13 +224,15 @@ namespace caf
       // loop over secondary tracks in vertex
       for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
         auto idx = v.sectrkIdx[it];
-        caf::SRSecondaryTrack srt = GetSecondaryTrack(trks[idx], ssdhits);
+
+        //for now it's easy with single particle, arich ID always has one entry: the first
+        caf::SRSecondaryTrack srt = GetSecondaryTrack(trks[idx], ssdhits,arichids[0]);
         for (size_t i=0; i<trks[idx].NTrackSegments(); i++){
           auto rbts = trks[idx].GetTrackSegment(i);
           caf::SRTrackSegment srts;
           srts.region = rbts->region;
-	  srts.vtx = rbts->vtx;
-	  srts.mom = rbts->mom;
+          srts.vtx = rbts->vtx;
+          srts.mom = rbts->mom;
           srts.nspacepoints = rbts->NSpacePoints();
           srts.pointA = rbts->pointA;
           srts.pointB = rbts->pointB;
