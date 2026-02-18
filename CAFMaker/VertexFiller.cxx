@@ -16,13 +16,70 @@
 namespace caf
 {
 
-  void VertexFiller::GetBeamTrackTruth(caf::SRBeamTrack& br1, const std::vector<sim::SSDHit>& truehitv)
+//  void VertexFiller::GetBeamTrackTruth(caf::SRBeamTrack& br1, const std::vector<sim::SSDHit>& truehitv)
+//  {
+  caf::SRBeamTrack VertexFiller::GetBeamTrack(rb::Track& track, const std::vector<sim::SSDHit>& truehitv)
   {
+    caf::SRBeamTrack beamTrk = track;
+
+    std::unordered_map<int,const sim::SSDHit*> ssdHitMap;
+    int station, plane, sensor, strip, id;
 
     for (unsigned int truehitId = 0; truehitId < truehitv.size(); ++truehitId) {
 
       const sim::SSDHit& ssdhit = truehitv[truehitId];
 
+      station = ssdhit.Station();
+      plane = ssdhit.Plane();
+      sensor = ssdhit.Sensor();
+      strip = ssdhit.Strip();
+      id = station*100000+plane*10000+sensor*1000+strip;
+
+      ssdHitMap[id] = &ssdhit;
+    }
+    for (size_t i=0; i<track.NSSDLineSegments(); ++i) {
+      auto lseg = track.GetSSDLineSegment(i);
+      station = lseg->SSDStation();
+      plane = lseg->SSDPlane();
+      sensor = lseg->SSDSensor();
+      strip = lseg->SSDStrip();
+      id = station*100000+plane*10000+sensor*1000+strip; 
+
+      if (station <= 1) {
+         id = station*100000+plane*10000+sensor*1000+strip;
+         caf::SRSimpleTruth truth;
+         bool isOk = true;
+         auto ssdHitMapEnd = ssdHitMap.end();
+         if (ssdHitMap.find(id) == ssdHitMapEnd) {
+           id += 1;
+           if (ssdHitMap.find(id) == ssdHitMapEnd) {
+             id -= 2;
+             if (ssdHitMap.find(id) == ssdHitMapEnd)
+               isOk = false;
+           }
+         }
+	 if (ssdHitMap[id]->PId() == 11) isOk = false; // Don't include electrons/delta rays
+         if (isOk) {
+           auto ssdhit = ssdHitMap[id];
+           truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
+           truth.mom.SetXYZ(ssdhit->Px(),ssdhit->Py(),ssdhit->Pz());
+           truth.pdgCode = ssdhit->PId();
+           truth.G4trkId = ssdhit->TrackID();
+           truth.process = ssdhit->Process();
+
+           truth.de = ssdhit->DE();
+           truth.station = ssdhit->Station();	 
+	   truth.plane = ssdhit->Plane();
+	   truth.sensor = ssdhit->Sensor();
+	   truth.strip = ssdhit->Strip();  
+           beamTrk.truth.push_back(truth);
+           //break;
+         }
+       }
+     }
+     return beamTrk;
+
+/*
       int station = ssdhit.Station();
       int plane = ssdhit.Plane();
       int sensor = ssdhit.Sensor();
@@ -36,6 +93,7 @@ namespace caf
        br1.truth.process = ssdhit.Process();
       }
     }
+*/
   }     
 
   //---------------------------------
@@ -84,6 +142,7 @@ namespace caf
                 isOk = false;
             }
           }
+          if (ssdHitMap[id]->PId() == 11) isOk = false; // Don't include electrons/delta rays
           if (isOk) {
             auto ssdhit = ssdHitMap[id];
             truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
@@ -91,6 +150,12 @@ namespace caf
             truth.pdgCode = ssdhit->PId();
             truth.G4trkId = ssdhit->TrackID();
             truth.process = ssdhit->Process();
+
+            truth.de = ssdhit->DE();
+            truth.station = ssdhit->Station();
+            truth.plane = ssdhit->Plane();
+            truth.sensor = ssdhit->Sensor();
+            truth.strip = ssdhit->Strip();
             secTrk.truth.push_back(truth);
             break;
           }
@@ -124,13 +189,44 @@ namespace caf
       rb::Vertex v = vtxs[iv];
       caf::SRVertex srv = v;
       caf::SRTrack tr1 = trks[0]; // beam track is always first track
-      caf::SRBeamTrack btr(tr1);
-      if (!ssdhits.empty()) GetBeamTrackTruth(btr,ssdhits);
-      srv.SetBeamTrack(btr);
+      //caf::SRBeamTrack btr(tr1);
+      //if (!ssdhits.empty()) GetBeamTrackTruth(btr,ssdhits);
+      if (!ssdhits.empty()){
+	caf::SRBeamTrack btr = GetBeamTrack(trks[0], ssdhits);
+        for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
+          auto rbts = trks[0].GetTrackSegment(i);
+          caf::SRTrackSegment srts;
+          srts.vtx = rbts->vtx;
+          srts.mom = rbts->mom;
+          srts.region = rbts->region;
+          srts.nspacepoints = rbts->NSpacePoints();
+          srts.pointA = rbts->pointA;
+          srts.pointB = rbts->pointB;
+          srts.chi2 = rbts->chi2;
+	  srts.thetaX = rbts->thetaX;
+          srts.thetaY = rbts->thetaY;
+          btr.Add(srts);
+	}
+        srv.SetBeamTrack(btr);
+      }
       // loop over secondary tracks in vertex
       for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
         auto idx = v.sectrkIdx[it];
         caf::SRSecondaryTrack srt = GetSecondaryTrack(trks[idx], ssdhits);
+        for (size_t i=0; i<trks[idx].NTrackSegments(); i++){
+          auto rbts = trks[idx].GetTrackSegment(i);
+          caf::SRTrackSegment srts;
+          srts.region = rbts->region;
+	  srts.vtx = rbts->vtx;
+	  srts.mom = rbts->mom;
+          srts.nspacepoints = rbts->NSpacePoints();
+          srts.pointA = rbts->pointA;
+          srts.pointB = rbts->pointB;
+          srts.chi2 = rbts->chi2;
+          srts.thetaX = rbts->thetaX;
+          srts.thetaY = rbts->thetaY;
+          srt.Add(srts);
+        }
         srv.Add(srt);
       }
       stdrec.vtxs.vtx.push_back(srv);

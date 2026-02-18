@@ -84,6 +84,8 @@ namespace caf
 
       const sim::SSDHit& ssdhit = (*truehitv)[truehitId];
 
+      if (ssdhit.PId() == 11 && ssdhit.DE() < 0.00004) continue; 
+
       int station = ssdhit.Station();
       int plane = ssdhit.Plane();
       int sensor = ssdhit.Sensor();
@@ -99,29 +101,28 @@ namespace caf
         stdrec.truth.posDSTarget.push_back(pos);
         stdrec.truth.momDSTarget.push_back(mom);        
       }
-/*      
+      
       stdrec.truth.truehits.truehits.push_back(SRTrueSSDHits());
       SRTrueSSDHits& srTrueSSDHits = stdrec.truth.truehits.truehits.back();
 
-      srTrueSSDHits.pos.SetX(ssdhits.GetX());
-      srTrueSSDHits.pos.SetY(ssdhits.GetY());
-      srTrueSSDHits.pos.SetZ(ssdhits.GetZ());
+      srTrueSSDHits.pos.SetX(ssdhit.X());
+      srTrueSSDHits.pos.SetY(ssdhit.Y());
+      srTrueSSDHits.pos.SetZ(ssdhit.Z());
 
-      srTrueSSDHits.mom.SetX(ssdhits.GetPx());
-      srTrueSSDHits.mom.SetY(ssdhits.GetPy());
-      srTrueSSDHits.mom.SetZ(ssdhits.GetPz());
+      srTrueSSDHits.mom.SetX(ssdhit.Px());
+      srTrueSSDHits.mom.SetY(ssdhit.Py());
+      srTrueSSDHits.mom.SetZ(ssdhit.Pz());
 
-      srTrueSSDHits.dE = ssdhits.GetDE();
-      srTrueSSDHits.pid = ssdhits.GetPId();
+      srTrueSSDHits.dE = ssdhit.DE();
+      srTrueSSDHits.pid = ssdhit.PId();
 
-      srTrueSSDHits.station = ssdhits.GetStation();
-      srTrueSSDHits.plane = ssdhits.GetPlane();
-      srTrueSSDHits.sensor = ssdhits.GetSensor();
-      srTrueSSDHits.strip = ssdhits.GetStrip();
-      srTrueSSDHits.trackID = ssdhits.GetTrackID();
-*/
+      srTrueSSDHits.station = ssdhit.Station();
+      srTrueSSDHits.plane = ssdhit.Plane();
+      srTrueSSDHits.sensor = ssdhit.Sensor();
+      srTrueSSDHits.strip = ssdhit.Strip();
+      srTrueSSDHits.trackID = ssdhit.TrackID();
+
     } // end for truehitId
-
   }
 
 } // end namespace caf
