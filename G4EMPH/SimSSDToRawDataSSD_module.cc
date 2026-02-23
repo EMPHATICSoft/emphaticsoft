@@ -41,6 +41,9 @@
 #include "Geometry/DetectorDefs.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
+#include "ChannelMap/service/ChannelMapService.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
+#include "Geometry/service/GeometryService.h"
 
 namespace emph {
 
@@ -87,8 +90,8 @@ namespace emph {
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob() override;
-      void beginRun(art::Run &run);
-      void endJob();
+      void beginRun(art::Run &run) override;
+      void endJob() override;
 
     private:
       bool fFilesAreOpen;
@@ -107,7 +110,7 @@ namespace emph {
       double fFracChargeSharing;
       // Convenient deduced quantities.. 
       const short int fMaxStripNumber;
-      const double fHalfHeight;
+//      const double fHalfHeight;
       //      
       // Implement dead strips.. 
       //
@@ -116,7 +119,7 @@ namespace emph {
       //
       // access to data..   
       //
-      runhist::RunHistory *fRunHistory;
+//      runhist::RunHistory *fRunHistory;
       emph::geo::Geometry *fEmgeo;
       art::ServiceHandle<emph::cmap::ChannelMapService> fCmap;
       std::vector<sim::SSDHit> fSSDInVec;
@@ -194,9 +197,11 @@ namespace emph {
     fFilesAreOpen(false), fCreateCSV(false), fTokenJob("undef"), fSSDHitLabel("?"),
     fRun(0), fEvtNum(INT_MAX), fNEvents(0), 
     fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(80.), fFracChargeSharing(0.3),
-    fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), fHalfHeight(0.5*fSensorHeight),
+    fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), 
+//    fHalfHeight(0.5*fSensorHeight),
     fDeadStripsFileName("SSDCalibDeadChanSummary_none_1055.txt"),
-    fRunHistory(nullptr), fEmgeo(nullptr)
+//    fRunHistory(nullptr), 
+    fEmgeo(nullptr)
   {
     std::cerr << " Constructing SimSSDToRawDataSSD " << std::endl;
     this->produces< std::vector<rawdata::SSDRawDigit> > ();
@@ -220,8 +225,9 @@ namespace emph {
   void SimSSDToRawDataSSD::beginRun(art::Run &run) 
   {
     std::cerr << " SimSSDToRawDataSSD::beginRun, run " << run.id() << std::endl;
-    fRunHistory = new runhist::RunHistory(run.run());
-    fEmgeo = new emph::geo::Geometry(fRunHistory->GeoFile());     
+//    fRunHistory = new runhist::RunHistory(run.run());
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    fEmgeo = geo->Geo();   
   }
     
   void SimSSDToRawDataSSD::beginJob()
@@ -261,7 +267,7 @@ namespace emph {
     if (!fFilesAreOpen) this->openOutputCsvFiles();
     fEvtNum = evt.id().event();
     
-    const bool debugIsOn = (fEvtNum == 51);
+    const bool debugIsOn = (fEvtNum < 10);
     if (debugIsOn) std::cerr << " SimSSDToRawDataSSD::analyze , event " << fEvtNum <<  std::endl; 
           
     // Get the data. 
