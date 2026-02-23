@@ -6,6 +6,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <fstream>
 #include <climits>
 #include "art/Framework/Core/FileBlock.h"
 #include "art/Framework/Core/ProductRegistryHelper.h"
@@ -57,6 +58,7 @@ namespace emph {
     void        GetPXYHist();
     void        GetPID();
 
+    bool        fDebugBeam;
     bool        fUseRunHistory;
     int         fPID;
     uint64_t    fEvtCount;
@@ -94,6 +96,8 @@ namespace emph {
     TH2D*       fPXYHist;
    
     TRandom3*   rand;
+    
+    std::ofstream fOutCheck1;
  
   };
   
@@ -118,12 +122,14 @@ namespace emph {
   /***************************************************************************/
   BeamGen::~BeamGen()
   {
-
+     if (fOutCheck1.is_open()) fOutCheck1.close();
   }
 
   /***************************************************************************/
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
+    
+    fDebugBeam = ps.get<bool>("DebugBeam","false");
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
     fZstart        = ps.get<double>("Zstart", -200.); // mm
     fPZDist	   = ps.get<std::string>("pzDist","Gauss");
@@ -159,17 +165,22 @@ namespace emph {
     fPYsigma        = ps.get<double>("PYsigma",0.);
 
     fParticleType = ps.get<std::string>("particleType","unknown");
+    std::cerr << " BeamGen::configure "; 
+    if (fDebugBeam)  std::cerr << " .. We will produce a ASCII file of particle 6D phase space " << std::endl; 
+    else std::cerr << " .. No ASCII file output " << std::endl;
   }
 
   /***************************************************************************/
 
   void BeamGen::beginRun(art::Run& )
   {
+    std::cerr << " BeamGen::beginRun... start... and keep going " << std::endl;
     if (fUseRunHistory) {
+      std::cerr << " ... No run History for now.. Please.. " << std::endl; exit(2);
       art::ServiceHandle<runhist::RunHistoryService> rhs;
       fPmean = rhs->RunHist()->BeamMom();
       // ensure that 120 GeV/c particles are always protons.
-      if (fabs(fPmean-120.)<5) {
+      if (fabs(fPmean-120000.)<5) {
 	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
 	fPsigma = 0.01*fPmean;
 	fXYHist = 0;
@@ -180,6 +191,12 @@ namespace emph {
 	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
+    if (fDebugBeam) {
+      std::cerr << " .... check fXmax " << fXmax << std::endl;
+      fOutCheck1.open("./BeamGenDebug.txt");
+      fOutCheck1 << " pid x y z px py pz "  << std::endl;
+    }
+
   }
 
   /***************************************************************************/
@@ -292,6 +309,8 @@ namespace emph {
     if ((++fEvtCount)%1000 == 0)
       std::cout << "Event " << fEvtCount << std::endl;
     
+//    std::cerr << " BeamGen::produce, and quit for now.. " << std::endl; exit(2); 
+    
     TLorentzVector pos;    
     pos[2] = fZstart; // units are mm for this      
     pos[3] = 0.; // set time to zero
@@ -302,7 +321,7 @@ namespace emph {
     else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(rand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
     else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
     
-    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+//    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
 
     double pb[3];
     double pxpz,pypz;
@@ -355,7 +374,12 @@ namespace emph {
 			   << "\t" << mom[0] << "," << mom[1] << "," 
 			   << mom[2] << std::endl;
     */
-
+    
+    if (fOutCheck1.is_open()) { 
+      fOutCheck1 << " " << fPID << " " << pos[0] << " " << pos[1] << " " << pos[2] 
+                 << " " << mom[0] << " " << mom[1] << " " << mom[2] << std::endl;
+    }
+    
     mcp.AddTrajectoryPoint(pos, mom);
     beam->push_back(mcp);
     
