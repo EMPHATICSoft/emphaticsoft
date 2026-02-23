@@ -53,8 +53,10 @@ namespace emph
   //-------------------------------------------------------------
   void FastStopAction::Config(fhicl::ParameterSet const& pset )
   {
-    fLastZPos                    = pset.get< double >("G4LastZPosition", DBL_MAX/2)*CLHEP::mm;
-    if (fLastZPos < DBL_MAX/4) std::cerr << " FastStopAction::Config Last Z Position for tracking " << fLastZPos*CLHEP::meter << " meters " << std::endl;
+    fLastZPos = (pset.get< double >("G4LastZPosition", DBL_MAX/2))*CLHEP::mm;
+    if (fLastZPos < DBL_MAX/4)
+        std::cerr << " FastStopAction::Config Last Z Position for tracking " 
+        << fLastZPos/CLHEP::meter << " meters " << std::endl;
     fLastDetectorName = pset.get< std::string >("G4LastDetector", "None");
     if (fLastDetectorName != "None") { 
       std::cerr << " FastStopAction::Config Last Detector for tracking " << fLastDetectorName << std::endl;
@@ -103,12 +105,16 @@ namespace emph
   void FastStopAction::SteppingAction(const G4Step* theStep)
   {
     //mf::LogInfo("FastStopAction") << "FastStopAction::SteppingAction";
-//    std::cerr << " Entering FastStopAction::SteppingAction " << std::endl;
+//    const G4ThreeVector xyz = theStep->GetPreStepPoint()->GetPosition();
+//    std::cerr << " FastStopAction::SteppingAction.... at x  = " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl;
     if (theStep->GetPostStepPoint() == NULL) return;
     if (theStep->GetPreStepPoint() == NULL) return;
     const CLHEP::Hep3Vector &posFinal = theStep->GetPostStepPoint()->GetPosition(); // end of the step 
     G4Track *track = theStep->GetTrack();
-    if (posFinal[2] > fLastZPos)  { track->SetTrackStatus(fStopAndKill); return; } // did it! 
+    if (posFinal[2] > fLastZPos)  { 
+//      std::cerr << " .... Stop and kill here..." << std::endl;
+      track->SetTrackStatus(fStopAndKill); return; 
+    } // did it! 
 
 //    std::cerr << " ... At Z " << posFinal[2] << std::endl;
     if (fLastDetectorName == std::string("None")) {
