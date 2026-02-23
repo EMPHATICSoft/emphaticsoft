@@ -63,7 +63,7 @@ namespace emph {
     , fOpticalActionIndex(0) 
       
   {
-
+    std::cerr << " G4Alg::G4Alg G4PhysList " << fG4PhysListName << std::endl;
     /// dummy vector in case user didn't set "AddedUserActions" in fcl file
     std::vector<std::string>  nullstrvec;  // empty vector of strings
     const std::vector<std::string>& psetstrvec = 
