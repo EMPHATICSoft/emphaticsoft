@@ -42,10 +42,10 @@
 
 #include <iostream>
 #include <fstream>
+
+#include <cmath>
 #include <iterator>
 #include <algorithm>
-#include <iostream>
-#include <fstream>
 
 #include "TimeSync.h"
 
@@ -374,168 +374,169 @@ namespace rawdata {
   }
 
   /***************************************************************************/
-
-	void Unpacker::calcTimeWalkCorr() {
-		std::cout << "Entering \"calcTimeWalkCorr\"" << std::endl;
-		if(!fTvsT.empty()) return; // only needs to run once when time-stamping
+	void Unpacker::calcTimeWalkCorr(artdaq::Fragment::fragment_id_t idChild) {
+		if(idChild == fragIdGrandfather) {
+			std::cout << "Calculating linear fit for (" << fragIdGrandfather <<", SSDs)"<< std::endl;
+		} else {
+			std::cout << "Calculating linear fit for (" << fragIdGrandfather << ", " <<idChild << ")" << std::endl;
+		}
 
 		// Set up names
 		art::ServiceHandle<art::TFileService> tfs;
 		art::TFileDirectory tdir3 = tfs->mkdir("TimeWalk","");
 		char hname[256];
 		char htitle[256];
-		for (auto fragId : fFragId) {
-			if(fragId == fragIdGrandfather) {
-				// store SSDs graph in the grandfather part of the array
-				sprintf(hname,"twSSD");
-				sprintf(htitle,"Event Time Walk SSD; Board %d Timestamp (ns); SSD (ns)", fragIdGrandfather);
-			} else {
-				sprintf(hname,"tw_%d",fragId);
-				sprintf(htitle,"Event Time Walk, Board %d; Board %d Timestamp (ns); Board %d (ns)",
-					fragId, fragIdGrandfather, fragId);
-			}
-			fTvsT[fragId] = new TGraph();
+		if(idChild == fragIdGrandfather) {
+			// store SSDs graph in the grandfather part of the array
+			sprintf(hname,"twSSD");
+			sprintf(htitle,"Event Time Walk SSD; Board %d Timestamp (ns); SSD (ns)", fragIdGrandfather);
+		} else {
+			sprintf(hname,"tw_%d",idChild);
+			sprintf(htitle,"Event Time Walk, Board %d; Board %d Timestamp (ns); Board %d (ns)",
+				idChild, fragIdGrandfather, idChild);
 		}
+		fTvsT[idChild] = new TGraph();
 
-		if(masks.empty()) return;
+		if(masks[idChild].empty()) return;
 
 		TFile* fout = nullptr;
 		char outName[256]; sprintf(outName, "%d_%d.root", fRun, fSubrun);
-    if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
+		if(fMakeTimeWalkHistos) fout = TFile::Open(outName,"UPDATE");
 
-		for (auto fragId : fFragId) {
-			// iG = index of grandfather
-			auto counter = 0;
-			for(size_t iG = 0; iG < fFragTimestamps[fragIdGrandfather].size(); ++iG) {
-				// iC = index of child
-				auto iC = masks[fragId][iG];
-				if(iC != -1) {
-					auto timeStamp = fFragTimestamps[fragId][iC];
-					if(fragId == fragIdGrandfather)
-						timeStamp = fSSDRawDigits[iC].first;
-					// Make grandfather Y-Axis to make conversion easier
-					fTvsT[fragId]->SetPoint(counter++, timeStamp, fFragTimestamps[fragIdGrandfather][iG]);
-				}
+		// iG = index of grandfather
+		auto counter = 0;
+		for(size_t iG = 0; iG < fFragTimestamps[fragIdGrandfather].size(); ++iG) {
+			// iC = index of child
+			auto iC = masks[idChild][iG];
+			if(iC != -1) {
+				auto timeStamp = fFragTimestamps[idChild][iC];
+				if(idChild == fragIdGrandfather)
+					timeStamp = fBCOx*fSSDRawDigits[iC].first;
+				// Make grandfather Y-Axis to make conversion easier
+				fTvsT[idChild]->SetPoint(counter++, timeStamp, fFragTimestamps[fragIdGrandfather][iG]);
 			}
-
-			char graph[256];
-			if(fragId == fragIdGrandfather) sprintf(graph,"tw_SSD");
-			else sprintf(graph,"tw_%d", fragId);
-
-			std::cout << graph << std::endl;
-			if(fMakeTimeWalkHistos)
-				fTvsT[fragId]->Write(graph);
-
-			fTvsT[fragId]->Fit("pol1");
-
-			// save fits
-			TF1* f1 = fTvsT[fragId]->GetFunction("pol1");
-			if(fragId == fragIdGrandfather) sprintf(graph,"tw_SSD_Fit");
-			else sprintf(graph,"tw_%d_Fit", fragId);
-
-			if(fMakeTimeWalkHistos)
-				f1->Write(graph);
-
-			fTWCorr0[fragId] = f1->GetParameter(0);
-			fTWCorr1[fragId] = f1->GetParameter(1);
-			printf("Board %d: twcorr intercept = %16.16f\n", fragId, f1->GetParameter(0));
-			printf("Board %d: twcorr slope = %16.16f\n", fragId, f1->GetParameter(1));
 		}
+
+		char graph[256];
+		if(idChild == fragIdGrandfather) sprintf(graph,"tw_SSD");
+		else sprintf(graph,"tw_%d", idChild);
+
+		if(fMakeTimeWalkHistos)
+			fTvsT[idChild]->Write(graph);
+
+		fTvsT[idChild]->Fit("pol1");
+
+		// save fits
+		TF1* f1 = fTvsT[idChild]->GetFunction("pol1");
+		if(idChild == fragIdGrandfather) sprintf(graph,"tw_SSD_Fit");
+		else sprintf(graph,"tw_%d_Fit", idChild);
+
+		if(fMakeTimeWalkHistos)
+			f1->Write(graph);
+
+		fTWCorr0[idChild] = f1->GetParameter(0);
+		fTWCorr1[idChild] = f1->GetParameter(1);
+
+		fTWErr0[idChild] = f1->GetParError(0);
+		fTWErr1[idChild] = f1->GetParError(1);
+#ifdef VERBOSE
+		if(idChild == idChild) {
+			printf("Board SSD: twcorr intercept = %16.16f\n", f1->GetParameter(0));
+			printf("Board SSD: twcorr slope = %16.16f\n", f1->GetParameter(1));
+		} else {
+			printf("Board %d: twcorr intercept = %16.16f\n", idChild, f1->GetParameter(0));
+			printf("Board %d: twcorr slope = %16.16f\n", idChild, f1->GetParameter(1));
+		}
+#endif
 		if(fMakeTimeWalkHistos && fout && fout->IsOpen()) fout->Close();
 	}
 
-  /***************************************************************************/
-	// adjusted routine
-	bool Unpacker::findMatches()	{
-		// Prepare ssd timestamp vector
-		std::vector<uint64_t> ssdTimestamps; ssdTimestamps.reserve(fSSDRawDigits.size());
-		// Check that clock is monotonic
-		{
-			bool isMonotonic = true;
-			for(size_t index = 0; index < fSSDRawDigits.size() - 1; ++index) {
-				if(fSSDRawDigits[index].first < fSSDRawDigits[index+1].first) continue;
-				std::cout << "SSD Clock is not monotonic" << std::endl;
-				isMonotonic = false;
-				break;
-			}
-			for(auto &eventPair : fSSDRawDigits) {
-				// 2^32 correction for integers that overflowed
-				if(!isMonotonic) eventPair.first = eventPair.first & 0xFFFFFFFF;
-				ssdTimestamps.push_back(fBCOx*eventPair.first);
-			}
+	void Unpacker::calcTimeWalkCorr() {
+		for (auto fragId : fFragId) {
+			calcTimeWalkCorr(fragId);
 		}
+	}
 
-		// Prepare local copy of fragment timestamps
-      std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<uint64_t> > fragTimestamps;
-		fragTimestamps = fFragTimestamps;
-
+	bool Unpacker::fixSSDTimestamps() {
+		bool isJittery = false;
+		fSSDRawDigits.erase(fSSDRawDigits.begin());
+		// Check that clock doesn't have a weird jump
+//		std::cout << fSSDRawDigits[0].first << "\t" << 0 << "\n";
+		for(size_t index = 1; index < fSSDRawDigits.size(); ++index) {
+//			std::cout << fSSDRawDigits[index].first << "\t";
+			// Zero to first event
+			fSSDRawDigits[index].first = fSSDRawDigits[index].first - fSSDRawDigits[0].first;
+			if(fSSDRawDigits[index].first - fSSDRawDigits[index-1].first >= 0xFFFFFFFF) {
+				fSSDRawDigits[index].first = fSSDRawDigits[index].first & 0xFFFFFFFF;
+				isJittery = true;
+			}
+//			std::cout << fSSDRawDigits[index].first << "\n";
+		}
+		fSSDRawDigits[0].first = 0;
+		return isJittery;
+	}
+	bool Unpacker::determineGrandfather() {
 		// determine grandfather clock
-      fragIdGrandfather = fFragId[0];
-		auto samplesGrandfather = fragTimestamps[fragIdGrandfather].size();
+		fragIdGrandfather = fFragId[0];
+		auto samplesGrandfather = fFragTimestamps[fragIdGrandfather].size();
 		for(auto fragId : fFragId) {
-			if(fragTimestamps[fragId].size() > samplesGrandfather) {
+			if(fFragTimestamps[fragId].size() > samplesGrandfather) {
 				fragIdGrandfather = fragId;
-				samplesGrandfather = fragTimestamps[fragId].size();
+				samplesGrandfather = fFragTimestamps[fragId].size();
 			}
+		}
+// No need to check SSDs (usually less than the others)
+//		if(fSSDRawDigits.size() > samplesGrandfather) {
+//			fragIdGrandfather = 773;
+//			samplesGrandfather = fSSDRawDigits.size();
+//		}
+		return true;
+	}
+
+  /***************************************************************************/
+	// individual routine
+	bool Unpacker::findMatches(artdaq::Fragment::fragment_id_t idChild, int timeUncertainty) {
+		if(idChild == fragIdGrandfather) {
+			std::cout << "Finding matches for (" << fragIdGrandfather <<", SSDs)"<< std::endl;
+		} else {
+			std::cout << "Finding matches for (" << fragIdGrandfather << ", " << idChild << ")" << std::endl;
+		}
+		// Prepare local copy of timestamps
+		std::vector<uint64_t> tsGrand = fFragTimestamps[fragIdGrandfather];
+		std::vector<uint64_t> tsChild; tsChild.reserve(fFragTimestamps[idChild].size());
+		// Configure local copy of child
+		if(idChild == fragIdGrandfather) { // SSDs
+			// Scale clock with linear fit parameters and BCOx
+			for(auto time : fSSDRawDigits)
+				tsChild.push_back(fTWCorr0[idChild] + round(fTWCorr1[idChild] * fBCOx * time.first));
+		} else { // Not SSDs
+			tsChild = fFragTimestamps[idChild];
+			// Scale clock with linear fit parameters
+			for(auto& time : tsChild)
+				time = fTWCorr0[idChild] + round(fTWCorr1[idChild] * time);
 		}
 
-		// remove first event from each sensor
-		ssdTimestamps.erase(ssdTimestamps.begin());
-		for(auto fragId : fFragId) {
-			fragTimestamps[fragId].erase(fragTimestamps[fragId].begin());
-		}
+		// Ignore first event
+		tsGrand.erase(tsGrand.begin());
+		tsChild.erase(tsChild.begin());
 
-		// Zero clocks to first event
-		{ // set scope
-			auto start = *ssdTimestamps.begin();
-			for(auto& time : ssdTimestamps) {
-				time += -start;
-			}
-		}
-		for(auto fragId : fFragId) {
-			auto start = *fragTimestamps[fragId].begin();
-			for(auto& time : fragTimestamps[fragId]) {
-				time += -start;
-			}
-		}
+		masks[idChild].clear();
+		masks[idChild].push_back(-1);
+		// Find matches
+		auto remainder = compareGrandfather(tsGrand, tsChild, timeUncertainty);
+		masks[idChild].insert(masks[idChild].end(), remainder.begin(), remainder.end());
 
-		// Perform comparison to grandfather
+		// because we ignored the first event, we need to +1 each matched index
+		for(auto &index : masks[idChild]) {
+			if(index != -1)
+				index+=1;
+		}
+		return !masks[idChild].empty();
+	}
+
+	bool Unpacker::findMatches(int timeUncertainty)	{
 		for(auto fragId : fFragId) {
-			if(fragId == fragIdGrandfather) continue; // skip grandfather
-			std::cout << "(" << fragIdGrandfather << ", " << fragId << ")" << std::endl;
-			{
-				masks[fragId].push_back(-1); // not comparing first event
-				auto remainder = compareGrandfather(fragTimestamps[fragIdGrandfather], fragTimestamps[fragId], 200);
-				masks[fragId].insert(masks[fragId].end(), remainder.begin(), remainder.end());
-			}
-			for( auto index : masks[fragId] ) {
-				if(index != -1) {
-					fT0[fragId] = masks[fragId][0];
-					break;
-				}
-			}
-		}
-		std::cout << "(Comparing to SSDs)"<< std::endl;
-		// Store SSD in the extra mask slot for fragIdGrandfather (no need to compare Grandfather to itself)
-		{
-			masks[fragIdGrandfather].push_back(-1); // not comparing first event
-			auto remainder = compareGrandfather(fragTimestamps[fragIdGrandfather], ssdTimestamps, 200);
-			masks[fragIdGrandfather].insert(masks[fragIdGrandfather].end(), remainder.begin(), remainder.end());
-		}
-		{
-			for(auto index : masks[fragIdGrandfather]) {
-				if(index != -1) {
-					fSSDT0 = masks[fragIdGrandfather][0];
-					break;
-				}
-			}
-		}
-		// Since we skipped the first event, we need to add 1 to each of our offsets
-		for(auto fragId: fFragId) {
-			for(auto &index : masks[fragId]) {
-				if(index != -1)
-					index+=1;
-			}
+			findMatches(fragId, timeUncertainty);
 		}
 		return !masks.empty(); // returns true if masks has matches
 	}
@@ -606,10 +607,6 @@ namespace rawdata {
 				if (! createSSDDigits())
 					return false;
 
-			// determine t0s for each board
-			if (!findMatches())
-				abort();
-
 			if (fMakeTDiffHistos)
 				makeTDiffHistos();
 
@@ -619,8 +616,40 @@ namespace rawdata {
 				fout = TFile::Open(outName, "RECREATE");
 				fout->Close();
 			}
+
+			// determine t0s for each board
+			for (auto fragId : fFragId) {
+				fTWCorr0[fragId] = 0;
+				fTWCorr1[fragId] = 1;
+			}
+
+			if(fixSSDTimestamps())
+				std::cout << "SSDs are jittery" << std::endl;
+
+			if(!determineGrandfather())
+				std::cout << "Unable to determine grandfather clock" << std::endl;
+
+			if (!findMatches(100)) abort();
 			calcTimeWalkCorr();
 
+			// do the SSDs twice
+			findMatches(fragIdGrandfather, 100);
+			calcTimeWalkCorr(fragIdGrandfather);
+
+			size_t maxTries = 3;
+			for(auto fragId : fFragId) {
+				size_t tries = 0;
+				while(fTWErr0[fragId] > 20 || fTWErr1[fragId] > 20e-9) {
+					if(tries++ >= maxTries) return false;
+					findMatches(fragId, 100);
+					calcTimeWalkCorr(fragId);
+				}
+			}
+			std::cout << "YAAAAAY we passed!" << std::endl;
+			return false;
+
+//			if (!findMatches(100)) abort();
+//			calcTimeWalkCorr();
 
 			{// limit scope of punch card
 				std::cout << "Preparing punch card" << std::endl;
@@ -653,7 +682,7 @@ namespace rawdata {
 						int64_t tsA;
 						// Project timestamp to grandfather
 						if(fragA == ssdId) // SSD
-							tsA = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fSSDRawDigits[iA].first;
+							tsA = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iA].first;
 						else if(fragA != fragIdGrandfather) // CAEN and TRB3 children
 							tsA = fTWCorr0[fragA] + fTWCorr1[fragA]*fFragTimestamps[fragA][iA];
 						else // grandfather
@@ -670,14 +699,14 @@ namespace rawdata {
 								int64_t tsB;
 								// Project timestamp to grandfather
 								if(fragB == ssdId) // SSD
-									tsB = std::round(fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fSSDRawDigits[iB].first);
+									tsB = std::round(fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iB].first);
 								else if(fragB != fragIdGrandfather)
 									tsB = fTWCorr0[fragB] + fTWCorr1[fragB]*fFragTimestamps[fragB][iB];
 								else
 									tsB = fFragTimestamps[fragB][iB];
 
 								// Adjust this resolution as needed
-								if(std::llabs(tsA - tsB) <= 200) { // FOUND YOU
+								if(std::llabs(tsA - tsB) <= 100) { // FOUND YOU
 									event.push_back(std::make_pair(fragB, iB));
 									// Remove element from punch card to indicate this event has been handled
 									punchCards[jfrag].erase(jt);

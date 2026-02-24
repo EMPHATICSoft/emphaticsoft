@@ -59,8 +59,13 @@ namespace emph {
       bool    createDigitsFromArtdaqEvent();
       bool    createSSDDigits();
       void    makeTDiffHistos();
+
+      bool    fixSSDTimestamps();
+      bool    determineGrandfather();
+      bool    findMatches(artdaq::Fragment::fragment_id_t idChild, int timeUncertainty);
+      bool    findMatches(int timeUncertainty);
       void    calcTimeWalkCorr();
-      bool    findMatches();
+      void    calcTimeWalkCorr(artdaq::Fragment::fragment_id_t idChild);
 
       bool    fIsFirst;
       bool    fCreateArtEvents;
@@ -98,6 +103,9 @@ namespace emph {
       std::unordered_map<artdaq::Fragment::fragment_id_t,std::vector<int>> masks;
       std::unordered_map<artdaq::Fragment::fragment_id_t,double> fTWCorr0;
       std::unordered_map<artdaq::Fragment::fragment_id_t,double> fTWCorr1;
+
+      std::unordered_map<artdaq::Fragment::fragment_id_t,double> fTWErr0;
+      std::unordered_map<artdaq::Fragment::fragment_id_t,double> fTWErr1;
 
       art::SourceHelper const& fSourceHelper;
       std::string   fDAQDataLabel;
