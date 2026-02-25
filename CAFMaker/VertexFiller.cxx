@@ -33,7 +33,7 @@ namespace caf
       plane = ssdhit.Plane();
       sensor = ssdhit.Sensor();
       strip = ssdhit.Strip();
-      id = station*100000+plane*10000+sensor*1000+strip;
+      id = (station*100000) + (plane*10000) + (sensor*1000) + strip;
 
       ssdHitMap[id] = &ssdhit;
     }
@@ -43,12 +43,11 @@ namespace caf
       plane = lseg->SSDPlane();
       sensor = lseg->SSDSensor();
       strip = lseg->SSDStrip();
-      id = station*100000+plane*10000+sensor*1000+strip; 
+      id = (station*100000) + (plane*10000) + (sensor*1000) + strip; 
 
       if (station <= 1) {
-         id = station*100000+plane*10000+sensor*1000+strip;
          caf::SRSimpleTruth truth;
-         bool isOk = true;
+         bool isOk = true; // We want to include the SRSimpleTruth object in the CAF
          auto ssdHitMapEnd = ssdHitMap.end();
          if (ssdHitMap.find(id) == ssdHitMapEnd) {
            id += 1;
@@ -58,7 +57,7 @@ namespace caf
                isOk = false;
            }
          }
-	 if (ssdHitMap[id]->PId() == 11) isOk = false; // Don't include electrons/delta rays
+	 if (abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
          if (isOk) {
            auto ssdhit = ssdHitMap[id];
            truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
@@ -139,7 +138,7 @@ namespace caf
         if (station == 2 || station == 3) {
           id = station*100000+plane*10000+sensor*1000+strip;
           caf::SRSimpleTruth truth;
-          bool isOk = true;
+          bool isOk = true; // We want to include the SRSimpleTruth object in the CAF
           auto ssdHitMapEnd = ssdHitMap.end();
           if (ssdHitMap.find(id) == ssdHitMapEnd) {
             id += 1;
@@ -149,7 +148,7 @@ namespace caf
                 isOk = false;
             }
           }
-          if (ssdHitMap[id]->PId() == 11) isOk = false; // Don't include electrons/delta rays
+          if (abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
           if (isOk) {
             auto ssdhit = ssdHitMap[id];
             truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
