@@ -20,13 +20,16 @@ namespace caf
   //--------------------------------------------------------------------
   SRBeamTrack::SRBeamTrack(const SRTrack& t) : SRTrack(t)
   {
-    truth.setDefault();
+    //truth.setDefault();
+    this->setDefault();
   }
 
   //--------------------------------------------------------------------
   void SRBeamTrack::setDefault()
   {
-    truth.setDefault();
+    //truth.setDefault();
+    for (auto& truthObj : truth)
+      truthObj.setDefault();
   }
 
 } // end namespace

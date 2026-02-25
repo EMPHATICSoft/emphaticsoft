@@ -214,7 +214,7 @@ namespace emph {
         if (nPlanesGeo == 2){ //station 0,1,4,7
           for (size_t k=0; k<ls_group[i][j].size(); k++){
             for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-	            double x[3];
+	      double x[3];
               doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x);
 
 	      //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
@@ -222,19 +222,21 @@ namespace emph {
               sp.SetX(x);
               sp.SetStation(i);
               spv.push_back(sp);
-	            spv.back().Add(*ls_group[i][j][k]);
-	            spv.back().Add(*ls_group[i][j+1][l]);
-	            spv.back().Add(*cl_group[i][j][k]);
-	            spv.back().Add(*cl_group[i][j+1][l]);
+	      spv.back().Add(*ls_group[i][j][k]);
+	      spv.back().Add(*ls_group[i][j+1][l]);
+              spv.back().Add(*cl_group[i][j][k]);
+	      spv.back().Add(*cl_group[i][j+1][l]);
             }
           }
         }
         else if (nPlanesGeo == 3){ //station 2,3,5,6
           for (size_t k=0; k<ls_group[i][j].size(); k++){
-            for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-	            if (nUnique < nPlanesGeo){
+            size_t index = 1;
+            if (ls_group[i][j+1].size() == 0) index = 2;
+	    for (size_t l=0; l<ls_group[i][j+index].size(); l++){
+	      if (nUnique < nPlanesGeo){
                 double x[3];
-                doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x); 
+                doTwoPlanes(ls_group[i][j][k],ls_group[i][j+index][l],x); 
 
                 //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
                 //std::cout<<"cl_group[i][j+1][l] = "<<cl_group[i][j+1][l]->WgtRmsStrip()<<std::endl;		
@@ -242,9 +244,9 @@ namespace emph {
 		            sp.SetStation(i);
                 spv.push_back(sp);
                 spv.back().Add(*ls_group[i][j][k]);
-                spv.back().Add(*ls_group[i][j+1][l]);
+                spv.back().Add(*ls_group[i][j+index][l]);
                 spv.back().Add(*cl_group[i][j][k]);
-                spv.back().Add(*cl_group[i][j+1][l]);
+                spv.back().Add(*cl_group[i][j+index][l]);
               }
               else{
                 for (size_t m=0; m<ls_group[i][j+2].size(); m++){
