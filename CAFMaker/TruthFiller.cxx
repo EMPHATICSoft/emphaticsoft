@@ -84,7 +84,7 @@ namespace caf
 
       const sim::SSDHit& ssdhit = (*truehitv)[truehitId];
 
-      // do not include ssdhits coming from electrons/positions 
+      // do not include ssdhits coming from electrons/positrons 
       // (with sufficiently low DE) in the CAF
       if (abs(ssdhit.PId()) == 11 && ssdhit.DE() < 0.00004) continue; 
 
