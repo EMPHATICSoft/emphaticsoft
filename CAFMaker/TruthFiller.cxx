@@ -84,7 +84,9 @@ namespace caf
 
       const sim::SSDHit& ssdhit = (*truehitv)[truehitId];
 
-      if (ssdhit.PId() == 11 && ssdhit.DE() < 0.00004) continue; 
+      // do not include ssdhits coming from electrons/positions 
+      // (with sufficiently low DE) in the CAF
+      if (abs(ssdhit.PId()) == 11 && ssdhit.DE() < 0.00004) continue; 
 
       int station = ssdhit.Station();
       int plane = ssdhit.Plane();
