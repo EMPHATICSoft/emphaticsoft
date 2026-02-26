@@ -60,7 +60,7 @@ namespace emph {
 
     void        GetXYHist();
     void        GetPXYHist();
-    void        GetSlicedHists();
+    void        GetSlicedHists(int runNum);
     void        GetPID();
 
     bool        fUseRunHistory;
@@ -128,7 +128,7 @@ namespace emph {
     configure(ps);
     GetXYHist();
     GetPXYHist();
-    GetSlicedHists();
+    //GetSlicedHists();
     GetPID();
     
   }
@@ -187,40 +187,47 @@ namespace emph {
 
   /***************************************************************************/
 
-  void BeamGen::beginRun(art::Run& )
+  void BeamGen::beginRun(art::Run& run)
   {
+	  const int runNum = run.id().run();
+
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
       if (fabs(rhs->RunHist()->BeamMom()) > 0) {
-	fPmean = rhs->RunHist()->BeamMom();
-	// ensure that 120 GeV/c particles are always protons.
-	if (fabs(fPmean-120.)<5) {
-	  mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	  fPsigma = 0.01*fPmean;
-	  fXYHist = 0;
-	  fPXYHist = 0;
-	  fXYDistSource = "";
-	  fPXYDistSource = "";
-	  fPID = kProton;
-	  fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
-	}
+	      fPmean = rhs->RunHist()->BeamMom();
+	      // ensure that 120 GeV/c particles are always protons.
+	      if (fPhaseSpaceSource != "Sliced" && fabs(fPmean-120.)<5) {
+	        mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	        fPsigma = 0.01*fPmean;
+	        fXYHist = 0;
+	        fPXYHist = 0;
+	        fXYDistSource = "";
+	        fPXYDistSource = "";
+	        fPID = kProton;
+	        fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+	      }
       }
     }
+
+	  GetSlicedHists(run.id().run());
   }
 
   /***************************************************************************/
 
 // Implementation of slicing method 
 
-  void BeamGen::GetSlicedHists()
+  void BeamGen::GetSlicedHists(int runNum)
   {
     if (fPhaseSpaceSource != "Sliced") {
       fXHist1D = nullptr;
+      fSlicedHists.clear();
       return;
     }
 
-    mf::LogInfo("BeamGen") << "Using Sliced phase space generation.";
+    const std::string runDir = "Run_" + std::to_string(runNum);
+    mf::LogInfo("BeamGen") << "Using Sliced phase space generation from directory: " << runDir;
 
+	  // 1D X distribution histogram
     if (fXHist1DFile.empty()) {
       std::cerr << "Missing 1D X-histogram file name for Sliced generation!" << std::endl;
       std::abort();
@@ -228,8 +235,7 @@ namespace emph {
 
     std::string fname_1d;
     std::string file_path_1d;
-    file_path_1d = getenv ("CETPKG_SOURCE");
-    fname_1d = file_path_1d + fXHist1DFile;
+    fname_1d = fXHist1DFile;
 
     std::unique_ptr<TFile> input_file_1d{TFile::Open(fname_1d.c_str())};
     if (!input_file_1d) {
@@ -237,14 +243,28 @@ namespace emph {
       std::abort();
     }
 
-    fXHist1D = (TH1D*)input_file_1d->Get(fXHist1DName.c_str());
-    if (!fXHist1D) {
-      std::cerr << "Could not find 1D X-histogram \"" << fXHist1DName << "\"" << std::endl;
-      std::abort();
-    }
-    fXHist1D->SetDirectory(0);
-    mf::LogInfo("BeamGen") << "Loaded 1D X-histogram: " << fXHist1DName;
+	  TDirectory* dir1d = input_file_1d->GetDirectory(runDir.c_str());
+	  if (!dir1d) {
+	    std::cerr << "Could not find directory \"" << runDir
+	              << "\" in " << fname_1d << std::endl;
+	    std::abort();
+	  }
 
+	  TH1D* xhist_tmp = nullptr;
+	  dir1d->GetObject(fXHist1DName.c_str(), xhist_tmp);
+	  if (!xhist_tmp) {
+	    std::cerr << "Could not find 1D X-histogram \"" << fXHist1DName
+	              << "\" in directory \"" << runDir << "\" (file: " << fname_1d << ")"
+	              << std::endl;
+	    std::abort();
+	  }
+
+	  fXHist1D = xhist_tmp;
+	  fXHist1D->SetDirectory(0);
+
+	  mf::LogInfo("BeamGen") << "Loaded 1D X-histogram: " << runDir << "/" << fXHist1DName;
+
+    // 3D sliced histograms
     if (fSlicedHistsFile.empty()) {
       std::cerr << "Missing 3D sliced histogram file name for Sliced generation!" << std::endl;
       std::abort();
@@ -252,8 +272,7 @@ namespace emph {
 
     std::string fname_3d;
     std::string file_path_3d;
-    file_path_3d = getenv ("CETPKG_SOURCE");
-    fname_3d = file_path_3d + fSlicedHistsFile;
+    fname_3d = fSlicedHistsFile;
 
     std::unique_ptr<TFile> input_file_3d{TFile::Open(fname_3d.c_str())};
     if (!input_file_3d) {
@@ -261,11 +280,20 @@ namespace emph {
       std::abort();
     }
 
+	  TDirectory* dir3d = input_file_3d->GetDirectory(runDir.c_str());
+	  if (!dir3d) {
+	    std::cerr << "Could not find directory \"" << runDir
+	              << "\" in " << fname_3d << std::endl;
+	    std::abort();
+	  }
+
     // Looping through all bins of the 1D histogram to load each corresponding 3D slice
     for (int i = 1; i <= fXHist1D->GetNbinsX(); ++i) {
       char hist_name[256];
       sprintf(hist_name, fSlicedHistsNamePattern.c_str(), i);
-      TH3D* h3d = (TH3D*)input_file_3d->Get(hist_name);
+
+      TH3D* h3d = nullptr;
+      dir3d->GetObject(hist_name, h3d);
 
       if (h3d) {
         h3d->SetDirectory(0);

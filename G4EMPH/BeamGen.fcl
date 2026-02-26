@@ -49,25 +49,17 @@ standard_beamgen:
   PYsigma:		     10.e-6
 }
 
-proton120_run2408_data: @local::standard_beamgen
-proton120_run2408_data.UseRunHistory: false
-proton120_run2408_data.particleType: "proton"
-proton120_run2408_data.Zstart:  -8.0 
-proton120_run2408_data.PMean:   120.0
-proton120_run2408_data.PSigma: 0.001
-proton120_run2408_data.phaseSpaceSource: "Sliced"
-proton120_run2408_data.xHist1DFile: "/inputs/beam_x_distribution_for_slicing.root"
-proton120_run2408_data.xHist1DName: "hX_for_slicing"
-proton120_run2408_data.slicedHistsFile: "/inputs/beam_sliced_3D_hists.root"
-proton120_run2408_data.slicedHistsNamePattern: "h3D_slice_%i"
-
-# Parameter for using 2D hist: GetXYHist and GetPXYHist
-#proton120_run2408_data.xyDistSource: "XYHist"
-#proton120_run2408_data.xyHistFile:  "/inputs/beam_profile_for_sim_run2408.root"
-#proton120_run2408_data.xyHistName:  "h_beam_spot_xy"
-#proton120_run2408_data.pxyDistSource: "XYHist"
-#proton120_run2408_data.pxyHistFile: "/inputs/beam_angles_for_sim_run2408.root"
-#proton120_run2408_data.pxyHistName: "h_beam_slope_pxy"
+# --- Sliced Method Parameters ---
+proton_sliced: @local::standard_beamgen
+proton_sliced.UseRunHistory: true 
+proton_sliced.particleType: "proton"
+proton_sliced.phaseSpaceSource: "Sliced"
+proton_sliced.Zstart: -3.0 
+proton_sliced.PSigma: 0.001 
+proton_sliced.xHist1DFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
+proton_sliced.slicedHistsFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
+proton_sliced.xHist1DName: "hX_for_slicing"
+proton_sliced.slicedHistsNamePattern: "h3D_slice_%i"
 
 
 proton120f: @local::standard_beamgen
@@ -87,14 +79,6 @@ proton120: @local::standard_beamgen
 proton120.particleType: "proton"
 proton120.xyDistSource: "Gauss"
 proton120.pxyDistSource: "Gauss"
-#proton120.Xmax: 2.
-#proton120.Xmin: -2. 
-#proton120.Ymax: 2.
-#proton120.Ymin: -2. 
-#proton120.PXmax: 1.e-5
-#proton120.PXmin: -1.e-5 
-#proton120.PYmax: 1.e-5
-#proton120.PYmin: -1.e-5 
 proton120.PMean: 120
 proton120.Psigma: 0.01
 proton120.Xmean:                     0.
