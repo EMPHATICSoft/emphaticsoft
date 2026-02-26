@@ -25,7 +25,7 @@ namespace emph
 	fGDMLFile("")
     {
       TGeoManager::LockDefaultUnits(0);
-      TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kRootUnits);
+      TGeoManager::SetDefaultUnits(TGeoManager::EDefaultUnits::kG4Units);
       TGeoManager::LockDefaultUnits(1);
       
       art::ServiceHandle<runhist::RunHistoryService> rhs;

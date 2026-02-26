@@ -18,10 +18,8 @@
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
-#include "TH2D.h"
 #include "TVector3.h"
 #include "TTree.h"
-#include "TCanvas.h"
 // Framework includes
 #include "art/Framework/Core/EDProducer.h"
 
@@ -59,7 +57,7 @@ namespace emph {
     std::map<int,double> GetRefenceTimes(std::vector<rawdata::TRB3RawDigit> hits);
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> Cluster_FixedWindow(std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold);
 
-    int threshold =15;
+    int threshold =20;
 	
   private:
 
@@ -71,6 +69,11 @@ namespace emph {
     std::string fARICHLabel;   
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;	
     emph::cmap::FEBoardType boardType = cmap::TRB3;
+
+    std::vector<double> Lead_times;
+    std::vector<double> Trail_times;
+
+    std::vector<int> cluster_ids;    
 
 };
 
@@ -99,11 +102,16 @@ namespace emph {
   //......................................................................
 
   void emph::MakeArichCluster::beginJob()
-  { 
-   if(fFillTree){   
+  {
+    if(fFillTree){    
     art::ServiceHandle<art::TFileService const> tfs;
-    fARICHTree = tfs->make<TTree>("ARICHRECO","event");
-   }
+    fARICHTree = tfs->make<TTree>("ARICHCLUST","event");
+    fARICHTree->Branch("lead_times", &Lead_times);
+    fARICHTree->Branch("trail_times", &Trail_times);
+    fARICHTree->Branch("cluster_id", &cluster_ids);
+    fARICHTree->Branch("event_id", &fEvtNum);
+
+   } 
 }
 
 //......................................................................
@@ -140,8 +148,7 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeAric
         std::vector<std::tuple<float, emph::cmap::EChannel>> cluster;
         int start = abs(std::get<0>(sortedVec[i]));
 	
-
-	 while (i < sortedVec.size() && abs(abs(std::get<0>(sortedVec[i])) - start) <= threshold) {
+	 while (i < sortedVec.size() && abs(std::get<0>(sortedVec[i]) - start) <= threshold) {
         
             cluster.push_back(sortedVec[i]);
             ++i;
@@ -153,12 +160,43 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeAric
     return clusters;
 }
 //......................................................................
+std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> ClusterSliding(const std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float threshold) {
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters;
+
+    if (sortedVec.empty()) return clusters;
+
+    std::vector<std::tuple<float, emph::cmap::EChannel>> currentCluster;
+    currentCluster.push_back(sortedVec.front());
+
+    for (size_t i = 1; i < sortedVec.size(); ++i) {
+        float prevTime = std::get<0>(sortedVec[i - 1]);
+        float currTime = std::get<0>(sortedVec[i]);
+
+        // If the current hit is within threshold ns of the previous hit, add to cluster
+        if (std::abs(currTime - prevTime) <= threshold) {
+           currentCluster.push_back(sortedVec[i]);
+         }
+        else {
+        // Otherwise, close the current cluster and start a new one
+          clusters.push_back(std::move(currentCluster));
+	  currentCluster.clear();
+          currentCluster.push_back(sortedVec[i]);
+	  }
+      }
+        
+      // Don’t forget the last cluster
+     clusters.push_back(std::move(currentCluster));
+     return clusters;
+}
+//......................................................................
 void emph::MakeArichCluster::produce(art::Event& evt)
   { 
       std::unique_ptr<std::vector<rb::ARICHCluster>> ARICH_CLUSTERS(new std::vector<rb::ARICHCluster>);
 
        auto arichH = evt.getHandle<std::vector<emph::rawdata::TRB3RawDigit> >(fARICHLabel); 
-      
+
+	fEvtNum = evt.event();
+     
       if(!arichH.isValid()) {
 	evt.put(std::move(ARICH_CLUSTERS)); 
 	return;
@@ -221,6 +259,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 	 for (unsigned int l=0;l<leadTimes.size();l++) {
 
             double lead  = leadTimes[l];
+	    
             double lead_next  = l<leadTimes.size()-1 ? leadTimes[l+1] : 1000;
             std::vector<double> trail_found;
         
@@ -232,6 +271,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 	   if (trail_found.size()>0) {
  	    for(int n_trail=0; n_trail < (int)trail_found.size(); n_trail++){
 		   emph::cmap::EChannel echan = lCh->first;
+		   if(fFillTree)Trail_times.push_back(trail_found[n_trail]);
 	           std::tuple<float, emph::cmap::EChannel> time_EChannel = std::make_tuple(lead, echan);
 	  	  hits.push_back(time_EChannel);	
 	    
@@ -244,21 +284,24 @@ void emph::MakeArichCluster::produce(art::Event& evt)
     //Now the vector hits contains all the necessary info to cluster the hits in time and feed the clusters to the reco code
 	
     stable_sort(hits.begin(), hits.end());
-	
-    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = Cluster_FixedWindow(hits, threshold);	
 
-	
-    //add density based clustering 
+    if(fFillTree)for(auto pair : hits) Lead_times.push_back((double)std::get<0>(pair));
 
-	for(int u = 0; u < (int)clusters.size(); u++){
+  
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = ClusterSliding(hits, threshold);	
+
+
+    for(int u = 0; u < (int)clusters.size(); u++){
     
-		
 	    rb::ARICHCluster cluster;
-
+	
 	    for(int k=0; k < (int)clusters[u].size(); k++){
-	     
-		emph::cmap::EChannel echan = std::get<1>(clusters[u][k]);
+
+		//std::cout << "cluster "<<  u << " hittime " << std::get<0>(clusters[u][k]) << std::endl;
+	   	emph::cmap::EChannel echan = std::get<1>(clusters[u][k]);
 		cluster.Add(std::make_pair(echan.Board(), echan.Channel()));
+		cluster.Add(std::get<0>(clusters[u][k])); //adding time info
+		cluster_ids.push_back(u);
 	//	cluster.Add(std::get<0>(clusters[u][k]));
 	  } 
 	ARICH_CLUSTERS->push_back(cluster);	
@@ -267,8 +310,9 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 		
 	 evt.put(std::move(ARICH_CLUSTERS));
 
-        if(fFillTree)fARICHTree->Fill();
-     } // end produce 
+       if(fFillTree)fARICHTree->Fill();    
+       Lead_times.clear(); Trail_times.clear(); cluster_ids.clear();	 
+  } // end produce 
 
 }
 DEFINE_ART_MODULE(emph::MakeArichCluster)

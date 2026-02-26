@@ -24,6 +24,7 @@
 // emphaticsoft includes
 #include "DataQuality/EventQuality.h"
 #include "DataQuality/SpillQuality.h"
+#include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
 
@@ -54,6 +55,17 @@ namespace emph {
 
       // Declare member data here.
       std::string fTriggerLabel;
+
+      std::string fT0CAENLabel;
+      std::string fLGCaloDataLabel;
+      std::string fTriggerDataLabel;
+      std::string fBACkovDataLabel;
+      std::string fGasCkovDataLabel;
+
+      std::string fT0TRB3Label;
+      std::string fARICHDataLabel;
+      std::string fRPCDataLabel;
+
       std::string fSSDDataLabel;
     };
 
@@ -64,6 +76,15 @@ namespace emph {
     // More initializers here.
     {
       fTriggerLabel = pset.get< std::string >("TriggerLabel");
+
+      fT0CAENLabel = pset.get<std::string>("T0CAENLabel");
+      fLGCaloDataLabel = pset.get<std::string>("LGCaloDataLabel");
+      fBACkovDataLabel = pset.get<std::string>("BACkovDataLabel");
+      fGasCkovDataLabel = pset.get<std::string>("GasCkovDataLabel");
+      fT0TRB3Label = pset.get<std::string>("T0TRB3Label");
+      fARICHDataLabel = pset.get<std::string>("ARICHDataLabel");
+      fRPCDataLabel = pset.get<std::string>("RPCDataLabel");
+
       fSSDDataLabel = pset.get< std::string >("SSDDataLabel");
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
@@ -90,30 +111,30 @@ namespace emph {
       std::string fname = file_path + "/DataQuality/GoodRunsList.txt";
       runList.open(fname.c_str());
       if (!runList.is_open()){
-	std::cout<<"Could not open Good Runs List: "<<fname<<std::endl;
-	std::abort();
+    mf::LogError("DataQuality") << "Could not open Good Runs List: "<< fname <<std::endl;
+    std::abort();
       }
-      
+
       int runNum;
       int subRunNum;
       std::string state;
 
       std::string line;
       while (getline(runList,line)){
-	std::stringstream lineStr(line);
-	lineStr >> runNum >> subRunNum >> state;
-	if (runNum==run && subRunNum==subrun){
-	  if (state=="good")
-	    return SpillQuality::kGood;
-	  else if (state=="bad")
-	    return SpillQuality::kBad;
-	  else if (state=="questionable")
-	    return SpillQuality::kQuestionable;
-	  else if (state=="special")
-	    return SpillQuality::kSpecial;
-	  else
-	    std::cout<<"Should not reach here. Something wrong in list."<<std::endl;
-	}
+    std::stringstream lineStr(line);
+    lineStr >> runNum >> subRunNum >> state;
+    if (runNum==run && subRunNum==subrun){
+      if (state=="good")
+        return SpillQuality::kGood;
+      else if (state=="bad")
+        return SpillQuality::kBad;
+      else if (state=="questionable")
+        return SpillQuality::kQuestionable;
+      else if (state=="special")
+        return SpillQuality::kSpecial;
+      else
+        std::cout<<"Should not reach here. Something wrong in list."<<std::endl;
+    }
       } // end reading in file
 
       return SpillQuality::kNotInList;
@@ -127,30 +148,104 @@ namespace emph {
       std::unique_ptr<dq::EventQuality> eventqual(new dq::EventQuality);
 
       // get trigger waveforms
-      art::Handle< std::vector<emph::rawdata::WaveForm> > trigHandle;
       try {
-	evt.getByLabel(fTriggerLabel, trigHandle);
-	if (!trigHandle->empty()){
-	  // Add in check on ADC of each Trigger PMT to determine coincidence level.
-	  // Need to make some sort of Trigger PMT ADC class first.
-	}
+          art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
+          evt.getByLabel(fTriggerLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasTrigger = true;
+          }
+          // Add in check on ADC of each Trigger PMT to determine coincidence level.
+          // Need to make some sort of Trigger PMT ADC class first.
       }
-      catch(...){
+      catch (...) {
+          eventqual->hasTrigger = false;
       }
-      
-      
+
+      // look for CAEN hits
+      try {
+          art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
+          evt.getByLabel(fT0CAENLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasT0CAEN = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasT0CAEN = false;
+      }
+      try {
+          art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
+          evt.getByLabel(fLGCaloDataLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasLGCaloHits = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasLGCaloHits = false;
+      }
+      try {
+          art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
+          evt.getByLabel(fBACkovDataLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasBACkovHits = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasBACkovHits = false;
+      }
+      try {
+          art::Handle< std::vector<emph::rawdata::WaveForm> > handle;
+          evt.getByLabel(fGasCkovDataLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasGasCkovHits = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasGasCkovHits = false;
+      }
+
+      // look for TRB3 hits
+      try {
+          art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > handle;
+          evt.getByLabel(fT0TRB3Label, handle);
+          if (!handle->empty()) {
+              eventqual->hasT0TRB3 = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasT0TRB3 = false;
+      }
+      try {
+          art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > handle;
+          evt.getByLabel(fARICHDataLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasARICHHits = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasARICHHits = false;
+      }
+      try {
+          art::Handle< std::vector<emph::rawdata::TRB3RawDigit> > handle;
+          evt.getByLabel(fRPCDataLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasRPCHits = true;
+          }
+      }
+      catch (...) {
+          eventqual->hasRPCHits = false;
+      }
+
       // look for SSD hits
-      art::Handle< std::vector<emph::rawdata::SSDRawDigit> > ssdHandle;
       try {
-	evt.getByLabel(fSSDDataLabel, ssdHandle);
-	if (!ssdHandle->empty()) {
-	  eventqual->hasSSDHits = true;
-	}
+          art::Handle< std::vector<emph::rawdata::SSDRawDigit> > handle;
+          evt.getByLabel(fSSDDataLabel, handle);
+          if (!handle->empty()) {
+              eventqual->hasSSDHits = true;
+          }
       }
-      catch(...) {
-	eventqual->hasSSDHits = false;
+      catch (...) {
+          eventqual->hasSSDHits = false;
       }
-      
 
       // Place EventQuality object into event
       evt.put(std::move(eventqual));

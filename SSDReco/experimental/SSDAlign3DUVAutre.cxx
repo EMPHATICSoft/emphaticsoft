@@ -640,7 +640,7 @@ namespace emph {
        bool gotX = this->recoXY(emph::geo::X_VIEW, aSSDClsPtr);
        if (gotX) {
           if (debugIsOn) std::cerr << " Got a 2d XZ track... for evt " << fEvtNum << std::endl;
-	  fTrXY.SetType(rb::XONLY);
+	  fTrXY.SetType(rbex::XONLY);
        }  else  {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
@@ -648,8 +648,8 @@ namespace emph {
        bool gotY = this->recoXY(emph::geo::Y_VIEW, aSSDClsPtr);
        if (gotY) {
           if (debugIsOn) std::cerr << " Got a 2d YZ track... for evt " << fEvtNum << std::endl;
-	  if (fTrXY.Type() == rb::XONLY) fTrXY.SetType(rb::XYONLY);
-	  if (fTrXY.Type() == rb::NONE) fTrXY.SetType(rb::YONLY);
+	  if (fTrXY.Type() == rbex::XONLY) fTrXY.SetType(rbex::XYONLY);
+	  if (fTrXY.Type() == rbex::NONE) fTrXY.SetType(rbex::YONLY);
        }  else  {
            if (debugIsOn) std::cerr << " Got No 2d XZ track... for evt " << fEvtNum << std::endl;
        }   
@@ -659,14 +659,14 @@ namespace emph {
          for (size_t kStU=2; kStU != fNumStations-2; kStU++) {
            if (this->checkUV(emph::geo::U_VIEW, kStU, aSSDClsPtr)) numUVCheck++;
          }
-	 if (numUVCheck == 1) fTrXY.SetType(rb::XYUCONF1);
-	 if (numUVCheck == 2) fTrXY.SetType(rb::XYUCONF2);
+	 if (numUVCheck == 1) fTrXY.SetType(rbex::XYUCONF1);
+	 if (numUVCheck == 2) fTrXY.SetType(rbex::XYUCONF2);
 	 // Not worth doing.. stereo angle clearly wrong, of mis labeled. Well, try it again.. 
          for (size_t kStV=4; kStV != fNumStations; kStV++) {
            this->checkUV(emph::geo::W_VIEW, kStV, aSSDClsPtr);
          }
-	 if (numUVCheck == 3) fTrXY.SetType(rb::XYUCONF3);
-	 if (numUVCheck == 4) fTrXY.SetType(rb::XYUCONF4);
+	 if (numUVCheck == 3) fTrXY.SetType(rbex::XYUCONF3);
+	 if (numUVCheck == 4) fTrXY.SetType(rbex::XYUCONF4);
 	 if (fDo3DFit) {
 	   if (debugIsOn) std::cerr << " .... Considering doing a 3D fit but first check on rough UV constraints... " << std::endl; 
 	   int nnU = this->recoUV(emph::geo::U_VIEW, aSSDClsPtr);

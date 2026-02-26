@@ -14,6 +14,8 @@
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
 #include "SingleTrackAlignment.fcl"
+#include "MakePrimaryVertex.fcl"
+
 
 process_name: CAF
 
@@ -53,13 +55,14 @@ physics:
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
     singletrackalignment: @local::standard_singletrackalignment
+    makeprimaryvertex: @local::standard_makeprimaryvertex
   }
 
   analyzers:{}
 
   makecaf:   [
                dataqual, spillinfo, arichcluster, clust,
-               maketracksegments, makesingletracks, arichring, arichreco, #singletrackalignment,
+               maketracksegments, makesingletracks, arichring, arichreco, makeprimaryvertex, #singletrackalignment,
               # adcreco, backovreco, gasckovreco,
                cafmaker
              ]

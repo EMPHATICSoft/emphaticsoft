@@ -22,7 +22,7 @@ standard_arichreco:
   PD_Darkrate: 406 				#Hz
   Trigger_window: 5				#ns
   PD_FillFactor: 1			
-  PD_Position: 21.82				#cm
+  PD_Position: 17.4				#cm
 }
 
 END_PROLOG

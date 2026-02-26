@@ -86,7 +86,8 @@ namespace emph {
     double      fPXsigma;
     double      fPYmean;
     double      fPYsigma;
-      
+    
+    std::string fPZDist;  
     std::string fXYDistSource;
     std::string fXYHistFile;
     std::string fXYHistName;
@@ -97,8 +98,6 @@ namespace emph {
 
     TH2D*       fXYHist;  
     TH2D*       fPXYHist;
-
-  /***************************************************************************/
 
     // Member variables for the slicing method
     std::string fPhaseSpaceSource; // "Default" and "Sliced" logic
@@ -128,7 +127,6 @@ namespace emph {
     configure(ps);
     GetXYHist();
     GetPXYHist();
-    //GetSlicedHists();
     GetPID();
     
   }
@@ -144,6 +142,7 @@ namespace emph {
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory", "false");
     fZstart        = ps.get<double>("Zstart", -200.); // mm
+    fPZDist        = ps.get<std::string>("pzDist", "Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
@@ -421,7 +420,13 @@ namespace emph {
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
-    double pmag = TMath::Abs(fRand->Gaus(fPmean,fPsigma));
+    double pmag = 0;
+    if(fPZDist == "Gauss")pmag = TMath::Abs(fRand->Gaus(fPmean,fPsigma));
+    else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(fRand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
+    else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl;  
+    
+    //    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+    
     double pb[3];
     double x = 0., y = 0., pxpz = 0., pypz = 0.;
 

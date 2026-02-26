@@ -149,7 +149,7 @@ namespace emph {
 //	  fUpDownFitterFCN->SetDebugOn(true);
 //	  (*fUpDownFitterFCN)(parsOut);
          }
-         fUpStrDwnStrTrack.SetType(rb::XYUW5ST);
+         fUpStrDwnStrTrack.SetType(rbex::XYUW5ST);
          fUpStrDwnStrTrack.SetTrParams(parsOut[0], parsOut[2], parsOut[1], parsOut[3]);
          fUpStrDwnStrTrack.SetTrParamsErrs(parsOutErr[0], parsOutErr[2], parsOutErr[1], parsOutErr[3], 0., 0.);  
 	 // Covariance matrices needs to be studied. 

@@ -73,7 +73,10 @@ namespace emph
         std::cerr << " FastStopAction::Config Last SSD station number is " << fLastStationNumber << std::endl;
       }
       
-    }  
+    }
+
+	
+
   }
 
   //-------------------------------------------------------------
@@ -104,26 +107,28 @@ namespace emph
     if (theStep->GetPostStepPoint() == NULL) return;
     if (theStep->GetPreStepPoint() == NULL) return;
     const CLHEP::Hep3Vector &posFinal = theStep->GetPostStepPoint()->GetPosition(); // end of the step 
-    G4Track * track = theStep->GetTrack();
+    G4Track *track = theStep->GetTrack();
     if (posFinal[2] > fLastZPos)  { track->SetTrackStatus(fStopAndKill); return; } // did it! 
+
 //    std::cerr << " ... At Z " << posFinal[2] << std::endl;
     if (fLastDetectorName == std::string("None")) {
 //      std::cerr << " Leaving FastStopAction::SteppingAction, no end volume defined  " << std::endl;       
        return;
      }
-    if (fLastStationNumber != INT_MAX) {
+    if (fLastStationNumber != INT_MAX || fLastDetectorName.find("None") == std::string::npos) {
       
       if(theStep->GetPreStepPoint()->GetPhysicalVolume() != NULL &&
         theStep->GetPostStepPoint()->GetPhysicalVolume()!= NULL) {
 
        std::string preStepPointName  = theStep->GetPreStepPoint()->GetPhysicalVolume()->GetName();
        std::string postStepPointName  = theStep->GetPostStepPoint()->GetPhysicalVolume()->GetName();
-       std::ostringstream keyNameStrStr; keyNameStrStr << "ssdStation" << fLastStationNumber << "_phys";
+       std::ostringstream keyNameStrStr; keyNameStrStr <<  fLastDetectorName << "_phys";
        std::string keyNameStr(keyNameStrStr.str());
        
        // check if we've exited the last SSD station
        if ((preStepPointName == keyNameStrStr.str()) && 
 	   (postStepPointName.find("world") != std::string::npos)) { 
+//	  std::cout << "track " << track->GetTrackID() << " prestep " << preStepPointName << " poststep " << postStepPointName << std::endl;
 	 track->SetTrackStatus(fStopAndKill); 
 	 return; 
        }

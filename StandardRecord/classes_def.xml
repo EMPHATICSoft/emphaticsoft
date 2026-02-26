@@ -1,6 +1,8 @@
 <lcgdict>
 
- <class name="caf::StandardRecord" ClassVersion="22" >
+ <class name="caf::StandardRecord" ClassVersion="24" >
+  <version ClassVersion="24" checksum="3628156442"/>
+  <version ClassVersion="23" checksum="4189675226"/>
   <version ClassVersion="22" checksum="2417312348"/>
   <version ClassVersion="21" checksum="3831128355"/>
   <version ClassVersion="20" checksum="3285374549"/>
@@ -35,7 +37,8 @@
   <version ClassVersion="10" checksum="1710063260"/>
  </class>
 
- <class name="caf::SREventQual" ClassVersion="10" >
+ <class name="caf::SREventQual" ClassVersion="11" >
+  <version ClassVersion="11" checksum="660893695"/>
   <version ClassVersion="10" checksum="608250607"/>
  </class>
 
@@ -79,7 +82,8 @@
   <version ClassVersion="10" checksum="2585169092"/>
  </class>
 
- <class name="caf::SRLineSegment" ClassVersion="11" >
+ <class name="caf::SRLineSegment" ClassVersion="12" >
+  <version ClassVersion="12" checksum="720201835"/>
   <version ClassVersion="11" checksum="3550353899"/>
   <version ClassVersion="10" checksum="1129822811"/>
  </class>
@@ -89,7 +93,8 @@
   <version ClassVersion="10" checksum="3758140000"/>
  </class>
 
- <class name="caf::SRArichID" ClassVersion="13">
+ <class name="caf::SRArichID" ClassVersion="14">
+  <version ClassVersion="14" checksum="512603529"/>
   <version ClassVersion="13" checksum="1756678077"/>
   <version ClassVersion="12" checksum="1360026226"/>
   <version ClassVersion="11" checksum="199523920"/>
@@ -97,14 +102,16 @@
  </class>
 
 
-<class name="caf::SRPID" ClassVersion="13">
+<class name="caf::SRPID" ClassVersion="14">
+ <version ClassVersion="14" checksum="2435293386"/>
  <version ClassVersion="13" checksum="2023451110"/>
  <version ClassVersion="12" checksum="3547227045"/>
  <version ClassVersion="11" checksum="1925798450"/>
  <version ClassVersion="10" checksum="4080156220"/>
 </class>
 
- <class name="caf::SRVector3D" ClassVersion="10" >
+ <class name="caf::SRVector3D" ClassVersion="11" >
+  <version ClassVersion="11" checksum="54899795"/>
   <version ClassVersion="10" checksum="2884901936"/>
  </class>
 
@@ -128,14 +135,24 @@
  </class>
  <class name="std::vector<caf::SRTrueParticle>" />
 
- <class name="caf::SRTruth" ClassVersion="12" >
+ <class name="caf::SRTruth" ClassVersion="14" >
+  <version ClassVersion="14" checksum="574054196"/>
+  <version ClassVersion="13" checksum="2368466381"/>
   <version ClassVersion="12" checksum="1977587420"/>
   <version ClassVersion="11" checksum="2143789429"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
  <class name="std::vector<caf::SRTruth>" />
 
- <class name="caf::SRTrueSSDHits" ClassVersion="10" >
+ <class name="caf::SRSimpleTruth" ClassVersion="12" >
+  <version ClassVersion="12" checksum="1460975276"/>
+  <version ClassVersion="11" checksum="1181251412"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRSimpleTruth>" />
+
+ <class name="caf::SRTrueSSDHits" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2580746351"/>
   <version ClassVersion="10" checksum="3083444448"/>
  </class>
  <class name="std::vector<caf::SRTrueSSDHits>" /> 
@@ -148,13 +165,19 @@
   <version ClassVersion="11" checksum="2803008954"/>
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
+ <class name="std::vector<caf::SRSpacePoint>" />
 
  <class name="caf::SRSpacePointBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="3521266362"/>
   <version ClassVersion="10" checksum="3550546688"/>
  </class>
 
- <class name="caf::SRTrack" ClassVersion="15" >
+ <class name="std::vector<ROOT::Math::XYZVector>" />
+
+ <class name="caf::SRTrack" ClassVersion="18" >
+  <version ClassVersion="18" checksum="2746670426"/>
+  <version ClassVersion="17" checksum="1365847016"/>
+  <version ClassVersion="16" checksum="1981216120"/>
   <version ClassVersion="15" checksum="1255481665"/>
   <version ClassVersion="14" checksum="1919816117"/>
   <version ClassVersion="13" checksum="2826463250"/>
@@ -162,13 +185,46 @@
   <version ClassVersion="11" checksum="3996263664"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
+ <class name="std::vector<caf::SRTrack>" />
 
- <class name="caf::SRTrackBranch" ClassVersion="11" >
+ <class name="caf::SRBeamTrack" ClassVersion="14" >
+  <version ClassVersion="14" checksum="266601553"/>
+  <version ClassVersion="13" checksum="642125322"/>
+  <version ClassVersion="12" checksum="266601553"/>
+  <version ClassVersion="11" checksum="1245487592"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRBeamTrack>" />
+
+ <class name="caf::SRSecondaryTrack" ClassVersion="11" >
+  <version ClassVersion="11" checksum="2112775582"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRSecondaryTrack>" />
+
+ <!--- class name="caf::SRTrackBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="2711109648"/>
   <version ClassVersion="10" checksum="3550546688"/>
+ </class> -->
+
+ <class name="caf::SRVertex" ClassVersion="14" >
+  <version ClassVersion="14" checksum="1823750376"/>
+  <version ClassVersion="13" checksum="1779492603"/>
+  <version ClassVersion="12" checksum="3585192615"/>
+  <version ClassVersion="11" checksum="2951360745"/>
+  <version ClassVersion="10" checksum="1"/>
+ </class>
+ <class name="std::vector<caf::SRVertex>" />
+
+ <class name="caf::SRVertexBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="1927031340"/>
+  <version ClassVersion="10" checksum="1"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="15" >
+ <class name="caf::SRTrackSegment" ClassVersion="18" >
+  <version ClassVersion="18" checksum="765446084"/>
+  <version ClassVersion="17" checksum="2809269421"/>
+  <version ClassVersion="16" checksum="218284582"/>
   <version ClassVersion="15" checksum="980261979"/>
   <version ClassVersion="14" checksum="2487066300"/>
   <version ClassVersion="13" checksum="1227458893"/>
@@ -176,6 +232,7 @@
   <version ClassVersion="11" checksum="2984398867"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
+ <class name="std::vector<caf::SRTrackSegment>" />
 
  <class name="caf::SRTrackSegmentBranch" ClassVersion="11" >
   <version ClassVersion="11" checksum="807789704"/>

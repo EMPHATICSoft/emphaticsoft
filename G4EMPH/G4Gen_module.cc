@@ -57,6 +57,7 @@ namespace emph {
     void endRun(art::Run& run);
 
   private:
+    bool                fSaveTextFiles;
     std::string         fGeneratorLabel;
 
     emph::G4Alg*         fG4Alg;     ///< G4Helper object
@@ -75,7 +76,8 @@ namespace emph {
   , fG4Alg(0)
   , fG4AlgPSet(pset.get< fhicl::ParameterSet >("G4AlgPSet") )
   {
-  
+
+    fSaveTextFiles = fG4AlgPSet.get<bool>("SaveTextFiles");
     fGeneratorLabel = fG4AlgPSet.get<std::string>("GenModuleLabel");
 
     // get the random number seed, use a random default if not specified

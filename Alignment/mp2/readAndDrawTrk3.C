@@ -181,7 +181,7 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
           mgdummy->Fit("f1","Q");   
           auto *params = f1->GetParameters();
           auto *errors = f1->GetParErrors();
-          std::cout<<"x shifts "<<plane<<station<<": "<<errors[0]<<std::endl;
+          //std::cout<<"x shifts "<<plane<<station<<": "<<errors[0]<<std::endl;
 
           auto ge = new TGraphErrors(1);
           ge->SetPoint(0,(double)station,params[0]);
@@ -214,25 +214,27 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
   for (int plane=0; plane<3; plane++){
     for (int sensor=0; sensor<2; sensor++){
       for (int station=0; station<8; station++){
-        TExec *ex = new TExec("ex","DrawText();");
-        mgxrv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
-        mgxrv[plane][sensor][station]->Draw("AP");
-        mgxrv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
-        mgxrv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
-        mgxrv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
-        mgxrv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
-        mgxrv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mm]");
-        mgxrv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
-        zero->Draw();
-        //legend2->Draw();
-        gPad->Modified();
-        gPad->Update();
-        std::string planetype = "";
-        if (plane == 0) planetype = "x";
-        if (plane == 1) planetype = "y";
-        if (plane == 2) planetype = "u";
-        c2->SaveAs(Form("xshifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
-        //c2->SaveAs(Form("xshifts_runs_%i%i%i.png",station,plane,sensor));
+	if (mgxrv[plane][sensor][station]->GetListOfGraphs() != NULL){
+          TExec *ex = new TExec("ex","DrawText();");
+          mgxrv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
+          mgxrv[plane][sensor][station]->Draw("AP");
+          mgxrv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
+          mgxrv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
+          mgxrv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
+          mgxrv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
+          mgxrv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mm]");
+          mgxrv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
+          zero->Draw();
+          //legend2->Draw();
+          gPad->Modified();
+          gPad->Update();
+          std::string planetype = "";
+          if (plane == 0) planetype = "x";
+          if (plane == 1) planetype = "y";
+          if (plane == 2) planetype = "u";
+          c2->SaveAs(Form("xshifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+          //c2->SaveAs(Form("xshifts_runs_%i%i%i.png",station,plane,sensor));
+	}
       }
     }
   }
@@ -272,7 +274,7 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
           mgdummy->Fit("f1","Q");
           auto *params = f1->GetParameters();
           auto *errors = f1->GetParErrors();
-          std::cout<<"y shifts "<<plane<<station<<": "<<errors[0]<<std::endl;
+          //std::cout<<"y shifts "<<plane<<station<<": "<<errors[0]<<std::endl;
 
           auto ge = new TGraphErrors(1);
           ge->SetPoint(0,(double)station,params[0]);
@@ -305,24 +307,26 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
   for (int plane=0; plane<3; plane++){
     for (int sensor=0; sensor<2; sensor++){
       for (int station=0; station<8; station++){
-        TExec *ex = new TExec("ex","DrawText();");
-        mgyrv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
-        mgyrv[plane][sensor][station]->Draw("AP");
-        mgyrv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
-        mgyrv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
-        mgyrv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
-        mgyrv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mm]");
-        mgyrv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
-        mgyrv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
-        zero->Draw();
-        //legend2->Draw();
-        gPad->Modified();
-        gPad->Update();
-        std::string planetype = "";
-        if (plane == 0) planetype = "x";
-        if (plane == 1) planetype = "y";
-        if (plane == 2) planetype = "u";
-        c2->SaveAs(Form("yshifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+        if (mgyrv[plane][sensor][station]->GetListOfGraphs() != NULL){
+          TExec *ex = new TExec("ex","DrawText();");
+          mgyrv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
+          mgyrv[plane][sensor][station]->Draw("AP");
+          mgyrv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
+          mgyrv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
+          mgyrv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
+          mgyrv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mm]");
+          mgyrv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
+          mgyrv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
+          zero->Draw();
+          //legend2->Draw();
+          gPad->Modified();
+          gPad->Update();
+          std::string planetype = "";
+          if (plane == 0) planetype = "x";
+          if (plane == 1) planetype = "y";
+          if (plane == 2) planetype = "u";
+          c2->SaveAs(Form("yshifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+        } 
       }
     }
   }
@@ -360,7 +364,7 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
           mgdummy->Fit("f1","Q");
           auto *params = f1->GetParameters();
           auto *errors = f1->GetParErrors();
-          std::cout<<"z shifts "<<plane<<station<<": "<<errors[0]<<std::endl;
+          //std::cout<<"z shifts "<<plane<<station<<": "<<errors[0]<<std::endl;
 
           auto ge = new TGraphErrors(1);
           ge->SetPoint(0,(double)station,params[0]);
@@ -393,24 +397,26 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
   for (int plane=0; plane<3; plane++){
     for (int sensor=0; sensor<2; sensor++){
       for (int station=0; station<8; station++){
-        TExec *ex = new TExec("ex","DrawText();");
-        mgzrv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
-        mgzrv[plane][sensor][station]->Draw("AP");
-        mgzrv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
-        mgzrv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
-        mgzrv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
-        mgzrv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mm]");
-        mgzrv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
-        mgzrv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
-        zero->Draw();
-        //legend2->Draw();
-        gPad->Modified();
-        gPad->Update();
-        std::string planetype = "";
-        if (plane == 0) planetype = "x";
-        if (plane == 1) planetype = "y";
-        if (plane == 2) planetype = "u";
-        c2->SaveAs(Form("zshifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+        if (mgzrv[plane][sensor][station]->GetListOfGraphs() != NULL){
+          TExec *ex = new TExec("ex","DrawText();");
+          mgzrv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
+          mgzrv[plane][sensor][station]->Draw("AP");
+          mgzrv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
+          mgzrv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
+          mgzrv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
+          mgzrv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mm]");
+          mgzrv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
+          mgzrv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
+          zero->Draw();
+          //legend2->Draw();
+          gPad->Modified();
+          gPad->Update();
+          std::string planetype = "";
+          if (plane == 0) planetype = "x";
+          if (plane == 1) planetype = "y";
+          if (plane == 2) planetype = "u";
+          c2->SaveAs(Form("zshifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+        }
       }
     }
   }
@@ -448,7 +454,7 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
           mgdummy->Fit("f1","Q");
           auto *params = f1->GetParameters();
           auto *errors = f1->GetParErrors();
-  	  std::cout<<"phi shifts "<<plane<<station<<": "<<errors[0]<<std::endl;	
+  	  //std::cout<<"phi shifts "<<plane<<station<<": "<<errors[0]<<std::endl;	
 
           auto ge = new TGraphErrors(1);
           ge->SetPoint(0,(double)station,params[0]);
@@ -481,24 +487,26 @@ void readAndDrawTrk3(const char* list, const char* ssdlist){
   for (int plane=0; plane<3; plane++){
     for (int sensor=0; sensor<2; sensor++){
       for (int station=0; station<8; station++){
-        TExec *ex = new TExec("ex","DrawText();");
-        mgphirv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
-        mgphirv[plane][sensor][station]->Draw("AP");
-        mgphirv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
-        mgphirv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
-        mgphirv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
-        mgphirv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mrad]");
-        mgphirv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
-        mgphirv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
-        zero->Draw();
-        //legend2->Draw();
-        gPad->Modified();
-        gPad->Update();
-        std::string planetype = "";
-        if (plane == 0) planetype = "x";
-        if (plane == 1) planetype = "y";
-        if (plane == 2) planetype = "u";
-        c2->SaveAs(Form("phishifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+        if (mgphirv[plane][sensor][station]->GetListOfGraphs() != NULL){
+          TExec *ex = new TExec("ex","DrawText();");
+          mgphirv[plane][sensor][station]->GetListOfFunctions()->Add(ex);
+          mgphirv[plane][sensor][station]->Draw("AP");
+          mgphirv[plane][sensor][station]->GetXaxis()->SetLabelSize(0);
+          mgphirv[plane][sensor][station]->GetXaxis()->SetTickLength(0);
+          mgphirv[plane][sensor][station]->GetXaxis()->SetTitle("Run Number");
+          mgphirv[plane][sensor][station]->GetYaxis()->SetTitle("Shifts [mrad]");
+          mgphirv[plane][sensor][station]->GetXaxis()->SetTitleOffset(1.5);
+          mgphirv[plane][sensor][station]->GetYaxis()->SetLabelSize(0.04);
+          zero->Draw();
+          //legend2->Draw();
+          gPad->Modified();
+          gPad->Update();
+          std::string planetype = "";
+          if (plane == 0) planetype = "x";
+          if (plane == 1) planetype = "y";
+          if (plane == 2) planetype = "u";
+          c2->SaveAs(Form("phishifts_runs_%i%s%i.png",station,planetype.c_str(),sensor));
+        }
       }
     }
   }

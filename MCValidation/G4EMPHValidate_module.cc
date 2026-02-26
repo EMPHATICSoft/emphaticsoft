@@ -146,12 +146,12 @@ namespace emph {
       
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
 	auto ssdv = (*ssdHitH)[idx];
-	fSSDx.push_back(ssdv.GetX());
-	fSSDy.push_back(ssdv.GetY());
-	fSSDz.push_back(ssdv.GetZ());
-	fSSDpx.push_back(ssdv.GetPx());
-	fSSDpy.push_back(ssdv.GetPy());
-	fSSDpz.push_back(ssdv.GetPz());
+	fSSDx.push_back(ssdv.X());
+	fSSDy.push_back(ssdv.Y());
+	fSSDz.push_back(ssdv.Z());
+	fSSDpx.push_back(ssdv.Px());
+	fSSDpy.push_back(ssdv.Py());
+	fSSDpz.push_back(ssdv.Pz());
       }
       fSSDTree->Fill();
 

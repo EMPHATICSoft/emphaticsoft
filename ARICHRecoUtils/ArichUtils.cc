@@ -20,66 +20,97 @@
 #include <map>
 #include <unordered_map>
 
+const int NUMPARTICLES = 3;
+const double MASSES[NUMPARTICLES] = {0.1395701, 0.493677, 0.938272};
+const char* PNAMES[NUMPARTICLES] = {"Pion", "Kaon", "Proton"};
+const std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
+
 namespace arichreco
 {
 
-	const int NUMPARTICLES = 3;
-	const double MASSES[NUMPARTICLES] = {0.1395701, 0.493677, 0.938272};
-	const char* PNAMES[NUMPARTICLES] = {"Pion", "Kaon", "Proton"}; 
-	const std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
+   ARICH_UTILS::ARICH_UTILS() {
+    std::cout << "CREATING ARICHUTILS" << std::endl;
+    }
+//=======================================================//
+   ARICH_UTILS::~ARICH_UTILS() { 
+    delete Detector;
+    delete Arich;
+    }
+//=======================================================//
+   void ARICH_UTILS::SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos, TString file) { 
+	PDfile = file;
+	Detector = new arichreco::Detector(true, PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile);
+   }
+//=======================================================//
+   void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double down_pos, double up_thick, double down_thick) {
+	Arich = new arichreco::Arich(Detector, up_n, down_n, up_pos, down_pos, up_thick, down_thick);
+   }
 
-	ARICH_UTILS::ARICH_UTILS() {
-		std::cout << "CREATING ARICHUTILS" << std::endl;
-	}
-
-	ARICH_UTILS::~ARICH_UTILS() {
-		delete Detector;
-		delete Arich;
-	}
-
-	void ARICH_UTILS::SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos, TString file) { 
-		PDfile = file;
-		Detector = new arichreco::Detector(true, PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile);
-	}
-
-	void ARICH_UTILS::SetUpArich(double up_n, double down_n, double up_pos, double down_pos, double up_thick, double down_thick) {
-		Arich = new arichreco::Arich(Detector, up_n, down_n, up_pos, down_pos, up_thick, down_thick);
-	}
-
-	TH2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int, int>> cluster) {
-		TH2D *fARICHNHitsPxl = new TH2D();        
-		fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
-		fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
-		fARICHNHitsPxl->SetBins(ARICHBins.size() - 1, ARICHBins.data(), ARICHBins.size() - 1, ARICHBins.data());
+//=======================================================//
+   TH2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int, int>> cluster) {
+	TH2D *fARICHNHitsPxl = new TH2D();        
+	fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
+	fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
+	fARICHNHitsPxl->SetBins(ARICHBins.size() - 1, ARICHBins.data(), ARICHBins.size() - 1, ARICHBins.data());
 		
-		art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-		for (size_t i = 0; i < cluster.size(); i++) {
-			int board = cluster[i].first;
-			int channel = cluster[i].second; 
-			emph::cmap::EChannel echan(emph::cmap::TRB3, board, channel);
-			emph::cmap::DChannel dchan = cmap->DetChan(echan);
-			int pmt = dchan.HiLo();
-			int dch = dchan.Channel();
+	art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+	for (size_t i = 0; i < cluster.size(); i++) {
+		int board = cluster[i].first;
+		int channel = cluster[i].second; 
+		emph::cmap::EChannel echan(emph::cmap::TRB3, board, channel);
+		emph::cmap::DChannel dchan = cmap->DetChan(echan);
+		int pmt = dchan.HiLo();
+		int dch = dchan.Channel();
 			
-			int pxlxbin0 = 25 - pmt * 9 + (pmt / 3) * 27;
-			int pxlybin0 = (pmt / 3) * 9;
-			int pmtrow = dch / 8;
-			int pmtcol = dch - pmtrow * 8;
-			int pxlxbin = pxlxbin0 - pmtcol;
-			int pxlybin = pxlybin0 + pmtrow;
-			int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin + 1);
-			int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin + 1);
-			fARICHNHitsPxl->Fill(pxlx, pxly);
-		}
-		return fARICHNHitsPxl;
+		int pxlxbin0 = 25 - pmt * 9 + (pmt / 3) * 27;
+		int pxlybin0 = (pmt / 3) * 9;
+		int pmtrow = dch / 8;
+		int pmtcol = dch - pmtrow * 8;
+		int pxlxbin = pxlxbin0 - pmtcol;
+		int pxlybin = pxlybin0 + pmtrow;
+		int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin + 1);
+		int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin + 1);
+		fARICHNHitsPxl->Fill(pxlx, pxly);
 	}
+	return fARICHNHitsPxl;
+  }
 
-	// Compare every bin of an event histogram to a bin in some probability distribution,
-	// to give the negative log-likelihood of that event under that distribution
-	double ARICH_UTILS::computeLogLikelihood(TH2D* event, TH2D* distribution) {
-		double darkrate = Detector->getDarkRate() * Detector->getWin();
-		int nBins = event->GetNcells();
-		int test = distribution->GetNcells();
+//=======================================================//
+ TGraph2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int,int>> cluster, std::vector<float> cluster_times){
+
+  TGraph2D *g = new TGraph2D();
+
+  TH2D *fARICHNHitsPxl = new TH2D();fARICHNHitsPxl->SetBins(ARICHBins.size() - 1, ARICHBins.data(), ARICHBins.size() - 1, ARICHBins.data());
+
+  art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+  for (size_t i = 0; i < cluster.size(); i++) {
+       int board = cluster[i].first;
+       int channel = cluster[i].second;
+       emph::cmap::EChannel echan(emph::cmap::TRB3, board, channel);
+       emph::cmap::DChannel dchan = cmap->DetChan(echan);
+       int pmt = dchan.HiLo();
+       int dch = dchan.Channel();
+
+       int pxlxbin0 = 25 - pmt * 9 + (pmt / 3) * 27;
+       int pxlybin0 = (pmt / 3) * 9;
+       int pmtrow = dch / 8;
+       int pmtcol = dch - pmtrow * 8;
+       int pxlxbin = pxlxbin0 - pmtcol;
+       int pxlybin = pxlybin0 + pmtrow;
+       int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin + 1);
+       int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin + 1);
+      
+	g->SetPoint(i,pxlx, pxly, cluster_times[i]);
+  }
+
+  delete fARICHNHitsPxl;
+  return g;
+}
+//=======================================================//
+  double ARICH_UTILS::computeLogLikelihood(TH2D* event, TH2D* distribution) {
+     double darkrate = Detector->getDarkRate() * Detector->getWin();
+     int nBins = event->GetNcells();
+     int test = distribution->GetNcells();
 		double logLikelihood = 0.;
 		if (nBins != test) {
 			std::cerr << "ERROR: Bin Mismatch" << std::endl;
@@ -94,74 +125,74 @@ namespace arichreco
 		}
 		return -2 * logLikelihood;
 	}
-
-	double ARICH_UTILS::calcBeta(int particlei, double mom) {
-		double M = MASSES[particlei];
-		return sqrt(1. / (1. + M * M / (mom * mom)));
-	}
-
-	double ARICH_UTILS::calcP(double mass, double beta) {
-		return sqrt(mass * mass / (pow(beta, -2) - 1));
-	}
-
-	std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, 
+//=======================================================//
+double ARICH_UTILS::calcBeta(int particlei, double mom) {
+	double M = MASSES[particlei];
+	return sqrt(1. / (1. + M * M / (mom * mom)));
+}
+//=======================================================//
+double ARICH_UTILS::calcP(double mass, double beta) {
+	return sqrt(mass * mass / (pow(beta, -2) - 1));	
+}
+//=======================================================//
+std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, 
 	 std::vector<TVector3> pos0s,std::vector<TVector3> dir0s) {
 
-		std::vector<std::vector<TH2D>> calculatedPdfs;
-		std::vector<double> LogLike;
-		TH2D calculatedPdf;
+	std::vector<std::vector<TH2D>> calculatedPdfs;
+	std::vector<double> LogLike;
+	TH2D calculatedPdf;
 
-		for (int i = 0; i < np; i++) {
-			std::vector<TH2D> particleiCalculatedPdfs;
-			hypothesis.pos = pos0s[i];
-			hypothesis.dir = dir0s[i];
+	for (int i = 0; i < np; i++) {
+		std::vector<TH2D> particleiCalculatedPdfs;
+		hypothesis.pos = pos0s[i];
+		hypothesis.dir = dir0s[i];
 			
-			for (int p = 0; p < NUMPARTICLES; p++) { 
-				//NUMPARTICLES = number of possible particles for now = 3	
-				hypothesis.beta =  calcBeta(p, mom[i]);
-				hypothesis.name = PNAMES[p];
+		for (int p = 0; p < NUMPARTICLES; p++) { 
+			//NUMPARTICLES = number of possible particles for now = 3	
+			hypothesis.beta =  calcBeta(p, mom[i]);
+			hypothesis.name = PNAMES[p];
 			
-				calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
-				particleiCalculatedPdfs.push_back(calculatedPdf);
-			}
-			calculatedPdfs.push_back(particleiCalculatedPdfs);
-			particleiCalculatedPdfs.clear();
+			calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
+			particleiCalculatedPdfs.push_back(calculatedPdf);
 		}
+		calculatedPdfs.push_back(particleiCalculatedPdfs);
+		particleiCalculatedPdfs.clear();
+	}
 
-		int numCombinations = TMath::Power(NUMPARTICLES, np);
-		double minLoglikelihood = 1E10;
-		TH2D *hs = nullptr;
+	int numCombinations = TMath::Power(NUMPARTICLES, np);
+	double minLoglikelihood = 1E10;
+	TH2D *hs = nullptr;
 			
-		for (int i = 0; i < numCombinations; i++) {
-			int index = i;
-			if (i > 0 && hs != 0 && hs != nullptr) { delete hs; hs = nullptr; }
-			char* stackedTitle = Form("PDF%i", i);
-			//		int combination[np];
-			for (int k=np-1; k>=0; k--) { 
-				int p = index % NUMPARTICLES;
-				index = index / NUMPARTICLES;
-				//	combination[k] = p;
-				stackedTitle = Form("%s_%s", stackedTitle, PNAMES[p]);
-				if(k==np-1) {
-					hs=(TH2D*)calculatedPdfs[k][p].Clone();
-				}
-				else for(int j=1;j<=calculatedPdfs[k][p].GetNcells();j++) {
-					hs->SetBinContent(j,hs->GetBinContent(j)+ calculatedPdfs[k][p].GetBinContent(j));
-				}
-			
+	for (int i = 0; i < numCombinations; i++) {
+		int index = i;
+		if (i > 0 && hs != 0 && hs != nullptr) { delete hs; hs = nullptr; }
+		char* stackedTitle = Form("PDF%i", i);
+		//int combination[np];
+		for (int k=np-1; k>=0; k--) { 
+			int p = index % NUMPARTICLES;
+			index = index / NUMPARTICLES;
+			//combination[k] = p;
+			stackedTitle = Form("%s_%s", stackedTitle, PNAMES[p]);
+			if(k==np-1) {
+				hs=(TH2D*)calculatedPdfs[k][p].Clone();
 			}
+			else for(int j=1;j<=calculatedPdfs[k][p].GetNcells();j++) {
+				hs->SetBinContent(j,hs->GetBinContent(j)+ calculatedPdfs[k][p].GetBinContent(j));
+			}
+			
+		}
 			//hs->SetTitle(stackedTitle);
-			double logLikelihood = computeLogLikelihood(hist, hs);
-			LogLike.push_back(logLikelihood);
-		}
-		if (hs != nullptr) { delete hs; hs = nullptr; }
-		calculatedPdfs.clear();
-		return LogLike;		
+		double logLikelihood = computeLogLikelihood(hist, hs);
+		LogLike.push_back(logLikelihood);
+	}
+	if (hs != nullptr) { delete hs; hs = nullptr; }
+	calculatedPdfs.clear();
+	return LogLike;		
 		
-	} //end IdentifyMultiParticle
+} //end IdentifyMultiParticle
 
-	//.......................................................................
-	std::vector<double> ARICH_UTILS::identifyParticle(TH2D* eventHist, float particleMom, TVector3 pos0, TVector3 dir0) {
+//.......................................................................
+std::vector<double> ARICH_UTILS::identifyParticle(TH2D* eventHist, float particleMom, TVector3 pos0, TVector3 dir0) {
 
 		std::vector<double> loglikes;
 		particleInfoStruct hypothesis;
@@ -199,7 +230,24 @@ namespace arichreco
 		}
 		return calculatedPdfs;
 	}
+	 //.......................................................................
+	 std::vector<TH2D> ARICH_UTILS::GetPDF(double mom, TVector3 pos0s, TVector3 dir0s) {
+                std::vector<TH2D> calculatedPdfs;
+                arichreco::particleInfoStruct hypothesis;
+                hypothesis.pos = pos0s;
+                hypothesis.dir = dir0s;
+                for (int p = 0; p < NUMPARTICLES; p++) { //NUMPARTICLES = number of possible particles for now = 3
 
+                hypothesis.beta =  calcBeta(p, mom);
+                hypothesis.name = PNAMES[p];
+
+                TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", 0, p));
+                        
+                calculatedPdfs.push_back(calculatedPdf);
+                }
+                return calculatedPdfs;
+        }
+	
 	//.......................................................................
 	std::vector<double> ARICH_UTILS::recoCherenkov(TH2Poly* eventHist, int nDetected, std::vector<TVector3> pos0s, std::vector<TVector3> dir0s) {
 		

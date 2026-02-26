@@ -285,10 +285,10 @@ namespace emph {
         if (debugIsOn) std::cerr << " .... At station " << kSt << " Sensor " << kSe << " Board " 
                                   << aFERBoard << " chanModule " << aChanModule << std::endl;
         for (std::vector<sim::SSDHit>::const_iterator it=theSSDHits->cbegin(); it != theSSDHits->cend(); it++) {
-          if (it->GetStation() != static_cast<int>(kSt)) continue;
-          if (it->GetSensor() != static_cast<int>(kSe)) continue;
-          size_t kStrip = static_cast<size_t>(it->GetStrip());
-          const double deTot = it->GetDE(); 
+          if (it->Station() != static_cast<int>(kSt)) continue;
+          if (it->Sensor() != static_cast<int>(kSe)) continue;
+          size_t kStrip = static_cast<size_t>(it->Strip());
+          const double deTot = it->DE(); 
           if (debugIsOn) std::cerr << " .... Storing strip " << kStrip << " deTot " << deTot << std::endl;
         
           if (static_cast<int>(kStrip) > fMaxStripNumber) continue; // Should not happen 

@@ -17,46 +17,46 @@ namespace caf
       virtual ~SRVector3D();
 
 #ifndef __castxml__
-      SRVector3D(float x, float y, float z);
+      SRVector3D(double x, double y, double z);
       /// Easy conversion from TVector3
       SRVector3D(const TVector3& v);
 
-      void SetXYZ(float x, float y, float z);
+      void SetXYZ(double x, double y, double z);
 
       /// Easy conversion back to TVector3
       operator TVector3() const;
 
-      void SetX(float _x){x = _x;}
-      void SetY(float _y){y = _y;}
-      void SetZ(float _z){z = _z;}
+      void SetX(double _x){x = _x;}
+      void SetY(double _y){y = _y;}
+      void SetZ(double _z){z = _z;}
 
-      float X() const {return x;}
-      float Y() const {return y;}
-      float Z() const {return z;}
+      double X() const {return x;}
+      double Y() const {return y;}
+      double Z() const {return z;}
 
       // The more common TVector3 operations, mostly for use with TTree::Draw
       //
       // NB: you need to specify the initial "rec." when using these
-      float Mag2() const {return x*x+y*y+z*z;}
-      float Mag() const {return sqrt(Mag2());}
-      float Dot(const SRVector3D& v) const {return x*v.x + y*v.y + z*v.z;}
+      double Mag2() const {return x*x+y*y+z*z;}
+      double Mag() const {return sqrt(Mag2());}
+      double Dot(const SRVector3D& v) const {return x*v.x + y*v.y + z*v.z;}
       SRVector3D Cross(const SRVector3D& v){
-	 float cx = y*v.z - z*v.y;
-	 float cy = -(x*v.z - z*v.x);
-	 float cz = x*v.y - y*v.x;
+	 double cx = y*v.z - z*v.y;
+	 double cy = -(x*v.z - z*v.x);
+	 double cz = x*v.y - y*v.x;
 	 SRVector3D c(cx,cy,cz);
 	 return c;
       }
       SRVector3D Unit() const
       {
-	const float m = Mag();
+	const double m = Mag();
 	return SRVector3D(x/m, y/m, z/m);
       }
 #endif
       
-      float x;
-      float y;
-      float z;
+      double x;
+      double y;
+      double z;
     };
 
 } // end namespace

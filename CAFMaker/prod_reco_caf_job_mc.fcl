@@ -1,0 +1,69 @@
+#include "Services.fcl"
+
+#include "CAFMaker.fcl"
+
+#include "FillDataQuality.fcl"
+#include "SpillInfo.fcl"
+#include "MakeArichCluster.fcl"
+#include "ARICHReco.fcl"
+#include "MakeRing.fcl"
+#include "MakeSSDClusters.fcl"
+#include "ADCReco.fcl"
+#include "BACkovHitReco.fcl"
+#include "GasCkovHitReco.fcl"
+#include "MakeTrackSegments.fcl"
+#include "MakeSingleTracks.fcl"
+#include "MakePrimaryVertex.fcl"
+
+process_name: CAF
+
+services:
+{
+  # Load the service that manages root files for histograms.
+  TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
+  scheduler: { wantSummary: false }
+  TimeTracker: {}
+  @table::standard_services
+
+  IFBeam:{}
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type: RootInput
+  maxEvents:   -1
+}
+
+physics:
+{
+  producers:
+  {
+    dataqual:     @local::standard_dataqual
+    spillinfo:    @local::standard_spillinfo
+    arichcluster: @local::standard_arich_cluster
+    arichreco:    @local::standard_arichreco
+    arichring:    @local::standard_arich_ring
+    clust:        @local::standard_ssdclust
+
+    maketracksegments: @local::standard_maketracksegments
+    makesingletracks: @local::standard_makesingletracks
+    makeprimaryvertex: @local::standard_makeprimaryvertex
+
+    cafmaker:     @local::standard_cafmaker
+
+  }
+
+  analyzers:{}
+
+  makecaf:   [
+               dataqual, spillinfo, arichcluster, clust,
+               maketracksegments, makesingletracks, makeprimaryvertex,
+	       arichring, arichreco, cafmaker
+             ]
+
+}
+physics.producers.clust.FillTTree: false
+physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's
+physics.producers.clust.SSDRawLabel: "raw:SSD"
+physics.producers.clust.CheckDQ: false

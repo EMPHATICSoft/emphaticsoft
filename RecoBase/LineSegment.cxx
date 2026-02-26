@@ -32,13 +32,13 @@ namespace rb {
     double dy = x1.Y() - x0.Y();
     double dz = x1.Z() - x0.Z();
     
-    TVector3 v(dx,dy,dz);
-    TVector3 vu = v.Unit();
+    ROOT::Math::XYZVector v(dx,dy,dz);
+    auto vu = v.Unit();
 
-    TVector3 P(x,y,z);
-    TVector3 Px0 = TVector3(x0) - P;
+    ROOT::Math::XYZVector P(x,y,z);
+    auto Px0 = x0 - P;
 
-    return Px0.Cross(vu).Mag();
+    return sqrt(Px0.Cross(vu).Mag2());
 
   }
 

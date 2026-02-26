@@ -442,15 +442,15 @@ namespace emph {
     if (tracksegmentv->size() == 3) {
       rb::Track beamtrk;
       beamtrk.Add(tsv[0]);
-      beamtrk.SetP(tsv[0].P());
-      beamtrk.SetVtx(tsv[0].Vtx());
+      beamtrk.mom = tsv[0].mom;
+      beamtrk.vtx = tsv[0].vtx;
       trackv->push_back(beamtrk);
 
       rb::Track sectrk;
       sectrk.Add(tsv[1]);
       sectrk.Add(tsv[2]);
-      sectrk.SetP(sectrkp); // this should come from an analysis of the bend angle between track segments 1 and 2.
-      sectrk.SetVtx(sectrkvtx); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
+      sectrk.mom.SetCoordinates(sectrkp); // this should come from an analysis of the bend angle between track segments 1 and 2.
+      sectrk.vtx.SetCoordinates(sectrkvtx); // this should come from a calculation of the intersection or point of closest approach between track segments 0 and 1.
       trackv->push_back(sectrk);
     }
 

@@ -1,28 +1,28 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRTrackBranch.cxx
-// \brief   An SRTrackBranch contains vectors of SRTracks.
+// \file    SRVertexBranch.cxx
+// \brief   An SRVertexBranch contains vectors of SRVertexs.
 //          It is intended for use in the Common Analysis ROOT trees.
 ////////////////////////////////////////////////////////////////////////
 
-#include "StandardRecord/SRTrackBranch.h"
+#include "StandardRecord/SRVertexBranch.h"
 
 namespace caf
 {
-  SRTrackBranch::SRTrackBranch():
-    ntrk(-1)
+  SRVertexBranch::SRVertexBranch():
+    nvtx(-1)
   {
-    trk.clear();
+    vtx.clear();
   }
 
   //--------------------------------------------------------------------
-  SRTrackBranch::~SRTrackBranch()
+  SRVertexBranch::~SRVertexBranch()
   {
   }
 
   //--------------------------------------------------------------------
-  void SRTrackBranch::fillSizes()
+  void SRVertexBranch::fillSizes()
   {
-    ntrk = trk.size();
+    nvtx = vtx.size();
   }
 
 } // end namespace caf

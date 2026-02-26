@@ -90,4 +90,4 @@ install_source()
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE EventDisplay)
 
-#add_subdirectory(WebDisplay)
+add_subdirectory(WebDisplay)

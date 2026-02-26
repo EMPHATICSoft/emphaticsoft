@@ -67,8 +67,8 @@ private:
     int nRadii = 140;
     int nPoints = 360;
     
-    int rows = 100;
-    int cols = 100;
+    int rows = 150;
+    int cols = 150;
     TH2D* fevent_histo;
 
     std::vector<std::pair<double, double>> edges;

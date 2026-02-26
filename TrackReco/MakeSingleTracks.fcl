@@ -5,13 +5,12 @@ standard_makesingletracks:
   module_type: MakeSingleTracks
   CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
   ClusterLabel:      "clust"
-  G4Label:           "geantgen"
   CheckTrackSeg:     true
   TrkSegLabel:       "maketracksegments" 
   ShortOn:           true
   PBeamTmp:          120               # Change beam momentum here --> make more sophisticated later
 				     # SpillInfo for data, RunHistory if application
-  LessStrict:        false
+  LessStrict:        true
 }
 
 END_PROLOG

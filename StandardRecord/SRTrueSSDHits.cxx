@@ -8,21 +8,9 @@
 
 namespace caf
 {
-  SRTrueSSDHits::SRTrueSSDHits() : 
-    GetX(std::numeric_limits<float>::signaling_NaN()),
-    GetY(std::numeric_limits<float>::signaling_NaN()),
-    GetZ(std::numeric_limits<float>::signaling_NaN()),
-    GetPx(std::numeric_limits<float>::signaling_NaN()),
-    GetPy(std::numeric_limits<float>::signaling_NaN()),
-    GetPz(std::numeric_limits<float>::signaling_NaN()),
-    GetDE(std::numeric_limits<float>::signaling_NaN()),
-    GetPId(std::numeric_limits<int>::signaling_NaN()),
-    GetStation(std::numeric_limits<int>::signaling_NaN()),
-    GetPlane(std::numeric_limits<int>::signaling_NaN()),
-    GetSensor(std::numeric_limits<int>::signaling_NaN()),
-    GetStrip(std::numeric_limits<int>::signaling_NaN()),
-    GetTrackID(std::numeric_limits<int>::signaling_NaN())
+  SRTrueSSDHits::SRTrueSSDHits()
   {
+    this->setDefault();
   }
   //--------------------------------------------------------------------
   SRTrueSSDHits::~SRTrueSSDHits()
@@ -32,19 +20,22 @@ namespace caf
   //--------------------------------------------------------------------
   void SRTrueSSDHits::setDefault()
   {
-    GetX = -5;
-    GetY = -5;
-    GetZ = -5;
-    GetPx = -5;
-    GetPy = -5;
-    GetPz = -5;
-    GetDE = -5;
-    GetPId = -5;
-    GetStation = -5;
-    GetPlane = -5;
-    GetSensor = -5;
-    GetStrip = -5;
-    GetTrackID = -5;
+    pos.SetX(std::numeric_limits<float>::signaling_NaN());
+    pos.SetY(std::numeric_limits<float>::signaling_NaN());
+    pos.SetZ(std::numeric_limits<float>::signaling_NaN());
+
+    mom.SetX(std::numeric_limits<float>::signaling_NaN());
+    mom.SetY(std::numeric_limits<float>::signaling_NaN());
+    mom.SetZ(std::numeric_limits<float>::signaling_NaN());
+
+    dE = std::numeric_limits<float>::signaling_NaN();
+    pid = std::numeric_limits<int>::signaling_NaN();
+    station = std::numeric_limits<int>::signaling_NaN();
+    plane = std::numeric_limits<int>::signaling_NaN();
+    sensor = std::numeric_limits<int>::signaling_NaN();
+    strip = std::numeric_limits<int>::signaling_NaN();
+    trackID = std::numeric_limits<int>::signaling_NaN();
+
   }
 
 } // end namespace

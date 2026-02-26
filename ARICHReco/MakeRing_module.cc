@@ -18,6 +18,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2D.h"
+#include "TGraph2D.h"
 #include "TVector3.h"
 #include "TTree.h"
 #include "TCanvas.h"
@@ -47,6 +48,9 @@
 #include "ARICHRecoUtils/ArichUtils.h"
 #include "ARICHRecoUtils/HoughFitter.h"
 
+
+using namespace emph;
+
 namespace emph
 {
 
@@ -60,8 +64,9 @@ namespace emph
     void produce(art::Event &evt);
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
-
-  private:
+    void endJob();
+ 
+ private:
     arichreco::ARICH_UTILS *ArichUtils;
     TTree *fARICHTree;
 
@@ -73,21 +78,20 @@ namespace emph
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::cmap::FEBoardType boardType = cmap::TRB3;
 
-    std::vector<double> momenta;
-    std::vector<TVector3> dir;
-    std::vector<TVector3> pos;
+    double fitX;
+    double fitY;
+    double fitR;
 
-    std::vector<int> bins, vals;
 
-    // bins_pdf_pion,bins_pdf_kaon,bins_pdf_prot, vals;
 
-    std::vector<int> blocks, MCT_PDG, unique_ids;
-    int pdg_event;
+    TH2D event_hist;
+  
+    TGraph2D plot3d;
   };
 
   //.......................................................................
 
-  emph::MakeRing::MakeRing(fhicl::ParameterSet const &pset)
+   MakeRing::MakeRing(fhicl::ParameterSet const &pset)
       : EDProducer(pset)
   {
 
@@ -99,7 +103,7 @@ namespace emph
   }
   //......................................................................
 
-  emph::MakeRing::~MakeRing()
+  MakeRing::~MakeRing()
   {
     //======================================================================
     // Clean up any memory allocated by your module
@@ -108,27 +112,23 @@ namespace emph
 
   //......................................................................
 
-  void emph::MakeRing::beginJob()
+  void MakeRing::beginJob()
   {
-    if (fFillTree)
-    {
-      art::ServiceHandle<art::TFileService const> tfs;
-      fARICHTree = tfs->make<TTree>("ARICHRECO", "event");
-      fARICHTree->Branch("TruthPDG", &MCT_PDG);
-      fARICHTree->Branch("Blocks", &blocks);
-      fARICHTree->Branch("Momenta", &momenta);
-      fARICHTree->Branch("BINS", &bins);
-      fARICHTree->Branch("VALS", &vals);
-    }
-    ArichUtils = new arichreco::ARICH_UTILS();
+   if(fFillTree){
+     art::ServiceHandle<art::TFileService const> tfs;
+     fARICHTree = tfs->make<TTree>("MAKERING","event");
+     fARICHTree->Branch("event_hist", &event_hist);
+     fARICHTree->Branch("fitX", &fitX);	
+     fARICHTree->Branch("fitY", &fitY);  
+     fARICHTree->Branch("fitR", &fitR);   
+     fARICHTree->Branch("plot3D", &plot3d);
+   }
 
-    /*  fARICHTree->Branch("BINS_PDF_pion", &bins_pdf_pion);
-       fARICHTree->Branch("VALS_PDF_pion", &vals_pdf_pion);
-       fARICHTree->Branch("BINS_PDF_kaon", &bins_pdf_kaon);
-       fARICHTree->Branch("VALS_PDF_kaon", &vals_pdf_kaon);
-       fARICHTree->Branch("BINS_PDF_prot", &bins_pdf_prot);
-       fARICHTree->Branch("VALS_PDF_prot", &vals_pdf_prot);
-   */
+     ArichUtils = new arichreco::ARICH_UTILS();
+
+  } 
+  void MakeRing::endJob()
+  { 
   }
 
   //......................................................................
@@ -141,35 +141,60 @@ namespace emph
 
     evt.getByLabel(fARICHLabel, arich_clusters);
 
+    rb::ARing ring;
 
-	for(int u = 0; u < (int)arich_clusters->size(); u++){
+
+    int max_cluster=-1;
+    int max_size = 0;
+
+
+    for(int u = 0; u < (int)arich_clusters->size(); u++){
+ 
+     int size = arich_clusters->at(u).NDigits();
+     if(size > max_size){
+  	max_size = size;
+	max_cluster = u;
+	}
+   }
+
+//	for(int u = 0; u < (int)arich_clusters->size(); u++){
             
 	
-	     if(arich_clusters->at(u).NDigits() < 4)continue;            
+//	     if(arich_clusters->at(u).NDigits() < 4)continue;            
 	
-    
-	      std::vector<std::pair<int,int>> digs = arich_clusters->at(u).Digits();  	
+	if(arich_clusters->size() != 0 && arich_clusters->at(max_cluster).NDigits() > 4){    
 
-	      TH2D* event_hist = ArichUtils->DigsToHist(digs);	
+	      std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits();  	
+	     
+	      std::vector<float> times = arich_clusters->at(max_cluster).Times();
 
-	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(event_hist);  
+	      event_hist = *ArichUtils->DigsToHist(digs);	
+
+	      plot3d = *ArichUtils->DigsToHist(digs,times);	      
+
+	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(&event_hist);  
 	
 	      int to_find = 1; // number of rings to find, should be = n tracks 
 	
 	      std::vector<std::tuple<int, int, double>> circles =  fitter->GetCirclesCenters(to_find); 
 
-
-	      for(int j =0; j < (int)circles.size();j++ ){
+	      //for(int j =0; j < (int)circles.size();j++ ){
 		
 		rb::ARing ring;		
 		
-		ring.SetRadius(std::get<2>(circles[j]));
-		float center[3] = {float(std::get<0>(circles[j])),float(std::get<1>(circles[j])),0};
+		ring.SetRadius(std::get<2>(circles[0]));
+		float center[3] = {float(std::get<0>(circles[0])),float(std::get<1>(circles[0])),0};
+
+//		std::cout << "fit values " << center[0] << " " << center[1] << " " << std::get<2>(circles[0]) << std::endl;
 
 		ring.SetCenter(center);
-		ring.SetNHits(arich_clusters->at(u).NDigits()); 
+		ring.SetNHits(arich_clusters->at(max_cluster).NDigits()); 
 		
-
+		if(fFillTree){
+		fitX = float(std::get<0>(circles[0])); 
+		fitY = float(std::get<1>(circles[0])); 
+		fitR = float(std::get<2>(circles[0]));	
+		}	
 	/*	std::cout << "	radius " << ring.Radius() << std::endl;
 		double theta = atan(ring.Radius()/178.9); //mm
 	 	std::cout << "	thetaC " << theta << " rad " << std::endl;
@@ -177,12 +202,13 @@ namespace emph
 		std::cout << "	beta " << beta << std::endl;
 		std::cout << "Prot p " << ArichUtils->calcP(0.9383,beta) << std::endl;
 		std::cout << "Pion p " << ArichUtils->calcP(0.1395,beta) << std::endl;	
+ 	}	
 	*/
 		ARICH_RINGS->push_back(ring); 
-	    
-	     }
+		if(fFillTree)fARICHTree->Fill();   
+//	     }	
 	
-	     delete event_hist; delete fitter;
+		delete fitter;
 	}
 
     evt.put(std::move(ARICH_RINGS));

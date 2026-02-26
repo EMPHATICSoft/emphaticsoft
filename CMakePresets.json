@@ -30,10 +30,6 @@
       },
       {
          "cacheVariables" : {
-            "CMAKE_PREFIX_PATH" : {
-               "type" : "STRING",
-               "value" : "$env{CETMODULES_DIR}"
-            },
             "CMAKE_CXX_COMPILER" : {
                "type" : "STRING",
                "value" : "$env{CETPKG_CXX_COMPILER}"

@@ -21,9 +21,11 @@ namespace caf
 	void Reset();
 	
 	//float scores[5];
-	std::vector<double> scores;
-	float operator [](int n){return scores[n];};
-
+	std::vector<double> scoresLL;
+	std::vector<double> scoresML;
+	
+	double GetScoreLL(int n){return scoresLL[n];};
+	double GetScoreML(int n){return scoresML[n];};
 };
 
 }

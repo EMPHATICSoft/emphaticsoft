@@ -2,9 +2,16 @@ BEGIN_PROLOG
 
 standard_dataqual:
 {
-  module_type:  FillDataQuality
-  TriggerLabel: "raw:Trigger"
-  SSDDataLabel: "raw:SSD"
+	module_type:  FillDataQuality
+	TriggerLabel: "raw:Trigger"
+	T0CAENLabel: "raw:T0"
+	LGCaloDataLabel: "raw:LGCalo"
+	BACkovDataLabel: "raw:BACkov"
+	GasCkovDataLabel: "raw:GasCkov"
+	T0TRB3Label: "raw:T0"
+	ARICHDataLabel: "raw:ARICH"
+	RPCDataLabel: "raw:RPC"
+	SSDDataLabel: "raw:SSD"
 }
 
 END_PROLOG
