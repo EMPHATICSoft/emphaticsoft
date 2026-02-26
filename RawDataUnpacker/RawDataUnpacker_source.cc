@@ -646,7 +646,6 @@ namespace rawdata {
 				}
 			}
 			std::cout << "YAAAAAY we passed!" << std::endl;
-			return false;
 
 //			if (!findMatches(100)) abort();
 //			calcTimeWalkCorr();
