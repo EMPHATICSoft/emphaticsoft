@@ -140,9 +140,9 @@ namespace emph {
   /***************************************************************************/
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
-    fUseRunHistory = ps.get<bool>("UseRunHistory", "false");
+    fUseRunHistory = ps.get<bool>("UseRunHistory","false");
     fZstart        = ps.get<double>("Zstart", -200.); // mm
-    fPZDist        = ps.get<std::string>("pzDist", "Gauss");
+    fPZDist        = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
@@ -233,7 +233,6 @@ namespace emph {
     }
 
     std::string fname_1d;
-    std::string file_path_1d;
     fname_1d = fXHist1DFile;
 
     std::unique_ptr<TFile> input_file_1d{TFile::Open(fname_1d.c_str())};
@@ -270,7 +269,6 @@ namespace emph {
     }
 
     std::string fname_3d;
-    std::string file_path_3d;
     fname_3d = fSlicedHistsFile;
 
     std::unique_ptr<TFile> input_file_3d{TFile::Open(fname_3d.c_str())};
