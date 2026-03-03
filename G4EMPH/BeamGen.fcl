@@ -45,6 +45,47 @@ standard_beamgen:
   PYsigma:		     10.e-6
 }
 
+# --- Sliced Method Parameters ---
+proton_sliced: @local::standard_beamgen
+proton_sliced.UseRunHistory: true 
+proton_sliced.particleType: "proton"
+proton_sliced.phaseSpaceSource: "Sliced"
+proton_sliced.Zstart: -3.0 
+proton_sliced.PSigma: 0.001 
+proton_sliced.xHist1DFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
+proton_sliced.slicedHistsFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
+proton_sliced.xHist1DName: "hX_for_slicing"
+proton_sliced.slicedHistsNamePattern: "h3D_slice_%i"
+
+
+proton120f: @local::standard_beamgen
+proton120f.particleType: "proton"
+proton120f.xyDistSource: "flatxy"
+proton120f.pxyDistSource: "flatpxy"
+proton120f.Xmax: 2.
+proton120f.Xmin: -2.
+proton120f.Ymax: 2.
+proton120f.Ymin: -2.
+proton120f.PXmax: 1.e-5
+proton120f.PXmin: -1.e-5
+proton120f.PYmax: 1.e-5
+proton120f.PYmin: -1.e-5
+
+proton120_6mm: @local::standard_beamgen
+proton120_6mm.particleType: "proton"
+proton120_6mm.xyDistSource: "Gauss"
+proton120_6mm.pxyDistSource: "Gauss"
+proton120_6mm.PMean: 120
+proton120_6mm.Psigma: 0.02
+proton120_6mm.Xmean:                     0.
+proton120_6mm.Xsigma:                    0.6
+proton120_6mm.Ymean:                     0.
+proton120_6mm.Ysigma:                    0.6
+proton120_6mm.PXmean:                    0.
+proton120_6mm.PXsigma:                   10.e-6
+proton120_6mm.PYmean:                    0.
+proton120_6mm.PYsigma:                   10.e-6
+
 proton120: @local::standard_beamgen
 proton120.particleType: "proton"
 proton120.xyDistSource: "flatxy"
