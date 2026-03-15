@@ -38,6 +38,11 @@ namespace emph
       unsigned int fRunNumber;
       bool fGetGDMLFromRunHistory;
       std::string fGDMLFile;
+      bool fTestSaveGDML;
+    
+    public:
+      std::string GetGeometryFileName() const { return fGDMLFile; }   
+      
     };
     
   }
