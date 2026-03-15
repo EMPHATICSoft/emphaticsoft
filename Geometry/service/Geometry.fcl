@@ -4,6 +4,7 @@ standard_geometry:
 {
   GetGDMLFromRunHistory: true
   GDMLFile: ""  # must be full path
+  TestSaveGDML : false
 }
 
 END_PROLOG
