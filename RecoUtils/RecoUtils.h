@@ -15,7 +15,7 @@
 // Forward declare TrackSegment instead of including the full header
 namespace rb { class TrackSegment; }
 
-//#include "TVector3.h"
+#include "Math/Vector3D.h"   // ROOT::Math::XYZVector
 #include "TMatrixD.h"
 #include "TMatrixDSymEigen.h"
 #include "TVectorD.h"
