@@ -167,42 +167,6 @@
 			return {0, N_compare-1, 0, 0};
 		}
 
-
-		// iterate over whole setup until we find enough overlapping events
-
-//		{ uint64_t maxOccur = 0;
-//
-//			//for(size_t startSample = 0; startSample < grandfather.size()-N_compare; startSample++) {
-//			for(size_t startSample = 0; startSample < grandfather.size()-2*N_compare; startSample+=N_compare) {
-//				auto begin = grandfather.begin() + startSample;
-//				std::vector<T> father(begin, begin+2*N_compare);
-//				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
-//
-//				auto [N_occur, offset]  = findOffset(dt, timeUncertainty);
-//
-//				if(N_occur >= percentOverlap * N_compare) { // found enough overlapping events!
-//					maxOccur = N_occur;
-//					timeOffset = offset;
-//					index = startSample; // sets index of last synced event to the front of the last synced set
-//					break;
-//					if(maxOccur < N_occur) { // tries to get highest number of occurrences
-//						maxOccur = N_occur;
-//						timeOffset = offset;
-//						index = startSample;
-//					}
-//				}
-//			}
-//			N_occur = maxOccur;
-//		}
-
-
-//		std::vector<int64_t> dt = calcDifferences<int64_t>(grandfather, child);
-//		std::tie(N_occur, timeOffset)  = findOffset(dt, timeUncertainty);
-//		if(N_occur < percentOverlap * N_compare || N_occur > N_compare) {
-//			// did NOT find enough overlapping events!
-//			return {0, N_compare-1, 0, 0};
-//		}
-
 		for( auto &timeStamp : child ) // offsets all of the child timestamps
 			timeStamp += timeOffset;
 
@@ -281,7 +245,7 @@
 #endif
 #endif
 		mask = indexOfMatch(grandfather, child, timeUncertainty);
-		{
+		{ // Ignore a few events at the beginning/end
 			size_t ignore = 0;
 			for(size_t i = 0; i < mask.size(); ++i) {
 				if(mask[i] != -1) {
@@ -291,7 +255,10 @@
 				}
 			}
 			ignore = 0;
-			for(size_t i = mask.size()-1; i >= 0; --i) {
+			// Note: this had an issue when stopping condition was i >= 0
+			// This was due to the type size_t overflowing instead of going below 0
+			// Using i < mask.size() since size_t overflows to above mask.size()
+			for(size_t i = mask.size()-1; i < mask.size(); --i) {
 				if(mask[i] != -1) {
 					mask[i] = -1;
 					++ignore;
