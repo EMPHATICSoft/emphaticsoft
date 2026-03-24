@@ -285,12 +285,10 @@ BOOST_AUTO_TEST_CASE(ZeroFieldJacobianWithPositionalDerivatives)
   kalman::Propagator prop;
   prop.Extrapolate(s, 50.0, B);
 
-  // C_new[0][0] = C_old[0][0] + st² * C_old[2][2]
-  //             = 1.0e-4 + 2500 * 5.0e-6 = 0.01251
-  BOOST_CHECK_CLOSE(s.GetCov(0, 0), 0.01251, 1e-4);
-  // C_new[1][1] = C_old[1][1] + st² * C_old[3][3]
-  //             = 2.0e-4 + 2500 * 5.0e-6 = 0.01252
-  BOOST_CHECK_CLOSE(s.GetCov(1, 1), 0.01252, 1e-4);
+  // C_new[0][0] = C_old[0][0] + st² * C_old[2][2] ≈ 0.0126
+  BOOST_CHECK_CLOSE(s.GetCov(0, 0), 0.0126, 1e-3);
+  // C_new[1][1] = C_old[1][1] + st² * C_old[3][3] ≈ 0.0127
+  BOOST_CHECK_CLOSE(s.GetCov(1, 1), 0.0127, 1e-3);
   // Angular variances unchanged
   BOOST_CHECK_CLOSE(s.GetCov(2, 2), 5.0e-6, 1e-8);
   BOOST_CHECK_CLOSE(s.GetCov(3, 3), 5.0e-6, 1e-8);
