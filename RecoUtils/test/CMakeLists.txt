@@ -7,7 +7,7 @@
 ########################################################################
 
 cet_test(test_recoutils
-  SOURCES test_recoutils.cc
+  SOURCE test_recoutils.cc
   USE_BOOST_UNIT
   LIBRARIES PRIVATE
     RecoUtils
