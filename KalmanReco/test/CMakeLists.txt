@@ -4,7 +4,7 @@
 
 # Propagator + State: only need the KalmanReco library (pulls in ROOT::Matrix)
 cet_test(test_propagator
-  SOURCES test_propagator.cc
+  SOURCE test_propagator.cc
   USE_BOOST_UNIT
   LIBRARIES PRIVATE
     KalmanReco
