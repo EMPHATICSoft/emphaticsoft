@@ -265,9 +265,11 @@ BOOST_AUTO_TEST_CASE(QdpUnchangedAfterPropagation)
   BOOST_CHECK_CLOSE(s.GetPar(4), 0.125, 1e-10);
 }
 
-BOOST_AUTO_TEST_CASE(ZeroFieldJacobianLeavesInitialCovUnchanged)
+BOOST_AUTO_TEST_CASE(ZeroFieldJacobianWithPositionalDerivatives)
 {
-  // With B=0 and tx=ty=0, the Jacobian is the identity → cov unchanged.
+  // With B=0 and tx=ty=0, Jacobian has J[0][2]=st and J[1][3]=st
+  // due to position derivatives: x' = x + tx*st, y' = y + ty*st
+  // This couples position and angle covariances.
   KPar par = zeroPar();
   par[4] = 0.125;
   K5x5 cov = zeroCov();
@@ -283,12 +285,17 @@ BOOST_AUTO_TEST_CASE(ZeroFieldJacobianLeavesInitialCovUnchanged)
   kalman::Propagator prop;
   prop.Extrapolate(s, 50.0, B);
 
-  // J = identity when B=0 and tx=ty=0; C' = J C J^T = C
-  BOOST_CHECK_CLOSE(s.GetCov(0, 0), 1.0e-4, 1e-8);
-  BOOST_CHECK_CLOSE(s.GetCov(1, 1), 2.0e-4, 1e-8);
+  // C_new[0][0] = C_old[0][0] + st² * C_old[2][2]
+  //             = 1.0e-4 + 2500 * 5.0e-6 = 0.01251
+  BOOST_CHECK_CLOSE(s.GetCov(0, 0), 0.01251, 1e-4);
+  // C_new[1][1] = C_old[1][1] + st² * C_old[3][3]
+  //             = 2.0e-4 + 2500 * 5.0e-6 = 0.01252
+  BOOST_CHECK_CLOSE(s.GetCov(1, 1), 0.01252, 1e-4);
+  // Angular variances unchanged
   BOOST_CHECK_CLOSE(s.GetCov(2, 2), 5.0e-6, 1e-8);
+  BOOST_CHECK_CLOSE(s.GetCov(3, 3), 5.0e-6, 1e-8);
+  BOOST_CHECK_CLOSE(s.GetCov(4, 4), 1.0e-6, 1e-8);
 }
-
 BOOST_AUTO_TEST_SUITE_END()
 
 // ── kalman::Propagator::AddNoise ─────────────────────────────────────────────
