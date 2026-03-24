@@ -17,7 +17,6 @@ source:
   createArtEvents:   true
   makeTDiffHistos:   false
   makeTimeWalkHistos:   false
-  makeBenchmarkPlots:   false
   numWaveFormPlots:  100
   timeWindow: 50000
   nEvents: 0

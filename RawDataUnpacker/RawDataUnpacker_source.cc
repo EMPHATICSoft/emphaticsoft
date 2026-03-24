@@ -95,7 +95,6 @@ namespace rawdata {
     fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
     fMakeTDiffHistos = ps.get<bool>("makeTDiffHistos",false);
     fMakeTimeWalkHistos = ps.get<bool>("makeTimeWalkHistos",false);
-    fMakeBenchmarkPlots = ps.get<bool>("makeBenchmarkPlots",false);
 
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
@@ -372,159 +371,6 @@ namespace rawdata {
       }
     }
   }
-
-  /***************************************************************************/
-
-	void Unpacker::makeBenchmarkPlots() { // probably can delete this now?
-		const auto ssdId = 773; // ssd fragId equivalent
-		std::sort(eventStack.begin(), eventStack.end());
-		// Average time differences between post-aligned data streams per event
-		art::ServiceHandle<art::TFileService> tfs;
-		art::TFileDirectory tdir2 = tfs->mkdir("Benchmarks","");
-		char hname[256];
-		char htitle[256];
-		sprintf(hname,"AvgDifference__SSD_TRB3");
-		sprintf(htitle,"Average time differences per event for run %d, subrun %d for SSD and TRB3;Average Time Difference (ns);# of Occurrences", fRun, fSubrun);
-		TH1D* averageTimeDifferencesSSD_TRB3 = tdir2.make<TH1D>(hname, htitle, 6000, -300, 300);
-
-		sprintf(hname,"AvgDifference__SSD_CAEN");
-		sprintf(htitle,"Average time differences per event for run %d, subrun %d for SSD and CAEN;Average Time Difference (ns);# of Occurrences", fRun, fSubrun);
-		TH1D* averageTimeDifferencesSSD_CAEN = tdir2.make<TH1D>(hname, htitle, 6000, -300, 300);
-
-		sprintf(hname,"AvgDifference__CAEN_TRB3");
-		sprintf(htitle,"Average time differences per event for run %d, subrun %d for CAEN and TRB3;Average Time Difference (ns);# of Occurrences", fRun, fSubrun);
-		TH1D* averageTimeDifferencesCAEN_TRB3 = tdir2.make<TH1D>(hname, htitle, 6000, -300, 300);
-
-		std::vector<uint64_t> timeSSD;
-		std::vector<uint64_t> timeTRB3;
-		std::vector<uint64_t> timeCAEN;
-
-		size_t gotSSD = 0;
-		size_t gotALL = 0;
-		size_t eventCount = 0;
-
-		// stuff for looking at time difference between events
-		sprintf(hname,"TimeToNext__SSD");
-		sprintf(htitle,"Time between SSD events for run %d, subrun %d;Average time (ns);# of occurrences", fRun, fSubrun);
-		TH1D* timeToNextSSD = tdir2.make<TH1D>(hname, htitle, 10000000, 0, 1000000);
-
-		sprintf(hname,"TimeToNext_TRB3");
-		sprintf(htitle,"Time between TRB3 events for run %d, subrun %d;Average time (ns);# of occurrences", fRun, fSubrun);
-		TH1D* timeToNextTRB3 = tdir2.make<TH1D>(hname, htitle, 10000000, 0, 1000000);
-
-		sprintf(hname,"TimeToNext_CAEN");
-		sprintf(htitle,"Time between CAEN events for run %d, subrun %d;Average time (ns);# of occurrences", fRun, fSubrun);
-		TH1D* timeToNextCAEN = tdir2.make<TH1D>(hname, htitle, 10000000, 0, 1000000);
-
-		// stuff for looking at time difference between events; cross detector
-		sprintf(hname,"TimeToNext__SSD_TRB3");
-		sprintf(htitle,"Time between SSD events and TRB3 events for run %d, subrun %d;Difference of Average Time Differences (ns);# of Occurrences", fRun, fSubrun);
-		TH1D* timeToNextSSD_TRB3 = tdir2.make<TH1D>(hname, htitle, 40000, -2000, 2000);
-
-		sprintf(hname,"TimeToNext_SSD_CAEN");
-		sprintf(htitle,"Time between SSD events and CAEN events for run %d, subrun %d;Difference of Average Time Differences (ns);# of Occurrences", fRun, fSubrun);
-		TH1D* timeToNextSSD_CAEN = tdir2.make<TH1D>(hname, htitle, 40000, -2000, 2000);
-
-		sprintf(hname,"TimeToNext_CAEN_TRB3");
-		sprintf(htitle,"Time between CAEN events and TRB3 events for run %d, subrun %d;Difference of Average Time Differences (ns);# of Occurrences", fRun, fSubrun);
-		TH1D* timeToNextCAEN_TRB3 = tdir2.make<TH1D>(hname, htitle, 40000, -2000, 2000);
-
-
-		double lastIndividual[3] = {0,0,0}; bool isFirst = true;
-		double lastTriple[3] = {0,0,0};
-
-		for(size_t iEvent = 0; iEvent < eventStack.size(); ++iEvent) {
-			auto event = eventStack[iEvent];
-			for(auto attendee : event.second) {
-				auto fragId = attendee.first;
-				auto index = attendee.second;
-
-				int64_t time = 0;
-				if(fragId == ssdId) // SSD
-					time = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fSSDRawDigits[index].first;
-				else if(fragId != fragIdGrandfather) // CAEN and TRB3 children
-					time = fTWCorr0[fragId] + fTWCorr1[fragId]*fFragTimestamps[fragId][index];
-				else // grandfather
-					time = fFragTimestamps[fragIdGrandfather][index];
-
-				if(fragId == ssdId)
-					timeSSD.push_back(time);
-				else if(fragId > 10)
-					timeTRB3.push_back(time);
-				else
-					timeCAEN.push_back(time);
-			}
-			// and now we move on to the next event!
-
-			// If next event occurs within a given time, then include data by iterating the loop
-			auto nextTime = eventStack[iEvent + 1].first;
-			if(std::llabs(nextTime - event.first) < 100) continue;
-
-			double averageSSD = 0;
-			double averageTRB3 = 0;
-			double averageCAEN = 0;
-			for(auto time : timeSSD) averageSSD += (1.0/timeSSD.size())*time;
-			for(auto time : timeTRB3) averageTRB3 += (1.0/timeTRB3.size())*time;
-			for(auto time : timeCAEN) averageCAEN += (1.0/timeCAEN.size())*time;
-			if(!timeSSD.empty() && !timeTRB3.empty())
-				averageTimeDifferencesSSD_TRB3->Fill(averageSSD - averageTRB3);
-			if(!timeSSD.empty() && !timeCAEN.empty())
-				averageTimeDifferencesSSD_CAEN->Fill(averageSSD - averageCAEN);
-			if(!timeCAEN.empty() && !timeTRB3.empty())
-				averageTimeDifferencesCAEN_TRB3->Fill(averageCAEN - averageTRB3);
-
-			if(!timeSSD.empty()) gotSSD++;
-			if(!timeSSD.empty() && !timeTRB3.empty() && !timeCAEN.empty()) gotALL++;
-			eventCount++;
-
-
-			if(!isFirst) {
-				if(!timeSSD.empty()) timeToNextSSD->Fill(averageSSD - lastIndividual[0]);
-				if(!timeTRB3.empty()) timeToNextTRB3->Fill(averageTRB3 - lastIndividual[1]);
-				if(!timeCAEN.empty()) timeToNextCAEN->Fill(averageCAEN - lastIndividual[2]);
-
-				if(!timeSSD.empty() && !timeTRB3.empty() && !timeCAEN.empty()) {
-					timeToNextSSD_TRB3->Fill(averageSSD - lastTriple[0] - (averageTRB3 - lastTriple[1]));
-					timeToNextSSD_CAEN->Fill(averageSSD - lastTriple[0] - (averageCAEN - lastTriple[2]));
-					timeToNextCAEN_TRB3->Fill(averageCAEN - lastTriple[2] -(averageTRB3 - lastTriple[1]));
-				}
-			} else {
-				isFirst=false;
-			}
-			if(!timeSSD.empty()) lastIndividual[0] = averageSSD;
-			if(!timeTRB3.empty()) lastIndividual[1] = averageTRB3;
-			if(!timeCAEN.empty()) lastIndividual[2] = averageCAEN;
-			if(!timeSSD.empty() && !timeTRB3.empty() && !timeCAEN.empty()) {
-				lastTriple[0] = averageSSD;
-				lastTriple[1] = averageTRB3;
-				lastTriple[2] = averageCAEN;
-			}
-
-			timeSSD.clear();
-			timeTRB3.clear();
-			timeCAEN.clear();
-		}
-//		averageTimeDifferencesSSD_TRB3.Write("avgTD_SSD_TRB3");
-//		averageTimeDifferencesSSD_CAEN.Write("avgTD_SSD_CAEN");
-//		averageTimeDifferencesCAEN_TRB3.Write("avgTD_CAEN_TRB3");
-//
-//		timeToNextSSD.Write("t2N_SSD");
-//		timeToNextTRB3.Write("t2N_TRB3");
-//		timeToNextCAEN.Write("t2N_CAEN");
-//
-//		timeToNextSSD_TRB3.Write("t2N_SSD_TRB3");
-//		timeToNextSSD_CAEN.Write("t2N_SSD_CAEN");
-//		timeToNextCAEN_TRB3.Write("t2N_CAEN_TRB3");
-//
-//		TVectorD evtCounts(3);
-//		evtCounts[0] = gotSSD;
-//		evtCounts[1] = gotALL;
-//		evtCounts[2] = eventCount;
-//		evtCounts.Write("Event Statistics");
-
-		std::cout << gotSSD << " out of " << eventCount << " events with SSD event" << std::endl;
-		std::cout << gotALL << " out of " << eventCount << " events with all events" << std::endl;
-	}
 
   /***************************************************************************/
 
@@ -950,9 +796,6 @@ namespace rawdata {
 				}
 				std::cout << "Percentage events with SSD: " << 1.0*gotSSD/eventCount << std::endl;
 				std::cout << "Percentage events with All: " << 1.0*gotALL/eventCount << std::endl;
-
-				if (fMakeBenchmarkPlots)
-					makeBenchmarkPlots();
 			}
 
 			std::cout << "Sorting event stack" << std::endl;

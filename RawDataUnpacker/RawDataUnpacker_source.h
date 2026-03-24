@@ -60,7 +60,6 @@ namespace emph {
       bool    createSSDDigits();
       void    makeTDiffHistos();
       void    makeDiffDiffHistos(artdaq::Fragment::fragment_id_t idA, artdaq::Fragment::fragment_id_t idB);
-      void    makeBenchmarkPlots();
 
       bool    fixSSDTimestamps();
       bool    determineGrandfather();
