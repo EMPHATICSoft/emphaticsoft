@@ -156,9 +156,9 @@ namespace caf
 
             truth.de = ssdhit->DE();
             truth.station = ssdhit->Station();
-            truth.plane = ssdhit->Plane();
-            truth.sensor = ssdhit->Sensor();
-            truth.strip = ssdhit->Strip();
+          truth.plane = ssdhit->Plane();
+          truth.sensor = ssdhit->Sensor();
+          truth.strip = ssdhit->Strip();
             secTrk.truth.push_back(truth);
             break;
           }
