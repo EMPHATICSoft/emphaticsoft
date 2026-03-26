@@ -63,7 +63,7 @@ namespace caf
            truth.G4trkId = ssdhit->TrackID();
            truth.process = ssdhit->Process();
 
-	         truth.de = ssdhit->DE();
+           truth.de = ssdhit->DE();
            truth.station = ssdhit->Station();	 
 	         truth.plane = ssdhit->Plane();
 	         truth.sensor = ssdhit->Sensor();
@@ -210,7 +210,7 @@ namespace caf
           srts.pointA = rbts->pointA;
           srts.pointB = rbts->pointB;
           srts.chi2 = rbts->chi2;
-	        srts.thetaX = rbts->thetaX;
+          srts.thetaX = rbts->thetaX;
           srts.thetaY = rbts->thetaY;
           btr.Add(srts);
 	}
