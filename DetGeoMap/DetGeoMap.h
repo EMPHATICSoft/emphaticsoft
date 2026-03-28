@@ -31,6 +31,7 @@ namespace emph {
       virtual ~DetGeoMap() {}; //Destructor
 
       void SetRun(int run) { fRun = run;} 
+      void SetReferenceFlag(bool t) { fIsReference = t;} 
       void SetUseGeometry(bool ug) { fUseGeometry = ug; }
       void SetAlign(emph::Align* align) { fAlign = align; }
       void SetGeometry(const emph::geo::Geometry* geo) { fGeo = geo; }
@@ -38,7 +39,7 @@ namespace emph {
       //      void SetAbortIfFileNotFound(bool f) { fAbortIfFileNotFound = f;}
       //      void SetMapFileName(std::string fname) { if (fname != fMapFileName) {
       //	  fMapFileName = fname; fIsLoaded=false;} }
-
+      bool IsReference() const { return fIsReference; } 
       bool SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls);
      
        
@@ -47,6 +48,7 @@ namespace emph {
  
     private:
       bool fUseGeometry;
+      bool fIsReference;
       int fRun;
       const emph::geo::Geometry* fGeo;
       emph::Align* fAlign;

@@ -21,7 +21,7 @@ namespace emph {
     //----------------------------------------------------------------------
     
     DetGeoMap::DetGeoMap():
-      fRun(0), fGeo(0), fAlign(0)
+      fRun(0), fIsReference(false), fGeo(0), fAlign(nullptr)
     {
       std::cout << "Created new DetGeoMap object!" << std::endl;
       fUseGeometry = true;      
@@ -32,10 +32,17 @@ namespace emph {
     
     bool DetGeoMap::StationSensorPlaneToLineSegment (int station, int sensor, int plane, rb::LineSegment& ls, double dstrip) {
   
+//      std::cerr << " DetGeoMap::StationSensorPlaneToLineSegment, causing a crash.. " << std::endl; 
+//      
+      TGeoCombiTrans* T;
+//      T = fAlign->SSDMatrix(station,plane,sensor);
+      
       int istrip = floor(dstrip);
       double delta_strip = dstrip-istrip;
-
+//      std::cerr << " DetGeoMap::StationSensorPlaneToLineSegment, stations " << station 
+//                << " sensor " << sensor << " plane " << plane << " istrip " << istrip << std::endl;
       const emph::geo::SSDStation* st = fGeo->GetSSDStation(station);
+//      std::cerr << " ... got the pointer to the station .... " << std::endl;
       const emph::geo::Plane* pln = st->GetPlane(plane);
       const emph::geo::Detector* sd = pln->SSD(sensor);
       const emph::geo::Strip* sp = sd->GetStrip(istrip);
@@ -50,25 +57,27 @@ namespace emph {
       x0[2] = x1[2] = 0.;
       x0[0] = -sd->Width()/2;
       x1[0] = sd->Width()/2;
-
-      auto T = fAlign->SSDMatrix(station,plane,sensor);
+      
+//      std::cerr << " Alignment ptr .. " << fAlign << std::endl;
+      if (fAlign != nullptr) T = fAlign->SSDMatrix(station,plane,sensor);
       
       sp->LocalToMother(x0,tx0);
       sd->LocalToMother(tx0,tx1);
       st->LocalToMother(tx1,tx0);
-      T->LocalToMaster(tx0,x0);
-
+      if (fAlign != nullptr) T->LocalToMaster(tx0,x0);
+      else { for(size_t k=0; k != 3; k++) x0[k] = tx0[k]; } 
       sp->LocalToMother(x1,tx0);
       sd->LocalToMother(tx0,tx1);
       st->LocalToMother(tx1,tx0);
-      T->LocalToMaster(tx0,x1);
+      if (fAlign != nullptr) T->LocalToMaster(tx0,x1);
+      else { for(size_t k=0; k != 3; k++) x1[k] = tx0[k]; }
 
       ls.SetX0(x0);
       ls.SetX1(x1);	  
       ls.SetSSDStation(station);
       ls.SetSSDPlane(plane);
       ls.SetSSDSensor(sensor);
-
+//      std::cerr << " ... and quit after the first call to det geo map " << std::endl; exit(2); 
       //      std::cout << ls << std::endl;
       return true;
       

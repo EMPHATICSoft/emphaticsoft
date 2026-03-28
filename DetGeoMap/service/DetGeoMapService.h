@@ -40,10 +40,14 @@ namespace emph
       void preBeginRun(const art::Run& run);
 
       DetGeoMap* Map() const {return fDetGeoMap; }
+      DetGeoMap* MapRef() const {return fDetGeoMapRef; }
       
     private:
       DetGeoMap* fDetGeoMap;
+      DetGeoMap* fDetGeoMapRef;
       bool fUseGeometry;
+      bool fUseGeometryRef;
+      bool fUseAlign;
       
     };
     

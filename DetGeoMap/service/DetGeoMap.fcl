@@ -3,6 +3,8 @@ BEGIN_PROLOG
 standard_detgeomap:
 {
   UseGeometry: true
+  UseGeometryRef: true
+  UseAlign: true
 }
 
 END_PROLOG
