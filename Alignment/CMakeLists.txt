@@ -20,6 +20,21 @@ cet_build_plugin(SingleTrackAlignment art::module
 	ROOT::Tree
 	mille
 )
+cet_build_plugin(SingleTrackAlignmentV2 art::module
+  LIBRARIES REG RawData
+	RecoBase
+	RecoUtils
+	SingleTrackAlgo
+	ChannelMapService_service
+	GeometryService_service
+	DetGeoMapService_service    
+	art_root_io::TFileService_service
+	messagefacility::MF_MessageLogger
+	ROOT::Core
+	ROOT::Hist
+	ROOT::Tree
+	mille
+)
 cet_build_plugin(CheckAlignFrontMagnet art::module
   LIBRARIES REG RawData
 	RecoBase
