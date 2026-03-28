@@ -1,0 +1,29 @@
+BEGIN_PROLOG
+
+standard_singletrackalignmentV2:
+{
+  module_type: SingleTrackAlignmentV2
+  CheckLineSeg:       true
+  LineSegLabel:       "maketracksegments" #"makesingletracksforalign"
+  ClusterLabel:       "clust" #"ssdclusts"
+  TrackSegLabel:      "maketracksegments" #"makesingletracksforalign"
+  TrackLabel:         "makesingletracks"
+  Upstream:           false
+  DoSelectionStudies: false
+  Use123:             true
+  Use456:             false
+  Use7890:            false
+  MinSensorOAOCl:      8
+  SkipUW:             true
+  EffectiveMagnetKick: 0.5e-3
+  XCenterSel:         0.
+  YCenterSel:         0.
+  XWidthSel:          9999.
+  YWidthSel:          9999.
+  RunPede:            true
+  TokenCSV:              "None"
+  FixStationRotations: false
+  FixAllStationPosButOne: -1
+}
+
+END_PROLOG
