@@ -35,6 +35,7 @@ namespace emph {
     void Reset() { fSSDMatrix.clear(); }
     void Disable() { fIsDisabled = true; }
     void Enable() { fIsDisabled = false; }
+    inline bool IsDisabled() const { return fIsDisabled; }
 
   private:
     int Hash(int station, int plane, int sensor) const;

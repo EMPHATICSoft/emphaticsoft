@@ -15,6 +15,7 @@ namespace emph {
 
   Align::Align() 
   {
+//    std::cerr << " Align::Align, quit here and now !!! " << std::endl; 
     fSSDMatrix.clear();
     fIsDisabled = false;
   }
