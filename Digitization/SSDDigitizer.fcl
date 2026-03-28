@@ -5,6 +5,7 @@ standard_ssddigitizer:
   module_type: SSDDigitizer
   G4Label: "geantgen"
   FillAnaTree: true
+  SkipChargeSharing: false
 }
 
 END_PROLOG
