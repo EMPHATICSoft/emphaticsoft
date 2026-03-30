@@ -47,6 +47,15 @@ namespace emph {
   {
 
   }
+  //
+  // Introduce to supply the MakeCluster, algorithm.  In our Monte-Carlo, since we have a strip based geometry
+  // a row is a strip
+  // 
+  rawdata::SSDRawDigit::SSDRawDigit(int32_t board, int32_t channel, int strip, int t, int adc, int trigtype, bool isNew) :
+    fFER(board), fModule(channel), fChip(-999), fSet(-999), fStrip(strip), fTime(t), fADC(adc), fTrigNum(trigtype), fRow(strip), fBco2s(144)
+  {
+
+  }
   
   //------------------------------------------------------------
   std::ostream& operator<< (std::ostream& o, const SSDRawDigit& r)
