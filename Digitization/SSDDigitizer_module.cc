@@ -25,7 +25,7 @@
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "art_root_io/TFileService.h"
+#include "art_root_io/TFileService.h" 
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
@@ -66,6 +66,7 @@ namespace emph {
     
   private:
     bool fFillAnaTree;
+    bool fSkipChargeSharing;
 
     TH1D *fADCvsDEHist;
     TH3D *fhist3D;
@@ -84,7 +85,9 @@ namespace emph {
   };
        
   void SSDDigitizer::beginJob() {
-    if (fFillAnaTree) {
+     
+     fAnaTree = nullptr;
+     if (fFillAnaTree) {
       art::ServiceHandle<art::TFileService> tfs;
       fAnaTree = tfs->make<TTree>("ssddigTree","");
       fAnaTree->Branch("event",&fEvent,"event/I");
@@ -94,8 +97,8 @@ namespace emph {
       fAnaTree->Branch("strip",&fStrip,"strip/I");
       fAnaTree->Branch("adc",&fADC,"adc/I");
       fAnaTree->Branch("dE",&fdE,"dE/F");
-    }
-
+   } 
+    
     std::string plot3D= "Hits_totADC_RMS_3D.root"; //3D distribution plot from data; hits vs totADC vs RMS
     TFile *Plot3Dhist; 
 
@@ -130,12 +133,12 @@ namespace emph {
   SSDDigitizer::SSDDigitizer(fhicl::ParameterSet const& pset)
     : EDProducer(pset),
       fFillAnaTree (pset.get<bool>("FillAnaTree")),
+      fSkipChargeSharing(pset.get<bool>("SkipChargeSharing")),
       fG4Label (pset.get<std::string>("G4Label"))
   {
     //    fSensorMap.clear();
-    fAnaTree = 0;
 
-    produces<std::vector<rawdata::SSDRawDigit> >("SSD");
+    produces<std::vector<rawdata::SSDRawDigit> >("");
 
   }
 
@@ -168,16 +171,21 @@ namespace emph {
   void SSDDigitizer::produce(art::Event& evt)
   { 
     fEvent = evt.event();
-    art::Handle< std::vector<sim::SSDHit> > ssdHitH;
-    try {
-      evt.getByLabel(fG4Label,ssdHitH);
-    }
-    catch(...) {
-      std::cout << "WARNING: No SSDHits found!" << std::endl;
-    }
-   
+    
     std::unique_ptr<std::vector<rawdata::SSDRawDigit> >ssdRawD(new std::vector<rawdata::SSDRawDigit>);
     
+    art::Handle< std::vector<sim::SSDHit> > ssdHitH;
+//    try {
+    if (!evt.getByLabel(fG4Label,ssdHitH)) {
+       std::cerr << "WARNING: No SSDHits found!" << std::endl;
+       evt.put(std::move(ssdRawD),""); // No instance label, for now.. 
+       return;
+    }
+//    }
+//    catch(...) {
+//      std::cout << "WARNING: No SSDHits found!" << std::endl;
+//    }
+   
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
 
     if (!ssdHitH->empty()) {
@@ -201,7 +209,8 @@ namespace emph {
       } // end loop over SSD hits for the event
       
     }
-    evt.put(std::move(ssdRawD),"SSD");
+//    evt.put(std::move(ssdRawD),"SSD");
+    evt.put(std::move(ssdRawD),""); // No instance label 
       
   } // SSDDigitizer::analyze()
  
@@ -256,17 +265,22 @@ namespace emph {
   
   std::vector<emph::rawdata::SSDRawDigit> SSDDigitizer::SimulateChargeSharing(const sim::SSDHit& ssdhit) {
 
+    bool debugNow=false;
+
     float dEnergy = ssdhit.GetDE(); 
     fdE = dEnergy;
     std::vector<emph::rawdata::SSDRawDigit> returnValue;
     
+    if (debugNow) std::cerr << " .. SSDDigitizer::SimulateChargeSharing.. SSDHit " << std::endl;
+    
     //Selecting threshold
     if (dEnergy > 0.000000005) { //GeV
+      if (debugNow) std::cerr << " ... dEnergy OK " << dEnergy << std::endl;
       
       //Mapping DE to ADC using the DE vs ADC histogram  
       double deBin = fADCvsDEHist->GetXaxis()->FindBin(dEnergy);
       double adc = fADCvsDEHist->GetBinContent(deBin);
-
+      if (debugNow) std::cerr << " .. deBin " << deBin << " adc " << adc << std::endl;
       double stripWidth = 0.06; //mm
       double t = 0;
       int trig = 0;
@@ -280,19 +294,22 @@ namespace emph {
       float rstrip = 0;
    
       getHitsAndRMS(adc, hit, rms, fhist3D);
-      int hits = std::lround(hit);
+      int hits = (fSkipChargeSharing) ? 1 : std::lround(hit);
               	
       fStation = ssdhit.GetStation();
       fSensor = ssdhit.GetSensor(); 
       fPlane = ssdhit.GetPlane();
       fStrip = ssdhit.GetStrip(); 
-
+      
       emph::cmap::EChannel echan;
       echan.SetBoardType(emph::cmap::SSD);
       emph::cmap::DChannel dchan;
       dchan.SetDetId(emph::geo::SSD);
       
       if (hits == 1) {
+        if (debugNow) std::cerr << " ..... numhits is 1...  fStation " << fStation 
+                << " fPlane " << fPlane << " fStrip = " << fStrip << std::endl;
+      
         float calADC  = adcRange(adc);
 	fADC = int(calADC);
         art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
@@ -308,8 +325,11 @@ namespace emph {
 	std::cout << "(Board,Channel,Strip) = (" << echan.Board() << "," 
 		  << echan.Channel() << "," << fStrip << ")" << std::endl;
 	*/
-        returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), fStrip, t, calADC, trig));
-	fAnaTree->Fill();
+	auto aRawHit = rawdata::SSDRawDigit(static_cast<int32_t> (echan.Board()), 
+	                                    static_cast<int32_t> (echan.Channel()), fStrip, t, calADC, trig, true);
+	if (debugNow) std::cerr << "  .... check strip " << aRawHit.Strip() << std::endl;
+        returnValue.push_back(aRawHit);
+	if (fAnaTree != nullptr) fAnaTree->Fill();
         return returnValue;
       }
 //.............................................................................................................//
@@ -437,7 +457,7 @@ namespace emph {
             echan = cmap->ElectChan(dchan);
 
             returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row, t, integral, trig));
-	    fAnaTree->Fill();
+	    if (fAnaTree != nullptr) fAnaTree->Fill();
           }   
           i++;	  
         }
