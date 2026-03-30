@@ -31,7 +31,7 @@ cet_make_library(SOURCE ${src_files}
     Geant4::G4modeling
     Geant4::G4parmodels
     Geant4::G4particles
-    Geant4::G4persistency
+#    Geant4::G4persistency
     Geant4::G4physicslists
     Geant4::G4processes
     Geant4::G4RayTracer
@@ -43,7 +43,9 @@ cet_make_library(SOURCE ${src_files}
     Geant4::G4visHepRep
     Geant4::G4vis_management
     Geant4::G4VRML
-    Geant4::G4zlib
+    Geant4::G4gdml
+#    Geant4::G4zlib
+    xerces-c
 )
 
 cet_build_plugin(G4Gen art::module
@@ -97,26 +99,26 @@ cet_build_plugin(AnalyzeSSDHitsWithTracks art::module
       fhiclcpp::fhiclcpp
 )
 
-cet_build_plugin(SimSSDToRawDataSSD art::module
-  LIBRARIES REG 
-    SimulationBase
-    Simulation
-    ROOT::Core
-    ROOT::Tree
-    ROOT::Hist
-    ROOT::EG
-    art_root_io::TFileService_service
-    art::Framework_Core
-    art::Persistency_Common
-    RunHistory
-    Geometry
-    ChannelMap
-    ChannelMapService_service
-    RawData
-    messagefacility::MF_MessageLogger
-    canvas::canvas
-    fhiclcpp::fhiclcpp
-)
+#cet_build_plugin(SimSSDToRawDataSSD art::module
+#  LIBRARIES REG 
+#    SimulationBase
+#    Simulation
+#    ROOT::Core
+#    ROOT::Tree
+#    ROOT::Hist
+#    ROOT::EG
+#    art_root_io::TFileService_service
+#    art::Framework_Core
+#    art::Persistency_Common
+#    RunHistory
+#    Geometry
+#    ChannelMap
+#    ChannelMapService_service
+#    RawData
+#    messagefacility::MF_MessageLogger
+#    canvas::canvas
+#    fhiclcpp::fhiclcpp
+#)
 
 install_headers()
 install_source()
