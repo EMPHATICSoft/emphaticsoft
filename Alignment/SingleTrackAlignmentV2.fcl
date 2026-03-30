@@ -24,6 +24,8 @@ standard_singletrackalignmentV2:
   TokenCSV:              "None"
   FixStationRotations: false
   FixAllStationPosButOne: -1
+  FixAllStationPosRotButOne: -1
+  FixAllFreeOneRotStation: -1
 }
 
 END_PROLOG
