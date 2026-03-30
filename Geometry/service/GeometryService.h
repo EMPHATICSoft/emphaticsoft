@@ -15,6 +15,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
+#include "TGeoManager.h"
 
 namespace emph
 {
@@ -32,12 +33,19 @@ namespace emph
       void preBeginRun(const art::Run& run);
 
       emph::geo::Geometry* Geo() const { return fGeometry.get(); }
+      emph::geo::Geometry* GeoRef() const { return fGeometryRef.get(); }
 
     private:
       std::unique_ptr<emph::geo::Geometry> fGeometry;
+      std::unique_ptr<emph::geo::Geometry> fGeometryRef;
       unsigned int fRunNumber;
       bool fGetGDMLFromRunHistory;
       std::string fGDMLFile;
+      std::string fGDMLFileRef;
+      int fMoveStationNumber;
+      float fMoveStationByX, fMoveStationByY, fMoveStationByZ;
+      int fRotateStationNumber;
+      float fRotateStationBydPhi;
     };
     
   }

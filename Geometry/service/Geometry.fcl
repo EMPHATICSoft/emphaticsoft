@@ -4,6 +4,13 @@ standard_geometry:
 {
   GetGDMLFromRunHistory: true
   GDMLFile: ""  # must be full path
+  MoveStationNumber: -1 # no moves, by default
+  MoveStationX : 0.
+  MoveStationY : 0.
+  MoveStationZ : 0.
+  RotationStationNumber: -1 # no rotation, by default
+  MoveStationX : 0.
+  RotateStationBydPhi : 0.
 }
 
 END_PROLOG
