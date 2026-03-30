@@ -10,6 +10,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <regex>
+#include  <uuid/uuid.h>
 
 //ROOT includes
 #include "TGeoManager.h"
@@ -145,6 +146,7 @@ Plane::Plane() :
     Geometry::Geometry() :
       fIsLoaded(false), fGDMLFile("")
     {
+    
       fNSSDStations = 0;
       fNSSDPlanes = 0;
       fNSSDs = 0;
@@ -157,7 +159,15 @@ Plane::Plane() :
       }
       fTargetUSZPos = -1e7;
       fTargetDSZPos = -1e7;
-      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+      // Create a unique string to force root to create two instances of the TGeomanager.. Perhaps it 
+      // avoid the crash having multiple geometries. 
+      uuid_t uuid;
+      uuid_generate(uuid);
+      char uuidString[37];
+      uuid_unparse(uuid, uuidString);
+      std::string naneManager("EMPHGeometry"); naneManager += std::string("_") + std::string(uuidString);
+      std::string naneTitle("Geometry Manager"); naneTitle += std::string("_") + std::string(uuidString); 
+      fGeoManager = new TGeoManager(naneManager.c_str(), naneTitle.c_str());
 
     }
 
@@ -166,7 +176,17 @@ Plane::Plane() :
     Geometry::Geometry(std::string fname) :
       fIsLoaded(false), fGDMLFile(fname), fSSDStation(0)
     {
-      fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+      std::cerr << " Geometry Constructor.. with file ... " << fGDMLFile << std::endl;
+      // Create a unique string to force root to create two instances of the TGeomanager.. Perhaps it 
+      // avoid the crash having multiple geometries. 
+      uuid_t uuid;
+      uuid_generate(uuid);
+      char uuidString[37];
+      uuid_unparse(uuid, uuidString);
+      std::string naneManager("EMPHGeometry"); naneManager += std::string("_") + std::string(uuidString);
+      std::string naneTitle("Geometry Manager"); naneTitle += std::string("_") + std::string(uuidString);
+      gGeoManager = 0; // not to loose the olde geometry, despite the fact that this class is not a singleton.  
+      fGeoManager = new TGeoManager(naneManager.c_str(), naneTitle.c_str());
 
       for ( int i = Trigger ; i < NDetectors ; i ++ ) fDetectorLoad[i] = false;
       fMagnetLoad = false;
@@ -192,7 +212,16 @@ Plane::Plane() :
 	fIsLoaded = false;
 	fMagnetLoad = false;
 	fSSDSensorMap.clear();
-	fGeoManager = new TGeoManager("EMPHGeometry","EMPHATIC Geometry Manager");
+        // Create a unique string to force root to create two instances of the TGeomanager.. Perhaps it 
+        // avoid the crash having multiple geometries. 
+        uuid_t uuid;
+        uuid_generate(uuid);
+        char uuidString[37];
+        uuid_unparse(uuid, uuidString);
+        std::string naneManager("EMPHGeometry"); naneManager += std::string("_") + std::string(uuidString);
+        std::string naneTitle("Geometry Manager"); naneTitle += std::string("_") + std::string(uuidString);
+	gGeoManager = 0; // not to loose the olde geometry, despite the fact that this class is not a singleton.  
+        fGeoManager = new TGeoManager(naneManager.c_str(), naneTitle.c_str());
       }
       
       return this->LoadGDMLFile();
@@ -270,6 +299,8 @@ Plane::Plane() :
       fIsLoaded = true;
 
       return true;
+      
+      std::cerr << " Geometry::LoadGDMLFile, Done!.. " << std::endl;
     }
 
     //--------------------------------------------------------------------------------
@@ -467,6 +498,7 @@ Plane::Plane() :
       fNSSDStations = (int)nodeName.size();
       fSSDStation.resize(nodeName.size());
       fNSSDPlanes = 0;
+      fNSSDs = 0;
       double angle;
       bool flip;
 
@@ -503,6 +535,8 @@ Plane::Plane() :
           for (int kk=0; kk<nsensors; ++kk) {
             std::string sname = mount_v->GetNode(kk)->GetName();
             if (sname.find(ssubString) != std::string::npos){  
+	      fNSSDs++; // Added by P.L., March 20 2026. 
+//	      std::cerr << " Geometry::ExtractSSDInfo, adding sensor " <<  sname << " nSensors " << fNSSDs << std::endl;
               sscanf(sname.c_str(),"ssdsensor_%d_%d_%d_phys",&iSt,&iPl,&iSe);
               if (nplanes < iPl) { // new plane
                 st.AddPlane(plane);
@@ -554,7 +588,6 @@ Plane::Plane() :
               }
               plane.AddSSD(*sensor);
               fSSDSensorMap[fNSSDs] = std::move(sensor);
-              fNSSDs++;
             }
           }
         }

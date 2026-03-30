@@ -1,4 +1,4 @@
-cet_make_library(SOURCE Geometry.cxx
+cet_make_library(SOURCE Geometry.cxx ModAlign/ModGDML.cxx
 		 LIBRARY_NAME Geometry
 		 LIBRARIES
     		 art::Framework_Core
@@ -11,11 +11,13 @@ cet_make_library(SOURCE Geometry.cxx
     		 cetlib::container_algorithms
     		 cetlib::cetlib
 	 	 Utilities
+		 uuid		 
 		 BASENAME_ONLY
 )
 
 install_headers()
 install_source()
 
+add_subdirectory(ModAlign)
 add_subdirectory(demo)
 add_subdirectory(service)
