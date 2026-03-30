@@ -63,6 +63,10 @@ namespace rb {
     int    MaxTime() const;
     int    TimeRange() const { return (MaxTime()-MinTime()); }
 
+    inline art::PtrVector<emph::rawdata::SSDRawDigit>::const_iterator CBeginRaw() const { return fDigitVec.cbegin(); }  
+    inline art::PtrVector<emph::rawdata::SSDRawDigit>::const_iterator CEndRaw() const { return fDigitVec.cend(); }  
+    inline size_t NumRawDigit() const { return fDigitVec.size(); }
+
     friend std::ostream& operator << (std::ostream& o, const SSDCluster& h);
     
   private:
