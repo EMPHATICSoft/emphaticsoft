@@ -20,6 +20,7 @@
 #include "RawData/SSDRawDigit.h"
 #include "Geometry/service/GeometryService.h"
 #include "Align/service/AlignService.h"
+#include "TGeoManager.h"
 
 namespace emph {
 
@@ -45,7 +46,8 @@ namespace emph {
        
       bool StationSensorPlaneToLineSegment(int station, int sensor, int plane, rb::LineSegment& ls, double dstrip = 0.5);
   
- 
+      inline void SetTheROOTGeoManager() {gGeoManager = fGeo->ROOTGeoManager(); } 
+      
     private:
       bool fUseGeometry;
       bool fIsReference;
