@@ -141,6 +141,8 @@ namespace emph {
     const bool fRunPede; // at the end job, we run the Millipede-II algorithm, to align.. 
     const bool fFixStationRotations; 
     const int fFixAllStationPosButOne;
+    const int fFixAllStationPosRotButOne;
+    const int fFixAllFreeOneRotStation;
     const double fXCenterSel, fYCenterSel, fXWidthSel, fYWidthSel; // selection on regions, expect biases.. 
     const double fOneOverSqrt12, fOneOverSqrt2;
     int fNumUsedEvts; // Number of available (one and only one cluster per sensor) 
@@ -195,7 +197,9 @@ namespace emph {
     fNumUsedEvts(0), fNumMeasure(0),
     fRunPede   (pset.get< bool > ("RunPede")),
     fFixStationRotations (pset.get<bool> ("FixStationRotations")), 
+    fFixAllFreeOneRotStation (pset.get<int> ("FixAllFreeOneRotStation")), 
     fFixAllStationPosButOne (pset.get<int> ("FixAllStationPosButOne")), 
+    fFixAllStationPosRotButOne (pset.get<int> ("FixAllStationPosRotButOne")), 
     fTokenCSV (pset.get<std::string> ("TokenCSV")),
     fFNameMille(std::string("m0043_") + fTokenCSV + std::string(".bin"))
     {
@@ -356,6 +360,42 @@ namespace emph {
 	  if (fFixAllStationPosButOne == ii) continue;
 	  for (int kDir=1; kDir !=3; kDir++) { 
 	    int paramNum = 10*ii + kDir; // I set this up... 
+	    std::ostringstream  staStrStr; staStrStr << " " << paramNum << "  0.   -1. ' ";
+	    std::string staStr(staStrStr.str()); 
+	    std::string cmdSed04x("sed -i '$a " ); cmdSed04x += staStr + aNewPathToSteerAll;
+	    std::system(cmdSed04x.c_str());
+	  }
+        }
+      } 
+      if (fFixAllStationPosRotButOne != -1) { // valid only for station rotations.. 
+        if (!introFixing) { 
+	  std::string cmdSed03("sed -i '$a parameter' " ); cmdSed03 += aNewPathToSteerAll;
+	  std::system(cmdSed03.c_str());
+	  introFixing = true;
+	}
+        for (int ii=1; ii<(int)fNStations; ii++){
+          if (ii == 4) continue;
+	  if (fFixAllStationPosRotButOne == ii) continue;
+	  for (int kDir=1; kDir !=4; kDir++) { 
+	    int paramNum = 10*ii + kDir; // I set this up... 
+	    std::ostringstream  staStrStr; staStrStr << " " << paramNum << "  0.   -1. ' ";
+	    std::string staStr(staStrStr.str()); 
+	    std::string cmdSed04x("sed -i '$a " ); cmdSed04x += staStr + aNewPathToSteerAll;
+	    std::system(cmdSed04x.c_str());
+	  }
+        }
+      } 
+      if (fFixAllFreeOneRotStation != -1) { // valid only for station rotations.. 
+        if (!introFixing) { 
+	  std::string cmdSed03("sed -i '$a parameter' " ); cmdSed03 += aNewPathToSteerAll;
+	  std::system(cmdSed03.c_str());
+	  introFixing = true;
+	}
+        for (int ii=1; ii<(int)fNStations; ii++){
+          if (ii == 4) continue;
+	  for (int kDir=1; kDir !=4; kDir++) { 
+	    int paramNum = 10*ii + kDir; // I set this up... 
+	    if ((kDir == 3) && (fFixAllFreeOneRotStation == ii)) continue;
 	    std::ostringstream  staStrStr; staStrStr << " " << paramNum << "  0.   -1. ' ";
 	    std::string staStr(staStrStr.str()); 
 	    std::string cmdSed04x("sed -i '$a " ); cmdSed04x += staStr + aNewPathToSteerAll;
@@ -529,12 +569,12 @@ namespace emph {
       if (itCl->View() == emph::geo::X_VIEW) {
         globalParamsDeriv[0] = 1.0;
 	globalParamsDeriv[1] = phim;
-	globalParamsDeriv[2] = -yCoordB;
+	globalParamsDeriv[2] = yLocal;
       } 
       if (itCl->View() == emph::geo::Y_VIEW) { 
         globalParamsDeriv[1] = 1.0;
 	globalParamsDeriv[0] = phim;
-	globalParamsDeriv[2] = -xCoordB; 
+	globalParamsDeriv[2] = xLocal; 
       }
       if (itCl->View() == emph::geo::W_VIEW) { // To be checked...!!!! 
         globalParamsDeriv[0] = fOneOverSqrt2;
@@ -542,7 +582,8 @@ namespace emph {
 	globalParamsDeriv[2] = fOneOverSqrt2 * ( yCoordB - xCoordB); // Not sure...
       } 
        int ltmp[3] = {iiiSt+1, iiiSt+2, iiiSt+3}; // organized by coordinate plane, or View.. 
-       m->mille(1, &lcd, 3, &globalParamsDeriv[0], ltmp, dd,err);
+//       m->mille(1, &lcd, 3, &globalParamsDeriv[0], ltmp, dd,err); Works fine for X and Y view, phim = 0. 
+       m->mille(3, &globalParamsDeriv[0], 3, &globalParamsDeriv[0], ltmp, dd,err); // local and global derivative could be identical..
        pulls[kSensor] = dd;
        chiSq += (dd*dd)/(err*err);
        if (debugNow) std::cerr << " At Station " << iStation << " View " << itCl->View() << " pull " 
