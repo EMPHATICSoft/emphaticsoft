@@ -100,11 +100,11 @@ namespace emph
     G4VPhysicalVolume* vol = step->GetPreStepPoint()->GetPhysicalVolume();
     std::string volStr = vol->GetName();
     if (volStr.find("ssd_chan_") == std::string::npos) return;
-
     //mf::LogInfo("SSDHitAction") << "SSDHitAction::SteppingAction";
 
     /// Get the pointer to the track
     G4Track *track = step->GetTrack();
+    int aPid = track->GetDefinition()->GetPDGEncoding();
     
     //check that we are in the correct material to record a hit - ie scintillator
     std::string material = track->GetMaterial()->GetName();
@@ -130,10 +130,11 @@ namespace emph
 
     // If it's a null step, don't use it. Otherwise it may induce an additional 
     // SSDHit, which is wrong
+    // unless it is a Geantino, to study alignment with perfect hits (no delta rays, no multiple scattering .. )
     if(tpos0[0]==tpos1[0] &&
        tpos0[1]==tpos1[1] &&
        tpos0[2]==tpos1[2])return;
-
+ 
     // Use the position ~1 nm away from the start of step to avoid the ambiguity on boundary
     double shift=1e-6;
     double tpos_s[3];
@@ -154,9 +155,10 @@ namespace emph
     // account for the fact that we use cm, ns, GeV rather than the G4 defaults
     sim::SSDHit ssdHit;
 
-    ssdHit.SetPId( track->GetDefinition()->GetPDGEncoding() );
+    ssdHit.SetPId( aPid );
     ssdHit.SetTrackID( track->GetTrackID() );
-    const double edep = step->GetTotalEnergyDeposit()/CLHEP::GeV;
+    const double edep = (aPid == 0) ? 1.0e-4 :  step->GetTotalEnergyDeposit()/CLHEP::GeV;
+    // testing the loss of precision due low energy E.M. interaction (delta ray, multiple scattering, )
     ssdHit.SetDE(edep);
 
     // need to add code to figure out SSD station, plane, sensor and strip
