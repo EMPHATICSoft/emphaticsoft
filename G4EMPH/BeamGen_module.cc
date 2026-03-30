@@ -13,8 +13,8 @@
 #include "art/Framework/Principal/EventPrincipal.h"
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
-#include "art_root_io/TFileService.h"
-#include "art_root_io/TFileDirectory.h"
+//#include "art_root_io/TFileService.h"
+//#include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/types/Atom.h"
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h"
@@ -62,6 +62,7 @@ namespace emph {
     bool        fUseRunHistory;
     int         fPID;
     uint64_t    fEvtCount;
+    double      fRandomSeed;
     double      fZstart;
     double      fMass;
     double      fXmax;
@@ -110,9 +111,10 @@ namespace emph {
     
     produces<std::vector<simb::MCParticle> >();
     
-    rand = new TRandom3(0);
- 
     configure(ps);
+    
+    rand = new TRandom3(fRandomSeed);
+ 
     GetXYHist();
     GetPXYHist();
     GetPID();
@@ -131,6 +133,7 @@ namespace emph {
     
     fDebugBeam = ps.get<bool>("DebugBeam","false");
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
+    fRandomSeed        = ps.get<double>("RandomSeed", 12345); // mm
     fZstart        = ps.get<double>("Zstart", -200.); // mm
     fPZDist	   = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
@@ -185,8 +188,8 @@ namespace emph {
 	fPsigma = 0.01*fPmean;
 	fXYHist = 0;
 	fPXYHist = 0;
-	fXYDistSource = "";
-	fPXYDistSource = "";
+//	fXYDistSource = ""; // Why ? 
+//	fPXYDistSource = "";
 	fPID = kProton;
 	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
@@ -333,8 +336,8 @@ namespace emph {
     else { // get random position from flat or Gaussian distribution
       if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
 	  fXYDistSource == "flatxy") {
-	pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin));
-	pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin));
+	pos[0] = (fXmin + rand->Uniform()*2.0*(fXmax - fXmin));
+	pos[1] = (fYmin + rand->Uniform()*2.0*(fYmax - fYmin));
       }
       else { // default is Gauss
 	//	std::cout << "here 1234" << std::endl;
