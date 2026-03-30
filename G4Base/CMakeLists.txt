@@ -1,3 +1,4 @@
+
 FILE( GLOB src_files *.cxx )
 
 cet_make_library(SOURCE ${src_files}
@@ -26,10 +27,10 @@ cet_make_library(SOURCE ${src_files}
 		Geant4::G4interfaces
 		Geant4::G4materials
 		Geant4::G4modeling
-		Geant4::G4OpenGL
+#		Geant4::G4OpenGL
 		Geant4::G4parmodels
 		Geant4::G4particles
-		Geant4::G4persistency
+#		Geant4::G4persistency
 		Geant4::G4physicslists
 		Geant4::G4processes
 		Geant4::G4RayTracer
@@ -41,7 +42,8 @@ cet_make_library(SOURCE ${src_files}
 		Geant4::G4visHepRep
 		Geant4::G4vis_management
 		Geant4::G4VRML
-		Geant4::G4zlib 
+#		Geant4::G4zlib
+                xerces-c 
 	BASENAME_ONLY
 )
 
