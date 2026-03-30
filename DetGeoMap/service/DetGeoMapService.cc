@@ -48,12 +48,13 @@ namespace emph
     void DetGeoMapService::preBeginRun(const art::Run& run)
     {
       art::ServiceHandle<emph::geo::GeometryService> geo;
+      art::ServiceHandle<emph::geo::GeometryService> geoRef;
       art::ServiceHandle<emph::AlignService> align;
 
       fDetGeoMap->SetRun(run.run());
       fDetGeoMapRef->SetRun(run.run());
       fDetGeoMap->SetGeometry(geo->Geo());
-      fDetGeoMapRef->SetGeometry(geo->GeoRef());
+      fDetGeoMapRef->SetGeometry(geoRef->Geo());
       if (fUseAlign) {
         fDetGeoMap->SetAlign(align->GetAlign());
 	fDetGeoMapRef->SetAlign(align->GetAlign());

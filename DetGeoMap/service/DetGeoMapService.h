@@ -39,8 +39,19 @@ namespace emph
     
       void preBeginRun(const art::Run& run);
 
-      DetGeoMap* Map() const {return fDetGeoMap; }
-      DetGeoMap* MapRef() const {return fDetGeoMapRef; }
+      DetGeoMap* Map() const {
+//         std::cerr << " DetGeoMapService, pointer to detGeoMap " << fDetGeoMap << std::endl;
+	 if ((fDetGeoMap == nullptr) || (fDetGeoMap == 0)) {
+	    std::cerr << " ... Problem, no valid DetGeoMap pointer,  quit now " << std::endl; exit(2);
+	 }
+         return fDetGeoMap; 
+      }
+      DetGeoMap* MapRef() const {
+	if ((fDetGeoMapRef == nullptr) || (fDetGeoMapRef == 0)) {
+	    std::cerr << " ... Problem, no valid DetGeoMapRef pointer,  quit now " << std::endl; exit(2);
+	}
+       return fDetGeoMapRef; 
+     }
       
     private:
       DetGeoMap* fDetGeoMap;
