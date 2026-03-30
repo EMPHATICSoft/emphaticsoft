@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_beamgen:
 {
   module_type:	             BeamGen
+  RandomSeed:                123459
   particleType:		     "proton"
   UseRunHistory:             false
   pzDist:		     "Gauss"
