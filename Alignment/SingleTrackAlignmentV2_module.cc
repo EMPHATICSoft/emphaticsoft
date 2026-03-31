@@ -574,7 +574,7 @@ namespace emph {
       if (itCl->View() == emph::geo::Y_VIEW) { 
         globalParamsDeriv[1] = 1.0;
 	globalParamsDeriv[0] = phim;
-	globalParamsDeriv[2] = -xLocal; 
+	globalParamsDeriv[2] = xLocal; 
       }
       if (itCl->View() == emph::geo::W_VIEW) { // To be checked...!!!! 
         globalParamsDeriv[0] = fOneOverSqrt2;
