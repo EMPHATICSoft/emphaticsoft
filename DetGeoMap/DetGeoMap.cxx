@@ -84,7 +84,7 @@ namespace emph {
     
       this->SetTheROOTGeoManager(); 
         
-      if ((fGeo == 0) || (fGeo == nullptr)) { std::cerr << " Stop here !!! " << std::endl; exit(2); } 
+      if ((fGeo == 0) || (fGeo == nullptr)) { std::cerr << " Stop here !!! " << std::endl; exit(2); }
       int station = cl.Station();
       int sensor = cl.Sensor();
       int plane  = cl.Plane();
