@@ -27,6 +27,10 @@ namespace emph
     {
       if (fUseAlign) std::cerr << " DetGeoMapService::DetGeoMapService, we will be using an alignment file.. " << std::endl;
       else std::cerr << " DetGeoMapService::DetGeoMapService, we will NOT be using an alignment file.. " << std::endl;
+      if (fUseGeometryRef) std::cerr 
+         << " DetGeoMapService::DetGeoMapService, we will be using the reference alignment file.. " << std::endl;
+      if (!fUseGeometryRef) std::cerr 
+         << " DetGeoMapService::DetGeoMapService, we will be using the modified alignment file.. " << std::endl;
       art::ServiceHandle<emph::AlignService> align;
 
       fDetGeoMap = new DetGeoMap();
@@ -53,8 +57,11 @@ namespace emph
 
       fDetGeoMap->SetRun(run.run());
       fDetGeoMapRef->SetRun(run.run());
+      // Checking the geometry file names 
+      std::cerr << " DetGeoMapService::preBeginRun GDML modified geometry from file " << geo->Geo()->GDMLFile() << std::endl;
+      std::cerr << " DetGeoMapService::preBeginRun GDML reference  geometry from file " << geoRef->GeoRef()->GDMLFile() << std::endl;
       fDetGeoMap->SetGeometry(geo->Geo());
-      fDetGeoMapRef->SetGeometry(geoRef->Geo());
+      fDetGeoMapRef->SetGeometry(geoRef->GeoRef());
       if (fUseAlign) {
         fDetGeoMap->SetAlign(align->GetAlign());
 	fDetGeoMapRef->SetAlign(align->GetAlign());
