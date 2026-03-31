@@ -84,76 +84,65 @@ namespace emph
 	fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );
       }      
       else {
-        ModGDML myMods(fGDMLFile); // a utility class to handle the edits of a Geometry file. 
-        if ((fMoveStationNumber != -1) && (fMoveStationNumber != 999)) {
-	  bool ok = myMods.TranslateAStation(fMoveStationNumber, fMoveStationByX, fMoveStationByY, fMoveStationByZ);
-	  if (!ok) {
-	    std::cerr << " GeometryService::preBeginRun logic problem in ModGDML, stop here " << std::endl;
-	    exit(2);
-	  }
+	if ((fMoveStationNumber != -1) ||(fRotateStationNumber != -1)) { // one or more moves or rotation will occur.. 
+          ModGDML myMods(fGDMLFile); // a utility class to handle the edits of a Geometry file. 
 	  size_t iPosPh = fGDMLFile.find("phase");
 	  std::string tmpName0 = fGDMLFile.substr(iPosPh);
 	  size_t iPosDot = tmpName0.find(".gdml");
 	  std::string tmpName1 = tmpName0.substr(0, tmpName0.size()-5);
 	  std::ostringstream newFileNameStrStr; 
-	  newFileNameStrStr << "./" << tmpName1 << "_MvStation_" << fMoveStationNumber;
-	  if (std::abs(fMoveStationByX) > 1.0e-6) 
-	     newFileNameStrStr << "_XBy_" << static_cast<int>(1000.*fMoveStationByX); 
+	  newFileNameStrStr << "./" << tmpName1;  
+          if ((fMoveStationNumber != -1) && (fMoveStationNumber != 999)) {
+	    bool ok = myMods.TranslateAStation(fMoveStationNumber, fMoveStationByX, fMoveStationByY, fMoveStationByZ);
+	    if (!ok) {
+	      std::cerr << " GeometryService::preBeginRun logic problem in ModGDML, stop here " << std::endl;
+	      exit(2);
+	    }
+	    newFileNameStrStr << "_MvStation_" << fMoveStationNumber;
+	    if (std::abs(fMoveStationByX) > 1.0e-6) 
+	       newFileNameStrStr << "_XBy_" << static_cast<int>(1000.*fMoveStationByX); 
 	   // in micron, avoid the use of floating pts in filename.   
-	  if (std::abs(fMoveStationByY) > 1.0e-6) 
+	    if (std::abs(fMoveStationByY) > 1.0e-6) 
 	     newFileNameStrStr << "_YBy" << static_cast<int>(1000.*fMoveStationByY); 
-	  if (std::abs(fMoveStationByZ) > 1.0e-6) 
+	    if (std::abs(fMoveStationByZ) > 1.0e-6) 
 	     newFileNameStrStr << "_ZBy" << static_cast<int>(1.*fMoveStationByZ); // Z in mm.. Yeah, confusing... 
-	  newFileNameStrStr << ".gdml";
-	  fGDMLFileRef = fGDMLFile; // we keep the reference geometry..
-	  fGDMLFile = newFileNameStrStr.str();
-	  std::cerr << " GeometryService::preBeginRun New file name " << fGDMLFile << std::endl;
-	  myMods.SaveIt(fGDMLFile);
-     	  fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
-	  std::cerr << " ... Perhaps, successful modification of the GDML file.." << std::endl;
 //	std::cerr << "  and quit now for good " << std::endl; exit(2);
-        } else if (fMoveStationNumber == 999) {
-	  std::cerr << " ... GeometryService::preBeginRun Move all the stations. Not implemented yet " << std::endl;
-	  exit(2);
-	}
-        if ((fRotateStationNumber != -1) && (fRotateStationNumber != 999)) {
-	  bool ok = myMods.RotateAStation(fRotateStationNumber, fRotateStationBydPhi);
-	  if (!ok) {
-	    std::cerr << " GeometryService::preBeginRun logic problem in ModGDML, in rotations stop here " << std::endl;
+          } else if (fMoveStationNumber == 999) {
+	    std::cerr << " ... GeometryService::preBeginRun Move all the stations. Not implemented yet " << std::endl;
 	    exit(2);
 	  }
-	  size_t iPosPh = fGDMLFile.find("phase");
-	  std::string tmpName0 = fGDMLFile.substr(iPosPh);
-	  size_t iPosDot = tmpName0.find(".gdml");
-	  std::string tmpName1 = tmpName0.substr(0, tmpName0.size()-5);
-	  std::ostringstream newFileNameStrStr; 
-	  newFileNameStrStr << "./" << tmpName1 << "_RotStation_" << fRotateStationNumber;
-	  newFileNameStrStr << "_" << static_cast<int>(1.0e6*fRotateStationBydPhi); 
-	   // in micro-degree, avoid the use of floating pts in filename.   
+          if ((fRotateStationNumber != -1) && (fRotateStationNumber != 999)) {
+	    bool ok = myMods.RotateAStation(fRotateStationNumber, fRotateStationBydPhi);
+	    if (!ok) {
+	      std::cerr << " GeometryService::preBeginRun logic problem in ModGDML, in rotations stop here " << std::endl;
+	      exit(2);
+	    }
+	    newFileNameStrStr << "_RotStation_" << fRotateStationNumber;
+	    newFileNameStrStr << "_" << static_cast<int>(1.0e3*fRotateStationBydPhi); 
+	     // in micro-degree, avoid the use of floating pts in filename.   
+//	std::cerr << "  and quit now for good " << std::endl; exit(2);
+          } else if (fRotateStationNumber == 999) {
+	    std::cerr << " ... GeometryService::preBeginRun Move all the stations. Not implemented yet " << std::endl;
+	    exit(2);
+	  }
 	  newFileNameStrStr << ".gdml";
 	  fGDMLFileRef = fGDMLFile; // we keep the reference geometry..
 	  fGDMLFile = newFileNameStrStr.str();
 	  std::cerr << " GeometryService::preBeginRun New file name " << fGDMLFile << std::endl;
+	  std::cerr << " ... Perhaps, successful modification of the GDML file.." << std::endl;
 	  myMods.SaveIt(fGDMLFile);
      	  fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
-	  std::cerr << " ... Perhaps, successful modification of the GDML file.." << std::endl;
-//	std::cerr << "  and quit now for good " << std::endl; exit(2);
-        } else if (fRotateStationNumber == 999) {
-	  std::cerr << " ... GeometryService::preBeginRun Move all the stations. Not implemented yet " << std::endl;
-	  exit(2);
+	  fGeometryRef.reset(new emph::geo::Geometry(fGDMLFileRef.c_str()) );
+      // Checking things.. 
+          std::cerr << " GeometryService::preBeginRun, check GDML, modified file Name  " << fGeometry->GDMLFile() << std::endl; 
+          if (fGeometryRef != nullptr) 
+          std::cerr << " GeometryService::preBeginRun, check GDML, reference  file Name  " << fGeometryRef->GDMLFile() << std::endl; 
 	}
-     // Assume the use case of simulation, or alignment task..  
-     	fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) ); // That is the modified geometry..
-	if (fGDMLFileRef.length() > 2) fGeometryRef.reset(new emph::geo::Geometry(fGDMLFileRef.c_str()) );
 	else fGeometryRef.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
 	//
 	// We need the capability of not moving the SSD stations, or the planes, or the magnet.
 	// In which case, we will have two exactly identical instance of the geometry.. 
-      } 
-      // Checking things.. 
-      std::cerr << " GeometryService::preBeginRun, check GDML, modified file Name  " << fGeometry->GDMLFile() << std::endl; 
-      if (fGeometryRef != nullptr) 
-        std::cerr << " GeometryService::preBeginRun, check GDML, reference  file Name  " << fGeometryRef->GDMLFile() << std::endl; 
+      } // .. modified geometry. Perhaps not needed... 
       /*
       std::cout << "GeometryService::preBeginRun" << std::endl;
       // Check if geo has already been loaded for this run
