@@ -491,7 +491,7 @@ namespace emph {
   
   void emph::SingleTrackAlignmentV2::FillPulls(bool debugNow)
   {
-    auto emgeo = geo->Geo();
+    auto emgeo = geo->GeoRef();
     ru::RecoUtils rUtil = ru::RecoUtils(fEvtNum);
     std::vector<float> pulls(fClustMap.size(), 9.e9); 
     rb::LineSegment aLs;
@@ -501,8 +501,8 @@ namespace emph {
     // the offset in the transverse plane, and a rotation angle for a given station. 
     std::vector<float> globalParamsDeriv(3, 0.); 
     if (debugNow) std::cerr << " SingleTrackAlignmentV2::FillPulls, starting  with " << fNumMeasure  << " measurements "  << std::endl;
-//    const float lcd = 1.; // Up to a sign !!!! One measurement per sensor..Ignore the quadratic terms..
-    const float lcd = 2.; // Up to a sign !!!! Multiply by 2, the closest approach is 1/2 of the shift... 
+    const float lcd = 1.; // Up to a sign !!!! One measurement per sensor..Ignore the quadratic terms..
+//    const float lcd = 2.;
 // No effect..      
 //    const float lcd = 0.; // No local derivatives..   
     for (auto itM = fClustMap.cbegin(); itM != fClustMap.cend(); itM++) { 
@@ -569,12 +569,12 @@ namespace emph {
       if (itCl->View() == emph::geo::X_VIEW) {
         globalParamsDeriv[0] = 1.0;
 	globalParamsDeriv[1] = phim;
-	globalParamsDeriv[2] = yLocal;
+	globalParamsDeriv[2] = -yLocal;
       } 
       if (itCl->View() == emph::geo::Y_VIEW) { 
         globalParamsDeriv[1] = 1.0;
 	globalParamsDeriv[0] = phim;
-	globalParamsDeriv[2] = xLocal; 
+	globalParamsDeriv[2] = -xLocal; 
       }
       if (itCl->View() == emph::geo::W_VIEW) { // To be checked...!!!! 
         globalParamsDeriv[0] = fOneOverSqrt2;
@@ -582,8 +582,8 @@ namespace emph {
 	globalParamsDeriv[2] = fOneOverSqrt2 * ( yCoordB - xCoordB); // Not sure...
       } 
        int ltmp[3] = {iiiSt+1, iiiSt+2, iiiSt+3}; // organized by coordinate plane, or View.. 
-//       m->mille(1, &lcd, 3, &globalParamsDeriv[0], ltmp, dd,err); Works fine for X and Y view, phim = 0. 
-       m->mille(3, &globalParamsDeriv[0], 3, &globalParamsDeriv[0], ltmp, dd,err); // local and global derivative could be identical..
+//       m->mille(1, &lcd, 3, &globalParamsDeriv[0], ltmp, dd,err); // Works fine for X and Y view, phim = 0. 
+       m->mille(3, &globalParamsDeriv[0], 3, &globalParamsDeriv[0], ltmp, dd,err); // local and global derivative could be identical..???
        pulls[kSensor] = dd;
        chiSq += (dd*dd)/(err*err);
        if (debugNow) std::cerr << " At Station " << iStation << " View " << itCl->View() << " pull " 
