@@ -84,8 +84,8 @@ namespace emph
 	fGeometry.reset(new emph::geo::Geometry(rhs->RunHist()->GeoFile() ) );
       }      
       else {
+        ModGDML myMods(fGDMLFile); // a utility class to handle the edits of a Geometry file. 
         if ((fMoveStationNumber != -1) && (fMoveStationNumber != 999)) {
-          ModGDML myMods(fGDMLFile); // a utility class to handle the edits of a Geometry file. 
 	  bool ok = myMods.TranslateAStation(fMoveStationNumber, fMoveStationByX, fMoveStationByY, fMoveStationByZ);
 	  if (!ok) {
 	    std::cerr << " GeometryService::preBeginRun logic problem in ModGDML, stop here " << std::endl;
@@ -117,7 +117,6 @@ namespace emph
 	  exit(2);
 	}
         if ((fRotateStationNumber != -1) && (fRotateStationNumber != 999)) {
-          ModGDML myMods(fGDMLFile); // a utility class to handle the edits of a Geometry file. 
 	  bool ok = myMods.RotateAStation(fRotateStationNumber, fRotateStationBydPhi);
 	  if (!ok) {
 	    std::cerr << " GeometryService::preBeginRun logic problem in ModGDML, in rotations stop here " << std::endl;
@@ -144,13 +143,17 @@ namespace emph
 	  exit(2);
 	}
      // Assume the use case of simulation, or alignment task..  
-     	fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
+     	fGeometry.reset(new emph::geo::Geometry(fGDMLFile.c_str()) ); // That is the modified geometry..
 	if (fGDMLFileRef.length() > 2) fGeometryRef.reset(new emph::geo::Geometry(fGDMLFileRef.c_str()) );
 	else fGeometryRef.reset(new emph::geo::Geometry(fGDMLFile.c_str()) );
 	//
 	// We need the capability of not moving the SSD stations, or the planes, or the magnet.
 	// In which case, we will have two exactly identical instance of the geometry.. 
       } 
+      // Checking things.. 
+      std::cerr << " GeometryService::preBeginRun, check GDML, modified file Name  " << fGeometry->GDMLFile() << std::endl; 
+      if (fGeometryRef != nullptr) 
+        std::cerr << " GeometryService::preBeginRun, check GDML, reference  file Name  " << fGeometryRef->GDMLFile() << std::endl; 
       /*
       std::cout << "GeometryService::preBeginRun" << std::endl;
       // Check if geo has already been loaded for this run
