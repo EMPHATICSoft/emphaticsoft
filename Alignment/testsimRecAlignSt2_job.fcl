@@ -1,0 +1,132 @@
+#include "BeamGen.fcl"
+#include "G4Gen.fcl"
+#include "SSDDigitizer.fcl"
+#include "MakeSSDClusters.fcl" 
+#include "Services.fcl" 
+#include "Geometry.fcl" 
+#include "MakeTrackSegments.fcl" 
+#include "MakeSingleTracks.fcl" 
+#include "SingleTrackAlignmentV2.fcl" 
+
+process_name: SimRecAlign
+
+#
+# This is an example fHICL file to drive a bean generation, Geant4 Simulation, generation of simulated SSD hits
+# followed by SSD Cluster generation and ending with analyzer moduler, which align the SSD with respect to a 
+# refrence frame defined by Station 0 and Station 4. 
+# See tech note from Robert Chirco (Docdb 2302) and talk given by P.L. on March 31 (Docdb 2365) 
+# In this example, we shift and rotate Station 2 w.o.r to this reference, and get back - almost, 
+#   with biases remain to be understood - thse shifts, running the Millepede-II at the end of the job. 
+#  
+# Note : Since this is an example, I left an expciti path name for the reference GDML file, see below.. 
+# 
+
+
+services:
+{
+## This is need, to establish the map between electronic channels and detector channels 
+  @table::standard_services
+  # Load the service that manages root files for histograms.
+#  TFileService: { fileName: "daq2root_%r_%s.root" closeFileFast: false }
+  
+   RandomNumberGenerator: {} #ART native random number generator
+}
+
+#Start each new event with an empty event.
+source:
+{
+  module_type: EmptyEvent
+  maxEvents: 50000
+  firstRun:  2998
+  firstSubRun: 1
+
+}
+
+physics:
+{
+  producers:
+  {
+	generator: @local::standard_beamgen
+	SSDSim: @local::standard_geant4
+	SSDDigitizer: @local::standard_ssddigitizer
+	clust: @local::standard_ssdclust
+	tracksegments: @local::standard_maketracksegments
+	makesingletracks: @local::standard_makesingletracks
+  }
+  analyzers:
+  {
+	singleTrackAlignment: @local::standard_singletrackalignmentV2
+  }     
+
+#  simulate: [ generator, SSDSim, SSDDigitizer]
+   simulate: [ generator, SSDSim, SSDDigitizer, clust]
+#  simulate: [ generator, SSDSim, SSDDigitizer, clust, tracksegments]
+
+  ana: [singleTrackAlignment]
+  
+  stream1: [  ]
+#  stream1: [ dumper ]
+
+  trigger_paths: [ simulate ]
+
+  end_paths: [ ana, stream1 ]
+#  end_paths: [ stream1 ]
+
+}
+
+outputs:
+{
+  dumper : {
+      module_type              : FileDumperOutput
+      wantProductFullClassName : true
+      onlyIfPresent            : true
+  }
+#  out1:
+#  {
+#    module_type: RootOutput
+#    fileName:    "emphmc_r%r_s%s.root" #default file name, can override from #command line with -o or --output
+##    SelectEvents: [ simulate ]
+#  }
+}
+services.GeometryService.GetGDMLFromRunHistory: false
+services.GeometryService.GDMLFile: "/home/lebrun/EMPHATIC/emphaticsoft/ConstBase/Geometry/phase1c_Empty.gdml"
+services.GeometryService.MoveStationNumber: 2
+services.GeometryService.MoveStationByX: -0.543
+services.GeometryService.MoveStationByY: 0.643
+services.GeometryService.RotateStationNumber: 2
+services.GeometryService.RotateStationBydPhi: 0.25 # in degrees.. 
+services.DetGeoMapService.UseAlign: false
+physics.producers.SSDSim.G4AlgPSet.G4LastZPosition: 1800.
+#physics.producers.SSDSim.PerformFOutStudy: true
+physics.producers.generator.RandomSeed: 2569
+physics.producers.generator.particleType: "proton"
+physics.producers.generator.xyDistSource: "flatxy"
+physics.producers.generator.xMax: 0.3 # cm ! 
+physics.producers.generator.yMax: 0.3 # cm ! 
+physics.producers.generator.Xmin: -0.3 # cm ! 
+physics.producers.generator.Ymin: -0.3 # cm ! 
+physics.producers.SSDDigitizer.FillAnaTree: false
+physics.producers.SSDDigitizer.SkipChargeSharing: true
+physics.producers.clust.SSDRawLabel: "SSDDigitizer"
+physics.producers.clust.CheckDQ : false
+physics.producers.clust.fCVSDebug : true
+physics.producers.SSDDigitizer.G4Label: "SSDSim"
+physics.producers.tracksegments.FillRootTree: false
+physics.producers.makesingletracks.LessStrict: false
+physics.producers.makesingletracks.TrkSegLabel: tracksegments
+physics.producers.makesingletracks.FillRootTree: false
+physics.producers.makesingletracks.TokenCSV: "Mag1"
+#
+physics.analyzers.singleTrackAlignment.Use123: true
+physics.analyzers.singleTrackAlignment.Use456: true
+physics.analyzers.singleTrackAlignment.Use7890: true
+physics.analyzers.singleTrackAlignment.EffectiveMagnetKick: -0.55e-3
+physics.analyzers.singleTrackAlignment.DoSelectionStudies: true
+physics.analyzers.singleTrackAlignment.LineSegLabel: tracksegments
+physics.analyzers.singleTrackAlignment.TrackSegLabel: tracksegments
+physics.analyzers.singleTrackAlignment.RunPede: true
+#physics.analyzers.singleTrackAlignment.FixStationRotations: true
+physics.analyzers.singleTrackAlignment.FixAllStationPosRotButOne: 2
+#physics.analyzers.singleTrackAlignment.FixAllFreeOneRotStation: 2
+physics.analyzers.singleTrackAlignment.TokenCSV: "Mag11EmptyProtonRotp025"
+#
