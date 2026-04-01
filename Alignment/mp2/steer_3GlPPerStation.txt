@@ -1,5 +1,10 @@
 ! Millipede-II Steering File Overview
 !
+! Inspired from steer_all.txt, from Robert Chirco, simplified (3 Global parameter per measurement, instead of 4) 
+! To be used in conjunction with the SingleTrackAlignmentV2_module. P.L. , March 31 2026. 
+! 
+! and Constraints, 
+! 
 ! This file is used for the alignment of the detector setup by defining constraints and parameters 
 ! that guide the Millipede-II algorithm in fitting and adjusting the positions of sensors.
 !
@@ -23,8 +28,8 @@ Cfiles
 m004.bin
 
 entries 50 50 ! min. number of entries
-!method inversion 30 0.5 ! Use method 3 (likely SVD) for matrix inversion with a regularization parameter of 0.1
-method fullGMRES 30 0.5  ! Use this mysterious method, 30 iteration.. phi convergence problems. 
+method inversion 30 0.5 ! Use method 3 (likely SVD) for matrix inversion with a regularization parameter of 0.1
+!method fullGMRES 30 0.5  ! Use this mysterious method, 30 iteration.. phi convergence problems. 
 chiscut 30000. 600. 30. ! Cut off tracks with a chi-square value greater than 30.0 and apply additional chi-square threshold of 6.0
 printcounts  ! Print counts of fitting results
 monitorresiduals ! get median and RMS(MAD) of residuals
@@ -47,3 +52,4 @@ monitorresiduals ! get median and RMS(MAD) of residuals
 
 !skipemptycons ! Skip all empty (no variable parameters) constraints
 !resolveredundancycons ! Replace redundant constraints by fixing parameters
+! 
