@@ -101,6 +101,8 @@ namespace emph {
 	 { float newVal = 180. + phi; newLineStrStr << std::setprecision(8) << newVal; }
 	if (oldVal.find("225") == 3) 
 	 { float newVal = 225. + phi; newLineStrStr << std::setprecision(8) << newVal; }
+	if (oldVal.find("270") == 3) 
+	 { float newVal = 270. + phi; newLineStrStr << std::setprecision(8) << newVal; }
 	if (oldVal.find("315") == 3) 
 	 { float newVal = 315. + phi;
 	   newLineStrStr << std::setprecision(8) << newVal;
