@@ -552,19 +552,12 @@ namespace emph {
       ts.pointA.SetCoordinates(lfirst);
       ts.pointB.SetCoordinates(llast);
 
-      TVector3 n(0.,0.,1.);
+      double dx = ts.pointB.X() - ts.pointA.X();
+      double dy = ts.pointB.Y() - ts.pointA.Y();
+      double dz = ts.pointB.Z() - ts.pointA.Z();
 
-      TVector3 tsvecxz((ts.pointB.X() - ts.pointA.X()), 0., (ts.pointB.Z() - ts.pointA.Z()));
-      TVector3 tsvecyz(0., (ts.pointB.Y() - ts.pointA.Y()), (ts.pointB.Z() - ts.pointA.Z()));
-
-      double acosxz = tsvecxz.Dot(n)/(tsvecxz.Mag()*n.Mag());
-      acosxz = TMath::Min(TMath::Max(acosxz, -1.), 1.);
-
-      double acosyz = tsvecyz.Dot(n)/(tsvecyz.Mag()*n.Mag());
-      acosyz = TMath::Min(TMath::Max(acosyz, -1.), 1.);
-
-      ts.thetaX = TMath::ACos(acosxz);
-      ts.thetaY = TMath::ACos(acosyz);
+      ts.thetaX = TMath::ATan2(dx, dz);
+      ts.thetaY = TMath::ATan2(dy, dz);
 
       // Set null momentum
       double p0[3] = {0.,0.,0.};
