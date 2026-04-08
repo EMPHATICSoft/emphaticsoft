@@ -199,21 +199,19 @@ namespace caf
       caf::SRTrack tr1 = trks[0]; // beam track is always first track
       caf::SRBeamTrack btr;
       if (!ssdhits.empty()) btr = GetBeamTrack(trks[0], ssdhits);
-      else{
-        for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
-          auto rbts = trks[0].GetTrackSegment(i);
-          caf::SRTrackSegment srts;
-          srts.vtx = rbts->vtx;
-          srts.mom = rbts->mom;
-          srts.region = rbts->region;
-          srts.nspacepoints = rbts->NSpacePoints();
-          srts.pointA = rbts->pointA;
-          srts.pointB = rbts->pointB;
-          srts.chi2 = rbts->chi2;
-	  srts.thetaX = rbts->thetaX;
-          srts.thetaY = rbts->thetaY;
-          btr.Add(srts);
-	}
+      for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
+        auto rbts = trks[0].GetTrackSegment(i);
+        caf::SRTrackSegment srts;
+        srts.vtx = rbts->vtx;
+        srts.mom = rbts->mom;
+        srts.region = rbts->region;
+        srts.nspacepoints = rbts->NSpacePoints();
+        srts.pointA = rbts->pointA;
+        srts.pointB = rbts->pointB;
+        srts.chi2 = rbts->chi2;
+        srts.thetaX = rbts->thetaX;
+        srts.thetaY = rbts->thetaY;
+        btr.Add(srts);
       }
       srv.SetBeamTrack(btr);
       // loop over secondary tracks in vertex
