@@ -16,7 +16,7 @@ services:
 {
   TFileService: { fileName: "mom_reco_hist_r%r_s%s.root" closeFileFast: false }
   ChannelMapService: @local::standard_channelmap
-  Geometry:   @local::standard_geometry
+  GeometryService:   @local::standard_geometry
   RunHistoryService: @local::standard_runhistory
   DetGeoMapService: @local::standard_detgeomap
   AlignService: @local::standard_align
