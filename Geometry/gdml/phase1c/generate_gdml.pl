@@ -94,7 +94,7 @@ $n_acrylic = 20;
 
 # constants for TARGET
 $target_switch = 1;
-@target_matt = ("Graphite", "CH2", "Beryllium", "Aluminum", "Iron", "H2O", "Air");
+@target_matt = ("Graphite", "CH2", "Beryllium", "Aluminum", "Iron", "Water", "Air");
 if ( defined $target) {
     if (! grep { $_ eq $target } @target_matt) {
 	print ("invalid target string, must be one of the following: \n");
@@ -108,7 +108,7 @@ if ( defined $target) {
 			  "Beryllium" => 20., 
 			  "Aluminum" => 15.,
 			  "Iron" => 40.,
-			  "H2O" => 40.,
+			  "Water" => 40.,
 			  "Air" => 100.); #target length in mm, not accurate
 
 # constants for MAGNET
