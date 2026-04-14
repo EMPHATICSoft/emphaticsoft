@@ -2578,7 +2578,7 @@ values="202.14067278287462 12.054573032169143
      <fraction n="1" ref="Carbon"/>
    </material>
  
-   <material formula="Be" name="BeTarget">
+   <material formula="Be" name="Be">
      <D value="1.85"/>
      <fraction n="1" ref="Beryllium"/>
    </material>
@@ -3373,7 +3373,7 @@ values="202.14067278287462 12.054573032169143
   <!-- BELOW IS FOR TARGET -->
 
   <volume name="target_vol">
-	 <materialref ref="Beryllium"/>
+	 <materialref ref="Be"/>
 	 <solidref ref="target_box"/>
   </volume>
 
