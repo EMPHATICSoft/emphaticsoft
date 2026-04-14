@@ -59,6 +59,13 @@ namespace rb {
 
   //------------------------------------------------------------
 
+  void Track::AddMom(TVector3 &p)
+  {
+    _mom.push_back(p);
+  }
+
+  //------------------------------------------------------------
+
   const rb::SSDCluster* Track::GetSSDCluster(int i) const
   {    
     assert(((i>=0) && (i < int(_clust.size()))));

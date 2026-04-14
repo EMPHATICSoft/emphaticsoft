@@ -148,7 +148,7 @@ namespace emph {
       int id = ls.SSDStation()*10 + ls.SSDPlane();
       lsCount[id]++;
       if (lsCount[id] > 1) {
-	isOk = false;
+	      isOk = false;
       }
     }
     
@@ -162,95 +162,96 @@ namespace emph {
       // in general, there are three sections of interest: upstream of the target, between the target and the magnet, and downstream of the target.  Check that we have enough measurements in each section.
       int nPlanesInSection[3][4] = { {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
       for (size_t i=0; i<lsH->size(); ++i) {
-	auto & ls = (*lsH)[i];
-	auto station = emgeo->GetSSDStation(ls.SSDStation());
-	// determine the section
-	int section=3;
-	if (station->Pos()[2] < emgeo->GetTarget()->Pos()[2])
-	  section = 0;
-	else if (station->Pos()[2] > emgeo->MagnetDSZPos())
-	  section = 2;
-	else
-	  section = 1;
-	auto plane = station->GetPlane(ls.SSDPlane());
-	int view = plane->View()-1;
-	nPlanesInSection[section][view]++;
+        auto & ls = (*lsH)[i];
+        auto station = emgeo->GetSSDStation(ls.SSDStation());
+        // determine the section
+        int section=3;
+        if (station->Pos()[2] < emgeo->GetTarget()->Pos()[2])
+          section = 0;
+        else if (station->Pos()[2] > emgeo->MagnetDSZPos())
+          section = 2;
+        else
+          section = 1;
+        auto plane = station->GetPlane(ls.SSDPlane());
+        int view = plane->View()-1;
+        nPlanesInSection[section][view]++;
       }
 
       // require exactly 2 (x,y) measurements upstream of the target
       if (nPlanesInSection[0][0] != 2 ||
-	  nPlanesInSection[0][1] != 2)
-	isOk = false;
+	      nPlanesInSection[0][1] != 2)
+	      isOk = false;
       // require at least 2 (x,y) measurements in the mid-section
       if (nPlanesInSection[1][0] < 2 &&
-	  nPlanesInSection[1][1] < 2)
-	isOk = false;
+	      nPlanesInSection[1][1] < 2)
+	      isOk = false;
       // require at least 2 (x,y) measurements downstream of the magnet
       if (nPlanesInSection[2][0] < 2 &&
-	  nPlanesInSection[2][1] < 2)
-	isOk = false;
+	      nPlanesInSection[2][1] < 2)
+	      isOk = false;
       
       if (isOk) {
-	// now create vector of linesegments to reconstruct a track.  Will ignore linesegments from SSDs upstream of the target
-	std::vector<rb::LineSegment> lsV;
-	for (size_t i=0; i<lsH->size(); ++i) {
-	  auto & ls = (*lsH)[i];
-	  auto station = emgeo->GetSSDStation(ls.SSDStation());
-	  // check that measurements is downstream of the target
-	  if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) // &&
-	    //	      station->Pos()[2] < emgeo->MagnetUSZPos()) {
-	    //	  std::cout << ls << std::endl;
-	    lsV.push_back(ls);
-	  //	}
-	}
+        // now create vector of linesegments to reconstruct a track.  Will ignore linesegments from SSDs upstream of the target
+        std::vector<rb::LineSegment> lsV;
+        for (size_t i=0; i<lsH->size(); ++i) {
+          auto & ls = (*lsH)[i];
+          auto station = emgeo->GetSSDStation(ls.SSDStation());
+          // check that measurements is downstream of the target
+          if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) // &&
+            //	      station->Pos()[2] < emgeo->MagnetUSZPos()) {
+            //	  std::cout << ls << std::endl;
+            lsV.push_back(ls);
+          //	}
+        }
 
-	KPar par;
-	K5x5 parCov;
-	par[0] = 0.1;
-	par[1] = 0.1;
-	par[2] = 0.01;
-	par[3] = 0.01;
-	par[4] = 0.2; // 5 GeV/c
-	parCov[0][0] = 16.;
-	parCov[1][1] = 16.;
-	parCov[2][2] = 0.01;
-	parCov[3][3] = 0.01;
-	parCov[4][4] = 0.0001;	
-	art::ServiceHandle<emph::geo::GeometryService> geo;
+        KPar par;
+        K5x5 parCov;
+        par[0] = 0.1;
+        par[1] = 0.1;
+        par[2] = 0.01;
+        par[3] = 0.01;
+        par[4] = 0.2; // 5 GeV/c
+        parCov[0][0] = 16.;
+        parCov[1][1] = 16.;
+        parCov[2][2] = 0.01;
+        parCov[3][3] = 0.01;
+        parCov[4][4] = 0.0001;	
+        art::ServiceHandle<emph::geo::GeometryService> geo;
 
-	double startz = geo->Geo()->TargetDSZPos();
+        double startz = geo->Geo()->TargetDSZPos();
+        
+        std::cout << "Found " << trkSegH->size() << " tracksegments" << std::endl;
+
+          if (trkSegH->size() > 1) {
+            for (size_t i=0; i<trkSegH->size(); ++i) {
+              auto & ts = (*trkSegH)[i];
+              if (ts.A()[2] > emgeo->GetTarget()->Pos()[2] &&
+                  ts.A()[2] < emgeo->MagnetUSZPos()) {
+                if (ts.NSpacePoints() == 3) {
+                  std::cout << ts << std::endl;
+                  double dx = ts.GetSpacePoint(0)->Pos()[0] - ts.GetSpacePoint(2)->Pos()[0];
+                  double dy = ts.GetSpacePoint(0)->Pos()[1] - ts.GetSpacePoint(2)->Pos()[1];
+                  double dz = ts.GetSpacePoint(0)->Pos()[2] - ts.GetSpacePoint(2)->Pos()[2];		
+                  par[2] = dx/dz;
+                  par[3] = dy/dz;
+                  const double* tP = ts.GetSpacePoint(0)->Pos();
+                  dz = tP[2] - startz;
+                  par[0] = tP[0] - dz*par[2];
+                  par[1] = tP[1] - dz*par[3];
+                  parCov[0][0] = 0.25;
+                  parCov[1][1] = 0.25;
+                  parCov[2][2] = 0.001;
+                  parCov[3][3] = 0.001;
+                }
+              }
+            }
+          }
+        
+        kalman::State state1(startz,par,parCov);
 	
-	std::cout << "Found " << trkSegH->size() << " tracksegments" << std::endl;
-
-	if (trkSegH->size() > 1) {
-	  for (size_t i=0; i<trkSegH->size(); ++i) {
-	    auto & ts = (*trkSegH)[i];
-	    if (ts.A()[2] > emgeo->GetTarget()->Pos()[2] &&
-		ts.A()[2] < emgeo->MagnetUSZPos()) {
-	      if (ts.NSpacePoints() == 3) {
-		std::cout << ts << std::endl;
-		double dx = ts.GetSpacePoint(0)->Pos()[0] - ts.GetSpacePoint(2)->Pos()[0];
-		double dy = ts.GetSpacePoint(0)->Pos()[1] - ts.GetSpacePoint(2)->Pos()[1];
-		double dz = ts.GetSpacePoint(0)->Pos()[2] - ts.GetSpacePoint(2)->Pos()[2];		
-		par[2] = dx/dz;
-		par[3] = dy/dz;
-		const double* tP = ts.GetSpacePoint(0)->Pos();
-		dz = tP[2] - startz;
-		par[0] = tP[0] - dz*par[2];
-		par[1] = tP[1] - dz*par[3];
-		parCov[0][0] = 0.25;
-		parCov[1][1] = 0.25;
-		parCov[2][2] = 0.001;
-		parCov[3][3] = 0.001;
-	      }
-	    }
-	  }
-	}
-	kalman::State state1(startz,par,parCov);
-	
-	//	now do the fit... fingers crossed!
-	rb::Track track = fKAlg->Fit(lsV, state1);
-	//      trackv->push_back(track);
+	      //	now do the fit... fingers crossed!
+        rb::Track track = fKAlg->Fit(lsV, state1);
+	      trackv->push_back(track);
       }
     }
 
