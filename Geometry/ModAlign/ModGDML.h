@@ -31,9 +31,13 @@ namespace emph {
     
     public:
       
-      bool TranslateAStation(int iStation, float x, float y, float z);
+      bool TranslateAStation(int iStation, float x, float y, float z); // allow for Z motion. 
+      bool PushPullAStation(int iStation, float z); // only along Z 
       bool RotateAStation(int iStation, float phi);
+      bool TranslateASensor(int iStation, int iPlane, int iSensor, float x, float y); 
+        // No change in Z, constrained by construction. 
       bool RotateASensor(int iStation, int iPlane, int iSensor, float phi);
+      bool generateAlignedGDML(const std::string &fNameMilleRes, const std::string &newGDMLName); 
      
     };
   }
