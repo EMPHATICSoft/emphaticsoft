@@ -166,8 +166,10 @@ Plane::Plane() :
       char uuidString[37];
       uuid_unparse(uuid, uuidString);
       std::string naneManager("EMPHGeometry"); naneManager += std::string("_") + std::string(uuidString);
-      std::string naneTitle("Geometry Manager"); naneTitle += std::string("_") + std::string(uuidString); 
+      std::string naneTitle("Geometry Manager"); naneTitle += std::string("_") + std::string(uuidString);
+      gGeoManager = 0; // to for root to create a new one.  
       fGeoManager = new TGeoManager(naneManager.c_str(), naneTitle.c_str());
+      std::cerr << " Debugging Geometry Manager, new instance fGeoManager " << fGeoManager << std::endl;
 
     }
 
