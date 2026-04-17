@@ -8,6 +8,7 @@ cet_build_plugin(GeometryService art::service
   		 art::Framework_Services_Registry
   		 cetlib_except::cetlib_except
   		 art::Framework_Principal
+		 ROOT::Core
   		 ROOT::Geom
   		 ROOT::Physics
   		 BASENAME_ONLY
