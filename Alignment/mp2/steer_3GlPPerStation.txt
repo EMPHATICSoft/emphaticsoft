@@ -28,9 +28,9 @@ Cfiles
 m004.bin
 
 entries 50 50 ! min. number of entries
-method inversion 30 0.5 ! Use method 3 (likely SVD) for matrix inversion with a regularization parameter of 0.1
+method inversion 3000 6.! Use method 3 (likely SVD) for matrix inversion with a regularization parameter of 0.1
 !method fullGMRES 30 0.5  ! Use this mysterious method, 30 iteration.. phi convergence problems. 
-chiscut 30000. 600. 30. ! Cut off tracks with a chi-square value greater than 30.0 and apply additional chi-square threshold of 6.0
+chisqcut 3000. 600. ! Cut off tracks with a chi-square value greater than 30.0 and apply additional chi-square threshold of 6.0
 printcounts  ! Print counts of fitting results
 monitorresiduals ! get median and RMS(MAD) of residuals
 !scaleerrors 10 ! inflate errors
