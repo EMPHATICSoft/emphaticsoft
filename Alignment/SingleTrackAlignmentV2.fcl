@@ -14,18 +14,22 @@ standard_singletrackalignmentV2:
   Use456:             false
   Use7890:            false
   MinSensorOAOCl:      8
-  SkipUW:             true
+  SkipUW:             false
+  RandomizePulls:     true
   EffectiveMagnetKick: 0.5e-3
   XCenterSel:         0.
   YCenterSel:         0.
   XWidthSel:          9999.
   YWidthSel:          9999.
   RunPede:            true
+  GSLStudies:            true
   TokenCSV:              "None"
   FixStationRotations: false
   FixAllStationPosButOne: -1
   FixAllStationPosRotButOne: -1
   FixAllFreeOneRotStation: -1
+  ModeRunPede: 0
+  ScaleErrorsForPede: 10.
 }
 
 END_PROLOG

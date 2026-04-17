@@ -53,7 +53,7 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
-
+#include "MilleRun.h"
 #include "millepede_ii/Mille.h"
 
 using namespace emph;
@@ -125,6 +125,8 @@ namespace emph {
     std::ofstream fUseInAlingSel; //     
  
     //Millepede stuff
+    bool fRunPede;
+    int fModeRunPede;
     Mille* m;
     std::vector<int> label;
 
@@ -164,7 +166,10 @@ namespace emph {
     fYCenterSel (pset.get< double >("YCenterSel")),
     fXWidthSel (pset.get< double >("XWidthSel")),
     fYWidthSel (pset.get< double >("YWidthSel")),
-    fToken (pset.get<std::string> ("Token"))
+    fToken (pset.get<std::string> ("Token")),
+    fRunPede (pset.get<bool> ("RunPede")),
+    fModeRunPede (pset.get<int> ("ModeRunPede"))
+    
     
     {
       //this->produces< std::vector<rb::Track> >();
@@ -256,7 +261,12 @@ namespace emph {
     if (fDoSelectionStudies) {
       fUseInAlingSel.close();
       fOneClSel.close(); fAllSel.close();
-    }
+    }    
+    if (fRunPede) { 
+      emph::align::MilleRun mRun(false, fModeRunPede, fToken);
+      mRun.doIt4Param(fModeRunPede); 
+    }  
+
   }
 
   //......................................................................
@@ -507,7 +517,8 @@ namespace emph {
           usingEvent++;
           if (fDoSelectionStudies) this->SomeSelectStudy(1, clustH); 
 
-          dgm->Map()->SetAlign(align0);
+           // dgm->Map()->SetAlign(align0); // we do not use the alignment...
+	   dgm->Map()->SetAlign(nullptr);
 
           // Get pulls
           Pulls(tsvnom);

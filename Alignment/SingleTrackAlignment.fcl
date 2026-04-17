@@ -18,6 +18,8 @@ standard_singletrackalignment:
   XWidthSel:          9999.
   YWidthSel:          9999.
   Token:              "None"
+  RunPede:            true
+  ModeRunPede:        400
 }
 
 END_PROLOG
