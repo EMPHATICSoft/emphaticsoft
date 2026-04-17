@@ -4,13 +4,27 @@ standard_geometry:
 {
   GetGDMLFromRunHistory: true
   GDMLFile: ""  # must be full path
-  MoveStationNumber: -1 # no moves, by default
+  MoveStationNumber: -1 # no moves, by default. If 999, all stations moves, except station 1 and 4 
   MoveStationX : 0.
   MoveStationY : 0.
   MoveStationZ : 0.
-  RotationStationNumber: -1 # no rotation, by default
+  RotationStationNumber: -1 # no rotation, by default. same as above 
   MoveStationX : 0.
-  RotateStationBydPhi : 0.
+  RotateStationBydPhi : 0. # in degree 
+  MoveStationByWidthX : 0.1 # 1/2 width, infact +- width, uniform throw  
+  MoveStationByWidthY : 0.1 # 1/2 width, infact +- width, uniform throw 
+  MoveStationByWidthZ : 0.0000001 
+  RotateStationByWidthdPhi : 1. # in degrees 
+  MisAlignByStation : true
+  MoveAllBySensors : false  # This include rotation and shift for station 0 and 4 as well, if true 
+  RandomSeed : 15673
+  MoveSensorByWidthX : 0.1
+  MoveSensorByWidthY : 0.1
+  RotateSensorByWidthdPhi : 0.1
+  RotateStation0XPlaneBydPhi : 0.1
+  RotateStation0YPlaneBydPhi : 0.1
+  RotateStation4XPlaneBydPhi : 0.1
+  RotateStation4YPlaneBydPhi : 0.1
 }
 
 END_PROLOG
