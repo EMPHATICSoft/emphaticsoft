@@ -15,7 +15,7 @@ standard_beamgen:
 
 #Note: units are cm, GeV.  "Px" = px/pz, "Py" = py/pz.
 
-  ZStart:                    -200.
+  Zstart:        -200.
 # parameters for flat spatial distribution
   Xmax:			     0. 
   Xmin:			     0. 
@@ -51,7 +51,7 @@ proton_sliced.UseRunHistory: true
 proton_sliced.particleType: "proton"
 proton_sliced.phaseSpaceSource: "Sliced"
 proton_sliced.Zstart: -3.0 
-proton_sliced.PSigma: 0.001 
+proton_sliced.Psigma: 0.001 
 proton_sliced.xHist1DFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
 proton_sliced.slicedHistsFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
 proton_sliced.xHist1DName: "hX_for_slicing"
