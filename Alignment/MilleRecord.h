@@ -53,6 +53,7 @@ namespace emph {
     
     public:
       
+      inline void clear() { fData.clear(); } 
       inline void add(MilleRecord &mr) { fData.push_back(mr); } 
       
       void SaveIt(bool byStation, const std::string &newFileName) const; 

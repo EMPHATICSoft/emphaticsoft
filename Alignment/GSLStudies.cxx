@@ -21,7 +21,8 @@
 
 emph::align::aGSLLinFitResult::aGSLLinFitResult(int numEvts, short station, short plane, short sensor, double c0, double c1, 
 	                 std::array<double,3> covMat, double chiSq) :
-        numEvts_(numEvts), station_(station), plane_(plane), sensor_(sensor), shift_(c0), slope_(c1), 
+        numEvtsStart_(numEvts), numEvtsRej1MaxPull_(0), numEvtsKeptFinal_(0), 
+	station_(station), plane_(plane), sensor_(sensor), shift_(c0), slope_(c1), 
 	covMat_(covMat), chiSq_(chiSq)   
    {
   
@@ -30,9 +31,10 @@ emph::align::aGSLLinFitResult::aGSLLinFitResult(int numEvts, short station, shor
   }
 
 emph::align::GSLStudies::GSLStudies(bool byStation, int mode, const std::string &token) :  
-      byStations_(byStation), mode_(mode), phase_(0),  sigmaCut_(5.0), maxPull_(4.0), 
+      byStations_(byStation), mode_(mode), phase_(0),  sigmaCut_(5.0), 
+      maxPull_({1., 4.0, 5.0, 6.0, 6.0, 8.0, 9.0, 10.}),  
       basicSigma_(0.06/std::sqrt(12.)), nIterMax_(15), token_(token) {
-     debug_ = false; ; 
+     debug_ = false; ;   nStart_ = 0; nRejMaxPull_ = 0; nFinal_= 0; 
    }
     
 void emph::align::GSLStudies::StudyByStationXY(const MilleRecords &mData, short iStation, short sensor) { //Phase 1c only.. 
@@ -42,13 +44,36 @@ void emph::align::GSLStudies::StudyByStationXY(const MilleRecords &mData, short 
                            << iStation << " case " << jPlStu << " sensor " << sensor << std::endl;
      double residMax = DBL_MAX; rejected_.clear();
      size_t nKept, nRej;
-     tmpResults_.clear(); rejected_.clear();
+     tmpResults_.clear(); rejected_.clear(); nStart_ = 0; nRejMaxPull_ = 0; nFinal_= 0; 
+     short jPlX, jPlY;
+     switch (iStation) {
+       case 0: case 1: case 4: {
+         jPlX = 1; jPlY = 0; break; 
+       } 
+       case 2: case 3: {
+         jPlX = 2; jPlY = 1; break; 
+       } 
+       case 5: case 6: case 7: {
+         jPlX = 0; jPlY = 1; break; 
+       }
+     }
+     for (auto it = mData.CBegin(); it != mData.CEnd(); it++) {
+       if ((it->station_ != iStation ) || (it->sensor_ != sensor)) continue;
+       if ((jPlStu == 0) && (it->plane_ != jPlX)) continue;
+       if ((jPlStu == 1) && (it->plane_ != jPlY)) continue;
+       nStart_++; 
+     }
+     if (debug_) std::cerr << " ... ... nStart = " << nStart_;
      int nIter = 0;
      while (true) { // until we converge.. 
        curIter_ = nIter;
+       if (nIter == 0) { 
+         nRejMaxPull_ = this->pruneItMaxPull(mData, jPlStu, iStation, sensor);
+	 nRej = nRejMaxPull_;
+	 if (debug_) std::cerr << " ... ...  = nRejMaxPull_ " << nRejMaxPull_;
+       }
        nKept = this->doOneStationXYFit(mData, jPlStu, iStation, sensor );
        if (nKept < 5) break; // no or too few selected events...
-       if (nIter == 0) nRej = this->pruneItMaxPull(mData, jPlStu, iStation, sensor);
        else nRej = this->pruneIt(mData, jPlStu, iStation, sensor, sigmaCut_);
        if (debug_) {
          std::cerr << " ... At iter " << nIter << " nKept " << nKept << " Rejected " 
@@ -88,7 +113,6 @@ size_t emph::align::GSLStudies::doOneStationXYFit(const MilleRecords &mData, sho
      fOutTmp.open(aNameStr.c_str());
      fOutTmp << " evt pull  coordOrtho " << std::endl;
    }	
-			      
    short jPlX, jPlY;
    switch (iStation) {
      case 0: case 1: case 4: {
@@ -106,17 +130,18 @@ size_t emph::align::GSLStudies::doOneStationXYFit(const MilleRecords &mData, sho
    curOffset_ = 0.;  curSlope_ = 0.;
    for (auto it = mData.CBegin(); it != mData.CEnd(); it++) {
      if ((it->station_ != iStation ) || (it->sensor_ != kSensor)) continue;
+     if ((jCase == 0) && (it->plane_ != jPlX)) continue;
+     if ((jCase == 1) && (it->plane_ != jPlY)) continue;
      bool keepIt = true;
      for (auto itR=rejected_.cbegin(); itR != rejected_.cend(); itR++) 
         if (it == (*itR)) {keepIt = false; break; }
      if (!keepIt) continue; 
-     if ((jCase == 0) && (it->plane_ != jPlX)) continue;
-     if ((jCase == 1) && (it->plane_ != jPlY)) continue;
      xVals_.push_back(it->coordOrtho_); yVals_.push_back(it->pull_); 
      if (debug_) fOutTmp << it->evtNum_ << " " <<  it->pull_ << " " << it->coordOrtho_ << std::endl; 
    }
    if (fOutTmp.is_open()) fOutTmp.close();
    if (xVals_.size() < 5 ) return 0;
+   nFinal_ = xVals_.size();
    gsl_fit_linear (&xVals_[0], 1, &yVals_[0], 1 , xVals_.size(), &curOffset_, &curSlope_, 
                    &curCovMat_[0], &curCovMat_[1], &curCovMat_[2], &curChiSq_);
    if (debug_) { 
@@ -126,8 +151,10 @@ size_t emph::align::GSLStudies::doOneStationXYFit(const MilleRecords &mData, sho
 //     if (iStation == 5) std::cerr << " ... and quit for now " << std::endl; exit(2);
    }
    short aPlane = (jCase == 0) ? jPlX : jPlY;		   
-   aGSLLinFitResult aRes((int) xVals_.size(), iStation, aPlane, kSensor, curOffset_, curSlope_, 
+   aGSLLinFitResult aRes(nStart_, iStation, aPlane, kSensor, curOffset_, curSlope_, 
 	                 curCovMat_, curChiSq_);
+   aRes.numEvtsRej1MaxPull_ = nRejMaxPull_;
+   aRes.numEvtsKeptFinal_ = nFinal_;
    aRes.jCase_ = jCase;			 
    tmpResults_.push_back(aRes);			 		   
    return xVals_.size();
@@ -154,13 +181,13 @@ size_t emph::align::GSLStudies::pruneIt(const MilleRecords &mData, short jCase, 
    size_t nRej = 0;
    for (auto it = mData.CBegin(); it != mData.CEnd(); it++) {
      if ((it->station_ != iStation ) || (it->sensor_ != kSensor)) continue;
+     if ((jCase == 0) && (it->plane_ != jPlX)) continue;
+     if ((jCase == 1) && (it->plane_ != jPlY)) continue;
      bool keepIt = true;
      size_t nRef = 0;
      for (auto itR=rejected_.cbegin(); itR != rejected_.cend(); itR++) 
         if (it == (*itR)) {keepIt = false; break; } 
      if (!keepIt) continue; 
-     if ((jCase == 0) && (it->plane_ != jPlX)) continue;
-     if ((jCase == 1) && (it->plane_ != jPlY)) continue;
      double xv = it->coordOrtho_; double yv = it->pull_;
      nObs++;
      const double resid = yv - (curOffset_ + xv*curSlope_); 
@@ -180,7 +207,7 @@ size_t emph::align::GSLStudies::pruneIt(const MilleRecords &mData, short jCase, 
 size_t emph::align::GSLStudies::pruneItMaxPull(const MilleRecords &mData, short jCase, short iStation, short kSensor) {
 
    if (debug_) std::cerr << " emph::align::GSLStudies::pruneIt, jCase " << jCase << " Station " 
-                         <<  iStation << " sensor " <<  kSensor << " maxPull " << maxPull_ << std::endl;
+                         <<  iStation << " sensor " <<  kSensor << " maxPull " << maxPull_[(size_t) iStation] << std::endl;
 			 
 //   if (!this->fillInvCovs()) return 0; // should not happen.. 
    short jPlX, jPlY;
@@ -199,12 +226,14 @@ size_t emph::align::GSLStudies::pruneItMaxPull(const MilleRecords &mData, short 
    size_t nRej = 0;
    for (auto it = mData.CBegin(); it != mData.CEnd(); it++) {
      if ((it->station_ != iStation ) || (it->sensor_ != kSensor)) continue;
+     if ((jCase == 0) && (it->plane_ != jPlX)) continue;
+     if ((jCase == 1) && (it->plane_ != jPlY)) continue;
      bool keepIt = true;
      size_t nRef = 0;
      for (auto itR=rejected_.cbegin(); itR != rejected_.cend(); itR++) 
         if (it == (*itR)) {keepIt = false; break; } 
      if (!keepIt) continue;
-     if (std::abs(it->pull_) > maxPull_) keepIt = false;
+     if (std::abs(it->pull_) > maxPull_[(size_t) iStation]) keepIt = false;
      if (!keepIt) {   
        nRej++;
        rejected_.push_back(it); 

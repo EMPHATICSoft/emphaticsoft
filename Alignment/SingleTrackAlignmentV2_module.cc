@@ -176,7 +176,8 @@ namespace emph {
 
     //
     // Diagnostics, studies.. 
-    // 
+    //
+    int fSpillPrev;
     std::ofstream fClustAllDist; //  Inclusive, all      
     std::ofstream fClustSelDist; //     
     std::ofstream fPullDist, fPullDist2; //
@@ -196,8 +197,9 @@ namespace emph {
     void setTrackParams(bool debugNow = false);
     void FillPulls(bool dbg=false);
     // 
-    void ClusterStudy(int stage); 
-
+    void ClusterStudy(int stage);
+    void newfGSLStuResFile(int newSpill);   
+    void doEndJobGSLStudies();
  };
 
   //.......................................................................
@@ -237,6 +239,7 @@ namespace emph {
     
       if (fRandomizePulls) myRandForPulls = new TRandom3(123456); 
         // fixed seed, even on the grid.. Used only to certify the use of Millipede, for geantinos and/or muons.. 
+      fSpillPrev = 0; 
     }
   
   //......................................................................
@@ -350,37 +353,38 @@ namespace emph {
 	  fMilleResults.close();
        } else { fInTmp.close(); }  
      }
-     if (fGSLStudies) { 
+     if (fGSLStudies) this->newfGSLStuResFile(0); 
+
+  }
+//
+// 
+  void SingleTrackAlignmentV2::newfGSLStuResFile(int aSpill) {        
        fFileNameGSLStuRes = std::string("./SingleTrackAlignment_GSLStuPhi_");
-       fFileNameGSLStuRes += runStrStr.str() + fOpt123 + std::string("_") + fTokenCSV + std::string("_v1.txt");
+       fFileNameGSLStuRes += std::to_string(fRun) + std::string("_") + fTokenCSV + std::string("_") + 
+                             std::to_string(aSpill) + std::string("_v2.txt");
        std::ifstream fInTmp(fFileNameGSLStuRes.c_str());
        if (!fInTmp.good()) { // assume it does not exist.. 
 	  fGSLStuRes.open(fFileNameGSLStuRes.c_str());
+	  fGSLStuRes << " spill ";
 	  for (short iSt = 1; iSt != 8; iSt++) {
 	    if (iSt == 4) continue;
 	    fGSLStuRes << " StGen" << iSt;
-	    if (iSt < 5) { 
-	      fGSLStuRes << " XShift"  << iSt << " XShift" << iSt << "err";
-	      fGSLStuRes << " XSlope"  << iSt << " XSLope" << iSt << "err";
-	      fGSLStuRes << " YShift"  << iSt << " YShift" << iSt << "err";
-	      fGSLStuRes << " YSlope"  << iSt << " YSLope" << iSt << "err";
-	    } else { 
-	      for (short kS = 0; kS !=2; kS++) { 
-	        fGSLStuRes << " XShift"  << iSt << "_" << kS << " XShift" << iSt << "_" << kS  << "err";
-	        fGSLStuRes << " XSlope"  << iSt << "_" << kS << " XSLope" << iSt << "_" << kS  << "err";
-	        fGSLStuRes << " YShift"  << iSt << "_" << kS << " YShift" << iSt << "_" << kS  << "err";
-	        fGSLStuRes << " YSlope"  << iSt << "_" << kS << " YSLope" << iSt << "_" << kS  << "err";
-	      }
+            short nSensor = (iSt < 4) ? 1 : 2;
+            for (short kS = 0; kS != nSensor; kS++) { 
+	      std::string iStKs  = std::string("iSt") + std::to_string(iSt) + std::string("_") + std::to_string(kS); 
+	      fGSLStuRes << " nXStart" << iStKs << " nXRej" << iStKs << " nXFinal" << iStKs << " XShift"  
+	               << iStKs << " XShift" << iStKs << "err" ;
+	      fGSLStuRes << " XSlope"  << iStKs << " XSlope" << iStKs << "err" << " Xcov11" << iStKs ;
+	      fGSLStuRes << " nYStart" << iStKs << " nYRej" << iStKs << " nYFinal" << iStKs;
+	      fGSLStuRes << " YShift" << iStKs << " YShift" << iStKs << "err";
+	      fGSLStuRes << " YSlope"  << iStKs << " YSlope" << iStKs << "err" << " Ycov11" << iStKs ;
+	    }
 	  }
-	}
-	fGSLStuRes << std::endl;
-	fGSLStuRes.close();
-	std::cerr << " ... Check file name fFileNameGSLStuRes " << fFileNameGSLStuRes <<std::endl;
+	  fGSLStuRes << std::endl;
+	  fGSLStuRes.close();
+	  std::cerr << " ... Check file name fFileNameGSLStuRes " << fFileNameGSLStuRes <<std::endl;
        } else { fInTmp.close(); }  
-     }
-
-  }
-
+}
   //......................................................................
    
   void emph::SingleTrackAlignmentV2::beginJob()
@@ -486,7 +490,11 @@ namespace emph {
       
    } // running pede.. 
    std::cerr << " ... emph::SingleTrackAlignmentV2::endJob.. Ready to the simple Linear regression fits. " << std::endl;
-   if (fGSLStudies) {
+   if (fGSLStudies) this->doEndJobGSLStudies();
+    
+  } 
+
+  void emph::SingleTrackAlignmentV2::doEndJobGSLStudies() { 
      std::cerr << " ... doing it... on  " << fDataMillePulls.numRecords() << " num Records " << std::endl;
      emph::align::GSLStudies myStu(true, 0, fTokenCSV);
      myStu.SetDebugOn();
@@ -499,6 +507,7 @@ namespace emph {
      if (! fGSLStuRes.good()) {
        std::cerr << " Not a good status ???? quit here!! " << std::endl; exit(2);
      }
+     fGSLStuRes << " " << fSpillPrev;  
      for (short iSt = 1; iSt != 8; iSt++) { 
        if (iSt == 4) continue;
        short nSensor = (iSt < 4) ? 1 : 2;
@@ -512,23 +521,26 @@ namespace emph {
 	   double valGenAbs = std::atan2(dXLs.Y(), dXLs.X()); 
 	   double valGen = 0.; 
 	   if (std::abs(valGenAbs - M_PI/2.) < 0.1) valGen = valGenAbs - M_PI/2.;
-	   if (std::abs(valGenAbs + M_PI/2.) < 0.1) valGen = valGenAbs + M_PI/2.; 
-	   if (!myStu.gotResult(iSt, jC, kS)) fGSLStuRes << " " << 1.0e3*valGen << " 9.0e9 9.0e9 9.0e9 9.0e9 ";
+	   if (std::abs(valGenAbs + M_PI/2.) < 0.1) valGen = valGenAbs + M_PI/2.;
+	   if ((jC == 0) && (kS == 0)) fGSLStuRes << " " << 1.0e3*valGen;  
+	   if (!myStu.gotResult(iSt, jC, kS)) 
+	      fGSLStuRes << "  0 0 0 9.0e9  9.0e9  9.0e9 9.0e9  0. ";
+	       //    na nr ns  xsh err    xSl    +-  corr  ySh    +-   Ysl   +-    cov
 	   else { 
 	     auto itFinal = myStu.finalResult(iSt, jC, kS);
-	     if ((jC == 0) && (kS == 0)) fGSLStuRes << " " << 1.0e3*valGen;
-	     fGSLStuRes << " " << itFinal->shift_ << " " << std::sqrt(itFinal->covMat_[0]);
-	     fGSLStuRes << " " << 1.0e3*itFinal->slope_ << " " << 1.0e3*std::sqrt(itFinal->covMat_[2]);
+	     fGSLStuRes << " " << itFinal->numEvtsStart_ << " " << itFinal->numEvtsRej1MaxPull_ << " " << itFinal->numEvtsKeptFinal_; 
+	     fGSLStuRes << " " << itFinal->shift_ << " " << std::sqrt(itFinal->covMat_[0]) ;
+	     fGSLStuRes << " " << 1.0e3*itFinal->slope_ << " " 
+	                << 1.0e3*std::sqrt(itFinal->covMat_[2]) << " " << 1.0e3*itFinal->covMat_[1] ;
 	   }
 	 }
        }
      }
      fGSLStuRes << std::endl;
+     fDataMillePulls.clear();
      fGSLStuRes .close(); 
-  } // GSL Studies. 
+     
 }
-  
-
   //......................................................................
   void emph::SingleTrackAlignmentV2::setTrackParams(bool debugNow) {
   
@@ -848,6 +860,12 @@ namespace emph {
     fSubrun = evt.subRun();
     fEvtNum = evt.id().event();
     bool debugNow = fEvtNum < 5;
+    
+    if (fGSLStudies && (fSubrun != fSpillPrev)) { 
+      this->doEndJobGSLStudies();
+      fSpillPrev = fSubrun; // spilb by spill, 
+      
+    }
     
     // if data fcl
     std::string digitStr = std::to_string(fEvtNum);

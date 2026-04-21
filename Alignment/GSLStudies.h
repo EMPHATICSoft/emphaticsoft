@@ -24,14 +24,16 @@ namespace emph {
   
     class aGSLLinFitResult { // simple struct.. to hold the results of one linear fit 
       public :
-        int numEvts_; // exclude the rejected.. 
+        int numEvtsStart_; // size of the X or Y vectors at the start of the optimization 
+	int numEvtsRej1MaxPull_; // after maxPull cut. 
+	int numEvtsKeptFinal_;
 	short station_, plane_, sensor_, jCase_;
         double shift_; 
 	double slope_;
 	double chiSq_; 
 	std::array<double, 3> covMat_; 
 	
-        aGSLLinFitResult(int numEvts, short station, short plane, short sensor, double c0, double c1, 
+        aGSLLinFitResult(int numEvtsStart, short station, short plane, short sensor, double c0, double c1, 
 	                 std::array<double,3> covMat, double chisq); 
   
     };
@@ -47,7 +49,7 @@ namespace emph {
       int mode_; // a place holder, for tweaking algorithm(s);
       int phase_; // 
       double sigmaCut_;
-      double maxPull_; // absolute value... 
+      std::array<double, 8> maxPull_; // absolute value... 
       const double basicSigma_; // 60 microns/sqrt(12) 
       int nIterMax_; 
       std::string token_; // Should we use a CSV file for studies & debugging.. 
@@ -63,6 +65,9 @@ namespace emph {
       
 
     // internal, volatile.. since GSL is C, use parallel array of double and ints. 
+      size_t nStart_;
+      size_t nRejMaxPull_; 
+      size_t nFinal_;
       int curIter_;
       bool debug_;
       std::vector<aGSLLinFitResult> tmpResults_;  // on iteration.
@@ -75,12 +80,14 @@ namespace emph {
      
     public:
     
+      void clear() { allResults_.clear(); }  
+    
       void StudyByStationXY(const MilleRecords &mData, short iStation, short sensor = 0);
        // ignoring the W planes for now.. if iStation =999, do all of them.    
      
       inline void SetSigmaCut(double factor) { sigmaCut_ = factor; } // while pruning.. 
       inline void SetNIterMax(int n) { nIterMax_ = n; } // while pruning.. 
-      inline void SetMaxPull(double mP) { maxPull_ = mP; } // while pruning.. 
+      inline void SetMaxPull(size_t iSt, double mP) { maxPull_[iSt] = mP; } // First iteration  pruning.. 
       inline void SetDebugOn() { debug_ = true; } 
           
       bool doIt(const MilleRecords &myMrs, int newMode=-1 ); 
@@ -99,7 +106,7 @@ namespace emph {
          if (allResults_.size() == 0) return 9.0e9; 	 
          for (auto itLf = allResults_.cbegin(); itLf != allResults_.cbegin(); itLf++) {
 	   if ((itLf->station_ != iStation) || (itLf->jCase_ != jCase) || (itLf->sensor_ != kSensor)) continue;
-	   size_t nnEvt = itLf->numEvts_;
+	   size_t nnEvt = itLf->numEvtsKeptFinal_;
 	   if (nnEvt == 0) return 9.0e9;
 	   const double chiSq = itLf->chiSq_/(nnEvt - 2);
 	   return  chiSq;  
@@ -112,7 +119,7 @@ namespace emph {
          if (allResults_.size() == 0) return false; 	 	 
          for (auto itLf = allResults_.cbegin(); itLf != allResults_.cend(); itLf++) {
 	   if ((itLf->station_ != iStation) || (itLf->jCase_ != jCase) || (itLf->sensor_ != kSensor)) continue;
-	   return true; 
+	   return (itLf->numEvtsKeptFinal_ > 5); 
 	 }
          return  false;
       }
@@ -120,8 +127,8 @@ namespace emph {
          if (allResults_.size() == 0) return allResults_.cend();
          for (auto itLf = allResults_.cbegin(); itLf != allResults_.cend(); itLf++) {
 	   if ((itLf->station_ != iStation) || (itLf->jCase_ != jCase) || (itLf->sensor_ != kSensor)) continue;
-	   size_t nnRes = itLf->numEvts_;
-	   if (nnRes == 0) return allResults_.cend();	 
+	   size_t nnRes = itLf->numEvtsKeptFinal_;
+	   if (nnRes == 0) return allResults_.cend(); // should not happen.. Better not.. See logic in the art module 	 
            return itLf;
 	 }
 	 return allResults_.cend();
