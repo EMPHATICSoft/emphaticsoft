@@ -24,6 +24,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -37,7 +39,13 @@ using namespace emph;
 namespace emph {
     class ReadoutWaveform : public art::EDAnalyzer {
     public:
-      explicit ReadoutWaveform(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      struct Config {
+        fhicl::Atom<int> PlotSize{fhicl::Name("PlotSize"), 0};
+        fhicl::Atom<int> NumberOfWvfms{fhicl::Name("NumberOfWvfms"), 0};
+      };
+      using Parameters = art::EDAnalyzer::Table<Config>;
+
+      explicit ReadoutWaveform(Parameters const& pset);
       ~ReadoutWaveform();
 
       // Optional, read/write access to event
@@ -67,10 +75,10 @@ namespace emph {
     };
 
     //.......................................................................
-    ReadoutWaveform::ReadoutWaveform(fhicl::ParameterSet const& pset)
+    ReadoutWaveform::ReadoutWaveform(Parameters const& pset)
       : EDAnalyzer(pset),
-       plotsize(pset.get<int>("PlotSize",0)),
-       nwvfms(pset.get<int>("NumberOfWvfms",0))
+       plotsize(pset().PlotSize()),
+       nwvfms(pset().NumberOfWvfms())
     {
     }
 

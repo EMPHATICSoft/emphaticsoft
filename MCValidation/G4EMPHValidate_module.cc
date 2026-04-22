@@ -27,6 +27,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Geometry/DetectorDefs.h"
@@ -44,7 +46,12 @@ namespace emph {
   class G4EMPHValidate : public art::EDAnalyzer
   {
   public:
-    explicit G4EMPHValidate(fhicl::ParameterSet const& pset);
+    struct Config {
+      fhicl::Atom<bool> MakeSSDTree{fhicl::Name("MakeSSDTree")};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+    explicit G4EMPHValidate(Parameters const& pset);
     ~G4EMPHValidate();
     
     void analyze(const art::Event& evt);
@@ -74,9 +81,9 @@ namespace emph {
   };
   
   //.......................................................................
-  G4EMPHValidate::G4EMPHValidate(fhicl::ParameterSet const& pset)
+  G4EMPHValidate::G4EMPHValidate(Parameters const& pset)
     : EDAnalyzer(pset),
-      fMakeSSDTree (pset.get<bool>("MakeSSDTree"))
+      fMakeSSDTree (pset().MakeSSDTree())
   {
     fEvent = 0;
   }

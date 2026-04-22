@@ -26,6 +26,9 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Sequence.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -36,7 +39,12 @@
 namespace emph { 
   class GasCkovAna : public art::EDAnalyzer {
   public:
-    explicit GasCkovAna(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Sequence<float> ADCThresh{fhicl::Name("ADCThresh")};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+    explicit GasCkovAna(Parameters const& pset);
     ~GasCkovAna();
     
     // Optional, read/write access to event
@@ -82,9 +90,9 @@ namespace emph {
  
   };  
   //.......................................................................
-  GasCkovAna::GasCkovAna(fhicl::ParameterSet const& pset)
+  GasCkovAna::GasCkovAna(Parameters const& pset)
     : EDAnalyzer(pset),
-      adcThresh (pset.get< std::vector<float> >("ADCThresh"))
+      adcThresh (pset().ADCThresh())
   {
   }
 

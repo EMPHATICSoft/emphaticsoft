@@ -24,6 +24,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -56,7 +58,13 @@ namespace emph {
     };
   
   public:
-    explicit SSDHotChannels(fhicl::ParameterSet const& pset); 
+    struct Config {
+      fhicl::Atom<std::string> tokenJob{fhicl::Name("tokenJob"), "UnDef"};
+      fhicl::Atom<bool> skipHalfEvts{fhicl::Name("skipHalfEvts"), false};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+    explicit SSDHotChannels(Parameters const& pset);
        // Required! explicit tag tells the compiler this is not a copy constructor
     ~SSDHotChannels();
     
@@ -96,10 +104,10 @@ namespace emph {
 
   //.......................................................................
   
-  SSDHotChannels::SSDHotChannels(fhicl::ParameterSet const& pset)
+  SSDHotChannels::SSDHotChannels(Parameters const& pset)
     : EDAnalyzer(pset), fNumStrips(639), 
-      fTokenJob     (pset.get<std::string>("tokenJob", "UnDef")),
-      fSkipHalfEvts (pset.get<bool>("skipHalfEvts", false)),
+      fTokenJob     (pset().tokenJob()),
+      fSkipHalfEvts (pset().skipHalfEvts()),
       fRun(0), fSubRun(-1), fEvtNum(0), fNEvents(0), fHists(0)
   {
 
