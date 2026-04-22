@@ -35,6 +35,9 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h"
 #include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/DelegatedParameter.h"
+#include "fhiclcpp/types/Table.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -49,7 +52,13 @@ namespace emph {
   /// create hits and particle lists
   class G4Gen : public art::EDProducer {
   public:
-    explicit G4Gen(fhicl::ParameterSet const &pset);
+    struct Config {
+      fhicl::Atom<unsigned int> Seed{fhicl::Name("Seed"), sim::GetRandomNumberSeed()};
+      fhicl::DelegatedParameter G4AlgPSet{fhicl::Name("G4AlgPSet")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit G4Gen(Parameters const& config);
     virtual ~G4Gen();                        
 
     void produce (art::Event& evt);
@@ -71,10 +80,10 @@ namespace emph {
 
   //___________________________________________________________________________
   // Constructor
-  G4Gen::G4Gen(fhicl::ParameterSet const& pset)
-  : EDProducer(pset)
+  G4Gen::G4Gen(Parameters const& config)
+  : EDProducer(config)
   , fG4Alg(0)
-  , fG4AlgPSet(pset.get< fhicl::ParameterSet >("G4AlgPSet") )
+  , fG4AlgPSet(config().G4AlgPSet.get<fhicl::ParameterSet>())
   {
 
     fSaveTextFiles = fG4AlgPSet.get<bool>("SaveTextFiles");
@@ -82,7 +91,7 @@ namespace emph {
 
     // get the random number seed, use a random default if not specified
     // in the configuration file. 
-    unsigned int seed = pset.get< unsigned int >("Seed", sim::GetRandomNumberSeed());
+    unsigned int seed = config().Seed();
     // setup the random number service for Geant4, the "G4Engine" label is a 
     // special tag setting up a global engine for use by Geant4/CLHEP
     std::cerr << " G4Gen::G4Gen, the random number seed is " << seed << std::endl;
