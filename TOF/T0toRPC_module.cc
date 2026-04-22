@@ -21,6 +21,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
@@ -45,7 +47,17 @@ namespace emph {
     
     class T0toRPC : public art::EDAnalyzer {
     public:
-      explicit T0toRPC(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      struct Config {
+        fhicl::Atom<std::string> tokenJob{fhicl::Name("tokenJob"), "UnDef"};
+        fhicl::Atom<bool> makeT0FullNtuple{fhicl::Name("makeT0FullNtuple"), true};
+        fhicl::Atom<bool> makeRPCFullNtuple{fhicl::Name("makeRPCFullNtuple"), true};
+        fhicl::Atom<bool> makeTrigFullNtuple{fhicl::Name("makeTrigFullNtuple"), true};
+        fhicl::Atom<bool> makeEventSummaryFullNtuple{fhicl::Name("makeEventSummaryFullNtuple"), false};
+      };
+      using Parameters = art::EDAnalyzer::Table<Config>;
+
+      explicit T0toRPC(Parameters const& pset);
+      // Required! explicit tag tells the compiler this is not a copy constructor
       ~T0toRPC();
 
       // Optional, read/write access to event
@@ -145,10 +157,10 @@ namespace emph {
 
     };    
     //.......................................................................
-    T0toRPC::T0toRPC(fhicl::ParameterSet const& pset)
+    T0toRPC::T0toRPC(Parameters const& pset)
       : EDAnalyzer(pset),
 	fFilesAreOpen(false),
-	fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+	fTokenJob (pset().tokenJob()),
 	fRun(0), fSubRun(0), fPrevSubRun(-1), fEvtNum(0), fPrevEvtNum(-1), 
 	fT0ADCs(nChanT0+2, 0.),
 	fT0TDCs(nChanT0+2, DBL_MAX),
@@ -158,10 +170,10 @@ namespace emph {
 	fRPCEChans(2*nChanRPC+1, INT_MAX), // used only for algorithm consistency..
 	fTrigPeakADCs(nChanTrig, 0.),
 	fTrigADCs(nChanTrig, 0.),
-	fMakeT0FullNtuple  (pset.get<bool>("makeT0FullNtuple",true)), // keep them for now.. 
-	fMakeRPCFullNtuple (pset.get<bool>("makeRPCFullNtuple",true)),
-        fMakeTrigFullNtuple (pset.get<bool>("makeTrigFullNtuple",true)),
-        fMakeEventSummaryNTuple (pset.get<bool>("makeEventSummaryFullNtuple",false)),
+	fMakeT0FullNtuple  (pset().makeT0FullNtuple()), // keep them for now..
+	fMakeRPCFullNtuple (pset().makeRPCFullNtuple()),
+        fMakeTrigFullNtuple (pset().makeTrigFullNtuple()),
+        fMakeEventSummaryNTuple (pset().makeEventSummaryFullNtuple()),
         fNumT0Hits(0),		     
         fNumT0HitsFirst(0),		     
         fNumT0HitsFirstUpDown(0),		     

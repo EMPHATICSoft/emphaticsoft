@@ -21,6 +21,9 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Sequence.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
@@ -42,7 +45,18 @@ namespace emph {
     
     class LGCaloPrelimStudy : public art::EDAnalyzer {
     public:
-      explicit LGCaloPrelimStudy(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      struct Config {
+        fhicl::Atom<std::string> tokenJob{fhicl::Name("tokenJob"), "UnDef"};
+        fhicl::Atom<std::string> BeamTrackLabel{fhicl::Name("BeamTrackLabel"), "beamTrackA"};
+        fhicl::Atom<std::string> TrigToT0Label{fhicl::Name("TrigToT0Label"), "trigT0A"};
+        fhicl::Atom<double> EffBeamMomentum{fhicl::Name("EffBeamMomentum"), 18.};
+        fhicl::Sequence<double> AmplTriggerCut{fhicl::Name("AmplTriggerCut"), std::vector<double>{0., 500000.}};
+        fhicl::Sequence<double> AmplT0Cut{fhicl::Name("AmplT0Cut"), std::vector<double>{0., 25000.}};
+      };
+      using Parameters = art::EDAnalyzer::Table<Config>;
+
+      explicit LGCaloPrelimStudy(Parameters const& pset);
+      // Required! explicit tag tells the compiler this is not a copy constructor
       ~LGCaloPrelimStudy();
 
       // Optional, read/write access to event
@@ -117,17 +131,17 @@ namespace emph {
 
     };    
     //.......................................................................
-    LGCaloPrelimStudy::LGCaloPrelimStudy(fhicl::ParameterSet const& pset)
+    LGCaloPrelimStudy::LGCaloPrelimStudy(Parameters const& pset)
       : EDAnalyzer(pset),
 	fFilesAreOpen(false),
-	fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+	fTokenJob (pset().tokenJob()),
 	fRun(0), fSubRun(0), fEvtNum(0), fNEvents(0), 
-	fBeamTrackLabel (pset.get<std::string>("BeamTrackLabel", "beamTrackA")),
-	fTrigToT0Label (pset.get<std::string>("TrigToT0Label", "trigT0A")),
+	fBeamTrackLabel (pset().BeamTrackLabel()),
+	fTrigToT0Label (pset().TrigToT0Label()),
 	fZMagnet(757.7), fZLG(2886.4),  fMagnetKick120GeV(-0.612e-3), // Should be replace by proper acces to the geometry.. 
-	fEffBeamMomentum (pset.get<double>("EffBeamMomentum", 18.)),
-	fAmplTriggerCut (pset.get<std::vector<double> >("AmplTriggerCut", std::vector<double> {0., 500000.})),
-	fAmplT0Cut (pset.get<std::vector<double> >("AmplT0Cut", std::vector<double> {0., 25000.} )),
+	fEffBeamMomentum (pset().EffBeamMomentum()),
+	fAmplTriggerCut (pset().AmplTriggerCut()),
+	fAmplT0Cut (pset().AmplT0Cut()),
         fLGsAmpl(nChanLG+2, 0.), fLGA4IsSaturated(false)
     {
     

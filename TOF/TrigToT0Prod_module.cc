@@ -21,6 +21,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
@@ -42,7 +44,16 @@ namespace emph {
     
     class TrigToT0Prod : public art::EDProducer {
     public:
-      explicit TrigToT0Prod(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      struct Config {
+        fhicl::Atom<std::string> tokenJob{fhicl::Name("tokenJob"), "UnDef"};
+        fhicl::Atom<bool> makeT0FullNtuple{fhicl::Name("makeT0FullNtuple"), true};
+        fhicl::Atom<bool> makeTrigFullNtuple{fhicl::Name("makeTrigFullNtuple"), true};
+        fhicl::Atom<bool> makeEventSummaryFullNtuple{fhicl::Name("makeEventSummaryFullNtuple"), false};
+      };
+      using Parameters = art::EDProducer::Table<Config>;
+
+      explicit TrigToT0Prod(Parameters const& pset);
+      // Required! explicit tag tells the compiler this is not a copy constructor
       ~TrigToT0Prod();
 
        // Plugins should not be copied or assigned.
@@ -139,19 +150,19 @@ namespace emph {
 
     };    
     //.......................................................................
-    TrigToT0Prod::TrigToT0Prod(fhicl::ParameterSet const& pset)
+    TrigToT0Prod::TrigToT0Prod(Parameters const& pset)
       : EDProducer(pset),
 	fFilesAreOpen(false),
-	fTokenJob (pset.get<std::string>("tokenJob", "UnDef")),
+	fTokenJob (pset().tokenJob()),
 	fRun(0), fSubRun(0), fEvtNum(0), 
 	fT0ADCs(nChanT0+2, 0.),
 	fT0TDCs(nChanT0+2, DBL_MAX),
 	fT0TDCsFrAdc(nChanT0+2, DBL_MAX),
 	fTrigPeakADCs(nChanTrig, 0.),
 	fTrigADCs(nChanTrig, 0.),
-	fMakeT0FullNtuple  (pset.get<bool>("makeT0FullNtuple",true)), // keep them for now.. 
-	fMakeTrigFullNtuple (pset.get<bool>("makeTrigFullNtuple",true)),
-	fMakeEventSummaryNTuple (pset.get<bool>("makeEventSummaryFullNtuple",false)),
+	fMakeT0FullNtuple  (pset().makeT0FullNtuple()), // keep them for now..
+	fMakeTrigFullNtuple (pset().makeTrigFullNtuple()),
+	fMakeEventSummaryNTuple (pset().makeEventSummaryFullNtuple()),
 	fNumT0Hits(0),		     
 	fNumT0HitsFirst(0),		     
       fNumT0HitsFirstUpDown(0),		     
