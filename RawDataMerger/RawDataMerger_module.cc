@@ -14,7 +14,8 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "emphatic-artdaq/Overlays/CAENV1720Fragment.hh"
@@ -39,7 +40,12 @@ namespace emph {
 
 class emph::RawDataMerger : public art::EDProducer {
     public:
-        explicit RawDataMerger(fhicl::ParameterSet const& p);
+        struct Config {
+            fhicl::Atom<std::string> ssd_filename{fhicl::Name("ssd_filename")};
+        };
+        using Parameters = art::EDProducer::Table<Config>;
+
+        explicit RawDataMerger(Parameters const& p);
 
         // Plugins should not be copied or assigned.
         RawDataMerger(RawDataMerger const&) = delete;
@@ -57,11 +63,11 @@ class emph::RawDataMerger : public art::EDProducer {
 };
 
 
-emph::RawDataMerger::RawDataMerger(fhicl::ParameterSet const& p)
+emph::RawDataMerger::RawDataMerger(Parameters const& p)
     : EDProducer{p}
 {
     // TODO not final names for fcl configuration
-    std::string ssd_filename = p.get<std::string>("ssd_filename");
+    std::string ssd_filename = p().ssd_filename();
     std::cout << ssd_filename << "\n";
     ssd_file = std::ifstream(ssd_filename.c_str());
     if (!ssd_file.is_open()) {

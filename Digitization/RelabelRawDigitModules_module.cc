@@ -9,7 +9,8 @@
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "RawData/SSDRawDigit.h"
@@ -20,7 +21,15 @@ using namespace emph;
 namespace emph {
   class RelabelRawDigitModules : public art::EDProducer {
   public:
-    explicit RelabelRawDigitModules(fhicl::ParameterSet const &pset);
+    struct Config {
+      fhicl::Atom<std::string> RawDigitLabelARICH{fhicl::Name("RawDigitLabelARICH")};
+      fhicl::Atom<std::string> RawDigitLabelSSD{fhicl::Name("RawDigitLabelSSD")};
+      fhicl::Atom<std::string> InstanceLabelARICH{fhicl::Name("InstanceLabelARICH")};
+      fhicl::Atom<std::string> InstanceLabelSSD{fhicl::Name("InstanceLabelSSD")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit RelabelRawDigitModules(Parameters const& pset);
     virtual ~RelabelRawDigitModules();
 
     void produce(art::Event& evt);
@@ -33,12 +42,12 @@ namespace emph {
   };
 
   //--------------------------------------------------
-  RelabelRawDigitModules::RelabelRawDigitModules(fhicl::ParameterSet const &pset) :
+  RelabelRawDigitModules::RelabelRawDigitModules(Parameters const& pset) :
     EDProducer(pset),
-    fRawDigitLabelARICH   (pset.get< std::string >("RawDigitLabelARICH")),
-    fRawDigitLabelSSD     (pset.get< std::string >("RawDigitLabelSSD")),
-    fInstanceLabelARICH   (pset.get< std::string >("InstanceLabelARICH")),
-    fInstanceLabelSSD     (pset.get< std::string >("InstanceLabelSSD"))
+    fRawDigitLabelARICH   (pset().RawDigitLabelARICH()),
+    fRawDigitLabelSSD     (pset().RawDigitLabelSSD()),
+    fInstanceLabelARICH   (pset().InstanceLabelARICH()),
+    fInstanceLabelSSD     (pset().InstanceLabelSSD())
   {
     produces<std::vector<rawdata::TRB3RawDigit> >(fInstanceLabelARICH);
     produces<std::vector<rawdata::SSDRawDigit>  >(fInstanceLabelSSD);

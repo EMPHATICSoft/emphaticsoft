@@ -13,6 +13,8 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 #include "Geometry/Geometry.h"
 #include "GeometryObjects/Geo.h"
@@ -30,7 +32,13 @@ namespace tut
   class TutProducer : public art::EDProducer
   {
   public:
-    explicit TutProducer(const fhicl::ParameterSet& pset);
+    struct Config {
+      fhicl::Atom<std::string> GeantLabel{fhicl::Name("GeantLabel")};
+      fhicl::Atom<std::string> CellHitLabel{fhicl::Name("CellHitLabel")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit TutProducer(Parameters const& pset);
     ~TutProducer();
 
     void produce(art::Event& evt);
@@ -50,10 +58,10 @@ namespace tut
 namespace tut
 {
   //.......................................................................
-  TutProducer::TutProducer(const fhicl::ParameterSet& pset)
+  TutProducer::TutProducer(Parameters const& pset)
     : EDProducer(pset),
-      fGeantLabel   (pset.get<std::string>("GeantLabel")),
-      fCellHitLabel (pset.get<std::string>("CellHitLabel"))
+      fGeantLabel   (pset().GeantLabel()),
+      fCellHitLabel (pset().CellHitLabel())
       
   {
     produces<std::vector<rb::Prong> >();

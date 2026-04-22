@@ -22,6 +22,9 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Sequence.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "RawData/RawDigit.h"
@@ -31,7 +34,16 @@
 namespace demo {
   class DemoModule : public art::EDProducer {
     public:
-      explicit DemoModule(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor      
+      struct Config {
+        fhicl::Atom<int> MyInt{fhicl::Name("MyInt")};
+        fhicl::Sequence<int> MyVectorInt{fhicl::Name("MyVectorInt")};
+        fhicl::Atom<float> MyFloat{fhicl::Name("MyFloat")};
+        fhicl::Atom<double> MyDouble{fhicl::Name("MyDouble")};
+        fhicl::Atom<std::string> MyInputModuleLabel{fhicl::Name("MyInputModuleLabel")};
+      };
+      using Parameters = art::EDProducer::Table<Config>;
+
+      explicit DemoModule(Parameters const& pset);
       ~DemoModule();                        
       
       // Optional, read/write access to event
@@ -58,13 +70,13 @@ namespace demo {
 namespace demo
 {
   //.......................................................................
-  DemoModule::DemoModule(fhicl::ParameterSet const& pset) 
+  DemoModule::DemoModule(Parameters const& pset)
     : EDProducer(pset),
-      fInt              (pset.get< int              >("MyInt")),
-      fVecInt           (pset.get< std::vector<int> >("MyVectorInt")),
-      fFloat            (pset.get< float            >("MyFloat")),
-      fDouble           (pset.get< double           >("MyDouble")),
-      fInputModuleLabel (pset.get< std::string      >("MyInputModuleLabel"))
+      fInt              (pset().MyInt()),
+      fVecInt           (pset().MyVectorInt()),
+      fFloat            (pset().MyFloat()),
+      fDouble           (pset().MyDouble()),
+      fInputModuleLabel (pset().MyInputModuleLabel())
 
   {
     //======================================================================
