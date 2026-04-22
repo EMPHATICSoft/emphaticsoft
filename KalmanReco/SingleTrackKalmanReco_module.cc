@@ -23,7 +23,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Geometry/service/GeometryService.h"
@@ -39,7 +40,12 @@ namespace emph {
   ///
   class SingleTrackKalmanReco : public art::EDProducer {
   public:
-    explicit SingleTrackKalmanReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<std::string> LineSegmentLabel{fhicl::Name("LineSegmentLabel")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit SingleTrackKalmanReco(Parameters const& pset);
     ~SingleTrackKalmanReco() {};
     
     // Optional, read/write access to event
@@ -62,9 +68,9 @@ namespace emph {
 
   //.......................................................................
   
-  emph::SingleTrackKalmanReco::SingleTrackKalmanReco(fhicl::ParameterSet const& pset)
+  emph::SingleTrackKalmanReco::SingleTrackKalmanReco(Parameters const& pset)
     : EDProducer{pset},
-    fLineSegmentLabel      (pset.get< std::string >("LineSegmentLabel"))
+    fLineSegmentLabel      (pset().LineSegmentLabel())
     {
       this->produces< std::vector<rb::Track> >();      
       fKAlg = NULL;

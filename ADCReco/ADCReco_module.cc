@@ -26,6 +26,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -43,7 +45,21 @@ namespace emph {
   ///
   class ADCReco : public art::EDProducer {
   public:
-    explicit ADCReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<int> Trigger_low{fhicl::Name("Trigger_low"), 0};
+      fhicl::Atom<int> Trigger_high{fhicl::Name("Trigger_high"), 0};
+      fhicl::Atom<int> GasCkov_low{fhicl::Name("GasCkov_low"), 0};
+      fhicl::Atom<int> GasCkov_high{fhicl::Name("GasCkov_high"), 0};
+      fhicl::Atom<int> BACkov_low{fhicl::Name("BACkov_low"), 0};
+      fhicl::Atom<int> BACkov_high{fhicl::Name("BACkov_high"), 0};
+      fhicl::Atom<int> LGCalo_low{fhicl::Name("LGCalo_low"), 0};
+      fhicl::Atom<int> LGCalo_high{fhicl::Name("LGCalo_high"), 0};
+      fhicl::Atom<int> T0_low{fhicl::Name("T0_low"), 0};
+      fhicl::Atom<int> T0_high{fhicl::Name("T0_high"), 0};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit ADCReco(Parameters const& pset);
     ~ADCReco();
     
     // Optional, read/write access to event
@@ -75,18 +91,18 @@ namespace emph {
 
   //.......................................................................
   
-  ADCReco::ADCReco(fhicl::ParameterSet const& pset)
+  ADCReco::ADCReco(Parameters const& pset)
     : EDProducer(pset),
-    Trigger_low (pset.get<int>("Trigger_low",0)),
-    Trigger_high (pset.get<int>("Trigger_high",0)),
-    GasCkov_low (pset.get<int>("GasCkov_low",0)),
-    GasCkov_high (pset.get<int>("GasCkov_high",0)),
-    BACkov_low (pset.get<int>("BACkov_low",0)),
-    BACkov_high (pset.get<int>("BACkov_high",0)),
-    LGCalo_low (pset.get<int>("LGCalo_low",0)),
-    LGCalo_high (pset.get<int>("LGCalo_high",0)),
-    T0_low (pset.get<int>("T0_low",0)),
-    T0_high (pset.get<int>("T0_high",0))
+    Trigger_low (pset().Trigger_low()),
+    Trigger_high (pset().Trigger_high()),
+    GasCkov_low (pset().GasCkov_low()),
+    GasCkov_high (pset().GasCkov_high()),
+    BACkov_low (pset().BACkov_low()),
+    BACkov_high (pset().BACkov_high()),
+    LGCalo_low (pset().LGCalo_low()),
+    LGCalo_high (pset().LGCalo_high()),
+    T0_low (pset().T0_low()),
+    T0_high (pset().T0_high())
   {
 
     this->produces< std::vector<rb::ADC>>(emph::geo::DetInfo::Name(emph::geo::Trigger));

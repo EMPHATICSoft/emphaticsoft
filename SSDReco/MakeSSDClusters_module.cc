@@ -17,7 +17,8 @@
 #include "art/Framework/Principal/SubRun.h"
 #include "art_root_io/TFileService.h"
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "ChannelMap/service/ChannelMapService.h"
@@ -34,7 +35,15 @@ namespace emph {
 
 class emph::MakeSSDClusters : public art::EDProducer {
 public:
-  explicit MakeSSDClusters(fhicl::ParameterSet const& pset);
+  struct Config {
+    fhicl::Atom<std::string> SSDRawLabel{fhicl::Name("SSDRawLabel")};
+    fhicl::Atom<bool> FillTTree{fhicl::Name("FillTTree")};
+    fhicl::Atom<int> RowGap{fhicl::Name("RowGap")};
+    fhicl::Atom<bool> CheckDQ{fhicl::Name("CheckDQ")};
+  };
+  using Parameters = art::EDProducer::Table<Config>;
+
+  explicit MakeSSDClusters(Parameters const& pset);
   // The compiler-generated destructor is fine for non-base
   // classes without bare pointers or other resource use.
 
@@ -84,12 +93,12 @@ private:
 };
 
 //--------------------------------------------------
-emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
+emph::MakeSSDClusters::MakeSSDClusters(Parameters const& pset)
   : EDProducer{pset},
-  fSSDRawLabel (pset.get< std::string >("SSDRawLabel")),
-  fFillTTree   (pset.get< bool >("FillTTree")),
-  fRowGap      (pset.get< int >("RowGap")),
-  fCheckDQ     (pset.get< bool >("CheckDQ"))
+  fSSDRawLabel (pset().SSDRawLabel()),
+  fFillTTree   (pset().FillTTree()),
+  fRowGap      (pset().RowGap()),
+  fCheckDQ     (pset().CheckDQ())
 {
   this->produces< std::vector<rb::SSDCluster> >();
   //this->produces< std::vector<rb::LineSegment> >();
