@@ -37,7 +37,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Align/service/AlignService.h"
@@ -63,15 +64,23 @@ namespace emph {
   ///
   class SingleTrackAlignment : public art::EDProducer {
   public:
-    explicit SingleTrackAlignment(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<bool> CheckLineSeg{fhicl::Name("CheckLineSeg")};
+      fhicl::Atom<std::string> LineSegLabel{fhicl::Name("LineSegLabel")};
+      fhicl::Atom<std::string> ClusterLabel{fhicl::Name("ClusterLabel")};
+      fhicl::Atom<std::string> TrackSegLabel{fhicl::Name("TrackSegLabel")};
+      fhicl::Atom<std::string> TrackLabel{fhicl::Name("TrackLabel")};
+      fhicl::Atom<bool> Upstream{fhicl::Name("Upstream")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit SingleTrackAlignment(Parameters const& pset);
     ~SingleTrackAlignment() {};
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
     // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
     //      void endSubRun(art::SubRun const&);
@@ -128,14 +137,14 @@ namespace emph {
 
   //.......................................................................
   
-  emph::SingleTrackAlignment::SingleTrackAlignment(fhicl::ParameterSet const& pset)
+  emph::SingleTrackAlignment::SingleTrackAlignment(Parameters const& pset)
     : EDProducer{pset},
-    fCheckLineSeg      (pset.get< bool >("CheckLineSeg")),
-    fLineSegLabel      (pset.get< std::string >("LineSegLabel")),
-    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
-    fTrackLabel        (pset.get< std::string >("TrackLabel")),
-    fUpstream          (pset.get< bool >("Upstream"))
+    fCheckLineSeg      (pset().CheckLineSeg()),
+    fLineSegLabel      (pset().LineSegLabel()),
+    fClusterLabel      (pset().ClusterLabel()),
+    fTrackSegLabel     (pset().TrackSegLabel()),
+    fTrackLabel        (pset().TrackLabel()),
+    fUpstream          (pset().Upstream())
     {
       //this->produces< std::vector<rb::Track> >();
     }

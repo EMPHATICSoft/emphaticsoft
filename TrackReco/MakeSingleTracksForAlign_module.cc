@@ -33,7 +33,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Align/service/AlignService.h"
@@ -57,15 +58,21 @@ namespace emph {
   ///
   class MakeSingleTracksForAlign : public art::EDProducer {
   public:
-    explicit MakeSingleTracksForAlign(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<bool> CheckClusters{fhicl::Name("CheckClusters")};
+      fhicl::Atom<std::string> ClusterLabel{fhicl::Name("ClusterLabel")};
+      fhicl::Atom<std::string> G4Label{fhicl::Name("G4Label")};
+      fhicl::Atom<std::string> ClusterCut{fhicl::Name("ClusterCut")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit MakeSingleTracksForAlign(Parameters const& pset);
     ~MakeSingleTracksForAlign() {};
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
     // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
     //      void endSubRun(art::SubRun const&);
@@ -116,12 +123,12 @@ namespace emph {
 
   //.......................................................................
   
-  emph::MakeSingleTracksForAlign::MakeSingleTracksForAlign(fhicl::ParameterSet const& pset)
+  emph::MakeSingleTracksForAlign::MakeSingleTracksForAlign(Parameters const& pset)
     : EDProducer{pset},
-    fCheckClusters     (pset.get< bool >("CheckClusters")), 
-    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label")),
-    fClusterCut        (pset.get< std::string >("ClusterCut"))
+    fCheckClusters     (pset().CheckClusters()),
+    fClusterLabel      (pset().ClusterLabel()),
+    fG4Label           (pset().G4Label()),
+    fClusterCut        (pset().ClusterCut())
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();

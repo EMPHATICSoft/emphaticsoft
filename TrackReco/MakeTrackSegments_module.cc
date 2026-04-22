@@ -33,7 +33,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Align/service/AlignService.h"
@@ -58,15 +59,21 @@ namespace emph {
   ///
   class MakeTrackSegments : public art::EDProducer {
   public:
-    explicit MakeTrackSegments(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<bool> CheckClusters{fhicl::Name("CheckClusters")};
+      fhicl::Atom<std::string> ClusterLabel{fhicl::Name("ClusterLabel")};
+      fhicl::Atom<std::string> G4Label{fhicl::Name("G4Label")};
+      fhicl::Atom<size_t> MaxClust{fhicl::Name("MaxClust")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit MakeTrackSegments(Parameters const& pset);
     ~MakeTrackSegments() {};
 
     // Optional, read/write access to event
     void produce(art::Event& evt);
 
     // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
     void beginJob();
@@ -114,12 +121,12 @@ namespace emph {
   };
 
   //.......................................................................
-  emph::MakeTrackSegments::MakeTrackSegments(fhicl::ParameterSet const& pset)
+  emph::MakeTrackSegments::MakeTrackSegments(Parameters const& pset)
     : EDProducer{pset},
-    fCheckClusters     (pset.get< bool >("CheckClusters")), 
-    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fG4Label           (pset.get< std::string >("G4Label")),
-    fMaxClust          (pset.get< size_t >("MaxClust"))
+    fCheckClusters     (pset().CheckClusters()),
+    fClusterLabel      (pset().ClusterLabel()),
+    fG4Label           (pset().G4Label()),
+    fMaxClust          (pset().MaxClust())
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();

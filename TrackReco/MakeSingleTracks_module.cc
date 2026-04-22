@@ -33,7 +33,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Align/service/AlignService.h"
@@ -57,7 +58,18 @@ namespace emph {
   ///
   class MakeSingleTracks : public art::EDProducer {
   public:
-    explicit MakeSingleTracks(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<bool> CheckClusters{fhicl::Name("CheckClusters")};
+      fhicl::Atom<bool> CheckTrackSeg{fhicl::Name("CheckTrackSeg")};
+      fhicl::Atom<std::string> ClusterLabel{fhicl::Name("ClusterLabel")};
+      fhicl::Atom<std::string> TrkSegLabel{fhicl::Name("TrkSegLabel")};
+      fhicl::Atom<bool> ShortOn{fhicl::Name("ShortOn")};
+      fhicl::Atom<int> PBeamTmp{fhicl::Name("PBeamTmp")};
+      fhicl::Atom<bool> LessStrict{fhicl::Name("LessStrict")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit MakeSingleTracks(Parameters const& pset);
     ~MakeSingleTracks() {};
     
     // Optional, read/write access to event
@@ -65,8 +77,6 @@ namespace emph {
     void AddSSDLineSegmentsToTrack(rb::Track& trk);
 
     // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
     //      void endSubRun(art::SubRun const&);
@@ -108,15 +118,15 @@ namespace emph {
 
   //.......................................................................
   
-  emph::MakeSingleTracks::MakeSingleTracks(fhicl::ParameterSet const& pset)
+  emph::MakeSingleTracks::MakeSingleTracks(Parameters const& pset)
     : EDProducer{pset},
-    fCheckClusters     (pset.get< bool >("CheckClusters")), 
-    fCheckTrackSeg     (pset.get< bool >("CheckTrackSeg")),
-    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-    fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
-    fShortOn           (pset.get< bool >("ShortOn")),
-    fPBeamTmp          (pset.get< int >("PBeamTmp")),
-    fLessStrict        (pset.get< bool >("LessStrict"))
+    fCheckClusters     (pset().CheckClusters()),
+    fCheckTrackSeg     (pset().CheckTrackSeg()),
+    fClusterLabel      (pset().ClusterLabel()),
+    fTrkSegLabel       (pset().TrkSegLabel()),
+    fShortOn           (pset().ShortOn()),
+    fPBeamTmp          (pset().PBeamTmp()),
+    fLessStrict        (pset().LessStrict())
     {
       fTrgtZ = -99999.;
       this->produces< std::vector<rb::Track> >();

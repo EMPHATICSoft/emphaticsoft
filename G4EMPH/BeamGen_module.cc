@@ -15,9 +15,9 @@
 #include "art_root_io/TFileService.h"
 #include "art_root_io/TFileDirectory.h"
 #include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "art/Framework/Core/EDProducer.h"
 #include "art/Framework/Principal/Event.h"
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -48,13 +48,49 @@ namespace emph {
 
   class BeamGen : public art::EDProducer {
   public:
+    struct Config {
+      fhicl::Atom<bool> UseRunHistory{fhicl::Name("UseRunHistory"), false};
+      fhicl::Atom<double> Zstart{fhicl::Name("Zstart"), -200.};
+      fhicl::Atom<std::string> pzDist{fhicl::Name("pzDist"), "Gauss"};
+      fhicl::Atom<std::string> xyDistSource{fhicl::Name("xyDistSource"), "Gauss"};
+      fhicl::Atom<std::string> xyHistFile{fhicl::Name("xyHistFile"), ""};
+      fhicl::Atom<std::string> xyHistName{fhicl::Name("xyHistName"), "BeamXYDist"};
+      fhicl::Atom<std::string> pxyDistSource{fhicl::Name("pxyDistSource"), "Gauss"};
+      fhicl::Atom<std::string> pxyHistFile{fhicl::Name("pxyHistFile"), ""};
+      fhicl::Atom<std::string> pxyHistName{fhicl::Name("pxyHistName"), "BeamPXYDist"};
+      fhicl::Atom<std::string> phaseSpaceSource{fhicl::Name("phaseSpaceSource"), "Default"};
+      fhicl::Atom<std::string> xHist1DFile{fhicl::Name("xHist1DFile"), ""};
+      fhicl::Atom<std::string> xHist1DName{fhicl::Name("xHist1DName"), "hX_for_slicing"};
+      fhicl::Atom<std::string> slicedHistsFile{fhicl::Name("slicedHistsFile"), ""};
+      fhicl::Atom<std::string> slicedHistsNamePattern{fhicl::Name("slicedHistsNamePattern"), "h3D_slice_%i"};
+      fhicl::Atom<double> PMean{fhicl::Name("PMean"), 0.};
+      fhicl::Atom<double> Psigma{fhicl::Name("Psigma"), 0.};
+      fhicl::Atom<double> Xmax{fhicl::Name("Xmax"), -999999.};
+      fhicl::Atom<double> Xmin{fhicl::Name("Xmin"), 999999.};
+      fhicl::Atom<double> Ymax{fhicl::Name("Ymax"), -999999.};
+      fhicl::Atom<double> Ymin{fhicl::Name("Ymin"), 999999.};
+      fhicl::Atom<double> Xmean{fhicl::Name("Xmean"), 999999.};
+      fhicl::Atom<double> Xsigma{fhicl::Name("Xsigma"), 0.};
+      fhicl::Atom<double> Ymean{fhicl::Name("Ymean"), 999999.};
+      fhicl::Atom<double> Ysigma{fhicl::Name("Ysigma"), 0.};
+      fhicl::Atom<double> PXmax{fhicl::Name("PXmax"), -999999.};
+      fhicl::Atom<double> PXmin{fhicl::Name("PXmin"), 999999.};
+      fhicl::Atom<double> PYmax{fhicl::Name("PYmax"), -999999.};
+      fhicl::Atom<double> PYmin{fhicl::Name("PYmin"), 999999.};
+      fhicl::Atom<double> PXmean{fhicl::Name("PXmean"), 999999.};
+      fhicl::Atom<double> PXsigma{fhicl::Name("PXsigma"), 0.};
+      fhicl::Atom<double> PYmean{fhicl::Name("PYmean"), 999999.};
+      fhicl::Atom<double> PYsigma{fhicl::Name("PYsigma"), 0.};
+      fhicl::Atom<std::string> particleType{fhicl::Name("particleType"), "unknown"};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
 
-    explicit BeamGen(fhicl::ParameterSet const& ps);
+    explicit BeamGen(Parameters const& ps);
     virtual ~BeamGen();
 
     void produce (art::Event& evt);
     void beginRun(art::Run& run);
-    void configure(fhicl::ParameterSet const& ps);
+    void configure(Config const& config);
 
   private:
 
@@ -114,7 +150,7 @@ namespace emph {
   
   /***************************************************************************/
   
-  BeamGen::BeamGen(fhicl::ParameterSet const& ps)
+  BeamGen::BeamGen(Parameters const& ps)
     : art::EDProducer(ps)
   {
     fEvtCount     = 0;
@@ -124,7 +160,7 @@ namespace emph {
     fRand = std::make_unique<TRandom3>(0);
     gRandom = fRand.get();
     
-    configure(ps);
+    configure(ps());
     GetXYHist();
     GetPXYHist();
     GetPID();
@@ -138,50 +174,50 @@ namespace emph {
   }
 
   /***************************************************************************/
-  void BeamGen::configure(fhicl::ParameterSet const& ps)
+  void BeamGen::configure(Config const& config)
   {
-    fUseRunHistory = ps.get<bool>("UseRunHistory","false");
-    fZstart        = ps.get<double>("Zstart", -200.); // mm
-    fPZDist        = ps.get<std::string>("pzDist","Gauss");
-    fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
-    fXYHistFile    = ps.get<std::string>("xyHistFile","");
-    fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
-    fPXYDistSource = ps.get<std::string>("pxyDistSource","Gauss");
-    fPXYHistFile   = ps.get<std::string>("pxyHistFile","");
-    fPXYHistName   = ps.get<std::string>("pxyHistName","BeamPXYDist"); 
+    fUseRunHistory = config.UseRunHistory();
+    fZstart        = config.Zstart(); // mm
+    fPZDist        = config.pzDist();
+    fXYDistSource  = config.xyDistSource();
+    fXYHistFile    = config.xyHistFile();
+    fXYHistName    = config.xyHistName();
+    fPXYDistSource = config.pxyDistSource();
+    fPXYHistFile   = config.pxyHistFile();
+    fPXYHistName   = config.pxyHistName();
 
-    fPhaseSpaceSource       = ps.get<std::string>("phaseSpaceSource", "Default");
-    fXHist1DFile            = ps.get<std::string>("xHist1DFile", "");
-    fXHist1DName            = ps.get<std::string>("xHist1DName", "hX_for_slicing");
-    fSlicedHistsFile        = ps.get<std::string>("slicedHistsFile", "");
-    fSlicedHistsNamePattern = ps.get<std::string>("slicedHistsNamePattern", "h3D_slice_%i");
+    fPhaseSpaceSource       = config.phaseSpaceSource();
+    fXHist1DFile            = config.xHist1DFile();
+    fXHist1DName            = config.xHist1DName();
+    fSlicedHistsFile        = config.slicedHistsFile();
+    fSlicedHistsNamePattern = config.slicedHistsNamePattern();
 
 
     // NOTE: These are in units of GeV/c
-    fPmean         = ps.get<double>("PMean",0.); 
-    fPsigma        = ps.get<double>("Psigma",0.);
+    fPmean         = config.PMean();
+    fPsigma        = config.Psigma();
     
     // NOTE: These are all in units of ??
-    fXmax          = ps.get<double>("Xmax",-999999.); 
-    fXmin          = ps.get<double>("Xmin",999999.); 
-    fYmax          = ps.get<double>("Ymax",-999999.);
-    fYmin          = ps.get<double>("Ymin",999999.); 
-    fXmean         = ps.get<double>("Xmean",999999.);
-    fXsigma        = ps.get<double>("Xsigma",0.); 
-    fYmean         = ps.get<double>("Ymean",999999.);
-    fYsigma        = ps.get<double>("Ysigma",0.); 
+    fXmax          = config.Xmax();
+    fXmin          = config.Xmin();
+    fYmax          = config.Ymax();
+    fYmin          = config.Ymin();
+    fXmean         = config.Xmean();
+    fXsigma        = config.Xsigma();
+    fYmean         = config.Ymean();
+    fYsigma        = config.Ysigma();
 
     // NOTE: These are all slopes, eg, "px" = px/pz
-    fPXmax          = ps.get<double>("PXmax",-999999.);
-    fPXmin          = ps.get<double>("PXmin",999999.); 
-    fPYmax          = ps.get<double>("PYmax",-999999.);
-    fPYmin          = ps.get<double>("PYmin",999999.);
-    fPXmean         = ps.get<double>("PXmean",999999.);
-    fPXsigma        = ps.get<double>("PXsigma",0.);
-    fPYmean         = ps.get<double>("PYmean",999999.);
-    fPYsigma        = ps.get<double>("PYsigma",0.);
+    fPXmax          = config.PXmax();
+    fPXmin          = config.PXmin();
+    fPYmax          = config.PYmax();
+    fPYmin          = config.PYmin();
+    fPXmean         = config.PXmean();
+    fPXsigma        = config.PXsigma();
+    fPYmean         = config.PYmean();
+    fPYsigma        = config.PYsigma();
 
-    fParticleType = ps.get<std::string>("particleType","unknown");
+    fParticleType = config.particleType();
   }
 
   /***************************************************************************/
