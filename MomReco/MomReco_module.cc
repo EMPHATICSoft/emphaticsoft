@@ -30,6 +30,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
@@ -53,7 +54,11 @@ namespace emph {
     ///
     class MomReco : public art::EDProducer {
         public:
-            explicit MomReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+            struct Config {};
+            using Parameters = art::EDProducer::Table<Config>;
+
+            explicit MomReco(Parameters const& pset);
+            // Required! explicit tag tells the compiler this is not a copy constructor
             ~MomReco();
 
             // Optional, read/write access to event
@@ -107,7 +112,7 @@ namespace emph {
 
     //.......................................................................
 
-    MomReco::MomReco(fhicl::ParameterSet const& pset)
+    MomReco::MomReco(Parameters const& pset)
         : EDProducer(pset)
     {
         //this->reconfigure(pset);

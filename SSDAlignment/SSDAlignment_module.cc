@@ -28,6 +28,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
@@ -49,7 +50,11 @@ namespace emph {
     ///
     class SSDAlignment : public art::EDAnalyzer {
         public:
-            explicit SSDAlignment(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+            struct Config {};
+            using Parameters = art::EDAnalyzer::Table<Config>;
+
+            explicit SSDAlignment(Parameters const& pset);
+            // Required! explicit tag tells the compiler this is not a copy constructor
             ~SSDAlignment();
 
             // Optional, read/write access to event
@@ -121,7 +126,7 @@ namespace emph {
 
     //.......................................................................
 
-    SSDAlignment::SSDAlignment(fhicl::ParameterSet const& pset)
+    SSDAlignment::SSDAlignment(Parameters const& pset)
         : EDAnalyzer(pset)
     {
         //this->reconfigure(pset);

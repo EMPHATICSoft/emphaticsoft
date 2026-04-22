@@ -27,6 +27,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 //
 // simulation results per say.. stuff
@@ -44,7 +46,17 @@ namespace emph {
     
     class AnalyzeSSDHitsWithTracks : public art::EDAnalyzer {
     public:
-      explicit AnalyzeSSDHitsWithTracks(fhicl::ParameterSet const& pset); // Required!       // Optional, read/write access to event
+      struct Config {
+        fhicl::Atom<bool> doPresol1Stu{fhicl::Name("doPresol1Stu"), false};
+        fhicl::Atom<bool> doMult2Stu{fhicl::Name("doMult2Stu"), false};
+        fhicl::Atom<std::string> tokenJob{fhicl::Name("tokenJob"), "UnDef"};
+        fhicl::Atom<std::string> SSDHitLabel{fhicl::Name("SSDHitLabel")};
+        fhicl::Atom<std::string> TrackLabel{fhicl::Name("TrackLabel")};
+      };
+      using Parameters = art::EDAnalyzer::Table<Config>;
+
+      explicit AnalyzeSSDHitsWithTracks(Parameters const& pset);
+      // Required!       // Optional, read/write access to event
       void analyze(const art::Event& evt);
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
@@ -93,14 +105,14 @@ namespace emph {
     }; 
     
 // .....................................................................................
-    AnalyzeSSDHitsWithTracks::AnalyzeSSDHitsWithTracks(fhicl::ParameterSet const& pset) : 
+    AnalyzeSSDHitsWithTracks::AnalyzeSSDHitsWithTracks(Parameters const& pset) :
       EDAnalyzer(pset), 
       fFilesAreOpen(false),
-      fDoPResol1Stu (pset.get<bool>("doPresol1Stu", false)),
-      fDoMult2Stu   (pset.get<bool>("doMult2Stu", false)),
-      fTokenJob     (pset.get<std::string>("tokenJob", "UnDef")),
-      fSSDHitLabel  (pset.get<std::string>("SSDHitLabel")),
-      fTrackLabel   (pset.get<std::string>("TrackLabel")),
+      fDoPResol1Stu (pset().doPresol1Stu()),
+      fDoMult2Stu   (pset().doMult2Stu()),
+      fTokenJob     (pset().tokenJob()),
+      fSSDHitLabel  (pset().SSDHitLabel()),
+      fTrackLabel   (pset().TrackLabel()),
       fRun(0), fSubRun(0),  fEvtNum(INT_MAX), fNEvents(0) , fPitch(0.06),
       fRunHistory(nullptr), fEmgeo(nullptr), fEmSSDHits(nullptr), fEmTracks(nullptr), 
       fZlocXPlanes(0), fZlocXStations(0), fZlocYPlanes(0), fZlocYStations(0)

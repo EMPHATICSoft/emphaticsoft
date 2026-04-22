@@ -31,6 +31,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "Geometry/service/GeometryService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
@@ -47,7 +49,14 @@ namespace emph {
 
   class MakeArichCluster: public art::EDProducer {
   public:
-    explicit MakeArichCluster(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<std::string> LabelHits{fhicl::Name("LabelHits")};
+      fhicl::Atom<bool> FillTree{fhicl::Name("FillTree")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit MakeArichCluster(Parameters const& pset);
+    // Required! explicit tag tells the compiler this is not a copy constructor
     ~MakeArichCluster();
     
     // Optional, read/write access to event
@@ -79,13 +88,13 @@ namespace emph {
 
   //.......................................................................
   
- emph::MakeArichCluster::MakeArichCluster(fhicl::ParameterSet const& pset)
+ emph::MakeArichCluster::MakeArichCluster(Parameters const& pset)
     : EDProducer(pset)
  { 
 
     this->produces<std::vector<rb::ARICHCluster>>();
-    fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
-    fFillTree   = bool(pset.get<bool>("FillTree"));
+    fARICHLabel = pset().LabelHits();
+    fFillTree   = pset().FillTree();
 
     fEvtNum = 0;
     
