@@ -11,7 +11,6 @@
 #include "canvas/Persistency/Provenance/Timestamp.h"
 #include "art_root_io/TFileService.h"
 #include "art_root_io/TFileDirectory.h"
-#include "fhiclcpp/types/ConfigurationTable.h"
 #include "fhiclcpp/types/Atom.h"
 
 #include "TTree.h"
@@ -35,7 +34,7 @@ namespace emph {
         fhicl::Atom<int64_t> nEvents{fhicl::Name("nEvents"), -1};
         fhicl::Atom<int> verbosity{fhicl::Name("verbosity"), 0};
       };
-      using Parameters = fhicl::WrappedTable<Config>;
+      using Parameters = Config;
 
       SSDUnpacker(SSDUnpacker const&) = delete;
       SSDUnpacker& operator=(SSDUnpacker const&) = delete;
