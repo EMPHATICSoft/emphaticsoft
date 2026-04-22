@@ -15,7 +15,8 @@
 #include "art/Framework/Principal/Run.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // C++ includes
@@ -35,7 +36,20 @@ namespace emph {
 
     class FillDataQuality : public art::EDProducer {
     public:
-      explicit FillDataQuality(fhicl::ParameterSet const& pset);
+      struct Config {
+        fhicl::Atom<std::string> TriggerLabel{fhicl::Name("TriggerLabel")};
+        fhicl::Atom<std::string> T0CAENLabel{fhicl::Name("T0CAENLabel")};
+        fhicl::Atom<std::string> LGCaloDataLabel{fhicl::Name("LGCaloDataLabel")};
+        fhicl::Atom<std::string> BACkovDataLabel{fhicl::Name("BACkovDataLabel")};
+        fhicl::Atom<std::string> GasCkovDataLabel{fhicl::Name("GasCkovDataLabel")};
+        fhicl::Atom<std::string> T0TRB3Label{fhicl::Name("T0TRB3Label")};
+        fhicl::Atom<std::string> ARICHDataLabel{fhicl::Name("ARICHDataLabel")};
+        fhicl::Atom<std::string> RPCDataLabel{fhicl::Name("RPCDataLabel")};
+        fhicl::Atom<std::string> SSDDataLabel{fhicl::Name("SSDDataLabel")};
+      };
+      using Parameters = art::EDProducer::Table<Config>;
+
+      explicit FillDataQuality(Parameters const& pset);
       // The compiler-generated destructor is fine for non-base
       // classes without bare pointers or other resource use.
 
@@ -71,21 +85,21 @@ namespace emph {
 
     //.......................................................................
 
-    FillDataQuality::FillDataQuality(fhicl::ParameterSet const& pset)
+    FillDataQuality::FillDataQuality(Parameters const& pset)
       : EDProducer(pset)  // ,
     // More initializers here.
     {
-      fTriggerLabel = pset.get< std::string >("TriggerLabel");
+      fTriggerLabel = pset().TriggerLabel();
 
-      fT0CAENLabel = pset.get<std::string>("T0CAENLabel");
-      fLGCaloDataLabel = pset.get<std::string>("LGCaloDataLabel");
-      fBACkovDataLabel = pset.get<std::string>("BACkovDataLabel");
-      fGasCkovDataLabel = pset.get<std::string>("GasCkovDataLabel");
-      fT0TRB3Label = pset.get<std::string>("T0TRB3Label");
-      fARICHDataLabel = pset.get<std::string>("ARICHDataLabel");
-      fRPCDataLabel = pset.get<std::string>("RPCDataLabel");
+      fT0CAENLabel = pset().T0CAENLabel();
+      fLGCaloDataLabel = pset().LGCaloDataLabel();
+      fBACkovDataLabel = pset().BACkovDataLabel();
+      fGasCkovDataLabel = pset().GasCkovDataLabel();
+      fT0TRB3Label = pset().T0TRB3Label();
+      fARICHDataLabel = pset().ARICHDataLabel();
+      fRPCDataLabel = pset().RPCDataLabel();
 
-      fSSDDataLabel = pset.get< std::string >("SSDDataLabel");
+      fSSDDataLabel = pset().SSDDataLabel();
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
       produces< EventQuality >();

@@ -25,6 +25,7 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -43,7 +44,10 @@ namespace emph {
   ///
   class SSDCalibration : public art::EDProducer {
   public:
-    explicit SSDCalibration(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {};
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit SSDCalibration(Parameters const& pset);
     ~SSDCalibration();
     
     // Optional, read/write access to event
@@ -67,7 +71,7 @@ namespace emph {
 
   //.......................................................................
   
-  SSDCalibration::SSDCalibration(fhicl::ParameterSet const& pset)
+  SSDCalibration::SSDCalibration(Parameters const& pset)
     : EDProducer(pset)
   {
 
