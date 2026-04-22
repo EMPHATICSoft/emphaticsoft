@@ -31,7 +31,7 @@ void AnaRobertSimple(std::string fname)
   ROOT::Math::XYZVector truep0sig(0,0,0);
   ROOT::Math::XYZVector truep1sig(0,0,0);
   TH1F* hClusters = new TH1F("hClusters","hClusters",50,0,50);
-  TH2F* hClustersVsPlane = new TH2F("hClustersVsPlane","hClustersVsPlane",20,0,20,50,0,50);
+  TH2F* hClustersVsPlane = new TH2F("hClustersVsPlane","hClustersVsPlane",21,0,21,50,0,50);
   TH1F* hNSigTruth = new TH1F("hNSigTruth","hNSigTruth",180,0.,0.018);
   TH1F* hNSigSelTruth = new TH1F("hNSigSelTruth","hNSigSelTruth",180,0.,0.018);
   TH1F* hNSelReco = new TH1F("hNSelReco","hNSelReco",180,0.,0.018);
@@ -60,7 +60,9 @@ void AnaRobertSimple(std::string fname)
   int nsig = 0;
   int nsigsel = 0;
   int dontcare = 0;
-  std::map<std::pair<int, int>, int> clustMap;
+  std::map<std
+
+::pair<int, int>, int> clustMap;
 
   caf::StandardRecord* rec = 0;
   chain_evts->SetBranchAddress("rec", &rec);
@@ -72,10 +74,17 @@ void AnaRobertSimple(std::string fname)
 
   for(int i=0;i<nentries;i++){
     chain_evts->GetEntry(i);
-    std::string digitStr = std::to_string(rec->hdr.evt);
-    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
-      continue;
-    }
+
+// FOR DATA ONLY
+/*
+    bool useEvent = false;
+    if (rec->evtqual.hasssdhits && rec->evtqual.hast0trb3 && rec->evtqual.hast0caen) useEvent = true;
+    if (!useEvent) continue;
+*/
+//    std::string digitStr = std::to_string(rec->hdr.evt);
+//    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
+//      continue;
+//    }
     pot++;
   }
   
@@ -88,15 +97,21 @@ void AnaRobertSimple(std::string fname)
     clustMap.clear();
 
     // Select 70% of data entries not already used for alignment
-    std::string digitStr = std::to_string(rec->hdr.evt);
+//    std::string digitStr = std::to_string(rec->hdr.evt);
 
     // Spit out Run number for the first entry only
-    if(i == 0) std::cout << "Run #:" << rec->hdr.run << std::endl;
+//    if(i == 0) std::cout << "Run #:" << rec->hdr.run << std::endl;
 
-    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
-      continue;
-    }
+//    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
+//      continue;
+//    }
 
+// FOR DATA ONLY
+/*
+    bool useEvent = false;
+    if (rec->evtqual.hasssdhits && rec->evtqual.hast0trb3 && rec->evtqual.hast0caen) useEvent = true;
+    if (!useEvent) continue;
+*/
     int nclusters = int(rec->cluster.clust.size());
     hClusters->Fill(nclusters);
 

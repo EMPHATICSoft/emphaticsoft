@@ -42,6 +42,7 @@
 // EMPHATICSoft includes
 #include "Align/service/AlignService.h"
 #include "ChannelMap/service/ChannelMapService.h"
+#include "DataQuality/EventQuality.h"
 #include "Geometry/service/GeometryService.h"
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
@@ -198,6 +199,7 @@ namespace emph {
   {
     delete m;
 
+    std::cout<< "SingleTrackAlignment: Number of events used = " << usingEvent <<std::endl;
     mf::LogDebug("SingleTrackAlignment") << "SingleTrackAlignment: Number of events used = " << usingEvent;
   }
 
@@ -359,12 +361,12 @@ namespace emph {
     fEvtNum = evt.id().event();
 
     // if data fcl
-    std::string digitStr = std::to_string(event);
     bool useEvent = false;
-    if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
-      useEvent = true;
-    }
-                                                  
+    auto eventqual = evt.getHandle<dq::EventQuality>("dataqual");
+    if (eventqual->hasSSDHits && !(eventqual->hasT0TRB3 && eventqual->hasT0CAEN)) useEvent = true;
+
+    if (usingEvent >= 10000) useEvent = false;
+                                             
     if (fCheckLineSeg){
       auto haslineseg = evt.getHandle<std::vector<rb::LineSegment>>(fTrackSegLabel);
       if (!haslineseg){
