@@ -24,6 +24,7 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -39,7 +40,10 @@ using namespace emph;
 namespace emph {
     class SignalTime : public art::EDAnalyzer {
     public:
-      explicit SignalTime(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      struct Config {};
+      using Parameters = art::EDAnalyzer::Table<Config>;
+
+      explicit SignalTime(Parameters const& pset);
       ~SignalTime();
 
       // Optional, read/write access to event
@@ -67,7 +71,7 @@ namespace emph {
     };
 
     //.......................................................................
-    SignalTime::SignalTime(fhicl::ParameterSet const& pset)
+    SignalTime::SignalTime(Parameters const& pset)
       : EDAnalyzer(pset)
     {
     }

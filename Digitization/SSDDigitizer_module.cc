@@ -31,6 +31,8 @@
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/filesystem.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Geometry/DetectorDefs.h"
@@ -50,7 +52,13 @@ namespace emph {
   class SSDDigitizer : public art::EDProducer
   {
   public:
-    explicit SSDDigitizer(fhicl::ParameterSet const& pset);
+    struct Config {
+      fhicl::Atom<bool> FillAnaTree{fhicl::Name("FillAnaTree")};
+      fhicl::Atom<std::string> G4Label{fhicl::Name("G4Label")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit SSDDigitizer(Parameters const& pset);
     ~SSDDigitizer();
     
     void produce(art::Event& evt);
@@ -127,10 +135,10 @@ namespace emph {
 
   //.......................................................................
  
-  SSDDigitizer::SSDDigitizer(fhicl::ParameterSet const& pset)
+  SSDDigitizer::SSDDigitizer(Parameters const& pset)
     : EDProducer(pset),
-      fFillAnaTree (pset.get<bool>("FillAnaTree")),
-      fG4Label (pset.get<std::string>("G4Label"))
+      fFillAnaTree (pset().FillAnaTree()),
+      fG4Label (pset().G4Label())
   {
     //    fSensorMap.clear();
     fAnaTree = 0;
@@ -452,5 +460,4 @@ namespace emph {
 
 }  // end namespace emph
 DEFINE_ART_MODULE(emph::SSDDigitizer)
-
 

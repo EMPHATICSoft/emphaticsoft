@@ -34,6 +34,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "Geometry/DetectorDefs.h"
@@ -52,7 +54,14 @@ namespace emph{
 	class ARICHDigitizer : public art::EDProducer
 	{
 	  public:
-  	    explicit ARICHDigitizer(fhicl::ParameterSet const& pset);
+            struct Config {
+              fhicl::Atom<std::string> G4Label{fhicl::Name("G4Label")};
+              fhicl::Atom<bool> IncludeNoise{fhicl::Name("IncludeNoise")};
+              fhicl::Atom<bool> FillTree{fhicl::Name("FillTree")};
+            };
+            using Parameters = art::EDProducer::Table<Config>;
+
+            explicit ARICHDigitizer(Parameters const& pset);
   	    ~ARICHDigitizer();
     
   	    void produce(art::Event& evt);
@@ -100,11 +109,11 @@ namespace emph{
 	};
   
 //.......................................................................
-ARICHDigitizer::ARICHDigitizer(fhicl::ParameterSet const& pset)
+ARICHDigitizer::ARICHDigitizer(Parameters const& pset)
   : EDProducer(pset),
-    fG4Label (pset.get<std::string>("G4Label")),
-    fIncludeNoise(pset.get<bool>("IncludeNoise")),
-    fFillTree(pset.get<bool>("FillTree"))
+    fG4Label (pset().G4Label()),
+    fIncludeNoise(pset().IncludeNoise()),
+    fFillTree(pset().FillTree())
 {
  //    fEvent = 0;
  // fSensorMap.clear(); 

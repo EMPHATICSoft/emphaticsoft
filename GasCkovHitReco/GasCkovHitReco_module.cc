@@ -26,6 +26,7 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/service/ChannelMapService.h"
@@ -43,7 +44,10 @@ namespace emph {
   ///
   class GasCkovHitReco : public art::EDProducer {
   public:
-    explicit GasCkovHitReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {};
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit GasCkovHitReco(Parameters const& pset);
     ~GasCkovHitReco();
     
     // Optional, read/write access to event
@@ -83,7 +87,7 @@ namespace emph {
 
   //.......................................................................
   
-  GasCkovHitReco::GasCkovHitReco(fhicl::ParameterSet const& pset)
+  GasCkovHitReco::GasCkovHitReco(Parameters const& pset)
     : EDProducer(pset)
   {
 

@@ -33,7 +33,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "RecoBase/Track.h"
@@ -45,15 +46,18 @@ namespace emph {
   ///
   class MakePrimaryVertex : public art::EDProducer {
   public:
-    explicit MakePrimaryVertex(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<std::string> TrkLabel{fhicl::Name("TrkLabel")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit MakePrimaryVertex(Parameters const& pset);
     ~MakePrimaryVertex() {};
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
     
     // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
-    
   private:
   
     PVAlgo pvA;
@@ -63,9 +67,9 @@ namespace emph {
 
   //.......................................................................
   
-  emph::MakePrimaryVertex::MakePrimaryVertex(fhicl::ParameterSet const& pset)
+  emph::MakePrimaryVertex::MakePrimaryVertex(Parameters const& pset)
     : EDProducer{pset},
-    fTrkLabel       (pset.get< std::string >("TrkLabel"))
+    fTrkLabel       (pset().TrkLabel())
     {
       this->produces< std::vector<rb::Vertex> >();      
       
