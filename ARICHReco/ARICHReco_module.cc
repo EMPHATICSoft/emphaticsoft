@@ -35,6 +35,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "Geometry/service/GeometryService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
@@ -54,7 +56,27 @@ namespace emph {
 
   class ARICHReco : public art::EDProducer {
   public:
-    explicit ARICHReco(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<std::string> LabelHits{fhicl::Name("LabelHits")};
+      fhicl::Atom<bool> FillTree{fhicl::Name("FillTree")};
+      fhicl::Atom<std::string> LabelTracks{fhicl::Name("LabelTracks")};
+      fhicl::Atom<std::string> ModelPath{fhicl::Name("ModelPath")};
+      fhicl::Atom<std::string> PD_file{fhicl::Name("PD_file")};
+      fhicl::Atom<double> RefractiveIndex_UpstreamAerogel{fhicl::Name("RefractiveIndex_UpstreamAerogel")};
+      fhicl::Atom<double> Position_UpstreamAerogel{fhicl::Name("Position_UpstreamAerogel")};
+      fhicl::Atom<double> Thinkness_UpstreamAerogel{fhicl::Name("Thinkness_UpstreamAerogel")};
+      fhicl::Atom<double> RefractiveIndex_DownstreamAerogel{fhicl::Name("RefractiveIndex_DownstreamAerogel")};
+      fhicl::Atom<double> Position_DownstreamAerogel{fhicl::Name("Position_DownstreamAerogel")};
+      fhicl::Atom<double> Thickness_DownstreamAerogel{fhicl::Name("Thickness_DownstreamAerogel")};
+      fhicl::Atom<double> PD_Darkrate{fhicl::Name("PD_Darkrate")};
+      fhicl::Atom<double> Trigger_window{fhicl::Name("Trigger_window")};
+      fhicl::Atom<double> PD_FillFactor{fhicl::Name("PD_FillFactor")};
+      fhicl::Atom<double> PD_Position{fhicl::Name("PD_Position")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit ARICHReco(Parameters const& pset);
+    // Required! explicit tag tells the compiler this is not a copy constructor
     ~ARICHReco();
     
     // Optional, read/write access to event
@@ -109,28 +131,28 @@ namespace emph {
   };
 
   //.......................................................................
-  emph::ARICHReco::ARICHReco(fhicl::ParameterSet const& pset)
+  emph::ARICHReco::ARICHReco(Parameters const& pset)
     : EDProducer(pset)
  { 
 
     this->produces<std::vector<rb::ArichID>>();
-    fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
-    fFillTree   = bool(pset.get<bool>("FillTree"));
-    fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
-    fModelPath = std::string(pset.get<std::string>("ModelPath"));
+    fARICHLabel = pset().LabelHits();
+    fFillTree   = pset().FillTree();
+    fTrackLabel	= pset().LabelTracks();
+    fModelPath = pset().ModelPath();
 
       //ARICH RECO UTILS STUFF
-      PDfile  =  std::string(pset.get< std::string >("PD_file"));
-      up_n = double(pset.get<double>("RefractiveIndex_UpstreamAerogel"));
-      up_pos = double(pset.get<double>("Position_UpstreamAerogel"));
-      up_thick = double(pset.get<double>("Thinkness_UpstreamAerogel"));
-      down_n = double(pset.get<double>("RefractiveIndex_DownstreamAerogel"));
-      down_pos = double(pset.get<double>("Position_DownstreamAerogel"));
-      down_thick = double(pset.get<double>("Thickness_DownstreamAerogel"));
-      PDdarkrate = double(pset.get<double>("PD_Darkrate"));
-      PDwin = double(pset.get<double>("Trigger_window"));
-      PDfillfactor = double(pset.get<double>("PD_FillFactor"));
-      PDzpos = double(pset.get<double>("PD_Position"));
+      PDfile  =  pset().PD_file();
+      up_n = pset().RefractiveIndex_UpstreamAerogel();
+      up_pos = pset().Position_UpstreamAerogel();
+      up_thick = pset().Thinkness_UpstreamAerogel();
+      down_n = pset().RefractiveIndex_DownstreamAerogel();
+      down_pos = pset().Position_DownstreamAerogel();
+      down_thick = pset().Thickness_DownstreamAerogel();
+      PDdarkrate = pset().PD_Darkrate();
+      PDwin = pset().Trigger_window();
+      PDfillfactor = pset().PD_FillFactor();
+      PDzpos = pset().PD_Position();
       fEvtNum = 0;
     }	
     //......................................................................
