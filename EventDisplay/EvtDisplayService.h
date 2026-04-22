@@ -8,9 +8,9 @@
 #ifndef EvtDisplayService_EvtDisplayService_hh
 #define EvtDisplayService_EvtDisplayService_hh
 #ifndef __CINT__
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Framework/Services/Registry/ServiceTable.h"
 #include "art/Framework/Core/InputSource.h"
 #include "art/Framework/Principal/Worker.h"
 #include "canvas/Persistency/Provenance/EventID.h"
@@ -22,8 +22,10 @@ namespace emph
   class EvtDisplayService
   {
   public:
+    struct Config {};
+    using Parameters = art::ServiceTable<Config>;
 
-    EvtDisplayService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
+    EvtDisplayService(Parameters const& pset, art::ActivityRegistry& reg);
 
   private:
 

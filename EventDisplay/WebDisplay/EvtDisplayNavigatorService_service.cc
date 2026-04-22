@@ -22,7 +22,7 @@
 namespace emph
 {
 
-  EvtDisplayNavigatorService::EvtDisplayNavigatorService(fhicl::ParameterSet const& pset,
+  EvtDisplayNavigatorService::EvtDisplayNavigatorService(Parameters const& pset,
                              art::ActivityRegistry& reg): fTargetRun(-1), fTargetSubrun(-1),
                                                           fTargetEvent(-1)
   {

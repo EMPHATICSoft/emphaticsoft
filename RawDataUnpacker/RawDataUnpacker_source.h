@@ -15,6 +15,7 @@
 #include "artdaq-core/Utilities/TimeUtils.hh"
 #include "artdaq-core/Data/Fragment.hh"
 #include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 #include "TTree.h"
 #include "TH1I.h"
@@ -36,10 +37,29 @@ namespace emph {
     class Unpacker
     {
     public:
+      struct Config {
+        fhicl::Atom<std::string> daqLabel{fhicl::Name("daqLabel"), "daq"};
+        fhicl::Atom<bool> createArtEvents{fhicl::Name("createArtEvents"), true};
+        fhicl::Atom<int> numWaveFormPlots{fhicl::Name("numWaveFormPlots"), 100};
+        fhicl::Atom<uint64_t> timeWindow{fhicl::Name("timeWindow"), 20000};
+        fhicl::Atom<uint64_t> nEvents{fhicl::Name("nEvents"), static_cast<uint64_t>(-1)};
+        fhicl::Atom<int> verbosity{fhicl::Name("verbosity"), 0};
+        fhicl::Atom<std::string> SSDFilePrefix{fhicl::Name("SSDFilePrefix"), "RawDataSaver0FER1_Run"};
+        fhicl::Atom<bool> readSSDData{fhicl::Name("readSSDData"), false};
+        fhicl::Atom<bool> readCAENData{fhicl::Name("readCAENData"), false};
+        fhicl::Atom<bool> readTRB3Data{fhicl::Name("readTRB3Data"), false};
+        fhicl::Atom<int> NFER{fhicl::Name("NFER"), 0};
+        fhicl::Atom<double> BCOx{fhicl::Name("BCOx"), 151.1515152};
+        fhicl::Atom<bool> firstSubRunHasExtraTrigger{fhicl::Name("firstSubRunHasExtraTrigger"), false};
+        fhicl::Atom<bool> makeTDiffHistos{fhicl::Name("makeTDiffHistos"), false};
+        fhicl::Atom<bool> makeTimeWalkHistos{fhicl::Name("makeTimeWalkHistos"), false};
+      };
+      using Parameters = fhicl::Table<Config>;
+
       Unpacker(Unpacker const&) = delete;
       Unpacker& operator=(Unpacker const&) = delete;
 
-      explicit Unpacker(fhicl::ParameterSet const& ps,
+      explicit Unpacker(Parameters const& ps,
 			art::ProductRegistryHelper& help,
 			art::SourceHelper const& pm);
 

@@ -8,9 +8,9 @@
 #ifndef EvtDisplayService_EvtDisplayNavigatorService_hh
 #define EvtDisplayService_EvtDisplayNavigatorService_hh
 #ifndef __CINT__
-#include "fhiclcpp/ParameterSet.h"
 #include "art/Framework/Services/Registry/ActivityRegistry.h"
 #include "art/Framework/Services/Registry/ServiceMacros.h"
+#include "art/Framework/Services/Registry/ServiceTable.h"
 #include "art/Framework/Core/InputSource.h"
 #include "art/Framework/Principal/Worker.h"
 #include "canvas/Persistency/Provenance/EventID.h"
@@ -21,8 +21,10 @@ namespace emph
   class EvtDisplayNavigatorService
   {
   public:
+    struct Config {};
+    using Parameters = art::ServiceTable<Config>;
 
-    EvtDisplayNavigatorService(fhicl::ParameterSet const& pset, art::ActivityRegistry& reg);
+    EvtDisplayNavigatorService(Parameters const& pset, art::ActivityRegistry& reg);
 
     //Interfaces for the event display module to use 
     void setTarget(const int run, const int subrun, const int event);

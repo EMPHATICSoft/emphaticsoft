@@ -76,25 +76,24 @@ namespace rawdata {
 
   /***************************************************************************/
 
-  Unpacker::Unpacker(fhicl::ParameterSet const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
+  Unpacker::Unpacker(Parameters const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
     fSourceHelper(pm)
   {
-    fDAQDataLabel = ps.get<std::string>("daqLabel","daq");
-    fCreateArtEvents = ps.get<bool>("createArtEvents",true);
-    fNumWaveFormPlots = ps.get<int>("numWaveFormPlots",100);
-    fTimeWindow = ps.get<uint64_t>("timeWindow",20000);
-    fNEvents    = ps.get<uint64_t>("nEvents",-1);
-    fVerbosity  = ps.get<int>("verbosity",0);
-    fSSDFilePrefix = ps.get<std::string>("SSDFilePrefix",
-					 "RawDataSaver0FER1_Run");
-    fReadSSDData = ps.get<bool>("readSSDData",false);
-    fReadCAENData = ps.get<bool>("readCAENData",false);
-    fReadTRB3Data = ps.get<bool>("readTRB3Data",false);
-    fNFER = ps.get<int>("NFER",0); // Number of Front End Readouts: used for merging SSD data
-    fBCOx = ps.get<double>("BCOx",151.1515152); // Scales SSD timestamps (related to clock freq of SSD)
-    fFirstSubRunHasExtraTrigger = ps.get<bool>("firstSubRunHasExtraTrigger",false);
-    fMakeTDiffHistos = ps.get<bool>("makeTDiffHistos",false);
-    fMakeTimeWalkHistos = ps.get<bool>("makeTimeWalkHistos",false);
+    fDAQDataLabel = ps().daqLabel();
+    fCreateArtEvents = ps().createArtEvents();
+    fNumWaveFormPlots = ps().numWaveFormPlots();
+    fTimeWindow = ps().timeWindow();
+    fNEvents    = ps().nEvents();
+    fVerbosity  = ps().verbosity();
+    fSSDFilePrefix = ps().SSDFilePrefix();
+    fReadSSDData = ps().readSSDData();
+    fReadCAENData = ps().readCAENData();
+    fReadTRB3Data = ps().readTRB3Data();
+    fNFER = ps().NFER(); // Number of Front End Readouts: used for merging SSD data
+    fBCOx = ps().BCOx(); // Scales SSD timestamps (related to clock freq of SSD)
+    fFirstSubRunHasExtraTrigger = ps().firstSubRunHasExtraTrigger();
+    fMakeTDiffHistos = ps().makeTDiffHistos();
+    fMakeTimeWalkHistos = ps().makeTimeWalkHistos();
 
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {

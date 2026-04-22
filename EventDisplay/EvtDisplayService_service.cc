@@ -21,7 +21,7 @@
 namespace emph
 {
 
-  EvtDisplayService::EvtDisplayService(fhicl::ParameterSet const& pset,
+  EvtDisplayService::EvtDisplayService(Parameters const& pset,
                              art::ActivityRegistry& reg):
     ensureTApp_()
   {

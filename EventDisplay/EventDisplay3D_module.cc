@@ -19,6 +19,8 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // ROOT includes
@@ -89,8 +91,28 @@ namespace emph {
   class EventDisplay3D : public art::EDAnalyzer {
 
   public:
+    struct Config {
+      fhicl::Atom<Double_t> camRotateCenterH{fhicl::Name("camRotateCenterH"), 0.26};
+      fhicl::Atom<Double_t> camRotateCenterV{fhicl::Name("camRotateCenterV"), -2.};
+      fhicl::Atom<Double_t> camDollyDelta{fhicl::Name("camDollyDelta"), 500.};
+      fhicl::Atom<bool> DrawMCTruth{fhicl::Name("DrawMCTruth"), true};
+      fhicl::Atom<bool> DrawTrueSSDHits{fhicl::Name("DrawTrueSSDHits"), true};
+      fhicl::Atom<std::string> MCTruthLabel{fhicl::Name("MCTruthLabel"), "geantgen"};
+      fhicl::Atom<bool> DrawSSDDigits{fhicl::Name("DrawSSDDigits"), true};
+      fhicl::Atom<std::string> SSDDigitLabel{fhicl::Name("SSDDigitLabel"), "raw:SSD"};
+      fhicl::Atom<bool> DrawSSDClusters{fhicl::Name("DrawSSDClusters"), true};
+      fhicl::Atom<std::string> SSDClustLabel{fhicl::Name("SSDClustLabel"), "clust"};
+      fhicl::Atom<bool> DrawTracks{fhicl::Name("DrawTracks"), true};
+      fhicl::Atom<std::string> TracksLabel{fhicl::Name("TracksLabel"), "ssdreco"};
+      fhicl::Atom<bool> DrawVertices{fhicl::Name("DrawVertices"), true};
+      fhicl::Atom<std::string> VerticesLabel{fhicl::Name("VerticesLabel"), "vtxreco"};
+      fhicl::Atom<int> VisLevel{fhicl::Name("VisLevel"), 4};
+      fhicl::Atom<bool> SSDStripVis{fhicl::Name("SSDStripVis"), false};
+      fhicl::Atom<double> TrueEnergyThresh{fhicl::Name("TrueEnergyThresh"), 5.};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
 
-    explicit EventDisplay3D(fhicl::ParameterSet const& pset);
+    explicit EventDisplay3D(Parameters const& pset);
 
     void beginJob() override;
     void endJob()   override;
@@ -159,25 +181,25 @@ namespace emph {
 
 }
 
-emph::EventDisplay3D::EventDisplay3D(fhicl::ParameterSet const& pset):
+emph::EventDisplay3D::EventDisplay3D(Parameters const& pset):
   art::EDAnalyzer(pset),
-  camRotateCenterH_ ( pset.get<Double_t>   ("camRotateCenterH", 0.26) ),
-  camRotateCenterV_ ( pset.get<Double_t>   ("camRotateCenterV",-2.  ) ),
-  camDollyDelta_    ( pset.get<Double_t>   ("camDollyDelta",500.) ),
-  fDrawMCTruth      ( pset.get<bool>       ("DrawMCTruth",true) ),
-  fDrawTrueSSDHits  ( pset.get<bool>       ("DrawTrueSSDHits",true) ),
-  fMCTruthLabel     ( pset.get<std::string>("MCTruthLabel","geantgen") ),
-  fDrawSSDDigits    ( pset.get<bool>       ("DrawSSDDigits",true) ),
-  fSSDDigitLabel    ( pset.get<std::string>("SSDDigitLabel","raw:SSD") ),
-  fDrawSSDClusters  ( pset.get<bool>       ("DrawSSDClusters",true) ),
-  fSSDClustLabel    ( pset.get<std::string>("SSDClustLabel","clust") ),
-  fDrawTracks       ( pset.get<bool>       ("DrawTracks",true) ),
-  fTracksLabel      ( pset.get<std::string>("TracksLabel","ssdreco") ),
-  fDrawVertices     ( pset.get<bool>       ("DrawVertices",true) ),
-  fVerticesLabel    ( pset.get<std::string>("VerticesLabel","vtxreco") ),
-  fVisLevel         ( pset.get<int>        ("VisLevel",4) ),
-  fSSDStripVis      ( pset.get<bool>       ("SSDStripVis",false) ),
-  fTrueEnergyThresh ( pset.get<double>     ("TrueEnergyThresh",5.) ),
+  camRotateCenterH_ ( pset().camRotateCenterH() ),
+  camRotateCenterV_ ( pset().camRotateCenterV() ),
+  camDollyDelta_    ( pset().camDollyDelta() ),
+  fDrawMCTruth      ( pset().DrawMCTruth() ),
+  fDrawTrueSSDHits  ( pset().DrawTrueSSDHits() ),
+  fMCTruthLabel     ( pset().MCTruthLabel() ),
+  fDrawSSDDigits    ( pset().DrawSSDDigits() ),
+  fSSDDigitLabel    ( pset().SSDDigitLabel() ),
+  fDrawSSDClusters  ( pset().DrawSSDClusters() ),
+  fSSDClustLabel    ( pset().SSDClustLabel() ),
+  fDrawTracks       ( pset().DrawTracks() ),
+  fTracksLabel      ( pset().TracksLabel() ),
+  fDrawVertices     ( pset().DrawVertices() ),
+  fVerticesLabel    ( pset().VerticesLabel() ),
+  fVisLevel         ( pset().VisLevel() ),
+  fSSDStripVis      ( pset().SSDStripVis() ),
+  fTrueEnergyThresh ( pset().TrueEnergyThresh() ),
   geom_(art::ServiceHandle<emph::geo::GeometryService>()),
   cmap_(art::ServiceHandle<emph::cmap::ChannelMapService>()),
   visutil_(new emph::EvtDisplayUtils()),

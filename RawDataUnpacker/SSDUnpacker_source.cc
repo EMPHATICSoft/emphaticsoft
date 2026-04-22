@@ -61,11 +61,11 @@ namespace rawdata {
     
   /***************************************************************************/
 
-  SSDUnpacker::SSDUnpacker(fhicl::ParameterSet const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
+  SSDUnpacker::SSDUnpacker(Parameters const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
     fSourceHelper(pm)
   {
-    fNEvents    = ps.get<int64_t>("nEvents",-1);
-    fVerbosity  = ps.get<int>("verbosity",0);
+    fNEvents    = ps().nEvents();
+    fVerbosity  = ps().verbosity();
     
     std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(emph::geo::SSD));
     help.reconstitutes<std::vector<emph::rawdata::SSDRawDigit>, art::InEvent>("raw",detStr);
