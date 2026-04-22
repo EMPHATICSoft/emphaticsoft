@@ -14,8 +14,8 @@
 #include "artdaq-core/Data/RawEvent.hh"
 #include "artdaq-core/Utilities/TimeUtils.hh"
 #include "artdaq-core/Data/Fragment.hh"
+#include "fhiclcpp/types/ConfigurationTable.h"
 #include "fhiclcpp/types/Atom.h"
-#include "fhiclcpp/types/Table.h"
 
 #include "TTree.h"
 #include "TH1I.h"
@@ -54,7 +54,7 @@ namespace emph {
         fhicl::Atom<bool> makeTDiffHistos{fhicl::Name("makeTDiffHistos"), false};
         fhicl::Atom<bool> makeTimeWalkHistos{fhicl::Name("makeTimeWalkHistos"), false};
       };
-      using Parameters = fhicl::Table<Config>;
+      using Parameters = fhicl::WrappedTable<Config>;
 
       Unpacker(Unpacker const&) = delete;
       Unpacker& operator=(Unpacker const&) = delete;
