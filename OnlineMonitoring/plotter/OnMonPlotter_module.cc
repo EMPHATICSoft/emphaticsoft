@@ -23,6 +23,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // EMPHATICSoft includes
@@ -62,7 +64,18 @@ namespace emph {
 
     class OnMonPlotter : public art::EDAnalyzer {
     public:
-      explicit OnMonPlotter(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+      struct Config {
+        fhicl::Atom<std::string> CSVFile{fhicl::Name("CSVFile")};
+        fhicl::Atom<std::string> SHMHandle{fhicl::Name("SHMHandle")};
+        fhicl::Atom<bool> useSHM{fhicl::Name("useSHM")};
+        fhicl::Atom<bool> TickerOn{fhicl::Name("TickerOn")};
+        fhicl::Atom<bool> makeWaveFormPlots{fhicl::Name("makeWaveFormPlots"), true};
+        fhicl::Atom<bool> makeTRB3Plots{fhicl::Name("makeTRB3Plots"), true};
+        fhicl::Atom<bool> makeSSDPlots{fhicl::Name("makeSSDPlots"), false};
+      };
+      using Parameters = art::EDAnalyzer::Table<Config>;
+
+      explicit OnMonPlotter(Parameters const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
       ~OnMonPlotter();
 
       // Optional, read/write access to event
@@ -199,15 +212,15 @@ namespace emph {
     }
 
     //.......................................................................
-    OnMonPlotter::OnMonPlotter(fhicl::ParameterSet const& pset)
+    OnMonPlotter::OnMonPlotter(Parameters const& pset)
       : EDAnalyzer(pset),
-	fCSVFile           (pset.get<std::string>("CSVFile")),
-	fSHMname           (pset.get<std::string>("SHMHandle")),
-	fuseSHM            (pset.get<bool>("useSHM")),
-	fTickerOn          (pset.get<bool>("TickerOn")),
-	fMakeWaveFormPlots (pset.get<bool>("makeWaveFormPlots",true)),
-	fMakeTRB3Plots     (pset.get<bool>("makeTRB3Plots",true)),
-	fMakeSSDPlots      (pset.get<bool>("makeSSDPlots",false))
+	fCSVFile           (pset().CSVFile()),
+	fSHMname           (pset().SHMHandle()),
+	fuseSHM            (pset().useSHM()),
+	fTickerOn          (pset().TickerOn()),
+	fMakeWaveFormPlots (pset().makeWaveFormPlots()),
+	fMakeTRB3Plots     (pset().makeTRB3Plots()),
+	fMakeSSDPlots      (pset().makeSSDPlots())
     {
 
       //if (fIPC) delete fIPC;

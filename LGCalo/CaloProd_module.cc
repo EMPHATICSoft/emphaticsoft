@@ -31,7 +31,8 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "canvas/Utilities/InputTag.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 
 // EMPHATICSoft includes
 #include "ChannelMap/ChannelMap.h"
@@ -56,14 +57,16 @@ namespace emph {
   ///
   class CaloProd : public art::EDProducer {
   public:
-    explicit CaloProd(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<bool> makeWaveFormPlots{fhicl::Name("makeWaveFormPlots"), true};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit CaloProd(Parameters const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
     //~CaloProd();
     
     // Optional, read/write access to event
     void produce(art::Event& evt);
-    
-    // Optional if you want to be able to configure from event display, for example
-    void reconfigure(const fhicl::ParameterSet& pset);
     
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
@@ -117,11 +120,10 @@ namespace emph {
 
   //.......................................................................
   
-  emph::CaloProd::CaloProd(fhicl::ParameterSet const& pset)
+  emph::CaloProd::CaloProd(Parameters const& pset)
     : EDProducer{pset}
   {
-    //fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
-    this->reconfigure(pset);
+    fMakeWaveFormPlots = pset().makeWaveFormPlots();
     this->produces< std::vector<rb::CaloHit> >();
     //fEvtNum = 0;
     //fCheckClusters     (pset.get< bool >("CheckClusters"));
@@ -136,12 +138,6 @@ namespace emph {
     //======================================================================
 //  }
 
-  void emph::CaloProd::reconfigure(const fhicl::ParameterSet& pset){
-        fMakeWaveFormPlots = pset.get<bool>("makeWaveFormPlots",true);
-  }
-
-  //......................................................................
-  
   void CaloProd::beginRun(art::Run& run)
   {
     fChannelMap = new emph::cmap::ChannelMap();

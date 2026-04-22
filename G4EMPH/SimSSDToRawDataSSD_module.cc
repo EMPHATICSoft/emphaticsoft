@@ -30,6 +30,8 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 //
 // simulation results per say.. stuff
@@ -73,7 +75,17 @@ namespace emph {
   class SimSSDToRawDataSSD : public art::EDProducer {
       
     public:
-      explicit SimSSDToRawDataSSD(fhicl::ParameterSet const& pset);
+      struct Config {
+        fhicl::Atom<std::string> TokenJob{fhicl::Name("TokenJob"), "UnDef"};
+        fhicl::Atom<bool> CreateCSV{fhicl::Name("CreateCSV"), false};
+        fhicl::Atom<std::string> SSDHitLabel{fhicl::Name("SSDHitLabel")};
+        fhicl::Atom<double> ConvertDedxToADCbits{fhicl::Name("ConvertDedxToADCbits"), 80.};
+        fhicl::Atom<double> FracChargeSharing{fhicl::Name("FracChargeSharing"), 0.3};
+        fhicl::Atom<std::string> fileNameDeadStrip{fhicl::Name("fileNameDeadStrip"), "SSDCalibDeadChanSummary_none_1055.txt"};
+      };
+      using Parameters = art::EDProducer::Table<Config>;
+
+      explicit SimSSDToRawDataSSD(Parameters const& pset);
       // Plugins should not be copied or assigned.
       SimSSDToRawDataSSD(SimSSDToRawDataSSD const&) = delete;
       SimSSDToRawDataSSD(SimSSDToRawDataSSD&&) = delete;
@@ -81,9 +93,6 @@ namespace emph {
       SimSSDToRawDataSSD& operator=(SimSSDToRawDataSSD&&) = delete;
 
       void produce(art::Event& evt) override;
-
-      // Optional if you want to be able to configure from event display, for example
-      void reconfigure(const fhicl::ParameterSet& pset);
 
       // Optional use if you have histograms, ntuples, etc you want around for every event
       void beginJob() override;
@@ -189,32 +198,21 @@ namespace emph {
   }
     
   // .....................................................................................
-  SimSSDToRawDataSSD::SimSSDToRawDataSSD(fhicl::ParameterSet const& pset) : 
+  SimSSDToRawDataSSD::SimSSDToRawDataSSD(Parameters const& pset) :
     EDProducer(pset), 
-    fFilesAreOpen(false), fCreateCSV(false), fTokenJob("undef"), fSSDHitLabel("?"),
+    fFilesAreOpen(false), fCreateCSV(pset().CreateCSV()), fTokenJob(pset().TokenJob()), fSSDHitLabel(pset().SSDHitLabel()),
     fRun(0), fEvtNum(INT_MAX), fNEvents(0), 
-    fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(80.), fFracChargeSharing(0.3),
+    fSensorHeight(38.34), fPitch(0.06), fConvertDedxToADCbits(pset().ConvertDedxToADCbits()), fFracChargeSharing(pset().FracChargeSharing()),
     fMaxStripNumber(static_cast<short int>(fSensorHeight/fPitch)), fHalfHeight(0.5*fSensorHeight),
-    fDeadStripsFileName("SSDCalibDeadChanSummary_none_1055.txt"),
+    fDeadStripsFileName(pset().fileNameDeadStrip()),
     fRunHistory(nullptr), fEmgeo(nullptr)
   {
     std::cerr << " Constructing SimSSDToRawDataSSD " << std::endl;
     this->produces< std::vector<rawdata::SSDRawDigit> > ();
-    this->reconfigure(pset);
     if (fDeadStripsFileName != std::string("none")) 
       fDeadStrips = DeadSSDStripListForSensor(fDeadStripsFileName);
     
     fFilesAreOpen = false;
-  }
-    
-  void SimSSDToRawDataSSD::reconfigure(const fhicl::ParameterSet& pset) 
-  {
-    fTokenJob = pset.get<std::string>("TokenJob", "UnDef");
-    fCreateCSV = pset.get<bool>("CreateCSV", false);
-    fSSDHitLabel = pset.get<std::string>("SSDHitLabel");
-    fConvertDedxToADCbits = pset.get<double>("ConvertDedxToADCbits", 80.);
-    fFracChargeSharing =  pset.get<double>("FracChargeSharing", 0.3);
-    fDeadStripsFileName = pset.get<std::string>("fileNameDeadStrip", "SSDCalibDeadChanSummary_none_1055.txt"); 
   }
     
   void SimSSDToRawDataSSD::beginRun(art::Run &run) 
