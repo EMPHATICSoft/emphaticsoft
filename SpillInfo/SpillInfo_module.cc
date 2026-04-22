@@ -23,7 +23,8 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "fhiclcpp/ParameterSet.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 #include "RecoBase/Spill.h"
@@ -41,7 +42,15 @@ namespace emph
   class SpillInfo : public art::EDProducer 
   {
   public:
-    explicit SpillInfo(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor      
+    struct Config {
+      fhicl::Atom<double> Offset{fhicl::Name("Offset")};
+      fhicl::Atom<std::string> Bundle{fhicl::Name("Bundle")};
+      fhicl::Atom<std::string> URL{fhicl::Name("URL")};
+      fhicl::Atom<double> TimeWindow{fhicl::Name("TimeWindow")};
+    };
+    using Parameters = art::EDProducer::Table<Config>;
+
+    explicit SpillInfo(Parameters const& pset);
     virtual ~SpillInfo();                        
     
     void produce(art::Event& evt);
@@ -66,10 +75,10 @@ namespace emph
 namespace emph
 {
   //..............................................................
-  SpillInfo::SpillInfo(fhicl::ParameterSet const& pset) :
+  SpillInfo::SpillInfo(Parameters const& pset) :
     EDProducer(pset),
-    fOffset         (pset.get< double      >("Offset")         ),
-    bfp( ifbeam_handle->getBeamFolder(pset.get< std::string >("Bundle"), pset.get< std::string >("URL"), pset.get< double >("TimeWindow")))
+    fOffset         (pset().Offset()),
+    bfp( ifbeam_handle->getBeamFolder(pset().Bundle(), pset().URL(), pset().TimeWindow()))
   {
 
     // FTBF has one 4.2 second spill every minute.  Get the information from the nearest entry within a minute.

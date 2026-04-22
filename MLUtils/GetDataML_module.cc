@@ -34,6 +34,8 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "fhiclcpp/types/Atom.h"
+#include "fhiclcpp/types/Table.h"
 #include "Geometry/service/GeometryService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 
@@ -51,7 +53,14 @@ namespace emph {
 
   class GetDataML : public art::EDAnalyzer {
   public:
-    explicit GetDataML(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    struct Config {
+      fhicl::Atom<std::string> LabelHits{fhicl::Name("LabelHits")};
+      fhicl::Atom<std::string> SimTrackLabel{fhicl::Name("SimTrackLabel")};
+      fhicl::Atom<bool> FillTree{fhicl::Name("FillTree")};
+    };
+    using Parameters = art::EDAnalyzer::Table<Config>;
+
+    explicit GetDataML(Parameters const& pset);
     ~GetDataML();
     
     // Optional, read/write access to event
@@ -87,13 +96,13 @@ namespace emph {
 
   //.......................................................................
   
-  emph::GetDataML::GetDataML(fhicl::ParameterSet const& pset)
+  emph::GetDataML::GetDataML(Parameters const& pset)
     : EDAnalyzer(pset)
  { 
 
-    fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
-    fSimTrackLabel = std::string(pset.get<std::string >("SimTrackLabel"));
-    fFillTree   = bool(pset.get<bool>("FillTree"));
+    fARICHLabel = pset().LabelHits();
+    fSimTrackLabel = pset().SimTrackLabel();
+    fFillTree   = pset().FillTree();
     //ARICH RECO UTILS STUFF
     fEvtNum = 0;
   }	
