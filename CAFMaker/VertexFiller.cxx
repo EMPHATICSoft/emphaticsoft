@@ -65,9 +65,9 @@ namespace caf
 
            truth.de = ssdhit->DE();
            truth.station = ssdhit->Station();	 
-	   truth.plane = ssdhit->Plane();
-	   truth.sensor = ssdhit->Sensor();
-	   truth.strip = ssdhit->Strip();  
+           truth.plane = ssdhit->Plane();
+           truth.sensor = ssdhit->Sensor();
+           truth.strip = ssdhit->Strip();  
            beamTrk.truth.push_back(truth);
            //break;
          }
@@ -219,7 +219,14 @@ namespace caf
         auto idx = v.sectrkIdx[it];
 
         //for now it's easy with single particle, arich ID always has one entry: the first
-        caf::SRSecondaryTrack srt = GetSecondaryTrack(trks[idx], ssdhits,arichids[0]);
+        //if arich reco was not run, use a dummy ArichID to avoid out-of-bounds access
+        rb::ArichID dummyArich;
+        caf::SRSecondaryTrack srt;
+        if (arichids.empty()) {
+          srt = GetSecondaryTrack(trks[idx], ssdhits, dummyArich);
+        } else {
+          srt = GetSecondaryTrack(trks[idx], ssdhits, arichids[0]);
+        }
         for (size_t i=0; i<trks[idx].NTrackSegments(); i++){
           auto rbts = trks[idx].GetTrackSegment(i);
           caf::SRTrackSegment srts;
