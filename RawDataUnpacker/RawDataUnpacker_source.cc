@@ -79,21 +79,21 @@ namespace rawdata {
   Unpacker::Unpacker(Parameters const& ps, art::ProductRegistryHelper& help, art::SourceHelper const& pm) :
     fSourceHelper(pm)
   {
-    fDAQDataLabel = ps().daqLabel();
-    fCreateArtEvents = ps().createArtEvents();
-    fNumWaveFormPlots = ps().numWaveFormPlots();
-    fTimeWindow = ps().timeWindow();
-    fNEvents    = ps().nEvents();
-    fVerbosity  = ps().verbosity();
-    fSSDFilePrefix = ps().SSDFilePrefix();
-    fReadSSDData = ps().readSSDData();
-    fReadCAENData = ps().readCAENData();
-    fReadTRB3Data = ps().readTRB3Data();
-    fNFER = ps().NFER(); // Number of Front End Readouts: used for merging SSD data
-    fBCOx = ps().BCOx(); // Scales SSD timestamps (related to clock freq of SSD)
-    fFirstSubRunHasExtraTrigger = ps().firstSubRunHasExtraTrigger();
-    fMakeTDiffHistos = ps().makeTDiffHistos();
-    fMakeTimeWalkHistos = ps().makeTimeWalkHistos();
+    fDAQDataLabel = ps.daqLabel();
+    fCreateArtEvents = ps.createArtEvents();
+    fNumWaveFormPlots = ps.numWaveFormPlots();
+    fTimeWindow = ps.timeWindow();
+    fNEvents    = ps.nEvents();
+    fVerbosity  = ps.verbosity();
+    fSSDFilePrefix = ps.SSDFilePrefix();
+    fReadSSDData = ps.readSSDData();
+    fReadCAENData = ps.readCAENData();
+    fReadTRB3Data = ps.readTRB3Data();
+    fNFER = ps.NFER(); // Number of Front End Readouts: used for merging SSD data
+    fBCOx = ps.BCOx(); // Scales SSD timestamps (related to clock freq of SSD)
+    fFirstSubRunHasExtraTrigger = ps.firstSubRunHasExtraTrigger();
+    fMakeTDiffHistos = ps.makeTDiffHistos();
+    fMakeTimeWalkHistos = ps.makeTimeWalkHistos();
 
     std::string detStr;
     for (int idet=0; idet<emph::geo::NDetectors; ++idet) {
