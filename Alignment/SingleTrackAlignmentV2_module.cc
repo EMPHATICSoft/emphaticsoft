@@ -361,7 +361,7 @@ namespace emph {
   void SingleTrackAlignmentV2::newfGSLStuResFile(int aSpill) {        
        fFileNameGSLStuRes = std::string("./SingleTrackAlignment_GSLStuPhi_");
        fFileNameGSLStuRes += std::to_string(fRun) + std::string("_") + fTokenCSV + std::string("_") + 
-                             std::to_string(aSpill) + std::string("_v2.txt");
+                             std::to_string(aSpill) + std::string("_v3.txt");
        std::ifstream fInTmp(fFileNameGSLStuRes.c_str());
        if (!fInTmp.good()) { // assume it does not exist.. 
 	  fGSLStuRes.open(fFileNameGSLStuRes.c_str());
@@ -498,6 +498,12 @@ namespace emph {
      std::cerr << " ... doing it... on  " << fDataMillePulls.numRecords() << " num Records " << std::endl;
      emph::align::GSLStudies myStu(true, 0, fTokenCSV);
      myStu.SetDebugOn();
+     if (fRun > 2997) { // Cheating here!! big Cheating.  Assume we have mechanical tolerances.. 
+       for (size_t k=1; k!=8; k++) {
+       if (k == 4) continue;
+         myStu.SetMaxPull(k, 4.1); 
+        }
+     }
 //      myStu.StudyByStationXY(fDataMillePulls, 1); // for now, debugging.. 
 //      myStu.StudyByStationXY(fDataMillePulls, 5, 1); // for now, debugging..
      auto theModDetGeo = dgm->Map();
