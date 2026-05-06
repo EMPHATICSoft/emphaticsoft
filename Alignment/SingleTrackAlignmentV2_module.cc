@@ -11,18 +11,47 @@
 ///  
 /// The track expressed in a reference befine by Station 0, as 
 /// this is the origin of our coordinate system, and by 
-/// station 4.  In principle, to get a Cartesian (there by orthognal), 
+/// station 4.  In principle, to get a Cartesian (thereby orthognal), 
 /// only one coordinate is sufficient to fix that coordinate system,
 /// as the other constraints come from the orthogonality condition. 
-/// One goal of this modul is to study tyhe biases if we define the track 
+/// One goal of this module is to study tyhe biases if we define the track 
 /// fixing both the X and Y slopes of the track, using the 
-/// coordinates of Station 0 and 4, in both planes.  
+/// coordinates of Station 0 and 4, in both planes. 
+/// Not yet studied, I might as add, as, for the general case, 
+///  Millepede-II does not always converges to the right extremum.
+///
+/// Convergence to the correct extremum can be studied for Geantinos (straight lines, 
+///  The use better set the magnet kick @120 GeV to 0. ), or muons, 
+///  or protons, as we have the possibility in BeamGen to choose our beam.   
 ///
 /// Unlike the version written by Robert Chirco, we assemble the 
-/// Aligner track in this module, and we do use 
+/// Aligner track in this module, and we do NOT use 
 /// the Alignment file.  The Geometry Modifier does this...
 /// The geometry needs to be modified, if we a-priori know 
-/// Here, we compute the pulls solely based on the geometry.. 
+/// Here, we compute the pulls solely based on the geometries (plural!) 
+/// the reference on (or "pre-alignment") versus the "simulated-real one", 
+/// Not used in this module, but used in the G4EMPH package.
+///
+/// And  a single track model, where straight lines ("tracks")
+///  are drawn from Station 0 and 4, X  and Y
+/// measuring direction separately.  A instantenous kick in the magnet center
+/// is done, optionally. (default is "on", value of the kick tuneable by FHICL 
+/// data card. 
+///
+/// Data Selection: 
+///  Sensor with no or more than one SSD cluster per events are not considered. 
+///  we require at least 8 (FHICL paramter MinSensorOAOCl) such valid measurement.  
+///  If a sensor is missing, an entry to the Millipede sets of pull is simply not there. 
+///     Note: more than two measurements per plane is allowed. (relevant only for 
+///        downstream stations.  
+///
+/// Unlike the SingleTrackAlignment_module (written by Robert C and Jon P.), 
+/// we do run the milipede and collect the results in this module.   
+/// See the end job method.   
+///
+///  Programming note : as in other modules, we prefix the variables name with "f" 
+///   for the variable that are member of this class. 
+/// 
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
 #include <cmath>
@@ -91,10 +120,12 @@ using namespace emph;
 namespace emph {
   ///
   struct resultAlignmentStation { // volatile data, to hold and dump to a CSV file the result of a bunch of simulation. 
+  // We pick the information from the Geometry package. 
     double genStx_, alStvalx_, alSterrx_; // in mm 
     double genSty_, alStvaly_, alSterry_; 
     double genStphi_, alStvalphi_, alSterrphi_; // in mr
   };
+  // First movement, Standard Sonata form, the Exposition. 
   class SingleTrackAlignmentV2 : public art::EDAnalyzer {
   public:
     explicit SingleTrackAlignmentV2(fhicl::ParameterSet const& pset); 
@@ -147,27 +178,36 @@ namespace emph {
     const bool fUse456; // Using the event with last digit being 4, 5 ,6  (default) 
     const bool fUse7890; // Using the event with last digit being 7, 8, or 9 (default) 
     const int fMinSensorOAOCl; // Minimum number of sensors with one and only hit to trigger an entry in the Millipede II data set.
-    const bool fSkipUW; // skipping the confirm planes, if we align by stations. 
-    const bool fRandomizePulls;  
+    const bool fSkipUW; // skipping the confirmin UW planes, if we align by stations. 
+    const bool fRandomizePulls; // the pull distribution are not Gaussians, given the quantization (Strip spacing, 60 microns) 
+    //                             inherent to the "Strip" detectors.  
     const bool fRunPede; // at the end job, we run the Millipede-II algorithm, to align.. 
     const bool fGSLStudies; // at the end job, we run the Millipede-II algorithm, to align.. 
-    const bool fFixStationRotations; 
+    const bool fFixStationRotations; // Control of the rotations, while running Millipede 
     const int fFixAllStationPosButOne;
     const int fFixAllStationPosRotButOne;
     const int fFixAllFreeOneRotStation;
     const int fModeRunPede; 
-    const double fScaleErrorsForPede; 
+    const double fScaleErrorsForPede; // In order to get a result from Millepede, for the "first time around" 
+    // We need to increase the measurement errors.  Done in Millepede. 
     const double fXCenterSel, fYCenterSel, fXWidthSel, fYWidthSel; // selection on regions, expect biases.. 
-    const double fOneOverSqrt12, fOneOverSqrt2;
-    double fNumAnomalous;
-    int fNumUsedEvts; // Number of available (one and only one cluster per sensor) 
-    int fNumMeasure; // Number of available (one and only one cluster per sensor) 
+    // Not used, by default, left for 
+    const double fOneOverSqrt12, fOneOverSqrt2; // Numerical Constants.
+    double fNumAnomalous; // to count the numbers of Pull that NaN, or would contribute to very, very large chi-square. 
+    int fNumUsedEvts; // Number of events we will consider good enough 
+    //   available (one and only one cluster per sensor) 
+    int fNumMeasure; // Number of available measurements in the event, and we will select the events with one and only one 
+    // measurement per sensor (not per plane, per sensor.  The sensors slightly overlaps in stations downstream of the magnets).  
     const std::string fTokenCSV; // for book-keeping..
-    const std::string fFNameMille;
-    
-    art::Handle< std::vector<rb::SSDCluster> > fClustH;
+    const std::string fFNameMille;  // the name of the output Millepede binary final. 
+    //
+    // Now the usual art machanismmm
+    //
+    art::Handle< std::vector<rb::SSDCluster> > fClustH; // Pointer to the cluster stash. 
+    // Internal, we assemble a STL map, sensor index &  with the pointers (const_iterators)  
     std::map<int, std::vector<rb::SSDCluster>::const_iterator > fClustMap;
     std::map<int, int > fClustNum;
+    
     std::vector<double> fEffErrAtStation;    
     //
     // To smooth out the pull distribution, by +- 1/2 a strip.. 
@@ -187,15 +227,18 @@ namespace emph {
     std::ofstream fGSLStuRes; // as above only one line per run of this module, final result of linear fits., shifts, slope Orthocoord.       
  
     //Millepede stuff
-    //  Mille* m; Obsolete.. 
-    
+    //  Mille* m; Obsolete.. We now do this in a separate utility class, in this Alignment package.  
+    // we keep the pull data in memory, this affordable, such that e can define a utility class that handles 
+    // the interface between this art module and the Millepede stand-alone code. 
+    //
     align::MilleRecords fDataMillePulls; 
     
     //
     // Internals 
-    void fillClustMap();  
-    void setTrackParams(bool debugNow = false);
-    void FillPulls(bool dbg=false);
+    void fillClustMap(); // re-organizes a bi tthe SSD Clusters data..  
+    void setTrackParams(bool debugNow = false); // our single "straight" (non-interacting upstream of the RICH detector) 
+    // track. 
+    void FillPulls(bool dbg=false);  // the "work horse" method, get the pulls, sensor by sensor basis. 
     // 
     void ClusterStudy(int stage);
     void newfGSLStuResFile(int newSpill);   
@@ -260,13 +303,14 @@ namespace emph {
       std::cerr << " SingleTrackAlignmentV2::beginRun, inconsistent option, geometry is such that W planes are rotated.. Fatal " << std::endl; 
       exit(2);
     }
+    // Pick the geometry. 
     fNStations = emgeo->NSSDStations();
     fNPlanes = emgeo->NSSDPlanes();
     int numSensorTotal = emgeo->NSSDs();
     std::cerr << " SingleTrackAlignmentV2::beginRun, numStations " << fNStations 
               << " Planes " << fNPlanes << " sensors " << numSensorTotal << std::endl;
     if (emgeo->GetTarget()) fTargetz = emgeo->GetTarget()->Pos()(2);
-    else fTargetz = 380.5;    
+    else fTargetz = 380.5; // in case we want a quick reference for the coordinate of the target.    
     if (emgeo->MagnetLoad()) { 
       fMagnetusz = emgeo->MagnetUSZPos();
       fMagnetdsz = emgeo->MagnetDSZPos();
@@ -357,6 +401,7 @@ namespace emph {
 
   }
 //
+// Allowing us to study the alignment parameters on a spill by spill basis. 
 // 
   void SingleTrackAlignmentV2::newfGSLStuResFile(int aSpill) {        
        fFileNameGSLStuRes = std::string("./SingleTrackAlignment_GSLStuPhi_");
@@ -399,7 +444,6 @@ namespace emph {
   
   void emph::SingleTrackAlignmentV2::endJob()
   {
-//    delete m;
 
     std::cout<<"SingleTrackAlignment: Number of events used = "<< fNumUsedEvts << std::endl;
     if (fDoSelectionStudies) {
@@ -548,6 +592,13 @@ namespace emph {
      
 }
   //......................................................................
+  // Unlike the other module, we do not compute the pulls based on a set of the 
+  // The three track segments define in the maketrackSegments in the trackReco package. 
+  // This is to avoid having to refer to 3 different reference frames, on for each region. 
+  // For instance, for region2, the reference frame is defined by station 2 and 4, 
+  // while for region 3, it is defined - implictly - by station 5 and 7. 
+  // Only one reference frame here, defined by station 0 and Station 4. 
+  //
   void emph::SingleTrackAlignmentV2::setTrackParams(bool debugNow) {
   
      fTrackX0 = DBL_MAX; fTrackY0 = DBL_MAX;
@@ -555,9 +606,9 @@ namespace emph {
      // x0, y0 at station 0 
      
      auto emgeo = geo->GeoRef(); // We use the reference map, in this case.. 
-     rb::LineSegment aLs;
+     rb::LineSegment aLs; // temporary...  To use the existing Detector to Geometry map utilities. 
      double zStX0, zStY0, zStX4, zStY4; 
-     for (int iPl0 = 0; iPl0 != 2; iPl0++) {  
+     for (int iPl0 = 0; iPl0 != 2; iPl0++) {  // Looping on station 0 planes, Y and X.  
        auto itM = fClustMap.find(100*iPl0); auto itCl = itM->second; 
      // this method is private and is called after selection.. So, this pointer should be O.K. 
        if (itCl == fClustH->cend()) {
@@ -627,6 +678,7 @@ namespace emph {
   void emph::SingleTrackAlignmentV2::FillPulls(bool debugNow)
   {
     auto emgeo = geo->GeoRef();
+    // Standard EMPHATIC tools...
     ru::RecoUtils rUtil = ru::RecoUtils(fEvtNum);
     std::vector<float> pulls(fClustMap.size(), 9.e9); 
     rb::LineSegment aLs;
@@ -665,7 +717,7 @@ namespace emph {
         std::cerr << " Strip line segment, C x " << aLs.X0().X() << " y " <<  aLs.X0().Y() << " Z " << aLs.X0().Z() << std::endl;
         std::cerr << " Strip line segment, D x " << aLs.X1().X() << " y " <<  aLs.X1().Y() << " Z " << aLs.X1().Z() << std::endl;
       }
-      // Model data.. 
+      // Use our track model data.. 
       double slopeX;
       double xCoordB, yCoordB; 
       double xLocal, yLocal; 
@@ -687,7 +739,8 @@ namespace emph {
         yLocal = fTrackY0 + fTrackSly*zMeas; 
       }
       if (debugNow) std::cerr << " .... Linear model give xLocal " << xLocal << " y " << yLocal << std::endl;
-      // the above is approximate, if tilt are large, probably wrong.. 
+      // the above is approximate, if tilts are large, probably wrong..And/or, at low momentum, also wrong due to Fringe Fields.  
+      
       double F[3]; double l1[3]; double l2[3]; std::string typeCA("SSD"); 
       rUtil.ClosestApproach(trA, trB, lsC, lsD, F, l1, l2, typeCA.c_str(), debugNow);
       if (debugNow) {
@@ -783,7 +836,7 @@ namespace emph {
        }			       
        kSensor++;
      }
-     if (fPullDist.is_open()) {
+     if (fPullDist.is_open()) { // Obsolete, do this in a proper utility class. 
      	fPullDist << " " << fSubrun << " " << fEvtNum << " " <<  fTrackX0 << " " << fTrackY0 
         	<< " " << fTrackSlxUpstr << " " << fTrackSly << " " << chiSq << " " << (fNumMeasure-4);
         for (size_t k=0; k != fClustMap.size(); k++)  fPullDist << " " << pulls[k];
@@ -875,6 +928,8 @@ namespace emph {
     
     // if data fcl
     std::string digitStr = std::to_string(fEvtNum);
+    // Relevant for real data only: reserve a statistical sample for "physics" instead of alignment. 
+    
     if (debugNow) std::cerr << " SingleTrackAlignmentV2::produce, at spill " << fSubrun << " event " << digitStr << std::endl;
     bool useEvent = false;
     if (fUse123) { 
@@ -904,7 +959,7 @@ namespace emph {
     if (!useEvent) return;
        if (debugNow) std::cerr << " .... Using this event, # " << fEvtNum << std::endl;
        
-    this->fillClustMap();
+    this->fillClustMap(); // re organize the data 
     //
     // Require one and only one hit in Station 0 and 4 
     //

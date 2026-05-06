@@ -16,7 +16,7 @@ standard_singletrackalignmentV2:
   MinSensorOAOCl:      8
   SkipUW:             false
   RandomizePulls:     true
-  EffectiveMagnetKick: 0.5e-3
+  EffectiveMagnetKick: 0.55e-3
   XCenterSel:         0.
   YCenterSel:         0.
   XWidthSel:          9999.
