@@ -18,6 +18,7 @@
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
+#include "TH2D.h"
 #include "TVector3.h"
 #include "TTree.h"
 // Framework includes
@@ -41,7 +42,7 @@
 #include "RecoBase/ARICHCluster.h"
 #include "Utilities/PMT.h"
 #include "Simulation/Track.h"
-
+#include "ARICHRecoUtils/ArichUtils.h"
 
 namespace emph {
 
@@ -57,7 +58,7 @@ namespace emph {
     std::map<int,double> GetRefenceTimes(std::vector<rawdata::TRB3RawDigit> hits);
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> Cluster_FixedWindow(std::vector<std::tuple<float, emph::cmap::EChannel>> sortedVec, int threshold);
 
-    int threshold =20;
+    int threshold =10;
 	
   private:
 
@@ -69,12 +70,14 @@ namespace emph {
     std::string fARICHLabel;   
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;	
     emph::cmap::FEBoardType boardType = cmap::TRB3;
+    arichreco::ARICH_UTILS* ArichUtils;
 
+    double nhits;
     std::vector<double> Lead_times;
     std::vector<double> Trail_times;
-
     std::vector<int> cluster_ids;    
-
+    std::vector<double> hits_loc;
+    int best_cluster_id;
 };
 
   //.......................................................................
@@ -86,7 +89,6 @@ namespace emph {
     this->produces<std::vector<rb::ARICHCluster>>();
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fFillTree   = bool(pset.get<bool>("FillTree"));
-
     fEvtNum = 0;
     
   }	
@@ -109,8 +111,10 @@ namespace emph {
     fARICHTree->Branch("lead_times", &Lead_times);
     fARICHTree->Branch("trail_times", &Trail_times);
     fARICHTree->Branch("cluster_id", &cluster_ids);
+    fARICHTree->Branch("nhits", &nhits);
+    fARICHTree->Branch("nhits_loc", &hits_loc);
     fARICHTree->Branch("event_id", &fEvtNum);
-
+    fARICHTree->Branch("best_cluster_id", &best_cluster_id);
    } 
 }
 
@@ -146,10 +150,8 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeAric
     size_t i = 0;   
     while (i < sortedVec.size()) {
         std::vector<std::tuple<float, emph::cmap::EChannel>> cluster;
-        int start = abs(std::get<0>(sortedVec[i]));
-	
-	 while (i < sortedVec.size() && abs(std::get<0>(sortedVec[i]) - start) <= threshold) {
-        
+        double start = abs(std::get<0>(sortedVec[i]));
+	 while (i < sortedVec.size() && abs(abs(std::get<0>(sortedVec[i])) - start) <= threshold) {
             cluster.push_back(sortedVec[i]);
             ++i;
         }
@@ -189,6 +191,70 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> ClusterSliding
      return clusters;
 }
 //......................................................................
+std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> DensityClustering(const std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float threshold) {
+    
+    if (sortedVec.empty()){
+	std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> temp;
+	 return temp;
+    }
+
+   std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters(2);
+
+    size_t j = 0;
+    size_t best_i = 0;
+    size_t best_count = 0;
+
+  for(size_t i = 0; i < sortedVec.size(); ++i){
+    double ti = std::get<0>(sortedVec[i]);
+    
+    while(j < sortedVec.size() && (std::get<0>(sortedVec[j]) - ti) <= threshold)++j;
+
+    size_t count = j - i;
+
+    if(count > best_count){
+        best_count = count;
+        best_i = i;
+     }
+   }
+
+   double t0 = std::get<0>(sortedVec[best_i + best_count/2]);
+   //std::cout << "t0 " << t0 << std::endl;
+   for(const auto& hit : sortedVec){
+    double t = std::get<0>(hit);
+    //std::cout << t << " " << std::get<1>(hit) << std::endl;
+    if(fabs(t - t0) <= threshold) clusters[0].push_back(hit);
+    else clusters[1].push_back(hit);
+    }
+    return clusters;
+}
+
+//......................................................................
+std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> LamberJackClustering(const std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float min_time,float max_time) {
+
+  std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters(2);
+
+  if (sortedVec.empty()){
+        std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> temp;
+         return temp;
+  }
+
+  for(size_t i = 0; i < sortedVec.size(); ++i){
+    double ti = std::get<0>(sortedVec[i]);
+
+    if(min_time <= ti && ti <= max_time) {
+	clusters[0].push_back(sortedVec[i]);
+    }
+    else {
+	clusters[1].push_back(sortedVec[i]);
+     }
+  }
+ 
+  return clusters;	
+
+
+}
+//......................................................................
+
 void emph::MakeArichCluster::produce(art::Event& evt)
   { 
       std::unique_ptr<std::vector<rb::ARICHCluster>> ARICH_CLUSTERS(new std::vector<rb::ARICHCluster>);
@@ -196,6 +262,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
        auto arichH = evt.getHandle<std::vector<emph::rawdata::TRB3RawDigit> >(fARICHLabel); 
 
 	fEvtNum = evt.event();
+
      
       if(!arichH.isValid()) {
 	evt.put(std::move(ARICH_CLUSTERS)); 
@@ -211,7 +278,6 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 	} 
 
 
-
       std::vector<emph::rawdata::TRB3RawDigit> ArichDigs(*arichH);
 //      std::cout << "FOUND " << ArichDigs.size() << " TRB3 HITS" << std::endl;
 	
@@ -220,7 +286,6 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 	std::vector<std::tuple<float, emph::cmap::EChannel>> hits;
 	std::map<emph::cmap::EChannel,std::vector<double>> leadTimesCh;
         std::map<emph::cmap::EChannel,std::vector<double>> trailTimesCh;
-
 
 	for (size_t idx=0; idx < arichH->size(); ++idx) {
 
@@ -242,7 +307,6 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
 //	std::cout << "Raw data size " << arichH->size() << std::endl;
 
-	
 	//Implementing fast check for clusters, eventually make a function for different clustering algorithms
 
 	for (auto lCh=leadTimesCh.begin();lCh!=leadTimesCh.end();lCh++) {
@@ -273,8 +337,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 		   emph::cmap::EChannel echan = lCh->first;
 		   if(fFillTree)Trail_times.push_back(trail_found[n_trail]);
 	           std::tuple<float, emph::cmap::EChannel> time_EChannel = std::make_tuple(lead, echan);
-	  	  hits.push_back(time_EChannel);	
-	    
+	  	  hits.push_back(time_EChannel);
 		}
 	   }// end if trail found
 	 } //end loop over lead times
@@ -282,36 +345,53 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
 
     //Now the vector hits contains all the necessary info to cluster the hits in time and feed the clusters to the reco code
-	
+    	
     stable_sort(hits.begin(), hits.end());
 
-    if(fFillTree)for(auto pair : hits) Lead_times.push_back((double)std::get<0>(pair));
+    if(fFillTree){
+     nhits = (double) hits.size();
+     for(auto pair : hits){
+	Lead_times.push_back((double)std::get<0>(pair));
+	std::pair temp = std::make_pair(std::get<1>(pair).Board(),std::get<1>(pair).Channel());
+	
+	double bin = ArichUtils->EchanToBin(temp);
+	hits_loc.push_back(bin);
+	} 
+    }
 
-  
-    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = ClusterSliding(hits, threshold);	
-
-
+   //std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = DensityClustering(hits, threshold);	
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = LamberJackClustering(hits,-290,-260); 
+ 
     for(int u = 0; u < (int)clusters.size(); u++){
     
 	    rb::ARICHCluster cluster;
 	
 	    for(int k=0; k < (int)clusters[u].size(); k++){
 
-		//std::cout << "cluster "<<  u << " hittime " << std::get<0>(clusters[u][k]) << std::endl;
 	   	emph::cmap::EChannel echan = std::get<1>(clusters[u][k]);
 		cluster.Add(std::make_pair(echan.Board(), echan.Channel()));
 		cluster.Add(std::get<0>(clusters[u][k])); //adding time info
 		cluster_ids.push_back(u);
-	//	cluster.Add(std::get<0>(clusters[u][k]));
 	  } 
-	ARICH_CLUSTERS->push_back(cluster);	
-//	std::cout << "MADE " << clusters.size() << " CLUSTERS" << std::endl;	     
-	}
+      ARICH_CLUSTERS->push_back(cluster);	
+      }
 		
-	 evt.put(std::move(ARICH_CLUSTERS));
+        evt.put(std::move(ARICH_CLUSTERS));
 
-       if(fFillTree)fARICHTree->Fill();    
-       Lead_times.clear(); Trail_times.clear(); cluster_ids.clear();	 
+       if(fFillTree){
+	 int max_size=0;
+	 int max_cluster=-1;
+	 for(int u = 0; u < (int)clusters.size(); u++){
+	     int size = clusters[u].size();
+     	     if(size > max_size){
+        	max_size = size;
+       		max_cluster = u;
+        	}
+   	 }
+	 best_cluster_id = max_cluster;	 
+	 fARICHTree->Fill();    
+        }      
+	 Lead_times.clear(); Trail_times.clear(); cluster_ids.clear(); hits_loc.clear();
   } // end produce 
 
 }

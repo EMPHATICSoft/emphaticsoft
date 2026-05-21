@@ -27,6 +27,7 @@ cet_build_plugin(MakeArichCluster art::module
   LIBRARIES REG
     RawData
     StandardRecord
+    ARICHRecoUtils
     RecoBase
     DetGeoMap
     DetGeoMapService_service
@@ -64,6 +65,27 @@ cet_build_plugin( MakeRing art::module
     ROOT::Core
     ROOT::Geom 
     ROOT::Tree
+)
+
+cet_build_plugin(ArichAnalizer art::module
+  LIBRARIES PRIVATE
+    RawData
+    RecoBase
+    DetGeoMap
+    DetGeoMapService_service
+    ChannelMap
+    ChannelMapService_service
+    GeometryService_service
+    Geometry
+    Simulation
+    ARICHRecoUtils
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Hist
+    ROOT::Core
+    ROOT::Geom 
+    ROOT::Tree
+  BASENAME_ONLY
 )
 
 

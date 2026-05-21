@@ -93,9 +93,8 @@ namespace emph{
 	     std::map<cmap::EChannel,std::vector<cmap::EChannel>> channel_neighbor;
 
 	     TTree *fTest;
-             std::vector<int> pdg,track_id,blocks, fUnmatched, Nhits, NParents;
-             std::vector<double> mom,time, fUnmatched_times;
-             std::vector<double> dirX,dirY,PosX,PosY;
+	     std::vector<double> wls;
+	     std::vector<double> wls_qe;
 	     TRandom3 *rand_gen; 	
 	};
   
@@ -128,18 +127,9 @@ void ARICHDigitizer::beginJob()
   if(fFillTree){
    art::ServiceHandle<art::TFileService const> tfs;
    fTest = tfs->make<TTree>("events","events");
-   fTest->Branch("blocks", &blocks);
-   fTest->Branch("pdg", &pdg);
-   fTest->Branch("mom", &mom);
-   fTest->Branch("NHits", &Nhits);
-   fTest->Branch("NParent", &NParents);
-   //fTest->Branch("UnMatched", &fUnmatched);
-   //fTest->Branch("UnMatched_times",&fUnmatched_times);
-   //fTest->Branch("DirX",&dirX);
-   //fTest->Branch("DirY",&dirY);
-   //fTest->Branch("PosX",&PosX);
-   //fTest->Branch("PosY",&PosY);  
-    }
+   fTest->Branch("waveleghts",&wls);
+   fTest->Branch("waveleghts_after_qe",&wls_qe);
+ }
 }
 //.....................................................................
 void ARICHDigitizer::beginRun(art::Run &run){
@@ -149,7 +139,7 @@ void ARICHDigitizer::beginRun(art::Run &run){
 
   if(run.run() < 2000){
 	fTriggerDelay = int(-559./5);}  //peak position wrt refence in course counters
-  else   fTriggerDelay = int(-340./5);
+  else   fTriggerDelay = int(-270./5);
  /* 
   RunInfoFile = TFile::Open((user_build+std::string("/Digitization/")+Form("run_%i_info.root", run.run())).c_str(), "READ");
  
@@ -195,8 +185,8 @@ rawdata::TRB3RawDigit ARICHDigitizer::MakeDigit(int board, int channel, bool isL
 
 
     int delay;
-    if(isLeading) delay = (int)rand_gen->Gaus(0,5)/5;
-    else delay = (int)rand_gen->Gaus(25,5)/5;   //it can use data driven distribution
+    if(isLeading) delay = (int)rand_gen->Gaus(0,3)/5;
+    else delay = (int)rand_gen->Gaus(20,3)/5;   //it can use data driven distribution
 
 
     int t_coarse = start_coarse_counter + trigger_delay_coarse - t + delay;
@@ -205,7 +195,6 @@ rawdata::TRB3RawDigit ARICHDigitizer::MakeDigit(int board, int channel, bool isL
     std::pair<int,uint32_t> course_epoch = std::make_pair(t_coarse, tdc_epoch_word);    
 
     std::pair<int,uint32_t> checked_pair = CheckPair(course_epoch);
-
    
     int fine_time =  (int)rand_gen->Uniform(0,511);
     uint32_t tdc_measurement_word = GetTDCMeasurementWord(channel, isLeading, checked_pair.first,fine_time);
@@ -429,57 +418,81 @@ void ARICHDigitizer::produce(art::Event& evt)
       dchan.SetDetId(geo::ARICH);
  
       int nhits =0;
-
-	  std::vector<int> parent_id;
+      std::vector<int> parent_id;
     
+      std::vector<cmap::EChannel> used_echan; //data as almost always 1hit per sensor
+
       for(size_t i = 0; i < arichHits->size(); i++){	
 	
 	 sim::ARICHHit arichhit = (*arichHits)[i];
 	 int blockID = arichhit.GetBlockNumber();	
 	 const arich_util::PMT& mpmt= fGeo->Geo()->FindPMTByBlockNumber(blockID);
-		
 	 double wavelength =  arichhit.GetWavelength()/1e6;  // in mm 	
-	 
-	 if(arichhit.GetTime() *1e9 > 1000)continue; //filter hits that are later than 1 microsec (expected ~ 11 ns)
+
+	 if(fFillTree)wls.push_back(wavelength*1e6);
+
+	 //filter hits that are later than 1 microsec (expected ~ 11 ns)
+	 if(arichhit.GetTime() *1e9 > 1000)continue;
+
+	 //check wavelenght and QE
+	 //wavelenght == 0 is used for charged particles transversing the anodes 
+	 //so far these wl == 0 are always on, can be change to use rand_gen with probability P
 	 if(wavelength != 0.){
 	 if(!mpmt.ifDet(wavelength))continue; //check if PMT can detected that photon			
 	 }
+	 if(fFillTree)wls_qe.push_back(wavelength*1e6);
 	
-	 //if(wavelength == 0)std::cout << arichhit << " Hilo" << arichhit.GetHiLo() << " Channel " <<  arichhit.GetChannel() << std::endl;
-	
-
-//	if(std::find(parent_id.begin(), parent_id.end(),arichhit.GetAncestorTrackNum()) == parent_id.end()){
-//	 parent_id.push_back(arichhit.GetAncestorTrackNum());
-//	}
-	 
-//	 nhits++;
-//	 if(fFillTree){
-//           blocks.push_back(blockID);
-//          pdg.push_back(arichhit.GetAncestorPDG());
-//           mom.push_back(arichhit.GetAncestorMom());
-//          }
-
-	
+	 //Get echannel information from detector channels  
 	 int HiLo = arichhit.GetHiLo();  
 	 int channel = arichhit.GetChannel();
          dchan.SetHiLo(HiLo);
 	 dchan.SetChannel(channel);
  	 echan = cmap->ElectChan(dchan);
 
-	
+	 //Get time information
 	 int time =  (int)((arichhit.GetTime() * 1e9)/5);
 
+	 //real data only has one hit per channel per event (almost all the time)
+	 //check if a channel has already been used,
+	 //	 if not -> great
+	 //	 if yes -> small probability to reuse it 
+	 if(find(used_echan.begin(), used_echan.end(), echan) != used_echan.end() && rand_gen->Uniform(0,1) > 0.05)continue;	 
+	 else used_echan.push_back(echan);
+	
+	 //dead channels
+	 if(echan.Board() == 14 &&  echan.Channel() == 28)continue;
+	 if(echan.Board() == 7 &&  echan.Channel() == 2)continue;
+	
+	 //Low efficiency region, allow for some digits to be make
+	 if(echan.Board() == 5 &&  echan.Channel() <= 16 && rand_gen->Uniform(0,1) > 0.003)continue; //data low eff region
+
+	//Make the TRB3 raw digit
 	rawdata::TRB3RawDigit Leading_dig = MakeDigit(echan.Board(), echan.Channel(), true, time, start_coarse_counter, false);
 	rawdata::TRB3RawDigit Trailing_dig = MakeDigit(echan.Board(), echan.Channel(), false, time, start_coarse_counter,false); 
-
 	
 	//std::cout << Leading_dig <<  " " << (Leading_dig.GetFinalTime() - RefTime[Leading_dig.GetBoardId()])/1e3 << std::endl;
 	//std::cout << Trailing_dig << " " << (Trailing_dig.GetFinalTime() - RefTime[Trailing_dig.GetBoardId()])/1e3 << std::endl;
-
 	ArichRawD->push_back(Leading_dig);
 	ArichRawD->push_back(Trailing_dig);
 
+/*	
+	if(rand_gen->Uniform(0,1) < 0.22){
+	 int pmt = 4;
+         int chan = rand_gen->Integer(52)+2; 
+         dchan.SetHiLo(pmt);
+         dchan.SetChannel(chan);
+         echan = cmap->ElectChan(dchan);
 
+	 rawdata::TRB3RawDigit Leading_dig = MakeDigit(echan.Board(), echan.Channel(), true, time, start_coarse_counter, false);
+        rawdata::TRB3RawDigit Trailing_dig = MakeDigit(echan.Board(), echan.Channel(), false, time, start_coarse_counter,false);
+	
+	 ArichRawD->push_back(Leading_dig);
+        ArichRawD->push_back(Trailing_dig);
+
+	}
+*/	
+
+   }
 	//AFTER PULSES: for each true photon hit, evaluate if there'll be another one (in the same anode) at a later time 
 /*	int N = rand_gen->Poisson(5e-3); //hits after the peak 
 	if(N != 0){
@@ -518,10 +531,6 @@ void ARICHDigitizer::produce(art::Event& evt)
 	     }
 	}
   */     
-   } // end loop over all MC hits [] 
-
-	NParents.push_back(parent_id.size());
-	Nhits.push_back(nhits);
 	//time to add noise!!
 	
 	//Import infos from real data: number distribution, time distribution, fpga-channel distributioon and sample from them
@@ -575,11 +584,8 @@ ArichRawD->push_back(NoMatch_dig);
    
     evt.put(std::move(ArichRawD),"ARICH");
    
-    if(fFillTree){fTest->Fill();
-	pdg.clear(); track_id.clear(); blocks.clear();
-        mom.clear(); time.clear(); fUnmatched.clear(); fUnmatched_times.clear();
-        dirX.clear(); dirY.clear(); PosX.clear(); PosY.clear();}
-   	Nhits.clear(); NParents.clear();
+    if(fFillTree){fTest->Fill(); wls.clear();wls_qe.clear();}
+     
    } //end ARICHDigitizer::produce()
 
 } // end namespace emph

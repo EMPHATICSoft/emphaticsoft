@@ -101,10 +101,11 @@ namespace emph {
     std::vector<TVector3> dir;
     std::vector<TVector3> pos;
     std::vector<double> LLs;
+    std::vector<double> crossing_track_loc;
 
     TH2D event_hist, pdf_pion, pdf_kaon, pdf_prot;
     float mom;   
- 
+    int nhits;
 	
   };
 
@@ -154,6 +155,8 @@ namespace emph {
      fARICHTree->Branch("pdf_prot", &pdf_prot);
      fARICHTree->Branch("momenta", &mom);
      fARICHTree->Branch("event_id", &fEvtNum);
+     fARICHTree->Branch("nhits", &nhits);
+     fARICHTree->Branch("crossing_track_location",&crossing_track_loc);
      }
 
     ArichUtils = new arichreco::ARICH_UTILS();
@@ -203,6 +206,7 @@ void ARICHReco::produce(art::Event& evt)
     rb::ArichID arich_id;
     ARICH->push_back(arich_id);  
     }
+
  
     if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
     
@@ -227,16 +231,21 @@ void ARICHReco::produce(art::Event& evt)
 
 
         mom = sqrt(last_seg.mom.Mag2()); //sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
-
-//	std::cout << "Momenta " << mom << std::endl;
+	
 	if (mom == 0) {
           mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
         }
 
         float finalx = posx + (1920 - posz) * px/pz;
         float finaly = posy + (1920 - posz) * py/pz;
+
+
+	float track_crossing_x = posx + (2220 - posz) * px/pz;
+  	float track_crossing_y = posy + (2220 - posz) * py/pz;	
+	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
 	
-	//std::cout << "vertex (" << posx << ", " << posy << ", " << posz << ") final pos ( "<< finalx << ", " << finaly << ")"<< std::endl;        	
+//	std::cout << "vertex (" << posx << ", " << posy << ", " << posz << ") final pos ( "<< track_crossing_x << ", " << track_crossing_y << ")"<< std::endl;        	
+	
 
 	TVector3 dir_(px/mom,py/mom,pz/mom);
         TVector3 pos_(finalx/10.,finaly/10.,0.);  //in cm
@@ -262,6 +271,7 @@ void ARICHReco::produce(art::Event& evt)
 	  pdf_pion = pdfs[0];
 	  pdf_kaon = pdfs[1];
 	  pdf_prot = pdfs[2];
+	  nhits = arich_clusters->at(max_cluster).NDigits();
 	}
 
           rb::ArichID arich_id;
@@ -286,8 +296,11 @@ void ARICHReco::produce(art::Event& evt)
 	
 	ARICH->push_back(arich_id);	  
 	 
-	if(fFillTree)fARICHTree->Fill();
-	    
+	if(fFillTree){
+	  fARICHTree->Fill();
+	  crossing_track_loc.clear();
+	}
+  
 	} // end if clusters     	 
 
 	evt.put(std::move(ARICH));	   
