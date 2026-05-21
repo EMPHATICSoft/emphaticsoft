@@ -82,8 +82,6 @@ namespace emph
     double fitY;
     double fitR;
 
-
-
     TH2D event_hist;
   
     TGraph2D plot3d;
@@ -147,7 +145,6 @@ namespace emph
     int max_cluster=-1;
     int max_size = 0;
 
-
     for(int u = 0; u < (int)arich_clusters->size(); u++){
  
      int size = arich_clusters->at(u).NDigits();
@@ -155,22 +152,18 @@ namespace emph
   	max_size = size;
 	max_cluster = u;
 	}
-   }
+      }
 
-//	for(int u = 0; u < (int)arich_clusters->size(); u++){
-            
 	
-//	     if(arich_clusters->at(u).NDigits() < 4)continue;            
-	
-	if(arich_clusters->size() != 0 && arich_clusters->at(max_cluster).NDigits() > 4){    
+    if(arich_clusters->size() != 0 && arich_clusters->at(max_cluster).NDigits() > 4){    
 
 	      std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits();  	
 	     
 	      std::vector<float> times = arich_clusters->at(max_cluster).Times();
-
+	
 	      event_hist = *ArichUtils->DigsToHist(digs);	
 
-	      plot3d = *ArichUtils->DigsToHist(digs,times);	      
+	      if(fFillTree)plot3d = *ArichUtils->DigsToHist(digs,times);	      
 
 	      arichreco::HoughFitter* fitter = new arichreco::HoughFitter(&event_hist);  
 	
@@ -184,8 +177,6 @@ namespace emph
 		
 		ring.SetRadius(std::get<2>(circles[0]));
 		float center[3] = {float(std::get<0>(circles[0])),float(std::get<1>(circles[0])),0};
-
-//		std::cout << "fit values " << center[0] << " " << center[1] << " " << std::get<2>(circles[0]) << std::endl;
 
 		ring.SetCenter(center);
 		ring.SetNHits(arich_clusters->at(max_cluster).NDigits()); 
