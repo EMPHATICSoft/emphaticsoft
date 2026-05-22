@@ -94,13 +94,13 @@ while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
       fi
       ((col2+=1))
     done
-    xsum=$(echo "$x1 + $x2" | bc)
-    ysum=$(echo "$y1 + $y2" | bc)
-    zsum=$(echo "$z1 + $z2" | bc)
-    dphisum=$(echo "$dphi1 + $dphi2" | bc)
-    dethetasum=$(echo "$detheta1 + $detheta2" | bc)
-    dpsisum=$(echo "$dpsi1 + $dpsi2" | bc)
+    xsum=$(awk -v a="$x1" -v b="$x2" 'BEGIN {printf "%.8f\n", a + b}' | sed 's/0*$//;s/\.$//')
+    ysum=$(awk -v a="$y1" -v b="$y2" 'BEGIN {printf "%.8f\n", a + b}' | sed 's/0*$//;s/\.$//')
+    zsum=$(awk -v a="$z1" -v b="$z2" 'BEGIN {printf "%.8f\n", a + b}' | sed 's/0*$//;s/\.$//')
+    dphisum=$(awk -v a="$dphi1" -v b="$dphi2" 'BEGIN {printf "%.8f\n", a + b}' | sed 's/0*$//;s/\.$//')
+    dethetasum=$(awk -v a="$detheta1" -v b="$detheta2" 'BEGIN {printf "%.8f\n", a + b}' | sed 's/0*$//;s/\.$//')
+    dpsisum=$(awk -v a="$dpsi1" -v b="$dpsi2" 'BEGIN {printf "%.8f\n", a + b}' | sed 's/0*$//;s/\.$//')
     printf "%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n" $sta $sen $pla $xsum $ysum $zsum $dphisum $dethetasum $dpsisum  >> $name
   fi
   ((first+=1))
-done 3<"$file1" 4<"$file2"
+	done 3<"$file1" 4<"$file2"

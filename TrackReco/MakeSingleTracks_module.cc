@@ -101,7 +101,7 @@ namespace emph {
     std::string fClusterLabel;
     std::string fTrkSegLabel;
     bool        fShortOn;
-    int         fPBeamTmp;
+    double         fPBeamTmp;
     bool        fLessStrict;
     double      fTrgtZ;
   };
@@ -115,7 +115,7 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fTrkSegLabel       (pset.get< std::string >("TrkSegLabel")),
     fShortOn           (pset.get< bool >("ShortOn")),
-    fPBeamTmp          (pset.get< int >("PBeamTmp")),
+    fPBeamTmp          (pset.get< double >("PBeamTmp")),
     fLessStrict        (pset.get< bool >("LessStrict"))
     {
       fTrgtZ = -99999.;

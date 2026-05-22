@@ -71,6 +71,7 @@ namespace emph {
     void beginRun(art::Run& run);
     void beginJob();
     void endJob();
+    void endSubRun(art::SubRun& sr);
 
   private:
     TTree* spacepoint;
@@ -155,9 +156,49 @@ namespace emph {
     spacepoint->Branch("event",&event,"event/I");  
     spacepoint->Branch("chi2",&chi2,"chi2/I");
   }
+
  
   //......................................................................
   
+  void emph::MakeTrackSegments::endSubRun(art::SubRun& sr)
+  {
+    std::cout << "tsv size = "<<tsv.size()<<"and capacity ="<<tsv.capacity() << std::endl;
+    std::cout << "spv size = "<<spv.size()<<"and capacity ="<<spv.capacity() << std::endl;
+    std::cout << "sp1 size = "<<sp1.size()<<"and capacity ="<<sp1.capacity() << std::endl;
+    std::cout << "sp2 size = "<<sp2.size()<<"and capacity ="<<sp2.capacity() << std::endl;
+    std::cout << "sp3 size = "<<sp3.size()<<"and capacity ="<<sp3.capacity() << std::endl;
+    std::cout << "linesegments size = "<<linesegments.size()<<"and capacity ="<<linesegments.capacity() << std::endl;
+    std::cout << "clusters size = "<<clusters.size()<<"and capacity ="<<clusters.capacity() << std::endl;
+    std::cout << "chi2 size = "<<chi2.size()<<"and capacity ="<<chi2.capacity() << std::endl;
+    std::cout << "cl_group: outer size=" << cl_group.size()
+              << " cap=" << cl_group.capacity() << "\n";
+
+    for (const auto& mid : cl_group) {
+        std::cout << "  mid size=" << mid.size()
+                  << " cap=" << mid.capacity() << "\n";
+
+        for (const auto& inner : mid) {
+            std::cout << "    inner size=" << inner.size()
+                      << " cap=" << inner.capacity() << "\n";
+        }
+    }
+    std::cout << "ls_group: outer size=" << ls_group.size()
+              << " cap=" << ls_group.capacity() << "\n";
+    for (const auto& mid : ls_group) {
+        std::cout << "  mid size=" << mid.size()
+                  << " cap=" << mid.capacity() << "\n";
+
+        for (const auto& inner : mid) {
+            std::cout << "    inner size=" << inner.size()
+                      << " cap=" << inner.capacity() << "\n";
+        }
+    }   
+    std::cout << "clustmap size = "<< clustMapAtLeastOne.size() << "\n";
+    for (auto& [k, inner] : clustMapAtLeastOne)
+      std::cout << inner.size() << "\n";
+    std::cout<<"........."<<std::endl;
+  }
+
   void emph::MakeTrackSegments::endJob()
   {
        std::cout<<"MakeTrackSegments: Number of events: "<<evts<<std::endl;
@@ -171,8 +212,10 @@ namespace emph {
 
   //......................................................................
   void emph::MakeTrackSegments::produce(art::Event& evt) {
-    tsv.clear();
-    spv.clear();
+    //tsv.clear();
+    //std::vector<rb::TrackSegment>().swap(tsv); 
+    //spv.clear();
+    //std::vector<rb::SpacePoint>().swap(spv);
 
     std::unique_ptr<std::vector<rb::LineSegment>> linesegv(new std::vector<rb::LineSegment>);
     std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
@@ -338,18 +381,34 @@ namespace emph {
             sp1.clear();
             sp2.clear();
             sp3.clear();
+            //std::vector<rb::SpacePoint>().swap(sp1);
+            //std::vector<rb::SpacePoint>().swap(sp2);
+            //std::vector<rb::SpacePoint>().swap(sp3);
           } //clust < fMaxClust
+
           ls_group.clear();
+          //std::vector<std::vector<std::vector<const rb::LineSegment*>>>().swap(ls_group);
           cl_group.clear();
-          linesegments.clear();
-          clusters.clear();
-          clustMapAtLeastOne.clear();
+          //std::vector<std::vector<std::vector<const rb::SSDCluster*>>>().swap(cl_group);
+          //linesegments.clear();
+          //std::vector<rb::LineSegment>().swap(linesegments);
+          //clusters.clear();
+          //std::vector<const rb::SSDCluster*>().swap(clusters);
+          //clustMapAtLeastOne.clear();
+          //std::map<int, std::map<std::pair<int, int>, int>>().swap(clustMapAtLeastOne);
         }
       } catch (...) {
       }
+      linesegments.clear();
+      clusters.clear();
+      clustMapAtLeastOne.clear();
       spacepoint->Fill();
       chi2.clear();
-    }
+      //std::vector<double>().swap(chi2);
+    } // fMakePlots
+
+    tsv.clear();
+    spv.clear();
 
     evt.put(std::move(linesegv));
     evt.put(std::move(spacepointv));

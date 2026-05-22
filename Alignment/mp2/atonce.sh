@@ -16,17 +16,18 @@ emphdir=$3
 path="/pnfs/emphatic/scratch/users/rchirco/textfiles"
 textfile="${path}/all${run}.txt"
 echo "Using $textfile"
-logfile="prcj${run}.out"
+#logfile="prcj${run}.out"
 
 while [ "$cont" == "true" ]; do
   cd $begin
 
-  if [ $it -gt 0 ]; then
+#  if [ $it -gt 0 ]; then
     sn="shift${it}"
     mkdir $sn
     cd $sn
-  fi
+#  fi
 
+  logfile="prcj${run}_${it}.out"
   [ -f "$logfile" ] && rm "$logfile"
   [ -f "m004.bin" ] && rm "m004.bin"
 
