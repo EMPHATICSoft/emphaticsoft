@@ -78,6 +78,8 @@ namespace emph {
     double      fYsigma;
     double      fPmean;
     double      fPsigma;
+    double      fPMin;
+    double      fPMax;
     double      fPXmax;
     double      fPXmin;
     double      fPYmax;
@@ -159,7 +161,13 @@ namespace emph {
 
     // NOTE: These are in units of GeV/c
     fPmean         = ps.get<double>("PMean",0.); 
+<<<<<<< HEAD
     fPsigma        = ps.get<double>("Psigma",0.);
+=======
+    fPsigma        = ps.get<double>("PSigma",0.);
+    fPMin          = ps.get<double>("PMin",0.);
+    fPMax          = ps.get<double>("PMax",0.);
+>>>>>>> c3167eb (Major overhaul of the Kalman-filter single track reconstruction.)
     
     // NOTE: These are all in units of ??
     fXmax          = ps.get<double>("Xmax",-999999.); 
@@ -192,6 +200,7 @@ namespace emph {
 
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
+<<<<<<< HEAD
       if (fabs(rhs->RunHist()->BeamMom()) > 0) {
 	      fPmean = rhs->RunHist()->BeamMom();
 	      // ensure that 120 GeV/c particles are always protons.
@@ -205,6 +214,19 @@ namespace emph {
 	        fPID = kProton;
 	        fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
 	      }
+=======
+      fPmean = rhs->RunHist()->BeamMom();
+      // ensure that 120 GeV/c particles are always protons.
+      if (fabs(fPmean-120.)<5) {
+      	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	      fPsigma = 0.01*fPmean;
+	      fXYHist = 0;
+	      fPXYHist = 0;
+	      fXYDistSource = "";
+	      fPXYDistSource = "";
+	      fPID = kProton;
+	      fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+>>>>>>> c3167eb (Major overhaul of the Kalman-filter single track reconstruction.)
       }
     }
 
@@ -419,11 +441,22 @@ namespace emph {
 
     // now get beam particle momentum
     double pmag = 0;
+<<<<<<< HEAD
     if(fPZDist == "Gauss")pmag = TMath::Abs(fRand->Gaus(fPmean,fPsigma));
     else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(fRand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
     else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl;  
     
     //    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+=======
+    if(fPZDist == "Gauss")pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
+    else {
+      if(fPZDist == "flat" || fPZDist == "uniform") 
+        pmag = TMath::Abs(rand->Uniform(fPMin,fPMax));
+      else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
+    }
+
+//    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
+>>>>>>> c3167eb (Major overhaul of the Kalman-filter single track reconstruction.)
     
     double pb[3];
     double x = 0., y = 0., pxpz = 0., pypz = 0.;

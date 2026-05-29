@@ -8,38 +8,42 @@
 
 using namespace std;
 
-typedef ROOT::Math::SVector<double,5> KPar;
-typedef ROOT::Math::SMatrix<double,5,5> K5x5;
+typedef ROOT::Math::SVector<double,5> KStateVec;
+typedef ROOT::Math::SMatrix<double,5,5> KStateCov;
 
 namespace kalman {
   
-  class State {
-  public:
-    State();
-    State(double z, KPar& par);
-    State(double z, KPar& par, K5x5& cov);
-    ~State(){};
+  // Kalman Filter state class
+class KState {
+public:
+    KState();
+    KState(const KStateVec& s, const KStateCov& cov, double z_pos);
+    virtual ~KState() {};
+    double GetPar(int i) const { return fState(i); }
+    double GetCov(int i, int j) const { return fCov(i,j); }
+    KStateCov GetCov() const {return fCov;}
+    KStateVec GetPar() const {return fState;}
+    double GetZ() const {return fZ;}
+    double GetChi2() const {return fChi2;}
+    double GetNdf() const {return fNDF;}
 
-    State& operator= (State &parIn);
-
-    double GetPar(int i) { return fPar(i); }
-    double GetCov(int i, int j) { return fCov(i,j); }
-    K5x5 GetCov(){return fCov;}
-    KPar GetPar(){return fPar;}
-    double GetZ(){return fZ;}
-    void SetPar(KPar& p) { fPar = p; }
-    void SetCov(K5x5& cov) { fCov = cov; }
+    void SetChi2(double c){fChi2=c;}
+    void SetNdf(double n){fNDF=n;} 
+    void SetPar(KStateVec& p) { fState = p; }
+    void SetPar(int i, double val) { fState(i) = val; }
+    void SetCov(KStateCov& cov) { fCov = cov; }
     void SetZ(double val){fZ = val;}
 
-    friend std::ostream& operator << (std::ostream& o, const State& s);
+    KState& operator= (const KState &s);
+    friend std::ostream& operator << (std::ostream& o, const KState& s);
 
-  private:
-    
-    double fZ;
-    
-    KPar fPar;
-    K5x5 fCov;
-        
+private:
+    KStateVec fState;      // State vector: (x, y, dx/dz, dy/dz, q/p)
+    KStateCov fCov; // 5x5 covariance matrix
+    double fZ;            // z-position of this state
+    double fChi2;         // accumulated chi-squared
+    int fNDF;             // number of degrees of freedom
+
   };
 }  
   

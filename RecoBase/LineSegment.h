@@ -41,8 +41,8 @@ namespace rb {
       fSSDStation = station; fSSDPlane = plane;
       fSSDSensor = sensor; fSSDStrip = strip;
     }
-    double DistanceToPoint(double x, double y, double z) const;
-    double DistanceToPoint(double x, double y) const;
+    virtual double DistanceToPoint(double x, double y, double z) const;
+    virtual double DistanceToPoint(double x, double y) const;
 
     friend std::ostream& operator << (std::ostream& o, const LineSegment& h);
 

@@ -9,8 +9,13 @@
 #include "CAFMaker/VertexFiller.h"
 #include "RecoBase/Vertex.h"
 #include "RecoBase/Track.h"
+<<<<<<< HEAD
 #include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/ArichID.h"
+=======
+//#include "StandardRecord/SRTrackSegment.h"
+//#include "RecoBase/ArichID.h"
+>>>>>>> c3167eb (Major overhaul of the Kalman-filter single track reconstruction.)
 
 namespace caf
 {

@@ -584,35 +584,58 @@ Plane::Plane() :
       double radL;
 
       for (int i=0; i<fNSSDStations; ++i) {
-	auto station = this->GetSSDStation(i);
-	for (int j=0; j<station->NPlanes(); ++j) {
-	  // check that we're not at the very last plane
-	  if (i == fNSSDStations-1 && j == station->NPlanes()-1) continue;
+	      auto station = this->GetSSDStation(i);
+	      for (int j=0; j<station->NPlanes(); ++j) {
+	        // check that we're not at the very last plane
+	        if (i == fNSSDStations-1 && j == station->NPlanes()-1) continue;
 
-	  double dz = 0;
-	  // if we are at the last plane of the station, go to next station to get next plane position
-	  if (j == station->NPlanes()-1) { // 
-	    auto station2 = this->GetSSDStation(i+1);
-	    dz = station2->GetPlane(0)->SSD(0)->Pos()[2];
-	  } 
-	  else {
-	    dz = station->GetPlane(j+1)->SSD(0)->Pos()[2];
-	  }
-	  dz -= station->GetPlane(j)->SSD(0)->Pos()[2];
-	  dz /= 10.; // convert mm to cm
-	  planeId = i*10+j;
-	  radL = 0.03/Si + 0.03/CFiber + (dz-0.06)/air;
-	  fRadLength[planeId] = radL;
-	}
+      	  double dz = 0;
+      	  // if we are at the last plane of the station, go to next station to get next plane position
+      	  if (j == station->NPlanes()-1) { // 
+    	      auto station2 = this->GetSSDStation(i+1);
+	          dz = station2->GetPlane(0)->SSD(0)->Pos()[2];
+          }    	  
+  	      else {
+	          dz = station->GetPlane(j+1)->SSD(0)->Pos()[2];
+          }	  
+      	  dz -= station->GetPlane(j)->SSD(0)->Pos()[2];
+	        dz /= 10.; // convert mm to cm
+	        planeId = i*10+j;
+	        radL = 0.03/Si + 0.03/CFiber + (dz-0.06)/air;
+          fRadLength.push_back(std::make_pair(planeId, radL));
+        }
       }
     }
 
     //------------------------------------------------------------
 
-    double Geometry::GetRadLength(int ssdId) const
-    {
-      auto iter = fRadLength.find(ssdId);
-      return (iter != fRadLength.end()) ? iter->second : 0.;
+    double Geometry::GetRadLength(int ssdi, int ssdj) const
+    {      
+      if (ssdi == ssdj) return 0.;
+      if (ssdi > ssdj) { // make sure the order is correct 
+          mf::LogWarning("GetRadLength") << "SSD ids are out of order!  Returning 0." << std::endl;
+          return 0.;
+      }        
+
+      if (ssdi < 0 || ssdj < 0) {
+          mf::LogWarning("GetRadLength") << "Station index out of range. Station " << ssdi << " plane " << ssdj << "\n";
+          return 0.;
+      }
+
+      auto iter = fRadLength.begin();
+      for (; iter != fRadLength.end(); ++iter) {
+        if (iter->first == ssdi) break;
+      }
+      if (iter == fRadLength.end()) { // we're at the end and looking "forward" so this is a problem
+        mf::LogWarning("GetRadLength") << "No radiation length found for station " << ssdi << " plane " << ssdj << "\n";
+        return 0.;
+      }
+      double radL = 0.;
+      while (iter != fRadLength.end() && iter->first != ssdj) {
+        radL += iter->second;
+        ++iter;
+      }
+      return radL; // if we're looking forward, return the accumulated radiation length
     }
 
     //------------------------------------------------------------

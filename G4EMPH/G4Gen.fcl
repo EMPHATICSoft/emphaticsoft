@@ -10,7 +10,8 @@ standard_g4alg:
   G4CalibTOPAZLG: 0.006
   G4AttenuationTOPAZLG : 0.9
   G4TokenTOPAZLGOut: "undef" 
-  G4LastDetector: "ARICH" #uses G4PhysVolume name!!
+#  G4LastDetector: "ARICH" #uses G4PhysVolume name!!
+  G4LastDetector: "ssdStation7" #uses G4PhysVolume name!!
  
   PerformFOutStudy:  false
   

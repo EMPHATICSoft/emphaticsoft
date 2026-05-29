@@ -6,6 +6,7 @@ standard_magfield:
   UsingRootHistos: true
   StoreMapAsStlVector: false
   Verbosity: 0
+  IsEnabled: true
 }
 
 END_PROLOG
