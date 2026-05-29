@@ -4,8 +4,12 @@ standard_arichdigitizer:
 {    
   module_type: 	  ARICHDigitizer
   G4Label:	  "geantgen"
-  IncludeNoise:   false 	# bool to evaluate the dark hits
-  FillTree:    	  true
+  IncludeNoise:   true  	# bool to evaluate the dark hits
+  FillTree:    	  false
+  DarkMapFile:	 ""
+  XTalkProb: 	  0.07
+  SigTimeLo:	 -290
+  SigTimeHi: 	 -260
 }
 
 END_PROLOG
