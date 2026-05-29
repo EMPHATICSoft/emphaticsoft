@@ -6,7 +6,6 @@
 #ifndef TRACKSEGMENT_H
 #define TRACKSEGMENT_H
 
-#include <vector>
 #include <stdint.h>
 #include <iostream>
 
@@ -14,7 +13,6 @@
 
 #include "RecoBase/SSDCluster.h"
 #include "RecoBase/SpacePoint.h"
-#include "RecoBase/RecoBaseDefs.h"
 #include "StandardRecord/SRTrackSegment.h"
 
 namespace rb {
@@ -40,15 +38,6 @@ namespace rb {
     // Setters
     void Add(const rb::SSDCluster& cl); 
     void Add(const rb::SpacePoint& sp);
-
-    //    void SetVtx(double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
-    //    void SetP(double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
-
-    //    void SetA(double* pA) { for (int i=0; i<3; ++i) _pointA[i] = pA[i]; }
-    //    void SetB(double* pB) { for (int i=0; i<3; ++i) _pointB[i] = pB[i]; }
-
-    //    void SetRegLabel(rb::Region region) { _region = region; }
-    //    void SetChi2(double chi2) { _chi2 = chi2; } 
   
     friend std::ostream& operator << (std::ostream& o, const TrackSegment& h);
   };

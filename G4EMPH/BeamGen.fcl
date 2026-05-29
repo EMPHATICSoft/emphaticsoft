@@ -32,6 +32,10 @@ standard_beamgen:
   PMean:		     120.
   Psigma:		     1.e-3
 
+#parameters for a flat total momentum distribution
+  PMin:          118.
+  PMax:          121.
+  
 # parameters for flat distributions of beam slopes
   PXmax:		     0.1
   PXmin:		     -0.1
@@ -57,6 +61,24 @@ proton120.PXmax: 1.e-5
 proton120.PXmin: -1.e-5 
 proton120.PYmax: 1.e-5
 proton120.PYmin: -1.e-5 
+
+uniform20pos: @local::standard_beamgen
+uniform20pos.particleType: "proton"
+uniform20pos.pzDist: "flat"
+uniform20pos.PMean: 10.
+uniform20pos.PSigma: 9.8
+uniform20pos.PMin: 0.5
+uniform20pos.PMax: 20.
+uniform20pos.xyDistSource: "flatxy"
+uniform20pos.pxyDistSource: "flatpxy"
+uniform20pos.Xmax: 2.
+uniform20pos.Xmin: -2. 
+uniform20pos.Ymax: 2.
+uniform20pos.Ymin: -2. 
+uniform20pos.PXmax: 1.e-4
+uniform20pos.PXmin: -1.e-4 
+uniform20pos.PYmax: 1.e-4
+uniform20pos.PYmin: -1.e-4 
 
 proton4: @local::standard_beamgen
 proton4.particleType: "proton"

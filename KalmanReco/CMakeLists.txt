@@ -6,7 +6,10 @@ cet_make_library ( SOURCE ${src_files}
 		Geometry
 		MagneticField
     RecoBase
-		messagefacility::MF_MessageLogger
+    SimulationBase
+    Simulation
+    MCUtils
+    messagefacility::MF_MessageLogger
     fhiclcpp::fhiclcpp
     ROOT::Core
     ROOT::Geom
@@ -17,10 +20,13 @@ cet_make_library ( SOURCE ${src_files}
 
 cet_build_plugin(SingleTrackKalmanReco art::module
   LIBRARIES REG
-    RecoBase
     KalmanReco
+    RecoBase
     GeometryService_service
     MagneticFieldService_service
+    SimulationBase
+    Simulation
+    MCUtils
     messagefacility::MF_MessageLogger
     art_root_io::TFileService_service
     ROOT::Core
@@ -31,6 +37,7 @@ cet_build_plugin(SingleTrackKalmanReco art::module
     ROOT::Tree
   BASENAME_ONLY
 )
+
 
 install_source()
 install_fhicl()

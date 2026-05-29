@@ -34,13 +34,17 @@ namespace emph {
     void SetFieldFileName(std::string fileName) { fFieldFileName = fileName; }
     void SetVerbosity(int v) { fVerbosity = v; }
     void SetUsingRootHistos(bool flag=false) { fUsingRootHistos=flag; }
+    void SetIsEnabled(bool flag) { fIsEnabled = flag; }
+    void SetIsAlignedWithGeom(bool flag) { fIsAlignedWithGeom = flag; }
     bool IsInField(const double Point[3]);
+    bool IsEnabled() const { return fIsEnabled; } 
     double FieldMinZ();
     double FieldMaxZ();
 
   private:
     void Field(const double Point[3], double Bfield[3]);    
     std::string fFieldFileName;
+    bool fIsEnabled;
     bool fIsAlignedWithGeom;
     bool  fFieldLoaded;
     bool fStorageIsStlVector; // We fill ffield, the stl vector<bFieldPoint>  if true.  else, the stl map of stl map... 

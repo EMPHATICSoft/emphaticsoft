@@ -3,7 +3,12 @@ BEGIN_PROLOG
 standard_singletrackKalman:
 {
   module_type: SingleTrackKalmanReco
-  LineSegmentLabel:  "maketracksegments"
+  TrackSegmentLabel:  "maketracksegments"
+  RK4MaxZStep: 0.5
+  RK4MaxNStep: 10000
+  UseTruth: true
+  Verbosity: 0
+  NIterations: 2
 }
 
 END_PROLOG

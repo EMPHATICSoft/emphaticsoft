@@ -10,7 +10,6 @@
 #include "RecoBase/Vertex.h"
 #include "RecoBase/Track.h"
 //#include "StandardRecord/SRTrackSegment.h"
-#include "RecoBase/RecoBaseDefs.h"
 //#include "RecoBase/ArichID.h"
 
 namespace caf

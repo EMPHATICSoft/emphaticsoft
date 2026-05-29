@@ -33,6 +33,7 @@ namespace caf
     SRArichID arich; // arich loglikelihooods values 
 //  SRArichID arML; // arich ML pred values   
     double chi2;
+    int ndf;
 
     int label;
     int ntrkseg;

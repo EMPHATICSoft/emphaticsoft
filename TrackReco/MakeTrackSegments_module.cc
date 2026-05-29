@@ -42,7 +42,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
-#include "RecoBase/RecoBaseDefs.h"
+#include "StandardRecord/SRBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
@@ -307,7 +307,7 @@ namespace emph {
               // Form lines and fill plots
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
               for (auto i : tstmp1) {
-                i.region = rb::Region::kRegion1;
+                i.region = caf::Region::kRegion1;
                 tsv.push_back(i);
                 chi2.push_back(i.chi2);
                 if (i.chi2 < 5) chi2lessthan5_1++;
@@ -316,7 +316,7 @@ namespace emph {
               std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
               mf::LogDebug("MakeTrackSegments") << "tstmp2 size = " << tstmp2.size();
               for (auto i : tstmp2) {
-                i.region = rb::Region::kRegion2;
+                i.region = caf::Region::kRegion2;
                 tsv.push_back(i);
                 chi2.push_back(i.chi2);
                 if (i.chi2 < 5) chi2lessthan5_2++;
@@ -325,7 +325,7 @@ namespace emph {
               std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
               mf::LogDebug("MakeTrackSegments") << "tstmp3 size = " << tstmp3.size();
               for (auto i : tstmp3) {
-                i.region = rb::Region::kRegion3;
+                i.region = caf::Region::kRegion3;
                 tsv.push_back(i);
                 chi2.push_back(i.chi2);
                 if (i.chi2 < 5) chi2lessthan5_3++;
