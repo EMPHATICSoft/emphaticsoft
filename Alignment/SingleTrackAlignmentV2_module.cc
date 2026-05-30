@@ -46,7 +46,8 @@
 ///        downstream stations.  
 ///
 /// Unlike the SingleTrackAlignment_module (written by Robert C and Jon P.), 
-/// we do run the milipede and collect the results in this module.   
+/// we do run the milipede (optionally) and collect the results in this module.
+/// No real need for external Unix script.    
 /// See the end job method.   
 ///
 ///  Programming note : as in other modules, we prefix the variables name with "f" 
