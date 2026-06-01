@@ -731,11 +731,12 @@ void ARICHDigitizer::produce(art::Event& evt)
 
      // (b) CROSS-TALK -------------------------------------------------------
      // A real hit can induce a hit on a neighbouring anode of the SAME mPMT
-     // (FillNeighborMap already restricts neighbours to identical HiLo). The paper
-     // value for these MAPMTs is ~7% total into the neighbours, so fXTalkProb is
-     // the total probability and we split it evenly over the neighbours. Treated as
-     // correlated (not Poisson). The induced hit is placed coincident with its
-     // parent (t = time - fTriggerDelay -> reconstructed time = parent's peak time).
+     // (FillNeighborMap already restricts neighbours to identical HiLo). The paper 
+	 // [https://arxiv.org/pdf/1506.04302] value for these MAPMTs is ~7% total into 
+	 // the neighbours, so fXTalkProb is the total probability and we split it evenly
+	 // over the neighbours. Treated as correlated (not Poisson). The induced hit is 
+	 // placed coincident with its  parent (t = time - fTriggerDelay -> reconstructed time = parent's peak time).
+	   
      for(const auto& rh : realHits){
        auto nb = channel_neighbor.find(rh.first);
        if(nb == channel_neighbor.end() || nb->second.empty()) continue;
