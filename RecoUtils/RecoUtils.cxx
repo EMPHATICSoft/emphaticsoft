@@ -345,7 +345,8 @@ namespace ru {
      //convert from rad to mrad
      theta = theta*1000.;
 
-     double pz = 64.649/theta; 
+     double pz = 68.5356/theta;
+     //double pz = 64.649/theta; 
      //double pz = 69.2004/theta - 2.8854/theta/theta;
      return pz;	
   }
