@@ -189,10 +189,8 @@ void ARICHDigitizer::beginJob()
   if(fFillTree){
    art::ServiceHandle<art::TFileService const> tfs;
    fTest = tfs->make<TTree>("events","events");
-   // NOTE: "waveleghts" is a typo for "wavelengths" but is kept as-is on purpose:
-   // downstream analysis code reads these branch names. Fix in both places if renamed.
-   fTest->Branch("waveleghts",&wls);
-   fTest->Branch("waveleghts_after_qe",&wls_qe);
+   fTest->Branch("wavelengths",&wls);
+   fTest->Branch("wavelengths_after_qe",&wls_qe);
  }
 }
 //.....................................................................
