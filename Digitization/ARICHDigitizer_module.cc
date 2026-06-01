@@ -485,7 +485,7 @@ void ARICHDigitizer::ApplyDarkNoise(const std::vector<sim::ARICHHit>& MCHits){
 //......................................................................
 
 // Build the FPGA header word for a given board. ARICH uses boards 4-15, grouped
-// in threes onto three TDC endpoints (0x2xx, 0x3xx, 0x4xx). The low nibble is the
+// in threes onto three TDC endpoints (0x2xx, 0x3xx, 0x4xx). The lower 4 bits is the
 // position within the group. The mapping is kept as an explicit table for clarity
 // and so it is easy to audit against the hardware/DAQ configuration.
 uint32_t ARICHDigitizer::GetFpgaHeaderWord(int fpga_board_id)
