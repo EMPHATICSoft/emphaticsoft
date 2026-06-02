@@ -41,29 +41,40 @@ namespace emph {
     if (trks.size() <= 1) return false;
 
     if (trks.size() == 2) {
- 
-      vtx.pos = (trks[1].posTrgt+trks[0].posTrgt)/2.;
-      //      vtx.pos.SetZ(-99999.);
-//      vtx.trkIdx.push_back(0);
+
       vtx.sectrkIdx.push_back(1);
 
-//      auto trkMom = trks[1].momTrgt;
-//      trkMom.SetZ(-1.*trkMom.Z());
-      auto a = trks[0].momTrgt.Cross(-1*trks[1].momTrgt);
-//      auto a = trks[0].momTrgt.Cross(trkMom);
-      double dot = a.Dot(a);
+      // Two-track DOCA midpoint vertex.
+      //
+      // Lines: L0(s) = P0 + s*d0,  L1(t) = P1 + t*d1
+      // Common-perpendicular normal: n = d0 x d1
+      // Closest-approach parameters:
+      //   s* = (r x d1) . n / |n|^2,  where r = P1 - P0
+      //   t* = (r x d0) . n / |n|^2
+      // Closest-approach points: C0 = P0 + s*d0,  C1 = P1 + t*d1
+      // Vertex = midpoint (C0 + C1) / 2
+      const auto& P0 = trks[0].posTrgt;
+      const auto& P1 = trks[1].posTrgt;
+      const auto& d0 = trks[0].momTrgt;
+      const auto& d1 = trks[1].momTrgt;
 
-      if (dot == 0) {
-	std::cout<<"Uh oh, tracks are _exactly_ parallel!"<<std::endl;
-	return false;
+      auto n     = d0.Cross(d1);
+      double denom = n.Dot(n);
+
+      // Relative parallelism check: sin^2(theta) < 1e-10
+      if (denom < 1e-10 * d0.Dot(d0) * d1.Dot(d1)) {
+        std::cout << "FindVertexDOCA: tracks are parallel, returning midpoint of origin positions." << std::endl;
+        vtx.pos = (P0 + P1) * 0.5;
+        return true;
       }
 
-      auto ab = trks[1].posTrgt - trks[0].posTrgt;
-      auto b = ab.Cross(trks[1].momTrgt);
+      auto r  = P1 - P0;
+      double s = r.Cross(d1).Dot(n) / denom;   // parameter along track 0
+      double t = r.Cross(d0).Dot(n) / denom;   // parameter along track 1
 
-      double t = b.Dot(a) / dot;
-      vtx.pos = trks[1].posTrgt + t*trks[1].momTrgt;
-//      std::cout << "vtx.pos = " << vtx.pos << std::endl;
+      auto C0 = P0 + s * d0;
+      auto C1 = P1 + t * d1;
+      vtx.pos  = (C0 + C1) * 0.5;
 
     }
     else {
@@ -92,21 +103,16 @@ namespace emph {
           vtx.sectrkIdx.push_back(itrk);
       }
 
-      std::cout << "A = " << A << std::endl;
       // Solve A * x = b
       int ok = 0;
       Vector3d x = A.Inverse(ok) * b;
       if (!ok)
       {
-        std::cerr << "Matrix inversion failed (lines may be parallel/degenerate)." << std::endl;
+        std::cerr << "FindVertexDOCA: matrix inversion failed (tracks may be parallel/degenerate)." << std::endl;
         vtx.pos.SetXYZ(99999., 99999., 99999.);
         return false;
       }
-      else
-      {
-        std::cout << "vtx = " << x << std::endl;
-        vtx.pos.SetXYZ(x(0), x(1), x(2));
-      }
+      vtx.pos.SetXYZ(x(0), x(1), x(2));
     }
 
     return true;
