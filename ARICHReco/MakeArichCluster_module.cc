@@ -89,7 +89,7 @@ namespace emph {
     std::map<int,double> GetRefenceTimes(std::vector<rawdata::TRB3RawDigit> hits);
     // One of several time-clustering helpers (see the free functions below).
     std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> DensityClustering(std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float threshold);
-    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> LamberJackClustering(std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float min_time,float max_time);
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> LumberJackClustering(std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float min_time,float max_time);
 
   private:
 
@@ -106,13 +106,13 @@ namespace emph {
     
     float fClustLo; // Signal/selection window low: single source for both the per-hit cluster id
     float fClustHi; // Signal/selection window high: single source for both the per-hit cluster id
-    int fThreshold;   // ns; used by the gap/density clustering helpers (NOT by the active LamberJack window)
+    int fThreshold;   // ns; used by the gap/density clustering helpers (NOT by the active LumberJack window)
 
     // ---- diagnostic tree branches (all per-hit ones are filled in lockstep) ----
     double nhits;                  // number of hits in the event (= hits.size())
     std::vector<double> Lead_times;  // leading-edge time [ns], relative to FPGA reference
     std::vector<double> Trail_times; // matched trailing-edge time [ns]; trail-lead = ToT (charge proxy)
-    std::vector<int> cluster_ids;    // 0 = in signal window, 1 = out (mirrors LamberJack)
+    std::vector<int> cluster_ids;    // 0 = in signal window, 1 = out (mirrors LumberJack)
     std::vector<double> hits_loc;    // x-y display bin of the hit (via ArichUtils->EchanToBin)
     int best_cluster_id;             // id of the largest cluster in the event
 };
@@ -191,7 +191,7 @@ std::map<int,double> emph::MakeArichCluster::GetRefenceTimes(std::vector<rawdata
 //......................................................................
 // ===================  TIME-CLUSTERING HELPERS  ============================
 // Four interchangeable strategies for grouping time-sorted hits. ONLY
-// LamberJackClustering is wired into produce() right now; the others are kept
+// LumberJackClustering is wired into produce() right now; the others are kept
 // for comparison/experimentation. All take a vector sorted by time and return
 // a vector of clusters (each a vector of (time, channel) tuples).
 //
@@ -199,7 +199,7 @@ std::map<int,double> emph::MakeArichCluster::GetRefenceTimes(std::vector<rawdata
 //   DensityClustering   : finds the densest time window and splits in/out of it.
 //                         Adaptive (good if the peak position drifts) but can
 //                         lock onto a noise cluster in low-signal events.
-//   LamberJackClustering: fixed ABSOLUTE window [min,max]. Robust because the
+//   LumberJackClustering: fixed ABSOLUTE window [min,max]. Robust because the
 //                         peak is trigger-referenced (stable position); the cost
 //                         is the window must track the run (fTriggerDelay). ACTIVE.
 //..........................................................................
@@ -253,7 +253,7 @@ std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeAric
 // in from produce() (kClustLo/kClustHi) so it stays a single source of truth.
 // NOTE: the window is run-period specific -- keep it consistent with the
 // digitizer's fTriggerDelay (peak ~-270 ns for run>=2000, ~-559 ns below).
-std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeArichCluster::LamberJackClustering(std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float min_time,float max_time) {
+std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> emph::MakeArichCluster::LumberJackClustering(std::vector<std::tuple<float, emph::cmap::EChannel>>& sortedVec, float min_time,float max_time) {
 
   std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters(2);
 
@@ -397,7 +397,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
         Trail_times.push_back((double)trail_t);
         std::pair<int,int> temp = std::make_pair(ech.Board(), ech.Channel());
         hits_loc.push_back(ArichUtils->EchanToBin(temp));
-        // cluster id mirrors the active LamberJack window so all per-hit branches align
+        // cluster id mirrors the active LumberJack window so all per-hit branches align
         cluster_ids.push_back( (lead_t >= fClustLo && lead_t <= fClustHi) ? 0 : 1 );
      }
 	
@@ -405,7 +405,7 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
    //std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = DensityClustering(hits, fThreshold);	
     // project to (time, channel) for the clustering helper (trail not needed there)
-    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = LamberJackClustering(hits_clean, fClustLo, fClustHi);
+    std::vector<std::vector<std::tuple<float, emph::cmap::EChannel>>> clusters = LumberJackClustering(hits_clean, fClustLo, fClustHi);
  
     // Step 6: turn each time cluster into an rb::ARICHCluster (channel + time) product.
     for(int u = 0; u < (int)clusters.size(); u++){
