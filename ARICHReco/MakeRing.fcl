@@ -4,8 +4,22 @@ standard_arich_ring:
 {
   module_type: 	  MakeRing
   LabelHits:      "arichcluster"
-  FillTree:       false
+  LabelTracks:    "makesingletracks"   # SSD track; leave "" to force Hough-only
+  FillTree:       true
+  SeedWithTrack:  false                 # false: keep Hough center + store track (Z survey)
 
+  #Distance Aerogel-mPMT for Cherenkov angle extraction
+  dz:	 	194  	  #mm 
+
+  # SSD-seeded radial fit
+  AlignX:         9.0     # mm, measured ARICH-vs-track offset (X)
+  AlignY:        -8.0     # mm, measured ARICH-vs-track offset (Y)
+  MPMTz:       2220.0     # mm, mPMT plane z for track extrapolation
+  RCenterCut:    22.0     # mm, exclude central background below this radius
+  RFitMin:       25.0     # mm, radial-fit acceptance window
+  RFitMax:       70.0     # mm
+  RExpected:     46.0     # mm, expected ring radius (fit seed)
+  RWindow:       12.0     # mm, half-width of Gaussian fit range
 }
 
 END_PROLOG
