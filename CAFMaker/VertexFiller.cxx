@@ -199,6 +199,7 @@ namespace caf
       caf::SRTrack tr1 = trks[0]; // beam track is always first track
       caf::SRBeamTrack btr;
       if (!ssdhits.empty()) btr = GetBeamTrack(trks[0], ssdhits);
+      else{
         for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
           auto rbts = trks[0].GetTrackSegment(i);
           caf::SRTrackSegment srts;
@@ -212,7 +213,8 @@ namespace caf
           srts.thetaX = rbts->thetaX;
           srts.thetaY = rbts->thetaY;
           btr.Add(srts);
-        }
+	}
+      }
       srv.SetBeamTrack(btr);
       // loop over secondary tracks in vertex
       for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
