@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to create reco vectors from raw digits and 
+/// \brief   Producer module to create reco vectors from raw digits and
 ///          store them in the art output file
 /// \author  $Author: mdallolio $
 ////////////////////////////////////////////////////////////////////////
@@ -13,7 +13,7 @@
 #include <vector>
 #include "stdlib.h"
 #include <map>
-#include <numeric> 
+#include <numeric>
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
@@ -23,7 +23,7 @@
 #include "TRandom3.h"
 
 // Framework includes
-#include "art/Framework/Core/EDAnalyzer.h" 
+#include "art/Framework/Core/EDAnalyzer.h"
 
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -50,42 +50,42 @@
 #include "ARICHRecoUtils/ArichUtils.h"
 
 
-namespace emph {  
+namespace emph {
 
   class ArichAnalizer: public art::EDAnalyzer {
   public:
     explicit ArichAnalizer(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
     ~ArichAnalizer();
-    
+
     // Optional, read/write access to event
     void analyze(const art::Event& evt);
     void CheckDigitization(std::vector<sim::ARICHHit> sim_hits_vector, std::vector<emph::rawdata::TRB3RawDigit> digitized_hits_vector);
    // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     void endJob();
-	
+
 
   private:
 
     arichreco::ARICH_UTILS* ArichUtils;
-    TTree* 	fARICHTree;    
- 
+    TTree* 	fARICHTree;
+
     int         fEvtNum;
     std::string fARICHLabel;
-    std::string fRawARICHLabel; 
-    std::string fSimLabel;    
+    std::string fRawARICHLabel;
+    std::string fSimLabel;
 
     bool fFillTree;
-    
+
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-    emph::cmap::FEBoardType boardType = cmap::TRB3;    
+    emph::cmap::FEBoardType boardType = cmap::TRB3;
     art::ServiceHandle<emph::geo::GeometryService> geom;
     TRandom3* rand_gen;
 
 
     std::vector<double> h_wl;
     std::vector<double> h_wl_survived;
-    int nhits_dig; 
+    int nhits_dig;
     int nhits_sim;
     TH2D* bin_display_npmt;
     TH2D* bin_display_npin;
@@ -93,10 +93,10 @@ namespace emph {
 };
 
   //.......................................................................
-  
+
   emph::ArichAnalizer::ArichAnalizer(fhicl::ParameterSet const& pset)
     : EDAnalyzer(pset)
- { 
+ {
 
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fRawARICHLabel = std::string(pset.get<std::string >("LabelRawHits"));
@@ -104,11 +104,11 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     //ARICH RECO UTILS STUFF
     fEvtNum = 0;
-    bin_display_npmt = new TH2D("bin_display_npmt","bin_display_npmt", 24,-12,12,24,-12,-12);    
+    bin_display_npmt = new TH2D("bin_display_npmt","bin_display_npmt", 24,-12,12,24,-12,-12);
     bin_display_npin = new TH2D("bin_display_npin","bin_display_npin", 24,-12,12,24,-12,-12);
-  }	
+  }
   //......................................................................
- 
+
   emph::ArichAnalizer::~ArichAnalizer()
   {
     //======================================================================
@@ -119,7 +119,7 @@ namespace emph {
   //......................................................................
 
   void emph::ArichAnalizer::beginJob()
-  {    
+  {
     if (fFillTree){
     art::ServiceHandle<art::TFileService const> tfs;
     fARICHTree = tfs->make<TTree>("ARICHRECO","event");
@@ -133,7 +133,7 @@ namespace emph {
 
     rand_gen =  new TRandom3(0);
 }
-    
+
 //......................................................................
 void emph::ArichAnalizer::endJob()
 {
@@ -149,14 +149,14 @@ void emph::ArichAnalizer::CheckDigitization(std::vector<sim::ARICHHit> sim_hits_
          double wavelength =  arichhit.GetWavelength(); //nm
 	 h_wl.push_back(wavelength);
 
-	 if(wavelength != 0.){ //wl == 0 is the central blimp 
-           if(!mpmt.ifDet(wavelength/1e6))continue; //check if PMT can detected that photon                   
+	 if(wavelength != 0.){ //wl == 0 is the central blimp
+           if(!mpmt.ifDet(wavelength/1e6))continue; //check if PMT can detected that photon
 	   else if( mpmt.ifDet(wavelength/1e6) && rand_gen->Uniform() < 0.05)continue;
          }
 
 	 h_wl_survived.push_back(wavelength);
     }
-	nhits_sim = h_wl_survived.size();    
+	nhits_sim = h_wl_survived.size();
 	nhits_dig = digitized_hits_vector.size();
 
    for(size_t j = 0; j < digitized_hits_vector.size(); j++){
@@ -166,29 +166,28 @@ void emph::ArichAnalizer::CheckDigitization(std::vector<sim::ARICHHit> sim_hits_
           //
         int fpga = trb3.GetBoardId();
         int ech = trb3.GetChannel();
-        emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);	
+        emph::cmap::EChannel echan(emph::cmap::TRB3,fpga,ech);
 	emph::cmap::DChannel dchan = cmap->DetChan(echan);
         int pmt = dchan.HiLo();
-        int dch = dchan.Channel(); 
-	
+        int dch = dchan.Channel();
+
    }
 
 }
 //......................................................................
 void emph::ArichAnalizer::analyze(const art::Event& evt)
- { 
+ {
 
        auto arich_dig = evt.getHandle<std::vector<emph::rawdata::TRB3RawDigit> >(fRawARICHLabel);
        std::vector<emph::rawdata::TRB3RawDigit> ArichDigs(*arich_dig);
        auto arich_sim = evt.getHandle<std::vector<sim::ARICHHit>>(fSimLabel);
        std::vector<sim::ARICHHit> arichHits(*arich_sim);
-       
+
        CheckDigitization(arichHits,ArichDigs);
 
-        art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;	
- 
-        evt.getByLabel(fARICHLabel,arich_clusters);
+        art::Handle<std::vector<rb::ARICHCluster>> arich_clusters;
 
+        evt.getByLabel(fARICHLabel,arich_clusters);
 
 	art::Handle<std::vector<sim::Track>> sim_tracks;
 	evt.getByLabel(fSimLabel,sim_tracks);
@@ -201,7 +200,7 @@ void emph::ArichAnalizer::analyze(const art::Event& evt)
 	//std::cout << "Target USZ "<< geom->Geo()->TargetUSZPos() << std::endl;
 	//std::cout << "Target DSZ "<< geom->Geo()->TargetDSZPos() << std::endl;
 
-	//from phace1c.gdml, aerogels are between 1915 - 1955 mm 
+	//from phace1c.gdml, aerogels are between 1915 - 1955 mm
 
         //std::cout << "FOUND " << (int)arich_clusters->size() << " clusters" << std::endl;
 	//std::cout << "FOUND " << (int)sim_tracks->size() << " sim tracks" << std::endl;
