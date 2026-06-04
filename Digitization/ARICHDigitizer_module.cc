@@ -189,10 +189,8 @@ void ARICHDigitizer::beginJob()
   if(fFillTree){
    art::ServiceHandle<art::TFileService const> tfs;
    fTest = tfs->make<TTree>("events","events");
-   // NOTE: "waveleghts" is a typo for "wavelengths" but is kept as-is on purpose:
-   // downstream analysis code reads these branch names. Fix in both places if renamed.
-   fTest->Branch("waveleghts",&wls);
-   fTest->Branch("waveleghts_after_qe",&wls_qe);
+   fTest->Branch("wavelengths",&wls);
+   fTest->Branch("wavelengths_after_qe",&wls_qe);
  }
 }
 //.....................................................................
@@ -487,7 +485,7 @@ void ARICHDigitizer::ApplyDarkNoise(const std::vector<sim::ARICHHit>& MCHits){
 //......................................................................
 
 // Build the FPGA header word for a given board. ARICH uses boards 4-15, grouped
-// in threes onto three TDC endpoints (0x2xx, 0x3xx, 0x4xx). The low nibble is the
+// in threes onto three TDC endpoints (0x2xx, 0x3xx, 0x4xx). The lower 4 bits is the
 // position within the group. The mapping is kept as an explicit table for clarity
 // and so it is easy to audit against the hardware/DAQ configuration.
 uint32_t ARICHDigitizer::GetFpgaHeaderWord(int fpga_board_id)
@@ -733,11 +731,12 @@ void ARICHDigitizer::produce(art::Event& evt)
 
      // (b) CROSS-TALK -------------------------------------------------------
      // A real hit can induce a hit on a neighbouring anode of the SAME mPMT
-     // (FillNeighborMap already restricts neighbours to identical HiLo). The paper
-     // value for these MAPMTs is ~7% total into the neighbours, so fXTalkProb is
-     // the total probability and we split it evenly over the neighbours. Treated as
-     // correlated (not Poisson). The induced hit is placed coincident with its
-     // parent (t = time - fTriggerDelay -> reconstructed time = parent's peak time).
+     // (FillNeighborMap already restricts neighbours to identical HiLo). The paper 
+	 // [https://arxiv.org/pdf/1506.04302] value for these MAPMTs is ~7% total into 
+	 // the neighbours, so fXTalkProb is the total probability and we split it evenly
+	 // over the neighbours. Treated as correlated (not Poisson). The induced hit is 
+	 // placed coincident with its  parent (t = time - fTriggerDelay -> reconstructed time = parent's peak time).
+	   
      for(const auto& rh : realHits){
        auto nb = channel_neighbor.find(rh.first);
        if(nb == channel_neighbor.end() || nb->second.empty()) continue;
