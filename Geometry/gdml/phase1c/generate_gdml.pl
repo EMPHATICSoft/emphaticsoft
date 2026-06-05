@@ -27,6 +27,7 @@ GetOptions( "help|h" => \$help,
 	    "target|t=s" => \$target,
 	    "magnet|m=i" => \$magnet,
 	    "align|a=i"  => \$align,
+	    "shift|f=i"  => \$shift,
 	    "nstation|n=i" => \$nstation);
 
 if ( defined $help )
@@ -86,6 +87,35 @@ else {
     }
 #	print "$_ $SSD_alignx{$_}\n" for (keys %SSD_alignx);
     close($alignFH);
+}
+
+# apply shifts
+if ( ! defined $shift  )
+  {
+    $shift = 0;
+  }
+
+if($shift < 0 ){
+  print ("invalid shift assignment; must be > 0\n");
+  exit(0);
+}
+else {
+    my $shiftFN = "../../ConstBase/Align/SSDAlign_1c_" . $shift . ".txt";
+    print ("Reading in ", $shiftFN,"\n");
+    open(my $shiftFH,'<', $shiftFN) or die("Could not open file $shiftFN");
+    <$shiftFH>;  # discard header line
+
+    while (my $line = <$shiftFH>) {
+        chomp $line;
+        next if $line =~ /^\s*$/; # skip white space row
+        my @vals = split /\s+/, $line;
+        my $idx = $vals[0]*100 + $vals[1]*10 + $vals[2];
+        $SSD_shiftx{$idx} = $vals[3];
+        $SSD_shifty{$idx} = $vals[4];
+        $SSD_shiftz{$idx} = $vals[5];
+        $SSD_shiftphi{$idx} = $vals[6];
+    }
+    close($shiftFH);
 }
 
 # constants for T0
@@ -158,6 +188,11 @@ if ( defined $nstation )
 %SSD_alignz;
 %SSD_alignphi;
 @SSD_angle = (0, 90, 0, 90, 315, 0, 90, 315, 0, 90, 0, 90, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180, 45, 225, 270, 90, 0, 180); # angle from measuring Y
+@SSD_phiflip = (-1, 1, -1, 1, -1, -1, 1, -1, -1, 1, -1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, 1, 1, 1, -1, -1, 1, 1);
+%SSD_shiftx;
+%SSD_shifty;
+%SSD_shiftz;
+%SSD_shiftphi;
 
 # constants for ARICH
 $arich_switch = 1;
@@ -361,17 +396,17 @@ EOF
 		  	    my $tzrot = $SSD_angle[$isensor] + $SSD_alignphi{$idx};
 		  	    if($j < 2) {
 print DEF <<EOF;
-	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm"/>
-	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm" />
-	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="$tzrot" unit="deg"/>
+	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="@{[ $txs+$SSD_shiftx{$idx} ]}" y="@{[ $tys+$SSD_shifty{$idx} ]}" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm"/>
+	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="@{[ $txs+$SSD_shiftx{$idx} ]}" y="@{[ $tys+$SSD_shifty{$idx} ]}" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm" />
+	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $tzrot+$SSD_shiftphi{$idx}*$SSD_phiflip[$isensor] ]}" unit="deg"/>
 EOF
 				$isensor++;
 				}
 		        else {
 print DEF <<EOF;
-	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}" unit="mm" />
-	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}" unit="mm" />
-	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="$tzrot" unit="deg"/>
+	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="@{[ $txs+$SSD_shiftx{$idx} ]}" y="@{[ $tys+$SSD_shifty{$idx} ]}" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}" unit="mm" />
+	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="@{[ $txs+$SSD_shiftx{$idx} ]}" y="@{[ $tys+$SSD_shifty{$idx} ]}" z="0.5*ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}" unit="mm" />
+	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="@{[ $tzrot+$SSD_shiftphi{$idx}*$SSD_phiflip[$isensor] ]}" unit="deg"/>
 EOF
 	  	    	$isensor++;
   				}

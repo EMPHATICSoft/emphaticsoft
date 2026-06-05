@@ -6,8 +6,9 @@ TARGET=1
 ALIGN=0
 OUTNAMESET=0
 NSTATION=8
+SHIFT=0
 
-while getopts "o:t:m:a:n:h" opt; do
+while getopts "o:t:m:a:f:n:h" opt; do
     case $opt in
 	h) 
 	    $(dirname $0)/generate_gdml.pl --help
@@ -22,6 +23,9 @@ while getopts "o:t:m:a:n:h" opt; do
 	    ;;
 	a)
 	    ALIGN=$OPTARG
+	    ;;
+	f)  
+	    SHIFT=$OPTARG
 	    ;;
 	m)
 	    MAGOPT=$OPTARG
