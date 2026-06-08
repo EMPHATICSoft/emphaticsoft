@@ -689,13 +689,12 @@ namespace rawdata {
 			size_t maxTries = 3;
 			for(auto fragId : fFragId) {
 				size_t tries = 0;
-				while(fTWErr0[fragId] > 20 || fTWErr1[fragId] > 20e-9) {
-					if(tries++ >= maxTries) return false;
+				while(fTWErr0[fragId] > 10 || fTWErr1[fragId] > 1e-9) {
+					if(tries++ >= maxTries){ std::cout << "failed!" << std::endl; break; }
 					findMatches(fragId, 100);
 					calcTimeWalkCorr(fragId);
 				}
 			}
-			std::cout << "YAAAAAY we passed!" << std::endl;
 
 			{// limit scope of punch card
 				std::cout << "Preparing punch card" << std::endl;
