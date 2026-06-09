@@ -105,9 +105,9 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     size_t fMaxClust;
-    int mask_station;
-    int mask_plane;
-    int mask_sensor;
+    int fMaskedStation;
+    int fMaskedPlane;
+    int fMaskedSensor;
 
     // reco info for lines
     std::vector<rb::SpacePoint> sp1;
@@ -123,9 +123,9 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
     fMaxClust          (pset.get< size_t >("MaxClust")),
-    mask_station       (pset.get< int >("mask_station")),
-    mask_plane         (pset.get< int >("mask_plane")),
-    mask_sensor        (pset.get< int >("mask_sensor"))
+    fMaskedStation       (pset.get< int >("mask_station")),
+    fMaskedPlane         (pset.get< int >("mask_plane")),
+    fMaskedSensor        (pset.get< int >("mask_sensor"))
     {
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
@@ -219,7 +219,7 @@ namespace emph {
           for (size_t idx = 0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
             
-	    if (clust.Station() == mask_station || clust.Plane() == mask_plane || clust.Sensor() == mask_sensor) {
+	    if (clust.Station() == fMaskedStation || clust.Plane() == fMaskedPlane || clust.Sensor() == fMaskedSensor) {
 		mf::LogDebug("MaketrackSegmentsForEfficiency") << "Skipping cluster due to mask" << "Station: " 
 		  << clust.Station() << "Plane: " << clust.Plane() << "Sensor: " << clust.Sensor();
 		continue;
@@ -321,10 +321,10 @@ namespace emph {
               mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp1 size: " << sp1.size();
               mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp2 size: " << sp2.size();
               mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
-
-              // Form lines and fill plots
+	      
+	      // Form lines and fill plots
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-              for (auto i : tstmp1) {
+	      for (auto i : tstmp1) {
                 i.region = rb::Region::kRegion1;
                 tsv.push_back(i);
                 chi2.push_back(i.chi2);
@@ -349,11 +349,23 @@ namespace emph {
                 if (i.chi2 < 5) chi2lessthan5_3++;
               }
 
-              for (auto ts : tsv) {
+	      for (auto ts : tsv) {
                 tracksegmentv->push_back(ts);
               }
-            }
-            sp1.clear();
+
+	      // Determine predicted (x,y) positions of masked sensor
+	      int masked_zpos = emgeo
+                ->GetSSDStation(fMaskedStation)
+                ->GetPlane(fMaskedPlane)
+                ->SSD(fMaskedSensor)
+                ->Pos().Z();
+
+	      std::vector<rb::TrackSegment> masked_region_segments = tstmp2;
+              if (masked_zpos < emgeo->GetTarget()->Pos()(2)) { masked_region_segments = tstmp1; }
+              else if (masked_zpos > emgeo->MagnetDSZPos()) { masked_region_segments = tstmp3; } 
+	    }
+            
+	    sp1.clear();
             sp2.clear();
             sp3.clear();
           } //clust < fMaxClust
