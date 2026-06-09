@@ -490,12 +490,6 @@ namespace rawdata {
 			fTvsT[idChild]->Write(hname);
 			//f1->Write(graph);
 		}
-
-		fTWCorr0[idChild] = f1->GetParameter(0);
-		fTWCorr1[idChild] = f1->GetParameter(1);
-
-		fTWErr0[idChild] = f1->GetParError(0);
-		fTWErr1[idChild] = f1->GetParError(1);
 #ifdef VERBOSE
 		if(idChild == idChild) {
 			printf("Board SSD: twcorr intercept = %16.16f\n", f1->GetParameter(0));
@@ -505,6 +499,17 @@ namespace rawdata {
 			printf("Board %d: twcorr slope = %16.16f\n", idChild, f1->GetParameter(1));
 		}
 #endif
+
+		if(fTWErr0[idChild] < 1.1*f1->GetParError(0) || fTWErr1[idChild] < 1.1*f1->GetParError(1)) {
+			// if fit is worse, don't update parameters
+			return;
+		}
+
+		fTWCorr0[idChild] = f1->GetParameter(0);
+		fTWCorr1[idChild] = f1->GetParameter(1);
+
+		fTWErr0[idChild] = f1->GetParError(0);
+		fTWErr1[idChild] = f1->GetParError(1);
 	}
 
 	void Unpacker::calcTimeWalkCorr() {
@@ -670,6 +675,8 @@ namespace rawdata {
 			for (auto fragId : fFragId) {
 				fTWCorr0[fragId] = 0;
 				fTWCorr1[fragId] = 1;
+				fTWErr0[fragId] = INT_MAX;
+				fTWErr1[fragId] = INT_MAX;
 			}
 
 			if(fixSSDTimestamps())
@@ -686,11 +693,11 @@ namespace rawdata {
 			calcTimeWalkCorr(fragIdGrandfather);
 
 			// Noah's metric (checking precision of linear fit params)
-			size_t maxTries = 3;
+			size_t maxTries = 10;
 			for(auto fragId : fFragId) {
 				size_t tries = 0;
 				while(fTWErr0[fragId] > 10 || fTWErr1[fragId] > 1e-9) {
-					if(tries++ >= maxTries){ std::cout << "failed!" << std::endl; break; }
+					if(tries++ >= maxTries){ std::cout << "Close Enough Metric: failed" << std::endl; break; }
 					findMatches(fragId, 100);
 					calcTimeWalkCorr(fragId);
 				}
