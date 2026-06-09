@@ -1,0 +1,380 @@
+////////////////////////////////////////////////////////////////////////
+/// \brief   Producer module to construct single-particle tracks
+///       
+/// \author  $Author: robert chirco $
+////////////////////////////////////////////////////////////////////////
+// C/C++ includes
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <thread>
+#include <vector>
+#include <numeric>
+
+// ROOT includes
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TTree.h"
+#include "TGraph.h"
+#include "TMultiGraph.h"
+#include "TGraph2D.h"
+#include "TMatrixD.h"
+#include "TMatrixDSymEigen.h"
+#include "TVectorD.h"
+
+// Framework includes
+#include "art/Framework/Core/EDProducer.h"
+#include "art/Framework/Core/ModuleMacros.h"
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Principal/Run.h"
+#include "art/Framework/Principal/SubRun.h"
+#include "art_root_io/TFileService.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
+
+#include "canvas/Utilities/InputTag.h"
+#include "fhiclcpp/ParameterSet.h"
+
+// EMPHATICSoft includes
+#include "Align/service/AlignService.h"
+#include "ChannelMap/service/ChannelMapService.h"
+#include "Geometry/service/GeometryService.h"
+#include "RecoBase/SSDCluster.h"
+#include "DetGeoMap/service/DetGeoMapService.h"
+#include "RecoBase/LineSegment.h"
+#include "RecoBase/RecoBaseDefs.h"
+#include "RecoBase/SpacePoint.h"
+#include "RecoBase/TrackSegment.h"
+#include "RecoBase/Track.h"
+#include "RecoUtils/RecoUtils.h"
+#include "Simulation/Particle.h"
+#include "TrackReco/SingleTrackAlgo.h"
+#include "StandardRecord/SRTrackSegment.h"
+
+using namespace emph;
+
+/// Package to illustrate how to write modules
+namespace emph {
+  ///
+  class MakeTrackSegmentsForEfficiency : public art::EDProducer {
+  public:
+    explicit MakeTrackSegmentsForEfficiency(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+    ~MakeTrackSegmentsForEfficiency() {};
+
+    // Optional, read/write access to event
+    void produce(art::Event& evt);
+
+    // Optional if you want to be able to configure from event display, for example
+    void reconfigure(const fhicl::ParameterSet& pset);
+
+    // Optional use if you have histograms, ntuples, etc you want around for every event
+    void beginRun(art::Run& run);
+    void beginJob();
+    void endJob();
+
+  private:
+    TTree* spacepoint;
+    int run, subrun, event;
+    int fEvtNum;
+    std::vector<double> chi2;
+    int chi2lessthan5_1 = 0;
+    int chi2lessthan5_2 = 0;
+    int chi2lessthan5_3 = 0;
+
+    std::vector<const rb::SSDCluster*> clusters;
+    std::vector<rb::LineSegment> linesegments;
+    std::vector<rb::SpacePoint> spv;
+    std::vector<rb::TrackSegment> tsv;
+    std::vector<std::vector<std::vector<const rb::SSDCluster*>>> cl_group;
+    std::vector<std::vector<std::vector<const rb::LineSegment*>>> ls_group;
+    double sectrkp[3];
+    double sectrkvtx[3];
+
+    std::map<int, std::map<std::pair<int, int>, int>> clustMapAtLeastOne;
+
+    bool fMakePlots;
+    int evts = 0;
+    int hasclusters = 0;
+    int usableclust = 0;
+    int sps = 0;
+    size_t nPlanes;
+    size_t nStations;
+
+    // fcl parameters
+    bool fCheckClusters; // Check clusters for event 
+    std::string fClusterLabel;
+    std::string fG4Label;
+    size_t fMaxClust;
+    int mask_station;
+    int mask_plane;
+    int mask_sensor;
+
+    // reco info for lines
+    std::vector<rb::SpacePoint> sp1;
+    std::vector<rb::SpacePoint> sp2;
+    std::vector<rb::SpacePoint> sp3;
+    double pbeam[3];
+  };
+
+  //.......................................................................
+  emph::MakeTrackSegmentsForEfficiency::MakeTrackSegmentsForEfficiency(fhicl::ParameterSet const& pset)
+    : EDProducer{pset},
+    fCheckClusters     (pset.get< bool >("CheckClusters")), 
+    fClusterLabel      (pset.get< std::string >("ClusterLabel")),
+    fG4Label           (pset.get< std::string >("G4Label")),
+    fMaxClust          (pset.get< size_t >("MaxClust")),
+    mask_station       (pset.get< int >("mask_station")),
+    mask_plane         (pset.get< int >("mask_plane")),
+    mask_sensor        (pset.get< int >("mask_sensor"))
+    {
+      this->produces< std::vector<rb::LineSegment> >();
+      this->produces< std::vector<rb::SpacePoint> >();
+      this->produces< std::vector<rb::TrackSegment> >();
+    }
+  
+  //......................................................................
+  
+//  MakeTrackSegments::~MakeTrackSegments()
+//  {
+    //======================================================================
+    // Clean up any memory allocated by your module
+    //======================================================================
+//  }
+
+  //......................................................................
+  void MakeTrackSegmentsForEfficiency::beginRun(art::Run& run) {
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto emgeo = geo->Geo();
+    nPlanes = emgeo->NSSDPlanes();
+    nStations = emgeo->NSSDStations();
+
+  }
+
+  //......................................................................
+  void emph::MakeTrackSegmentsForEfficiency::beginJob() {
+    std::cerr << "Starting MakeTrackSegmentsForEfficiency" << std::endl;
+
+    art::ServiceHandle<art::TFileService> tfs;
+    spacepoint = tfs->make<TTree>("spacepoint","");
+    spacepoint->Branch("run",&run,"run/I");
+    spacepoint->Branch("subrun",&subrun,"subrun/I");
+    spacepoint->Branch("event",&event,"event/I");  
+    spacepoint->Branch("chi2",&chi2,"chi2/I");
+  }
+ 
+  //......................................................................
+  
+  void emph::MakeTrackSegmentsForEfficiency::endJob()
+  {
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events: "<<evts<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with clusters: "<<hasclusters<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with less than "<<fMaxClust<<" clusters: "<<usableclust<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with space points: "<<sps<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
+  }
+
+  //......................................................................
+  void emph::MakeTrackSegmentsForEfficiency::produce(art::Event& evt) {
+    tsv.clear();
+    spv.clear();
+
+    std::unique_ptr<std::vector<rb::LineSegment>> linesegv(new std::vector<rb::LineSegment>);
+    std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
+    std::unique_ptr<std::vector<rb::TrackSegment>> tracksegmentv(new std::vector<rb::TrackSegment>);
+
+    run = evt.run();
+    subrun = evt.subRun();
+    event = evt.event();
+    fEvtNum = evt.id().event();
+
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto emgeo = geo->Geo();
+    art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
+
+    art::ServiceHandle<emph::AlignService> align;
+    auto emalign = align->GetAlign();
+
+    fMakePlots = true;
+    if (fMakePlots) {
+      if (fCheckClusters) {
+        auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
+        if (!hasclusters) {
+          mf::LogError("HasSSDClusters") << "No clusters found in event but CheckClusters set to true!";
+          abort();
+        }
+      }
+
+      art::Handle<std::vector<rb::SSDCluster>> clustH;
+
+      try {
+        evt.getByLabel(fClusterLabel, clustH);
+        evts++;
+
+        if (!clustH->empty()) {
+          hasclusters++;
+          rb::LineSegment lineseg_tmp = rb::LineSegment();
+
+          for (size_t idx = 0; idx < clustH->size(); ++idx) {
+            const rb::SSDCluster& clust = (*clustH)[idx];
+            
+	    if (clust.Station() == mask_station || clust.Plane() == mask_plane || clust.Sensor() == mask_sensor) {
+		mf::LogDebug("MaketrackSegmentsForEfficiency") << "Skipping cluster due to mask" << "Station: " 
+		  << clust.Station() << "Plane: " << clust.Plane() << "Sensor: " << clust.Sensor();
+		continue;
+	    }
+	    ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
+            clusters.push_back(&clust);
+            lineseg_tmp.SetSSDInfo(clust.Station(),clust.Plane(),clust.Sensor(),clust.MaxStrip());
+            linesegments.push_back(lineseg_tmp);
+            
+	    if (clust.AvgStrip() > 640) {
+              throw art::Exception(art::errors::InvalidNumber)
+              << "Skipping nonsense: cluster strip number > 640 "
+              << ".\n";
+	      abort(); 
+	    }
+
+            if (dgm->Map()->SSDClusterToLineSegment(clust,linesegments.back())){
+              linesegv->push_back(linesegments.back()); 
+	    }
+            else {
+              std::cout<<"Couldn't make line segment from Cluster?!?"<<std::endl; 
+	    }
+	  }
+
+          if (clusters.size() < fMaxClust){
+            usableclust++;
+
+            cl_group.resize(nStations);
+            ls_group.resize(nStations);
+
+            for (size_t i = 0; i < nStations; i++) {
+              cl_group[i].resize(nPlanes);
+              ls_group[i].resize(nPlanes);
+            }
+
+            for (size_t i = 0; i < clustMapAtLeastOne.size(); i++) {
+              for (auto j : clustMapAtLeastOne[i]) {
+		mf::LogDebug("MakeTrackSegmentsForEfficiency") << "Station " << i << ": " << j.second;
+	      }	
+            }
+
+            mf::LogDebug("MakeTrackSegmentsForEfficiency") << "........";
+
+            for (size_t i = 0; i < clusters.size(); i++) {
+              int plane = clusters[i]->Plane();
+              int station = clusters[i]->Station();
+
+              if (station < 0 || static_cast<size_t>(station) >= cl_group.size()) {
+                mf::LogWarning("MakeTrackSegmentsForEfficiency")
+                  << "Skipping cluster with out-of-range station index " << station
+                  << " (cl_group size = " << cl_group.size() << ") at event " << fEvtNum;
+                continue;
+              }
+              if (plane < 0 || static_cast<size_t>(plane) >= cl_group[station].size()) {
+                mf::LogWarning("MakeTrackSegmentsForEfficiency")
+                  << "Skipping cluster with out-of-range plane index station=" << station
+                  << " plane=" << plane << " (nPlanes alloc per station = " << cl_group[station].size()
+                  << ") at event " << fEvtNum;
+                continue;
+              }
+
+              // Group clusters according to plane
+              cl_group[station][plane].push_back(clusters[i]);
+            }
+
+            // Instance of single track algorithm
+            emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
+
+            // Group linesegments
+            for (size_t i = 0; i < clusters.size(); i++) {
+              int plane = clusters[i]->Plane();
+              int station = clusters[i]->Station();
+              if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
+              if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
+              ls_group[station][plane].push_back(&linesegments[i]);
+            }
+
+            // Make reconstructed hits
+            spv = algo.MakeHits(ls_group, cl_group);
+
+            for (auto sp : spv)
+              spacepointv->push_back(sp);
+
+            // Reconstructed hits
+            if (spv.size() > 0) {
+              sps++;
+              for (size_t i = 0; i < spv.size(); i++) {
+                if (emgeo->GetTarget()) {
+                  if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) sp1.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
+                } else {
+                  if (spv[i].Pos()[2] < 380.5) sp1.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) sp2.push_back(spv[i]);
+                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) sp3.push_back(spv[i]);
+                }
+              }
+
+              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp1 size: " << sp1.size();
+              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp2 size: " << sp2.size();
+              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
+
+              // Form lines and fill plots
+              std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
+              for (auto i : tstmp1) {
+                i.region = rb::Region::kRegion1;
+                tsv.push_back(i);
+                chi2.push_back(i.chi2);
+                if (i.chi2 < 5) chi2lessthan5_1++;
+              }
+
+              std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
+              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "tstmp2 size = " << tstmp2.size();
+              for (auto i : tstmp2) {
+                i.region = rb::Region::kRegion2;
+                tsv.push_back(i);
+                chi2.push_back(i.chi2);
+                if (i.chi2 < 5) chi2lessthan5_2++;
+              }
+
+              std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
+              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "tstmp3 size = " << tstmp3.size();
+              for (auto i : tstmp3) {
+                i.region = rb::Region::kRegion3;
+                tsv.push_back(i);
+                chi2.push_back(i.chi2);
+                if (i.chi2 < 5) chi2lessthan5_3++;
+              }
+
+              for (auto ts : tsv) {
+                tracksegmentv->push_back(ts);
+              }
+            }
+            sp1.clear();
+            sp2.clear();
+            sp3.clear();
+          } //clust < fMaxClust
+          ls_group.clear();
+          cl_group.clear();
+          linesegments.clear();
+          clusters.clear();
+          clustMapAtLeastOne.clear();
+        }
+      } catch (...) {
+      }
+      spacepoint->Fill();
+      chi2.clear();
+    }
+
+    evt.put(std::move(linesegv));
+    evt.put(std::move(spacepointv));
+    evt.put(std::move(tracksegmentv));
+  }
+
+} // end namespace emph
+
+DEFINE_ART_MODULE(emph::MakeTrackSegmentsForEfficiency)
+
