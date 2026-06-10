@@ -14,6 +14,7 @@
 // ROOT includes
 #include "TH1F.h"
 #include "TH2F.h"
+#include "TH2D.h"
 #include "TTree.h"
 #include "TGraph.h"
 #include "TMultiGraph.h"
@@ -99,6 +100,8 @@ namespace emph {
     int sps = 0;
     size_t nPlanes;
     size_t nStations;
+
+
 
     // fcl parameters
     bool fCheckClusters; // Check clusters for event 
@@ -363,7 +366,14 @@ namespace emph {
 	      std::vector<rb::TrackSegment> masked_region_segments = tstmp2;
               if (masked_zpos < emgeo->GetTarget()->Pos()(2)) { masked_region_segments = tstmp1; }
               else if (masked_zpos > emgeo->MagnetDSZPos()) { masked_region_segments = tstmp3; } 
-	    }
+	    
+	      for (auto ts : masked_region_segments) {
+		rb::Track track;
+		track.AddPos(ts.pointA);
+		track.AddPos(ts.pointB);
+		ROOT::Math::XYZVector pos = track.PosAt(masked_zpos);	
+	      }
+	  }
             
 	    sp1.clear();
             sp2.clear();
