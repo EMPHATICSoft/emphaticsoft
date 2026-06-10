@@ -5,7 +5,9 @@ standard_arich_cluster:
   module_type: 	  MakeArichCluster 
   LabelHits:      "raw:ARICH"
   FillTree:       true
-
+  ClusterLowT: 	  -290  
+  ClusterHighT:   -260
+  DensityThreshold: 10
 }
 
 END_PROLOG
