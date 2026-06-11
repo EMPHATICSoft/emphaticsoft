@@ -61,7 +61,6 @@ namespace emph {
   public:
     explicit MakeTrackSegmentsForEfficiency(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
     ~MakeTrackSegmentsForEfficiency() {};
-
     // Optional, read/write access to event
     void produce(art::Event& evt);
 
@@ -82,6 +81,10 @@ namespace emph {
     int chi2lessthan5_2 = 0;
     int chi2lessthan5_3 = 0;
 
+    TTree* estpos;
+    double x_pos = 0.0;
+    double y_pos = 0.0;
+
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
     std::vector<rb::SpacePoint> spv;
@@ -100,7 +103,6 @@ namespace emph {
     int sps = 0;
     size_t nPlanes;
     size_t nStations;
-
 
 
     // fcl parameters
@@ -126,10 +128,11 @@ namespace emph {
     fClusterLabel      (pset.get< std::string >("ClusterLabel")),
     fG4Label           (pset.get< std::string >("G4Label")),
     fMaxClust          (pset.get< size_t >("MaxClust")),
-    fMaskedStation       (pset.get< int >("mask_station")),
-    fMaskedPlane         (pset.get< int >("mask_plane")),
-    fMaskedSensor        (pset.get< int >("mask_sensor"))
+    fMaskedStation     (pset.get< int >("MaskedStation")),
+    fMaskedPlane       (pset.get< int >("MaskedPlane")),
+    fMaskedSensor      (pset.get< int >("MaskedSensor"))
     {
+      std::cout << "FCL pset dump: " << pset.to_indented_string() << std::endl;
       this->produces< std::vector<rb::LineSegment> >();
       this->produces< std::vector<rb::SpacePoint> >();
       this->produces< std::vector<rb::TrackSegment> >();
@@ -163,6 +166,10 @@ namespace emph {
     spacepoint->Branch("subrun",&subrun,"subrun/I");
     spacepoint->Branch("event",&event,"event/I");  
     spacepoint->Branch("chi2",&chi2,"chi2/I");
+    
+    estpos = tfs->make<TTree>("estpos", "");
+    estpos->Branch("x_pos", &x_pos, "x_pos/D");
+    estpos->Branch("y_pos", &y_pos, "y_pos/D");
   }
  
   //......................................................................
@@ -221,10 +228,12 @@ namespace emph {
 
           for (size_t idx = 0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
-            
-	    if (clust.Station() == fMaskedStation || clust.Plane() == fMaskedPlane || clust.Sensor() == fMaskedSensor) {
-		mf::LogDebug("MaketrackSegmentsForEfficiency") << "Skipping cluster due to mask" << "Station: " 
-		  << clust.Station() << "Plane: " << clust.Plane() << "Sensor: " << clust.Sensor();
+     
+	    //std::cout << "Station: " << clust.Station() << " Plane: " << clust.Plane() << " Sensor: " << clust.Sensor() << std::endl;
+       
+	    if (clust.Station() == fMaskedStation && clust.Plane() == fMaskedPlane && clust.Sensor() == fMaskedSensor) {
+		mf::LogDebug("MaketrackSegmentsForEfficiency") << "Skipping cluster due to mask Station: " 
+		  << clust.Station() << " Plane: " << clust.Plane() << " Sensor: " << clust.Sensor() << std::endl;
 		continue;
 	    }
 	    ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
@@ -295,6 +304,7 @@ namespace emph {
             for (size_t i = 0; i < clusters.size(); i++) {
               int plane = clusters[i]->Plane();
               int station = clusters[i]->Station();
+
               if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
               if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
               ls_group[station][plane].push_back(&linesegments[i]);
@@ -364,14 +374,21 @@ namespace emph {
                 ->Pos().Z();
 
 	      std::vector<rb::TrackSegment> masked_region_segments = tstmp2;
-              if (masked_zpos < emgeo->GetTarget()->Pos()(2)) { masked_region_segments = tstmp1; }
-              else if (masked_zpos > emgeo->MagnetDSZPos()) { masked_region_segments = tstmp3; } 
-	    
+              if (masked_zpos < emgeo->GetTarget()->Pos()(2)) {
+		masked_region_segments = tstmp1;
+	      }
+              else if (masked_zpos > emgeo->MagnetDSZPos()) { 
+		masked_region_segments = tstmp3; 
+	      }
+	      
 	      for (auto ts : masked_region_segments) {
 		rb::Track track;
 		track.AddPos(ts.pointA);
 		track.AddPos(ts.pointB);
-		ROOT::Math::XYZVector pos = track.PosAt(masked_zpos);	
+		ROOT::Math::XYZVector pos = track.PosAt(masked_zpos);
+		x_pos = pos.X();
+		y_pos = pos.Y();
+		estpos->Fill();	
 	      }
 	  }
             
