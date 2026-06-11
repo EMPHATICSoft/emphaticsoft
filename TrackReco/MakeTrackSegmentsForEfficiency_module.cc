@@ -85,6 +85,8 @@ namespace emph {
     double x_pos = 0.0;
     double y_pos = 0.0;
 
+    TH2D* estXYHist;
+
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
     std::vector<rb::SpacePoint> spv;
@@ -153,7 +155,6 @@ namespace emph {
     auto emgeo = geo->Geo();
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
-
   }
 
   //......................................................................
@@ -170,6 +171,10 @@ namespace emph {
     estpos = tfs->make<TTree>("estpos", "");
     estpos->Branch("x_pos", &x_pos, "x_pos/D");
     estpos->Branch("y_pos", &y_pos, "y_pos/D");
+    
+    estXYHist = tfs->make<TH2D>("xyHist", "Estimated XY Position Hist", 75, -100.0, 100.0, 75, -100.0, 100.0); 
+    estXYHist->GetXaxis()->SetTitle("Estimated X Position");
+    estXYHist->GetYaxis()->SetTitle("Estimated Y Position");
   }
  
   //......................................................................
@@ -228,9 +233,9 @@ namespace emph {
 
           for (size_t idx = 0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
-     
+       	   
 	    //std::cout << "Station: " << clust.Station() << " Plane: " << clust.Plane() << " Sensor: " << clust.Sensor() << std::endl;
-       
+
 	    if (clust.Station() == fMaskedStation && clust.Plane() == fMaskedPlane && clust.Sensor() == fMaskedSensor) {
 		mf::LogDebug("MaketrackSegmentsForEfficiency") << "Skipping cluster due to mask Station: " 
 		  << clust.Station() << " Plane: " << clust.Plane() << " Sensor: " << clust.Sensor() << std::endl;
@@ -382,12 +387,16 @@ namespace emph {
 	      }
 	      
 	      for (auto ts : masked_region_segments) {
-		rb::Track track;
-		track.AddPos(ts.pointA);
-		track.AddPos(ts.pointB);
-		ROOT::Math::XYZVector pos = track.PosAt(masked_zpos);
-		x_pos = pos.X();
-		y_pos = pos.Y();
+		//std::cout << "(" << ts.pointA.X() << "," << ts.pointA.Y() << "," << ts.pointA.Z() << ")" << std::endl;
+		
+		double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
+		double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
+		double deltaz = masked_zpos - ts.pointA.Z();
+ 		
+		x_pos = (gradxz * deltaz) + ts.pointA.X();
+		y_pos = (gradyz * deltaz) + ts.pointA.Y();
+		
+		estXYHist->Fill(x_pos, y_pos);
 		estpos->Fill();	
 	      }
 	  }
