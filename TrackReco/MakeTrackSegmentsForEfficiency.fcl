@@ -6,10 +6,10 @@ standard_maketracksegmentsforefficiency:
   CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
   ClusterLabel:      "clust"
   G4Label:           "geantgen"
-  max_clust:          45
-  mask_station:	     1
-  mask_plane:        1
-  mask_sensor:       1
+  MaxClust:          45
+  MaskedStation:     5
+  MaskedPlane:       2
+  MaskedSensor:      0
 }
 
 END_PROLOG

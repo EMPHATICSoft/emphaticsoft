@@ -11,7 +11,7 @@
 #include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
 #include "GasCkovHitReco.fcl"
-#include "maketracksegmentsforefficiency.fcl"
+#include "MakeTrackSegmentsForEfficiency.fcl"
 #include "MakeSingleTracks.fcl"
 #include "SingleTrackAlignment.fcl"
 #include "MakePrimaryVertex.fcl"
