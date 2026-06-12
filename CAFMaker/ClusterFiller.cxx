@@ -21,8 +21,8 @@ namespace caf
 		<< "' found under label '" << fLabel << "'. " << std::endl; //fLabel -> fParams.SSDClusterLabel()?
     }
 
-    std::vector<rb::SSDCluster>  ssdclusters;
-    if(!clusterv.failedToGet()) ssdclusters = *clusterv;
+    static const std::vector<rb::SSDCluster> emptyClusters;
+    const std::vector<rb::SSDCluster>& ssdclusters = clusterv.failedToGet() ? emptyClusters : *clusterv;
 
     for (unsigned int clusterId = 0; clusterId < ssdclusters.size(); ++ clusterId) {
       // clusters
