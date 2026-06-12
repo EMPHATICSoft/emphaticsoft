@@ -14,7 +14,7 @@ source : {
 services : {
 
   # From toyExperiment
-  Geometry   : @local::standard_geometry
+  GeometryService   : @local::standard_geometry
 
   # From art-workbook
   EvtDisplayService : {}

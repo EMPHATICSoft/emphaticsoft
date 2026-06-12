@@ -30,7 +30,7 @@ namespace caf
       std::vector<ROOT::Math::XYZVector>   posDSTarget; // position vector downstream of target
       std::vector<ROOT::Math::XYZVector>   momDSTarget; // momentum vector downstream of target
 
-//	  SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
+	  SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
 	 
 	  SRTruth(); 			// Default constructor
 	  ~SRTruth() {};

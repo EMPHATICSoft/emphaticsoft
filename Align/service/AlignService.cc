@@ -43,9 +43,18 @@ namespace emph
   void AlignService::preBeginRun(const art::Run& )
   {
     art::ServiceHandle<runhist::RunHistoryService> rhs;
-
-    fAlign->LoadSSDConsts(rhs->RunHist()->SSDAlignFile());
     
+    std::string alignFile = rhs->RunHist()->SSDAlignFile();
+    if (fAlign->IsDisabled()) {
+      std::cout << "AlignService: alignment is disabled, not applying constants from "
+                << alignFile << std::endl;
+    }
+    else {
+    std::cout << "AlignService: using " << alignFile
+              << " for SSD alignment." << std::endl;
+    }
+    fAlign->LoadSSDConsts(alignFile);
   }
-    
+
 }
+    

@@ -197,13 +197,17 @@ void ARICHReco::produce(art::Event& evt)
     evt.getByLabel(fARICHLabel,arich_clusters);
 
     evt.getByLabel(fTrackLabel,TracksH);  
-
+ 
+    //push a dummy if no clusters	
+    if((int)arich_clusters->size() == 0){
+    rb::ArichID arich_id;
+    ARICH->push_back(arich_id);  
+    }
+ 
     if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
     
-
       fEvtNum = evt.event();
 
-     //std::cout << "Found " << (int)arich_clusters->size() << " arich clusters "<< std::endl; 
      //for(int i =0; i <(int)arich_clusters->size(); i++)std::cout << "Cluster " << i << " hits " << arich_clusters->at(i).Digits().size() << std::endl;
 
 	//std::cout << "Beam P " << TracksH->at(0).P()[2] <<std::endl;

@@ -14,7 +14,7 @@ source : {
 
 services : {
   TFileService  : { fileName : "eventDisplay01.root" }
-  Geometry   : @local::standard_geometry
+  GeometryService   : @local::standard_geometry
 
 }
 

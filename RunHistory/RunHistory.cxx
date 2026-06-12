@@ -193,7 +193,7 @@ namespace runhist{
 	for (size_t ir=0; ir<runs.size() && runs[ir]<=_runNumber; ++ir) {
 	  _ssdAlignFile=file_path+"Align/"+alignFile[ir];
 	}
-	std::cout << "Using " << _ssdAlignFile << " for SSD alignment." << std::endl;
+// 	std::cout << "Using " << _ssdAlignFile << " for SSD alignment." << std::endl;
       }	
       _calibVer=2;
       //      std::cout << "%%%%% SSD alignment file = " << _ssdAlignFile << std::endl;

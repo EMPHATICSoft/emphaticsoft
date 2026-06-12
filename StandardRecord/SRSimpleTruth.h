@@ -23,6 +23,12 @@ namespace caf
                 int                     pdgCode;       ///< PDG code
                 std::string             process;       ///< Detector-simulation physics process that created the particle
 
+                double 			de; // amount of energy deposited
+                int    			station;
+                int    			plane;
+                int    			sensor; 
+                int    			strip;
+
                 SRSimpleTruth();
 //		SRSimpleTruth(SRParticle& b);
                 ~SRSimpleTruth(){};

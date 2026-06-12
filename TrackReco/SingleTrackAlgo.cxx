@@ -214,7 +214,7 @@ namespace emph {
         if (nPlanesGeo == 2){ //station 0,1,4,7
           for (size_t k=0; k<ls_group[i][j].size(); k++){
             for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-	            double x[3];
+	      double x[3];
               doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x);
 
 	      //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
@@ -222,19 +222,21 @@ namespace emph {
               sp.SetX(x);
               sp.SetStation(i);
               spv.push_back(sp);
-	            spv.back().Add(*ls_group[i][j][k]);
-	            spv.back().Add(*ls_group[i][j+1][l]);
-	            spv.back().Add(*cl_group[i][j][k]);
-	            spv.back().Add(*cl_group[i][j+1][l]);
+	      spv.back().Add(*ls_group[i][j][k]);
+	      spv.back().Add(*ls_group[i][j+1][l]);
+              spv.back().Add(*cl_group[i][j][k]);
+	      spv.back().Add(*cl_group[i][j+1][l]);
             }
           }
         }
         else if (nPlanesGeo == 3){ //station 2,3,5,6
           for (size_t k=0; k<ls_group[i][j].size(); k++){
-            for (size_t l=0; l<ls_group[i][j+1].size(); l++){
-	            if (nUnique < nPlanesGeo){
+            size_t index = 1;
+            if (ls_group[i][j+1].size() == 0) index = 2;
+	    for (size_t l=0; l<ls_group[i][j+index].size(); l++){
+	      if (nUnique < nPlanesGeo){
                 double x[3];
-                doTwoPlanes(ls_group[i][j][k],ls_group[i][j+1][l],x); 
+                doTwoPlanes(ls_group[i][j][k],ls_group[i][j+index][l],x); 
 
                 //std::cout<<"cl_group[i][j][k] = "<<cl_group[i][j][k]->WgtRmsStrip()<<std::endl;
                 //std::cout<<"cl_group[i][j+1][l] = "<<cl_group[i][j+1][l]->WgtRmsStrip()<<std::endl;		
@@ -242,9 +244,9 @@ namespace emph {
 		            sp.SetStation(i);
                 spv.push_back(sp);
                 spv.back().Add(*ls_group[i][j][k]);
-                spv.back().Add(*ls_group[i][j+1][l]);
+                spv.back().Add(*ls_group[i][j+index][l]);
                 spv.back().Add(*cl_group[i][j][k]);
-                spv.back().Add(*cl_group[i][j+1][l]);
+                spv.back().Add(*cl_group[i][j+index][l]);
               }
               else{
                 for (size_t m=0; m<ls_group[i][j+2].size(); m++){
@@ -550,19 +552,12 @@ namespace emph {
       ts.pointA.SetCoordinates(lfirst);
       ts.pointB.SetCoordinates(llast);
 
-      TVector3 n(0.,0.,1.);
+      double dx = ts.pointB.X() - ts.pointA.X();
+      double dy = ts.pointB.Y() - ts.pointA.Y();
+      double dz = ts.pointB.Z() - ts.pointA.Z();
 
-      TVector3 tsvecxz((ts.pointB.X() - ts.pointA.X()), 0., (ts.pointB.Z() - ts.pointA.Z()));
-      TVector3 tsvecyz(0., (ts.pointB.Y() - ts.pointA.Y()), (ts.pointB.Z() - ts.pointA.Z()));
-
-      double acosxz = tsvecxz.Dot(n)/(tsvecxz.Mag()*n.Mag());
-      acosxz = TMath::Min(TMath::Max(acosxz, -1.), 1.);
-
-      double acosyz = tsvecyz.Dot(n)/(tsvecyz.Mag()*n.Mag());
-      acosyz = TMath::Min(TMath::Max(acosyz, -1.), 1.);
-
-      ts.thetaX = TMath::ACos(acosxz);
-      ts.thetaY = TMath::ACos(acosyz);
+      ts.thetaX = TMath::ATan2(dx, dz);
+      ts.thetaY = TMath::ATan2(dy, dz);
 
       // Set null momentum
       double p0[3] = {0.,0.,0.};

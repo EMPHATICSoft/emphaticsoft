@@ -465,7 +465,6 @@ namespace emph {
             // add TrackSegments to the track
             sectrk.Add(t2);
             sectrk.Add(t3);
-            AddSSDLineSegmentsToTrack(beamtrk);
             
             sectrk.mom = t2.mom; // this should come from an analysis of the bend angle between track segments 1 and 2.
             auto v = algo.SetTrackInfo(tsvec[0], tsvec[1]);

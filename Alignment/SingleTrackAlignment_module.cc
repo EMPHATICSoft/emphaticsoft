@@ -234,7 +234,7 @@ namespace emph {
 	  //double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad
 
           x0.SetX(-1*x0.X());
-          x1.SetX(-1*x0.X());
+          x1.SetX(-1*x1.X());
 
           ROOT::Math::XYZVector vec = x0 - x1;
           ROOT::Math::XYZVector posx(1.,0.,0.);
