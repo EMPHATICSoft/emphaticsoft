@@ -81,9 +81,9 @@ namespace emph {
     int chi2lessthan5_2 = 0;
     int chi2lessthan5_3 = 0;
 
-    TTree* estpos;
-    double x_pos = 0.0;
-    double y_pos = 0.0;
+    TH1D* dist;
+    TTree* distTree;
+    double min_dist;
 
     TH2D* estXYHist;
 
@@ -168,11 +168,13 @@ namespace emph {
     spacepoint->Branch("event",&event,"event/I");  
     spacepoint->Branch("chi2",&chi2,"chi2/I");
     
-    estpos = tfs->make<TTree>("estpos", "");
-    estpos->Branch("x_pos", &x_pos, "x_pos/D");
-    estpos->Branch("y_pos", &y_pos, "y_pos/D");
+    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
+    dist->GetXaxis()->SetTitle("Distance (mm)");
 
-    estXYHist = tfs->make<TH2D>("xyHist", "Estimated XY Position Hist", 50, -100.0, 100.0, 50, -100.0, 100.0); 
+    distTree = tfs->make<TTree>("dist_tree","");
+    distTree->Branch("dist",&min_dist,"min_dist/D");
+
+    estXYHist = tfs->make<TH2D>("xyHist", "Estimated XY Position", 50, -100.0, 100.0, 50, -100.0, 100.0); 
     estXYHist->GetXaxis()->SetTitle("Estimated X (mm)");
     estXYHist->GetYaxis()->SetTitle("Estimated Y (mm)");
     estXYHist->SetOption("COLZ");
@@ -190,6 +192,7 @@ namespace emph {
        std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 1: "<<chi2lessthan5_1<<std::endl;
        std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 2: "<<chi2lessthan5_2<<std::endl;
        std::cout<<"MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 3: "<<chi2lessthan5_3<<std::endl;
+       std::cout<<"MakeTrackSegmentsForEfficiency: Masked Station/Plane/Sensor: "<<fMaskedStation<<"/"<<fMaskedPlane<<"/"<<fMaskedSensor<<std::endl;
   }
 
   //......................................................................
@@ -387,17 +390,32 @@ namespace emph {
               else if (masked_zpos > emgeo->MagnetDSZPos()) { 
 		masked_region_segments = tstmp3; 
 	      }
-	      
+    	
+	      //std::cout << ls_group[fMaskedStation][fMaskedPlane].size() << std::endl;	
+
 	      for (auto ts : masked_region_segments) {
 		double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
 		double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
 		double deltaz = masked_zpos - ts.pointA.Z();
  		
-		x_pos = (gradxz * deltaz) + ts.pointA.X();
-		y_pos = (gradyz * deltaz) + ts.pointA.Y();
+		double x_pos = (gradxz * deltaz) + ts.pointA.X();
+		double y_pos = (gradyz * deltaz) + ts.pointA.Y();
 		
 		estXYHist->Fill(x_pos, y_pos);
-		estpos->Fill(); 	
+		
+		if (ls_group[fMaskedStation][fMaskedPlane].size() != 0) {
+		   min_dist = ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
+		   for (unsigned int i = 1; i < ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
+		      double curr_dist = ls_group[fMaskedStation][fMaskedPlane][i]
+			->DistanceToPoint(x_pos, y_pos);
+
+		      if (std::abs(curr_dist) < std::abs(min_dist)) {
+			min_dist = curr_dist;
+		      }
+		   }
+		   dist->Fill(min_dist);
+		   distTree->Fill();
+		}
 	      }
 	  }
             
