@@ -171,10 +171,12 @@ namespace emph {
     estpos = tfs->make<TTree>("estpos", "");
     estpos->Branch("x_pos", &x_pos, "x_pos/D");
     estpos->Branch("y_pos", &y_pos, "y_pos/D");
-    
-    estXYHist = tfs->make<TH2D>("xyHist", "Estimated XY Position Hist", 75, -100.0, 100.0, 75, -100.0, 100.0); 
-    estXYHist->GetXaxis()->SetTitle("Estimated X Position");
-    estXYHist->GetYaxis()->SetTitle("Estimated Y Position");
+
+    estXYHist = tfs->make<TH2D>("xyHist", "Estimated XY Position Hist", 50, -100.0, 100.0, 50, -100.0, 100.0); 
+    estXYHist->GetXaxis()->SetTitle("Estimated X (mm)");
+    estXYHist->GetYaxis()->SetTitle("Estimated Y (mm)");
+    estXYHist->SetOption("COLZ");
+    estXYHist->SetStats(0);
   }
  
   //......................................................................
@@ -387,8 +389,6 @@ namespace emph {
 	      }
 	      
 	      for (auto ts : masked_region_segments) {
-		//std::cout << "(" << ts.pointA.X() << "," << ts.pointA.Y() << "," << ts.pointA.Z() << ")" << std::endl;
-		
 		double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
 		double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
 		double deltaz = masked_zpos - ts.pointA.Z();
@@ -397,7 +397,7 @@ namespace emph {
 		y_pos = (gradyz * deltaz) + ts.pointA.Y();
 		
 		estXYHist->Fill(x_pos, y_pos);
-		estpos->Fill();	
+		estpos->Fill(); 	
 	      }
 	  }
             
@@ -413,6 +413,7 @@ namespace emph {
         }
       } catch (...) {
       }
+
       spacepoint->Fill();
       chi2.clear();
     }
