@@ -72,6 +72,8 @@ namespace emph {
   private:
     void groupClusters();
     void groupLinesegs();
+    void maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
+    bool readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
 
     TTree* spacepoint;
     int run, subrun, event;
@@ -240,8 +242,8 @@ namespace emph {
 
         if (!clustH->empty()) {
           hasclusters++;
-          rb::LineSegment lineseg_tmp = rb::LineSegment();
           std::vector<rb::TrackSegment> masked_region_segments;
+          rb::LineSegment lineseg_tmp = rb::LineSegment();
 
           for (size_t idx = 0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
@@ -249,43 +251,9 @@ namespace emph {
             if (clust.Station() == fMaskedStation &&
                 clust.Plane()   == fMaskedPlane   &&
                 clust.Sensor()  == fMaskedSensor) {
-              mf::LogDebug("MaketrackSegmentsForEfficiency")
-                << "Skipping cluster due to mask Station: "
-                << clust.Station() << " Plane: " << clust.Plane()
-                << " Sensor: " << clust.Sensor() << std::endl;
-              
-              all_clusters.push_back(&clust);
-              lineseg_tmp.SetSSDInfo(clust.Station(), clust.Plane(), clust.Sensor(), clust.MaxStrip());
-              all_linesegments.push_back(lineseg_tmp);
-
-              if (clust.AvgStrip() > 640) {
-                throw art::Exception(art::errors::InvalidNumber)
-                  << "Skipping nonsense: cluster strip number > 640\n";
-                abort();
-              }
-
-              if (!dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back())) {
-                std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;     
-              }
+              maskClustAndSegs(dgm, clust, lineseg_tmp);
             } else {
-              ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
-
-              clusters.push_back(&clust);
-              all_clusters.push_back(&clust);
-
-              lineseg_tmp.SetSSDInfo(clust.Station(), clust.Plane(), clust.Sensor(), clust.MaxStrip());
-              linesegments.push_back(lineseg_tmp);
-              all_linesegments.push_back(lineseg_tmp);
-
-              if (clust.AvgStrip() > 640) {
-                throw art::Exception(art::errors::InvalidNumber)
-                  << "Skipping nonsense: cluster strip number > 640\n";
-                abort();
-              }
-
-              if (dgm->Map()->SSDClusterToLineSegment(clust, linesegments.back()) 
-                && dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back())) 
-              {
+              if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
                 linesegv->push_back(linesegments.back());
               } else {
                 std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;
@@ -487,7 +455,55 @@ namespace emph {
       if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
       ls_group[station][plane].push_back(&linesegments[i]);
     }
-  } 
+  }   
+
+  void emph::MakeTrackSegmentsForEfficiency::maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, 
+    const rb::SSDCluster& clust, 
+    rb::LineSegment lineseg_tmp) 
+  {
+    mf::LogDebug("MakeTrackSegmentsForEfficiency")
+      << "Skipping cluster due to mask Station: "
+      << clust.Station() << " Plane: " << clust.Plane()
+      << " Sensor: " << clust.Sensor() << std::endl;
+    
+    all_clusters.push_back(&clust);
+    lineseg_tmp.SetSSDInfo(clust.Station(), clust.Plane(), clust.Sensor(), clust.MaxStrip());
+
+    all_linesegments.push_back(lineseg_tmp);
+
+    if (clust.AvgStrip() > 640) {
+      throw art::Exception(art::errors::InvalidNumber)
+        << "Skipping nonsense: cluster strip number > 640\n";
+      abort();
+    }
+
+    if (!dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back())) {
+      std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;     
+    }
+  }
+
+  bool emph::MakeTrackSegmentsForEfficiency::readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, 
+    const rb::SSDCluster& clust,
+    rb::LineSegment lineseg_tmp) 
+  {
+    ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
+
+    clusters.push_back(&clust);
+    all_clusters.push_back(&clust);
+
+    lineseg_tmp.SetSSDInfo(clust.Station(), clust.Plane(), clust.Sensor(), clust.MaxStrip());
+    linesegments.push_back(lineseg_tmp);
+    all_linesegments.push_back(lineseg_tmp);
+
+    if (clust.AvgStrip() > 640) {
+      throw art::Exception(art::errors::InvalidNumber)
+        << "Skipping nonsense: cluster strip number > 640\n";
+      abort();
+    }
+
+    return ((dgm->Map()->SSDClusterToLineSegment(clust, linesegments.back())) 
+      && (dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back()))); 
+  }
 
 } // end namespace emph
 
