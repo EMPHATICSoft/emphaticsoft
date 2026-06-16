@@ -70,6 +70,9 @@ namespace emph {
     void endJob();
 
   private:
+    void groupClusters();
+    void groupLinesegs();
+
     TTree* spacepoint;
     int run, subrun, event;
     int fEvtNum;
@@ -158,9 +161,9 @@ namespace emph {
 
     art::ServiceHandle<art::TFileService> tfs;
     spacepoint = tfs->make<TTree>("spacepoint", "");
-    spacepoint->Branch("run",    &run,    "run/I");
+    spacepoint->Branch("run", &run, "run/I");
     spacepoint->Branch("subrun", &subrun, "subrun/I");
-    spacepoint->Branch("event",  &event,  "event/I");
+    spacepoint->Branch("event",  &event, "event/I");
     spacepoint->Branch("chi2",   &chi2,   "chi2/I");
 
     dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
@@ -195,16 +198,16 @@ namespace emph {
     tsv.clear();
     spv.clear();
 
-    std::unique_ptr<std::vector<rb::LineSegment>>    linesegv(new std::vector<rb::LineSegment>);
-    std::unique_ptr<std::vector<rb::SpacePoint>>     spacepointv(new std::vector<rb::SpacePoint>);
-    std::unique_ptr<std::vector<rb::TrackSegment>>   tracksegmentv(new std::vector<rb::TrackSegment>);
+    std::unique_ptr<std::vector<rb::LineSegment>> linesegv(new std::vector<rb::LineSegment>);
+    std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
+    std::unique_ptr<std::vector<rb::TrackSegment>> tracksegmentv(new std::vector<rb::TrackSegment>);
 
-    run      = evt.run();
-    subrun   = evt.subRun();
-    event    = evt.event();
-    fEvtNum  = evt.id().event();
+    run = evt.run();
+    subrun = evt.subRun();
+    event = evt.event();
+    fEvtNum = evt.id().event();
 
-    art::ServiceHandle<emph::geo::GeometryService>   geo;
+    art::ServiceHandle<emph::geo::GeometryService> geo;
     auto emgeo = geo->Geo();
 
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
@@ -253,9 +256,6 @@ namespace emph {
               
               all_clusters.push_back(&clust);
               lineseg_tmp.SetSSDInfo(clust.Station(), clust.Plane(), clust.Sensor(), clust.MaxStrip());
-              
-              //std::cout << lineseg_tmp.X0() << std::endl;
-
               all_linesegments.push_back(lineseg_tmp);
 
               if (clust.AvgStrip() > 640) {
@@ -312,40 +312,12 @@ namespace emph {
 
             mf::LogDebug("MakeTrackSegmentsForEfficiency") << "........";
 
-            for (size_t i = 0; i < clusters.size(); i++) {
-              int plane   = clusters[i]->Plane();
-              int station = clusters[i]->Station();
+            groupClusters();
 
-              if (station < 0 || static_cast<size_t>(station) >= cl_group.size()) {
-                mf::LogWarning("MakeTrackSegmentsForEfficiency")
-                  << "Skipping cluster with out-of-range station index " << station
-                  << " (cl_group size = " << cl_group.size() << ") at event " << fEvtNum;
-                continue;
-              }
-              if (plane < 0 || static_cast<size_t>(plane) >= cl_group[station].size()) {
-                mf::LogWarning("MakeTrackSegmentsForEfficiency")
-                  << "Skipping cluster with out-of-range plane index station=" << station
-                  << " plane=" << plane
-                  << " (nPlanes alloc per station = " << cl_group[station].size()
-                  << ") at event " << fEvtNum;
-                continue;
-              }
-
-              cl_group[station][plane].push_back(clusters[i]);
-            }
+            groupLinesegs();
 
             // Instance of single track algorithm
             emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
-
-            // Group linesegments
-            for (size_t i = 0; i < clusters.size(); i++) {
-              int plane   = clusters[i]->Plane();
-              int station = clusters[i]->Station();
-
-              if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
-              if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
-              ls_group[station][plane].push_back(&linesegments[i]);
-            }
 
             // Make reconstructed hits
             spv = algo.MakeHits(ls_group, cl_group);
@@ -372,7 +344,7 @@ namespace emph {
               mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp2 size: " << sp2.size();
               mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
 
-              // Form lines and fill plots
+              // Form lines and fill plots 
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
               for (auto i : tstmp1) {
                 i.region = rb::Region::kRegion1;
@@ -479,6 +451,43 @@ namespace emph {
     evt.put(std::move(spacepointv));
     evt.put(std::move(tracksegmentv));
   }
+
+  void emph::MakeTrackSegmentsForEfficiency::groupClusters()
+  {
+    for (size_t i = 0; i < clusters.size(); i++) {
+      int plane = clusters[i]->Plane();
+      int station = clusters[i]->Station();
+      
+      if (station < 0 || static_cast<size_t>(station) >= cl_group.size()) {
+        mf::LogWarning("MakeTrackSegmentsForEfficiency")
+          << "Skipping cluster with out-of-range station index " << station
+          << " (cl_group size = " << cl_group.size() << ") at event " << fEvtNum;
+        continue;
+      }
+      if (plane < 0 || static_cast<size_t>(plane) >= cl_group[station].size()) {
+        mf::LogWarning("MakeTrackSegmentsForEfficiency")
+          << "Skipping cluster with out-of-range plane index station=" << station
+          << " plane=" << plane
+          << " (nPlanes alloc per station = " << cl_group[station].size()
+          << ") at event " << fEvtNum;
+        continue;
+      }
+
+      cl_group[station][plane].push_back(clusters[i]);
+    } 
+  }
+
+  void emph::MakeTrackSegmentsForEfficiency::groupLinesegs()
+  {
+    for (size_t i = 0; i < clusters.size(); i++) {
+      int plane   = clusters[i]->Plane();
+      int station = clusters[i]->Station();
+
+      if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
+      if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
+      ls_group[station][plane].push_back(&linesegments[i]);
+    }
+  } 
 
 } // end namespace emph
 
