@@ -74,6 +74,8 @@ namespace emph {
     void groupLinesegs();
     void maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     bool readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
+    void resizeGroups();
+    void updateSps(emph::geo::Geometry* emgeo);
 
     TTree* spacepoint;
     int run, subrun, event;
@@ -264,13 +266,7 @@ namespace emph {
           if (clusters.size() < fMaxClust) {
             usableclust++;
 
-            cl_group.resize(nStations);
-            ls_group.resize(nStations);
-
-            for (size_t i = 0; i < nStations; i++) {
-              cl_group[i].resize(nPlanes);
-              ls_group[i].resize(nPlanes);
-            }
+            resizeGroups();
 
             for (size_t i = 0; i < clustMapAtLeastOne.size(); i++) {
               for (auto j : clustMapAtLeastOne[i]) {
@@ -295,22 +291,7 @@ namespace emph {
 
             // Reconstructed hits
             if (spv.size() > 0) {
-              sps++;
-              for (size_t i = 0; i < spv.size(); i++) {
-                if (emgeo->GetTarget()) {
-                  if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) { sp1.push_back(spv[i]); }
-                  if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) { sp2.push_back(spv[i]); }
-                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) { sp3.push_back(spv[i]); }
-                } else {
-                  if (spv[i].Pos()[2] < 380.5) { sp1.push_back(spv[i]); }
-                  if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) { sp2.push_back(spv[i]); }
-                  if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) { sp3.push_back(spv[i]); }
-                }
-              }
-
-              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp1 size: " << sp1.size();
-              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp2 size: " << sp2.size();
-              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
+              updateSps(emgeo);
 
               // Form lines and fill plots 
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
@@ -503,6 +484,35 @@ namespace emph {
 
     return ((dgm->Map()->SSDClusterToLineSegment(clust, linesegments.back())) 
       && (dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back()))); 
+  }
+
+  void emph::MakeTrackSegmentsForEfficiency::resizeGroups() {
+    cl_group.resize(nStations);
+    ls_group.resize(nStations);
+
+    for (size_t i = 0; i < nStations; i++) {
+      cl_group[i].resize(nPlanes);
+      ls_group[i].resize(nPlanes);
+    }
+  }
+
+  void emph::MakeTrackSegmentsForEfficiency::updateSps(emph::geo::Geometry* emgeo) {
+    sps++;
+    for (size_t i = 0; i < spv.size(); i++) {
+      if (emgeo->GetTarget()) {
+        if (spv[i].Pos()[2] < emgeo->GetTarget()->Pos()(2)) { sp1.push_back(spv[i]); }
+        if (spv[i].Pos()[2] > emgeo->GetTarget()->Pos()(2) && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) { sp2.push_back(spv[i]); }
+        if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) { sp3.push_back(spv[i]); }
+      } else {
+        if (spv[i].Pos()[2] < 380.5) { sp1.push_back(spv[i]); }
+        if (spv[i].Pos()[2] > 380.5 && spv[i].Pos()[2] < emgeo->MagnetUSZPos()) { sp2.push_back(spv[i]); }
+        if (spv[i].Pos()[2] > emgeo->MagnetDSZPos()) { sp3.push_back(spv[i]); }
+      }
+    }
+
+    mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp1 size: " << sp1.size();
+    mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp2 size: " << sp2.size();
+    mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
   }
 
 } // end namespace emph
