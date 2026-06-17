@@ -76,6 +76,7 @@ namespace emph {
     bool readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     void resizeGroups();
     void updateSps(emph::geo::Geometry* emgeo);
+    void fillPlots(std::vector<rb::TrackSegment> tstmp, rb::Region kRegion);
 
     TTree* spacepoint;
     int run, subrun, event;
@@ -305,30 +306,13 @@ namespace emph {
 
               // Form lines and fill plots 
               std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-              for (auto i : tstmp1) {
-                i.region = rb::Region::kRegion1;
-                tsv.push_back(i);
-                chi2.push_back(i.chi2);
-                if (i.chi2 < 5) chi2lessthan5_1++;
-              }
+              fillPlots(tstmp1, rb::Region::kRegion1);
 
               std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
-              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "tstmp2 size = " << tstmp2.size();
-              for (auto i : tstmp2) {
-                i.region = rb::Region::kRegion2;
-                tsv.push_back(i);
-                chi2.push_back(i.chi2);
-                if (i.chi2 < 5) chi2lessthan5_2++;
-              }
+              fillPlots(tstmp2, rb::Region::kRegion2);
 
               std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
-              mf::LogDebug("MakeTrackSegmentsForEfficiency") << "tstmp3 size = " << tstmp3.size();
-              for (auto i : tstmp3) {
-                i.region = rb::Region::kRegion3;
-                tsv.push_back(i);
-                chi2.push_back(i.chi2);
-                if (i.chi2 < 5) chi2lessthan5_3++;
-              }
+              fillPlots(tstmp3, rb::Region::kRegion3);
 
               for (auto ts : tsv)
                 tracksegmentv->push_back(ts);
@@ -523,6 +507,15 @@ namespace emph {
     mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp1 size: " << sp1.size();
     mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp2 size: " << sp2.size();
     mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
+  }
+
+  void emph::MakeTrackSegmentsForEfficiency::fillPlots(std::vector<rb::TrackSegment> tstmp, rb::Region kRegion) {
+    for (auto i : tstmp) {
+      i.region = kRegion;
+      tsv.push_back(i);
+      chi2.push_back(i.chi2);
+      if (i.chi2 < 5) chi2lessthan5_1++;
+    }
   }
 
 } // end namespace emph
