@@ -170,15 +170,25 @@ namespace emph {
     spacepoint->Branch("event",  &event, "event/I");
     spacepoint->Branch("chi2",   &chi2,   "chi2/I");
 
+    std::string distTitleStr = "Point to line distance " 
+      + std::to_string(fMaskedStation) + "/"
+      + std::to_string(fMaskedPlane) + "/"
+      + std::to_string(fMaskedSensor);
     dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
     dist->GetXaxis()->SetTitle("Distance (mm)");
+    dist->SetTitle(distTitleStr.c_str());
 
     distTree = tfs->make<TTree>("dist_tree", "");
     distTree->Branch("dist", &min_dist, "min_dist/D");
 
-    estXYHist = tfs->make<TH2D>("xyHist", "Estimated XY Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
+    std::string estTitleStr = "Estimated Position " 
+      + std::to_string(fMaskedStation) + "/" 
+      + std::to_string(fMaskedPlane) + "/" 
+      + std::to_string(fMaskedSensor);
+    estXYHist = tfs->make<TH2D>("xyHist", "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
     estXYHist->GetXaxis()->SetTitle("Estimated X (mm)");
     estXYHist->GetYaxis()->SetTitle("Estimated Y (mm)");
+    estXYHist->SetTitle(estTitleStr.c_str());
     estXYHist->SetOption("COLZ");
     estXYHist->SetStats(0);
   }
