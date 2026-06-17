@@ -332,12 +332,6 @@ namespace emph {
           
           // Create line segment groups for ALL (including masked line segments)
           if (all_clusters.size() < fMaxClust) {
-            all_ls_group.resize(nStations);
-
-            for (size_t i = 0; i < nStations; i++) {
-              all_ls_group[i].resize(nPlanes);
-            }
-
             for (size_t i = 0; i < all_clusters.size(); i++) {
               int plane = all_clusters[i]->Plane();
               int station = all_clusters[i]->Station();
@@ -487,6 +481,11 @@ namespace emph {
     for (size_t i = 0; i < nStations; i++) {
       cl_group[i].resize(nPlanes);
       ls_group[i].resize(nPlanes);
+    }
+
+    all_ls_group.resize(nStations);
+    for (size_t i = 0; i < nStations; i++) {
+      all_ls_group[i].resize(nPlanes);
     }
   }
 
