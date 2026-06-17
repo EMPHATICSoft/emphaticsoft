@@ -71,7 +71,7 @@ namespace emph {
 
   private:
     void groupClusters();
-    void groupLinesegs();
+    void groupLinesegs(bool all);
     void maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     bool readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     void resizeGroups();
@@ -289,7 +289,7 @@ namespace emph {
 
             groupClusters();
 
-            groupLinesegs();
+            groupLinesegs(false);
 
             // Instance of single track algorithm
             emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
@@ -332,15 +332,7 @@ namespace emph {
           
           // Create line segment groups for ALL (including masked line segments)
           if (all_clusters.size() < fMaxClust) {
-            for (size_t i = 0; i < all_clusters.size(); i++) {
-              int plane = all_clusters[i]->Plane();
-              int station = all_clusters[i]->Station();
-
-              if (station < 0 || static_cast<size_t>(station) >= all_ls_group.size()) continue;
-              if (plane < 0 || static_cast<size_t>(plane) >= all_ls_group[station].size()) continue;
-
-              all_ls_group[station][plane].push_back(&all_linesegments[i]);
-            }
+            groupLinesegs(true);
 
             for (auto ts : masked_region_segments) {
               double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
@@ -414,15 +406,27 @@ namespace emph {
     } 
   }
 
-  void emph::MakeTrackSegmentsForEfficiency::groupLinesegs()
+  void emph::MakeTrackSegmentsForEfficiency::groupLinesegs(bool all)
   {
-    for (size_t i = 0; i < clusters.size(); i++) {
-      int plane   = clusters[i]->Plane();
-      int station = clusters[i]->Station();
+    if (all) {
+      for (size_t i = 0; i < all_clusters.size(); i++) {
+        int plane = all_clusters[i]->Plane();
+        int station = all_clusters[i]->Station();
 
-      if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
-      if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
-      ls_group[station][plane].push_back(&linesegments[i]);
+        if (station < 0 || static_cast<size_t>(station) >= all_ls_group.size()) continue;
+        if (plane < 0 || static_cast<size_t>(plane) >= all_ls_group[station].size()) continue;
+
+        all_ls_group[station][plane].push_back(&all_linesegments[i]);
+      }
+    } else {
+      for (size_t i = 0; i < clusters.size(); i++) {
+        int plane   = clusters[i]->Plane();
+        int station = clusters[i]->Station();
+
+        if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
+        if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
+        ls_group[station][plane].push_back(&linesegments[i]);
+      }
     }
   }   
 
