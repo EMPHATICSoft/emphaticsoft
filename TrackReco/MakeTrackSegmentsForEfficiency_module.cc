@@ -332,6 +332,11 @@ namespace emph {
           
           // Create line segment groups for ALL (including masked line segments)
           if (all_clusters.size() < fMaxClust) {
+            all_ls_group.resize(nStations);
+            for (size_t i = 0; i < nStations; i++) {
+              all_ls_group[i].resize(nPlanes);
+            }
+
             groupLinesegs(true);
 
             for (auto ts : masked_region_segments) {
@@ -486,11 +491,6 @@ namespace emph {
       cl_group[i].resize(nPlanes);
       ls_group[i].resize(nPlanes);
     }
-
-    all_ls_group.resize(nStations);
-    for (size_t i = 0; i < nStations; i++) {
-      all_ls_group[i].resize(nPlanes);
-    }
   }
 
   void emph::MakeTrackSegmentsForEfficiency::updateSps(emph::geo::Geometry* emgeo) {
@@ -517,7 +517,15 @@ namespace emph {
       i.region = kRegion;
       tsv.push_back(i);
       chi2.push_back(i.chi2);
-      if (i.chi2 < 5) chi2lessthan5_1++;
+      if (i.chi2 < 5) {
+        if (kRegion == rb::Region::kRegion1) {
+          chi2lessthan5_1++; 
+        } else if (kRegion == rb::Region::kRegion2) {
+          chi2lessthan5_2++;
+        } else {
+          chi2lessthan5_3++; 
+        }
+      }
     }
   }
 
