@@ -155,7 +155,7 @@
   <version ClassVersion="11" checksum="2580746351"/>
   <version ClassVersion="10" checksum="3083444448"/>
  </class>
- <class name="std::vector<caf::SRTrueSSDHits>" /> 
+ <class name="std::vector<caf::SRTrueSSDHits>" />
 
  <class name="caf::SRTrueSSDHitsBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="3550546688"/>
@@ -188,15 +188,10 @@
  </class>
  <class name="std::vector<caf::SRTrack>" />
 
-<<<<<<< HEAD
  <class name="caf::SRBeamTrack" ClassVersion="14" >
   <version ClassVersion="14" checksum="266601553"/>
   <version ClassVersion="13" checksum="642125322"/>
   <version ClassVersion="12" checksum="266601553"/>
-=======
- <class name="caf::SRBeamTrack" ClassVersion="12" >
-  <version ClassVersion="12" checksum="1251222765"/>
->>>>>>> c3167eb (Major overhaul of the Kalman-filter single track reconstruction.)
   <version ClassVersion="11" checksum="1245487592"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

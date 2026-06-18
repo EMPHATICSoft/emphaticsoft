@@ -42,5 +42,3 @@ cet_build_plugin(SingleTrackKalmanReco art::module
 install_source()
 install_fhicl()
 install_headers()
-
-add_subdirectory(test)
