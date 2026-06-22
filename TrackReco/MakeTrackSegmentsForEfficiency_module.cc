@@ -335,27 +335,66 @@ namespace emph {
             groupLinesegs(true);
 
             for (auto ts : masked_region_segments) {
-              double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
-              double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
-              double deltaz = masked_zpos - ts.pointA.Z();
-
-              double x_pos = (gradxz * deltaz) + ts.pointA.X();
-              double y_pos = (gradyz * deltaz) + ts.pointA.Y();
-
-              estXYHist->Fill(x_pos, y_pos);
-
-              if (all_ls_group[fMaskedStation][fMaskedPlane].size() != 0) {
-                min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
-                for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
-                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
-                    ->DistanceToPoint(x_pos, y_pos);
-                  if (std::abs(curr_dist) < std::abs(min_dist)) {
-                    min_dist = curr_dist;
-                  }
+              if (ts.NSpacePoints() == 3) {
+                const rb::SpacePoint* point0 = ts.GetSpacePoint(0);
+                const rb::SpacePoint* point1 = ts.GetSpacePoint(1);
+                const rb::SpacePoint* point2 = ts.GetSpacePoint(2);
+                
+                const double* a;
+                const double* b; 
+                if (masked_zpos < point1->Pos()[2]) {
+                  a = point0->Pos();
+                  b = point1->Pos();
+                } else {
+                  a = point1->Pos();
+                  b = point2->Pos();
                 }
 
-                dist->Fill(min_dist);
-                distTree->Fill();            
+                double gradxz = (a[0] - b[0]) / (a[2] - b[2]);
+                double gradyz = (a[1] - b[1]) / (a[2] - b[2]);
+                double deltaz = masked_zpos - a[2];
+
+                double x_pos = (gradxz * deltaz) + a[0];
+                double y_pos = (gradyz * deltaz) + a[1];
+
+                estXYHist->Fill(x_pos, y_pos);
+
+                if (all_ls_group[fMaskedStation][fMaskedPlane].size() == 1) {
+                  min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
+                  //for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
+                    //double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
+                      //->DistanceToPoint(x_pos, y_pos);
+                    //if (std::abs(curr_dist) < std::abs(min_dist)) {
+                      //min_dist = curr_dist;
+                    //}
+                  //}
+
+                  dist->Fill(min_dist);
+                  distTree->Fill();            
+                }
+              } else {
+                double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
+                double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
+                double deltaz = masked_zpos - ts.pointA.Z();
+
+                double x_pos = (gradxz * deltaz) + ts.pointA.X();
+                double y_pos = (gradyz * deltaz) + ts.pointA.Y();
+
+                estXYHist->Fill(x_pos, y_pos);
+
+                if (all_ls_group[fMaskedStation][fMaskedPlane].size() == 1) {
+                  min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
+                  //for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
+                    //double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
+                      //->DistanceToPoint(x_pos, y_pos);
+                    //if (std::abs(curr_dist) < std::abs(min_dist)) {
+                      //min_dist = curr_dist;
+                    //}
+                  //}
+
+                  dist->Fill(min_dist);
+                  distTree->Fill();            
+                }
               }
             }
           }
