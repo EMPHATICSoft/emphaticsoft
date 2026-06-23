@@ -88,8 +88,6 @@ namespace emph {
     int chi2lessthan5_3 = 0;
 
     TH1D* dist;
-    TTree* distTree;
-    double min_dist;
 
     TH2D* estXYHist;
 
@@ -180,9 +178,6 @@ namespace emph {
     dist->GetXaxis()->SetTitle("Distance (mm)");
     dist->SetTitle(distTitleStr.c_str());
 
-    distTree = tfs->make<TTree>("dist_tree", "");
-    distTree->Branch("dist", &min_dist, "min_dist/D");
-
     std::string estTitleStr = "Estimated Position "
       + std::to_string(fMaskedStation) + "/"
       + std::to_string(fMaskedPlane) + "/"
@@ -266,18 +261,16 @@ namespace emph {
             const rb::SSDCluster& clust = (*clustH)[idx];
 
             if (clust.Station() == fMaskedStation &&
-                clust.Plane()   == fMaskedPlane   &&
-                clust.Sensor()  == fMaskedSensor) {
+                clust.Plane() == fMaskedPlane &&
+                clust.Sensor() == fMaskedSensor) {
               maskClustAndSegs(dgm, clust, lineseg_tmp);
             } else {
               int plane_id = (clust.Station() * 10) + clust.Plane();
               if (interacted.find(plane_id) != interacted.end()) {
                 skip_evt = true;
-                std::cout << "Skipping" << std::endl;
                 break;
               }
 
-              std::cout << "Not skipping" << std::endl;
               interacted.insert(plane_id);
               if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
                 linesegv->push_back(linesegments.back());
@@ -363,6 +356,7 @@ namespace emph {
 
               double x_pos = (gradxz * deltaz) + ts.pointA.X();
               double y_pos = (gradyz * deltaz) + ts.pointA.Y();
+              double min_dist = 0.0;
 
               if (all_ls_group[fMaskedStation][fMaskedPlane].size() > 0) {
                 min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
