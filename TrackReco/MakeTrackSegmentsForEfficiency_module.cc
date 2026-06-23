@@ -11,7 +11,7 @@
 #include <thread>
 #include <vector>
 #include <numeric>
-#include <stdexcept>
+#include <set>
 
 // ROOT includes
 #include "TH1F.h"
@@ -260,11 +260,7 @@ namespace emph {
           std::vector<rb::TrackSegment> masked_region_segments;
           rb::LineSegment lineseg_tmp = rb::LineSegment();
 
-          std::vector<std::vector<bool>> interacted;
-	  interacted.resize(nStations);
-          for (size_t i = 0; i < nStations; i++) {
-            interacted[i].resize(nPlanes);
-          }
+          std::set<int> interacted;
           
           for (size_t idx = 0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
@@ -274,12 +270,15 @@ namespace emph {
                 clust.Sensor()  == fMaskedSensor) {
               maskClustAndSegs(dgm, clust, lineseg_tmp);
             } else {
-              if (interacted[clust.Station()][clust.Plane()]) {
+              int plane_id = (clust.Station() * 10) + clust.Plane();
+              if (interacted.find(plane_id) != interacted.end()) {
                 skip_evt = true;
+                std::cout << "Skipping" << std::endl;
                 break;
               }
 
-              interacted[clust.Station()][clust.Plane()] = true;
+              std::cout << "Not skipping" << std::endl;
+              interacted.insert(plane_id);
               if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
                 linesegv->push_back(linesegments.back());
               } else {
