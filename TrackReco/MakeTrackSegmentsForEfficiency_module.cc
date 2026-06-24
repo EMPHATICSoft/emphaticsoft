@@ -91,6 +91,13 @@ namespace emph {
 
     TH2D* estXYHist;
 
+    TTree* norm_dist;
+    TTree* large_dist;
+    double best_x_pos = 10000.0;
+    double best_y_pos = 10000.0;
+    int strip_num = 0;
+    double sigma = 0.0;
+
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
     std::vector<rb::SpacePoint> spv;
@@ -169,6 +176,30 @@ namespace emph {
     spacepoint->Branch("subrun", &subrun, "subrun/I");
     spacepoint->Branch("event",  &event, "event/I");
     spacepoint->Branch("chi2",   &chi2,   "chi2/I");
+
+    std::string sensor_num = std::to_string(fMaskedStation) + "_"
+      + std::to_string(fMaskedPlane) + "_"
+      + std::to_string(fMaskedSensor);
+
+    std::string norm_x = "norm_x_" + sensor_num;
+    std::string norm_y = "norm_y_" + sensor_num;
+    std::string norm_strip = "norm_strip_" + sensor_num;
+    std::string norm_sigma = "norm_sigma_" + sensor_num;
+    norm_dist = tfs->make<TTree>("dist", "");
+    norm_dist->Branch(norm_x.c_str(), &best_x_pos, "x_pos/D");
+    norm_dist->Branch(norm_y.c_str(), &best_y_pos, "y_pos/D");
+    norm_dist->Branch(norm_strip.c_str(), &strip_num, "strip_num/I");
+    norm_dist->Branch(norm_sigma.c_str(), &sigma, "sigma/D");
+
+    std::string large_x = "large_x_" + sensor_num;
+    std::string large_y = "large_y_" + sensor_num;
+    std::string large_strip = "large_strip_" + sensor_num;
+    std::string large_sigma = "large_sigma_" + sensor_num;
+    large_dist = tfs->make<TTree>("large dist", "");
+    large_dist->Branch(large_x.c_str(), &best_x_pos, "x_pos/D");
+    large_dist->Branch(large_y.c_str(), &best_y_pos, "y_pos/D");
+    large_dist->Branch(large_strip.c_str(), &strip_num, "strip_num/I");
+    large_dist->Branch(large_sigma.c_str(), &sigma, "sigma/D");
 
     std::string distTitleStr = "Point to line distance " 
       + std::to_string(fMaskedStation) + "/"
@@ -345,8 +376,8 @@ namespace emph {
 
             groupLinesegs(true);
 
-            double best_x_pos = 10000.0;
-            double best_y_pos = 10000.0;
+            best_x_pos = 10000.0;
+            best_y_pos = 10000.0;
             double smallest_min_dist = 10000.0;
 
             for (auto ts : masked_region_segments) {
@@ -360,11 +391,16 @@ namespace emph {
 
               if (all_ls_group[fMaskedStation][fMaskedPlane].size() > 0) {
                 min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
+                strip_num = all_ls_group[fMaskedStation][fMaskedPlane][0]->SSDStrip();
+                sigma = all_ls_group[fMaskedStation][fMaskedPlane][0]->Sigma();
+
                 for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
                   double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
                     ->DistanceToPoint(x_pos, y_pos);
                   if (std::abs(curr_dist) < std::abs(min_dist)) {
                     min_dist = curr_dist;
+                    strip_num = all_ls_group[fMaskedStation][fMaskedPlane][i]->SSDStrip();
+                    sigma = all_ls_group[fMaskedStation][fMaskedPlane][i]->Sigma();
                   }
                 }            
               }
@@ -379,6 +415,11 @@ namespace emph {
             if (masked_region_segments.size() > 0) {            
               estXYHist->Fill(best_x_pos, best_y_pos);
               dist->Fill(smallest_min_dist);
+              if (std::abs(smallest_min_dist) > 0.5) {
+                large_dist->Fill();
+              } else {
+                norm_dist->Fill();
+              }
             }
           }
 
