@@ -91,6 +91,9 @@ namespace emph {
 
     TH2D* estXYHist;
 
+    TH2D* largeEst;
+    TH2D* normEst;
+
     TTree* norm_dist;
     TTree* large_dist;
     double best_x_pos = 10000.0;
@@ -206,7 +209,7 @@ namespace emph {
       + std::to_string(fMaskedPlane) + "/"
       + std::to_string(fMaskedSensor);
     dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
-    dist->GetXaxis()->SetTitle("Distance (mm)");
+    dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
     dist->SetTitle(distTitleStr.c_str());
 
     std::string estTitleStr = "Estimated Position " 
@@ -219,6 +222,28 @@ namespace emph {
     estXYHist->SetTitle(estTitleStr.c_str());
     estXYHist->SetOption("COLZ");
     estXYHist->SetStats(0);
+
+    std::string largeEstTitleStr = "Estimated Position (Large Distance) " 
+      + std::to_string(fMaskedStation) + "/"
+      + std::to_string(fMaskedPlane) + "/"
+      + std::to_string(fMaskedSensor);
+    largeEst = tfs->make<TH2D>("largeXYHist", "Estimated Position (Large Distance)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    largeEst->GetXaxis()->SetTitle("Estimated X (mm)");
+    largeEst->GetYaxis()->SetTitle("Estimated Y (mm)");
+    largeEst->SetTitle(largeEstTitleStr.c_str());
+    largeEst->SetOption("COLZ");
+    largeEst->SetStats(0);
+
+    std::string normEstTitleStr = "Estimated Position (Normal Distance) "
+      + std::to_string(fMaskedStation) + "/"
+      + std::to_string(fMaskedPlane) + "/"
+      + std::to_string(fMaskedSensor);
+    normEst = tfs->make<TH2D>("normXYHist", "Estimated Position (Normal Distance)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    normEst->GetXaxis()->SetTitle("Estimated X (mm)");
+    normEst->GetYaxis()->SetTitle("Estimated Y (mm)");
+    normEst->SetTitle(normEstTitleStr.c_str());
+    normEst->SetOption("COLZ");
+    normEst->SetStats(0);
   }
 
   //......................................................................
@@ -395,8 +420,7 @@ namespace emph {
                 sigma = all_ls_group[fMaskedStation][fMaskedPlane][0]->Sigma();
 
                 for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
-                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
-                    ->DistanceToPoint(x_pos, y_pos);
+                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
                   if (std::abs(curr_dist) < std::abs(min_dist)) {
                     min_dist = curr_dist;
                     strip_num = all_ls_group[fMaskedStation][fMaskedPlane][i]->SSDStrip();
@@ -415,10 +439,13 @@ namespace emph {
             if (masked_region_segments.size() > 0) {            
               estXYHist->Fill(best_x_pos, best_y_pos);
               dist->Fill(smallest_min_dist);
+
               if (std::abs(smallest_min_dist) > 0.5) {
                 large_dist->Fill();
+                largeEst->Fill(best_x_pos, best_y_pos);
               } else {
                 norm_dist->Fill();
+                normEst->Fill(best_x_pos, best_y_pos);
               }
             }
           }
@@ -586,7 +613,6 @@ namespace emph {
       }
     }
   }
-
 } // end namespace emph
 
 DEFINE_ART_MODULE(emph::MakeTrackSegmentsForEfficiency)
