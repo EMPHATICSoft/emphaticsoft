@@ -117,13 +117,6 @@ namespace emph {
     TH2D* largeEst;
     TH2D* normEst;
 
-    TH2D* sph2;
-    TH2D* sph3;
-    TH2D* sp4;
-    TH2D* sp5;
-    TH2D* sp6;
-    TH2D* sp7;
-
     TTree* norm_dist;
     TTree* large_dist;
     double best_x_pos = 10000.0;
@@ -228,8 +221,8 @@ namespace emph {
       + std::to_string(fMaskedStation) + "/"
       + std::to_string(fMaskedPlane) + "/"
       + std::to_string(fMaskedSensor);
-    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 101, -10, 10);
-    dist->GetXaxis()->SetTitle("Distance (mm)");
+    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
+    dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
     dist->SetTitle(distTitleStr.c_str());
 
     strips1 = tfs->make<TH1D>("strips_2_0_0", "Number of hits per strip", 640, 0, 639);
@@ -327,42 +320,6 @@ namespace emph {
     normEst->SetTitle(normEstTitleStr.c_str());
     normEst->SetOption("COLZ");
     normEst->SetStats(0);
-
-    sph2 = tfs->make<TH2D>("sp2", "Position (Station 2)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sph2->GetXaxis()->SetTitle("X (mm)");
-    sph2->GetYaxis()->SetTitle("Y (mm)");
-    sph2->SetOption("COLZ");
-    sph2->SetStats(0);
-
-    sph3 = tfs->make<TH2D>("sp3", "Position (Station 3)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sph3->GetXaxis()->SetTitle("X (mm)");
-    sph3->GetYaxis()->SetTitle("Y (mm)");
-    sph3->SetOption("COLZ");
-    sph3->SetStats(0);
-
-    sp4 = tfs->make<TH2D>("sp4", "Position (Station 4)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sp4->GetXaxis()->SetTitle("X (mm)");
-    sp4->GetYaxis()->SetTitle("Y (mm)");
-    sp4->SetOption("COLZ");
-    sp4->SetStats(0);
-
-    sp5 = tfs->make<TH2D>("sp5", "Position (Station 5)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sp5->GetXaxis()->SetTitle("X (mm)");
-    sp5->GetYaxis()->SetTitle("Y (mm)");
-    sp5->SetOption("COLZ");
-    sp5->SetStats(0);
-
-    sp6 = tfs->make<TH2D>("sp6", "Position (Station 6)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sp6->GetXaxis()->SetTitle("X (mm)");
-    sp6->GetYaxis()->SetTitle("Y (mm)");
-    sp6->SetOption("COLZ");
-    sp6->SetStats(0);
-
-    sp7 = tfs->make<TH2D>("sp7", "Position (Station 7)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sp7->GetXaxis()->SetTitle("X (mm)");
-    sp7->GetYaxis()->SetTitle("Y (mm)");
-    sp7->SetOption("COLZ");
-    sp7->SetStats(0);
   }
 
   //......................................................................
@@ -646,8 +603,7 @@ namespace emph {
                 min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
 
                 for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
-                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
-                    ->DistanceToPoint(x_pos, y_pos);
+                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
                   if (std::abs(curr_dist) < std::abs(min_dist)) {
                     min_dist = curr_dist;
                   }
@@ -665,6 +621,7 @@ namespace emph {
             if (smallest_min_dist != 10000.0) {
               estXYHist->Fill(best_x_pos, best_y_pos);
               dist->Fill(smallest_min_dist);
+
               if (std::abs(smallest_min_dist) > 0.5) {
                 large_dist->Fill();
                 largeEst->Fill(best_x_pos, best_y_pos);
@@ -875,7 +832,6 @@ namespace emph {
       if (i.chi2 < 5) chi2lessthan5_1++;
     }
   }
-
 } // end namespace emph
 
 DEFINE_ART_MODULE(emph::MakeTrackSegmentsForEfficiency)
