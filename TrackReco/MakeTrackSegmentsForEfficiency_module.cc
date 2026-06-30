@@ -87,16 +87,47 @@ namespace emph {
     int chi2lessthan5_2 = 0;
     int chi2lessthan5_3 = 0;
 
+    TH1D* strips1;
+    TH1D* strips2;
+    TH1D* strips3;
+    TH1D* strips4;
+    TH1D* strips5;
+    TH1D* strips6;
+    TH1D* strips7;
+    TH1D* strips8;
+    TH1D* strips9;
+    TH1D* strips10;
+    TH1D* strips11;
+    TH1D* strips12;
+    TH1D* strips13;
+    TH1D* strips14;
+    TH1D* strips15;
+    TH1D* strips16;
+    TH1D* strips17;
+    TH1D* strips18;
+    TH1D* strips19;
+    TH1D* strips20;
+    TH1D* strips21;
+    int fStrip;
+
     TH1D* dist;
 
     TH2D* estXYHist;
+
+    TH2D* largeEst;
+    TH2D* normEst;
+
+    TH2D* sph2;
+    TH2D* sph3;
+    TH2D* sp4;
+    TH2D* sp5;
+    TH2D* sp6;
+    TH2D* sp7;
 
     TTree* norm_dist;
     TTree* large_dist;
     double best_x_pos = 10000.0;
     double best_y_pos = 10000.0;
-    int strip_num = 0;
-    double sigma = 0.0;
 
     std::vector<const rb::SSDCluster*> clusters;
     std::vector<rb::LineSegment> linesegments;
@@ -183,31 +214,86 @@ namespace emph {
 
     std::string norm_x = "norm_x_" + sensor_num;
     std::string norm_y = "norm_y_" + sensor_num;
-    std::string norm_strip = "norm_strip_" + sensor_num;
-    std::string norm_sigma = "norm_sigma_" + sensor_num;
     norm_dist = tfs->make<TTree>("dist", "");
     norm_dist->Branch(norm_x.c_str(), &best_x_pos, "x_pos/D");
     norm_dist->Branch(norm_y.c_str(), &best_y_pos, "y_pos/D");
-    norm_dist->Branch(norm_strip.c_str(), &strip_num, "strip_num/I");
-    norm_dist->Branch(norm_sigma.c_str(), &sigma, "sigma/D");
 
     std::string large_x = "large_x_" + sensor_num;
     std::string large_y = "large_y_" + sensor_num;
-    std::string large_strip = "large_strip_" + sensor_num;
-    std::string large_sigma = "large_sigma_" + sensor_num;
     large_dist = tfs->make<TTree>("large dist", "");
     large_dist->Branch(large_x.c_str(), &best_x_pos, "x_pos/D");
     large_dist->Branch(large_y.c_str(), &best_y_pos, "y_pos/D");
-    large_dist->Branch(large_strip.c_str(), &strip_num, "strip_num/I");
-    large_dist->Branch(large_sigma.c_str(), &sigma, "sigma/D");
 
     std::string distTitleStr = "Point to line distance " 
       + std::to_string(fMaskedStation) + "/"
       + std::to_string(fMaskedPlane) + "/"
       + std::to_string(fMaskedSensor);
-    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
+    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 101, -10, 10);
     dist->GetXaxis()->SetTitle("Distance (mm)");
     dist->SetTitle(distTitleStr.c_str());
+
+    strips1 = tfs->make<TH1D>("strips_2_0_0", "Number of hits per strip", 640, 0, 639);
+    strips1->GetXaxis()->SetTitle("Strip Number");
+
+    strips2 = tfs->make<TH1D>("strips_2_1_0", "Number of hits per strip", 640, 0, 639);
+    strips2->GetXaxis()->SetTitle("Strip Number");
+ 
+    strips3 = tfs->make<TH1D>("strips_2_2_0", "Number of hits per strip", 640, 0, 639);
+    strips3->GetXaxis()->SetTitle("Strip Number");
+
+    strips4 = tfs->make<TH1D>("strips_3_0_0", "Number of hits per strip", 640, 0, 639);
+    strips4->GetXaxis()->SetTitle("Strip Number");
+
+    strips5 = tfs->make<TH1D>("strips_3_1_0", "Number of hits per strip", 640, 0, 639);
+    strips5->GetXaxis()->SetTitle("Strip Number");
+
+    strips6 = tfs->make<TH1D>("strips_3_2_0", "Number of hits per strip", 640, 0, 639);
+    strips6->GetXaxis()->SetTitle("Strip Number");
+
+    strips7 = tfs->make<TH1D>("strips_4_0_0", "Number of hits per strip", 640, 0, 639);
+    strips7->GetXaxis()->SetTitle("Strip Number");
+
+    strips8 = tfs->make<TH1D>("strips_4_1_0", "Number of hits per strip", 640, 0, 639);
+    strips8->GetXaxis()->SetTitle("Strip Number");
+
+    strips9 = tfs->make<TH1D>("strips_5_0_0", "Number of hits per strip", 640, 0, 639);
+    strips9->GetXaxis()->SetTitle("Strip Number");
+
+    strips10 = tfs->make<TH1D>("strips_5_1_0", "Number of hits per strip", 640, 0, 639);
+    strips10->GetXaxis()->SetTitle("Strip Number");
+
+    strips11 = tfs->make<TH1D>("strips_5_1_1", "Number of hits per strip", 640, 0, 639);
+    strips11->GetXaxis()->SetTitle("Strip Number");
+
+    strips12 = tfs->make<TH1D>("strips_5_2_0", "Number of hits per strip", 640, 0, 639);
+    strips12->GetXaxis()->SetTitle("Strip Number");
+
+    strips13 = tfs->make<TH1D>("strips_5_2_1", "Number of hits per strip", 640, 0, 639);
+    strips13->GetXaxis()->SetTitle("Strip Number");
+
+    strips14 = tfs->make<TH1D>("strips_6_0_0", "Number of hits per strip", 640, 0, 639);
+    strips14->GetXaxis()->SetTitle("Strip Number");
+
+    strips15 = tfs->make<TH1D>("strips_6_1_0", "Number of hits per strip", 640, 0, 639);
+    strips15->GetXaxis()->SetTitle("Strip Number");
+
+    strips16 = tfs->make<TH1D>("strips_6_1_1", "Number of hits per strip", 640, 0, 639);
+    strips16->GetXaxis()->SetTitle("Strip Number");
+
+    strips17 = tfs->make<TH1D>("strips_6_2_0", "Number of hits per strip", 640, 0, 639);
+    strips17->GetXaxis()->SetTitle("Strip Number");
+
+    strips18 = tfs->make<TH1D>("strips_6_2_1", "Number of hits per strip", 640, 0, 639);
+    strips18->GetXaxis()->SetTitle("Strip Number");
+
+    strips19 = tfs->make<TH1D>("strips_7_0_0", "Number of hits per strip", 640, 0, 639);
+    strips19->GetXaxis()->SetTitle("Strip Number");
+
+    strips20 = tfs->make<TH1D>("strips_7_1_0", "Number of hits per strip", 640, 0, 639);
+    strips20->GetXaxis()->SetTitle("Strip Number");
+
+    strips21 = tfs->make<TH1D>("strips_7_1_1", "Number of hits per strip", 640, 0, 639);
+    strips21->GetXaxis()->SetTitle("Strip Number");
 
     std::string estTitleStr = "Estimated Position " 
       + std::to_string(fMaskedStation) + "/" 
@@ -219,6 +305,64 @@ namespace emph {
     estXYHist->SetTitle(estTitleStr.c_str());
     estXYHist->SetOption("COLZ");
     estXYHist->SetStats(0);
+
+    std::string largeEstTitleStr = "Estimated Position (Large Distance) " 
+      + std::to_string(fMaskedStation) + "/"
+      + std::to_string(fMaskedPlane) + "/"
+      + std::to_string(fMaskedSensor);
+    largeEst = tfs->make<TH2D>("largeXYHist", "Estimated Position (Large Distance)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    largeEst->GetXaxis()->SetTitle("Estimated X (mm)");
+    largeEst->GetYaxis()->SetTitle("Estimated Y (mm)");
+    largeEst->SetTitle(largeEstTitleStr.c_str());
+    largeEst->SetOption("COLZ");
+    largeEst->SetStats(0);
+
+    std::string normEstTitleStr = "Estimated Position (Normal Distance) "
+      + std::to_string(fMaskedStation) + "/"
+      + std::to_string(fMaskedPlane) + "/"
+      + std::to_string(fMaskedSensor);
+    normEst = tfs->make<TH2D>("normXYHist", "Estimated Position (Normal Distance)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    normEst->GetXaxis()->SetTitle("Estimated X (mm)");
+    normEst->GetYaxis()->SetTitle("Estimated Y (mm)");
+    normEst->SetTitle(normEstTitleStr.c_str());
+    normEst->SetOption("COLZ");
+    normEst->SetStats(0);
+
+    sph2 = tfs->make<TH2D>("sp2", "Position (Station 2)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    sph2->GetXaxis()->SetTitle("X (mm)");
+    sph2->GetYaxis()->SetTitle("Y (mm)");
+    sph2->SetOption("COLZ");
+    sph2->SetStats(0);
+
+    sph3 = tfs->make<TH2D>("sp3", "Position (Station 3)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    sph3->GetXaxis()->SetTitle("X (mm)");
+    sph3->GetYaxis()->SetTitle("Y (mm)");
+    sph3->SetOption("COLZ");
+    sph3->SetStats(0);
+
+    sp4 = tfs->make<TH2D>("sp4", "Position (Station 4)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    sp4->GetXaxis()->SetTitle("X (mm)");
+    sp4->GetYaxis()->SetTitle("Y (mm)");
+    sp4->SetOption("COLZ");
+    sp4->SetStats(0);
+
+    sp5 = tfs->make<TH2D>("sp5", "Position (Station 5)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    sp5->GetXaxis()->SetTitle("X (mm)");
+    sp5->GetYaxis()->SetTitle("Y (mm)");
+    sp5->SetOption("COLZ");
+    sp5->SetStats(0);
+
+    sp6 = tfs->make<TH2D>("sp6", "Position (Station 6)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    sp6->GetXaxis()->SetTitle("X (mm)");
+    sp6->GetYaxis()->SetTitle("Y (mm)");
+    sp6->SetOption("COLZ");
+    sp6->SetStats(0);
+
+    sp7 = tfs->make<TH2D>("sp7", "Position (Station 7)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    sp7->GetXaxis()->SetTitle("X (mm)");
+    sp7->GetYaxis()->SetTitle("Y (mm)");
+    sp7->SetOption("COLZ");
+    sp7->SetStats(0);
   }
 
   //......................................................................
@@ -288,8 +432,117 @@ namespace emph {
 
           std::set<int> interacted;
           
+          linesegments.reserve(clustH->size());
+          all_linesegments.reserve(clustH->size());
+ 
           for (size_t idx = 0; idx < clustH->size(); ++idx) {
             const rb::SSDCluster& clust = (*clustH)[idx];
+          
+            //std::cout << clust.Station() << " " << clust.Plane() << " " << clust.Sensor() << std::endl; 
+            if (clust.Station() == 2 && clust.Plane() == 0 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips1->Fill(fStrip);
+            }
+
+            if (clust.Station() == 2 && clust.Plane() == 1 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips2->Fill(fStrip);
+            }
+
+            if (clust.Station() == 2 && clust.Plane() == 2 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips3->Fill(fStrip);
+            }
+
+            if (clust.Station() == 3 && clust.Plane() == 0 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips4->Fill(fStrip);
+            }
+
+            if (clust.Station() == 3 && clust.Plane() == 1 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips5->Fill(fStrip);
+            }
+
+            if (clust.Station() == 3 && clust.Plane() == 2 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips6->Fill(fStrip);
+            }
+
+            if (clust.Station() == 4 && clust.Plane() == 0 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips7->Fill(fStrip);
+            }
+
+            if (clust.Station() == 4 && clust.Plane() == 1 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips8->Fill(fStrip);
+            }
+
+            if (clust.Station() == 5 && clust.Plane() == 0 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips9->Fill(fStrip);
+            }
+
+            if (clust.Station() == 5 && clust.Plane() == 1 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips10->Fill(fStrip);
+            }
+
+            if (clust.Station() == 5 && clust.Plane() == 1 && clust.Sensor() == 1) {
+              fStrip = clust.AvgStrip();
+              strips11->Fill(fStrip);
+            }
+
+            if (clust.Station() == 5 && clust.Plane() == 2 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips12->Fill(fStrip);
+            }
+
+            if (clust.Station() == 5 && clust.Plane() == 2 && clust.Sensor() == 1) {
+              fStrip = clust.AvgStrip();
+              strips13->Fill(fStrip);
+            }
+
+            if (clust.Station() == 6 && clust.Plane() == 0 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips14->Fill(fStrip);
+            }
+
+            if (clust.Station() == 6 && clust.Plane() == 1 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips15->Fill(fStrip);
+            }
+
+            if (clust.Station() == 6 && clust.Plane() == 1 && clust.Sensor() == 1) {
+              fStrip = clust.AvgStrip();
+              strips16->Fill(fStrip);
+            }
+
+            if (clust.Station() == 6 && clust.Plane() == 2 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips17->Fill(fStrip);
+            }
+
+            if (clust.Station() == 6 && clust.Plane() == 2 && clust.Sensor() == 1) {
+              fStrip = clust.AvgStrip();
+              strips18->Fill(fStrip);
+            }
+
+            if (clust.Station() == 7 && clust.Plane() == 0 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips19->Fill(fStrip);
+            }
+
+            if (clust.Station() == 7 && clust.Plane() == 1 && clust.Sensor() == 0) {
+              fStrip = clust.AvgStrip();
+              strips20->Fill(fStrip);
+            }
+
+            if (clust.Station() == 7 && clust.Plane() == 1 && clust.Sensor() == 1) {
+              fStrip = clust.AvgStrip();
+              strips21->Fill(fStrip);
+            }
 
             if (clust.Station() == fMaskedStation &&
                 clust.Plane() == fMaskedPlane &&
@@ -327,6 +580,7 @@ namespace emph {
             groupClusters();
 
             groupLinesegs(false);
+            groupLinesegs(true);
 
             // Instance of single track algorithm
             emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
@@ -334,9 +588,16 @@ namespace emph {
             // Make reconstructed hits
             spv = algo.MakeHits(ls_group, cl_group);
 
-            for (auto sp : spv)
+            for (auto sp : spv) {
               spacepointv->push_back(sp);
-
+              if (sp.Station() == 2) { sph2->Fill(sp.Pos()[0], sp.Pos()[1]); }
+              else if (sp.Station() == 3) { sph3->Fill(sp.Pos()[0], sp.Pos()[1]); }
+              else if (sp.Station() == 4) { sp4->Fill(sp.Pos()[0], sp.Pos()[1]); }
+              else if (sp.Station() == 5) { sp5->Fill(sp.Pos()[0], sp.Pos()[1]); }
+              else if (sp.Station() == 6) { sp6->Fill(sp.Pos()[0], sp.Pos()[1]); }
+              else if (sp.Station() == 7) { sp7->Fill(sp.Pos()[0], sp.Pos()[1]); }
+            }
+ 
             // Reconstructed hits
             if (spv.size() > 0) {
               updateSps(emgeo);
@@ -369,13 +630,6 @@ namespace emph {
           
           // Create line segment groups for ALL (including masked line segments)
           if (all_clusters.size() < fMaxClust && !skip_evt) {
-            all_ls_group.resize(nStations);
-            for (size_t i = 0; i < nStations; i++) {
-              all_ls_group[i].resize(nPlanes);
-            }
-
-            groupLinesegs(true);
-
             best_x_pos = 10000.0;
             best_y_pos = 10000.0;
             double smallest_min_dist = 10000.0;
@@ -384,24 +638,20 @@ namespace emph {
               double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
               double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
               double deltaz = masked_zpos - ts.pointA.Z();
-
               double x_pos = (gradxz * deltaz) + ts.pointA.X();
               double y_pos = (gradyz * deltaz) + ts.pointA.Y();
-              double min_dist = 0.0;
+              double min_dist = 10000.0;
 
               if (all_ls_group[fMaskedStation][fMaskedPlane].size() > 0) {
                 min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
-                strip_num = all_ls_group[fMaskedStation][fMaskedPlane][0]->SSDStrip();
-                sigma = all_ls_group[fMaskedStation][fMaskedPlane][0]->Sigma();
-
+                 
                 for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
                   double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
                     ->DistanceToPoint(x_pos, y_pos);
                   if (std::abs(curr_dist) < std::abs(min_dist)) {
                     min_dist = curr_dist;
-                    strip_num = all_ls_group[fMaskedStation][fMaskedPlane][i]->SSDStrip();
-                    sigma = all_ls_group[fMaskedStation][fMaskedPlane][i]->Sigma();
                   }
+                  //std::cout << "Multiple line segments" << std::endl;
                 }            
               }
               
@@ -412,14 +662,23 @@ namespace emph {
               }
             }
            
-            if (masked_region_segments.size() > 0) {            
+            if (smallest_min_dist != 10000.0) {            
               estXYHist->Fill(best_x_pos, best_y_pos);
               dist->Fill(smallest_min_dist);
               if (std::abs(smallest_min_dist) > 0.5) {
                 large_dist->Fill();
+                largeEst->Fill(best_x_pos, best_y_pos);
               } else {
                 norm_dist->Fill();
+                normEst->Fill(best_x_pos, best_y_pos);
               }
+              auto ls = all_ls_group[fMaskedStation][fMaskedPlane][0];
+              //if (std::abs(smallest_min_dist) < 0.75) {
+                //std::cout << "PointA: (" << ls->x0.X() << "," << ls->x0.Y() << "," << ls->x0.Z() << ")" << std::endl;
+                //std::cout << "PointB: (" << ls->x1.X() << "," << ls->x1.Y() << ","  << ls->x1.Z() << ")" << std::endl;
+                //std::cout << "Predicted Position: (" << best_x_pos << "," << best_y_pos << "," << masked_zpos << ")" << std::endl;
+                //std::cout << "Distance: " <<  smallest_min_dist << std::endl;
+              //}
             }
           }
 
@@ -433,6 +692,14 @@ namespace emph {
           clustMapAtLeastOne.clear();
         }
       } catch (...) {
+        ls_group.clear();
+        all_ls_group.clear();
+        cl_group.clear();
+        linesegments.clear();
+        all_linesegments.clear();
+        clusters.clear();
+        all_clusters.clear();
+        clustMapAtLeastOne.clear();
       }
 
       spacepoint->Fill();
@@ -464,8 +731,30 @@ namespace emph {
           << ") at event " << fEvtNum;
         continue;
       }
-
+       
       cl_group[station][plane].push_back(clusters[i]);
+    }
+
+    for (size_t i = 0; i < all_clusters.size(); i++) {
+      int plane = all_clusters[i]->Plane();
+      int station = all_clusters[i]->Station();
+      
+      if (station < 0 || static_cast<size_t>(station) >= all_cl_group.size()) {
+        mf::LogWarning("MakeTrackSegmentsForEfficiency")
+          << "Skipping cluster with out-of-range station index " << station
+          << " (cl_group size = " << all_cl_group.size() << ") at event " << fEvtNum;
+        continue;
+      }
+      if (plane < 0 || static_cast<size_t>(plane) >= all_cl_group[station].size()) {
+        mf::LogWarning("MakeTrackSegmentsForEfficiency")
+          << "Skipping cluster with out-of-range plane index station=" << station
+          << " plane=" << plane
+          << " (nPlanes alloc per station = " << all_cl_group[station].size()
+          << ") at event " << fEvtNum;
+        continue;
+      }
+       
+      all_cl_group[station][plane].push_back(all_clusters[i]);
     } 
   }
 
@@ -478,7 +767,7 @@ namespace emph {
 
         if (station < 0 || static_cast<size_t>(station) >= all_ls_group.size()) continue;
         if (plane < 0 || static_cast<size_t>(plane) >= all_ls_group[station].size()) continue;
-
+        
         all_ls_group[station][plane].push_back(&all_linesegments[i]);
       }
     } else {
@@ -548,6 +837,14 @@ namespace emph {
     for (size_t i = 0; i < nStations; i++) {
       cl_group[i].resize(nPlanes);
       ls_group[i].resize(nPlanes);
+    }
+ 
+    all_cl_group.resize(nStations);
+    all_ls_group.resize(nStations);
+
+    for (size_t i = 0; i < nStations; i++) {
+      all_cl_group[i].resize(nPlanes);
+      all_ls_group[i].resize(nPlanes);
     }
   }
 
