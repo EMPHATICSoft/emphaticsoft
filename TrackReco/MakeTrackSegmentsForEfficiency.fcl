@@ -7,7 +7,7 @@ standard_maketracksegmentsforefficiency:
   ClusterLabel:      "clust"
   G4Label:           "geantgen"
   MaxClust:          45
-  MaskedStation:     5
+  MaskedStation:     3
   MaskedPlane:       2
   MaskedSensor:      0
 }

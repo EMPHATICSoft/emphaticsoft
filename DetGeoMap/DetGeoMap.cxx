@@ -64,9 +64,12 @@ namespace emph {
       T->LocalToMaster(tx0,x1);
 
 //      std::cout << "SSD(" << station << "," << plane << "," << sensor << ") is at z=" << x0[2] << std::endl;
- 
-      ls.SetX0(x0);
-      ls.SetX1(x1);	  
+
+      rb::LineSegment temp_ls(x0,x1);
+      ls = temp_ls;
+      //      std::cout << "(U,V) = (" << ls.U() << "," << ls.V() << ")" << std::endl;
+      //      ls.SetX0(x0);
+      //      ls.SetX1(x1);	  
       ls.SetSSDStation(station);
       ls.SetSSDPlane(plane);
       ls.SetSSDSensor(sensor);
