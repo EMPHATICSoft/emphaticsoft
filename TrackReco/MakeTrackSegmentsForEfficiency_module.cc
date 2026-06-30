@@ -230,6 +230,8 @@ namespace emph {
       + std::to_string(fMaskedSensor);
     dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 101, -10, 10);
     dist->GetXaxis()->SetTitle("Distance (mm)");
+    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
+    dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
     dist->SetTitle(distTitleStr.c_str());
 
     strips1 = tfs->make<TH1D>("strips_2_0_0", "Number of hits per strip", 640, 0, 639);
@@ -646,8 +648,7 @@ namespace emph {
                 min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
                  
                 for (unsigned int i = 1; i < all_ls_group[fMaskedStation][fMaskedPlane].size(); i++) {
-                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][i]
-                    ->DistanceToPoint(x_pos, y_pos);
+                  double curr_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
                   if (std::abs(curr_dist) < std::abs(min_dist)) {
                     min_dist = curr_dist;
                   }
@@ -665,6 +666,7 @@ namespace emph {
             if (smallest_min_dist != 10000.0) {            
               estXYHist->Fill(best_x_pos, best_y_pos);
               dist->Fill(smallest_min_dist);
+
               if (std::abs(smallest_min_dist) > 0.5) {
                 large_dist->Fill();
                 largeEst->Fill(best_x_pos, best_y_pos);
@@ -883,7 +885,6 @@ namespace emph {
       }
     }
   }
-
 } // end namespace emph
 
 DEFINE_ART_MODULE(emph::MakeTrackSegmentsForEfficiency)
