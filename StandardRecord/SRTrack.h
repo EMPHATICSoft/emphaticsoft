@@ -19,6 +19,8 @@ namespace caf
 
     ROOT::Math::XYZVector vtx;  // (x,y,z)
     ROOT::Math::XYZVector mom; // momentum vector
+    std::vector<double> residuals; // distance from track to line
+    std::vector<double> uncResiduals; // uncertainty on residual
     ROOT::Math::XYZVector posTrgt;
     ROOT::Math::XYZVector momTrgt;
     ROOT::Math::XYZVector posARICH;
@@ -28,10 +30,10 @@ namespace caf
     std::vector<ROOT::Math::XYZVector> posSSD;
     std::vector<ROOT::Math::XYZVector> momSSD;
     std::vector<double> pullSSD;
-    
-    //    SRVector3D mom; // momentum vector   
-    SRArichID arich; // arich loglikelihooods values 
-//  SRArichID arML; // arich ML pred values   
+
+    //    SRVector3D mom; // momentum vector
+    SRArichID arich; // arich loglikelihooods values
+//  SRArichID arML; // arich ML pred values
     double chi2;
     int ndf;
 
@@ -40,7 +42,7 @@ namespace caf
     std::vector<SRTrackSegment> sgmnt; // vector of track segments
     void Add(SRTrackSegment& ts){ sgmnt.push_back(ts); ntrkseg=sgmnt.size(); };
 
- 
+
     virtual void setDefault();
   };
 

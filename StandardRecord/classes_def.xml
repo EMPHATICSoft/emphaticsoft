@@ -189,6 +189,7 @@
  <class name="std::vector<caf::SRTrack>" />
 
  <class name="caf::SRBeamTrack" ClassVersion="14" >
+  <version ClassVersion="15" checksum="3535333238"/>
   <version ClassVersion="14" checksum="266601553"/>
   <version ClassVersion="13" checksum="642125322"/>
   <version ClassVersion="12" checksum="266601553"/>
