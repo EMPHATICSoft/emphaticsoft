@@ -228,8 +228,6 @@ namespace emph {
       + std::to_string(fMaskedStation) + "/"
       + std::to_string(fMaskedPlane) + "/"
       + std::to_string(fMaskedSensor);
-    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 101, -10, 10);
-    dist->GetXaxis()->SetTitle("Distance (mm)");
     dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
     dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
     dist->SetTitle(distTitleStr.c_str());
