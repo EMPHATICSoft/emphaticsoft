@@ -252,10 +252,14 @@ namespace caf {
       VertexFiller vtxf;
       vtxf.fVertexLabel = fParams.VertexLabel();
       vtxf.fTrackLabel = fParams.TrackLabel();
+      vtxf.fKVertexLabel = fParams.KVertexLabel();
+      vtxf.fKTrackLabel = fParams.KTrackLabel();
       vtxf.fArichIDLabel = fParams.ArichIDLabel();
       vtxf.fSSDHitLabel = fParams.SSDHitLabel();
-      vtxf.Fill(evt,rec);
-
+      vtxf.FillSimple(evt,rec.vtxs.vtx);
+      rec.vtxs.nvtx = rec.vtxs.vtx.size();
+      vtxf.FillKalman(evt,rec.vtxs.kvtx);
+      rec.vtxs.nkvtx = rec.vtxs.kvtx.size();
     }
 
     // Get SRTruth  

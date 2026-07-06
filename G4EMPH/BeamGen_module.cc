@@ -33,11 +33,16 @@
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "TPDGCode.h"
+#include "TH1D.h" 
 #include "TH2D.h"
+#include "TH3D.h" 
 #include "TLorentzVector.h"
 
 #include <string>
 #include <vector>
+#include <map> 
+#include <memory> 
+#include <cmath> 
 
 namespace emph {
 
@@ -49,12 +54,13 @@ namespace emph {
 
     void produce (art::Event& evt);
     void beginRun(art::Run& run);
-    void  configure(fhicl::ParameterSet const& ps);
+    void configure(fhicl::ParameterSet const& ps);
 
   private:
 
     void        GetXYHist();
     void        GetPXYHist();
+    void        GetSlicedHists(int runNum);
     void        GetPID();
 
     bool        fUseRunHistory;
@@ -82,8 +88,8 @@ namespace emph {
     double      fPXsigma;
     double      fPYmean;
     double      fPYsigma;
-      
-    std::string fPZDist;
+    
+    std::string fPZDist;  
     std::string fXYDistSource;
     std::string fXYHistFile;
     std::string fXYHistName;
@@ -94,9 +100,18 @@ namespace emph {
 
     TH2D*       fXYHist;  
     TH2D*       fPXYHist;
-   
-    TRandom3*   rand;
- 
+
+    // Member variables for the slicing method
+    std::string fPhaseSpaceSource; // "Default" and "Sliced" logic
+    std::string fXHist1DFile;      
+    std::string fXHist1DName;
+    std::string fSlicedHistsFile;
+    std::string fSlicedHistsNamePattern; // Naming pattern in ROOT file
+
+    TH1D* fXHist1D;
+    std::map<int, TH3D*> fSlicedHists;
+    std::unique_ptr<TRandom3> fRand;
+    
   };
   
   /***************************************************************************/
@@ -105,11 +120,12 @@ namespace emph {
     : art::EDProducer(ps)
   {
     fEvtCount     = 0;
-    
+   
     produces<std::vector<simb::MCParticle> >();
     
-    rand = new TRandom3(0);
- 
+    fRand = std::make_unique<TRandom3>(0);
+    gRandom = fRand.get();
+    
     configure(ps);
     GetXYHist();
     GetPXYHist();
@@ -128,19 +144,24 @@ namespace emph {
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
     fZstart        = ps.get<double>("Zstart", -200.); // mm
-    fPZDist	   = ps.get<std::string>("pzDist","Gauss");
+    fPZDist        = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
     fPXYDistSource = ps.get<std::string>("pxyDistSource","Gauss");
     fPXYHistFile   = ps.get<std::string>("pxyHistFile","");
-    fPXYHistName   = ps.get<std::string>("pxyHistName","BeamXYDist");
+    fPXYHistName   = ps.get<std::string>("pxyHistName","BeamPXYDist"); 
+
+    fPhaseSpaceSource       = ps.get<std::string>("phaseSpaceSource", "Default");
+    fXHist1DFile            = ps.get<std::string>("xHist1DFile", "");
+    fXHist1DName            = ps.get<std::string>("xHist1DName", "hX_for_slicing");
+    fSlicedHistsFile        = ps.get<std::string>("slicedHistsFile", "");
+    fSlicedHistsNamePattern = ps.get<std::string>("slicedHistsNamePattern", "h3D_slice_%i");
+
 
     // NOTE: These are in units of GeV/c
     fPmean         = ps.get<double>("PMean",0.); 
     fPsigma        = ps.get<double>("PSigma",0.);
-    fPMin          = ps.get<double>("PMin",0.);
-    fPMax          = ps.get<double>("PMax",0.);
     
     // NOTE: These are all in units of ??
     fXmax          = ps.get<double>("Xmax",-999999.); 
@@ -167,21 +188,23 @@ namespace emph {
 
   /***************************************************************************/
 
-  void BeamGen::beginRun(art::Run& )
+  void BeamGen::beginRun(art::Run& run)
   {
+	  const int runNum = run.id().run();
+
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
       fPmean = rhs->RunHist()->BeamMom();
       // ensure that 120 GeV/c particles are always protons.
       if (fabs(fPmean-120.)<5) {
-      	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	      fPsigma = 0.01*fPmean;
-	      fXYHist = 0;
-	      fPXYHist = 0;
-	      fXYDistSource = "";
-	      fPXYDistSource = "";
-	      fPID = kProton;
-	      fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	fPsigma = 0.01*fPmean;
+	fXYHist = 0;
+	fPXYHist = 0;
+	fXYDistSource = "";
+	fPXYDistSource = "";
+	fPID = kProton;
+	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
   }
@@ -209,7 +232,8 @@ namespace emph {
 	if (!fXYHist) {
 	  std::cerr << "Could not find beam (x,y) histogram \"" << fXYHistName << "\"" << std::endl;
 	  std::abort();
-	}
+	} 
+	fXYHist->SetDirectory(0);
       }
       else {
 	std::cerr << "Missing (x,y) histogram file name in the fhicl config!"
@@ -226,8 +250,8 @@ namespace emph {
   void BeamGen::GetPXYHist()
   {
     fPXYHist = 0;
-    if (fPXYDistSource == "XYHist" || fPXYDistSource == "xyhist" ||
-	fPXYDistSource == "xyHist") {
+    if (fPXYDistSource == "PXYHist" || fPXYDistSource == "pxyhist" ||
+	fPXYDistSource == "pxyHist") {
       if (!fPXYHistFile.empty()) {
 
 	std::string fname;
@@ -246,6 +270,7 @@ namespace emph {
 	  std::cerr << "Could not find beam (px/pz,py/pz) histogram \"" << fPXYHistName << "\"" << std::endl;
 	  std::abort();
 	}
+	fPXYHist->SetDirectory(0);
       }
       else {
 	std::cerr << "Missing (px/pz,py/pz) histogram file name in the fhicl config!"
@@ -294,57 +319,77 @@ namespace emph {
   void BeamGen::produce(art::Event& evt)
   {
     if ((++fEvtCount)%1000 == 0)
-      std::cout << "Event " << fEvtCount << std::endl;
-    
-    TLorentzVector pos;    
+    std::cout << "Event " << fEvtCount << std::endl;
+
+    TLorentzVector pos;
     pos[2] = fZstart; // units are mm for this      
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
     double pmag = 0;
-    if(fPZDist == "Gauss")pmag = TMath::Abs(rand->Gaus(fPmean,fPsigma));
-    else {
-      if(fPZDist == "flat" || fPZDist == "uniform") 
-        pmag = TMath::Abs(rand->Uniform(fPMin,fPMax));
-      else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
-    }
-
+    if(fPZDist == "Gauss")pmag = TMath::Abs(fRand->Gaus(fPmean,fPsigma));
+    else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(fRand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
+    else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
+    
 //    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
-    
-    double pb[3];
-    double pxpz,pypz;
 
-    // now get beam particle position      
-    if (fXYHist) { // get random position from histogram
-      fXYHist->GetRandom2(pos[0],pos[1]);
-    }
-    else { // get random position from flat or Gaussian distribution
-      if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
-	  fXYDistSource == "flatxy") {
-	pos[0] = (fXmin + rand->Uniform()*(fXmax - fXmin));
-	pos[1] = (fYmin + rand->Uniform()*(fYmax - fYmin));
+    double pb[3];
+    double x = 0., y = 0., pxpz = 0., pypz = 0.;
+
+    // Sliced logic switch
+    if (fPhaseSpaceSource == "Sliced") {
+
+      int x_bin = 0;
+
+      while(true) {
+        x = fXHist1D->GetRandom();
+        x_bin = fXHist1D->FindBin(x);
+
+        auto it = fSlicedHists.find(x_bin);
+        if (it != fSlicedHists.end() && it->second->GetEntries() > 0) {
+          it->second->GetRandom3(y, pypz, pxpz);
+          break;
+        }       
       }
-      else { // default is Gauss
-	//	std::cout << "here 1234" << std::endl;
-	pos[0] = rand->Gaus(fXmean,fXsigma);
-	pos[1] = rand->Gaus(fYmean,fYsigma);
-      }
+
+      pos[0] = x;
+      pos[1] = y;
+
     }
-    
-    if (fPXYHist) {
-      fPXYHist->GetRandom2(pxpz,pypz);
-    }
-    else { // get random position from flat or Gaussian distribution
-      if (fPXYDistSource == "FlatPXY" || fPXYDistSource == "flatPXY" ||
-	  fPXYDistSource == "flatpxy") {
-	pxpz = fPXmin + rand->Uniform()*(fPXmax - fPXmin);
-	pypz = fPYmin + rand->Uniform()*(fPYmax - fPYmin);
+    else { // ORIGINAL LOGIC for "Default" mode
+
+      // now get beam particle position      
+      if (fXYHist) { // get random position from histogram
+        fXYHist->GetRandom2(pos[0],pos[1]);
       }
-      else { // default is Gauss
-	pxpz = rand->Gaus(fPXmean,fPXsigma);
-	pypz = rand->Gaus(fPYmean,fPYsigma);
+      else { // get random position from flat or Gaussian distribution
+        if (fXYDistSource == "FlatXY" || fXYDistSource == "flatXY" ||
+          fXYDistSource == "flatxy") {
+          pos[0] = (fXmin + fRand->Uniform()*(fXmax - fXmin));
+          pos[1] = (fYmin + fRand->Uniform()*(fYmax - fYmin));
+        }
+        else { // default is Gauss
+          pos[0] = fRand->Gaus(fXmean,fXsigma);
+          pos[1] = fRand->Gaus(fYmean,fYsigma);
+        }
       }
-    }
+
+      if (fPXYHist) {
+        fPXYHist->GetRandom2(pxpz,pypz);
+      }
+      else { // get random position from flat or Gaussian distribution
+        if (fPXYDistSource == "FlatPXY" || fPXYDistSource == "flatPXY" ||
+          fPXYDistSource == "flatpxy") {
+          pxpz = fPXmin + fRand->Uniform()*(fPXmax - fPXmin);
+          pypz = fPYmin + fRand->Uniform()*(fPYmax - fPYmin);
+        }
+        else { // default is Gauss
+          pxpz = fRand->Gaus(fPXmean,fPXsigma);
+          pypz = fRand->Gaus(fPYmean,fPYsigma);
+        }
+      }
+    } // --- END of logic switch ---
+
 
     pb[2] = pmag/TMath::Sqrt(1. + pxpz*pxpz + pypz*pypz);
     pb[0] = pxpz*pb[2];
@@ -352,25 +397,24 @@ namespace emph {
 
     double energy = TMath::Sqrt(pmag*pmag + fMass*fMass);
     TLorentzVector mom(pb[0],pb[1],pb[2],energy);
-    
+
     std::unique_ptr<std::vector<simb::MCParticle> > beam(new std::vector<simb::MCParticle>);
-    
+
     // get beam information
     simb::MCParticle mcp(-1,fPID, "");
+ 
     /*
     mf::LogInfo("BeamGen") << pos[0] << "," << pos[1] << "," << pos[2] 
-			   << "\t" << mom[0] << "," << mom[1] << "," 
-			   << mom[2] << std::endl;
+          << "\t" << mom[0] << "," << mom[1] << "," 
+          << mom[2] << std::endl;
     */
-
     mcp.AddTrajectoryPoint(pos, mom);
     beam->push_back(mcp);
-    
-    // now add beam to the event    
-    evt.put(std::move(beam));
 
+    // now add beam to the event
+    evt.put(std::move(beam));
   }
 
   DEFINE_ART_MODULE(BeamGen) 
 
-} // end namespace emph  
+} // end namespace emph

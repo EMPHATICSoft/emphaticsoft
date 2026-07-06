@@ -51,8 +51,8 @@ namespace rb {
     size_t NSpacePoints() const { return spcpt.size(); }
     const rb::SpacePoint* GetSpacePoint(int i) const;
 
-    ROOT::Math::XYZVector PosAt(double z) const;
-    ROOT::Math::XYZVector MomAt(double z) const;
+//    ROOT::Math::XYZVector PosAt(double z) const;
+//    ROOT::Math::XYZVector MomAt(double z) const;
     size_t NPos() const { return posAt.size(); }
     size_t NMom() const { return momAt.size(); }
     ROOT::Math::XYZVector PosAt(size_t i) const { return posAt[i]; }

@@ -330,9 +330,9 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
           if (fVerbosity > 100) std::cout << par << std::endl;
           parCov[0][0] = 16.;
           parCov[1][1] = 16.;
-          parCov[2][2] = 0.1;
-          parCov[3][3] = 0.1;
-          parCov[4][4] = 0.25;
+          parCov[2][2] = 0.2;
+          parCov[3][3] = 0.2;
+          parCov[4][4] = 0.01;
           double zA = trksegPoint.Z()-20.;
           initialState.SetPar(par);
           initialState.SetCov(parCov);
@@ -497,14 +497,14 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
           track.posSSD.push_back(pos);
           track.momSSD.push_back(mom);
         }
-        std::cout << "Beam track momentum: " << beamTrack.mom << std::endl;
+//        std::cout << "Beam track momentum: " << beamTrack.mom << std::endl;
         double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[0]);
-        std::cout << "Reco theta: " << recoTheta << std::endl;
+//        std::cout << "Reco theta: " << recoTheta << std::endl;
         double deltaTheta = recoTheta-trueTheta;
-        std::cout << "Delta theta: " << deltaTheta << std::endl;
+//        std::cout << "Delta theta: " << deltaTheta << std::endl;
         fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
 
-        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstSmoothed.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
+//        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstSmoothed.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
 //        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstFiltered.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
 
 /*

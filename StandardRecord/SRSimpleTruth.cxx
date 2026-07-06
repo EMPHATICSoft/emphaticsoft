@@ -26,6 +26,12 @@ namespace caf
       G4trkId = -1;
       pdgCode = 0;
       process = "unknown";
+      
+      de = -1.;
+      station = -1;
+      plane = -1;
+      sensor = -1;
+      strip = -1;
   }
 
 }

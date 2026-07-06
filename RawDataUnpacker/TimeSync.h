@@ -159,41 +159,20 @@
 		// Check that percentOverlap is less than 1 and that we are checking for at least 1 overlapping sample
 		if(child.size() * percentOverlap < 1 || percentOverlap > 1) return {2*N_compare, 2*N_compare, 0, 0};
 
-		// iterate over whole setup until we find enough overlapping events
+		std::vector<int64_t> dt = calcDifferences<int64_t>(grandfather, child);
+		std::tie(N_occur, timeOffset)  = findOffset(dt, timeUncertainty);
 
-		{ uint64_t maxOccur = 0;
-
-			//for(size_t startSample = 0; startSample < grandfather.size()-N_compare; startSample++) {
-			for(size_t startSample = 0; startSample < grandfather.size()-2*N_compare; startSample+=N_compare) {
-				auto begin = grandfather.begin() + startSample;
-				std::vector<T> father(begin, begin+2*N_compare);
-				std::vector<int64_t> dt = calcDifferences<int64_t>(father, child);
-
-				auto [N_occur, offset]  = findOffset(dt, timeUncertainty);
-
-				if(N_occur >= percentOverlap * N_compare) { // found enough overlapping events!
-					maxOccur = N_occur;
-					timeOffset = offset;
-					index = startSample; // sets index of last synced event to the front of the last synced set
-					break;
-					if(maxOccur < N_occur) { // tries to get highest number of occurrences
-						maxOccur = N_occur;
-						timeOffset = offset;
-						index = startSample;
-					}
-				}
-			}
-			N_occur = maxOccur;
+		if(N_occur < percentOverlap * N_compare || N_occur > N_compare) {
+			// did NOT find enough overlapping events!
+			return {0, N_compare-1, 0, 0};
 		}
 
 		for( auto &timeStamp : child ) // offsets all of the child timestamps
 			timeStamp += timeOffset;
 
-		auto begin = grandfather.begin() + index;
-		std::vector<T> father(begin, begin+2*N_compare);
-		auto [fIndex, cIndex] = indexOfLastSync(father, child, timeUncertainty);
+		auto [gIndex, cIndex] = indexOfLastSync(grandfather, child, timeUncertainty);
 
-		return { index+fIndex, cIndex, N_occur, timeOffset };
+		return { gIndex, cIndex, N_occur, timeOffset };
 	}
 /***********************************************************************************************
   Returns the indices of CHILD that synchronize with that event of GRANDFATHER
@@ -203,7 +182,7 @@
 		std::vector<int> mask;
 
 		// Do the xcorrelation
-		size_t N_compare=20; // Number of events to compare
+		size_t N_compare=30; // Number of events to compare
 
 		// Sets overlap percentage to the appropriate value for syncing
 		double percentOverlap = 1.0*child.size()/grandfather.size();
@@ -212,7 +191,9 @@
 		std::vector<int64_t> grandCalibrate(begin, grandfather.end());
 
 		begin = child.begin();
-		std::vector<int64_t> childCalibrate(begin, begin + 10*N_compare);
+		auto end = child.end();
+		if(child.size() > 10*N_compare) end = begin + 10*N_compare;
+		std::vector<int64_t> childCalibrate(begin, end);
 
 		auto [aIndex, bIndex, calibrateOccur, calibrateOffset] = calibrateXcorr(grandCalibrate, childCalibrate, percentOverlap, timeUncertainty);
 
@@ -226,83 +207,34 @@
 			child[isync] += calibrateOffset;
 
 		// begin primary syncs
-		while(aIndex < grandfather.size() - 2*10*N_compare && bIndex < child.size() - 2*10*N_compare) {
+		while(aIndex < grandfather.size() - N_compare && bIndex < child.size() - N_compare) {
 			auto begin = grandfather.begin() + aIndex;
-			std::vector<int64_t> grandSync(begin, begin + N_compare);
+			//std::vector<int64_t> grandSync(begin, begin + N_compare);
+			std::vector<int64_t> grandSync(begin, grandfather.end());
 
 			begin = child.begin() + bIndex;
 
 			std::vector<int64_t> childSync(begin, begin + N_compare);
-			std::vector<int64_t> dt = calcDifferences<int64_t>(grandSync, childSync);
-			auto [N_occur, timeOffset]  = findOffset(dt, timeUncertainty);
-			auto [fIndex, cIndex] = indexOfLastSync(grandSync, childSync, timeUncertainty);
-			if(N_occur >= percentOverlap * N_compare) {
-				for(size_t isync = bIndex; isync < child.size(); ++isync)
-					child[isync] += timeOffset;
-				// increment indices of the two datasets
-				aIndex+=fIndex + 1;
-				bIndex+=cIndex + 1;
+			auto [fIndex, cIndex, N_occur, timeOffset] = calibrateXcorr(grandSync, childSync, percentOverlap, timeUncertainty);
+			for(size_t isync = bIndex; isync < child.size(); ++isync)
+				child[isync] += timeOffset;
+
+			// increment indices of the two datasets
+			aIndex+=fIndex;
+			bIndex+=cIndex;
 #ifdef VERBOSE
-				std::cout << "[ Synchronization ] completed\n";
-				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")\n";
+			std::cout << "[ Synchronization ] completed\n";
+			std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")\n";
 #endif
-				{ // Auto-synchronize Routine
+			if(N_occur >= percentOverlap * N_compare) { // Auto-synchronize Routine
 				// Continue through synchronization until events aren't capable of aligning
 #ifdef VERBOSE
-					std::cout << "[Auto-synchronization]\n";
+				std::cout << "[Auto-synchronization]\n";
 #endif
-					while(std::llabs(grandfather[aIndex] - child[bIndex]) <= timeUncertainty) {
-						if(aIndex >= grandfather.size() - N_compare || bIndex >= child.size() - N_compare) break;
-						aIndex++; bIndex++;
-					}
+				while(std::llabs(grandfather[aIndex] - child[bIndex]) <= timeUncertainty/10) {
+					aIndex++; bIndex++;
+					if(aIndex >= grandfather.size() - N_compare || bIndex >= child.size() - N_compare) break;
 				}
-			} else { // recalibrate if failed to get N_occur high enough
-#ifdef VERBOSE
-				std::cout << "[ Synchronization ] failed; beginning Recalibration\n";
-				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << timeOffset << ")\n";
-#ifdef INTERACTIVE
-				std::cout << "Press any key to continue" << std::endl;
-				{char x; std::cin >> x;}
-#endif
-#endif
-
-				// Swap grandfather role for calibration depending on who's timestamp is further ahead
-				// set up new grandfather
-				auto begin = child.begin() + bIndex;
-				if(grandfather[aIndex] < child[bIndex])
-					begin = grandfather.begin() + aIndex;
-				auto end = child.end();
-				if(grandfather[aIndex] < child[bIndex])
-					end = grandfather.end();
-				std::vector<int64_t> grandResync(begin, end);
-
-				// set up new child
-				if(grandfather[aIndex] < child[bIndex]) {
-					begin = child.begin() + bIndex;
-				} else {
-					begin = grandfather.begin() + aIndex;
-				}
-				std::vector<int64_t> childSync(begin, begin + 10*N_compare);
-				auto [fIndex, cIndex, N_occur, recalibrationOffset] = calibrateXcorr(grandResync, childSync, percentOverlap, timeUncertainty);
-
-				for(size_t isync = bIndex; isync < child.size(); ++isync) {
-					if(grandfather[aIndex] < child[bIndex])
-						child[isync] += recalibrationOffset;
-					else
-						child[isync] -= recalibrationOffset;
-				}
-
-				if(grandfather[aIndex] < child[bIndex]) {
-					aIndex+=fIndex + 1;
-					bIndex+=cIndex + 1;
-				} else {
-					aIndex+=cIndex + 1;
-					bIndex+=fIndex + 1;
-				}
-#ifdef VERBOSE
-				std::cout << "[ Recalibration ] completed\n";
-				std::cout << "(" << aIndex << ", " << bIndex << ", "  << N_occur << ", " << recalibrationOffset << ")" << std::endl;
-#endif
 			}
 		}
 #ifdef VERBOSE
@@ -312,8 +244,28 @@
 		{char x; std::cin >> x;}
 #endif
 #endif
-
 		mask = indexOfMatch(grandfather, child, timeUncertainty);
+		{ // Ignore a few events at the beginning/end
+			size_t ignore = 0;
+			for(size_t i = 0; i < mask.size(); ++i) {
+				if(mask[i] != -1) {
+					mask[i] = -1;
+					++ignore;
+					if(ignore == N_compare/2) break;
+				}
+			}
+			ignore = 0;
+			// Note: this had an issue when stopping condition was i >= 0
+			// This was due to the type size_t overflowing instead of going below 0
+			// Using i < mask.size() since size_t overflows to above mask.size()
+			for(size_t i = mask.size()-1; i < mask.size(); --i) {
+				if(mask[i] != -1) {
+					mask[i] = -1;
+					++ignore;
+					if(ignore == N_compare/2) break;
+				}
+			}
+		}
 		return mask;
 	}
 #endif

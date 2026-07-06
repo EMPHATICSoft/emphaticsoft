@@ -18,7 +18,12 @@ namespace caf
     SRBeamTrack(const SRTrack& t);
     virtual ~SRBeamTrack();
 
-    SRSimpleTruth truth;
+    //SRSimpleTruth truth;
+    std::vector<SRSimpleTruth> truth;
+
+    //SRTrackSegment sgmnt
+//    std::vector<SRTrackSegment> sgmnt; // vector of track segments
+//    void Add(SRTrackSegment& ts){ sgmnt.push_back(ts); };
 
     virtual void setDefault();
   };

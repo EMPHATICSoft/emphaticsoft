@@ -367,7 +367,7 @@
      <fraction n="1" ref="Carbon"/>
    </material>
  
-   <material formula="Be" name="BeTarget">
+   <material formula="Be" name="Be">
      <D value="1.85"/>
      <fraction n="1" ref="Beryllium"/>
    </material>

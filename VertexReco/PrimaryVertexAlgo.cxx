@@ -43,28 +43,24 @@ namespace emph {
     if (trks.size() == 2) {
  
       vtx.pos = (trks[1].posTrgt+trks[0].posTrgt)/2.;
-      //      vtx.pos.SetZ(-99999.);
-//      vtx.trkIdx.push_back(0);
       vtx.sectrkIdx.push_back(1);
 
-//      auto trkMom = trks[1].momTrgt;
-//      trkMom.SetZ(-1.*trkMom.Z());
-      auto a = trks[0].momTrgt.Cross(-1*trks[1].momTrgt);
-//      auto a = trks[0].momTrgt.Cross(trkMom);
-      double dot = a.Dot(a);
+      auto n = trks[0].momTrgt.Cross(trks[1].momTrgt);
+      double dot = n.Dot(n);
 
       if (dot == 0) {
-	std::cout<<"Uh oh, tracks are _exactly_ parallel!"<<std::endl;
-	return false;
+      	std::cout<<"Uh oh, tracks are _exactly_ parallel!"<<std::endl;
+	      return false;
       }
 
       auto ab = trks[1].posTrgt - trks[0].posTrgt;
-      auto b = ab.Cross(trks[1].momTrgt);
+      double t0 = ab.Cross(trks[1].momTrgt).Dot(n) / dot;
+      double t1 = ab.Cross(trks[0].momTrgt).Dot(n) / dot;
 
-      double t = b.Dot(a) / dot;
-      vtx.pos = trks[1].posTrgt + t*trks[1].momTrgt;
-//      std::cout << "vtx.pos = " << vtx.pos << std::endl;
-
+      auto p0 = trks[0].posTrgt + t0 * trks[0].momTrgt;
+      auto p1 = trks[1].posTrgt + t1 * trks[1].momTrgt;
+      vtx.pos = (p0 + p1) / 2.;
+      
     }
     else {
       Vector3d b(0.,0.,0.);
