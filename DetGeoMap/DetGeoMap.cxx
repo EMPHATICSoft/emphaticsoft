@@ -63,20 +63,33 @@ namespace emph {
       st->LocalToMother(tx1,tx0);
       T->LocalToMaster(tx0,x1);
 
-//      std::cout << "SSD(" << station << "," << plane << "," << sensor << ") is at z=" << x0[2] << std::endl;
-
       rb::LineSegment temp_ls(x0,x1);
       ls = temp_ls;
-      //      std::cout << "(U,V) = (" << ls.U() << "," << ls.V() << ")" << std::endl;
-      //      ls.SetX0(x0);
-      //      ls.SetX1(x1);	  
       ls.SetSSDStation(station);
       ls.SetSSDPlane(plane);
       ls.SetSSDSensor(sensor);
 
-      //      std::cout << ls << std::endl;
       return true;
       
+    }
+
+    bool DetGeoMap::IsPointOnDetector(int station, int sensor, int plane, double* x0) {
+      const emph::geo::SSDStation* st = fGeo->GetSSDStation(station);
+      const emph::geo::Plane* pln = st->GetPlane(plane);
+      const emph::geo::Detector* sd = pln->SSD(sensor);
+
+      double tx0[3];
+      double tx1[3];
+
+      auto T = fAlign->SSDMatrix(station,plane,sensor);
+      T->MasterToLocal(x0,tx0);
+      st->MotherToLocal(tx0,tx1);
+      sd->MotherToLocal(tx1, x0);
+    
+      if (std::abs(x0[0]) >= (sd->Width()/2) || std::abs(x0[1]) >= (sd->Height())) {
+        return false;
+      }
+      return true;
     }
 
     bool DetGeoMap::SSDClusterToLineSegment(const rb::SSDCluster& cl, rb::LineSegment& ls)
