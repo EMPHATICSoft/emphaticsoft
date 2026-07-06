@@ -87,16 +87,8 @@ namespace emph {
     int chi2lessthan5_2 = 0;
     int chi2lessthan5_3 = 0;
 
-    TH1D* masked_strips;
-    int fStrip;
-
-    TH1D* dist;
     std::vector<std::vector<std::vector<TH1D*>>> min_dist;
-
-    TH2D* estXYHist;
     std::vector<std::vector<std::vector<TH2D*>>> est_pos;
-
-    TH2D* sph;
     
     double best_x_pos = 10000.0;
     double best_y_pos = 10000.0;
@@ -185,41 +177,6 @@ namespace emph {
   void emph::MakeTrackSegmentsForEfficiency::beginJob()
   {
     std::cerr << "Starting MakeTrackSegmentsForEfficiency" << std::endl;
-
-    art::ServiceHandle<art::TFileService> tfs;
-    //spacepoint = tfs->make<TTree>("spacepoint", "");
-    //spacepoint->Branch("run", &run, "run/I");
-    //spacepoint->Branch("subrun", &subrun, "subrun/I");
-    //spacepoint->Branch("event",  &event, "event/I");
-    //spacepoint->Branch("chi2",   &chi2,   "chi2/I");
-
-    //std::string distTitleStr = "Point to line distance " 
-      //+ std::to_string(fMaskedStation) + "/"
-      //+ std::to_string(fMaskedPlane) + "/"
-      //+ std::to_string(fMaskedSensor);
-    //dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
-    //dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
-    //dist->SetTitle(distTitleStr.c_str());
-
-    //masked_strips = tfs->make<TH1D>("masked_strips", "Number of hits per strip", 640, 0, 639);
-    //masked_strips->GetXaxis()->SetTitle("Strip Number");
-
-    //std::string estTitleStr = "Estimated Position " 
-    //  + std::to_string(fMaskedStation) + "/" 
-    //  + std::to_string(fMaskedPlane) + "/" 
-    //  + std::to_string(fMaskedSensor);
-    //estXYHist = tfs->make<TH2D>("xyHist", "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
-    //estXYHist->GetXaxis()->SetTitle("Estimated X (mm)");
-    //estXYHist->GetYaxis()->SetTitle("Estimated Y (mm)");
-    //estXYHist->SetTitle(estTitleStr.c_str());
-    //estXYHist->SetOption("COLZ");
-    //estXYHist->SetStats(0);
-
-    //sph = tfs->make<TH2D>("sph", "Position (Masked Station)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    //sph->GetXaxis()->SetTitle("X (mm)");
-    //sph->GetYaxis()->SetTitle("Y (mm)");
-    //sph->SetOption("COLZ");
-    //sph->SetStats(0);
   }
 
   //......................................................................
@@ -305,8 +262,6 @@ namespace emph {
               ->GetPlane(fMaskedPlane)
               ->SSD(fMaskedSensor)
               ->Pos().Z();
-            
-            bool hit_in_masked = false;
 
             fMakePlots = true;
             if (fMakePlots) {
@@ -350,7 +305,6 @@ namespace emph {
                         clust.Plane() == fMaskedPlane &&
                         clust.Sensor() == fMaskedSensor) {
                       maskClustAndSegs(dgm, clust, lineseg_tmp);
-                      hit_in_masked = true;
                     } else {
                       if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
                         linesegv->push_back(linesegments.back());
@@ -385,7 +339,6 @@ namespace emph {
 
                     for (auto sp : spv) {
                       spacepointv->push_back(sp);
-                      //if (hit_in_masked && sp.Station() == fMaskedStation) { sph->Fill(sp.Pos()[0], sp.Pos()[1]); }
                     }
         
                     // Reconstructed hits
@@ -438,10 +391,6 @@ namespace emph {
                       }
                     }
                   
-                    if (hit_in_masked) {
-                      fStrip = all_cl_group[fMaskedStation][fMaskedPlane].back()->AvgStrip();
-                    }
-
                     if (smallest_min_dist != 10000.0) {            
                       double x0[3] = {best_x_pos, best_y_pos, masked_zpos};
                       bool on_detect = true;
