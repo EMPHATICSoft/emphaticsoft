@@ -65,11 +65,6 @@ namespace rb {
   {
     if (fU != 0 || fV != 0 || fAlpha != 0) {
       double d = fU * x0.X() + fV * x0.Y();
-      if (fSSDStation == 4 && fSSDPlane == 1) {
-        std::cout << "Station 4, Plane 1: \td = " << d << std::endl;
-        std::cout << "fU = " << fU << ", x = " << x << std::endl;
-        std::cout << "fUV = " << fV << ", y = " << y << std::endl;
-      }
       return fU * x + fV * y - d;
     }
 

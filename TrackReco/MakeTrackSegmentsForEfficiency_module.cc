@@ -62,7 +62,7 @@ namespace emph {
   class MakeTrackSegmentsForEfficiency : public art::EDProducer {
   public:
     explicit MakeTrackSegmentsForEfficiency(fhicl::ParameterSet const& pset);
-    ~MakeTrackSegmentsForEfficiency() {};
+    ~MakeTrackSegmentsForEfficiency();
 
     void produce(art::Event& evt);
     void reconfigure(const fhicl::ParameterSet& pset);
@@ -91,16 +91,12 @@ namespace emph {
     int fStrip;
 
     TH1D* dist;
+    std::vector<std::vector<std::vector<TH1D*>>> min_dist;
 
     TH2D* estXYHist;
 
-    TH2D* largeEst;
-    TH2D* normEst;
-
     TH2D* sph;
-
-    TTree* norm_dist;
-    TTree* large_dist;
+    
     double best_x_pos = 10000.0;
     double best_y_pos = 10000.0;
 
@@ -117,7 +113,7 @@ namespace emph {
     std::vector<rb::LineSegment> all_linesegments;
     std::vector<std::vector<std::vector<const rb::SSDCluster*>>> all_cl_group;
     std::vector<std::vector<std::vector<const rb::LineSegment*>>> all_ls_group;
-    int masked_zpos = 0;
+    double masked_zpos = 0;
 
     std::map<int, std::map<std::pair<int, int>, int>> clustMapAtLeastOne;
 
@@ -126,8 +122,8 @@ namespace emph {
     int hasclusters = 0;
     int usableclust = 0;
     int sps = 0;
-    size_t nPlanes;
-    size_t nStations;
+    int nPlanes;
+    int nStations;
 
     // fcl parameters
     bool fCheckClusters;
@@ -163,12 +159,24 @@ namespace emph {
   }
 
   //......................................................................
+
+  MakeTrackSegmentsForEfficiency::~MakeTrackSegmentsForEfficiency()
+  {
+    //======================================================================
+    // Clean up any memory allocated by your module
+    //======================================================================
+  }
+
+  //......................................................................
   void MakeTrackSegmentsForEfficiency::beginRun(art::Run& run)
   {
     art::ServiceHandle<emph::geo::GeometryService> geo;
-    auto emgeo = geo->Geo();
+    geo::Geometry* emgeo = geo->Geo();
+
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
+
+    min_dist.resize(nStations, std::vector<std::vector<TH1D*>>(nPlanes, std::vector<TH1D*>(2, nullptr)));
   }
 
   //......................................................................
@@ -177,77 +185,39 @@ namespace emph {
     std::cerr << "Starting MakeTrackSegmentsForEfficiency" << std::endl;
 
     art::ServiceHandle<art::TFileService> tfs;
-    spacepoint = tfs->make<TTree>("spacepoint", "");
-    spacepoint->Branch("run", &run, "run/I");
-    spacepoint->Branch("subrun", &subrun, "subrun/I");
-    spacepoint->Branch("event",  &event, "event/I");
-    spacepoint->Branch("chi2",   &chi2,   "chi2/I");
+    //spacepoint = tfs->make<TTree>("spacepoint", "");
+    //spacepoint->Branch("run", &run, "run/I");
+    //spacepoint->Branch("subrun", &subrun, "subrun/I");
+    //spacepoint->Branch("event",  &event, "event/I");
+    //spacepoint->Branch("chi2",   &chi2,   "chi2/I");
 
-    std::string sensor_num = std::to_string(fMaskedStation) + "_"
-      + std::to_string(fMaskedPlane) + "_"
-      + std::to_string(fMaskedSensor);
+    //std::string distTitleStr = "Point to line distance " 
+      //+ std::to_string(fMaskedStation) + "/"
+      //+ std::to_string(fMaskedPlane) + "/"
+      //+ std::to_string(fMaskedSensor);
+    //dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
+    //dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
+    //dist->SetTitle(distTitleStr.c_str());
 
-    std::string norm_x = "norm_x_" + sensor_num;
-    std::string norm_y = "norm_y_" + sensor_num;
-    norm_dist = tfs->make<TTree>("dist", "");
-    norm_dist->Branch(norm_x.c_str(), &best_x_pos, "x_pos/D");
-    norm_dist->Branch(norm_y.c_str(), &best_y_pos, "y_pos/D");
+    //masked_strips = tfs->make<TH1D>("masked_strips", "Number of hits per strip", 640, 0, 639);
+    //masked_strips->GetXaxis()->SetTitle("Strip Number");
 
-    std::string large_x = "large_x_" + sensor_num;
-    std::string large_y = "large_y_" + sensor_num;
-    large_dist = tfs->make<TTree>("large dist", "");
-    large_dist->Branch(large_x.c_str(), &best_x_pos, "x_pos/D");
-    large_dist->Branch(large_y.c_str(), &best_y_pos, "y_pos/D");
+    //std::string estTitleStr = "Estimated Position " 
+    //  + std::to_string(fMaskedStation) + "/" 
+    //  + std::to_string(fMaskedPlane) + "/" 
+    //  + std::to_string(fMaskedSensor);
+    //estXYHist = tfs->make<TH2D>("xyHist", "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
+    //estXYHist->GetXaxis()->SetTitle("Estimated X (mm)");
+    //estXYHist->GetYaxis()->SetTitle("Estimated Y (mm)");
+    //estXYHist->SetTitle(estTitleStr.c_str());
+    //estXYHist->SetOption("COLZ");
+    //estXYHist->SetStats(0);
 
-    std::string distTitleStr = "Point to line distance " 
-      + std::to_string(fMaskedStation) + "/"
-      + std::to_string(fMaskedPlane) + "/"
-      + std::to_string(fMaskedSensor);
-    dist = tfs->make<TH1D>("min_dist", "Distance point to line segment", 100, -10, 10);
-    dist->GetXaxis()->SetTitle("Distance between prediction and actual (mm) ");
-    dist->SetTitle(distTitleStr.c_str());
-
-    masked_strips = tfs->make<TH1D>("masked_strips", "Number of hits per strip", 640, 0, 639);
-    masked_strips->GetXaxis()->SetTitle("Strip Number");
-
-    std::string estTitleStr = "Estimated Position " 
-      + std::to_string(fMaskedStation) + "/" 
-      + std::to_string(fMaskedPlane) + "/" 
-      + std::to_string(fMaskedSensor);
-    estXYHist = tfs->make<TH2D>("xyHist", "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
-    estXYHist->GetXaxis()->SetTitle("Estimated X (mm)");
-    estXYHist->GetYaxis()->SetTitle("Estimated Y (mm)");
-    estXYHist->SetTitle(estTitleStr.c_str());
-    estXYHist->SetOption("COLZ");
-    estXYHist->SetStats(0);
-
-    std::string largeEstTitleStr = "Estimated Position (Large Distance) " 
-      + std::to_string(fMaskedStation) + "/"
-      + std::to_string(fMaskedPlane) + "/"
-      + std::to_string(fMaskedSensor);
-    largeEst = tfs->make<TH2D>("largeXYHist", "Estimated Position (Large Distance)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    largeEst->GetXaxis()->SetTitle("Estimated X (mm)");
-    largeEst->GetYaxis()->SetTitle("Estimated Y (mm)");
-    largeEst->SetTitle(largeEstTitleStr.c_str());
-    largeEst->SetOption("COLZ");
-    largeEst->SetStats(0);
-
-    std::string normEstTitleStr = "Estimated Position (Normal Distance) "
-      + std::to_string(fMaskedStation) + "/"
-      + std::to_string(fMaskedPlane) + "/"
-      + std::to_string(fMaskedSensor);
-    normEst = tfs->make<TH2D>("normXYHist", "Estimated Position (Normal Distance)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    normEst->GetXaxis()->SetTitle("Estimated X (mm)");
-    normEst->GetYaxis()->SetTitle("Estimated Y (mm)");
-    normEst->SetTitle(normEstTitleStr.c_str());
-    normEst->SetOption("COLZ");
-    normEst->SetStats(0);
-
-    sph = tfs->make<TH2D>("sph", "Position (Masked Station)",  50, -100.0, 100.0, 50, -100.0, 100.0);
-    sph->GetXaxis()->SetTitle("X (mm)");
-    sph->GetYaxis()->SetTitle("Y (mm)");
-    sph->SetOption("COLZ");
-    sph->SetStats(0);
+    //sph = tfs->make<TH2D>("sph", "Position (Masked Station)",  50, -100.0, 100.0, 50, -100.0, 100.0);
+    //sph->GetXaxis()->SetTitle("X (mm)");
+    //sph->GetYaxis()->SetTitle("Y (mm)");
+    //sph->SetOption("COLZ");
+    //sph->SetStats(0);
   }
 
   //......................................................................
@@ -260,227 +230,229 @@ namespace emph {
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 1: " << chi2lessthan5_1 << std::endl;
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 2: " << chi2lessthan5_2 << std::endl;
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 3: " << chi2lessthan5_3 << std::endl;
-    std::cout << "MakeTrackSegmentsForEfficiency: Masked Station/Plane/Sensor: " << fMaskedStation << "/" << fMaskedPlane << "/" << fMaskedSensor << std::endl;
   }
 
   //......................................................................
   void emph::MakeTrackSegmentsForEfficiency::produce(art::Event& evt)
   {
-    tsv.clear();
-    spv.clear();
-
-    std::unique_ptr<std::vector<rb::LineSegment>> linesegv(new std::vector<rb::LineSegment>);
-    std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
-    std::unique_ptr<std::vector<rb::TrackSegment>> tracksegmentv(new std::vector<rb::TrackSegment>);
-
-    run = evt.run();
-    subrun = evt.subRun();
-    event = evt.event();
-    fEvtNum = evt.id().event();
-
-    art::ServiceHandle<emph::geo::GeometryService> geo;
-    auto emgeo = geo->Geo();
-
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
 
     art::ServiceHandle<emph::AlignService> align;
     auto emalign = align->GetAlign();
 
-    // Determine predicted (x,y) positions of masked sensor
-    masked_zpos = emgeo
-      ->GetSSDStation(fMaskedStation)
-      ->GetPlane(fMaskedPlane)
-      ->SSD(fMaskedSensor)
-      ->Pos().Z();
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    geo::Geometry* emgeo = geo->Geo();
 
-    bool hit_in_masked = false;
+    art::ServiceHandle<art::TFileService> tfs;
 
-    fMakePlots = true;
-    if (fMakePlots) {
-      if (fCheckClusters) {
-        auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
-        if (!hasclusters) {
-          mf::LogError("HasSSDClusters") << "No clusters found in event but CheckClusters set to true!";
-          abort();
-        }
-      }
+    std::unique_ptr<std::vector<rb::LineSegment>> linesegv(new std::vector<rb::LineSegment>);
+    std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
+    std::unique_ptr<std::vector<rb::TrackSegment>> tracksegmentv(new std::vector<rb::TrackSegment>);
 
-      art::Handle<std::vector<rb::SSDCluster>> clustH;
+    for (int fMaskedStation = 2; fMaskedStation < nStations; fMaskedStation++) {
+      auto station = emgeo->GetSSDStation(fMaskedStation);
+      int num_planes = station->NPlanes();
 
-      try {
-        evt.getByLabel(fClusterLabel, clustH);
-        evts++;
+        for (int fMaskedPlane = 0; fMaskedPlane < num_planes; fMaskedPlane++) {
+          auto plane = station->GetPlane(fMaskedPlane);
+          int num_sensors = plane->NSSDs();
 
-        bool skip_evt = false;
-        if (!clustH->empty()) {
-          hasclusters++;
-          std::vector<rb::TrackSegment> masked_region_segments;
-          rb::LineSegment lineseg_tmp = rb::LineSegment();
+          for (int fMaskedSensor = 0; fMaskedSensor < num_sensors; fMaskedSensor++) {
+            if (min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor] == nullptr) {
+              std::string desc_str = "h" + std::to_string(fMaskedStation) + "_"
+                + std::to_string(fMaskedPlane) + "_"
+                + std::to_string(fMaskedSensor);
 
-          std::set<int> interacted;
-          
-          linesegments.reserve(clustH->size());
-          all_linesegments.reserve(clustH->size());
- 
-          for (size_t idx = 0; idx < clustH->size(); ++idx) {
-            const rb::SSDCluster& clust = (*clustH)[idx];
-
-            int plane_id = (clust.Station() * 10) + clust.Plane();
-            if (interacted.find(plane_id) != interacted.end()) {
-              skip_evt = true;
-              break;
+              min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH1D>(desc_str.c_str(), "Distance point to line segment", 101, -1, 1);
+              min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Distance Point to Line (mm)");
             }
 
-            interacted.insert(plane_id);
-
-            if (clust.Station() == fMaskedStation &&
-                clust.Plane() == fMaskedPlane &&
-                clust.Sensor() == fMaskedSensor) {
-              maskClustAndSegs(dgm, clust, lineseg_tmp);
-              hit_in_masked = true;
-            } else {
-              if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
-                linesegv->push_back(linesegments.back());
-              } else {
-                std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;
-              }
-            }
-          }
-
-          if (clusters.size() < fMaxClust && !skip_evt) {
-            usableclust++;
-
-            resizeGroups();
-
-            for (size_t i = 0; i < clustMapAtLeastOne.size(); i++) {
-              for (auto j : clustMapAtLeastOne[i]) {
-                mf::LogDebug("MakeTrackSegmentsForEfficiency") << "Station " << i << ": " << j.second;
-              }
-            }
-
-            mf::LogDebug("MakeTrackSegmentsForEfficiency") << "........";
-            
-            groupClusters();
-
-            groupLinesegs(false);
-            groupLinesegs(true);
-
-            // Instance of single track algorithm
-            emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
-
-            // Make reconstructed hits
-            spv = algo.MakeHits(ls_group, cl_group);
-
-            for (auto sp : spv) {
-              spacepointv->push_back(sp);
-              if (hit_in_masked && sp.Station() == fMaskedStation) { sph->Fill(sp.Pos()[0], sp.Pos()[1]); }
-            }
- 
-            // Reconstructed hits
-            if (spv.size() > 0) {
-              updateSps(emgeo);
-
-              // Form lines and fill plots 
-              std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-              fillPlots(tstmp1, rb::Region::kRegion1);
-
-              std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
-              fillPlots(tstmp2, rb::Region::kRegion2);
-
-              std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
-              fillPlots(tstmp3, rb::Region::kRegion3);
-
-              for (auto ts : tsv)
-                tracksegmentv->push_back(ts);
-
-              masked_region_segments = tstmp2;
-              if (masked_zpos < emgeo->GetTarget()->Pos()(2)) {
-                masked_region_segments = tstmp1;
-              } else if (masked_zpos > emgeo->MagnetDSZPos()) {
-                masked_region_segments = tstmp3;
-              }
-            }
-
+            tsv.clear();
+            spv.clear(); 
+            ls_group.clear();
+            all_ls_group.clear();
+            cl_group.clear();
+            linesegments.clear();
+            all_linesegments.clear();
+            clusters.clear();
+            all_clusters.clear();
+            clustMapAtLeastOne.clear();
             sp1.clear();
             sp2.clear();
             sp3.clear();
-          } // clust < fMaxClust
-          
-          // Create line segment groups for ALL (including masked line segments)
-          if (all_clusters.size() < fMaxClust && !skip_evt) {
-            best_x_pos = 10000.0;
-            best_y_pos = 10000.0;
-            double smallest_min_dist = 10000.0;
 
-            for (auto ts : masked_region_segments) {
-              double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
-              double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
-              double deltaz = masked_zpos - ts.pointA.Z();
-              double x_pos = (gradxz * deltaz) + ts.pointA.X();
-              double y_pos = (gradyz * deltaz) + ts.pointA.Y();
-              double min_dist = 10000.0;
+            run = evt.run();
+            subrun = evt.subRun();
+            event = evt.event();
+            fEvtNum = evt.id().event();
 
-              if (all_ls_group[fMaskedStation][fMaskedPlane].size() > 0) {
-                min_dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);            
-              }
-    
-              if (hit_in_masked) {
-                fStrip = all_cl_group[fMaskedStation][fMaskedPlane].back()->AvgStrip();
-                masked_strips->Fill(fStrip);
-              } 
-         
-              if (std::abs(min_dist) < std::abs(smallest_min_dist)) {
-                best_x_pos = x_pos;
-                best_y_pos = y_pos;
-                smallest_min_dist = min_dist;
-              }
-            }
-           
-            if (smallest_min_dist != 10000.0) {            
-              estXYHist->Fill(best_x_pos, best_y_pos);
-              dist->Fill(smallest_min_dist);
+            // Determine predicted (x,y) positions of masked sensor
+            masked_zpos = emgeo
+              ->GetSSDStation(fMaskedStation)
+              ->GetPlane(fMaskedPlane)
+              ->SSD(fMaskedSensor)
+              ->Pos().Z();
+            
+            bool hit_in_masked = false;
 
-              if (std::abs(smallest_min_dist) > 0.5) {
-                large_dist->Fill();
-                largeEst->Fill(best_x_pos, best_y_pos);
-              } else {
-                norm_dist->Fill();
-                normEst->Fill(best_x_pos, best_y_pos);
+            fMakePlots = true;
+            if (fMakePlots) {
+              if (fCheckClusters) {
+                auto hasclusters = evt.getHandle<std::vector<rb::SSDCluster>>(fClusterLabel);
+                if (!hasclusters) {
+                  mf::LogError("HasSSDClusters") << "No clusters found in event but CheckClusters set to true!";
+                  abort();
+                }
               }
-              auto ls = all_ls_group[fMaskedStation][fMaskedPlane][0];
-              //if (std::abs(smallest_min_dist) < 0.75) {
-                //std::cout << "PointA: (" << ls->x0.X() << "," << ls->x0.Y() << "," << ls->x0.Z() << ")" << std::endl;
-                //std::cout << "PointB: (" << ls->x1.X() << "," << ls->x1.Y() << ","  << ls->x1.Z() << ")" << std::endl;
-                //std::cout << "Predicted Position: (" << best_x_pos << "," << best_y_pos << "," << masked_zpos << ")" << std::endl;
-                //std::cout << "Distance: " <<  smallest_min_dist << std::endl;
-              //}
-            }
+
+              art::Handle<std::vector<rb::SSDCluster>> clustH;
+
+              try {
+                evt.getByLabel(fClusterLabel, clustH);
+                evts++;
+
+                bool skip_evt = false;
+                if (!clustH->empty()) {
+                  hasclusters++;
+                  std::vector<rb::TrackSegment> masked_region_segments;
+                  rb::LineSegment lineseg_tmp = rb::LineSegment();
+
+                  std::set<int> interacted;
+                  
+                  linesegments.reserve(clustH->size());
+                  all_linesegments.reserve(clustH->size());
+        
+                  for (size_t idx = 0; idx < clustH->size(); ++idx) {
+                    const rb::SSDCluster& clust = (*clustH)[idx];
+
+                    int plane_id = (clust.Station() * 10) + clust.Plane();
+                    if (interacted.find(plane_id) != interacted.end()) {
+                      skip_evt = true;
+                      break;
+                    }
+
+                    interacted.insert(plane_id);
+
+                    if (clust.Station() == fMaskedStation &&
+                        clust.Plane() == fMaskedPlane &&
+                        clust.Sensor() == fMaskedSensor) {
+                      maskClustAndSegs(dgm, clust, lineseg_tmp);
+                      hit_in_masked = true;
+                    } else {
+                      if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
+                        linesegv->push_back(linesegments.back());
+                      } else {
+                        std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;
+                      }
+                    }
+                  }
+
+                  resizeGroups();
+                  if (clusters.size() < fMaxClust && !skip_evt) {
+                    usableclust++;
+
+                    for (size_t i = 0; i < clustMapAtLeastOne.size(); i++) {
+                      for (auto j : clustMapAtLeastOne[i]) {
+                        mf::LogDebug("MakeTrackSegmentsForEfficiency") << "Station " << i << ": " << j.second;
+                      }
+                    }
+
+                    mf::LogDebug("MakeTrackSegmentsForEfficiency") << "........";
+                    
+                    groupClusters();
+
+                    groupLinesegs(false);
+                    groupLinesegs(true);
+
+                    // Instance of single track algorithm
+                    emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
+
+                    // Make reconstructed hits
+                    spv = algo.MakeHits(ls_group, cl_group);
+
+                    for (auto sp : spv) {
+                      spacepointv->push_back(sp);
+                      //if (hit_in_masked && sp.Station() == fMaskedStation) { sph->Fill(sp.Pos()[0], sp.Pos()[1]); }
+                    }
+        
+                    // Reconstructed hits
+                    if (spv.size() > 0) {
+                      updateSps(emgeo);
+
+                      // Form lines and fill plots 
+                      std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
+                      fillPlots(tstmp1, rb::Region::kRegion1);
+
+                      std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
+                      fillPlots(tstmp2, rb::Region::kRegion2);
+
+                      std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
+                      fillPlots(tstmp3, rb::Region::kRegion3);
+
+                      for (auto ts : tsv)
+                        tracksegmentv->push_back(ts);
+
+                      masked_region_segments = tstmp2;
+                      if (masked_zpos < emgeo->GetTarget()->Pos()(2)) {
+                        masked_region_segments = tstmp1;
+                      } else if (masked_zpos > emgeo->MagnetDSZPos()) {
+                        masked_region_segments = tstmp3;
+                      }
+                    }
+                  } // clust < fMaxClust
+                  
+                  //Create line segment groups for ALL (including masked line segments)
+                  if (all_clusters.size() < fMaxClust && !skip_evt) {
+                    best_x_pos = 10000.0;
+                    best_y_pos = 10000.0;
+                    double smallest_min_dist = 10000.0;
+
+                    for (auto ts : masked_region_segments) {
+                      double gradxz = (ts.pointA.X() - ts.pointB.X()) / (ts.pointA.Z() - ts.pointB.Z());
+                      double gradyz = (ts.pointA.Y() - ts.pointB.Y()) / (ts.pointA.Z() - ts.pointB.Z());
+                      double deltaz = masked_zpos - ts.pointA.Z();
+                      double x_pos = (gradxz * deltaz) + ts.pointA.X();
+                      double y_pos = (gradyz * deltaz) + ts.pointA.Y();
+
+                      if (all_ls_group[fMaskedStation][fMaskedPlane].size() > 0) {
+                        double dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
+                        
+                        if (std::abs(dist) < std::abs(smallest_min_dist)) {
+                          best_x_pos = x_pos;
+                          best_y_pos = y_pos;
+                          smallest_min_dist = dist;
+                        }            
+                      }
+                    }
+                  
+                    if (hit_in_masked) {
+                      fStrip = all_cl_group[fMaskedStation][fMaskedPlane].back()->AvgStrip();
+                    }
+
+                    if (smallest_min_dist != 10000.0) {            
+                      double x0[3] = {best_x_pos, best_y_pos, masked_zpos};
+                      if (dgm->Map()->IsPointOnDetector(fMaskedStation, fMaskedSensor, fMaskedPlane, x0)) {
+                        min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(smallest_min_dist);
+                      } else {
+                        if (fMaskedStation == 5 || fMaskedStation == 6 || fMaskedStation == 7) {
+                          int otherSensor = (fMaskedSensor + 1) % 2;
+                          if (dgm->Map()->IsPointOnDetector(fMaskedStation, otherSensor, fMaskedPlane, x0)) {
+                            min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(smallest_min_dist);
+                          }
+                        }
+                      }
+                    }
+
+                  }
+                }
+              } catch (...) {   }
+
+              //spacepoint->Fill();
+              chi2.clear();
           }
-
-          ls_group.clear();
-          all_ls_group.clear();
-          cl_group.clear();
-          linesegments.clear();
-          all_linesegments.clear();
-          clusters.clear();
-          all_clusters.clear();
-          clustMapAtLeastOne.clear();
         }
-      } catch (...) {
-        ls_group.clear();
-        all_ls_group.clear();
-        cl_group.clear();
-        linesegments.clear();
-        all_linesegments.clear();
-        clusters.clear();
-        all_clusters.clear();
-        clustMapAtLeastOne.clear();
       }
-
-      spacepoint->Fill();
-      chi2.clear();
     }
-
     evt.put(std::move(linesegv));
     evt.put(std::move(spacepointv));
     evt.put(std::move(tracksegmentv));
@@ -609,7 +581,7 @@ namespace emph {
     cl_group.resize(nStations);
     ls_group.resize(nStations);
 
-    for (size_t i = 0; i < nStations; i++) {
+    for (int i = 0; i < nStations; i++) {
       cl_group[i].resize(nPlanes);
       ls_group[i].resize(nPlanes);
     }
@@ -617,7 +589,7 @@ namespace emph {
     all_cl_group.resize(nStations);
     all_ls_group.resize(nStations);
 
-    for (size_t i = 0; i < nStations; i++) {
+    for (int i = 0; i < nStations; i++) {
       all_cl_group[i].resize(nPlanes);
       all_ls_group[i].resize(nPlanes);
     }
