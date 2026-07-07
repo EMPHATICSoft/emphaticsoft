@@ -72,7 +72,7 @@ namespace emph {
 
   private:
     void groupClusters();
-    void groupLinesegs(bool all);
+    void groupLinesegs();
     void maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     bool readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     void resizeGroups();
@@ -89,7 +89,8 @@ namespace emph {
 
     std::vector<std::vector<std::vector<TH1D*>>> min_dist;
     std::vector<std::vector<std::vector<TH2D*>>> est_pos;
-    
+    std::vector<std::vector<std::vector<TH2D*>>> est_pos_full;   
+ 
     double best_x_pos = 10000.0;
     double best_y_pos = 10000.0;
 
@@ -171,6 +172,7 @@ namespace emph {
 
     min_dist.resize(nStations, std::vector<std::vector<TH1D*>>(nPlanes, std::vector<TH1D*>(2, nullptr)));
     est_pos.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr)));
+    est_pos_full.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr)));
   }
 
   //......................................................................
@@ -182,6 +184,27 @@ namespace emph {
   //......................................................................
   void emph::MakeTrackSegmentsForEfficiency::endJob()
   {
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    geo::Geometry* emgeo = geo->Geo();
+
+    for (int fMaskedStation = 2; fMaskedStation < nStations; fMaskedStation++) {
+      auto station = emgeo->GetSSDStation(fMaskedStation);
+      int num_planes = station->NPlanes();
+
+      for (int fMaskedPlane = 0; fMaskedPlane < num_planes; fMaskedPlane++) {
+        auto plane = station->GetPlane(fMaskedPlane);
+        int num_sensors = plane->NSSDs();
+
+        for (int fMaskedSensor = 0; fMaskedSensor < num_sensors; fMaskedSensor++) {
+          if (est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor] != nullptr) {
+            est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->Divide(est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]);
+          }
+        }
+      }
+    }
+
+
+
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events: " << evts << std::endl;
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with clusters: " << hasclusters << std::endl;
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with less than " << fMaxClust << " clusters: " << usableclust << std::endl;
@@ -235,6 +258,13 @@ namespace emph {
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetYaxis()->SetTitle("Estimated Y (mm)");
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetTitle(estTitleStr.c_str());
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetOption("COLZ");
+
+              std::string fest_desc_str = "d" + desc_str;
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH2D>(fest_desc_str.c_str(), "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Estimated X (mm)");
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetYaxis()->SetTitle("Estimated Y (mm)");
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetTitle(estTitleStr.c_str());
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetOption("COLZ");
             }
 
             tsv.clear();
@@ -250,6 +280,7 @@ namespace emph {
             sp1.clear();
             sp2.clear();
             sp3.clear();
+            chi2.clear();
 
             run = evt.run();
             subrun = evt.subRun();
@@ -328,8 +359,7 @@ namespace emph {
                     
                     groupClusters();
 
-                    groupLinesegs(false);
-                    groupLinesegs(true);
+                    groupLinesegs();
 
                     // Instance of single track algorithm
                     emph::SingleTrackAlgo algo = emph::SingleTrackAlgo(fEvtNum, nStations, nPlanes);
@@ -404,18 +434,20 @@ namespace emph {
                           } else { on_detect = false; }
                         } else { on_detect = false; }
                       }
-                      
-                      if (on_detect && std::abs(smallest_min_dist) <= 0.2) {
-                        est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos);
+                     
+                      if (on_detect) {
+                        est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos); 
+                        if (std::abs(smallest_min_dist) <= 0.2) {
+                          est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos);
+                        }
                       }
+
                     }
 
                   }
                 }
               } catch (...) {   }
 
-              //spacepoint->Fill();
-              chi2.clear();
           }
         }
       }
@@ -472,27 +504,26 @@ namespace emph {
     } 
   }
 
-  void emph::MakeTrackSegmentsForEfficiency::groupLinesegs(bool all)
+  void emph::MakeTrackSegmentsForEfficiency::groupLinesegs()
   {
-    if (all) {
-      for (size_t i = 0; i < all_clusters.size(); i++) {
-        int plane = all_clusters[i]->Plane();
-        int station = all_clusters[i]->Station();
+    for (size_t i = 0; i < all_clusters.size(); i++) {
+      int plane = all_clusters[i]->Plane();
+      int station = all_clusters[i]->Station();
 
-        if (station < 0 || static_cast<size_t>(station) >= all_ls_group.size()) continue;
-        if (plane < 0 || static_cast<size_t>(plane) >= all_ls_group[station].size()) continue;
+      if (station < 0 || static_cast<size_t>(station) >= all_ls_group.size()) continue;
+      if (plane < 0 || static_cast<size_t>(plane) >= all_ls_group[station].size()) continue;
         
-        all_ls_group[station][plane].push_back(&all_linesegments[i]);
-      }
-    } else {
-      for (size_t i = 0; i < clusters.size(); i++) {
-        int plane   = clusters[i]->Plane();
-        int station = clusters[i]->Station();
+      all_ls_group[station][plane].push_back(&all_linesegments[i]);
+    }
 
-        if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
-        if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
-        ls_group[station][plane].push_back(&linesegments[i]);
-      }
+    for (size_t i = 0; i < clusters.size(); i++) {
+      int plane   = clusters[i]->Plane();
+      int station = clusters[i]->Station();
+
+      if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
+      if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;       
+
+      ls_group[station][plane].push_back(&linesegments[i]);
     }
   }   
 
