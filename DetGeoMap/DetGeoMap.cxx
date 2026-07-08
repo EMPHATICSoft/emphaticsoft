@@ -73,7 +73,7 @@ namespace emph {
       
     }
 
-    bool DetGeoMap::IsPointOnDetector(int station, int sensor, int plane, double* x0) {
+    bool DetGeoMap::IsPointOnDetector(int station, int plane, int sensor, double* x0) {
       const emph::geo::SSDStation* st = fGeo->GetSSDStation(station);
       const emph::geo::Plane* pln = st->GetPlane(plane);
       const emph::geo::Detector* sd = pln->SSD(sensor);
@@ -86,7 +86,7 @@ namespace emph {
       st->MotherToLocal(tx0,tx1);
       sd->MotherToLocal(tx1, x0);
     
-      if (std::abs(x0[0]) >= (sd->Width()/2) || std::abs(x0[1]) >= (sd->Height())) {
+      if (std::abs(x0[0]) >= (sd->Width()/2) || std::abs(x0[1]) >= (sd->Height()/2)) {
         return false;
       }
       return true;
