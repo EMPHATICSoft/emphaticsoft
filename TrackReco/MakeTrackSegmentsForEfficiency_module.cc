@@ -197,7 +197,7 @@ namespace emph {
 
         for (int fMaskedSensor = 0; fMaskedSensor < num_sensors; fMaskedSensor++) {
           if (est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor] != nullptr) {
-            est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->Divide(est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]);
+            est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->Divide(est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]);
           }
         }
       }
@@ -231,7 +231,7 @@ namespace emph {
     std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
     std::unique_ptr<std::vector<rb::TrackSegment>> tracksegmentv(new std::vector<rb::TrackSegment>);
 
-    for (int fMaskedStation = 2; fMaskedStation < nStations; fMaskedStation++) {
+    for (int fMaskedStation = 0; fMaskedStation < nStations; fMaskedStation++) {
       auto station = emgeo->GetSSDStation(fMaskedStation);
       int num_planes = station->NPlanes();
 
@@ -248,7 +248,7 @@ namespace emph {
               min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH1D>(desc_str.c_str(), "Distance point to line segment", 101, -1, 1);
               min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Distance Point to Line (mm)");
 
-              std::string est_desc_str = "e" + desc_str;
+              std::string est_desc_str = "d" + desc_str;
               std::string estTitleStr = "Estimated Position "
                 + std::to_string(fMaskedStation) + "/"
                 + std::to_string(fMaskedPlane) + "/"
@@ -258,12 +258,18 @@ namespace emph {
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetYaxis()->SetTitle("Estimated Y (mm)");
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetTitle(estTitleStr.c_str());
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetOption("COLZ");
+              est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetStats(0);
+              est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetMinimum(0.5);
 
-              std::string fest_desc_str = "d" + desc_str;
-              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH2D>(fest_desc_str.c_str(), "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
-              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Estimated X (mm)");
-              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetYaxis()->SetTitle("Estimated Y (mm)");
-              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetTitle(estTitleStr.c_str());
+              std::string fest_desc_str = "f" + desc_str;
+              std::string divideTitleStr = "Divided Position "
+                + std::to_string(fMaskedStation) + "/"
+                + std::to_string(fMaskedPlane) + "/"
+                + std::to_string(fMaskedSensor);
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH2D>(fest_desc_str.c_str(), "Divided Positions", 50, -100.0, 100.0, 50, -100.0, 100.0);
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("X (mm)");
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetYaxis()->SetTitle("Y (mm)");
+              est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetTitle(divideTitleStr.c_str());
               est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetOption("COLZ");
             }
 
@@ -424,24 +430,13 @@ namespace emph {
                     if (smallest_min_dist != 10000.0) {
                       double x0[3] = {best_x_pos, best_y_pos, masked_zpos};
                       bool on_detect = true;
-                      if (dgm->Map()->IsPointOnDetector(fMaskedStation, fMaskedSensor, fMaskedPlane, x0)) {
+                      if (dgm->Map()->IsPointOnDetector(fMaskedStation, fMaskedPlane, fMaskedSensor, x0)) {
                         min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(smallest_min_dist);
-                      } else {
-                        if (fMaskedStation == 5 || fMaskedStation == 6 || fMaskedStation == 7) {
-                          int otherSensor = (fMaskedSensor + 1) % 2;
-                          if (dgm->Map()->IsPointOnDetector(fMaskedStation, otherSensor, fMaskedPlane, x0)) {
-                            min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(smallest_min_dist);
-                          } else { on_detect = false; }
-                        } else { on_detect = false; }
-                      }
-
-                      if (on_detect) {
                         est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos);
-                        if (std::abs(smallest_min_dist) <= 0.2) {
+                        if (std::abs(smallest_min_dist) <= 0.5) {
                           est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos);
                         }
                       }
-
                     }
 
                   }
