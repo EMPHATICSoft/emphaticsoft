@@ -390,7 +390,7 @@ namespace emph
 	      // Store the result. NOTE: rb::ARing has no radius-error field, so
 	      // fitR_err currently lives only in the QA tree, not in the product.
 	      ring.SetRadius(float(fitR));
-	      float center[3] = {float(fitX), float(fitY), 0};
+	      float center[3] = {float(fitX), float(fitY), float(fdz)};
 	      ring.SetCenter(center);
 	      ring.SetNHits(arich_clusters->at(max_cluster).NDigits());
 	      double theta_air = atan(ring.Radius()/fdz);

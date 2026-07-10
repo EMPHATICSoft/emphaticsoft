@@ -45,7 +45,6 @@ namespace caf
       srARing.P_kaon =  arings[ringId].GetP_P_Kaon();
       srARing.P_proton =  arings[ringId].GetP_Proton();     
 
-	std::cout << "test " <<  srARing.P_proton << std::endl;
       srARing.SetCenter(center);      
 
      } // end for ringId
