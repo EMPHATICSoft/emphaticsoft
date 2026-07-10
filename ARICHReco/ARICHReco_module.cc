@@ -91,7 +91,10 @@ namespace emph {
     double PDzpos;
     TString PDfile;
     bool fFillTree;
-   
+  
+    double fdxArich;
+    double fdyArich; 
+  
     TRandom3* rand_gen;
  
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
@@ -119,6 +122,8 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
     fModelPath = std::string(pset.get<std::string>("ModelPath"));
+    fdxArich = double(pset.get<double>("ArichXshift",0));
+    fdyArich = double(pset.get<double>("ArichYshift",0));
 
       //ARICH RECO UTILS STUFF
       PDfile  =  std::string(pset.get< std::string >("PD_file"));
@@ -236,12 +241,11 @@ void ARICHReco::produce(art::Event& evt)
           mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
         }
 
-        float finalx = posx + (1920 - posz) * px/pz;
-        float finaly = posy + (1920 - posz) * py/pz;
+        float finalx = posx + (1920 - posz) * px/pz + fdxArich;
+        float finaly = posy + (1920 - posz) * py/pz + fdyArich;
 
-
-	float track_crossing_x = posx + (2220 - posz) * px/pz;
-  	float track_crossing_y = posy + (2220 - posz) * py/pz;	
+	float track_crossing_x = posx + (2110 - posz) * px/pz + fdxArich;
+  	float track_crossing_y = posy + (2110 - posz) * py/pz + fdyArich;	
 	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
 	
 //	std::cout << "vertex (" << posx << ", " << posy << ", " << posz << ") final pos ( "<< track_crossing_x << ", " << track_crossing_y << ")"<< std::endl;        	
