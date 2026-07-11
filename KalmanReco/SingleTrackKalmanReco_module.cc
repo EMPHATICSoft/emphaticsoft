@@ -208,6 +208,7 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 		std::cerr << "WARNING: No sim::SSDHits found, cannot print true SSD hit info." << std::endl;
 		fUseTruth = false;
 		}
+	}
 
 	double pztrue = 0.;
 	double pttrue = 0.;
@@ -247,187 +248,188 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 
 		if (fUseTruth) {
 			for (const auto& hit : *simHitH) {
-				if (hit.Station() == 2 && hit.Plane() == 0 &&
-					TMath::Abs(hit.PId()) != 11) { // look for non-electron hit in 1st plane of 2nd station, which is the just downstream of the target
-						double ztrue = hit.Z();
-						double pxtrue = hit.Px();
-						double pytrue = hit.Py();
-						pztrue = hit.Pz();
-						pttrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue);
-						fTruePtVsPzAll->Fill(pztrue,pttrue);
-						ptrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue + pztrue*pztrue);
-						if (fVerbosity) {
-							std::cout << "True |p| = " << ptrue << ", pz = " << pztrue << ", pt = " << pttrue << std::endl;
-						}
-						momPostTarget.SetXYZ(pxtrue, pytrue, pztrue);
-						break;
+				// look for non-electron hit in 1st plane of 2nd station, which is the just downstream of the target
+				if (hit.Station() == 2 && hit.Plane() == 0 && TMath::Abs(hit.PId()) != 11) {
+					double ztrue = hit.Z();
+					double pxtrue = hit.Px();
+					double pytrue = hit.Py();
+					pztrue = hit.Pz();
+					pttrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue);
+					fTruePtVsPzAll->Fill(pztrue,pttrue);
+					ptrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue + pztrue*pztrue);
+					if (fVerbosity) {
+						std::cout << "True |p| = " << ptrue << ", pz = " << pztrue << ", pt = " << pttrue << std::endl;
 					}
-				}
-				for (const auto& hit : *simHitH) {
-					if (hit.Station() == 1 && hit.Plane() == 1 &&
-						TMath::Abs(hit.PId()) != 11) { // look for non-electron hit 2nd plane of 2nd station, which is the just upstream of the target
-						xtrue = hit.X();
-						ytrue = hit.Y();
-						fXYDistAll->Fill(xtrue,ytrue);
-						momPreTarget.SetXYZ(hit.Px(), hit.Py(), hit.Pz());
-						break;
-					}
-				}
-			}
-
-			double trueTheta = ROOT::Math::VectorUtil::Angle(momPreTarget,momPostTarget);
-			if (fVerbosity)
-				std::cout << "True theta: " << trueTheta << std::endl;
-			fKTracker->Clear();
-			fTruePtVsPzSel->Fill(pztrue,pttrue);
-			fXYDistSel->Fill(xtrue,ytrue);
-
-			art::ServiceHandle<emph::geo::GeometryService> geo;
-			auto emgeo = geo->Geo();
-
-			// now create vector of KLSMeasurements to reconstruct a track.	 Will ignore linesegments from SSDs upstream of the target
-			for (size_t i=0; i<lsH->size(); ++i) {
-				auto & ls = (*lsH)[i];
-				auto station = emgeo->GetSSDStation(ls.SSDStation());
-				if (fVerbosity>100)
-					std::cout << ls << std::endl;
-					// check that measurement is downstream of the target
-				if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) {
-					kalman::KLSMeasurement meas(ls);
-					if (fVerbosity>100)
-						std::cout << meas << std::endl;
-					fKTracker->AddMeasurement(meas);
-					if (i>0) {
-						auto & prev_ls = (*lsH)[i-1];
-						int ssdId1 = prev_ls.SSDStation()*10 + prev_ls.SSDPlane();
-						int ssdId2 = ls.SSDStation()*10 + ls.SSDPlane();
-						double radLength = emgeo->GetRadLength(ssdId1, ssdId2);
-						if (fVerbosity)
-							std::cout << "Adding radiation length of " << radLength << " between SSD " << ssdId1 << " and SSD " << ssdId2 << std::endl;
-						fKTracker->AddRadLength(radLength);
-					}
-				}
-			}
-
-			// create initial state for Kalman filter based on track segment in region between target and magnet.
-			// Will set large uncertainties on this initial state to allow filter to converge.
-			KStateVec par;
-			KStateCov parCov;
-			kalman::KState initialState;
-			for (size_t itrkseg=0; itrkseg<trkSegH->size(); ++itrkseg) {
-				auto & trkseg = (*trkSegH)[itrkseg];
-				if (trkseg.region == caf::Region::kRegion2) {
-					auto trksegPoint = trkseg.pointA;
-					if (trkseg.pointB.Z() < trkseg.pointA.Z()) {
-						trksegPoint = trkseg.pointB;
-					}
-
-					par[0] = trksegPoint.X();
-					par[1] = trksegPoint.Y();
-					par[2] = (trkseg.pointA.X()-trkseg.pointB.X())/(trkseg.pointA.Z()-trkseg.pointB.Z());
-					par[3] = (trkseg.pointA.Y()-trkseg.pointB.Y())/(trkseg.pointA.Z()-trkseg.pointB.Z());
-					par[4] = 0.2;	 // assume 5 GeV/c particle for initial state, will be updated by filter
-					if (fVerbosity > 100) std::cout << par << std::endl;
-					parCov[0][0] = 16.;
-					parCov[1][1] = 16.;
-					parCov[2][2] = 0.1;
-					parCov[3][3] = 0.1;
-					parCov[4][4] = 0.25;
-					double zA = trksegPoint.Z()-20.;
-					initialState.SetPar(par);
-					initialState.SetCov(parCov);
-					initialState.SetZ(zA);
-					if (fVerbosity > 100) std::cout << "Setting initial state from track segment: " << initialState << std::endl;
-					fKTracker->SetInitialState(initialState);
+					momPostTarget.SetXYZ(pxtrue, pytrue, pztrue);
 					break;
 				}
 			}
+			for (const auto& hit : *simHitH) {
+				if (hit.Station() == 1 && hit.Plane() == 1 &&
+					TMath::Abs(hit.PId()) != 11) { // look for non-electron hit 2nd plane of 2nd station, which is the just upstream of the target
+					xtrue = hit.X();
+					ytrue = hit.Y();
+					fXYDistAll->Fill(xtrue,ytrue);
+					momPreTarget.SetXYZ(hit.Px(), hit.Py(), hit.Pz());
+					break;
+				}
+			}
+		}
 
-			int iIter = 1;
-			auto filteredStates = fKTracker->GetFilteredStates();
-			auto smoothed = fKTracker->GetSmoothedStates();
-			// Run the Kalman filter.	 We iterate: run forward, then smooth backward, update the initial state with the smoothed result after each iteration to allow for convergence.
-			for (; iIter <= fNInterations && isOk; ++iIter) {
-				if (fVerbosity > 0)
-					std::cout << "\n=== Running Kalman Filter Iteration " << iIter << "/" << fNInterations << " ===" << std::endl;
-				fKTracker->ClearFilteredStates();
+		double trueTheta = ROOT::Math::VectorUtil::Angle(momPreTarget,momPostTarget);
+		if (fVerbosity)
+			std::cout << "True theta: " << trueTheta << std::endl;
+
+		fKTracker->Clear();
+		fTruePtVsPzSel->Fill(pztrue,pttrue);
+		fXYDistSel->Fill(xtrue,ytrue);
+
+		art::ServiceHandle<emph::geo::GeometryService> geo;
+		auto emgeo = geo->Geo();
+
+		// now create vector of KLSMeasurements to reconstruct a track.	 Will ignore linesegments from SSDs upstream of the target
+		for (size_t i=0; i<lsH->size(); ++i) {
+			auto & ls = (*lsH)[i];
+			auto station = emgeo->GetSSDStation(ls.SSDStation());
+			if (fVerbosity>100)
+				std::cout << ls << std::endl;
+			// check that measurement is downstream of the target
+			if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) {
+				kalman::KLSMeasurement meas(ls);
+				if (fVerbosity>100)
+					std::cout << meas << std::endl;
+				fKTracker->AddMeasurement(meas);
+				if (i>0) {
+					auto & prev_ls = (*lsH)[i-1];
+					int ssdId1 = prev_ls.SSDStation()*10 + prev_ls.SSDPlane();
+					int ssdId2 = ls.SSDStation()*10 + ls.SSDPlane();
+					double radLength = emgeo->GetRadLength(ssdId1, ssdId2);
+					if (fVerbosity)
+						std::cout << "Adding radiation length of " << radLength << " between SSD " << ssdId1 << " and SSD " << ssdId2 << std::endl;
+					fKTracker->AddRadLength(radLength);
+				}
+			}
+		}
+
+		// create initial state for Kalman filter based on track segment in region between target and magnet.
+		// Will set large uncertainties on this initial state to allow filter to converge.
+		KStateVec par;
+		KStateCov parCov;
+		kalman::KState initialState;
+		for (size_t itrkseg=0; itrkseg<trkSegH->size(); ++itrkseg) {
+			auto & trkseg = (*trkSegH)[itrkseg];
+			if (trkseg.region == caf::Region::kRegion2) {
+				auto trksegPoint = trkseg.pointA;
+				if (trkseg.pointB.Z() < trkseg.pointA.Z()) {
+					trksegPoint = trkseg.pointB;
+				}
+
+				par[0] = trksegPoint.X();
+				par[1] = trksegPoint.Y();
+				par[2] = (trkseg.pointA.X()-trkseg.pointB.X())/(trkseg.pointA.Z()-trkseg.pointB.Z());
+				par[3] = (trkseg.pointA.Y()-trkseg.pointB.Y())/(trkseg.pointA.Z()-trkseg.pointB.Z());
+				par[4] = 0.2;	 // assume 5 GeV/c particle for initial state, will be updated by filter
+				if (fVerbosity > 100) std::cout << par << std::endl;
+				parCov[0][0] = 16.;
+				parCov[1][1] = 16.;
+				parCov[2][2] = 0.1;
+				parCov[3][3] = 0.1;
+				parCov[4][4] = 0.25;
+				double zA = trksegPoint.Z()-20.;
+				initialState.SetPar(par);
+				initialState.SetCov(parCov);
+				initialState.SetZ(zA);
+				if (fVerbosity > 100) std::cout << "Setting initial state from track segment: " << initialState << std::endl;
 				fKTracker->SetInitialState(initialState);
-				if (!fKTracker->RunForwardFilter()) {
-					std::cerr << "Forward filter failed!" << std::endl;
-					isOk = false;
-				}
-				if (!isOk) break;
+				break;
+			}
+		}
 
-				if (fVerbosity > 0) {
-					filteredStates = fKTracker->GetFilteredStates();
-					std::cout << "\n=== Final Forward Filtered State Iteration " << iIter << " ===" << std::endl;
-					std::cout << filteredStates[1] << std::endl;
-				}
-				// Run the smoother
-				if (!fKTracker->RunSmoother()) {
-					std::cerr << "Smoother failed!" << std::endl;
-					isOk = false;
-				}
+		int iIter = 1;
+		auto filteredStates = fKTracker->GetFilteredStates();
+		auto smoothed = fKTracker->GetSmoothedStates();
+		// Run the Kalman filter.	 We iterate: run forward, then smooth backward, update the initial state with the smoothed result after each iteration to allow for convergence.
+		for (; iIter <= fNInterations && isOk; ++iIter) {
+			if (fVerbosity > 0)
+				std::cout << "\n=== Running Kalman Filter Iteration " << iIter << "/" << fNInterations << " ===" << std::endl;
+			fKTracker->ClearFilteredStates();
+			fKTracker->SetInitialState(initialState);
+			if (!fKTracker->RunForwardFilter()) {
+				std::cerr << "Forward filter failed!" << std::endl;
+				isOk = false;
+			}
+			if (!isOk) break;
 
-				if (!isOk) break;
-
-				smoothed = fKTracker->GetSmoothedStates();
-				if (fVerbosity > 0) {
-					std::cout << "\n=== Final Smoothed State for iteration " << iIter << " ===" << std::endl;
-					std::cout << smoothed.back() << std::endl;
-					std::cout << "\n=== First Smoothed State for iteration " << iIter << " ===" << std::endl;
-					std::cout << smoothed.front() << std::endl;
-				}
-
-				// Update initial state for next iteration with smoothed state from this iteration to allow for convergence
-/*				initialState.SetPar(0, smoothed.front().GetPar()[0]);
-				initialState.SetPar(1, smoothed.front().GetPar()[1]);
-*/
-				initialState.SetPar(2, smoothed.front().GetPar()[2]);
-				initialState.SetPar(3, smoothed.front().GetPar()[3]);
-				initialState.SetPar(4, smoothed.front().GetPar()[4]);
+			if (fVerbosity > 0) {
+				filteredStates = fKTracker->GetFilteredStates();
+				std::cout << "\n=== Final Forward Filtered State Iteration " << iIter << " ===" << std::endl;
+				std::cout << filteredStates[1] << std::endl;
+			}
+			// Run the smoother
+			if (!fKTracker->RunSmoother()) {
+				std::cerr << "Smoother failed!" << std::endl;
+				isOk = false;
 			}
 
-			std::vector<kalman::KResidual> residuals;
-			auto chi2ndof = fKTracker->CalculateChi2FromSmoothedStates(residuals);
-			double chi2 = chi2ndof.first;
-			int ndof = chi2ndof.second;
-			for (auto & res : residuals) {
-				if (fVerbosity > 0) {
-					std::cout << "Residual (" << res.GetStation() << "," << res.GetPlane() << "): "
-										<< res.GetResidual() << " +/- " << res.GetSigma() << std::endl;
-				}
-				fResidualsVsPlane->Fill(res.GetStation()*10 + res.GetPlane(), res.GetResidual());
-			}
+			if (!isOk) break;
+
 			smoothed = fKTracker->GetSmoothedStates();
 			if (fVerbosity > 0) {
-				std::cout << "\n=== Final Smoothed State ===" << std::endl;
+				std::cout << "\n=== Final Smoothed State for iteration " << iIter << " ===" << std::endl;
 				std::cout << smoothed.back() << std::endl;
-				std::cout << "\n=== First Smoothed State ===" << std::endl;
+				std::cout << "\n=== First Smoothed State for iteration " << iIter << " ===" << std::endl;
 				std::cout << smoothed.front() << std::endl;
 			}
 
-			if (isOk) {
-			// create track from smoothed states
-				rb::Track track;
-				ROOT::Math::XYZVector pos;
-				ROOT::Math::XYZVector mom;
-				auto smoothed = fKTracker->GetSmoothedStates();
-				auto firstSmoothed = smoothed.front();
-				double deltaP = (1./firstSmoothed.GetPar()[4] - ptrue);
-				fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
+			// Update initial state for next iteration with smoothed state from this iteration to allow for convergence
+/*				initialState.SetPar(0, smoothed.front().GetPar()[0]);
+			initialState.SetPar(1, smoothed.front().GetPar()[1]);
+*/
+			initialState.SetPar(2, smoothed.front().GetPar()[2]);
+			initialState.SetPar(3, smoothed.front().GetPar()[3]);
+			initialState.SetPar(4, smoothed.front().GetPar()[4]);
+		}
 
-				// ===== Calculate pulls and store diagnostics =====
-				// Pull = (Reco - True) / σ_reco tells us how many standard deviations
-				// the reconstruction is from the true value. Ideally pulls should be
-				// scattered around 0 with RMS ≈ 1.
+		std::vector<kalman::KResidual> residuals;
+		auto chi2ndof = fKTracker->CalculateChi2FromSmoothedStates(residuals);
+		double chi2 = chi2ndof.first;
+		int ndof = chi2ndof.second;
+		for (auto & res : residuals) {
+			if (fVerbosity > 0) {
+				std::cout << "Residual (" << res.GetStation() << "," << res.GetPlane() << "): "
+									<< res.GetResidual() << " +/- " << res.GetSigma() << std::endl;
+			}
+			fResidualsVsPlane->Fill(res.GetStation()*10 + res.GetPlane(), res.GetResidual());
+		}
+		smoothed = fKTracker->GetSmoothedStates();
+		if (fVerbosity > 0) {
+			std::cout << "\n=== Final Smoothed State ===" << std::endl;
+			std::cout << smoothed.back() << std::endl;
+			std::cout << "\n=== First Smoothed State ===" << std::endl;
+			std::cout << smoothed.front() << std::endl;
+		}
+
+		if (isOk) {
+		// create track from smoothed states
+			rb::Track track;
+			ROOT::Math::XYZVector pos;
+			ROOT::Math::XYZVector mom;
+			auto smoothed = fKTracker->GetSmoothedStates();
+			auto firstSmoothed = smoothed.front();
+			double deltaP = (1./firstSmoothed.GetPar()[4] - ptrue);
+			fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
+
+			// ===== Calculate pulls and store diagnostics =====
+			// Pull = (Reco - True) / σ_reco tells us how many standard deviations
+			// the reconstruction is from the true value. Ideally pulls should be
+			// scattered around 0 with RMS ≈ 1.
 //				auto par = firstSmoothed.GetPar();
 //				auto cov = firstSmoothed.GetCov();
 
-				// Calculate true q/p (charge -1 for antiproton, q/p = charge/momentum)
+			// Calculate true q/p (charge -1 for antiproton, q/p = charge/momentum)
 //				double true_qop = -1.0 / ptrue;	 // negative because PId = -2212 (antiproton)
 
-				// Calculate pulls for each state variable
+			// Calculate pulls for each state variable
 //				double sigma_qop = std::sqrt(cov[4][4]);
 //				double pull_qop = (par[4] - true_qop) / (sigma_qop > 1e-10 ? sigma_qop : 1e-10);
 
@@ -445,49 +447,53 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 //				double true_ty = (trkSegH->size() > 0) ? (*trkSegH)[0].pointA.Y() - (*trkSegH)[0].pointB.Y() / ((*trkSegH)[0].pointA.Z() - (*trkSegH)[0].pointB.Z()) : 0;
 //				double pull_ty = (cov[3][3] > 1e-10) ? (par[3] - true_ty) / std::sqrt(cov[3][3]) : 0;
 
-				// Fill pull histograms
+			// Fill pull histograms
 /*
-				if (!std::isnan(pull_qop) && std::abs(pull_qop) < 1e6) fPullQop->Fill(pull_qop);
-				if (!std::isnan(pull_x) && std::abs(pull_x) < 1e6) fPullX->Fill(pull_x);
-				if (!std::isnan(pull_y) && std::abs(pull_y) < 1e6) fPullY->Fill(pull_y);
-				if (!std::isnan(pull_tx) && std::abs(pull_tx) < 1e6) fPullTx->Fill(pull_tx);
-				if (!std::isnan(pull_ty) && std::abs(pull_ty) < 1e6) fPullTy->Fill(pull_ty);
+			if (!std::isnan(pull_qop) && std::abs(pull_qop) < 1e6) fPullQop->Fill(pull_qop);
+			if (!std::isnan(pull_x) && std::abs(pull_x) < 1e6) fPullX->Fill(pull_x);
+			if (!std::isnan(pull_y) && std::abs(pull_y) < 1e6) fPullY->Fill(pull_y);
+			if (!std::isnan(pull_tx) && std::abs(pull_tx) < 1e6) fPullTx->Fill(pull_tx);
+			if (!std::isnan(pull_ty) && std::abs(pull_ty) < 1e6) fPullTy->Fill(pull_ty);
 */
-				// Get chi2 and ndof
+			// Get chi2 and ndof
 /*
-				auto lastSmoothed = smoothed.back();
-				double chi2 = lastSmoothed.GetChi2();
-				int ndof = lastSmoothed.GetNdf();
-				double chi2_ndof = (ndof > 0) ? chi2 / ndof : 0;
+			auto lastSmoothed = smoothed.back();
+			double chi2 = lastSmoothed.GetChi2();
+			int ndof = lastSmoothed.GetNdf();
+			double chi2_ndof = (ndof > 0) ? chi2 / ndof : 0;
 */
-				fChi2vsNdof->Fill(ndof, chi2);
-				if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
+			fChi2vsNdof->Fill(ndof, chi2);
+			if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
 
-				// Print diagnostics
+			// Print diagnostics
 //				if (fVerbosity > 0) {
 /*					std::cout << "\n=== Track Reconstruction Diagnostics ===" << std::endl;
-					std::cout << "True momentum: " << ptrue << " GeV/c" << std::endl;
-					std::cout << "Reco momentum: " << 1./firstSmoothed.GetPar()[4] << " GeV/c" << std::endl;
-					std::cout << "True q/p: " << true_qop << ", Reco q/p: " << par[4] << std::endl;
-					std::cout << "Pull(q/p) = " << pull_qop << " (sigma = " << sigma_qop << ")" << std::endl;
-					std::cout << "Pull(x) = " << pull_x << ", Pull(y) = " << pull_y << std::endl;
-					std::cout << "Pull(tx) = " << pull_tx << ", Pull(ty) = " << pull_ty << std::endl;
-					std::cout << "Chi2/Ndof = " << chi2 << "/" << ndof << " = " << chi2_ndof << std::endl;
-					std::cout << "Covariance diag: " << std::sqrt(cov[0][0]) << " "
-										<< std::sqrt(cov[1][1]) << " "
-										<< std::sqrt(cov[2][2]) << " "
-										<< std::sqrt(cov[3][3]) << " "
-										<< std::sqrt(cov[4][4]) << std::endl;
-				}
+				std::cout << "True momentum: " << ptrue << " GeV/c" << std::endl;
+				std::cout << "Reco momentum: " << 1./firstSmoothed.GetPar()[4] << " GeV/c" << std::endl;
+				std::cout << "True q/p: " << true_qop << ", Reco q/p: " << par[4] << std::endl;
+				std::cout << "Pull(q/p) = " << pull_qop << " (sigma = " << sigma_qop << ")" << std::endl;
+				std::cout << "Pull(x) = " << pull_x << ", Pull(y) = " << pull_y << std::endl;
+				std::cout << "Pull(tx) = " << pull_tx << ", Pull(ty) = " << pull_ty << std::endl;
+				std::cout << "Chi2/Ndof = " << chi2 << "/" << ndof << " = " << chi2_ndof << std::endl;
+				std::cout << "Covariance diag: " << std::sqrt(cov[0][0]) << " "
+									<< std::sqrt(cov[1][1]) << " "
+									<< std::sqrt(cov[2][2]) << " "
+									<< std::sqrt(cov[3][3]) << " "
+									<< std::sqrt(cov[4][4]) << std::endl;
+			}
 */
 
-//				for (const auto& state : filtered) {
+			// Need to determine first station for the right comparison to beamTrack
+			size_t firstStation = 999999;
+			{ // Pack residuals and position estimates
+				size_t index = 0;
 				for (const auto& resid : residuals) {
-					//track.pullSSD.push_back(resid.GetResidual());
-					track.residuals.push_back(resid.GetResidual());
-					track.uncResiduals.push_back(resid.GetSigma());
-				}
-				for (const auto& state : smoothed) {
+					auto station = resid.GetStation();
+					auto plane = resid.GetPlane();
+					track.pullSSD[station][plane] = resid.GetResidual();
+					track.uncPull[station][plane] = resid.GetSigma();
+
+					const auto& state = smoothed[index++];
 					pos.SetXYZ(state.GetPar()[0], state.GetPar()[1], state.GetZ());
 					double tx = state.GetPar()[2];
 					double ty = state.GetPar()[3];
@@ -496,31 +502,33 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 					double px = tx*pz;
 					double py = ty*pz;
 					mom.SetXYZ(px, py, pz);
-					track.posSSD.push_back(pos);
-					track.momSSD.push_back(mom);
+					track.posSSD[station][plane] = pos;
+					track.momSSD[station][plane] = mom;
+					if(firstStation == 999999) firstStation = station;
 				}
+			}
+			double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[firstStation][0]);
+			double deltaTheta = recoTheta-trueTheta;
+			fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
+			if (fVerbosity){
 				std::cout << "Beam track momentum: " << beamTrack.mom << std::endl;
-				double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[0]);
 				std::cout << "Reco theta: " << recoTheta << std::endl;
-				double deltaTheta = recoTheta-trueTheta;
-				std::cout << "Delta theta: " << deltaTheta << std::endl;
-				fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
-
-				std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstSmoothed.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
-//				std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstFiltered.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
-
+				if(fUseTruth){
+					std::cout << "Delta theta: " << deltaTheta << std::endl;
+					std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstSmoothed.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
+				}
+			}
 /*
-				auto lastSmoothed = smoothed.back();
-				track.chi2 = lastSmoothed.GetChi2();
-				track.ndf = lastSmoothed.GetNdf();
-				std::cout << "Track chi2/ndf: " << track.chi2 << "/" << track.ndf << std::endl;
+			auto lastSmoothed = smoothed.back();
+			track.chi2 = lastSmoothed.GetChi2();
+			track.ndf = lastSmoothed.GetNdf();
+			std::cout << "Track chi2/ndf: " << track.chi2 << "/" << track.ndf << std::endl;
 */
 
-				trackv->push_back(track);
-			} // end if isOk
-		}
-		evt.put(std::move(trackv));
-	}
+			trackv->push_back(track);
+		} // end if isOk
+	} // end if isOk
+	evt.put(std::move(trackv));
 }
 
 } // end namespace emph

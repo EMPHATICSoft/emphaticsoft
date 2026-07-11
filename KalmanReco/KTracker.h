@@ -18,7 +18,7 @@ typedef ROOT::Math::SMatrix<double,5,1> KHMatrixTranspose;
 namespace kalman {
 
   class KTracker{
-    
+
   public:
     KTracker();
     ~KTracker() {};
@@ -30,6 +30,7 @@ namespace kalman {
     const std::vector<KState>& GetFilteredStates() const { return fFiltered_states; }
     const std::vector<KState>& GetSmoothedStates() const { return fSmoothed_states; }
     const KState& GetFinalState() const { return fFiltered_states.back(); }
+	 const std::vector<KLSMeasurement>& GetMeasurements() const { return fMeasurements; }
 
     // Calculate chi2 from smoothed states (independent verification)
     std::pair<double, int> CalculateChi2FromSmoothedStates(std::vector<KResidual>& residuals);
@@ -59,7 +60,7 @@ namespace kalman {
     KStateCov CalculateJacobian( KStateVec& state, double z_start, double z_end);
     // Calculate transport matrix (Jacobian) using RK4, use when in B field
     KStateCov CalculateJacobianRK4( KStateVec& state, double z_start, double z_end);
-    
+
     // Equations of motion: d(state)/dz
     void EquationsOfMotion(KStateVec& state, double z, KStateVec& derivatives, double sgn = 1.0);
 
