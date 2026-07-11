@@ -19,17 +19,17 @@ namespace caf
 
     ROOT::Math::XYZVector vtx;  // (x,y,z)
     ROOT::Math::XYZVector mom; // momentum vector
-    std::vector<double> residuals; // distance from track to line
-    std::vector<double> uncResiduals; // uncertainty on residual
     ROOT::Math::XYZVector posTrgt;
     ROOT::Math::XYZVector momTrgt;
     ROOT::Math::XYZVector posARICH;
     ROOT::Math::XYZVector momARICH;
     ROOT::Math::XYZVector posMagnet;
     ROOT::Math::XYZVector momMagnet;
-    std::vector<ROOT::Math::XYZVector> posSSD;
-    std::vector<ROOT::Math::XYZVector> momSSD;
-    std::vector<double> pullSSD;
+    // 8 stations; 3 planes per station
+    ROOT::Math::XYZVector posSSD[8][3];
+    ROOT::Math::XYZVector momSSD[8][3];
+    double pullSSD[8][3]; // residual distance from track to point in SSD
+    double uncPull[8][3]; // uncertainty on residual
 
     //    SRVector3D mom; // momentum vector
     SRArichID arich; // arich loglikelihooods values
@@ -44,6 +44,7 @@ namespace caf
 
 
     virtual void setDefault();
+    virtual void Clear();
   };
 
 } // end namespace
