@@ -53,7 +53,6 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
-#include "StandardRecord/SRBaseDefs.h"
 
 #include "millepede_ii/Mille.h"
 
@@ -253,7 +252,7 @@ namespace emph {
             auto b = ts.pointB; //TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);
 	    
 	    //	    if (ts.RegLabel() == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.P(); }
-	    if (ts.region == caf::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.mom; }
+	    if (ts.region == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.mom; }
 
 	  // pull = doca between s and ts
             double sensorz = x0.Z();//(2); //s[2];
@@ -264,7 +263,7 @@ namespace emph {
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
 	      //if (ts.RegLabel() == rb::Region::kRegion3){ 
-	      if (ts.region == caf::Region::kRegion2 || ts.region == caf::Region::kRegion3){
+	      if (ts.region == rb::Region::kRegion2 || ts.region == rb::Region::kRegion3){
          	a = a1; 
                 b = b1;
 	      } 
