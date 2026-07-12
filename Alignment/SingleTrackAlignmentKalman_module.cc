@@ -24,6 +24,7 @@
 #include "TMatrixDSymEigen.h"
 #include "TVectorD.h"
 #include "TMath.h"
+#include "Math/VectorUtil.h"
 //#include "TGeoMatrix.h"
 
 // Framework includes
@@ -41,19 +42,16 @@
 
 // EMPHATICSoft includes
 #include "Align/service/AlignService.h"
-#include "ChannelMap/service/ChannelMapService.h"
 #include "Geometry/service/GeometryService.h"
-#include "RecoBase/SSDCluster.h"
+#include "MagneticField/service/MagneticFieldService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
-#include "RecoBase/SpacePoint.h"
-#include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
 #include "RecoUtils/RecoUtils.h"
+#include "KalmanReco/KResidual.h"
+#include "KalmanReco/KTracker.h"
+#include "MCUtils/MCUtils.h"
 #include "Simulation/SSDHit.h"
-#include "Simulation/Particle.h"
-#include "TrackReco/SingleTrackAlgo.h"
-#include "StandardRecord/SRBaseDefs.h"
 
 #include "millepede_ii/Mille.h"
 
@@ -62,10 +60,10 @@ using namespace emph;
 ///package to illustrate how to write modules
 namespace emph {
 	///
-	class SingleTrackAlignment : public art::EDProducer {
+	class SingleTrackAlignmentKalman : public art::EDProducer {
 	public:
-		explicit SingleTrackAlignment(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
-		~SingleTrackAlignment() {};
+		explicit SingleTrackAlignmentKalman(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
+		~SingleTrackAlignmentKalman() {};
 
 		// Optional, read/write access to event
 		void produce(art::Event& evt);
@@ -78,7 +76,6 @@ namespace emph {
 		//      void endSubRun(art::SubRun const&);
 		void beginJob();
 		void endJob();
-		void Pulls(std::vector<rb::TrackSegment> trksegv);
 		void Pulls(rb::Track trk);
 
 	private:
@@ -105,46 +102,87 @@ namespace emph {
 		std::vector<rb::TrackSegment> tsvnom;
 
 		//fcl parameters
-		bool        fCheckLineSeg;
-		std::string fLineSegLabel;
-		std::string fClusterLabel;
-		std::string fTrackSegLabel;
-		std::string fTrackLabel;
 		bool        fUpstream;
 
 		//Millepede stuff
 		Mille* m;
-		std::vector<int> label;
-
-		double targetz;
-		double magnetusz;
-		double magnetdsz;
 
 		art::ServiceHandle<emph::AlignService> emalign;
 		Align* align0 = emalign->GetAlign();
 
-		int re = 1;
+		int record = 1;
 
 		int usingEvent = 0;
+		int fVerbosity;
+		int fNInterations;
+		bool fUseTruth;
+		std::string fTrackSegmentLabel;
+
+		kalman::KTracker* fKTracker;
+
+		TH2D* fTruePtVsPzAll;
+		TH2D* fTruePtVsPzSel;
+		TH2D* fXYDistAll;
+		TH2D* fXYDistSel;
+		TH2D* fDeltaPvsP;
+		TH2D* fDeltaThetavsTheta;
+
+		// Pull and chi2 histograms
+		TH1D* fPullQop;
+		TH1D* fPullX;
+		TH1D* fPullY;
+		TH1D* fPullTx;
+		TH1D* fPullTy;
+		TH2D* fChi2vsNdof;
+		TH1D* fChi2perNdof;
+		TH2D* fResidualsVsPlane;
  };
 
 	//.......................................................................
 
-	emph::SingleTrackAlignment::SingleTrackAlignment(fhicl::ParameterSet const& pset)
+	emph::SingleTrackAlignmentKalman::SingleTrackAlignmentKalman(fhicl::ParameterSet const& pset)
 		: EDProducer{pset},
-		fCheckLineSeg      (pset.get< bool >("CheckLineSeg")),
-		fLineSegLabel      (pset.get< std::string >("LineSegLabel")),
-		fClusterLabel      (pset.get< std::string >("ClusterLabel")),
-		fTrackSegLabel     (pset.get< std::string >("TrackSegLabel")),
-		fTrackLabel        (pset.get< std::string >("TrackLabel")),
-		fUpstream          (pset.get< bool >("Upstream"))
+		fVerbosity (pset.get<int>("Verbosity", 0)),
+		fNInterations (pset.get<int>("NIterations", 1)),
+		fUseTruth (pset.get<bool>("UseTruth", false)),
+		fTrackSegmentLabel (pset.get< std::string >("TrackSegmentLabel"))
 		{
 			//this->produces< std::vector<rb::Track> >();
+			fKTracker = new kalman::KTracker();
+			fKTracker->SetVerbosity(fVerbosity);
+
+			fKTracker->SetRK4Parameters(pset.get<int>("RK4MaxNStep", 800),
+																	pset.get<double>("RK4MaxZStep", 2.0));
+
+			fTruePtVsPzAll = nullptr;
+			fTruePtVsPzSel = nullptr;
+			fXYDistAll = nullptr;
+			fXYDistSel = nullptr;
+			fDeltaPvsP = nullptr;
+			fDeltaThetavsTheta = nullptr;
+
+			art::ServiceHandle<art::TFileService> tfs;
+			fTruePtVsPzAll = tfs->make<TH2D>("hTruePtVsPzAll","All",100,0.5,20.5,100,0.,0.5);
+			fTruePtVsPzSel = tfs->make<TH2D>("hTruePtVsPzSel","Sel",100,0.5,20.5,100,0.,0.5);
+			fXYDistAll = tfs->make<TH2D>("hXYDistAll","All",50,-25.,25.,50,-25.,25.);
+			fXYDistSel = tfs->make<TH2D>("hXYDistSel","Sel",50,-25.,25.,50,-25.,25.);
+			fDeltaPvsP = tfs->make<TH2D>("hDeltaPVsP","#DeltaP vs P",200,0.5,20.5,100,-0.5,0.5);
+			fDeltaThetavsTheta = tfs->make<TH2D>("hDeltaThetaVsTheta","#Delta#Theta vs #Theta",200,0.0,0.02,100,-0.02,0.02);
+
+			// Pull and chi2 histograms
+			fPullQop = tfs->make<TH1D>("hPullQop", "Pull in q/p", 100, -5, 5);
+			fPullX = tfs->make<TH1D>("hPullX", "Pull in x", 100, -5, 5);
+			fPullY = tfs->make<TH1D>("hPullY", "Pull in y", 100, -5, 5);
+			fPullTx = tfs->make<TH1D>("hPullTx", "Pull in tx", 100, -5, 5);
+			fPullTy = tfs->make<TH1D>("hPullTy", "Pull in ty", 100, -5, 5);
+			fChi2vsNdof = tfs->make<TH2D>("hChi2vsNdof", "#chi^{2} vs Ndof", 20, 0, 20, 100, 0, 50);
+			fChi2perNdof = tfs->make<TH1D>("hChi2perNdof", "#chi^{2}/Ndof", 100, 0, 10);
+			fResidualsVsPlane = tfs->make<TH2D>("hResidualsVsPlane", "Residuals vs Plane", 60, 19, 79, 500, -5., 5.);
 		}
 
 	//......................................................................
 
-//  SingleTrackAlignment::~SingleTrackAlignment()
+//  SingleTrackAlignmentKalman::~SingleTrackAlignmentKalman()
 //  {
 		//======================================================================
 		// Clean up any memory allocated by your module
@@ -153,58 +191,46 @@ namespace emph {
 
 	//......................................................................
 
-	// void SingleTrackAlignment::reconfigure(const fhicl::ParameterSet& pset)
+	// void SingleTrackAlignmentKalman::reconfigure(const fhicl::ParameterSet& pset)
 	// {
 	// }
 
 	//......................................................................
 
-	void SingleTrackAlignment::beginRun(art::Run& run)
+	void SingleTrackAlignmentKalman::beginRun(art::Run& run)
 	{
+		art::ServiceHandle<emph::geo::GeometryService> geo;
+		art::ServiceHandle<emph::MagneticFieldService> mag;
+		fKTracker->SetBField(mag->Field());
+	//	fKTracker->SetGeometry(geo->Geo());
+		if (fVerbosity > 0)	 std::cout << "Created new instance of KTracker with verbosity level " << fVerbosity << std::endl;
+		art::ServiceHandle<art::TFileService> tfs;
+
 		auto emgeo = geo->Geo();
 		nStations = emgeo->NSSDStations();
 		nPlanes = emgeo->NSSDPlanes();
-
-		if (emgeo->GetTarget()) targetz = emgeo->GetTarget()->Pos()(2);
-		else targetz = 380.5;
-
-		magnetusz = emgeo->MagnetUSZPos();
-		magnetdsz = emgeo->MagnetDSZPos();
-
-		int l=0;
-		for (int ii=0; ii<(int)nStations; ii++){
-			for (int jj=0; jj<emgeo->GetSSDStation(ii)->NPlanes(); jj++){
-				for (int kk=0; kk<emgeo->GetSSDStation(ii)->GetPlane(jj)->NSSDs(); kk++){
-					for (int dd=1; dd<=4; dd++){
-						l = ii*1000 + jj*100 + kk*10 + dd;
-						label.push_back(l);
-					}
-				}
-			}
-		}
-
 	}
 
 	//......................................................................
 
-	void emph::SingleTrackAlignment::beginJob()
+	void emph::SingleTrackAlignmentKalman::beginJob()
 	{
-		std::cerr<<"Starting SingleTrackAlignment"<<std::endl;
+		std::cerr<<"Starting SingleTrackAlignmentKalman"<<std::endl;
 
 		m = new Mille("m004.bin",true,true);
 	}
 
 	//......................................................................
 
-	void emph::SingleTrackAlignment::endJob()
+	void emph::SingleTrackAlignmentKalman::endJob()
 	{
 		delete m;
 
-		mf::LogDebug("SingleTrackAlignment") << "SingleTrackAlignment: Number of events used = " << usingEvent;
+		mf::LogDebug("SingleTrackAlignmentKalman") << "SingleTrackAlignmentKalman: Number of events used = " << usingEvent;
 	}
 
 	//......................................................................
-	void emph::SingleTrackAlignment::Pulls()
+	void emph::SingleTrackAlignmentKalman::Pulls(rb::Track track)
 	{
 		auto emgeo = geo->Geo();
 		ru::RecoUtils r;
@@ -217,132 +243,81 @@ namespace emph {
 		ROOT::Math::XYZVector b1(0.,0.,0.);
 		ROOT::Math::XYZVector ts1(0.,0.,0.);
 
-		for (int ii=0; ii<(int)ls_group.size(); ii++){
-			for (int jj=0; jj<(int)ls_group[ii].size(); jj++){
-				for (int kk=0; kk<(int)ls_group[ii][jj].size(); kk++){
-					ROOT::Math::XYZVector x0(ls_group[ii][jj][kk]->X0().X(),ls_group[ii][jj][kk]->X0().Y(),ls_group[ii][jj][kk]->X0().Z());
-					ROOT::Math::XYZVector x1(ls_group[ii][jj][kk]->X1().X(),ls_group[ii][jj][kk]->X1().Y(),ls_group[ii][jj][kk]->X1().Z());
 
-					int sens = cl_group[ii][jj][kk]->Sensor();
+		// Get Relevant data from Kalman Tracker (KTracker)
+		const auto measurements = fKTracker->GetMeasurements();
+		std::vector<kalman::KResidual> residuals;
+		fKTracker->CalculateChi2FromSmoothedStates(residuals);
+		{ // Pack residuals and position estimates
+			size_t index = 0;
+			for (const auto& resid : residuals) {
+				auto station = resid.GetStation();
+				auto plane = resid.GetPlane();
 
-					if (fUpstream){
-						if (cl_group[ii][jj][kk]->Station() > 4) continue;
-					}
+				Double_t phim = measurements[index].GetAlpha();
+				double sensorz = measurements[index].GetZ();
 
-					float uncer = cl_group[ii][jj][kk]->WgtRmsStrip()*0.06;
-								mf::LogDebug("SingleTrackAlignment") <<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View() ;
-					auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
-					//double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad
+				// Calculate local derivatives
+				float lcd_x0 = -1.*TMath::Sin(phim);
+				float lcd_pxpz = -sensorz*TMath::Sin(phim);
+				float lcd_y0 = 1.*TMath::Cos(phim);
+				float lcd_pypz = sensorz*TMath::Cos(phim);
 
-					x0.SetX(-1*x0.X());
-					x1.SetX(-1*x1.X());
+				auto signedDistance = track.pullSSD[station][plane];
+				auto uncertainty = track.uncPull[station][plane];
+				mf::LogDebug("SingleTrackAlignmentKalman") << "..........." ;
+							mf::LogDebug("SingleTrackAlignmentKalman") << "signedDistance = " << signedDistance;
+							mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
 
-					ROOT::Math::XYZVector vec = x0 - x1;
-					ROOT::Math::XYZVector posx(1.,0.,0.);
-					Double_t ta = TMath::ATan2(posx.Y(),posx.X());
-					Double_t tb = TMath::ATan2(vec.Y(),vec.X());
-					Double_t tt = tb - ta;
-					Double_t phim = 0.;
-					if (tt < 0) phim = tt + 2.*TMath::Pi();
-					else phim = tt;
+				// Calculate global derivatives
+				// These derivatives are estimated by slope to the next station
+				// Come back to this criteria later
+				// - NTK
+				auto a = track.posSSD[station][plane];
+				auto b = track.posSSD[station+1][0];
+				auto dba = b-a;
+				double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
+				double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
 
-					// treat each pair of points as a track segment
-					for (size_t iPos = 0; iPos < trk.posSSD.size() - 1; iPos+=2) {
-						double tvz = trk.vtx.Z();
+				float gld_x; float gld_y; float gld_z;
+				float gld_phim;
 
-						auto a = trk.posSSD[iPos];
-						auto b = trk.posSSD[iPos+1];
-
-						// check that segment would be in region 1
-						if (a.Z() < trk.posTrgt.Z() && b.Z() < trk.posTrgt.Z()){ a1 = a; b1 = b; ts1 = trk.momSSD[iPos]; }
-
-						// pull = doca between s and ts
-						double sensorz = x0.Z();//(2); //s[2];
-						if (x0.Z() != x1.Z())
-							mf::LogDebug("SingleTrackAlignment") << "Rotated line segment --> using x0 for now";
-
-						if ((tvz < targetz && sensorz < targetz)
-						|| ((tvz > targetz && tvz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
-						|| (tvz > magnetdsz && sensorz > magnetdsz)){
-							//if (ts.RegLabel() == rb::Region::kRegion3){
-							// check that segment would be in region 2 or 3
-							if (a.Z() > trk.posTrgt.Z() && b.Z() > trk.posTrgt.Z()){
-								a = a1;
-								b = b1;
-							}
-
-							auto dba = b-a;
-							double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
-							double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
-
-							double f1[3]; double f2[3]; double f3[3];
-							r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");
-							float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
-
-							// @ sensorz what is ts xy
-							// find signed distance from sensor xy to ts xy
-							// find t where sensor z is
-
-							double t = ( sensorz - a.Z() )/( b.Z() - a.Z() );
-							double tsx = a.X() + (b.X()-a.X())*t;
-							double tsy = a.Y() + (b.Y()-a.Y())*t;
-
-							a.SetX(-1*a.X());
-							b.SetX(-1*b.X());
-							tsx = -1*tsx;
-
-							// signed distance from point to a line
-							double la = x1.Y() - x0.Y();
-							double lb = x0.X() - x1.X();
-							double lc = x0.Y()*(x1.X()-x0.X()) - (x1.Y()-x0.Y())*x0.X();
-							float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
-
-							pullsorted[ii][jj].push_back(dsign);
-
-							float lcd_x0 = -1.*TMath::Sin(phim);
-							float lcd_pxpz = -sensorz*TMath::Sin(phim);
-							float lcd_y0 = 1.*TMath::Cos(phim);
-							float lcd_pypz = sensorz*TMath::Cos(phim);
-
-							mf::LogDebug("SingleTrackAlignment") << "..........." ;
-										mf::LogDebug("SingleTrackAlignment") << "pull = " << pull ;
-										mf::LogDebug("SingleTrackAlignment") << "dsign = " << dsign ;
-										mf::LogDebug("SingleTrackAlignment") << "sensorz = " << sensorz ;
-
-							float gld_x; float gld_y; float gld_z;
-							float gld_phim;
-
-							if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
-								gld_x = -1.*TMath::Sin(phim);
-								gld_y = 1.*TMath::Cos(phim);
-								gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
-								gld_phim = -1.*TMath::Cos(phim) * tsx - 1.*TMath::Sin(phim) * tsy;
-							} else {
-								gld_x = 0.;
-								gld_y = 0.;
-								gld_z = 0.;
-								gld_phim = 0.;
-							}
-
-							float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
-							float mdergl[4] = {gld_x,gld_y,gld_z,gld_phim};
-
-							int ltmp[4] = {ii*1000 + jj*100 + sens*10 + 1,ii*1000 + jj*100 + sens*10 + 2, ii*1000 + jj*100 + sens*10 + 3, ii*1000 + jj*100 + sens*10 + 4};
-										m->mille(4,mderlc,4,mdergl,ltmp,dsign,uncer);
-										mf::LogDebug("SingleTrackAlignment") << "uncer = " << uncer ;
-						}
-					}
+			  auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->View();
+				if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
+					gld_x = -1.*TMath::Sin(phim);
+					gld_y = 1.*TMath::Cos(phim);
+					gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
+					gld_phim = -1.*TMath::Cos(phim) * a.X() - 1.*TMath::Sin(phim) * a.Y();
+				} else {
+					gld_x = 0.;
+					gld_y = 0.;
+					gld_z = 0.;
+					gld_phim = 0.;
 				}
+
+				// package local derivatives for mille
+				float milleDerivativeLocal[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
+				// package global derivatives for mille
+				float milleDerivativeGlobal[4] = {gld_x,gld_y,gld_z,gld_phim};
+
+				// labels for mille
+				//int milleLabels[4] = {station*1000 + plane*100 + sens*10 + 1,station*1000 + plane*100 + sens*10 + 2, station*1000 + plane*100 + sens*10 + 3, station*1000 + plane*100 + sens*10 + 4};
+				int milleLabels[4] = {station*1000 + plane*100 + 1,station*1000 + plane*100 + 2, station*1000 + plane*100 + 3, station*1000 + plane*100 + 4};
+
+				// Packing stuff into mille
+				m->mille(4,milleDerivativeLocal,4,milleDerivativeGlobal,milleLabels,signedDistance,uncertainty);
+				mf::LogDebug("SingleTrackAlignmentKalman") << "uncertainty = " << uncertainty;
+				++index;
 			}
 		}
-		re++;
-		mf::LogDebug("SingleTrackAlignment") << "^ Record " << re ;
+		record++;
+		mf::LogDebug("SingleTrackAlignment") << "^ Record " << record ;
 		m->end();
 	}
 
 	//......................................................................
 
-	void emph::SingleTrackAlignment::produce(art::Event& evt)
+	void emph::SingleTrackAlignmentKalman::produce(art::Event& evt)
 	{
 		auto emgeo = geo->Geo();
 
@@ -709,8 +684,8 @@ namespace emph {
 					track.ndf = lastSmoothed.GetNdf();
 					std::cout << "Track chi2/ndf: " << track.chi2 << "/" << track.ndf << std::endl;
 		*/
-
 					// Populate mille now
+					dgm->Map()->SetAlign(align0);
 					Pulls(track);
 				} // end if isOk
 			} // end if isOk
@@ -718,4 +693,4 @@ namespace emph {
 	}
 } // end namespace emph
 
-DEFINE_ART_MODULE(emph::SingleTrackAlignment)
+DEFINE_ART_MODULE(emph::SingleTrackAlignmentKalman)
