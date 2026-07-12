@@ -174,7 +174,8 @@
 
  <class name="std::vector<ROOT::Math::XYZVector>" />
 
- <class name="caf::SRTrack" ClassVersion="20" >
+ <class name="caf::SRTrack" ClassVersion="21" >
+  <version ClassVersion="21" checksum="3829165328"/>
   <version ClassVersion="20" checksum="2720290968"/>
   <version ClassVersion="19" checksum="4050627913"/>
   <version ClassVersion="18" checksum="2746670426"/>
@@ -189,7 +190,8 @@
  </class>
  <class name="std::vector<caf::SRTrack>" />
 
- <class name="caf::SRBeamTrack" ClassVersion="15" >
+ <class name="caf::SRBeamTrack" ClassVersion="16" >
+  <version ClassVersion="16" checksum="3663627235"/>
   <version ClassVersion="15" checksum="122774459"/>
   <version ClassVersion="15" checksum="3535333238"/>
   <version ClassVersion="14" checksum="266601553"/>
@@ -200,7 +202,8 @@
  </class>
  <class name="std::vector<caf::SRBeamTrack>" />
 
- <class name="caf::SRSecondaryTrack" ClassVersion="13" >
+ <class name="caf::SRSecondaryTrack" ClassVersion="14" >
+  <version ClassVersion="14" checksum="1214833968"/>
   <version ClassVersion="13" checksum="1968948488"/>
   <version ClassVersion="12" checksum="1086539971"/>
   <version ClassVersion="11" checksum="2112775582"/>
