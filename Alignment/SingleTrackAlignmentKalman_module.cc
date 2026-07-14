@@ -217,7 +217,7 @@ namespace emph {
 	{
 		std::cerr<<"Starting SingleTrackAlignmentKalman"<<std::endl;
 
-		m = new Mille("m004.bin",true,true);
+		m = new Mille("m005.bin",true,true);
 	}
 
 	//......................................................................
@@ -246,70 +246,65 @@ namespace emph {
 
 		// Get Relevant data from Kalman Tracker (KTracker)
 		const auto measurements = fKTracker->GetMeasurements();
-		std::vector<kalman::KResidual> residuals;
-		fKTracker->CalculateChi2FromSmoothedStates(residuals);
-		{ // Pack residuals and position estimates
-			size_t index = 0;
-			for (const auto& resid : residuals) {
-				auto station = resid.GetStation();
-				auto plane = resid.GetPlane();
+		for(const auto& meas : measurements) {
+			auto station = meas.SSDStation();
+			auto plane = meas.SSDPlane();
+			auto sensor = meas.SSDSensor();
 
-				Double_t phim = measurements[index].GetAlpha();
-				double sensorz = measurements[index].GetZ();
+			Double_t phim = meas.GetAlpha();
+			double sensorz = meas.GetZ();
 
-				// Calculate local derivatives
-				float lcd_x0 = -1.*TMath::Sin(phim);
-				float lcd_pxpz = -sensorz*TMath::Sin(phim);
-				float lcd_y0 = 1.*TMath::Cos(phim);
-				float lcd_pypz = sensorz*TMath::Cos(phim);
+			// Calculate local derivatives
+			float lcd_x0 = -1.*TMath::Sin(phim);
+			float lcd_pxpz = -sensorz*TMath::Sin(phim);
+			float lcd_y0 = 1.*TMath::Cos(phim);
+			float lcd_pypz = sensorz*TMath::Cos(phim);
 
-				auto signedDistance = track.pullSSD[station][plane];
-				auto uncertainty = track.uncPull[station][plane];
-				mf::LogDebug("SingleTrackAlignmentKalman") << "..........." ;
-							mf::LogDebug("SingleTrackAlignmentKalman") << "signedDistance = " << signedDistance;
-							mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
+			auto signedDistance = track.pullSSD[station][plane];
+			auto uncertainty = track.uncPull[station][plane];
+			mf::LogDebug("SingleTrackAlignmentKalman") << "..........." ;
+						mf::LogDebug("SingleTrackAlignmentKalman") << "signedDistance = " << signedDistance;
+						mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
 
-				// Calculate global derivatives
-				// These derivatives are estimated by slope to the next station
-				// Come back to this criteria later
-				// - NTK
-				auto a = track.posSSD[station][plane];
-				auto b = track.posSSD[station+1][0];
-				auto dba = b-a;
-				double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
-				double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
+			// Calculate global derivatives
+			// These derivatives are estimated by slope to the next station
+			// Come back to this criteria later
+			// - NTK
+			auto a = track.posSSD[station][plane];
+			auto b = track.posSSD[station+1][0];
+			auto dba = b-a;
+			double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
+			double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
 
-				float gld_x; float gld_y; float gld_z;
-				float gld_phim;
+			float gld_x; float gld_y; float gld_z;
+			float gld_phim;
 
-			  auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->View();
-				if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
-					gld_x = -1.*TMath::Sin(phim);
-					gld_y = 1.*TMath::Cos(phim);
-					gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
-					gld_phim = -1.*TMath::Cos(phim) * a.X() - 1.*TMath::Sin(phim) * a.Y();
-				} else {
-					gld_x = 0.;
-					gld_y = 0.;
-					gld_z = 0.;
-					gld_phim = 0.;
-				}
-
-				// package local derivatives for mille
-				float milleDerivativeLocal[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
-				// package global derivatives for mille
-				float milleDerivativeGlobal[4] = {gld_x,gld_y,gld_z,gld_phim};
-
-				// labels for mille
-				//int milleLabels[4] = {station*1000 + plane*100 + sens*10 + 1,station*1000 + plane*100 + sens*10 + 2, station*1000 + plane*100 + sens*10 + 3, station*1000 + plane*100 + sens*10 + 4};
-				int milleLabels[4] = {station*1000 + plane*100 + 1,station*1000 + plane*100 + 2, station*1000 + plane*100 + 3, station*1000 + plane*100 + 4};
-
-				// Packing stuff into mille
-				m->mille(4,milleDerivativeLocal,4,milleDerivativeGlobal,milleLabels,signedDistance,uncertainty);
-				mf::LogDebug("SingleTrackAlignmentKalman") << "uncertainty = " << uncertainty;
-				++index;
+		  auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View();
+			if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
+				gld_x = -1.*TMath::Sin(phim);
+				gld_y = 1.*TMath::Cos(phim);
+				gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
+				gld_phim = -1.*TMath::Cos(phim) * a.X() - 1.*TMath::Sin(phim) * a.Y();
+			} else {
+				gld_x = 0.;
+				gld_y = 0.;
+				gld_z = 0.;
+				gld_phim = 0.;
 			}
+
+			// package local derivatives for mille
+			float milleDerivativeLocal[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
+			// package global derivatives for mille
+			float milleDerivativeGlobal[4] = {gld_x,gld_y,gld_z,gld_phim};
+
+			// labels for mille
+			int milleLabels[4] = {station*1000 + plane*100 + sensor*10 + 1,station*1000 + plane*100 + sensor*10 + 2, station*1000 + plane*100 + sensor*10 + 3, station*1000 + plane*100 + sensor*10 + 4};
+
+			// Packing stuff into mille
+			m->mille(4,milleDerivativeLocal,4,milleDerivativeGlobal,milleLabels,signedDistance,uncertainty);
+			mf::LogDebug("SingleTrackAlignmentKalman") << "uncertainty = " << uncertainty;
 		}
+
 		record++;
 		mf::LogDebug("SingleTrackAlignment") << "^ Record " << record ;
 		m->end();
@@ -454,7 +449,8 @@ namespace emph {
 					if (fVerbosity>100)
 						std::cout << ls << std::endl;
 					// check that measurement is downstream of the target
-					if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) {
+					//if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) {
+					if (true) { // utilize upstream and downstream
 						kalman::KLSMeasurement meas(ls);
 						if (fVerbosity>100)
 							std::cout << meas << std::endl;
@@ -643,6 +639,7 @@ namespace emph {
 					}
 		*/
 
+					bool pullThis = true;
 					// Need to determine first station for the right comparison to beamTrack
 					size_t firstStation = 999999;
 					{ // Pack residuals and position estimates
@@ -665,6 +662,7 @@ namespace emph {
 							track.posSSD[station][plane] = pos;
 							track.momSSD[station][plane] = mom;
 							if(firstStation == 999999) firstStation = station;
+							if(mom != mom) pullThis = false;
 						}
 					}
 					double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[firstStation][0]);
@@ -686,7 +684,7 @@ namespace emph {
 		*/
 					// Populate mille now
 					dgm->Map()->SetAlign(align0);
-					Pulls(track);
+					if(pullThis) Pulls(track);
 				} // end if isOk
 			} // end if isOk
 		} //useEvent
