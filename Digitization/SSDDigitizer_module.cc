@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <array>
 #include <vector>
 #include <numeric>
 #include <unordered_map>
@@ -39,8 +40,6 @@
 #include "ChannelMap/service/ChannelMapService.h"
 #include "RecoBase/LineSegment.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
-
-using namespace emph;
 
 
 ///package to illustrate how to write modules
@@ -77,6 +76,8 @@ namespace emph {
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
+
+    TF1* fGausFunc = nullptr; // reused per-hit Gaussian; created once in beginJob
 
     //    std::unordered_map<int,int> fSensorMap;
 
@@ -123,7 +124,10 @@ namespace emph {
     } 
   
     fADCvsDEHist = (TH1D*)devsADC->Get("adcVsDEHist");
-  }   
+
+    // Create once; range/params are overwritten per hit in SimulateChargeSharing
+    fGausFunc = new TF1("ssdDigGaus", "gaus", -1., 1.);
+  }
 
   //.......................................................................
  
@@ -207,7 +211,7 @@ namespace emph {
  
   // Function to round of calculated ADC to nearest allowed ADCs 
   float SSDDigitizer::adcRange(float value) {
-    std::vector<float> allowedADC = {41, 58, 73, 88, 103, 118, 133, 140};
+    static const std::array<float, 8> allowedADC = {41, 58, 73, 88, 103, 118, 133, 140};
     int nearestIndex = 0;
 
     float minDifference = std::abs(value - allowedADC[0]);
@@ -222,21 +226,6 @@ namespace emph {
     return nearestIndex;
   }
 
-/*
-  // ADC Range recieved from Lorenzo
-  float adcRange(float value) {
-    if (value > 0  && value < 41.5) return -99999;  
-    else if (value >= 41.5 && value < 58.5) return 0; 
-	  else if (value >= 58.5 && value < 73.5) return 1; 
-	  else if (value >= 73.5 && value < 88.5) return 2; 
-    else if (value >= 88.5 && value < 103.5) return 3;
-    else if (value >= 103.5 && value < 118.5) return 4;
-    else if (value >= 118.5 && value < 133.5) return 5;
-    else if (value >= 133.5 && value < 140.5) return 6;
-    else return 7; 
-  }
-*/        
-  
   // Function to generate hit and rms for given ADC
   void SSDDigitizer::getHitsAndRMS(double adc, double &hit, double &rms, TH3D* hist3D)
   {
@@ -287,29 +276,22 @@ namespace emph {
       fPlane = ssdhit.Plane();
       fStrip = ssdhit.Strip(); 
 
+      art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
       emph::cmap::EChannel echan;
       echan.SetBoardType(emph::cmap::SSD);
       emph::cmap::DChannel dchan;
       dchan.SetDetId(emph::geo::SSD);
-      
+
       if (hits == 1) {
         float calADC  = adcRange(adc);
-	fADC = int(calADC);
-        art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+        fADC = int(calADC);
         dchan.SetStation(fStation);
         dchan.SetPlane(fPlane);
         dchan.SetHiLo(fSensor);
         dchan.SetChannel(fSensor);
         echan = cmap->ElectChan(dchan);
-	/*	std::cout << "(Station,Plane,Sensor,Strip) = (" << fStation 
-		  << "," << fPlane << "," << fSensor << "," << fStrip << ")"
-		  << std::endl;
-
-	std::cout << "(Board,Channel,Strip) = (" << echan.Board() << "," 
-		  << echan.Channel() << "," << fStrip << ")" << std::endl;
-	*/
         returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), fStrip, t, calADC, trig));
-	fAnaTree->Fill();
+        fAnaTree->Fill();
         return returnValue;
       }
 //.............................................................................................................//
@@ -363,10 +345,10 @@ namespace emph {
         float hiLimit = mean + (5 * stddev);
         float amplitude = adc / (stddev * sqrt(2 * M_PI));
 
-        TF1 *func = new TF1 ("func", "gaus", loLimit, hiLimit);
-        func->SetParameters(amplitude, mean, stddev);
+        fGausFunc->SetRange(loLimit, hiLimit);
+        fGausFunc->SetParameters(amplitude, mean, stddev);
 
-        float totADC  = func->Integral(loLimit, hiLimit);
+        float totADC  = fGausFunc->Integral(loLimit, hiLimit);
 
         std::vector<std::pair<float, float>> intervals;
 
@@ -396,7 +378,7 @@ namespace emph {
         std::vector<float> intervalIntegrals;
 
         for (const auto&interval : intervals) {
-          float integral = func->Integral(interval.first, interval.second);
+          float integral = fGausFunc->Integral(interval.first, interval.second);
           intervalIntegrals.push_back(integral);
         }
 
@@ -419,16 +401,13 @@ namespace emph {
           integral += adjustment;
           if (otherRow > 0) {  // Avoiding end of the detector
 
-	    fdE = integral;
+            fdE = integral;
             integral = adcRange(integral);
-	    fADC = int(integral);
+            fADC = int(integral);
 
-            art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
-            int row = otherRow; 
-	    fStrip = row;
-            emph::cmap::EChannel echan;
+            int row = otherRow;
+            fStrip = row;
             echan.SetBoardType(emph::cmap::SSD);
-            emph::cmap::DChannel dchan;
             dchan.SetDetId(emph::geo::SSD);
             dchan.SetStation(fStation);
             dchan.SetPlane(fPlane);
@@ -437,12 +416,11 @@ namespace emph {
             echan = cmap->ElectChan(dchan);
 
             returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row, t, integral, trig));
-	    fAnaTree->Fill();
-          }   
+            fAnaTree->Fill();
+          }
           i++;	  
         }
 
-        delete func;
         return returnValue;
       }
     }
