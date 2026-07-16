@@ -238,7 +238,7 @@ namespace emph {
             }
 
             for (size_t i = 0; i < clustMapAtLeastOne.size(); i++) {
-              for (auto j : clustMapAtLeastOne[i]) {
+              for (const auto& j : clustMapAtLeastOne[i]) {
                 mf::LogDebug("MakeTrackSegments") << "Station " << i << ": " << j.second;
               }
             }
@@ -282,7 +282,7 @@ namespace emph {
             // Make reconstructed hits
             spv = algo.MakeHits(ls_group, cl_group);
 
-            for (auto sp : spv)
+            for (const auto& sp : spv)
               spacepointv->push_back(sp);
 
             // Reconstructed hits
@@ -331,7 +331,7 @@ namespace emph {
                 if (i.chi2 < 5) chi2lessthan5_3++;
               }
 
-              for (auto ts : tsv) {
+              for (const auto& ts : tsv) {
                 tracksegmentv->push_back(ts);
               }
             }
