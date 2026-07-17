@@ -61,6 +61,7 @@ namespace emph {
     void produce(art::Event& evt);
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
+    void beginRun(art::Run &run);
     at::Tensor TH2DToTensor(TH2D* hist);
 
   private:
@@ -73,6 +74,7 @@ namespace emph {
     std::string fTrackLabel;  //for now using sim::Tracks
  
     std::string  fModelPath;
+    std::string  fSource_path;
 
     tml::NeuralNet* Model;
     
@@ -94,11 +96,15 @@ namespace emph {
   
     double fdxArich;
     double fdyArich; 
-  
+ 
+    double fAbsZAero1;
+    double fAbsZPMTPlane;
+ 
     TRandom3* rand_gen;
  
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::cmap::FEBoardType boardType = cmap::TRB3;    
+    art::ServiceHandle<emph::geo::GeometryService> geo;
 
     std::vector<double> momenta;
     std::vector<TVector3> dir;
@@ -127,17 +133,13 @@ namespace emph {
 
       //ARICH RECO UTILS STUFF
       PDfile  =  std::string(pset.get< std::string >("PD_file"));
-      up_n = double(pset.get<double>("RefractiveIndex_UpstreamAerogel"));
-      up_pos = double(pset.get<double>("Position_UpstreamAerogel"));
-      up_thick = double(pset.get<double>("Thinkness_UpstreamAerogel"));
-      down_n = double(pset.get<double>("RefractiveIndex_DownstreamAerogel"));
-      down_pos = double(pset.get<double>("Position_DownstreamAerogel"));
-      down_thick = double(pset.get<double>("Thickness_DownstreamAerogel"));
       PDdarkrate = double(pset.get<double>("PD_Darkrate"));
       PDwin = double(pset.get<double>("Trigger_window"));
       PDfillfactor = double(pset.get<double>("PD_FillFactor"));
-      PDzpos = double(pset.get<double>("PD_Position"));
       fEvtNum = 0;
+
+     fSource_path = getenv("CETPKG_SOURCE");
+
     }	
     //......................................................................
  
@@ -166,16 +168,35 @@ namespace emph {
 
     ArichUtils = new arichreco::ARICH_UTILS();
     rand_gen = new TRandom3(0);
-    std::string source_path = getenv("CETPKG_SOURCE");
-    TString PDfile_path = source_path + PDfile;
-    ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
-    ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
      
     Model = new tml::NeuralNet();
-    Model->loadModel(source_path.append(fModelPath));
-//    mf::LogError("ARICH NN path") <<"model path " << source_path.append(fModelPath);    
+    std::string model_path = fSource_path + fModelPath;
+    Model->loadModel(model_path);
+    mf::LogInfo("ARICH NN path") <<" ARICH model path " << model_path <<  std::endl;
 
   }
+
+void  emph::ARICHReco::beginRun(art::Run &run){
+ 
+ TString PDfile_path = fSource_path + PDfile;
+
+ up_n = geo->Geo()->GetAerogelUS()->RefractiveIdx();
+ down_n = geo->Geo()->GetAerogelDS()->RefractiveIdx();
+ up_thick = geo->Geo()->GetAerogelUS()->Thickness()*2/10; //reads half of the gdml value, then cm 
+ down_thick = geo->Geo()->GetAerogelDS()->Thickness()*2/10; //reads half of the gdml value, then cm
+
+ down_pos = up_thick; //they are touching
+ up_pos = 0; //this is the beginning of the frame
+
+ fAbsZAero1 = geo->Geo()->GetAerogelUS()->Pos()[2];
+ fAbsZPMTPlane = geo->Geo()->GetmPMTPlanePos()[2];
+ 
+ PDzpos = (fAbsZPMTPlane - fAbsZAero1)/10.; //in  cm
+
+ ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
+ ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
+
+}
 
 //......................................................................
 at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
@@ -241,18 +262,20 @@ void ARICHReco::produce(art::Event& evt)
           mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
         }
 
-        float finalx = posx + (1920 - posz) * px/pz + fdxArich;
-        float finaly = posy + (1920 - posz) * py/pz + fdyArich;
+	//2110 abosulue z coord of mPMT plane
 
-	float track_crossing_x = posx + (2110 - posz) * px/pz + fdxArich;
-  	float track_crossing_y = posy + (2110 - posz) * py/pz + fdyArich;	
+        float finalx = posx + (fAbsZAero1 - posz) * px/pz + fdxArich;
+        float finaly = posy + (fAbsZAero1 - posz) * py/pz + fdyArich;
+
+	float track_crossing_x = posx + (fAbsZPMTPlane - posz) * px/pz + fdxArich;
+  	float track_crossing_y = posy + (fAbsZPMTPlane - posz) * py/pz + fdyArich;	
 	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
 	
 //	std::cout << "vertex (" << posx << ", " << posy << ", " << posz << ") final pos ( "<< track_crossing_x << ", " << track_crossing_y << ")"<< std::endl;        	
 	
 
 	TVector3 dir_(px/mom,py/mom,pz/mom);
-        TVector3 pos_(finalx/10.,finaly/10.,0.);  //in cm
+        TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
 	 
 	int max_cluster=-1;
         int max_size = 0;

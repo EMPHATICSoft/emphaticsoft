@@ -203,6 +203,27 @@ namespace emph {
       std::vector<int>    fZ;
 
     };
+ 
+    class Aerogel {
+    public:
+     Aerogel();
+     ~Aerogel();
+	
+    void SetPos(TVector3 p) { fPos = p; }
+    void SetRefractiveIdx(double ref_idx){fRef_idx = ref_idx;}
+    void SetName(std::string given_name){fName = given_name;} 
+    void SetThickness(double thickness){fThickness = thickness;}
+
+    TVector3 Pos() const { return fPos; }
+    double RefractiveIdx() const {return fRef_idx;}
+    std::string Name() const {return fName;}
+    double Thickness() const {return fThickness;}
+    private: 
+     TVector3 fPos;
+     double fRef_idx;
+     std::string fName;
+     double fThickness;
+    };
 
     class Geometry {
     public:
@@ -237,13 +258,17 @@ namespace emph {
       const Detector* GetSSDSensor(int i) { return fSSDSensorMap[i].get(); }
       int GetSSDId(int station, int plane, int sensor) const;
       double GetRadLength(int) const;
+      TVector3 GetmPMTPlanePos() const {return fmPMTPlanePos;}
+      TVector3 GetARICHCenrterPos() const {return fArichCenterPos;}
 
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT& GetPMT(int i){return fPMT[i]; }
       const emph::arich_util::PMT& FindPMTByName(const std::string& name) const;
       const emph::arich_util::PMT& FindPMTByBlockNumber(int number) const;
       const Target* GetTarget() { return fTarget; }
-      
+
+      const Aerogel* GetAerogelUS() { return fAerogelUS;}
+      const Aerogel* GetAerogelDS() { return fAerogelDS;}
       //    TGeoMaterial* Material(double x, double y, double z) const;
 
       std::string GDMLFile() const {return fGDMLFile; }
@@ -262,6 +287,7 @@ namespace emph {
       void ExtractMagnetInfo(const TGeoVolume* v);
       void ExtractSSDInfo(const TGeoNode* n);
       void ExtractTargetInfo(const TGeoVolume* v);
+      void ExtractAerogelInfo(const TGeoVolume* v);
       void CalcRadLengths();
 
       bool fIsLoaded;
@@ -278,6 +304,8 @@ namespace emph {
       double fMagnetDSPos[3];
       double fTargetUSZPos;
       double fTargetDSZPos;
+      TVector3 fmPMTPlanePos;
+      TVector3 fArichCenterPos;
       bool   fMagnetLoad;
       std::vector<SSDStation> fSSDStation;
       double fDetectorUSZPos[NDetectors];
@@ -288,6 +316,9 @@ namespace emph {
       std::unordered_map<int, std::unique_ptr<Detector>> fSSDSensorMap;
       std::unordered_map<int, double> fRadLength;
       Target* fTarget;
+
+      Aerogel* fAerogelUS;
+      Aerogel* fAerogelDS;
 
       TGeoManager* fGeoManager;
 
