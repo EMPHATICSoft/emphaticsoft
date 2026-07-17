@@ -68,8 +68,7 @@ services:
 #       ConstBase/Geometry/phase1c_Graphite_ARICHalignConst.gdml
 services.RunHistoryService.LoadFromDB: false
 services.GeometryService.GetGDMLFromRunHistory: false
-services.GeometryService.GDMLFile: "/exp/emph/app/users/manueld/Apr26/emphaticsoft/ConstBase/Geometry/phase1c_Graphite_ARICHalignConst.gdml"
-
+services.GeometryService.GDMLFile: "/exp/emph/app/users/manueld/Apr26/emphaticsoft/ConstBase/Geometry/phase1c_Graphite.gdml"
 # Start each new event empty (generation).
 source:
 {
@@ -123,11 +122,11 @@ physics:
 
   trigger_paths: [ fullchain ]
 }
-
+physics.producers.generator.UseRunHistory: false
 physics.producers.generator.particleType: "proton"
 physics.producers.generator.pzDist: "flat"
 physics.producers.generator.PMean: 10
-physics.producers.generator.PSigma: 8
+physics.producers.generator.Psigma: 8
 
 # ---- overrides carried over from prod_reco_caf_job_mc.fcl ----
 physics.producers.clust.FillTTree:    false

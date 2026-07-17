@@ -7,6 +7,10 @@ standard_arichreco:
   LabelHits:      "arichcluster"
   LabelTracks:     "makesingletracks"
   FillTree:       true
+
+  #WHICH PID TO RUN
+  UseLL: 	 true
+  UseML:	 true
  
   #ARICH SHIFTS FOR LL CALCULATIONS [mm]
   ArichXshift:	15

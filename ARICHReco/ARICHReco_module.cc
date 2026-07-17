@@ -100,6 +100,9 @@ namespace emph {
     double fAbsZAero1;
     double fAbsZPMTPlane;
  
+    bool fUseLL;
+    bool fUseML;
+
     TRandom3* rand_gen;
  
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
@@ -109,7 +112,10 @@ namespace emph {
     std::vector<double> momenta;
     std::vector<TVector3> dir;
     std::vector<TVector3> pos;
-    std::vector<double> LLs;
+
+    std::vector<double> LLscores;
+    std::vector<double> MLscores;
+
     std::vector<double> crossing_track_loc;
 
     TH2D event_hist, pdf_pion, pdf_kaon, pdf_prot;
@@ -130,6 +136,8 @@ namespace emph {
     fModelPath = std::string(pset.get<std::string>("ModelPath"));
     fdxArich = double(pset.get<double>("ArichXshift",0));
     fdyArich = double(pset.get<double>("ArichYshift",0));
+    fUseLL =  bool(pset.get<bool>("UseLL"));
+    fUseML = bool(pset.get<bool>("UseML"));
 
       //ARICH RECO UTILS STUFF
       PDfile  =  std::string(pset.get< std::string >("PD_file"));
@@ -257,30 +265,9 @@ void ARICHReco::produce(art::Event& evt)
 
 
         mom = sqrt(last_seg.mom.Mag2()); //sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
-	
-	if (mom == 0) {
-          mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
-        }
 
-	//2110 abosulue z coord of mPMT plane
-
-        float finalx = posx + (fAbsZAero1 - posz) * px/pz + fdxArich;
-        float finaly = posy + (fAbsZAero1 - posz) * py/pz + fdyArich;
-
-	float track_crossing_x = posx + (fAbsZPMTPlane - posz) * px/pz + fdxArich;
-  	float track_crossing_y = posy + (fAbsZPMTPlane - posz) * py/pz + fdyArich;	
-	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
-	
-//	std::cout << "vertex (" << posx << ", " << posy << ", " << posz << ") final pos ( "<< track_crossing_x << ", " << track_crossing_y << ")"<< std::endl;        	
-	
-
-	TVector3 dir_(px/mom,py/mom,pz/mom);
-        TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
-	 
 	int max_cluster=-1;
         int max_size = 0;
-
-
        for(int u = 0; u < (int)arich_clusters->size(); u++){
           int size = arich_clusters->at(u).NDigits();
           if(size > max_size){
@@ -289,9 +276,32 @@ void ARICHReco::produce(art::Event& evt)
            }
         }
 
+	
+       if (mom == 0) {
+          mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
+        }
+
+	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is 
+        event_hist = *ArichUtils->DigsToHist(digs);
+
+       rb::ArichID arich_id;
+       arich_id.trackID = 1;
+       arich_id.nhit = digs.size();
+
+      if(fUseLL){	
+        float finalx = posx + (fAbsZAero1 - posz) * px/pz + fdxArich;
+        float finaly = posy + (fAbsZAero1 - posz) * py/pz + fdyArich;
+
+	float track_crossing_x = posx + (fAbsZPMTPlane - posz) * px/pz + fdxArich;
+  	float track_crossing_y = posy + (fAbsZPMTPlane - posz) * py/pz + fdyArich;	
+	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
+
+	TVector3 dir_(px/mom,py/mom,pz/mom);
+        TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
+	 
 	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is 
 	event_hist = *ArichUtils->DigsToHist(digs);
-	std::vector<double> LL = ArichUtils->identifyParticle(&event_hist, mom, pos_, dir_);
+	LLscores = ArichUtils->identifyParticle(&event_hist, mom, pos_, dir_);
 
 	if(fFillTree){
 	  std::vector<TH2D> pdfs = ArichUtils->GetPDF(mom, pos_, dir_);
@@ -300,36 +310,33 @@ void ARICHReco::produce(art::Event& evt)
 	  pdf_prot = pdfs[2];
 	  nhits = arich_clusters->at(max_cluster).NDigits();
 	}
+          arich_id.scoresLL = LLscores;
+	}
 
-          rb::ArichID arich_id;
-          arich_id.scoresLL = LL;
-          arich_id.trackID = 1;
-          arich_id.nhit = digs.size();
-
+	if(fUseML){
  	  at::Tensor tensor_event = TH2DToTensor(&event_hist);
  	  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
  	  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
 	  at::Tensor pred = Model->predict(inputs); 
 
-	  std::vector<double> temp;
 	  auto accessor = pred.accessor<float, 2>();
 	  for (int i = 0; i < accessor.size(0); ++i) {
             for (int j = 0; j < accessor.size(1); ++j) {
-            	temp.push_back((double)accessor[i][j]);
+            	MLscores.push_back((double)accessor[i][j]);
 	     }
 	  }
+          arich_id.scoresML = MLscores;
+	}
 
-          arich_id.scoresML = temp;
-	
 	ARICH->push_back(arich_id);	  
 	 
 	if(fFillTree){
 	  fARICHTree->Fill();
 	  crossing_track_loc.clear();
 	}
-  
+  	
 	} // end if clusters     	 
-
+	MLscores.clear(); LLscores.clear();
 	evt.put(std::move(ARICH));	   
   } // end produce 
 
