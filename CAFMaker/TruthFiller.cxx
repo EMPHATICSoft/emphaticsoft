@@ -8,6 +8,7 @@
 #include "StandardRecord/SRParticle.h"
 #include "Simulation/Particle.h"
 #include "Simulation/SSDHit.h"
+#include "Simulation/TargetHit.h"
 #include "art/Framework/Principal/Handle.h"
 
 #include <cstddef>
@@ -39,10 +40,10 @@ namespace caf
 
       // if we don't want to record all the G4 steps, save the first trajectory, clear, and fill it again
       if (!GetG4Hits){
-	auto tempPos = beam.ftrajectory.Position(0); 
-	auto tempMom = beam.ftrajectory.Momentum(0);
-	beam.ftrajectory.clear(); 
-	beam.AddTrajectoryPoint(tempPos, tempMom);
+	      auto tempPos = beam.ftrajectory.Position(0); 
+	      auto tempMom = beam.ftrajectory.Momentum(0);
+	      beam.ftrajectory.clear(); 
+	      beam.AddTrajectoryPoint(tempPos, tempMom);
       }
       
       std::vector <caf::SRTrueParticle> daughters;
@@ -125,6 +126,43 @@ namespace caf
       srTrueSSDHits.trackID = ssdhit.TrackID();
 
     } // end for truehitId
+
+    art::Handle< std::vector<sim::TargetHit> > truetargethitv;
+    try {
+      evt.getByLabel(fLabel, truetargethitv);
+    }
+    catch(...) {
+      std::cout << "WARNING: No TargetHits found!" << std::endl;
+    }
+
+    for (unsigned int truehitId = 0; truehitId < truetargethitv->size(); ++truehitId) {
+
+      const sim::TargetHit& targethit = (*truetargethitv)[truehitId];
+      
+      stdrec.truth.trueTargetHits.truehits.push_back(SRTrueTargetHit());
+      SRTrueTargetHit& srTrueTargetHit = stdrec.truth.trueTargetHits.truehits.back();
+
+      srTrueTargetHit.pos_pre.SetX(targethit.PreX());
+      srTrueTargetHit.pos_pre.SetY(targethit.PreY());
+      srTrueTargetHit.pos_pre.SetZ(targethit.PreZ());
+      srTrueTargetHit.pos_post.SetX(targethit.PostX());
+      srTrueTargetHit.pos_post.SetY(targethit.PostY());
+      srTrueTargetHit.pos_post.SetZ(targethit.PostZ());
+
+      srTrueTargetHit.mom_pre.SetX(targethit.PrePx());
+      srTrueTargetHit.mom_pre.SetY(targethit.PrePy());
+      srTrueTargetHit.mom_pre.SetZ(targethit.PrePz());
+      srTrueTargetHit.mom_post.SetX(targethit.PostPx());
+      srTrueTargetHit.mom_post.SetY(targethit.PostPy());
+      srTrueTargetHit.mom_post.SetZ(targethit.PostPz());
+
+      srTrueTargetHit.dE = targethit.DE();
+      srTrueTargetHit.pid = targethit.PId();
+      srTrueTargetHit.process = targethit.Process();
+      srTrueTargetHit.trackID = targethit.TrackID();
+
+    } // end for truehitId
+
   }
 
 } // end namespace caf
