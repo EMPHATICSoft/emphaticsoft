@@ -74,11 +74,16 @@ namespace emph {
     int fStation, fPlane, fSensor, fStrip;
     int fADC;
     float fdE;
+
+    int fSkipped = 0;
+    int fTotal = 0;
+
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
     std::vector<std::vector<std::vector<double>>> fEfficiencies;
 
+    std::unique_ptr<TRandom3> fRand;
     //    std::unordered_map<int,int> fSensorMap;
 
     //    void FillSensorMap();
@@ -138,7 +143,7 @@ namespace emph {
     fAnaTree = 0;
 
     produces<std::vector<rawdata::SSDRawDigit> >("SSD");
-
+    fRand = std::make_unique<TRandom3>(0);
   }
 
   //......................................................................
@@ -195,22 +200,31 @@ namespace emph {
 
       //      if (fSensorMap.empty()) FillSensorMap();
 
-      TRandom3 *generator = new TRandom3();
+      //std::cout << "ssdHitH->size(): " << ssdHitH->size() << std::endl;
+
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
         const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
         auto RawDigits = SimulateChargeSharing(ssdhit);
 
-        Double_t rand = generator->Rndm();
-        double eff = 0;
+        Double_t rand = fRand->Uniform(0,1);
+        double eff = 1;
+
+        //std::cout << "Hit on: " << fStation << "/" << fPlane << "/" << fSensor << std::endl;
+
         if (fStation != 0 && fStation != 1) {
           eff = fEfficiencies[fStation][fPlane][fSensor];
         }
  
-        if (eff <= rand) {
+        //std::cout << "Efficiency: " << eff << " Random: " << rand << std::endl;
+        fTotal++;
+
+        if (rand <= eff) {
           ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
+        } else {
+          fSkipped++;
+          std::cout << "Skipping percentage: " << ((float) fSkipped) / ((float) fTotal) << std::endl;
         }
       } // end loop over SSD hits for the event
-      
     }
     evt.put(std::move(ssdRawD),"SSD");
       
