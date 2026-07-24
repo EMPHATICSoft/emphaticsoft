@@ -16,8 +16,7 @@
   <class name="art::Wrapper< std::vector<sim::SSDHit>    >"/>
   <class name="art::Wrapper< std::vector<std::vector<sim::SSDHit> >   >"/>
 
-  <class name="sim::TargetHit"    ClassVersion="12" >
-   <version ClassVersion="12" checksum="277864314"/>
+  <class name="sim::TargetHit"    ClassVersion="11" >
    <version ClassVersion="11" checksum="339662164"/>
    <version ClassVersion="10" checksum="122"/>
   </class>
