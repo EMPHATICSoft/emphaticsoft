@@ -75,9 +75,6 @@ namespace emph {
     int fADC;
     float fdE;
 
-    int fSkipped = 0;
-    int fTotal = 0;
-
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
@@ -200,8 +197,6 @@ namespace emph {
 
       //      if (fSensorMap.empty()) FillSensorMap();
 
-      //std::cout << "ssdHitH->size(): " << ssdHitH->size() << std::endl;
-
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
         const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
         auto RawDigits = SimulateChargeSharing(ssdhit);
@@ -209,20 +204,12 @@ namespace emph {
         Double_t rand = fRand->Uniform(0,1);
         double eff = 1;
 
-        //std::cout << "Hit on: " << fStation << "/" << fPlane << "/" << fSensor << std::endl;
-
         if (fStation != 0 && fStation != 1) {
           eff = fEfficiencies[fStation][fPlane][fSensor];
         }
  
-        //std::cout << "Efficiency: " << eff << " Random: " << rand << std::endl;
-        fTotal++;
-
         if (rand <= eff) {
           ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
-        } else {
-          fSkipped++;
-          std::cout << "Skipping percentage: " << ((float) fSkipped) / ((float) fTotal) << std::endl;
         }
       } // end loop over SSD hits for the event
     }
