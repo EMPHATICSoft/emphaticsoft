@@ -231,7 +231,7 @@ namespace emph {
     std::unique_ptr<std::vector<rb::SpacePoint>> spacepointv(new std::vector<rb::SpacePoint>);
     std::unique_ptr<std::vector<rb::TrackSegment>> tracksegmentv(new std::vector<rb::TrackSegment>);
 
-    for (int fMaskedStation = 0; fMaskedStation < nStations; fMaskedStation++) {
+    for (int fMaskedStation = 2; fMaskedStation < nStations; fMaskedStation++) {
       auto station = emgeo->GetSSDStation(fMaskedStation);
       int num_planes = station->NPlanes();
 
@@ -328,7 +328,7 @@ namespace emph {
                   all_linesegments.reserve(clustH->size());
 
                   for (size_t idx = 0; idx < clustH->size(); ++idx) {
-                    const rb::SSDCluster& clust = (*clustH)[idx];
+                    const rb::SSDCluster& clust = (*clustH)[idx]; 
 
                     int plane_id = (clust.Station() * 10) + clust.Plane();
                     if (interacted.find(plane_id) != interacted.end()) {
@@ -340,7 +340,7 @@ namespace emph {
 
                     if (clust.Station() == fMaskedStation &&
                         clust.Plane() == fMaskedPlane &&
-                        clust.Sensor() == fMaskedSensor) {
+                        clust.Sensor() == fMaskedSensor) { 
                       maskClustAndSegs(dgm, clust, lineseg_tmp);
                     } else {
                       if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
