@@ -6,7 +6,7 @@ standard_arich_ring:
   LabelHits:      "arichcluster"
   LabelTracks:    "makesingletracks"   # SSD track; leave "" to force Hough-only
   FillTree:       true
-  SeedWithTrack:  false                 # false: keep Hough center + store track (Z survey)
+  SeedWithTrack:  true                 # false: keep Hough center + store track (Z survey)
 
   #Distance Aerogel-mPMT for Cherenkov angle extraction
   dz:	 	194  	  #mm 
