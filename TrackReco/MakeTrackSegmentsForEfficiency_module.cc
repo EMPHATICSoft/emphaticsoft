@@ -26,7 +26,7 @@
 #include "TVectorD.h"
 
 // Framework includes
-#include "art/Framework/Core/EDProducer.h"
+#include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Principal/Handle.h"
@@ -59,15 +59,15 @@ using namespace emph;
 /// Package to illustrate how to write modules
 namespace emph {
 
-  class MakeTrackSegmentsForEfficiency : public art::EDProducer {
+  class MakeTrackSegmentsForEfficiency : public art::EDAnalyzer {
   public:
     explicit MakeTrackSegmentsForEfficiency(fhicl::ParameterSet const& pset);
     ~MakeTrackSegmentsForEfficiency();
 
-    void produce(art::Event& evt);
+    void analyze(art::Event const& evt);
     void reconfigure(const fhicl::ParameterSet& pset);
-    void beginRun(art::Run& run);
-    void beginJob();
+    void beginRun(art::Run const& run);
+    void beginJob() override;
     void endJob();
 
   private:
@@ -77,7 +77,6 @@ namespace emph {
     bool readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, const rb::SSDCluster& clust, rb::LineSegment lineseg_tmp);
     void resizeGroups();
     void updateSps(emph::geo::Geometry* emgeo);
-    void fillPlots(std::vector<rb::TrackSegment> tstmp, rb::Region kRegion);
 
     TTree* spacepoint;
     int run, subrun, event;
@@ -137,7 +136,7 @@ namespace emph {
 
   //.......................................................................
   emph::MakeTrackSegmentsForEfficiency::MakeTrackSegmentsForEfficiency(fhicl::ParameterSet const& pset)
-    : EDProducer{pset},
+    : EDAnalyzer{pset},
       fCheckClusters (pset.get< bool >("CheckClusters")),
       fClusterLabel  (pset.get< std::string >("ClusterLabel")),
       fG4Label       (pset.get< std::string >("G4Label")),
@@ -147,9 +146,6 @@ namespace emph {
       fMaskedSensor  (pset.get< int >("MaskedSensor"))
   {
     std::cout << "FCL pset dump: " << pset.to_indented_string() << std::endl;
-    this->produces< std::vector<rb::LineSegment>>();
-    this->produces< std::vector<rb::SpacePoint>>();
-    this->produces< std::vector<rb::TrackSegment>>();
   }
 
   //......................................................................
@@ -162,7 +158,7 @@ namespace emph {
   }
 
   //......................................................................
-  void MakeTrackSegmentsForEfficiency::beginRun(art::Run& run)
+  void MakeTrackSegmentsForEfficiency::beginRun(art::Run const& run)
   {
     art::ServiceHandle<emph::geo::GeometryService> geo;
     geo::Geometry* emgeo = geo->Geo();
@@ -172,7 +168,7 @@ namespace emph {
 
     min_dist.resize(nStations, std::vector<std::vector<TH1D*>>(nPlanes, std::vector<TH1D*>(2, nullptr)));
     est_pos.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr)));
-    est_pos_full.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr)));
+    est_pos_full.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr))); 
   }
 
   //......................................................................
@@ -215,7 +211,7 @@ namespace emph {
   }
 
   //......................................................................
-  void emph::MakeTrackSegmentsForEfficiency::produce(art::Event& evt)
+  void emph::MakeTrackSegmentsForEfficiency::analyze(art::Event const& evt)
   {
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
 
@@ -259,7 +255,6 @@ namespace emph {
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetTitle(estTitleStr.c_str());
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetOption("COLZ");
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetStats(0);
-              est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetMinimum(0.5);
 
               std::string fest_desc_str = "f" + desc_str;
               std::string divideTitleStr = "Divided Position "
@@ -381,15 +376,12 @@ namespace emph {
                     if (spv.size() > 0) {
                       updateSps(emgeo);
 
-                      // Form lines and fill plots 
+                      // Form lines 
                       std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
-                      fillPlots(tstmp1, rb::Region::kRegion1);
 
                       std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
-                      fillPlots(tstmp2, rb::Region::kRegion2);
 
                       std::vector<rb::TrackSegment> tstmp3 = algo.MakeTrackSeg(sp3);
-                      fillPlots(tstmp3, rb::Region::kRegion3);
 
                       for (auto ts : tsv)
                         tracksegmentv->push_back(ts);
@@ -433,7 +425,7 @@ namespace emph {
                       if (dgm->Map()->IsPointOnDetector(fMaskedStation, fMaskedPlane, fMaskedSensor, x0)) {
                         min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(smallest_min_dist);
                         est_pos_full[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos);
-                        if (std::abs(smallest_min_dist) <= 0.5) {
+                        if (std::abs(smallest_min_dist) <= 0.2) {
                           est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->Fill(best_x_pos, best_y_pos);
                         }
                       }
@@ -447,9 +439,6 @@ namespace emph {
         }
       }
     }
-    evt.put(std::move(linesegv));
-    evt.put(std::move(spacepointv));
-    evt.put(std::move(tracksegmentv));
   }
 
   void emph::MakeTrackSegmentsForEfficiency::groupClusters()
@@ -607,22 +596,6 @@ namespace emph {
     mf::LogDebug("MakeTrackSegmentsForEfficiency") << "sp3 size: " << sp3.size();
   }
 
-  void emph::MakeTrackSegmentsForEfficiency::fillPlots(std::vector<rb::TrackSegment> tstmp, rb::Region kRegion) {
-    for (auto i : tstmp) {
-      i.region = kRegion;
-      tsv.push_back(i);
-      chi2.push_back(i.chi2);
-      if (i.chi2 < 5) {
-        if (kRegion == rb::Region::kRegion1) {
-          chi2lessthan5_1++; 
-        } else if (kRegion == rb::Region::kRegion2) {
-          chi2lessthan5_2++;
-        } else {
-          chi2lessthan5_3++; 
-        }
-      }
-    }
-  }
 } // end namespace emph
 
 DEFINE_ART_MODULE(emph::MakeTrackSegmentsForEfficiency)
