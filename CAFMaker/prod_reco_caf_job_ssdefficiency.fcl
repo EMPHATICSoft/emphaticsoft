@@ -23,7 +23,7 @@ services:
 {
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
-  scheduler: { wantSummary: false }
+  scheduler: { wantSummary: true }
   TimeTracker: {}
   @table::standard_services
 
@@ -52,22 +52,36 @@ physics:
     gasckovreco:  @local::standard_gasckovhitreco
    # cafmaker:     @local::standard_cafmaker
 
-    maketracksegments: @local::standard_maketracksegmentsforefficiency
+   # maketracksegments: @local::standard_maketracksegmentsforefficiency
    # makesingletracks: @local::standard_makesingletracks
    # singletrackalignment: @local::standard_singletrackalignment
     makeprimaryvertex: @local::standard_makeprimaryvertex
   }
 
-  analyzers:{}
+  analyzers: {
+               maketracksegments: @local::standard_maketracksegmentsforefficiency
+             }
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, clust,
-               maketracksegments # makesingletracks
-	      # arichring,  arichreco, makeprimaryvertex, #singletrackalignment,
+               dataqual, spillinfo, arichcluster, clust
+               # maketracksegments #singletrackalignment,
               # adcreco, backovreco, gasckovreco,
-              # cafmaker
+              #                cafmaker
              ]
 
+  ana: [ maketracksegments ]
+
+  trigger_paths: [ makecaf ]
+  end_paths: [ ana ] 
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "emphdata_r%r_s%s.artdaq_reco_cafmaker_hist.root" #default file name, can override from command line with -o or --output
+  }
 }
 physics.producers.clust.FillTTree: false
 physics.producers.cafmaker.GetMCTruth: false #include when producing MC CAF's
