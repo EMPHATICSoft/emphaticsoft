@@ -98,12 +98,17 @@ namespace emph {
       int sensor = cl.Sensor();
       int plane  = cl.Plane();
       double dstrip = cl.WgtAvgStrip();
+
+      const bool ok = StationSensorPlaneToLineSegment(station, sensor, plane, ls, dstrip);
+      if (!ok) { return false; }
+
       double pitch = 0.06; // hard-coding the 60 um strip width for now... this should ideally be done based on the sensor info in Geometry
-      if (cl.NDigits() == 1)
-	ls.SetSigma(pitch/sqrt(12));
-      else
-	ls.SetSigma(cl.WgtRmsStrip()*pitch); 
-      return StationSensorPlaneToLineSegment(station, sensor, plane, ls, dstrip);
+      ls.SetSigma(cl.NDigits() == 1
+        ? pitch / std::sqrt(12.0)
+        : cl.WgtRmsStrip() * pitch);
+
+      ls.SetSSDStrip(cl.MaxStrip());
+      return true;
     }  
     //----------------------------------------------------------------------
 
