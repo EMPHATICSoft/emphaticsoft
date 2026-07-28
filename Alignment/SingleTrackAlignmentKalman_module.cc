@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \brief   Producer module to construct single-particle tracks
+/// \brief   Module that utilizes KalmanReco routine for alignment
 ///
 /// \author  $Author: noah knutson $
 ////////////////////////////////////////////////////////////////////////
@@ -90,16 +90,7 @@ namespace emph {
 		size_t         nPlanes;
 
 		std::map<std::pair<int, int>, int> clustMap;
-		std::vector<std::vector<std::vector<const rb::SSDCluster*> > > cl_group;
-		std::vector<std::vector<std::vector<const rb::LineSegment*> > > ls_group;
-		std::vector<const rb::SSDCluster*> clusters;
-		std::vector<const rb::LineSegment*> linesegments;
-		std::vector<const rb::TrackSegment*> tracksegments;
-		std::vector<const rb::Track*> tracks;
 		std::vector<std::vector<std::vector<float> > > pullsorted;
-
-		std::vector<rb::TrackSegment> tsv;
-		std::vector<rb::TrackSegment> tsvnom;
 
 		//fcl parameters
 		bool        fUpstream;
@@ -235,14 +226,6 @@ namespace emph {
 		auto emgeo = geo->Geo();
 		ru::RecoUtils r;
 
-		ROOT::Math::XYZVector a2(0.,0.,0.);
-		ROOT::Math::XYZVector b2(0.,0.,0.);
-		ROOT::Math::XYZVector ts2(0.,0.,0.);
-
-		ROOT::Math::XYZVector a1(0.,0.,0.);
-		ROOT::Math::XYZVector b1(0.,0.,0.);
-		ROOT::Math::XYZVector ts1(0.,0.,0.);
-
 
 		// Get Relevant data from Kalman Tracker (KTracker)
 		const auto measurements = fKTracker->GetMeasurements();
@@ -251,8 +234,12 @@ namespace emph {
 			auto plane = meas.SSDPlane();
 			auto sensor = meas.SSDSensor();
 
-			Double_t phim = meas.GetAlpha();
 			double sensorz = meas.GetZ();
+			ROOT::Math::XYZVector x0(meas.X0());
+			ROOT::Math::XYZVector x1(meas.X1());
+			ROOT::Math::XYZVector vec = x0 - x1;
+			Double_t phim = TMath::ATan2(vec.Y(),-vec.X());
+			while(phim < 0) phim += 2.*TMath::Pi();
 
 			// Calculate local derivatives
 			float lcd_x0 = -1.*TMath::Sin(phim);
@@ -267,24 +254,23 @@ namespace emph {
 						mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
 
 			// Calculate global derivatives
-			// These derivatives are estimated by slope to the next station
+			// These derivatives are estimated by slope to the next plane
 			// Come back to this criteria later
 			// - NTK
-			auto a = track.posSSD[station][plane];
-			auto b = track.posSSD[station+1][0];
-			auto dba = b-a;
-			double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
-			double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
+			double xhat = -track.posSSD[station][plane].X();
+			double yhat = track.posSSD[station][plane].Y();
+			double dxdz = track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
+			double dydz = track.momSSD[station][plane].Y()/track.momSSD[station][plane].Z();
 
 			float gld_x; float gld_y; float gld_z;
 			float gld_phim;
-
-		  auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View();
+			auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View();
 			if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
+				// Does this actually do anything? - NTK
 				gld_x = -1.*TMath::Sin(phim);
 				gld_y = 1.*TMath::Cos(phim);
 				gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
-				gld_phim = -1.*TMath::Cos(phim) * a.X() - 1.*TMath::Sin(phim) * a.Y();
+				gld_phim = -1.*TMath::Cos(phim) * xhat - 1.*TMath::Sin(phim) * yhat;
 			} else {
 				gld_x = 0.;
 				gld_y = 0.;
@@ -683,8 +669,11 @@ namespace emph {
 					std::cout << "Track chi2/ndf: " << track.chi2 << "/" << track.ndf << std::endl;
 		*/
 					// Populate mille now
-					dgm->Map()->SetAlign(align0);
-					if(pullThis) Pulls(track);
+					if(pullThis) {
+						usingEvent++;
+						dgm->Map()->SetAlign(align0);
+						Pulls(track);
+					}
 				} // end if isOk
 			} // end if isOk
 		} //useEvent
