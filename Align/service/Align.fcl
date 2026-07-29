@@ -3,7 +3,10 @@ BEGIN_PROLOG
 standard_align:
 {
   AbortIfFileNotFound: true
-  IsDisabled: false  # set to false for data, true for MC
+  IsDisabled: true
 }
+
+data_align: @local::standard_align
+data_align.IsDisabled: false
 
 END_PROLOG

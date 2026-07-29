@@ -81,10 +81,6 @@ namespace emph {
     TTree* spacepoint;
     int run, subrun, event;
     int fEvtNum;
-    std::vector<double> chi2;
-    int chi2lessthan5_1 = 0;
-    int chi2lessthan5_2 = 0;
-    int chi2lessthan5_3 = 0;
 
     std::vector<std::vector<std::vector<TH1D*>>> min_dist;
     std::vector<std::vector<std::vector<TH2D*>>> est_pos;
@@ -205,9 +201,6 @@ namespace emph {
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with clusters: " << hasclusters << std::endl;
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with less than " << fMaxClust << " clusters: " << usableclust << std::endl;
     std::cout << "MakeTrackSegmentsForEfficiency: Number of events with space points: " << sps << std::endl;
-    std::cout << "MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 1: " << chi2lessthan5_1 << std::endl;
-    std::cout << "MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 2: " << chi2lessthan5_2 << std::endl;
-    std::cout << "MakeTrackSegmentsForEfficiency: Number of events with chi2 < 5 for TrackSegment 3: " << chi2lessthan5_3 << std::endl;
   }
 
   //......................................................................
@@ -281,7 +274,6 @@ namespace emph {
             sp1.clear();
             sp2.clear();
             sp3.clear();
-            chi2.clear();
 
             run = evt.run();
             subrun = evt.subRun();
