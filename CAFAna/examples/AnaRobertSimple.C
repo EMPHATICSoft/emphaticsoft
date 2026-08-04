@@ -54,7 +54,7 @@ void AnaRobertSimple(std::string fname)
   TH1F* hNSelReco = new TH1F("hNSelReco","hNSelReco",180,0.,0.018);
   TH1F* hNSelSigReco = new TH1F("hNSelSigReco","hNSelSigReco",180,0.,0.018);
 
-  TH1F* hRecoScattering = new TH1F("hRecoScattering","hRecoScattering",24,0.,0.018);
+  TH1F* hRecoScattering = new TH1F("hRecoScattering","hRecoScattering",18,0.,0.018);
   TH1F* hRecoScatteringXZ = new TH1F("hRecoScatteringXZ","hRecoScatteringXZ",100,-0.005,0.005);
   TH1F* hRecoScatteringYZ = new TH1F("hRecoScatteringYZ","hRecoScatteringYZ",100,-0.005,0.005);
   TH1F* hScatResXZ = new TH1F("hScatResXZ","hScatResXZ",100,-0.005,0.005);
@@ -70,7 +70,7 @@ void AnaRobertSimple(std::string fname)
   TH1F* hP2Theta2Truth = new TH1F("hP2Theta2Truth","hP2Theta2Truth",60,0.,0.15);
   TH1F* hCrossSection = new TH1F("hCrossSection","hCrossSection",60,0.,0.15);
   TH1F* hCrossSectionTruth = new TH1F("hCrossSectionTruth","hCrossSectionTruth",60,0.,0.15);
-  TH1F* hCrossSectionScat = new TH1F("hCrossSectionScat","hCrossSectionScat",24,0.,0.018);
+  TH1F* hCrossSectionScat = new TH1F("hCrossSectionScat","hCrossSectionScat",18,0.,0.018);
   TH1F* hTrk0dXdZ = new TH1F("hTrk0dXdZ","hTrk0dXdZ",100,-0.005,0.005);
   TH1F* hTrk0dYdZ = new TH1F("hTrk0dYdZ","hTrk0dYdZ",100,0.005,0.015);
   //TH1F* hTrk0dYdZ = new TH1F("hTrk0dYdZ","hTrk0dYdZ",100,-0.005,0.005);
@@ -88,8 +88,8 @@ void AnaRobertSimple(std::string fname)
   TH1F* hScatteringAngleResolution4 = new TH1F("hScatteringAngleResolution4","hScatteringAngleResolution4",100,-0.005,0.005);
   TH1F* hScatteringAngleResolutionATan2 = new TH1F("hScatteringAngleResolutionATan2","hScatteringAngleResolutionATan2",100,-0.005,0.005);
 
-  TH2F* hScatteringAngleMigrationMatrix = new TH2F("hScatteringAngleMigrationMatrix","hScatteringAngleMigrationMatrix",24,0.,0.018,24,0.,0.018);
-  TH2F* hMigrationMatrixRelative = new TH2F("hMigrationMatrixRelative","hMigrationMatrixRelative",24,0.,0.018,24,0.,0.018);
+  TH2F* hScatteringAngleMigrationMatrix = new TH2F("hScatteringAngleMigrationMatrix","hScatteringAngleMigrationMatrix",18,0.,0.018,18,0.,0.018);
+  TH2F* hMigrationMatrixRelative = new TH2F("hMigrationMatrixRelative","hMigrationMatrixRelative",18,0.,0.018,18,0.,0.018);
   TH2F* hRecoTS1XY = new TH2F("hRecoTS1XY","hRecoTS1XY",100,-50.,50.,100,-50.,50.);
   TH2F* hRecoTS2XY = new TH2F("hRecoTS2XY","hRecoTS2XY",100,-50.,50.,100,-50.,50.);
   TH2F* hRecoTS3XY = new TH2F("hRecoTS3XY","hRecoTS3XY",100,-50.,50.,100,-50.,50.);
