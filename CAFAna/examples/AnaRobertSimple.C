@@ -54,7 +54,7 @@ void AnaRobertSimple(std::string fname)
   TH1F* hNSelReco = new TH1F("hNSelReco","hNSelReco",180,0.,0.018);
   TH1F* hNSelSigReco = new TH1F("hNSelSigReco","hNSelSigReco",180,0.,0.018);
 
-  TH1F* hRecoScattering = new TH1F("hRecoScattering","hRecoScattering",36,0.,0.018);
+  TH1F* hRecoScattering = new TH1F("hRecoScattering","hRecoScattering",24,0.,0.018);
   TH1F* hRecoScatteringXZ = new TH1F("hRecoScatteringXZ","hRecoScatteringXZ",100,-0.005,0.005);
   TH1F* hRecoScatteringYZ = new TH1F("hRecoScatteringYZ","hRecoScatteringYZ",100,-0.005,0.005);
   TH1F* hScatResXZ = new TH1F("hScatResXZ","hScatResXZ",100,-0.005,0.005);
@@ -70,7 +70,7 @@ void AnaRobertSimple(std::string fname)
   TH1F* hP2Theta2Truth = new TH1F("hP2Theta2Truth","hP2Theta2Truth",60,0.,0.15);
   TH1F* hCrossSection = new TH1F("hCrossSection","hCrossSection",60,0.,0.15);
   TH1F* hCrossSectionTruth = new TH1F("hCrossSectionTruth","hCrossSectionTruth",60,0.,0.15);
-  TH1F* hCrossSectionScat = new TH1F("hCrossSectionScat","hCrossSectionScat",36,0.,0.018);
+  TH1F* hCrossSectionScat = new TH1F("hCrossSectionScat","hCrossSectionScat",24,0.,0.018);
   TH1F* hTrk0dXdZ = new TH1F("hTrk0dXdZ","hTrk0dXdZ",100,-0.005,0.005);
   TH1F* hTrk0dYdZ = new TH1F("hTrk0dYdZ","hTrk0dYdZ",100,0.005,0.015);
   //TH1F* hTrk0dYdZ = new TH1F("hTrk0dYdZ","hTrk0dYdZ",100,-0.005,0.005);
@@ -88,8 +88,8 @@ void AnaRobertSimple(std::string fname)
   TH1F* hScatteringAngleResolution4 = new TH1F("hScatteringAngleResolution4","hScatteringAngleResolution4",100,-0.005,0.005);
   TH1F* hScatteringAngleResolutionATan2 = new TH1F("hScatteringAngleResolutionATan2","hScatteringAngleResolutionATan2",100,-0.005,0.005);
 
-  TH2F* hScatteringAngleMigrationMatrix = new TH2F("hScatteringAngleMigrationMatrix","hScatteringAngleMigrationMatrix",36,0.,0.018,36,0.,0.018);
-  TH2F* hMigrationMatrixRelative = new TH2F("hMigrationMatrixRelative","hMigrationMatrixRelative",36,0.,0.018,36,0.,0.018);
+  TH2F* hScatteringAngleMigrationMatrix = new TH2F("hScatteringAngleMigrationMatrix","hScatteringAngleMigrationMatrix",24,0.,0.018,24,0.,0.018);
+  TH2F* hMigrationMatrixRelative = new TH2F("hMigrationMatrixRelative","hMigrationMatrixRelative",24,0.,0.018,24,0.,0.018);
   TH2F* hRecoTS1XY = new TH2F("hRecoTS1XY","hRecoTS1XY",100,-50.,50.,100,-50.,50.);
   TH2F* hRecoTS2XY = new TH2F("hRecoTS2XY","hRecoTS2XY",100,-50.,50.,100,-50.,50.);
   TH2F* hRecoTS3XY = new TH2F("hRecoTS3XY","hRecoTS3XY",100,-50.,50.,100,-50.,50.);
@@ -108,7 +108,6 @@ void AnaRobertSimple(std::string fname)
   int nsig = 0;
   int nsigsel = 0;
   int dontcare = 0;
-  int process = 0;
   std::map<std::pair<int, int>, int> clustMap;
 
   caf::StandardRecord* rec = 0;
@@ -246,7 +245,7 @@ void AnaRobertSimple(std::string fname)
 	}
         if (h.station == 2 && h.plane == 0 && h.pid == 2212) {
           //std::cout<<"Process at (2,0): "<<h.process<<std::endl;
-	  if (h.process != "") process++; 
+	  //if (h.process != "") process++; 
           truep1sig.SetXYZ(h.mom.X(),h.mom.Y(),h.mom.Z());
 	  truex20sig.SetXYZ(h.pos.X(),h.pos.Y(),h.pos.Z()); 
         }
@@ -776,7 +775,7 @@ void AnaRobertSimple(std::string fname)
     for (int j=1; j<hScatteringAngleMigrationMatrix->GetNbinsY(); j++){
       double content = hScatteringAngleMigrationMatrix->GetBinContent(i,j);
       //std::cout<<"bin content = "<<hScatteringAngleMigrationMatrix->GetBinContent(i,j)<<std::endl;
-      if (content != 0) hMigrationMatrixRelative->SetBinContent(i,j,content/diag);
+      if (content != 0 && diag != 0) hMigrationMatrixRelative->SetBinContent(i,j,content/diag);
     }
   }
   hMigrationMatrixRelative->Write();
@@ -801,8 +800,6 @@ void AnaRobertSimple(std::string fname)
 
   std::cout<<"Nsig = "<<nsig<<std::endl;
   std::cout<<"Nsigsel = "<<nsigsel<<std::endl;
-
-  std::cout<<"Process = "<<process<<std::endl;
 
   //std::cout<<"Two or more clusters but after the target = "<<dontcare<<std::endl;
 
