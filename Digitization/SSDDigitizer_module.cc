@@ -74,10 +74,13 @@ namespace emph {
     int fStation, fPlane, fSensor, fStrip;
     int fADC;
     float fdE;
+
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
+    std::vector<std::vector<std::vector<double>>> fEfficiencies;
 
+    std::unique_ptr<TRandom3> fRand;
     //    std::unordered_map<int,int> fSensorMap;
 
     //    void FillSensorMap();
@@ -130,13 +133,14 @@ namespace emph {
   SSDDigitizer::SSDDigitizer(fhicl::ParameterSet const& pset)
     : EDProducer(pset),
       fFillAnaTree (pset.get<bool>("FillAnaTree")),
-      fG4Label (pset.get<std::string>("G4Label"))
+      fG4Label (pset.get<std::string>("G4Label")),
+      fEfficiencies(pset.get<std::vector<std::vector<std::vector<double>>>>("Efficiencies"))
   {
     //    fSensorMap.clear();
     fAnaTree = 0;
 
     produces<std::vector<rawdata::SSDRawDigit> >("SSD");
-
+    fRand = std::make_unique<TRandom3>(0);
   }
 
   //......................................................................
@@ -196,10 +200,18 @@ namespace emph {
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
         const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
         auto RawDigits = SimulateChargeSharing(ssdhit);
-        ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
 
+        Double_t rand = fRand->Uniform(0,1);
+        double eff = 1;
+
+        if (fStation != 0 && fStation != 1) {
+          eff = fEfficiencies[fStation][fPlane][fSensor];
+        }
+ 
+        if (rand <= eff) {
+          ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
+        }
       } // end loop over SSD hits for the event
-      
     }
     evt.put(std::move(ssdRawD),"SSD");
       

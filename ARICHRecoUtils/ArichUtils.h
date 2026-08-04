@@ -17,6 +17,7 @@
 
 #include "TVector3.h"
 #include <map>
+
 namespace arichreco{
 
     class ARICH_UTILS {
@@ -30,13 +31,12 @@ namespace arichreco{
 	~ARICH_UTILS();
 
 	double computeLogLikelihood(TH2D* event, TH2D* distribution);
+	double EchanToBin(std::pair<int,int> dig); 
 
 	std::vector<double> recoCherenkov(TH2Poly* eventHist, int nDetected, std::vector<TVector3> pos0s, std::vector<TVector3> dir0s);	
 	
 	TH2D* DigsToHist(std::vector<std::pair<int,int>> cluster);
 	TGraph2D* DigsToHist(std::vector<std::pair<int,int>> cluster, std::vector<float> cluster_times);
-
-	
 
 	std::vector<double> IdentifyMultiParticle(TH2D* hist, int np, std::vector<double> mom, std::vector<TVector3> pos0s,std::vector<TVector3> dir0s);
 	std::vector<double> identifyParticle(TH2D* eventHist, float  particleMom, TVector3 pos0, TVector3 dir0);
@@ -49,6 +49,7 @@ namespace arichreco{
 	
 	std::map<std::string, double> GetMap() const {return Particle_LogLike;};
 	TString GetFile() const{return PDfile;};
+
 	
 	private:
         double PDdarkrate;
@@ -68,7 +69,7 @@ namespace arichreco{
 	arichreco::Detector *Detector;	
         arichreco::Arich    *Arich;	
 	arichreco::particleInfoStruct hypothesis;
-
+	
 	std::map<std::string, double> Particle_LogLike;
     };
 

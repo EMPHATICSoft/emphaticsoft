@@ -1,0 +1,15 @@
+BEGIN_PROLOG
+
+standard_maketracksegmentsforefficiency:
+{
+  module_type: MakeTrackSegmentsForEfficiency
+  CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
+  ClusterLabel:      "clust"
+  G4Label:           "geantgen"
+  MaxClust:          45
+  MaskedStation:     3
+  MaskedPlane:       2
+  MaskedSensor:      0
+}
+
+END_PROLOG
