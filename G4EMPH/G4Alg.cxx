@@ -21,7 +21,7 @@
 #include "G4Base/UserActionManager.h"
 #include "G4Base/UserActionFactory.h"
 #include "G4Base/G4Helper.h"
-#include "SimulationBase/MCTruth.h"
+//#include "SimulationBase/MCTruth.h"
 #include "G4EMPH/SSDHitAction.h"
 #include "G4EMPH/FastStopAction.h"
 #include "G4EMPH/OpticalAction.h"
@@ -29,9 +29,11 @@
 #include "G4EMPH/TrackListAction.h"
 #include "G4EMPH/TOPAZLGHitAction.h"
 #include "G4EMPH/ARICHHitAction.h"
-#include "Simulation/SSDHit.h"
-#include "Simulation/Particle.h"
-#include "Simulation/Track.h"
+#include "G4EMPH/TargetHitAction.h"
+//#include "Simulation/SSDHit.h"
+//#include "Simulation/Particle.h"
+//#include "Simulation/Track.h"
+//#include "Simulation/TargetHit.h"
 
 // Framework includes
 #include "fhiclcpp/ParameterSet.h"
@@ -61,6 +63,7 @@ namespace emph {
     , fSARICHhaIndex(0)
     , fStopActionIndex(0) 
     , fOpticalActionIndex(0) 
+    , fTargethaIndex(0)
       
   {
 
@@ -154,7 +157,7 @@ namespace emph {
     emph::SSDHitAction* sh = new emph::SSDHitAction();
     sh->SetName("emph::SSDHitAction");
     sh->Config( pset );
-    
+
     emph::TOPAZLGHitAction* sh2 = new emph::TOPAZLGHitAction();
     sh2->SetName("emph::TOPAZLGHitAction");
     sh2->Config( pset );
@@ -170,6 +173,11 @@ namespace emph {
     emph::OpticalAction* sh5 = new emph::OpticalAction();
     sh5->SetName("emph::OpticalAction");
     sh5->Config( pset );
+
+    emph::TargetHitAction* sh6 = new emph::TargetHitAction();
+    sh6->SetName("emph::TargetHitAction");
+    sh6->Config( pset );
+
 
     // the ParticleListAction must be added to the UserActionManager 
     // first as it has to define the track ID in the case that the 
@@ -187,6 +195,7 @@ namespace emph {
     uam->AddAndAdoptAction(sh3);
     uam->AddAndAdoptAction(sh4);
     uam->AddAndAdoptAction(sh5);
+    uam->AddAndAdoptAction(sh6);
     // Should we bother with this.. ??? It seems that it is hardcoded in 
     fPlatIndex = 0;   
     fPlaIndex = 1; // Again, could change. 
@@ -195,7 +204,8 @@ namespace emph {
     fSARICHhaIndex = 4; // ARICH 
     fStopActionIndex = 5;
     fOpticalActionIndex = 6;
-    
+    fTargethaIndex = 7;
+
     ConfigUserActionManager(fUserActions,pset);
 
     std::cout << "%%%%%%%%%% ACTION LIST %%%%%%%%%%" << std::endl;
@@ -281,7 +291,8 @@ namespace emph {
   void G4Alg::RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
                        std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector< sim::Track> & tracklist,
-                       std::vector< std::vector< std::pair<size_t, size_t> > >&  pListLimits)
+                       std::vector< sim::TargetHit>& targethitlist,
+                       std::vector< std::vector<std::pair<size_t, size_t> > >&   pListLimits)
   {  
 //    g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();
 //    dynamic_cast<emph::ParticleListAction*>(uam->GetAction(fPlaIndex))->ResetAbortFlag();
@@ -304,7 +315,7 @@ namespace emph {
         const simb::MCTruth* mct(&(*mclistHandle)[i]);
 //        
 //        size_t start = particlelist.size();
-        this->RunGeant(mct, ssdhitlist, tracklist);
+        this->RunGeant(mct, ssdhitlist, tracklist, targethitlist);
 //        size_t end = particlelist.size();
 // 
 // We do not needt to keep incrementing the whole list of particle, we run event by event.. 
@@ -322,8 +333,9 @@ namespace emph {
                        std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector<sim::TOPAZLGHit> & lghitlist,
                        std::vector<sim::ARICHHit> & arichhitlist,
+                       std::vector< sim::TargetHit>& targethitlist,
                        std::vector< sim::Track >& tracklist,
-		       std::vector< sim::Particle >& particlelist,
+            		       std::vector< sim::Particle >& particlelist,
                        std::map<int, size_t>& trackIDToMCTruthIndex)
   {
     
@@ -337,12 +349,14 @@ namespace emph {
     // getting instance of ssd hit action.
     TOPAZLGHitAction* shLG = dynamic_cast<TOPAZLGHitAction *>(uam->GetAction(fSLGhaIndex));
     ARICHHitAction* shARICH = dynamic_cast<ARICHHitAction *>(uam->GetAction(fSARICHhaIndex));
+    TargetHitAction* shTarget = dynamic_cast<TargetHitAction *>(uam->GetAction(fTargethaIndex));
 
     particlelist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     tracklist.clear(); // Why?  We will to a deep copy after the event ran... See few lines below.. 
     ssdhitlist.clear();
     lghitlist.clear();
-    
+    targethitlist.clear();
+
     // trackIDToMCTruthIndex keeps track of which trackIDs correspond to which MCTruth
     // in mctruths
     trackIDToMCTruthIndex.clear();
@@ -371,6 +385,7 @@ namespace emph {
     // getting TOPAZ Lead Glass hit list from topazlghitaction.cxx
     arichhitlist = shARICH->GetAllHits();
     // getting ARICH
+    targethitlist = shTarget->GetAllHits();
     return;
   }// end of RunGeant
 
@@ -379,15 +394,17 @@ namespace emph {
   void G4Alg::RunGeant(art::Ptr<simb::MCTruth>         mctruth,
                        std::vector<sim::SSDHit> & ssdhitlist,
                        std::vector< sim::Track >&   tracklist,
+                       std::vector< sim::TargetHit>& targethitlist,
                        int                             trackIDOffset)
   {  
-    this->RunGeant(mctruth.get(), ssdhitlist, tracklist, trackIDOffset);
+    this->RunGeant(mctruth.get(), ssdhitlist, tracklist, targethitlist, trackIDOffset);
   }
 
   //______________________________________________________________________________
   void G4Alg::RunGeant(const simb::MCTruth*             mctruth,
-                       std::vector<sim::SSDHit>  & ,
-                       std::vector< sim::Track >   & ,
+                       std::vector<sim::SSDHit>  & ssdhitlist,
+                       std::vector< sim::Track >   & tracklist,
+                       std::vector< sim::TargetHit>& targethitlist,
                        int                              trackIDOffset)
   {
     g4b::UserActionManager*  uam = g4b::UserActionManager::Instance();

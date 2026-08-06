@@ -1,26 +1,26 @@
 ////////////////////////////////////////////////////////////////////////
-// \file    SRTrueSSDHitsBranch.cxx
-// \brief   An SRTrueSSDHitsBranch contains vectors of SRTrueSSDHits.
+// \file    SRTrueTargetHitsBranch.cxx
+// \brief   An SRTrueTargetHitsBranch contains vectors of SRTrueTargetHits.
 //          It is intended for use in the Common Analysis ROOT trees.
 ////////////////////////////////////////////////////////////////////////
 
-#include "StandardRecord/SRTrueSSDHitsBranch.h"
+#include "StandardRecord/SRTrueTargetHitsBranch.h"
 
 
 namespace caf
 {
-  SRTrueSSDHitsBranch::SRTrueSSDHitsBranch():
+  SRTrueTargetHitsBranch::SRTrueTargetHitsBranch():
     ntruehits(0)
   {
   }
 
   //--------------------------------------------------------------------
-  SRTrueSSDHitsBranch::~SRTrueSSDHitsBranch()
+  SRTrueTargetHitsBranch::~SRTrueTargetHitsBranch()
   {
   }
 
   //--------------------------------------------------------------------
-  void SRTrueSSDHitsBranch::fillSizes()
+  void SRTrueTargetHitsBranch::fillSizes()
   {
     ntruehits = truehits.size();
   }
