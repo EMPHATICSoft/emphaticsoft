@@ -141,7 +141,7 @@ namespace emph {
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
-    fZstart        = ps.get<double>("Zstart", -200.); // mm
+    fZstart        = ps.get<double>("Zstart", -200.); //cm 
     fPZDist        = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
@@ -161,7 +161,7 @@ namespace emph {
     fPmean         = ps.get<double>("PMean",0.); 
     fPsigma        = ps.get<double>("Psigma",0.);
     
-    // NOTE: These are all in units of ??
+    // NOTE: These are all in units of cm 
     fXmax          = ps.get<double>("Xmax",-999999.); 
     fXmin          = ps.get<double>("Xmin",999999.); 
     fYmax          = ps.get<double>("Ymax",-999999.);
@@ -414,7 +414,7 @@ namespace emph {
     std::cout << "Event " << fEvtCount << std::endl;
 
     TLorentzVector pos;
-    pos[2] = fZstart; // units are mm for this      
+    pos[2] = fZstart; // cm; ConvertMCTruthToG4 applies CLHEP::cm 
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
