@@ -19,10 +19,8 @@ namespace caf
 {
   void TruthFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
   {
-    art::Handle< std::vector <sim::Particle> > pcal;
-
-    try {
-      evt.getByLabel("geantgen", pcal);// get the particle list from art
+    auto pcal = evt.getHandle<std::vector<sim::Particle> >("geantgen");
+    if (pcal) {
       
       std::vector<sim::Particle> particles;
       if(!pcal.failedToGet()){particles = *pcal;}
@@ -30,13 +28,6 @@ namespace caf
       assert(!particles.empty() && "Got an event with no primary particle.  Rebuild your code with develop and check your generator job!");        
       auto beam_temp = SRParticle(particles[0]);// grab the first beam particle, do an upcast and then a downcast from
       SRTrueParticle beam = SRTrueParticle(beam_temp);// sim::Particle to caf::SRParticle and then from caf::SRParticle to caf:: SRTP
-      /*
-      std::cout << "beam.ftrajectory.size() = " << beam.ftrajectory.size() 
-		<< std::endl;
-      for (size_t i=0; i<beam.ftrajectory.size(); ++i) {
-	std::cout << "z[" << i << "] = " << beam.ftrajectory.Position(i).Z() << std::endl; 
-      }
-      */
 
       // if we don't want to record all the G4 steps, save the first trajectory, clear, and fill it again
       if (!GetG4Hits){
@@ -48,121 +39,116 @@ namespace caf
       
       std::vector <caf::SRTrueParticle> daughters;
       stdrec.truth = caf::SRTruth();
-      
-      
+            
       for (int i = 0; i < particles[0].NumberDaughters(); ++i){// record every daughter of the beam particle
-	int daughter_trackid = particles[0].Daughter(i);
+      	int daughter_trackid = particles[0].Daughter(i);
 	
-	for (size_t i = 0; i < particles.size(); ++i){
-	  int idHolder = particles[i].TrackId();
+      	for (size_t j = 0; j < particles.size(); ++j){
+      	  int idHolder = particles[j].TrackId();
 	  
-	  if (idHolder == daughter_trackid){
-	    auto dummy = SRParticle(particles[i]);// again this is some maneuvering around class inheritances 
-	    auto dummy2 = SRTrueParticle(dummy);
-	    if (!GetG4Hits){
-	      auto tempPos = dummy2.ftrajectory.Position(0);
-	      auto tempMom = dummy2.ftrajectory.Momentum(0);
-	      dummy2.ftrajectory.clear();
-	      dummy2.AddTrajectoryPoint(tempPos, tempMom);
-	    }
-	    daughters.push_back(dummy2);
-	  }
-	}// potential to extend this to include more generations
-      }  
-      stdrec.truth.beam = beam;// record the beam particle into the CAF
-      stdrec.truth.beam.daughters = daughters;// record the vector of daughter particles into the CAF
-    }
-    catch(...) {}
-    //dah edits start here
-    art::Handle< std::vector<sim::SSDHit> > truehitv;
-    try {
-      evt.getByLabel(fLabel, truehitv);
-    }
-    catch(...) {
-      std::cout << "WARNING: No SSDHits found!" << std::endl;
-    }
-    for (unsigned int truehitId = 0; truehitId < truehitv->size(); ++truehitId) {
+    	  if (idHolder == daughter_trackid){
+	        auto dummy = SRParticle(particles[j]);// again this is some maneuvering around class inheritances 
+	        auto dummy2 = SRTrueParticle(dummy);
+	        if (!GetG4Hits){
+	          auto tempPos = dummy2.ftrajectory.Position(0);
+	          auto tempMom = dummy2.ftrajectory.Momentum(0);
+	          dummy2.ftrajectory.clear();
+	          dummy2.AddTrajectoryPoint(tempPos, tempMom);
+	        }
+	        daughters.push_back(dummy2);
+	      }
+	    }// potential to extend this to include more generations
+    }  
+    stdrec.truth.beam = beam;// record the beam particle into the CAF
+    stdrec.truth.beam.daughters = daughters;// record the vector of daughter particles into the CAF
+  }
+ 
+  auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fLabel);
+  if (!truehitv) {
+    std::cout << "WARNING: No SSDHits found!" << std::endl;
+  }
+  for (unsigned int truehitId = 0; truehitId < truehitv->size(); ++truehitId) 
+  {
+    const sim::SSDHit& ssdhit = (*truehitv)[truehitId];
 
-      const sim::SSDHit& ssdhit = (*truehitv)[truehitId];
+    // do not include ssdhits coming from electrons/positrons 
+    // (with sufficiently low DE) in the CAF
+    if (abs(ssdhit.PId()) == 11 && ssdhit.DE() < 0.00004) continue; 
 
-      // do not include ssdhits coming from electrons/positrons 
-      // (with sufficiently low DE) in the CAF
-      if (abs(ssdhit.PId()) == 11 && ssdhit.DE() < 0.00004) continue; 
-
-      int station = ssdhit.Station();
-      int plane = ssdhit.Plane();
-      int sensor = ssdhit.Sensor();
+    int station = ssdhit.Station();
+    int plane = ssdhit.Plane();
+    int sensor = ssdhit.Sensor();
       
-      // get particle 
-      if (station == 1 && plane == 1 && sensor == 0) {
-       stdrec.truth.posUSTarget.SetXYZ(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
-       stdrec.truth.momUSTarget.SetXYZ(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());       
-      }
-      if (station == 2 && plane == 0 && sensor == 0) {
-        ROOT::Math::XYZVector pos(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
-        ROOT::Math::XYZVector mom(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());
-        stdrec.truth.posDSTarget.push_back(pos);
-        stdrec.truth.momDSTarget.push_back(mom);        
-      }
-      
-      stdrec.truth.truehits.truehits.push_back(SRTrueSSDHits());
-      SRTrueSSDHits& srTrueSSDHits = stdrec.truth.truehits.truehits.back();
-
-      srTrueSSDHits.pos.SetX(ssdhit.X());
-      srTrueSSDHits.pos.SetY(ssdhit.Y());
-      srTrueSSDHits.pos.SetZ(ssdhit.Z());
-
-      srTrueSSDHits.mom.SetX(ssdhit.Px());
-      srTrueSSDHits.mom.SetY(ssdhit.Py());
-      srTrueSSDHits.mom.SetZ(ssdhit.Pz());
-
-      srTrueSSDHits.dE = ssdhit.DE();
-      srTrueSSDHits.pid = ssdhit.PId();
-
-      srTrueSSDHits.station = ssdhit.Station();
-      srTrueSSDHits.plane = ssdhit.Plane();
-      srTrueSSDHits.sensor = ssdhit.Sensor();
-      srTrueSSDHits.strip = ssdhit.Strip();
-      srTrueSSDHits.trackID = ssdhit.TrackID();
-
-    } // end for truehitId
-
-    art::Handle< std::vector<sim::TargetHit> > truetargethitv;
-    try {
-      evt.getByLabel(fLabel, truetargethitv);
+    // get particle 
+    if (station == 1 && plane == 1 && sensor == 0) {
+      stdrec.truth.posUSTarget.SetXYZ(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
+      stdrec.truth.momUSTarget.SetXYZ(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());       
     }
-    catch(...) {
-      std::cout << "WARNING: No TargetHits found!" << std::endl;
+    if (station == 2 && plane == 0 && sensor == 0) {
+      ROOT::Math::XYZVector pos(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
+      ROOT::Math::XYZVector mom(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());
+      stdrec.truth.posDSTarget.push_back(pos);
+      stdrec.truth.momDSTarget.push_back(mom);        
     }
-
-    for (unsigned int truehitId = 0; truehitId < truetargethitv->size(); ++truehitId) {
-
-      const sim::TargetHit& targethit = (*truetargethitv)[truehitId];
       
-      stdrec.truth.trueTargetHits.truehits.push_back(SRTrueTargetHit());
-      SRTrueTargetHit& srTrueTargetHit = stdrec.truth.trueTargetHits.truehits.back();
+    stdrec.truth.truehits.truehits.push_back(SRTrueSSDHits());
+    SRTrueSSDHits& srTrueSSDHits = stdrec.truth.truehits.truehits.back();
 
-      srTrueTargetHit.pos_pre.SetX(targethit.PreX());
-      srTrueTargetHit.pos_pre.SetY(targethit.PreY());
-      srTrueTargetHit.pos_pre.SetZ(targethit.PreZ());
-      srTrueTargetHit.pos_post.SetX(targethit.PostX());
-      srTrueTargetHit.pos_post.SetY(targethit.PostY());
-      srTrueTargetHit.pos_post.SetZ(targethit.PostZ());
+    srTrueSSDHits.pos.SetX(ssdhit.X());
+    srTrueSSDHits.pos.SetY(ssdhit.Y());
+    srTrueSSDHits.pos.SetZ(ssdhit.Z());
 
-      srTrueTargetHit.mom_pre.SetX(targethit.PrePx());
-      srTrueTargetHit.mom_pre.SetY(targethit.PrePy());
-      srTrueTargetHit.mom_pre.SetZ(targethit.PrePz());
-      srTrueTargetHit.mom_post.SetX(targethit.PostPx());
-      srTrueTargetHit.mom_post.SetY(targethit.PostPy());
-      srTrueTargetHit.mom_post.SetZ(targethit.PostPz());
+    srTrueSSDHits.mom.SetX(ssdhit.Px());
+    srTrueSSDHits.mom.SetY(ssdhit.Py());
+    srTrueSSDHits.mom.SetZ(ssdhit.Pz());
 
-      srTrueTargetHit.dE = targethit.DE();
-      srTrueTargetHit.pid = targethit.PId();
-      srTrueTargetHit.process = targethit.Process();
-      srTrueTargetHit.trackID = targethit.TrackID();
+    srTrueSSDHits.dE = ssdhit.DE();
+    srTrueSSDHits.pid = ssdhit.PId();
 
-    } // end for truehitId
+    srTrueSSDHits.station = ssdhit.Station();
+    srTrueSSDHits.plane = ssdhit.Plane();
+    srTrueSSDHits.sensor = ssdhit.Sensor();
+    srTrueSSDHits.strip = ssdhit.Strip();
+    srTrueSSDHits.trackID = ssdhit.TrackID();
 
+  } // end loop over true ssd hits
+
+  stdrec.truth.truehits.fillSizes();
+  
+  auto trgthitv = evt.getHandle<std::vector<sim::TargetHit> >(fLabel);
+
+  if (!trgthitv)  std::cout << "WARNING: No TargetHits found!" << std::endl;
+
+  for (unsigned int truehitId = 0; truehitId < trgthitv->size(); ++truehitId) 
+  {
+
+    const sim::TargetHit& targethit = (*trgthitv)[truehitId];
+      
+    stdrec.truth.trueTargetHits.truehits.push_back(SRTrueTargetHit());
+    SRTrueTargetHit& srTrueTargetHit = stdrec.truth.trueTargetHits.truehits.back();
+
+    srTrueTargetHit.pos_pre.SetX(targethit.PreX());
+    srTrueTargetHit.pos_pre.SetY(targethit.PreY());
+    srTrueTargetHit.pos_pre.SetZ(targethit.PreZ());
+    srTrueTargetHit.pos_post.SetX(targethit.PostX());
+    srTrueTargetHit.pos_post.SetY(targethit.PostY());
+    srTrueTargetHit.pos_post.SetZ(targethit.PostZ());
+
+    srTrueTargetHit.mom_pre.SetX(targethit.PrePx());
+    srTrueTargetHit.mom_pre.SetY(targethit.PrePy());
+    srTrueTargetHit.mom_pre.SetZ(targethit.PrePz());
+    srTrueTargetHit.mom_post.SetX(targethit.PostPx());
+    srTrueTargetHit.mom_post.SetY(targethit.PostPy());
+    srTrueTargetHit.mom_post.SetZ(targethit.PostPz());
+
+    srTrueTargetHit.dE = targethit.DE();
+    srTrueTargetHit.pid = targethit.PId();
+    srTrueTargetHit.process = targethit.Process();
+    srTrueTargetHit.trackID = targethit.TrackID();
+
+  } // end for truehitId
+
+  stdrec.truth.trueTargetHits.fillSizes();
   }
 
 } // end namespace caf

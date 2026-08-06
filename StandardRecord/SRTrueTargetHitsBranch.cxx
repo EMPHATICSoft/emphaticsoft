@@ -10,7 +10,7 @@
 namespace caf
 {
   SRTrueTargetHitsBranch::SRTrueTargetHitsBranch():
-    ntruehits(-1)
+    ntruehits(0)
   {
   }
 
