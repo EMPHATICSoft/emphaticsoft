@@ -76,8 +76,6 @@ namespace emph {
     int fADC;
     float fdE;
 
-    float digitized = 0.0;
-    float total = 0.0;
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
@@ -212,10 +210,7 @@ namespace emph {
 
         if (rand <= eff) {
           ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
-          digitized++;
         }
-        total++;
-        std::cout << "Percentage digitized: " << (digitized/total) << "%" << std::endl;
       } // end loop over SSD hits for the event
     }
     evt.put(std::move(ssdRawD),"SSD");
