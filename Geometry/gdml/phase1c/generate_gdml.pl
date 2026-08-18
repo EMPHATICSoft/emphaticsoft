@@ -262,7 +262,7 @@ print DEF <<EOF;
 	<quantity name="arich_width" value="365.0" unit="mm"/>
 	<quantity name="arich_height" value="365.0" unit="mm"/>
 
-	<position name="arich_pos" x="0" y="0" z="arich_shift+0.5*arich_thick" unit="mm" />
+	<position name="arich_pos" x="-11" y="6" z="arich_shift+0.5*arich_thick" unit="mm" />
 	<quantity name="aerogel_thick0" value="18.9" unit="mm"/>
 	<quantity name="aerogel_thick1" value="20.4" unit="mm"/>
 	<quantity name="aerogel_size" value="93.0" unit="mm"/>
