@@ -9,6 +9,8 @@ standard_singletrackalignmentKalman:
   UseTruth: false
   Verbosity: 0
   NIterations: 2
+  UncScaler: 0 # 10^UncScaler
+  MilleName: "m005.bin"
 }
 
 END_PROLOG

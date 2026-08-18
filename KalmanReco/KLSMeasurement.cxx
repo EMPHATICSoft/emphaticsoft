@@ -5,24 +5,25 @@ namespace kalman {
   KLSMeasurement::KLSMeasurement(const rb::LineSegment& line) : rb::LineSegment(line){
     double dx = line.X1().X() - line.X0().X();
     double dy = line.X1().Y() - line.X0().Y();
-    if (TMath::Abs(dx) < 1e-6) dx = 0.;
-    if (TMath::Abs(dy) < 1e-6) dy = 0.;
+//    if (TMath::Abs(dx) < 1e-6) dx = 0.;
+//    if (TMath::Abs(dy) < 1e-6) dy = 0.;
 
 //    if (dx<0) { //  && dy<0) {
 //      dx = -dx;
 //      dy = -dy;
 //    }
-    fAlpha = TMath::ATan(dy/dx) + TMath::Pi()/2.0; // angle of normal vector to line
+//    fAlpha = TMath::ATan(dy/dx) + TMath::Pi()/2.0; // angle of normal vector to line
+    fAlpha = TMath::ATan2(dy,dx) + TMath::Pi()/2.0; // angle of normal vector to line
     fU = TMath::Cos(fAlpha);
     fV = TMath::Sin(fAlpha);
-    if (TMath::Abs(fU) < 1.e-6) {
-      fU = 0.;
-      fV = 1.;
-    }
-    if (TMath::Abs(fV) < 1.e-6) {
-      fU = 1.;
-      fV = 0.;
-    }
+//    if (TMath::Abs(fU) < 1.e-6) {
+//      fU = 0.;
+//      fV = 1.;
+//    }
+//    if (TMath::Abs(fV) < 1.e-6) {
+//      fU = 1.;
+//      fV = 0.;
+//    }
   }
 
   double KLSMeasurement::DistanceToPoint(double x, double y) const {

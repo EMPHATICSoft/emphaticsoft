@@ -107,6 +107,8 @@ namespace emph {
 		int fVerbosity;
 		int fNInterations;
 		bool fUseTruth;
+		double fUncScaler;
+		std::string fMilleName;
 		std::string fTrackSegmentLabel;
 
 		kalman::KTracker* fKTracker;
@@ -136,8 +138,11 @@ namespace emph {
 		fVerbosity (pset.get<int>("Verbosity", 0)),
 		fNInterations (pset.get<int>("NIterations", 1)),
 		fUseTruth (pset.get<bool>("UseTruth", false)),
+		fUncScaler (pset.get<double>("UncScaler", 0)),
+		fMilleName (pset.get< std::string >("MilleName")),
 		fTrackSegmentLabel (pset.get< std::string >("TrackSegmentLabel"))
 		{
+			std::cout << "We got the fUncScaler" << fUncScaler << std::endl;
 			//this->produces< std::vector<rb::Track> >();
 			fKTracker = new kalman::KTracker();
 			fKTracker->SetVerbosity(fVerbosity);
@@ -208,7 +213,7 @@ namespace emph {
 	{
 		std::cerr<<"Starting SingleTrackAlignmentKalman"<<std::endl;
 
-		m = new Mille("m005.bin",true,true);
+		m = new Mille(fMilleName.c_str(),true,true);
 	}
 
 	//......................................................................
@@ -226,7 +231,6 @@ namespace emph {
 		auto emgeo = geo->Geo();
 		ru::RecoUtils r;
 
-
 		// Get Relevant data from Kalman Tracker (KTracker)
 		const auto measurements = fKTracker->GetMeasurements();
 		for(const auto& meas : measurements) {
@@ -238,7 +242,7 @@ namespace emph {
 			ROOT::Math::XYZVector x0(meas.X0());
 			ROOT::Math::XYZVector x1(meas.X1());
 			ROOT::Math::XYZVector vec = x0 - x1;
-			Double_t phim = TMath::ATan2(vec.Y(),-vec.X());
+			Double_t phim = TMath::ATan2(vec.Y(), -vec.X());
 			while(phim < 0) phim += 2.*TMath::Pi();
 
 			// Calculate local derivatives
@@ -247,17 +251,9 @@ namespace emph {
 			float lcd_y0 = 1.*TMath::Cos(phim);
 			float lcd_pypz = sensorz*TMath::Cos(phim);
 
-			auto signedDistance = track.pullSSD[station][plane];
-			auto uncertainty = track.uncPull[station][plane];
-			mf::LogDebug("SingleTrackAlignmentKalman") << "..........." ;
-						mf::LogDebug("SingleTrackAlignmentKalman") << "signedDistance = " << signedDistance;
-						mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
-
 			// Calculate global derivatives
-			// These derivatives are estimated by slope to the next plane
-			// Come back to this criteria later
-			// - NTK
-			double xhat = -track.posSSD[station][plane].X();
+			// These derivatives are estimated by the Kalman Filtered Track
+			double xhat = track.posSSD[station][plane].X();
 			double yhat = track.posSSD[station][plane].Y();
 			double dxdz = track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
 			double dydz = track.momSSD[station][plane].Y()/track.momSSD[station][plane].Z();
@@ -277,6 +273,17 @@ namespace emph {
 				gld_z = 0.;
 				gld_phim = 0.;
 			}
+
+			float signedDistance = track.pullSSD[station][plane];
+			float uncertainty = track.uncPull[station][plane];
+//			for(auto i = 0; i < fUncScaler; ++i) // Exponentially scaled uncertainty
+//				uncertainty *= 10;
+//			// Cap on uncertainty of 1 millimeter
+//			if(uncertainty > 1) uncertainty = 1;
+
+			mf::LogDebug("SingleTrackAlignmentKalman") << "..........." ;
+						mf::LogDebug("SingleTrackAlignmentKalman") << "signedDistance = " << signedDistance;
+						mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
 
 			// package local derivatives for mille
 			float milleDerivativeLocal[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
@@ -310,9 +317,11 @@ namespace emph {
 		// if data fcl
 		std::string digitStr = std::to_string(event);
 		bool useEvent = false;
-		if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
-			useEvent = true;
-		}
+//		if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
+//		//if (true){
+//			useEvent = true;
+//		}
+		useEvent = (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3');
 
 		if (useEvent){ // Perform Kalman Reconstruction
 			art::Handle< std::vector<rb::LineSegment> > lsH;
@@ -460,7 +469,7 @@ namespace emph {
 				kalman::KState initialState;
 				for (size_t itrkseg=0; itrkseg<trkSegH->size(); ++itrkseg) {
 					auto & trkseg = (*trkSegH)[itrkseg];
-					if (trkseg.region == caf::Region::kRegion2) {
+					if (trkseg.region == caf::Region::kRegion1) {
 						auto trksegPoint = trkseg.pointA;
 						if (trkseg.pointB.Z() < trkseg.pointA.Z()) {
 							trksegPoint = trkseg.pointB;
@@ -629,13 +638,15 @@ namespace emph {
 					// Need to determine first station for the right comparison to beamTrack
 					size_t firstStation = 999999;
 					{ // Pack residuals and position estimates
-						size_t index = 0;
+						size_t index = 1; // skip the initial smoothed state
 						for (const auto& resid : residuals) {
 							auto station = resid.GetStation();
 							auto plane = resid.GetPlane();
 							track.pullSSD[station][plane] = resid.GetResidual();
 							track.uncPull[station][plane] = resid.GetSigma();
-
+							// iterating over vector of smoothed states (sorted by increasing Z)
+							// ideally this would also be given by an array: smoothed[station][plane]
+							// - NTK
 							const auto& state = smoothed[index++];
 							pos.SetXYZ(state.GetPar()[0], state.GetPar()[1], state.GetZ());
 							double tx = state.GetPar()[2];
@@ -648,7 +659,8 @@ namespace emph {
 							track.posSSD[station][plane] = pos;
 							track.momSSD[station][plane] = mom;
 							if(firstStation == 999999) firstStation = station;
-							if(mom != mom) pullThis = false;
+							// check that Kalman Filter converged
+							if(mom != mom || pos != pos) pullThis = false;
 						}
 					}
 					double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[firstStation][0]);
