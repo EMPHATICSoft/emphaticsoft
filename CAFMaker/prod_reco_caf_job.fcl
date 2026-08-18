@@ -65,10 +65,12 @@ physics:
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, clust,
-               maketracksegments, makesingletracks, arichring, arichreco, makeprimaryvertex, #singletrackalignment,
-               singletrackalignmentKalman,
-              # adcreco, backovreco, gasckovreco,
+               dataqual, spillinfo, clust,
+               #arichcluster,arichring, arichreco,
+               maketracksegments, makeprimaryvertex,
+               #makesingletracks, singletrackalignment,
+               #singletrackalignmentKalman,
+               #adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
