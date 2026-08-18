@@ -139,6 +139,11 @@ Plane::Plane() :
       fA.clear();
       fZ.clear();
     }
+   //--------------------------------------------------------------------------------	
+    Aerogel::Aerogel():
+      fPos(-1e6,-1e6,-1e6),fRef_idx(1.) 
+    {
+    }
 
     //--------------------------------------------------------------------------------
 
@@ -149,6 +154,8 @@ Plane::Plane() :
       fNSSDPlanes = 0;
       fNSSDs = 0;
       fTarget = 0;
+      fAerogelUS=0;
+      fAerogelDS=0;
       fGeoManager = 0;
       fSSDSensorMap.clear();
       for (int i=0; i<3; ++i) {
@@ -256,6 +263,10 @@ Plane::Plane() :
 
       ExtractPMTInfo(world_v);
       mf::LogInfo("ExtractGeometry") << "extracted PMT info \n";
+
+       ExtractAerogelInfo(world_v);
+       mf::LogInfo("ExtractGeometry") << "extracted aerogels geometry \n";
+
 
       for ( int i = Trigger ; i < NDetectors ; i ++ ){
 	ExtractDetectorInfo(i, world_n);
@@ -406,9 +417,51 @@ Plane::Plane() :
     }
 
     //--------------------------------------------------------------------------------
+     
+    void Geometry::ExtractAerogelInfo(const TGeoVolume* world_v){
+	
+      TGDMLMatrix* refidx1_matrix = (TGDMLMatrix*)fGeoManager->GetGDMLMatrix("AERO_1026_RINDEX");
+      std::vector<std::pair<double,double>> refidx1_vec = ReadMatrix(refidx1_matrix);
+      mf::LogInfo("ExtractGeometry") << "Aerogel US refractive index is " << refidx1_vec.begin()->second*100 << std::endl;
+
+      TGDMLMatrix* refidx2_matrix = (TGDMLMatrix*)fGeoManager->GetGDMLMatrix("AERO_1030_RINDEX");
+      std::vector<std::pair<double,double>> refidx2_vec = ReadMatrix(refidx2_matrix);	
+     
+      mf::LogInfo("ExtractGeometry") << "Aerogel DS refractive index is " << refidx2_vec.begin()->second*100 << std::endl;
+
+      TGeoNode* arich_n = (TGeoNode*)world_v->GetNode("ARICH_phys");
+      TGeoVolume* arich_v = (TGeoVolume*)arich_n->GetVolume();
+	 
+
+      fAerogelUS = new Aerogel();
+      fAerogelDS = new Aerogel();
+
+      TGeoNode* aero0_n = arich_v->GetNode(0);  // node 0 is aerogel upstream
+      mf::LogInfo("ExtractGeometry") << "Reading " << arich_v->GetNode(0)->GetName() << std::endl;	 
+      TGeoBBox* aero0_b = (TGeoBBox*)aero0_n->GetVolume()->GetShape();
+      fAerogelUS->SetName("Upstream Aerogel");
+      fAerogelUS->SetPos(fArichCenterPos+aero0_n->GetMatrix()->GetTranslation());
+      fAerogelUS->SetRefractiveIdx(refidx1_vec.begin()->second * 100); //idk it reads 0.01026 instead of 1.026
+      fAerogelUS->SetThickness(aero0_b->GetDZ());      
+  
+      TGeoNode* aero1_n = arich_v->GetNode(1); // node 1 is aerogel upstream
+       mf::LogInfo("ExtractGeometry") << "Reading " << arich_v->GetNode(1)->GetName() << std::endl;
+      TGeoBBox* aero1_b = (TGeoBBox*)aero1_n->GetVolume()->GetShape();
+      fAerogelDS->SetName("Downstream Aerogel");
+      fAerogelDS->SetPos(fArichCenterPos+aero1_n->GetMatrix()->GetTranslation());
+      fAerogelDS->SetRefractiveIdx(refidx2_vec.begin()->second * 100);
+      fAerogelDS->SetThickness(aero1_b->GetDZ());          
+
+      delete refidx1_matrix; delete refidx2_matrix;
+     }	
+
+
+    //--------------------------------------------------------------------------------
 
     void Geometry::ExtractPMTInfo(const TGeoVolume* world_v)
     {
+
+      std::cout << "goes to ExtractPMTInfo" << std::endl;
       std::string PMT_name="PMT_H12700", QE_name="_QE", DN_name="_DarkNoise", CrossTalk_name = "_CrossTalk";
 
       TGDMLMatrix* qematrix = (TGDMLMatrix*)fGeoManager->GetGDMLMatrix((PMT_name+QE_name).c_str());
@@ -425,10 +478,19 @@ Plane::Plane() :
       TGeoNode* arich_n = (TGeoNode*)world_v->GetNode("ARICH_phys");
       TGeoVolume* arich_v = (TGeoVolume*)arich_n->GetVolume();
 
+      fArichCenterPos = arich_n->GetMatrix()->GetTranslation();
+
       int nsub = arich_n->GetNodes()->GetEntries();
-      for( int j=0; j<nsub; ++j){
+ 
+      bool once = false;
+      for( int j=2; j<nsub; ++j){ //nodes 0 and 1 are the aerogels
         std::string name = arich_v->GetNode(j)->GetName();
-        if (name.find("PMT_phys") != std::string::npos){
+        if(name.find("PMT_phys") != std::string::npos){
+
+	 if(!once){
+	   once =true;
+	   fmPMTPlanePos = fArichCenterPos + (TVector3)arich_v->GetNode(j)->GetMatrix()->GetTranslation();
+	  }
           emph::arich_util::PMT mpmt;
           int num = mpmt.findBlockNumberFromName(name);
           if(num<0)continue;

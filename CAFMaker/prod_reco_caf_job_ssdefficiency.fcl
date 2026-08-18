@@ -11,10 +11,8 @@
 #include "ADCReco.fcl"
 #include "BACkovHitReco.fcl"
 #include "GasCkovHitReco.fcl"
-#include "MakeTrackSegments.fcl"
+#include "MakeTrackSegmentsForEfficiency.fcl"
 #include "MakeSingleTracks.fcl"
-#include "SingleTrackKalmanReco.fcl"
-#include "SingleTrackAlignmentKalman.fcl"
 #include "SingleTrackAlignment.fcl"
 #include "MakePrimaryVertex.fcl"
 
@@ -25,7 +23,7 @@ services:
 {
   # Load the service that manages root files for histograms.
   TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
-  scheduler: { wantSummary: false }
+  scheduler: { wantSummary: true }
   TimeTracker: {}
   @table::standard_services
 
@@ -46,33 +44,44 @@ physics:
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
     arichcluster: @local::standard_arich_cluster
-    arichreco:    @local::standard_arichreco
-    arichring:    @local::standard_arich_ring
+   # arichreco:    @local::standard_arichreco
+   # arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
     adcreco:      @local::standard_adcreco
     backovreco:   @local::standard_backovhitreco
     gasckovreco:  @local::standard_gasckovhitreco
-    cafmaker:     @local::data_cafmaker
+   # cafmaker:     @local::standard_cafmaker
 
-    maketracksegments: @local::standard_maketracksegments
-    makesingletracks: @local::standard_makesingletracks
-    singletrackKalman: @local::standard_singletrackKalman
-    singletrackalignment: @local::standard_singletrackalignment
-    singletrackalignmentKalman: @local::standard_singletrackalignmentKalman
+   # maketracksegments: @local::standard_maketracksegmentsforefficiency
+   # makesingletracks: @local::standard_makesingletracks
+   # singletrackalignment: @local::standard_singletrackalignment
     makeprimaryvertex: @local::standard_makeprimaryvertex
   }
 
-  analyzers:{}
+  analyzers: {
+               maketracksegments: @local::standard_maketracksegmentsforefficiency
+             }
 
   makecaf:   [
-               dataqual, spillinfo, clust,
-               #arichcluster,arichring, arichreco,
-               maketracksegments, makeprimaryvertex,
-               #makesingletracks, singletrackalignment,
-               #singletrackalignmentKalman,
-               #adcreco, backovreco, gasckovreco,
-               cafmaker
+               dataqual, spillinfo, arichcluster, clust
+               # maketracksegments #singletrackalignment,
+              # adcreco, backovreco, gasckovreco,
+              #                cafmaker
              ]
 
+  ana: [ maketracksegments ]
+
+  trigger_paths: [ makecaf ]
+  end_paths: [ ana ] 
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "emphdata_r%r_s%s.artdaq_reco_cafmaker_hist.root" #default file name, can override from command line with -o or --output
+  }
 }
 physics.producers.clust.FillTTree: false
+physics.producers.cafmaker.GetMCTruth: false #include when producing MC CAF's
