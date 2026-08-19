@@ -1,0 +1,9 @@
+BEGIN_PROLOG
+
+standard_ssdbadchannelfinder:
+
+{
+  module_type: SSDBadChannelFinder
+}
+
+END_PROLOG
