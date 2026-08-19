@@ -414,11 +414,7 @@ namespace emph {
     std::cout << "Event " << fEvtCount << std::endl;
 
     TLorentzVector pos;
-<<<<<<< HEAD
-    pos[2] = fZstart; // units are mm for this
-=======
     pos[2] = fZstart; // cm; ConvertMCTruthToG4 applies CLHEP::cm
->>>>>>> 27921411 (Fix incorrect unit comments in BeamGen_module.cc)
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum

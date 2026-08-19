@@ -50,7 +50,6 @@ namespace rb {
     void SetU(double u) { fU = u; }
     void SetV(double v) { fV = v; }
     void SetAlpha(double alpha) { fAlpha = alpha; }
-
     virtual double DistanceToPoint(double x, double y, double z) const;
     virtual double DistanceToPoint(double x, double y) const;
 

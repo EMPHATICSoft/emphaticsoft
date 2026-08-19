@@ -206,6 +206,27 @@ namespace emph {
       std::vector<int>    fZ;
 
     };
+ 
+    class Aerogel {
+    public:
+     Aerogel();
+     ~Aerogel();
+	
+    void SetPos(TVector3 p) { fPos = p; }
+    void SetRefractiveIdx(double ref_idx){fRef_idx = ref_idx;}
+    void SetName(std::string given_name){fName = given_name;} 
+    void SetThickness(double thickness){fThickness = thickness;}
+
+    TVector3 Pos() const { return fPos; }
+    double RefractiveIdx() const {return fRef_idx;}
+    std::string Name() const {return fName;}
+    double Thickness() const {return fThickness;}
+    private: 
+     TVector3 fPos;
+     double fRef_idx;
+     std::string fName;
+     double fThickness;
+    };
 
     class Aerogel {
     public:

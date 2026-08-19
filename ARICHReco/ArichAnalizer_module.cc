@@ -1,5 +1,9 @@
 ////////////////////////////////////////////////////////////////////////
+<<<<<<< HEAD
 /// \brief   Producer module to create reco vectors from raw digits and
+=======
+/// \brief   Producer module to create reco vectors from raw digits and
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 ///          store them in the art output file
 /// \author  $Author: mdallolio $
 ////////////////////////////////////////////////////////////////////////
@@ -13,7 +17,11 @@
 #include <vector>
 #include "stdlib.h"
 #include <map>
+<<<<<<< HEAD
 #include <numeric>
+=======
+#include <numeric>
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 // ROOT includes
 #include "TFile.h"
 #include "TH1F.h"
@@ -23,7 +31,11 @@
 #include "TRandom3.h"
 
 // Framework includes
+<<<<<<< HEAD
 #include "art/Framework/Core/EDAnalyzer.h"
+=======
+#include "art/Framework/Core/EDAnalyzer.h"
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -50,24 +62,37 @@
 #include "ARICHRecoUtils/ArichUtils.h"
 
 
+<<<<<<< HEAD
 namespace emph {
+=======
+namespace emph {
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 
   class ArichAnalizer: public art::EDAnalyzer {
   public:
     explicit ArichAnalizer(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
     ~ArichAnalizer();
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
     // Optional, read/write access to event
     void analyze(const art::Event& evt);
     void CheckDigitization(std::vector<sim::ARICHHit> sim_hits_vector, std::vector<emph::rawdata::TRB3RawDigit> digitized_hits_vector);
    // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
     void endJob();
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 
   private:
 
     arichreco::ARICH_UTILS* ArichUtils;
+<<<<<<< HEAD
     TTree* 	fARICHTree;
 
     int         fEvtNum;
@@ -79,13 +104,30 @@ namespace emph {
 
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::cmap::FEBoardType boardType = cmap::TRB3;
+=======
+    TTree* 	fARICHTree;
+
+    int         fEvtNum;
+    std::string fARICHLabel;
+    std::string fRawARICHLabel;
+    std::string fSimLabel;
+
+    bool fFillTree;
+
+    art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    emph::cmap::FEBoardType boardType = cmap::TRB3;
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
     art::ServiceHandle<emph::geo::GeometryService> geom;
     TRandom3* rand_gen;
 
 
     std::vector<double> h_wl;
     std::vector<double> h_wl_survived;
+<<<<<<< HEAD
     int nhits_dig;
+=======
+    int nhits_dig;
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
     int nhits_sim;
     TH2D* bin_display_npmt;
     TH2D* bin_display_npin;
@@ -93,10 +135,17 @@ namespace emph {
 };
 
   //.......................................................................
+<<<<<<< HEAD
 
   emph::ArichAnalizer::ArichAnalizer(fhicl::ParameterSet const& pset)
     : EDAnalyzer(pset)
  {
+=======
+
+  emph::ArichAnalizer::ArichAnalizer(fhicl::ParameterSet const& pset)
+    : EDAnalyzer(pset)
+ {
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 
     fARICHLabel =  std::string(pset.get<std::string >("LabelHits"));
     fRawARICHLabel = std::string(pset.get<std::string >("LabelRawHits"));
@@ -104,11 +153,19 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     //ARICH RECO UTILS STUFF
     fEvtNum = 0;
+<<<<<<< HEAD
     bin_display_npmt = new TH2D("bin_display_npmt","bin_display_npmt", 24,-12,12,24,-12,-12);
     bin_display_npin = new TH2D("bin_display_npin","bin_display_npin", 24,-12,12,24,-12,-12);
   }
   //......................................................................
 
+=======
+    bin_display_npmt = new TH2D("bin_display_npmt","bin_display_npmt", 24,-12,12,24,-12,-12);
+    bin_display_npin = new TH2D("bin_display_npin","bin_display_npin", 24,-12,12,24,-12,-12);
+  }
+  //......................................................................
+
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
   emph::ArichAnalizer::~ArichAnalizer()
   {
     //======================================================================
@@ -119,7 +176,11 @@ namespace emph {
   //......................................................................
 
   void emph::ArichAnalizer::beginJob()
+<<<<<<< HEAD
   {
+=======
+  {
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
     if (fFillTree){
     art::ServiceHandle<art::TFileService const> tfs;
     fARICHTree = tfs->make<TTree>("ARICHRECO","event");
@@ -133,7 +194,11 @@ namespace emph {
 
     rand_gen =  new TRandom3(0);
 }
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> 99cf9d6e3fa9f9cfbeb1bdc4dd5e1eb90ba0adc0
 //......................................................................
 void emph::ArichAnalizer::endJob()
 {
