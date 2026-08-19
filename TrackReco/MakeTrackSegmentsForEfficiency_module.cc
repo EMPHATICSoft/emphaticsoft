@@ -45,7 +45,6 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
-#include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
