@@ -9,6 +9,7 @@ cet_build_plugin(SSDDigitizer art::module
     ChannelMapService_service
     DetGeoMap
     DetGeoMapService_service
+    SSDEfficiency
     art_root_io::TFileService_service
     art::Framework_Core
     art::Persistency_Common
