@@ -4,3 +4,4 @@
 #include "Simulation/Particle.h"
 #include "Simulation/Track.h"
 #include "Simulation/ARICHHit.h"
+#include "Simulation/TargetHit.h"
