@@ -14,6 +14,11 @@ namespace caf
     float     center[2];  ///< center position of aring [cm?]
     float     radius;  ///< aring radius
     int 	nhit;	
+    
+    float theta_C;
+    float P_pion;
+    float P_kaon;
+    float P_proton;
     virtual void setDefault();
 
     void SetCenter(float _center[2]){for(int p=0;p < 2;p++) this->center[p] = _center[p];}

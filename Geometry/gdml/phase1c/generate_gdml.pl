@@ -262,7 +262,7 @@ print DEF <<EOF;
 	<quantity name="arich_width" value="365.0" unit="mm"/>
 	<quantity name="arich_height" value="365.0" unit="mm"/>
 
-	<position name="arich_pos" x="0" y="0" z="arich_shift+0.5*arich_thick" unit="mm" />
+	<position name="arich_pos" x="-11" y="6" z="arich_shift+0.5*arich_thick" unit="mm" />
 	<quantity name="aerogel_thick0" value="18.9" unit="mm"/>
 	<quantity name="aerogel_thick1" value="20.4" unit="mm"/>
 	<quantity name="aerogel_size" value="93.0" unit="mm"/>
@@ -358,7 +358,11 @@ EOF
 		 		my $idx = $i*100 + $j*10 + $k;
 		  	    my $txs = $SSD_shift[ $isensor][0]+$SSD_alignx{$idx};
 		  	    my $tys = $SSD_shift[ $isensor][1]+$SSD_aligny{$idx};
-		  	    my $tzrot = $SSD_angle[$isensor] + $SSD_alignphi{$idx};
+		  	    # Millepede dphi is a global-frame rotation. side==0 sensors are placed with a
+		  	    # 180 deg x-flip, which reverses the sense of z rotations in the local frame
+		  	    # (Rx(180)*Rz(phi) = Rz(-phi)*Rx(180)), so their dphi must be negated here.
+		  	    my $phiSign = ($SSD_side[$isensor] == 0) ? -1 : 1;
+		  	    my $tzrot = $SSD_angle[$isensor] + $phiSign * $SSD_alignphi{$idx};
 		  	    if($j < 2) {
 print DEF <<EOF;
 	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm"/>

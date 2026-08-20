@@ -62,13 +62,13 @@ namespace arichreco{
  
 private:
 
-    int minRadius = 30;
-    int maxRadius = 100;
-    int nRadii = 140;
+    int minRadius = 25;
+    int maxRadius = 50;
+    int nRadii = 24;
     int nPoints = 360;
     
-    int rows = 150;
-    int cols = 150;
+    int rows = 160;
+    int cols = 160;
     TH2D* fevent_histo;
 
     std::vector<std::pair<double, double>> edges;
