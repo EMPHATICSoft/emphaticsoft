@@ -45,7 +45,6 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
-#include "RecoBase/RecoBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
@@ -84,8 +83,8 @@ namespace emph {
 
     std::vector<std::vector<std::vector<TH1D*>>> min_dist;
     std::vector<std::vector<std::vector<TH2D*>>> est_pos;
-    std::vector<std::vector<std::vector<TH2D*>>> est_pos_full;   
- 
+    std::vector<std::vector<std::vector<TH2D*>>> est_pos_full;
+
     double best_x_pos = 10000.0;
     double best_y_pos = 10000.0;
 
@@ -164,7 +163,7 @@ namespace emph {
 
     min_dist.resize(nStations, std::vector<std::vector<TH1D*>>(nPlanes, std::vector<TH1D*>(2, nullptr)));
     est_pos.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr)));
-    est_pos_full.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr))); 
+    est_pos_full.resize(nStations, std::vector<std::vector<TH2D*>>(nPlanes, std::vector<TH2D*>(2, nullptr)));
   }
 
   //......................................................................
@@ -236,11 +235,11 @@ namespace emph {
 
               min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH1D>(desc_str.c_str(), "Distance point to line segment", 101, -1, 1);
               min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Distance Point to Line (mm)");
-     
+
               std::string est_desc_str = "d" + desc_str;
-              std::string estTitleStr = "Estimated Position "  
-                + std::to_string(fMaskedStation) + "/"  
-                + std::to_string(fMaskedPlane) + "/"  
+              std::string estTitleStr = "Estimated Position "
+                + std::to_string(fMaskedStation) + "/"
+                + std::to_string(fMaskedPlane) + "/"
                 + std::to_string(fMaskedSensor);
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor] = tfs->make<TH2D>(est_desc_str.c_str(), "Estimated Position", 50, -100.0, 100.0, 50, -100.0, 100.0);
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Estimated X (mm)");
@@ -262,7 +261,7 @@ namespace emph {
             }
 
             tsv.clear();
-            spv.clear(); 
+            spv.clear();
             ls_group.clear();
             all_ls_group.clear();
             cl_group.clear();
@@ -310,12 +309,12 @@ namespace emph {
                   rb::LineSegment lineseg_tmp = rb::LineSegment();
 
                   std::set<int> interacted;
-                  
+
                   linesegments.reserve(clustH->size());
                   all_linesegments.reserve(clustH->size());
-        
+
                   for (size_t idx = 0; idx < clustH->size(); ++idx) {
-                    const rb::SSDCluster& clust = (*clustH)[idx]; 
+                    const rb::SSDCluster& clust = (*clustH)[idx];
 
                     int plane_id = (clust.Station() * 10) + clust.Plane();
                     if (interacted.find(plane_id) != interacted.end()) {
@@ -327,7 +326,7 @@ namespace emph {
 
                     if (clust.Station() == fMaskedStation &&
                         clust.Plane() == fMaskedPlane &&
-                        clust.Sensor() == fMaskedSensor) { 
+                        clust.Sensor() == fMaskedSensor) {
                       maskClustAndSegs(dgm, clust, lineseg_tmp);
                     } else {
                       if (readClustAndSegs(dgm, clust, lineseg_tmp)) {
@@ -349,7 +348,7 @@ namespace emph {
                     }
 
                     mf::LogDebug("MakeTrackSegmentsForEfficiency") << "........";
-                    
+
                     groupClusters();
 
                     groupLinesegs();
@@ -363,12 +362,12 @@ namespace emph {
                     for (auto sp : spv) {
                       spacepointv->push_back(sp);
                     }
-        
+
                     // Reconstructed hits
                     if (spv.size() > 0) {
                       updateSps(emgeo);
 
-                      // Form lines 
+                      // Form lines
                       std::vector<rb::TrackSegment> tstmp1 = algo.MakeTrackSeg(sp1);
 
                       std::vector<rb::TrackSegment> tstmp2 = algo.MakeTrackSeg(sp2);
@@ -386,7 +385,7 @@ namespace emph {
                       }
                     }
                   } // clust < fMaxClust
-                  
+
                   //Create line segment groups for ALL (including masked line segments)
                   if (all_clusters.size() < fMaxClust && !skip_evt) {
                     best_x_pos = 10000.0;
@@ -402,16 +401,16 @@ namespace emph {
 
                       if (all_ls_group[fMaskedStation][fMaskedPlane].size() > 0) {
                         double dist = all_ls_group[fMaskedStation][fMaskedPlane][0]->DistanceToPoint(x_pos, y_pos);
-                        
+
                         if (std::abs(dist) < std::abs(smallest_min_dist)) {
                           best_x_pos = x_pos;
                           best_y_pos = y_pos;
                           smallest_min_dist = dist;
-                        }            
+                        }
                       }
                     }
-                  
-                    if (smallest_min_dist != 10000.0) {            
+
+                    if (smallest_min_dist != 10000.0) {
                       double x0[3] = {best_x_pos, best_y_pos, masked_zpos};
                       bool on_detect = true;
                       if (dgm->Map()->IsPointOnDetector(fMaskedStation, fMaskedPlane, fMaskedSensor, x0)) {
@@ -438,7 +437,7 @@ namespace emph {
     for (size_t i = 0; i < clusters.size(); i++) {
       int plane = clusters[i]->Plane();
       int station = clusters[i]->Station();
-      
+
       if (station < 0 || static_cast<size_t>(station) >= cl_group.size()) {
         mf::LogWarning("MakeTrackSegmentsForEfficiency")
           << "Skipping cluster with out-of-range station index " << station
@@ -453,14 +452,14 @@ namespace emph {
           << ") at event " << fEvtNum;
         continue;
       }
-       
+
       cl_group[station][plane].push_back(clusters[i]);
     }
 
     for (size_t i = 0; i < all_clusters.size(); i++) {
       int plane = all_clusters[i]->Plane();
       int station = all_clusters[i]->Station();
-      
+
       if (station < 0 || static_cast<size_t>(station) >= all_cl_group.size()) {
         mf::LogWarning("MakeTrackSegmentsForEfficiency")
           << "Skipping cluster with out-of-range station index " << station
@@ -475,9 +474,9 @@ namespace emph {
           << ") at event " << fEvtNum;
         continue;
       }
-       
+
       all_cl_group[station][plane].push_back(all_clusters[i]);
-    } 
+    }
   }
 
   void emph::MakeTrackSegmentsForEfficiency::groupLinesegs()
@@ -488,7 +487,7 @@ namespace emph {
 
       if (station < 0 || static_cast<size_t>(station) >= all_ls_group.size()) continue;
       if (plane < 0 || static_cast<size_t>(plane) >= all_ls_group[station].size()) continue;
-        
+
       all_ls_group[station][plane].push_back(&all_linesegments[i]);
     }
 
@@ -497,21 +496,21 @@ namespace emph {
       int station = clusters[i]->Station();
 
       if (station < 0 || static_cast<size_t>(station) >= ls_group.size()) continue;
-      if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;       
+      if (plane < 0 || static_cast<size_t>(plane) >= ls_group[station].size()) continue;
 
       ls_group[station][plane].push_back(&linesegments[i]);
     }
-  }   
+  }
 
-  void emph::MakeTrackSegmentsForEfficiency::maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, 
-    const rb::SSDCluster& clust, 
-    rb::LineSegment lineseg_tmp) 
+  void emph::MakeTrackSegmentsForEfficiency::maskClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm,
+    const rb::SSDCluster& clust,
+    rb::LineSegment lineseg_tmp)
   {
     mf::LogDebug("MakeTrackSegmentsForEfficiency")
       << "Skipping cluster due to mask Station: "
       << clust.Station() << " Plane: " << clust.Plane()
       << " Sensor: " << clust.Sensor() << std::endl;
-    
+
     all_clusters.push_back(&clust);
     lineseg_tmp.SetSSDInfo(clust.Station(), clust.Plane(), clust.Sensor(), clust.MaxStrip());
 
@@ -524,13 +523,13 @@ namespace emph {
     }
 
     if (!dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back())) {
-      std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;     
+      std::cout << "Couldn't make line segment from Cluster?!?" << std::endl;
     }
   }
 
-  bool emph::MakeTrackSegmentsForEfficiency::readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm, 
+  bool emph::MakeTrackSegmentsForEfficiency::readClustAndSegs(art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm,
     const rb::SSDCluster& clust,
-    rb::LineSegment lineseg_tmp) 
+    rb::LineSegment lineseg_tmp)
   {
     ++clustMapAtLeastOne[clust.Station()][std::pair<int, int>(clust.Station(), clust.Plane())];
 
@@ -547,8 +546,8 @@ namespace emph {
       abort();
     }
 
-    return ((dgm->Map()->SSDClusterToLineSegment(clust, linesegments.back())) 
-      && (dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back()))); 
+    return ((dgm->Map()->SSDClusterToLineSegment(clust, linesegments.back()))
+      && (dgm->Map()->SSDClusterToLineSegment(clust, all_linesegments.back())));
   }
 
   void emph::MakeTrackSegmentsForEfficiency::resizeGroups() {
@@ -559,7 +558,7 @@ namespace emph {
       cl_group[i].resize(nPlanes);
       ls_group[i].resize(nPlanes);
     }
- 
+
     all_cl_group.resize(nStations);
     all_ls_group.resize(nStations);
 

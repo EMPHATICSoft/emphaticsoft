@@ -1,0 +1,16 @@
+BEGIN_PROLOG
+
+standard_singletrackalignmentKalman:
+{
+  module_type: SingleTrackAlignmentKalman
+  TrackSegmentLabel:  "maketracksegments"
+  RK4MaxZStep: 0.5
+  RK4MaxNStep: 10000
+  UseTruth: false
+  Verbosity: 0
+  NIterations: 2
+  UncScaler: 0 # 10^UncScaler
+  MilleName: "m005.bin"
+}
+
+END_PROLOG

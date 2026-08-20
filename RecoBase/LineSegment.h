@@ -17,13 +17,13 @@
 #include "TMath.h"
 
 namespace rb {
-  
+
   class LineSegment : public caf::SRLineSegment{
   public:
     LineSegment(); // Default constructor
     LineSegment(double _x0[3], double _x1[3]);
     virtual ~LineSegment() {}; //Destructor
-    
+
     // Getters
     ROOT::Math::XYZVector X0() const { return x0; }
     ROOT::Math::XYZVector X1() const { return x1; }
@@ -50,9 +50,8 @@ namespace rb {
     void SetU(double u) { fU = u; }
     void SetV(double v) { fV = v; }
     void SetAlpha(double alpha) { fAlpha = alpha; }
-
-    double DistanceToPoint(double x, double y, double z) const;
-    double DistanceToPoint(double x, double y) const;
+    virtual double DistanceToPoint(double x, double y, double z) const;
+    virtual double DistanceToPoint(double x, double y) const;
 
     friend std::ostream& operator << (std::ostream& o, const LineSegment& h);
 
@@ -66,7 +65,7 @@ namespace rb {
     double fV = 0;          // y-component of line normal (sin(alpha))
     double fAlpha = 0;      // angle of line normal from x-axis
   };
-  
+
 }
 
 #endif // LINESEGMENT_H

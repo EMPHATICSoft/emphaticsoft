@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////
 /// \file    Geometry.h
 /// \brief
-/// \version 
+/// \version
 /// \author  jpaley@fnal.gov wanly@bu.edu
 /// Check DocDB 1260 for details.
 ////////////////////////////////////////////////////////////////////////
@@ -14,6 +14,9 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <list>
+#include <utility>
+#include <memory>
 
 #include "TVector3.h"
 #include "TGDMLMatrix.h"
@@ -48,9 +51,9 @@ namespace emph {
       std::string Name() const { return fName;}
       TVector3 Pos() const { return fPos;}
       double Dw() const { return fDw;}
-      void LocalToMother(double x1[3], double x2[3]) const 
+      void LocalToMother(double x1[3], double x2[3]) const
       { fGeoMatrix->LocalToMaster(x1,x2); }
-      void MotherToLocal(double x1[3], double x2[3]) const 
+      void MotherToLocal(double x1[3], double x2[3]) const
       { fGeoMatrix->MasterToLocal(x1,x2); }
       //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
@@ -59,7 +62,7 @@ namespace emph {
       void SetDw(double dw) {fDw = dw;}
       void SetGeoMatrix(TGeoMatrix* m) {fGeoMatrix = m; }
 
-    private:    
+    private:
       std::string fName;
       TVector3 fPos;
       double fDw;
@@ -74,10 +77,10 @@ namespace emph {
 
       std::string Name() const { return fName;}
       TVector3 Pos() const { return fPos;}
-      double Rot() const { return fRot;} 
-      double IsFlip() const { return fFlip;} 
-      //				double X() const { return fX;} 
-      //				double Y() const { return fY;} 
+      double Rot() const { return fRot;}
+      double IsFlip() const { return fFlip;}
+      //				double X() const { return fX;}
+      //				double Y() const { return fY;}
       double Dz() const { return fDz;}
       double Width() const { return fWidth;}
       double Height() const { return fHeight;}
@@ -103,7 +106,7 @@ namespace emph {
       void LocalToMother(double x1[3], double x2[3]) const;
       void MotherToLocal(double x1[3], double x2[3]) const;
 
-    private:    
+    private:
       int   fId;
       std::string fName;
       TVector3 fPos;
@@ -180,8 +183,8 @@ namespace emph {
       void SetPos(TVector3 p) { fPos = p; }
       void SetDPos(TVector3 dp) { fDPos = dp; }
       void SetDensity(double rho) { fDensity = rho; }
-      void AddElement(std::string el, double frac, double A, int Z) 
-      { fEl.push_back(el); fFrac.push_back(frac); 
+      void AddElement(std::string el, double frac, double A, int Z)
+      { fEl.push_back(el); fFrac.push_back(frac);
 	fA.push_back(A); fZ.push_back(Z); }
 
       TVector3 Pos() const { return fPos; }
@@ -203,22 +206,22 @@ namespace emph {
       std::vector<int>    fZ;
 
     };
- 
+
     class Aerogel {
     public:
      Aerogel();
      ~Aerogel();
-	
+
     void SetPos(TVector3 p) { fPos = p; }
     void SetRefractiveIdx(double ref_idx){fRef_idx = ref_idx;}
-    void SetName(std::string given_name){fName = given_name;} 
+    void SetName(std::string given_name){fName = given_name;}
     void SetThickness(double thickness){fThickness = thickness;}
 
     TVector3 Pos() const { return fPos; }
     double RefractiveIdx() const {return fRef_idx;}
     std::string Name() const {return fName;}
     double Thickness() const {return fThickness;}
-    private: 
+    private:
      TVector3 fPos;
      double fRef_idx;
      std::string fName;
@@ -257,7 +260,7 @@ namespace emph {
       const SSDStation* GetSSDStation(int i) const {return &fSSDStation[i]; }
       const Detector* GetSSDSensor(int i) { return fSSDSensorMap[i].get(); }
       int GetSSDId(int station, int plane, int sensor) const;
-      double GetRadLength(int) const;
+      double GetRadLength(int ssdi, int ssdj) const;
       TVector3 GetmPMTPlanePos() const {return fmPMTPlanePos;}
       TVector3 GetARICHCenrterPos() const {return fArichCenterPos;}
 
@@ -314,7 +317,8 @@ namespace emph {
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
       std::unordered_map<int, std::unique_ptr<Detector>> fSSDSensorMap;
-      std::unordered_map<int, double> fRadLength;
+      std::list<std::pair<int,double> > fRadLength;
+//      std::unordered_map<int, double> fRadLength;
       Target* fTarget;
 
       Aerogel* fAerogelUS;

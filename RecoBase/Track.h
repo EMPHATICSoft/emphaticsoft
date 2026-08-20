@@ -32,39 +32,31 @@ namespace rb {
     
   private:
     
-    //    double _vtx[3]; // vertexrotation angle about the vertical y-axis
-    //    double _p[3];   // momentum three vector
-    std::vector<rb::LineSegment> _lineseg; // vector of SSD linesegments (from SSD clusters)
-    std::vector<rb::TrackSegment> _sgmnt; // vector of track segments
-    std::vector<rb::SpacePoint> _spcpt; // vector 3D space points
+    std::vector<rb::LineSegment> lineseg; // vector of SSD linesegments (from SSD clusters)
+    std::vector<rb::TrackSegment> sgmnt; // vector of track segments
+    std::vector<rb::SpacePoint> spcpt; // vector 3D space points
     // the position of a track will be a linear interpolation between points.
     // the creator of the track is responsible for adding the points
  
-    std::vector<ROOT::Math::XYZVector> _pos; // vector of predicted positions
-    std::vector<ROOT::Math::XYZVector> _mom;
-    //    double _chi2;
+    std::vector<ROOT::Math::XYZVector> posAt; // vector of predicted positions
+    std::vector<ROOT::Math::XYZVector> momAt; // vector of predicted momenta
 
-  public:
+    public:
 
     // Getters
-    //    const double* Vtx() const { return _vtx; }
-    //    const double* P() const { return _p; }
-    size_t NSSDLineSegments() const { return _lineseg.size(); }    
+    size_t NSSDLineSegments() const { return lineseg.size(); }    
     const rb::LineSegment* GetSSDLineSegment(int i) const; 
-    size_t NTrackSegments() const { return _sgmnt.size(); }
+    size_t NTrackSegments() const { return sgmnt.size(); }
     const rb::TrackSegment* GetTrackSegment(int i) const;
-    size_t NSpacePoints() const { return _spcpt.size(); }
+    size_t NSpacePoints() const { return spcpt.size(); }
     const rb::SpacePoint* GetSpacePoint(int i) const;
 
-    //    const double Chi2() const { return _chi2; }
     ROOT::Math::XYZVector PosAt(double z) const;
     ROOT::Math::XYZVector MomAt(double z) const;
-    size_t NPos() const { return _pos.size(); }
-    size_t NMom() const { return _mom.size(); }
-    ROOT::Math::XYZVector Pos(size_t i) const { return _pos[i]; }
-    ROOT::Math::XYZVector Mom(size_t i) const { return _mom[i]; }
-    //    ROOT::Math::XYZVector PosAtTrgt() const { return _posTrgt; }
-    //    ROOT::Math::XYZVector MomAtTrgt() const { return _momTrgt; }
+    size_t NPos() const { return posAt.size(); }
+    size_t NMom() const { return momAt.size(); }
+    ROOT::Math::XYZVector PosAt(size_t i) const { return posAt[i]; }
+    ROOT::Math::XYZVector MomAt(size_t i) const { return momAt[i]; }
 
     // Setters
     void Add(const rb::LineSegment& ls); 
@@ -73,13 +65,6 @@ namespace rb {
     void AddPos(ROOT::Math::XYZVector &x);
     void AddMom(ROOT::Math::XYZVector &p);
 
-    //    void SetPosAtTrgt(const double* x0) { for (int i=0; i<3; ++i) _posTrgt[i] = x0[i]; }
-    //    void SetMomAtTrgt(const double* p0) { for (int i=0; i<3; ++i) _momTrgt[i] = p0[i]; }
-
-    //    void SetVtx(const double* x0) { for (int i=0; i<3; ++i) _vtx[i] = x0[i]; }
-    //    void SetP(const double* p) { for (int i=0; i<3; ++i) _p[i] = p[i]; }
-    //    void SetChi2(double chi2) { _chi2 = chi2; }
-    
     friend std::ostream& operator << (std::ostream& o, const Track& h);
   };
   

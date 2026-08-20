@@ -156,7 +156,7 @@
   <version ClassVersion="11" checksum="2580746351"/>
   <version ClassVersion="10" checksum="3083444448"/>
  </class>
- <class name="std::vector<caf::SRTrueSSDHits>" /> 
+ <class name="std::vector<caf::SRTrueSSDHits>" />
 
  <class name="caf::SRTrueSSDHitsBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="3550546688"/>
@@ -175,7 +175,10 @@
 
  <class name="std::vector<ROOT::Math::XYZVector>" />
 
- <class name="caf::SRTrack" ClassVersion="18" >
+ <class name="caf::SRTrack" ClassVersion="21" >
+  <version ClassVersion="21" checksum="3829165328"/>
+  <version ClassVersion="20" checksum="2720290968"/>
+  <version ClassVersion="19" checksum="4050627913"/>
   <version ClassVersion="18" checksum="2746670426"/>
   <version ClassVersion="17" checksum="1365847016"/>
   <version ClassVersion="16" checksum="1981216120"/>
@@ -188,7 +191,10 @@
  </class>
  <class name="std::vector<caf::SRTrack>" />
 
- <class name="caf::SRBeamTrack" ClassVersion="14" >
+ <class name="caf::SRBeamTrack" ClassVersion="16" >
+  <version ClassVersion="16" checksum="3663627235"/>
+  <version ClassVersion="15" checksum="122774459"/>
+  <version ClassVersion="15" checksum="3535333238"/>
   <version ClassVersion="14" checksum="266601553"/>
   <version ClassVersion="13" checksum="642125322"/>
   <version ClassVersion="12" checksum="266601553"/>
@@ -197,7 +203,10 @@
  </class>
  <class name="std::vector<caf::SRBeamTrack>" />
 
- <class name="caf::SRSecondaryTrack" ClassVersion="11" >
+ <class name="caf::SRSecondaryTrack" ClassVersion="14" >
+  <version ClassVersion="14" checksum="1214833968"/>
+  <version ClassVersion="13" checksum="1968948488"/>
+  <version ClassVersion="12" checksum="1086539971"/>
   <version ClassVersion="11" checksum="2112775582"/>
   <version ClassVersion="10" checksum="1"/>
  </class>
@@ -222,7 +231,8 @@
   <version ClassVersion="10" checksum="1"/>
  </class>
 
- <class name="caf::SRTrackSegment" ClassVersion="18" >
+ <class name="caf::SRTrackSegment" ClassVersion="19" >
+  <version ClassVersion="19" checksum="3204333366"/>
   <version ClassVersion="18" checksum="765446084"/>
   <version ClassVersion="17" checksum="2809269421"/>
   <version ClassVersion="16" checksum="218284582"/>

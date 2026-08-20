@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 /// \brief   Producer module to construct single-particle tracks
-///       
+///
 /// \author  $Author: robert chirco $
 ////////////////////////////////////////////////////////////////////////
 // C/C++ includes
@@ -65,13 +65,13 @@ namespace emph {
   public:
     explicit SingleTrackAlignment(fhicl::ParameterSet const& pset); // Required! explicit tag tells the compiler this is not a copy constructor
     ~SingleTrackAlignment() {};
-    
+
     // Optional, read/write access to event
     void produce(art::Event& evt);
-    
+
     // Optional if you want to be able to configure from event display, for example
     void reconfigure(const fhicl::ParameterSet& pset);
-    
+
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginRun(art::Run& run);
     //      void endSubRun(art::SubRun const&);
@@ -80,7 +80,7 @@ namespace emph {
     void Pulls(std::vector<rb::TrackSegment> trksegv);
 
   private:
-  
+
     art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
     art::ServiceHandle<emph::geo::GeometryService> geo;
 
@@ -103,13 +103,13 @@ namespace emph {
     std::vector<rb::TrackSegment> tsvnom;
 
     //fcl parameters
-    bool        fCheckLineSeg;    
+    bool        fCheckLineSeg;
     std::string fLineSegLabel;
     std::string fClusterLabel;
     std::string fTrackSegLabel;
     std::string fTrackLabel;
-    bool        fUpstream; 
- 
+    bool        fUpstream;
+
     //Millepede stuff
     Mille* m;
     std::vector<int> label;
@@ -127,7 +127,7 @@ namespace emph {
  };
 
   //.......................................................................
-  
+
   emph::SingleTrackAlignment::SingleTrackAlignment(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
     fCheckLineSeg      (pset.get< bool >("CheckLineSeg")),
@@ -139,9 +139,9 @@ namespace emph {
     {
       //this->produces< std::vector<rb::Track> >();
     }
-  
+
   //......................................................................
-  
+
 //  SingleTrackAlignment::~SingleTrackAlignment()
 //  {
     //======================================================================
@@ -152,11 +152,11 @@ namespace emph {
   //......................................................................
 
   // void SingleTrackAlignment::reconfigure(const fhicl::ParameterSet& pset)
-  // {    
+  // {
   // }
 
   //......................................................................
-  
+
   void SingleTrackAlignment::beginRun(art::Run& run)
   {
     auto emgeo = geo->Geo();
@@ -164,7 +164,7 @@ namespace emph {
     nPlanes = emgeo->NSSDPlanes();
 
     if (emgeo->GetTarget()) targetz = emgeo->GetTarget()->Pos()(2);
-    else targetz = 380.5;    
+    else targetz = 380.5;
 
     magnetusz = emgeo->MagnetUSZPos();
     magnetdsz = emgeo->MagnetDSZPos();
@@ -184,16 +184,16 @@ namespace emph {
   }
 
   //......................................................................
-   
+
   void emph::SingleTrackAlignment::beginJob()
   {
     std::cerr<<"Starting SingleTrackAlignment"<<std::endl;
 
     m = new Mille("m004.bin",true,true);
   }
- 
+
   //......................................................................
-  
+
   void emph::SingleTrackAlignment::endJob()
   {
     delete m;
@@ -226,7 +226,7 @@ namespace emph {
 
 	  if (fUpstream){
 	    if (cl_group[ii][jj][kk]->Station() > 4) continue;
-          }       
+          }
 
 	  float uncer = cl_group[ii][jj][kk]->WgtRmsStrip()*0.06;
           mf::LogDebug("SingleTrackAlignment") <<"View: "<<emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View() ;
@@ -250,34 +250,34 @@ namespace emph {
 
 	    auto a = ts.pointA; //TVector3 a(ts.A()[0],ts.A()[1],ts.A()[2]);
             auto b = ts.pointB; //TVector3 b(ts.B()[0],ts.B()[1],ts.B()[2]);
-	    
+
 	    //	    if (ts.RegLabel() == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.P(); }
-	    if (ts.region == rb::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.mom; }
+	    if (ts.region == caf::Region::kRegion1){ a1 = a; b1 = b; ts1 = ts.mom; }
 
 	  // pull = doca between s and ts
             double sensorz = x0.Z();//(2); //s[2];
-            if (x0.Z() != x1.Z()) 
+            if (x0.Z() != x1.Z())
 	      mf::LogDebug("SingleTrackAlignment") << "Rotated line segment --> using x0 for now";
 
             if ((tsz < targetz && sensorz < targetz)
             || ((tsz > targetz && tsz < magnetusz) && (sensorz > targetz && sensorz < magnetusz))
             || (tsz > magnetdsz && sensorz > magnetdsz)){
-	      //if (ts.RegLabel() == rb::Region::kRegion3){ 
-	      if (ts.region == rb::Region::kRegion2 || ts.region == rb::Region::kRegion3){
-         	a = a1; 
+	      //if (ts.RegLabel() == rb::Region::kRegion3){
+	      if (ts.region == caf::Region::kRegion2 || ts.region == caf::Region::kRegion3){
+         	a = a1;
                 b = b1;
-	      } 
+	      }
 
 	      auto dba = b-a;
 	      double dxdz = dba.X()/dba.Z();// (b.X() - a(0)) / ( b.Z() - a.Z() ) ;
 	      double dydz = dba.Y()/dba.Z();// (b.Y() - a(1)) / ( b.Z() - a.Z() ) ;
 
               double f1[3]; double f2[3]; double f3[3];
-              r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");   
+              r.ClosestApproach(x0,x1,a,b,f1,f2,f3,"SSD",false); //TrackSegment");
               float pull = sqrt((f3[0]-f2[0])*(f3[0]-f2[0])+(f3[1]-f2[1])*(f3[1]-f2[1])+(f3[2]-f2[2])*(f3[2]-f2[2]));
 
-	      // @ sensorz what is ts xy 
-	      // find signed distance from sensor xy to ts xy 
+	      // @ sensorz what is ts xy
+	      // find signed distance from sensor xy to ts xy
 	      // find t where sensor z is
 
 	      double t = ( sensorz - a.Z() )/( b.Z() - a.Z() );
@@ -288,10 +288,10 @@ namespace emph {
               b.SetX(-1*b.X());
               tsx = -1*tsx;
 
-	      // signed distance from point to a line 
+	      // signed distance from point to a line
 	      double la = x1.Y() - x0.Y();
 	      double lb = x0.X() - x1.X();
-	      double lc = x0.Y()*(x1.X()-x0.X()) - (x1.Y()-x0.Y())*x0.X();	  
+	      double lc = x0.Y()*(x1.X()-x0.X()) - (x1.Y()-x0.Y())*x0.X();
 	      float dsign = (la*tsx + lb*tsy + lc)/(sqrt(la*la + lb*lb));
 
 	      pullsorted[ii][jj].push_back(dsign);
@@ -321,7 +321,7 @@ namespace emph {
 		gld_z = 0.;
 		gld_phim =  0.;
               }
-       	
+
 	      float mderlc[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
 	      float mdergl[4] = {gld_x,gld_y,gld_z,gld_phim};
 
@@ -364,7 +364,7 @@ namespace emph {
     if (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3'){
       useEvent = true;
     }
-                                                  
+
     if (fCheckLineSeg){
       auto haslineseg = evt.getHandle<std::vector<rb::LineSegment>>(fTrackSegLabel);
       if (!haslineseg){
@@ -417,7 +417,7 @@ namespace emph {
           }
         }
 
-        cl_group.resize(nStations);	
+        cl_group.resize(nStations);
         ls_group.resize(nStations);
         pullsorted.resize(nStations);
 
@@ -442,7 +442,7 @@ namespace emph {
           // Get pulls
           Pulls(tsvnom);
         } //if
-      } // try	
+      } // try
       catch(...) {
 
       }

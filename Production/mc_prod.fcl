@@ -20,7 +20,7 @@ source:
 {
   module_type: EmptyEvent
   maxEvents: 10000
-  firstRun:  2408
+  firstRun:  2410
   firstSubRun: 1
 
 }
@@ -39,7 +39,8 @@ physics:
 {
   producers:
   {
-	generator: @local::standard_beamgen
+	generator: @local::uniform20pos
+#	generator: @local::uniform20neg
 	geantgen:  @local::standard_geant4
 	rawSSD:    @local::standard_ssddigitizer
 	rawARICH:  @local::standard_arichdigitizer

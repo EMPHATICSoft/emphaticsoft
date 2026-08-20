@@ -25,22 +25,26 @@ namespace caf
     ROOT::Math::XYZVector momARICH;
     ROOT::Math::XYZVector posMagnet;
     ROOT::Math::XYZVector momMagnet;
-    std::vector<ROOT::Math::XYZVector> posSSD;
-    std::vector<ROOT::Math::XYZVector> momSSD;
-    std::vector<double> pullSSD;
-    
-    //    SRVector3D mom; // momentum vector   
-    SRArichID arich; // arich loglikelihooods values 
-//  SRArichID arML; // arich ML pred values   
+    // 8 stations; 3 planes per station
+    ROOT::Math::XYZVector posSSD[8][3];
+    ROOT::Math::XYZVector momSSD[8][3];
+    double pullSSD[8][3]; // residual distance from track to point in SSD
+    double uncPull[8][3]; // uncertainty on residual
+
+    //    SRVector3D mom; // momentum vector
+    SRArichID arich; // arich loglikelihooods values
+//  SRArichID arML; // arich ML pred values
     double chi2;
+    int ndf;
 
     int label;
     int ntrkseg;
     std::vector<SRTrackSegment> sgmnt; // vector of track segments
     void Add(SRTrackSegment& ts){ sgmnt.push_back(ts); ntrkseg=sgmnt.size(); };
 
- 
+
     virtual void setDefault();
+    virtual void Clear();
   };
 
 } // end namespace
