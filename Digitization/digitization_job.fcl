@@ -2,13 +2,15 @@
 #include "SSDDigitizer.fcl"
 #include "ARICHDigitizer.fcl"
 #include "RelabelRawDigitModules.fcl"
+#include "SSDEfficiency.fcl"
 
 process_name: Digitizer
 
 services:
 {
   TFileService: { fileName: "%ifb_dig_hist.root" closeFileFast: false }
-  @table::standard_services
+  @table::sim_services
+  SSDEfficiencyService: @local::data_ssdefficiency
 }
 
 source:
