@@ -78,7 +78,7 @@ private:
 			   const art::Ptr<emph::rawdata::SSDRawDigit>& b);
   void SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>& dl);
 
-  void FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
+  void FormClusters(const art::PtrVector<emph::rawdata::SSDRawDigit>& sensDigits,
 		    std::vector<rb::SSDCluster>* sensClusters,
 		    int station, int plane, int sensor);
 };
@@ -142,7 +142,7 @@ void emph::MakeSSDClusters::SortByRow(art::PtrVector<emph::rawdata::SSDRawDigit>
 }
 
 //--------------------------------------------------
-void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDigit> sensDigits,
+void emph::MakeSSDClusters::FormClusters(const art::PtrVector<emph::rawdata::SSDRawDigit>& sensDigits,
 	       std::vector<rb::SSDCluster>* sensClusters,
 	       int station, int plane, int sensor)
 { 
