@@ -11,7 +11,7 @@ process_name: mcprod
 services:
 {
   TFileService: { fileName: "emphmc_r%r_s%s_prod_hist.root" closeFileFast: false }
-  @table::standard_services
+  @table::sim_services
   SSDEfficiencyService: @local::data_ssdefficiency
   RandomNumberGenerator: {} #ART native random number generator
 
