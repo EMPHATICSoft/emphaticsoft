@@ -28,6 +28,8 @@
 //#include "RecoBase/LineSegment.h"
 #include "RecoBase/SSDCluster.h"
 
+#include "DataQuality/SSDBadChannelService.h"
+
 namespace emph {
   class MakeSSDClusters;
 }
@@ -50,12 +52,13 @@ public:
   // dev for alg.
   void beginJob();
   void beginRun(art::Run&);
-
+  void endJob(); //new
 private:
   
   art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
   art::ServiceHandle<emph::dgmap::DetGeoMapService> dgm;
   art::ServiceHandle<emph::geo::GeometryService> geo;
+  art::ServiceHandle<emph::SSDBadChannelService> badchan; 
 
   TTree *ssdclust;
   int run,subrun,event;
@@ -69,10 +72,12 @@ private:
   std::vector<int> ncluster;
 
   // fcl parameters
-  std::string fSSDRawLabel; ///< Data label for SSD Raw Digits
-  bool        fFillTTree;   ///< Fill TTree with plots for debugging/development?
-  int         fRowGap;      ///< Maximum allowed gap between strips for forming clusters
-  bool        fCheckDQ;     ///< Check data quality for event
+  std::string fSSDRawLabel;       ///< Data label for SSD Raw Digits
+  bool        fFillTTree;         ///< Fill TTree with plots for debugging/development?
+  int         fRowGap;            ///< Maximum allowed gap between strips for forming clusters
+  bool        fCheckDQ;           ///< Check data quality for event
+  bool        fBridgeBadChannels; ///< Merge across a 1-strip gap when that strip is masked 
+  unsigned int fNBridged = 0;      ///< count of gaps bridged, reported in endJob
 
   static bool CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
 			   const art::Ptr<emph::rawdata::SSDRawDigit>& b);
@@ -86,10 +91,12 @@ private:
 //--------------------------------------------------
 emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
   : EDProducer{pset},
-  fSSDRawLabel (pset.get< std::string >("SSDRawLabel")),
-  fFillTTree   (pset.get< bool >("FillTTree")),
-  fRowGap      (pset.get< int >("RowGap")),
-  fCheckDQ     (pset.get< bool >("CheckDQ"))
+  fSSDRawLabel       (pset.get< std::string >("SSDRawLabel")),
+  fFillTTree         (pset.get< bool >("FillTTree")),
+  fRowGap            (pset.get< int >("RowGap")),
+  fCheckDQ           (pset.get< bool >("CheckDQ")),
+  fBridgeBadChannels (pset.get< bool >("BridgeBadChannels", true))
+
 {
   this->produces< std::vector<rb::SSDCluster> >();
   //this->produces< std::vector<rb::LineSegment> >();
@@ -98,6 +105,11 @@ emph::MakeSSDClusters::MakeSSDClusters(fhicl::ParameterSet const& pset)
 //--------------------------------------------------
 void emph::MakeSSDClusters::beginJob()
 {
+
+  mf::LogInfo("MakeSSDClusters")
+    << "RowGap  = " << fRowGap 
+    << ", BridgeBadChannels = " << (fBridgeBadChannels ? "TRUE" : "FALSE");
+
   if (fFillTTree) {
     art::ServiceHandle<art::TFileService> tfs;
     ssdclust = tfs->make<TTree>("clusts","");
@@ -127,6 +139,14 @@ void emph::MakeSSDClusters::beginRun(art::Run&)
   ncluster.resize(NPlanes);
 
 }
+
+//--------------------------------------------------
+void emph::MakeSSDClusters::endJob()
+{
+  mf::LogInfo("MakeSSDClusters")
+    << "bridged " << fNBridged << " cluster gaps across masked strips";
+}
+
 
 //--------------------------------------------------
 bool emph::MakeSSDClusters::CompareByRow(const art::Ptr<emph::rawdata::SSDRawDigit>& a,
@@ -162,7 +182,15 @@ void emph::MakeSSDClusters::FormClusters(art::PtrVector<emph::rawdata::SSDRawDig
   for (auto & dig : sensDigits) {
     curRow = dig->Row();
     // if gap too big, push cluster and clear it
-    if ( curRow-prevRow > (fRowGap) ) {
+    bool split = ( curRow-prevRow > (fRowGap) ); 
+    
+    if (split && fBridgeBadChannels && (curRow - prevRow  == 2)
+         && badchan->IsBad(station, plane, sensor, prevRow + 1)) {
+      split = false;
+      ++ fNBridged;
+      }
+    
+    if (split) { 
       ssdClust.SetStation(station);
       ssdClust.SetSensor(sensor);
       ssdClust.SetPlane(plane);
@@ -228,6 +256,8 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
       emph::cmap::DChannel dchan = cmap->DetChan(echan);
       //      std::cout << "(station,plane,sensor) = (" << dchan.Station() << "," 
       //	<< dchan.Plane() << "," << dchan.HiLo() << ")" << std::endl;
+      if (badchan->IsBad(dchan.Station(), dchan.Plane(), dchan.HiLo(), ssdDig->Row()))
+        continue;
       digitList[dchan.Station()][dchan.Plane()][dchan.HiLo()].push_back(ssdDig);
     }
 
