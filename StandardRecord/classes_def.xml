@@ -136,7 +136,8 @@
  </class>
  <class name="std::vector<caf::SRTrueParticle>" />
 
- <class name="caf::SRTruth" ClassVersion="14" >
+ <class name="caf::SRTruth" ClassVersion="15" >
+  <version ClassVersion="15" checksum="532938481"/>
   <version ClassVersion="14" checksum="574054196"/>
   <version ClassVersion="13" checksum="2368466381"/>
   <version ClassVersion="12" checksum="1977587420"/>
@@ -160,6 +161,18 @@
 
  <class name="caf::SRTrueSSDHitsBranch" ClassVersion="10" >
   <version ClassVersion="10" checksum="3550546688"/>
+ </class>
+
+ <class name="caf::SRTrueTargetHit" ClassVersion="12" >
+  <version ClassVersion="12" checksum="3723726608"/>
+  <version ClassVersion="11" checksum="1638725660"/>
+  <version ClassVersion="10" checksum="11234"/>
+ </class>
+ <class name="std::vector<caf::SRTrueTargetHit>" /> 
+
+ <class name="caf::SRTrueTargetHitsBranch" ClassVersion="11" >
+  <version ClassVersion="11" checksum="786996925"/>
+      <version ClassVersion="10" checksum="12753"/>
  </class>
 
  <class name="caf::SRSpacePoint" ClassVersion="11" >
