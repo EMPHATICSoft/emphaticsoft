@@ -25,7 +25,7 @@ services:
   TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
   scheduler: { wantSummary: true }
   TimeTracker: {}
-  @table::standard_services
+  @table::data_services
 
   IFBeam:{}
 }
