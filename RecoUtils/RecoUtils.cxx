@@ -352,7 +352,7 @@ namespace ru {
 
   //------------------------------------------------------------
 
-   void RecoUtils::findTrackIntersection(rb::TrackSegment trk1, rb::TrackSegment trk2, double point[3]){
+   void RecoUtils::findTrackIntersection(const rb::TrackSegment& trk1, const rb::TrackSegment& trk2, double point[3]){
 
      // Initialize output
      for (int i=0; i<3; ++i) point[i]=0;
@@ -386,7 +386,7 @@ namespace ru {
 
   //------------------------------------------------------------
 
-   void RecoUtils::findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3]){
+   void RecoUtils::findTrackIntersectionNew(const rb::TrackSegment& ts1, const rb::TrackSegment& ts2, double point[3]){
 
      // Initalize output
      for (int i=0; i<3; ++i) point[i]=0;

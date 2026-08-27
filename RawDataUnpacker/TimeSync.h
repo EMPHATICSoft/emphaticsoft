@@ -104,10 +104,13 @@
 		{
 			bool exitLoop = false;
 			for(int aEvent = A.size() - 1; aEvent >= 0; --aEvent) {
+				auto best = timeUncertainty;
 				for(int bEvent = B.size() - 1; bEvent >= 0; --bEvent) {
-					if(std::llabs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
+					if(std::llabs(A[aEvent] - B[bEvent]) <= best) {
+						best = std::llabs(A[aEvent] - B[bEvent]);
+					} else if(best < timeUncertainty) {
 						aIndex = aEvent;
-						bIndex = bEvent;
+						bIndex = bEvent + 1;
 						exitLoop = true;
 						break;
 					}
@@ -126,10 +129,13 @@
 
 		uint64_t bStart = 0;
 		for(size_t aEvent = 0; aEvent < A.size(); ++aEvent) {
+			auto best = timeUncertainty;
 			for(size_t bEvent = bStart; bEvent < B.size(); ++bEvent) {
-				if(std::llabs(A[aEvent] - B[bEvent]) <= timeUncertainty) {
-					mask[aEvent] = bEvent;
-					bStart = bEvent + 1; // no need to check prior events (gives us a speed up)
+				if(std::llabs(A[aEvent] - B[bEvent]) <= best) {
+					best = std::llabs(A[aEvent] - B[bEvent]);
+				} else if(best < timeUncertainty) {
+					mask[aEvent] = bEvent - 1;
+					bStart = bEvent; // no need to check prior events (gives us a speed up)
 					break; // Found matched event, no need to check further
 				}
 			}
@@ -182,7 +188,7 @@
 		std::vector<int> mask;
 
 		// Do the xcorrelation
-		size_t N_compare=30; // Number of events to compare
+		size_t N_compare = 30; // Number of events to compare
 
 		// Sets overlap percentage to the appropriate value for syncing
 		double percentOverlap = 1.0*child.size()/grandfather.size();
@@ -251,7 +257,7 @@
 				if(mask[i] != -1) {
 					mask[i] = -1;
 					++ignore;
-					if(ignore == N_compare/2) break;
+					if(ignore == N_compare/3) break;
 				}
 			}
 			ignore = 0;
@@ -262,7 +268,7 @@
 				if(mask[i] != -1) {
 					mask[i] = -1;
 					++ignore;
-					if(ignore == N_compare/2) break;
+					if(ignore == N_compare/3) break;
 				}
 			}
 		}

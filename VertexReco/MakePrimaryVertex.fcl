@@ -9,6 +9,6 @@ standard_makeprimaryvertex:
 
 # --- For Kalman tracks ---
 kalman_makeprimaryvertex: @local::standard_makeprimaryvertex
-kalman_makeprimaryvertex.TrkLabel: "makesingletracksKalman"
+kalman_makeprimaryvertex.TrkLabel: "singletrackKalman"
 
 END_PROLOG

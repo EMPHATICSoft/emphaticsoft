@@ -66,6 +66,7 @@ private:
   int fVerbosity;
   int fNInterations;
   bool fUseTruth;
+  double fTrgtZ;
   std::string fTrackSegmentLabel;
   
   kalman::KTracker* fKTracker;
@@ -86,6 +87,17 @@ private:
   TH2D* fChi2vsNdof;
   TH1D* fChi2perNdof;
   TH2D* fResidualsVsPlane;
+
+  bool ProcessTruthInfo(art::Event& evt,
+                        const rb::Track& beamTrack,
+                        const rb::Track& track,
+                        const kalman::KState& firstSmoothed,
+                        double& pztrue,
+                        double& pttrue,
+                        double& ptrue,
+                        double& xtrue,
+                        double& ytrue,
+                        double& trueTheta);
 };
 
 //.......................................................................
@@ -104,6 +116,7 @@ emph::SingleTrackKalmanReco::SingleTrackKalmanReco(fhicl::ParameterSet const& ps
     fKTracker->SetRK4Parameters(pset.get<int>("RK4MaxNStep", 800),
                                 pset.get<double>("RK4MaxZStep", 2.0));
 
+    fTrgtZ = -99999.;
     fTruePtVsPzAll = nullptr; 
     fTruePtVsPzSel = nullptr; 
     fXYDistAll = nullptr;
@@ -127,7 +140,7 @@ emph::SingleTrackKalmanReco::SingleTrackKalmanReco(fhicl::ParameterSet const& ps
     fPullTy = tfs->make<TH1D>("hPullTy", "Pull in ty", 100, -5, 5);
     fChi2vsNdof = tfs->make<TH2D>("hChi2vsNdof", "#chi^{2} vs Ndof", 20, 0, 20, 100, 0, 50);
     fChi2perNdof = tfs->make<TH1D>("hChi2perNdof", "#chi^{2}/Ndof", 100, 0, 10); 
-    fResidualsVsPlane = tfs->make<TH2D>("hResidualsVsPlane", "Residuals vs Plane", 60, 19, 79, 500, -5., 5.);
+    fResidualsVsPlane = tfs->make<TH2D>("hResidualsVsPlane", "Residuals vs Plane", 60, 19, 79, 400, -2., 2.);
   }
 
 //......................................................................
@@ -137,6 +150,7 @@ void emph::SingleTrackKalmanReco::beginRun(art::Run& run)
   art::ServiceHandle<emph::geo::GeometryService> geo;
   art::ServiceHandle<emph::MagneticFieldService> mag;
   fKTracker->SetBField(mag->Field());
+  fTrgtZ = (geo->Geo()->TargetDSZPos()+geo->Geo()->TargetUSZPos())/2.;
 //  fKTracker->SetGeometry(geo->Geo());
   if (fVerbosity > 0)  std::cout << "Created new instance of KTracker with verbosity level " << fVerbosity << std::endl;
   art::ServiceHandle<art::TFileService> tfs;
@@ -169,14 +183,100 @@ void emph::SingleTrackKalmanReco::endJob()
 
 //......................................................................
 
+bool emph::SingleTrackKalmanReco::ProcessTruthInfo(art::Event& evt,
+                                                  const rb::Track& beamTrack,
+                                                  const rb::Track& track,
+                                                  const kalman::KState& firstSmoothed,
+                                                  double& pztrue,
+                                                  double& pttrue,
+                                                  double& ptrue,
+                                                  double& xtrue,
+                                                  double& ytrue,
+                                                  double& trueTheta)
+{
+  if (!fUseTruth) return false;
+
+  art::Handle<std::vector<sim::SSDHit>> simHitH;
+  try {
+    evt.getByLabel("geantgen", simHitH);
+  }
+  catch (...) {
+    std::cerr << "WARNING: No sim::SSDHits found, cannot print true SSD hit info." << std::endl;
+    fUseTruth = false;
+    return false;
+  }
+
+  if (simHitH->empty()) {
+    std::cerr << "WARNING: No sim::SSDHits found, cannot print true SSD hit info." << std::endl;
+    fUseTruth = false;
+    return false;
+  }
+
+  pztrue = 0.;
+  pttrue = 0.;
+  ptrue = 0.;
+  xtrue = 1.e9;
+  ytrue = 1.e9;
+  trueTheta = 0.;
+  ROOT::Math::XYZVector momPreTarget;
+  ROOT::Math::XYZVector momPostTarget;
+
+  for (const auto& hit : *simHitH) {
+    if (hit.Station() == 2 && hit.Plane() == 0 && TMath::Abs(hit.PId()) != 11) {
+      double pxtrue = hit.Px();
+      double pytrue = hit.Py();
+      pztrue = hit.Pz();
+      pttrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue);
+      fTruePtVsPzAll->Fill(pztrue, pttrue);
+      ptrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue + pztrue*pztrue);
+      if (fVerbosity) {
+        std::cout << "True |p| = " << ptrue << ", pz = " << pztrue << ", pt = " << pttrue << std::endl;
+      }
+      momPostTarget.SetXYZ(pxtrue, pytrue, pztrue);
+      break;
+    }
+  }
+
+  for (const auto& hit : *simHitH) {
+    if (hit.Station() == 1 && hit.Plane() == 1 && TMath::Abs(hit.PId()) != 11) {
+      xtrue = hit.X();
+      ytrue = hit.Y();
+      fXYDistAll->Fill(xtrue, ytrue);
+      momPreTarget.SetXYZ(hit.Px(), hit.Py(), hit.Pz());
+      break;
+    }
+  }
+
+  trueTheta = ROOT::Math::VectorUtil::Angle(momPreTarget, momPostTarget);
+  if (fVerbosity) {
+    std::cout << "True theta: " << trueTheta << std::endl;
+  }
+
+  fTruePtVsPzSel->Fill(pztrue, pttrue);
+  fXYDistSel->Fill(xtrue, ytrue);
+
+  double deltaP = (1. / firstSmoothed.GetPar()[4] - ptrue);
+  if (ptrue > 0.) {
+    fDeltaPvsP->Fill(ptrue, deltaP / ptrue);
+  }
+
+  double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[0]);
+  double deltaTheta = recoTheta - trueTheta;
+  fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
+
+  return true;
+}
+
 void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 {
+
+  if ((evt.event()-1)%100 == 0)
+    std::cout << "SingleTrackKalmanReco: Processing event " << evt.event() << std::endl;
 
   std::unique_ptr< std::vector<rb::Track> > trackv(new std::vector<rb::Track>);
 
   art::Handle< std::vector<rb::LineSegment> > lsH;
   art::Handle< std::vector<rb::TrackSegment> > trkSegH;
-  art::Handle< std::vector<sim::SSDHit> > simHitH;
 
   try {
     evt.getByLabel(fTrackSegmentLabel,trkSegH);
@@ -185,37 +285,23 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
     std::cerr << "WARNING: No rb::TrackSegments found!" << std::endl;
   }
 
+  std::cout << "Found " << (int)trkSegH->size() << " track segments" << std::endl;
+
   try {
     evt.getByLabel(fTrackSegmentLabel,lsH);
   } 
   catch(...) {
     std::cerr << "WARNING: No rb::LineSegments found!" << std::endl;
   } 
-  if (fVerbosity > 0)  std::cout << "Found " << (int)lsH->size() << " linesegments" << std::endl;
+  //if (fVerbosity > 0)  
+  std::cout << "Found " << (int)lsH->size() << " linesegments" << std::endl;
 
-  try {
-    evt.getByLabel(fTrackSegmentLabel,trkSegH);
-  }
-  catch(...) {
-    std::cerr << "WARNING: No rb::TrackSegments found, will default to initial state with large uncertainties." << std::endl;
-  }
-
-  if (fUseTruth) {
-    try {
-      evt.getByLabel("geantgen", simHitH);
-   }
-  catch(...) {
-    std::cerr << "WARNING: No sim::SSDHits found, cannot print true SSD hit info." << std::endl;
-    fUseTruth = false;
-  }
- 
   double pztrue = 0.;
   double pttrue = 0.;
   double ptrue = 0.;
   double xtrue = 1.e9;
   double ytrue = 1.e9;
-  ROOT::Math::XYZVector momPreTarget;
-  ROOT::Math::XYZVector momPostTarget;
+  double trueTheta = 0.;
   rb::Track beamTrack;
 
   bool isOk = true;
@@ -225,8 +311,8 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
     const rb::TrackSegment& trkseg = (*trkSegH)[i];
     nTrkSeg[trkseg.region]++; 
   }
-  if (fVerbosity > 0)
-    std::cout << "Track segments in each region: " << nTrkSeg[0] << " upstream of target, " << nTrkSeg[1] << " between target and magnet, " << nTrkSeg[2] << " downstream of magnet" << std::endl;
+//  if (fVerbosity > 0)
+  std::cout << "Track segments in each region: " << nTrkSeg[0] << " upstream of target, " << nTrkSeg[1] << " between target and magnet, " << nTrkSeg[2] << " downstream of magnet" << std::endl;
 
   if (nTrkSeg[0] != 1) isOk = false;
   if (nTrkSeg[1] == 0 || nTrkSeg[1] > 5) isOk = false;
@@ -241,46 +327,28 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
         double py = (trkseg.pointA.Y()-trkseg.pointB.Y())/(trkseg.pointA.Z()-trkseg.pointB.Z());
         pz = std::sqrt(1. - px*px - py*py);
         beamTrack.mom.SetXYZ(px, py, pz);
+
+        beamTrack.Add(trkseg);
+        beamTrack.vtx = trkseg.vtx;   // SetVtx(trkseg.Vtx());
+        beamTrack.chi2 = trkseg.chi2; // SetChi2(trkseg.Chi2());
+
+        // fill position and momentum projected to the center of the target
+        beamTrack.momTrgt = trkseg.mom;
+        double posAtTrgt[3];
+        // dz should be positive since we are projecting forward to the target
+        double dz = fTrgtZ - trkseg.pointB.Z();
+        posAtTrgt[2] = fTrgtZ;
+        posAtTrgt[0] = (trkseg.mom.X() / trkseg.mom.Z()) * dz + trkseg.pointB.X();
+        posAtTrgt[1] = (trkseg.mom.Y() / trkseg.mom.Z()) * dz + trkseg.pointB.Y();
+        beamTrack.posTrgt.SetCoordinates(posAtTrgt);
+        trackv->push_back(beamTrack);
+
         break;
       }
-    }
+    } // end loop over track segments to find most upstream track segment
 
-    if (fUseTruth) {
-      for (const auto& hit : *simHitH) {
-        if (hit.Station() == 2 && hit.Plane() == 0 &&
-          TMath::Abs(hit.PId()) != 11) { // look for non-electron hit in 1st plane of 2nd station, which is the just downstream of the target
-            double ztrue = hit.Z();
-            double pxtrue = hit.Px();
-            double pytrue = hit.Py();
-            pztrue = hit.Pz();
-            pttrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue);
-            fTruePtVsPzAll->Fill(pztrue,pttrue);
-            ptrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue + pztrue*pztrue);
-            if (fVerbosity) {
-              std::cout << "True |p| = " << ptrue << ", pz = " << pztrue << ", pt = " << pttrue << std::endl; 
-            }
-            momPostTarget.SetXYZ(pxtrue, pytrue, pztrue);
-            break;
-          }
-        }
-        for (const auto& hit : *simHitH) {
-          if (hit.Station() == 1 && hit.Plane() == 1 && 
-            TMath::Abs(hit.PId()) != 11) { // look for non-electron hit 2nd plane of 2nd station, which is the just upstream of the target
-            xtrue = hit.X();
-            ytrue = hit.Y();
-            fXYDistAll->Fill(xtrue,ytrue);
-            momPreTarget.SetXYZ(hit.Px(), hit.Py(), hit.Pz());
-            break;
-          }
-        }
-      } 
-  
-      double trueTheta = ROOT::Math::VectorUtil::Angle(momPreTarget,momPostTarget);
-      if (fVerbosity) 
-        std::cout << "True theta: " << trueTheta << std::endl;
-      fKTracker->Clear();
-      fTruePtVsPzSel->Fill(pztrue,pttrue);
-      fXYDistSel->Fill(xtrue,ytrue);
+    std::cout << "here" << std::endl;
+    fKTracker->Clear();
 
       art::ServiceHandle<emph::geo::GeometryService> geo;
       auto emgeo = geo->Geo();
@@ -417,71 +485,8 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
         double deltaP = (1./firstSmoothed.GetPar()[4] - ptrue);
         fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
 
-        // ===== Calculate pulls and store diagnostics =====        
-        // Pull = (Reco - True) / σ_reco tells us how many standard deviations
-        // the reconstruction is from the true value. Ideally pulls should be
-        // scattered around 0 with RMS ≈ 1.
-//        auto par = firstSmoothed.GetPar();
-//        auto cov = firstSmoothed.GetCov();
-
-        // Calculate true q/p (charge -1 for antiproton, q/p = charge/momentum)
-//        double true_qop = -1.0 / ptrue;  // negative because PId = -2212 (antiproton)
-
-        // Calculate pulls for each state variable
-//        double sigma_qop = std::sqrt(cov[4][4]);
-//        double pull_qop = (par[4] - true_qop) / (sigma_qop > 1e-10 ? sigma_qop : 1e-10);
-
-//        double sigma_x = std::sqrt(cov[0][0]);
-//        double pull_x = (par[0] - xtrue) / (sigma_x > 1e-10 ? sigma_x : 1e-10);
-
-//        double sigma_y = std::sqrt(cov[1][1]);
-//        double pull_y = (par[1] - ytrue) / (sigma_y > 1e-10 ? sigma_y : 1e-10);
-
-//        double sigma_tx = std::sqrt(cov[2][2]);
-//        double true_tx = (trkSegH->size() > 0) ? (*trkSegH)[0].pointA.X() - (*trkSegH)[0].pointB.X() / ((*trkSegH)[0].pointA.Z() - (*trkSegH)[0].pointB.Z()) : 0;
-//        double pull_tx = (cov[2][2] > 1e-10) ? (par[2] - true_tx) / std::sqrt(cov[2][2]) : 0;
-
-//        double sigma_ty = std::sqrt(cov[3][3]);
-//        double true_ty = (trkSegH->size() > 0) ? (*trkSegH)[0].pointA.Y() - (*trkSegH)[0].pointB.Y() / ((*trkSegH)[0].pointA.Z() - (*trkSegH)[0].pointB.Z()) : 0;
-//        double pull_ty = (cov[3][3] > 1e-10) ? (par[3] - true_ty) / std::sqrt(cov[3][3]) : 0;
-
-        // Fill pull histograms
-/*
-        if (!std::isnan(pull_qop) && std::abs(pull_qop) < 1e6) fPullQop->Fill(pull_qop);
-        if (!std::isnan(pull_x) && std::abs(pull_x) < 1e6) fPullX->Fill(pull_x);
-        if (!std::isnan(pull_y) && std::abs(pull_y) < 1e6) fPullY->Fill(pull_y);
-        if (!std::isnan(pull_tx) && std::abs(pull_tx) < 1e6) fPullTx->Fill(pull_tx);
-        if (!std::isnan(pull_ty) && std::abs(pull_ty) < 1e6) fPullTy->Fill(pull_ty);
-*/
-        // Get chi2 and ndof
-/*
-        auto lastSmoothed = smoothed.back();
-        double chi2 = lastSmoothed.GetChi2();
-        int ndof = lastSmoothed.GetNdf();
-        double chi2_ndof = (ndof > 0) ? chi2 / ndof : 0;
-*/
-        fChi2vsNdof->Fill(ndof, chi2);
         if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
 
-        // Print diagnostics
-//        if (fVerbosity > 0) {
-/*          std::cout << "\n=== Track Reconstruction Diagnostics ===" << std::endl;
-          std::cout << "True momentum: " << ptrue << " GeV/c" << std::endl;
-          std::cout << "Reco momentum: " << 1./firstSmoothed.GetPar()[4] << " GeV/c" << std::endl;
-          std::cout << "True q/p: " << true_qop << ", Reco q/p: " << par[4] << std::endl;
-          std::cout << "Pull(q/p) = " << pull_qop << " (sigma = " << sigma_qop << ")" << std::endl;
-          std::cout << "Pull(x) = " << pull_x << ", Pull(y) = " << pull_y << std::endl;
-          std::cout << "Pull(tx) = " << pull_tx << ", Pull(ty) = " << pull_ty << std::endl;
-          std::cout << "Chi2/Ndof = " << chi2 << "/" << ndof << " = " << chi2_ndof << std::endl;
-          std::cout << "Covariance diag: " << std::sqrt(cov[0][0]) << " "
-                    << std::sqrt(cov[1][1]) << " "
-                    << std::sqrt(cov[2][2]) << " "
-                    << std::sqrt(cov[3][3]) << " "
-                    << std::sqrt(cov[4][4]) << std::endl;
-        }
-*/
-
-//        for (const auto& state : filtered) {
         for (const auto& resid : residuals) {
           track.pullSSD.push_back(resid.GetResidual());
         }
@@ -498,11 +503,9 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
           track.momSSD.push_back(mom);
         }
 //        std::cout << "Beam track momentum: " << beamTrack.mom << std::endl;
-        double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[0]);
-//        std::cout << "Reco theta: " << recoTheta << std::endl;
-        double deltaTheta = recoTheta-trueTheta;
-//        std::cout << "Delta theta: " << deltaTheta << std::endl;
-        fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
+        if (fUseTruth) {
+          ProcessTruthInfo(evt, beamTrack, track, firstSmoothed, pztrue, pttrue, ptrue, xtrue, ytrue, trueTheta);
+        }
 
 //        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstSmoothed.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
 //        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstFiltered.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
@@ -515,10 +518,10 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 */
 
         trackv->push_back(track);
-      } // end if isOk
-    }
-    evt.put(std::move(trackv));
+       } // end if isOk
   }
+  std::cout << "SingleTrackKalmanReco: Finished processing event " << evt.event() << ", reconstructed " << trackv->size() << " tracks" << std::endl;
+  evt.put(std::move(trackv));
 }
 
 } // end namespace emph

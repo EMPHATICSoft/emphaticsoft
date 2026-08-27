@@ -216,7 +216,8 @@
  </class>
  <class name="std::vector<caf::SRVertex>" />
 
- <class name="caf::SRVertexBranch" ClassVersion="11" >
+ <class name="caf::SRVertexBranch" ClassVersion="12" >
+  <version ClassVersion="12" checksum="1118558747"/>
   <version ClassVersion="11" checksum="1927031340"/>
   <version ClassVersion="10" checksum="1"/>
  </class>

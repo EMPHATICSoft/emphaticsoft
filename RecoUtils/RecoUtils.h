@@ -12,9 +12,10 @@
 #include <iostream>
 
 #include "Simulation/SSDHit.h" 
-#include "RecoBase/TrackSegment.h"
+// Forward declare TrackSegment instead of including the full header
+namespace rb { class TrackSegment; }
 
-//#include "TVector3.h"
+#include "Math/Vector3D.h"   // ROOT::Math::XYZVector
 #include "TMatrixD.h"
 #include "TMatrixDSymEigen.h"
 #include "TVectorD.h"
@@ -32,8 +33,8 @@ namespace ru {
     void    findLine(std::vector<std::vector<double> > v, double lfirst[3], double llast[3]);
     double  findRecoAngle(double p1[3], double p2[3], double p3[3], double p4[3]);
     double  getMomentum(double theta);
-    void    findTrackIntersection(rb::TrackSegment trk1, rb::TrackSegment trk2, double point[3]);
-    void    findTrackIntersectionNew(rb::TrackSegment ts1, rb::TrackSegment ts2, double point[3]);
+    void    findTrackIntersection(const rb::TrackSegment& trk1, const rb::TrackSegment& trk2, double point[3]);
+    void    findTrackIntersectionNew(const rb::TrackSegment& ts1, const rb::TrackSegment& ts2, double point[3]);
 
   };
   

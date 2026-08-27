@@ -13,7 +13,7 @@
 #include "GasCkovHitReco.fcl"
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
-#include "SingleTrackAlignment.fcl"
+#include "SingleTrackKalmanReco.fcl"
 #include "MakePrimaryVertex.fcl"
 
 
@@ -43,32 +43,36 @@ physics:
   {
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
-    arichcluster: @local::standard_arich_cluster
-    arichreco:    @local::standard_arichreco
-    arichring:    @local::standard_arich_ring
+#    arichcluster: @local::standard_arich_cluster
+#    arichreco:    @local::standard_arichreco
+#    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
-    adcreco:      @local::standard_adcreco
-    backovreco:   @local::standard_backovhitreco
-    gasckovreco:  @local::standard_gasckovhitreco
+#    adcreco:      @local::standard_adcreco
+#    backovreco:   @local::standard_backovhitreco
+#    gasckovreco:  @local::standard_gasckovhitreco
     cafmaker:     @local::standard_cafmaker
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
 #    singletrackalignment: @local::standard_singletrackalignment
     makeprimaryvertex: @local::standard_makeprimaryvertex
-    makesingletracksKalman: @local::standard_singletrackKalman
-    makeprimaryvertexKalman: @local::kalman_makeprimaryvertex
+    singletrackKalman: @local::standard_singletrackKalman
+    primaryvertexKalman: @local::kalman_makeprimaryvertex
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, clust,
-               maketracksegments, makesingletracks, arichring, arichreco, makeprimaryvertex, #singletrackalignment,
+               dataqual, spillinfo, clust, 
+               #arichcluster, clust,
+               maketracksegments, makesingletracks, makeprimaryvertex, 
+               singletrackKalman, primaryvertexKalman,
+              # arichring, arichreco, singletrackalignment,
               # adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
 }
 physics.producers.clust.FillTTree: false
+physics.producers.clust.CheckDQ: false
 physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's

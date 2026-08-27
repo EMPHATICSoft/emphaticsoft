@@ -388,19 +388,20 @@ namespace rawdata {
 		int64_t timeBuffer[2] = {0,0};
 		bool isFirst = true;
 		for(auto event : eventStack) {
-			bool gotBoth = false;
+			int gotBoth = 0;
 			// Check if next event has both
 			for(auto attendee : event.second) {
 				auto fragId = attendee.first;
 				if(fragId == idA || fragId == idB) {
-					if(gotBoth) // break on second time through this check
+					if(gotBoth > 0) { // break on second time through this check
+						gotBoth++;
 						break;
-					else // first time through this check
-						gotBoth = true;
+					} else // first time through this check
+						gotBoth++;
 				}
 			}
 
-			if(!gotBoth) continue; // check next event
+			if(gotBoth != 2) continue; // check next event
 
 			int64_t difference = timeBuffer[0] - timeBuffer[1];
 			for(auto attendee : event.second) {
@@ -489,12 +490,6 @@ namespace rawdata {
 			fTvsT[idChild]->Write(hname);
 			//f1->Write(graph);
 		}
-
-		fTWCorr0[idChild] = f1->GetParameter(0);
-		fTWCorr1[idChild] = f1->GetParameter(1);
-
-		fTWErr0[idChild] = f1->GetParError(0);
-		fTWErr1[idChild] = f1->GetParError(1);
 #ifdef VERBOSE
 		if(idChild == idChild) {
 			printf("Board SSD: twcorr intercept = %16.16f\n", f1->GetParameter(0));
@@ -504,6 +499,17 @@ namespace rawdata {
 			printf("Board %d: twcorr slope = %16.16f\n", idChild, f1->GetParameter(1));
 		}
 #endif
+
+		if(fTWErr0[idChild] < 1.1*f1->GetParError(0) || fTWErr1[idChild] < 1.1*f1->GetParError(1)) {
+			// if fit is worse, don't update parameters
+			return;
+		}
+
+		fTWCorr0[idChild] = f1->GetParameter(0);
+		fTWCorr1[idChild] = f1->GetParameter(1);
+
+		fTWErr0[idChild] = f1->GetParError(0);
+		fTWErr1[idChild] = f1->GetParError(1);
 	}
 
 	void Unpacker::calcTimeWalkCorr() {
@@ -669,6 +675,8 @@ namespace rawdata {
 			for (auto fragId : fFragId) {
 				fTWCorr0[fragId] = 0;
 				fTWCorr1[fragId] = 1;
+				fTWErr0[fragId] = INT_MAX;
+				fTWErr1[fragId] = INT_MAX;
 			}
 
 			if(fixSSDTimestamps())
@@ -684,17 +692,16 @@ namespace rawdata {
 			findMatches(fragIdGrandfather, 100);
 			calcTimeWalkCorr(fragIdGrandfather);
 
-			// Noah's metric (checking precision of linear fit params
-			size_t maxTries = 3;
+			// Noah's metric (checking precision of linear fit params)
+			size_t maxTries = 10;
 			for(auto fragId : fFragId) {
 				size_t tries = 0;
-				while(fTWErr0[fragId] > 20 || fTWErr1[fragId] > 20e-9) {
-					if(tries++ >= maxTries) return false;
+				while(fTWErr0[fragId] > 10 || fTWErr1[fragId] > 1e-9) {
+					if(tries++ >= maxTries){ std::cout << "Close Enough Metric: failed" << std::endl; break; }
 					findMatches(fragId, 100);
 					calcTimeWalkCorr(fragId);
 				}
 			}
-			std::cout << "YAAAAAY we passed!" << std::endl;
 
 			{// limit scope of punch card
 				std::cout << "Preparing punch card" << std::endl;
@@ -727,9 +734,9 @@ namespace rawdata {
 						int64_t tsA;
 						// Project timestamp to grandfather
 						if(fragA == ssdId) // SSD
-							tsA = fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iA].first;
+							tsA = std::round(fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iA].first);
 						else if(fragA != fragIdGrandfather) // CAEN and TRB3 children
-							tsA = fTWCorr0[fragA] + fTWCorr1[fragA]*fFragTimestamps[fragA][iA];
+							tsA = std::round(fTWCorr0[fragA] + fTWCorr1[fragA]*fFragTimestamps[fragA][iA]);
 						else // grandfather
 							tsA = fFragTimestamps[fragA][iA];
 						event.push_back(std::make_pair(fragA, iA));
@@ -739,6 +746,7 @@ namespace rawdata {
 							if(jfrag < fFragId.size())
 								fragB = fFragId[jfrag];
 
+							uint64_t best = 100;
 							for(auto jt = punchCards[jfrag].begin(); jt != punchCards[jfrag].end(); ++jt) {
 								auto iB = *jt; // index of time stamp to be checked
 								int64_t tsB;
@@ -746,15 +754,17 @@ namespace rawdata {
 								if(fragB == ssdId) // SSD
 									tsB = std::round(fTWCorr0[fragIdGrandfather] + fTWCorr1[fragIdGrandfather]*fBCOx*fSSDRawDigits[iB].first);
 								else if(fragB != fragIdGrandfather)
-									tsB = fTWCorr0[fragB] + fTWCorr1[fragB]*fFragTimestamps[fragB][iB];
+									tsB = std::round(fTWCorr0[fragB] + fTWCorr1[fragB]*fFragTimestamps[fragB][iB]);
 								else
 									tsB = fFragTimestamps[fragB][iB];
 
 								// Adjust this resolution as needed
-								if(std::llabs(tsA - tsB) <= 100) { // FOUND YOU
-									event.push_back(std::make_pair(fragB, iB));
+								if(std::llabs(tsA - tsB) <= best) { // FOUND YOU
+									best = std::llabs(tsA - tsB);
+								} else if(best < 100) {
+									event.push_back(std::make_pair(fragB, iB-1));
 									// Remove element from punch card to indicate this event has been handled
-									punchCards[jfrag].erase(jt);
+									punchCards[jfrag].erase(--jt);
 									break;
 								}
 							}

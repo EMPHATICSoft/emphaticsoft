@@ -184,8 +184,20 @@ namespace caf
     std::vector <sim::SSDHit> ssdhits;
     std::vector <rb::ArichID> arichids;
 
-    if ( !hv.failedToGet()) vtxs = *hv;
-    if ( !ht.failedToGet()) trks = *ht;
+    if ( !hv.failedToGet()) 
+    {
+      vtxs = *hv;
+    }
+    else {
+      std::cout << "VertexFiller: Failed to get Vertexes" << std::endl;
+    } 
+    if ( !ht.failedToGet()) 
+    {
+      trks = *ht;
+    } 
+    else  {
+      std::cout << "VertexFiller: Failed to get Tracks" << std::endl;
+    }
     if ( !truehitv.failedToGet()) ssdhits = *truehitv;
     if ( !ha.failedToGet()) arichids = *ha;
 
