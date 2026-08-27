@@ -25,7 +25,7 @@ services:
   TFileService: { fileName: "%ifb_reco_cafmaker_hist.root" closeFileFast: false }
   scheduler: { wantSummary: false }
   TimeTracker: {}
-  @table::standard_services
+  @table::data_services
 
   IFBeam:{}
 }
@@ -47,10 +47,10 @@ physics:
 #    arichreco:    @local::standard_arichreco
 #    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
-#    adcreco:      @local::standard_adcreco
-#    backovreco:   @local::standard_backovhitreco
-#    gasckovreco:  @local::standard_gasckovhitreco
-    cafmaker:     @local::standard_cafmaker
+    adcreco:      @local::standard_adcreco
+    backovreco:   @local::standard_backovhitreco
+    gasckovreco:  @local::standard_gasckovhitreco
+    cafmaker:     @local::data_cafmaker
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
@@ -74,5 +74,3 @@ physics:
 
 }
 physics.producers.clust.FillTTree: false
-physics.producers.clust.CheckDQ: false
-physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's

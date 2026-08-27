@@ -9,7 +9,6 @@ BEGIN_PROLOG
 
 core_services:
 {
-  AlignService:      	@local::standard_align
   ChannelMapService: 	@local::standard_channelmap
   DetGeoMapService:  	@local::standard_detgeomap
   GeometryService:   	@local::standard_geometry
@@ -17,9 +16,18 @@ core_services:
   MagneticFieldService: @local::standard_magfield
 }
 
-standard_services:
+sim_services:
 {
   @table::core_services
+  AlignService: @local::sim_align
 }
+
+data_services:
+{
+  @table::core_services
+  AlignService: @local::data_align
+}
+
+standard_services: @local::data_services
 
 END_PROLOG
