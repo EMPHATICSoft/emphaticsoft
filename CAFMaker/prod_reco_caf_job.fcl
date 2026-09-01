@@ -16,6 +16,7 @@
 #include "SingleTrackAlignment.fcl"
 #include "MakePrimaryVertex.fcl"
 
+#include "SSDBadChannel.fcl"
 
 process_name: CAF
 
@@ -26,6 +27,8 @@ services:
   scheduler: { wantSummary: false }
   TimeTracker: {}
   @table::data_services
+
+  SSDBadChannelService: @local::standard_ssdbadchannel
 
   IFBeam:{}
 }
