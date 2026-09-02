@@ -270,9 +270,6 @@ bool emph::SingleTrackKalmanReco::ProcessTruthInfo(art::Event& evt,
 void emph::SingleTrackKalmanReco::produce(art::Event& evt)
 {
 
-  if ((evt.event()-1)%100 == 0)
-    std::cout << "SingleTrackKalmanReco: Processing event " << evt.event() << std::endl;
-
   std::unique_ptr< std::vector<rb::Track> > trackv(new std::vector<rb::Track>);
 
   art::Handle< std::vector<rb::LineSegment> > lsH;

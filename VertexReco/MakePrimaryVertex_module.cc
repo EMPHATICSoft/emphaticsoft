@@ -76,10 +76,6 @@ namespace emph {
   void emph::MakePrimaryVertex::produce(art::Event& evt)
   {
 
-    if ((evt.event()-1)%100 == 0) {
-      std::cout << "MakePrimaryVertex: Processing event " << evt.event() << std::endl;
-    }
-
     std::unique_ptr< std::vector<rb::Vertex> > vtxv(new std::vector<rb::Vertex>);
     
     art::Handle< std::vector<rb::Track> > trkH;
