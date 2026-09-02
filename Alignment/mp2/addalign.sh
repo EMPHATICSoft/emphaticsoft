@@ -90,12 +90,12 @@ while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
       fi
       col2=$(($col2+1))
     done
-    xsum=$(echo "$x1 - $x2" | bc)
-    ysum=$(echo "$y1 - $y2" | bc)
-    zsum=$(echo "$z1 - $z2" | bc)
-    dphisum=$(echo "$dphi1 - $dphi2" | bc)
-    dethetasum=$(echo "$detheta1 - $detheta2" | bc)
-    dpsisum=$(echo "$dpsi1 - $dpsi2" | bc)
+    xsum=$(echo "$x1 + $x2" | bc)
+    ysum=$(echo "$y1 + $y2" | bc)
+    zsum=$(echo "$z1 + $z2" | bc)
+    dphisum=$(echo "$dphi1 + $dphi2" | bc)
+    dethetasum=$(echo "$detheta1 + $detheta2" | bc)
+    dpsisum=$(echo "$dpsi1 + $dpsi2" | bc)
     printf "%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n" $sta $sen $pla $xsum $ysum $zsum $dphisum $dethetasum $dpsisum  >> ${OUTPUT}
   fi
   first=$(($first+1))
