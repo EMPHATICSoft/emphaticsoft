@@ -17,8 +17,10 @@ standard_cafmaker:{
     SSDHitLabel:       "geantgen" #dah
     SSDRawLabel:       "raw:SSD"
     TrackLabel:        "makesingletracks"
+    KTrackLabel:        "singletrackKalman"
     TrackSegmentLabel: "maketracksegments"
     VertexLabel:       "makeprimaryvertex"
+    KVertexLabel:       "primaryvertexKalman"
 
     GetMCTruth:    true #use for creating MC CAF's
     GetMCHits:     true

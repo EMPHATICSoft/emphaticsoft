@@ -45,7 +45,7 @@ namespace caf
     pointB.SetY(std::numeric_limits<float>::signaling_NaN());
     pointB.SetZ(std::numeric_limits<float>::signaling_NaN());
 
-    region = rb::Region::kRegionNull;
+    region = caf::Region::kRegionNull;
     nspacepoints = -1;
     chi2 = -1;
     thetaX = -1;
