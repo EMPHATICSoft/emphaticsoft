@@ -92,7 +92,6 @@ namespace emph {
 
       // DOCA vertex: midpoint between the two closest points.
       vtx.pos = (poca0 + poca1)/2.;
-
       vtx.sectrkIdx.push_back(1);
     }
     else {

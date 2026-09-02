@@ -285,16 +285,14 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
     std::cerr << "WARNING: No rb::TrackSegments found!" << std::endl;
   }
 
-  std::cout << "Found " << (int)trkSegH->size() << " track segments" << std::endl;
-
   try {
     evt.getByLabel(fTrackSegmentLabel,lsH);
   } 
   catch(...) {
     std::cerr << "WARNING: No rb::LineSegments found!" << std::endl;
   } 
-  //if (fVerbosity > 0)  
-  std::cout << "Found " << (int)lsH->size() << " linesegments" << std::endl;
+  if (fVerbosity > 0)  
+    std::cout << "Found " << (int)lsH->size() << " linesegments" << std::endl;
 
   double pztrue = 0.;
   double pttrue = 0.;
@@ -311,8 +309,8 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
     const rb::TrackSegment& trkseg = (*trkSegH)[i];
     nTrkSeg[trkseg.region]++; 
   }
-//  if (fVerbosity > 0)
-  std::cout << "Track segments in each region: " << nTrkSeg[0] << " upstream of target, " << nTrkSeg[1] << " between target and magnet, " << nTrkSeg[2] << " downstream of magnet" << std::endl;
+  if (fVerbosity > 0)
+    std::cout << "Track segments in each region: " << nTrkSeg[0] << " upstream of target, " << nTrkSeg[1] << " between target and magnet, " << nTrkSeg[2] << " downstream of magnet" << std::endl;
 
   if (nTrkSeg[0] != 1) isOk = false;
   if (nTrkSeg[1] == 0 || nTrkSeg[1] > 5) isOk = false;
@@ -331,15 +329,13 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
         beamTrack.Add(trkseg);
         beamTrack.vtx = trkseg.vtx;   // SetVtx(trkseg.Vtx());
         beamTrack.chi2 = trkseg.chi2; // SetChi2(trkseg.Chi2());
-
-        // fill position and momentum projected to the center of the target
-        beamTrack.momTrgt = trkseg.mom;
+        beamTrack.momTrgt.SetXYZ(px, py, pz);
         double posAtTrgt[3];
         // dz should be positive since we are projecting forward to the target
         double dz = fTrgtZ - trkseg.pointB.Z();
         posAtTrgt[2] = fTrgtZ;
-        posAtTrgt[0] = (trkseg.mom.X() / trkseg.mom.Z()) * dz + trkseg.pointB.X();
-        posAtTrgt[1] = (trkseg.mom.Y() / trkseg.mom.Z()) * dz + trkseg.pointB.Y();
+        posAtTrgt[0] = px * dz + trkseg.pointB.X();
+        posAtTrgt[1] = py * dz + trkseg.pointB.Y();
         beamTrack.posTrgt.SetCoordinates(posAtTrgt);
         trackv->push_back(beamTrack);
 
@@ -347,7 +343,6 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
       }
     } // end loop over track segments to find most upstream track segment
 
-    std::cout << "here" << std::endl;
     fKTracker->Clear();
 
       art::ServiceHandle<emph::geo::GeometryService> geo;
@@ -502,25 +497,23 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
           track.posSSD.push_back(pos);
           track.momSSD.push_back(mom);
         }
-//        std::cout << "Beam track momentum: " << beamTrack.mom << std::endl;
+        track.momTrgt = track.momSSD[0];
+        double posAtTrgt[3];
+        double dxdz = track.momSSD[0].X()/track.momSSD[0].Z();
+        double dydz = track.momSSD[0].Y()/track.momSSD[0].Z();
+        double zdz = fTrgtZ - track.posSSD[0].Z();
+        posAtTrgt[0] = track.posSSD[0].X() + dxdz*zdz;
+        posAtTrgt[1] = track.posSSD[0].Y() + dydz*zdz;
+        posAtTrgt[2] = fTrgtZ;
+        track.posTrgt.SetCoordinates(posAtTrgt);
+
         if (fUseTruth) {
           ProcessTruthInfo(evt, beamTrack, track, firstSmoothed, pztrue, pttrue, ptrue, xtrue, ytrue, trueTheta);
         }
 
-//        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstSmoothed.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
-//        std::cout << "True momentum: " << ptrue << ", Reco momentum: " << 1./firstFiltered.GetPar()[4] << ", DeltaP/P: " << deltaP/ptrue << std::endl;
-
-/*
-        auto lastSmoothed = smoothed.back();
-        track.chi2 = lastSmoothed.GetChi2();
-        track.ndf = lastSmoothed.GetNdf();
-        std::cout << "Track chi2/ndf: " << track.chi2 << "/" << track.ndf << std::endl; 
-*/
-
         trackv->push_back(track);
        } // end if isOk
   }
-  std::cout << "SingleTrackKalmanReco: Finished processing event " << evt.event() << ", reconstructed " << trackv->size() << " tracks" << std::endl;
   evt.put(std::move(trackv));
 }
 

@@ -76,10 +76,9 @@ namespace emph {
   void emph::MakePrimaryVertex::produce(art::Event& evt)
   {
 
-//    if ((evt.event()-1)%100 == 0) {
+    if ((evt.event()-1)%100 == 0) {
       std::cout << "MakePrimaryVertex: Processing event " << evt.event() << std::endl;
-      std::cout << "Getting Tracks from " << fTrkLabel << std::endl;
-//    }
+    }
 
     std::unique_ptr< std::vector<rb::Vertex> > vtxv(new std::vector<rb::Vertex>);
     
@@ -87,7 +86,6 @@ namespace emph {
     
     try {
       evt.getByLabel(fTrkLabel, trkH);
-      std::cout << "MakePrimaryVertex: Found " << trkH->size() << " tracks" << std::endl;
       if (!trkH->empty()){
 	      std::vector<rb::Track> trkV;
 	      for (size_t idx=0; idx < trkH->size(); ++idx) {

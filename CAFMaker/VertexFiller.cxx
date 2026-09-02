@@ -189,14 +189,14 @@ namespace caf
       vtxs = *hv;
     }
     else {
-      std::cout << "VertexFiller: Failed to get Vertexes" << std::endl;
+      std::cout << "VertexFiller: Failed to get Vertexes from " << fKVertexLabel << std::endl;
     } 
     if ( !ht.failedToGet()) 
     {
       trks = *ht;
     } 
     else  {
-      std::cout << "VertexFiller: Failed to get Tracks" << std::endl;
+      std::cout << "VertexFiller: Failed to get Tracks from " << fKTrackLabel << std::endl;
     }
     if ( !truehitv.failedToGet()) ssdhits = *truehitv;
     if ( !ha.failedToGet()) arichids = *ha;
