@@ -1,24 +1,20 @@
-#!/bin/bash
+#!/bin/sh
+FIFO1=$(mktemp -u) # FIFO is necessary to deal with spaces/tabs
+mkfifo ${FIFO1} && trap "rm ${FIFO1}" EXIT INT TERM
+FIFO2=$(mktemp -u) # FIFO is necessary to deal with spaces/tabs
+mkfifo ${FIFO2} && trap "rm ${FIFO2}" EXIT INT TERM
+cat ${1} | tr -s ' ' | tr -s '	' | tr '	' ' ' > ${FIFO1} &
+cat ${2} | tr -s ' ' | tr -s '	' | tr '	' ' ' > ${FIFO2} &
 
-file1=$1
-file2=$2
-name=$3
+OUTPUT=${3}
+[ -z "${OUTPUT}" ] && OUTPUT="AlignAdded.txt"
+[ -f ${OUTPUT} ] && rm ${OUTPUT}
 
 first=0
-
-if [ -z "$name" ]; then
-  name="AlignAdded.txt"
-fi
-
-if [ -f $name ]; then
-    rm $name
-fi
-
-# Open file1 on file descriptor 3 and file2 on file descriptor 4
 while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
 
   if [ $first -le 1 ]; then
-    printf "$line1\n" >> $name
+    printf "$line1\n" >> ${OUTPUT}
   fi
 
   if [ $first -gt 1 ]; then
@@ -53,7 +49,7 @@ while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
       if [ $col1 -eq 2 ]; then
         pla=$word
       fi
-      if [ $col1 -eq 3 ]; then 
+      if [ $col1 -eq 3 ]; then
         x1=$word
       fi
       if [ $col1 -eq 4 ]; then
@@ -71,7 +67,7 @@ while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
       if [ $col1 -eq 8 ]; then
         dpsi1=$word
       fi
-      ((col1+=1))
+      col1=$(($col1+1))
     done
     for word in $line2; do
       if [ $col2 -eq 3 ]; then
@@ -92,15 +88,15 @@ while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
       if [ $col2 -eq 8 ]; then
         dpsi2=$word
       fi
-      ((col2+=1))
+      col2=$(($col2+1))
     done
-    xsum=$(echo "$x1 + $x2" | bc)
-    ysum=$(echo "$y1 + $y2" | bc)
-    zsum=$(echo "$z1 + $z2" | bc)
-    dphisum=$(echo "$dphi1 + $dphi2" | bc)
-    dethetasum=$(echo "$detheta1 + $detheta2" | bc)
-    dpsisum=$(echo "$dpsi1 + $dpsi2" | bc)
-    printf "%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n" $sta $sen $pla $xsum $ysum $zsum $dphisum $dethetasum $dpsisum  >> $name
+    xsum=$(echo "$x1 - $x2" | bc)
+    ysum=$(echo "$y1 - $y2" | bc)
+    zsum=$(echo "$z1 - $z2" | bc)
+    dphisum=$(echo "$dphi1 - $dphi2" | bc)
+    dethetasum=$(echo "$detheta1 - $detheta2" | bc)
+    dpsisum=$(echo "$dpsi1 - $dpsi2" | bc)
+    printf "%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n" $sta $sen $pla $xsum $ysum $zsum $dphisum $dethetasum $dpsisum  >> ${OUTPUT}
   fi
-  ((first+=1))
-done 3<"$file1" 4<"$file2"
+  first=$(($first+1))
+done 3< "${FIFO1}" 4< "${FIFO2}"

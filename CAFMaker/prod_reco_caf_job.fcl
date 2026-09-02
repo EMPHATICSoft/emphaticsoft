@@ -13,10 +13,11 @@
 #include "GasCkovHitReco.fcl"
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
+#include "SingleTrackKalmanReco.fcl"
+#include "SingleTrackAlignmentKalman.fcl"
 #include "SingleTrackAlignment.fcl"
 #include "MakePrimaryVertex.fcl"
 
-#include "SSDBadChannel.fcl"
 
 process_name: CAF
 
@@ -27,8 +28,6 @@ services:
   scheduler: { wantSummary: false }
   TimeTracker: {}
   @table::data_services
-
-  SSDBadChannelService: @local::standard_ssdbadchannel
 
   IFBeam:{}
 }
@@ -57,16 +56,21 @@ physics:
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
+    singletrackKalman: @local::standard_singletrackKalman
     singletrackalignment: @local::standard_singletrackalignment
+    singletrackalignmentKalman: @local::standard_singletrackalignmentKalman
     makeprimaryvertex: @local::standard_makeprimaryvertex
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, clust,
-               maketracksegments, makesingletracks, arichring, arichreco, makeprimaryvertex, #singletrackalignment,
-              # adcreco, backovreco, gasckovreco,
+               dataqual, spillinfo, clust,
+               #arichcluster,arichring, arichreco,
+               maketracksegments, makeprimaryvertex,
+               #makesingletracks, singletrackalignment,
+               #singletrackalignmentKalman,
+               #adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 
