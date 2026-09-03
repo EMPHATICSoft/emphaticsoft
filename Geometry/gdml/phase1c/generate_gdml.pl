@@ -363,16 +363,16 @@ EOF
 		  	    # (Rx(180)*Rz(phi) = Rz(-phi)*Rx(180)), so their dphi must be negated here.
 		  	    my $phiSign = ($SSD_side[$isensor] == 0) ? -1 : 1;
 		  	    my $tzrot = $SSD_angle[$isensor] + $phiSign * $SSD_alignphi{$idx};
-            # Two-sensor planes: Se1 (k==1) sits behind Se0 in z, in the inner half of the
-            # 1.2 mm mount slot toward the plate. Plane 0 is on the upstream face so 
-            # "towards the plate" is +z; planes 1 and 2 are on the downstream face so it is 
-            # -z. Without this both sensors sit at the same z and overlap in x/y.
-            # which sensor is physically upstream is not confirmed but either orderdering 
-            # removes the overlap and the position effect is sub-micron.
-            my $tzs = "";
-            if ($k == 1) {
-                 $tzs = ($j == 0) ? "+(ssdD0_thick+ssd_bkpln_thick)" : "-(ssdD0_thick+ssd_bkpln_thick)";
-            }
+                # Two-sensor planes: Se1 (k==1) sits behind Se0 in z, in the inner half of the
+                # 1.2 mm mount slot toward the plate. Plane 0 is on the upstream face so 
+                # "towards the plate" is +z; planes 1 and 2 are on the downstream face so it is 
+                # -z. Without this both sensors sit at the same z and overlap in x/y.
+                # which sensor is physically upstream is not confirmed but either orderdering 
+                # removes the overlap and the position effect is sub-micron.
+                my $tzs = "";
+                if ($k == 1) {
+                     $tzs = ($j == 0) ? "+(ssdD0_thick+ssd_bkpln_thick)" : "-(ssdD0_thick+ssd_bkpln_thick)";
+                }
 		  	    if($j < 2) {
 print DEF <<EOF;
 	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}$tzs" unit="mm"/>
