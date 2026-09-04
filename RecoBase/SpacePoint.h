@@ -27,6 +27,7 @@ namespace rb {
     int    fStation; //SSD station of the Space Point
     std::vector<rb::LineSegment> _lineseg; // vector of LineSegments
     std::vector<rb::SSDCluster> _clust; // vector of SSDClusters
+    std::vector<double> _lineDistance; // 2D distance to each contributing line segment
 
   public:
     // Getters
@@ -34,6 +35,8 @@ namespace rb {
     int           Station() const { return fStation; }
     const rb::LineSegment* GetLineSegment(int i) const;
     size_t NLineSegments() const { return _lineseg.size(); }
+    double LineSegmentDistance(int i) const;
+    size_t NLineSegmentDistances() const { return _lineDistance.size(); }
     const rb::SSDCluster* GetSSDCluster(int i) const;
     size_t NSSDClusters() const { return _clust.size(); }
 
@@ -41,6 +44,7 @@ namespace rb {
     void SetX(double* x0) { for (int i=0; i<3; ++i) _x[i] = x0[i]; }
     void SetStation(int station) {fStation = station;}   
     void Add(const rb::LineSegment& ls);
+    void AddLineSegmentDistance(double distance) { _lineDistance.push_back(distance); }
     void Add(const rb::SSDCluster& cl);
  
     friend std::ostream& operator << (std::ostream& o, const SpacePoint& h);

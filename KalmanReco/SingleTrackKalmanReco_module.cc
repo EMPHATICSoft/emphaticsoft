@@ -55,6 +55,7 @@ namespace emph {
 
   private:
     std::string fLineSegmentLabel;
+    std::string fTrackSegmentLabel;
     
     kalman::KalmanAlg* fKAlg;
 
@@ -64,7 +65,8 @@ namespace emph {
   
   emph::SingleTrackKalmanReco::SingleTrackKalmanReco(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-    fLineSegmentLabel      (pset.get< std::string >("LineSegmentLabel"))
+    fLineSegmentLabel      (pset.get< std::string >("LineSegmentLabel")),
+    fTrackSegmentLabel     (pset.get< std::string >("TrackSegmentLabel"))
     {
       this->produces< std::vector<rb::Track> >();      
       fKAlg = NULL;
@@ -130,7 +132,7 @@ namespace emph {
     std::cout << "Found " << (int)lsH->size() << " linesegments" << std::endl;
 
     try {
-      evt.getByLabel(fLineSegmentLabel,trkSegH);
+      evt.getByLabel(fTrackSegmentLabel,trkSegH);
     }
     catch(...) {
       std::cerr << "WARNING: No rb::TrackSegments found, will default to initial state with large uncertainties." << std::endl;

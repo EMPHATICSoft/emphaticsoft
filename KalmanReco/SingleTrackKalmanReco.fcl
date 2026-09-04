@@ -3,7 +3,8 @@ BEGIN_PROLOG
 standard_singletrackKalman:
 {
   module_type: SingleTrackKalmanReco
-  LineSegmentLabel:  "maketracksegments"
+  LineSegmentLabel:  "makespacepoints"
+  TrackSegmentLabel: "maketracksegments"
 }
 
 END_PROLOG

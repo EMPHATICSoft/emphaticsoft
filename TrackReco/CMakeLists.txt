@@ -68,6 +68,18 @@ cet_build_plugin(MakeTrackSegments art::module
     ROOT::Tree
 )
 
+cet_build_plugin(MakeSpacePoints art::module
+  LIBRARIES REG
+    RawData
+    RecoBase
+    RecoUtils
+    SingleTrackAlgo
+    ChannelMapService_service
+    GeometryService_service
+    DetGeoMapService_service
+    messagefacility::MF_MessageLogger
+)
+
 cet_build_plugin(MakeTrackSegmentsForEfficiency art::module
   LIBRARIES REG
     RawData

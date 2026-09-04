@@ -11,8 +11,8 @@ standard_cafmaker:{
     BACkovHitLabel:    "backovreco"
     DataQualLabel:     "dataqual"
     GasCkovHitLabel:   "gasckovreco"
-    LineSegLabel:      "maketracksegments"
-    SpacePointLabel:   "maketracksegments"
+    LineSegLabel:      "makespacepoints"
+    SpacePointLabel:   "makespacepoints"
     SSDClustLabel:     "clust"
     SSDHitLabel:       "geantgen" #dah
     SSDRawLabel:       "raw:SSD"

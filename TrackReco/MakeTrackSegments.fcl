@@ -1,12 +1,18 @@
 BEGIN_PROLOG
 
+standard_makespacepoints:
+{
+  module_type: MakeSpacePoints
+  CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
+  ClusterLabel:      "clust"
+  MaxClust:          45
+}
+
 standard_maketracksegments:
 {
   module_type: MakeTrackSegments
-  CheckClusters:     true           # Check clusters for event (requires running MakeSSDClusters first)
-  ClusterLabel:      "clust"
-  G4Label:           "geantgen"
-  MaxClust:          45
+  SpacePointLabel:   "makespacepoints"
+  ProjectionTolerance: 5.0
 }
 
 END_PROLOG

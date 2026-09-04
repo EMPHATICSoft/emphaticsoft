@@ -1,5 +1,6 @@
 #include "Services.fcl"
 #include "SingleTrackKalmanReco.fcl"
+#include "MakeTrackSegments.fcl"
 
 process_name: SingleTrackKalmanReco
 
@@ -33,10 +34,12 @@ physics:
 
  producers:
  {
+   makespacepoints: @local::standard_makespacepoints
+   maketracksegments: @local::standard_maketracksegments
    singletrackKalman: @local::standard_singletrackKalman
  }
 
- reco: [ singletrackKalman ]
+ reco: [ makespacepoints, maketracksegments, singletrackKalman ]
 
  analyzers:{}
 
