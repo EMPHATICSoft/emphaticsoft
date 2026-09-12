@@ -9,7 +9,6 @@
 #include "CAFMaker/TrackSegmentFiller.h"
 #include "StandardRecord/SRTrackSegment.h"
 #include "RecoBase/TrackSegment.h"
-#include "RecoBase/RecoBaseDefs.h"
 
 namespace caf
 {

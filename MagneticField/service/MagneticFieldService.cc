@@ -25,7 +25,8 @@ namespace emph
     fMagneticField->SetUsingRootHistos(pset.get< bool >("UsingRootHistos"));
     fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
     fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
-
+    fMagneticField->SetIsEnabled(pset.get<bool>("IsEnabled"));
+    
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     
   }

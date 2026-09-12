@@ -13,6 +13,7 @@
 #include "GasCkovHitReco.fcl"
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
+#include "SingleTrackKalmanReco.fcl"
 #include "MakePrimaryVertex.fcl"
 
 #include "SSDBadChannel.fcl"
@@ -44,15 +45,17 @@ physics:
   {
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
-    arichcluster: @local::standard_arich_cluster
-    arichreco:    @local::standard_arichreco
-    arichring:    @local::standard_arich_ring
+#    arichcluster: @local::standard_arich_cluster
+#    arichreco:    @local::standard_arichreco
+#    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
 
     makespacepoints: @local::standard_makespacepoints
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
     makeprimaryvertex: @local::standard_makeprimaryvertex
+    singletrackKalman: @local::standard_singletrackKalman
+    primaryvertexKalman: @local::kalman_makeprimaryvertex
 
     cafmaker:     @local::standard_cafmaker
 
@@ -61,13 +64,15 @@ physics:
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, clust,
-               makespacepoints, maketracksegments, makesingletracks, makeprimaryvertex,
-	       arichring, arichreco, cafmaker
+               dataqual, spillinfo, clust,
+               makespacepoints,
+               maketracksegments, makesingletracks, makeprimaryvertex,
+               singletrackKalman, primaryvertexKalman,
+               cafmaker
              ]
 
 }
 physics.producers.clust.FillTTree: false
 physics.producers.cafmaker.GetMCTruth: true #include when producing MC CAF's
-physics.producers.clust.SSDRawLabel: "raw:SSD"
+#physics.producers.clust.SSDRawLabel: "raw:SSD"
 physics.producers.clust.CheckDQ: false

@@ -18,8 +18,8 @@ namespace mcu {
     virtual ~MCUtils() {}; //Destructor
     
   public:
-    double  findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f);
-
+    double  findTruthAngle(std::vector<sim::SSDHit>& sim_i, std::vector<sim::SSDHit>& sim_f);
+    void printSSDHits(const std::vector<sim::SSDHit>& sim_hits, bool ignoreLowEnergyElectronHits=true);
   };
   
 }

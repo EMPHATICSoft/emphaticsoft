@@ -6,18 +6,14 @@
 #ifndef RBDEFS_H
 #define RBDEFS_H
 
-#include <vector>
-#include <stdint.h>
-#include <iostream>
-
-namespace rb {
+namespace caf {
  
-     enum class Region {
-      kRegion1,
-      kRegion2,
-      kRegion3,
-      kRegionNull
-    }; 
+     typedef enum tRegionType {
+      kRegion1 = 0,
+      kRegion2 = 1,
+      kRegion3 = 2,
+      kRegionNull = 3
+    } Region; 
 }
 
 #endif // RBDEFS_H

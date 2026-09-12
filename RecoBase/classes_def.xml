@@ -45,7 +45,8 @@
   <class name="std::vector<rb::LineSegment>"       />
   <class name="art::Wrapper< std::vector<rb::LineSegment> >"/>
 
-  <class name="rb::TrackSegment"    ClassVersion="17">
+  <class name="rb::TrackSegment"    ClassVersion="18">
+   <version ClassVersion="18" checksum="2957235606"/>
    <version ClassVersion="17" checksum="681784676"/>
    <version ClassVersion="16" checksum="942166189"/>
    <version ClassVersion="15" checksum="3364569028"/>
@@ -58,7 +59,8 @@
   <class name="std::vector<rb::TrackSegment>"        />
   <class name="art::Wrapper< std::vector<rb::TrackSegment>    >"/>
 
-  <class name="rb::SpacePoint"    ClassVersion="13">
+  <class name="rb::SpacePoint"    ClassVersion="14">
+   <version ClassVersion="14" checksum="4206633975"/>
    <version ClassVersion="13" checksum="1104475965"/>
    <version ClassVersion="12" checksum="2038019394"/>
    <version ClassVersion="11" checksum="3081214743"/>
@@ -143,7 +145,8 @@
   <class name="art::Wrapper< std::vector<rb::CaloHit>    >"/>
 
 
-  <class name="rb::Track"    ClassVersion="20">
+  <class name="rb::Track"    ClassVersion="21">
+   <version ClassVersion="21" checksum="1899586129"/>
    <version ClassVersion="20" checksum="3127484167"/>
    <version ClassVersion="19" checksum="2653123716"/>
    <version ClassVersion="18" checksum="2603610386"/>

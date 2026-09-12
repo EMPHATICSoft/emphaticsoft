@@ -2,6 +2,7 @@
 /// \brief Construct regional track segments from persisted 3D space points.
 ////////////////////////////////////////////////////////////////////////
 #include <cmath>
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 #include "Geometry/service/GeometryService.h"
+#include "StandardRecord/SRBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "TrackReco/SingleTrackAlgo.h"
@@ -67,22 +69,53 @@ namespace emph {
     }
 
     SingleTrackAlgo algo(-1, nStations, nPlanes);
-    auto addSegment = [&trackSegments](const rb::TrackSegment& candidate, rb::Region region) {
-      rb::TrackSegment segment = candidate;
-      segment.region = region;
-      trackSegments->push_back(segment);
-    };
-
-    for (const auto& candidate : algo.MakeTrackSeg(regions[0])) {
-      addSegment(candidate, rb::Region::kRegion1);
-    }
-
     auto sameSpacePoint = [](const rb::SpacePoint& first, const rb::SpacePoint& second) {
       return first.Station() == second.Station() &&
              first.Pos()[0] == second.Pos()[0] &&
              first.Pos()[1] == second.Pos()[1] &&
              first.Pos()[2] == second.Pos()[2];
     };
+    auto containsSegment = [&sameSpacePoint](const rb::TrackSegment& containing,
+                                              const rb::TrackSegment& contained) {
+      for (size_t containedIndex = 0; containedIndex < contained.NSpacePoints(); ++containedIndex) {
+        bool found = false;
+        for (size_t containingIndex = 0; containingIndex < containing.NSpacePoints(); ++containingIndex) {
+          if (sameSpacePoint(*containing.GetSpacePoint(containingIndex),
+                             *contained.GetSpacePoint(containedIndex))) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) return false;
+      }
+      return true;
+    };
+    auto addSegment = [&trackSegments, &containsSegment](const rb::TrackSegment& candidate,
+                                                          caf::Region region) {
+      for (const auto& segment : *trackSegments) {
+        if (segment.NSpacePoints() >= candidate.NSpacePoints() &&
+            containsSegment(segment, candidate)) {
+          return;
+        }
+      }
+
+      trackSegments->erase(
+        std::remove_if(trackSegments->begin(), trackSegments->end(),
+                       [&candidate, &containsSegment](const rb::TrackSegment& segment) {
+                         return candidate.NSpacePoints() > segment.NSpacePoints() &&
+                                containsSegment(candidate, segment);
+                       }),
+        trackSegments->end());
+
+      rb::TrackSegment segment = candidate;
+      segment.region = region;
+      trackSegments->push_back(segment);
+    };
+
+    for (const auto& candidate : algo.MakeTrackSeg(regions[0])) {
+      addSegment(candidate, caf::Region::kRegion1);
+    }
+
     auto pairAlreadyUsed = [&sameSpacePoint, &trackSegments](const rb::SpacePoint& first,
                                                                const rb::SpacePoint& second) {
       for (const auto& segment : *trackSegments) {
@@ -100,7 +133,7 @@ namespace emph {
 
     auto makeThreeStationSegments = [&](const std::vector<rb::SpacePoint>& points,
                                          int firstStation,
-                                         rb::Region region) {
+                                         caf::Region region) {
       std::vector<const rb::SpacePoint*> first;
       std::vector<const rb::SpacePoint*> second;
       std::vector<const rb::SpacePoint*> third;
@@ -152,8 +185,8 @@ namespace emph {
 
     constexpr int region2FirstStation = 2;
     constexpr int region3FirstStation = 5;
-    makeThreeStationSegments(regions[1], region2FirstStation, rb::Region::kRegion2);
-    makeThreeStationSegments(regions[2], region3FirstStation, rb::Region::kRegion3);
+    makeThreeStationSegments(regions[1], region2FirstStation, caf::Region::kRegion2);
+    makeThreeStationSegments(regions[2], region3FirstStation, caf::Region::kRegion3);
     evt.put(std::move(trackSegments));
   }
 }

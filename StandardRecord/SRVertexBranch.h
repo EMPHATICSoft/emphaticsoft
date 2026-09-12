@@ -18,6 +18,8 @@ namespace caf
 
       std::vector<SRVertex> vtx; 
       size_t               nvtx;     
+      std::vector<SRVertex> kvtx; 
+      size_t               nkvtx;     
 
       void fillSizes();
       
