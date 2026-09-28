@@ -2,7 +2,7 @@
 /// \file G4Alg.h
 //
 /// \version $Id: G4Alg.h,v 1.3 2012-09-13 15:23:13 brebel Exp $
-/// \author  brebel@fnal.gov
+/// \author  jpaley@fnal.gov, copied from work done by brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 #ifndef G4NOVA_G4ALG_H
 #define G4NOVA_G4ALG_H
@@ -11,22 +11,22 @@
 #include "art/Framework/Principal/Handle.h"
 #include "canvas/Persistency/Common/Ptr.h"
 
+#include "SimulationBase/MCTruth.h"
+#include "Simulation/SSDHit.h"
+#include "Simulation/Particle.h"
+#include "Simulation/Track.h"
+#include "Simulation/TargetHit.h"
+#include "Simulation/TOPAZLGHit.h"
+#include "Simulation/ARICHHit.h"
+
+#include <vector>
+
 namespace art { 
   class Event; 
   class ParameterSet;
 }
 namespace g4b{
     class G4Helper;
-}
-namespace simb{
-    class MCTruth;
-}
-namespace sim{
-    class SSDHit;
-    class Particle;
-    class Track;
-    class TOPAZLGHit;
-    class ARICHHit;
 }
 
 namespace emph {
@@ -40,24 +40,28 @@ namespace emph {
     void RunGeant(std::vector< art::Handle< std::vector<simb::MCTruth> > >& mclists,
                   std::vector<sim::SSDHit> & ssdhitlist,
                   std::vector< sim::Track >& tracklist,
+                  std::vector< sim::TargetHit>& targethitlist,
                   std::vector< std::vector<std::pair<size_t, size_t> > >&   pListLimits);
     
     void RunGeant(std::vector< const simb::MCTruth* >& mctruths,
-                  std::vector<sim::SSDHit> & flshitlist,
+                  std::vector<sim::SSDHit> & ssdhitlist,
                   std::vector<sim::TOPAZLGHit> & lghitlist,
                   std::vector<sim::ARICHHit> & arichhitlist,
+                  std::vector< sim::TargetHit>& targethitlist,
                   std::vector< sim::Track >& tracklist,
-		  std::vector< sim::Particle >& particlelist,
+            		  std::vector< sim::Particle >& particlelist,
                   std::map<int, size_t >& trackIDToMCTruthIndex);
     
     void RunGeant(art::Ptr<simb::MCTruth> mctruth,
-                  std::vector<sim::SSDHit> & flshitlist,
+                  std::vector<sim::SSDHit> & ssdhitlist,
                   std::vector< sim::Track >& tracklist,
+                  std::vector< sim::TargetHit>& targethitlist,
                   int trackIDOffset=-1);
 
     void RunGeant(const simb::MCTruth* mctruth,
                   std::vector<sim::SSDHit> & ssdhitlist,
                   std::vector< sim::Track >& tracklist,
+                  std::vector< sim::TargetHit>& targethitlist,
                   int trackIDOffset=-1);
 
     bool IsAborted();
@@ -84,7 +88,7 @@ namespace emph {
     int             fSARICHhaIndex;            ///< index of the TOPAZLGitAction in the UserActionManager
     int             fStopActionIndex;            ///< index of theFast Stop Action in the UserActionManager
     int             fOpticalActionIndex;            ///< index of theFast Stop Action in the UserActionManager
-
+    int             fTargethaIndex;            ///< index of the TargetHitAction in the UserActionManager
     std::vector<std::string> fUserActions;///< UserAction classes 
 
   };

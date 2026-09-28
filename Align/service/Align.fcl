@@ -7,6 +7,9 @@ standard_align:
 }
 
 data_align: @local::standard_align
-data_align.IsDisabled: false
+data_align.IsDisabled: true 
+
+sim_align: @local::standard_align
+sim_align.IsDisabled: true         #redundant but kept for reading clarity
 
 END_PROLOG

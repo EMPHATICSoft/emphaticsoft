@@ -119,6 +119,7 @@ namespace emph {
     std::string fClusterLabel;
     std::string fG4Label;
     size_t fMaxClust;
+    float fAccuracyThres;
     int fMaskedStation;
     int fMaskedPlane;
     int fMaskedSensor;
@@ -137,9 +138,7 @@ namespace emph {
       fClusterLabel  (pset.get< std::string >("ClusterLabel")),
       fG4Label       (pset.get< std::string >("G4Label")),
       fMaxClust      (pset.get< size_t >("MaxClust")),
-      fMaskedStation (pset.get< int >("MaskedStation")),
-      fMaskedPlane   (pset.get< int >("MaskedPlane")),
-      fMaskedSensor  (pset.get< int >("MaskedSensor"))
+      fAccuracyThres (pset.get< float >("AccuracyThres"))
   {
     std::cout << "FCL pset dump: " << pset.to_indented_string() << std::endl;
   }
@@ -238,7 +237,7 @@ namespace emph {
               min_dist[fMaskedStation][fMaskedPlane][fMaskedSensor]->GetXaxis()->SetTitle("Distance Point to Line (mm)");
      
               std::string est_desc_str = "d" + desc_str;
-              std::string estTitleStr = "Estimated Position "  
+              std::string estTitleStr = "Divided Position "  
                 + std::to_string(fMaskedStation) + "/"  
                 + std::to_string(fMaskedPlane) + "/"  
                 + std::to_string(fMaskedSensor);
@@ -250,7 +249,7 @@ namespace emph {
               est_pos[fMaskedStation][fMaskedPlane][fMaskedSensor]->SetStats(0);
 
               std::string fest_desc_str = "f" + desc_str;
-              std::string divideTitleStr = "Divided Position "
+              std::string divideTitleStr = "Estimated Position "
                 + std::to_string(fMaskedStation) + "/"
                 + std::to_string(fMaskedPlane) + "/"
                 + std::to_string(fMaskedSensor);

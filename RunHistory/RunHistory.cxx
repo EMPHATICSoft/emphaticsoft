@@ -104,6 +104,15 @@ namespace runhist{
 
   //----------------------------------------------------------------------
   
+  std::string RunHistory::SSDEfficiencyFile()
+  {
+    if (!_isConfig) LoadConfig();
+    return _ssdEfficiencyFile;
+
+  }
+
+  //----------------------------------------------------------------------
+
   int RunHistory::CalibVer()
   {
     if (!_isConfig) LoadConfig();
@@ -149,6 +158,7 @@ namespace runhist{
       _geoFile=file_path+"Geometry/phase1b.gdml";
       _chanFile=file_path+"ChannelMap/ChannelMap_Jun22.txt";
       _ssdAlignFile=file_path+"Align/SSDAlign_1b.txt";
+      _ssdAlignFile=file_path+"SSDEfficiency/SSDEff_1b.txt";
       _calibVer=2;
     }
     else if(_runNumber >= 2000){
@@ -193,7 +203,33 @@ namespace runhist{
 	for (size_t ir=0; ir<runs.size() && runs[ir]<=_runNumber; ++ir) {
 	  _ssdAlignFile=file_path+"Align/"+alignFile[ir];
 	}
-// 	std::cout << "Using " << _ssdAlignFile << " for SSD alignment." << std::endl;
+// 	std::cout << "Using " << _ssdAlignFile << " for SSD alignment." << std::endl; 
+        
+        std::string effPath = file_path+"SSDEfficiency/";
+        std::string efftfilename;
+        std::vector<std::string> effFile;
+        std::vector<int> effruns;
+        std::string effnamePrefix="SSDEff_1c_";
+        for (const auto& entry : std::filesystem::directory_iterator(effPath)) {
+          if (std::filesystem::is_regular_file(entry.status())) {
+            efftfilename = entry.path().filename().string();
+            if (efftfilename.find(effnamePrefix) != std::string::npos) {
+              try {
+                effruns.push_back(std::stoi(efftfilename.substr(effnamePrefix.length(),4)));
+                effFile.push_back(efftfilename);
+              }
+              catch (const std::invalid_argument& e) {}
+              catch (const std::out_of_range& e) {}
+            }
+          }
+        }
+
+        std::sort(effFile.begin(),effFile.end());
+        std::sort(effruns.begin(),effruns.end());
+        _ssdEfficiencyFile=file_path+"SSDEfficiency/SSDEff_1c_2113.txt";
+        for (size_t ir=0; ir<effruns.size() && effruns[ir]<=_runNumber; ++ir) {
+          _ssdEfficiencyFile=file_path+"SSDEfficiency/"+effFile[ir];
+        }
       }	
       _calibVer=2;
       //      std::cout << "%%%%% SSD alignment file = " << _ssdAlignFile << std::endl;

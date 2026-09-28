@@ -12,7 +12,7 @@
 #include "Math/Vector3D.h"
 #include "SRTrueParticle.h"
 #include "SRTrueSSDHitsBranch.h"
-
+#include "SRTrueTargetHitsBranch.h"
 
 ///Common Analysis Files
 namespace caf
@@ -31,7 +31,8 @@ namespace caf
       std::vector<ROOT::Math::XYZVector>   momDSTarget; // momentum vector downstream of target
 
 	  SRTrueSSDHitsBranch truehits; ///< SSD True Hits branch: 
-	 
+	  SRTrueTargetHitsBranch trueTargetHits; ///< Target True Hits branch:
+	  
 	  SRTruth(); 			// Default constructor
 	  ~SRTruth() {};
 	}; //end class

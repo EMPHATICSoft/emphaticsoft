@@ -1,5 +1,6 @@
 #include "Services.fcl"
 #include "MakeSSDClusters.fcl"
+#include "SSDBadChannel.fcl"
 
 process_name: MakeSSDClust
 
@@ -7,7 +8,9 @@ services:
 {
   TFileService: { fileName: "%ifb_ssdclust_hist.root" closeFileFast: false }
   @table::standard_services
+  SSDBadChannelService: @local::standard_ssdbadchannel
 }
+
 
 source:
 {
@@ -41,3 +44,4 @@ physics:
 }
 
 physics.producers.clust.CheckDQ: false
+physics.producers.clust.FillTTree: true

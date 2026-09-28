@@ -1,0 +1,17 @@
+BEGIN_PROLOG
+
+standard_ssdefficiency:
+{
+  service_provider: "SSDEfficiencyService"
+  AbortIfFileNotFound: true
+  IsDisabled: true
+}
+
+data_ssdefficiency:
+{
+  service_provider: "SSDEfficiencyService"
+  AbortIfFileNotFound: true
+  IsDisabled: false
+}
+
+END_PROLOG

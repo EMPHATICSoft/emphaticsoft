@@ -1,0 +1,10 @@
+BEGIN_PROLOG
+
+standard_ssdbadchannel:
+{
+  FileName: "/ConstBase/BadChannels/SSDBadChannels_phase1c.txt"
+  AbortIfFileNotFound: false 
+}
+
+END_PROLOG
+
