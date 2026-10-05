@@ -102,7 +102,7 @@ namespace rbex {
     inline int UserFlag() const { return fUserFlag; }
     
     inline std::vector<double> CovMatrix() const {return fCovXY;}
-    inline double CovMatrix(size_t i, size_t j) const {return fCovXY[5*i +j];} // No checks.. 
+    inline double CovMatrix(size_t i, size_t j) const {return fCovXY[NumParams()*i + j];} // stride follows matrix size (4x4 when NoMagnet)
     
     friend std::ostream& operator << (std::ostream& o, const DwnstrTrack& h);
   };

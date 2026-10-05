@@ -302,6 +302,11 @@ namespace ru {
   n[1] = eigv[1][el];
   n[2] = eigv[2][el];
 
+  if (std::abs(n[2]) < 1e-12) {
+    mf::LogError("RecoUtils") << "Error: principal eigenvector has ~zero z-component; cannot parameterize line by z.";
+    return;  // outputs already initialised to 0, same contract as the el==-1 early return
+  }
+
   //we can create any point L on the line by varying t
 
   //create endpoints at first and last station z-position
