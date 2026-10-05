@@ -68,6 +68,7 @@ namespace emph {
       else if (z > magnetDSZ) regions[2].push_back(spacePoint);
     }
 
+<<<<<<< HEAD
     SingleTrackAlgo algo(-1, nStations, nPlanes);
     auto sameSpacePoint = [](const rb::SpacePoint& first, const rb::SpacePoint& second) {
       return first.Station() == second.Station() &&
@@ -98,6 +99,13 @@ namespace emph {
           return;
         }
       }
+=======
+    std::cout << "MakeTrackSegments: " << tracksegmentv->size() << " track segments created for event " << fEvtNum << std::endl;
+    evt.put(std::move(linesegv));
+    evt.put(std::move(spacepointv));
+    evt.put(std::move(tracksegmentv));
+  }
+>>>>>>> 22af0c1b (Minor fix)
 
       trackSegments->erase(
         std::remove_if(trackSegments->begin(), trackSegments->end(),
