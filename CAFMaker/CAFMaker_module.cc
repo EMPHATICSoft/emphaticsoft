@@ -135,9 +135,9 @@ namespace caf {
     if (!fFile) {
       // Filename wasn't set in the FCL, and this is the
       // first file we've seen
-      char *temp = new char[fb.fileName().size() + 1];
-      std::strcpy(temp, fb.fileName().c_str());
-      fCAFFilename = basename(temp);
+      const std::string& fn = fb.fileName();
+      const size_t slashpos = fn.find_last_of('/');
+      fCAFFilename = (slashpos == std::string::npos) ? fn : fn.substr(slashpos + 1);
       // find last . in filename, drop everything after it and append .caf.root
       const size_t dotpos = fCAFFilename.find_last_of('.');
       assert(dotpos != std::string::npos);  // Must have a dot, surely?
