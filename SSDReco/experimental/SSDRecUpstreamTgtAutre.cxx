@@ -78,8 +78,8 @@ namespace emph {
       //
       // Require at least one cluster in each of the 2 X 2 view. 
       //
-      if ((mySSDClsPtrsX0.size() == 0) || (mySSDClsPtrsY0.size() == 0) || 
-          (mySSDClsPtrsY1.size() == 0) || (mySSDClsPtrsY1.size() == 0)) return 0;  
+      if ((mySSDClsPtrsX0.size() == 0) || (mySSDClsPtrsY0.size() == 0) ||
+          (mySSDClsPtrsX1.size() == 0) || (mySSDClsPtrsY1.size() == 0)) return 0;
       //
       // Could be stored in this clas..in some initialization, 
       // post delclaration of the Volatile Alignment data.  For sake of clarity, we leave it here.. 
