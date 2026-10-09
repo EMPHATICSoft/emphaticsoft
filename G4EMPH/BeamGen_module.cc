@@ -161,7 +161,7 @@ namespace emph {
 
     // NOTE: These are in units of GeV/c
     fPmean         = ps.get<double>("PMean",0.); 
-    fPsigma        = ps.get<double>("PSigma",0.);
+    fPsigma        = ps.get<double>("Psigma",0.);
     
     // NOTE: These are all in units of cm 
     fXmax          = ps.get<double>("Xmax",-999999.); 
