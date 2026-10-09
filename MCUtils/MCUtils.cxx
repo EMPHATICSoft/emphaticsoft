@@ -24,8 +24,20 @@ namespace mcu {
   
   //------------------------------------------------------------
 
-  double MCUtils::findTruthAngle(std::vector<sim::SSDHit> sim_i, std::vector<sim::SSDHit> sim_f){
-     double p_ix=0.; double p_iy=0.; double p_iz=0.;
+  void MCUtils::printSSDHits(const std::vector<sim::SSDHit>& sim_hits, bool ignoreLowEnergyElectronHits){
+    for (auto h : sim_hits){
+    //  if (ignoreLowEnergyElectronHits && h.PId() == 11 && fabs(h.DE()) < 3.e-5) continue;
+      mf::LogInfo("MCUtils") << "SSD Hit: \n\tPosition: " << h.X() << ", " << h.Y() << ", " << h.Z()
+        << "\n\tMomentum: " << h.Px() << ", " << h.Py() << ", " << h.Pz()
+        << "\n\tDE: " << h.DE() << " PId: " << h.PId() << " Process: " << h.Process() << std::endl;
+    }
+  }
+
+  //------------------------------------------------------------
+
+  double MCUtils::findTruthAngle(std::vector<sim::SSDHit>& sim_i, std::vector<sim::SSDHit>& sim_f){
+
+    double p_ix=0.; double p_iy=0.; double p_iz=0.;
      double p_fx=0.; double p_fy=0.; double p_fz=0.;
 
      if (sim_i.empty() || sim_f.empty()) {

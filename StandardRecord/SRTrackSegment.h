@@ -5,7 +5,7 @@
 #define SRTRACKSEGMENT_H
 
 #include "Math/Vector3D.h"
-#include "RecoBase/RecoBaseDefs.h"
+#include "StandardRecord/SRBaseDefs.h"
 
 namespace caf
 {
@@ -19,7 +19,7 @@ namespace caf
     ROOT::Math::XYZVector vtx;  // (x,y,z)
     ROOT::Math::XYZVector mom; // momentum vector 
     int nspacepoints;
-    rb::Region region;
+    caf::Region region;
     ROOT::Math::XYZVector pointA;
     ROOT::Math::XYZVector pointB;
     double chi2;

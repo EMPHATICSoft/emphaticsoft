@@ -13,7 +13,7 @@
 #include "GasCkovHitReco.fcl"
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
-#include "SingleTrackAlignment.fcl"
+#include "SingleTrackKalmanReco.fcl"
 #include "MakePrimaryVertex.fcl"
 
 #include "SSDBadChannel.fcl"
@@ -46,9 +46,9 @@ physics:
   {
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
-    arichcluster: @local::standard_arich_cluster
-    arichreco:    @local::standard_arichreco
-    arichring:    @local::standard_arich_ring
+#    arichcluster: @local::standard_arich_cluster
+#    arichreco:    @local::standard_arichreco
+#    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
     adcreco:      @local::standard_adcreco
     backovreco:   @local::standard_backovhitreco
@@ -57,15 +57,20 @@ physics:
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
-    singletrackalignment: @local::standard_singletrackalignment
+#    singletrackalignment: @local::standard_singletrackalignment
     makeprimaryvertex: @local::standard_makeprimaryvertex
+    singletrackKalman: @local::standard_singletrackKalman
+    primaryvertexKalman: @local::kalman_makeprimaryvertex
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, arichcluster, clust,
-               maketracksegments, makesingletracks, arichring, arichreco, makeprimaryvertex, #singletrackalignment,
+               dataqual, spillinfo, clust, 
+               #arichcluster, clust,
+               maketracksegments, makesingletracks, makeprimaryvertex, 
+               singletrackKalman, primaryvertexKalman,
+              # arichring, arichreco, singletrackalignment,
               # adcreco, backovreco, gasckovreco,
                cafmaker
              ]

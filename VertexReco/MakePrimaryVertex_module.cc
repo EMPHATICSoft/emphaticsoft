@@ -96,7 +96,7 @@ namespace emph {
       }
     }
     catch(...) {
-      
+      std::cout << "MakePrimaryVertex: Error occurred while getting tracks from " << fTrkLabel << std::endl;
     }
 
     evt.put(std::move(vtxv));

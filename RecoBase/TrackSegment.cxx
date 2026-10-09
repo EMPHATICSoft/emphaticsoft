@@ -15,13 +15,8 @@ namespace rb {
   
   TrackSegment::TrackSegment() : caf::SRTrackSegment()
   {
-    /*
-    for (int i=0; i<3; ++i) {
-      _vtx[i] = -999999.;
-      _p[i] = 0.;
-    }
-    */
-
+    _clust.clear();
+    _spcpt.clear();
   }
   
   //------------------------------------------------------------
