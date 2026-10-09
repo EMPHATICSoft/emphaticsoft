@@ -107,7 +107,7 @@ uniform20pos: @local::standard_beamgen
 uniform20pos.particleType: "proton"
 uniform20pos.pzDist: "flat"
 uniform20pos.PMean: 10.
-uniform20pos.PSigma: 9.8
+uniform20pos.Psigma: 9.8
 uniform20pos.PMin: 0.5
 uniform20pos.PMax: 20.
 uniform20pos.xyDistSource: "flatxy"
