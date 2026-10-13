@@ -27,11 +27,19 @@ for file in $(cat ${subrunList}); do
 	if [ -s "${milleName}" ]; then
 		sed "s/Cfiles/Cfiles\n${milleName}/" -i steer_all.txt
 	else
-		( nice -n 20 art -c prod_reco_caf_job.fcl $file | tee "${subrun}.log" \
-				&& sed "s/Cfiles/Cfiles\n${milleName}/" -i steer_all.txt) &
+		( nice -n 20 art -c prod_reco_caf_job.fcl $file > >(tee "${subrun}.log") 2> >(tee "${subrun}.err")\
+			&& touch "${milleName}.finished") &
 		sleep 4
 	fi
 	pgrep -P $$ && [ "$(pgrep -P $$ | wc -l)" -gt ${N_WORKERS} ] && wait
+done
+
+# Wait until all parallel processes have completed
+wait
+# Add mille files to the steering file
+for milleName in m*.bin; do
+	sed "s/Cfiles/Cfiles\n${milleName}/" -i steer_all.txt \
+		&& rm "${milleName}.finished"
 done
 
 # Pede time!
