@@ -55,7 +55,7 @@ namespace caf
                isOk = false;
            }
          }
-	 if (abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
+	 if (isOk && abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
          if (isOk) {
            auto ssdhit = ssdHitMap[id];
            truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
@@ -146,7 +146,7 @@ namespace caf
                 isOk = false;
             }
           }
-          if (abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
+          if (isOk && abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
           if (isOk) {
             auto ssdhit = ssdHitMap[id];
             truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
@@ -256,14 +256,18 @@ namespace caf
     auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fSSDHitLabel);
     auto ha = evt.getHandle<std::vector<rb::ArichID>> (fArichIDLabel);
  
-    std::vector <rb::Vertex> vtxs;
+    static const std::vector <rb::Vertex>  emptyVtxs;
+    static const std::vector <sim::SSDHit> emptySsdhits;
+
+    const std::vector <rb::Vertex>&  vtxs    = hv.failedToGet()       ? emptyVtxs    : *hv;
+    const std::vector <sim::SSDHit>& ssdhits = truehitv.failedToGet() ? emptySsdhits : *truehitv;
+
+    // trks and arichids are intentionally copied: their elements are passed to
+    // GetBeamTrack/GetSecondaryTrack, which take non-const rb::Track&/rb::ArichID&.
     std::vector <rb::Track> trks;
-    std::vector <sim::SSDHit> ssdhits;
     std::vector <rb::ArichID> arichids;
 
-    if ( !hv.failedToGet()) vtxs = *hv;
     if ( !ht.failedToGet()) trks = *ht;
-    if ( !truehitv.failedToGet()) ssdhits = *truehitv;
     if ( !ha.failedToGet()) arichids = *ha;
 
     // loop over vertices
