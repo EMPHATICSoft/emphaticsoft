@@ -32,6 +32,7 @@ namespace runhist {
     std::string  _geoFile;
     std::string  _chanFile;
     std::string  _ssdAlignFile;
+    std::string  _ssdEfficiencyFile;
     std::string  _target;
     int  _calibVer;
     std::vector<std::string> _det;
@@ -51,6 +52,7 @@ namespace runhist {
     std::string GeoFile();
     std::string ChanFile();
     std::string SSDAlignFile();
+    std::string SSDEfficiencyFile();
     int        CalibVer();
     std::vector<std::string> DetectorList();
     int        NTriggers();
@@ -63,6 +65,7 @@ namespace runhist {
     void       SetQEURL(std::string uri) { _QEURL = uri; }
     void       SetUseFixedAlign(bool v) { _useFixedAlignFile = v; }
     void       SetSSDAlign(std::string ssdFile) { _ssdAlignFile = ssdFile; }
+    void       SetSSDEfficiency(std::string ssdEffFile) { _ssdEfficiencyFile = ssdEffFile; }
   };
   
 }

@@ -20,6 +20,24 @@ cet_build_plugin(FillDataQuality art::module
 		 BASENAME_ONLY
 )
 
+cet_build_plugin(SSDBadChannelFinder art::module
+    LIBRARIES REG
+      RawData
+      art_root_io::TFileService_service
+      ROOT::Tree
+      ChannelMap
+      ChannelMapService_service
+    BASENAME_ONLY
+)
+
+cet_build_plugin(SSDBadChannelService art::service
+    SOURCE SSDBadChannelService.cc SSDBadChannelService_service.cc
+    LIBRARIES PUBLIC 
+      art::Framework_Principal
+      messagefacility::MF_MessageLogger
+    BASENAME_ONLY
+)
+
 install_headers()
 install_source()
 install_fhicl()

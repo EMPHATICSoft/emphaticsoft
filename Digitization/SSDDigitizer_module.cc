@@ -38,9 +38,10 @@
 #include "Geometry/service/GeometryService.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
-#include "ChannelMap/service/ChannelMapService.h"
 #include "RecoBase/LineSegment.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
+#include "SSDEfficiency/service/SSDEfficiencyService.h"
 
 using namespace emph;
 
@@ -80,7 +81,6 @@ namespace emph {
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
-    std::vector<std::vector<std::vector<double>>> fEfficiencies;
 
     std::unique_ptr<TRandom3> fRand;
     //    std::unordered_map<int,int> fSensorMap;
@@ -135,8 +135,7 @@ namespace emph {
   SSDDigitizer::SSDDigitizer(fhicl::ParameterSet const& pset)
     : EDProducer(pset),
       fFillAnaTree (pset.get<bool>("FillAnaTree")),
-      fG4Label (pset.get<std::string>("G4Label")),
-      fEfficiencies(pset.get<std::vector<std::vector<std::vector<double>>>>("Efficiencies"))
+      fG4Label (pset.get<std::string>("G4Label"))
   {
     //    fSensorMap.clear();
     fAnaTree = 0;
@@ -185,6 +184,7 @@ namespace emph {
     std::unique_ptr<std::vector<rawdata::SSDRawDigit> >ssdRawD(new std::vector<rawdata::SSDRawDigit>);
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    art::ServiceHandle<emph::SSDEfficiencyService> ssdeff;
 
     if (!ssdHitH->empty()) {
 
@@ -214,13 +214,10 @@ namespace emph {
         Double_t rand = fRand->Uniform(0,1);
         double eff = 1;
 
-        if (st != 0 && st != 1 &&
-            st < (int)fEfficiencies.size() &&
-            pl < (int)fEfficiencies[st].size() &&
-            se < (int)fEfficiencies[st][pl].size()) {
-          eff = fEfficiencies[st][pl][se];
+        if (fStation != 0 && fStation != 1) {
+          eff = ssdeff->GetSSDEfficiency()->GetSSDEfficiency(fStation, fPlane, fSensor);
         }
- 
+
         if (rand <= eff) {
           ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
         }

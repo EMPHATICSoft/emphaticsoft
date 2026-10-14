@@ -24,7 +24,7 @@
 namespace emph {
   
   MagneticField::MagneticField() :
-    fFieldFileName(""), fIsAlignedWithGeom(false),fFieldLoaded(false), 
+    fFieldFileName(""), fIsEnabled(true), fIsAlignedWithGeom(false),fFieldLoaded(false), 
     fStorageIsStlVector(true), 
     step(0), start{-16., -16., -20.},
     fG4ZipTrackOffset{ 0., 0., 0.},
@@ -120,6 +120,7 @@ namespace emph {
 
   bool MagneticField::IsInField(const double x[3]) 
   {
+    if (!fIsEnabled) return false;
     if (!fIsAlignedWithGeom) {
       this->AlignWithGeom();
     }
@@ -136,6 +137,11 @@ namespace emph {
 
   void MagneticField::uploadFromTextFile() 
   {
+    if (!fIsEnabled) {
+      std::cerr << "Magnetic field map is not enabled, skipping loading from text file." << std::endl;
+      return;
+    }
+
     if (fFieldFileName == "") {
       std::cerr << "Magnetic Field file name is not set, aborting..." << std::endl;
       abort();
@@ -344,6 +350,8 @@ namespace emph {
     B[1] = 0.;
     B[2] = 0.; 
 
+    if (!fIsEnabled) return;
+
     if (fStorageIsStlVector) 
       CalcFieldFromVector(x,B);
     else if (fUsingRootHistos)
@@ -356,7 +364,7 @@ namespace emph {
 
     if (fVerbosity) {
       
-      std::cerr << "(x, y, z) = (" << x[0] << ", " << x[1] << ", " << x[2] 
+      std::cerr << "Field(" << x[0] << ", " << x[1] << ", " << x[2] 
 		<< ") mm,    (Bx, By, Bz) = (" << B[0] << ", " << B[1] << ", " << B[2] << ") kG" << std::endl;
     }
 
@@ -367,6 +375,10 @@ namespace emph {
   
   void MagneticField::LoadRootHistos()
   {
+    if (!fIsEnabled) {
+      std::cerr << "Magnetic field map is not enabled, skipping loading from ROOT histograms." << std::endl;
+      return;
+    }
     if (!fUsingRootHistos)
       abort();
     if (fFieldFileName.empty())
@@ -387,6 +399,10 @@ namespace emph {
 
   void MagneticField::CalcFieldFromRootHistos(const double x[3], double B[3]) 
   {
+    if (!fIsEnabled) {
+      std::cerr << "Magnetic field map is not enabled, skipping calculation from ROOT histograms." << std::endl;
+      return; 
+    }
     if (!fFieldLoaded) {
       if (!fUsingRootHistos) {
 	std::cerr << "UseRootHistos not set to true when calling "
@@ -419,12 +435,20 @@ namespace emph {
     else {
       B[0] = B[1] = B[2] = 0.;
     }
+//    std::cout << "CalcFieldFromRootHistos (x,y,z) = (" << x[0] << "," << x[1] << "," << x[2]
+//        << ") mm,    (Bx, By, Bz) = (" << B[0] << ", " << B[1] << ", " << B[2] << ") kG" << std::endl;
   }
 
   //----------------------------------------------------------------------
 
   void MagneticField::CalcFieldFromVector(const double x[3], double B[3]) 
   {
+ 
+    if (!fIsEnabled) {
+      std::cerr << "Magnetic field map is not enabled, skipping calculation from vector." << std::endl;
+      return;
+    }
+
     if (!fFieldLoaded)
       this->uploadFromTextFile();
 
@@ -517,6 +541,13 @@ namespace emph {
   
   void MagneticField::CalcFieldFromMap(const double x[3], double B[3]) 
   {
+    for (int i=0; i<3; ++i) B[i] = 0.; // a bit of a waste of CPU, but it makes the code a bit cleaner
+
+    if (!fIsEnabled) {
+      std::cerr << "Magnetic field map is not enabled, skipping calculation from map." << std::endl;
+      return;
+    }
+
     if (!fFieldLoaded)
       this->uploadFromTextFile();
 

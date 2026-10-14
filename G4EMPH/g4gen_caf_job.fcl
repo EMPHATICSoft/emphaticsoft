@@ -46,7 +46,7 @@ process_name: MCFull
 
 services:
 {
-  @table::standard_services
+  @table::sim_services
 
   # TFileService holds the CAF tree + all monitoring histos. EmptyEvent has no
   # input file, so %ifb is empty -- give it an explicit name (override per job

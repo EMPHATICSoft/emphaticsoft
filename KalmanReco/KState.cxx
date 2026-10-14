@@ -1,56 +1,49 @@
-#include "KState.h"
+#include "KalmanReco/KState.h"
 
 namespace kalman {
 
   //*******************************************************************
 
-  State::State()
+  KState::KState()
   {
     fZ = 0;
+    fChi2 = 0;
+    fNDF = 0;
     for (int i=0; i<5; ++i) {
-      fPar(i) = 0.;
+      fState(i) = 0.;
       for (int j=0; j<5; ++j) 
-	fCov(i,j) = 0.;
+      	fCov(i,j) = 0.;
     }
   }
   
   //*******************************************************************
-  
-  State::State(double z, KPar& par)
+
+  KState::KState(const KStateVec& par, const KStateCov& cov, double z)
   {
     fZ = z;
-    fPar = par;
-    for(int i = 0; i < 5; i++)
-      for (int j=0; j<5; ++j) 
-	fCov(i,j) = 0;
-  }  
-
-  //*******************************************************************
-
-  State::State(double z, KPar& par, K5x5& cov)
-  {
-    fZ = z;
-    fPar = par;
+    fChi2 = 0;
+    fNDF = 0;
+    fState = par;
     fCov = cov;
   }
 
   //*******************************************************************
 
-  State& State::operator= (State &parIn){
-    if(this != &parIn){
-      fZ = parIn.GetZ();
-      fPar = parIn.GetPar();
-      fCov = parIn.GetCov();
+  KState& KState::operator= (const KState &s){
+    if(this != &s){
+      fZ = s.GetZ();
+      fState = s.GetPar();
+      fCov = s.GetCov();
     }
     return *this;
   }
 
   //*******************************************************************
 
-  std::ostream& operator << (std::ostream& o, const State& s)
+  std::ostream& operator << (std::ostream& o, const KState& s)
   {  
     o << "z = " << s.fZ << std::endl;;
-    o << "par = " << s.fPar << std::endl;
+    o << "par = " << s.fState << std::endl;
     o << "cov = " << s.fCov << std::endl;
     return o;
    }

@@ -14,6 +14,9 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <list>
+#include <utility>
+#include <memory>
 
 #include "TVector3.h"
 #include "TGDMLMatrix.h"
@@ -257,10 +260,10 @@ namespace emph {
       const SSDStation* GetSSDStation(int i) const {return &fSSDStation[i]; }
       const Detector* GetSSDSensor(int i) { return fSSDSensorMap[i].get(); }
       int GetSSDId(int station, int plane, int sensor) const;
-      double GetRadLength(int) const;
+      double GetRadLength(int ssdi, int ssdj) const;
+
       TVector3 GetmPMTPlanePos() const {return fmPMTPlanePos;}
       TVector3 GetARICHCenrterPos() const {return fArichCenterPos;}
-
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT& GetPMT(int i){return fPMT[i]; }
       const emph::arich_util::PMT& FindPMTByName(const std::string& name) const;
@@ -314,7 +317,8 @@ namespace emph {
       int    fNPMTs;
       std::vector<emph::arich_util::PMT> fPMT;
       std::unordered_map<int, std::unique_ptr<Detector>> fSSDSensorMap;
-      std::unordered_map<int, double> fRadLength;
+      std::list<std::pair<int,double> > fRadLength;
+//      std::unordered_map<int, double> fRadLength;
       Target* fTarget;
 
       Aerogel* fAerogelUS;

@@ -10,7 +10,7 @@
 namespace caf
 {
   SRTrueSSDHitsBranch::SRTrueSSDHitsBranch():
-    ntruehits(-1)
+    ntruehits(0)
   {
   }
 

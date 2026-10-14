@@ -2,11 +2,12 @@ BEGIN_PROLOG
 
 standard_ssdclust:
 {
-  module_type: MakeSSDClusters
-  SSDRawLabel: "raw:SSD"
-  FillTTree:   false           # Make TTree for development/debugging?
-  RowGap:      1              # If gap between RawDigits is larger than this, form a new cluster
-  CheckDQ:     true           # Check data quality for event (requires running FillDataQual first)
+  module_type:       MakeSSDClusters
+  SSDRawLabel:       "raw:SSD"
+  FillTTree:         false           # Make TTree for development/debugging?
+  RowGap:            1               # If gap between RawDigits is larger than this, form a new cluster
+  CheckDQ:           true            # Check data quality for event (requires running FillDataQual first)
+  BridgeBadChannels: true            # Merge across a 1-strip gap when that strip is masked
 }
 
 END_PROLOG
