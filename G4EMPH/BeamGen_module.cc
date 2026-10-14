@@ -207,6 +207,97 @@ namespace emph {
 	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
+
+	  GetSlicedHists(runNum);
+  }
+
+  /***************************************************************************/
+
+// Implementation of slicing method
+
+  void BeamGen::GetSlicedHists(int runNum)
+  {
+    if (fPhaseSpaceSource != "Sliced") {
+      fXHist1D = nullptr;
+      fSlicedHists.clear();
+      return;
+    }
+
+    const std::string runDir = "Run_" + std::to_string(runNum);
+    mf::LogInfo("BeamGen") << "Using Sliced phase space generation from directory: " << runDir;
+
+	  // 1D X distribution histogram
+    if (fXHist1DFile.empty()) {
+      std::cerr << "Missing 1D X-histogram file name for Sliced generation!" << std::endl;
+      std::abort();
+    }
+
+    std::string fname_1d;
+    fname_1d = fXHist1DFile;
+
+    std::unique_ptr<TFile> input_file_1d{TFile::Open(fname_1d.c_str())};
+    if (!input_file_1d) {
+      std::cerr << "Could not open " << fname_1d << std::endl;
+      std::abort();
+    }
+
+	  TDirectory* dir1d = input_file_1d->GetDirectory(runDir.c_str());
+	  if (!dir1d) {
+	    std::cerr << "Could not find directory \"" << runDir
+	              << "\" in " << fname_1d << std::endl;
+	    std::abort();
+	  }
+
+	  TH1D* xhist_tmp = nullptr;
+	  dir1d->GetObject(fXHist1DName.c_str(), xhist_tmp);
+	  if (!xhist_tmp) {
+	    std::cerr << "Could not find 1D X-histogram \"" << fXHist1DName
+	              << "\" in directory \"" << runDir << "\" (file: " << fname_1d << ")"
+	              << std::endl;
+	    std::abort();
+	  }
+
+	  fXHist1D = xhist_tmp;
+	  fXHist1D->SetDirectory(0);
+
+	  mf::LogInfo("BeamGen") << "Loaded 1D X-histogram: " << runDir << "/" << fXHist1DName;
+
+    // 3D sliced histograms
+    if (fSlicedHistsFile.empty()) {
+      std::cerr << "Missing 3D sliced histogram file name for Sliced generation!" << std::endl;
+      std::abort();
+    }
+
+    std::string fname_3d;
+    fname_3d = fSlicedHistsFile;
+
+    std::unique_ptr<TFile> input_file_3d{TFile::Open(fname_3d.c_str())};
+    if (!input_file_3d) {
+      std::cerr << "Could not open " << fname_3d << std::endl;
+      std::abort();
+    }
+
+	  TDirectory* dir3d = input_file_3d->GetDirectory(runDir.c_str());
+	  if (!dir3d) {
+	    std::cerr << "Could not find directory \"" << runDir
+	              << "\" in " << fname_3d << std::endl;
+	    std::abort();
+	  }
+
+    // Looping through all bins of the 1D histogram to load each corresponding 3D slice
+    for (int i = 1; i <= fXHist1D->GetNbinsX(); ++i) {
+      char hist_name[256];
+      sprintf(hist_name, fSlicedHistsNamePattern.c_str(), i);
+
+      TH3D* h3d = nullptr;
+      dir3d->GetObject(hist_name, h3d);
+
+      if (h3d) {
+        h3d->SetDirectory(0);
+        fSlicedHists[i] = h3d;
+      }
+    }
+    mf::LogInfo("BeamGen") << "Loaded " << fSlicedHists.size() << " 3D histogram slices.";
   }
 
   /***************************************************************************/
