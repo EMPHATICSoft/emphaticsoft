@@ -103,6 +103,32 @@ void HoughFitter::HoughCircleTransform(const std::vector<std::pair<double, doubl
     // Initialize the 3D accumulator: (center_y, center_x, radius)
     accumulator.resize(rows, std::vector<std::vector<int>>(cols, std::vector<int>(steps + 1, 0)));
 
+    std::vector<double> xs, ys;
+
+    for(auto &p : edgePoints){
+      xs.push_back(p.first);
+      ys.push_back(p.second);
+     }
+
+     std::sort(xs.begin(), xs.end());
+     std::sort(ys.begin(), ys.end());
+
+     double x_med = xs[xs.size()/2];
+     double y_med = ys[ys.size()/2];
+
+//    std::cout << "mean: "<< x_mean << " " << y_mean << std::endl;
+    int roi = 10; 
+    int cx_est = std::lround(x_med) + 80;
+    int cy_est = std::lround(y_med) + 80;
+   
+    int xmin = std::max(0, cx_est - roi);
+    int xmax = std::min(cols - 1, cx_est + roi);
+
+    int ymin = std::max(0, cy_est - roi);
+    int ymax = std::min(rows - 1, cy_est + roi);
+	
+    //std::cout << "boundaries x:" << xmin  << "; " << xmax << " y:"<< ymin << " " << ymax << std::endl;
+
     // Iterate over each edge point
     for (const auto& point : edgePoints) {
         double x = point.first;
@@ -113,12 +139,12 @@ void HoughFitter::HoughCircleTransform(const std::vector<std::pair<double, doubl
             // For each angle from 0 to 360 degrees
             for (int theta = 0; theta < 360; theta++) {
                 double rad = theta * M_PI / 180.0;  // Convert degrees to radians
-                int a = static_cast<int>(x - radii[idr] * std::cos(rad)) + 80;  // Center x (a)
-                int b = static_cast<int>(y - radii[idr] * std::sin(rad)) + 80;  // Center y (b)
+                int a = std::lround(x - radii[idr] * std::cos(rad)) + 80;  // Center x (a)
+                int b = std::lround(y - radii[idr] * std::sin(rad)) + 80;  // Center y (b)
                 
                
                 // Ensure (a, b) is within bounds
-                if (a >= 0 && a < cols && b >= 0 && b < rows) {
+                if (a >= xmin && a <= xmax && b >= ymin && b <= ymax) {
                     accumulator[b][a][idr]++;  // Increment accumulator
                 }
             }

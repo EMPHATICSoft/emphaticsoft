@@ -26,6 +26,7 @@ cet_build_plugin(MakeSSDClusters art::module
     Geometry
     ROOT::Tree
     art_root_io::TFileService_service
+    SSDBadChannelService_service
   BASENAME_ONLY
 )
 

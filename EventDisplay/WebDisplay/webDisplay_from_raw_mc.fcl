@@ -16,7 +16,7 @@ source : {
 }
 
 services : {
-  @table::standard_services
+  @table::sim_services
   EvtDisplayNavigatorService: {}
   scheduler: { wantSummary: false }
   TimeTracker: {}

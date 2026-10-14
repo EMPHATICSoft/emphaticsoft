@@ -891,7 +891,8 @@ namespace rawdata {
 			}
 
 			// Write out event data
-			put_product_in_principal(std::move(evtSSDRawDigits), *outE,"raw","SSD");
+			if (!evtSSDRawDigits->empty())
+				put_product_in_principal(std::move(evtSSDRawDigits), *outE,"raw","SSD");
 			for (int idet=0; idet < emph::geo::NDetectors; ++idet) {
 				std::string detStr = emph::geo::DetInfo::Name(emph::geo::DetectorType(idet));
 				if (!evtWaveForms[idet]->empty())

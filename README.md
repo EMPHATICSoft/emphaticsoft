@@ -17,9 +17,8 @@ Base repository for art-based code
     * Go to Fermilab Service Desk (fermi.servicenowservices.com)    
     * Click on “Request Something”
     * Click on “Accounts and Access” in the menu on the right
-    * Click on “Experiment/Project/Collaboration Computing Account”
-    * Fill in the information.  Select “T-1396 EMPHATIC” in the Affiliation/Experiment” dropdown box
-    * “Computing/IT Professional Access Only” option should be set to “No”.
+    * Click on “Update my Affiliation/Experiment/Collaboration membership Request”
+    * Fill in the information.  Select “EMPHATIC” in the Affiliation/Experiment” dropdown box
 
 1.  Log into emphaticgpvm01.fnal.gov via kerberized ssh.  If you have never used kerberos before, it is easy to install on most platforms (and usually most Linux- and unix-based OSs have this pre-installed).  Replace the standard /etc/krb5.conf file with an appropriate file obtained from  https://authentication.fnal.gov/krb5conf/.
 ```

@@ -262,7 +262,7 @@ print DEF <<EOF;
 	<quantity name="arich_width" value="365.0" unit="mm"/>
 	<quantity name="arich_height" value="365.0" unit="mm"/>
 
-	<position name="arich_pos" x="0" y="0" z="arich_shift+0.5*arich_thick" unit="mm" />
+	<position name="arich_pos" x="-11" y="6" z="arich_shift+0.5*arich_thick" unit="mm" />
 	<quantity name="aerogel_thick0" value="18.9" unit="mm"/>
 	<quantity name="aerogel_thick1" value="20.4" unit="mm"/>
 	<quantity name="aerogel_size" value="93.0" unit="mm"/>
@@ -358,19 +358,33 @@ EOF
 		 		my $idx = $i*100 + $j*10 + $k;
 		  	    my $txs = $SSD_shift[ $isensor][0]+$SSD_alignx{$idx};
 		  	    my $tys = $SSD_shift[ $isensor][1]+$SSD_aligny{$idx};
-		  	    my $tzrot = $SSD_angle[$isensor] + $SSD_alignphi{$idx};
+		  	    # Millepede dphi is a global-frame rotation. side==0 sensors are placed with a
+		  	    # 180 deg x-flip, which reverses the sense of z rotations in the local frame
+		  	    # (Rx(180)*Rz(phi) = Rz(-phi)*Rx(180)), so their dphi must be negated here.
+		  	    my $phiSign = ($SSD_side[$isensor] == 0) ? -1 : 1;
+		  	    my $tzrot = $SSD_angle[$isensor] + $phiSign * $SSD_alignphi{$idx};
+                # Two-sensor planes: Se1 (k==1) sits behind Se0 in z, in the inner half of the
+                # 1.2 mm mount slot toward the plate. Plane 0 is on the upstream face so 
+                # "towards the plate" is +z; planes 1 and 2 are on the downstream face so it is 
+                # -z. Without this both sensors sit at the same z and overlap in x/y.
+                # which sensor is physically upstream is not confirmed but either orderdering 
+                # removes the overlap and the position effect is sub-micron.
+                my $tzs = "";
+                if ($k == 1) {
+                     $tzs = ($j == 0) ? "+(ssdD0_thick+ssd_bkpln_thick)" : "-(ssdD0_thick+ssd_bkpln_thick)";
+                }
 		  	    if($j < 2) {
 print DEF <<EOF;
-	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm"/>
-	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick+$SSD_alignz{$idx}" unit="mm" />
+	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="($j-0.5)*ssdD0_thick+($j-0.5)*mount_thick+($j-1)*ssd_bkpln_thick+$SSD_alignz{$idx}$tzs" unit="mm"/>
+	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="$j*ssdD0_thick+($j-0.5)*mount_thick+($j-0.5)*ssd_bkpln_thick+$SSD_alignz{$idx}$tzs" unit="mm" />
 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="$tzrot" unit="deg"/>
 EOF
 				$isensor++;
 				}
 		        else {
 print DEF <<EOF;
-	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}" unit="mm" />
-	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}" unit="mm" />
+	<position name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssdD0_thick+ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}$tzs" unit="mm" />
+	<position name="ssd_bkpln_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_pos" x="$txs" y="$tys" z="0.5*ssd_bkpln_thick+0.5*mount_thick+$SSD_alignz{$idx}$tzs" unit="mm" />
 	<rotation name="ssdsensor_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_rot" x="180.0*@{[ $SSD_side[$isensor] ]}" y="0" z="$tzrot" unit="deg"/>
 EOF
 	  	    	$isensor++;

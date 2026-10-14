@@ -34,11 +34,14 @@
 
 // EMPHATICSoft includes
 #include "Geometry/DetectorDefs.h"
+#include "Geometry/Geometry.h"
+#include "Geometry/service/GeometryService.h"
 #include "Simulation/SSDHit.h"
 #include "RawData/SSDRawDigit.h"
-#include "ChannelMap/service/ChannelMapService.h"
 #include "RecoBase/LineSegment.h"
+#include "ChannelMap/service/ChannelMapService.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
+#include "SSDEfficiency/service/SSDEfficiencyService.h"
 
 using namespace emph;
 
@@ -74,10 +77,12 @@ namespace emph {
     int fStation, fPlane, fSensor, fStrip;
     int fADC;
     float fdE;
+
     std::vector<emph::rawdata::SSDRawDigit> SimulateChargeSharing(const sim::SSDHit&);
 
     std::string fG4Label;
 
+    std::unique_ptr<TRandom3> fRand;
     //    std::unordered_map<int,int> fSensorMap;
 
     //    void FillSensorMap();
@@ -136,7 +141,7 @@ namespace emph {
     fAnaTree = 0;
 
     produces<std::vector<rawdata::SSDRawDigit> >("SSD");
-
+    fRand = std::make_unique<TRandom3>(0);
   }
 
   //......................................................................
@@ -179,6 +184,7 @@ namespace emph {
     std::unique_ptr<std::vector<rawdata::SSDRawDigit> >ssdRawD(new std::vector<rawdata::SSDRawDigit>);
     
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+    art::ServiceHandle<emph::SSDEfficiencyService> ssdeff;
 
     if (!ssdHitH->empty()) {
 
@@ -196,10 +202,26 @@ namespace emph {
       for (size_t idx=0; idx < ssdHitH->size(); ++idx) {
         const sim::SSDHit& ssdhit = (*ssdHitH)[idx];
         auto RawDigits = SimulateChargeSharing(ssdhit);
-        ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
 
+        // Use the hit's own indices, not fStation/fPlane/fSensor: those are set
+        // inside SimulateChargeSharing, which returns early (sub-threshold dE,
+        // hits==0) without setting them, leaving stale or uninitialized values.
+
+        const int st = ssdhit.Station();
+        const int pl = ssdhit.Plane();
+        const int se = ssdhit.Sensor();
+
+        Double_t rand = fRand->Uniform(0,1);
+        double eff = 1;
+
+        if (fStation != 0 && fStation != 1) {
+          eff = ssdeff->GetSSDEfficiency()->GetSSDEfficiency(fStation, fPlane, fSensor);
+        }
+
+        if (rand <= eff) {
+          ssdRawD->insert(ssdRawD->end(), RawDigits.begin(), RawDigits.end());
+        }
       } // end loop over SSD hits for the event
-      
     }
     evt.put(std::move(ssdRawD),"SSD");
       
@@ -245,7 +267,8 @@ namespace emph {
     TH2D *h2slice = (TH2D*)hist3D->Project3D("zx");
         
     if (h2slice->GetEntries() == 0) {
-      //std::cout << "h2slice is empty for adcBin: " << adcBin << std::endl;
+      delete h2slice;
+      hist3D->GetYaxis()->SetRange(1, hist3D->GetNbinsY()); 
       return;
     }
       
@@ -272,12 +295,6 @@ namespace emph {
       int trig = 0;
       double hit= 0;
       double rms = 0;
-      float xtrue = 0;
-      float ytrue = 0;
-      //float ztrue = 0;
-      float wtrue = 0;
-      float rtrue = 0;
-      float rstrip = 0;
    
       getHitsAndRMS(adc, hit, rms, fhist3D);
       int hits = std::lround(hit);
@@ -286,6 +303,14 @@ namespace emph {
       fSensor = ssdhit.Sensor(); 
       fPlane = ssdhit.Plane();
       fStrip = ssdhit.Strip(); 
+
+      // Reject hits whose G4-derived strip is already outside the sensor
+      {
+        art::ServiceHandle<emph::geo::GeometryService> geoSvc;
+        const int nStrips = geoSvc->Geo()->GetSSDStation(fStation)
+                              ->GetPlane(fPlane)->SSD(fSensor)->NStrips();
+        if (fStrip < 0 || fStrip >= nStrips) return returnValue;
+      }
 
       emph::cmap::EChannel echan;
       echan.SetBoardType(emph::cmap::SSD);
@@ -301,55 +326,71 @@ namespace emph {
         dchan.SetHiLo(fSensor);
         dchan.SetChannel(fSensor);
         echan = cmap->ElectChan(dchan);
-	/*	std::cout << "(Station,Plane,Sensor,Strip) = (" << fStation 
-		  << "," << fPlane << "," << fSensor << "," << fStrip << ")"
-		  << std::endl;
 
-	std::cout << "(Board,Channel,Strip) = (" << echan.Board() << "," 
-		  << echan.Channel() << "," << fStrip << ")" << std::endl;
-	*/
         returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), fStrip, t, calADC, trig));
-	fAnaTree->Fill();
+        if (fFillAnaTree) fAnaTree->Fill();
         return returnValue;
       }
 //.............................................................................................................//
+    if (hits >= 2) {
+      float xtrue = ssdhit.X(); 
+      float ytrue = ssdhit.Y(); 
 
-      if (hits >= 2) {
-        xtrue = ssdhit.X(); 
-        ytrue = ssdhit.Y(); 
-        //ztrue = ssdhit.GetZ(); 
-        wtrue = (sqrt(2)/2) * (-xtrue + ytrue);
+      art::ServiceHandle<emph::dgmap::DetGeoMapService> dgMapService;
+      emph::dgmap::DetGeoMap* dgMap = dgMapService->Map();
 
-        rb::LineSegment lineseg; 
-        art::ServiceHandle<emph::dgmap::DetGeoMapService> dgMapService;
-        emph::dgmap::DetGeoMap* dgMap = dgMapService->Map();
-        dgMap->StationSensorPlaneToLineSegment(fStation, fSensor, fPlane, lineseg, fStrip);
+      // Get the line segment for the central strip
+      rb::LineSegment lineseg0;
+      dgMap->StationSensorPlaneToLineSegment(fStation, fSensor, fPlane, lineseg0, fStrip);
 
-        float x0 = lineseg.X0().X();
-        float y0 = lineseg.X0().Y();
-        float z0 = lineseg.X0().Z();
-        float x1 = lineseg.X1().X(); 
-        float y1 = lineseg.X1().Y();
-        float z1 = lineseg.X1().Z(); 
+      float strip_cx = 0.5 * (lineseg0.X0().X() + lineseg0.X1().X());
+      float strip_cy = 0.5 * (lineseg0.X0().Y() + lineseg0.X1().Y());
 
-        float w0 = (sqrt(2) / 2) * (-x0 + y0);
-        float w1 = (sqrt(2) / 2) * (-x1 + y1);
+      // Get the line segment for a neighboring strip to define the sign of
+      // the measurement axis. We use fStrip - 1 if fStrip > 0, otherwise fStrip + 1.
+      // The sign convention: +mean means hit is shifted toward higher strip number.
+      rb::LineSegment lineseg1;
+      int neighborStrip;
+      float dirSign;
 
-        // plane rotation
-        if (x0 == x1) { //xplane; vertical
-          rtrue = xtrue;
-          rstrip = x0;
-        }
-        else if (y0 == y1) { //yplane; horizontal 
-          rtrue = ytrue;
-          rstrip = y0;
-        }
-        else { //wplane; diagonal -- NOTE: phase1c only has w plane; no u plane
-          rtrue = wtrue;
-          rstrip = (w0 + w1) / 2; //same result with just w0 or w1        
-        }
+      if (fStrip > 0) {
+         neighborStrip = fStrip - 1;
+         dirSign = -1.0;  // strip - 1 is in -axis direction, so flip sign
+      } else {
+         neighborStrip = fStrip + 1;
+         dirSign = +1.0;
+       }
 
-        float position = (rtrue - rstrip) / stripWidth;
+       dgMap->StationSensorPlaneToLineSegment(fStation, fSensor, fPlane, lineseg1, neighborStrip);
+
+       float neighbor_cx = 0.5 * (lineseg1.X0().X() + lineseg1.X1().X());
+       float neighbor_cy = 0.5 * (lineseg1.X0().Y() + lineseg1.X1().Y());
+
+       // Sanity check: if the two strip centers are identical, something is wrong
+       // (probably an out-of-range strip returning an invalid segment).
+       if (std::abs(neighbor_cx - strip_cx) < 1e-9 && std::abs(neighbor_cy - strip_cy) < 1e-9) {
+         return returnValue;
+       }
+
+       // Measurement axis: unit vector pointing from current strip toward strip+1.
+       // Anchored to strip numbering (not endpoint ordering), so +mean always
+       // means "hit is shifted toward the higher strip index", consistent with
+       // the centerRow + i logic below.
+       float ux = (neighbor_cx - strip_cx) * dirSign;
+       float uy = (neighbor_cy - strip_cy) * dirSign;
+       float len = sqrt(ux * ux + uy * uy);
+
+       if (len == 0.0) {
+         return returnValue;
+       }
+
+        ux /= len;
+        uy /= len;
+
+        // Project hit position relative to strip center onto the measurement axis.
+        float rtrue = (xtrue - strip_cx) * ux + (ytrue - strip_cy) * uy;
+
+        float position = rtrue / stripWidth;
         float mean = position;
 
         // Ignoring events with mean outside of the range
@@ -384,7 +425,7 @@ namespace emph {
 	        intervals.push_back({interval, interval + 1});
         }
         if (wasEven) { //Originally was even
-          if (mean >= 0) {
+          if (mean > 0) {
             intervals.erase(intervals.begin()); //Removing the most left-hand side interval for positive mean
           } else {
             intervals.pop_back(); //Removing the most right-hand side interval for negative mean
@@ -405,6 +446,12 @@ namespace emph {
         float adjustment = difference / intervalIntegrals.size();
 
         const int centerRow = ssdhit.Strip();
+        
+        // Number of strips on this sensor; shared rows must stay inside [0, nStrips)
+        art::ServiceHandle<emph::geo::GeometryService> geoSvc;
+        const int nStrips = geoSvc->Geo()->GetSSDStation(fStation)
+                              ->GetPlane(fPlane)->SSD(fSensor)->NStrips();
+
         int otherRow = 0; //next strip
         bool wasEven2 = (hits % 2 == 0);
 
@@ -417,7 +464,7 @@ namespace emph {
         for (auto &integral : intervalIntegrals) {
           otherRow = centerRow + i;
           integral += adjustment;
-          if (otherRow > 0) {  // Avoiding end of the detector
+          if (otherRow >= 0 && otherRow < nStrips) {  // stay inside the sensor 
 
 	    fdE = integral;
             integral = adcRange(integral);
@@ -437,7 +484,7 @@ namespace emph {
             echan = cmap->ElectChan(dchan);
 
             returnValue.push_back(rawdata::SSDRawDigit(echan.Board(), echan.Channel(), row, t, integral, trig));
-	    fAnaTree->Fill();
+	          if (fFillAnaTree) fAnaTree->Fill();
           }   
           i++;	  
         }
@@ -452,5 +499,3 @@ namespace emph {
 
 }  // end namespace emph
 DEFINE_ART_MODULE(emph::SSDDigitizer)
-
-

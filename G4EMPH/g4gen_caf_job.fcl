@@ -1,0 +1,153 @@
+# ============================================================================
+# Full MC chain in ONE art process:
+#   generate (BeamGen + Geant4)  ->  digitize (SSD + ARICH + relabel)
+#   ->  reco (SSD clusters/segments/tracks, ARICH cluster/ring/PID, vertex)
+#   ->  CAFMaker
+#
+# Built by merging:
+#   G4EMPH/g4gen_job.fcl
+#   Digitization/digitization_job.fcl
+#   CAFMaker/prod_reco_caf_job_mc.fcl     (the MC variant -- see notes)
+#
+# Source is EmptyEvent (we generate); the CAF tree + histograms are written
+# by TFileService. No intermediate art RootOutput is produced (add one if you
+# want the .dig/.reco art files too -- see commented stream at the bottom).
+# ============================================================================
+
+# ---- generation ----
+#include "Services.fcl"
+#include "Geometry.fcl"
+#include "MagneticField.fcl"
+#include "RunHistory.fcl"
+#include "BeamGen.fcl"
+#include "G4Gen.fcl"
+
+# ---- digitization ----
+#include "SSDDigitizer.fcl"
+#include "ARICHDigitizer.fcl"
+#include "RelabelRawDigitModules.fcl"
+
+# ---- reco + CAF ----
+#include "CAFMaker.fcl"
+#include "FillDataQuality.fcl"
+#include "SpillInfo.fcl"
+#include "MakeArichCluster.fcl"
+#include "ARICHReco.fcl"
+#include "MakeRing.fcl"
+#include "MakeSSDClusters.fcl"
+#include "ADCReco.fcl"
+#include "BACkovHitReco.fcl"
+#include "GasCkovHitReco.fcl"
+#include "MakeTrackSegments.fcl"
+#include "MakeSingleTracks.fcl"
+#include "MakePrimaryVertex.fcl"
+
+process_name: MCFull
+
+services:
+{
+  @table::sim_services
+
+  # TFileService holds the CAF tree + all monitoring histos. EmptyEvent has no
+  # input file, so %ifb is empty -- give it an explicit name (override per job
+  # on the grid, e.g. services.TFileService.fileName).
+  TFileService:          { fileName: "mc_g4_to_caf_hist.root" closeFileFast: false }
+  scheduler:             { wantSummary: false }
+  TimeTracker:           {}
+
+  # needed by Geant4 generation
+  RandomNumberGenerator: {}
+  MagneticFieldService:  @local::standard_magfield
+  RunHistoryService:     @local::standard_runhistory
+
+  IFBeam:                {}
+}
+
+# Use ONE geometry across gen/digi/reco -- same GDML the digitization step used.
+# NOTE: this path is user-specific; point it at your release's
+#       ConstBase/Geometry/phase1c_Graphite_ARICHalignConst.gdml
+services.RunHistoryService.LoadFromDB: false
+services.GeometryService.GetGDMLFromRunHistory: false
+services.GeometryService.GDMLFile: "/exp/emph/app/users/manueld/Apr26/emphaticsoft/ConstBase/Geometry/phase1c_Graphite.gdml"
+# Start each new event empty (generation).
+source:
+{
+  module_type: EmptyEvent 
+  maxEvents:   1000        # override with -n on the command line / grid
+  firstRun:    2408
+  firstSubRun: 1
+}
+
+physics:
+{
+  producers:
+  {
+    # generation
+    generator:    @local::proton_sliced
+    geantgen:     @local::standard_geant4
+
+    # digitization
+    rawSSD:       @local::standard_ssddigitizer
+    rawARICH:     @local::standard_arichdigitizer
+    raw:          @local::standard_digitrelabel
+
+    # reco + CAF
+    dataqual:     @local::standard_dataqual
+    spillinfo:    @local::standard_spillinfo
+    arichcluster: @local::standard_arich_cluster
+    arichreco:    @local::standard_arichreco
+    arichring:    @local::standard_arich_ring
+    clust:        @local::standard_ssdclust
+
+    maketracksegments: @local::standard_maketracksegments
+    makesingletracks:  @local::standard_makesingletracks
+    makeprimaryvertex: @local::standard_makeprimaryvertex
+
+    cafmaker:     @local::standard_cafmaker
+  }
+
+  analyzers:{}
+
+  # dependency order: gen -> digi -> SSD/ARICH clustering -> segments ->
+  #                   tracks -> vertex -> ARICH ring/PID -> CAF
+  fullchain: [
+               generator, geantgen,
+               rawSSD, rawARICH, raw,
+               dataqual, #spillinfo,
+               arichcluster, clust,
+               maketracksegments, makesingletracks, makeprimaryvertex,
+               arichring, arichreco,
+               cafmaker
+             ]
+
+  trigger_paths: [ fullchain ]
+}
+physics.producers.generator.UseRunHistory: false
+physics.producers.generator.particleType: "proton"
+physics.producers.generator.pzDist: "flat"
+physics.producers.generator.PMean: 10
+physics.producers.generator.Psigma: 8
+
+# ---- overrides carried over from prod_reco_caf_job_mc.fcl ----
+physics.producers.clust.FillTTree:    false
+physics.producers.clust.SSDRawLabel:  "raw:SSD"   # read the relabeled SSD digits
+physics.producers.clust.CheckDQ:      false       # no data-quality info in MC
+physics.producers.cafmaker.GetMCTruth: true       # store truth in the CAF
+physics.producers.cafmaker.CAFFilename: "caf_proton.root"
+# ----------------------------------------------------------------------------
+# Optional: also keep the intermediate art event file (digi + reco products).
+# Uncomment this block and add `end_paths: [ stream1 ]` inside physics above.
+#
+ outputs:
+  {
+    out1:
+    {
+      module_type: RootOutput
+      fileName:    "emphmc_full_r%r_s%s.root"
+      fastCloning: false
+      outputCommands: [ "keep *",
+                        "drop *_rawARICH_*_*",
+                        "drop *_rawSSD_*_*" ]
+    }
+  }
+# ----------------------------------------------------------------------------

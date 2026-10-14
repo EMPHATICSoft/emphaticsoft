@@ -39,10 +39,17 @@ namespace caf
 
       srARing.nhit = arings[ringId].NHits();
       srARing.radius =  arings[ringId].Radius();
+      srARing.theta_C = arings[ringId].GetTheta();
+
+      srARing.P_pion =  arings[ringId].GetP_Pion();
+      srARing.P_kaon =  arings[ringId].GetP_P_Kaon();
+      srARing.P_proton =  arings[ringId].GetP_Proton();     
+
       srARing.SetCenter(center);      
 
      } // end for ringId
 
   }
+
 
 } // end namespace caf

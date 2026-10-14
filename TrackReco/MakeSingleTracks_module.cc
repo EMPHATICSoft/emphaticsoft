@@ -42,7 +42,7 @@
 #include "RecoBase/SSDCluster.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
-#include "RecoBase/RecoBaseDefs.h"
+#include "StandardRecord/SRBaseDefs.h"
 #include "RecoBase/SpacePoint.h"
 #include "RecoBase/TrackSegment.h"
 #include "RecoBase/Track.h"
@@ -252,11 +252,11 @@ namespace emph {
           {
             const rb::TrackSegment &ts = (*trksegH)[idx];
             trksegs.push_back(&ts);
-            if (ts.region == rb::Region::kRegion1)
+            if (ts.region == caf::kRegion1)
               trksegs1.push_back(&ts);
-            else if (ts.region == rb::Region::kRegion2)
+            else if (ts.region == caf::kRegion2)
               trksegs2.push_back(&ts);
-            else if (ts.region == rb::Region::kRegion3)
+            else if (ts.region == caf::kRegion3)
               trksegs3.push_back(&ts);
             else
               std::cout << "Track segments not properly labeled." << std::endl;
@@ -299,11 +299,11 @@ namespace emph {
 
           for (auto t : trksegs)
           {
-            if (t->region == rb::Region::kRegion1)
+            if (t->region == caf::kRegion1)
               nts1++;
-            if (t->region == rb::Region::kRegion2)
+            if (t->region == caf::kRegion2)
               nts2++;
-            if (t->region == rb::Region::kRegion3)
+            if (t->region == caf::kRegion3)
               nts3++;
           }
 
@@ -312,14 +312,14 @@ namespace emph {
 
             for (auto t : trksegs)
             {
-              if (t->region == rb::Region::kRegion2)
+              if (t->region == caf::kRegion2)
               {
                 if (t->NSpacePoints() == 2)
                   nts2sp2++;
                 if (t->NSpacePoints() == 3)
                   nts2sp3++;
               }
-              if (t->region == rb::Region::kRegion3)
+              if (t->region == caf::kRegion3)
               {
                 if (t->NSpacePoints() == 2)
                   nts3sp2++;
@@ -381,9 +381,9 @@ namespace emph {
             {
               bool shortTrackSeg = true;
 
-              if (t->region == rb::Region::kRegion1)
+              if (t->region == caf::kRegion1)
                 tsvcut.push_back(t);
-              if (t->region == rb::Region::kRegion2)
+              if (t->region == caf::kRegion2)
               {
                 // If there is only one track segment, push back
                 // If there are more, choose the one with space points in only stations 2 and 3
@@ -410,7 +410,7 @@ namespace emph {
                   }
                 }
               }
-              if (t->region == rb::Region::kRegion3)
+              if (t->region == caf::kRegion3)
               {
                 // If there is only one track segment, push back
                 // If there are more, choose the one with more (3) space points

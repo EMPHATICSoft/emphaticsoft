@@ -4,22 +4,32 @@
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
 #include "MagneticField.fcl"
+#include "SSDBadChannel.fcl"
 
 BEGIN_PROLOG
 
 core_services:
 {
-  AlignService:      	@local::standard_align
   ChannelMapService: 	@local::standard_channelmap
   DetGeoMapService:  	@local::standard_detgeomap
   GeometryService:   	@local::standard_geometry
   RunHistoryService: 	@local::standard_runhistory
   MagneticFieldService: @local::standard_magfield
+  SSDBadChannelService: @local::standard_ssdbadchannel
 }
 
-standard_services:
+sim_services:
 {
   @table::core_services
+  AlignService: @local::sim_align
 }
+
+data_services:
+{
+  @table::core_services
+  AlignService: @local::data_align
+}
+
+standard_services: @local::data_services
 
 END_PROLOG

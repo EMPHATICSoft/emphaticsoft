@@ -9,8 +9,9 @@
 #include "CAFMaker/VertexFiller.h"
 #include "RecoBase/Vertex.h"
 #include "RecoBase/Track.h"
-#include "RecoBase/RecoBaseDefs.h"
-#include "RecoBase/ArichID.h"
+//#include "StandardRecord/SRTrackSegment.h"
+#include "StandardRecord/SRBaseDefs.h"
+//#include "RecoBase/ArichID.h"
 
 namespace caf
 {
@@ -167,12 +168,88 @@ namespace caf
     } 
     return secTrk;
   }
+
   //---------------------------------
 
-  void VertexFiller::Fill(art::Event& evt, caf::StandardRecord& stdrec)
+  void VertexFiller::FillKalman(art::Event& evt, std::vector<caf::SRVertex>& vtx)
   {
-    stdrec.vtxs.vtx.clear();
-    stdrec.vtxs.nvtx = 0;
+    vtx.clear();    
+    auto hv = evt.getHandle<std::vector<rb::Vertex> >(fKVertexLabel);
+    auto ht = evt.getHandle<std::vector<rb::Track> >(fKTrackLabel);
+    auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fSSDHitLabel);
+    auto ha = evt.getHandle<std::vector<rb::ArichID>> (fArichIDLabel);
+ 
+    std::vector <rb::Vertex> vtxs;
+    std::vector <rb::Track> trks;
+    std::vector <sim::SSDHit> ssdhits;
+    std::vector <rb::ArichID> arichids;
+
+    if ( !hv.failedToGet()) 
+    {
+      vtxs = *hv;
+    }
+    else {
+      std::cout << "VertexFiller: Failed to get Vertexes from " << fKVertexLabel << std::endl;
+    } 
+    if ( !ht.failedToGet()) 
+    {
+      trks = *ht;
+    } 
+    else  {
+      std::cout << "VertexFiller: Failed to get Tracks from " << fKTrackLabel << std::endl;
+    }
+    if ( !truehitv.failedToGet()) ssdhits = *truehitv;
+    if ( !ha.failedToGet()) arichids = *ha;
+
+    // loop over vertices
+    for (int iv= 0; iv< (int)vtxs.size();iv++) {
+      rb::Vertex v = vtxs[iv];
+      caf::SRVertex srv = v;
+      caf::SRTrack tr1 = trks[0]; // beam track is always first track
+      caf::SRBeamTrack btr;
+      if (!ssdhits.empty()) btr = GetBeamTrack(trks[0], ssdhits);
+      else{
+        for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
+          auto rbts = trks[0].GetTrackSegment(i);
+          caf::SRTrackSegment srts;
+          srts.vtx = rbts->vtx;
+          srts.mom = rbts->mom;
+          srts.region = rbts->region;
+          srts.nspacepoints = rbts->NSpacePoints();
+          srts.pointA = rbts->pointA;
+          srts.pointB = rbts->pointB;
+          srts.chi2 = rbts->chi2;
+          srts.thetaX = rbts->thetaX;
+          srts.thetaY = rbts->thetaY;
+          btr.Add(srts);
+      	}
+      }
+      srv.SetBeamTrack(btr);
+      // loop over secondary tracks in vertex
+      for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
+        auto idx = v.sectrkIdx[it];
+
+        //for now it's easy with single particle, arich ID always has one entry: the first
+        //if arich reco was not run, use a dummy ArichID to avoid out-of-bounds access
+        rb::ArichID dummyArich;
+        caf::SRSecondaryTrack srt;
+        if (arichids.empty()) {
+          srt = GetSecondaryTrack(trks[idx], ssdhits, dummyArich);
+        } else {
+          srt = GetSecondaryTrack(trks[idx], ssdhits, arichids[0]);
+        }
+        srv.Add(srt);
+      }
+      vtx.push_back(srv);
+    }
+
+  }
+
+  //---------------------------------
+
+  void VertexFiller::FillSimple(art::Event& evt, std::vector<caf::SRVertex>& vtx)
+  {
+    vtx.clear();    
 
     auto hv = evt.getHandle<std::vector<rb::Vertex> >(fVertexLabel);
     auto ht = evt.getHandle<std::vector<rb::Track> >(fTrackLabel);
@@ -188,9 +265,6 @@ namespace caf
     if ( !ht.failedToGet()) trks = *ht;
     if ( !truehitv.failedToGet()) ssdhits = *truehitv;
     if ( !ha.failedToGet()) arichids = *ha;
-
-    stdrec.vtxs.nvtx = vtxs.size();
-
 
     // loop over vertices
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
@@ -245,9 +319,8 @@ namespace caf
         }
         srv.Add(srt);
       }
-      stdrec.vtxs.vtx.push_back(srv);
+      vtx.push_back(srv);
     }
-    stdrec.vtxs.nvtx = stdrec.vtxs.vtx.size();
     
   } // end of loop over vertexs
 

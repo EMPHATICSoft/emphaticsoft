@@ -43,7 +43,7 @@ namespace emph {
      
        
       bool StationSensorPlaneToLineSegment(int station, int sensor, int plane, rb::LineSegment& ls, double dstrip = 0.5);
-  
+      bool IsPointOnDetector(int station, int sensor, int plane, double* x0);  
  
     private:
       bool fUseGeometry;

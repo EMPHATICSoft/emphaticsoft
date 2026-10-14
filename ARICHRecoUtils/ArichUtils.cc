@@ -14,7 +14,6 @@
 #include "CLHEP/Random/Randomize.h"
 
 #include "Geometry/service/GeometryService.h"
-#include "ChannelMap/service/ChannelMapService.h"
 #include "ARICHRecoUtils/ArichUtils.h"
 #include "ARICHRecoUtils/Particle.h"
 #include <map>
@@ -23,13 +22,12 @@
 const int NUMPARTICLES = 3;
 const double MASSES[NUMPARTICLES] = {0.1395701, 0.493677, 0.938272};
 const char* PNAMES[NUMPARTICLES] = {"Pion", "Kaon", "Proton"};
-const std::vector<double> ARICHBins = {-78.95, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78.95};
+const std::vector<double> ARICHBins = {-78, -72.7, -66.7, -60.7, -54.7, -48.7, -42.7, -36.7, -30.45, -24.25, -18, -12, -6, 0, 6, 12, 18, 24.25, 30.45, 36.7, 42.7, 48.7, 54.7, 60.7, 66.7, 72.7, 78};
 
 namespace arichreco
 {
 
    ARICH_UTILS::ARICH_UTILS() {
-    std::cout << "CREATING ARICHUTILS" << std::endl;
     }
 //=======================================================//
    ARICH_UTILS::~ARICH_UTILS() { 
@@ -52,8 +50,7 @@ namespace arichreco
 	fARICHNHitsPxl->GetXaxis()->SetTitle("X (mm)");
 	fARICHNHitsPxl->GetYaxis()->SetTitle("Y (mm)");
 	fARICHNHitsPxl->SetBins(ARICHBins.size() - 1, ARICHBins.data(), ARICHBins.size() - 1, ARICHBins.data());
-		
-	art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+ 	art::ServiceHandle<emph::cmap::ChannelMapService> cmap;	
 	for (size_t i = 0; i < cluster.size(); i++) {
 		int board = cluster[i].first;
 		int channel = cluster[i].second; 
@@ -68,12 +65,40 @@ namespace arichreco
 		int pmtcol = dch - pmtrow * 8;
 		int pxlxbin = pxlxbin0 - pmtcol;
 		int pxlybin = pxlybin0 + pmtrow;
-		int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin + 1);
-		int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin + 1);
+		int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin+1);
+		int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin+1);
 		fARICHNHitsPxl->Fill(pxlx, pxly);
 	}
 	return fARICHNHitsPxl;
+	delete fARICHNHitsPxl;
   }
+//=======================================================//
+double ARICH_UTILS::EchanToBin(std::pair<int,int> dig){
+
+  TH2D *fARICHNHitsPxl = new TH2D();
+  fARICHNHitsPxl->SetBins(ARICHBins.size() - 1, ARICHBins.data(), ARICHBins.size() - 1, ARICHBins.data());
+  art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
+   int board = dig.first;
+   int channel = dig.second;
+   emph::cmap::EChannel echan(emph::cmap::TRB3, board, channel);
+   emph::cmap::DChannel dchan = cmap->DetChan(echan);
+   int pmt = dchan.HiLo();
+   int dch = dchan.Channel();
+   int pxlxbin0 = 25 - pmt * 9 + (pmt / 3) * 27;
+   int pxlybin0 = (pmt / 3) * 9;
+   int pmtrow = dch / 8;
+   int pmtcol = dch - pmtrow * 8;
+   int pxlxbin = pxlxbin0 - pmtcol;
+   int pxlybin = pxlybin0 + pmtrow;
+   int pxlx = fARICHNHitsPxl->GetXaxis()->GetBinCenter(pxlxbin + 1);
+   int pxly = fARICHNHitsPxl->GetYaxis()->GetBinCenter(pxlybin + 1);
+ 
+   int bin = (double)fARICHNHitsPxl->FindBin(pxlx,pxly);
+   delete fARICHNHitsPxl;
+
+   return bin; 
+
+} 
 
 //=======================================================//
  TGraph2D* ARICH_UTILS::DigsToHist(std::vector<std::pair<int,int>> cluster, std::vector<float> cluster_times){

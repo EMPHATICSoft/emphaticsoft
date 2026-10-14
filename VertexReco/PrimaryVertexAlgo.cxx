@@ -44,7 +44,6 @@ namespace emph {
     if (trks.size() <= 1) return false;
 
     if (trks.size() == 2) {
-
       // Modeling tracks as an infinite 3D lines:
       //   track 0 (Beam track)     : C0(s) = P0 + s*d0
       //   track 1 (Secondary track): C1(t) = P1 + t*d1
@@ -93,7 +92,6 @@ namespace emph {
 
       // DOCA vertex: midpoint between the two closest points.
       vtx.pos = (poca0 + poca1)/2.;
-
       vtx.sectrkIdx.push_back(1);
     }
     else {

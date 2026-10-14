@@ -61,6 +61,7 @@ namespace emph {
     void produce(art::Event& evt);
     // Optional use if you have histograms, ntuples, etc you want around for every event
     void beginJob();
+    void beginRun(art::Run &run);
     at::Tensor TH2DToTensor(TH2D* hist);
 
   private:
@@ -73,6 +74,7 @@ namespace emph {
     std::string fTrackLabel;  //for now using sim::Tracks
  
     std::string  fModelPath;
+    std::string  fSource_path;
 
     tml::NeuralNet* Model;
     
@@ -91,20 +93,34 @@ namespace emph {
     double PDzpos;
     TString PDfile;
     bool fFillTree;
-   
+  
+    double fdxArich;
+    double fdyArich; 
+ 
+    double fAbsZAero1;
+    double fAbsZPMTPlane;
+ 
+    bool fUseLL;
+    bool fUseML;
+
     TRandom3* rand_gen;
  
     art::ServiceHandle<emph::cmap::ChannelMapService> cmap;
     emph::cmap::FEBoardType boardType = cmap::TRB3;    
+    art::ServiceHandle<emph::geo::GeometryService> geo;
 
     std::vector<double> momenta;
     std::vector<TVector3> dir;
     std::vector<TVector3> pos;
-    std::vector<double> LLs;
+
+    std::vector<double> LLscores;
+    std::vector<double> MLscores;
+
+    std::vector<double> crossing_track_loc;
 
     TH2D event_hist, pdf_pion, pdf_kaon, pdf_prot;
     float mom;   
- 
+    int nhits;
 	
   };
 
@@ -118,20 +134,20 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
     fModelPath = std::string(pset.get<std::string>("ModelPath"));
+    fdxArich = double(pset.get<double>("ArichXshift",0));
+    fdyArich = double(pset.get<double>("ArichYshift",0));
+    fUseLL =  bool(pset.get<bool>("UseLL"));
+    fUseML = bool(pset.get<bool>("UseML"));
 
       //ARICH RECO UTILS STUFF
       PDfile  =  std::string(pset.get< std::string >("PD_file"));
-      up_n = double(pset.get<double>("RefractiveIndex_UpstreamAerogel"));
-      up_pos = double(pset.get<double>("Position_UpstreamAerogel"));
-      up_thick = double(pset.get<double>("Thinkness_UpstreamAerogel"));
-      down_n = double(pset.get<double>("RefractiveIndex_DownstreamAerogel"));
-      down_pos = double(pset.get<double>("Position_DownstreamAerogel"));
-      down_thick = double(pset.get<double>("Thickness_DownstreamAerogel"));
       PDdarkrate = double(pset.get<double>("PD_Darkrate"));
       PDwin = double(pset.get<double>("Trigger_window"));
       PDfillfactor = double(pset.get<double>("PD_FillFactor"));
-      PDzpos = double(pset.get<double>("PD_Position"));
       fEvtNum = 0;
+
+     fSource_path = getenv("CETPKG_SOURCE");
+
     }	
     //......................................................................
  
@@ -154,20 +170,41 @@ namespace emph {
      fARICHTree->Branch("pdf_prot", &pdf_prot);
      fARICHTree->Branch("momenta", &mom);
      fARICHTree->Branch("event_id", &fEvtNum);
+     fARICHTree->Branch("nhits", &nhits);
+     fARICHTree->Branch("crossing_track_location",&crossing_track_loc);
      }
 
     ArichUtils = new arichreco::ARICH_UTILS();
     rand_gen = new TRandom3(0);
-    std::string source_path = getenv("CETPKG_SOURCE");
-    TString PDfile_path = source_path + PDfile;
-    ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
-    ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
      
     Model = new tml::NeuralNet();
-    Model->loadModel(source_path.append(fModelPath));
-//    mf::LogError("ARICH NN path") <<"model path " << source_path.append(fModelPath);    
+    std::string model_path = fSource_path + fModelPath;
+    Model->loadModel(model_path);
+    mf::LogInfo("ARICH NN path") <<" ARICH model path " << model_path <<  std::endl;
 
   }
+
+void  emph::ARICHReco::beginRun(art::Run &run){
+ 
+ TString PDfile_path = fSource_path + PDfile;
+
+ up_n = geo->Geo()->GetAerogelUS()->RefractiveIdx();
+ down_n = geo->Geo()->GetAerogelDS()->RefractiveIdx();
+ up_thick = geo->Geo()->GetAerogelUS()->Thickness()*2/10; //reads half of the gdml value, then cm 
+ down_thick = geo->Geo()->GetAerogelDS()->Thickness()*2/10; //reads half of the gdml value, then cm
+
+ down_pos = up_thick; //they are touching
+ up_pos = 0; //this is the beginning of the frame
+
+ fAbsZAero1 = geo->Geo()->GetAerogelUS()->Pos()[2];
+ fAbsZPMTPlane = geo->Geo()->GetmPMTPlanePos()[2];
+ 
+ PDzpos = (fAbsZPMTPlane - fAbsZAero1)/10.; //in  cm
+
+ ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
+ ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
+
+}
 
 //......................................................................
 at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
@@ -203,6 +240,7 @@ void ARICHReco::produce(art::Event& evt)
     rb::ArichID arich_id;
     ARICH->push_back(arich_id);  
     }
+
  
     if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
     
@@ -228,23 +266,8 @@ void ARICHReco::produce(art::Event& evt)
 
         mom = sqrt(last_seg.mom.Mag2()); //sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
 
-//	std::cout << "Momenta " << mom << std::endl;
-	if (mom == 0) {
-          mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
-        }
-
-        float finalx = posx + (1920 - posz) * px/pz;
-        float finaly = posy + (1920 - posz) * py/pz;
-	
-	//std::cout << "vertex (" << posx << ", " << posy << ", " << posz << ") final pos ( "<< finalx << ", " << finaly << ")"<< std::endl;        	
-
-	TVector3 dir_(px/mom,py/mom,pz/mom);
-        TVector3 pos_(finalx/10.,finaly/10.,0.);  //in cm
-	 
 	int max_cluster=-1;
         int max_size = 0;
-
-
        for(int u = 0; u < (int)arich_clusters->size(); u++){
           int size = arich_clusters->at(u).NDigits();
           if(size > max_size){
@@ -253,43 +276,67 @@ void ARICHReco::produce(art::Event& evt)
            }
         }
 
+	
+       if (mom == 0) {
+          mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
+        }
+
+	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is 
+        event_hist = *ArichUtils->DigsToHist(digs);
+
+       rb::ArichID arich_id;
+       arich_id.trackID = 1;
+       arich_id.nhit = digs.size();
+
+      if(fUseLL){	
+        float finalx = posx + (fAbsZAero1 - posz) * px/pz + fdxArich;
+        float finaly = posy + (fAbsZAero1 - posz) * py/pz + fdyArich;
+
+	float track_crossing_x = posx + (fAbsZPMTPlane - posz) * px/pz + fdxArich;
+  	float track_crossing_y = posy + (fAbsZPMTPlane - posz) * py/pz + fdyArich;	
+	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
+
+	TVector3 dir_(px/mom,py/mom,pz/mom);
+        TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
+	 
 	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is 
 	event_hist = *ArichUtils->DigsToHist(digs);
-	std::vector<double> LL = ArichUtils->identifyParticle(&event_hist, mom, pos_, dir_);
+	LLscores = ArichUtils->identifyParticle(&event_hist, mom, pos_, dir_);
 
 	if(fFillTree){
 	  std::vector<TH2D> pdfs = ArichUtils->GetPDF(mom, pos_, dir_);
 	  pdf_pion = pdfs[0];
 	  pdf_kaon = pdfs[1];
 	  pdf_prot = pdfs[2];
+	  nhits = arich_clusters->at(max_cluster).NDigits();
+	}
+          arich_id.scoresLL = LLscores;
 	}
 
-          rb::ArichID arich_id;
-          arich_id.scoresLL = LL;
-          arich_id.trackID = 1;
-          arich_id.nhit = digs.size();
-
+	if(fUseML){
  	  at::Tensor tensor_event = TH2DToTensor(&event_hist);
  	  at::Tensor tensor_mom = at::full({1,1}, mom, at::kFloat);
  	  std::vector<at::Tensor> inputs = {tensor_event, tensor_mom};
 	  at::Tensor pred = Model->predict(inputs); 
 
-	  std::vector<double> temp;
 	  auto accessor = pred.accessor<float, 2>();
 	  for (int i = 0; i < accessor.size(0); ++i) {
             for (int j = 0; j < accessor.size(1); ++j) {
-            	temp.push_back((double)accessor[i][j]);
+            	MLscores.push_back((double)accessor[i][j]);
 	     }
 	  }
+          arich_id.scoresML = MLscores;
+	}
 
-          arich_id.scoresML = temp;
-	
 	ARICH->push_back(arich_id);	  
 	 
-	if(fFillTree)fARICHTree->Fill();
-	    
+	if(fFillTree){
+	  fARICHTree->Fill();
+	  crossing_track_loc.clear();
+	}
+  	
 	} // end if clusters     	 
-
+	MLscores.clear(); LLscores.clear();
 	evt.put(std::move(ARICH));	   
   } // end produce 
 
