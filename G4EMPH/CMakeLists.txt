@@ -43,7 +43,7 @@ cet_make_library(SOURCE ${src_files}
     Geant4::G4visHepRep
     Geant4::G4vis_management
     Geant4::G4VRML
-    Geant4::G4zlib
+    ${EMPH_G4_OPTIONAL_LIBS} # G4OpenGL, G4zlib when the Geant4 build has them
 )
 
 cet_build_plugin(G4Gen art::module

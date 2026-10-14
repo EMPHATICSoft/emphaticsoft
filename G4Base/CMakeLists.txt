@@ -26,7 +26,6 @@ cet_make_library(SOURCE ${src_files}
 		Geant4::G4interfaces
 		Geant4::G4materials
 		Geant4::G4modeling
-		Geant4::G4OpenGL
 		Geant4::G4parmodels
 		Geant4::G4particles
 		Geant4::G4persistency
@@ -41,7 +40,7 @@ cet_make_library(SOURCE ${src_files}
 		Geant4::G4visHepRep
 		Geant4::G4vis_management
 		Geant4::G4VRML
-		Geant4::G4zlib 
+		${EMPH_G4_OPTIONAL_LIBS} # G4OpenGL, G4zlib when the Geant4 build has them
 	BASENAME_ONLY
 )
 

@@ -62,9 +62,20 @@ cmake_policy(PUSH)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE BOOL "Suppress dev warnings")
 find_package( Geant4          4.11.0.p03b REQUIRED )
 cmake_policy(POP)
-find_package( python         3.9.15    	  REQUIRED )
-if(DEFINED ENV{PYTHONHOME}) # UPS sets PYTHONHOME; spack relies on find_package
+# G4OpenGL and G4zlib exist in the UPS Geant4 but not in a Spack geant4
+# built ~opengl with an external zlib. Nothing includes their headers.
+set(EMPH_G4_OPTIONAL_LIBS)
+foreach(_g4lib G4OpenGL G4zlib)
+  if(TARGET Geant4::${_g4lib})
+    list(APPEND EMPH_G4_OPTIONAL_LIBS Geant4::${_g4lib})
+  endif()
+endforeach()
+if(DEFINED ENV{PYTHON_INCLUDE}) # UPS: Modules/Findpython.cmake reads PYTHON_INCLUDE/PYTHON_LIB
+  find_package( python         3.9.15    	  REQUIRED )
   set( PYTHON_EXECUTABLE $ENV{PYTHONHOME}/bin/python )
+else() # spack: no UPS environment, use CMake's own module
+  find_package( Python3 3.9 REQUIRED COMPONENTS Interpreter Development )
+  set( PYTHON_EXECUTABLE ${Python3_EXECUTABLE} )
 endif()
 
 # packages for ML

@@ -1,4 +1,6 @@
 set(PACKAGE OnlineMonitoringViewer)
+# Generated dictionary source includes the headers by bare name.
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 # Define the source files for the OnlineMonitoringViewer package
 set(src_files
   ButtonBank.cxx
