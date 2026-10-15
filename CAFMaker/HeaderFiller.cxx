@@ -28,7 +28,7 @@ namespace caf
       hdr.gcp5      = spillHandle->MT5CPR();
       hdr.gcp6      = spillHandle->MT6CPR();
       hdr.gcp5iFix  = spillHandle->MT5CP2();
-      hdr.gcp5iFix  = spillHandle->MT6CP2();
+      hdr.gcp6iFix  = spillHandle->MT6CP2();
       hdr.tbccdi    = spillHandle->TBCCDI();
       hdr.tbccdo    = spillHandle->TBCCDO();
       hdr.mt6ca1    = spillHandle->MT6CA1();

@@ -10,6 +10,7 @@ namespace caf{
    SRArichID::~SRArichID(){}
 
    void SRArichID::setdefault(){
+	nhit = 0;
 	
    }
 

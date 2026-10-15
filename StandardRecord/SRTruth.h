@@ -10,9 +10,9 @@
 #include <vector>
 #include <string>
 #include "Math/Vector3D.h"
-#include "SRTrueParticle.h"
-#include "SRTrueSSDHitsBranch.h"
-#include "SRTrueTargetHitsBranch.h"
+#include "StandardRecord/SRTrueParticle.h"
+#include "StandardRecord/SRTrueSSDHitsBranch.h"
+#include "StandardRecord/SRTrueTargetHitsBranch.h"
 
 ///Common Analysis Files
 namespace caf
