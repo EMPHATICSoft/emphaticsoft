@@ -106,17 +106,17 @@ namespace emph
       double spillTime = (double)sr.beginTime().timeHigh();
       double recordTime = spillTime + fOffset;
       
-      double intensity;
-      double momentum;
-      double mt5cpr;
-      double mt6cpr;
-      double mt5cp2;
-      double mt6cp2;
-      double tbccdi;
-      double tbccdo;
-      double mt6ca1;
-      double mt6ca2;
-      double mt6ca3;
+      double intensity = 0.;
+      double momentum = 0.;
+      double mt5cpr = 0.;
+      double mt6cpr = 0.;
+      double mt5cp2 = 0.;
+      double mt6cp2 = 0.;
+      double tbccdi = 0.;
+      double tbccdo = 0.;
+      double mt6ca1 = 0.;
+      double mt6ca2 = 0.;
+      double mt6ca3 = 0.;
       
       // JMP: the beam momentum recording appears to be broken.  Not sure
       // right now what to do about this.  Skipping momentum info for now.
