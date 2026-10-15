@@ -1,0 +1,20 @@
+BEGIN_PROLOG
+
+standard_misalignssdhits:
+{
+  module_type:   MisalignSSDHits
+  G4Label:       "geantgen"
+  MisalignFile:  ""                     # e.g. "MisalignConst_7.txt"; empty = draw randomly
+  LabelFileName: "misalign_consts.txt"  # applied universe, SSDAlign format
+  Seed:          0                      # 0 = random seed (recorded in the label file and tree)
+  SigmaX:        3.                     # mm, same widths as MakeMisalignConsts.C
+  SigmaY:        3.                     # mm
+  SigmaZ:        0.                     # mm
+  SigmaPhi:      2.                     # deg
+  PhiSign:       1                      # dphi sign convention; fix with the closure test
+  FixedStations: []                     # stations held at zero shift
+  SimPadding:    0.                     # mm; the -p used for the Geant4 GDML (check only)
+  SimPaddingAlongStrip: 0.              # mm; the -w used for the Geant4 GDML (check only)
+}
+
+END_PROLOG

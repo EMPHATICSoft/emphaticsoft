@@ -37,6 +37,20 @@ cet_build_plugin(ARICHDigitizer art::module
   BASENAME_ONLY
 )
 
+cet_build_plugin(MisalignSSDHits art::module
+  LIBRARIES REG
+    Simulation
+    Geometry
+    GeometryService_service
+    art_root_io::TFileService_service
+    art::Framework_Core
+    art::Persistency_Common
+    messagefacility::MF_MessageLogger
+    ROOT::Geom
+    ROOT::Tree
+  BASENAME_ONLY
+)
+
 cet_build_plugin(RelabelRawDigitModules art::module
   LIBRARIES REG
     RawData

@@ -16,8 +16,22 @@
 # Manuals can be found at DocDB 1242
 # Visualization of SSDs can be found at DocDB 1662
 
+# Optional SSD padding (-p, -w), off by default:
+# Extends every SSD sensor's silicon by a margin so that Geant4 records
+# particles a little beyond the real sensor edges.  A padded geometry is
+# ONLY for the Geant4 step of a Digitization/MisalignSSDHits sample,
+# which assigns strips with the real-size (unpadded) geometry and drops
+# hits that fall off the shifted sensors.  Never use a padded file for
+# reconstruction or for regular simulation.
+#   -p <mm>  margin across the strips (extra strips at both ends; strips
+#            0..639 keep their positions, pad strips are numbered
+#            -N..-1 and 640..639+N)
+#   -w <mm>  margin along the strips (longer strips)
+# Without -p/-w the output is unchanged.
+
 use Getopt::Long;
 use Math::BigFloat;
+use POSIX qw(ceil);
 use GDMLUtil;
 Math::BigFloat->precision(-10);
 
@@ -27,7 +41,16 @@ GetOptions( "help|h" => \$help,
 	    "target|t=s" => \$target,
 	    "magnet|m=i" => \$magnet,
 	    "align|a=i"  => \$align,
-	    "nstation|n=i" => \$nstation);
+	    "nstation|n=i" => \$nstation,
+	    "pad|p=f"      => \$pad,
+	    "padalong|w=f" => \$padalong);
+
+if ( ! defined $pad )      { $pad = 0; }
+if ( ! defined $padalong ) { $padalong = 0; }
+if ( $pad < 0 || $padalong < 0 ) {
+  print ("padding must be >= 0\n");
+  exit(0);
+}
 
 if ( defined $help )
   {
@@ -141,6 +164,11 @@ $nstation_type = 4; # types of station
 @SSD_mount= (1, 2, 2, 1); # num. of mount in a station
 @SSD_mod = ("D0", "D0", "D0", "D0"); # SSD type in a station
 $nD0chan = 640; # number of channels per sensor
+$D0pitch = 0.06; # mm, ssdD0_chanwidth + ssdD0_changap
+$nPadChan = ceil($pad / $D0pitch - 1e-9); # extra strips at each end of a sensor
+$SSD_padded = ($nPadChan > 0 || $padalong > 0);
+$ssdBoxWidth  = $SSD_padded ? "ssdD0_simwidth"  : "ssdD0_width";
+$ssdBoxHeight = $SSD_padded ? "ssdD0_simheight" : "ssdD0_height";
 $nSSD_station = 8; # num. of stations
 if ( defined $nstation )
   {
@@ -194,6 +222,14 @@ write_fragments(); # writes the XML input for make_gdml.pl
 exit;
 
 
+# name tag for a strip position: pad strips below 0 become m1, m2, ...
+# (physvol names keep the signed number so SSDHitAction's sscanf works)
+sub chan_tag
+{
+	my ($c) = @_;
+	return ($c < 0) ? "m" . (-$c) : $c;
+}
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++ usage +++++++++++++++++++++++++++++++++++++++++
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -207,6 +243,10 @@ sub usage()
 	print "       -a apply alignment constants for universe [1-100]\n; Default is perfect alignment";
 	print "       -s <string> appends the string to the file names; useful for multiple detector versions\n";
 	print "       -n [2..8], the number of SSD stations; Default is 8\n";
+	print "       -p <mm> pad every SSD sensor across the strips by this margin; Default is 0\n";
+	print "       -w <mm> pad every SSD sensor along the strips by this margin; Default is 0\n";
+	print "       Padded geometries are ONLY for the Geant4 step of MisalignSSDHits samples\n";
+	print "       (without -p/-w the geometry is unchanged)\n";
 	print "       -h prints this message, then quits\n";
 }
 
@@ -320,6 +360,14 @@ print DEF <<EOF;
 	<quantity name="ssd_bkpln_thick" value=".300" unit="mm"/>
 	
 EOF
+	if($SSD_padded) {
+print DEF <<EOF;
+	<!-- PADDED SSD SENSORS for MisalignSSDHits only: @{[ $nPadChan ]} extra strips per end, @{[ $padalong ]} mm along strips -->
+	<quantity name="ssdD0_simheight" value="38.46+@{[ 2*$nPadChan ]}*0.06" unit="mm"/>
+	<quantity name="ssdD0_simwidth" value="98.33+@{[ 2*$padalong ]}" unit="mm"/>
+
+EOF
+	}
 	for($i = 0; $i < $nSSD_station; ++$i) {
 print DEF <<EOF;
 	<quantity name="ssdStation@{[ $i ]}_shift" value="@{[ $SSD_station_shift[$i] ]}" unit="mm"/>
@@ -433,9 +481,9 @@ print DEF <<EOF;
 
 EOF
 
-  	for($i = 0; $i < $nD0chan; ++$i){
+  	for($i = -$nPadChan; $i < $nD0chan+$nPadChan; ++$i){
 print DEF <<EOF;
-	<position name="ssd_chan_@{[ $i ]}_pos" x="0" y="(@{[ -($nD0chan-1)/2 ]}+@{[ $i ]})*(ssdD0_chanwidth+ssdD0_changap)" z="0" unit="mm"/>
+	<position name="ssd_chan_@{[ chan_tag($i) ]}_pos" x="0" y="(@{[ -($nD0chan-1)/2 ]}+@{[ $i ]})*(ssdD0_chanwidth+ssdD0_changap)" z="0" unit="mm"/>
 EOF
 	}
 
@@ -748,8 +796,8 @@ EOF
 
 	 <!-- BELOW IS FOR SSD -->
 
-	 <box name="ssd_chan_box" x="ssdD0_width" y="ssdD0_chanwidth" z="ssdD0_thick" />
-	 <box name="ssd_box" x="ssdD0_width" y="ssdD0_height" z="ssdD0_thick" />
+	 <box name="ssd_chan_box" x="$ssdBoxWidth" y="ssdD0_chanwidth" z="ssdD0_thick" />
+	 <box name="ssd_box" x="$ssdBoxWidth" y="$ssdBoxHeight" z="ssdD0_thick" />
 	 <box name="ssd_bkpln_box" x="ssdD0_width" y="ssdD0_height" z="ssd_bkpln_thick" />
 
 	 <box name="ssd_mount_box1" x="mount_width" y="mount_width" z="mount_thick" />
@@ -982,11 +1030,11 @@ EOF
 			<materialref ref="SiliconWafer"/>
 			<solidref ref="ssd_box"/>
 EOF
-					for($l = 0; $l < $nD0chan; ++$l){
+					for($l = -$nPadChan; $l < $nD0chan+$nPadChan; ++$l){
 						print MOD <<EOF;
 		 <physvol name="ssd_chan_@{[ $i ]}_@{[ $j ]}_@{[ $k ]}_@{[ $l ]}_vol">
 			<volumeref ref="ssd_chan_vol"/>
-			<positionref ref="ssd_chan_@{[ $l ]}_pos"/>
+			<positionref ref="ssd_chan_@{[ chan_tag($l) ]}_pos"/>
 		 </physvol>
 EOF
 					}

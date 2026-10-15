@@ -7,7 +7,7 @@ ALIGN=0
 OUTNAMESET=0
 NSTATION=8
 
-while getopts "o:t:m:a:n:h" opt; do
+while getopts "o:t:m:a:n:p:w:h" opt; do
     case $opt in
 	h) 
 	    $(dirname $0)/generate_gdml.pl --help
@@ -26,6 +26,8 @@ while getopts "o:t:m:a:n:h" opt; do
 	m)
 	    MAGOPT=$OPTARG
 	    ;;
+	p) ;;   # SSD padding, handled by generate_gdml.pl
+	w) ;;
 	n) 
 	    NSTATION=$OPTARG
 	    ;;

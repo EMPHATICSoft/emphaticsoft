@@ -1,0 +1,71 @@
+# Misalign Geant4 SSD hits and digitize them.
+# Input: a Geant4 file with nominal geometry (e.g. from G4EMPH/g4gen_job.fcl).
+# Output: raw:SSD digits as if the SSDs were misaligned, plus the applied
+#         misalignment in misalign_consts.txt and the "misalign" TTree.
+# Run one job per universe, e.g.
+#   art -c misalign_digitization_job.fcl -s g4.root \
+#       -o univ_42.dig.root -T univ_42_hist.root
+# with physics.producers.misalign.Seed: 42 and LabelFileName: "univ_42.txt".
+
+#include "Services.fcl"
+#include "SSDDigitizer.fcl"
+#include "RelabelRawDigitModules.fcl"
+#include "SSDEfficiency.fcl"
+#include "MisalignSSDHits.fcl"
+
+process_name: MisalignDigitizer
+
+services:
+{
+  TFileService: { fileName: "%ifb_misalign_hist.root" closeFileFast: false }
+  @table::sim_services
+  SSDEfficiencyService: @local::data_ssdefficiency
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+}
+
+outputs:
+{
+  out1:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb_misalign.dig.root"
+    fastCloning: false
+    outputCommands: [ "keep *",
+                      "drop *_rawSSD_*_*" ]
+  }
+}
+
+physics:
+{
+  producers:
+  {
+    misalign: @local::standard_misalignssdhits
+    rawSSD:   @local::standard_ssddigitizer
+    raw:      @local::standard_digitrelabel
+  }
+
+  digitizer: [ misalign, rawSSD, raw ]
+
+  trigger_paths: [ digitizer ]
+  stream1: [ out1 ]
+  end_paths: [ stream1 ]
+}
+
+physics.producers.rawSSD.G4Label: "misalign"
+
+# Strips and positions are assigned with the NOMINAL (unpadded) geometry.
+# It must be generated with the same options as the padded Geant4
+# geometry; the run-history GDMLs in ConstBase have the measured
+# alignment built in and would offset every label.
+services.GeometryService.GetGDMLFromRunHistory: false
+services.GeometryService.GDMLFile: ""   # REQUIRED: full path to the nominal GDML
+
+# Set to the -p / -w used for the padded Geant4 GDML (only used for the
+# edge-coverage warning).
+physics.producers.misalign.SimPadding: 0.
+physics.producers.misalign.SimPaddingAlongStrip: 0.

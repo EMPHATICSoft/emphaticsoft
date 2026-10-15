@@ -1,0 +1,11 @@
+# Geant4 step of a MisalignSSDHits sample: same as G4EMPH/g4gen_job.fcl,
+# but run on a PADDED geometry from
+#   Geometry/gdml/phase1c/make_gdml.sh -o <padded>.gdml -p <mm> ...
+# Make the padded file and the nominal file used in
+# misalign_digitization_job.fcl with the SAME generator options (-t, -m,
+# -a, -n) so that they differ only by the padding.
+
+#include "g4gen_job.fcl"
+
+services.GeometryService.GetGDMLFromRunHistory: false
+services.GeometryService.GDMLFile: ""   # REQUIRED: full path to the padded GDML

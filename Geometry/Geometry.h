@@ -105,8 +105,10 @@ namespace emph {
       const Strip* GetStrip(int i) const {return &fStrip[i]; }
       void LocalToMother(double x1[3], double x2[3]) const;
       void MotherToLocal(double x1[3], double x2[3]) const;
+      const TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }           ///< sensor in mount frame
+      const TGeoMatrix* GeoMatrixMount() const { return fGeoMatrixMount; } ///< mount in station frame
 
-    private:    
+    private:
       int   fId;
       std::string fName;
       TVector3 fPos;
@@ -162,7 +164,7 @@ namespace emph {
       {fGeoMatrix->LocalToMaster(x1,x2);}
       void MotherToLocal(double x1[3], double x2[3]) const
       {fGeoMatrix->MasterToLocal(x1,x2);}
-      //      TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
+      const TGeoMatrix* GeoMatrix() const { return fGeoMatrix; }
 
     private:
       int fId;
