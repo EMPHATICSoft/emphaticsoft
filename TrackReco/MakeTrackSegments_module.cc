@@ -153,7 +153,7 @@ namespace emph {
     spacepoint->Branch("run",&run,"run/I");
     spacepoint->Branch("subrun",&subrun,"subrun/I");
     spacepoint->Branch("event",&event,"event/I");  
-    spacepoint->Branch("chi2",&chi2,"chi2/I");
+    spacepoint->Branch("chi2",&chi2);
   }
  
   //......................................................................
