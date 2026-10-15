@@ -11,6 +11,8 @@ namespace rb{
    ArichID::~ArichID(){}
 
    void ArichID::setdefault(){
+	SRArichID::setdefault();
+	nhit = 0;
 	
    }
 

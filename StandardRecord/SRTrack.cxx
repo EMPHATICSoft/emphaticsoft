@@ -33,6 +33,10 @@ namespace caf
     pullSSD.clear();
     
     arich.setdefault(); // arich loglikelihooods values 
+    chi2 = -1;
+    ndf = -1;
+    label = -1;
+    ntrkseg = 0;
   }
 
 } // end namespace
