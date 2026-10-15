@@ -154,5 +154,26 @@ add_subdirectory(TOF)
 add_subdirectory(Utilities)
 add_subdirectory(VertexReco)
 
+# Runtime data that modules open through $CETPKG_SOURCE (geometry, channel maps,
+# calibrations, bad channels, ...). Install it under <prefix>/source with the same
+# layout as the source tree, next to what install_source() puts there, so an
+# installed release can point CETPKG_SOURCE at that directory (the Spack recipe does).
+set(EMPH_RUNTIME_DATA_DIR ${${CETMODULES_CURRENT_PROJECT_NAME}_INSTALLED_SOURCE_DIR})
+if(NOT EMPH_RUNTIME_DATA_DIR)
+  set(EMPH_RUNTIME_DATA_DIR source)
+endif()
+install(DIRECTORY ConstBase DESTINATION ${EMPH_RUNTIME_DATA_DIR})
+install(DIRECTORY ARICHRecoUtils/data DESTINATION ${EMPH_RUNTIME_DATA_DIR}/ARICHRecoUtils)
+install(FILES ARICHReco/PMTDet.root DESTINATION ${EMPH_RUNTIME_DATA_DIR}/ARICHReco)
+install(FILES DataQuality/GoodRunsList.txt DataQuality/GoodRunsList_SSD_phase1c.txt
+  DESTINATION ${EMPH_RUNTIME_DATA_DIR}/DataQuality)
+install(FILES Digitization/Hits_totADC_RMS_3D.root Digitization/dEtoADCmap.root
+  DESTINATION ${EMPH_RUNTIME_DATA_DIR}/Digitization)
+install(FILES G4EMPH/g4emph.mac DESTINATION ${EMPH_RUNTIME_DATA_DIR}/G4EMPH)
+install(DIRECTORY OnlineMonitoring/util/ DESTINATION ${EMPH_RUNTIME_DATA_DIR}/OnlineMonitoring/util
+  FILES_MATCHING PATTERN "*.csv")
+install(DIRECTORY OnlineMonitoring/viewer/ DESTINATION ${EMPH_RUNTIME_DATA_DIR}/OnlineMonitoring/viewer
+  FILES_MATCHING PATTERN "*.png")
+
 # ups - table and config files
 cet_cmake_config()
