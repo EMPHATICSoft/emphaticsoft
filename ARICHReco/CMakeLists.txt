@@ -1,4 +1,5 @@
 
+if(EMPH_BUILD_ML) # links TorchML (libtorch)
 cet_build_plugin(ARICHReco art::module
   LIBRARIES REG
     RawData
@@ -21,6 +22,7 @@ cet_build_plugin(ARICHReco art::module
     ROOT::Tree
     TorchML
 )
+endif()
 
 
 cet_build_plugin(MakeArichCluster art::module
