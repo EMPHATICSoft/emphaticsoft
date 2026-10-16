@@ -28,7 +28,7 @@ add_definitions( -D_REENTRANT ) # needed for stan_math v4
 # Spackification subsystem switches (spack-dev branch only; main builds
 # everything unconditionally). Defaults match the emphaticsoft spack package
 # variants: ~daq +beamdb +align ~ml ~caen.
-option(EMPH_BUILD_DAQ "Build DAQ components (artdaq, TRACE, emphatic-artdaq, raw data unpacking/merging, WebDisplay)" OFF)
+option(EMPH_BUILD_DAQ "Build online DAQ components that need the artdaq stack or TRACE (RawDataMerger). Raw data unpacking needs only artdaq-core and is always built" OFF)
 option(EMPH_BEAMDB "Build beam/conditions DB components (ifdh_art: CAFMaker, SpillInfo)" ON)
 option(EMPH_ALIGN "Build Millepede-II alignment (Alignment)" ON)
 option(EMPH_BUILD_ML "Build libtorch ML components (TorchML, ARICHReco)" OFF)
@@ -108,9 +108,7 @@ add_subdirectory(DataQuality)
 add_subdirectory(Demo)
 add_subdirectory(DetGeoMap)
 add_subdirectory(Digitization)
-if(EMPH_BUILD_DAQ)
-  add_subdirectory(emphatic-artdaq)
-endif()
+add_subdirectory(emphatic-artdaq) # fragment overlays: artdaq-core only
 add_subdirectory(EventDisplay)
 add_subdirectory(G4Base)
 add_subdirectory(G4EMPH)
@@ -126,9 +124,9 @@ add_subdirectory(MLUtils)
 add_subdirectory(MomReco)
 add_subdirectory(OnlineMonitoring)
 add_subdirectory(RawData)
+add_subdirectory(RawDataUnpacker) # emphatic-artdaq_Overlays, artdaq-core
 if(EMPH_BUILD_DAQ)
   add_subdirectory(RawDataMerger)   # emphatic-artdaq_Overlays, TRACE
-  add_subdirectory(RawDataUnpacker) # artdaq, emphatic-artdaq_Overlays
 endif()
 add_subdirectory(RecoBase)
 add_subdirectory(RecoUtils)
