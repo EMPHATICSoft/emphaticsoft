@@ -161,6 +161,9 @@ endif()
 install(DIRECTORY ConstBase DESTINATION ${EMPH_RUNTIME_DATA_DIR})
 install(DIRECTORY ARICHRecoUtils/data DESTINATION ${EMPH_RUNTIME_DATA_DIR}/ARICHRecoUtils)
 install(FILES ARICHReco/PMTDet.root DESTINATION ${EMPH_RUNTIME_DATA_DIR}/ARICHReco)
+if(EMPH_BUILD_ML)
+  install(FILES TorchML/arich_model.pt DESTINATION ${EMPH_RUNTIME_DATA_DIR}/TorchML)
+endif()
 install(FILES DataQuality/GoodRunsList.txt DataQuality/GoodRunsList_SSD_phase1c.txt
   DESTINATION ${EMPH_RUNTIME_DATA_DIR}/DataQuality)
 install(FILES Digitization/Hits_totADC_RMS_3D.root Digitization/dEtoADCmap.root
