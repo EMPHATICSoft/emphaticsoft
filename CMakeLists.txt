@@ -173,6 +173,7 @@ endif()
 install(FILES DataQuality/GoodRunsList.txt DataQuality/GoodRunsList_SSD_phase1c.txt
   DESTINATION ${EMPH_RUNTIME_DATA_DIR}/DataQuality)
 install(FILES Digitization/Hits_totADC_RMS_3D.root Digitization/dEtoADCmap.root
+  Digitization/arich_noise_map_absolute_xy.root
   DESTINATION ${EMPH_RUNTIME_DATA_DIR}/Digitization)
 install(FILES G4EMPH/g4emph.mac DESTINATION ${EMPH_RUNTIME_DATA_DIR}/G4EMPH)
 install(DIRECTORY OnlineMonitoring/util/ DESTINATION ${EMPH_RUNTIME_DATA_DIR}/OnlineMonitoring/util
