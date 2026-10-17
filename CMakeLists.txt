@@ -28,7 +28,7 @@ add_definitions( -D_REENTRANT ) # needed for stan_math v4
 # Spackification subsystem switches (spack-dev branch only; main builds
 # everything unconditionally). Defaults match the emphaticsoft spack package
 # variants: ~daq +beamdb +align ~ml ~caen.
-option(EMPH_BUILD_DAQ "Build DAQ components (artdaq, TRACE, emphatic-artdaq, raw data unpacking/merging, WebDisplay)" OFF)
+option(EMPH_BUILD_DAQ "Find the full artdaq stack, for online components (emphatic-artdaq/ArtModules, not built at present). Raw data unpacking, merging and WebDisplay need only artdaq-core and TRACE and are always built" OFF)
 option(EMPH_BEAMDB "Build beam/conditions DB components (ifdh_art: CAFMaker, SpillInfo)" ON)
 option(EMPH_ALIGN "Build Millepede-II alignment (Alignment)" ON)
 option(EMPH_BUILD_ML "Build libtorch ML components (TorchML, ARICHReco)" OFF)
@@ -38,11 +38,11 @@ option(EMPH_CAEN "Reserved: CAEN hardware support (no spack recipes yet)" OFF)
 find_package( libwda          2.20.1      REQUIRED ) # core: ChannelState, RunHistory
 find_package( art 	     	       	        REQUIRED EXPORT)
 # artdaq_core carries the raw-data product definitions used by offline code
-# (RawData); only the full artdaq stack is DAQ-gated.
+# (RawData) and the unpackers; only the full artdaq stack is DAQ-gated.
 find_package( artdaq_core 		            REQUIRED EXPORT)
+find_package( TRACE                       REQUIRED ) # RawDataMerger
 if(EMPH_BUILD_DAQ)
   find_package( artdaq 		       	        REQUIRED EXPORT)
-  find_package( TRACE                     REQUIRED )
 endif()
 find_package( canvas_root_io 	       	    REQUIRED EXPORT)
 find_package( art_root_io 	       	      REQUIRED EXPORT)
@@ -82,6 +82,12 @@ endif()
 find_package( protobuf                    REQUIRED )
 if(EMPH_BUILD_ML)
   find_package( libtorch                  REQUIRED )
+  # A CUDA libtorch puts absolute paths (libc10.so, libc10_cuda.so, CUDA's
+  # libnvrtc.so) in TORCH_LIBRARIES, so TorchML's exported link interface has
+  # them and cet_cmake_config() stops the install. Nothing builds against
+  # emphaticsoft's exported targets, so accept them.
+  set(${CETMODULES_CURRENT_PROJECT_NAME}_IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES_REGEX
+    "/(py-torch|cuda)-[^/]+/")
 endif()
 
 # macros for artdaq_dictionary and cet_build_plugin
@@ -108,9 +114,7 @@ add_subdirectory(DataQuality)
 add_subdirectory(Demo)
 add_subdirectory(DetGeoMap)
 add_subdirectory(Digitization)
-if(EMPH_BUILD_DAQ)
-  add_subdirectory(emphatic-artdaq)
-endif()
+add_subdirectory(emphatic-artdaq) # fragment overlays: artdaq-core only
 add_subdirectory(EventDisplay)
 add_subdirectory(G4Base)
 add_subdirectory(G4EMPH)
@@ -126,10 +130,8 @@ add_subdirectory(MLUtils)
 add_subdirectory(MomReco)
 add_subdirectory(OnlineMonitoring)
 add_subdirectory(RawData)
-if(EMPH_BUILD_DAQ)
-  add_subdirectory(RawDataMerger)   # emphatic-artdaq_Overlays, TRACE
-  add_subdirectory(RawDataUnpacker) # artdaq, emphatic-artdaq_Overlays
-endif()
+add_subdirectory(RawDataUnpacker) # emphatic-artdaq_Overlays, artdaq-core
+add_subdirectory(RawDataMerger)   # emphatic-artdaq_Overlays, TRACE
 add_subdirectory(RecoBase)
 add_subdirectory(RecoUtils)
 add_subdirectory(ReadoutWaveform)
@@ -165,6 +167,9 @@ endif()
 install(DIRECTORY ConstBase DESTINATION ${EMPH_RUNTIME_DATA_DIR})
 install(DIRECTORY ARICHRecoUtils/data DESTINATION ${EMPH_RUNTIME_DATA_DIR}/ARICHRecoUtils)
 install(FILES ARICHReco/PMTDet.root DESTINATION ${EMPH_RUNTIME_DATA_DIR}/ARICHReco)
+if(EMPH_BUILD_ML)
+  install(FILES TorchML/arich_model.pt DESTINATION ${EMPH_RUNTIME_DATA_DIR}/TorchML)
+endif()
 install(FILES DataQuality/GoodRunsList.txt DataQuality/GoodRunsList_SSD_phase1c.txt
   DESTINATION ${EMPH_RUNTIME_DATA_DIR}/DataQuality)
 install(FILES Digitization/Hits_totADC_RMS_3D.root Digitization/dEtoADCmap.root

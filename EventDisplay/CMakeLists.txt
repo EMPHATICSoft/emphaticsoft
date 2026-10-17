@@ -90,6 +90,4 @@ install_source()
 
 art_dictionary(DICTIONARY_LIBRARIES PRIVATE EventDisplay)
 
-if(EMPH_BUILD_DAQ)
-  add_subdirectory(WebDisplay) # find_package(artdaq)
-endif()
+add_subdirectory(WebDisplay)
