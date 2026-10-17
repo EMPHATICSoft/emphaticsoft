@@ -82,6 +82,12 @@ endif()
 find_package( protobuf                    REQUIRED )
 if(EMPH_BUILD_ML)
   find_package( libtorch                  REQUIRED )
+  # A CUDA libtorch puts absolute paths (libc10.so, libc10_cuda.so, CUDA's
+  # libnvrtc.so) in TORCH_LIBRARIES, so TorchML's exported link interface has
+  # them and cet_cmake_config() stops the install. Nothing builds against
+  # emphaticsoft's exported targets, so accept them.
+  set(${CETMODULES_CURRENT_PROJECT_NAME}_IGNORE_ABSOLUTE_TRANSITIVE_DEPENDENCIES_REGEX
+    "/(py-torch|cuda)-[^/]+/")
 endif()
 
 # macros for artdaq_dictionary and cet_build_plugin
