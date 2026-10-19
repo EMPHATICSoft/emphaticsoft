@@ -86,34 +86,45 @@ ls /cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1/setup-env.sh
 ls /cvmfs/larsoft.opensciencegrid.org/spack-fnal-v1.1.1/setup-env.sh
 ```
 
-### One-time setup
+### Run the release
+
+Nothing to build:
+
+```bash
+source /cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1/setup-env.sh
+spack env activate emph-deps-env
+spack load emphaticsoft
+```
+
+### Develop: one-time setup
+
+One command makes your own Spack instance on top of the release, copies the
+release environment into it as `local_emph-deps-env` (with its lock, so every
+installed package is reused), and checks out emphaticsoft `spack-dev`:
 
 ```bash
 export DEV=/exp/emph/app/users/$USER/spack-dev
 mkdir -p $DEV
 source /cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1/setup-env.sh
-spack subspack --with-padding $DEV/spack
+spack subspack --with-padding --local-env emph-deps-env \
+  --dev-pkg emphaticsoft@spack-dev $DEV/spack
+ln -s $DEV/spack/var/spack/environments/local_emph-deps-env/emphaticsoft $DEV/emphaticsoft
+git -C $DEV/emphaticsoft remote set-url origin git@github.com:EMPHATICSoft/emphaticsoft.git
+
 source $DEV/spack/setup-env.sh
-
-spack env create emphdev \
-  /cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1/var/spack/environments/emph-deps-env/spack.lock
-spack env activate emphdev
-
-git clone -b spack-dev git@github.com:EMPHATICSoft/emphaticsoft.git $DEV/emphaticsoft
-spack develop --no-clone --path $DEV/emphaticsoft emphaticsoft@spack-dev
-spack concretize
+spack env activate local_emph-deps-env
 spack install -j 8
 ```
 
 Only `emphaticsoft` should be listed as `Installing`. If Spack starts building
 art, ROOT or Geant4, stop it and ask in `#emphatic_software`.
 
-### Every new shell
+### Develop: every new shell
 
 ```bash
 export DEV=/exp/emph/app/users/$USER/spack-dev
 source $DEV/spack/setup-env.sh
-spack env activate emphdev
+spack env activate local_emph-deps-env
 spack load emphaticsoft
 ```
 
