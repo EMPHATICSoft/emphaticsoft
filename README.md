@@ -70,8 +70,8 @@ Full instructions, with checks and troubleshooting, are on the wiki:
 
 Only emphaticsoft is compiled, in about 4 minutes. art, ROOT, Geant4, Millepede,
 PyTorch and the other dependencies are already installed on CVMFS:
-`/cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1`, environment `emph-deps-env`
-(the current release), with PyTorch and CUDA from LArSoft's
+`/cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1`, environment `emphaticsoft-env`
+(the current release, at present `emphaticsoft-v08_00_00`), with PyTorch and CUDA from LArSoft's
 `/cvmfs/larsoft.opensciencegrid.org/spack-fnal-v1.1.1`. The build has the full
 offline suite (`~daq +beamdb +align +ml`): alignment with Millepede, the ARICH
 TorchML reconstruction, the raw-data unpackers, `RawDataMerger` and
@@ -92,27 +92,27 @@ Nothing to build:
 
 ```bash
 source /cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1/setup-env.sh
-spack env activate emph-deps-env
+spack env activate emphaticsoft-env
 spack load emphaticsoft
 ```
 
 ### Develop: one-time setup
 
 One command makes your own Spack instance on top of the release, copies the
-release environment into it as `local_emph-deps-env` (with its lock, so every
+release environment into it as `local_emphaticsoft-env` (with its lock, so every
 installed package is reused), and checks out emphaticsoft `spack-dev`:
 
 ```bash
 export DEV=/exp/emph/app/users/$USER/spack-dev
 mkdir -p $DEV
 source /cvmfs/emphatic.opensciencegrid.org/spack/v1.1.1/setup-env.sh
-spack subspack --with-padding --local-env emph-deps-env \
+spack subspack --with-padding --local-env emphaticsoft-env \
   --dev-pkg emphaticsoft@spack-dev $DEV/spack
-ln -s $DEV/spack/var/spack/environments/local_emph-deps-env/emphaticsoft $DEV/emphaticsoft
+ln -s $DEV/spack/var/spack/environments/local_emphaticsoft-env/emphaticsoft $DEV/emphaticsoft
 git -C $DEV/emphaticsoft remote set-url origin git@github.com:EMPHATICSoft/emphaticsoft.git
 
 source $DEV/spack/setup-env.sh
-spack env activate local_emph-deps-env
+spack env activate local_emphaticsoft-env
 spack install -j 8
 ```
 
@@ -124,7 +124,7 @@ art, ROOT or Geant4, stop it and ask in `#emphatic_software`.
 ```bash
 export DEV=/exp/emph/app/users/$USER/spack-dev
 source $DEV/spack/setup-env.sh
-spack env activate local_emph-deps-env
+spack env activate local_emphaticsoft-env
 spack load emphaticsoft
 ```
 
