@@ -17,3 +17,6 @@ auto
 out/
 
 docs/Doxyout/
+
+#spack-related sym links
+build-linux-almalinux9-*
