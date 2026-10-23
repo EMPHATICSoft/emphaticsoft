@@ -150,30 +150,30 @@ namespace emph {
 			fKTracker->SetRK4Parameters(pset.get<int>("RK4MaxNStep", 800),
 																	pset.get<double>("RK4MaxZStep", 2.0));
 
-			fTruePtVsPzAll = nullptr;
-			fTruePtVsPzSel = nullptr;
-			fXYDistAll = nullptr;
-			fXYDistSel = nullptr;
-			fDeltaPvsP = nullptr;
-			fDeltaThetavsTheta = nullptr;
-
-			art::ServiceHandle<art::TFileService> tfs;
-			fTruePtVsPzAll = tfs->make<TH2D>("hTruePtVsPzAll","All",100,0.5,20.5,100,0.,0.5);
-			fTruePtVsPzSel = tfs->make<TH2D>("hTruePtVsPzSel","Sel",100,0.5,20.5,100,0.,0.5);
-			fXYDistAll = tfs->make<TH2D>("hXYDistAll","All",50,-25.,25.,50,-25.,25.);
-			fXYDistSel = tfs->make<TH2D>("hXYDistSel","Sel",50,-25.,25.,50,-25.,25.);
-			fDeltaPvsP = tfs->make<TH2D>("hDeltaPVsP","#DeltaP vs P",200,0.5,20.5,100,-0.5,0.5);
-			fDeltaThetavsTheta = tfs->make<TH2D>("hDeltaThetaVsTheta","#Delta#Theta vs #Theta",200,0.0,0.02,100,-0.02,0.02);
-
-			// Pull and chi2 histograms
-			fPullQop = tfs->make<TH1D>("hPullQop", "Pull in q/p", 100, -5, 5);
-			fPullX = tfs->make<TH1D>("hPullX", "Pull in x", 100, -5, 5);
-			fPullY = tfs->make<TH1D>("hPullY", "Pull in y", 100, -5, 5);
-			fPullTx = tfs->make<TH1D>("hPullTx", "Pull in tx", 100, -5, 5);
-			fPullTy = tfs->make<TH1D>("hPullTy", "Pull in ty", 100, -5, 5);
-			fChi2vsNdof = tfs->make<TH2D>("hChi2vsNdof", "#chi^{2} vs Ndof", 20, 0, 20, 100, 0, 50);
-			fChi2perNdof = tfs->make<TH1D>("hChi2perNdof", "#chi^{2}/Ndof", 100, 0, 10);
-			fResidualsVsPlane = tfs->make<TH2D>("hResidualsVsPlane", "Residuals vs Plane", 60, 19, 79, 500, -5., 5.);
+//			fTruePtVsPzAll = nullptr;
+//			fTruePtVsPzSel = nullptr;
+//			fXYDistAll = nullptr;
+//			fXYDistSel = nullptr;
+//			fDeltaPvsP = nullptr;
+//			fDeltaThetavsTheta = nullptr;
+//
+//			art::ServiceHandle<art::TFileService> tfs;
+//			fTruePtVsPzAll = tfs->make<TH2D>("hTruePtVsPzAll","All",100,0.5,20.5,100,0.,0.5);
+//			fTruePtVsPzSel = tfs->make<TH2D>("hTruePtVsPzSel","Sel",100,0.5,20.5,100,0.,0.5);
+//			fXYDistAll = tfs->make<TH2D>("hXYDistAll","All",50,-25.,25.,50,-25.,25.);
+//			fXYDistSel = tfs->make<TH2D>("hXYDistSel","Sel",50,-25.,25.,50,-25.,25.);
+//			fDeltaPvsP = tfs->make<TH2D>("hDeltaPVsP","#DeltaP vs P",200,0.5,20.5,100,-0.5,0.5);
+//			fDeltaThetavsTheta = tfs->make<TH2D>("hDeltaThetaVsTheta","#Delta#Theta vs #Theta",200,0.0,0.02,100,-0.02,0.02);
+//
+//			// Pull and chi2 histograms
+//			fPullQop = tfs->make<TH1D>("hPullQop", "Pull in q/p", 100, -5, 5);
+//			fPullX = tfs->make<TH1D>("hPullX", "Pull in x", 100, -5, 5);
+//			fPullY = tfs->make<TH1D>("hPullY", "Pull in y", 100, -5, 5);
+//			fPullTx = tfs->make<TH1D>("hPullTx", "Pull in tx", 100, -5, 5);
+//			fPullTy = tfs->make<TH1D>("hPullTy", "Pull in ty", 100, -5, 5);
+//			fChi2vsNdof = tfs->make<TH2D>("hChi2vsNdof", "#chi^{2} vs Ndof", 20, 0, 20, 100, 0, 50);
+//			fChi2perNdof = tfs->make<TH1D>("hChi2perNdof", "#chi^{2}/Ndof", 100, 0, 10);
+//			fResidualsVsPlane = tfs->make<TH2D>("hResidualsVsPlane", "Residuals vs Plane", 60, 19, 79, 500, -5., 5.);
 		}
 
 	//......................................................................
@@ -237,44 +237,72 @@ namespace emph {
 			auto station = meas.SSDStation();
 			auto plane = meas.SSDPlane();
 			auto sensor = meas.SSDSensor();
-
 			double sensorz = meas.GetZ();
 			ROOT::Math::XYZVector x0(meas.X0());
 			ROOT::Math::XYZVector x1(meas.X1());
+			x0.SetX(-x0.X());
+			x1.SetX(-x1.X());
 			ROOT::Math::XYZVector vec = x0 - x1;
-			Double_t phim = TMath::ATan2(vec.Y(), -vec.X());
+			Double_t phim = TMath::ATan2(vec.Y(), vec.X());
 			while(phim < 0) phim += 2.*TMath::Pi();
 
+//			double dx = x1.X() - x0.X();
+//			double dy = x1.Y() - x0.Y();
+//			double dr = sqrt(dx*dx + dy*dy);
 			// Calculate local derivatives
 			float lcd_x0 = -1.*TMath::Sin(phim);
-			float lcd_pxpz = -sensorz*TMath::Sin(phim);
+			float lcd_pxpz = sensorz*TMath::Sin(phim);
 			float lcd_y0 = 1.*TMath::Cos(phim);
-			float lcd_pypz = sensorz*TMath::Cos(phim);
+			float lcd_pypz = -sensorz*TMath::Cos(phim);
+//			float lcd_x0 = -dy/dr;
+//			float lcd_pxpz = -sensorz*dy/dr;
+//			float lcd_y0 = 1.*dx/dr;
+//			float lcd_pypz = sensorz*dx/dr;
 
 			// Calculate global derivatives
 			// These derivatives are estimated by the Kalman Filtered Track
-			double xhat = track.posSSD[station][plane].X();
+			double xhat = -track.posSSD[station][plane].X();
 			double yhat = track.posSSD[station][plane].Y();
-			double dxdz = track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
+			double dxdz = -track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
 			double dydz = track.momSSD[station][plane].Y()/track.momSSD[station][plane].Z();
+			//switch (emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View()) {
+			//	case 1:
+			//		std::cout << "KX: (" << xhat << ", " << x0.X() << ", " << x1.X() << ")" << std::endl;
+			//		break;
+			//	case 2:
+			//		std::cout << "KY: (" << yhat << ", " << x0.Y() << ", " << x1.Y() << ")" << std::endl;
+			//		break;
+			//	case 4:
+			//		std::cout << "KV: (" << xhat << ", " << x0.X() << ", " << x1.X() << ")" << std::endl;
+			//		std::cout << "KV: (" << yhat << ", " << x0.Y() << ", " << x1.Y() << ")" << std::endl;
+			//		break;
+			//}
 
-			float gld_x; float gld_y; float gld_z;
-			float gld_phim;
-			auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View();
-			if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
-				// Does this actually do anything? - NTK
-				gld_x = -1.*TMath::Sin(phim);
-				gld_y = 1.*TMath::Cos(phim);
-				gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
-				gld_phim = -1.*TMath::Cos(phim) * xhat - 1.*TMath::Sin(phim) * yhat;
-			} else {
-				gld_x = 0.;
-				gld_y = 0.;
-				gld_z = 0.;
-				gld_phim = 0.;
-			}
+//			float gld_x; float gld_y; float gld_z;
+//			float gld_phim;
+//			auto sview = emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View();
+//			if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
+//				// Does this actually do anything? - NTK
+			float gld_x = -1.*TMath::Sin(phim);
+			float gld_y = 1.*TMath::Cos(phim);
+			float gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
+			float gld_phim = -1.*TMath::Cos(phim) * xhat - 1.*TMath::Sin(phim) * yhat;
 
-			float signedDistance = track.pullSSD[station][plane];
+	//		float gld_x = -1.*dy/dr;
+	//		float gld_y = -1.*dx/dr;
+	//		float gld_z = 1.*dxdz*dy/dr - dydz*dx/dr;
+	//		float gld_phim = -1.*dx/dr * xhat - 1.*dy/dr * yhat;
+//			} else {
+//				gld_x = 0.;
+//				gld_y = 0.;
+//				gld_z = 0.;
+//				gld_phim = 0.;
+//			}
+
+			//float signedDistance = track.pullSSD[station][plane];
+			float signedDistance = -TMath::Sin(phim)*(xhat - x0.X()) + TMath::Cos(phim)*(yhat - x0.Y());
+			std::cout << "Signed distance: " << signedDistance << std::endl;
+			//float uncertainty = 1;
 			float uncertainty = track.uncPull[station][plane];
 //			for(auto i = 0; i < fUncScaler; ++i) // Exponentially scaled uncertainty
 //				uncertainty *= 10;
@@ -405,7 +433,7 @@ namespace emph {
 							double pytrue = hit.Py();
 							pztrue = hit.Pz();
 							pttrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue);
-							fTruePtVsPzAll->Fill(pztrue,pttrue);
+							//fTruePtVsPzAll->Fill(pztrue,pttrue);
 							ptrue = std::sqrt(pxtrue*pxtrue + pytrue*pytrue + pztrue*pztrue);
 							if (fVerbosity) {
 								std::cout << "True |p| = " << ptrue << ", pz = " << pztrue << ", pt = " << pttrue << std::endl;
@@ -419,7 +447,7 @@ namespace emph {
 							TMath::Abs(hit.PId()) != 11) { // look for non-electron hit 2nd plane of 2nd station, which is the just upstream of the target
 							xtrue = hit.X();
 							ytrue = hit.Y();
-							fXYDistAll->Fill(xtrue,ytrue);
+							//fXYDistAll->Fill(xtrue,ytrue);
 							momPreTarget.SetXYZ(hit.Px(), hit.Py(), hit.Pz());
 							break;
 						}
@@ -431,8 +459,8 @@ namespace emph {
 					std::cout << "True theta: " << trueTheta << std::endl;
 
 				fKTracker->Clear();
-				fTruePtVsPzSel->Fill(pztrue,pttrue);
-				fXYDistSel->Fill(xtrue,ytrue);
+				//fTruePtVsPzSel->Fill(pztrue,pttrue);
+				//fXYDistSel->Fill(xtrue,ytrue);
 
 				art::ServiceHandle<emph::geo::GeometryService> geo;
 				auto emgeo = geo->Geo();
@@ -550,7 +578,7 @@ namespace emph {
 						std::cout << "Residual (" << res.GetStation() << "," << res.GetPlane() << "): "
 											<< res.GetResidual() << " +/- " << res.GetSigma() << std::endl;
 					}
-					fResidualsVsPlane->Fill(res.GetStation()*10 + res.GetPlane(), res.GetResidual());
+					//fResidualsVsPlane->Fill(res.GetStation()*10 + res.GetPlane(), res.GetResidual());
 				}
 				smoothed = fKTracker->GetSmoothedStates();
 				if (fVerbosity > 0) {
@@ -568,7 +596,7 @@ namespace emph {
 					auto smoothed = fKTracker->GetSmoothedStates();
 					auto firstSmoothed = smoothed.front();
 					double deltaP = (1./firstSmoothed.GetPar()[4] - ptrue);
-					fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
+					//fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
 
 					// ===== Calculate pulls and store diagnostics =====
 					// Pull = (Reco - True) / σ_reco tells us how many standard deviations
@@ -613,8 +641,8 @@ namespace emph {
 					int ndof = lastSmoothed.GetNdf();
 					double chi2_ndof = (ndof > 0) ? chi2 / ndof : 0;
 		*/
-					fChi2vsNdof->Fill(ndof, chi2);
-					if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
+					//fChi2vsNdof->Fill(ndof, chi2);
+					//if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
 
 					// Print diagnostics
 		//				if (fVerbosity > 0) {
@@ -665,7 +693,7 @@ namespace emph {
 					}
 					double recoTheta = ROOT::Math::VectorUtil::Angle(beamTrack.mom, track.momSSD[firstStation][0]);
 					double deltaTheta = recoTheta-trueTheta;
-					fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
+					//fDeltaThetavsTheta->Fill(trueTheta, deltaTheta);
 					if (fVerbosity){
 						std::cout << "Beam track momentum: " << beamTrack.mom << std::endl;
 						std::cout << "Reco theta: " << recoTheta << std::endl;
