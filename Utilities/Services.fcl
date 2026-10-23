@@ -4,6 +4,7 @@
 #include "Geometry.fcl"
 #include "RunHistory.fcl"
 #include "MagneticField.fcl"
+#include "SSDBadChannel.fcl"
 
 BEGIN_PROLOG
 
@@ -14,6 +15,7 @@ core_services:
   GeometryService:   	@local::standard_geometry
   RunHistoryService: 	@local::standard_runhistory
   MagneticFieldService: @local::standard_magfield
+  SSDBadChannelService: @local::standard_ssdbadchannel
 }
 
 sim_services:

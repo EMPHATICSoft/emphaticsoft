@@ -18,7 +18,7 @@ typedef ROOT::Math::SMatrix<double,5,1> KHMatrixTranspose;
 namespace kalman {
 
   class KTracker{
-
+    
   public:
     KTracker();
     ~KTracker() {};
@@ -60,7 +60,7 @@ namespace kalman {
     KStateCov CalculateJacobian( KStateVec& state, double z_start, double z_end);
     // Calculate transport matrix (Jacobian) using RK4, use when in B field
     KStateCov CalculateJacobianRK4( KStateVec& state, double z_start, double z_end);
-
+    
     // Equations of motion: d(state)/dz
     void EquationsOfMotion(KStateVec& state, double z, KStateVec& derivatives, double sgn = 1.0);
 

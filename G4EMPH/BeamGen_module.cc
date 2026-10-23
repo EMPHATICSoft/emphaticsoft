@@ -197,18 +197,18 @@ namespace emph {
       fPmean = rhs->RunHist()->BeamMom();
       // ensure that 120 GeV/c particles are always protons.
       if (fabs(fPmean-120.)<5) {
-      	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	      fPsigma = 0.01*fPmean;
-	      fXYHist = 0;
-	      fPXYHist = 0;
-	      fXYDistSource = "";
-	      fPXYDistSource = "";
-	      fPID = kProton;
-	      fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+	fPsigma = 0.01*fPmean;
+	fXYHist = 0;
+	fPXYHist = 0;
+	fXYDistSource = "";
+	fPXYDistSource = "";
+	fPID = kProton;
+	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
 
-	  GetSlicedHists(run.id().run());
+	  GetSlicedHists(runNum);
   }
 
   /***************************************************************************/
@@ -299,7 +299,6 @@ namespace emph {
     }
     mf::LogInfo("BeamGen") << "Loaded " << fSlicedHists.size() << " 3D histogram slices.";
   }
-
 
   /***************************************************************************/
 
@@ -420,13 +419,10 @@ namespace emph {
     // now get beam particle momentum
     double pmag = 0;
     if(fPZDist == "Gauss")pmag = TMath::Abs(fRand->Gaus(fPmean,fPsigma));
-    else {
-      if(fPZDist == "flat" || fPZDist == "uniform")
-        pmag = TMath::Abs(fRand->Uniform(fPMin,fPMax));
-      else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl;
-    }
-
-//    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl;
+    else if(fPZDist == "flat" || fPZDist == "uniform") pmag = TMath::Abs(fRand->Uniform(fPmean - fPsigma,fPmean+fPsigma));
+    else std::cout << Form("Unrecognized distribution %s, available Gauss or flat/uniform", fPZDist.c_str()) << std::endl; 
+    
+//    std::cout << "Using dist " << fPZDist << " beam mag " << pmag << std::endl; 
 
     double pb[3];
     double x = 0., y = 0., pxpz = 0., pypz = 0.;

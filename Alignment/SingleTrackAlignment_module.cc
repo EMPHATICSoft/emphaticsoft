@@ -53,6 +53,7 @@
 #include "Simulation/SSDHit.h"
 #include "Simulation/Particle.h"
 #include "TrackReco/SingleTrackAlgo.h"
+#include "StandardRecord/SRBaseDefs.h"
 
 #include "millepede_ii/Mille.h"
 

@@ -6,7 +6,7 @@ standard_singletrackKalman:
   TrackSegmentLabel:  "maketracksegments"
   RK4MaxZStep: 0.5
   RK4MaxNStep: 10000
-  UseTruth: true
+  UseTruth: false
   Verbosity: 0
   NIterations: 2
 }

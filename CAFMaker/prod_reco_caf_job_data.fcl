@@ -15,9 +15,9 @@
 #include "MakeSingleTracks.fcl"
 #include "SingleTrackKalmanReco.fcl"
 #include "SingleTrackAlignmentKalman.fcl"
-#include "SingleTrackAlignment.fcl"
 #include "MakePrimaryVertex.fcl"
 
+#include "SSDBadChannel.fcl"
 
 process_name: CAF
 
@@ -28,6 +28,8 @@ services:
   scheduler: { wantSummary: false }
   TimeTracker: {}
   @table::data_services
+
+  SSDBadChannelService: @local::standard_ssdbadchannel
 
   IFBeam:{}
 }
@@ -45,9 +47,9 @@ physics:
   {
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
-    arichcluster: @local::standard_arich_cluster
-    arichreco:    @local::standard_arichreco
-    arichring:    @local::standard_arich_ring
+#    arichcluster: @local::standard_arich_cluster
+#    arichreco:    @local::standard_arichreco
+#    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
     adcreco:      @local::standard_adcreco
     backovreco:   @local::standard_backovhitreco
@@ -56,21 +58,23 @@ physics:
 
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
-    singletrackKalman: @local::standard_singletrackKalman
-    singletrackalignment: @local::standard_singletrackalignment
-    singletrackalignmentKalman: @local::standard_singletrackalignmentKalman
+#    singletrackalignment: @local::standard_singletrackalignment
+#    singletrackalignmentKalman: @local::standard_singletrackalignmentKalman
     makeprimaryvertex: @local::standard_makeprimaryvertex
+    singletrackKalman: @local::standard_singletrackKalman
+    primaryvertexKalman: @local::kalman_makeprimaryvertex
   }
 
   analyzers:{}
 
   makecaf:   [
-               dataqual, spillinfo, clust,
-               #arichcluster,arichring, arichreco,
-               maketracksegments, makeprimaryvertex,
-               #makesingletracks, singletrackalignment,
-               #singletrackalignmentKalman,
-               #adcreco, backovreco, gasckovreco,
+               dataqual, spillinfo, clust, 
+               #arichcluster, clust,
+               maketracksegments, makesingletracks, makeprimaryvertex, 
+               singletrackKalman, primaryvertexKalman,
+              # arichring, arichreco, singletrackalignment,
+              # singletrackalignmentKalman,
+              # adcreco, backovreco, gasckovreco,
                cafmaker
              ]
 

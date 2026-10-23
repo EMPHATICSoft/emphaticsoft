@@ -16,15 +16,20 @@
 ///               re-enabled once the supporting ROOT input files are available.
 ///
 ///          Conventions / things to know for future maintainers:
-///            - Times are handled in "coarse counter" units of 5 ns. A coarse
-///              counter is 11 bits wide and wraps every 2048 counts (~10.24 us);
-///              the TDC "epoch" word increments on each wrap (see CheckPair()).
+///            - Times are handled in "coarse counter" units of 5 ns, as doubles.
+///              A coarse counter is 11 bits wide and wraps every 2048 counts
+///              (~10.24 us); the TDC "epoch" word increments on each wrap (see
+///              CheckPair()). The sub-coarse remainder is NOT thrown away: it is
+///              encoded in the TDC fine-time word, exactly as the hardware does,
+///              so that TRB3RawDigit::GetFinalTime() reconstructs it (see the
+///              kTrb3Fine* constants and MakeDigit()).
 ///            - MakeDigit()'s last argument (isNoise): false = a real/physics
 ///              hit, true = an injected noise hit. It only changes the trigger
 ///              delay applied to the hit time.
-///            - Hit time comes from MCTruth; a small Gaussian smearing is added
-///              in MakeDigit() to mimic the detector/electronics jitter.
-///            - TODO: ADC conversion is not yet implemented.
+///            - Hit time comes from MCTruth; a Gaussian smearing is added in
+///              MakeDigit() to mimic the detector/electronics jitter. It is kept
+///              in ns as a double - doing it in integer coarse counts quantises
+///              the jitter onto multiples of 5 ns and destroys the distribution.
 ///
 /// \author   mdallolio
 ////////////////////////////////////////////////////////////////////////
@@ -56,6 +61,7 @@
 #include "canvas/Persistency/Common/Ptr.h"
 #include "canvas/Persistency/Common/PtrVector.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "cetlib/filesystem.h"
 
 // EMPHATICSoft includes
 #include "Geometry/DetectorDefs.h"
@@ -71,6 +77,22 @@
 /// A class for communication with the viewer via shared memory segment
 ///
 namespace emph{
+
+	// --- TRB3 fine-time calibration -------------------------------------
+	// These MUST match TRB3RawDigit::GetFinalTime() (RawData/TRB3RawDigit.cxx),
+	// which reconstructs
+	//     t = epoch*10240026 ps + coarse*5000 ps
+	//         - ((fine - LOW)/(HIGH - LOW))*5000 ps
+	// i.e. the fine word carries the sub-coarse part with a NEGATIVE sign.
+	// 17/473 are the default constants, used for every board except T0 (18)
+	// and the RPC (19); ARICH is boards 4-15, so these are the right ones.
+	static const double kTrb3FineLow  =  17.0;
+	static const double kTrb3FineHigh = 473.0;
+	// Fine word of the per-board reference digit. Fixing it at the high end puts
+	// the reference exactly on a coarse-counter edge ((fine-LOW)/(HIGH-LOW) = 1),
+	// which is what lets MakeDigit() encode each hit's remainder relative to it.
+	static const int    kTrb3FineRef  = (int)kTrb3FineHigh;
+
 	class ARICHDigitizer : public art::EDProducer
 	{
 	  public:
@@ -83,7 +105,7 @@ namespace emph{
 	    uint32_t GetFpgaHeaderWord(int fpga_board_id);
 	    uint32_t GetTDCMeasurementWord(int channel_id, bool Leading_hit, int coarse_counter, int fine_time);		
 	    std::pair<int,uint32_t> CheckPair(std::pair<int,uint32_t> course_epoch);
-	    rawdata::TRB3RawDigit MakeDigit(int board, int channel, bool isLeading, float t, int start_coarse_counter, bool isNoise);
+	    rawdata::TRB3RawDigit MakeDigit(int board, int channel, bool isLeading, double t, int start_coarse_counter, bool isNoise);
 	    void FillNeighborMap();
 
 	    // ---- in-peak noise injection (dark counts + cross-talk) ----
@@ -97,7 +119,7 @@ namespace emph{
 	    void BuildChannelDarkMap();
 	    // Append the leading+trailing pair for one (noise) hit to the output vector.
 	    void PushPair(std::vector<rawdata::TRB3RawDigit>& out, const cmap::EChannel echan,
-	                  float t, int start_coarse_counter, bool isNoise);
+	                  double t, int start_coarse_counter, bool isNoise);
 
 	   //Helper to chek dead channels
 	   bool isDead(cmap::EChannel echan);
@@ -119,7 +141,7 @@ namespace emph{
 	     float fCalibration;    //to be fixed later (ADC conversion not yet implemented)
 	     bool fIncludeNoise;	 //fhicl flag: master switch for the in-peak dark + cross-talk injection
 	     bool fFillTree;        //fhicl flag: fill the per-event diagnostic TTree (wavelengths before/after QE)
-	     int  fTriggerDelay;    //run-dependent peak position wrt reference, in coarse counters (set in beginRun)
+	     double fTriggerDelayNs; //run-dependent peak position wrt reference, in ns (set in beginRun)
 
 	     // --- in-peak noise configuration (fhicl) ---
 	     std::string fDarkMapFile; //path to the per-energy dark_count_map.root (see make_dark_count_map.C)
@@ -129,24 +151,18 @@ namespace emph{
 	     double fSigTimeLo;
 	     double fSigTimeHi;
 
-	     // Expected dark-hit count per electronics channel inside the signal window,
-	     // derived from the x-y map in beginRun (channel-space view of the dark map).
 	     std::map<cmap::EChannel,double> fChannelDarkExp;
 	     TH2D* fDarkInSignal = nullptr; //x-y map (expected dark hits in signal window), owned, loaded in beginRun
 	     TH2D* fChanDarkMap  = nullptr; //diagnostic: same rate re-binned in (board,channel) for the consistency check
+	     std::string *user_build; 
 	
-/*	     TFile *RunInfoFile;
-	     TH1I* Distribution_number_unmatched_hits;
-	     TH1F* Distribution_times_unmatched_hits;
-	     TH2I* Distribution_space_unmatched_hits;
-	     TH1F* Distribution_lead_times;
-	     TH1F* Distribution_lead_trail_delay;
-*/	
 	     std::map<cmap::EChannel,std::vector<cmap::EChannel>> channel_neighbor;
 
 	     TTree *fTest;
 	     std::vector<double> wls;
 	     std::vector<double> wls_qe;
+	     int nhits_sim;
+ 	     int nhits_noise;
 	     TRandom3 *rand_gen; 	
 	};
   
@@ -159,13 +175,10 @@ ARICHDigitizer::ARICHDigitizer(fhicl::ParameterSet const& pset)
     // New in-peak-noise parameters. Defaults keep old behaviour (empty map path ->
     // dark injection simply skipped) so existing fcl files don't need changes.
     fDarkMapFile(pset.get<std::string>("DarkMapFile","")),
-    // Total within-mPMT cross-talk probability per real hit, spread over the
-    // same-mPMT neighbours. Default 0.07 from the published value for these MAPMTs
-    // (~7% into the neighbouring pixels of the same mPMT); confirmed at the few-%
-    // level by the low-occupancy data study (see make_xtalk_estimate.C).
     fXTalkProb  (pset.get<double>("XTalkProb",0.07)),
     fSigTimeLo  (pset.get<double>("SigTimeLo",-290.)),
     fSigTimeHi  (pset.get<double>("SigTimeHi",-260.))
+    // makes near the track - ring-subtract MC the same way before trusting 6.1.
 {
  //    fEvent = 0;
  // fSensorMap.clear();
@@ -191,17 +204,21 @@ void ARICHDigitizer::beginJob()
    fTest = tfs->make<TTree>("events","events");
    fTest->Branch("wavelengths",&wls);
    fTest->Branch("wavelengths_after_qe",&wls_qe);
+   fTest->Branch("nhits_sim",&nhits_sim);
+   fTest->Branch("nhits_noise", &nhits_noise);
  }
 }
 //.....................................................................
 void ARICHDigitizer::beginRun(art::Run &run){
 
-  const char* user_build = getenv("CETPKG_SOURCE");
+  user_build = (std::string*)getenv("CETPKG_SOURCE");
   std::cout << "histpath: " << user_build << std::endl;
-
-  if(run.run() < 2000){
-	fTriggerDelay = int(-559./5);}  //peak position wrt refence in course counters
-  else   fTriggerDelay = int(-270./5);
+  
+  // Peak position wrt the reference time. Kept in ns: the old form,
+  // int(-559./5), truncated to -111 coarse counts = -555 ns, silently moving
+  // the peak by 4 ns for these runs and allowing tuning only in 5 ns steps.
+  if(run.run() < 2000) fTriggerDelayNs = -559.;
+  else                 fTriggerDelayNs = -269.;
 
   if(!fIncludeNoise) return; // dark/cross-talk injection disabled -> nothing else to set up
 
@@ -212,29 +229,43 @@ void ARICHDigitizer::beginRun(art::Run &run){
   // Load the per-energy dark map produced by make_dark_count_map.C. The relevant
   // object is "dark_in_signal": expected dark hits per pixel inside the signal
   // window. The file is chosen per dataset via the DarkMapFile fcl parameter
-  // (the 4G/8G/120G runs each have their own dark_count_map.root).
   if(fDarkMapFile.empty()){
     mf::LogWarning("ARICHDigitizer")
       << "IncludeNoise is true but DarkMapFile is empty; dark-count injection disabled.";
     return;
   }
+ 
+  std::string mapPath = fDarkMapFile;
+  if (!cet::file_exists(mapPath)) {
+    const char* srcDir = getenv("CETPKG_SOURCE");
+    if (!srcDir) {
+      mf::LogWarning("ARICHDigitizer")
+        << "CETPKG_SOURCE is not set and " << fDarkMapFile
+        << " is not in the working directory; dark-count injection disabled.";
+      return;
+    }
+    mapPath = srcDir + std::string("/Digitization/") + fDarkMapFile;
+  }
 
-  TFile* fmap = TFile::Open(fDarkMapFile.c_str(),"READ");
-  if(!fmap || fmap->IsZombie()){
-    mf::LogWarning("ARICHDigitizer") << "Could not open dark map file " << fDarkMapFile
+  TFile* fmap = TFile::Open(mapPath.c_str(), "READ");
+  if (!fmap || fmap->IsZombie()) {
+    mf::LogWarning("ARICHDigitizer") << "Could not open dark map file " << mapPath
                                      << "; dark-count injection disabled.";
     return;
-  }
-  TH2D* hmap = dynamic_cast<TH2D*>(fmap->Get("dark_in_signal"));
-  if(!hmap){
-    mf::LogWarning("ARICHDigitizer") << "No 'dark_in_signal' histogram in " << fDarkMapFile;
-    fmap->Close();
-    return;
-  }
-  // Detach from the file so it survives the Close() (we own it now).
-  hmap->SetDirectory(nullptr);
-  delete fDarkInSignal;          // safe if a previous run already loaded one
-  fDarkInSignal = hmap;
+  } 
+
+    TH2D* hmap = dynamic_cast<TH2D*>(fmap->Get("dark_in_signal"));
+    if(!hmap){
+      mf::LogWarning("ARICHDigitizer") << "Neither the split maps nor 'dark_in_signal' "
+        << "found in " << fDarkMapFile << "; dark-count injection disabled.";
+      fmap->Close();
+      return;
+    }
+    mf::LogWarning("ARICHDigitizer") << "No activity-conditional split in " << fDarkMapFile
+      << "; falling back to the unconditional 'dark_in_signal' map "
+      << "(same background injected on every event regardless of activity).";
+    fDarkInSignal = hmap;
+
   fmap->Close();
 
   BuildChannelDarkMap();
@@ -243,22 +274,23 @@ void ARICHDigitizer::beginRun(art::Run &run){
 //.....................................................................
 void ARICHDigitizer::endRun(art::Run &run){
   // fChanDarkMap is owned by TFileService (made with tfs->make), so we do NOT
-  // delete it here. fDarkInSignal was detached from its file, so we own it.
-  delete fDarkInSignal; fDarkInSignal = nullptr;
+  // delete it here. The dark maps were detached from their file, so we own them.
   fChannelDarkExp.clear();
+  delete fDarkInSignal; fDarkInSignal = nullptr;
   channel_neighbor.clear();
 }
 
 //.....................................................................
 // Build a single TRB3RawDigit (one edge) for the given board/channel.
 //   isLeading : true = leading edge, false = trailing edge of the TDC pulse.
-//   t         : MCTruth hit time already converted to coarse-counter units (5 ns).
+//   t         : MCTruth hit time in coarse-counter units (5 ns), fractional part
+//               included - do NOT truncate it at the call site.
 //   start_coarse_counter : per-event reference coarse counter (see produce()).
 //   isNoise   : false = physics hit (apply the run-dependent trigger delay),
 //               true  = injected noise hit (no trigger delay).
-// The leading/trailing edges are separated by a ~20-count (100 ns) Gaussian gap
-// so the pulse has a realistic width; both edges also get a small Gaussian jitter.
-rawdata::TRB3RawDigit ARICHDigitizer::MakeDigit(int board, int channel, bool isLeading, float t, int start_coarse_counter, bool isNoise){
+// The leading/trailing edges are separated by a ~20 ns Gaussian gap so the pulse
+// has a realistic width; both edges also get a Gaussian jitter.
+rawdata::TRB3RawDigit ARICHDigitizer::MakeDigit(int board, int channel, bool isLeading, double t, int start_coarse_counter, bool isNoise){
 
     uint32_t fpga_header_word = GetFpgaHeaderWord(board);
 
@@ -266,26 +298,29 @@ rawdata::TRB3RawDigit ARICHDigitizer::MakeDigit(int board, int channel, bool isL
 
     //Physics hits sit at a fixed (run-dependent) delay from the reference time;
     //injected noise hits are placed without that offset.
-    int trigger_delay_coarse;
-    if(!isNoise) trigger_delay_coarse = fTriggerDelay;//int(Distribution_lead_times->GetBinCenter(Distribution_lead_times->GetMaximumBin())/5.);
-    else trigger_delay_coarse = 0;
+    double trigger_delay_coarse;
+    if(!isNoise) trigger_delay_coarse = fTriggerDelayNs/5.;
+    else trigger_delay_coarse = fTriggerDelayNs/5.;
 
 
-    // Per-edge jitter (in coarse counts): leading edge ~ N(0,3) ns, trailing edge
-    // ~ N(20,3) ns later. A data-driven distribution could replace these.
-    int delay;
-    if(isLeading) delay = (int)rand_gen->Gaus(0,3)/5;
-    else delay = (int)rand_gen->Gaus(20,3)/5;   //it can use data driven distribution
+    const double jitter_ns = isLeading ? rand_gen->Gaus(0., 4)
+                                       : rand_gen->Gaus(20., 3.); //it can use data driven distribution
 
 
-    int t_coarse = start_coarse_counter + trigger_delay_coarse - t + delay;
+    // Full time in coarse-counter units, fractional part retained.
+    const double t_full = start_coarse_counter + trigger_delay_coarse - t + jitter_ns/5.;
 
- 
-    std::pair<int,uint32_t> course_epoch = std::make_pair(t_coarse, tdc_epoch_word);    
+    int          t_coarse = (int)std::floor(t_full);
+    const double frac     = t_full - t_coarse;   // sub-coarse remainder, [0,1)
+
+
+    std::pair<int,uint32_t> course_epoch = std::make_pair(t_coarse, tdc_epoch_word);
 
     std::pair<int,uint32_t> checked_pair = CheckPair(course_epoch);
-   
-    int fine_time =  (int)rand_gen->Uniform(0,511);
+
+    int fine_time = (int)std::lround(kTrb3FineLow + (1. - frac)*(kTrb3FineHigh - kTrb3FineLow));
+    if(fine_time < 0)   fine_time = 0;
+    if(fine_time > 511) fine_time = 511;
     uint32_t tdc_measurement_word = GetTDCMeasurementWord(channel, isLeading, checked_pair.first,fine_time);
 
 
@@ -411,11 +446,10 @@ void ARICHDigitizer::BuildChannelDarkMap()
         << "sum(channel)=" << sum_chan << " vs integral(x-y)=" << sum_xy
         << " (ratio " << (sum_xy>0 ? sum_chan/sum_xy : 0.) << ")";
 }
-
 //.....................................................................
 // Convenience: emit the leading + trailing edge for a single hit.
 void ARICHDigitizer::PushPair(std::vector<rawdata::TRB3RawDigit>& out,
-                              cmap::EChannel echan, float t,
+                              cmap::EChannel echan, double t,
                               int start_coarse_counter, bool isNoise)
 {
     out.push_back(MakeDigit(echan.Board(), echan.Channel(), true,  t, start_coarse_counter, isNoise));
@@ -591,7 +625,7 @@ void ARICHDigitizer::produce(art::Event& evt)
     int start_coarse_counter = (int)rand_gen->Uniform(0,2048);  
 
 
-   std::map<int,double> RefTime; //to be removed, need for debug reallt far away leading and trailing times
+   std::map<int,double> RefTime; 
 
     //Get fake reference time one for each FPGA bord
     //we can set it to zero and shift everything else
@@ -600,7 +634,12 @@ void ARICHDigitizer::produce(art::Event& evt)
        uint32_t fpga_header_word = GetFpgaHeaderWord(fpga_number);
        uint32_t tdc_header_word = 0x0;
 
-       int fine_time_ref =  (int)rand_gen->Uniform(0,511); //fine time has 9 bits at disposal so is between 0-511, in a flat distribution
+       // Reference fine time is FIXED at the top of the range, so the reference
+       // sits exactly on a coarse-counter edge and MakeDigit() can express each
+       // hit's sub-coarse remainder relative to it. It used to be a flat
+       // Uniform(0,511), which put an uncorrelated ~+-2.8 ns offset on the
+       // reference of every board, on top of the same smear on every hit.
+       int fine_time_ref = kTrb3FineRef;
        uint32_t tdc_measurement_word = GetTDCMeasurementWord(0, true, start_coarse_counter, fine_time_ref); //for channel 0, leading or traling doesn't matter so just set true
        
        uint32_t tdc_epoch_word  =0x1; //setting it to one will allow neg true hits values (in previuos epoch)
@@ -620,7 +659,8 @@ void ARICHDigitizer::produce(art::Event& evt)
       echan.SetBoardType(cmap::TRB3);
       dchan.SetDetId(geo::ARICH);
  
-      int nhits =0;
+      nhits_sim =0;
+      nhits_noise=0;
       std::vector<int> parent_id;
 
       // Real data almost always has at most one hit per sensor per event; we track
@@ -630,7 +670,7 @@ void ARICHDigitizer::produce(art::Event& evt)
 
       // Real (physics) hits placed this event, as (channel, coarse-time). Used below
       // to seed cross-talk on neighbouring channels.
-      std::vector<std::pair<cmap::EChannel,int>> realHits;
+      std::vector<std::pair<cmap::EChannel,double>> realHits;
 
       for(size_t i = 0; i < arichHits->size(); i++){
 	
@@ -647,9 +687,9 @@ void ARICHDigitizer::produce(art::Event& evt)
 	 //check wavelenght and QE
 	 //wavelenght == 0 is used for charged particles transversing the anodes 
 	 //so far these wl == 0 are always on, can be change to use rand_gen with probability P
-	 if(wavelength != 0.){
-	 if(!mpmt.ifDet(wavelength))continue; //check if PMT can detected that photon			
-	 }
+	  
+	 if(wavelength != 0. && !mpmt.ifDet(wavelength))continue; //check if PMT can detected that photon			
+	 
 	 if(fFillTree)wls_qe.push_back(wavelength*1e6);
 	
 	 //Get echannel information from detector channels  
@@ -659,14 +699,15 @@ void ARICHDigitizer::produce(art::Event& evt)
 	 dchan.SetChannel(channel);
  	 echan = cmap->ElectChan(dchan);
 
-	 //Get time information
-	 int time =  (int)((arichhit.GetTime() * 1e9)/5);
-
+	 //Get time information, in coarse-counter units. Keep the fractional part:
+	 //the old (int) cast quantised every photon onto the same 5 ns coarse bin,
+	 //erasing the true arrival-time spread across the ring.
+	 double time =  (arichhit.GetTime() * 1e9)/5.;
 	 //real data only has one hit per channel per event (almost all the time)
 	 //check if a channel has already been used,
 	 //	 if not -> great
 	 //	 if yes -> small probability to reuse it 
-	 if(find(used_echan.begin(), used_echan.end(), echan) != used_echan.end() && rand_gen->Uniform(0,1) > 0.05)continue;	 
+	 if(find(used_echan.begin(), used_echan.end(), echan) != used_echan.end())continue;
 	 else used_echan.push_back(echan);
 	
 	 //dead channels
@@ -675,6 +716,9 @@ void ARICHDigitizer::produce(art::Event& evt)
 	 //Low efficiency region, allow for some digits to be make
 	 if(echan.Board() == 5 &&  echan.Channel() <= 16 && rand_gen->Uniform(0,1) > 0.003)continue; //data low eff region
 
+	if(rand_gen->Uniform(0,1) < 0.55)continue; //waiting for eff corrections
+
+	nhits_sim++;
 	//Make the TRB3 raw digit
 	rawdata::TRB3RawDigit Leading_dig = MakeDigit(echan.Board(), echan.Channel(), true, time, start_coarse_counter, false);
 	rawdata::TRB3RawDigit Trailing_dig = MakeDigit(echan.Board(), echan.Channel(), false, time, start_coarse_counter,false); 
@@ -686,25 +730,8 @@ void ARICHDigitizer::produce(art::Event& evt)
 
 	realHits.emplace_back(echan, time); //remember this hit so we can add cross-talk to its neighbours
 
-	//high noise region
-	if(rand_gen->Uniform(0,1) < 0.22){
-	 int pmt = 4;
-         int chan = rand_gen->Integer(52)+2; 
-         dchan.SetHiLo(pmt);
-         dchan.SetChannel(chan);
-         echan = cmap->ElectChan(dchan);
-
-	 rawdata::TRB3RawDigit Leading_dig = MakeDigit(echan.Board(), echan.Channel(), true, time, start_coarse_counter, false);
-        rawdata::TRB3RawDigit Trailing_dig = MakeDigit(echan.Board(), echan.Channel(), false, time, start_coarse_counter,false);
-	
-	 ArichRawD->push_back(Leading_dig);
-        ArichRawD->push_back(Trailing_dig);
-
-	}
-
-
    } //end loop over simulated hits
-
+ 
    // ============================ IN-PEAK NOISE ============================
    // Add the noise that survives the analysis selection cut (fSigTimeLo..fSigTimeHi,
    // e.g. -290..-260 ns). Two contributions:
@@ -718,14 +745,16 @@ void ARICHDigitizer::produce(art::Event& evt)
      // signal window; draw the actual count from Poisson and spread each hit flat
      // across [fSigTimeLo, fSigTimeHi]. For a noise hit MakeDigit reconstructs the
      // lead time as ~ -t*5 ns, so t = -t_reco/5 places it at the wanted time.
-      for(auto& ch : fChannelDarkExp){
+     for(auto& ch : fChannelDarkExp){
        const cmap::EChannel& nch = ch.first;
+       if(find(used_echan.begin(), used_echan.end(), nch) != used_echan.end())continue;
        if(isDead(nch)) continue;
        int ndark = rand_gen->Poisson(ch.second);
        for(int d = 0; d < ndark; ++d){
-         double t_reco = rand_gen->Uniform(fSigTimeLo, fSigTimeHi); // negative ns
-         float  t      = -t_reco/5.;
-         PushPair(*ArichRawD, nch, t, start_coarse_counter, true);
+         double  t = rand_gen->Gaus(1.5,0.5);
+         PushPair(*ArichRawD, nch,t, start_coarse_counter, true);
+	 realHits.emplace_back(nch,t); 
+       nhits_noise++;
        }
      }
 
@@ -740,86 +769,20 @@ void ARICHDigitizer::produce(art::Event& evt)
      for(const auto& rh : realHits){
        auto nb = channel_neighbor.find(rh.first);
        if(nb == channel_neighbor.end() || nb->second.empty()) continue;
-       double prob = fXTalkProb / nb->second.size();
+       double prob = fXTalkProb; 
        for(const cmap::EChannel& nch : nb->second){
          if(isDead(nch))continue;
          if(rand_gen->Uniform(0,1) >= prob) continue;
-         float t = rh.second - fTriggerDelay;
+         double t = rh.second - fTriggerDelayNs/5.;
          PushPair(*ArichRawD, nch, t, start_coarse_counter, true);
+	nhits_noise++;
        }
      }
    }
-   // ========================== END IN-PEAK NOISE ==========================
-
-	//AFTER PULSES: for each true photon hit, evaluate if there'll be another one (in the same anode) at a later time
-/*	int N = rand_gen->Poisson(5e-3); //hits after the peak 
-	if(N != 0){
-	   TF1 *noiseR = new TF1("noise1","(100 * exp(-0.001*(x+545)))", -545,-30); //obtained by fit on data (probably want it on a root file for each run)
-	   for(int h =0; h < N; ++h){
-            float t = -int(noiseR->GetRandom()/5);
-	 
-	   //std::cout << t << std::endl;
 	
-	     rawdata::TRB3RawDigit Leading_dig_noise = MakeDigit(echan.Board(), echan.Channel(), true, t, start_coarse_counter, true);
-             rawdata::TRB3RawDigit Trailing_dig_noise = MakeDigit(echan.Board(), echan.Channel(), false, t, start_coarse_counter,true); 
-	    
- 	     ArichRawD->push_back(Leading_dig_noise);
-             ArichRawD->push_back(Trailing_dig_noise);	
-	  }
-	 delete noiseR;
- 	 }	
-*/
-	//time to add noise!!
-	
-	//Import infos from real data: number distribution, time distribution, fpga-channel distributioon and sample from them
-/*	float N_unmatched_sampled = Distribution_number_unmatched_hits->GetRandom();
- //  	std::cout << "Sampled N " << N_unmatched_sampled  << " -> " << (int)N_unmatched_sampled << std::endl;
-   
-	fUnmatched.push_back(N_unmatched_sampled);
-
-	if(int(N_unmatched_sampled) > 0){
- for(int h =0; h < (int)N_unmatched_sampled; h++){
-  
-
-float time = Distribution_times_unmatched_hits->GetRandom();
- float corse_time = int(abs(time)/5);
-
-fUnmatched_times.push_back(time);
-
-Double_t fpga_channel;
-   Double_t fpga_board;
-
-   Distribution_space_unmatched_hits->GetRandom2(fpga_channel,fpga_board);
-rawdata::TRB3RawDigit NoMatch_dig = MakeDigit((int) fpga_board, (int)fpga_channel, true, corse_time, start_coarse_counter,true);
-
-ArichRawD->push_back(NoMatch_dig);
-}
-}
-
-	//this is the uniform intrinsic noise, spreading over all anodes at all times, it's small but it's there
-	for(int board =4; board <16; board++){
-	  for(int channel=1; channel < 49; channel++){	
-	    int Nb = rand_gen->Poisson(4e-4); //hits before the peak 
-       	    if(Nb ==0)continue;
-	      for(int hh =0; hh < Nb; ++hh){
-
-                float tt = int(rand_gen->Uniform(30,700)/5);
-		//std::cout <<  board << " " << channel << " " << tt << std::endl;
-
-                rawdata::TRB3RawDigit Leading_dig_noiseb = MakeDigit((int) board, (int)channel, true, tt, start_coarse_counter,true);
-                rawdata::TRB3RawDigit Trailing_dig_noiseb = MakeDigit((int) board, (int)channel, false, tt, start_coarse_counter,true);
-	  
-		ArichRawD->push_back(Leading_dig_noiseb);
-		ArichRawD->push_back(Trailing_dig_noiseb);
- 
-	        }
-	     }
-	 }
-*/
  	 HitPixels.clear();
         HitTime.clear();
 	
-   
     evt.put(std::move(ArichRawD),"ARICH");
    
     if(fFillTree){fTest->Fill(); wls.clear();wls_qe.clear();}

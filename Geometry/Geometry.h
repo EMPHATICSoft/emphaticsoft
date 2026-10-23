@@ -261,9 +261,9 @@ namespace emph {
       const Detector* GetSSDSensor(int i) { return fSSDSensorMap[i].get(); }
       int GetSSDId(int station, int plane, int sensor) const;
       double GetRadLength(int ssdi, int ssdj) const;
+
       TVector3 GetmPMTPlanePos() const {return fmPMTPlanePos;}
       TVector3 GetARICHCenrterPos() const {return fArichCenterPos;}
-
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT& GetPMT(int i){return fPMT[i]; }
       const emph::arich_util::PMT& FindPMTByName(const std::string& name) const;

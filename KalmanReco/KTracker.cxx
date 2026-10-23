@@ -104,7 +104,7 @@ namespace kalman {
 
     bool isLast = false;
     while (zpos >= z_start && zpos <= z_end) {      
-      EquationsOfMotion(state_out, zpos + fMaxStepSize*sgn, k1, sgn);
+      EquationsOfMotion(state_out, zpos, k1, sgn);
       temp_state = state_out + 0.5 * fMaxStepSize * k1;
       if (fVerbosity > 2)
         std::cout << "\t k1 = " << k1 << ", temp_state = " << temp_state << std::endl;
@@ -690,7 +690,7 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
                 << " / " << ndof << " = " << (ndof > 0 ? chi2_total/ndof : 0.0) << std::endl;
     }
 
-    return std::make_pair(chi2_total, ndof);
+    return std::make_pair(chi2_total, ndof-5);
   }
 
 
