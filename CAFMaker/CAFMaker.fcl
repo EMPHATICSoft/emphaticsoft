@@ -16,6 +16,7 @@ standard_cafmaker:{
     SSDClustLabel:     "clust"
     SSDHitLabel:       "geantgen" #dah
     SSDRawLabel:       "raw:SSD"
+    BeamTrackLabel:    "beamtrackreco"
     TrackLabel:        "makesingletracks"
     KTrackLabel:        "singletrackKalman"
     TrackSegmentLabel: "maketracksegments"

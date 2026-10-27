@@ -83,18 +83,18 @@ namespace emph {
     art::Handle< std::vector<rb::Track> > trkH;
     art::Handle< std::vector<rb::Track> > beamTrkH;
     std::vector<rb::Track> trkV;
-
+    std::vector<rb::Track> beamTrkV;
     try {
       evt.getByLabel(fBeamTrkLabel, beamTrkH);
       if (!beamTrkH->empty()){
 	      for (size_t idx=0; idx < beamTrkH->size(); ++idx) {
 	        auto trk = (*beamTrkH)[idx];
-      	  trkV.push_back(trk);
+      	  beamTrkV.push_back(trk);
       	}
       }
     }
     catch(...) {
-      std::cout << "MakePrimaryVertex: Error occurred while getting tracks from " << fBeamTrkLabel << std::endl;
+      std::cout << "MakePrimaryVertex: Error occurred while getting beam tracks from " << fBeamTrkLabel << std::endl;
     }
     
     try {
@@ -110,9 +110,9 @@ namespace emph {
       std::cout << "MakePrimaryVertex: Error occurred while getting tracks from " << fTrkLabel << std::endl;
     }
 
-    if (trkV.size() > 1) {
+    if (beamTrkV.size() == 1 && !trkV.empty()) {
       rb::Vertex vtx;
-   	  if (pvA.FindVertexDOCA(trkV,vtx))
+   	  if (pvA.FindVertexDOCA(beamTrkV,trkV,vtx))
         vtxv->push_back(vtx);
   	}
 
