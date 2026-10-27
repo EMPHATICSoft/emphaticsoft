@@ -83,7 +83,9 @@ namespace emph {
     std::vector<const rb::TrackSegment*> trksegs1;
     std::vector<const rb::TrackSegment*> trksegs2;
     std::vector<const rb::TrackSegment*> trksegs3;
+//    std::vector<const rb::Track*> tracks;
     std::vector<const rb::SSDCluster*> clusters;
+    std::vector<rb::Track> tracks;
     std::vector<rb::TrackSegment> tsv;
     std::vector<const rb::TrackSegment*> tsvcut;
 
@@ -425,30 +427,8 @@ namespace emph {
             }
 
             // Now make tracks
-            // Eventually beamtrk should be fixed later with SpillInfo
             trackv->clear();
-            rb::Track beamtrk;
             std::vector<rb::TrackSegment> tsvec;
-
-            auto t1 = *tsvcut[0];
-            tsvec.push_back(t1);
-            algo.SetBeamTrk(t1, fPBeamTmp);
-            beamtrk.Add(t1);
-            beamtrk.mom = t1.mom;   // SetP(t1.P());
-            beamtrk.vtx = t1.vtx;   // SetVtx(t1.Vtx());
-            beamtrk.chi2 = t1.chi2; // SetChi2(t1.Chi2());
-            // fill position and momentum projected to the center of the target
-            beamtrk.momTrgt = t1.mom;
-            double posAtTrgt[3];
-            // dz should be positive since we are projecting forward to the target
-            double dz = fTrgtZ - t1.pointB.Z();
-            posAtTrgt[2] = fTrgtZ;
-            posAtTrgt[0] = (t1.mom.X() / t1.mom.Z()) * dz + t1.pointB.X();
-            posAtTrgt[1] = (t1.mom.Y() / t1.mom.Z()) * dz + t1.pointB.Y();
-
-            beamtrk.posTrgt.SetCoordinates(posAtTrgt);
-            AddSSDLineSegmentsToTrack(beamtrk);
-            trackv->push_back(beamtrk);
 
             rb::Track sectrk;
             auto t2 = *tsvcut[1];
@@ -474,7 +454,9 @@ namespace emph {
             sectrk.mom = t2.mom;
             sectrk.momTrgt = t2.mom;
             // dz should be negative since we're projecting back to the target
-            dz = fTrgtZ - t2.pointA.Z();
+            double dz = fTrgtZ - t2.pointA.Z();
+            double posAtTrgt[3];
+            posAtTrgt[2] = fTrgtZ;
             posAtTrgt[0] = (t2.mom.X() / t2.mom.Z()) * dz + t2.pointA.X();
             posAtTrgt[1] = (t2.mom.Y() / t2.mom.Z()) * dz + t2.pointA.Y();
 

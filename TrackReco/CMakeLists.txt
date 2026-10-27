@@ -68,6 +68,35 @@ cet_build_plugin(MakeTrackSegments art::module
     ROOT::Tree
 )
 
+cet_build_plugin(BeamTrackReco art::module
+  LIBRARIES REG
+    RawData
+    RecoBase
+    RecoUtils
+    SingleTrackAlgo
+    ChannelMapService_service
+    GeometryService_service
+    DetGeoMapService_service
+    art_root_io::TFileService_service
+    messagefacility::MF_MessageLogger
+    ROOT::Core
+    ROOT::Hist
+    ROOT::Spectrum
+    ROOT::Tree
+)
+
+cet_build_plugin(MakeSpacePoints art::module
+  LIBRARIES REG
+    RawData
+    RecoBase
+    RecoUtils
+    SingleTrackAlgo
+    ChannelMapService_service
+    GeometryService_service
+    DetGeoMapService_service
+    messagefacility::MF_MessageLogger
+)
+
 cet_build_plugin(MakeTrackSegmentsForEfficiency art::module
   LIBRARIES REG
     RawData

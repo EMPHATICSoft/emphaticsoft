@@ -4,7 +4,7 @@ standard_singletrackalignment:
 {
   module_type: SingleTrackAlignment
   CheckLineSeg:       true
-  LineSegLabel:       "maketracksegments" #"makesingletracksforalign"
+  LineSegLabel:       "makespacepoints" #"makesingletracksforalign"
   ClusterLabel:       "clust" #"ssdclusts"
   TrackSegLabel:      "maketracksegments" #"makesingletracksforalign"
   TrackLabel:         "makesingletracks"

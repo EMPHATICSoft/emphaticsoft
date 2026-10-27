@@ -59,7 +59,8 @@
   <class name="std::vector<rb::TrackSegment>"        />
   <class name="art::Wrapper< std::vector<rb::TrackSegment>    >"/>
 
-  <class name="rb::SpacePoint"    ClassVersion="13">
+  <class name="rb::SpacePoint"    ClassVersion="14">
+   <version ClassVersion="14" checksum="4206633975"/>
    <version ClassVersion="13" checksum="1104475965"/>
    <version ClassVersion="12" checksum="2038019394"/>
    <version ClassVersion="11" checksum="3081214743"/>

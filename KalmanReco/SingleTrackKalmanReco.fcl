@@ -3,6 +3,7 @@ BEGIN_PROLOG
 standard_singletrackKalman:
 {
   module_type: SingleTrackKalmanReco
+  SpacePointLabel: "makespacepoints"
   TrackSegmentLabel:  "maketracksegments"
   RK4MaxZStep: 0.5
   RK4MaxNStep: 10000

@@ -252,6 +252,7 @@ namespace caf {
       VertexFiller vtxf;
       vtxf.fVertexLabel = fParams.VertexLabel();
       vtxf.fTrackLabel = fParams.TrackLabel();
+      vtxf.fBeamTrackLabel = fParams.BeamTrackLabel();
       vtxf.fKVertexLabel = fParams.KVertexLabel();
       vtxf.fKTrackLabel = fParams.KTrackLabel();
       vtxf.fArichIDLabel = fParams.ArichIDLabel();

@@ -50,6 +50,7 @@ physics:
     gasckovreco:  @local::standard_gasckovhitreco
     cafmaker:     @local::standard_cafmaker
 
+    makespacepoints: @local::standard_makespacepoints
     maketracksegments: @local::standard_maketracksegments
     makesingletracks: @local::standard_makesingletracks
     singletrackalignment: @local::standard_singletrackalignment
@@ -59,7 +60,7 @@ physics:
 
   makecaf:   [
                dataqual, spillinfo, clust, # arichcluster, clust,
-               maketracksegments, makesingletracks, singletrackalignment, #arichring, arichreco, #singletrackalignment,
+               makespacepoints, maketracksegments, makesingletracks, singletrackalignment, #arichring, arichreco, #singletrackalignment,
                #adcreco, backovreco, gasckovreco,
                cafmaker
              ]

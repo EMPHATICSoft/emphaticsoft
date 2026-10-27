@@ -99,6 +99,7 @@ physics:
     arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
 
+    makespacepoints: @local::standard_makespacepoints
     maketracksegments: @local::standard_maketracksegments
     makesingletracks:  @local::standard_makesingletracks
     makeprimaryvertex: @local::standard_makeprimaryvertex
@@ -115,7 +116,7 @@ physics:
                rawSSD, rawARICH, raw,
                dataqual, #spillinfo,
                arichcluster, clust,
-               maketracksegments, makesingletracks, makeprimaryvertex,
+               makespacepoints, maketracksegments, makesingletracks, makeprimaryvertex,
                arichring, arichreco,
                cafmaker
              ]
