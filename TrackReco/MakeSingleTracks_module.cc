@@ -83,7 +83,9 @@ namespace emph {
     std::vector<const rb::TrackSegment*> trksegs1;
     std::vector<const rb::TrackSegment*> trksegs2;
     std::vector<const rb::TrackSegment*> trksegs3;
+//    std::vector<const rb::Track*> tracks;
     std::vector<const rb::SSDCluster*> clusters;
+    std::vector<rb::Track> tracks;
     std::vector<rb::TrackSegment> tsv;
     std::vector<const rb::TrackSegment*> tsvcut;
 
@@ -452,7 +454,9 @@ namespace emph {
             sectrk.mom = t2.mom;
             sectrk.momTrgt = t2.mom;
             // dz should be negative since we're projecting back to the target
-            dz = fTrgtZ - t2.pointA.Z();
+            double dz = fTrgtZ - t2.pointA.Z();
+            double posAtTrgt[3];
+            posAtTrgt[2] = fTrgtZ;
             posAtTrgt[0] = (t2.mom.X() / t2.mom.Z()) * dz + t2.pointA.X();
             posAtTrgt[1] = (t2.mom.Y() / t2.mom.Z()) * dz + t2.pointA.Y();
 

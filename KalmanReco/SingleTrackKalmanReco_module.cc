@@ -322,203 +322,173 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
   if (trkSegs[1].size() == 0 || trkSegs[1].size() > 5) isOk = false;
   if (trkSegs[2].size() == 0 || trkSegs[2].size() > 5) isOk = false;
   if (isOk) {
-    // create beam track from most upstream track segment
-    for (size_t i=0; i<trkSegH->size(); ++i) {
-      const rb::TrackSegment& trkseg = (*trkSegH)[i];
-      if (trkseg.region == caf::Region::kRegion1) {
-        double pz = 1.;
-        double px = (trkseg.pointA.X()-trkseg.pointB.X())/(trkseg.pointA.Z()-trkseg.pointB.Z());
-        double py = (trkseg.pointA.Y()-trkseg.pointB.Y())/(trkseg.pointA.Z()-trkseg.pointB.Z());
-        pz = std::sqrt(1. - px*px - py*py);
-        beamTrack.mom.SetXYZ(px, py, pz);
-
-        beamTrack.Add(trkseg);
-        beamTrack.vtx = trkseg.vtx;   // SetVtx(trkseg.Vtx());
-        beamTrack.chi2 = trkseg.chi2; // SetChi2(trkseg.Chi2());
-        beamTrack.momTrgt.SetXYZ(px, py, pz);
-        double posAtTrgt[3];
-        // dz should be positive since we are projecting forward to the target
-        double dz = fTrgtZ - trkseg.pointB.Z();
-        posAtTrgt[2] = fTrgtZ;
-        posAtTrgt[0] = px * dz + trkseg.pointB.X();
-        posAtTrgt[1] = py * dz + trkseg.pointB.Y();
-        beamTrack.posTrgt.SetCoordinates(posAtTrgt);
-        trackv->push_back(beamTrack);
-
-        break;
-      }
-    } // end loop over track segments to find most upstream track segment
 
     fKTracker->Clear();
 
-      art::ServiceHandle<emph::geo::GeometryService> geo;
-      auto emgeo = geo->Geo();
+    art::ServiceHandle<emph::geo::GeometryService> geo;
+    auto emgeo = geo->Geo();
 
-      // now create vector of KLSMeasurements to reconstruct a track.  Will ignore linesegments from SSDs upstream of the target
-      for (size_t i=0; i<lsH->size(); ++i) {
-        auto & ls = (*lsH)[i];
-        auto station = emgeo->GetSSDStation(ls.SSDStation());
+    // now create vector of KLSMeasurements to reconstruct a track.  Will ignore linesegments from SSDs upstream of the target
+    for (size_t i=0; i<lsH->size(); ++i) {
+      auto & ls = (*lsH)[i];
+      auto station = emgeo->GetSSDStation(ls.SSDStation());
+      if (fVerbosity>100)
+        std::cout << ls << std::endl;
+        // check that measurement is downstream of the target
+      if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) { 
+        kalman::KLSMeasurement meas(ls);
         if (fVerbosity>100)
-          std::cout << ls << std::endl;
-          // check that measurement is downstream of the target
-        if (station->Pos()[2] > emgeo->GetTarget()->Pos()[2]) { 
-          kalman::KLSMeasurement meas(ls);
-          if (fVerbosity>100)
-            std::cout << meas << std::endl;
-          fKTracker->AddMeasurement(meas);
-          if (i>0) {
-            auto & prev_ls = (*lsH)[i-1];
-            int ssdId1 = prev_ls.SSDStation()*10 + prev_ls.SSDPlane();
-            int ssdId2 = ls.SSDStation()*10 + ls.SSDPlane();
-            double radLength = emgeo->GetRadLength(ssdId1, ssdId2);
-            if (fVerbosity) 
-              std::cout << "Adding radiation length of " << radLength << " between SSD " << ssdId1 << " and SSD " << ssdId2 << std::endl;
-            fKTracker->AddRadLength(radLength);
-          }
+          std::cout << meas << std::endl;
+        fKTracker->AddMeasurement(meas);
+        if (i>0) {
+          auto & prev_ls = (*lsH)[i-1];
+          int ssdId1 = prev_ls.SSDStation()*10 + prev_ls.SSDPlane();
+          int ssdId2 = ls.SSDStation()*10 + ls.SSDPlane();
+          double radLength = emgeo->GetRadLength(ssdId1, ssdId2);
+          if (fVerbosity) 
+            std::cout << "Adding radiation length of " << radLength << " between SSD " << ssdId1 << " and SSD " << ssdId2 << std::endl;
+         fKTracker->AddRadLength(radLength);
         }
       }
+    }
 
-      // create initial state for Kalman filter based on track segment in region between target and magnet.  
-      // Will set large uncertainties on this initial state to allow filter to converge.
-      KStateVec par;
-      KStateCov parCov;
-      kalman::KState initialState;
-      for (size_t itrkseg=0; itrkseg<trkSegH->size(); ++itrkseg) {
-        auto & trkseg = (*trkSegH)[itrkseg];
-        if (trkseg.region == caf::Region::kRegion2) {
-          auto trksegPoint = trkseg.pointA;
-          if (trkseg.pointB.Z() < trkseg.pointA.Z()) {
-            trksegPoint = trkseg.pointB;
-          }
-
-          par[0] = trksegPoint.X();
-          par[1] = trksegPoint.Y();
-          par[2] = (trkseg.pointA.X()-trkseg.pointB.X())/(trkseg.pointA.Z()-trkseg.pointB.Z());
-          par[3] = (trkseg.pointA.Y()-trkseg.pointB.Y())/(trkseg.pointA.Z()-trkseg.pointB.Z());
-          par[4] = 0.2;  // assume 5 GeV/c particle for initial state, will be updated by filter
-          if (fVerbosity > 100) std::cout << par << std::endl;
-          parCov[0][0] = 16.;
-          parCov[1][1] = 16.;
-          parCov[2][2] = 0.2;
-          parCov[3][3] = 0.2;
-          parCov[4][4] = 0.01;
-          double zA = trksegPoint.Z()-20.;
-          initialState.SetPar(par);
-          initialState.SetCov(parCov);
-          initialState.SetZ(zA);
-          if (fVerbosity > 100) std::cout << "Setting initial state from track segment: " << initialState << std::endl;
-          fKTracker->SetInitialState(initialState);
-          break;  
+    // create initial state for Kalman filter based on track segment in region between target and magnet.  
+    // Will set large uncertainties on this initial state to allow filter to converge.
+    KStateVec par;
+    KStateCov parCov;
+    kalman::KState initialState;
+    for (size_t itrkseg=0; itrkseg<trkSegH->size(); ++itrkseg) {
+      auto & trkseg = (*trkSegH)[itrkseg];
+      if (trkseg.region == caf::Region::kRegion2) {
+        auto trksegPoint = trkseg.pointA;
+        if (trkseg.pointB.Z() < trkseg.pointA.Z()) {
+          trksegPoint = trkseg.pointB;
         }
-      }
-    
-      int iIter = 1;
-      auto filteredStates = fKTracker->GetFilteredStates();
-      auto smoothed = fKTracker->GetSmoothedStates();
-      // Run the Kalman filter.  We iterate: run forward, then smooth backward, update the initial state with the smoothed result after each iteration to allow for convergence.
-      for (; iIter <= fNInterations && isOk; ++iIter) {
-        if (fVerbosity > 0) 
-          std::cout << "\n=== Running Kalman Filter Iteration " << iIter << "/" << fNInterations << " ===" << std::endl;
-        fKTracker->ClearFilteredStates();
+
+        par[0] = trksegPoint.X();
+        par[1] = trksegPoint.Y();
+        par[2] = (trkseg.pointA.X()-trkseg.pointB.X())/(trkseg.pointA.Z()-trkseg.pointB.Z());
+        par[3] = (trkseg.pointA.Y()-trkseg.pointB.Y())/(trkseg.pointA.Z()-trkseg.pointB.Z());
+        par[4] = 0.2;  // assume 5 GeV/c particle for initial state, will be updated by filter
+        if (fVerbosity > 100) std::cout << par << std::endl;
+        parCov[0][0] = 16.;
+        parCov[1][1] = 16.;
+        parCov[2][2] = 0.2;
+        parCov[3][3] = 0.2;
+        parCov[4][4] = 0.01;
+        double zA = trksegPoint.Z()-20.;
+        initialState.SetPar(par);
+        initialState.SetCov(parCov);
+        initialState.SetZ(zA);
+        if (fVerbosity > 100) std::cout << "Setting initial state from track segment: " << initialState << std::endl;
         fKTracker->SetInitialState(initialState);
-        if (!fKTracker->RunForwardFilter()) {
-          std::cerr << "Forward filter failed!" << std::endl;
-          isOk = false;
-        }
-        if (!isOk) break;
+        break;  
+      }
+    }
+    
+    int iIter = 1;
+    auto filteredStates = fKTracker->GetFilteredStates();
+    auto smoothed = fKTracker->GetSmoothedStates();
+    // Run the Kalman filter.  We iterate: run forward, then smooth backward, update the initial state with the smoothed result after each iteration to allow for convergence.
+    for (; iIter <= fNInterations && isOk; ++iIter) {
+      if (fVerbosity > 0) 
+        std::cout << "\n=== Running Kalman Filter Iteration " << iIter << "/" << fNInterations << " ===" << std::endl;
+      fKTracker->ClearFilteredStates();
+      fKTracker->SetInitialState(initialState);
+      if (!fKTracker->RunForwardFilter()) {
+        std::cerr << "Forward filter failed!" << std::endl;
+        isOk = false;
+      }
+      if (!isOk) break;
 
-        if (fVerbosity > 0) {
-          filteredStates = fKTracker->GetFilteredStates();
-          std::cout << "\n=== Final Forward Filtered State Iteration " << iIter << " ===" << std::endl;
-          std::cout << filteredStates[1] << std::endl;
-        }
-        // Run the smoother
-        if (!fKTracker->RunSmoother()) {
-          std::cerr << "Smoother failed!" << std::endl;
-          isOk = false;
-        }
+      if (fVerbosity > 0) {
+        filteredStates = fKTracker->GetFilteredStates();
+        std::cout << "\n=== Final Forward Filtered State Iteration " << iIter << " ===" << std::endl;
+        std::cout << filteredStates[1] << std::endl;
+      }
+      // Run the smoother
+      if (!fKTracker->RunSmoother()) {
+        std::cerr << "Smoother failed!" << std::endl;
+        isOk = false;
+      }
       
-        if (!isOk) break;
+      if (!isOk) break;
 
-        smoothed = fKTracker->GetSmoothedStates();
-        if (fVerbosity > 0) {
-          std::cout << "\n=== Final Smoothed State for iteration " << iIter << " ===" << std::endl;
-          std::cout << smoothed.back() << std::endl;       
-          std::cout << "\n=== First Smoothed State for iteration " << iIter << " ===" << std::endl;
-          std::cout << smoothed.front() << std::endl;       
-        }
-
-        // Update initial state for next iteration with smoothed state from this iteration to allow for convergence
-/*        initialState.SetPar(0, smoothed.front().GetPar()[0]);
-        initialState.SetPar(1, smoothed.front().GetPar()[1]);
-*/
-        initialState.SetPar(2, smoothed.front().GetPar()[2]);
-        initialState.SetPar(3, smoothed.front().GetPar()[3]);
-        initialState.SetPar(4, smoothed.front().GetPar()[4]);
-       }
-
-      std::vector<kalman::KResidual> residuals;
-      auto chi2ndof = fKTracker->CalculateChi2FromSmoothedStates(residuals);
-      double chi2 = chi2ndof.first;
-      int ndof = chi2ndof.second;
-      for (auto & res : residuals) {
-        if (fVerbosity > 0) {
-          std::cout << "Residual (" << res.GetStation() << "," << res.GetPlane() << "): " 
-                    << res.GetResidual() << " +/- " << res.GetSigma() << std::endl;
-        }
-        fResidualsVsPlane->Fill(res.GetStation()*10 + res.GetPlane(), res.GetResidual());
-      } 
       smoothed = fKTracker->GetSmoothedStates();
       if (fVerbosity > 0) {
-        std::cout << "\n=== Final Smoothed State ===" << std::endl;
+        std::cout << "\n=== Final Smoothed State for iteration " << iIter << " ===" << std::endl;
         std::cout << smoothed.back() << std::endl;       
-        std::cout << "\n=== First Smoothed State ===" << std::endl;
+        std::cout << "\n=== First Smoothed State for iteration " << iIter << " ===" << std::endl;
         std::cout << smoothed.front() << std::endl;       
       }
 
-      if (isOk) {
-      // create track from smoothed states
-        rb::Track track;
-        ROOT::Math::XYZVector pos;
-        ROOT::Math::XYZVector mom;
-        auto smoothed = fKTracker->GetSmoothedStates();
-        auto firstSmoothed = smoothed.front();
-        double deltaP = (1./firstSmoothed.GetPar()[4] - ptrue);
-        fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
+      // Update initial state for next iteration with smoothed state from this iteration to allow for convergence
+      initialState.SetPar(2, smoothed.front().GetPar()[2]);
+      initialState.SetPar(3, smoothed.front().GetPar()[3]);
+      initialState.SetPar(4, smoothed.front().GetPar()[4]);
+    }
 
-        if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
+    std::vector<kalman::KResidual> residuals;
+    auto chi2ndof = fKTracker->CalculateChi2FromSmoothedStates(residuals);
+    double chi2 = chi2ndof.first;
+    int ndof = chi2ndof.second;
+    for (auto & res : residuals) {
+      if (fVerbosity > 0) {
+        std::cout << "Residual (" << res.GetStation() << "," << res.GetPlane() << "): " 
+                  << res.GetResidual() << " +/- " << res.GetSigma() << std::endl;
+      }
+      fResidualsVsPlane->Fill(res.GetStation()*10 + res.GetPlane(), res.GetResidual());
+    } 
+    smoothed = fKTracker->GetSmoothedStates();
+    if (fVerbosity > 0) {
+      std::cout << "\n=== Final Smoothed State ===" << std::endl;
+      std::cout << smoothed.back() << std::endl;       
+      std::cout << "\n=== First Smoothed State ===" << std::endl;
+      std::cout << smoothed.front() << std::endl;       
+    }
 
-        for (const auto& resid : residuals) {
-          track.pullSSD.push_back(resid.GetResidual());
-        }
-        for (const auto& state : smoothed) {
-          pos.SetXYZ(state.GetPar()[0], state.GetPar()[1], state.GetZ());
-          double tx = state.GetPar()[2];
-          double ty = state.GetPar()[3];
-          double qp = state.GetPar()[4];
-          double pz = 1./std::sqrt(tx*tx + ty*ty + 1.)/std::abs(qp);
-          double px = tx*pz;
-          double py = ty*pz;
-          mom.SetXYZ(px, py, pz);
-          track.posSSD.push_back(pos);
-          track.momSSD.push_back(mom);
-        }
-        track.momTrgt = track.momSSD[0];
-        double posAtTrgt[3];
-        double dxdz = track.momSSD[0].X()/track.momSSD[0].Z();
-        double dydz = track.momSSD[0].Y()/track.momSSD[0].Z();
-        double zdz = fTrgtZ - track.posSSD[0].Z();
-        posAtTrgt[0] = track.posSSD[0].X() + dxdz*zdz;
-        posAtTrgt[1] = track.posSSD[0].Y() + dydz*zdz;
-        posAtTrgt[2] = fTrgtZ;
-        track.posTrgt.SetCoordinates(posAtTrgt);
+    if (isOk) {
+    // create track from smoothed states
+      rb::Track track;
+      ROOT::Math::XYZVector pos;
+      ROOT::Math::XYZVector mom;
+      auto smoothed = fKTracker->GetSmoothedStates();
+      auto firstSmoothed = smoothed.front();
+      double deltaP = (1./firstSmoothed.GetPar()[4] - ptrue);
+      fDeltaPvsP->Fill(ptrue, deltaP/ptrue);
+      if (ndof > 0) fChi2perNdof->Fill(chi2/double(ndof));
 
-        if (fUseTruth) {
-          ProcessTruthInfo(evt, beamTrack, track, firstSmoothed, pztrue, pttrue, ptrue, xtrue, ytrue, trueTheta);
-        }
+      for (const auto& resid : residuals) {
+        track.pullSSD.push_back(resid.GetResidual());
+      }
+      for (const auto& state : smoothed) {
+        pos.SetXYZ(state.GetPar()[0], state.GetPar()[1], state.GetZ());
+        double tx = state.GetPar()[2];
+        double ty = state.GetPar()[3];
+        double qp = state.GetPar()[4];
+        double pz = 1./std::sqrt(tx*tx + ty*ty + 1.)/std::abs(qp);
+        double px = tx*pz;
+        double py = ty*pz;
+        mom.SetXYZ(px, py, pz);
+        track.posSSD.push_back(pos);
+        track.momSSD.push_back(mom);
+      }
+      track.momTrgt = track.momSSD[0];
+      double posAtTrgt[3];
+      double dxdz = track.momSSD[0].X()/track.momSSD[0].Z();
+      double dydz = track.momSSD[0].Y()/track.momSSD[0].Z();
+      double zdz = fTrgtZ - track.posSSD[0].Z();
+      posAtTrgt[0] = track.posSSD[0].X() + dxdz*zdz;
+      posAtTrgt[1] = track.posSSD[0].Y() + dydz*zdz;
+      posAtTrgt[2] = fTrgtZ;
+      track.posTrgt.SetCoordinates(posAtTrgt);
 
-        trackv->push_back(track);
-       } // end if isOk
+      if (fUseTruth) {
+        ProcessTruthInfo(evt, beamTrack, track, firstSmoothed, pztrue, pttrue, ptrue, xtrue, ytrue, trueTheta);
+      }
+
+      trackv->push_back(track);
+     } // end if isOk
   }
   evt.put(std::move(trackv));
 }

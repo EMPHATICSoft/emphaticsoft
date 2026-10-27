@@ -58,6 +58,7 @@ namespace emph {
   
     PVAlgo pvA;
     std::string fTrkLabel;
+    std::string fBeamTrkLabel;
     
   };
 
@@ -65,7 +66,8 @@ namespace emph {
   
   emph::MakePrimaryVertex::MakePrimaryVertex(fhicl::ParameterSet const& pset)
     : EDProducer{pset},
-    fTrkLabel       (pset.get< std::string >("TrkLabel"))
+    fTrkLabel       (pset.get< std::string >("TrkLabel")),
+    fBeamTrkLabel   (pset.get< std::string >("BeamTrkLabel"))
     {
       this->produces< std::vector<rb::Vertex> >();      
       
@@ -79,25 +81,40 @@ namespace emph {
     std::unique_ptr< std::vector<rb::Vertex> > vtxv(new std::vector<rb::Vertex>);
     
     art::Handle< std::vector<rb::Track> > trkH;
+    art::Handle< std::vector<rb::Track> > beamTrkH;
+    std::vector<rb::Track> trkV;
+
+    try {
+      evt.getByLabel(fBeamTrkLabel, beamTrkH);
+      if (!beamTrkH->empty()){
+	      for (size_t idx=0; idx < beamTrkH->size(); ++idx) {
+	        auto trk = (*beamTrkH)[idx];
+      	  trkV.push_back(trk);
+      	}
+      }
+    }
+    catch(...) {
+      std::cout << "MakePrimaryVertex: Error occurred while getting tracks from " << fBeamTrkLabel << std::endl;
+    }
     
     try {
       evt.getByLabel(fTrkLabel, trkH);
       if (!trkH->empty()){
-	      std::vector<rb::Track> trkV;
 	      for (size_t idx=0; idx < trkH->size(); ++idx) {
 	        auto trk = (*trkH)[idx];
       	  trkV.push_back(trk);
-      	}
-	      if (trkV.size() > 1) {
-	        rb::Vertex vtx;
-      	  if (pvA.FindVertexDOCA(trkV,vtx))
-	          vtxv->push_back(vtx);
       	}
       }
     }
     catch(...) {
       std::cout << "MakePrimaryVertex: Error occurred while getting tracks from " << fTrkLabel << std::endl;
     }
+
+    if (trkV.size() > 1) {
+      rb::Vertex vtx;
+   	  if (pvA.FindVertexDOCA(trkV,vtx))
+        vtxv->push_back(vtx);
+  	}
 
     evt.put(std::move(vtxv));
   }
