@@ -187,6 +187,7 @@ namespace emph {
     constexpr int region3FirstStation = 5;
     makeThreeStationSegments(regions[1], region2FirstStation, caf::Region::kRegion2);
     makeThreeStationSegments(regions[2], region3FirstStation, caf::Region::kRegion3);
+    std::cout << "MakeTrackSegments: Found " << trackSegments->size() << " track segments" << std::endl;
     evt.put(std::move(trackSegments));
   }
 }
