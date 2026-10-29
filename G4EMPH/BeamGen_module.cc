@@ -110,6 +110,7 @@ namespace emph {
 
     TH1D* fXHist1D;
     std::map<int, TH3D*> fSlicedHists;
+    double fZref; // cm; template reference plane (S0 space point). Sliced mode projects from here to Zstart
     std::unique_ptr<TRandom3> fRand;
     
   };
@@ -144,6 +145,7 @@ namespace emph {
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
     fZstart        = ps.get<double>("Zstart", -200.); //cm 
+    fZref          = ps.get<double>("Zref", 0.); //cm; only used in Sliced mode
     fPZDist        = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
@@ -194,21 +196,24 @@ namespace emph {
 
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
-      fPmean = rhs->RunHist()->BeamMom();
+      if (fabs(rhs->RunHist()->BeamMom()) > 0) {
+        fPmean = rhs->RunHist()->BeamMom();
       // ensure that 120 GeV/c particles are always protons.
-      if (fabs(fPmean-120.)<5) {
-	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	fPsigma = 0.01*fPmean;
-	fXYHist = 0;
-	fPXYHist = 0;
-	fXYDistSource = "";
-	fPXYDistSource = "";
-	fPID = kProton;
-	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+      // Not in Sliced mode: the template already carries the measured beam.
+      if (fPhaseSpaceSource != "Sliced" && fabs(fPmean-120.)<5) {
+        mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+        fPsigma = 0.01*fPmean;
+        fXYHist = 0;
+        fPXYHist = 0;
+        fXYDistSource = "";
+        fPXYDistSource = "";
+        fPID = kProton;
+        fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
-
+  }
 	  GetSlicedHists(runNum);
+
   }
 
   /***************************************************************************/
@@ -437,11 +442,16 @@ namespace emph {
         x_bin = fXHist1D->FindBin(x);
 
         auto it = fSlicedHists.find(x_bin);
-        if (it != fSlicedHists.end() && it->second->GetEntries() > 0) {
+        if (it != fSlicedHists.end() && it->second->Integral() > 0) {
           it->second->GetRandom3(y, pypz, pxpz);
           break;
         }       
       }
+
+      // template is measured at Zref (S0); project back to Zstart so the
+      // particle arrives at S0 where it was measured
+      x += (fZstart - fZref) * pxpz;
+      y += (fZstart - fZref) * pypz;
 
       pos[0] = x;
       pos[1] = y;
