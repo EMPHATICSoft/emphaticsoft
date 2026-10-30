@@ -111,6 +111,7 @@ namespace emph {
     std::vector<int> fFixedStations; ///< stations left at zero shift (reference frame)
     double      fSimPadding;        ///< mm, -p of the Geant4 geometry (check only)
     double      fSimPaddingAlongStrip; ///< mm, -w of the Geant4 geometry (check only)
+    bool        fHitTree;           ///< write the per-hit "hits" tree (debugging, null test)
 
     bool fHaveUniverse;
     std::map<int, Shift> fShift;
@@ -121,10 +122,14 @@ namespace emph {
     double fTEdgeNeedAcross, fTEdgeNeedAlong;
     long   fTSeed;
 
+    // one row per input hit, if fHitTree
+    TTree* fHitsTree;
+    int    fHEvent, fHStation, fHPlane, fHSensor, fHG4Strip, fHStrip, fHKept;
+    double fHXIn[3], fHXOut[3], fHLocal[3], fHPz;
+
     // bookkeeping
     long fNIn;
     long fNKept;
-    long fNSwitched;
     long fNDropped;
     long fNUnknown;
   };
@@ -145,9 +150,11 @@ namespace emph {
       fFixedStations(pset.get<std::vector<int>>("FixedStations", {})),
       fSimPadding        (pset.get<double>("SimPadding", 0.)),
       fSimPaddingAlongStrip(pset.get<double>("SimPaddingAlongStrip", 0.)),
+      fHitTree      (pset.get<bool>("HitTree", false)),
       fHaveUniverse(false),
       fMisalignTree(0),
-      fNIn(0), fNKept(0), fNSwitched(0), fNDropped(0), fNUnknown(0)
+      fHitsTree(0),
+      fNIn(0), fNKept(0), fNDropped(0), fNUnknown(0)
   {
     if (std::abs(fPhiSign) != 1.)
       throw cet::exception("MisalignSSDHits") << "PhiSign must be +1 or -1";
@@ -179,6 +186,25 @@ namespace emph {
     fMisalignTree->Branch("edgeNeedAcross", &fTEdgeNeedAcross, "edgeNeedAcross/D");
     fMisalignTree->Branch("edgeNeedAlong", &fTEdgeNeedAlong, "edgeNeedAlong/D");
     fMisalignTree->Branch("seed",    &fTSeed,    "seed/L");
+
+    // Every input hit: where Geant4 put it (xIn, g4strip) and where it went
+    // (xOut, strip), all in global mm.  Dropped hits have kept = 0,
+    // strip = -1, xOut = xIn; local is then the nominal-sensor-local point
+    // that failed the along-strip or strip-range check.
+    if (fHitTree) {
+      fHitsTree = tfs->make<TTree>("hits", "MisalignSSDHits input and output hits");
+      fHitsTree->Branch("event",   &fHEvent,   "event/I");
+      fHitsTree->Branch("station", &fHStation, "station/I");
+      fHitsTree->Branch("plane",   &fHPlane,   "plane/I");
+      fHitsTree->Branch("sensor",  &fHSensor,  "sensor/I");
+      fHitsTree->Branch("g4strip", &fHG4Strip, "g4strip/I");
+      fHitsTree->Branch("strip",   &fHStrip,   "strip/I");
+      fHitsTree->Branch("kept",    &fHKept,    "kept/I");
+      fHitsTree->Branch("xIn",     fHXIn,      "xIn[3]/D");
+      fHitsTree->Branch("xOut",    fHXOut,     "xOut[3]/D");
+      fHitsTree->Branch("local",   fHLocal,    "local[3]/D");
+      fHitsTree->Branch("pz",      &fHPz,      "pz/D");
+    }
   }
 
   //......................................................................
@@ -293,8 +319,10 @@ namespace emph {
 	  geo->GetSSDStation(fTStation)->GetPlane(fTPlane)->SSD(fTSensor);
 	EdgeNeeds(sd, sh, fTEdgeNeedAcross, fTEdgeNeedAlong);
 	// covered if the simulated padding absorbs the shift
-	if (fTEdgeNeedAcross > fSimPadding)           ++nNarrowAcross;
-	if (fTEdgeNeedAlong > fSimPaddingAlongStrip) ++nNarrowAlong;
+	// 1 nm tolerance: a zero shift gives needs of ~1e-14 mm from rounding
+	const double tol = 1e-6;
+	if (fTEdgeNeedAcross > fSimPadding + tol)           ++nNarrowAcross;
+	if (fTEdgeNeedAlong > fSimPaddingAlongStrip + tol) ++nNarrowAlong;
       }
       fMisalignTree->Fill();
 
@@ -329,9 +357,8 @@ namespace emph {
   // physically sits at D(S(L)), with D the displacement used in Project,
   // so near the +y edge the shifted sensor reaches as far past the
   // nominal edge as the +y displacement of the corners (and likewise
-  // for the other edges).  The plane's
-  // other sensor may cover part of an inner edge; that is ignored, so
-  // the result is conservative.
+  // for the other edges).  Hits are never moved to the plane's other
+  // sensor, so every edge, inner ones included, needs this margin.
 
   void MisalignSSDHits::EdgeNeeds(const emph::geo::Detector* sd, const Shift& sh,
 				  double& needAcross, double& needAlong) const
@@ -394,11 +421,15 @@ namespace emph {
     mount->MasterToLocal(xs, xm);
     mount->MasterToLocalVect(ps, pm);
 
-    // move along the track to the displaced plane
+    // move along the track to the displaced plane.  A particle that stopped
+    // in the silicon (p = 0, ~1% of hits) has no direction: it keeps its
+    // depth and moves only with the sensor, straight along z.
     const double zTarget = t[2] + sh.dz + depth;
-    if (std::abs(pm[2]) < 1e-12) return false;
-    const double s = (zTarget - xm[2]) / pm[2];
-    for (int i = 0; i < 3; ++i) xm[i] += s*pm[i];
+    if (std::abs(pm[2]) < 1e-12) xm[2] = zTarget;
+    else {
+      const double s = (zTarget - xm[2]) / pm[2];
+      for (int i = 0; i < 3; ++i) xm[i] += s*pm[i];
+    }
 
     // undo the displacement: q = Rz(-phi) (xm - t - d) + t
     const double phi = fPhiSign * sh.dphi * M_PI/180.;
@@ -472,37 +503,44 @@ namespace emph {
       sd0->GeoMatrixMount()->MasterToLocal(xs, xm0);
       const double depth = xm0[2] - sd0->GeoMatrix()->GetTranslation()[2];
 
-      // try the recorded sensor first, then the plane's other sensors
-      std::vector<int> candidates = {ise};
-      for (int k = 0; k < pl->NSSDs(); ++k) if (k != ise) candidates.push_back(k);
+      // Only the recorded sensor. The sensors of a plane sit at different
+      // z, so a track crossing both left a Geant4 hit in each (padded)
+      // sensor; moving a hit that fell off its own sensor onto another
+      // would count that crossing twice. Off the shifted sensor = dropped.
+      auto it = fShift.find(Key(ist, ipl, ise));
+      const Shift sh = (it == fShift.end()) ? Shift() : it->second;
 
-      bool found = false;
-      for (int k : candidates) {
-	const emph::geo::Detector* sd = pl->SSD(k);
-	auto it = fShift.find(Key(ist, ipl, k));
-	const Shift sh = (it == fShift.end()) ? Shift() : it->second;
+      double local[3] = {0., 0., 0.};
+      int strip = -1;
+      const bool kept = Project(sd0, sh, xs, ps, depth, local, strip);
 
-	double local[3];
-	int strip;
-	if (!Project(sd, sh, xs, ps, depth, local, strip)) continue;
-
+      double xAug[3] = {xg[0], xg[1], xg[2]};
+      if (kept) {
 	// back to global with the NOMINAL geometry
-	double xs2[3], xAug[3];
-	sd->LocalToMother(local, xs2);
+	double xs2[3];
+	sd0->LocalToMother(local, xs2);
 	st->LocalToMother(xs2, xAug);
 
 	sim::SSDHit out(hit);
-	out.SetSensor(k);
 	out.SetStrip(strip);
 	out.SetX(xAug);
 	outHits->push_back(out);
-
 	++fNKept;
-	if (k != ise) ++fNSwitched;
-	found = true;
-	break;
       }
-      if (!found) ++fNDropped;
+      else ++fNDropped;
+
+      if (fHitsTree) {
+	fHEvent = evt.event();
+	fHStation = ist; fHPlane = ipl; fHSensor = ise;
+	fHG4Strip = hit.Strip();
+	fHStrip = kept ? strip : -1;
+	fHKept = kept;
+	for (int i = 0; i < 3; ++i) {
+	  fHXIn[i] = xg[i]; fHXOut[i] = xAug[i]; fHLocal[i] = local[i];
+	}
+	fHPz = hit.Pz();
+	fHitsTree->Fill();
+      }
     }
 
     evt.put(std::move(outHits));
@@ -515,7 +553,6 @@ namespace emph {
     mf::LogInfo("MisalignSSDHits")
       << "SSD hits in: " << fNIn
       << ", kept: " << fNKept
-      << " (switched sensor: " << fNSwitched << ")"
       << ", dropped off sensor: " << fNDropped
       << ", unknown sensor: " << fNUnknown;
   }

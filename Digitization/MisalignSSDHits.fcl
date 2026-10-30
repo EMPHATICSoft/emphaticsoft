@@ -15,6 +15,7 @@ standard_misalignssdhits:
   FixedStations: []                     # stations held at zero shift
   SimPadding:    0.                     # mm; the -p used for the Geant4 GDML (check only)
   SimPaddingAlongStrip: 0.              # mm; the -w used for the Geant4 GDML (check only)
+  HitTree:       false                  # per-hit "hits" tree (input/output position, strip, kept); null test
 }
 
 END_PROLOG
