@@ -169,6 +169,10 @@ $nPadChan = ceil($pad / $D0pitch - 1e-9); # extra strips at each end of a sensor
 $SSD_padded = ($nPadChan > 0 || $padalong > 0);
 $ssdBoxWidth  = $SSD_padded ? "ssdD0_simwidth"  : "ssdD0_width";
 $ssdBoxHeight = $SSD_padded ? "ssdD0_simheight" : "ssdD0_height";
+# The air enclosure around each mount grows with the padding, or the padded corners of the
+# 45-degree double-sensor planes (stations 5, 6) stick out of it.  A corner moves by at most
+# (across + along padding) in x or y, so widening by twice that always covers it.
+$mountOutWidth = $SSD_padded ? "1.2*mount_width+" . 2*($nPadChan*$D0pitch + $padalong) : "1.2*mount_width";
 $nSSD_station = 8; # num. of stations
 if ( defined $nstation )
   {
@@ -835,7 +839,7 @@ EOF
 		<second ref="ssd_mount_box2"/>
 	 </subtraction>
 
-	 <box name="ssd_mount_out_box" x="1.2*mount_width" y="1.2*mount_width" z="2*ssdD0_thick+2*ssd_bkpln_thick" />
+	 <box name="ssd_mount_out_box" x="$mountOutWidth" y="$mountOutWidth" z="2*ssdD0_thick+2*ssd_bkpln_thick" />
 	 <union name="ssd_mount_enclosure_u1">
 	   <first ref="ssd_mount_box"/>
 		<second ref="ssd_mount_out_box"/>
