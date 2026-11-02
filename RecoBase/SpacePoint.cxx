@@ -31,6 +31,14 @@ namespace rb {
   }
 
   //----------------------------------------------------------------------
+
+  double SpacePoint::LineSegmentDistance(int i) const
+  {
+    assert((i >= 0) && (i < int(_lineDistance.size())));
+    return _lineDistance[i];
+  }
+
+  //----------------------------------------------------------------------
   
   const rb::SSDCluster* SpacePoint::GetSSDCluster(int i) const
   {

@@ -16,10 +16,8 @@
 namespace caf
 {
 
-  caf::SRBeamTrack VertexFiller::GetBeamTrack(rb::Track& track, const std::vector<sim::SSDHit>& truehitv)
+  void VertexFiller::GetBeamTrackTruth(caf::SRBeamTrack& beamTrk, rb::Track& track, const std::vector<sim::SSDHit>& truehitv)
   {
-    caf::SRBeamTrack beamTrk = track;
-
     std::unordered_map<int,const sim::SSDHit*> ssdHitMap;
     int station, plane, sensor, strip, id;
 
@@ -55,7 +53,7 @@ namespace caf
                isOk = false;
            }
          }
-	 if (abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
+      	 if (abs(ssdHitMap[id]->PId()) == 11) isOk = false; // Don't include electrons/delta rays or positrons
          if (isOk) {
            auto ssdhit = ssdHitMap[id];
            truth.pos.SetXYZ(ssdhit->X(),ssdhit->Y(),ssdhit->Z());
@@ -74,38 +72,12 @@ namespace caf
          }
        }
      }
-     return beamTrk;
-
-/*
-      int station = ssdhit.Station();
-      int plane = ssdhit.Plane();
-      int sensor = ssdhit.Sensor();
-      
-      // get particle 
-      if (station == 1 && plane == 1 && sensor == 0) {
-       br1.truth.pos.SetXYZ(ssdhit.X(),ssdhit.Y(),ssdhit.Z());
-       br1.truth.mom.SetXYZ(ssdhit.Px(),ssdhit.Py(),ssdhit.Pz());       
-       br1.truth.pdgCode = ssdhit.PId();
-       br1.truth.G4trkId = ssdhit.TrackID();
-       br1.truth.process = ssdhit.Process();
-      }
-    }
-*/
   }     
 
   //---------------------------------
 
-  caf::SRSecondaryTrack VertexFiller::GetSecondaryTrack(rb::Track& track, const std::vector<sim::SSDHit>& truehitv, rb::ArichID& arichid)
+  void VertexFiller::GetSecondaryTrackTruth( caf::SRSecondaryTrack& secTrk, rb::Track& track, const std::vector<sim::SSDHit>& truehitv)
   {
-    caf::SRSecondaryTrack secTrk = track;
-    
-    //Inserting ARICH informations in track 
-    secTrk.arich.trackID = arichid.trackID;
-    secTrk.arich.scoresLL = arichid.scoresLL;
-    secTrk.arich.scoresML = arichid.scoresML;
-    secTrk.arich.nhit =  arichid.nhit;
-    
-
     if (! truehitv.empty()) {
       std::unordered_map<int,const sim::SSDHit*> ssdHitMap;
       int station, plane, sensor, strip, id;
@@ -166,7 +138,6 @@ namespace caf
         }
       }
     } 
-    return secTrk;
   }
 
   //---------------------------------
@@ -176,6 +147,7 @@ namespace caf
     vtx.clear();    
     auto hv = evt.getHandle<std::vector<rb::Vertex> >(fKVertexLabel);
     auto ht = evt.getHandle<std::vector<rb::Track> >(fKTrackLabel);
+    auto hbt = evt.getHandle<std::vector<rb::Track> >(fBeamTrackLabel);
     auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fSSDHitLabel);
     auto ha = evt.getHandle<std::vector<rb::ArichID>> (fArichIDLabel);
  
@@ -183,7 +155,13 @@ namespace caf
     std::vector <rb::Track> trks;
     std::vector <sim::SSDHit> ssdhits;
     std::vector <rb::ArichID> arichids;
+    std::vector <rb::Track> btrks;
 
+    if ( !hbt.failedToGet()) {
+      btrks = *hbt;
+    } else {
+      std::cout << "VertexFiller: Failed to get Beam Tracks from " << fBeamTrackLabel << std::endl;
+    }
     if ( !hv.failedToGet()) 
     {
       vtxs = *hv;
@@ -205,25 +183,23 @@ namespace caf
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
       rb::Vertex v = vtxs[iv];
       caf::SRVertex srv = v;
-      caf::SRTrack tr1 = trks[0]; // beam track is always first track
-      caf::SRBeamTrack btr;
-      if (!ssdhits.empty()) btr = GetBeamTrack(trks[0], ssdhits);
-      else{
-        for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
-          auto rbts = trks[0].GetTrackSegment(i);
-          caf::SRTrackSegment srts;
-          srts.vtx = rbts->vtx;
-          srts.mom = rbts->mom;
-          srts.region = rbts->region;
-          srts.nspacepoints = rbts->NSpacePoints();
-          srts.pointA = rbts->pointA;
-          srts.pointB = rbts->pointB;
-          srts.chi2 = rbts->chi2;
-          srts.thetaX = rbts->thetaX;
-          srts.thetaY = rbts->thetaY;
-          btr.Add(srts);
-      	}
-      }
+//      caf::SRTrack tr1 = trks[0]; // beam track is always first track
+      caf::SRBeamTrack btr = btrks[0]; // beam track is always first track
+      if (!ssdhits.empty()) GetBeamTrackTruth(btr, btrks[0], ssdhits);
+      for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
+        auto rbts = trks[0].GetTrackSegment(i);
+        caf::SRTrackSegment srts;
+        srts.vtx = rbts->vtx;
+        srts.mom = rbts->mom;
+        srts.region = rbts->region;
+        srts.nspacepoints = rbts->NSpacePoints();
+        srts.pointA = rbts->pointA;
+        srts.pointB = rbts->pointB;
+        srts.chi2 = rbts->chi2;
+        srts.thetaX = rbts->thetaX;
+        srts.thetaY = rbts->thetaY;
+        btr.Add(srts);
+    	}
       srv.SetBeamTrack(btr);
       // loop over secondary tracks in vertex
       for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
@@ -232,13 +208,24 @@ namespace caf
         //for now it's easy with single particle, arich ID always has one entry: the first
         //if arich reco was not run, use a dummy ArichID to avoid out-of-bounds access
         rb::ArichID dummyArich;
-        caf::SRSecondaryTrack srt;
-        if (arichids.empty()) {
-          srt = GetSecondaryTrack(trks[idx], ssdhits, dummyArich);
-        } else {
-          srt = GetSecondaryTrack(trks[idx], ssdhits, arichids[0]);
+        caf::SRSecondaryTrack secTrk = trks[idx]; // Initialize the secondary track with the rb::Track data
+
+        //Inserting ARICH informations in track 
+        if (!arichids.empty()) { // note, we assume that the first ArichID corresponds to the first secondary track, which may not always be true in a more complex event 
+          secTrk.arich.trackID = arichids[0].trackID;
+          secTrk.arich.scoresLL = arichids[0].scoresLL;
+          secTrk.arich.scoresML = arichids[0].scoresML;
+          secTrk.arich.nhit =  arichids[0].nhit;
+        } else { // not sure if this is really necessary, but just in case, we fill the ARICH info with the dummyArich data
+          secTrk.arich.trackID = dummyArich.trackID;
+          secTrk.arich.scoresLL = dummyArich.scoresLL;
+          secTrk.arich.scoresML = dummyArich.scoresML;
+          secTrk.arich.nhit =  dummyArich.nhit;
         }
-        srv.Add(srt);
+    
+        if (!ssdhits.empty()) 
+          GetSecondaryTrackTruth(secTrk, trks[idx], ssdhits);
+        srv.Add(secTrk);
       }
       vtx.push_back(srv);
     }
@@ -253,15 +240,18 @@ namespace caf
 
     auto hv = evt.getHandle<std::vector<rb::Vertex> >(fVertexLabel);
     auto ht = evt.getHandle<std::vector<rb::Track> >(fTrackLabel);
+    auto hbt = evt.getHandle<std::vector<rb::Track> >(fBeamTrackLabel);
     auto truehitv = evt.getHandle<std::vector<sim::SSDHit> >(fSSDHitLabel);
     auto ha = evt.getHandle<std::vector<rb::ArichID>> (fArichIDLabel);
  
     std::vector <rb::Vertex> vtxs;
     std::vector <rb::Track> trks;
+    std::vector <rb::Track> btrks;
     std::vector <sim::SSDHit> ssdhits;
     std::vector <rb::ArichID> arichids;
 
     if ( !hv.failedToGet()) vtxs = *hv;
+    if ( !hbt.failedToGet()) btrks = *hbt;
     if ( !ht.failedToGet()) trks = *ht;
     if ( !truehitv.failedToGet()) ssdhits = *truehitv;
     if ( !ha.failedToGet()) arichids = *ha;
@@ -270,25 +260,22 @@ namespace caf
     for (int iv= 0; iv< (int)vtxs.size();iv++) {
       rb::Vertex v = vtxs[iv];
       caf::SRVertex srv = v;
-      caf::SRTrack tr1 = trks[0]; // beam track is always first track
-      caf::SRBeamTrack btr;
-      if (!ssdhits.empty()) btr = GetBeamTrack(trks[0], ssdhits);
-      else{
-        for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
-          auto rbts = trks[0].GetTrackSegment(i);
-          caf::SRTrackSegment srts;
-          srts.vtx = rbts->vtx;
-          srts.mom = rbts->mom;
-          srts.region = rbts->region;
-          srts.nspacepoints = rbts->NSpacePoints();
-          srts.pointA = rbts->pointA;
-          srts.pointB = rbts->pointB;
-          srts.chi2 = rbts->chi2;
-          srts.thetaX = rbts->thetaX;
-          srts.thetaY = rbts->thetaY;
-          btr.Add(srts);
-	}
-      }
+      caf::SRBeamTrack btr = btrks[0]; // beam track is always first track  
+      if (!ssdhits.empty()) GetBeamTrackTruth(btr, btrks[0], ssdhits);
+      for (size_t i=0; i<trks[0].NTrackSegments(); i++){     
+        auto rbts = trks[0].GetTrackSegment(i);
+        caf::SRTrackSegment srts;
+        srts.vtx = rbts->vtx;
+        srts.mom = rbts->mom;
+        srts.region = rbts->region;
+        srts.nspacepoints = rbts->NSpacePoints();
+        srts.pointA = rbts->pointA;
+        srts.pointB = rbts->pointB;
+        srts.chi2 = rbts->chi2;
+        srts.thetaX = rbts->thetaX;
+        srts.thetaY = rbts->thetaY;
+        btr.Add(srts);
+	    }
       srv.SetBeamTrack(btr);
       // loop over secondary tracks in vertex
       for (size_t it=0; it < v.sectrkIdx.size(); ++it) {
@@ -297,12 +284,22 @@ namespace caf
         //for now it's easy with single particle, arich ID always has one entry: the first
         //if arich reco was not run, use a dummy ArichID to avoid out-of-bounds access
         rb::ArichID dummyArich;
-        caf::SRSecondaryTrack srt;
-        if (arichids.empty()) {
-          srt = GetSecondaryTrack(trks[idx], ssdhits, dummyArich);
-        } else {
-          srt = GetSecondaryTrack(trks[idx], ssdhits, arichids[0]);
+        caf::SRSecondaryTrack secTrk = trks[idx]; // Initialize the secondary track with the rb::Track data
+        if (!ssdhits.empty()) 
+          GetSecondaryTrackTruth(secTrk, trks[idx], ssdhits);
+        //Inserting ARICH informations in track 
+        if (!arichids.empty()) { // note, we assume that the first ArichID corresponds to the first secondary track, which may not always be true in a more complex event 
+          secTrk.arich.trackID = arichids[0].trackID;
+          secTrk.arich.scoresLL = arichids[0].scoresLL;
+          secTrk.arich.scoresML = arichids[0].scoresML;
+          secTrk.arich.nhit =  arichids[0].nhit;
+        } else { // not sure if this is really necessary, but just in case, we fill the ARICH info with the dummyArich data
+          secTrk.arich.trackID = dummyArich.trackID;
+          secTrk.arich.scoresLL = dummyArich.scoresLL;
+          secTrk.arich.scoresML = dummyArich.scoresML;
+          secTrk.arich.nhit =  dummyArich.nhit;
         }
+
         for (size_t i=0; i<trks[idx].NTrackSegments(); i++){
           auto rbts = trks[idx].GetTrackSegment(i);
           caf::SRTrackSegment srts;
@@ -315,9 +312,9 @@ namespace caf
           srts.chi2 = rbts->chi2;
           srts.thetaX = rbts->thetaX;
           srts.thetaY = rbts->thetaY;
-          srt.Add(srts);
+          secTrk.Add(srts);
         }
-        srv.Add(srt);
+        srv.Add(secTrk);
       }
       vtx.push_back(srv);
     }

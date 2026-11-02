@@ -3,7 +3,6 @@ BEGIN_PROLOG
 standard_beamtrackreco:
 {
   module_type: BeamTrackReco
-  ClusterLabel:      "clust"
   TrkSegLabel:       "maketracksegments" 
 }
 

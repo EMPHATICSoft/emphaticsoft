@@ -4,7 +4,7 @@ standard_makeprimaryvertex:
 {
   module_type: MakePrimaryVertex
   TrkLabel:       "makesingletracks" 
-
+  BeamTrkLabel:   "beamtrackreco"
 }
 
 # --- For Kalman tracks ---

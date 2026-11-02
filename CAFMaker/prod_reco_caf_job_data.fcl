@@ -15,7 +15,7 @@
 #include "MakeSingleTracks.fcl"
 #include "SingleTrackKalmanReco.fcl"
 #include "MakePrimaryVertex.fcl"
-
+#include "BeamTrackReco.fcl"
 #include "SSDBadChannel.fcl"
 
 process_name: CAF
@@ -55,7 +55,9 @@ physics:
     gasckovreco:  @local::standard_gasckovhitreco
     cafmaker:     @local::data_cafmaker
 
+    makespacepoints: @local::standard_makespacepoints
     maketracksegments: @local::standard_maketracksegments
+    beamtrackreco: @local::standard_beamtrackreco
     makesingletracks: @local::standard_makesingletracks
 #    singletrackalignment: @local::standard_singletrackalignment
     makeprimaryvertex: @local::standard_makeprimaryvertex
@@ -67,8 +69,8 @@ physics:
 
   makecaf:   [
                dataqual, spillinfo, clust, 
-               #arichcluster, clust,
-               maketracksegments, makesingletracks, makeprimaryvertex, 
+               #arichcluster, clust,              
+               maketracksegments, beamtrackreco, makesingletracks, makeprimaryvertex, 
                singletrackKalman, primaryvertexKalman,
               # arichring, arichreco, singletrackalignment,
               # adcreco, backovreco, gasckovreco,

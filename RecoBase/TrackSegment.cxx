@@ -21,9 +21,9 @@ namespace rb {
   
   //------------------------------------------------------------
 
-  const rb::SSDCluster* TrackSegment::GetSSDCluster(int i) const
+  const rb::SSDCluster* TrackSegment::GetSSDCluster(size_t i) const
   {    
-    assert((i >= 0) && (i < int(_clust.size())));
+    assert(i < _clust.size());
 
     return &_clust[i];
   }
@@ -31,9 +31,9 @@ namespace rb {
   
   //------------------------------------------------------------
   
-  const rb::SpacePoint* TrackSegment::GetSpacePoint(int i) const
+  const rb::SpacePoint* TrackSegment::GetSpacePoint(size_t i) const
   {
-    assert((i >= 0) && (i < int(_spcpt.size())));
+    assert(i < _spcpt.size());
 
     return &_spcpt[i];
   }
@@ -59,6 +59,12 @@ namespace rb {
   {
     o << std::setiosflags(std::ios::fixed) << std::setprecision(4);
     o << " Track Segment --> x0(" << h.vtx << "), p(" << h.mom << ")"; 
+    for (auto spcpt : h._spcpt) {
+      o << "\n   spcpt " << spcpt;
+    } 
+    for (auto clust : h._clust) {
+      o << "\n   clust " << clust;
+    }
     return o;
   }
   

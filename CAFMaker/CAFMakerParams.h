@@ -40,6 +40,7 @@ namespace caf
     Atom<string> KVertexLabel      {Name("KVertexLabel")}; 
     Atom<string> ArichIDLabel	   {Name("ArichIDLabel")};
     Atom<string> TrackSegmentLabel {Name("TrackSegmentLabel")};
+    Atom<string> BeamTrackLabel     {Name("BeamTrackLabel")};
     Atom<bool>   GetMCTruth        {Name("GetMCTruth")};
     Atom<bool>   GetMCHits         {Name("GetMCHits")};
     Atom<bool>   SSDOnly           {Name("SSDOnly")};

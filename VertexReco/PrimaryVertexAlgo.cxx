@@ -33,17 +33,21 @@ namespace emph {
 
   //----------------------------------------------------------------------
 
-  bool PVAlgo::FindVertexDOCA(std::vector<rb::Track>& trks, 
-				       rb::Vertex& vtx)
+  bool PVAlgo::FindVertexDOCA(std::vector<rb::Track>& beamTrks, std::vector<rb::Track>& trks, rb::Vertex& vtx)
   {
     using namespace ROOT::Math;
 
     vtx.sectrkIdx.clear();
     vtx.pos.SetXYZ(99999., 99999., 99999.);
 
-    if (trks.size() <= 1) return false;
+    if (trks.empty() || beamTrks.empty()) return false;
 
-    if (trks.size() == 2) {
+    if (beamTrks.size() > 1) {
+      std::cerr << "FindVertexDOCA: More than one beam track found. Only one beam track is supported." << std::endl;
+      return false;
+    }
+
+    if (trks.size() == 1) {
       // Modeling tracks as an infinite 3D lines:
       //   track 0 (Beam track)     : C0(s) = P0 + s*d0
       //   track 1 (Secondary track): C1(t) = P1 + t*d1
@@ -52,10 +56,10 @@ namespace emph {
       // exactly. The DOCA vertex is taken to be the midpoint of the two
       // points of closest approach.
 
-      auto P0 = trks[0].posTrgt; // trks[0] = beam track
-      auto P1 = trks[1].posTrgt; // trks[1] = secondary track
-      auto d0 = trks[0].momTrgt;
-      auto d1 = trks[1].momTrgt;
+      auto P0 = beamTrks[0].posTrgt; // beamTrks[0] = beam track
+      auto P1 = trks[0].posTrgt; // trks[1] = secondary track
+      auto d0 = beamTrks[0].momTrgt;
+      auto d1 = trks[0].momTrgt;
 
       const double eps = 1.e-12;
 
@@ -92,12 +96,32 @@ namespace emph {
 
       // DOCA vertex: midpoint between the two closest points.
       vtx.pos = (poca0 + poca1)/2.;
-      vtx.sectrkIdx.push_back(1);
+      vtx.sectrkIdx.push_back(0);
     }
     else {
       Vector3d b(0.,0.,0.);
       Matrix3d A;
 
+      for (size_t itrk = 0; itrk < beamTrks.size(); ++itrk) // simple copy-paste of the below loop for the beam track, even though there is only one beam track. This is done to avoid code duplication and to keep the logic consistent for both beam and secondary tracks.
+      {
+        auto trk = beamTrks[itrk];
+        Vector3d dir(trk.momTrgt.X(), trk.momTrgt.Y(), trk.momTrgt.Z());
+        dir = dir.Unit();
+
+        Matrix3d dd; // = ROOT::Math::TensorProd(dir,dir);
+
+        for (int i = 0; i < 3; ++i)
+          for (int j = 0; j < 3; ++j)
+            dd(i, j) = dir(i) * dir(j);
+
+        Matrix3d P = Matrix3d(SMatrixIdentity()) - dd;
+
+        A += P;
+        Vector3d pvec(trk.posTrgt.X(), trk.posTrgt.Y(), trk.posTrgt.Z());
+        b += P * pvec;
+      }
+
+      // now loop over secondary tracks 
       for (size_t itrk = 0; itrk < trks.size(); ++itrk)
       {
         auto trk = trks[itrk];

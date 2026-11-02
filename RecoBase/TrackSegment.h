@@ -31,9 +31,9 @@ namespace rb {
   public:
     // Getters
     size_t NSSDClusters() const { return _clust.size(); }    
-    const rb::SSDCluster* GetSSDCluster(int i) const; 
+    const rb::SSDCluster* GetSSDCluster(size_t i) const; 
     size_t NSpacePoints() const { return _spcpt.size(); }
-    const rb::SpacePoint* GetSpacePoint(int i) const;
+    const rb::SpacePoint* GetSpacePoint(size_t i) const;
 
     // Setters
     void Add(const rb::SSDCluster& cl); 
