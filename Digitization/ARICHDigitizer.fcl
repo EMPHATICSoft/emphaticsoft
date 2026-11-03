@@ -4,9 +4,9 @@ standard_arichdigitizer:
 {    
   module_type: 	  ARICHDigitizer
   G4Label:	  "geantgen"
-  IncludeNoise:   true  	# bool to evaluate the dark hits
-  FillTree:    	  false
-  DarkMapFile:	 ""
+  IncludeNoise:   true # bool to evaluate the dark hits
+  FillTree:    	  true
+  DarkMapFile:    "arich_noise_map_absolute_xy.root"
   XTalkProb: 	  0.07  #value from https://arxiv.org/pdf/1506.04302
   SigTimeLo:	 -290   #values from data phase1c
   SigTimeHi: 	 -260   #values from data phase1c
