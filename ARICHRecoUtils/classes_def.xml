@@ -1,6 +1,7 @@
 <lcgdict>
 
-<class name="arichreco::ARICH_UTILS" ClassVersion="13">
+<class name="arichreco::ARICH_UTILS" ClassVersion="14">
+ <version ClassVersion="14" checksum="3501062585"/>
  <version ClassVersion="13" checksum="2041444541"/>
  <version ClassVersion="12" checksum="3115795868"/>
  <version ClassVersion="11" checksum="2041444541"/>
@@ -31,7 +32,8 @@
  <version ClassVersion="11" checksum="4003558340"/>
  <version ClassVersion="10" checksum="3441090788"/>
 </class>
-<class name="arichreco::HoughFitter" ClassVersion="12">
+<class name="arichreco::HoughFitter" ClassVersion="13">
+ <version ClassVersion="13" checksum="699550993"/>
  <version ClassVersion="12" checksum="1568882325"/>
  <version ClassVersion="11" checksum="2427338869"/>
  <version ClassVersion="10" checksum="616094997"/>

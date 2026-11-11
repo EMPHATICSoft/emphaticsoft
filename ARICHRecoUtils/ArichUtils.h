@@ -26,7 +26,7 @@ namespace arichreco{
 
 	ARICH_UTILS();
 	//ARICH_UTILS(std::string fParamsFile);
-	void SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos,TString PDfile);
+	void SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos,TString PDfile, int Nevents);
 	void SetUpArich(double up_n, double down_n, double up_pos, double down_pos, double up_thick, double down_thick);
 	~ARICH_UTILS();
 
@@ -64,7 +64,8 @@ namespace arichreco{
 	double down_n;
 	double down_pos;
 	double down_thick;
-	
+
+	int fNevents; 	
 	std::vector<double>  fLogLike;
 	arichreco::Detector *Detector;	
         arichreco::Arich    *Arich;	
