@@ -22,14 +22,14 @@ namespace rb {
     
   private:
 
-    float _center[3]; // rotation angle about the vertical y-axis
+    float _center[3]; // center of the ring  
     float _radius;
     int _nhits;
     float theta_C;
     float P_pion;
     float P_kaon;
     float P_proton;
- 
+    bool used_track; 
 
    
   public:
@@ -43,6 +43,7 @@ namespace rb {
     float GetP_P_Kaon() const {return P_kaon;}
     float GetP_Proton() const {return P_proton;}
     float GetTheta() const {return theta_C;}
+    bool GetUsedTrack() const {return used_track;}
 
     void SetCenter(float x[3]) { for (int i=0; i<3; ++i) _center[i] = x[i]; }
     void SetRadius(float r) { _radius = r; }
@@ -51,6 +52,7 @@ namespace rb {
     void SetP_Kaon (float proxy_p_kaon){P_kaon = proxy_p_kaon;}
     void SetP_Proton (float proxy_p_proton){P_proton = proxy_p_proton;}
     void SetTheta (float theta_proxy){theta_C = theta_proxy;}
+    void SetUsedTrack (bool used_track_p){used_track = used_track_p;}
 };
 
 }

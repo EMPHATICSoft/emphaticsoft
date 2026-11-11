@@ -19,6 +19,7 @@ namespace caf
     float P_pion;
     float P_kaon;
     float P_proton;
+    bool used_track;
     virtual void setDefault();
 
     void SetCenter(float _center[2]){for(int p=0;p < 2;p++) this->center[p] = _center[p];}

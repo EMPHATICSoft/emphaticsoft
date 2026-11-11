@@ -185,7 +185,7 @@ namespace arichreco{
       /*
       number of photons: N ~= dN/dX * X (in meters)
       */
-      return (int) particleDist*0.01*calcdNdX(beta);
+      return static_cast<int>(particleDist*0.01*calcdNdX(beta));
     }
 
   double Aerogel::getIntLengthForWav(double wav) {

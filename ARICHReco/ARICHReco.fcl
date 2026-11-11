@@ -6,19 +6,17 @@ standard_arichreco:
   PD_file:        "/ARICHReco/PMTDet.root"
   LabelHits:      "arichcluster"
   LabelTracks:     "makesingletracks"
-  FillTree:       true
+  FillTree:       true 
 
   #WHICH PID TO RUN
   UseLL: 	 true
   UseML:	 true
- 
-  #ARICH SHIFTS FOR LL CALCULATIONS [mm]
-  ArichXshift:	15
-  ArichYshift:  -6
+
+  #Number of events used for LL PDF calculations
+  NEventsLL:     1000 
 
   #TORCH MODEL
-  ModelPath: 	   "/TorchML/arich_model.pt"
-
+  ModelPath: 	   "/TorchML/arich_model_retrained.pt"
 
   # PARAMS OF ARICH, AEROGELS
   PD_Darkrate: 406 				#Hz

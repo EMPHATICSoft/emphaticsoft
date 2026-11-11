@@ -53,7 +53,7 @@ const char* sp[3]={"pi","K","P"};
 
 int PdgToSpec(int pdg){
   switch(std::abs(pdg)){ case 2212:return kP; case 321:return kK; case 211:return kPi; }
-  return kNone;
+  return kNo;
 }
 
 int TrueSpec(const std::vector<caf::SRSimpleTruth>& tv){
@@ -62,42 +62,73 @@ int TrueSpec(const std::vector<caf::SRSimpleTruth>& tv){
 }
 
 int RecoSpecLL(const caf::SRPID& a){
-  if(a.trackID<0) return kNo;
-  int best=kNo; double bv=-1e30;
-  for(int s=0;s<kN;s++){ double v=a.scoresML[s]; if(v<=-1.0) continue; if(v>bv){bv=v;best=s;} }
-  return best;                          // <-- if scoresLL are -2lnL, flip to MIN
+  if(a.trackID<0 || (int)a.scoresLL.size()<kN) return kNo;
+  int best=kNo; double bv=1e30;
+  for(int s=0;s<kN;s++){ double v=a.scoresLL[s]; if(v<=-1.0) continue; if(v<bv){bv=v;best=s;} }
+  return best;
 }
 
 
-// Build the three per-truth-species LL-ratio TGraphs and register them in leg.
+// Build the three per-truth-species LL-ratio TH2Ds (Pz vs LL-ratio).
 //   tag    : short name used in the object name (e.g. "pP")
 //   ytitle : y-axis title (the specific LL ratio shown)
-std::vector<TGraph*> makeLLGraphs(const char* tag, const char* ytitle, TLegend* leg)
+std::vector<TH2D*> makeLLHistos(const char* tag, const char* ytitle)
 {
-  std::vector<TGraph*> v;
+  std::vector<TH2D*> v;
   for (int i = 0; i < 3; ++i) {
-    TGraph* g = new TGraph();
-    g->SetName(Form("LL_%s_%d", tag, pdg_pos[i]));
-    g->SetTitle("Ratio LogLikelihoods vs Momenta");
-    g->GetXaxis()->SetTitle("Reconstructed Pz [GeV/c]");
-    g->GetYaxis()->SetTitle(ytitle);
-    v.push_back(g);
-    leg->AddEntry(g, Form("True %d", pdg_pos[i]), "p");
+    TH2D* h = new TH2D(Form("LL_%s_%d", tag, pdg_pos[i]),
+                        ";Reconstructed Pz [GeV/c]",
+                        120, 0, 20, 200, -5, 5);
+    h->GetYaxis()->SetTitle(ytitle);
+    v.push_back(h);
   }
   return v;
 }
 
-// Draw the three MC LL-ratio graphs with the data graph overlaid, save to pdf.
-void drawLLCanvas(std::vector<TGraph*>& mc, TGraph* data, TLegend* leg, const char* pdf)
+// Draw the three MC LL-ratio density maps (one pad per truth species) with the
+// data graph overlaid on each, save to pdf.
+void drawLLCanvas(std::vector<TH2D*>& mc, TGraph* data, const char* pdf)
+{
+  TCanvas* c = new TCanvas("", "", 1500, 500);
+  c->Divide(3, 1);
+  for (int i = 0; i < 3; ++i) {
+    c->cd(i + 1);
+    mc[i]->SetStats(0);
+    mc[i]->SetTitle(xlabels[i]);
+    mc[i]->GetYaxis()->SetRangeUser(-2, 2);
+    mc[i]->Draw("colz");
+    data->Draw("P same");
+  }
+  c->SaveAs(pdf);
+  delete c;
+}
+
+// Project each species' LL-ratio onto [plo,phi] in Pz, normalize to unit area,
+// and overlay — a cross-section of the separation plot at a fixed momentum (slice).
+void drawSeparationSlice(std::vector<TH2D*>& mc, double plo, double phi,
+                          const char* ytitle, const char* pdf)
 {
   TCanvas* c = new TCanvas("", "", 800, 600);
-  mc[0]->SetMarkerColor(kRed+1);
-  mc[0]->GetYaxis()->SetRangeUser(-2, 2);
-  mc[0]->Draw("AP");
-  mc[1]->SetMarkerColor(kGreen-1); mc[1]->Draw("P same");
-  mc[2]->SetMarkerColor(kBlue-1);  mc[2]->Draw("P same");
-  data->Draw("P same");
-  leg->AddEntry(data, "data", "p");
+  TLegend* leg = new TLegend(0.7, 0.65, 0.88, 0.88); leg->SetBorderSize(0);
+  int colors[3] = {kRed + 1, kGreen - 1, kBlue - 1};
+  TH1D* proj[3];
+  double ymax = 0;
+  for (int i = 0; i < 3; ++i) {
+    int bxlo = mc[i]->GetXaxis()->FindBin(plo);
+    int bxhi = mc[i]->GetXaxis()->FindBin(phi);
+    proj[i] = mc[i]->ProjectionY(Form("%s_slice", mc[i]->GetName()), bxlo, bxhi);
+    if (proj[i]->Integral() > 0) proj[i]->Scale(1. / proj[i]->Integral());
+    proj[i]->SetLineColor(colors[i]);
+    proj[i]->SetLineWidth(2);
+    proj[i]->SetStats(0);
+    proj[i]->SetTitle(Form("%.1f < Pz < %.1f GeV/c;%s;Normalized", plo, phi, ytitle));
+    leg->AddEntry(proj[i], xlabels[i], "l");
+    ymax = std::max(ymax, proj[i]->GetMaximum());
+  }
+  proj[0]->SetMaximum(ymax * 1.2);
+  proj[0]->Draw("hist");
+  proj[1]->Draw("hist same");
+  proj[2]->Draw("hist same");
   leg->Draw("same");
   c->SaveAs(pdf);
   delete c;
@@ -129,6 +160,8 @@ TH2D* drawConfusion(const char* name, const float mtx[3][3], const char* pdf)
 // ----------------------------------------------------------------------------
 void caf_arichinfo(std::vector<const char *> files, std::string name_out)
 {
+  TFile* caf_out = new TFile(Form("%s.root", name_out.c_str()), "RECREATE");
+
   // --- input ---
   TChain chain("recTree");
   for (size_t i = 0; i < files.size(); ++i) {
@@ -138,7 +171,6 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
 
   caf::StandardRecord* rec = 0;
   chain.SetBranchAddress("rec", &rec);
-
   // --- booking: event/vertex counters & kinematics ---
   TH1I* hNTrkSeg  = new TH1I("nTrkSeg", "Number of Reco TrackSegments;;Event", 200,0,200);
   TH1I* hNVtx     = new TH1I("nVtx","Number of Reco Vertices;;Event",2,0,2);
@@ -150,11 +182,11 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
   TH1F* hPZ_mc    = new TH1F("hPZ_mc","Reco PZ; Pz (GeV/c)",280,0.,140.);
   TH1F* hPZ_data  = new TH1F("hPZ_data","Reco PZ; Pz (GeV/c)",280,0.,140.);
   TH2D* hPzRes    = new TH2D("hPzRes",";True Pz [GeV]; Reco Pz [GeV]", 280,0.,140.,280,0.,140.);
-  TH2D* hRvsP	  = new TH2D("hRvsP",";Pz [GeV]; Radii [mm]",240,0,120,40,25,65);
-
+  TH1D* hPzRes_bias = new TH1D("hPzRes_bias",";(Reco - True)/True Pz;", 300,-3,3);
+  TH2D* hRvsP	  = new TH2D("hRvsP",";Pz [GeV]; Radii [mm]",1200,0,120,50,15,65);
   // --- booking: ARICH ring ---
   TH1F* hrring = new TH1F("hrring","Ring radius;r [mm]",100,0,70);
-
+  TH1F* husedtrack = new TH1F("husedtrack","Used track; bool usedtrack", 2,0,2);
   // --- booking: nhits (MC by species + data) ---
   TH1F* hnhits_mc_pion  = new TH1F("hnhits_mc_pion","nhits; hits",100,0,100); hnhits_mc_pion->SetLineColor(kRed+1);
   TH1F* hnhits_mc_prot  = new TH1F("hnhits_mc_prot","nhits; hits",100,0,100); hnhits_mc_prot->SetLineColor(kBlue+1);
@@ -176,19 +208,35 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
   TGraph* LL_data_pK = new TGraph(); LL_data_pK->SetName("LL_pK_data"); LL_data_pK->SetMarkerStyle(43); LL_data_pK->SetMarkerColorAlpha(kBlack,0.2);
   TGraph* LL_data_KP = new TGraph(); LL_data_KP->SetName("LL_KP_data"); LL_data_KP->SetMarkerStyle(43); LL_data_KP->SetMarkerColorAlpha(kBlack,0.2);
 
-  // --- booking: MC LL-ratio graphs (3 truth species each) + legends ---
-  TLegend* lLLpP = new TLegend(0.75,0.2,0.85,0.4); lLLpP->SetBorderSize(0);
-  TLegend* lLLpK = new TLegend(0.75,0.2,0.85,0.4); lLLpK->SetBorderSize(0);
-  TLegend* lLLKP = new TLegend(0.75,0.2,0.85,0.4); lLLKP->SetBorderSize(0);
-  std::vector<TGraph*> LLpP = makeLLGraphs("pP", "log(LLpion/LLprot)",  lLLpP);
-  std::vector<TGraph*> LLpK = makeLLGraphs("pK", "log(LLpion/LLkaon)",  lLLpK);
-  std::vector<TGraph*> LLKP = makeLLGraphs("KP", "log(LLkaon/LLprot)",  lLLKP);
+  // --- booking: MC LL-ratio density maps (3 truth species each) ---
+  std::vector<TH2D*> LLpP = makeLLHistos("pP", "log(LLpion/LLprot)");
+  std::vector<TH2D*> LLpK = makeLLHistos("pK", "log(LLpion/LLkaon)");
+  std::vector<TH2D*> LLKP = makeLLHistos("KP", "log(LLkaon/LLprot)");
 
   // --- confusion matrices (filled in the loop, drawn at the end) ---
   float selected_signal_ML[3][3]      = {};
   float selected_signal_LL[3][3]      = {};
   float selected_signal_ratioLL[3][3] = {};
-
+ 
+  int pdg;
+  double r;
+  double p;
+  bool used_track;
+  double LL_pi, LL_k, LL_p;
+  double ML_pi, ML_k, ML_p;
+  caf_out->cd();
+  TTree *tree = new TTree("infos", ""); 
+  tree->Branch("pdg",&pdg); 
+  tree->Branch("radii",&r);
+  tree->Branch("p",&p);
+  tree->Branch("used_track",&used_track);
+  tree->Branch("LL_pi",&LL_pi);
+  tree->Branch("LL_k",&LL_k);
+  tree->Branch("LL_p",&LL_p);
+  tree->Branch("ML_pi",&ML_pi);
+  tree->Branch("ML_k",&ML_k);
+  tree->Branch("ML_p",&ML_p);
+ 
   //eff
 
   TH2D *den[3], *num[3];
@@ -221,41 +269,49 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
     int nrings = int(rec->ring.arich.size());
     total_recorings+=nrings;
 
-
     int nsectrk = 0, nbeamtrk = 0;
     if (nvtx) {
 //      std::cout << "Found " << nvtx << " vertex/s " << std::endl;
       nsectrk  = int(rec->vtxs.vtx[0].sectrk.size());
       nbeamtrk = 1;
       hVertexZ->Fill(rec->vtxs.vtx[0].pos.Z());
-  //    std::cout << "vertex z loc " << rec->vtxs.vtx[0].pos.Z() << std::endl;
+     //std::cout << "vertex z loc " << rec->vtxs.vtx[0].pos.Z() << std::endl;
       hVertexXY->Fill(rec->vtxs.vtx[0].pos.X(), rec->vtxs.vtx[0].pos.Y());
     }
     hNSecTrk->Fill(nsectrk);
     hNBeamTrk->Fill(nbeamtrk);
 
-
     // select clean single-secondary-track events
-    if (nsectrk != 1) continue;
+    if (nsectrk != 1 || nrings < 1) continue;
 
     for (int j = 0; j < nsectrk; ++j)
     {
       caf::SRSecondaryTrack& sectrk = rec->vtxs.vtx[0].sectrk[j];
       std::vector<double> LLs = sectrk.arich.scoresLL;
+      if (LLs.size() < 3) continue;
       double pz = sectrk.mom.Z();
-        //std::cout << "sectrk mom = " << pz << std::endl;
+      auto ring = rec->ring.arich[0];
 
-      hrring->Fill(rec->ring.arich[0].radius);
- 	hRvsP->Fill(pz,rec->ring.arich[0].radius);	
-	auto ring = rec->ring.arich[0];
+        //std::cout << "sectrk mom = " << pz << " radii " << rec->ring.arich[0].radius  << std::endl;
+	husedtrack->Fill(rec->ring.arich[0].used_track);	
+	used_track = rec->ring.arich[0].used_track;
+	hrring->Fill(rec->ring.arich[0].radius);
 
-	//std::cout << "P pion from ring " << ring.P_pion << std::endl;
-	//std::cout << "P kaon  from ring " <<  ring.P_kaon << std::endl;
-	//std::cout << "P prot from ring " << ring.P_proton << std::endl;
-
+	if(isMC) {
+	if(sectrk.truth.size() != 1)continue;
+	hPzRes->Fill(sectrk.truth[0].mom.Z(), pz);
+	double bias = (sectrk.truth[0].mom.Z() - pz)/sectrk.truth[0].mom.Z();
+        hPzRes_bias->Fill(bias);
+	}
+        hPZ_mc->Fill(pz);	
+	hRvsP->Fill(pz,rec->ring.arich[0].radius);
+	p = pz; r = rec->ring.arich[0].radius; 
+//	std::cout << "P pion from ring " << ring.P_pion << std::endl;
+//	std::cout << "P kaon  from ring " <<  ring.P_kaon << std::endl;
+//	std::cout << "P prot from ring " << ring.P_proton << std::endl;
       // ---- BACkov / GASckov (data only) ----
-      if (!isMC) {
-      //  std::cout << "BACkov info" << std::endl;
+/*      if (!isMC) {
+       //  std::cout << "BACkov info" << std::endl;
         //for (int k = 0; k < 5; ++k)std::cout << "    is " << backov_pids[k] << "? " << rec->backov.PID[k] << std::endl;
         double cum_low  = rec->backov.backovhits[0].charge + rec->backov.backovhits[1].charge + rec->backov.backovhits[2].charge;
         double cum_mid  = rec->backov.backovhits[3].charge + rec->backov.backovhits[4].charge;
@@ -274,18 +330,19 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
         h_gasckov_2->Fill(rec->gasckov.gasckovhits[1].charge);
         h_gasckov_3->Fill(rec->gasckov.gasckovhits[2].charge);
       }
-
+*/
       // ---- LL ratios + PID picks ----
       double LL_pi_p = log(LLs[0]/LLs[2]);
       double LL_pi_K = log(LLs[0]/LLs[1]);
       double LL_p_K  = log(LLs[1]/LLs[2]);
 
+      LL_pi = LLs[0]; LL_k = LLs[1]; LL_p =LLs[2];
+      ML_pi = sectrk.arich.scoresML[0]; ML_k = sectrk.arich.scoresML[1]; ML_p =sectrk.arich.scoresML[2];
       int argmax = std::distance(sectrk.arich.scoresML.begin(),
                                  std::max_element(sectrk.arich.scoresML.begin(), sectrk.arich.scoresML.end()));
       int argmin = std::distance(LLs.begin(),
                                  std::min_element(LLs.begin(), LLs.end()));
       int pick   = classifyPID(LL_pi_p, LL_pi_K, pz);
-
 
        //std::cout << "ML PDG PICKED "        << pdg_pos[argmax] << std::endl;
        //std::cout << "LL(argmin) PDG PICKED " << pdg_pos[argmin] << std::endl;
@@ -294,7 +351,8 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
       if (isMC) {
  	if(sectrk.truth.size() == 0)continue;
         int track_pdg = sectrk.truth[0].pdgCode;
-        int truth_index = -1;
+  	pdg = track_pdg; 
+       int truth_index = -1;
         if      (track_pdg == 211)  truth_index = 0;
         else if (track_pdg == 321)  truth_index = 1;
         else if (track_pdg == 2212) truth_index = 2;
@@ -307,29 +365,27 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
         }
 
         if (track_pdg == 211) {
-          LLpP[0]->AddPoint(pz, LL_pi_p); LLpK[0]->AddPoint(pz, LL_pi_K); LLKP[0]->AddPoint(pz, LL_p_K);
+          LLpP[0]->Fill(pz, LL_pi_p); LLpK[0]->Fill(pz, LL_pi_K); LLKP[0]->Fill(pz, LL_p_K);
           hnhits_mc_pion->Fill(rec->ring.arich[0].nhit);
         } else if (track_pdg == 321) {
-          LLpP[1]->AddPoint(pz, LL_pi_p); LLpK[1]->AddPoint(pz, LL_pi_K); LLKP[1]->AddPoint(pz, LL_p_K);
+          LLpP[1]->Fill(pz, LL_pi_p); LLpK[1]->Fill(pz, LL_pi_K); LLKP[1]->Fill(pz, LL_p_K);
         } else if (track_pdg == 2212) {
-          LLpP[2]->AddPoint(pz, LL_pi_p); LLpK[2]->AddPoint(pz, LL_pi_K); LLKP[2]->AddPoint(pz, LL_p_K);
+          LLpP[2]->Fill(pz, LL_pi_p); LLpK[2]->Fill(pz, LL_pi_K); LLKP[2]->Fill(pz, LL_p_K);
           hnhits_mc_prot->Fill(rec->ring.arich[0].nhit);
         } else if (abs(track_pdg) == 11) {
           hnhits_mc_elect->Fill(rec->ring.arich[0].nhit);
         }
 
-        hPzRes->Fill(sectrk.truth[0].mom.Z(), pz);
-        hPZ_mc->Fill(pz);
-
-
 	int tS = TrueSpec(sectrk.truth);                  // truth species
     	int rS = RecoSpecLL(sectrk.arich);                // reco species (LL)
 
-	const double p     = std::sqrt(sectrk.momTrgt.Mag2());  // recoP
-        const double theta = sectrk.momTrgt.Theta();
+	if (tS >= 0 && tS < kN) {
+	  const double p     = std::sqrt(sectrk.momTrgt.Mag2());  // recoP
+          const double theta = sectrk.momTrgt.Theta();
 
-       den[tS]->Fill(p,theta);                        // denominator = all true-species tracks
-       if(rS==tS) num[tS]->Fill(p,theta);             // numerator = correctly identified
+          den[tS]->Fill(p,theta);                        // denominator = all true-species tracks
+          if(rS==tS) num[tS]->Fill(p,theta);             // numerator = correctly identified
+	}
       }
       else {
         LL_data_pP->AddPoint(pz, LL_pi_p);
@@ -339,6 +395,7 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
         hPZ_data->Fill(pz);
       }
     }
+    tree->Fill();
   }
  
   //std::cout << "eff reco tracks " << total_recotracks/chain.GetEntries() << std::endl;
@@ -347,20 +404,20 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
   TH2D* LL = drawConfusion("LL",      selected_signal_LL,      "LL.pdf");
   TH2D* cuts = drawConfusion("ratioLL", selected_signal_ratioLL, "ratioLL.pdf");
 
-
   // ==========================================================================
   // Write histograms / graphs to the output file
   // ==========================================================================
-  TFile* caf_out = new TFile(Form("%s.root", name_out.c_str()), "RECREATE");
   hPzRes->Write();
+  hPzRes_bias->Write();
   for (int i : {0,1,2}) { LLpP[i]->Write(); LLpK[i]->Write(); LLKP[i]->Write(); }
   for(int s=0;s<3;s++){
     TH2D* eff=(TH2D*)num[s]->Clone(Form("eff_%s",sp[s]));
     eff->Divide(den[s]); eff->Write(); den[s]->Write(); num[s]->Write();
   }
 
-
+  tree->Write();
   hrring->Write();
+  husedtrack->Write();
   hRvsP->Write();
   hNTrkSeg->Write();
   hNVtx->Write();
@@ -390,10 +447,16 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
   // ==========================================================================
   // Plots
   // ==========================================================================
-  // LL-ratio scatter (MC species + data overlay)
-  drawLLCanvas(LLpP, LL_data_pP, lLLpP, "LL_pion_prot.pdf");
-  drawLLCanvas(LLpK, LL_data_pK, lLLpK, "LL_pion_kaon.pdf");
-  drawLLCanvas(LLKP, LL_data_KP, lLLKP, "LL_kaon_prot.pdf");
+  // LL-ratio density maps (MC species) with data overlay
+/*  drawLLCanvas(LLpP, LL_data_pP, "LL_pion_prot.pdf");
+  drawLLCanvas(LLpK, LL_data_pK, "LL_pion_kaon.pdf");
+  drawLLCanvas(LLKP, LL_data_KP, "LL_kaon_prot.pdf");
+
+  // Separation at a fixed momentum slice -- edit plo/phi to the beam momentum of interest
+  double plo = 8., phi = 10.;
+  drawSeparationSlice(LLpP, plo, phi, "log(LLpion/LLprot)",  "LL_pion_prot_slice.pdf");
+  drawSeparationSlice(LLpK, plo, phi, "log(LLpion/LLkaon)",  "LL_pion_kaon_slice.pdf");
+  drawSeparationSlice(LLKP, plo, phi, "log(LLkaon/LLprot)",  "LL_kaon_prot_slice.pdf");
 
   // Pz: MC vs data (area normalized)
   TCanvas* c6 = new TCanvas("", "", 800, 600);
@@ -425,4 +488,5 @@ void caf_arichinfo(std::vector<const char *> files, std::string name_out)
   l4->Draw("same");
   c7->SaveAs("nHits.pdf");
   delete c7;
+*/
 }

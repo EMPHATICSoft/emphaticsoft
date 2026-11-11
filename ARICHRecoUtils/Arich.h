@@ -110,7 +110,7 @@ namespace arichreco{
     public:
       Arich(arichreco::Detector* detector, double refr1, double refr2, double aeroP1, double aeroP2, double thick1, double thick2);
       virtual ~Arich();
-      TH2D calculatePdf(arichreco::particleInfoStruct params, char* histName= (char*) "photonHist");
+      TH2D calculatePdf(arichreco::particleInfoStruct params, char* histName, int nEvents);
       //TH2Poly* generateEvent(arichreco::particleInfoStruct params, bool save=true, std::string histName="generatedEvent", std::string outputDir="./output");
       //TH2Poly* simulateBeam(arichreco::particleInfoStruct params, std::string outputDir="simulatedBeam");
   };

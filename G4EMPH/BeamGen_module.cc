@@ -398,6 +398,9 @@ namespace emph {
      else if (fParticleType == "muon") {
       fPID = kMuonPlus;
     }
+     else if (fParticleType == "mix"){
+	fPID = -1; //just a place holder 
+    }
    if (fPID == INT_MAX) {
       std::cerr << "ParticleType must be set to \"geantino\", \"proton\", \"kaon\", "
 		<< "\"pion\" or \"electron\"!" << std::endl;
@@ -501,8 +504,16 @@ namespace emph {
 
     std::unique_ptr<std::vector<simb::MCParticle> > beam(new std::vector<simb::MCParticle>);
 
-    // get beam information
-    simb::MCParticle mcp(-1,fPID, "");
+    int CPID=0;
+    if(fPID == -1){ // can be changed to use realistic beam compositions
+      double val = fRand->Uniform();
+      if(val < 0.33) CPID = kProton;
+      else if(val > 0.66) CPID = kKPlus;
+      else CPID = kPiPlus;
+      }  
+    else CPID = fPID;
+
+    simb::MCParticle mcp(-1,CPID, "");
  
     /*
     mf::LogInfo("BeamGen") << pos[0] << "," << pos[1] << "," << pos[2] 
