@@ -101,6 +101,7 @@ namespace emph {
     double fAbsZPMTPlane;
  
     bool fUseLL;
+    int  fNeventsLL;
     bool fUseML;
 
     TRandom3* rand_gen;
@@ -134,10 +135,9 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     fTrackLabel	= std::string(pset.get<std::string>("LabelTracks"));
     fModelPath = std::string(pset.get<std::string>("ModelPath"));
-    fdxArich = double(pset.get<double>("ArichXshift",0));
-    fdyArich = double(pset.get<double>("ArichYshift",0));
     fUseLL =  bool(pset.get<bool>("UseLL"));
     fUseML = bool(pset.get<bool>("UseML"));
+    fNeventsLL = int(pset.get<int>("NEventsLL"));
 
       //ARICH RECO UTILS STUFF
       PDfile  =  std::string(pset.get< std::string >("PD_file"));
@@ -188,10 +188,17 @@ void  emph::ARICHReco::beginRun(art::Run &run){
  
  TString PDfile_path = fSource_path + PDfile;
 
+ fdxArich = geo->Geo()->GetAerogelUS()->Pos()[0];
+ fdyArich = geo->Geo()->GetAerogelUS()->Pos()[1];
+
  up_n = geo->Geo()->GetAerogelUS()->RefractiveIdx();
  down_n = geo->Geo()->GetAerogelDS()->RefractiveIdx();
  up_thick = geo->Geo()->GetAerogelUS()->Thickness()*2/10; //reads half of the gdml value, then cm 
  down_thick = geo->Geo()->GetAerogelDS()->Thickness()*2/10; //reads half of the gdml value, then cm
+ 
+ std::cout << Form("SHIFTS dx: %f, dy: %f",fdxArich, fdyArich) <<std::endl;
+ std::cout << Form("UPS aero: %f, DWS areo: %f",up_thick,down_thick) <<std::endl;
+ 
 
  down_pos = up_thick; //they are touching
  up_pos = 0; //this is the beginning of the frame
@@ -200,8 +207,9 @@ void  emph::ARICHReco::beginRun(art::Run &run){
  fAbsZPMTPlane = geo->Geo()->GetmPMTPlanePos()[2];
  
  PDzpos = (fAbsZPMTPlane - fAbsZAero1)/10.; //in  cm
+ std::cout << Form("mPMT posZ %f",PDzpos) << std::endl; 
 
- ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path);
+ ArichUtils->SetUpDet(PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile_path,fNeventsLL);
  ArichUtils->SetUpArich(up_n,down_n,up_pos,up_thick,down_pos,down_thick);
 
 }
@@ -213,11 +221,11 @@ at::Tensor emph::ARICHReco::TH2DToTensor(TH2D* hist){
     int ny = hist->GetNbinsY();
 	   
     at::Tensor tensor = at::empty({ny, nx}, at::kFloat);
+    auto acc = tensor.accessor<float, 2>();
 
     for (int iy = 1; iy <= ny; ++iy) {
        for (int ix = 1; ix <= nx; ++ix) {
-        double val = hist->GetBinContent(ix, iy);
-        tensor.index_put_({iy-1, ix-1}, val);
+        acc[iy-1][ix-1] = hist->GetBinContent(ix, iy);
         }
      }
     tensor = tensor.unsqueeze(0).unsqueeze(0);
@@ -241,7 +249,7 @@ void ARICHReco::produce(art::Event& evt)
     ARICH->push_back(arich_id);  
     }
 
- 
+
     if( (int)arich_clusters->size() != 0 && (int)TracksH->size() !=0){
     
       fEvtNum = evt.event();
@@ -250,21 +258,22 @@ void ARICHReco::produce(art::Event& evt)
 
 	//std::cout << "Beam P " << TracksH->at(0).P()[2] <<std::endl;
 
-        rb::Track track = TracksH->at(1); //beam track is [0], only interested in "second" track
+        const rb::Track& track = TracksH->at(1); //beam track is [0], only interested in "second" track
 
-//	std::cout << "Track segments found " << track.NTrackSegments() << std::endl;
-	rb::TrackSegment last_seg = *track.GetTrackSegment(1); //there are 2 segments	
-
-        double posx = last_seg.vtx.X();
-        double posy = last_seg.vtx.Y(); 
-        double posz = last_seg.vtx.Z(); 
-
-        double px = last_seg.mom.X();
-        double py = last_seg.mom.Y();
-        double pz = last_seg.mom.Z();
+//	rb::TrackSegment last_seg = *track.GetTrackSegment(1); //there are 2 segments	
 
 
-        mom = sqrt(last_seg.mom.Mag2()); //sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
+        double posx = track.posARICH.X();
+        double posy = track.posARICH.Y(); 
+        double posz = track.posARICH.Z(); 
+
+        double px = track.momARICH.X();
+        double py = track.momARICH.Y();
+        double pz = track.momARICH.Z();
+
+	std::cout << Form("pos(%f,%f,%f) mom (%f, %f ,%f)", posx, posy,posz, px, py, pz) << std::endl; 
+
+        mom = sqrt(pow(px,2) + pow(py,2) + pow(pz,2)); //* rand_gen->Uniform(1-0.03,1+0.03);
 
 	int max_cluster=-1;
         int max_size = 0;
@@ -281,30 +290,33 @@ void ARICHReco::produce(art::Event& evt)
           mf::LogWarning("ARICHReco") << "Track 1 has zero momentum. Skipping.";
         }
 
-	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is 
-        event_hist = *ArichUtils->DigsToHist(digs);
+	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is
+        TH2D* digs_hist = ArichUtils->DigsToHist(digs);
+        event_hist = *digs_hist;
+        delete digs_hist;
 
        rb::ArichID arich_id;
        arich_id.trackID = 1;
        arich_id.nhit = digs.size();
 
-      if(fUseLL){	
-        float finalx = posx + (fAbsZAero1 - posz) * px/pz + fdxArich;
-        float finaly = posy + (fAbsZAero1 - posz) * py/pz + fdyArich;
+      if(fUseLL){
+        float finalx = posx + (fAbsZAero1 - posz) * px/pz - fdxArich;
+        float finaly = posy + (fAbsZAero1 - posz) * py/pz - fdyArich;
 
-	float track_crossing_x = posx + (fAbsZPMTPlane - posz) * px/pz + fdxArich;
-  	float track_crossing_y = posy + (fAbsZPMTPlane - posz) * py/pz + fdyArich;	
+	float track_crossing_x = posx + (fAbsZPMTPlane - posz) * px/pz - fdxArich;
+  	float track_crossing_y = posy + (fAbsZPMTPlane - posz) * py/pz - fdyArich;
 	crossing_track_loc.push_back(track_crossing_x);  crossing_track_loc.push_back(track_crossing_y);
 
 	TVector3 dir_(px/mom,py/mom,pz/mom);
         TVector3 pos_(finalx/10,finaly/10,0.);  //in cm
-	 
-	std::vector<std::pair<int,int>> digs = arich_clusters->at(max_cluster).Digits(); //cluster where the physics is 
-	event_hist = *ArichUtils->DigsToHist(digs);
-	LLscores = ArichUtils->identifyParticle(&event_hist, mom, pos_, dir_);
+
+	std::vector<TH2D> pdfs = ArichUtils->GetPDF(mom, pos_, dir_);
+	LLscores.clear();
+	for(auto& pdf : pdfs){
+	  LLscores.push_back(ArichUtils->computeLogLikelihood(&event_hist, &pdf));
+	}
 
 	if(fFillTree){
-	  std::vector<TH2D> pdfs = ArichUtils->GetPDF(mom, pos_, dir_);
 	  pdf_pion = pdfs[0];
 	  pdf_kaon = pdfs[1];
 	  pdf_prot = pdfs[2];
@@ -332,10 +344,10 @@ void ARICHReco::produce(art::Event& evt)
 	 
 	if(fFillTree){
 	  fARICHTree->Fill();
-	  crossing_track_loc.clear();
 	}
-  	
-	} // end if clusters     	 
+	crossing_track_loc.clear();
+
+	} // end if clusters
 	MLscores.clear(); LLscores.clear();
 	evt.put(std::move(ARICH));	   
   } // end produce 

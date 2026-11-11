@@ -104,6 +104,8 @@ namespace emph {
     int         fPBeamTmp;
     bool        fLessStrict;
     double      fTrgtZ;
+    double fArichZ;
+
   };
 
   //.......................................................................
@@ -119,6 +121,7 @@ namespace emph {
     fLessStrict        (pset.get< bool >("LessStrict"))
     {
       fTrgtZ = -99999.;
+      fArichZ = -99999.;
       this->produces< std::vector<rb::Track> >();
       
     }
@@ -147,7 +150,7 @@ namespace emph {
     nPlanes = emgeo->NSSDPlanes();
     nStations = emgeo->NSSDStations();
     fTrgtZ = (emgeo->TargetDSZPos()+emgeo->TargetUSZPos())/2.;
-
+    fArichZ = geo->Geo()->GetAerogelUS()->Pos()[2];
   }
 
   //......................................................................
@@ -479,6 +482,16 @@ namespace emph {
             posAtTrgt[1] = (t2.mom.Y() / t2.mom.Z()) * dz + t2.pointA.Y();
 
             sectrk.posTrgt.SetCoordinates(posAtTrgt);
+
+
+	    sectrk.momARICH = t3.mom; 
+            double posAtArich[3];
+            dz = fArichZ - t3.pointA.Z();
+            posAtArich[0] = (t3.mom.X() / t3.mom.Z()) * dz + t3.pointA.X();
+            posAtArich[1] = (t3.mom.Y() / t3.mom.Z()) * dz + t3.pointA.Y();
+	    posAtArich[2] = fArichZ;
+            sectrk.posARICH.SetCoordinates(posAtArich);
+
             sectrk.chi2 = t2.chi2 + t3.chi2;
             AddSSDLineSegmentsToTrack(sectrk);
             trackv->push_back(sectrk);
