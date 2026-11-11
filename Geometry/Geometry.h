@@ -263,6 +263,7 @@ namespace emph {
       double GetRadLength(int ssdi, int ssdj) const;
 
       TVector3 GetmPMTPlanePos() const {return fmPMTPlanePos;}
+      double GetmPMTPlaneThickness() const {return fmPMTPlaneThick;} 
       TVector3 GetARICHCenrterPos() const {return fArichCenterPos;}
       int NPMTs() const { return fNPMTs; }
       emph::arich_util::PMT& GetPMT(int i){return fPMT[i]; }
@@ -308,6 +309,7 @@ namespace emph {
       double fTargetUSZPos;
       double fTargetDSZPos;
       TVector3 fmPMTPlanePos;
+      double fmPMTPlaneThick;
       TVector3 fArichCenterPos;
       bool   fMagnetLoad;
       std::vector<SSDStation> fSSDStation;
