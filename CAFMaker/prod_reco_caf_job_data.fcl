@@ -33,6 +33,8 @@ services:
   IFBeam:{}
 }
 
+services.AlignService.IsDisabled: true
+
 #Start each new event with an empty event.
 source:
 {
@@ -46,9 +48,9 @@ physics:
   {
     dataqual:     @local::standard_dataqual
     spillinfo:    @local::standard_spillinfo
-#    arichcluster: @local::standard_arich_cluster
-#    arichreco:    @local::standard_arichreco
-#    arichring:    @local::standard_arich_ring
+    arichcluster: @local::standard_arich_cluster
+    arichreco:    @local::standard_arichreco
+    arichring:    @local::standard_arich_ring
     clust:        @local::standard_ssdclust
     adcreco:      @local::standard_adcreco
     backovreco:   @local::standard_backovhitreco
@@ -67,10 +69,10 @@ physics:
 
   makecaf:   [
                dataqual, spillinfo, clust, 
-               #arichcluster, clust,
+               arichcluster,
                maketracksegments, makesingletracks, makeprimaryvertex, 
                singletrackKalman, primaryvertexKalman,
-              # arichring, arichreco, singletrackalignment,
+               arichring, arichreco, 
               # adcreco, backovreco, gasckovreco,
                cafmaker
              ]

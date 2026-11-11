@@ -77,7 +77,8 @@
   <class name="art::Wrapper< rb::Spill>"        />
   <class name="art::Wrapper< std::vector<rb::Spill>    >"/>
 
-  <class name="rb::ARing"    ClassVersion="16">
+  <class name="rb::ARing"    ClassVersion="17">
+   <version ClassVersion="17" checksum="1972204882"/>
    <version ClassVersion="16" checksum="607565715"/>
    <version ClassVersion="15" checksum="2715429707"/>
    <version ClassVersion="14" checksum="1361304931"/>
