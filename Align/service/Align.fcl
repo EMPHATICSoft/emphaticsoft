@@ -10,6 +10,6 @@ data_align: @local::standard_align
 data_align.IsDisabled: true 
 
 sim_align: @local::standard_align
-sim_align.IsDisabled: true         #redundant but kept for reading clarity
+sim_align.IsDisabled: false
 
 END_PROLOG

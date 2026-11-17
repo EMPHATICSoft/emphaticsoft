@@ -15,6 +15,8 @@ cet_build_plugin(SingleTrackAlignment art::module
 	millepede_ii::millepede_ii
 )
 
+add_subdirectory(Kalman)
+
 install_source()
 install_fhicl()
 install_headers()

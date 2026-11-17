@@ -1,6 +1,11 @@
 #include "KalmanReco/KTracker.h"
 #include "CLHEP/Units/SystemOfUnits.h"
 
+#include <cmath>
+#include <numeric>
+#include <stdexcept>
+#include <utility>
+
 namespace kalman {
 
   KTracker::KTracker()
@@ -23,6 +28,32 @@ namespace kalman {
     fRadLengths.clear();
     fFiltered_states.clear();
     fSmoothed_states.clear();
+    fForwardInnovations.clear();
+    fForwardInnovationVariances.clear();
+    fForwardInnovationJacobians.clear();
+    fMeasurementPredictionDerivatives.clear();
+    fForwardInnovationOffset = 0;
+  }
+
+  void KTracker::SetMeasurementPredictionDerivatives(
+    const std::vector<std::vector<double>>& derivatives)
+  {
+    if (derivatives.size() != fMeasurements.size())
+      throw std::invalid_argument(
+        "Alignment derivative rows must match the added measurements");
+    const std::size_t nParameters =
+      derivatives.empty() ? 0 : derivatives.front().size();
+    for (const auto& row : derivatives) {
+      if (row.size() != nParameters)
+        throw std::invalid_argument(
+          "Alignment derivative rows must have the same number of parameters");
+      for (double value : row) {
+        if (!std::isfinite(value))
+          throw std::invalid_argument(
+            "Alignment measurement-prediction derivatives must be finite");
+      }
+    }
+    fMeasurementPredictionDerivatives = derivatives;
   }
 
   // ------------------------------------------------------------
@@ -55,12 +86,7 @@ namespace kalman {
 
     double u = 1 + tx*tx + ty*ty;
     double B[3] = {0.0, 0.0, 0.0};
-    double pos[3] = {x, y, z};
-    if (fBfield) {
-      fBfield->GetFieldValue(pos,B);
-      // convert back to units we can use
-      for (int i=0; i<3; ++i) B[i] /= CLHEP::kilogauss; //*sgn;
-    }
+    GetField(x, y, z, B);
     if (fVerbosity>100)
       std::cout << "KTracker::EquationsOfMotion at (x,y,z) = (" << x << ", " << y << ", " << z << ") mm, B = (" << B[0] << ", " << B[1] << ", " << B[2] << ") kGauss" << std::endl;
 
@@ -244,7 +270,33 @@ namespace kalman {
   }
   // ------------------------------------------------------------
   
-  KState KTracker::Predict(KState& sstart, double z_end, int imeas)
+  void KTracker::GetField(double x, double y, double z, double B[3])
+  {
+    B[0] = B[1] = B[2] = 0.0;
+    const double pos[3] = {x - fFieldOffsetX, y - fFieldOffsetY, z};
+    if (fFieldFunction) {
+      fFieldFunction(pos, B);
+    }
+    else if (fBfield) {
+      fBfield->GetFieldValue(pos, B);
+      // convert back to units we can use
+      for (int i=0; i<3; ++i) B[i] /= CLHEP::kilogauss;
+    }
+  }
+
+  // ------------------------------------------------------------
+
+  bool KTracker::InField(double z_start, double z_end)
+  {
+    if (fFieldFree) return false;
+    if (fFieldFunction) return (z_start > fFieldZMin) && (z_end < fFieldZMax);
+    return (z_start > fBfield->FieldMinZ()) && (z_end < fBfield->FieldMaxZ());
+  }
+
+  // ------------------------------------------------------------
+
+  KState KTracker::Predict(KState& sstart, double z_end, int imeas,
+                           std::vector<KStateVec>* stateDerivatives)
   {  
 
     double z_start = sstart.GetZ();
@@ -252,7 +304,7 @@ namespace kalman {
     // Propagate state using RK4
     KStateVec predicted_state;
     KStateVec state_in = sstart.GetPar();
-    bool inField = (z_start > fBfield->FieldMinZ()) && (z_end < fBfield->FieldMaxZ());
+    bool inField = InField(z_start, z_end);
     double ds = 0.;
     if (inField) {
       if (fVerbosity) std::cout << "Propagating from z = " << z_start << " to z = " << z_end << " with RK4" << std::endl; 
@@ -269,6 +321,33 @@ namespace kalman {
       F = CalculateJacobianRK4(state_in, z_start, z_end);
     else  
       F = CalculateJacobian(state_in, z_start, z_end);    
+
+    if (stateDerivatives) {
+      for (auto& derivative : *stateDerivatives)
+        derivative = F * derivative;
+
+      // Direct dependence of the transported state on a translation of the
+      // field map, at fixed input state.
+      if (inField) {
+        for (int k = 0; k < 2; ++k) {
+          const int index = fFieldShiftIndex[k];
+          if (index < 0) continue;
+          if (static_cast<size_t>(index) >= stateDerivatives->size())
+            throw std::invalid_argument(
+              "Field shift parameter index out of range");
+          const double ox = fFieldOffsetX, oy = fFieldOffsetY;
+          const double h = fFieldShiftStep;
+          KStateVec up, down;
+          SetFieldOffset(k == 0 ? ox + h : ox, k == 1 ? oy + h : oy);
+          PropagateRK4(state_in, z_start, z_end, up);
+          SetFieldOffset(k == 0 ? ox - h : ox, k == 1 ? oy - h : oy);
+          PropagateRK4(state_in, z_start, z_end, down);
+          SetFieldOffset(ox, oy);
+          for (int i = 0; i < 5; ++i)
+            (*stateDerivatives)[index](i) += (up[i] - down[i]) / (2. * h);
+        }
+      }
+    }
 
     if (fVerbosity > 2) std::cout << "F = " << F << std::endl;
       // Propagate covariance: P_pred = F * P * F^T + Q
@@ -299,7 +378,12 @@ namespace kalman {
 
   // ------------------------------------------------------------
 
-  KState KTracker::Update(KState& predicted, KLSMeasurement& meas) {
+  KState KTracker::Update(KState& predicted, KLSMeasurement& meas,
+                          double* innovationValue,
+                          double* innovationVarianceValue,
+                          const std::vector<double>* predictionDerivatives,
+                          std::vector<KStateVec>* stateDerivatives,
+                          std::vector<double>* innovationDerivatives) {
     // Measurement model: we measure a line segment at this z position
     // H maps state to measurement space: z_meas = H * x
 
@@ -322,6 +406,22 @@ namespace kalman {
     KHMatrixTranspose H_T = ROOT::Math::Transpose(H);
     if (fVerbosity > 2) std::cout << "H_T = " << H_T << std::endl;
     KMeasCov S = H * predicted.GetCov() * H_T + R;
+    if (innovationValue) *innovationValue = innovation[0];
+    if (innovationVarianceValue) *innovationVarianceValue = S[0][0];
+    if (predictionDerivatives) {
+      if (!stateDerivatives || !innovationDerivatives ||
+          predictionDerivatives->size() != stateDerivatives->size())
+        throw std::invalid_argument(
+          "Alignment sensitivity dimensions do not match in Kalman update");
+      innovationDerivatives->resize(stateDerivatives->size());
+      for (size_t ipar = 0; ipar < stateDerivatives->size(); ++ipar) {
+        double dInnovation = -(*predictionDerivatives)[ipar];
+        for (int iparState = 0; iparState < 5; ++iparState)
+          dInnovation -= H[0][iparState] *
+            (*stateDerivatives)[ipar](iparState);
+        (*innovationDerivatives)[ipar] = dInnovation;
+      }
+    }
     if (fVerbosity > 2) std::cout << "S = " << S << std::endl;
     if (fVerbosity > 2)    std::cout << "Innovation covariance S[0][0] = " << S[0][0] << std::endl;
     
@@ -333,7 +433,7 @@ namespace kalman {
     if (fVerbosity > 2) std::cout << "predicted.GetCov() = " << predCov << std::endl;
     auto K1 = predCov * H_T;
     if (fVerbosity > 2) std::cout << "predicted.GetCov() * H_T = " << K1 << std::endl;
-    auto K = K1 * S_inv;
+    ROOT::Math::SMatrix<double,5,1> K = K1 * S_inv;
     if (fVerbosity > 2) std::cout << "Kalman Gain K = " << K << std::endl;
     // Updated state
     auto predPar = predicted.GetPar();
@@ -350,6 +450,13 @@ namespace kalman {
     // Ensure symmetry
     KStateCov updated_cov_T = ROOT::Math::Transpose(updated_cov);
     updated_cov = 0.5 * (updated_cov + updated_cov_T);
+
+    if (predictionDerivatives) {
+      for (size_t ipar = 0; ipar < stateDerivatives->size(); ++ipar)
+        for (int iparState = 0; iparState < 5; ++iparState)
+          (*stateDerivatives)[ipar](iparState) +=
+            K(iparState, 0) * (*innovationDerivatives)[ipar];
+    }
 
     /*
      // get updated state and its cov. matrix
@@ -419,6 +526,11 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
 
   bool KTracker::RunForwardFilter(int ioffset)
   {
+     fForwardInnovations.clear();
+     fForwardInnovationVariances.clear();
+     fForwardInnovationJacobians.clear();
+     fForwardInnovationOffset = 0;
+
      if (fMeasurements.empty()) {
         std::cerr << "Error: No measurements added" << std::endl;
         return false;
@@ -429,18 +541,59 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
         return false;
     }
 
+    if (!fMeasurementPredictionDerivatives.empty() &&
+        fMeasurementPredictionDerivatives.size() != fMeasurements.size())
+      throw std::invalid_argument(
+        "Alignment derivative rows must match the added measurements");
+
     fFiltered_states.resize(fMeasurements.size()+1); // +1 for initial state
 
-    if (!fBfield) {
+    if (!HasField() && !fFieldFree) {
         std::cerr << "Error: Magnetic field map not set" << std::endl;
         return false;
     }
 
-    std::sort(fMeasurements.begin(), fMeasurements.end(),
-              [](const KLSMeasurement& a, const KLSMeasurement& b)
-              {
-                  return a.GetZ() < b.GetZ();
-              });
+    std::vector<size_t> measurementOrder(fMeasurements.size());
+    std::iota(measurementOrder.begin(), measurementOrder.end(), 0);
+    std::stable_sort(measurementOrder.begin(), measurementOrder.end(),
+                     [this](size_t a, size_t b) {
+                       return fMeasurements[a].GetZ() < fMeasurements[b].GetZ();
+                     });
+    std::vector<KLSMeasurement> sortedMeasurements;
+    sortedMeasurements.reserve(fMeasurements.size());
+    std::vector<std::vector<double>> sortedPredictionDerivatives;
+    if (!fMeasurementPredictionDerivatives.empty())
+      sortedPredictionDerivatives.reserve(fMeasurements.size());
+    for (size_t index : measurementOrder) {
+      sortedMeasurements.push_back(fMeasurements[index]);
+      if (!fMeasurementPredictionDerivatives.empty())
+        sortedPredictionDerivatives.push_back(
+          fMeasurementPredictionDerivatives[index]);
+    }
+    fMeasurements.swap(sortedMeasurements);
+    if (!fMeasurementPredictionDerivatives.empty())
+      fMeasurementPredictionDerivatives.swap(sortedPredictionDerivatives);
+
+    if (ioffset < 0 || static_cast<size_t>(ioffset) > fMeasurements.size()) {
+      std::cerr << "Error: Forward filter measurement offset is out of range"
+                << std::endl;
+      return false;
+    }
+
+    fForwardInnovationOffset = ioffset;
+    fForwardInnovations.reserve(fMeasurements.size() - ioffset);
+    fForwardInnovationVariances.reserve(fMeasurements.size() - ioffset);
+    fForwardInnovationJacobians.reserve(fMeasurements.size() - ioffset);
+
+    const size_t nAlignmentParameters =
+      fMeasurementPredictionDerivatives.empty()
+        ? 0 : fMeasurementPredictionDerivatives.front().size();
+    if (nAlignmentParameters && ioffset != 0)
+      throw std::invalid_argument(
+        "Alignment sensitivities require a forward filter offset of zero");
+    std::vector<KStateVec> stateDerivatives(nAlignmentParameters);
+    for (auto& derivative : stateDerivatives)
+      for (int i = 0; i < 5; ++i) derivative[i] = 0.0;
 
     if (fVerbosity)
       std::cout << "Running Kalman filter with " << fMeasurements.size()
@@ -455,9 +608,24 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
                     << " at z = " << meas.GetZ() << " mm" << std::endl;
   
         if (fVerbosity > 2) std::cout << meas << std::endl;
-        KState predicted = Predict(current, meas.GetZ(),i);
+        KState predicted = Predict(current, meas.GetZ(), i,
+                                   nAlignmentParameters ? &stateDerivatives : nullptr);
         if (fVerbosity > 2) std::cout << "Predicted = " << predicted << std::endl;
-        KState updated = Update(predicted, meas);
+        double innovation = 0.0;
+        double innovationVariance = 0.0;
+        std::vector<double> innovationDerivatives;
+        const auto* predictionDerivatives =
+          nAlignmentParameters ? &fMeasurementPredictionDerivatives[i] : nullptr;
+        KState updated = Update(
+          predicted, meas, &innovation, &innovationVariance,
+          predictionDerivatives,
+          nAlignmentParameters ? &stateDerivatives : nullptr,
+          nAlignmentParameters ? &innovationDerivatives : nullptr);
+        fForwardInnovations.push_back(innovation);
+        fForwardInnovationVariances.push_back(innovationVariance);
+        if (nAlignmentParameters)
+          fForwardInnovationJacobians.push_back(
+            std::move(innovationDerivatives));
         if (fVerbosity > 2) std::cout << "Updated = " << updated << std::endl;
         fFiltered_states[i+1] = updated;
     }
@@ -481,7 +649,7 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
         return false;
     }
 
-    if (!fBfield) {
+    if (!HasField() && !fFieldFree) {
         std::cerr << "Error: Magnetic field map not set" << std::endl;
         return false;
     }
@@ -577,7 +745,7 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
         KStateVec filtered_state = fFiltered_states[i].GetPar();
         double z_start = fFiltered_states[i].GetZ();
         double z_end = fFiltered_states[i+1].GetZ();
-        bool inField = (z_start > fBfield->FieldMinZ()) && (z_end < fBfield->FieldMaxZ());
+        bool inField = InField(z_start, z_end);
         if (inField)
           transport_matrices[i] = CalculateJacobianRK4(filtered_state, z_start, z_end);
         else

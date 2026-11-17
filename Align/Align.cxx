@@ -5,11 +5,14 @@
 ////////////////////////////////////////////////////////////////////////
 #include "Align/Align.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 #include <cassert>
 #include <string>
+#include <tuple>
+#include <vector>
 
 namespace emph {
 
@@ -41,8 +44,11 @@ namespace emph {
   {
     int id = this->Hash(station,plane,sensor);
 
-    if (fSSDMatrix.find(id) == fSSDMatrix.end()) return NULL;
-    return fSSDMatrix[id];
+    // Sensors without constants get an identity transform so callers never see NULL
+    auto itr = fSSDMatrix.find(id);
+    if (itr == fSSDMatrix.end())
+      itr = fSSDMatrix.emplace(id, new TGeoCombiTrans()).first;
+    return itr->second;
 
   }
 
@@ -69,7 +75,7 @@ namespace emph {
   {
     int id = this->Hash(station,plane,sensor);
 
-    if (fSSDMatrix.find(id) != fSSDMatrix.end()) {
+    if (fSSDMatrix.find(id) == fSSDMatrix.end()) {
       fSSDMatrix[id] = new TGeoCombiTrans();
       fSSDMatrix[id]->SetTranslation(*t);      
     }
@@ -101,7 +107,7 @@ namespace emph {
   {
     int id = this->Hash(station,plane,sensor);
 
-    if (fSSDMatrix.find(id) != fSSDMatrix.end()) {
+    if (fSSDMatrix.find(id) == fSSDMatrix.end()) {
       fSSDMatrix[id] = new TGeoCombiTrans();
       fSSDMatrix[id]->SetRotation(*t);      
     }
@@ -123,8 +129,19 @@ namespace emph {
     ofile.open(fname.c_str());
     if (!ofile.is_open())      std::abort();
 
-    for (auto itr=fSSDMatrix.begin(); itr!=fSSDMatrix.end(); ++itr) {
-      int id = itr->first;
+    std::vector<int> ids;
+    ids.reserve(fSSDMatrix.size());
+    for (const auto& entry : fSSDMatrix) ids.push_back(entry.first);
+    std::sort(ids.begin(), ids.end(), [this](int lhs, int rhs) {
+      int lhsStation, lhsPlane, lhsSensor;
+      int rhsStation, rhsPlane, rhsSensor;
+      this->Unhash(lhs, lhsStation, lhsPlane, lhsSensor);
+      this->Unhash(rhs, rhsStation, rhsPlane, rhsSensor);
+      return std::tie(lhsStation, lhsPlane, lhsSensor) <
+             std::tie(rhsStation, rhsPlane, rhsSensor);
+    });
+
+    for (const int id : ids) {
       this->Unhash(id,station,plane,sensor);
 
       auto t = fSSDMatrix[id]->GetTranslation();

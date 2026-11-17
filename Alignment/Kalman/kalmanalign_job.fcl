@@ -1,0 +1,55 @@
+#include "Services.fcl"
+#include "FillDataQuality.fcl"
+#include "SpillInfo.fcl"
+#include "MakeSSDClusters.fcl"
+#include "MakeTrackSegments.fcl"
+#include "KalmanAlign.fcl"
+
+process_name: KalmanAlign
+
+services:
+{
+  TFileService: { fileName: "%ifb_kalmanalign_hist.root" closeFileFast: false }
+  scheduler: { wantSummary: false }
+  TimeTracker: {}
+  @table::sim_services
+  SSDBadChannelService: @local::standard_ssdbadchannel
+
+  IFBeam:{}
+
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1        # Number of events to process
+}
+
+physics:
+{
+  
+ producers:
+ {
+    dataqual:     @local::standard_dataqual
+    spillinfo:    @local::standard_spillinfo
+    clust:        @local::standard_ssdclust
+    maketracksegments: @local::standard_maketracksegments
+
+ }
+
+ analyzers:
+ {
+   kalmanalign: @local::standard_kalmanalign
+ }
+
+ reco: [ dataqual, spillinfo, clust, maketracksegments ]
+
+ align: [ kalmanalign ]
+
+ trigger_paths: [ reco ]
+
+ end_paths: [ align ]
+}
+physics.producers.clust.FillTTree: false
+physics.producers.clust.CheckDQ: false
+services.AlignService.IsDisabled: false

@@ -1,0 +1,78 @@
+BEGIN_PROLOG
+
+standard_kalmanalign:
+{
+  module_type: KalmanAlign
+  LineSegmentLabel:   "maketracksegments"
+  TrackSegmentLabel:  "maketracksegments"
+  Verbosity:          0
+
+  # Output file with the new constants (current constants plus the fitted
+  # corrections) in the AlignService format; empty string disables it.
+  # Current translation of the field map (mm), updated by the iteration driver
+  FieldOffsetX:       0.
+  FieldOffsetY:       0.
+  # Text summary of the fitted parameters (label, value, sigma) for the driver
+  OutputSummaryFile:  "kalmanalign_summary.txt"
+  OutputAlignFile:    "kalmanalign_constants.txt"
+
+  # Parameters held fixed, as "station:plane:sensor:DOF". Each of the first
+  # three fields is an integer or "*"; DOF is Tn, Tpar, Tz, Rz or "*".
+  # The magnet (x and y translation of the field map) is addressed as
+  # "magnet:FieldX", "magnet:FieldY" or "magnet:*"; wildcard specs for
+  # sensors never match it.
+  # Default gauge fixing: all of station 0 plane 0; Tz and Tn of station 0
+  # plane 1; Tz of station 4 plane 0; and the along-strip translation Tpar
+  # of every sensor (not measurable from the hit positions).
+  FixedParameters:    [ "0:0:0:*",
+                        "0:1:0:Tz",
+                        "0:1:0:Tn",
+                        "4:0:0:Tz",
+                        "4:0:0:Tn",
+                        "4:1:0:Tn",
+                        "*:*:*:Tpar",
+                        "*:*:*:Tz",
+                        "*:*:*:Rz",
+                        "magnet:*" ]
+
+  # Prior standard deviations of the free parameters (mm, rad for Rz).
+  PriorSigmaTn:       1.0
+  PriorSigmaTpar:     5.0
+  PriorSigmaTz:       5.0
+  PriorSigmaRz:       0.01
+  PriorSigmaFieldX:   5.0    # mm, translation of the field map
+  PriorSigmaFieldY:   5.0
+  FieldShiftStep:     1.0    # mm, finite-difference step for the field shift
+
+  # Fit the planes upstream of the target together with the downstream ones
+  # (one track through the target). The target's scattering is added as
+  # thickness / TargetX0Length (cm; 19.3 cm is graphite).
+  IncludeUpstream:    true
+  TargetX0Length:     19.3
+
+  # Diffuse initial track covariance used in the final (alignment) pass.
+  SeedSigmaPosition:  100.   # mm
+  SeedSigmaSlope:     1.
+  SeedSigmaQop:       1.
+  RefineIterations:   2
+
+  # Optional external momentum prior for the final pass (GeV/c). When
+  # BeamMomentum > 0, q/p starts at +-1/BeamMomentum with sigma
+  # BeamMomentumSigma/BeamMomentum^2 (the charge sign comes from the refined
+  # fit). It must come from outside the track hits (e.g. the beam setting)
+  # and is meaningful only for tracks that do not change momentum (use with
+  # IncludeUpstream). This breaks the degeneracy between the field shift and
+  # downstream sensor translations. Set BeamMomentum to -1 to leave q/p diffuse.
+  BeamMomentum:       120.
+  BeamMomentumSigma:  2.
+
+  # Track selection
+  MinMeasurements:    8
+  MaxChi2PerNdof:     1000.
+  MaxInnovationPull:  1000.
+
+  RK4MaxZStep:        0.5
+  RK4MaxNStep:        10000
+}
+
+END_PROLOG

@@ -43,4 +43,9 @@ install_source()
 install_fhicl()
 install_headers()
 
-#add_subdirectory(test)
+cet_test(test_ktracker_sensitivity
+  SOURCE test/test_ktracker_sensitivity.cc
+  USE_BOOST_UNIT
+  LIBRARIES PRIVATE
+    KalmanReco
+)

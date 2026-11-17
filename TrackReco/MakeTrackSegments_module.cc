@@ -351,7 +351,6 @@ namespace emph {
       chi2.clear();
     }
 
-    std::cout << "MakeTrackSegments: " << tracksegmentv->size() << " track segments created for event " << fEvtNum << std::endl;
     evt.put(std::move(linesegv));
     evt.put(std::move(spacepointv));
     evt.put(std::move(tracksegmentv));

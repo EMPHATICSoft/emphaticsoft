@@ -46,13 +46,12 @@ namespace emph
     
     std::string alignFile = rhs->RunHist()->SSDAlignFile();
     if (fAlign->IsDisabled()) {
-      std::cout << "AlignService: alignment is disabled, not applying constants from "
-                << alignFile << std::endl;
+      std::cout << "AlignService: alignment is disabled, using identity transforms "
+                << "for all SSDs (not reading " << alignFile << ")." << std::endl;
+      return;
     }
-    else {
     std::cout << "AlignService: using " << alignFile
               << " for SSD alignment." << std::endl;
-    }
     fAlign->LoadSSDConsts(alignFile);
   }
 

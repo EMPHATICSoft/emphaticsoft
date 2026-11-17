@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 
+// Do not apply translations to the first station (0) or the the first plane of the 5th station (4).
 void MakeMisalignConsts(int nFiles = 100)
 {
 
@@ -25,26 +26,39 @@ void MakeMisalignConsts(int nFiles = 100)
     fout.precision(4);
     for (int iStation = 0; iStation<nStations; ++iStation) {
       for (int iPlane = 0; iPlane<nPlanes; ++iPlane) {
-	for (int iSensor = 0; iSensor<nSensors; ++iSensor) {
-	  if (iFile>0) 
-	    fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
-		 << std::setprecision(4)
-		 << myRand.Gaus(0,xoff) << "  "
-		 << myRand.Gaus(0,yoff) << "  "
-		 << myRand.Gaus(0,zoff) << "  "
-		 << myRand.Gaus(0,phioff) << "  "
-		 << myRand.Gaus(0,phioff) << "  "
-		 << myRand.Gaus(0,phioff) << std::endl;
-	  else
-	    fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
-		 << std::setprecision(4)
-		 << 0 << "  "
-		 << 0 << "  "
-		 << 0 << "  "
-		 << 0 << "  "
-		 << 0 << "  "
-		 << 0 << std::endl;
-	}
+      	for (int iSensor = 0; iSensor<nSensors; ++iSensor) {
+	        if (iFile>0) {
+            if (iStation==0 || (iStation==4 && iPlane==0)) {
+              fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
+                  << std::setprecision(4)
+                  << 0 << "  "
+                  << 0 << "  "
+                  << 0 << "  "
+                  << 0 << "  " 
+                  << 0 << "  "
+                  << 0 << std::endl;
+            }
+            else {
+              fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
+	  	            << std::setprecision(4)
+                  << myRand.Gaus(0,xoff) << "  "
+                  << myRand.Gaus(0,yoff) << "  "
+                  << myRand.Gaus(0,zoff) << "  "
+                  << myRand.Gaus(0,phioff) << "  "
+                  << myRand.Gaus(0,phioff) << "  "
+                  << myRand.Gaus(0,phioff) << std::endl;
+            }
+          } // end if iFile>0
+      	  else
+            fout << iStation << "  " << iPlane << "  " << iSensor << "  " 
+                << std::setprecision(4)
+                << 0 << "  "
+                << 0 << "  "
+                << 0 << "  "
+                << 0 << "  " 
+                << 0 << "  "
+                << 0 << std::endl;
+        }
       }
     }
   }
