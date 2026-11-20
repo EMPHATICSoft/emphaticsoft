@@ -253,9 +253,9 @@ art_root_io	v1_13_06	-
 artdaq		v3_13_02	-
 artdaq_core	v3_10_02	-
 geant4		v4_11_0_p03e	-
-ifbeam		v2_6_2		-
-ifdh_art	v2_17_07	-
-nucondb		v2_6_2		-
+ifbeam		v2_6_4		-
+ifdh_art	v2_17_09	-
+nucondb		v2_6_4		-
 millepede_ii    v04_17_05   -
 protobuf        v3_21_12a   -
 libtorch        v2_1_1b     -
