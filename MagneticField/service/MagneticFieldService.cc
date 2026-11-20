@@ -26,6 +26,10 @@ namespace emph
     fMagneticField->SetUseStlVector(pset.get< bool >("StoreMapAsStlVector"));
     fMagneticField->SetVerbosity(pset.get<int>("Verbosity"));
     fMagneticField->SetIsEnabled(pset.get<bool>("IsEnabled"));
+    // mrad, about the magnet axis; nonzero only to simulate a rolled magnet (see MagneticField::RolledField)
+    fMagneticField->SetRollAngle(pset.get<double>("RollAngle", 0.));
+    if (fMagneticField->RollAngle() != 0.)
+      mf::LogWarning("MagneticFieldService") << "Field map rolled by " << fMagneticField->RollAngle() << " mrad about the magnet axis";
     
     reg.sPreBeginRun.watch(this, &MagneticFieldService::preBeginRun);
     

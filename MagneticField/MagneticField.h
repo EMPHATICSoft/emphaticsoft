@@ -36,13 +36,19 @@ namespace emph {
     void SetUsingRootHistos(bool flag=false) { fUsingRootHistos=flag; }
     void SetIsEnabled(bool flag) { fIsEnabled = flag; }
     void SetIsAlignedWithGeom(bool flag) { fIsAlignedWithGeom = flag; }
+    // Roll of the field about the magnet axis (the GDML magnet position), mrad: B'(r) = R B(R^-1 r).
+    // For simulating a rolled magnet; same convention as SingleTrackAlignmentKalman's MagnetRecoRoll.
+    void SetRollAngle(double mrad) { fRollAngle = mrad; }
+    double RollAngle() const { return fRollAngle; }
     bool IsInField(const double Point[3]);
     bool IsEnabled() const { return fIsEnabled; } 
     double FieldMinZ();
     double FieldMaxZ();
 
   private:
-    void Field(const double Point[3], double Bfield[3]);    
+    void Field(const double Point[3], double Bfield[3]);
+    void RolledField(double xAligned[3], double Bfield[3]); // applies fRollAngle around Field()
+    double fRollAngle = 0.; // mrad
     std::string fFieldFileName;
     bool fIsEnabled;
     bool fIsAlignedWithGeom;

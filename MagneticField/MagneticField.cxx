@@ -128,7 +128,7 @@ namespace emph {
     double B[3];
     double xAligned[3];
     for (size_t k=0; k != 3; k++) xAligned[k] = x[k] - fG4ZipTrackOffset[k];
-    this->Field(xAligned, B);
+    this->RolledField(xAligned, B);
     return (B[0] != 0 || B[1] != 0 || B[2] != 0);
 
   }
@@ -696,7 +696,28 @@ namespace emph {
 
     double xAligned[3];
     for (size_t k=0; k != 3; k++) xAligned[k] = x[k] - fG4ZipTrackOffset[k];
+    this->RolledField(xAligned, B);
+  }
+
+  //----------------------------------------------------------------------
+  // Field() at a point relative to the magnet position, with the magnet rolled by fRollAngle (mrad)
+  // about its axis: look up the map at R^-1 r, rotate the field by R (B'(r) = R B(R^-1 r)).
+  // Same transform as SingleTrackAlignmentKalman::TransportShifted (MagnetRecoRoll).
+  void MagneticField::RolledField(double xAligned[3], double B[3])
+  {
+    if (fRollAngle == 0.) {
+      this->Field(xAligned, B);
+      return;
+    }
+    const double roll = 1.e-3*fRollAngle;
+    const double cr = std::cos(roll), sr = std::sin(roll);
+    const double px = xAligned[0], py = xAligned[1];
+    xAligned[0] = cr*px + sr*py;
+    xAligned[1] = -sr*px + cr*py;
     this->Field(xAligned, B);
+    const double bx = B[0];
+    B[0] = cr*bx - sr*B[1];
+    B[1] = sr*bx + cr*B[1];
   }
 
   //----------------------------------------------------------------------
