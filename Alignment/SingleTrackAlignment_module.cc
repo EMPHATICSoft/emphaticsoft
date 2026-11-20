@@ -125,6 +125,7 @@ namespace emph {
     int re = 1;
 
     int usingEvent = 0;
+    int fNSkippedLineSegMismatch = 0; // events with clusters but no matching line segments (skipped)
  };
 
   //.......................................................................
@@ -200,6 +201,9 @@ namespace emph {
     delete m;
 
     mf::LogDebug("SingleTrackAlignment") << "SingleTrackAlignment: Number of events used = " << usingEvent;
+    if (fNSkippedLineSegMismatch > 0)
+      mf::LogWarning("SingleTrackAlignment") << "SingleTrackAlignment: " << fNSkippedLineSegMismatch
+        << " events skipped: clusters without line segments (MakeTrackSegments CutLineSegsOnMaxClust)";
   }
 
   //......................................................................
@@ -424,9 +428,17 @@ namespace emph {
           pullsorted[i].resize(nPlanes);
         }
 
+        // One line segment per cluster is assumed below; MakeTrackSegments with CutLineSegsOnMaxClust: true keeps the
+        // clusters but makes no line segments for busy events (2026-11-20: null dereference, segfault on data). Skip those.
+        if (linesegments.size() != clusters.size()) {
+          ++fNSkippedLineSegMismatch;
+          return;
+        }
         for (size_t i=0; i<clusters.size(); i++){
           int plane = clusters[i]->Plane();
           int station = clusters[i]->Station();
+          if (station < 0 || static_cast<size_t>(station) >= cl_group.size() ||
+              plane < 0 || static_cast<size_t>(plane) >= cl_group[station].size()) continue; // not in the geometry
           cl_group[station][plane].push_back(clusters[i]);
           ls_group[station][plane].push_back(linesegments[i]);
         }
