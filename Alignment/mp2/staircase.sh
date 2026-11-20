@@ -7,11 +7,17 @@ EMPHATIC_BUILD=${EMPHATIC_BUILD:=/exp/emph/app/users/${USER}/build}
 
 iteration=1
 while true; do
-	# Scale errors on first iteration only
+	# Scale errors for the first few iterations only
 	factor=10
-	[ ${iteration} -eq 1 ] \
+	nScaled=10
+	[ ${iteration} -le ${nScaled} ] \
 		&& sed "s/.*scaleerrors .*/scaleerrors ${factor}/" -i steer_all.txt \
 		|| sed "s/.*scaleerrors .*/!scaleerrors ${factor}/" -i steer_all.txt
+
+	# Ignore convergence while errors are scaled, since shifts are compared to the scaled errors
+	IGNORE_CONVERGENCE=''
+	[ ${iteration} -le ${nScaled} ] && IGNORE_CONVERGENCE='true'
+	export IGNORE_CONVERGENCE
 
 	# Iterate forward (calculate new alignment constants)
 	nice -n 20 ./step.sh ${run} || { echo "Failed to make step. Exiting"; exit 1; }
@@ -20,7 +26,7 @@ while true; do
 
 	# Archive files
 	mkdir -p iteration
-	archive="iteration/${iteration}"
+	archive="iteration/$(printf '%04d' ${iteration})"
 	mkdir -p ${archive}
 	for milleFile in m*.bin; do
 		mv ${milleFile} "${archive}"

@@ -90,14 +90,14 @@ while IFS= read -r line1 <&3 && IFS= read -r line2 <&4; do
       fi
       col2=$(($col2+1))
     done
-    # sed portion is to handle scientific notation - NTK
-    xsum=$(echo "$x1 + $x2" | sed 's/e/10^/g' | bc)
-    ysum=$(echo "$y1 + $y2" | sed 's/e/10^/g' | bc)
-    zsum=$(echo "$z1 + $z2" | sed 's/e/10^/g' | bc)
-    dphisum=$(echo "$dphi1 + $dphi2" | sed 's/e/10^/g' | bc)
-    dethetasum=$(echo "$detheta1 + $detheta2" | sed 's/e/10^/g' | bc)
-    dpsisum=$(echo "$dpsi1 + $dpsi2" | sed 's/e/10^/g' | bc)
-    printf "%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s%-15s\n" $sta $sen $pla $xsum $ysum $zsum $dphisum $dethetasum $dpsisum  >> ${OUTPUT}
+    # sed portion is to handle scientific notation (e or Fortran E) - NTK
+    xsum=$(echo "$x1 + $x2" | sed -e 's/E+/E/g' -e 's/[Ee]/*10^/g' | bc -l)
+    ysum=$(echo "$y1 + $y2" | sed -e 's/E+/E/g' -e 's/[Ee]/*10^/g' | bc -l)
+    zsum=$(echo "$z1 + $z2" | sed -e 's/E+/E/g' -e 's/[Ee]/*10^/g' | bc -l)
+    dphisum=$(echo "$dphi1 + $dphi2" | sed -e 's/E+/E/g' -e 's/[Ee]/*10^/g' | bc -l)
+    dethetasum=$(echo "$detheta1 + $detheta2" | sed -e 's/E+/E/g' -e 's/[Ee]/*10^/g' | bc -l)
+    dpsisum=$(echo "$dpsi1 + $dpsi2" | sed -e 's/E+/E/g' -e 's/[Ee]/*10^/g' | bc -l)
+    printf "%-15s %-15s %-15s %-15.10f %-15.10f %-15.10f %-15.10f %-15.10f %-15.10f\n" $sta $sen $pla $xsum $ysum $zsum $dphisum $dethetasum $dpsisum  >> ${OUTPUT}
   fi
   first=$(($first+1))
 done 3< "${FIFO1}" 4< "${FIFO2}"
