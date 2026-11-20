@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////
-//  \brief   A producer module for creating incident beam particles.
+//  \brief   A producer module for creating incident beam particles.  
 //           The particle type, momentum, momentum and spacial distributions
 //           are controlled through the fhicl configuration.
 //  \author  jpaley@fnal.gov
@@ -33,16 +33,16 @@
 #include "TDatabasePDG.h"
 #include "TParticlePDG.h"
 #include "TPDGCode.h"
-#include "TH1D.h"
+#include "TH1D.h" 
 #include "TH2D.h"
-#include "TH3D.h"
+#include "TH3D.h" 
 #include "TLorentzVector.h"
 
 #include <string>
 #include <vector>
-#include <map>
-#include <memory>
-#include <cmath>
+#include <map> 
+#include <memory> 
+#include <cmath> 
 
 namespace emph {
 
@@ -88,8 +88,8 @@ namespace emph {
     double      fPXsigma;
     double      fPYmean;
     double      fPYsigma;
-
-    std::string fPZDist;
+    
+    std::string fPZDist;  
     std::string fXYDistSource;
     std::string fXYHistFile;
     std::string fXYHistName;
@@ -98,41 +98,42 @@ namespace emph {
     std::string fPXYHistName;
     std::string fParticleType;
 
-    TH2D*       fXYHist;
+    TH2D*       fXYHist;  
     TH2D*       fPXYHist;
 
     // Member variables for the slicing method
     std::string fPhaseSpaceSource; // "Default" and "Sliced" logic
-    std::string fXHist1DFile;
+    std::string fXHist1DFile;      
     std::string fXHist1DName;
     std::string fSlicedHistsFile;
     std::string fSlicedHistsNamePattern; // Naming pattern in ROOT file
 
     TH1D* fXHist1D;
     std::map<int, TH3D*> fSlicedHists;
+    double fZref; // cm; template reference plane (S0 space point). Sliced mode projects from here to Zstart
     std::unique_ptr<TRandom3> fRand;
-
+    
   };
-
+  
   /***************************************************************************/
-
+  
   BeamGen::BeamGen(fhicl::ParameterSet const& ps)
     : art::EDProducer(ps)
   {
     fEvtCount     = 0;
-
+   
     produces<std::vector<simb::MCParticle> >();
-
+    
     fRand = std::make_unique<TRandom3>(0);
     gRandom = fRand.get();
-
+    
     configure(ps);
     GetXYHist();
     GetPXYHist();
     GetPID();
-
+    
   }
-
+  
   /***************************************************************************/
   BeamGen::~BeamGen()
   {
@@ -143,14 +144,15 @@ namespace emph {
   void BeamGen::configure(fhicl::ParameterSet const& ps)
   {
     fUseRunHistory = ps.get<bool>("UseRunHistory","false");
-    fZstart        = ps.get<double>("Zstart", -200.); //cm
+    fZstart        = ps.get<double>("Zstart", -200.); //cm 
+    fZref          = ps.get<double>("Zref", 0.); //cm; only used in Sliced mode
     fPZDist        = ps.get<std::string>("pzDist","Gauss");
     fXYDistSource  = ps.get<std::string>("xyDistSource","Gauss");
     fXYHistFile    = ps.get<std::string>("xyHistFile","");
     fXYHistName    = ps.get<std::string>("xyHistName","BeamXYDist");
     fPXYDistSource = ps.get<std::string>("pxyDistSource","Gauss");
     fPXYHistFile   = ps.get<std::string>("pxyHistFile","");
-    fPXYHistName   = ps.get<std::string>("pxyHistName","BeamPXYDist");
+    fPXYHistName   = ps.get<std::string>("pxyHistName","BeamPXYDist"); 
 
     fPhaseSpaceSource       = ps.get<std::string>("phaseSpaceSource", "Default");
     fXHist1DFile            = ps.get<std::string>("xHist1DFile", "");
@@ -160,22 +162,22 @@ namespace emph {
 
 
     // NOTE: These are in units of GeV/c
-    fPmean         = ps.get<double>("PMean",0.);
+    fPmean         = ps.get<double>("PMean",0.); 
     fPsigma        = ps.get<double>("Psigma",0.);
-
-    // NOTE: These are all in units of cm
-    fXmax          = ps.get<double>("Xmax",-999999.);
-    fXmin          = ps.get<double>("Xmin",999999.);
+    
+    // NOTE: These are all in units of cm 
+    fXmax          = ps.get<double>("Xmax",-999999.); 
+    fXmin          = ps.get<double>("Xmin",999999.); 
     fYmax          = ps.get<double>("Ymax",-999999.);
-    fYmin          = ps.get<double>("Ymin",999999.);
+    fYmin          = ps.get<double>("Ymin",999999.); 
     fXmean         = ps.get<double>("Xmean",999999.);
-    fXsigma        = ps.get<double>("Xsigma",0.);
+    fXsigma        = ps.get<double>("Xsigma",0.); 
     fYmean         = ps.get<double>("Ymean",999999.);
-    fYsigma        = ps.get<double>("Ysigma",0.);
+    fYsigma        = ps.get<double>("Ysigma",0.); 
 
     // NOTE: These are all slopes, eg, "px" = px/pz
     fPXmax          = ps.get<double>("PXmax",-999999.);
-    fPXmin          = ps.get<double>("PXmin",999999.);
+    fPXmin          = ps.get<double>("PXmin",999999.); 
     fPYmax          = ps.get<double>("PYmax",-999999.);
     fPYmin          = ps.get<double>("PYmin",999999.);
     fPXmean         = ps.get<double>("PXmean",999999.);
@@ -194,21 +196,24 @@ namespace emph {
 
     if (fUseRunHistory) {
       art::ServiceHandle<runhist::RunHistoryService> rhs;
-      fPmean = rhs->RunHist()->BeamMom();
+      if (fabs(rhs->RunHist()->BeamMom()) > 0) {
+        fPmean = rhs->RunHist()->BeamMom();
       // ensure that 120 GeV/c particles are always protons.
-      if (fabs(fPmean-120.)<5) {
-	mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
-	fPsigma = 0.01*fPmean;
-	fXYHist = 0;
-	fPXYHist = 0;
-	fXYDistSource = "";
-	fPXYDistSource = "";
-	fPID = kProton;
-	fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
+      // Not in Sliced mode: the template already carries the measured beam.
+      if (fPhaseSpaceSource != "Sliced" && fabs(fPmean-120.)<5) {
+        mf::LogInfo("BeamGen") << "Found " << fPmean << " GeV/c from the runs database.  Overriding beam settings to use Gaussian profiles.";
+        fPsigma = 0.01*fPmean;
+        fXYHist = 0;
+        fPXYHist = 0;
+        fXYDistSource = "";
+        fPXYDistSource = "";
+        fPID = kProton;
+        fMass = TDatabasePDG::Instance()->GetParticle(fPID)->Mass();
       }
     }
-
+  }
 	  GetSlicedHists(runNum);
+
   }
 
   /***************************************************************************/
@@ -318,12 +323,12 @@ namespace emph {
 	if (!input_file) {
 	  std::cerr << "Could not open " << fXYHistFile << std::endl;
 	  std::abort();
-	}
+	}	
 	fXYHist = (TH2D*)input_file->Get(fXYHistName.c_str());
 	if (!fXYHist) {
 	  std::cerr << "Could not find beam (x,y) histogram \"" << fXYHistName << "\"" << std::endl;
 	  std::abort();
-	}
+	} 
 	fXYHist->SetDirectory(0);
       }
       else {
@@ -331,9 +336,9 @@ namespace emph {
 		  << std::endl;
 	std::abort();
       }
-
+      
     }
-
+    
   }
 
   /***************************************************************************/
@@ -355,7 +360,7 @@ namespace emph {
 	if (!input_file) {
 	  std::cerr << "Could not open " << fPXYHistFile << std::endl;
 	  std::abort();
-	}
+	}	
 	fPXYHist = (TH2D*)input_file->Get(fPXYHistName.c_str());
 	if (!fPXYHist) {
 	  std::cerr << "Could not find beam (px/pz,py/pz) histogram \"" << fPXYHistName << "\"" << std::endl;
@@ -372,7 +377,7 @@ namespace emph {
 
   }
   /***************************************************************************/
-  void BeamGen::GetPID()
+  void BeamGen::GetPID() 
   {
     fPID = INT_MAX;
     if (fParticleType == "proton") {
@@ -413,7 +418,7 @@ namespace emph {
     std::cout << "Event " << fEvtCount << std::endl;
 
     TLorentzVector pos;
-    pos[2] = fZstart; // cm; ConvertMCTruthToG4 applies CLHEP::cm
+    pos[2] = fZstart; // cm; ConvertMCTruthToG4 applies CLHEP::cm 
     pos[3] = 0.; // set time to zero
 
     // now get beam particle momentum
@@ -437,11 +442,16 @@ namespace emph {
         x_bin = fXHist1D->FindBin(x);
 
         auto it = fSlicedHists.find(x_bin);
-        if (it != fSlicedHists.end() && it->second->GetEntries() > 0) {
+        if (it != fSlicedHists.end() && it->second->Integral() > 0) {
           it->second->GetRandom3(y, pypz, pxpz);
           break;
-        }
+        }       
       }
+
+      // template is measured at Zref (S0); project back to Zstart so the
+      // particle arrives at S0 where it was measured
+      x += (fZstart - fZref) * pxpz;
+      y += (fZstart - fZref) * pypz;
 
       pos[0] = x;
       pos[1] = y;
@@ -449,7 +459,7 @@ namespace emph {
     }
     else { // ORIGINAL LOGIC for "Default" mode
 
-      // now get beam particle position
+      // now get beam particle position      
       if (fXYHist) { // get random position from histogram
         fXYHist->GetRandom2(pos[0],pos[1]);
       }
@@ -493,10 +503,10 @@ namespace emph {
 
     // get beam information
     simb::MCParticle mcp(-1,fPID, "");
-
+ 
     /*
-    mf::LogInfo("BeamGen") << pos[0] << "," << pos[1] << "," << pos[2]
-          << "\t" << mom[0] << "," << mom[1] << ","
+    mf::LogInfo("BeamGen") << pos[0] << "," << pos[1] << "," << pos[2] 
+          << "\t" << mom[0] << "," << mom[1] << "," 
           << mom[2] << std::endl;
     */
     mcp.AddTrajectoryPoint(pos, mom);
@@ -506,6 +516,6 @@ namespace emph {
     evt.put(std::move(beam));
   }
 
-  DEFINE_ART_MODULE(BeamGen)
+  DEFINE_ART_MODULE(BeamGen) 
 
 } // end namespace emph

@@ -56,6 +56,7 @@ proton_sliced.particleType: "proton"
 proton_sliced.phaseSpaceSource: "Sliced"
 proton_sliced.Zstart: -3.0 
 proton_sliced.Psigma: 0.001 
+proton_sliced.Zref: 0.015 # cm; S0 space point z = 0.15 mm, where the template is measured
 proton_sliced.xHist1DFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
 proton_sliced.slicedHistsFile: "/cvmfs/emphatic.opensciencegrid.org/beamProfiles/beam_profiles_master.root"
 proton_sliced.xHist1DName: "hX_for_slicing"

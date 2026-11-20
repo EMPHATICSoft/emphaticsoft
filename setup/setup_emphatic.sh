@@ -124,6 +124,12 @@ setup_tools () {
     export EXPERIMENT=emph     # Used by ifdhc
     export SAM_EXPERIMENT=emph
 
+    # Use tokens only. With proxy use enabled, ifdhc falls back to kx509,
+    # which calls CILogon for an X.509 cert; FIFE was rate-limited by
+    # CILogon in Nov 2026 because of this.
+    export IFDH_PROXY_ENABLE=0
+    export IFDH_TOKEN_ENABLE=1
+
     # For ifbeam
     export SSL_CERT_FILE=""
 
