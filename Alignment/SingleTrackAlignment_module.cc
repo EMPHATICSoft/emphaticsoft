@@ -234,8 +234,7 @@ namespace emph {
 	  auto sview = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->View();
 	  //double phim = emgeo->GetSSDStation(ii)->GetPlane(jj)->SSD(sens)->Rot(); //in rad
 
-          x0.SetX(-1*x0.X());
-          x1.SetX(-1*x1.X());
+          // Global frame, no x mirror (2026-11-19): every pede correction is added (dx/dy/dz/dphi += value)
 
           ROOT::Math::XYZVector vec = x0 - x1;
           ROOT::Math::XYZVector posx(1.,0.,0.);
@@ -285,9 +284,6 @@ namespace emph {
 	      double tsx = a.X() + (b.X()-a.X())*t;
 	      double tsy = a.Y() + (b.Y()-a.Y())*t;
 
-              a.SetX(-1*a.X());
-              b.SetX(-1*b.X());
-              tsx = -1*tsx;
 
 	      // signed distance from point to a line
 	      double la = x1.Y() - x0.Y();
@@ -313,8 +309,8 @@ namespace emph {
 	      if (sview == 1 || sview == 2 || sview == 4){ // U-VIEW
                 gld_x = -1.*TMath::Sin(phim);
                 gld_y = 1.*TMath::Cos(phim);
-	        gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
-                gld_phim = -1.*TMath::Cos(phim) * tsx - 1.*TMath::Sin(phim) * tsy;
+	        gld_z = dxdz*TMath::Sin(phim) - dydz*TMath::Cos(phim); // -n.slope (was mixed-sign: mirrored phim, unmirrored dxdz)
+                gld_phim = TMath::Cos(phim) * tsx + TMath::Sin(phim) * tsy;
               }
               else{
 		gld_x = 0.;

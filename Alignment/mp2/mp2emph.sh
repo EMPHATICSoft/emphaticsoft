@@ -46,13 +46,13 @@ while IFS=' ' read -r label par c3 c4 c5 c6; do
   fi
 
   if [ ${label: -1} -eq 1 ]; then 
-    dx=$(awk "BEGIN { print -1. * $par }")
+    dx=$par   # global frame since 2026-11-19 (was -1*par: x-mirrored derivatives)
     c=$((c+1))
   elif [ ${label: -1} -eq 2 ]; then
     dy=$(awk "BEGIN { print 1. * $par }")
     c=$((c+1))
   elif [ ${label: -1} -eq 3 ]; then
-    dz=$par
+    dz=$par   # dz derivative sign fixed 2026-11-19 (before: needed -par)
     c=$((c+1))
   else 
     dphi=$(awk -v var1=$par 'BEGIN { printf "%.10f\n", 180/3.14159265359*var1 }')

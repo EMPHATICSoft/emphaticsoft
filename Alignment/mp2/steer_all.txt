@@ -83,29 +83,29 @@ parameter
 ! from "det.getMP2Constraints()":
 ! Alignment with MillePede-II requires for 1D measuremnts:
 Constraint 0. ! fix unmeasured direction in plane_0_0_Y
-  1 -1.0
+  1 1.0
 Constraint 0. ! fix unmeasured direction in plane_0_1_X
   102 1.0
 Constraint 0. ! fix unmeasured direction in plane_1_0_Y
-  1001 -1.0
+  1001 1.0
 Constraint 0. ! fix unmeasured direction in plane_1_1_X
   1102 1.0
 Constraint 0. ! fix unmeasured direction in plane_2_0_U
-  2001 0.7071067811865476
+  2001 -0.7071067811865476
   2002 -0.7071067811865475
 Constraint 0. ! fix unmeasured direction in plane_2_1_Y
-  2101 -1.0
+  2101 1.0
 Constraint 0. ! fix unmeasured direction in plane_2_2_X
   2202 1.0
 Constraint 0. ! fix unmeasured direction in plane_3_0_U
-  3001 0.7071067811865476
+  3001 -0.7071067811865476
   3002 -0.7071067811865475
 Constraint 0. ! fix unmeasured direction in plane_3_1_Y
-  3101 -1.0
+  3101 1.0
 Constraint 0. ! fix unmeasured direction in plane_3_2_X
   3202 1.0
 Constraint 0. ! fix unmeasured direction in plane_4_0_Y
-  4001 -1.0
+  4001 1.0
 Constraint 0. ! fix unmeasured direction in plane_4_1_X
   4102 1.0
 Constraint 0. ! fix unmeasured direction in plane_5_0_X
@@ -113,37 +113,37 @@ Constraint 0. ! fix unmeasured direction in plane_5_0_X
 Constraint 0. ! fix unmeasured direction in plane_5_0_X
   5012 1.0
 Constraint 0. ! fix unmeasured direction in plane_5_1_Y
-  5101 -1.0
+  5101 1.0
 Constraint 0. ! fix unmeasured direction in plane_5_1_Y
-  5111 -1.0
+  5111 1.0
 Constraint 0. ! fix unmeasured direction in plane_5_2_U
-  5201 0.7071067811865476
+  5201 -0.7071067811865476
   5202 -0.7071067811865475
 Constraint 0. ! fix unmeasured direction in plane_5_2_U
-  5211 0.7071067811865476
+  5211 -0.7071067811865476
   5212 -0.7071067811865475
 Constraint 0. ! fix unmeasured direction in plane_6_0_X
   6002 1.0
 Constraint 0. ! fix unmeasured direction in plane_6_0_X
   6012 1.0
 Constraint 0. ! fix unmeasured direction in plane_6_1_Y
-  6101 -1.0
+  6101 1.0
 Constraint 0. ! fix unmeasured direction in plane_6_1_Y
-  6111 -1.0
+  6111 1.0
 Constraint 0. ! fix unmeasured direction in plane_6_2_U
-  6201 0.7071067811865476
+  6201 -0.7071067811865476
   6202 -0.7071067811865475
 Constraint 0. ! fix unmeasured direction in plane_6_2_U
-  6211 0.7071067811865476
+  6211 -0.7071067811865476
   6212 -0.7071067811865475
 Constraint 0. ! fix unmeasured direction in plane_7_0_X
   7002 1.0
 Constraint 0. ! fix unmeasured direction in plane_7_0_X
   7012 1.0
 Constraint 0. ! fix unmeasured direction in plane_7_1_Y
-  7101 -1.0
+  7101 1.0
 Constraint 0. ! fix unmeasured direction in plane_7_1_Y
-  7111 -1.0
+  7111 1.0
 ! resolveredundancycons ! may be helpful
 ! End of lines to be added to MillePede-II steering file
 

@@ -511,8 +511,8 @@ namespace emph {
 			double sensorz = meas.GetZ();
 			ROOT::Math::XYZVector x0(meas.X0());
 			ROOT::Math::XYZVector x1(meas.X1());
-			x0.SetX(-x0.X());
-			x1.SetX(-x1.X());
+			// Global frame, no x mirror (2026-11-19). With this and the gld_z sign below, every pede correction is
+			// added to the constants (dx/dy/dz/dphi += value); before, dx needed -= (mirror) and dz -= (sign error).
 			ROOT::Math::XYZVector vec = x0 - x1;
 			Double_t phim = TMath::ATan2(vec.Y(), vec.X());
 			while(phim < 0) phim += 2.*TMath::Pi();
@@ -532,15 +532,15 @@ namespace emph {
 
 			// Calculate global derivatives
 			// These derivatives are estimated by the Kalman Filtered Track
-			double xhat = -track.posSSD[station][plane].X();
+			double xhat = track.posSSD[station][plane].X();
 			double yhat = track.posSSD[station][plane].Y();
-			double dxdz = -track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
+			double dxdz = track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
 			double dydz = track.momSSD[station][plane].Y()/track.momSSD[station][plane].Z();
 			if (fSingleTrajectory) {
 				const auto& s = ref[imeas];
-				xhat = -s[0];
+				xhat = s[0];
 				yhat = s[1];
-				dxdz = -s[2];
+				dxdz = s[2];
 				dydz = s[3];
 			}
 			//switch (emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View()) {
@@ -563,17 +563,19 @@ namespace emph {
 //				// Does this actually do anything? - NTK
 			float gld_x = -1.*TMath::Sin(phim);
 			float gld_y = 1.*TMath::Cos(phim);
-			float gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
-			float gld_phim = -1.*TMath::Cos(phim) * xhat - 1.*TMath::Sin(phim) * yhat;
+			// global derivative = -d(residual)/d(parameter), residual = n.(prediction - strip), n = (-sin, cos):
+			// sensor at z+dz sees the track at prediction + slope*dz, so gld_z = -n.slope (was +n.slope: dz sign error)
+			float gld_z = dxdz*TMath::Sin(phim) - dydz*TMath::Cos(phim);
+			float gld_phim = TMath::Cos(phim) * xhat + TMath::Sin(phim) * yhat;
 
-			// Magnet shift and q/p move the predicted track; signedDistance sees it through xhat = -X, yhat = Y
+			// Magnet shift and q/p move the predicted track (md, qd: global dX, dY); gld = -n.(dX, dY), as for the SSDs
 			const auto& md = magDeriv[imeas];
 			const auto& qd = qpDeriv[imeas];
 			++imeas;
-			float gld_mx = -1.*(TMath::Sin(phim)*md[0] + TMath::Cos(phim)*md[1]);
-			float gld_my = -1.*(TMath::Sin(phim)*md[2] + TMath::Cos(phim)*md[3]);
-			float gld_roll = -1.*(TMath::Sin(phim)*md[4] + TMath::Cos(phim)*md[5]);
-			float lcd_qp = -1.*(TMath::Sin(phim)*qd[0] + TMath::Cos(phim)*qd[1]);
+			float gld_mx = TMath::Sin(phim)*md[0] - TMath::Cos(phim)*md[1];
+			float gld_my = TMath::Sin(phim)*md[2] - TMath::Cos(phim)*md[3];
+			float gld_roll = TMath::Sin(phim)*md[4] - TMath::Cos(phim)*md[5];
+			float lcd_qp = TMath::Sin(phim)*qd[0] - TMath::Cos(phim)*qd[1];
 
 	//		float gld_x = -1.*dy/dr;
 	//		float gld_y = -1.*dx/dr;
