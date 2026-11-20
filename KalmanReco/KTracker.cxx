@@ -1,5 +1,7 @@
 #include "KalmanReco/KTracker.h"
 #include "CLHEP/Units/SystemOfUnits.h"
+#include <algorithm>
+#include <cmath>
 
 namespace kalman {
 
@@ -94,47 +96,39 @@ namespace kalman {
     KStateVec temp_state;
     double dz = z_end - z_start;
     double sgn = (dz > 0) ? 1.0 : -1.0;
-    double zpos = z_start+1.e-6*sgn; // add small offset to avoid numerical issues if starting exactly at measurement plane
 
     state_out = state_in;
 
+    // Equal steps of at most fMaxStepSize that end exactly at z_end; h carries the
+    // direction so backward propagation (dz < 0) works too
+    int nsteps = std::max(1, int(std::ceil(std::fabs(dz)/fMaxStepSize)));
+    double h = dz/nsteps;
+
     if (fVerbosity)
-      std::cout << "Propagating with RK4: dz = " << dz << ", step size = " << fMaxStepSize << std::endl;
+      std::cout << "Propagating with RK4: dz = " << dz << ", " << nsteps << " steps of " << h << std::endl;
     double ds = 0.;
 
-    bool isLast = false;
-    while (zpos >= z_start && zpos <= z_end) {      
+    for (int istep = 0; istep < nsteps; ++istep) {
+      double zpos = z_start + istep*h;
       EquationsOfMotion(state_out, zpos, k1, sgn);
-      temp_state = state_out + 0.5 * fMaxStepSize * k1;
+      temp_state = state_out + 0.5 * h * k1;
       if (fVerbosity > 2)
         std::cout << "\t k1 = " << k1 << ", temp_state = " << temp_state << std::endl;
-      EquationsOfMotion(temp_state, zpos + 0.5 * fMaxStepSize*sgn, k2, sgn);
-      temp_state = state_out + 0.5 * fMaxStepSize * k2;
+      EquationsOfMotion(temp_state, zpos + 0.5 * h, k2, sgn);
+      temp_state = state_out + 0.5 * h * k2;
       if (fVerbosity > 2)
-        std::cout << "\t k2 = " << k2 << ", temp_state = " << temp_state << std::endl;  
-      EquationsOfMotion(temp_state, zpos + 0.5 * fMaxStepSize*sgn, k3, sgn);
-      temp_state = state_out + fMaxStepSize * k3;
+        std::cout << "\t k2 = " << k2 << ", temp_state = " << temp_state << std::endl;
+      EquationsOfMotion(temp_state, zpos + 0.5 * h, k3, sgn);
+      temp_state = state_out + h * k3;
       if (fVerbosity > 2)
         std::cout << "\t k3 = " << k3 << ", temp_state = " << temp_state << std::endl;
-      EquationsOfMotion(temp_state, zpos + fMaxStepSize*sgn, k4, sgn);
+      EquationsOfMotion(temp_state, zpos + h, k4, sgn);
       if (fVerbosity > 2)
         std::cout << "\t k4 = " << k4 << std::endl;
 
-      state_out += (fMaxStepSize / 6.0) * (k1 + 2*k2 + 2*k3 + k4);
-      ds += fMaxStepSize * sqrt(1 + state_out[2]*state_out[2] + state_out[3]*state_out[3]);
-
-      if (isLast) break; // if we just took the last step, exit loop
-
-      zpos += fMaxStepSize*sgn;
-      if (zpos > z_end) {
-        zpos = z_end;
-        isLast = true;
-      }
-      if (zpos < z_start) {
-        zpos = z_start;
-        isLast = true;
-      }
-//      std::cout << "zpos = " << zpos << ", state_out = " << state_out << std::endl;
+      state_out += (h / 6.0) * (k1 + 2*k2 + 2*k3 + k4);
+      // signed like Propagate(); GetNoise uses the sign
+      ds += h * sqrt(1 + state_out[2]*state_out[2] + state_out[3]*state_out[3]);
     }
     if (fVerbosity)
       std::cout << "Finished RK4 propagation to z = " << z_end << ", final state: " << state_out << std::endl;
@@ -210,6 +204,7 @@ namespace kalman {
   KStateCov KTracker::GetNoise(KStateVec& tstate, double ds, double X0)
   {
     double SigTheta = 0.0136*fabs(tstate(4)) * sqrt(X0) * (1.+0.038*log(X0)); // Highland formula, gives RMS scattering angle in radians
+    if (X0 <= 0.) SigTheta = 0.; // no material, e.g. between two sensors of one plane (sqrt(0)*log(0) is NaN)
     if (fVerbosity > 2)
       std::cout << "ds = " << ds << ", X0 = " << X0 << ", SigTheta x 1e6 = " << SigTheta*1.e6 << std::endl;
     
@@ -244,15 +239,30 @@ namespace kalman {
   }
   // ------------------------------------------------------------
   
+  bool KTracker::StepSeesField(double z_start, double z_end)
+  {
+    // RK4 for any step that overlaps the field map, in either direction. The field is zero outside
+    // the map, so RK4 there is just a straight line. (Requiring the whole step to be inside the map
+    // left tracks without a station 4 hit with no field at all, e.g. 629 -> 1143 mm.)
+    // Disabled field (MagneticFieldService IsEnabled: false, magnet-out runs): straight lines everywhere.
+    // FieldMinZ() would otherwise dereference the never-loaded field histograms and crash.
+    if (!fBfield || !fBfield->IsEnabled()) return false;
+    double zlo = std::min(z_start, z_end);
+    double zhi = std::max(z_start, z_end);
+    return (zhi > fBfield->FieldMinZ()) && (zlo < fBfield->FieldMaxZ());
+  }
+
+  // ------------------------------------------------------------
+
   KState KTracker::Predict(KState& sstart, double z_end, int imeas)
-  {  
+  {
 
     double z_start = sstart.GetZ();
     
     // Propagate state using RK4
     KStateVec predicted_state;
     KStateVec state_in = sstart.GetPar();
-    bool inField = (z_start > fBfield->FieldMinZ()) && (z_end < fBfield->FieldMaxZ());
+    bool inField = StepSeesField(z_start, z_end);
     double ds = 0.;
     if (inField) {
       if (fVerbosity) std::cout << "Propagating from z = " << z_start << " to z = " << z_end << " with RK4" << std::endl; 
@@ -531,7 +541,14 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
     KStateCov F_T = ROOT::Math::Transpose(F);
 
     int ifail;
-    KStateCov P_pred_inv = predicted_next.GetCov().Inverse(ifail);
+    // Cholesky (a covariance is symmetric positive definite): on failure it only sets ifail. Inverse()
+    // also raises a ROOT Error ("Inverter::Dinv Dfact_matrix failed"), which art turns into a fatal
+    // exception, so one singular track killed the whole job before the fallback below could run
+    // (Cholesky needs the symmetric representation; KStateCov is a general SMatrix)
+    ROOT::Math::SMatrix<double,5,5,ROOT::Math::MatRepSym<double,5>> P_pred_sym;
+    for (int i = 0; i < 5; ++i)
+      for (int j = 0; j <= i; ++j) P_pred_sym(i,j) = predicted_next.GetCov()(i,j);
+    KStateCov P_pred_inv(P_pred_sym.InverseChol(ifail));
     if (ifail != 0) {
         std::cerr << "Error inverting p2redicted covariance matrix" << std::endl;
         return filtered;
@@ -577,7 +594,7 @@ KMeas KTracker::GetMeasurementPrediction(KState& state, KLSMeasurement& meas)
         KStateVec filtered_state = fFiltered_states[i].GetPar();
         double z_start = fFiltered_states[i].GetZ();
         double z_end = fFiltered_states[i+1].GetZ();
-        bool inField = (z_start > fBfield->FieldMinZ()) && (z_end < fBfield->FieldMaxZ());
+        bool inField = StepSeesField(z_start, z_end);
         if (inField)
           transport_matrices[i] = CalculateJacobianRK4(filtered_state, z_start, z_end);
         else

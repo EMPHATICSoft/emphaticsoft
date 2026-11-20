@@ -35,6 +35,9 @@ namespace kalman {
     // Calculate chi2 from smoothed states (independent verification)
     std::pair<double, int> CalculateChi2FromSmoothedStates(std::vector<KResidual>& residuals);
 
+    // True if a step from z_start to z_end overlaps the field map (Predict and RunSmoother then use RK4)
+    bool StepSeesField(double z_start, double z_end);
+
     // Setters
 
     void SetVerbosity(int v) { fVerbosity = v; }
