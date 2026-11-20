@@ -270,6 +270,11 @@ void emph::MakeSSDClusters::produce(art::Event& evt)
 	  // Don't bother to cluster if we didn't have any raw digits
 	  if (digitList[sta][pln][sensor].size()==0)
 	    continue;
+	  // The channel map can have more stations than the geometry (e.g. a station-7 digit in the
+	  // 7-station geometry of runs < 2179): skip digits with no sensor in the geometry
+	  if (sta >= geo->Geo()->NSSDStations() || pln >= geo->Geo()->GetSSDStation(sta)->NPlanes()
+	      || sensor >= geo->Geo()->GetSSDStation(sta)->GetPlane(pln)->NSSDs())
+	    continue;
 	  // FormClusters() assumes digits are ordered by row
 	  this->SortByRow(digitList[sta][pln][sensor]);
 	  this->FormClusters(digitList[sta][pln][sensor], 

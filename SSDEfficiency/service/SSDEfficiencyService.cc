@@ -33,12 +33,14 @@ namespace emph {
 
     std::string effFile = rhs->RunHist()->SSDEfficiencyFile();
     if (fSSDEfficiency->IsDisabled()) {
+      // All sensors stay 100% efficient (the SSDEfficiency default); the file is not needed,
+      // e.g. runs < 2280 have none
       std::cout << "SSDEfficiencyService: efficiency is disabled, not applying constants from "
                 << effFile << std::endl;
-    } else {
-      std::cout << "SSDEfficiencyService: using " << effFile
-              << " for SSD efficiency." << std::endl;
+      return;
     }
+    std::cout << "SSDEfficiencyService: using " << effFile
+              << " for SSD efficiency." << std::endl;
 
     fSSDEfficiency->LoadSSDEffConsts(effFile);
   }
