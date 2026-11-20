@@ -30,6 +30,7 @@ cet_build_plugin(SingleTrackAlignmentKalman art::module
 	millepede_ii::millepede_ii
 	KalmanReco
 	MagneticFieldService_service
+	RunHistoryService_service
 	SimulationBase
 	Simulation
 	MCUtils

@@ -1,0 +1,22 @@
+#include "prod_reco_caf_job_data.fcl"
+
+# Kalman SSD alignment only: run reco up to track segments and write mille
+# binaries, skipping the CAF output. Used by mp2/step.sh.
+process_name: AlignKalman
+
+services.TFileService.fileName: "%ifb_align_kalman_hist.root"
+# Apply the SSD alignment constants so each iteration builds on the last
+services.AlignService.IsDisabled: false
+
+# The data CAF job does not run the alignment module: add it here
+physics.producers.singletrackalignmentKalman: @local::standard_singletrackalignmentKalman
+
+# Skip events with more than 25 SSD clusters entirely (no line or track segments)
+physics.producers.maketracksegments.MaxClust: 26
+physics.producers.maketracksegments.CutLineSegsOnMaxClust: true
+
+physics.makecaf: [
+                   dataqual, spillinfo, clust,
+                   maketracksegments,
+                   singletrackalignmentKalman
+                 ]

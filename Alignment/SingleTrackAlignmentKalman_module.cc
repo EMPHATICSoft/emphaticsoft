@@ -12,6 +12,8 @@
 #include <vector>
 #include <numeric>
 #include <fstream>
+#include <array>
+#include <algorithm>
 
 // ROOT includes
 #include "TH1F.h"
@@ -44,6 +46,8 @@
 #include "Align/service/AlignService.h"
 #include "Geometry/service/GeometryService.h"
 #include "MagneticField/service/MagneticFieldService.h"
+#include "RunHistory/service/RunHistoryService.h"
+#include "cetlib_except/exception.h"
 #include "DetGeoMap/service/DetGeoMapService.h"
 #include "RecoBase/LineSegment.h"
 #include "RecoBase/Track.h"
@@ -54,6 +58,7 @@
 #include "Simulation/SSDHit.h"
 
 #include "millepede_ii/Mille.h"
+#include "CLHEP/Units/SystemOfUnits.h"
 
 using namespace emph;
 
@@ -105,6 +110,7 @@ namespace emph {
 
 		int usingEvent = 0;
 		int fVerbosity;
+		int fQOverPVerbosity; // > 0: one QOVERP line per track, the region counts and RESCUT, without the rest of Verbosity (KTracker output)
 		int fNInterations;
 		bool fUseTruth;
 		double fUncScaler;
@@ -112,6 +118,54 @@ namespace emph {
 		std::string fTrackSegmentLabel;
 
 		kalman::KTracker* fKTracker;
+
+		// Magnet (x,y) position as global parameters, in the geometry frame (mm)
+		static constexpr int kMagnetLabelX = 9001;
+		static constexpr int kMagnetLabelY = 9002;
+		bool fMagnetAlign;
+		double fMagnetDerivStep;
+		// Magnet roll (rotation about the beam axis through the magnet centre, geometry frame, mrad) as a
+		// third magnet global parameter (needs MagnetAlign); the reco roll rotates the field map in this
+		// module's transport only (SingleTrajectory residuals), not in KTracker
+		static constexpr int kMagnetLabelRoll = 9003;
+		bool fMagnetRollAlign;
+		double fMagnetRollStep; // mrad
+		double fMagnetRecoRoll; // mrad
+		double fMagCenterX = 0., fMagCenterY = 0.; // mm, magnet axis (field-map origin)
+		// Magnet derivatives of a track are dropped (set to 0) when the steps d and 2d disagree by more than
+		// this fraction: the track then crosses a sharp field feature (e.g. the field-map edge) and the
+		// linear model behind Millepede does not hold
+		double fMagnetLinearityTol;
+		double fMagnetLinearityFloor; // mm/mm, absolute slack on top of the relative tolerance
+		// Tracks with any |residual| above this (mm) are not written to Mille (broken trajectories); <= 0: no cut
+		double fMaxResidual;
+		bool fUseAllEvents; // true: use every event (default: only event numbers ending in 1, 2 or 3)
+		int fNMagNonlinear = 0;
+		int fNResidualCut = 0;
+		// q/p as a 5th local parameter, so pede does not credit the magnet with what a momentum change does
+		bool fLocalQoverP;
+		static constexpr double kQoverPMinDeriv = 1.0; // mm per unit q/p; below this a record keeps 4 locals
+		// Residuals from one trajectory (first smoothed state, no process noise) instead of per-plane smoothed states
+		bool fSingleTrajectory;
+		// Beam-momentum prior on the local q/p (2026-11-07): one extra Mille measurement per record, the track's
+		// q/p against the beam's s/|p| (s = the sign of the track's own fitted q/p: in the 2159-2163 data the
+		// fitted sign is opposite to the runs-table polarity, so the polarity is not trusted), error
+		// QoverPPriorRel/|p|. A downstream x shear shifts every track's q/p by the same constant (|p| up for one
+		// charge, down for the other), a momentum-scale error scales |q/p| for both; with QoverPScaleLabel > 0 a
+		// global parameter kappa (|p_true| = |p_beam|(1+kappa), one label per beam setting, shared by both
+		// polarities) takes the scale, so only the + vs - difference constrains the shear. Off when QoverPPriorRel <= 0.
+		double fQoverPPriorRel;
+		double fBeamMomentumOverride; // GeV/c, |p|; 0 = the runs database (RunHistory BeamMom)
+		int fQoverPScaleLabel;        // 0: absolute prior; e.g. 9101: free momentum scale (not 900x: magnet labels)
+		double fBeamInvP = 0.;        // 1/|p_beam|
+		long fNQoverPPrior = 0;
+		double fRK4Step;
+		emph::MagneticField* fMagField = nullptr;
+		void TransportShifted(std::array<double,5>& s, double z0, double z1, double sx, double sy, double droll = 0.);
+		std::vector<std::array<double,2>> TransportFromRef(const std::array<double,5>& start, size_t iref,
+		                                                   double sx, double sy, double dqp, double droll = 0.);
+		bool TrackDerivatives(const std::vector<std::array<double,5>>& ref,
+		                      std::vector<std::array<double,6>>& magDeriv, std::vector<std::array<double,2>>& qpDeriv);
 
 		TH2D* fTruePtVsPzAll;
 		TH2D* fTruePtVsPzSel;
@@ -136,11 +190,27 @@ namespace emph {
 	emph::SingleTrackAlignmentKalman::SingleTrackAlignmentKalman(fhicl::ParameterSet const& pset)
 		: EDProducer{pset},
 		fVerbosity (pset.get<int>("Verbosity", 0)),
+		fQOverPVerbosity (pset.get<int>("QOverPVerbosity", 0)),
 		fNInterations (pset.get<int>("NIterations", 1)),
 		fUseTruth (pset.get<bool>("UseTruth", false)),
 		fUncScaler (pset.get<double>("UncScaler", 0)),
 		fMilleName (pset.get< std::string >("MilleName")),
-		fTrackSegmentLabel (pset.get< std::string >("TrackSegmentLabel"))
+		fTrackSegmentLabel (pset.get< std::string >("TrackSegmentLabel")),
+		fMagnetAlign (pset.get<bool>("MagnetAlign", false)),
+		fMagnetDerivStep (pset.get<double>("MagnetDerivStep", 1.0)),
+		fMagnetRollAlign (pset.get<bool>("MagnetRollAlign", false)),
+		fMagnetRollStep (pset.get<double>("MagnetRollStep", 1.0)),
+		fMagnetRecoRoll (pset.get<double>("MagnetRecoRoll", 0.)),
+		fMagnetLinearityTol (pset.get<double>("MagnetLinearityTol", 0.2)),
+		fMagnetLinearityFloor (pset.get<double>("MagnetLinearityFloor", 2.e-3)),
+		fMaxResidual (pset.get<double>("MaxResidual", 0.)),
+		fUseAllEvents (pset.get<bool>("UseAllEvents", false)),
+		fLocalQoverP (pset.get<bool>("LocalQoverP", false)),
+		fSingleTrajectory (pset.get<bool>("SingleTrajectory", false)),
+		fQoverPPriorRel (pset.get<double>("QoverPPriorRel", 0.)),
+		fBeamMomentumOverride (pset.get<double>("BeamMomentum", 0.)),
+		fQoverPScaleLabel (pset.get<int>("QoverPScaleLabel", 0)),
+		fRK4Step (pset.get<double>("RK4MaxZStep", 2.0))
 		{
 			std::cout << "We got the fUncScaler" << fUncScaler << std::endl;
 			//this->produces< std::vector<rb::Track> >();
@@ -198,6 +268,20 @@ namespace emph {
 		art::ServiceHandle<emph::geo::GeometryService> geo;
 		art::ServiceHandle<emph::MagneticFieldService> mag;
 		fKTracker->SetBField(mag->Field());
+		fMagField = mag->Field();
+		if (fQoverPPriorRel > 0.) {
+			double p = fBeamMomentumOverride;
+			if (p == 0.) {
+				art::ServiceHandle<runhist::RunHistoryService> rhs;
+				p = rhs->RunHist()->BeamMom();
+			}
+			if (p == 0.)
+				throw cet::exception("SingleTrackAlignmentKalman") << "QoverPPriorRel > 0 but no beam momentum (runs DB or BeamMomentum)";
+			fBeamInvP = 1./std::fabs(p);
+			std::cout << "SingleTrackAlignmentKalman: q/p prior |p| " << std::fabs(p) << " GeV/c +- " << 100.*fQoverPPriorRel
+			          << "% per track, sign from each track's fit, " << (fQoverPScaleLabel > 0 ? "free momentum scale label "
+			          + std::to_string(fQoverPScaleLabel) : std::string("absolute")) << std::endl;
+		}
 	//	fKTracker->SetGeometry(geo->Geo());
 		if (fVerbosity > 0)	 std::cout << "Created new instance of KTracker with verbosity level " << fVerbosity << std::endl;
 		art::ServiceHandle<art::TFileService> tfs;
@@ -205,6 +289,8 @@ namespace emph {
 		auto emgeo = geo->Geo();
 		nStations = emgeo->NSSDStations();
 		nPlanes = emgeo->NSSDPlanes();
+		fMagCenterX = emgeo->MagnetUSXPos();
+		fMagCenterY = emgeo->MagnetUSYPos();
 	}
 
 	//......................................................................
@@ -223,6 +309,147 @@ namespace emph {
 		delete m;
 
 		mf::LogDebug("SingleTrackAlignmentKalman") << "SingleTrackAlignmentKalman: Number of events used = " << usingEvent;
+		if (fQoverPPriorRel > 0.) std::cout << "SingleTrackAlignmentKalman: " << fNQoverPPrior << " records with the q/p beam prior" << std::endl;
+		std::cout << "SingleTrackAlignmentKalman: " << record - 1 << " Mille records written, " << fNResidualCut
+		          << " tracks dropped by MaxResidual, " << fNMagNonlinear
+		          << " tracks with magnet derivatives dropped (nonlinear)" << std::endl;
+	}
+
+	//......................................................................
+	// Transport (x, y, tx, ty, q/p) from z0 to z1 (KTracker frame) with the magnet shifted
+	// by (sx, sy) mm, i.e. the field looked up at (x-sx, y-sy, z), and rolled by fMagnetRecoRoll + droll
+	// (mrad) about its axis: B'(r) = R B(R^-1 r). Same rule as KTracker::Predict
+	// (KTracker::StepSeesField): RK4 if the step overlaps the field map, otherwise a straight line.
+	void emph::SingleTrackAlignmentKalman::TransportShifted(std::array<double,5>& s, double z0, double z1, double sx, double sy, double droll)
+	{
+		double dz = z1 - z0;
+		if (!fKTracker->StepSeesField(z0, z1)) {
+			s[0] += s[2]*dz;
+			s[1] += s[3]*dz;
+			return;
+		}
+
+		const double sol = 0.299792458e-4; // same as KTracker
+		// same equations of motion as KTracker::EquationsOfMotion
+		const double roll = 1.e-3*(fMagnetRecoRoll + droll);
+		const double cr = std::cos(roll), sr = std::sin(roll);
+		auto eom = [&](const std::array<double,5>& v, double z, std::array<double,5>& d) {
+			double pos[3] = {v[0] - sx, v[1] - sy, z};
+			double B[3];
+			if (roll != 0.) {
+				const double px = pos[0] - fMagCenterX, py = pos[1] - fMagCenterY;
+				pos[0] = fMagCenterX + cr*px + sr*py;
+				pos[1] = fMagCenterY - sr*px + cr*py;
+			}
+			fMagField->GetFieldValue(pos, B);
+			if (roll != 0.) {
+				const double bx = B[0];
+				B[0] = cr*bx - sr*B[1];
+				B[1] = sr*bx + cr*B[1];
+			}
+			for (int i = 0; i < 3; ++i) B[i] /= CLHEP::kilogauss;
+			double u = 1 + v[2]*v[2] + v[3]*v[3];
+			d[0] = v[2];
+			d[1] = v[3];
+			d[2] = u * v[4] * sol * (v[3]*B[2] - B[1] + v[2]*v[3]*B[0]);
+			d[3] = u * v[4] * sol * (B[0] - v[2]*B[2] - v[2]*v[3]*B[1]);
+			d[4] = 0.;
+		};
+
+		int nsteps = std::max(1, int(std::ceil(std::fabs(dz)/fRK4Step)));
+		double h = dz/nsteps;
+		std::array<double,5> k1, k2, k3, k4, tmp;
+		for (int istep = 0; istep < nsteps; ++istep) {
+			double z = z0 + istep*h;
+			eom(s, z, k1);
+			for (int i = 0; i < 5; ++i) tmp[i] = s[i] + 0.5*h*k1[i];
+			eom(tmp, z + 0.5*h, k2);
+			for (int i = 0; i < 5; ++i) tmp[i] = s[i] + 0.5*h*k2[i];
+			eom(tmp, z + 0.5*h, k3);
+			for (int i = 0; i < 5; ++i) tmp[i] = s[i] + h*k3[i];
+			eom(tmp, z + h, k4);
+			for (int i = 0; i < 5; ++i) s[i] += h/6.*(k1[i] + 2.*k2[i] + 2.*k3[i] + k4[i]);
+		}
+	}
+
+	//......................................................................
+	// (X,Y) at measurements iref+1..n-1 (KTracker frame), transporting the state start (at
+	// measurement iref) with q/p changed by dqp, the magnet shifted by (sx, sy) and rolled by droll
+	std::vector<std::array<double,2>> emph::SingleTrackAlignmentKalman::TransportFromRef(const std::array<double,5>& start, size_t iref,
+	                                                                                   double sx, double sy, double dqp, double droll)
+	{
+		const auto& smoothed = fKTracker->GetSmoothedStates(); // smoothed[k+1] is at measurement k
+		std::vector<std::array<double,2>> pos;
+		std::array<double,5> s = start;
+		s[4] += dqp;
+		double z = smoothed[iref+1].GetZ();
+		for (size_t k = iref+2; k < smoothed.size(); ++k) {
+			TransportShifted(s, z, smoothed[k].GetZ(), sx, sy, droll);
+			z = smoothed[k].GetZ();
+			pos.push_back({s[0], s[1]});
+		}
+		return pos;
+	}
+
+	//......................................................................
+	// Derivatives of (X,Y) at each measurement (KTracker frame) by central differences. The reference
+	// state ref[iref] at the plane where the first step that sees the field starts is held fixed and
+	// transported downstream; planes upstream of it get zero. For measurement k:
+	//   magDeriv[k] = {dX/dmx, dY/dmx, dX/dmy, dY/dmy, dX/droll, dY/droll}  (magnet shifted by +-fMagnetDerivStep,
+	//                 rolled by +-fMagnetRollStep; the roll pair only with MagnetRollAlign)
+	//   qpDeriv[k]  = {dX/d(q/p), dY/d(q/p)}
+	// Returns false if the magnet derivatives are not linear: the same derivatives with step 2d differ
+	// from those with step d by more than fMagnetLinearityTol (relative) + fMagnetLinearityFloor (mm/mm) at some hit.
+	bool emph::SingleTrackAlignmentKalman::TrackDerivatives(const std::vector<std::array<double,5>>& ref,
+	                                                        std::vector<std::array<double,6>>& magDeriv,
+	                                                        std::vector<std::array<double,2>>& qpDeriv)
+	{
+		const auto& smoothed = fKTracker->GetSmoothedStates(); // smoothed[k+1] is at measurement k
+		const size_t n = magDeriv.size();
+		if (smoothed.size() != n+1 || qpDeriv.size() != n || ref.size() != n) return true;
+
+		size_t iref = n;
+		for (size_t k = 0; k+1 < n; ++k) {
+			if (fKTracker->StepSeesField(smoothed[k+1].GetZ(), smoothed[k+2].GetZ())) {
+				iref = k;
+				break;
+			}
+		}
+		if (iref == n) return true; // no step of this track sees the field
+
+		// (plus - minus)/(2h) into columns col, col+1 of out
+		auto fill = [&](const std::vector<std::array<double,2>>& plus, const std::vector<std::array<double,2>>& minus,
+		                double h, auto& out, int col) {
+			for (size_t k = iref+1; k < n; ++k)
+				for (int c = 0; c < 2; ++c)
+					out[k][col+c] = (plus[k-iref-1][c] - minus[k-iref-1][c])/(2.*h);
+		};
+
+		bool linear = true;
+		if (fMagnetAlign) {
+			const double d = fMagnetDerivStep;
+			fill(TransportFromRef(ref[iref], iref, d, 0., 0.), TransportFromRef(ref[iref], iref, -d, 0., 0.), d, magDeriv, 0);
+			fill(TransportFromRef(ref[iref], iref, 0., d, 0.), TransportFromRef(ref[iref], iref, 0., -d, 0.), d, magDeriv, 2);
+			const double r = fMagnetRollStep;
+			if (fMagnetRollAlign)
+				fill(TransportFromRef(ref[iref], iref, 0., 0., 0., r), TransportFromRef(ref[iref], iref, 0., 0., 0., -r), r, magDeriv, 4);
+			// Same with step 2d; a linear response gives the same derivatives
+			std::vector<std::array<double,6>> wide(n, {0., 0., 0., 0., 0., 0.});
+			fill(TransportFromRef(ref[iref], iref, 2*d, 0., 0.), TransportFromRef(ref[iref], iref, -2*d, 0., 0.), 2*d, wide, 0);
+			fill(TransportFromRef(ref[iref], iref, 0., 2*d, 0.), TransportFromRef(ref[iref], iref, 0., -2*d, 0.), 2*d, wide, 2);
+			if (fMagnetRollAlign)
+				fill(TransportFromRef(ref[iref], iref, 0., 0., 0., 2*r), TransportFromRef(ref[iref], iref, 0., 0., 0., -2*r), 2*r, wide, 4);
+			for (size_t k = iref+1; k < n; ++k)
+				for (int c = 0; c < 6; ++c)
+					if (std::fabs(wide[k][c] - magDeriv[k][c]) >
+					    fMagnetLinearityTol*std::max(std::fabs(wide[k][c]), std::fabs(magDeriv[k][c])) + fMagnetLinearityFloor)
+						linear = false;
+		}
+		if (fLocalQoverP) {
+			const double h = std::max(1.e-3*std::fabs(ref[iref][4]), 1.e-6);
+			fill(TransportFromRef(ref[iref], iref, 0., 0., h), TransportFromRef(ref[iref], iref, 0., 0., -h), h, qpDeriv, 0);
+		}
+		return linear;
 	}
 
 	//......................................................................
@@ -233,6 +460,50 @@ namespace emph {
 
 		// Get Relevant data from Kalman Tracker (KTracker)
 		const auto measurements = fKTracker->GetMeasurements();
+		const auto& smoothed = fKTracker->GetSmoothedStates(); // smoothed[k+1] is at measurement k
+		const size_t n = measurements.size();
+		if (fSingleTrajectory && smoothed.size() != n+1) return;
+
+		// Track state at each measurement: the per-plane smoothed states, or with SingleTrajectory the
+		// first smoothed state transported through every plane with no process noise, so the track has
+		// only the freedom of the Mille local parameters (multiple scattering then shows up in the residuals)
+		std::vector<std::array<double,5>> ref(n);
+		if (smoothed.size() == n+1) {
+			for (size_t k = 0; k < n; ++k)
+				for (int ip = 0; ip < 5; ++ip) ref[k][ip] = smoothed[k+1].GetPar(ip);
+			if (fSingleTrajectory)
+				for (size_t k = 1; k < n; ++k) {
+					ref[k] = ref[k-1];
+					TransportShifted(ref[k], smoothed[k].GetZ(), smoothed[k+1].GetZ(), 0., 0.);
+				}
+		}
+
+		std::vector<std::array<double,6>> magDeriv(n, {0., 0., 0., 0., 0., 0.});
+		std::vector<std::array<double,2>> qpDeriv(n, {0., 0.});
+		bool magLinear = true;
+		if (fMagnetAlign || fLocalQoverP) magLinear = TrackDerivatives(ref, magDeriv, qpDeriv);
+		if (!magLinear) { // the track still constrains the SSDs, just not the magnet
+			for (auto& md : magDeriv) md = {0., 0., 0., 0., 0., 0.};
+			++fNMagNonlinear;
+		}
+		// q/p is a local parameter only if it moves some hit; otherwise its column is ~0 and the
+		// local fit is singular (e.g. a track with no hits downstream of the magnet)
+		bool useQoverP = false;
+		for (const auto& qd : qpDeriv)
+			if (std::hypot(qd[0], qd[1]) >= kQoverPMinDeriv) useQoverP = true;
+
+		// Verbosity > 0: one line per track with the Kalman q/p of the reference (first smoothed) state, grep-able by QOVERP
+		if ((fVerbosity > 0 || fQOverPVerbosity > 0) && !ref.empty()) {
+			size_t nDown = 0; // hits downstream of the field-map start (0 with the field disabled: FieldMinZ() would crash)
+			const bool fieldOn = fMagField && fMagField->IsEnabled();
+			for (size_t k = 0; k < n; ++k)
+				if (fieldOn && k+1 < smoothed.size() && smoothed[k+1].GetZ() > fMagField->FieldMinZ()) ++nDown;
+			std::cout << "QOVERP run " << run << " event " << event << " qp " << ref[0][4]
+				<< " p " << (ref[0][4] != 0. ? 1./std::fabs(ref[0][4]) : 0.) << " nhits " << n
+				<< " ndown " << nDown << " usedQoverP " << useQoverP << " magLinear " << magLinear << std::endl;
+		}
+		size_t imeas = 0;
+		double maxAbsRes = 0.;
 		for(const auto& meas : measurements) {
 			auto station = meas.SSDStation();
 			auto plane = meas.SSDPlane();
@@ -265,6 +536,13 @@ namespace emph {
 			double yhat = track.posSSD[station][plane].Y();
 			double dxdz = -track.momSSD[station][plane].X()/track.momSSD[station][plane].Z();
 			double dydz = track.momSSD[station][plane].Y()/track.momSSD[station][plane].Z();
+			if (fSingleTrajectory) {
+				const auto& s = ref[imeas];
+				xhat = -s[0];
+				yhat = s[1];
+				dxdz = -s[2];
+				dydz = s[3];
+			}
 			//switch (emgeo->GetSSDStation(station)->GetPlane(plane)->SSD(sensor)->View()) {
 			//	case 1:
 			//		std::cout << "KX: (" << xhat << ", " << x0.X() << ", " << x1.X() << ")" << std::endl;
@@ -287,6 +565,15 @@ namespace emph {
 			float gld_y = 1.*TMath::Cos(phim);
 			float gld_z = -1.*dxdz*TMath::Sin(phim) + dydz*TMath::Cos(phim);
 			float gld_phim = -1.*TMath::Cos(phim) * xhat - 1.*TMath::Sin(phim) * yhat;
+
+			// Magnet shift and q/p move the predicted track; signedDistance sees it through xhat = -X, yhat = Y
+			const auto& md = magDeriv[imeas];
+			const auto& qd = qpDeriv[imeas];
+			++imeas;
+			float gld_mx = -1.*(TMath::Sin(phim)*md[0] + TMath::Cos(phim)*md[1]);
+			float gld_my = -1.*(TMath::Sin(phim)*md[2] + TMath::Cos(phim)*md[3]);
+			float gld_roll = -1.*(TMath::Sin(phim)*md[4] + TMath::Cos(phim)*md[5]);
+			float lcd_qp = -1.*(TMath::Sin(phim)*qd[0] + TMath::Cos(phim)*qd[1]);
 
 	//		float gld_x = -1.*dy/dr;
 	//		float gld_y = -1.*dx/dr;
@@ -314,18 +601,38 @@ namespace emph {
 						mf::LogDebug("SingleTrackAlignmentKalman") << "sensorz = " << sensorz ;
 
 			// package local derivatives for mille
-			float milleDerivativeLocal[4] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz};
+			float milleDerivativeLocal[5] = {lcd_x0,lcd_pxpz,lcd_y0,lcd_pypz,lcd_qp};
+			int nLocal = useQoverP ? 5 : 4;
 			// package global derivatives for mille
-			float milleDerivativeGlobal[4] = {gld_x,gld_y,gld_z,gld_phim};
+			float milleDerivativeGlobal[7] = {gld_x,gld_y,gld_z,gld_phim,gld_mx,gld_my,gld_roll};
 
 			// labels for mille
-			int milleLabels[4] = {station*1000 + plane*100 + sensor*10 + 1,station*1000 + plane*100 + sensor*10 + 2, station*1000 + plane*100 + sensor*10 + 3, station*1000 + plane*100 + sensor*10 + 4};
+			int milleLabels[7] = {station*1000 + plane*100 + sensor*10 + 1,station*1000 + plane*100 + sensor*10 + 2, station*1000 + plane*100 + sensor*10 + 3, station*1000 + plane*100 + sensor*10 + 4, kMagnetLabelX, kMagnetLabelY, kMagnetLabelRoll};
+			int nGlobal = fMagnetAlign ? (fMagnetRollAlign ? 7 : 6) : 4;
 
 			// Packing stuff into mille
-			m->mille(4,milleDerivativeLocal,4,milleDerivativeGlobal,milleLabels,signedDistance,uncertainty);
+			m->mille(nLocal,milleDerivativeLocal,nGlobal,milleDerivativeGlobal,milleLabels,signedDistance,uncertainty);
 			mf::LogDebug("SingleTrackAlignmentKalman") << "uncertainty = " << uncertainty;
+			maxAbsRes = std::max(maxAbsRes, double(std::fabs(signedDistance)));
 		}
 
+		if (fMaxResidual > 0. && maxAbsRes > fMaxResidual) { // broken trajectory: discard the whole record
+			m->kill();
+			++fNResidualCut;
+			if (fVerbosity > 0 || fQOverPVerbosity > 0) std::cout << "RESCUT run " << run << " event " << event << " max|res| " << maxAbsRes << std::endl;
+			return;
+		}
+		if (fQoverPPriorRel > 0. && useQoverP && !ref.empty() && ref[0][4] != 0.) {
+			// beam-momentum prior, in this module's convention: residual = prediction - measurement, derivative =
+			// -d(residual)/d(parameter) (as lcd_qp). Prediction q/p_track + dqp; "measurement" s/|p|(1 - kappa).
+			const double s = ref[0][4] > 0. ? 1. : -1.;
+			float dLocal[5] = {0., 0., 0., 0., -1.};
+			float dGlobal[1] = {float(-s*fBeamInvP)};
+			int labels[1] = {fQoverPScaleLabel};
+			m->mille(5, dLocal, fQoverPScaleLabel > 0 ? 1 : 0, dGlobal, labels, float(ref[0][4] - s*fBeamInvP),
+			         float(fQoverPPriorRel*fBeamInvP));
+			++fNQoverPPrior;
+		}
 		record++;
 		mf::LogDebug("SingleTrackAlignment") << "^ Record " << record ;
 		m->end();
@@ -350,6 +657,7 @@ namespace emph {
 //			useEvent = true;
 //		}
 		useEvent = (digitStr.back() == '1' || digitStr.back() == '2' || digitStr.back() == '3');
+		if (fUseAllEvents) useEvent = true;
 
 		if (useEvent){ // Perform Kalman Reconstruction
 			art::Handle< std::vector<rb::LineSegment> > lsH;
@@ -404,7 +712,7 @@ namespace emph {
 				const rb::TrackSegment& trkseg = (*trkSegH)[i];
 				nTrkSeg[trkseg.region]++;
 			}
-			if (fVerbosity > 0)
+			if (fVerbosity > 0 || fQOverPVerbosity > 0)
 				std::cout << "Track segments in each region: " << nTrkSeg[0] << " upstream of target, " << nTrkSeg[1] << " between target and magnet, " << nTrkSeg[2] << " downstream of magnet" << std::endl;
 
 			if (nTrkSeg[0] != 1) isOk = false;

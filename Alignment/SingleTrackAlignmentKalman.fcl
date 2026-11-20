@@ -8,9 +8,24 @@ standard_singletrackalignmentKalman:
   RK4MaxNStep: 10000
   UseTruth: false
   Verbosity: 0
+  QOverPVerbosity: 0 # > 0: only the per-track QOVERP line, region counts and RESCUT (Verbosity also prints KTracker output)
   NIterations: 2
   UncScaler: 0 # 10^UncScaler
   MilleName: "m005.bin"
+  MagnetAlign: false   # true: add magnet x,y (labels 9001,9002; geometry frame, mm) as global parameters
+  MagnetDerivStep: 1.0 # mm, magnet shift for the finite-difference derivatives
+  MagnetRollAlign: false # true (with MagnetAlign): add the magnet roll about its axis (label 9003, geometry frame, mrad)
+  MagnetRollStep: 1.0  # mrad, roll for the finite-difference derivatives
+  MagnetRecoRoll: 0.   # mrad, roll of the field map in this module's transport (SingleTrajectory residuals), e.g. for a closure test
+  MagnetLinearityTol: 0.2 # drop a track's magnet derivatives if steps d and 2d differ by more than this fraction
+  MagnetLinearityFloor: 2.e-3 # mm/mm, plus this (~4 um of hit movement over a 2 mm shift; hit sigma ~17 um)
+  MaxResidual: 0.     # mm; tracks with a larger |residual| are not written to Mille (<= 0: no cut)
+  UseAllEvents: false # true: use every event (default: only event numbers ending in 1, 2 or 3)
+  QoverPPriorRel: 0.     # >0: beam-momentum prior on the local q/p, relative width per track (e.g. 0.01); needs LocalQoverP
+  BeamMomentum: 0.       # GeV/c (|p|); 0 = from the runs database (RunHistory); the sign comes from each track's fit
+  QoverPScaleLabel: 0    # 0 = absolute prior; e.g. 9101 = free momentum scale per beam setting (shear from + vs -)
+  LocalQoverP: false   # true: q/p as a 5th local parameter (pede then needs a downstream x fixed, e.g. 7001)
+  SingleTrajectory: false # true: residuals from one RK4 trajectory (first smoothed state, no process noise)
 }
 
 END_PROLOG
