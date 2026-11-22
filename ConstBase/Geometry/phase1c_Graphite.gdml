@@ -920,7 +920,7 @@
 	<quantity name="arich_width" value="365.0" unit="mm"/>
 	<quantity name="arich_height" value="365.0" unit="mm"/>
 
-	<position name="arich_pos" x="-11" y="6" z="arich_shift+0.5*arich_thick" unit="mm" />
+	<position name="arich_pos" x="-5" y="8" z="arich_shift+0.5*arich_thick" unit="mm" />
 	<quantity name="aerogel_thick0" value="18.9" unit="mm"/>
 	<quantity name="aerogel_thick1" value="20.4" unit="mm"/>
 	<quantity name="aerogel_size" value="93.0" unit="mm"/>
@@ -933,7 +933,7 @@
 	<quantity name="mPMT_size" value="49.3" unit="mm"/>
 	<quantity name="mPMT_gap" value="5.4" unit="mm"/>
 	<quantity name="manode_size" value="6.0" unit="mm"/>
-	<quantity name="mPMT_shift" value="103.0" unit="mm"/>
+	<quantity name="mPMT_shift" value="110.35" unit="mm"/>
 
 	<position name="mPMT0_0_anode0_0_pos" x="(-1+0)*(mPMT_size+mPMT_gap)+(-3.5+0)*manode_size" y="(-1+0)*(mPMT_size+mPMT_gap)+(-3.5+0)*manode_size" z="mPMT_shift+0.5*mPMT_thick" unit="mm" />
 
@@ -2172,8 +2172,8 @@
 	<matrix 
 		name="Air_RINDEX" 
 		coldim="2" 
-		values="1.65*eV 1.00 
-				4.14*eV 1.00"
+		values="1.65*eV 1.00027 
+				4.14*eV 1.00027"
 	/>
 
 
@@ -2192,6 +2192,15 @@
 		values="1.6*eV  1.030
 				  5.0*eV  1.030"
 	/>
+
+	<matrix
+                name="Si02_RINDEX"
+                coldim="2"
+                values="1.6*eV  1.030
+                                  5.0*eV  1.030"
+        />
+
+
 	<!-- ********** Refractive index end ********** -->
 
 

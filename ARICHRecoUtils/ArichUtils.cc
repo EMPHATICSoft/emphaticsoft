@@ -35,7 +35,8 @@ namespace arichreco
     delete Arich;
     }
 //=======================================================//
-   void ARICH_UTILS::SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos, TString file) { 
+   void ARICH_UTILS::SetUpDet(double PDdarkrate, double PDwin, double PDfillfactor, double PDzpos, TString file, int Nevents) { 
+	fNevents = Nevents;
 	PDfile = file;
 	Detector = new arichreco::Detector(true, PDdarkrate, PDwin, PDfillfactor, PDzpos, PDfile);
    }
@@ -177,7 +178,7 @@ std::vector<double> ARICH_UTILS::IdentifyMultiParticle(TH2D* hist, int np, std::
 			hypothesis.beta =  calcBeta(p, mom[i]);
 			hypothesis.name = PNAMES[p];
 			
-			calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));
+			calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p),fNevents);
 			particleiCalculatedPdfs.push_back(calculatedPdf);
 		}
 		calculatedPdfs.push_back(particleiCalculatedPdfs);
@@ -227,7 +228,7 @@ std::vector<double> ARICH_UTILS::identifyParticle(TH2D* eventHist, float particl
 			char* particleName = (char*) PNAMES[particleId];
 			double betaGuess = calcBeta(particleId, particleMom);
 			hypothesis.beta = betaGuess;
-			TH2D calculatedPdf = Arich->calculatePdf(hypothesis, particleName);
+			TH2D calculatedPdf = Arich->calculatePdf(hypothesis, particleName, fNevents);
 			double logLikelihood = computeLogLikelihood(eventHist, &calculatedPdf);
 			loglikes.push_back(logLikelihood);
 		}
@@ -249,7 +250,8 @@ std::vector<double> ARICH_UTILS::identifyParticle(TH2D* eventHist, float particl
 				hypothesis.beta =  calcBeta(p, mom[i]);
 				hypothesis.name = PNAMES[p];
 
-				TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p));particleiCalculatedPdfs.push_back(calculatedPdf);
+				TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", i, p),fNevents);
+				particleiCalculatedPdfs.push_back(calculatedPdf);
 			}
 			calculatedPdfs.push_back(particleiCalculatedPdfs);
 		}
@@ -266,7 +268,7 @@ std::vector<double> ARICH_UTILS::identifyParticle(TH2D* eventHist, float particl
                 hypothesis.beta =  calcBeta(p, mom);
                 hypothesis.name = PNAMES[p];
 
-                TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", 0, p));
+                TH2D calculatedPdf = Arich->calculatePdf(hypothesis, Form("pdf_%i_%i", 0, p),fNevents);
                         
                 calculatedPdfs.push_back(calculatedPdf);
                 }

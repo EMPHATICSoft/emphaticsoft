@@ -43,6 +43,8 @@ namespace arichreco{
                               std::vector<std::vector<std::vector<int>>>& accumulator);
     
     
+   std::vector<std::vector<std::vector<int>>> SmoothAccumulator(const std::vector<std::vector<std::vector<int>>>& accumulator,
+                                                                  int dCell, int dRad);
     
     std::vector<std::tuple<int, double>> findBestCircle(const std::vector<std::vector<int>>& accumulator,  //for binned accumulator
                                                              int Nbins, std::vector<double> Radii, int to_find, int SSD_center_bin);
@@ -54,22 +56,29 @@ namespace arichreco{
     std::vector<TGraph*> createCircleGraph(std::vector<std::tuple<int, int, double>> circles, int nPoints);            //for tuple (a,b, radius)
     
     TH2Poly* RecoveredHits(TGraph* circle, TH2Poly* event, int points, char* title);
-    TH2Poly* PlotAccumulator(std::vector<std::vector<int>> & accumulator,std::vector<double> Radii);
-   
+    std::vector<std::vector<std::vector<int>>> GetAccumulator(); 
     std::vector<std::tuple<int,int, double>> GetCirclesCenters(int to_find); //number of circles to find
 
+    void SetMinVoteFraction(double f) { minVoteFraction = f; }
+    int  GetLastBestScore() const { return lastBestScore; }
+    void SetSmoothing(int dCell, int dRad) { fSmoothDCell = dCell; fSmoothDRad = dRad; }
 
- 
 private:
 
     int minRadius = 25;
     int maxRadius = 50;
     int nRadii = 24;
     int nPoints = 360;
-    
+
     int rows = 160;
     int cols = 160;
     TH2D* fevent_histo;
+
+    double minVoteFraction = 0.0;
+    int    lastBestScore = 0;
+
+    int fSmoothDCell = 0;
+    int fSmoothDRad  = 0;
 
     std::vector<std::pair<double, double>> edges;
     std::vector<double> radii;

@@ -26,9 +26,9 @@ namespace arichreco {
   }
 
   // Calculate mean distribution of photons over detector for given beta
-  TH2D Arich::calculatePdf(arichreco::particleInfoStruct params, char* histName) {
+  TH2D Arich::calculatePdf(arichreco::particleInfoStruct params, char* histName, int nEvents) {
     constexpr bool SCAT = true; // Set to true to apply scattering (currently enabled, could configure)
-    constexpr int nEvents = 1000; // Number of events to simulate; should make this configurable
+    
     std::unique_ptr<arichreco::Beam> beam = std::make_unique<arichreco::Beam>(params.pos, params.dir, params.beta);
     std::unique_ptr<TH2D> tempphotonHist(detector->makeDetectorHist(histName, histName));
     TH2D photonHist;

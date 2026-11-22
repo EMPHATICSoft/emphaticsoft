@@ -5,8 +5,9 @@ standard_getdataML:
   module_type: 	  GetDataML 
   LabelHits:      "arichcluster"
   SimTrackLabel:  "geantgen"
+  RecoTrackLabel: "singletrackKalman" 
   FillTree:       true
-
+  TorchFile: 	  "arich_trainining.pt"
 }
 
 END_PROLOG

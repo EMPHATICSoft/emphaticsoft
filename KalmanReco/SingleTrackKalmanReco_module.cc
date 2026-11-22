@@ -67,6 +67,7 @@ private:
   int fNInterations;
   bool fUseTruth;
   double fTrgtZ;
+  double fArichZ;
   std::string fTrackSegmentLabel;
   
   kalman::KTracker* fKTracker;
@@ -117,6 +118,7 @@ emph::SingleTrackKalmanReco::SingleTrackKalmanReco(fhicl::ParameterSet const& ps
                                 pset.get<double>("RK4MaxZStep", 2.0));
 
     fTrgtZ = -99999.;
+    fArichZ = -99999.;
     fTruePtVsPzAll = nullptr; 
     fTruePtVsPzSel = nullptr; 
     fXYDistAll = nullptr;
@@ -151,6 +153,7 @@ void emph::SingleTrackKalmanReco::beginRun(art::Run& run)
   art::ServiceHandle<emph::MagneticFieldService> mag;
   fKTracker->SetBField(mag->Field());
   fTrgtZ = (geo->Geo()->TargetDSZPos()+geo->Geo()->TargetUSZPos())/2.;
+  fArichZ = geo->Geo()->GetAerogelUS()->Pos()[2];
 //  fKTracker->SetGeometry(geo->Geo());
   if (fVerbosity > 0)  std::cout << "Created new instance of KTracker with verbosity level " << fVerbosity << std::endl;
   art::ServiceHandle<art::TFileService> tfs;
@@ -493,7 +496,10 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
           mom.SetXYZ(px, py, pz);
           track.posSSD.push_back(pos);
           track.momSSD.push_back(mom);
+//	  std::cout << Form("pos(%f,%f,%f) mom (%f, %f ,%f)", pos.X(), pos.Y(), pos.Z(), px, py, pz) << std::endl;
         }
+
+
         track.momTrgt = track.momSSD[0];
         double posAtTrgt[3];
         double dxdz = track.momSSD[0].X()/track.momSSD[0].Z();
@@ -503,6 +509,17 @@ void emph::SingleTrackKalmanReco::produce(art::Event& evt)
         posAtTrgt[1] = track.posSSD[0].Y() + dydz*zdz;
         posAtTrgt[2] = fTrgtZ;
         track.posTrgt.SetCoordinates(posAtTrgt);
+
+	//Adding infos for ARICH
+	track.momARICH = track.momSSD.back(); //last known momenta
+	double posAtArich[3];
+        dxdz = track.momSSD.back().X()/track.momSSD.back().Z();
+        dydz = track.momSSD.back().Y()/track.momSSD.back().Z();
+        zdz = fArichZ - track.posSSD.back().Z();
+        posAtArich[0] = track.posSSD.back().X() + dxdz*zdz;
+        posAtArich[1] = track.posSSD.back().Y() + dydz*zdz;
+        posAtArich[2] = fArichZ;
+        track.posARICH.SetCoordinates(posAtArich);
 
         if (fUseTruth) {
           ProcessTruthInfo(evt, beamTrack, track, firstSmoothed, pztrue, pttrue, ptrue, xtrue, ytrue, trueTheta);

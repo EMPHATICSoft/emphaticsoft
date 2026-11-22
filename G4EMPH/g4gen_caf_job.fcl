@@ -26,7 +26,8 @@
 #include "SSDDigitizer.fcl"
 #include "ARICHDigitizer.fcl"
 #include "RelabelRawDigitModules.fcl"
-
+#include "SSDEfficiency.fcl"
+#
 # ---- reco + CAF ----
 #include "CAFMaker.fcl"
 #include "FillDataQuality.fcl"
@@ -40,6 +41,7 @@
 #include "GasCkovHitReco.fcl"
 #include "MakeTrackSegments.fcl"
 #include "MakeSingleTracks.fcl"
+#include "SingleTrackKalmanReco.fcl"
 #include "MakePrimaryVertex.fcl"
 
 process_name: MCFull
@@ -51,7 +53,7 @@ services:
   # TFileService holds the CAF tree + all monitoring histos. EmptyEvent has no
   # input file, so %ifb is empty -- give it an explicit name (override per job
   # on the grid, e.g. services.TFileService.fileName).
-  TFileService:          { fileName: "mc_g4_to_caf_hist.root" closeFileFast: false }
+  TFileService:          { fileName: "mc_g4_to_caf_hist_pions.root" closeFileFast: false }
   scheduler:             { wantSummary: false }
   TimeTracker:           {}
 
@@ -59,16 +61,18 @@ services:
   RandomNumberGenerator: {}
   MagneticFieldService:  @local::standard_magfield
   RunHistoryService:     @local::standard_runhistory
-
+  SSDEfficiencyService: @local::data_ssdefficiency
   IFBeam:                {}
 }
+
+services.AlignService.IsDisabled: true
 
 # Use ONE geometry across gen/digi/reco -- same GDML the digitization step used.
 # NOTE: this path is user-specific; point it at your release's
 #       ConstBase/Geometry/phase1c_Graphite_ARICHalignConst.gdml
-services.RunHistoryService.LoadFromDB: false
-services.GeometryService.GetGDMLFromRunHistory: false
-services.GeometryService.GDMLFile: "/exp/emph/app/users/manueld/Apr26/emphaticsoft/ConstBase/Geometry/phase1c_Graphite.gdml"
+#services.RunHistoryService.LoadFromDB: false
+#services.GeometryService.GetGDMLFromRunHistory: false
+#services.GeometryService.GDMLFile: "/exp/emph/app/users/manueld/Apr26/emphaticsoft/ConstBase/Geometry/phase1c_Graphite.gdml"
 # Start each new event empty (generation).
 source:
 {
@@ -103,6 +107,9 @@ physics:
     makesingletracks:  @local::standard_makesingletracks
     makeprimaryvertex: @local::standard_makeprimaryvertex
 
+    singletrackKalman: @local::standard_singletrackKalman
+    primaryvertexKalman: @local::kalman_makeprimaryvertex
+
     cafmaker:     @local::standard_cafmaker
   }
 
@@ -116,24 +123,29 @@ physics:
                dataqual, #spillinfo,
                arichcluster, clust,
                maketracksegments, makesingletracks, makeprimaryvertex,
+ 	       singletrackKalman, primaryvertexKalman,
                arichring, arichreco,
                cafmaker
              ]
 
   trigger_paths: [ fullchain ]
 }
+
 physics.producers.generator.UseRunHistory: false
-physics.producers.generator.particleType: "proton"
+physics.producers.generator.particleType: "pion"
 physics.producers.generator.pzDist: "flat"
-physics.producers.generator.PMean: 10
-physics.producers.generator.Psigma: 8
+physics.producers.generator.PMean: 8
+physics.producers.generator.Psigma: 0.5
 
 # ---- overrides carried over from prod_reco_caf_job_mc.fcl ----
 physics.producers.clust.FillTTree:    false
 physics.producers.clust.SSDRawLabel:  "raw:SSD"   # read the relabeled SSD digits
 physics.producers.clust.CheckDQ:      false       # no data-quality info in MC
+
+physics.producers.arichreco.NEventsLL: 1000
+
 physics.producers.cafmaker.GetMCTruth: true       # store truth in the CAF
-physics.producers.cafmaker.CAFFilename: "caf_proton.root"
+physics.producers.cafmaker.CAFFilename: "caf_pion.root"
 # ----------------------------------------------------------------------------
 # Optional: also keep the intermediate art event file (digi + reco products).
 # Uncomment this block and add `end_paths: [ stream1 ]` inside physics above.

@@ -89,7 +89,7 @@ namespace emph {
         double eff1 = q1+(q2-q1)/(w2-w1)*(wavelength-w1);
         double eff = eff1*fQECorrection;
 
-        if( rand_gen->Uniform() <= eff ) return true;
+        if( rand_gen->Uniform(0,1) <= eff ) return true;
         else return false;
       }
 

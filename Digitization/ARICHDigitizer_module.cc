@@ -672,6 +672,7 @@ void ARICHDigitizer::produce(art::Event& evt)
       // to seed cross-talk on neighbouring channels.
       std::vector<std::pair<cmap::EChannel,double>> realHits;
 
+
       for(size_t i = 0; i < arichHits->size(); i++){
 	
 	 sim::ARICHHit arichhit = (*arichHits)[i];
@@ -707,6 +708,7 @@ void ARICHDigitizer::produce(art::Event& evt)
 	 //check if a channel has already been used,
 	 //	 if not -> great
 	 //	 if yes -> small probability to reuse it 
+	 //std::cout << "real hit time " << time << std::endl;
 	 if(find(used_echan.begin(), used_echan.end(), echan) != used_echan.end())continue;
 	 else used_echan.push_back(echan);
 	
@@ -749,11 +751,13 @@ void ARICHDigitizer::produce(art::Event& evt)
        const cmap::EChannel& nch = ch.first;
        if(find(used_echan.begin(), used_echan.end(), nch) != used_echan.end())continue;
        if(isDead(nch)) continue;
+       used_echan.push_back(echan);
        int ndark = rand_gen->Poisson(ch.second);
        for(int d = 0; d < ndark; ++d){
          double  t = rand_gen->Gaus(1.5,0.5);
+	 //std::cout << "time noise " << t << std::endl;
          PushPair(*ArichRawD, nch,t, start_coarse_counter, true);
-	 realHits.emplace_back(nch,t); 
+	 //realHits.emplace_back(nch,t); 
        nhits_noise++;
        }
      }
@@ -771,9 +775,11 @@ void ARICHDigitizer::produce(art::Event& evt)
        if(nb == channel_neighbor.end() || nb->second.empty()) continue;
        double prob = fXTalkProb; 
        for(const cmap::EChannel& nch : nb->second){
+	 if(find(used_echan.begin(), used_echan.end(), nch) != used_echan.end())continue;
          if(isDead(nch))continue;
          if(rand_gen->Uniform(0,1) >= prob) continue;
-         double t = rh.second - fTriggerDelayNs/5.;
+         double t = rh.second; 
+	 //std::cout << "time noise xtalk " << t << std::endl;
          PushPair(*ArichRawD, nch, t, start_coarse_counter, true);
 	nhits_noise++;
        }

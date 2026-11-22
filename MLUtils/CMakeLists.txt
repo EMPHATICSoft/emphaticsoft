@@ -16,6 +16,7 @@ cet_build_plugin(GetDataML art::module
     ROOT::Core
     ROOT::Geom 
     ROOT::Tree
+     ${TORCH_LIBRARIES}
   BASENAME_ONLY
 )
 
