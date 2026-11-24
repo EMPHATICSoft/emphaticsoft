@@ -65,6 +65,7 @@ namespace ssd {
       //std::cout << "Run Number " << runNumber << std::endl;
       runNumber_ = runNumber;
       subrunNumber_ = subrunNumber;
+      dir_ = dir;
       if (stationNames_.size() == 0)
 	{
 	  cout << __PRETTY_FUNCTION__ << "You need to set the station names first!" << endl;
@@ -150,6 +151,9 @@ namespace ssd {
 	  return -1;
 	}
       stationBuffers_.clear();
+      // Fix: ring buffer; a new run starts an empty cache.
+      if (cacheRun_ != runNumber_) { rawCache_.clear(); cacheRun_ = runNumber_; }
+      const int curSub = atoi(subrunNumber_.c_str());
       //  for(multimap<string,string>::iterator fileIt=filesList_.begin(); fileIt != filesList_.end(); fileIt++)
       //  {
       //    cout << __PRETTY_FUNCTION__ << fileIt->first << ":" << fileIt->second << endl;
@@ -158,6 +162,19 @@ namespace ssd {
 	{
 	  pair<multimap<string, string>::iterator, multimap<string, string>::iterator> stationRange;
 	  stationRange = filesList_.equal_range(stationNames_[station]);
+	  // Fix: already in the ring buffer (read as the previous merge's lookahead)? Reuse it only if the
+	  // files' total size on disk still matches (a file still being written when it was cached is re-read).
+	  uint64_t diskSize = 0;
+	  for (multimap<string, string>::iterator f = stationRange.first; f != stationRange.second; f++)
+	    {
+	      ifstream sz(f->second.c_str(), ios::binary | ios::ate);
+	      if (sz.is_open()) diskSize += (uint64_t)sz.tellg();
+	    }
+	  if (rawCache_[stationNames_[station]].count(curSub) && rawCache_[stationNames_[station]][curSub].size() == diskSize)
+	    {
+	      stationBuffers_[stationNames_[station]] = rawCache_[stationNames_[station]][curSub];
+	      continue;
+	    }
 	  string stationBuffer = "";
 	  for (multimap<string, string>::iterator fileIt = stationRange.first; fileIt != stationRange.second; fileIt++)
 	    {
@@ -206,6 +223,37 @@ namespace ssd {
 	  stationBuffers_[stationNames_[station]] = stationBuffer;
 	  //    break;
 	}
+
+      // Fix: per board, the previous and next subrun files too (empty if missing), through the ring buffer.
+      boardBuffers_.clear();
+      for (unsigned int station = 0; station < stationNames_.size(); station++)
+	{
+	  const std::string& name = stationNames_[station];
+	  std::map<int,std::string>& cache = rawCache_[name];
+	  cache[curSub] = stationBuffers_[name];
+	  std::vector<std::string>& bufs = boardBuffers_[name];
+	  for (int d = -1; d <= 1; d++)
+	    {
+	      const int s = curSub + d;
+	      if (!cache.count(s))
+		{
+		  std::string b;
+		  if (s >= 1)
+		    for (const std::string& f : findStationFiles(name, std::to_string(s)))
+		      {
+			cout << "[TriggerAlign] reading " << f << endl;
+			ifstream in(f.c_str(), ios::binary);
+			b.append(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+		      }
+		  if (b.empty()) { bufs.push_back(b); continue; }  // missing file: not cached, looked up again next time
+		  cache[s] = b;
+		}
+	      bufs.push_back(cache[s]);
+	    }
+	  // keep only N-1..N+1
+	  for (std::map<int,std::string>::iterator it = cache.begin(); it != cache.end();)
+	    if (it->first < curSub - 1 || it->first > curSub + 1) cache.erase(it++); else ++it;
+	}
       return 0;
     }
   
@@ -244,6 +292,27 @@ namespace ssd {
       ofstream myfile;
       std::string summary = "RunSummary.txt";
       myfile.open(summary);
+
+      // Fix: reference trigger range = FER0's current subrun file; report every board's offset.
+      {
+	const std::string ref = stationNames_.empty() ? "" : stationNames_[0];
+	if (!triggerRange(stationBuffers_[ref], refFirstTrigger_, refLastTrigger_))
+	  {
+	    cout << __PRETTY_FUNCTION__ << "No triggers in reference board " << ref << ": subrun skipped" << endl;
+	    myfile.close();
+	    return -1;
+	  }
+	for (unsigned int s = 0; s < stationNames_.size(); s++)
+	  {
+	    uint64_t f = 0, l = 0;
+	    if (triggerRange(stationBuffers_[stationNames_[s]], f, l))
+	      cout << "[TriggerAlign] Run " << runNumber_ << " subrun " << subrunNumber_ << " " << stationNames_[s]
+		   << " first " << f << " last " << l << " reference " << ref << " first " << refFirstTrigger_
+		   << " last " << refLastTrigger_ << " old-merger shift " << (int64_t)refFirstTrigger_ - (int64_t)f << endl;
+	    else
+	      cout << "[TriggerAlign] Run " << runNumber_ << " subrun " << subrunNumber_ << " " << stationNames_[s] << " no triggers" << endl;
+	  }
+      }
     
       for (map<string, string>::iterator buffer = stationBuffers_.begin(); buffer != stationBuffers_.end(); buffer++)
 	{
@@ -291,6 +360,11 @@ namespace ssd {
 		stationDelay     = 4; //85;//-0x58; //Time for trigger to reach FPGA
 	      }
 	    
+	      // Fix: parse this board's previous, current and next subrun files, each with fresh parser state.
+	      const std::vector<std::string>& boardBufs = boardBuffers_[stationName];
+	      for (size_t ib = 0; ib < boardBufs.size(); ++ib) {
+	      const std::string& data = boardBufs[ib];
+	      if (data.size() <= 8) continue;
 	      uint32_t word = 0;
 	      uint32_t bco = 0;
 	      uint32_t previousWord;
@@ -304,7 +378,7 @@ namespace ssd {
 	      bool getout = false;
 	      bool isFirstTrigger = true;
 	    
-	      std::cout << __PRETTY_FUNCTION__ << "File size: " << buffer->second.size() << std::endl;
+	      std::cout << __PRETTY_FUNCTION__ << "File size: " << data.size() << std::endl;
 	    
 	      int type, dataType;
 	    
@@ -312,25 +386,25 @@ namespace ssd {
 	    
 	      unsigned int increment = sizeof(uint64_t);
 	      unsigned int offset = 8;
-	      int len = buffer->second.size();
+	      int len = data.size();
 	    
 	      unsigned char seqId;
 	    
 	      //for ( int i=0; i<len; i+=increment)
 	      //for ( int i=offset; i<100;)
-	      //	std::cout << buffer->second[i] << std::endl;
+	      //	std::cout << data[i] << std::endl;
 	      //for (int i = offset; i < 2000;)
 	      for (int i = offset; i < len;)
 		{
 		  if (getout)
 		    break;
 		  //if((int)triggerNumber_ > 10) break;
-		  unsigned char blockLengthC = buffer->second[i];
+		  unsigned char blockLengthC = data[i];
 		  unsigned int numberOfQuadWords = (unsigned int)blockLengthC; //*2;
 		  //std::cout << "Quad words: " << numberOfQuadWords << " i " << i << " len " << len << " nextI "
 		  //		<< i + numberOfQuadWords*8 + 3 << std::endl;
 		
-		  seqId = buffer->second[i + 2];
+		  seqId = data[i + 2];
 		  if (!(lastSeqId_ + 1 == seqId ||
 			(lastSeqId_ == 255 && seqId == 0)))
 		    {
@@ -344,8 +418,8 @@ namespace ssd {
 		    {
 		      previousWord = word;
 		      previousBco = bco;
-		      word = (((buffer->second[i]) & 0xff)) + (((buffer->second[i + 1]) & 0xff) << 8) + (((buffer->second[i + 2]) & 0xff) << 16) + (((buffer->second[i + 3]) & 0xff) << 24);
-		      bco = (((buffer->second[i + 4]) & 0xff)) + (((buffer->second[i + 5]) & 0xff) << 8) + (((buffer->second[i + 6]) & 0xff) << 16) + (((buffer->second[i + 7]) & 0xff) << 24);
+		      word = (((data[i]) & 0xff)) + (((data[i + 1]) & 0xff) << 8) + (((data[i + 2]) & 0xff) << 16) + (((data[i + 3]) & 0xff) << 24);
+		      bco = (((data[i + 4]) & 0xff)) + (((data[i + 5]) & 0xff) << 8) + (((data[i + 6]) & 0xff) << 16) + (((data[i + 7]) & 0xff) << 24);
 		    
 		      type = word & 0xf;
 		      dataType = (word >> 4) & 0xf;
@@ -558,15 +632,10 @@ namespace ssd {
 				{
 				  std::cout << "[" << __LINE__ << "] EVENT DATA BCO: " << hex << eventBCO << " - bco: " << bco << " - " << dec << bco << " Trigger number: " << dec << triggerNumber_ << std::endl;
 				}
-			      if (isFirstTrigger) //triggerNumber_ == 0)
-				{
-				  isFirstTrigger = false;
-				  std::cout << "[" << __LINE__ << "]First trigger: " << triggerNumber_ << " bco: " << hex << eventBCO << dec << std::endl;
-				  if (triggerNumber_ != 0)
-				    std::cout << "[" << __LINE__ << "]ERROR - First trigger should be 0 and instead is : " << triggerNumber_ << " bco: " << hex << eventBCO << dec << std::endl;
-				  veryFirstTrigger_ = triggerNumber_;
-				}
-			      triggerNumber_ -= veryFirstTrigger_;
+			      // Fix: count from FER0's first trigger; triggers outside FER0's range belong to another subrun.
+			      if (triggerNumber_ < refFirstTrigger_ || triggerNumber_ > refLastTrigger_)
+				continue;
+			      triggerNumber_ -= refFirstTrigger_;
 			    
 			      if (memory_[station].find(eventBCO) == memory_[station].end() && memory_[station].find(eventBCO - 1) == memory_[station].end() && memory_[station].find(eventBCO + 1) == memory_[station].end() && memory_[station].find(eventBCO - 2) == memory_[station].end() && memory_[station].find(eventBCO + 2) == memory_[station].end() && memory_[station].find(eventBCO + 3) == memory_[station].end() && memory_[station].find(eventBCO - 3) == memory_[station].end() && memory_[station].find(eventBCO + 4) == memory_[station].end() && memory_[station].find(eventBCO - 4) == memory_[station].end() && memory_[station].find(eventBCO + 5) == memory_[station].end() && memory_[station].find(eventBCO - 5) == memory_[station].end() && memory_[station].find(eventBCO + 6) == memory_[station].end() && memory_[station].find(eventBCO - 6) == memory_[station].end() && memory_[station].find(eventBCO + 7) == memory_[station].end() && memory_[station].find(eventBCO - 7) == memory_[station].end() && memory_[station].find(eventBCO + 8) == memory_[station].end() && memory_[station].find(eventBCO - 8) == memory_[station].end() && memory_[station].find(eventBCO + 9) == memory_[station].end() && memory_[station].find(eventBCO - 9) == memory_[station].end() && memory_[station].find(eventBCO + 10) == memory_[station].end() && memory_[station].find(eventBCO - 10) == memory_[station].end())
 				{
@@ -638,6 +707,7 @@ namespace ssd {
 		    } //END of BLOCK
 		}
 	      cout << "If station 0, 1, 2 or 3 must match  Last Trigger #: " << dec << triggerNumber_ << "-------------" << endl;
+	      } // end of loop over the board's subrun files
 	      //cout << " Number of unmatched triggers: " << dec << unmatchedTriggers << endl;
 	    }
 	}
@@ -688,6 +758,52 @@ namespace ssd {
       return 0;
     }
   
+    //-----------------------------------------------------------------------
+    // Fix (2026-11-24): files of one board for another subrun of the same run, sorted.
+    std::vector<std::string> FilesMerger::findStationFiles(const std::string& station, const std::string& subrun)
+    {
+      std::vector<std::string> files;
+      const std::string subDir = dir_ + "OtsData/";
+      DIR* pDir = opendir(subDir.c_str());
+      if (!pDir) return files;
+      struct dirent* e;
+      while ((e = readdir(pDir)))
+	{
+	  std::string fileName = e->d_name;
+	  if (fileName.find("Run" + runNumber_ + "_") != string::npos && fileName.find("_" + subrun + "_") != string::npos
+	      && fileName.find(station) != string::npos)
+	    files.push_back(subDir + "/" + fileName);
+	}
+      closedir(pDir);
+      sort(files.begin(), files.end());
+      return files;
+    }
+
+    //-----------------------------------------------------------------------
+    // Fix (2026-11-24): first and last absolute trigger number (type 8 / 0xf words) in one board's data.
+    bool FilesMerger::triggerRange(const std::string& data, uint64_t& first, uint64_t& last)
+    {
+      bool found = false;
+      const int len = data.size();
+      for (int i = 8; i < len;)
+	{
+	  unsigned int nq = (unsigned char)data[i];
+	  i += 3;
+	  for (unsigned int q = 0; q < nq && i + 8 <= len; q++, i += 8)
+	    {
+	      uint32_t word = (data[i] & 0xff) + ((data[i + 1] & 0xff) << 8) + ((data[i + 2] & 0xff) << 16) + ((uint32_t)(data[i + 3] & 0xff) << 24);
+	      if ((word & 0xf) == 8 && ((word >> 4) & 0xf) == 0xf)
+		{
+		  uint64_t t = (word >> 8) & 0xffffff;
+		  if (!found) first = t;
+		  last = t;
+		  found = true;
+		}
+	    }
+	}
+      return found;
+    }
+
     //-----------------------------------------------------------------------
     int FilesMerger::writeMergedFiles(string filesDirectory, string fileName)
     {
