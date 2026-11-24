@@ -103,30 +103,35 @@ void HoughFitter::HoughCircleTransform(const std::vector<std::pair<double, doubl
     // Initialize the 3D accumulator: (center_y, center_x, radius)
     accumulator.resize(rows, std::vector<std::vector<int>>(cols, std::vector<int>(steps + 1, 0)));
 
-    std::vector<double> xs, ys;
+    std::vector<std::vector<int>> coarseAcc(rows, std::vector<int>(cols, 0));
+    const int coarseStride = std::max(1, (int)edgePoints.size() / 200); // cap cost regardless of cluster size
+    const int coarseAngleStep = 10; // degrees
+    for (size_t ip = 0; ip < edgePoints.size(); ip += coarseStride) {
+        double x = edgePoints[ip].first, y = edgePoints[ip].second;
+        for (int idr = 0; idr <= steps; idr += 2) {
+            for (int theta = 0; theta < 360; theta += coarseAngleStep) {
+                double rad = theta * M_PI / 180.0;
+                int a = std::lround(x - radii[idr] * std::cos(rad)) + 80;
+                int b = std::lround(y - radii[idr] * std::sin(rad)) + 80;
+                if (a >= 0 && a < cols && b >= 0 && b < rows) coarseAcc[b][a]++;
+            }
+        }
+    }
+    int cx_est = cols / 2, cy_est = rows / 2, coarseBest = -1;
+    for (int b = 0; b < rows; ++b) {
+        for (int a = 0; a < cols; ++a) {
+            if (coarseAcc[b][a] > coarseBest) { coarseBest = coarseAcc[b][a]; cy_est = b; cx_est = a; }
+        }
+    }
 
-    for(auto &p : edgePoints){
-      xs.push_back(p.first);
-      ys.push_back(p.second);
-     }
-
-     std::sort(xs.begin(), xs.end());
-     std::sort(ys.begin(), ys.end());
-
-     double x_med = xs[xs.size()/2];
-     double y_med = ys[ys.size()/2];
-
-//    std::cout << "mean: "<< x_mean << " " << y_mean << std::endl;
-    int roi = 10; 
-    int cx_est = std::lround(x_med) + 80;
-    int cy_est = std::lround(y_med) + 80;
-   
+    // ---- Pass 2: full-resolution refinement around the coarse estimate ----
+    int roi = 10;
     int xmin = std::max(0, cx_est - roi);
     int xmax = std::min(cols - 1, cx_est + roi);
 
     int ymin = std::max(0, cy_est - roi);
     int ymax = std::min(rows - 1, cy_est + roi);
-	
+
     //std::cout << "boundaries x:" << xmin  << "; " << xmax << " y:"<< ymin << " " << ymax << std::endl;
 
     // Iterate over each edge point
@@ -178,18 +183,17 @@ std::vector<std::tuple<int, double>> HoughFitter::findBestCircle(const std::vect
     return circles;
 }
 std::vector<std::tuple<int, int, double>> HoughFitter::findBestCircle(const std::vector<std::vector<std::vector<int>>>& accumulator, std::vector<double> Radii, int to_find) {
-  
+
    int best_score = 0;
    std::vector<std::tuple<int, int, double>> circles;
    int rows = accumulator.size();
    int cols = accumulator[0].size();
    int radiusRange = Radii.size();
 
-   // Iterate through the accumulator to find the max number of votes
    for (int y = 0; y < rows; y++) {
        for (int x = 0; x < cols; x++) {
            for (int idr = 0; idr < radiusRange; idr++) {
-               if (accumulator[y][x][idr] > best_score) {
+               if (accumulator[y][x][idr] >= best_score) {
                    best_score = accumulator[y][x][idr];
                    circles.insert(circles.begin(), std::make_tuple(x-80, y-80, Radii[idr]));
                }
@@ -201,6 +205,7 @@ std::vector<std::tuple<int, int, double>> HoughFitter::findBestCircle(const std:
            }
        }
    }
+   lastBestScore = best_score;
    // Return the best-fitting circle (center_x, center_y, radius)
     return circles;
 }
@@ -263,6 +268,38 @@ std::vector<TGraph*> HoughFitter::createCircleGraph(std::vector<std::tuple<int, 
     return circleGraphs;
 }
 
+std::vector<std::vector<std::vector<int>>> HoughFitter::SmoothAccumulator(
+    const std::vector<std::vector<std::vector<int>>>& accumulator, int dCell, int dRad)
+{
+    int nrows = (int)accumulator.size();
+    int ncols = nrows ? (int)accumulator[0].size() : 0;
+    int nrad  = ncols ? (int)accumulator[0][0].size() : 0;
+    std::vector<std::vector<std::vector<int>>> smoothed(
+        nrows, std::vector<std::vector<int>>(ncols, std::vector<int>(nrad, 0)));
+
+    for (int y = 0; y < nrows; ++y) {
+        for (int x = 0; x < ncols; ++x) {
+            for (int r = 0; r < nrad; ++r) {
+                int sum = 0;
+                for (int dy = -dCell; dy <= dCell; ++dy) {
+                    int yy = y + dy;
+                    if (yy < 0 || yy >= nrows) continue;
+                    for (int dx = -dCell; dx <= dCell; ++dx) {
+                        int xx = x + dx;
+                        if (xx < 0 || xx >= ncols) continue;
+                        for (int dr = -dRad; dr <= dRad; ++dr) {
+                            int rr = r + dr;
+                            if (rr < 0 || rr >= nrad) continue;
+                            sum += accumulator[yy][xx][rr];
+                        }
+                    }
+                }
+                smoothed[y][x][r] = sum;
+            }
+        }
+    }
+    return smoothed;
+}
 
 TH2Poly* HoughFitter::RecoveredHits(TGraph* circle, TH2Poly* event, int points, char* title){
     
@@ -285,25 +322,9 @@ TH2Poly* HoughFitter::RecoveredHits(TGraph* circle, TH2Poly* event, int points, 
 }
 
 
-TH2Poly* HoughFitter::PlotAccumulator(std::vector<std::vector<int>> & accumulator,std::vector<double> Radii ){
-    
-    TH2Poly* accumulator_graph  = new TH2Poly();
-    int Nbins = accumulator.size();
-    int dr = Radii.size();
-    cout << Nbins << " "  << Radii.size() << endl;
-    
-    for (int bin = 1; bin < Nbins; bin++) {
-        for (int idr = 0; idr < dr; idr++) {
-            
-            accumulator_graph->AddBin(bin,Radii[idr], bin+1, Radii[idr+1]);
-            int bb = accumulator_graph->FindBin(bin, Radii[idr]);
-            accumulator_graph->SetBinContent(bb, accumulator[bin][idr]*100);
-            
-        }
-    }
-    cout << "Filled" << endl;
-    accumulator_graph->SetTitle("Accumulator 2D");
-    return accumulator_graph;
+std::vector<std::vector<std::vector<int>>> HoughFitter::GetAccumulator(){
+     
+    return this->accumulator;
 }
 
 std::vector<std::tuple<int,int, double>> HoughFitter::GetCirclesCenters(int to_find)
@@ -312,7 +333,17 @@ std::vector<std::tuple<int,int, double>> HoughFitter::GetCirclesCenters(int to_f
 	edges =  this->EdgePoints();
 	radii = this->linspace(minRadius,maxRadius,nRadii);
 	this->HoughCircleTransform(edges, radii, nRadii, cols, rows, accumulator);
-	return this->findBestCircle(accumulator, radii,to_find);
+
+	std::vector<std::vector<std::vector<int>>> smoothedAcc =
+	    (fSmoothDCell > 0 || fSmoothDRad > 0)
+	    ? this->SmoothAccumulator(accumulator, fSmoothDCell, fSmoothDRad)
+	    : accumulator;
+	std::vector<std::tuple<int,int,double>> circles = this->findBestCircle(smoothedAcc, radii,to_find);
+	if (minVoteFraction > 0. && !edges.empty() &&
+	    lastBestScore < minVoteFraction * (double)edges.size()) {
+		return {};
+	}
+	return circles;
 
 }//end GetCirclesCenters
 

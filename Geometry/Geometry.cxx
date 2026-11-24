@@ -490,6 +490,8 @@ Plane::Plane() :
 	 if(!once){
 	   once =true;
 	   fmPMTPlanePos = fArichCenterPos + (TVector3)arich_v->GetNode(j)->GetMatrix()->GetTranslation();
+	   TGeoBBox* pmt_b = (TGeoBBox*)arich_v->GetNode(j)->GetVolume()->GetShape();
+     	   fmPMTPlaneThick = pmt_b->GetDZ();
 	  }
           emph::arich_util::PMT mpmt;
           int num = mpmt.findBlockNumberFromName(name);

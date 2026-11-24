@@ -1,23 +1,47 @@
+# ---- generation ----
 #include "Services.fcl"
-#include "GetDataML.fcl"
+#include "Geometry.fcl"
+#include "MagneticField.fcl"
+#include "RunHistory.fcl"
+#include "BeamGen.fcl"
+#include "G4Gen.fcl"
+
 #include "SSDDigitizer.fcl"
 #include "ARICHDigitizer.fcl"
 #include "RelabelRawDigitModules.fcl"
+#include "SSDEfficiency.fcl"
+
 #include "MakeArichCluster.fcl"
+#include "GetDataML.fcl"
 
 process_name: GetDataML
 
 services:
-{
-  TFileService: { fileName: "%ifb.dataML.root" closeFileFast: false }
-  @table::standard_services
+{ 
+  @table::sim_services
+  
+  TFileService:          { fileName: "mc_g4_to_caf_hist_pions.root" closeFileFast: false }
+  scheduler:             { wantSummary: false }
+  TimeTracker:           {}
+  
+  # needed by Geant4 generation
+  RandomNumberGenerator: {}
+  MagneticFieldService:  @local::standard_magfield
+  RunHistoryService:     @local::standard_runhistory
+  SSDEfficiencyService: @local::data_ssdefficiency
+  IFBeam:                {}
 }
+
+services.AlignService.IsDisabled: true
 
 source:
 {
-  module_type: RootInput
-  maxEvents:  -1        # Number of events to create
+  module_type: EmptyEvent
+  maxEvents:   1000        # override with -n on the command line / grid
+  firstRun:    2408
+  firstSubRun: 1
 }
+
 
 outputs:
 {
@@ -38,6 +62,11 @@ physics:
   producers:
 
    {	
+
+    generator:    @local::proton_sliced
+    geantgen:     @local::standard_geant4
+
+
     rawSSD:        @local::standard_ssddigitizer
     rawARICH:      @local::standard_arichdigitizer
     raw:           @local::standard_digitrelabel	
@@ -51,7 +80,7 @@ physics:
 	getdata: @local::standard_getdataML
  }	
 
-  prods: [ rawSSD, rawARICH, raw, arichcluster ]
+  prods: [generator, geantgen, rawSSD, rawARICH, raw, arichcluster ]
 
   trigger_paths: [ prods]
  
@@ -62,3 +91,13 @@ physics:
   stream1: [ out1 ]
 
 }
+
+physics.producers.generator.UseRunHistory: false
+physics.producers.generator.particleType: "mix"
+physics.producers.generator.pzDist: "flat"
+physics.producers.generator.PMean: 6
+physics.producers.generator.Psigma: 4
+
+physics.producers.rawARICH.IncludeNoise: false
+physics.analyzers.getdata.TorchFile: "arich_training_nonoise.pt"
+

@@ -36,7 +36,6 @@ namespace caf
 
      float center[2] = {arings[ringId].XCenter(),arings[ringId].YCenter()};
 	
-
       srARing.nhit = arings[ringId].NHits();
       srARing.radius =  arings[ringId].Radius();
       srARing.theta_C = arings[ringId].GetTheta();
@@ -44,10 +43,11 @@ namespace caf
       srARing.P_pion =  arings[ringId].GetP_Pion();
       srARing.P_kaon =  arings[ringId].GetP_P_Kaon();
       srARing.P_proton =  arings[ringId].GetP_Proton();     
+      srARing.used_track = arings[ringId].GetUsedTrack();
 
       srARing.SetCenter(center);      
-
      } // end for ringId
+
 
   }
 

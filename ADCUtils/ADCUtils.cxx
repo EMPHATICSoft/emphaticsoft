@@ -21,10 +21,20 @@ namespace adcu{
   }
   //----------------------------------------------------------------------
   
-  ADCUtils::ADCUtils(const emph::rawdata::WaveForm& wvfm, const emph::st::SignalTime& stmap, const int& tlow, const int& thigh)
+  ADCUtils::ADCUtils(const emph::rawdata::WaveForm& wvfm, const emph::st::SignalTime& stmap, const int& tlow, const int& thigh, const int& slopeMin)
   {
     _v1720index = wvfm.Board()*8 + wvfm.Channel();
     _exptime = stmap.SigTime(_v1720index);
+
+    // Locate the hit on the waveform when asked to.  This has to happen before
+    // the baseline, because CalcBaseline picks its signal-free region from the
+    // hit sample; CalcTimeSample itself needs neither the baseline nor the map.
+    // A channel with no qualifying falling edge keeps the map window, so a
+    // record with no signal integrates exactly the pedestal it always did.
+    int ts = (slopeMin > 0) ? this->CalcTimeSample(wvfm, slopeMin) : -1;
+    _selftimed = (ts >= 0);
+    _hittime = _selftimed ? ts : _exptime;
+
     _baseline = this->CalcBaseline(wvfm);
     _time = this->CalcTime(wvfm);
     _charge = this->CalcCharge(wvfm, tlow, thigh);
@@ -33,8 +43,8 @@ namespace adcu{
   //----------------------------------------------------------------------
   float ADCUtils::CalcBaseline(const emph::rawdata::WaveForm& wvfm) const
   {
-      int tmin = _exptime - 15;
-      int tmax = _exptime + 30;
+      int tmin = _hittime - 15;
+      int tmax = _hittime + 30;
       if (tmin<0) tmin=0;
       if (tmax>108) tmax=108;
 
@@ -62,12 +72,13 @@ namespace adcu{
       return tm;
   }
   //......................................................................
-  float ADCUtils::CalcTime(const emph::rawdata::WaveForm& wvfm) const
+  int ADCUtils::CalcTimeSample(const emph::rawdata::WaveForm& wvfm, const int& slopeMin) const
   {
-      //returns time of hit according to steepest slope
+      //sample of the steepest slope, requiring it to be at least slopeMin deep.
+      //slopeMin<=0 reproduces the original "any falling sample counts".
       int timemax = this->CalcTimeMax(wvfm);
-      int time=0;
-      int steepest_slope=0;
+      int time=-1;
+      int steepest_slope = (slopeMin>0) ? -slopeMin+1 : 0;
       for (size_t i=0; i<wvfm.NADC(); ++i){
           if (i==0) continue;
           else {
@@ -79,6 +90,15 @@ namespace adcu{
               }
           }
       }
+      return time;
+  }
+
+  //......................................................................
+  float ADCUtils::CalcTime(const emph::rawdata::WaveForm& wvfm) const
+  {
+      //returns time of hit according to steepest slope
+      int time = this->CalcTimeSample(wvfm,0);
+      if (time<0) time=0;
       return 4.*time; //convert to ns
   }
 
@@ -86,8 +106,8 @@ namespace adcu{
   float ADCUtils::CalcCharge(const emph::rawdata::WaveForm& wvfm, const int& tlow, const int& thigh) const
   {
       //Fixed Window Integration
-      int tmin = _exptime - tlow;
-      int tmax = _exptime + thigh;
+      int tmin = _hittime - tlow;
+      int tmax = _hittime + thigh;
       if (tmin<0) tmin=0;
       if (tmax>108) tmax=108;
 

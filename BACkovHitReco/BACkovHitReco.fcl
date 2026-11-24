@@ -3,6 +3,8 @@ BEGIN_PROLOG
 standard_backovhitreco:
 {
   module_type: BACkovHitReco
+  DumpWaveforms: true   # read raw:BACkov and write waveform plots/tree
+  FillTree:      false
 }
 
 END_PROLOG

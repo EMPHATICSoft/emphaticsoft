@@ -6,7 +6,7 @@
 #endif
 
 #include <iostream>
-
+#include <regex>
 
 namespace tml { 
 
@@ -23,6 +23,7 @@ namespace tml {
 
   void NeuralNet::loadModel(const std::string& path) {
     pimpl->module = torch::jit::load(path);
+
     pimpl->module.to(pimpl->device);
   }
 

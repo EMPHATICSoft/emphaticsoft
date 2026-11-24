@@ -72,13 +72,16 @@ namespace emph {
     std::vector<sim::ARICHHit>  fARICHHits;                 ///< The information for LeadGlass hits.
 
     art::ServiceHandle<emph::geo::GeometryService> fGeo; // We will use the G4Geometry.. instead.. 
-    
+
+    int ngamma_gen_aero0;
+    int ngamma_gen_aero1;
+
     //
     // Convenient way to get information for within event debugging.. 
     //
     G4RunManager *fRunManager; // Can we access the Physical volumes and navigate the geometry.. 
     
-    std::ofstream fFOutStudy1;
+    std::ofstream fARICHfile; 
     //
     // Internal stepping function, for geantinos, vs ASCII tracking, vs high statistics geantinos. 
     //

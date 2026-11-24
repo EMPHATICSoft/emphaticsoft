@@ -7,6 +7,7 @@ standard_arich_cluster:
   FillTree:       true
   ClusterLowT: 	  -290  
   ClusterHighT:   -260
+  MaxToT:	  50
   DensityThreshold: 10
 }
 

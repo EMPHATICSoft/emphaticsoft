@@ -107,6 +107,7 @@ namespace emph {
     float fClustLo; // Signal/selection window low: single source for both the per-hit cluster id
     float fClustHi; // Signal/selection window high: single source for both the per-hit cluster id
     int fThreshold;   // ns; used by the gap/density clustering helpers (NOT by the active LumberJack window)
+    float fMaxToT;
 
     // ---- diagnostic tree branches (all per-hit ones are filled in lockstep) ----
     double nhits;                  // number of hits in the event (= hits.size())
@@ -128,6 +129,7 @@ namespace emph {
     fFillTree   = bool(pset.get<bool>("FillTree"));
     fClustLo = float(pset.get<float>("ClusterLowT"));
     fClustHi = float(pset.get<float>("ClusterHighT"));
+    fMaxToT = float(pset.get<float>("MaxToT"));
     fThreshold = float(pset.get<float>("DensityThreshold"));
     fEvtNum = 0;
     
@@ -356,8 +358,9 @@ void emph::MakeArichCluster::produce(art::Event& evt)
 
             double lead  = leadTimes[l];
 	    
-            double lead_next  = l<leadTimes.size()-1 ? leadTimes[l+1] : 1000;
-            std::vector<double> trail_found;
+	    double lead_next = l<leadTimes.size()-1 ? leadTimes[l+1] : lead + fMaxToT;
+	    lead_next = std::min(lead_next, lead + fMaxToT); 
+           std::vector<double> trail_found;
         
 	    for (unsigned int t=0;t<trailTimes.size();t++) {
               if (trailTimes[t]>lead && trailTimes[t]<lead_next ) {

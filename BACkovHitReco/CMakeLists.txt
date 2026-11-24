@@ -11,6 +11,7 @@ cet_build_plugin(BACkovHitReco art::module
 		 art_root_io::TFileService_service
 		 messagefacility::MF_MessageLogger
 		 ROOT::Hist
+		 ROOT::Tree
 )
 
 install_source()
