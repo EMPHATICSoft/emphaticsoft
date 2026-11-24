@@ -308,6 +308,8 @@ namespace rawdata {
     while (cfragIter != C1720ContainerFragments.end()) {
       // initialize counter
       fFragCounter[(*cfragIter).first] = 0;
+      if (std::find(fCAENFragIds.begin(),fCAENFragIds.end(),(*cfragIter).first) == fCAENFragIds.end())
+	fCAENFragIds.push_back((*cfragIter).first);
 
       // now make digits
       while (! ((*cfragIter).second.empty())) {
@@ -536,6 +538,30 @@ namespace rawdata {
 		fSSDRawDigits[0].first = 0;
 		return isJittery;
 	}
+	bool Unpacker::fixCAENTimestamps() {
+		// The V1720 timestamps come from a 31-bit counter with 8 ns ticks, so they wrap every
+		// 2^31 * 8 ns = 17.18 s, which can fall inside a spill (e.g. run 2126 subrun 50: every
+		// board steps back by 17.147 s at the same trigger). Unwrap each board in file order:
+		// a wrap shows up as a step back of 17.18 s minus the gap to the next trigger (gaps are
+		// at most ~5.3 s, after the spill), so a step back of more than 10 s is a wrap; smaller
+		// backward steps (ms to ~2 s, seen only in boards with scrambled data) are left alone.
+		// The first timestamp of a spill is always 0 (a marker, skipped in the matching).
+		const uint64_t wrap = (uint64_t(1) << 31) * 8;
+		const uint64_t maxBackStep = 10000000000ULL; // 10 s in ns
+		bool wrapped = false;
+		for(auto fragId : fCAENFragIds) {
+			auto& ts = fFragTimestamps[fragId];
+			uint64_t add = 0;
+			for(size_t index = 2; index < ts.size(); ++index) {
+				if(ts[index] + add + maxBackStep < ts[index-1]) {
+					add += wrap;
+					wrapped = true;
+				}
+				ts[index] += add;
+			}
+		}
+		return wrapped;
+	}
 	bool Unpacker::determineGrandfather() {
 		// determine grandfather clock
 		fragIdGrandfather = fFragId[0];
@@ -681,6 +707,9 @@ namespace rawdata {
 
 			if(fixSSDTimestamps())
 				std::cout << "SSDs are jittery" << std::endl;
+
+			if(fixCAENTimestamps())
+				std::cout << "CAEN timestamps wrapped (31 bit x 8 ns), unwrapped" << std::endl;
 
 			if(!determineGrandfather())
 				std::cout << "Unable to determine grandfather clock" << std::endl;

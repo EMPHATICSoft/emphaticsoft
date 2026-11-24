@@ -62,6 +62,7 @@ namespace emph {
       void    makeDiffDiffHistos(artdaq::Fragment::fragment_id_t idA, artdaq::Fragment::fragment_id_t idB);
 
       bool    fixSSDTimestamps();
+      bool    fixCAENTimestamps();
       bool    determineGrandfather();
       bool    findMatches(artdaq::Fragment::fragment_id_t idChild, int timeUncertainty);
       bool    findMatches(int timeUncertainty);
@@ -113,6 +114,7 @@ namespace emph {
       std::string   fCurrentFilename;
 
       std::vector<artdaq::Fragment::fragment_id_t> fFragId;
+      std::vector<artdaq::Fragment::fragment_id_t> fCAENFragIds; // V1720 boards (their timestamps wrap, see fixCAENTimestamps)
       artdaq::Fragment::fragment_id_t fragIdGrandfather;
 
       std::unordered_map<artdaq::Fragment::fragment_id_t,size_t> fFragCounter;
