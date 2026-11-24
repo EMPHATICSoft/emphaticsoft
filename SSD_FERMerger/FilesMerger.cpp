@@ -364,6 +364,14 @@ namespace ssd {
 	      const std::vector<std::string>& boardBufs = boardBuffers_[stationName];
 	      for (size_t ib = 0; ib < boardBufs.size(); ++ib) {
 	      const std::string& data = boardBufs[ib];
+	      // Timestamp fix: subrun of this buffer ({previous, current, next}) and the High BCO bits it starts with.
+	      const int fileSub = atoi(subrunNumber_.c_str()) + (int)ib - 1;
+	      uint64_t highBco = 0;
+	      {
+		std::map<int,uint64_t>& ends = highBcoEnd_[stationName];
+		std::map<int,uint64_t>::iterator it = ends.lower_bound(fileSub);
+		if (it != ends.begin()) { --it; highBco = it->second; }
+	      }
 	      if (data.size() <= 8) continue;
 	      uint32_t word = 0;
 	      uint32_t bco = 0;
@@ -374,7 +382,6 @@ namespace ssd {
 	      uint32_t previousTriggerNumber_ = -1;
 	    
 	      uint64_t veryFirstTrigger_ = 0;
-	      uint64_t highBco = 0;
 	      bool getout = false;
 	      bool isFirstTrigger = true;
 	    
@@ -707,6 +714,7 @@ namespace ssd {
 		    } //END of BLOCK
 		}
 	      cout << "If station 0, 1, 2 or 3 must match  Last Trigger #: " << dec << triggerNumber_ << "-------------" << endl;
+	      highBcoEnd_[stationName][fileSub] = highBco;  // timestamp fix: carried into the next subrun file
 	      } // end of loop over the board's subrun files
 	      //cout << " Number of unmatched triggers: " << dec << unmatchedTriggers << endl;
 	    }
