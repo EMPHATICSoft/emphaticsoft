@@ -60,27 +60,27 @@
 
 		std::sort(dt.begin(), dt.end());
 
+		// Centre the search on the densest window of width 2*timeUncertainty, not on the most
+		// frequent exact value: true pairs scatter by tens of ns, so they rarely share an exact
+		// value, and the exact mode often lands on a random repeat or on the first sorted value.
+		// Two pointers over the sorted differences: j never moves back, so this is one pass.
 		int64_t bestTimeDiff = 0;
 		size_t bestCount = 0;
 		{
-			int64_t currTimeDiff= 0;
-			size_t currCount = 0;
-			for(auto value : dt) {
-				if(value != currTimeDiff) {
-					if(currCount > bestCount) {
-						bestCount = currCount;
-						bestTimeDiff = currTimeDiff;
-					}
-					currTimeDiff = value;
-					currCount = 1;
-				} else {
-					++currCount;
+			size_t bestStart = 0;
+			for(size_t k = 0, j = 0; k < dt.size(); ++k) {
+				if(j < k) j = k;
+				while(j < dt.size() && dt[j] - dt[k] <= 2 * (int64_t)timeUncertainty) ++j;
+				if(j - k > bestCount) {
+					bestCount = j - k;
+					bestStart = k;
 				}
 			}
-			if(currCount > bestCount) {
-				bestCount = currCount;
-				bestTimeDiff = currTimeDiff;
-			}
+			double centre = 0;
+			for(size_t i = bestStart; i < bestStart + bestCount; ++i)
+				centre += dt[i];
+			if(bestCount > 0)
+				bestTimeDiff = std::round(centre / bestCount);
 		}
 
 		bestCount = 0;
