@@ -19,7 +19,10 @@ namespace caf
     hasarichhits(std::numeric_limits<bool>::signaling_NaN()),
     hasrpchits(std::numeric_limits<bool>::signaling_NaN()),
     hasssdhits(std::numeric_limits<bool>::signaling_NaN()),
-    trigcoinc(std::numeric_limits<int>::signaling_NaN())
+    trigcoinc(std::numeric_limits<int>::signaling_NaN()),
+    hassyncinfo(false),
+    notsynceddets(0),
+    syncdegradeddets(0)
   {
   }
 

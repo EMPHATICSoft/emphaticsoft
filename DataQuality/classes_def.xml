@@ -4,7 +4,8 @@
 <!--  lines and for all objects that are data members of those objects.-->
 
 <lcgdict>
-  <class name="emph::dq::EventQuality"  ClassVersion="14">
+  <class name="emph::dq::EventQuality"  ClassVersion="15">
+   <version ClassVersion="15" checksum="1274678086"/>
    <version ClassVersion="14" checksum="1659176615"/>
    <version ClassVersion="13" checksum="3441039735"/>
    <version ClassVersion="12" checksum="3506197218"/>
@@ -16,6 +17,18 @@
    <version ClassVersion="11" checksum="338245205"/>
    <version ClassVersion="10" checksum="4190508460"/>
   </class>
+  <class name="emph::dq::BoardSync"  ClassVersion="10" >
+   <version ClassVersion="10" checksum="3354585829"/>
+  </class>
+  <class name="emph::dq::SyncQuality"  ClassVersion="10" >
+   <version ClassVersion="10" checksum="1973766123"/>
+  </class>
+  <class name="std::vector<emph::dq::BoardSync>" />
+  <class name="emph::dq::EventSync"  ClassVersion="10" >
+   <version ClassVersion="10" checksum="57616967"/>
+  </class>
   <class name="art::Wrapper<emph::dq::EventQuality>" />
   <class name="art::Wrapper<emph::dq::SpillQuality>" />
+  <class name="art::Wrapper<emph::dq::SyncQuality>" />
+  <class name="art::Wrapper<emph::dq::EventSync>" />
 </lcgdict>

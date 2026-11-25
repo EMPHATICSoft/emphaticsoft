@@ -28,6 +28,9 @@ namespace caf
     stdrec.evtqual.hast0trb3      = eventqual->hasT0TRB3;
     stdrec.evtqual.hasarichhits   = eventqual->hasARICHHits;
     stdrec.evtqual.hasrpchits     = eventqual->hasRPCHits;
+    stdrec.evtqual.hassyncinfo      = eventqual->hasSyncInfo;
+    stdrec.evtqual.notsynceddets    = eventqual->notSyncedDetectors;
+    stdrec.evtqual.syncdegradeddets = eventqual->syncDegradedDetectors;
 
   }
 

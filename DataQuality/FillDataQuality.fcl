@@ -12,6 +12,7 @@ standard_dataqual:
 	ARICHDataLabel: "raw:ARICH"
 	RPCDataLabel: "raw:RPC"
 	SSDDataLabel: "raw:SSD"
+	SyncQualityLabel: "raw:TimeSync"
 }
 
 END_PROLOG
