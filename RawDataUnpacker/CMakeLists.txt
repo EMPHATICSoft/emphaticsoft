@@ -35,6 +35,7 @@ art_make_library(LIBRARY_NAME RawDataUnpacker
 cet_build_plugin(RawDataUnpacker art::source
   LIBRARIES   PRIVATE
   RawData
+  DataQuality
   RawDataUnpacker
   ChannelMap
   RunHistory

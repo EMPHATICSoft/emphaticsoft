@@ -26,7 +26,6 @@ source:
   readSSDData:  true
   readTRB3Data: true
   readCAENData: true
-  firstSubRunHasExtraTrigger: true
   # Number of Front End Readouts for SSD merging
   NFER: 5
   # SSD clock factor
