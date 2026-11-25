@@ -155,7 +155,6 @@
 	template <typename T>
 	std::tuple<uint64_t, uint64_t, uint64_t, int64_t> calibrateXcorr(std::vector<T> grandfather, std::vector<T> child, double percentOverlap, int timeUncertainty) {
 		// Outputs: { index of last synced event, timeOffset }
-		uint64_t index = 0;
 		uint64_t N_occur = 0;
 		int64_t timeOffset = 0;
 
