@@ -24,6 +24,7 @@
 // emphaticsoft includes
 #include "DataQuality/EventQuality.h"
 #include "DataQuality/SpillQuality.h"
+#include "DataQuality/SyncQuality.h"
 #include "RawData/TRB3RawDigit.h"
 #include "RawData/SSDRawDigit.h"
 #include "RawData/WaveForm.h"
@@ -67,6 +68,8 @@ namespace emph {
       std::string fRPCDataLabel;
 
       std::string fSSDDataLabel;
+
+      std::string fSyncQualityLabel; // the unpacker's time-sync record of each event (EventSync)
     };
 
     //.......................................................................
@@ -86,6 +89,7 @@ namespace emph {
       fRPCDataLabel = pset.get<std::string>("RPCDataLabel");
 
       fSSDDataLabel = pset.get< std::string >("SSDDataLabel");
+      fSyncQualityLabel = pset.get< std::string >("SyncQualityLabel", "raw:TimeSync");
       // Call appropriate produces<>() functions here.
       // Call appropriate consumes<>() for any products to be retrieved by this module.
       produces< EventQuality >();
@@ -248,6 +252,15 @@ namespace emph {
       }
 
       // Place EventQuality object into event
+      // time sync, from the unpacker's record of this event: a detector not synced has no hits
+      // here even if the beam hit it (the reasons are in the spill's SyncQuality flags)
+      art::Handle<EventSync> eventsync;
+      if (evt.getByLabel(fSyncQualityLabel, eventsync) && eventsync.isValid()) {
+          eventqual->hasSyncInfo = true;
+          eventqual->notSyncedDetectors = eventsync->notSyncedDetectors;
+          eventqual->syncDegradedDetectors = eventsync->degradedDetectors;
+      }
+
       evt.put(std::move(eventqual));
     }
 

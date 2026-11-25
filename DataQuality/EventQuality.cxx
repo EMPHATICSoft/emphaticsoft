@@ -18,7 +18,10 @@ namespace emph {
       hasARICHHits(false),
       hasRPCHits(false),
       hasSSDHits(false),
-      trigCoincLevel(0)
+      trigCoincLevel(0),
+      hasSyncInfo(false),
+      notSyncedDetectors(0),
+      syncDegradedDetectors(0)
     {
     }
     //----------------------------------------------------------------------
@@ -36,6 +39,9 @@ namespace emph {
       o << "Has RPC hits?: " << eq.hasRPCHits << std::endl;
       o << "Has SSD hits?: " << eq.hasSSDHits << std::endl;
       o << "Number of trigger PMTs above threshold: " << eq.trigCoincLevel << std::endl;
+      o << "Has time-sync info?: " << eq.hasSyncInfo << std::endl;
+      o << "Detectors not synced: 0x" << std::hex << eq.notSyncedDetectors << std::endl;
+      o << "Detectors sync-degraded: 0x" << eq.syncDegradedDetectors << std::dec << std::endl;
       o << "Event passes quality checks: " <<eq.isEventGood() <<std::endl;
       return o;
     }

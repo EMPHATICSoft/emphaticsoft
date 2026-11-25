@@ -13,7 +13,6 @@
   <version ClassVersion="15" checksum="142906859"/>
   <version ClassVersion="14" checksum="101113006"/>
   <version ClassVersion="13" checksum="142906859"/>
-  <version ClassVersion="12" checksum="2588380332"/>
   <version ClassVersion="11" checksum="1542996796"/>
   <version ClassVersion="10" checksum="3065678388"/>
  </class>
@@ -38,7 +37,9 @@
   <version ClassVersion="10" checksum="1710063260"/>
  </class>
 
- <class name="caf::SREventQual" ClassVersion="11" >
+ <class name="caf::SREventQual" ClassVersion="13" >
+  <version ClassVersion="13" checksum="1664456520"/>
+  <version ClassVersion="12" checksum="228663304"/>
   <version ClassVersion="11" checksum="660893695"/>
   <version ClassVersion="10" checksum="608250607"/>
  </class>

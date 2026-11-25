@@ -42,6 +42,23 @@ namespace ssd {
       
       Run                                    theRun;
       std::string                            rd53FileName_;
+
+      // Trigger-alignment fix (2026-11-24): every board's trigger numbers are counted from
+      // FER0's first trigger in this subrun, and only triggers inside FER0's range are kept.
+      // The boards' subrun files are cut at different triggers (counters run through the run),
+      // so each board's previous and next subrun files are read too.
+      std::string                                     dir_;
+      std::map<std::string,std::vector<std::string> > boardBuffers_;   // per board: {previous, current, next} subrun data
+      // Timestamp fix (2026-11-24): per board, the High BCO bits at the end of each parsed subrun file. FER0/FER1 send a
+      // High BCO word only when those bits change, so most files have none; each file starts from the previous file's bits.
+      std::map<std::string,std::map<int,uint64_t> > highBcoEnd_;
+      // Ring buffer of raw data per board, subruns N-1..N+1 of run cacheRun_: when subruns are merged in order,
+      // every raw file is read from disk once (as the N+1 lookahead) and reused for N and N-1.
+      std::map<std::string,std::map<int,std::string> > rawCache_;
+      std::string                                     cacheRun_;
+      uint64_t                                        refFirstTrigger_ = 0, refLastTrigger_ = 0;
+      std::vector<std::string> findStationFiles(const std::string& station, const std::string& subrun);
+      static bool triggerRange(const std::string& data, uint64_t& first, uint64_t& last);
       //std::map<uint64_t,PxEvent*> memory_;
       
     };
